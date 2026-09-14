@@ -659,6 +659,12 @@ local function pushUndo(action, lights)
 	end
 	undoStack[#undoStack + 1] = { action = action, lights = lights }
 	redoStack = {}
+	-- Every light edit passes here: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("lights")
+	end
 end
 
 local function doUndo()

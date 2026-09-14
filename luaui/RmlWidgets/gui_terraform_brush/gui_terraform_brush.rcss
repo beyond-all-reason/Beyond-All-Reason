@@ -333,22 +333,30 @@ body {
 	white-space: nowrap;
 }
 .tf-ss-mode {
+	flex: 0 0 auto;
 	font-weight: bold;
 	font-size: 1.5rem;
 	letter-spacing: 0.5dp;
+	white-space: nowrap;
 }
 .tf-ss-sep {
 	color: #ffffff18;
 	font-size: 1.3rem;
 }
 .tf-ss-label {
+	flex: 0 0 auto;
 	color: #6b7280;
 	font-size: 1.3rem;
+	white-space: nowrap;
 }
 .tf-ss-val {
+	flex: 0 1 auto;
+	min-width: 0;
 	color: #d1d5db;
 	padding-left: 2dp;
 	font-size: 1.4rem;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 /* Save-progress segments in the status summary (FILE > Save): one box per
@@ -356,13 +364,21 @@ body {
    The strip itself is a space-evenly flex row, so the segments sit inside
    their own flex wrapper (one compact bar, not 18 spread-out items). Divs,
    not inline-block spans: RmlUi has no inline-block, empty spans collapse. */
+/* The bar gives way before the label does: twenty saver steps at 9dp each
+   did not fit the strip, and the step name was what got clipped. */
 .tf-ss-segwrap {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
 }
 .tf-ss-seg {
-	width: 9dp;
+	flex: 1 1 0;
+	width: auto;
+	min-width: 3dp;
+	max-width: 9dp;
 	height: 9dp;
 	margin-right: 2dp;
 	border-radius: 1dp;
@@ -1613,6 +1629,41 @@ body {
 	pointer-events: none;
 }
 
+/* The project under the pointer while it is being dragged onto a folder:
+   its sync dot and its name, above every window, never in the way of the
+   hit test (which reads element rects, not events). */
+.tf-project-dragghost {
+	position: absolute;
+	z-index: 1150;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 7dp;
+	padding: 5dp 11dp;
+	border: 1dp #2ba5ea;
+	border-radius: 5dp;
+	background-color: #10344eee;
+	color: #ffffff;
+	font-size: 1.2rem;
+	font-weight: bold;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+/* Its own display value would outrank the shared .hidden rule (later in the
+   cascade, same specificity), so hidden is restated with more weight. */
+.tf-project-dragghost.hidden {
+	display: none;
+}
+
+.tf-project-dragghost .tf-proj-dot {
+	margin: 0;
+}
+
+.tf-project-dragghost-text {
+	flex: 0 0 auto;
+}
+
 /* === Quit Button === */
 /* Hover-only override: every window X pairs this with tf-header-btn, which
    supplies the box (22dp, rounded, transparent border). Later in the sheet
@@ -2179,39 +2230,973 @@ body {
 
 /* Open Project rows: clicking one selects it; LOAD and DELETE sit at the
    bottom of the dialog and act on the selection. */
-.tf-proj-row.selected {
-	background-color: #1f3a4d;
-	border: 1dp #2ba5ea;
+.tf-proj-folder.selected .tf-proj-folder-name {
+	color: #ffe9b0;
 }
 
 .tf-proj-row.selected .tf-hm-mapname {
 	color: #ffffff;
 }
 
-/* The Open Project window is wider than the shared .tf-newmap-window and its
-   rows are set larger: project names and the folder tree need the room, and
-   the base row sizes (kept by the heightmap browser) read too small in a list
-   that is browsed rather than glanced at. Scoped to .tf-proj-row so the Save
-   Project list gets the same type. */
-#tf-project-open-root {
-	width: 440dp;
+/* Save and Open share one frame: a header, a body that grows with the window
+   and a footer pinned outside the scroll, so the button that commits the
+   operation is always on screen. Widths follow desktop file dialogs -- the
+   list is the content, so it gets the space and everything else is chrome. */
+.tf-project-window {
+	display: flex;
+	flex-direction: column;
+	max-width: 94vw;
 }
 
-.tf-proj-row {
-	padding: 7dp 10dp;
+/* Both windows carry the same two-pane browser, so both are the same width.
+   The list column lost about a third of its width with it: at 550dp it was
+   holding a 180dp name and a lot of air. */
+.tf-project-save-window {
+	width: 820dp;
+	height: 70vh;
 }
 
-.tf-proj-row .tf-hm-date {
-	font-size: 1.05rem;
-	min-width: 92dp;
+.tf-project-open-window {
+	width: 820dp;
+	height: 78vh;
 }
 
-.tf-proj-row .tf-hm-mapname {
-	font-size: 1.3rem;
+/* The body flexes and clips; the browser inside it is what scrolls. */
+.tf-project-window .tf-panel-body {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+	max-height: none;
+	overflow: hidden;
+}
+
+.tf-project-footer {
+	flex-shrink: 0;
+	border-top: 1dp #2a2f3a;
+	padding-top: 6dp;
+	margin-top: 6dp;
+}
+
+/* Mode tabs and the connection badge share one row: the tab pair switches a
+   destination, it is not the subject of the window, so it takes only the
+   width it needs and the badge trails on the right. */
+.tf-project-topbar {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 8dp;
+	margin-bottom: 6dp;
+}
+
+.tf-project-window .tf-project-tabs {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 0 0 250dp;
+	gap: 6dp;
+	margin: 0;
+}
+
+.tf-project-window .tf-project-toolbar,
+.tf-project-window .tf-project-actions,
+/* Stepper row: quiet label, prominent value, small arrows. The arrows used
+   to be 28dp squares next to 1rem text, which read as the loudest thing in
+   the tray despite being the least important. */
+.tf-project-window .tf-project-destination {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-bottom: 6dp;
+}
+
+.tf-project-window .tf-project-toolbar {
+	flex-shrink: 0;
+}
+
+.tf-project-window .tf-project-actions {
+	margin-bottom: 0;
+}
+
+/* Field labels name a control, so they stay quieter than the value beside
+   them, but not so quiet they cannot be read at a glance. */
+.tf-project-window .tf-project-field-label {
+	flex: 0 0 auto;
+	font-size: 1.2rem;
+	color: #9ca3af;
+}
+
+.tf-project-window .tf-project-icon {
+	width: 11dp;
+	height: 11dp;
+	flex-shrink: 0;
+	pointer-events: none;
+}
+
+.tf-project-window .tf-lp-compact-btn {
+	flex: 0 0 auto;
+	font-size: 1.2rem;
+	font-weight: bold;
+	text-align: center;
+	padding: 0 6dp;
+	height: auto;
+	min-height: 32dp;
+}
+
+.tf-project-window .tf-project-tab {
+	flex: 1;
+}
+
+.tf-project-window .tf-project-downloadall {
+	flex: 0 0 auto;
+	height: 32dp;
+	padding: 0 10dp;
+}
+
+/* Refresh is a maintenance action, not a step in the task: icon only, sized
+   like the search field it sits next to. */
+.tf-project-window .tf-project-refresh {
+	flex: 0 0 34dp;
+	width: 34dp;
+	height: 32dp;
+	padding: 0;
+	justify-content: center;
+}
+
+/* Whether the helper is up decides whether half this window works, so it is
+   set at the browser's own size rather than as fine print. */
+.tf-project-window .tf-project-connection {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+	flex: 1;
+	flex-wrap: wrap;
+	gap: 6dp;
+	padding: 0;
+	margin: 0;
+	font-size: 1rem;
+}
+
+.tf-project-window .tf-project-connection-state {
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+/* Offered only while the helper is down, so it reads as the way out of that
+   state rather than as another control competing with the browser. */
+.tf-project-window .tf-project-helper-btn {
+	flex: 0 0 auto;
+	height: 32dp;
+	padding: 0 12dp;
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+	color: #ffdd99;
+	font-size: 1.2rem;
+}
+
+.tf-project-window .tf-project-helper-btn:hover {
+	border-color: #fdc04c;
+	background-color: #3b2d17;
+	color: #ffffff;
+}
+
+.tf-project-window .tf-project-repository {
+	flex: 0 1 auto;
+	text-align: right;
+	word-break: break-all;
+}
+
+.tf-project-window .tf-project-branch {
+	padding: 1dp 6dp;
+	border-radius: 4dp;
+	max-width: 130dp;
+	word-break: break-all;
+}
+
+/* The search wrapper stretches across the Open toolbar row, but in the Save
+   window it is a row in a column: growing there would eat the browser's
+   height and leave the field floating in the middle of its own padding. */
+.tf-project-filter {
+	flex: 0 0 auto;
+	margin: 0;
+}
+
+.tf-project-toolbar .tf-project-filter {
+	flex: 1;
+}
+
+.tf-project-window .ll-search-input {
+	padding-right: 26dp;
+	font-size: 1.15rem;
+}
+
+.tf-project-window .ll-search-clear-btn {
+	width: 24dp;
+	height: 24dp;
+}
+
+.tf-project-window .ll-search-clear-icon {
+	width: 14dp;
+	height: 14dp;
+}
+
+/* Sortable column header. Clicking a column sorts by it; clicking the column
+   already sorted flips the direction, which is what the caret shows. */
+.tf-proj-colhead {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 0;
+	padding: 3dp 8dp 5dp;
+	border-bottom: 1dp #2a2f3a;
+	color: #8a94a6;
+	font-size: 1.1rem;
+	font-weight: normal;
+	letter-spacing: 1dp;
+	text-transform: uppercase;
+}
+
+/* Header cells are blocks: this RmlUi build draws no bare text inside a
+   flex container, which is why NAME and SYNC used to come out blank. */
+.tf-proj-colhead .tf-proj-c-name,
+.tf-proj-colhead .tf-proj-c-sync {
+	display: block;
+}
+
+.tf-proj-colhead .tf-proj-c-sync {
+	text-align: right;
+}
+
+/* The fourth column: where the project is (this disk, the team, both). Its
+   content sits against the right edge with the date, so the name column is
+   everything to the left of them. */
+.tf-proj-c-sync {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+	flex: 0 0 116dp;
+	gap: 6dp;
+	padding-left: 6dp;
+	white-space: nowrap;
+	overflow: hidden;
+	font-size: 1.2rem;
+}
+
+.tf-proj-c-sync.sync-local {
+	color: #94a3b8;
+}
+.tf-proj-c-sync.sync-team {
+	color: #7ecbf5;
+}
+.tf-proj-c-sync.sync-synced {
+	color: #46c27a;
+}
+.tf-proj-c-sync.sync-mine {
+	color: #fdc04c;
+}
+.tf-proj-c-sync.sync-theirs {
+	color: #f0a04b;
+}
+
+.tf-proj-col {
+	cursor: pointer;
+}
+
+.tf-proj-col:hover {
+	color: #cbd5e1;
+}
+
+.tf-proj-col.sorted {
+	color: #7ecbf5;
+}
+
+/* One set of column widths for the header and every row, so the list reads
+   as columns instead of as free-form two-line cards. */
+.tf-proj-c-name {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 1;
+	min-width: 0;
+	gap: 6dp;
+	padding-left: 6dp;
+	overflow: hidden;
+}
+
+/* The size wears the heightmap browser's framed badge, so a project reads the
+   same in every browser the tool has. */
+.tf-proj-c-size {
+	display: flex;
+	flex: 0 0 66dp;
+	align-items: center;
+	justify-content: flex-end;
+	padding-left: 10dp;
+	white-space: nowrap;
 }
 
 .tf-proj-row .tf-hm-badge {
+	flex: 0 0 auto;
+	padding: 1dp 7dp;
+	font-size: 1.1rem;
+	line-height: 1.35;
+}
+
+.tf-proj-c-date {
+	flex: 0 0 100dp;
+	padding-left: 8dp;
+	text-align: right;
+	white-space: nowrap;
+}
+
+/* The header's own size cell is text, not a badge, so it aligns to the right
+   edge the badges sit against. */
+.tf-proj-colhead .tf-proj-c-size {
+	display: block;
+	text-align: right;
+}
+
+.tf-project-count {
+	flex-shrink: 0;
+	padding: 5dp 2dp 0;
+	font-size: 1.2rem;
+}
+
+/* What the drag under way would do, in the row count's place while it lasts. */
+.tf-project-drag {
+	flex-shrink: 0;
+	padding: 5dp 2dp 0;
+	font-size: 1.15rem;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+/* The row being carried, and the folder it would land in. */
+.tf-proj-row.dragging {
+	opacity: 0.45;
+}
+
+.tf-proj-folder.drop-target {
+	background-color: #2b4a2f;
+}
+
+.tf-proj-folder.drop-target .tf-proj-folder-name {
+	color: #b9f0c4;
+}
+
+/* Two-pane browser: list left, details right. */
+.tf-project-split {
+	display: flex;
+	flex-direction: row;
+	flex: 1;
+	min-height: 0;
+	gap: 8dp;
+}
+
+.tf-project-listcol {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-width: 0;
+	min-height: 0;
+}
+
+.tf-project-detail {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 250dp;
+	min-height: 0;
+	padding: 8dp;
+	border: 1dp #2a2f3a;
+	border-radius: 6dp;
+	overflow-y: auto;
+}
+
+.tf-project-detail-empty {
+	font-size: 1.2rem;
+	line-height: 1.4;
+}
+
+/* The saved heightmap doubles as the thumbnail: it is the only image every
+   project has, and relief alone is enough to recognise a map by. Loaded for
+   the selected row only -- RmlUi decompresses an <img> in full, so a wall of
+   per-row thumbnails would be hundreds of MB of TexMemPool. */
+.tf-proj-preview {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	height: 150dp;
+	margin-bottom: 8dp;
+	padding: 2dp;
+	border: 1dp #2a2f3a;
+	border-radius: 4dp;
+	background-color: #0d0f14;
+	overflow: hidden;
+}
+
+.tf-proj-preview-img {
+	max-width: 100%;
+	max-height: 144dp;
+}
+
+/* MAP / HEIGHT, offered only when the project has both pictures. */
+.tf-proj-preview-modes {
+	display: flex;
+	flex-direction: row;
+	flex-shrink: 0;
+	gap: 4dp;
+	margin: -4dp 0 8dp;
+}
+
+.tf-proj-preview-mode {
+	flex: 1;
+	padding: 2dp 0;
+	border: 1dp #3a4150;
+	border-radius: 4dp;
+	background-color: #1b2029;
+	color: #a3b0c2;
+	font-size: 1.1rem;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+	transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.tf-proj-preview-mode:hover {
+	background-color: #262e3a;
+	border-color: #4d92c9;
+	color: #ffffff;
+}
+
+.tf-proj-preview-mode.active {
+	background-color: #10344e;
+	border-color: #2ba5ea;
+	color: #ffffff;
+}
+
+.tf-proj-preview-none {
+	color: #7b8494;
 	font-size: 0.95rem;
+	font-style: italic;
+}
+
+.tf-proj-detail-name {
+	font-size: 1.4rem;
+	color: #f1f5f9;
+	word-break: break-word;
+}
+
+.tf-proj-detail-path {
+	font-size: 1.1rem;
+	margin-bottom: 6dp;
+	word-break: break-all;
+}
+
+.tf-proj-detail-row {
+	display: flex;
+	flex-direction: row;
+	gap: 6dp;
+	padding: 3dp 0;
+	font-size: 1.25rem;
+}
+
+.tf-proj-detail-key {
+	flex: 0 0 104dp;
+	color: #9aa6b8;
+	font-size: 1.15rem;
+	padding-top: 1dp;
+}
+
+.tf-proj-detail-val {
+	flex: 1;
+	color: #dbe3ee;
+	word-break: break-word;
+}
+
+.tf-proj-detail-flag {
+	margin-top: 6dp;
+	font-size: 1.15rem;
+	font-weight: bold;
+}
+
+.tf-project-window .tf-hm-empty {
+	font-style: normal;
+	padding: 16dp 8dp;
+	text-align: center;
+	font-size: 1.2rem;
+}
+
+/* Both browsers fill their column. The min-height is a floor, not the size:
+   it keeps a usable list even in a window squeezed onto a short screen. */
+#tf-project-open-list,
+#tf-project-save-list {
+	flex: 1;
+	min-height: 160dp;
+	max-height: none;
+	margin: 0;
+	padding: 3dp;
+}
+
+/* Name field lives beside the action, desktop Save As style, instead of at
+   the top where the list pushed it out of the eye's path to the button. */
+.tf-project-namerow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8dp;
+	margin-bottom: 4dp;
+}
+
+.tf-project-window .tf-project-nameinput {
+	flex: 1;
+	font-size: 1.2rem;
+}
+
+/* Says which of the two things SAVE is about to do, before it is pressed. */
+.tf-project-target {
+	min-height: 16dp;
+	margin-bottom: 5dp;
+	font-size: 1.2rem;
+	word-break: break-word;
+}
+
+.tf-project-optrow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8dp;
+	margin-bottom: 6dp;
+}
+
+/* The destination, immediately before the name box and quieter than it: it is
+   context for what is being typed, and the box is the part that is being
+   edited. It can be a nested path, so it is allowed to shrink. */
+.tf-project-window .tf-project-namefolder {
+	flex: 0 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-align: right;
+}
+
+/* The switch belongs beside the thing it switches, not at the far edge of the
+   window: a label stretched across the row reads as two unrelated controls. */
+.tf-project-optrow-label {
+	flex: 0 0 auto;
+}
+
+.tf-project-window .tf-proj-folder {
+	min-height: 28dp;
+	padding: 0 8dp;
+	margin-top: 0;
+	gap: 0;
+	border-width: 0;
+	border-radius: 0;
+}
+
+.tf-project-window .tf-proj-folder-icon {
+	margin-left: 6dp;
+	margin-right: 6dp;
+}
+
+/* Stage icon sits between the expand glyph and the name, matched to the
+   name's cap height rather than the row, so it reads as a label not a button. */
+.tf-project-window .tf-proj-folder-icon {
+	width: 14dp;
+	height: 14dp;
+	flex-shrink: 0;
+	margin-right: 2dp;
+	pointer-events: none;
+}
+
+.tf-project-window .tf-proj-folder-name {
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tf-project-window .tf-project-caution {
+	font-size: 1.2rem;
+	line-height: 1.35;
+	margin: 0 0 5dp;
+}
+
+/* Sits between the two: it is the actionable feedback, and it is often three
+   or four lines, so it gets line spacing rather than more size. */
+.tf-project-window .tf-project-status {
+	border-left-width: 3dp;
+	border-radius: 4dp;
+	padding: 7dp 9dp;
+	margin-bottom: 6dp;
+	font-size: 1.2rem;
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+.tf-project-window .tf-action-btn {
+	gap: 4dp;
+}
+
+.tf-project-window .tf-action-btn-text {
+	white-space: nowrap;
+	text-align: center;
+	font-size: 1.2rem;
+}
+
+/* Footer weighting: the commit button anchors the right edge, everything
+   else keeps its own width on the left and DELETE never sits next to it. */
+.tf-project-spacer {
+	flex: 1;
+}
+
+.tf-project-window .tf-project-primary {
+	flex: 0 0 auto;
+	min-width: 168dp;
+}
+
+.tf-project-window .tf-project-secondary,
+.tf-project-window .tf-project-danger {
+	flex: 0 0 auto;
+	min-width: 96dp;
+}
+
+.tf-project-window .tf-project-danger:hover {
+	border-color: #e06c6c;
+	color: #ffd7d7;
+}
+
+.tf-project-window .tf-project-upload {
+	padding: 8dp;
+	border-left-width: 3dp;
+	border-radius: 6dp;
+	margin-top: 4dp;
+	margin-bottom: 6dp;
+}
+
+/* Destination: one chip per pipeline folder, wrapping. The chip carries the
+   same stage icon the folder tree draws, so the tray and the browser agree. */
+.tf-project-stages {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 5dp;
+	margin: 3dp 0 6dp;
+}
+
+.tf-project-stage-chip {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5dp;
+	padding: 4dp 9dp;
+	border: 1dp #3a4150;
+	border-radius: 5dp;
+	background-color: #1b2029;
+	color: #c3ccd9;
+	font-size: 1.2rem;
+	cursor: pointer;
+	transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.tf-project-stage-chip:hover {
+	background-color: #262e3a;
+	border-color: #4d92c9;
+	color: #ffffff;
+}
+
+.tf-project-stage-chip.active {
+	background-color: #10344e;
+	border-color: #2ba5ea;
+	color: #ffffff;
+	font-weight: bold;
+}
+
+.tf-project-stage-icon {
+	width: 14dp;
+	height: 14dp;
+	flex-shrink: 0;
+	pointer-events: none;
+}
+
+/* An image whose mark sits in more transparent margin than the rest needs a
+   bigger box to read the same size beside them. After the two rules it
+   overrides, so it wins on order rather than on weight. */
+.tf-project-window .tf-proj-icon-padded {
+	width: 18dp;
+	height: 18dp;
+}
+
+.tf-project-stage-name {
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.tf-project-stage-none {
+	color: #9aa6b8;
+	font-size: 1.1rem;
+	font-style: italic;
+}
+
+/* New folder: the button sits at the right of the browser toolbar, where a
+   file dialog puts it, and opens one inline row under it. */
+/* Scoped to the window so it beats the panel-wide .tf-action-btn stretch:
+   this is a toolbar button, not a footer action, and it takes its own width. */
+.tf-project-window .tf-project-newfolder-btn {
+	flex: 0 0 auto;
+	width: 150dp;
+	height: 32dp;
+	padding: 0 10dp;
+}
+
+.tf-project-newfolder-btn.active {
+	border-color: #fdc04caa;
+	background-color: #2b2113;
+}
+
+.tf-project-newfolder-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 6dp;
+	margin-bottom: 6dp;
+	padding: 5dp 6dp;
+	border: 1dp #3a4150;
+	border-left-width: 3dp;
+	border-left-color: #fdc04c;
+	border-radius: 5dp;
+	background-color: #1b2029;
+}
+
+.tf-project-newfolder-icon {
+	width: 15dp;
+	height: 15dp;
+	flex-shrink: 0;
+	pointer-events: none;
+}
+
+.tf-project-newfolder-path {
+	flex: 0 1 auto;
+	color: #9aa6b8;
+	font-size: 1.1rem;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tf-project-window .tf-project-newfolder-input {
+	flex: 1;
+	min-width: 90dp;
+	font-size: 1.2rem;
+}
+
+.tf-project-window .tf-project-newfolder-ok {
+	flex: 0 0 auto;
+	min-width: 74dp;
+}
+
+/* SHADER UPDATE row (TILESET window). The pending state is the only thing in
+   the panel that asks for attention, so it gets the warning colour and a
+   brighter border rather than the usual flat mode-button look. */
+.tf-ts-shader-sync-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.tf-ts-shader-sync {
+	flex: 1;
+	height: 26dp;
+}
+
+.tf-ts-shader-sync.pending {
+	background-color: #4a3a12;
+	border: 2dp #fdc04c;
+	color: #ffdd99;
+}
+
+.tf-ts-shader-sync.pending:hover {
+	background-color: #5d4917;
+}
+
+/* Project rows are one line, in the header's columns. The old two-line card
+   (name+badge over date) halved how many projects fitted on screen and left
+   nothing vertically aligned to scan down. */
+/* No vertical padding and no gap between rows: the guide lines are stretched
+   children, so anything between two rows breaks the line into dashes. Height
+   comes from min-height instead. */
+/* No row gap: a gap between the last tick and the row's content would leave
+   the elbow pointing at nothing. The columns carry their own spacing instead.
+   No border either, on any state: a 1dp frame insets the row's content box top
+   and bottom, which chopped every guide line into one dash per row, and its
+   left edge read as an extra tree line down the side of the selected row.
+   Hover and selection are a fill, which is what a file browser uses anyway. */
+.tf-proj-row {
+	flex-direction: row;
+	align-items: center;
+	gap: 0;
+	min-height: 30dp;
+	padding: 0 8dp;
+	margin-top: 0;
+	border-width: 0;
+	border-radius: 0;
+}
+
+.tf-proj-row:hover,
+.tf-project-window .tf-proj-folder:hover {
+	border-width: 0;
+	background-color: #232a38;
+}
+
+.tf-proj-row:active {
+	background-color: #1d2433;
+}
+
+.tf-proj-row.selected,
+.tf-proj-folder.selected {
+	border-width: 0;
+	background-color: #234a63;
+}
+
+.tf-proj-row.selected:hover,
+.tf-proj-folder.selected:hover {
+	border-width: 0;
+	background-color: #2a5876;
+}
+
+/* 1.14 set the project name large on PtaQ's and MrBob's ask, so the single
+   line keeps the size that made names readable and buys the density from the
+   second line instead. */
+.tf-proj-row .tf-proj-name-text {
+	flex: 0 1 auto;
+	color: #e5e7eb;
+	font-size: 1.2rem;
+	font-weight: bold;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tf-proj-row:hover .tf-proj-name-text,
+.tf-proj-row.selected .tf-proj-name-text {
+	color: #ffffff;
+}
+
+.tf-proj-row .tf-proj-c-date {
+	color: #a3b0c2;
+	font-size: 1.2rem;
+}
+
+/* Sync dot: where a team project stands against the copy on this disk.
+   Colour alone would be a poor signal, so each dot carries a title and the
+   two states that mean 'you do not have this' differ in fill as well as
+   shade -- new is a filled pale dot, missing a hollow grey one. */
+.tf-proj-dot {
+	flex: 0 0 auto;
+	width: 10dp;
+	height: 10dp;
+	margin: 0 2dp;
+	border: 1dp #0d0f14;
+	border-radius: 5dp;
+	background-color: #6b7280;
+}
+
+/* In sync with the team library. */
+.tf-proj-dot.synced {
+	border-color: #2f7d4f;
+	background-color: #46c27a;
+}
+
+/* Here, but not the same version. */
+.tf-proj-dot.diverged {
+	border-color: #8a6520;
+	background-color: #fdc04c;
+}
+
+/* Not on this disk, and it was not in the library last time either. */
+.tf-proj-dot.missing {
+	border-color: #4a5364;
+	background-color: #2b313c;
+}
+
+/* Not on this disk, and it is new since the last viewing. */
+.tf-proj-dot.new {
+	border-color: #aab4c4;
+	background-color: #e6ecf5;
+}
+
+/* Only on this disk: hollow, nothing to compare against. */
+.tf-proj-dot.local {
+	border-color: #4a5364;
+	background-color: transparent;
+}
+
+/* Only in the team library. */
+.tf-proj-dot.team {
+	border-color: #2ba5ea;
+	background-color: #10344e;
+}
+
+/* Here and there, this disk newer / the team newer. */
+.tf-proj-dot.mine {
+	border-color: #8a6520;
+	background-color: #fdc04c;
+}
+
+.tf-proj-dot.theirs {
+	border-color: #8a4f20;
+	background-color: #f0a04b;
+}
+
+/* The project that is open right now, so a Save As never overwrites it by
+   accident and Open never reloads what is already loaded. */
+/* The group a destination chip belongs to: present, but not competing with
+   the stage name it qualifies. */
+.tf-project-window .tf-project-stage-group {
+	flex: 0 0 auto;
+	color: #9ca3af;
+	font-size: 1.05rem;
+}
+
+.tf-proj-moving {
+	flex: 0 0 auto;
+	padding: 0 6dp;
+	border: 1dp #f0b86e80;
+	border-radius: 3dp;
+	background-color: #33240fcc;
+	color: #f0b86e;
+	font-size: 1.05rem;
+	font-weight: bold;
+	white-space: nowrap;
+}
+
+/* Confirm bar for a team-view drag plan: one line under the browser holding
+   the count and the two ways out of it. */
+.tf-project-window .tf-project-moves {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-bottom: 6dp;
+}
+
+.tf-project-window .tf-project-moves-count {
+	flex: 0 0 auto;
+	font-size: 1.2rem;
+	font-weight: bold;
+}
+
+.tf-proj-tag {
+	flex: 0 0 auto;
+	padding: 0 6dp;
+	border: 1dp #7ee0a880;
+	border-radius: 3dp;
+	background-color: #10301fcc;
+	color: #7ee0a8;
+	font-size: 1.05rem;
+	font-weight: bold;
 }
 
 /* Project tree folders: a disclosure glyph, the folder name and how many
@@ -2227,59 +3212,153 @@ body {
 	margin-top: 4dp;
 	border-radius: 4dp;
 	cursor: pointer;
-	color: #d9c28a;
-	font-size: 1.1rem;
+	color: #dbe3ee;
+	font-size: 1.25rem;
 	font-weight: bold;
 	border: 1dp transparent;
 }
 
 .tf-proj-folder:hover {
 	background-color: #232a38;
-	border: 1dp #d9c28a60;
+	border: 1dp #4d92c960;
 }
 
-.tf-proj-folder-glyph {
-	width: 14dp;
-	color: #94a3b8;
-	font-size: 0.9rem;
+/* A grouping row over the team's stages ("Map Prototypes"), and the row over
+   this disk's own folders: a heading, not a folder. Nothing to click, nothing
+   to count, no disclosure glyph; the stages under it are the folders. */
+.tf-proj-section {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 8dp;
+	padding: 9dp 8dp 3dp;
+	color: #8a94a6;
+	font-size: 1.05rem;
+	letter-spacing: 1dp;
+	text-transform: uppercase;
+	white-space: nowrap;
 }
 
-.tf-proj-folder-name {
+.tf-proj-section-title {
+	flex: 0 0 auto;
+}
+
+.tf-proj-section-note {
+	color: #5f7d99;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.tf-proj-section-rule {
 	flex: 1;
+	height: 1dp;
+	background-color: #2a2f3a;
+}
+
+/* A project that is only in the team library: listed, dimmed, still openable. */
+.tf-proj-row.remote-only .tf-proj-name-text {
+	color: #9aa6b8;
+}
+
+/* The fold control: a plain + or -, sized so it reads, in a 20dp column the
+   guide lines are measured against. No frame -- the boxed version was a large
+   empty square around a character too thin to see inside it. */
+.tf-proj-folder-glyph {
+	flex: 0 0 20dp;
+	width: 20dp;
+	padding: 0;
+	color: #cbd5e1;
+	font-size: 1.35rem;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+	transition: color 0.12s;
+}
+
+.tf-proj-folder-glyph:hover {
+	color: #ffffff;
+}
+
+/* The name takes only the width it needs, so the count can sit against it. */
+.tf-proj-folder-name {
+	flex: 0 1 auto;
 	white-space: nowrap;
 	overflow: hidden;
 }
 
+/* Everything after the count is empty space: the count belongs to the folder,
+   not to the MODIFIED column it used to right-align into, where it read as a
+   date that had lost its label. */
+.tf-proj-folder-fill {
+	flex: 1;
+}
+
 .tf-proj-folder-count {
+	flex: 0 0 auto;
+	margin-left: 8dp;
 	color: #94a3b8;
-	font-size: 0.9rem;
+	font-size: 1.15rem;
 	font-weight: normal;
 	white-space: nowrap;
 }
 
-.tf-proj-depth-1 {
-	margin-left: 14dp;
+/* One tick per level, emitted in front of the row's content, so the whole row
+   (disclosure glyph, folder icon and name alike) steps in together. The step is
+   the glyph column's own advance (20dp glyph + 6dp) and the rule sits 10dp in,
+   which is the glyph's centre line -- so a child's line drops out of the middle
+   of its parent's +/- rather than from some unrelated column. SIZE and MODIFIED
+   are fixed-width columns at the right, so they hold one column at every depth. */
+.tf-proj-tick {
+	flex: 0 0 16dp;
+	align-self: stretch;
+	margin-left: 10dp;
+	border-left: 1dp #4a5364;
 }
 
-.tf-proj-depth-2 {
-	margin-left: 28dp;
+/* A level whose folder had no more items below it leaves the column empty. */
+.tf-proj-tick.blank {
+	border-left-color: transparent;
 }
 
-.tf-proj-depth-3 {
-	margin-left: 42dp;
+/* The row's own level: the rule comes down the top half and turns right into
+   the row, and the bottom half carries on only when something follows this row
+   in its folder. Two stacked halves, because RCSS has no pseudo-elements to
+   hang a mid-height horizontal rule on. */
+.tf-proj-tick.elbow {
+	display: flex;
+	flex-direction: column;
+	border-left-width: 0;
 }
 
-.tf-proj-depth-4 {
-	margin-left: 56dp;
+.tf-proj-elbow-top {
+	flex: 1;
+	border-left: 1dp #4a5364;
+	border-bottom: 1dp #4a5364;
 }
+
+.tf-proj-elbow-bottom {
+	flex: 1;
+	border-left: 1dp #4a5364;
+}
+
+.tf-proj-elbow-bottom.blank {
+	border-left-color: transparent;
+}
+
+/* The lines keep one colour in every row state. Brightening them on hover and
+   selection also overrode `.blank`, which lit the empty columns and drew tree
+   lines where the tree has none. */
 
 /* A project's folder path, shown after the name while a search filter is on
    (the tree is flattened then, so the folder must travel with the row). */
 .tf-proj-path {
-	color: #94a3b8;
-	font-size: 0.85rem;
+	flex: 0 1 auto;
+	color: #a3b0c2;
+	font-size: 1.15rem;
 	font-weight: normal;
 	white-space: nowrap;
+	overflow: hidden;
 }
 
 /* === Absolute Height Cap Toggle === */
@@ -4209,3 +5288,425 @@ margin-top: 3dp;
 	background-color: #1d2a3a;
 	border: 1dp #2ba5eaa0;
 }
+
+/* ===== Projects window: Team Sync strip, start card, chips, TEAM block ===== */
+
+/* One line at the top of the browser: a dot, the name, what it is doing. */
+.tf-project-window .tf-project-strip {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 8dp;
+	padding: 5dp 8dp;
+	margin-bottom: 6dp;
+	border: 1dp #2a2f3a;
+	border-radius: 5dp;
+	font-size: 1.25rem;
+	color: #9aa6b8;
+}
+
+.tf-strip-dot {
+	flex: 0 0 auto;
+	width: 10dp;
+	height: 10dp;
+	border-radius: 5dp;
+	border: 1dp #4a5364;
+	background-color: transparent;
+}
+
+.tf-strip-dot.on {
+	border-color: #2f7d4f;
+	background-color: #46c27a;
+}
+
+.tf-strip-dot.busy {
+	border-color: #8a6520;
+	background-color: #fdc04c;
+}
+
+.tf-strip-name {
+	flex: 0 0 auto;
+	color: #e5e7eb;
+	font-weight: bold;
+}
+
+.tf-strip-text {
+	flex: 0 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tf-strip-age {
+	flex: 0 0 auto;
+	color: #6b7280;
+	font-size: 1.1rem;
+	white-space: nowrap;
+}
+
+/* The start card. */
+.tf-project-window .tf-project-card {
+	flex-shrink: 0;
+	padding: 9dp 11dp;
+	margin-bottom: 8dp;
+	border: 1dp #3a4150;
+	border-left-width: 3dp;
+	border-left-color: #fdc04c;
+	border-radius: 6dp;
+}
+
+.tf-project-card-title {
+	font-size: 1.35rem;
+	font-weight: bold;
+	color: #f1f5f9;
+	margin-bottom: 3dp;
+}
+
+.tf-project-card-intro {
+	font-size: 1.15rem;
+	line-height: 1.35;
+	margin-bottom: 6dp;
+}
+
+.tf-project-card-step {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 10dp;
+	margin-top: 7dp;
+}
+
+.tf-project-card-num {
+	flex: 0 0 28dp;
+	width: 28dp;
+	height: 28dp;
+	border: 1dp #4a5364;
+	border-radius: 14dp;
+	color: #cbd5e1;
+	font-size: 1.1rem;
+	font-weight: bold;
+	text-align: center;
+	line-height: 26dp;
+}
+
+.tf-project-card-num.done {
+	border-color: #2f7d4f;
+	background-color: #10301f;
+	color: #7ee0a8;
+}
+
+.tf-project-card-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.tf-project-card-text {
+	font-size: 1.2rem;
+	color: #e5e7eb;
+	padding-top: 2dp;
+}
+
+.tf-project-card-done {
+	font-size: 1.2rem;
+	font-weight: bold;
+	padding-top: 2dp;
+}
+
+.tf-project-card-pathrow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	margin-top: 5dp;
+}
+
+.tf-project-card-path {
+	flex: 1;
+	min-width: 0;
+	padding: 3dp 7dp;
+	border-radius: 4dp;
+	background-color: #0d0f14;
+	color: #7ecbf5;
+	font-size: 1.1rem;
+	word-break: break-all;
+}
+
+.tf-project-card-note {
+	font-size: 1.1rem;
+	line-height: 1.35;
+	margin-top: 5dp;
+}
+
+.tf-project-window .tf-project-card-btn {
+	flex: 0 0 auto;
+	height: 34dp;
+	padding: 0 12dp;
+	min-width: 0;
+	font-size: 1.2rem;
+}
+
+/* Filter chips: the same list, narrowed. */
+.tf-project-chips {
+	display: flex;
+	flex-direction: row;
+	flex: 0 0 auto;
+	gap: 4dp;
+}
+
+.tf-project-chip {
+	flex: 0 0 auto;
+	padding: 6dp 13dp;
+	border: 1dp #3a4150;
+	border-radius: 4dp;
+	background-color: #1b2029;
+	color: #a3b0c2;
+	font-size: 1.2rem;
+	font-weight: bold;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.tf-project-chip:hover {
+	background-color: #262e3a;
+	border-color: #4d92c9;
+	color: #ffffff;
+}
+
+.tf-project-chip.active {
+	background-color: #10344e;
+	border-color: #2ba5ea;
+	color: #ffffff;
+}
+
+/* Small uppercase headings inside the details pane. */
+.tf-proj-sum-title {
+	flex-shrink: 0;
+	margin: 2dp 0 4dp;
+	color: #8a94a6;
+	font-size: 1.05rem;
+	letter-spacing: 1dp;
+	text-transform: uppercase;
+}
+
+.tf-proj-sum-existing {
+	margin-top: 8dp;
+	padding-top: 8dp;
+	border-top: 1dp #2a2f3a;
+}
+
+/* TEAM block: the line and the buttons. */
+.tf-proj-team {
+	flex-shrink: 0;
+	margin-top: 8dp;
+	padding-top: 8dp;
+	border-top: 1dp #2a2f3a;
+}
+
+.tf-proj-team-line {
+	font-size: 1.2rem;
+	line-height: 1.35;
+	color: #dbe3ee;
+	margin: 0 0 7dp;
+	word-break: break-word;
+}
+
+.tf-proj-team-line.sync-synced {
+	color: #7ee0a8;
+}
+
+.tf-proj-team-line.sync-mine {
+	color: #ffdd99;
+}
+
+.tf-proj-team-line.sync-theirs {
+	color: #f7c48f;
+}
+
+.tf-proj-team-btns {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 5dp;
+}
+
+.tf-project-window .tf-proj-team-btn {
+	flex: 0 0 auto;
+	min-width: 0;
+	height: 34dp;
+	padding: 0 13dp;
+	font-size: 1.2rem;
+}
+
+.tf-project-window .tf-proj-team-btn.confirming {
+	border-color: #fdc04c;
+	color: #ffe9b0;
+}
+
+/* Save As: the destination chip and the option pairs. */
+.tf-project-destchip {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 0 1 auto;
+	min-width: 0;
+	gap: 6dp;
+	padding: 3dp 9dp 3dp 7dp;
+	border: 1dp #3a4150;
+	border-radius: 4dp;
+	background-color: #1b2029;
+	color: #e5e7eb;
+	font-size: 1.2rem;
+	font-weight: bold;
+}
+
+.tf-project-destchip.team {
+	border-color: #2ba5ea;
+	background-color: #10344e;
+	color: #ffffff;
+}
+
+.tf-project-destchip-icon {
+	width: 14dp;
+	height: 14dp;
+	flex-shrink: 0;
+}
+
+.tf-project-destchip-text {
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.tf-project-opt {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 0 0 auto;
+	gap: 8dp;
+	margin-right: 22dp;
+}
+
+.tf-project-window .tf-project-switch {
+	min-width: 52dp;
+}
+
+.tf-project-window .tf-project-note {
+	font-size: 1.15rem;
+	line-height: 1.35;
+	margin: -2dp 0 5dp;
+}
+
+/* The status slot: text, time, a way to dismiss it. */
+.tf-project-window .tf-project-status-slot {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8dp;
+	min-height: 34dp;
+}
+
+.tf-project-status-text {
+	flex: 1;
+	min-width: 0;
+	word-break: break-word;
+}
+
+.tf-project-status-time {
+	flex: 0 0 auto;
+	font-size: 1.1rem;
+	white-space: nowrap;
+}
+
+.tf-project-status-dismiss {
+	flex: 0 0 22dp;
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3dp;
+	cursor: pointer;
+	image-color: #94a3b8;
+}
+
+.tf-project-status-dismiss:hover {
+	background-color: #2a2f3a;
+	image-color: #ffffff;
+}
+
+/* ===== Quit guard: unsaved changes stand between the user and a quit ===== */
+/* The body ignores the pointer, so the catcher takes it back over the whole
+   screen: nothing behind the card (the top bar's quit screen included) gets
+   the click while the question is open. */
+.tf-quit-guard {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: 1200;
+	background-color: #000000a0;
+	pointer-events: auto;
+}
+
+.tf-quit-card {
+	position: absolute;
+	left: 50vw;
+	top: 36vh;
+	width: 560dp;
+	margin-left: -280dp;
+	display: flex;
+	flex-direction: column;
+	gap: 8dp;
+	border: 1dp #e0a94c;
+	pointer-events: auto;
+}
+
+.tf-quit-title {
+	font-size: 1.6rem;
+	font-weight: bold;
+	color: #ffd27a;
+}
+
+.tf-quit-text {
+	font-size: 1.3rem;
+	font-weight: bold;
+	color: #e6edf5;
+}
+
+.tf-quit-hint {
+	font-size: 1.15rem;
+	color: #b8c2cf;
+}
+
+.tf-quit-status {
+	font-size: 1.15rem;
+	color: #ffd27a;
+}
+
+.tf-quit-buttons {
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	gap: 8dp;
+	margin-top: 6dp;
+}
+
+.tf-quit-card .tf-action-btn {
+	min-width: 120dp;
+}
+
+.tf-quit-primary {
+	border-color: #35d07f;
+}
+
+.tf-quit-primary:hover {
+	border-color: #6ff0a8;
+}
+
+.tf-quit-discard:hover {
+	border-color: #e06c6c;
+	color: #ffd7d7;
+}
+
