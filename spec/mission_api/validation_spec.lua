@@ -1331,7 +1331,6 @@ describe("mission_api.validation", function()
 		it("does not warn for a map marker that is never erased", function()
 			GG["MissionAPI"].Actions = {
 				addPermanent = { type = actionTypes.AddMapMarker, parameters = { markerName = "beacon" } },
-				},
 			}
 
 			validation.ValidateReferences()
