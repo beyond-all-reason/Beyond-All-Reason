@@ -473,6 +473,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	constructionStarts[unitID] = nil
 	underConstruction[unitID] = nil
 
+	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
+	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
 	untrackUnitID(unitID)
 end
 
