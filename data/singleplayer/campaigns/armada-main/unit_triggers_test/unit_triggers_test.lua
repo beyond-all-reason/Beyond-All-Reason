@@ -219,7 +219,7 @@ local triggers = {
 		type = triggerTypes.UnitReclaimed,
 		parameters = {
 			unitDefName = "armrad",
-			teamID = 0,
+			teamName = "thePlayerTeam",
 		},
 		actions = { "messageUnitReclaimedRadar" },
 	},
@@ -639,7 +639,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = "armrad", x = 2400, z = 3000, team = 0, unitName = "doomedRadar" },
+				{ unitDefName = "armrad", x = 2400, z = 3000, teamName = "thePlayerTeam", unitName = "doomedRadar" },
 			},
 		},
 	},
@@ -648,7 +648,7 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = "armck", x = 2560, z = 3000, team = 0, unitName = "reclaimer" },
+				{ unitDefName = "armck", x = 2560, z = 3000, teamName = "thePlayerTeam", unitName = "reclaimer" },
 			},
 		},
 	},
@@ -689,8 +689,8 @@ local actions = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
 			unitLoadout = {
-				{ unitDefName = "armlab", x = 2400, z = 3000, team = 0, unitName = "botlab" },
-				{ unitDefName = "armvp", x = 2750, z = 3000, team = 0, unitName = "vehicleplant" },
+				{ unitDefName = "armlab", x = 2400, z = 3000, teamName = "thePlayerTeam", unitName = "botlab" },
+				{ unitDefName = "armvp", x = 2750, z = 3000, teamName = "thePlayerTeam", unitName = "vehicleplant" },
 			},
 		},
 	},
