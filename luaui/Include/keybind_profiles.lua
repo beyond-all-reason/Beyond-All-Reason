@@ -564,7 +564,7 @@ function M.load()
 			-- anything: a retired one would have the editor comparing against nothing, so a
 			-- profile without a usable one is given the closest shipped profile instead, and
 			-- that is written back so every surface reads the same origin from then on.
-			if type(p.basedOn) ~= "string" or not M.isBuiltin(p.basedOn) then
+			if not M.baseIsUsable(p.basedOn, store.profiles) then
 				p.basedOn = M.inferBase(p)
 				inferred = inferred or p.basedOn ~= nil
 			end
@@ -738,10 +738,32 @@ function M.inferBase(profile)
 	return best and best.name or nil
 end
 
--- The shipped profile a profile descends from: itself for a shipped one, the recorded fork
--- for the player's own. What an editor compares against to say which keys the player
--- changed. Every profile of the player's carries one: recorded when it was forked or
--- duplicated, inferred as the closest shipped profile otherwise.
+-- The one value of `basedOn` that is not a profile's name: the player chose to compare the
+-- profile with nothing, which loading must not turn back into a guess.
+local NO_BASE = "none"
+
+-- Whether a profile's `basedOn` still says something: no comparison, a shipped profile, or
+-- one of the player's own in the list given (the store's, so a later entry counts too).
+function M.baseIsUsable(basedOn, profiles)
+	if type(basedOn) ~= "string" then
+		return false
+	end
+	if basedOn == NO_BASE or M.isBuiltin(basedOn) then
+		return true
+	end
+	for _, p in ipairs(profiles or {}) do
+		if type(p) == "table" and p.name == basedOn then
+			return true
+		end
+	end
+
+	return false
+end
+
+-- The profile a profile is compared with: itself for a shipped one, the recorded fork or
+-- the player's later choice for their own - a shipped profile or another of theirs. What an
+-- editor compares against to say which keys the player changed. Nil when the player chose
+-- none, or the profile it named is gone.
 function M.baseOf(name)
 	local builtin = M.isBuiltin(name)
 	if builtin then
@@ -749,20 +771,39 @@ function M.baseOf(name)
 	end
 
 	local own = M.get(name)
+	if not own or type(own.basedOn) ~= "string" or own.basedOn == NO_BASE or own.basedOn == name then
+		return nil
+	end
 
-	return own and own.basedOn and M.isBuiltin(own.basedOn) or nil
+	return M.isBuiltin(own.basedOn) or M.get(own.basedOn) or nil
+end
+
+-- Records what one of the player's profiles is compared with: a shipped profile, another of
+-- their own, or nothing at all (nil). False when either name is unknown.
+function M.setBase(name, baseName)
+	M.load()
+	local i = indexOf(name)
+	if not i then
+		return false
+	end
+	if baseName ~= nil and (baseName == name or not (M.isBuiltin(baseName) or indexOf(baseName))) then
+		return false
+	end
+	store.profiles[i].basedOn = baseName or NO_BASE
+
+	return M.save()
 end
 
 -- Adds a profile of the player's own, without selecting it: whether it becomes the live one
 -- depends on the keymap reaching disk, which only the caller finds out. Selecting it up front
 -- would leave the picker naming a profile the engine never loaded when that write fails.
--- `basedOn` names the shipped profile it was forked from; without one, the closest shipped
--- profile stands in.
+-- `basedOn` names the profile it was forked from; without one, the closest shipped profile
+-- stands in.
 function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
 	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
-	profile.basedOn = (basedOn and M.isBuiltin(basedOn)) and basedOn or M.inferBase(profile)
+	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
 	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
 		Spring.Echo(
@@ -790,6 +831,12 @@ function M.rename(oldName, newName)
 	if store.active == oldName then
 		store.active = newName
 	end
+	-- Whatever was compared with it follows the name.
+	for _, p in ipairs(store.profiles) do
+		if p.basedOn == oldName then
+			p.basedOn = newName
+		end
+	end
 	if not M.save() then
 		Spring.Echo(
 			"[keybind_profiles] Error: could not write "
@@ -814,6 +861,13 @@ function M.delete(name)
 	table.remove(store.profiles, i)
 	if store.active == name then
 		store.active = store.profiles[1] and store.profiles[1].name or nil
+	end
+	-- A profile compared with the one gone falls back to the closest shipped one, as a
+	-- profile with no recorded origin does.
+	for _, p in ipairs(store.profiles) do
+		if p.basedOn == name then
+			p.basedOn = M.inferBase(p)
+		end
 	end
 
 	return M.save()

@@ -66,6 +66,12 @@ surface shows it or lets the player pick it:
 - `"shift"` has no engine equivalent, so the binding is written twice, bare and `Shift+`,
   and both halves move together. Such an action holds exactly one key, not a list.
 
+An entry, action or prefix, may carry `"icon"`: the VFS path of a picture for the action,
+drawn on its key in the editor's keyboard overview (and wherever else a surface has room for
+one). Without one, an order shows the cursor it is already known by in game, and anything
+else shows no picture; the field exists so actions can be given pictures as art for them is
+made, without any surface changing.
+
 A category may carry `"layout": "grid"`, drawn as the grid menu's own 3x4 arrangement rather
 than a flat list so the keys read the way they sit on screen.
 
@@ -111,11 +117,13 @@ shape as the shipped ones plus an `active` field naming the selected profile. Th
 is per-install rather than shared, but its format is the contract - a surface that can
 read one can read the other.
 
-A player's profile carries `basedOn`, the name of the shipped profile it descends from:
+A player's profile carries `basedOn`, the name of the profile it is compared with:
 recorded when it was forked or duplicated, and otherwise (imported, or made before the
-field existed, or naming a profile that no longer ships) inferred on load as the shipped
+field existed, or naming a profile that no longer exists) inferred on load as the shipped
 profile it differs from on the fewest actions, and written back. That is what lets a
-surface say which keys the player changed and what the default was.
+surface say which keys the player changed and what the default was. The player can point
+it at any other profile, shipped or their own, or at `"none"`, which means no comparison
+and is the one value loading leaves alone rather than replacing with a guess.
 
 A shipped profile may carry `description`, an i18n key for a sentence saying what the
 profile is for, shown wherever a surface lets the player pick one.

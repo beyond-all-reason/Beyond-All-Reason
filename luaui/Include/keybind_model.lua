@@ -151,6 +151,27 @@ local function canonicalKeyset(raw)
 	return table.concat(parts, ",")
 end
 
+-- The first tap of a canonical keyset, taken apart: the modifiers it names as a set ("any"
+-- among them when the engine's qualifier is on) and the key token ("sc:q", "kc:a"). What the
+-- keyboard page places a binding by, and what a filter on one key matches chips against.
+local function splitElement(canon)
+	local first = canon:match("^[^,]+") or canon
+	local mods, key = {}, nil
+	-- The key runs from its "sc:"/"kc:" tag to the end: a key can be named "+" itself
+	-- ("kc:numpad+"), so the tag decides where the modifiers stop, not the separator.
+	local at = first:find("[sk]c:")
+	local modPart = first
+	if at then
+		key = first:sub(at)
+		modPart = first:sub(1, at - 1)
+	end
+	for token in modPart:gmatch("[^+]+") do
+		mods[token] = true
+	end
+
+	return mods, key
+end
+
 -- A bound action is identified by the full command string passed to /bind:
 -- command plus its space-separated args (.extra) - exactly what bind/unbind
 -- expect. This includes "chain", whose .extra is the sequence; dropping it would
@@ -202,6 +223,7 @@ return {
 	displayWithoutShift = displayWithoutShift,
 	holdsKeys = holdsKeys,
 	canonicalKeyset = canonicalKeyset,
+	splitElement = splitElement,
 	splitChain = splitChain,
 	chainSep = chainSep,
 }
