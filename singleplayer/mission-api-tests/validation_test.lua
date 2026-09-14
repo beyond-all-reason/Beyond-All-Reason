@@ -332,14 +332,6 @@ local actions = {
 		},
 	},
 
-	actionWithUnusedMarkerName = {
-		type = actionTypes.AddMarker,
-		parameters = {
-			position = { x = 1900, z = 2200 },
-			name = 'unusedMarkerName',
-		},
-	},
-
 	actionWithInvalidMarkerName = {
 		type = actionTypes.EraseMarker,
 		parameters = {
