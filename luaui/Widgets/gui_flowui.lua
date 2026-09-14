@@ -3309,6 +3309,148 @@ WG.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	--WG.FlowUI.Draw.Button(sx-(sy-py), py, sx, sy, 1, 1, 1, 1, 1,1,1,1, nil, { 1, 1, 1, 0.1 }, nil, cs)
 end
 
+local keyCapColor = { 0.22, 0.22, 0.22, 1 }
+local mathCos = math.cos
+local mathSin = math.sin
+
+-- A rectangle with round corners, as a fan of triangles about its centre. Round rather than
+-- chamfered, since a keycap is; each corner is an arc of `segments` steps. The colour runs
+-- from `c1` to `c2` up the rectangle, or from its bottom-right to its top-left corner when
+-- `diagonal` is set - a keycap's face is lit from one corner. Per-vertex colours interpolate
+-- exactly for a gradient that is linear over the plane, which both are.
+local function DrawKeyRoundRect(x1, y1, x2, y2, radius, segments, c1, c2, diagonal)
+	local w, h = x2 - x1, y2 - y1
+	local cx, cy = (x1 + x2) * 0.5, (y1 + y2) * 0.5
+	local dr, dg, db, da = c2[1] - c1[1], c2[2] - c1[2], c2[3] - c1[3], (c2[4] or 1) - (c1[4] or 1)
+	local flat = dr == 0 and dg == 0 and db == 0 and da == 0
+
+	local function colorAt(x, y)
+		if flat then
+			return
+		end
+		local t
+		if diagonal then
+			t = ((y - y1) / h) * 0.5 + ((x2 - x) / w) * 0.5
+		else
+			t = (y - y1) / h
+		end
+		gl.Color(c1[1] + dr * t, c1[2] + dg * t, c1[3] + db * t, (c1[4] or 1) + da * t)
+	end
+
+	gl.Color(c1[1], c1[2], c1[3], c1[4] or 1)
+	colorAt(cx, cy)
+	gl.Vertex(cx, cy, 0)
+
+	-- Corner centres and the angle each arc starts at, going round anticlockwise from the
+	-- bottom left.
+	local step = (mathPi * 0.5) / segments
+	for corner = 0, 3 do
+		local ccx, ccy, a0
+		if corner == 0 then
+			ccx, ccy, a0 = x1 + radius, y1 + radius, mathPi
+		elseif corner == 1 then
+			ccx, ccy, a0 = x2 - radius, y1 + radius, mathPi * 1.5
+		elseif corner == 2 then
+			ccx, ccy, a0 = x2 - radius, y2 - radius, 0
+		else
+			ccx, ccy, a0 = x1 + radius, y2 - radius, mathPi * 0.5
+		end
+		for i = 0, segments do
+			local angle = a0 + i * step
+			local vx, vy = ccx + radius * mathCos(angle), ccy + radius * mathSin(angle)
+			colorAt(vx, vy)
+			gl.Vertex(vx, vy, 0)
+		end
+	end
+	-- Closed on the first rim vertex.
+	colorAt(x1, y1 + radius)
+	gl.Vertex(x1, y1 + radius, 0)
+end
+
+local function KeyRoundRect(x1, y1, x2, y2, radius, c1, c2, diagonal)
+	if x2 <= x1 or y2 <= y1 then
+		return
+	end
+	radius = mathMax(0, mathMin(radius, (x2 - x1) * 0.5, (y2 - y1) * 0.5))
+	local segments = mathMax(3, mathMin(12, mathFloor(radius * 0.6)))
+	gl.BeginEnd(GL.TRIANGLE_FAN, DrawKeyRoundRect, x1, y1, x2, y2, radius, segments, c1, c2 or c1, diagonal)
+end
+
+---Draws a keyboard key, the way a keycap looks from above: a flat dark body with round
+---corners, a lighter face set into it with a thin rim catching the light, and the body's
+---bottom edge lit where the cap curves away. Every edge is a hard one: no shadow, feather or
+---gloss, so the shape stays crisp at any size. Pressed, the whole key sinks an eighth of its
+---height into a socket that shows above it; hovered, it lights. The face is returned so a
+---caller can put its caption on the cap rather than the footprint - text and pictures are
+---the caller's to draw. Immediate rather than cached: a keyboard of these is baked into one
+---display list by whoever draws it.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner radius of the body. Defaults to 9% of the shorter side
+---@param color rgb|rgba? The face's colour, which the body, rim and lip are shades of.
+---Defaults to keycap grey; a light colour gets a dark rim
+---@param pressed boolean? Sunk, the way a toggled modifier or a held key sits
+---@param hovered boolean? Lit under the cursor
+---@param opacity number? Defaults to `1`. Multiplies every alpha
+---@return number left, number bottom, number right, number top The face of the cap
+WG.FlowUI.Draw.Key = function(px, py, sx, sy, cs, color, pressed, hovered, opacity)
+	local width = sx - px
+	local height = sy - py
+	if width <= 0 or height <= 0 or px ~= px or py ~= py or sx ~= sx or sy ~= sy then
+		return px, py, sx, sy
+	end
+	local short = mathMin(width, height)
+	local radius = cs or mathMax(2, mathFloor(short * 0.09))
+	color = color or keyCapColor
+	local r, g, b = color[1], color[2], color[3]
+	local a = (color[4] or 1) * (opacity or 1)
+	-- A light cap reads the other way round: its rim and lip darker than its face.
+	local light = (r * 0.3 + g * 0.59 + b * 0.11) > 0.5
+
+	local function shade(k)
+		return { mathMin(1, r * k), mathMin(1, g * k), mathMin(1, b * k), a }
+	end
+
+	-- Pressed, the whole key sinks: its top comes down by an eighth of the key into a socket,
+	-- which shows above it darker than anything on the key. The footprint given stays the
+	-- key's place - the socket fills it - so a row of keys keeps its line.
+	local drop = pressed and mathMax(1, mathFloor(short * 0.12)) or 0
+	local top = sy - drop
+	if pressed then
+		KeyRoundRect(px, py, sx, sy, radius, shade(0.45))
+	end
+
+	-- The rim's width, the body's lit bottom edge, and how far the face sits in from the body.
+	-- A pressed key shows less of the body below its face, having gone down into it.
+	local edge = mathMax(1, mathFloor(short * 0.014))
+	local insetX = mathMax(edge + 1, mathFloor(short * 0.07))
+	local insetTop = mathMax(edge + 1, mathFloor(short * 0.08))
+	local insetBottom = mathMax(edge + 1, mathFloor(short * (pressed and 0.11 or 0.14)))
+	local fx1, fy1, fx2, fy2 = px + insetX, py + insetBottom, sx - insetX, top - insetTop
+	local faceRadius = mathMax(1, mathFloor(radius * 0.7))
+
+	-- The body: its lit bottom edge first, then the body itself a step higher, so the edge
+	-- shows along the bottom and round the two lower corners.
+	KeyRoundRect(px, py, sx, top, radius, shade(light and 0.5 or 1.5))
+	KeyRoundRect(px, py + edge, sx, top, radius, shade(light and 0.72 or 0.75))
+
+	-- The rim, and the face inside it, lit from the top left; a pressed face lies in shadow.
+	KeyRoundRect(fx1 - edge, fy1 - edge, fx2 + edge, fy2 + edge, faceRadius + edge, shade(light and 0.6 or 1.85))
+	local lo, hi = 0.86, 1.14
+	if pressed then
+		lo, hi = 0.84, 1.0
+	end
+	KeyRoundRect(fx1, fy1, fx2, fy2, faceRadius, shade(lo), shade(hi), true)
+
+	if hovered then
+		KeyRoundRect(fx1, fy1, fx2, fy2, faceRadius, { 1, 1, 1, 0.07 * a })
+	end
+
+	return fx1, fy1, fx2, fy2
+end
+
 ---Draws a highlighted area inside a selector. Also usable to highlight any other
 ---generic area.
 ---@param px number Left
