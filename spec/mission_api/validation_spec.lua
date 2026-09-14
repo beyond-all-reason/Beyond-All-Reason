@@ -1346,7 +1346,7 @@ describe("mission_api.validation", function()
 
 			validation.ValidateReferences()
 
-      assert.is_true(
+			assert.is_true(
 				hasError("Marker name 'noSuchBeacon' is not created in any action. Referenced in: eraseUnknown")
 			)
 		end)
