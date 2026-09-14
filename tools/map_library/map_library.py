@@ -135,9 +135,25 @@ def file_digest(path: Path) -> str:
     return digest.hexdigest()
 
 
+# The operator's own roots: the data dir and the helper's state dir. Links above
+# them are the operator's business (a Linux home on another drive, /home ->
+# /var/home on Fedora Atomic); what must never be a link is anything the helper
+# writes through inside them.
+TRUSTED_ROOTS: set = set()
+
+
+def trust_root(path: Path) -> Path:
+    root = Path(os.path.abspath(path))
+    TRUSTED_ROOTS.add(root)
+    return root
+
+
 def no_links(path: Path) -> None:
-    """Reject symlinks AND Windows junctions, including any existing ancestor."""
+    """Reject symlinks AND Windows junctions at `path` or in any ancestor below a
+    trusted root; the walk stops at the root itself."""
     for item in (path, *path.parents):
+        if item in TRUSTED_ROOTS:
+            return
         if item.is_symlink() or (hasattr(item, "is_junction") and item.is_junction()):
             raise LibraryError("unsafe_link")
 
@@ -205,9 +221,7 @@ class GitStore:
 
     def __init__(self, data: Path, state: Path, remote: str, branch: str,
                  *, local_test_remote: bool = False):
-        self.data, self.state = Path(os.path.abspath(data)), Path(os.path.abspath(state))
-        no_links(self.data)
-        no_links(self.state)
+        self.data, self.state = trust_root(data), trust_root(state)
         if self.state.is_relative_to(self.data) or self.data.is_relative_to(self.state):
             raise LibraryError("unsafe_repository")
         if not local_test_remote and not re.fullmatch(
@@ -430,8 +444,11 @@ class Library(GitStore):
     def __init__(self, data: Path, state: Path, remote: str, branch: str,
                  author: str, email: str, stages: list[str], allow_push: bool = False,
                  *, local_test_remote: bool = False):
-        self.bridge = Path(os.path.abspath(data)) / "Terraform Brush" / "Map Library"
-        self.projects = Path(os.path.abspath(data)) / "MapProjects"
+        # The data dir is a trusted root before anything under it is checked
+        # (GitStore registers it too, but only once its own turn comes).
+        data = trust_root(data)
+        self.bridge = data / "Terraform Brush" / "Map Library"
+        self.projects = data / "MapProjects"
         for path in (self.bridge, self.projects):
             no_links(path)
             path.mkdir(parents=True, exist_ok=True)
@@ -1067,10 +1084,13 @@ def main() -> None:
     args = parser.parse_args()
     key = hashlib.sha256((str(args.data_dir.absolute()) + args.remote + args.branch).encode()).hexdigest()[:16]
     state = args.state_dir or Path.home() / ".bar-map-library" / key
+    # The key above keeps the raw argument so existing state dirs stay bound;
+    # the lock lives inside the data dir, which is a trusted root from here on.
+    data = trust_root(args.data_dir)
     try:
         # Lock belongs to the data directory, not remote: two helpers cannot consume
         # the same game queue even if configured with different repository URLs.
-        with exclusive_lock(args.data_dir / "Terraform Brush" / "Map Library" / "service.lock"):
+        with exclusive_lock(data / "Terraform Brush" / "Map Library" / "service.lock"):
             library = Library(args.data_dir, state, args.remote, args.branch, args.author, args.email,
                               args.stage or DEFAULT_STAGES, args.allow_push)
             if args.shader_remote:
