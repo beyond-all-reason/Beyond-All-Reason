@@ -72,5 +72,9 @@
 	"unit_received_test.description": "Tests the UnitReceived and UnitCaptured triggers, and the TransferUnits action's captured flag.",
 	"unit_received_test.title": "UnitReceived Test",
 	"unit_received_test.teams.theEnemyTeam": "Mission Bots",
-	"unit_received_test.teams.thePlayerTeam": "TestPlayer"
+	"unit_received_test.teams.thePlayerTeam": "TestPlayer",
+	"countdowns_test.description": "Tests the countdown actions and the CountdownReached and CountdownFinished triggers, including pausing, cancelling and adjusting a countdown.",
+	"countdowns_test.title": "Countdowns Test",
+	"countdowns_test.teams.theEnemyTeam": "Mission Bots",
+	"countdowns_test.teams.thePlayerTeam": "TestPlayer"
 }
