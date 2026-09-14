@@ -1207,7 +1207,7 @@ describe("mission_api.validation", function()
 				},
 				delete = { type = actionTypes.DestroyFeatures, parameters = { featureName = "rock" } },
 				addMapMarker = { type = actionTypes.AddMapMarker, parameters = { markerName = "beacon" } },
-				eraseMapMarker = { type = actionTypes.EraseMarker, parameters = { name = "beacon" } },
+				removeMapMarker = { type = actionTypes.RemoveMapMarker, parameters = { markerName = "beacon" } },
 			}
 
 			validation.ValidateReferences()
@@ -1297,7 +1297,7 @@ describe("mission_api.validation", function()
 						parameters = { featureLoadout = { { featureName = "unusedRock" } } },
 					},
 					deleteUnknown = { type = actionTypes.DestroyFeatures, parameters = { featureName = "unknownRock" } },
-					eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = "unknownFlag" } },
+					removeUnknown = { type = actionTypes.RemoveMapMarker, parameters = { markerName = "unknownFlag" } },
 				}
 
 				validation.ValidateReferences()
@@ -1323,7 +1323,7 @@ describe("mission_api.validation", function()
 					)
 				)
 				assert.is_true(
-					hasError("Marker name 'unknownFlag' is not created in any action. Referenced in: eraseUnknown")
+					hasError("Marker name 'unknownFlag' is not created in any action. Referenced in: removeUnknown")
 				)
 			end
 		)
@@ -1341,13 +1341,13 @@ describe("mission_api.validation", function()
 		it("logs an error for erasing a map marker that no action creates", function()
 			GG["MissionAPI"].Actions = {
 				addPermanent = { type = actionTypes.AddMapMarker, parameters = { markerName = "beacon" } },
-				eraseUnknown = { type = actionTypes.EraseMarker, parameters = { name = "noSuchBeacon" } },
+				removeUnknown = { type = actionTypes.RemoveMapMarker, parameters = { markerName = "noSuchBeacon" } },
 			}
 
 			validation.ValidateReferences()
 
 			assert.is_true(
-				hasError("Marker name 'noSuchBeacon' is not created in any action. Referenced in: eraseUnknown")
+				hasError("Marker name 'noSuchBeacon' is not created in any action. Referenced in: removeUnknown")
 			)
 		end)
 

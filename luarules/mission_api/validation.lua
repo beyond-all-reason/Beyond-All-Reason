@@ -1447,8 +1447,8 @@ local function validateMarkerNameReferences(actionTypes, actions)
 			if markerName then
 				createdMarkerNames[markerName] = true
 			end
-		elseif action.type == actionTypes.EraseMarker then
-			local markerName = action.parameters.name
+		elseif action.type == actionTypes.RemoveMapMarker then
+			local markerName = action.parameters.markerName
 			if markerName then
 				referencedMarkerNames[markerName] = referencedMarkerNames[markerName] or {}
 				referencedMarkerNames[markerName][#referencedMarkerNames[markerName] + 1] = actionID

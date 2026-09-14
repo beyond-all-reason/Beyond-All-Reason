@@ -333,9 +333,9 @@ local actions = {
 	},
 
 	actionWithInvalidMarkerName = {
-		type = actionTypes.EraseMarker,
+		type = actionTypes.RemoveMapMarker,
 		parameters = {
-			name = 'unknownMarkerName',
+			markerName = 'unknownMarkerName',
 		},
 	},
 
