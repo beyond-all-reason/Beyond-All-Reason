@@ -16,7 +16,7 @@ local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local ACTIVE_FILE = "uikeys.txt"
 local BACKUP_FILE = "uikeys.txt.bak"
-local STORE_VERSION = 1
+local STORE_VERSION = 2
 
 -- The shipped profiles a player can select but not edit; editing forks a copy. They
 -- carry binds rather than a file path so every surface reads one shape, and applying
@@ -46,6 +46,10 @@ local presetFiles = {
 
 ---@type table
 local store
+
+-- Set while reading a store written before profiles named a meta key, so the launch that
+-- upgrades one can still recognise the files that version wrote.
+local storePredatesMeta = false
 
 -- Shape a fresh store file takes.
 local function emptyStore()
@@ -304,9 +308,9 @@ local function fakeMetaOf(text)
 	return readFakeMeta(text) or ENGINE_FAKE_META
 end
 
--- What a bind file binds, as one comparable string. Both sides of a comparison go through
--- the reader, so comments, line endings and any later change to how we emit cannot read as
--- an edit the player made.
+-- What a bind file binds, as one comparable string, and the meta key it leaves set. Both
+-- sides of a comparison go through the reader, so comments, line endings and any later change
+-- to how we emit cannot read as an edit the player made.
 local function keymapOf(text)
 	local binds = readBindFile(text)
 	if not binds then
@@ -318,16 +322,28 @@ local function keymapOf(text)
 		parts[i] = binds[i].keyset .. " " .. binds[i].action
 	end
 
-	return table.concat(parts, "\n") .. "\nfakemeta " .. tostring(fakeMetaOf(text))
+	return table.concat(parts, "\n"), fakeMetaOf(text)
 end
 
--- Whether some profile already holds this keymap. The one migration just made of the
--- player's own file counts, which is what keeps the launch they arrive on from forking a
+-- The profile already holding this keymap, nil when none does. The one migration just made of
+-- the player's own file counts, which is what keeps the launch they arrive on from forking a
 -- second copy of what it has only now imported.
 local function matchesKnownProfile(text)
-	local theirs = keymapOf(text)
-	if not theirs then
-		return false
+	local theirBinds, theirMeta = keymapOf(text)
+	if not theirBinds then
+		return nil
+	end
+
+	-- Before profiles named a meta key every file we wrote said "fakemeta none", so on the
+	-- launch that upgrades a store one differing only there is still ours rather than an edit.
+	-- A player who named some other key still forks.
+	local function holds(profile)
+		local ourBinds, ourMeta = keymapOf(toBindFile(profile))
+		if ourBinds ~= theirBinds then
+			return false
+		end
+
+		return ourMeta == theirMeta or (storePredatesMeta and theirMeta == "none")
 	end
 
 	-- Nearly always our own output for the profile it names, and this runs on every game
@@ -336,22 +352,22 @@ local function matchesKnownProfile(text)
 	local claimed = generatedName(text)
 	local i = claimed and indexOf(claimed)
 	local stamped = (i and store.profiles[i]) or (claimed and M.isBuiltin(claimed))
-	if stamped and keymapOf(toBindFile(stamped)) == theirs then
-		return true
+	if stamped and holds(stamped) then
+		return stamped.name
 	end
 
 	for _, p in ipairs(store.profiles) do
-		if keymapOf(toBindFile(p)) == theirs then
-			return true
+		if holds(p) then
+			return p.name
 		end
 	end
 	for _, b in ipairs(builtins) do
-		if keymapOf(toBindFile(b)) == theirs then
-			return true
+		if holds(b) then
+			return b.name
 		end
 	end
 
-	return false
+	return nil
 end
 
 -- A name no existing profile holds, for copies.
@@ -501,7 +517,8 @@ function M.load()
 	end
 
 	store = decoded
-	store.version = store.version or STORE_VERSION
+	storePredatesMeta = (tonumber(store.version) or 1) < 2
+	store.version = STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
 	local seen, kept, inferred = {}, {}, false
 	for _, p in ipairs(store.profiles) do
@@ -510,6 +527,11 @@ function M.load()
 			p.binds = type(p.binds) == "table" and p.binds or {}
 			if type(p.fakeMeta) ~= "string" or p.fakeMeta == "" or p.fakeMeta:find("%s") then
 				p.fakeMeta = nil
+			end
+			-- Nothing could name a meta key when these were written, so an empty one means the
+			-- engine's rather than none: the same silence migration reads out of a bind file.
+			if storePredatesMeta and not p.fakeMeta then
+				p.fakeMeta = ENGINE_FAKE_META
 			end
 			-- Which shipped profile it was forked from. Only a name that still ships means
 			-- anything: a retired one would have the editor comparing against nothing, so a
@@ -523,7 +545,7 @@ function M.load()
 		end
 	end
 	store.profiles = kept
-	if inferred then
+	if inferred or storePredatesMeta then
 		M.save()
 	end
 
@@ -586,7 +608,15 @@ function M.adoptEditedKeymap()
 		return nil
 	end
 
-	if matchesKnownProfile(text) then
+	local matched = matchesKnownProfile(text)
+	if matched then
+		-- A keymap still matching its profile is never rewritten, so the "fakemeta none" the
+		-- previous version wrote into every file would outlive the upgrade that gave the
+		-- profiles a meta key. Left until here so a file the player did edit is adopted first.
+		if storePredatesMeta then
+			M.materialize(matched)
+		end
+
 		return nil
 	end
 
