@@ -134,6 +134,10 @@ local function generatedName(text)
 	return (name ~= nil and name ~= "") and name or nil
 end
 
+-- Loading a keymap leaves the meta key alone, so a bind file naming none runs under whatever
+-- the engine set at startup. Every shipped keymap relied on that before profiles carried one.
+local ENGINE_FAKE_META = "space"
+
 -- A meta key the engine will actually take, nil for anything else. It keeps the key it already
 -- had when it cannot parse one, so emitting a name it does not know leaves the live keymap
 -- disagreeing with the profile that named it. "none", which clears the key, is the one non-key
@@ -150,10 +154,22 @@ local function validFakeMeta(value)
 	return nil
 end
 
+-- What a profile's meta key comes to. Naming nothing asks for the engine's, the same as a bind
+-- file that names none does; "none" is how a profile asks for no meta key at all.
+local function resolveFakeMeta(value)
+	return validFakeMeta(value) or ENGINE_FAKE_META
+end
+
+-- Shipped profiles never go through the store, so this is the only place their meta key is
+-- checked before the editor reads it back and hands it to a fork.
+for _, b in ipairs(builtins) do
+	b.fakeMeta = resolveFakeMeta(b.fakeMeta)
+end
+
 -- A whole keymap: keyreload clears the bindings before it loads, but not the meta key.
 local function toBindFile(profile)
 	local out = { GENERATED_PREFIX .. tostring(profile.name) }
-	out[#out + 1] = "fakemeta " .. (validFakeMeta(profile.fakeMeta) or "none")
+	out[#out + 1] = "fakemeta " .. resolveFakeMeta(profile.fakeMeta)
 	-- The store is writable by the player and by other surfaces, so a malformed entry is
 	-- reachable here. Dropping one costs a keybind; letting it through takes the whole
 	-- hotkey loader down with it.
@@ -310,15 +326,8 @@ local function readFakeMeta(text)
 	return value ~= "" and value or nil
 end
 
--- Loading a keymap leaves the meta key alone, so a file that names none runs under whatever
--- the engine set at startup. Every shipped keymap relied on that before profiles carried one,
--- and reading the silence as "no meta key" drops the Meta+ bindings the player had.
-local ENGINE_FAKE_META = "space"
-
 local function fakeMetaOf(text)
-	-- A name the engine cannot parse left the key it already had in place, so the file ran under
-	-- the engine's just as a silent one did.
-	return validFakeMeta(readFakeMeta(text)) or ENGINE_FAKE_META
+	return resolveFakeMeta(readFakeMeta(text))
 end
 
 -- What a bind file binds, as one comparable string, and the meta key it leaves set. Both
@@ -538,24 +547,19 @@ function M.load()
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
 			seen[p.name] = true
 			p.binds = type(p.binds) == "table" and p.binds or {}
-			local meta = validFakeMeta(p.fakeMeta)
 			-- Said here rather than on the way out, where the emitter runs once per profile per
 			-- comparison and would repeat it all session.
-			if p.fakeMeta and not meta then
+			if p.fakeMeta and not validFakeMeta(p.fakeMeta) then
 				Spring.Echo(
 					"[keybind_profiles] profile "
 						.. p.name
 						.. " names meta key "
 						.. tostring(p.fakeMeta)
-						.. ", which the engine has none of; cleared"
+						.. ", which the engine has none of; falling back to "
+						.. ENGINE_FAKE_META
 				)
 			end
-			p.fakeMeta = meta
-			-- Nothing could name a meta key when these were written, so an empty one means the
-			-- engine's rather than none: the same silence migration reads out of a bind file.
-			if storePredatesMeta and not p.fakeMeta then
-				p.fakeMeta = ENGINE_FAKE_META
-			end
+			p.fakeMeta = resolveFakeMeta(p.fakeMeta)
 			-- Which shipped profile it was forked from. Only a name that still ships means
 			-- anything: a retired one would have the editor comparing against nothing, so a
 			-- profile without a usable one is given the closest shipped profile instead, and
@@ -757,7 +761,7 @@ end
 function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
-	local profile = { name = name, binds = binds, fakeMeta = fakeMeta }
+	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
 	profile.basedOn = (basedOn and M.isBuiltin(basedOn)) and basedOn or M.inferBase(profile)
 	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
