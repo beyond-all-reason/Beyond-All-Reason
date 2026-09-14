@@ -1850,8 +1850,9 @@ function widgetHandler:ConfigureLayout(command)
 		self:SendConfigData()
 		return true
 	elseif command == "selector" then
-		-- F11's original binding, which looked for LuaUI/selector.lua. This game ships no such file: its
-		-- selector is Widgets/widget_selector.lua, which binds F11 to /widgetselector itself once it runs.
+		-- F11's binding in every shipped preset. It once looked for LuaUI/selector.lua, which this game does
+		-- not ship: its selector is Widgets/widget_selector.lua, reached through what it puts in WG, or
+		-- switched back on here when an error took it down.
 		if not self:RecoverWidgetSelector() and self.WG.widgetselector then
 			self.WG.widgetselector.toggle()
 		end
