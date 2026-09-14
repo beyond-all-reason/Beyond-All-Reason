@@ -134,15 +134,26 @@ local function generatedName(text)
 	return (name ~= nil and name ~= "") and name or nil
 end
 
+-- A meta key the engine will actually take, nil for anything else. It keeps the key it already
+-- had when it cannot parse one, so emitting a name it does not know leaves the live keymap
+-- disagreeing with the profile that named it. "none", which clears the key, is the one non-key
+-- it accepts, and it takes that ahead of any parsing. Scancodes it refuses outright.
+local function validFakeMeta(value)
+	if type(value) ~= "string" or value == "" or value:find("%s") then
+		return nil
+	end
+
+	if value == "none" or (Spring.GetKeyCode(value) or 0) > 0 then
+		return value
+	end
+
+	return nil
+end
+
 -- A whole keymap: keyreload clears the bindings before it loads, but not the meta key.
 local function toBindFile(profile)
 	local out = { GENERATED_PREFIX .. tostring(profile.name) }
-	-- One token only: anything longer emits a directive the engine cannot parse; "none" clears.
-	local fakeMeta = profile.fakeMeta
-	if not fakeMeta or fakeMeta == "" or fakeMeta:find("%s") then
-		fakeMeta = "none"
-	end
-	out[#out + 1] = "fakemeta " .. fakeMeta
+	out[#out + 1] = "fakemeta " .. (validFakeMeta(profile.fakeMeta) or "none")
 	-- The store is writable by the player and by other surfaces, so a malformed entry is
 	-- reachable here. Dropping one costs a keybind; letting it through takes the whole
 	-- hotkey loader down with it.
@@ -305,7 +316,9 @@ end
 local ENGINE_FAKE_META = "space"
 
 local function fakeMetaOf(text)
-	return readFakeMeta(text) or ENGINE_FAKE_META
+	-- A name the engine cannot parse left the key it already had in place, so the file ran under
+	-- the engine's just as a silent one did.
+	return validFakeMeta(readFakeMeta(text)) or ENGINE_FAKE_META
 end
 
 -- What a bind file binds, as one comparable string, and the meta key it leaves set. Both
@@ -525,9 +538,19 @@ function M.load()
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
 			seen[p.name] = true
 			p.binds = type(p.binds) == "table" and p.binds or {}
-			if type(p.fakeMeta) ~= "string" or p.fakeMeta == "" or p.fakeMeta:find("%s") then
-				p.fakeMeta = nil
+			local meta = validFakeMeta(p.fakeMeta)
+			-- Said here rather than on the way out, where the emitter runs once per profile per
+			-- comparison and would repeat it all session.
+			if p.fakeMeta and not meta then
+				Spring.Echo(
+					"[keybind_profiles] profile "
+						.. p.name
+						.. " names meta key "
+						.. tostring(p.fakeMeta)
+						.. ", which the engine has none of; cleared"
+				)
 			end
+			p.fakeMeta = meta
 			-- Nothing could name a meta key when these were written, so an empty one means the
 			-- engine's rather than none: the same silence migration reads out of a bind file.
 			if storePredatesMeta and not p.fakeMeta then
