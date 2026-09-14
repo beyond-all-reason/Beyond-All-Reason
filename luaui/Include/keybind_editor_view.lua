@@ -16,6 +16,7 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local catalog = keybindConfig.load("common/configs/keybind_catalog.json") or {}
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
+local Search = VFS.Include("luaui/Include/search.lua")
 local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
@@ -25,11 +26,9 @@ local view = {}
 
 local floor = math.floor
 local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local isInRect = math.isInRect
-local spGetScanSymbol = Spring.GetScanSymbol
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -101,7 +100,6 @@ local otherCategoryKey = generatedOtherKey
 ---@type table?
 local gridGroup
 local listRight = 0
-local keyAreaX1 = 0
 
 ---@type table
 local working
@@ -116,8 +114,88 @@ local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
 local rowsGen = 0
 local scroll = 0
-local dragging = false
+
+-- What the cursor is over, in the terms the panel paints hover with. Refilled in place
+-- each frame rather than allocated.
+-- `grab` is where the scrollbar's thumb was taken hold of, as the distance from the cursor
+-- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
+-- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
+-- 200 locals, which is why the sizes above share `metrics` too.
+local hover =
+	{ sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "", bar = 0, grab = 0, cat = 0, drag = false }
 local dirty = false
+
+-- Blur behind whatever floats over the panel, and the floating content drawn back on top
+-- of it.
+--
+-- The panel's own backdrop is registered with InsertDlist, which is the *world* set: it
+-- blurs the map behind the panel and leaves the UI alone. A popup has to blur UI - the
+-- rows and buttons it covers - so it goes into the screen set instead.
+--
+-- That set is drawn by gfx_guishader, which copies the screen as it stands and blurs it
+-- inside those rects. widgetHandler walks DrawScreen in reverse layer order, so this
+-- panel (-99990) draws well before guishader (-990000) and a popup of ours inside one of
+-- those rects would be blurred along with what it covers. Handing the drawing to
+-- insertRenderDlist gets it replayed after the blur, which is how gui_options keeps its
+-- select list crisp.
+--
+-- One table rather than a handful of locals, and for the same reason as `hover` above:
+-- this chunk is at Lua's ceiling of 200.
+local shade = { owner = nil, rects = {}, lists = {} }
+
+-- Only touched when the rect actually moves: every insert marks the stencil dirty, so
+-- doing it per frame has it rebuilt per frame.
+function shade.rect(name, x1, y1, x2, y2)
+	if not WG.guishader then
+		return
+	end
+	local was = shade.rects[name]
+	if x1 then
+		if not (was and was[1] == x1 and was[2] == y1 and was[3] == x2 and was[4] == y2) then
+			WG.guishader.InsertScreenRect(x1, y1, x2, y2, "keybindeditor_" .. name, shade.owner)
+			shade.rects[name] = { x1, y1, x2, y2 }
+		end
+	elseif was then
+		WG.guishader.RemoveScreenRect("keybindeditor_" .. name)
+		shade.rects[name] = nil
+	end
+end
+
+function shade.drop(name)
+	local list = shade.lists[name]
+	if list then
+		if WG.guishader then
+			WG.guishader.removeRenderDlist(list)
+		end
+		gl.DeleteList(list)
+		shade.lists[name] = nil
+	end
+end
+
+-- Rebuilt per frame: a modal carries a blinking caret and the picker lights the option
+-- under the cursor, so there is nothing static to hold on to.
+function shade.float(name, fn)
+	if not (WG.guishader and WG.guishader.insertRenderDlist) then
+		-- No blur will be drawn over it, so there is nothing to hand over.
+		fn()
+		return
+	end
+	shade.drop(name)
+	shade.lists[name] = gl.CreateList(fn)
+	WG.guishader.insertRenderDlist(shade.lists[name])
+end
+
+function shade.clear()
+	for name in pairs(shade.rects) do
+		if WG.guishader then
+			WG.guishader.RemoveScreenRect("keybindeditor_" .. name)
+		end
+		shade.rects[name] = nil
+	end
+	for name in pairs(shade.lists) do
+		shade.drop(name)
+	end
+end
 ---@type table?
 local capturing
 
@@ -580,7 +658,7 @@ local function rebuildRows()
 
 		return
 	end
-	local query = searchBox and searchBox:getText():lower() or ""
+	local query = Search.query(searchBox and searchBox:getText())
 	local catalogActions = {}
 	local otherGroupEnd
 
@@ -598,7 +676,9 @@ local function rebuildRows()
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
 		local inCategory = not selectedCategory or group.category == selectedCategory
-		local categoryMatch = query ~= "" and group.titleLower:find(query, 1, true)
+		-- A group whose own title matches keeps every row under it, so searching for a
+		-- category's name shows the category rather than emptying it.
+		local categoryMatch = Search.claims(query, group.titleLower)
 		local groupRows = {}
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
@@ -649,10 +729,9 @@ local function rebuildRows()
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
 					if
-						query == ""
-						or categoryMatch
-						or action:lower():find(query, 1, true)
-						or label:lower():find(query, 1, true)
+						categoryMatch
+						or Search.matches(query, action:lower())
+						or Search.matches(query, label:lower())
 					then
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
@@ -664,10 +743,9 @@ local function rebuildRows()
 					catalogActions[item.action] = true
 				end
 				if
-					query == ""
-					or categoryMatch
-					or item.labelLower:find(query, 1, true)
-					or (item.actionLower and item.actionLower:find(query, 1, true))
+					categoryMatch
+					or Search.matches(query, item.labelLower)
+					or Search.matches(query, item.actionLower)
 				then
 					groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
 				end
@@ -692,10 +770,10 @@ local function rebuildRows()
 		end
 	end
 
-	local otherMatch = query ~= "" and L.otherLower:find(query, 1, true)
+	local otherMatch = Search.claims(query, L.otherLower)
 	local others = {}
 	for action in pairs(working.byAction) do
-		if not catalogActions[action] and (query == "" or otherMatch or action:lower():find(query, 1, true)) then
+		if not catalogActions[action] and (otherMatch or Search.matches(query, action:lower())) then
 			others[#others + 1] = action
 		end
 	end
@@ -1114,7 +1192,11 @@ local function ensureControls()
 		return
 	end
 
-	searchBox = Editbox.new({ placeholder = BAR.I18N("ui.keybinds.editor.search"), onChange = rebuildRows })
+	searchBox = Editbox.new({
+		placeholder = BAR.I18N("ui.keybinds.editor.search"),
+		clearable = true,
+		onChange = rebuildRows,
+	})
 	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
 	nameBox = Editbox.new({ maxChars = 40 })
 end
@@ -1291,12 +1373,18 @@ function view.refresh()
 end
 
 -- Takes the panel rect from the host; every band and column is derived from it.
-function view.setArea(x1, y1, x2, y2, s)
+-- `wx1..wy2` is the window the area sits inside; without it a modal can only dim as far
+-- as the area goes, leaving the panel's own border lit. Kept in `metrics` rather than a
+-- local of its own, this chunk being at Lua's ceiling of 200.
+function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	ensureControls()
 	area.x1, area.y1, area.x2, area.y2 = x1, y1, x2, y2
+	metrics.winX1, metrics.winY1 = wx1 or x1, wy1 or y1
+	metrics.winX2, metrics.winY2 = wx2 or x2, wy2 or y2
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
+	metrics.catBarW = math.max(3, floor(6 * scale))
 	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
 	-- rectangle edges between pixels, which the renderer then blends across both.
 	metrics.rowFs = floor(rowHeight * 0.55)
@@ -1337,7 +1425,7 @@ function view.setArea(x1, y1, x2, y2, s)
 	local barW = floor(14 * scale)
 	barX1 = area.x2 - metrics.edgeInset - barW
 	listRight = barX1 - metrics.listGap
-	keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
+	metrics.keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
 
 	-- Shortened here rather than in the draw loop: the column width and the font size are
 	-- both settled by now, and this runs on a resize where the loop runs every frame.
@@ -1371,6 +1459,9 @@ function view.blur()
 	end
 	capturing = nil
 
+	-- Or the blur outlives the panel: guishader keeps drawing a rect nobody owns any more.
+	shade.clear()
+
 	-- Through cancel rather than dropped: a live modal is holding a rollback, and the picker
 	-- names a profile that was never switched to until that runs.
 	cancelDialog()
@@ -1382,6 +1473,11 @@ function view.confirmClose(proceed)
 	return guardDirty(proceed)
 end
 
+-- The host widget, handed over so guishader can drop this panel's blur rects with it when
+-- the widget goes away. Optional: with no owner the rects are simply always allowed.
+function view.setOwner(w)
+	shade.owner = w
+end
 -- Host hook for swapping the build menu when a profile implies one.
 function view.setMenuToggle(fn)
 	menuToggle = fn
@@ -1750,7 +1846,9 @@ local function modPrefix()
 		return ""
 	end
 
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
+	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local prefix = ""
 	if alt then
 		prefix = prefix .. "Alt+"
@@ -1788,7 +1886,9 @@ local function pressSym(key, scanCode)
 		return nil
 	end
 
-	local sym = scanCode and spGetScanSymbol(scanCode)
+	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
+	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
+	local sym = scanCode and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
 	end
@@ -1903,7 +2003,7 @@ local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 	local n = #groups
 	local mets = {}
 	if n == 0 then
-		return mets, keyAreaX1
+		return mets, metrics.keyAreaX1
 	end
 
 	local total = 0
@@ -1921,7 +2021,7 @@ local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 		end
 	end
 
-	local cx = keyAreaX1
+	local cx = metrics.keyAreaX1
 	for i = 1, n do
 		mets[i].x = cx
 		mets[i].removeX1 = cx + mets[i].w - rightGap
@@ -1939,7 +2039,7 @@ local function rowChipBand(action, fs, pad)
 	local rightGap = pad + floor(fs * 0.9)
 	local addW = floor(fs + pad * 2)
 	-- Room reserved on the right so "+" always fits.
-	local chipArea = listRight - addW - floor(8 * scale) - keyAreaX1
+	local chipArea = listRight - addW - floor(8 * scale) - metrics.keyAreaX1
 	local mets, cx = layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 
 	return mets, cx, addW, rightGap
@@ -1961,9 +2061,12 @@ local function rowLayout(row)
 	elseif row.type == "link" then
 		lay.text = colorAction .. row.label
 		lay.arrow = look.arrow
-		lay.arrowX = listX1 + metrics.rowPad * 5 + floor(font:GetTextWidth(row.label) * metrics.rowFs) + metrics.rowPad * 2
+		lay.arrowX = listX1
+			+ metrics.rowPad * 5
+			+ floor(font:GetTextWidth(row.label) * metrics.rowFs)
+			+ metrics.rowPad * 2
 	else
-		local labelW = keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
+		local labelW = metrics.keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
 		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
 		local mets, cx, addW, rightGap = rowChipBand(row.action, metrics.rowFs, metrics.rowPad)
 		for i = 1, #mets do
@@ -2061,10 +2164,32 @@ local function sidebarTop()
 	return listTop - metrics.sidebarDrop
 end
 
+-- `i` is the entry's place in `categories`, not its place on screen: the two differ by
+-- however far the column is scrolled. That offset rides in `hover` for the same reason
+-- `grab` does - this chunk is at Lua's ceiling of 200 locals.
 local function categoryRect(i)
-	local top = sidebarTop() - (i - 1) * metrics.catRowHeight
+	local top = sidebarTop() - (i - 1 - hover.cat) * metrics.catRowHeight
+	-- The right edge gives way to the bar when there is one. Without that an entry runs
+	-- under it and its hover plate disappears beneath the bar rather than stopping beside
+	-- it. The page count is worked out inline: this chunk is at Lua's 200.
+	local right = area.x1 + sidebarW
+	if #categories > math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) then
+		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
+	end
 
-	return area.x1, top - metrics.catRowHeight, area.x1 + sidebarW, top
+	return area.x1, top - metrics.catRowHeight, right, top
+end
+
+-- Scrolls the category column by `delta` entries and answers how far it can be scrolled
+-- at all, so nought means everything fits. One function rather than the usual three,
+-- this chunk being at the local ceiling; passing 0 just clamps.
+local function catScrolled(delta)
+	local page = math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight))
+	local most = math.max(0, #categories - page)
+	local n = hover.cat + delta
+	hover.cat = (n < 0 and 0) or (n > most and most) or n
+
+	return most
 end
 
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
@@ -2075,7 +2200,7 @@ local function sidebarIndexAt(x, y)
 		return nil
 	end
 
-	local i = floor((top - y) / metrics.catRowHeight) + 1
+	local i = floor((top - y) / metrics.catRowHeight) + 1 + hover.cat
 	if not categories[i] then
 		return nil
 	end
@@ -2196,13 +2321,32 @@ local function drawSidebar(hoverIdx)
 	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
+	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
+	-- there are more categories than the card has room for.
+	if catScrolled(0) > 0 then
+		local bx2 = area.x1 + sidebarW - metrics.catInset
+		Scroller(
+			bx2 - metrics.catBarW,
+			-- Over the entries rather than the whole card: the last row rarely lands exactly on
+			-- the bottom, and a bar running past it reads as dead space at the foot of the column
+			-- - and its thumb then says more fits than does.
+			sidebarTop()
+				- math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) * metrics.catRowHeight,
+			bx2,
+			sidebarTop(),
+			#categories * metrics.catRowHeight,
+			hover.cat * metrics.catRowHeight
+		)
+	end
+
 	-- Laid out before the font existed, so the labels are still waiting to be fitted.
 	if categories[1] and not categories[1].textDim then
 		fitCategories()
 	end
 
 	local lb = listBottom()
-	for i, c in ipairs(categories) do
+	for i = hover.cat + 1, #categories do
+		local c = categories[i]
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 >= lb then
 			local selected = selectedCategory == c.key
@@ -2210,7 +2354,15 @@ local function drawSidebar(hoverIdx)
 				local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
 				RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
 			elseif i == hoverIdx then
-				Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
+				Highlight(
+					x1 + metrics.catInset,
+					y1,
+					x2 - metrics.catInset,
+					y2,
+					metrics.csSmall,
+					look.rowHoverOpacity,
+					look.white
+				)
 			end
 			local ty = floor((y1 + y2) * 0.5)
 			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
@@ -2491,7 +2643,20 @@ local function drawCaptureModal(mx, my)
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it.
+	RectRound(
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.55 }
+	)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	local tfs = floor(rowHeight * 0.6)
@@ -2617,7 +2782,20 @@ local function drawProfileDialog(mx, my)
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
 
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it.
+	RectRound(
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.55 }
+	)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- Anything whose accept saves is green, anything destructive is red, wherever it
@@ -2708,10 +2886,16 @@ local function drawButtons(hotId)
 				local fill = b.fill and ((not enabled and b.fillMuted) or (hovered and b.fillHover) or b.fill)
 				drawButtonFace(r, fill or buttonFill)
 
+				-- The face lights under the cursor the way a row or the search field does. A
+				-- tinted button is the exception: it would lose its colour under the overlay, so
+				-- it brightens its own fill above instead.
+				if hovered and not fill then
+					Highlight(r[1], r[2], r[3], r[4], metrics.csButton, hoverOpacity, look.white)
+				end
+
 				if b.icon then
-					-- Square inset so the 64x64 art keeps its aspect inside a wider button.
-					-- Hover only lifts the tint, matching the search box and picker, which
-					-- carry no hover treatment of their own.
+					-- Square inset so the 64x64 art keeps its aspect inside a wider button. The
+					-- icon brightens with the face, so the whole button reads as one control.
 					local inset = floor((r[4] - r[2]) * 0.22)
 					local side = (r[4] - r[2]) - inset * 2
 					local ix = floor((r[1] + r[3] - side) * 0.5)
@@ -2726,9 +2910,6 @@ local function drawButtons(hotId)
 					glTexture(false)
 					glColor(1, 1, 1, 1)
 				else
-					if hovered and not fill then
-						Highlight(r[1], r[2], r[3], r[4], metrics.csButton, hoverOpacity, look.white)
-					end
 					queueText(
 						(enabled and b.textOn or b.textOff) or L[b.id],
 						floor((r[1] + r[3]) * 0.5),
@@ -2742,9 +2923,19 @@ local function drawButtons(hotId)
 	end
 end
 
--- What the cursor is over, in the terms the panel paints hover with. Refilled in place
--- each frame rather than allocated.
-local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "" }
+-- The thumb, where it is now. Nil when the list fits and no bar is drawn. Reached through
+-- WG rather than a local of its own, this chunk being at the 200-local ceiling; it is only
+-- asked for on a press or a hover test, so the lookup costs nothing that matters.
+local function scrollerThumb()
+	return WG.FlowUI.Draw.ScrollerGeometry(
+		barX1,
+		listBottom(),
+		area.x2 - metrics.edgeInset,
+		listTop,
+		rowMetrics.totalH,
+		scrollOffset()
+	)
+end
 
 -- Reads the hover state and answers a signature of everything the baked panel is painted
 -- from. Same signature, same picture, so the display list is replayed as it is.
@@ -2754,6 +2945,16 @@ local function panelSignature(mx, my)
 	h.row, h.zone, h.idx = 0, "", 0
 	h.gk, h.ga, h.gb = "", 0, 0
 	h.btn = ""
+	h.bar = 0
+
+	-- Over the thumb itself, which lights it. The track either side is not part of this:
+	-- only the thumb is something to take hold of.
+	if mx >= barX1 and mx <= area.x2 - metrics.edgeInset then
+		local top, height = scrollerThumb()
+		if top and my <= top and my >= top - height then
+			h.bar = 1
+		end
+	end
 
 	if gridGroup then
 		if isInRect(mx, my, listX1, listBottom(), area.x2, listTop) then
@@ -2808,6 +3009,12 @@ local function panelSignature(mx, my)
 		.. (dirty and 1 or 0)
 		.. "|"
 		.. (activeIsOwn() and 1 or 0)
+		.. "|"
+		.. h.bar
+		.. "|"
+		.. h.cat
+		.. "|"
+		.. (hover.drag and 1 or 0)
 end
 
 -- Everything under the header controls and above the modals: the sidebar, the list or
@@ -2840,7 +3047,7 @@ local function drawPanel()
 		end
 		flushText()
 
-		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base)
+		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, hover.drag)
 	end
 
 	drawButtons(h.btn)
@@ -2860,6 +3067,31 @@ end
 
 -- Paints the whole panel. The header controls and the modals draw live; the body is
 -- replayed from its display list until panelSignature says something in it moved.
+-- Which of the popups is up, and where. Defined down here rather than beside the rest of
+-- `shade`: it reads the popup state and geometry, none of which exists that far up.
+function shade.update()
+	if capturing then
+		local bx1, by1, bx2, by2 = captureGeometry()
+		shade.rect("capture", bx1, by1, bx2, by2)
+	else
+		shade.rect("capture")
+	end
+
+	if dialog then
+		local bx1, by1, bx2, by2 = dialogGeometry()
+		shade.rect("dialog", bx1, by1, bx2, by2)
+	else
+		shade.rect("dialog")
+	end
+
+	-- The list the picker drops, which stands clear of the control and over the rows.
+	local opts = presetDropdown and presetDropdown:isOpen() and presetDropdown.optRects
+	if opts and opts[1] then
+		shade.rect("picker", opts[1].x1, opts[#opts].y1, opts[1].x2, opts[1].y2)
+	else
+		shade.rect("picker")
+	end
+end
 function view.draw()
 	if not font then
 		view.init()
@@ -2880,11 +3112,11 @@ function view.draw()
 	gl.DepthTest(false)
 
 	local rawMx, rawMy, lmb = spGetMouseState()
-	if dragging then
+	if hover.drag then
 		if lmb then
 			scrollFromY(rawMy)
 		else
-			dragging = false
+			hover.drag = false
 		end
 	end
 
@@ -2911,21 +3143,49 @@ function view.draw()
 		registerTooltips()
 	end
 
-	presetDropdown:draw()
+	-- Each of these covers UI rather than map, so it takes the blur with it and is drawn
+	-- back on top of it. See `shade` for why that is two steps and not one.
+	if presetDropdown:isOpen() then
+		shade.float("picker", function()
+			presetDropdown:draw()
+		end)
+	else
+		shade.drop("picker")
+		presetDropdown:draw()
+	end
 
 	-- Real cursor: these are the overlay, so the hover is theirs to detect.
 	if capturing then
-		drawCaptureModal(rawMx, rawMy)
+		shade.float("capture", function()
+			drawCaptureModal(rawMx, rawMy)
+		end)
+	else
+		shade.drop("capture")
 	end
 
 	if dialog then
-		drawProfileDialog(rawMx, rawMy)
+		shade.float("dialog", function()
+			drawProfileDialog(rawMx, rawMy)
+		end)
+	else
+		shade.drop("dialog")
 	end
+
+	-- After they have laid themselves out, so the blur behind one is the right size on
+	-- the frame it appears rather than the one after.
+	shade.update()
 end
 
+-- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at
+-- the grab is what keeps this relative: the thumb moves with the cursor rather than
+-- centring itself on it, so taking hold of it does not shift the list before the drag.
 scrollFromY = function(y)
-	local lb = listBottom()
-	local f = (listTop - y) / math.max(1, listTop - lb)
+	local _, _, trackTop, travel = scrollerThumb()
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - hover.grab)) / travel
 	if f < 0 then
 		f = 0
 	elseif f > 1 then
@@ -2945,8 +3205,12 @@ function view.mouseWheel(up, value)
 		return
 	end
 
-	local _, my = spGetMouseState()
-	if my >= listBottom() and my <= listTop then
+	local mx, my = spGetMouseState()
+	-- Over the column it scrolls the column, over anything else the list. A wheel that
+	-- moved the list while the cursor was on the categories would read as broken.
+	if mx <= area.x1 + sidebarW and my > listBottom() and my <= sidebarTop() then
+		catScrolled(up and -1 or 1)
+	elseif my >= listBottom() and my <= listTop then
 		scroll = scroll + (up and -3 or 3)
 		clampScroll()
 	end
@@ -3097,8 +3361,21 @@ function view.mousePress(x, y, button)
 	end
 
 	if not gridGroup and isInRect(x, y, barX1, listBottom(), area.x2, listTop) then
-		dragging = true
-		scrollFromY(y)
+		-- Taking hold of the bar. On the thumb that is a grab and the list stays put; on the
+		-- track either side the thumb jumps to the cursor first and is then dragged from its
+		-- middle, which is what a press on bare track is asking for. Inline because this chunk
+		-- is at Lua's ceiling of 200 locals and a function of its own would need a slot.
+		local top, height = scrollerThumb()
+		if top then
+			hover.drag = true
+			if y <= top and y >= top - height then
+				hover.grab = y - top
+			else
+				hover.grab = -floor(height * 0.5)
+				scrollFromY(y)
+			end
+		end
+
 		return true
 	end
 
@@ -3172,6 +3449,34 @@ function view.keyPress(key, scanCode)
 			presetDropdown:close()
 		end
 		return true
+	end
+
+	-- A grid category replaces the list outright, and picking another category in the
+	-- column is otherwise the only way back out of it. Escape is the other way, and it
+	-- has to come before the panel closes: leaving a view is what the key is for.
+	if gridGroup and key == 27 then
+		selectedCategory = nil
+		scroll = 0
+		rebuildRows()
+
+		return true
+	end
+
+	-- Escape empties the search before it closes the panel: the list being read is the one
+	-- the search made, and the first Escape is asking for that back. With nothing left to
+	-- clear it goes unclaimed, and the widget above closes the panel on it.
+	if key == KEYSYMS.ESCAPE then
+		if searchBox and searchBox:getText() ~= "" then
+			-- Focus stays, so the next thing typed starts a new search.
+			searchBox:setText("")
+
+			return true
+		end
+		if searchBox then
+			searchBox:blur()
+		end
+
+		return false
 	end
 
 	if searchBox and searchBox:isFocused() then

@@ -543,8 +543,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "modmarker"
 		end
 
-		local bypassSyncedAuthorization = cmd == "godmode" or cmd == "godmodeally"
-		if not bypassSyncedAuthorization and not isAuthorized(playerID, subPermission) then
+		if not isAuthorized(playerID, subPermission) then
 			return
 		end
 

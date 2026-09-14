@@ -13,6 +13,9 @@ local colorText = "\255\235\235\235"
 -- SelectHighlight defaults to 0.35 and the rest of the UI stays near it. At 1 the
 -- overlay is opaque and swallows the option label under it.
 local hoverOpacity = 0.25
+-- Lighter for the control itself than for a row of the open list: one says the cursor
+-- is on it, the other says this is the option a click would take.
+local controlHoverOpacity = 0.14
 local white = { 1, 1, 1 }
 local listFill = { 0.09, 0.09, 0.09, 0.96 }
 
@@ -39,6 +42,10 @@ function Dropdown.new(opts)
 	self.onSelect = opts.onSelect
 	self.selected = opts.selected or 1
 	self.placeholder = opts.placeholder
+	-- An outline to draw the text with, for a panel that pins its own. The font is shared with
+	-- every other widget and keeps whatever outline was set on it last; without one this takes
+	-- that, as it always has.
+	self.outline = opts.outline
 	self.open = false
 	self.rect = { 0, 0, 0, 0 }
 	self.optRects = {}
@@ -124,6 +131,11 @@ function Dropdown:draw()
 	local inset = floor((y2 - y1) * 0.3)
 
 	Selector(x1, y1, x2, y2)
+	-- A control with nothing to choose from does not light under the cursor. Lighting is
+	-- what tells a player something will happen when they press, and here nothing will.
+	if not self.disabled and mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+		Highlight(x1, y1, x2, y2, floor(WG.FlowUI.elementCorner * 0.66), controlHoverOpacity, white)
+	end
 
 	-- Chevron in the gap already reserved at the right edge, so the control reads as a
 	-- select rather than a button. Drawn before the text: geometry inside a font batch
@@ -131,7 +143,7 @@ function Dropdown:draw()
 	local arrowH = floor((y2 - y1) * 0.16)
 	local arrowX = x2 - inset - arrowH
 	local arrowY = floor((y1 + y2) * 0.5 + arrowH * 0.5)
-	gl.Color(1, 1, 1, self.open and 0.9 or 0.55)
+	gl.Color(1, 1, 1, self.disabled and 0.25 or (self.open and 0.9 or 0.55))
 	chevronX, chevronY, chevronH = arrowX, arrowY, arrowH
 	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
 	gl.Color(1, 1, 1, 1)
@@ -143,6 +155,9 @@ function Dropdown:draw()
 	end
 
 	font:Begin()
+	if self.outline then
+		font:SetOutlineColor(self.outline)
+	end
 	local current = self.options[self.selected]
 	local label = self.placeholder or (current and optionLabel(current) or "")
 	-- A profile name is free text and can outrun the control, which is fixed width so the
@@ -151,9 +166,9 @@ function Dropdown:draw()
 	font:Print(
 		fittedLabel(fitted, 0, font, label, labelW, self.fontSize),
 		x1 + inset,
-		floor((y1 + y2) * 0.5),
+		text.baseline(font, y1, y2, self.fontSize),
 		self.fontSize,
-		"ov"
+		"o"
 	)
 	font:End()
 
@@ -172,6 +187,7 @@ function Dropdown:draw()
 			end
 		end
 
+		-- Still the caption's outline: it was set on this same font a moment ago, in this draw.
 		font:Begin()
 		for i, opt in ipairs(self.options) do
 			local r = self.optRects[i]
@@ -179,9 +195,9 @@ function Dropdown:draw()
 			font:Print(
 				fittedLabel(fitted, i, font, optionLabel(opt), w, self.fontSize),
 				r.x1 + inset,
-				floor((r.y1 + r.y2) * 0.5),
+				text.baseline(font, r.y1, r.y2, self.fontSize),
 				self.fontSize,
-				"ov"
+				"o"
 			)
 		end
 		font:End()
@@ -189,6 +205,12 @@ function Dropdown:draw()
 end
 
 function Dropdown:mousePress(x, y)
+	if self.disabled then
+		self.open = false
+
+		return false
+	end
+
 	if self.open then
 		for i, r in ipairs(self.optRects) do
 			if x >= r.x1 and x <= r.x2 and y >= r.y1 and y <= r.y2 then
