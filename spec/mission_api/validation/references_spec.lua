@@ -1,6 +1,6 @@
 ---
 --- References between mission entities: stages and objectives,
---- and unit, feature and marker names.
+--- unit, feature and marker names, and countdown IDs.
 ---
 
 local V = require("mission_api.validation.validation_spec_helper")
@@ -153,6 +153,25 @@ describe("mission_api.validation.references", function()
 			:WithAction("reclaim", { type = V.actionTypes.ReclaimUnits, parameters = { unitName = "bot" } })))
 	end)
 
+	-- A trigger can name several units at once, e.g. a passenger and its transport,
+	-- so every parameter of the name's type counts, not just the conventional one.
+	it("counts every parameter taking a unitName as referencing it", function()
+		V.assertValid(V.validate(V.mission()
+			:WithTrigger("t", {
+				type = V.triggerTypes.TransportLoaded,
+				parameters = { transportName = "dropship", passengerName = "bot" },
+				actions = { "ok" },
+			})
+			:WithTrigger("start", {
+				type = V.triggerTypes.TimeElapsed,
+				parameters = { seconds = 1 },
+				actions = { "spawnDropship", "spawnBot" },
+			})
+			:WithAction("spawnDropship", spawnUnits("dropship"))
+			:WithAction("spawnBot", spawnUnits("bot"))
+			:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })))
+	end)
+
 	it("warns about names that are only created, or only referenced", function()
 		local result = V.validate(V.mission()
 			:WithAction("spawnUnused", spawnUnits("unusedUnit"))
@@ -209,6 +228,116 @@ describe("mission_api.validation.references", function()
 			"Unit name is created, but never referenced. Unit name: unusedUnit, "
 				.. "Created in: action nameUnused, action spawnUnused (unitLoadout[1])"
 		)
+	end)
+
+	describe("countdown IDs", function()
+		it("passes countdowns that are added, including ones left to run out", function()
+			V.assertValid(
+				V.validate(
+					V.mission()
+						:WithObjective("surviveBomb", {
+							textKey = "survive",
+							trigger = { type = V.triggerTypes.CountdownFinished, parameters = { countdownID = "bomb" } },
+						})
+						:WithTrigger("start", {
+							type = V.triggerTypes.TimeElapsed,
+							parameters = { seconds = 1 },
+							actions = { "addBomb", "addLone" },
+						})
+						:WithTrigger("bombDone", {
+							type = V.triggerTypes.CountdownFinished,
+							parameters = { countdownID = "bomb" },
+							actions = { "pauseBomb" },
+						})
+						:WithAction(
+							"addBomb",
+							{ type = V.actionTypes.AddCountdown, parameters = { countdownID = "bomb", seconds = 60 } }
+						)
+						:WithAction(
+							"pauseBomb",
+							{ type = V.actionTypes.PauseCountdown, parameters = { countdownID = "bomb" } }
+						)
+						:WithAction(
+							"addLone",
+							{ type = V.actionTypes.AddCountdown, parameters = { countdownID = "lone", seconds = 10 } }
+						)
+				)
+			)
+		end)
+
+		it("warns about a countdown an action refers to, but no action adds", function()
+			local result = V.validate(
+				V.mission():WithAction(
+					"cancelGhost",
+					{ type = V.actionTypes.CancelCountdown, parameters = { countdownID = "ghost" } }
+				)
+			)
+
+			V.assertMessage(
+				result,
+				"Countdown is referenced, but never added. Countdown: ghost, Referenced in: action cancelGhost"
+			)
+		end)
+
+		-- Every action taking a countdownID counts, straight from the action schema.
+		it("warns about time adjustments on countdowns that are never added", function()
+			local result = V.validate(
+				V.mission()
+					:WithAction(
+						"setGhost",
+						{ type = V.actionTypes.SetTime, parameters = { countdownID = "setID", seconds = 5 } }
+					)
+					:WithAction(
+						"addGhost",
+						{ type = V.actionTypes.AddTime, parameters = { countdownID = "addID", seconds = 5 } }
+					)
+					:WithAction(
+						"removeGhost",
+						{ type = V.actionTypes.RemoveTime, parameters = { countdownID = "removeID", seconds = 5 } }
+					)
+			)
+
+			V.assertMessage(
+				result,
+				"Countdown is referenced, but never added. Countdown: setID, Referenced in: action setGhost"
+			)
+			V.assertMessage(
+				result,
+				"Countdown is referenced, but never added. Countdown: addID, Referenced in: action addGhost"
+			)
+			V.assertMessage(
+				result,
+				"Countdown is referenced, but never added. Countdown: removeID, Referenced in: action removeGhost"
+			)
+		end)
+
+		it("warns about a countdown a trigger refers to, but no action adds", function()
+			local result = V.validate(V.mission()
+				:WithTrigger("watchGhost", {
+					type = V.triggerTypes.CountdownReached,
+					parameters = { countdownID = "ghost", timeRemaining = 10 },
+					actions = { "ok" },
+				})
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } }))
+
+			V.assertMessage(
+				result,
+				"Countdown is referenced, but never added. Countdown: ghost, Referenced in: trigger watchGhost"
+			)
+		end)
+
+		it("warns about a countdown an inline objective trigger refers to, but no action adds", function()
+			local result = V.validate(V.mission():WithObjective("surviveGhost", {
+				textKey = "survive",
+				trigger = { type = V.triggerTypes.CountdownFinished, parameters = { countdownID = "ghost" } },
+			}))
+
+			V.assertMessage(
+				result,
+				"Countdown is referenced, but never added. Countdown: ghost, "
+					.. "Referenced in: objective surviveGhost (trigger)"
+			)
+		end)
 	end)
 
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.

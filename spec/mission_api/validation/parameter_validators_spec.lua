@@ -136,6 +136,39 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 	end)
 
+	describe("PositiveInteger", function()
+		local function validateTimeRemaining(timeRemaining)
+			return V.validateTrigger(
+				V.trigger(V.triggerTypes.CountdownReached, { countdownID = "bomb", timeRemaining = timeRemaining })
+			)
+		end
+
+		it("rejects zero, which CountdownFinished covers", function()
+			V.assertMessage(
+				validateTimeRemaining(0),
+				"PositiveInteger must be a whole number > 0, got 0. Trigger: t, Parameter: timeRemaining"
+			)
+		end)
+
+		it("rejects a negative value", function()
+			V.assertMessage(
+				validateTimeRemaining(-5),
+				"PositiveInteger must be a whole number > 0, got -5. Trigger: t, Parameter: timeRemaining"
+			)
+		end)
+
+		it("rejects a fractional value", function()
+			V.assertMessage(
+				validateTimeRemaining(2.5),
+				"PositiveInteger must be a whole number > 0, got 2.5. Trigger: t, Parameter: timeRemaining"
+			)
+		end)
+
+		it("accepts a whole number of seconds", function()
+			V.assertNoMessageContaining(validateTimeRemaining(1), "PositiveInteger")
+		end)
+	end)
+
 	describe("TriggerID", function()
 		it("rejects the wrong type", function()
 			local result = V.validateAction({ type = V.actionTypes.EnableTrigger, parameters = { triggerID = 123 } })

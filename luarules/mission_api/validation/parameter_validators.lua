@@ -230,6 +230,17 @@ local function registerValueValidators(parameterValidators, context)
 		end
 	end
 
+	parameterValidators[Types.PositiveInteger] = function(value)
+		local luaTypeResult = parameterValidators[Types.Number](value)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		if value <= 0 or value % 1 ~= 0 then
+			return { { message = "PositiveInteger must be a whole number > 0, got " .. value } }
+		end
+	end
+
 	parameterValidators[Types.Fraction] = function(fraction)
 		local luaTypeResult = parameterValidators[Types.Number](fraction)
 		if luaTypeResult then

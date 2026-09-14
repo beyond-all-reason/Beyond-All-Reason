@@ -1,10 +1,13 @@
 ---
---- Checks references: objectives in a stage, nextStage, objective events, and unit, feature and marker names.
+--- Checks references: objectives in a stage, nextStage, objective events,
+--- unit, feature and marker names, and countdown IDs.
 --- Malformed entries are skipped, as sections.lua already reports them.
 ---
 
 local SECTION = VFS.Include("luarules/mission_api/validation/report.lua").Sections.References
-local getTypesWithParameterType = VFS.Include("luarules/mission_api/schema_utils.lua").GetTypesWithParameterType
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
+local getParameterNamesWithType = schemaUtils.GetParameterNamesWithType
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -22,12 +25,12 @@ local function recordSource(sourcesByName, name, source)
 	sources[#sources + 1] = source
 end
 
-local function reportUnmatchedNames(report, label, createdNames, referencedNames)
-	local function describeSources(sources)
-		table.sort(sources)
-		return table.concat(sources, ", ")
-	end
+local function describeSources(sources)
+	table.sort(sources)
+	return table.concat(sources, ", ")
+end
 
+local function reportUnmatchedNames(report, label, createdNames, referencedNames)
 	for name, sources in pairs(referencedNames) do
 		if not createdNames[name] then
 			report.Warn(
@@ -172,7 +175,7 @@ end
 ---@class NameKind
 ---@field label string how the name is described in messages, e.g. "Unit name"
 ---@field nameKey string the key holding the name, on loadout entries and parameters alike
----@field nameType string the parameter type, used to find the action and trigger types taking one
+---@field nameType string the parameter type, used to find every parameter taking one
 ---@field loadout table the mission's top level loadout for this kind
 ---@field loadoutLabel string how a top level loadout entry is cited, e.g. "UnitLoadout"
 ---@field loadoutParameter string the inline loadout parameter on the action creating from one
@@ -220,12 +223,25 @@ local function collectOrderNames(nameKind, actionID, parameters, referencedNames
 	end
 end
 
+--- Records every distinct name held by the entity's parameters of this kind. A trigger
+--- can name several units at once, e.g. a passenger and the transport carrying it.
+local function collectParameterNames(parameterNames, parameters, source, referencedNames)
+	local seen = {}
+	for _, parameterName in ipairs(parameterNames or {}) do
+		local name = parameters[parameterName]
+		if type(name) == "string" and not seen[name] then
+			seen[name] = true
+			recordSource(referencedNames, name, source)
+		end
+	end
+end
+
 --- An action either creates a name or refers to one, never both.
 local function collectActionNames(context, nameKind, createdNames, referencedNames)
 	-- Any action taking the name as a parameter references it, unless it creates it.
-	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, nameKind.nameType)
+	local referencingParameterNames = getParameterNamesWithType(context.ActionParameters, nameKind.nameType)
 	for actionType in pairs(nameKind.creatingActionTypes) do
-		referencingActionTypes[actionType] = nil
+		referencingParameterNames[actionType] = nil
 	end
 
 	for actionID, action in pairs(context.Actions) do
@@ -238,13 +254,18 @@ local function collectActionNames(context, nameKind, createdNames, referencedNam
 				collectOrderNames(nameKind, actionID, parameters, referencedNames)
 			end
 
-			local name = parameters[nameKind.nameKey]
-			if type(name) == "string" then
-				if nameKind.creatingActionTypes[action.type] then
+			if nameKind.creatingActionTypes[action.type] then
+				local name = parameters[nameKind.nameKey]
+				if type(name) == "string" then
 					recordSource(createdNames, name, "action " .. actionID)
-				elseif referencingActionTypes[action.type] then
-					recordSource(referencedNames, name, "action " .. actionID)
 				end
+			else
+				collectParameterNames(
+					referencingParameterNames[action.type],
+					parameters,
+					"action " .. actionID,
+					referencedNames
+				)
 			end
 		end
 	end
@@ -252,22 +273,35 @@ end
 
 --- Triggers only ever refer to names, never create them.
 local function collectTriggerNames(context, nameKind, referencedNames)
-	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, nameKind.nameType)
+	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
 
 	for triggerID, trigger in pairs(context.Triggers) do
 		local parameters = parametersOf(trigger)
-		if parameters and referencingTriggerTypes[trigger.type] and type(parameters[nameKind.nameKey]) == "string" then
-			recordSource(referencedNames, parameters[nameKind.nameKey], "trigger " .. triggerID)
+		if parameters then
+			collectParameterNames(
+				referencingParameterNames[trigger.type],
+				parameters,
+				"trigger " .. triggerID,
+				referencedNames
+			)
 		end
 	end
 end
 
 --- An objective can hold a trigger inline, which refers to names as any other trigger does.
 local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
+	local referencingParameterNames = getParameterNamesWithType(context.TriggerParameters, nameKind.nameType)
+
 	for objectiveID, objective in pairs(context.Objectives) do
-		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		if parameters and type(parameters[nameKind.nameKey]) == "string" then
-			recordSource(referencedNames, parameters[nameKind.nameKey], "objective " .. objectiveID .. " (trigger)")
+		local trigger = type(objective) == "table" and objective.trigger
+		local parameters = parametersOf(trigger)
+		if parameters then
+			collectParameterNames(
+				referencingParameterNames[trigger.type],
+				parameters,
+				"objective " .. objectiveID .. " (trigger)",
+				referencedNames
+			)
 		end
 	end
 end
@@ -284,6 +318,61 @@ local function validateNameReferences(context, report, nameKind)
 	collectObjectiveTriggerNames(context, nameKind, referencedNames)
 
 	reportUnmatchedNames(report, nameKind.label, createdNames, referencedNames)
+end
+
+--------------------------------------------------------------------------------
+-- Countdown ID references
+--------------------------------------------------------------------------------
+
+--- A countdown that is added and then simply left to run out is fine, so unlike the
+--- names above there is no warning for one that is added but never referenced.
+local function validateCountdownIDReferences(context, report)
+	local addedIDs = {}
+	local referencedIDs = {}
+
+	-- AddCountdown takes a countdownID too, but it creates the countdown rather than referring to one.
+	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, context.Types.CountdownID)
+	referencingActionTypes[context.ActionTypes.AddCountdown] = nil
+
+	for actionID, action in pairs(context.Actions) do
+		local parameters = parametersOf(action)
+		local countdownID = parameters and parameters.countdownID
+		if type(countdownID) == "string" then
+			if action.type == context.ActionTypes.AddCountdown then
+				addedIDs[countdownID] = true
+			elseif referencingActionTypes[action.type] then
+				recordSource(referencedIDs, countdownID, "action " .. actionID)
+			end
+		end
+	end
+
+	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CountdownID)
+	for triggerID, trigger in pairs(context.Triggers) do
+		local parameters = parametersOf(trigger)
+		if parameters and referencingTriggerTypes[trigger.type] and type(parameters.countdownID) == "string" then
+			recordSource(referencedIDs, parameters.countdownID, "trigger " .. triggerID)
+		end
+	end
+
+	-- Objectives can hold a trigger inline, which refers to a countdown as any other trigger does.
+	for objectiveID, objective in pairs(context.Objectives) do
+		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
+		if parameters and type(parameters.countdownID) == "string" then
+			recordSource(referencedIDs, parameters.countdownID, "objective " .. objectiveID .. " (trigger)")
+		end
+	end
+
+	for countdownID, sources in pairs(referencedIDs) do
+		if not addedIDs[countdownID] then
+			report.Warn(
+				SECTION,
+				"Countdown",
+				countdownID,
+				"Countdown is referenced, but never added",
+				"Referenced in: " .. describeSources(sources)
+			)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -318,6 +407,8 @@ local function validate(context, report)
 		loadoutActionType = actionTypes.CreateFeatures,
 		creatingActionTypes = { [actionTypes.CreateFeatures] = true },
 	})
+
+	validateCountdownIDReferences(context, report)
 end
 
 return {
