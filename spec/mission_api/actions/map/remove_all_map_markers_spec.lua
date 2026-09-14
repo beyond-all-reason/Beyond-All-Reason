@@ -9,7 +9,7 @@ local actions = VFS.Include("luarules/mission_api/actions/map/remove_all_map_mar
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-describe("mission_api.actions.clear_all_markers", function()
+describe("mission_api.actions.remove_all_map_markers", function()
 
 	local missionApi, sendCommandsCalls
 
@@ -24,7 +24,7 @@ describe("mission_api.actions.clear_all_markers", function()
 	end)
 
 	it("declares its type and parameters", function()
-		assert.are.same({ type = "ClearAllMarkers" }, summarizeSchema(action))
+		assert.are.same({ type = "RemoveAllMapMarkers" }, summarizeSchema(action))
 	end)
 
 	describe("actionFunction", function()

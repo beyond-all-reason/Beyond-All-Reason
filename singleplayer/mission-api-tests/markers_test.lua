@@ -26,12 +26,12 @@ local triggers = {
 		actions = { 'removeMarker', 'messageRemoveMarker' },
 	},
 
-	clearAll = {
+	removeAll = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
-		actions = { 'clearAll', 'messageClearAll' },
+		actions = { 'removeAll', 'messageRemoveAll' },
 	},
 }
 
@@ -95,14 +95,14 @@ local actions = {
 		},
 	},
 
-	clearAll = {
-		type = actionTypes.ClearAllMarkers,
+	removeAll = {
+		type = actionTypes.RemoveAllMapMarkers,
 	},
 
-	messageClearAll = {
+	messageRemoveAll = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's clear all markers.",
+			message = "Let's remove every marker.",
 		},
 	},
 }

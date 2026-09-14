@@ -1,12 +1,12 @@
-local function clearAllMarkers()
+local function removeAllMapMarkers()
 	GG['MissionAPI'].markerNames = {}
 	Spring.SendCommands('clearmapmarks')
 end
 
 return {
 	{
-		type = 'ClearAllMarkers',
+		type = 'RemoveAllMapMarkers',
 		parameters = {},
-		actionFunction = clearAllMarkers,
+		actionFunction = removeAllMapMarkers,
 	}
 }
