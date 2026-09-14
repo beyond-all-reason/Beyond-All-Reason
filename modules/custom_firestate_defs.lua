@@ -91,7 +91,18 @@ function customFirestateDefs.getUnitUserFirestate(unitID)
 			return rulesState
 		end
 	end
-	return customFirestateDefs.fromEngineFirestate(select(1, Spring.GetUnitStates(unitID, false)))
+	local engineState = Spring.GetUnitStates(unitID, false)
+	if engineState == nil and Spring.IsGodModeEnabled() then
+		-- Godmode permits controlling enemies without granting GetUnitStates read access.
+		local cmdIndex = Spring.FindUnitCmdDesc(unitID, CMD.FIRE_STATE)
+		local cmdDescs = cmdIndex and Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
+		local cmdDesc = cmdDescs and cmdDescs[1]
+		engineState = cmdDesc and cmdDesc.params and tonumber(cmdDesc.params[1])
+		if engineState == nil then
+			return nil
+		end
+	end
+	return customFirestateDefs.fromEngineFirestate(engineState)
 end
 
 function customFirestateDefs.stateLabel(cmd)

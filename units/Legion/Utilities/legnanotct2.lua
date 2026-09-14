@@ -43,6 +43,7 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
+			isnanoturret = true,
 			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",

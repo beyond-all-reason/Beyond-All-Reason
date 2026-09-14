@@ -106,6 +106,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "armstone",
 			combatradius = 0,
 			workertimeboost = 2,
 			wtboostunittype = "TURRET",

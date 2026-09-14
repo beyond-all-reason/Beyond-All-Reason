@@ -35,6 +35,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 3,
 			subfolder = "CorGantry",
 			techlevel = 3,
 		},

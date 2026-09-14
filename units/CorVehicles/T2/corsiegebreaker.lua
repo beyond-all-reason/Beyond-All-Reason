@@ -46,6 +46,7 @@ return {
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			onoffname = "dreadshot",
+			reaimtime = 5,
 			restoretime = "3000",
 			rockstrength = "5.5",
 			sleevename = "sleeve",

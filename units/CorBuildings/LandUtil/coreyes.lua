@@ -32,6 +32,7 @@ return {
 		yardmap = "o",
 		customparams = {
 			cannot_capture_territory = true,
+			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

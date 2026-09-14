@@ -7,7 +7,7 @@ local scenariodata = {
 	imagepath = "scenario004.jpg", -- placed next to lua file, should be 3:1 ratio banner style
 	imageflavor = "You can hide behind radar jammers.", -- This text will be drawn over image
 	summary = [[Competition for resources has never been this intense. Eliminate all 7 of your enemies in a free-for-all battle.]],
-	briefing = [[The Tycho Magnetic Anomaly 20 asteroid is very rich in resources, and has attracted the attention of your competition. There are a total of 7 enemy commanders on this map, all hell bent on destroying any opposition. Even cloaked Commanders emit a radar signature, but radar jammers can hide that as well. Armada's Sneaky Pete (Cloakable Radar Jammer Tower) can ensure that you dont fall victim to any surprise attacks.
+	briefing = [[The Tycho Magnetic Anomaly 20 asteroid is very rich in resources, and has attracted the attention of your competition. There are a total of 7 enemy commanders on this map, all hell bent on destroying any opposition. Even cloaked Commanders emit a radar signature, but radar jammers can hide that as well. Armada's Sneaky Pete (Cloakable Radar Jammer Tower) can ensure that you don't fall victim to any surprise attacks.
 
 Score:
     1. Speed: destroy all enemy Commanders as fast as possible.

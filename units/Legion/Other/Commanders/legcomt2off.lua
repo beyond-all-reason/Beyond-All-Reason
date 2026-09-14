@@ -103,7 +103,9 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
+			reaimtime = 5,
 			subfolder = "",
+			tombstone = "legstone",
 			paratrooper = true,
 		},
 		featuredefs = {

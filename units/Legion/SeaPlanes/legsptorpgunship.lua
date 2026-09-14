@@ -106,6 +106,7 @@ return {
 					vtol = 15,
 				},
 				customparams = {
+					land_damage_mult = 0.2,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 800,
 				},

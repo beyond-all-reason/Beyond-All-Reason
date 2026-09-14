@@ -41,6 +41,7 @@ return {
 			kickback = "-2.4",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 6,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
 		},

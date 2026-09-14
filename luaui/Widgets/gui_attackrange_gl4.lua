@@ -337,7 +337,6 @@ local function initializeUnitDefRing(unitDefID)
 			end
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
-			local wName = weaponDef.name
 			if
 				(weaponDef.type == "AircraftBomb")
 				or weaponDef.customParams.bogus == "1"
@@ -506,11 +505,6 @@ local GetActiveCommand = Spring.GetActiveCommand
 local GetSelectedUnits = Spring.GetSelectedUnits
 local chobbyInterface
 
-local CMD_ATTACK = CMD.ATTACK
-local CMD_FIGHT = CMD.FIGHT
-local CMD_AREA_ATTACK = CMD.AREA_ATTACK
-local CMD_MANUALFIRE = CMD.MANUALFIRE
-
 local function defrangeCmd(_, line)
 	local command = line or ""
 	local ally = "ally"
@@ -582,6 +576,68 @@ local shaderSourceCache = {
 		STATICUNITS = 0,
 		DEBUG = autoReload and 1 or 0,
 		MOUSEOVERALPHAMULTIPLIER = 1.0,
+		MASKPASS = 0,
+	},
+	uniformInt = {
+		heightmapTex = 0,
+		losTex = 1,
+		mapNormalTex = 2,
+		maskTex = 3,
+	},
+	uniformFloat = {
+		lineAlphaUniform = 1,
+		cannonmode = 0,
+		fadeDistOffset = 0,
+		drawMode = 0,
+		selBuilderCount = 1.0,
+		selUnitCount = 1.0,
+		inMiniMap = 0.0,
+		pipVisibleArea = { 0, 1, 0, 1 }, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
+		maskClip = 0.0,
+		maskChannelBit = 1.0,
+	},
+}
+
+------ Range coverage mask (world view) -----
+-- The merged fill and the outer rings need to know per pixel whether any filled range disc
+-- of a class covers it. The stencil path (still used for the minimap) rasterizes every disc
+-- into the stencil buffer of the main framebuffer, so hundreds of overlapping discs cost
+-- tens of times the screen area at full (multisampled) resolution. In the world view the
+-- discs are instead drawn into the shared single-sample FBO of range_coverage_mask_gl4.lua
+-- with a depth test: the first disc drawn wins per pixel (instance-ordered depth) and the
+-- hierarchical depth test rejects the overlapping discs before rasterization, so the cost
+-- is proportional to the covered area and not to the summed disc areas. One screen-sized
+-- quad then paints the fill from the mask, and the outer rings read the mask instead of the
+-- stencil buffer.
+--
+-- Each ally/enemy group builds its own mask. Within a group the 8-bit red channel holds one
+-- bit per class, mirroring the stencil bit layout: 1 = ground (and cannon), 2 = nano,
+-- 4 = AA, 8 = cannon when colorConfig.cannon_separate_stencil is set. lrpc rings are not
+-- merged, they are only clipped by the cannon class like in the stencil path.
+local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local cannonMaskChannel = colorConfig.cannon_separate_stencil and 3 or 0
+local maskChannelClasses = { [0] = { "ground" }, { "nano" }, { "AA" }, {} }
+table.insert(maskChannelClasses[cannonMaskChannel], "cannon")
+local maskChannelFillClass = { [0] = "ground", "nano", "AA", "cannon" }
+local ringClassOrder = { "ground", "nano", "AA", "cannon", "lrpc" }
+local ringClassCannonMode = { ground = 0, nano = 0, AA = 0, cannon = 1, lrpc = 1 }
+local ringClassMaskBit = { ground = 1, nano = 2, AA = 4, cannon = 2 ^ cannonMaskChannel, lrpc = 2 ^ cannonMaskChannel }
+
+local maskFBO, maskTex -- the shared targets, fetched each draw by maskPathAvailable
+local maskAcquired = false
+local fullScreenQuadVAO
+local maskShader, compositeShader
+
+local maskShaderSourceCache = {
+	shaderName = "Attack Range GL4 coverage mask",
+	vssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
+	shaderConfig = {
+		MYGRAVITY = Game.gravity + 0.1,
+		STATICUNITS = 0,
+		DEBUG = 0,
+		MOUSEOVERALPHAMULTIPLIER = 1.0,
+		MASKPASS = 1,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -596,9 +652,35 @@ local shaderSourceCache = {
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
 		inMiniMap = 0.0,
-		pipVisibleArea = { 0, 1, 0, 1 }, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
+		pipVisibleArea = { 0, 1, 0, 1 },
+		maskWriteValue = 0,
+		maskDepthBase = 0.1,
 	},
 }
+
+local compositeShaderSourceCache = {
+	shaderName = "Attack Range GL4 fill composite",
+	vssrcpath = "LuaUI/Shaders/weapon_range_fill_composite_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/weapon_range_fill_composite_gl4.frag.glsl",
+	shaderConfig = {},
+	uniformInt = {
+		maskTex = 3,
+	},
+	uniformFloat = {
+		fillColor0 = { 0, 0, 0, 0 },
+		fillColor1 = { 0, 0, 0, 0 },
+		fillColor2 = { 0, 0, 0, 0 },
+		fillColor3 = { 0, 0, 0, 0 },
+	},
+}
+
+local function maskPathAvailable()
+	if not (maskShader and compositeShader and fullScreenQuadVAO) then
+		return false
+	end
+	maskFBO, maskTex = RangeCoverageMask.Get()
+	return maskFBO ~= nil
+end
 
 local function goodbye(reason)
 	spEcho("AttackRange GL4 widget exiting with reason: " .. reason)
@@ -872,6 +954,16 @@ local function makeShaders()
 		goodbye("Failed to compile attackRangeShader GL4 ")
 		return false
 	end
+	-- The coverage mask shaders are optional: without them the stencil path is used.
+	maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache, 0) or maskShader
+	compositeShader = LuaShader.CheckShaderUpdates(compositeShaderSourceCache, 0) or compositeShader
+	fullScreenQuadVAO = fullScreenQuadVAO or InstanceVBOTable.MakeTexRectVAO()
+	if not (maskShader and compositeShader and fullScreenQuadVAO) then
+		spEcho("Attack Range GL4: range coverage mask unavailable, using the stencil path")
+	elseif not maskAcquired then
+		RangeCoverageMask.Acquire()
+		maskAcquired = true
+	end
 	return true
 end
 
@@ -1085,6 +1177,24 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("cursor_range_toggle", "p")
 	widgetHandler:RemoveAction("attack_range_inc", "p")
 	widgetHandler:RemoveAction("attack_range_dec", "p")
+
+	if maskAcquired then
+		RangeCoverageMask.Release()
+		maskAcquired = false
+	end
+	maskFBO, maskTex = nil, nil
+	if fullScreenQuadVAO then
+		fullScreenQuadVAO:Delete()
+		fullScreenQuadVAO = nil
+	end
+	if maskShader then
+		maskShader:Finalize()
+		maskShader = nil
+	end
+	if compositeShader then
+		compositeShader:Finalize()
+		compositeShader = nil
+	end
 end
 
 local gameFrame = 0
@@ -1282,15 +1392,178 @@ local function DRAWRINGS(primitiveType, linethickness)
 	end
 end
 
+-- Fill colour per mask channel. The alpha matches what the stencil fill produced: fill_alpha
+-- times the ring colour's alpha times internalalpha, the line alpha uniform the fill pass
+-- inherited from the previous frame's inner rings.
+local function getFillColor(channel)
+	local color = colorConfig[maskChannelFillClass[channel]].color
+	return color[1], color[2], color[3], color[4] * colorConfig.fill_alpha * colorConfig.internalalpha
+end
+
+-- Draws every filled disc of one ally/enemy group into the mask FBO (bound by the caller).
+-- Within a channel the depth test keeps only the first disc per pixel (instance-ordered depth,
+-- see the vertex shader), so the additive write sets each class bit at most once; the channels
+-- are separated by depth clears so that classes sharing a pixel all get their bit. The clears
+-- are full-surface on purpose, partial clears can defeat the hierarchical depth test.
+local function drawCoverageMask(allyState)
+	glColorMask(true, true, true, true)
+	gl.DepthMask(true)
+	glDepthTest(GL.LESS)
+	gl.Blending(GL.ONE, GL.ONE)
+	glClear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+
+	maskShader:Activate()
+	maskShader:SetUniform("selUnitCount", selUnitCount)
+	maskShader:SetUniform("selBuilderCount", selBuilderCount)
+	maskShader:SetUniform("drawMode", 0.0)
+	maskShader:SetUniform("inMiniMap", 0.0)
+	maskShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
+	maskShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
+	for channel = 0, 3 do
+		local classes = maskChannelClasses[channel]
+		local anyInstances = false
+		for i = 1, #classes do
+			if attackRangeVAOs[allyState .. classes[i]].usedElements > 0 then
+				anyInstances = true
+			end
+		end
+		if anyInstances then
+			glClear(GL.DEPTH_BUFFER_BIT, 1.0)
+			maskShader:SetUniform("maskWriteValue", (2 ^ channel) / 255)
+			for i = 1, #classes do
+				local iT = attackRangeVAOs[allyState .. classes[i]]
+				if iT.usedElements > 0 then
+					maskShader:SetUniform("cannonmode", ringClassCannonMode[classes[i]])
+					-- each class of a channel gets its own depth band so a later class never
+					-- passes the depth test where an earlier one already wrote the bit
+					maskShader:SetUniform("maskDepthBase", 0.1 + (i - 1) * 0.4)
+					iT.VAO:DrawArrays(GL_TRIANGLE_FAN, iT.numVertices, 0, iT.usedElements, 0)
+				end
+			end
+		end
+	end
+	maskShader:Deactivate()
+	gl.DepthMask(false)
+end
+
+-- Paints the merged fill of one group from its coverage mask with one screen-sized quad.
+local function drawFillComposite()
+	glTexture(3, maskTex)
+	glDepthTest(false)
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) -- the shader outputs premultiplied colour
+	compositeShader:Activate()
+	compositeShader:SetUniform("fillColor0", getFillColor(0))
+	compositeShader:SetUniform("fillColor1", getFillColor(1))
+	compositeShader:SetUniform("fillColor2", getFillColor(2))
+	compositeShader:SetUniform("fillColor3", getFillColor(3))
+	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
+	compositeShader:Deactivate()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+-- Outer rings of one group: the merged outline, everything inside the group's mask is hidden.
+local function drawOuterRings(allyState, hasMask)
+	glDepthTest(GL_LEQUAL)
+	attackRangeShader:Activate()
+	attackRangeShader:SetUniform("selUnitCount", selUnitCount)
+	attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
+	attackRangeShader:SetUniform("inMiniMap", 0.0)
+	attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
+	attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.externalalpha)
+	attackRangeShader:SetUniform("drawMode", 1.0)
+	attackRangeShader:SetUniform("drawAlpha", 1.0)
+	attackRangeShader:SetUniform("maskClip", hasMask and 1.0 or 0.0)
+	for i = 1, #ringClassOrder do
+		local wt = ringClassOrder[i]
+		local iT = attackRangeVAOs[allyState .. wt]
+		if iT.usedElements > 0 then
+			glLineWidth(colorConfig[wt].externallinethickness * cameraHeightFactor)
+			attackRangeShader:SetUniform("cannonmode", ringClassCannonMode[wt])
+			attackRangeShader:SetUniform("maskChannelBit", ringClassMaskBit[wt])
+			iT.VAO:DrawArrays(GL_LINE_LOOP, iT.numVertices, 0, iT.usedElements, 0)
+		end
+	end
+	attackRangeShader:Deactivate()
+end
+
+-- Inner rings of both groups: plain per-unit rings, nothing is masked.
+local function drawInnerRings()
+	glDepthTest(GL_LEQUAL)
+	attackRangeShader:Activate()
+	attackRangeShader:SetUniform("selUnitCount", selUnitCount)
+	attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
+	attackRangeShader:SetUniform("inMiniMap", 0.0)
+	attackRangeShader:SetUniform("fadeDistOffset", 0)
+	attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.internalalpha)
+	attackRangeShader:SetUniform("drawMode", 2.0)
+	attackRangeShader:SetUniform("drawAlpha", 1.0)
+	attackRangeShader:SetUniform("maskClip", 0.0)
+	for _, allyState in ipairs(allyenemypairs) do
+		for i = 1, #ringClassOrder do
+			local wt = ringClassOrder[i]
+			local iT = attackRangeVAOs[allyState .. wt]
+			if iT.usedElements > 0 then
+				glLineWidth(colorConfig[wt].internallinethickness * cameraHeightFactor)
+				attackRangeShader:SetUniform("cannonmode", ringClassCannonMode[wt])
+				iT.VAO:DrawArrays(GL_LINE_LOOP, iT.numVertices, 0, iT.usedElements, 0)
+			end
+		end
+	end
+	attackRangeShader:Deactivate()
+end
+
+-- World view drawing through the coverage mask; the stencil path below stays for the minimap.
+local function drawRangesMasked()
+	if not show_selected_weapon_ranges and not isBuilding then
+		return
+	end
+	cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+	glTexture(0, "$heightmap")
+	glTexture(1, "$info")
+	if colorConfig.drawStencil then
+		for _, allyState in ipairs(allyenemypairs) do
+			local hasFill, hasRings = false, false
+			for i = 1, #ringClassOrder do
+				local wt = ringClassOrder[i]
+				if attackRangeVAOs[allyState .. wt].usedElements > 0 then
+					hasRings = true
+					hasFill = hasFill or wt ~= "lrpc" -- lrpc rings are not merged
+				end
+			end
+			if hasRings then
+				if hasFill then
+					gl.ActiveFBO(maskFBO, drawCoverageMask, allyState)
+					drawFillComposite()
+				end
+				drawOuterRings(allyState, hasFill)
+			end
+		end
+	end
+	if colorConfig.drawInnerRings then
+		drawInnerRings()
+	end
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(3, false)
+	glDepthTest(false)
+end
+
 function widget:DrawWorld(inMiniMap)
 	if autoReload then
 		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
+		maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache) or maskShader
+		compositeShader = LuaShader.CheckShaderUpdates(compositeShaderSourceCache) or compositeShader
 	end
 
 	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then
 		return
 	end
 	if not Spring.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
+		if not inMiniMap and maskPathAvailable() then
+			drawRangesMasked()
+			return
+		end
+		-- Stencil path: the minimap (tiny discs), and the fallback when the coverage mask is unavailable.
 		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
 		local inPip = inMiniMap and WG.minimap and WG.minimap.isDrawingInPip
 		if inPip then

@@ -3,7 +3,7 @@
 local unitBlocking = {}
 
 --- Gets blocked unit definitions from TeamRulesParams
----@param unitDefIDs? number[] Optional array of specific UnitDefIDs to check. If nil, checks all blocked units for the current team.
+---@param unitDefIDs? UnitDefID[] If `nil`, checks all blocked units for the current team.
 ---@return table<number, table<string, boolean>> blockedUnits Table where keys are UnitDefIDs and values are tables of blocking reasons (reason -> true)
 ---@usage
 ---   -- Get all blocked units

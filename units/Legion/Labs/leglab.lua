@@ -50,6 +50,7 @@ return {
 			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "CorBuildings/LandFactories",
 		},
 		featuredefs = {

@@ -44,6 +44,7 @@ return {
 		yardmap = "oooooo oooooo oooooo oooooo oooooo oooooo",
 		customparams = {
 			isairbase = true,
+			israptor = true,
 			subfolder = "other/raptors",
 			model_author = "FireStorm, Beherith",
 			normalmaps = "yes",

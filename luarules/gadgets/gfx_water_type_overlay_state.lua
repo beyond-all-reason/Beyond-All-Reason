@@ -70,7 +70,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMoveData = Spring.GetUnitMoveTypeData
 local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spSpawnCEG = Spring.SpawnCEG
 local clamp = math.clamp

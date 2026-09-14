@@ -1011,6 +1011,9 @@ end
 --------------------------------------------------------------------------------
 
 -- Push one segment-instance into beamData
+-- This is a reference implementation. The functionality is duplicated in the segment
+-- loops below to avoid a function call per segment. Keep all three copies in sync.
+--[[
 local function pushSegment(
 	beamData,
 	offset,
@@ -1057,6 +1060,7 @@ local function pushSegment(
 	beamData[offset + 23] = glowMult
 	beamData[offset + 24] = impactSize
 end
+]]
 
 local INSTANCE_STRIDE = 24
 
@@ -1080,7 +1084,8 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 	local tEx, tEy, tEz = t.ex, t.ey, t.ez
 	local tSeed = t.seed
 
-	-- Main bolt: segCount segment-instances (inlined pushSegment for hot path)
+	-- Main bolt: segCount segment-instances
+	-- Inlined from commented pushSegment above. Keep all three copies in sync.
 	local segs = cfg.segments
 	for s = 0, segs - 1 do
 		beamData[offset + 1] = tPx
@@ -1226,7 +1231,7 @@ local function emitBolt(beamData, offset, beamCount, cfg, t, lifeFrac)
 			local bez = az + br.dirZ * blen
 			local branchSeed = br.branchSeed
 			for s = 0, bsegs - 1 do
-				-- Inlined pushSegment for hot path (eliminates closure call per segment)
+				-- Inlined from commented pushSegment above. Keep all three copies in sync.
 				beamData[offset + 1] = ax
 				beamData[offset + 2] = ay
 				beamData[offset + 3] = az

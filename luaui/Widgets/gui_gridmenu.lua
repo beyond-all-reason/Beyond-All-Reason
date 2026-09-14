@@ -351,8 +351,8 @@ end
 
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0, {
-	name = "Back",
-	keyText = "Shift",
+	name = BAR.I18N("ui.buildMenu.back"),
+	keyText = keyConfig.sanitizeKey("shift", currentLayout),
 })
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
@@ -1432,6 +1432,12 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if isPregame then
+		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		isPregame = not missionOptions.IsStartUnitSpawnDisabled()
+	end
+
 	WG.gridmenu = {}
 	WG.buildmenu = {}
 
@@ -1575,7 +1581,7 @@ function widget:Initialize()
 	---@field bottom CostLine?
 
 	---Override the cost display for a specific unit in the grid menu
-	---@param unitDefID number The unit definition ID to override costs for
+	---@param unitDefID UnitDefID The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
 	WG.gridmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
@@ -1586,7 +1592,7 @@ function widget:Initialize()
 	end
 
 	---Clear cost overrides for a specific unit or all units
-	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
+	---@param unitDefID UnitDefID? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
 	WG.gridmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
@@ -1602,7 +1608,7 @@ function widget:Initialize()
 	---Highlight a build option to draw the player's attention to it with a pulsing
 	---inner outline and a soft inner glow. Non-destructive: does not affect input or
 	---block hover/selection visuals. Subsequent calls update the existing highlight.
-	---@param unitDefID number The unit definition ID to highlight.
+	---@param unitDefID UnitDefID The unit definition ID to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	local function setHighlight(unitDefID, color)
 		if not unitDefID then
@@ -1646,8 +1652,6 @@ function widget:Initialize()
 	WG.gridmenu.removeHighlight = removeHighlight
 	WG.gridmenu.clearHighlights = clearHighlights
 	WG.gridmenu.hasHighlight = hasHighlight
-
-	local blockedUnits = {}
 
 	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
 	for unitDefID, reasons in pairs(blockedUnitsData) do
@@ -1860,6 +1864,7 @@ end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
+	backRect.opts.name = BAR.I18N("ui.buildMenu.back")
 	refreshUnitDefs()
 	redraw = true
 end

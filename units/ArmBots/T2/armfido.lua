@@ -32,8 +32,10 @@ return {
 		turnrate = 1138.5,
 		usepiececollisionvolumes = 0,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

@@ -34,6 +34,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorBots",
 		},
 		featuredefs = {

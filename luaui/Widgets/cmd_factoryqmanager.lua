@@ -130,7 +130,6 @@ local unitCountXOff
 local unitCountYOff
 
 local drawY
-local printDebug
 local calcScreenCoords
 local RemoveBuildOrders
 local getButtonUnderMouse
@@ -926,25 +925,4 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("factory_preset")
 	widgetHandler:RemoveAction("factory_preset_show")
-end
-
-local spEcho = Spring.Echo
-
-function printDebug(value)
-	if debug then
-		if type(value) == "boolean" then
-			if value == true then
-				spEcho("true")
-			else
-				spEcho("false")
-			end
-		elseif type(value) == "table" then
-			spEcho("Dumping table:")
-			for key, val in pairs(value) do
-				spEcho(key, val)
-			end
-		else
-			spEcho(value)
-		end
-	end
 end

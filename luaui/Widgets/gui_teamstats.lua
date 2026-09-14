@@ -29,7 +29,6 @@ local fontSize = 22 -- is calculated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
 local replaceEndStats = false
-local highLightColour = { 1, 1, 1, 0.1 }
 local sortHighLightColour = { 1, 0.87, 0.87, 0.22 }
 local sortHighLightColourDesc = { 0.9, 1, 0.9, 0.22 }
 local activeSortColour = { 1, 0.62, 0.62, 0.22 }
@@ -103,15 +102,12 @@ local GetPlayerInfo = Spring.GetPlayerInfo
 local GetLocalTeamID = Spring.GetLocalTeamID
 local GetMouseState = spGetMouseState
 local GetGameFrame = Spring.GetGameFrame
-local min = mathMin
 local max = mathMax
-local clamp = math.clamp
 local floor = mathFloor
 local huge = math.huge
 local sort = table.sort
 local log10 = math.log10
 local round = math.round
-local char = string.char
 local borderRemap =
 	{ left = { "x", "min", -1 }, right = { "x", "max", 1 }, top = { "y", "max", 1 }, bottom = { "y", "min", -1 } }
 
@@ -284,6 +280,11 @@ function widget:Initialize()
 	if paused then
 		widget:GameFrame(GetGameFrame(), true)
 	end
+
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return guiData.mainPanel.visible == true
+	end)
 
 	WG.teamstats = {}
 	WG.teamstats.toggle = function(state)
@@ -503,6 +504,12 @@ function widget:MouseRelease(mx, my, button)
 end
 
 function mouseEvent(mx, my, button, release)
+	-- A press on a top bar button is the top bar's to handle: it closes the open windows
+	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+		return false
+	end
+
 	local boxType = isAbove({ x = mx, y = my }, guiData)
 	if not boxType and guiData.mainPanel.visible then
 		if release then
@@ -612,7 +619,7 @@ local function DrawBackground()
 		backgroundGuishader = glCreateList(function()
 			RectRound(x1 - bgpadding, y1 - bgpadding, x2 + bgpadding, y2 + bgpadding, elementCorner)
 		end)
-		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window")
+		WG.guishader.InsertDlist(backgroundGuishader, "teamstats_window", nil, widget)
 	end
 
 	if backgroundDisplayList then
@@ -661,9 +668,6 @@ function ReGenerateBackgroundDisplayList()
 		end
 		if lineCount > 2 and (lineCount + 1) % 2 == 0 then
 			colour = oddLineColour
-		end
-		if lineCount == selectedLine and selectedLine > 3 then
-			--colour = highLightColour
 		end
 		glColor(colour)
 		if evenLineColour and lineCount > 2 then

@@ -132,13 +132,6 @@ local depthShader
 local depthTexture
 local fogTexture
 
-local uniformEyePos
-local uniformViewPrjInv
-local uniformOffset
-local uniformSundir
-local uniformSunColor
-local uniformTime
-
 local offsetX = 0
 local offsetY = 0
 local offsetZ = 0
@@ -639,8 +632,6 @@ local function DrawFogNew()
 	depthShader:SetUniform("time", Spring.GetGameSeconds() * speed)
 
 	depthShader:SetUniformMatrix("viewProjectionInv", "viewprojectioninverse")
-
-	--glUniformMatrix(uniformViewPrjInv,  "viewprojectioninverse")
 
 	-- TODO: completely reset the texture before applying shader
 	-- TODO: figure out why it disappears in some places

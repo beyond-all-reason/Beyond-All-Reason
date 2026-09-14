@@ -1885,7 +1885,11 @@ WG.FlowUI.Draw.RectRoundOutline = function(px, py, sx, sy, cs, outlineWidth, tl,
 			return
 		end
 
-		local innerCs = mathMax(0, cs - outlineWidth)
+		-- Offsetting a 45-degree chamfer edge inward by outlineWidth shifts it by outlineWidth * sqrt(2)
+		-- along each axis, so the inner chamfer only shrinks by outlineWidth * (2 - sqrt(2)).
+		-- This keeps the diagonal part of the outline as thick as the straight sides.
+		local innerCs = mathMax(0, cs - outlineWidth * 0.5857864376) -- 2 - sqrt(2)
+		innerCs = mathMin(innerCs, (ix2 - ix1) * 0.5, (iy2 - iy1) * 0.5)
 
 		-- Draw the outline by drawing quads between outer and inner rectangles
 
@@ -2114,7 +2118,10 @@ WG.FlowUI.Draw.RectRoundOutlineQuad = function(
 		local itdx, itdy = n2(iTLx - iTRx, iTLy - iTRy)
 		local ildx, ildy = n2(iBLx - iTLx, iBLy - iTLy)
 
-		local innerCs = mathMax(0, cs - outlineWidth)
+		-- Offsetting a 45-degree chamfer edge inward by outlineWidth shifts it by outlineWidth * sqrt(2)
+		-- along each axis, so the inner chamfer only shrinks by outlineWidth * (2 - sqrt(2)).
+		-- This keeps the diagonal part of the outline as thick as the straight sides.
+		local innerCs = mathMax(0, cs - outlineWidth * 0.5857864376) -- 2 - sqrt(2)
 
 		-- Outer chamfer cut points at distance cs from each outer corner along adjacent edges
 		local oblb_x, oblb_y = oBLx + cs * bdx, oBLy + cs * bdy
@@ -2362,7 +2369,7 @@ local function DrawUnitUncached(
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			borderSize,
 			tl,
 			tr,
@@ -2379,7 +2386,7 @@ local function DrawUnitUncached(
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			featherWidth,
 			tl,
 			tr,
@@ -2460,7 +2467,7 @@ local function DrawUnitFrame(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, bor
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			borderSize,
 			tl,
 			tr,
@@ -2477,7 +2484,7 @@ local function DrawUnitFrame(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, bor
 			py,
 			sx,
 			sy,
-			cs * 0.7,
+			cs,
 			featherWidth,
 			tl,
 			tr,
@@ -2835,6 +2842,125 @@ WG.FlowUI.Draw.Unit = function(
 	gl.PopMatrix()
 end
 
+---Draws the frame of a unit tile on its own: the outline, depth gradient, top shine and
+---feathered border that `Unit` lays over a unit picture, with no picture under it. For a
+---tile that should read as a unit slot without naming a unit, such as an empty build slot
+---or a preview of the grid menu. Draw the tile's own background first; this only frames
+---it. Repeated identical draws are served from the same display list cache `Unit` uses.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size. Defaults to a size derived from the tile width
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param borderSize number? Defaults to a size derived from the tile width
+---@param borderOpacity number? Defaults to `0.1`
+---@param groupTexture string? Group icon drawn in a corner
+WG.FlowUI.Draw.UnitFrame = function(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+	local width = sx - px
+	local height = sy - py
+	-- Same defaults Unit derives, so a frame drawn on its own matches one drawn over a
+	-- picture at the same size.
+	local resolvedBorderSize = borderSize ~= nil and borderSize
+		or mathMin(mathMax(1, mathFloor(width * 0.024)), mathFloor((WG.FlowUI.vsy * 0.0015) + 0.5))
+	local resolvedCs = cs ~= nil and cs or mathMax(1, mathFloor(width * 0.024))
+	local resolvedBorderOpacity = borderOpacity or 0.1
+
+	if
+		width <= 0
+		or height <= 0
+		or width ~= width
+		or height ~= height
+		or resolvedCs ~= resolvedCs
+		or resolvedBorderSize ~= resolvedBorderSize
+		or resolvedBorderOpacity ~= resolvedBorderOpacity
+	then
+		return
+	end
+
+	local record = GetUnitFrameRecord(
+		width,
+		height,
+		resolvedCs,
+		tl,
+		tr,
+		br,
+		bl,
+		resolvedBorderSize,
+		resolvedBorderOpacity,
+		groupTexture
+	)
+	if record and record.list then
+		gl.PushMatrix()
+		gl.Translate(px, py, 0)
+		gl.CallList(record.list)
+		gl.PopMatrix()
+	else
+		DrawUnitFrame(
+			px,
+			py,
+			sx,
+			sy,
+			resolvedCs,
+			tl,
+			tr,
+			br,
+			bl,
+			resolvedBorderSize,
+			resolvedBorderOpacity,
+			groupTexture
+		)
+	end
+end
+
+---Where a scrollbar's thumb sits, for a bar drawn with these bounds and this content.
+---
+---Shared with `Scroller` so a panel hit-testing the thumb can never disagree with what was
+---drawn: grabbing the thumb has to move the view by how far the thumb is dragged, while a
+---press on the track either side of it is the one that jumps.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param contentHeight number Height of the scrolled content, in pixels
+---@param position number? Current scroll position. Defaults to `0`
+---@return number? top Top edge of the thumb, or nil when the content fits and none is drawn
+---@return number? height Height of the thumb
+---@return number? trackTop Where the thumb's top sits at position `0`
+---@return number? travel How far down from `trackTop` the thumb's top can move
+WG.FlowUI.Draw.ScrollerGeometry = function(px, py, sx, sy, contentHeight, position)
+	local width = sx - px
+	local padding = mathFloor((width * 0.25) + 0.5)
+	local trackHeight = (sy - py) - padding - padding
+
+	if not contentHeight or contentHeight <= 0 or trackHeight <= 0 then
+		return nil
+	end
+
+	local fraction = trackHeight / contentHeight
+	if fraction >= 1 then
+		return nil
+	end
+
+	local thumbHeight = mathFloor((fraction * trackHeight) + 0.5)
+	local trackTop = sy - padding
+	local travel = trackHeight - thumbHeight
+	local top = trackTop - mathFloor((trackHeight * ((position or 0) / contentHeight)) + 0.5)
+	-- Held inside the track whatever the position says: a list scrolled to its end shows
+	-- whole rows only, so its position can run a little past what the track height allows,
+	-- and a thumb drawn past the track's end lands on whatever sits under it.
+	if top > trackTop then
+		top = trackTop
+	elseif top < trackTop - travel then
+		top = trackTop - travel
+	end
+
+	return top, thumbHeight, trackTop, travel
+end
+
 ---Draws a vertical scrollbar.
 ---@param px number Left
 ---@param py number Bottom
@@ -2842,39 +2968,33 @@ end
 ---@param sy number Top
 ---@param contentHeight number Height of the scrolled content, in pixels
 ---@param position number? Current scroll position. Defaults to `0`
-WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
-	local width = sx - px
-	local height = sy - py
-	local padding = mathFloor((width * 0.25) + 0.5)
-	local sliderAreaHeight = height - padding - padding
-	local sliderHeight = sliderAreaHeight / contentHeight
-
-	if sliderHeight < 1 then
-		position = position or 0
-		sliderHeight = mathFloor((sliderHeight * sliderAreaHeight) + 0.5)
-		local sliderPos = sy - padding - mathFloor((sliderAreaHeight * (position / contentHeight)) + 0.5)
-
-		-- background
-		WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
-
-		-- slider
-		local cs = (width - padding - padding) * 0.2
-		if cs > sliderHeight * 0.5 then
-			cs = sliderHeight * 0.5
-		end
-		WG.FlowUI.Draw.RectRound(
-			px + padding,
-			sliderPos - sliderHeight,
-			sx - padding,
-			sliderPos,
-			cs,
-			1,
-			1,
-			1,
-			1,
-			{ 1, 1, 1, 0.16 }
-		)
+---@param hovered boolean? Cursor is over the thumb
+---@param active boolean? The thumb is being dragged
+WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position, hovered, active)
+	local top, thumbHeight = WG.FlowUI.Draw.ScrollerGeometry(px, py, sx, sy, contentHeight, position)
+	if not top then
+		return
 	end
+
+	local width = sx - px
+	local padding = mathFloor((width * 0.25) + 0.5)
+
+	-- background
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
+
+	-- slider, lit while the cursor is on it and lit further while it is being dragged, so
+	-- it reads as something to take hold of rather than a mark of where you are
+	local cs = (width - padding - padding) * 0.2
+	if cs > thumbHeight * 0.5 then
+		cs = thumbHeight * 0.5
+	end
+	local alpha = 0.16
+	if active then
+		alpha = 0.38
+	elseif hovered then
+		alpha = 0.26
+	end
+	WG.FlowUI.Draw.RectRound(px + padding, top - thumbHeight, sx - padding, top, cs, 1, 1, 1, 1, { 1, 1, 1, alpha })
 end
 
 ---Draws a toggle switch.
@@ -2883,11 +3003,16 @@ end
 ---@param sx number Right
 ---@param sy number Top
 ---@param state number? `0`, `0.5` or `1`. Defaults to `0`
-WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
+---@param hovered boolean? Cursor is over the switch, which lights it
+WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state, hovered)
 	local height = sy - py
 	local width = sx - px
 	local cs = height * 0.1
 	local edgeWidth = mathMax(1, mathFloor(height * 0.1))
+	-- A hover plate laid over the whole row reads as the row lighting up rather than the
+	-- switch: the switch has a plate of its own, and at those opacities it barely moves.
+	-- So the switch brightens itself, and the light its knob gives off with it.
+	local lit = hovered and 2.4 or 1
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(
@@ -2903,7 +3028,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		{ 0, 0, 0, 0.05 }
 	)
 	-- top
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.5, 0.5, 0.5, 0.12 * lit }, { 1, 1, 1, 0.12 * lit })
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -2919,7 +3044,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		1,
 		1,
 		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.035 }
+		{ 1, 1, 1, 0.035 * lit }
 	)
 	-- bottom
 	WG.FlowUI.Draw.RectRound(
@@ -2932,7 +3057,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		1,
 		1,
 		1,
-		{ 1, 1, 1, 0.025 },
+		{ 1, 1, 1, 0.025 * lit },
 		{ 1, 1, 1, 0 }
 	)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -2957,6 +3082,9 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	end
 	WG.FlowUI.Draw.SliderKnob(x, y, radius, color)
 
+	if hovered then
+		glowMult = glowMult * 1.8
+	end
 	if glowMult > 0 then
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)

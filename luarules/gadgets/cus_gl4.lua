@@ -495,10 +495,6 @@ local objectTypeAttribID = 6 -- this is the attribute index for instancedata in 
 
 local initiated = false
 
-local function Bit(p)
-	return 2 ^ (p - 1) -- 1-based indexing
-end
-
 -- Typical call:  if hasbit(x, bit(3)) then ...
 local function HasBit(x, p)
 	return x % (p + p) >= p
@@ -507,14 +503,6 @@ end
 local math_bit_and = math.bit_and
 local function HasAllBits(x, p)
 	return math_bit_and(x, p) == p
-end
-
-local function SetBit(x, p)
-	return HasBit(x, p) and x or x + p
-end
-
-local function ClearBit(x, p)
-	return HasBit(x, p) and x - p or x
 end
 
 -- Precomputed bin membership for every possible drawFlag below 128 (the icon threshold).
@@ -844,12 +832,6 @@ local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_shading_language_420pack: require
 	]]
 
-local function dumpShaderCodeToFile(defs, src, filename) -- no IO in unsynced gadgets :/
-	local vsfile = io.open("cus_" .. filename .. ".glsl", "w+")
-	vsfile:write(defs .. src)
-	vsfile:close()
-end
-
 local function dumpShaderCodeToInfolog(defs, src, filename) -- no IO in unsynced gadgets :/
 	Spring.Echo(filename)
 	Spring.Echo(defs)
@@ -917,6 +899,12 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 	return (compilationResult and luaShader) or nil
 end
 
+-- {shaderName : {textureUnit : true}}: the texture units the shadow pass has to bind for a
+-- material. The shadow shaders never sample anything except texture2 (alpha test, unit 1),
+-- and only when HASALPHASHADOWS is defined, so every other gl.Texture call in that pass
+-- (tex1, normal map, shadow map, reflection, info, BRDF LUT, noise) is wasted engine time.
+local shadowPassTextureUnits = {}
+
 local function compileMaterialShader(template, name, recompilation)
 	--Spring.Echo("Compiling", template, name)
 	local forwardShader = CompileLuaShader(
@@ -961,6 +949,14 @@ local function compileMaterialShader(template, name, recompilation)
 	shaders[0][name] = deferredShader
 	shaders[5][name] = reflectionShader
 	shaders[16][name] = shadowShader
+
+	local shadowNeedsAlphaTex = false
+	for _, defline in ipairs(template.shadowDefinitions or {}) do
+		if type(defline) == "string" and defline:find("#define%s+HASALPHASHADOWS") then
+			shadowNeedsAlphaTex = true
+		end
+	end
+	shadowPassTextureUnits[name] = shadowNeedsAlphaTex and { [1] = true } or {}
 	return true
 end
 
@@ -1225,7 +1221,7 @@ local function initBinsAndTextures()
 				or (lowercasenormaltex:find("leg_normal") and "unittextures/leg_wreck_normal.dds")
 				or false
 
-			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
+			if unitDef.customParams.isscavenger then
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
@@ -1236,7 +1232,7 @@ local function initBinsAndTextures()
 				elseif factionBinTag == "leg" then
 					objectDefToUniformBin[unitDefID] = "legscavenger"
 				end
-			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
+			elseif unitDef.customParams.israptor then
 				textureTable[5] = wreckAtlases.raptor[1]
 				objectDefToUniformBin[unitDefID] = "raptor"
 				--Spring.Echo("Raptorwreck", textureTable[5])
@@ -2262,10 +2258,6 @@ local function ProcessUnits(units, drawFlags, reason)
 		end
 	end
 end
-local spValidFeatureID = Spring.ValidFeatureID
-local spSetFeatureEngineDrawMask = Spring.SetFeatureEngineDrawMask
-local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
-local spSetFeatureFade = Spring.SetFeatureFade
 
 local function ProcessFeatures(features, drawFlags, reason)
 	local numFeatures = #features
@@ -2388,6 +2380,8 @@ local function ExecuteDrawPass(drawPass)
 			tracy.ZoneEnd()
 
 			local shaderTable = shaders[drawPass][shaderName]
+			-- shadow pass: bind only the units its shader samples (see shadowPassTextureUnits)
+			local wantedTextureUnits = (drawPass == 16) and shadowPassTextureUnits[shaderName] or nil
 
 			if unitscountforthisshader > 0 then
 				tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:ShaderActivate")
@@ -2448,7 +2442,7 @@ local function ExecuteDrawPass(drawPass)
 									tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:BindTextures")
 								end
 								for bindPosition, tex in pairs(texAndObj.textures) do
-									if lastBoundTextures[bindPosition] ~= tex then
+									if (wantedTextureUnits == nil or wantedTextureUnits[bindPosition]) and lastBoundTextures[bindPosition] ~= tex then
 										gl.Texture(bindPosition, tex)
 										lastBoundTextures[bindPosition] = tex
 									end
@@ -2884,28 +2878,6 @@ function gadget:Shutdown()
 end
 
 local updateframe = 0
-
-local function countbintypes(flagarray)
-	local fwcnt = 0
-	local defcnt = 0
-	local reflcnt = 0
-	local shadcnt = 0
-
-	for i = 1, #flagarray do
-		local flag = flagarray[i]
-		if HasBit(flag, 1) then
-			fwcnt = fwcnt + 1
-			defcnt = defcnt + 1
-		end
-		if HasBit(flag, 4) then
-			reflcnt = reflcnt + 1
-		end
-		if HasBit(flag, 16) then
-			shadcnt = shadcnt + 1
-		end
-	end
-	return fwcnt, defcnt, reflcnt, shadcnt
-end
 
 local destroyedUnitIDs = {} -- maps unitID to drawflag
 local destroyedUnitDrawFlags = {}

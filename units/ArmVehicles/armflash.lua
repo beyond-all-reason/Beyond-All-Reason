@@ -40,6 +40,7 @@ return {
 			kickback = "-2",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 6,
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
 		},

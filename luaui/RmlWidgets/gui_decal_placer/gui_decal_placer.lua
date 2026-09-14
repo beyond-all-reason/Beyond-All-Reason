@@ -20,7 +20,6 @@ local RML_PATH = "luaui/RmlWidgets/gui_decal_placer/gui_decal_placer.rml"
 local MODEL_NAME = "decal_placer_model"
 
 local WG = WG
-local GetViewGeometry = Spring.GetViewGeometry
 
 local INITIAL_LEFT_VW = 60
 local INITIAL_TOP_VH = 10
