@@ -351,8 +351,8 @@ end
 
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0, {
-	name = "Back",
-	keyText = "Shift",
+	name = BAR.I18N("ui.buildMenu.back"),
+	keyText = keyConfig.sanitizeKey("shift", currentLayout),
 })
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
@@ -1432,6 +1432,12 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	isPregame = Spring.GetGameFrame() == 0 and not isSpec
 
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if isPregame then
+		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		isPregame = not missionOptions.IsStartUnitSpawnDisabled()
+	end
+
 	WG.gridmenu = {}
 	WG.buildmenu = {}
 
@@ -1858,6 +1864,7 @@ end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
+	backRect.opts.name = BAR.I18N("ui.buildMenu.back")
 	refreshUnitDefs()
 	redraw = true
 end

@@ -286,6 +286,10 @@ function M.attach(doc, ctx)
 	local globeDragging = false
 	local orientPitchInput = doc:GetElementById("lp-orient-pitch-input")
 	local orientYawInput = doc:GetElementById("lp-orient-yaw-input")
+	-- Same keyboard capture the panel's other text fields get, or the game eats
+	-- every keystroke and these cannot be typed into (see widgetState.wireTextInput).
+	ctx.widgetState.wireTextInput(orientPitchInput)
+	ctx.widgetState.wireTextInput(orientYawInput)
 	local globeKeyReturn -- resolved lazily on first keydown
 
 	local function applyGlobeDirection()

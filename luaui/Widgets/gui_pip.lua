@@ -9841,7 +9841,16 @@ function widget:ViewResize()
 	font = WG.fonts.getFont(2)
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
+	local oldWidgetScale = render.widgetScale
 	render.vsx, render.vsy = Spring.GetViewGeometry()
+
+	-- Update the UI scale before any dimension validation below: helpers like
+	-- AreExpandedDimensionsValid/BuildDefaultExpandedDimensions derive the minimum
+	-- panel size from it, and they are applied to dimensions already rescaled to the
+	-- new resolution. Keeping the old scale here made a shrink falsely reject valid
+	-- saved dimensions (and build oversized defaults).
+	render.widgetScale = (render.vsy / 2000) * render.uiScale
+	render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
 
 	-- In minimap mode, calculate position and size like the minimap widget does
 	if isMinimapMode then
@@ -9971,7 +9980,9 @@ function widget:ViewResize()
 	else
 		-- Normal PIP mode: scale dimensions with screen size
 		-- When in minMode, render.dim is the tiny button — use savedDimensions as the real dimensions
-		local minSize = math.floor(config.minPanelSize * render.widgetScale)
+		-- render.dim is still in old-resolution pixels here, so validate it against the
+		-- minimum size of the *old* scale.
+		local minSize = math.floor(config.minPanelSize * (oldWidgetScale or render.widgetScale))
 
 		-- Capture old PIP width before rescaling so we can adjust zoom proportionally
 		local oldPipWidth
@@ -10000,8 +10011,20 @@ function widget:ViewResize()
 
 		if uiState.inMinMode then
 			-- In min mode, render.dim is the tiny button — don't validate it as expanded dims.
-			-- Just ensure we have valid savedDimensions (or build defaults).
-			if not AreExpandedDimensionsValid(uiState.savedDimensions) then
+			-- savedDimensions was just rescaled into the new resolution; repair it in place
+			-- (grow to the new minimum size, keep the user's position) the same way
+			-- CorrectScreenPosition repairs render.dim when not minimized. Only genuinely
+			-- corrupt dimensions fall back to defaults, so a resize never teleports the PIP.
+			if AreDimensionsValid(uiState.savedDimensions, 1, 1) then
+				local newMinSize = math.floor(config.minPanelSize * render.widgetScale)
+				if uiState.savedDimensions.r - uiState.savedDimensions.l < newMinSize then
+					uiState.savedDimensions.r = uiState.savedDimensions.l + newMinSize
+				end
+				if uiState.savedDimensions.t - uiState.savedDimensions.b < newMinSize then
+					uiState.savedDimensions.t = uiState.savedDimensions.b + newMinSize
+				end
+				ClampDimensionsToScreen(uiState.savedDimensions)
+			else
 				uiState.savedDimensions = BuildDefaultExpandedDimensions()
 			end
 			-- render.dim will be overwritten to the button position below
@@ -10064,8 +10087,7 @@ function widget:ViewResize()
 		end
 	end
 
-	render.widgetScale = (render.vsy / 2000) * render.uiScale
-	render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
+	-- (render.widgetScale / render.usedButtonSize are updated at the top of ViewResize)
 
 	render.elementPadding = WG.FlowUI.elementPadding
 	render.elementCorner = WG.FlowUI.elementCorner

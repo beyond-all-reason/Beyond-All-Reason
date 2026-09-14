@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -985000,
 		enabled = true,
+		modalExempt = true, -- a vote must not be missed because a window is open
 	}
 end
 
@@ -531,7 +532,7 @@ local function StartVote(name) -- when called without params its just to refresh
 		dlistGuishader = gl.CreateList(function()
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 		end)
-		WG.guishader.InsertDlist(dlistGuishader, "voteinterface")
+		WG.guishader.InsertDlist(dlistGuishader, "voteinterface", nil, widget)
 	end
 end
 

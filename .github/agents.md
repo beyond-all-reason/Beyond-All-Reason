@@ -184,8 +184,9 @@ caused them.
   (`.github/PULL_REQUEST_GUIDELINES.md`).
 - Fill in the "Test steps" checklist in `.github/PULL_REQUEST_TEMPLATE.md`, and attach before/after media for visible
   changes.
-- Player-visible balance and gameplay changes get a `changelog.txt` entry under the current `# Month` heading, in the
-  existing style: `• [Unit] 1500 -> 1400 health`. Internal refactors and tooling changes do not.
+- Player-visible balance and gameplay changes get a `changelog.md` entry under the current `# Month` heading, in the
+  existing style: `- [Unit] 1500 -> 1400 health`, with sub-points as nested list items. The file is Markdown and is
+  rendered in-game by `gui_changelog_info.lua`. Internal refactors and tooling changes do not.
 - Style expectations beyond this file live in `CONTRIBUTING.md` (engine-call overhead, caching Defs lookups, correct
   iterators, comments explain "why" not "what", no dead code).
 

@@ -143,7 +143,13 @@ local function BuildStartPolygons()
 		-- colour each zone gets, and pairs() would let two clients disagree about it.
 		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 			local entry = startBoxConfig[allyTeamID]
-			if allyTeamID ~= gaiaAllyTeamID and allyTeamID ~= pveAllyTeamID and entry and entry.boxes then
+			if
+				allyTeamID ~= gaiaAllyTeamID
+				and allyTeamID ~= pveAllyTeamID
+				and entry
+				and entry.boxes
+				and not entry.wholeMap
+			then
 				for _, polygon in ipairs(entry.boxes) do
 					polygons[#polygons + 1] = { team = ColourTeamOf(allyTeamID), poly = polygon }
 				end

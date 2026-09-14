@@ -932,7 +932,12 @@ local function InitStartPolygons()
 				activeAllyTeams[atID] = true
 			end
 			for allyTeamID, entry in pairs(startBoxConfig) do
-				if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] and entry.boxes then
+				if
+					allyTeamID ~= gaiaAllyTeamID
+					and activeAllyTeams[allyTeamID]
+					and entry.boxes
+					and not entry.wholeMap
+				then
 					for _, polygon in ipairs(entry.boxes) do
 						StartPolygons[#StartPolygons + 1] = { team = allyTeamID, poly = polygon }
 					end

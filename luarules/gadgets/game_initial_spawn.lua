@@ -451,12 +451,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if type == 2 then
 			return not (
-				Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
-			) or hasBlockingFeature(x, z, unitDefID)
+					Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
+				) or hasBlockingFeature(x, z, unitDefID)
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
@@ -591,6 +591,14 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 				scenarioSpawnsUnits = true
 			end
+		end
+
+		-- Map editor sessions (New Map / Open Project) start with editor_sandbox=1
+		-- in the start script: the map maker edits an empty canvas or a project's
+		-- own unit loadout, so no team gets a commander. Reuses the scenario
+		-- path so the spawn effects and warp-in skip as well.
+		if not scenarioSpawnsUnits and tostring(Spring.GetModOptions().editor_sandbox or "") == "1" then
+			scenarioSpawnsUnits = true
 		end
 
 		if not scenarioSpawnsUnits then

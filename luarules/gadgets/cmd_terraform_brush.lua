@@ -444,16 +444,14 @@ local function finalizeMerge()
 	mergeSnapshotLen = 0
 end
 
--- Hot-path: convert a flat {x,z,h,...} buffer to a bbox-grid snapshot and push.
--- ONE ENTRY PER TICK is mandatory (see bar_stripy_terrain_bug.md). All snapshot
--- callers route through this; pushSnapshot below flattens sub-tables first.
-local function pushSnapshotFromFlat(flatBuf, vertexCount)
-	if vertexCount == 0 then
-		return
-	end
-	if vertexCount > MAX_SNAPSHOT_VERTICES then
-		return
-	end
+-- Convert a flat {x,z,h,...} buffer to a bbox-grid snapshot and push it.
+-- ONE ENTRY PER TICK is mandatory (see bar_stripy_terrain_bug.md): brush dabs
+-- commit through flushBatch (one entry per STROKE message); the ramp, noise,
+-- erode and fill ops route through here; pushSnapshot flattens sub-tables first.
+-- Push a ready bbox-grid snapshot as a new undo entry. Bookkeeping shared by
+-- the flat converter below and the per-tick batch commit (flushBatch).
+local function pushBboxSnapshot(snapshot)
+	local vertexCount = snapshot.vertexCount or 0
 	finalizeMerge()
 
 	for i = 1, #redoStack do
@@ -461,7 +459,6 @@ local function pushSnapshotFromFlat(flatBuf, vertexCount)
 	end
 	redoStack = {}
 
-	local snapshot = flatToBboxSnapshot(flatBuf, vertexCount)
 	snapshot.strokeId = currentStrokeId
 	undoStack[#undoStack + 1] = snapshot
 	totalVertexCount = totalVertexCount + vertexCount
@@ -476,6 +473,16 @@ local function pushSnapshotFromFlat(flatBuf, vertexCount)
 
 	evictOldSnapshots()
 	SendToUnsynced("TerraformBrushStacks", #undoStack, #redoStack)
+end
+
+local function pushSnapshotFromFlat(flatBuf, vertexCount)
+	if vertexCount == 0 then
+		return
+	end
+	if vertexCount > MAX_SNAPSHOT_VERTICES then
+		return
+	end
+	pushBboxSnapshot(flatToBboxSnapshot(flatBuf, vertexCount))
 end
 
 -- Sub-table format {{x,z,h},...} cold path: flatten via scratchSnapFlat then
@@ -827,26 +834,57 @@ end
 --   lengthScale → 0.05 step
 --   ringRatio   → 0.02 step (only matters for "ring" shape)
 --
--- LRU eviction: keep at most FALLOFF_STAMP_LIMIT stamps. A radius-2000 stamp
--- is ~400 k floats ≈ 16 MB; 4 such = 64 MB max worst-case.
-local FALLOFF_STAMP_LIMIT = 4
+-- LRU eviction by cell budget: a stamp holds w*h table slots (a radius-2000
+-- stamp is ~500 k of them). Up to FALLOFF_STAMP_CELL_BUDGET slots stay
+-- resident, so a FOLLOW STROKE drag with a small or mid brush keeps every
+-- angle of its rotation cached instead of thrashing the old fixed 4-entry
+-- list and rebuilding one O(w*h) stamp (sin/cos/pow per cell) per dab.
+local FALLOFF_STAMP_CELL_BUDGET = 3000000
 local FALLOFF_EPSILON = 1 / 255 -- below this, treat as zero (sub-quantisation)
 local falloffStampCache = {}
 local falloffStampGen = {} -- key → last-use generation (monotonic clock)
-local falloffStampCount = 0
+local falloffStampSize = {} -- key → w*h, for the budget accounting
+---@type number
+local falloffStampCells = 0 -- data slots held by every cached stamp together
 local falloffStampClock = 0
 
-local function quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
+-- Cells one stamp of this radius / length scale occupies at grid step ss
+-- (its bounding window; mirrors buildFalloffStamp's extent maths).
+local function stampCellCount(radius, lengthScale, ss)
+	local halfCells = floor(radius * max(1, lengthScale) * 1.42 / ss)
+	local size = halfCells * 2 + 1
+	return size * size
+end
+
+local function quantiseStampParams(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
 	local rQ = floor(radius)
-	-- Wrap angle to [0,360) before quantising so 359° and -1° share a stamp.
-	local aN = angleDeg % 360
-	local aQ = floor(aN / 2 + 0.5) * 2
-	if aQ >= 360 then
-		aQ = aQ - 360
-	end
 	local cQ = floor(curve / 0.05 + 0.5) * 0.05
 	local lQ = floor(lengthScale / 0.05 + 0.5) * 0.05
 	local rrQ = floor(ringRatio / 0.02 + 0.5) * 0.02
+	local aQ
+	if (shape == "circle" or shape == "ring") and lQ == 1 then
+		-- Rotation-invariant footprint: one stamp serves every angle. FOLLOW
+		-- STROKE with the default circle used to rebuild an identical stamp
+		-- every 2 degrees of tangent.
+		aQ = 0
+	else
+		-- 2 deg steps while a full rotation of stamps fits the cache with room
+		-- to spare; coarser for huge footprints so a FOLLOW drag cannot rebuild
+		-- a 100 k-cell stamp per dab (capped at 30 deg). The widget quantises
+		-- its tangent to 2 deg too, so previews and stamps agree for anything
+		-- but the biggest brushes.
+		local aStep = 2
+		local cells = stampCellCount(rQ, lQ, ss)
+		if cells > 40000 then
+			aStep = min(30, 2 * math.ceil(cells / 40000))
+		end
+		-- Wrap angle to [0,360) before quantising so 359° and -1° share a stamp.
+		local aN = angleDeg % 360
+		aQ = floor(aN / aStep + 0.5) * aStep
+		if aQ >= 360 then
+			aQ = aQ - 360
+		end
+	end
 	return rQ, aQ, cQ, lQ, rrQ
 end
 
@@ -876,7 +914,7 @@ local function buildFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ri
 end
 
 local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
-	local rQ, aQ, cQ, lQ, rrQ = quantiseStampParams(radius, angleDeg, curve, lengthScale, ringRatio)
+	local rQ, aQ, cQ, lQ, rrQ = quantiseStampParams(radius, shape, angleDeg, curve, lengthScale, ringRatio, ss)
 	local key = string.format("%s|%d|%d|%.2f|%.2f|%.2f|%d", shape, rQ, aQ, cQ, lQ, rrQ, ss)
 	falloffStampClock = falloffStampClock + 1
 	local stamp = falloffStampCache[key]
@@ -884,24 +922,225 @@ local function getFalloffStamp(radius, shape, angleDeg, curve, lengthScale, ring
 		falloffStampGen[key] = falloffStampClock
 		return stamp
 	end
-	stamp = buildFalloffStamp(rQ, shape, aQ, cQ, lQ, rrQ, ss)
-	falloffStampCache[key] = stamp
+	local built = buildFalloffStamp(rQ, shape, aQ, cQ, lQ, rrQ, ss)
+	falloffStampCache[key] = built
 	falloffStampGen[key] = falloffStampClock
-	falloffStampCount = falloffStampCount + 1
-	if falloffStampCount > FALLOFF_STAMP_LIMIT then
+	local builtCells = built.w * built.h
+	falloffStampSize[key] = builtCells
+	falloffStampCells = falloffStampCells + builtCells
+	-- Evict least-recently-used stamps until the budget holds; the one just
+	-- built stays whatever its size.
+	while falloffStampCells > FALLOFF_STAMP_CELL_BUDGET do
 		local oldKey, oldGen
 		for k, g in pairs(falloffStampGen) do
-			if oldGen == nil or g < oldGen then
+			if k ~= key and (oldGen == nil or g < oldGen) then
 				oldKey, oldGen = k, g
 			end
 		end
+		if not oldKey then
+			break
+		end
+		falloffStampCells = falloffStampCells - (falloffStampSize[oldKey] or 0)
 		falloffStampCache[oldKey] = nil
 		falloffStampGen[oldKey] = nil
-		falloffStampCount = falloffStampCount - 1
+		falloffStampSize[oldKey] = nil
 	end
-	return stamp
+	return built
 end
 
+-- ─── PER-TICK BATCH ──────────────────────────────────────────────────────────
+-- A STROKE message carries every dab of a widget tick (up to 48). They used to
+-- commit one at a time: one SetHeightMapFunc per dab, so one engine RecalcArea
+-- (mip heightmaps, face/vertex normals, slopes, pathing, LOS, the unsynced
+-- normal + shading textures, ROAM patch dirtying) per dab, plus one undo entry
+-- per dab, with a GetGroundHeight + GetGroundOrigHeight + SetHeightMap engine
+-- call per cell per dab -- on footprints that overlap ~85 % at the 15 %-of-
+-- radius dab spacing. That was the sculpt-drag frame cost artists reported.
+--
+-- Now the dabs of one message apply in order against a working copy of the
+-- cells they touch (read from the engine once, on first touch), and the tick
+-- commits once: one SetHeightMapFunc over the touched cells and one undo entry
+-- built straight from the pre-tick copy. Dab k still sees dab k-1's writes,
+-- so the result is exactly what the sequential commits produced.
+--
+-- Cells are keyed by a map-global index (zCell * batchCols + xCell + 1); the
+-- tables are sparse and reused, cleared by walking the touch lists.
+local SQUARE_SIZE = Game.squareSize
+local batchCols = floor(Game.mapSizeX / SQUARE_SIZE) + 1
+---@type table<number, number>
+local batchNew = {} -- cellIdx -> height written this tick (working copy)
+---@type table<number, number>
+local batchPre = {} -- cellIdx -> height read from the engine at first touch
+---@type number[]
+local batchWriteList = {} -- cellIdx per written cell, first-write order
+local batchWriteN = 0
+---@type number[]
+local batchReadList = {} -- cellIdx per cell fetched from the engine
+local batchReadN = 0
+local batchOpen = false
+-- Undo bbox of the tick, in cells; reset to +-huge by beginBatch.
+local batchMinXc, batchMinZc, batchMaxXc, batchMaxZc = math.huge, math.huge, -math.huge, -math.huge
+
+-- Pre-stroke heights: what every cell measured before the current stroke
+-- first wrote it, kept until STROKE_END. Clay planes are taken against these
+-- so a stroke lays ONE layer over the surface it started on. The old plane
+-- re-measured the live centre height, i.e. the disc the previous tick had
+-- just raised, and every tick stacked another disc one layer up: that is
+-- where the concentric rings on every clay stroke came from.
+---@type table<number, number>
+local strokeOrig = {}
+---@type number[]
+local strokeOrigList = {}
+local strokeOrigN = 0
+local STROKE_ORIG_LIMIT = 4000000
+
+local function clearStrokeOrigin()
+	for i = 1, strokeOrigN do
+		strokeOrig[strokeOrigList[i]] = nil
+	end
+	strokeOrigN = 0
+end
+
+local function beginBatch()
+	batchOpen = true
+	batchWriteN = 0
+	batchReadN = 0
+	batchMinXc, batchMinZc = math.huge, math.huge
+	batchMaxXc, batchMaxZc = -math.huge, -math.huge
+	-- A stroke that never got its STROKE_END (widget reload mid-drag) must not
+	-- pin the whole map's pre-stroke heights forever.
+	if strokeOrigN > STROKE_ORIG_LIMIT then
+		clearStrokeOrigin()
+	end
+end
+
+-- Height of a cell as this tick currently sees it: this tick's write if any,
+-- else the engine value, cached in batchPre on first read. Callers clamp the
+-- cell into the map.
+local function batchRead(xCell, zCell)
+	local idx = zCell * batchCols + xCell + 1
+	local v = batchNew[idx]
+	if v ~= nil then
+		return v
+	end
+	v = batchPre[idx]
+	if v == nil then
+		v = GetGroundHeight(xCell * SQUARE_SIZE, zCell * SQUARE_SIZE)
+		batchPre[idx] = v
+		batchReadN = batchReadN + 1
+		batchReadList[batchReadN] = idx
+	end
+	return v
+end
+
+-- SetHeightMapFunc wants a function argument; this one walks the write list.
+local function batchCommitWorker()
+	for i = 1, batchWriteN do
+		local idx = batchWriteList[i] or 0
+		local h = batchNew[idx]
+		if h == h then -- NaN check: NaN ~= NaN
+			local zc = floor((idx - 1) / batchCols)
+			SetHeightMap(((idx - 1) - zc * batchCols) * SQUARE_SIZE, zc * SQUARE_SIZE, h)
+		else
+			nanHeightSkipped = true
+		end
+	end
+end
+
+-- Commit the tick: one heightmap write, one undo entry, then reset.
+local function flushBatch()
+	batchOpen = false
+	if batchWriteN > 0 then
+		SetHeightMapFunc(batchCommitWorker)
+		if nanHeightSkipped then
+			Spring.Echo("[Terraform Brush] Warning: NaN height skipped — possible div0 in brush math")
+			nanHeightSkipped = false
+		end
+		-- Undo entry straight from the pre-tick heights (bbox-grid format, see
+		-- flatToBboxSnapshot): no flat intermediate, and one GetGroundOrigHeight
+		-- per touched cell per tick rather than per dab.
+		if batchWriteN <= MAX_SNAPSHOT_VERTICES then
+			local w = batchMaxXc - batchMinXc + 1
+			local h = batchMaxZc - batchMinZc + 1
+			local mask, hgrid = {}, {}
+			for i = 1, batchWriteN do
+				local idx = batchWriteList[i] or 0
+				local zc = floor((idx - 1) / batchCols)
+				local xc = (idx - 1) - zc * batchCols
+				local sIdx = (zc - batchMinZc) * w + (xc - batchMinXc) + 1
+				local pre = batchPre[idx]
+				if pre == GetGroundOrigHeight(xc * SQUARE_SIZE, zc * SQUARE_SIZE) then
+					mask[sIdx] = 2
+				else
+					mask[sIdx] = 1
+					hgrid[sIdx] = pre
+				end
+			end
+			pushBboxSnapshot({
+				format = "bbox",
+				minX = batchMinXc * SQUARE_SIZE,
+				minZ = batchMinZc * SQUARE_SIZE,
+				w = w,
+				h = h,
+				ss = SQUARE_SIZE,
+				mask = mask,
+				hgrid = hgrid,
+				vertexCount = batchWriteN,
+			})
+		end
+		for i = 1, batchWriteN do
+			batchNew[batchWriteList[i]] = nil
+		end
+	end
+	for i = 1, batchReadN do
+		batchPre[batchReadList[i]] = nil
+	end
+	batchWriteN = 0
+	batchReadN = 0
+end
+
+-- Clay target plane for a dab. Measured on the pre-stroke surface (strokeOrig
+-- where this stroke already wrote, the live ground elsewhere) as the mean of
+-- the centre and four taps half a radius out, so the dabs of one stroke agree
+-- on a plane instead of each re-measuring the disc the previous one left.
+-- stack=true is the legacy per-tick build-up: the plane sits on the live
+-- centre height, so a held or slow drag keeps piling layers (and rings).
+local function clayPlaneFor(centerX, centerZ, radius, rise, stack)
+	if stack then
+		return GetGroundHeight(centerX, centerZ) + rise
+	end
+	local maxXc = floor(Game.mapSizeX / SQUARE_SIZE)
+	local maxZc = floor(Game.mapSizeZ / SQUARE_SIZE)
+	local cxc = floor(centerX / SQUARE_SIZE + 0.5)
+	local czc = floor(centerZ / SQUARE_SIZE + 0.5)
+	local r = max(1, floor(radius * 0.5 / SQUARE_SIZE))
+	local sum = 0.0
+	for t = 1, 5 do
+		local xc, zc = cxc, czc
+		if t == 2 then
+			xc = cxc - r
+		elseif t == 3 then
+			xc = cxc + r
+		elseif t == 4 then
+			zc = czc - r
+		elseif t == 5 then
+			zc = czc + r
+		end
+		xc = max(0, min(maxXc, xc))
+		zc = max(0, min(maxZc, zc))
+		local h = strokeOrig[zc * batchCols + xc + 1]
+		if h == nil then
+			h = GetGroundHeight(xc * SQUARE_SIZE, zc * SQUARE_SIZE)
+		end
+		sum = sum + h
+	end
+	return sum / 5 + rise
+end
+
+-- clayMode: false/nil off, 1 = clay (one layer per stroke), 2 = clay with
+-- per-tick build-up (legacy). Dabs inside a STROKE batch get clayPlaneIn from
+-- handleStroke; a dab on its own (per-dab BRUSH message, sticky replay) opens
+-- and commits a batch of one.
 local function applyTerraform(
 	centerX,
 	centerZ,
@@ -920,28 +1159,27 @@ local function applyTerraform(
 	instant,
 	localBlur,
 	localSmudge,
-	smudgeStart
+	smudgeStart,
+	clayPlaneIn
 )
-	local squareSize = Game.squareSize
-	local mapSizeX = Game.mapSizeX
-	local mapSizeZ = Game.mapSizeZ
+	local squareSize = SQUARE_SIZE
+	local maxXc = floor(Game.mapSizeX / squareSize)
+	local maxZc = floor(Game.mapSizeZ / squareSize)
 	lengthScale = lengthScale or 1.0
 
-	-- Clay mode: compute a target plane at center height + full brush displacement
-	local clayPlane
-	if clayMode and direction ~= 0 and direction ~= 2 then
-		local centerHeight = GetGroundHeight(centerX, centerZ)
-		clayPlane = centerHeight + direction * HEIGHT_STEP * intensity
+	local standalone = not batchOpen
+	if standalone then
+		beginBatch()
+	end
+
+	-- Clay mode: target plane at the reference height + full brush displacement.
+	local clayPlane = clayPlaneIn
+	if not clayPlane and clayMode and direction ~= 0 and direction ~= 2 then
+		clayPlane = clayPlaneFor(centerX, centerZ, radius, direction * HEIGHT_STEP * intensity, clayMode == 2)
 	end
 
 	opacity = opacity or 0.3
 	local dirStep = direction * HEIGHT_STEP
-	local levelTarget
-	if direction == 0 and not localBlur and not localSmudge then
-		-- Heights are only written after the loop, so this matches the
-		-- per-cell read it replaces.
-		levelTarget = flattenHeight or GetGroundHeight(centerX, centerZ)
-	end
 
 	-- Falloff stamp: precomputed per-cell falloff field keyed by quantised
 	-- (radius, shape, angle, curve, length, ringRatio). Skips per-cell sin/cos
@@ -956,6 +1194,15 @@ local function applyTerraform(
 	-- to squareSize/2 ≈ 4 world units; required so the cached stamp aligns).
 	local centerCellX = floor(centerX / squareSize + 0.5)
 	local centerCellZ = floor(centerZ / squareSize + 0.5)
+	local cols = batchCols
+	local bNew, bPre = batchNew, batchPre
+
+	local levelTarget
+	if direction == 0 and not localBlur and not localSmudge then
+		-- Heights are only written after the loop, so this matches the
+		-- per-cell read it replaces.
+		levelTarget = flattenHeight or batchRead(max(0, min(maxXc, centerCellX)), max(0, min(maxZc, centerCellZ)))
+	end
 
 	-- Smooth mode (localBlur): each cell blends toward the mean of its OWN
 	-- neighborhood instead of one flat target for the whole stamp, so a cell at
@@ -981,12 +1228,20 @@ local function applyTerraform(
 		local padRows = sh + 2 * blurStep
 		for pz = 0, padRows - 1 do
 			local zCell = centerCellZ + (pz - blurStep - sCz)
-			local bz = max(0, min(mapSizeZ, zCell * squareSize))
+			if zCell < 0 then
+				zCell = 0
+			elseif zCell > maxZc then
+				zCell = maxZc
+			end
 			local rowBase = pz * blurStride
 			for px = 0, blurStride - 1 do
 				local xCell = centerCellX + (px - blurStep - sCx)
-				local bx = max(0, min(mapSizeX, xCell * squareSize))
-				blurBuf[rowBase + px + 1] = GetGroundHeight(bx, bz)
+				if xCell < 0 then
+					xCell = 0
+				elseif xCell > maxXc then
+					xCell = maxXc
+				end
+				blurBuf[rowBase + px + 1] = batchRead(xCell, zCell)
 			end
 		end
 		-- SAT[r][c] = sum of blurBuf rows < r, cols < c (zero first row/col).
@@ -1076,10 +1331,20 @@ local function applyTerraform(
 		local rate = 0.5 + 0.47 * intensityT
 		for iz = 0, sh - 1 do
 			local rowBase = iz * sw
-			local bz = max(0, min(mapSizeZ, (centerCellZ + (iz - sCz)) * squareSize))
+			local zCell = centerCellZ + (iz - sCz)
+			if zCell < 0 then
+				zCell = 0
+			elseif zCell > maxZc then
+				zCell = maxZc
+			end
 			for ix = 0, sw - 1 do
-				local bx = max(0, min(mapSizeX, (centerCellX + (ix - sCx)) * squareSize))
-				local cur = GetGroundHeight(bx, bz)
+				local xCell = centerCellX + (ix - sCx)
+				if xCell < 0 then
+					xCell = 0
+				elseif xCell > maxXc then
+					xCell = maxXc
+				end
+				local cur = batchRead(xCell, zCell)
 				local idx = rowBase + ix + 1
 				if grab then
 					smudgeHeights[idx] = cur
@@ -1089,27 +1354,25 @@ local function applyTerraform(
 			end
 		end
 		if grab then
-			return -- the first dab of a stroke only grabs; nothing to paint yet
+			-- the first dab of a stroke only grabs; nothing to paint yet
+			if standalone then
+				flushBatch()
+			end
+			return
 		end
 	end
-
-	-- Reuse scratch tables to reduce per-frame allocation
-	local heightData = scratchHeightData
-	local snapFlat = scratchSnapFlat
-	local hIdx = 0
-	local sCount = 0
 
 	for iz = 0, sh - 1 do
 		local sBase = iz * sw
 		local zCell = centerCellZ + (iz - sCz)
-		local z = zCell * squareSize
-		if z >= 0 and z <= mapSizeZ then
+		if zCell >= 0 and zCell <= maxZc then
+			local rowIdx = zCell * cols + 1
 			for ix = 0, sw - 1 do
 				local falloff = sdata[sBase + ix + 1]
 				if falloff then
 					local xCell = centerCellX + (ix - sCx)
-					local x = xCell * squareSize
-					if x >= 0 and x <= mapSizeX then
+					if xCell >= 0 and xCell <= maxXc then
+						local idx = rowIdx + xCell
 						local current
 						local blurTarget
 						if localBlur then
@@ -1127,14 +1390,18 @@ local function applyTerraform(
 								+ blurSAT[r0Base + c0]
 							) * blurInvArea
 						else
-							current = GetGroundHeight(x, z)
+							-- Inline batchRead: this is the hot path.
+							current = bNew[idx]
+							if current == nil then
+								current = bPre[idx]
+								if current == nil then
+									current = GetGroundHeight(xCell * squareSize, zCell * squareSize)
+									bPre[idx] = current
+									batchReadN = batchReadN + 1
+									batchReadList[batchReadN] = idx
+								end
+							end
 						end
-						-- Write to flat scratch buffer (no sub-table allocation)
-						local base = sCount * 3
-						snapFlat[base + 1] = x
-						snapFlat[base + 2] = z
-						snapFlat[base + 3] = current
-						sCount = sCount + 1
 
 						local newHeight
 
@@ -1204,30 +1471,47 @@ local function applyTerraform(
 							end
 						end
 
-						hIdx = hIdx + 1
-						local he = heightData[hIdx]
-						if he then
-							he[1] = x
-							he[2] = z
-							he[3] = newHeight
-						else
-							heightData[hIdx] = { x, z, newHeight }
+						-- First write of this cell in the tick: list it, grow the
+						-- undo bbox, and pin its pre-stroke height for the clay plane.
+						if bNew[idx] == nil then
+							batchWriteN = batchWriteN + 1
+							batchWriteList[batchWriteN] = idx
+							if xCell < batchMinXc then
+								batchMinXc = xCell
+							end
+							if xCell > batchMaxXc then
+								batchMaxXc = xCell
+							end
+							if zCell < batchMinZc then
+								batchMinZc = zCell
+							end
+							if zCell > batchMaxZc then
+								batchMaxZc = zCell
+							end
+							-- The blur path read this cell through blurBuf, so it may
+							-- lack its pre entry: pin it now so the snapshot and the
+							-- clear loop see it.
+							local pre = bPre[idx] or current
+							if bPre[idx] == nil then
+								bPre[idx] = current
+								batchReadN = batchReadN + 1
+								batchReadList[batchReadN] = idx
+							end
+							if strokeOrig[idx] == nil then
+								strokeOrig[idx] = pre
+								strokeOrigN = strokeOrigN + 1
+								strokeOrigList[strokeOrigN] = idx
+							end
 						end
+						bNew[idx] = newHeight
 					end
 				end
 			end
 		end
 	end
 
-	-- Trim scratch heightData using tracked max (avoids # on reused table)
-	for i = hIdx + 1, scratchHeightDataMax do
-		heightData[i] = nil
-	end
-	scratchHeightDataMax = hIdx
-
-	if hIdx > 0 then
-		applyHeightChanges(heightData, hIdx)
-		pushSnapshotFromFlat(snapFlat, sCount)
+	if standalone then
+		flushBatch()
 	end
 end
 
@@ -2040,6 +2324,111 @@ local function applyAutoramp(
 	end
 end
 
+-- Hoisted handler: one message carries a whole tick of brush dabs (the widget's
+-- extraState.sendStrokeDabs builds it). Clay planes for every dab are derived
+-- from the pre-tick heightmap BEFORE the first dab lands, so a stroke deposits
+-- per distance travelled instead of per tick split by the dab count -- and still
+-- cannot rise more than HEIGHT_STEP * intensity within one tick, because every
+-- plane in the batch came from the same untouched heights.
+local strokeDabX, strokeDabZ, strokeDabA, strokeClayPlane = {}, {}, {}, {}
+local function handleStroke(payload)
+	local parts = parseParts(payload)
+	local direction = tonumber(parts[1])
+	local radius = tonumber(parts[2])
+	local shape = parts[3] or "circle"
+	local curve = tonumber(parts[4]) or 1.0
+	local heightMin = tonumber(parts[5])
+	local heightMax = tonumber(parts[6])
+	local intensity = tonumber(parts[7]) or 1.0
+	local lengthScale = tonumber(parts[8]) or 1.0
+	-- Clay flag: "1" = clay (one layer per stroke), "2" = clay with per-tick
+	-- build-up (Settings > Stroke > Clay build-up), anything else = off.
+	local clayMode = (parts[9] == "1" and 1) or (parts[9] == "2" and 2) or false
+	local dustMode = parts[10] == "1"
+	local opacity = tonumber(parts[11]) or 0.3
+	local instant = parts[12] == "1"
+	-- Same sentinels as the per-dab message: "smooth" and "smudge<startDigit>"
+	-- ride the flatten slot as non-numeric values.
+	local localBlur = parts[13] == "smooth"
+	local localSmudge = parts[13] ~= nil and parts[13]:sub(1, 6) == "smudge"
+	local smudgeStart = localSmudge and parts[13]:sub(7, 7) == "1"
+	local flattenHeight = tonumber(parts[13])
+	if parts[14] then
+		ringInnerRatio = max(0.05, min(0.95, tonumber(parts[14]) or 0.6))
+	end
+	local nDabs = tonumber(parts[15]) or 0
+	if not direction or not radius or nDabs < 1 then
+		return
+	end
+
+	radius = max(MIN_RADIUS, min(MAX_RADIUS, radius))
+	curve = max(0.1, min(5.0, curve))
+	intensity = max(0.1, min(100.0, intensity))
+	lengthScale = max(0.2, min(5.0, lengthScale))
+	opacity = max(0.01, min(1.0, opacity))
+
+	-- Copy the dabs out of the shared parse scratch before applying any of them.
+	local count = 0
+	for i = 1, nDabs do
+		local b = 15 + (i - 1) * 3
+		local x = tonumber(parts[b + 1])
+		local z = tonumber(parts[b + 2])
+		if not x or not z then
+			break
+		end
+		count = count + 1
+		strokeDabX[count] = x
+		strokeDabZ[count] = z
+		strokeDabA[count] = tonumber(parts[b + 3]) or 0
+	end
+	if count < 1 then
+		return
+	end
+
+	-- Every plane of the tick is derived before any dab lands, so dabs in one
+	-- tick cannot compound on each other (see clayPlaneFor for the reference).
+	local doClay = clayMode and direction ~= 0 and direction ~= 2
+	if doClay then
+		local rise = direction * HEIGHT_STEP * intensity
+		local stack = clayMode == 2
+		for i = 1, count do
+			strokeClayPlane[i] = clayPlaneFor(strokeDabX[i], strokeDabZ[i], radius, rise, stack)
+		end
+	end
+	-- One batch for the tick: a single heightmap commit and a single undo entry
+	-- however many dabs the message carries.
+	beginBatch()
+	for i = 1, count do
+		applyTerraform(
+			strokeDabX[i],
+			strokeDabZ[i],
+			radius,
+			direction,
+			shape,
+			strokeDabA[i],
+			curve,
+			heightMin,
+			heightMax,
+			intensity,
+			lengthScale,
+			clayMode,
+			opacity,
+			flattenHeight,
+			instant,
+			localBlur,
+			localSmudge,
+			smudgeStart,
+			doClay and strokeClayPlane[i] or nil
+		)
+	end
+	flushBatch()
+	-- One dust burst per tick rather than one per dab: up to 48 CEG spawns a tick
+	-- cost frames and looked no different.
+	if dustMode then
+		spawnDust(strokeDabX[count], strokeDabZ[count], radius, intensity)
+	end
+end
+
 -- Hoisted handler: the RecvLuaMsg dispatcher sits near the 60-upvalue cap, so
 -- the parse/clamp body lives here and the dispatcher only gains two upvalues.
 local function handleAutoramp(payload)
@@ -2640,6 +3029,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	if msg == STROKE_END_HEADER then
 		finalizeMerge()
 		currentStrokeId = currentStrokeId + 1
+		clearStrokeOrigin()
 		return true
 	end
 
@@ -2977,6 +3367,17 @@ function gadget:RecvLuaMsg(msg, playerID)
 		return true
 	end
 
+	-- Header spelled inline, not via the STROKE_HEADER local: this dispatcher is
+	-- one upvalue under the Lua 5.1 cap of 60, and a string constant costs none.
+	if msg:sub(1, 18) == "$terraform_stroke$" then
+		if not isTerraformAllowed(certified, playerID) then
+			echoGate("[Terraform Brush] Requires /cheat to be enabled (type /cheat or reactivate the tool)")
+			return true
+		end
+		handleStroke(msg:sub(19))
+		return true
+	end
+
 	if msg:sub(1, #PACKET_HEADER) ~= PACKET_HEADER then
 		return
 	end
@@ -3000,7 +3401,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	local heightMax = tonumber(parts[9])
 	local intensity = tonumber(parts[10]) or 1.0
 	local lengthScale = tonumber(parts[11]) or 1.0
-	local clayMode = parts[12] == "1"
+	local clayMode = (parts[12] == "1" and 1) or (parts[12] == "2" and 2) or false
 	local dustMode = parts[13] == "1"
 	local opacity = tonumber(parts[14]) or 0.3
 	local instant = parts[15] == "1"
