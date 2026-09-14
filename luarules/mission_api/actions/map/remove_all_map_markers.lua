@@ -1,6 +1,8 @@
 local function removeAllMapMarkers()
+	for _, position in pairs(GG['MissionAPI'].markerNames) do
+		Spring.MarkerErasePosition(position.x, position.y, position.z, nil, false, nil, true)
+	end
 	GG['MissionAPI'].markerNames = {}
-	Spring.SendCommands('clearmapmarks')
 end
 
 return {

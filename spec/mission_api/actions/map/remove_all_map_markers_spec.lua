@@ -11,7 +11,7 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.remove_all_map_markers", function()
 
-	local missionApi, sendCommandsCalls
+	local missionApi, eraseCalls, sendCommandsCalls
 
 	before_each(function()
 		missionApi = Builders.MissionApi
@@ -20,6 +20,7 @@ describe("mission_api.actions.remove_all_map_markers", function()
 			:WithMarker("b", { x = 2, y = 0, z = 2 })
 			:Install()
 		_G.Spring = Builders.Spring.new():Build()
+		eraseCalls = Spring.calls.markerErasePosition
 		sendCommandsCalls = Spring.calls.sendCommands
 	end)
 
@@ -33,10 +34,25 @@ describe("mission_api.actions.remove_all_map_markers", function()
 			assert.are.same({}, missionApi.markerNames)
 		end)
 
-		it("calls Spring.SendCommands('clearmapmarks')", function()
+		it("erases every marker it holds, at its stored position", function()
 			action.actionFunction()
-			assert.are.equal(1, #sendCommandsCalls)
-			assert.are.equal("clearmapmarks", sendCommandsCalls[1])
+			assert.are.equal(2, #eraseCalls)
+			local erased = {}
+			for _, call in ipairs(eraseCalls) do
+				erased[call.x .. "," .. call.z] = true
+			end
+			assert.are.same({ ["1,1"] = true, ["2,2"] = true }, erased)
+		end)
+
+		it("erases nothing when it holds no markers", function()
+			missionApi = Builders.MissionApi.new():Install()
+			action.actionFunction()
+			assert.are.equal(0, #eraseCalls)
+		end)
+
+		it("leaves marks it did not place, sending no clearmapmarks", function()
+			action.actionFunction()
+			assert.are.equal(0, #sendCommandsCalls)
 		end)
 	end)
 
