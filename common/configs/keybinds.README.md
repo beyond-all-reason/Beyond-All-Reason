@@ -127,10 +127,12 @@ the clipboard and what Import reads back, and the same text a player would put i
 
 - **Which profile are we on?** Read `active` from the player's profile store. If it names
   nothing that exists in either file, fall back to the first shipped profile.
-- **Apply a profile.** Write its binds out as `bind <keyset> <action>` lines (plus a
-  leading `fakemeta <key>` if it has one), point the engine config string `KeybindingFile`
-  at that file, and reload. Reloading clears the keymap first, which is why a profile has
-  to define every binding it wants.
+- **Apply a profile.** Write its binds out as `bind <keyset> <action>` lines with a leading
+  `fakemeta <key>`, point the engine config string `KeybindingFile` at that file, and
+  reload. Reloading clears the keymap first, which is why a profile has to define every
+  binding it wants. It does not clear the meta key, so always write that line: leave it out
+  and whatever the last profile set stays. A profile naming no key wants the engine's own,
+  `space`; `fakemeta none` asks for no Meta modifier at all.
 - **Edit a binding.** Only in the player's own profiles. Shipped profiles are read-only,
   so the first edit made while one is selected forks it into a copy and edits that.
 - **Create / rename / delete.** Names are the identity, so they must stay unique across

@@ -5,6 +5,7 @@
 		{
 			"name": "Grid",
 			"description": "ui.keybinds.presets.grid",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -1339,6 +1340,7 @@
 		{
 			"name": "Grid (60% Keyboard)",
 			"description": "ui.keybinds.presets.grid60",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -2585,6 +2587,7 @@
 		{
 			"name": "Legacy",
 			"description": "ui.keybinds.presets.legacy",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -4371,6 +4374,7 @@
 		{
 			"name": "Legacy (60% Keyboard)",
 			"description": "ui.keybinds.presets.legacy60",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
