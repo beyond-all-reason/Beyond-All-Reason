@@ -2,10 +2,11 @@
 -- the Keybind/Mouse Info panel. Immediate-mode in shape, but the panel body is baked
 -- into a display list and replayed until something it was painted from changes.
 --
--- The picker lists the shipped profiles and the player's own. Edits are staged in the
--- working model and touch neither the engine nor disk until Save, which is also where
--- a shipped profile forks: saving over a read-only one creates a copy instead. Unsaved
--- work is marked with a "*" on the profile name and guarded on the way out.
+-- The picker lists the shipped presets, tagged as defaults, then the player's own. Edits
+-- are staged in the working model and touch neither the engine nor disk until Save, which
+-- is also where a default forks: it cannot take the edits, so saving makes a new preset of
+-- them, and the footer says so before anything is saved. Unsaved work is marked with a "*"
+-- on the preset's name and guarded on the way out.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
@@ -72,6 +73,16 @@ local metrics = {
 	-- The panel title: its baseline below the top edge, and its size.
 	titleY = 17,
 	titleFs = 20,
+	-- The caption in front of the preset picker, placed by layoutHeader: its left edge, its
+	-- baseline and its size.
+	presetLabelX = 0,
+	presetLabelY = 0,
+	presetLabelFs = 13,
+	-- The line in the footer saying where staged edits will go: its left edge, its baseline
+	-- and its size.
+	noticeX = 0,
+	noticeY = 0,
+	noticeFs = 12,
 	-- How far the category column starts below the keybind rows beside it, to leave the
 	-- title room to breathe.
 	sidebarDrop = 8,
@@ -304,9 +315,23 @@ local switchToPreset, scrollFromY
 ---@type table?
 local dialog
 
+-- `tip` names the tooltip's text in L, and `tipLocked` the text shown instead while the
+-- active preset is a default. That is when Edit is greyed out, and its tooltip is then the
+-- one place saying why.
 local headerButtons = {
-	{ id = "duplicate", icon = "LuaUI/Images/keybinds/duplicate.png", tooltipId = "keybind_duplicate" },
-	{ id = "edit", icon = "LuaUI/Images/keybinds/edit.png", tooltipId = "keybind_edit" },
+	{
+		id = "duplicate",
+		icon = "LuaUI/Images/keybinds/duplicate.png",
+		tooltipId = "keybind_duplicate",
+		tip = "duplicateTooltip",
+	},
+	{
+		id = "edit",
+		icon = "LuaUI/Images/keybinds/edit.png",
+		tooltipId = "keybind_edit",
+		tip = "editTooltip",
+		tipLocked = "editLockedTooltip",
+	},
 }
 
 -- Discarding is destructive and saving is not, so the two footer buttons are coloured for
@@ -338,23 +363,21 @@ local panelSig
 
 local presetOptions = {}
 
--- Picker contents: the shipped profiles, the player's own, and any unsaved fork.
+-- Picker contents: the shipped presets, tagged as defaults, then the player's own, which the
+-- open list sets apart with a rule. Staged edits mark whichever one is active with a "*", a
+-- default included: the edits are real and unsaved either way, and where they will be saved
+-- is for the footer to say, beside the button that saves them.
 local function buildPresetOptions()
 	local active = profiles.activeName()
-	-- Editing a shipped profile does not change it: what is on screen is an unsaved new
-	-- profile, so the picker says that instead of marking the read-only one as modified.
-	local pending = dirty and profiles.isBuiltin(active) ~= nil
 
 	presetOptions = {}
 	for _, b in ipairs(profiles.builtins) do
-		presetOptions[#presetOptions + 1] = { label = b.name, name = b.name, builtin = true }
+		local label = (dirty and b.name == active) and (b.name .. " *") or b.name
+		presetOptions[#presetOptions + 1] = { label = label, name = b.name, tag = L.defaultTag, group = "default" }
 	end
 	for _, name in ipairs(profiles.list()) do
-		local marked = (dirty and name == active) and (name .. " *") or name
-		presetOptions[#presetOptions + 1] = { label = marked, name = name }
-	end
-	if pending then
-		presetOptions[#presetOptions + 1] = { label = L.newProfile .. " *", pending = true }
+		local label = (dirty and name == active) and (name .. " *") or name
+		presetOptions[#presetOptions + 1] = { label = label, name = name, group = "own" }
 	end
 
 	return presetOptions
@@ -378,11 +401,6 @@ local function buttonEnabled(id)
 end
 
 local function currentPresetIndex()
-	local last = presetOptions[#presetOptions]
-	if last and last.pending then
-		return #presetOptions
-	end
-
 	local name = profiles.activeName()
 	for i = 1, #presetOptions do
 		if presetOptions[i].name == name then
@@ -614,9 +632,20 @@ local function buildResolvedCatalog()
 		categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
 	end
 	L.pressKey = BAR.I18N("ui.keybinds.editor.pressKey")
+	L.preset = BAR.I18N("ui.keybinds.editor.preset")
+	-- Dim, so the preset name in the picker beside it stays the thing that is read.
+	L.presetText = colorDim .. L.preset
+	L.defaultTag = BAR.I18N("ui.keybinds.editor.defaultTag")
 	L.newProfile = BAR.I18N("ui.keybinds.editor.newProfile")
 	L.duplicate = BAR.I18N("ui.keybinds.editor.duplicate")
+	L.duplicateTooltip = BAR.I18N("ui.keybinds.editor.duplicateTooltip")
 	L.edit = BAR.I18N("ui.keybinds.editor.edit")
+	L.editTooltip = BAR.I18N("ui.keybinds.editor.editTooltip")
+	L.editLockedTooltip = BAR.I18N("ui.keybinds.editor.editLockedTooltip")
+	L.saveAsNew = BAR.I18N("ui.keybinds.editor.saveAsNew")
+	L.noticeDefault = BAR.I18N("ui.keybinds.editor.noticeDefault")
+	L.noticeDefaultUnsaved = BAR.I18N("ui.keybinds.editor.noticeDefaultUnsaved")
+	L.noticeUnsaved = BAR.I18N("ui.keybinds.editor.noticeUnsaved")
 	L.editTitle = BAR.I18N("ui.keybinds.editor.editTitle")
 	L.delete = BAR.I18N("ui.keybinds.editor.delete")
 	L.duplicateTitle = BAR.I18N("ui.keybinds.editor.duplicateTitle")
@@ -659,6 +688,43 @@ local function rebuildRows()
 		return
 	end
 	local query = Search.query(searchBox and searchBox:getText())
+	-- A query can name keys as well as words. A row also matches when one of its bindings holds
+	-- every key the query names, modifiers included and in any order, so "ctrl+q", "ctrl q" and
+	-- "q ctrl" all find what Ctrl+Q does. Whole keys only, as the chips print them, so "f1" does
+	-- not find F11.
+	local wantKeys = {}
+	for key in query.text:gmatch("[^%s%+]+") do
+		wantKeys[#wantKeys + 1] = key
+	end
+	local function boundToQuery(action)
+		local keysets = wantKeys[1] and action and working.byAction[action]
+		if not keysets then
+			return false
+		end
+		for _, k in ipairs(keysets) do
+			-- Kept on the keyset against the display they were read from: this runs for every row
+			-- on every keystroke, and a rebind rewrites the display in place.
+			if k.tokensFor ~= k.display then
+				local tokens = {}
+				for token in k.display:lower():gmatch("[^%s%+]+") do
+					tokens[token] = true
+				end
+				k.tokens, k.tokensFor = tokens, k.display
+			end
+			local all = true
+			for i = 1, #wantKeys do
+				if not k.tokens[wantKeys[i]] then
+					all = false
+					break
+				end
+			end
+			if all then
+				return true
+			end
+		end
+
+		return false
+	end
 	local catalogActions = {}
 	local otherGroupEnd
 
@@ -732,6 +798,7 @@ local function rebuildRows()
 						categoryMatch
 						or Search.matches(query, action:lower())
 						or Search.matches(query, label:lower())
+						or boundToQuery(action)
 					then
 						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
 					end
@@ -746,6 +813,7 @@ local function rebuildRows()
 					categoryMatch
 					or Search.matches(query, item.labelLower)
 					or Search.matches(query, item.actionLower)
+					or boundToQuery(item.action)
 				then
 					groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
 				end
@@ -773,7 +841,10 @@ local function rebuildRows()
 	local otherMatch = Search.claims(query, L.otherLower)
 	local others = {}
 	for action in pairs(working.byAction) do
-		if not catalogActions[action] and (otherMatch or Search.matches(query, action:lower())) then
+		if
+			not catalogActions[action]
+			and (otherMatch or Search.matches(query, action:lower()) or boundToQuery(action))
+		then
 			others[#others + 1] = action
 		end
 	end
@@ -897,6 +968,10 @@ local function refreshPicker()
 	buildPresetOptions()
 	presetDropdown:setOptions(presetOptions)
 	presetDropdown:setSelected(currentPresetIndex())
+	-- Whether the active preset is a default settles the Save button's wording, and so its
+	-- width, and what the header tooltips say. Laid out again on the next draw, once, however
+	-- many times this runs before it.
+	layoutPending = true
 end
 
 -- Staging changes the picker too: the active profile picks up the unsaved marker.
@@ -1082,7 +1157,8 @@ local function guardDirty(proceed, onCancel)
 	openDialog({
 		title = L.unsavedTitle,
 		message = L.unsavedMessage,
-		acceptLabel = L.save,
+		-- Worded like the footer's Save, which this stands in for.
+		acceptLabel = activeIsOwn() and L.save or L.saveAsNew,
 		save = true,
 		accept = function()
 			startSave(proceed, onCancel)
@@ -1102,8 +1178,9 @@ local function guardDirty(proceed, onCancel)
 end
 
 switchToPreset = function(opt)
-	-- The pending entry is already what is on screen; picking it is not a switch.
-	if opt.pending then
+	-- Already what is on screen, staged edits and all, so picking it again is not a switch:
+	-- it would only ask about edits the player has not tried to leave.
+	if opt.name == profiles.activeName() then
 		return
 	end
 
@@ -1197,7 +1274,7 @@ local function ensureControls()
 		clearable = true,
 		onChange = rebuildRows,
 	})
-	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
+	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset, markSelected = true })
 	nameBox = Editbox.new({ maxChars = 40 })
 end
 
@@ -1233,21 +1310,30 @@ local function layoutHeader()
 	local gap = floor(8 * scale)
 	local rowTop = area.y2 - floor(4 * scale)
 	local rowBottom = area.y2 - headerH + floor(4 * scale)
-	local presetW = floor(240 * scale)
+	-- Room for the longest shipped name beside its Default tag.
+	local presetW = floor(280 * scale)
 	local btnFs = floor((rowTop - rowBottom) * 0.5)
 
-	-- Right to left: the edit dialog opener, duplicate, then the picker they act on.
+	-- Right to left: the edit dialog opener, duplicate, the picker they act on, then the
+	-- picker's caption.
 	local iconW = rowTop - rowBottom
 	local editW, dupW = iconW, iconW
 	local rightEdge = area.x2 - metrics.edgeInset
 	local editX1 = rightEdge - editW
 	local dupX1 = editX1 - gap - dupW
 	local pickerX1 = dupX1 - gap - presetW
+	metrics.presetLabelX = pickerX1 - gap - labelWidth(L.preset or "", btnFs, 0)
+	metrics.presetLabelFs = btnFs
+	if font then
+		-- The baseline the picker and the search field print their own text on.
+		metrics.presetLabelY = text.baseline(font, rowBottom, rowTop, btnFs)
+	end
 
 	headerButtons[1].rect = { dupX1, rowBottom, dupX1 + dupW, rowTop }
 	headerButtons[2].rect = { editX1, rowBottom, rightEdge, rowTop }
 	presetDropdown:setRect(pickerX1, rowBottom, pickerX1 + presetW, rowTop, btnFs)
-	searchBox:setRect(listX1, rowBottom, pickerX1 - gap, rowTop, btnFs)
+	-- Twice the gap on this side, so the caption reads as the picker's and not the field's.
+	searchBox:setRect(listX1, rowBottom, metrics.presetLabelX - gap * 2, rowTop, btnFs)
 
 	local fTop = area.y1 + footerH - floor(4 * scale)
 	local fBottom = area.y1 + floor(4 * scale)
@@ -1255,9 +1341,11 @@ local function layoutHeader()
 	local fPad = floor(14 * scale)
 	local bfs = floor(rowHeight * 0.55)
 	local x2 = area.x2 - metrics.edgeInset
+	-- A default cannot take the edits, so its Save is worded for where they go instead.
+	local own = activeIsOwn()
 	for i = #footerButtons, 1, -1 do
 		local b = footerButtons[i]
-		local label = L[b.id] or b.id
+		local label = (b.id == "save" and not own and L.saveAsNew) or L[b.id] or b.id
 		local w = labelWidth(label, fFs, fPad)
 		b.rect = { x2 - w, fBottom, x2, fTop }
 		x2 = x2 - w - gap
@@ -1267,6 +1355,19 @@ local function layoutHeader()
 			b.textOn = colorText .. fitted
 			b.textOff = colorFaded .. fitted
 		end
+	end
+
+	-- The footer notice gets what the buttons leave: from the list's left edge to a double gap
+	-- short of the first button. Each wording is fitted here, so the bake only picks one.
+	metrics.noticeX = listX1
+	metrics.noticeFs = floor(rowHeight * 0.5)
+	if font then
+		local nfs = metrics.noticeFs
+		local noticeW = x2 - gap - listX1
+		metrics.noticeY = text.baseline(font, fBottom, fTop, nfs)
+		L.noticeDefaultText = colorDim .. text.fit(font, L.noticeDefault or "", noticeW, nfs)
+		L.noticeDefaultUnsavedText = colorHeader .. text.fit(font, L.noticeDefaultUnsaved or "", noticeW, nfs)
+		L.noticeUnsavedText = colorHeader .. text.fit(font, L.noticeUnsaved or "", noticeW, nfs)
 	end
 
 	-- New rects, so the tooltip areas have to be handed over again.
@@ -1634,8 +1735,8 @@ end
 
 -- Edit entry point: move a binding, and mark the profile staged.
 local function rebindKeyset(action, oldRaw, newKeyset)
-	-- Accepting the capture unchanged is not an edit. Staging it would arm Save, grow a
-	-- pending entry in the picker, and raise the unsaved-changes guard over nothing.
+	-- Accepting the capture unchanged is not an edit. Staging it would arm Save, mark the
+	-- preset unsaved, and raise the unsaved-changes guard over nothing.
 	if newKeyset == oldRaw then
 		return
 	end
@@ -3050,6 +3151,19 @@ local function drawPanel()
 		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, hover.drag)
 	end
 
+	-- The picker's caption. Nothing about it changes between layouts, so it bakes with the
+	-- body rather than printing live beside the picker it names.
+	queueText(L.presetText, metrics.presetLabelX, metrics.presetLabelY, metrics.presetLabelFs, "o")
+
+	-- Where staged edits go. On a default it shows before anything is staged, too: that is
+	-- when a player is working out whether editing it is safe.
+	local own = activeIsOwn()
+	local notice = (dirty and (own and L.noticeUnsavedText or L.noticeDefaultUnsavedText))
+		or (not own and L.noticeDefaultText)
+	if notice then
+		queueText(notice, metrics.noticeX, metrics.noticeY, metrics.noticeFs, "o")
+	end
+
 	drawButtons(h.btn)
 	flushText()
 end
@@ -3057,9 +3171,10 @@ end
 -- The tooltip widget owns the hover delay and only draws once the cursor settles; it
 -- keeps the area table, so this is redone whenever layoutHeader makes new rects.
 local function registerTooltips()
+	local own = activeIsOwn()
 	for _, b in ipairs(headerButtons) do
 		if b.rect then
-			WG["tooltip"].AddTooltip(b.tooltipId, b.rect, L[b.id])
+			WG["tooltip"].AddTooltip(b.tooltipId, b.rect, L[(not own and b.tipLocked) or b.tip], nil, L[b.id])
 		end
 	end
 	tooltipsRegistered = true
@@ -3211,7 +3326,25 @@ function view.mouseWheel(up, value)
 	if mx <= area.x1 + sidebarW and my > listBottom() and my <= sidebarTop() then
 		catScrolled(up and -1 or 1)
 	elseif my >= listBottom() and my <= listTop then
-		scroll = scroll + (up and -3 or 3)
+		-- The chat history's modifiers: Ctrl moves three notches' worth at once, Shift a whole
+		-- page - the rows the band holds from where the list is now, since headings are taller
+		-- than the bindings under them.
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		local step = ctrl and 9 or 3
+		if shift then
+			ensureRowMetrics()
+			local band, used = listTop - listBottom(), 0
+			step = 0
+			for i = scroll + 1, #rows do
+				used = used + rowHeightOf(rows[i])
+				if used > band then
+					break
+				end
+				step = step + 1
+			end
+			step = math.max(1, step)
+		end
+		scroll = scroll + (up and -step or step)
 		clampScroll()
 	end
 end

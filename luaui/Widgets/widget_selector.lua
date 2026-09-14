@@ -200,6 +200,20 @@ look.faded = setmetatable({}, {
 		return faded
 	end,
 })
+-- The same colours as text colour codes, keyed by group, for naming a widget in a tooltip in the
+-- colour of the group it is in. A component of 0 would end the string, so none goes below 1.
+look.groupText = setmetatable({}, {
+	__index = function(self, group)
+		local c = look.groups[group] or look.groups.other
+		local code = "\255"
+		for i = 1, 3 do
+			code = code .. string.char(mathMax(1, mathFloor(c[i] * 255 + 0.5)))
+		end
+		self[group] = code
+
+		return code
+	end,
+})
 -- A category the search found nothing in. It stays in the column, so the column does not
 -- jump about under the typing, but it reads quieter than the ones holding matches.
 look.emptyText = "\255\95\95\95"
@@ -213,6 +227,9 @@ look.tip = {
 	value = "\255\225\225\225",
 	name = "\255\175\205\240",
 	warn = "\255\235\195\125",
+	-- Titles are left uncoloured, so the tooltip draws them in the green every tooltip heads with;
+	-- a button that throws something away heads its tooltip in red instead, as its face is.
+	danger = "\255\255\125\125",
 }
 local colorTitle = "\255\235\235\235"
 local colorName = "\255\145\143\140"
@@ -304,6 +321,14 @@ local GROUP_ORDER = {
 	"debug",
 }
 local OTHER = "other"
+
+-- Which column a widget belongs in, from the prefix on its filename.
+local function groupOf(data)
+	local base = data.basename or ""
+	local prefix = base:match("^(%a+)_")
+
+	return (prefix and GROUPS[prefix]) or OTHER
+end
 
 local L = {}
 
@@ -585,6 +610,13 @@ function deps.users(name, sole)
 	return users, unchecked
 end
 
+-- A widget's name in the colour of the group it is in, the one its square carries in the list.
+function deps.colored(name)
+	local data = widgetHandler.knownWidgets[name]
+
+	return look.groupText[data and groupOf(data) or OTHER] .. name
+end
+
 -- A list of names cut to `limit`, with a count of the rest.
 function deps.names(list, limit, sep)
 	local shown = {}
@@ -636,13 +668,15 @@ function deps.tooltip(row, maxWidth)
 			return a < b
 		end)
 		local parts = {}
+		-- Each name in its group's colour; what is off says so after it, red where the widget
+		-- never checks for it, quiet where it does.
 		for i, name in ipairs(names) do
 			if state[name] == "blind" then
-				parts[i] = tagColors.iserror .. name .. " (" .. L.depsOff .. ")"
+				parts[i] = deps.colored(name) .. tagColors.iserror .. " (" .. L.depsOff .. ")"
 			elseif state[name] == "off" then
-				parts[i] = "\255\130\130\130" .. name .. " (" .. L.depsOff .. ")"
+				parts[i] = deps.colored(name) .. "\255\130\130\130" .. " (" .. L.depsOff .. ")"
 			else
-				parts[i] = tip.name .. name
+				parts[i] = deps.colored(name)
 			end
 		end
 		local line = tip.label .. L.depsUses .. ":  " .. deps.names(parts, 8, tip.label)
@@ -675,8 +709,9 @@ function deps.tooltip(row, maxWidth)
 			line = line .. " (" .. tip.warn .. #unchecked .. " " .. L.depsUnchecked .. tip.label .. ")"
 		end
 		local parts = {}
+		-- In their groups' colours too, so the ones that never check are marked after the name.
 		for i, name in ipairs(users) do
-			parts[i] = (blind[name] and tip.warn or tip.name) .. name
+			parts[i] = deps.colored(name) .. (blind[name] and (tip.warn .. " !") or "")
 		end
 		line = line .. " - " .. deps.names(parts, 3, tip.label)
 		out = out .. text.carryColors(font:WrapText(line, maxWidth)) .. "\n"
@@ -749,14 +784,6 @@ function sweep.errors(data)
 	local log = logs and data.basename and logs[data.basename]
 
 	return (log and log.entries[1]) and log or nil
-end
-
--- Which column a widget belongs in, from the prefix on its filename.
-local function groupOf(data)
-	local base = data.basename or ""
-	local prefix = base:match("^(%a+)_")
-
-	return (prefix and GROUPS[prefix]) or OTHER
 end
 
 -- One line of description, with the newlines a multi-line one carries turned into spaces:
@@ -3151,7 +3178,6 @@ local function loadLabels()
 	-- Said plainly, because raise and lower do not move a widget by one place: they send
 	-- it to the front or the back of the band of widgets sharing its layer, and it can
 	-- never leave that band.
-	L.hint = tr("hint", "Click to toggle.  Right-click sends it to the front of its layer, middle-click to the back.")
 	L.order = tr("order", "Load order")
 	L.changed = tr("category.changed", "Changed")
 	L.isrml = tr("isrml", "rml")
@@ -3430,11 +3456,10 @@ function widget:Initialize()
 	buildButtons()
 
 	widgetHandler.knownChanged = true
-	-- barwidgets binds F11 to `luaui selector`, which looks for a loaded widget whose
-	-- basename is exactly selector.lua and otherwise tries to load LuaUI/selector.lua.
-	-- Neither is this file, so the key does nothing at all. Pointed at the action instead,
-	-- which is the same thing /widgetselector reaches.
-	spSendCommands({ "unbindkeyset f11", "bind f11 widgetselector" })
+	-- F11 is left to the keymap. The shipped presets bind it to `luaui selector`, which the
+	-- handler answers by toggling this panel, or by switching it back on when an error took it
+	-- down, and a player who moves it in the keybind editor keeps it where they put it.
+	-- Rebinding it here on every start undid that edit on the next launch.
 
 	-- Lets the handler hide the rest of the interface while the list is open. This widget
 	-- holds the real widgetHandler, so it passes itself.
@@ -3463,6 +3488,10 @@ function widget:Initialize()
 	-- would rather not use F11.
 	widgetHandler.actionHandler:AddAction(self, "widgetselector", function()
 		setShow(not show)
+		-- Holds the key it fired on. A preset saved while this widget still bound F11 to itself
+		-- can carry this and `luaui selector` on one key, and a handler that declines lets the
+		-- next action on that keyset toggle the panel straight back shut.
+		return true
 	end, nil, "tp")
 	widgetHandler.actionHandler:AddAction(self, "factoryreset", function()
 		factoryReset()
@@ -3637,7 +3666,7 @@ function tipCache.keep(a, b, c, d, title, text)
 end
 
 local function showTooltip(row)
-	local caption, body
+	local caption, body, danger
 
 	if hover.sb > 0 and categories[hover.sb] then
 		local c = categories[hover.sb]
@@ -3682,11 +3711,12 @@ local function showTooltip(row)
 		if hover.btn == "userwidgets" then
 			caption = widgetHandler.allowUserWidgets and L.disallowUser or L.allowUser
 			body = widgetHandler.allowUserWidgets and L.disallowUserWarn or L.allowUserWarn
+			danger = widgetHandler.allowUserWidgets
 		else
 			body = L.desc[hover.btn]
 			for _, b in ipairs(buttons) do
 				if b.id == hover.btn then
-					caption = b.label
+					caption, danger = b.label, b.danger
 				end
 			end
 			caption = caption or L[hover.btn]
@@ -3694,13 +3724,13 @@ local function showTooltip(row)
 	end
 
 	if caption and body then
-		if not tipCache.same("control", caption, body, false) then
+		if not tipCache.same("control", caption, body, danger or false) then
 			tipCache.keep(
 				"control",
 				caption,
 				body,
-				false,
-				colorTitle .. caption .. "\n",
+				danger or false,
+				(danger and look.tip.danger or "") .. caption .. "\n",
 				"\255\255\255\255"
 					.. string.gsub(font:WrapText(body, WG.tooltip.getFontsize() * 90), "[\n]", "\n\255\255\255\255")
 			)
@@ -3733,7 +3763,7 @@ local function showTooltip(row)
 				row.name,
 				row.state,
 				false,
-				colorDanger .. L.cleardataTitle .. "\n",
+				look.tip.danger .. L.cleardataTitle .. "\n",
 				"\255\255\255\255" .. string.gsub(font:WrapText(warn, maxWidth), "[\n]", "\n\255\255\255\255")
 			)
 		end
@@ -3752,7 +3782,7 @@ local function showTooltip(row)
 				row.name,
 				data,
 				false,
-				colorTitle .. L.showdata .. "\n",
+				L.showdata .. "\n",
 				dataView.preview(row.name, maxWidth)
 			)
 		end
@@ -3860,8 +3890,6 @@ local function showTooltip(row)
 		.. (row.isLocal and (label .. "   (" .. tagColors.islocal .. L.islocal .. label .. ")") or "")
 		.. "\n"
 		.. deps.tooltip(row, maxWidth)
-		.. "\255\130\130\130"
-		.. L.hint
 	-- With the cost column on, what the widget is spending it on, broken down the way the
 	-- profiler breaks it down: time, allocations, callin. A tooltip is one string in a
 	-- proportional face, so the columns are padded to a fixed number of characters rather
@@ -4118,9 +4146,13 @@ function widget:MouseWheel(up, _value)
 	if dialog then
 		return true
 	end
+	-- The chat history's modifiers: Ctrl moves three notches' worth at once, Shift a whole
+	-- page of whatever is being scrolled.
+	local _, ctrl, _, shift = Spring.GetModKeyState()
 	-- The settings window takes the wheel while it is up: it is the thing being read.
 	if dataView.name then
-		dataView.setScroll(dataView.scroll + (up and -3 or 3))
+		local step = shift and mathMax(1, dataView.page) or (ctrl and 9 or 3)
+		dataView.setScroll(dataView.scroll + (up and -step or step))
 
 		return true
 	end
@@ -4130,7 +4162,8 @@ function widget:MouseWheel(up, _value)
 	if x <= area.x1 + metrics.sidebarW and y > categoryBottom() and y <= sidebarTop() then
 		setCatScroll(catScroll + (up and -1 or 1))
 	else
-		setScroll(scroll + (up and -metrics.wheelRows or metrics.wheelRows))
+		local step = shift and pageRows() or (ctrl and metrics.wheelRows * 3 or metrics.wheelRows)
+		setScroll(scroll + (up and -step or step))
 	end
 
 	return true

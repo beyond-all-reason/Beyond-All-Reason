@@ -23,7 +23,6 @@
 			"edit_prev_word",
 			"edit_return",
 			"losradar",
-			"luaui selector",
 			"movereset",
 			"moverotate",
 			"moveslow",
@@ -706,6 +705,10 @@
 			{
 				"action": "options",
 				"label": "actions.interfaceDisplay.settings"
+			},
+			{
+				"action": "luaui selector",
+				"label": "actions.interfaceDisplay.widgetSelector"
 			},
 			{
 				"action": "hideinterface",
