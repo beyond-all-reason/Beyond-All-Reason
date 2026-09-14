@@ -604,7 +604,7 @@ if gadgetHandler:IsSyncedCode() then
 		local scenarioSpawnsUnits = false
 		if missionSpawnDisabled then
 			Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
-			scenarioSpawnsUnits = false
+			scenarioSpawnsUnits = true
 		elseif Spring.GetModOptions().scenariooptions then
 			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then

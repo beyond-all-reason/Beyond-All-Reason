@@ -117,22 +117,24 @@ end
 --- Public processing functions:
 ----------------------------------------------------------------
 
-local function processParameters(actionsOrTriggers, schemaParameters)
-	for _, actionOrTrigger in pairs(actionsOrTriggers) do
-		local parameters = actionOrTrigger.parameters or {}
-		local schema = schemaParameters[actionOrTrigger.type] or {}
-		for _, parameter in ipairs(schema) do
-			local value = parameters[parameter.name]
-			local processor = processors[parameter.type]
-			if value ~= nil and processor then
-				local result = processor(value)
-				if result ~= nil then
-					-- valueKey is the authored name for everything except team parameters, which land
-					-- under a second key (`teamName` -> `teamID`) so the name stays for error messages.
-					parameters[parameter.valueKey] = result
-				end
+local function processParameterSet(parameters, schema)
+	for _, parameter in ipairs(schema) do
+		local value = parameters[parameter.name]
+		local processor = processors[parameter.type]
+		if value ~= nil and processor then
+			local result = processor(value)
+			if result ~= nil then
+				-- valueKey is the authored name for everything except team parameters, which land
+				-- under a second key (`teamName` -> `teamID`) so the name stays for error messages.
+				parameters[parameter.valueKey] = result
 			end
 		end
+	end
+end
+
+local function processParameters(actionsOrTriggers, schemaParameters)
+	for _, actionOrTrigger in pairs(actionsOrTriggers) do
+		processParameterSet(actionOrTrigger.parameters or {}, schemaParameters[actionOrTrigger.type] or {})
 	end
 end
 
@@ -144,8 +146,20 @@ local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
+--- Managed objectives hold their authored trigger parameters outside of `Triggers`, since no trigger
+--- is synthesized for them, so they are resolved separately. They are grouped by trigger type.
+local function processManagedObjectiveParameters(managedObjectives)
+	for triggerType, managedObjectivesOfType in pairs(managedObjectives or {}) do
+		local schema = triggersSchemaParameters[triggerType] or {}
+		for _, managedObjective in ipairs(managedObjectivesOfType) do
+			processParameterSet(managedObjective.parameters or {}, schema)
+		end
+	end
+end
+
 return {
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
+	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
 	ProcessUnitLoadout = processUnitLoadout,
 }

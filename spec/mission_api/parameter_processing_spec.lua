@@ -120,6 +120,80 @@ describe("mission_api.parameter_processing", function()
 		end)
 	end)
 
+	describe("managed objective parameters", function()
+		it("resolves team names for managed objectives, which hold no synthesized trigger", function()
+			local processing = loadProcessing(newSchema())
+			local managedObjectives = {
+				Single = { { objectiveID = "count", parameters = { teamName = "theEnemyTeam" } } },
+			}
+
+			processing.ProcessManagedObjectiveParameters(managedObjectives)
+
+			assert.are.equal(5, managedObjectives.Single[1].parameters.teamID)
+		end)
+
+		it("resolves team ID 0, which must not be confused with an unresolved parameter", function()
+			local processing = loadProcessing(newSchema())
+			local managedObjectives = {
+				Single = { { objectiveID = "count", parameters = { teamName = "thePlayerTeam" } } },
+			}
+
+			processing.ProcessManagedObjectiveParameters(managedObjectives)
+
+			assert.are.equal(0, managedObjectives.Single[1].parameters.teamID)
+		end)
+
+		it("resolves every managed objective registered under a trigger type", function()
+			local processing = loadProcessing(newSchema())
+			local managedObjectives = {
+				Single = {
+					{ objectiveID = "first", parameters = { teamName = "thePlayerTeam" } },
+					{ objectiveID = "second", parameters = { teamName = "theEnemyTeam" } },
+				},
+				Many = {
+					{ objectiveID = "third", parameters = { allyTeamNames = { "theEnemyAllyTeam" } } },
+				},
+			}
+
+			processing.ProcessManagedObjectiveParameters(managedObjectives)
+
+			assert.are.equal(0, managedObjectives.Single[1].parameters.teamID)
+			assert.are.equal(5, managedObjectives.Single[2].parameters.teamID)
+			assert.are.same({ 1 }, managedObjectives.Many[1].parameters.allyTeamIDs)
+		end)
+
+		it("leaves the authored name in place", function()
+			local processing = loadProcessing(newSchema())
+			local managedObjectives = {
+				Single = { { objectiveID = "count", parameters = { teamName = "theEnemyTeam" } } },
+			}
+
+			processing.ProcessManagedObjectiveParameters(managedObjectives)
+
+			assert.are.equal("theEnemyTeam", managedObjectives.Single[1].parameters.teamName)
+		end)
+
+		it("ignores trigger types that have no schema", function()
+			local processing = loadProcessing(newSchema())
+			local managedObjectives = {
+				Unknown = { { objectiveID = "count", parameters = { teamName = "theEnemyTeam" } } },
+			}
+
+			assert.has_no.errors(function()
+				processing.ProcessManagedObjectiveParameters(managedObjectives)
+			end)
+			assert.is_nil(managedObjectives.Unknown[1].parameters.teamID)
+		end)
+
+		it("handles missions with no managed objectives", function()
+			local processing = loadProcessing(newSchema())
+
+			assert.has_no.errors(function()
+				processing.ProcessManagedObjectiveParameters(nil)
+			end)
+		end)
+	end)
+
 	describe("unit loadouts", function()
 		local previousUnitDefNames
 
