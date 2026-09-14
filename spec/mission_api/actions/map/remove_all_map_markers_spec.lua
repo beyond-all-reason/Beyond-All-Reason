@@ -5,7 +5,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/map/clear_all_markers.lua")
+local actions = VFS.Include("luarules/mission_api/actions/map/remove_all_map_markers.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
