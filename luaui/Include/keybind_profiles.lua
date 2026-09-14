@@ -295,6 +295,15 @@ local function readFakeMeta(text)
 	return value ~= "" and value or nil
 end
 
+-- Loading a keymap leaves the meta key alone, so a file that names none runs under whatever
+-- the engine set at startup. Every shipped keymap relied on that before profiles carried one,
+-- and reading the silence as "no meta key" drops the Meta+ bindings the player had.
+local ENGINE_FAKE_META = "space"
+
+local function fakeMetaOf(text)
+	return readFakeMeta(text) or ENGINE_FAKE_META
+end
+
 -- What a bind file binds, as one comparable string. Both sides of a comparison go through
 -- the reader, so comments, line endings and any later change to how we emit cannot read as
 -- an edit the player made.
@@ -309,7 +318,7 @@ local function keymapOf(text)
 		parts[i] = binds[i].keyset .. " " .. binds[i].action
 	end
 
-	return table.concat(parts, "\n") .. "\nfakemeta " .. tostring(readFakeMeta(text))
+	return table.concat(parts, "\n") .. "\nfakemeta " .. tostring(fakeMetaOf(text))
 end
 
 -- Whether some profile already holds this keymap. The one migration just made of the
@@ -453,7 +462,7 @@ local function migrate()
 		local own = readBindFile(ownText)
 		if own and #own > 0 then
 			local name = written or "Custom"
-			store.profiles[1] = { name = name, binds = own, fakeMeta = readFakeMeta(ownText) }
+			store.profiles[1] = { name = name, binds = own, fakeMeta = fakeMetaOf(ownText) }
 			store.active = preset or name
 		else
 			store.active = preset
@@ -588,7 +597,7 @@ function M.adoptEditedKeymap()
 
 	local previous = store.active
 	local name = nextCopyName(M.activeName() or "Custom")
-	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = readFakeMeta(text) }
+	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMetaOf(text) }
 	store.active = name
 	if not M.save() then
 		table.remove(store.profiles)
