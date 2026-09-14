@@ -250,6 +250,10 @@ _G.VFS.UnpackU16 = function(s)
 	return a + b * 256
 end
 
+--- Json ---
+-- The engine exposes a global Json; parameter_types.lua decodes difficulties.json with it.
+_G.Json = VFS.Include("common/luaUtilities/json.lua")
+
 -- ReadWAV will be defined by common/wav.lua (included by validation.lua).
 -- We stub it here in case common/wav.lua is not loadable.
 _G.ReadWAV = function(fname)
@@ -390,6 +394,9 @@ _G.GG["MissionAPI"] = {
 	Stages = {},
 	Objectives = {},
 	ManagedObjectives = {},
+	ObjectiveTriggers = {},
+	ObjectiveStages = {},
+	Countdowns = {},
 	AllyTeams = {},
 	Teams = {},
 	AIs = {},

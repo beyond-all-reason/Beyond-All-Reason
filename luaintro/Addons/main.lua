@@ -372,15 +372,6 @@ local function gradientv(px, py, sx, sy, c1, c2)
 	gl.Vertex(px, py, 0)
 end
 
-local function gradienth(px, py, sx, sy, c1, c2)
-	gl.Color(c1)
-	gl.Vertex(sx, sy, 0)
-	gl.Vertex(sx, py, 0)
-	gl.Color(c2)
-	gl.Vertex(px, py, 0)
-	gl.Vertex(px, sy, 0)
-end
-
 local function bartexture(px, py, sx, sy, texLength, texHeight)
 	local texHeight = texHeight or 1
 	local width = (sx - px) / texLength * 4

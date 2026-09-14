@@ -15,6 +15,7 @@ function upget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = layer,
 		enabled = true,
+		hidden = true, -- other upgets need this one, so it is not the player's to toggle
 	}
 end
 

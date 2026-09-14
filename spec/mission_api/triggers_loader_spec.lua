@@ -162,6 +162,7 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.UnitDestroyed[T.UnitKilled])
 			assert.is_function(C.UnitDestroyed[T.UnitReclaimed])
 			assert.is_function(C.UnitTaken[T.UnitCaptured])
+			assert.is_function(C.UnitGiven[T.UnitReceived])
 			assert.is_function(C.UnitCreated[T.UnitResurrected])
 			assert.is_function(C.UnitCreated[T.ConstructionStarted])
 			assert.is_function(C.BuildAssisted[T.ConstructionStarted])
@@ -176,16 +177,21 @@ describe("mission_api.triggers_loader", function()
 			assert.is_function(C.UnitTaken[T.ProductionCanceled])
 			assert.is_function(C.UnitIdlePost[T.UnitIdled])
 			assert.is_function(C.UnitIdlePost[T.UnitUnidled])
+			assert.is_function(C.UnitLoaded[T.UnitLoaded])
+			assert.is_function(C.UnitUnloaded[T.UnitUnloaded])
 			assert.is_function(C.TeamDied[T.TeamDestroyed])
 			assert.is_function(C.FeatureCreated[T.FeatureCreated])
 			assert.is_function(C.FeatureDestroyed[T.FeatureReclaimed])
 			assert.is_function(C.FeatureDestroyed[T.FeatureDestroyed])
+			assert.is_function(C.UnitLoaded[T.TransportLoaded])
+			assert.is_function(C.UnitUnloaded[T.TransportUnloaded])
 		end)
 
-		it("registers no callins for statistics and mission-control triggers", function()
+		it("registers no callins for statistics, mission-control, and event triggers", function()
 			local T = realDefinitions.Types
 			local C = realDefinitions.Callins
 
+			assert.is_number(T.Event)
 			for callinName, handlers in pairs(C) do
 				assert.is_nil(handlers[T.TotalUnitsLost], callinName)
 				assert.is_nil(handlers[T.TotalUnitsBuilt], callinName)
@@ -194,6 +200,7 @@ describe("mission_api.triggers_loader", function()
 				assert.is_nil(handlers[T.UnitsOwned], callinName)
 				assert.is_nil(handlers[T.Victory], callinName)
 				assert.is_nil(handlers[T.Defeat], callinName)
+				assert.is_nil(handlers[T.Event], callinName)
 			end
 		end)
 

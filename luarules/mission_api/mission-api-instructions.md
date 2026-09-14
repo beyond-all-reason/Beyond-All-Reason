@@ -8,7 +8,8 @@ file in the same pull request.
 ## What it is
 
 A data-driven mission runtime. A mission is a plain Lua table of **stages**, **objectives**, **triggers**, and
-**actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced.
+**actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced;
+the one thing synced code cannot do, pausing, goes through `GG.ScriptedPause` (see Runtime surfaces).
 
 ## Load order
 
@@ -136,15 +137,31 @@ breaking change to both the function and every mission using it.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
+- `GG.ScriptedPause` (`api_scripted_pause.lua`, synced + unsynced, not mission-specific) — `Pause()` / `Unpause()` /
+  `IsPaused()` behind the `Pause` and `Unpause` actions. Synced code cannot pause, so its unsynced half has one
+  client send the `pause` command and re-pause whenever a player unpauses. It publishes the game rules param
+  `scriptedPause` (1 while active); `gui_pausescreen.lua` reads it to hide the pause overlay for scripted pauses.
+  A scripted pause stops `GameFrame`, so `TimeElapsed` cannot end one — use a trigger that fires between frames
+  (`UnitOrdered`, for example) or an objective event.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 
 ## Mission scripts
 
-Missions live in `singleplayer/` and are included by path. `api_missions.lua:Initialize()` holds a commented-out
-list of `mission-api-tests/*` paths with one active — that is a development harness. Changing which line is active
-is a deliberate, reviewable change; do not leave a debug selection in a patch, and do not treat the active path as
-meaningful.
+Missions live in `data/singleplayer/` — see the README there for the folder layout. A mission folder holds a
+`mission.json` (the lobby-facing half: title, briefing, start script, team and ally team names) next to one or more
+`*.lua` parts that `mission_loader.lua` merges into the `Stages` / `Objectives` / `Triggers` / `Actions` /
+`UnitLoadout` / `FeatureLoadout` tables. A mission folder loads only if a `campaign.json` or `scenarios/manifest.json`
+names it.
+
+The lobby passes the chosen mission through the `missionoptions` modoption, which `api_missions.lua:Initialize()`
+decodes; there is no hardcoded mission path. Missions address teams by the names declared in `mission.json`
+(`teamName`, `allyTeamName`), never by engine team IDs; `parameter_processing.lua` resolves a name parameter to the
+ID under the key `schema_utils.lua` derived for it (`teamName` -> `teamID`), which is what the trigger and action
+code reads.
+
+`tools/validate_mission.lua <missionFolder>` runs the real loaders and validators against a mission folder outside
+the game, and is the quickest way to check a mission script.
 
 ## Testing
 

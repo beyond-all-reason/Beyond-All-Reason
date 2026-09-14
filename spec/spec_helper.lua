@@ -17,6 +17,11 @@ local LOG_LEVELS = {
 -- Current log level - only log messages at this level or higher
 _G.CURRENT_LOG_LEVEL = _G.LOG.WARNING
 
+local function isLogged(level)
+	local levelValue = LOG_LEVELS[level]
+	return levelValue ~= nil and levelValue >= (LOG_LEVELS[_G.CURRENT_LOG_LEVEL] or 0)
+end
+
 _G.Spring = _G.Spring
 	or {
 		Log = function(tag, level, message)
@@ -28,14 +33,18 @@ _G.Spring = _G.Spring
 			end
 
 			-- Only log if the message level meets or exceeds the current log level
-			if LOG_LEVELS[level] and LOG_LEVELS[level] >= LOG_LEVELS[_G.CURRENT_LOG_LEVEL] then
+			if isLogged(level) then
 				print(string.format("[%s] %s: %s", tag, level, message))
 			end
 		end,
 	}
 
+-- Game code echoes while it runs, which would bury the spec output, so an echo counts as
+-- INFO: set CURRENT_LOG_LEVEL to LOG.INFO to see echoes while debugging a spec.
 _G.Spring.Echo = _G.Spring.Echo or function(...)
-	print(...)
+	if isLogged(_G.LOG.INFO) then
+		print(...)
+	end
 end
 
 _G.Game = _G.Game or {}
@@ -70,6 +79,8 @@ _G.Game.envDamageTypes = _G.Game.envDamageTypes
 		-- More are added via code for our lua-scripted damages.
 	}
 
+_G.CMD = _G.CMD or {}
+_G.GameCMD = _G.GameCMD or {}
 _G.GG = _G.GG or {}
 
 _G.unpack = _G.unpack
@@ -151,10 +162,8 @@ _G.VFS.Include = function(path, env, mode)
 		_G.VFS._sources[realPath] = source
 	end
 
-	-- The file exists, so a compile or run failure is a real bug (usually missing
-	-- setup, e.g. GG['MissionAPI'] not initialised yet). Surface it here rather
-	-- than falling through to the require fallback and returning {}, which lets
-	-- the caller fail later with a confusing "index a nil value" far from the cause.
+	-- Missing source is a real error. Larger feature tests will try to fallback and
+	-- tend to throw confusing "index a nil value" or etc. in code long after loading.
 	if source then
 		local chunk, compileError = loadstring(source, "@" .. realPath)
 		if not chunk then
@@ -261,11 +270,12 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 
 	-- Use find command with pattern matching
 	-- Use -iname for case-insensitive pattern matching
+	-- -maxdepth is a global option, so it has to come before -iname
 	local name_pattern = pattern and pattern ~= "*" and string.format("-iname '%s'", pattern) or ""
 	if recursive then
 		cmd = string.format("find %s %s -type f", searchDir, name_pattern)
 	else
-		cmd = string.format("find %s %s -maxdepth 1 -type f", searchDir, name_pattern)
+		cmd = string.format("find %s -maxdepth 1 %s -type f", searchDir, name_pattern)
 	end
 
 	local handle = io.popen(cmd)
@@ -284,6 +294,26 @@ _G.VFS.MOD = 2
 _G.VFS.BASE = 4
 _G.VFS_MODES = _G.VFS.MAP + _G.VFS.MOD + _G.VFS.BASE
 
+-- The engine sets Json up globally in init.lua, so game code uses it without including it.
+_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
+
+-- Stand-in for the engine's zlib, which is not available to plain Lua. Only the contract
+-- game code depends on is modelled: a round trip, and a raise (not a nil) when handed
+-- anything that is not a compressed payload.
+local ZLIB_MARKER = "\120\156spec"
+
+_G.VFS.ZlibCompress = _G.VFS.ZlibCompress or function(data)
+	return ZLIB_MARKER .. data
+end
+
+_G.VFS.ZlibDecompress = _G.VFS.ZlibDecompress
+	or function(data)
+		if type(data) ~= "string" or data:sub(1, #ZLIB_MARKER) ~= ZLIB_MARKER then
+			error("not a zlib stream", 0)
+		end
+		return data:sub(#ZLIB_MARKER + 1)
+	end
+
 -- to enable, `luarocks install inspect`
 _G.inspect = (function()
 	local ok, mod = pcall(require, "inspect")
@@ -296,18 +326,18 @@ _G.inspect = (function()
 	end
 end)()
 
--- Busted runs every spec file in a single Lua process, so globals left behind by
--- one file leak into the next. Clearing GG before each file means a spec cannot
--- accidentally depend on state another file happened to leave behind -- such a
--- dependency now fails in every ordering instead of intermittently.
---
--- This only clears state, it never provides it: each spec is still responsible
--- for its own load-time setup (e.g. GG['MissionAPI'].Modules.ParameterTypes must
--- exist before including an action file, which reads it at load time).
---
--- Guarded because this file executes more than once per run (it is both
--- require'd by specs and, for some tasks, loaded by busted as `helper`), which
--- would otherwise register the subscriber repeatedly.
+_G.VFS.LoadFile = function(path)
+	local file = assert(io.open(path, "rb"))
+	local contents = file:read("*a")
+	file:close()
+	return contents
+end
+
+_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
+
+-- Every spec file is run in a single Lua process via busted, so their globals are
+-- left behind from one file to the next in the order they are run. Clearing GG is
+-- one way to protect against those leaks; guarded against reruns using a _G gate.
 if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
 	local ok, busted = pcall(require, "busted")
 	if ok and type(busted) == "table" and busted.subscribe then

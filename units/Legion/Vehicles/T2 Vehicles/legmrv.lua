@@ -41,6 +41,7 @@ return {
 			kickback = "-2.4",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			weapon1turretx = 200,

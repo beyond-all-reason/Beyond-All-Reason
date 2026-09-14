@@ -80,7 +80,7 @@ end
 
 local modoptions = BAR.GetModOptionsCopy()
 
--- options that arent worth listing: modoptions.lua layout helpers and values fed by spads/lobby
+-- options that aren't worth listing: modoptions.lua layout helpers and values fed by spads/lobby
 local ignoredModoptions = {
 	sub_header = true,
 	dummyboolfeelfreetotouch = true,
@@ -202,7 +202,7 @@ local function stripColorCodes(text)
 end
 
 -- modoption names/descriptions live in language/<lang>/interface.json under the 'modoptions' namespace,
--- the (english) texts inside modoptions.lua are the fallback for options that arent translated yet
+-- the (english) texts inside modoptions.lua are the fallback for options that aren't translated yet
 local function getModoptionName(key)
 	local default = modoptionsDefault[key] and modoptionsDefault[key].name
 	default = default and stripColorCodes(default) or key
@@ -220,7 +220,7 @@ local function appendTooltipLine(text, line)
 	return (text ~= "" and text .. "\n" or "") .. line
 end
 
--- description, allowed range, and (when the option isnt at its default) the value it normally has
+-- description, allowed range, and (when the option isn't at its default) the value it normally has
 local function getModoptionTooltipText(key, showDefault)
 	local text = getModoptionDesc(key)
 	local option = modoptionsDefault[key]
@@ -785,7 +785,7 @@ function widget:Initialize()
 	WG.gameinfo.isvisible = function()
 		return show
 	end
-	-- amount of modoptions that arent set to their default value
+	-- amount of modoptions that aren't set to their default value
 	WG.gameinfo.getChangedModoptionsCount = function()
 		return changedModoptionsCount
 	end

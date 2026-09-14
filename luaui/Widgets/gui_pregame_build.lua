@@ -283,21 +283,9 @@ end
 ------------------------------------------
 function widget:Initialize()
 
-	-- skip if scenario or mission options disable initial commander spawn
-	local modOptions = Spring.GetModOptions()
-	local options = modOptions.scenariooptions or modOptions.missionoptions
-	if options then
-		-- NOTE: JSON keys are case-sensitive and preserve camelCase from the encoded payload.
-		-- Spring.GetModOptions() lowercases the outer modoption key ("missionoptions"),
-		-- but the decoded JSON retains original casing, so use "disableInitialCommanderSpawn" here.
-		local optionsDecoded = Json.decode(string.base64Decode(options))
-		if
-			optionsDecoded
-			and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout))
-		then
-			widgetHandler:RemoveWidget()
-			return
-		end
+	if VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled() then
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
@@ -1036,7 +1024,6 @@ function widget:MousePress(mx, my, button)
 
 	local _, pos = spTraceScreenRay(mx, my, true, false, false, isUnderwater(selBuildQueueDefID))
 	if button == 1 then
-		local isMex = UnitDefs[selBuildQueueDefID] and UnitDefs[selBuildQueueDefID].extractsMetal > 0
 		if WG.ExtractorSnap then
 			local snapPos = WG.ExtractorSnap.position
 			if snapPos then

@@ -3,8 +3,9 @@ local TRIGGER_FILES_PATTERN = "*.lua"
 
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 
--- Statistics triggers (TotalUnits*, UnitsOwned) declare no callins; their
--- evaluation is centralised in api_missions_triggers.lua (shared bookkeeping).
+-- Some triggers declare no callins and are activated elsewhere:
+-- - statistics triggers (TotalUnits*, UnitsOwned) by statistics.lua
+-- - event-type triggers by whatever owns the trigger (objectives.lua)
 local function loadTriggerDefinitions()
 	local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 

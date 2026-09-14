@@ -45,7 +45,6 @@ end
 
 local units = {}
 local moveTypeByDefID = {}
-local moveType = 0
 do
 	--local moveData = {}
 	--local moveType = 0
@@ -121,6 +120,11 @@ local function SetUnitWantedSpeed(unitID, unitDefID, wantedSpeed, forceUpdate)
 end
 
 ---this makes no sense, why does this chain exist
+---Reapplies the unit's wanted max speed to its move type,
+---e.g. after the engine has reset it.
+---@param unitID UnitID
+---@param unitDefID UnitDefID
+---@param clearWanted boolean? Drop the remembered wanted speed instead of restoring it.
 function GG.ForceUpdateWantedMaxSpeed(unitID, unitDefID, clearWanted)
 	SetUnitWantedSpeed(
 		unitID,

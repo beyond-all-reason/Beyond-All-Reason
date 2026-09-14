@@ -42,6 +42,7 @@ return {
 			unitgroup = "aa",
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			attacksafetydistance = 300,

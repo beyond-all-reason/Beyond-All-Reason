@@ -56,5 +56,21 @@
 	"unit_received_order_test.description": "Tests triggers that fire when units receive orders: UnitOrdered, RallyOrdered.",
 	"unit_received_order_test.title": "Unit Received Order Test",
 	"unit_received_order_test.teams.theEnemyTeam": "Mission Bots",
-	"unit_received_order_test.teams.thePlayerTeam": "TestPlayer"
+	"unit_received_order_test.teams.thePlayerTeam": "TestPlayer",
+	"pause_test.description": "Tests the Pause and Unpause actions: the pause screen stays hidden and the pause key cannot end a scripted pause.",
+	"pause_test.title": "Pause Test",
+	"pause_test.teams.theEnemyTeam": "Mission Bots",
+	"pause_test.teams.thePlayerTeam": "TestPlayer",
+	"transport_loaded_test.description": "Tests the TransportLoaded and TransportUnloaded triggers, which watch the transport rather than its passenger.",
+	"transport_loaded_test.title": "TransportLoaded Test",
+	"transport_loaded_test.teams.theEnemyTeam": "Mission Bots",
+	"transport_loaded_test.teams.thePlayerTeam": "TestPlayer",
+	"unit_loaded_test.description": "Tests the UnitLoaded and UnitUnloaded triggers, which watch the passenger rather than its transport.",
+	"unit_loaded_test.title": "UnitLoaded Test",
+	"unit_loaded_test.teams.theEnemyTeam": "Mission Bots",
+	"unit_loaded_test.teams.thePlayerTeam": "TestPlayer",
+	"unit_received_test.description": "Tests the UnitReceived and UnitCaptured triggers, and the TransferUnits action's captured flag.",
+	"unit_received_test.title": "UnitReceived Test",
+	"unit_received_test.teams.theEnemyTeam": "Mission Bots",
+	"unit_received_test.teams.thePlayerTeam": "TestPlayer"
 }

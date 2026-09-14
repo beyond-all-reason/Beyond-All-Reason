@@ -39,10 +39,14 @@ if not gadgetHandler:IsSyncedCode() then --unsynced gadget
 
 	local ENVLUT_SAMPLES -- number of cubemap samples
 
+	---Returns the name of the generated BRDF lookup texture.
+	---@return string? texName `nil` if the lookup table failed to generate.
 	local function GetBrdfTexture()
 		return brdfLut:GetTexture()
 	end
 
+	---Returns the name of the generated IBL environment lookup texture.
+	---@return string? texName `nil` if the lookup table failed to generate.
 	local function GetEnvTexture()
 		return envLut:GetTexture()
 	end

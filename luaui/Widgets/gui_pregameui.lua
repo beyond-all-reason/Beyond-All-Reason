@@ -23,6 +23,8 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local draftMode = Spring.GetModOptions().draft_mode
 
+local isStartUnitSpawnDisabled = VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled()
+
 local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
@@ -64,7 +66,6 @@ local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 local buttonList, buttonHoverList
 local buttonText = ""
 local buttonDrawn = false
-local lockText = ""
 local locked = false
 local isReadyBlocked = false
 local readyBlockedConditions = {}
@@ -103,9 +104,7 @@ local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
-local uiLockRect = { 0, 0, 0, 0 }
 local buttonRect = { 0, 0, 0, 0 }
-local lockRect = { 0, 0, 0, 0 }
 local blinkButton = false
 
 local function createButton()
@@ -522,17 +521,8 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- skip if scenario or mission options disable initial commander spawn
-	local modOptions = Spring.GetModOptions()
-	local options = modOptions.scenariooptions or modOptions.missionoptions
-	if options then
-		local optionsDecoded = Json.decode(string.base64Decode(options))
-		if
-			optionsDecoded
-			and (optionsDecoded.disableInitialCommanderSpawn or not table.isNilOrEmpty(optionsDecoded.unitloadout))
-		then
-			return
-		end
+	if isStartUnitSpawnDisabled then
+		return
 	end
 
 	-- draw pregamestart commander models at start positions

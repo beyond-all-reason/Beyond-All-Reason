@@ -43,6 +43,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "Gabs",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			techlevel = 2,

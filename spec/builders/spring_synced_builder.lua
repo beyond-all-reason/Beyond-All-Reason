@@ -225,7 +225,7 @@ function SB:WithGameFrame(frame)
 end
 
 ---@param self SpringSyncedBuilder
----@param teamID number
+---@param teamID TeamID
 ---@param key string
 ---@param value any
 ---@return SpringSyncedBuilder
@@ -1027,7 +1027,7 @@ end
 ---Register a unit definition. Accepts either a UnitDefBuilder or a (defID, defTable) pair.
 ---Delegates to the shared UnitDefsBuilder registry.
 ---@overload fun(self: SpringSyncedBuilder, udb: UnitDefBuilder): SpringSyncedBuilder
----@param defID number
+---@param defID UnitDefID
 ---@param def table
 ---@return SpringSyncedBuilder
 function SB:WithUnitDef(defID, def)

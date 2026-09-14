@@ -117,7 +117,7 @@ return {
 				flighttime = 2.5,
 				impulsefactor = 0.123,
 				model = "legsmallrocket.s3o",
-				name = "Anti-Air Salvo Missile Launcher",
+				name = "Salvo Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 760,
 				reloadtime = 2.0,

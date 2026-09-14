@@ -34,6 +34,8 @@ return {
 			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 2,
+			stompable = true,
 			subfolder = "CorBots",
 		},
 		featuredefs = {
@@ -139,6 +141,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
+				burstcontrolwhenoutofarc = 2,
 				def = "SEMIAUTO",
 				onlytargetcategory = "NOTSUB",
 			},

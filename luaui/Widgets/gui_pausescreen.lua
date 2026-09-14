@@ -1,5 +1,4 @@
 include("keysym.h.lua")
-local versionNumber = "1.34"
 
 local widget = widget ---@type Widget
 
@@ -10,6 +9,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "sept 2016",
 		license = "GNU GPL, v2 or later",
+		version = "1.34",
 		layer = 999999,
 		enabled = true,
 	}
@@ -20,6 +20,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameRulesParam = Spring.GetGameRulesParam
 
 local glColor = gl.Color
 local glTexture = gl.Texture
@@ -51,7 +52,6 @@ local font =
 	gl.LoadFont(fontfile, fontfileSize * fontfileScale, fontfileOutlineSize * fontfileScale, fontfileOutlineStrength)
 
 local sizeMultiplier = 1
-local maxAlpha = 0.65
 local maxShaderAlpha = 0.25
 local maxNonShaderAlpha = 0.12 --background alpha when shaders aren't available
 local boxWidth = 200
@@ -82,6 +82,12 @@ local gameover = false
 local noNewGameframes = false
 local cachedPauseText = nil
 local spIsGUIHidden = Spring.IsGUIHidden
+
+-- A pause started by a script (api_scripted_pause.lua, e.g. a mission cutscene)
+-- is not a player pause: no overlay and no "paused" text for it.
+local function isScriptedPause()
+	return (spGetGameRulesParam("scriptedPause") or 0) == 1
+end
 
 -- Pre-allocated color tables
 local textColor = { 1.0, 1.0, 1.0, 0 }
@@ -156,8 +162,9 @@ function widget:Update(dt)
 
 	lastPause = paused
 
+	local scriptedPause = isScriptedPause()
 	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if (not gameover and gameSpeed == 0) or isPaused then
+	if ((not gameover and gameSpeed == 0) or isPaused) and not scriptedPause then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
 	else
@@ -166,7 +173,7 @@ function widget:Update(dt)
 
 	-- admin pause / game freeze
 	if not paused and gameFrame > 0 and not gameover then
-		if lastGameFrame == gameFrame then
+		if lastGameFrame == gameFrame and not scriptedPause then
 			if now - lastGameFrameTime > 1 then
 				if not noNewGameframes then
 					pauseTimestamp = now - (slideTime + autoFadeTime)
@@ -246,7 +253,7 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 
 	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if gameSpeed == 0 or isPaused then
+	if (gameSpeed == 0 or isPaused) and not isScriptedPause() then
 		-- when host admin paused its just gamespeed 0
 		paused = true
 	end
@@ -267,7 +274,7 @@ function widget:Initialize()
 end
 
 function widget:GamePaused(playerID, isGamePaused)
-	paused = isGamePaused
+	paused = isGamePaused and not isScriptedPause()
 end
 
 function widget:DrawScreen()

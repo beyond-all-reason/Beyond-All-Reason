@@ -35,6 +35,7 @@ return {
 		turnrate = 670.45001,
 		upright = false,
 		customparams = {
+			juno_kill = true,
 			model_author = "Tharsis, ZephyrSkies(helper)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Bots/T2",

@@ -20,7 +20,6 @@ end
 
 -- Localized functions for performance
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry

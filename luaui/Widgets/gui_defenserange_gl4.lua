@@ -192,13 +192,10 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 end
 
-local vtoldamagetag = Game.armorTypes.vtol
-local defaultdamagetag = Game.armorTypes.default
 local function initializeUnitDefRing(unitDefID)
 	unitDefRings[unitDefID].rings = {}
 	local weapons = unitWeapons[unitDefID]
 	for weaponNum = 1, #weapons do
-		local weaponDef = weapons[weaponNum]
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 
@@ -499,7 +496,6 @@ local largeCircleSegments = 1024
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
-local weaponTypeToString = { "ground", "air", "nuke", "cannon" }
 local allyenemypairs = { "ally", "enemy" }
 local defenseRangeClasses = {}
 for allyenemy, ringclasses in pairs(buttonConfig) do
@@ -536,6 +532,51 @@ local shaderSourceCache = {
 		MYGRAVITY = Game.gravity + 0.1,
 		DEBUG = autoReload and 1 or 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
+		MASKPASS = 0,
+	},
+	uniformInt = {
+		heightmapTex = 0,
+		losTex = 1,
+		mapNormalTex = 2,
+		maskTex = 3,
+	},
+	uniformFloat = {
+		lineAlphaUniform = 1,
+		cannonmode = 0,
+		fadeDistOffset = 0,
+		drawMode = 0,
+		selBuilderCount = 1.0,
+		selUnitCount = 1.0,
+		inMiniMap = 0.0,
+		staticUnits = 1.0,
+		maskClip = 0.0,
+		maskChannelBit = 1.0,
+	},
+}
+
+------ Range coverage mask -----
+-- The merged outline of each ring class used to be built by filling every disc into the
+-- stencil buffer of the main framebuffer, which costs the summed disc areas at full
+-- multisampled resolution every frame (all visible defenses are drawn, selected or not).
+-- The discs are now drawn into the shared single-sample FBO of range_coverage_mask_gl4.lua,
+-- where the depth test keeps the first disc per pixel and the hierarchical depth test rejects
+-- the overlap; the outer rings read that mask instead of the stencil buffer. The 8-bit red
+-- channel holds one bit per class (the stencilMask values of colorConfig), with one mask per
+-- ally/enemy group. The stencil path remains as the fallback.
+local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local maskShader = nil
+local maskFBO, maskTex -- the shared targets, fetched each draw
+local maskAcquired = false
+
+local maskShaderSourceCache = {
+	shaderName = "Defense Range GL4 coverage mask",
+	vssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
+	shaderConfig = {
+		MYGRAVITY = Game.gravity + 0.1,
+		DEBUG = 0,
+		MOUSEOVERALPHAMULTIPLIER = 5.0,
+		MASKPASS = 1,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -551,6 +592,8 @@ local shaderSourceCache = {
 		selUnitCount = 1.0,
 		inMiniMap = 0.0,
 		staticUnits = 1.0,
+		maskWriteValue = 0,
+		maskDepthBase = 0.1,
 	},
 }
 
@@ -564,6 +607,14 @@ local function makeShaders()
 	if not defenseRangeShader then
 		goodbye("Failed to compile defenseRangeShader GL4 ")
 		return false
+	end
+	-- The coverage mask shader is optional: without it the stencil path is used.
+	maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache, 0) or maskShader
+	if not maskShader then
+		spEcho("Defense Range GL4: range coverage mask unavailable, using the stencil path")
+	elseif not maskAcquired then
+		RangeCoverageMask.Acquire()
+		maskAcquired = true
 	end
 	return true
 end
@@ -633,6 +684,15 @@ end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("defrange", "t")
+	if maskAcquired then
+		RangeCoverageMask.Release()
+		maskAcquired = false
+	end
+	maskFBO, maskTex = nil, nil
+	if maskShader then
+		maskShader:Finalize()
+		maskShader = nil
+	end
 end
 
 local floor = math.floor
@@ -954,7 +1014,6 @@ function widget:Update(dt)
 		local rings = unitDefRings[buildUnitDefID]
 		if rings then
 			-- find out which VBO to remove from:
-			local allystring = "ally"
 			for i, weaponType in ipairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j, allyenemy in ipairs(allyenemypairs) do -- remove from all
@@ -972,7 +1031,6 @@ function widget:Update(dt)
 	if cmdID ~= nil and (cmdID < 0) then
 		buildUnitDefID = -1 * cmdID
 		if unitDefRings[buildUnitDefID] then
-			local rings = unitDefRings[buildUnitDefID]
 			-- only add to ally, independent of buttonconfig (ugh)
 			-- todo, this won't show the respective attack range ring if the button for it is off.
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
@@ -985,7 +1043,6 @@ function widget:Update(dt)
 
 			if coords and coords[1] and coords[2] and coords[3] then
 				local bpx, bpy, bpz = Spring.Pos2BuildPos(buildUnitDefID, coords[1], coords[2], coords[3])
-				local allystring = "ally"
 				for i, weaponType in pairs(unitDefRings[buildUnitDefID].weapons) do
 					local allystring = "ally"
 					buildDrawOverride[weaponType] = true
@@ -1015,8 +1072,6 @@ function widget:RecvLuaMsg(msg, playerID)
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
-local drawcounts = {}
-
 local cameraHeightFactor = 0
 
 local function GetCameraHeightFactor() -- returns a smoothstepped value between 0 and 1 for height based rescaling of line width.
@@ -1036,8 +1091,6 @@ local function GetCameraHeightFactor() -- returns a smoothstepped value between 
 	return 1
 end
 
-local groundnukeair = { "ground", "air", "nuke" }
-local cannonlrpc = { "cannon", "lrpc" }
 local allrings = { "ground", "air", "nuke", "cannon", "lrpc" }
 local stenciledrings = {}
 local nonstenciledrings = {}
@@ -1075,6 +1128,100 @@ local function DRAWRINGS(primitiveType, linethickness, classes, alpha)
 	end
 end
 
+local function groupHasMergedRings(allyState)
+	for _, wt in ipairs(stenciledrings) do
+		local iT = defenseRangeVAOs[allyState .. wt]
+		if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Draws the discs of one ally/enemy group into the mask FBO (bound by the caller), one class
+-- per depth clear so that classes sharing a pixel all get their bit. Instance-ordered depth
+-- (see the vertex shader) keeps the first disc per pixel, so the additive write sets a bit at
+-- most once. The clears are full-surface on purpose, partial clears can defeat the
+-- hierarchical depth test.
+local function drawCoverageMask(allyState)
+	glColorMask(true, true, true, true)
+	gl.DepthMask(true)
+	glDepthTest(GL.LESS)
+	gl.Blending(GL.ONE, GL.ONE)
+	glClear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	maskShader:Activate()
+	maskShader:SetUniform("staticUnits", 1.0)
+	for _, wt in ipairs(stenciledrings) do
+		local iT = defenseRangeVAOs[allyState .. wt]
+		if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then
+			glClear(GL.DEPTH_BUFFER_BIT, 1.0)
+			maskShader:SetUniform("cannonmode", colorConfig[wt].cannonMode and 1 or 0)
+			maskShader:SetUniform("maskWriteValue", colorConfig[wt].stencilMask / 255)
+			iT.VAO:DrawArrays(GL.TRIANGLE_FAN, iT.numVertices, 0, iT.usedElements, 0)
+		end
+	end
+	maskShader:Deactivate()
+	gl.DepthMask(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+-- Outer rings of one group, hidden wherever the group's mask has the class bit set.
+local function drawOuterRingsMasked(allyState)
+	glTexture(3, maskTex)
+	glDepthTest(GL.LEQUAL)
+	defenseRangeShader:Activate()
+	defenseRangeShader:SetUniform("staticUnits", 1.0)
+	defenseRangeShader:SetUniform("maskClip", 1.0)
+	for _, wt in ipairs(stenciledrings) do
+		local iT = defenseRangeVAOs[allyState .. wt]
+		if iT.usedElements > 0 and (buttonConfig[allyState][wt] or buildDrawOverride[wt]) then
+			defenseRangeShader:SetUniform("cannonmode", colorConfig[wt].cannonMode and 1 or 0)
+			defenseRangeShader:SetUniform("lineAlphaUniform", colorConfig[wt].externalalpha)
+			defenseRangeShader:SetUniform("maskChannelBit", colorConfig[wt].stencilMask)
+			glLineWidth(colorConfig[wt].externallinethickness * cameraHeightFactor)
+			iT.VAO:DrawArrays(GL.LINE_LOOP, iT.numVertices, 0, iT.usedElements, 0)
+		end
+	end
+	defenseRangeShader:Deactivate()
+end
+
+-- Merged outlines through the shared coverage mask.
+local function drawMergedOutlinesMasked()
+	for _, allyState in ipairs(allyenemypairs) do
+		if groupHasMergedRings(allyState) then
+			gl.ActiveFBO(maskFBO, drawCoverageMask, allyState)
+			drawOuterRingsMasked(allyState)
+		end
+	end
+end
+
+-- Merged outlines through the stencil buffer of the main framebuffer (fallback).
+local function drawMergedOutlinesStencil()
+	defenseRangeShader:Activate()
+	defenseRangeShader:SetUniform("staticUnits", 1.0)
+	defenseRangeShader:SetUniform("maskClip", 0.0)
+	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+	glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
+	glDepthTest(false) -- always draw
+	glColorMask(false, false, false, false) -- disable color drawing
+
+	glStencilTest(true) -- enable stencil test
+	glStencilMask(255) -- all 8 bits
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
+
+	DRAWRINGS(GL.TRIANGLE_FAN, nil, stenciledrings) -- FILL THE CIRCLES
+	glColorMask(true, true, true, true) -- re-enable color drawing
+	glStencilMask(0)
+
+	glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
+	DRAWRINGS(GL.LINE_LOOP, "externallinethickness", stenciledrings, "externalalpha") -- DRAW THE OUTER RINGS
+	glStencilTest(false)
+	glStencilMask(255) -- Set all bits of stencil buffer to writeable
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
+	glClear(GL.STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
+	defenseRangeShader:Deactivate()
+end
+
 function widget:DrawWorld()
 	--if fullview and not enabledAsSpec then
 	--	return
@@ -1082,6 +1229,7 @@ function widget:DrawWorld()
 
 	if autoReload then
 		defenseRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or defenseRangeShader
+		maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache) or maskShader
 	end
 
 	if chobbyInterface then
@@ -1091,48 +1239,30 @@ function widget:DrawWorld()
 		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
-		defenseRangeShader:Activate()
-		defenseRangeShader:SetUniform("staticUnits", 1.0)
-		-- Stencil Setup
-		-- 	-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
+
 		if colorConfig.drawStencil then
-			glClear(GL.STENCIL_BUFFER_BIT) -- clear prev stencil
-			glDepthTest(false) -- always draw
-			glColorMask(false, false, false, false) -- disable color drawing
-
-			glStencilTest(true) -- enable stencil test
-			glStencilMask(255) -- all 8 bits
-			glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE) -- Set The Stencil Buffer To 1 Where Draw Any Polygon
-
-			DRAWRINGS(GL.TRIANGLE_FAN, nil, stenciledrings) -- FILL THE CIRCLES
-			--glLineWidth(mathMax(0.1,4 + math.sin(gameFrame * 0.04) * 10))
-			glColorMask(true, true, true, true) -- re-enable color drawing
-			glStencilMask(0)
-
-			glDepthTest(GL.LEQUAL) -- test for depth on these outside cases
-			DRAWRINGS(GL.LINE_LOOP, "externallinethickness", stenciledrings, "externalalpha") -- DRAW THE OUTER RINGS
-			glStencilTest(false)
-			glStencilMask(255) -- Set all bits of stencil buffer to writeable
-			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
-			glClear(GL.STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
-			-- All the above are needed :O
+			if maskShader then
+				maskFBO, maskTex = RangeCoverageMask.Get()
+			end
+			if maskShader and maskFBO then
+				drawMergedOutlinesMasked()
+			else
+				drawMergedOutlinesStencil()
+			end
 		end
 
+		defenseRangeShader:Activate()
+		defenseRangeShader:SetUniform("staticUnits", 1.0)
+		defenseRangeShader:SetUniform("maskClip", 0.0)
+		glDepthTest(GL.LEQUAL)
 		DRAWRINGS(GL.LINE_LOOP, "internallinethickness", stenciledrings, "internalalpha") -- DRAW THE INNER RINGS
-		DRAWRINGS(GL.LINE_LOOP, "externallinethickness", nonstenciledrings, "externalalpha") -- DRAW THE INNER RINGS
-
+		DRAWRINGS(GL.LINE_LOOP, "externallinethickness", nonstenciledrings, "externalalpha") -- DRAW THE NON-MERGED RINGS
 		defenseRangeShader:Deactivate()
 
 		glTexture(0, false)
 		glTexture(1, false)
+		glTexture(3, false)
 		glDepthTest(false)
-		if false and Spring.GetDrawFrame() % 60 == 0 then
-			local s = "drawcounts: "
-			for k, v in pairs(drawcounts) do
-				s = s .. " " .. tostring(k) .. ":" .. tostring(v)
-			end
-			spEcho(s)
-		end
 	end
 end
 if autoReload then
