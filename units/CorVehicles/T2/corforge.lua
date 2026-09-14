@@ -18,7 +18,7 @@ return {
 		footprintz = 3,
 		leavetracks = true,
 		health = 1500,
-		speed = 50,
+		speed = 62,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		nochasecategory = "NOTLAND VTOL",
