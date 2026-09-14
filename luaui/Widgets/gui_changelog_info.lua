@@ -690,7 +690,24 @@ function widget:MouseWheel(up, _value)
 	if x <= area.x1 + metrics.sidebarW and y > listBottom and y <= sidebarTop() then
 		setCatScroll(catScroll + (up and -1 or 1))
 	else
-		setStartRow(startRow + (up and -metrics.wheelRows or metrics.wheelRows))
+		-- The chat history's modifiers: Ctrl moves three notches' worth at once, Shift a whole
+		-- page - the rows the band holds from where the text is now, since they are not all the
+		-- same height.
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		local step = ctrl and metrics.wheelRows * 3 or metrics.wheelRows
+		if shift then
+			local band, used = listTop - listBottom, 0
+			step = 0
+			for i = startRow, #rows do
+				used = used + rows[i].h
+				if used > band then
+					break
+				end
+				step = step + 1
+			end
+			step = mathMax(1, step)
+		end
+		setStartRow(startRow + (up and -step or step))
 	end
 	return true
 end

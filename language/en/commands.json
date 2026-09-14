@@ -231,7 +231,8 @@
 			"unitStats": "Unit stats",
 			"saveGame": "Save game",
 			"screenshot": "Take screenshot",
-			"firingRange": "Display firing range"
+			"firingRange": "Display firing range",
+			"widgetSelector": "Widget selector"
 		},
 		"gameControl": {
 			"voteForcestart": "Vote forcestart",

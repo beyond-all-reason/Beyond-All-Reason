@@ -111,12 +111,28 @@ shape as the shipped ones plus an `active` field naming the selected profile. Th
 is per-install rather than shared, but its format is the contract - a surface that can
 read one can read the other.
 
+A player's profile carries `basedOn`, the name of the shipped profile it descends from:
+recorded when it was forked or duplicated, and otherwise (imported, or made before the
+field existed, or naming a profile that no longer ships) inferred on load as the shipped
+profile it differs from on the fewest actions, and written back. That is what lets a
+surface say which keys the player changed and what the default was.
+
+A shipped profile may carry `description`, an i18n key for a sentence saying what the
+profile is for, shown wherever a surface lets the player pick one.
+
+A profile travels as text in the bind-file form the engine loads, headed by a
+`// keybind editor profile: <name>` comment: that is what the in-game Export copies to
+the clipboard and what Import reads back, and the same text a player would put in
+`uikeys.txt` by hand.
+
 - **Which profile are we on?** Read `active` from the player's profile store. If it names
   nothing that exists in either file, fall back to the first shipped profile.
-- **Apply a profile.** Write its binds out as `bind <keyset> <action>` lines (plus a
-  leading `fakemeta <key>` if it has one), point the engine config string `KeybindingFile`
-  at that file, and reload. Reloading clears the keymap first, which is why a profile has
-  to define every binding it wants.
+- **Apply a profile.** Write its binds out as `bind <keyset> <action>` lines with a leading
+  `fakemeta <key>`, point the engine config string `KeybindingFile` at that file, and
+  reload. Reloading clears the keymap first, which is why a profile has to define every
+  binding it wants. It does not clear the meta key, so always write that line: leave it out
+  and whatever the last profile set stays. A profile naming no key wants the engine's own,
+  `space`; `fakemeta none` asks for no Meta modifier at all.
 - **Edit a binding.** Only in the player's own profiles. Shipped profiles are read-only,
   so the first edit made while one is selected forks it into a copy and edits that.
 - **Create / rename / delete.** Names are the identity, so they must stay unique across
@@ -153,9 +169,10 @@ three namespaces above and none of that.
 - A widget/mod action-declaration API, so widgets register their own bindable actions
   (with label + category + description) into the catalog at runtime instead of only being
   editable when already bound.
-- Command descriptions / tooltips. The engine ships per-command descriptions in the shared
-  `cmd.*` i18n namespace (in `interface.json`, localized like everything else), so a future
-  iteration can show them by resolving `cmd.<command>` (falling back to `cmd.<command>._description`
-  for the few structured commands, and `cmd.luarules.<command>` for gadget commands) at display
-  time - no catalog change needed, since the catalog already carries the command per row. Widget/mod
-  actions have no `cmd.*` entry, so their descriptions depend on the declaration API above.
+- Command descriptions for every action. A catalog item may carry `description`, an i18n
+  key for a tooltip sentence; without one the in-game editor falls back to the command
+  card's tooltip (`commands.<name>_tooltip`, for a row labelled `commands.<name>`) and then
+  to the engine's command description (`cmd.<command>`, `cmd.<command>._description` for the
+  structured ones, `cmd.luarules.<command>` for gadget commands). Roughly a third of the
+  catalog still has none of those. Widget/mod actions have no `cmd.*` entry, so their
+  descriptions depend on the declaration API above.
