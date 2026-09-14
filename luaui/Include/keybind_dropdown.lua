@@ -160,6 +160,25 @@ function Dropdown:isOpen()
 	return self.open
 end
 
+-- What the cursor is over: an option's index in the open list, 0 for the control itself,
+-- nil for neither. For an owner that shows something about the option under the cursor.
+function Dropdown:optionAt(x, y)
+	if self.open then
+		for i, r in ipairs(self.optRects) do
+			if x >= r.x1 and x <= r.x2 and y >= r.y1 and y <= r.y2 then
+				return i
+			end
+		end
+	end
+
+	local b = self.rect
+	if x >= b[1] and x <= b[3] and y >= b[2] and y <= b[4] then
+		return 0
+	end
+
+	return nil
+end
+
 function Dropdown:close()
 	self.open = false
 end
