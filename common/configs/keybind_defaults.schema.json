@@ -24,7 +24,7 @@
 				},
 				"fakeMeta": {
 					"type": "string",
-					"description": "Key to treat as the Meta modifier, if the profile wants one."
+					"description": "Key to treat as the Meta modifier, if the profile wants one. A keycode, never a scancode. The engine's own default is space; a profile with Meta+ bindings has to name it rather than rely on that, since loading a keymap does not reset the meta key."
 				},
 				"binds": {
 					"type": "array",
