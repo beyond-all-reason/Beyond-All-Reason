@@ -136,6 +136,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					cruise_and_verticalize = true,
+					uptime_max = 9,
 					junotype = "base",
 					nofire = true,
 					shield_aoe_penetration = true,
