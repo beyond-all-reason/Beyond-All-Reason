@@ -877,7 +877,7 @@ function M.parseBindFile(text)
 		return nil
 	end
 
-	return binds, readFakeMeta(text), generatedName(text)
+	return binds, fakeMetaOf(text), generatedName(text)
 end
 
 -- Write a profile out where the engine can keyreload it, and return that path.
