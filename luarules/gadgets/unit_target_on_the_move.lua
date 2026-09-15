@@ -34,6 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
@@ -57,6 +58,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
+	local CMD_REMOVE = CMD.REMOVE
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
@@ -255,7 +257,6 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
-
 	local function restoreCommandTarget(unitID)
 		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
 		if not inCommand or not isAttackCommand[inCommand] then
@@ -315,16 +316,37 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
-	local function setTargetPassive(unitID, unitData)
-		if not unitData then
-			return
+	-- Release both unit-owned and weapon-owned targets. An automatic Attack on
+	-- the released target can restore it, so remove that command before clearing
+	-- the target. Explicit attack commands retain ownership of their targets.
+	local function dropAutomaticAttack(unitID, targetID)
+		local inCommand, options, tag, param1, param2 = spGetUnitCurrentCommand(unitID)
+		if inCommand == CMD_ATTACK and not param2 and param1 == targetID and hasAutoTarget(options) then
+			spGiveOrderToUnit(unitID, CMD_REMOVE, { tag }, 0)
 		end
-		unitData.activeTarget = false
-		unitData.currentIndex = 1
-		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+	end
+
+	local function releaseEngineTarget(unitID, unitData, releasedTarget)
+		if releasedTarget == nil and unitData and unitData.activeTarget then
+			local targetData = unitData.targets[unitData.currentIndex]
+			releasedTarget = targetData and targetData.target
+		end
+		if type(releasedTarget) == "number" then
+			dropAutomaticAttack(unitID, releasedTarget)
+		end
 		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
+	end
+
+	local function setTargetPassive(unitID, unitData, releasedTarget)
+		if not unitData then
+			return
+		end
+		releaseEngineTarget(unitID, unitData, releasedTarget)
+		unitData.activeTarget = false
+		unitData.currentIndex = 1
+		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
@@ -363,9 +385,10 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetList", unitID, targetCount + 1)
 	end
 
-	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] and not restoreCommandTarget(unitID) then
-			spSetUnitTarget(unitID, nil)
+	local function removeUnit(unitID, keeptrack, releasedTarget)
+		local unitData = activeTargets[unitID]
+		if unitData and not keeptrack then
+			releaseEngineTarget(unitID, unitData, releasedTarget)
 		end
 		activeTargets[unitID] = nil
 		removeFromQueue(unitID)
@@ -475,13 +498,18 @@ if gadgetHandler:IsSyncedCode() then
 		local removed = tremove(unitData.targets, index)
 		if removed then
 			if not unitData.targets[1] then
-				removeUnit(unitID)
+				removeUnit(unitID, false, unitData.activeTarget and removed.target or nil)
 				return
 			end
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
-				unitData.currentIndex = 1
-				unitData.activeTarget = false
+				if unitData.activeTarget then
+					-- Cancelling the target the unit is firing at must stop that fire now;
+					-- the next update picks another listed target if one is attackable.
+					setTargetPassive(unitID, unitData, removed.target)
+				else
+					unitData.currentIndex = 1
+				end
 			elseif index < unitData.currentIndex then
 				unitData.currentIndex = unitData.currentIndex - 1
 			end
@@ -508,6 +536,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- Otherwise there really are targets to keep:
 		local currentTargets = unitData.currentTargets
 		local oldIndex = unitData.currentIndex
+		local oldTarget = targetList[oldIndex] and targetList[oldIndex].target
 		local currentIndex = oldIndex
 		local minIndex
 		local moveToIndex = 0
@@ -537,8 +566,11 @@ if gadgetHandler:IsSyncedCode() then
 			targetList[i] = nil
 		end
 		if currentIndex == 0 then
-			unitData.currentIndex = 1
-			unitData.activeTarget = false
+			if unitData.activeTarget then
+				setTargetPassive(unitID, unitData, oldTarget)
+			else
+				unitData.currentIndex = 1
+			end
 		else
 			unitData.currentIndex = currentIndex
 			-- The active target remains the same.
