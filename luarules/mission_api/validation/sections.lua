@@ -4,6 +4,8 @@
 
 local SECTIONS = VFS.Include("luarules/mission_api/validation/report.lua").Sections
 local getTypesWithParameterType = VFS.Include("luarules/mission_api/schema_utils.lua").GetTypesWithParameterType
+local objectiveFieldTypes = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
+local triggerSettingTypes = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -152,19 +154,16 @@ end
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
 
-local function getObjectiveFieldTypes(Types)
-	return {
-		textKey = Types.String,
-		trigger = Types.Table,
-		amount = Types.Quantity,
-		coop = Types.Boolean,
-		hidden = Types.Boolean,
-		onActivated = Types.TriggerID,
-		onCanceled = Types.TriggerID,
-		onProgress = Types.TriggerID,
-		onCompleted = Types.TriggerID,
-		onFailed = Types.TriggerID,
-	}
+--- nextStage is left out: references.lua checks it along with the other references
+--- between mission entities, and reports it in that section.
+local function getValidatedObjectiveFields()
+	local fieldTypes = {}
+	for fieldName, fieldType in pairs(objectiveFieldTypes) do
+		if fieldName ~= "nextStage" then
+			fieldTypes[fieldName] = fieldType
+		end
+	end
+	return fieldTypes
 end
 
 local function validateObjectiveInlineTrigger(
@@ -210,7 +209,7 @@ end
 
 local function validateObjectivesSection(context, report, parameterValidators, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
-	local fieldTypes = getObjectiveFieldTypes(context.Types)
+	local fieldTypes = getValidatedObjectiveFields()
 	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
 
 	for objectiveID, objective in pairs(context.Objectives) do
@@ -244,18 +243,6 @@ end
 -- Triggers: actions, settings and parameters
 --------------------------------------------------------------------------------
 
-local function getTriggerSettingTypes(Types)
-	return {
-		prerequisites = Types.TriggerIDs,
-		repeating = Types.Boolean,
-		maxRepeats = Types.Quantity,
-		difficulties = Types.Table,
-		coop = Types.Boolean,
-		active = Types.Boolean,
-		stages = Types.StageIDs,
-	}
-end
-
 local function validateTriggerActions(context, triggerReport, trigger, triggerID)
 	if trigger.actions ~= nil and type(trigger.actions) ~= "table" then
 		triggerReport.Error(triggerID, "Trigger 'actions' field must be a table, got " .. type(trigger.actions))
@@ -277,14 +264,7 @@ local function validateTriggerActions(context, triggerReport, trigger, triggerID
 end
 
 --- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
-local function validateTriggerSettings(
-	triggerReport,
-	parameterValidators,
-	settingTypes,
-	validateTableType,
-	trigger,
-	triggerID
-)
+local function validateTriggerSettings(triggerReport, parameterValidators, validateTableType, trigger, triggerID)
 	local settings = trigger.settings
 	if settings == nil then
 		return
@@ -297,7 +277,7 @@ local function validateTriggerSettings(
 	end
 
 	-- The TriggerIDs and StageIDs types also check that all prerequisite triggers and stages exists.
-	validateTypedFields(triggerReport, triggerID, parameterValidators, settingTypes, settings, "Setting")
+	validateTypedFields(triggerReport, triggerID, parameterValidators, triggerSettingTypes, settings, "Setting")
 
 	if settings.maxRepeats and not settings.repeating then
 		triggerReport.Error(triggerID, "Trigger has maxRepeats setting but is not set to repeating")
@@ -306,7 +286,6 @@ end
 
 local function validateTriggersSection(context, report, parameterValidators, validateSchema)
 	local triggerReport = reporterFor(report, SECTIONS.Triggers, "Trigger")
-	local settingTypes = getTriggerSettingTypes(context.Types)
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	for triggerID, trigger in pairs(context.Triggers) do
@@ -314,14 +293,7 @@ local function validateTriggersSection(context, report, parameterValidators, val
 			triggerReport.Error(triggerID, "Trigger data must be a table, got " .. type(trigger))
 		else
 			validateTriggerActions(context, triggerReport, trigger, triggerID)
-			validateTriggerSettings(
-				triggerReport,
-				parameterValidators,
-				settingTypes,
-				validateTableType,
-				trigger,
-				triggerID
-			)
+			validateTriggerSettings(triggerReport, parameterValidators, validateTableType, trigger, triggerID)
 			validateSchema(
 				triggerReport,
 				triggerID,
