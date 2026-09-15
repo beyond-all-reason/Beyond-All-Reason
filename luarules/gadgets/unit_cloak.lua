@@ -55,8 +55,10 @@ local recloakFrame = {}
 local currentFrame = 0
 
 local canCloak = {}
+local decloakOnFire = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.canCloak then
+		decloakOnFire[udid] = ud.decloakOnFire
 		canCloak[udid] = {
 			ud.startCloaked,
 			ud.cloakCostMoving,
@@ -176,6 +178,18 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 	return true
 end
 
+-- Track each shot even when neither cloak nor wantcloak is set.
+function gadget:UnitWeaponFired(unitID, unitDefID, unitTeam, weaponNum)
+	if decloakOnFire[unitDefID] then
+		recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
+	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	recloakFrame[unitID] = nil
+	recloakUnit[unitID] = nil
+end
+
 function gadget:AllowUnitDecloak(unitID, objectID, weaponID)
 	recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
 end
@@ -259,6 +273,16 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:Initialize()
+	-- Older engines keep the existing AllowUnitDecloak behavior.
+	if Script.SetWatchWeaponFired then
+		for unitDefID, enabled in pairs(decloakOnFire) do
+			if enabled then
+				for _, weapon in ipairs(UnitDefs[unitDefID].weapons) do
+					Script.SetWatchWeaponFired(weapon.weaponDef, true)
+				end
+			end
+		end
+	end
 	gadgetHandler:RegisterAllowCommand(CMD_CLOAK)
 	gadgetHandler:RegisterAllowCommand(CMD_WANT_CLOAK)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
