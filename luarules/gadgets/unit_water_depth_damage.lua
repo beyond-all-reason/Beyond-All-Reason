@@ -44,7 +44,7 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local waterDamageDefID = Game.envDamageTypes.Water
 local gameSpeed = Game.gameSpeed
 
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local isUnitDead = table.ensureTable(GG, "IsUnitDead")
 local spAddUnitDamage = Spring.AddUnitDamage
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
@@ -172,7 +172,7 @@ function gadget:GameFrame(frame)
 			local posX, posY, posZ = spGetUnitPosition(unitID)
 			if not posX then
 				drowningUnitsWatch[unitID] = nil --unit no longer exists
-			elseif posY < data.drownCandidateY and spGetUnitIsDead(unitID) == false then
+			elseif posY < data.drownCandidateY and not isUnitDead[unitID] then
 				--deep enough that the movedef depth limit may be exceeded: ask the engine
 				local movableSpot = spTestMoveOrder(data.unitDefID, posX, posY, posZ, nil, nil, nil, true, true, true) --somehow, this works. Copied from elsewhere in the code, spring wiki and recoil and game repo didn't have any info on this format.
 				if not movableSpot then
