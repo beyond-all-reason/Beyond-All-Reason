@@ -34,7 +34,9 @@ local glLineWidth = gl.LineWidth
 local glVertex = gl.Vertex
 local GL_LINES = GL.LINES
 
-local unitHeight = table.map(UnitDefs, function(unitDef, unitDefID) return unitDef.height, unitDefID end)
+local unitHeight = table.map(UnitDefs, function(unitDef, unitDefID)
+	return unitDef.height, unitDefID
+end)
 
 ---Marker types per unit. An untyped marker is the empty string.
 ---@type table<UnitID, string[]?>
