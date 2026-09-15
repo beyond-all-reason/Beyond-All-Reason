@@ -68,7 +68,7 @@ local actions = {
 	messageMarkScout = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'One point on the scout.',
+			message = 'One line above the scout.',
 		},
 	},
 
@@ -83,7 +83,7 @@ local actions = {
 	messageMarkTwice = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The scout now carries two markers, drawn as two points in the same place.',
+			message = 'The scout now carries two markers, drawn as two lines stacked above it.',
 		},
 	},
 

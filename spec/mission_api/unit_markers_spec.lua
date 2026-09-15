@@ -7,29 +7,29 @@ Builders.MissionApi.new():Install()
 local unitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 
 describe("mission_api.unit_markers", function()
-	local missionApi, pointCalls, eraseCalls = {}, {}, {}
+	local missionApi, sentMessages = {}, {}
+
+	local function markerTypesOf(unitID)
+		local types = {}
+		for _, marker in ipairs(unitMarkers.GetUnitMarkers(unitID) or {}) do
+			types[#types + 1] = marker.markerType
+		end
+		return types
+	end
 
 	before_each(function()
 		missionApi = Builders.MissionApi.new():Install()
 		missionApi.unitMarkers = {}
 		_G.Spring = Builders.Spring.new():Build() ---@diagnostic disable-line: global-in-non-module
-		Spring.GetUnitPosition = function(unitID)
-			return 100 + unitID, 20, 200 + unitID ---@diagnostic disable-line: missing-return-value
+		_G.unitMarkers = {} ---@diagnostic disable-line: global-in-non-module
+
+		sentMessages = {}
+		_G.SendToUnsynced = function(action, unitID, count, types) ---@diagnostic disable-line: global-in-non-module
+			sentMessages[#sentMessages + 1] = { action = action, unitID = unitID, count = count, types = types }
 		end
-		pointCalls = Spring.calls.markerAddPoint
-		eraseCalls = Spring.calls.markerErasePosition
 	end)
 
 	describe("AddUnitMarker", function()
-		it("draws a point at the unit, local to this client", function()
-			unitMarkers.AddUnitMarker(1, "objective")
-			assert.are.equal(1, #pointCalls)
-			assert.are.equal(101, pointCalls[1].x)
-			assert.are.equal(20, pointCalls[1].y)
-			assert.are.equal(201, pointCalls[1].z)
-			assert.is_true(pointCalls[1].local_)
-		end)
-
 		it("records the marker under its unit", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			local markers = unitMarkers.GetUnitMarkers(1)
@@ -40,23 +40,51 @@ describe("mission_api.unit_markers", function()
 		it("keeps several markers of different types on one unit", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			unitMarkers.AddUnitMarker(1, "alert")
-			assert.are.equal(2, #unitMarkers.GetUnitMarkers(1))
+			assert.are.same({ "objective", "alert" }, markerTypesOf(1))
 		end)
 
-		it("redraws rather than duplicating a marker of the same type", function()
+		it("does not duplicate a marker of the same type", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			unitMarkers.AddUnitMarker(1, "objective")
-			assert.are.equal(1, #unitMarkers.GetUnitMarkers(1))
-			assert.are.equal(2, #pointCalls)
-			assert.are.equal(1, #eraseCalls)
+			assert.are.same({ "objective" }, markerTypesOf(1))
+			assert.are.equal(1, #sentMessages)
 		end)
 
-		it("draws nothing for a unit with no position", function()
-			Spring.GetUnitPosition = function()
-				return nil, nil, nil, nil, nil, nil, nil, nil, nil
-			end
+		it("keeps one unit's markers off another unit", function()
 			unitMarkers.AddUnitMarker(1, "objective")
-			assert.are.equal(0, #pointCalls)
+			unitMarkers.AddUnitMarker(2, "alert")
+			assert.are.same({ "objective" }, markerTypesOf(1))
+			assert.are.same({ "alert" }, markerTypesOf(2))
+		end)
+
+		it("mirrors the unit's types into the synced global", function()
+			unitMarkers.AddUnitMarker(1, "objective")
+			unitMarkers.AddUnitMarker(1, "alert")
+			assert.are.same({ "objective", "alert" }, _G.unitMarkers[1])
+		end)
+
+		it("mirrors an untyped marker as the empty string", function()
+			unitMarkers.AddUnitMarker(1, nil)
+			assert.are.same({ "" }, _G.unitMarkers[1])
+		end)
+
+		it("counts an untyped marker, which joins to the same empty string as no markers", function()
+			unitMarkers.AddUnitMarker(1, nil)
+			assert.are.same({ action = "MissionUnitMarkers", unitID = 1, count = 1, types = "" }, sentMessages[1])
+		end)
+
+		it("sends the unit's whole current set to unsynced", function()
+			unitMarkers.AddUnitMarker(1, "objective")
+			unitMarkers.AddUnitMarker(1, "alert")
+			assert.are.equal(2, #sentMessages)
+			assert.are.same(
+				{ action = "MissionUnitMarkers", unitID = 1, count = 1, types = "objective" },
+				sentMessages[1]
+			)
+			assert.are.same(
+				{ action = "MissionUnitMarkers", unitID = 1, count = 2, types = "objective\talert" },
+				sentMessages[2]
+			)
 		end)
 	end)
 
@@ -65,9 +93,7 @@ describe("mission_api.unit_markers", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			unitMarkers.AddUnitMarker(1, "alert")
 			unitMarkers.RemoveUnitMarker(1, "objective")
-			local markers = unitMarkers.GetUnitMarkers(1)
-			assert.are.equal(1, #markers)
-			assert.are.equal("alert", markers[1].markerType)
+			assert.are.same({ "alert" }, markerTypesOf(1))
 		end)
 
 		it("removes every marker on the unit when given no type", function()
@@ -77,16 +103,43 @@ describe("mission_api.unit_markers", function()
 			assert.is_nil(unitMarkers.GetUnitMarkers(1))
 		end)
 
-		it("erases the line it drew", function()
+		it("mirrors what is left on the unit", function()
+			unitMarkers.AddUnitMarker(1, "objective")
+			unitMarkers.AddUnitMarker(1, "alert")
+			unitMarkers.RemoveUnitMarker(1, "objective")
+			assert.are.same({ "alert" }, _G.unitMarkers[1])
+		end)
+
+		it("clears the mirror when the unit keeps nothing", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			unitMarkers.RemoveUnitMarker(1, "objective")
-			assert.are.equal(1, #eraseCalls)
-			assert.are.equal(101, eraseCalls[1].x)
+			assert.is_nil(_G.unitMarkers[1])
+		end)
+
+		it("sends what is left on the unit", function()
+			unitMarkers.AddUnitMarker(1, "objective")
+			unitMarkers.AddUnitMarker(1, "alert")
+			unitMarkers.RemoveUnitMarker(1, "objective")
+			assert.are.same(
+				{ action = "MissionUnitMarkers", unitID = 1, count = 1, types = "alert" },
+				sentMessages[#sentMessages]
+			)
+		end)
+
+		it("sends an empty set when the last marker goes", function()
+			unitMarkers.AddUnitMarker(1, "objective")
+			unitMarkers.RemoveUnitMarker(1, nil)
+			assert.are.same(
+				{ action = "MissionUnitMarkers", unitID = 1, count = 0, types = "" },
+				sentMessages[#sentMessages]
+			)
 		end)
 
 		it("is a no-op for a unit with no markers", function()
 			unitMarkers.RemoveUnitMarker(99, nil)
-			assert.are.equal(0, #eraseCalls)
+			assert.is_nil(unitMarkers.GetUnitMarkers(99))
+			assert.is_nil(_G.unitMarkers[99])
+			assert.are.equal(0, #sentMessages)
 		end)
 	end)
 
@@ -96,7 +149,11 @@ describe("mission_api.unit_markers", function()
 			unitMarkers.AddUnitMarker(1, "alert")
 			unitMarkers.RemoveUnitMarkers(1)
 			assert.is_nil(unitMarkers.GetUnitMarkers(1))
-			assert.are.equal(2, #eraseCalls)
+			assert.is_nil(_G.unitMarkers[1])
+			assert.are.same(
+				{ action = "MissionUnitMarkers", unitID = 1, count = 0, types = "" },
+				sentMessages[#sentMessages]
+			)
 		end)
 	end)
 end)
