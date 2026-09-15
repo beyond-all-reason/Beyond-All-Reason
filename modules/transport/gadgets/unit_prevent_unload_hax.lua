@@ -18,7 +18,6 @@ end
 
 local frameMargin = 10
 
--- paradropped units (customparams.paratrooper) keep the transport's momentum on unload
 local isParatrooper = {}
 for udid, ud in pairs(UnitDefs) do
 	if ud.customParams.paratrooper then
@@ -46,7 +45,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 			x = 10
 		elseif x < -10 then
 			x = -10
-		end -- 10 is well above 'normal' air-trans velocity
+		end
 		if z > 10 then
 			z = 10
 		elseif z < -10 then
@@ -56,11 +55,10 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		if by - SpGetGroundHeight(bx, bz) < 5 then
 			x = 0
 			y = 0
-			z = 0 --in particular, don't give any velocity if the transport has placed the unit slightly underground (or weirdness...)
+			z = 0
 		end
 		SpSetUnitVelocity(unitID, x, y, z)
 	else
-		-- prevent unloaded units from sliding across the map
 		local px, py, pz = Spring.GetUnitPosition(unitID)
 		local dx, dy, dz, rx, ry, rz = Spring.GetUnitDirection(unitID)
 		local frame = SpGetGameFrame() + frameMargin
@@ -86,13 +84,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-	-- prevent unloaded units from sliding across the map
 	for unitID, data in pairs(unloadedUnits) do
 		if data.frame == frame then
-			-- reset position
 			SpSetUnitPhysics(unitID, data.px, data.py, data.pz, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 			SpSetUnitDirection(unitID, data.dx, data.dy, data.dz, data.rx, data.ry, data.rz)
-			--Spring.GiveOrderToUnit(unitID,CMD.MOVE,{data.px+10*data.dx,data.py,data.pz+10*data.dz},CMD.OPT_SHIFT)
 			data = nil
 		end
 	end
