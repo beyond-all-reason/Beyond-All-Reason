@@ -14,6 +14,7 @@ local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
+local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
 local BACKUP_FILE = "uikeys.txt.bak"
 local STORE_VERSION = 2
@@ -200,6 +201,25 @@ local function toBindFile(profile)
 	return table.concat(out, "\n") .. "\n"
 end
 
+-- Only for upgrades: what a bind file we stopped shipping used to bind, for a keyload that
+-- still names it. Read on the first one that needs it rather than at include time, since
+-- nothing but a migration gets here.
+---@type table
+local retiredIncludes
+local function retiredBinds(path)
+	local preset = presetFiles[path]
+	local profile = preset and M.isBuiltin(preset)
+	if profile then
+		return profile.binds
+	end
+
+	if not retiredIncludes then
+		retiredIncludes = keybindConfig.load(RETIRED_INCLUDES_PATH) or {}
+	end
+
+	return retiredIncludes[path]
+end
+
 -- The engine has no Lua getter for the fakemeta key, so migration is the only
 -- chance to carry a non-default one over from the file the player already had.
 -- Reads the bind lines back out of a keybind file. Needed for the player's own
@@ -283,23 +303,25 @@ local function readBindFile(text, depth)
 			local included = line:match("^%s*keyload%s+(%S+)")
 			if included and depth < 8 then
 				local text = VFS.LoadFile(included)
-				local retired = presetFiles[included] and M.isBuiltin(presetFiles[included])
 				if text then
 					for _, b in ipairs(readBindFile(text, depth + 1) or {}) do
 						binds[#binds + 1] = b
 					end
-				elseif retired then
-					-- The shipped presets stopped being files, so a keyload naming one has
-					-- nothing to read. Their bindings are the profile of that name now.
-					for _, b in ipairs(retired.binds or {}) do
-						binds[#binds + 1] = { keyset = b.keyset, action = b.action }
-					end
 				else
-					Spring.Echo(
-						"[keybind_profiles] Error: keyload could not read "
-							.. included
-							.. "; any bindings it held are missing from the migrated profile"
-					)
+					-- These stopped being files, so a keyload naming one has nothing to read:
+					-- what they bound lives in the data that replaced them.
+					local retired = retiredBinds(included)
+					if retired then
+						for _, b in ipairs(retired) do
+							binds[#binds + 1] = { keyset = b.keyset, action = b.action }
+						end
+					else
+						Spring.Echo(
+							"[keybind_profiles] Error: keyload could not read "
+								.. included
+								.. "; any bindings it held are missing from the migrated profile"
+						)
+					end
 				end
 			end
 		end
