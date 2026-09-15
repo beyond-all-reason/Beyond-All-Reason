@@ -378,7 +378,7 @@
 			"commandersSurviveDgun": "Los comandantes sobreviven a los disparos de cañones D y las explosiones de otros comandantes",
 			"victoryCondition": "Condición de victoria",
 			"owncomends": "Perder tu comandante = Perder control de tus unidades / rendirse",
-			"territorialDomination": "Dominación Territorial,\nsobrevive y consigue la mayor puntuación para ganar"
+			"territorialDomination": "Dominación Territorial. Captura y Mantén el territorio para evitar la Derrota"
 		},
 		"startSpot": {
 			"startbox": "Escoge un punto de inicio dentro de la zona verde, y haz clic en el botón Listo para comenzar (nota: pulsa F4 para ver los nodos de metal del mapa)",
