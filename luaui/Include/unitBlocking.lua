@@ -72,4 +72,38 @@ function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 	return blockedUnits
 end
 
+--- Gets unit definitions blocked only for a specific builder unit type from TeamRulesParams
+--- (see `GG.BuildBlocking.AddBlockedUnit` with a `builderUnitDefID`).
+---@return table<number, table<number, table<string, boolean>>> blockedUnits Keyed by builder UnitDefID, then by blocked UnitDefID, with a table of blocking reasons (reason -> true)
+---@usage
+---   local byBuilder = unitBlocking.getBuilderBlockedUnitDefs()
+---   if byBuilder[builderDefID] and byBuilder[builderDefID][unitDefID] then ... end
+function unitBlocking.getBuilderBlockedUnitDefs()
+	local myTeamID = Spring.GetLocalTeamID()
+	if not myTeamID then
+		return {}
+	end
+
+	local teamRules = Spring.GetTeamRulesParams(myTeamID) or {}
+	local blockedUnits = {}
+
+	for key, value in pairs(teamRules) do
+		local builderDefIDStr, unitDefIDStr = key:match("^builder_blocked_(%d+)_(%d+)$")
+		if builderDefIDStr then
+			local builderDefID = tonumber(builderDefIDStr)
+			local unitDefID = tonumber(unitDefIDStr)
+			if builderDefID and unitDefID and UnitDefs[builderDefID] and UnitDefs[unitDefID] then
+				local reasons = {}
+				for reason in string.gmatch(tostring(value), "[^,]+") do
+					reasons[reason] = true
+				end
+				blockedUnits[builderDefID] = blockedUnits[builderDefID] or {}
+				blockedUnits[builderDefID][unitDefID] = reasons
+			end
+		end
+	end
+
+	return blockedUnits
+end
+
 return unitBlocking

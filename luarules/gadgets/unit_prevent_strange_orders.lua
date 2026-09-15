@@ -56,9 +56,16 @@ function gadget:AllowCommand(
 	-- doesn't have this in its buildOptions. Prevents immobile assist turrets
 	-- (nanotc) from getting stuck with an unexecutable build command at the
 	-- front of their queue, permanently blocking fight/patrol behind it.
+	-- Build options can change at runtime (api_dynamic_build_options.lua), so
+	-- ask that registry when it is loaded; the unit def is the fallback.
 	if cmdID < 0 and fromInsert then
 		local buildDefID = -cmdID
-		if not canBuildDef[unitDefID] or not canBuildDef[unitDefID][buildDefID] then
+		local dynamicBuildOptions = GG.DynamicBuildOptions
+		if dynamicBuildOptions then
+			if not dynamicBuildOptions.HasBuildOption(buildDefID, unitDefID) then
+				return false
+			end
+		elseif not canBuildDef[unitDefID] or not canBuildDef[unitDefID][buildDefID] then
 			return false
 		end
 	end
