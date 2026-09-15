@@ -436,7 +436,7 @@ describe("mission_api.validation.sections", function()
 	end)
 
 	it("passes for an action whose parameters are all optional and omitted", function()
-		V.assertValid(V.validateAction({ type = V.actionTypes.ClearAllMarkers }))
+		V.assertValid(V.validateAction({ type = V.actionTypes.RemoveAllMapMarkers }))
 	end)
 
 	-- Each parameter is validated by the validator its schema names.

@@ -74,16 +74,16 @@ describe("mission_api.validation.references", function()
 			:WithTrigger("t", {
 				type = V.triggerTypes.TotalUnitsKilled,
 				parameters = { teamID = 0, quantity = 1, unitName = "bot" },
-				actions = { "spawn", "create", "delete", "add", "erase" },
+				actions = { "spawn", "create", "delete", "add", "remove" },
 			})
 			:WithAction("spawn", spawnUnits("bot"))
 			:WithAction("create", createFeatures("rock"))
 			:WithAction("delete", { type = V.actionTypes.DestroyFeatures, parameters = { featureName = "rock" } })
 			:WithAction(
 				"add",
-				{ type = V.actionTypes.AddMarker, parameters = { position = { x = 0, z = 0 }, name = "flag" } }
+				{ type = V.actionTypes.AddMapMarker, parameters = { position = { x = 0, z = 0 }, markerName = "flag" } }
 			)
-			:WithAction("erase", { type = V.actionTypes.EraseMarker, parameters = { name = "flag" } })))
+			:WithAction("remove", { type = V.actionTypes.RemoveMapMarker, parameters = { markerName = "flag" } })))
 	end)
 
 	it("counts mission loadout entries as creating names", function()
@@ -173,19 +173,19 @@ describe("mission_api.validation.references", function()
 	end)
 
 	it("warns about names that are only created, or only referenced", function()
-		local result = V.validate(V.mission()
-			:WithAction("spawnUnused", spawnUnits("unusedUnit"))
-			:WithAction("useUnknown", { type = V.actionTypes.DespawnUnits, parameters = { unitName = "unknownUnit" } })
-			:WithAction("createUnused", createFeatures("unusedRock"))
-			:WithAction(
-				"deleteUnknown",
-				{ type = V.actionTypes.DestroyFeatures, parameters = { featureName = "unknownRock" } }
-			)
-			:WithAction("addUnused", {
-				type = V.actionTypes.AddMarker,
-				parameters = { position = { x = 0, z = 0 }, name = "unusedFlag" },
-			})
-			:WithAction("eraseUnknown", { type = V.actionTypes.EraseMarker, parameters = { name = "unknownFlag" } }))
+		local result = V.validate(
+			V.mission()
+				:WithAction("spawnUnused", spawnUnits("unusedUnit"))
+				:WithAction(
+					"useUnknown",
+					{ type = V.actionTypes.DespawnUnits, parameters = { unitName = "unknownUnit" } }
+				)
+				:WithAction("createUnused", createFeatures("unusedRock"))
+				:WithAction(
+					"deleteUnknown",
+					{ type = V.actionTypes.DestroyFeatures, parameters = { featureName = "unknownRock" } }
+				)
+		)
 
 		V.assertMessage(
 			result,
@@ -202,14 +202,6 @@ describe("mission_api.validation.references", function()
 		V.assertMessage(
 			result,
 			"Feature name is referenced, but never created. Feature name: unknownRock, Referenced in: action deleteUnknown"
-		)
-		V.assertMessage(
-			result,
-			"Marker name is created, but never referenced. Marker name: unusedFlag, Created in: action addUnused"
-		)
-		V.assertMessage(
-			result,
-			"Marker name is referenced, but never created. Marker name: unknownFlag, Referenced in: action eraseUnknown"
 		)
 	end)
 
@@ -228,6 +220,42 @@ describe("mission_api.validation.references", function()
 			"Unit name is created, but never referenced. Unit name: unusedUnit, "
 				.. "Created in: action nameUnused, action spawnUnused (unitLoadout[1])"
 		)
+	end)
+
+	describe("map marker names", function()
+		-- A marker left standing for the rest of the mission is ordinary, so only the
+		-- removing side is checked.
+		it("passes a marker that is added and never removed", function()
+			V.assertValid(V.validate(V.mission()
+				:WithTrigger("t", {
+					type = V.triggerTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					actions = { "addPermanent" },
+				})
+				:WithAction("addPermanent", {
+					type = V.actionTypes.AddMapMarker,
+					parameters = { markerName = "beacon", position = { x = 0, z = 0 } },
+				})))
+		end)
+
+		it("warns about removing a marker that no action adds", function()
+			local result = V.validate(
+				V.mission()
+					:WithAction("addPermanent", {
+						type = V.actionTypes.AddMapMarker,
+						parameters = { markerName = "beacon", position = { x = 0, z = 0 } },
+					})
+					:WithAction(
+						"removeUnknown",
+						{ type = V.actionTypes.RemoveMapMarker, parameters = { markerName = "noSuchBeacon" } }
+					)
+			)
+
+			V.assertMessage(
+				result,
+				"Marker name is referenced, but never added. Marker name: noSuchBeacon, Referenced in: action removeUnknown"
+			)
+		end)
 	end)
 
 	describe("countdown IDs", function()

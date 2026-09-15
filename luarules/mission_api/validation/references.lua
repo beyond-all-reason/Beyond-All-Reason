@@ -30,18 +30,25 @@ local function describeSources(sources)
 	return table.concat(sources, ", ")
 end
 
-local function reportUnmatchedNames(report, label, createdNames, referencedNames)
+--- A name nothing creates can never match at runtime, so it is always a mistake.
+--- @param creationVerb string how creating this kind of name is described, e.g. "created"
+local function reportUncreatedNames(report, label, createdNames, referencedNames, creationVerb)
 	for name, sources in pairs(referencedNames) do
 		if not createdNames[name] then
 			report.Warn(
 				SECTION,
 				label,
 				name,
-				label .. " is referenced, but never created",
+				label .. " is referenced, but never " .. creationVerb,
 				"Referenced in: " .. describeSources(sources)
 			)
 		end
 	end
+end
+
+--- A name nothing refers to is only a mistake for names whose sole purpose is to be referred
+--- to later. A map marker left standing for the rest of the mission is ordinary, for instance.
+local function reportUnreferencedNames(report, label, createdNames, referencedNames)
 	for name, sources in pairs(createdNames) do
 		if not referencedNames[name] then
 			report.Warn(
@@ -143,27 +150,29 @@ local function validateObjectiveEventReferences(context, report)
 end
 
 --------------------------------------------------------------------------------
--- Marker name references
+-- Map marker name references
 --------------------------------------------------------------------------------
 
+--- Only the removing side is checked: a marker left standing for the rest of the
+--- mission is ordinary, so an added marker that is never removed does not warn.
 local function validateMarkerNameReferences(context, report)
 	local actionTypes = context.ActionTypes
-	local createdNames = {}
+	local addedNames = {}
 	local referencedNames = {}
 
 	--- Only actions use marker names
 	for actionID, action in pairs(context.Actions) do
 		local parameters = parametersOf(action)
-		if parameters and type(parameters.name) == "string" then
-			if action.type == actionTypes.AddMarker then
-				recordSource(createdNames, parameters.name, "action " .. actionID)
-			elseif action.type == actionTypes.EraseMarker then
-				recordSource(referencedNames, parameters.name, "action " .. actionID)
+		if parameters and type(parameters.markerName) == "string" then
+			if action.type == actionTypes.AddMapMarker then
+				addedNames[parameters.markerName] = true
+			elseif action.type == actionTypes.RemoveMapMarker then
+				recordSource(referencedNames, parameters.markerName, "action " .. actionID)
 			end
 		end
 	end
 
-	reportUnmatchedNames(report, "Marker name", createdNames, referencedNames)
+	reportUncreatedNames(report, "Marker name", addedNames, referencedNames, "added")
 end
 
 --------------------------------------------------------------------------------
@@ -317,7 +326,8 @@ local function validateNameReferences(context, report, nameKind)
 	collectTriggerNames(context, nameKind, referencedNames)
 	collectObjectiveTriggerNames(context, nameKind, referencedNames)
 
-	reportUnmatchedNames(report, nameKind.label, createdNames, referencedNames)
+	reportUncreatedNames(report, nameKind.label, createdNames, referencedNames, "created")
+	reportUnreferencedNames(report, nameKind.label, createdNames, referencedNames)
 end
 
 --------------------------------------------------------------------------------
@@ -362,17 +372,7 @@ local function validateCountdownIDReferences(context, report)
 		end
 	end
 
-	for countdownID, sources in pairs(referencedIDs) do
-		if not addedIDs[countdownID] then
-			report.Warn(
-				SECTION,
-				"Countdown",
-				countdownID,
-				"Countdown is referenced, but never added",
-				"Referenced in: " .. describeSources(sources)
-			)
-		end
-	end
+	reportUncreatedNames(report, "Countdown", addedIDs, referencedIDs, "added")
 end
 
 --------------------------------------------------------------------------------

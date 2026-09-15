@@ -364,7 +364,10 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("Position", function()
 		it("rejects the wrong type", function()
-			local result = V.validateAction({ type = V.actionTypes.AddMarker, parameters = { position = "bad" } })
+			local result = V.validateAction({
+				type = V.actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = "bad" },
+			})
 
 			V.assertMessage(
 				result,
@@ -373,15 +376,18 @@ describe("mission_api.validation.parameter_validators", function()
 		end)
 
 		it("rejects a missing coordinate", function()
-			local result = V.validateAction({ type = V.actionTypes.AddMarker, parameters = { position = { z = 0 } } })
+			local result = V.validateAction({
+				type = V.actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = { z = 0 } },
+			})
 
 			V.assertMessage(result, "Missing required parameter. Action: a, Parameter: position.x")
 		end)
 
 		it("rejects a coordinate that is not a number", function()
 			local result = V.validateAction({
-				type = V.actionTypes.AddMarker,
-				parameters = { position = { x = "bad", z = 0 } },
+				type = V.actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = { x = "bad", z = 0 } },
 			})
 
 			V.assertMessage(
@@ -392,8 +398,8 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("rejects a false coordinate as the wrong type, not as missing", function()
 			local result = V.validateAction({
-				type = V.actionTypes.AddMarker,
-				parameters = { position = { x = false, z = 0 } },
+				type = V.actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = { x = false, z = 0 } },
 			})
 
 			V.assertMessage(
@@ -405,8 +411,8 @@ describe("mission_api.validation.parameter_validators", function()
 
 		it("accepts zero coordinates", function()
 			local result = V.validateAction({
-				type = V.actionTypes.AddMarker,
-				parameters = { position = { x = 0, y = 0, z = 0 }, name = "flag" },
+				type = V.actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = { x = 0, y = 0, z = 0 } },
 			})
 
 			V.assertNoMessageContaining(result, "Parameter: position")

@@ -56,8 +56,8 @@ describe("mission_api.parameter_processing", function()
 	describe("Position", function()
 		it("fills in the ground height when a position has no y", function()
 			local parameters = processAction({
-				type = actionTypes.AddMarker,
-				parameters = { position = { x = 1, z = 2 }, name = "flag" },
+				type = actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = { x = 1, z = 2 } },
 			})
 
 			assert.are.equal(GROUND_HEIGHT, parameters.position.y)
@@ -65,8 +65,8 @@ describe("mission_api.parameter_processing", function()
 
 		it("keeps a y that the mission specified", function()
 			local parameters = processAction({
-				type = actionTypes.AddMarker,
-				parameters = { position = { x = 1, y = 5, z = 2 }, name = "flag" },
+				type = actionTypes.AddMapMarker,
+				parameters = { markerName = "flag", position = { x = 1, y = 5, z = 2 } },
 			})
 
 			assert.are.equal(5, parameters.position.y)
