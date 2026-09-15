@@ -65,6 +65,7 @@ local glBlending = gl.Blending
 ---@field button table? The view toggle's rect
 ---@field cs number
 ---@field pad number
+---@field padY number
 ---@field nameFs number
 ---@field labelFs number
 ---@field moreFs number
@@ -95,6 +96,8 @@ M.__index = M
 -- modifiers sit in both views, so a layer can be toggled from either.
 local ROWS = 7.5
 local viewCols = { main = 15, numpad = 10 }
+-- How large the text on the keys reads, over the base shares of the key set in setArea.
+local KEY_TEXT_SCALE = 1.2
 local viewOrder = { "main", "numpad" }
 
 local up, down, left, right = "\226\134\145", "\226\134\147", "\226\134\144", "\226\134\146"
@@ -230,19 +233,20 @@ local keyDefs = {
 		scan = { "printscreen", "print" },
 		code = { "printscreen", "print" },
 	},
-	{ numpad = { x = 3.5, y = 1 }, name = "Scroll Lock", code = { "scrollock" } },
+	-- Printed the way a keycap prints them, the full names being wider than a key.
+	{ numpad = { x = 3.5, y = 1 }, name = "ScrLk", code = { "scrollock" } },
 	{ numpad = { x = 2.5, y = 2.5 }, name = "Insert", scan = { "insert" }, code = { "insert" } },
 	{ numpad = { x = 3.5, y = 2.5 }, name = "Home", scan = { "home" }, code = { "home" } },
-	{ numpad = { x = 4.5, y = 2.5 }, name = "Page Up", scan = { "pageup" }, code = { "pageup" } },
+	{ numpad = { x = 4.5, y = 2.5 }, name = "PgUp", scan = { "pageup" }, code = { "pageup" } },
 	{ numpad = { x = 2.5, y = 3.5 }, name = "Delete", scan = { "delete" }, code = { "delete" } },
 	{ numpad = { x = 3.5, y = 3.5 }, name = "End", scan = { "end" }, code = { "end" } },
-	{ numpad = { x = 4.5, y = 3.5 }, name = "Page Down", scan = { "pagedown" }, code = { "pagedown" } },
+	{ numpad = { x = 4.5, y = 3.5 }, name = "PgDn", scan = { "pagedown" }, code = { "pagedown" } },
 	{ numpad = { x = 3.5, y = 5.5 }, name = up, scan = { "up" }, code = { "up" } },
 	{ numpad = { x = 2.5, y = 6.5 }, name = left, scan = { "left" }, code = { "left" } },
 	{ numpad = { x = 3.5, y = 6.5 }, name = down, scan = { "down" }, code = { "down" } },
 	{ numpad = { x = 4.5, y = 6.5 }, name = right, scan = { "right" }, code = { "right" } },
 
-	{ numpad = { x = 6, y = 2.5 }, name = "Num Lock", code = { "numlock" } },
+	{ numpad = { x = 6, y = 2.5 }, name = "NumLk", code = { "numlock" } },
 	{ numpad = { x = 7, y = 2.5 }, name = "/", scan = { "numpad/" }, code = { "numpad/" } },
 	{ numpad = { x = 8, y = 2.5 }, name = "*", scan = { "numpad*" }, code = { "numpad*" } },
 	{ numpad = { x = 9, y = 2.5 }, name = "-", scan = { "numpad-" }, code = { "numpad-" } },
@@ -455,11 +459,14 @@ function M:setArea(x1, y1, x2, y2, scale, titleFs)
 	end
 	self.cs = max(2, floor(unit * 0.09))
 	self.pad = max(2, floor(unit * 0.07))
-	-- The key's name reads first, its action smaller under it: three short lines of it fit
-	-- a plain key, which is what most of the catalog's labels need.
-	self.nameFs = max(8, floor(unit * 0.14))
-	self.labelFs = max(7, floor(unit * 0.125))
-	self.moreFs = max(7, floor(unit * 0.11))
+	-- Tighter than the sides: the face's height is what three lines of a label under the key's
+	-- name have to share.
+	self.padY = max(2, floor(unit * 0.045))
+	-- The key's name reads first, its action smaller under it, and the count of further
+	-- actions smaller still: each a share of the key in whole pixels, scaled by KEY_TEXT_SCALE.
+	self.nameFs = max(9, floor(floor(unit * 0.14) * KEY_TEXT_SCALE + 0.5))
+	self.labelFs = max(8, floor(floor(unit * 0.125) * KEY_TEXT_SCALE + 0.5))
+	self.moreFs = max(8, floor(floor(unit * 0.11) * KEY_TEXT_SCALE + 0.5))
 	self.iconSize = floor(unit * 0.24)
 	-- The hint is a sentence read at a glance, so it prints larger than a key's label; two or
 	-- three lines of it fit the caption row.
@@ -922,6 +929,22 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
+-- The size a key's name prints at: the page's, unless the name is wider than the face at
+-- that size, then as much smaller as makes it fit. Measured once per name, room and layout.
+function M:nameSize(key, room)
+	if key.nameFsGen == self.layoutGen and key.nameFsLabel == key.label and key.nameFsRoom == room then
+		return key.nameFsFit
+	end
+	local size = self.nameFs
+	local width = self.font:GetTextWidth(key.label) * size
+	if width > room and width > 0 then
+		size = max(floor(size * 0.6), floor(size * room / width))
+	end
+	key.nameFsFit, key.nameFsGen, key.nameFsLabel, key.nameFsRoom = size, self.layoutGen, key.label, room
+
+	return size
+end
+
 -- The label a key wears on a layer, wrapped and fitted to its face, kept until the bindings
 -- or the geometry change.
 function M:faceLines(key, layer, entries, faceW, maxLines)
@@ -991,9 +1014,10 @@ function M:draw(hoverIdx)
 	local mods = self:activeMods()
 	local layer = layerKeyOf(mods)
 	local unit, pad, cs = self.unit, self.pad, self.cs
+	local padY = self.padY
 	local searching = not self.query.empty
 	local filter = self.filter
-	local nameLineH = floor(self.nameFs * 1.2)
+	local nameLineH = floor(self.nameFs * 1.12)
 	local lineH = floor(self.labelFs * 1.1)
 	local prints = {}
 	local function print(str, x, y, size, opts)
@@ -1024,24 +1048,27 @@ function M:draw(hoverIdx)
 			oLeft, oCentre, oRight = "", "c", "r"
 		end
 
-		-- The key's own name, top left; the symbol Shift makes of it beside, dimmer.
-		local nameTop = fy2 - pad
-		local nameY = text.baseline(font, nameTop - nameLineH, nameTop, self.nameFs)
-		print((light and look.nameOnLight or look.name) .. key.label, fx1 + pad, nameY, self.nameFs, oLeft)
+		-- The key's own name, top left, at the page's name size or smaller for the odd name too
+		-- long for its key; the symbol Shift makes of it beside, dimmer.
+		local nameFs = self:nameSize(key, faceW)
+		local nameTop = fy2 - padY
+		local nameY = text.baseline(font, nameTop - nameLineH, nameTop, nameFs)
+		print((light and look.nameOnLight or look.name) .. key.label, fx1 + pad, nameY, nameFs, oLeft)
 		if key.shiftedLabel then
-			local nameW = floor(font:GetTextWidth(key.label) * self.nameFs)
+			local nameW = floor(font:GetTextWidth(key.label) * nameFs)
 			print(
 				(light and look.shiftedOnLight or look.shifted) .. key.shiftedLabel,
 				fx1 + pad + nameW + floor(pad * 0.8),
 				nameY,
-				self.nameFs,
+				nameFs,
 				oLeft
 			)
 		end
 
-		-- The room under the name: the first action's words, as many lines as fit, centred.
-		local bandTop = nameTop - nameLineH - floor(pad * 0.4)
-		local bandBottom = fy1 + pad
+		-- The room under the name: the first action's words, as many lines as fit, centred. The
+		-- last line may reach into the bottom padding; a label seldom has a descender there.
+		local bandTop = nameTop - nameLineH
+		local bandBottom = fy1 + floor(padY * 0.5)
 		local maxLines = min(3, max(1, floor((bandTop - bandBottom) / lineH)))
 		local lines, first = self:faceLines(key, layer, entries, faceW, maxLines)
 		-- The top right corner: the action's picture, and how many more actions the tooltip
@@ -1058,12 +1085,13 @@ function M:draw(hoverIdx)
 			local cx = floor((fx1 + fx2) * 0.5)
 			for li = 1, n do
 				local top = blockTop - (li - 1) * lineH
-				print(color .. lines[li], cx, text.baseline(font, top - lineH, top, self.labelFs), self.labelFs, oCentre)
+				local ly = text.baseline(font, top - lineH, top, self.labelFs)
+				print(color .. lines[li], cx, ly, self.labelFs, oCentre)
 			end
 
 			if info.icon and self.iconSize > 0 then
 				local s = self.iconSize
-				local iy2 = fy2 - pad
+				local iy2 = fy2 - padY
 				glColor(1, 1, 1, (first.paired and look.pairedIconAlpha or look.iconAlpha) * opacity)
 				glTexture(info.icon)
 				glTexRect(cornerX - s, iy2 - s, cornerX, iy2)
@@ -1073,7 +1101,8 @@ function M:draw(hoverIdx)
 			end
 		end
 		if #entries > 1 then
-			print((light and look.nameOnLight or look.more) .. "+" .. (#entries - 1), cornerX, nameY, self.moreFs, oRight)
+			local count = (light and look.nameOnLight or look.more) .. "+" .. (#entries - 1)
+			print(count, cornerX, nameY, self.moreFs, oRight)
 		end
 	end
 
