@@ -96,7 +96,7 @@ return {
 			},
 		},
 		weapondefs = {
-			emg = {
+			dolphin_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				burst = 3,
@@ -109,7 +109,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "Rapid-fire close-quarters plasma turret",
+				name = "Light Rapid-Fire Gauss Cannons",
 				noselfdamage = true,
 				range = 280,
 				reloadtime = 0.4,
@@ -134,13 +134,13 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "EMG",
+				def = "dolphin_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 285,
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
-				def = "EMG",
+				def = "dolphin_plasma_cannon",
 				maindir = "0 0 -1",
 				maxangledif = 285,
 				onlytargetcategory = "NOTSUB",

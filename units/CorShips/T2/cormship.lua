@@ -145,7 +145,7 @@ return {
 					vtol = 138,
 				},
 			},
-			rocket = {
+			messenger_rocket = {
 				areaofeffect = 300,
 				avoidfeature = false,
 				burnblow = true,
@@ -163,7 +163,7 @@ return {
 				interceptedbyshieldtype = 1024,
 				metalpershot = 0,
 				model = "corshiprocket.s3o",
-				name = "Heavy long-range g2g starburst rocket launcher",
+				name = "Heavy High Explosive Split Warhead Cruise Missile",
 				noselfdamage = true,
 				proximitypriority = 1,
 				range = 1550,
@@ -240,7 +240,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "ROCKET",
+				def = "messenger_rocket",
 				maindir = "0 .5 1",
 				maxangledif = 60,
 				onlytargetcategory = "SURFACE",

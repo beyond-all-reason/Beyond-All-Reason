@@ -111,7 +111,7 @@ return {
 			},
 		},
 		weapondefs = {
-			legfloat_gauss = {
+			legfloat_plasma_cannon = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				burnblow = true,
@@ -121,7 +121,7 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulsefactor = 0.123,
-				name = "Medium g2g gauss cannon",
+				name = "Standard Gauss Cannon",
 				noselfdamage = true,
 				range = 550,
 				reloadtime = 2.5,
@@ -187,7 +187,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "LEGFLOAT_GAUSS",
+				def = "legfloat_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

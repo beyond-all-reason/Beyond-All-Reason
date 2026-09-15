@@ -102,7 +102,7 @@ return {
 			},
 		},
 		weapondefs = {
-			rapidnapalm = {
+			inferno_plasma_cannon = {
 				burst = 6,
 				burstrate = 0.15,
 				areaofeffect = 150,
@@ -156,7 +156,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "RAPIDNAPALM",
+				def = "inferno_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 180,
 				onlytargetcategory = "SURFACE",
