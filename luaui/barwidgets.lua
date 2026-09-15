@@ -223,6 +223,7 @@ local callInLists = {
 	"CommandsChanged",
 	"LanguageChanged",
 	"UnitBlocked",
+	"BuildOptionsChanged",
 	"VisibleUnitAdded",
 	"VisibleUnitRemoved",
 	"VisibleUnitsChanged",
@@ -2505,10 +2506,19 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:UnitBlocked(unitDefID, reasons)
+function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracy.ZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
-		w:UnitBlocked(unitDefID, reasons)
+		w:UnitBlocked(unitDefID, reasons, builderUnitDefID)
+	end
+	tracy.ZoneEnd()
+end
+
+---A build option was added to or removed from a builder unit type at runtime (api_dynamic_build_options.lua).
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+	tracy.ZoneBeginN("W:BuildOptionsChanged")
+	for _, w in ipairs(self.BuildOptionsChangedList) do
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 	end
 	tracy.ZoneEnd()
 end
