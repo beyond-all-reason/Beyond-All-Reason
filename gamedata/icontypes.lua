@@ -1892,8 +1892,8 @@ local icontypes = {
 		bitmap = "icons/corbuzz.png",
 		size = 1.88999987,
 	},
-	corgatr = {
-		bitmap = "icons/corgatr.png",
+	corobligator = {
+		bitmap = "icons/corobligator.png",
 		size = 1.89999997,
 	},
 	cormist = {

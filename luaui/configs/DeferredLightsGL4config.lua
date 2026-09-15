@@ -85373,7 +85373,7 @@ local unitLights = {
 			},
 		},
 	},
-	corgatr = {
+	corobligator = {
 		eyesfront = {
 			lightType = "beam",
 			pieceName = "head",

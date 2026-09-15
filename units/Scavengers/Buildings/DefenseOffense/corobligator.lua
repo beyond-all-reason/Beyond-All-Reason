@@ -1,9 +1,9 @@
 return {
-	corgatr = {
+	corobligator = {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 0,
-		buildpic = "corgatr.dds",
+		buildpic = "corobligator.dds",
 		buildtime = 65000,
 		canrepeat = false,
 		corpse = "DEAD",
@@ -18,8 +18,8 @@ return {
 		maxslope = 13,
 		maxwaterdepth = 0,
 		metalcost = 2250,
-		objectname = "Units/corgatr.s3o",
-		script = "Units/corgatr.cob",
+		objectname = "Units/corobligator.s3o",
+		script = "Units/corobligator.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 700,
@@ -45,7 +45,7 @@ return {
 				footprintz = 4,
 				height = 20,
 				metal = 906,
-				object = "Units/corgatr_dead.s3o",
+				object = "Units/corobligator_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
