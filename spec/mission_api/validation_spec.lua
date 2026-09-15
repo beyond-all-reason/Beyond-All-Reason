@@ -651,6 +651,56 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("UnitDefID", function()
+			local savedUnitDefs
+
+			before_each(function()
+				savedUnitDefs = _G.UnitDefs
+				_G.UnitDefs = { [1] = { name = "armwar" }, [42] = { name = "armsolar" } }
+				_G.UnitDefNames = { armwar = { id = 1 }, armsolar = { id = 42 } }
+			end)
+
+			after_each(function()
+				_G.UnitDefs = savedUnitDefs
+			end)
+
+			local function validateBuildOption(builtUnitDefID, builderUnitDefID)
+				actionErrors({
+					type = actionTypes.RemoveBuildOption,
+					parameters = { builtUnitDefID = builtUnitDefID, builderUnitDefID = builderUnitDefID },
+				})
+			end
+
+			it("accepts a numeric unit def id", function()
+				validateBuildOption(42, 1)
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts a unit def name", function()
+				validateBuildOption("armsolar", "armwar")
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects an unknown unit def id", function()
+				validateBuildOption(4242, 1)
+				assert.is_true(hasError("Invalid unitDefID: 4242. Action: a, Parameter: builtUnitDefID"))
+			end)
+
+			it("rejects an unknown unit def name", function()
+				validateBuildOption("noSuch", 1)
+				assert.is_true(hasError("Invalid unitDefName: noSuch. Action: a, Parameter: builtUnitDefID"))
+			end)
+
+			it("rejects a value that is neither a number nor a string", function()
+				validateBuildOption(true, 1)
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number or string, got boolean. Action: a, Parameter: builtUnitDefID"
+					)
+				)
+			end)
+		end)
+
 		describe("FeatureDefName", function()
 			it("rejects wrong type", function()
 				actionErrors({

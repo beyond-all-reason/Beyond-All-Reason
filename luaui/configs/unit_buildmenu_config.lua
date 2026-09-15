@@ -3,11 +3,14 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
+local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
+
 local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
 local unitGroup = {} ---@type table<number, number>
 local unitRestricted = {} ---@type table<number, true>
 local unitHidden = {} ---@type table<number, true>
+local builderUnitRestricted = {} ---@type table<number, table<number, table<string, boolean>>> builder UnitDefID -> blocked UnitDefID -> reasons
 local isBuilder = {} ---@type table<number, true>
 local isFactory = {} ---@type table<number, true>
 local unitIconType = {} ---@type table<number, number>
@@ -84,12 +87,57 @@ table.sort(unitOrder, function(aID, bID)
 	return aOrder < bOrder
 end)
 
+---Whether a build option is greyed out: blocked for the whole team, or blocked for
+---the given builder unit type only (see GG.BuildBlocking in api_build_blocking.lua).
+---@param unitDefID number
+---@param builderDefID number? The builder unit type whose menu is shown.
+---@return boolean
+local function isRestricted(unitDefID, builderDefID)
+	if unitRestricted[unitDefID] then
+		return true
+	end
+	if not builderDefID then
+		return false
+	end
+	local builderRestricted = builderUnitRestricted[builderDefID]
+	return builderRestricted ~= nil and builderRestricted[unitDefID] ~= nil
+end
+
+---Records a block change (the UnitBlocked callin).
+---@param unitDefID number
+---@param reasons table<string, boolean> Empty once the unit is no longer blocked.
+---@param builderDefID number? Set when the block applies to one builder unit type only.
+local function setBlocked(unitDefID, reasons, builderDefID)
+	if builderDefID then
+		builderUnitRestricted[builderDefID] = builderUnitRestricted[builderDefID] or {}
+		builderUnitRestricted[builderDefID][unitDefID] = next(reasons) ~= nil and reasons or nil
+	else
+		unitRestricted[unitDefID] = next(reasons) ~= nil
+		unitHidden[unitDefID] = reasons.hidden ~= nil
+	end
+end
+
+---Loads the current blocks from the team rules params (widget load, /luaui reload).
+local function loadBlocked()
+	for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs()) do
+		setBlocked(unitDefID, reasons)
+	end
+	for builderDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs()) do
+		builderUnitRestricted[builderDefID] = blockedUnits
+	end
+end
+
 local units = {
+	isRestricted = isRestricted,
+	setBlocked = setBlocked,
+	loadBlocked = loadBlocked,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
 	unitHidden = unitHidden,
+	---Units greyed out for one builder type only: builder UnitDefID -> blocked UnitDefID -> reasons.
+	builderUnitRestricted = builderUnitRestricted,
 	unitIconType = unitIconType,
 	unitMaxWeaponRange = unitMaxWeaponRange,
 	---Set of unit IDs that are factories.
