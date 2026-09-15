@@ -1,4 +1,5 @@
 # September
+- [Territorial Domination] Territories now accumulate points continuously, increase in value at each Deadline, and use a redesigned compact score panel.
 - [Scavenger Zombies]
   - After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
   - Zombies spawn with XP skewed to the minimum veterancy so they aren't so tanky so often.

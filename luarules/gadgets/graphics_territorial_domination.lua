@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "Territorial Domination Graphics",
-		desc = "Renders territorial domination grid overlay and UI elements",
+		desc = "Renders territorial domination grid overlay",
 		author = "SethDGamre",
 		date = "2025.02.08",
 		license = "GNU GPL, v2",
