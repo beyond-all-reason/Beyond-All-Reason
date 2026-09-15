@@ -4,7 +4,6 @@
 --- LogResult writes the messages.
 ---
 
-local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local validationReport = VFS.Include("luarules/mission_api/validation/report.lua")
 local createReport = validationReport.Create
 local sections = validationReport.Sections
@@ -52,10 +51,6 @@ local function createValidationContext(mission, definitions, report)
 		-- Trigger definitions:
 		TriggerTypes = triggerDefinitions.Types,
 		TriggerParameters = triggerDefinitions.Parameters,
-		TriggerTypesWithQuantity = schemaUtils.GetTypesWithParameterType(
-			triggerDefinitions.Parameters,
-			parameterTypes.Types.Quantity
-		),
 
 		-- Action definitions:
 		ActionTypes = actionDefinitions.Types,

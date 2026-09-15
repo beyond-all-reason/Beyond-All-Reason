@@ -3,6 +3,7 @@
 ---
 
 local SECTIONS = VFS.Include("luarules/mission_api/validation/report.lua").Sections
+local getTypesWithParameterType = VFS.Include("luarules/mission_api/schema_utils.lua").GetTypesWithParameterType
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -166,7 +167,14 @@ local function getObjectiveFieldTypes(Types)
 	}
 end
 
-local function validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
+local function validateObjectiveInlineTrigger(
+	context,
+	objectiveReport,
+	validateSchema,
+	statisticsTriggerTypes,
+	objective,
+	objectiveID
+)
 	local trigger = objective.trigger
 	if type(trigger) ~= "table" then
 		return
@@ -182,7 +190,7 @@ local function validateObjectiveInlineTrigger(context, objectiveReport, validate
 	-- Statistics triggers require a quantity, but an objective tracks its progress with its
 	-- own 'amount' instead: the loader registers a managed objective, which never reads quantity.
 	local parameters = trigger.parameters
-	if context.TriggerTypesWithQuantity[trigger.type] and type(parameters) == "table" then
+	if statisticsTriggerTypes[trigger.type] and type(parameters) == "table" then
 		if parameters.quantity ~= nil then
 			objectiveReport.Warn(objectiveID, "Objective trigger 'quantity' is not supported and will be ignored")
 		end
@@ -203,6 +211,7 @@ end
 local function validateObjectivesSection(context, report, parameterValidators, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
 	local fieldTypes = getObjectiveFieldTypes(context.Types)
+	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
 
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objectiveID) ~= "string" then
@@ -219,7 +228,14 @@ local function validateObjectivesSection(context, report, parameterValidators, v
 			end
 
 			validateTypedFields(objectiveReport, objectiveID, parameterValidators, fieldTypes, objective, "Field")
-			validateObjectiveInlineTrigger(context, objectiveReport, validateSchema, objective, objectiveID)
+			validateObjectiveInlineTrigger(
+				context,
+				objectiveReport,
+				validateSchema,
+				statisticsTriggerTypes,
+				objective,
+				objectiveID
+			)
 		end
 	end
 end
