@@ -316,6 +316,10 @@ function gadget:Initialize()
 	end
 end
 
+function gadget:GameStart()
+	dispatchTriggerCallin("GameStart")
+end
+
 function gadget:GameFrame(frameNumber)
 	if frameNumber % Game.gameSpeed == 0 then
 		-- Reset reclaim income counters (read by ResourceIncome handlers):
