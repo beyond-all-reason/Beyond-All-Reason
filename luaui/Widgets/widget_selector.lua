@@ -118,6 +118,12 @@ local metrics = {
 	-- Where the description starts, as a fraction of the list width. A widget's name is
 	-- the thing being hunted for, so it gets the room; the description is context.
 	descSplit = 0.42,
+	-- And where it starts with the cost columns showing. Everything ahead of the name
+	-- shifts right to make room for them while a fixed split would not, so the two columns
+	-- come out of the name's width alone and the names start being cut. The split moves
+	-- with them instead, giving back about half of what they took - half rather than all
+	-- of it because the description is being cut by then too.
+	descSplitCost = 0.47,
 }
 local look = {
 	sidebarFill = { 0, 0, 0, 0.24 },
@@ -231,17 +237,20 @@ look.tip = {
 	-- a button that throws something away heads its tooltip in red instead, as its face is.
 	danger = "\255\255\125\125",
 }
+-- How a row's name and its description read in each of the three states a widget can be
+-- in. `pending` - enabled but not running - is warm, because nothing is actually
+-- happening. One table rather than five locals: this chunk is at Lua's ceiling of 200.
+look.rowText = {
+	name = "\255\145\143\140",
+	nameOn = "\255\248\248\248",
+	namePending = "\255\255\210\135",
+	desc = "\255\105\105\105",
+	descOn = "\255\175\175\175",
+}
 local colorTitle = "\255\235\235\235"
-local colorName = "\255\145\143\140"
-local colorNameOn = "\255\248\248\248"
-local colorDesc = "\255\105\105\105"
-local colorDescOn = "\255\175\175\175"
 local colorSelected = "\255\210\210\205"
 local colorDim = "\255\160\160\160"
 local colorText = "\255\235\235\235"
--- A widget the player wrote or dropped in themselves, rather than one the game ships.
--- Enabled but not running: warm, because nothing is actually happening.
-local colorPending = "\255\255\210\135"
 -- The tags at the end of a row: whose file the widget is, and which UI it draws
 -- through. One table rather than one local each - this chunk is at Lua's 200.
 local tagColors = {
@@ -330,6 +339,67 @@ local function groupOf(data)
 	return (prefix and GROUPS[prefix]) or OTHER
 end
 
+-- The widgets a player has starred, and everything the star is drawn from. A category of
+-- its own like the prefix groups, but chosen rather than read off a filename: what someone
+-- reaches for often, kept a click away however the rest of the list is filtered.
+--
+-- Starring says nothing about whether a widget runs. It is a bookmark, not a switch, so
+-- it survives the widget being turned off, a set being loaded over it, and a reload.
+--
+-- One table rather than a local each, and the draw and the toggle hang off it below the
+-- way `sweep` and `sortBy` hang their functions off theirs: this chunk is at Lua's 200.
+local fav = {
+	-- name -> true. The category key the column and the row filter go by is the string
+	-- below, alongside "changed" and "local", which are views of the list in the same way.
+	names = {},
+	key = "favorite",
+	-- Dark enough that a column of unstarred rows reads as empty slots rather than as a
+	-- column of icons, and it warms towards the starred colour under the cursor so the
+	-- click says what it would do before it is made.
+	off = { 0.4, 0.4, 0.42, 1 },
+	offHover = { 0.85, 0.76, 0.4, 1 },
+	on = { 1, 0.81, 0.24, 1 },
+	-- Brighter but no paler: the row under a hovered star is lit too, and a wash of white
+	-- gold on a lit row reads as the star stepping back rather than forward.
+	onHover = { 1, 0.9, 0.4, 1 },
+	-- How the star is drawn at rest and under the cursor: how much bigger it is, how far
+	-- past it the soft pass under it reaches, how many bands that pass is built from, and
+	-- what each band carries.
+	--
+	-- The size is what carries the hover. A star that is already yellow has hardly anywhere
+	-- brighter to go - there is no headroom in the colour, and what there is competes with
+	-- the row's own highlight - whereas a fifth again of the size reads at a glance whatever
+	-- is behind it. The wider, stronger glow that comes with it is the rest of the signal.
+	--
+	-- The band at rest is not a hover cue at all: it is there to take the staircase off a
+	-- shape made almost entirely of diagonal edges at this size.
+	rest = { size = 1, spread = 0.16, bands = 1, alpha = 0.3 },
+	lit = { size = 1.22, spread = 0.34, bands = 2, alpha = 0.28 },
+}
+
+-- The star as a triangle fan about its own centre: five outer points and five inner ones
+-- on a unit circle, the last repeating the first to close the fan. Every point of a star
+-- can be seen from its centre, so a fan draws it whole without tessellating anything.
+-- Worked out here rather than written down as twenty-two numbers nobody could check.
+function fav.shape(inner)
+	local points = {}
+	for i = 0, 10 do
+		-- From straight up, a tenth of a turn at a time, alternating the two radii.
+		local a = math.pi * (0.5 + i * 0.2)
+		local r = (i % 2 == 0) and 1 or inner
+		points[#points + 1] = math.cos(a) * r
+		points[#points + 1] = math.sin(a) * r
+	end
+
+	return points
+end
+
+fav.points = fav.shape(0.47)
+
+function fav.toggle(name)
+	fav.names[name] = (not fav.names[name]) or nil
+end
+
 local L = {}
 
 local show, showOnceMore
@@ -361,11 +431,17 @@ local switches = {
 	{ key = "byLoad", sub = "profiler" },
 }
 
--- Every widget the panel can show, as rows; and the categories they fall into.
+-- Every widget the panel can show, as rows; and the categories they fall into. Each is a
+-- table of whatever the builder below puts on it, said here rather than left to be read
+-- off the one literal that happens to construct it: every one of these is filled in one
+-- place and read in a dozen, and an element inferred from an empty `{}` carries no fields.
+---@type table[]
 local entries = {}
 -- The same entries, by name, for the staleness scan below.
 local entryByName = {}
+---@type table[]
 local categories = {}
+---@type table[]
 local rows = {}
 local rowsGen = 0
 local layoutGen = 0
@@ -395,7 +471,10 @@ local selectedCategory
 -- readings rather than two flags, and here rather than in a local of its own, because
 -- this chunk is at Lua's ceiling of 200 - and because this is the table the saved
 -- settings round-trip.
-local filters = { enabledOnly = false, errorsOnly = false, byOrder = false, profiler = false, byLoad = false }
+-- `profiler` starts on rather than off: what a widget costs is the thing this panel is
+-- most often opened to find out, and a column nobody knows is there is a column nobody
+-- switches on. It is the one switch here that is not free - see where it is restored.
+local filters = { enabledOnly = false, errorsOnly = false, byOrder = false, profiler = true, byLoad = false }
 ---@type table
 local searchBox
 ---@type table
@@ -442,7 +521,7 @@ local pressedRow
 local pressedButton = 0
 local pressedOn
 
-local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, btn = "", dlg = "" }
+local hover = { sb = 0, row = 0, sw = 0, tog = 0, bar = 0, clr = 0, dat = 0, star = 0, btn = "", dlg = "" }
 
 -- Input ownership, taken once when the search field takes focus and given back when it
 -- loses it. `widgetHandler:OwnText()` is not available here: it is built onto the
@@ -879,8 +958,11 @@ local function buildCategories()
 	local counts, active, total, on = {}, {}, 0, 0
 	local changed, changedOn = 0, 0
 	local mine, mineOn = 0, 0
+	local starred, starredOn = 0, 0
 	for i = 1, #entries do
 		local e = entries[i]
+		-- The loop covers every index, so this cannot be nil.
+		---@cast e -?
 		if (not filters.enabledOnly or e.state > 0) and (not filters.errorsOnly or e.errors) then
 			counts[e.group] = (counts[e.group] or 0) + 1
 			total = total + 1
@@ -900,10 +982,23 @@ local function buildCategories()
 					mineOn = mineOn + 1
 				end
 			end
+			if fav.names[e.name] then
+				starred = starred + 1
+				if e.data.active then
+					starredOn = starredOn + 1
+				end
+			end
 		end
 	end
 
 	categories = { { key = nil, label = L.all, count = total, active = on } }
+	-- The starred ones, at the head of the column under All: whatever someone stars is what
+	-- they open this panel for, so it is the shortest way back to it. Like the two views
+	-- below it, it cuts across the prefix groups rather than being one of them - and like
+	-- them it is left out entirely while there is nothing in it.
+	if starred > 0 then
+		categories[#categories + 1] = { key = fav.key, label = L.favorites, count = starred, active = starredOn }
+	end
 	-- Everything switched to something other than what it ships as: what this game has
 	-- been customised into, which is the question the panel is usually opened with. It
 	-- sits at the head of the column rather than as a sixth header switch, which is more
@@ -1050,10 +1145,13 @@ rebuildRows = function()
 
 	for i = 1, #entries do
 		local e = entries[i]
+		-- The loop covers every index, so this cannot be nil.
+		---@cast e -?
 		if (not filters.enabledOnly or e.state > 0) and (not filters.errorsOnly or e.errors) then
-			-- `changed` and `local` are views of the whole list rather than filename prefixes, so
-			-- each is matched on what it means instead of on the group.
+			-- `favorite`, `changed` and `local` are views of the whole list rather than filename
+			-- prefixes, so each is matched on what it means instead of on the group.
 			local inView = not selectedCategory
+				or (selectedCategory == fav.key and fav.names[e.name])
 				or (selectedCategory == "changed" and e.changed)
 				or (selectedCategory == "local" and e.isLocal)
 				or e.group == selectedCategory
@@ -1072,8 +1170,11 @@ rebuildRows = function()
 						scored[#scored + 1] = { e = e, score = score }
 					end
 					local on = e.data.active
+					-- Only ever reached with something typed, which is what filled it above.
+					---@cast found -?
 					add(categories[1], on)
 					add(found[e.group], on)
+					add(fav.names[e.name] and found[fav.key], on)
 					add(e.changed and found.changed, on)
 					add(e.isLocal and found["local"], on)
 				end
@@ -1265,6 +1366,8 @@ local function currentSet()
 	local names = {}
 	for i = 1, #entries do
 		local e = entries[i]
+		-- The loop covers every index, so this cannot be nil.
+		---@cast e -?
 		if e.state > 0 then
 			names[e.name] = true
 		end
@@ -1292,6 +1395,8 @@ local function applySet(name)
 
 	for i = 1, #entries do
 		local e = entries[i]
+		-- The loop covers every index, so this cannot be nil.
+		---@cast e -?
 		local want = set.widgets[e.name] == true
 		if want and e.state == 0 then
 			widgetHandler:EnableWidget(e.name)
@@ -2001,19 +2106,34 @@ setLayout = function()
 	if filters.byOrder then
 		metrics.orderW = font and mathFloor(font:GetTextWidth("8888") * metrics.rowFs) or mathFloor(34 * s)
 	end
+	-- The star, ahead of everything that names the widget - which is where the column
+	-- carries it ahead of the Favourites label, so the two read as the same mark. A column
+	-- of its own rather than a hit box carved out of the row: a click on it must star the
+	-- widget rather than switch it, and both halves of that click have to land on the star.
+	metrics.starR = mathMax(4, mathFloor(6 * s))
+	metrics.starW = metrics.starR * 2
+	metrics.starX1 = orderX1 + metrics.orderW + (metrics.orderW > 0 and metrics.rowPad * 2 or 0)
 	-- The square in the widget's group colour, just ahead of its name: the name is what the eye
 	-- lands on, so the colour beside it is read with it rather than looked for along the row.
 	metrics.swatch = mathMax(5, mathFloor(8 * s))
 	metrics.swatchGap = mathFloor(7 * s)
 	metrics.swatchCorner = mathMax(1, mathFloor(metrics.swatch * 0.25))
-	metrics.swatchX1 = orderX1 + metrics.orderW + (metrics.orderW > 0 and metrics.rowPad * 2 or 0)
+	-- What the star leaves either side of itself is the star's to be clicked on, so the
+	-- swatch starts a full pad past it rather than against it.
+	metrics.swatchX1 = metrics.starX1 + metrics.starW + metrics.rowPad * 2
+	-- And what answers a click: the star and the pad either side of it. Measured once here
+	-- rather than at both places that ask - the hover test and the press - so the two
+	-- cannot come apart, and a twelve-pixel target is not the whole of what has to be hit.
+	metrics.starHit1 = metrics.starX1 - metrics.rowPad
+	metrics.starHit2 = metrics.swatchX1 - metrics.rowPad
 	nameX1 = metrics.swatchX1 + metrics.swatch + metrics.swatchGap
 	listTop = area.y2 - metrics.headerH - metrics.headerGap
 	local footerTop = area.y1 + metrics.footerH
 	listBottom = footerTop + metrics.footerGap
 	barX1 = area.x2 - metrics.edgeInset - metrics.barW
 	listRight = barX1 - metrics.listGap
-	descX1 = listX1 + mathFloor((listRight - listX1) * metrics.descSplit)
+	local split = filters.profiler and metrics.descSplitCost or metrics.descSplit
+	descX1 = listX1 + mathFloor((listRight - listX1) * split)
 
 	-- The header band: the switches against the right edge, and the search field takes
 	-- whatever width they leave it.
@@ -2164,12 +2284,13 @@ local function fitRow(row)
 	end
 	row.fitGen = layoutGen
 
-	local nameColor = colorName
-	local descColor = colorDesc
+	local ink = look.rowText
+	local nameColor = ink.name
+	local descColor = ink.desc
 	if row.state == 1 then
-		nameColor, descColor = colorNameOn, colorDescOn
+		nameColor, descColor = ink.nameOn, ink.descOn
 	elseif row.state == 0.5 then
-		nameColor, descColor = colorPending, colorDescOn
+		nameColor, descColor = ink.namePending, ink.descOn
 	end
 
 	if metrics.orderW > 0 then
@@ -2226,7 +2347,42 @@ local function drawButtonFace(r, fill)
 
 	UiButton(r[1], r[2], r[3], r[4], 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
 end
-local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overData)
+
+-- The fan itself, handed to gl.BeginEnd rather than closed over, so nothing is allocated
+-- per star. gl.Vertex and gl.BeginEnd are reached through their tables rather than through
+-- locals the way the rest of this file reaches the GL calls it makes: a star is only drawn
+-- while the panel is being baked, and the panel is baked when something about it moves.
+function fav.fan(cx, cy, r, cr, cg, cb, ca)
+	local p = fav.points
+	glColor(cr, cg, cb, ca)
+	gl.Vertex(cx, cy, 0)
+	for i = 1, #p, 2 do
+		gl.Vertex(cx + p[i] * r, cy + p[i + 1] * r, 0)
+	end
+end
+
+-- One star, on its centre, in the colour its state and the cursor put it in. Drawn twice:
+-- a wider, faint pass under the solid one, which takes the staircase off an edge at this
+-- size. There is no antialiasing to lean on, and five points and five notches is a shape
+-- made almost entirely of diagonal edges.
+function fav.draw(cx, cy, r, on, hovered)
+	local c = on and (hovered and fav.onHover or fav.on) or (hovered and fav.offHover or fav.off)
+	-- Widest first, so the bands stack inward and one alpha makes a falloff. One band that
+	-- wide would read as a second star drawn round the first rather than as light. Only one
+	-- star is ever under the cursor, so the extra band is paid for once a bake.
+	local how = hovered and fav.lit or fav.rest
+	r = r * how.size
+	for i = how.bands, 1, -1 do
+		local spread = 1 + how.spread * (i / how.bands)
+		gl.BeginEnd(GL.TRIANGLE_FAN, fav.fan, cx, cy, r * spread, c[1], c[2], c[3], c[4] * how.alpha)
+	end
+	gl.BeginEnd(GL.TRIANGLE_FAN, fav.fan, cx, cy, r, c[1], c[2], c[3], c[4])
+	-- Put back, so what is baked after this is painted in its own colour rather than in a
+	-- star's. Everything else here draws through FlowUI, which sets its own.
+	glColor(1, 1, 1, 1)
+end
+
+local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overData, overStar)
 	fitRow(row)
 
 	-- A widget an error stopped reads as its own state rather than as the amber one: it is
@@ -2255,6 +2411,10 @@ local function drawRow(row, top, bottom, hovered, overSwitch, overClear, overDat
 		-- Right-aligned, so the ranks line up as a column however many digits they run to.
 		queueText(row.fitOrder, orderX1 + metrics.orderW, ty, metrics.rowFs, "rov")
 	end
+	-- The star, ahead of the name. On every row rather than only on the starred ones: an
+	-- empty slot is what says a row can be starred, and a mark that only appears once the
+	-- click has been found is a mark nobody finds.
+	fav.draw(metrics.starX1 + metrics.starR, ty, metrics.starR, fav.names[row.name] ~= nil, overStar)
 	-- The group the widget is in, in that group's colour from the column: in All, and in the
 	-- views and searches that cut across the groups, this is what says where a row belongs.
 	-- Faded on a row that is off, the way its name and description are.
@@ -2403,7 +2563,8 @@ local function drawRows()
 			hover.row == i,
 			hover.row == i and hover.sw == 1,
 			hover.row == i and hover.clr == 1,
-			hover.row == i and hover.dat == 1
+			hover.row == i and hover.dat == 1,
+			hover.row == i and hover.star == 1
 		)
 	end
 end
@@ -2563,6 +2724,8 @@ local function drawSidebar()
 
 	for i = catScroll + 1, #categories do
 		local c = categories[i]
+		-- The loop covers every index, so this cannot be nil.
+		---@cast c -?
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 < categoryBottom() then
 			break
@@ -2595,8 +2758,18 @@ local function drawSidebar()
 		local ty = mathFloor((y1 + y2) * 0.5)
 		-- A prefix group carries its colour ahead of its label, which is the key to the squares on
 		-- the rows. All, Changed and Your own cut across the groups, so they have none.
+		--
+		-- Favourites carries the same star its rows are starred with instead, in the slot the
+		-- colour would have taken: the mark on the rows and the mark on the category it
+		-- collects them into are the one mark, so neither has to be explained.
 		local swatch = c.key and look.groups[c.key]
-		if swatch then
+		if c.key == fav.key then
+			-- Never lit, however the entry under it is: the halo on a row's star is what says
+			-- the cursor is on the star itself and that clicking it would star or unstar that
+			-- widget. Nothing here can be clicked that way, so this one is a label, and a label
+			-- that lights with the row it is on would be read as offering the same click.
+			fav.draw(x1 + metrics.sidePad + mathFloor(metrics.swatch * 0.5), ty, metrics.starR, true, false)
+		elseif swatch then
 			local swatchY = ty - mathFloor(metrics.swatch * 0.5)
 			RectRound(
 				x1 + metrics.sidePad,
@@ -2911,7 +3084,8 @@ local function rowClearable(i)
 end
 
 local function panelChanged(mx, my)
-	hover.sb, hover.row, hover.sw, hover.tog, hover.bar, hover.clr, hover.dat = 0, 0, 0, 0, 0, 0, 0
+	hover.sb, hover.row, hover.sw, hover.tog, hover.bar = 0, 0, 0, 0, 0
+	hover.clr, hover.dat, hover.star = 0, 0, 0
 	hover.btn, hover.dlg = "", ""
 
 	if dataView.name then
@@ -2943,8 +3117,13 @@ local function panelChanged(mx, my)
 			-- The switch lights on its own, so it is plain that it is the thing being pointed
 			-- at rather than the row behind it. The clear button at the other end the same, and
 			-- only on the rows that have one.
-			if hover.row > 0 and mx >= switchX1 - metrics.rowPad and mx <= nameX1 - metrics.rowPad then
+			if hover.row > 0 and mx >= switchX1 - metrics.rowPad and mx <= metrics.starHit1 then
 				hover.sw = 1
+			-- The star warms towards the colour it would turn rather than lighting a plate: a
+			-- click on it does something other than what a click on the row does, so it has to
+			-- say what before it is made.
+			elseif hover.row > 0 and mx >= metrics.starHit1 and mx <= metrics.starHit2 then
+				hover.star = 1
 			elseif hover.row > 0 and mx >= clearX1 and rowClearable(hover.row) then
 				hover.clr = 1
 			elseif hover.row > 0 and mx >= metrics.dataX1 and rowClearable(hover.row) then
@@ -2996,9 +3175,10 @@ local function panelChanged(mx, my)
 	-- Only asked while a dialog is actually up: answering it trims the field with a gsub,
 	-- and a gsub on every frame the panel is open is a string on every frame.
 	now[16] = dialog ~= nil and select(2, dialogName()) or false
+	now[18] = hover.star
 
 	local changed = false
-	for i = 1, 17 do
+	for i = 1, 18 do
 		if was[i] ~= now[i] then
 			was[i] = now[i]
 			changed = true
@@ -3114,6 +3294,7 @@ local function loadLabels()
 
 	L.title = tr("title", "Widget Selector")
 	L.all = tr("category.all", "All")
+	L.favorites = tr("category.favorite", "Favorites")
 	L.interface = tr("category.interface", "Interface")
 	L.commands = tr("category.commands", "Commands")
 	L.units = tr("category.units", "Units")
@@ -3188,6 +3369,12 @@ local function loadLabels()
 	L.profiler = tr("profiler", "Cost")
 	L.byLoad = tr("byload", "By cost")
 	L.cleardata = tr("cleardata", "Reset")
+	L.starAdd = tr("staradd", "Add to favorites")
+	L.starRemove = tr("starremove", "Remove from favorites")
+	L.starDesc = tr(
+		"stardesc",
+		"Collects this widget under Favorites at the top of the column, so it is one click away whatever else the list is showing. It is a bookmark and nothing more: it does not switch the widget on, and it is remembered between games."
+	)
 	L.showdata = tr("showdata", "Show data")
 	L.showdataDesc =
 		tr("showdatadesc", "Everything this widget has saved, the way it is stored. Click to read all of it.")
@@ -3225,6 +3412,10 @@ local function loadLabels()
 		-- The column. What a full-word category actually collects is the one thing its label
 		-- deliberately does not say.
 		all = tr("alldesc", "Every widget the game knows about, whether it is running or not."),
+		favorites = tr(
+			"favoritedesc",
+			"The widgets you have starred. Click the star ahead of any widget's name to put it here, and click it again to take it out. Nothing else about the widget changes."
+		),
 		changed = tr(
 			"changeddesc",
 			"Every widget switched to something other than what it ships as - on when it ships off, or off when it ships on. What this game has been customised into, and exactly what Factory defaults would undo."
@@ -3670,9 +3861,13 @@ local function showTooltip(row)
 
 	if hover.sb > 0 and categories[hover.sb] then
 		local c = categories[hover.sb]
+		-- The index came from the column itself, and the line above checked it is still there.
+		---@cast c -?
 		caption = c.label
 		if c.key == nil then
 			body = L.desc.all
+		elseif c.key == fav.key then
+			body = L.desc.favorites
 		elseif c.key == "changed" then
 			body = L.desc.changed
 		elseif c.key == "local" then
@@ -3751,6 +3946,25 @@ local function showTooltip(row)
 	-- The row's two buttons come first, ahead of the row's own held tooltip below. That one is kept for
 	-- the row alone, and moving along the row onto a button does not change the row - so over the
 	-- buttons it went on showing the row's details.
+	-- Over the star, what the star does, headed with what this particular click would do to
+	-- this particular row: the mark is small and says nothing in words, and the difference
+	-- between adding and removing is the whole of what a reader wants confirmed first.
+	if hover.star == 1 then
+		local starred = fav.names[row.name] ~= nil
+		if not tipCache.same("star", row.name, starred, false) then
+			tipCache.keep(
+				"star",
+				row.name,
+				starred,
+				false,
+				(starred and L.starRemove or L.starAdd) .. "\n",
+				"\255\255\255\255" .. string.gsub(font:WrapText(L.starDesc, maxWidth), "[\n]", "\n\255\255\255\255")
+			)
+		end
+		WG.tooltip.ShowTooltip("widgetselector", tipCache.text, nil, nil, tipCache.title)
+
+		return
+	end
 	-- Over the clear button the tooltip is about the button, not the widget: the row's
 	-- details are what the rest of the row already answers, and a button that throws
 	-- settings away should say so before it is pressed rather than only after. Word for
@@ -3837,6 +4051,8 @@ local function showTooltip(row)
 			end
 			shown = shown + 1
 			local e = entries[i]
+			-- The loop covers every index, so this cannot be nil.
+			---@cast e -?
 			local msg = string.match(tostring(e.message), "^[^\n]*")
 			msg = string.gsub(msg, '%[string "([^"]*)"%]', function(path)
 				return string.match(path, "([^/]+)$") or path
@@ -4313,7 +4529,9 @@ local function mouseEvent(x, y, button, release)
 		-- the cursor: releasing over the row after pressing one would otherwise toggle the
 		-- widget. One value rather than a flag per button, since only one can be under it.
 		local onButton
-		if overRow and overRow.hasConfig and x >= clearX1 and x <= listRight then
+		if overRow and x >= metrics.starHit1 and x <= metrics.starHit2 then
+			onButton = "star"
+		elseif overRow and overRow.hasConfig and x >= clearX1 and x <= listRight then
 			onButton = "clear"
 		elseif overRow and overRow.hasConfig and x >= metrics.dataX1 and x < clearX1 then
 			onButton = "data"
@@ -4328,7 +4546,17 @@ local function mouseEvent(x, y, button, release)
 				-- Both halves of the click have to be on the same button. Pressing one and sliding
 				-- off before letting go is how a player takes an accidental press back.
 				if onButton == pressedOn then
-					if onButton == "data" then
+					if onButton == "star" then
+						-- A bookmark either way, so it asks nothing and can be taken back by clicking
+						-- again. The column has to be rebuilt as well as the rows: starring the first
+						-- widget is what puts Favourites in it, and unstarring the last takes it out.
+						fav.toggle(overRow.name)
+						buildCategories()
+						rebuildRows()
+						-- Held where it was rather than sent back to the top: unstarring a row inside
+						-- Favourites shortens the list under the cursor, and nothing else moved.
+						clampScroll()
+					elseif onButton == "data" then
 						dataView.open(overRow.name)
 					-- Named rather than left as an else: this is the branch that throws settings
 					-- away, and a button added later must not fall through into it.
@@ -4422,6 +4650,7 @@ function widget:GetConfigData()
 		category = selectedCategory,
 		sets = sets,
 		pickedSet = pickedSet,
+		favorites = fav.names,
 		-- Only written while it is set, so it is not a line in everyone's config saying no.
 		reopen = filters.reopen ~= nil or nil,
 	}
@@ -4448,6 +4677,17 @@ function widget:SetConfigData(data)
 		end
 	end
 	pickedSet = type(data.pickedSet) == "string" and data.pickedSet or nil
+	-- Taken name by name rather than as read, for the same reason the sets above are: this
+	-- comes off disk. A name for a widget that is no longer installed is kept rather than
+	-- dropped - it costs a string, and it means a widget put back is still starred.
+	fav.names = {}
+	if type(data.favorites) == "table" then
+		for name in pairs(data.favorites) do
+			if type(name) == "string" then
+				fav.names[name] = true
+			end
+		end
+	end
 	filters.enabledOnly = data.enabledOnly == true
 	filters.errorsOnly = data.errorsOnly == true
 	filters.byOrder = data.byOrder == true
@@ -4457,7 +4697,13 @@ function widget:SetConfigData(data)
 	-- something, and the switch says plainly what it does. Acting on it waits for the
 	-- first Update: this runs while the handler is still loading widgets, which is no
 	-- time to start wrapping their callins.
-	filters.profiler = data.profiler == true
+	--
+	-- The odd one out in this block: read as on unless it was saved off, rather than off
+	-- unless it was saved on. That is what makes the default above stand for someone who
+	-- has never touched the switch, while still letting anyone who switched it off keep it
+	-- off - GetConfigData writes the field either way, so only a config that has never seen
+	-- this panel is missing it.
+	filters.profiler = data.profiler ~= false
 	filters.byLoad = filters.profiler and data.byLoad == true
 	selectedCategory = type(data.category) == "string" and data.category or nil
 	filters.reopen = data.reopen == true and "restore" or nil
