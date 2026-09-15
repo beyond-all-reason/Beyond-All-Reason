@@ -1032,6 +1032,12 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
+		if wDef.weapontype == "BeamLaser" and wDef.impactonly == 1 then
+			wDef.impactonly = nil
+			wDef.areaofeffect = 11
+			wDef.edgeeffectiveness = 1
+		end
+
 		-- Remove water splashes on lava maps
 		if modOptions.map_waterislava and wDef.weapontype == "TorpedoLauncher" then
 			wDef.explosiongenerator = "custom:blank"
