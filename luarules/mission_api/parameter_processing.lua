@@ -9,6 +9,8 @@ local enumSets = GG["MissionAPI"].Modules.ParameterTypes.EnumSets
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local triggersSchemaParameters = GG["MissionAPI"].TriggerDefinitions.Parameters
+local teams = GG["MissionAPI"].Teams
+local allyTeams = GG["MissionAPI"].AllyTeams
 
 ----------------------------------------------------------------
 --- Parameter processors:
@@ -19,7 +21,7 @@ local function processPosition(position)
 end
 
 local function processPositions(positions)
-	for _, position in ipairs(positions) do
+	for _, position in pairs(positions) do
 		processPosition(position)
 	end
 end
@@ -70,6 +72,31 @@ local function processEnumSet(values)
 	return valueSet
 end
 
+local function processTeamName(teamName)
+	return teams[teamName]
+end
+
+local function processAllyTeamName(allyTeamName)
+	return allyTeams[allyTeamName]
+end
+
+local function processAllyTeamNames(allyTeamNames)
+	local allyTeamIDs = {}
+	for index, allyTeamName in ipairs(allyTeamNames) do
+		allyTeamIDs[index] = allyTeams[allyTeamName]
+	end
+	return allyTeamIDs
+end
+
+local function processUnitLoadout(unitLoadout)
+	for _, entry in ipairs(unitLoadout or {}) do
+		entry.teamID = teams[entry.teamName]
+		if entry.orders then
+			processOrders(entry.orders)
+		end
+	end
+end
+
 local processors = {
 	[ParameterTypes.Position] = processPosition,
 	[ParameterTypes.Positions] = processPositions,
@@ -77,6 +104,10 @@ local processors = {
 	[ParameterTypes.Orders] = processOrders,
 	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
+	[ParameterTypes.TeamName] = processTeamName,
+	[ParameterTypes.AllyTeamName] = processAllyTeamName,
+	[ParameterTypes.AllyTeamNames] = processAllyTeamNames,
+	[ParameterTypes.UnitLoadout] = processUnitLoadout,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet
@@ -86,20 +117,24 @@ end
 --- Public processing functions:
 ----------------------------------------------------------------
 
-local function processParameters(actionsOrTriggers, schemaParameters)
-	for _, actionOrTrigger in pairs(actionsOrTriggers) do
-		local parameters = actionOrTrigger.parameters or {}
-		local schema = schemaParameters[actionOrTrigger.type] or {}
-		for _, parameter in ipairs(schema) do
-			local value = parameters[parameter.name]
-			local processor = processors[parameter.type]
-			if value ~= nil and processor then
-				local result = processor(value)
-				if result ~= nil then
-					parameters[parameter.name] = result
-				end
+local function processParameterSet(parameters, schema)
+	for _, parameter in ipairs(schema) do
+		local value = parameters[parameter.name]
+		local processor = processors[parameter.type]
+		if value ~= nil and processor then
+			local result = processor(value)
+			if result ~= nil then
+				-- valueKey is the authored name for everything except team parameters, which land
+				-- under a second key (`teamName` -> `teamID`) so the name stays for error messages.
+				parameters[parameter.valueKey] = result
 			end
 		end
+	end
+end
+
+local function processParameters(actionsOrTriggers, schemaParameters)
+	for _, actionOrTrigger in pairs(actionsOrTriggers) do
+		processParameterSet(actionOrTrigger.parameters or {}, schemaParameters[actionOrTrigger.type] or {})
 	end
 end
 
@@ -111,7 +146,20 @@ local function processTriggerParameters(triggers)
 	processParameters(triggers, triggersSchemaParameters)
 end
 
+--- Managed objectives hold their authored trigger parameters outside of `Triggers`, since no trigger
+--- is synthesized for them, so they are resolved separately. They are grouped by trigger type.
+local function processManagedObjectiveParameters(managedObjectives)
+	for triggerType, managedObjectivesOfType in pairs(managedObjectives or {}) do
+		local schema = triggersSchemaParameters[triggerType] or {}
+		for _, managedObjective in ipairs(managedObjectivesOfType) do
+			processParameterSet(managedObjective.parameters or {}, schema)
+		end
+	end
+end
+
 return {
 	ProcessActionParameters = processActionParameters,
 	ProcessTriggerParameters = processTriggerParameters,
+	ProcessManagedObjectiveParameters = processManagedObjectiveParameters,
+	ProcessUnitLoadout = processUnitLoadout,
 }

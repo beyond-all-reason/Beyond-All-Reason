@@ -1,6 +1,8 @@
 local TRIGGERS_DIR = "luarules/mission_api/triggers/"
 local TRIGGER_FILES_PATTERN = "*.lua"
 
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+
 -- Some triggers declare no callins and are activated elsewhere:
 -- - statistics triggers (TotalUnits*, UnitsOwned) by statistics.lua
 -- - event-type triggers by whatever owns the trigger (objectives.lua)
@@ -40,7 +42,7 @@ local function loadTriggerDefinitions()
 	return {
 		Types = types,
 		Settings = settings,
-		Parameters = parameters,
+		Parameters = schemaUtils.AssignValueKeys(parameters),
 		Callins = callins,
 	}
 end

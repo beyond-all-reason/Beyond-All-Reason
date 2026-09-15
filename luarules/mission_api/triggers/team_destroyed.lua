@@ -3,7 +3,7 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 return {
 	type = 'TeamDestroyed',
 	parameters = {
-		{ name = 'teamID', required = true, type = ParameterTypes.Number },
+		{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
 	},
 	callins = {
 		TeamDied = function(trigger, triggerID, context, teamID)

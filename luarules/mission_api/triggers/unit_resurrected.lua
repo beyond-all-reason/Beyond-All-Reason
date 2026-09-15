@@ -4,7 +4,7 @@ return {
 	type = 'UnitResurrected',
 	parameters = {
 		{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+		{ name = 'teamName',    required = false, type = ParameterTypes.TeamName },
 		{ name = 'featureName', required = false, type = ParameterTypes.FeatureName },
 		requiresOneOf = { 'featureName', 'unitDefName' },
 	},

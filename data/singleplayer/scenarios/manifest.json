@@ -1,0 +1,5 @@
+{
+	"$schema": "../schemas/manifest.schema.json",
+
+	"scenarios": []
+}

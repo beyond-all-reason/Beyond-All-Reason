@@ -1,6 +1,8 @@
 local ACTIONS_DIR = "luarules/mission_api/actions/"
 local ACTION_FILES_PATTERN = "*.lua"
 
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+
 -- action definition files are required to be in a subfolder
 local function loadActionDefinitions()
 
@@ -26,7 +28,7 @@ local function loadActionDefinitions()
 
 	return {
 		Types = types,
-		Parameters = parameters,
+		Parameters = schemaUtils.AssignValueKeys(parameters),
 		Functions = actionFunctions,
 	}
 end

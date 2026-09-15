@@ -1,0 +1,81 @@
+{
+	"$schema": "../../../schemas/mission.schema.json",
+	"missionId": "start_script_test",
+	"authors": ["Rasoul"],
+	"titleKey": "title",
+	"descriptionKey": "description",
+	"image": "scenario002.jpg",
+	"startPos": { "x": 0.25, "y": 0.25 },
+	"briefing": {
+		"alliesPresent": [
+			"briefing.alliesPresent.1",
+			"briefing.alliesPresent.2"
+		],
+		"objectives": [
+			"briefing.objectives.1",
+			"briefing.objectives.2"
+		],
+		"knownHostiles": [
+			"briefing.knownHostiles.1",
+			"briefing.knownHostiles.2"
+		],
+		"newUnits": [
+			{
+				"unitDefName": "armflash",
+				"descriptionKey": "briefing.newUnits.armflash"
+			},
+			{
+				"unitDefName": "armcv",
+				"descriptionKey": "briefing.newUnits.armcv"
+			}
+		]
+	},
+	"startScript": {
+		"mapName": "Fallendell_V4",
+		"startPosType": "chooseBeforeGame",
+		"disableFactionPicker": true,
+		"disableInitialCommanderSpawn": true,
+		"players": { "min": 1, "max": 4 },
+		"unitLimits": {
+			"armavp": 0,
+			"coravp": 5
+		},
+		"modOptions": {
+			"deathMode": "builders",
+			"maxunits": 2000,
+			"map_waterlevel": 150,
+			"startenergy": 1500,
+			"startmetal": 500,
+			"ruins": "enabled"
+		},
+		"mapOptions": {
+			"roads": 1,
+			"waterlevel": 0,
+			"waterdamage": 0
+		},
+		"allyTeams": {
+			"thePlayerAllyTeam": {
+				"teams": {
+					"thePlayerTeam": {
+						"nameKey": "teams.thePlayerTeam",
+						"side": "Cortex",
+						"startPosX": 700,
+						"startPosZ": 700
+					}
+				}
+			},
+			"theEnemyAllyTeam": {
+				"teams": {
+					"theEnemyTeam": {
+						"nameKey": "teams.theEnemyTeam",
+						"side": "Armada",
+						"startPosX": 3000,
+						"startPosZ": 2400,
+						"incomeMultiplier": 1.5,
+						"ai": "SimpleAI"
+					}
+				}
+			}
+		}
+	}
+}

@@ -30,7 +30,7 @@ describe("mission_api.triggers.unit_exists", function()
 		assert.are.equal("UnitExists", unitExists.type)
 		assert.are.equal("unitDefName", unitExists.parameters[1].name)
 		assert.is_true(unitExists.parameters[1].required)
-		assert.are.equal("teamID", unitExists.parameters[2].name)
+		assert.are.equal("teamName", unitExists.parameters[2].name)
 		assert.is_falsy(unitExists.parameters[2].required)
 	end)
 

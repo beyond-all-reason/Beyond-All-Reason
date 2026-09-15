@@ -36,6 +36,7 @@ describe("mission_api.statistics", function()
 		objectiveUpdates = {}
 		GG["MissionAPI"] = {
 			ManagedObjectives = {},
+			Teams = { teamA = 0, teamB = 5 },
 			Modules = {
 				Objectives = {
 					-- Spy: record every argument it receives so tests can assert on them.
@@ -124,14 +125,14 @@ describe("mission_api.statistics", function()
 		assert.are.equal(2, #activated)
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		triggers.filterTeam = makeTrigger(TRIGGER_TYPE, { teamID = 5, quantity = 1 })
 
 		-- Wrong team: no match.
 		statistics.Increment(TRIGGER_TYPE, 0, "armwar", {})
 		assert.are.equal(0, #activated)
 
-		-- Right team: fires.
+		-- Right team (teamB = 5): fires.
 		statistics.Increment(TRIGGER_TYPE, 5, "armwar", {})
 		assert.are.equal(1, #activated)
 	end)

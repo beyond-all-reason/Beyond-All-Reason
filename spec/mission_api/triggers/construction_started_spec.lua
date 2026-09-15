@@ -5,6 +5,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and
 -- Spring.GetUnitIsBeingBuilt / UnitDefs / Spring.GetUnitDefID inside its handler.
 Builders.MissionApi.new():Install()
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 -- Builder ids double as their own defIDs below, so UnitDefs is keyed by both. Maybe too confusing.
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
@@ -60,7 +61,7 @@ describe("mission_api.triggers.construction_started", function()
 			names[parameter.name] = true
 		end
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.builderName)
 		assert.is_true(names.builderDefName)
 	end)
@@ -76,7 +77,7 @@ describe("mission_api.triggers.construction_started", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
 		created(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9, 10)
 		assert.are.equal(0, fired())
