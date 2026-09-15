@@ -38,24 +38,27 @@ local triggers = {
 
 local actions = {
 	addMarkerBeginner = {
-		type = actionTypes.AddMarker,
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerName = "beginnerMarker",
 			position = { x = 700, z = 900 },
 			label = "Difficulty: Beginner",
 		},
 	},
 
 	addMarkerNormal = {
-		type = actionTypes.AddMarker,
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerName = "normalMarker",
 			position = { x = 800, z = 900 },
 			label = "Difficulty: Normal",
 		},
 	},
 
 	addMarkerHard = {
-		type = actionTypes.AddMarker,
+		type = actionTypes.AddMapMarker,
 		parameters = {
+			markerName = "hardMarker",
 			position = { x = 900, z = 900 },
 			label = "Difficulty: Hard",
 		},

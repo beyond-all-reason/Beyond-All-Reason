@@ -1436,18 +1436,19 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	end
 end
 
+-- Only the erase side is checked: permanent markers left for the rest of the mission are ordinary
+-- and do not warn.
 local function validateMarkerNameReferences(actionTypes, actions)
 	local createdMarkerNames = {}
 	local referencedMarkerNames = {}
 	for actionID, action in pairs(actions) do
-		if action.type == actionTypes.AddMarker then
-			local markerName = action.parameters.name
+		if action.type == actionTypes.AddMapMarker then
+			local markerName = action.parameters.markerName
 			if markerName then
-				createdMarkerNames[markerName] = createdMarkerNames[markerName] or {}
-				createdMarkerNames[markerName][#createdMarkerNames[markerName] + 1] = actionID
+				createdMarkerNames[markerName] = true
 			end
-		elseif action.type == actionTypes.EraseMarker then
-			local markerName = action.parameters.name
+		elseif action.type == actionTypes.RemoveMapMarker then
+			local markerName = action.parameters.markerName
 			if markerName then
 				referencedMarkerNames[markerName] = referencedMarkerNames[markerName] or {}
 				referencedMarkerNames[markerName][#referencedMarkerNames[markerName] + 1] = actionID
@@ -1461,16 +1462,6 @@ local function validateMarkerNameReferences(actionTypes, actions)
 				"Marker name '"
 					.. markerName
 					.. "' is not created in any action. Referenced in: "
-					.. table.concat(actionIDs, ", ")
-			)
-		end
-	end
-	for markerName, actionIDs in pairs(createdMarkerNames) do
-		if not referencedMarkerNames[markerName] then
-			logWarn(
-				"Marker name '"
-					.. markerName
-					.. "' is not referenced by any action. Referenced in: "
 					.. table.concat(actionIDs, ", ")
 			)
 		end

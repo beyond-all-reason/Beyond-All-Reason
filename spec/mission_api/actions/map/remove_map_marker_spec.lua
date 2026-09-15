@@ -5,12 +5,11 @@ local Builders = VFS.Include("spec/builders/index.lua")
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
 
-local actions = VFS.Include("luarules/mission_api/actions/map/erase_marker.lua")
+local actions = VFS.Include("luarules/mission_api/actions/map/remove_map_marker.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
-describe("mission_api.actions.erase_marker", function()
-
+describe("mission_api.actions.remove_map_marker", function()
 	local missionApi, eraseCalls
 
 	before_each(function()
@@ -21,8 +20,8 @@ describe("mission_api.actions.erase_marker", function()
 
 	it("declares its type and parameters", function()
 		assert.are.same({
-			type = "EraseMarker",
-			name = "String!",
+			type = "RemoveMapMarker",
+			markerName = "String!",
 		}, summarizeSchema(action))
 	end)
 
@@ -36,19 +35,18 @@ describe("mission_api.actions.erase_marker", function()
 			assert.are.equal(15, eraseCalls[1].z)
 		end)
 
-		it("removes the name from markerNames after erasing", function()
+		it("removes the marker name from markerNames after erasing", function()
 			missionApi.markerNames["flag"] = { x = 0, y = 0, z = 0 }
 			action.actionFunction("flag")
 			assert.is_nil(missionApi.markerNames["flag"])
 		end)
 
-		it("is a no-op when the name is not in markerNames (no MarkerErasePosition call)", function()
+		it("is a no-op when the marker name is not in markerNames (no MarkerErasePosition call)", function()
 			action.actionFunction("unknownMarker")
 			assert.are.equal(0, #eraseCalls)
 		end)
 
-		it("still removes the name even if position was nil", function()
-			-- name key exists, but value is nil - this shouldn't normally happen, but guard anyway
+		it("still removes the marker name even if position was nil", function()
 			action.actionFunction("ghost")
 			assert.is_nil(missionApi.markerNames["ghost"])
 		end)

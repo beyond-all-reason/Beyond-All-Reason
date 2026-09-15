@@ -76,5 +76,9 @@
 	"countdowns_test.description": "Tests the countdown actions and the CountdownReached and CountdownFinished triggers, including pausing, cancelling and adjusting a countdown.",
 	"countdowns_test.title": "Countdowns Test",
 	"countdowns_test.teams.theEnemyTeam": "Mission Bots",
-	"countdowns_test.teams.thePlayerTeam": "TestPlayer"
+	"countdowns_test.teams.thePlayerTeam": "TestPlayer",
+	"unit_attacked_test.description": "Tests the UnitAttacked trigger, which fires on enemy weapon damage and ignores allied self-destruct blasts that have no attacker.",
+	"unit_attacked_test.title": "UnitAttacked Test",
+	"unit_attacked_test.teams.theEnemyTeam": "Mission Bots",
+	"unit_attacked_test.teams.thePlayerTeam": "TestPlayer"
 }

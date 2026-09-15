@@ -29,6 +29,7 @@
 		"transport_loaded_test",
 		"unit_loaded_test",
 		"unit_received_test",
-		"countdowns_test"
+		"countdowns_test",
+		"unit_attacked_test"
 	]
 }
