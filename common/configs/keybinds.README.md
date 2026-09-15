@@ -10,8 +10,9 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 |---|---|---|
 | `keybind_catalog.json` | Ordered categories of keybindable commands, with i18n label keys and bind-action ids. | `keybind_catalog.schema.json` |
 | `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap. | `keybind_defaults.schema.json` |
+| `keybind_retired_includes.json` | What the deleted `luaui/configs/hotkeys` fragments bound, for migrating a player's own bind file that still keyloads one. | `keybind_retired_includes.schema.json` |
 
-Both are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
+All three are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
 profile names unique across the shipped set, every purely modifier-only action marked
 read-only, and every action command written in lower case.
 
@@ -29,6 +30,13 @@ A profile is a whole keymap, never a delta - applying one replaces everything, s
 there is no base layer to reason about. The shipped profiles carry their bindings
 inline rather than pointing at bind files, so a consumer reads one shape whether the
 profile came from this file or from the player's own.
+
+A player's own file can still `keyload` the bind files those profiles replaced, which is what
+`keybind_retired_includes.json` is for. A preset path resolves by name to the profile that
+covers it, but the fragments the presets pulled in - the chat and UI keys, the grid menu, the
+number row - name no profile, so without their contents a migration would drop every binding
+they held. It is a frozen record of files that no longer exist, not something to keep in step
+with the profiles.
 
 Every shipped profile is selectable and read-only; editing one forks a copy under a name
 the player chooses.
