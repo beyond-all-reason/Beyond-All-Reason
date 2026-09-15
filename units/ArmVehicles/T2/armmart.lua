@@ -3,6 +3,7 @@ return {
 		buildpic = "ARMMART.DDS",
 		buildtime = 8500,
 		canmove = true,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "36 20 38",
 		collisionvolumetype = "Box",
@@ -39,6 +40,7 @@ return {
 		customparams = {
 			basename = "base",
 			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			firingceg = "barrelshot-medium",
 			kickback = "-6",
 			model_author = "FireStorm",
