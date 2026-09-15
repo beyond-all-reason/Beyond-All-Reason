@@ -13,10 +13,8 @@ local realDefinitions = triggersLoader.LoadTriggerDefinitions()
 local realTriggerFiles = VFS.DirList("luarules/mission_api/triggers/", "*.lua")
 
 describe("mission_api.triggers_loader", function()
-	local ParameterTypes = parameterTypes.Types
-
 	before_each(function()
-		-- loadTriggerDefinitions reads the parameter-type table from GG at call time.
+		-- Real trigger definition files read the parameter types from GG at include time.
 		GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 		RegisterMissionApiModules()
 	end)
@@ -97,28 +95,14 @@ describe("mission_api.triggers_loader", function()
 			end
 		end)
 
-		it("returns the shared settings schema", function()
-			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha" } } })
-
-			assert.are.same({
-				prerequisites = ParameterTypes.Table,
-				repeating = ParameterTypes.Boolean,
-				maxRepeats = ParameterTypes.Number,
-				difficulties = ParameterTypes.Table,
-				coop = ParameterTypes.Boolean,
-				active = ParameterTypes.Boolean,
-				stages = ParameterTypes.Table,
-			}, definitions.Settings)
-		end)
-
-		it("returns only Types, Settings, Parameters, and Callins", function()
+		it("returns only Types, Parameters, and Callins", function()
 			local definitions = loadWith({ { path = "a.lua", def = { type = "Alpha" } } })
 
 			local keys = {}
 			for key in pairs(definitions) do
 				keys[key] = true
 			end
-			assert.are.same({ Types = true, Settings = true, Parameters = true, Callins = true }, keys)
+			assert.are.same({ Types = true, Parameters = true, Callins = true }, keys)
 		end)
 
 		it("handles an empty triggers directory", function()
@@ -127,7 +111,6 @@ describe("mission_api.triggers_loader", function()
 			assert.are.same({}, definitions.Types)
 			assert.are.same({}, definitions.Parameters)
 			assert.are.same({}, definitions.Callins)
-			assert.is_table(definitions.Settings)
 		end)
 	end)
 

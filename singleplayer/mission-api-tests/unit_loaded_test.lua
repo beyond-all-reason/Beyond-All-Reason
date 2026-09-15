@@ -27,7 +27,7 @@ local triggers = {
 	passengerLoaded = {
 		type = triggerTypes.UnitLoaded,
 		parameters = {
-			unitName = 'passenger',
+			passengerName = 'passenger',
 		},
 		actions = { 'messagePassengerLoaded' },
 	},
@@ -35,7 +35,7 @@ local triggers = {
 	pawnLoadedByAtlas = {
 		type = triggerTypes.UnitLoaded,
 		parameters = {
-			unitDefName = 'armpw',
+			passengerDefName = 'armpw',
 			teamID = 0,
 			transportDefName = 'armatlas',
 		},
@@ -55,7 +55,7 @@ local triggers = {
 	turretAttached = {
 		type = triggerTypes.UnitLoaded,
 		parameters = {
-			unitDefName = 'corvacct',
+			passengerDefName = 'corvacct',
 		},
 		actions = { 'messageTurretAttached' },
 	},
