@@ -1,5 +1,6 @@
 require("spec_helper")
 
+local Builders = VFS.Include("spec/builders/index.lua")
 local RegisterMissionApiModules = require("mission_api.spec_helper")
 
 -- mirror eager module loading in api_missions.lua
@@ -18,7 +19,11 @@ describe("mission_api.parameter_processing", function()
 
 	before_each(function()
 		savedUnitDefNames = _G.UnitDefNames
-		_G.UnitDefNames = { armsolar = { id = 42 }, armck = { id = 7 } }
+		local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
+			[42] = { name = "armsolar" },
+			[7] = { name = "armck" },
+		})
+		_G.UnitDefNames = unitDefs:GetUnitDefNames()
 	end)
 
 	after_each(function()

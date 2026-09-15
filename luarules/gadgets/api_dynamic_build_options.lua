@@ -53,10 +53,14 @@ if gadgetHandler:IsSyncedCode() then
 	local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 
 	local teamsList = Spring.GetTeamList()
+	---@cast teamsList -?
 
 	-- builderUnitDefID -> { builtUnitDefID = true }, as defined by the unit defs.
 	-- Only unit defs that get a builder or factory command AI have an entry.
+	---@type table<number, table<number, true>?>
 	local staticBuildOptions = {}
+	---@type table<number, boolean>
+	local isFactoryDef = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.isBuilder then
 			local options = {}
@@ -64,24 +68,30 @@ if gadgetHandler:IsSyncedCode() then
 				options[builtUnitDefID] = true
 			end
 			staticBuildOptions[unitDefID] = options
+			isFactoryDef[unitDefID] = unitDef.isFactory == true
 		end
 	end
 
 	-- builderUnitDefID -> { builtUnitDefID = position or false }
+	---@type table<number, table<number, number|false>?>
 	local addedBuildOptions = {}
 	-- builderUnitDefID -> { builtUnitDefID = true }
+	---@type table<number, table<number, true>?>
 	local removedBuildOptions = {}
 
+	---@param builtUnitDefID integer
+	---@param isFactory boolean
 	local function buildOptionCmdDesc(builtUnitDefID, isFactory)
 		local builtUnitDef = UnitDefs[builtUnitDefID]
-		local name = string.lower(builtUnitDef.name)
+		---@cast builtUnitDef table
+		local name = tostring(builtUnitDef.name)
 		return {
 			id = -builtUnitDefID,
 			type = isFactory and CMDTYPE_ICON or CMDTYPE_ICON_BUILDING,
-			name = builtUnitDef.name,
-			action = "buildunit_" .. name,
+			name = name,
+			action = "buildunit_" .. string.lower(name),
 			tooltip = "Build: " .. builtUnitDef.humanName .. " - " .. (builtUnitDef.tooltip or ""),
-			cursor = builtUnitDef.name,
+			cursor = name,
 			disabled = builtUnitDef.maxThisUnit <= 0,
 		}
 	end
@@ -138,9 +148,14 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function isStaticOption(builtUnitDefID, builderUnitDefID)
+		local options = staticBuildOptions[builderUnitDefID]
+		return options ~= nil and options[builtUnitDefID] == true
+	end
+
 	local function publish(builderUnitDefID, builtUnitDefID, added)
 		local paramName = RULES_PARAM_PREFIX .. builderUnitDefID .. "_" .. builtUnitDefID
-		if added == (staticBuildOptions[builderUnitDefID][builtUnitDefID] == true) then
+		if added == isStaticOption(builtUnitDefID, builderUnitDefID) then
 			spSetGameRulesParam(paramName, nil) -- back to what the unit def says
 		else
 			spSetGameRulesParam(paramName, added and 1 or 0)
@@ -150,7 +165,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function validate(builtUnitDefID, builderUnitDefID, caller)
 		if not UnitDefs[builtUnitDefID] then
-			Spring.Log(gadget:GetInfo().name, LOG.WARNING, caller .. ": unknown built unitDefID " .. tostring(builtUnitDefID))
+			Spring.Log(
+				gadget:GetInfo().name,
+				LOG.WARNING,
+				caller .. ": unknown built unitDefID " .. tostring(builtUnitDefID)
+			)
 			return false
 		end
 		if not staticBuildOptions[builderUnitDefID] then
@@ -169,12 +188,9 @@ if gadgetHandler:IsSyncedCode() then
 		if removed then
 			removed[builtUnitDefID] = nil
 		end
-		if not staticBuildOptions[builderUnitDefID][builtUnitDefID] then
-			local added = addedBuildOptions[builderUnitDefID]
-			if not added then
-				added = {}
-				addedBuildOptions[builderUnitDefID] = added
-			end
+		if not isStaticOption(builtUnitDefID, builderUnitDefID) then
+			local added = addedBuildOptions[builderUnitDefID] or {}
+			addedBuildOptions[builderUnitDefID] = added
 			added[builtUnitDefID] = position or false
 		end
 	end
@@ -184,12 +200,9 @@ if gadgetHandler:IsSyncedCode() then
 		if added then
 			added[builtUnitDefID] = nil
 		end
-		if staticBuildOptions[builderUnitDefID][builtUnitDefID] then
-			local removed = removedBuildOptions[builderUnitDefID]
-			if not removed then
-				removed = {}
-				removedBuildOptions[builderUnitDefID] = removed
-			end
+		if isStaticOption(builtUnitDefID, builderUnitDefID) then
+			local removed = removedBuildOptions[builderUnitDefID] or {}
+			removedBuildOptions[builderUnitDefID] = removed
 			removed[builtUnitDefID] = true
 		end
 	end
@@ -211,7 +224,7 @@ if gadgetHandler:IsSyncedCode() then
 			position = nil
 		end
 		registerAdded(builtUnitDefID, builderUnitDefID, position)
-		forEachUnitOfDef(builderUnitDefID, insertBuildOption, builtUnitDefID, UnitDefs[builderUnitDefID].isFactory, position)
+		forEachUnitOfDef(builderUnitDefID, insertBuildOption, builtUnitDefID, isFactoryDef[builderUnitDefID], position)
 		publish(builderUnitDefID, builtUnitDefID, true)
 		return true
 	end
@@ -237,15 +250,11 @@ if gadgetHandler:IsSyncedCode() then
 	---@param builderUnitDefID UnitDefID
 	---@return boolean
 	function GG.DynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID)
-		local static = staticBuildOptions[builderUnitDefID]
-		if not static then
-			return false
-		end
 		local removed = removedBuildOptions[builderUnitDefID]
 		if removed and removed[builtUnitDefID] then
 			return false
 		end
-		if static[builtUnitDefID] then
+		if isStaticOption(builtUnitDefID, builderUnitDefID) then
 			return true
 		end
 		local added = addedBuildOptions[builderUnitDefID]
@@ -261,9 +270,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local added = addedBuildOptions[unitDefID]
 		if added then
-			local isFactory = UnitDefs[unitDefID].isFactory
 			for builtUnitDefID, position in pairs(added) do
-				insertBuildOption(unitID, builtUnitDefID, isFactory, position or nil)
+				insertBuildOption(unitID, builtUnitDefID, isFactoryDef[unitDefID], position or nil)
 			end
 		end
 	end

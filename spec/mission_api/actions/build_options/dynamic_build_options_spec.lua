@@ -22,6 +22,7 @@ local removeAction = findAction("RemoveBuildOption")
 
 describe("mission_api.actions.dynamic_build_options", function()
 
+	---@type { add: table[], remove: table[] }
 	local calls
 
 	before_each(function()
@@ -79,7 +80,7 @@ describe("mission_api.actions.dynamic_build_options", function()
 			addAction.actionFunction(42, 7, 3)
 
 			assert.are.equal(1, #calls.add)
-			assert.are.equal(3, calls.add[1].position)
+			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7, position = 3 }, calls.add[1])
 		end)
 	end)
 

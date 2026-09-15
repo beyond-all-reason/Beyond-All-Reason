@@ -41,7 +41,7 @@ function dynamicBuildOptions.patch(buildOptions, builtDefID, added)
 end
 
 --- Applies every published runtime change to a table of build option arrays.
----@param unitBuildOptions table<number, number[]> UnitDefID -> build option UnitDefIDs, patched in place.
+---@param unitBuildOptions table<number, number[]?> UnitDefID -> build option UnitDefIDs, patched in place.
 function dynamicBuildOptions.apply(unitBuildOptions)
 	for builderDefID, options in pairs(dynamicBuildOptions.getChanges()) do
 		local buildOptions = unitBuildOptions[builderDefID]

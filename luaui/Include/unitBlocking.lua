@@ -94,7 +94,7 @@ function unitBlocking.getBuilderBlockedUnitDefs()
 			local unitDefID = tonumber(unitDefIDStr)
 			if builderDefID and unitDefID and UnitDefs[builderDefID] and UnitDefs[unitDefID] then
 				local reasons = {}
-				for reason in value:gmatch("[^,]+") do
+				for reason in string.gmatch(tostring(value), "[^,]+") do
 					reasons[reason] = true
 				end
 				blockedUnits[builderDefID] = blockedUnits[builderDefID] or {}

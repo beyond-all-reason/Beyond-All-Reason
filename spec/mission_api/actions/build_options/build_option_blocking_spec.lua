@@ -22,6 +22,7 @@ local enableAction = findAction("EnableBuildOption")
 
 describe("mission_api.actions.build_option_blocking", function()
 
+	---@type { add: table[], remove: table[] }
 	local calls
 
 	before_each(function()
@@ -82,9 +83,7 @@ describe("mission_api.actions.build_option_blocking", function()
 			disableAction.actionFunction(42, 7, 1)
 
 			assert.are.equal(1, #calls.add)
-			assert.are.equal(7, calls.add[1].builderUnitDefID)
-			assert.are.equal(42, calls.add[1].unitDefID)
-			assert.are.equal(1, calls.add[1].teamID)
+			assert.are.same({ unitDefID = 42, teamID = 1, reasonKey = "mission", builderUnitDefID = 7 }, calls.add[1])
 		end)
 	end)
 
@@ -101,14 +100,17 @@ describe("mission_api.actions.build_option_blocking", function()
 			enableAction.actionFunction(42, 7, 1)
 
 			assert.are.equal(1, #calls.remove)
-			assert.are.equal(7, calls.remove[1].builderUnitDefID)
+			assert.are.same(
+				{ unitDefID = 42, teamID = 1, reasonKey = "mission", builderUnitDefID = 7 },
+				calls.remove[1]
+			)
 		end)
 
-		it("uses the same reason key as DisableBuildOption", function()
+		it("removes exactly what DisableBuildOption added", function()
 			disableAction.actionFunction(42, nil, 0)
 			enableAction.actionFunction(42, nil, 0)
 
-			assert.are.equal(calls.add[1].reasonKey, calls.remove[1].reasonKey)
+			assert.are.same(calls.add[1], calls.remove[1])
 		end)
 	end)
 

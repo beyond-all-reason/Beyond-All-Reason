@@ -50,6 +50,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamBuilderBlockedUnitDefs = {}
 
 	local teamsList = Spring.GetTeamList()
+	---@cast teamsList -?
 
 	local ignoredTeams = {}
 	local scavTeamID, raptorTeamID = BAR.Utilities.GetScavTeamID(), BAR.Utilities.GetRaptorTeamID()
