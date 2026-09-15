@@ -23,6 +23,14 @@ local definitions = {
 }
 GG["MissionAPI"] = previousMissionAPI
 
+-- Validation reads its definitions from GG, the way the rest of the API does, so a stand-in
+-- for what api_missions.lua installs is held here and put in place only while it runs.
+local missionAPI = {
+	Modules = modules,
+	ActionDefinitions = definitions.ActionDefinitions,
+	TriggerDefinitions = definitions.TriggerDefinitions,
+}
+
 local validation = VFS.Include("luarules/mission_api/validation.lua")
 
 local helper = {
@@ -49,17 +57,31 @@ function helper.mission()
 	return Builders.Mission.new()
 end
 
+--- Runs `call` with `installed` as GG["MissionAPI"], putting back whatever was there.
+--- Validation reads its definitions from GG, so every call to it goes through here.
+function helper.withMissionAPI(installed, call)
+	local previous = GG["MissionAPI"]
+	GG["MissionAPI"] = installed
+	local ok, result = call()
+	GG["MissionAPI"] = previous
+
+	return ok, result
+end
+
+--- The definitions api_missions.lua installs, as GG["MissionAPI"] holds them.
+function helper.missionAPI()
+	return missionAPI
+end
+
 --- Validates a mission, given as a builder or a raw table. The returned result has
 --- its errors and warnings flattened into `messages`, since both are asserted on.
 --- @return table result { ok, errors, warnings, messages }
 function helper.validate(mission)
 	local raw = type(mission) == "table" and mission.Build and mission:Build() or mission
 
-	-- Validation must not read GG, so it is unset for the duration of the call.
-	local installedMissionAPI = GG["MissionAPI"]
-	GG["MissionAPI"] = nil
-	local succeeded, result = pcall(validation.ValidateMission, raw, definitions)
-	GG["MissionAPI"] = installedMissionAPI
+	local succeeded, result = helper.withMissionAPI(missionAPI, function()
+		return pcall(validation.ValidateMission, raw)
+	end)
 
 	assert(succeeded, result)
 

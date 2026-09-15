@@ -25,13 +25,15 @@ local function missionTable(value, fieldName, section, report)
 	return value
 end
 
---- Read-only view of the raw mission data and the injected definitions.
+--- Read-only view of the raw mission data and the loaded definitions.
+--- Definitions are read when validation runs, not when this file is included, so that
+--- including it does not depend on how far GG["MissionAPI"] has been populated.
 --- @param mission table raw mission table, exactly as returned by the mission file
---- @param definitions table { ParameterTypes, TriggerDefinitions, ActionDefinitions }
-local function createValidationContext(mission, definitions, report)
-	local parameterTypes = definitions.ParameterTypes
-	local triggerDefinitions = definitions.TriggerDefinitions
-	local actionDefinitions = definitions.ActionDefinitions
+local function createValidationContext(mission, report)
+	local missionAPI = GG["MissionAPI"]
+	local parameterTypes = missionAPI.Modules.ParameterTypes
+	local triggerDefinitions = missionAPI.TriggerDefinitions
+	local actionDefinitions = missionAPI.ActionDefinitions
 
 	return {
 		-- Raw mission data:
@@ -58,8 +60,8 @@ local function createValidationContext(mission, definitions, report)
 	}
 end
 
-local function runValidation(mission, definitions, report)
-	local context = createValidationContext(mission, definitions, report)
+local function runValidation(mission, report)
+	local context = createValidationContext(mission, report)
 	local parameterValidators = createParameterValidators(context)
 
 	sectionsValidation.Validate(context, report, parameterValidators)
@@ -67,12 +69,11 @@ local function runValidation(mission, definitions, report)
 end
 
 --- @param mission table raw mission table, exactly as returned by the mission file
---- @param definitions table { ParameterTypes, TriggerDefinitions, ActionDefinitions }
 --- @return table result { ok = boolean, errors = string[], warnings = string[] }
-local function validateMission(mission, definitions)
+local function validateMission(mission)
 	local report = createReport()
 
-	local succeeded, err = pcall(runValidation, mission, definitions, report)
+	local succeeded, err = pcall(runValidation, mission, report)
 
 	local result = report.GetResult()
 	if not succeeded then

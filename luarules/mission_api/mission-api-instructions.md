@@ -26,7 +26,8 @@ Nothing here works outside this sequence, so keep it in mind when something read
    loaded mission does not need.
 
 Module and definition files run at include time and read `GG['MissionAPI']` directly. Never add a load-time read of
-something registered later in that sequence; move it into a function or into `Initialize()`.
+something registered later in that sequence; move it into a function or into `Initialize()`. `validation.lua` reads
+the definitions per call rather than at include time, so that including it does not pin it to one load order.
 
 ## Type IDs are directory-order integers
 

@@ -46,7 +46,12 @@ describe("mission_api.validation", function()
 		end)
 
 		it("is not ok and reports the failure when validation errors out internally", function()
-			local result = validation.ValidateMission({}, { ParameterTypes = V.definitions.ParameterTypes })
+			-- Definitions missing from GG, which is as internal as a failure gets.
+			local withoutDefinitions = { Modules = { ParameterTypes = V.definitions.ParameterTypes } }
+
+			local _, result = V.withMissionAPI(withoutDefinitions, function()
+				return pcall(validation.ValidateMission, {})
+			end)
 
 			assert.is_false(result.ok)
 			assert.is_true(#result.errors > 0)

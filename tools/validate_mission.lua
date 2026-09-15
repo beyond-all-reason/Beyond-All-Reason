@@ -390,11 +390,7 @@ end
 
 local validation = VFS.Include("luarules/mission_api/validation.lua")
 
-local result = validation.ValidateMission(mission, {
-	ParameterTypes = parameterTypes,
-	ActionDefinitions = actionDefinitions,
-	TriggerDefinitions = triggerDefinitions,
-})
+local result = validation.ValidateMission(mission)
 
 for _, message in ipairs(result.warnings) do
 	print("  [WARNING] " .. message)
