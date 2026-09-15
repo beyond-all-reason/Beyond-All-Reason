@@ -10,8 +10,9 @@ data or the rules. They hold *data and rules only* - no rendering, no engine cal
 |---|---|---|
 | `keybind_catalog.json` | Ordered categories of keybindable commands, with i18n label keys and bind-action ids. | `keybind_catalog.schema.json` |
 | `keybind_defaults.json` | The keybind profiles the game ships, each a complete keymap. | `keybind_defaults.schema.json` |
+| `keybind_retired_includes.json` | What the deleted `luaui/configs/hotkeys` fragments bound, for migrating a player's own bind file that still keyloads one. | `keybind_retired_includes.schema.json` |
 
-Both are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
+All three are validated in CI by `spec/common/keybind_catalog_spec.lua`: each file against its schema,
 profile names unique across the shipped set, every purely modifier-only action marked
 read-only, and every action command written in lower case.
 
@@ -29,6 +30,13 @@ A profile is a whole keymap, never a delta - applying one replaces everything, s
 there is no base layer to reason about. The shipped profiles carry their bindings
 inline rather than pointing at bind files, so a consumer reads one shape whether the
 profile came from this file or from the player's own.
+
+A player's own file can still `keyload` the bind files those profiles replaced, which is what
+`keybind_retired_includes.json` is for. A preset path resolves by name to the profile that
+covers it, but the fragments the presets pulled in - the chat and UI keys, the grid menu, the
+number row - name no profile, so without their contents a migration would drop every binding
+they held. It is a frozen record of files that no longer exist, not something to keep in step
+with the profiles.
 
 Every shipped profile is selectable and read-only; editing one forks a copy under a name
 the player chooses.
@@ -65,6 +73,12 @@ surface shows it or lets the player pick it:
   forces this for its own stateful commands (`drawinmap`, `move*`) regardless.
 - `"shift"` has no engine equivalent, so the binding is written twice, bare and `Shift+`,
   and both halves move together. Such an action holds exactly one key, not a list.
+
+An entry, action or prefix, may carry `"icon"`: the VFS path of a picture for the action,
+drawn on its key in the editor's keyboard overview (and wherever else a surface has room for
+one). Without one, an order shows the cursor it is already known by in game, and anything
+else shows no picture; the field exists so actions can be given pictures as art for them is
+made, without any surface changing.
 
 A category may carry `"layout": "grid"`, drawn as the grid menu's own 3x4 arrangement rather
 than a flat list so the keys read the way they sit on screen.
@@ -111,11 +125,13 @@ shape as the shipped ones plus an `active` field naming the selected profile. Th
 is per-install rather than shared, but its format is the contract - a surface that can
 read one can read the other.
 
-A player's profile carries `basedOn`, the name of the shipped profile it descends from:
+A player's profile carries `basedOn`, the name of the profile it is compared with:
 recorded when it was forked or duplicated, and otherwise (imported, or made before the
-field existed, or naming a profile that no longer ships) inferred on load as the shipped
+field existed, or naming a profile that no longer exists) inferred on load as the shipped
 profile it differs from on the fewest actions, and written back. That is what lets a
-surface say which keys the player changed and what the default was.
+surface say which keys the player changed and what the default was. The player can point
+it at any other profile, shipped or their own, or at `"none"`, which means no comparison
+and is the one value loading leaves alone rather than replacing with a guess.
 
 A shipped profile may carry `description`, an i18n key for a sentence saying what the
 profile is for, shown wherever a surface lets the player pick one.
