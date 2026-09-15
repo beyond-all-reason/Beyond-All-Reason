@@ -7,7 +7,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'addMarkerToErase', 'addMarkerToKeep', 'messageAddMarkers' },
+		actions = { 'addMarkerToRemove', 'addMarkerToKeep', 'messageAddMarkers' },
 	},
 
 	drawLines = {
@@ -18,28 +18,28 @@ local triggers = {
 		actions = { 'drawLines', 'messageDrawLines' },
 	},
 
-	eraseMarker = {
+	removeMarker = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 9,
 		},
-		actions = { 'eraseMarker', 'messageEraseMarker' },
+		actions = { 'removeMarker', 'messageRemoveMarker' },
 	},
 
-	clearAll = {
+	removeAll = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
 			seconds = 12,
 		},
-		actions = { 'clearAll', 'messageClearAll' },
+		actions = { 'removeAll', 'messageRemoveAll' },
 	},
 }
 
 local actions = {
-	addMarkerToErase = {
+	addMarkerToRemove = {
 		type = actionTypes.AddMapMarker,
 		parameters = {
-			markerName = 'markerToErase',
+			markerName = 'markerToRemove',
 			position = { x = 1900, z = 2200 },
 			markerType = 'mapmark',
 			label = 'This marker will be erased soon.',
@@ -57,7 +57,7 @@ local actions = {
 	messageAddMarkers = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Two markers: a labelled one to erase by ID, a bare one to leave until the end.',
+			message = 'Two markers: a labelled one to remove by name, a bare one to leave until the end.',
 		},
 	},
 
@@ -81,28 +81,28 @@ local actions = {
 		},
 	},
 
-	eraseMarker = {
-		type = actionTypes.EraseMarker,
+	removeMarker = {
+		type = actionTypes.RemoveMapMarker,
 		parameters = {
-			name = 'markerToErase',
+			markerName = 'markerToRemove',
 		},
 	},
 
-	messageEraseMarker = {
+	messageRemoveMarker = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's erase one marker by its ID.",
+			message = "Let's remove one marker by name.",
 		},
 	},
 
-	clearAll = {
-		type = actionTypes.ClearAllMarkers,
+	removeAll = {
+		type = actionTypes.RemoveAllMapMarkers,
 	},
 
-	messageClearAll = {
+	messageRemoveAll = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's clear all markers.",
+			message = "Let's remove every marker.",
 		},
 	},
 }
