@@ -3,7 +3,7 @@ return {
 		buildangle = 29096,
 		buildpic = "ARMVULC.DDS",
 		buildtime = 1400000,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 -45",
 		collisionvolumescales = "90 145 90",
 		collisionvolumetype = "CylY",
@@ -27,6 +27,8 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 4,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 7.5,
 			buildinggrounddecalsizey = 7.5,

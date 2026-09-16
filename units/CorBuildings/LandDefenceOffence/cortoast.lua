@@ -4,7 +4,7 @@ return {
 		buildangle = 8192,
 		buildpic = "CORTOAST.DDS",
 		buildtime = 25700,
-		canrepeat = false,
+		canrepeat = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "60 30 15",
 		collisionvolumetype = "CylY",
@@ -29,6 +29,8 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
+			canareaattack = 1,
+			groundattackaftersalvos = 1,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
