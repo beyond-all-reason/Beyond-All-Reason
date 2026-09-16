@@ -26,17 +26,15 @@ end
 
 -- Configuration
 
-local depthUpdateRate = 0.2500 ---@type number in seconds | for units with speeds variable by water depth
-local watchUpdateRate = 0.5000 ---@type number in seconds | slow watch interval for variable-speed units
+local depthUpdateRate = 0.2500 ---@type number # in seconds | for units with speeds variable by water depth
+local watchUpdateRate = 0.5000 ---@type number # in seconds | slow watch interval for variable-speed units
 
 -- Globals
 
 local math_clamp = math.clamp
 
-local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
-local spGetMoveTypeData = Spring.GetUnitMoveTypeData
 
 local ATTRIBUTE_SOURCE = "speedfactor_inwater"
 
@@ -44,10 +42,8 @@ local ATTRIBUTE_SOURCE = "speedfactor_inwater"
 
 local unitDefData = {}
 
-local function canHaveGroundMoveType(unitDef)
-	-- I think you are not supposed to be able to set a moveDef on air or immobile units,
-	-- but I think you can MoveCtrl.Enable, then MoveCtrl.SetMoveDef, to get around this.
-	return true -- so, lol
+local function hasSurfaceMoveType(unitDef)
+	return not unitDef.isHoveringAirUnit and not unitDef.isAirUnit and not unitDef.isImmobile
 end
 
 for defID, ud in pairs(UnitDefs) do
@@ -56,7 +52,7 @@ for defID, ud in pairs(UnitDefs) do
 	local speedFactorInWater = tonumber(params.speedfactorinwater or 1) or 1
 	local speedFactorAtDepth = math.abs(params.speedfactoratdepth and tonumber(params.speedfactoratdepth) or 0) * -1
 
-	if speedFactorInWater ~= 1 and canHaveGroundMoveType(ud) then
+	if speedFactorInWater ~= 1 and hasSurfaceMoveType(ud) then
 		if speedFactorAtDepth > -1 then
 			speedFactorAtDepth = 0
 		end
@@ -76,7 +72,7 @@ local fastUpdateFrames = math.round(depthUpdateRate * Game.gameSpeed)
 -- Local functions
 
 ---@param unitID UnitID
----@param factor number? A nil releases this gadget's claim on the unit.
+---@param factor number? A nil clears this source's factor.
 local function setSpeedModifiers(unitID, factor)
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 
@@ -89,26 +85,22 @@ local function setSpeedModifiers(unitID, factor)
 	setUnitModifier(unitID, "maxDec", accFactor, ATTRIBUTE_SOURCE)
 end
 
-local fake = {} -- just in case tbh
-
-local function canSetSpeed(unitID)
-	return spGetUnitIsDead(unitID) == false and (spGetMoveTypeData(unitID) or fake).name == "ground"
-end
-
 local function getUnitDepth(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
 	return x and spGetGroundHeight(x, z) or 0
 end
 
-local function applySpeed(unitID, unitData, factor)
-	if not factor then
-		factor = unitData.speedFactorInWater
-		local depthMax = unitData.speedFactorAtDepth
-		if depthMax < 0 then
-			factor = 1 + (factor - 1) * math_clamp(getUnitDepth(unitID) / depthMax, 0, 1)
-		end
+local function getDepthFactor(unitData, depth)
+	local factor = unitData.speedFactorInWater
+	local depthMax = unitData.speedFactorAtDepth
+	if depthMax < 0 then
+		factor = 1 + (factor - 1) * math_clamp(depth / depthMax, 0, 1)
 	end
-	setSpeedModifiers(unitID, factor)
+	return factor
+end
+
+local function applySpeed(unitID, unitData)
+	setSpeedModifiers(unitID, getDepthFactor(unitData, getUnitDepth(unitID)))
 end
 
 local function slowUpdate()
@@ -123,17 +115,12 @@ local function slowUpdate()
 end
 
 local function fastUpdate()
-	local canSetSpeed, getDepth, setModifiers = canSetSpeed, getUnitDepth, setSpeedModifiers -- micro speedup
+	local getDepth, getFactor, setModifiers = getUnitDepth, getDepthFactor, setSpeedModifiers -- micro speedup
 
 	for unitID, unitData in pairs(unitDepthFastUpdate) do
-		if canSetSpeed(unitID) then
-			local depth, depthMax = getDepth(unitID), unitData.speedFactorAtDepth
-			if depth >= depthMax - 15 then
-				setModifiers(unitID, 1 + (unitData.speedFactorInWater - 1) * math_clamp(depth / depthMax, 0, 1))
-			else
-				unitDepthSlowUpdate[unitID] = unitData
-				unitDepthFastUpdate[unitID] = nil
-			end
+		local depth = getDepth(unitID)
+		if depth >= unitData.speedFactorAtDepth - 15 then
+			setModifiers(unitID, getFactor(unitData, depth))
 		else
 			unitDepthSlowUpdate[unitID] = unitData
 			unitDepthFastUpdate[unitID] = nil
@@ -155,9 +142,7 @@ end
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	local unitData = unitDefData[unitDefID]
 	if unitData and getUnitDepth(unitID) <= 0 then
-		if canSetSpeed(unitID) then
-			applySpeed(unitID, unitData)
-		end
+		applySpeed(unitID, unitData)
 		if unitData.speedFactorAtDepth ~= 0 then
 			unitDepthFastUpdate[unitID] = unitData
 		end
@@ -172,9 +157,7 @@ end
 function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 	local unitData = unitDefData[unitDefID]
 	if unitData then
-		if canSetSpeed(unitID) then
-			applySpeed(unitID, unitData)
-		end
+		applySpeed(unitID, unitData)
 		if unitData.speedFactorAtDepth ~= 0 then
 			unitDepthFastUpdate[unitID] = unitData
 		end
