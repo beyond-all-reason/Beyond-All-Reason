@@ -1,6 +1,8 @@
 -- Arrangement resolution and the whole-map fill for allyteams the arrangement does not
 -- reach. Modoptions go through the spec helper's zlib and base64 stubs.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
 local MODULE_PATH = "luarules/gadgets/include/startbox_utilities.lua"
@@ -43,65 +45,53 @@ local SHORT_SET = set({
 	{ "4", evenArrangement(4) },
 })
 
-local savedSpring = {
-	GetAllyTeamList = Spring.GetAllyTeamList,
-	GetGaiaTeamID = Spring.GetGaiaTeamID,
-	GetTeamAllyTeamID = Spring.GetTeamAllyTeamID,
-	GetAllyTeamStartBox = Spring.GetAllyTeamStartBox,
-	GetModOptions = Spring.GetModOptions,
-}
-
-Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
-_G.Json = VFS.Include("common/luaUtilities/json.lua")
-
-local function setUpGame(numAllyTeams, modoptions)
+local function makeEnv(numAllyTeams, modoptions)
 	local allyTeamList = {}
 	for i = 1, numAllyTeams do
 		allyTeamList[i] = i - 1
 	end
 	allyTeamList[numAllyTeams + 1] = GAIA_ALLY_TEAM_ID
 
-	Spring.GetAllyTeamList = function()
-		return allyTeamList
-	end
-	Spring.GetGaiaTeamID = function()
-		return GAIA_TEAM_ID
-	end
-	Spring.GetTeamAllyTeamID = function(teamID)
-		if teamID == GAIA_TEAM_ID then
-			return GAIA_ALLY_TEAM_ID
-		end
+	return SpecEnv.new({
+		Game = { mapSizeX = MAP_SIZE_X, mapSizeZ = MAP_SIZE_Z },
+		Json = VFS.Include("common/luaUtilities/json.lua"),
+		Spring = {
+			GetAllyTeamList = function()
+				return allyTeamList
+			end,
+			GetGaiaTeamID = function()
+				return GAIA_TEAM_ID
+			end,
+			GetTeamAllyTeamID = function(teamID)
+				if teamID == GAIA_TEAM_ID then
+					return GAIA_ALLY_TEAM_ID
+				end
 
-		return teamID
-	end
-	Spring.GetAllyTeamStartBox = function()
-		return 0, 0, MAP_SIZE_X, MAP_SIZE_Z
-	end
-	Spring.GetModOptions = function()
-		local encoded = {}
-		for key, json in pairs(modoptions) do
-			encoded[key] = base64.Encode(VFS.ZlibCompress(json))
-		end
+				return teamID
+			end,
+			GetAllyTeamStartBox = function()
+				return 0, 0, MAP_SIZE_X, MAP_SIZE_Z
+			end,
+			GetModOptions = function()
+				local encoded = {}
+				for key, json in pairs(modoptions) do
+					encoded[key] = base64.Encode(VFS.ZlibCompress(json))
+				end
 
-		return encoded
-	end
+				return encoded
+			end,
+		},
+	})
 end
 
 -- Freshly included every time: the library caches its parse for the life of the module.
 local function load(numAllyTeams, modoptions)
-	setUpGame(numAllyTeams, modoptions)
-	local lib = VFS.Include(MODULE_PATH)
+	local lib = SpecEnv.include(makeEnv(numAllyTeams, modoptions), MODULE_PATH)
 
 	return lib, lib.ParseBoxes()
 end
 
 describe("startbox_utilities", function()
-	after_each(function()
-		for key, value in pairs(savedSpring) do
-			Spring[key] = value
-		end
-	end)
-
 	describe("an arrangement that covers every allyteam", function()
 		it("gives every allyteam its own box", function()
 			local _, config, source, explicit =
