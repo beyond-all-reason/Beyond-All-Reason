@@ -21,7 +21,7 @@ function widget:Initialize()
 			Spring.GiveOrderToUnit(unitID, cmdID, {}, {})
 		end,
 		callGiveOrderArray = function(unitIDs, orders)
-			Spring.GiveOrderArrayToUnitArray(unitIDs, orders, {})
+			Spring.GiveOrderArrayToUnitArray(unitIDs, orders, false)
 		end,
 		getUnitDefID = function(id)
 			return Spring.GetUnitDefID(id)
