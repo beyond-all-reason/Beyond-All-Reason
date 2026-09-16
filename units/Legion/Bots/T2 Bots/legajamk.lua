@@ -42,7 +42,7 @@ return {
 			model_author = "Tharsis, ZephyrSkies(helper)",
 			normaltex = "unittextures/leg_normal.dds",
 			off_on_stun = "true",
-			subfolder = "Legion/Bots/T2",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "util",
 		},
