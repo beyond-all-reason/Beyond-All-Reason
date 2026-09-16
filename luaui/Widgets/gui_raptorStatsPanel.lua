@@ -119,7 +119,6 @@ local rules = {
 	"raptor_hiveKills",
 }
 
-local waveColor = "\255\255\0\0"
 local textColor = "\255\255\255\255"
 
 local raptorTypes = {

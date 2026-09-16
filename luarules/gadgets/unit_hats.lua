@@ -685,7 +685,7 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 			end
 		end
 		if DEBUG then
-			Spring.Echo("Hat was given, but found noone to put it onto, destroying", hatID)
+			Spring.Echo("Hat was given, but found no one to put it onto, destroying", hatID)
 		end
 		Spring.DestroyUnit(hatID)
 	end

@@ -2742,7 +2742,7 @@ Example: Armada VS Cortex VS Legion: 273 or 100 010 001 or 256 + 16 + 1]],
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-for i = 1, 9 do
+for i = 1, 29 do
 	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakunits" .. i,
@@ -2755,7 +2755,7 @@ for i = 1, 9 do
 	}
 end
 
-for i = 1, 9 do
+for i = 1, 29 do
 	-- NOTE: update language/en/interface.json when you change name or desc
 	options[#options + 1] = {
 		key = "tweakdefs" .. i,

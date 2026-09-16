@@ -144,7 +144,6 @@ local fp = {
 	redoCount = 0,
 }
 
-local updateTimer = 0
 -- Cursor fade from the edge-extended resolver: 1 inside the map, falling to 0
 -- as the cursor recedes past the border. Scales every brush-cursor visual.
 local edgeFade = 1

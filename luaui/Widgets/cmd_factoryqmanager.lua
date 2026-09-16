@@ -1,5 +1,5 @@
 include("keysym.h.lua")
-local versionNumber = 1.7
+local versionNumber = 1.8
 
 local widget = widget ---@type Widget
 
@@ -9,7 +9,7 @@ function widget:GetInfo()
 		desc = "Saves and Loads Factory Queues. Load: Meta+[0-9], Save: Alt+Meta+[0-9] (v"
 			.. string.format("%.1f", versionNumber)
 			.. ")",
-		author = "very_bad_soldier, Chronographer",
+		author = "very_bad_soldier, Chronographer, Baldric",
 		date = "Jul 6, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9000,
@@ -38,6 +38,7 @@ local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_ALT = CMD.OPT_ALT
 
 --Changelog
+--1.8: added: contextual hotkeys - load actions only fire/consume while the preset panel is shown and armed, so they fall through to other widgets otherwise; added 'factory_preset_toggle' action (tap to show/arm, tap again to hide).
 --1.7: fixed: save unit presets by unit name not unitDefId
 --1.6: added: support of quotas and 'alt' queued priority units in preset
 --1.5: added repeat icon and bindable keybind actions to activate
@@ -100,14 +101,15 @@ local lastBoxY = nil
 local boxCoords = {}
 local curModId = nil
 local renderPresets = false
+local loadEnabled = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local boxWidth
-local boxHeight
-local boxHeightTitle
-local boxIconBorder
+local boxWidth = 0
+local boxHeight = 0
+local boxHeightTitle = 0
+local boxIconBorder = 0
 
 local fontSizeTitle
 local fontSizeGroup
@@ -382,9 +384,27 @@ function saveQueue(unitId, unitDef, groupNo)
 		unitQuotaIdx = WG.Quotas.isOnQuotaMode(unitId)
 	end
 
+	-- Quota-issued orders are saved separately but can't be distinguished from some player orders.
+	-- When a player alt-enqueues a build order to the front, then, we distinguish it by counting.
+	local quotaOrdersLeft = {}
+	local function isQuotaOrder(cmd)
+		if not (WG.Quotas and cmd.options.internal and cmd.options.alt) then
+			return false
+		end
+		local quotaDefID = -cmd.id
+		if not quotaOrdersLeft[quotaDefID] then
+			quotaOrdersLeft[quotaDefID] = WG.Quotas.getQuotaOrderCount(unitId, quotaDefID)
+		end
+		if quotaOrdersLeft[quotaDefID] > 0 then
+			quotaOrdersLeft[quotaDefID] = quotaOrdersLeft[quotaDefID] - 1
+			return true
+		end
+		return false
+	end
+
 	for i = #unitQ, 1, -1 do
-		if unitQ[i].id >= 0 or unitQ[i].options.internal and not unitQ[i].options.alt then -- We don't want to save these commands
-			table.remove(unitQ, i)
+		if unitQ[i].id >= 0 or (unitQ[i].options.internal and not unitQ[i].options.alt) or isQuotaOrder(unitQ[i]) then
+			table.remove(unitQ, i) -- We don't want to save these commands
 		else
 			unitQ[i].name = orderToName(unitQ[i].id)
 			unitQ[i].id = nil
@@ -482,19 +502,61 @@ local function factoryPresetKeyHandler(_, _, args)
 	local gr = tonumber(key)
 
 	if selUnit == nil then
-		return
+		return false
 	end
 
 	if mode == "save" then
 		saveQueue(selUnit, unitDef, gr)
+		return true
 	elseif mode == "load" then
+		-- only act on (and consume) the load hotkey while the preset panel is shown AND the load has been armed
+		if not (renderPresets and loadEnabled) then
+			return false
+		end
 		loadQueue(selUnit, unitDef, gr)
+		return true
 	end
+
+	return false
 end
 
-local function factoryPresetRender(_, _, _, data)
-	data = data or {}
-	renderPresets = data[1]
+local function factoryPresetShow(_, _, _, _, _, release)
+	if not release then
+		renderPresets = true
+		loadEnabled = true
+	else
+		renderPresets = false
+		loadEnabled = false
+	end
+	return false
+end
+
+-- Contextual show/arm handler (action: factory_preset_toggle).
+-- State machine (renderPresets, loadEnabled):
+--   press   while not shown          -> show the panel            (true, false)
+--   release while shown & not armed  -> arm the load hotkeys      (true, true)
+--   press   while shown              -> nothing but the load hotkeys are armed
+--   release while shown & armed      -> hide panel & disarm       (false, false)
+local function factoryPresetToggle(_, _, _, _, _, release)
+	if getSingleFactory() == nil then
+		return false
+	end
+
+	if not release then
+		if not renderPresets then
+			renderPresets = true
+		end
+	else
+		if renderPresets then
+			if not loadEnabled then
+				loadEnabled = true
+			else
+				renderPresets = false
+				loadEnabled = false
+			end
+		end
+	end
+
 	return false
 end
 
@@ -875,13 +937,19 @@ function widget:Initialize()
 	migratePresets(savedQueues[curModId]) -- remove old presets that were saved by version < 1.7 which used numeric unitDefID instead of names
 
 	widgetHandler:AddAction("factory_preset", factoryPresetKeyHandler, nil, "p")
-	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, { true }, "p")
-	widgetHandler:AddAction("factory_preset_show", factoryPresetRender, { false }, "r")
+	widgetHandler:AddAction("factory_preset_show", factoryPresetShow, nil, "pr")
+	widgetHandler:AddAction("factory_preset_toggle", factoryPresetToggle, nil, "pr")
 end
 
 function widget:Update()
 	local now = Spring.GetGameSeconds()
 	local timediff = now - lastGameSeconds
+
+	-- reset the show/arm state whenever a single factory is no longer selected
+	if (renderPresets or loadEnabled) and getSingleFactory() == nil then
+		renderPresets = false
+		loadEnabled = false
+	end
 
 	if renderPresets then
 		-- meta (space)
@@ -925,4 +993,5 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("factory_preset")
 	widgetHandler:RemoveAction("factory_preset_show")
+	widgetHandler:RemoveAction("factory_preset_toggle")
 end

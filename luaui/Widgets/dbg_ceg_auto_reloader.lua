@@ -39,8 +39,6 @@ local mouseOffscreen = select(6, spGetMouseState())
 -- except:
 -- Print syntax error
 
-local cegLibrary = {} --maps cegname to cegdef
-local cegFileNames = {} -- maps cegname to filename
 local projectileTexures = {} -- maps texture name to filename
 
 local spawnerDefs = {
@@ -1020,12 +1018,9 @@ function widget:Update()
 	end
 	lastUpdate = Spring.GetTimer()
 
-	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())
 
-	--if not mouseOffscreen and prevMouseOffscreen then
 	ScanChanges()
-	--end
 
 	if spamCeg then
 		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")

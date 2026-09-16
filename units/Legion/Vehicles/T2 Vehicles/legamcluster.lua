@@ -44,7 +44,7 @@ return {
 			kickback = "-6",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Vehicles",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 		},
 		featuredefs = {

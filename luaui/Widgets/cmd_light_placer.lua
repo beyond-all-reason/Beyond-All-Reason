@@ -20,15 +20,11 @@ local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGroundNormal = Spring.GetGroundNormal
-local GetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glTranslate = gl.Translate
 local glDepthTest = gl.DepthTest
 local GL_LINES = GL.LINES
 local GL_LINE_LOOP = GL.LINE_LOOP
@@ -49,7 +45,6 @@ local BRIGHTNESS_STEP = 0.1
 local LIGHT_RADIUS_STEP = 10
 local ELEVATION_STEP = 5
 local KEYSYMS_SPACE = 0x20
-local UPDATE_INTERVAL = 1 / 30
 
 local floor = math.floor
 local max = math.max
@@ -59,7 +54,6 @@ local sin = math.sin
 local pi = math.pi
 local sqrt = math.sqrt
 local rad = math.rad
-local atan2 = math.atan2
 
 local BrushShapes = VFS.Include("common/brush_shapes.lua")
 
@@ -162,8 +156,6 @@ local lp = {
 	-- For gizmo support (Phase 4)
 	selectedLight = nil,
 }
-
-local updateTimer = 0
 
 -- Cursor preview light (removed when deactivated or position changes enough)
 local previewLight = { id = nil, shape = nil }
@@ -366,7 +358,6 @@ local BUILTIN_PRESETS = {
 -- Placed lights tracking
 ----------------------------------------------------------------
 local placedLights = {} -- { [instanceID] = lightDef }
-local nextLightID = 1
 local undoStack = {} -- { { action="add"|"remove", lights={...} }, ... }
 local redoStack = {}
 local MAX_UNDO = 100

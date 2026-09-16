@@ -110,7 +110,6 @@ local costOverrides = {}
 -- New state variables for the robust update system
 local selectionUpdateTime = 0 -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
-local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false -- The failsafe retry flag
 local refreshRetryCounter = 0 -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -708,7 +707,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
-local prevSelBuilderDefs = {}
 function widget:Update(dt)
 	tracy.ZoneBeginN("W:BuildMenu:Update")
 	if delayRefresh and spGetGameSeconds() >= delayRefresh then
@@ -868,9 +866,27 @@ function drawBuildmenuBg()
 	)
 end
 
+-- The player queue vs the widget-provided queue have different accounting due to quota mode.
+-- cellQuotas contains the live count from the widget, which we should remove from the total.
+local function getPlayerQueueCount(cellRectID, uDefID)
+	local queueCount = tonumber(cmds[cellRectID].params[1])
+	if not queueCount then
+		return nil
+	end
+	local quotaInfo = cellQuotas[uDefID]
+	if quotaInfo and WG.Quotas then
+		queueCount = queueCount - WG.Quotas.getQuotaOrderCount(quotaInfo.builderID, uDefID)
+	end
+	if queueCount < 1 then
+		return nil
+	end
+	return queueCount
+end
+
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruction)
 	tracy.ZoneBeginN("W:BuildMenu:DrawCell")
 	local uDefID = -cmds[cellRectID].id
+	local queueCount = getPlayerQueueCount(cellRectID, uDefID)
 	local unitTexture = "#" .. uDefID
 	local cellRect = cellRects[cellRectID]
 	if not cellRect then
@@ -927,7 +943,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 				and (groups[units.unitGroup[uDefID]] and ":l" .. texprefix .. ":" .. groups[units.unitGroup[uDefID]] or nil)
 			or nil,
 		{ units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID] },
-		tonumber(cmds[cellRectID].params[1])
+		queueCount
 	)
 	tracy.ZoneEnd()
 
@@ -1058,9 +1074,9 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 	end
 
 	-- factory queue number
-	if cmds[cellRectID].params[1] then
+	if queueCount then
 		local pad = math_floor(cellInnerSize * 0.03)
-		local textWidth = math_floor(font2:GetTextWidth(cmds[cellRectID].params[1] .. "  ") * cellInnerSize * 0.285)
+		local textWidth = math_floor(font2:GetTextWidth(queueCount .. "  ") * cellInnerSize * 0.285)
 		local pad2 = 0
 		RectRound(
 			cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2,
@@ -1102,7 +1118,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 			{ 1, 1, 1, 0.1 }
 		)
 		font2:Print(
-			"\255\190\255\190" .. cmds[cellRectID].params[1],
+			"\255\190\255\190" .. queueCount,
 			cellRects[cellRectID][1] + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
 			cellRects[cellRectID][2] + cellPadding + math_floor(cellInnerSize * 0.735) - pad2,
 			cellInnerSize * 0.29,
@@ -2040,7 +2056,8 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						else
-							local queueCount = tonumber(cmds[cellRectID].params[1] or 0)
+							-- Ignores the count from the quota widget.
+							local queueCount = getPlayerQueueCount(cellRectID, -uDefID) or 0
 
 							local function decreaseQuota()
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
@@ -2242,6 +2259,12 @@ function widget:Initialize()
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
 		widgetHandler:DisableWidgetRaw("Grid menu")
+	end
+
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if preGamestartPlayer then
+		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		preGamestartPlayer = not missionOptions.IsStartUnitSpawnDisabled()
 	end
 
 	-- Get our starting unit
