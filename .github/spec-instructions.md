@@ -46,6 +46,25 @@ imply contradictory rules mean at least one of them is wrong.
 
 ## What a spec must not do
 
+Do not write the engine globals. `Spring`, `VFS`, `Game`, `GG` and `io` are one set of tables shared by every spec
+file, so `Spring.GetFoo = ...` changes them for every file that runs after yours, in whatever order those happen to
+run. They are sealed, so trying it is an error naming the line that did it. Build your own surface instead and hand
+it to the code under test:
+
+```lua
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
+local env = SpecEnv.new({ Spring = { GetModOptions = function() return modOptions end } })
+local subject = SpecEnv.include(env, "luaui/Include/mission_options.lua")
+```
+
+Anything the module or its own includes read or write lands in that env, so there is nothing to restore and no
+`after_each` to forget. `env.Spring.GetFoo = ...` inside a `before_each` is fine: that table is yours.
+
+Do not depend on the order spec files run in. CI runs the suite twice, once sorted and once shuffled on a seed taken
+from the commit. Reproduce a shuffled failure with `SPEC_SHUFFLE_SEED=<seed> lx --lua-version 5.1 test`, and check a
+spec stands alone by running it on its own.
+
 Do not re-implement production logic inside the test harness. A builder that mirrors a production module is a second
 copy that drifts, and every spec that trusts it inherits the drift. Call the production module instead. A comment of
 the form `Mirrors <production file>` in anything under `spec/builders/` is a defect, not documentation.
