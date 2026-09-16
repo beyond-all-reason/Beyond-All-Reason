@@ -32,66 +32,6 @@ local SB = {}
 SB.__index = SB
 
 ---Get comprehensive default mod options required for unitdefs and alldefs_post.lua loading
----@return table
-local function getUnitDefRequireModoptionDefaults()
-	return {
-		-- Multipliers
-		multiplier_maxvelocity = 1,
-		multiplier_turnrate = 1,
-		multiplier_builddistance = 1,
-		multiplier_buildpower = 1,
-		multiplier_metalextraction = 1,
-		multiplier_resourceincome = 1,
-		multiplier_energyproduction = 1,
-		multiplier_energyconversion = 1,
-		multiplier_losrange = 1,
-		multiplier_radarrange = 1,
-		multiplier_shieldpower = 1,
-		multiplier_weaponrange = 1,
-		multiplier_weapondamage = 1,
-
-		-- Unit restrictions
-		unit_restrictions_notech2 = false,
-		unit_restrictions_notech3 = false,
-		unit_restrictions_noair = false,
-		unit_restrictions_nobots = false,
-		unit_restrictions_nocons = false,
-		unit_restrictions_nodrops = false,
-		unit_restrictions_noecon = false,
-		unit_restrictions_nofactory = false,
-		unit_restrictions_nogh = false,
-		unit_restrictions_nohover = false,
-		unit_restrictions_nokbot = false,
-		unit_restrictions_nonavy = false,
-		unit_restrictions_noradarvh = false,
-		unit_restrictions_notank = false,
-		unit_restrictions_nouber = false,
-		unit_restrictions_nowall = false,
-		unit_restrictions_noxp = false,
-		unit_restrictions_nosuperweapons = false,
-
-		-- Commander perks
-		commander = 0,
-		commtype = 0,
-		commanderstorage = 0,
-		automatic_swarm = 0,
-		automatic_factory = 0,
-
-		-- Other features
-		unithats = false,
-		scavunitsforplayers = false,
-		releasecandidates = false,
-		ruins = "disabled",
-		forceallunits = false,
-		transportenemy = "all",
-		animationcleanup = false,
-		xmas = false,
-		assistdronesbuildpowermultiplier = 1,
-
-		gamespeed = 30,
-	}
-end
-
 local function normalizeUnitDef(unitDef)
 	if not unitDef then
 		return
@@ -302,7 +242,7 @@ function SB:BuildSpring()
 
 	---@type SpringSyncedMock
 	local mock = {
-		CMD = Spring and Spring.CMD or {
+		CMD = {
 			LOAD_ONTO = 1,
 			SELFD = 2,
 			GUARD = 25,
@@ -692,193 +632,6 @@ function SB:BuildSpring()
 	return mock
 end
 
----Temporarily install minimal global Spring/VFS/Game/LOG (spec_helper does some of this but we try for thoroughness) to allow real unitdefs load
----@param self SpringSyncedBuilder
----@param fn fun()
----@param persist? boolean If true, don't clean up globals after execution
-function SB:WithGlobalsDefined(fn, persist)
-	local instance = self
-	-- Save current globals
-	local prevSpring = _G.Spring
-	local prevBAR = _G.BAR
-	local prevVFS = _G.VFS
-	local prevGame = _G.Game
-	local prevLOG = _G.LOG
-	local prevSplit = string.split
-	local prevUnitDefs = _G.UnitDefs
-	local prevUnitDefNames = _G.UnitDefNames
-
-	-- Set up mocks for the duration of the function
-	_G.Spring = _G.Spring or {}
-	_G.BAR = _G.BAR or {} -- post-detach namespace; the codemod rewrites the mocks below onto it
-	local mock = self:BuildSpring()
-
-	-- Expose all Spring functions to global Spring object
-	-- Defer to already defined GetModOptions if it exists (defined by springOverrides.lua)
-	if not _G.Spring.GetModOptions then
-		---@diagnostic disable: duplicate-set-field
-		_G.Spring.GetModOptions = function()
-			-- Start with comprehensive defaults, then override with explicitly set mod options
-			local modOptions = getUnitDefRequireModoptionDefaults()
-			-- Override with any mod options that were explicitly set via WithModOption
-			for k, v in pairs(self.modOptions) do
-				modOptions[k] = v
-			end
-			return modOptions
-		end
-	end
-	_G.Spring.GetGameFrame = mock.GetGameFrame
-	_G.Spring.IsCheatingEnabled = mock.IsCheatingEnabled
-	-- Don't override Spring.Log if it's already set by spec_helper
-	if not _G.Spring.Log then
-		_G.Spring.Log = mock.Log
-	end
-	_G.Spring.GetTeamRulesParam = mock.GetTeamRulesParam
-	_G.Spring.SetTeamRulesParam = mock.SetTeamRulesParam
-	_G.Spring.GetUnitDefID = mock.GetUnitDefID
-	_G.Spring.ValidUnitID = mock.ValidUnitID
-
-	-- Additional Spring functions that may be needed
-	-- Defer to already defined GetTeamLuaAI if it exists (real Spring API function)
-	if not _G.Spring.GetTeamLuaAI then
-		---@diagnostic disable: duplicate-set-field
-		_G.Spring.GetTeamLuaAI = function(_)
-			return ""
-		end
-	end
-	if not _G.Spring.GetConfigInt then
-		_G.Spring.GetConfigInt = function(name, default)
-			return default or 0
-		end
-	end
-	_G.BAR.Utilities = _G.BAR.Utilities
-		or {
-			Gametype = {
-				IsScavengers = function()
-					return false
-				end,
-				IsRaptors = function()
-					return false
-				end,
-				GetCurrentHolidays = function()
-					return {}
-				end,
-			},
-		}
-
-	-- Mock VFS.Include cache to intercept system.lua load
-	local originalVFSInclude = _G.VFS.Include
-	_G.VFS.Include = function(path, ...)
-		if path == "gamedata/system.lua" then
-			return {
-				lowerkeys = function(t)
-					return t
-				end,
-				reftable = function(ref, tbl)
-					tbl = tbl or {}
-					setmetatable(tbl, { __index = ref })
-					return tbl
-				end,
-				VFS = _G.VFS,
-				Spring = _G.Spring,
-				-- Export standard Lua libs as system.lua does
-				pairs = pairs,
-				ipairs = ipairs,
-				math = math,
-				table = table,
-				string = string,
-				tonumber = tonumber,
-				tostring = tostring,
-				type = type,
-				unpack = unpack or table.unpack,
-				print = print,
-				error = error,
-				pcall = pcall,
-				select = select,
-				next = next,
-				require = require,
-			}
-		end
-		if originalVFSInclude then
-			return originalVFSInclude(path, ...)
-		end
-		-- Fallback if original was nil (unlikely given setup)
-		return {}
-	end
-
-	-- Mock VFS.Include cache to intercept system.lua load
-	local originalVFSInclude = _G.VFS.Include
-	_G.VFS.Include = function(path, ...)
-		if path == "gamedata/system.lua" then
-			return {
-				lowerkeys = function(t)
-					return t
-				end,
-				reftable = function(ref, tbl)
-					tbl = tbl or {}
-					setmetatable(tbl, { __index = ref })
-					return tbl
-				end,
-				VFS = _G.VFS,
-				Spring = _G.Spring,
-				BAR = _G.BAR,
-				-- Export standard Lua libs as system.lua does
-				pairs = pairs,
-				ipairs = ipairs,
-				math = math,
-				table = table,
-				string = string,
-				tonumber = tonumber,
-				tostring = tostring,
-				type = type,
-				unpack = unpack or table.unpack,
-				print = print,
-				error = error,
-				pcall = pcall,
-				select = select,
-				next = next,
-				require = require,
-			}
-		end
-		if originalVFSInclude then
-			return originalVFSInclude(path, ...)
-		end
-		-- Fallback if original was nil (unlikely given setup)
-		return {}
-	end
-
-	-- Execute the function with globals set up
-	local success, result = pcall(fn)
-	if not success then
-		error("WithGlobalsDefined function failed: " .. tostring(result))
-	end
-
-	-- If not persisting, restore original globals
-	if not persist then
-		_G.Spring = prevSpring
-		_G.VFS = prevVFS
-		_G.Game = prevGame
-		_G.LOG = prevLOG
-		string.split = prevSplit
-		_G.UnitDefs = prevUnitDefs
-		_G.UnitDefNames = prevUnitDefNames
-	end
-
-	-- If not persisting, restore original globals
-	if not persist then
-		_G.Spring = prevSpring
-		_G.BAR = prevBAR
-		_G.VFS = prevVFS
-		_G.Game = prevGame
-		_G.LOG = prevLOG
-		string.split = prevSplit
-		_G.UnitDefs = prevUnitDefs
-		_G.UnitDefNames = prevUnitDefNames
-	end
-
-	return instance
-end
-
 ---@param self SpringSyncedBuilder
 ---@param teamBuilder TeamBuilder The team builder instance
 ---@return SpringSyncedBuilder
@@ -901,10 +654,9 @@ function SB:WithUnitDef(defID, def)
 	return self
 end
 
----Load real BAR UnitDefs from gamedata into the registry.
----Uses WithGlobalsDefined as the harness so modoptions are honored during the load.
----After loading, normalizes the defs into the polyglot index that downstream code
----(GetUnitDefs, BuildSpring team-resolution) expects.
+---Load real BAR UnitDefs from gamedata into the registry, honoring whatever
+---modoptions have been set so far, then fold them into the polyglot index that
+---downstream code (GetUnitDefs, BuildSpring team-resolution) reads.
 ---@param self SpringSyncedBuilder
 ---@return SpringSyncedBuilder
 function SB:WithRealUnitDefs()
@@ -912,18 +664,14 @@ function SB:WithRealUnitDefs()
 		return self
 	end
 
-	self.unitDefs:WithRealUnitDefs(function(loadFn)
-		self:WithGlobalsDefined(loadFn)
-	end)
+	self.unitDefs:WithRealUnitDefs(self.modOptions)
 
-	-- Build the polyglot index downstream code reads via _globalUnitDefs.
-	-- In the gamedata pre-load shape this is name-keyed (no numeric IDs);
-	-- buildUnitDefIndex also runs normalizeUnitDef to fold customParams etc.
 	local byName = self.unitDefs:GetUnitDefsByName()
 	if next(byName) ~= nil then
 		self._globalUnitDefs = buildUnitDefIndex(byName, self.unitDefs:GetUnitDefNames())
 		self._globalUnitDefNames = self.unitDefs:GetUnitDefNames()
 	end
+
 	return self
 end
 
