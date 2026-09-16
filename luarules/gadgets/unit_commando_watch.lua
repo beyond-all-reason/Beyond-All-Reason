@@ -90,14 +90,19 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	mines[unitID] = nil
 end
 
+-- So unloading the passenger releases the claim on the transport but does not remove the transport's stealth:
+local function stealthSource(unitID)
+	return "from_transportee_:" .. unitID
+end
+
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	if isStealthsTransport[unitDefID] then
-		Spring.SetUnitStealth(transportID, true)
+		GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", true, stealthSource(unitID))
 	end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if isStealthsTransport[unitDefID] then
-		Spring.SetUnitStealth(transportID, false)
+		GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", nil, stealthSource(unitID))
 	end
 end

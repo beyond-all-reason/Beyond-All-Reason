@@ -72,6 +72,9 @@ local CMD_PATROL = CMD.PATROL
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_ATTACK = CMD.ATTACK
 
+local ATTRIBUTE_SOURCE = "invariant" -- critters are not interactive
+local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
+
 minCritters = ceil((Game.mapSizeX * Game.mapSizeZ) / 6000000)
 
 local totalCritters = 0
@@ -212,14 +215,14 @@ end
 local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
+	GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
 	Spring.SetUnitNoMinimap(unitID, true)
 	Spring.SetUnitMaxHealth(unitID, 2)
 	Spring.SetUnitBlocking(unitID, false)
-	Spring.SetUnitSensorRadius(unitID, "los", 0)
-	Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-	Spring.SetUnitSensorRadius(unitID, "radar", 0)
-	Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+		setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
+	end
 	for weaponID, _ in pairs(UnitDefs[GetUnitDefID(unitID)].weapons) do
 		GiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)
 		--Spring.UnitWeaponHoldFire(unitID, weaponID)		-- doesn't seem to work :S (maybe because they still patrol)

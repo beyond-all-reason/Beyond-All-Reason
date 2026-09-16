@@ -15,7 +15,6 @@ end
 if gadgetHandler:IsSyncedCode() then
 	local gravityMult = 1.7
 
-	local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 	local SetUnitWeaponState = Spring.SetUnitWeaponState
 	local GetUnitHealth = Spring.GetUnitHealth
 	local GetGameFrame = Spring.GetGameFrame
@@ -30,7 +29,6 @@ if gadgetHandler:IsSyncedCode() then
 	local SetUnitNoSelect = Spring.SetUnitNoSelect
 	local SetUnitNoMinimap = Spring.SetUnitNoMinimap
 	local SetUnitIconDraw = Spring.SetUnitIconDraw
-	local SetUnitStealth = Spring.SetUnitStealth
 	local SetUnitAlwaysVisible = Spring.SetUnitAlwaysVisible
 	local SetUnitNeutral = Spring.SetUnitNeutral
 	local SetUnitBlocking = Spring.SetUnitBlocking
@@ -39,6 +37,9 @@ if gadgetHandler:IsSyncedCode() then
 	local COB_CRASHING = COB.CRASHING
 	local COM_BLAST = WeaponDefNames.commanderexplosion.id -- used to prevent them being boosted and flying far away
 	local CMD_STOP = CMD.STOP
+
+	local ATTRIBUTE_SOURCE = "crashing"
+	local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
 
 	local crashing = {}
 	GG.Crashing = crashing -- read-only reference for other gadgets
@@ -57,6 +58,13 @@ if gadgetHandler:IsSyncedCode() then
 		local weaponCount = #UnitDef.weapons
 		if weaponCount > 0 then
 			unitWeaponCount[udid] = weaponCount
+		end
+	end
+
+	local function hideFromSensors(unitID)
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+			setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
 		end
 	end
 
@@ -92,7 +100,7 @@ if gadgetHandler:IsSyncedCode() then
 			SetUnitNoSelect(unitID, true)
 			SetUnitNoMinimap(unitID, true)
 			SetUnitIconDraw(unitID, false)
-			SetUnitStealth(unitID, true)
+			GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
 			SetUnitAlwaysVisible(unitID, false)
 			SetUnitNeutral(unitID, true)
 			SetUnitBlocking(unitID, false)
@@ -109,11 +117,7 @@ if gadgetHandler:IsSyncedCode() then
 					SetUnitWeaponState(unitID, i, "nextSalvo", 9999)
 				end
 			end
-			-- remove sensors
-			SetUnitSensorRadius(unitID, "los", 0)
-			SetUnitSensorRadius(unitID, "airLos", 0)
-			SetUnitSensorRadius(unitID, "radar", 0)
-			SetUnitSensorRadius(unitID, "sonar", 0)
+			hideFromSensors(unitID)
 
 			-- make sure aircons stop building
 			if isAircon[unitDefID] then

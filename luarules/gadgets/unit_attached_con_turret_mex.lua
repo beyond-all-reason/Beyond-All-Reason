@@ -93,7 +93,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	Spring.SetUnitBlocking(mexID, true, true, false)
 	Spring.SetUnitNoSelect(mexID, true)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
-	Spring.SetUnitStealth(mexID, true)
+	GG.UnitAttributes.SetUnitAttribute(mexID, "stealth", true, "invariant")
 
 	local piece = resolveAttachPiece(mexID)
 	if not piece then

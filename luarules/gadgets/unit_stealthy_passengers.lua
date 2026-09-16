@@ -17,7 +17,6 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitStealth = Spring.SetUnitStealth
 
 local stealthyUnits = {}
 local stealthyTransports = {}
@@ -30,14 +29,18 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
+local function stealthSource(unitID)
+	return "from_transport_" .. unitID
+end
+
 function gadget:UnitLoaded(uID, uDefID, uTeam, transID, transTeam)
 	if not stealthyUnits[uDefID] and stealthyTransports[spGetUnitDefID(transID)] then
-		spSetUnitStealth(uID, true)
+		GG.UnitAttributes.SetUnitAttribute(uID, "stealth", true, stealthSource(transID))
 	end
 end
 
 function gadget:UnitUnloaded(uID, uDefID, tID, transID)
 	if not stealthyUnits[uDefID] and stealthyTransports[spGetUnitDefID(transID)] then
-		spSetUnitStealth(uID, false)
+		GG.UnitAttributes.SetUnitAttribute(uID, "stealth", nil, stealthSource(transID))
 	end
 end

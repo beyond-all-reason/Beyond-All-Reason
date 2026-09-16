@@ -825,6 +825,30 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local hideFromSensors, restoreSensors = (function()
+		local SENSOR_SOURCE = "setsensors"
+		local SENSOR_ATTRIBUTES = {
+			"losRadius",
+			"airLosRadius",
+			"radarRadius",
+			"sonarRadius",
+			"seismicRadius",
+			"jammerRadius",
+			"sonarJamRadius",
+		}
+		return function(unitID)
+			local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, 0, SENSOR_SOURCE)
+			end
+		end, function(unitID)
+			local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, nil, SENSOR_SOURCE)
+			end
+		end
+	end)()
+
 	function ExecuteSelUnits(words, playerID, action, params)
 		if #words < 2 then
 			return
@@ -865,25 +889,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				elseif action == "setsensors" then
 					if params == "0" then
-						Spring.SetUnitSensorRadius(unitID, "los", 0)
-						Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-						Spring.SetUnitSensorRadius(unitID, "radar", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonar", 0)
-						Spring.SetUnitSensorRadius(unitID, "seismic", 0)
-						Spring.SetUnitSensorRadius(unitID, "radarJammer", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonarJammer", 0)
+						hideFromSensors(unitID)
 					else
-						local unitDefID = Spring.GetUnitDefID(unitID)
-						local ud = unitDefID and UnitDefs[unitDefID]
-						if ud then
-							Spring.SetUnitSensorRadius(unitID, "los", ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "airLos", ud.airLosRadius or ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "radar", ud.radarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonar", ud.sonarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "seismic", ud.seismicDistance or ud.seismicdistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "radarJammer", ud.radarDistanceJam or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonarJammer", ud.sonarDistanceJam or 0)
-						end
+						restoreSensors(unitID)
 					end
 				elseif action == "setblocking" then
 					Spring.SetUnitBlocking(unitID, params ~= "0")
