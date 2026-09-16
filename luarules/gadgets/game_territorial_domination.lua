@@ -696,7 +696,7 @@ local function publishDominationState()
 	end
 end
 
-local function processScoreTick(currentTimestamp)
+local function processDominationTick(currentTimestamp)
 	updateTerritoryData(currentTimestamp)
 
 	local scoringTimestamp = lastScoreTimestamp
@@ -740,7 +740,7 @@ function gadget:GameFrame(frame)
 	elseif frameModulo == 1 then
 		processNeighborsAndDecay()
 	elseif frameModulo == 2 then
-		processScoreTick(spGetGameSeconds())
+		processDominationTick(spGetGameSeconds())
 	end
 
 	local currentKillQueue = killQueue[gameFrame]
