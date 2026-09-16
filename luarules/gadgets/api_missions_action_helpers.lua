@@ -22,47 +22,47 @@ GG["MissionAPIActionHelper"] = {}
 local framesHalfSecond = math.round(0.5 * Game.gameSpeed, 0)
 
 local resourcing = {
-    active = false,
-    metalPerSecond = {},
-    energyPerSecond = {},
+	active = false,
+	metalPerSecond = {},
+	energyPerSecond = {},
 }
 
 GG["MissionAPIActionHelper"].addMetalPerSecond = function(teamID, metalPerSecond)
-    if not resourcing.metalPerSecond[teamID] then
-        resourcing.metalPerSecond[teamID] = 0
-    end
-    resourcing.metalPerSecond[teamID] = resourcing.metalPerSecond[teamID] + metalPerSecond
+	if not resourcing.metalPerSecond[teamID] then
+		resourcing.metalPerSecond[teamID] = 0
+	end
+	resourcing.metalPerSecond[teamID] = resourcing.metalPerSecond[teamID] + metalPerSecond
 
-    resourcing.active = true
+	resourcing.active = true
 end
 
 GG["MissionAPIActionHelper"].addEnergyPerSecond = function(teamID, energyPerSecond)
-    if not resourcing.energyPerSecond[teamID] then
-        resourcing.energyPerSecond[teamID] = 0
-    end
-    resourcing.energyPerSecond[teamID] = resourcing.energyPerSecond[teamID] + energyPerSecond
+	if not resourcing.energyPerSecond[teamID] then
+		resourcing.energyPerSecond[teamID] = 0
+	end
+	resourcing.energyPerSecond[teamID] = resourcing.energyPerSecond[teamID] + energyPerSecond
 
-    resourcing.active = true
+	resourcing.active = true
 end
 
 function gadget:GameFrame(frame)
-    ---------------
-    -- Resourcing
-    ---------------
-    if resourcing.active and frame % framesHalfSecond == 0 then
-        for teamID, amount in pairs(resourcing.metalPerSecond) do
-            if amount > 0 then
-                spAddTeamResource(teamID, "metal", amount*0.5)
-            elseif amount < 0 then
-                spUseTeamResource(teamID, "metal", -amount*0.5)
-            end
-        end
-        for teamID, amount in pairs(resourcing.energyPerSecond) do
-            if amount > 0 then
-                spAddTeamResource(teamID, "energy", amount*0.5)
-            elseif amount < 0 then
-                spUseTeamResource(teamID, "energy", -amount*0.5)
-            end
-        end
-    end
+	---------------
+	-- Resourcing
+	---------------
+	if resourcing.active and frame % framesHalfSecond == 0 then
+		for teamID, amount in pairs(resourcing.metalPerSecond) do
+			if amount > 0 then
+				spAddTeamResource(teamID, "metal", amount * 0.5)
+			elseif amount < 0 then
+				spUseTeamResource(teamID, "metal", -amount * 0.5)
+			end
+		end
+		for teamID, amount in pairs(resourcing.energyPerSecond) do
+			if amount > 0 then
+				spAddTeamResource(teamID, "energy", amount * 0.5)
+			elseif amount < 0 then
+				spUseTeamResource(teamID, "energy", -amount * 0.5)
+			end
+		end
+	end
 end
