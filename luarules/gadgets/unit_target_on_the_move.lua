@@ -322,7 +322,7 @@ if gadgetHandler:IsSyncedCode() then
 	local function dropAutomaticAttack(unitID, targetID)
 		local inCommand, options, tag, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_ATTACK and not param2 and param1 == targetID and hasAutoTarget(options) then
-			spGiveOrderToUnit(unitID, CMD_REMOVE, { tag }, 0)
+			spGiveOrderToUnit(unitID, CMD_REMOVE, tag)
 		end
 	end
 
