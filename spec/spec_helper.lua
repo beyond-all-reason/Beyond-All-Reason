@@ -94,6 +94,12 @@ _G.unpack = _G.unpack
 		return t[i], _G.unpack(t, i + 1, j)
 	end
 
+-- Pure caches, so they are shared on purpose: the file listing shells out to find
+-- over the whole repo, and re-reading every included file per spec file costs more
+-- than the specs do. They live here rather than on VFS so nothing can reach them.
+local fileCache
+local sources = {}
+
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
 
@@ -106,25 +112,23 @@ _G.VFS.FileExists = function(path)
 	end
 
 	-- Fallback: Case-insensitive check using cached file list
-	if not _G.VFS._ci_file_cache then
-		_G.VFS._ci_file_cache = {}
+	if not fileCache then
+		fileCache = {}
 		-- Find all files, excluding .git directory
 		local handle = io.popen("find . -name '.git' -prune -o -type f -print")
 		if handle then
 			for line in handle:lines() do
 				-- Strip leading ./
 				local p = line:gsub("^%./", "")
-				_G.VFS._ci_file_cache[p:lower()] = p
+				fileCache[p:lower()] = p
 			end
 			handle:close()
 		end
 	end
 
 	local cleanPath = path:gsub("^%./", "")
-	return _G.VFS._ci_file_cache[cleanPath:lower()] ~= nil
+	return fileCache[cleanPath:lower()] ~= nil
 end
-
-_G.VFS._sources = _G.VFS._sources or {}
 
 _G.VFS.Include = function(path, env, mode)
 	-- Try direct path first
@@ -134,13 +138,13 @@ _G.VFS.Include = function(path, env, mode)
 		file:close()
 	else
 		-- Check case-insensitive cache
-		if not _G.VFS._ci_file_cache then
+		if not fileCache then
 			-- Force cache population by calling FileExists with a dummy path
 			_G.VFS.FileExists("___dummy_path___")
 		end
 
 		local cleanPath = path:gsub("^%./", "")
-		local cachedPath = _G.VFS._ci_file_cache[cleanPath:lower()]
+		local cachedPath = fileCache[cleanPath:lower()]
 		if cachedPath then
 			realPath = cachedPath
 		end
@@ -152,14 +156,14 @@ _G.VFS.Include = function(path, env, mode)
 	-- unit file includes another, and whichever loads second mutates the first.
 	-- Each call compiles its own chunk, so a nested include of a path already on
 	-- the include stack cannot retarget the environment of the outer one.
-	local source = _G.VFS._sources[realPath]
+	local source = sources[realPath]
 	if source == nil then
 		local sourceFile = io.open(realPath, "r")
 		source = sourceFile and sourceFile:read("*a") or false
 		if sourceFile then
 			sourceFile:close()
 		end
-		_G.VFS._sources[realPath] = source
+		sources[realPath] = source
 	end
 
 	-- Missing source is a real error. Larger feature tests will try to fallback and
@@ -199,7 +203,7 @@ VFS.Include("common/tablefunctions.lua")
 
 _G.VFS.SubDirs = function(path)
 	-- Check case-insensitive cache for correct directory path
-	if not _G.VFS._ci_file_cache then
+	if not fileCache then
 		-- Force cache population
 		_G.VFS.FileExists("___dummy_path___")
 	end
