@@ -61,6 +61,16 @@ local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
 local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
 local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
 
+local lavaMaxLevel = -math.huge
+if BAR.Lava.isLavaMap then
+	lavaMaxLevel = BAR.Lava.level
+	if Spring.GetModOptions().map_waterislava then
+		for _, tide in ipairs(BAR.Lava.tideRhythm) do
+			lavaMaxLevel = math.max(lavaMaxLevel, tide[1])
+		end
+	end
+end
+
 local unitHalfFootprint = {}
 local maxUnitHalfFootprint = 0
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -306,12 +316,12 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 
 			local name = UnitDefs[building.unitDefID].name
 			local nonscavname = string.gsub(name, "_scav", "")
+			local bx = posx + (xOffset * flipX * mirrorX)
+			local bz = posz + (zOffset * flipZ * mirrorZ)
+			local posy = Spring.GetGroundHeight(bx, bz)
 			local r = math.random(1, 100)
-			if r < 40 and UnitDefNames[nonscavname] then
+			if r < 40 and posy > lavaMaxLevel and UnitDefNames[nonscavname] then
 				local facing = (building.direction + rotation + mirrorRotation) % 4
-				local bx = posx + (xOffset * flipX * mirrorX)
-				local bz = posz + (zOffset * flipZ * mirrorZ)
-				local posy = Spring.GetGroundHeight(bx, bz)
 				local unit = createSnappedUnit(UnitDefNames[nonscavname].id, bx, posy, bz, facing, GaiaTeamID)
 				if unit then
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
@@ -365,7 +375,8 @@ local function SpawnMexes(mexSpots)
 			end
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaMaxLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -423,7 +434,8 @@ local function SpawnGeos(geoSpots)
 			posx, posy, posz = Spring.Pos2BuildPos(defID, posx, posy, posz, facing)
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaMaxLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -476,7 +488,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaMaxLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -536,7 +549,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaMaxLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -594,7 +608,8 @@ local function SpawnRandomStructures()
 			end
 
 			local radius = 128
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaMaxLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
