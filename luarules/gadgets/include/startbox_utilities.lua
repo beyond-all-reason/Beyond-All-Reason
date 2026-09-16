@@ -11,7 +11,7 @@
 --   https://github.com/beyond-all-reason/maps-metadata schemas/map_list.yaml
 
 local SplineLib = VFS.Include("common/lib_spline.lua")
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local ModoptionPayload = VFS.Include("common/luaUtilities/modoption_payload.lua")
 
 local function GetStartboxName(midX, midZ)
 	if midX < 0.33 then
@@ -39,30 +39,6 @@ local function GetStartboxName(midX, midZ)
 			return "Center", "Center"
 		end
 	end
-end
-
-local function decodeModoption(raw)
-	if not raw or #raw == 0 then
-		return nil
-	end
-
-	local okDecode, decoded = pcall(base64.Decode, raw)
-	if not okDecode or not decoded or decoded == "" then
-		return nil
-	end
-
-	-- VFS.ZlibDecompress raises on non-zlib or empty input rather than returning nil.
-	local okZlib, decompressed = pcall(VFS.ZlibDecompress, decoded)
-	if not okZlib or not decompressed then
-		return nil
-	end
-
-	local okJson, parsed = pcall(Json.decode, decompressed)
-	if not okJson or type(parsed) ~= "table" then
-		return nil
-	end
-
-	return parsed
 end
 
 local function getActiveAllyTeamCount()
@@ -226,6 +202,34 @@ local function transformArrangement(arrangement)
 	return config
 end
 
+local function buildWholeMapEntry()
+	local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
+
+	return {
+		boxes = {
+			{
+				{ 0, 0 },
+				{ 0, mapSizeZ },
+				{ mapSizeX, mapSizeZ },
+				{ mapSizeX, 0 },
+			},
+		},
+		startpoints = { { mapSizeX * 0.5, mapSizeZ * 0.5 } },
+		nameLong = "Anywhere",
+		nameShort = "Any",
+		wholeMap = true,
+	}
+end
+
+-- resolveArrangement settles for an arrangement covering fewer allyteams than the game has.
+local function fillUnboxedAllyTeams(config, numTeams)
+	for allyTeamID = 0, numTeams - 1 do
+		if not config[allyTeamID] then
+			config[allyTeamID] = buildWholeMapEntry()
+		end
+	end
+end
+
 local function buildFallback()
 	local mapSizeX = Game.mapSizeX
 	local mapSizeZ = Game.mapSizeZ
@@ -295,14 +299,15 @@ local function ParseBoxes()
 	local numTeams = getActiveAllyTeamCount()
 
 	local modoptions = Spring.GetModOptions()
-	local parsedOverride = decodeModoption(modoptions.mapmetadata_startbox_override)
-	local parsedSet = decodeModoption(modoptions.mapmetadata_startboxes_set)
+	local parsedOverride = ModoptionPayload.Decode(modoptions.mapmetadata_startbox_override)
+	local parsedSet = ModoptionPayload.Decode(modoptions.mapmetadata_startboxes_set)
 
 	local arrangement, configSource = resolveArrangement(parsedOverride, parsedSet, numTeams)
 
 	local startBoxConfig
 	if arrangement then
 		startBoxConfig = transformArrangement(arrangement)
+		fillUnboxedAllyTeams(startBoxConfig, numTeams)
 	else
 		startBoxConfig = buildFallback()
 		configSource = "fallback"
@@ -337,4 +342,202 @@ local function ParseBoxes()
 	return startBoxConfig, configSource, isExplicitSource(configSource)
 end
 
-return ParseBoxes
+--------------------------------------------------------------------------------
+-- Shared accessors
+--
+-- Each of these answers a question about one allyteam's start box without the caller
+-- needing to know whether the boxes came from a modoption or from the engine. That
+-- distinction is what several callers got wrong: Spring.GetAllyTeamStartBox reports the
+-- bounding box of a polygon rather than its shape, and during the gadget load phase it
+-- still reports whatever the host put in the start script, because the config gadget
+-- does not apply the modoption until its Initialize runs. Reading through here is
+-- correct in both phases and on both sides of the sync boundary.
+--------------------------------------------------------------------------------
+
+local PolygonLib = VFS.Include("common/lib_polygon.lua")
+
+local cachedConfig, cachedSource, cachedExplicit
+local haveParsed = false
+
+-- Modoptions and the allyteam list are both fixed for the life of the game, so the parse
+-- happens once per file that includes this one.
+local function GetConfig()
+	if not haveParsed then
+		haveParsed = true
+		local ok, config, source, explicit = pcall(ParseBoxes)
+		if ok then
+			cachedConfig, cachedSource, cachedExplicit = config, source, explicit
+		else
+			Spring.Log("startbox_utilities", LOG.WARNING, "Could not parse start boxes: " .. tostring(config))
+		end
+	end
+
+	return cachedConfig, cachedSource, cachedExplicit
+end
+
+-- nil unless this allyteam has a polygon worth consulting, so every accessor below
+-- shares one guard before falling back to the engine.
+local function GetEntry(allyTeamID)
+	local config, _, explicit = GetConfig()
+	if not (explicit and config) then
+		return nil
+	end
+
+	local entry = config[allyTeamID]
+	if entry and entry.boxes and #entry.boxes > 0 then
+		return entry
+	end
+
+	return nil
+end
+
+local function GetBounds(allyTeamID)
+	local entry = GetEntry(allyTeamID)
+	if entry then
+		return PolygonLib.GetStartboxBounds(entry)
+	end
+
+	return Spring.GetAllyTeamStartBox(allyTeamID)
+end
+
+local function IsInside(allyTeamID, x, z)
+	local entry = GetEntry(allyTeamID)
+	if entry then
+		return PolygonLib.PointInStartbox(x, z, entry)
+	end
+
+	local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
+	if not (xmin and zmin and xmax and zmax) or xmin >= xmax or zmin >= zmax then
+		return true -- no box means nowhere is out of bounds
+	end
+
+	return x >= xmin and x <= xmax and z >= zmin and z <= zmax
+end
+
+-- Callers hand-rolled this by comparing the box against the whole map, one of them
+-- against the wrong axis. A box covering everything restricts nothing, which is what
+-- those callers were really asking about.
+local function HasStartbox(allyTeamID)
+	local entry = GetEntry(allyTeamID)
+	if entry then
+		return not entry.wholeMap
+	end
+
+	local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
+	if not (xmin and zmin and xmax and zmax) or xmin >= xmax or zmin >= zmax then
+		return false
+	end
+
+	return not (xmin <= 0 and zmin <= 0 and xmax >= Game.mapSizeX and zmax >= Game.mapSizeZ)
+end
+
+local function GetCenter(allyTeamID)
+	local entry = GetEntry(allyTeamID)
+	if entry and entry.startpoints and entry.startpoints[1] then
+		return entry.startpoints[1][1], entry.startpoints[1][2]
+	end
+
+	local xmin, zmin, xmax, zmax = GetBounds(allyTeamID)
+	if not (xmin and zmin and xmax and zmax) then
+		return Game.mapSizeX * 0.5, Game.mapSizeZ * 0.5
+	end
+
+	return (xmin + xmax) * 0.5, (zmin + zmax) * 0.5
+end
+
+local DEFAULT_TRIES = 100
+
+-- Rejection sampling inside the bounding box, so the result is uniform over the real
+-- shape rather than over the rectangle around it. inset keeps whatever is being placed
+-- clear of the edge; it is tested on the four cardinal offsets, which is cheaper than
+-- eroding the polygon and good enough for deciding whether something fits.
+--
+-- Returns nil when nothing suitable turned up. Treat that as "no room" rather than
+-- widening the search, or a deliberately small box stops meaning anything.
+local function GetRandomPos(allyTeamID, inset, tries)
+	local xmin, zmin, xmax, zmax = GetBounds(allyTeamID)
+	if not (xmin and zmin and xmax and zmax) then
+		return nil
+	end
+
+	inset = inset or 0
+	xmin, zmin = math.max(xmin + inset, 0), math.max(zmin + inset, 0)
+	xmax, zmax = math.min(xmax - inset, Game.mapSizeX), math.min(zmax - inset, Game.mapSizeZ)
+	if xmin > xmax or zmin > zmax then
+		return nil
+	end
+
+	for _ = 1, (tries or DEFAULT_TRIES) do
+		local x = math.random(xmin, xmax)
+		local z = math.random(zmin, zmax)
+		if
+			IsInside(allyTeamID, x, z)
+			and (
+				inset == 0
+				or (
+					IsInside(allyTeamID, x - inset, z)
+					and IsInside(allyTeamID, x + inset, z)
+					and IsInside(allyTeamID, x, z - inset)
+					and IsInside(allyTeamID, x, z + inset)
+				)
+			)
+		then
+			return x, z
+		end
+	end
+
+	return nil
+end
+
+-- For callers that used to clamp a point into the rectangle. A polygon has no clamp, so
+-- a point outside is pulled onto the nearest edge instead.
+local function ClosestPos(allyTeamID, x, z)
+	if IsInside(allyTeamID, x, z) then
+		return x, z
+	end
+
+	local entry = GetEntry(allyTeamID)
+	if not entry then
+		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyTeamID)
+		if not (xmin and zmin and xmax and zmax) or xmin >= xmax or zmin >= zmax then
+			return x, z
+		end
+
+		return math.clamp(x, xmin, xmax), math.clamp(z, zmin, zmax)
+	end
+
+	local bestX, bestZ, bestDist = x, z, math.huge
+	for i = 1, #entry.boxes do
+		local poly = entry.boxes[i]
+		local n = #poly
+		for j = 1, n do
+			local ax, az = poly[j][1], poly[j][2]
+			local bx, bz = poly[(j % n) + 1][1], poly[(j % n) + 1][2]
+			local ex, ez = bx - ax, bz - az
+			local lenSq = (ex * ex) + (ez * ez)
+			local t = 0
+			if lenSq > 0 then
+				t = math.clamp((((x - ax) * ex) + ((z - az) * ez)) / lenSq, 0, 1)
+			end
+			local px, pz = ax + (ex * t), az + (ez * t)
+			local dx, dz = x - px, z - pz
+			local dist = (dx * dx) + (dz * dz)
+			if dist < bestDist then
+				bestX, bestZ, bestDist = px, pz, dist
+			end
+		end
+	end
+
+	return bestX, bestZ
+end
+
+return {
+	ParseBoxes = ParseBoxes,
+	GetConfig = GetConfig,
+	GetBounds = GetBounds,
+	GetCenter = GetCenter,
+	HasStartbox = HasStartbox,
+	IsInside = IsInside,
+	GetRandomPos = GetRandomPos,
+	ClosestPos = ClosestPos,
+}

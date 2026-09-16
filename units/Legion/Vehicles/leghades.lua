@@ -42,7 +42,8 @@ return {
 			kickback = "-2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmVehicles",
+			reaimtime = 5,
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -106,6 +107,8 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				projectiles = 5,
+				numbounce = 1,
+				groundbounce = true,
 				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

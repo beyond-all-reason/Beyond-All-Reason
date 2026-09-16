@@ -36,6 +36,7 @@ return {
 			customrange = 650,
 			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

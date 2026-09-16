@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 0.95832,
 		turnrate = 619.29999,
 		customparams = {
+			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			off_on_stun = "true",

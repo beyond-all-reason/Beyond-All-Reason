@@ -87,12 +87,16 @@ return {
 			[27] = "armfhp",
 		},
 		customparams = {
+			canwearcosmetics = true,
 			firestateoncloak = 0,
 			iscommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
+			spawnpad_unit = "armrespawn",
 			subfolder = "",
+			tombstone = "armstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {

@@ -42,6 +42,7 @@ return {
 			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,

@@ -174,7 +174,7 @@ local function refreshScreenModes()
 					local w, h, x, y = Spring.GetScreenGeometry(display - 1)
 					local w2, h2, x2, y2 = Spring.GetScreenGeometry(display2 - 1)
 					if w > 0 and w2 > 0 then
-						if x + w == x2 or x2 + w2 == x or x2 - w == x or x - w2 == x2 then -- make sure they are next to eachother
+						if x + w == x2 or x2 + w2 == x or x2 - w == x or x - w2 == x2 then -- make sure they are next to each other
 							if not addedDisplayCombo[display] or addedDisplayCombo[display] ~= display2 then
 								addedDisplayCombo[display] = display2
 								addedDisplayCombo[display2] = display

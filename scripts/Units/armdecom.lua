@@ -41,7 +41,6 @@ heavy = true
 
 -- Signal definitions
 local SIG_AIM = 2
-local SIG_WALK = 4
 
 function script.StartMoving()
 	isMoving = true

@@ -2,7 +2,6 @@ local blueprintConfig =
 	VFS.Include("luarules/gadgets/ruins/Blueprints/" .. Game.gameShortName .. "/blueprint_tiers.lua")
 local tiers = blueprintConfig.Tiers
 local types = blueprintConfig.BlueprintTypes
-local UDN = UnitDefNames
 
 --	facing:
 --  0 - south
@@ -275,7 +274,7 @@ local function tinyDefences18()
 		},
 	}
 end
-
+--[[
 local function tinyDefences19()
 	return {
 		type = types.Land,
@@ -289,7 +288,9 @@ local function tinyDefences19()
 		},
 	}
 end
+]]
 
+--[[
 local function tinyDefences20()
 	return {
 		type = types.Land,
@@ -303,6 +304,7 @@ local function tinyDefences20()
 		},
 	}
 end
+]]
 
 local function tinyDefences21()
 	return {

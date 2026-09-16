@@ -26,7 +26,6 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 local lineScale = 1 -- this is a multiplier for the line width, to make it look better on high res screens
 
 local circleSegments = 62 -- To ensure its only 2 warps per instance
-local rangecorrectionelmos = debugmode and -16 or 16 -- how much smaller they are drawn than truth due to LOS mipping
 --------- End configurables ------
 
 local minSonarDistance = 150

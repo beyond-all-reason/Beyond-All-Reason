@@ -2,7 +2,10 @@ name: Format Check
 
 on:
   pull_request:
-    paths: ['**.lua']
+    paths:
+      - "**.lua"
+      # So that a change to the check runs the check.
+      - ".github/workflows/format_check.yml"
 
 permissions:
   contents: read
@@ -34,10 +37,26 @@ jobs:
           chmod +x stylua
           ./stylua --version
 
-      - name: Check formatting of changed files
+      - name: Check formatting of changed lines
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
+          # GitHub rebuilds refs/pull/N/merge against master as it stands now,
+          # while the event's base.sha is master as it stood then. Diffing one
+          # against the other hands this pull request every commit that landed
+          # in between and blames their lines on its author. Parent 1 of the
+          # merge commit is the base it was really built on.
+          #
+          # cat-file and not HEAD^1: the checkout is shallow, and the graft
+          # hides the parents from rev-parse, which fails outright.
+          parents=$(git cat-file commit HEAD | awk '/^parent /{print $2}')
+          if [ "$(printf '%s\n' "$parents" | grep -c .)" -eq 2 ]; then
+            BASE_SHA=$(printf '%s\n' "$parents" | head -1)
+            echo "Base is $BASE_SHA, parent 1 of the merge commit."
+          else
+            echo "HEAD is not a merge commit, so the event's base sha stands."
+          fi
+
           # The pull request checkout only holds the merge commit, so the base
           # revision has to be fetched before anything can be diffed against it.
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
@@ -52,6 +71,32 @@ jobs:
           echo "Checking:"
           tr '\0' '\n' < changed.txt
 
+          # The scope is lines not files, but we get hunks so ignore deletion,
+          # treating it as a write on the two lines that it "joins" together.
+          : > ranges.json
+          while IFS= read -r -d '' file; do
+            git diff --unified=0 "$BASE_SHA" HEAD -- "$file" \
+            | awk '
+                /^@@/ {
+                  split($3, hunk, ",")
+                  start = hunk[1] + 0; if (start < 0) start = -start
+                  count = (hunk[2] == "" ? 1 : hunk[2] + 0)
+                  if (count == 0) printf "[%d,%d]\n", start, start + 1
+                  else            printf "[%d,%d]\n", start, start + count - 1
+                }' \
+            | jq -s -c --arg file "$file" '{file: $file, ranges: .}' >> ranges.json
+          done < changed.txt
+
+          # One record per changed file. Short of that, the overlap test below
+          # finds no ranges for the missing ones, reads their mismatches as
+          # lines this PR did not write, and passes them. Silence, not failure.
+          changed_files=$(tr -cd '\0' < changed.txt | wc -c)
+          range_records=$(wc -l < ranges.json)
+          if [ "$range_records" -ne "$changed_files" ]; then
+            echo "::error title=Formatting check is broken::ranges.json holds $range_records record(s) for $changed_files changed file(s), so the overlap test would wave through every file it failed to scope. This is a CI defect, not a problem with this PR; fix format_check.yml."
+            exit 1
+          fi
+
           # No human being fixes their formatting by reading a diff from a linter
           # so we prevent the logging of any diff. The JSON check output reports
           # formatting mismatches per file on stdout and parse errs on stderr, so
@@ -63,12 +108,50 @@ jobs:
           stylua_status=$?
           set -e
 
-          if ! jq -e -s 'type == "array"' mismatches.json > /dev/null 2>&1; then
+          # -s always yields an array, so testing for one tests only that the
+          # report parsed. What matters is that the records are file objects.
+          if ! jq -e -s '
+                type == "array"
+                and all(type == "object" and (.file | type == "string"))
+              ' mismatches.json > /dev/null 2>&1; then
             echo "::error title=Formatting check is broken::stylua wrote an unreadable Json report (exit $stylua_status). This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
             cat mismatches.json errors.json
             exit 1
           fi
-          jq -r '.file' mismatches.json | sort -u > misformatted.txt
+
+          raw_hunks=$(jq -s '[ .[] | .mismatches // [] | .[] ] | length' mismatches.json)
+
+          # jq reads a missing field as null and null + 1 as 1, so renaming the
+          # line fields would not fail the overlap test below: it would scope
+          # every mismatch to line 1 and then block or ignore by whether the PR
+          # happened to touch the top of the file. Assert rather than trust.
+          if [ "$raw_hunks" -gt 0 ] && ! jq -e -s '
+                [ .[] | .mismatches // [] | .[] ]
+                | all((.original_start_line | type == "number")
+                      and (.original_end_line | type == "number"))
+              ' mismatches.json > /dev/null 2>&1; then
+            echo "::error title=Formatting check is broken::stylua's mismatches no longer carry numeric original_start_line and original_end_line, so the overlap test would scope every one of them to line 1. This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
+            exit 1
+          fi
+
+          # Stylua counts lines from zero and the diff counts them from one.
+          jq -s --slurpfile touched ranges.json '
+            def overlaps($ranges): . as $hunk
+              | any($ranges[];
+                  .[0] <= ($hunk.original_end_line + 1)
+                  and ($hunk.original_start_line + 1) <= .[1]);
+            ($touched | map({ key: .file, value: .ranges }) | from_entries) as $lines
+            | map(
+                . as $file
+                | ($lines[$file.file] // []) as $ranges
+                | $file + { mismatches: [ ($file.mismatches // [])[] | select(overlaps($ranges)) ] }
+              )
+            | map(select(.mismatches | length > 0))
+          ' mismatches.json > blocking.json
+
+          bad_hunks=$(jq '[ .[] | .mismatches // [] | .[] ] | length' blocking.json)
+          preexisting_hunks=$((raw_hunks - bad_hunks))
+          jq -r '.[].file' blocking.json | sort -u > misformatted.txt
 
           # Swallow any parse errors from stylua and leave them to the emmylua ci.
           # Nonzero exit status from stylua still needs a backstop against crashes.
@@ -97,17 +180,20 @@ jobs:
           # Pass or fail is decided from reports, not status, to backstop a crash.
           bad_files=$(wc -l < misformatted.txt)
           if [ "$bad_files" -eq 0 ] && [ ! -s errlines.txt ]; then
-            if [ "$stylua_status" -ne 0 ] && [ "$parse_errors" -eq 0 ]; then
+            if [ "$stylua_status" -ne 0 ] && [ "$parse_errors" -eq 0 ] && [ "$raw_hunks" -eq 0 ]; then
               echo "::error title=Formatting check is broken::stylua exited $stylua_status without reporting anything. This is a CI defect, not a problem with this PR; fix format_check.yml or its pinned stylua."
               exit 1
             fi
-            echo "All changed files are formatted."
+            if [ "$preexisting_hunks" -gt 0 ]; then
+              echo "::notice title=Formatting::$preexisting_hunks hunk(s) in the changed files are not formatted, but this pull request did not write those lines, so they do not fail the check."
+            fi
+            echo "All changed lines are formatted."
             exit 0
           fi
 
           ver=$(./stylua --version)
           if [ "$bad_files" -gt 0 ]; then
-            echo "$bad_files file(s) are not formatted with $ver:"
+            echo "$bad_hunks hunk(s) overlapping lines this pull request wrote are not formatted with $ver, in:"
             cat misformatted.txt
           fi
           if [ -s errlines.txt ]; then
@@ -128,8 +214,9 @@ jobs:
           # Leaving line=off annotates against the zeroth line, which does not exist.
           # Stylua indexes from zero while github indexes from one, in this case.
           # GH keeps up to 10 annotation bubbles and discards the rest (kept in logs)
-          # so these are sorted by the worst offenders, determined by total diff size.
-          jq -s -r --arg ver "$ver" '
+          # so these are sorted by the worst offenders, determined by total diff size,
+          # then by line and column position, because github autosorts only by path.
+          jq -r --arg ver "$ver" '
             def esc($s): $s | gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
             def prop($s): esc($s) | gsub(","; "%2C") | gsub(":"; "%3A");
             map(
@@ -143,9 +230,11 @@ jobs:
               | { file: $f.file, line: $line, lines: $lines }
             )
             | sort_by(-.lines)
-            | .[0:10][]
+            | .[0:10]
+            | sort_by(.file, .line)
+            | .[]
             | "::error file=\(prop(.file)),line=\(.line),title=Not formatted::\(.lines) line(s) would change. Run \($ver) on this file and commit the result."
-          ' mismatches.json
+          ' blocking.json
 
           # GH annotation cap of 10 is per-category, so folder rollups use warnings.
           if [ "$bad_files" -gt 10 ] && [ "$bad_folders" -le 10 ]; then
@@ -167,7 +256,7 @@ jobs:
             echo "### Formatting check failed"
             echo
             if [ "$bad_files" -gt 0 ]; then
-              echo "$bad_files changed file(s) are not formatted. Run $ver on them and commit the result."
+              echo "$bad_hunks hunk(s) overlapping lines this pull request wrote, across $bad_files file(s), are not formatted. Run $ver on them and commit the result."
               echo
               if [ "$bad_files" -le 10 ]; then
                 sed -e 's/^/- `/' -e 's/$/`/' misformatted.txt
@@ -178,6 +267,10 @@ jobs:
               else
                 echo "The files span $bad_folders folders; the workflow log lists every one."
               fi
+            fi
+            if [ "$preexisting_hunks" -gt 0 ]; then
+              echo
+              echo "_A further $preexisting_hunks hunk(s) in the changed files are not formatted either, but this pull request did not write those lines and is not being failed for them._"
             fi
             if [ -s errlines.txt ]; then
               echo

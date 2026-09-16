@@ -41,7 +41,9 @@ return {
 		customparams = {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legvehicles/T2",
+			reaimtime = 5,
+			subfolder = "Legion/Vehicles/T2 Vehicles",
+			unitgroup = "weapon",
 			techlevel = 2,
 			restrictions_exclusion = "_nosea_",
 			speedfactorinwater = 1.3,

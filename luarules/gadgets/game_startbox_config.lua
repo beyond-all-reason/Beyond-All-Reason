@@ -18,26 +18,30 @@ end
 
 local PolygonLib = VFS.Include("common/lib_polygon.lua")
 
+local SPAWN_CHOOSE_IN_GAME = 2
+
 local startBoxConfig
 local configSource
 local isExplicitConfig = false
 
 function gadget:Initialize()
-	local ParseBoxes = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-	local ok, config, source, isExplicit = pcall(ParseBoxes)
-	if ok then
-		startBoxConfig = config
-		configSource = source
-		isExplicitConfig = isExplicit
-	else
-		Spring.Log(gadget:GetInfo().name, LOG.WARNING, "Failed to parse startbox config: " .. tostring(config))
-	end
+	local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+	startBoxConfig, configSource, isExplicitConfig = StartboxLib.GetConfig()
 
-	-- Expand the engine AABB for each active allyTeam to cover the polygon bounds.
-	-- Without this, the engine silently drops clicks outside its default AABB and never
-	-- calls AllowStartPosition, making polygons that extend beyond the lobby's
-	-- rectangle unreachable.
-	if isExplicitConfig and startBoxConfig then
+	-- Only choose-in-game places by start box. Other modes take the map's own start
+	-- positions, and the engine clamps every incoming position into the allyteam's rect
+	-- before Lua sees it (NETMSG_STARTPOS), so any rect at all drags valid positions onto
+	-- its edges. Widen to the whole map, which makes that clamp a no-op.
+	if Game.startPosType ~= SPAWN_CHOOSE_IN_GAME then
+		local allyTeamList = Spring.GetAllyTeamList()
+		for _, allyTeamID in ipairs(allyTeamList) do
+			Spring.SetAllyTeamStartBox(allyTeamID, 0, 0, Game.mapSizeX, Game.mapSizeZ)
+		end
+	elseif isExplicitConfig and startBoxConfig then
+		-- Expand the engine AABB for each active allyTeam to cover the polygon bounds.
+		-- Without this, the engine silently drops clicks outside its default AABB and never
+		-- calls AllowStartPosition, making polygons that extend beyond the lobby's
+		-- rectangle unreachable.
 		local allyTeamList = Spring.GetAllyTeamList()
 		for _, allyTeamID in ipairs(allyTeamList) do
 			local entry = startBoxConfig[allyTeamID]

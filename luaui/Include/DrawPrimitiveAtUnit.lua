@@ -3,8 +3,6 @@
 -- License: GNU GPL V2
 -------------------------------------------------
 
-local DrawPrimitiveAtUnit = {}
-
 local shaderConfig = {
 	TRANSPARENCY = 0.2, -- transparency of the stuff drawn
 	HEIGHTOFFSET = 1, -- Additional height added to everything

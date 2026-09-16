@@ -44,7 +44,6 @@ local muteWhenIdle = true
 local displayMessages = true
 local spoken = true
 local idleBuilderNotificationDelay = 10 * 30 -- (in gameframes)
-local tutorialPlayLimit = 2 -- display the same tutorial message only this many times in total (max is always 1 play per game)
 local updateCommandersFrames = Game.gameSpeed * 5
 
 local victoryConditionAllyID = 999

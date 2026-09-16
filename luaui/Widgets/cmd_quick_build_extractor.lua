@@ -79,6 +79,13 @@ local spotBuilder
 function widget:Initialize()
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
+		return
+	end
+
+	if not WG.resource_spot_builder or not WG.resource_spot_finder then
+		Spring.Echo("Quick Build Extractor: the mex/geo resource spot API is missing, disabling")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	spotBuilder = WG.resource_spot_builder

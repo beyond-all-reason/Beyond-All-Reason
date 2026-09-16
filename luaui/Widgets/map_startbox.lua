@@ -40,12 +40,12 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SHADER_STORAGE_BUFFER = GL.SHADER_STORAGE_BUFFER
 local GL_TRIANGLES = GL.TRIANGLES
 
-local UPDATE_RATE = 30
-
 local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
 
+local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local StartPolygonSDF = VFS.Include("luaui/Include/startpolygon_sdf_gl4.lua")
 
 if Game.startPosType ~= 2 then
 	return false
@@ -113,13 +113,11 @@ local glCallList = gl.CallList
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
 local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glTexCoord = gl.TexCoord
 local GL_POLYGON = GL.POLYGON
-local GL_QUADS = GL.QUADS
 
 local hasStartbox = false
 
@@ -533,6 +531,7 @@ local shaderSourceCache = {
 		heightMapTex = 2,
 		scavTexture = 3,
 		raptorTexture = 4,
+		startPolygonSDF = 5,
 	},
 	uniformFloat = {
 		pingData = { 0, 0, 0, -10000 }, -- x,y,z, time
@@ -555,6 +554,7 @@ local shaderSourceCache = {
 local fullScreenRectVAO
 local startPolygonShader
 local startPolygonBuffer = nil -- GL.SHADER_STORAGE_BUFFER for polygon
+local startPolygonSDF = nil -- baked distance field the fullscreen pass samples, see startpolygon_sdf_gl4.lua
 
 local coneShaderSourceCache = {
 	vssrcpath = "LuaUI/Shaders/map_startcone_gl4.vert.glsl",
@@ -592,12 +592,23 @@ local function DrawStartPolygons(inminimap)
 		end
 	end
 
+	-- The polygons never change, but the flags channel depends on which allyteam is "us",
+	-- so the field is rebaked when that changes (spectators switching teams). Baking has
+	-- to happen from the world pass: gl.RenderToTexture leaves framebuffer 0 bound, which
+	-- would break the minimap texture pass. The minimap simply waits a frame instead.
+	if not startPolygonSDF:IsBakedFor(myAllyTeamID) then
+		if inminimap then
+			gl.Texture(0, false)
+			return
+		end
+		startPolygonSDF:Bake(startPolygonBuffer, fullScreenRectVAO, myAllyTeamID)
+	end
+
 	gl.Texture(1, "$normals")
 	gl.Texture(2, "$heightmap") -- Texture file
 	gl.Texture(3, scavengerStartBoxTexture)
 	gl.Texture(4, raptorStartBoxTexture)
-
-	startPolygonBuffer:BindBufferRange(4)
+	gl.Texture(5, startPolygonSDF.texture)
 
 	gl.Culling(true)
 	gl.DepthTest(false)
@@ -626,6 +637,7 @@ local function DrawStartPolygons(inminimap)
 	gl.Texture(2, false)
 	gl.Texture(3, false)
 	gl.Texture(4, false)
+	gl.Texture(5, false)
 	gl.Culling(false)
 	gl.DepthTest(false)
 end
@@ -911,8 +923,8 @@ local function InitStartPolygons()
 	-- hardcoded fallback fires we defer to the engine startrect path below so
 	-- the lobby/host's rectangles remain authoritative.
 	local configLoaded = false
-	local ok, ParseBoxes = pcall(VFS.Include, "luarules/gadgets/include/startbox_utilities.lua")
-	if ok and ParseBoxes then
+	local ParseBoxes = StartboxLib and StartboxLib.ParseBoxes
+	if ParseBoxes then
 		local pok, startBoxConfig, _, isExplicit = pcall(ParseBoxes)
 		if pok and startBoxConfig and isExplicit then
 			local activeAllyTeams = {}
@@ -920,7 +932,12 @@ local function InitStartPolygons()
 				activeAllyTeams[atID] = true
 			end
 			for allyTeamID, entry in pairs(startBoxConfig) do
-				if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] and entry.boxes then
+				if
+					allyTeamID ~= gaiaAllyTeamID
+					and activeAllyTeams[allyTeamID]
+					and entry.boxes
+					and not entry.wholeMap
+				then
 					for _, polygon in ipairs(entry.boxes) do
 						StartPolygons[#StartPolygons + 1] = { team = allyTeamID, poly = polygon }
 					end
@@ -1023,6 +1040,24 @@ local function InitStartPolygons()
 	startPolygonBuffer = gl.GetVBO(GL_SHADER_STORAGE_BUFFER, false) -- not updated a lot
 	startPolygonBuffer:Define(numvertices, { { id = 0, name = "starttriangles", size = 4 } })
 	startPolygonBuffer:Upload(bufferdata) --, -1, 0, 0, numvertices-1)
+
+	-- Only the bake walks the polygons; the draw shader reads the baked field.
+	local sdfError
+	startPolygonSDF, sdfError = StartPolygonSDF.Create({
+		format = GL.RGBA16F, -- sign, edge distance near zero and small integer flags all fit half floats
+		shaderName = "Start Polygons SDF bake GL4",
+		shaderConfig = {
+			NUM_POLYGONS = numPolygons,
+			NUM_POINTS = numvertices,
+			SCAV_ALLYTEAM_ID = scavengerAIAllyTeamID, -- these neatly become undefined if not present
+			RAPTOR_ALLYTEAM_ID = raptorsAIAllyTeamID,
+		},
+	})
+	if not startPolygonSDF then
+		spEcho("Error: Start Polygons " .. tostring(sdfError))
+		widgetHandler:RemoveWidget()
+		return
+	end
 
 	shaderSourceCache.shaderConfig.NUM_POLYGONS = numPolygons
 	shaderSourceCache.shaderConfig.NUM_POINTS = numvertices
@@ -1134,6 +1169,10 @@ local function removeLists()
 end
 
 function widget:Shutdown()
+	if startPolygonSDF then
+		startPolygonSDF:Delete()
+		startPolygonSDF = nil
+	end
 	removeLists()
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
@@ -1595,9 +1634,8 @@ function widget:MousePress(x, y, button)
 		local aiTeamID = aiCurrentlyBeingPlaced
 		local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(aiTeamID, false)
 
-		local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
-		if xmin < xmax and zmin < zmax then
-			if worldX >= xmin and worldX <= xmax and worldZ >= zmin and worldZ <= zmax then
+		if StartboxLib.HasStartbox(aiAllyTeamID) then
+			if StartboxLib.IsInside(aiAllyTeamID, worldX, worldZ) then
 				Spring.SendLuaRulesMsg("aiPlacedPosition:" .. aiTeamID .. ":" .. worldX .. ":" .. worldZ)
 				aiCurrentlyBeingPlaced = nil
 				return true
@@ -1654,10 +1692,8 @@ function widget:MouseRelease(x, y, button)
 			local finalZ = worldZ + dragOffsetZ
 
 			local _, _, _, _, _, aiAllyTeamID = spGetTeamInfo(draggingTeamID, false)
-			local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(aiAllyTeamID)
-
-			if xmin < xmax and zmin < zmax then
-				if finalX >= xmin and finalX <= xmax and finalZ >= zmin and finalZ <= zmax then
+			if StartboxLib.HasStartbox(aiAllyTeamID) then
+				if StartboxLib.IsInside(aiAllyTeamID, finalX, finalZ) then
 					aiPlacedPositions[draggingTeamID] = { x = finalX, z = finalZ }
 					posCache[draggingTeamID] = nil
 					Spring.SendLuaRulesMsg("aiPlacedPosition:" .. draggingTeamID .. ":" .. finalX .. ":" .. finalZ)
