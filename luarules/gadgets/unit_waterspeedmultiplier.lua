@@ -37,7 +37,8 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetMoveTypeData = Spring.GetUnitMoveTypeData
-local spSetGroundMoveTypeData = Spring.MoveCtrl.SetGroundMoveTypeData
+
+local ATTRIBUTE_SOURCE = "speedfactor_inwater"
 
 -- Setup
 
@@ -63,11 +64,6 @@ for defID, ud in pairs(UnitDefs) do
 		unitDefData[defID] = {
 			speedFactorInWater = speedFactorInWater,
 			speedFactorAtDepth = speedFactorAtDepth,
-
-			speed = ud.speed,
-			turn = ud.turnRate,
-			acc = ud.maxAcc,
-			dec = ud.maxDec,
 		}
 	end
 end
@@ -77,38 +73,20 @@ local unitDepthFastUpdate = {}
 local slowUpdateFrames = math.round(watchUpdateRate * Game.gameSpeed)
 local fastUpdateFrames = math.round(depthUpdateRate * Game.gameSpeed)
 
----@type GroundMoveType
-local moveTypeData = {
-	maxSpeed = 0,
-	maxWantedSpeed = 0,
-	turnRate = 0,
-	accRate = 0,
-	decRate = 0,
-}
-
 -- Local functions
 
--- applies a multiplicative factor to a unit's base movement stats: speed, wanted speed, turn rate, accel, decel
--- The base stats come from UnitDefs and are scaled proportionally
---
--- TODO: unify with GG.ForceUpdateWantedMaxSpeed / unit_wanted_speed.lua
--- This gadget should eventually integrate with a system that can compose
--- multiple wanted speeds, constraints, and coefficients, as per efrec/BONELESS/qscrew
--- Current implementation is local only.
-local function setMoveTypeData(unitID, unitData, factor)
-	local data = moveTypeData
+---@param unitID UnitID
+---@param factor number? A nil releases this gadget's claim on the unit.
+local function setSpeedModifiers(unitID, factor)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 
-	--these factor effectiveness values for the given unit stats were chosen arbitrarily for the best mechanical feel and balance,
-	--as well as to avoid strange jerky visuals
-	local speed = unitData.speed * factor
+	local turnFactor = factor and (factor * 0.50 + 0.50)
+	local accFactor = factor and (factor * 0.75 + 0.25)
 
-	data.maxSpeed = speed
-	data.maxWantedSpeed = speed
-	data.turnRate = unitData.turn * (factor * 0.50 + 0.50)
-	data.accRate = unitData.acc * (factor * 0.75 + 0.25)
-	data.decRate = unitData.dec * (factor * 0.75 + 0.25)
-
-	spSetGroundMoveTypeData(unitID, data)
+	setUnitModifier(unitID, "speed", factor, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "turnRate", turnFactor, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "maxAcc", accFactor, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "maxDec", accFactor, ATTRIBUTE_SOURCE)
 end
 
 local fake = {} -- just in case tbh
@@ -130,7 +108,7 @@ local function applySpeed(unitID, unitData, factor)
 			factor = 1 + (factor - 1) * math_clamp(getUnitDepth(unitID) / depthMax, 0, 1)
 		end
 	end
-	setMoveTypeData(unitID, unitData, factor)
+	setSpeedModifiers(unitID, factor)
 end
 
 local function slowUpdate()
@@ -145,17 +123,13 @@ local function slowUpdate()
 end
 
 local function fastUpdate()
-	local canSetSpeed, getDepth, setMoveData = canSetSpeed, getUnitDepth, setMoveTypeData -- micro speedup
+	local canSetSpeed, getDepth, setModifiers = canSetSpeed, getUnitDepth, setSpeedModifiers -- micro speedup
 
 	for unitID, unitData in pairs(unitDepthFastUpdate) do
 		if canSetSpeed(unitID) then
 			local depth, depthMax = getDepth(unitID), unitData.speedFactorAtDepth
 			if depth >= depthMax - 15 then
-				setMoveData(
-					unitID,
-					unitData,
-					1 + (unitData.speedFactorInWater - 1) * math_clamp(depth / depthMax, 0, 1)
-				)
+				setModifiers(unitID, 1 + (unitData.speedFactorInWater - 1) * math_clamp(depth / depthMax, 0, 1))
 			else
 				unitDepthSlowUpdate[unitID] = unitData
 				unitDepthFastUpdate[unitID] = nil
@@ -210,9 +184,7 @@ end
 function gadget:UnitLeftWater(unitID, unitDefID, unitTeam)
 	local unitData = unitDefData[unitDefID]
 	if unitData then
-		if canSetSpeed(unitID) then
-			applySpeed(unitID, unitData, 1)
-		end
+		setSpeedModifiers(unitID, nil)
 		unitDepthSlowUpdate[unitID] = nil
 		unitDepthFastUpdate[unitID] = nil
 	end
@@ -224,8 +196,8 @@ function gadget:Initialize()
 		return
 	end
 
-	local unitFinished = gadget.UnitFinished
+	local unitFinished = self.UnitFinished
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		unitFinished(gadget, unitID, Spring.GetUnitDefID(unitID), 0)
+		unitFinished(self, unitID, Spring.GetUnitDefID(unitID), 0)
 	end
 end
