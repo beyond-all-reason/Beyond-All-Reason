@@ -492,14 +492,12 @@ function widget:Update() -- this is pointlessly expensive!
 	local step = areaResolution / 16
 	local totalsmoothness = 0
 	local prevHeight = spGetGroundHeight(updatePositionX, updatePositionZ)
-	local prevX = prevHeight
 	for x = updatePositionX, updatePositionX + areaResolution, step do
 		for z = updatePositionZ, updatePositionZ + areaResolution, step do
 			local h = spGetGroundHeight(x, z)
 			totalsmoothness = totalsmoothness + abs(h - prevHeight)
 			prevHeight = h
 		end
-		prevX = prevHeight
 	end
 	areaDecals[hash].smoothness = totalsmoothness
 end
@@ -2243,8 +2241,6 @@ function widget:Initialize()
 
 							local posx = vboEntry[13]
 							local posz = vboEntry[15]
-							local rotation = vboEntry[3]
-							local p, q2, s, t = vboEntry[5], vboEntry[6], vboEntry[7], vboEntry[8]
 							AddDecalToArea(decalIndex, posx, posz, width_v, length_v)
 							restoredCount = restoredCount + 1
 						end

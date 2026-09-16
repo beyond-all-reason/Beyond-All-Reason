@@ -175,8 +175,8 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 			local cmdFacRad = wpData[4]
 			local cmdLink = wpData[5]
 			local cmdID = wpData[6].id
-			local cmdPars = wpData[6].params
 			local cmdTag = wpData[6].tag
+			local cmdOptions = wpData[6].options.coded
 			local cmdUnitID = wpData[7]
 
 			if finalize then
@@ -184,11 +184,9 @@ local function MoveWayPoints(wpTbl, mx, my, finalize)
 					cmdLink = cmdTag
 				end
 				if cmdFacRad > 0 then
-					-- spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz, cmdFacRad}, {"alt"})
-					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, { cmdLink, cmdID, 0, cx, cy, cz, cmdFacRad }, 0)
+					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, { cmdLink, cmdID, cmdOptions, cx, cy, cz, cmdFacRad }, 0)
 				else
-					-- spGiveOrderToUnit(cmdUnitID, CMD.INSERT, {cmdNum, cmdID, 0, cx, cy, cz}, {"alt"})
-					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, { cmdLink, cmdID, 0, cx, cy, cz }, 0)
+					spGiveOrderToUnit(cmdUnitID, CMD.INSERT, { cmdLink, cmdID, cmdOptions, cx, cy, cz }, 0)
 				end
 				if not alt then
 					spGiveOrderToUnit(cmdUnitID, CMD.REMOVE, { cmdTag }, 0)

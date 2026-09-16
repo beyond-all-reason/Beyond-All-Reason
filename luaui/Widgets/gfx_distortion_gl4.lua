@@ -19,7 +19,6 @@ local mathMax = math.max
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local stringFormat = string.format
-local stringFind = string.find
 local pairs = pairs
 local ipairs = ipairs
 local type = type
@@ -40,14 +39,11 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
 local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -64,7 +60,6 @@ local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glDeleteTexture = gl.DeleteTexture
 local glCreateTexture = gl.CreateTexture
-local glLoadFont = gl.LoadFont
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -96,7 +91,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -782,7 +776,6 @@ local function LoadDistortionConfig()
 end
 
 local nightFactor = 1 --0.33
-local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {
 	"unitAmbientColor",
 	"unitDiffuseColor",

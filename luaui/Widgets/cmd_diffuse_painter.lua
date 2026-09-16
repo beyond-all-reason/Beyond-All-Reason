@@ -19,7 +19,6 @@ local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 local SetMapSquareTexture = Spring.SetMapSquareTexture
 local GetMapSquareTextureFn = Spring.GetMapSquareTexture
 local SetMapShadingTexture = Spring.SetMapShadingTexture
@@ -39,9 +38,6 @@ local glColor = gl.Color
 local glBlending = gl.Blending
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
-local glBeginEnd = gl.BeginEnd
-local glVertex = gl.Vertex
-local glDepthTest = gl.DepthTest
 
 local floor, max, min = math.floor, math.max, math.min
 local cos, sin, pi = math.cos, math.sin, math.pi
@@ -82,7 +78,6 @@ local MIN_FRACTAL = 0.0
 local MAX_FRACTAL = 1.0
 local MIN_FRACTAL_FREQ = 0.0001
 local MAX_FRACTAL_FREQ = 0.05
-local FRACTAL_FREQ_STEP = 0.001
 
 -- ============================================================================
 -- State
@@ -98,8 +93,6 @@ local squares = {}
 -- For hand-paint layers, strokes are baked here with material*layerColor already
 -- composited in, so switching material later only affects FUTURE strokes.
 local masks = {}
--- maskClearTex: tiny zeroed FBO used to clear newly-allocated masks (lazy)
-local maskClearTex = nil
 
 -- Layer record table; one starter built-in layer pre-populated in Initialize.
 -- layer = { id, name, enabled, opacity, color={r,g,b}, blend (string),

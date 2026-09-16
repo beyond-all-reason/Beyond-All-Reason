@@ -26,6 +26,9 @@ local SLIDER_IDS = {
 	{ "surf-slider-strength", "surf-strength" },
 	{ "surf-slider-falloff", "surf-falloff" },
 	{ "surf-slider-spacing", "surf-spacing" },
+	{ "surf-slider-scatter-pos", "surf-scatter-pos" },
+	{ "surf-slider-scatter-size", "surf-scatter-size" },
+	{ "surf-slider-scatter-str", "surf-scatter-str" },
 	{ "surf-slider-fill-scale", "surf-fill-scale" },
 	{ "surf-slider-fill-seed", "surf-fill-seed" },
 	{ "surf-slider-topsTintR", "surf-topsTintR" },
@@ -44,6 +47,17 @@ local SLIDER_IDS = {
 	{ "surf-soft-slider-slope-max", "surf-soft-slope-max" },
 	{ "surf-soft-slider-alt-min", "surf-soft-alt-min" },
 	{ "surf-soft-slider-alt-max", "surf-soft-alt-max" },
+	-- SELECTED SLOT tint (GRADING; per-asset, dev_tileset_terrain slotTintN)
+	{ "surf-slider-slotTintR", "surf-slotTintR" },
+	{ "surf-slider-slotTintG", "surf-slotTintG" },
+	{ "surf-slider-slotTintB", "surf-slotTintB" },
+	-- INFLUENCE sliders (shared by both submodes; handler routes by surfMode)
+	{ "surf-slider-inf-alt-min", "surf-inf-alt-min" },
+	{ "surf-slider-inf-alt-max", "surf-inf-alt-max" },
+	{ "surf-slider-inf-alt-feather", "surf-inf-alt-feather" },
+	{ "surf-slider-inf-slope-min", "surf-inf-slope-min" },
+	{ "surf-slider-inf-slope-max", "surf-inf-slope-max" },
+	{ "surf-slider-inf-slope-feather", "surf-inf-slope-feather" },
 }
 
 -- Group tint knobs mirrored from WG.TilesetTerrain (GRADING section).
@@ -130,6 +144,43 @@ function M.attach(doc, ctx)
 				event:StopPropagation()
 			end, false)
 		end
+	end
+	-- FLIP: per-texture normal G toggle, straight through to the tileset shader
+	-- (asset-keyed there, so re-picking the same texture into another slot keeps
+	-- the flag). ONE button acting on the SELECTED slot (BASE = slot 0, whose
+	-- texture is every empty slot's fallback): a FLIP on every tile left
+	-- PICK / FLIP / X too cramped to hit.
+	local function selectedSurfAsset()
+		local sp = WG.SurfacePainter
+		local st = sp and sp.getState and sp.getState()
+		if not st then
+			return nil
+		end
+		local sel = st.selSlot or 0
+		if sel == 0 then
+			local T = WG.TilesetTerrain
+			local list = T and T.getSurfaceVariants and T.getSurfaceVariants()
+			return list and list[1] and list[1].asset
+		end
+		return st["slot" .. sel]
+	end
+	widgetState.surfSelectedAsset = selectedSurfAsset
+	widgetState.surfFlipSelEl = doc:GetElementById("surf-flip-sel")
+	if widgetState.surfFlipSelEl then
+		widgetState.surfFlipSelEl:AddEventListener("mousedown", function(event)
+			---@type table?
+			local T = WG.TilesetTerrain
+			local asset = (T and T.setNormalFlip) and selectedSurfAsset() or nil
+			if asset and T then
+				local on = not T.getNormalFlip(asset)
+				T.setNormalFlip(asset, on)
+				widgetState.surfFlipSelEl:SetClass("active", on)
+				ctx.playSound(on and "toggleOn" or "toggleOff")
+			else
+				ctx.playSound("click") -- selected slot has no texture to flip
+			end
+			event:StopPropagation()
+		end, false)
 	end
 	local closeBtn = doc:GetElementById("surf-picker-close")
 	if closeBtn then
@@ -389,6 +440,36 @@ local function syncTints(doc, ctx)
 		cache = {}
 		widgetState.surfTintLast = cache
 	end
+	-- SELECTED SLOT tint: the armed texture's per-asset entry in the tileset
+	-- widget, restamped only when the asset or a channel changes (and never
+	-- under the slider being dragged).
+	do
+		---@type table?
+		local TT = WG.TilesetTerrain
+		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		if TT and TT.getSlotTint and asset then
+			local r, g, b = TT.getSlotTint(asset)
+			local vals = { R = r, G = g, B = b }
+			for ch, v in pairs(vals) do
+				local key = "slotTint" .. ch
+				if ds ~= ("surf-" .. key) then
+					local id = "surf-slider-" .. key
+					local sig = asset .. "|" .. string.format("%.4f", v)
+					if cache[id] ~= sig then
+						cache[id] = sig
+						local sl = doc:GetElementById(id)
+						if sl then
+							sl:SetAttribute("value", tostring(v))
+						end
+						local nb = doc:GetElementById(id .. "-numbox")
+						if nb then
+							nb:SetAttribute("value", string.format("%.2f", v))
+						end
+					end
+				end
+			end
+		end
+	end
 	for _, k in ipairs(TINT_KNOBS) do
 		local key = k[1]
 		local v = knobs[key]
@@ -455,6 +536,16 @@ local function syncHard(doc, ctx, setSummary)
 	setDm("surfHardAvoidCliffs", sf.avoidCliffs == true)
 	setDm("surfHardAltMin", sf.altMinEnable == true)
 	setDm("surfHardAltMax", sf.altMaxEnable == true)
+	do
+		-- SAMPLE buttons light while the brush widget's height sampler is armed on their target
+		local hs = WG.TerraformBrush
+			and WG.TerraformBrush.getState
+			and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		setDm("surfAltMinSample", hs == "spAltMin")
+		setDm("surfAltMaxSample", hs == "spAltMax")
+		setDm("surfInfAltMinSample", hs == "spInfAltMin")
+		setDm("surfInfAltMaxSample", hs == "spInfAltMax")
+	end
 	setDm("surfHardExportFmt", string.upper(spState.exportFormat or "png"))
 	setDm("surfHardOverlay", spState.showSplatOverlay == true)
 	-- FILTERS live in a canonical collapsed section now, so they get the
@@ -464,6 +555,17 @@ local function syncHard(doc, ctx, setSummary)
 		"warn-chip-sf-smart",
 		"section-sf-smart",
 		(sf.avoidWater or sf.avoidCliffs or sf.altMinEnable or sf.altMaxEnable) and true or false
+	)
+	-- INFLUENCE chips + the active channel's profile name
+	local inf = spState.influence or {}
+	setDm("surfInfAlt", inf.altOn == true)
+	setDm("surfInfSlope", inf.slopeOn == true)
+	setDm("surfInfKey", spState.influenceKey or "")
+	ctx.syncWarnChip(
+		doc,
+		"warn-chip-sf-influence",
+		"section-sf-influence",
+		(inf.altOn or inf.slopeOn) and true or false
 	)
 
 	-- BRUSH sliders mirror the splat engine in this submode (same slider-unit
@@ -484,6 +586,12 @@ local function syncHard(doc, ctx, setSummary)
 	ss("surf-hard-slider-slope-max", "surf-hard-slope-max", tostring(sf.slopeMax or 45))
 	ss("surf-hard-slider-alt-min", "surf-hard-alt-min", tostring(sf.altMin or 0))
 	ss("surf-hard-slider-alt-max", "surf-hard-alt-max", tostring(sf.altMax or 200))
+	ss("surf-slider-inf-alt-min", "surf-inf-alt-min", tostring(math.floor((inf.altMin or 0) + 0.5)))
+	ss("surf-slider-inf-alt-max", "surf-inf-alt-max", tostring(math.floor((inf.altMax or 200) + 0.5)))
+	ss("surf-slider-inf-alt-feather", "surf-inf-alt-feather", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+	ss("surf-slider-inf-slope-min", "surf-inf-slope-min", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+	ss("surf-slider-inf-slope-max", "surf-inf-slope-max", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+	ss("surf-slider-inf-slope-feather", "surf-inf-slope-feather", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 	do
 		local setAttrValueIfChanged = ctx.setAttrValueIfChanged
 		local function nb(id, txt)
@@ -493,6 +601,12 @@ local function syncHard(doc, ctx, setSummary)
 		nb("surf-slider-strength-numbox", string.format("%.2f", spState.strength or 0.15))
 		nb("surf-slider-falloff-numbox", string.format("%.1f", spState.curve or 1.0))
 		nb("surf-hard-slider-slope-max-numbox", tostring(sf.slopeMax or 45))
+		nb("surf-slider-inf-alt-min-numbox", tostring(math.floor((inf.altMin or 0) + 0.5)))
+		nb("surf-slider-inf-alt-max-numbox", tostring(math.floor((inf.altMax or 200) + 0.5)))
+		nb("surf-slider-inf-alt-feather-numbox", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+		nb("surf-slider-inf-slope-min-numbox", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+		nb("surf-slider-inf-slope-max-numbox", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+		nb("surf-slider-inf-slope-feather-numbox", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 		nb("surf-hard-slider-alt-min-numbox", tostring(sf.altMin or 0))
 		nb("surf-hard-slider-alt-max-numbox", tostring(sf.altMax or 200))
 	end
@@ -573,12 +687,23 @@ function M.sync(doc, ctx, surfState, setSummary)
 	-- Palette rebuild on biome / list / selection / slot / picker-target change.
 	-- Per-slot picking replaced the old "first free slot" assignment, so there
 	-- is no unassignable state left to dim for.
+	---@type table?
 	local T = WG.TilesetTerrain
 	local list, bkey = nil, nil
 	if T and T.getSurfaceVariants then
 		list, bkey = T.getSurfaceVariants()
 	end
 	local pickSlot = widgetState.surfPickerSlot
+	-- The painter's coverage histogram is a gl.ReadPixels (a GPU sync) and its
+	-- only reader here is the picker's "already carries paint" warning, so the
+	-- painter computes it only while a picker is open (gated readback).
+	do
+		---@type table?
+		local sp = WG.SurfacePainter
+		if sp and sp.setCoverageWanted then
+			sp.setCoverageWanted(pickSlot ~= nil)
+		end
+	end
 	if list then
 		local sig = paletteSig(list, bkey, surfState, pickSlot)
 		if sig ~= widgetState.surfPaletteSig then
@@ -624,11 +749,32 @@ function M.sync(doc, ctx, surfState, setSummary)
 		setDm("surfSoftAvoidCliffs", ssf.avoidCliffs == true)
 		setDm("surfSoftAltMin", ssf.altMinEnable == true)
 		setDm("surfSoftAltMax", ssf.altMaxEnable == true)
+		-- SAMPLE buttons light while the brush widget's height sampler is armed on their target
+		local hs = WG.TerraformBrush
+			and WG.TerraformBrush.getState
+			and (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		setDm("surfAltMinSample", hs == "sfAltMin")
+		setDm("surfAltMaxSample", hs == "sfAltMax")
+		setDm("surfInfAltMinSample", hs == "sfInfAltMin")
+		setDm("surfInfAltMaxSample", hs == "sfInfAltMax")
 		ctx.syncWarnChip(
 			doc,
 			"warn-chip-sf-smart",
 			"section-sf-smart",
 			(ssf.avoidWater or ssf.avoidCliffs or ssf.altMinEnable or ssf.altMaxEnable) and true or false
+		)
+	end
+	-- INFLUENCE chips + the armed texture's profile name
+	do
+		local inf = surfState.influence or {}
+		setDm("surfInfAlt", inf.altOn == true)
+		setDm("surfInfSlope", inf.slopeOn == true)
+		setDm("surfInfKey", shortAsset(surfState.influenceKey or "base"))
+		ctx.syncWarnChip(
+			doc,
+			"warn-chip-sf-influence",
+			"section-sf-influence",
+			(inf.altOn or inf.slopeOn) and true or false
 		)
 	end
 	-- Per-slot chip state, and FILL WITH NOISE stays enabled only while some
@@ -643,6 +789,16 @@ function M.sync(doc, ctx, surfState, setSummary)
 		if asset and fill then
 			canFill = true
 		end
+	end
+	-- The single FLIP button mirrors the SELECTED slot's flag (BASE included)
+	if widgetState.surfFlipSelEl then
+		local selAsset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		local fl = false
+		if selAsset and T and T.getNormalFlip then
+			fl = T.getNormalFlip(selAsset)
+		end
+		widgetState.surfFlipSelEl:SetClass("active", fl)
+		widgetState.surfFlipSelEl:SetClass("unavailable", selAsset == nil)
 	end
 	setDm("surfCanFill", canFill)
 	setDm("surfPickSlot", pickSlot or 0)
@@ -731,6 +887,9 @@ function M.sync(doc, ctx, surfState, setSummary)
 	ss("surf-slider-strength", "surf-strength", tostring(math.floor((surfState.strength or 0.15) * 100 + 0.5)))
 	ss("surf-slider-falloff", "surf-falloff", tostring(math.floor((surfState.curve or 0.5) * 10 + 0.5)))
 	ss("surf-slider-spacing", "surf-spacing", tostring(surfState.spacing or 0))
+	ss("surf-slider-scatter-pos", "surf-scatter-pos", tostring(math.floor((surfState.scatterPos or 0) * 100 + 0.5)))
+	ss("surf-slider-scatter-size", "surf-scatter-size", tostring(math.floor((surfState.scatterSize or 0) * 100 + 0.5)))
+	ss("surf-slider-scatter-str", "surf-scatter-str", tostring(math.floor((surfState.scatterStr or 0) * 100 + 0.5)))
 	ss("surf-slider-fill-scale", "surf-fill-scale", tostring(surfState.fillScale or 1400))
 	ss("surf-slider-fill-seed", "surf-fill-seed", tostring(surfState.fillSeed or 0))
 	do
@@ -738,6 +897,17 @@ function M.sync(doc, ctx, surfState, setSummary)
 		ss("surf-soft-slider-slope-max", "surf-soft-slope-max", tostring(ssf.slopeMax or 45))
 		ss("surf-soft-slider-alt-min", "surf-soft-alt-min", tostring(ssf.altMin or 0))
 		ss("surf-soft-slider-alt-max", "surf-soft-alt-max", tostring(ssf.altMax or 200))
+		local inf = surfState.influence or {}
+		ss("surf-slider-inf-alt-min", "surf-inf-alt-min", tostring(math.floor((inf.altMin or 0) + 0.5)))
+		ss("surf-slider-inf-alt-max", "surf-inf-alt-max", tostring(math.floor((inf.altMax or 200) + 0.5)))
+		ss("surf-slider-inf-alt-feather", "surf-inf-alt-feather", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+		ss("surf-slider-inf-slope-min", "surf-inf-slope-min", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+		ss("surf-slider-inf-slope-max", "surf-inf-slope-max", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+		ss(
+			"surf-slider-inf-slope-feather",
+			"surf-inf-slope-feather",
+			tostring(math.floor((inf.slopeFeather or 10) + 0.5))
+		)
 	end
 	do
 		local setAttrValueIfChanged = ctx.setAttrValueIfChanged
@@ -748,12 +918,22 @@ function M.sync(doc, ctx, surfState, setSummary)
 		nb("surf-slider-strength-numbox", string.format("%.2f", surfState.strength or 0.15))
 		nb("surf-slider-falloff-numbox", string.format("%.1f", surfState.curve or 0.5))
 		nb("surf-slider-spacing-numbox", (surfState.spacing or 0) > 0 and tostring(surfState.spacing) or "off")
+		nb("surf-slider-scatter-pos-numbox", string.format("%.2f", surfState.scatterPos or 0))
+		nb("surf-slider-scatter-size-numbox", string.format("%.2f", surfState.scatterSize or 0))
+		nb("surf-slider-scatter-str-numbox", string.format("%.2f", surfState.scatterStr or 0))
 		nb("surf-slider-fill-scale-numbox", tostring(surfState.fillScale or 1400))
 		nb("surf-slider-fill-seed-numbox", tostring(surfState.fillSeed or 0))
 		local ssf = surfState.smartFilters or {}
 		nb("surf-soft-slider-slope-max-numbox", tostring(ssf.slopeMax or 45))
 		nb("surf-soft-slider-alt-min-numbox", tostring(ssf.altMin or 0))
 		nb("surf-soft-slider-alt-max-numbox", tostring(ssf.altMax or 200))
+		local inf = surfState.influence or {}
+		nb("surf-slider-inf-alt-min-numbox", tostring(math.floor((inf.altMin or 0) + 0.5)))
+		nb("surf-slider-inf-alt-max-numbox", tostring(math.floor((inf.altMax or 200) + 0.5)))
+		nb("surf-slider-inf-alt-feather-numbox", tostring(math.floor((inf.altFeatherLo or 40) + 0.5)))
+		nb("surf-slider-inf-slope-min-numbox", tostring(math.floor((inf.slopeMin or 0) + 0.5)))
+		nb("surf-slider-inf-slope-max-numbox", tostring(math.floor((inf.slopeMax or 30) + 0.5)))
+		nb("surf-slider-inf-slope-feather-numbox", tostring(math.floor((inf.slopeFeather or 10) + 0.5)))
 	end
 	uiState.updatingFromCode = false
 	-- ONLY when a slider was actually re-stamped (see syncHard's note): this

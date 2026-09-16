@@ -172,8 +172,6 @@ local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glRect = gl.Rect
 
-local max = math.max
-local min = math.min
 local sqrt = math.sqrt
 
 -----------------------------------------------------

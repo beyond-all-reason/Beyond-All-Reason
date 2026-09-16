@@ -2,9 +2,9 @@ name: Run Unit Tests
 
 on:
   push:
-    branches: ['*']
+    branches: ['**'] # needs to tolerate a slash but not run on tag pushes
   pull_request:
-    branches: ['*']
+    branches: ['**'] # needs to tolerate a slash but not run on tag pushes
 
 jobs:
   busted:
