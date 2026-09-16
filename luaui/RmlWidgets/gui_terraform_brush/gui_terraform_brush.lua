@@ -3508,7 +3508,8 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	end
 
 	-- The manifest records the skybox basename; find it in the library so the
-	-- engine bakes a real cubemap sky and the project reopens with its own sky.
+	-- project reopens with its own sky (widget:Initialize applies the
+	-- blank_map_skybox option at runtime, the engine does not).
 	local skyboxPath = nil
 	if type(m.skybox) == "string" and m.skybox ~= "" then
 		for _, thumb in ipairs(widgetState.envSkyboxThumbs or {}) do
@@ -18316,6 +18317,20 @@ function widget:Initialize()
 					end
 				end
 			end
+		end
+	end
+
+	-- A reopened map project boots with its sky in the blank_map_skybox map option, but the engine never
+	-- shows it: the generated mapinfo leaves atmosphere.skyBox empty (and the engine would look for it
+	-- under maps/). Apply it at runtime like a library pick; a skybox in the project's environment
+	-- section still wins when that section loads.
+	if not widgetState._pendingSkyboxPath and _isGeneratedBlankMap() then
+		local mapOpts = Spring.GetMapOptions()
+		local sky = type(mapOpts) == "table" and mapOpts.blank_map_skybox or nil
+		if type(sky) == "string" and sky ~= "" then
+			widgetState._pendingSkyboxPath = sky
+			widgetState.envCurrentSkybox = sky
+			Spring.Echo("[Terraform Brush] project skybox: " .. sky)
 		end
 	end
 
