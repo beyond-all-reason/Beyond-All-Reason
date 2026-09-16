@@ -60,7 +60,7 @@ local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
 ---@field waterMidY number?
 ---@field waterRadius number
 
-local submersionParams = {} ---@type table<integer, SubmersionParams>
+local submersionParams = {} ---@type table<integer, SubmersionParams?>
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local param = unitDef.customParams.water_submersion_depth
@@ -138,13 +138,13 @@ function gadget:Initialize()
 	local units = spGetAllUnits()
 	for ii = 1, #units do
 		local unitID = units[ii]
-		local unitDefID = spGetUnitDefID(unitID)
+		local unitDefID = assert(spGetUnitDefID(unitID))
 		if submersionParams[unitDefID] then
-			local x, y, z = spGetUnitPosition(unitID)
+			local x, y, z = spGetUnitPosition(unitID) ---@as number, number, number
 			if y <= spGetWaterLevel(x, z) then
-				gadget:UnitEnteredWater(unitID, unitDefID)
+				gadget:UnitEnteredWater(unitID, unitDefID, 0)
 			else
-				gadget:UnitLeftWater(unitID, unitDefID)
+				gadget:UnitLeftWater(unitID, unitDefID, 0)
 			end
 		end
 	end
