@@ -336,18 +336,70 @@ _G.VFS.LoadFile = function(path)
 	file:close()
 	return contents
 end
-
-_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
-
--- Every spec file is run in a single Lua process via busted, so their globals are
--- left behind from one file to the next in the order they are run. Clearing GG is
--- one way to protect against those leaks; guarded against reruns using a _G gate.
-if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
-	local ok, busted = pcall(require, "busted")
-	if ok and type(busted) == "table" and busted.subscribe then
-		_G.__SPEC_HELPER_GG_RESET_INSTALLED = true
-		busted.subscribe({ "file", "start" }, function()
-			_G.GG = {}
-		end)
-	end
+-- These tables are shared by every spec file, so a write to one reaches every file
+-- that runs after it. Sealing turns that into an error where it happens.
+--
+-- The proxies hold nothing themselves: __newindex only fires for a key the table
+-- does not already have, so a metatable on the real Spring would not catch an
+-- assignment to Spring.Log.
+local function sealed(name, backing)
+	return setmetatable({}, {
+		__index = backing,
+		__newindex = function(_, key)
+			error(
+				("spec: %s.%s is shared by every spec file and cannot be assigned. Build an env instead: SpecEnv.new({ %s = { %s = ... } })"):format(
+					name,
+					tostring(key),
+					name,
+					tostring(key)
+				),
+				2
+			)
+		end,
+		__metatable = false,
+	})
 end
+
+-- The names have to be absent from _G itself for __newindex below to see a write
+-- to one, so they are reached through __index instead.
+local shared = {}
+for _, name in ipairs({ "Spring", "VFS", "Game", "GG", "io" }) do
+	shared[name] = sealed(name, _G[name])
+	rawset(_G, name, nil)
+end
+
+local protected = {
+	BAR = true,
+	CMD = true,
+	DEFS = true,
+	FeatureDefs = true,
+	GG = true,
+	Game = true,
+	GameCMD = true,
+	Json = true,
+	LOG = true,
+	Shared = true,
+	Spring = true,
+	UnitDefNames = true,
+	UnitDefs = true,
+	VFS = true,
+	WeaponDefNames = true,
+	io = true,
+}
+
+setmetatable(_G, {
+	__index = shared,
+	__newindex = function(globals, key, value)
+		if protected[key] then
+			error(
+				("spec: %s is shared by every spec file and cannot be assigned. Build an env instead: SpecEnv.new({ %s = ... })"):format(
+					tostring(key),
+					tostring(key)
+				),
+				2
+			)
+		end
+
+		rawset(globals, key, value)
+	end,
+})
