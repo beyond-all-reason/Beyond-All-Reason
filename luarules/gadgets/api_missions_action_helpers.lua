@@ -19,6 +19,8 @@ local spUseTeamResource = Spring.UseTeamResource
 
 GG["MissionAPIActionHelper"] = {}
 
+local framesHalfSecond = math.round(0.5 * Game.gameSpeed, 0)
+
 local resourcing = {
     active = false,
     metalPerSecond = {},
@@ -47,7 +49,7 @@ function gadget:GameFrame(frame)
     ---------------
     -- Resourcing
     ---------------
-    if resourcing.active and frame % Game.gameSpeed*0.5 == 0 then
+    if resourcing.active and frame % framesHalfSecond == 0 then
         for teamID, amount in pairs(resourcing.metalPerSecond) do
             if amount > 0 then
                 spAddTeamResource(teamID, "metal", amount*0.5)
