@@ -54,7 +54,6 @@ local cos = math.cos
 local sin = math.sin
 local abs = math.abs
 local pi = math.pi
-local sqrt = math.sqrt
 local format = string.format
 
 local METAL_SQ = Game.metalMapSquareSize or 16

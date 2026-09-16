@@ -181,7 +181,6 @@ function widget:Initialize()
 	end
 	makeAtlas()
 	--if true then return end
-	local knownheaps3os = { arm3x3 = 1 }
 	for id, featureDefID in pairs(FeatureDefs) do
 		local FD = FeatureDefs[id]
 		if
@@ -258,8 +257,6 @@ local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetLocalAllyTeamID()
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
-	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetLocalAllyTeamID()
 end

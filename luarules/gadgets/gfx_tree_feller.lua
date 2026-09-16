@@ -549,7 +549,7 @@ if gadgetHandler:IsSyncedCode() then
 					--if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
 					--Echo('tree dying...',featureID)
 					local dx, dy, dz, rx, ry, rz = GetFeatureDirection(featureID)
-					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesnt block anything
+					SetFeatureBlocking(featureID, false, false, false, false, false, false, false) --doesn't block anything
 					if weaponDefID == -7 then
 						--weapon is crush
 						--crushed features cannot be saved by returning 0 damage. Must create new one!

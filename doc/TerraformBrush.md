@@ -165,7 +165,11 @@ When the **Height Colormap** overlay is active, each cap row shows a **SAMPLE** 
 
 ### Clay Mode
 
-"Flat buildup" — creates plateau-like terrain with a flat top at the brush's target height rather than the standard dome falloff. Sent as a flag (`0`/`1`) in the terraform message. Toggle with `X`.
+"Flat buildup" — creates plateau-like terrain with a flat top at the brush's target height rather than the standard dome falloff. Toggle with `X`.
+
+Each dab targets a **plane** at the stroke's reference height plus `INTENSITY × 8` elmos (raise) or minus it (lower); cells on the wrong side of the plane blend toward it by `falloff × opacity × intensity` per dab and never cross it. The reference is the **pre-stroke surface**: the heights every cell had when the stroke started, averaged over the dab centre and four taps half a radius out. A stroke therefore lays exactly one layer over the ground it started on, however slowly you drag or however much the dabs overlap, and the layer's edge follows the falloff. Measuring the plane on the live centre height instead stacked a new disc every tick, and the disc edges came out as concentric rings; that behaviour survives as **Settings > Stroke > Clay build-up** for anyone who wants a held brush to keep piling layers.
+
+Sent as the clay flag in the terraform messages: `0` off, `1` clay, `2` clay with build-up.
 
 Clay mode applies to **all terrain modes** (raise, lower, level, smooth, ramp, restore, noise) and **all shapes** (circle, square, triangle, hexagon, octagon, ring). In ramp mode the flattened profile applies along the full ramp length.
 
@@ -673,6 +677,23 @@ Mode buttons (raise/lower/level/smooth/ramp/restore/noise) · Shape buttons · P
 | Dust effects | off | CEG particle bursts + rumble sounds on each op (DJ Mode) |
 | Velocity intensity | off | Scale brush intensity by mouse drag speed |
 
+### Performance Mode
+
+**Settings > General > Performance mode** (persisted in `ui_prefs.lua`). For big maps and slower machines; the tools stay the same, sculpting just samples more economically:
+
+| Lever | Default | Performance mode |
+|-------|---------|------------------|
+| Dab spacing along the stroke | 15 % of radius | 24 % for soft curves (≤ 1.0) and clay, 20 % up to curve 2.0, 15 % above |
+| Dabs per 20 Hz tick (cap) | 48 | 32 |
+| FOLLOW STROKE angle step | 2° | 6° (a third of the stamp builds on shaped brushes) |
+| Panel terraform mirror | every frame (every 4th frame while dragging) | every 4th frame; frame rate again while the mouse is over the panel |
+
+The spacing rule is falloff-aware: a soft dome sums smoothly at a quarter radius and a clay stroke converges on one plane whatever the spacing, while hard-edged curves keep the full density so they do not band.
+
+Two free levers regardless of the toggle: pausing the game while sculpting spares the pathfinder's terrain updates, and Focus mode (the eye icon in the header) drops the rest of the HUD.
+
+Always on, no toggle needed: the gadget commits a tick's dabs in one heightmap write and one undo entry (see Undo / Redo System), the falloff-stamp cache is rotation-invariant for circles and rings and budgeted by cells, and the ground mesh refresh is armed by the engine's heightmap-update event rather than per brush tick.
+
 ### Presets
 
 Built-in presets (non-deletable) and unlimited user presets. Stored in `LuaUI/Config/TerraformPresets/*.lua`.
@@ -717,6 +738,7 @@ All terrain edits go through `SendLuaRulesMsg()` to the server-side gadget.
 | Message | Format |
 |---------|--------|
 | `$terraform_brush$` | `dir x z radius shape rot curve capMin capMax intensity lengthScale clay dust opacity instant flattenHeight [ringInnerRatio]` |
+| `$terraform_stroke$` | `dir radius shape curve capMin capMax intensity lengthScale clay dust opacity instant flattenHeight ringInnerRatio nDabs x1 z1 rot1 [x2 z2 rot2 ...]` — one per tick per symmetry copy, every dab of the tick; applied as one batch (one heightmap commit, one undo entry) |
 | `$terraform_ramp$` | `startX startZ startY endX endZ endY radius clay dust` |
 | `$terraform_ramp_spline$` | `radius pointCount [x1 z1 x2 z2 ...] clay dust` |
 | `$terraform_restore$` | `x z radius shape rot curve intensity lengthScale` |
@@ -724,8 +746,8 @@ All terrain edits go through `SendLuaRulesMsg()` to the server-side gadget.
 | `$terraform_import$` | `columnX height1 height2 ...` |
 | `$terraform_undo$` | (no args) |
 | `$terraform_redo$` | (no args) |
-| `$terraform_merge_end$` | (no args) — sent by widget on mouse release to finalize the drag-stroke undo entry |
-| `$terraform_stroke_end$` | (no args) — marks the end of a distinct stroke for diagnostics |
+| `$terraform_merge_end$` | (no args) — sent by the widget after every brush tick; closes the tick's undo entry |
+| `$terraform_stroke_end$` | (no args) — sent on mouse release; advances the stroke id (`$terraform_undo_stroke$` pops all entries of the latest id) and drops the pre-stroke heights the clay plane measures against |
 
 **Feature placer messages** (`luarules/gadgets/cmd_feature_placer.lua`). Every
 mutating branch is gated on `Spring.IsCheatingEnabled()`.
@@ -793,7 +815,7 @@ gizmo-transformed anyway.
 | 8–9 | `capMin capMax` | float or empty | Height cap bounds |
 | 10 | `intensity` | float | 0.1–100 |
 | 11 | `lengthScale` | float | 0.2–5.0 |
-| 12 | `clay` | 0/1 | Clay mode |
+| 12 | `clay` | 0/1/2 | Clay mode (`2` = with per-tick build-up) |
 | 13 | `dust` | 0/1 | Dust/DJ mode |
 | 14 | `opacity` | float | 0.01–1.0 |
 | 15 | `instant` | 0/1 | Stamp mode |
@@ -858,25 +880,23 @@ After each terraform op, `tessellationDirtyFrames` is set to 10. Counter decreme
 
 History is maintained as a **server-side stack** in the gadget. All terrain modifications snapshot the previous state before applying.
 
-#### Stroke Merge (Drag → Single Undo Entry)
+#### Stroke Entries (One Per Tick)
 
-Each brush stroke fires many `$terraform_brush$` messages per second while the mouse is held. Rather than creating hundreds of separate undo entries, all changes during a single drag are merged into **one entry**:
+Each brush tick sends one `$terraform_stroke$` message per symmetry copy carrying every dab of that tick. The gadget applies the dabs in order against a working copy of the cells they touch (read from the engine once, on first touch) and commits **once per message**: one `SetHeightMapFunc` (so one engine terrain recalculation) and **one undo entry** built straight from the pre-tick heights of the cells it wrote. Dab k still sees dab k-1's writes, so the result is what sequential commits produced, at a fraction of the engine work.
 
-- On each push during an active drag, new vertices are added to the current snapshot — duplicates (same x/z already snapshotted) are skipped via a numeric hash set, so re-visiting a cell doesn't grow the snapshot.
-- When the mouse is released the widget sends **`$terraform_merge_end$`**, which finalizes the snapshot and closes the merge window.
-- Undo/redo each restore the entire drag stroke in a single step.
+Entries of one drag share a stroke id: `$terraform_merge_end$` closes the tick, `$terraform_stroke_end$` (mouse release) advances the id, and `$terraform_undo_stroke$` pops every entry with the latest id in one step. Cross-tick merging is deliberately not done (it produced striped leftovers on undo).
 
-Ramp and spline operations always produce a new independent entry (no merge).
+Ramp and spline operations always produce a new independent entry.
 
 #### Storage Format
 
-Snapshots are stored as **flat arrays** `{x, z, h, x, z, h, ...}` instead of sub-tables `{{x,z,h},...}`. This eliminates the tens-of-thousands of per-vertex sub-table allocations that caused `SetHeightMapFunc` heavy operations to spike GC.
+Snapshots are stored as a **bbox grid**: a mask and a height grid over the entry's bounding box (`minX`, `minZ`, `w`, `h`, `ss`). Cells still at their map-original height store a mask bit only (`2`) and no height; edited cells store `1` plus the pre-edit height. Brush ticks build the grid directly from their working copy; the ramp, noise, erode and fill ops convert a flat `{x, z, h, ...}` buffer, which itself replaced per-vertex sub-tables that used to spike GC.
 
 #### Vertex Budget (Anti-OOM)
 
 | Constant | Value | Meaning |
 |----------|-------|---------|
-| `MAX_UNDO` | 2000 | Maximum entries in undo or redo stack |
+| `MAX_UNDO` | 10000 | Maximum entries in undo or redo stack |
 | `MAX_SNAPSHOT_VERTICES` | 8 000 000 | ~192 MB — total vertex budget across all stacked snapshots |
 
 When `totalVertexCount` exceeds the budget, the **oldest** undo entries are evicted until under budget. If still over, the oldest redo entries are also evicted. This prevents OOM crashes with very large-radius restore/noise operations on wide maps.

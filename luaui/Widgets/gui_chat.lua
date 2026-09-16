@@ -10,6 +10,7 @@ function widget:GetInfo()
 		layer = -95000,
 		enabled = true,
 		handler = true,
+		modalExempt = true, -- chat stays readable and usable while a window is open
 	}
 end
 
@@ -233,7 +234,6 @@ local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = nil,
 local scrolling, playSound, sndChatFile, sndChatFileVolume =
 	false, config.playSound, config.sndChatFile, config.sndChatFileVolume
 local myName, mySpec = state.myName, state.mySpec
-local lastDrawUiUpdate = state.lastDrawUiUpdate
 local displayedChatLines = state.displayedChatLines
 local currentChatLine, currentConsoleLine = state.currentChatLine, state.currentConsoleLine
 local historyMode = state.historyMode
@@ -1187,7 +1187,7 @@ function state.updateChatInputGuishader(left, bottom, right, top)
 		RectRound(left, bottom, right, top, elementCorner)
 	end)
 	WG.guishader.RemoveDlist("chatinput")
-	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput")
+	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput", nil, widget)
 end
 
 function state.drawEmojiPickerButton(rect, iconSize)
@@ -1246,7 +1246,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	glColor(0, 0, 0, inputAlpha * 1.12)
 	RectRound(pickerLeft, pickerBottom, pickerRight, pickerTop, elementCorner * 0.7, 0, 0, 1, 1)
 	if WG.guishader then
-		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker")
+		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker", widget)
 	end
 	for i = 1, #emojiAutocompleteAliases do
 		local col = (i - 1) % pickerColumns
@@ -1729,7 +1729,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			end
 		end
 
-		line = colorConsoleStr .. lineColor .. line
+		if string.byte(line, 1) ~= 255 then
+			line = (lineColor ~= "" and lineColor or colorConsoleStr) .. line
+		end
 	end
 
 	if not bypassThisMessage then
@@ -2095,14 +2097,12 @@ function widget:Update(dt)
 		--end
 
 		-- detect team colors changes
-		local changeDetected = false
 		local changedPlayers = {}
 		local teams = Spring.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
 				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
-				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
 					local name = spGetPlayerInfo(playerID, false)
 					name = (
@@ -2322,7 +2322,6 @@ drawChatInput = function()
 			-- background
 			local r, g, b, a
 			local inputAlpha = mathMin(0.36, ui_opacity * 0.66)
-			local hintText = autocompleteText or ""
 			if showEmojiButton then
 				state.emojiButtonRect =
 					{ x2 - elementPadding - emojiButtonSize, emojiButtonY1, x2 - elementPadding, emojiButtonY2 }
@@ -2538,7 +2537,8 @@ drawChatInput = function()
 						yPos - height,
 						x2 - elementPadding,
 						yPos,
-						"chatinputautocomplete"
+						"chatinputautocomplete",
+						widget
 					)
 				end
 				local addHeight = floor((inputFontSize * scale) * 1.35) - autocLineHeight
@@ -2591,7 +2591,7 @@ drawChatInput = function()
 					"o"
 				)
 				if WG.guishader then
-					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo")
+					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo", widget)
 				end
 			else
 				if WG.guishader then
@@ -2989,7 +2989,8 @@ function widget:DrawScreen()
 					activationArea[2] + chatlogHeightDiff,
 					activationArea[3],
 					activationArea[4],
-					"chat"
+					"chat",
+					widget
 				)
 			end
 

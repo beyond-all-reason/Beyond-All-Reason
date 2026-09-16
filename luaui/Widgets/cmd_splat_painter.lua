@@ -38,8 +38,6 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
-local glCreateList = gl.CreateList
-local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 local glPolygonOffset = gl.PolygonOffset
 local glDepthTest = gl.DepthTest
@@ -65,7 +63,6 @@ local MAX_RADIUS = 2000
 local RADIUS_STEP = 8
 local MIN_STRENGTH = 0.01
 local MAX_STRENGTH = 1.0
-local STRENGTH_STEP = 0.01
 local DEFAULT_STRENGTH = 0.15
 local DEFAULT_RADIUS = 100
 local DEFAULT_CURVE = 1.0
@@ -85,7 +82,6 @@ local DEFAULT_INTENSITY = 1.0
 local MIN_INTENSITY = 0.1
 local MAX_INTENSITY = 10.0
 local INTENSITY_STEP = 0.1
-local FALLOFF_DISPLAY_HEIGHT = 60
 local GRID_STEP = 24 -- elmos between smart-filter sample points
 
 -- Shapes (reuse from terraform brush)
@@ -127,6 +123,25 @@ local smartFilter = {
 	altMin = 0,
 	altMaxEnable = false,
 	altMax = 200,
+	-- INFLUENCE: soft altitude / slope bands that scale a stroke instead of
+	-- gating it, remembered per CHANNEL (the surface painter keeps the same
+	-- shape per texture). Inside this table on purpose: the paint pass runs
+	-- from DrawWorld, which sits at the Lua 5.1 upvalue ceiling, and this table
+	-- is already one of its upvalues. _uInf holds the uniform locations for the
+	-- same reason.
+	influenceDefault = {
+		altOn = false,
+		altMin = 0,
+		altMax = 200,
+		altFeatherLo = 40,
+		altFeatherHi = 40,
+		slopeOn = false,
+		slopeMin = 0,
+		slopeMax = 30,
+		slopeFeather = 10,
+	},
+	influence = {}, -- channel (1..4) -> profile
+	_uInf = { altOn = -1, alt = -1, slopeOn = -1, slope = -1 }, -- filled by createShaders
 }
 
 -- Texture state
@@ -190,6 +205,68 @@ local MAX_UNDO_SPLAT = 20
 local undoStack = {}
 local redoStack = {}
 local pendingSnapshot = false -- set on MousePress, consumed before first stroke
+
+-- Tileset far cache / clipmap invalidation. The tileset shader serves every
+-- pixel past its handoff from a baked composite (far cache + clipmap), and that
+-- bake samples $ssmf_splat_distr at bake time: a stroke that only rewrites the
+-- texture is invisible there until something else re-bakes the region (the
+-- "layers vanish when I zoom out" report, 2026-09-01). Every executed stroke
+-- widens a dirty rect (elmos); it is flushed to WG.TilesetTerrain.refreshSurface
+-- (rect -> sub-rect far bake + clipmap edit, ~free for a brush footprint) every
+-- FAR_FLUSH_S during a drag and as soon as the drag ends. Whole-texture changes
+-- (undo, redo, load) pass no rect = a throttled whole-map refill.
+-- One table for state + helpers: widget:DrawWorld sits at 58/60 upvalues
+-- (Lua 5.1 ceiling), so this costs it one, not four.
+local FAR_FLUSH_S = 0.03 -- every frame or two: the tileset routes rects to its clipmap per frame and throttles minimap + far bake itself
+---@type table
+local farInv = {} -- dirty = { ax, az, bx, bz } elmos rect, nil when clean; at = last flush timer
+
+function farInv.mark(worldX, worldZ, radius)
+	local r = (radius or 0) * 1.5 + 16 -- rotated squares reach r*sqrt(2); fractal edges a bit past
+	local ax, az, bx, bz = worldX - r, worldZ - r, worldX + r, worldZ + r
+	local d = farInv.dirty
+	if d then
+		if ax < d[1] then
+			d[1] = ax
+		end
+		if az < d[2] then
+			d[2] = az
+		end
+		if bx > d[3] then
+			d[3] = bx
+		end
+		if bz > d[4] then
+			d[4] = bz
+		end
+	else
+		farInv.dirty = { ax, az, bx, bz }
+	end
+end
+
+function farInv.flush(force)
+	local d = farInv.dirty
+	if not d then
+		return
+	end
+	local now = Spring.GetTimer()
+	if not force and farInv.at and Spring.DiffTimers(now, farInv.at) < FAR_FLUSH_S then
+		return
+	end
+	local T = WG.TilesetTerrain
+	if T and T.refreshSurface then
+		T.refreshSurface(d[1], d[2], d[3], d[4])
+	end
+	farInv.dirty = nil
+	farInv.at = now
+end
+
+function farInv.all()
+	farInv.dirty = nil
+	local T = WG.TilesetTerrain
+	if T and T.refreshSurface then
+		T.refreshSurface()
+	end
+end
 local pendingUndoCount = 0
 local pendingRedoCount = 0
 
@@ -310,10 +387,42 @@ local PAINT_FRAG_SRC = [[
 	uniform float sfAltMin;
 	uniform int sfAltMaxEnable;
 	uniform float sfAltMax;
+	// INFLUENCE (soft bands scaling the stroke; x = min, y = max, z = feather
+	// below min, w = feather above max; slope in degrees)
+	uniform int infAltOn;
+	uniform vec4 infAlt;
+	uniform int infSlopeOn;
+	uniform vec4 infSlope;
 
 	// ------ smart-filter helpers ------
 	float sampleHeight(vec2 uv) {
 		return texture2D(heightMap, uv).x;
+	}
+
+	float smoothBand(float v, float lo, float hi, float fLo, float fHi) {
+		float a = (fLo > 0.001) ? smoothstep(lo - fLo, lo, v) : step(lo, v);
+		float b = (fHi > 0.001) ? (1.0 - smoothstep(hi, hi + fHi, v)) : step(v, hi);
+		return clamp(a * b, 0.0, 1.0);
+	}
+
+	float influenceAt(vec2 uv) {
+		if (infAltOn == 0 && infSlopeOn == 0) return 1.0;
+		float w = 1.0;
+		if (infAltOn == 1) {
+			w *= smoothBand(sampleHeight(uv), infAlt.x, infAlt.y, infAlt.z, infAlt.w);
+		}
+		if (infSlopeOn == 1) {
+			vec2 hmTexel = 1.0 / vec2(textureSize(heightMap, 0));
+			float hL = sampleHeight(uv + vec2(-hmTexel.x, 0.0));
+			float hR = sampleHeight(uv + vec2( hmTexel.x, 0.0));
+			float hD = sampleHeight(uv + vec2(0.0, -hmTexel.y));
+			float hU = sampleHeight(uv + vec2(0.0,  hmTexel.y));
+			vec2 cellSize = mapSize * hmTexel;
+			vec3 n = normalize(vec3(hL - hR, 2.0 * cellSize.x, hD - hU));
+			float slopeDeg = degrees(acos(clamp(n.y, 0.0, 1.0)));
+			w *= smoothBand(slopeDeg, infSlope.x, infSlope.y, infSlope.z, infSlope.w);
+		}
+		return w;
 	}
 
 	bool passesSmartFilter(vec2 uv) {
@@ -441,6 +550,8 @@ local PAINT_FRAG_SRC = [[
 		// Falloff
 		float falloff = 1.0 - pow(dist, brushCurve);
 		float amount = brushStrength * falloff;
+		// INFLUENCE scales paint only; erase always lands at full strength
+		if (brushErase == 0) amount *= influenceAt(uv);
 
 		vec4 result = current;
 		if (brushErase == 1) {
@@ -527,6 +638,10 @@ local function createShaders()
 	uLocSfAltMin = glGetUniformLocation(paintShader, "sfAltMin")
 	uLocSfAltMaxEnable = glGetUniformLocation(paintShader, "sfAltMaxEnable")
 	uLocSfAltMax = glGetUniformLocation(paintShader, "sfAltMax")
+	smartFilter._uInf.altOn = glGetUniformLocation(paintShader, "infAltOn")
+	smartFilter._uInf.alt = glGetUniformLocation(paintShader, "infAlt")
+	smartFilter._uInf.slopeOn = glGetUniformLocation(paintShader, "infSlopeOn")
+	smartFilter._uInf.slope = glGetUniformLocation(paintShader, "infSlope")
 
 	copyShader = glCreateShader({
 		vertex = PAINT_VERT_SRC,
@@ -775,6 +890,13 @@ local function executePaintStroke(worldX, worldZ, rotDeg)
 		glUniform(uLocSfAltMin, sf.altMin)
 		glUniformInt(uLocSfAltMaxEnable, sf.altMaxEnable and 1 or 0)
 		glUniform(uLocSfAltMax, sf.altMax)
+		-- INFLUENCE profile of the channel being painted
+		local inf = sf.influence[activeChannel] or sf.influenceDefault
+		local u = sf._uInf
+		glUniformInt(u.altOn, inf.altOn and 1 or 0)
+		glUniform(u.alt, inf.altMin, inf.altMax, inf.altFeatherLo, inf.altFeatherHi)
+		glUniformInt(u.slopeOn, inf.slopeOn and 1 or 0)
+		glUniform(u.slope, inf.slopeMin, inf.slopeMax, inf.slopeFeather, inf.slopeFeather)
 
 		-- Draw fullscreen quad
 		glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
@@ -1038,6 +1160,9 @@ local function getState()
 		exportFormat = EXPORT_FORMATS[exportFormatIndex],
 		smartEnabled = smartFilterEnabled,
 		smartFilters = smartFilter,
+		-- INFLUENCE profile of the active channel (panel INFLUENCE section)
+		influenceKey = "channel " .. tostring(activeChannel),
+		influence = smartFilter.influence[activeChannel] or smartFilter.influenceDefault,
 		splatTexWidth = splatTexWidth,
 		splatTexHeight = splatTexHeight,
 		geoDecalMode = geoDecalMode,
@@ -1169,9 +1294,28 @@ local function setSmartEnabled(enabled)
 end
 
 local function setSmartFilter(key, val)
-	if smartFilter[key] ~= nil then
+	if key ~= "influence" and key ~= "influenceDefault" and key ~= "_uInf" and smartFilter[key] ~= nil then
 		smartFilter[key] = val
 	end
+end
+
+-- INFLUENCE: edit the ACTIVE channel's profile (created from the default on
+-- first touch); keys are those of smartFilter.influenceDefault.
+local function setInfluence(key, val)
+	local def = smartFilter.influenceDefault
+	if def[key] == nil then
+		return false
+	end
+	local p = smartFilter.influence[activeChannel]
+	if not p then
+		p = {}
+		for kk, vv in pairs(def) do
+			p[kk] = vv
+		end
+		smartFilter.influence[activeChannel] = p
+	end
+	p[key] = val
+	return true
 end
 
 -- ============ WIDGET CALLBACKS ============
@@ -1206,6 +1350,7 @@ function widget:Initialize()
 		setEraseMode = setEraseMode,
 		setSmartEnabled = setSmartEnabled,
 		setSmartFilter = setSmartFilter,
+		setInfluence = setInfluence,
 		saveSplats = requestSaveSplats,
 		isSavePending = function()
 			return pendingSave
@@ -1801,6 +1946,8 @@ function widget:DrawWorld()
 		lastLoadResult = executeLoadSplats(loadPath)
 		if lastLoadResult ~= "ok" then
 			Echo("[Splat Painter] Splat load " .. tostring(lastLoadResult))
+		else
+			farInv.all() -- the whole splat texture changed under the tileset bakes
 		end
 		-- The load may have created fboTex; a still-queued activation init would
 		-- rebuild it and clobber (and leak) the freshly loaded state.
@@ -1838,6 +1985,7 @@ function widget:DrawWorld()
 		pendingUndoCount = 0
 		if changed and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+			farInv.all()
 		end
 	end
 	if pendingRedoCount > 0 then
@@ -1854,6 +2002,7 @@ function widget:DrawWorld()
 		pendingRedoCount = 0
 		if changed and texApplied then
 			SetMapShadingTexture(SPLAT_TEX_NAME, fboTex)
+			farInv.all()
 		end
 	end
 
@@ -1867,12 +2016,20 @@ function widget:DrawWorld()
 	if #pendingPaintStrokes > 0 then
 		for _, stroke in ipairs(pendingPaintStrokes) do
 			executePaintStroke(stroke[1], stroke[2], stroke[3])
+			farInv.mark(stroke[1], stroke[2], activeRadius)
 		end
 		pendingPaintStrokes = {}
+	end
+	-- tileset far cache / clipmap: throttled (FAR_FLUSH_S); the drag's tail lands
+	-- within one throttle period after release. (No drag-state upvalue here on
+	-- purpose: DrawWorld sits at the Lua 5.1 60-upvalue ceiling.)
+	if farInv.dirty then
+		farInv.flush(false)
 	end
 
 	local worldX, worldZ = getWorldMousePosition()
 	do
+		---@type table?
 		local tb = WG.TerraformBrush
 		if tb and tb.animateUnmouse then
 			worldX, worldZ = tb.animateUnmouse("splatPainter", worldX, worldZ, activeRadius, 1.0)
@@ -1884,6 +2041,7 @@ function widget:DrawWorld()
 		return
 	end
 	do
+		---@type table?
 		local tb2 = WG.TerraformBrush
 		local st2 = tb2 and tb2.getState and tb2.getState()
 		if st2 and (st2.symmetryHoveringOrigin or st2.symmetryDraggingOrigin) then
@@ -1896,6 +2054,7 @@ function widget:DrawWorld()
 	-- Sent every frame, mode 0 included, so releasing Ctrl retracts instantly;
 	-- inert with the tileset shader off (the uniform simply never renders).
 	do
+		---@type table?
 		local T = WG.TilesetTerrain
 		if T and T.setSurfacePreview then
 			local mode = 0
@@ -1905,7 +2064,14 @@ function widget:DrawWorld()
 					mode = 7 + activeChannel -- G/B/A -> intermediate/cliff/slot4
 				end
 			end
-			T.setSurfacePreview(mode, worldX, worldZ, activeRadius, activeCurve)
+			T.setSurfacePreview(
+				mode,
+				worldX,
+				worldZ,
+				activeRadius,
+				activeCurve,
+				smartFilter.influence[activeChannel] or smartFilter.influenceDefault
+			)
 		end
 	end
 	local groundY = GetGroundHeight(worldX, worldZ)

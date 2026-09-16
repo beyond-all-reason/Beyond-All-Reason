@@ -451,12 +451,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if type == 2 then
 			return not (
-				Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
-			) or hasBlockingFeature(x, z, unitDefID)
+					Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
+				) or hasBlockingFeature(x, z, unitDefID)
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
@@ -593,6 +593,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 
+		-- Map editor sessions (New Map / Open Project) start with editor_sandbox=1
+		-- in the start script: the map maker edits an empty canvas or a project's
+		-- own unit loadout, so no team gets a commander. Reuses the scenario
+		-- path so the spawn effects and warp-in skip as well.
+		if not scenarioSpawnsUnits and tostring(Spring.GetModOptions().editor_sandbox or "") == "1" then
+			scenarioSpawnsUnits = true
+		end
+
 		if not scenarioSpawnsUnits then
 			if not (luaAI and (string.find(luaAI, "Scavengers") or luaAI == "RaptorsAI")) then
 				local unitID = spCreateUnit(startUnit, x, y, z, 0, teamID)
@@ -724,7 +732,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local lastGameFrame = 0
 	function gadget:GameFrame(n)
 		if not scenarioSpawnsUnits then
 			if n == spawnInitialFrame then
@@ -754,17 +761,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		-- for debug purpose
-		-- if GG.SpawnEnvironmentalLightning then
-		-- 	if n > lastGameFrame then
-		-- 		lastGameFrame = n + 150
-		-- 		for _, unitID in ipairs(Spring.GetAllUnits()) do
-		-- 			local x, y, z = Spring.GetUnitPosition(unitID)
-		-- 			GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
-		--             Spring.SpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
-		-- 		end
-		-- 	end
-		-- end
 		if n > spawnWarpInFrame then
 			gadgetHandler:RemoveGadget(self)
 		end

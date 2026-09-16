@@ -46,7 +46,7 @@ return {
 			lumamult = "1.3",
 			model_author = "Flaka",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {
