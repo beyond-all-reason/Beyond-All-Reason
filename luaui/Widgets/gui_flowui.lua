@@ -2842,6 +2842,125 @@ WG.FlowUI.Draw.Unit = function(
 	gl.PopMatrix()
 end
 
+---Draws the frame of a unit tile on its own: the outline, depth gradient, top shine and
+---feathered border that `Unit` lays over a unit picture, with no picture under it. For a
+---tile that should read as a unit slot without naming a unit, such as an empty build slot
+---or a preview of the grid menu. Draw the tile's own background first; this only frames
+---it. Repeated identical draws are served from the same display list cache `Unit` uses.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner size. Defaults to a size derived from the tile width
+---@param tl number? Enable the top-left chamfered corner. Defaults to `1`
+---@param tr number? Enable the top-right chamfered corner. Defaults to `1`
+---@param br number? Enable the bottom-right chamfered corner. Defaults to `1`
+---@param bl number? Enable the bottom-left chamfered corner. Defaults to `1`
+---@param borderSize number? Defaults to a size derived from the tile width
+---@param borderOpacity number? Defaults to `0.1`
+---@param groupTexture string? Group icon drawn in a corner
+WG.FlowUI.Draw.UnitFrame = function(px, py, sx, sy, cs, tl, tr, br, bl, borderSize, borderOpacity, groupTexture)
+	local width = sx - px
+	local height = sy - py
+	-- Same defaults Unit derives, so a frame drawn on its own matches one drawn over a
+	-- picture at the same size.
+	local resolvedBorderSize = borderSize ~= nil and borderSize
+		or mathMin(mathMax(1, mathFloor(width * 0.024)), mathFloor((WG.FlowUI.vsy * 0.0015) + 0.5))
+	local resolvedCs = cs ~= nil and cs or mathMax(1, mathFloor(width * 0.024))
+	local resolvedBorderOpacity = borderOpacity or 0.1
+
+	if
+		width <= 0
+		or height <= 0
+		or width ~= width
+		or height ~= height
+		or resolvedCs ~= resolvedCs
+		or resolvedBorderSize ~= resolvedBorderSize
+		or resolvedBorderOpacity ~= resolvedBorderOpacity
+	then
+		return
+	end
+
+	local record = GetUnitFrameRecord(
+		width,
+		height,
+		resolvedCs,
+		tl,
+		tr,
+		br,
+		bl,
+		resolvedBorderSize,
+		resolvedBorderOpacity,
+		groupTexture
+	)
+	if record and record.list then
+		gl.PushMatrix()
+		gl.Translate(px, py, 0)
+		gl.CallList(record.list)
+		gl.PopMatrix()
+	else
+		DrawUnitFrame(
+			px,
+			py,
+			sx,
+			sy,
+			resolvedCs,
+			tl,
+			tr,
+			br,
+			bl,
+			resolvedBorderSize,
+			resolvedBorderOpacity,
+			groupTexture
+		)
+	end
+end
+
+---Where a scrollbar's thumb sits, for a bar drawn with these bounds and this content.
+---
+---Shared with `Scroller` so a panel hit-testing the thumb can never disagree with what was
+---drawn: grabbing the thumb has to move the view by how far the thumb is dragged, while a
+---press on the track either side of it is the one that jumps.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param contentHeight number Height of the scrolled content, in pixels
+---@param position number? Current scroll position. Defaults to `0`
+---@return number? top Top edge of the thumb, or nil when the content fits and none is drawn
+---@return number? height Height of the thumb
+---@return number? trackTop Where the thumb's top sits at position `0`
+---@return number? travel How far down from `trackTop` the thumb's top can move
+WG.FlowUI.Draw.ScrollerGeometry = function(px, py, sx, sy, contentHeight, position)
+	local width = sx - px
+	local padding = mathFloor((width * 0.25) + 0.5)
+	local trackHeight = (sy - py) - padding - padding
+
+	if not contentHeight or contentHeight <= 0 or trackHeight <= 0 then
+		return nil
+	end
+
+	local fraction = trackHeight / contentHeight
+	if fraction >= 1 then
+		return nil
+	end
+
+	local thumbHeight = mathFloor((fraction * trackHeight) + 0.5)
+	local trackTop = sy - padding
+	local travel = trackHeight - thumbHeight
+	local top = trackTop - mathFloor((trackHeight * ((position or 0) / contentHeight)) + 0.5)
+	-- Held inside the track whatever the position says: a list scrolled to its end shows
+	-- whole rows only, so its position can run a little past what the track height allows,
+	-- and a thumb drawn past the track's end lands on whatever sits under it.
+	if top > trackTop then
+		top = trackTop
+	elseif top < trackTop - travel then
+		top = trackTop - travel
+	end
+
+	return top, thumbHeight, trackTop, travel
+end
+
 ---Draws a vertical scrollbar.
 ---@param px number Left
 ---@param py number Bottom
@@ -2849,39 +2968,33 @@ end
 ---@param sy number Top
 ---@param contentHeight number Height of the scrolled content, in pixels
 ---@param position number? Current scroll position. Defaults to `0`
-WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position)
-	local width = sx - px
-	local height = sy - py
-	local padding = mathFloor((width * 0.25) + 0.5)
-	local sliderAreaHeight = height - padding - padding
-	local sliderHeight = sliderAreaHeight / contentHeight
-
-	if sliderHeight < 1 then
-		position = position or 0
-		sliderHeight = mathFloor((sliderHeight * sliderAreaHeight) + 0.5)
-		local sliderPos = sy - padding - mathFloor((sliderAreaHeight * (position / contentHeight)) + 0.5)
-
-		-- background
-		WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
-
-		-- slider
-		local cs = (width - padding - padding) * 0.2
-		if cs > sliderHeight * 0.5 then
-			cs = sliderHeight * 0.5
-		end
-		WG.FlowUI.Draw.RectRound(
-			px + padding,
-			sliderPos - sliderHeight,
-			sx - padding,
-			sliderPos,
-			cs,
-			1,
-			1,
-			1,
-			1,
-			{ 1, 1, 1, 0.16 }
-		)
+---@param hovered boolean? Cursor is over the thumb
+---@param active boolean? The thumb is being dragged
+WG.FlowUI.Draw.Scroller = function(px, py, sx, sy, contentHeight, position, hovered, active)
+	local top, thumbHeight = WG.FlowUI.Draw.ScrollerGeometry(px, py, sx, sy, contentHeight, position)
+	if not top then
+		return
 	end
+
+	local width = sx - px
+	local padding = mathFloor((width * 0.25) + 0.5)
+
+	-- background
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, width * 0.2, 1, 1, 1, 1, { 0, 0, 0, 0.2 })
+
+	-- slider, lit while the cursor is on it and lit further while it is being dragged, so
+	-- it reads as something to take hold of rather than a mark of where you are
+	local cs = (width - padding - padding) * 0.2
+	if cs > thumbHeight * 0.5 then
+		cs = thumbHeight * 0.5
+	end
+	local alpha = 0.16
+	if active then
+		alpha = 0.38
+	elseif hovered then
+		alpha = 0.26
+	end
+	WG.FlowUI.Draw.RectRound(px + padding, top - thumbHeight, sx - padding, top, cs, 1, 1, 1, 1, { 1, 1, 1, alpha })
 end
 
 ---Draws a toggle switch.
@@ -2890,11 +3003,16 @@ end
 ---@param sx number Right
 ---@param sy number Top
 ---@param state number? `0`, `0.5` or `1`. Defaults to `0`
-WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
+---@param hovered boolean? Cursor is over the switch, which lights it
+WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state, hovered)
 	local height = sy - py
 	local width = sx - px
 	local cs = height * 0.1
 	local edgeWidth = mathMax(1, mathFloor(height * 0.1))
+	-- A hover plate laid over the whole row reads as the row lighting up rather than the
+	-- switch: the switch has a plate of its own, and at those opacities it barely moves.
+	-- So the switch brightens itself, and the light its knob gives off with it.
+	local lit = hovered and 2.4 or 1
 
 	-- faint dark outline edge
 	WG.FlowUI.Draw.RectRound(
@@ -2910,7 +3028,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		{ 0, 0, 0, 0.05 }
 	)
 	-- top
-	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.5, 0.5, 0.5, 0.12 }, { 1, 1, 1, 0.12 })
+	WG.FlowUI.Draw.RectRound(px, py, sx, sy, cs, 1, 1, 1, 1, { 0.5, 0.5, 0.5, 0.12 * lit }, { 1, 1, 1, 0.12 * lit })
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -2926,7 +3044,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		1,
 		1,
 		{ 1, 1, 1, 0 },
-		{ 1, 1, 1, 0.035 }
+		{ 1, 1, 1, 0.035 * lit }
 	)
 	-- bottom
 	WG.FlowUI.Draw.RectRound(
@@ -2939,7 +3057,7 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 		1,
 		1,
 		1,
-		{ 1, 1, 1, 0.025 },
+		{ 1, 1, 1, 0.025 * lit },
 		{ 1, 1, 1, 0 }
 	)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -2964,6 +3082,9 @@ WG.FlowUI.Draw.Toggle = function(px, py, sx, sy, state)
 	end
 	WG.FlowUI.Draw.SliderKnob(x, y, radius, color)
 
+	if hovered then
+		glowMult = glowMult * 1.8
+	end
 	if glowMult > 0 then
 		local boolGlow = radius * 1.75
 		gl.Blending(GL.SRC_ALPHA, GL.ONE)
@@ -3186,6 +3307,148 @@ WG.FlowUI.Draw.Selector = function(px, py, sx, sy)
 	-- button
 	WG.FlowUI.Draw.RectRound(sx - height, py, sx, sy, cs, 1, 1, 1, 1, { 1, 1, 1, 0.06 }, { 1, 1, 1, 0.14 })
 	--WG.FlowUI.Draw.Button(sx-(sy-py), py, sx, sy, 1, 1, 1, 1, 1,1,1,1, nil, { 1, 1, 1, 0.1 }, nil, cs)
+end
+
+local keyCapColor = { 0.22, 0.22, 0.22, 1 }
+local mathCos = math.cos
+local mathSin = math.sin
+
+-- A rectangle with round corners, as a fan of triangles about its centre. Round rather than
+-- chamfered, since a keycap is; each corner is an arc of `segments` steps. The colour runs
+-- from `c1` to `c2` up the rectangle, or from its bottom-right to its top-left corner when
+-- `diagonal` is set - a keycap's face is lit from one corner. Per-vertex colours interpolate
+-- exactly for a gradient that is linear over the plane, which both are.
+local function DrawKeyRoundRect(x1, y1, x2, y2, radius, segments, c1, c2, diagonal)
+	local w, h = x2 - x1, y2 - y1
+	local cx, cy = (x1 + x2) * 0.5, (y1 + y2) * 0.5
+	local dr, dg, db, da = c2[1] - c1[1], c2[2] - c1[2], c2[3] - c1[3], (c2[4] or 1) - (c1[4] or 1)
+	local flat = dr == 0 and dg == 0 and db == 0 and da == 0
+
+	local function colorAt(x, y)
+		if flat then
+			return
+		end
+		local t
+		if diagonal then
+			t = ((y - y1) / h) * 0.5 + ((x2 - x) / w) * 0.5
+		else
+			t = (y - y1) / h
+		end
+		gl.Color(c1[1] + dr * t, c1[2] + dg * t, c1[3] + db * t, (c1[4] or 1) + da * t)
+	end
+
+	gl.Color(c1[1], c1[2], c1[3], c1[4] or 1)
+	colorAt(cx, cy)
+	gl.Vertex(cx, cy, 0)
+
+	-- Corner centres and the angle each arc starts at, going round anticlockwise from the
+	-- bottom left.
+	local step = (mathPi * 0.5) / segments
+	for corner = 0, 3 do
+		local ccx, ccy, a0
+		if corner == 0 then
+			ccx, ccy, a0 = x1 + radius, y1 + radius, mathPi
+		elseif corner == 1 then
+			ccx, ccy, a0 = x2 - radius, y1 + radius, mathPi * 1.5
+		elseif corner == 2 then
+			ccx, ccy, a0 = x2 - radius, y2 - radius, 0
+		else
+			ccx, ccy, a0 = x1 + radius, y2 - radius, mathPi * 0.5
+		end
+		for i = 0, segments do
+			local angle = a0 + i * step
+			local vx, vy = ccx + radius * mathCos(angle), ccy + radius * mathSin(angle)
+			colorAt(vx, vy)
+			gl.Vertex(vx, vy, 0)
+		end
+	end
+	-- Closed on the first rim vertex.
+	colorAt(x1, y1 + radius)
+	gl.Vertex(x1, y1 + radius, 0)
+end
+
+local function KeyRoundRect(x1, y1, x2, y2, radius, c1, c2, diagonal)
+	if x2 <= x1 or y2 <= y1 then
+		return
+	end
+	radius = mathMax(0, mathMin(radius, (x2 - x1) * 0.5, (y2 - y1) * 0.5))
+	local segments = mathMax(3, mathMin(12, mathFloor(radius * 0.6)))
+	gl.BeginEnd(GL.TRIANGLE_FAN, DrawKeyRoundRect, x1, y1, x2, y2, radius, segments, c1, c2 or c1, diagonal)
+end
+
+---Draws a keyboard key, the way a keycap looks from above: a flat dark body with round
+---corners, a lighter face set into it with a thin rim catching the light, and the body's
+---bottom edge lit where the cap curves away. Every edge is a hard one: no shadow, feather or
+---gloss, so the shape stays crisp at any size. Pressed, the whole key sinks an eighth of its
+---height into a socket that shows above it; hovered, it lights. The face is returned so a
+---caller can put its caption on the cap rather than the footprint - text and pictures are
+---the caller's to draw. Immediate rather than cached: a keyboard of these is baked into one
+---display list by whoever draws it.
+---@param px number Left
+---@param py number Bottom
+---@param sx number Right
+---@param sy number Top
+---@param cs number? Corner radius of the body. Defaults to 9% of the shorter side
+---@param color rgb|rgba? The face's colour, which the body, rim and lip are shades of.
+---Defaults to keycap grey; a light colour gets a dark rim
+---@param pressed boolean? Sunk, the way a toggled modifier or a held key sits
+---@param hovered boolean? Lit under the cursor
+---@param opacity number? Defaults to `1`. Multiplies every alpha
+---@return number left, number bottom, number right, number top The face of the cap
+WG.FlowUI.Draw.Key = function(px, py, sx, sy, cs, color, pressed, hovered, opacity)
+	local width = sx - px
+	local height = sy - py
+	if width <= 0 or height <= 0 or px ~= px or py ~= py or sx ~= sx or sy ~= sy then
+		return px, py, sx, sy
+	end
+	local short = mathMin(width, height)
+	local radius = cs or mathMax(2, mathFloor(short * 0.09))
+	color = color or keyCapColor
+	local r, g, b = color[1], color[2], color[3]
+	local a = (color[4] or 1) * (opacity or 1)
+	-- A light cap reads the other way round: its rim and lip darker than its face.
+	local light = (r * 0.3 + g * 0.59 + b * 0.11) > 0.5
+
+	local function shade(k)
+		return { mathMin(1, r * k), mathMin(1, g * k), mathMin(1, b * k), a }
+	end
+
+	-- Pressed, the whole key sinks: its top comes down by an eighth of the key into a socket,
+	-- which shows above it darker than anything on the key. The footprint given stays the
+	-- key's place - the socket fills it - so a row of keys keeps its line.
+	local drop = pressed and mathMax(1, mathFloor(short * 0.12)) or 0
+	local top = sy - drop
+	if pressed then
+		KeyRoundRect(px, py, sx, sy, radius, shade(0.45))
+	end
+
+	-- The rim's width, the body's lit bottom edge, and how far the face sits in from the body.
+	-- A pressed key shows less of the body below its face, having gone down into it.
+	local edge = mathMax(1, mathFloor(short * 0.014))
+	local insetX = mathMax(edge + 1, mathFloor(short * 0.07))
+	local insetTop = mathMax(edge + 1, mathFloor(short * 0.08))
+	local insetBottom = mathMax(edge + 1, mathFloor(short * (pressed and 0.11 or 0.14)))
+	local fx1, fy1, fx2, fy2 = px + insetX, py + insetBottom, sx - insetX, top - insetTop
+	local faceRadius = mathMax(1, mathFloor(radius * 0.7))
+
+	-- The body: its lit bottom edge first, then the body itself a step higher, so the edge
+	-- shows along the bottom and round the two lower corners.
+	KeyRoundRect(px, py, sx, top, radius, shade(light and 0.5 or 1.5))
+	KeyRoundRect(px, py + edge, sx, top, radius, shade(light and 0.72 or 0.75))
+
+	-- The rim, and the face inside it, lit from the top left; a pressed face lies in shadow.
+	KeyRoundRect(fx1 - edge, fy1 - edge, fx2 + edge, fy2 + edge, faceRadius + edge, shade(light and 0.6 or 1.85))
+	local lo, hi = 0.86, 1.14
+	if pressed then
+		lo, hi = 0.84, 1.0
+	end
+	KeyRoundRect(fx1, fy1, fx2, fy2, faceRadius, shade(lo), shade(hi), true)
+
+	if hovered then
+		KeyRoundRect(fx1, fy1, fx2, fy2, faceRadius, { 1, 1, 1, 0.07 * a })
+	end
+
+	return fx1, fy1, fx2, fy2
 end
 
 ---Draws a highlighted area inside a selector. Also usable to highlight any other

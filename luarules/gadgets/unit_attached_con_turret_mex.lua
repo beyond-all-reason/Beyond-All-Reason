@@ -91,17 +91,8 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		return
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
-	Spring.SetUnitNoSelect(mexID, true)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
 	Spring.SetUnitStealth(mexID, true)
-
-	local piece = resolveAttachPiece(mexID)
-	if not piece then
-		Spring.DestroyUnit(mexID, false, true)
-		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
-		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
-		return
-	end
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
@@ -112,7 +103,22 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitHealth(conID, unitHealth)
 
-	Spring.UnitAttach(mexID, conID, piece, true)
+	local piece = resolveAttachPiece(conID)
+	if not piece then
+		Spring.DestroyUnit(conID, false, true)
+		Spring.DestroyUnit(mexID, false, true)
+		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
+		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
+		return
+	end
+
+	-- transported units can't be targeted, so the turret carries the mex
+	Spring.UnitAttach(conID, mexID, piece, true)
+	-- attaching resets these
+	Spring.SetUnitNoSelect(mexID, true)
+	Spring.SetUnitNoMinimap(mexID, true)
+	Spring.SetUnitIconDraw(mexID, false)
+	Spring.SetUnitNoDraw(mexID, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID

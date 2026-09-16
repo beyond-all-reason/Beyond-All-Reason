@@ -42,7 +42,7 @@ return {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,
-			subfolder = "CorVehicles/T2",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 			weapon1turretx = 200,
 			weapon1turrety = 400,
