@@ -154,7 +154,7 @@ describe("mission_api.triggers.unit_attacked", function()
 		assert.are.equal(1, fired())
 	end)
 
-	it("ignores hits that deal no damage", function()
+	it("includes hits that deal no damage", function()
 		local context, fired = newContext()
 		damaged(trigger({ unitDefName = "armpw" }), context, {
 			unitDefID = 1,
@@ -163,7 +163,7 @@ describe("mission_api.triggers.unit_attacked", function()
 			weaponDefID = WEAPON,
 			attackerTeam = 1,
 		})
-		assert.are.equal(0, fired())
+		assert.are.equal(1, fired())
 	end)
 
 	it("ignores damage from the unit's own team", function()
