@@ -858,6 +858,10 @@
 				"alwaysModifier": "any"
 			},
 			{
+				"action": "factory_preset_toggle",
+				"label": "actions.factory.togglePresets"
+			},
+			{
 				"action": "fov_inc 5",
 				"label": "actions.camera.fovIncrease"
 			},
