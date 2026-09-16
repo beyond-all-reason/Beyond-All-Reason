@@ -22,6 +22,7 @@ local definitions = {
 	health = { type = "number", unitOnly = true, state = true },
 	maxHealth = { type = "number", nonNegative = true },
 	speed = { type = "number", nonNegative = true, mobileOnly = true },
+	maxWantedSpeed = { type = "number", nonNegative = true, mobileOnly = true },
 	turnRate = { type = "number", nonNegative = true, mobileOnly = true },
 	maxAcc = { type = "number", nonNegative = true, mobileOnly = true },
 	maxDec = { type = "number", nonNegative = true, mobileOnly = true },

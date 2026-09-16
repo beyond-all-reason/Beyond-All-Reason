@@ -138,8 +138,8 @@ local function setMoveTypeValue(unitID, key, value)
 	if not setter or spMoveCtrlIsEnabled(unitID) then
 		return false
 	end
-	-- SetAirMoveTypeData has no turnRate key, so sanitize this:
-	if setter == spSetAirMoveTypeData and key == "turnRate" then
+	-- StrafeAirMoveType has no turnRate and overwrites its wanted speed on every frame.
+	if setter == spSetAirMoveTypeData and (key == "turnRate" or key == "maxWantedSpeed") then
 		return true
 	end
 	setter(unitID, key, value)
@@ -186,6 +186,7 @@ local baseFieldByAttribute = {
 	sonarJamRadius = "sonarJamRadius",
 	maxHealth = "health",
 	speed = "speed",
+	maxWantedSpeed = "speed",
 	turnRate = "turnRate",
 	maxAcc = "maxAcc",
 	maxDec = "maxDec",
@@ -313,6 +314,13 @@ local speedData = { maxSpeed = 0, maxWantedSpeed = 0 }
 
 -- See MobileCAI. The maxWantedSpeed is set per-order and changing it will break formation movement.
 local function setMaxSpeed(unitID, value)
+	local applied = appliedValues[unitID]
+	if applied and applied.maxWantedSpeed ~= nil then
+		speedData.maxSpeed = value
+		speedData.maxWantedSpeed = nil
+		return setMoveTypeData(unitID, speedData)
+	end
+
 	local moveTypeData = spGetUnitMoveTypeData(unitID)
 	local wanted = moveTypeData and moveTypeData.maxWantedSpeed
 	local current = moveTypeData and moveTypeData.maxSpeed
@@ -343,6 +351,7 @@ local applyUnitAttribute = {
 	health = spSetUnitHealth,
 	maxHealth = spSetUnitMaxHealth,
 	speed = setMaxSpeed,
+	maxWantedSpeed = getMoveTypeValueSetter("maxWantedSpeed"),
 	turnRate = getMoveTypeValueSetter("turnRate"),
 	maxAcc = getMoveTypeValueSetter("accRate"),
 	maxDec = getMoveTypeValueSetter("decRate"),
@@ -645,7 +654,7 @@ end
 ---@param source string? Names the party holding the opinion. Defaults to "default".
 ---@param teamID TeamID? The def scope when nil, the def-and-team scope otherwise.
 local function setUnitDefModifier(unitDefID, attribute, multiplier, source, teamID)
-	recordUnitDefAttribute(unitDefID, attribute, multiplier, teamID, source, "multiply")
+	recordUnitDefAttribute(unitDefID, attribute, multiplier, source, "multiply", teamID)
 end
 
 ---Scales an attribute on one unit until the same source clears it.
