@@ -294,31 +294,15 @@ local function validateTriggersSection(context, report, parameterValidators, val
 end
 
 --------------------------------------------------------------------------------
--- Actions: parameters and whether a trigger uses them
+-- Actions: parameters
 --------------------------------------------------------------------------------
-
-local function getAllActionIDsReferencedByTriggers(triggers)
-	local allActionIDsReferencedByTriggers = {}
-	for _, trigger in pairs(triggers) do
-		if type(trigger) == "table" and type(trigger.actions) == "table" then
-			for _, actionID in pairs(trigger.actions) do
-				allActionIDsReferencedByTriggers[actionID] = true
-			end
-		end
-	end
-	return allActionIDsReferencedByTriggers
-end
 
 local function validateActionsSection(context, report, parameterValidators, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
-	local allActionIDsReferencedByTriggers = getAllActionIDsReferencedByTriggers(context.Triggers)
 
-	local unreferencedActionIDs = {}
 	for actionID, action in pairs(context.Actions) do
 		if type(actionID) ~= "string" then
 			actionReport.Error(actionID, "Action ID must be a string, got " .. type(actionID))
-		elseif not allActionIDsReferencedByTriggers[actionID] then
-			unreferencedActionIDs[#unreferencedActionIDs + 1] = actionID
 		end
 
 		if type(action) ~= "table" then
@@ -326,13 +310,6 @@ local function validateActionsSection(context, report, parameterValidators, vali
 		else
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 		end
-	end
-
-	if not table.isEmpty(unreferencedActionIDs) then
-		table.sort(unreferencedActionIDs)
-		actionReport.SectionError(
-			"Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", ")
-		)
 	end
 end
 

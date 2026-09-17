@@ -22,6 +22,32 @@ end
 describe("mission_api.validation.references", function()
 	before_each(V.mockEngineGlobals)
 
+	describe("action references", function()
+		it("warns about an action that no trigger references", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("unused", { type = V.actionTypes.SendMessage, parameters = { message = "unused" } })
+			)
+
+			assert.are.same({ "Actions not referenced by any trigger: unused" }, result.warnings)
+			assert.is_true(result.ok)
+		end)
+
+		it("reports every unreferenced action, in sorted order", function()
+			local result = V.validate(
+				V.mission()
+					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("zzz", { type = V.actionTypes.SendMessage, parameters = { message = "zzz" } })
+					:WithAction("aaa", { type = V.actionTypes.SendMessage, parameters = { message = "aaa" } })
+			)
+
+			assert.are.same({ "Actions not referenced by any trigger: aaa, zzz" }, result.warnings)
+		end)
+	end)
+
 	it("passes when every name is both created and referenced", function()
 		V.assertValid(V.validate(V.mission()
 			:WithTrigger("t", {

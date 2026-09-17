@@ -1,5 +1,5 @@
 ---
---- Checks references: objective events, unit, feature and marker names,
+--- Checks references: objective events, actions, unit, feature and marker names,
 --- and countdown IDs.
 --- Malformed entries are skipped, as sections.lua already reports them.
 ---
@@ -59,6 +59,39 @@ local function reportUnreferencedNames(report, label, createdNames, referencedNa
 				"Created in: " .. describeSources(sources)
 			)
 		end
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Action references
+--------------------------------------------------------------------------------
+
+--- An action only ever runs because a trigger names it.
+local function validateActionReferences(context, report)
+	local referencedActionIDs = {}
+	for _, trigger in pairs(context.Triggers) do
+		if type(trigger) == "table" and type(trigger.actions) == "table" then
+			for _, actionID in pairs(trigger.actions) do
+				referencedActionIDs[actionID] = true
+			end
+		end
+	end
+
+	local unreferencedActionIDs = {}
+	for actionID in pairs(context.Actions) do
+		if type(actionID) == "string" and not referencedActionIDs[actionID] then
+			unreferencedActionIDs[#unreferencedActionIDs + 1] = actionID
+		end
+	end
+
+	if not table.isEmpty(unreferencedActionIDs) then
+		table.sort(unreferencedActionIDs)
+		report.Warn(
+			SECTION,
+			nil,
+			nil,
+			"Actions not referenced by any trigger: " .. table.concat(unreferencedActionIDs, ", ")
+		)
 	end
 end
 
@@ -339,6 +372,7 @@ local function validate(context, report)
 	local actionTypes = context.ActionTypes
 	local Types = context.Types
 
+	validateActionReferences(context, report)
 	validateObjectiveEventReferences(context, report)
 	validateMarkerNameReferences(context, report)
 

@@ -423,31 +423,6 @@ describe("mission_api.validation.sections", function()
 		V.assertMessage(result, "Action data must be a table, got string. Action: ok")
 	end)
 
-	describe("trigger references", function()
-		it("reports actions that no trigger references", function()
-			local result = V.validate(
-				V.mission()
-					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
-					:WithAction("unused", { type = V.actionTypes.SendMessage, parameters = { message = "unused" } })
-			)
-
-			V.assertMessage(result, "Actions not referenced by any trigger: unused")
-		end)
-
-		it("lists unreferenced actions in sorted order", function()
-			local result = V.validate(
-				V.mission()
-					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
-					:WithAction("zzz", { type = V.actionTypes.SendMessage, parameters = { message = "zzz" } })
-					:WithAction("aaa", { type = V.actionTypes.SendMessage, parameters = { message = "aaa" } })
-			)
-
-			V.assertMessage(result, "Actions not referenced by any trigger: aaa, zzz")
-		end)
-	end)
-
 	it("passes for a mission without loadouts", function()
 		V.assertValid(V.validate(V.mission()))
 	end)
