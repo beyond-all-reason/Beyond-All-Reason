@@ -389,8 +389,18 @@
 			"unitCount": "(%{count} units)",
 			"unitOne": "(1 unit)",
 			"milestones": "Milestones",
+			"graph": {
+				"composition": "Composition",
+				"compositionDesc": "The team's unit value split by kind over the game, as shares of the whole.",
+				"foldHint": "Click to fold this team's players away, and again to show them.",
+				"legendHint": "Click to highlight this team and show its milestones; right-click to hide it.",
+				"blockHint": "The players of this ally team; each square is one of them.",
+				"all": "All",
+				"allHint": "Every team alike, with all their milestones on the chart.",
+				"waiting": "The first samples arrive after 15 seconds.",
+				"noData": "Nothing to plot for this stat yet."
+			},
 			"milestone": {
-				"factory": "First factory",
 				"tech2": "Tech 2",
 				"tech3": "Tech 3",
 				"nuke": "First nuke",
@@ -406,10 +416,11 @@
 				"combat": "Combat",
 				"units": "Units",
 				"composition": "Composition",
-				"activity": "Activity",
-				"graphs": "Graphs"
+				"activity": "Activity"
 			},
 			"switch": {
+				"graphs": "Graphs",
+				"graphsDesc": "The picked group's stats as charts over the game instead of the table.",
 				"groupByTeam": "Group by team",
 				"groupByTeamDesc": "Players under their team, with the team's totals above them. Off, every player is listed in one sorted list.",
 				"shareOfTeam": "Share of team",
@@ -417,7 +428,9 @@
 				"perMinute": "Per minute",
 				"perMinuteDesc": "Totals divided by the minutes each team was in the game, so a short game or an early exit compares fairly.",
 				"bars": "Bars",
-				"barsDesc": "A bar behind every number, scaled to the largest in its column."
+				"barsDesc": "A bar behind every number, scaled to the largest in its column.",
+				"milestones": "Milestones",
+				"milestonesDesc": "The highlighted team's milestones as unit pictures on the chart, every team's when none is highlighted; hover one for what it was."
 			},
 			"damage": "Damage",
 			"damageDealt": "Dealt",
