@@ -218,8 +218,7 @@ local function SpawnUnit(spawnData)
 			end
 
 			if unitDetonates then
-				Spring.Echo("Destroying the unit (or trying to?)")
-				spDestroyUnit(unitID, true, true)
+				spDestroyUnit(unitID, false, false) -- e.g. mines use explodeas
 				return
 			end
 
