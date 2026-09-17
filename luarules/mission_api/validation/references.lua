@@ -171,20 +171,20 @@ end
 -- Unit and feature name references
 --------------------------------------------------------------------------------
 
---- Unit names and feature names work the same way. A loadout, or an action carrying one
---- inline, gives units or features a name; other triggers and actions then use that name
---- to find them again. Only the wording differs between the two, so validateNameReferences
---- walks both, and takes one of these to tell it which words to use.
+--- Unit names and feature names work the same way. A loadout, either top level or in an action,
+--- gives units or features a name. Other triggers and actions then refer to that name. Only the
+--- wording differs between the unit names and feature names, so validateNameReferences walks
+--- both, and takes a NameKind to tell it which words to use.
 ---@class NameKind
----@field label string names the kind in messages, "Unit name" or "Feature name"
----@field nameKey string the key holding the name, "unitName" or "featureName"
----@field nameType string the parameter type, so every parameter taking one can be found
----@field loadout table the mission's own UnitLoadout or FeatureLoadout
----@field loadoutLabel string cites that loadout in messages, "UnitLoadout" or "FeatureLoadout"
----@field loadoutParameter string the inline equivalent, "unitLoadout" or "featureLoadout"
----@field loadoutActionType string the action taking that inline loadout, SpawnUnits or CreateFeatures
----@field creatingActionTypes table<string, boolean> the actions that hand out the name. Any other
----       action naming it is looking up one already handed out.
+---@field label string								  "Unit name" or "Feature name" to use in log messages
+---@field nameKey string							  the key holding the name, "unitName" or "featureName"
+---@field nameType string							  the parameter type, so every parameter taking one can be found
+---@field loadout table								  the mission's top level UnitLoadout or FeatureLoadout
+---@field loadoutLabel string                         "UnitLoadout" or "FeatureLoadout" to use in log messages
+---@field loadoutParameter string 					  the action parameter "unitLoadout" or "featureLoadout"
+---@field loadoutActionType string					  SpawnUnits or CreateFeatures
+---@field creatingActionTypes table<string, boolean>  the action types that can create the name. Any other
+---												      action naming it is referencing it instead.
 
 --- A top level loadout entry creates every name it gives.
 local function collectLoadoutNames(nameKind, createdNames)
