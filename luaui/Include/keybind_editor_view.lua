@@ -123,6 +123,9 @@ local resolvedCatalog
 local chipGroups = {}
 local catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 local L = {}
+-- Headers, notes, links, the way in to a custom binding and the bindable rows themselves,
+-- which share no shape beyond the type naming which they are.
+---@type table[]
 local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
 local rowsGen = 0
@@ -138,6 +141,8 @@ local scroll = 0
 local hover = {
 	sb = 0,
 	row = 0,
+	-- Named for whatever is under the cursor once it moves, not the empty string it starts at.
+	---@type string
 	zone = "",
 	idx = 0,
 	gk = "",
@@ -805,6 +810,8 @@ local function buildResolvedCatalog()
 	end
 
 	L.other = BAR.I18N("categories.other")
+	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
+	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -1100,7 +1107,7 @@ local function rebuildRows()
 	-- own, and only there. Gathered as they are met, so they keep the catalog's order.
 	local keyRows = {}
 	local catalogActions = {}
-	local otherGroupEnd
+	local otherHeaderRow, otherGroupEnd
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
 	-- Exact ids only (not prefixes), so a future action can't be hidden by coincidence.
@@ -1271,6 +1278,9 @@ local function rebuildRows()
 
 		if inCategory and #groupRows > 0 then
 			rows[#rows + 1] = { type = "header", text = group.title }
+			if group.title == L.other then
+				otherHeaderRow = rows[#rows]
+			end
 			if group.layout == "grid" then
 				-- Its keys only read laid out, so the list points at that view rather than
 				-- repeating them flat. Still driven by the rows a search matched, so hunting
@@ -1317,19 +1327,30 @@ local function rebuildRows()
 		}
 	end
 
-	if #others > 0 and inOther then
+	-- The section is drawn for the way in alone, so a player with nothing of their own still
+	-- has somewhere to add the first one. Not while searching or reading the changed list:
+	-- neither is a list anything would be added to.
+	local offerAdd = inOther and not changedOnly and query.empty
+	if (offerAdd or #others > 0) and inOther then
 		table.sort(others)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
 		-- the leftovers join it after its own items instead of repeating the header.
 		local tail = {}
+		local header = otherHeaderRow
 		if otherGroupEnd then
 			for i = otherGroupEnd + 1, #rows do
 				tail[#tail + 1] = rows[i]
 				rows[i] = nil
 			end
 		else
-			rows[#rows + 1] = { type = "header", text = L.other }
+			header = { type = "header", text = L.other }
+			rows[#rows + 1] = header
+		end
+		-- The way in rides on the heading rather than taking a row of its own, which read as
+		-- one more binding among the ones it is there to add to.
+		if offerAdd and header then
+			header.add = L.addBind
 		end
 
 		for _, action in ipairs(others) do
@@ -1766,6 +1787,7 @@ local function openDialog(d)
 	dialog = d
 	searchBox:blur()
 	if not d.message then
+		nameBox:setMaxChars(d.maxChars)
 		nameBox:setText(d.initial or "")
 		nameBox:focus()
 	end
@@ -1804,7 +1826,11 @@ local function dialogName()
 	end
 
 	local name = nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
-	local taken = name ~= dialog.allow and (profiles.get(name) ~= nil or profiles.isBuiltin(name) ~= nil)
+	-- Only a profile name has to be one of a kind. A dialog asking for anything else - a bind
+	-- command - is free to repeat whatever a profile happens to be called.
+	local taken = not dialog.freeText
+		and name ~= dialog.allow
+		and (profiles.get(name) ~= nil or profiles.isBuiltin(name) ~= nil)
 
 	-- A dialog can be blocked outright, like an import with nothing to import.
 	return name, name == "" or taken or dialog.blocked == true
@@ -2267,7 +2293,7 @@ end
 -- field; an information dialog has one button, OK, in the middle, and no Cancel.
 local function dialogGeometry()
 	local preview = dialog and dialog.preview
-	local w = floor((preview and 620 or 315) * scale)
+	local w = floor(((preview or (dialog and dialog.wide)) and 620 or 315) * scale)
 	local h = floor((preview and 420 or 150) * scale)
 	local messageLines, messageStep
 	if dialog and dialog.message and font then
@@ -3144,8 +3170,17 @@ local function rowLayout(row)
 	lay = { gen = layoutGen }
 	if row.type == "header" then
 		lay.text = colorHeader .. row.text
+		if row.add then
+			-- Against the right edge, measured so the click lands on the words and not on the
+			-- whole band, which is a heading and does nothing.
+			lay.addW = floor(font:GetTextWidth(row.add) * metrics.headerFs)
+			lay.addX = listRight - metrics.rowPad - lay.addW
+			lay.addText = colorAction .. row.add
+			lay.addTextHover = colorHeader .. row.add
+		end
 	elseif row.type == "note" then
 		lay.text = colorDim .. text.fit(font, row.text, listRight - listX1 - metrics.rowPad * 4, metrics.rowFs)
+
 	elseif row.type == "link" then
 		lay.text = colorAction .. row.label
 		lay.arrow = look.arrow
@@ -3748,6 +3783,10 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
+		if lay.addText then
+			local over = zone == "addbind"
+			queueText(over and lay.addTextHover or lay.addText, lay.addX, cyc, metrics.headerFs, "ov")
+		end
 
 		return
 	end
@@ -4304,6 +4343,11 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
+			elseif row.type == "header" and row.add then
+				local lay = rowLayout(row)
+				if mx >= lay.addX - metrics.rowPad then
+					h.zone = "addbind"
+				end
 			end
 		end
 	end
@@ -4906,6 +4950,35 @@ local function sidebarPress(x, y)
 	return true
 end
 
+-- A binding for an action the catalog does not list. Only the command is asked for; the key
+-- comes from the same capture every row uses, and the action lands under Other by itself,
+-- since that is where the list puts whatever it does not recognise. Hung off state rather
+-- than taken as a local, this chunk being at Lua's ceiling of 200 of them.
+function state.addBind()
+	openDialog({
+		title = L.addBindTitle,
+		freeText = true,
+		-- The field neither scrolls nor clips, so it must not take more than it can show. The
+		-- wide box fits about a hundred characters, and the longest the game itself binds is
+		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one - so a command
+		-- past this is refused rather than drawn over the panel behind the dialog.
+		wide = true,
+		maxChars = 96,
+		accept = function(typed)
+			-- The engine lower-cases the command as it parses the bind line, so a capitalised one
+			-- would read back from the keymap as something else and the row would never meet the
+			-- binding again. Its arguments keep their case, which the selection language needs.
+			local command, rest = typed:match("^(%S+)(.*)$")
+			if not command then
+				return
+			end
+
+			local action = command:lower() .. rest
+			startCapture(action, action)
+		end,
+	})
+end
+
 -- Routes a click on a keybind row to the edit it implies.
 local function handleZone(kind, action, label, raws)
 	if kind == "remove" then
@@ -5126,6 +5199,8 @@ function view.mousePress(x, y, button)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
 			end
+		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
+			state.addBind()
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
