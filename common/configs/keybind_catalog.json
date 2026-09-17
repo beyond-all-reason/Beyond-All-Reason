@@ -509,7 +509,8 @@
 			},
 			{
 				"action": "factoryqueuemode",
-				"label": "actions.factory.queueMode"
+				"label": "actions.factory.queueMode",
+				"description": "commands.factoryqueuemode_tooltip"
 			},
 			{
 				"prefix": "factoryguard ",
