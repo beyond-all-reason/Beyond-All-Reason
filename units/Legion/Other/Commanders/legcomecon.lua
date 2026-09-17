@@ -94,7 +94,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "",
+			subfolder = "Legion/Other/Commanders",
 			tombstone = "legstone",
 		},
 		featuredefs = {

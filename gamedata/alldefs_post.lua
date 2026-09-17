@@ -205,6 +205,19 @@ end
 -- MODULE FUNCTIONS
 -------------------------
 
+local function spawnedAirUnit(carriedUnits)
+	if not carriedUnits then
+		return
+	end
+	for carriedName in string.gmatch(carriedUnits, "%S+") do
+		-- Scav units still have the base unit here but check against both sets anyway.
+		local carriedDef = UnitDefs[carriedName] or UnitDefs[(string.gsub(carriedName, "_scav$", ""))] ---@as table
+		if carriedDef and carriedDef.canfly then
+			return carriedDef
+		end
+	end
+end
+
 local function unitDef_Post(name, uDef)
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
@@ -311,8 +324,30 @@ local function unitDef_Post(name, uDef)
 			customparams.modoption_blocked = true
 		elseif uDef.canfly then
 			customparams.modoption_blocked = true
-		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
+		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories with no other purpose (ex. legap)
 			customparams.modoption_blocked = true
+		else
+			local strippedDrones = false
+			for weaponName, weaponDef in pairs(weapondefs) do
+				local carriedUnit = weaponDef.customparams and weaponDef.customparams.carried_unit
+				local carriedDef = spawnedAirUnit(carriedUnit)
+				if carriedDef then
+					weapondefs[weaponName] = nil
+					strippedDrones = true
+					-- Make a minimal effort toward cost adjustments:
+					local count = weaponDef.customparams.startingdronecount
+					if count and tonumber(count) then
+						uDef.metalcost = (uDef.metalcost or 0) - count * (carriedDef.metalcost or 0)
+						uDef.energycost = (uDef.energycost or 0) - count * (carriedDef.energycost or 0)
+					end
+					uDef.metalcost = (uDef.metalcost or 0) * 0.95
+					uDef.energycost = (uDef.energycost or 0) * 0.95
+				end
+			end
+			-- Keep drone spawners that have other weapons:
+			if strippedDrones and not next(weapondefs) then
+				customparams.modoption_blocked = true
+			end
 		end
 	end
 

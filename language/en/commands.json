@@ -188,7 +188,8 @@
 			"queueMode": "Toggle factory repeat mode",
 			"loadPreset": "Load factory preset %{n}",
 			"savePreset": "Save factory preset %{n}",
-			"showPresets": "Show factory presets"
+			"showPresets": "Show factory presets",
+			"togglePresets": "Toggle factory presets"
 		},
 		"gridMenu": {
 			"buildKey": "Row %{row}, column %{col}",
@@ -231,7 +232,8 @@
 			"unitStats": "Unit stats",
 			"saveGame": "Save game",
 			"screenshot": "Take screenshot",
-			"firingRange": "Display firing range"
+			"firingRange": "Display firing range",
+			"widgetSelector": "Widget selector"
 		},
 		"gameControl": {
 			"voteForcestart": "Vote forcestart",

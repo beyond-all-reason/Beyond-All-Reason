@@ -23,7 +23,6 @@
 			"edit_prev_word",
 			"edit_return",
 			"losradar",
-			"luaui selector",
 			"movereset",
 			"moverotate",
 			"moveslow",
@@ -277,11 +276,13 @@
 			},
 			{
 				"action": "repeat 0",
-				"label": "actions.unitStates.repeatOff"
+				"label": "actions.unitStates.repeatOff",
+				"description": "commands.repeat_tooltip"
 			},
 			{
 				"action": "repeat 1",
-				"label": "actions.unitStates.repeatOn"
+				"label": "actions.unitStates.repeatOn",
+				"description": "commands.repeat_tooltip"
 			},
 			{
 				"prefix": "trajectory_toggle ",
@@ -294,27 +295,33 @@
 			},
 			{
 				"action": "firestate 0",
-				"label": "actions.unitStates.fireHold"
+				"label": "actions.unitStates.fireHold",
+				"description": "commands.firestate_hold_fire_descr"
 			},
 			{
 				"action": "firestate 1",
-				"label": "actions.unitStates.fireReturn"
+				"label": "actions.unitStates.fireReturn",
+				"description": "commands.firestate_return_fire_descr"
 			},
 			{
 				"action": "firestate 2",
-				"label": "actions.unitStates.fireAtWill"
+				"label": "actions.unitStates.fireAtWill",
+				"description": "commands.firestate_fire_at_will_descr"
 			},
 			{
 				"action": "movestate 0",
-				"label": "actions.unitStates.moveHold"
+				"label": "actions.unitStates.moveHold",
+				"description": "commands.movestate_tooltip"
 			},
 			{
 				"action": "movestate 1",
-				"label": "actions.unitStates.moveManeuver"
+				"label": "actions.unitStates.moveManeuver",
+				"description": "commands.movestate_tooltip"
 			},
 			{
 				"action": "movestate 2",
-				"label": "actions.unitStates.moveRoam"
+				"label": "actions.unitStates.moveRoam",
+				"description": "commands.movestate_tooltip"
 			}
 		]
 	},
@@ -708,6 +715,10 @@
 				"label": "actions.interfaceDisplay.settings"
 			},
 			{
+				"action": "luaui selector",
+				"label": "actions.interfaceDisplay.widgetSelector"
+			},
+			{
 				"action": "hideinterface",
 				"label": "actions.cameraModes.interface"
 			},
@@ -845,6 +856,10 @@
 				"action": "factory_preset_show",
 				"label": "actions.factory.showPresets",
 				"alwaysModifier": "any"
+			},
+			{
+				"action": "factory_preset_toggle",
+				"label": "actions.factory.togglePresets"
 			},
 			{
 				"action": "fov_inc 5",

@@ -49,6 +49,8 @@
 					"properties": {
 						"action": { "type": "string", "description": "Bind command (command + space-separated args), exactly as passed to /bind and reported by GetKeyBindings." },
 						"label": { "type": "string", "description": "i18n key for the display label." },
+						"description": { "type": "string", "description": "i18n key for a sentence saying what the action does, for a tooltip. Optional: without one a surface may fall back to the command card's tooltip (commands.<name>_tooltip) or the engine's command description (cmd.<command>)." },
+						"icon": { "type": "string", "description": "VFS path of a picture for the action, drawn on its key in the keyboard overview and wherever else a surface has room for one. Optional: without one an order shows the cursor it is already known by, and anything else shows no picture." },
 						"alwaysModifier": { "type": "string", "enum": ["any", "shift"], "description": "Modifier this action always tolerates, so a surface neither shows it nor lets the player pick it. \"any\" binds with the engine's Any+ qualifier and fires whatever is held. \"shift\" has no engine equivalent, so the binding is written twice, bare and Shift+, and both halves move together. Fixed per action rather than chosen." }
 					}
 				},
@@ -62,6 +64,7 @@
 						"label": { "type": "string", "description": "i18n key for the display label, interpolated per matched action." },
 						"unit": { "type": "boolean", "description": "When true, the arg after the prefix is a unit codename resolved to its translated human name." },
 						"members": { "type": "array", "items": { "type": "string" }, "description": "The args this family covers, appended to the prefix to form each action. Listing them makes the rows exist whether or not anything is bound, so unbinding one leaves it there to bind again. Omit for families that cannot be enumerated (buildunit_ is per unit) and they are discovered from what is bound." },
+						"icon": { "type": "string", "description": "VFS path of a picture shared by every action in the family, drawn on its key in the keyboard overview. Optional." },
 						"alwaysModifier": { "type": "string", "enum": ["any"], "description": "Modifier this action always tolerates, so a surface neither shows it nor lets the player pick it. \"any\" binds with the engine's Any+ qualifier and fires whatever is held. Fixed per action rather than chosen." }
 					}
 				}
