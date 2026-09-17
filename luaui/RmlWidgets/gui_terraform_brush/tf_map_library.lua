@@ -3,11 +3,8 @@
 -- Git, this file decides what the buttons mean.
 local M = {}
 local WG = WG
-local BAR = BAR
 
-local function text(key, values)
-	return BAR.I18N("ui.mapLibrary." .. key, values)
-end
+local text = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua").text
 
 -- "just now" / "3 min ago" / "2 h ago" / "4 d ago" for a seconds-ago count.
 local function ageText(seconds, translate)

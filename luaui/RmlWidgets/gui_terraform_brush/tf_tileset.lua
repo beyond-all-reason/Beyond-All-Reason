@@ -4,6 +4,7 @@
 -- tool. The knobs live in the write-dir widget dev_tileset_terrain.lua and are
 -- driven through WG.TilesetTerrain (getKnobs/setKnob/reset). The RML rows are
 -- generated from the same spec below, so this list and the .rml stay in step.
+local tfStrings = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua")
 local M = {}
 
 -- Capture WG as an upvalue: RmlUi-dispatched event closures can run outside the
@@ -818,7 +819,7 @@ function M.syncShader(doc, ctx)
 		if dm.tsShaderSyncState ~= "offline" then
 			dm.tsShaderSyncState = "offline"
 		end
-		local offline = BAR.I18N("ui.mapLibrary.shaderOffline")
+		local offline = tfStrings.text("shaderOffline")
 		if dm.tsShaderSyncLabel ~= offline then
 			dm.tsShaderSyncLabel = offline
 		end
@@ -829,22 +830,22 @@ function M.syncShader(doc, ctx)
 	local state, label
 	if client.isBusy() or code == "unchecked" or code == "" then
 		state = "checking"
-		label = BAR.I18N("ui.mapLibrary.shaderChecking")
+		label = tfStrings.text("shaderChecking")
 	elseif code == "synced" then
 		state = "synced"
-		label = BAR.I18N("ui.mapLibrary.shaderSynced", { version = version })
+		label = tfStrings.text("shaderSynced", { version = version })
 	elseif code == "update" and shaderFitsBrush(shader) then
 		state = "update"
-		label = BAR.I18N("ui.mapLibrary.shaderUpdate", {
+		label = tfStrings.text("shaderUpdate", {
 			version = version,
 			size = shaderSize(shader.bytes),
 		})
 	elseif code == "update" then
 		state = "mismatch"
-		label = BAR.I18N("ui.mapLibrary.shaderMismatch", { version = version })
+		label = tfStrings.text("shaderMismatch", { version = version })
 	else
 		state = "error"
-		label = BAR.I18N("ui.mapLibrary.shaderError")
+		label = tfStrings.text("shaderError")
 	end
 	if dm.tsShaderSyncState ~= state then
 		dm.tsShaderSyncState = state

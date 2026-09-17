@@ -106,7 +106,7 @@ describe("Save As and the upload switch", function()
 				assert(initial == model)
 				assert(type(initial.libraryPublish) == "function")
 				assert(type(initial.projectSaveSetUpload) == "function")
-				assert(initial.libraryLabel_saveTitle == "ui.mapLibrary.saveTitle")
+				assert(initial.libraryLabel_saveTitle == "Save Project As")
 				return initial
 			end,
 		}
@@ -115,11 +115,6 @@ describe("Save As and the upload switch", function()
 			initialModel = model,
 			MODEL_NAME = "test",
 			WG = {},
-			BAR = {
-				I18N = function(key)
-					return key
-				end,
-			},
 			RmlUi = {
 				GetContext = function()
 					return context
@@ -128,9 +123,11 @@ describe("Save As and the upload switch", function()
 		}, { __index = _G })
 		environment.VFS = {
 			Include = function(path)
-				-- Recoil's mounted .sdd index predates the new Save As source file.
+				-- Recoil's mounted .sdd index predates the new Save As source file,
+				-- and the strings file the panel pulls in behind it.
 				assert(
-					path == "luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua",
+					path == "luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua"
+						or path == "luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua",
 					"File not seen by VFS: " .. path
 				)
 				includes[#includes + 1] = path
@@ -140,7 +137,8 @@ describe("Save As and the upload switch", function()
 		local chunk = assert(loadstring("return function(self)\n" .. initialize .. "\nend"))
 		setfenv(chunk, environment)
 		chunk()({})
-		assert(#includes == 1 and state.dmHandle == model)
+		assert(includes[1] == "luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
+		assert(state.dmHandle == model)
 		assert(type(state.projectLibraryUi.sync) == "function" and type(state.projectSaveUi.save) == "function")
 		state.projectSaveUi.sync()
 	end)
@@ -173,21 +171,14 @@ describe("Save As and the upload switch", function()
 		assert(not f.ui.save("Design/arena") and #f.saves == 0)
 	end)
 
-	it("installs final callbacks before the data model exists, using BAR.I18N", function()
-		local environment = setmetatable(
-			{ WG = {}, BAR = {
-				I18N = function(key)
-					return key
-				end,
-			} },
-			{ __index = _G }
-		)
+	it("installs final callbacks before the data model exists", function()
+		local environment = setmetatable({ WG = {} }, { __index = _G })
 		local module = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua", environment)
 		local model, state = {}, {}
 		local ui = module.newSave(state, model)
 		ui.sync()
-		assert(model.libraryLabel_saveTitle == "ui.mapLibrary.saveTitle")
-		assert(model.libraryLabel_uploadAfter == "ui.mapLibrary.uploadAfter")
+		assert(model.libraryLabel_saveTitle == "Save Project As")
+		assert(model.libraryLabel_uploadAfter == "Upload to team after saving")
 		assert(type(model.projectSaveSetUpload) == "function")
 		assert(not model.projectSaveUpload and not model.projectSaveIsStage)
 	end)

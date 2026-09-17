@@ -229,6 +229,11 @@ local windowDragAllWindows = {}
 -- floatingTipEl, currentHint, lastRenderedHint live on widgetState (shared with tf_guide)
 
 widgetState = { -- forward-declared above playSound so mute check works
+	-- Text for the Projects browser, Team Sync and the quit prompt. Its own
+	-- module rather than language/en/interface.json: the translation files
+	-- are written by hand, and none of this editor is translated. A field
+	-- and not a local: this file is close to Lua's 200-local limit.
+	text = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua").text,
 	rmlContext = nil,
 	document = nil,
 	---@type table?
@@ -752,10 +757,10 @@ widgetState.quitGuardIntercept = function(what, proceed)
 	widgetState.quitGuardPending = proceed
 	widgetState.quitGuardSaving = nil
 	d.quitGuardHasProject = current ~= nil
-	d.quitGuardText = current and BAR.I18N("ui.mapLibrary.quitTextProject", { name = current })
-		or BAR.I18N("ui.mapLibrary.quitTextCanvas")
+	d.quitGuardText = current and widgetState.text("quitTextProject", { name = current })
+		or widgetState.text("quitTextCanvas")
 	local hintKey = what == "leave" and "quitLoseLeave" or what == "newmap" and "quitLoseNewMap" or "quitLoseQuit"
-	d.quitGuardHint = BAR.I18N("ui.mapLibrary." .. hintKey)
+	d.quitGuardHint = widgetState.text(hintKey)
 	d.quitGuardStatus = ""
 	d.quitGuardOpen = true
 	playSound("click")
@@ -4045,12 +4050,12 @@ end
 
 widgetState.projectCountText = function(shown, total)
 	if total and shown < total then
-		return BAR.I18N("ui.mapLibrary.countFiltered", { count = shown, total = total })
+		return widgetState.text("countFiltered", { count = shown, total = total })
 	end
 	if shown == 1 then
-		return BAR.I18N("ui.mapLibrary.countOne")
+		return widgetState.text("countOne")
 	end
-	return BAR.I18N("ui.mapLibrary.countMany", { count = shown })
+	return widgetState.text("countMany", { count = shown })
 end
 
 -- "23 min ago (2026-09-09)". The date half stays as the manifest wrote it
@@ -4112,7 +4117,7 @@ widgetState.projectShowDetails = function(p, save)
 	d[key .. "Created"] = (p.created and p.created ~= "") and widgetState.projectStampText(p.created, now) or ""
 	d[key .. "Units"] = ""
 	if mp and mp.hasUnitsSection and mine then
-		d[key .. "Units"] = BAR.I18N("ui.mapLibrary." .. (mp.hasUnitsSection(slug) and "unitsSaved" or "unitsNone"))
+		d[key .. "Units"] = widgetState.text((mp.hasUnitsSection(slug) and "unitsSaved" or "unitsNone"))
 	end
 	-- Team catalog rows carry no format_version (the helper reads the
 	-- manifest as text), so the flag is a local-project statement only.
@@ -4127,12 +4132,12 @@ widgetState.projectShowDetails = function(p, save)
 		d.projectInfoSync = state
 		local line
 		if not team then
-			line = BAR.I18N("ui.mapLibrary.teamNotShared")
+			line = widgetState.text("teamNotShared")
 		else
 			local stage = tostring(team.folder or "")
 			local parts = {
-				BAR.I18N("ui.mapLibrary.teamIn", {
-					stage = stage ~= "" and stage or BAR.I18N("ui.mapLibrary.rootFolder"),
+				widgetState.text("teamIn", {
+					stage = stage ~= "" and stage or widgetState.text("rootFolder"),
 				}),
 			}
 			-- Who uploaded it and when, once the companion reports it.
@@ -4140,22 +4145,22 @@ widgetState.projectShowDetails = function(p, save)
 			if uploaded and uploaded > 0 then
 				local age = widgetState.relativeAge(os.date("!%Y-%m-%dT%H:%M:%SZ", uploaded), now)
 				parts[#parts + 1] = team.author
-						and BAR.I18N("ui.mapLibrary.teamUploadedBy", { age = age, author = tostring(team.author) })
-					or BAR.I18N("ui.mapLibrary.teamUploaded", { age = age })
+						and widgetState.text("teamUploadedBy", { age = age, author = tostring(team.author) })
+					or widgetState.text("teamUploaded", { age = age })
 			end
 			if not mine then
-				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamNotHere")
+				parts[#parts + 1] = widgetState.text("teamNotHere")
 			elseif state == "synced" then
-				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamSynced")
+				parts[#parts + 1] = widgetState.text("teamSynced")
 			elseif state == "mine" then
-				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamMine")
+				parts[#parts + 1] = widgetState.text("teamMine")
 			else
-				parts[#parts + 1] = BAR.I18N("ui.mapLibrary.teamTheirs")
+				parts[#parts + 1] = widgetState.text("teamTheirs")
 			end
 			line = table.concat(parts, " \194\183 ")
 		end
 		if d.libraryConfigured and not d.libraryOnline then
-			line = line .. " " .. BAR.I18N("ui.mapLibrary.teamOffline")
+			line = line .. " " .. widgetState.text("teamOffline")
 		end
 		d.projectInfoTeamLine = line
 	end
@@ -4199,7 +4204,7 @@ widgetState.projectShowDetails = function(p, save)
 		prev.inner_rml = '<img class="tf-proj-preview-img" src="/' .. widgetState.rmlEsc(chosen) .. '" />'
 	else
 		prev.inner_rml = '<div class="tf-proj-preview-none">'
-			.. widgetState.rmlEsc(BAR.I18N("ui.mapLibrary.noPreview"))
+			.. widgetState.rmlEsc(widgetState.text("noPreview"))
 			.. "</div>"
 	end
 end
@@ -4235,7 +4240,7 @@ widgetState.projectSyncTarget = function()
 	local stages = widgetState.projectTeamDestinations()
 	local isStage = folder ~= "" and stages[folder] == true
 	d.projectSaveIsStage = isStage
-	d.projectSaveDestLabel = folder ~= "" and (folder:gsub("/", " / ")) or BAR.I18N("ui.mapLibrary.rootFolder")
+	d.projectSaveDestLabel = folder ~= "" and (folder:gsub("/", " / ")) or widgetState.text("rootFolder")
 	-- The upload switch: offered for a team stage, on by default while Team
 	-- Sync could carry it out, and remembered only until the folder changes.
 	local online, writable = d.libraryOnline == true, d.libraryWritable == true
@@ -4251,7 +4256,7 @@ widgetState.projectSyncTarget = function()
 	end
 	d.projectSaveUpload = (allowed and choice) and true or false
 	d.projectSaveUploadNote = (isStage and not allowed)
-			and BAR.I18N(online and "ui.mapLibrary.uploadAfterReadOnly" or "ui.mapLibrary.uploadAfterOff")
+			and widgetState.text(online and "uploadAfterReadOnly" or "uploadAfterOff")
 		or ""
 	local upload = d.projectSaveUpload
 	d.projectSaveDestOk = true
@@ -4260,26 +4265,22 @@ widgetState.projectSyncTarget = function()
 	local teamHas = slug ~= nil and widgetState.projectTeamBySlug()[slug] ~= nil
 	local isCurrent = slug ~= nil and mp.current and mp.current() == slug
 	if raw == "" then
-		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetInvalid")
+		d.projectSaveTarget = widgetState.text("targetInvalid")
 	elseif not slug then
-		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.nameHint")
+		d.projectSaveTarget = widgetState.text("nameHint")
 	elseif isCurrent then
 		d.projectSaveOverwrite = true
-		d.projectSaveTarget =
-			BAR.I18N(upload and "ui.mapLibrary.targetCurrentUpload" or "ui.mapLibrary.targetCurrent", { name = slug })
+		d.projectSaveTarget = widgetState.text(upload and "targetCurrentUpload" or "targetCurrent", { name = slug })
 	elseif taken then
 		d.projectSaveOverwrite = true
-		d.projectSaveTarget = BAR.I18N(
-			upload and "ui.mapLibrary.targetOverwriteUpload" or "ui.mapLibrary.targetOverwrite",
-			{ name = slug }
-		)
+		d.projectSaveTarget = widgetState.text(upload and "targetOverwriteUpload" or "targetOverwrite", { name = slug })
 	elseif teamHas and upload then
 		d.projectSaveOverwrite = true
-		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetTeamOnly", { name = slug })
+		d.projectSaveTarget = widgetState.text("targetTeamOnly", { name = slug })
 	elseif upload then
-		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetNewUpload", { stage = folder })
+		d.projectSaveTarget = widgetState.text("targetNewUpload", { stage = folder })
 	else
-		d.projectSaveTarget = BAR.I18N("ui.mapLibrary.targetNew")
+		d.projectSaveTarget = widgetState.text("targetNew")
 	end
 	-- The summary pane: what SAVE writes, read before it is pressed.
 	d.psaveSumFolder = d.projectSaveDestLabel
@@ -4288,9 +4289,8 @@ widgetState.projectSyncTarget = function()
 		math.floor((Game.mapSizeX or 0) / 512 + 0.5),
 		math.floor((Game.mapSizeZ or 0) / 512 + 0.5)
 	)
-	d.psaveSumUnits = BAR.I18N(widgetState.projectSaveUnits and "ui.mapLibrary.yes" or "ui.mapLibrary.no")
-	d.psaveSumUpload = upload and BAR.I18N("ui.mapLibrary.sumUploadTo", { stage = folder })
-		or BAR.I18N("ui.mapLibrary.no")
+	d.psaveSumUnits = widgetState.text(widgetState.projectSaveUnits and "yes" or "no")
+	d.psaveSumUpload = upload and widgetState.text("sumUploadTo", { stage = folder }) or widgetState.text("no")
 	-- The existing project the name points at, if any, read from the listing
 	-- the browser already built: a fresh listDetailed() per keystroke would
 	-- walk the disk.
@@ -4357,8 +4357,8 @@ widgetState.projectSyncCell = function(p)
 	return {
 		state = state,
 		dot = dot,
-		text = BAR.I18N("ui.mapLibrary." .. key),
-		title = title and BAR.I18N("ui.mapLibrary." .. title) or "",
+		text = widgetState.text(key),
+		title = title and widgetState.text(title) or "",
 	}
 end
 
@@ -4570,10 +4570,10 @@ widgetState.projectTreeRml = function(projects, opts)
 		rows[#rows + 1] = p
 		local tags = {}
 		if opts.current and opts.current ~= "" and p.slug == opts.current then
-			tags[#tags + 1] = { text = BAR.I18N("ui.mapLibrary.currentTag") }
+			tags[#tags + 1] = { text = widgetState.text("currentTag") }
 		end
 		if p.autosave and p.autosave_of and p.autosave_of ~= "" then
-			tags[#tags + 1] = { text = BAR.I18N("ui.mapLibrary.autosaveOf", { name = p.autosave_of }) }
+			tags[#tags + 1] = { text = widgetState.text("autosaveOf", { name = p.autosave_of }) }
 		end
 		-- A staged team move rides on the row it applies to, rather than
 		-- redrawing the project under its future folder.
@@ -4696,14 +4696,14 @@ widgetState.projectTreeRml = function(projects, opts)
 		local function diskHeading()
 			if opts.diskSection and path == "" and not diskHeaded then
 				diskHeaded = true
-				sectionRow(BAR.I18N("ui.mapLibrary.sectionDisk"))
+				sectionRow(widgetState.text("sectionDisk"))
 			end
 		end
 		for _, sub in ipairs(subs) do
 			index = index + 1
 			local isLast = index == total
 			if groups[sub] then
-				sectionRow(sub:match("([^/]+)$") or sub, BAR.I18N("ui.mapLibrary.sectionTeam"))
+				sectionRow(sub:match("([^/]+)$") or sub, widgetState.text("sectionTeam"))
 				render(sub, ancestors)
 			else
 				if not rank[sub] then
@@ -4713,7 +4713,7 @@ widgetState.projectTreeRml = function(projects, opts)
 					-- heading the grouped ones have, so every team folder sits
 					-- under one that says so.
 					teamHeaded = true
-					sectionRow(BAR.I18N("ui.mapLibrary.teamHeader"), BAR.I18N("ui.mapLibrary.sectionTeam"))
+					sectionRow(widgetState.text("teamHeader"), widgetState.text("sectionTeam"))
 				end
 				local open = not collapsed[sub]
 				folders[#folders + 1] = sub
@@ -4847,7 +4847,7 @@ widgetState.projectSaveCreateFolder = function()
 	local ok = mp and mp.validateSlug and mp.validateSlug(path)
 	if not ok then
 		if d then
-			d.projectSaveHint = BAR.I18N("ui.mapLibrary.invalid_path")
+			d.projectSaveHint = widgetState.text("invalid_path")
 			d.projectSaveError = true
 		end
 		return
@@ -4908,7 +4908,7 @@ widgetState.projectRenameApply = function()
 		and mp.validateSlug
 		and mp.validateSlug((folder ~= "" and (folder .. "/") or "") .. typed)
 	if not target then
-		d.projectOpenHint = BAR.I18N("ui.mapLibrary.nameHint")
+		d.projectOpenHint = widgetState.text("nameHint")
 		playSound("reset")
 		return
 	end
@@ -4916,16 +4916,16 @@ widgetState.projectRenameApply = function()
 	local team = widgetState.projectTeamBySlug()[slug] ~= nil
 	if mine then
 		if mp.exists and mp.exists(target) then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.renameExists", { name = typed })
+			d.projectOpenHint = widgetState.text("renameExists", { name = typed })
 			playSound("reset")
 			return
 		end
 		if mp.isBusy and mp.isBusy() then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.busy")
+			d.projectOpenHint = widgetState.text("busy")
 			return
 		end
 		if not (mp.rename and mp.rename(slug, typed)) then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.renameFailed", { name = oldLeaf })
+			d.projectOpenHint = widgetState.text("renameFailed", { name = oldLeaf })
 			playSound("reset")
 			return
 		end
@@ -4937,18 +4937,15 @@ widgetState.projectRenameApply = function()
 		staged = ui.queueMove(slug, folder, typed) == true
 	end
 	if not mine and not staged then
-		d.projectOpenHint = BAR.I18N("ui.mapLibrary.renameTeamUnavailable")
+		d.projectOpenHint = widgetState.text("renameTeamUnavailable")
 		playSound("reset")
 		return
 	end
 	close()
 	playSound("save")
 	widgetState.projectOpenSelectedSlug = mine and target or slug
-	d.projectOpenHint = BAR.I18N(
-		staged and (mine and "ui.mapLibrary.renamedTeamStaged" or "ui.mapLibrary.renameTeamOnly")
-			or "ui.mapLibrary.renamed",
-		{ name = typed }
-	)
+	d.projectOpenHint =
+		widgetState.text(staged and (mine and "renamedTeamStaged" or "renameTeamOnly") or "renamed", { name = typed })
 	widgetState.projectOpenNeedsRebuild = true
 	widgetState.projectSaveNeedsRebuild = true
 	if ui then
@@ -4997,7 +4994,7 @@ widgetState.projectStagesRebuild = function()
 				)
 			end
 			if #stages == 0 then
-				parts[1] = '<div class="tf-project-stage-none">' .. esc(BAR.I18N("ui.mapLibrary.noStages")) .. "</div>"
+				parts[1] = '<div class="tf-project-stage-none">' .. esc(widgetState.text("noStages")) .. "</div>"
 			end
 			el.inner_rml = table.concat(parts)
 			for i, name in ipairs(stages) do
@@ -5066,7 +5063,7 @@ widgetState.projectSyncHelperFiles = function()
 		Spring.Echo("[Terraform Brush] map library helper updated in " .. dir .. "; restart the helper to pick it up")
 		local d = widgetState.dmHandle
 		if d then
-			d.projectHelperHint = BAR.I18N("ui.mapLibrary.helperStale")
+			d.projectHelperHint = widgetState.text("helperStale")
 			widgetState.projectHelperHintSticky = true
 		end
 	end
@@ -5077,7 +5074,7 @@ widgetState.projectWriteRunner = function()
 	local dir = "Terraform Brush/map library helper"
 	local function fail(key)
 		if d then
-			d.projectHelperHint = BAR.I18N("ui.mapLibrary." .. key)
+			d.projectHelperHint = widgetState.text(key)
 			widgetState.projectHelperHintSticky = false
 		end
 		playSound("reset")
@@ -5190,7 +5187,7 @@ widgetState.projectWriteRunner = function()
 	playSound("save")
 	if d then
 		widgetState.projectHelperHintSticky = false
-		d.projectHelperHint = BAR.I18N(absolute and "ui.mapLibrary.helperReadyPath" or "ui.mapLibrary.helperReady", {
+		d.projectHelperHint = widgetState.text(absolute and "helperReadyPath" or "helperReady", {
 			path = absolute or runner,
 		})
 	end
@@ -5346,7 +5343,7 @@ widgetState.projectDragEnd = function(commit)
 	else
 		playSound("reset")
 		if d then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.moveFailed", { name = leaf })
+			d.projectOpenHint = widgetState.text("moveFailed", { name = leaf })
 		end
 	end
 end
@@ -5383,7 +5380,7 @@ widgetState.projectOfferRemoteMove = function(oldSlug, newSlug)
 	end
 	widgetState.projectPendingMove = { source = oldSlug, stage = stage }
 	d.libraryMoveOpen = true
-	d.libraryMoveQuestion = BAR.I18N("ui.mapLibrary.moveQuestion", {
+	d.libraryMoveQuestion = widgetState.text("moveQuestion", {
 		name = oldSlug:match("([^/]+)$") or oldSlug,
 		stage = stage,
 	})
@@ -5464,13 +5461,13 @@ widgetState.projectDragUpdate = function()
 	if d then
 		local leaf = drag.slug:match("([^/]+)$") or drag.slug
 		if not hit then
-			d.projectDragLabel = BAR.I18N("ui.mapLibrary.dragHolding", { name = leaf })
+			d.projectDragLabel = widgetState.text("dragHolding", { name = leaf })
 		elseif hit.path == (drag.slug:match("^(.*)/[^/]+$") or "") then
-			d.projectDragLabel = BAR.I18N("ui.mapLibrary.dragSameFolder", { name = leaf })
+			d.projectDragLabel = widgetState.text("dragSameFolder", { name = leaf })
 		else
-			d.projectDragLabel = BAR.I18N("ui.mapLibrary.dragMove", {
+			d.projectDragLabel = widgetState.text("dragMove", {
 				name = leaf,
-				folder = hit.path ~= "" and hit.path or BAR.I18N("ui.mapLibrary.dragTopLevel"),
+				folder = hit.path ~= "" and hit.path or widgetState.text("dragTopLevel"),
 			})
 		end
 	end
@@ -5504,7 +5501,7 @@ widgetState.projectSelectFolder = function(path)
 		d.projectInfoName = path:match("([^/]+)$") or path
 		local parent = path:match("^(.*)/[^/]+$")
 		d.projectInfoPath = parent and (parent .. "/") or ""
-		d.projectInfoCount = BAR.I18N("ui.mapLibrary.folderCount", { count = count })
+		d.projectInfoCount = widgetState.text("folderCount", { count = count })
 	end
 	for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
 		r.el:SetClass("selected", false)
@@ -5590,13 +5587,13 @@ widgetState.projectOpenCommit = function(force)
 	local mp = WG.MapProject
 	if not (mp and mp.open) then
 		if d then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.openUnavailable")
+			d.projectOpenHint = widgetState.text("openUnavailable")
 		end
 		return
 	end
 	if mp.isBusy and mp.isBusy() then
 		if d then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.busy")
+			d.projectOpenHint = widgetState.text("busy")
 		end
 		return
 	end
@@ -5610,14 +5607,14 @@ widgetState.projectOpenCommit = function(force)
 		local ui = widgetState.projectLibraryUi
 		if not (ui and ui.download) or not (d and d.libraryOnline) then
 			if d then
-				d.projectOpenHint = BAR.I18N("ui.mapLibrary.offline")
+				d.projectOpenHint = widgetState.text("offline")
 			end
 			return
 		end
 		playSound("click")
 		widgetState.projectOpenAfterDownload = slug
 		if d then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.downloadingThenOpen", { name = slug:match("([^/]+)$") or slug })
+			d.projectOpenHint = widgetState.text("downloadingThenOpen", { name = slug:match("([^/]+)$") or slug })
 		end
 		ui.download(slug)
 		return
@@ -5629,7 +5626,7 @@ widgetState.projectOpenCommit = function(force)
 		widgetState.projectOpenArmed = slug
 		if d then
 			d.projectOpenConfirming = true
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.openQuestion", { name = slug:match("([^/]+)$") or slug })
+			d.projectOpenHint = widgetState.text("openQuestion", { name = slug:match("([^/]+)$") or slug })
 		end
 		playSound("toggleOn")
 		return
@@ -5641,7 +5638,7 @@ widgetState.projectOpenCommit = function(force)
 	playSound("apply")
 	if not mp.open(slug) then
 		if d then
-			d.projectOpenHint = BAR.I18N("ui.mapLibrary.openFailed", { name = slug })
+			d.projectOpenHint = widgetState.text("openFailed", { name = slug })
 		end
 	end
 end
@@ -5700,9 +5697,7 @@ widgetState.projectSaveRebuild = function()
 	listEl.inner_rml = ""
 	if not (mp and mp.listDetailed) then
 		-- rml-dom-escape: existing imperative tree; no model-bound row template.
-		listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-			.. esc(BAR.I18N("ui.mapLibrary.unavailable"))
-			.. "</div>"
+		listEl.inner_rml = '<div class="tf-hm-empty text-medium">' .. esc(widgetState.text("unavailable")) .. "</div>"
 		if d then
 			d.projectSaveCount = ""
 		end
@@ -5733,7 +5728,7 @@ widgetState.projectSaveRebuild = function()
 	if #projects == 0 then
 		-- rml-dom-escape: existing imperative tree; no model-bound row template.
 		listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-			.. esc(BAR.I18N(#all == 0 and "ui.mapLibrary.localEmpty" or "ui.mapLibrary.noMatches"))
+			.. esc(widgetState.text(#all == 0 and "localEmpty" or "noMatches"))
 			.. "</div>"
 		-- The team's folders draw even with nothing in them: they are where a
 		-- save is about to go.
@@ -10026,7 +10021,7 @@ local initialModel = {
 			if not (WG.MapProject and WG.MapProject.listDetailed) then
 				-- rml-dom-escape: existing imperative tree; Recoil cannot bind struct iterator children.
 				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-					.. esc(BAR.I18N("ui.mapLibrary.unavailable"))
+					.. esc(widgetState.text("unavailable"))
 					.. "</div>"
 				return
 			end
@@ -10045,10 +10040,8 @@ local initialModel = {
 				-- rml-dom-escape: existing imperative tree; no model-bound row template.
 				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
 					.. esc(
-						BAR.I18N(
-							view == "team" and "ui.mapLibrary.empty"
-								or view == "autosave" and "ui.mapLibrary.autosaveEmpty"
-								or "ui.mapLibrary.localEmpty"
+						widgetState.text(
+							view == "team" and "empty" or view == "autosave" and "autosaveEmpty" or "localEmpty"
 						)
 					)
 					.. "</div>"
@@ -10078,7 +10071,7 @@ local initialModel = {
 			if #projects == 0 and (filter ~= "" or not hasLibraryFolders) then
 				-- rml-dom-escape: existing imperative tree; no model-bound row template.
 				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
-					.. esc(BAR.I18N("ui.mapLibrary.noMatches"))
+					.. esc(widgetState.text("noMatches"))
 					.. "</div>"
 				widgetState.projectShowDetails(nil)
 				return
@@ -10267,15 +10260,15 @@ local initialModel = {
 			widgetState.projectLocalDirty = true
 			if not (WG.MapProject and WG.MapProject.delete) then
 				if d then
-					d.projectOpenHint = BAR.I18N("ui.mapLibrary.openUnavailable")
+					d.projectOpenHint = widgetState.text("openUnavailable")
 				end
 			elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
 				if d then
-					d.projectOpenHint = BAR.I18N("ui.mapLibrary.busy")
+					d.projectOpenHint = widgetState.text("busy")
 				end
 			elseif folder and WG.MapProject.deleteFolder and WG.MapProject.deleteFolder(slug) then
 				if d then
-					d.projectOpenHint = BAR.I18N("ui.mapLibrary.deletedFolder", { name = slug })
+					d.projectOpenHint = widgetState.text("deletedFolder", { name = slug })
 				end
 				widgetState.projectOpenSelectedSlug = nil
 				widgetState.projectOpenIsFolder = false
@@ -10283,14 +10276,14 @@ local initialModel = {
 				widgetState.projectSaveNeedsRebuild = true
 			elseif not folder and WG.MapProject.delete(slug) then
 				if d then
-					d.projectOpenHint = BAR.I18N("ui.mapLibrary.deleted", { name = slug })
+					d.projectOpenHint = widgetState.text("deleted", { name = slug })
 				end
 				-- Rebuild next frame, not here: the rebuild destroys the rows while
 				-- this click is still being dispatched.
 				widgetState.projectOpenNeedsRebuild = true
 			else
 				if d then
-					d.projectOpenHint = BAR.I18N("ui.mapLibrary.deleteFailed", { name = slug })
+					d.projectOpenHint = widgetState.text("deleteFailed", { name = slug })
 				end
 			end
 		else
@@ -11355,7 +11348,7 @@ local initialModel = {
 		end
 		if mp.isBusy and mp.isBusy() then
 			if d then
-				d.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaveBusy")
+				d.quitGuardStatus = widgetState.text("quitSaveBusy")
 			end
 			return
 		end
@@ -11363,14 +11356,14 @@ local initialModel = {
 		local accepted, receipt = mp.save(current, { saveUnits = keepUnits })
 		if not accepted then
 			if d then
-				d.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaveFailed")
+				d.quitGuardStatus = widgetState.text("quitSaveFailed")
 			end
 			return
 		end
 		playSound("save")
 		widgetState.quitGuardSaving = receipt
 		if d then
-			d.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaving")
+			d.quitGuardStatus = widgetState.text("quitSaving")
 		end
 	end,
 	onGuideToggleClayStack = function(_event)
@@ -19676,7 +19669,7 @@ function widget:Update()
 			else
 				local dq = widgetState.dmHandle
 				if dq then
-					dq.quitGuardStatus = BAR.I18N("ui.mapLibrary.quitSaveFailed")
+					dq.quitGuardStatus = widgetState.text("quitSaveFailed")
 				end
 			end
 		end

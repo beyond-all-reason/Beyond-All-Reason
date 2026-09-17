@@ -78,25 +78,18 @@ local function fixture(options)
 end
 
 describe("Projects window controller", function()
-	it("initializes with BAR.I18N and no translator override, before the data model exists", function()
-		local translations = {}
+	it("initializes with its own strings and no translator override, before the data model exists", function()
 		local environment = setmetatable({
 			Spring = {},
 			WG = {},
-			BAR = {
-				I18N = function(key, values)
-					translations[key] = values or true
-					return key
-				end,
-			},
 		}, { __index = _G })
 		local runtimeUI = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua", environment)
 		local model = { projectHelperHint = "" }
 		local state = { projectOpenSelectedSlug = "Design/arena", projectOpenIsFolder = false, teamSyncEnabled = true }
 		local ui = runtimeUI.new(state, model)
-		assert(model.libraryLabel_filterAll == "ui.mapLibrary.filterAll")
-		assert(model.libraryLabel_syncName == "ui.mapLibrary.syncName")
-		assert(model.libraryStatus == "ui.mapLibrary.offline")
+		assert(model.libraryLabel_filterAll == "Projects")
+		assert(model.libraryLabel_syncName == "Team Sync")
+		assert(model.libraryStatus == "Team Sync is not running. Local projects work as usual.")
 		assert(model.libraryStripDot == "unset")
 		assert(type(model.libraryPublish) == "function" and type(model.librarySetFilter) == "function")
 		-- Initialize builds the model before OpenDataModel supplies its handle.
@@ -110,9 +103,10 @@ describe("Projects window controller", function()
 		assert(model.libraryStripDot == "on" and model.libraryStripText == "team/maps")
 		model.libraryPublish()
 		assert(model.libraryConfirming)
-		assert(model.libraryStatus == "ui.mapLibrary.publishQuestion")
-		assert(translations["ui.mapLibrary.publishQuestion"].source == "Design/arena")
-		assert(translations["ui.mapLibrary.publishQuestion"].stage == "Design")
+		-- The question names the project and the stage: placeholders are filled here, not by an engine call.
+		assert(model.libraryStatus:find("Design/arena", 1, true))
+		assert(model.libraryStatus:find("to 'Design'", 1, true))
+		assert(not model.libraryStatus:find("%%{"))
 	end)
 
 	it("requires a second click before publishing the selected project", function()
