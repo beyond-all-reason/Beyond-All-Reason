@@ -170,10 +170,7 @@
 			"buildPriorityHigh": "Builder priority: High",
 			"airPlantExit": "Toggle air plant exit mode",
 			"airPlantExitFly": "Air plant exit: Fly",
-			"airPlantExitLand": "Air plant exit: Land",
-			"droneSpawn": "Toggle carrier drone spawning",
-			"droneSpawnOff": "Carrier drone spawning: Off",
-			"droneSpawnOn": "Carrier drone spawning: On"
+			"airPlantExitLand": "Air plant exit: Land"
 		},
 		"controlGroups": {
 			"select": "Select control group %{n}",

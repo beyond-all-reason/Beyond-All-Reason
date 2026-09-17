@@ -380,21 +380,6 @@
 				"action": "aplandat 1",
 				"label": "actions.unitStates.airPlantExitLand",
 				"description": "commands.aplandat_tooltip"
-			},
-			{
-				"action": "csspawning",
-				"label": "actions.unitStates.droneSpawn",
-				"description": "commands.csspawning_tooltip"
-			},
-			{
-				"action": "csspawning 0",
-				"label": "actions.unitStates.droneSpawnOff",
-				"description": "commands.csspawning_tooltip"
-			},
-			{
-				"action": "csspawning 1",
-				"label": "actions.unitStates.droneSpawnOn",
-				"description": "commands.csspawning_tooltip"
 			}
 		]
 	},
