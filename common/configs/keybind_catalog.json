@@ -295,18 +295,6 @@
 				]
 			},
 			{
-				"action": "trajectory",
-				"label": "actions.unitStates.trajectoryToggle"
-			},
-			{
-				"action": "trajectory 0",
-				"label": "actions.unitStates.trajectoryLow"
-			},
-			{
-				"action": "trajectory 1",
-				"label": "actions.unitStates.trajectoryHigh"
-			},
-			{
 				"action": "firestate 0",
 				"label": "actions.unitStates.fireHold",
 				"description": "commands.firestate_hold_fire_descr"
