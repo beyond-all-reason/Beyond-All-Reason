@@ -413,6 +413,7 @@ local function detectWater()
 end
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
+local Search = VFS.Include("luaui/Include/search.lua")
 --local textInputDlist, consoleCmdDlist, textCursorRect
 local updateTextInputDlist = true
 local showTextInput = true
@@ -2838,85 +2839,6 @@ function loadAllWidgetData()
 	end
 end
 
--- Fuzzy subsequence match: characters of query appear in order within target.
--- Returns a score > 0 on match, or 0 on no match.
--- Bonuses: consecutive chars, word boundary matches, start-of-string match.
--- Penalties: large gaps between matched characters.
-local function fuzzyScore(query, target)
-	local qi = 1
-	local qlen = #query
-	local tlen = #target
-	if qlen == 0 then
-		return 0
-	end
-	if qlen > tlen then
-		return 0
-	end
-
-	local score = 0
-	local consecutive = 0
-	local prevMatched = false
-	local firstMatchPos = nil
-	local lastMatchPos = 0
-
-	for ti = 1, tlen do
-		if qi > qlen then
-			break
-		end
-		local tc = string.byte(target, ti)
-		local qc = string.byte(query, qi)
-		if tc == qc then
-			if not firstMatchPos then
-				firstMatchPos = ti
-			end
-			qi = qi + 1
-			-- Gap penalty: penalize distance from previous match
-			if lastMatchPos > 0 then
-				local gap = ti - lastMatchPos - 1
-				if gap > 0 then
-					score = score - gap * 0.5
-				end
-			end
-			lastMatchPos = ti
-			-- Consecutive character bonus
-			if prevMatched then
-				consecutive = consecutive + 1
-				score = score + 3 + consecutive
-			else
-				consecutive = 0
-				score = score + 1
-			end
-			-- Word boundary bonus: char after space, underscore, or start of string
-			if ti == 1 then
-				score = score + 5
-			else
-				local prev = string.byte(target, ti - 1)
-				if prev == 32 or prev == 95 or prev == 45 then -- space, underscore, dash
-					score = score + 4
-				end
-			end
-			prevMatched = true
-		else
-			prevMatched = false
-			consecutive = 0
-		end
-	end
-
-	if qi <= qlen then
-		return 0 -- not all query chars matched
-	end
-
-	-- Bonus for matching near the start
-	if firstMatchPos then
-		score = score + math.max(0, 6 - firstMatchPos)
-	end
-
-	-- Normalize: prefer shorter targets (tighter matches)
-	score = score + math.max(0, 3 - (tlen - qlen) * 0.1)
-
-	return score
-end
-
 -- Efficiently filters options without rebuilding the entire options table.
 -- Priority: exact substring > multi-word AND > fuzzy subsequence.
 -- Within each tier, results are further ranked by match quality.
@@ -2924,14 +2846,9 @@ end
 -- and the group label above it are also included for context.
 function applyFilter()
 	if inputText and inputText ~= "" and inputMode == "" then
-		local lowerInput = string.lower(inputText)
-
-		-- Split input into words
-		local queryWords = {}
-		for word in lowerInput:gmatch("%S+") do
-			queryWords[#queryWords + 1] = word
-		end
-		if #queryWords == 0 then
+		local query = Search.query(inputText)
+		-- Nothing but whitespace is not something anyone is searching for.
+		if query.empty then
 			options = unfilteredOptions
 			rebuildOptionIdIndex()
 			if windowList then
@@ -2940,9 +2857,6 @@ function applyFilter()
 			windowList = gl.CreateList(DrawWindow)
 			return
 		end
-
-		-- Strip spaces for fuzzy matching (single continuous query)
-		local queryNoSpaces = lowerInput:gsub("%s+", "")
 
 		-- Sub-option prefixes after processing: basic uses widgetOptionColor,
 		-- dev uses devMainOptionColor..devOptionColor, advanced uses advMainOptionColor..advOptionColor
@@ -2984,6 +2898,9 @@ function applyFilter()
 		end
 
 		local matched = {}
+		-- Filled once and rewritten per option rather than allocated for each of them: a
+		-- keystroke walks every setting there is.
+		local primary, secondary = { "", "" }, { "", "" }
 
 		for i, option in ipairs(unfilteredOptions) do
 			if option.name and option.name ~= "" and option.type and option.type ~= "label" then
@@ -2998,56 +2915,11 @@ function applyFilter()
 				local lowerDesc = option.description and option.description ~= "" and string.lower(option.description)
 					or ""
 
-				local score = 0
-
-				-- Tier 1: Exact substring match in name or id (score 300+)
-				local exactPos = string.find(lowerName, lowerInput, nil, true)
-				if exactPos then
-					score = 300 + math.max(0, 50 - exactPos) + math.max(0, 20 - #lowerName)
-				else
-					local idPos = string.find(lowerId, lowerInput, nil, true)
-					if idPos then
-						score = 300 + math.max(0, 50 - idPos) + math.max(0, 20 - #lowerId)
-					end
-				end
-
-				-- Tier 2: Multi-word AND matching (score 100-299)
-				if score == 0 and #queryWords > 1 then
-					local allWordsMatch = true
-					local nameMatches = 0
-					local posSum = 0
-					for _, word in ipairs(queryWords) do
-						local inName = string.find(lowerName, word, nil, true)
-						local inDesc = string.find(lowerDesc, word, nil, true)
-						local inId = string.find(lowerId, word, nil, true)
-						if not inName and not inDesc and not inId then
-							allWordsMatch = false
-							break
-						end
-						if inName then
-							nameMatches = nameMatches + 1
-							posSum = posSum + inName
-						end
-					end
-					if allWordsMatch then
-						local base = (nameMatches == #queryWords) and 200 or 100
-						score = base + math.max(0, 50 - posSum / #queryWords)
-					end
-				end
-
-				-- Tier 3: Fuzzy subsequence matching on name or id (score 1-99)
-				-- Requires at least 3 characters to avoid too many false positives
-				if score == 0 and #queryNoSpaces >= 3 then
-					local nameScore = fuzzyScore(queryNoSpaces, lowerName)
-					local idScore = fuzzyScore(queryNoSpaces, lowerId)
-					local bestScore = math.max(nameScore, idScore)
-					-- Require a minimum quality: score must be at least 2 per query char
-					local minThreshold = #queryNoSpaces * 2
-					if bestScore >= minThreshold then
-						score = math.min(99, bestScore)
-					end
-				end
-
+				-- Named by what it is called and by its id; found, but not on their own, by its
+				-- description and again its id.
+				primary[1], primary[2] = lowerName, lowerId
+				secondary[1], secondary[2] = lowerDesc, lowerId
+				local score = Search.score(query, primary, secondary)
 				if score > 0 then
 					matched[#matched + 1] = { option = option, score = score, index = i }
 				end

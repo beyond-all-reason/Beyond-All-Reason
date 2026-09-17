@@ -2,10 +2,11 @@
 -- the Keybind/Mouse Info panel. Immediate-mode in shape, but the panel body is baked
 -- into a display list and replayed until something it was painted from changes.
 --
--- The picker lists the shipped profiles and the player's own. Edits are staged in the
--- working model and touch neither the engine nor disk until Save, which is also where
--- a shipped profile forks: saving over a read-only one creates a copy instead. Unsaved
--- work is marked with a "*" on the profile name and guarded on the way out.
+-- The picker lists the shipped presets, tagged as defaults, then the player's own. Edits
+-- are staged in the working model and touch neither the engine nor disk until Save, which
+-- is also where a default forks: it cannot take the edits, so saving makes a new preset of
+-- them, and the footer says so before anything is saved. Unsaved work is marked with a "*"
+-- on the preset's name and guarded on the way out.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
@@ -16,6 +17,7 @@ local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local catalog = keybindConfig.load("common/configs/keybind_catalog.json") or {}
 local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
 local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
+local Search = VFS.Include("luaui/Include/search.lua")
 local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
@@ -25,11 +27,9 @@ local view = {}
 
 local floor = math.floor
 local spGetMouseState = Spring.GetMouseState
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local isInRect = math.isInRect
-local spGetScanSymbol = Spring.GetScanSymbol
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
@@ -52,6 +52,8 @@ local metrics = {
 	catInset = 4,
 	-- Chips sit inside their row by this much, top and bottom.
 	chipInset = 3,
+	-- The cursor picture in front of an order's name, square.
+	cursorIcon = 19,
 	-- A category heading stands taller than the bindings under it and is set larger, so it
 	-- reads as a divider rather than another row.
 	headerRowHeight = 32,
@@ -73,6 +75,16 @@ local metrics = {
 	-- The panel title: its baseline below the top edge, and its size.
 	titleY = 17,
 	titleFs = 20,
+	-- The caption in front of the preset picker, placed by layoutHeader: its left edge, its
+	-- baseline and its size.
+	presetLabelX = 0,
+	presetLabelY = 0,
+	presetLabelFs = 13,
+	-- The line in the footer saying where staged edits will go: its left edge, its baseline
+	-- and its size.
+	noticeX = 0,
+	noticeY = 0,
+	noticeFs = 12,
 	-- How far the category column starts below the keybind rows beside it, to leave the
 	-- title room to breathe.
 	sidebarDrop = 8,
@@ -101,7 +113,6 @@ local otherCategoryKey = generatedOtherKey
 ---@type table?
 local gridGroup
 local listRight = 0
-local keyAreaX1 = 0
 
 ---@type table
 local working
@@ -116,8 +127,102 @@ local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
 local rowsGen = 0
 local scroll = 0
-local dragging = false
+
+-- What the cursor is over, in the terms the panel paints hover with. Refilled in place
+-- each frame rather than allocated.
+-- `grab` is where the scrollbar's thumb was taken hold of, as the distance from the cursor
+-- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
+-- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
+-- 200 locals, which is why the sizes above share `metrics` too.
+-- `kb` is the key under the cursor on the keyboard page.
+local hover = {
+	sb = 0,
+	row = 0,
+	zone = "",
+	idx = 0,
+	gk = "",
+	ga = 0,
+	gb = 0,
+	btn = "",
+	bar = 0,
+	grab = 0,
+	cat = 0,
+	drag = false,
+	kb = 0,
+}
 local dirty = false
+
+-- Blur behind whatever floats over the panel, and the floating content drawn back on top
+-- of it.
+--
+-- The panel's own backdrop is registered with InsertDlist, which is the *world* set: it
+-- blurs the map behind the panel and leaves the UI alone. A popup has to blur UI - the
+-- rows and buttons it covers - so it goes into the screen set instead.
+--
+-- That set is drawn by gfx_guishader, which copies the screen as it stands and blurs it
+-- inside those rects. widgetHandler walks DrawScreen in reverse layer order, so this
+-- panel (-99990) draws well before guishader (-990000) and a popup of ours inside one of
+-- those rects would be blurred along with what it covers. Handing the drawing to
+-- insertRenderDlist gets it replayed after the blur, which is how gui_options keeps its
+-- select list crisp.
+--
+-- One table rather than a handful of locals, and for the same reason as `hover` above:
+-- this chunk is at Lua's ceiling of 200.
+local shade = { owner = nil, rects = {}, lists = {} }
+
+-- Only touched when the rect actually moves: every insert marks the stencil dirty, so
+-- doing it per frame has it rebuilt per frame.
+function shade.rect(name, x1, y1, x2, y2)
+	if not WG.guishader then
+		return
+	end
+	local was = shade.rects[name]
+	if x1 then
+		if not (was and was[1] == x1 and was[2] == y1 and was[3] == x2 and was[4] == y2) then
+			WG.guishader.InsertScreenRect(x1, y1, x2, y2, "keybindeditor_" .. name, shade.owner)
+			shade.rects[name] = { x1, y1, x2, y2 }
+		end
+	elseif was then
+		WG.guishader.RemoveScreenRect("keybindeditor_" .. name)
+		shade.rects[name] = nil
+	end
+end
+
+function shade.drop(name)
+	local list = shade.lists[name]
+	if list then
+		if WG.guishader then
+			WG.guishader.removeRenderDlist(list)
+		end
+		gl.DeleteList(list)
+		shade.lists[name] = nil
+	end
+end
+
+-- Rebuilt per frame: a modal carries a blinking caret and the picker lights the option
+-- under the cursor, so there is nothing static to hold on to.
+function shade.float(name, fn)
+	if not (WG.guishader and WG.guishader.insertRenderDlist) then
+		-- No blur will be drawn over it, so there is nothing to hand over.
+		fn()
+		return
+	end
+	shade.drop(name)
+	shade.lists[name] = gl.CreateList(fn)
+	WG.guishader.insertRenderDlist(shade.lists[name])
+end
+
+function shade.clear()
+	for name in pairs(shade.rects) do
+		if WG.guishader then
+			WG.guishader.RemoveScreenRect("keybindeditor_" .. name)
+		end
+		shade.rects[name] = nil
+	end
+	for name in pairs(shade.lists) do
+		shade.drop(name)
+	end
+end
 ---@type table?
 local capturing
 
@@ -167,12 +272,43 @@ local sheenTop = { 1, 1, 1, 0.05 }
 local look = {
 	chipFill = { 0, 0, 0, 0.35 },
 	chipFillHover = { 0, 0, 0, 0.45 },
+	-- A chip that answered a search by key, warmed in the gold its key is printed in, so it stands
+	-- out from the rest of the row without reading as hovered.
+	chipFillHit = { 0.92, 0.72, 0.27, 0.3 },
+	-- A chip whose key another listed action also answers to: reddened, and its tooltip says which.
+	chipFillConflict = { 0.62, 0.16, 0.12, 0.4 },
+	-- The key a row had in the preset it was forked from, against the row's right edge as a
+	-- hollow chip: an amber border - the hue the headings and the unsaved notice use - with the
+	-- row's own dark inside it and a "default:" caption, so it reads as a note about the row
+	-- rather than one more of its keys. Clicking it puts that key back.
+	ghostBorder = { 1, 0.78, 0.51, 0.3 },
+	ghostBorderHover = { 1, 0.78, 0.51, 0.7 },
+	ghostInner = { 0.09, 0.09, 0.09, 1 },
+	ghostKeys = "\255\200\165\110",
+	-- Shared by every unchanged row that asks: no keys at all, and nothing to copy.
+	noRaws = {},
+	-- The import preview: the box the clipboard's lines scroll in, the band under a line that
+	-- will be dropped, and each kind of line in its own colour.
+	previewFill = { 0, 0, 0, 0.35 },
+	previewGutter = { 1, 1, 1, 0.05 },
+	previewErrorFill = { 0.62, 0.16, 0.12, 0.28 },
+	previewColours = { bind = colorText, directive = colorDim, comment = colorFaded, error = colorDanger },
 	addFill = { 0.2, 0.45, 0.25, 0.4 },
 	-- Lit rather than nudged: hovering used to lift the alpha alone, which on a green this
 	-- soft was hard to tell from resting. A tinted element brightens its own fill instead
 	-- of taking the white overlay, which would wash the green out to grey.
 	addFillHover = { 0.32, 0.74, 0.4, 0.6 },
 	selectedFill = { 1, 1, 1, 0.13 },
+	-- The outline every string the panel prints is drawn with, set on every batch rather than
+	-- once: the font is shared with every other widget, some of which set an outline of their
+	-- own and leave it set, and text baked into a display list keeps whatever outline was set
+	-- last. The settings panel's value, which this panel is styled after.
+	outline = { 0, 0, 0, 0.4 },
+	-- The keyboard page's toggle in the header, pressed while that page is showing: lifted
+	-- above the resting button grey, and further under the cursor, since a tinted face takes
+	-- no hover overlay.
+	toggleFill = { 0.33, 0.33, 0.33, 1 },
+	toggleFillHover = { 0.4, 0.4, 0.4, 1 },
 	-- The category column sits on its own darker card, so it reads apart from the list.
 	sidebarFill = { 0, 0, 0, 0.24 },
 	sidebarFillTop = { 0, 0, 0, 0.16 },
@@ -194,6 +330,34 @@ local look = {
 	-- The glyph goes to full white with it, the way a chip's key does under the cursor.
 	plusTextHover = "\255\255\255\255" .. "+",
 	arrow = colorKey .. string.char(226, 128, 186),
+	-- The cursor an order shows in game, by the command at the front of its action, so its row
+	-- carries the picture a player already knows the order by. File stems in anims/: the engine's
+	-- own pairing (MouseHandler.cpp), and the cursors BAR's custom commands declare, which borrow
+	-- the attack one. An order with no cursor of its own, like stop or cloak, has no entry.
+	cursors = {
+		move = "move",
+		attack = "attack",
+		areaattack = "attack",
+		manuallaunch = "attack",
+		manualfire = "dgun",
+		settarget = "settarget",
+		settargetnoground = "settarget",
+		fight = "fight",
+		patrol = "patrol",
+		guard = "defend",
+		repair = "repair",
+		reclaim = "reclamate",
+		resurrect = "revive",
+		restore = "restore",
+		capture = "capture",
+		loadunits = "pickup",
+		unloadunits = "unload",
+		wait = "wait",
+		gatherwait = "gather",
+		selfd = "selfd",
+	},
+	-- How strongly those pictures draw. At full strength they outshout the names beside them.
+	cursorAlpha = 0.85,
 }
 
 -- FlowUI's Button gradients from a bottom stop to a top one. Left to its defaults it
@@ -213,6 +377,21 @@ look.gradients = setmetatable({}, {
 	end,
 })
 
+-- The first frame of a cursor, looked up once per cursor. The 48 px set is the nearest to a
+-- row's height. Most cursors number their frames from 0 and a few from 1; false when there is
+-- neither, and the row goes without a picture.
+look.cursorTextures = setmetatable({}, {
+	__index = function(self, stem)
+		local base = "anims/icexuick_100/cursor" .. stem
+		local path = (VFS.FileExists(base .. "_0.png") and base .. "_0.png")
+			or (VFS.FileExists(base .. "_1.png") and base .. "_1.png")
+			or false
+		self[stem] = path
+
+		return path
+	end,
+})
+
 ---@type table
 local searchBox
 ---@type table
@@ -226,9 +405,29 @@ local switchToPreset, scrollFromY
 ---@type table?
 local dialog
 
+-- `tip` names the tooltip's text in L, and `tipLocked` the text shown instead while the
+-- active preset is a default. That is when Edit is greyed out, and its tooltip is then the
+-- one place saying why.
+-- The two with icons act on the active preset; the two with captions carry presets in and out
+-- through the clipboard. The last is the page toggle, set apart by a wider gap: it swaps the
+-- list for the keyboard overview and back, and sits pressed while the keyboard is showing.
 local headerButtons = {
-	{ id = "duplicate", icon = "LuaUI/Images/keybinds/duplicate.png", tooltipId = "keybind_duplicate" },
-	{ id = "edit", icon = "LuaUI/Images/keybinds/edit.png", tooltipId = "keybind_edit" },
+	{
+		id = "duplicate",
+		icon = "LuaUI/Images/keybinds/duplicate.png",
+		tooltipId = "keybind_duplicate",
+		tip = "duplicateTooltip",
+	},
+	{
+		id = "edit",
+		icon = "LuaUI/Images/keybinds/edit.png",
+		tooltipId = "keybind_edit",
+		tip = "editTooltip",
+		tipLocked = "editLockedTooltip",
+	},
+	{ id = "export", tooltipId = "keybind_export", tip = "exportTooltip" },
+	{ id = "import", tooltipId = "keybind_import", tip = "importTooltip" },
+	{ id = "keyboard", tooltipId = "keybind_keyboard", tip = "keyboardTooltip", toggle = true, gap = 2 },
 }
 
 -- Discarding is destructive and saving is not, so the two footer buttons are coloured for
@@ -240,19 +439,69 @@ local footerButtons = {
 
 local buttonSets = { headerButtons, footerButtons }
 
--- Header and footer bands, shared by the layout and by every geometry derived from it.
-local headerH = 0
-local footerH = 0
-local layoutPending = false
+-- Panel state that is neither a size nor a colour, in one table: this chunk is at Lua's
+-- ceiling of 200 locals, and the functions that only this state needs hang off it too, the
+-- way `shade` does.
+--   headerH/footerH: the header and footer bands, shared by the layout and by every
+--     geometry derived from it.
+--   layoutPending: the layout ran before the font existed and has to run again.
+--   tooltipsRegistered: header tooltips are registered once per layout rather than per
+--     frame, since registering with a value throws the tooltip's cached text away each time.
+--   panelList/panelSig: the panel below the header controls, baked once and replayed until
+--     something it was painted from changes.
+--   hidden: the catalog's hidden actions. They share keys with listed ones on purpose, so
+--     they are no conflict.
+--   labels: each action's listed name, for naming it where another action's key clashes.
+--   base: the shipped preset the active one is measured against, with its keysets by
+--     action; nil when the active preset has no known origin.
+--   changedKey/changedCount: the column entry listing the rows that differ from the base,
+--     and how many there are, which its label says.
+--   refit: the column's labels changed and have to be fitted again before they are drawn.
+--   undo/snapshot: the staged keymap as it stood before each edit, and as it stands now,
+--     which the next edit files. batching/batchEdited: one gesture making several edits
+--     files one snapshot for the lot.
+--   tipKey/tipTitle/tipText: the tooltip last built, kept until the cursor is on something
+--     else, since building one wraps text.
+--   page: "list" or "keyboard", the page the body shows. keyboard is the keyboard page
+--     itself, and keyboardGen the rowsGen its bindings were placed from, so it is placed
+--     again only once the staged keymap has changed. keyInfo: each action's card for it,
+--     built from the catalog on first use and dropped with the catalog.
+local state = {
+	headerH = 0,
+	footerH = 0,
+	layoutPending = false,
+	tooltipsRegistered = false,
+	hidden = {},
+	labels = {},
+	changedKey = {},
+	changedCount = -1,
+	refit = false,
+	undo = {},
+	batching = false,
+	batchEdited = false,
+	---@type string
+	page = "list",
+	keyboard = VFS.Include("luaui/Include/keybind_keyboard.lua").new(),
+	keyboardGen = -1,
+}
 
--- Tooltips are registered once per layout rather than per frame: registering with a
--- value throws the tooltip's cached text away each time, so per frame it never settled.
-local tooltipsRegistered = false
+-- A copy of the staged keymap, for putting back. Binds and keysets are copied rather than
+-- shared: the edits rewrite entries in place.
+function state.snapshotOf()
+	local binds, byAction = {}, {}
+	for i, b in ipairs(working.binds) do
+		binds[i] = { keyset = b.keyset, action = b.action }
+	end
+	for action, ks in pairs(working.byAction) do
+		local copy = {}
+		for i, k in ipairs(ks) do
+			copy[i] = { raw = k.raw, display = k.display }
+		end
+		byAction[action] = copy
+	end
 
--- The panel below the header controls, baked once and replayed until something it was
--- painted from changes.
-local panelList
-local panelSig
+	return { binds = binds, byAction = byAction }
+end
 
 ----------------------------------------------------------------
 -- Profiles and the picker
@@ -260,23 +509,21 @@ local panelSig
 
 local presetOptions = {}
 
--- Picker contents: the shipped profiles, the player's own, and any unsaved fork.
+-- Picker contents: the shipped presets, tagged as defaults, then the player's own, which the
+-- open list sets apart with a rule. Staged edits mark whichever one is active with a "*", a
+-- default included: the edits are real and unsaved either way, and where they will be saved
+-- is for the footer to say, beside the button that saves them.
 local function buildPresetOptions()
 	local active = profiles.activeName()
-	-- Editing a shipped profile does not change it: what is on screen is an unsaved new
-	-- profile, so the picker says that instead of marking the read-only one as modified.
-	local pending = dirty and profiles.isBuiltin(active) ~= nil
 
 	presetOptions = {}
 	for _, b in ipairs(profiles.builtins) do
-		presetOptions[#presetOptions + 1] = { label = b.name, name = b.name, builtin = true }
+		local label = (dirty and b.name == active) and (b.name .. " *") or b.name
+		presetOptions[#presetOptions + 1] = { label = label, name = b.name, tag = L.defaultTag, group = "default" }
 	end
 	for _, name in ipairs(profiles.list()) do
-		local marked = (dirty and name == active) and (name .. " *") or name
-		presetOptions[#presetOptions + 1] = { label = marked, name = name }
-	end
-	if pending then
-		presetOptions[#presetOptions + 1] = { label = L.newProfile .. " *", pending = true }
+		local label = (dirty and name == active) and (name .. " *") or name
+		presetOptions[#presetOptions + 1] = { label = label, name = name, group = "own" }
 	end
 
 	return presetOptions
@@ -292,19 +539,14 @@ local function buttonEnabled(id)
 	if id == "save" or id == "reset" then
 		return dirty
 	end
-	if id == "duplicate" then
-		return true
+	if id == "edit" then
+		return activeIsOwn()
 	end
 
-	return activeIsOwn()
+	return true
 end
 
 local function currentPresetIndex()
-	local last = presetOptions[#presetOptions]
-	if last and last.pending then
-		return #presetOptions
-	end
-
 	local name = profiles.activeName()
 	for i = 1, #presetOptions do
 		if presetOptions[i].name == name then
@@ -320,7 +562,7 @@ end
 ----------------------------------------------------------------
 
 local function listBottom()
-	return area.y1 + footerH + metrics.footerGap
+	return area.y1 + state.footerH + metrics.footerGap
 end
 
 -- Whole rows the band can paint.
@@ -439,9 +681,43 @@ local function buildResolvedCatalog()
 	labelPlacesArg = {}
 	resolvedCatalog = {}
 	catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
+	state.hidden, state.labels = {}, {}
+
+	-- What an action does, for its tooltip: the catalog's own key when it names one, else the
+	-- command card's tooltip for a row labelled off the card, else the engine's description of
+	-- the command - a string of its own, the heading of a structured one, or a gadget's. Asked
+	-- for with an empty default, so a missing key is silent and reads as none.
+	local function describe(item)
+		local command = (item.action or item.prefix or ""):match("^%S+")
+		-- Appended one by one: a nil in a table constructor ends what ipairs walks.
+		local keys = {}
+		if item.description then
+			keys[#keys + 1] = item.description
+		end
+		if item.label and item.label:sub(1, 9) == "commands." then
+			keys[#keys + 1] = item.label .. "_tooltip"
+		end
+		if command then
+			keys[#keys + 1] = "cmd." .. command
+			keys[#keys + 1] = "cmd." .. command .. "._description"
+			keys[#keys + 1] = "cmd.luarules." .. command
+		end
+		for _, key in ipairs(keys) do
+			local found = BAR.I18N(key, { default = "" })
+			if type(found) == "string" and found ~= "" and found ~= key then
+				return found
+			end
+		end
+
+		return nil
+	end
+
 	for _, group in ipairs(catalog) do
 		if group.hidden then
 			resolvedCatalog[#resolvedCatalog + 1] = { hidden = group.hidden, title = "", titleLower = "", items = {} }
+			for _, h in ipairs(group.hidden) do
+				state.hidden[h] = true
+			end
 		else
 			local title = BAR.I18N(group.category)
 			local g = {
@@ -456,8 +732,14 @@ local function buildResolvedCatalog()
 					if item.alwaysModifier == "any" then
 						catalogAnyPrefixes[#catalogAnyPrefixes + 1] = item.prefix
 					end
-					g.items[#g.items + 1] =
-						{ prefix = item.prefix, label = item.label, unit = item.unit, members = item.members }
+					g.items[#g.items + 1] = {
+						prefix = item.prefix,
+						label = item.label,
+						unit = item.unit,
+						members = item.members,
+						description = describe(item),
+						icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or nil,
+					}
 				else
 					if item.action then
 						if item.alwaysModifier == "any" then
@@ -467,12 +749,24 @@ local function buildResolvedCatalog()
 						end
 					end
 					local label = BAR.I18N(item.label)
+					local stem = item.action and look.cursors[item.action:match("^%S+")]
+					local cursor = stem and look.cursorTextures[stem] or nil
 					g.items[#g.items + 1] = {
 						action = item.action,
 						actionLower = item.action and item.action:lower(),
 						label = label,
 						labelLower = label:lower(),
+						cursor = cursor,
+						-- The picture a key shows for the action: the catalog's own where it names
+						-- one, else the cursor an order is already known by.
+						icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or cursor,
+						description = describe(item),
 					}
+					if item.action then
+						state.labels[item.action] = label
+					end
+					-- One picture in a group gives every row in it the column, so the names line up.
+					g.hasCursors = g.hasCursors or cursor ~= nil
 				end
 			end
 			if g.layout == "grid" then
@@ -535,10 +829,51 @@ local function buildResolvedCatalog()
 	if otherCategoryKey == generatedOtherKey then
 		categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
 	end
+	-- A fresh column has no Changed entry, whatever the count was: forgotten here so the next
+	-- rebuild of the rows puts it back. Every keyreload comes through here, so without this
+	-- the entry went missing until a preset switch happened to move the count.
+	state.changedCount = -1
 	L.pressKey = BAR.I18N("ui.keybinds.editor.pressKey")
+	L.preset = BAR.I18N("ui.keybinds.editor.preset")
+	-- Dim, so the preset name in the picker beside it stays the thing that is read.
+	L.presetText = colorDim .. L.preset
+	L.defaultTag = BAR.I18N("ui.keybinds.editor.defaultTag")
 	L.newProfile = BAR.I18N("ui.keybinds.editor.newProfile")
 	L.duplicate = BAR.I18N("ui.keybinds.editor.duplicate")
+	L.duplicateTooltip = BAR.I18N("ui.keybinds.editor.duplicateTooltip")
 	L.edit = BAR.I18N("ui.keybinds.editor.edit")
+	L.editTooltip = BAR.I18N("ui.keybinds.editor.editTooltip")
+	L.editLockedTooltip = BAR.I18N("ui.keybinds.editor.editLockedTooltip")
+	L.saveAsNew = BAR.I18N("ui.keybinds.editor.saveAsNew")
+	L.noticeDefault = BAR.I18N("ui.keybinds.editor.noticeDefault")
+	L.noticeDefaultUnsaved = BAR.I18N("ui.keybinds.editor.noticeDefaultUnsaved")
+	L.noticeUnsaved = BAR.I18N("ui.keybinds.editor.noticeUnsaved")
+	L.changed = BAR.I18N("ui.keybinds.editor.changed")
+	L.boundToAny = BAR.I18N("ui.keybinds.editor.boundToAny")
+	L.changedUnknown = BAR.I18N("ui.keybinds.editor.changedUnknown")
+	L.changedNoneTooltip = BAR.I18N("ui.keybinds.editor.changedNoneTooltip")
+	L.compareWith = BAR.I18N("ui.keybinds.editor.compareWith")
+	L.compareNone = BAR.I18N("ui.keybinds.editor.compareNone")
+	L.compareNoneHint = BAR.I18N("ui.keybinds.editor.compareNoneHint")
+	L.conflictOrder = BAR.I18N("ui.keybinds.editor.conflictOrder")
+	L.conflictShipped = BAR.I18N("ui.keybinds.editor.conflictShipped")
+	L.revertHint = BAR.I18N("ui.keybinds.editor.revertHint")
+	L.revertNone = BAR.I18N("ui.keybinds.editor.revertNone")
+	L.presetDefault = BAR.I18N("ui.keybinds.editor.presetDefault")
+	L.presetOwn = BAR.I18N("ui.keybinds.editor.presetOwn")
+	L.export = BAR.I18N("ui.keybinds.editor.export")
+	L.exportTooltip = BAR.I18N("ui.keybinds.editor.exportTooltip")
+	L.import = BAR.I18N("ui.keybinds.editor.import")
+	L.importTooltip = BAR.I18N("ui.keybinds.editor.importTooltip")
+	L.keyboard = BAR.I18N("ui.keybinds.editor.keyboard")
+	L.keyboardTooltip = BAR.I18N("ui.keybinds.editor.keyboardTooltip")
+	-- The keyboard page's cards are built from this catalog, so they go with it.
+	state.keyInfo = nil
+	state.keyboard:refreshStrings()
+	L.importTitle = BAR.I18N("ui.keybinds.editor.importTitle")
+	L.importEmpty = BAR.I18N("ui.keybinds.editor.importEmpty")
+	L.importNone = BAR.I18N("ui.keybinds.editor.importNone")
+	L.ok = BAR.I18N("ui.keybinds.editor.ok")
 	L.editTitle = BAR.I18N("ui.keybinds.editor.editTitle")
 	L.delete = BAR.I18N("ui.keybinds.editor.delete")
 	L.duplicateTitle = BAR.I18N("ui.keybinds.editor.duplicateTitle")
@@ -554,6 +889,88 @@ local function buildResolvedCatalog()
 	L.cancel = BAR.I18N("ui.keybinds.editor.cancel")
 end
 
+-- A keyset's canonical form, kept on the keyset record against the raw it came from: the
+-- change and conflict checks below run for every row on every rebuild.
+local function canonOf(k)
+	if k.canonFor ~= k.raw then
+		k.canon, k.canonFor = keybindModel.canonicalKeyset(k.raw), k.raw
+	end
+
+	return k.canon
+end
+
+-- How an action's keys differ from the preset the active one is measured against: nil when
+-- they match, or there is nothing to measure against; else the base's raws for the action,
+-- which may be none at all. Compared as sets of canonical keysets, so spelling and order do
+-- not count as a change.
+local function rowChange(action)
+	local base = state.base
+	if not base then
+		return nil
+	end
+
+	local theirs = base.byAction[action]
+	local seen, n = {}, 0
+	for _, k in ipairs(working.byAction[action] or look.noRaws) do
+		local c = canonOf(k)
+		if not seen[c] then
+			seen[c] = true
+			n = n + 1
+			if not (theirs and theirs.set[c]) then
+				return theirs and theirs.raws or look.noRaws
+			end
+		end
+	end
+	if (theirs and theirs.n or 0) ~= n then
+		return theirs and theirs.raws or look.noRaws
+	end
+
+	return nil
+end
+
+-- The other listed actions these keysets drive, in bind order, each flagged when the engine
+-- tries it before this action, and when the game itself ships the two on one key - sharing
+-- by design, which is no clash of the player's making. Nil when there are none. Hidden
+-- actions are left out: one sharing a key with a listed action is how the catalog says the
+-- two belong together.
+local function conflictsOf(action, raws)
+	local byKeyset = working.byKeyset
+	if not byKeyset then
+		return nil
+	end
+
+	local out, seen
+	for _, raw in ipairs(raws) do
+		-- Any holder at all: for a key being captured this action is not among them yet.
+		local list = byKeyset[keybindModel.canonicalKeyset(raw)]
+		if list then
+			local mine
+			for i = 1, #list do
+				if list[i] == action then
+					mine = i
+					break
+				end
+			end
+			for i = 1, #list do
+				local other = list[i]
+				if other ~= action and not state.hidden[other] and not (seen and seen[other]) then
+					seen = seen or {}
+					seen[other] = true
+					out = out or {}
+					local pair = (action < other) and (action .. "\n" .. other) or (other .. "\n" .. action)
+					out[#out + 1] = {
+						action = other,
+						before = mine ~= nil and i < mine,
+						shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
+					}
+				end
+			end
+		end
+	end
+
+	return out
+end
+
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
 -- search box and the category column.
 local function rebuildRows()
@@ -562,6 +979,11 @@ local function rebuildRows()
 	if not resolvedCatalog then
 		buildResolvedCatalog()
 	end
+	-- The keyboard page searches by the same text, lighting the keys it finds.
+	state.keyboard:setQuery(searchBox and searchBox:getText())
+	-- The Changed section lowers the rows for its picker; any other section has them back.
+	state.applyListTop()
+	state.layoutCompare()
 
 	rows = {}
 
@@ -580,7 +1002,118 @@ local function rebuildRows()
 
 		return
 	end
-	local query = searchBox and searchBox:getText():lower() or ""
+	local query = Search.query(searchBox and searchBox:getText())
+
+	-- Which actions share each keyset, in bind order, so a chip can say what else its key
+	-- drives and a capture can warn before a key is taken. Rebuilt with the rows, which every
+	-- edit rebuilds.
+	local byKeyset = {}
+	for _, b in ipairs(working.binds) do
+		local c = keybindModel.canonicalKeyset(b.keyset)
+		local list = byKeyset[c]
+		if not list then
+			list = {}
+			byKeyset[c] = list
+		end
+		local listed = false
+		for i = 1, #list do
+			if list[i] == b.action then
+				listed = true
+				break
+			end
+		end
+		if not listed then
+			list[#list + 1] = b.action
+		end
+	end
+	working.byKeyset = byKeyset
+
+	-- The column's Changed entry keeps only rows that differ from the base preset. How many
+	-- there are is counted whatever is shown, since its label says so.
+	local changedOnly = selectedCategory == state.changedKey
+	local changedCount = 0
+	-- A key clicked on the keyboard page: the list shows what is bound to it and nothing else,
+	-- whatever the category, the search text narrowing that by name.
+	local filter = state.keyFilter
+
+	-- A query can name keys as well as words. An action matches by key when one of its chips holds
+	-- every key the query names, modifiers included and in any order, so "ctrl+q", "ctrl q" and
+	-- "q ctrl" all find what Ctrl+Q does. Whole keys only, as the chips print them: "f1" does not
+	-- find F11, and a paired action's hidden Shift half does not answer to "shift".
+	local wantKeys = {}
+	for key in query.text:gmatch("[^%s%+]+") do
+		wantKeys[#wantKeys + 1] = key
+	end
+	local function boundToQuery(action)
+		if not (wantKeys[1] and action) then
+			return false
+		end
+		local pair = catalogShiftPair[action]
+		for _, k in ipairs(working.byAction[action] or {}) do
+			-- The chip's text, which for a paired action is not the keyset's own. Kept on the keyset
+			-- against the raw it came from, since this runs for every row on every keystroke.
+			local shown = k.display
+			if pair then
+				if k.unshiftedFor ~= k.raw then
+					k.unshifted, k.unshiftedFor = keybindModel.displayWithoutShift(k.raw, working.layout), k.raw
+				end
+				shown = k.unshifted
+			end
+			if keybindModel.holdsKeys(shown, wantKeys) then
+				return true
+			end
+		end
+
+		return false
+	end
+	-- How one of the action's keysets fires from the filtered key on its layer: "exact" when
+	-- its first tap lands on the key (any of the engine's spellings of it) and names exactly
+	-- the layer's modifiers, "any" when it carries Any+ instead, which fires on every layer;
+	-- false when neither. Precise where the typed key search is loose: "1" here is the 1 key
+	-- with nothing held, not every chip holding a 1.
+	local function boundToFilter(action)
+		local any = false
+		for _, k in ipairs(working.byAction[action] or look.noRaws) do
+			local mods, keyToken = keybindModel.splitElement(canonOf(k))
+			if keyToken and filter.tokens[keyToken] then
+				if mods.any then
+					any = true
+				else
+					local same = true
+					for name in pairs(mods) do
+						if not filter.mods[name] then
+							same = false
+						end
+					end
+					for name in pairs(filter.mods) do
+						if not mods[name] then
+							same = false
+						end
+					end
+					if same then
+						return "exact"
+					end
+				end
+			end
+		end
+
+		return any and "any" or false
+	end
+	-- Whether an action is listed by key: under a filter, by the filtered key and then the
+	-- search text, answering how it is bound there; otherwise by the keys the search text
+	-- names, within the category shown.
+	local function keyHit(action, label, inCategory)
+		if filter then
+			local how = boundToFilter(action)
+
+			return how and (Search.matches(query, label:lower()) or Search.matches(query, action:lower())) and how
+		end
+
+		return inCategory and boundToQuery(action)
+	end
+	-- Rows found by key are listed ahead of everything found by name, under a heading of their
+	-- own, and only there. Gathered as they are met, so they keep the catalog's order.
+	local keyRows = {}
 	local catalogActions = {}
 	local otherGroupEnd
 
@@ -597,9 +1130,12 @@ local function rebuildRows()
 	for _, group in ipairs(resolvedCatalog) do
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
-		local inCategory = not selectedCategory or group.category == selectedCategory
-		local categoryMatch = query ~= "" and group.titleLower:find(query, 1, true)
+		local inCategory = filter ~= nil or not selectedCategory or changedOnly or group.category == selectedCategory
+		-- A group whose own title matches keeps every row under it, so searching for a
+		-- category's name shows the category rather than emptying it.
+		local categoryMatch = Search.claims(query, group.titleLower)
 		local groupRows = {}
+		local keyLink
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
@@ -648,13 +1184,41 @@ local function rebuildRows()
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
+					state.labels[action] = label
+					local change = rowChange(action)
+					if change then
+						changedCount = changedCount + 1
+					end
+					local byKey = keyHit(action, label, inCategory)
 					if
-						query == ""
-						or categoryMatch
-						or action:lower():find(query, 1, true)
-						or label:lower():find(query, 1, true)
+						(change or not changedOnly)
+						and (
+							byKey
+							or (
+								not filter
+								and (
+									categoryMatch
+									or Search.matches(query, action:lower())
+									or Search.matches(query, label:lower())
+								)
+							)
+						)
 					then
-						groupRows[#groupRows + 1] = { type = "editable", action = action, label = label }
+						local entry = {
+							type = "editable",
+							action = action,
+							label = label,
+							description = item.description,
+							change = change,
+							filterAny = byKey == "any",
+						}
+						if not byKey then
+							groupRows[#groupRows + 1] = entry
+						elseif group.layout == "grid" then
+							keyLink = group
+						else
+							keyRows[#keyRows + 1] = entry
+						end
 					end
 				end
 			-- Skip an action a hidden entry or an earlier prefix already claimed, so a
@@ -663,15 +1227,49 @@ local function rebuildRows()
 				if item.action then
 					catalogActions[item.action] = true
 				end
+				local change = rowChange(item.action)
+				if change then
+					changedCount = changedCount + 1
+				end
+				local byKey = keyHit(item.action, item.label, inCategory)
 				if
-					query == ""
-					or categoryMatch
-					or item.labelLower:find(query, 1, true)
-					or (item.actionLower and item.actionLower:find(query, 1, true))
+					(change or not changedOnly)
+					and (
+						byKey
+						or (
+							not filter
+							and (
+								categoryMatch
+								or Search.matches(query, item.labelLower)
+								or Search.matches(query, item.actionLower)
+							)
+						)
+					)
 				then
-					groupRows[#groupRows + 1] = { type = "editable", action = item.action, label = item.label }
+					local entry = {
+						type = "editable",
+						action = item.action,
+						label = item.label,
+						cursor = item.cursor,
+						cursorColumn = group.hasCursors,
+						description = item.description,
+						change = change,
+						filterAny = byKey == "any",
+					}
+					if not byKey then
+						groupRows[#groupRows + 1] = entry
+					elseif group.layout == "grid" then
+						keyLink = group
+					else
+						keyRows[#keyRows + 1] = entry
+					end
 				end
 			end
+		end
+
+		-- A grid category's keys only read laid out, so a key found among them points at that view.
+		if keyLink then
+			keyRows[#keyRows + 1] = { type = "link", label = group.title, category = group.category }
 		end
 
 		if inCategory and #groupRows > 0 then
@@ -692,15 +1290,37 @@ local function rebuildRows()
 		end
 	end
 
-	local otherMatch = query ~= "" and L.otherLower:find(query, 1, true)
-	local others = {}
+	local otherMatch = Search.claims(query, L.otherLower)
+	local others, otherKeyed = {}, {}
+	local inOther = not selectedCategory or changedOnly or selectedCategory == otherCategoryKey
 	for action in pairs(working.byAction) do
-		if not catalogActions[action] and (query == "" or otherMatch or action:lower():find(query, 1, true)) then
-			others[#others + 1] = action
+		if not catalogActions[action] then
+			local change = rowChange(action)
+			if change then
+				changedCount = changedCount + 1
+			end
+			if changedOnly and not change then
+				-- Not what the column entry asked for.
+			elseif keyHit(action, action, inOther) then
+				otherKeyed[#otherKeyed + 1] = action
+			elseif not filter and (otherMatch or Search.matches(query, action:lower())) then
+				others[#others + 1] = action
+			end
 		end
 	end
+	-- Leftovers found by key join the other key rows, in a steady order.
+	table.sort(otherKeyed)
+	for _, action in ipairs(otherKeyed) do
+		keyRows[#keyRows + 1] = {
+			type = "editable",
+			action = action,
+			label = action,
+			change = rowChange(action),
+			filterAny = filter ~= nil and boundToFilter(action) == "any",
+		}
+	end
 
-	if #others > 0 and (not selectedCategory or selectedCategory == otherCategoryKey) then
+	if #others > 0 and inOther then
 		table.sort(others)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
@@ -716,14 +1336,179 @@ local function rebuildRows()
 		end
 
 		for _, action in ipairs(others) do
-			rows[#rows + 1] = { type = "editable", action = action, label = action }
+			rows[#rows + 1] = { type = "editable", action = action, label = action, change = rowChange(action) }
 		end
 		for i = 1, #tail do
 			rows[#rows + 1] = tail[i]
 		end
 	end
 
+	-- The key rows go on top, under a heading that names the keys the way a chip would. One
+	-- cursor among them gives them all the column, as it does within a category.
+	-- Under a key filter the heading is always there, since it is where the filter is cleared.
+	if #keyRows > 0 or filter then
+		-- Modifiers ahead of the key, as a chip prints them, whatever order they were typed in.
+		local modifierAt = { ctrl = 1, alt = 2, meta = 3, shift = 4 }
+		local keys, column = {}, false
+		for i = 1, #wantKeys do
+			keys[i] = { name = wantKeys[i]:upper(), at = (modifierAt[wantKeys[i]] or 5) * 100 + i }
+		end
+		table.sort(keys, function(a, b)
+			return a.at < b.at
+		end)
+		for i = 1, #keys do
+			keys[i] = keys[i].name
+		end
+		for i = 1, #keyRows do
+			column = column or keyRows[i].cursor ~= nil
+		end
+		local named = filter and filter.display or table.concat(keys, " + ")
+		local ordered = {
+			{ type = "header", text = BAR.I18N("ui.keybinds.editor.boundTo", { keys = named }), clear = filter ~= nil },
+		}
+		-- Under a filter on a layer with modifiers, what fires through Any+ is set apart under a
+		-- heading of its own: it does fire on that layer, but its chip reads as the bare key,
+		-- and side by side with the exact bindings that reads as a mistake.
+		local anyRows = {}
+		for i = 1, #keyRows do
+			keyRows[i].cursorColumn = column
+			keyRows[i].hitKeys = wantKeys
+			if keyRows[i].filterAny and filter and next(filter.mods) then
+				anyRows[#anyRows + 1] = keyRows[i]
+			else
+				ordered[#ordered + 1] = keyRows[i]
+			end
+		end
+		if #anyRows > 0 then
+			ordered[#ordered + 1] = { type = "header", text = L.boundToAny }
+			for i = 1, #anyRows do
+				ordered[#ordered + 1] = anyRows[i]
+			end
+		end
+		for i = 1, #rows do
+			ordered[#ordered + 1] = rows[i]
+		end
+		rows = ordered
+	end
+
+	-- The column's Changed entry comes and goes with the count, and says it. Taking the entry
+	-- away from under the selection sends the column back to everything, which is a different
+	-- list from the one just built: built again, once, with the selection gone.
+	if state.changedCount ~= changedCount then
+		state.changedCount = changedCount
+		state.syncChangedEntry()
+		if changedOnly and selectedCategory ~= state.changedKey then
+			return rebuildRows()
+		end
+	end
+
+	-- The Changed section with nothing to list says why: no preset is being compared with,
+	-- or nothing differs from the one that is.
+	if changedOnly and not filter and #rows == 0 then
+		if not state.base then
+			rows[1] = { type = "note", text = L.compareNoneHint }
+		else
+			rows[1] = {
+				type = "note",
+				text = BAR.I18N("ui.keybinds.editor.changedNothing", { name = state.base.name }),
+			}
+		end
+	end
+
 	clampScroll()
+end
+
+-- Where the rows start: the band's top, or a picker's band lower when the Changed section
+-- is showing. Everything that draws, scrolls or hit-tests rows reads listTop, so the whole
+-- band moves as one.
+function state.applyListTop()
+	if not metrics.listTopBase then
+		return
+	end
+	listTop = metrics.listTopBase - (state.compareBand() and metrics.compareBandH or 0)
+end
+
+-- Whether the comparison picker's band is up: the Changed section, on the list page.
+function state.compareBand()
+	return state.page == "list" and selectedCategory == state.changedKey and not gridGroup
+end
+
+-- Places the comparison strip and the picker at its right end, once the band is placed. The
+-- strip's rect and the caption's place are kept in metrics for the draw.
+function state.layoutCompare()
+	local dd = state.compareDropdown
+	if not (dd and metrics.listTopBase and metrics.compareStripH) then
+		return
+	end
+	local y2 = metrics.listTopBase - floor(2 * scale)
+	local y1 = y2 - metrics.compareStripH
+	metrics.compareY1, metrics.compareY2 = y1, y2
+	local inset = floor(4 * scale)
+	local w = floor(280 * scale)
+	local x2 = listRight - metrics.rowPad
+	dd:setRect(x2 - w, y1 + inset, x2, y2 - inset, floor((y2 - y1 - inset * 2) * 0.5))
+	-- The caption sits right against the picker, as the header's "Preset" does.
+	metrics.compareCaptionX = x2 - w - floor(8 * scale)
+	metrics.compareFs = floor((y2 - y1 - inset * 2) * 0.5)
+end
+
+-- The picker's options: none, then every other preset, the shipped ones tagged as defaults
+-- and ruled off from the player's own. Selected: whatever the active preset is compared
+-- with now.
+function state.compareOptions()
+	local active = profiles.activeName()
+	local options = { { label = L.compareNone or "None", none = true } }
+	for _, b in ipairs(profiles.builtins) do
+		if b.name ~= active then
+			options[#options + 1] = { label = b.name, name = b.name, tag = L.defaultTag, group = "default" }
+		end
+	end
+	-- The store lists its profiles by name.
+	for _, name in ipairs(profiles.list()) do
+		if name ~= active then
+			options[#options + 1] = { label = name, name = name, group = "own" }
+		end
+	end
+	local selected = 1
+	local base = state.base and state.base.name
+	for i, o in ipairs(options) do
+		if o.name and o.name == base then
+			selected = i
+		end
+	end
+
+	return options, selected
+end
+
+function state.refreshCompare()
+	local dd = state.compareDropdown
+	if not dd then
+		return
+	end
+	local options, selected = state.compareOptions()
+	dd:setOptions(options)
+	dd:setSelected(selected)
+	state.layoutCompare()
+end
+
+-- The player picked what to compare the active preset with. Recorded on the preset, so it
+-- holds across sessions; "none" is a choice too, and stays one.
+function state.pickBase(option)
+	if not activeIsOwn() then
+		return
+	end
+	profiles.setBase(profiles.activeName(), option and option.name or nil)
+	state.refreshBase()
+	rebuildRows()
+end
+
+-- Filters the list to one key of the keyboard page, or clears the filter. The keyboard
+-- lights the key while the filter stands.
+function state.setKeyFilter(filter)
+	state.keyFilter = filter
+	state.keyboard:setFilter(filter and { id = filter.id, layer = filter.layer } or nil)
+	scroll = 0
+	rebuildRows()
 end
 
 ----------------------------------------------------------------
@@ -750,6 +1535,9 @@ local function seedWorkingFromEngine()
 	end
 
 	setDirty(false)
+	-- A fresh keymap has nothing to take back; what comes after is measured from here.
+	state.undo = {}
+	state.snapshot = state.snapshotOf()
 end
 
 -- Detached copy of the staged binds, for handing to the store.
@@ -815,17 +1603,148 @@ local function applyActiveProfile(name, fromName)
 	end
 end
 
+-- The shipped preset the active one is measured against, and its keysets by action, redone
+-- when the active preset's origin changes. The column's Changed entry comes and goes with it:
+-- a preset with no known origin has nothing to have changed from.
+function state.refreshBase()
+	-- Which pairs of actions the game itself puts on one key, in any shipped preset. Built
+	-- once, the shipped presets not changing.
+	if not state.shippedPairs then
+		local shipped = {}
+		for _, b in ipairs(profiles.builtins) do
+			local byKeyset = {}
+			for _, bind in ipairs(b.binds or {}) do
+				local c = keybindModel.canonicalKeyset(bind.keyset)
+				local list = byKeyset[c]
+				if not list then
+					list = {}
+					byKeyset[c] = list
+				end
+				local listed = false
+				for i = 1, #list do
+					if list[i] == bind.action then
+						listed = true
+					end
+				end
+				if not listed then
+					list[#list + 1] = bind.action
+				end
+			end
+			for _, list in pairs(byKeyset) do
+				for i = 1, #list do
+					for j = i + 1, #list do
+						local a, o = list[i], list[j]
+						shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
+					end
+				end
+			end
+		end
+		state.shippedPairs = shipped
+	end
+
+	local base = profiles.baseOf(profiles.activeName())
+	local wanted = base and base.name or nil
+	if (state.base and state.base.name) ~= wanted then
+		if base then
+			local byAction = {}
+			for _, b in ipairs(base.binds or {}) do
+				local entry = byAction[b.action]
+				if not entry then
+					entry = { set = {}, n = 0, raws = {} }
+					byAction[b.action] = entry
+				end
+				local c = keybindModel.canonicalKeyset(b.keyset)
+				if not entry.set[c] then
+					entry.set[c] = true
+					entry.n = entry.n + 1
+					entry.raws[#entry.raws + 1] = b.keyset
+				end
+			end
+			state.base = { name = wanted, byAction = byAction }
+		else
+			state.base = nil
+		end
+		state.changedCount = -1
+	end
+	state.syncChangedEntry()
+	state.refreshCompare()
+end
+
+-- The column's Changed entry: there for every preset of the player's own, with the count of
+-- rows differing from the compared preset in its label, or a question mark while nothing is
+-- being compared with. A shipped preset is measured against itself, so it only has the entry
+-- while staged edits differ from it: a "Changed (0)" on a default is noise. With the entry
+-- gone from under the selection, the column falls back to everything.
+function state.syncChangedEntry()
+	local listed = categories[2] ~= nil and categories[2].key == state.changedKey
+	if activeIsOwn() or (state.base and state.changedCount > 0) then
+		local label = L.changedUnknown or "?"
+		if state.base then
+			label = BAR.I18N("ui.keybinds.editor.changedCount", { n = math.max(0, state.changedCount) })
+		end
+		if not listed then
+			table.insert(categories, 2, { label = label, key = state.changedKey })
+			state.refit = true
+		elseif categories[2].label ~= label then
+			categories[2].label = label
+			state.refit = true
+		end
+	elseif listed then
+		table.remove(categories, 2)
+		if selectedCategory == state.changedKey then
+			selectedCategory = nil
+		end
+		state.refit = true
+	end
+end
+
 local function refreshPicker()
 	buildPresetOptions()
 	presetDropdown:setOptions(presetOptions)
 	presetDropdown:setSelected(currentPresetIndex())
+	state.refreshBase()
+	-- Whether the active preset is a default settles the Save button's wording, and so its
+	-- width, and what the header tooltips say. Laid out again on the next draw, once, however
+	-- many times this runs before it.
+	state.layoutPending = true
 end
 
--- Staging changes the picker too: the active profile picks up the unsaved marker.
+-- Files the keymap as it stood before the edit just made, then takes the one it stands at
+-- now, for the edit after.
+function state.pushUndo()
+	state.undo[#state.undo + 1] = state.snapshot
+	state.snapshot = state.snapshotOf()
+end
+
+-- Staging changes the picker too: the active profile picks up the unsaved marker. A gesture
+-- that stages several edits files one snapshot for the lot, once it is done.
 local function markStaged()
+	if state.batching then
+		state.batchEdited = true
+	else
+		state.pushUndo()
+	end
 	setDirty(true)
 	refreshPicker()
 	rebuildRows()
+end
+
+-- Ctrl+Z: the last edit taken back. With none left the keymap is what was loaded, so there
+-- is nothing unsaved either. Answers whether there was anything to take back.
+function state.undoEdit()
+	local snap = table.remove(state.undo)
+	if not snap then
+		return false
+	end
+
+	working.binds, working.byAction = snap.binds, snap.byAction
+	-- Copied again: the restored tables are live now, and the next edit rewrites them.
+	state.snapshot = state.snapshotOf()
+	setDirty(#state.undo > 0)
+	refreshPicker()
+	rebuildRows()
+
+	return true
 end
 
 -- Staged edits live only in `working`, so throwing them away means re-reading the engine.
@@ -898,7 +1817,8 @@ local function dialogName()
 	local name = nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
 	local taken = name ~= dialog.allow and (profiles.get(name) ~= nil or profiles.isBuiltin(name) ~= nil)
 
-	return name, name == "" or taken
+	-- A dialog can be blocked outright, like an import with nothing to import.
+	return name, name == "" or taken or dialog.blocked == true
 end
 
 -- Confirmation path; only a dialog with a name field has text to read.
@@ -936,6 +1856,9 @@ local function selectProfile(name, fromName)
 
 	profiles.setActive(name)
 	setDirty(false)
+	-- What was staged is now the preset's own, or gone with the switch: nothing to take back.
+	state.undo = {}
+	state.snapshot = state.snapshotOf()
 	refreshPicker()
 	applyActiveProfile(name, fromName)
 
@@ -983,7 +1906,8 @@ local function startSave(andThen, onCancel)
 		title = L.saveTitle,
 		initial = profiles.uniqueName(L.newProfile),
 		accept = function(newName)
-			local created = profiles.create(newName, stagedBinds(), activeFakeMeta())
+			-- Forked from the default on screen, which the new preset records as its origin.
+			local created = profiles.create(newName, stagedBinds(), activeFakeMeta(), name)
 			if applyStaged(created, name) and andThen then
 				andThen()
 			end
@@ -1004,7 +1928,8 @@ local function guardDirty(proceed, onCancel)
 	openDialog({
 		title = L.unsavedTitle,
 		message = L.unsavedMessage,
-		acceptLabel = L.save,
+		-- Worded like the footer's Save, which this stands in for.
+		acceptLabel = activeIsOwn() and L.save or L.saveAsNew,
 		save = true,
 		accept = function()
 			startSave(proceed, onCancel)
@@ -1024,8 +1949,9 @@ local function guardDirty(proceed, onCancel)
 end
 
 switchToPreset = function(opt)
-	-- The pending entry is already what is on screen; picking it is not a switch.
-	if opt.pending then
+	-- Already what is on screen, staged edits and all, so picking it again is not a switch:
+	-- it would only ask about edits the player has not tried to leave.
+	if opt.name == profiles.activeName() then
 		return
 	end
 
@@ -1060,10 +1986,69 @@ local function startDuplicate()
 		initial = profiles.uniqueName(from),
 		accept = function(name)
 			-- Copies what is on screen rather than what was last saved, so pending
-			-- edits come along instead of being silently dropped.
-			applyStaged(profiles.create(name, stagedBinds(), activeFakeMeta()), from)
+			-- edits come along instead of being silently dropped. The copy descends from
+			-- whatever the original did.
+			local base = profiles.baseOf(from)
+			applyStaged(profiles.create(name, stagedBinds(), activeFakeMeta(), base and base.name), from)
 		end,
 	})
+end
+
+-- Export copies the preset on screen, staged edits included, to the clipboard as the text the
+-- engine loads; Import reads such text back as a new preset of the player's own.
+local function startClipboard(exporting)
+	if exporting then
+		local name = profiles.activeName()
+		Spring.SetClipboard(profiles.exportText({ name = name, binds = stagedBinds(), fakeMeta = activeFakeMeta() }))
+		openDialog({
+			title = L.export,
+			message = BAR.I18N("ui.keybinds.editor.exportDone", { name = name }),
+			info = true,
+			acceptLabel = L.ok,
+			accept = function() end,
+		})
+
+		return
+	end
+
+	local clip = Spring.GetClipboard()
+	if type(clip) ~= "string" or clip:match("^%s*$") then
+		openDialog({ title = L.import, message = L.importEmpty, info = true, acceptLabel = L.ok, accept = function() end })
+
+		return
+	end
+
+	-- What the reader will take, line by line, shown before it is taken: the lines it will
+	-- drop in red, and a count of each above them. With nothing readable the dialog still
+	-- opens, so the player can see why, but cannot be accepted.
+	local lines, count, errors = profiles.classifyBindFile(clip)
+	local binds, fakeMeta, stamped = profiles.parseBindFile(clip)
+	local summary = binds and (colorText .. BAR.I18N("ui.keybinds.editor.importSummary", { n = count }))
+		or (colorDanger .. L.importNone)
+	if errors > 0 then
+		summary = summary .. colorDim .. ", " .. colorHeader .. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
+	end
+	local function open()
+		openDialog({
+			title = L.importTitle,
+			initial = profiles.uniqueName(stamped or L.newProfile),
+			preview = { lines = lines, summary = summary, scroll = 0 },
+			blocked = binds == nil,
+			acceptLabel = L.import,
+			accept = function(newName)
+				-- Named like a copy is, then made live: importing is switching to it.
+				selectProfile(profiles.create(newName, binds, fakeMeta), profiles.activeName())
+			end,
+		})
+	end
+
+	-- Importing replaces what is on screen, so staged edits are asked about first - but not
+	-- over a preview that cannot be accepted anyway.
+	if binds then
+		guardDirty(open)
+	else
+		open()
+	end
 end
 
 -- Renaming and deleting share one dialog: the name field commits a rename, the
@@ -1114,9 +2099,28 @@ local function ensureControls()
 		return
 	end
 
-	searchBox = Editbox.new({ placeholder = BAR.I18N("ui.keybinds.editor.search"), onChange = rebuildRows })
-	presetDropdown = Dropdown.new({ options = presetOptions, onSelect = switchToPreset })
-	nameBox = Editbox.new({ maxChars = 40 })
+	-- Each control prints live, every frame, on the shared font, so each pins the panel's
+	-- outline for itself.
+	searchBox = Editbox.new({
+		placeholder = BAR.I18N("ui.keybinds.editor.search"),
+		clearable = true,
+		onChange = rebuildRows,
+		outline = look.outline,
+	})
+	presetDropdown = Dropdown.new({
+		options = presetOptions,
+		onSelect = switchToPreset,
+		markSelected = true,
+		outline = look.outline,
+	})
+	nameBox = Editbox.new({ maxChars = 40, outline = look.outline })
+	-- The Changed section's picker of what to compare the active preset with.
+	state.compareDropdown = Dropdown.new({
+		options = {},
+		onSelect = state.pickBase,
+		markSelected = true,
+		outline = look.outline,
+	})
 end
 
 -- Buttons size to their own label so a longer translation is not clipped and a short
@@ -1124,7 +2128,7 @@ end
 -- falls back to a width and asks draw to lay out again once the font is there.
 local function labelWidth(label, size, pad)
 	if not font then
-		layoutPending = true
+		state.layoutPending = true
 
 		return floor(110 * scale)
 	end
@@ -1139,43 +2143,63 @@ end
 
 -- Header and footer rects, placed right to left from the panel edge.
 local function layoutHeader()
-	headerH = floor(34 * scale)
-	footerH = floor(34 * scale)
+	state.headerH = floor(34 * scale)
+	state.footerH = floor(34 * scale)
 
 	if not (searchBox and presetDropdown) then
 		return
 	end
 
-	layoutPending = false
+	state.layoutPending = false
 
 	local gap = floor(8 * scale)
 	local rowTop = area.y2 - floor(4 * scale)
-	local rowBottom = area.y2 - headerH + floor(4 * scale)
-	local presetW = floor(240 * scale)
+	local rowBottom = area.y2 - state.headerH + floor(4 * scale)
+	-- Room for the longest shipped name beside its Default tag.
+	local presetW = floor(280 * scale)
 	local btnFs = floor((rowTop - rowBottom) * 0.5)
+	local bfs = floor(rowHeight * 0.55)
 
-	-- Right to left: the edit dialog opener, duplicate, then the picker they act on.
+	-- Right to left: the clipboard buttons, the edit dialog opener, duplicate, the picker they
+	-- act on, then the picker's caption. Icon buttons are square; captioned ones fit their word.
 	local iconW = rowTop - rowBottom
-	local editW, dupW = iconW, iconW
-	local rightEdge = area.x2 - metrics.edgeInset
-	local editX1 = rightEdge - editW
-	local dupX1 = editX1 - gap - dupW
-	local pickerX1 = dupX1 - gap - presetW
+	local bx2 = area.x2 - metrics.edgeInset
+	for i = #headerButtons, 1, -1 do
+		local b = headerButtons[i]
+		local w = iconW
+		if not b.icon then
+			local label = L[b.id] or b.id
+			w = labelWidth(label, bfs, floor(10 * scale))
+			if font then
+				b.textOn = colorText .. label
+				b.textOff = colorFaded .. label
+			end
+		end
+		b.rect = { bx2 - w, rowBottom, bx2, rowTop }
+		bx2 = floor(bx2 - w - gap * (b.gap or 1))
+	end
+	local pickerX1 = bx2 - presetW
+	metrics.presetLabelX = pickerX1 - gap - labelWidth(L.preset or "", btnFs, 0)
+	metrics.presetLabelFs = btnFs
+	if font then
+		-- The baseline the picker and the search field print their own text on.
+		metrics.presetLabelY = text.baseline(font, rowBottom, rowTop, btnFs)
+	end
 
-	headerButtons[1].rect = { dupX1, rowBottom, dupX1 + dupW, rowTop }
-	headerButtons[2].rect = { editX1, rowBottom, rightEdge, rowTop }
 	presetDropdown:setRect(pickerX1, rowBottom, pickerX1 + presetW, rowTop, btnFs)
-	searchBox:setRect(listX1, rowBottom, pickerX1 - gap, rowTop, btnFs)
+	-- Twice the gap on this side, so the caption reads as the picker's and not the field's.
+	searchBox:setRect(listX1, rowBottom, metrics.presetLabelX - gap * 2, rowTop, btnFs)
 
-	local fTop = area.y1 + footerH - floor(4 * scale)
+	local fTop = area.y1 + state.footerH - floor(4 * scale)
 	local fBottom = area.y1 + floor(4 * scale)
 	local fFs = floor((fTop - fBottom) * 0.5)
 	local fPad = floor(14 * scale)
-	local bfs = floor(rowHeight * 0.55)
 	local x2 = area.x2 - metrics.edgeInset
+	-- A default cannot take the edits, so its Save is worded for where they go instead.
+	local own = activeIsOwn()
 	for i = #footerButtons, 1, -1 do
 		local b = footerButtons[i]
-		local label = L[b.id] or b.id
+		local label = (b.id == "save" and not own and L.saveAsNew) or L[b.id] or b.id
 		local w = labelWidth(label, fFs, fPad)
 		b.rect = { x2 - w, fBottom, x2, fTop }
 		x2 = x2 - w - gap
@@ -1187,14 +2211,30 @@ local function layoutHeader()
 		end
 	end
 
+	-- The footer notice gets what the buttons leave: from the list's left edge to a double gap
+	-- short of the first button. Each wording is fitted here, so the bake only picks one.
+	metrics.noticeX = listX1
+	metrics.noticeFs = floor(rowHeight * 0.5)
+	if font then
+		local nfs = metrics.noticeFs
+		local noticeW = x2 - gap - listX1
+		metrics.noticeY = text.baseline(font, fBottom, fTop, nfs)
+		L.noticeDefaultText = colorDim .. text.fit(font, L.noticeDefault or "", noticeW, nfs)
+		L.noticeDefaultUnsavedText = colorHeader .. text.fit(font, L.noticeDefaultUnsaved or "", noticeW, nfs)
+		L.noticeUnsavedText = colorHeader .. text.fit(font, L.noticeUnsaved or "", noticeW, nfs)
+	end
+
 	-- New rects, so the tooltip areas have to be handed over again.
-	tooltipsRegistered = false
+	state.tooltipsRegistered = false
 end
 
 -- Profile-modal geometry, derived in one place so draw and mousePress agree.
+-- A dialog with a preview is wider and taller, the preview taking the room above the name
+-- field; an information dialog has one button, OK, in the middle, and no Cancel.
 local function dialogGeometry()
-	local w = floor(315 * scale)
-	local h = floor(150 * scale)
+	local preview = dialog and dialog.preview
+	local w = floor((preview and 620 or 315) * scale)
+	local h = floor((preview and 420 or 150) * scale)
 	local messageLines, messageStep
 	if dialog and dialog.message and font then
 		messageStep = floor(rowHeight * 0.75)
@@ -1211,11 +2251,15 @@ local function dialogGeometry()
 	local bfs = floor(bh * 0.5)
 	local bpad = floor(14 * scale)
 
-	local cancelW = labelWidth(L.cancel, bfs, bpad)
-	local cancel = { bx1 + pad, btnY1, bx1 + pad + cancelW, btnY1 + bh }
-
 	local okW = labelWidth(dialog and acceptLabelFor(dialog) or L.save, bfs, bpad)
-	local ok = { bx2 - pad - okW, btnY1, bx2 - pad, btnY1 + bh }
+	local ok, cancel
+	if dialog and dialog.info then
+		ok = { floor(cx - okW * 0.5), btnY1, floor(cx + okW * 0.5), btnY1 + bh }
+	else
+		local cancelW = labelWidth(L.cancel, bfs, bpad)
+		cancel = { bx1 + pad, btnY1, bx1 + pad + cancelW, btnY1 + bh }
+		ok = { bx2 - pad - okW, btnY1, bx2 - pad, btnY1 + bh }
+	end
 
 	local midW = labelWidth(dialog and dialog.middle and dialog.middle.label or L.discard, bfs, bpad)
 	local midX = (bx1 + bx2) * 0.5
@@ -1223,7 +2267,13 @@ local function dialogGeometry()
 	local fieldY1 = btnY1 + bh + floor(20 * scale)
 	local field = { bx1 + pad, fieldY1, bx2 - pad, fieldY1 + floor(26 * scale) }
 
-	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep
+	-- The preview box, from above the field to under the summary line beneath the title.
+	local box
+	if preview then
+		box = { bx1 + pad, field[4] + floor(14 * scale), bx2 - pad, by2 - floor(66 * scale) }
+	end
+
+	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box
 end
 
 -- Capture-modal geometry, derived in one place so draw and mousePress agree.
@@ -1274,6 +2324,7 @@ function view.init()
 	Highlight = WG.FlowUI.Draw.SelectHighlight
 	UiButton = WG.FlowUI.Draw.Button
 	UiUnitFrame = WG.FlowUI.Draw.UnitFrame
+	state.keyboard:init(font)
 	ensureControls()
 end
 
@@ -1291,12 +2342,18 @@ function view.refresh()
 end
 
 -- Takes the panel rect from the host; every band and column is derived from it.
-function view.setArea(x1, y1, x2, y2, s)
+-- `wx1..wy2` is the window the area sits inside; without it a modal can only dim as far
+-- as the area goes, leaving the panel's own border lit. Kept in `metrics` rather than a
+-- local of its own, this chunk being at Lua's ceiling of 200.
+function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	ensureControls()
 	area.x1, area.y1, area.x2, area.y2 = x1, y1, x2, y2
+	metrics.winX1, metrics.winY1 = wx1 or x1, wy1 or y1
+	metrics.winX2, metrics.winY2 = wx2 or x2, wy2 or y2
 	scale = s or 1
 	rowHeight = floor(24 * scale)
 	metrics.catRowHeight = floor(29 * scale)
+	metrics.catBarW = math.max(3, floor(6 * scale))
 	-- Whole pixels throughout: a size or a corner landing on a fraction puts glyph and
 	-- rectangle edges between pixels, which the renderer then blends across both.
 	metrics.rowFs = floor(rowHeight * 0.55)
@@ -1309,6 +2366,7 @@ function view.setArea(x1, y1, x2, y2, s)
 	metrics.sidePad = floor(12 * scale)
 	metrics.catInset = floor(4 * scale)
 	metrics.chipInset = floor(3 * scale)
+	metrics.cursorIcon = floor(rowHeight * 0.8)
 	-- Set before layoutHeader below, which places the header and footer buttons against it.
 	metrics.edgeInset = floor(4 * scale)
 	metrics.footerGap = floor(8 * scale)
@@ -1329,7 +2387,12 @@ function view.setArea(x1, y1, x2, y2, s)
 
 	layoutHeader()
 
-	listTop = area.y2 - headerH - floor(4 * scale)
+	listTop = area.y2 - state.headerH - floor(4 * scale)
+	metrics.listTopBase = listTop
+	-- The strip the Changed section puts its comparison picker in, above its rows, and the
+	-- room it takes from them: the strip plus a gap, so it stands apart from the first heading.
+	metrics.compareStripH = floor(rowHeight * 1.45)
+	metrics.compareBandH = metrics.compareStripH + floor(rowHeight * 0.5)
 	-- The scrollbar owns a column of its own: its right edge lines up with the buttons
 	-- above it, and the list stops a clear gap short of it rather than running up against
 	-- it. That gap matches the one the bar keeps from the panel edge on its other side, so
@@ -1337,7 +2400,20 @@ function view.setArea(x1, y1, x2, y2, s)
 	local barW = floor(14 * scale)
 	barX1 = area.x2 - metrics.edgeInset - barW
 	listRight = barX1 - metrics.listGap
-	keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
+	metrics.keyAreaX1 = listX1 + floor((listRight - listX1) * 0.45)
+
+	-- The keyboard page takes the whole band the column and the list share, inset from the
+	-- panel's sides like the column's own text.
+	state.keyboard:setArea(
+		area.x1 + metrics.sidePad,
+		listBottom(),
+		area.x2 - metrics.sidePad,
+		metrics.listTopBase,
+		scale,
+		metrics.titleFs
+	)
+	state.applyListTop()
+	state.layoutCompare()
 
 	-- Shortened here rather than in the draw loop: the column width and the font size are
 	-- both settled by now, and this runs on a resize where the loop runs every frame.
@@ -1354,11 +2430,12 @@ function view.blur()
 			WG["tooltip"].RemoveTooltip(b.tooltipId)
 		end
 	end
-	tooltipsRegistered = false
-	if panelList then
-		gl.DeleteList(panelList)
-		panelList = nil
-		panelSig = nil
+	state.tooltipsRegistered = false
+	state.tipKey = nil
+	if state.panelList then
+		gl.DeleteList(state.panelList)
+		state.panelList = nil
+		state.panelSig = nil
 	end
 	if searchBox then
 		searchBox:blur()
@@ -1366,10 +2443,21 @@ function view.blur()
 	if presetDropdown then
 		presetDropdown:close()
 	end
+	if state.compareDropdown then
+		state.compareDropdown:close()
+	end
 	if nameBox then
 		nameBox:blur()
 	end
 	capturing = nil
+	-- A key filter is a view of the moment; the panel opens on the whole list next time.
+	if state.keyFilter then
+		state.keyFilter = nil
+		state.keyboard:setFilter(nil)
+	end
+
+	-- Or the blur outlives the panel: guishader keeps drawing a rect nobody owns any more.
+	shade.clear()
 
 	-- Through cancel rather than dropped: a live modal is holding a rollback, and the picker
 	-- names a profile that was never switched to until that runs.
@@ -1382,9 +2470,25 @@ function view.confirmClose(proceed)
 	return guardDirty(proceed)
 end
 
+-- The host widget, handed over so guishader can drop this panel's blur rects with it when
+-- the widget goes away. Optional: with no owner the rects are simply always allowed.
+function view.setOwner(w)
+	shade.owner = w
+end
 -- Host hook for swapping the build menu when a profile implies one.
 function view.setMenuToggle(fn)
 	menuToggle = fn
+end
+
+-- Which page the body shows: "keyboard" for the overview, anything else for the list. The
+-- host's action takes it as a word, so a key can open the panel straight onto the keyboard.
+function view.setPage(page)
+	state.setPage(page == "keyboard" and "keyboard" or "list")
+end
+
+-- Host hook, called with the page whenever it changes, so the host can size the panel to it.
+function view.setPageHook(fn)
+	state.pageHook = fn
 end
 
 ----------------------------------------------------------------
@@ -1538,8 +2642,8 @@ end
 
 -- Edit entry point: move a binding, and mark the profile staged.
 local function rebindKeyset(action, oldRaw, newKeyset)
-	-- Accepting the capture unchanged is not an edit. Staging it would arm Save, grow a
-	-- pending entry in the picker, and raise the unsaved-changes guard over nothing.
+	-- Accepting the capture unchanged is not an edit. Staging it would arm Save, mark the
+	-- preset unsaved, and raise the unsaved-changes guard over nothing.
 	if newKeyset == oldRaw then
 		return
 	end
@@ -1573,6 +2677,22 @@ local function removeKeyset(action, raw)
 	markStaged()
 end
 
+-- Puts the base preset's keys back on an action: what clicking the ghost chip does.
+function state.revert(action)
+	local change = rowChange(action)
+	if not change then
+		return
+	end
+
+	local raws = {}
+	for i = 1, #change do
+		raws[i] = change[i]
+	end
+	if stageSetKeysets(action, raws) then
+		markStaged()
+	end
+end
+
 -- One key can drive several actions (e.g. backspace = mutesound + edit_backspace),
 -- so add the binding without disturbing others on the same keyset.
 local function commitCapture(keyset)
@@ -1587,6 +2707,8 @@ local function commitCapture(keyset)
 
 	capturing = nil
 
+	-- One gesture, however many edits it comes to below, files one snapshot to take back.
+	state.batching, state.batchEdited = true, false
 	if catalogShiftPair[c.action] then
 		if stageSetKeysets(c.action, shiftPairRaws(c.elems)) then
 			markStaged()
@@ -1606,6 +2728,10 @@ local function commitCapture(keyset)
 		end
 	else
 		addKeyset(c.action, keyset)
+	end
+	state.batching = false
+	if state.batchEdited then
+		state.pushUndo()
 	end
 end
 
@@ -1750,7 +2876,9 @@ local function modPrefix()
 		return ""
 	end
 
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
+	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
+	local alt, ctrl, meta, shift = Spring.GetModKeyState()
 	local prefix = ""
 	if alt then
 		prefix = prefix .. "Alt+"
@@ -1788,7 +2916,9 @@ local function pressSym(key, scanCode)
 		return nil
 	end
 
-	local sym = scanCode and spGetScanSymbol(scanCode)
+	-- Not localised like its neighbours: this chunk is at Lua's ceiling of 200 locals and
+	-- a slot is worth more elsewhere. It runs on a key press, not on a frame.
+	local sym = scanCode and Spring.GetScanSymbol(scanCode)
 	if not sym or sym == "" then
 		return nil
 	end
@@ -1876,12 +3006,7 @@ local function rowChipGroups(action)
 	local pair = catalogShiftPair[action]
 	local groups, byDisplay = {}, {}
 	for _, k in ipairs(working.byAction[action] or {}) do
-		local shown = k.display
-		if pair then
-			local parts = keybindModel.splitChain(k.raw)
-			parts[1] = (parts[1]:gsub("[Ss][Hh][Ii][Ff][Tt]%+", ""))
-			shown = keybindModel.displayKeyset(table.concat(parts, ","), working.layout)
-		end
+		local shown = pair and keybindModel.displayWithoutShift(k.raw, working.layout) or k.display
 
 		local group = byDisplay[shown]
 		if not group then
@@ -1903,7 +3028,7 @@ local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 	local n = #groups
 	local mets = {}
 	if n == 0 then
-		return mets, keyAreaX1
+		return mets, metrics.keyAreaX1
 	end
 
 	local total = 0
@@ -1921,7 +3046,7 @@ local function layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 		end
 	end
 
-	local cx = keyAreaX1
+	local cx = metrics.keyAreaX1
 	for i = 1, n do
 		mets[i].x = cx
 		mets[i].removeX1 = cx + mets[i].w - rightGap
@@ -1934,12 +3059,12 @@ end
 -- The chip band for a row: where each chip sits, where "+" starts after them, and the widths
 -- both callers need. Drawing and hit testing take it from here rather than each deriving the
 -- same eight constants, so the click zones cannot drift from what was painted.
-local function rowChipBand(action, fs, pad)
+local function rowChipBand(action, fs, pad, reserve)
 	local gap = floor(6 * scale)
 	local rightGap = pad + floor(fs * 0.9)
 	local addW = floor(fs + pad * 2)
-	-- Room reserved on the right so "+" always fits.
-	local chipArea = listRight - addW - floor(8 * scale) - keyAreaX1
+	-- Room reserved on the right so "+" always fits, and whatever the caller wants after it.
+	local chipArea = listRight - addW - floor(8 * scale) - metrics.keyAreaX1 - (reserve or 0)
 	local mets, cx = layoutRowChips(action, fs, pad, rightGap, chipArea, gap)
 
 	return mets, cx, addW, rightGap
@@ -1958,19 +3083,72 @@ local function rowLayout(row)
 	lay = { gen = layoutGen }
 	if row.type == "header" then
 		lay.text = colorHeader .. row.text
+	elseif row.type == "note" then
+		lay.text = colorDim .. text.fit(font, row.text, listRight - listX1 - metrics.rowPad * 4, metrics.rowFs)
 	elseif row.type == "link" then
 		lay.text = colorAction .. row.label
 		lay.arrow = look.arrow
-		lay.arrowX = listX1 + metrics.rowPad * 5 + floor(font:GetTextWidth(row.label) * metrics.rowFs) + metrics.rowPad * 2
+		lay.arrowX = listX1
+			+ metrics.rowPad * 5
+			+ floor(font:GetTextWidth(row.label) * metrics.rowFs)
+			+ metrics.rowPad * 2
 	else
-		local labelW = keyAreaX1 - (listX1 + metrics.rowPad) - metrics.rowPad
+		-- The cursor column, when the row's group has one, comes out of the name's room.
+		local indent = row.cursorColumn and (metrics.cursorIcon + metrics.rowPad) or 0
+		lay.textX = listX1 + metrics.rowPad + indent
+		lay.icon = row.cursor
+		lay.iconX = listX1 + metrics.rowPad
+		local labelW = metrics.keyAreaX1 - lay.textX - metrics.rowPad
 		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
-		local mets, cx, addW, rightGap = rowChipBand(row.action, metrics.rowFs, metrics.rowPad)
+
+		-- The key the base preset had, when the row's differs: a hollow chip after the row's
+		-- own, which the chips make room for. Paired halves read as one key, as the chips do.
+		local change = row.change
+		if change then
+			local shown, seen = {}, {}
+			local pair = catalogShiftPair[row.action]
+			for _, raw in ipairs(change) do
+				local disp = pair and keybindModel.displayWithoutShift(raw, working.layout)
+					or keybindModel.displayKeyset(raw, working.layout)
+				if not seen[disp] then
+					seen[disp] = true
+					shown[#shown + 1] = disp
+				end
+			end
+			local keys = #shown > 0 and table.concat(shown, ", ") or L.revertNone
+			lay.ghostFs = floor(metrics.rowFs * 0.9)
+			keys = text.fit(font, keys, floor((listRight - metrics.keyAreaX1) * 0.3), lay.ghostFs)
+			lay.ghostKeys = keys
+			-- The caption is the same string twice with the keys marked off, so the colour split
+			-- lands on the keys wherever a translation puts them.
+			local caption = BAR.I18N("ui.keybinds.editor.revertChip", { keys = "\1" })
+			local before, after = caption:match("^(.-)\1(.*)$")
+			before, after = before or caption, after or ""
+			lay.ghostText = colorFaded .. before .. look.ghostKeys .. keys .. colorFaded .. after
+			lay.ghostTextHover = colorDim .. before .. colorHeader .. keys .. colorDim .. after
+			lay.ghostW = floor(font:GetTextWidth(before .. keys .. after) * lay.ghostFs) + metrics.rowPad * 2
+			-- Against the list's right edge, clear of the row's own keys and "+".
+			lay.ghostX = listRight - metrics.rowPad - lay.ghostW
+		end
+
+		local reserve = lay.ghostW and (lay.ghostW + metrics.rowPad * 2) or 0
+		local mets, cx, addW, rightGap = rowChipBand(row.action, metrics.rowFs, metrics.rowPad, reserve)
 		for i = 1, #mets do
 			local m = mets[i]
 			m.textKey = colorKey .. m.disp
 			m.textHover = colorText .. m.disp
 			m.removeCx = floor(m.removeX1 + rightGap * 0.5)
+			-- On a row found by key, the chip that answered is lit, so it reads why the row is here.
+			m.hit = row.hitKeys ~= nil and keybindModel.holdsKeys(m.group.display, row.hitKeys)
+			-- What else the chip's key drives, for its tooltip; reddened only for sharing of the
+			-- player's own making.
+			m.others = conflictsOf(row.action, m.group.raws)
+			m.clash = false
+			for _, o in ipairs(m.others or look.noRaws) do
+				if not o.shipped then
+					m.clash = true
+				end
+			end
 		end
 		lay.mets = mets
 		lay.cx = cx
@@ -2007,6 +3185,10 @@ local function rowZone(lay, x, y, c1, c2)
 		return "add"
 	end
 
+	if lay.ghostW and x >= lay.ghostX and x <= lay.ghostX + lay.ghostW then
+		return "revert"
+	end
+
 	return nil
 end
 
@@ -2034,6 +3216,7 @@ local function flushText()
 	end
 
 	font:Begin()
+	font:SetOutlineColor(look.outline)
 	for i = 0, pendingCount - 1 do
 		local at = i * 5
 		font:Print(
@@ -2058,13 +3241,37 @@ end
 -- The category column starts below where the keybind rows do, so the title above it is not
 -- crowded by the first entry. Everything in the column measures from here.
 local function sidebarTop()
-	return listTop - metrics.sidebarDrop
+	-- Off the band's fixed top, not the rows' own: the Changed section lowers the rows for its
+	-- comparison picker, and the column beside them must not move with it.
+	return (metrics.listTopBase or listTop) - metrics.sidebarDrop
 end
 
+-- `i` is the entry's place in `categories`, not its place on screen: the two differ by
+-- however far the column is scrolled. That offset rides in `hover` for the same reason
+-- `grab` does - this chunk is at Lua's ceiling of 200 locals.
 local function categoryRect(i)
-	local top = sidebarTop() - (i - 1) * metrics.catRowHeight
+	local top = sidebarTop() - (i - 1 - hover.cat) * metrics.catRowHeight
+	-- The right edge gives way to the bar when there is one. Without that an entry runs
+	-- under it and its hover plate disappears beneath the bar rather than stopping beside
+	-- it. The page count is worked out inline: this chunk is at Lua's 200.
+	local right = area.x1 + sidebarW
+	if #categories > math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) then
+		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
+	end
 
-	return area.x1, top - metrics.catRowHeight, area.x1 + sidebarW, top
+	return area.x1, top - metrics.catRowHeight, right, top
+end
+
+-- Scrolls the category column by `delta` entries and answers how far it can be scrolled
+-- at all, so nought means everything fits. One function rather than the usual three,
+-- this chunk being at the local ceiling; passing 0 just clamps.
+local function catScrolled(delta)
+	local page = math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight))
+	local most = math.max(0, #categories - page)
+	local n = hover.cat + delta
+	hover.cat = (n < 0 and 0) or (n > most and most) or n
+
+	return most
 end
 
 -- The category entry under x,y, or nil. Half-open on the shared edge, like the rows, so
@@ -2075,7 +3282,7 @@ local function sidebarIndexAt(x, y)
 		return nil
 	end
 
-	local i = floor((top - y) / metrics.catRowHeight) + 1
+	local i = floor((top - y) / metrics.catRowHeight) + 1 + hover.cat
 	if not categories[i] then
 		return nil
 	end
@@ -2196,13 +3403,34 @@ local function drawSidebar(hoverIdx)
 	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
-	-- Laid out before the font existed, so the labels are still waiting to be fitted.
-	if categories[1] and not categories[1].textDim then
+	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
+	-- there are more categories than the card has room for.
+	if catScrolled(0) > 0 then
+		local bx2 = area.x1 + sidebarW - metrics.catInset
+		Scroller(
+			bx2 - metrics.catBarW,
+			-- Over the entries rather than the whole card: the last row rarely lands exactly on
+			-- the bottom, and a bar running past it reads as dead space at the foot of the column
+			-- - and its thumb then says more fits than does.
+			sidebarTop()
+				- math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) * metrics.catRowHeight,
+			bx2,
+			sidebarTop(),
+			#categories * metrics.catRowHeight,
+			hover.cat * metrics.catRowHeight
+		)
+	end
+
+	-- Laid out before the font existed, so the labels are still waiting to be fitted; or one of
+	-- them changed since, which is the Changed entry's count.
+	if state.refit or (categories[1] and not categories[1].textDim) then
+		state.refit = false
 		fitCategories()
 	end
 
 	local lb = listBottom()
-	for i, c in ipairs(categories) do
+	for i = hover.cat + 1, #categories do
+		local c = categories[i]
 		local x1, y1, x2, y2 = categoryRect(i)
 		if y1 >= lb then
 			local selected = selectedCategory == c.key
@@ -2210,7 +3438,15 @@ local function drawSidebar(hoverIdx)
 				local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
 				RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
 			elseif i == hoverIdx then
-				Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, metrics.csSmall, look.rowHoverOpacity, look.white)
+				Highlight(
+					x1 + metrics.catInset,
+					y1,
+					x2 - metrics.catInset,
+					y2,
+					metrics.csSmall,
+					look.rowHoverOpacity,
+					look.white
+				)
 			end
 			local ty = floor((y1 + y2) * 0.5)
 			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
@@ -2449,6 +3685,17 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
+		-- A heading that stands for a key filter carries the mark that clears it.
+		if row.clear then
+			local mark = zone == "clear" and look.removeHot or look.removeCold
+			queueText(mark, listRight - metrics.rowPad * 2, cyc, fs, "cov")
+		end
+		return
+	end
+
+	-- A note explains an empty section; it is neither lit nor clicked.
+	if row.type == "note" then
+		queueText(lay.text, listX1 + metrics.rowPad * 2, cyc, fs, "ov")
 		return
 	end
 
@@ -2463,7 +3710,20 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 		return
 	end
 
-	queueText(lay.text, listX1 + metrics.rowPad, cyc, fs, "ov")
+	-- The order's cursor: geometry, so it goes down ahead of the queued text. Blending is set
+	-- rather than assumed, as for the header icons, since whatever drew before can leave one
+	-- that shows the picture's transparent surround as a solid square.
+	if lay.icon then
+		local s = metrics.cursorIcon
+		local iy = floor((top + bottom - s) * 0.5)
+		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		glColor(1, 1, 1, look.cursorAlpha)
+		glTexture(lay.icon)
+		glTexRect(lay.iconX, iy, lay.iconX + s, iy + s)
+		glTexture(false)
+		glColor(1, 1, 1, 1)
+	end
+	queueText(lay.text, lay.textX, cyc, fs, "ov")
 
 	local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 	local mets = lay.mets
@@ -2471,7 +3731,11 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 		local m = mets[i]
 		local overBody = zone == "rebind" and zoneIdx == i
 		local overRemove = zone == "remove" and zoneIdx == i
-		RectRound(m.x, c1, m.x + m.w, c2, metrics.csSmall, 1, 1, 1, 1, overBody and look.chipFillHover or look.chipFill)
+		local chipFill = (overBody and look.chipFillHover)
+			or (m.hit and look.chipFillHit)
+			or (m.clash and look.chipFillConflict)
+			or look.chipFill
+		RectRound(m.x, c1, m.x + m.w, c2, metrics.csSmall, 1, 1, 1, 1, chipFill)
 		queueText(overBody and m.textHover or m.textKey, m.x + metrics.rowPad, cyc, m.fs, "ov")
 		queueText(overRemove and look.removeHot or look.removeCold, m.removeCx, cyc, fs, "cov")
 	end
@@ -2482,6 +3746,14 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 		RectRound(cx, c1, cx + lay.addW, c2, metrics.csSmall, 1, 1, 1, 1, overAdd and look.addFillHover or look.addFill)
 		queueText(overAdd and look.plusTextHover or look.plusText, floor(cx + lay.addW * 0.5), cyc, fs, "cov")
 	end
+
+	-- The base preset's key, as a hollow chip: a border with the row's own dark inside it.
+	if lay.ghostW then
+		local gx, over = lay.ghostX, zone == "revert"
+		RectRound(gx, c1, gx + lay.ghostW, c2, metrics.csSmall, 1, 1, 1, 1, over and look.ghostBorderHover or look.ghostBorder)
+		RectRound(gx + 1, c1 + 1, gx + lay.ghostW - 1, c2 - 1, metrics.csSmall, 1, 1, 1, 1, look.ghostInner)
+		queueText(over and lay.ghostTextHover or lay.ghostText, gx + metrics.rowPad, cyc, lay.ghostFs, "ov")
+	end
 end
 
 -- Split out of view.draw: each modal is self-contained, and one function holding every
@@ -2491,7 +3763,20 @@ local function drawCaptureModal(mx, my)
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it.
+	RectRound(
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.55 }
+	)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	local tfs = floor(rowHeight * 0.6)
@@ -2585,7 +3870,26 @@ local function drawCaptureModal(mx, my)
 	local chainCy = by1 + floor(122 * scale)
 	local lineStep = floor(chainFs * 1.15)
 
+	-- Other actions already on the keyset being formed, named under it before it is accepted.
+	local clash
+	if canAccept then
+		local raws = capturing.pair and shiftPairRaws(capturing.elems) or { chainRaw() }
+		local others = conflictsOf(capturing.action, raws)
+		if others then
+			local names = {}
+			for i = 1, #others do
+				names[i] = state.labels[others[i].action] or others[i].action
+			end
+			local line = BAR.I18N("ui.keybinds.editor.conflictCapture", { actions = table.concat(names, ", ") })
+			clash = colorHeader .. text.fit(font, line, chainMaxW, sfs)
+		end
+	end
+
 	font:Begin()
+	font:SetOutlineColor(look.outline)
+	if clash then
+		font:Print(clash, cx, by1 + floor(64 * scale), sfs, "cov")
+	end
 	font:Print(
 		colorText .. text.fit(font, capturing.label or capturing.action, chainMaxW, tfs),
 		cx,
@@ -2610,14 +3914,133 @@ local function drawCaptureModal(mx, my)
 	font:End()
 end
 
+-- The import preview's sizes, shared by the drawing and the bar's hit test so a press lands on
+-- what was painted: the line pitch, the inset, how many lines the box holds, how far it can
+-- scroll, and the bar's rect - nil while every line fits.
+function state.previewGeometry(pv, x1, y1, x2, y2)
+	local lineH = floor(rowHeight * 0.66)
+	local pad = floor(6 * scale)
+	local barW = floor(10 * scale)
+	local visible = math.max(1, floor((y2 - y1 - pad * 2) / lineH))
+	local most = math.max(0, #pv.lines - visible)
+	local bar = most > 0 and { x2 - pad - barW, y1 + pad, x2 - pad, y2 - pad } or nil
+
+	return lineH, pad, visible, most, bar
+end
+
+-- Scrolls the preview so the thumb's top sits where the cursor has dragged it, the offset
+-- taken at the grab keeping it relative - as the list's own bar does.
+function state.previewScrollFromY(pv, bar, lineH, most, y)
+	local _, _, trackTop, travel =
+		WG.FlowUI.Draw.ScrollerGeometry(bar[1], bar[2], bar[3], bar[4], #pv.lines * lineH, pv.scroll * lineH)
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - pv.grab)) / travel
+	if f < 0 then
+		f = 0
+	elseif f > 1 then
+		f = 1
+	end
+	pv.scroll = floor(f * most + 0.5)
+end
+
+-- The import preview: the clipboard's lines in a box, in the monospaced face source gets,
+-- numbered down a gutter of their own, each in the colour of what the reader makes of it, the
+-- ones it will drop on a red band. Scrolled by the wheel or by the bar, whose thumb can be
+-- taken hold of. The lines are fitted to the box once per width and face.
+function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
+	local mono = WG.fonts.getFont(3) or font
+	local fs = floor(rowHeight * 0.5)
+	local lineH, pad, visible, most, bar = state.previewGeometry(pv, x1, y1, x2, y2)
+	pv.visible = visible
+
+	-- A drag in progress follows the cursor and ends with the button.
+	if pv.drag then
+		local _, _, lmb = spGetMouseState()
+		if lmb and bar then
+			state.previewScrollFromY(pv, bar, lineH, most, my)
+		else
+			pv.drag = false
+		end
+	end
+	if pv.scroll > most then
+		pv.scroll = most
+	end
+	if pv.scroll < 0 then
+		pv.scroll = 0
+	end
+
+	RectRound(x1, y1, x2, y2, metrics.csSmall, 1, 1, 1, 1, look.previewFill)
+	-- The gutter: wide enough for the last line's number, set off from the lines by its own
+	-- shade, rounded with the box on its outer corners.
+	local gutterW = floor(mono:GetTextWidth(tostring(#pv.lines)) * fs) + pad * 2
+	RectRound(x1, y1, x1 + gutterW, y2, metrics.csSmall, 1, 0, 0, 1, look.previewGutter)
+
+	local textX1 = x1 + gutterW + pad
+	local textX2 = bar and (bar[1] - pad) or (x2 - pad)
+	if pv.fitW ~= textX2 - textX1 or pv.fitFont ~= mono then
+		pv.fitW, pv.fitFont = textX2 - textX1, mono
+		for i, line in ipairs(pv.lines) do
+			local fitted = text.fit(mono, line.text, pv.fitW, fs)
+			-- A binding reads as the chips do: its key in gold, its action in the row colour.
+			local keyset, action = fitted:match("^%s*bind%s+(%S+)%s+(.*)$")
+			if line.kind == "bind" and keyset then
+				line.shown = colorFaded .. "bind " .. colorKey .. keyset .. " " .. colorAction .. action
+			else
+				line.shown = look.previewColours[line.kind] .. fitted
+			end
+			line.num = (line.kind == "error" and colorDanger or colorFaded) .. i
+		end
+	end
+
+	local last = math.min(#pv.lines, pv.scroll + visible)
+	for i = pv.scroll + 1, last do
+		if pv.lines[i].kind == "error" then
+			local top = y2 - pad - (i - pv.scroll - 1) * lineH
+			RectRound(x1 + gutterW, top - lineH, textX2 + pad, top, 0, 1, 1, 1, 1, look.previewErrorFill)
+		end
+	end
+	if bar then
+		local content, pos = #pv.lines * lineH, pv.scroll * lineH
+		local top, thumbH = WG.FlowUI.Draw.ScrollerGeometry(bar[1], bar[2], bar[3], bar[4], content, pos)
+		local onThumb = top ~= nil and isInRect(mx, my, bar[1], top - thumbH, bar[3], top)
+		Scroller(bar[1], bar[2], bar[3], bar[4], content, pos, onThumb, pv.drag)
+	end
+
+	mono:Begin()
+	mono:SetOutlineColor(look.outline)
+	for i = pv.scroll + 1, last do
+		local line = pv.lines[i]
+		local cy = floor(y2 - pad - (i - pv.scroll - 0.5) * lineH)
+		mono:Print(line.num, x1 + gutterW - pad, cy, fs, "rov")
+		mono:Print(line.shown, textX1, cy, fs, "ov")
+	end
+	mono:End()
+end
+
 local function drawProfileDialog(mx, my)
-	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep = dialogGeometry()
+	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box = dialogGeometry()
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
 
-	RectRound(area.x1, area.y1, area.x2, area.y2, 0, 0, 0, 0, 0, { 0, 0, 0, 0.55 })
+	-- The whole window, not the inset area inside it: a modal that leaves the panel's own
+	-- border lit does not read as covering it.
+	RectRound(
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		{ 0, 0, 0, 0.55 }
+	)
 	UiElement(bx1, by1, bx2, by2, 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
 
 	-- Anything whose accept saves is green, anything destructive is red, wherever it
@@ -2625,9 +4048,11 @@ local function drawProfileDialog(mx, my)
 	local _, blocked = dialogName()
 	local acceptSaves = not blocked and (dialog.save or (not dialog.message and not dialog.danger))
 	local buttons = {
-		{ r = cancel },
 		{ r = ok, danger = not blocked and dialog.danger, confirm = acceptSaves, inert = blocked },
 	}
+	if cancel then
+		buttons[#buttons + 1] = { r = cancel }
+	end
 	if dialog.middle then
 		buttons[#buttons + 1] = { r = discard, danger = dialog.middle.danger }
 	end
@@ -2643,7 +4068,13 @@ local function drawProfileDialog(mx, my)
 		end
 	end
 
+	-- Its own geometry and text, ahead of the dialog's own batch of text.
+	if box then
+		state.drawPreview(dialog.preview, box[1], box[2], box[3], box[4], mx, my)
+	end
+
 	font:Begin()
+	font:SetOutlineColor(look.outline)
 	font:Print(
 		colorText .. text.fit(font, dialog.title, bx2 - bx1 - floor(32 * scale), tfs),
 		cx,
@@ -2651,6 +4082,15 @@ local function drawProfileDialog(mx, my)
 		tfs,
 		"cov"
 	)
+	if box then
+		font:Print(
+			text.fit(font, dialog.preview.summary, bx2 - bx1 - floor(32 * scale), sfs),
+			cx,
+			by2 - floor(48 * scale),
+			sfs,
+			"cov"
+		)
+	end
 	if dialog.middle then
 		font:Print(
 			colorText .. dialog.middle.label,
@@ -2661,7 +4101,10 @@ local function drawProfileDialog(mx, my)
 		)
 	end
 	if messageLines then
-		local top = floor((field[2] + field[4]) * 0.5 + (#messageLines - 1) * messageStep * 0.5)
+		-- Centred between the title and the buttons: a message dialog has no field, and a
+		-- message sitting where the field would be reads as pushed down against the buttons.
+		local titleBottom = by2 - floor(26 * scale) - floor(tfs * 0.5)
+		local top = floor((titleBottom + ok[4]) * 0.5 + (#messageLines - 1) * messageStep * 0.5)
 		for i = 1, #messageLines do
 			font:Print(
 				colorDim .. text.fit(font, messageLines[i], bx2 - bx1 - floor(32 * scale), sfs),
@@ -2672,13 +4115,15 @@ local function drawProfileDialog(mx, my)
 			)
 		end
 	end
-	font:Print(
-		colorText .. L.cancel,
-		floor((cancel[1] + cancel[3]) * 0.5),
-		floor((cancel[2] + cancel[4]) * 0.5),
-		sfs,
-		"cov"
-	)
+	if cancel then
+		font:Print(
+			colorText .. L.cancel,
+			floor((cancel[1] + cancel[3]) * 0.5),
+			floor((cancel[2] + cancel[4]) * 0.5),
+			sfs,
+			"cov"
+		)
+	end
 	font:Print(
 		(blocked and colorDim or colorText) .. acceptLabelFor(dialog),
 		floor((ok[1] + ok[3]) * 0.5),
@@ -2706,12 +4151,22 @@ local function drawButtons(hotId)
 				-- A tinted button loses its colour under the usual white hover overlay, so it
 				-- brightens its own fill instead.
 				local fill = b.fill and ((not enabled and b.fillMuted) or (hovered and b.fillHover) or b.fill)
+				-- The page toggle sits pressed while its page is showing.
+				if b.toggle and state.page == "keyboard" then
+					fill = hovered and look.toggleFillHover or look.toggleFill
+				end
 				drawButtonFace(r, fill or buttonFill)
 
+				-- The face lights under the cursor the way a row or the search field does. A
+				-- tinted button is the exception: it would lose its colour under the overlay, so
+				-- it brightens its own fill above instead.
+				if hovered and not fill then
+					Highlight(r[1], r[2], r[3], r[4], metrics.csButton, hoverOpacity, look.white)
+				end
+
 				if b.icon then
-					-- Square inset so the 64x64 art keeps its aspect inside a wider button.
-					-- Hover only lifts the tint, matching the search box and picker, which
-					-- carry no hover treatment of their own.
+					-- Square inset so the 64x64 art keeps its aspect inside a wider button. The
+					-- icon brightens with the face, so the whole button reads as one control.
 					local inset = floor((r[4] - r[2]) * 0.22)
 					local side = (r[4] - r[2]) - inset * 2
 					local ix = floor((r[1] + r[3] - side) * 0.5)
@@ -2726,9 +4181,6 @@ local function drawButtons(hotId)
 					glTexture(false)
 					glColor(1, 1, 1, 1)
 				else
-					if hovered and not fill then
-						Highlight(r[1], r[2], r[3], r[4], metrics.csButton, hoverOpacity, look.white)
-					end
 					queueText(
 						(enabled and b.textOn or b.textOff) or L[b.id],
 						floor((r[1] + r[3]) * 0.5),
@@ -2742,20 +4194,44 @@ local function drawButtons(hotId)
 	end
 end
 
--- What the cursor is over, in the terms the panel paints hover with. Refilled in place
--- each frame rather than allocated.
-local hover = { sb = 0, row = 0, zone = "", idx = 0, gk = "", ga = 0, gb = 0, btn = "" }
+-- The thumb, where it is now. Nil when the list fits and no bar is drawn. Reached through
+-- WG rather than a local of its own, this chunk being at the 200-local ceiling; it is only
+-- asked for on a press or a hover test, so the lookup costs nothing that matters.
+local function scrollerThumb()
+	return WG.FlowUI.Draw.ScrollerGeometry(
+		barX1,
+		listBottom(),
+		area.x2 - metrics.edgeInset,
+		listTop,
+		rowMetrics.totalH,
+		scrollOffset()
+	)
+end
 
 -- Reads the hover state and answers a signature of everything the baked panel is painted
 -- from. Same signature, same picture, so the display list is replayed as it is.
 local function panelSignature(mx, my)
 	local h = hover
-	h.sb = sidebarIndexAt(mx, my) or 0
+	local keyboardPage = state.page == "keyboard"
+	h.sb = (not keyboardPage and sidebarIndexAt(mx, my)) or 0
 	h.row, h.zone, h.idx = 0, "", 0
 	h.gk, h.ga, h.gb = "", 0, 0
 	h.btn = ""
+	h.bar = 0
+	h.kb = 0
 
-	if gridGroup then
+	-- Over the thumb itself, which lights it. The track either side is not part of this:
+	-- only the thumb is something to take hold of.
+	if not keyboardPage and mx >= barX1 and mx <= area.x2 - metrics.edgeInset then
+		local top, height = scrollerThumb()
+		if top and my <= top and my >= top - height then
+			h.bar = 1
+		end
+	end
+
+	if keyboardPage then
+		h.kb = state.keyboard:hitTest(mx, my) or 0
+	elseif gridGroup then
 		if isInRect(mx, my, listX1, listBottom(), area.x2, listTop) then
 			local kind, a, b = gridZone(mx, my)
 			h.gk, h.ga, h.gb = kind or "", a or 0, b or 0
@@ -2769,6 +4245,8 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
+			elseif row.type == "header" and row.clear and mx >= listRight - metrics.rowPad * 4 then
+				h.zone = "clear"
 			end
 		end
 	end
@@ -2808,6 +4286,105 @@ local function panelSignature(mx, my)
 		.. (dirty and 1 or 0)
 		.. "|"
 		.. (activeIsOwn() and 1 or 0)
+		.. "|"
+		.. h.bar
+		.. "|"
+		.. h.cat
+		.. "|"
+		.. (hover.drag and 1 or 0)
+		.. "|"
+		.. state.page
+		.. "|"
+		.. (keyboardPage and state.keyboard:signature(h.kb) or "")
+end
+
+-- The card the keyboard page shows for an action: its label, what it does, its picture, its
+-- category and where the catalog ranks it. Built from the resolved catalog on first use and
+-- dropped with it; an action under a prefix family takes the family's card with the label the
+-- list gave its row, and one the catalog never lists is its own id under Other.
+function state.keyInfoFor(action)
+	local info = state.keyInfo
+	if not info then
+		info = { byAction = {}, prefixes = {} }
+		state.keyInfo = info
+		for gi, g in ipairs(resolvedCatalog or {}) do
+			if not g.hidden then
+				for ii, item in ipairs(g.items) do
+					local rank = gi * 1000 + ii
+					if item.prefix then
+						info.prefixes[#info.prefixes + 1] = {
+							prefix = item.prefix,
+							description = item.description,
+							icon = item.icon,
+							category = g.category,
+							rank = rank,
+						}
+					elseif item.action then
+						info.byAction[item.action] = {
+							label = item.label,
+							description = item.description,
+							icon = item.icon,
+							category = g.category,
+							rank = rank,
+						}
+					end
+				end
+			end
+		end
+	end
+
+	local card = info.byAction[action]
+	if card then
+		return card
+	end
+	local best
+	for _, p in ipairs(info.prefixes) do
+		if p.prefix ~= "" and action:sub(1, #p.prefix) == p.prefix and (not best or #p.prefix > #best.prefix) then
+			best = p
+		end
+	end
+	card = {
+		label = state.labels[action] or action,
+		description = best and best.description,
+		icon = best and best.icon,
+		category = (best and best.category) or "categories.other",
+		rank = (best and best.rank) or math.huge,
+	}
+	info.byAction[action] = card
+
+	return card
+end
+
+-- Places the staged keymap on the keyboard, once per change to it.
+function state.ensureKeyboard()
+	if state.keyboardGen ~= rowsGen then
+		state.keyboardGen = rowsGen
+		state.keyboard:place(working.binds, state.hidden, working.layout, catalogShiftPair, state.keyInfoFor)
+	end
+end
+
+-- Shows the list or the keyboard. The tooltip is forgotten with the page: the same cursor
+-- position means something else on the other one.
+function state.setPage(page)
+	if state.page == page then
+		return
+	end
+	state.page = page
+	state.tipKey = nil
+	hover.kb = 0
+	-- The rows' band depends on the page: the comparison band only shows on the list.
+	state.applyListTop()
+	-- The host sizes the panel to the page.
+	if state.pageHook then
+		state.pageHook(page)
+	end
+end
+
+-- The keyboard page's body: the panel title where the list page puts it, then the keyboard.
+function state.drawKeyboardPage(hoverIdx)
+	state.ensureKeyboard()
+	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
+	state.keyboard:draw(hoverIdx)
 end
 
 -- Everything under the header controls and above the modals: the sidebar, the list or
@@ -2815,12 +4392,34 @@ end
 -- frame replays it for one call instead of a few hundred draws.
 local function drawPanel()
 	local h = hover
-	drawSidebar(h.sb)
+	if state.page == "keyboard" then
+		state.drawKeyboardPage(h.kb)
+	else
+		drawSidebar(h.sb)
+	end
 
-	if gridGroup then
+	if state.page == "keyboard" then
+		flushText()
+	elseif gridGroup then
 		drawGridMenu(h.gk, h.ga, h.gb)
 		flushText()
 	else
+		-- The Changed section's comparison strip, above its rows: a dark strip rather than a
+		-- heading, so it reads as a control and not as a second title over the first heading,
+		-- with a dim caption against the picker, which draws live over the strip's right end
+		-- since its list can open.
+		if state.compareBand() and metrics.compareY1 then
+			local y1, y2 = metrics.compareY1, metrics.compareY2
+			RectRound(listX1, y1, listRight, y2, metrics.csSmall, 1, 1, 1, 1, look.previewFill)
+			local inset = floor(4 * scale)
+			queueText(
+				colorDim .. (L.compareWith or ""),
+				metrics.compareCaptionX,
+				text.baseline(font, y1 + inset, y2 - inset, metrics.compareFs),
+				metrics.compareFs,
+				"ro"
+			)
+		end
 		-- Whole rows only: the band can end mid-row, and a row painted across the footer
 		-- would be clipped by nothing.
 		local base = scrollOffset()
@@ -2840,7 +4439,20 @@ local function drawPanel()
 		end
 		flushText()
 
-		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base)
+		Scroller(barX1, lb, area.x2 - metrics.edgeInset, listTop, rowMetrics.totalH, base, h.bar == 1, hover.drag)
+	end
+
+	-- The picker's caption. Nothing about it changes between layouts, so it bakes with the
+	-- body rather than printing live beside the picker it names.
+	queueText(L.presetText, metrics.presetLabelX, metrics.presetLabelY, metrics.presetLabelFs, "o")
+
+	-- Where staged edits go. On a default it shows before anything is staged, too: that is
+	-- when a player is working out whether editing it is safe.
+	local own = activeIsOwn()
+	local notice = (dirty and (own and L.noticeUnsavedText or L.noticeDefaultUnsavedText))
+		or (not own and L.noticeDefaultText)
+	if notice then
+		queueText(notice, metrics.noticeX, metrics.noticeY, metrics.noticeFs, "o")
 	end
 
 	drawButtons(h.btn)
@@ -2850,16 +4462,173 @@ end
 -- The tooltip widget owns the hover delay and only draws once the cursor settles; it
 -- keeps the area table, so this is redone whenever layoutHeader makes new rects.
 local function registerTooltips()
+	local own = activeIsOwn()
 	for _, b in ipairs(headerButtons) do
 		if b.rect then
-			WG["tooltip"].AddTooltip(b.tooltipId, b.rect, L[b.id])
+			WG["tooltip"].AddTooltip(b.tooltipId, b.rect, L[(not own and b.tipLocked) or b.tip], nil, L[b.id])
 		end
 	end
-	tooltipsRegistered = true
+	state.tooltipsRegistered = true
+end
+
+-- What the cursor is over, said in a tooltip: a preset's description in the picker, what the
+-- column's Changed entry lists, and on a row the action's description, the other actions its
+-- hovered key drives, and the key the base preset had. Built once per thing hovered and shown
+-- every frame after, the tooltip widget showing only what it was told this frame.
+function state.showTooltips(mx, my)
+	local tip = WG["tooltip"]
+	if not tip or dialog or capturing then
+		return
+	end
+
+	local key, title, lines
+	-- The preset picker's options, and the comparison picker's while its band is up: both
+	-- name presets, so both get the preset's description.
+	local pick = presetDropdown:optionAt(mx, my)
+	local pickOptions, pickSelected = presetOptions, presetDropdown.selected
+	if not pick and state.compareBand() then
+		pick = state.compareDropdown:optionAt(mx, my)
+		pickOptions, pickSelected = state.compareDropdown.options, state.compareDropdown.selected
+	end
+	if pick then
+		local opt = pick > 0 and pickOptions[pick] or pickOptions[pickSelected]
+		if opt and not opt.name then
+			opt = nil
+		end
+		if opt then
+			key = "preset|" .. opt.name
+			title = opt.name
+			if key ~= state.tipKey then
+				lines = {}
+				local builtin = profiles.isBuiltin(opt.name)
+				if builtin then
+					if builtin.description then
+						lines[#lines + 1] = colorText .. BAR.I18N(builtin.description)
+					end
+					lines[#lines + 1] = colorDim .. L.presetDefault
+				else
+					local base = profiles.baseOf(opt.name)
+					lines[#lines + 1] = colorDim
+						.. (base and BAR.I18N("ui.keybinds.editor.presetBasedOn", { name = base.name }) or L.presetOwn)
+				end
+			end
+		end
+	elseif state.page ~= "list" then
+		-- The keyboard page: the key under the cursor, on the layer showing, or the view toggle.
+		if hover.kb ~= 0 then
+			state.ensureKeyboard()
+			key, title = state.keyboard:tooltip(hover.kb)
+			if key and key ~= state.tipKey then
+				lines = state.keyboard:tooltipLines(hover.kb)
+			end
+		end
+	elseif hover.sb > 0 and categories[hover.sb] and categories[hover.sb].key == state.changedKey then
+		key = "changed|" .. tostring(state.base and state.base.name)
+		title = categories[hover.sb].label
+		if key ~= state.tipKey then
+			if state.base then
+				lines = { colorText .. BAR.I18N("ui.keybinds.editor.changedTooltip", { name = state.base.name }) }
+			else
+				lines = { colorDim .. L.changedNoneTooltip }
+			end
+		end
+	elseif hover.row > 0 then
+		local row = rows[scroll + hover.row]
+		if row and row.type == "editable" then
+			key = "row|" .. row.action .. "|" .. hover.zone .. "|" .. hover.idx .. "|" .. rowsGen .. "|" .. layoutGen
+			title = row.label
+			if key ~= state.tipKey then
+				lines = {}
+				if row.description then
+					lines[#lines + 1] = colorText .. row.description
+				end
+				local lay = rowLayout(row)
+				local m = hover.idx > 0 and lay.mets[hover.idx]
+				if m and m.others then
+					local names = {}
+					for i, o in ipairs(m.others) do
+						local name = state.labels[o.action] or o.action
+						names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name }) or name
+					end
+					-- A warning when the sharing is the player's; a note when the game ships it so.
+					lines[#lines + 1] = (m.clash and colorDanger or colorDim)
+						.. BAR.I18N(
+							"ui.keybinds.editor.conflict",
+							{ keys = m.group.display, actions = table.concat(names, ", ") }
+						)
+					lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
+				end
+				if row.change and state.base then
+					if #row.change > 0 then
+						lines[#lines + 1] = colorHeader
+							.. BAR.I18N("ui.keybinds.editor.defaultIn", { name = state.base.name, keys = lay.ghostKeys })
+					else
+						lines[#lines + 1] = colorHeader
+							.. BAR.I18N("ui.keybinds.editor.defaultNone", { name = state.base.name })
+					end
+					lines[#lines + 1] = colorDim .. L.revertHint
+				end
+			end
+		end
+	end
+
+	if not key then
+		state.tipKey = nil
+
+		return
+	end
+	if key ~= state.tipKey then
+		state.tipKey, state.tipTitle = key, title
+		if lines and #lines > 0 then
+			local body = table.concat(lines, "\n")
+			if font.WrapText then
+				body = font:WrapText(body, (tip.getFontsize and tip.getFontsize() or 12) * 90)
+			end
+			state.tipText = text.carryColors(body)
+		else
+			state.tipText = nil
+		end
+	end
+	if state.tipText then
+		tip.ShowTooltip("keybindeditor", state.tipText, nil, nil, state.tipTitle)
+	end
 end
 
 -- Paints the whole panel. The header controls and the modals draw live; the body is
 -- replayed from its display list until panelSignature says something in it moved.
+-- Which of the popups is up, and where. Defined down here rather than beside the rest of
+-- `shade`: it reads the popup state and geometry, none of which exists that far up.
+function shade.update()
+	if capturing then
+		local bx1, by1, bx2, by2 = captureGeometry()
+		shade.rect("capture", bx1, by1, bx2, by2)
+	else
+		shade.rect("capture")
+	end
+
+	if dialog then
+		local bx1, by1, bx2, by2 = dialogGeometry()
+		shade.rect("dialog", bx1, by1, bx2, by2)
+	else
+		shade.rect("dialog")
+	end
+
+	-- The list the picker drops, which stands clear of the control and over the rows.
+	local opts = presetDropdown and presetDropdown:isOpen() and presetDropdown.optRects
+	if opts and opts[1] then
+		shade.rect("picker", opts[1].x1, opts[#opts].y1, opts[1].x2, opts[1].y2)
+	else
+		shade.rect("picker")
+	end
+
+	local compare = state.compareDropdown
+	local copts = compare and state.compareBand() and compare:isOpen() and compare.optRects
+	if copts and copts[1] then
+		shade.rect("compare", copts[1].x1, copts[#copts].y1, copts[1].x2, copts[1].y2)
+	else
+		shade.rect("compare")
+	end
+end
 function view.draw()
 	if not font then
 		view.init()
@@ -2867,7 +4636,7 @@ function view.draw()
 	if not working then
 		view.refresh()
 	end
-	if layoutPending then
+	if state.layoutPending then
 		layoutHeader()
 	end
 
@@ -2880,52 +4649,103 @@ function view.draw()
 	gl.DepthTest(false)
 
 	local rawMx, rawMy, lmb = spGetMouseState()
-	if dragging then
+	if hover.drag then
 		if lmb then
 			scrollFromY(rawMy)
 		else
-			dragging = false
+			hover.drag = false
 		end
 	end
 
 	-- Prevent the hover over preset options and modals from also being detected by the
 	-- regular rows, sidebar and buttons sitting underneath them.
 	local mx, my = rawMx, rawMy
-	if dialog or capturing or presetDropdown:isOpen() then
+	if dialog or capturing or presetDropdown:isOpen() or state.compareDropdown:isOpen() then
 		mx, my = -1, -1
 	end
 
-	local sig = panelSignature(mx, my)
-	if sig ~= panelSig then
-		if panelList then
-			gl.DeleteList(panelList)
-		end
-		panelList = gl.CreateList(drawPanel)
-		panelSig = sig
+	-- The keyboard page shows the layer of whatever is held on the real keyboard, for as long
+	-- as it is held; the signature below carries the layer, so the picture follows.
+	if state.page == "keyboard" then
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		state.keyboard:setHeld(alt, ctrl, meta, shift)
 	end
-	gl.CallList(panelList)
+
+	local sig = panelSignature(mx, my)
+	if sig ~= state.panelSig then
+		if state.panelList then
+			gl.DeleteList(state.panelList)
+		end
+		state.panelList = gl.CreateList(drawPanel)
+		state.panelSig = sig
+	end
+	gl.CallList(state.panelList)
 
 	searchBox:draw()
 
-	if not tooltipsRegistered and WG["tooltip"] then
+	-- The comparison picker, live like the preset picker: its list opens over the rows.
+	if state.compareBand() then
+		if state.compareDropdown:isOpen() then
+			shade.float("compare", function()
+				state.compareDropdown:draw()
+			end)
+		else
+			shade.drop("compare")
+			state.compareDropdown:draw()
+		end
+	else
+		shade.drop("compare")
+	end
+
+	if not state.tooltipsRegistered and WG["tooltip"] then
 		registerTooltips()
 	end
 
-	presetDropdown:draw()
+	-- Each of these covers UI rather than map, so it takes the blur with it and is drawn
+	-- back on top of it. See `shade` for why that is two steps and not one.
+	if presetDropdown:isOpen() then
+		shade.float("picker", function()
+			presetDropdown:draw()
+		end)
+	else
+		shade.drop("picker")
+		presetDropdown:draw()
+	end
 
 	-- Real cursor: these are the overlay, so the hover is theirs to detect.
 	if capturing then
-		drawCaptureModal(rawMx, rawMy)
+		shade.float("capture", function()
+			drawCaptureModal(rawMx, rawMy)
+		end)
+	else
+		shade.drop("capture")
 	end
 
 	if dialog then
-		drawProfileDialog(rawMx, rawMy)
+		shade.float("dialog", function()
+			drawProfileDialog(rawMx, rawMy)
+		end)
+	else
+		shade.drop("dialog")
 	end
+
+	-- After they have laid themselves out, so the blur behind one is the right size on
+	-- the frame it appears rather than the one after.
+	shade.update()
+
+	state.showTooltips(rawMx, rawMy)
 end
 
+-- Scrolls so the thumb's top sits where the cursor has dragged it. The offset taken at
+-- the grab is what keeps this relative: the thumb moves with the cursor rather than
+-- centring itself on it, so taking hold of it does not shift the list before the drag.
 scrollFromY = function(y)
-	local lb = listBottom()
-	local f = (listTop - y) / math.max(1, listTop - lb)
+	local _, _, trackTop, travel = scrollerThumb()
+	if not travel or travel <= 0 then
+		return
+	end
+
+	local f = (trackTop - (y - hover.grab)) / travel
 	if f < 0 then
 		f = 0
 	elseif f > 1 then
@@ -2939,15 +4759,52 @@ end
 -- Input
 ----------------------------------------------------------------
 
--- Scrolls the list; a modal swallows the wheel instead.
+-- Scrolls the list; a modal swallows the wheel instead, the import preview scrolling its
+-- own lines with it.
 function view.mouseWheel(up, value)
-	if dialog or capturing or gridGroup then
+	if dialog then
+		local pv = dialog.preview
+		if pv then
+			local mx, my = spGetMouseState()
+			local _, _, _, _, _, _, _, _, _, _, box = dialogGeometry()
+			if box and isInRect(mx, my, box[1], box[2], box[3], box[4]) then
+				-- Clamped at the top here and at the bottom by the draw, which knows how many
+				-- lines the box holds.
+				pv.scroll = math.max(0, pv.scroll + (up and -3 or 3))
+			end
+		end
+
+		return
+	end
+	if capturing or gridGroup or state.page == "keyboard" then
 		return
 	end
 
-	local _, my = spGetMouseState()
-	if my >= listBottom() and my <= listTop then
-		scroll = scroll + (up and -3 or 3)
+	local mx, my = spGetMouseState()
+	-- Over the column it scrolls the column, over anything else the list. A wheel that
+	-- moved the list while the cursor was on the categories would read as broken.
+	if mx <= area.x1 + sidebarW and my > listBottom() and my <= sidebarTop() then
+		catScrolled(up and -1 or 1)
+	elseif my >= listBottom() and my <= listTop then
+		-- The chat history's modifiers: Ctrl moves three notches' worth at once, Shift a whole
+		-- page - the rows the band holds from where the list is now, since headings are taller
+		-- than the bindings under them.
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		local step = ctrl and 9 or 3
+		if shift then
+			ensureRowMetrics()
+			local band, used = listTop - listBottom(), 0
+			step = 0
+			for i = scroll + 1, #rows do
+				used = used + rowHeightOf(rows[i])
+				if used > band then
+					break
+				end
+				step = step + 1
+			end
+			step = math.max(1, step)
+		end
+		scroll = scroll + (up and -step or step)
 		clampScroll()
 	end
 end
@@ -2984,9 +4841,17 @@ end
 -- Routes a click on a keybind row to the edit it implies.
 local function handleZone(kind, action, label, raws)
 	if kind == "remove" then
+		-- One chip, one snapshot to take back, however many binds it stood for.
+		state.batching, state.batchEdited = true, false
 		for _, raw in ipairs(raws) do
 			removeKeyset(action, raw)
 		end
+		state.batching = false
+		if state.batchEdited then
+			state.pushUndo()
+		end
+	elseif kind == "revert" then
+		state.revert(action)
 	elseif kind == "add" then
 		startCapture(action, label)
 	elseif kind == "rebind" then
@@ -3002,19 +4867,43 @@ function view.mousePress(x, y, button)
 
 	if dialog then
 		if button == 1 then
-			local bx1, by1, bx2, by2, ok, cancel, field, discard = dialogGeometry()
+			local bx1, by1, bx2, by2, ok, cancel, field, discard, _, _, box = dialogGeometry()
 			if isInRect(x, y, ok[1], ok[2], ok[3], ok[4]) then
 				acceptDialog()
 			elseif dialog.middle and isInRect(x, y, discard[1], discard[2], discard[3], discard[4]) then
 				middleDialog()
 			elseif
-				(isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
+				(cancel ~= nil and isInRect(x, y, cancel[1], cancel[2], cancel[3], cancel[4]))
 				or x < bx1
 				or x > bx2
 				or y < by1
 				or y > by2
 			then
 				cancelDialog()
+			elseif box and isInRect(x, y, box[1], box[2], box[3], box[4]) then
+				-- Taking hold of the preview's bar: on the thumb a grab that keeps the lines put,
+				-- on the track a jump to the cursor and then a drag from the thumb's middle.
+				local pv = dialog.preview
+				local lineH, _, _, most, bar = state.previewGeometry(pv, box[1], box[2], box[3], box[4])
+				if bar and isInRect(x, y, bar[1], bar[2], bar[3], bar[4]) then
+					local top, thumbH = WG.FlowUI.Draw.ScrollerGeometry(
+						bar[1],
+						bar[2],
+						bar[3],
+						bar[4],
+						#pv.lines * lineH,
+						pv.scroll * lineH
+					)
+					if top then
+						pv.drag = true
+						if y <= top and y >= top - thumbH then
+							pv.grab = y - top
+						else
+							pv.grab = -floor(thumbH * 0.5)
+							state.previewScrollFromY(pv, bar, lineH, most, y)
+						end
+					end
+				end
 			elseif not dialog.message then
 				nameBox:mousePress(x, y)
 			end
@@ -3063,6 +4952,19 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
+	-- The comparison picker likewise, while its band is up.
+	if state.compareBand() then
+		local wasOpen = state.compareDropdown:isOpen()
+		if state.compareDropdown:mousePress(x, y) then
+			searchBox:blur()
+
+			return true
+		end
+		if wasOpen then
+			return true
+		end
+	end
+
 	for _, set in ipairs(buttonSets) do
 		for _, b in ipairs(set) do
 			local r = b.rect
@@ -3078,6 +4980,12 @@ function view.mousePress(x, y, button)
 						startDuplicate()
 					elseif b.id == "edit" then
 						startEdit()
+					elseif b.id == "export" then
+						startClipboard(true)
+					elseif b.id == "import" then
+						startClipboard(false)
+					elseif b.id == "keyboard" then
+						state.setPage(state.page == "keyboard" and "list" or "keyboard")
 					end
 				end
 
@@ -3092,13 +5000,58 @@ function view.mousePress(x, y, button)
 	end
 	searchBox:blur()
 
+	-- The keyboard page: a modifier toggles its layer, the toggle swaps the view, and a bound
+	-- key goes to the list page filtered to that key on that layer, which lists everything on
+	-- it with its bindings to hand. The search text is left alone: the filter is its own thing.
+	if state.page == "keyboard" then
+		state.ensureKeyboard()
+		local kind, key, layer = state.keyboard:mousePress(x, y, button)
+		if kind == "key" then
+			local tokens, mods = {}, {}
+			for _, token in ipairs(key.tokens or {}) do
+				tokens[token] = true
+			end
+			for name in layer:gmatch("[^+]+") do
+				mods[name] = true
+			end
+			state.setPage("list")
+			selectedCategory = nil
+			state.setKeyFilter({
+				id = key.id,
+				layer = layer,
+				tokens = tokens,
+				mods = mods,
+				display = state.keyboard:keysetName(key, layer),
+			})
+		end
+
+		return true
+	end
+
+	-- Picking a category is asking for the whole of it, so a key filter goes first.
+	if state.keyFilter and x >= area.x1 and x <= area.x1 + sidebarW and y > listBottom() and y <= sidebarTop() then
+		state.setKeyFilter(nil)
+	end
 	if sidebarPress(x, y) then
 		return true
 	end
 
 	if not gridGroup and isInRect(x, y, barX1, listBottom(), area.x2, listTop) then
-		dragging = true
-		scrollFromY(y)
+		-- Taking hold of the bar. On the thumb that is a grab and the list stays put; on the
+		-- track either side the thumb jumps to the cursor first and is then dragged from its
+		-- middle, which is what a press on bare track is asking for. Inline because this chunk
+		-- is at Lua's ceiling of 200 locals and a function of its own would need a slot.
+		local top, height = scrollerThumb()
+		if top then
+			hover.drag = true
+			if y <= top and y >= top - height then
+				hover.grab = y - top
+			else
+				hover.grab = -floor(height * 0.5)
+				scrollFromY(y)
+			end
+		end
+
 		return true
 	end
 
@@ -3116,6 +5069,8 @@ function view.mousePress(x, y, button)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
 			end
+		elseif row and row.type == "header" and row.clear and x >= listRight - metrics.rowPad * 4 then
+			state.setKeyFilter(nil)
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
@@ -3172,6 +5127,57 @@ function view.keyPress(key, scanCode)
 			presetDropdown:close()
 		end
 		return true
+	end
+	if state.compareDropdown and state.compareDropdown:isOpen() then
+		if key == 27 then
+			state.compareDropdown:close()
+		end
+		return true
+	end
+
+	-- A grid category replaces the list outright, and picking another category in the
+	-- column is otherwise the only way back out of it. Escape is the other way, and it
+	-- has to come before the panel closes: leaving a view is what the key is for.
+	if gridGroup and key == 27 then
+		selectedCategory = nil
+		scroll = 0
+		rebuildRows()
+
+		return true
+	end
+
+	-- Ctrl+Z takes the last edit back. Below the capture and the dropdown, which take every
+	-- key while they are up; above the search field, which has no use for it.
+	if key == KEYSYMS.Z then
+		local _, ctrl = Spring.GetModKeyState()
+		if ctrl then
+			state.undoEdit()
+
+			return true
+		end
+	end
+
+	-- Escape empties the search before it closes the panel: the list being read is the one
+	-- the search made, and the first Escape is asking for that back. With nothing left to
+	-- clear it goes unclaimed, and the widget above closes the panel on it.
+	if key == KEYSYMS.ESCAPE then
+		-- A key filter goes before the search text: it is the narrower of the two.
+		if state.keyFilter then
+			state.setKeyFilter(nil)
+
+			return true
+		end
+		if searchBox and searchBox:getText() ~= "" then
+			-- Focus stays, so the next thing typed starts a new search.
+			searchBox:setText("")
+
+			return true
+		end
+		if searchBox then
+			searchBox:blur()
+		end
+
+		return false
 	end
 
 	if searchBox and searchBox:isFocused() then

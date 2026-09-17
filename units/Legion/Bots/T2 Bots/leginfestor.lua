@@ -47,7 +47,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
 			selectable_as_combat_unit = true,
-			subfolder = "CorBots/T2",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			selectionscalemult = 1,
 		},
