@@ -46,7 +46,6 @@ local mods = {
 	any = false, -- whether to select without filters
 }
 local customFilterDef = ""
-local strictFilter = false -- is the filter allowed to match nothing?
 local lastMods = mods
 local lastCustomFilterDef = customFilterDef
 local lastMouseSelection = {}
@@ -172,34 +171,14 @@ local function handleSetModifier(_, _, _, data)
 	mods[data[1]] = data[2]
 end
 
--- `Strict` is a SmartSelect only token so select_api shouldn't see it.
-local function extractStrictToken(ruleDef)
-	local strict = false
-	local tokens = {}
-
-	for _, token in ipairs(ruleDef:split("_")) do
-		if string.lower(token) == "strict" then
-			strict = true
-		else
-			tokens[#tokens + 1] = token
-		end
-	end
-
-	return strict, table.concat(tokens, "_")
-end
-
 local function handleSetCustomFilter(_, ruleDef)
-	local strict, filterDef = extractStrictToken(ruleDef)
-	customFilter = selectApi.getFilter(filterDef)
-	strictFilter = strict
-	-- keep ruleDef for change detection (the same filter with and without Strict should count as two different filters)
+	customFilter = selectApi.getFilter(ruleDef)
 	customFilterDef = ruleDef
 end
 
 local function handleClearCustomFilter(_, _, _)
 	customFilter = {}
 	customFilterDef = ""
-	strictFilter = false
 end
 
 local inIdleWorkerTask = table.ensureTable(WG, "InIdleWorkerTask")
@@ -399,11 +378,7 @@ function widget:Update(dt)
 				included[#included + 1] = uid
 			end
 		end
-
-		if #included ~= 0 or strictFilter then
-			-- without Strict the filter is only a preference: if no units match, just keep everything
-			mouseSelection = included
-		end
+		mouseSelection = included
 	end
 
 	if mods.idle then
@@ -632,9 +607,7 @@ function widget:Initialize()
 					included[#included + 1] = uid
 				end
 			end
-			if #included ~= 0 or strictFilter then
-				mouseSelection = included
-			end
+			mouseSelection = included
 		end
 
 		-- Apply idle filter if active
