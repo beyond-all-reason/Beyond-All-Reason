@@ -286,7 +286,7 @@
 				"import": "Import",
 				"importTooltip": "Read a preset from text on the clipboard and add it as a new preset.",
 				"keyboard": "Keyboard",
-				"keyboardTooltip": "Show this preset's keybinds laid out on a keyboard. Click Shift, Ctrl, Alt or Meta on it to see what the keys do with that held; click again for the list.",
+				"keyboardTooltip": "Show this preset's keybinds laid out on a keyboard.\nClick Shift, Ctrl, Alt or Meta on it to see what the keys do with that held.\nClick again for the list.",
 				"importTitle": "Import preset",
 				"importEmpty": "The clipboard is empty. Copy a preset's text first, then try again.",
 				"importSummary": "%{n} keybinds found",
