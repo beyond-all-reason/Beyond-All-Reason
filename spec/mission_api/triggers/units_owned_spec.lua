@@ -18,11 +18,11 @@ describe("mission_api.triggers.units_owned", function()
 				required[parameter.name] = true
 			end
 		end
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.quantity)
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.are.same({ teamID = true, quantity = true }, required)
+		assert.are.same({ teamName = true, quantity = true }, required)
 		assert.is_nil(unitsOwned.callins)
 	end)
 end)

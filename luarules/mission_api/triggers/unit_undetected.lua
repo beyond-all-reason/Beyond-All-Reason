@@ -29,11 +29,11 @@ end
 return {
 	type = 'UnitUndetected',
 	parameters = {
-		{ name = 'unitName',       required = false, type = ParameterTypes.UnitName },
-		{ name = 'unitDefName',    required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'owningTeamID',   required = false, type = ParameterTypes.TeamID },
-		{ name = 'sensorAllyTeam', required = false, type = ParameterTypes.AllyTeamID },
-		{ name = 'sensorTypes',    required = false, type = ParameterTypes.SensorTypes },
+		{ name = 'unitName',           required = false, type = ParameterTypes.UnitName },
+		{ name = 'unitDefName',        required = false, type = ParameterTypes.UnitDefName },
+		{ name = 'owningTeamName',     required = false, type = ParameterTypes.TeamName },
+		{ name = 'sensorAllyTeamName', required = false, type = ParameterTypes.AllyTeamName },
+		{ name = 'sensorTypes',        required = false, type = ParameterTypes.SensorTypes },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},
 	callins = {

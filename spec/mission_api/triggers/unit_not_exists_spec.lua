@@ -34,7 +34,7 @@ describe("mission_api.triggers.unit_not_exists", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.are.same({ "unitName", "unitDefName" }, unitNotExists.parameters.requiresOneOf)
 	end)
 

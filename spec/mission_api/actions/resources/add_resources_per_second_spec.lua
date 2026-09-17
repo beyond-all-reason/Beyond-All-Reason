@@ -32,7 +32,7 @@ describe("mission_api.actions.add_resources_per_second", function()
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "AddResourcesPerSecond",
-			teamID = "TeamID!",
+			teamName = "TeamName!",
 			metal = "Number",
 			energy = "Number",
 			requiresOneOf = { "metal", "energy" },

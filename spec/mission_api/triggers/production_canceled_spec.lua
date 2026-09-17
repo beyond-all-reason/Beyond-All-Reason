@@ -5,6 +5,7 @@ local Builders = VFS.Include("spec/builders/index.lua")
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so, here),
 -- Game.envDamageTypes from the harness, and Spring / UnitDefs inside its handlers.
 Builders.MissionApi.new():Install()
+GG["MissionAPI"].Teams = { thePlayerTeam = 0, theEnemyTeam = 1 }
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 	[1] = { name = "armsolar" },
@@ -52,7 +53,7 @@ describe("mission_api.triggers.production_canceled", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.factoryName)
 		assert.is_true(names.factoryDefName)
 		assert.are.same({ "unitName", "unitDefName" }, productionCanceled.parameters.requiresOneOf)
@@ -64,7 +65,7 @@ describe("mission_api.triggers.production_canceled", function()
 		assert.are.equal(0, fired())
 	end)
 
-	it("filters by teamID", function()
+	it("filters by teamName", function()
 		local context, fired = newContext()
 		canceled(trigger({ unitDefName = "armsolar", teamID = 0 }), context, 1, 9)
 		assert.are.equal(0, fired())

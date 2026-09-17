@@ -81,10 +81,10 @@ describe("mission_api.actions.name_units", function()
 		assert.are.same({
 			type = "NameUnits",
 			unitName = "UnitName!",
-			teamID = "Number",
+			teamName = "TeamName",
 			unitDefName = "String",
 			area = "Area",
-			requiresOneOf = { "teamID", "unitDefName", "area" },
+			requiresOneOf = { "teamName", "unitDefName", "area" },
 		}, summarizeSchema(action))
 	end)
 

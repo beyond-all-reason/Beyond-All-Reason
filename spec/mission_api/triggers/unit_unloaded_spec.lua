@@ -51,7 +51,7 @@ describe("mission_api.triggers.unit_unloaded", function()
 		end
 		assert.is_true(names.unitName)
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
 		assert.are.same({ "unitName", "unitDefName" }, unitUnloaded.parameters.requiresOneOf)

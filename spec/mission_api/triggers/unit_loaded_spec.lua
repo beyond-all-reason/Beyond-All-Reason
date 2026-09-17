@@ -51,7 +51,7 @@ describe("mission_api.triggers.unit_loaded", function()
 		end
 		assert.is_true(names.passengerName)
 		assert.is_true(names.passengerDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.transportName)
 		assert.is_true(names.transportDefName)
 		assert.are.same({ "passengerName", "passengerDefName" }, unitLoaded.parameters.requiresOneOf)

@@ -10,8 +10,8 @@ return {
 	parameters = {
 		{ name = 'unitName',             required = false, type = ParameterTypes.UnitName },
 		{ name = 'unitDefName',          required = false, type = ParameterTypes.UnitDefName },
-		{ name = 'oldTeamID',            required = false, type = ParameterTypes.TeamID },
-		{ name = 'newTeamID',            required = false, type = ParameterTypes.TeamID },
+		{ name = 'oldTeamName',          required = false, type = ParameterTypes.TeamName },
+		{ name = 'newTeamName',          required = false, type = ParameterTypes.TeamName },
 		{ name = 'ignoreMissionActions', required = false, type = ParameterTypes.Boolean },
 		requiresOneOf = { 'unitName', 'unitDefName' },
 	},

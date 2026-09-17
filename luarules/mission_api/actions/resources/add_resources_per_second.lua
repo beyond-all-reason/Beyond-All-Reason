@@ -13,7 +13,7 @@ return {
 	{
 		type = 'AddResourcesPerSecond',
 		parameters = {
-			{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
+			{ name = 'teamName', required = true, type = ParameterTypes.TeamName },
 			{ name = 'metal', required = false, type = ParameterTypes.Number },
 			{ name = 'energy', required = false, type = ParameterTypes.Number },
 			requiresOneOf = { 'metal', 'energy' },

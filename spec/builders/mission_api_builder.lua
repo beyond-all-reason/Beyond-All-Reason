@@ -9,6 +9,8 @@ local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 --- ---@type { Countdowns: table<string, MissionCountdown> }
 ---@class MissionApiMock
 ---@field Difficulty number
+---@field Teams table<string, number>
+---@field AllyTeams table<string, number>
 ---@field trackedUnitIDs table<string, table<number, boolean>>
 ---@field trackedUnitNames table<number, table<string, boolean>>
 ---@field trackedFeatureIDs table<string, table<number, boolean>>
@@ -90,6 +92,8 @@ function MB.new()
 		actions = {},
 		unitLoadout = {},
 		featureLoadout = {},
+		teams = {},
+		allyTeams = {},
 		actionDefinitions = {},
 		triggerDefinitions = {},
 		objectiveTriggers = {},
@@ -211,6 +215,24 @@ end
 ---@return MissionApiBuilder
 function MB:WithUnitLoadout(loadout)
 	self.unitLoadout = loadout or {}
+	return self
+end
+
+---Name to engine team ID, as api_missions.lua reads it out of the mission options.
+---Missions address teams by name and parameter_processing resolves them to these IDs,
+---so any spec touching a team parameter needs this populated.
+---@param teams table<string, number>
+---@return MissionApiBuilder
+function MB:WithTeams(teams)
+	self.teams = teams or {}
+	return self
+end
+
+---Name to engine ally team ID. See WithTeams.
+---@param allyTeams table<string, number>
+---@return MissionApiBuilder
+function MB:WithAllyTeams(allyTeams)
+	self.allyTeams = allyTeams or {}
 	return self
 end
 
@@ -473,6 +495,8 @@ function MB:Build()
 	---@type MissionApiMock
 	local mock = {
 		Difficulty = self.difficulty,
+		Teams = self.teams,
+		AllyTeams = self.allyTeams,
 		trackedUnitIDs = trackedUnitIDs,
 		trackedUnitNames = trackedUnitNames,
 		trackedFeatureIDs = trackedFeatureIDs,

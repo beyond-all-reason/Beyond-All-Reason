@@ -5,10 +5,10 @@ local function victory(winningAllyTeamIDs)
 end
 
 return {
-	{	
+	{
 		type = 'Victory',
 		parameters = {
-			{ name = 'allyTeamIDs', required = true, type = ParameterTypes.AllyTeamIDs },
+			{ name = 'allyTeamNames', required = true, type = ParameterTypes.AllyTeamNames },
 		},
 		actionFunction = victory,
 	}

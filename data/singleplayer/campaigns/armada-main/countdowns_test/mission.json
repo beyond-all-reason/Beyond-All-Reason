@@ -1,0 +1,33 @@
+{
+	"$schema": "../../../schemas/mission.schema.json",
+	"missionId": "countdowns_test",
+	"titleKey": "countdowns_test.title",
+	"descriptionKey": "countdowns_test.description",
+	"startScript": {
+		"mapName": "Quicksilver Remake 1.24",
+		"startPosType": "chooseBeforeGame",
+		"allyTeams": {
+			"thePlayerAllyTeam": {
+				"teams": {
+					"thePlayerTeam": {
+						"nameKey": "countdowns_test.teams.thePlayerTeam",
+						"side": "Cortex",
+						"startPosX": 1800,
+						"startPosZ": 2000
+					}
+				}
+			},
+			"theEnemyAllyTeam": {
+				"teams": {
+					"theEnemyTeam": {
+						"nameKey": "countdowns_test.teams.theEnemyTeam",
+						"side": "Armada",
+						"startPosX": 3000,
+						"startPosZ": 2400,
+						"ai": "NullAI"
+					}
+				}
+			}
+		}
+	}
+}

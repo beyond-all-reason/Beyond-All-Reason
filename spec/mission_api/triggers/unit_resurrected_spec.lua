@@ -55,7 +55,7 @@ describe("mission_api.triggers.unit_resurrected", function()
 			names[parameter.name] = true
 		end
 		assert.is_true(names.unitDefName)
-		assert.is_true(names.teamID)
+		assert.is_true(names.teamName)
 		assert.is_true(names.featureName)
 		assert.are.same({ "featureName", "unitDefName" }, unitResurrected.parameters.requiresOneOf)
 	end)

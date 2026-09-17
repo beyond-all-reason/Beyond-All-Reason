@@ -39,4 +39,49 @@ describe("mission_api.schema_utils", function()
 			assert.are.same({}, result)
 		end)
 	end)
+
+	describe("SwapNameSuffixForID", function()
+		it("turns a Name suffix into ID", function()
+			assert.are.equal("teamID", schemaUtils.SwapNameSuffixForID("teamName"))
+			assert.are.equal("owningTeamID", schemaUtils.SwapNameSuffixForID("owningTeamName"))
+			assert.are.equal("sensorAllyTeamID", schemaUtils.SwapNameSuffixForID("sensorAllyTeamName"))
+		end)
+
+		it("turns a plural Names suffix into IDs", function()
+			assert.are.equal("allyTeamIDs", schemaUtils.SwapNameSuffixForID("allyTeamNames"))
+		end)
+	end)
+
+	describe("AssignValueKeys", function()
+		local function parameterNamed(triggerType, parameterName)
+			for _, parameter in ipairs(triggerDefinitions.Parameters[triggerType]) do
+				if parameter.name == parameterName then
+					return parameter
+				end
+			end
+		end
+
+		-- LoadTriggerDefinitions assigns them, so the real definitions already carry these.
+		it("resolves team parameters on the real trigger definitions", function()
+			assert.are.equal("owningTeamID", parameterNamed(triggerTypes.UnitDetected, "owningTeamName").valueKey)
+			assert.are.equal(
+				"sensorAllyTeamID",
+				parameterNamed(triggerTypes.UnitDetected, "sensorAllyTeamName").valueKey
+			)
+		end)
+
+		-- unitDefName and unitName end in "Name" too, so only the type may decide what gets resolved.
+		it("keeps the authored name for parameters of other types", function()
+			assert.are.equal("unitDefName", parameterNamed(triggerTypes.UnitDetected, "unitDefName").valueKey)
+			assert.are.equal("unitName", parameterNamed(triggerTypes.UnitDetected, "unitName").valueKey)
+		end)
+
+		it("assigns a value key to every parameter, so readers never need a fallback", function()
+			for _, parameters in pairs(triggerDefinitions.Parameters) do
+				for _, parameter in ipairs(parameters) do
+					assert.is_string(parameter.valueKey)
+				end
+			end
+		end)
+	end)
 end)
