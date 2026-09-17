@@ -13,11 +13,13 @@
 -- after the bindings that name that layer exactly - the order the engine tries them in.
 --
 -- The face of a key shows one action, and it is the one a player thinks of the key as
--- doing: the first by catalog order, not by bind order. The engine walks a key's actions
--- in bind order until one takes it, and the presets lean on that to put a special case
--- ahead of the general one - the Grid preset binds "stopproduction" ahead of "stop" on G,
--- and the spectator's "specteam" ahead of "group select" on the digits. Catalog order puts
--- the general action first, which is what the key is for. The tooltip lists them all.
+-- doing: the best by catalog order, not the first by bind order. The engine walks a key's
+-- actions in bind order until one takes it, and the presets lean on that to put a special
+-- case ahead of the general one - the Grid preset binds "stopproduction" ahead of "stop" on
+-- G, and the spectator's "specteam" ahead of "group select" on the digits. Catalog order
+-- picks out the general action, which is what the key is for. The tooltip lists them all: what
+-- one press can fire first, in bind order, since that is the order they are actually tried in,
+-- and the chains this key only begins after, since a press alone never reaches those.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -660,33 +662,31 @@ function M:infoOf(entry)
 	return entry.info
 end
 
--- What a key shows on a layer: the bindings naming exactly those modifiers, then the Any+
--- ones, each block in catalog order. Kept per layer until the bindings change.
+-- What a key holds on a layer. What one press of it can fire comes first, in the order the
+-- engine tries them - the bindings naming exactly those modifiers, then the Any+ ones, each
+-- block as it was bound - and the chains this key only begins come after, since a press alone
+-- never reaches them. Which of them the face wears is a different question, and faceEntry
+-- answers it. Kept per layer until the bindings change.
 function M:entries(key, layer)
 	local show = key.show[layer]
 	if show and show.gen == self.gen then
 		return show.entries
 	end
 
-	local entries = {}
+	local presses, chains = {}, {}
 	local function take(list)
-		local sorted = {}
-		for i, e in ipairs(list) do
-			sorted[i] = e
-		end
-		table.sort(sorted, function(a, b)
-			local ra, rb = self:infoOf(a).rank or math.huge, self:infoOf(b).rank or math.huge
-			if ra ~= rb then
-				return ra < rb
-			end
-			return a.action < b.action
-		end)
-		for _, e in ipairs(sorted) do
-			entries[#entries + 1] = e
+		for _, e in ipairs(list or {}) do
+			local into = e.chain and chains or presses
+			into[#into + 1] = e
 		end
 	end
-	take(key.layers[layer] or {})
+	take(key.layers[layer])
 	take(key.any)
+
+	local entries = presses
+	for _, e in ipairs(chains) do
+		entries[#entries + 1] = e
+	end
 
 	-- A paired order's Shift half does what the bare key does; on a layer holding Shift it is
 	-- marked, so the layer reads as what Shift adds rather than everything Shift keeps.
@@ -881,8 +881,8 @@ function M:tooltip(idx)
 	return "kb|" .. idx .. "|" .. layer .. "|" .. self.gen, self:keysetName(key)
 end
 
--- The tooltip's lines: every action on the key for this layer, in the order the face ranks
--- them, each with what it does; then what a click here does.
+-- The tooltip's lines: every action on the key for this layer, what one press fires first and
+-- in the order the engine tries them, each with what it does; then what a click here does.
 function M:tooltipLines(idx)
 	local L = self.L
 	if idx == -1 then
@@ -945,14 +945,43 @@ function M:nameSize(key, room)
 	return size
 end
 
+-- The one action a key wears. Not the first the engine would try: the presets lean on bind
+-- order to put a special case ahead of the general one - "stopproduction" before "stop" on G
+-- - and the face is for what the key is for. Lowest catalog rank takes it, ties by action so
+-- the pick does not move between frames.
+function M:faceEntry(key, layer)
+	local best, bestRank, bestChain
+	for _, e in ipairs(self:entries(key, layer)) do
+		local rank = self:infoOf(e).rank or math.huge
+		local chain = e.chain and true or false
+		local better
+		if not best then
+			better = true
+		elseif chain ~= bestChain then
+			-- A press wins over a chain whatever the catalog says: the cap answers for what
+			-- pressing the key does, not for what it begins.
+			better = not chain
+		elseif rank ~= bestRank then
+			better = rank < bestRank
+		else
+			better = e.action < best.action
+		end
+		if better then
+			best, bestRank, bestChain = e, rank, chain
+		end
+	end
+
+	return best
+end
+
 -- The label a key wears on a layer, wrapped and fitted to its face, kept until the bindings
 -- or the geometry change.
-function M:faceLines(key, layer, entries, faceW, maxLines)
+function M:faceLines(key, layer, faceW, maxLines)
 	local show = key.show[layer]
 	if show.lines and show.linesGen == self.layoutGen and show.linesMax == maxLines then
 		return show.lines, show.first
 	end
-	local first = entries[1]
+	local first = self:faceEntry(key, layer)
 	local lines = {}
 	if first then
 		local info = self:infoOf(first)
@@ -1070,7 +1099,7 @@ function M:draw(hoverIdx)
 		local bandTop = nameTop - nameLineH
 		local bandBottom = fy1 + floor(padY * 0.5)
 		local maxLines = min(3, max(1, floor((bandTop - bandBottom) / lineH)))
-		local lines, first = self:faceLines(key, layer, entries, faceW, maxLines)
+		local lines, first = self:faceLines(key, layer, faceW, maxLines)
 		-- The top right corner: the action's picture, and how many more actions the tooltip
 		-- lists, which sits left of the picture when there is one.
 		local cornerX = fx2 - pad
