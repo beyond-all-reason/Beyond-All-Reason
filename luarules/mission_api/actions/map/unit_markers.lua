@@ -15,7 +15,7 @@ local function matchingUnits(unitName, unitDefName, teamID)
 			candidates[#candidates + 1] = unitID
 		end
 	elseif teamID then
-		candidates = unitDefID and Spring.GetTeamUnitsByDefs(teamID, unitDefID) or Spring.GetTeamUnits(teamID)
+		candidates = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
 	elseif unitDefID then
 		candidates = {}
 		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do

@@ -52,7 +52,7 @@ describe("mission_api.actions.unit_markers", function()
 			unitDefName = "UnitDefName",
 			teamID = "TeamID",
 			markerType = "String",
-			requiresOneOf = { "unitName", "unitDefName", "teamID" },
+			requiresOneOf = { "unitName", "unitDefName" },
 		}, summarizeSchema(addAction))
 	end)
 
@@ -95,12 +95,7 @@ describe("mission_api.actions.unit_markers", function()
 			assert.are.same({ { unitID = 11, markerType = "objective" } }, added)
 		end)
 
-		it("takes a whole team when only a team is given", function()
-			addAction.actionFunction(nil, nil, 0, "objective")
-			assert.are.same({ { unitID = 11, markerType = "objective" } }, added)
-		end)
-
-		it("takes a team's units of one definition", function()
+		it("takes a team's units of one definition; this is the only way a team is passed(?)", function()
 			addAction.actionFunction(nil, "armwar", 0, "objective")
 			assert.are.same({ { unitID = 11, markerType = "objective" } }, added)
 		end)

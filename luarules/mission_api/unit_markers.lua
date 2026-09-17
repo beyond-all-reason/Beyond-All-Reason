@@ -1,4 +1,3 @@
----
 local SYNC_ACTION = "MissionUnitMarkers"
 
 ---@param unitID UnitID
@@ -6,22 +5,11 @@ local function publishUnitMarkers(unitID)
 	local markers = GG["MissionAPI"].unitMarkers[unitID]
 
 	local markerTypes = {}
-	if markers then
-		for i = 1, #markers do
-			markerTypes[i] = markers[i].markerType or ""
-		end
+	for i = 1, #(markers or {}) do
+		markerTypes[i] = markers[i].markerType or ""
 	end
 
-	local mirror = _G.unitMarkers
-	if not mirror then
-		mirror = {}
-		_G.unitMarkers = mirror ---@diagnostic disable-line: global-in-non-module
-	end
-	mirror[unitID] = markers and markerTypes or nil
-
-	-- The count travels on its own because one untyped marker joins to the empty string, which is
-	-- otherwise indistinguishable from a unit that carries nothing.
-	SendToUnsynced(SYNC_ACTION, unitID, #markerTypes, table.concat(markerTypes, "\t"))
+	SendToUnsynced(SYNC_ACTION, unitID, markerTypes)
 end
 
 local function getUnitMarkers(unitID)

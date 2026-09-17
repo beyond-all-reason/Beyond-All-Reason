@@ -21,11 +21,9 @@ describe("mission_api.unit_markers", function()
 		missionApi = Builders.MissionApi.new():Install()
 		missionApi.unitMarkers = {}
 		_G.Spring = Builders.Spring.new():Build() ---@diagnostic disable-line: global-in-non-module
-		_G.unitMarkers = {} ---@diagnostic disable-line: global-in-non-module
-
 		sentMessages = {}
-		_G.SendToUnsynced = function(action, unitID, count, types) ---@diagnostic disable-line: global-in-non-module
-			sentMessages[#sentMessages + 1] = { action = action, unitID = unitID, count = count, types = types }
+		_G.SendToUnsynced = function(action, unitID, markerTypes) ---@diagnostic disable-line: global-in-non-module
+			sentMessages[#sentMessages + 1] = { action = action, unitID = unitID, markerTypes = markerTypes }
 		end
 	end)
 
@@ -57,20 +55,9 @@ describe("mission_api.unit_markers", function()
 			assert.are.same({ "alert" }, markerTypesOf(2))
 		end)
 
-		it("mirrors the unit's types into the synced global", function()
-			unitMarkers.AddUnitMarker(1, "objective")
-			unitMarkers.AddUnitMarker(1, "alert")
-			assert.are.same({ "objective", "alert" }, _G.unitMarkers[1])
-		end)
-
-		it("mirrors an untyped marker as the empty string", function()
+		it("sends an untyped marker as the empty string, which keeps the array dense", function()
 			unitMarkers.AddUnitMarker(1, nil)
-			assert.are.same({ "" }, _G.unitMarkers[1])
-		end)
-
-		it("counts an untyped marker, which joins to the same empty string as no markers", function()
-			unitMarkers.AddUnitMarker(1, nil)
-			assert.are.same({ action = "MissionUnitMarkers", unitID = 1, count = 1, types = "" }, sentMessages[1])
+			assert.are.same({ "" }, sentMessages[1].markerTypes)
 		end)
 
 		it("sends the unit's whole current set to unsynced", function()
@@ -78,11 +65,11 @@ describe("mission_api.unit_markers", function()
 			unitMarkers.AddUnitMarker(1, "alert")
 			assert.are.equal(2, #sentMessages)
 			assert.are.same(
-				{ action = "MissionUnitMarkers", unitID = 1, count = 1, types = "objective" },
+				{ action = "MissionUnitMarkers", unitID = 1, markerTypes = { "objective" } },
 				sentMessages[1]
 			)
 			assert.are.same(
-				{ action = "MissionUnitMarkers", unitID = 1, count = 2, types = "objective\talert" },
+				{ action = "MissionUnitMarkers", unitID = 1, markerTypes = { "objective", "alert" } },
 				sentMessages[2]
 			)
 		end)
@@ -103,25 +90,12 @@ describe("mission_api.unit_markers", function()
 			assert.is_nil(unitMarkers.GetUnitMarkers(1))
 		end)
 
-		it("mirrors what is left on the unit", function()
-			unitMarkers.AddUnitMarker(1, "objective")
-			unitMarkers.AddUnitMarker(1, "alert")
-			unitMarkers.RemoveUnitMarker(1, "objective")
-			assert.are.same({ "alert" }, _G.unitMarkers[1])
-		end)
-
-		it("clears the mirror when the unit keeps nothing", function()
-			unitMarkers.AddUnitMarker(1, "objective")
-			unitMarkers.RemoveUnitMarker(1, "objective")
-			assert.is_nil(_G.unitMarkers[1])
-		end)
-
 		it("sends what is left on the unit", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			unitMarkers.AddUnitMarker(1, "alert")
 			unitMarkers.RemoveUnitMarker(1, "objective")
 			assert.are.same(
-				{ action = "MissionUnitMarkers", unitID = 1, count = 1, types = "alert" },
+				{ action = "MissionUnitMarkers", unitID = 1, markerTypes = { "alert" } },
 				sentMessages[#sentMessages]
 			)
 		end)
@@ -130,7 +104,7 @@ describe("mission_api.unit_markers", function()
 			unitMarkers.AddUnitMarker(1, "objective")
 			unitMarkers.RemoveUnitMarker(1, nil)
 			assert.are.same(
-				{ action = "MissionUnitMarkers", unitID = 1, count = 0, types = "" },
+				{ action = "MissionUnitMarkers", unitID = 1, markerTypes = {} },
 				sentMessages[#sentMessages]
 			)
 		end)
@@ -138,7 +112,6 @@ describe("mission_api.unit_markers", function()
 		it("is a no-op for a unit with no markers", function()
 			unitMarkers.RemoveUnitMarker(99, nil)
 			assert.is_nil(unitMarkers.GetUnitMarkers(99))
-			assert.is_nil(_G.unitMarkers[99])
 			assert.are.equal(0, #sentMessages)
 		end)
 	end)
@@ -149,9 +122,8 @@ describe("mission_api.unit_markers", function()
 			unitMarkers.AddUnitMarker(1, "alert")
 			unitMarkers.RemoveUnitMarkers(1)
 			assert.is_nil(unitMarkers.GetUnitMarkers(1))
-			assert.is_nil(_G.unitMarkers[1])
 			assert.are.same(
-				{ action = "MissionUnitMarkers", unitID = 1, count = 0, types = "" },
+				{ action = "MissionUnitMarkers", unitID = 1, markerTypes = {} },
 				sentMessages[#sentMessages]
 			)
 		end)

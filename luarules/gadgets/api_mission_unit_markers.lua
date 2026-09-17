@@ -42,28 +42,8 @@ end)
 ---@type table<UnitID, string[]?>
 local markedUnits = {}
 
----@return string[]? markerTypes `nil` when the unit has no markers.
-local function parseMarkerTypes(count, payload)
-	if not count or count < 1 then
-		return nil
-	end
-
-	local markerTypes = {}
-	local from = 1
-	for _ = 1, count - 1 do
-		local separator = string.find(payload, "\t", from, true)
-		if not separator then
-			break
-		end
-		markerTypes[#markerTypes + 1] = string.sub(payload, from, separator - 1)
-		from = separator + 1
-	end
-	markerTypes[#markerTypes + 1] = string.sub(payload, from)
-	return markerTypes
-end
-
-local function handleUnitMarkers(_, unitID, count, payload)
-	markedUnits[unitID] = parseMarkerTypes(count, payload)
+local function handleUnitMarkers(_, unitID, markerTypes)
+	markedUnits[unitID] = #markerTypes > 0 and markerTypes or nil
 end
 
 local function drawUnitMarkers(x, y, z, count)
@@ -75,17 +55,6 @@ local function drawUnitMarkers(x, y, z, count)
 end
 
 function gadget:Initialize()
-	local mirror = SYNCED.unitMarkers -- copied on access, so access once
-	if mirror then
-		for unitID, markerTypes in pairs(mirror) do
-			local copy = {}
-			for i = 1, #markerTypes do
-				copy[i] = markerTypes[i]
-			end
-			markedUnits[unitID] = copy
-		end
-	end
-
 	gadgetHandler:AddSyncAction(SYNC_ACTION, handleUnitMarkers)
 end
 
