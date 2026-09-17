@@ -1,10 +1,6 @@
--- A private global environment for code under test.
---
--- Game code reads the engine off globals, so a spec that stubs one by writing
--- Spring.GetFoo changes it for every spec file that runs after it. Instead the
--- spec builds an env here, the chunk runs with that env as its globals, and
--- nothing it does is visible outside. Nested VFS.Include calls inherit the same
--- env, so a module's dependencies cannot reach the real globals either.
+-- Builds the globals a module under test runs with, so a spec can stub Spring or VFS
+-- without touching the real ones. Nested VFS.Include calls inherit the same env, so the
+-- module's own dependencies load into it too.
 
 local CHAINED = {
 	Spring = true,

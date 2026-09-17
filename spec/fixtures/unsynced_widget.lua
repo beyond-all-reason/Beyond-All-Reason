@@ -1,6 +1,5 @@
--- A minimal widget for exercising SpringUnsyncedBuilder. It records what the
--- sandbox exposed to it, then reads and writes through the standard widget
--- surface so the builder's capture hooks have something to catch.
+-- A minimal widget for spring_unsynced_builder_spec. Records the globals the env gave
+-- it, and calls the Spring functions the builder's capture hooks replace.
 
 ---@diagnostic disable: undefined-global
 

@@ -1,8 +1,7 @@
--- Per-prefix sequence counters for builders.
+-- Per-prefix counters behind the builders' generated IDs.
 --
--- Counters live for one VFS.Include of this file, which the spec helper re-runs
--- per include, so each spec file gets its own numbering and IDs do not depend on
--- how many teams the files before it built.
+-- The spec helper's VFS.Include re-runs this file on every include, so a spec file gets
+-- its own counters rather than picking up where the file before it stopped.
 
 local M = {}
 

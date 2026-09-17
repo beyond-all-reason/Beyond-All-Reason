@@ -94,9 +94,9 @@ _G.unpack = _G.unpack
 		return t[i], _G.unpack(t, i + 1, j)
 	end
 
--- Pure caches, so they are shared on purpose: the file listing shells out to find
--- over the whole repo, and re-reading every included file per spec file costs more
--- than the specs do. They live here rather than on VFS so nothing can reach them.
+-- Not fields on VFS, because the sealing at the end of this file would reject the
+-- writes. Neither depends on which spec file is running: one is the repo's file list,
+-- the other the text of each file read so far.
 local fileCache
 local sources = {}
 

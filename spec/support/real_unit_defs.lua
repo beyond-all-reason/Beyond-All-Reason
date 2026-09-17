@@ -1,15 +1,9 @@
--- The real BAR unit defs, parsed once per set of modoptions.
+-- Runs gamedata/unitdefs.lua, the loader the engine itself uses, so specs can assert
+-- against the real unit defs. Kept per set of modoptions, which the def files read as
+-- they load.
 --
--- Parsing every def costs about a third of a second, so this is deliberately
--- shared across spec files -- hence require, not VFS.Include. What is not shared
--- is the environment it parses in: gamedata/unitdefs.lua and the ~2000 files it
--- pulls in read the engine off globals and write a few of their own, and all of
--- that lands in a private env here rather than in the globals the next spec file
--- will see.
---
--- Each caller gets its own index over the same def tables, so adding or dropping
--- a def is local to the caller. The def tables themselves stay shared, because
--- copying two thousand of them per spec file would cost more than the parse.
+-- The loader and the def files under units/ write globals as they go. Here that lands
+-- in a private environment, not the globals the next spec file sees.
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
@@ -72,8 +66,8 @@ local function getUnitDefRequireModoptionDefaults()
 	}
 end
 
--- gamedata/system.lua builds the environment each def file runs in, off engine
--- state we do not have. These are the parts the def files actually reach for.
+-- The engine ships gamedata/system.lua; the repo does not. unitdefs.lua puts it behind
+-- the environment every def file runs in, and unitdefs_post calls its lowerkeys.
 local function systemStub(env)
 	return {
 		lowerkeys = function(t)
@@ -217,6 +211,7 @@ function RealUnitDefs.byName(modOptions)
 		parsed[key] = parse(modOptions)
 	end
 
+	-- A copy, so a caller adding or dropping a def does not change what the next one gets.
 	local byName = {}
 	for name, def in pairs(parsed[key]) do
 		byName[name] = def
