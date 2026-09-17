@@ -56,12 +56,6 @@ local BUCKETS = { "army", "air", "sea", "defense", "strategic", "factories", "bu
 -- or every time when `every` is set. The unit that reached it is stored with it.
 local MILESTONES = {
 	{
-		key = "factory",
-		built = function(ud)
-			return ud.isFactory
-		end,
-	},
-	{
 		key = "tech2",
 		built = function(ud)
 			return (tonumber(ud.customParams.techlevel) or 1) == 2
@@ -129,6 +123,7 @@ local SAMPLED = {
 	"teamKillValue",
 	"comKills",
 	"comLost",
+	"actionsPerMinute",
 }
 local countKey, valueKey = {}, {}
 for i = 1, #BUCKETS do
@@ -377,6 +372,9 @@ local function readLive(teamID, out)
 	out.energyStorage = storage or 0
 	out.convCapacity = spGetTeamRulesParam(teamID, "mmCapacity") or 0
 	out.convUse = spGetTeamRulesParam(teamID, "mmUse") or 0
+	-- The APM broadcast gadget's last figure for the team, so the rate has a history.
+	local apm = GG.teamAPM
+	out.actionsPerMinute = apm and apm[teamID] or 0
 	---@type number
 	local active = 0
 	for unitID, buildSpeed in pairs(builders[teamID]) do
@@ -612,12 +610,13 @@ local function GetTeamStatsInfo()
 	}
 end
 
--- For other unsynced gadgets, as globals.
+-- For other unsynced gadgets, through the shared table: GG.TeamStats.GetLive(teamID),
+-- GetHistory(teamID, from), GetMilestones(teamID), GetInfo(). The same gate applies.
 local exports = {
-	GetTeamStatsLive = GetTeamStatsLive,
-	GetTeamStatsHistory = GetTeamStatsHistory,
-	GetTeamStatsMilestones = GetTeamStatsMilestones,
-	GetTeamStatsInfo = GetTeamStatsInfo,
+	GetLive = GetTeamStatsLive,
+	GetHistory = GetTeamStatsHistory,
+	GetMilestones = GetTeamStatsMilestones,
+	GetInfo = GetTeamStatsInfo,
 }
 
 ----------------------------------------------------------------
@@ -629,15 +628,20 @@ local exports = {
 ---@diagnostic disable-next-line: undefined-global
 local Script = Script
 
--- A widget takes part by registering globals: `TeamStatsLive(all, frame)` is handed
--- the live values of every team the viewer may see, keyed by team, every LIVE_PERIOD
--- frames for as long as it is registered; `TeamStatsHistoryRequest()` returning
--- { [teamID] = fromIndex } is answered through `TeamStatsHistory(teamID, history)`
--- with the samples from that index on (see GetTeamStatsHistory for the shape), so a
--- caller holding the first n samples asks for what came after them.
+-- LuaUI takes part by registering globals (luaui/Widgets/api_teamstats.lua holds them
+-- for every widget): `TeamStatsLive(all, frame)` is handed the live values of every
+-- team the viewer may see, keyed by team, every LIVE_PERIOD frames for as long as it is
+-- registered; `TeamStatsInfo(info)` is handed the layout while it is registered;
+-- `TeamStatsHistoryRequest()` returning { [teamID] = fromIndex } is answered through
+-- `TeamStatsHistory(teamID, history)` with the samples from that index on (see
+-- GetTeamStatsHistory for the shape), so a caller holding the first n samples asks for
+-- what came after them.
 local function serveLuaUI(frame)
 	if Script.LuaUI("TeamStatsLive") then
 		Script.LuaUI.TeamStatsLive(GetTeamStatsLive(), frame)
+	end
+	if Script.LuaUI("TeamStatsInfo") then
+		Script.LuaUI.TeamStatsInfo(GetTeamStatsInfo())
 	end
 	if Script.LuaUI("TeamStatsHistoryRequest") and Script.LuaUI("TeamStatsHistory") then
 		local wanted = Script.LuaUI.TeamStatsHistoryRequest()
@@ -683,13 +687,9 @@ function gadget:Initialize()
 		---@cast unitDefID -?
 		unitCreated(unitID, unitDefID, Spring.GetUnitTeam(unitID))
 	end
-	for name, fn in pairs(exports) do
-		gadgetHandler:RegisterGlobal(name, fn)
-	end
+	GG.TeamStats = exports
 end
 
 function gadget:Shutdown()
-	for name in pairs(exports) do
-		gadgetHandler:DeregisterGlobal(name)
-	end
+	GG.TeamStats = nil
 end
