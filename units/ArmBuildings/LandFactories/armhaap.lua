@@ -2,8 +2,9 @@ return {
 	armhaap = {
 		builder = true,
 		buildpic = "ARMAAP.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
 		collisionvolumetype = "Box",
@@ -14,14 +15,12 @@ return {
 		footprintx = 15,
 		footprintz = 15,
 		health = 16000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
+		maxwaterdepth = 0,
 		metalcost = 4600,
 		metalstorage = 800,
-		maxwaterdepth = 0,
 		objectname = "Units/ARMHAAP.s3o",
 		radardistance = 750,
 		radaremitheight = 50,
@@ -45,6 +44,7 @@ return {
 			[10] = "armstil",
 		},
 		customparams = {
+			airfactory = true,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 16,
 			buildinggrounddecalsizey = 16,
@@ -88,11 +88,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

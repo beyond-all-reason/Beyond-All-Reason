@@ -8,12 +8,31 @@
 --  Copyright (C) 2008.
 --  Licensed under the terms of the GNU GPL, v2 or later.
 --
+
+local system = VFS.Include("gamedata/system.lua")
+
+local mapFeatureProxies = VFS.Include("gamedata/map_feature_i18n_proxies.lua")
+
+local function normalizeFeatureDef(featureDef)
+	system.lowerkeys(featureDef)
+	table.ensureTable(featureDef, "customparams")
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
+--  Process existing featureDefs
+--
+
+for featureDefName, featureDef in pairs(FeatureDefs) do
+	normalizeFeatureDef(featureDef)
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
 --  Per-unitDef featureDefs
 --
-local mapFeatureProxies = VFS.Include('gamedata/map_feature_i18n_proxies.lua')
 
 local function processUnitDef(unitDefName, unitDef)
 	local features = unitDef.featuredefs
@@ -23,9 +42,9 @@ local function processUnitDef(unitDefName, unitDef)
 
 	-- add this unitDef's featureDefs
 	for featureDefName, featureDef in pairs(features) do
-		local fullName = unitDefName .. '_' .. featureDefName
+		local fullName = unitDefName .. "_" .. featureDefName
 		FeatureDefs[fullName] = featureDef
-		featureDef.customparams = featureDef.customparams or {}
+		normalizeFeatureDef(featureDef)
 		featureDef.customparams.fromunit = unitDefName
 		featureDef.customparams.category = featureDef.category
 	end
@@ -33,8 +52,8 @@ local function processUnitDef(unitDefName, unitDef)
 	-- FeatureDead name changes
 	for featureDefName, featureDef in pairs(features) do
 		if featureDef.featuredead then
-			local fullName = unitDefName .. '_' .. featureDef.featuredead:lower()
-			if (FeatureDefs[fullName]) then
+			local fullName = unitDefName .. "_" .. featureDef.featuredead:lower()
+			if FeatureDefs[fullName] then
 				featureDef.featuredead = fullName
 			end
 		end
@@ -42,9 +61,9 @@ local function processUnitDef(unitDefName, unitDef)
 
 	-- convert the unit corpse name
 	if unitDef.corpse then
-		local fullName = unitDefName .. '_' .. unitDef.corpse:lower()
+		local fullName = unitDefName .. "_" .. unitDef.corpse:lower()
 		local corpseFeatureDef = FeatureDefs[fullName]
-		if (corpseFeatureDef) then
+		if corpseFeatureDef then
 			unitDef.corpse = fullName
 		end
 	end
@@ -84,8 +103,7 @@ local function isModelOK(featureDef)
 	end
 
 	-- explicitly specified to use a model, but doesn't provide one (gigachad.jpg)
-	if featureDef.drawtype == 0
-	and not specifiesModel then
+	if featureDef.drawtype == 0 and not specifiesModel then
 		return false
 	end
 
@@ -95,14 +113,21 @@ local function isModelOK(featureDef)
 	end
 
 	local modelPath = "objects3d/" .. featureDef.object
-	return VFS.FileExists(modelPath          , VFS.ZIP)
-	    or VFS.FileExists(modelPath .. ".3do", VFS.ZIP)
-	    or VFS.FileExists(modelPath .. ".s3o", VFS.ZIP)
+	return VFS.FileExists(modelPath, VFS.ZIP)
+		or VFS.FileExists(modelPath .. ".3do", VFS.ZIP)
+		or VFS.FileExists(modelPath .. ".s3o", VFS.ZIP)
 end
 
 for name, def in pairs(FeatureDefs) do
 	if not isModelOK(def) then
-		Spring.Log("featuredefs_post.lua", LOG.WARNING, "Removing feature def", name, "for having invalid model that would crash the engine", def.object)
+		Spring.Log(
+			"featuredefs_post.lua",
+			LOG.WARNING,
+			"Removing feature def",
+			name,
+			"for having invalid model that would crash the engine",
+			def.object
+		)
 		FeatureDefs[name] = nil
 	end
 end

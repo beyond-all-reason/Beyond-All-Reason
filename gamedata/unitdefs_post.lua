@@ -1,8 +1,10 @@
 -- see alldefs.lua for documentation
-VFS.Include("gamedata/unitdefrenames.lua")
-VFS.Include("gamedata/alldefs_post.lua")
-VFS.Include("gamedata/post_save_to_customparams.lua")
 local system = VFS.Include("gamedata/system.lua")
+local alldefs = VFS.Include("gamedata/alldefs_post.lua")
+local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+
+local unitDef_Post = alldefs.UnitDef_Post
+local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 
 local scavengersEnabled = false
 if Spring.GetTeamList then
@@ -16,15 +18,29 @@ if Spring.GetTeamList then
 end
 
 local modOptions = Spring.GetModOptions()
-if modOptions.ruins == "enabled" or modOptions.forceallunits == true or modOptions.zombies ~= "disabled" or (GG and GG.Zombies and GG.Zombies.IdleMode == true) then
+if
+	modOptions.ruins == "enabled"
+	or modOptions.forceallunits == true
+	or modOptions.zombies ~= "disabled"
+	or (GG and GG.Zombies and GG.Zombies.IdleMode == true)
+then
 	scavengersEnabled = true
 end
 
 local regularUnitDefs = {}
 local scavengerUnitDefs = {}
 
+local function normalizeUnitDef(unitDef)
+	system.lowerkeys(unitDef)
+	table.ensureTable(unitDef, "customparams")
+	table.ensureTable(unitDef, "buildoptions")
+	table.ensureTable(unitDef, "weapondefs")
+	table.ensureTable(unitDef, "weapons")
+end
+
 for name, unitDef in pairs(UnitDefs) do
 	regularUnitDefs[name] = unitDef
+	normalizeUnitDef(unitDef)
 end
 
 local function getFilePath(filename, path)
@@ -49,11 +65,14 @@ local function bakeUnitDefs()
 		-- usable when baking ... keeping subfolder structure
 		local filepath = getFilePath(name .. ".lua", "units/")
 		if filepath then
-			if not unitDef.customparams.subfolder or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder) then
-				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1)		-- not that this always gets to be lowercase despite whatever it is in the repo
+			if
+				not unitDef.customparams.subfolder
+				or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder)
+			then
+				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1) -- not that this always gets to be lowercase despite whatever it is in the repo
 			end
 		end
-		SaveDefToCustomParams("UnitDefs", name, unitDef)
+		saveDefToCustomParams("UnitDefs", name, unitDef)
 	end
 end
 
@@ -85,7 +104,6 @@ local function tableMergeSpecial(t1, t2)
 
 	return newTable
 end
-
 
 local function getDimensions(scale)
 	if not scale then
@@ -210,10 +228,58 @@ local function createScavengerUnitDefs()
 	end
 end
 
+-- A tweak that fails is only reported here, in the defs environment, which has no way to
+-- reach LuaUI except through the defs it produces. Each failure is stashed on the
+-- commander defs - the ones present in every game - so the game info panel can say a tweak
+-- was not applied rather than listing it as a setting that took effect.
+local tweakFailures = {}
+local tweakErrorCarriers = { "armcom", "corcom", "legcom" }
+
+local function recordTweakFailure(name, message)
+	-- Tab between the option and its message, newline between records: a Lua error message
+	-- carries neither, so the panel can split them apart again.
+	tweakFailures[#tweakFailures + 1] = name .. "\t" .. (string.gsub(tostring(message), "%s+", " "))
+end
+
+local function publishTweakFailures()
+	if #tweakFailures == 0 then
+		return
+	end
+
+	local text = table.concat(tweakFailures, "\n")
+	for _, name in ipairs(tweakErrorCarriers) do
+		local unitDef = UnitDefs[name]
+		if unitDef then
+			unitDef.customparams = unitDef.customparams or {}
+			unitDef.customparams.tweak_errors = text
+		end
+	end
+end
+
+-- What a tweakunits overwrote, so the game info panel can say what a value used to be
+-- rather than only what it is now. This is the one case where the before is knowable
+-- cheaply: the tweak is a table, so the paths it sets are the paths to read first.
+--
+-- It rides on the unit's own customparams because that is where per-unit data belongs and
+-- because the defs are the only thing this environment can hand to LuaUI at all.
+local function recordOverwritten(unitDef, tweak, path, out)
+	for key, value in pairs(tweak) do
+		local here = path == "" and tostring(key) or (path .. "." .. tostring(key))
+		local current = unitDef and unitDef[key]
+		if type(value) == "table" then
+			-- A path that opens a sub-table is not a value anyone set; its leaves are.
+			recordOverwritten(type(current) == "table" and current or nil, value, here, out)
+		elseif type(current) ~= "table" then
+			-- Empty means there was nothing there before, which the panel reads as new.
+			out[#out + 1] = here .. "\t" .. (current == nil and "" or tostring(current))
+		end
+	end
+end
+
 local function preProcessTweakOptions()
 	local modOptions = {}
-	if Spring.GetModOptionsCopy then
-		modOptions = Spring.GetModOptionsCopy()
+	if BAR.GetModOptionsCopy then
+		modOptions = BAR.GetModOptionsCopy()
 	end
 
 	--------------------------------------------------------------------------------
@@ -225,64 +291,91 @@ local function preProcessTweakOptions()
 	for name, value in pairs(modOptions) do
 		local tweakType = name:match("^tweak([a-z]+)%d*$")
 		local index = tonumber(name:match("^tweak[a-z]+(%d*)$")) or 0
-		if (tweakType == 'defs' or tweakType == 'units') and index then
-			table.insert(tweaks, {name = name, type = tweakType, index = index, value = value})
+		if (tweakType == "defs" or tweakType == "units") and index then
+			table.insert(tweaks, { name = name, type = tweakType, index = index, value = value })
 		end
 	end
 
 	table.sort(tweaks, function(a, b)
+		-- Ensure that tweakunits are processed before tweakdefs
+		-- This allows fine-tuning of tweaks using extended capabilities of tweakdefs
 		if a.type == 'defs' and b.type == 'units' then
-			return true
-		elseif a.type == 'units' and b.type == 'defs' then
 			return false
+		elseif a.type == 'units' and b.type == 'defs' then
+			return true
 		end
 		return a.index < b.index
 	end)
 
+	local shouldNormalizeUnitDefs = false
+
 	for i = 1, #tweaks do
 		local tweak = tweaks[i]
 		local name = tweak.name
-		if tweak.type == 'defs' then
+		if tweak.type == "defs" then
 			local decodeSuccess, postsFuncStr = pcall(string.base64Decode, modOptions[name])
 			if decodeSuccess then
 				local postfunc, err = loadstring(postsFuncStr)
 				if err then
 					Spring.Echo("Error parsing modoption", name, "from string", postsFuncStr, "Error: " .. err)
+					recordTweakFailure(name, err)
 				else
-					Spring.Echo("Loading ".. name .. " modoption")
+					Spring.Echo("Loading " .. name .. " modoption")
 					Spring.Echo(postsFuncStr)
 					if postfunc then
 						local success, result = pcall(postfunc)
-						if not success then
+						if success then
+							shouldNormalizeUnitDefs = true -- tweakdefs can add or denormalize units
+						else
 							Spring.Echo("Error executing tweakdef", name, postsFuncStr, "Error :" .. result)
+							recordTweakFailure(name, result)
 						end
 					end
 				end
 			else
 				Spring.Echo("Error parsing and decoding tweakdef", name, modOptions[name], "Error :" .. postsFuncStr)
+				recordTweakFailure(name, postsFuncStr)
 			end
 		else
-			local success, tweakunits = pcall(Spring.Utilities.CustomKeyToUsefulTable, modOptions[name])
+			local success, tweakunits = pcall(BAR.Utilities.CustomKeyToUsefulTable, modOptions[name])
 			if success then
 				if type(tweakunits) == "table" then
-					Spring.Echo("Loading ".. name .. " modoption")
+					Spring.Echo("Loading " .. name .. " modoption")
 					for unitName, ud in pairs(UnitDefs) do
 						if tweakunits[unitName] then
 							Spring.Echo("Loading tweakunits for " .. unitName)
-							table.mergeInPlace(ud, system.lowerkeys(tweakunits[unitName]), true)
+							local lowered = system.lowerkeys(tweakunits[unitName])
+							local overwritten = {}
+							recordOverwritten(ud, lowered, "", overwritten)
+							table.mergeInPlace(ud, lowered, true)
+							normalizeUnitDef(ud) -- tweakunits can set required tables to nil
+							if #overwritten > 0 then
+								-- Appended, not replaced: a later slot can set a path an earlier one
+								-- already did, and the first record is the one that predates them all.
+								local was = ud.customparams.tweaked_from
+								ud.customparams.tweaked_from = (was and was .. "\n" or "")
+									.. table.concat(overwritten, "\n")
+							end
 						end
 					end
 				end
 			else
 				Spring.Echo("Failed to parse modoption", name, "with value", modOptions[name])
+				recordTweakFailure(name, tweakunits)
 			end
+		end
+	end
+
+	if shouldNormalizeUnitDefs then
+		for _, unitDef in pairs(UnitDefs) do
+			normalizeUnitDef(unitDef)
 		end
 	end
 end
 
 local function postProcessAllUnitDefs()
 	for name, unitDef in pairs(UnitDefs) do
-		UnitDef_Post(name, unitDef)
+		unitDef_Post(name, unitDef)
 	end
 end
 
@@ -297,15 +390,22 @@ local function postProcessScavengerUnitDefs()
 	end
 end
 
+local function exportYardmaps()
+	for _, unitDef in pairs(UnitDefs) do
+		if unitDef.yardmap then
+			unitDef.customparams.buildsquare_yardmap = unitDef.yardmap
+		end
+	end
+end
+
 --------------------------------------------------------------
 -- UnitDef processing
 --------------------------------------------------------------
 
-PrebakeUnitDefs()
+alldefs.PrebakeUnitDefs()
 if SaveDefsToCustomParams then
 	bakeUnitDefs()
 end
-
 
 preProcessTweakOptions()
 preProcessUnitDefs()
@@ -315,3 +415,5 @@ end
 postProcessAllUnitDefs()
 postProcessRegularUnitDefs()
 postProcessScavengerUnitDefs()
+exportYardmaps()
+publishTweakFailures()

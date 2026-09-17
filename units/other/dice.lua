@@ -19,7 +19,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-		idleautoheal = 0,
 		mass = 50,
 		health = 560000,
 		maxslope = 64,
@@ -36,7 +35,6 @@ return {
 		sonarstealth = true,
 		stealth = true,
 		usebuildinggrounddecal = false,
-		yardmap = "f",
 		customparams = {
 			nohealthbars = true,
 			subfolder = "other",

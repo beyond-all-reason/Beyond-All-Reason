@@ -5,7 +5,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "ARMDECOM.DDS",
-		buildtime = 24000,
+		buildtime = 30000,
 		cancapture = true,
 		candgun = true,
 		canmove = true,
@@ -26,8 +26,7 @@ return {
 		health = 3700,
 		hidedamage = true,
 		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
+		mass = 2700, -- same as armcom's default mass (= metalcost)
 		maxacc = 0.18,
 		maxdec = 1.125,
 		maxslope = 20,
@@ -73,11 +72,14 @@ return {
 			[16] = "armfmkr",
 		},
 		customparams = {
+			canwearcosmetics = true,
 			decoyfor = "armcom",
+			firestateoncloak = 0,
 			isdecoycommander = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",
@@ -87,11 +89,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -138,7 +135,7 @@ return {
 				impactonly = 1,
 				impulsefactor = 0,
 				laserflaresize = 5.5,
-				name = "Ligth close-quarters g2g laser",
+				name = "Light close-quarters g2g laser",
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 0.4,
@@ -152,6 +149,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 75,
 					subs = 5,
@@ -190,6 +190,9 @@ return {
 				waterweapon = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 62.5,
 					subs = 18.75,
@@ -226,6 +229,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 40,
 				},

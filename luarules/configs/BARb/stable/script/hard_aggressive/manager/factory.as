@@ -146,7 +146,7 @@ CCircuitDef@ AiGetFactoryToBuild(const AIFloat3& in pos, bool isStart, bool isRe
 
 float MakeSwitchLimit()
 {
-	return AiRandom(16000, 30000) * SECOND;
+	return AiRandom(8000, 12000) * SECOND;
 }
 
 }  // namespace Factory

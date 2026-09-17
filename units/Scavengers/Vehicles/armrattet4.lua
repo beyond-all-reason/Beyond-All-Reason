@@ -14,8 +14,6 @@ return {
 		explodeas = "bantha",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		mass = 1000000,
 		health = 83000,
@@ -38,7 +36,7 @@ return {
 		turninplacespeedlimit = 1,
 		turnrate = 150,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-large",
 			kickback = "-0.4",
@@ -47,8 +45,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
 			techlevel = 3,
-			weapon1turretx = 45,
-			weapon1turrety = 80,
 		},
 		featuredefs = {
 			dead = {
@@ -70,10 +66,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 				[2] = "custom:DUST_CLOUD_HUGE",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -127,6 +119,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 45,
+					turretspeedy = 80,
+				},
 				damage = {
 					commanders = 400,
 					default = 1200,

@@ -8,6 +8,10 @@
 
 //__DEFINES__
 
+#ifndef MASKPASS
+	#define MASKPASS 0 // 1: coverage mask pass, see gui_attackrange_gl4.lua
+#endif
+
 layout (location = 0) in vec4 circlepointposition; // x,y in range [-1,1], progress in range [0,1]
 layout (location = 1) in vec4 posscale; // abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 layout (location = 2) in vec4 color1; // Base color for the circle
@@ -21,6 +25,7 @@ uniform float cannonmode = 0.0;
 uniform float fadeDistOffset = 0.0;
 uniform float inMiniMap = 0.0;
 uniform int rotationMiniMap = 0;
+uniform vec4 pipVisibleArea = vec4(0.0, 1.0, 0.0, 1.0); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
 
 
 uniform float selUnitCount = 1.0;
@@ -28,6 +33,9 @@ uniform float selBuilderCount = 1.0;
 uniform float drawAlpha = 1.0;
 uniform float drawMode = 0.0;
 uniform float staticUnits = 0.0; // 1 if static units, 0 if dynamic units
+#if (MASKPASS == 1)
+	uniform float maskDepthBase = 0.1; // depth band of the class being drawn into the coverage mask
+#endif
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -241,7 +249,7 @@ void main() {
 		//unitHeading is -pi to +pi, with zero on z+, and increasing towards x+
 		//circleheading is -pi to +pi, with zero z-, and increasing towards x+ 
 		
-		// rotate the circle into unit space, wierd that it has to be rotated on other direction
+		// rotate the circle into unit space, weird that it has to be rotated on other direction
 		if (MAXANGLEDIF > 0.0) {
 			maxAngleDif = fract(MAXANGLEDIF);// goes from 0.0 to 1.0, where 0.25 would mean a 90 deg cone
 			mainDirDegrees = MAXANGLEDIF - maxAngleDif;// Is the offset in degrees. 
@@ -347,7 +355,7 @@ void main() {
 
 	
 	// -- HANDLE MAXANGLEDIFF
-	// If the unit cant fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
+	// If the unit can't fire in that direction due to maxanglediff constraints, then put the point back to modelWorldPos
 	// Also, dont 
 	// convert current circleprogress to relative heading:
 	float relheadingradians = abs(((circleprogress.w - 0.5)) * 2);
@@ -379,7 +387,7 @@ void main() {
 	float disttomousefromunit = 1.0 - smoothstep(48, 64, length(modelWorldPos.xz - mouseWorldPos.xz));
 	// this will be positive if in mouse, negative else
 	float highlightme = clamp( (disttomousefromunit ) + 0.0, 0.0, 1.0) * MOUSEOVERALPHAMULTIPLIER;
-	// Note that this doesnt really work well with boundary-only stenciling, due to random draw order. 
+	// Note that this doesn't really work well with boundary-only stenciling, due to random draw order. 
 	MOUSEALPHA = (0.1  + 0.5 * step(0.5,drawMode)) * highlightme;
 
 
@@ -449,14 +457,56 @@ void main() {
 		gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 		//pull 16 elmos forward in Z:
 		gl_Position.z = (gl_Position.z) - 128.0 / (gl_Position.w); // send 16 elmos forward in Z
+		#if (MASKPASS == 1)
+			// Coverage mask pass: with GL_LESS against a cleared depth buffer the first disc drawn
+			// wins per pixel. Instances are drawn in order, so giving later instances a larger depth
+			// leaves the depth test a clear margin and lets the hierarchical depth test reject
+			// covered tiles outright instead of testing every fragment. maskDepthBase separates
+			// classes that share a mask channel.
+			// maskDepth stays within [0, 1): valid with zero-to-one clip control (the engine's
+			// default) as well as with the classic [-1, 1] clip volume, and below the cleared 1.0.
+			float maskDepth = maskDepthBase + float(gl_InstanceID) * (1.0 / 4096.0);
+			gl_Position.z = maskDepth * gl_Position.w;
+		#endif
 	} else {
-		vec4 ndcxy = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
-		if (rotationMiniMap == 1) {
-			ndcxy.xy = vec2(-ndcxy.y, ndcxy.x);
-		}else if (rotationMiniMap == 2) {
-			ndcxy.xy = -ndcxy.xy;
-		}else if (rotationMiniMap == 3) {
-			ndcxy.xy = vec2(ndcxy.y, -ndcxy.x);
+		// Check if PIP mode (visible area not default)
+		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);
+		
+		vec4 ndcxy;
+		if (isPip) {
+			// For PIP: calculate screen position based on visible area
+			// Convert world position to normalized [0,1] map coords
+			vec2 normPos = circleWorldPos.xz / mapSize.xy;
+			
+			// Map from world [0,1] to screen position based on visible area
+			vec2 screenPos;
+			screenPos.x = (normPos.x - pipVisibleArea.x) / (pipVisibleArea.y - pipVisibleArea.x);
+			// Flip Y: world Z in [visB, visT] -> screen Y flipped
+			screenPos.y = 1.0 - (normPos.y - pipVisibleArea.z) / (pipVisibleArea.w - pipVisibleArea.z);
+			
+			// Apply rotation
+			if (rotationMiniMap == 0) {
+				screenPos.y = 1.0 - screenPos.y;
+			} else if (rotationMiniMap == 1) {
+				screenPos.xy = screenPos.yx;
+			} else if (rotationMiniMap == 2) {
+				screenPos.x = 1.0 - screenPos.x;
+			} else if (rotationMiniMap == 3) {
+				screenPos.xy = vec2(1.0) - screenPos.yx;
+			}
+			
+			// Convert to NDC [-1,1]
+			ndcxy = vec4(screenPos * 2.0 - 1.0, 0.0, 1.0);
+		} else {
+			// Normal minimap mode - use engine matrix
+			ndcxy = mmDrawViewProj * vec4(circleWorldPos.xyz, 1.0);
+			if (rotationMiniMap == 1) {
+				ndcxy.xy = vec2(-ndcxy.y, ndcxy.x);
+			}else if (rotationMiniMap == 2) {
+				ndcxy.xy = -ndcxy.xy;
+			}else if (rotationMiniMap == 3) {
+				ndcxy.xy = vec2(ndcxy.y, -ndcxy.x);
+			}
 		}
 		gl_Position = ndcxy;
 	}

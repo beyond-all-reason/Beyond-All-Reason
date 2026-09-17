@@ -1,0 +1,67 @@
+---@class UnitScriptTable
+---@field CallAsUnit fun(unitID: UnitID, fn: function, ...: any): any
+---@field WaitForMove fun(pieceNum: integer, axis: integer)
+---@field WaitForTurn fun(pieceNum: integer, axis: integer)
+---@field WaitForScale fun(pieceNum: integer)
+---@field GetUnitCOBValue fun(unitID: UnitID, cobVal: integer, ...: any): integer
+---@field SetUnitCOBValue fun(unitID: UnitID, cobVal: integer, param: integer|boolean): nil
+---@field Sleep fun(ms: number)
+---@field StartThread fun(fn: function, ...: any)
+---@field SetSignalMask fun(mask: integer)
+---@field Signal fun(mask: integer)
+---@field Hide fun(pieceNum: integer)
+---@field Show fun(pieceNum: integer)
+---@field GetScriptEnv fun(unitID: UnitID): table
+---@field GetLongestReloadTime fun(unitID: UnitID): number
+
+-- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
+---@class ResourceData
+---@field resourceType ResourceName
+---@field current number
+---@field storage number
+---@field pull number
+---@field income number
+---@field expense number
+---@field shareSlider number
+---@field sent number
+---@field received number
+---@field excess number
+
+---@class TeamResourceData
+---@field allyTeam number
+---@field isDead boolean
+---@field metal ResourceData
+---@field energy ResourceData
+
+-- TODO: delete when recoil-lua-library publishes TeamData types
+---@class TeamData
+---@field id TeamID
+---@field name string
+---@field leader number
+---@field isDead boolean
+---@field isAI boolean
+---@field side string
+---@field allyTeam number
+
+---@class PlayerData
+---@field id PlayerID
+---@field name string
+---@field active boolean
+---@field spectator boolean
+---@field pingTime number
+---@field cpuUsage number
+---@field country string
+---@field rank number
+---@field hasSkirmishAIsInTeam boolean
+---@field playerOpts table
+---@field desynced boolean
+
+---@class UnitWrapper
+---@field unitDefId string
+---@field unitDef table?
+---@field [string] any
+
+--- BAR extends engine `ObjectRenderingTable` in `luarules/Utilities/unitrendering.lua`.
+---@class ObjectRenderingTable
+---@field ActivateMaterial fun(objectID: ObjectID, lod: integer)
+---@field DeactivateMaterial fun(objectID: ObjectID, lod: integer)

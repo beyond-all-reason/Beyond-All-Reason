@@ -2,7 +2,7 @@
 
 Place map specific lava configuration files here.
 
-Note the lava configuration can also be included inside the map pack in mapconfig/lava.lua (recommmended).
+Note the lava configuration can also be included inside the map pack in mapconfig/lava.lua (recommended).
 
 The mapconfig has precedence over game provided configuration, but overrideMap can be set to true inside the file here to make it have priority.
 

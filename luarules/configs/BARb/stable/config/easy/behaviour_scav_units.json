@@ -26,6 +26,10 @@
 				"role": ["static"],
 				"since": 1800
 			},
+			"legafust3": {
+				"role": ["static"],
+				"since": 1800
+			},
 			"legadveconvt3": {
 				"role": ["static"],
 				"since": 1800

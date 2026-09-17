@@ -2,7 +2,7 @@ return {
 	corvoyr = {
 		activatewhenbuilt = true,
 		buildpic = "CORVOYR.DDS",
-		buildtime = 3950,
+		buildtime = 5000,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
@@ -14,10 +14,8 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 390,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.05635,
-		maxdec = 0.05175,
+		maxdec = 0.2,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 99,
@@ -30,12 +28,13 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 925,
-		speed = 45,
+		speed = 38,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
 		turnrate = 670.45001,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots/T2",
@@ -76,11 +75,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

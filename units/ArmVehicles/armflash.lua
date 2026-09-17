@@ -1,19 +1,17 @@
 return {
 	armflash = {
 		buildpic = "ARMFLASH.DDS",
-		buildtime = 1960,
+		buildtime = 2000,
 		canmove = true,
-		collisionvolumeoffsets = "0 -3 0",
-		collisionvolumescales = "25 25 31",
+		collisionvolumeoffsets = "0 -1 0",
+		collisionvolumescales = "25 26 31",
 		collisionvolumetype = "Ellipsoid",
 		corpse = "DEAD",
 		energycost = 900,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 750,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 730,
 		leavetracks = true,
 		maxacc = 0.06788,
 		maxdec = 0.13575,
@@ -42,10 +40,9 @@ return {
 			kickback = "-2",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 6,
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 240,
-			weapon1turrety = 240,
 		},
 		featuredefs = {
 			dead = {
@@ -82,10 +79,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -120,6 +113,7 @@ return {
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:plasmahit-small",
+				flighttime = 0.4,
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
@@ -136,10 +130,14 @@ return {
 				turret = true,
 				weapontimer = 0.1,
 				weapontype = "Cannon",
-				weaponvelocity = 500,
+				weaponvelocity = 600,
+				customparams = {
+					turretspeedx = 240,
+					turretspeedy = 240,
+				},
 				damage = {
 					default = 9,
-					vtol = 3,
+					vtol = 2,
 				},
 			},
 		},

@@ -4,13 +4,14 @@ return {
 		activatewhenbuilt = true,
 		maxdec = 0.01722,
 		buildangle = 16384,
-		energycost = 13000,
-		metalcost = 1300,
+		energycost = 17000,
+		metalcost = 1700,
 		buildpic = "ARMDRONECARRY.DDS",
-		buildtime = 20000,
+		buildtime = 24000,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "3 -7 -3",
 		collisionvolumescales = "48 48 140",
 		collisionvolumetype = "CylZ",
@@ -22,8 +23,6 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 15,
-		idletime = 600,
 		sightemitheight = 56,
 		mass = 10000,
 		health = 3500,
@@ -51,7 +50,7 @@ return {
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
 			parentsinheritxp = "DRONE",
-			disable_when_no_air = true,
+			restrictions_inclusion = "_noair_",
 		},
 		featuredefs = {
 			dead = {
@@ -87,11 +86,6 @@ return {
 				[1] = "custom:radarpulse_t1_slow",
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -146,30 +140,34 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armdrone",     --Name of the unit spawned by this carrier unit.
-					engagementrange = 1300,
-					spawns_surface = "SEA",    	-- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 4, 				--Spawnrate roughly in seconds.
-					maxunits = 16,				--Will spawn units until this amount has been reached.
-					energycost = 600,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 25,				--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1400,		--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					carried_unit = "armdrone", --Name of the unit spawned by this carrier unit.
+					engagementrange = 1350,
+					spawns_surface = "SEA", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 4, --Spawnrate roughly in seconds.
+					maxunits = 16, --Will spawn units until this amount has been reached.
+					startingdronecount = 8,
+					energycost = 600, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 25, --Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1200, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 6,
-					attackformationspread = 120,--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
-					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
+					attackformationspread = 120, --Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
+					attackformationoffset = 30, --Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 24,
 					docktohealthreshold = 65,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27",
-					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 300, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 16,
 					stockpilemetal = 25,
 					stockpileenergy = 600,
 					dronesusestockpile = true,
-				}
+					dronedocktime = 2,
+					droneairtime = 60,
+					droneammo = 9,
+				},
 			},
 			aamissile = {
 				areaofeffect = 48,

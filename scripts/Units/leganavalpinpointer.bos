@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, armourPlating, core, leftAntenna, rightAntenna, targ1, targ2, targ3, targ4;
+piece  base, core, leftAntenna, rightAntenna, targ1, targ2, targ3, targ4;
 
 
 #define WATER_ROCK_UNITSIZE 12

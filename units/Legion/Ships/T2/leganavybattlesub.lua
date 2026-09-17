@@ -2,7 +2,7 @@ return {
 	leganavybattlesub = {
 		activatewhenbuilt = true,
 		buildpic = "leganavybattlesub.DDS",
-		buildtime = 19000,
+		buildtime = 25000,
 		canmove = true,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "40 26 64",
@@ -13,8 +13,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2350,
-		idleautoheal = 10,
-		idletime = 900,
 		maxacc = 0.0425,
 		maxdec = 0.0425,
 		metalcost = 1100,
@@ -36,7 +34,7 @@ return {
 		customparams = {
 			model_author = "Model by Tharsis, Concept by Chris/Airnac",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/Navy/T2",
+			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "sub",
 		},
@@ -77,11 +75,6 @@ return {
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -110,9 +103,9 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				burnblow = true,
-				burst = 3;
-				burstrate = 0.33;
-				cegtag = "torpedotrail-small",
+				burst = 3,
+				burstrate = 0.33,
+				cegtag = "torpedotrail-tiny",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -126,7 +119,6 @@ return {
 				range = 600,
 				reloadtime = 2.5,
 				soundhit = "xplodep1",
-				soundhitvolume = 18,
 				soundstart = "torpedo1",
 				startvelocity = 200,
 				tolerance = 9000,

@@ -10,9 +10,7 @@ static-var  isMoving, isAiming, gun_1, moveSpeed, currentSpeed, curHead1, curPit
 //#define DEBUG
 #include "../debug.h"
 
-// Note, removed old deprecated unitDefsTurretSpeeds.h 
-#define Weapon1TurretX <300>
-#define Weapon1TurretY <300>
+#include "../unitDefsTurretSpeeds.h";
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -1002,13 +1000,35 @@ ExecuteRestoreAfterDelay()
         return (1);
     }
 
-	turn aimy1 to y-axis <0> speed <300.0>;
-	turn aimx1 to x-axis <0> speed <300.0>;
-	curPitch1 = 0;
-	curHead1 = 0;
 	weaponReady = FALSE;
-    isAiming = 0;
 
+	// walk believed angles back in sync with the pieces (instant reset desyncs mid-restore aim)
+	set-signal-mask SIGNAL_AIM1;
+	var done;
+	var delta;
+	while (!done){
+		done = TRUE;
+		delta = WRAPDELTA(0 - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			done = FALSE;
+		}else{
+			curHead1 = 0;
+		}
+		delta = WRAPDELTA(0 - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			done = FALSE;
+		}else{
+			curPitch1 = 0;
+		}
+		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
+		if (!done) {
+			sleep 1;
+		}
+	}
+    isAiming = 0;
 }
 SetStunned(State)
 {
@@ -1037,38 +1057,44 @@ QueryWeapon1(pieceIndex)
 }
 
 AimWeapon1(heading, pitch)
-{	
+{
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 
 	var canShoot;
 	var delta;
-	
+	var nextHead;
+	var nextPitch;
+
 	while (!canShoot){
 		canShoot = TRUE;
 		delta = WRAPDELTA(heading - curHead1);
 		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
-			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			nextHead = WRAPDELTA(curHead1 + SIGN(delta) * (Weapon1TurretY / 30));
 			canShoot = FALSE;
 		}else{
-			curHead1 = heading;
+			nextHead = heading;
 		}
 		delta = WRAPDELTA(pitch - curPitch1);
 		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
-			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			nextPitch = WRAPDELTA(curPitch1 + SIGN(delta) * (Weapon1TurretX / 30));
 			canShoot = FALSE;
 		}else{
-			curPitch1 = pitch;
+			nextPitch = pitch;
 		}
-		
-		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
-		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
+
+		turn aimy1 to y-axis nextHead speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - nextPitch speed Weapon1TurretX;
 
 		//get PRINT(get GAME_FRAME, curHead1, heading);
 
+		// turn > sleep > commit: a preempting re-aim kills the thread at its sleep,
+		// cancelling the uncommitted step, so belief cannot outrun the pieces
 		if (!canShoot) {
 			sleep 1;
 		}
+		curHead1 = nextHead;
+		curPitch1 = nextPitch;
 	}
 	
 	start-script RestoreAfterDelay();

@@ -15,8 +15,6 @@ return {
 		firestate = 0,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 1500000,
 		health = 67000,
 		maxslope = 32,
@@ -36,18 +34,11 @@ return {
 		turnrate = 100,
 		upright = false,
 		customparams = {
-			unitgroup = 'explo',
+			unitgroup = "explo",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "other/scavengers",
 			techlevel = 3,
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -1,11 +1,11 @@
 return {
 	leganavaladvgeo = {
-		acceleration = 0,
+		maxacc = 0,
+		maxdec = 0,
 		activatewhenbuilt = true,
-		brakerate = 0,
 		buildangle = 0,
-		buildcostenergy = 27000,
-		buildcostmetal = 1500,
+		energycost = 27000,
+		metalcost = 1500,
 		buildpic = "leganavaladvgeo.DDS",
 		buildtime = 32000,
 		canrepeat = false,
@@ -17,9 +17,7 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
-		maxdamage = 4150,
+		health = 4150,
 		maxslope = 20,
 		maxwaterdepth = 99999,
 		minwaterdepth = 6,
@@ -36,6 +34,7 @@ return {
 			buildinggrounddecaltype = "decals/corageo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
+			standardextractor = true,
 			model_author = "Tharsis, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
@@ -48,11 +47,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:geobubbles",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

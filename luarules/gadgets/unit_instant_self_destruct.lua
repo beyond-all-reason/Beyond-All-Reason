@@ -4,25 +4,25 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-  return {
-    name      = "Instant Self Destruct",
-    desc      = "Replaces engine self-d behaviour for a set of units such that they self-destruct instantly.",
-    author    = "Google Frog",
-    date      = "21 September, 2013",
-    license   = "GNU GPL, v2 or later",
-    layer     = 0,
-    enabled   = true
-  }
+	return {
+		name = "Instant Self Destruct",
+		desc = "Replaces engine self-d behaviour for a set of units such that they self-destruct instantly.",
+		author = "Google Frog",
+		date = "21 September, 2013",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
+	}
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-if (not gadgetHandler:IsSyncedCode()) then
-  return false  --  no unsynced code
+if not gadgetHandler:IsSyncedCode() then
+	return false --  no unsynced code
 end
 
 local selfddefs = {}
-for i=1,#UnitDefs do
+for i = 1, #UnitDefs do
 	if UnitDefs[i].customParams and UnitDefs[i].customParams.instantselfd then
 		selfddefs[i] = true
 	end
@@ -33,7 +33,7 @@ local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spDestroyUnit = Spring.DestroyUnit
 
 function gadget:AllowCommand_GetWantedCommand()
-	return {[CMD_SELFD] = true}
+	return { [CMD_SELFD] = true }
 end
 
 function gadget:AllowCommand_GetWantedUnitDefID()
@@ -43,6 +43,9 @@ end
 local toDestroy = {}
 local toDestroyCount = 0
 
+---Queues a unit to be destroyed on the next game frame.
+---@param unitID UnitID
+---@param skipChecks boolean? Destroy even while the unit is stunned.
 local function QueueUnitDestruction(unitID, skipChecks)
 	if skipChecks or not spGetUnitIsStunned(unitID) then
 		toDestroyCount = toDestroyCount + 1

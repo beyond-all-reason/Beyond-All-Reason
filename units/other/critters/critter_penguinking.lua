@@ -22,7 +22,6 @@ return {
 		floater = true,
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 0,
 		leavetracks = true,
 		maneuverleashlength = "640",
 		mass = 1000,
@@ -56,6 +55,7 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
+			iscritter = true,
 			subfolder = "other/critters",
 		},
 		weapondefs = {

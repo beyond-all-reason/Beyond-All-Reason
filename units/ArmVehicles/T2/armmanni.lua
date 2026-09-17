@@ -1,7 +1,7 @@
 return {
 	armmanni = {
 		buildpic = "ARMMANNI.DDS",
-		buildtime = 25700,
+		buildtime = 33000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "39 49 39",
@@ -12,11 +12,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.00715,
-		maxdec = 0.01431,
+		maxdec = 0.1,
 		maxslope = 12,
 		maxwaterdepth = 0,
 		metalcost = 1200,
@@ -47,8 +45,6 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
-			weapon1turretx = 50,
-			weapon1turrety = 50,
 		},
 		featuredefs = {
 			dead = {
@@ -79,13 +75,6 @@ return {
 				object = "Units/arm3X3C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -141,6 +130,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					turretspeedx = 50,
+					turretspeedy = 50,
+				},
 				damage = {
 					commanders = 1000,
 					default = 2500,

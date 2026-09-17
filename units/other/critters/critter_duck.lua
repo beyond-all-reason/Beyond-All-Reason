@@ -21,7 +21,6 @@ return {
 		floater = true,
 		footprintx = 1,
 		footprintz = 1,
-		idleautoheal = 0,
 		leavetracks = false,
 		maneuverleashlength = "640",
 		mass = 24,
@@ -53,6 +52,7 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
+			iscritter = true,
 			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",

@@ -12,8 +12,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 1100,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 300,
 		maxacc = 0.12995,
 		maxdec = 0.77625,
@@ -34,8 +32,10 @@ return {
 		turnrate = 1263.84998,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "jjackVII",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 2,
 			subfolder = "CorBots",
 			unitgroup = "weapon",
 		},
@@ -73,10 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {

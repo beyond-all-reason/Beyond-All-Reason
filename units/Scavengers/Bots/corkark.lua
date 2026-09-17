@@ -15,8 +15,6 @@ return {
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 1280,
 		maxslope = 17,
 		speed = 42.0,
@@ -35,12 +33,11 @@ return {
 		turnrate = 885.5,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Firestorm",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 2,
 			subfolder = "Scavengers/Bots",
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -71,12 +68,6 @@ return {
 				object = "Units/arm2X2A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -131,6 +122,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
+				customparams = {
+					turretspeedx = 200,
+					turretspeedy = 200,
+				},
 				damage = {
 					default = 160,
 					vtol = 25,
@@ -154,10 +149,8 @@ return {
 				separation = 2,
 				sizedecay = 0.08,
 				soundhit = "corlevlrhit",
-				soundhitvolume = 11.5,
 				soundhitwet = "splsmed",
 				soundstart = "corlevlr",
-				soundstartvolume = 13,
 				stages = 12,
 				turret = true,
 				weapontype = "Cannon",

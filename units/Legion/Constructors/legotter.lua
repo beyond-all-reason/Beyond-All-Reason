@@ -17,8 +17,6 @@ return {
 		explodeas = "mediumexplosiongeneric-phib",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 950,
 		maxslope = 16,
@@ -48,7 +46,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"leglab",
 			"legvp",
@@ -88,10 +85,10 @@ return {
 			"legfhive",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles",
+			subfolder = "Legion/Constructors",
 		},
 		featuredefs = {
 			dead = {
@@ -122,13 +119,6 @@ return {
 				object = "Units/cor3X3C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

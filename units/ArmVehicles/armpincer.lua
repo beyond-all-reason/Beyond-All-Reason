@@ -4,8 +4,8 @@ return {
 		buildpic = "ARMPINCER.DDS",
 		buildtime = 2610,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 1",
-		collisionvolumescales = "31 13 31",
+		collisionvolumeoffsets = "0 3 1",
+		collisionvolumescales = "31 18 31",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 2000,
@@ -13,11 +13,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1340,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.03572,
-		maxdec = 0.07144,
+		maxdec = 0.1,
 		maxslope = 15,
 		maxwaterdepth = 125,
 		metalcost = 200,
@@ -48,8 +46,6 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -85,10 +81,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -134,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 130,
+					turretspeedy = 130,
+				},
 				damage = {
 					default = 116,
 					vtol = 25,

@@ -12,54 +12,26 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
-local mathCeil = math.ceil
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local currentLayout
-
-local keybindsText
-local lineType = {
-	title = 1,
-	blank = 2,
-	key = 3,
-}
-
-local tabs = {"Keybindings", "Grid Keys", "Grid CTRL Keys", "Grid ALT Keys", "Legacy Keys", "Legacy CTRL Keys", "Legacy ALT Keys",}
-
-local keybindsimages = {
-	["Grid Keys"]        = "luaui/images/keybinds/grid_keys.png",
-	['Grid CTRL Keys']   = "luaui/images/keybinds/grid_keys_CTRL.png",
-	['Grid ALT Keys']    = "luaui/images/keybinds/grid_keys_ALT.png",
-	['Legacy Keys']      = "luaui/images/keybinds/legacy_keys.png",
-	['Legacy CTRL Keys'] = "luaui/images/keybinds/legacy_keys_CTRL.png",
-	['Legacy ALT Keys']  = "luaui/images/keybinds/legacy_keys_ALT.png",
-}
-
-local tabrects = {}
-local lasttab = "Keybindings"
+local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
 
 local doUpdate
-local actionHotkeys
-
-local function getActionHotkey(action)
-	local key = actionHotkeys[action]
-
-	if not key then return "(none)" end
-
-	return keyConfig.sanitizeKey(key, currentLayout):gsub("%+"," + ")
-end
 
 local vsx, vsy = spGetViewGeometry()
 
-local screenHeightOrg = 550
-local screenWidthOrg = 1050
+-- The panel's size at 1080p: the list fits this panel, and the keyboard overview asks for
+-- whatever gets its keys read, worked out per screen below.
+local listWidthOrg = 1100
+local listHeightOrg = 610
+-- The page the panel is showing, which decides its size.
+local currentPage = "list"
+local screenHeightOrg = listHeightOrg
+local screenWidthOrg = listWidthOrg
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -67,13 +39,13 @@ local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
 
-local RectRound, UiElement, elementCorner = WG.FlowUI.elementCorner
+---@type function
+local RectRound
+---@type function
+local UiElement
+local elementCorner = WG.FlowUI.elementCorner
 
 local showOnceMore = false
-
-local keybindColor = "\255\235\185\070"
-local titleColor = "\255\254\254\254"
-local descriptionColor = "\255\192\190\180"
 
 local widgetScale = (vsy / 1080)
 local centerPosX = 0.5
@@ -82,255 +54,111 @@ local screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 local screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 local math_isInRect = math.isInRect
 
-local font, font2, titleRect, keybinds, backgroundGuishader, show
+local keybinds, backgroundGuishader, show, wasShown
+-- Input ownership is taken once on open and given back on close, rather than every
+-- frame, so chat's handling is restored exactly as it was found.
+local ownsInput = false
+local panelHasInput = false
+local textInputStarted = false
+-- Keys already down when the panel opened. Their release has to be let through, or
+-- whatever they started stays stuck on once the panel starts swallowing releases.
+local heldAtOpen = {}
 
-local function drawTextTable(lines, x, y)
-	local lineIndex = 0
-	local height = 0
-	local width = 0
-	local fontSize = (screenHeight * 0.96) / mathCeil(#keybindsText / 3)
-	font:Begin()
-	for _, line in pairs(lines) do
-		if line.type == lineType.blank then
-			-- nothing here
-		elseif line.type == lineType.title then
-			-- title line
-			local title = line.text
-			local text = titleColor .. title
-			font:Print(text, x + 4, y - ((fontSize * 0.92) * lineIndex) + 5, fontSize)
-			screenWidth = mathMax(font:GetTextWidth(text) * 13, screenWidth)
-		elseif line.type == lineType.key then
-			-- keybind line
-			local bind = string.upper(line.key)
-			local description = line.text
-			local text = keybindColor .. bind .. "   " .. descriptionColor .. description
-			font:Print(text, x + 14, y - (fontSize * 0.92) * lineIndex, fontSize * 0.8)
-			width = mathMax(font:GetTextWidth(text) * 11, width)
-		end
-		height = height + 13
-
-		lineIndex = lineIndex + 1
-		-- dont let the first line of a column be blank
-		if lineIndex == 1 and line.blankLine then
-			lineIndex = lineIndex - 1
-		end
-	end
-	font:End()
-
-	return x, lineIndex
-end
-
-local function drawWindow(activetab)
-	local activetab = activetab or lasttab
-	if activetab == nil then activetab = 'Keybindings' end
-
-	-- background
-	UiElement(screenX, screenY - screenHeight, screenX + screenWidth, screenY, 0, 1, 1, 1, 1,1,1,1, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-
-	local titleFontSize = 18 * widgetScale
-
-	local tabx = 0
-	for i,tab in ipairs(tabs) do
-		local tabwidth = font2:GetTextWidth(tab)
-		tabrects[tab] = {
-			mathFloor(screenX + tabx),
-			screenY,
-			mathFloor(screenX + tabx + tabwidth * titleFontSize + (titleFontSize*1.5)),
-			mathFloor(screenY + (titleFontSize*1.7)),
-			tabx
-		}
-		tabx = tabx + (tabwidth  * titleFontSize +  (titleFontSize*1.5))
-		gl.Color(0, 0, 0, mathMax(0.75, Spring.GetConfigFloat("ui_opacity", 0.7)))
-		RectRound(tabrects[tab][1], tabrects[tab][2], tabrects[tab][3], tabrects[tab][4], elementCorner, 1, 1, 0, 0)
-	end
-
-	-- title
-	font2:Begin()
-	font2:SetTextColor(1, 1, 1, 1)
-	font2:SetOutlineColor(0, 0, 0, 0.4)
-	for i,tab in ipairs(tabs) do
-		local tabcolor = keybindColor
-		if tab ~= activetab then
-			tabcolor = titleColor
-		end
-		font2:Print(tabcolor .. tab, screenX + (titleFontSize * 0.75) + tabrects[tab][5], screenY + (8*widgetScale), titleFontSize, "on")
-	end
-	font2:End()
-
-
-	if activetab ~= "Keybindings" and keybindsimages[activetab] then
-		gl.Color(1,1,1,1)
-		gl.Texture(0, ":l:"..keybindsimages[activetab])
-		local zoom = 0.05
-		gl.TexRect(screenX,screenY - screenHeight, screenX + screenWidth, screenY, 0 + 0.02, 1 - zoom, 1 - 0.02 , 0 + zoom)
-		gl.Texture(0, false)
-	else
-
-		local entriesPerColumn = mathCeil(#keybindsText / 3)
-		local entries1 = {}
-		local entries2 = {}
-		local entries3 = {}
-		for k, line in pairs(keybindsText) do
-			if k <= entriesPerColumn then
-				entries1[#entries1 + 1] = line
-			elseif k > entriesPerColumn and k <= entriesPerColumn * 2 then
-				entries2[#entries2 + 1] = line
-			else
-				entries3[#entries3 + 1] = line
-			end
-		end
-		local textPadding = 8 * widgetScale
-		local textTopPadding = 28 * widgetScale
-		local x = screenX + textPadding
-		drawTextTable(entries1, x, screenY - textTopPadding)
-		x = x + (350*widgetScale)
-		drawTextTable(entries2, x, screenY - textTopPadding)
-		x = x + (350*widgetScale)
-		drawTextTable(entries3, x, screenY - textTopPadding)
-
-		gl.Color(1, 1, 1, 1)
-		font:Begin()
-		font:Print(Spring.I18N('ui.keybinds.disclaimer'), screenX + (12*widgetScale), screenY - screenHeight + (34*widgetScale), 12.5*widgetScale)
-		font:Print(Spring.I18N('ui.keybinds.howtochangekeybinds'), screenX + (12*widgetScale), screenY - screenHeight + (20*widgetScale), 12.5*widgetScale)
-		font:End()
-	end
+-- Panel backdrop, baked into a display list rather than redrawn per frame.
+local function drawWindow()
+	UiElement(
+		screenX,
+		screenY - screenHeight,
+		screenX + screenWidth,
+		screenY,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		1,
+		WG.FlowUI.clampedOpacity
+	)
 end
 
 local function refreshText()
-	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
-	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-
-	keybindsText = {
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.chat.title') },
-		{ type = lineType.key, key = getActionHotkey('chat'),		text = Spring.I18N('ui.keybinds.chat.send')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.alliesKey'),		text = Spring.I18N('ui.keybinds.chat.allies')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.spectatorsKey'),	text = Spring.I18N('ui.keybinds.chat.spectators')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.chat.ignoreKey'),		text = Spring.I18N('ui.keybinds.chat.ignore')		},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.menus.title') },
-		{ type = lineType.key, key = getActionHotkey('options'),		text = Spring.I18N('ui.keybinds.menus.settings')	},
-		{ type = lineType.key, key = getActionHotkey('sharedialog'),			text = Spring.I18N('ui.keybinds.menus.share')		},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.camera.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.zoomKey'),	text = Spring.I18N('ui.keybinds.camera.zoom')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.panKey'),	text = Spring.I18N('ui.keybinds.camera.pan')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.tiltKey'),	text = Spring.I18N('ui.keybinds.camera.tilt')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.camera.dragKey'),	text = Spring.I18N('ui.keybinds.camera.drag')	},
-		{ type = lineType.key, key = getActionHotkey('cameraflip'),	text = Spring.I18N('ui.keybinds.camera.flip')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.cameraModes.title') },
-		{ type = lineType.key, key = getActionHotkey('viewta') .. ', ' .. getActionHotkey('viewspring'),			text = Spring.I18N('ui.keybinds.cameraModes.change')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.cameraModes.fullscreenKey'),		text = Spring.I18N('ui.keybinds.cameraModes.fullscreen')	},
-		{ type = lineType.key, key = getActionHotkey('toggleoverview'),		text = Spring.I18N('ui.keybinds.cameraModes.overview')		},
-		{ type = lineType.key, key = getActionHotkey('togglelos'),				text = Spring.I18N('ui.keybinds.cameraModes.los')			},
-		{ type = lineType.key, key = getActionHotkey('showelevation'),		text = Spring.I18N('ui.keybinds.cameraModes.heightmap')		},
-		{ type = lineType.key, key = getActionHotkey('showpathtraversability'),	text = Spring.I18N('ui.keybinds.cameraModes.traversability')},
-		{ type = lineType.key, key = getActionHotkey('lastmsgpos'),		text = Spring.I18N('ui.keybinds.cameraModes.mapmarks')		},
-		{ type = lineType.key, key = getActionHotkey('showmetalmap'),	text = Spring.I18N('ui.keybinds.cameraModes.resourceSpots')	},
-		{ type = lineType.key, key = getActionHotkey('hideinterface'),		text = Spring.I18N('ui.keybinds.cameraModes.interface')		},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.sound.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.sound.volumeKey'),	text = Spring.I18N('ui.keybinds.sound.volume')	},
-		{ type = lineType.key, key = getActionHotkey('mutesound'),		text = Spring.I18N('ui.keybinds.sound.mute')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.selection.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.selection.unitsKey'), text = Spring.I18N('ui.keybinds.selection.units') },
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueContextOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueContextOrders.orderKey'),			text = Spring.I18N('ui.keybinds.issueContextOrders.order')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueContextOrders.formationOrderKey'),	text = Spring.I18N('ui.keybinds.issueContextOrders.formationOrder')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.orders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.orders.defaultKey'),		text = Spring.I18N('ui.keybinds.orders.default')		},
-		{ type = lineType.key, key = getActionHotkey('move'),			text = Spring.I18N('ui.keybinds.orders.move')			},
-		{ type = lineType.key, key = getActionHotkey('attack'),		text = Spring.I18N('ui.keybinds.orders.attack')			},
-		{ type = lineType.key, key = getActionHotkey('settarget'),	text = Spring.I18N('ui.keybinds.orders.setTarget')		},
-		{ type = lineType.key, key = getActionHotkey('repair'),		text = Spring.I18N('ui.keybinds.orders.repair')			},
-		{ type = lineType.key, key = getActionHotkey('reclaim'),		text = Spring.I18N('ui.keybinds.orders.reclaim')		},
-		{ type = lineType.key, key = getActionHotkey('resurrect'),	text = Spring.I18N('ui.keybinds.orders.resurrect')		},
-		{ type = lineType.key, key = getActionHotkey('fight'),		text = Spring.I18N('ui.keybinds.orders.fight')			},
-		{ type = lineType.key, key = getActionHotkey('patrol'),		text = Spring.I18N('ui.keybinds.orders.patrol')			},
-		{ type = lineType.key, key = getActionHotkey('wantcloak'),		text = Spring.I18N('ui.keybinds.orders.cloak')			},
-		{ type = lineType.blank },
-		{ type = lineType.key, key = getActionHotkey('stop'),			text = Spring.I18N('ui.keybinds.orders.stop')			},
-		{ type = lineType.key, key = getActionHotkey('wait'),			text = Spring.I18N('ui.keybinds.orders.wait')			},
-		{ type = lineType.key, key = getActionHotkey('canceltarget'),	text = Spring.I18N('ui.keybinds.orders.cancelTarget')	},
-		{ type = lineType.blank },
-		{ type = lineType.key, key = getActionHotkey('manualfire'),			text = Spring.I18N('ui.keybinds.orders.dGun')			},
-		{ type = lineType.key, key = getActionHotkey('selfd'),	text = Spring.I18N('ui.keybinds.orders.selfDestruct')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.orderKey'),		text = Spring.I18N('ui.keybinds.issueOrders.order')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.revertKey'),		text = Spring.I18N('ui.keybinds.issueOrders.revert')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueOrders.formationKey'),	text = Spring.I18N('ui.keybinds.issueOrders.formation')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.queues.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.queues.appendKey'),	text = Spring.I18N('ui.keybinds.queues.append')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.queues.prependKey'),	text = Spring.I18N('ui.keybinds.queues.prepend')},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.buildOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.selectTileKey'),	text = Spring.I18N('ui.keybinds.buildOrders.selectTile')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.metalKey'),		text = Spring.I18N('ui.keybinds.buildOrders.metal')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.energyKey'),		text = Spring.I18N('ui.keybinds.buildOrders.energy')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.intelKey'),		text = Spring.I18N('ui.keybinds.buildOrders.intel')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.factoriesKey'),	text = Spring.I18N('ui.keybinds.buildOrders.factories')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.buildOrders.rotateKey'),		text = Spring.I18N('ui.keybinds.buildOrders.rotate')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.issueBuildOrders.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.orderKey'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.order')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.deselect'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.deselect')			},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.lineKey'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.line')				},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.gridKey'),			text = Spring.I18N('ui.keybinds.issueBuildOrders.grid')				},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.spacingUpKey'),		text = Spring.I18N('ui.keybinds.issueBuildOrders.spacingUp')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.issueBuildOrders.spacingDownKey'),		text = Spring.I18N('ui.keybinds.issueBuildOrders.spacingDown')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.massSelect.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.allKey'),			text = Spring.I18N('ui.keybinds.massSelect.all')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.buildersKey'),		text = Spring.I18N('ui.keybinds.massSelect.builders')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createGroup')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.createAutoGroupKey'),	text = Spring.I18N('ui.keybinds.massSelect.createAutoGroup')},
-		{ type = lineType.key, key = getActionHotkey('remove_from_autogroup'),	text = Spring.I18N('ui.keybinds.massSelect.removeAutoGroup')},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.groupKey'),		text = Spring.I18N('ui.keybinds.massSelect.group')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.massSelect.sameTypeKey'),		text = Spring.I18N('ui.keybinds.massSelect.sameType')	},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.drawing.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.mapmarkKey'),	text = Spring.I18N('ui.keybinds.drawing.mapmark')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.drawKey'),		text = Spring.I18N('ui.keybinds.drawing.draw')		},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.drawing.eraseKey'),		text = Spring.I18N('ui.keybinds.drawing.erase')		},
-		{ type = lineType.blank },
-		{ type = lineType.title, text = Spring.I18N('ui.keybinds.console.title') },
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.console.eraseKey'),	text = Spring.I18N('ui.keybinds.console.erase')	},
-		{ type = lineType.key, key = Spring.I18N('ui.keybinds.console.pauseKey'),	text = Spring.I18N('ui.keybinds.console.pause')	},
-	}
+	keybindEditor.refresh()
 end
 
+-- The panel's size at 1080p for the page showing. The keyboard page keeps the list's panel
+-- wherever that already gives it keys of ninety pixels or more on screen, which a 1440p
+-- screen does, so the panel does not change between the pages there. Where it does not - a
+-- 1080p screen gives 68 - the page grows to keys of about a hundred pixels: fifteen of them
+-- plus the panel's margins across, and the keyboard's proportions with the bands around it
+-- down. The 96 is those bands at 1080p: the panel's padding, the header and the footer.
+local function pageSize(page)
+	if page ~= "keyboard" then
+		return listWidthOrg, listHeightOrg
+	end
+	local listKeys = (listHeightOrg - 96) / 7.5 * widgetScale
+	if listKeys >= 90 then
+		return listWidthOrg, listHeightOrg
+	end
+	local keysOrg = 100 * 15 / widgetScale
+	local width = mathFloor(math.max(listWidthOrg, math.min(1560, keysOrg + 40)))
+	local height = mathFloor(math.max(listHeightOrg, (width - 40) * 0.5 + 96))
+
+	return width, height
+end
+
+-- Rebuilds every rect and display list against the new screen size.
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
+	screenWidthOrg, screenHeightOrg = pageSize(currentPage)
 
 	screenHeight = mathFloor(screenHeightOrg * widgetScale)
 	screenWidth = mathFloor(screenWidthOrg * widgetScale)
 	screenX = mathFloor((vsx * centerPosX) - (screenWidth / 2))
 	screenY = mathFloor((vsy * centerPosY) + (screenHeight / 2))
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
-
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
 
+	keybindEditor.init()
+	-- So guishader drops the popups' blur rects along with this widget.
+	keybindEditor.setOwner(widget)
+	local pad = mathFloor(8 * widgetScale)
+	-- The inset area the panel lays out in, and after it the window it sits in: a modal
+	-- dims the whole window, border and all, not just the area inside it.
+	keybindEditor.setArea(
+		screenX + pad,
+		screenY - screenHeight + pad,
+		screenX + screenWidth - pad,
+		screenY - pad,
+		widgetScale,
+		screenX,
+		screenY - screenHeight,
+		screenX + screenWidth,
+		screenY
+	)
+
 	if keybinds then
 		gl.DeleteList(keybinds)
 	end
 	keybinds = gl.CreateList(drawWindow)
+
+	if backgroundGuishader ~= nil then
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
+		else
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = nil
+	end
 end
 
-
-
+-- Draws the panel and keeps the guishader rect in step with it.
 function widget:DrawScreen()
-
 	-- draw the help
 	if doUpdate then
 		if keybinds then
@@ -348,66 +176,113 @@ function widget:DrawScreen()
 	doUpdate = false
 
 	if show or showOnceMore then
-		gl.Texture(false)	-- some other widget left it on
+		gl.Texture(false) -- some other widget left it on
 		glCallList(keybinds)
-		if WG['guishader'] then
-			if backgroundGuishader ~= nil then
-				glDeleteList(backgroundGuishader)
-			end
+		keybindEditor.draw()
+		if WG.guishader and backgroundGuishader == nil then
 			backgroundGuishader = glCreateList(function()
-				-- background
 				RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
-				-- title
-				for k, tabrect in pairs(tabrects) do
-					RectRound(tabrect[1], tabrect[2], tabrect[3], tabrect[4], elementCorner, 1, 1, 0, 0)
-				end
 			end)
-			WG['guishader'].InsertDlist(backgroundGuishader, 'keybindinfo')
+			WG.guishader.InsertDlist(backgroundGuishader, "keybindinfo", nil, widget)
 		end
 		showOnceMore = false
 
 		local x, y, pressed = Spring.GetMouseState()
-		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY)  then
-			Spring.SetMouseCursor('cursornormal')
+		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			Spring.SetMouseCursor("cursornormal")
 		end
 	else
-		if WG['guishader'] then
-			WG['guishader'].DeleteDlist('keybindinfo')
+		if backgroundGuishader ~= nil then
+			if WG.guishader then
+				WG.guishader.DeleteDlist("keybindinfo")
+			else
+				glDeleteList(backgroundGuishader)
+			end
+			backgroundGuishader = nil
 		end
 	end
 end
 
-function widget:KeyPress(key)
-	if key == 27 then
-		-- ESC
+-- The editor may want to ask about unsaved keybind changes first, in which case it
+-- closes the panel itself once the player answers.
+local function closePanel()
+	keybindEditor.confirmClose(function()
 		show = false
-	end
+		keybindEditor.blur()
+	end)
 end
 
+-- An open editor takes every key, so it never fires the binds being edited.
+function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode)
+	if not show then
+		return false
+	end
+
+	-- The editor gets first refusal: a modal wants everything, and otherwise Escape may
+	-- close a dropdown or cancel a capture before it reaches the panel itself.
+	if not keybindEditor.keyPress(key, scanCode) and key == 27 then
+		closePanel()
+	end
+
+	-- Nothing escapes an open editor: it must never fire the keybinds it is editing.
+	return true
+end
+
+-- The engine runs bound actions on release as well as on press, so releases have to be
+-- swallowed too. A key already down when the panel opened is let through instead, or
+-- whatever it started stays stuck on.
+function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
+	if not show then
+		return false
+	end
+
+	keybindEditor.keyRelease(key, scanCode)
+
+	if heldAtOpen[key] then
+		heldAtOpen[key] = nil
+
+		return false
+	end
+
+	return true
+end
+
+function widget:TextInput(utf8char)
+	if show then
+		return keybindEditor.textInput(utf8char)
+	end
+
+	return false
+end
+
+-- Clicks inside the panel go to the editor; a click outside closes it.
 local function mouseEvent(x, y, button, release)
 	if Spring.IsGUIHidden() then
 		return false
 	end
 
 	if show then
-		-- on window
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
+			return false
+		end
+
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+			if not release then
+				keybindEditor.mousePress(x, y, button)
+			end
+
 			return true
-		else
-			for tab, tabrect in pairs(tabrects) do
-				if math_isInRect(x, y, tabrect[1], tabrect[2], tabrect[3], tabrect[4]) then
-					if keybinds then
-						gl.DeleteList(keybinds)
-					end
-					lasstab = tab
-					keybinds = gl.CreateList(drawWindow, tab)
-					return true
-				end
-			end
-			if release or not release then
-				showOnceMore = show        -- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
-			end
+		elseif not release then
+			-- Only a press outside closes. A release out here belongs to a drag that started
+			-- inside, which the handler routes to us wherever it ends up.
+			showOnceMore = show -- show once more because the guishader lags behind
+			closePanel()
+
+			-- Consumed either way. With unsaved edits closePanel only raises the guard, so
+			-- letting the click through would order units under an open modal.
+			return true
 		end
 	end
 end
@@ -420,40 +295,184 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
+-- Swallowed across the whole panel, not just the list: a wheel that gets through zooms
+-- the camera behind an open editor.
+function widget:MouseWheel(up, value)
+	if not show then
+		return false
+	end
+
+	local x, y = Spring.GetMouseState()
+	if not math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
+		return false
+	end
+
+	keybindEditor.mouseWheel(up, value)
+
+	return true
+end
+
+-- Holds input ownership for as long as the panel is open.
+function widget:Update()
+	-- Re-snapshot the live keymap each time the panel opens so bindings made since
+	-- (e.g. a runtime /bind) show without waiting for a preset switch or keyreload.
+	if show and not wasShown then
+		refreshText()
+	end
+	wasShown = show
+
+	-- Text ownership is what puts this panel ahead of actionHandler, which otherwise runs
+	-- before every widget and would fire the keybinds being edited. It has to go through
+	-- OwnText: widgetHandler here is a per-widget proxy, so assigning textOwner on it just
+	-- writes a dead field.
+	if show then
+		if not panelHasInput then
+			panelHasInput = true
+			heldAtOpen = Spring.GetPressedKeys and Spring.GetPressedKeys() or {}
+			ownsInput = widgetHandler:OwnText()
+
+			-- Chat has to be asked to let go, and toggling its input flag is the only public
+			-- way to make it cancel. The flag goes straight back because gui_chat persists it,
+			-- and a config save while the panel is open would leave chat input dead next
+			-- launch. isInputActive is the accessor that means chat is holding input;
+			-- getHandleInput is a saved option that reads true whoever the owner is, so poking
+			-- on that cancels the settings search box or the widget selector's filter instead.
+			if not ownsInput and WG.chat and WG.chat.isInputActive and WG.chat.isInputActive() then
+				WG.chat.setHandleInput(false)
+				WG.chat.setHandleInput(true)
+				ownsInput = widgetHandler:OwnText()
+			end
+		elseif not ownsInput then
+			ownsInput = widgetHandler:OwnText()
+		end
+
+		-- Only once it is ours. Starting SDL text input for a field we never took, then
+		-- stopping it again on close, is what kills that field.
+		if ownsInput and not textInputStarted then
+			textInputStarted = true
+			if Spring.SDLStartTextInput then
+				Spring.SDLStartTextInput()
+			end
+		end
+	elseif panelHasInput then
+		panelHasInput = false
+		if ownsInput then
+			ownsInput = false
+			widgetHandler:DisownText()
+		end
+		if textInputStarted then
+			textInputStarted = false
+			if Spring.SDLStopTextInput then
+				Spring.SDLStopTextInput()
+			end
+		end
+	end
+end
+
+-- Registers the panel's action, its WG surface and the build-menu hook.
 function widget:Initialize()
 	refreshText()
 
-	WG['keybinds'] = {}
-	WG['keybinds'].toggle = function(state)
-		if state ~= nil then
-			show = state
+	-- "keybindeditor keyboard" opens straight onto the keyboard overview, "keybindeditor list"
+	-- onto the list; bare, it leaves the page as it was last left.
+	widgetHandler:AddAction("keybindeditor", function(_, _, words)
+		if words and words[1] then
+			keybindEditor.setPage(words[1])
+		end
+		show = true
+		doUpdate = true
+		return true
+	end, nil, "t")
+
+	-- "keybindprofile <name>" makes that profile live. One action per profile rather than a
+	-- cycle, so a key means the same profile whatever is active. The whole argument line is
+	-- the name: profile names hold spaces, and the engine hands back the args it was bound
+	-- with, so this matches the action ids the editor lists.
+	widgetHandler:AddAction("keybindprofile", function(_, line)
+		return keybindEditor.applyProfile(line)
+	end, nil, "tp")
+
+	-- Sent as commands because widgetHandler here is a per-widget proxy, which carries no
+	-- Enable/DisableWidget.
+	keybindEditor.setMenuToggle(function(useGrid)
+		if useGrid == nil then
+			return
+		end
+
+		if useGrid then
+			Spring.SendCommands("luaui disablewidget Build menu")
+			Spring.SendCommands("luaui enablewidget Grid menu")
 		else
-			show = not show
+			Spring.SendCommands("luaui disablewidget Grid menu")
+			Spring.SendCommands("luaui enablewidget Build menu")
+		end
+	end)
+
+	-- The panel takes the size its page wants; a page switch lays everything out again.
+	keybindEditor.setPageHook(function(page)
+		currentPage = page
+		local width, height = pageSize(page)
+		if width ~= screenWidthOrg or height ~= screenHeightOrg then
+			local resize = widget.ViewResize
+			if resize then
+				resize(widget, vsx, vsy)
+			end
+		end
+	end)
+
+	-- lets the handler hide the rest of the interface while the panel is open
+	widgetHandler:RegisterModalWindow(function()
+		return show == true
+	end)
+
+	WG.keybinds = {}
+	WG.keybinds.toggle = function(state)
+		local wanted = state
+		if wanted == nil then
+			wanted = not show
+		end
+
+		if wanted then
+			show = true
+		else
+			closePanel()
 		end
 	end
-	WG['keybinds'].isvisible = function()
+	WG.keybinds.isvisible = function()
 		return show
 	end
-	WG['keybinds'].reloadBindings = function()
+	WG.keybinds.reloadBindings = function()
 		refreshText()
 		doUpdate = true
 	end
 	widget:ViewResize()
 end
 
+-- Hands back input ownership and frees the display lists.
 function widget:Shutdown()
+	keybindEditor.blur()
+	widgetHandler:DisownText()
+	if ownsInput then
+		ownsInput = false
+		if Spring.SDLStopTextInput then
+			Spring.SDLStopTextInput()
+		end
+	end
 	if keybinds then
 		glDeleteList(keybinds)
 		keybinds = nil
 	end
-	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('keybindinfo')
-	end
 	if backgroundGuishader ~= nil then
-		glDeleteList(backgroundGuishader)
+		if WG.guishader then
+			WG.guishader.DeleteDlist("keybindinfo")
+		else
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = nil
 	end
 end
 
+-- Re-resolves every label against the new language.
 function widget:LanguageChanged()
 	refreshText()
 	doUpdate = true

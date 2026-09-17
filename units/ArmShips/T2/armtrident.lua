@@ -1,16 +1,17 @@
 return {
 	armtrident = {
-		acceleration = 0.01722,
+		maxacc = 0.01722,
 		activatewhenbuilt = true,
-		brakerate = 0.01722,
+		maxdec = 0.01722,
 		buildangle = 16384,
-		buildcostenergy = 9000,
-		buildcostmetal = 1000,
+		energycost = 10500,
+		metalcost = 1050,
 		buildpic = "armtrident.dds",
 		buildtime = 18000,
 		canmove = true,
 		canreclaim = false,
 		canrepair = false,
+		canrestore = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "42 42 84",
 		collisionvolumetype = "CylZ",
@@ -19,12 +20,10 @@ return {
 		floater = true,
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 15,
-		idletime = 600,
 		losemitheight = 56,
 		mass = 10000,
-		maxdamage = 3400,
-		maxvelocity = 2.25,
+		health = 3400,
+		speed = 67.5,
 		minwaterdepth = 15,
 		movementclass = "BOAT9",
 		nochasecategory = "VTOL",
@@ -90,11 +89,6 @@ return {
 				[2] = "custom:waterwake-large",
 				[3] = "custom:bowsplash-huge",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -125,7 +119,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "",--"custom:genericshellexplosion-medium",
+				explosiongenerator = "", --"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
@@ -136,9 +130,9 @@ return {
 				range = 1300,
 				reloadtime = 2.5,
 				size = 0,
-				soundhit = "",--"xplomed2",
-				soundhitwet = "",--"splssml",
-				soundstart = "",--"cannhvy1",
+				soundhit = "", --"xplomed2",
+				soundhitwet = "", --"splssml",
+				soundstart = "", --"cannhvy1",
 				stockpile = true,
 				stockpiletime = 5,
 				turret = true,
@@ -149,34 +143,37 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armtdrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "armtdrone", --Name of the unit spawned by this carrier unit.
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1300,
-					spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 5, 				--Spawnrate roughly in seconds.
-					maxunits = 4,				--Will spawn units until this amount has been reached.
-					buildcostenergy = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					buildcostmetal = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1400,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					spawns_surface = "SEA", -- "LAND" or "SEA". The SEA option has not been tested currently.
+					spawnrate = 5, --Spawnrate roughly in seconds.
+					maxunits = 4, --Will spawn units until this amount has been reached.
+					startingdronecount = 2,
+					energycost = 750, --650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 30, --29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1400, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 3,
-					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
-					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
-					carrierdeaththroe = "death",
+					attackformationspread = 120, --Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
+					attackformationoffset = 30, --Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
+					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 36,
 					docktohealthreshold = 50,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "10 11 12 13 14",
-					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 300, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 4,
 					stockpilemetal = 30,
 					stockpileenergy = 750,
 					dronesusestockpile = true,
-				}
+					dronedocktime = 2,
+					droneairtime = 60,
+					droneammo = 3,
+				},
 			},
-			
-			
+
 			trident_depthcharge = {
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -201,8 +198,6 @@ return {
 				soundhit = "xplodep2",
 				soundhitwet = "splsmed",
 				soundstart = "torpedo1",
-				soundhitvolume = 3,
-				soundhitwetvolume = 12,
 				startvelocity = 300,
 				tracks = true,
 				turnrate = 64000,
@@ -215,7 +210,8 @@ return {
 					default = 255,
 					-- subs = 300,
 				},
-			},		},
+			},
+		},
 		weapons = {
 			[1] = {
 				def = "PLASMA",

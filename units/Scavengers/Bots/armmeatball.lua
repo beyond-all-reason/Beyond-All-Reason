@@ -2,10 +2,10 @@ return {
 	armmeatball = {
 		maxacc = 0.253,
 		maxdec = 0.8211,
-		energycost = 30000,
+		energycost = 54000,
 		metalcost = 3000,
 		buildpic = "ARMMEATBALL.DDS",
-		buildtime = 30000,
+		buildtime = 94000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -2 -1",
 		collisionvolumescales = "34 68 38",
@@ -14,8 +14,6 @@ return {
 		explodeas = "explosiont3med",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 200000,
 		health = 8000,
 		maxslope = 17,
@@ -34,13 +32,11 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 3,
-			weapon1turretx = 90,
-			weapon1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
@@ -76,11 +72,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -201,11 +192,13 @@ return {
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundstart = "KroGun1",
-				soundhitvolume = 38,
-				soundstartvolume = 24,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 400,
+				customparams = {
+					turretspeedx = 90,
+					turretspeedy = 150,
+				},
 				damage = {
 					default = 200,
 				},

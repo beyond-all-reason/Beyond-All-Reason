@@ -1,20 +1,21 @@
 include("keysym.h.lua")
 
-local versionNumber = "1.1"
+local versionNumber = "1.2"
 
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Attack Range GL4",
-		desc    =
-		"[v" .. string.format("%s", versionNumber ) .. "] Displays attack ranges of selected units. Alt+, and alt+. (alt comma and alt period) to cycle backward and forward through display config of current unit (saved through games!). Custom keybind to toggle cursor unit range on and off.",
-		author  = "Errrrrrr, Beherith",
-		date    = "July 20, 2023",
+		name = "Attack Range GL4",
+		desc = "[v"
+			.. string.format("%s", versionNumber)
+			.. "] Displays attack ranges of selected units. Alt+, and alt+. (alt comma and alt period) to cycle backward and forward through display config of current unit (saved through games!). Custom keybind to toggle cursor unit range on and off.",
+		author = "Errrrrrr, Beherith",
+		date = "July 20, 2023",
 		license = "Lua: GPLv2, GLSL: (c) Beherith (mysterme@gmail.com)",
-		layer   = -99,
+		layer = -99,
 		enabled = true,
-		depends = {'gl4'},
+		depends = { "gl4" },
 	}
 end
 
@@ -25,7 +26,7 @@ local mathMax = math.max
 local mathPi = math.pi
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 
 ---------------------------
@@ -55,31 +56,35 @@ InterceptorOn
 InterceptorOff
 
 
-]]--
-
+]]
+--
 
 -------------------------------------
 local autoReload = false
 
 ---------------------------------------------------------------------------------------------------------------------------
--- Bindable action:   cursor_range_toggle
+-- Bindable actions:	cursor_range_toggle - Toggles display of the attack range of the unit under the mouse cursor.
+-- 						attack_range_inc - Cycle to next attack range display config for current unit type.
+-- 						attack_range_dec - Cycle to previous attack range display config for current unit type.
 -- The widget's individual unit type's display setup is saved in LuaUI/config/AttackRangeConfig2.lua
 ---------------------------------------------------------------------------------------------------------------------------
 local shift_only = false -- only show ranges when shift is held down
 local cursor_unit_range = true -- displays the range of the unit at the mouse cursor (if there is one)
-local selectionDisableThreshold = 512	-- turns off when selection is above this number
+local selectionDisableThreshold = 512 -- turns off when selection is above this number
 local selectionDisableThresholdMult = 0.7
 
 ---------------------------------------------------------------------------------------------------------------------------
 ------------------ CONFIGURABLES --------------
 
+local DYNAMIC_RANGE_UPDATE_RATE = 3.0
+
 local buttonConfig = {
 	ally = { ground = true, AA = true, nano = true },
-	enemy = { ground = true, AA = true, nano = true }
+	enemy = { ground = true, AA = true, nano = true },
 }
 
 local colorConfig = {
-	drawStencil = true,  -- whether to draw the outer, merged rings (quite expensive!)
+	drawStencil = true, -- whether to draw the outer, merged rings (quite expensive!)
 	cannon_separate_stencil = false, -- set to true to have cannon and ground be on different stencil mask
 	drawInnerRings = true, -- whether to draw inner, per attack rings (very cheap)
 
@@ -115,8 +120,8 @@ local colorConfig = {
 		minimapinternallinethickness = 0.5,
 	},
 	cannon = {
-		color = {1.0, 0.22, 0.05, 0.60},
-		fadeparams = { 5000, 8500, 1.0, 0.0  }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		color = { 1.0, 0.22, 0.05, 0.60 },
+		fadeparams = { 5000, 8500, 1.0, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 3.0,
 		internallinethickness = 1.8,
@@ -124,7 +129,7 @@ local colorConfig = {
 		minimapinternallinethickness = 0.5,
 	},
 	lrpc = {
-		color = {1.0, 0.22, 0.05, 0.60},
+		color = { 1.0, 0.22, 0.05, 0.60 },
 		fadeparams = { 5000, 1000, 1.0, 0.5 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		groupselectionfadescale = 0.75,
 		externallinethickness = 2.0,
@@ -147,45 +152,45 @@ local colorConfig = {
 
 -- DGUN
 colorConfig.ground_dgun = {
-    color                       = colorConfig.ground.color,       -- reuse ground colour
-    fadeparams                  = colorConfig.ground.fadeparams,  -- same fade curve
-    groupselectionfadescale     = colorConfig.ground.groupselectionfadescale,
-    externallinethickness      = colorConfig.ground.externallinethickness,
-	internallinethickness      = colorConfig.ground.internallinethickness,
+	color = colorConfig.ground.color, -- reuse ground colour
+	fadeparams = colorConfig.ground.fadeparams, -- same fade curve
+	groupselectionfadescale = colorConfig.ground.groupselectionfadescale,
+	externallinethickness = colorConfig.ground.externallinethickness,
+	internallinethickness = colorConfig.ground.internallinethickness,
 	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
 	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
 }
 
 -- WATER WEAPONS
 colorConfig.ground_water = {
-  color                      = {0.32, 0.48, 1.0, 0.30},
-  fadeparams                 = colorConfig.ground.fadeparams,
-  groupselectionfadescale    = colorConfig.ground.groupselectionfadescale,
-  externallinethickness      = colorConfig.ground.externallinethickness,
-  internallinethickness      = colorConfig.ground.internallinethickness,
-  minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
-  minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
+	color = { 0.32, 0.48, 1.0, 0.30 },
+	fadeparams = colorConfig.ground.fadeparams,
+	groupselectionfadescale = colorConfig.ground.groupselectionfadescale,
+	externallinethickness = colorConfig.ground.externallinethickness,
+	internallinethickness = colorConfig.ground.internallinethickness,
+	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
 }
 
 -- EMP (paralyzer) weapons
 colorConfig.ground_emp = {
-  color                       = { 0.72, 0.72, 1.0, 0.60 },    -- EMP light blue
-  fadeparams                  = colorConfig.ground.fadeparams,
-  groupselectionfadescale     = colorConfig.ground.groupselectionfadescale,
-  externallinethickness       = colorConfig.ground.externallinethickness,
-  internallinethickness       = colorConfig.ground.internallinethickness,
-  minimapexternallinethickness= colorConfig.ground.minimapexternallinethickness,
-  minimapinternallinethickness= colorConfig.ground.minimapinternallinethickness,
+	color = { 0.72, 0.72, 1.0, 0.60 }, -- EMP light blue
+	fadeparams = colorConfig.ground.fadeparams,
+	groupselectionfadescale = colorConfig.ground.groupselectionfadescale,
+	externallinethickness = colorConfig.ground.externallinethickness,
+	internallinethickness = colorConfig.ground.internallinethickness,
+	minimapexternallinethickness = colorConfig.ground.minimapexternallinethickness,
+	minimapinternallinethickness = colorConfig.ground.minimapinternallinethickness,
 }
 
 ----------------------------------
 local show_selected_weapon_ranges = true
-local weaponTypeMap = { 'ground', 'nano', 'AA', 'cannon', 'lrpc' }
+local weaponTypeMap = { "ground", "nano", "AA", "cannon", "lrpc" }
 
 local unitDefRings = {} --each entry should be a unitdefIDkey to a table:
 
-local vtoldamagetag = Game.armorTypes['vtol']
-local defaultdamagetag = Game.armorTypes['default']
+local vtoldamagetag = Game.armorTypes.vtol
+local defaultdamagetag = Game.armorTypes.default
 
 -- globals
 local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
@@ -200,7 +205,6 @@ local builders = {} -- { unitID = unitDef, ...}
 local unitToggles = {}
 local unitTogglesChunked = {}
 
-
 local unitName = {}
 local unitWeapons = {}
 local unitMaxWeaponRange = {}
@@ -208,6 +212,7 @@ local unitBuildDistance = {}
 local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
+local unitDefRangeScale = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -219,6 +224,9 @@ for udid, ud in pairs(UnitDefs) do
 	unitOnOffable[udid] = ud.onOffable
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
+	end
+	if ud.customParams.rangexpscale then
+		unitDefRangeScale[udid] = ud.customParams.rangexpscale
 	end
 end
 
@@ -268,21 +276,21 @@ end
 
 local function initializeUnitDefRing(unitDefID)
 	local weapons = unitWeapons[unitDefID]
-	unitDefRings[unitDefID]['rings'] = {}
+	unitDefRings[unitDefID].rings = {}
 	local weaponCount = #weapons or 0
 	for weaponNum = 1, #weapons do
 		local weaponDefID = weapons[weaponNum].weaponDef
 		local weaponDef = WeaponDefs[weaponDefID]
 
 		-- ── your debug & color‐pick here ──
-    -- spEcho(string.format(
-    --   "[AttackRange] %s.waterweapon = %s",
-    --   weaponDef.name, tostring(weaponDef.waterweapon)
-    -- ))
+		-- spEcho(string.format(
+		--   "[AttackRange] %s.waterweapon = %s",
+		--   weaponDef.name, tostring(weaponDef.waterweapon)
+		-- ))
 
 		local range = weaponDef.range
 		local dps = 0
-		local weaponType = unitDefRings[unitDefID]['weapons'][weaponNum]
+		local weaponType = unitDefRings[unitDefID].weapons[weaponNum]
 
 		if weaponType ~= nil and weaponType > 0 then
 			local damage = 0
@@ -296,42 +304,49 @@ local function initializeUnitDefRing(unitDefID)
 			-- local fadeparams = colorConfig[weaponTypeMap[weaponType]].fadeparams
 
 			-- after you have `weaponDef` and `weaponType`…
-		local baseKey = weaponTypeMap[ weaponType ]      -- e.g. "ground", "AA", etc.
-		local cfgKey  = baseKey
+			local baseKey = weaponTypeMap[weaponType] -- e.g. "ground", "AA", etc.
+			local cfgKey = baseKey
 
-		-- 1) paralyzer/EMP weapons
-		if weaponDef.paralyzer then
-			cfgKey = baseKey .. "_emp"
+			-- 1) paralyzer/EMP weapons
+			if weaponDef.paralyzer then
+				cfgKey = baseKey .. "_emp"
 			--spEcho("[AttackRange] using EMP colour for:", weaponDef.name)
-  		-- 2) DGun override
-		elseif weaponDef.type == "DGun" then
-			cfgKey = baseKey .. "_dgun"
+			-- 2) DGun override
+			elseif weaponDef.type == "DGun" then
+				cfgKey = baseKey .. "_dgun"
 			--spEcho("[AttackRange] using DGun style for:", weaponDef.name)
-		-- 2) then water override
-		elseif weaponDef.waterWeapon
-			or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
-		then
-			cfgKey = baseKey .. "_water"
-			--spEcho("[AttackRange] using water style for:", weaponDef.name)
-		end
+			-- 2) then water override
+			elseif
+				weaponDef.waterWeapon or (weaponDef.customParams and weaponDef.customParams.waterweapon == "true")
+			then
+				cfgKey = baseKey .. "_water"
+				--spEcho("[AttackRange] using water style for:", weaponDef.name)
+			end
 
-    -- safety fallback if you typo the key
-    if not colorConfig[cfgKey] then
-        cfgKey = baseKey
-    end
+			-- safety fallback if you typo the key
+			if not colorConfig[cfgKey] then
+				cfgKey = baseKey
+			end
 
-    local color      = colorConfig[cfgKey].color
-    local fadeparams = colorConfig[cfgKey].fadeparams
+			local color = colorConfig[cfgKey].color
+			local fadeparams = colorConfig[cfgKey].fadeparams
 
 			local isCylinder = 0
-			if (weaponDef.cylinderTargeting)  and (weaponDef.cylinderTargeting > 0.0) then
+			if weaponDef.cylinderTargeting and (weaponDef.cylinderTargeting > 0.0) then
 				isCylinder = 1
 			end
 			local isDgun = (weaponDef.type == "DGun") and 1 or 0
 
-			local wName = weaponDef.name
-			if (weaponDef.type == "AircraftBomb") or (wName:find("bogus")) or weaponDef.customParams.bogus or weaponDef.customParams.norangering then
+			if
+				(weaponDef.type == "AircraftBomb")
+				or weaponDef.customParams.bogus == "1"
+				or weaponDef.customParams.norangering
+			then
 				range = 0
+			elseif weaponDef.customParams.carried_unit then
+				-- The controller's own range is tuned for how close the carrier itself
+				-- closes in; how far the drones will engage is engagementrange.
+				range = tonumber(weaponDef.customParams.engagementrange) or range
 			end
 			--spEcho("weaponNum: ".. weaponNum ..", name: " .. tableToString(weaponDef.name))
 			local groupselectionfadescale = colorConfig[weaponTypeMap[weaponType]].groupselectionfadescale
@@ -342,7 +357,7 @@ local function initializeUnitDefRing(unitDefID)
 			-- -1 for 360
 			-- 0.707 for 90
 
-			-- Because I cant be assed to calculate the full 3d cone-ground intersection slice within the vertex shader:
+			-- Because I can't be assed to calculate the full 3d cone-ground intersection slice within the vertex shader:
 			-- We are only going to display angles for weapons that actually point forward, e.g. mainDirXYZ of 0 0 1
 			-- we need to output two numbers here, and pack it into one float
 			-- The integer part will be the offset around the circle, from forward dir, in degrees, +-180
@@ -354,8 +369,10 @@ local function initializeUnitDefRing(unitDefID)
 			local maxangledif = 0
 
 			-- customParams (note the case), is a table of strings always
-			if (weapons[weaponNum].maxAngleDif > -1) and
-				(not (weaponDef.customParams and weaponDef.customParams.noattackrangearc)) then
+			if
+				(weapons[weaponNum].maxAngleDif > -1)
+				and not (weaponDef.customParams and weaponDef.customParams.noattackrangearc)
+			then
 				--spEcho(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
 				local offsetdegrees = 0
 				local difffract = 0
@@ -367,30 +384,26 @@ local function initializeUnitDefRing(unitDefID)
 				local angledif = math.acos(weapons[weaponNum].maxAngleDif) / mathPi
 
 				-- Normalize maindir
-				local length = math.diag(mdx,mdy,mdz)
-				mdx = mdx/length
-				mdy = mdy/length
-				mdz = mdz/length
+				local length = math.diag(mdx, mdy, mdz)
+				mdx = mdx / length
+				mdy = mdy / length
+				mdz = mdz / length
 
-				offsetdegrees = math.atan2(mdx,mdz) * 180 / mathPi
+				offsetdegrees = math.atan2(mdx, mdz) * 180 / mathPi
 				difffract = angledif --(1.0 - angledif ) * (0.5) -- So 0.001 is tiny aim angle, 0.9999 is full aim angle
 
 				maxangledif = mathFloor(offsetdegrees)
 
 				if mathAbs(mdy) > 0.01 and mathAbs(mdy) < 0.99 then -- its off the Y plane
-					local modifier = math.sqrt ( 1.0 - mdy*mdy)
-					difffract  = difffract * modifier
+					local modifier = math.sqrt(1.0 - mdy * mdy)
+					difffract = difffract * modifier
 					maxangledif = maxangledif + difffract
-				elseif  mathAbs(mdy) < 0.99 then
-					maxangledif = maxangledif  + difffract
+				elseif mathAbs(mdy) < 0.99 then
+					maxangledif = maxangledif + difffract
 				else
-
 				end
 
-
-
 				--spEcho(string.format("%s has params offsetdegrees = %.2f MAD = %.3f (%.1f deg), diffract = %.3f md(xyz) = (%.3f,%.3f,%.3f)", weaponDef.name, offsetdegrees, weapons[weaponNum].maxAngleDif, angledif*180,  difffract, mdx,mdy,mdz))
-
 
 				--spEcho("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
 				--for k,v in pairs(weapons[weaponNum]) do spEcho(k,v)end
@@ -398,39 +411,55 @@ local function initializeUnitDefRing(unitDefID)
 
 			--if weapons[weaponNum].maxAngleDif then	spEcho(weapons[weaponNum].maxAngleDif,'for',weaponDef.name, 'saved as',maxangledif ) end
 
-			local ringParams = { range, color[1], color[2], color[3], color[4], --5
-				fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4], --9
+			local ringParams = {
+				range,
+				color[1],
+				color[2],
+				color[3],
+				color[4], --5
+				fadeparams[1],
+				fadeparams[2],
+				fadeparams[3],
+				fadeparams[4], --9
 				weaponDef.projectilespeed or 1, --10
-				isCylinder,-- and 1 or 0, (11)
+				isCylinder, -- and 1 or 0, (11)
 				weaponDef.heightBoostFactor or 0, --12
 				weaponDef.heightMod or 0, --13
 				groupselectionfadescale, --14
 				weaponType, --15
 				isDgun, --16
-				maxangledif  --17
+				maxangledif, --17
 			}
-			unitDefRings[unitDefID]['rings'][weaponNum] = ringParams
+			unitDefRings[unitDefID].rings[weaponNum] = ringParams
 		end
 	end
 
 	-- for builders, we need to add a special nano ring def
 	if unitBuilder[unitDefID] then
 		local range = unitBuildDistance[unitDefID]
-		local color = colorConfig['nano'].color
-		local fadeparams = colorConfig['nano'].fadeparams
-		local groupselectionfadescale = colorConfig['nano'].groupselectionfadescale
+		local color = colorConfig.nano.color
+		local fadeparams = colorConfig.nano.fadeparams
+		local groupselectionfadescale = colorConfig.nano.groupselectionfadescale
 
-		local ringParams = { range, color[1], color[2], color[3], color[4],
-			fadeparams[1], fadeparams[2], fadeparams[3], fadeparams[4],
+		local ringParams = {
+			range,
+			color[1],
+			color[2],
+			color[3],
+			color[4],
+			fadeparams[1],
+			fadeparams[2],
+			fadeparams[3],
+			fadeparams[4],
 			1,
 			false,
 			0,
 			0,
 			groupselectionfadescale,
 			2,
-			0
+			0,
 		}
-		unitDefRings[unitDefID]['rings'][weaponCount + 1] = ringParams -- weaponCount + 1 is nano
+		unitDefRings[unitDefID].rings[weaponCount + 1] = ringParams -- weaponCount + 1 is nano
 	end
 end
 
@@ -445,70 +474,60 @@ end
 --Button display configuration
 --position only relevant if no saved config data found
 
-local myAllyTeam            = Spring.GetMyAllyTeamID()
-local myTeamID              = spGetMyTeamID()
+local myAllyTeam = Spring.GetLocalAllyTeamID()
+local myTeamID = spGetMyTeamID()
 
 --------------------------------------------------------------------------------
 
-local glDepthTest           = gl.DepthTest
-local glLineWidth           = gl.LineWidth
-local glTexture             = gl.Texture
-local glClear               = gl.Clear
-local glColorMask           = gl.ColorMask
-local glStencilTest         = gl.StencilTest
-local glStencilMask         = gl.StencilMask
-local glStencilFunc         = gl.StencilFunc
-local glStencilOp           = gl.StencilOp
+local glDepthTest = gl.DepthTest
+local glLineWidth = gl.LineWidth
+local glTexture = gl.Texture
+local glClear = gl.Clear
+local glColorMask = gl.ColorMask
+local glStencilTest = gl.StencilTest
+local glStencilMask = gl.StencilMask
+local glStencilFunc = gl.StencilFunc
+local glStencilOp = gl.StencilOp
 local GL_STENCIL_BUFFER_BIT = GL.STENCIL_BUFFER_BIT
-local GL_TRIANGLE_FAN       = GL.TRIANGLE_FAN
-local GL_LEQUAL             = GL.LEQUAL
-local GL_LINE_LOOP          = GL.LINE_LOOP
-local GL_NOTEQUAL           = GL.NOTEQUAL
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local GL_LEQUAL = GL.LEQUAL
+local GL_LINE_LOOP = GL.LINE_LOOP
+local GL_NOTEQUAL = GL.NOTEQUAL
 
-local GL_KEEP               = 0x1E00 --GL.KEEP
-local GL_REPLACE            = GL.REPLACE --GL.KEEP
+local GL_KEEP = GL.KEEP
+local GL_REPLACE = GL.REPLACE --GL.KEEP
 
-local spGetUnitDefID        = Spring.GetUnitDefID
-local spGetUnitPosition     = Spring.GetUnitPosition
-local spGetUnitWeaponVectors=Spring.GetUnitWeaponVectors
-local spGetUnitAllyTeam     = Spring.GetUnitAllyTeam
-local spGetMouseState       = Spring.GetMouseState
-local spTraceScreenRay      = Spring.TraceScreenRay
-local GetModKeyState        = Spring.GetModKeyState
-local GetActiveCommand      = Spring.GetActiveCommand
-local GetSelectedUnits      = Spring.GetSelectedUnits
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitWeaponVectors = Spring.GetUnitWeaponVectors
+local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetMouseState = Spring.GetMouseState
+local spTraceScreenRay = Spring.TraceScreenRay
+local GetModKeyState = Spring.GetModKeyState
+local GetActiveCommand = Spring.GetActiveCommand
+local GetSelectedUnits = Spring.GetSelectedUnits
 local chobbyInterface
 
-local CMD_ATTACK 		  = CMD.ATTACK
-local CMD_FIGHT 		  = CMD.FIGHT
-local CMD_AREA_ATTACK 	  = CMD.AREA_ATTACK
-local CMD_MANUALFIRE	  = CMD.MANUALFIRE
-
-function widget:TextCommand(command)
-	local mycommand = false --buttonConfig["enemy"][tag]
-
-	if string.find(command, "defrange", nil, true) then
-		mycommand = true
-		local ally = 'ally'
-		local rangetype = 'ground'
-		local enabled = false
-		if string.find(command, "enemy", nil, true) then
-			ally = 'enemy'
-		end
-		if string.find(command, "nano", nil, true) then
-			rangetype = 'nano'
-		elseif string.find(command, "AA", nil, true) then
-			rangetype = 'AA'
-		end
-		if string.find(command, "+", nil, true) then
-			enabled = true
-		end
-		buttonConfig[ally][rangetype] = enabled
-		spEcho("Range visibility of " .. ally .. " " .. rangetype .. " attacks set to", enabled)
-		return true
+local function defrangeCmd(_, line)
+	local command = line or ""
+	local ally = "ally"
+	local rangetype = "ground"
+	local enabled = false
+	if string.find(command, "enemy", nil, true) then
+		ally = "enemy"
 	end
-
-	return false
+	if string.find(command, "nano", nil, true) then
+		rangetype = "nano"
+	elseif string.find(command, "AA", nil, true) then
+		rangetype = "AA"
+	end
+	if string.find(command, "+", nil, true) then
+		enabled = true
+	end
+	buttonConfig[ally][rangetype] = enabled
+	spEcho("Range visibility of " .. ally .. " " .. rangetype .. " attacks set to", enabled)
+	return true
 end
 
 ------ GL4 THINGS  -----
@@ -520,19 +539,29 @@ local largeCircleSegments = 1024
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
-local weaponTypeToString = { "ground", "nano", "AA", "cannon", 'lrpc' }
+local weaponTypeToString = { "ground", "nano", "AA", "cannon", "lrpc" }
 local allyenemypairs = { "ally", "enemy" }
-local attackRangeClasses = { 'enemyground', 'enemyAA', 'enemynano', 'allyground', 'allyAA', 'enemycannon', 'allycannon',
-	'allynano', 'allylrpc', 'enemylrpc' }
+local attackRangeClasses = {
+	"enemyground",
+	"enemyAA",
+	"enemynano",
+	"allyground",
+	"allyAA",
+	"enemycannon",
+	"allycannon",
+	"allynano",
+	"allylrpc",
+	"enemylrpc",
+}
 local attackRangeVAOs = {}
 
 local circleInstanceVBOLayout = {
-	{ id = 1, name = 'posscale',         size = 4 }, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
-	{ id = 2, name = 'color1',           size = 4 }, --  vec4 the color of this new
-	{ id = 3, name = 'visibility',       size = 4 }, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
-	{ id = 4, name = 'projectileParams', size = 4 }, --- projectileSpeed, iscylinder, heightBoostFactor , heightMod
-	{ id = 5, name = 'additionalParams', size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
-	{ id = 6, name = 'instData',         size = 4, type = GL.UNSIGNED_INT },
+	{ id = 1, name = "posscale", size = 4 }, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
+	{ id = 2, name = "color1", size = 4 }, --  vec4 the color of this new
+	{ id = 3, name = "visibility", size = 4 }, --- vec4 FadeStart, FadeEnd, StartAlpha, EndAlpha
+	{ id = 4, name = "projectileParams", size = 4 }, --- projectileSpeed, iscylinder, heightBoostFactor , heightMod
+	{ id = 5, name = "additionalParams", size = 4 }, --- groupselectionfadescale, weaponType, ISDGUN, MAXANGLEDIF
+	{ id = 6, name = "instData", size = 4, type = GL.UNSIGNED_INT },
 }
 
 local LuaShader = gl.LuaShader
@@ -543,7 +572,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 local attackRangeShader = nil
 
 local shaderSourceCache = {
-	shaderName = 'Attack Range GL4',
+	shaderName = "Attack Range GL4",
 	vssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
 	fssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
 	shaderConfig = {
@@ -551,6 +580,68 @@ local shaderSourceCache = {
 		STATICUNITS = 0,
 		DEBUG = autoReload and 1 or 0,
 		MOUSEOVERALPHAMULTIPLIER = 1.0,
+		MASKPASS = 0,
+	},
+	uniformInt = {
+		heightmapTex = 0,
+		losTex = 1,
+		mapNormalTex = 2,
+		maskTex = 3,
+	},
+	uniformFloat = {
+		lineAlphaUniform = 1,
+		cannonmode = 0,
+		fadeDistOffset = 0,
+		drawMode = 0,
+		selBuilderCount = 1.0,
+		selUnitCount = 1.0,
+		inMiniMap = 0.0,
+		pipVisibleArea = { 0, 1, 0, 1 }, -- left, right, bottom, top in normalized [0,1] coords for PIP minimap
+		maskClip = 0.0,
+		maskChannelBit = 1.0,
+	},
+}
+
+------ Range coverage mask (world view) -----
+-- The merged fill and the outer rings need to know per pixel whether any filled range disc
+-- of a class covers it. The stencil path (still used for the minimap) rasterizes every disc
+-- into the stencil buffer of the main framebuffer, so hundreds of overlapping discs cost
+-- tens of times the screen area at full (multisampled) resolution. In the world view the
+-- discs are instead drawn into the shared single-sample FBO of range_coverage_mask_gl4.lua
+-- with a depth test: the first disc drawn wins per pixel (instance-ordered depth) and the
+-- hierarchical depth test rejects the overlapping discs before rasterization, so the cost
+-- is proportional to the covered area and not to the summed disc areas. One screen-sized
+-- quad then paints the fill from the mask, and the outer rings read the mask instead of the
+-- stencil buffer.
+--
+-- Each ally/enemy group builds its own mask. Within a group the 8-bit red channel holds one
+-- bit per class, mirroring the stencil bit layout: 1 = ground (and cannon), 2 = nano,
+-- 4 = AA, 8 = cannon when colorConfig.cannon_separate_stencil is set. lrpc rings are not
+-- merged, they are only clipped by the cannon class like in the stencil path.
+local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local cannonMaskChannel = colorConfig.cannon_separate_stencil and 3 or 0
+local maskChannelClasses = { [0] = { "ground" }, { "nano" }, { "AA" }, {} }
+table.insert(maskChannelClasses[cannonMaskChannel], "cannon")
+local maskChannelFillClass = { [0] = "ground", "nano", "AA", "cannon" }
+local ringClassOrder = { "ground", "nano", "AA", "cannon", "lrpc" }
+local ringClassCannonMode = { ground = 0, nano = 0, AA = 0, cannon = 1, lrpc = 1 }
+local ringClassMaskBit = { ground = 1, nano = 2, AA = 4, cannon = 2 ^ cannonMaskChannel, lrpc = 2 ^ cannonMaskChannel }
+
+local maskFBO, maskTex -- the shared targets, fetched each draw by maskPathAvailable
+local maskAcquired = false
+local fullScreenQuadVAO
+local maskShader, compositeShader
+
+local maskShaderSourceCache = {
+	shaderName = "Attack Range GL4 coverage mask",
+	vssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/weapon_range_rings_unified_gl4.frag.glsl",
+	shaderConfig = {
+		MYGRAVITY = Game.gravity + 0.1,
+		STATICUNITS = 0,
+		DEBUG = 0,
+		MOUSEOVERALPHAMULTIPLIER = 1.0,
+		MASKPASS = 1,
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -565,18 +656,45 @@ local shaderSourceCache = {
 		selBuilderCount = 1.0,
 		selUnitCount = 1.0,
 		inMiniMap = 0.0,
+		pipVisibleArea = { 0, 1, 0, 1 },
+		maskWriteValue = 0,
+		maskDepthBase = 0.1,
 	},
 }
+
+local compositeShaderSourceCache = {
+	shaderName = "Attack Range GL4 fill composite",
+	vssrcpath = "LuaUI/Shaders/weapon_range_fill_composite_gl4.vert.glsl",
+	fssrcpath = "LuaUI/Shaders/weapon_range_fill_composite_gl4.frag.glsl",
+	shaderConfig = {},
+	uniformInt = {
+		maskTex = 3,
+	},
+	uniformFloat = {
+		fillColor0 = { 0, 0, 0, 0 },
+		fillColor1 = { 0, 0, 0, 0 },
+		fillColor2 = { 0, 0, 0, 0 },
+		fillColor3 = { 0, 0, 0, 0 },
+	},
+}
+
+local function maskPathAvailable()
+	if not (maskShader and compositeShader and fullScreenQuadVAO) then
+		return false
+	end
+	maskFBO, maskTex = RangeCoverageMask.Get()
+	return maskFBO ~= nil
+end
 
 local function goodbye(reason)
 	spEcho("AttackRange GL4 widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
 end
 
-
 local cacheTable = {}
-for i = 1, 24 do cacheTable[i] = 0 end
-
+for i = 1, 24 do
+	cacheTable[i] = 0
+end
 
 -- code for selected units start here
 local selectedUnits = {}
@@ -587,10 +705,12 @@ local mouseUnit
 local mouseovers = {} -- mirroring selections, but for mouseovers
 
 local unitsOnOff = {} -- unit weapon toggle states, tracked from CommandNotify (also building on off status)
+local unitRangeScale = { selections = {}, mouseovers = {} } -- stores info for units with scaling ranges
+local numScalingUnits = 0
 local myTeam = spGetMyTeamID()
 
 -- mirrors functionality of UnitDetected
-local function AddSelectedUnit(unitID, mouseover)
+local function AddSelectedUnit(unitID, mouseover, newRange)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
 	if mouseover then
@@ -598,8 +718,12 @@ local function AddSelectedUnit(unitID, mouseover)
 	end
 
 	local unitDefID = spGetUnitDefID(unitID)
-	if not unitDefID then return end
-	if collections[unitID] ~= nil then return end
+	if not unitDefID then
+		return
+	end
+	if collections[unitID] ~= nil then
+		return
+	end
 
 	--- if unittype is toggled off we don't proceed at all
 	local currentUnitName = unitName[unitDefID]
@@ -607,7 +731,9 @@ local function AddSelectedUnit(unitID, mouseover)
 	local allystring = alliedUnit and "ally" or "enemy"
 
 	local weapons = unitWeapons[unitDefID]
-	if (not weapons or #weapons == 0) and not unitBuilder[unitDefID] then return end -- no weapons and not builder, nothing to add
+	if (not weapons or #weapons == 0) and not unitBuilder[unitDefID] then
+		return
+	end -- no weapons and not builder, nothing to add
 	-- we want to add to unitDefRings here if it doesn't exist
 	if not unitDefRings[unitDefID] then
 		-- read weapons and add them to weapons table, then add to entry
@@ -620,6 +746,11 @@ local function AddSelectedUnit(unitID, mouseover)
 			if true then --range > 0 then -- trying something different
 				if weapon.onlyTargets and weapon.onlyTargets.vtol then
 					entry.weapons[weaponNum] = 3 -- weaponTypeMap[3] is "AA"
+				elseif weaponDef.customParams.carried_unit then
+					-- Drone controllers are dummy cannons that never fire. Their envelope is
+					-- a flat circle, so drawing them ballistically makes the ring bulge and
+					-- shrink over terrain that the drones ignore.
+					entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
 				elseif weaponDef.type == "Cannon" then
 					-- if weaponDef.range < 700 then
 					-- 	entry.weapons[weaponNum] = 1 -- weaponTypeMap[1] is "ground"
@@ -652,44 +783,74 @@ local function AddSelectedUnit(unitID, mouseover)
 		initializeUnitDefRing(unitDefID)
 	end
 
+	local scalingUnitDefs = unitDefRangeScale
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then
+		scalingUnitParams = unitRangeScale.mouseovers
+	end
+	local oldRange = {}
+	if scalingUnitDefs[unitDefID] and alliedUnit then -- Can't read enemy unit ranges.
+		if not newRange then
+			newRange = {}
+		end
+		scalingUnitParams[unitID] = { oldRange = {} }
+		numScalingUnits = numScalingUnits + 1
+		oldRange[unitID] = {}
+		for weaponNum = 1, #weapons do
+			if not newRange[weaponNum] then -- Prevent unnecessary duplicate engine calls.
+				newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+			end
+			oldRange[unitID][weaponNum] = { weaponNum, newRange[weaponNum] }
+		end
+	end
 
 	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
-	local weaponTypes = unitDefRings[unitDefID]['weapons']
+	local weaponTypes = unitDefRings[unitDefID].weapons
 	for j, weaponType in pairs(weaponTypes) do
 		local drawIt = true
 		-- we need to check if the unit has on/off weapon states, and only add the one active
 		local weaponOnOff
 		-- on off can be set on a building, we need to check that
-		if unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
+		if weaponType == 2 then
+			-- nano/build range: never gated by on/off — a builder's build power is
+			-- not affected by its on/off state (e.g. the Legion Fortifier turret is
+			-- onoffable, but that only toggles its paired extractor)
+		elseif unitOnOffable[unitDefID] and not unitOnOffName[unitDefID] then -- if it's a building with actual on/off, we display range if it's on
 			weaponOnOff = unitsOnOff[unitID] or 1
 			drawIt = (weaponOnOff == 1)
 		elseif unitOnOffable[unitDefID] and unitOnOffName[unitDefID] then -- this is a unit or building with 2 weapons
 			weaponOnOff = unitsOnOff[unitID] or 0
-			drawIt = ((weaponOnOff + 1) == j) or
-			#weaponTypes == 1 -- remember weaponOnOff is 0 or 1, weapon number starts from 1
+			drawIt = ((weaponOnOff + 1) == j) or #weaponTypes == 1 -- remember weaponOnOff is 0 or 1, weapon number starts from 1
 		end
 
 		-- we add checks here for the display toggle status from config
 		if unitToggles[currentUnitName] then -- only if there's a config, else default is to draw it
 			local wToggleStatuses = unitToggles[currentUnitName][allystring]
-			if type(wToggleStatuses) == 'table' then
+			if type(wToggleStatuses) == "table" then
 				drawIt = wToggleStatuses[j] and drawIt
 			else
 				-- fixing the unitToggles table since something was corrupted
 				local entry = {}
-				for i=1, #weaponTypes do
+				for i = 1, #weaponTypes do
 					entry[i] = true
 				end
 				unitToggles[currentUnitName][allystring] = entry
 			end
 		end
 
-		local ringParams = unitDefRings[unitDefID]['rings'][j]
+		local ringParams = {}
+		if newRange then
+			for i = 2, 17 do -- See line 405.
+				ringParams[i] = unitDefRings[unitDefID].rings[j][i] -- Preserves default range from unitDefs for use with enemy units.
+			end
+			ringParams[1] = newRange[j]
+		else
+			ringParams = unitDefRings[unitDefID].rings[j]
+		end
 		if drawIt and ringParams[1] > 0 then
-
 			local weaponID = j
 			-- TODO:
 			-- Weapons aim from their WPY positions, but that can change for e.g. popups!
@@ -701,9 +862,8 @@ local function AddSelectedUnit(unitID, mouseover)
 
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
 			-- so it only goes up with popups
-			local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy ) - y)
+			local turretHeight = mathMax(ringParams[18] or 0, (wpy or mpy) - y)
 			ringParams[18] = turretHeight
-
 
 			cacheTable[1] = mpx
 			cacheTable[2] = turretHeight
@@ -715,7 +875,7 @@ local function AddSelectedUnit(unitID, mouseover)
 			end
 
 			if false then
-				local s = ' '
+				local s = " "
 				for i = 1, 20 do
 					s = s .. "; " .. tostring(cacheTable[i])
 				end
@@ -724,9 +884,7 @@ local function AddSelectedUnit(unitID, mouseover)
 					spEcho("added", vaokey, s)
 				end
 			end
-			local instanceID = 10000000 * (mouseover and 1 or 0) + 1000000 * weaponType + unitID +
-				100000 *
-				j -- weapon index needs to be included here for uniqueness
+			local instanceID = 10000000 * (mouseover and 1 or 0) + 1000000 * weaponType + unitID + 100000 * j -- weapon index needs to be included here for uniqueness
 			pushElementInstance(attackRangeVAOs[vaokey], cacheTable, instanceID, true, false, unitID)
 			addedRings = addedRings + 1
 			if collections[unitID] == nil then
@@ -737,10 +895,13 @@ local function AddSelectedUnit(unitID, mouseover)
 					posz = mpz,
 					vaokeys = {},
 					allied = alliedUnit,
-					unitDefID = unitDefID
+					unitDefID = unitDefID,
 				}
 			end
 			collections[unitID].vaokeys[instanceID] = vaokey
+			if newRange then
+				scalingUnitParams[unitID].oldRange[instanceID] = oldRange[unitID][j]
+			end
 		end
 	end
 	-- we cheat here and update builder count
@@ -752,12 +913,20 @@ end
 local function RemoveSelectedUnit(unitID, mouseover)
 	--if not show_selected_weapon_ranges then return end
 	local collections = selections
-	if mouseover then collections = mouseovers end
+	if mouseover then
+		collections = mouseovers
+	end
+	local scalingUnitParams = unitRangeScale.selections
+	if mouseover then
+		scalingUnitParams = unitRangeScale.mouseovers
+	end
 
 	local removedRings = 0
 	if collections[unitID] then
 		local collection = collections[unitID]
-		if not collection then return end
+		if not collection then
+			return
+		end
 		for instanceKey, vaoKey in pairs(collection.vaokeys) do
 			--spEcho(vaoKey,instanceKey)
 			popElementInstance(attackRangeVAOs[vaoKey], instanceKey)
@@ -768,6 +937,10 @@ local function RemoveSelectedUnit(unitID, mouseover)
 			selBuilderCount = selBuilderCount - 1
 		end
 		collections[unitID] = nil
+		if scalingUnitParams[unitID] then
+			scalingUnitParams[unitID] = nil
+			numScalingUnits = numScalingUnits - 1
+		end
 	end
 end
 
@@ -785,10 +958,20 @@ local function InitializeBuilders()
 end
 
 local function makeShaders()
-	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
+	attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0) or attackRangeShader
 	if not attackRangeShader then
 		goodbye("Failed to compile attackRangeShader GL4 ")
 		return false
+	end
+	-- The coverage mask shaders are optional: without them the stencil path is used.
+	maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache, 0) or maskShader
+	compositeShader = LuaShader.CheckShaderUpdates(compositeShaderSourceCache, 0) or compositeShader
+	fullScreenQuadVAO = fullScreenQuadVAO or InstanceVBOTable.MakeTexRectVAO()
+	if not (maskShader and compositeShader and fullScreenQuadVAO) then
+		spEcho("Attack Range GL4: range coverage mask unavailable, using the stencil path")
+	elseif not maskAcquired then
+		RangeCoverageMask.Acquire()
+		maskAcquired = true
 	end
 	return true
 end
@@ -797,30 +980,70 @@ local function initGL4()
 	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
 	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i, atkRangeClass in ipairs(attackRangeClasses) do
-		attackRangeVAOs
-		[atkRangeClass] = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass.. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
+		attackRangeVAOs[atkRangeClass] =
+			InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 20, atkRangeClass .. "_attackrange_gl4", 6) -- 6 is unitIDattribID (instData)
 		if atkRangeClass:find("lrpc", nil, true) or atkRangeClass:find("AA", nil, true) then
-			attackRangeVAOs
-			[atkRangeClass].vertexVBO = largeCircleVBO
-			attackRangeVAOs
-			[atkRangeClass].numVertices = largeCircleSegments
+			attackRangeVAOs[atkRangeClass].vertexVBO = largeCircleVBO
+			attackRangeVAOs[atkRangeClass].numVertices = largeCircleSegments
 		else
-			attackRangeVAOs
-			[atkRangeClass].vertexVBO = smallCircleVBO
-			attackRangeVAOs
-			[atkRangeClass].numVertices = smallCircleSegments
+			attackRangeVAOs[atkRangeClass].vertexVBO = smallCircleVBO
+			attackRangeVAOs[atkRangeClass].numVertices = smallCircleSegments
 		end
-		local newVAO = InstanceVBOTable.makeVAOandAttach(attackRangeVAOs
-			[atkRangeClass].vertexVBO, attackRangeVAOs
-			[atkRangeClass].instanceVBO)
-		attackRangeVAOs
-		[atkRangeClass].VAO = newVAO
+		local newVAO = InstanceVBOTable.makeVAOandAttach(
+			attackRangeVAOs[atkRangeClass].vertexVBO,
+			attackRangeVAOs[atkRangeClass].instanceVBO
+		)
+		attackRangeVAOs[atkRangeClass].VAO = newVAO
 	end
 	return makeShaders()
 end
 
+local function DoRangeUpdate(unitID, scalingUnit, mouseover)
+	local newRange = {}
+	local update
+	for instanceID, oldRange in pairs(scalingUnit.oldRange) do
+		local weaponNum = oldRange[1]
+		newRange[weaponNum] = spGetUnitWeaponState(unitID, weaponNum, "range")
+		if oldRange[2] ~= newRange[weaponNum] then
+			update = true
+		end
+	end
+	if update then
+		RemoveSelectedUnit(unitID, mouseover) -- need to refresh this unit's ring
+		AddSelectedUnit(unitID, mouseover, newRange)
+	end
+end
+
+local function UpdateScalingRange() -- This function, and anything related to unitRangeScale, scalingUnitParams, and newRange are parts of a hook for Gunslingers or future/modded units that gain range with EXP.
+	local scalingUnitParams = unitRangeScale
+	for unitID, scalingUnit in pairs(scalingUnitParams.selections) do
+		DoRangeUpdate(unitID, scalingUnit)
+	end
+	for unitID, scalingUnit in pairs(scalingUnitParams.mouseovers) do
+		local mouseover = true
+		DoRangeUpdate(unitID, scalingUnit, mouseover)
+	end
+end
+
+-- refresh all display according to toggle status
+local function RefreshEverything()
+	-- what about just reinitialize?
+	attackRangeVAOs = {}
+	selections = {}
+	selUnitCount = 0
+	selectedUnits = {}
+	selUnits = {}
+	mouseovers = {}
+	unitRangeScale = { selections = {}, mouseovers = {} }
+	numScalingUnits = 0
+
+	widget:Initialize()
+end
+
 local function toggleShowSelectedRanges(on)
-	if show_selected_weapon_ranges == on then return end
+	if show_selected_weapon_ranges == on then
+		return
+	end
 	show_selected_weapon_ranges = on
 end
 
@@ -829,14 +1052,86 @@ local function toggleCursorRange(_, _, args)
 	spEcho("Cursor unit range set to: " .. (cursor_unit_range and "ON" or "OFF"))
 end
 
+-- direction should be 1 or -1 (next or previous bitmap value)
+local function cycleUnitDisplay(direction)
+	if (selUnitCount > 1) or (selUnitCount == 0) then
+		spEcho("Please select only one unit to change display setting!")
+		return
+	end
+	local unitID = selectedUnits[1]
+	if not unitID then
+		return
+	end
+
+	local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
+	local allystring = alliedUnit and "ally" or "enemy"
+	local unitDefID = spGetUnitDefID(unitID)
+	if unitMaxWeaponRange[unitDefID] == 0 and not unitBuilder[unitDefID] then
+		spEcho("Unit has no weapon range!")
+		return
+	end
+	local name = unitName[unitDefID]
+	local wToggleStatuses = {}
+	local newToggleStatuses = {}
+	unitToggles[name] = unitToggles[name] or {}
+	if not unitToggles[name][allystring] then -- default toggle is on, we set it to off (0)
+		for i = 1, #unitDefRings[unitDefID].weapons do
+			wToggleStatuses[i] = true -- every ring defined weapon is on by default
+		end
+		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
+		unitToggles[name][allystring] = newToggleStatuses
+	else -- there's already something stored here so we toggle this value
+		wToggleStatuses = unitToggles[name][allystring]
+		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
+		unitToggles[name][allystring] = newToggleStatuses
+	end
+	local bitmap = convertToBitmap(newToggleStatuses)
+	local maxConfigBitmap = 2 ^ #newToggleStatuses - 1
+	-- some crude info display for now
+	spEcho(
+		"Changed range display of "
+			.. name
+			.. " to config "
+			.. tostring(bitmap)
+			.. ": "
+			.. table.toString(unitToggles[name][allystring])
+	)
+
+	-- write toggle changes to file
+	table.save(unitToggles, "LuaUI/config/AttackRangeConfig2.lua", "--Attack Range Display Configuration (v2)")
+	-- play a sound cue based on status bitmap state: max means all on, 0 means all off
+	local soundEffect = "Sounds/commands/cmd-defaultweapon.wav"
+	local soundEffectOn = "Sounds/commands/cmd-on.wav"
+	local soundEffectOff = "Sounds/commands/cmd-off.wav"
+	local volume = 0.3
+	if bitmap == maxConfigBitmap then
+		soundEffect = soundEffectOn
+		volume = 1.0
+	elseif bitmap == 0 then
+		soundEffect = soundEffectOff
+		volume = 0.6
+	end
+	Spring.PlaySoundFile(soundEffect, volume, "ui")
+
+	RefreshEverything()
+end
+
+local function cycleUnitDisplayHandler(_, _, _, data)
+	local data = data or {}
+	local direction = data.direction
+	cycleUnitDisplay(direction)
+end
+
 function widget:PlayerChanged(playerID)
-    myAllyTeamID = Spring.GetLocalAllyTeamID()
-    myTeamID = Spring.GetLocalTeamID()
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	myTeamID = Spring.GetLocalTeamID()
 
 	InitializeBuilders()
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("defrange", defrangeCmd, nil, "t")
+
 	initUnitList()
 
 	if initGL4() == false then
@@ -850,8 +1145,10 @@ function widget:Initialize()
 	end
 
 	widgetHandler:AddAction("cursor_range_toggle", toggleCursorRange, nil, "p")
+	widgetHandler:AddAction("attack_range_inc", cycleUnitDisplayHandler, { direction = 1 }, "p")
+	widgetHandler:AddAction("attack_range_dec", cycleUnitDisplayHandler, { direction = -1 }, "p")
 
-	myAllyTeam = Spring.GetMyAllyTeamID()
+	myAllyTeam = Spring.GetLocalAllyTeamID()
 	myTeamID = spGetMyTeamID()
 
 	updateSelection = true
@@ -885,7 +1182,28 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("defrange", "t")
 	widgetHandler:RemoveAction("cursor_range_toggle", "p")
+	widgetHandler:RemoveAction("attack_range_inc", "p")
+	widgetHandler:RemoveAction("attack_range_dec", "p")
+
+	if maskAcquired then
+		RangeCoverageMask.Release()
+		maskAcquired = false
+	end
+	maskFBO, maskTex = nil, nil
+	if fullScreenQuadVAO then
+		fullScreenQuadVAO:Delete()
+		fullScreenQuadVAO = nil
+	end
+	if maskShader then
+		maskShader:Finalize()
+		maskShader = nil
+	end
+	if compositeShader then
+		compositeShader:Finalize()
+		compositeShader = nil
+	end
 end
 
 local gameFrame = 0
@@ -898,7 +1216,10 @@ local function RefreshSelectedUnits()
 	local newSelUnits = {}
 	for i, unitID in ipairs(selectedUnits) do
 		newSelUnits[unitID] = true
-		if not selUnits[unitID] and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult) then
+		if
+			not selUnits[unitID]
+			and selUnitCount < mathFloor(selectionDisableThreshold * selectionDisableThresholdMult)
+		then
 			AddSelectedUnit(unitID)
 		end
 	end
@@ -935,85 +1256,9 @@ local function DrawBuilders()
 	end
 end
 
--- refresh all display according to toggle status
-local function RefreshEverything()
-	-- what about just reinitialize?
-	attackRangeVAOs = {}
-	selections = {}
-	selUnitCount = 0
-	selectedUnits = {}
-	selUnits = {}
-	mouseovers = {}
-
-	widget:Initialize()
-end
-
--- direction should be 1 or -1 (next or previous bitmap value)
-local function CycleUnitDisplay(direction)
-	if (selUnitCount > 1) or (selUnitCount == 0) then
-		spEcho("Please select only one unit to change display setting!")
-		return
-	end
-	local unitID = selectedUnits[1]
-	if not unitID then return end
-
-	local alliedUnit = (spGetUnitAllyTeam(unitID) == myAllyTeam)
-	local allystring = alliedUnit and "ally" or "enemy"
-	local unitDefID = spGetUnitDefID(unitID)
-	if unitMaxWeaponRange[unitDefID] == 0 and not unitBuilder[unitDefID] then
-		spEcho("Unit has no weapon range!")
-		return
-	end
-	local name = unitName[unitDefID]
-	local wToggleStatuses = {}
-	local newToggleStatuses = {}
-	unitToggles[name] = unitToggles[name] or {}
-	if not unitToggles[name][allystring] then -- default toggle is on, we set it to off (0)
-		for i = 1, #unitDefRings[unitDefID].weapons do
-			wToggleStatuses[i] = true -- every ring defined weapon is on by default
-		end
-		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
-		unitToggles[name][allystring] = newToggleStatuses
-	else -- there's already something stored here so we toggle this value
-		wToggleStatuses = unitToggles[name][allystring]
-		newToggleStatuses = getNextWeaponCombination(wToggleStatuses, direction)
-		unitToggles[name][allystring] = newToggleStatuses
-	end
-	local bitmap = convertToBitmap(newToggleStatuses)
-	local maxConfigBitmap = 2 ^ #newToggleStatuses - 1
-	-- some crude info display for now
-	spEcho("Changed range display of " .. name ..
-		" to config " .. tostring(bitmap) ..
-		": " .. table.toString(unitToggles[name][allystring]))
-
-	-- write toggle changes to file
-	table.save(unitToggles, "LuaUI/config/AttackRangeConfig2.lua", "--Attack Range Display Configuration (v2)")
-	-- play a sound cue based on status bitmap state: max means all on, 0 means all off
-	local soundEffect = 'Sounds/commands/cmd-defaultweapon.wav'
-	local soundEffectOn = 'Sounds/commands/cmd-on.wav'
-	local soundEffectOff = 'Sounds/commands/cmd-off.wav'
-	local volume = 0.3
-	if bitmap == maxConfigBitmap then
-		soundEffect = soundEffectOn
-		volume = 1.0
-	elseif bitmap == 0 then
-		soundEffect = soundEffectOff
-		volume = 0.6
-	end
-	Spring.PlaySoundFile(soundEffect, volume, 'ui')
-
-	RefreshEverything()
-end
-
 function widget:KeyPress(key, mods, isRepeat)
 	if key == 304 then
 		shifted = true
-	end
-	if key == 46 and mods.alt then
-		CycleUnitDisplay(1) -- cycle forward
-	end
-	if key == 44 and mods.alt then
-		CycleUnitDisplay(-1) -- cycle backward
 	end
 end
 
@@ -1023,14 +1268,28 @@ function widget:KeyRelease(key, mods, isRepeat)
 	end
 end
 
+local timeSinceLastRangeUpdate = 0
 function widget:Update(dt)
 	if updateSelection and gameFrame % 3 == 0 then
 		UpdateSelectedUnits()
 	end
 
+	if numScalingUnits > 0 then
+		timeSinceLastRangeUpdate = timeSinceLastRangeUpdate + dt
+	else
+		timeSinceLastRangeUpdate = 0
+	end
+
+	if timeSinceLastRangeUpdate > DYNAMIC_RANGE_UPDATE_RATE then
+		UpdateScalingRange() -- This function is relatively expensive, so we only run it when we need to.
+		timeSinceLastRangeUpdate = 0
+	end
+
 	if show_selected_weapon_ranges and cursor_unit_range and gameFrame % 3 == 1 then
 		local mx, my, _, mmb, _, mouseOffScreen, cameraPanMode = spGetMouseState()
-		if mouseOffScreen or mmb or cameraPanMode then return end
+		if mouseOffScreen or mmb or cameraPanMode then
+			return
+		end
 
 		local desc, args = spTraceScreenRay(mx, my, false)
 		local mUnitID
@@ -1056,8 +1315,12 @@ function widget:Update(dt)
 			if shifted then
 				toggleShowSelectedRanges(true)
 			else
-				if cmdID == 20 then toggleShowSelectedRanges(true) end
-				if not cmdID or cmdID ~= 20 then toggleShowSelectedRanges(false) end
+				if cmdID == 20 then
+					toggleShowSelectedRanges(true)
+				end
+				if not cmdID or cmdID ~= 20 then
+					toggleShowSelectedRanges(false)
+				end
 			end
 		end
 		local isBuildingNow = (cmdID ~= nil) and (cmdID < 0) -- we're building, need to draw builder ranges
@@ -1071,14 +1334,14 @@ end
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if unitTeam == myTeam and cmdID == 85 then -- my unit, "OnOff" command
 		unitsOnOff[unitID] = cmdParams[1]
-		RemoveSelectedUnit(unitID)          -- need to refresh this unit's ring
+		RemoveSelectedUnit(unitID) -- need to refresh this unit's ring
 		AddSelectedUnit(unitID)
 	end
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == 'LobbyOverlayActive' then
-		chobbyInterface = (msg:sub(1, 19) == 'LobbyOverlayActive1')
+	if msg:sub(1, 18) == "LobbyOverlayActive" then
+		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 	end
 end
 
@@ -1093,7 +1356,9 @@ end
 local groundnukeair = { "ground", "nano", "AA" }
 local cannonlrpc = { "cannon", "lrpc" }
 local function DRAWRINGS(primitiveType, linethickness)
-	if not show_selected_weapon_ranges and not isBuilding then return end
+	if not show_selected_weapon_ranges and not isBuilding then
+		return
+	end
 	local stencilMask
 	attackRangeShader:SetUniform("cannonmode", 0)
 	for i, allyState in ipairs(allyenemypairs) do
@@ -1117,7 +1382,7 @@ local function DRAWRINGS(primitiveType, linethickness)
 	attackRangeShader:SetUniform("cannonmode", 1)
 	for i, allyState in ipairs(allyenemypairs) do
 		for j, wt in ipairs(cannonlrpc) do
-			if linethickness or wt == 'cannon' then
+			if linethickness or wt == "cannon" then
 				local atkRangeClass = allyState .. wt
 				local iT = attackRangeVAOs[atkRangeClass]
 				local stencilOffset = colorConfig.cannon_separate_stencil and 3 or 0
@@ -1136,27 +1401,197 @@ local function DRAWRINGS(primitiveType, linethickness)
 	end
 end
 
-function widget:DrawWorld(inMiniMap)
+-- Fill colour per mask channel. The alpha matches what the stencil fill produced: fill_alpha
+-- times the ring colour's alpha times internalalpha, the line alpha uniform the fill pass
+-- inherited from the previous frame's inner rings.
+local function getFillColor(channel)
+	local color = colorConfig[maskChannelFillClass[channel]].color
+	return color[1], color[2], color[3], color[4] * colorConfig.fill_alpha * colorConfig.internalalpha
+end
 
+-- Draws every filled disc of one ally/enemy group into the mask FBO (bound by the caller).
+-- Within a channel the depth test keeps only the first disc per pixel (instance-ordered depth,
+-- see the vertex shader), so the additive write sets each class bit at most once; the channels
+-- are separated by depth clears so that classes sharing a pixel all get their bit. The clears
+-- are full-surface on purpose, partial clears can defeat the hierarchical depth test.
+local function drawCoverageMask(allyState)
+	glColorMask(true, true, true, true)
+	gl.DepthMask(true)
+	glDepthTest(GL.LESS)
+	gl.Blending(GL.ONE, GL.ONE)
+	glClear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+
+	maskShader:Activate()
+	maskShader:SetUniform("selUnitCount", selUnitCount)
+	maskShader:SetUniform("selBuilderCount", selBuilderCount)
+	maskShader:SetUniform("drawMode", 0.0)
+	maskShader:SetUniform("inMiniMap", 0.0)
+	maskShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
+	maskShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
+	for channel = 0, 3 do
+		local classes = maskChannelClasses[channel]
+		local anyInstances = false
+		for i = 1, #classes do
+			if attackRangeVAOs[allyState .. classes[i]].usedElements > 0 then
+				anyInstances = true
+			end
+		end
+		if anyInstances then
+			glClear(GL.DEPTH_BUFFER_BIT, 1.0)
+			maskShader:SetUniform("maskWriteValue", (2 ^ channel) / 255)
+			for i = 1, #classes do
+				local iT = attackRangeVAOs[allyState .. classes[i]]
+				if iT.usedElements > 0 then
+					maskShader:SetUniform("cannonmode", ringClassCannonMode[classes[i]])
+					-- each class of a channel gets its own depth band so a later class never
+					-- passes the depth test where an earlier one already wrote the bit
+					maskShader:SetUniform("maskDepthBase", 0.1 + (i - 1) * 0.4)
+					iT.VAO:DrawArrays(GL_TRIANGLE_FAN, iT.numVertices, 0, iT.usedElements, 0)
+				end
+			end
+		end
+	end
+	maskShader:Deactivate()
+	gl.DepthMask(false)
+end
+
+-- Paints the merged fill of one group from its coverage mask with one screen-sized quad.
+local function drawFillComposite()
+	glTexture(3, maskTex)
+	glDepthTest(false)
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) -- the shader outputs premultiplied colour
+	compositeShader:Activate()
+	compositeShader:SetUniform("fillColor0", getFillColor(0))
+	compositeShader:SetUniform("fillColor1", getFillColor(1))
+	compositeShader:SetUniform("fillColor2", getFillColor(2))
+	compositeShader:SetUniform("fillColor3", getFillColor(3))
+	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
+	compositeShader:Deactivate()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+-- Outer rings of one group: the merged outline, everything inside the group's mask is hidden.
+local function drawOuterRings(allyState, hasMask)
+	glDepthTest(GL_LEQUAL)
+	attackRangeShader:Activate()
+	attackRangeShader:SetUniform("selUnitCount", selUnitCount)
+	attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
+	attackRangeShader:SetUniform("inMiniMap", 0.0)
+	attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
+	attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.externalalpha)
+	attackRangeShader:SetUniform("drawMode", 1.0)
+	attackRangeShader:SetUniform("drawAlpha", 1.0)
+	attackRangeShader:SetUniform("maskClip", hasMask and 1.0 or 0.0)
+	for i = 1, #ringClassOrder do
+		local wt = ringClassOrder[i]
+		local iT = attackRangeVAOs[allyState .. wt]
+		if iT.usedElements > 0 then
+			glLineWidth(colorConfig[wt].externallinethickness * cameraHeightFactor)
+			attackRangeShader:SetUniform("cannonmode", ringClassCannonMode[wt])
+			attackRangeShader:SetUniform("maskChannelBit", ringClassMaskBit[wt])
+			iT.VAO:DrawArrays(GL_LINE_LOOP, iT.numVertices, 0, iT.usedElements, 0)
+		end
+	end
+	attackRangeShader:Deactivate()
+end
+
+-- Inner rings of both groups: plain per-unit rings, nothing is masked.
+local function drawInnerRings()
+	glDepthTest(GL_LEQUAL)
+	attackRangeShader:Activate()
+	attackRangeShader:SetUniform("selUnitCount", selUnitCount)
+	attackRangeShader:SetUniform("selBuilderCount", selBuilderCount)
+	attackRangeShader:SetUniform("inMiniMap", 0.0)
+	attackRangeShader:SetUniform("fadeDistOffset", 0)
+	attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.internalalpha)
+	attackRangeShader:SetUniform("drawMode", 2.0)
+	attackRangeShader:SetUniform("drawAlpha", 1.0)
+	attackRangeShader:SetUniform("maskClip", 0.0)
+	for _, allyState in ipairs(allyenemypairs) do
+		for i = 1, #ringClassOrder do
+			local wt = ringClassOrder[i]
+			local iT = attackRangeVAOs[allyState .. wt]
+			if iT.usedElements > 0 then
+				glLineWidth(colorConfig[wt].internallinethickness * cameraHeightFactor)
+				attackRangeShader:SetUniform("cannonmode", ringClassCannonMode[wt])
+				iT.VAO:DrawArrays(GL_LINE_LOOP, iT.numVertices, 0, iT.usedElements, 0)
+			end
+		end
+	end
+	attackRangeShader:Deactivate()
+end
+
+-- World view drawing through the coverage mask; the stencil path below stays for the minimap.
+local function drawRangesMasked()
+	if not show_selected_weapon_ranges and not isBuilding then
+		return
+	end
+	cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+	glTexture(0, "$heightmap")
+	glTexture(1, "$info")
+	if colorConfig.drawStencil then
+		for _, allyState in ipairs(allyenemypairs) do
+			local hasFill, hasRings = false, false
+			for i = 1, #ringClassOrder do
+				local wt = ringClassOrder[i]
+				if attackRangeVAOs[allyState .. wt].usedElements > 0 then
+					hasRings = true
+					hasFill = hasFill or wt ~= "lrpc" -- lrpc rings are not merged
+				end
+			end
+			if hasRings then
+				if hasFill then
+					gl.ActiveFBO(maskFBO, drawCoverageMask, allyState)
+					drawFillComposite()
+				end
+				drawOuterRings(allyState, hasFill)
+			end
+		end
+	end
+	if colorConfig.drawInnerRings then
+		drawInnerRings()
+	end
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(3, false)
+	glDepthTest(false)
+end
+
+function widget:DrawWorld(inMiniMap)
 	if autoReload then
 		attackRangeShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or attackRangeShader
+		maskShader = LuaShader.CheckShaderUpdates(maskShaderSourceCache) or maskShader
+		compositeShader = LuaShader.CheckShaderUpdates(compositeShaderSourceCache) or compositeShader
 	end
 
-	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then return end
-	if not Spring.IsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
-		cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+	if chobbyInterface or not (selUnitCount > 0 or mouseUnit) then
+		return
+	end
+	if not Spring.IsGUIHidden() and (not WG.topbar or not WG.topbar.showingQuit()) then
+		if not inMiniMap and maskPathAvailable() then
+			drawRangesMasked()
+			return
+		end
+		-- Stencil path: the minimap (tiny discs), and the fallback when the coverage mask is unavailable.
+		-- For PIP minimap, use thicker lines since PIP is larger than engine minimap
+		local inPip = inMiniMap and WG.minimap and WG.minimap.isDrawingInPip
+		if inPip then
+			cameraHeightFactor = 2.5 -- PIP is larger, needs thicker lines
+		else
+			cameraHeightFactor = GetCameraHeightFactor() * 0.5 + 0.5
+		end
 		glTexture(0, "$heightmap")
 		glTexture(1, "$info")
 		-- glTexture(2, '$normals')
 		-- Stencil Setup
 		-- https://learnopengl.com/Advanced-OpenGL/Stencil-testing
 		if colorConfig.drawStencil then
-			glClear(GL_STENCIL_BUFFER_BIT)   -- clear previous stencil
-			glDepthTest(false)               -- always draw, ignore depth test
+			glClear(GL_STENCIL_BUFFER_BIT) -- clear previous stencil
+			glDepthTest(false) -- always draw, ignore depth test
 
 			-- Draw the filled circles onto the stencil buffer
-			glStencilTest(true)              -- enable stencil test
-			glStencilMask(255)               -- set all 8 bits to writeable
+			glStencilTest(true) -- enable stencil test
+			glStencilMask(255) -- set all 8 bits to writeable
 
 			-- 1. Stencil test fails: GL_KEEP existing stencil value
 			-- 2. Z test fails: GL_KEEP existing stencil value
@@ -1172,6 +1607,8 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawAlpha", colorConfig.fill_alpha)
 			attackRangeShader:SetUniform("fadeDistOffset", colorConfig.outer_fade_height_difference)
 
+			attackRangeShader:SetUniform("pipVisibleArea", 0, 1, 0, 1)
+
 			DRAWRINGS(GL_TRIANGLE_FAN) -- FILL THE CIRCLES
 
 			-- Draw the outside rings by testing the stencil buffer
@@ -1184,11 +1621,11 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("drawMode", 1.0)
 			attackRangeShader:SetUniform("drawAlpha", 1.0)
 
-			DRAWRINGS(GL_LINE_LOOP, inMiniMap and 'minimapexternallinethickness' or 'externallinethickness') -- DRAW THE OUTER RINGS
+			DRAWRINGS(GL_LINE_LOOP, inMiniMap and "minimapexternallinethickness" or "externallinethickness") -- DRAW THE OUTER RINGS
 
 			-- This is the correct way to exit out of the stencil mode, to not break drawing of area commands:
 			glStencilTest(false) -- Disable the stencil test
-			glStencilMask(255)   -- Set all bits of stencil buffer to writeable
+			glStencilMask(255) -- Set all bits of stencil buffer to writeable
 			glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP) -- Reset default stencil operation (which is the do nothing operation)
 			glClear(GL_STENCIL_BUFFER_BIT) -- Clear the stencil buffer for whichever widget wants it next (this is probably redundant)
 			-- All the above are needed :O
@@ -1199,7 +1636,7 @@ function widget:DrawWorld(inMiniMap)
 			attackRangeShader:SetUniform("lineAlphaUniform", colorConfig.internalalpha)
 			attackRangeShader:SetUniform("drawMode", 2.0)
 			attackRangeShader:SetUniform("fadeDistOffset", 0)
-			DRAWRINGS(GL_LINE_LOOP, inMiniMap and 'minimapinternallinethickness' or 'internallinethickness') -- DRAW THE INNER RINGS
+			DRAWRINGS(GL_LINE_LOOP, inMiniMap and "minimapinternallinethickness" or "internallinethickness") -- DRAW THE INNER RINGS
 		end
 
 		attackRangeShader:Deactivate()
@@ -1229,15 +1666,13 @@ function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	builders[unitID] = nil
 end
 
-
-
-
 if autoReload then
-    function widget:DrawScreen()
-        if attackRangeShader.DrawPrintf then attackRangeShader.DrawPrintf(0, 64) end
-    end
+	function widget:DrawScreen()
+		if attackRangeShader.DrawPrintf then
+			attackRangeShader.DrawPrintf(0, 64)
+		end
+	end
 end
-
 
 --SAVE / LOAD CONFIG FILE
 -----------------------------------------------------------------------------------------

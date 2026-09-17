@@ -18,8 +18,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = false,
-		idleautoheal = 5,
-		idletime = 1800,
 		mass = 5000,
 		health = 335,
 		maxslope = 10,
@@ -33,7 +31,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 740,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			"corsolar",
 			"coradvsol",
@@ -67,23 +65,10 @@ return {
 			"corfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Mr Bob, Flaka",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft",
-		},
-		sfxtypes = {
-			crashexplosiongenerators = {
-				[1] = "crashing-small",
-				[2] = "crashing-small",
-				[3] = "crashing-small2",
-				[4] = "crashing-small3",
-				[5] = "crashing-small3",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2-builder",
-				[2] = "airdeathceg3-builder",
-			},
 		},
 		sounds = {
 			build = "nanlath2",

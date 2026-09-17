@@ -19,7 +19,6 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hidedamage = true,
-		idleautoheal = 0,
 		mass = 45,
 		health = 560000,
 		maxslope = 64,
@@ -36,7 +35,6 @@ return {
 		sonarstealth = true,
 		stealth = true,
 		usebuildinggrounddecal = false,
-		yardmap = "f",
 		customparams = {
 			model_author = "Floris",
 			nohealthbars = true,

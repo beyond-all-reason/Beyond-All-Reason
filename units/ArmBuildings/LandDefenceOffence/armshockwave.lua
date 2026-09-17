@@ -18,8 +18,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 30,
@@ -45,6 +43,7 @@ return {
 			buildinggrounddecalsizey = 7.4,
 			buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
 			cvbuildable = true,
+			firestateoncloak = 0,
 			metal_extractor = 4,
 			model_author = "Hornet",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -88,11 +87,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:gausscannonprojectile",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

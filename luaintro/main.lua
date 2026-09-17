@@ -10,10 +10,9 @@
 --
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-VFS.Include('init.lua')
+VFS.Include("init.lua")
 
-
-LUA_NAME    = Script.GetName()
+LUA_NAME = Script.GetName()
 LUA_DIRNAME = Script.GetName() .. "/"
 LUA_VERSION = Script.GetName() .. " v1.0"
 
@@ -31,18 +30,17 @@ VFS.DEF_MODE = VFS.RAW_FIRST
 if Spring.SetLogSectionFilterLevel then
 	Spring.SetLogSectionFilterLevel(LUA_NAME, "info")
 else
-	-- backward compability
+	-- backward compatibility
 	local origSpringLog = Spring.Log
 
 	Spring.Log = function(name, level, ...)
-		if (type(level) == "string")and(level == "info") then
+		if (type(level) == "string") and (level == "info") then
 			Spring.Echo(("[%s]"):format(name), ...)
 		else
 			origSpringLog(name, level, ...)
 		end
 	end
 end
-
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -53,7 +51,7 @@ end
 VFS.Include("LuaHandler/Utilities/utils.lua", nil, VFS.DEF_MODE)
 
 --// the addon handler
-include "LuaHandler/handler.lua"
+include("LuaHandler/handler.lua")
 
 --// print Lua & LuaUI version
 Spring.Log(LUA_NAME, "info", LUA_VERSION .. " (" .. _VERSION .. ")")
@@ -61,5 +59,4 @@ Spring.Log(LUA_NAME, "info", LUA_VERSION .. " (" .. _VERSION .. ")")
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-
-include "springconfig.lua"
+include("springconfig.lua")

@@ -2,20 +2,19 @@
 
 local maxErrors = 10
 
-function skip()
+local function skip()
 	-- TODO: re-enable. disabled 2025-10-01 in order to get CICD working
 	return true
 end
 
-
 local function skipErrors(line)
-	if string.find(line, 'Could not finalize projectile-texture atlas', nil, true) then
+	if string.find(line, "Could not finalize projectile-texture atlas", nil, true) then
 		return true
 	end
-	if string.find(line, 'Could not finalize Decals', nil, true) then
+	if string.find(line, "Could not finalize Decals", nil, true) then
 		return true
 	end
-	if string.find(line, 'Could not finalize groundFX texture', nil, true) then
+	if string.find(line, "Could not finalize groundFX texture", nil, true) then
 		return true
 	end
 	-- Errors for engine >= 2025.03.X deprecations, remove these
@@ -37,9 +36,9 @@ local function infologTest()
 	if infolog then
 		local fileLines = string.lines(infolog)
 		for i, line in ipairs(fileLines) do
-			local errorIndex = line:match('^%[t=[%d%.:]*%]%[f=[%-%d]*%] Error().*')
+			local errorIndex = line:match("^%[t=[%d%.:]*%]%[f=[%-%d]*%] Error().*")
 			if errorIndex and errorIndex > 0 and not skipErrors(line) then
-				errors[#errors+1] = line
+				errors[#errors + 1] = line
 				if #errors > maxErrors then
 					return errors
 				end
@@ -49,10 +48,11 @@ local function infologTest()
 	return errors
 end
 
-
-function test()
+local function test()
 	local errors = infologTest()
 	if #errors > 0 then
 		error(table.concat(errors, "\n"), 0)
 	end
 end
+
+return { skip = skip, test = test }

@@ -1,4 +1,6 @@
-if not Platform then return end
+if not Platform then
+	return
+end
 local hasGL4 = false
 local hasGL = false
 local hasShaders = false
@@ -28,14 +30,15 @@ local function checkRequires(allRequires)
 	if not allRequires or isSyncedCode then
 		return true
 	end
-	for _, req in pairs(allRequires) do
-		if req == 'gl' and not hasGL then
+	for i = 1, #allRequires do
+		local req = allRequires[i]
+		if req == "gl" and not hasGL then
 			return false
-		elseif req == 'gl4' and not hasGL4 then
+		elseif req == "gl4" and not hasGL4 then
 			return false
-		elseif req == 'shaders' and not hasShaders then
+		elseif req == "shaders" and not hasShaders then
 			return false
-		elseif req == 'fbo' and not hasFBO then
+		elseif req == "fbo" and not hasFBO then
 			return false
 		end
 	end

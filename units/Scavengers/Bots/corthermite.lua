@@ -5,17 +5,15 @@ return {
 		energycost = 60000,
 		metalcost = 3500,
 		buildpic = "CORTHERMITE.DDS",
-		buildtime = 18800,
+		buildtime = 188000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "80 50 98",--40 26 48
+		collisionvolumescales = "80 50 98", --40 26 48
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 15000,
 		mass = 150000,
 		maxslope = 50,
@@ -35,7 +33,7 @@ return {
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Beherith, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
@@ -76,11 +74,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:flamestreamthermite",
 				[2] = "custom:thermitesmoke",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -131,7 +124,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray1s",
-				soundstartvolume = 70,
 				soundtrigger = 1,
 				thickness = 6,
 				tolerance = 10000,
@@ -171,7 +163,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 350,
-				reloadtime = 0.39996,--3 0.09999,--burst 12 0.39996,
+				reloadtime = 0.39996, --3 0.09999,--burst 12 0.39996,
 				sizegrowth = 3,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
@@ -185,9 +177,8 @@ return {
 				damage = {
 					default = 30,
 					subs = 10,
-				}
+				},
 			},
-
 		},
 		weapons = {
 			[1] = {

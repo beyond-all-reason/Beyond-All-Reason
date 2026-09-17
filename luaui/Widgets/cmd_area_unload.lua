@@ -8,10 +8,9 @@ function widget:GetInfo()
 		date = "April 2018",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
-
 
 -- Localized functions for performance
 local mathPi = math.pi
@@ -23,9 +22,8 @@ local math_sqrt = math.sqrt
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
 local function CanUnitExecute(uID, cmdID)
-	if cmdID == CMD_UNLOAD_UNITS then
-		local transporting = Spring.GetUnitIsTransporting(uID)
-		return (transporting and #transporting > 0)
+	if cmdID == CMD.UNLOAD_UNIT then -- should not happen since here we're working with area cmds but, better be safe then sorry i guess
+		cmdID = CMD_UNLOAD_UNITS
 	end
 	return (Spring.FindUnitCmdDesc(uID, cmdID) ~= nil)
 end
@@ -68,7 +66,7 @@ function widget:CommandNotify(id, params, options)
 					spGiveOrderToUnit(units[k], CMD.STOP, {}, 0)
 				end
 				r = radius(k, #units, b)
-				theta = 2 * mathPi * k / phi * phi
+				theta = 2 * mathPi * k / (phi * phi)
 				x = params[1] + r * math.cos(theta) * ray
 				z = params[3] + r * math.sin(theta) * ray
 				y = Spring.GetGroundHeight(x, z)

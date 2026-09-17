@@ -2,8 +2,9 @@ return {
 	armhasy = {
 		builder = true,
 		buildpic = "ARMSHLTXUW.DDS",
-		buildtime = 61400,
+		buildtime = 85000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "256 80 221",
 		collisionvolumetype = "Box",
@@ -14,8 +15,6 @@ return {
 		footprintx = 15,
 		footprintz = 15,
 		health = 16000,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -28,8 +27,8 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
 		waterline = 1.5,
+		workertime = 600,
 		yardmap = "weeeeeeeeeeeeew eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee eeeeeeeeeeeeeee weeeeeeeeeeeeew",
 		buildoptions = {
 			[1] = "armhacs",
@@ -65,12 +64,17 @@ return {
 				object = "Units/armhasy_dead.s3o",
 				reclaimable = true,
 			},
-		},
-		sfxtypes = {
- 			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
+			heap = {
+				blocking = false,
+				category = "heaps",
+				damage = 16000,
+				footprintx = 15,
+				footprintz = 15,
+				height = 4,
+				metal = 1250,
+				object = "Units/arm7X7A.s3o",
+				reclaimable = true,
+				resurrectable = 0,
 			},
 		},
 		sounds = {

@@ -2,7 +2,7 @@ return {
 	leganavyheavysub = {
 		activatewhenbuilt = true,
 		buildpic = "leganavyheavysub.DDS",
-		buildtime = 24750,
+		buildtime = 34370,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "52 25 60",
@@ -13,8 +13,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 3900,
-		idleautoheal = 15,
-		idletime = 900,
 		maxacc = 0.018,
 		maxdec = 0.018,
 		metalcost = 1900,
@@ -38,7 +36,7 @@ return {
 		customparams = {
 			model_author = "Model by Tharsis, Concept by Chris/Airnac",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/Navy/T2",
+			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "sub",
 		},
@@ -78,11 +76,6 @@ return {
 				[0] = "custom:subbubbles",
 				[1] = "custom:subwake",
 				[2] = "custom:subtorpfire-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -126,7 +119,6 @@ return {
 				range = 850,
 				reloadtime = 8,
 				soundhit = "xplodep1",
-				soundhitvolume = 22,
 				soundstart = "torpedo1",
 				startvelocity = 150,
 				tolerance = 8000,

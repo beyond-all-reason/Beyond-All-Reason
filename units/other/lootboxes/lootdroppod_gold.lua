@@ -18,8 +18,6 @@ return {
 		explodeas = "",
 		footprintx = 0,
 		footprintz = 0,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 165.75,
 		health = 2000,
@@ -42,7 +40,7 @@ return {
 		workertime = 1500,
 		yardmap = "",
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			isairbase = true,
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",

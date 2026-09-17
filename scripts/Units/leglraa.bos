@@ -101,7 +101,6 @@ Create()
 // MaxVelocity and acceleration are in degrees per frame (not second!)
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
-// (c) CC BY NC ND Beherith mysterme@gmail.com
 #define MAX_AIMY1_VELOCITY <6.00>
 #define AIMY1_ACCELERATION <0.5>
 #define AIMY1_JERK <1.5>

@@ -1,7 +1,7 @@
 return {
 	corsumo = {
 		buildpic = "CORSUMO.DDS",
-		buildtime = 51000,
+		buildtime = 65000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "38 34 36",
@@ -12,8 +12,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 15600,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.0552,
 		maxdec = 0.43125,
 		maxslope = 15,
@@ -26,13 +24,14 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "explosiont3",
 		sightdistance = 510,
-		speed = 22.5,
+		speed = 23,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.495,
 		turnrate = 368,
 		usepiececollisionvolumes = 1,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,
@@ -74,11 +73,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -148,6 +142,7 @@ return {
 				soundhitdryvolume = 17,
 				weapontype = "Cannon",
 				customparams = {
+					bogus = 1,
 					noexplosionlight = 1,
 				},
 				damage = {

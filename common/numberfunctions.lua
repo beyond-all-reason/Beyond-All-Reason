@@ -5,7 +5,7 @@ if not math.isInRect then
 end
 
 if not math.cross_product then
-		function math.cross_product (px, pz, ax, az, bx, bz)
+	function math.cross_product(px, pz, ax, az, bx, bz)
 		return ((px - bx) * (az - bz) - (ax - bx) * (pz - bz))
 	end
 end
@@ -31,13 +31,11 @@ if not math.triangulate then
 			-- the van gogh concave polygon triangulation algorithm: cuts off ears
 			-- is pretty shitty at O(V^3) but was easy to code and it's typically only done once anyway
 			while #polygon > 2 do
-
 				-- get a candidate ear
 				local triangle
 				local c0, c1, c2 = 0
 				local candidate_ok = false
 				while not candidate_ok do
-
 					c0 = c0 + 1
 					c1, c2 = c0 + 1, c0 + 2
 					if c1 > #polygon then
@@ -47,13 +45,17 @@ if not math.triangulate then
 						c2 = c2 - #polygon
 					end
 					triangle = {
-						polygon[c0][1], polygon[c0][2],
-						polygon[c1][1], polygon[c1][2],
-						polygon[c2][1], polygon[c2][2],
+						polygon[c0][1],
+						polygon[c0][2],
+						polygon[c1][1],
+						polygon[c1][2],
+						polygon[c2][1],
+						polygon[c2][2],
 					}
 
 					-- make sure the ear is of proper rotation but then make it counter-clockwise
-					local dir = math.cross_product(triangle[5], triangle[6], triangle[1], triangle[2], triangle[3], triangle[4])
+					local dir =
+						math.cross_product(triangle[5], triangle[6], triangle[1], triangle[2], triangle[3], triangle[4])
 					if (dir < 0) == clockwise then
 						if dir > 0 then
 							local temp = triangle[5]
@@ -69,9 +71,35 @@ if not math.triangulate then
 						for i = 1, #polygon do
 							if i ~= c0 and i ~= c1 and i ~= c2 then
 								local current_pt = polygon[i]
-								if (math.cross_product(current_pt[1], current_pt[2], triangle[1], triangle[2], triangle[3], triangle[4]) < 0)
-									and (math.cross_product(current_pt[1], current_pt[2], triangle[3], triangle[4], triangle[5], triangle[6]) < 0)
-									and (math.cross_product(current_pt[1], current_pt[2], triangle[5], triangle[6], triangle[1], triangle[2]) < 0)
+								if
+									(
+										math.cross_product(
+											current_pt[1],
+											current_pt[2],
+											triangle[1],
+											triangle[2],
+											triangle[3],
+											triangle[4]
+										) < 0
+									)
+									and (math.cross_product(
+										current_pt[1],
+										current_pt[2],
+										triangle[3],
+										triangle[4],
+										triangle[5],
+										triangle[6]
+									) < 0)
+									and (
+										math.cross_product(
+											current_pt[1],
+											current_pt[2],
+											triangle[5],
+											triangle[6],
+											triangle[1],
+											triangle[2]
+										) < 0
+									)
 								then
 									candidate_ok = false
 								end
@@ -93,18 +121,18 @@ end
 
 if not math.closestPointOnCircle then
 	function math.closestPointOnCircle(centerX, centerZ, radius, targetX, targetZ)
-        local dx = targetX - centerX
-        local dz = targetZ - centerZ
-        local dist = math.diag(dx, dz)
-        if dist == 0 then
-            -- Target is exactly at center; choose arbitrary point on circle
-            return centerX + radius, centerZ
-        end
-        local scale = radius / dist
-        local closestX = centerX + dx * scale
-        local closestZ = centerZ + dz * scale
-        return closestX, closestZ
-    end
+		local dx = targetX - centerX
+		local dz = targetZ - centerZ
+		local dist = math.diag(dx, dz)
+		if dist == 0 then
+			-- Target is exactly at center; choose arbitrary point on circle
+			return centerX + radius, centerZ
+		end
+		local scale = radius / dist
+		local closestX = centerX + dx * scale
+		local closestZ = centerZ + dz * scale
+		return closestX, closestZ
+	end
 end
 
 if not math.HSLtoRGB then
@@ -165,58 +193,111 @@ if not math.HSLtoRGB then
 
 		return cr, cg, cb
 	end
+end
 
+if not math.isPointInRectangle then
+	---Check if a point is inside a rectangle.
+	---@param x number
+	---@param z number
+	---@param rectangle {x1: number, z1: number, x2: number, z2: number}
+	---@return boolean
+	function math.isPointInRectangle(x, z, rectangle)
+		return x >= rectangle.x1 and x <= rectangle.x2 and z >= rectangle.z1 and z <= rectangle.z2
+	end
+end
 
-	if not math.distance2dSquared then
-		function math.distance2dSquared(x1, z1, x2, z2)
-			local x = x1 - x2
-			local z = z1 - z2
-			return x * x + z * z
+if not math.isPointInCircle then
+	---Check if a point is inside a circle.
+	---@param x number
+	---@param z number
+	---@param circle {x: number, z: number, radius: number}
+	---@return boolean
+	function math.isPointInCircle(x, z, circle)
+		local dx, dz = x - circle.x, z - circle.z
+		return dx * dx + dz * dz <= circle.radius * circle.radius
+	end
+end
+
+if not math.isPointInArea then
+	---Check if a point is inside an area. Dispatches to `math.isPointInRectangle`
+	---or `math.isPointInCircle` based on the shape of the area.
+	---@param x number
+	---@param z number
+	---@param area {x1: number, z1: number, x2: number, z2: number}|{x: number, z: number, radius: number}
+	---@return boolean
+	function math.isPointInArea(x, z, area)
+		if area.x1 then
+			return math.isPointInRectangle(x, z, area)
+		else
+			return math.isPointInCircle(x, z, area)
 		end
 	end
+end
 
-	if not math.distance2d then
-		function math.distance2d(x1, z1, x2, z2)
-			return math.diag(x1 - x2, z1 - z2)
-		end
+if not math.distance2dSquared then
+	function math.distance2dSquared(x1, z1, x2, z2)
+		local x = x1 - x2
+		local z = z1 - z2
+		return x * x + z * z
 	end
+end
 
-	if not math.distance3dSquared then
-		function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
-			local x = x1 - x2
-			local y = y1 - y2
-			local z = z1 - z2
-			return x * x + y * y + z * z
-		end
+if not math.distance2d then
+	function math.distance2d(x1, z1, x2, z2)
+		return math.diag(x1 - x2, z1 - z2)
 	end
+end
 
-	if not math.distance3d then
-		function math.distance3d(x1, y1, z1, x2, y2, z2)
-			return math.diag(x1 - x2, y1 - y2, z1 - z2)
-		end
+if not math.distance3dSquared then
+	function math.distance3dSquared(x1, y1, z1, x2, y2, z2)
+		local x = x1 - x2
+		local y = y1 - y2
+		local z = z1 - z2
+		return x * x + y * y + z * z
 	end
+end
 
-	if not math.getClosestPosition then
-		---Gets the closest position out of a list to given coordinates. 2d.
-		---@param x table
-		---@param z table
-		---@param positions table must have fields .x and .z
-		function math.getClosestPosition(x, z, positions)
-			if not positions or #positions <= 0 then
-				return
+if not math.distance3d then
+	function math.distance3d(x1, y1, z1, x2, y2, z2)
+		return math.diag(x1 - x2, y1 - y2, z1 - z2)
+	end
+end
+
+if not math.getClosestPosition then
+	---Gets the closest position out of a list to given coordinates. 2d.
+	---@param x number
+	---@param z number
+	---@param positions {x:number, z:number}[] must have fields .x and .z
+	---@return {x:number, z:number}? position
+	function math.getClosestPosition(x, z, positions)
+		if not (x and z and positions and positions[1]) then
+			return
+		end
+		local bestPos
+		local bestDist = math.huge
+		for i = 1, #positions do
+			local pos = positions[i]
+			local dx, dz = x - pos.x, z - pos.z
+			local dist = dx * dx + dz * dz
+			if dist < bestDist then
+				bestPos = pos
+				bestDist = dist
 			end
-			local bestPos
-			local bestDist = math.huge
-			for i = 1, #positions do
-				local pos = positions[i]
-				local dx, dz = x - pos.x, z - pos.z
-				local dist = dx * dx + dz * dz
-				if dist < bestDist then
-					bestPos = pos
-					bestDist = dist
-				end
-			end
-			return bestPos
 		end
+		return bestPos
+	end
+end
+
+if not math.clampRadians then
+	local twoPi = 2 * math.pi
+	--- Clamp a radian angle between -pi and pi
+	---@param r number radian value to clamp
+	---@return number clamped radian value
+	function math.clampRadians(r)
+		local ret = r % twoPi
+		if ret > math.pi then
+			ret = ret - twoPi
+		end
+		return ret
 	end
 end

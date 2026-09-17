@@ -2,8 +2,9 @@ return {
 	corhalab = {
 		builder = true,
 		buildpic = "CORGANT.DDS",
-		buildtime = 67300,
+		buildtime = 92000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 110 196",
 		collisionvolumetype = "Box",
@@ -14,8 +15,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 17800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -38,7 +37,7 @@ return {
 			[5] = "corsumo",
 			[6] = "cordecom",
 			[7] = "corsktl",
-			[8] = "corspec"
+			[8] = "corspec",
 		},
 		customparams = {
 			buildinggrounddecaldecayspeed = 30,
@@ -87,10 +86,6 @@ return {
 				[2] = "custom:YellowLight",
 				[3] = "custom:WhiteLight",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "gantok2",
@@ -115,4 +110,3 @@ return {
 		},
 	},
 }
-

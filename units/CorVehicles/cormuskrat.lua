@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1110,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.01722,
 		maxdec = 0.10332,
@@ -28,7 +26,7 @@ return {
 		script = "Units/CORMUSKRAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
-		sightdistance = 260,
+		sightdistance = 330,
 		speed = 40.5,
 		terraformspeed = 400,
 		trackoffset = 8,
@@ -121,13 +119,6 @@ return {
 				object = "Units/cor3X3C.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

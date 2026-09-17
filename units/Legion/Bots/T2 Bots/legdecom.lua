@@ -9,7 +9,7 @@ return {
 		builddistance = 145,
 		builder = true,
 		buildpic = "LEGCOM.DDS",
-		buildtime = 27000,
+		buildtime = 32600,
 		cancapture = true,
 		candgun = true,
 		canmove = true,
@@ -27,10 +27,8 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = true,
-   		holdsteady = true,
-		idleautoheal = 5,
-		idletime = 1800,
-		mass = 4900,
+		holdsteady = true,
+		mass = 2700, -- same as legcom's default mass (= metalcost)
 		health = 3700,
 		maxslope = 20,
 		speed = 37.5,
@@ -42,7 +40,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-    	releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
@@ -74,12 +72,15 @@ return {
 			[16] = "legfeconv",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
+			canwearcosmetics = true,
 			decoyfor = "legcom",
+			firestateoncloak = 0,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "CorBots/T2",
+			reaimtime = 5,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			isdecoycommander = true,
 		},
@@ -88,11 +89,6 @@ return {
 				[1] = "custom:com_sea_laser_bubbles",
 				[2] = "custom:barrelshot-medium",
 				[3] = "custom:footstep-medium",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -155,6 +151,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 900,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 175,
 					subs = 25,
@@ -191,6 +190,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					weapons_group = 2,
+				},
 				damage = {
 					default = 250,
 					subs = 125,
@@ -213,7 +215,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 1.2,
@@ -239,6 +241,10 @@ return {
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					weapons_group = 1,
+					weapons_role = "secondary",
+				},
 				damage = {
 					vtol = 150,
 					commanders = 1,
@@ -275,6 +281,9 @@ return {
 				weapontimer = 4.2,
 				weapontype = "DGun",
 				weaponvelocity = 300,
+				customparams = {
+					weapons_group = 1,
+				},
 				damage = {
 					default = 40,
 				},
@@ -288,7 +297,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

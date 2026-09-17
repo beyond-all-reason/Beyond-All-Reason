@@ -1,8 +1,8 @@
 return {
 	legdrone = {
-		maxacc = 0.25,
+		maxacc = 0.35,
 		blocking = false,
-		maxdec = 0.55,
+		maxdec = 0.7,
 		energycost = 500,
 		metalcost = 15,
 		buildpic = "legdrone.DDS",
@@ -16,9 +16,7 @@ return {
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,
-		idleautoheal = 0,
-		idletime = 1800,
-		health = 415,
+		health = 325,
 		maxslope = 10,
 		speed = 280.5,
 		maxwaterdepth = 0,
@@ -36,16 +34,14 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorAircraft",
+			subfolder = "Legion/Air",
+			unitgroup = "weapon",
 			drone = 1,
 			nohealthbars = 1,
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "airdeathceg2",
 			},
 		},
 		sounds = {
@@ -74,7 +70,7 @@ return {
 				accuracy = 7,
 				areaofeffect = 16,
 				avoidfeature = false,
-				burst = 3,
+				burst = 2,
 				burstrate = 0.066,
 				burnblow = false,
 				craterareaofeffect = 0,
@@ -90,7 +86,7 @@ return {
 				ownerExpAccWeight = 4.0,
 				proximitypriority = 1,
 				range = 300,
-				reloadtime = 1.8,
+				reloadtime = 0.9,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",

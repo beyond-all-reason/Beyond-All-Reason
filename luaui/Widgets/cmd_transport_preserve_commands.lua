@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "Preserve Commands",
-		desc    = "Preserves a unit's command queue after it has been transported",
-		author  = "Jazcash",
-		date    = "October 2023",
+		name = "Preserve Commands",
+		desc = "Preserves a unit's command queue after it has been transported",
+		author = "Jazcash",
+		date = "October 2023",
 		license = "idklmao",
-		layer   = 0,
-		enabled = true
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -22,14 +22,13 @@ function widget:UnitLoaded(unitID)
 	orders[unitID] = Spring.GetUnitCommands(unitID, -1)
 end
 
-
 function widget:UnitUnloaded(unitID)
-	if (orders[unitID] and #orders[unitID]) then
+	if orders[unitID] and #orders[unitID] then
 		local newOrders = {}
 		local firstCommandIsTransportTo = false
 		local endofTheTransportToChain = false
 		for i, command in ipairs(orders[unitID]) do
-			if (#command.params >= 3) then
+			if #command.params >= 3 then
 				local dist = math.huge
 				local discard = false
 				if i == 1 then -- ditch first command if it's not near the starting point
@@ -55,12 +54,11 @@ function widget:UnitUnloaded(unitID)
 			end
 		end
 
-		Spring.GiveOrderArrayToUnit( unitID , newOrders)
+		Spring.GiveOrderArrayToUnit(unitID, newOrders)
 
 		orders[unitID] = nil
 	end
 end
-
 
 ---------------------------------------------------------------
 --- Housekeeping to manage the widget state

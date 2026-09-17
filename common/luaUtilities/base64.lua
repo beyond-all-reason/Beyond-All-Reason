@@ -39,25 +39,29 @@ local base64chars = {
 	[55] = '3', [56] = '4', [57] = '5', [58] = '6', [59] = '7', [60] = '8', [61] = '9', [62] = '-', [63] = '_'
 }
 
--- function encode
--- encodes input string to base64.
+-- encodes input string to base64url with = padding.
 local function base64Encode(data)
 	local bytes = {}
 	local result = {}
-	for spos = 0, string.len(data) - 1, 3 do
+	local resultCount = 0
+	local dataLen = #data
+	for spos = 0, dataLen - 1, 3 do
 		for byte = 1, 3 do
-			bytes[byte] = string.byte(string.sub(data, (spos + byte), (spos + byte))) or 0
+			bytes[byte] = data:byte(spos + byte) or 0
 		end
-		result[#result + 1] = base64chars[rsh(bytes[1], 2)] ..
+		resultCount = resultCount + 1
+		result[resultCount] = base64chars[rsh(bytes[1], 2)] ..
 			(base64chars[lor(lsh((bytes[1] % 4), 4), rsh(bytes[2], 4))] or "=") ..
-			(((#data - spos) > 1) and base64chars[lor(lsh(bytes[2] % 16, 2), rsh(bytes[3], 6))] or "=") ..
-			(((#data - spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
+			(((dataLen - spos) > 1) and base64chars[lor(lsh(bytes[2] % 16, 2), rsh(bytes[3], 6))] or "=") ..
+			(((dataLen - spos) > 2) and base64chars[(bytes[3] % 64)] or "=")
 	end
 	result = table.concat(result)
 	return result
 end
 
 -- decoding table
+-- The url alphabet ('-' and '_') is what base64Encode above emits and what the modoptions transport specifies.
+-- '+' and '/' are accepted as aliases, making this decode both base64 and base64url.
 local base64bytes = {
 	['A'] = 0, ['B'] = 1, ['C'] = 2, ['D'] = 3, ['E'] = 4, ['F'] = 5, ['G'] = 6, ['H'] = 7, ['I'] = 8, ['J'] = 9,
 	['K'] = 10, ['L'] = 11, ['M'] = 12, ['N'] = 13, ['O'] = 14, ['P'] = 15, ['Q'] = 16, ['R'] = 17, ['S'] = 18,
@@ -66,19 +70,49 @@ local base64bytes = {
 	['l'] = 37, ['m'] = 38, ['n'] = 39, ['o'] = 40, ['p'] = 41, ['q'] = 42, ['r'] = 43, ['s'] = 44, ['t'] = 45,
 	['u'] = 46, ['v'] = 47, ['w'] = 48, ['x'] = 49, ['y'] = 50, ['z'] = 51, ['0'] = 52, ['1'] = 53, ['2'] = 54,
 	['3'] = 55, ['4'] = 56, ['5'] = 57, ['6'] = 58, ['7'] = 59, ['8'] = 60, ['9'] = 61, ['-'] = 62, ['_'] = 63,
+	['+'] = 62, ['/'] = 63,
 	['='] = nil,
 }
 
--- function decode
--- decode base64 input to string
+-- Anything outside the alphabet, padding aside.
+local UNEXPECTED_CHARACTER_PATTERN = "[^%w=_+/-]"
+
+-- Decoding is best-effort for compatibility, but warns about invalid chars
+local function warnUnexpectedCharacters(data)
+	local seen = {}
+	local characters = {}
+
+	for character in data:gmatch(UNEXPECTED_CHARACTER_PATTERN) do
+		if not seen[character] then
+			seen[character] = true
+			characters[#characters + 1] = string.format("%q", character)
+		end
+	end
+
+	Spring.Log("base64", LOG.WARNING, string.format(
+		"Decoding input with %d unexpected character(s) (%s); they are dropped, so the result is truncated.",
+		#characters,
+		table.concat(characters, ", ")
+	))
+end
+
+-- decode base64 or base64url input to string
 local function base64Decode(data)
+
+	if data:find(UNEXPECTED_CHARACTER_PATTERN) then
+		warnUnexpectedCharacters(data)
+	end
+
 	local chars = {}
 	local result = {}
-	for dpos = 0, string.len(data) - 1, 4 do
+	local resultCount = 0
+	local dataLen = #data
+	for dpos = 0, dataLen - 1, 4 do
 		for char = 1, 4 do
-			chars[char] = base64bytes[(string.sub(data, (dpos + char), (dpos + char)) or "=")]
+			chars[char] = base64bytes[(data:sub(dpos + char, dpos + char) or "=")]
 		end
-		result[#result + 1] = string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))) ..
+		resultCount = resultCount + 1
+		result[resultCount] = string.char(lor(lsh(chars[1], 2), rsh(chars[2], 4))) ..
 			((chars[3] ~= nil) and string.char(lor(lsh(chars[2], 4), rsh(chars[3], 2))) or "") ..
 			((chars[4] ~= nil) and string.char(lor(lsh(chars[3], 6), (chars[4]))) or "")
 	end
