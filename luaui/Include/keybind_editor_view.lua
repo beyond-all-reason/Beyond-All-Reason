@@ -704,7 +704,11 @@ local function buildResolvedCatalog()
 		end
 		for _, key in ipairs(keys) do
 			local found = BAR.I18N(key, { default = "" })
-			if type(found) == "string" and found ~= "" and found ~= key then
+			-- The engine command descriptions were filled in in bulk, and the few commands that
+			-- had none got a stand-in reading "<chat command description: Select>" rather than
+			-- being left out. Shown, that is what a row says it does.
+			local placeholder = type(found) == "string" and found:match("^%b<>$") ~= nil
+			if type(found) == "string" and found ~= "" and found ~= key and not placeholder then
 				return found
 			end
 		end
