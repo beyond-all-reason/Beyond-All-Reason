@@ -275,6 +275,18 @@ function gadget:Initialize()
 	end
 end
 
+local function getProjectileTeam(projectileID, ownerID)
+	local teamID = spGetProjectileTeamID(projectileID) or (ownerID and spGetUnitTeam(ownerID))
+	if teamID then
+		return teamID
+	end
+
+	local allyTeamID = Spring.GetProjectileAllyTeamID(projectileID)
+	if allyTeamID then
+		return (Spring.GetTeamList(allyTeamID) or {})[1]
+	end
+end
+
 function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 	if noCreate then
 		noCreate = false
@@ -283,10 +295,7 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 
 	if spawnDefs[weaponDefID] then
 		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-		local teamID = proID and spGetProjectileTeamID(proID)
-		if not teamID and ownerID then
-			teamID = spGetUnitTeam(ownerID)
-		end
+		local teamID = proID and getProjectileTeam(proID, ownerID)
 		if not teamID then
 			return
 		end
