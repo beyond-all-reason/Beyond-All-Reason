@@ -275,7 +275,7 @@ end
 -- Mouse / world position
 -------------------------------------------------------------------------------
 
--- Resolve a screen position over a minimap to a world (x, z). Reads the PIP minimap (via the WG API), then the standard engine minimap geometry. 
+-- Resolve a screen position over a minimap to a world (x, z). Reads the PIP minimap (via the WG API), then the standard engine minimap geometry.
 -- Both account for minimap rotation. Returns nil when (mx, my) is over neither.
 ---@param mx number Screen x.
 ---@param my number Screen y.
