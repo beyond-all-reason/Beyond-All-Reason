@@ -689,17 +689,16 @@ function M.adoptEditedKeymap()
 		return nil
 	end
 
-	-- No record of what we wrote, which is every store until the launch after this shipped.
-	-- Matching the whole keymap is the older, weaker test - it cannot tell a profile that
-	-- changed from a file that did - but it keeps that one launch behaving as it always has,
-	-- and materializing here records the stamp that makes the test above work from then on.
-	if not store.written then
-		local matched = matchesKnownProfile(text)
-		if matched then
-			M.materialize(matched)
+	-- Not what we last wrote, which covers a store from before any of this was recorded and a
+	-- player who points KeybindingFile at a file of their own, since what gets stamped is the
+	-- one we emit. Matching the whole keymap is the older, weaker test - it cannot tell a
+	-- profile that changed from a file that did - but it still says this is nobody's edit, and
+	-- writing out what it found records the stamp the test above wants.
+	local matched = matchesKnownProfile(text)
+	if matched then
+		M.materialize(matched)
 
-			return nil
-		end
+		return nil
 	end
 
 	local binds = readBindFile(text)

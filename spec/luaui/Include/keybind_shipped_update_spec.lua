@@ -95,6 +95,7 @@ local function nextRun(disk, change)
 		return { adopted = profiles.adoptEditedKeymap(), active = profiles.activeName() }
 	end)
 	result.keymap = writes[KEYMAP]
+	result.store = writes[STORE] or disk.store
 
 	return result
 end
@@ -127,6 +128,23 @@ describe("reconciling the keymap with the profiles behind it", function()
 		assert.is_nil(result.adopted)
 		assert.are.equal("Mine", result.active)
 		assert.is_truthy(result.keymap and result.keymap:find("theirtoolwrotethis", 1, true))
+	end)
+
+	-- The stamp is of the file we emit. A player who points KeybindingFile somewhere else is
+	-- read from that file instead, so the stamp never matches and the whole-keymap test is all
+	-- that stands between them and a fresh copy of their keymap every single launch.
+	it("forks a keymap it does not recognise only once", function()
+		local disk = afterFirstRun("Grid")
+		disk.keymap = disk.keymap .. "\nbind Ctrl+Alt+Shift+j theirownbinding"
+
+		local first = nextRun(disk)
+		assert.is_not_nil(first.adopted)
+
+		-- Their file is untouched by that, and the fork now holds what it says.
+		local second = nextRun({ store = first.store, keymap = disk.keymap })
+
+		assert.is_nil(second.adopted)
+		assert.are.equal(first.adopted, second.active)
 	end)
 
 	it("keeps a keymap the player edited themselves", function()

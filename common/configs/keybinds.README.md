@@ -160,10 +160,12 @@ the clipboard and what Import reads back, and the same text a player would put i
   keymap on disk against `written.stamp`. Equal means nobody has touched the file, so the
   store is the authority and the selected profile is written out again, carrying whichever
   change it was. Unequal means the player edited the file themselves, and that is kept as a
-  profile of theirs rather than overwritten. A store with no `written` at all predates this,
-  and falls back to matching the whole keymap against every profile - which cannot tell a
+  profile of theirs rather than overwritten. Where there is no stamp to compare - a store from
+  before this was recorded, or a player who points the engine at a keymap file of their own -
+  fall back to matching the whole keymap against every profile first, which still says nobody
+  edited it and stops a file being copied afresh on every launch. That older test cannot tell a
   profile that changed from a file that did, so do not change a shipped profile in the same
-  release that starts recording it.
+  release that starts recording stamps.
 - **Edit a binding.** Only in the player's own profiles. Shipped profiles are read-only,
   so the first edit made while one is selected forks it into a copy and edits that.
 - **Create / rename / delete.** Names are the identity, so they must stay unique across
