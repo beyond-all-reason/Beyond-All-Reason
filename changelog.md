@@ -1,7 +1,7 @@
 # September
 - [Laser weapons] given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
 - [T1 Air Constructors] -10 buildpower
-- [Grunt, Pawn, Goblin, Wheelie] Script improvements
+- [Grunt, Pawn, Goblin] Script improvements. No longer fire sideways when switching targets mid-shot or going in and out of range
 - [Mobile Jammers]
   - Smuggler 48.3 -> 37 speed
   - Deceiver, Tiresias: 39 -> 35 speed, 1550 -> 1300 energycost
