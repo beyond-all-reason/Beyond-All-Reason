@@ -26,7 +26,8 @@ Nothing here works outside this sequence, so keep it in mind when something read
    loaded mission does not need.
 
 Module and definition files run at include time and read `GG['MissionAPI']` directly. Never add a load-time read of
-something registered later in that sequence; move it into a function or into `Initialize()`.
+something registered later in that sequence; move it into a function or into `Initialize()`. `validation.lua` reads
+the definitions per call rather than at include time, so that including it does not pin it to one load order.
 
 ## Type IDs are directory-order integers
 
@@ -116,9 +117,13 @@ breaking change to both the function and every mission using it.
 - `logError` sets `HasValidationErrors`, which makes `api_missions.lua` drop `GG['MissionAPI']` and remove itself,
   which in turn makes `api_missions_triggers.lua` remove itself. Validation failure aborts the whole mission —
   reserve `logError` for genuinely unrunnable missions and use `logWarn` otherwise.
-- `ValidateReferences` cross-checks unit/feature/marker names between the actions that create them and the actions
-  and triggers that consume them, via hard-coded type sets near the bottom of `validation.lua`. A new action that
-  names or references units, features, or markers must be added to those sets.
+- `ValidateReferences` cross-checks unit/feature/marker names and countdown IDs between the actions that create
+  them and the actions and triggers that consume them. The consuming types are read from the schemas, so an action
+  or trigger declaring a `UnitName`, `FeatureName` or `CountdownID` parameter is picked up without being listed.
+- The shape of the objects a mission declares itself, rather than of a trigger or action, lives in a schema file
+  next to the loaders: `objectives_schema.lua` (objective fields), `triggers_schema.lua` (the settings every
+  trigger shares) and `countdowns_schema.lua`. They are plain data, so tools and the mission editor can read them;
+  `validation/sections.lua` validates against them. Keep them in step with the loaders.
 
 ## Objectives and stages
 

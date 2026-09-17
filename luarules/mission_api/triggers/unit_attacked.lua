@@ -22,6 +22,9 @@ return {
 		-- Death and self-destruct explosions use real weapons but have neither an attacker nor a projectile.
 		UnitDamaged = function(trigger, triggerID, context, unitID, unitDefID, unitTeam, damage, paralyzer,
 		                       weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+			if damage <= 0 then
+				return
+			end
 			if not canHaveAttacker(weaponDefID) then
 				return
 			end

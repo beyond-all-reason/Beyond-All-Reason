@@ -5,8 +5,6 @@ local TRIGGER_FILES_PATTERN = "*.lua"
 -- - statistics triggers (TotalUnits*, UnitsOwned) by statistics.lua
 -- - event-type triggers by whatever owns the trigger (objectives.lua)
 local function loadTriggerDefinitions()
-	local ParameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
-
 	local triggerFiles = VFS.DirList(TRIGGERS_DIR, TRIGGER_FILES_PATTERN)
 
 	local types = {}
@@ -26,20 +24,8 @@ local function loadTriggerDefinitions()
 		end
 	end
 
-	-- Shared trigger settings schema (global, not per-trigger).
-	local settings = {
-		prerequisites = ParameterTypes.Table,
-		repeating = ParameterTypes.Boolean,
-		maxRepeats = ParameterTypes.Number,
-		difficulties = ParameterTypes.Table,
-		coop = ParameterTypes.Boolean,
-		active = ParameterTypes.Boolean,
-		stages = ParameterTypes.Table,
-	}
-
 	return {
 		Types = types,
-		Settings = settings,
 		Parameters = parameters,
 		Callins = callins,
 	}
@@ -48,12 +34,11 @@ end
 local function processRawTriggers(rawTriggers)
 	local triggers = {}
 
+	-- Apply defaults:
 	for triggerID, rawTrigger in pairs(rawTriggers) do
 		local settings = rawTrigger.settings or {}
 		settings.prerequisites = settings.prerequisites or {}
 		settings.repeating = settings.repeating or false
-		settings.maxRepeats = settings.maxRepeats or nil
-		settings.difficulties = settings.difficulties or nil
 		settings.coop = settings.coop or false
 		settings.active = settings.active == nil and true or settings.active
 		settings.stages = settings.stages or {}
