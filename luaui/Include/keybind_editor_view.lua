@@ -5116,22 +5116,12 @@ function view.mousePress(x, y, button)
 		state.ensureKeyboard()
 		local kind, key, layer = state.keyboard:mousePress(x, y, button)
 		if kind == "key" then
-			local tokens, mods = {}, {}
-			for _, token in ipairs(key.tokens or {}) do
-				tokens[token] = true
-			end
-			for name in layer:gmatch("[^+]+") do
-				mods[name] = true
-			end
+			-- Handed to the search box rather than filtered behind the scenes. It finds what a
+			-- key holds already, and it does it somewhere the player can see what is narrowing
+			-- the list and clear it. The keyset is spelled the way they would have typed it.
 			state.setPage("list")
 			selectedCategory = nil
-			state.setKeyFilter({
-				id = key.id,
-				layer = layer,
-				tokens = tokens,
-				mods = mods,
-				display = state.keyboard:keysetName(key, layer),
-			})
+			searchBox:setText(state.keyboard:keysetName(key, layer))
 		end
 
 		return true
