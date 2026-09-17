@@ -43,6 +43,7 @@ local CMDS = {
 	-- SET_TARGET = GameCMD.UNIT_SET_TARGET,  -- custom command, doesn't go through UnitCommand
 	UNLOAD_UNIT = CMD.UNLOAD_UNIT,
 	UNLOAD_UNITS = CMD.UNLOAD_UNITS,
+	CMD_TRANSPORT_TO = CMD.TRANSPORT_TO, -- icon map
 	BUILD = -1,
 }
 
@@ -132,6 +133,7 @@ local CONFIG = {
 	[CMDS.RESURRECT] = { 0.9, 0.5, 1.0, 0.25 },
 	[CMDS.UNLOAD_UNIT] = { 1.0, 0.8, 0.0, 0.25 },
 	[CMDS.UNLOAD_UNITS] = { 1.0, 0.8, 0.0, 0.25 },
+	[CMDS.CMD_TRANSPORT_TO] = { 1.0, 0.8, 0.0, 0.25 },
 	[CMDS.BUILD] = { 0.0, 1.0, 0.0, 0.25 },
 }
 
