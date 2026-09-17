@@ -24,11 +24,13 @@ local hoverOpacity = 0.25
 -- is on it, the other says this is the option a click would take.
 local controlHoverOpacity = 0.14
 local white = { 1, 1, 1 }
+-- The two ends of the wash SelectHighlight paints, taken from the colour it would be handed so
+-- a row of the list and the control above it cannot drift apart. Held rather than built per
+-- row per frame.
+local washLow = { white[1] * 0.5, white[2] * 0.5, white[3] * 0.5, hoverOpacity }
+local washHigh = { white[1], white[2], white[3], hoverOpacity }
 local listFill = { 0.09, 0.09, 0.09, 0.96 }
 local tagFill = { 1, 1, 1, 0.08 }
--- Under the option the list was opened on. Fainter than the hover, so the two stay apart
--- when the cursor is on another row.
-local selectedFill = { 1, 1, 1, 0.07 }
 local ruleColor = { 1, 1, 1, 0.14 }
 
 -- Font is fetched per draw; it does not exist when this file is included.
@@ -277,11 +279,17 @@ function Dropdown:draw()
 		for i, opt in ipairs(self.options) do
 			---@type table
 			local r = self.optRects[i]
-			if self.markSelected and i == self.selected then
-				R(r.x1, r.y1, r.x2, r.y2, cs, 1, 1, 1, 1, selectedFill)
-			end
-			if mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2 then
-				Highlight(r.x1, r.y1, r.x2, r.y2, cs, hoverOpacity, white)
+			-- The option the list was opened on is shaded exactly as a hovered one: one treatment
+			-- for the list rather than two washes of different weights sitting next to each other.
+			-- Drawn once when the cursor is on that row, so it does not double up.
+			local hovered = mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2
+			if hovered or (self.markSelected and i == self.selected) then
+				-- The wash SelectHighlight draws, with the corners ours to set: it rounds all four,
+				-- and a row has corners only where the list itself has them. Square against the row
+				-- above or below, which has none to meet.
+				local first = (i == 1) and 1 or 0
+				local last = (i == #self.options) and 1 or 0
+				R(r.x1, r.y1, r.x2, r.y2, cs, first, first, last, last, washLow, washHigh)
 			end
 
 			local optTag = optionTag(opt)
