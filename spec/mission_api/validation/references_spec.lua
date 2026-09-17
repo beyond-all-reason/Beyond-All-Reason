@@ -232,7 +232,7 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Marker name is referenced, but never added. Marker name: noSuchBeacon, Referenced in: action removeUnknown"
+				"Marker name is referenced, but never created. Marker name: noSuchBeacon, Referenced in: action removeUnknown"
 			)
 		end)
 	end)
@@ -282,12 +282,12 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Countdown is referenced, but never added. Countdown: ghost, Referenced in: action cancelGhost"
+				"Countdown is referenced, but never created. Countdown: ghost, Referenced in: action cancelGhost"
 			)
 		end)
 
 		-- Every action taking a countdownID counts, straight from the action schema.
-		it("warns about time adjustments on countdowns that are never added", function()
+		it("warns about time adjustments on countdowns that are never created", function()
 			local result = V.validate(
 				V.mission()
 					:WithAction(
@@ -306,15 +306,15 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Countdown is referenced, but never added. Countdown: setID, Referenced in: action setGhost"
+				"Countdown is referenced, but never created. Countdown: setID, Referenced in: action setGhost"
 			)
 			V.assertMessage(
 				result,
-				"Countdown is referenced, but never added. Countdown: addID, Referenced in: action addGhost"
+				"Countdown is referenced, but never created. Countdown: addID, Referenced in: action addGhost"
 			)
 			V.assertMessage(
 				result,
-				"Countdown is referenced, but never added. Countdown: removeID, Referenced in: action removeGhost"
+				"Countdown is referenced, but never created. Countdown: removeID, Referenced in: action removeGhost"
 			)
 		end)
 
@@ -329,7 +329,7 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Countdown is referenced, but never added. Countdown: ghost, Referenced in: trigger watchGhost"
+				"Countdown is referenced, but never created. Countdown: ghost, Referenced in: trigger watchGhost"
 			)
 		end)
 
@@ -341,7 +341,7 @@ describe("mission_api.validation.references", function()
 
 			V.assertMessage(
 				result,
-				"Countdown is referenced, but never added. Countdown: ghost, "
+				"Countdown is referenced, but never created. Countdown: ghost, "
 					.. "Referenced in: objective surviveGhost (trigger)"
 			)
 		end)

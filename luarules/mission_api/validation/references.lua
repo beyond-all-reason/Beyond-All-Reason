@@ -31,15 +31,14 @@ local function describeSources(sources)
 end
 
 --- A name nothing creates can never match at runtime, so it is always a mistake.
---- @param creationVerb string how creating this kind of name is described, e.g. "created"
-local function reportUncreatedNames(report, label, createdNames, referencedNames, creationVerb)
+local function reportUncreatedNames(report, label, createdNames, referencedNames)
 	for name, sources in pairs(referencedNames) do
 		if not createdNames[name] then
 			report.Warn(
 				SECTION,
 				label,
 				name,
-				label .. " is referenced, but never " .. creationVerb,
+				label .. " is referenced, but never created",
 				"Referenced in: " .. describeSources(sources)
 			)
 		end
@@ -163,7 +162,7 @@ local function validateMarkerNameReferences(context, report)
 		end
 	end
 
-	reportUncreatedNames(report, "Marker name", addedNames, referencedNames, "added")
+	reportUncreatedNames(report, "Marker name", addedNames, referencedNames)
 end
 
 --------------------------------------------------------------------------------
@@ -317,7 +316,7 @@ local function validateNameReferences(context, report, nameKind)
 	collectTriggerNames(context, nameKind, referencedNames)
 	collectObjectiveTriggerNames(context, nameKind, referencedNames)
 
-	reportUncreatedNames(report, nameKind.label, createdNames, referencedNames, "created")
+	reportUncreatedNames(report, nameKind.label, createdNames, referencedNames)
 	reportUnreferencedNames(report, nameKind.label, createdNames, referencedNames)
 end
 
@@ -363,7 +362,7 @@ local function validateCountdownIDReferences(context, report)
 		end
 	end
 
-	reportUncreatedNames(report, "Countdown", addedIDs, referencedIDs, "added")
+	reportUncreatedNames(report, "Countdown", addedIDs, referencedIDs)
 end
 
 --------------------------------------------------------------------------------
