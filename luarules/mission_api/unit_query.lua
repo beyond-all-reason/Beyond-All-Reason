@@ -2,8 +2,8 @@
 --- Utility module for finding the units matching a mission's filter params.
 ---
 
-local tracking = GG["MissionAPI"].Modules.Tracking
-local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
+-- The mission's own tables are read per call rather than held: the spec builders include this
+-- module before GG exists and replace those tables on every install.
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
@@ -11,12 +11,12 @@ local spGetUnitTeam = Spring.GetUnitTeam
 ---@param unitName string
 ---@return UnitID[]
 local function unitsWithName(unitName)
-	if tracking.IsUnitNameUntracked(unitName) then
+	if GG["MissionAPI"].Modules.Tracking.IsUnitNameUntracked(unitName) then
 		return {}
 	end
 
 	local units = {}
-	for unitID in pairs(trackedUnitIDs[unitName]) do
+	for unitID in pairs(GG["MissionAPI"].trackedUnitIDs[unitName]) do
 		units[#units + 1] = unitID
 	end
 	return units
