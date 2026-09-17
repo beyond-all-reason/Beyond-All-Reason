@@ -2,6 +2,7 @@
 -- Install() must be called on the result.
 
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
+local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
 
 --- Only a name for readers: .emmyrc.json keeps spec/builders out of the
 --- workspace, so emmylua cannot resolve this class from a spec. A spec that
@@ -454,6 +455,7 @@ function MB:Build()
 
 	local modules = {
 		Tracking = tracking,
+		UnitQuery = VFS.Include(UNIT_QUERY_PATH),
 		Loadout = loadout,
 		Sounds = sounds,
 		Objectives = objectives,

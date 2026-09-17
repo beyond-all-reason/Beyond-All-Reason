@@ -2,7 +2,7 @@ require("spec_helper")
 
 local Builders = VFS.Include("spec/builders/index.lua")
 
--- Action files read GG['MissionAPI'].Modules.ParameterTypes at load time.
+-- Action files read GG['MissionAPI'].Modules.ParameterTypes and .UnitQuery at load time.
 Builders.MissionApi.new():Install()
 
 local actions = VFS.Include("luarules/mission_api/actions/map/unit_markers.lua")
@@ -33,9 +33,6 @@ describe("mission_api.actions.unit_markers", function()
 		end
 		Spring.GetUnitTeam = function(unitID)
 			return unitID == 11 and 0 or 1
-		end
-		Spring.GetTeamUnits = function(teamID)
-			return teamID == 0 and { 11 } or { 12 }
 		end
 		Spring.GetTeamUnitsByDefs = function(teamID, unitDefID)
 			if teamID == 0 and unitDefID == 7 then
@@ -90,33 +87,13 @@ describe("mission_api.actions.unit_markers", function()
 	end)
 
 	describe("the unit filter", function()
-		it("takes the units holding a tracked name", function()
-			addAction.actionFunction("squad", nil, nil, "objective")
-			assert.are.same({ { unitID = 11, markerType = "objective" } }, added)
-		end)
-
-		it("takes a team's units of one definition; this is the only way a team is passed(?)", function()
+		it("marks the units that the query matched", function()
 			addAction.actionFunction(nil, "armwar", 0, "objective")
 			assert.are.same({ { unitID = 11, markerType = "objective" } }, added)
 		end)
 
-		it("matches nothing when a name and a definition disagree", function()
+		it("marks nothing when the filters agree on no unit", function()
 			addAction.actionFunction("squad", "armpw", nil, "objective")
-			assert.are.same({}, added)
-		end)
-
-		it("matches nothing when a name and a team disagree", function()
-			addAction.actionFunction("squad", nil, 1, "objective")
-			assert.are.same({}, added)
-		end)
-
-		it("matches nothing for an untracked name", function()
-			addAction.actionFunction("ghosts", nil, nil, "objective")
-			assert.are.same({}, added)
-		end)
-
-		it("matches nothing when no filter is given", function()
-			addAction.actionFunction(nil, nil, nil, "objective")
 			assert.are.same({}, added)
 		end)
 	end)

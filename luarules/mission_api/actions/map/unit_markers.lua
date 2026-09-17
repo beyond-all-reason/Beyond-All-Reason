@@ -1,42 +1,5 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
-
-local function matchingUnits(unitName, unitDefName, teamID)
-	local unitDef = unitDefName and UnitDefNames[unitDefName] ---@as table
-	local unitDefID = unitDef and unitDef.id ---@as UnitDefID?
-
-	local candidates
-	if unitName then
-		local tracking = GG['MissionAPI'].Modules.Tracking
-		if tracking.IsUnitNameUntracked(unitName) then
-			return {}
-		end
-		candidates = {}
-		for unitID in pairs(GG['MissionAPI'].trackedUnitIDs[unitName]) do
-			candidates[#candidates + 1] = unitID
-		end
-	elseif teamID then
-		candidates = Spring.GetTeamUnitsByDefs(teamID, unitDefID)
-	elseif unitDefID then
-		candidates = {}
-		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-			for _, teamIDOfAllyTeam in ipairs(Spring.GetTeamList(allyTeamID)) do
-				table.append(candidates, Spring.GetTeamUnitsByDefs(teamIDOfAllyTeam, unitDefID))
-			end
-		end
-	else
-		return {}
-	end
-
-	local matched = {}
-	for _, unitID in ipairs(candidates) do
-		local matchesDef = not unitDefID or Spring.GetUnitDefID(unitID) == unitDefID
-		local matchesTeam = not teamID or Spring.GetUnitTeam(unitID) == teamID
-		if matchesDef and matchesTeam then
-			matched[#matched + 1] = unitID
-		end
-	end
-	return matched
-end
+local matchingUnits = GG['MissionAPI'].Modules.UnitQuery.MatchingUnits
 
 local markerParameters = {
 	{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
