@@ -30,7 +30,9 @@ local function describeSources(sources)
 	return table.concat(sources, ", ")
 end
 
---- A name nothing creates can never match at runtime, so it is always a mistake.
+--- A name nothing creates can never match, so unlike the unreferenced case below it is
+--- always a mistake. It warns anyway: nothing breaks, and naming one before writing the
+--- action that creates it is ordinary while a mission is being written.
 local function reportUncreatedNames(report, label, createdNames, referencedNames)
 	for name, sources in pairs(referencedNames) do
 		if not createdNames[name] then
@@ -169,17 +171,20 @@ end
 -- Unit and feature name references
 --------------------------------------------------------------------------------
 
---- One kind of name a mission creates and refers to. Unit names and feature names
---- differ only in the fields below, so a single walker checks both.
+--- Unit names and feature names work the same way. A loadout, or an action carrying one
+--- inline, gives units or features a name; other triggers and actions then use that name
+--- to find them again. Only the wording differs between the two, so validateNameReferences
+--- walks both, and takes one of these to tell it which words to use.
 ---@class NameKind
----@field label string how the name is described in messages, e.g. "Unit name"
----@field nameKey string the key holding the name, on loadout entries and parameters alike
----@field nameType string the parameter type, used to find every parameter taking one
----@field loadout table the mission's top level loadout for this kind
----@field loadoutLabel string how a top level loadout entry is cited, e.g. "UnitLoadout"
----@field loadoutParameter string the inline loadout parameter on the action creating from one
----@field loadoutActionType string the action type carrying an inline loadout
----@field creatingActionTypes table<string, boolean> action types creating the name, rather than referring to it
+---@field label string names the kind in messages, "Unit name" or "Feature name"
+---@field nameKey string the key holding the name, "unitName" or "featureName"
+---@field nameType string the parameter type, so every parameter taking one can be found
+---@field loadout table the mission's own UnitLoadout or FeatureLoadout
+---@field loadoutLabel string cites that loadout in messages, "UnitLoadout" or "FeatureLoadout"
+---@field loadoutParameter string the inline equivalent, "unitLoadout" or "featureLoadout"
+---@field loadoutActionType string the action taking that inline loadout, SpawnUnits or CreateFeatures
+---@field creatingActionTypes table<string, boolean> the actions that hand out the name. Any other
+---       action naming it is looking up one already handed out.
 
 --- A top level loadout entry creates every name it gives.
 local function collectLoadoutNames(nameKind, createdNames)
