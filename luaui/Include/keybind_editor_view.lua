@@ -1115,7 +1115,7 @@ local function rebuildRows()
 	for _, group in ipairs(resolvedCatalog) do
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
-		local inCategory = filter ~= nil or not selectedCategory or changedOnly or group.category == selectedCategory
+		local inCategory = not selectedCategory or changedOnly or group.category == selectedCategory
 		-- A group whose own title matches keeps every row under it, so searching for a
 		-- category's name shows the category rather than emptying it.
 		local categoryMatch = Search.claims(query, group.titleLower)
@@ -1201,14 +1201,9 @@ local function rebuildRows()
 						(change or not changedOnly)
 						and (
 							byKey
-							or (
-								not filter
-								and (
-									categoryMatch
-									or Search.matches(query, action:lower())
-									or Search.matches(query, label:lower())
-								)
-							)
+							or categoryMatch
+							or Search.matches(query, action:lower())
+							or Search.matches(query, label:lower())
 						)
 					then
 						local entry = {
@@ -1243,14 +1238,9 @@ local function rebuildRows()
 					(change or not changedOnly)
 					and (
 						byKey
-						or (
-							not filter
-							and (
-								categoryMatch
-								or Search.matches(query, item.labelLower)
-								or Search.matches(query, item.actionLower)
-							)
-						)
+						or categoryMatch
+						or Search.matches(query, item.labelLower)
+						or Search.matches(query, item.actionLower)
 					)
 				then
 					local entry = {
@@ -1310,7 +1300,7 @@ local function rebuildRows()
 				-- Not what the column entry asked for.
 			elseif keyHit(action, action, inOther) then
 				otherKeyed[#otherKeyed + 1] = action
-			elseif not filter and (otherMatch or Search.matches(query, action:lower())) then
+			elseif otherMatch or Search.matches(query, action:lower()) then
 				others[#others + 1] = action
 			end
 		end
@@ -1352,8 +1342,7 @@ local function rebuildRows()
 
 	-- The key rows go on top, under a heading that names the keys the way a chip would. One
 	-- cursor among them gives them all the column, as it does within a category.
-	-- Under a key filter the heading is always there, since it is where the filter is cleared.
-	if #keyRows > 0 or filter then
+	if #keyRows > 0 then
 		-- Modifiers ahead of the key, as a chip prints them, whatever order they were typed in.
 		local modifierAt = { ctrl = 1, alt = 2, meta = 3, shift = 4 }
 		local keys, column = {}, false
@@ -1413,7 +1402,7 @@ local function rebuildRows()
 
 	-- The Changed section with nothing to list says why: no preset is being compared with,
 	-- or nothing differs from the one that is.
-	if changedOnly and not filter and #rows == 0 then
+	if changedOnly and #rows == 0 then
 		if not state.base then
 			rows[1] = { type = "note", text = L.compareNoneHint }
 		else
@@ -5081,7 +5070,7 @@ function view.mousePress(x, y, button)
 
 	-- The keyboard page: a modifier toggles its layer, the toggle swaps the view, and a bound
 	-- key goes to the list page filtered to that key on that layer, which lists everything on
-	-- it with its bindings to hand. The search text is left alone: the filter is its own thing.
+	-- it with its bindings to hand.
 	if state.page == "keyboard" then
 		state.ensureKeyboard()
 		local kind, key, layer = state.keyboard:mousePress(x, y, button)
