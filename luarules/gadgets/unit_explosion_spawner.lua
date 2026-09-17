@@ -23,6 +23,7 @@ end
 -- spawns_expire = how long before your unit is destroyed in seconds
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
 -- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
+-- spawns_debris = the string of a unit to create and destroy on the spot, so only its death script plays (shed casing, wings, etc)
 
 local spCreateFeature = Spring.CreateFeature
 local spCreateUnit = Spring.CreateUnit
@@ -91,6 +92,7 @@ for weaponDefID = 0, #WeaponDefs do
 			mode = wdcp.spawns_mode,
 			ceg = wdcp.spawns_ceg,
 			stun = wdcp.spawns_stun,
+			debris = wdcp.spawns_debris and UnitDefNames[wdcp.spawns_debris] and wdcp.spawns_debris,
 		}
 		if wdcp.spawn_blocked_by_shield then
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
@@ -113,9 +115,39 @@ function gadget:Explosion_GetWantedWeaponDef()
 	return wantedList
 end
 
+local function FaceAwayFromOwner(unitID, ownerID, x, z)
+	local ownx, _, ownz = spGetUnitPosition(ownerID)
+	if ownx then
+		local dx = (x - ownx)
+		local dz = (z - ownz)
+		local l = mathSqrt((dx * dx) + (dz * dz))
+		if l > 0 then
+			dx = dx / l
+			dz = dz / l
+			spSetUnitDirection(unitID, dx, 0, dz)
+			spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
+		end
+	end
+end
+
 local function SpawnUnit(spawnData)
 	local spawnDef = spawnData.spawnDef
 	if spawnDef then
+		local x, z = spawnData.x, spawnData.z
+		if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
+			return -- Out of bounds
+		end
+
+		if spawnDef.debris then
+			local debrisID = spCreateUnit(spawnDef.debris, x, spawnData.y, z, 0, spawnData.teamID)
+			if debrisID then
+				if spawnData.ownerID then
+					FaceAwayFromOwner(debrisID, spawnData.ownerID, x, z)
+				end
+				spDestroyUnit(debrisID, true)
+			end
+		end
+
 		if spawnDef.feature then
 			local featureID = spCreateFeature(spawnDef.name, spawnData.x, spawnData.y, spawnData.z, 0, spawnData.teamID)
 			if not featureID then
@@ -125,12 +157,6 @@ local function SpawnUnit(spawnData)
 			local rot = random() * TAU
 			spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
 		else
-			-- Early validation checks
-			local x, z = spawnData.x, spawnData.z
-			if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
-				return -- Out of bounds
-			end
-
 			local validSurface = false
 			local y = spGetGroundHeight(x, z)
 
@@ -204,19 +230,7 @@ local function SpawnUnit(spawnData)
 
 			if ownerID then
 				spSetUnitRulesParam(unitID, "parent_unit_id", ownerID, PRIVATE)
-
-				local ownx, owny, ownz = spGetUnitPosition(ownerID)
-				if ownx then
-					local dx = (x - ownx)
-					local dz = (z - ownz)
-					local l = mathSqrt((dx * dx) + (dz * dz))
-					if l > 0 then
-						dx = dx / l
-						dz = dz / l
-						spSetUnitDirection(unitID, dx, 0, dz)
-						spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
-					end
-				end
+				FaceAwayFromOwner(unitID, ownerID, x, z)
 			end
 
 			if spawnDef.expire then
