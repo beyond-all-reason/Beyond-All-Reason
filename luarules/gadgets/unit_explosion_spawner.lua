@@ -23,7 +23,7 @@ end
 -- spawns_expire = how long before your unit is destroyed in seconds
 -- spawns_ceg = use to spawn an arbitrary ceg in addition to the explosion effect used in the weapondefs. uses Spring.SpawnCEG()
 -- spawns_stun = a number, use it to define how long a unit will be stunned for after landing.
--- spawns_debris = the string of a unit to create and destroy on the spot, so only its death script plays (shed casing, wings, etc)
+-- spawns_debris = the string of a unit to create and destroy on the spot, so only its death script plays
 
 local spCreateFeature = Spring.CreateFeature
 local spCreateUnit = Spring.CreateUnit
