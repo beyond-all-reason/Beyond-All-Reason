@@ -48,6 +48,7 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
+	UnitDefID = "UnitDefID", -- a UnitDefs id, or a unit def name that is converted to one
 
 }
 
