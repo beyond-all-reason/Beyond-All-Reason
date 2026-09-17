@@ -158,7 +158,22 @@
 			"fireAtWill": "Fire state: Fire at will",
 			"moveHold": "Move state: Hold position",
 			"moveManeuver": "Move state: Maneuver",
-			"moveRoam": "Move state: Roam"
+			"moveRoam": "Move state: Roam",
+			"trajectoryToggle": "Toggle trajectory",
+			"trajectoryLow": "Trajectory: Low",
+			"trajectoryHigh": "Trajectory: High",
+			"idleMode": "Toggle aircraft idle mode",
+			"idleModeFly": "Aircraft idle: Fly",
+			"idleModeLand": "Aircraft idle: Land",
+			"buildPriority": "Toggle builder priority",
+			"buildPriorityLow": "Builder priority: Low",
+			"buildPriorityHigh": "Builder priority: High",
+			"airPlantExit": "Toggle air plant exit mode",
+			"airPlantExitFly": "Air plant exit: Fly",
+			"airPlantExitLand": "Air plant exit: Land",
+			"droneSpawn": "Toggle carrier drone spawning",
+			"droneSpawnOff": "Carrier drone spawning: Off",
+			"droneSpawnOn": "Carrier drone spawning: On"
 		},
 		"controlGroups": {
 			"select": "Select control group %{n}",
