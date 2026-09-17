@@ -66,6 +66,16 @@ form each action. Listing them makes those rows exist whether or not anything is
 unbinding one leaves it there to bind again. Families that cannot be enumerated - `buildunit_`
 is per unit - list none and are discovered from what is bound instead.
 
+Where the members exist but are the player's rather than the game's, the entry names where
+to read them with `"membersFrom"` instead of listing them. The one source is `"profiles"`,
+which is what `keybindprofile ` covers: one bindable action per profile, named after it, so
+a key means the same profile whatever is active.
+
+That source is every selectable profile, shipped and the player's own, except the active
+one - switching to the profile already loaded can only do nothing. A key that already names
+the active profile is still read from the keymap and listed, so there is somewhere to remove
+it from.
+
 An entry may carry `"alwaysModifier"`, naming a modifier the action always tolerates so no
 surface shows it or lets the player pick it:
 
@@ -153,7 +163,10 @@ the clipboard and what Import reads back, and the same text a player would put i
   so the first edit made while one is selected forks it into a copy and edits that.
 - **Create / rename / delete.** Names are the identity, so they must stay unique across
   both files; disambiguate rather than overwrite. Deleting the active profile means
-  falling back and applying whatever is left.
+  falling back and applying whatever is left. A name is also an id inside the keymaps,
+  because `keybindprofile <name>` is what a key switching to that profile is bound to, so
+  a rename has to rewrite those binds everywhere they appear and a delete has to drop
+  them - in every profile, not just the one being changed.
 
 ### Same rules, different plumbing
 

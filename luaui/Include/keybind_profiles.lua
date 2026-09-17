@@ -18,6 +18,10 @@ local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
 local BACKUP_FILE = "uikeys.txt.bak"
 local STORE_VERSION = 2
+-- Bindable action that makes a profile active, one per profile, named after it. That puts
+-- the name in the keymap as well as in the store, so renaming or deleting one has to follow
+-- it into every profile's binds.
+local SWITCH_COMMAND = "keybindprofile"
 
 -- The shipped profiles a player can select but not edit; editing forks a copy. They
 -- carry binds rather than a file path so every surface reads one shape, and applying
@@ -51,6 +55,8 @@ local store
 -- Set while reading a store written before profiles named a meta key, so the launch that
 -- upgrades one can still recognise the files that version wrote.
 local storePredatesMeta = false
+-- Set when another surface may have written the store since this one read it.
+local stale = false
 
 -- Shape a fresh store file takes.
 local function emptyStore()
@@ -69,6 +75,40 @@ local function indexOf(name)
 end
 
 local M = { builtins = builtins, activeFile = ACTIVE_FILE }
+
+-- The action a key is bound to in order to switch to this profile.
+function M.switchAction(name)
+	return SWITCH_COMMAND .. " " .. name
+end
+
+-- Points the binds that switch to oldName at newName instead, or drops them when newName is
+-- nil. Hands back the list to use and whether anything moved, so a caller can leave a
+-- profile it did not touch alone.
+function M.retargetSwitchBinds(binds, oldName, newName)
+	local from = M.switchAction(oldName)
+	local out, moved = {}, false
+	for _, bind in ipairs(binds or {}) do
+		if bind.action ~= from then
+			out[#out + 1] = bind
+		else
+			moved = true
+			if newName then
+				out[#out + 1] = { keyset = bind.keyset, action = M.switchAction(newName) }
+			end
+		end
+	end
+
+	return out, moved
+end
+
+local function retargetStore(oldName, newName)
+	for _, p in ipairs(store.profiles) do
+		local binds, moved = M.retargetSwitchBinds(p.binds, oldName, newName)
+		if moved then
+			p.binds = binds
+		end
+	end
+end
 
 -- The shipped profile of that name, nil when the player owns it instead.
 function M.isBuiltin(name)
@@ -540,14 +580,29 @@ local function migrate()
 	end
 end
 
+-- Marks the cached store for re-reading rather than dropping it. Each VFS.Include of this
+-- module runs it again and gets a store of its own, so a surface that did not make a change
+-- has no way of knowing another one did.
+function M.invalidate()
+	stale = true
+end
+
 -- Reads the store once, migrating an older layout on the way in.
 function M.load()
-	if store then
+	if store and not stale then
 		return store
 	end
+	stale = false
 
 	local content = VFS.LoadFile(PROFILES_PATH)
 	if not content then
+		-- Migration is for a player who has never had a store, not for one whose file went
+		-- missing mid-session: re-running it would snapshot the live keymap as a new profile
+		-- every time anything reloaded. What was already read stands until a read succeeds.
+		if store then
+			return store
+		end
+
 		migrate()
 		return store
 	end
@@ -859,6 +914,7 @@ function M.rename(oldName, newName)
 			p.basedOn = newName
 		end
 	end
+	retargetStore(oldName, newName)
 	if not M.save() then
 		Spring.Echo(
 			"[keybind_profiles] Error: could not write "
@@ -891,6 +947,7 @@ function M.delete(name)
 			p.basedOn = M.inferBase(p)
 		end
 	end
+	retargetStore(name, nil)
 
 	return M.save()
 end

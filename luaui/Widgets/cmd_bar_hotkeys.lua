@@ -41,6 +41,10 @@ local function fallbackToProfile(missing)
 end
 
 local function reloadBindings()
+	-- The editor holds a store of its own, so the selection this one last read may be two
+	-- switches old by now. Whatever moved the keymap has already written it out.
+	profiles.invalidate()
+
 	-- Still read from config rather than the store: on the launch a player is
 	-- migrated this is what they were on, and the store snapshots the live keymap.
 	local file = Spring.GetConfigString("KeybindingFile", profiles.activeFile)
@@ -51,7 +55,15 @@ local function reloadBindings()
 
 	if file then
 		Spring.SendCommands("keyreload " .. file)
-		spEcho("BAR Hotkeys: Loaded hotkeys from " .. file)
+		-- Only the file the profiles write is one of theirs, so a KeybindingFile the player
+		-- pointed somewhere else is named on its own rather than credited to whatever the
+		-- store happens to have selected.
+		local name = file == profiles.activeFile and profiles.activeName()
+		if name then
+			spEcho("BAR Hotkeys: Loaded profile '" .. name .. "' from " .. file)
+		else
+			spEcho("BAR Hotkeys: Loaded hotkeys from " .. file)
+		end
 	else
 		spEcho("BAR Hotkeys: No hotkey file found")
 	end
