@@ -808,31 +808,8 @@ body {
 	background-color: #2b2113;
 }
 
-/* Start Positions tool */
-.tf-btn-startpos.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
-.tf-sp-btn-express.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
-.tf-sp-btn-shape.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
-.tf-sp-btn-startbox.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
-/* Startbox placement sub-picker (Box / Polygon / Free) */
-.tf-sp-btn-sbx-box.active,
-.tf-sp-btn-sbx-polygon.active,
-.tf-sp-btn-sbx-freedraw.active {
+/* Regions tool */
+.tf-btn-regions.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -2525,7 +2502,7 @@ body {
 #section-wb-mode .tf-mode-btn,
 #section-mb-mode .tf-mode-btn,
 #section-gb-mode .tf-mode-btn,
-#section-sp-mode .tf-mode-btn,
+#section-rg-mode .tf-mode-btn,
 #section-smooth-mode .tf-mode-btn,
 #section-ramp-type .tf-mode-btn,
 #section-lt-type .tf-mode-btn,
@@ -2541,7 +2518,7 @@ body {
 #section-wb-mode .tf-icon-md,
 #section-mb-mode .tf-icon-md,
 #section-gb-mode .tf-icon-md,
-#section-sp-mode .tf-icon-md,
+#section-rg-mode .tf-icon-md,
 #section-smooth-mode .tf-icon-md,
 #section-ramp-type .tf-icon-md,
 #section-lt-type .tf-icon-md,
@@ -2556,7 +2533,7 @@ body {
 #section-wb-mode .tf-btn-text,
 #section-mb-mode .tf-btn-text,
 #section-gb-mode .tf-btn-text,
-#section-sp-mode .tf-btn-text,
+#section-rg-mode .tf-btn-text,
 #section-smooth-mode .tf-btn-text,
 #section-ramp-type .tf-btn-text,
 #section-lt-type .tf-btn-text,
@@ -2701,7 +2678,7 @@ body {
 /* === Sub-mode Buttons (smaller than main mode) === */
 #tf-feature-submodes .tf-mode-btn,
 #tf-weather-submodes .tf-mode-btn,
-#tf-startpos-submodes .tf-mode-btn,
+#tf-regions-submodes .tf-mode-btn,
 #tf-decal-controls .tf-mode-btn,
 #tf-dc-submodes .tf-mode-btn,
 #tf-metal-submodes .tf-mode-btn,
@@ -3043,7 +3020,7 @@ body {
  * margin (same 14dp as .tf-section-frame) so the first frame child inside
  * doesn't need to — preventing any first-child margin interaction at wrapper
  * boundaries that could cause uneven spacing across tool modes. */
-#tf-startpos-submodes, #tf-startpos-controls, #tf-clone-controls,
+#tf-regions-submodes, #tf-regions-controls, #tf-clone-controls,
 #tf-shape-row, #tf-metal-submodes, #tf-metal-controls,
 #tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes,
 #tf-ramp-type-row, #tf-smooth-submodes, #tf-dc-submodes,
@@ -3053,8 +3030,8 @@ body {
 	margin-top: 14dp;
 }
 /* Zero the first frame's margin-top since the wrapper provides the gap. */
-#tf-startpos-submodes > .tf-section-frame:first-child,
-#tf-startpos-controls > .tf-section-frame:first-child,
+#tf-regions-submodes > .tf-section-frame:first-child,
+#tf-regions-controls > .tf-section-frame:first-child,
 #tf-clone-controls > .tf-section-frame:first-child,
 #tf-shape-row > .tf-section-frame:first-child,
 #tf-metal-submodes > .tf-section-frame:first-child,
