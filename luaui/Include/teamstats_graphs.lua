@@ -17,6 +17,7 @@ local mathFloor = math.floor
 local mathMax = math.max
 local mathMin = math.min
 local mathHuge = math.huge
+local mathAbs = math.abs
 local tableSort = table.sort
 
 -- The composition bands: one colour per bucket, in the composition view's column order.
@@ -33,9 +34,44 @@ local BUCKET_COLORS = {
 	{ 0.82, 0.68, 0.76 },
 }
 
--- The legend bar's looks: a block is a button, the picked one lit and framed warm.
+-- Which kinds of milestone belong on a chart of which column group, so a chart is not
+-- littered with moments that say nothing about it. `always` goes on every chart: the end of
+-- a team explains the end of all of its lines.
+local MILESTONE_GROUPS = {
+	tech2 = { units = true, value = true, metal = true, energy = true, industry = true },
+	tech3 = { units = true, value = true, metal = true, energy = true, industry = true },
+	nuke = { damage = true, value = true, traded = true, energy = true },
+	antinuke = { damage = true, value = true, energy = true },
+	lrpc = { damage = true, value = true, traded = true },
+	firstKill = { damage = true, units = true, traded = true },
+	firstLoss = { damage = true, units = true, traded = true, value = true },
+	commanderLost = { commanders = true, damage = true, units = true, value = true, metal = true, energy = true },
+	teamDied = { always = true },
+}
+
+-- The grids a page can be split into, in the order the setting cycles through them.
+local PAGES = {
+	{ n = 9, cols = 3, rows = 3 },
+	{ n = 12, cols = 4, rows = 3 },
+	{ n = 16, cols = 4, rows = 4 },
+}
+
+-- The team profile's axes, in the order they go round the wheel from the top.
+local PROFILE_AXES = {
+	{ key = "damageDealt" },
+	{ key = "unitsProduced" },
+	{ key = "metalProduced" },
+	{ key = "energyProduced" },
+	{ key = "unitValue", gadget = true },
+	{ key = "actionsPerMinute", gadget = true },
+}
+
+-- The legend bar's looks: a block is a button, the picked one lit and framed warm. The
+-- chart of the grid under the cursor is framed the same way, more faintly.
 local PLATE = { 1, 1, 1, 0.05 }
 local PICKED_FRAME = { 1, 0.78, 0.51, 0.85 }
+local HOVER_FRAME = { 1, 0.78, 0.51, 0.5 }
+local HOVER_FADE = { 1, 0.78, 0.51, 0 }
 
 -- A percentage for an axis or a tooltip: whole, a prefix past a million, infinity as
 -- its sign.
@@ -56,7 +92,7 @@ local M = {}
 function M.new(ctx)
 	---@type table<string, any>
 	local page = {
-		open = false,
+		open = true,
 		stat = "damageDealt",
 		-- Units right-clicked off the chart, by key.
 		---@type table<string, boolean>
@@ -67,11 +103,14 @@ function M.new(ctx)
 		---@type table<string, boolean>
 		selected = {},
 		selectionSet = false,
+		-- The axes of the profile wheel, as the last build read them.
+		---@type table[]
+		profileAxes = {},
 		-- The page's own grouping, kept apart from the table's: a chart of ally teams and
 		-- a table of ally teams are different questions, and picking a single player on the
 		-- chart should not flatten the table.
 		grouped = true,
-		hover = { stat = 0, legend = 0, block = 0 },
+		hover = { stat = 0, legend = 0, block = 0, kind = 0, group = 0 },
 		-- Per team: the engine's history entries taken at the period, derived, and how
 		-- many of the engine's list they are; the live newest entry is left out so the
 		-- chart changes once a period, not every second.
@@ -110,6 +149,32 @@ function M.new(ctx)
 		rects = nil,
 		---@type table?
 		chartHit = nil,
+		-- The grid: how many charts a page holds, which row it starts at, the charts on
+		-- it and the one under the cursor. One chart per page is the single chart view.
+		perPage = 9,
+		scroll = 0,
+		maxScroll = 0,
+		---@type table[]
+		miniCharts = {},
+		---@type table?
+		miniHit = nil,
+		-- A chart opened from the grid, by stat key: it takes the whole page until it is
+		-- closed again.
+		---@type string?
+		zoom = nil,
+		-- The group the stat list was built for; another one shows its own charts.
+		---@type string?
+		group = nil,
+		-- Where the card of milestone kinds is anchored: the settings row that opens it.
+		---@type table?
+		kindsAnchor = nil,
+		-- The kinds of milestone left off the charts, by key, and whether the card that
+		-- picks them is open.
+		---@type table<string, boolean>
+		milestoneOff = {},
+		kindsOpen = false,
+		---@type table[]
+		kindRects = {},
 		empty = true,
 		scale = 1,
 	}
@@ -144,11 +209,75 @@ function M.new(ctx)
 
 	-- The stats of the sidebar's group, the composition chart first in its group. The
 	-- gadget's columns, and the ones only it keeps a history of, only while it is there.
+	-- The kinds of milestone, in the order the panel names them.
+	local function milestoneKinds()
+		return ctx.L.milestoneOrder or {}
+	end
+
+	-- What a settings row with a value says, and what pressing it does. The panel asks
+	-- rather than knowing, so a new setting only needs adding here.
+	function page.settingValue(key)
+		if key == "perPage" then
+			return page.perPage
+		end
+		local kinds = milestoneKinds()
+		local on = 0
+		for _, kind in ipairs(kinds) do
+			if not page.milestoneOff[kind] then
+				on = on + 1
+			end
+		end
+		return on .. "/" .. #kinds
+	end
+
+	-- The card put away from outside: Escape, or the panel closing.
+	function page.closeKinds()
+		if page.kindsOpen then
+			page.kindsOpen = false
+			page.dirty = true
+			page.gen = page.gen + 1
+		end
+	end
+
+	function page.settingPress(key, back)
+		if key == "perPage" then
+			page.cyclePerPage(back)
+			return
+		end
+		-- The card of kinds opens over the charts and closes on the next press.
+		page.kindsOpen = not page.kindsOpen
+		page.dirty = true
+		page.gen = page.gen + 1
+	end
+
+	-- Whether the stat list is shown beside the charts: a grid says what each chart is in
+	-- its own title, so the list would only take room from it.
+	function page.listShown()
+		return not page.gridded()
+	end
+
 	function page.rebuildStatList()
 		local group = ctx.groupByKey[ctx.selectedGroup()] or ctx.GROUPS[1]
+		if page.group ~= group.key then
+			-- A group of its own charts: the page shows them rather than staying on the one
+			-- that was open in the group before.
+			page.group, page.zoom, page.scroll = group.key, nil, 0
+		end
 		local list = {}
+		do
+			-- The way back to the grid, kept apart from the stats by a rule.
+			list[#list + 1] = { key = "overview", label = ctx.i18n("ui.teamStats.graph.overview"), back = true }
+			list[#list + 1] = { divider = true }
+		end
 		if group.key == "composition" and ctx.gadgetOn() then
 			list[#list + 1] = { key = "composition", label = ctx.i18n("ui.teamStats.graph.composition") }
+		elseif group.key == "all" then
+			-- Every team's shape at a glance, and when things happened to them, before the
+			-- stats they are made of.
+			list[#list + 1] = { key = "profile", label = ctx.i18n("ui.teamStats.graph.profile") }
+			if ctx.gadgetOn() then
+				list[#list + 1] = { key = "timeline", label = ctx.i18n("ui.teamStats.graph.timeline") }
+			end
 		end
 		for i = 1, #group.columns do
 			local column = ctx.COLUMNS[group.columns[i]]
@@ -158,13 +287,18 @@ function M.new(ctx)
 		end
 		page.statList = list
 		local found = false
+		---@type table?
+		local first = nil
 		for i = 1, #list do
 			if list[i].key == page.stat then
 				found = true
 			end
+			if not first and list[i].key and not list[i].back and not list[i].divider then
+				first = list[i]
+			end
 		end
-		if not found and list[1] then
-			page.stat = list[1].key
+		if not found and first then
+			page.stat = first.key
 		end
 		page.dirty = true
 		page.gen = page.gen + 1
@@ -182,11 +316,15 @@ function M.new(ctx)
 	-- card spans listY1..listY2 when given, so it lines up with the sidebar's beside it.
 	function page.setLayout(x1, y1, x2, y2, s, listY1, listY2)
 		page.scale = s
-		local listW = mathFloor(200 * s)
+		-- Kept so the page can lay itself out again when the list comes or goes without the
+		-- panel having a reason to.
+		page.layoutArgs = { x1, y1, x2, y2, s, listY1, listY2 }
+		page.listWas = page.listShown()
 		local gap = mathFloor(12 * s)
+		local listW = page.listShown() and mathFloor(200 * s) or -gap
 		local barH = ctx.metrics.rowHeight + mathFloor(8 * s)
 		page.rects = {
-			list = { x1, listY1 or y1, x1 + listW, listY2 or y2 },
+			list = { x1, listY1 or y1, x1 + mathMax(0, listW), listY2 or y2 },
 			bar = { x1 + listW + gap, y2 - barH, x2, y2 },
 			chart = { x1 + listW + gap, y1, x2, y2 - barH - mathFloor(4 * s) },
 			-- The sidebar's entry height, so the two lists run level.
@@ -204,8 +342,48 @@ function M.new(ctx)
 		layoutBar()
 	end
 
+	-- Where the card of kinds hangs: the rect of the settings row that opens it.
+	function page.setKindsAnchor(rect)
+		page.kindsAnchor = rect
+	end
+
+	-- The grouping switch belongs with the teams it groups: the page draws it at the end of
+	-- the legend bar rather than among the settings.
+	---@type fun(): table?
+	local groupToggleRect
+
+	-- Where the grouping switch sits on the bar, for whoever needs to point at it.
+	function page.groupToggle()
+		return groupToggleRect()
+	end
+
+	-- The room the grouping switch and its caption take at the end of the bar, which the
+	-- team blocks leave free.
+	local function groupReserve()
+		if ctx.isFFA then
+			return 0
+		end
+		local font = ctx.font()
+		local label = ctx.L.switch and ctx.L.switch.groupByTeam or ""
+		local labelW = font and mathFloor(font:GetTextWidth(label) * ctx.metrics.catFs) or mathFloor(90 * page.scale)
+		return labelW + mathFloor(38 * page.scale) + ctx.metrics.sidePad + ctx.metrics.rowPad * 2
+	end
+
+	function groupToggleRect()
+		local r = page.rects
+		if not r or ctx.isFFA then
+			return nil
+		end
+		local togW = mathFloor(38 * page.scale)
+		local togH = mathFloor(ctx.metrics.rowHeight * 0.52)
+		local cy = mathFloor((r.bar[2] + r.bar[4]) * 0.5)
+		local x2 = r.bar[3] - ctx.metrics.sidePad
+		return { x2 - togW, cy - mathFloor(togH * 0.5), x2, cy - mathFloor(togH * 0.5) + togH }
+	end
+
 	function page.setFont(font, fontSize)
 		chart:configure({ font = font, fontSize = fontSize })
+		page.dirty = true
 	end
 
 	local function statRect(i)
@@ -404,6 +582,102 @@ function M.new(ctx)
 	end
 
 	----------------------------------------------------------------
+	-- Trend lines for the table's cells
+	----------------------------------------------------------------
+
+	-- The table draws a small line of each cell's history behind its number. The rows it
+	-- wants them for are handed over whenever it rebuilds them ({ key, members } each);
+	-- a column's lines are then built for every row at once, so they share one range and
+	-- can be read against each other, and kept until a history grows or the rows change.
+	---@type { sig: string, rows: table[], version: integer, lines: table<string, table> }
+	local trend = { sig = "", rows = {}, version = -1, lines = {} }
+
+	function page.setTrendRows(list)
+		local parts = {}
+		for _, row in ipairs(list) do
+			parts[#parts + 1] = row.key .. "=" .. table.concat(row.members, ".")
+		end
+		local sig = table.concat(parts, "|")
+		if sig ~= trend.sig then
+			trend.sig, trend.rows, trend.lines = sig, list, {}
+		end
+	end
+
+	-- Every row's run of one column, normalised into the unit square: x is the game time
+	-- across every row's samples, y the value against the range the rows share (a running
+	-- total measured from zero, anything else from its own floor).
+	local function trendLines(key, perMinute)
+		if trend.version ~= page.version then
+			trend.version, trend.lines = page.version, {}
+		end
+		local cacheKey = key .. (perMinute and "/m" or "")
+		local held = trend.lines[cacheKey]
+		if held then
+			return held
+		end
+		rebuildSamples()
+		local column = ctx.COLUMNS[key]
+		local runs = {}
+		local xMin, xMax = mathHuge, -mathHuge
+		local yMin, yMax = mathHuge, -mathHuge
+		for _, row in ipairs(trend.rows) do
+			local points = pointsOf(row.members, key, perMinute, column and column.clamp)
+			if #points > 1 then
+				runs[row.key] = points
+				for _, p in ipairs(points) do
+					xMin, xMax = mathMin(xMin, p[1]), mathMax(xMax, p[1])
+					yMin, yMax = mathMin(yMin, p[2]), mathMax(yMax, p[2])
+				end
+			end
+		end
+		local lines = {}
+		if xMax > xMin then
+			-- A running total is read against zero; a rate or a level against its own floor.
+			local lo = (column and column.fmt == "si" and not perMinute) and mathMin(0, yMin) or yMin
+			local span = yMax - lo
+			for rowKey, points in pairs(runs) do
+				local line = {}
+				for _, p in ipairs(points) do
+					line[#line + 1] = (p[1] - xMin) / (xMax - xMin)
+					line[#line + 1] = span > 0 and (p[2] - lo) / span or 0.5
+				end
+				lines[rowKey] = line
+			end
+		end
+		trend.lines[cacheKey] = lines
+		return lines
+	end
+
+	-- One cell's line, drawn into the rect the table gives it. Called from the panel's
+	-- bake, so the run is walked once per rebuild, not once per frame.
+	function page.drawTrend(rowKey, key, perMinute, x1, y1, x2, y2, color, width)
+		local line = trendLines(key, perMinute)[rowKey]
+		if not line or #line < 4 then
+			return false
+		end
+		local w, h = x2 - x1, y2 - y1
+		if w <= 2 or h <= 2 then
+			return false
+		end
+		if gl.Smoothing then
+			gl.Smoothing(false, true, false)
+		end
+		gl.LineWidth(width or 1)
+		gl.Color(color[1], color[2], color[3], color[4] or 0.5)
+		gl.BeginEnd(GL.LINE_STRIP, function()
+			for i = 1, #line, 2 do
+				gl.Vertex(x1 + line[i] * w, y1 + line[i + 1] * h)
+			end
+		end)
+		gl.LineWidth(1)
+		if gl.Smoothing then
+			gl.Smoothing(false, false, false)
+		end
+		gl.Color(1, 1, 1, 1)
+		return true
+	end
+
+	----------------------------------------------------------------
 	-- Series and the legend bar
 	----------------------------------------------------------------
 
@@ -518,6 +792,19 @@ function M.new(ctx)
 		all.labelW = widthOf(all.label)
 		---@type table[]
 		local blocks = { all }
+		-- Whoever is playing gets their own team a press away, beside All.
+		---@type table?
+		local mine = nil
+		for _, unit in ipairs(page.units) do
+			if unit.isLocal then
+				mine = unit
+			end
+		end
+		if mine then
+			local me = { me = true, unit = mine, label = ctx.i18n("ui.teamStats.graph.you"), members = {} }
+			me.labelW = widthOf(me.label)
+			blocks[#blocks + 1] = me
+		end
 		local seen = {}
 		for _, unit in ipairs(page.units) do
 			for _, team in ipairs(unit.teams) do
@@ -536,15 +823,20 @@ function M.new(ctx)
 			end
 		end
 		local count, labelW = 0, 0
-		for i = 2, #blocks do
+		local teamBlocks = 0
+		for i = 1, #blocks do
 			local b = blocks[i]
-			count = count + #b.members
-			b.labelW = widthOf(b.label)
-			labelW = labelW + b.labelW + pad
+			if not b.all and not b.me then
+				count = count + #b.members
+				b.labelW = widthOf(b.label)
+				labelW = labelW + b.labelW + pad
+				teamBlocks = teamBlocks + 1
+			end
 		end
-		local teamBlocks = #blocks - 1
-		-- The All button always keeps its caption; the team blocks share the rest.
-		local avail = r.bar[3] - r.bar[1] - pad * 2 - (all.labelW + pad * 3)
+		-- The All button always keeps its caption; the team blocks share what is left once
+		-- the grouping switch at the end of the bar has its room.
+		local fixed = all.labelW + pad * 3 + (blocks[2] and blocks[2].me and blocks[2].labelW + r.square + pad * 3 or 0)
+		local avail = r.bar[3] - r.bar[1] - pad * 2 - fixed - groupReserve()
 		local gaps = pad * mathMax(0, teamBlocks - 1) + pad * teamBlocks
 		local square = r.square
 		local withLabels = count * square + gaps + labelW <= avail
@@ -560,9 +852,15 @@ function M.new(ctx)
 		for _, b in ipairs(blocks) do
 			-- The plate runs from the caption to the last square, with half a pad of air.
 			b.x1 = x - half
-			if b.all then
+			if b.all or b.me then
 				b.labelX = x
 				x = x + b.labelW
+				if b.me then
+					-- Your own colour beside the caption, the same square the teams get.
+					x = x + half
+					b.swatch = { x, y1, x + square, y2 }
+					x = x + square
+				end
 			else
 				if withLabels then
 					b.labelX = x
@@ -606,9 +904,25 @@ function M.new(ctx)
 		return list
 	end
 
-	-- Whether the Selected only switch applies: the composition is always the selection's.
-	function page.filterShown()
-		return page.stat ~= "composition"
+	-- Whether a rate means anything for what the page is showing: only a running total,
+	-- and only while that chart is the one open.
+	function page.rateShown()
+		if page.gridded() then
+			return false
+		end
+		local column = ctx.COLUMNS[page.zoom or page.stat]
+		return column ~= nil and column.rate == true
+	end
+
+	-- Whether the picked stat is drawn over game time: the profile and the composition
+	-- answer differently, and the panel asks before it lays the switches out.
+	function page.overTime()
+		return page.stat ~= "profile"
+	end
+
+	-- Whether the milestones switch means anything: the timeline is made of them.
+	function page.milestonesOwn()
+		return page.stat == "timeline"
 	end
 
 	-- The units a chart is about, named for its title: every team, one by name, or how many.
@@ -624,37 +938,79 @@ function M.new(ctx)
 	-- The milestones of these units' players as pictures on the chart, each framed in its
 	-- player's colour, on the unit's series where `indexByKey` names one, else in the lane.
 	-- The hover text says whose it was, in their colour, then when and what.
-	local function milestoneMarkers(list, indexByKey)
+	-- Where a timeline's lanes sit, and how close two pictures may be in x before one has
+	-- to move out of the other's way. Filled in while the timeline is built.
+	---@type table<string, number>
+	local lanes = {}
+	local timelineGap = 0
+
+	-- The rows a lane's pictures take, alternating above and below its line so the team
+	-- keeps its height: the first free row whose last picture is far enough behind.
+	local LANE_ROWS = { 0, 0.24, -0.24, 0.12, -0.12, 0.36, -0.36 }
+
+	-- Whether a kind of milestone says anything about the column being charted.
+	local function kindFits(kind, column)
+		if page.milestoneOff[kind] then
+			return false
+		end
+		local groups = MILESTONE_GROUPS[kind]
+		if not groups or groups.always then
+			return true
+		end
+		-- A chart that is not one column's (the composition, the profile) takes them all.
+		return column == nil or groups[column.group] == true
+	end
+
+	local function milestoneMarkers(list, indexByKey, always, column)
 		local markers = {}
 		local live = ctx.live()
-		if not live or not ctx.filters.milestones then
+		if not live or not (always or ctx.filters.milestones) then
 			return markers
 		end
 		for _, unit in ipairs(list) do
+			-- One set of rows per unit: its lane is its own.
+			local taken = {}
 			for _, team in ipairs(unit.teams) do
 				local teamLive = live[team.id]
 				for _, m in ipairs(teamLive and teamLive.milestones or {}) do
-					local ud = m.unitDefID and UnitDefs[m.unitDefID] or nil
-					---@cast ud table?
-					local label = ctx.L.milestone[m.key] or m.key
-					if ud then
-						label = label .. " (" .. (ud.translatedHumanName or ud.name) .. ")"
+					-- Kinds switched off in the milestone settings never make a marker.
+					if kindFits(m.key, column) then
+						local ud = m.unitDefID and UnitDefs[m.unitDefID] or nil
+						---@cast ud table?
+						local label = ctx.L.milestone[m.key] or m.key
+						if ud then
+							label = label .. " (" .. (ud.translatedHumanName or ud.name) .. ")"
+						end
+						local whose = (team.nameColor or "") .. team.name
+						local what = ctx.colors.title .. Graph.frameLabel(m.frame) .. "  " .. label
+						local lane = lanes[unit.key]
+						local y = nil
+						if lane then
+							-- The first row of the lane this one is clear of.
+							local row = 1
+							while row < #LANE_ROWS and (taken[row] or -mathHuge) > m.frame - timelineGap do
+								row = row + 1
+							end
+							taken[row] = m.frame
+							y = lane + (LANE_ROWS[row] or 0)
+						end
+						markers[#markers + 1] = {
+							x = m.frame,
+							y = y,
+							texture = ud and ("#" .. m.unitDefID) or nil,
+							text = whose .. "\n" .. what,
+							series = indexByKey and indexByKey[unit.key] or nil,
+							frame = { team.accent[1], team.accent[2], team.accent[3] },
+						}
 					end
-					local whose = (team.nameColor or "") .. team.name
-					local what = ctx.colors.title .. Graph.frameLabel(m.frame) .. "  " .. label
-					markers[#markers + 1] = {
-						x = m.frame,
-						texture = ud and ("#" .. m.unitDefID) or nil,
-						text = whose .. "\n" .. what,
-						series = indexByKey and indexByKey[unit.key] or nil,
-						frame = { team.accent[1], team.accent[2], team.accent[3] },
-					}
 				end
 			end
 		end
 		return markers
 	end
 
+	-- What a unit is worth on each profile axis right now: its teams' current stats added
+	-- up, the way the table's band totals are.
 	-- The chart's series from the pick and the switches. The same rules for every kind:
 	-- hidden units are left out; with Selected only on and a selection, only the selected
 	-- are plotted, otherwise every shown unit is, the selected ones lit and on top and the
@@ -662,16 +1018,54 @@ function M.new(ctx)
 	-- selected. A composition is one whole, so it is the selection's summed (every shown
 	-- team's without one). Share of team plots the players of the plotted ally teams as
 	-- shares of their total.
-	function page.build()
-		rebuildSamples()
-		page.rebuildUnits()
-		local column = ctx.COLUMNS[page.stat]
+	local function profileValues(unit)
+		local values = {}
+		for ai, axis in ipairs(page.profileAxes) do
+			local sum = 0
+			for _, team in ipairs(unit.teams) do
+				local v = team.stats and team.stats[axis.key]
+				if v and v == v then
+					sum = sum + v
+				end
+			end
+			values[ai] = sum
+		end
+		return values
+	end
+
+	-- The charts a grid page draws, kept and reconfigured rather than made and freed
+	-- every time the page is scrolled or the grid resized.
+	---@type table[]
+	local pool = {}
+
+	-- A line per plotted unit of one column, and which of them the selection lifts.
+	local function lineSeries(column, plotted, perMinute)
+		local series = {}
+		---@type table<integer, boolean>
+		local lifted = {}
+		for _, u in ipairs(plotted) do
+			series[#series + 1] = {
+				name = u.name,
+				color = u.color,
+				points = pointsOf(u.members, column.key, perMinute, column.clamp),
+				width = 2,
+			}
+			lifted[#series] = page.selected[u.key]
+		end
+		return series, lifted
+	end
+
+	-- What a chart of one stat is made of: the same rules for the big chart and for every
+	-- small one in the grid. `small` leaves out what a little chart has no room for.
+	-- Returns whether it came out empty.
+	local function fillChart(target, statKey, small)
+		local column = ctx.COLUMNS[statKey]
 		local isGrouped = grouped()
 		local perMinute = ctx.filters.perMinute and column and column.rate or false
 		local shown = shownUnits()
 		local picked = pickedUnits()
 		local anyPicked = #picked > 0
-		local plotted = (anyPicked and ctx.filters.selectedOnly) and picked or shown
+		local plotted = shown
 		-- Something stands out only while the selection is not everything plotted.
 		local lifts = anyPicked and #picked < #plotted
 		local marked = anyPicked and picked or plotted
@@ -683,7 +1077,75 @@ function M.new(ctx)
 		local lifted = {}
 		local ownLegend = false
 
-		if page.stat == "composition" then
+		lanes, timelineGap = {}, 0
+		target.cfg.valueBands = nil
+		if statKey == "timeline" then
+			-- A lane per team, drawn from the first frame to now, with its milestones on
+			-- it: what happened to whom, and when. Every team gets the same height, and
+			-- pictures that fall close together are stacked into the room around the line
+			-- rather than piled on one spot.
+			local n = #plotted
+			local frame = mathMax(1, ctx.frame())
+			local indexByKey = {}
+			for i, u in ipairs(plotted) do
+				local lane = n - i + 1
+				series[#series + 1] = {
+					name = u.name,
+					color = u.color,
+					points = { { 0, lane }, { frame, lane } },
+					width = 2,
+				}
+				indexByKey[u.key] = #series
+				lanes[u.key] = lane
+				lifted[#series] = page.selected[u.key]
+			end
+			-- A faint band of the team's colour behind each lane.
+			local bands = {}
+			for i, u in ipairs(plotted) do
+				local lane = n - i + 1
+				bands[#bands + 1] = {
+					-- A little short of the next lane, so there is a gap between the teams.
+					from = lane - 0.42,
+					to = lane + 0.42,
+					color = { u.color[1], u.color[2], u.color[3], 0.1 },
+				}
+			end
+			target.cfg.valueBands = bands
+			-- How far apart two pictures have to be in game frames not to overlap, from the
+			-- room the chart has for the whole game.
+			local plotW = page.rects and (page.rects.chart[3] - page.rects.chart[1]) * 0.8 or 600
+			timelineGap = frame / mathMax(1, plotW / mathMax(8, mathFloor(ctx.metrics.rowFs * 2.6)))
+			-- The lanes are named down the axis, and there is a clear row above and below.
+			target.cfg.yMin, target.cfg.yMax, target.cfg.gridLines = 0, n + 1, n + 1
+			yFormat = function(v)
+				if small then
+					-- No room beside a small chart: the bands say whose lane is whose.
+					return ""
+				end
+				local u = plotted[n - mathFloor(v + 0.5) + 1]
+				return u and u.name or ""
+			end
+			markers = milestoneMarkers(plotted, indexByKey, true, nil)
+			title = ctx.i18n("ui.teamStats.graph.timeline")
+		elseif statKey == "profile" then
+			kind = "radar"
+			ownLegend = true
+			local axes = {}
+			for _, axis in ipairs(PROFILE_AXES) do
+				if ctx.gadgetOn() or not axis.gadget then
+					-- The full caption: three axes are called "produced" on their own.
+					axes[#axes + 1] = { key = axis.key, label = ctx.columnTitle(ctx.COLUMNS[axis.key]) }
+				end
+			end
+			page.profileAxes = axes
+			for _, u in ipairs(plotted) do
+				series[#series + 1] = { name = u.name, color = u.color, values = profileValues(u), width = 2 }
+				lifted[#series] = page.selected[u.key]
+			end
+			-- The axis names need room; a small wheel is read by its shape.
+			target:configure({ radar = { axes = axes, rings = 4, fill = true, labels = not small } })
+			title = ctx.i18n("ui.teamStats.graph.profile")
+		elseif statKey == "composition" then
 			kind = "stacked"
 			ownLegend = true
 			local of = anyPicked and picked or shown
@@ -709,7 +1171,7 @@ function M.new(ctx)
 			end
 			lifts = false
 			title = ctx.i18n("ui.teamStats.graph.composition") .. " \194\183 " .. namesOf(of)
-			markers = milestoneMarkers(of, nil)
+			markers = milestoneMarkers(of, nil, false, nil)
 		elseif column and ctx.filters.shareOfTeam and isGrouped and column.fmt == "si" then
 			kind = "stacked"
 			for _, u in ipairs(plotted) do
@@ -727,18 +1189,12 @@ function M.new(ctx)
 				.. ctx.L.switch.shareOfTeam
 				.. " \194\183 "
 				.. namesOf(plotted)
-			markers = milestoneMarkers(marked, nil)
+			markers = milestoneMarkers(marked, nil, false, column)
 		elseif column then
 			local indexByKey = {}
-			for _, u in ipairs(plotted) do
-				series[#series + 1] = {
-					name = u.name,
-					color = u.color,
-					points = pointsOf(u.members, column.key, perMinute, column.clamp),
-					width = 2,
-				}
-				indexByKey[u.key] = #series
-				lifted[#series] = page.selected[u.key]
+			series, lifted = lineSeries(column, plotted, perMinute)
+			for i, u in ipairs(plotted) do
+				indexByKey[u.key] = i
 			end
 			title = ctx.columnTitle(column)
 			if perMinute then
@@ -747,23 +1203,174 @@ function M.new(ctx)
 			if column.fmt == "percent" then
 				yFormat = percentFormat
 			end
-			markers = milestoneMarkers(marked, indexByKey)
+			markers = milestoneMarkers(marked, indexByKey, false, column)
 		end
 
-		page.empty = true
+		local empty = true
 		for _, s in ipairs(series) do
-			if #s.points > 0 then
-				page.empty = false
+			-- A run over time carries points; the profile's wheel carries a value per axis.
+			if #(s.points or s.values or {}) > 0 then
+				empty = false
 			end
 		end
 		-- The bands of the composition chart are named by the chart itself; teams are
 		-- named by the legend bar. The axis format is set straight: a nil handed to
 		-- configure would leave the last one.
-		chart.cfg.yFormat = yFormat
-		chart:configure({ kind = kind, title = title, legend = ownLegend, bandLabels = ownLegend })
-		chart:setSeries(series)
-		chart:setMarkers(markers)
-		chart:setHighlight(lifts and lifted or nil)
+		if statKey ~= "timeline" then
+			target.cfg.yMin, target.cfg.yMax, target.cfg.gridLines = nil, nil, small and 2 or 4
+		end
+		target.cfg.yFormat = yFormat
+		target:configure({
+			kind = kind,
+			title = title,
+			legend = ownLegend and not small,
+			bandLabels = ownLegend and not small,
+			xTicks = small and 2 or 5,
+		})
+		target:setSeries(series)
+		target:setMarkers((small and statKey ~= "timeline") and {} or markers)
+		target:setHighlight(lifts and lifted or nil)
+		return empty
+	end
+
+	-- Whether the page is showing a grid of charts rather than one: more than one per page
+	-- and none opened on its own.
+	function page.gridded()
+		return page.zoom == nil
+	end
+
+	-- The next grid in the list, or the one before it, wrapping round either way; the
+	-- scroll goes back to the top.
+	function page.cyclePerPage(back)
+		local at = 1
+		for i, spec in ipairs(PAGES) do
+			if spec.n == page.perPage then
+				at = i
+			end
+		end
+		local step = back and -1 or 1
+		local next_ = PAGES[(at - 1 + step) % #PAGES + 1]
+		---@cast next_ -?
+		page.perPage = next_.n
+		page.scroll, page.zoom = 0, nil
+		page.dirty = true
+		page.gen = page.gen + 1
+	end
+
+	local function pageSpec()
+		for _, spec in ipairs(PAGES) do
+			if spec.n == page.perPage then
+				return spec
+			end
+		end
+		return PAGES[1]
+	end
+
+	-- The grid's cells, left to right and top to bottom over the chart's room.
+	local function gridCells(spec)
+		local r = page.rects
+		---@type [number, number, number, number][]
+		local cells = {}
+		if not r then
+			return cells
+		end
+		local x1, y1, x2, y2 = r.chart[1], r.chart[2], r.chart[3], r.chart[4]
+		local gap = mathFloor(8 * page.scale)
+		local w = mathFloor(((x2 - x1) - gap * (spec.cols - 1)) / spec.cols)
+		local h = mathFloor(((y2 - y1) - gap * (spec.rows - 1)) / spec.rows)
+		for i = 1, spec.cols * spec.rows do
+			local col = (i - 1) % spec.cols
+			local row = mathFloor((i - 1) / spec.cols)
+			local cx = x1 + col * (w + gap)
+			local cy = y2 - (row + 1) * h - row * gap
+			cells[i] = { cx, cy, cx + w, cy + h }
+		end
+		return cells
+	end
+
+	-- The charts of the page the grid is scrolled to, built into the pool.
+	function page.buildGrid()
+		local spec = pageSpec()
+		---@type table[]
+		local list = {}
+		for _, entry in ipairs(page.statList) do
+			if entry.key and not entry.back and not entry.divider then
+				list[#list + 1] = entry
+			end
+		end
+		local cells = gridCells(spec)
+		local rows = math.ceil(#list / spec.cols)
+		page.maxScroll = mathMax(0, rows - spec.rows)
+		page.scroll = mathMax(0, mathMin(page.scroll, page.maxScroll))
+		local first = page.scroll * spec.cols + 1
+		local last = mathMin(#list, first + spec.cols * spec.rows - 1)
+		local fs = mathMax(8, mathFloor(ctx.metrics.rowFs * (spec.cols > 3 and 0.8 or 0.9)))
+		page.miniCharts = {}
+		for i = first, last do
+			local entry = list[i]
+			---@cast entry -?
+			local slot = i - first + 1
+			local cell = cells[slot]
+			---@cast cell -?
+			local chartOf = pool[slot]
+			if not chartOf then
+				chartOf = Graph.new({
+					kind = "line",
+					legend = false,
+					xUnit = "frames",
+					lineWidth = 2,
+					includeZero = true,
+					look = { plotFill = { 0, 0, 0, 0.16 } },
+				})
+				pool[slot] = chartOf
+			end
+			fillChart(chartOf, entry.key, true)
+			chartOf:configure({ font = ctx.font(), fontSize = fs, title = entry.label })
+			chartOf:setBounds(cell[1], cell[2], cell[3] - cell[1], cell[4] - cell[2])
+			page.miniCharts[slot] = { chart = chartOf, key = entry.key, rect = cell, index = i }
+		end
+		page.first, page.last = first, last
+	end
+
+	function page.scrollExtent()
+		local spec = pageSpec()
+		local r = page.rects
+		if not page.gridded() or not r or page.maxScroll <= 0 then
+			return 0, 0, 0
+		end
+		local rowH = (r.chart[4] - r.chart[2]) / spec.rows
+		return (page.maxScroll + spec.rows) * rowH, page.scroll * rowH, rowH
+	end
+
+	-- The bar dragged to an offset in pixels: the nearest row of the grid.
+	function page.setScrollPixels(offset)
+		local _, _, rowH = page.scrollExtent()
+		if rowH <= 0 then
+			return
+		end
+		local to = mathMax(0, mathMin(page.maxScroll, mathFloor(offset / rowH + 0.5)))
+		if to ~= page.scroll then
+			page.scroll = to
+			page.dirty = true
+			page.gen = page.gen + 1
+		end
+	end
+
+	function page.build()
+		-- The list takes room from the charts, so opening or closing one lays the page out
+		-- again before anything is drawn.
+		local args = page.layoutArgs
+		if args and page.listWas ~= page.listShown() then
+			page.setLayout(args[1], args[2], args[3], args[4], args[5], args[6], args[7])
+		end
+		rebuildSamples()
+		page.rebuildUnits()
+		if page.gridded() then
+			page.buildGrid()
+			page.empty = #page.statList == 0
+		else
+			page.empty = fillChart(chart, page.zoom or page.stat)
+		end
 		page.dirty = false
 	end
 
@@ -786,6 +1393,10 @@ function M.new(ctx)
 	local function blockLit(b)
 		if b.all then
 			return #pickedUnits() == 0
+		end
+		if b.me then
+			local picked = pickedUnits()
+			return #picked == 1 and picked[1] == b.unit
 		end
 		if #b.members == 0 then
 			return false
@@ -810,35 +1421,53 @@ function M.new(ctx)
 		local fs = metrics.catFs
 		local cs = metrics.csSmall
 
-		RectRound(
-			r.list[1],
-			r.list[2],
-			r.list[3],
-			r.list[4],
-			metrics.csPanel,
-			1,
-			1,
-			1,
-			1,
-			look.sidebarFill,
-			look.sidebarFillTop
-		)
-		for i, entry in ipairs(page.statList) do
-			local x1, y1, x2, y2 = statRect(i)
-			local selected = entry.key == page.stat
-			if selected then
-				RectRound(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, cs, 1, 1, 1, 1, look.selectedFill)
-			elseif i == page.hover.stat then
-				Highlight(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, cs, look.rowHoverOpacity, look.white)
-			end
-			local label = ctx.text.fit(ctx.font(), entry.label, x2 - x1 - metrics.sidePad * 2, fs)
-			ctx.queueText(
-				(selected and colors.selected or colors.dim) .. label,
-				x1 + metrics.sidePad,
-				mathFloor((y1 + y2) * 0.5),
-				fs,
-				"ov"
+		-- The card and its stats, while the page is showing one chart; a grid names its
+		-- charts itself and takes the room instead.
+		if page.listShown() then
+			RectRound(
+				r.list[1],
+				r.list[2],
+				r.list[3],
+				r.list[4],
+				metrics.csPanel,
+				1,
+				1,
+				1,
+				1,
+				look.sidebarFill,
+				look.sidebarFillTop
 			)
+		end
+		for i, entry in ipairs(page.listShown() and page.statList or {}) do
+			local x1, y1, x2, y2 = statRect(i)
+			if entry.divider then
+				local y = mathFloor((y1 + y2) * 0.5)
+				RectRound(x1 + metrics.sidePad, y, x2 - metrics.sidePad, y + 1, 0, 0, 0, 0, 0, look.rule)
+			else
+				-- The way back to the grid is never the pick; it is where the pick came from.
+				local selected = not entry.back and entry.key == (page.zoom or page.stat)
+				if selected then
+					RectRound(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2, cs, 1, 1, 1, 1, look.selectedFill)
+				elseif i == page.hover.stat then
+					Highlight(
+						x1 + metrics.catInset,
+						y1,
+						x2 - metrics.catInset,
+						y2,
+						cs,
+						look.rowHoverOpacity,
+						look.white
+					)
+				end
+				local label = ctx.text.fit(ctx.font(), entry.label, x2 - x1 - metrics.sidePad * 2, fs)
+				ctx.queueText(
+					(selected and colors.selected or colors.dim) .. label,
+					x1 + metrics.sidePad,
+					mathFloor((y1 + y2) * 0.5),
+					fs,
+					"ov"
+				)
+			end
 		end
 
 		-- The legend bar: a plate per block like a button, lit and framed warm when it is
@@ -866,6 +1495,11 @@ function M.new(ctx)
 			if b.labelX then
 				ctx.queueText((lit and colors.selected or colors.dim) .. b.label, b.labelX, cy, fs, "ov")
 			end
+			if b.swatch and b.unit then
+				local c = b.unit.color
+				Color(c[1], c[2], c[3], (lit or i == page.hover.block) and 1 or 0.85)
+				Rect(b.swatch[1], b.swatch[2], b.swatch[3], b.swatch[4])
+			end
 		end
 		for i, item in ipairs(page.barItems) do
 			local c = item.team.accent
@@ -876,11 +1510,26 @@ function M.new(ctx)
 				Rect(item.x1, item.y1, item.x2, item.y2)
 				frame(item.x1, item.y1, item.x2, item.y2, 1, { c[1], c[2], c[3], 0.55 })
 			else
-				local alpha = (anyPicked and not page.selected[key]) and 0.4 or 0.9
+				local alpha = (anyPicked and not page.selected[key]) and 0.3 or 0.9
 				Color(c[1], c[2], c[3], hovered and alpha + 0.1 or alpha)
 				Rect(item.x1, item.y1, item.x2, item.y2)
 			end
 		end
+		-- The grouping switch at the end of the bar, captioned like a settings row.
+		local tog = groupToggleRect()
+		if tog then
+			local label = ctx.L.switch.groupByTeam
+			local hovered = page.hover.group == 1
+			ctx.queueText(
+				(page.grouped and colors.selected or colors.dim) .. label,
+				tog[1] - metrics.rowPad,
+				cy,
+				fs,
+				"rov"
+			)
+			ctx.draw.Toggle(tog[1], tog[2], tog[3], tog[4], page.grouped, hovered)
+		end
+
 		if not isGrouped then
 			---@type table?, table?
 			local first, last = nil, nil
@@ -906,7 +1555,7 @@ function M.new(ctx)
 		end
 		Color(1, 1, 1, 1)
 
-		if page.empty then
+		if page.empty and not page.gridded() then
 			local c = r.chart
 			local key = page.anySamples and "ui.teamStats.graph.noData" or "ui.teamStats.graph.waiting"
 			ctx.queueText(
@@ -919,19 +1568,153 @@ function M.new(ctx)
 		end
 	end
 
-	-- The chart itself, after the panel's list: its own list plus the hover overlay.
+	-- The card that picks which kinds of milestone go on the charts: a row per kind with a
+	-- mark for the ones that are on, over the top left of the charts' room.
+	function page.drawKinds()
+		page.kindRects = {}
+		if not page.kindsOpen or not page.rects then
+			return
+		end
+		local look, metrics, colors = ctx.look, ctx.metrics, ctx.colors
+		local RectRound, Highlight = ctx.draw.RectRound, ctx.draw.Highlight
+		local kinds = milestoneKinds()
+		-- The card is drawn after the charts rather than into the panel's baked list, so
+		-- its text is printed here rather than queued for a batch that has been and gone.
+		local texts = {}
+		local fs = metrics.catFs
+		local rowH = metrics.catRowHeight
+		local w = mathFloor(240 * page.scale)
+		-- Beside the settings row that opens it, on a backdrop solid enough to read over
+		-- whatever it covers; it is drawn after the charts, so nothing lies over it.
+		local anchor = page.kindsAnchor
+		local gap = mathFloor(6 * page.scale)
+		local x1 = anchor and anchor[3] + gap or page.rects.chart[1] + gap
+		local h = rowH * (#kinds + 1) + metrics.cardLip * 2
+		local y1 = anchor and mathMin(anchor[2], page.rects.chart[4] - h) or page.rects.chart[2]
+		y1 = mathMax(y1, page.rects.chart[2])
+		local y2 = y1 + h
+		RectRound(x1, y1, x1 + w, y2, metrics.csPanel, 1, 1, 1, 1, look.cardFill, look.cardFillTop)
+		texts[#texts + 1] = {
+			colors.title .. ctx.i18n("ui.teamStats.switch.milestoneKinds"),
+			x1 + metrics.sidePad,
+			y2 - metrics.cardLip - mathFloor(rowH * 0.5),
+		}
+		for i, kind in ipairs(kinds) do
+			local top = y2 - metrics.cardLip - i * rowH
+			local rect = { x1, top - rowH, x1 + w, top }
+			page.kindRects[i] = { key = kind, rect = rect }
+			local on = not page.milestoneOff[kind]
+			if i == page.hover.kind then
+				Highlight(
+					rect[1] + metrics.catInset,
+					rect[2],
+					rect[3] - metrics.catInset,
+					rect[4],
+					metrics.csSmall,
+					look.rowHoverOpacity,
+					look.white
+				)
+			end
+			local cy = mathFloor((rect[2] + rect[4]) * 0.5)
+			texts[#texts + 1] = {
+				(on and colors.selected or colors.faded) .. (ctx.L.milestone[kind] or kind),
+				rect[1] + metrics.sidePad,
+				cy,
+			}
+			-- The same switch the settings rows use, so it reads as one.
+			local togW = mathFloor(38 * page.scale)
+			local togH = mathFloor(rowH * 0.52)
+			local tx = rect[3] - metrics.sidePad - togW
+			ctx.draw.Toggle(
+				tx,
+				cy - mathFloor(togH * 0.5),
+				tx + togW,
+				cy - mathFloor(togH * 0.5) + togH,
+				on,
+				i == page.hover.kind
+			)
+		end
+		-- One batch, with the outline pinned: the font is shared with every other widget.
+		local font = ctx.font()
+		if font then
+			font:Begin()
+			font:SetOutlineColor(look.outline or { 0, 0, 0, 0.4 })
+			for _, t in ipairs(texts) do
+				font:Print(t[1], t[2], t[3], fs, "ov")
+			end
+			font:End()
+		end
+	end
+
+	-- The charts, after the panel's list: the grid of the page, or the one chart a pick or
+	-- a zoom opened, each with its own hover overlay. The chart under the cursor is framed
+	-- and answers the tooltip.
 	function page.drawChart(mx, my)
 		if page.dirty then
 			page.build()
 		end
 		local r = page.rects
-		local hit = nil
-		if r and mx >= r.chart[1] and mx <= r.chart[3] and my >= r.chart[2] and my <= r.chart[4] then
-			hit = chart:hitTest(mx, my)
+		local inside = r and mx >= r.chart[1] and mx <= r.chart[3] and my >= r.chart[2] and my <= r.chart[4]
+		-- The card of kinds lies over the charts: what is under it is not under the cursor.
+		if page.hover.kind > 0 then
+			inside = false
 		end
-		page.chartHit = hit
+		if page.gridded() then
+			page.chartHit, page.miniHit = nil, nil
+			for _, mini in ipairs(page.miniCharts or {}) do
+				local over = inside
+					and mx >= mini.rect[1]
+					and mx <= mini.rect[3]
+					and my >= mini.rect[2]
+					and my <= mini.rect[4]
+				local hit = over and mini.chart:hitTest(mx, my) or nil
+				if over then
+					page.miniHit = mini
+					page.chartHit = hit
+				end
+				mini.chart:setHover(hit)
+				mini.chart:draw()
+			end
+			page.drawKinds()
+			-- The one under the cursor is marked, so it is clear what a press would open: a
+			-- rounded outline that fades inwards rather than a hard box.
+			---@type table?
+			local mini = page.miniHit
+			if mini then
+				ctx.draw.Highlight(
+					mini.rect[1],
+					mini.rect[2],
+					mini.rect[3],
+					mini.rect[4],
+					ctx.metrics.csPanel,
+					ctx.look.rowHoverOpacity,
+					ctx.look.white
+				)
+				ctx.draw.Color(1, 1, 1, 1)
+			end
+			return
+		end
+		local hit = inside and chart:hitTest(mx, my) or nil
+		-- One chart fills the page: no small one answers for the tooltip any more.
+		page.chartHit, page.miniHit = hit, nil
 		chart:setHover(hit)
 		chart:draw()
+		page.drawKinds()
+	end
+
+	-- The wheel over the charts moves the grid a row at a time. Answers whether it took it.
+	function page.wheel(up)
+		if not page.gridded() or page.maxScroll <= 0 then
+			return false
+		end
+		local to = mathMax(0, mathMin(page.maxScroll, page.scroll + (up and -1 or 1)))
+		if to == page.scroll then
+			return false
+		end
+		page.scroll = to
+		page.dirty = true
+		page.gen = page.gen + 1
+		return true
 	end
 
 	----------------------------------------------------------------
@@ -941,15 +1724,25 @@ function M.new(ctx)
 	-- Which list entry, legend square or legend block the cursor is over, for the
 	-- panel's bake signature.
 	function page.hoverAt(mx, my)
-		page.hover.stat, page.hover.legend, page.hover.block = 0, 0, 0
+		page.hover.stat, page.hover.legend, page.hover.block, page.hover.kind, page.hover.group = 0, 0, 0, 0, 0
+		local tog = groupToggleRect()
+		if tog and mx >= tog[3] - groupReserve() and mx <= tog[3] and my >= tog[2] and my <= tog[4] then
+			page.hover.group = 1
+		end
+		for i, row in ipairs(page.kindRects) do
+			local r2 = row.rect
+			if mx >= r2[1] and mx <= r2[3] and my >= r2[2] and my <= r2[4] then
+				page.hover.kind = i
+			end
+		end
 		local r = page.rects
 		if not r then
 			return "0|0|0|0"
 		end
-		if mx >= r.list[1] and mx <= r.list[3] then
+		if page.listShown() and mx >= r.list[1] and mx <= r.list[3] then
 			for i = 1, #page.statList do
 				local _, y1, _, y2 = statRect(i)
-				if my > y1 and my <= y2 then
+				if my > y1 and my <= y2 and not page.statList[i].divider then
 					page.hover.stat = i
 				end
 			end
@@ -965,7 +1758,17 @@ function M.new(ctx)
 				end
 			end
 		end
-		return page.hover.stat .. "|" .. page.hover.legend .. "|" .. page.hover.block .. "|" .. page.gen
+		return page.hover.stat
+			.. "|"
+			.. page.hover.legend
+			.. "|"
+			.. page.hover.block
+			.. "|"
+			.. page.hover.kind
+			.. "|"
+			.. page.hover.group
+			.. "|"
+			.. page.gen
 	end
 
 	-- The units a press in the bar acts on: a square's; with the grouping switch on the
@@ -981,7 +1784,7 @@ function M.new(ctx)
 			---@cast b -?
 			if b.unit then
 				return { b.unit }
-			elseif not b.all then
+			elseif not b.all and not b.me then
 				local list = {}
 				for _, m in ipairs(b.members) do
 					list[#list + 1] = m.unit
@@ -1004,16 +1807,62 @@ function M.new(ctx)
 	-- hidden. All clears the selection and shows every team again.
 	function page.mousePress(x, y, button)
 		page.hoverAt(x, y)
+		if page.kindsOpen then
+			local row = page.kindRects[page.hover.kind]
+			if row and button ~= 3 then
+				page.milestoneOff[row.key] = not page.milestoneOff[row.key] or nil
+				changed()
+				return true
+			end
+			-- A press anywhere else puts the card away.
+			page.kindsOpen = false
+			changed()
+			return true
+		end
 		if page.hover.stat > 0 then
 			local entry = page.statList[page.hover.stat]
 			---@cast entry -?
-			if button ~= 3 and entry.key ~= page.stat then
+			if button ~= 3 and entry.back then
+				-- Back to the grid the chart was opened from.
+				page.zoom = nil
+				changed()
+			elseif button ~= 3 then
 				page.stat = entry.key
+				-- The list is how a stat is opened, whatever the grid is showing.
+				page.zoom = entry.key
 				changed()
 			end
 			return true
 		end
+		if button ~= 3 and page.miniHit then
+			-- The grid answered what it is for; this one opens on its own.
+			page.stat = page.miniHit.key
+			page.zoom = page.miniHit.key
+			changed()
+			return true
+		end
+		if button ~= 3 and page.zoom and page.rects then
+			local c = page.rects.chart
+			if x >= c[1] and x <= c[3] and y >= c[2] and y <= c[4] then
+				-- And a press on the opened chart goes back to the grid.
+				page.zoom = nil
+				changed()
+				return true
+			end
+		end
+		if page.hover.group == 1 and button ~= 3 then
+			page.setGrouped(not page.grouped)
+			changed()
+			return true
+		end
 		local block = page.hover.block > 0 and page.barBlocks[page.hover.block] or nil
+		if block and block.me and button ~= 3 then
+			-- Your own team alone, whatever was picked before.
+			page.selected = { [block.unit.key] = true }
+			page.hidden[block.unit.key] = nil
+			changed()
+			return true
+		end
 		if block and block.all then
 			if button ~= 3 and (next(page.selected) or next(page.hidden)) then
 				page.selected, page.hidden = {}, {}
@@ -1073,11 +1922,11 @@ function M.new(ctx)
 		if allHidden then
 			state = "hidden"
 		elseif allSelected then
-			state = composition and "counted" or (ctx.filters.selectedOnly and "only" or "lit")
+			state = composition and "counted" or "lit"
 		elseif someSelected then
 			state = "some"
 		elseif anyPicked then
-			state = composition and "notCounted" or (ctx.filters.selectedOnly and "left" or "faded")
+			state = composition and "notCounted" or "faded"
 		else
 			state = composition and "allCounted" or "alike"
 		end
@@ -1097,29 +1946,44 @@ function M.new(ctx)
 	-- The tooltip for the cursor: the chart's description, a stat's explanation, or the
 	-- units under the cursor in the bar and how the bar works.
 	function page.tooltip()
+		local kindRow = page.kindRects[page.hover.kind]
+		if kindRow then
+			return ctx.L.milestone[kindRow.key] or kindRow.key, ctx.i18n("ui.teamStats.graph.kindHint")
+		end
 		if page.chartHit then
-			return chart.cfg.title, chart:describe(page.chartHit)
+			local hovered = page.miniHit and page.miniHit.chart or chart
+			return hovered.cfg.title, hovered:describe(page.chartHit)
 		end
 		if page.hover.stat > 0 then
 			local entry = page.statList[page.hover.stat]
 			---@cast entry -?
+			if entry.back then
+				return entry.label, ctx.i18n("ui.teamStats.graph.overviewDesc")
+			end
 			if entry.column then
 				return entry.label, ctx.L.desc[entry.key]
 			end
-			return entry.label, ctx.i18n("ui.teamStats.graph.compositionDesc")
+			-- The charts that are not a column of the table explain themselves by key.
+			return entry.label, ctx.i18n("ui.teamStats.graph." .. entry.key .. "Desc")
+		end
+		if page.hover.group == 1 then
+			return ctx.L.switch.groupByTeam, ctx.L.switchDesc.groupByTeam
 		end
 		if page.hover.legend > 0 then
 			local item = page.barItems[page.hover.legend]
 			---@cast item -?
-			local title = item.team.name
+			local title = (item.team.nameColor or "") .. item.team.name
 			if item.unit.name ~= item.team.name then
-				title = item.team.name .. " \194\183 " .. item.unit.name
+				title = title .. ctx.colors.title .. " \194\183 " .. item.unit.name
 			end
 			return title, barHint({ item.unit })
 		end
 		if page.hover.block > 0 then
 			local b = page.barBlocks[page.hover.block]
 			---@cast b -?
+			if b.me then
+				return b.label, ctx.i18n("ui.teamStats.graph.youHint")
+			end
 			if b.all then
 				local tip = ctx.i18n("ui.teamStats.graph.allHint")
 				if ctx.filters.milestones then
@@ -1139,15 +2003,41 @@ function M.new(ctx)
 	----------------------------------------------------------------
 
 	function page.getConfig()
-		return { graphStat = page.stat, graphGroupByTeam = page.grouped }
+		local off = {}
+		for kind, on in pairs(page.milestoneOff) do
+			if on then
+				off[#off + 1] = kind
+			end
+		end
+		return {
+			graphStat = page.stat,
+			graphsOpen = page.open,
+			graphGroupByTeam = page.grouped,
+			graphPerPage = page.perPage,
+			graphMilestonesOff = off,
+		}
 	end
 
 	function page.setConfig(data)
 		if type(data.graphStat) == "string" then
 			page.stat = data.graphStat
 		end
+		if type(data.graphMilestonesOff) == "table" then
+			page.milestoneOff = {}
+			for _, kind in ipairs(data.graphMilestonesOff) do
+				page.milestoneOff[kind] = true
+			end
+		end
+		if data.graphsOpen ~= nil then
+			page.open = data.graphsOpen == true
+		end
 		if data.graphGroupByTeam ~= nil then
 			page.grouped = data.graphGroupByTeam == true
+		end
+		for _, spec in ipairs(PAGES) do
+			if spec.n == data.graphPerPage then
+				page.perPage = spec.n
+			end
 		end
 	end
 
@@ -1158,6 +2048,9 @@ function M.new(ctx)
 
 	function page.destroy()
 		chart:destroy()
+		for _, chartOf in ipairs(pool) do
+			chartOf:destroy()
+		end
 	end
 
 	return page

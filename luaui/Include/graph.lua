@@ -18,6 +18,7 @@
 --       smooth = true,                          -- monotone cubic between samples, no overshoot
 --       markers = {                             -- unit pictures on the chart, with a text for hover
 --           { x = 3000, texture = "#143", text = "1:40 First factory (Bot Lab)", series = 1 },
+--           { x = 3000, texture = "#143", text = "...", y = 2.2 },  -- or at a value of its own
 --       },
 --   })
 --   chart:draw()                              -- in DrawScreen
@@ -51,6 +52,8 @@
 ---@field area table<string, number>
 ---@field placed table[]
 ---@field markerRow table<integer, integer>
+---@field markerSize number
+---@field markerLaneRows integer
 ---@field yMin number
 ---@field yMax number
 ---@field yStep number
@@ -121,6 +124,9 @@ local DEFAULTS = {
 	yFormat = nil,
 	-- Stacked: each band named inside it at its right end, where it is thick enough.
 	bandLabels = false,
+	-- Bands of colour laid across the plot between two values, under everything else:
+	-- { { from = 0.5, to = 1.5, color = { r, g, b, a } }, ... }.
+	valueBands = nil,
 	-- The y axis: fixed ends, or found from the data (a line chart always shows zero).
 	yMin = nil,
 	yMax = nil,
@@ -147,10 +153,19 @@ local DEFAULTS = {
 	markerZoom = nil,
 	markerCorner = nil,
 	markerFrameWidth = 2,
+	-- The lane of markers above the plot never takes more than this share of the chart's
+	-- height: pictures shrink (down to `markerMinSize`) until the rows they need fit, and
+	-- the rows past that wrap back into the lane, where the hovered one is drawn on top.
+	markerLaneShare = 0.4,
+	markerMinSize = 14,
+	-- How much larger the hovered picture is drawn.
+	markerHoverScale = 1.2,
 	radar = {
 		rings = 4,
 		axes = nil,
 		fill = true,
+		-- The axes are named around the wheel; off for a chart too small to read them.
+		labels = true,
 	},
 	look = {
 		-- A backdrop under the whole chart, for one drawn straight over the world rather
@@ -165,11 +180,10 @@ local DEFAULTS = {
 		crosshair = { 1, 1, 1, 0.22 },
 		hoverDot = { 1, 1, 1, 0.9 },
 		-- The other series step back to this share of their colour when one is highlighted.
-		dimAlpha = 0.28,
+		dimAlpha = 0.22,
 		areaAlpha = 0.6,
 		fillAlpha = 0.16,
 		markerFrame = { 1, 1, 1, 0.35 },
-		markerHover = { 1, 0.78, 0.51, 0.95 },
 		markerTick = { 1, 1, 1, 0.22 },
 		radarFillAlpha = 0.22,
 	},
@@ -658,9 +672,24 @@ function Graph:prepareLine()
 	self.sx = function(x)
 		return left + (x - xMin) * xScale
 	end
-	-- The lane above the plot takes as many rows as the markers need.
-	local rows = self:markerRows()
+	-- The lane above the plot takes as many rows as the markers need, up to the share of
+	-- the chart it may have; past that the pictures shrink, and past the smallest they
+	-- wrap back into the lane and overlap, the hovered one drawn on top of the rest.
 	local size = cfg.markerSize or mathFloor(fs * 2.6)
+	-- Never more than a share of the chart itself, so the same marker is small on a small
+	-- chart and readable on a large one.
+	size = mathMax(6, mathMin(size, mathFloor((plot.top - bottom) * 0.22), mathFloor((right - left) * 0.18)))
+	local laneMax = mathMax(0, (plot.top - bottom) * cfg.markerLaneShare)
+	local minSize = mathMin(size, cfg.markerMinSize)
+	local rows = self:markerRows(size)
+	while rows > 0 and rows * size > laneMax and size > minSize do
+		size = mathMax(minSize, mathFloor(size * 0.8))
+		rows = self:markerRows(size)
+	end
+	if rows * size > laneMax then
+		rows = mathMax(1, mathFloor(laneMax / size))
+	end
+	self.markerSize, self.markerLaneRows = size, rows
 	local top = plot.top - (rows > 0 and (rows * size + mathFloor(fs * 0.4)) or 0)
 	self.area = { left = left, right = right, bottom = bottom, top = top }
 	local yScale = (top - bottom) / (yMax - yMin)
@@ -676,10 +705,9 @@ end
 
 -- The lane above the plot: every marker without a series takes the first row of it in
 -- which no earlier marker sits too close in x, rows stacking upwards. Returns the rows
--- needed; each marker's row is kept for placeMarkers. Needs the x mapping.
-function Graph:markerRows()
-	local cfg = self.cfg
-	local size = cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
+-- needed at this picture size; each marker's row is kept for placeMarkers. Needs the x
+-- mapping.
+function Graph:markerRows(size)
 	local rows = {}
 	local count = 0
 	self.markerRow = {}
@@ -711,7 +739,7 @@ end
 -- Where each marker goes: on its series' value at its x, or in its row of the lane.
 function Graph:placeMarkers()
 	local cfg = self.cfg
-	local size = cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
+	local size = self.markerSize or cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
 	local area = self.area
 	self.placed = {}
 	for mi, m in ipairs(self.markers) do
@@ -720,18 +748,50 @@ function Graph:placeMarkers()
 			if px >= area.left - size and px <= area.right + size then
 				local py
 				local onSeries = m.series and self.prepared[m.series]
-				if onSeries then
+				if m.y then
+					-- A marker that names its own value sits there, wherever its series runs.
+					py = self.sy(m.y)
+					onSeries = true
+				elseif onSeries then
 					local i = self:nearestIndex(m.x)
 					local v = cfg.kind == "stacked" and self:stackTop(m.series, i) or onSeries.ys[i]
 					py = self.sy(v or self.yMin)
 				else
+					-- Rows past what the lane holds wrap back into it: those pictures
+					-- overlap, and hovering one lifts it.
 					local row = self.markerRow[mi] or 1
+					local lane = mathMax(1, self.markerLaneRows or 1)
+					row = (row - 1) % lane + 1
 					py = area.top + mathFloor(cfg.fontSize * 0.4) + size * 0.5 + (row - 1) * size
 				end
 				local half = size * 0.5
 				-- The picture stays inside the plot's width, so one at the first sample does
 				-- not sit on the axis labels; its tick still points at the true x.
 				local cx = mathMin(mathMax(px, area.left + half), area.right - half)
+				-- And out of the way of the ones already placed: a run of milestones close
+				-- together climbs away from the line instead of piling on one spot.
+				if onSeries then
+					local step = size * 0.9
+					local tries = 0
+					local up = true
+					local base = py
+					while tries < 12 do
+						local clash = false
+						for _, other in ipairs(self.placed) do
+							if mathAbs(other.cx - cx) < size and mathAbs(other.py - py) < step * 0.9 then
+								clash = true
+								break
+							end
+						end
+						if not clash then
+							break
+						end
+						tries = tries + 1
+						py = base + (up and 1 or -1) * mathFloor((tries + 1) / 2) * step
+						up = not up
+					end
+					py = mathMin(mathMax(py, area.bottom + half), area.top - half)
+				end
 				self.placed[#self.placed + 1] = {
 					marker = m,
 					x1 = mathFloor(cx - half),
@@ -893,6 +953,21 @@ function Graph:drawGrid()
 		glVertex(area.right, area.top)
 		glVertex(area.left, area.top)
 	end)
+
+	-- The bands a chart lays across its plot, under its grid.
+	for _, band in ipairs(cfg.valueBands or {}) do
+		local c = band.color
+		local y1, y2 = self.sy(mathMax(self.yMin, band.from)), self.sy(mathMin(self.yMax, band.to))
+		if y2 > y1 then
+			glColor(c[1], c[2], c[3], c[4] or 0.1)
+			glBeginEnd(GL_QUADS, function()
+				glVertex(area.left, y1)
+				glVertex(area.right, y1)
+				glVertex(area.right, y2)
+				glVertex(area.left, y2)
+			end)
+		end
+	end
 
 	-- Horizontal lines and their labels.
 	local v = self.yMin
@@ -1183,52 +1258,65 @@ function Graph:markerCut(width)
 	return mathMin(cut, mathFloor(width * 0.5))
 end
 
-function Graph:drawMarkers()
+-- One marker: its tick, its picture with the corners cut, and its frame. `scale` grows
+-- the picture about its middle, for the one under the cursor.
+function Graph:drawMarker(m, scale)
 	local look = self.cfg.look
-	for _, m in ipairs(self.placed) do
-		local marker = m.marker
-		local cut = self:markerCut(m.x2 - m.x1)
-		-- A tick from the picture down to the plot, or to the point it sits on.
-		glColor(look.markerTick)
-		glBeginEnd(GL_LINES, function()
-			glVertex(m.cx + 0.5, m.y1)
-			glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
+	local marker = m.marker
+	local x1, y1, x2, y2 = m.x1, m.y1, m.x2, m.y2
+	if scale and scale ~= 1 then
+		local gx = mathFloor((x2 - x1) * (scale - 1) * 0.5)
+		local gy = mathFloor((y2 - y1) * (scale - 1) * 0.5)
+		x1, y1, x2, y2 = x1 - gx, y1 - gy, x2 + gx, y2 + gy
+	end
+	local cut = self:markerCut(x2 - x1)
+	-- A tick from the picture down to the plot, or to the point it sits on.
+	glColor(look.markerTick)
+	glBeginEnd(GL_LINES, function()
+		glVertex(m.cx + 0.5, y1)
+		glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
+	end)
+	local corners = chamfered(x1, y1, x2, y2, cut)
+	if marker.texture then
+		-- Zoomed in a little, the more the smaller the picture: a unit picture has air
+		-- around the unit. The engine's textures load flipped, so t runs from 1 down to 0
+		-- going up.
+		local z = marker.zoom or self.cfg.markerZoom or mathMin(0.06, 2.5 / mathMax(1, x2 - x1))
+		local w, h = mathMax(1, x2 - x1), mathMax(1, y2 - y1)
+		glColor(1, 1, 1, 1)
+		glTexture(marker.texture)
+		glBeginEnd(GL_TRIANGLE_FAN, function()
+			for k = 1, 16, 2 do
+				local x, y = corners[k], corners[k + 1]
+				glTexCoord(z + (x - x1) / w * (1 - 2 * z), 1 - z - (y - y1) / h * (1 - 2 * z))
+				glVertex(x, y)
+			end
 		end)
-		local corners = chamfered(m.x1, m.y1, m.x2, m.y2, cut)
-		if marker.texture then
-			-- Zoomed in a little, the more the smaller the picture: a unit picture has
-			-- air around the unit. The engine's textures load flipped, so t runs from 1
-			-- down to 0 going up.
-			local z = marker.zoom or self.cfg.markerZoom or mathMin(0.06, 2.5 / mathMax(1, m.x2 - m.x1))
-			local w, h = mathMax(1, m.x2 - m.x1), mathMax(1, m.y2 - m.y1)
-			glColor(1, 1, 1, 1)
-			glTexture(marker.texture)
-			glBeginEnd(GL_TRIANGLE_FAN, function()
-				for k = 1, 16, 2 do
-					local x, y = corners[k], corners[k + 1]
-					glTexCoord(z + (x - m.x1) / w * (1 - 2 * z), 1 - z - (y - m.y1) / h * (1 - 2 * z))
-					glVertex(x, y)
-				end
-			end)
-			glTexture(false)
-		else
-			local c = marker.color or { 1, 1, 1 }
-			glColor(c[1], c[2], c[3], 0.9)
-			glBeginEnd(GL_TRIANGLE_FAN, function()
-				for k = 1, 16, 2 do
-					glVertex(corners[k], corners[k + 1])
-				end
-			end)
-		end
-		-- The frame, in the marker's own colour when it has one (a team's), following the
-		-- cut corners.
-		local frame = marker.frame
-		if frame then
-			glColor(frame[1], frame[2], frame[3], frame[4] or 1)
-		else
-			glColor(look.markerFrame)
-		end
-		chamferRing(m.x1, m.y1, m.x2, m.y2, cut, self.cfg.markerFrameWidth)
+		glTexture(false)
+	else
+		local c = marker.color or { 1, 1, 1 }
+		glColor(c[1], c[2], c[3], 0.9)
+		glBeginEnd(GL_TRIANGLE_FAN, function()
+			for k = 1, 16, 2 do
+				glVertex(corners[k], corners[k + 1])
+			end
+		end)
+	end
+	-- The frame, in the marker's own colour when it has one (a team's), following the cut
+	-- corners.
+	local frame = marker.frame
+	if frame then
+		glColor(frame[1], frame[2], frame[3], frame[4] or 1)
+	else
+		glColor(look.markerFrame)
+	end
+	chamferRing(x1, y1, x2, y2, cut, self.cfg.markerFrameWidth)
+	return x1, y1, x2, y2
+end
+
+function Graph:drawMarkers()
+	for _, m in ipairs(self.placed) do
+		self:drawMarker(m, 1)
 	end
 end
 
@@ -1282,9 +1370,9 @@ function Graph:prepareRadar()
 	local axes = cfg.radar.axes or {}
 	self.axes = axes
 	local n = #axes
-	-- Label room around the wheel.
+	-- Label room around the wheel; a wheel drawn without labels keeps that room.
 	local labelW = 0
-	for _, a in ipairs(axes) do
+	for _, a in ipairs(cfg.radar.labels ~= false and axes or {}) do
 		labelW = mathMax(labelW, self:textWidth(a.label or a.key or "", fs))
 	end
 	local cx = mathFloor((plot.left + plot.right) * 0.5)
@@ -1387,7 +1475,7 @@ function Graph:drawRadar()
 	end
 
 	-- Labels, past the end of each spoke.
-	for ai, a in ipairs(self.axes) do
+	for ai, a in ipairs(cfg.radar.labels ~= false and self.axes or {}) do
 		local x, y = axisPoint(ai, 1)
 		local dx, dy = x - r.cx, y - r.cy
 		local opts = "o"
@@ -1511,11 +1599,9 @@ function Graph:drawOverlay()
 	local look = self.cfg.look
 	if hit.kind == "marker" then
 		local m = hit.placed
-		-- Around the picture's own frame, its corners cut to match: a cut grown by w
-		-- keeps the diagonal w away.
-		local w = 2
-		glColor(look.markerHover)
-		chamferRing(m.x1 - w, m.y1 - w, m.x2 + w, m.y2 + w, self:markerCut(m.x2 - m.x1) + w * 0.5857864376, w)
+		-- Drawn again over the baked ones, larger: pictures that overlap in a crowded lane
+		-- are read by hovering them.
+		self:drawMarker(m, self.cfg.markerHoverScale)
 		glColor(1, 1, 1, 1)
 		return
 	end

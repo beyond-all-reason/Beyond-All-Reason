@@ -52,7 +52,8 @@ local ENERGY_PER_METAL = 60
 local BUCKETS = { "army", "air", "sea", "defense", "strategic", "factories", "builders", "economy", "utility" }
 
 -- The moments worth remembering, and what marks them. `built` is tested on every unit
--- a team finishes and `lost` on every unit it loses; a milestone is kept once per team,
+-- a team finishes and `lost` on every unit it loses, and the ones with neither are marked
+-- where they happen; a milestone is kept once per team,
 -- or every time when `every` is set. The unit that reached it is stored with it.
 local MILESTONES = {
 	{
@@ -92,6 +93,8 @@ local MILESTONES = {
 		end,
 		every = true,
 	},
+	{ key = "firstKill" },
+	{ key = "firstLoss" },
 	{ key = "teamDied" },
 }
 
@@ -114,6 +117,7 @@ local SAMPLED = {
 	"convUse",
 	"buildPower",
 	"buildPowerActive",
+	"buildPowerIdle",
 	"unitCount",
 	"unitValue",
 	"killedValue",
@@ -138,6 +142,7 @@ end
 -- The keys the tally keeps as running counters; the rest of a sample is read live.
 local TALLIED = {
 	"unitCount",
+	"buildPowerIdle",
 	"unitValue",
 	"buildPower",
 	"killedValue",
@@ -339,6 +344,12 @@ local function removeUnit(unitID, unitDefID)
 	end
 end
 
+-- The milestones that are not read off a unit definition, by key.
+local MILESTONE_BY_KEY = {}
+for i = 1, #MILESTONES do
+	MILESTONE_BY_KEY[MILESTONES[i].key] = MILESTONES[i]
+end
+
 local function markMilestone(teamID, m, unitDefID, unitID)
 	if not m.every then
 		if reached[teamID][m.key] then
@@ -390,10 +401,18 @@ end
 
 local scratch = {}
 
+-- The minutes one sampling period is worth: idle build power is added up over them.
+local SAMPLE_MINUTES = SAMPLE_PERIOD / 1800
+
 local function sample(frame)
 	for teamID, h in pairs(history) do
 		if not dead[teamID] then
 			readLive(teamID, scratch)
+			-- What was not building over the period just gone, in build power minutes.
+			local t = teams[teamID]
+			local idle = math.max(0, (scratch.buildPower or 0) - (scratch.buildPowerActive or 0))
+			t.buildPowerIdle = t.buildPowerIdle + idle * SAMPLE_MINUTES
+			scratch.buildPowerIdle = t.buildPowerIdle
 			local n = #h.frames + 1
 			h.frames[n] = frame
 			local values = h.values
@@ -448,6 +467,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local victim = teams[unitTeam]
 	if victim then
 		victim.lostValue = victim.lostValue + value
+		markMilestone(unitTeam, MILESTONE_BY_KEY.firstLoss, unitDefID, unitID)
 		if defIsCommander[unitDefID] then
 			victim.comLost = victim.comLost + 1
 		end
@@ -468,6 +488,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		return
 	end
 	killer.killedValue = killer.killedValue + value
+	markMilestone(attackerTeam, MILESTONE_BY_KEY.firstKill, unitDefID, unitID)
 	local split = killedAs[defBucket[unitDefID]]
 	if split then
 		killer[split] = killer[split] + value
