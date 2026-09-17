@@ -76,7 +76,7 @@ local expireCount = 0
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
 local spawnCount = 0
 local spawnNames = {}
-local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
+local minWaterDepth = -20 -- see movedefs.lua
 
 for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -132,16 +132,16 @@ local function SpawnUnit(spawnData)
 			end
 
 			local validSurface = false
+			local unitDetonates = false
 			local y = spGetGroundHeight(x, z)
 
 			if not spawnDef.surface then
 				validSurface = true
-			elseif spawnData.y < mathMax(y + 32, 32) then
+			else
 				local surface = spawnDef.surface
-				if stringFind(surface, "LAND", 1, true) and y > minWaterDepth then
-					validSurface = true
-				elseif stringFind(surface, "SEA", 1, true) and y <= 0 then
-					validSurface = true
+				validSurface = (surface:find("LAND", 1, true) and y > minWaterDepth) or (surface:find("SEA", 1, true) and y <= 0)
+				if validSurface and spawnData.y >= mathMax(y + 32, 32) then
+					unitDetonates = true
 				end
 			end
 
@@ -217,6 +217,11 @@ local function SpawnUnit(spawnData)
 						spAddUnitImpulse(unitID, dx, 0.5, dz, 1.0)
 					end
 				end
+			end
+
+			if unitDetonates then
+				spDestroyUnit(unitID, true, true)
+				return
 			end
 
 			if spawnDef.expire then
