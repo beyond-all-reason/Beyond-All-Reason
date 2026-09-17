@@ -46,8 +46,6 @@ local glBlending = gl.Blending
 ---@field query table The search, from Search.query
 ---@field queryTokens string[]
 ---@field queryGen integer
----@field filter table? The key the list is filtered to: `id` and `layer`
----@field filterGen integer
 ---@field gen integer Bumped by every placement
 ---@field layoutGen integer Bumped by every resize
 ---@field unplaced integer Bindings on keys neither view draws
@@ -296,7 +294,7 @@ local colorKey = "\255\235\185\070"
 
 local look = {
 	-- Caps: a bound key, one with nothing on this layer, a modifier at rest, a modifier
-	-- whose layer is showing, and a key the search found or the list is filtered to.
+	-- whose layer is showing, and a key the search found.
 	bound = { 0.22, 0.22, 0.22, 1 },
 	unbound = { 0.16, 0.16, 0.16, 1 },
 	modifier = { 0.28, 0.28, 0.28, 1 },
@@ -393,8 +391,6 @@ function M.new()
 	self.query = Search.query(nil)
 	self.queryTokens = {}
 	self.queryGen = 0
-	self.filter = nil
-	self.filterGen = 0
 	self.gen = 0
 	self.layoutGen = 0
 	self.unplaced = 0
@@ -755,13 +751,6 @@ function M:setQuery(str)
 	self.queryGen = self.queryGen + 1
 end
 
--- The key the list is filtered to, lit here and nowhere else: `id` names the key and `layer`
--- the modifiers it was clicked under. Nil clears it.
-function M:setFilter(filter)
-	self.filter = filter
-	self.filterGen = self.filterGen + 1
-end
-
 function M:matches(key, entries)
 	local query = self.query
 	if query.empty then
@@ -812,7 +801,6 @@ function M:signature(hoverIdx)
 		.. "|"
 		.. self.view
 		.. "|"
-		.. self.filterGen
 end
 
 -- A click: the toggle swaps the view; a modifier toggles its layer; a bound key is handed
@@ -1045,7 +1033,6 @@ function M:draw(hoverIdx)
 	local unit, pad, cs = self.unit, self.pad, self.cs
 	local padY = self.padY
 	local searching = not self.query.empty
-	local filter = self.filter
 	local nameLineH = floor(self.nameFs * 1.12)
 	local lineH = floor(self.labelFs * 1.1)
 	local prints = {}
@@ -1059,8 +1046,7 @@ function M:draw(hoverIdx)
 		local key = self.keys[i] --[[@as table]]
 		local entries = self:entries(key, layer)
 		local active = key.mod and mods[key.mod]
-		local filtered = filter and filter.id == key.id and filter.layer == layer
-		local hit = (searching and self:matches(key, entries)) or filtered
+		local hit = searching and self:matches(key, entries)
 		local fill = (active and look.modifierActive)
 			or (hit and look.hit)
 			or (key.mod and look.modifier)

@@ -854,7 +854,6 @@ local function buildResolvedCatalog()
 	L.noticeDefaultUnsaved = BAR.I18N("ui.keybinds.editor.noticeDefaultUnsaved")
 	L.noticeUnsaved = BAR.I18N("ui.keybinds.editor.noticeUnsaved")
 	L.changed = BAR.I18N("ui.keybinds.editor.changed")
-	L.boundToAny = BAR.I18N("ui.keybinds.editor.boundToAny")
 	L.changedUnknown = BAR.I18N("ui.keybinds.editor.changedUnknown")
 	L.changedNoneTooltip = BAR.I18N("ui.keybinds.editor.changedNoneTooltip")
 	L.compareWith = BAR.I18N("ui.keybinds.editor.compareWith")
@@ -1036,9 +1035,6 @@ local function rebuildRows()
 	-- there are is counted whatever is shown, since its label says so.
 	local changedOnly = selectedCategory == state.changedKey
 	local changedCount = 0
-	-- A key clicked on the keyboard page: the list shows what is bound to it and nothing else,
-	-- whatever the category, the search text narrowing that by name.
-	local filter = state.keyFilter
 
 	-- A query can name keys as well as words. An action matches by key when one of its chips holds
 	-- every key the query names, modifiers included and in any order, so "ctrl+q", "ctrl q" and
@@ -1070,49 +1066,9 @@ local function rebuildRows()
 
 		return false
 	end
-	-- How one of the action's keysets fires from the filtered key on its layer: "exact" when
-	-- its first tap lands on the key (any of the engine's spellings of it) and names exactly
-	-- the layer's modifiers, "any" when it carries Any+ instead, which fires on every layer;
-	-- false when neither. Precise where the typed key search is loose: "1" here is the 1 key
-	-- with nothing held, not every chip holding a 1.
-	local function boundToFilter(action)
-		local any = false
-		for _, k in ipairs(working.byAction[action] or look.noRaws) do
-			local mods, keyToken = keybindModel.splitElement(canonOf(k))
-			if keyToken and filter.tokens[keyToken] then
-				if mods.any then
-					any = true
-				else
-					local same = true
-					for name in pairs(mods) do
-						if not filter.mods[name] then
-							same = false
-						end
-					end
-					for name in pairs(filter.mods) do
-						if not mods[name] then
-							same = false
-						end
-					end
-					if same then
-						return "exact"
-					end
-				end
-			end
-		end
-
-		return any and "any" or false
-	end
-	-- Whether an action is listed by key: under a filter, by the filtered key and then the
-	-- search text, answering how it is bound there; otherwise by the keys the search text
-	-- names, within the category shown.
-	local function keyHit(action, label, inCategory)
-		if filter then
-			local how = boundToFilter(action)
-
-			return how and (Search.matches(query, label:lower()) or Search.matches(query, action:lower())) and how
-		end
-
+	-- Whether an action is listed by key: by the keys the search text names, within the
+	-- category shown.
+	local function keyHit(action, _, inCategory)
 		return inCategory and boundToQuery(action)
 	end
 	-- Rows found by key are listed ahead of everything found by name, under a heading of their
@@ -1236,7 +1192,6 @@ local function rebuildRows()
 							label = label,
 							description = item.description,
 							change = change,
-							filterAny = byKey == "any",
 						}
 						if not byKey then
 							groupRows[#groupRows + 1] = entry
@@ -1280,7 +1235,6 @@ local function rebuildRows()
 						cursorColumn = group.hasCursors,
 						description = item.description,
 						change = change,
-						filterAny = byKey == "any",
 					}
 					if not byKey then
 						groupRows[#groupRows + 1] = entry
@@ -1342,7 +1296,6 @@ local function rebuildRows()
 			action = action,
 			label = action,
 			change = rowChange(action),
-			filterAny = filter ~= nil and boundToFilter(action) == "any",
 		}
 	end
 
@@ -1388,28 +1341,16 @@ local function rebuildRows()
 		for i = 1, #keyRows do
 			column = column or keyRows[i].cursor ~= nil
 		end
-		local named = filter and filter.display or table.concat(keys, " + ")
 		local ordered = {
-			{ type = "header", text = BAR.I18N("ui.keybinds.editor.boundTo", { keys = named }), clear = filter ~= nil },
+			{
+				type = "header",
+				text = BAR.I18N("ui.keybinds.editor.boundTo", { keys = table.concat(keys, " + ") }),
+			},
 		}
-		-- Under a filter on a layer with modifiers, what fires through Any+ is set apart under a
-		-- heading of its own: it does fire on that layer, but its chip reads as the bare key,
-		-- and side by side with the exact bindings that reads as a mistake.
-		local anyRows = {}
 		for i = 1, #keyRows do
 			keyRows[i].cursorColumn = column
 			keyRows[i].hitKeys = wantKeys
-			if keyRows[i].filterAny and filter and next(filter.mods) then
-				anyRows[#anyRows + 1] = keyRows[i]
-			else
-				ordered[#ordered + 1] = keyRows[i]
-			end
-		end
-		if #anyRows > 0 then
-			ordered[#ordered + 1] = { type = "header", text = L.boundToAny }
-			for i = 1, #anyRows do
-				ordered[#ordered + 1] = anyRows[i]
-			end
+			ordered[#ordered + 1] = keyRows[i]
 		end
 		for i = 1, #rows do
 			ordered[#ordered + 1] = rows[i]
@@ -1525,15 +1466,6 @@ function state.pickBase(option)
 	end
 	profiles.setBase(profiles.activeName(), option and option.name or nil)
 	state.refreshBase()
-	rebuildRows()
-end
-
--- Filters the list to one key of the keyboard page, or clears the filter. The keyboard
--- lights the key while the filter stands.
-function state.setKeyFilter(filter)
-	state.keyFilter = filter
-	state.keyboard:setFilter(filter and { id = filter.id, layer = filter.layer } or nil)
-	scroll = 0
 	rebuildRows()
 end
 
@@ -2521,11 +2453,6 @@ function view.blur()
 		nameBox:blur()
 	end
 	capturing = nil
-	-- A key filter is a view of the moment; the panel opens on the whole list next time.
-	if state.keyFilter then
-		state.keyFilter = nil
-		state.keyboard:setFilter(nil)
-	end
 
 	-- Or the blur outlives the panel: guishader keeps drawing a rect nobody owns any more.
 	shade.clear()
@@ -3783,11 +3710,7 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
-		-- A heading that stands for a key filter carries the mark that clears it.
-		if row.clear then
-			local mark = zone == "clear" and look.removeHot or look.removeCold
-			queueText(mark, listRight - metrics.rowPad * 2, cyc, fs, "cov")
-		end
+
 		return
 	end
 
@@ -4343,8 +4266,6 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
-			elseif row.type == "header" and row.clear and mx >= listRight - metrics.rowPad * 4 then
-				h.zone = "clear"
 			end
 		end
 	end
@@ -5127,10 +5048,6 @@ function view.mousePress(x, y, button)
 		return true
 	end
 
-	-- Picking a category is asking for the whole of it, so a key filter goes first.
-	if state.keyFilter and x >= area.x1 and x <= area.x1 + sidebarW and y > listBottom() and y <= sidebarTop() then
-		state.setKeyFilter(nil)
-	end
 	if sidebarPress(x, y) then
 		return true
 	end
@@ -5168,8 +5085,6 @@ function view.mousePress(x, y, button)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
 			end
-		elseif row and row.type == "header" and row.clear and x >= listRight - metrics.rowPad * 4 then
-			state.setKeyFilter(nil)
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
@@ -5260,12 +5175,6 @@ function view.keyPress(key, scanCode)
 	-- the search made, and the first Escape is asking for that back. With nothing left to
 	-- clear it goes unclaimed, and the widget above closes the panel on it.
 	if key == KEYSYMS.ESCAPE then
-		-- A key filter goes before the search text: it is the narrower of the two.
-		if state.keyFilter then
-			state.setKeyFilter(nil)
-
-			return true
-		end
 		if searchBox and searchBox:getText() ~= "" then
 			-- Focus stays, so the next thing typed starts a new search.
 			searchBox:setText("")
