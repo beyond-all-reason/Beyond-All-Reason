@@ -242,6 +242,7 @@
 				"allCategories": "All",
 				"search": "Search actions or keys...",
 				"boundTo": "Bound to %{keys}",
+				"boundToAny": "Also fires on these keys with any modifier held",
 				"preset": "Preset",
 				"defaultTag": "Default",
 				"pressKey": "Press a key or mouse button...",

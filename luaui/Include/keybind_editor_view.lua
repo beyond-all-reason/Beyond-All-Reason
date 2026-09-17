@@ -854,6 +854,7 @@ local function buildResolvedCatalog()
 	L.noticeDefaultUnsaved = BAR.I18N("ui.keybinds.editor.noticeDefaultUnsaved")
 	L.noticeUnsaved = BAR.I18N("ui.keybinds.editor.noticeUnsaved")
 	L.changed = BAR.I18N("ui.keybinds.editor.changed")
+	L.boundToAny = BAR.I18N("ui.keybinds.editor.boundToAny")
 	L.changedUnknown = BAR.I18N("ui.keybinds.editor.changedUnknown")
 	L.changedNoneTooltip = BAR.I18N("ui.keybinds.editor.changedNoneTooltip")
 	L.compareWith = BAR.I18N("ui.keybinds.editor.compareWith")
@@ -890,6 +891,12 @@ local function buildResolvedCatalog()
 	L.applyFailedTitle = BAR.I18N("ui.keybinds.editor.applyFailedTitle")
 	L.accept = BAR.I18N("ui.keybinds.editor.accept")
 	L.cancel = BAR.I18N("ui.keybinds.editor.cancel")
+end
+
+-- The modifier names a search can name, off the same list the chips are printed from.
+local modifierKey = {}
+for _, name in ipairs(keyConfig.modifierOrder) do
+	modifierKey[name:lower()] = true
 end
 
 -- A keyset's canonical form, kept on the keyset record against the raw it came from: the
@@ -1041,13 +1048,25 @@ local function rebuildRows()
 	-- "q ctrl" all find what Ctrl+Q does. Whole keys only, as the chips print them: "f1" does not
 	-- find F11, and a paired action's hidden Shift half does not answer to "shift".
 	local wantKeys = {}
+	-- The same keys with the modifiers dropped. An Any+ binding fires whatever is held, so it
+	-- answers a query naming modifiers even though its chip prints the bare key and holds none
+	-- of them; without this it is missing from the one search that should find it.
+	local wantPlain, namedMods = {}, false
 	for key in query.text:gmatch("[^%s%+]+") do
 		wantKeys[#wantKeys + 1] = key
+		if modifierKey[key] then
+			namedMods = true
+		else
+			wantPlain[#wantPlain + 1] = key
+		end
 	end
+	-- How the action answers the query: "exact" when a chip holds every key named, "any" when it
+	-- only holds the keys and carries Any+ for the modifiers, false when neither.
 	local function boundToQuery(action)
 		if not (wantKeys[1] and action) then
 			return false
 		end
+		local any = false
 		local pair = catalogShiftPair[action]
 		for _, k in ipairs(working.byAction[action] or {}) do
 			-- The chip's text, which for a paired action is not the keyset's own. Kept on the keyset
@@ -1060,11 +1079,17 @@ local function rebuildRows()
 				shown = k.unshifted
 			end
 			if keybindModel.holdsKeys(shown, wantKeys) then
-				return true
+				return "exact"
+			end
+			if namedMods and wantPlain[1] then
+				local mods = keybindModel.splitElement(canonOf(k))
+				if mods.any and keybindModel.holdsKeys(shown, wantPlain) then
+					any = true
+				end
 			end
 		end
 
-		return false
+		return any and "any" or false
 	end
 	-- Whether an action is listed by key: by the keys the search text names, within the
 	-- category shown.
@@ -1192,6 +1217,7 @@ local function rebuildRows()
 							label = label,
 							description = item.description,
 							change = change,
+							queryAny = byKey == "any",
 						}
 						if not byKey then
 							groupRows[#groupRows + 1] = entry
@@ -1235,6 +1261,7 @@ local function rebuildRows()
 						cursorColumn = group.hasCursors,
 						description = item.description,
 						change = change,
+						queryAny = byKey == "any",
 					}
 					if not byKey then
 						groupRows[#groupRows + 1] = entry
@@ -1296,6 +1323,7 @@ local function rebuildRows()
 			action = action,
 			label = action,
 			change = rowChange(action),
+			queryAny = boundToQuery(action) == "any",
 		}
 	end
 
@@ -1347,10 +1375,24 @@ local function rebuildRows()
 				text = BAR.I18N("ui.keybinds.editor.boundTo", { keys = table.concat(keys, " + ") }),
 			},
 		}
+		-- What answers only through Any+ is set apart: it does fire on the keys searched for, but
+		-- its chip reads as the bare key, and side by side with the exact bindings that reads as a
+		-- mistake.
+		local anyRows = {}
 		for i = 1, #keyRows do
 			keyRows[i].cursorColumn = column
 			keyRows[i].hitKeys = wantKeys
-			ordered[#ordered + 1] = keyRows[i]
+			if keyRows[i].queryAny then
+				anyRows[#anyRows + 1] = keyRows[i]
+			else
+				ordered[#ordered + 1] = keyRows[i]
+			end
+		end
+		if #anyRows > 0 then
+			ordered[#ordered + 1] = { type = "header", text = L.boundToAny }
+			for i = 1, #anyRows do
+				ordered[#ordered + 1] = anyRows[i]
+			end
 		end
 		for i = 1, #rows do
 			ordered[#ordered + 1] = rows[i]
@@ -2453,6 +2495,13 @@ function view.blur()
 		nameBox:blur()
 	end
 	capturing = nil
+	-- The search is a view of the moment; the panel opens on the whole list next time. Clicking
+	-- a key on the keyboard page narrows through the same box, so this is what keeps that from
+	-- outliving the visit that asked for it.
+	if searchBox and searchBox:getText() ~= "" then
+		searchBox:setText("")
+		scroll = 0
+	end
 
 	-- Or the blur outlives the panel: guishader keeps drawing a rect nobody owns any more.
 	shade.clear()
@@ -5042,7 +5091,10 @@ function view.mousePress(x, y, button)
 			-- the list and clear it. The keyset is spelled the way they would have typed it.
 			state.setPage("list")
 			selectedCategory = nil
-			searchBox:setText(state.keyboard:keysetName(key, layer))
+			scroll = 0
+			if searchBox then
+				searchBox:setText(state.keyboard:keysetName(key, layer))
+			end
 		end
 
 		return true

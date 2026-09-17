@@ -965,11 +965,14 @@ end
 -- The label a key wears on a layer, wrapped and fitted to its face, kept until the bindings
 -- or the geometry change.
 function M:faceLines(key, layer, faceW, maxLines)
+	-- Asked for before the cache is looked at: a placement this answer is stale for rebuilds the
+	-- show table, and reading it first would leave this writing its lines into the one that was
+	-- thrown away, so the cache would never hit again.
+	local first = self:faceEntry(key, layer)
 	local show = key.show[layer]
 	if show.lines and show.linesGen == self.layoutGen and show.linesMax == maxLines then
 		return show.lines, show.first
 	end
-	local first = self:faceEntry(key, layer)
 	local lines = {}
 	if first then
 		local info = self:infoOf(first)
