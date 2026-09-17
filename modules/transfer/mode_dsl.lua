@@ -1,9 +1,11 @@
 local ConstructionEnums = VFS.Include("modules/construction/enums.lua")
 local TransferEnums = VFS.Include("modules/transfer/enums.lua")
+local TransferEnums = VFS.Include("modules/transfer/enums.lua")
 local Actions = VFS.Include("modules/transfer/lib/actions.lua")
 local ModeBuilder = VFS.Include("modules/mode_builder.lua")
 
 ---@class TransferModeDSL
+---@field MexSplitting MexSplittingFields the keys .MexSplitting accepts
 ---@field Mode fun(name: string): TransferModeChain Start a preset. The category is not a parameter: the grammar binds every chain from this module to "transfer" — the name only names it.
 ---@field Transfer TransferGrant
 ---@field Construction TransferGrant
@@ -16,6 +18,7 @@ local M = {}
 for name, action in pairs(Actions) do
 	M[name] = action
 end
+M.MexSplitting = TransferEnums.MexSplitting
 
 local Opt = TransferEnums.ModOptions
 local ConstructionOpt = ConstructionEnums.ModOptions
@@ -201,6 +204,13 @@ local verbs = {
 		return { t2 = t2, t3 = t3 }
 	end, function(p, lock)
 		return techGate(p.t2, p.t3, false, lock)
+	end),
+
+	MexSplitting = rule(function(name, which)
+		ModeBuilder.OneOf(name, "MexSplitting", TransferEnums.MexSplitting, which)
+		return { which = which }
+	end, function(p, lock)
+		return { [TransferEnums.ModOptions.MexSplitting] = { value = p.which, locked = lock.noun, ui = p.ui } }
 	end),
 }
 

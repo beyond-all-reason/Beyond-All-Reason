@@ -1,5 +1,6 @@
 local ModeDSL = VFS.Include("modules/transfer/mode_dsl.lua") ---@type TransferModeDSL
-local Mode, Transfer, Construction, Take = ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take
+local Mode, Transfer, Construction, Take, MexSplitting =
+	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.MexSplitting
 
 return Mode("Enabled")
 	.Desc("All sharing on with fixed defaults.")
@@ -12,3 +13,5 @@ return Mode("Enabled")
 	.Allow(Construction.Assist)
 	.Allow(Construction.Reclaim)
 	.Allow(Take)
+	.MexSplitting(MexSplitting.None)
+	.Hidden()

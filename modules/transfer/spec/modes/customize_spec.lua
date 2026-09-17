@@ -1,5 +1,6 @@
 local ConstructionEnums = VFS.Include("modules/construction/enums.lua")
 local TransferEnums = VFS.Include("modules/transfer/enums.lua")
+local TransferEnums = VFS.Include("modules/transfer/enums.lua")
 
 local customizeMode = VFS.Include("modules/transfer/modes/customize.lua")
 
@@ -11,6 +12,7 @@ describe("Customize mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = { value = TransferEnums.MexSplitting.None, locked = false },
 			[TransferEnums.ModOptions.TechBlocking] = { value = false, locked = false },
 			[TransferEnums.ModOptions.T2TechThreshold] = { value = 1, locked = false },
 			[TransferEnums.ModOptions.T3TechThreshold] = { value = 1.5, locked = false },
