@@ -1,6 +1,6 @@
 ---
---- Checks references: objectives in a stage, nextStage, objective events,
---- unit, feature and marker names, and countdown IDs.
+--- Checks references: objective events, unit, feature and marker names,
+--- and countdown IDs.
 --- Malformed entries are skipped, as sections.lua already reports them.
 ---
 
@@ -65,48 +65,6 @@ end
 --------------------------------------------------------------------------------
 -- Stage and objective references
 --------------------------------------------------------------------------------
-
-local function validateStageObjectiveReferences(context, report)
-	for stageID, stageData in pairs(context.Stages) do
-		if type(stageData) == "table" and type(stageData.objectives) == "table" then
-			for _, objectiveID in ipairs(stageData.objectives) do
-				if type(objectiveID) == "string" and context.Objectives[objectiveID] == nil then
-					report.Error(
-						SECTION,
-						"Stage",
-						stageID,
-						"Stage refers to non-existent objective",
-						"Objective: " .. objectiveID
-					)
-				end
-			end
-		end
-	end
-end
-
-local function validateObjectiveNextStageReferences(context, report)
-	for objectiveID, objective in pairs(context.Objectives) do
-		if type(objective) == "table" and objective.nextStage ~= nil then
-			if type(objective.nextStage) ~= "string" then
-				report.Error(
-					SECTION,
-					"Objective",
-					objectiveID,
-					"Unexpected parameter type, expected string, got " .. type(objective.nextStage),
-					"Field: nextStage"
-				)
-			elseif context.Stages[objective.nextStage] == nil then
-				report.Error(
-					SECTION,
-					"Objective",
-					objectiveID,
-					"Objective references non-existent nextStage",
-					"Stage: " .. objective.nextStage
-				)
-			end
-		end
-	end
-end
 
 --- The objective fields that name an Event trigger, raised when the objective reaches
 --- that state. sections.lua checks each names an existing trigger; here we check the
@@ -381,8 +339,6 @@ local function validate(context, report)
 	local actionTypes = context.ActionTypes
 	local Types = context.Types
 
-	validateStageObjectiveReferences(context, report)
-	validateObjectiveNextStageReferences(context, report)
 	validateObjectiveEventReferences(context, report)
 	validateMarkerNameReferences(context, report)
 

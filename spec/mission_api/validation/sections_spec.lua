@@ -58,7 +58,10 @@ describe("mission_api.validation.sections", function()
 			local result =
 				V.validate(V.mission():WithInitialStageDefinition("badObjectives", { objectives = "notATable" }))
 
-			V.assertMessage(result, "Stage 'objectives' field must be a table, got string. Stage: badObjectives")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected table, got string. Stage: badObjectives, Field: objectives"
+			)
 		end)
 
 		it("reports an objective ID that is not a string", function()
@@ -68,7 +71,20 @@ describe("mission_api.validation.sections", function()
 					:WithObjective("obj1", { textKey = "ok" })
 			)
 
-			V.assertMessage(result, "Stage 'objectives' entry must be a string, got number. Stage: badEntry, Entry: 2")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, got number. Stage: badEntry, Field: objectives[2]"
+			)
+		end)
+
+		it("reports an objective that does not exist", function()
+			local result = V.validate(
+				V.mission()
+					:WithInitialStageDefinition("badStage", { objectives = { "obj1", "nonExistent" } })
+					:WithObjective("obj1", { textKey = "ok" })
+			)
+
+			V.assertMessage(result, "Invalid objectiveID: nonExistent. Stage: badStage, Field: objectives[2]")
 		end)
 
 		it("accepts an empty 'objectives' table, which a decoy or terminal stage may have", function()
@@ -144,6 +160,29 @@ describe("mission_api.validation.sections", function()
 			V.assertMessage(
 				result,
 				"Unexpected parameter type, expected boolean, got string. Objective: o, Field: coop"
+			)
+		end)
+
+		it("reports a nextStage that does not exist", function()
+			local result = V.validate(
+				V.mission()
+					:WithObjective("badNext", { textKey = "ok", nextStage = "nonExistentStage" })
+					:WithInitialStageDefinition("validStage", { objectives = { "badNext" } })
+			)
+
+			V.assertMessage(result, "Invalid stageID: nonExistentStage. Objective: badNext, Field: nextStage")
+		end)
+
+		it("reports a nextStage that is not a string", function()
+			local result = V.validate(
+				V.mission()
+					:WithObjective("badNextType", { textKey = "ok", nextStage = 123 })
+					:WithInitialStageDefinition("validStage", { objectives = { "badNextType" } })
+			)
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected string, got number. Objective: badNextType, Field: nextStage"
 			)
 		end)
 	end)
@@ -235,6 +274,13 @@ describe("mission_api.validation.sections", function()
 			local result = V.validateTrigger({ type = "notAType", actions = { "ok" } })
 
 			V.assertMessage(result, "Trigger has invalid type. Trigger: t")
+		end)
+
+		it("reports a trigger ID that is not a string", function()
+			local result =
+				V.validate(V.mission():WithTrigger(123, V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })))
+
+			V.assertMessage(result, "Trigger ID must be a string, got number. Trigger: 123")
 		end)
 
 		it("reports trigger data that is not a table", function()
@@ -355,6 +401,16 @@ describe("mission_api.validation.sections", function()
 
 	it("reports an invalid type", function()
 		V.assertMessage(V.validateAction({ type = "notAType" }), "Action has invalid type. Action: a")
+	end)
+
+	it("reports an action ID that is not a string", function()
+		local result = V.validate(
+			V.mission()
+				:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
+				:WithAction(123, { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+		)
+
+		V.assertMessage(result, "Action ID must be a string, got number. Action: 123")
 	end)
 
 	it("reports action data that is not a table", function()

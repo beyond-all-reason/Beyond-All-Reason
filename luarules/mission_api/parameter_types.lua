@@ -11,6 +11,7 @@ local types = {
 	AllyTeamIDs = "AllyTeamIDs",
 	TriggerIDs = "TriggerIDs",
 	StageIDs = "StageIDs",
+	ObjectiveIDs = "ObjectiveIDs",
 	Orders = "Orders",
 	Area = "Area",
 	Direction = "Direction",

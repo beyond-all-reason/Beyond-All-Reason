@@ -80,7 +80,7 @@ describe("mission_api.validation", function()
 				V.mission()
 					:WithInitialStageDefinition("s", "notATable")
 					:WithObjective("o1", {})
-					:WithObjective("o2", { textKey = "ok", nextStage = "nope" })
+					:WithObjective("o2", { textKey = "ok", onCompleted = "t" })
 					:WithTrigger("t", { type = "invalidType", actions = { "a" } })
 					:WithAction("a", { type = V.actionTypes.SendMessage, parameters = {} })
 					:WithUnitLoadout({ { unitDefName = "noSuch", x = 0, z = 0, team = 0 } })
@@ -92,7 +92,7 @@ describe("mission_api.validation", function()
 				"Trigger has invalid type. Trigger: t",
 				"Action missing required parameter. Action: a, Parameter: message",
 				"Invalid unitDefName: noSuch. Loadout: UnitLoadout[1].unitDefName",
-				"Objective references non-existent nextStage. Objective: o2, Stage: nope",
+				"Objective event must name an Event trigger. Objective: o2, Field: onCompleted, Trigger: t",
 			}, result.errors)
 		end)
 	end)

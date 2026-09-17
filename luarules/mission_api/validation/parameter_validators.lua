@@ -184,6 +184,7 @@ local function registerValueValidators(parameterValidators, context)
 	--- List validators, checking each element with its own type's validator:
 	parameterValidators[Types.StageIDs] = getListValidator(parameterValidators[Types.StageID])
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
+	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
 	parameterValidators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }

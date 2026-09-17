@@ -9,6 +9,7 @@ local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 local Types = parameterTypes.Types
 
 local objectivesSchema = VFS.Include("luarules/mission_api/objectives_schema.lua")
+local stagesSchema = VFS.Include("luarules/mission_api/stages_schema.lua")
 local triggersSchema = VFS.Include("luarules/mission_api/triggers_schema.lua")
 local countdownsSchema = VFS.Include("luarules/mission_api/countdowns_schema.lua")
 
@@ -19,6 +20,7 @@ describe("mission_api object schemas", function()
 		local unknown = {}
 		for schemaName, schema in pairs({
 			objectives_schema = objectivesSchema,
+			stages_schema = stagesSchema,
 			triggers_schema = triggersSchema,
 			countdowns_schema = countdownsSchema,
 		}) do
@@ -47,6 +49,12 @@ describe("mission_api object schemas", function()
 			onCompleted = Types.TriggerID,
 			onFailed = Types.TriggerID,
 		}, objectivesSchema.Settings)
+	end)
+
+	it("describes a stage's fields", function()
+		assert.are.same({
+			objectives = Types.ObjectiveIDs,
+		}, stagesSchema.Settings)
 	end)
 
 	it("describes the settings every trigger shares", function()

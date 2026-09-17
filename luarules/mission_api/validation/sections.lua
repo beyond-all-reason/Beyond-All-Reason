@@ -4,6 +4,7 @@
 
 local SECTIONS = VFS.Include("luarules/mission_api/validation/report.lua").Sections
 local getTypesWithParameterType = VFS.Include("luarules/mission_api/schema_utils.lua").GetTypesWithParameterType
+local stageFieldTypes = VFS.Include("luarules/mission_api/stages_schema.lua").Settings
 local objectiveFieldTypes = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerSettingTypes = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
 
@@ -100,7 +101,9 @@ end
 -- Stages: stage shape and the mission's initial stage
 --------------------------------------------------------------------------------
 
-local function validateStages(stages, stageReport)
+--- A stage's ID and its container are checked here rather than against the schema:
+--- they are what makes the stage addressable at all, so no field type describes them.
+local function validateStages(stages, stageReport, parameterValidators)
 	for stageID, stageData in pairs(stages) do
 		if type(stageID) ~= "string" then
 			stageReport.Error(stageID, "Stage ID must be a string, got " .. type(stageID))
@@ -108,25 +111,11 @@ local function validateStages(stages, stageReport)
 
 		if type(stageData) ~= "table" then
 			stageReport.Error(stageID, "Stage data must be a table, got " .. type(stageData))
+		elseif stageData.objectives == nil then
+			stageReport.Error(stageID, "Stage missing 'objectives' field")
 		else
-			local objectives = stageData.objectives
-			if objectives == nil then
-				stageReport.Error(stageID, "Stage missing 'objectives' field")
-			elseif type(objectives) ~= "table" then
-				stageReport.Error(stageID, "Stage 'objectives' field must be a table, got " .. type(objectives))
-			else
-				-- A stage with no objectives is valid
-				for index, objectiveID in ipairs(objectives) do
-					if type(objectiveID) ~= "string" then
-						local got = type(objectiveID)
-						stageReport.Error(
-							stageID,
-							"Stage 'objectives' entry must be a string, got " .. got,
-							"Entry: " .. index
-						)
-					end
-				end
-			end
+			-- A stage with no objectives is valid
+			validateTypedFields(stageReport, stageID, parameterValidators, stageFieldTypes, stageData, "Field")
 		end
 	end
 end
@@ -143,28 +132,16 @@ local function validateInitialStage(stages, initialStage, stageReport)
 	end
 end
 
-local function validateStagesSection(context, report)
+local function validateStagesSection(context, report, parameterValidators)
 	local stageReport = reporterFor(report, SECTIONS.Stages, "Stage")
 
-	validateStages(context.Stages, stageReport)
+	validateStages(context.Stages, stageReport, parameterValidators)
 	validateInitialStage(context.Stages, context.InitialStage, stageReport)
 end
 
 --------------------------------------------------------------------------------
 -- Objectives: fields and inline triggers
 --------------------------------------------------------------------------------
-
---- nextStage is left out: references.lua checks it along with the other references
---- between mission entities, and reports it in that section.
-local function getValidatedObjectiveFields()
-	local fieldTypes = {}
-	for fieldName, fieldType in pairs(objectiveFieldTypes) do
-		if fieldName ~= "nextStage" then
-			fieldTypes[fieldName] = fieldType
-		end
-	end
-	return fieldTypes
-end
 
 local function validateObjectiveInlineTrigger(
 	context,
@@ -209,7 +186,6 @@ end
 
 local function validateObjectivesSection(context, report, parameterValidators, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
-	local fieldTypes = getValidatedObjectiveFields()
 	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
 
 	for objectiveID, objective in pairs(context.Objectives) do
@@ -226,7 +202,14 @@ local function validateObjectivesSection(context, report, parameterValidators, v
 				objectiveReport.Error(objectiveID, "Objective has empty textKey")
 			end
 
-			validateTypedFields(objectiveReport, objectiveID, parameterValidators, fieldTypes, objective, "Field")
+			validateTypedFields(
+				objectiveReport,
+				objectiveID,
+				parameterValidators,
+				objectiveFieldTypes,
+				objective,
+				"Field"
+			)
 			validateObjectiveInlineTrigger(
 				context,
 				objectiveReport,
@@ -289,6 +272,10 @@ local function validateTriggersSection(context, report, parameterValidators, val
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	for triggerID, trigger in pairs(context.Triggers) do
+		if type(triggerID) ~= "string" then
+			triggerReport.Error(triggerID, "Trigger ID must be a string, got " .. type(triggerID))
+		end
+
 		if type(trigger) ~= "table" then
 			triggerReport.Error(triggerID, "Trigger data must be a table, got " .. type(trigger))
 		else
@@ -328,7 +315,9 @@ local function validateActionsSection(context, report, parameterValidators, vali
 
 	local unreferencedActionIDs = {}
 	for actionID, action in pairs(context.Actions) do
-		if not allActionIDsReferencedByTriggers[actionID] then
+		if type(actionID) ~= "string" then
+			actionReport.Error(actionID, "Action ID must be a string, got " .. type(actionID))
+		elseif not allActionIDsReferencedByTriggers[actionID] then
 			unreferencedActionIDs[#unreferencedActionIDs + 1] = actionID
 		end
 
@@ -374,7 +363,7 @@ local function validate(context, report, parameterValidators)
 	local validateSchema = createSchemaValidator(context, parameterValidators)
 
 	-- Same order here as in the report:
-	validateStagesSection(context, report)
+	validateStagesSection(context, report, parameterValidators)
 	validateObjectivesSection(context, report, parameterValidators, validateSchema)
 	validateTriggersSection(context, report, parameterValidators, validateSchema)
 	validateActionsSection(context, report, parameterValidators, validateSchema)
