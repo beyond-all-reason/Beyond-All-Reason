@@ -369,6 +369,25 @@ local function keymapOf(text)
 	return table.concat(parts, "\n"), fakeMetaOf(text)
 end
 
+-- A short stand-in for a keymap, recorded when we write one so the file can later be told
+-- apart from one somebody edited. Taken over the bindings rather than the bytes holding them,
+-- so changing how we emit does not make every player's file read as edited the day we do.
+-- djb2 with the length alongside it, which is plenty for telling an edit from our own output.
+local function stampOf(text)
+	local binds, meta = keymapOf(text)
+	if not binds then
+		return nil
+	end
+
+	local subject = binds .. "\n" .. tostring(meta)
+	local h = 5381
+	for i = 1, #subject do
+		h = (h * 33 + subject:byte(i)) % 4294967296
+	end
+
+	return #subject .. ":" .. string.format("%08x", h)
+end
+
 -- The profile already holding this keymap, nil when none does. The one migration just made of
 -- the player's own file counts, which is what keeps the launch they arrive on from forking a
 -- second copy of what it has only now imported.
@@ -657,16 +676,30 @@ function M.adoptEditedKeymap()
 		return nil
 	end
 
-	local matched = matchesKnownProfile(text)
-	if matched then
-		-- A keymap still matching its profile is never rewritten, so the "fakemeta none" the
-		-- previous version wrote into every file would outlive the upgrade that gave the
-		-- profiles a meta key. Left until here so a file the player did edit is adopted first.
-		if storePredatesMeta then
-			M.materialize(matched)
+	-- Ours, and untouched since we wrote it. The store is then the authority on what should be
+	-- loaded, whichever side moved: a shipped profile changed by a game update, one of the
+	-- player's own changed by a tool between sessions, or a selection changed the same way.
+	-- Writing the selected profile back out is what carries any of those onto the keymap.
+	if store.written and store.written.stamp == stampOf(text) then
+		local name = M.activeName()
+		if name then
+			M.materialize(name)
 		end
 
 		return nil
+	end
+
+	-- No record of what we wrote, which is every store until the launch after this shipped.
+	-- Matching the whole keymap is the older, weaker test - it cannot tell a profile that
+	-- changed from a file that did - but it keeps that one launch behaving as it always has,
+	-- and materializing here records the stamp that makes the test above work from then on.
+	if not store.written then
+		local matched = matchesKnownProfile(text)
+		if matched then
+			M.materialize(matched)
+
+			return nil
+		end
 	end
 
 	local binds = readBindFile(text)
@@ -973,8 +1006,15 @@ function M.materialize(name)
 		return nil
 	end
 
-	file:write(toBindFile(profile))
+	local text = toBindFile(profile)
+	file:write(text)
 	file:close()
+
+	-- What the keymap held the last time it was ours. A file still holding this has not been
+	-- edited since, so the profile behind it can be rewritten over the top; one that does not
+	-- is the player's own work and is kept.
+	store.written = { name = name, stamp = stampOf(text) }
+	M.save()
 
 	return ACTIVE_FILE
 end

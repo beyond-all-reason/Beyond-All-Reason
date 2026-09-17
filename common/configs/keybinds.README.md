@@ -121,7 +121,11 @@ Structure lives in the schemas; these are the operations, which a schema can't e
 Every surface answers the same questions from the same facts.
 
 The player's own profiles live in `LuaUI/Config/keybind_profiles.json`, in the same
-shape as the shipped ones plus an `active` field naming the selected profile. That file
+shape as the shipped ones plus an `active` field naming the selected profile and a
+`written` field recording the keymap last emitted - `{ "name": <profile>, "stamp": <stamp> }`.
+The stamp stands for the bindings the file holds rather than its bytes, so changing how the
+file is emitted does not make every player's keymap read as edited; it is taken over the same
+normalised `<keyset> <action>` lines a comparison uses, plus the meta key. That file
 is per-install rather than shared, but its format is the contract - a surface that can
 read one can read the other.
 
@@ -148,7 +152,18 @@ the clipboard and what Import reads back, and the same text a player would put i
   reload. Reloading clears the keymap first, which is why a profile has to define every
   binding it wants. It does not clear the meta key, so always write that line: leave it out
   and whatever the last profile set stays. A profile naming no key wants the engine's own,
-  `space`; `fakemeta none` asks for no Meta modifier at all.
+  `space`; `fakemeta none` asks for no Meta modifier at all. Record what was written in the
+  store as `written`, above - a surface that skips this makes the next launch read its own
+  output as a keymap the player hand-wrote.
+- **Reconcile on load.** Either side can have moved since the keymap was written: a game
+  update changes a shipped profile, or a tool changes the store between sessions. Compare the
+  keymap on disk against `written.stamp`. Equal means nobody has touched the file, so the
+  store is the authority and the selected profile is written out again, carrying whichever
+  change it was. Unequal means the player edited the file themselves, and that is kept as a
+  profile of theirs rather than overwritten. A store with no `written` at all predates this,
+  and falls back to matching the whole keymap against every profile - which cannot tell a
+  profile that changed from a file that did, so do not change a shipped profile in the same
+  release that starts recording it.
 - **Edit a binding.** Only in the player's own profiles. Shipped profiles are read-only,
   so the first edit made while one is selected forks it into a copy and edits that.
 - **Create / rename / delete.** Names are the identity, so they must stay unique across
