@@ -286,13 +286,19 @@
 				"alwaysModifier": "any"
 			},
 			{
-				"prefix": "trajectory_toggle ",
-				"label": "actions.unitStates.trajectory",
-				"members": [
-					"0",
-					"1",
-					"2"
-				]
+				"action": "trajectory_toggle 0",
+				"label": "actions.unitStates.trajectoryLow",
+				"description": "commands.trajectory_toggle_tooltip"
+			},
+			{
+				"action": "trajectory_toggle 1",
+				"label": "actions.unitStates.trajectoryHigh",
+				"description": "commands.trajectory_toggle_tooltip"
+			},
+			{
+				"action": "trajectory_toggle 2",
+				"label": "actions.unitStates.trajectoryAuto",
+				"description": "commands.trajectory_toggle_tooltip"
 			},
 			{
 				"action": "firestate 0",
