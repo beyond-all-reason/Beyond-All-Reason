@@ -42,6 +42,8 @@ Each module owns one concern:
 
 | Module | Owns | Requires |
 |---|---|---|
+| `regions` | Contained space on the map, drawn as a point or a polygon: the shape, the rules every region type shares on one region and on the set, the name a region gets when it carries none, what is said about a region, and the layout codec, one table keyed by type. Regions knows shapes and nothing else: types are contributed by the modules that own them through a `region_types.lua`, each with its own record extending `Region` and its own stages on the set check, the naming and the description, reading what it needs off an `env` the asker passes through. The terraformer draws them through this api alone. | the runtime |
+| `start` | A team's start as a region: its positions and the area they sit in, with its rule that no two areas share ground. Its facts default to the match's own startboxes and start positions, so an editor opens on what the map plays with. | regions |
 | `defs` | Def post-processing as a pipeline every unit and weapon def pass, and where a module adds its own stage. | the runtime |
 | `game` | Which game this is: the game axis, one selector, the presets, the export the lobby reads. | the runtime |
 | `transport` | Who may load and unload what, and how fast a loaded transport flies. The first module with real rules; the air transport rework builds on it. | defs |
@@ -502,7 +504,7 @@ Every file under `modules/` is loaded by the game's own handlers, in the same Lu
 
 - A module is an opinionated directory that encapsulates game behavior.
 - A policy is a file that contains many decisions, each one a pipeline.
-- A pipeline is one statement chain of stages, each a guard or an Answer, with one Refusal saying what a no looks like. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies. On a Product the stages are Factors; on a Fold, Applies.
+- A pipeline is one statement chain of stages, each a guard or an Answer, with one Refusal saying what a no looks like. On a Product the stages are Factors; on a Fold, Applies.
 - Read a pipeline top to bottom, and place your stage where the precedence says. No stage is the rule; the chain is.
 - A guard can only refuse, and only an Answer can answer. Loosening touches the rule by name; tightening never does.
 - Facts inform a decision and are filled before it runs; an Answer makes the decision. The mode decides whose fact is live.

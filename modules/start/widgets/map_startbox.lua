@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Start Boxes",
-		desc = "Displays Start Boxes and Start Points",
+		desc = "Displays the match's starts, from the start module: boxes and start points",
 		author = "trepan, jK, Beherith, SethDGamre",
 		date = "2007-2009",
 		license = "GNU GPL, v2 or later",
@@ -43,6 +43,12 @@ local GL_TRIANGLES = GL.TRIANGLES
 local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
 
 local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local Start = VFS.Include("modules/start/api.lua") ---@type StartApi
+
+local function editorHasTheMap()
+	local tool = WG.RegionsTool
+	return tool ~= nil and tool.isActive ~= nil and tool.isActive() == true
+end
 local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
 local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
 local StartPolygonSDF = VFS.Include("luaui/Include/startpolygon_sdf_gl4.lua")
@@ -919,42 +925,32 @@ local function InitStartPolygons()
 		gaiaAllyTeamID = select(6, spGetTeamInfo(Spring.GetGaiaTeamID(), false))
 	end
 
-	-- Polygon overlays render only for explicit modoption sources. When the
-	-- hardcoded fallback fires we defer to the engine startrect path below so
-	-- the lobby/host's rectangles remain authoritative.
-	local configLoaded = false
-	local ParseBoxes = StartboxLib and StartboxLib.ParseBoxes
-	if ParseBoxes then
-		local pok, startBoxConfig, _, isExplicit = pcall(ParseBoxes)
-		if pok and startBoxConfig and isExplicit then
-			local activeAllyTeams = {}
-			for _, atID in ipairs(Spring.GetAllyTeamList()) do
-				activeAllyTeams[atID] = true
-			end
-			for allyTeamID, entry in pairs(startBoxConfig) do
-				if
-					allyTeamID ~= gaiaAllyTeamID
-					and activeAllyTeams[allyTeamID]
-					and entry.boxes
-					and not entry.wholeMap
-				then
-					for _, polygon in ipairs(entry.boxes) do
-						StartPolygons[#StartPolygons + 1] = { team = allyTeamID, poly = polygon }
-					end
-					configLoaded = true
-				end
+	local activeAllyTeams = {}
+	for _, atID in ipairs(Spring.GetAllyTeamList()) do
+		activeAllyTeams[atID] = true
+	end
+	local ok, current = pcall(Start.Current, Spring)
+	if not ok then
+		Spring.Echo("[Start Boxes] start module failed, showing the engine's boxes: " .. tostring(current))
+		current = { areas = {} }
+		for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+			local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(allyTeamID)
+			if xn and xp and xp > xn then
+				current.areas[#current.areas + 1] = {
+					allyTeam = allyTeamID + 1,
+					anchors = { { x = xn, z = zn }, { x = xp, z = zn }, { x = xp, z = zp }, { x = xn, z = zp } },
+				}
 			end
 		end
 	end
-
-	-- fall back to engine AABB if no polygon configs were loaded
-	if not configLoaded then
-		for i, teamID in ipairs(Spring.GetAllyTeamList()) do
-			if teamID ~= gaiaAllyTeamID then
-				local xn, zn, xp, zp = Spring.GetAllyTeamStartBox(teamID)
-				StartPolygons[#StartPolygons + 1] =
-					{ team = teamID, poly = { { xn, zn }, { xp, zn }, { xp, zp }, { xn, zp } } }
+	for _, area in ipairs(current.areas) do
+		local allyTeamID = area.allyTeam - 1
+		if allyTeamID ~= gaiaAllyTeamID and activeAllyTeams[allyTeamID] then
+			local polygon = {}
+			for i, a in ipairs(area.anchors) do
+				polygon[i] = { a.x, a.z }
 			end
+			StartPolygons[#StartPolygons + 1] = { team = allyTeamID, poly = polygon }
 		end
 	end
 
@@ -1188,6 +1184,9 @@ function widget:DrawWorldPreUnit()
 		startPolygonShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or startPolygonShader
 		startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
 	end
+	if editorHasTheMap() then
+		return
+	end
 	DrawStartPolygons(false)
 end
 
@@ -1289,7 +1288,9 @@ function widget:DrawInMiniMap(sx, sz)
 	-- Check if we're being called from PIP minimap
 	local inPip = WG.minimap and WG.minimap.isDrawingInPip
 
-	DrawStartPolygons(true)
+	if not editorHasTheMap() then
+		DrawStartPolygons(true)
+	end
 	DrawStartUnitIcons(sx, sz, inPip)
 end
 
