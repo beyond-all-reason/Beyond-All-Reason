@@ -127,12 +127,9 @@ local function SpawnUnit(spawnData)
 		else
 			-- Early validation checks
 			local x, z = spawnData.x, spawnData.z
-			if x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ then
-				return -- Out of bounds
-			end
 
 			local validSurface = false
-			local unitDetonates = false
+			local unitDetonates = x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ -- out of bounds?
 			local y = spGetGroundHeight(x, z)
 
 			if not spawnDef.surface then
