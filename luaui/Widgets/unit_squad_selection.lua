@@ -1580,11 +1580,19 @@ local function squadSelectGroup(_, _, args)
 	if not args or not args[1] then
 		return true
 	end
-	local groupNum = tonumber(args[1])
+	-- The group number may follow the keywords (squad_select_group append_domain 1), so each variant gets its own action prefix in the keybind catalog.
+	local groupNum
+	for i = 1, #args do
+		local n = tonumber(args[i])
+		if n then
+			groupNum = n
+			break
+		end
+	end
 	if not groupNum then
 		return true
 	end
-	-- steps/maxDistance intentionally ignored, which also swallows the leading group number.
+	-- steps/maxDistance intentionally ignored, which also swallows the group number.
 	local append, useDomainFilter, _, squadKind = parseSelectArgs(args)
 	doSquadSelect({
 		append = append,
@@ -1892,10 +1900,6 @@ local function applyPreset(name)
 		setOptionValue(key, value)
 	end
 	config.preset = name
-	-- The controls reference lists the gestures the active preset enables.
-	if WG["keybinds"] and WG["keybinds"].reloadBindings then
-		WG["keybinds"].reloadBindings()
-	end
 	return true
 end
 
@@ -2293,11 +2297,6 @@ function widget:Initialize()
 		return newSquad and newSquad.index or nil
 	end
 
-	-- The controls reference only lists squad gestures while we are loaded.
-	if WG["keybinds"] and WG["keybinds"].reloadBindings then
-		WG["keybinds"].reloadBindings()
-	end
-
 	log("Initialized — ", count, " combat units in domain uncategorized reserves")
 end
 
@@ -2498,10 +2497,6 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("squad_cycle_recent")
 	widgetHandler:RemoveAction("squad_cycle_idle")
 	widgetHandler:RemoveAction("squad_lock")
-	-- Drop the squad section from the controls reference (WG is already nil).
-	if WG["keybinds"] and WG["keybinds"].reloadBindings then
-		WG["keybinds"].reloadBindings()
-	end
 	log("Shutdown")
 end
 
