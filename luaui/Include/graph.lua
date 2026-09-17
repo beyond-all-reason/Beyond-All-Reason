@@ -27,7 +27,8 @@
 --
 -- Everything in the constructor can be changed later through chart:configure({ ... }),
 -- chart:setSeries(list), chart:setMarkers(list), chart:setBounds(x, y, w, h) and
--- chart:setHighlight(seriesIndex); each marks the picture for a rebuild on the next draw.
+-- chart:setHighlight(seriesIndex, or { [seriesIndex] = true, ... } for several); each
+-- marks the picture for a rebuild on the next draw.
 -- chart:destroy() frees the list. Radar charts take `radar = { axes = { { key = "speed",
 -- label = "Speed", max = 100 }, ... }, rings = 4 }` and series with `values` keyed by axis
 -- (an array in axis order, or a table by axis key). A stacked chart turns every sample
@@ -37,7 +38,8 @@
 ---@field cfg table<string, any>
 ---@field series table[]
 ---@field markers table[]
----@field highlight integer?
+---@field highlight integer|table<integer, boolean>|nil
+---@field highlightKey any
 ---@field hover table?
 ---@field list integer?
 ---@field dirty boolean
@@ -72,7 +74,7 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glColor = gl.Color
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
+local glTexCoord = gl.TexCoord
 local glLineWidth = gl.LineWidth
 -- Anti-aliased lines; absent in an offline stub.
 ---@type function?
@@ -139,9 +141,11 @@ local DEFAULTS = {
 	legend = true,
 	-- Markers: pictures with a hover text, at an x, on a series or in a lane above the plot.
 	-- The picture is zoomed in by this share of its edges (nil: a subtle share that grows
-	-- as the picture shrinks), and framed this thick.
+	-- as the picture shrinks), its corners cut off by this much (nil: a small cut that
+	-- grows with the picture, like the unit pictures elsewhere), and framed this thick.
 	markerSize = nil,
 	markerZoom = nil,
+	markerCorner = nil,
 	markerFrameWidth = 2,
 	radar = {
 		rings = 4,
@@ -372,10 +376,28 @@ function Graph:setBounds(x, y, width, height)
 	end
 end
 
--- The series drawn in front, the others stepped back. nil for none.
-function Graph:setHighlight(index)
-	if self.highlight ~= index then
-		self.highlight = index
+-- A highlight as a value that compares equal for the same series, set or not.
+local function highlightKey(highlight)
+	if type(highlight) ~= "table" then
+		return highlight
+	end
+	local keys = {}
+	for si, on in pairs(highlight) do
+		if on then
+			keys[#keys + 1] = si
+		end
+	end
+	table.sort(keys)
+	return "set:" .. table.concat(keys, ",")
+end
+
+-- The series drawn in front, the others stepped back: one index, or a set of them
+-- ({ [index] = true }). nil for none.
+function Graph:setHighlight(highlight)
+	local key = highlightKey(highlight)
+	if self.highlightKey ~= key then
+		self.highlight = highlight
+		self.highlightKey = key
 		self.dirty = true
 	end
 end
@@ -511,6 +533,7 @@ function Graph:prepareSamples()
 			end
 		end
 		prepared[si] = {
+			index = si,
 			source = s,
 			name = s.name or ("Series " .. si),
 			color = s.color or { 0.8, 0.8, 0.8 },
@@ -752,11 +775,42 @@ end
 -- Drawing a line or stacked chart into the list
 ----------------------------------------------------------------
 
-local function alphaOf(self, si, base)
-	if self.highlight and self.highlight ~= si then
-		return base * self.cfg.look.dimAlpha
+-- Whether a series is drawn at full strength: every one while nothing is highlighted.
+local function isLit(self, si)
+	local highlight = self.highlight
+	if highlight == nil then
+		return true
+	elseif type(highlight) == "table" then
+		return highlight[si] == true
 	end
-	return base
+	return highlight == si
+end
+
+-- Whether a series is lifted above the rest: lit while something is highlighted.
+local function isLifted(self, si)
+	return self.highlight ~= nil and isLit(self, si)
+end
+
+local function alphaOf(self, si, base)
+	if isLit(self, si) then
+		return base
+	end
+	return base * self.cfg.look.dimAlpha
+end
+
+-- The series in drawing order: the stepped back ones first, so the highlighted ones lie
+-- on top of them. Each one knows its own index (`index`, set when it was prepared), which
+-- is what the alpha and the width are read off.
+local function drawOrder(self)
+	local order, lit = {}, {}
+	for si, p in ipairs(self.prepared) do
+		local list = isLit(self, si) and lit or order
+		list[#list + 1] = p
+	end
+	for _, p in ipairs(lit) do
+		order[#order + 1] = p
+	end
+	return order
 end
 
 -- The points of a curve in pixels: the samples, or the smoothed run through them. A gap
@@ -895,11 +949,12 @@ function Graph:drawLines()
 	local sx, sy = self.sx, self.sy
 	local smoothAll = cfg.smooth
 
+	local order = drawOrder(self)
 	-- Fills first, so every line lies on top of every fill.
 	if cfg.fill then
-		for si, p in ipairs(self.prepared) do
+		for _, p in ipairs(order) do
 			local c = p.color
-			local a = alphaOf(self, si, look.fillAlpha)
+			local a = alphaOf(self, p.index, look.fillAlpha)
 			glColor(c[1], c[2], c[3], a)
 			local smooth = p.smooth
 			if smooth == nil then
@@ -920,11 +975,11 @@ function Graph:drawLines()
 	if glSmoothing then
 		glSmoothing(false, true, false)
 	end
-	for si, p in ipairs(self.prepared) do
+	for _, p in ipairs(order) do
 		local c = p.color
-		local a = alphaOf(self, si, 1)
+		local a = alphaOf(self, p.index, 1)
 		local width = p.width
-		if self.highlight == si then
+		if isLifted(self, p.index) then
 			width = width + 1
 		end
 		glLineWidth(width)
@@ -1080,62 +1135,100 @@ function Graph:drawStacked()
 	end
 end
 
+-- The eight corners of a rect with its corners cut off by `cut`, counter-clockwise from
+-- the bottom edge, as x, y pairs.
+local function chamfered(x1, y1, x2, y2, cut)
+	return {
+		x1 + cut,
+		y1,
+		x2 - cut,
+		y1,
+		x2,
+		y1 + cut,
+		x2,
+		y2 - cut,
+		x2 - cut,
+		y2,
+		x1 + cut,
+		y2,
+		x1,
+		y2 - cut,
+		x1,
+		y1 + cut,
+	}
+end
+
+-- A band `w` wide along the inside of a cut-corner rect's edge. The diagonal sides stay
+-- as thick as the straight ones: moved in by w along its normal, a diagonal edge cuts
+-- each axis w * (2 - sqrt 2) less.
+local function chamferRing(x1, y1, x2, y2, cut, w)
+	local inner = mathMax(0, cut - w * 0.5857864376)
+	local o = chamfered(x1, y1, x2, y2, cut)
+	local i = chamfered(x1 + w, y1 + w, x2 - w, y2 - w, inner)
+	glBeginEnd(GL_QUADS, function()
+		for k = 1, 8 do
+			local a = k * 2 - 1
+			local b = (k % 8) * 2 + 1
+			glVertex(o[a], o[a + 1])
+			glVertex(o[b], o[b + 1])
+			glVertex(i[b], i[b + 1])
+			glVertex(i[a], i[a + 1])
+		end
+	end)
+end
+
+-- How much of each corner a marker picture this many pixels wide loses.
+function Graph:markerCut(width)
+	local cut = self.cfg.markerCorner or mathMax(2, mathFloor(width * 0.08))
+	return mathMin(cut, mathFloor(width * 0.5))
+end
+
 function Graph:drawMarkers()
 	local look = self.cfg.look
 	for _, m in ipairs(self.placed) do
 		local marker = m.marker
+		local cut = self:markerCut(m.x2 - m.x1)
 		-- A tick from the picture down to the plot, or to the point it sits on.
 		glColor(look.markerTick)
 		glBeginEnd(GL_LINES, function()
 			glVertex(m.cx + 0.5, m.y1)
 			glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
 		end)
+		local corners = chamfered(m.x1, m.y1, m.x2, m.y2, cut)
 		if marker.texture then
 			-- Zoomed in a little, the more the smaller the picture: a unit picture has
 			-- air around the unit. The engine's textures load flipped, so t runs from 1
-			-- down to 0, as the plain call does on its own.
+			-- down to 0 going up.
 			local z = marker.zoom or self.cfg.markerZoom or mathMin(0.06, 2.5 / mathMax(1, m.x2 - m.x1))
+			local w, h = mathMax(1, m.x2 - m.x1), mathMax(1, m.y2 - m.y1)
 			glColor(1, 1, 1, 1)
 			glTexture(marker.texture)
-			glTexRect(m.x1, m.y1, m.x2, m.y2, z, 1 - z, 1 - z, z)
+			glBeginEnd(GL_TRIANGLE_FAN, function()
+				for k = 1, 16, 2 do
+					local x, y = corners[k], corners[k + 1]
+					glTexCoord(z + (x - m.x1) / w * (1 - 2 * z), 1 - z - (y - m.y1) / h * (1 - 2 * z))
+					glVertex(x, y)
+				end
+			end)
 			glTexture(false)
 		else
 			local c = marker.color or { 1, 1, 1 }
 			glColor(c[1], c[2], c[3], 0.9)
-			glBeginEnd(GL_QUADS, function()
-				glVertex(m.x1, m.y1)
-				glVertex(m.x2, m.y1)
-				glVertex(m.x2, m.y2)
-				glVertex(m.x1, m.y2)
+			glBeginEnd(GL_TRIANGLE_FAN, function()
+				for k = 1, 16, 2 do
+					glVertex(corners[k], corners[k + 1])
+				end
 			end)
 		end
-		-- The frame, in the marker's own colour when it has one (a team's), as four
-		-- whole-pixel bars so it is the same thickness all round.
+		-- The frame, in the marker's own colour when it has one (a team's), following the
+		-- cut corners.
 		local frame = marker.frame
-		local w = self.cfg.markerFrameWidth
 		if frame then
 			glColor(frame[1], frame[2], frame[3], frame[4] or 1)
 		else
 			glColor(look.markerFrame)
 		end
-		glBeginEnd(GL_QUADS, function()
-			glVertex(m.x1, m.y1)
-			glVertex(m.x2, m.y1)
-			glVertex(m.x2, m.y1 + w)
-			glVertex(m.x1, m.y1 + w)
-			glVertex(m.x1, m.y2 - w)
-			glVertex(m.x2, m.y2 - w)
-			glVertex(m.x2, m.y2)
-			glVertex(m.x1, m.y2)
-			glVertex(m.x1, m.y1 + w)
-			glVertex(m.x1 + w, m.y1 + w)
-			glVertex(m.x1 + w, m.y2 - w)
-			glVertex(m.x1, m.y2 - w)
-			glVertex(m.x2 - w, m.y1 + w)
-			glVertex(m.x2, m.y1 + w)
-			glVertex(m.x2, m.y2 - w)
-			glVertex(m.x2 - w, m.y2 - w)
-		end)
+		chamferRing(m.x1, m.y1, m.x2, m.y2, cut, self.cfg.markerFrameWidth)
 	end
 end
 
@@ -1172,7 +1265,7 @@ function Graph:drawLegend()
 			glVertex(x + swatch, y + swatch)
 			glVertex(x, y + swatch)
 		end)
-		local color = self.highlight and self.highlight ~= si and "\255\130\130\130" or look.text
+		local color = isLit(self, si) and look.text or "\255\130\130\130"
 		self:text(color .. p.name, mathFloor(x + swatch + fs * 0.4), mathFloor(y + swatch * 0.15), "o", fs)
 		x = mathFloor(x + swatch + fs * 0.4 + w + fs * 1.2)
 	end
@@ -1264,14 +1357,14 @@ function Graph:drawRadar()
 	end)
 
 	-- Series: a filled polygon and its outline.
-	for si, p in ipairs(self.prepared) do
+	for _, p in ipairs(drawOrder(self)) do
 		local c = p.color
 		local shares = {}
 		for ai = 1, n do
 			shares[ai] = mathMin(1, mathMax(0, p.axisValues[ai] / self.axisMax(ai)))
 		end
 		if cfg.radar.fill then
-			glColor(c[1], c[2], c[3], alphaOf(self, si, look.radarFillAlpha))
+			glColor(c[1], c[2], c[3], alphaOf(self, p.index, look.radarFillAlpha))
 			glBeginEnd(GL_TRIANGLE_FAN, function()
 				glVertex(r.cx, r.cy)
 				for ai = 1, n do
@@ -1280,8 +1373,8 @@ function Graph:drawRadar()
 				glVertex(axisPoint(1, shares[1]))
 			end)
 		end
-		glLineWidth(self.highlight == si and p.width + 1 or p.width)
-		glColor(c[1], c[2], c[3], alphaOf(self, si, 1))
+		glLineWidth(isLifted(self, p.index) and p.width + 1 or p.width)
+		glColor(c[1], c[2], c[3], alphaOf(self, p.index, 1))
 		glBeginEnd(GL_LINE_LOOP, function()
 			for ai = 1, n do
 				glVertex(axisPoint(ai, shares[ai]))
@@ -1418,15 +1511,11 @@ function Graph:drawOverlay()
 	local look = self.cfg.look
 	if hit.kind == "marker" then
 		local m = hit.placed
-		glLineWidth(2)
+		-- Around the picture's own frame, its corners cut to match: a cut grown by w
+		-- keeps the diagonal w away.
+		local w = 2
 		glColor(look.markerHover)
-		glBeginEnd(GL_LINE_LOOP, function()
-			glVertex(m.x1 - 1, m.y1 - 1)
-			glVertex(m.x2 + 1, m.y1 - 1)
-			glVertex(m.x2 + 1, m.y2 + 1)
-			glVertex(m.x1 - 1, m.y2 + 1)
-		end)
-		glLineWidth(1)
+		chamferRing(m.x1 - w, m.y1 - w, m.x2 + w, m.y2 + w, self:markerCut(m.x2 - m.x1) + w * 0.5857864376, w)
 		glColor(1, 1, 1, 1)
 		return
 	end

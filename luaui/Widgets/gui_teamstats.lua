@@ -466,9 +466,10 @@ end
 local switches = {
 	-- The Graphs page: a mode, so it leads the row; its state is the page's, not a filter.
 	{ key = "graphs", mode = true },
-	-- The Graphs page's alone, beside its switch: the highlighted team's milestones on
-	-- the chart.
+	-- The Graphs page's alone, beside its switch: the selected teams' milestones on the
+	-- chart, and whether the selection is all the chart shows or only stands out on it.
 	{ key = "milestones", page = true },
+	{ key = "selectedOnly", page = true },
 	{ key = "groupByTeam" },
 	-- Only offered while there are bands to take a share of.
 	{ key = "shareOfTeam" },
@@ -488,6 +489,7 @@ local filters = {
 	perMinute = false,
 	bars = false,
 	milestones = true,
+	selectedOnly = false,
 }
 
 -- Excess is waste once it passes a share of what was produced; these say what to compare
@@ -568,6 +570,8 @@ local metrics = {
 	-- How far the column starts below the table beside it, to leave the title room.
 	sidebarDrop = 8,
 	sidebarW = 190,
+	-- Between the column and the Graphs page's stat list, two cards side by side.
+	pageGap = 8,
 	barW = 14,
 	-- Rows the wheel moves per notch.
 	wheelRows = 3,
@@ -1557,6 +1561,7 @@ local function setLayout()
 	metrics.titleFs = mathFloor(metrics.rowHeight * 0.85)
 	metrics.sidebarDrop = mathFloor(8 * s)
 	metrics.sidebarW = mathFloor(190 * s)
+	metrics.pageGap = mathFloor(8 * s)
 	metrics.barW = mathFloor(14 * s)
 	metrics.nameMinW = mathFloor(150 * s)
 	-- Narrower than the cell padding it sits in.
@@ -1581,10 +1586,19 @@ local function setLayout()
 	-- it, so the bar sits in a channel rather than hugging them.
 	barX1 = area.x2 - metrics.edgeInset - metrics.barW
 	listRight = barX1 - metrics.listGap
-	-- The Graphs page takes the table's room, header rows and scrollbar included.
+	-- The Graphs page takes the table's room, header rows and scrollbar included. Its
+	-- stat list is a card like the column's, so it sits closer and spans the same height.
 	if graphs then
 		graphs.setFont(font, metrics.rowFs)
-		graphs.setLayout(listX1, listBottom, area.x2 - metrics.edgeInset, metrics.bandTop, s)
+		graphs.setLayout(
+			area.x1 + metrics.sidebarW + metrics.pageGap,
+			listBottom,
+			area.x2 - metrics.edgeInset,
+			metrics.bandTop,
+			s,
+			area.y1,
+			sidebarTop() + metrics.cardLip
+		)
 	end
 
 	-- The header band: the switches, right to left from the panel's edge. A switch this
@@ -1604,11 +1618,15 @@ local function setLayout()
 	for i = #switches, 1, -1 do
 		local sw = switches[i]
 		local onGraphs = graphs and graphs.open
+		-- A share of a team's total needs teams to group by: the page groups its own way
+		-- while it is open, the table's grouping stands otherwise.
+		local anyGrouping = onGraphs and (graphs.grouped and not isFFA) or (not onGraphs and grouped())
 		if
 			(sw.mode and not (showPlannedPages and handover.on))
 			or (sw.key == "perMinute" and not rateShown())
+			or (sw.key == "selectedOnly" and not (graphs and graphs.filterShown()))
 			or (sw.key == "groupByTeam" and isFFA)
-			or (sw.key == "shareOfTeam" and not grouped())
+			or (sw.key == "shareOfTeam" and not anyGrouping)
 			or (sw.table and onGraphs)
 			or (sw.page and not onGraphs)
 		then
@@ -2104,7 +2122,14 @@ local function drawHeader()
 			if hovered then
 				Highlight(sw.hit[1], sw.hit[2], sw.hit[3], sw.hit[4], metrics.csSmall, look.rowHoverOpacity, look.white)
 			end
-			local on = sw.mode and graphs.open or filters[sw.key]
+			-- The Graphs switch shows the page's state, and the grouping switch the
+			-- grouping of whichever of the two is open.
+			local on = filters[sw.key]
+			if sw.mode then
+				on = graphs.open
+			elseif sw.key == "groupByTeam" and graphs.open then
+				on = graphs.grouped
+			end
 			UiToggle(sw.draw[1], sw.draw[2], sw.draw[3], sw.draw[4], on, hovered)
 			queueText(
 				(on and colorSelected or colorDim) .. sw.label,
@@ -2666,6 +2691,11 @@ local function toggleSwitch(i)
 			graphs.refresh()
 			graphs.invalidate()
 		end
+	elseif key == "groupByTeam" and graphs.open then
+		-- The page groups its own way: the table keeps the grouping it was left with.
+		graphs.setGrouped(not graphs.grouped)
+		-- Grouping decides whether the share switch is offered here too.
+		setLayout()
 	else
 		filters[key] = not filters[key]
 		-- Grouping decides whether the share switch is offered, so the header is laid
@@ -2921,7 +2951,9 @@ function widget:GetConfigData()
 		perMinute = filters.perMinute,
 		bars = filters.bars,
 		milestones = filters.milestones,
+		selectedOnly = filters.selectedOnly,
 		graphStat = graphs.stat,
+		graphGroupByTeam = graphs.grouped,
 	}
 end
 
