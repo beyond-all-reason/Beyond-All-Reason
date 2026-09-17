@@ -25,7 +25,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
-local dynamicBuildOptions = VFS.Include("luaui/Include/dynamicBuildOptions.lua")
+local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
 
 local pairs = pairs
 local ipairs = ipairs
@@ -183,7 +183,6 @@ local activeCmdDescsCacheDelay = 0.05 -- Cache for 50ms
 
 local unitName = {}
 local unitBuildOptions = {}
-local unitBuildOptionSet = {} -- unitDefID -> { buildOptionDefID = true }
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
@@ -191,7 +190,6 @@ local iconTypes = {}
 local function refreshUnitDefs()
 	unitName = {}
 	unitBuildOptions = {}
-	unitBuildOptionSet = {}
 	unitMetal_extractor = {}
 	unitTranslatedHumanName = {}
 	unitTranslatedTooltip = {}
@@ -208,14 +206,6 @@ local function refreshUnitDefs()
 		if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
-	end
-	dynamicBuildOptions.apply(unitBuildOptions)
-	for udid, buildOptions in pairs(unitBuildOptions) do
-		local set = {}
-		for i = 1, #buildOptions do
-			set[buildOptions[i]] = true
-		end
-		unitBuildOptionSet[udid] = set
 	end
 end
 
@@ -258,28 +248,6 @@ local function getCachedActiveCmdDescs()
 		cachedActiveCmdDescsTime = now
 	end
 	return cachedActiveCmdDescs
-end
-
----Whether a build option is greyed out for the current selection: blocked for the
----whole team, or blocked for every selected builder type that offers it (blocks can
----be limited to one builder type, see GG.BuildBlocking).
-local function isUnitRestricted(uDefID)
-	if preGamestartPlayer then
-		return units.isRestricted(uDefID, startDefID)
-	end
-	if units.unitRestricted[uDefID] then
-		return true
-	end
-	local anyBlocked = false
-	for builderDefID in pairs(currentSelBuilderDefs) do
-		local blocked = units.builderUnitRestricted[builderDefID]
-		if blocked and blocked[uDefID] then
-			anyBlocked = true
-		elseif unitBuildOptionSet[builderDefID][uDefID] then
-			return false -- a selected builder of another type can still build it
-		end
-	end
-	return anyBlocked
 end
 
 local function clearBuildmenuUnitpicWarmQueue()
@@ -1343,7 +1311,7 @@ function drawBuildmenu()
 					cellRectID,
 					usedZoom,
 					cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil,
-					isUnitRestricted(uDefIDCell),
+					units.unitRestricted[uDefIDCell],
 					selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell]
 				)
 			then
@@ -1604,7 +1572,7 @@ function widget:DrawScreen()
 							-- when meta: unitstats does the tooltip
 							local text
 							local textColor = "\255\215\255\215"
-							if isUnitRestricted(uDefID) then
+							if units.unitRestricted[uDefID] then
 								text = BAR.I18N("ui.buildMenu.disabled", {
 									unit = unitTranslatedHumanName[uDefID],
 									textColor = textColor,
@@ -1796,7 +1764,7 @@ function widget:DrawScreen()
 								end
 								cellColor = { 1, 0.85, 0.2, 0.25 }
 							end
-							if not isUnitRestricted(uDefID) then
+							if not units.unitRestricted[uDefID] then
 								local unsetShowPrice
 								if not showPrice then
 									unsetShowPrice = true
@@ -1805,7 +1773,7 @@ function widget:DrawScreen()
 
 								-- re-draw cell with hover zoom (and price shown)
 								font2:Begin(true)
-								drawCell(hoveredCellID, usedZoom, cellColor, isUnitRestricted(uDefID))
+								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
 								font2:End()
 
 								if unsetShowPrice then
@@ -2046,7 +2014,7 @@ function widget:MousePress(x, y, button)
 						and cmds[cellRectID].id
 						and unitTranslatedHumanName[-cmds[cellRectID].id]
 						and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4])
-						and not isUnitRestricted(-cmds[cellRectID].id)
+						and not units.unitRestricted[-cmds[cellRectID].id]
 					then
 						local uDefID = cmds[cellRectID].id --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
@@ -2131,7 +2099,7 @@ local function buildUnitHandler(_, _, _, data)
 	if not preGamestartPlayer then
 		return
 	end
-	if isUnitRestricted(data.unitDefID) then
+	if units.unitRestricted[data.unitDefID] then
 		return
 	end
 
@@ -2186,7 +2154,7 @@ local function buildUnitHandler(_, _, _, data)
 			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
 			if uDef then -- prevents crashing when trying to access unloaded units (legion)
-				if comBuildOptions[unitName[startDefID]][uDef.id] and not isUnitRestricted(uDef.id) then
+				if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
 					buildCycleCount = buildCycleCount + 1
 					buildCycleTemp[buildCycleCount] = uDef.id
 				end
@@ -2261,7 +2229,12 @@ end
 
 function widget:Initialize()
 	refreshUnitDefs()
-	units.loadBlocked()
+
+	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
+	for unitDefID, reasons in pairs(blockedUnitsData) do
+		units.unitRestricted[unitDefID] = next(reasons) ~= nil
+		units.unitHidden[unitDefID] = reasons.hidden ~= nil
+	end
 
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
@@ -2452,22 +2425,11 @@ function widget:Initialize()
 	end
 end
 
-function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
-	units.setBlocked(unitDefID, reasons, builderUnitDefID)
+function widget:UnitBlocked(unitDefID, reasons)
+	units.unitRestricted[unitDefID] = next(reasons) ~= nil
+	units.unitHidden[unitDefID] = reasons.hidden ~= nil
 	if not delayRefresh or delayRefresh < spGetGameSeconds() then
 		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
-	end
-end
-
-function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
-	local buildOptions = unitBuildOptions[builderUnitDefID]
-	if buildOptions then
-		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)
-		unitBuildOptionSet[builderUnitDefID][builtUnitDefID] = added or nil
-	end
-	if currentSelBuilderDefs[builderUnitDefID] then
-		cachedActiveCmdDescs = nil
-		doUpdate = true
 	end
 end
 
