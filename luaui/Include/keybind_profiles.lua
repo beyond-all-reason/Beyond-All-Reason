@@ -55,6 +55,8 @@ local store
 -- Set while reading a store written before profiles named a meta key, so the launch that
 -- upgrades one can still recognise the files that version wrote.
 local storePredatesMeta = false
+-- Set when another surface may have written the store since this one read it.
+local stale = false
 
 -- Shape a fresh store file takes.
 local function emptyStore()
@@ -578,14 +580,29 @@ local function migrate()
 	end
 end
 
+-- Marks the cached store for re-reading rather than dropping it. Each VFS.Include of this
+-- module runs it again and gets a store of its own, so a surface that did not make a change
+-- has no way of knowing another one did.
+function M.invalidate()
+	stale = true
+end
+
 -- Reads the store once, migrating an older layout on the way in.
 function M.load()
-	if store then
+	if store and not stale then
 		return store
 	end
+	stale = false
 
 	local content = VFS.LoadFile(PROFILES_PATH)
 	if not content then
+		-- Migration is for a player who has never had a store, not for one whose file went
+		-- missing mid-session: re-running it would snapshot the live keymap as a new profile
+		-- every time anything reloaded. What was already read stands until a read succeeds.
+		if store then
+			return store
+		end
+
 		migrate()
 		return store
 	end
