@@ -139,7 +139,8 @@ local function SpawnUnit(spawnData)
 				validSurface = true
 			else
 				local surface = spawnDef.surface
-				validSurface = (surface:find("LAND", 1, true) and y > minWaterDepth) or (surface:find("SEA", 1, true) and y <= 0)
+				validSurface = (surface:find("LAND", 1, true) and y >= minWaterDepth)
+					or (surface:find("SEA", 1, true) and y <= 0)
 				if validSurface and spawnData.y >= mathMax(y + 32, 32) then
 					unitDetonates = true
 				end
@@ -220,6 +221,7 @@ local function SpawnUnit(spawnData)
 			end
 
 			if unitDetonates then
+				Spring.Echo("Destroying the unit (or trying to?)")
 				spDestroyUnit(unitID, true, true)
 				return
 			end
