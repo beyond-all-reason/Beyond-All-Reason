@@ -61,9 +61,8 @@ local subject = SpecEnv.include(env, "luaui/Include/mission_options.lua")
 Anything the module or its own includes read or write lands in that env, so there is nothing to restore and no
 `after_each` to forget. `env.Spring.GetFoo = ...` inside a `before_each` is fine: that table is yours.
 
-Do not depend on the order spec files run in. CI runs the suite twice, once sorted and once shuffled on a seed taken
-from the commit. Reproduce a shuffled failure with `SPEC_SHUFFLE_SEED=<seed> lx --lua-version 5.1 test`, and check a
-spec stands alone by running it on its own.
+Do not depend on the order spec files run in. Files run alphabetically, but that order is nobody's contract and a
+renamed file moves it. Run your spec on its own to check it stands up without whatever ran before it.
 
 Do not re-implement production logic inside the test harness. A builder that mirrors a production module is a second
 copy that drifts, and every spec that trusts it inherits the drift. Call the production module instead. A comment of

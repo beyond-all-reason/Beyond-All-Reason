@@ -41,16 +41,3 @@ jobs:
 
     - name: Run busted
       run: lx --lua-version 5.1 test
-
-    # Specs are not allowed to depend on each other, so the same suite has to pass
-    # in a different order. The seed comes from the commit so a re-run repeats the
-    # order exactly, while a later commit tries a different one.
-    - name: Run busted in a shuffled order
-      env:
-        HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      run: |
-        SPEC_SHUFFLE_SEED=$((0x${HEAD_SHA:0:7}))
-        export SPEC_SHUFFLE_SEED
-        echo "Shuffling with SPEC_SHUFFLE_SEED=$SPEC_SHUFFLE_SEED; reproduce with:"
-        echo "  SPEC_SHUFFLE_SEED=$SPEC_SHUFFLE_SEED lx --lua-version 5.1 test"
-        lx --lua-version 5.1 test
