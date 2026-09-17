@@ -1,5 +1,6 @@
 local ModeDSL = VFS.Include("modules/transfer/mode_dsl.lua") ---@type TransferModeDSL
-local Mode, Transfer, Construction, Take = ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take
+local Mode, Transfer, Construction, Take, MexSplitting =
+	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.MexSplitting
 
 return Mode("Easy Tax")
 	.Desc(
@@ -16,3 +17,4 @@ return Mode("Easy Tax")
 	.Allow(Construction.Resurrect)
 	.Stun(Take)
 	.Delay(Take.Resource, 30)
+	.MexSplitting(MexSplitting.MapAssigned)

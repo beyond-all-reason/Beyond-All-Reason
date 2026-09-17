@@ -49,7 +49,7 @@ Each module owns one concern:
 | `transport` | Who may load and unload what, and how fast a loaded transport flies. The first module with real rules; the air transport rework builds on it. | defs |
 | `construction` | What may be built, and by whom: assist, reclaim, resurrect, build delay, geo and mex upgrades. | the runtime |
 | `economy` | How a shared pool is distributed. | the runtime |
-| `transfer` | What may pass between allied teams: units, resources, take, and the tax on what flows. | construction, economy |
+| `transfer` | What may pass between allied teams: units, resources, take, and the tax on what flows. Mex Splitting: the mex region type with its rule that every metal spot is covered, and Map Assigned's deal of those regions and the spots in them to the teams seated at each start, which no ally may build on. | construction, economy, regions, start |
 | `tech` | The keystones that raise a team's tier, and the tier as a fact construction and transfer read. Tech Core is its preset. | transfer, construction |
 | `combat` | Damage, targeting and protection as a lifetime. | proposed |
 | `placement` | Where a thing may legally stand, answered once. | proposed |

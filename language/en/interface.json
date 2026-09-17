@@ -2678,6 +2678,14 @@
 			"name": "Slow Commander Transport",
 			"desc": "T2 transports carrying a Commander, move at speed 120. A temporary option available, until bigger transport changes get finished."
 		},
+		"mex_splitting": {
+			"name": "Mex Splitting",
+			"desc": "None: whoever builds the mex takes the spot. Map Assigned: the map's metal regions are dealt to teams at start, nearest first and round robin, and a mex may only go down in a region its team holds; needs a region layout for the map, without one the game says so in chat and mexes stay unrestricted."
+		},
+		"mex_regions_layout": {
+			"name": "Mex Regions: Layout",
+			"desc": "The map's region layout as json, plain or base64url(zlib(json)). Overrides the layout the game or the map ships."
+		},
 		"tax_resource_sharing_amount": {
 			"name": "Resource Sharing Tax",
 			"desc": "Taxes resource sharing and overflow (engine TODO:)\nSet to [0] to turn off. Recommended: [0.4]."

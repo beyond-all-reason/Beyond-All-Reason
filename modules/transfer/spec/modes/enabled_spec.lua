@@ -2,6 +2,7 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ConstructionEnums = VFS.Include("modules/construction/enums.lua")
 local TransferEnums = VFS.Include("modules/transfer/enums.lua")
+local TransferEnums = VFS.Include("modules/transfer/enums.lua")
 local H = VFS.Include("modules/transfer/spec/support/mode_test_helpers.lua")
 
 local enabledMode = VFS.Include("modules/transfer/modes/enabled.lua")
@@ -119,6 +120,11 @@ describe("Enabled mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = {
+				value = TransferEnums.MexSplitting.None,
+				locked = true,
+				ui = "hidden",
+			},
 			[TransferEnums.ModOptions.UnitSharingMode] = {
 				value = ConstructionEnums.UnitFilterCategory.All,
 				locked = true,

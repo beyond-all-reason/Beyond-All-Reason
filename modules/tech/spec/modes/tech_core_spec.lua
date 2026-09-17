@@ -2,6 +2,7 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ConstructionEnums = VFS.Include("modules/construction/enums.lua")
 local TransferEnums = VFS.Include("modules/transfer/enums.lua")
+local TransferEnums = VFS.Include("modules/transfer/enums.lua")
 local H = VFS.Include("modules/transfer/spec/support/mode_test_helpers.lua")
 
 local techCoreMode = VFS.Include("modules/tech/modes/tech_core.lua")
@@ -477,6 +478,7 @@ describe("Tech Core mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = { value = TransferEnums.MexSplitting.Shared, locked = true },
 			[TransferEnums.ModOptions.TechBlocking] = { value = true, locked = true },
 			[TransferEnums.ModOptions.T2TechThreshold] = { value = 1, locked = false },
 			[TransferEnums.ModOptions.T3TechThreshold] = { value = 1.5, locked = false },

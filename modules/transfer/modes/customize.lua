@@ -1,6 +1,6 @@
 local ModeDSL = VFS.Include("modules/transfer/mode_dsl.lua") ---@type TransferModeDSL
-local Mode, Transfer, Construction, Take, Tech =
-	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.Tech
+local Mode, Transfer, Construction, Take, Tech, MexSplitting =
+	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.Tech, ModeDSL.MexSplitting
 local TechModule = VFS.Include("modules/tech/contract.lua") ---@type TechContract
 
 return Mode("Customize")
@@ -39,4 +39,6 @@ return Mode("Customize")
 	.Allow(Take)
 	.Unlocked()
 	.Delay(Take.Resource, 30)
+	.Unlocked()
+	.MexSplitting(MexSplitting.None)
 	.Unlocked()

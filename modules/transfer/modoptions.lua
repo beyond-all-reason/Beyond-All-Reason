@@ -1,5 +1,6 @@
 local ConstructionEnums = VFS.Include("modules/construction/enums.lua")
 local TransferEnums = VFS.Include("modules/transfer/enums.lua")
+local TransferEnums = VFS.Include("modules/transfer/enums.lua")
 local ModOptionHelpers = VFS.Include("modules/transfer/mode_helpers.lua")
 
 local unitSharingModeItems = ModOptionHelpers.unitSharingModeItems
@@ -191,6 +192,41 @@ return {
 		step = 0.01,
 	},
 
+	{
+		key = TransferEnums.ModOptions.MexSplitting,
+		name = "Mex Splitting",
+		desc = "None: whoever builds the mex takes the spot. Map Assigned: the map's mex regions are dealt to the teams at each start, nearest first and round by round; a mex may not go on a spot an ally holds, while your own and the enemy's are open. It needs a region layout for the map; without a usable one the game says so before the start and mexes stay unrestricted. Shared: every team's extraction pools and is split back evenly.",
+		type = "list",
+		section = TransferEnums.ModeCategories.Transfer,
+		def = TransferEnums.MexSplitting.None,
+		column = 1,
+		items = {
+			{
+				key = TransferEnums.MexSplitting.None,
+				name = "None",
+				desc = "Whoever builds the mex takes the spot",
+			},
+			{
+				key = TransferEnums.MexSplitting.MapAssigned,
+				name = "Map Assigned",
+				desc = "The map's mex regions are dealt to teams at start; no mexes on a spot an ally holds",
+			},
+			{
+				key = TransferEnums.MexSplitting.Shared,
+				name = "Shared",
+				desc = "Every team's extraction pools and is split back evenly",
+			},
+		},
+	},
+	{
+		key = TransferEnums.ModOptions.MexRegionsLayout,
+		name = "Mex Regions: Layout",
+		desc = "The map's region layout as json, plain or base64url(zlib(json)); the lobby sets it from maps-metadata. Overrides the layout the map ships.",
+		hidden = true,
+		type = "string",
+		section = TransferEnums.ModeCategories.Transfer,
+		def = "",
+	},
 	{
 		key = "sub_header",
 		name = "-- Takes",

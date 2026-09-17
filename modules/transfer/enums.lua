@@ -61,6 +61,21 @@ M.ModOptions = {
 	UnitSharingModeAtT3 = "unit_sharing_mode_at_t3",
 	UnitShareStunSeconds = "unit_share_stun_seconds",
 	UnitStunCategory = "unit_stun_category",
+	MexSplitting = "mex_splitting",
+	MexRegionsLayout = "mex_regions_layout",
+}
+
+---@alias MexSplittingKey "none"|"map_assigned"|"shared"
+---@class MexSplittingFields
+---@field None "none" whoever builds the mex takes the spot
+---@field MapAssigned "map_assigned" the map's mex regions are dealt to the teams at each start, and no mex goes on a spot an ally holds
+---@field Shared "shared" every team's extraction pools and is split back evenly
+
+---@type MexSplittingFields
+M.MexSplitting = {
+	None = "none",
+	MapAssigned = "map_assigned",
+	Shared = "shared",
 }
 
 ---@class StunDelayField

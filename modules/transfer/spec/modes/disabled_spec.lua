@@ -2,6 +2,7 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 local ConstructionEnums = VFS.Include("modules/construction/enums.lua")
 local TransferEnums = VFS.Include("modules/transfer/enums.lua")
+local TransferEnums = VFS.Include("modules/transfer/enums.lua")
 local H = VFS.Include("modules/transfer/spec/support/mode_test_helpers.lua")
 
 local noSharingMode = VFS.Include("modules/transfer/modes/disabled.lua")
@@ -72,6 +73,10 @@ describe("Transfer Disabled mode #policy", function()
 	describe("policy bundle", function()
 		it("serializes to the exact modOptions the literal preset declared", function()
 			assert.same({
+				[TransferEnums.ModOptions.MexSplitting] = {
+					value = TransferEnums.MexSplitting.MapAssigned,
+					locked = true,
+				},
 				[TransferEnums.ModOptions.UnitSharingMode] = {
 					value = ConstructionEnums.UnitFilterCategory.None,
 					locked = true,
