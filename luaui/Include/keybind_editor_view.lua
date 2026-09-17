@@ -737,6 +737,7 @@ local function buildResolvedCatalog()
 						label = item.label,
 						unit = item.unit,
 						members = item.members,
+						membersFrom = item.membersFrom,
 						description = describe(item),
 						icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or nil,
 					}
@@ -1139,12 +1140,34 @@ local function rebuildRows()
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
+				-- A family whose members are the player's is named a source rather than listed,
+				-- and read here rather than with the rest of the catalog, so a profile made a
+				-- moment ago gets its row without waiting for a refresh.
+				local members = item.members
+				if item.membersFrom == "profiles" then
+					-- Switching to the one already on is a key that can only do nothing, so it is
+					-- not offered. One already bound is still found from the keymap below, which
+					-- is what leaves a stale self-binding somewhere to remove it.
+					local active = profiles.activeName()
+					members = {}
+					for _, builtin in ipairs(profiles.builtins) do
+						if builtin.name ~= active then
+							members[#members + 1] = builtin.name
+						end
+					end
+					for _, own in ipairs(profiles.list()) do
+						if own ~= active then
+							members[#members + 1] = own
+						end
+					end
+				end
+
 				-- A declared member is a row whether or not it is bound, so unbinding the last
 				-- key of "group select 3" leaves the row there to bind again. Families the
 				-- catalog cannot enumerate (buildunit_ is per unit) list no members and are
 				-- still discovered from what is bound.
 				local matched = {}
-				for _, member in ipairs(item.members or {}) do
+				for _, member in ipairs(members or {}) do
 					local action = item.prefix .. member
 					-- Skipped when an explicit entry already covers it, or a family whose
 					-- members are also listed individually renders each of them twice.
@@ -1843,13 +1866,20 @@ end
 -- Makes a profile the live one, leaving its stored binds alone. Answers whether it took.
 -- A keymap that never reached disk must not clear the staged flag: the reload below would
 -- load whatever file is still there and the player would watch their edits revert.
-local function selectProfile(name, fromName)
+-- offPanel marks a caller the player is not looking at, a bound key with the editor
+-- closed, where a modal would sit unseen and then surface attributed to whatever they did
+-- next; that failure goes to the console instead.
+local function selectProfile(name, fromName, offPanel)
 	if not profiles.materialize(name) then
-		openDialog({
-			title = L.applyFailedTitle,
-			message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
-			accept = function() end,
-		})
+		if offPanel then
+			Spring.Echo("Keybind profile: could not apply " .. name)
+		else
+			openDialog({
+				title = L.applyFailedTitle,
+				message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
+				accept = function() end,
+			})
+		end
 
 		return false
 	end
@@ -2055,13 +2085,51 @@ end
 -- middle button deletes. Deleting asks again, since it cannot be undone.
 local function startEdit()
 	local name = profiles.activeName()
+
+	-- One keymap's binds and its index by action, with the switch to one profile pointed at
+	-- another. The staged keymap and everything undo can put back move with the rename too,
+	-- or a save writes back a key that switches to a profile no longer there.
+	local function retargetSwitch(set, from, to)
+		local keysets = set and set.byAction[from]
+		if not keysets then
+			return
+		end
+
+		for _, bind in ipairs(set.binds) do
+			if bind.action == from then
+				bind.action = to
+			end
+		end
+		set.byAction[from] = nil
+		set.byAction[to] = keysets
+	end
+
 	openDialog({
 		title = L.editTitle,
 		initial = name,
 		allow = name,
 		accept = function(newName)
-			profiles.rename(name, newName)
-			refreshPicker()
+			-- The store renumbers a name already taken, so follow what it settled on.
+			local from = profiles.switchAction(name)
+			local settled = profiles.rename(name, newName)
+			local to = profiles.switchAction(settled)
+			retargetSwitch(working, from, to)
+			retargetSwitch(state.snapshot, from, to)
+			for _, snap in ipairs(state.undo) do
+				retargetSwitch(snap, from, to)
+			end
+
+			-- The rename moved the store's copy of the binding, so the file has to be written
+			-- again or the next launch finds a keymap matching no profile and adopts it as a
+			-- separate one. Reloading it is the part staged edits cannot take, so with edits
+			-- pending only the file is written and the engine catches up on Save.
+			if dirty then
+				profiles.materialize(settled)
+				refreshPicker()
+				rebuildRows()
+			else
+				selectProfile(settled, nil)
+			end
 		end,
 		middle = {
 			label = L.delete,
@@ -2475,6 +2543,31 @@ end
 function view.setOwner(w)
 	shade.owner = w
 end
+-- Host hook for the bindable per-profile actions. Answers whether the profile was there to
+-- switch to, so a key naming one the player has since deleted falls through to whatever else
+-- is on it rather than being swallowed.
+function view.applyProfile(name)
+	if not name or not (profiles.get(name) or profiles.isBuiltin(name)) then
+		return false
+	end
+
+	local from = profiles.activeName()
+	if name == from then
+		return true
+	end
+
+	-- Switching drops whatever is staged. Every other way of doing that asks first, and this
+	-- one can arrive from the console or another widget while the panel is open, so it
+	-- declines rather than discarding edits the player never answered for.
+	if dirty then
+		Spring.Echo("Keybind profile: save or discard your keybind changes before switching to " .. name)
+
+		return false
+	end
+
+	return selectProfile(name, from, true)
+end
+
 -- Host hook for swapping the build menu when a profile implies one.
 function view.setMenuToggle(fn)
 	menuToggle = fn

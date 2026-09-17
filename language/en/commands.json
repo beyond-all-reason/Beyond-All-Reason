@@ -255,6 +255,10 @@
 		},
 		"spectating": {
 			"spectate": "Spectate team %{n}"
+		},
+		"keybindProfiles": {
+			"activate": "Switch to %{n}",
+			"activateDescription": "Loads this keybind profile, replacing every key you have bound."
 		}
 	},
 	"categories": {
