@@ -275,14 +275,12 @@ end
 -- Mouse / world position
 -------------------------------------------------------------------------------
 
--- Resolve the mouse cursor to a world (x, z). Reads the PIP minimap (via the
--- WG API), then the standard engine minimap geometry, then falls back to a
--- screen ray into the 3D world. Both minimap paths account for minimap
--- rotation.
+-- Resolve a screen position over a minimap to a world (x, z). Reads the PIP minimap (via the WG API), then the standard engine minimap geometry. 
+-- Both account for minimap rotation. Returns nil when (mx, my) is over neither.
+---@param mx number Screen x.
+---@param my number Screen y.
 ---@return number? wx, number? wz
-local function getMouseWorldPos()
-	local mx, my = spGetMouseState()
-
+local function getMinimapWorldPos(mx, my)
 	-- PIP minimap: when active, the engine minimap is hidden/minimized so
 	-- spGetMiniMapGeometry() returns stale data. Use the WG API instead.
 	local wgMinimap = WG and WG["minimap"]
@@ -339,6 +337,19 @@ local function getMouseWorldPos()
 		end
 	end
 
+	return nil
+end
+
+-- Resolve the mouse cursor to a world (x, z)
+---@return number? wx, number? wz
+local function getMouseWorldPos()
+	local mx, my = spGetMouseState()
+
+	local mmWx, mmWz = getMinimapWorldPos(mx, my)
+	if mmWx then
+		return mmWx, mmWz
+	end
+
 	-- Normal path: trace screen ray into the 3D world.
 	local _, coords = spTraceScreenRay(mx, my, true)
 	if not coords then
@@ -373,6 +384,7 @@ return {
 	poolFullySelected = poolFullySelected,
 	resolveTargetCount = resolveTargetCount,
 	pickUnits = pickUnits,
+	getMinimapWorldPos = getMinimapWorldPos,
 	getMouseWorldPos = getMouseWorldPos,
 	addExcludedNames = addExcludedNames,
 }
