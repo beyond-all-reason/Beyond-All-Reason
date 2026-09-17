@@ -393,10 +393,33 @@
 				"composition": "Composition",
 				"compositionDesc": "The team's unit value split by kind over the game, as shares of the whole.",
 				"foldHint": "Click to fold this team's players away, and again to show them.",
-				"legendHint": "Click to highlight this team and show its milestones; right-click to hide it.",
-				"blockHint": "The players of this ally team; each square is one of them.",
 				"all": "All",
-				"allHint": "Every team alike, with all their milestones on the chart.",
+				"allHint": "Clears the selection and shows hidden teams again, so every team is drawn alike.",
+				"allMilestones": "Every team's milestones go on the chart.",
+				"teams": "%{count} teams",
+				"players": "%{count} players",
+				"state": {
+					"hidden": "Hidden: left off the chart.",
+					"lit": "Selected: drawn in front at full strength, the others faded.",
+					"only": "Selected: on the chart.",
+					"counted": "Selected: counted in the composition.",
+					"some": "Some of its players are selected.",
+					"faded": "Not selected: faded behind the selected.",
+					"left": "Not selected: left off while others are selected.",
+					"notCounted": "Not selected: left out of the composition.",
+					"alike": "Nothing is selected: every team is drawn alike.",
+					"allCounted": "Nothing is selected: every team is counted in the composition.",
+					"milestones": "Its milestones are on the chart.",
+					"milestonesGroup": "Their milestones are on the chart."
+				},
+				"control": {
+					"click": "Click: select or deselect",
+					"clickGroup": "Click: select or deselect all its players",
+					"ctrlClick": "Ctrl+click: select only this one",
+					"ctrlClickGroup": "Ctrl+click: select only its players",
+					"rightClick": "Right-click: hide or show",
+					"rightClickGroup": "Right-click: hide or show all its players"
+				},
 				"waiting": "The first samples arrive after 15 seconds.",
 				"noData": "Nothing to plot for this stat yet."
 			},
@@ -430,7 +453,9 @@
 				"bars": "Bars",
 				"barsDesc": "A bar behind every number, scaled to the largest in its column.",
 				"milestones": "Milestones",
-				"milestonesDesc": "The highlighted team's milestones as unit pictures on the chart, every team's when none is highlighted; hover one for what it was."
+				"milestonesDesc": "Milestones as unit pictures on the chart, framed in their player's colour: the selected teams', every team's when none is selected. Hover one for whose it was and what.",
+				"selectedOnly": "Selected only",
+				"selectedOnlyDesc": "Only the teams selected in the bar above the chart are drawn. Off, every team is drawn and the selected ones stand out in front."
 			},
 			"damage": "Damage",
 			"damageDealt": "Dealt",
