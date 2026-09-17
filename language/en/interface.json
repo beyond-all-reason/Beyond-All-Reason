@@ -274,7 +274,7 @@
 				"conflictCapture": "Also bound to: %{actions}",
 				"defaultIn": "Default in %{name}: %{keys}",
 				"defaultNone": "Not bound in %{name}",
-				"revertHint": "Click to put the default keybind back.",
+				"revertTooltip": "Reset keybind back to %{keys}",
 				"revertNone": "none",
 				"revertChip": "default: %{keys}",
 				"presetDefault": "A default preset. It cannot be changed; editing it saves a new preset of your own.",

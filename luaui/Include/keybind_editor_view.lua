@@ -862,7 +862,6 @@ local function buildResolvedCatalog()
 	L.compareNoneHint = BAR.I18N("ui.keybinds.editor.compareNoneHint")
 	L.conflictOrder = BAR.I18N("ui.keybinds.editor.conflictOrder")
 	L.conflictShipped = BAR.I18N("ui.keybinds.editor.conflictShipped")
-	L.revertHint = BAR.I18N("ui.keybinds.editor.revertHint")
 	L.revertNone = BAR.I18N("ui.keybinds.editor.revertNone")
 	L.presetDefault = BAR.I18N("ui.keybinds.editor.presetDefault")
 	L.presetOwn = BAR.I18N("ui.keybinds.editor.presetOwn")
@@ -3213,6 +3212,8 @@ local function rowLayout(row)
 				end
 			end
 			local keys = #shown > 0 and table.concat(shown, ", ") or L.revertNone
+			-- Kept whole for the chip's own tooltip, which has room the chip itself does not.
+			lay.ghostKeysFull = keys
 			lay.ghostFs = floor(metrics.rowFs * 0.9)
 			keys = text.fit(font, keys, floor((listRight - metrics.keyAreaX1) * 0.3), lay.ghostFs)
 			lay.ghostKeys = keys
@@ -4635,35 +4636,46 @@ function state.showTooltips(mx, my)
 			key = "row|" .. row.action .. "|" .. hover.zone .. "|" .. hover.idx .. "|" .. rowsGen .. "|" .. layoutGen
 			title = row.label
 			if key ~= state.tipKey then
-				lines = {}
-				if row.description then
-					lines[#lines + 1] = colorText .. row.description
-				end
 				local lay = rowLayout(row)
-				local m = hover.idx > 0 and lay.mets[hover.idx]
-				if m and m.others then
-					local names = {}
-					for i, o in ipairs(m.others) do
-						local name = state.labels[o.action] or o.action
-						names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name }) or name
+				lines = {}
+				-- The chip is a control of its own, so it says what clicking it does and nothing
+				-- else. Leading with the row, which describes something the click does not do,
+				-- buries the one line that belongs to what is under the cursor.
+				if hover.zone == "revert" and row.change and state.base then
+					title = nil
+					lines[1] = colorText .. BAR.I18N("ui.keybinds.editor.revertTooltip", { keys = lay.ghostKeysFull })
+				else
+					if row.description then
+						lines[#lines + 1] = colorText .. row.description
 					end
-					-- A warning when the sharing is the player's; a note when the game ships it so.
-					lines[#lines + 1] = (m.clash and colorDanger or colorDim)
-						.. BAR.I18N(
-							"ui.keybinds.editor.conflict",
-							{ keys = m.group.display, actions = table.concat(names, ", ") }
-						)
-					lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
-				end
-				if row.change and state.base then
-					if #row.change > 0 then
-						lines[#lines + 1] = colorHeader
-							.. BAR.I18N("ui.keybinds.editor.defaultIn", { name = state.base.name, keys = lay.ghostKeys })
-					else
-						lines[#lines + 1] = colorHeader
-							.. BAR.I18N("ui.keybinds.editor.defaultNone", { name = state.base.name })
+					local m = hover.idx > 0 and lay.mets[hover.idx]
+					if m and m.others then
+						local names = {}
+						for i, o in ipairs(m.others) do
+							local name = state.labels[o.action] or o.action
+							names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name })
+								or name
+						end
+						-- A warning when the sharing is the player's; a note when the game ships it so.
+						lines[#lines + 1] = (m.clash and colorDanger or colorDim)
+							.. BAR.I18N(
+								"ui.keybinds.editor.conflict",
+								{ keys = m.group.display, actions = table.concat(names, ", ") }
+							)
+						lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
 					end
-					lines[#lines + 1] = colorDim .. L.revertHint
+					if row.change and state.base then
+						if #row.change > 0 then
+							lines[#lines + 1] = colorHeader
+								.. BAR.I18N(
+									"ui.keybinds.editor.defaultIn",
+									{ name = state.base.name, keys = lay.ghostKeys }
+								)
+						else
+							lines[#lines + 1] = colorHeader
+								.. BAR.I18N("ui.keybinds.editor.defaultNone", { name = state.base.name })
+						end
+					end
 				end
 			end
 		end
