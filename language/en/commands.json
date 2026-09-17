@@ -230,6 +230,7 @@
 		"interfaceDisplay": {
 			"settings": "Settings",
 			"unitStats": "Unit stats",
+			"gameInfo": "Game info",
 			"saveGame": "Save game",
 			"screenshot": "Take screenshot",
 			"firingRange": "Display firing range",

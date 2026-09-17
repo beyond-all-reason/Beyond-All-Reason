@@ -727,6 +727,10 @@
 				"label": "actions.interfaceDisplay.unitStats"
 			},
 			{
+				"action": "customgameinfo",
+				"label": "actions.interfaceDisplay.gameInfo"
+			},
+			{
 				"action": "savegame",
 				"label": "actions.interfaceDisplay.saveGame"
 			},
