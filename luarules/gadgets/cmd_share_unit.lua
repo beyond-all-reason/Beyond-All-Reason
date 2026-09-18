@@ -40,8 +40,9 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	local teamHasAllies = {}
-	for _, teamID in ipairs(Spring.GetTeamList()) do
-		for _, otherTeamID in ipairs(Spring.GetTeamList(Spring.GetTeamAllyTeamID(teamID))) do
+	for _, teamID in ipairs(Spring.GetTeamList() or {}) do
+		local allyTeamID = Spring.GetTeamAllyTeamID(teamID)
+		for _, otherTeamID in ipairs((allyTeamID and Spring.GetTeamList(allyTeamID)) or {}) do
 			if otherTeamID ~= teamID and otherTeamID ~= gaiaTeamID then
 				teamHasAllies[teamID] = true
 				break
@@ -101,8 +102,11 @@ if gadgetHandler:IsSyncedCode() then
 		-- that team even if its units have moved away by the time the command runs
 		local x, y, z, targetTeamID
 		if paramCount == 1 then
-			x, y, z = spGetUnitPosition(cmdParams[1])
-			targetTeamID = spGetUnitTeam(cmdParams[1])
+			local targetUnitID = cmdParams[1]
+			if targetUnitID then
+				x, y, z = spGetUnitPosition(targetUnitID)
+				targetTeamID = spGetUnitTeam(targetUnitID)
+			end
 		elseif paramCount == 3 then
 			x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
 			targetTeamID = findTeamInArea(teamID, x, z)
@@ -149,10 +153,14 @@ if gadgetHandler:IsSyncedCode() then
 		pendingTransfers[unitID] = nil
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, teamID)
+	local function insertShareCmdDesc(unitID, teamID)
 		if teamHasAllies[teamID] then
 			spInsertUnitCmdDesc(unitID, shareUnitCmdDesc)
 		end
+	end
+
+	function gadget:UnitCreated(unitID, unitDefID, teamID)
+		insertShareCmdDesc(unitID, teamID)
 	end
 
 	function gadget:Initialize()
@@ -161,7 +169,7 @@ if gadgetHandler:IsSyncedCode() then
 		local allUnits = Spring.GetAllUnits()
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
-			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), spGetUnitTeam(unitID))
+			insertShareCmdDesc(unitID, spGetUnitTeam(unitID))
 		end
 	end
 else -- UNSYNCED

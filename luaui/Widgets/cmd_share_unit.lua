@@ -327,7 +327,7 @@ local function getCommandPosition(cmd)
 	elseif paramCount == 1 then
 		local targetID = params[1]
 		if targetID >= maxUnits then
-			return GetFeaturePosition(targetID - maxUnits)
+			return GetFeaturePosition(floor(targetID - maxUnits))
 		elseif ValidUnitID(targetID) then
 			return GetUnitPosition(targetID)
 		end
@@ -343,12 +343,10 @@ local function refreshShareQueues()
 		local unitID = selectedUnits[i]
 		-- for factories this is the queue given to the units they build
 		local commands = GetUnitCommands(unitID, -1)
-		if commands then
-			for j = 1, #commands do
-				if commands[j].id == cmdQuickShareToTargetId then
-					shareQueues[unitID] = commands
-					break
-				end
+		for j = 1, #commands do
+			if commands[j].id == cmdQuickShareToTargetId then
+				shareQueues[unitID] = commands
+				break
 			end
 		end
 	end
@@ -372,7 +370,7 @@ local function drawShareQueueLines()
 				local targetTeamID = cmd.params[4]
 				if cmd.id == cmdQuickShareToTargetId and targetTeamID and px then
 					local r, g, b = GetTeamColor(targetTeamID)
-					glColor(r, g, b, queueLineAlpha)
+					glColor(r or 1, g or 1, b or 1, queueLineAlpha)
 					glBeginEnd(GL_LINES, lineVertices, px, py, pz, x, y, z)
 				end
 				px, py, pz = x, y, z
