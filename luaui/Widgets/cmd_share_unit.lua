@@ -25,9 +25,9 @@ local mouseDistance = 1000
 local range = 200
 
 -- queued share orders are drawn here in the target team's color, the engine line is made invisible
-local queueLineWidth = 2
-local queueLineAlpha = 0.75
-local queueMarkerRadius = 14
+-- same look as the engine's queue lines: queuedLineWidth from cmdcolors, alpha from gui_commands_fx
+local queueLineWidth = 1.49
+local queueLineAlpha = 0.5
 local queueRefreshInterval = 0.1
 local queueRefreshTimer = queueRefreshInterval
 local shareQueues = {} -- unitID -> command queue, for selected units that have a share order queued
@@ -69,6 +69,8 @@ local glPushMatrix = gl.PushMatrix
 local glScale = gl.Scale
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
+local glLineStipple = gl.LineStipple
+local glDepthTest = gl.DepthTest
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_LINES = GL.LINES
 
@@ -359,7 +361,9 @@ local function lineVertices(x1, y1, z1, x2, y2, z2)
 end
 
 local function drawShareQueueLines()
+	glDepthTest(false)
 	glLineWidth(queueLineWidth)
+	glLineStipple("springdefault") -- the engine's animated queue line dashes
 	for unitID, commands in pairs(shareQueues) do
 		local px, py, pz = GetUnitPosition(unitID)
 		for i = 1, #commands do
@@ -371,14 +375,15 @@ local function drawShareQueueLines()
 					local r, g, b = GetTeamColor(targetTeamID)
 					glColor(r, g, b, queueLineAlpha)
 					glBeginEnd(GL_LINES, lineVertices, px, py, pz, x, y, z)
-					drawCircle(x, y, z, queueMarkerRadius)
 				end
 				px, py, pz = x, y, z
 			end
 		end
 	end
+	glLineStipple(false)
 	glColor(1, 1, 1, 1)
 	glLineWidth(1)
+	glDepthTest(true)
 end
 
 function widget:Update(dt)

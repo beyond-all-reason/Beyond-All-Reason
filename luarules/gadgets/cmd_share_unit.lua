@@ -12,7 +12,6 @@ function gadget:GetInfo()
 	}
 end
 
--- UI/target preview lives in luaui/Widgets/cmd_share_unit.lua
 local CMD_SHARE_UNIT = GameCMD.SHARE_UNIT
 
 if gadgetHandler:IsSyncedCode() then
@@ -141,7 +140,6 @@ if gadgetHandler:IsSyncedCode() then
 			if spValidUnitID(unitID) then
 				-- lets widgets tell these shares apart, e.g. gui_chat doesn't announce them
 				spSetUnitRulesParam(unitID, "shareCommandFrame", frame, alliedAccess)
-				-- given, not captured, so AllowUnitTransfer sharing restrictions apply
 				spTransferUnit(unitID, targetTeamID, true)
 			end
 		end
@@ -168,7 +166,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else -- UNSYNCED
 	function gadget:Initialize()
-		-- no area circle: the 4th param is the target team, not a radius
 		Spring.SetCustomCommandDrawData(CMD_SHARE_UNIT, "settarget", { 0.88, 0.88, 0.88, 0.8 }, false)
 	end
 end
