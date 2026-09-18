@@ -144,6 +144,9 @@ function gadget:UnitCreated(unitID, unitDefID)
 		if modelColVol[9] == nil then
 			-- The def does not give the primary axis, so the first unit of the def does.
 			modelColVol[9] = select(9, spGetUnitCollisionData(unitID))
+			if not modelColVol[9] then
+				return -- Cannot be nil, the engine will error, taking down the callin.
+			end
 		end
 		setUnitVolume(unitID, modelColVol)
 		if modelColVol.radius then
