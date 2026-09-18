@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Share Unit Command",
-		desc = "Draws the target preview for the Share Unit command (see luarules/gadgets/cmd_share_unit.lua). Target the command on any allied unit to share to this player. The command can be queued, and given to factories so built units share on rally",
+		desc = "Draws the target preview for the Share Unit command (see luarules/gadgets/cmd_share_unit.lua). Target the command on any allied unit to share to its owning player.",
 		author = "SuperKitowiec",
 		date = "2024",
 		license = "GNU GPL, v2 or later",
@@ -24,8 +24,7 @@ local secondPart = 0
 local mouseDistance = 1000
 local range = 200
 
--- queued share orders are drawn here in the target team's color, the engine line is made invisible
--- same look as the engine's queue lines: queuedLineWidth from cmdcolors, alpha from gui_commands_fx
+-- queued share orders are drawn here in the target team's color, the engine line is hidden
 local queueLineWidth = 1.49
 local queueLineAlpha = 0.5
 local queueRefreshInterval = 0.1
