@@ -329,6 +329,39 @@ describe("MissionApiBuilder", function()
             assert.are.equal(0, #api.calls.changeStage)
         end)
 
+        it("refills the tables a module captured instead of replacing them", function()
+            -- The mission_api modules hold GG's tables as upvalues at load, so an install has to
+            -- put the new mission inside the tables they already have.
+            local first = Builders.MissionApi.new():WithTrackedUnit('bots', 1):Install()
+            local trackedUnitIDs = first.trackedUnitIDs
+            local tracking = first.Modules.Tracking
+
+            local second = Builders.MissionApi.new():WithTrackedUnit('scouts', 2):Install()
+
+            assert.are.equal(trackedUnitIDs, second.trackedUnitIDs)
+            assert.are.equal(tracking, second.Modules.Tracking)
+            assert.is_nil(trackedUnitIDs['bots'])
+            assert.is_true(trackedUnitIDs['scouts'][2])
+        end)
+
+        it("leaves the module stubs writing where a captured table reads", function()
+            local trackedUnitIDs = Builders.MissionApi.new():Install().trackedUnitIDs
+            local api = Builders.MissionApi.new():Install()
+
+            api.Modules.Tracking.TrackUnit('bots', 3)
+
+            assert.is_true(trackedUnitIDs['bots'][3])
+        end)
+
+        it("includes the real modules once the mock stands, and keeps them", function()
+            local first = Builders.MissionApi.new():Install()
+            local unitQuery = first.Modules.UnitQuery
+            local second = Builders.MissionApi.new():Install()
+
+            assert.is_function(unitQuery.MatchingUnits)
+            assert.are.equal(unitQuery, second.Modules.UnitQuery)
+        end)
+
         it("bootstraps GG['MissionAPI'] when the module is included", function()
             -- The builder installs a default on first include, so action files
             -- can read Modules.ParameterTypes.Types at load time.
