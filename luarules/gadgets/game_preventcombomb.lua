@@ -30,7 +30,6 @@ local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
 local GetGameFrame = Spring.GetGameFrame
 local GetUnitTeam = Spring.GetUnitTeam
 
-
 local fallingDamageTypes = {
 	[Game.envDamageTypes.GroundCollision] = true,
 	[Game.envDamageTypes.Debris] = true,
