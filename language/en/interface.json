@@ -239,6 +239,8 @@
 			"title": "Keybinds",
 			"editor": {
 				"allCategories": "All",
+				"addBind": "Add a custom keybind...",
+				"addBindTitle": "Bind command",
 				"search": "Search actions or keys...",
 				"boundTo": "Bound to %{keys}",
 				"boundToAny": "Also fires on these keys with any modifier held",
