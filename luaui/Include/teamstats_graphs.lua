@@ -12,6 +12,9 @@
 -- group picked in the sidebar). See gui_teamstats.lua for the fields.
 
 local Graph = VFS.Include("luaui/Include/graph.lua")
+local Custom = VFS.Include("luaui/Include/teamstats_custom.lua")
+local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
+local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
 
 local mathFloor = math.floor
 local mathMax = math.max
@@ -66,11 +69,12 @@ local PROFILE_AXES = {
 	{ key = "actionsPerMinute", gadget = true },
 }
 
--- The legend bar's looks: a block is a button, the picked one lit and framed warm. The
--- chart of the grid under the cursor is framed the same way, more faintly.
+-- The legend bar's looks: a block is a button, the picked one lit and framed warm; the
+-- squares under the cursor are framed white, over a pick's frame, so a press's target
+-- stands out whatever state it is in.
 local PLATE = { 1, 1, 1, 0.05 }
 local PICKED_FRAME = { 1, 0.78, 0.51, 0.85 }
-local HOVER_FRAME = { 1, 0.78, 0.51, 0.5 }
+local HOVER_FRAME = { 1, 1, 1, 0.85 }
 local HOVER_FADE = { 1, 0.78, 0.51, 0 }
 
 -- A percentage for an axis or a tooltip: whole, a prefix past a million, infinity as
@@ -97,9 +101,10 @@ function M.new(ctx)
 		-- Units right-clicked off the chart, by key.
 		---@type table<string, boolean>
 		hidden = {},
-		-- The units picked in the legend bar, by key; none is every team alike. They stand
-		-- out on the chart, or with Hide unselected on they are all it shows. Starts on the
-		-- viewer's own team, when they have one.
+		-- The players picked in the legend bar, by "team<id>" key, however it groups them;
+		-- none is every team alike. They stand out on the chart, or with Hide unselected on
+		-- they are all it shows. Starts on the viewer's own team, when they have one and
+		-- Hide unselected is off.
 		---@type table<string, boolean>
 		selected = {},
 		selectionSet = false,
@@ -115,7 +120,18 @@ function M.new(ctx)
 		-- a table of ally teams are different questions, and picking a single player on the
 		-- chart should not flatten the table.
 		grouped = true,
-		hover = { stat = 0, legend = 0, block = 0, kind = 0, filter = 0 },
+		hover = { stat = 0, legend = 0, block = 0, kind = 0, filter = 0, addTo = 0 },
+		-- A card of actions over everything, taking the next press: what a custom category,
+		-- a custom graph or the Add to... button offers.
+		---@type table?
+		menu = nil,
+		-- A category being named, in a field over its sidebar entry.
+		---@type table?
+		naming = nil,
+		-- A press on a graph of the player's own, until it is let go: { key, graph, x, y,
+		-- moving } - a click opens the graph, a drag moves it.
+		---@type table?
+		drag = nil,
 		-- Per team: the engine's history entries taken at the period, derived, and how
 		-- many of the engine's list they are; the live newest entry is left out so the
 		-- chart changes once a period, not every second.
@@ -136,6 +152,10 @@ function M.new(ctx)
 		dirty = true,
 		---@type table[]
 		statList = {},
+		-- The stat list's entries by key: a custom category's graph is listed under a key of
+		-- its own, with the stat it shows and the settings it keeps.
+		---@type table<string, table>
+		entryByKey = {},
 		---@type table[]
 		units = {},
 		---@type table<string, table>
@@ -184,6 +204,9 @@ function M.new(ctx)
 		scale = 1,
 	}
 
+	-- The player's own categories, kept at the front of the panel's groups.
+	page.custom = Custom.new(ctx)
+
 	local chart = Graph.new({
 		kind = "line",
 		legend = false,
@@ -194,9 +217,112 @@ function M.new(ctx)
 	})
 	page.chart = chart
 
-	-- Ally teams as the units, in a game where a side has more than one player to group.
+	-- The custom category's graph open on its own, if one is: its settings are the page's
+	-- while it is.
+	function page.openGraph()
+		local entry = page.zoom and page.entryByKey[page.zoom]
+		return entry and entry.graph or nil
+	end
+
+	-- Ally teams as the units of the legend bar, in a game where a side has more than one
+	-- player to group: the switch's grouping, or the open custom graph's own.
 	local function grouped()
-		return page.grouped and not ctx.soloTeams
+		local graph = page.openGraph()
+		local on = page.grouped
+		if graph then
+			on = graph.grouped
+		end
+		return on and not ctx.soloTeams
+	end
+
+	-- The settings a chart is drawn with: a custom category's graph keeps its own, every
+	-- other chart takes the switches'.
+	local function settingsOf(key)
+		local entry = key and page.entryByKey[key]
+		if entry and entry.graph then
+			return entry.graph
+		end
+		return {
+			grouped = page.grouped,
+			share = ctx.filters.shareOfTotal,
+			milestones = ctx.filters.milestones,
+			off = page.milestoneOff,
+		}
+	end
+
+	-- The stat a chart shows, whatever its entry is called.
+	local function statOf(key)
+		local entry = key and page.entryByKey[key]
+		return entry and entry.stat or key
+	end
+
+	-- The kinds of milestone left off the chart being set: the open custom graph's own, the
+	-- page's otherwise.
+	local function kindsOff()
+		local graph = page.openGraph()
+		return graph and graph.off or page.milestoneOff
+	end
+
+	-- Picks and hides are kept per player - "team<id>" - whichever way the bar groups them,
+	-- so a graph drawn per player keeps a pick of one player through a page grouped by
+	-- ally team, and back. A whole ally team's key is still read: "ally<id>" is all of its
+	-- players.
+	local function teamIn(set, team)
+		return set["team" .. team.id] == true or set["ally" .. team.allyID] == true
+	end
+
+	-- Whether a unit is picked or hidden, whichever way it is grouped: a player goes with
+	-- its own key or its ally team's; an ally team is picked with any of its players and
+	-- hidden with all of them.
+	local function isPicked(u)
+		for _, team in ipairs(u.teams) do
+			if teamIn(page.selected, team) then
+				return true
+			end
+		end
+		return false
+	end
+
+	local function isHidden(u)
+		for _, team in ipairs(u.teams) do
+			if not teamIn(page.hidden, team) then
+				return false
+			end
+		end
+		return #u.teams > 0
+	end
+
+	-- Every player of a unit picked: what makes a press on it take the pick back out.
+	local function allPicked(u)
+		for _, team in ipairs(u.teams) do
+			if not teamIn(page.selected, team) then
+				return false
+			end
+		end
+		return #u.teams > 0
+	end
+
+	-- Picks or unpicks - hides or shows - every player a unit stands for. A whole ally
+	-- team's key is taken apart into its players first, so one of them can go on its own.
+	local function setTeams(set, u, on)
+		for _, team in ipairs(u.teams) do
+			local allyKey = "ally" .. team.allyID
+			if set[allyKey] then
+				set[allyKey] = nil
+				local ally = page.unitByKey and page.unitByKey[allyKey]
+				for _, id in ipairs(ally and ally.members or {}) do
+					set["team" .. id] = true
+				end
+			end
+			set["team" .. team.id] = on or nil
+		end
+	end
+	page.isPicked, page.isHidden, page.allPicked = isPicked, isHidden, allPicked
+
+	-- The units a chart of these settings is drawn with: ally teams or players.
+	local function unitsFor(settings)
+		local list = (settings.grouped and not ctx.soloTeams) and page.allyUnits or page.playerUnits
+		return list or page.units
 	end
 
 	-- The Group by team switch while the page is open, from the panel.
@@ -227,9 +353,10 @@ function M.new(ctx)
 			return page.perPage
 		end
 		local kinds = milestoneKinds()
+		local off = kindsOff()
 		local on = 0
 		for _, kind in ipairs(kinds) do
-			if not page.milestoneOff[kind] then
+			if not off[kind] then
 				on = on + 1
 			end
 		end
@@ -275,23 +402,48 @@ function M.new(ctx)
 			list[#list + 1] = { key = "overview", label = ctx.i18n("ui.teamStats.graph.overview"), back = true }
 			list[#list + 1] = { divider = true }
 		end
-		if group.key == "composition" and ctx.gadgetOn() then
-			list[#list + 1] = { key = "composition", label = ctx.i18n("ui.teamStats.graph.composition") }
-		elseif group.key == "all" then
-			-- Every team's shape at a glance, and when things happened to them, before the
-			-- stats they are made of.
-			list[#list + 1] = { key = "profile", label = ctx.i18n("ui.teamStats.graph.profile") }
-			if ctx.gadgetOn() then
-				list[#list + 1] = { key = "timeline", label = ctx.i18n("ui.teamStats.graph.timeline") }
+		if group.custom then
+			-- A custom category's graphs in its order, each under a key of its own: one stat
+			-- can be in it twice, drawn two ways. What needs the gadget waits for it.
+			for _, graph in ipairs(group.graphs) do
+				local column = ctx.COLUMNS[graph.stat]
+				local needsGadget = column and (column.gadget or column.liveOnly)
+					or graph.stat == "timeline"
+					or graph.stat == "composition"
+				if ctx.gadgetOn() or not needsGadget then
+					local label = column and ctx.columnTitle(column) or ctx.i18n("ui.teamStats.graph." .. graph.stat)
+					-- Only an amount has a total to take a part of: a ratio or a level added
+					-- with the switch on is still drawn as it is.
+					if column and graph.share and column.fmt == "si" then
+						label = label .. " \194\183 " .. ctx.L.switch.shareOfTotal
+					end
+					list[#list + 1] = {
+						key = "g" .. graph.id,
+						stat = graph.stat,
+						label = label,
+						column = column,
+						graph = graph,
+					}
+				end
 			end
-		end
-		for i = 1, #group.columns do
-			local column = ctx.COLUMNS[group.columns[i]]
-			if ctx.gadgetOn() or not (column.gadget or column.liveOnly) then
-				list[#list + 1] = { key = column.key, label = ctx.columnTitle(column), column = column }
+		else
+			if group.key == "composition" and ctx.gadgetOn() then
+				list[#list + 1] = { key = "composition", label = ctx.i18n("ui.teamStats.graph.composition") }
+			end
+			for i = 1, #group.columns do
+				local column = ctx.COLUMNS[group.columns[i]]
+				if ctx.gadgetOn() or not (column.gadget or column.liveOnly) then
+					list[#list + 1] = { key = column.key, label = ctx.columnTitle(column), column = column }
+				end
 			end
 		end
 		page.statList = list
+		page.entryByKey = {}
+		for _, entry in ipairs(list) do
+			if entry.key then
+				page.entryByKey[entry.key] = entry
+			end
+		end
 		local found = false
 		---@type table?
 		local first = nil
@@ -332,7 +484,9 @@ function M.new(ctx)
 		local barH = ctx.metrics.rowHeight + mathFloor(8 * s)
 		page.rects = {
 			list = { x1, listY1 or y1, x1 + mathMax(0, listW), listY2 or y2 },
-			bar = { x1 + listW + gap, y2 - barH, barX2 or x2, y2 },
+			-- The bar keeps its place whether the stat list shows or not: the list's card
+			-- starts below it.
+			bar = { x1, y2 - barH, barX2 or x2, y2 },
 			chart = { x1 + listW + gap, y1, x2, y2 - barH - mathFloor(4 * s) },
 			-- The sidebar's entry height, so the two lists run level.
 			rowH = ctx.metrics.catRowHeight,
@@ -371,7 +525,7 @@ function M.new(ctx)
 			return false
 		end
 		for _, u in ipairs(page.units) do
-			if page.selected[u.key] and not page.hidden[u.key] then
+			if isPicked(u) and not isHidden(u) then
 				return true
 			end
 		end
@@ -731,66 +885,68 @@ function M.new(ctx)
 			return a.id < b.id
 		end)
 
-		local units = {}
+		-- Both ways every time: the bar groups one way, and a custom graph may be drawn the
+		-- other.
+		local allyUnits, playerUnits = {}, {}
 		local byKey = {}
 		for _, ally in ipairs(allies) do
-			if grouped() then
-				local first = ally.teams[1]
-				local members = {}
-				local isLocal = false
-				for _, team in ipairs(ally.teams) do
-					members[#members + 1] = team.id
-					isLocal = isLocal or team.isLocal == true
-				end
-				local unit = {
-					key = "ally" .. ally.id,
-					name = ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
-					color = first and { first.accent[1], first.accent[2], first.accent[3] } or { 0.8, 0.8, 0.8 },
-					members = members,
-					teams = ally.teams,
-					isLocal = isLocal,
+			local first = ally.teams[1]
+			local members = {}
+			local isLocal = false
+			for _, team in ipairs(ally.teams) do
+				members[#members + 1] = team.id
+				isLocal = isLocal or team.isLocal == true
+			end
+			local unit = {
+				key = "ally" .. ally.id,
+				allyID = ally.id,
+				name = ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
+				color = first and { first.accent[1], first.accent[2], first.accent[3] } or { 0.8, 0.8, 0.8 },
+				members = members,
+				teams = ally.teams,
+				isLocal = isLocal,
+			}
+			allyUnits[#allyUnits + 1] = unit
+			byKey[unit.key] = unit
+			for _, team in ipairs(ally.teams) do
+				local player = {
+					key = "team" .. team.id,
+					allyID = ally.id,
+					teamID = team.id,
+					name = team.name,
+					color = { team.accent[1], team.accent[2], team.accent[3] },
+					members = { team.id },
+					teams = { team },
+					isLocal = team.isLocal,
+					quiet = team.dead or team.gone,
 				}
-				units[#units + 1] = unit
-				byKey[unit.key] = unit
-			else
-				for _, team in ipairs(ally.teams) do
-					local unit = {
-						key = "team" .. team.id,
-						name = team.name,
-						color = { team.accent[1], team.accent[2], team.accent[3] },
-						members = { team.id },
-						teams = { team },
-						isLocal = team.isLocal,
-						quiet = team.dead or team.gone,
-					}
-					units[#units + 1] = unit
-					byKey[unit.key] = unit
-				end
+				playerUnits[#playerUnits + 1] = player
+				byKey[player.key] = player
 			end
 		end
+		page.allyUnits, page.playerUnits = allyUnits, playerUnits
+		local units = grouped() and allyUnits or playerUnits
 		page.units = units
 		page.unitByKey = byKey
 
-		-- The selection and the hidden set carried over to these units: once the grouping
-		-- switch turned, an ally team stands for its players, and players stand for their
-		-- ally team - when any of them was selected, or all of them were hidden.
-		local function carried(set, whole)
+		-- The selection and the hidden set, player by player: a whole ally team's key is
+		-- taken apart into its players, which loses nothing whichever way the bar or a graph
+		-- groups them. A player no longer listed drops out.
+		local function perPlayer(set)
 			local out = {}
-			for _, unit in ipairs(units) do
-				local count = 0
-				for _, team in ipairs(unit.teams) do
-					if set[unit.key] or set["team" .. team.id] or set["ally" .. team.allyID] then
-						count = count + 1
-					end
-				end
-				if count > 0 and (not whole or count == #unit.teams) then
-					out[unit.key] = true
+			for key in pairs(set) do
+				local unit = byKey[key]
+				for _, team in ipairs(unit and unit.teams or {}) do
+					out["team" .. team.id] = true
 				end
 			end
 			return out
 		end
-		-- A spectator switching the team they watch: a selection that was that team alone
-		-- goes with them, as the first selection did; one they picked themselves stays.
+		page.selected = perPlayer(page.selected)
+		page.hidden = perPlayer(page.hidden)
+		-- A spectator switching the team they watch: a selection that was that team alone,
+		-- or its whole ally team, goes with them as the first selection did; one they picked
+		-- themselves stays.
 		---@type table?
 		local viewer = nil
 		for _, ally in ipairs(allies) do
@@ -802,25 +958,46 @@ function M.new(ctx)
 		end
 		local was = page.viewer
 		if was and viewer and was.id ~= viewer.id then
-			local onlyWas = next(page.selected) ~= nil
-			for key in pairs(page.selected) do
-				if key ~= "team" .. was.id and key ~= "ally" .. was.allyID then
-					onlyWas = false
+			local function teamsOf(allyID)
+				local keys = {}
+				local unit = byKey["ally" .. allyID]
+				for _, team in ipairs(unit and unit.teams or {}) do
+					keys["team" .. team.id] = true
 				end
+				return keys
 			end
-			if onlyWas then
-				page.selected = { [grouped() and "ally" .. viewer.allyID or "team" .. viewer.id] = true }
+			---@return boolean
+			local function exactly(keys)
+				local n, want = 0, 0
+				for key in pairs(page.selected) do
+					if not keys[key] then
+						return false
+					end
+					n = n + 1
+				end
+				for _ in pairs(keys) do
+					want = want + 1
+				end
+				return n > 0 and n == want
+			end
+			local wasTeam = exactly({ ["team" .. was.id] = true })
+			local wasAlly = exactly(teamsOf(was.allyID))
+			if wasAlly and (grouped() or not wasTeam) then
+				page.selected = teamsOf(viewer.allyID)
+			elseif wasTeam then
+				page.selected = { ["team" .. viewer.id] = true }
 			end
 		end
 		page.viewer = viewer and { id = viewer.id, allyID = viewer.allyID } or nil
-		page.selected = carried(page.selected, false)
-		page.hidden = carried(page.hidden, true)
-		-- The first selection is the viewer's own unit; a cleared one stays cleared.
+		-- The first selection is the viewer's own unit - unless Hide unselected is on, when
+		-- every chart would open on them alone in every game; a cleared one stays cleared.
 		if not page.selectionSet then
 			page.selectionSet = true
-			for _, unit in ipairs(units) do
-				if unit.isLocal then
-					page.selected[unit.key] = true
+			if not page.hideUnselected then
+				for _, unit in ipairs(units) do
+					if unit.isLocal then
+						setTeams(page.selected, unit, true)
+					end
 				end
 			end
 		end
@@ -861,19 +1038,31 @@ function M.new(ctx)
 			me.labelW = widthOf(me.label)
 			blocks[#blocks + 1] = me
 		end
+		local youLabel = ctx.i18n("ui.teamStats.graph.you")
 		local seen = {}
 		for _, unit in ipairs(page.units) do
 			for _, team in ipairs(unit.teams) do
 				local block = seen[team.allyID]
 				if not block then
+					-- A side of one is named after its player, and the viewer's own - playing
+					-- or watching it - is "You".
+					local label = ctx.i18n("ui.teamStats.team", { number = team.allyID + 1 })
+					if ctx.soloTeams then
+						label = team.isLocal and youLabel or team.name
+					end
 					block = {
 						ally = team.allyID,
-						-- A side of one is named after its player.
-						label = ctx.soloTeams and team.name
-							or ctx.i18n("ui.teamStats.team", { number = team.allyID + 1 }),
+						label = label,
 						members = {},
 						unit = grouped() and unit or nil,
 					}
+					-- The caption when the name does not fit: a team's number; in a game of
+					-- sides of one only the viewer's "You" is kept.
+					if not ctx.soloTeams then
+						block.short = tostring(team.allyID + 1)
+					elseif team.isLocal then
+						block.short = youLabel
+					end
 					seen[team.allyID] = block
 					blocks[#blocks + 1] = block
 				end
@@ -888,32 +1077,42 @@ function M.new(ctx)
 				count = count + #b.members
 				b.labelW = widthOf(b.label)
 				labelW = labelW + b.labelW + pad
-				-- The caption when the name does not fit: the team's number.
-				b.short = tostring(b.ally + 1)
-				b.shortW = widthOf(b.short)
-				shortW = shortW + b.shortW + pad
+				if b.short then
+					b.shortW = widthOf(b.short)
+					shortW = shortW + b.shortW + pad
+				end
 				teamBlocks = teamBlocks + 1
 			end
 		end
 		-- The All button always keeps its caption; the team blocks share what is left once
-		-- the grouping switch at the end of the bar has its room.
+		-- the switch at the end of the bar has its room.
 		local fixed = all.labelW + pad * 3 + (blocks[2] and blocks[2].me and blocks[2].labelW + r.square + pad * 3 or 0)
 		local avail = r.bar[3] - r.bar[1] - pad * 2 - fixed - filterReserve()
-		local gaps = pad * mathMax(0, teamBlocks - 1) + pad * teamBlocks
 		local square = r.square
-		-- Full captions while everything fits at full size. Past that a team keeps its
-		-- number - the caption is what a press picks the whole team by - as long as the
-		-- squares can stay at least half their size beside it; then the captions go. A side
-		-- of one is a single square and has no number to fall back on. The squares always
-		-- shrink to the room left, so the row never runs into the switch at its end.
-		local function fits(captionW, size)
-			return count * size + gaps + captionW <= avail
+		-- What a crowded bar gives up, in turn: first the room between the teams, then the
+		-- names - a team keeps its number, the viewer in a free-for-all their "You", as long
+		-- as the squares keep half their width beside it - then every caption. The squares
+		-- keep their height and give up width to what is left, so the row never runs into
+		-- the switch at its end.
+		local fullSep, minSep = pad * 2, mathMax(4, mathFloor(pad * 0.5))
+		local function sepFor(captionW, width)
+			return (avail - count * width - captionW) / mathMax(1, teamBlocks)
 		end
-		local short = not fits(labelW, square)
-		local withLabels = not short or (not ctx.soloTeams and fits(shortW, mathMax(4, mathFloor(square * 0.5))))
-		local captionW = not withLabels and 0 or (short and shortW or labelW)
-		if not fits(captionW, square) then
-			square = mathMax(2, mathFloor((avail - gaps - captionW) / mathMax(1, count)))
+		---@type string?, number
+		local captions, captionW = "full", labelW
+		if sepFor(labelW, square) < minSep then
+			if shortW > 0 and sepFor(shortW, mathMax(4, mathFloor(square * 0.5))) >= minSep then
+				captions, captionW = "short", shortW
+			else
+				captions, captionW = nil, 0
+			end
+		end
+		---@type number
+		local sep = mathMax(minSep, mathMin(fullSep, mathFloor(sepFor(captionW, square))))
+		---@type number
+		local width = square
+		if count * width + teamBlocks * sep + captionW > avail then
+			width = mathMax(2, mathFloor((avail - teamBlocks * sep - captionW) / mathMax(1, count)))
 		end
 		local items = {}
 		local x = r.bar[1] + pad
@@ -921,10 +1120,13 @@ function M.new(ctx)
 		local y1 = cy - mathFloor(square * 0.5)
 		local y2 = y1 + square
 		local half = mathFloor(pad * 0.5)
+		-- A team's plate reaches a little past its squares, and stops short of the next.
+		local margin = mathMax(1, mathMin(half, mathFloor(sep * 0.5) - 1))
 		for _, b in ipairs(blocks) do
-			-- The plate runs from the caption to the last square, with half a pad of air.
-			b.x1 = x - half
-			if b.all or b.me then
+			local fixedBlock = b.all or b.me
+			local air = fixedBlock and half or margin
+			b.x1 = x - air
+			if fixedBlock then
 				b.labelX = x
 				x = x + b.labelW
 				if b.me then
@@ -934,34 +1136,43 @@ function M.new(ctx)
 					x = x + square
 				end
 			else
-				if withLabels then
+				local caption = captions == "full" and b.label or (captions == "short" and b.short or nil)
+				if caption then
 					b.labelX = x
-					b.caption = short and b.short or b.label
-					x = x + (short and b.shortW or b.labelW) + pad
+					b.caption = caption
+					x = x + (captions == "full" and b.labelW or b.shortW) + pad
 				end
-				for _, m in ipairs(b.members) do
+				for _, member in ipairs(b.members) do
 					items[#items + 1] =
-						{ unit = m.unit, team = m.team, block = b, x1 = x, y1 = y1, x2 = x + square, y2 = y2 }
-					x = x + square
+						{ unit = member.unit, team = member.team, block = b, x1 = x, y1 = y1, x2 = x + width, y2 = y2 }
+					x = x + width
 				end
 			end
-			b.x2 = x + half
-			x = x + pad + pad
+			b.x2 = x + air
+			x = x + (fixedBlock and pad * 2 or sep)
+		end
+		-- A press between two plates goes to the nearer one: the gaps are split between them,
+		-- so there is nowhere along the row that picks nothing.
+		for i = 1, #blocks do
+			local b = blocks[i]
+			local before, after = blocks[i - 1], blocks[i + 1]
+			b.hx1 = before and mathFloor((before.x2 + b.x1) * 0.5) or b.x1
+			b.hx2 = after and mathFloor((b.x2 + after.x1) * 0.5) or b.x2
 		end
 		page.barBlocks = blocks
 		page.barItems = items
-		page.barLabels = withLabels
-		page.barShort = withLabels and short
+		page.barLabels = captions ~= nil
+		page.barShort = captions == "short"
 		page.barY1, page.barY2 = y1, y2
 		page.gen = page.gen + 1
 	end
 
-	-- The units not hidden from the chart.
-	local function shownUnits()
+	-- The units not hidden from the chart, of the bar's or of the list given.
+	local function shownUnits(of)
 		---@type table[]
 		local list = {}
-		for _, u in ipairs(page.units) do
-			if not page.hidden[u.key] then
+		for _, u in ipairs(of or page.units) do
+			if not isHidden(u) then
 				list[#list + 1] = u
 			end
 		end
@@ -969,11 +1180,11 @@ function M.new(ctx)
 	end
 
 	-- The selected units among the shown.
-	local function pickedUnits()
+	local function pickedUnits(of)
 		---@type table[]
 		local list = {}
-		for _, u in ipairs(page.units) do
-			if page.selected[u.key] and not page.hidden[u.key] then
+		for _, u in ipairs(of or page.units) do
+			if isPicked(u) and not isHidden(u) then
 				list[#list + 1] = u
 			end
 		end
@@ -982,20 +1193,30 @@ function M.new(ctx)
 
 	-- Whether % of total has anything to share out: two units or more on the charts. One
 	-- team picked with Hide unselected on would be all of its own total.
+	-- An open chart of a ratio or a level - or one that is not a column's - has no total to
+	-- take a part of either.
 	function page.shareApplies()
-		local plotted = filtering() and pickedUnits() or shownUnits()
+		local key = page.zoom or page.stat
+		if page.zoom then
+			local column = ctx.COLUMNS[statOf(key)]
+			if not (column and column.fmt == "si") then
+				return false
+			end
+		end
+		local units = unitsFor(settingsOf(key))
+		local plotted = filtering() and pickedUnits(units) or shownUnits(units)
 		return #plotted > 1
 	end
 
 	-- Whether the picked stat is drawn over game time: the profile and the composition
 	-- answer differently, and the panel asks before it lays the switches out.
 	function page.overTime()
-		return page.stat ~= "profile"
+		return statOf(page.stat) ~= "profile"
 	end
 
 	-- Whether the milestones switch means anything: the timeline is made of them.
 	function page.milestonesOwn()
-		return page.stat == "timeline"
+		return statOf(page.stat) == "timeline"
 	end
 
 	-- The units a chart is about, named for its title: every team, one by name, or how many.
@@ -1022,8 +1243,8 @@ function M.new(ctx)
 	local LANE_ROWS = { 0, 0.24, -0.24, 0.12, -0.12, 0.36, -0.36 }
 
 	-- Whether a kind of milestone says anything about the column being charted.
-	local function kindFits(kind, column)
-		if page.milestoneOff[kind] then
+	local function kindFits(kind, column, off)
+		if off[kind] then
 			return false
 		end
 		local groups = MILESTONE_GROUPS[kind]
@@ -1034,10 +1255,10 @@ function M.new(ctx)
 		return column == nil or groups[column.group] == true
 	end
 
-	local function milestoneMarkers(list, indexByKey, always, column)
+	local function milestoneMarkers(list, indexByKey, always, column, settings)
 		local markers = {}
 		local live = ctx.live()
-		if not live or not (always or ctx.filters.milestones) then
+		if not live or not (always or settings.milestones) then
 			return markers
 		end
 		for _, unit in ipairs(list) do
@@ -1047,7 +1268,7 @@ function M.new(ctx)
 				local teamLive = live[team.id]
 				for _, m in ipairs(teamLive and teamLive.milestones or {}) do
 					-- Kinds switched off in the milestone settings never make a marker.
-					if kindFits(m.key, column) then
+					if kindFits(m.key, column, settings.off) then
 						local ud = m.unitDefID and UnitDefs[m.unitDefID] or nil
 						---@cast ud table?
 						local label = ctx.L.milestone[m.key] or m.key
@@ -1124,7 +1345,7 @@ function M.new(ctx)
 				points = pointsOf(u.members, column.key, false, column.clamp),
 				width = 2,
 			}
-			lifted[#series] = page.selected[u.key]
+			lifted[#series] = isPicked(u)
 		end
 		return series, lifted
 	end
@@ -1132,10 +1353,12 @@ function M.new(ctx)
 	-- What a chart of one stat is made of: the same rules for the big chart and for every
 	-- small one in the grid. `small` leaves out what a little chart has no room for.
 	-- Returns whether it came out empty.
-	local function fillChart(target, statKey, small)
+	local function fillChart(target, key, small)
+		local statKey, settings = statOf(key), settingsOf(key)
 		local column = ctx.COLUMNS[statKey]
-		local shown = shownUnits()
-		local picked = pickedUnits()
+		local units = unitsFor(settings)
+		local shown = shownUnits(units)
+		local picked = pickedUnits(units)
 		local anyPicked = #picked > 0
 		-- Hide unselected leaves the rest off; otherwise the pick only stands out.
 		---@type table[]
@@ -1171,7 +1394,7 @@ function M.new(ctx)
 				}
 				indexByKey[u.key] = #series
 				lanes[u.key] = lane
-				lifted[#series] = page.selected[u.key]
+				lifted[#series] = isPicked(u)
 			end
 			-- A faint band of the team's colour behind each lane.
 			local bands = {}
@@ -1199,7 +1422,7 @@ function M.new(ctx)
 				local u = plotted[n - mathFloor(v + 0.5) + 1]
 				return u and u.name or ""
 			end
-			markers = milestoneMarkers(plotted, indexByKey, true, nil)
+			markers = milestoneMarkers(plotted, indexByKey, true, nil, settings)
 			title = ctx.i18n("ui.teamStats.graph.timeline")
 		elseif statKey == "profile" then
 			kind = "radar"
@@ -1226,7 +1449,7 @@ function M.new(ctx)
 			end
 			for _, u in ipairs(plotted) do
 				series[#series + 1] = { name = u.name, color = u.color, values = profileValues(u), width = 2 }
-				lifted[#series] = page.selected[u.key]
+				lifted[#series] = isPicked(u)
 			end
 			-- The axis names need room; a small wheel is read by its shape.
 			target:configure({ radar = { axes = axes, rings = 4, fill = true, labels = not small } })
@@ -1257,8 +1480,8 @@ function M.new(ctx)
 			end
 			lifts = false
 			title = ctx.i18n("ui.teamStats.graph.composition") .. " \194\183 " .. namesOf(of)
-			markers = milestoneMarkers(of, nil, false, nil)
-		elseif column and ctx.filters.shareOfTotal and column.fmt == "si" and #plotted > 1 then
+			markers = milestoneMarkers(of, nil, false, nil, settings)
+		elseif column and settings.share and column.fmt == "si" and #plotted > 1 then
 			-- Everything on the chart as one whole, each unit its share of it: ally teams
 			-- against each other while grouped, players otherwise. One unit alone would be
 			-- all of it, so it keeps its line.
@@ -1269,10 +1492,10 @@ function M.new(ctx)
 					color = u.color,
 					points = pointsOf(u.members, column.key, false),
 				}
-				lifted[#series] = page.selected[u.key]
+				lifted[#series] = isPicked(u)
 			end
 			title = ctx.columnTitle(column) .. " \194\183 " .. ctx.L.switch.shareOfTotal
-			markers = milestoneMarkers(marked, nil, false, column)
+			markers = milestoneMarkers(marked, nil, false, column, settings)
 		elseif column then
 			local indexByKey = {}
 			series, lifted = lineSeries(column, plotted)
@@ -1280,10 +1503,15 @@ function M.new(ctx)
 				indexByKey[u.key] = i
 			end
 			title = ctx.columnTitle(column)
+			-- % of total set with one team or player on the chart, all of its own total: the
+			-- line stays, and the title still says what is set, faded, rather than dropping it.
+			if settings.share and column.fmt == "si" then
+				title = title .. ctx.colors.faded .. " \194\183 " .. ctx.L.switch.shareOfTotal
+			end
 			if column.fmt == "percent" then
 				yFormat = percentFormat
 			end
-			markers = milestoneMarkers(marked, indexByKey, false, column)
+			markers = milestoneMarkers(marked, indexByKey, false, column, settings)
 		end
 
 		local empty = true
@@ -1299,6 +1527,9 @@ function M.new(ctx)
 		if statKey ~= "timeline" then
 			target.cfg.yMin, target.cfg.yMax, target.cfg.gridLines = nil, nil, small and 2 or 4
 		end
+		-- Every chart over time runs from the start of the game, whenever its own samples
+		-- begin, so they can be read against each other.
+		target.cfg.xMin = 0
 		target.cfg.yFormat = yFormat
 		target:configure({
 			kind = kind,
@@ -1405,7 +1636,13 @@ function M.new(ctx)
 				pool[slot] = chartOf
 			end
 			fillChart(chartOf, entry.key, true)
-			chartOf:configure({ font = ctx.font(), fontSize = fs, title = entry.label })
+			-- A column's chart says itself whether its % of total is on it; the others take
+			-- their short name from the list.
+			local setup = { font = ctx.font(), fontSize = fs }
+			if not ctx.COLUMNS[statOf(entry.key)] then
+				setup.title = entry.label
+			end
+			chartOf:configure(setup)
 			chartOf:setBounds(cell[1], cell[2], cell[3] - cell[1], cell[4] - cell[2])
 			page.miniCharts[slot] = { chart = chartOf, key = entry.key, rect = cell, index = i }
 		end
@@ -1476,13 +1713,13 @@ function M.new(ctx)
 		end
 		if b.me then
 			local picked = pickedUnits()
-			return #picked == 1 and picked[1] == b.unit
+			return #picked == 1 and picked[1] == b.unit and allPicked(b.unit)
 		end
 		if #b.members == 0 then
 			return false
 		end
 		for _, m in ipairs(b.members) do
-			if not page.selected[m.unit.key] or page.hidden[m.unit.key] then
+			if not teamIn(page.selected, m.team) or teamIn(page.hidden, m.team) then
 				return false
 			end
 		end
@@ -1569,9 +1806,9 @@ function M.new(ctx)
 				ctx.draw.RectRoundOutline(b.x1, py1, b.x2, py2, cs, fw, 1, 1, 1, 1, PICKED_FRAME, PICKED_FRAME)
 			end
 			-- Without the grouping a square is its player, so the plate lights only for its
-			-- caption, which stands for the whole ally team.
-			if i == page.hover.block and not lit and (isGrouped or b.all or page.hover.legend == 0) then
-				Highlight(b.x1, py1, b.x2, py2, cs, look.rowHoverOpacity, look.white)
+			-- caption, which stands for the whole ally team. A lit plate lights further.
+			if i == page.hover.block and (isGrouped or b.all or page.hover.legend == 0) then
+				Highlight(b.x1, py1, b.x2, py2, cs, look.barHoverOpacity, look.white)
 			end
 			if b.labelX then
 				ctx.queueText((lit and colors.selected or colors.dim) .. (b.caption or b.label), b.labelX, cy, fs, "ov")
@@ -1582,18 +1819,23 @@ function M.new(ctx)
 				Rect(b.swatch[1], b.swatch[2], b.swatch[3], b.swatch[4])
 			end
 		end
+		-- What a press would act on: the square under the cursor, or every square of the
+		-- block while grouped or on its caption.
+		local hoverBlock = page.barBlocks[page.hover.block]
 		for i, item in ipairs(page.barItems) do
 			local c = item.team.accent
-			local key = item.unit.key
-			local hovered = i == page.hover.legend or (isGrouped and item.block == page.barBlocks[page.hover.block])
+			local picked, hidden = isPicked(item.unit), isHidden(item.unit)
+			local hovered = i == page.hover.legend
+				or (hoverBlock ~= nil and item.block == hoverBlock and (isGrouped or page.hover.legend == 0))
+			item.hovered = hovered
 			-- Hidden, or left off by Hide unselected: either way not on the chart.
-			if page.hidden[key] or (dropping and not page.selected[key]) then
-				Color(c[1], c[2], c[3], hovered and 0.22 or 0.12)
+			if hidden or (dropping and not picked) then
+				Color(c[1], c[2], c[3], hovered and 0.4 or 0.12)
 				Rect(item.x1, item.y1, item.x2, item.y2)
 				frame(item.x1, item.y1, item.x2, item.y2, 1, { c[1], c[2], c[3], 0.55 })
 			else
-				local alpha = (anyPicked and not page.selected[key]) and 0.3 or 0.9
-				Color(c[1], c[2], c[3], hovered and alpha + 0.1 or alpha)
+				local alpha = (anyPicked and not picked) and 0.3 or 0.9
+				Color(c[1], c[2], c[3], hovered and 1 or alpha)
 				Rect(item.x1, item.y1, item.x2, item.y2)
 			end
 		end
@@ -1622,8 +1864,7 @@ function M.new(ctx)
 				first, last = nil, nil
 			end
 			for _, item in ipairs(page.barItems) do
-				local key = item.unit.key
-				local on = page.selected[key] and not page.hidden[key] and not item.block.lit
+				local on = isPicked(item.unit) and not isHidden(item.unit) and not item.block.lit
 				if on and first and first.block == item.block then
 					last = item
 				else
@@ -1635,9 +1876,47 @@ function M.new(ctx)
 			end
 			frameRun()
 		end
+		-- The squares a press would act on, framed white round each run of them in a block,
+		-- over a pick's warm frame; the You button's swatch the same.
+		do
+			---@type table?, table?
+			local first, last = nil, nil
+			local function frameRun()
+				if first and last then
+					frame(first.x1 - fw, page.barY1 - fw, last.x2 + fw, page.barY2 + fw, fw, HOVER_FRAME)
+				end
+				first, last = nil, nil
+			end
+			for _, item in ipairs(page.barItems) do
+				if item.hovered and first and first.block == item.block then
+					last = item
+				else
+					frameRun()
+					if item.hovered then
+						first, last = item, item
+					end
+				end
+			end
+			frameRun()
+			local b = hoverBlock
+			if b and b.swatch then
+				frame(b.swatch[1] - fw, b.swatch[2] - fw, b.swatch[3] + fw, b.swatch[4] + fw, fw, HOVER_FRAME)
+			end
+		end
 		Color(1, 1, 1, 1)
 
-		if page.empty and not page.gridded() then
+		local group = ctx.groupByKey[ctx.selectedGroup()]
+		if group and group.custom and #group.graphs == 0 then
+			-- A category of the player's own with nothing in it yet: how to fill it.
+			local c = r.chart
+			ctx.queueText(
+				colors.dim .. ctx.i18n("ui.teamStats.custom.empty"),
+				mathFloor((c[1] + c[3]) * 0.5),
+				mathFloor((c[2] + c[4]) * 0.5),
+				fs,
+				"ovc"
+			)
+		elseif page.empty and not page.gridded() then
 			local c = r.chart
 			local key = page.anySamples and "ui.teamStats.graph.noData" or "ui.teamStats.graph.waiting"
 			ctx.queueText(
@@ -1685,7 +1964,7 @@ function M.new(ctx)
 			local top = y2 - metrics.cardLip - i * rowH
 			local rect = { x1, top - rowH, x1 + w, top }
 			page.kindRects[i] = { key = kind, rect = rect }
-			local on = not page.milestoneOff[kind]
+			local on = not kindsOff()[kind]
 			if i == page.hover.kind then
 				Highlight(
 					rect[1] + metrics.catInset,
@@ -1728,6 +2007,573 @@ function M.new(ctx)
 		end
 	end
 
+	----------------------------------------------------------------
+	-- Custom categories: Add to..., the card of actions, naming
+	----------------------------------------------------------------
+
+	-- Text drawn after the panel's list is printed in a batch of its own, with the outline
+	-- pinned: the font is shared with every other widget.
+	local function printTexts(texts, fs)
+		local font = ctx.font()
+		if font then
+			font:Begin()
+			font:SetOutlineColor(ctx.look.outline or { 0, 0, 0, 0.4 })
+			for _, t in ipairs(texts) do
+				font:Print(t[1], t[2], t[3], fs, t[4] or "ov")
+			end
+			font:End()
+		end
+	end
+
+	-- Add to...: in the open graph's top right corner, level with its title.
+	function page.addToRect()
+		local r = page.rects
+		if not r or not page.zoom then
+			return nil
+		end
+		local fs = ctx.metrics.catFs
+		local font = ctx.font()
+		local label = ctx.i18n("ui.teamStats.custom.addTo")
+		local w = (font and mathFloor(font:GetTextWidth(label) * fs) or #label * fs * 0.55) + ctx.metrics.sidePad * 2
+		local h = mathFloor(ctx.metrics.rowHeight * 0.8)
+		return { r.chart[3] - w, r.chart[4] - h, r.chart[3], r.chart[4] }, label
+	end
+
+	function page.drawAddTo()
+		local rect, label = page.addToRect()
+		if not rect then
+			return
+		end
+		local look, metrics = ctx.look, ctx.metrics
+		ctx.draw.RectRound(rect[1], rect[2], rect[3], rect[4], metrics.csSmall, 1, 1, 1, 1, PLATE)
+		if page.hover.addTo == 1 or page.menu and page.menu.from == "addTo" then
+			ctx.draw.Highlight(rect[1], rect[2], rect[3], rect[4], metrics.csSmall, look.rowHoverOpacity, look.white)
+		end
+		ctx.draw.Color(1, 1, 1, 1)
+		printTexts({
+			{
+				ctx.colors.title .. label,
+				mathFloor((rect[1] + rect[3]) * 0.5),
+				mathFloor((rect[2] + rect[4]) * 0.5),
+				"ovc",
+			},
+		}, metrics.catFs)
+	end
+
+	function page.menuOpen()
+		return page.menu ~= nil
+	end
+
+	function page.closeMenu()
+		if page.menu then
+			page.menu = nil
+			page.gen = page.gen + 1
+		end
+	end
+
+	local function openMenu(rows, anchor, title, from)
+		page.menu = { rows = rows, anchor = anchor, title = title, from = from, rects = {} }
+		page.gen = page.gen + 1
+	end
+
+	-- Right-click on one of the player's categories in the sidebar: named, moved, deleted -
+	-- the overview put back as it shipped instead.
+	function page.openCategoryMenu(key, anchor)
+		local custom = page.custom
+		local category = custom.byKey(key)
+		if not category then
+			return
+		end
+		local at = 1
+		for i, c in ipairs(custom.list) do
+			if c == category then
+				at = i
+			end
+		end
+		local L = "ui.teamStats.custom."
+		local rows = {
+			{
+				label = ctx.i18n(L .. "rename"),
+				act = function()
+					page.startNaming(key)
+				end,
+			},
+			{
+				label = ctx.i18n(L .. "moveUp"),
+				disabled = at == 1,
+				act = function()
+					custom.move(key, -1)
+					ctx.categoriesChanged()
+				end,
+			},
+			{
+				label = ctx.i18n(L .. "moveDown"),
+				disabled = at == #custom.list,
+				act = function()
+					custom.move(key, 1)
+					ctx.categoriesChanged()
+				end,
+			},
+		}
+		if category.shipped then
+			rows[#rows + 1] = {
+				label = ctx.i18n(L .. "reset"),
+				confirm = ctx.i18n(L .. "resetConfirm"),
+				act = function()
+					custom.reset(key)
+					page.zoom = nil
+					ctx.categoriesChanged()
+				end,
+			}
+		else
+			rows[#rows + 1] = {
+				label = ctx.i18n(L .. "delete"),
+				confirm = ctx.i18n(L .. "deleteConfirm"),
+				act = function()
+					custom.delete(key)
+					if ctx.selectedGroup() == key then
+						ctx.selectGroup(custom.SHIPPED_KEY)
+					end
+					ctx.categoriesChanged()
+				end,
+			}
+		end
+		openMenu(rows, anchor, category.label, "category")
+	end
+
+	-- Right-click on a graph of a custom category, in its stat list or on its page of charts.
+	function page.openGraphMenu(entry, anchor)
+		local custom = page.custom
+		local graph = entry.graph
+		local _, category = custom.graphById(graph.id)
+		if not category then
+			return
+		end
+		local at = 1
+		for i, g in ipairs(category.graphs) do
+			if g == graph then
+				at = i
+			end
+		end
+		local L = "ui.teamStats.custom."
+		openMenu({
+			{
+				label = ctx.i18n(L .. "moveUp"),
+				disabled = at == 1,
+				act = function()
+					custom.moveGraph(graph.id, -1)
+					ctx.categoriesChanged()
+				end,
+			},
+			{
+				label = ctx.i18n(L .. "moveDown"),
+				disabled = at == #category.graphs,
+				act = function()
+					custom.moveGraph(graph.id, 1)
+					ctx.categoriesChanged()
+				end,
+			},
+			{
+				label = ctx.i18n(L .. "remove"),
+				act = function()
+					custom.removeGraph(graph.id)
+					if page.zoom == entry.key then
+						page.zoom = nil
+					end
+					ctx.categoriesChanged()
+				end,
+			},
+		}, anchor, entry.label, "graph")
+	end
+
+	-- Add to...: every category of the player's own - ticked when it has this stat already -
+	-- and a new one, named as soon as it is made. The graph goes in with the settings it is
+	-- drawn with right now.
+	function page.openAddMenu()
+		local rect = page.addToRect()
+		if not rect or not page.zoom then
+			return
+		end
+		local custom = page.custom
+		local stat, settings = statOf(page.zoom), settingsOf(page.zoom)
+		local rows = {}
+		for _, category in ipairs(custom.list) do
+			local has = false
+			for _, g in ipairs(category.graphs) do
+				has = has or g.stat == stat
+			end
+			rows[#rows + 1] = {
+				label = category.label,
+				check = has,
+				act = function()
+					custom.add(category.key, stat, settings)
+					ctx.categoriesChanged()
+				end,
+			}
+		end
+		rows[#rows + 1] = {
+			label = ctx.i18n("ui.teamStats.custom.newCategory"),
+			act = function()
+				local category = custom.create()
+				custom.add(category.key, stat, settings)
+				ctx.categoriesChanged()
+				page.startNaming(category.key)
+			end,
+		}
+		openMenu(rows, rect, ctx.i18n("ui.teamStats.custom.addTo"), "addTo")
+	end
+
+	-- The card: beside what opened it - under the Add to... button, flush with its right
+	-- edge - on the screen, drawn over everything. A row under the cursor lights up; a
+	-- greyed one does nothing; one that asks to be sure says so on the first press and acts
+	-- on the second.
+	function page.drawMenu(mx, my)
+		local menu = page.menu
+		if not menu then
+			return
+		end
+		local look, metrics, colors = ctx.look, ctx.metrics, ctx.colors
+		local fs, rowH = metrics.catFs, metrics.catRowHeight
+		local font = ctx.font()
+		local pad = metrics.sidePad
+		local tick = mathFloor(fs * 1.2)
+		---@type number
+		local w = mathFloor(180 * page.scale)
+		for _, row in ipairs(menu.rows) do
+			local label = row.armed and row.confirm or row.label
+			local tw = font and mathFloor(font:GetTextWidth(label) * fs) or #label * fs * 0.55
+			w = mathMax(w, tw + pad * 2 + tick)
+		end
+		local titleRows = menu.title and 1 or 0
+		local h = rowH * (#menu.rows + titleRows) + metrics.cardLip * 2
+		local a = menu.anchor
+		local gap = mathFloor(6 * page.scale)
+		local vsx = Spring.GetViewGeometry()
+		---@type number, number
+		local x1, y2
+		if menu.from == "addTo" then
+			x1, y2 = mathMax(0, a[3] - w), a[2] - gap
+		else
+			x1, y2 = a[3] + gap, a[4]
+			if x1 + w > vsx then
+				x1 = a[1] - gap - w
+			end
+		end
+		local y1 = y2 - h
+		if y1 < 0 then
+			y1, y2 = 0, h
+		end
+		ctx.draw.RectRound(x1, y1, x1 + w, y2, metrics.csPanel, 1, 1, 1, 1, look.cardFill, look.cardFillTop)
+		local texts = {}
+		local top = y2 - metrics.cardLip
+		if menu.title then
+			texts[#texts + 1] = { colors.title .. menu.title, x1 + pad, top - mathFloor(rowH * 0.5) }
+			top = top - rowH
+		end
+		menu.rects = {}
+		for i, row in ipairs(menu.rows) do
+			local rect = { x1, top - rowH, x1 + w, top }
+			menu.rects[i] = rect
+			local over = mx and mx >= rect[1] and mx <= rect[3] and my >= rect[2] and my <= rect[4]
+			if over and not row.disabled then
+				ctx.draw.Highlight(
+					rect[1] + metrics.catInset,
+					rect[2],
+					rect[3] - metrics.catInset,
+					rect[4],
+					metrics.csSmall,
+					look.rowHoverOpacity,
+					look.white
+				)
+			end
+			local color = row.disabled and colors.faded or (row.armed and colors.bad or colors.dim)
+			if over and not row.disabled and not row.armed then
+				color = colors.selected
+			end
+			local label = row.armed and row.confirm or row.label
+			local cy = mathFloor((rect[2] + rect[4]) * 0.5)
+			if row.check then
+				texts[#texts + 1] = { colors.selected .. "\226\128\162", x1 + pad, cy }
+			end
+			texts[#texts + 1] = { color .. label, x1 + pad + tick, cy }
+			top = top - rowH
+		end
+		ctx.draw.Color(1, 1, 1, 1)
+		printTexts(texts, fs)
+	end
+
+	-- While the card is open it takes every press: a row does its thing, anywhere else only
+	-- puts the card away.
+	function page.menuPress(x, y, button)
+		local menu = page.menu
+		if not menu then
+			return false
+		end
+		for i, rect in ipairs(menu.rects) do
+			if x >= rect[1] and x <= rect[3] and y >= rect[2] and y <= rect[4] and button ~= 3 then
+				local row = menu.rows[i]
+				---@cast row -?
+				if row.disabled then
+					return true
+				end
+				if row.confirm and not row.armed then
+					row.armed = true
+					page.gen = page.gen + 1
+					ctx.playSound()
+					return true
+				end
+				page.closeMenu()
+				row.act()
+				ctx.playSound()
+				return true
+			end
+		end
+		page.closeMenu()
+		return true
+	end
+
+	-- Naming a category: a field over its sidebar entry, the name so far picked so typing
+	-- replaces it. Enter keeps what was typed, Escape the name it had.
+	function page.startNaming(key)
+		local category = page.custom.byKey(key)
+		if not category then
+			return
+		end
+		local box = Editbox.new({ text = category.label, maxChars = 32, outline = ctx.look.outline })
+		box:focus()
+		box.selAnchor = 0
+		page.naming = { key = key, box = box, was = category.label }
+		ctx.textInput(true)
+		page.gen = page.gen + 1
+	end
+
+	-- A name left as it was is not kept as typed: an unnamed category keeps the name it is
+	-- given in the player's language. Emptied, it gets that name back.
+	function page.stopNaming(keep)
+		local naming = page.naming
+		if not naming then
+			return
+		end
+		page.naming = nil
+		local text = naming.box:getText()
+		if keep and text ~= naming.was then
+			page.custom.rename(naming.key, text)
+		end
+		ctx.textInput(false)
+		ctx.categoriesChanged()
+	end
+
+	function page.namingKey(key)
+		local naming = page.naming
+		if not naming then
+			return false
+		end
+		if key == KEYSYMS.RETURN or key == KEYSYMS.KP_ENTER then
+			page.stopNaming(true)
+		elseif key == KEYSYMS.ESCAPE then
+			page.stopNaming(false)
+		else
+			naming.box:keyPress(key)
+		end
+		return true
+	end
+
+	function page.namingText(char)
+		return page.naming ~= nil and page.naming.box:textInput(char)
+	end
+
+	-- The field, where the panel says the entry is.
+	function page.drawNaming(x1, y1, x2, y2)
+		local naming = page.naming
+		if not naming then
+			return
+		end
+		naming.box:setRect(x1, y1, x2, y2, ctx.metrics.catFs, ctx.metrics.sidePad)
+		naming.box:draw()
+	end
+
+	----------------------------------------------------------------
+	-- Custom categories: a graph dragged to another place
+	----------------------------------------------------------------
+
+	-- How far a press on a graph of the player's own travels before it is a drag rather
+	-- than a click, which opens the graph when it is let go.
+	local function dragThreshold()
+		return mathMax(4, mathFloor(6 * page.scale))
+	end
+
+	function page.dragging()
+		return page.drag ~= nil
+	end
+
+	function page.dragMoving()
+		return page.drag ~= nil and page.drag.moving == true
+	end
+
+	-- The graphs a drag can land among, in order, each where it is shown: the grid's
+	-- charts, or the stat list's rows while one is open.
+	local function dropSlots()
+		---@type table[]
+		local slots = {}
+		if page.gridded() then
+			for _, mini in ipairs(page.miniCharts or {}) do
+				local entry = page.entryByKey[mini.key]
+				if entry and entry.graph then
+					slots[#slots + 1] = { graph = entry.graph, rect = mini.rect }
+				end
+			end
+		elseif page.listShown() and page.rects then
+			for i, entry in ipairs(page.statList) do
+				if entry.graph then
+					local x1, y1, x2, y2 = statRect(i)
+					slots[#slots + 1] = { graph = entry.graph, rect = { x1, y1, x2, y2 } }
+				end
+			end
+		end
+		return slots
+	end
+
+	-- Where the dragged graph lands if let go at x,y: in front of the nearest graph or
+	-- after it, by the half of it the cursor is over. Answers the graph it goes in front of
+	-- (none: the end) and the line that marks the place; nothing where it is already, or
+	-- off the charts.
+	---@return { before: table?, line: number[] }?
+	local function dropTarget(x, y)
+		local drag, r = page.drag, page.rects
+		if not drag or not r then
+			return nil
+		end
+		local grid = page.gridded()
+		local area = grid and r.chart or r.list
+		if x < area[1] or x > area[3] or y < area[2] or y > area[4] then
+			return nil
+		end
+		---@type table?
+		local near = nil
+		local nearest = mathHuge
+		for _, slot in ipairs(dropSlots()) do
+			local rc = slot.rect
+			---@type number, number
+			local dx, dy = mathMax(rc[1] - x, 0, x - rc[3]), mathMax(rc[2] - y, 0, y - rc[4])
+			if dx * dx + dy * dy < nearest then
+				near, nearest = slot, dx * dx + dy * dy
+			end
+		end
+		local _, category = page.custom.graphById(drag.graph.id)
+		if not near or not category then
+			return nil
+		end
+		local rc = near.rect
+		local after
+		if grid then
+			after = x > (rc[1] + rc[3]) * 0.5
+		else
+			-- Down the list is after: y grows upwards.
+			after = y < (rc[2] + rc[4]) * 0.5
+		end
+		local graphs = category.graphs
+		local from, at = 1, 1
+		for i, graph in ipairs(graphs) do
+			if graph == drag.graph then
+				from = i
+			end
+			if graph == near.graph then
+				at = after and i + 1 or i
+			end
+		end
+		if at == from or at == from + 1 then
+			return nil
+		end
+		-- In the gap beside the chart, or across the row's edge.
+		local w = mathMax(2, mathFloor(3 * page.scale))
+		if grid then
+			local gap = mathFloor(8 * page.scale)
+			local lx = mathFloor((after and rc[3] + gap * 0.5 or rc[1] - gap * 0.5) - w * 0.5)
+			return { before = graphs[at], line = { lx, rc[2], lx + w, rc[4] } }
+		end
+		local ly = mathFloor((after and rc[2] or rc[4]) - w * 0.5)
+		local inset = ctx.metrics.catInset
+		return { before = graphs[at], line = { rc[1] + inset, ly, rc[3] - inset, ly + w } }
+	end
+
+	-- Every frame of a press on a graph of the player's own: a drag once it has travelled;
+	-- held at the grid's top or bottom edge, the grid scrolls a row at a time. A press let
+	-- go where the panel never heard of it is dropped.
+	function page.dragUpdate(mx, my, held)
+		local drag = page.drag
+		if not drag then
+			return
+		end
+		if not held then
+			page.drag = nil
+			page.gen = page.gen + 1
+			return
+		end
+		if not drag.moving then
+			if mathMax(mathAbs(mx - drag.x), mathAbs(my - drag.y)) <= dragThreshold() then
+				return
+			end
+			drag.moving = true
+			page.gen = page.gen + 1
+		end
+		local r = page.rects
+		if not (r and page.gridded() and page.maxScroll > 0) then
+			return
+		end
+		local c = r.chart
+		local edge = mathFloor(24 * page.scale)
+		local over = mx >= c[1] and mx <= c[3]
+		local up = over and my > c[4] - edge and page.scroll > 0
+		local down = over and my < c[2] + edge and page.scroll < page.maxScroll
+		if not (up or down) then
+			drag.edgeSince = nil
+			return
+		end
+		local now = Spring.GetTimer()
+		if not drag.edgeSince then
+			drag.edgeSince = now
+		elseif Spring.DiffTimers(now, drag.edgeSince) > 0.4 then
+			drag.edgeSince = now
+			page.wheel(up)
+		end
+	end
+
+	-- The drag over the charts: the graph's own place shaded, a line where it would land,
+	-- and its name beside the cursor.
+	function page.drawDrag(mx, my)
+		local drag = page.drag
+		if not (drag and drag.moving) then
+			return
+		end
+		local metrics, look = ctx.metrics, ctx.look
+		for _, slot in ipairs(dropSlots()) do
+			if slot.graph == drag.graph then
+				local rc = slot.rect
+				ctx.draw.RectRound(rc[1], rc[2], rc[3], rc[4], metrics.csSmall, 1, 1, 1, 1, look.dragShade)
+			end
+		end
+		local target = dropTarget(mx, my)
+		if target then
+			local l = target.line
+			ctx.draw.RectRound(l[1], l[2], l[3], l[4], 0, 0, 0, 0, 0, look.dropLine)
+		end
+		local entry = page.entryByKey[drag.key]
+		if entry then
+			local fs, pad = metrics.catFs, metrics.sidePad
+			local font = ctx.font()
+			local w = (font and mathFloor(font:GetTextWidth(entry.label) * fs) or #entry.label * fs * 0.55) + pad * 2
+			local h = mathFloor(metrics.catRowHeight * 0.9)
+			local x1 = mathFloor(mx + 14 * page.scale)
+			if x1 + w > Spring.GetViewGeometry() then
+				x1 = mathFloor(mx - 14 * page.scale - w)
+			end
+			local y2 = mathFloor(my - 6 * page.scale)
+			ctx.draw.RectRound(x1, y2 - h, x1 + w, y2, metrics.csSmall, 1, 1, 1, 1, look.cardFill, look.cardFillTop)
+			ctx.draw.Color(1, 1, 1, 1)
+			printTexts({ { ctx.colors.title .. entry.label, x1 + pad, mathFloor(y2 - h * 0.5) } }, fs)
+		end
+	end
+
 	-- The charts, after the panel's list: the grid of the page, or the one chart a pick or
 	-- a zoom opened, each with its own hover overlay. The chart under the cursor is framed
 	-- and answers the tooltip.
@@ -1754,10 +2600,12 @@ function M.new(ctx)
 					page.miniHit = mini
 					page.chartHit = hit
 				end
-				mini.chart:setHover(hit)
+				-- Drawn without its hover: the one under the cursor gets it last, over the
+				-- charts beside it and over the light that marks it.
+				mini.chart:setHover(nil)
 				mini.chart:draw()
+				mini.chart:setHover(hit)
 			end
-			page.drawKinds()
 			-- The one under the cursor is marked, so it is clear what a press would open: a
 			-- rounded outline that fades inwards rather than a hard box.
 			---@type table?
@@ -1773,14 +2621,21 @@ function M.new(ctx)
 					ctx.look.white
 				)
 				ctx.draw.Color(1, 1, 1, 1)
+				mini.chart:drawOverlay()
 			end
+			page.drawKinds()
 			return
+		end
+		-- The button in the chart's corner is not the chart.
+		if page.hover.addTo == 1 then
+			inside = false
 		end
 		local hit = inside and chart:hitTest(mx, my) or nil
 		-- One chart fills the page: no small one answers for the tooltip any more.
 		page.chartHit, page.miniHit = hit, nil
 		chart:setHover(hit)
 		chart:draw()
+		page.drawAddTo()
 		page.drawKinds()
 	end
 
@@ -1807,6 +2662,11 @@ function M.new(ctx)
 	-- panel's bake signature.
 	function page.hoverAt(mx, my)
 		page.hover.stat, page.hover.legend, page.hover.block, page.hover.kind, page.hover.filter = 0, 0, 0, 0, 0
+		page.hover.addTo = 0
+		local add = page.addToRect()
+		if add and mx >= add[1] and mx <= add[3] and my >= add[2] and my <= add[4] then
+			page.hover.addTo = 1
+		end
 		local tog = filterToggleRect()
 		if tog and mx >= tog[3] - filterReserve() and mx <= tog[3] and my >= tog[2] and my <= tog[4] then
 			page.hover.filter = 1
@@ -1821,22 +2681,23 @@ function M.new(ctx)
 		if not r then
 			return "0|0|0|0"
 		end
-		if page.listShown() and mx >= r.list[1] and mx <= r.list[3] then
-			for i = 1, #page.statList do
-				local _, y1, _, y2 = statRect(i)
-				if my > y1 and my <= y2 and not page.statList[i].divider then
-					page.hover.stat = i
-				end
-			end
-		elseif my >= r.bar[2] and my <= r.bar[4] then
+		-- The bar runs above the stat list, so it is asked first.
+		if my >= r.bar[2] and my <= r.bar[4] then
 			for i, b in ipairs(page.barBlocks) do
-				if mx >= b.x1 and mx < b.x2 then
+				if mx >= b.hx1 and mx < b.hx2 then
 					page.hover.block = i
 				end
 			end
 			for i, item in ipairs(page.barItems) do
 				if mx >= item.x1 and mx < item.x2 and my >= item.y1 and my <= item.y2 then
 					page.hover.legend = i
+				end
+			end
+		elseif page.listShown() and mx >= r.list[1] and mx <= r.list[3] then
+			for i = 1, #page.statList do
+				local _, y1, _, y2 = statRect(i)
+				if my > y1 and my <= y2 and not page.statList[i].divider then
+					page.hover.stat = i
 				end
 			end
 		end
@@ -1849,6 +2710,8 @@ function M.new(ctx)
 			.. page.hover.kind
 			.. "|"
 			.. page.hover.filter
+			.. "|"
+			.. page.hover.addTo
 			.. "|"
 			.. page.gen
 	end
@@ -1892,7 +2755,8 @@ function M.new(ctx)
 		if page.kindsOpen then
 			local row = page.kindRects[page.hover.kind]
 			if row and button ~= 3 then
-				page.milestoneOff[row.key] = not page.milestoneOff[row.key] or nil
+				local off = kindsOff()
+				off[row.key] = not off[row.key] or nil
 				changed()
 				return true
 			end
@@ -1901,13 +2765,27 @@ function M.new(ctx)
 			changed()
 			return true
 		end
+		-- Add to... on the open graph, before the press on the chart that closes it.
+		if page.hover.addTo == 1 and button ~= 3 then
+			page.openAddMenu()
+			return true
+		end
 		if page.hover.stat > 0 then
 			local entry = page.statList[page.hover.stat]
 			---@cast entry -?
+			-- A custom category's graph is moved or removed from its right-click card.
+			if button == 3 and entry.graph then
+				local x1, y1, x2, y2 = statRect(page.hover.stat)
+				page.openGraphMenu(entry, { x1, y1, x2, y2 })
+				return true
+			end
 			if button ~= 3 and entry.back then
 				-- Back to the grid the chart was opened from.
 				page.zoom = nil
 				changed()
+			elseif button == 1 and entry.graph then
+				-- One of the player's own: opened when let go, moved when dragged.
+				page.drag = { key = entry.key, graph = entry.graph, x = x, y = y }
 			elseif button ~= 3 then
 				page.stat = entry.key
 				-- The list is how a stat is opened, whatever the grid is showing.
@@ -1916,7 +2794,19 @@ function M.new(ctx)
 			end
 			return true
 		end
+		if button == 3 and page.miniHit then
+			local entry = page.entryByKey[page.miniHit.key]
+			if entry and entry.graph then
+				page.openGraphMenu(entry, page.miniHit.rect)
+				return true
+			end
+		end
 		if button ~= 3 and page.miniHit then
+			local entry = page.entryByKey[page.miniHit.key]
+			if button == 1 and entry and entry.graph then
+				page.drag = { key = entry.key, graph = entry.graph, x = x, y = y }
+				return true
+			end
 			-- The grid answered what it is for; this one opens on its own.
 			page.stat = page.miniHit.key
 			page.zoom = page.miniHit.key
@@ -1940,8 +2830,9 @@ function M.new(ctx)
 		local block = page.hover.block > 0 and page.barBlocks[page.hover.block] or nil
 		if block and block.me and button ~= 3 then
 			-- Your own team alone, whatever was picked before.
-			page.selected = { [block.unit.key] = true }
-			page.hidden[block.unit.key] = nil
+			page.selected = {}
+			setTeams(page.selected, block.unit, true)
+			setTeams(page.hidden, block.unit, false)
 			changed()
 			return true
 		end
@@ -1956,15 +2847,15 @@ function M.new(ctx)
 		if targets then
 			local allHidden, allSelected = true, true
 			for _, u in ipairs(targets) do
-				allHidden = allHidden and page.hidden[u.key] == true
-				allSelected = allSelected and page.selected[u.key] == true and not page.hidden[u.key]
+				allHidden = allHidden and isHidden(u)
+				allSelected = allSelected and allPicked(u) and not isHidden(u)
 			end
 			local _, ctrl = Spring.GetModKeyState()
 			if button == 3 then
 				for _, u in ipairs(targets) do
-					page.hidden[u.key] = not allHidden or nil
+					setTeams(page.hidden, u, not allHidden)
 					if not allHidden then
-						page.selected[u.key] = nil
+						setTeams(page.selected, u, false)
 					end
 				end
 			else
@@ -1973,9 +2864,9 @@ function M.new(ctx)
 				end
 				for _, u in ipairs(targets) do
 					local on = ctrl or not allSelected
-					page.selected[u.key] = on or nil
+					setTeams(page.selected, u, on)
 					if on then
-						page.hidden[u.key] = nil
+						setTeams(page.hidden, u, false)
 					end
 				end
 			end
@@ -1983,6 +2874,31 @@ function M.new(ctx)
 			return true
 		end
 		return block ~= nil
+	end
+
+	-- The press on a graph of the player's own, let go: travelled, the graph lands where the
+	-- line showed; not, it was a click, and the graph opens.
+	function page.mouseRelease(x, y)
+		local drag = page.drag
+		if not drag then
+			return false
+		end
+		if drag.moving or mathMax(mathAbs(x - drag.x), mathAbs(y - drag.y)) > dragThreshold() then
+			local target = dropTarget(x, y)
+			page.drag = nil
+			page.gen = page.gen + 1
+			if target then
+				page.custom.placeGraph(drag.graph.id, target.before and target.before.id)
+				ctx.categoriesChanged()
+				ctx.playSound()
+			end
+			return true
+		end
+		page.drag = nil
+		page.stat = drag.key
+		page.zoom = drag.key
+		changed()
+		return true
 	end
 
 	-- What the units under the cursor are to the chart right now, and what the mouse does
@@ -1993,12 +2909,13 @@ function M.new(ctx)
 		local L = "ui.teamStats.graph."
 		local allHidden, allSelected, someSelected = true, true, false
 		for _, u in ipairs(targets) do
-			local on = page.selected[u.key] == true and not page.hidden[u.key]
-			allHidden = allHidden and page.hidden[u.key] == true
-			allSelected = allSelected and on
-			someSelected = someSelected or on
+			local shownU = not isHidden(u)
+			allHidden = allHidden and not shownU
+			allSelected = allSelected and allPicked(u) and shownU
+			-- An ally team with only some of its players picked is some of it.
+			someSelected = someSelected or (isPicked(u) and shownU)
 		end
-		local composition = page.stat == "composition"
+		local composition = statOf(page.stat) == "composition"
 		local anyPicked = #pickedUnits() > 0
 		local dropping = filtering()
 		local state
@@ -2015,7 +2932,7 @@ function M.new(ctx)
 		end
 		local group = #targets > 1
 		local lines = { ctx.colors.title .. ctx.i18n(L .. "state." .. state) }
-		if ctx.filters.milestones and not allHidden and (allSelected or not anyPicked) then
+		if settingsOf(page.zoom or page.stat).milestones and not allHidden and (allSelected or not anyPicked) then
 			local key = group and "milestonesGroup" or "milestones"
 			lines[#lines + 1] = ctx.colors.title .. ctx.i18n(L .. "state." .. key)
 		end
@@ -2035,7 +2952,15 @@ function M.new(ctx)
 		end
 		if page.chartHit then
 			local hovered = page.miniHit and page.miniHit.chart or chart
-			return hovered.cfg.title, hovered:describe(page.chartHit)
+			local desc = hovered:describe(page.chartHit)
+			-- Its % of total faded in the title: why it keeps its line.
+			local key = page.miniHit and page.miniHit.key or page.zoom or page.stat
+			local column = ctx.COLUMNS[statOf(key)]
+			local idle = settingsOf(key).share and column and column.fmt == "si" and hovered.cfg.kind ~= "stacked"
+			if idle and page.chartHit.kind ~= "marker" then
+				desc = (desc or "") .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.shareOne")
+			end
+			return hovered.cfg.title, desc
 		end
 		if page.hover.stat > 0 then
 			local entry = page.statList[page.hover.stat]
@@ -2043,14 +2968,20 @@ function M.new(ctx)
 			if entry.back then
 				return entry.label, ctx.i18n("ui.teamStats.graph.overviewDesc")
 			end
-			if entry.column then
-				return entry.label, ctx.L.desc[entry.key]
+			-- Explained by what it shows: a custom category's graph is keyed as itself, and
+			-- says it can be moved or removed.
+			local stat = entry.stat or entry.key
+			local desc = entry.column and ctx.L.desc[stat] or ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
+			if entry.graph then
+				desc = desc .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
 			end
-			-- The charts that are not a column of the table explain themselves by key.
-			return entry.label, ctx.i18n("ui.teamStats.graph." .. entry.key .. "Desc")
+			return entry.label, desc
 		end
 		if page.hover.filter == 1 then
 			return ctx.i18n("ui.teamStats.graph.hideUnselected"), ctx.i18n("ui.teamStats.graph.hideUnselectedDesc")
+		end
+		if page.hover.addTo == 1 then
+			return ctx.i18n("ui.teamStats.custom.addTo"), ctx.i18n("ui.teamStats.custom.addToDesc")
 		end
 		if page.hover.legend > 0 then
 			local item = page.barItems[page.hover.legend]
@@ -2069,7 +3000,7 @@ function M.new(ctx)
 			end
 			if b.all then
 				local tip = ctx.i18n("ui.teamStats.graph.allHint")
-				if ctx.filters.milestones then
+				if settingsOf(page.zoom or page.stat).milestones then
 					tip = tip .. "\n" .. ctx.i18n("ui.teamStats.graph.allMilestones")
 				end
 				return b.label, tip
@@ -2099,10 +3030,12 @@ function M.new(ctx)
 			graphPerPage = page.perPage,
 			graphMilestonesOff = off,
 			graphHideUnselected = page.hideUnselected,
+			customCategories = page.custom.getConfig(),
 		}
 	end
 
 	function page.setConfig(data)
+		page.custom.setConfig(data.customCategories)
 		if type(data.graphStat) == "string" then
 			page.stat = data.graphStat
 		end

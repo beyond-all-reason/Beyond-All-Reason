@@ -328,24 +328,11 @@ end
 
 -- The column's views: which columns each shows, in order. The first is the overview the
 -- panel opens on; the others each take one side of the game and have room for all of it.
+-- The built-in categories, which never change. The player's own come before them - the
+-- Graphs page's custom module keeps them at the front of this list - and the overview that
+-- ships with the game is one of those.
+---@type table[]
 local GROUPS = {
-	{
-		key = "all",
-		columns = {
-			"damageDealt",
-			"damageReceived",
-			"damageEfficiency",
-			"unitsProduced",
-			"unitsKilled",
-			"unitsDied",
-			"metalProduced",
-			"metalExcess",
-			"energyProduced",
-			"energyExcess",
-			"aggressionLevel",
-			"actionsPerMinute",
-		},
-	},
 	{
 		key = "live",
 		columns = {
@@ -510,12 +497,15 @@ local switches = {
 	-- milestones go on them, and which kinds. Graphs per page and the kinds are values a
 	-- press changes rather than switches, so they are drawn with what they are set to.
 	{ key = "perPage", page = true, value = true },
-	{ key = "milestones", page = true },
-	{ key = "milestoneKinds", page = true, value = true },
+	-- Over the rows below while a custom category's graph is open: they are its own then,
+	-- and greyed out on that category's page of charts, where each graph keeps its own.
+	{ key = "thisGraph", page = true, heading = true },
+	{ key = "milestones", page = true, perGraph = true },
+	{ key = "milestoneKinds", page = true, value = true, perGraph = true },
 	-- Both views: players under their team or on their own - the page keeps a grouping of
 	-- its own - and every amount as the part of the total it makes up, enemies included.
-	{ key = "groupByTeam" },
-	{ key = "shareOfTotal" },
+	{ key = "groupByTeam", perGraph = true },
+	{ key = "shareOfTotal", perGraph = true },
 	-- The table's alone: every number as the difference from your own, a bar behind it,
 	-- or the line its history draws. The last two are both painted behind the number, so
 	-- one turns the other off.
@@ -662,6 +652,13 @@ local look = {
 	rowHoverOpacity = 0.14,
 	-- A chart in the overview under the cursor: fainter than a row, over a larger area.
 	chartHoverOpacity = 0.09,
+	-- A block of the Graphs page's legend bar under the cursor: small, so lit more than a
+	-- row, and over a lit block too.
+	barHoverOpacity = 0.24,
+	-- A graph dragged in a category of the player's own: its place shaded, and the line
+	-- where it would land in the hue of the captions.
+	dragShade = { 0, 0, 0, 0.45 },
+	dropLine = { 1, 0.78, 0.51, 0.9 },
 	-- Underline under a group caption and an ally team's band: a thin bar fading up out
 	-- of the bottom edge, in the hue of the caption above it.
 	headerLine = { 1, 0.78, 0.51, 0.4 },
@@ -731,7 +728,7 @@ local listTop, listBottom, listX1, listRight, barX1 = 0, 0, 0, 0, 0
 -- The column's entries: the views, then a rule, then the pages.
 ---@type table[]
 local entries = {}
-local selectedGroup = "all"
+local selectedGroup = "overview"
 -- The columns the table shows right now, each with the x range it takes, and the group
 -- captions spanning them.
 ---@type table[]
@@ -781,7 +778,8 @@ local teamAPM = {}
 -- with no API widget to hold it for everyone. `on` is whether the gadget is taken to be there: yes until the
 -- panel has been open (`opened`) for `stale` frames without a hand-over, or the
 -- hand-overs stop; while it is not, the gadget's columns, views and the history page
--- are left out of the panel rather than shown empty.
+-- are left out of the panel rather than shown empty. `wanted` is the view the player
+-- picked while that leaves it out, gone back to when it is shown again.
 ---@type table<string, any>
 local handover = { all = nil, frame = nil, opened = nil, stale = UPDATE_FRAMES * 3, postGame = false, on = true }
 -- The last name seen for each team, for a player who has since left.
@@ -1608,7 +1606,7 @@ end
 local function switchAt(x, y)
 	for i = 1, #switches do
 		local hit = switches[i].hit
-		if hit and math_isInRect(x, y, hit[1], hit[2], hit[3], hit[4]) then
+		if hit and not switches[i].heading and math_isInRect(x, y, hit[1], hit[2], hit[3], hit[4]) then
 			return i
 		end
 	end
@@ -1630,6 +1628,7 @@ end
 -- name so the last column ends exactly at the table's right edge.
 local function layoutColumns()
 	local group = groupByKey[selectedGroup] or GROUPS[1]
+	---@cast group -?
 	columns = { COLUMNS.name }
 	for i = 1, #group.columns do
 		local c = COLUMNS[group.columns[i]]
@@ -1782,15 +1781,22 @@ local function setLayout()
 	---@diagnostic disable-next-line: undefined-field
 	local canCompare = allies.me ~= nil
 	local y = listBottom + metrics.edgeInset
+	local customGroup = groupByKey[selectedGroup] and groupByKey[selectedGroup].custom
 	for i = #switches, 1, -1 do
 		local sw = switches[i]
 		-- Which view a switch belongs to; the mode switch belongs to both.
 		local mine = not ((sw.table and onGraphs) or (sw.page and not onGraphs))
+		-- A custom category's page of charts: every graph on it keeps its own settings.
+		local customCharts = onGraphs and customGroup and not graphs.openGraph()
 		if sw.mode and not (showPlannedPages and handover.on) then
 			mine = false
 		end
 		-- Without a side of more than one player there is nothing to group.
 		if soloTeams and sw.key == "groupByTeam" then
+			mine = false
+		end
+		-- The caption over a custom graph's own rows, only while one is open.
+		if sw.heading and not (onGraphs and graphs.openGraph()) then
 			mine = false
 		end
 		if mine then
@@ -1811,6 +1817,7 @@ local function setLayout()
 			sw.disabled = (sw.key == "milestones" and graphs and (not graphs.overTime() or graphs.milestonesOwn()))
 				or (sw.key == "vsMe" and not canCompare)
 				or (sw.key == "shareOfTotal" and onGraphs and not graphs.shareApplies())
+				or (sw.perGraph and customCharts)
 				or nil
 			y = y + metrics.catRowHeight
 		else
@@ -2369,7 +2376,9 @@ local function drawSidebar()
 				)
 			end
 			local color = e.disabled and colorFaded or (selected and colorSelected or colorDim)
-			queueText(color .. e.label, x1 + metrics.sidePad, mathFloor((y1 + y2) * 0.5), metrics.catFs, "ov")
+			if not (graphs.naming and graphs.naming.key == e.key) then
+				queueText(color .. e.label, x1 + metrics.sidePad, mathFloor((y1 + y2) * 0.5), metrics.catFs, "ov")
+			end
 		end
 	end
 end
@@ -2383,7 +2392,16 @@ local function drawSettings()
 	local top = 0
 	for i = 1, #switches do
 		local sw = switches[i]
-		if sw.draw then
+		if sw.draw and sw.heading then
+			top = mathMax(top, sw.hit[4])
+			queueText(
+				colorFaded .. sw.label,
+				sw.hit[1] + metrics.sidePad,
+				mathFloor((sw.hit[2] + sw.hit[4]) * 0.5),
+				metrics.toggleFs,
+				"ov"
+			)
+		elseif sw.draw then
 			top = mathMax(top, sw.hit[4])
 			local hovered = hover.tog == i and not sw.disabled
 			if hovered then
@@ -2392,8 +2410,14 @@ local function drawSettings()
 			-- The Graphs switch shows the page's state, and the grouping switch the
 			-- grouping of whichever of the two is open.
 			local on = filters[sw.key]
+			local graph = graphs.open and sw.perGraph and graphs.openGraph()
 			if sw.mode then
 				on = graphs.open
+			elseif graph then
+				-- The open custom graph's own.
+				on = (sw.key == "groupByTeam" and graph.grouped)
+					or (sw.key == "shareOfTotal" and graph.share)
+					or (sw.key == "milestones" and graph.milestones)
 			elseif sw.key == "groupByTeam" and graphs.open then
 				on = graphs.grouped
 			end
@@ -2661,26 +2685,48 @@ end
 -- The column's entries: every view with something to show, then a rule and the history
 -- page. A view of the gadget's columns alone, and the page the gadget's history would
 -- fill, are left out while the gadget is not there. A view that went away hands over to
--- the overview.
+-- the overview, and is gone back to once it is shown again: it is still the player's pick.
 local function rebuildEntries()
 	entries = {}
-	local selectedStays = false
+	local want = handover.wanted or selectedGroup
+	local wantShown, selectedStays = false, false
+	local afterCustom = false
 	for _, group in ipairs(GROUPS) do
-		local shown = handover.on
-		if not shown then
-			for i = 1, #group.columns do
-				if not COLUMNS[group.columns[i]].gadget then
-					shown = true
+		local shown = true
+		if group.custom then
+			entries[#entries + 1] = { key = group.key, label = group.label, custom = true }
+			afterCustom = true
+		else
+			-- A rule between the player's categories and the built-in ones.
+			if afterCustom then
+				entries[#entries + 1] = { divider = true }
+				afterCustom = false
+			end
+			shown = handover.on
+			if not shown then
+				for i = 1, #group.columns do
+					if not COLUMNS[group.columns[i]].gadget then
+						shown = true
+					end
 				end
+			end
+			if shown then
+				entries[#entries + 1] = { key = group.key, label = L.group[group.key] }
 			end
 		end
 		if shown then
-			entries[#entries + 1] = { key = group.key, label = L.group[group.key] }
+			wantShown = wantShown or group.key == want
 			selectedStays = selectedStays or group.key == selectedGroup
 		end
 	end
-	if not selectedStays then
-		selectedGroup = GROUPS[1].key
+	if wantShown then
+		selectedGroup, handover.wanted = want, nil
+	elseif not selectedStays then
+		-- Hidden, not gone: kept as the pick, and saved as it. A deleted one is not kept.
+		if not handover.wanted and groupByKey[selectedGroup] then
+			handover.wanted = selectedGroup
+		end
+		selectedGroup = "overview"
 	end
 	if not (showPlannedPages and handover.on) and graphs and graphs.open then
 		-- The page went with the gadget: back to the table.
@@ -2705,13 +2751,24 @@ local function loadLabels()
 
 	L.group = {}
 	for _, group in ipairs(GROUPS) do
-		L.group[group.key] = BAR.I18N("ui.teamStats.group." .. group.key)
+		if not group.custom then
+			L.group[group.key] = BAR.I18N("ui.teamStats.group." .. group.key)
+		end
 	end
+	-- The overview's name is the language's until the player renames it.
+	graphs.custom.apply()
 
+	L.perGraphOpen = BAR.I18N("ui.teamStats.custom.perGraphOpen")
+	L.categoryHint = BAR.I18N("ui.teamStats.custom.categoryHint")
+	L.overviewHint = BAR.I18N("ui.teamStats.custom.overviewHint")
+	L.perGraphGrid = BAR.I18N("ui.teamStats.custom.perGraphGrid")
 	L.switch, L.switchDesc = {}, {}
 	for _, sw in ipairs(switches) do
 		L.switch[sw.key] = BAR.I18N("ui.teamStats.switch." .. sw.key)
-		L.switchDesc[sw.key] = BAR.I18N("ui.teamStats.switch." .. sw.key .. "Desc")
+		-- A caption row is never hovered for a tooltip, so it has nothing to explain.
+		if not sw.heading then
+			L.switchDesc[sw.key] = BAR.I18N("ui.teamStats.switch." .. sw.key .. "Desc")
+		end
 		sw.label = L.switch[sw.key]
 	end
 
@@ -2751,9 +2808,13 @@ local function syncGadgetState(frame)
 	dropLists()
 end
 
--- Reads the numbers, after settling whether the gadget is still there to read from.
+-- Reads the numbers, after settling whether the gadget is still there to read from. That
+-- is only known while the panel listens: closed, it is handed nothing, and a read then - at
+-- game over, or on a language change - would take its views and the page away for nothing.
 local function refresh()
-	syncGadgetState(spGetGameFrame())
+	if show then
+		syncGadgetState(spGetGameFrame())
+	end
 	refreshStats()
 	-- Whether the viewer has a team of their own is only known once the teams are read,
 	-- which is after the first layout: the comparison switch appears when it is.
@@ -2813,8 +2874,16 @@ function widget:DrawScreen()
 			dragging = false
 		end
 	end
+	-- A graph pressed in a category of the player's own turns into a drag as it travels.
+	graphs.dragUpdate(mx, my, lmb)
+	-- An open card of actions has the cursor to itself, and so has a graph being dragged:
+	-- nothing under them lights up.
+	local hx, hy = mx, my
+	if not show or graphs.menuOpen() or graphs.dragMoving() then
+		hx, hy = -1, -1
+	end
 
-	local sig = panelSignature(show and mx or -1, show and my or -1)
+	local sig = panelSignature(hx, hy)
 	if sig ~= panelSig then
 		if panelList then
 			glDeleteList(panelList)
@@ -2832,7 +2901,21 @@ function widget:DrawScreen()
 	if show and graphs.open then
 		-- The chart keeps its own list and draws its hover overlay straight, so the
 		-- cursor moving over it never rebakes the panel.
-		graphs.drawChart(mx, my)
+		graphs.drawChart(hx, hy)
+		graphs.drawDrag(mx, my)
+	end
+	-- A category being named: its field over its sidebar entry.
+	if show and graphs.naming then
+		for i = 1, #entries do
+			if entries[i].key == graphs.naming.key then
+				local x1, y1, x2, y2 = entryRect(i)
+				graphs.drawNaming(x1 + metrics.catInset, y1, x2 - metrics.catInset, y2)
+			end
+		end
+	end
+	-- A card of actions, over everything, in either view.
+	if show and graphs.menuOpen() then
+		graphs.drawMenu(mx, my)
 	end
 
 	if WG.guishader and backgroundGuishader == nil then
@@ -2846,7 +2929,7 @@ function widget:DrawScreen()
 	if show and math_isInRect(mx, my, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 		spSetMouseCursor("cursornormal")
 
-		if WG.tooltip then
+		if WG.tooltip and not graphs.menuOpen() and not graphs.dragMoving() then
 			local title, tip
 			local entry = hover.sb > 0 and entries[hover.sb] or nil
 			if graphs.open and hover.sb == 0 and hover.tog == 0 then
@@ -2861,9 +2944,17 @@ function widget:DrawScreen()
 				---@cast sw -?
 				title = sw.label
 				tip = L.switchDesc[sw.key]
+				-- In a custom category these rows are each graph's own.
+				if sw.perGraph and graphs.open and groupByKey[selectedGroup] and groupByKey[selectedGroup].custom then
+					tip = (tip or "") .. "\n" .. colorDim .. (graphs.openGraph() and L.perGraphOpen or L.perGraphGrid)
+				end
 			elseif entry and entry.disabled then
 				title = entry.label
 				tip = L.notYet
+			elseif entry and entry.custom then
+				title = entry.label
+				-- The one that ships is reset rather than deleted.
+				tip = entry.key == "overview" and L.overviewHint or L.categoryHint
 			elseif hover.row > 0 and hover.col == 1 then
 				-- Everything about the player, on the name: the columns the open view hides too.
 				local row = rows[scroll + hover.row]
@@ -2951,6 +3042,10 @@ local function closePanel()
 	show = false
 	dragging = false
 	listen(false)
+	-- A name being typed is kept; a card of actions and a drag are put away.
+	graphs.stopNaming(true)
+	graphs.closeMenu()
+	graphs.drag = nil
 	if WG.tooltip then
 		WG.tooltip.RemoveTooltip("teamstats")
 	end
@@ -2980,6 +3075,8 @@ local function selectEntry(i)
 	if e.disabled then
 		return
 	end
+	-- A pick of their own replaces the one waiting for the gadget to come back.
+	handover.wanted = nil
 	if e.key ~= selectedGroup then
 		selectedGroup = e.key
 		-- The whole header: the per-minute switch is only offered where a rate means
@@ -3027,6 +3124,14 @@ local function toggleSwitch(i, back)
 			graphs.refresh()
 			graphs.invalidate()
 		end
+	elseif sw.perGraph and graphs.open and graphs.openGraph() then
+		-- A custom category's graph keeps its own: the switch sets it for that graph alone.
+		local graph = graphs.openGraph()
+		---@cast graph -?
+		local field = key == "groupByTeam" and "grouped" or (key == "shareOfTotal" and "share" or "milestones")
+		graph[field] = not graph[field]
+		graphs.invalidate()
+		setLayout()
 	elseif key == "groupByTeam" and graphs.open then
 		-- The page groups its own way: the table keeps the grouping it was left with.
 		graphs.setGrouped(not graphs.grouped)
@@ -3059,6 +3164,15 @@ local function toggleSwitch(i, back)
 end
 
 function widget:KeyPress(key)
+	-- A name being typed takes every key: Enter keeps it, Escape keeps the old one.
+	if show and graphs.naming then
+		return graphs.namingKey(key)
+	end
+	if show and key == 27 and graphs.menuOpen() then
+		graphs.closeMenu()
+		dropLists()
+		return true
+	end
 	if show and key == 27 and graphs.open and graphs.kindsOpen then
 		-- ESC closes what is open on the panel before it closes the panel.
 		graphs.closeKinds()
@@ -3126,10 +3240,38 @@ local function mouseEvent(x, y, button, release)
 		return false
 	end
 
+	-- A graph pressed in a category of the player's own, let go wherever: opened, or moved
+	-- to where it was dragged.
+	if release and graphs.dragging() then
+		local stat, applies = graphs.stat, graphs.shareApplies()
+		graphs.mouseRelease(x, y)
+		if graphs.stat ~= stat or graphs.shareApplies() ~= applies then
+			setLayout()
+		end
+		return true
+	end
+
 	-- A press on a top bar button is the top bar's to handle: it closes the open windows
 	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
 	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
 		return false
+	end
+
+	-- A card of actions takes every press while it is open, wherever it lands.
+	if not release and graphs.menuOpen() then
+		graphs.menuPress(x, y, button)
+		dropLists()
+		return true
+	end
+	-- Naming a category: a press in the field moves the caret, one anywhere else keeps the
+	-- name typed so far and goes on to whatever it was on.
+	if not release and graphs.naming then
+		local r = graphs.naming.box.rect
+		if math_isInRect(x, y, r[1], r[2], r[3], r[4]) then
+			graphs.naming.box:mousePress(x, y)
+			return true
+		end
+		graphs.stopNaming(true)
 	end
 
 	if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
@@ -3140,9 +3282,16 @@ local function mouseEvent(x, y, button, release)
 		end
 		if not release and button == 3 then
 			local sw = switchAt(x, y)
+			local i = sidebarIndexAt(x, y)
+			local entry = i and entries[i]
 			if sw then
 				-- A setting with a value steps back on the right button.
 				toggleSwitch(sw, true)
+			elseif entry and entry.custom then
+				-- One of the player's categories: renamed, moved or deleted from its card.
+				local x1, y1, x2, y2 = entryRect(i)
+				graphs.openCategoryMenu(entry.key, { x1, y1, x2, y2 })
+				dropLists()
 			elseif graphs.open then
 				-- The Graphs page's legend takes the right button too: it hides a team, which
 				-- can leave one on the charts and the share with nothing to share out.
@@ -3205,6 +3354,13 @@ end
 
 function widget:MousePress(x, y, button)
 	return mouseEvent(x, y, button, false)
+end
+
+function widget:TextInput(utf8char)
+	if show and graphs.naming then
+		return graphs.namingText(utf8char)
+	end
+	return false
 end
 
 function widget:MouseRelease(x, y, button)
@@ -3332,7 +3488,8 @@ function widget:GetConfigData()
 	local data = {
 		sortKey = sortKey,
 		sortAscending = sortAscending,
-		group = selectedGroup,
+		-- The player's pick, even while the gadget's absence has it hidden.
+		group = handover.wanted or selectedGroup,
 		groupByTeam = filters.groupByTeam,
 		shareOfTotal = filters.shareOfTotal,
 		bars = filters.bars,
@@ -3363,6 +3520,8 @@ function widget:SetConfigData(data)
 	if data.sortAscending ~= nil then
 		sortAscending = data.sortAscending == true
 	end
+	-- The page's settings first: they hold the custom categories the open group may be.
+	graphs.setConfig(data)
 	if data.group and groupByKey[data.group] then
 		selectedGroup = data.group
 	end
@@ -3371,7 +3530,6 @@ function widget:SetConfigData(data)
 			filters[filterKey] = data[filterKey] == true
 		end
 	end
-	graphs.setConfig(data)
 end
 
 function widget:LanguageChanged()
@@ -3394,7 +3552,33 @@ graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
 	derive = derive,
 	look = look,
 	metrics = metrics,
-	colors = { title = colorTitle, dim = colorDim, faded = colorFaded, selected = colorSelected, value = colorValue },
+	colors = {
+		title = colorTitle,
+		dim = colorDim,
+		faded = colorFaded,
+		selected = colorSelected,
+		value = colorValue,
+		bad = colorBad,
+	},
+	-- The categories changed: the sidebar, the columns and the stat list follow.
+	categoriesChanged = function()
+		rebuildEntries()
+		setLayout()
+		graphs.invalidate()
+		dropLists()
+	end,
+	selectGroup = function(key)
+		selectedGroup, handover.wanted = key, nil
+		setLayout()
+	end,
+	-- Typed text reaches a widget only while SDL is asked for it.
+	textInput = function(on)
+		if on and Spring.SDLStartTextInput then
+			Spring.SDLStartTextInput()
+		elseif not on and Spring.SDLStopTextInput then
+			Spring.SDLStopTextInput()
+		end
+	end,
 	-- The FlowUI draw calls are fetched at ViewResize, so they are read when called; the
 	-- plain rect is for whole-pixel lines and squares.
 	draw = {

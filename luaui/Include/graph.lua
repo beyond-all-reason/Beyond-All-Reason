@@ -137,6 +137,9 @@ local DEFAULTS = {
 	-- as m:ss. `xStep` fixes the tick step in x units instead.
 	xUnit = nil,
 	xStep = nil,
+	-- Where the x axis starts, when not at the first sample: 0 for a game clock that runs
+	-- from the start whatever the first sample is.
+	xMin = nil,
 	-- Curves through the samples rather than corners at them. Steps between two samples
 	-- come from the pixel distance when left nil.
 	smooth = false,
@@ -663,7 +666,7 @@ function Graph:prepareLine()
 	local bottom = mathFloor(plot.bottom + fs * 1.5)
 	local right = plot.right
 
-	local xMin, xMax = xs[1] or 0, xs[#xs] or 1
+	local xMin, xMax = cfg.xMin or xs[1] or 0, xs[#xs] or 1
 	if xMax <= xMin then
 		xMax = xMin + 1
 	end
@@ -679,6 +682,9 @@ function Graph:prepareLine()
 	-- Never more than a share of the chart itself, so the same marker is small on a small
 	-- chart and readable on a large one.
 	size = mathMax(6, mathMin(size, mathFloor((plot.top - bottom) * 0.22), mathFloor((right - left) * 0.18)))
+	-- What a picture is when the lane is not crowded: a hovered one is drawn at least as
+	-- large, so one shrunk in a crowd can be read.
+	self.markerFullSize = size
 	local laneMax = mathMax(0, (plot.top - bottom) * cfg.markerLaneShare)
 	local minSize = mathMin(size, cfg.markerMinSize)
 	local rows = self:markerRows(size)
@@ -1063,27 +1069,34 @@ function Graph:drawLines()
 		if smooth == nil then
 			smooth = smoothAll
 		end
-		for _, run in ipairs(self:curveRuns(p.ys, smooth)) do
-			if #run == 1 then
-				local px, py = sx(run[1][1]), sy(run[1][2])
-				glBeginEnd(GL_QUADS, function()
-					glVertex(px - width, py - width)
-					glVertex(px + width, py - width)
-					glVertex(px + width, py + width)
-					glVertex(px - width, py + width)
-				end)
-			else
-				glBeginEnd(GL_LINE_STRIP, function()
-					for _, pt in ipairs(run) do
-						glVertex(sx(pt[1]), sy(pt[2]))
-					end
-				end)
-			end
-		end
+		p.runs = self:curveRuns(p.ys, smooth)
+		self:strokeRuns(p.runs, width)
 	end
 	glLineWidth(1)
 	if glSmoothing then
 		glSmoothing(false, false, false)
+	end
+end
+
+-- A line's runs as the current colour and width set them: a lone sample as a dot.
+function Graph:strokeRuns(runs, width)
+	local sx, sy = self.sx, self.sy
+	for _, run in ipairs(runs) do
+		if #run == 1 then
+			local px, py = sx(run[1][1]), sy(run[1][2])
+			glBeginEnd(GL_QUADS, function()
+				glVertex(px - width, py - width)
+				glVertex(px + width, py - width)
+				glVertex(px + width, py + width)
+				glVertex(px - width, py + width)
+			end)
+		else
+			glBeginEnd(GL_LINE_STRIP, function()
+				for _, pt in ipairs(run) do
+					glVertex(sx(pt[1]), sy(pt[2]))
+				end
+			end)
+		end
 	end
 end
 
@@ -1599,14 +1612,36 @@ function Graph:drawOverlay()
 	local look = self.cfg.look
 	if hit.kind == "marker" then
 		local m = hit.placed
-		-- Drawn again over the baked ones, larger: pictures that overlap in a crowded lane
-		-- are read by hovering them.
-		self:drawMarker(m, self.cfg.markerHoverScale)
+		-- Drawn again over the baked ones, larger - at least the size it has in an uncrowded
+		-- lane: pictures that overlap and shrink in a crowded one are read by hovering them.
+		local scale = self.cfg.markerHoverScale
+		local width = m.x2 - m.x1
+		if self.markerFullSize and width > 0 then
+			scale = mathMax(scale, self.markerFullSize / width)
+		end
+		self:drawMarker(m, scale)
 		glColor(1, 1, 1, 1)
 		return
 	end
 	if hit.kind == "point" and self.area then
 		local area = self.area
+		-- The line under the cursor drawn again over the others, at full strength.
+		---@type table?
+		local near = hit.nearest and self.prepared[hit.nearest]
+		if near and near.runs then
+			local c = near.color
+			local width = near.width + 1
+			if glSmoothing then
+				glSmoothing(false, true, false)
+			end
+			glLineWidth(width)
+			glColor(c[1], c[2], c[3], 1)
+			self:strokeRuns(near.runs, width)
+			glLineWidth(1)
+			if glSmoothing then
+				glSmoothing(false, false, false)
+			end
+		end
 		glColor(look.crosshair)
 		glBeginEnd(GL_LINES, function()
 			glVertex(mathFloor(hit.px) + 0.5, area.bottom)
@@ -1719,7 +1754,17 @@ function Graph:hitTest(mx, my)
 			}
 		end
 	end
-	return { kind = "point", index = i, x = self.xs[i], px = px, entries = entries }
+	-- The line the cursor is over, if one is close enough to it: brought to the front.
+	local nearest, best = nil, mathMax(8, cfg.fontSize) + 0.5
+	if cfg.kind == "line" then
+		for _, e in ipairs(entries) do
+			local d = mathAbs(e.py - my)
+			if d < best then
+				nearest, best = e.series, d
+			end
+		end
+	end
+	return { kind = "point", index = i, x = self.xs[i], px = px, entries = entries, nearest = nearest }
 end
 
 -- A tooltip for a hit: the x, then every series' value in its colour, largest first.
