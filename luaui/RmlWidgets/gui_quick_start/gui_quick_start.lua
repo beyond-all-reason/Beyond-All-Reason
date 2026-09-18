@@ -50,19 +50,42 @@ local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameU
 local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
+local QUICK_START_GENERATED_KEY = "quickStartGenerated"
 
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1 / 60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1 / 300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local DEFAULT_INSTANT_BUILD_RANGE = 500
 local TRAVERSABILITY_GRID_RESOLUTION = 32
 local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
+local BUILD_SPACING = 64
+local COMMANDER_NO_GO_DISTANCE = 100
+local CONVERTER_GRID_DISTANCE = 200
+local NODE_GRID_SORT_DISTANCE = 300
+local BASE_NODE_COUNT = 8
+local SKIP_STEP = 3
+local SAFETY_COUNT = 100
+local MAX_HEIGHT_DIFFERENCE = 100
+local DEFAULT_FACING = 0
+local UNOCCUPIED = 2
+local SQUARE_SIZE = 8
+local MAP_CENTER_X = Game.mapSizeX / 2
+local MAP_CENTER_Z = Game.mapSizeZ / 2
+local BASE_GENERATION_RANGES = {
+	small = 435,
+	normal = 435,
+	large = 500,
+}
 
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
 local overlapLines = VFS.Include("common/overlap_lines.lua")
 local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
+local quickStartConfig = VFS.Include("LuaRules/Configs/quick_start_build_defs.lua")
+local windFunctions = VFS.Include("common/wind_functions.lua")
 local customRound = aestheticCustomCostRound.customRound
 local lastCommanderX = nil
 local lastCommanderZ = nil
+local lastPreloadedCommanderX = nil
+local lastPreloadedCommanderZ = nil
 
 local cachedOverlapLines = {}
 local cachedGameRules = {}
@@ -298,12 +321,12 @@ end
 local function updateTraversabilityGrid()
 	local myTeamID = spGetMyTeamID()
 	if not myTeamID then
-		return
+		return false
 	end
 
 	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
 	if not startDefID then
-		return
+		return false
 	end
 
 	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
@@ -317,10 +340,12 @@ local function updateTraversabilityGrid()
 		hasOverlapLines = false
 		lastCommanderX = nil
 		lastCommanderZ = nil
-		return
+		return false
 	end
 
-	if lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ or externalSpawnPositionsChanged then
+	local commanderPositionChanged = lastCommanderX ~= commanderX or lastCommanderZ ~= commanderZ
+	local spawnPositionsChanged = externalSpawnPositionsChanged
+	if commanderPositionChanged or spawnPositionsChanged then
 		externalSpawnPositionsChanged = false
 		local gameRules = getCachedGameRules()
 		traversabilityGrid.generateTraversableGrid(
@@ -366,6 +391,506 @@ local function updateTraversabilityGrid()
 		lastCommanderX = commanderX
 		lastCommanderZ = commanderZ
 	end
+
+	return commanderPositionChanged
+end
+
+local function getBuildingDimensions(unitDefID, facing)
+	local unitDef = UnitDefs[unitDefID]
+	if not unitDef then
+		return 0, 0
+	end
+
+	if facing % 2 == 1 then
+		return SQUARE_SIZE * unitDef.zsize, SQUARE_SIZE * unitDef.xsize
+	end
+
+	return SQUARE_SIZE * unitDef.xsize, SQUARE_SIZE * unitDef.zsize
+end
+
+local function doBuildingsClash(firstBuildData, secondBuildData)
+	local firstWidth, firstDepth = getBuildingDimensions(firstBuildData[1], firstBuildData[5])
+	local secondWidth, secondDepth = getBuildingDimensions(secondBuildData[1], secondBuildData[5])
+	local xDistance = math.abs(firstBuildData[2] - secondBuildData[2])
+	local zDistance = math.abs(firstBuildData[4] - secondBuildData[4])
+
+	return xDistance < (firstWidth + secondWidth) * 0.5 and zDistance < (firstDepth + secondDepth) * 0.5
+end
+
+local function isBuildPositionOpen(buildQueue, unitDefID, buildX, buildY, buildZ, facing)
+	if Spring.TestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) ~= UNOCCUPIED then
+		return false
+	end
+
+	local buildData = { unitDefID, buildX, buildY, buildZ, facing }
+	for buildIndex = 1, #buildQueue do
+		if doBuildingsClash(buildData, buildQueue[buildIndex]) then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function getQuickStartBuildSequence(isMetalMap, isInWater, isGoodWind)
+	local mapType = isMetalMap and "metalMap" or "nonMetalMap"
+	local environment = isInWater and "water" or "land"
+	local windQuality = isGoodWind and "goodWind" or "badWind"
+	return quickStartConfig.buildSequence[mapType][environment][windQuality]
+end
+
+local function getCommanderBuildDefs(startDefID)
+	local commanderDef = UnitDefs[startDefID]
+	if not commanderDef then
+		return nil
+	end
+
+	local commanderOptions = quickStartConfig.commanderNonLabOptions[commanderDef.name]
+	if not commanderOptions then
+		return nil
+	end
+
+	local buildDefs = {}
+	for optionName, unitName in pairs(commanderOptions) do
+		local unitDef = UnitDefNames[unitName]
+		if unitDef then
+			buildDefs[optionName] = unitDef.id
+		end
+	end
+
+	return buildDefs
+end
+
+local function getNearbyMexes(commanderX, commanderZ, instantBuildRange)
+	local resourceSpotFinder = WG.resource_spot_finder
+	local nearbyMexes = {}
+	if not resourceSpotFinder or resourceSpotFinder.isMetalMap or not resourceSpotFinder.metalSpotsList then
+		return nearbyMexes
+	end
+
+	for spotIndex = 1, #resourceSpotFinder.metalSpotsList do
+		local metalSpot = resourceSpotFinder.metalSpotsList[spotIndex]
+		local distance = math.distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
+		local isTraversable =
+			traversabilityGrid.canMoveToPosition("myGrid", metalSpot.x, metalSpot.z, GRID_CHECK_RESOLUTION_MULTIPLIER)
+		local isPastFriendlyLines =
+			overlapLines.isPointPastLines(metalSpot.x, metalSpot.z, commanderX, commanderZ, cachedOverlapLines)
+
+		if distance <= instantBuildRange and isTraversable and not isPastFriendlyLines then
+			nearbyMexes[#nearbyMexes + 1] = {
+				x = metalSpot.x,
+				y = metalSpot.y,
+				z = metalSpot.z,
+				distance = distance,
+			}
+		end
+	end
+
+	table.sort(nearbyMexes, function(firstSpot, secondSpot)
+		return firstSpot.distance < secondSpot.distance
+	end)
+
+	return nearbyMexes
+end
+
+local function generateLocalGrid(context)
+	local buildDefID = context.isInWater and context.buildDefs.tidal or context.buildDefs.windmill
+	if not buildDefID then
+		return {}
+	end
+
+	local directionX = MAP_CENTER_X - context.commanderX
+	local directionZ = MAP_CENTER_Z - context.commanderZ
+	local skipDirection = math.abs(directionX) >= math.abs(directionZ) and "x" or "z"
+	local gridList = {}
+	local usedPositions = {}
+	local noGoZones = {
+		{
+			x = context.commanderX,
+			z = context.commanderZ,
+			distance = COMMANDER_NO_GO_DISTANCE,
+		},
+	}
+
+	for mexIndex = 1, #context.nearbyMexes do
+		local mexSpot = context.nearbyMexes[mexIndex]
+		noGoZones[#noGoZones + 1] = {
+			x = mexSpot.x,
+			z = mexSpot.z,
+			distance = BUILD_SPACING,
+		}
+	end
+
+	for offsetX = -context.baseGenerationRange, context.baseGenerationRange, BUILD_SPACING do
+		for offsetZ = -context.baseGenerationRange, context.baseGenerationRange, BUILD_SPACING do
+			local index = (skipDirection == "x" and offsetZ or offsetX) + context.baseGenerationRange
+			if (index / BUILD_SPACING) % SKIP_STEP ~= 0 then
+				local testX = context.commanderX + offsetX
+				local testZ = context.commanderZ + offsetZ
+				if
+					math.distance2d(testX, testZ, context.commanderX, context.commanderZ)
+					<= context.baseGenerationRange
+				then
+					local tooClose = false
+					for zoneIndex = 1, #noGoZones do
+						local noGoZone = noGoZones[zoneIndex]
+						if math.distance2d(testX, testZ, noGoZone.x, noGoZone.z) <= noGoZone.distance then
+							tooClose = true
+							break
+						end
+					end
+
+					if not tooClose then
+						local groundY = Spring.GetGroundHeight(testX, testZ)
+						if math.abs(groundY - context.commanderY) <= MAX_HEIGHT_DIFFERENCE then
+							local buildX, buildY, buildZ =
+								Spring.Pos2BuildPos(buildDefID, testX, groundY, testZ, DEFAULT_FACING)
+							local isPastFriendlyLines = buildX
+								and overlapLines.isPointPastLines(
+									buildX,
+									buildZ,
+									context.commanderX,
+									context.commanderZ,
+									cachedOverlapLines
+								)
+							local isTraversable = buildX
+								and traversabilityGrid.canMoveToPosition(
+									"myGrid",
+									buildX,
+									buildZ,
+									GRID_CHECK_RESOLUTION_MULTIPLIER
+								)
+
+							if
+								buildX
+								and not isPastFriendlyLines
+								and isTraversable
+								and Spring.TestBuildOrder(buildDefID, buildX, buildY, buildZ, DEFAULT_FACING)
+									== UNOCCUPIED
+							then
+								local positionKey = buildX .. "_" .. buildZ
+								if not usedPositions[positionKey] then
+									usedPositions[positionKey] = true
+									gridList[#gridList + 1] = {
+										x = buildX,
+										y = buildY,
+										z = buildZ,
+									}
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return gridList
+end
+
+local function createBaseNodes(commanderX, commanderZ, baseGenerationRange)
+	local nodes = {}
+	local angleIncrement = 2 * math.pi / BASE_NODE_COUNT
+	for nodeIndex = 0, BASE_NODE_COUNT - 1 do
+		local angle = nodeIndex * angleIncrement
+		nodes[nodeIndex + 1] = {
+			x = commanderX + (baseGenerationRange / 2) * math.cos(angle),
+			z = commanderZ + (baseGenerationRange / 2) * math.sin(angle),
+			grid = {},
+			score = 0,
+		}
+	end
+	return nodes
+end
+
+local function populateNodeGrids(nodes, localGrid)
+	for nodeIndex = 1, #nodes do
+		local node = nodes[nodeIndex]
+		for gridIndex = 1, #localGrid do
+			local position = localGrid[gridIndex]
+			if math.distance2d(position.x, position.z, node.x, node.z) <= NODE_GRID_SORT_DISTANCE then
+				node.grid[#node.grid + 1] = {
+					x = position.x,
+					y = position.y,
+					z = position.z,
+				}
+			end
+		end
+
+		node.score = #node.grid
+		node.distanceFromCenter = math.distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
+		node.goodEnough = node.score >= math.ceil(#localGrid * 0.2)
+	end
+end
+
+local function generateBaseNodesFromLocalGrid(context, localGrid)
+	local nodes = createBaseNodes(context.commanderX, context.commanderZ, context.baseGenerationRange)
+	populateNodeGrids(nodes, localGrid)
+
+	local minimumDistance = math.huge
+	local maximumDistance = 0
+	for nodeIndex = 1, #nodes do
+		local node = nodes[nodeIndex]
+		minimumDistance = math.min(minimumDistance, node.distanceFromCenter)
+		maximumDistance = math.max(maximumDistance, node.distanceFromCenter)
+	end
+
+	local distanceRange = maximumDistance - minimumDistance
+	for nodeIndex = 1, #nodes do
+		local node = nodes[nodeIndex]
+		local centerWeight = 1
+		if distanceRange > 0 then
+			centerWeight = math.clamp(1 - (node.distanceFromCenter - minimumDistance) / distanceRange, 0.5, 1)
+		end
+
+		local averageDistance = 0
+		for gridIndex = 1, #node.grid do
+			local position = node.grid[gridIndex]
+			averageDistance = averageDistance + math.distance2d(position.x, position.z, node.x, node.z)
+		end
+		if #node.grid > 0 then
+			averageDistance = averageDistance / #node.grid
+		end
+		node.resultantScore = centerWeight * averageDistance
+	end
+
+	local selectedPair = nil
+	local bestResultantScore = math.huge
+	for nodeIndex = 1, BASE_NODE_COUNT do
+		local nextNodeIndex = (nodeIndex % BASE_NODE_COUNT) + 1
+		if nodes[nodeIndex].goodEnough and nodes[nextNodeIndex].goodEnough then
+			local combinedScore = nodes[nodeIndex].resultantScore + nodes[nextNodeIndex].resultantScore
+			if combinedScore < bestResultantScore then
+				bestResultantScore = combinedScore
+				selectedPair = { nodes[nodeIndex], nodes[nextNodeIndex] }
+			end
+		end
+	end
+
+	if not selectedPair then
+		return {
+			other = {},
+			converters = {},
+		}
+	end
+
+	local firstNode = selectedPair[1]
+	local secondNode = selectedPair[2]
+	local converterNode = firstNode.score <= secondNode.score and firstNode or secondNode
+	local otherNode = converterNode == firstNode and secondNode or firstNode
+	local converterGrid = {}
+	local converterPositions = {}
+
+	for gridIndex = 1, #converterNode.grid do
+		local position = converterNode.grid[gridIndex]
+		if math.distance2d(position.x, position.z, converterNode.x, converterNode.z) <= CONVERTER_GRID_DISTANCE then
+			converterGrid[#converterGrid + 1] = position
+			converterPositions[position.x .. "_" .. position.z] = true
+		end
+	end
+
+	local otherGrid = {}
+	for gridIndex = 1, #localGrid do
+		local position = localGrid[gridIndex]
+		if not converterPositions[position.x .. "_" .. position.z] then
+			otherGrid[#otherGrid + 1] = position
+		end
+	end
+
+	table.sort(converterGrid, function(firstPosition, secondPosition)
+		return math.distance2d(firstPosition.x, firstPosition.z, converterNode.x, converterNode.z)
+			< math.distance2d(secondPosition.x, secondPosition.z, converterNode.x, converterNode.z)
+	end)
+	table.sort(otherGrid, function(firstPosition, secondPosition)
+		return math.distance2d(firstPosition.x, firstPosition.z, otherNode.x, otherNode.z)
+			< math.distance2d(secondPosition.x, secondPosition.z, otherNode.x, otherNode.z)
+	end)
+
+	return {
+		other = otherGrid,
+		converters = converterGrid,
+	}
+end
+
+local function getBuildSpace(context, buildQueue, buildType)
+	local unitDefID = context.buildDefs[buildType]
+	if not unitDefID then
+		return nil, nil, nil
+	end
+
+	if buildType == "mex" and not context.isMetalMap then
+		while #context.nearbyMexes > 0 do
+			local metalSpot = table.remove(context.nearbyMexes, 1)
+			local groundY = Spring.GetGroundHeight(metalSpot.x, metalSpot.z)
+			local buildX, buildY, buildZ =
+				Spring.Pos2BuildPos(unitDefID, metalSpot.x, groundY, metalSpot.z, context.defaultFacing)
+			if buildX and isBuildPositionOpen(buildQueue, unitDefID, buildX, buildY, buildZ, context.defaultFacing) then
+				return buildX, buildY, buildZ
+			end
+		end
+		return nil, nil, nil
+	end
+
+	local nodeType = quickStartConfig.optionsToNodeType[buildType] or "other"
+	local gridList = context.gridLists[nodeType] or {}
+	while #gridList > 0 do
+		local position = table.remove(gridList, 1)
+		if isBuildPositionOpen(buildQueue, unitDefID, position.x, position.y, position.z, context.defaultFacing) then
+			return position.x, position.y, position.z
+		end
+	end
+
+	return nil, nil, nil
+end
+
+local function getPlayerBuildQueue(buildQueue)
+	local playerBuildQueue = {}
+	for buildIndex = 1, #buildQueue do
+		local buildData = buildQueue[buildIndex]
+		if not buildData[QUICK_START_GENERATED_KEY] then
+			playerBuildQueue[#playerBuildQueue + 1] = buildData
+		end
+	end
+	return playerBuildQueue
+end
+
+local function getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, commanderZ)
+	local budgetRemaining = gameRules.budgetTotal
+	local firstFactoryPlaced = false
+
+	for buildIndex = 1, #buildQueue do
+		local buildData = buildQueue[buildIndex]
+		local unitDefID = buildData[1]
+		local unitDef = unitDefID and unitDefID > 0 and UnitDefs[unitDefID]
+		if
+			unitDef
+			and isWithinBuildRange(commanderX, commanderZ, buildData[2], buildData[4], gameRules.instantBuildRange)
+		then
+			local buildCost = calculateBudgetWithDiscount(
+				unitDefID,
+				gameRules.factoryDiscountAmount,
+				shouldApplyFactoryDiscount,
+				not firstFactoryPlaced
+			)
+			budgetRemaining = math.max(0, budgetRemaining - buildCost)
+			if unitDef.isFactory and not firstFactoryPlaced then
+				firstFactoryPlaced = true
+			end
+		end
+	end
+
+	return budgetRemaining
+end
+
+local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, playerBuildQueue)
+	local buildDefs = getCommanderBuildDefs(startDefID)
+	if not buildDefs then
+		return playerBuildQueue
+	end
+
+	local resourceSpotFinder = WG.resource_spot_finder
+	local isMetalMap = resourceSpotFinder and resourceSpotFinder.isMetalMap or false
+	local groundY = Spring.GetGroundHeight(commanderX, commanderZ)
+	local isInWater = groundY < 0
+	local gameRules = getCachedGameRules()
+	local configKey = modOptions.quick_start_amount or "normal"
+	local baseGenerationRange = BASE_GENERATION_RANGES[configKey] or BASE_GENERATION_RANGES.normal
+	local directionX = MAP_CENTER_X - commanderX
+	local directionZ = MAP_CENTER_Z - commanderZ
+	local angle = math.atan2(directionX, directionZ)
+	local context = {
+		commanderX = commanderX,
+		commanderY = groundY,
+		commanderZ = commanderZ,
+		defaultFacing = math.floor((angle / (math.pi / 2)) + 0.5) % 4,
+		baseGenerationRange = baseGenerationRange,
+		buildDefs = buildDefs,
+		isMetalMap = isMetalMap,
+		isInWater = isInWater,
+		nearbyMexes = getNearbyMexes(commanderX, commanderZ, gameRules.instantBuildRange),
+		gridLists = {},
+	}
+	local localGrid = generateLocalGrid(context)
+	context.gridLists = generateBaseNodesFromLocalGrid(context, localGrid)
+
+	local buildQueue = {}
+	for buildIndex = 1, #playerBuildQueue do
+		buildQueue[#buildQueue + 1] = playerBuildQueue[buildIndex]
+	end
+	local buildSequence = getQuickStartBuildSequence(isMetalMap, isInWater, windFunctions.isGoodWind())
+	local budgetRemaining = getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, commanderZ)
+	local buildIndex = 1
+	local attempts = 0
+
+	while budgetRemaining > 0 and attempts < SAFETY_COUNT do
+		attempts = attempts + 1
+		local buildType = buildSequence[buildIndex]
+		local unitDefID = buildDefs[buildType]
+		local unitDef = unitDefID and UnitDefs[unitDefID]
+		local buildCost = unitDef
+				and calculateBudgetCost(unitDef.metalCost or 0, unitDef.energyCost or 0, unitDef.buildTime or 0)
+			or math.huge
+
+		if buildCost > budgetRemaining then
+			break
+		end
+
+		local buildX, buildY, buildZ = getBuildSpace(context, buildQueue, buildType)
+		if buildX then
+			local generatedBuildData = {
+				unitDefID,
+				buildX,
+				buildY,
+				buildZ,
+				context.defaultFacing,
+			}
+			generatedBuildData[QUICK_START_GENERATED_KEY] = true
+			buildQueue[#buildQueue + 1] = generatedBuildData
+			budgetRemaining = budgetRemaining - buildCost
+		end
+
+		buildIndex = buildIndex % #buildSequence + 1
+	end
+
+	return buildQueue
+end
+
+local function populatePreloadedBuildQueue(commanderPositionChanged)
+	local myTeamID = spGetMyTeamID()
+	if not myTeamID or not wgPregameBuild or not wgPregameBuild.setBuildQueue then
+		return false
+	end
+
+	local commanderX, commanderY, commanderZ = Spring.GetTeamStartPosition(myTeamID)
+	local startChosen = (commanderX ~= 0) or (commanderY ~= 0) or (commanderZ ~= 0)
+	if not startChosen then
+		lastPreloadedCommanderX = nil
+		lastPreloadedCommanderZ = nil
+		return false
+	end
+
+	local positionNeedsPreload = commanderPositionChanged
+		or lastPreloadedCommanderX ~= commanderX
+		or lastPreloadedCommanderZ ~= commanderZ
+	if not positionNeedsPreload then
+		return false
+	end
+
+	local startDefID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	if not startDefID then
+		return false
+	end
+
+	local currentBuildQueue = wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+	local playerBuildQueue = getPlayerBuildQueue(currentBuildQueue)
+	local buildQueue = createPreloadedBuildQueue(startDefID, commanderX, commanderZ, playerBuildQueue)
+	wgPregameBuild.setBuildQueue(buildQueue)
+	if wgPregameBuild.forceRefresh then
+		wgPregameBuild.forceRefresh()
+	end
+	lastPreloadedCommanderX = commanderX
+	lastPreloadedCommanderZ = commanderZ
+	return true
 end
 
 local function updateUIElementText(document, elementId, text)
@@ -916,7 +1441,10 @@ function widget:Update()
 	end
 	widgetState.lastWidgetUpdate = currentTime
 
-	updateTraversabilityGrid()
+	local commanderPositionChanged = updateTraversabilityGrid()
+	if populatePreloadedBuildQueue(commanderPositionChanged) then
+		updateDataModel(true)
+	end
 end
 
 function widget:DrawWorld()
