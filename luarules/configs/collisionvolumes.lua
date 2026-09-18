@@ -846,13 +846,13 @@ local function getModelUnitCollisionVolume(unitDef)
 		COLVOL_AXIS.Z,
 	}
 
+	if colvol[7] == COLVOL_SHAPE.CYLINDER then
+		colvol[9] = nil -- Not known with accuracy until the first unitdef is created for each model.
+	end
+
 	local model = modelVolumes.UNIT[unitDef.modeltype] ---@as table?
 	if model then
 		model.rescale(colvol, model, unitDef)
-	end
-
-	if colvol[7] == COLVOL_SHAPE.CYLINDER then
-		colvol[9] = nil -- Not known with accuracy until the first unitdef is created for each model.
 	end
 
 	return colvol
