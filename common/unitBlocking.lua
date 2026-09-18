@@ -1,22 +1,31 @@
---- Unit blocking utility functions for checking TeamRulesParams
---- Provides functions to query blocked unit definitions from team rules
+--- Reads the build blocks that api_build_blocking.lua (GG.BuildBlocking) publishes as team rules
+--- params, for widgets and gadgets alike:
+---   "unitdef_blocked_<unitDefID>"                    blocked for the whole team
+---   "builder_blocked_<builderUnitDefID>_<unitDefID>" blocked for one builder unit type only
+--- The values are the comma-separated blocking reasons.
 local unitBlocking = {}
 
+---@param value string|number A rules param value: the comma-separated reasons.
+---@return table<string, boolean> reasons reason -> true
+local function parseReasons(value)
+	local reasons = {}
+	for _, reason in ipairs(string.split(tostring(value), ",")) do
+		reasons[reason] = true
+	end
+	return reasons
+end
+
 --- Gets blocked unit definitions from TeamRulesParams
----@param unitDefIDs? UnitDefID[] If `nil`, checks all blocked units for the current team.
+---@param teamID TeamID
+---@param unitDefIDs? UnitDefID[] If `nil`, checks all blocked units of the team.
 ---@return table<number, table<string, boolean>> blockedUnits Table where keys are UnitDefIDs and values are tables of blocking reasons (reason -> true)
 ---@usage
 ---   -- Get all blocked units
----   local allBlocked = unitBlocking.getBlockedUnitDefs()
+---   local allBlocked = unitBlocking.getBlockedUnitDefs(teamID)
 ---   -- Get specific units' blocking status
----   local specificBlocked = unitBlocking.getBlockedUnitDefs({123, 456})
-function unitBlocking.getBlockedUnitDefs(unitDefIDs)
-	local myTeamID = Spring.GetLocalTeamID()
-	if not myTeamID then
-		return {}
-	end
-
-	local teamRules = Spring.GetTeamRulesParams(myTeamID) or {}
+---   local specificBlocked = unitBlocking.getBlockedUnitDefs(teamID, {123, 456})
+function unitBlocking.getBlockedUnitDefs(teamID, unitDefIDs)
+	local teamRules = Spring.GetTeamRulesParams(teamID) or {}
 	local blockedUnits = {}
 
 	if unitDefIDs then
@@ -48,10 +57,7 @@ function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 			local key = "unitdef_blocked_" .. unitDefID
 			local value = teamRules[key]
 			if value then
-				blockedUnits[unitDefID] = {}
-				for reason in value:gmatch("[^,]+") do
-					blockedUnits[unitDefID][reason] = true
-				end
+				blockedUnits[unitDefID] = parseReasons(value)
 			end
 		end
 	else
@@ -60,10 +66,7 @@ function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 			if unitDefIDStr then
 				local unitDefID = tonumber(unitDefIDStr)
 				if unitDefID and UnitDefs[unitDefID] then
-					blockedUnits[unitDefID] = {}
-					for reason in value:gmatch("[^,]+") do
-						blockedUnits[unitDefID][reason] = true
-					end
+					blockedUnits[unitDefID] = parseReasons(value)
 				end
 			end
 		end
@@ -74,17 +77,13 @@ end
 
 --- Gets unit definitions blocked only for a specific builder unit type from TeamRulesParams
 --- (see `GG.BuildBlocking.AddBlockedUnit` with a `builderUnitDefID`).
+---@param teamID TeamID
 ---@return table<number, table<number, table<string, boolean>>> blockedUnits Keyed by builder UnitDefID, then by blocked UnitDefID, with a table of blocking reasons (reason -> true)
 ---@usage
----   local byBuilder = unitBlocking.getBuilderBlockedUnitDefs()
+---   local byBuilder = unitBlocking.getBuilderBlockedUnitDefs(teamID)
 ---   if byBuilder[builderDefID] and byBuilder[builderDefID][unitDefID] then ... end
-function unitBlocking.getBuilderBlockedUnitDefs()
-	local myTeamID = Spring.GetLocalTeamID()
-	if not myTeamID then
-		return {}
-	end
-
-	local teamRules = Spring.GetTeamRulesParams(myTeamID) or {}
+function unitBlocking.getBuilderBlockedUnitDefs(teamID)
+	local teamRules = Spring.GetTeamRulesParams(teamID) or {}
 	local blockedUnits = {}
 
 	for key, value in pairs(teamRules) do
@@ -93,12 +92,7 @@ function unitBlocking.getBuilderBlockedUnitDefs()
 			local builderDefID = tonumber(builderDefIDStr)
 			local unitDefID = tonumber(unitDefIDStr)
 			if builderDefID and unitDefID and UnitDefs[builderDefID] and UnitDefs[unitDefID] then
-				local reasons = {}
-				for reason in string.gmatch(tostring(value), "[^,]+") do
-					reasons[reason] = true
-				end
-				blockedUnits[builderDefID] = blockedUnits[builderDefID] or {}
-				blockedUnits[builderDefID][unitDefID] = reasons
+				table.ensureTable(blockedUnits, builderDefID)[unitDefID] = parseReasons(value)
 			end
 		end
 	end

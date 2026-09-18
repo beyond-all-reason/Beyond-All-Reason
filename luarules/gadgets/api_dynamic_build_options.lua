@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		desc = "Adds and removes build options of builder and factory unit types at runtime, for existing and future units",
 		date = "2026.09.15",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer = -1, -- initializes before unit_prevent_strange_orders.lua, which uses GG.DynamicBuildOptions
 		enabled = true,
 	}
 end
@@ -15,10 +15,12 @@ end
 	API (synced):
 		GG.DynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position) -> boolean
 			Every current and future unit of `builderUnitDefID` can build `builtUnitDefID`.
-			`position` (optional, 1-based) is the slot among the unit's build options;
-			without it the option goes after the last one.
+			`position` (optional, 1-based) is the slot among the unit's build options in
+			its command descriptions; without it the option goes after the last one.
+			Menus that sort options themselves (grid menu, smart ordering) ignore it.
 		GG.DynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID) -> boolean
-			Takes the option away again; the engine drops queued build orders for it.
+			Takes the option away again. The engine also removes queued orders for it
+			from the units' queues (CCommandAI::HandleBuildOptionRemoval).
 		GG.DynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID) -> boolean
 
 	The engine keeps build options per unit as command descriptions with a negative
@@ -27,17 +29,16 @@ end
 	or no longer can, build it. Unit defs cannot change, so the changes are kept per
 	builder unit def and applied to new units in UnitCreated.
 
-	Game rules params "dynamic_buildoption_<builderUnitDefID>_<builtUnitDefID>"
-	(1 = added, 0 = removed) publish the changes: widgets patch their UnitDefs copies
-	with them (luaui/Include/dynamicBuildOptions.lua) and the registry is restored
-	from them after a /luarules reload. Script.LuaUI.BuildOptionsChanged tells open
-	build menus to refresh.
+	The game rules param "dynamic_build_options" lists the changes for LuaUI, so a
+	build menu that loads mid-game knows them (luaui/Include/dynamicBuildOptions.lua):
+	comma-separated "<builderUnitDefID>:<builtUnitDefID>:<1 added / 0 removed>" entries.
+	Script.LuaUI.BuildOptionsChanged tells open build menus to refresh.
 
 	Only unit defs with a builder or factory command AI (isBuilder) accept options,
 	and the BAR build menus only open for unit types whose def has build options.
 ]]
 
-local RULES_PARAM_PREFIX = "dynamic_buildoption_"
+local RULES_PARAM = "dynamic_build_options"
 local SYNC_ACTION = "DynamicBuildOptionsChanged"
 
 if gadgetHandler:IsSyncedCode() then
@@ -90,7 +91,6 @@ if gadgetHandler:IsSyncedCode() then
 			type = isFactory and CMDTYPE_ICON or CMDTYPE_ICON_BUILDING,
 			name = name,
 			action = "buildunit_" .. string.lower(name),
-			tooltip = "Build: " .. builtUnitDef.humanName .. " - " .. (builtUnitDef.tooltip or ""),
 			cursor = name,
 			disabled = builtUnitDef.maxThisUnit <= 0,
 		}
@@ -154,33 +154,33 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function publish(builderUnitDefID, builtUnitDefID, added)
-		local paramName = RULES_PARAM_PREFIX .. builderUnitDefID .. "_" .. builtUnitDefID
-		if added == isStaticOption(builtUnitDefID, builderUnitDefID) then
-			spSetGameRulesParam(paramName, nil) -- back to what the unit def says
-		else
-			spSetGameRulesParam(paramName, added and 1 or 0)
+		local entries = {}
+		for builder, options in pairs(addedBuildOptions) do
+			for built in pairs(options) do
+				entries[#entries + 1] = builder .. ":" .. built .. ":1"
+			end
 		end
+		for builder, options in pairs(removedBuildOptions) do
+			for built in pairs(options) do
+				entries[#entries + 1] = builder .. ":" .. built .. ":0"
+			end
+		end
+		spSetGameRulesParam(RULES_PARAM, entries[1] and table.concat(entries, ",") or nil)
 		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, added)
 	end
 
-	local function validate(builtUnitDefID, builderUnitDefID, caller)
-		if not UnitDefs[builtUnitDefID] then
-			Spring.Log(
-				gadget:GetInfo().name,
-				LOG.WARNING,
-				caller .. ": unknown built unitDefID " .. tostring(builtUnitDefID)
-			)
-			return false
+	-- Unit def ids are validated by the callers (the mission API's UnitDefID parameter
+	-- type); whether a unit type can take build options is this gadget's rule.
+	local function isBuilderDef(builderUnitDefID, caller)
+		if staticBuildOptions[builderUnitDefID] then
+			return true
 		end
-		if not staticBuildOptions[builderUnitDefID] then
-			Spring.Log(
-				gadget:GetInfo().name,
-				LOG.WARNING,
-				caller .. ": unitDefID " .. tostring(builderUnitDefID) .. " is not a builder or factory"
-			)
-			return false
-		end
-		return true
+		Spring.Log(
+			gadget:GetInfo().name,
+			LOG.WARNING,
+			caller .. ": unitDefID " .. tostring(builderUnitDefID) .. " is not a builder or factory"
+		)
+		return false
 	end
 
 	local function registerAdded(builtUnitDefID, builderUnitDefID, position)
@@ -189,9 +189,7 @@ if gadgetHandler:IsSyncedCode() then
 			removed[builtUnitDefID] = nil
 		end
 		if not isStaticOption(builtUnitDefID, builderUnitDefID) then
-			local added = addedBuildOptions[builderUnitDefID] or {}
-			addedBuildOptions[builderUnitDefID] = added
-			added[builtUnitDefID] = position or false
+			table.ensureTable(addedBuildOptions, builderUnitDefID)[builtUnitDefID] = position or false
 		end
 	end
 
@@ -201,27 +199,20 @@ if gadgetHandler:IsSyncedCode() then
 			added[builtUnitDefID] = nil
 		end
 		if isStaticOption(builtUnitDefID, builderUnitDefID) then
-			local removed = removedBuildOptions[builderUnitDefID] or {}
-			removedBuildOptions[builderUnitDefID] = removed
-			removed[builtUnitDefID] = true
+			table.ensureTable(removedBuildOptions, builderUnitDefID)[builtUnitDefID] = true
 		end
 	end
 
-	GG.DynamicBuildOptions = GG.DynamicBuildOptions or {}
+	local dynamicBuildOptions = {}
 
 	---Gives every current and future unit of a builder or factory type a build option.
 	---@param builtUnitDefID UnitDefID The unit to make buildable.
 	---@param builderUnitDefID UnitDefID The builder or factory unit type that gets the option.
 	---@param position integer? 1-based slot among the unit's build options; `nil` puts it after the last one.
-	---@return boolean applied `false` when either unit def is invalid or the builder type cannot build.
-	function GG.DynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position)
-		if not validate(builtUnitDefID, builderUnitDefID, "Add") then
+	---@return boolean applied `false` when the builder type cannot build.
+	function dynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position)
+		if not isBuilderDef(builderUnitDefID, "Add") then
 			return false
-		end
-		if type(position) == "number" and position >= 1 then
-			position = math.floor(position)
-		else
-			position = nil
 		end
 		registerAdded(builtUnitDefID, builderUnitDefID, position)
 		forEachUnitOfDef(builderUnitDefID, insertBuildOption, builtUnitDefID, isFactoryDef[builderUnitDefID], position)
@@ -230,12 +221,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	---Takes a build option away from every current and future unit of a builder or factory type.
-	---Queued build orders for it are dropped by the engine.
+	---The engine also removes queued orders for it from the units' queues.
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID
-	---@return boolean applied `false` when either unit def is invalid or the builder type cannot build.
-	function GG.DynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID)
-		if not validate(builtUnitDefID, builderUnitDefID, "Remove") then
+	---@return boolean applied `false` when the builder type cannot build.
+	function dynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID)
+		if not isBuilderDef(builderUnitDefID, "Remove") then
 			return false
 		end
 		registerRemoved(builtUnitDefID, builderUnitDefID)
@@ -249,7 +240,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID
 	---@return boolean
-	function GG.DynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID)
+	function dynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID)
 		local removed = removedBuildOptions[builderUnitDefID]
 		if removed and removed[builtUnitDefID] then
 			return false
@@ -277,23 +268,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		-- After a /luarules reload existing units keep their command descriptions;
-		-- rebuild the registry from the published params so new units match them.
-		for paramName, value in pairs(Spring.GetGameRulesParams() or {}) do
-			local builderStr, builtStr = string.match(paramName, "^" .. RULES_PARAM_PREFIX .. "(%d+)_(%d+)$")
-			if builderStr then
-				local builderUnitDefID, builtUnitDefID = tonumber(builderStr), tonumber(builtStr)
-				if staticBuildOptions[builderUnitDefID] and UnitDefs[builtUnitDefID] then
-					if value == 1 then
-						registerAdded(builtUnitDefID, builderUnitDefID, nil)
-					else
-						registerRemoved(builtUnitDefID, builderUnitDefID)
-					end
-				else
-					spSetGameRulesParam(paramName, nil)
-				end
-			end
-		end
+		GG.DynamicBuildOptions = dynamicBuildOptions
+	end
+
+	function gadget:Shutdown()
+		GG.DynamicBuildOptions = nil
 	end
 
 -------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------

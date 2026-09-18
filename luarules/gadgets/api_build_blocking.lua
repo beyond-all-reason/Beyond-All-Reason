@@ -325,13 +325,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function ensureBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
-		local builderBlocked = teamBuilderBlockedUnitDefs[teamID] or {}
-		teamBuilderBlockedUnitDefs[teamID] = builderBlocked
-		local blockedUnitDefs = builderBlocked[builderUnitDefID] or {}
-		builderBlocked[builderUnitDefID] = blockedUnitDefs
-		local unitReasons = blockedUnitDefs[unitDefID] or {}
-		blockedUnitDefs[unitDefID] = unitReasons
-		return unitReasons
+		local builderBlocked = table.ensureTable(teamBuilderBlockedUnitDefs, teamID)
+		local blockedUnitDefs = table.ensureTable(builderBlocked, builderUnitDefID)
+		return table.ensureTable(blockedUnitDefs, unitDefID)
 	end
 
 	local function publishBuilderBlock(teamID, builderUnitDefID, unitDefID, unitReasons)
@@ -355,13 +351,10 @@ if gadgetHandler:IsSyncedCode() then
 	---@param builderUnitDefID UnitDefID? Limit the block to this builder unit type.
 	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-		if not blockedUnitDefs or not blockedUnitDefs[unitDefID] then
+		if not blockedUnitDefs then
 			return
 		end
 		if builderUnitDefID then
-			if not UnitDefs[builderUnitDefID] then
-				return
-			end
 			local unitReasons = ensureBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
 			unitReasons[reasonKey] = true
 			publishBuilderBlock(teamID, builderUnitDefID, unitDefID, unitReasons)
@@ -382,7 +375,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@return boolean removed `true` if that reason was set and has been cleared.
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
-		if not blockedUnitDefs or not blockedUnitDefs[unitDefID] then
+		if not blockedUnitDefs then
 			return false
 		end
 		if builderUnitDefID then
@@ -416,7 +409,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@param teamID TeamID
 	---@param builderUnitDefID UnitDefID? Also consider blocks specific to this builder unit type.
 	---@return boolean blocked
-	function GG.BuildBlocking.IsUnitBlocked(unitDefID, teamID, builderUnitDefID)
+	local function isUnitBlocked(unitDefID, teamID, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if blockedUnitDefs and blockedUnitDefs[unitDefID] and next(blockedUnitDefs[unitDefID]) then
 			return true
@@ -424,10 +417,13 @@ if gadgetHandler:IsSyncedCode() then
 		local builderReasons = builderUnitDefID and getBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
 		return builderReasons ~= nil and next(builderReasons) ~= nil
 	end
+	GG.BuildBlocking.IsUnitBlocked = isUnitBlocked
 
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		-- Allows CMD.BUILD (cmdID < 0)
-		return not GG.BuildBlocking.IsUnitBlocked(-cmdID, unitTeam, unitDefID)
+		local buildDefID = -cmdID
+		---@cast buildDefID UnitDefID
+		return not isUnitBlocked(buildDefID, unitTeam, unitDefID)
 	end
 
 	function gadget:GameFrame(frame)

@@ -3,7 +3,7 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
-local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
+local unitBlocking = VFS.Include("common/unitBlocking.lua")
 
 local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
@@ -109,8 +109,7 @@ end
 ---@param builderDefID number? Set when the block applies to one builder unit type only.
 local function setBlocked(unitDefID, reasons, builderDefID)
 	if builderDefID then
-		builderUnitRestricted[builderDefID] = builderUnitRestricted[builderDefID] or {}
-		builderUnitRestricted[builderDefID][unitDefID] = next(reasons) ~= nil and reasons or nil
+		table.ensureTable(builderUnitRestricted, builderDefID)[unitDefID] = next(reasons) ~= nil and reasons or nil
 	else
 		unitRestricted[unitDefID] = next(reasons) ~= nil
 		unitHidden[unitDefID] = reasons.hidden ~= nil
@@ -119,10 +118,11 @@ end
 
 ---Loads the current blocks from the team rules params (widget load, /luaui reload).
 local function loadBlocked()
-	for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs()) do
+	local teamID = Spring.GetLocalTeamID()
+	for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs(teamID)) do
 		setBlocked(unitDefID, reasons)
 	end
-	for builderDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs()) do
+	for builderDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs(teamID)) do
 		builderUnitRestricted[builderDefID] = blockedUnits
 	end
 end

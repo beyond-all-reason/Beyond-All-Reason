@@ -1,22 +1,27 @@
 --- Build options changed at runtime through GG.DynamicBuildOptions (api_dynamic_build_options.lua).
---- The gadget publishes game rules params "dynamic_buildoption_<builderUnitDefID>_<builtUnitDefID>"
---- (1 = option added, 0 = option removed) so widgets can patch the build option lists they copied
---- from UnitDefs, which never change. Live changes arrive through the BuildOptionsChanged callin.
+--- The gadget lists them in the game rules param "dynamic_build_options" so widgets can patch the
+--- build option lists they copied from UnitDefs, which never change. Live changes arrive through
+--- the BuildOptionsChanged callin.
+---
+--- The patched lists only answer "can this unit type build that". The order a player sees comes
+--- from the unit's command descriptions, where the gadget inserts at the requested position (the
+--- legacy build menu's order without smart ordering), or from the menus' own sorting (grid layout,
+--- smart ordering), so an added option is simply appended here.
 local dynamicBuildOptions = {}
 
---- Reads the runtime changes from the game rules params.
+--- Reads the runtime changes from the game rules param.
 ---@return table<number, table<number, boolean>> changes builder UnitDefID -> built UnitDefID -> true (added) / false (removed)
 function dynamicBuildOptions.getChanges()
 	local changes = {}
-	for key, value in pairs(Spring.GetGameRulesParams() or {}) do
-		local builderDefIDStr, builtDefIDStr = key:match("^dynamic_buildoption_(%d+)_(%d+)$")
-		if builderDefIDStr then
-			local builderDefID = tonumber(builderDefIDStr)
-			local builtDefID = tonumber(builtDefIDStr)
-			if builderDefID and builtDefID and UnitDefs[builderDefID] and UnitDefs[builtDefID] then
-				changes[builderDefID] = changes[builderDefID] or {}
-				changes[builderDefID][builtDefID] = value == 1
-			end
+	local encoded = Spring.GetGameRulesParam("dynamic_build_options")
+	if type(encoded) ~= "string" then
+		return changes
+	end
+	for _, entry in ipairs(string.split(encoded, ",")) do
+		local fields = string.split(entry, ":")
+		local builderDefID, builtDefID = tonumber(fields[1]), tonumber(fields[2])
+		if builderDefID and builtDefID then
+			table.ensureTable(changes, builderDefID)[builtDefID] = fields[3] == "1"
 		end
 	end
 	return changes
@@ -27,15 +32,9 @@ end
 ---@param builtDefID number
 ---@param added boolean
 function dynamicBuildOptions.patch(buildOptions, builtDefID, added)
-	for i = #buildOptions, 1, -1 do
-		if buildOptions[i] == builtDefID then
-			if added then
-				return
-			end
-			table.remove(buildOptions, i)
-		end
-	end
-	if added then
+	if not added then
+		table.removeFirst(buildOptions, builtDefID)
+	elseif not table.contains(buildOptions, builtDefID) then
 		buildOptions[#buildOptions + 1] = builtDefID
 	end
 end
