@@ -1,0 +1,84 @@
+
+
+
+#include "../recoil_common_includes.h"
+
+piece  base, flap1, flap2;
+
+static-var isOpen1, isOpen2;
+
+bubbleItUp(){
+    while (TRUE){
+        if (isOpen1 == 1){
+            emit-sfx 259 from flap1;
+            sleep 50;
+        }
+        if (isOpen2 == 1){
+            emit-sfx 259 from flap2;
+            sleep 50;
+        }
+        else{
+            sleep 1;
+        }
+    }
+}
+
+flapAnim(){
+    while (TRUE){
+        turn flap1 to z-axis <0> speed <45>;
+        isOpen1 = 1;
+        sleep 1000;
+        turn flap2 to z-axis <0> speed <45>;
+        isOpen2 = 1;
+        sleep 2000;
+        turn flap1 to z-axis <100> speed <45>;
+        sleep 1000;
+        isOpen1 = 0;
+        turn flap2 to z-axis <85> speed <45>;
+        sleep 1000;
+        isOpen2 = 0;
+        sleep 2000;
+    }
+    sleep 1;
+}
+
+Create()
+{
+    turn flap1 to z-axis <100> now;
+    turn flap2 to z-axis <85> now;
+
+    isOpen1 = 0;
+    isOpen2 = 0;
+
+    SLEEP_UNTIL_UNITFINISHED;
+    start-script flapAnim();
+    start-script bubbleItUp();
+
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}

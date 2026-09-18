@@ -1,5 +1,5 @@
 return {
-	["WhiteLight"] = {
+	WhiteLight = {
 		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
@@ -25,7 +25,7 @@ return {
 		},
 	},
 
-	["IntelLight"] = {
+	IntelLight = {
 		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
@@ -51,7 +51,7 @@ return {
 		},
 	},
 
-	["YellowLight"] = {
+	YellowLight = {
 		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
@@ -77,7 +77,7 @@ return {
 		},
 	},
 
-	["PurpleLight"] = {
+	PurpleLight = {
 		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
@@ -104,7 +104,7 @@ return {
 		},
 	},
 
-	["GantWhiteLight"] = {
+	GantWhiteLight = {
 		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
@@ -129,8 +129,8 @@ return {
 			},
 		},
 	},
-		["LootboxLightGold"] = {
-			light = {
+	LootboxLightGold = {
+		light = {
 			useAirLos = false,
 			usedefaultexplosions = false,
 			class = [[CHeatCloudProjectile]],

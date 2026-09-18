@@ -16,8 +16,6 @@ return {
 		energystorage = 1000,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 10,
-		idletime = 90,
 		levelground = false,
 		mass = 165.75,
 		health = 6200,
@@ -71,7 +69,6 @@ return {
 				soundhit = "nukecor",
 				soundstart = "aarocket",
 				startvelocity = 1,
-				targetborder = 0.75,
 				turret = 1,
 				weaponacceleration = 1800,
 				weapontimer = 2,
@@ -81,6 +78,9 @@ return {
 				damage = {
 					commanders = 2500,
 					default = 11500,
+				},
+				customparams = {
+					nuclear = 1,
 				},
 			},
 		},

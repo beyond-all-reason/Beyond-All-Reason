@@ -1,4 +1,4 @@
-if not (Spring.Utilities.Gametype.IsRaptors() and not Spring.Utilities.Gametype.IsScavengers()) then
+if not (BAR.Utilities.Gametype.IsRaptors() and not BAR.Utilities.Gametype.IsScavengers()) then
 	return false
 end
 
@@ -12,11 +12,20 @@ function widget:GetInfo()
 		date = "May 04, 2008",
 		license = "GNU GPL, v2 or later",
 		layer = -9,
-		enabled = true
+		enabled = true,
 	}
 end
 
-local config = VFS.Include('LuaRules/Configs/raptor_spawn_defs.lua')
+-- Localized functions for performance
+local mathAbs = math.abs
+local mathCeil = math.ceil
+local mathFloor = math.floor
+local mathMin = math.min
+
+-- Localized Spring API for performance
+local spGetViewGeometry = Spring.GetViewGeometry
+
+local config = VFS.Include("LuaRules/Configs/raptor_spawn_defs.lua")
 
 local customScale = 1
 local widgetScale = customScale
@@ -25,7 +34,7 @@ local messageArgs, marqueeMessage
 local refreshMarqueeMessage = false
 local showMarqueeMessage = false
 
-if not Spring.Utilities.Gametype.IsRaptors() then
+if not BAR.Utilities.Gametype.IsRaptors() then
 	return false
 end
 
@@ -41,7 +50,7 @@ local panelTexture = ":n:LuaUI/Images/raptorpanel.tga"
 local panelFontSize = 14
 local waveFontSize = 36
 
-local vsx, vsy = Spring.GetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 
 local viewSizeX, viewSizeY = 0, 0
 local w = 300
@@ -77,6 +86,8 @@ local rules = {
 	"raptorQueenTime",
 	"raptorQueenAnger",
 	"raptorQueensKilled",
+	"raptorQueenStaggerActive",
+	"raptorQueenStaggerPercentage",
 	"raptorTechAnger",
 	"raptorGracePeriod",
 	"raptorQueenHealth",
@@ -108,9 +119,7 @@ local rules = {
 	"raptor_hiveKills",
 }
 
-local waveColor = "\255\255\0\0"
 local textColor = "\255\255\255\255"
-
 
 local raptorTypes = {
 	"raptor",
@@ -126,18 +135,6 @@ local raptorTypes = {
 	"raptor_turret",
 }
 
-local function commaValue(amount)
-	local formatted = amount
-	local k
-	while true do
-		formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", '%1,%2')
-		if k == 0 then
-			break
-		end
-	end
-	return formatted
-end
-
 local function getRaptorCounts(type)
 	local total = 0
 	local subtotal
@@ -151,8 +148,8 @@ local function getRaptorCounts(type)
 end
 
 local function updatePos(x, y)
-	x1 = math.min((viewSizeX * 0.94) - (w * widgetScale) / 2, x)
-	y1 = math.min((viewSizeY * 0.89) - (h * widgetScale) / 2, y)
+	x1 = mathMin((viewSizeX * 0.94) - (w * widgetScale) / 2, x)
+	y1 = mathMin((viewSizeY * 0.89) - (h * widgetScale) / 2, y)
 	updatePanel = true
 end
 
@@ -175,50 +172,173 @@ local function CreatePanelDisplayList()
 	local currentTime = GetGameSeconds()
 	if currentTime > gameInfo.raptorGracePeriod then
 		if gameInfo.raptorQueenAnger < 100 then
-
 			local gain = 0
 			if Spring.GetGameRulesParam("RaptorQueenAngerGain_Base") then
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerBase', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }), panelMarginX+5, PanelRow(3), panelFontSize, "")
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerAggression', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }), panelMarginX+5, PanelRow(4), panelFontSize, "")
+				font:Print(
+					textColor
+						.. BAR.I18N(
+							"ui.raptors.queenAngerBase",
+							{ value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) }
+						),
+					panelMarginX + 5,
+					PanelRow(3),
+					panelFontSize,
+					""
+				)
+				font:Print(
+					textColor
+						.. BAR.I18N(
+							"ui.raptors.queenAngerAggression",
+							{ value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) }
+						),
+					panelMarginX + 5,
+					PanelRow(4),
+					panelFontSize,
+					""
+				)
 				--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerEco', { value = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3) }), panelMarginX+5, PanelRow(5), panelFontSize, "")
-				gain = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3) + math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
+				gain = math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Base"), 3)
+					+ math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Aggression"), 3)
+					+ math.round(Spring.GetGameRulesParam("RaptorQueenAngerGain_Eco"), 3)
 			end
 			--font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithGain', { anger = gameInfo.raptorQueenAnger, gain = math.round(gain, 3) }), panelMarginX, PanelRow(1), panelFontSize, "")
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenAngerWithTech', { anger = math.floor(0.5+gameInfo.raptorQueenAnger), techAnger = gameInfo.raptorTechAnger}), panelMarginX, PanelRow(1), panelFontSize, "")
+			font:Print(
+				textColor
+					.. BAR.I18N(
+						"ui.raptors.queenAngerWithTech",
+						{ anger = mathFloor(0.5 + gameInfo.raptorQueenAnger), techAnger = gameInfo.raptorTechAnger }
+					),
+				panelMarginX,
+				PanelRow(1),
+				panelFontSize,
+				""
+			)
 
 			local totalSeconds = (100 - gameInfo.raptorQueenAnger) / gain
 			time = string.formatTime(totalSeconds)
 			if totalSeconds < 1800 or revealedQueenEta then
-				if not revealedQueenEta then revealedQueenEta = true end
-				font:Print(textColor .. Spring.I18N('ui.raptors.queenETA', { count = nBosses, time = time }), panelMarginX+5, PanelRow(2), panelFontSize, "")
+				if not revealedQueenEta then
+					revealedQueenEta = true
+				end
+				font:Print(
+					textColor .. BAR.I18N("ui.raptors.queenETA", { count = nBosses, time = time }),
+					panelMarginX + 5,
+					PanelRow(2),
+					panelFontSize,
+					""
+				)
 			end
 			if #currentlyResistantToNames > 0 then
 				currentlyResistantToNames = {}
 				currentlyResistantTo = {}
 			end
 		else
-			font:Print(textColor .. Spring.I18N('ui.raptors.queenHealth', {count = nBosses, health = gameInfo.raptorQueenHealth }), panelMarginX, PanelRow(1), panelFontSize, "")
-			if nBosses > 1 then
-				font:Print(textColor .. Spring.I18N('ui.raptors.queensKilled', { nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }), panelMarginX, PanelRow(2), panelFontSize, "")
+			font:Print(
+				textColor
+					.. BAR.I18N("ui.raptors.queenHealth", { count = nBosses, health = gameInfo.raptorQueenHealth }),
+				panelMarginX,
+				PanelRow(1),
+				panelFontSize,
+				""
+			)
+			if Spring.GetGameRulesParam("raptorQueenStaggerActive") == false then
+				font:Print(
+					textColor
+						.. BAR.I18N(
+							"ui.raptors.queenStaggerPercentage",
+							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }
+						),
+					panelMarginX,
+					PanelRow(2),
+					panelFontSize,
+					""
+				)
+			else
+				font:Print(
+					"\255\255\255\0" .. BAR.I18N("ui.raptors.queenStaggerActive", { count = nBosses }),
+					panelMarginX,
+					PanelRow(2),
+					panelFontSize,
+					""
+				)
+				font:Print(
+					"\255\255\255\0"
+						.. BAR.I18N(
+							"ui.raptors.queenStaggerPercentage",
+							{ count = nBosses, value = 100 - Spring.GetGameRulesParam("raptorQueenStaggerPercentage") }
+						),
+					panelMarginX,
+					PanelRow(3),
+					panelFontSize,
+					""
+				)
 			end
-			for i = 1,#currentlyResistantToNames do
+
+			if nBosses > 1 then
+				font:Print(
+					textColor
+						.. BAR.I18N(
+							"ui.raptors.queensKilled",
+							{ nKilled = gameInfo.raptorQueensKilled, nTotal = nBosses }
+						),
+					panelMarginX,
+					PanelRow(4),
+					panelFontSize,
+					""
+				)
+			end
+			for i = 1, #currentlyResistantToNames do
 				if i == 1 then
-					font:Print(textColor .. Spring.I18N('ui.raptors.queenResistantToList', {count = nBosses}), panelMarginX, PanelRow(11), panelFontSize, "")
+					font:Print(
+						textColor .. BAR.I18N("ui.raptors.queenResistantToList", { count = nBosses }),
+						panelMarginX,
+						PanelRow(11),
+						panelFontSize,
+						""
+					)
 				end
-				font:Print(textColor .. currentlyResistantToNames[i], panelMarginX+20, PanelRow(11+i), panelFontSize, "")
+				font:Print(
+					textColor .. currentlyResistantToNames[i],
+					panelMarginX + 20,
+					PanelRow(11 + i),
+					panelFontSize,
+					""
+				)
 			end
 		end
 	else
-		font:Print(textColor .. Spring.I18N('ui.raptors.gracePeriod', { time = string.formatTime(math.ceil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }), panelMarginX, PanelRow(1), panelFontSize, "")
+		font:Print(
+			textColor
+				.. BAR.I18N(
+					"ui.raptors.gracePeriod",
+					{ time = string.formatTime(mathCeil(((currentTime - gameInfo.raptorGracePeriod) * -1) - 0.5)) }
+				),
+			panelMarginX,
+			PanelRow(1),
+			panelFontSize,
+			""
+		)
 	end
 
-	font:Print(textColor .. Spring.I18N('ui.raptors.raptorKillCount', { count = gameInfo.raptorKills }), panelMarginX, PanelRow(6), panelFontSize, "")
+	font:Print(
+		textColor .. BAR.I18N("ui.raptors.raptorKillCount", { count = gameInfo.raptorKills }),
+		panelMarginX,
+		PanelRow(6),
+		panelFontSize,
+		""
+	)
 	local endless = ""
 	if Spring.GetModOptions().raptor_endless then
-		endless = ' (' .. Spring.I18N('ui.raptors.difficulty.endless') .. ')'
+		endless = " (" .. BAR.I18N("ui.raptors.difficulty.endless") .. ")"
 	end
-	local difficultyCaption = Spring.I18N('ui.raptors.difficulty.' .. difficultyOption)
-	font:Print(textColor .. Spring.I18N('ui.raptors.mode', { mode = difficultyCaption }) .. endless, 80, h - 170, panelFontSize, "")
+	local difficultyCaption = BAR.I18N("ui.raptors.difficulty." .. difficultyOption)
+	font:Print(
+		textColor .. BAR.I18N("ui.raptors.mode", { mode = difficultyCaption }) .. endless,
+		80,
+		h - 170,
+		panelFontSize,
+		""
+	)
 	font:End()
 
 	gl.Texture(false)
@@ -228,18 +348,18 @@ end
 local function getMarqueeMessage(raptorEventArgs)
 	local messages = {}
 	if raptorEventArgs.type == "firstWave" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.firstWave1')
-		messages[2] = textColor .. Spring.I18N('ui.raptors.firstWave2')
+		messages[1] = textColor .. BAR.I18N("ui.raptors.firstWave1")
+		messages[2] = textColor .. BAR.I18N("ui.raptors.firstWave2")
 	elseif raptorEventArgs.type == "queen" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.queenIsAngry1', {count = nBosses})
-		messages[2] = textColor .. Spring.I18N('ui.raptors.queenIsAngry2')
+		messages[1] = textColor .. BAR.I18N("ui.raptors.queenIsAngry1", { count = nBosses })
+		messages[2] = textColor .. BAR.I18N("ui.raptors.queenIsAngry2")
 	elseif raptorEventArgs.type == "airWave" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
-		messages[2] = textColor .. Spring.I18N('ui.raptors.airWave1')
-		messages[3] = textColor .. Spring.I18N('ui.raptors.airWave2', {unitCount = raptorEventArgs.number})
+		messages[1] = textColor .. BAR.I18N("ui.raptors.wave1", { waveNumber = raptorEventArgs.waveCount })
+		messages[2] = textColor .. BAR.I18N("ui.raptors.airWave1")
+		messages[3] = textColor .. BAR.I18N("ui.raptors.airWave2", { unitCount = raptorEventArgs.number })
 	elseif raptorEventArgs.type == "wave" then
-		messages[1] = textColor .. Spring.I18N('ui.raptors.wave1', {waveNumber = raptorEventArgs.waveCount})
-		messages[2] = textColor .. Spring.I18N('ui.raptors.wave2', {unitCount = raptorEventArgs.number})
+		messages[1] = textColor .. BAR.I18N("ui.raptors.wave1", { waveNumber = raptorEventArgs.waveCount })
+		messages[2] = textColor .. BAR.I18N("ui.raptors.wave2", { unitCount = raptorEventArgs.number })
 	end
 
 	refreshMarqueeMessage = false
@@ -249,19 +369,18 @@ end
 
 local function getResistancesMessage()
 	local messages = {}
-	messages[1] = textColor .. Spring.I18N('ui.raptors.resistanceUnits', {count = nBosses})
-	for i = 1,#resistancesTable do
+	messages[1] = textColor .. BAR.I18N("ui.raptors.resistanceUnits", { count = nBosses })
+	for i = 1, #resistancesTable do
 		local attackerName = UnitDefs[resistancesTable[i]].name
 		if UnitDefNames[attackerName].customParams.i18nfromunit then
 			attackerName = UnitDefNames[attackerName].customParams.i18nfromunit
 		end
-		messages[i+1] = textColor .. Spring.I18N('units.names.' .. attackerName)
-		currentlyResistantToNames[#currentlyResistantToNames+1] = Spring.I18N('units.names.' .. attackerName)
+		messages[i + 1] = textColor .. BAR.I18N("units.names." .. attackerName)
+		currentlyResistantToNames[#currentlyResistantToNames + 1] = BAR.I18N("units.names." .. attackerName)
 	end
 	resistancesTable = {}
 
 	refreshMarqueeMessage = false
-
 
 	return messages
 end
@@ -272,8 +391,8 @@ local function Draw()
 	end
 
 	if updatePanel then
-		if (guiPanel) then
-			gl.DeleteList(guiPanel);
+		if guiPanel then
+			gl.DeleteList(guiPanel)
 			guiPanel = nil
 		end
 		guiPanel = gl.CreateList(CreatePanelDisplayList)
@@ -295,7 +414,13 @@ local function Draw()
 
 			font2:Begin()
 			for i, message in ipairs(marqueeMessage) do
-				font2:Print(message, viewSizeX / 2, waveY - (WaveRow(i) * widgetScale), waveFontSize * widgetScale, "co")
+				font2:Print(
+					message,
+					viewSizeX / 2,
+					waveY - (WaveRow(i) * widgetScale),
+					waveFontSize * widgetScale,
+					"co"
+				)
 			end
 			font2:End()
 		else
@@ -318,14 +443,17 @@ local function UpdateRules()
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
 	end
-	gameInfo.raptorCounts = getRaptorCounts('Count')
-	gameInfo.raptorKills = getRaptorCounts('Kills')
+	gameInfo.raptorCounts = getRaptorCounts("Count")
+	gameInfo.raptorKills = getRaptorCounts("Kills")
 
 	updatePanel = true
 end
 
-function RaptorEvent(raptorEventArgs)
-	if raptorEventArgs.type == "firstWave" or (raptorEventArgs.type == "queen" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10) then
+local function RaptorEvent(raptorEventArgs)
+	if
+		raptorEventArgs.type == "firstWave"
+		or (raptorEventArgs.type == "queen" and Spring.DiffTimers(Spring.GetTimer(), bossToastTimer) > 10)
+	then
 		showMarqueeMessage = true
 		refreshMarqueeMessage = true
 		messageArgs = raptorEventArgs
@@ -344,7 +472,11 @@ function RaptorEvent(raptorEventArgs)
 		end
 	end
 
-	if (raptorEventArgs.type == "wave" or raptorEventArgs.type == "airWave") and config.useWaveMsg and gameInfo.raptorQueenAnger <= 99 then
+	if
+		(raptorEventArgs.type == "wave" or raptorEventArgs.type == "airWave")
+		and config.useWaveMsg
+		and gameInfo.raptorQueenAnger <= 99
+	then
 		waveCount = waveCount + 1
 		raptorEventArgs.waveCount = waveCount
 		showMarqueeMessage = true
@@ -364,18 +496,21 @@ function widget:Initialize()
 		gl.TexRect(0, 0, w, h)
 	end)
 
-	widgetHandler:RegisterGlobal("RaptorEvent", RaptorEvent)
 	UpdateRules()
 	viewSizeX, viewSizeY = gl.GetViewSizes()
-	local x = math.abs(math.floor(viewSizeX - 320))
-	local y = math.abs(math.floor(viewSizeY - 300))
+	local x = mathAbs(mathFloor(viewSizeX - 320))
+	local y = mathAbs(mathFloor(viewSizeY - 300))
 
 	-- reposition if scavengers panel is shown as well
-	if Spring.Utilities.Gametype.IsScavengers() then
+	if BAR.Utilities.Gametype.IsScavengers() then
 		x = x - 315
 	end
 
 	updatePos(x, y)
+end
+
+function widget:RaptorEvent(raptorEventArgs)
+	RaptorEvent(raptorEventArgs)
 end
 
 function widget:Shutdown()
@@ -384,13 +519,12 @@ function widget:Shutdown()
 	end
 
 	if guiPanel then
-		gl.DeleteList(guiPanel);
+		gl.DeleteList(guiPanel)
 		guiPanel = nil
 	end
 
 	gl.DeleteList(displayList)
 	gl.DeleteTexture(panelTexture)
-	widgetHandler:DeregisterGlobal("RaptorEvent")
 end
 
 function widget:GameFrame(n)
@@ -407,7 +541,7 @@ function widget:GameFrame(n)
 	if gotScore then
 		local sDif = gotScore - scoreCount
 		if sDif > 0 then
-			scoreCount = scoreCount + math.ceil(sDif / 7.654321)
+			scoreCount = scoreCount + mathCeil(sDif / 7.654321)
 			if scoreCount > gotScore then
 				scoreCount = gotScore
 			else
@@ -416,8 +550,6 @@ function widget:GameFrame(n)
 		end
 	end
 end
-
-
 
 function widget:DrawScreen()
 	Draw()
@@ -430,10 +562,7 @@ function widget:MouseMove(x, y, dx, dy, button)
 end
 
 function widget:MousePress(x, y, button)
-	if enabled and
-		x > x1 and x < x1 + (w * widgetScale) and
-		y > y1 and y < y1 + (h * widgetScale)
-	then
+	if enabled and x > x1 and x < x1 + (w * widgetScale) and y > y1 and y < y1 + (h * widgetScale) then
 		capture = true
 		moving = true
 	end
@@ -450,13 +579,13 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:ViewResize()
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 
-	font = WG['fonts'].getFont()
-	font2 = WG['fonts'].getFont(2)
+	font = WG.fonts.getFont()
+	font2 = WG.fonts.getFont(2)
 
-	x1 = math.floor(x1 - viewSizeX)
-	y1 = math.floor(y1 - viewSizeY)
+	x1 = mathFloor(x1 - viewSizeX)
+	y1 = mathFloor(y1 - viewSizeY)
 	viewSizeX, viewSizeY = vsx, vsy
 	widgetScale = (0.75 + (viewSizeX * viewSizeY / 10000000)) * customScale
 	x1 = viewSizeX + x1 + ((x1 / 2) * (widgetScale - 1))

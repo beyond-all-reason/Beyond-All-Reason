@@ -1,0 +1,193 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+    base,
+    thrusterCore,
+    wingR,
+    wingL,
+    thruster1XPivot,
+    thruster2XPivot,
+    thruster1,
+    thruster2,
+    smallThrust1,
+    smallThrust2,
+    mainThrust1,
+    mainThrust2,
+    door,
+    turret,
+    nanoBarrels,
+    nanoFlare1,
+    nanoFlare2,
+    nanoFlare3;
+
+
+#define BASEPIECE base
+#define HITSPEED <105.0>
+//how 'heavy' the unit is, on a scale of 1-10
+#define UNITSIZE 1
+#define MAXTILT 100
+
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+#define IDLEHOVERSCALE 32
+#define IDLEHOVERSPEED 60
+#define IDLEBASEPIECE base
+#include "../idlehover.h"
+
+static-var whichNano;
+
+Create()
+{
+    hide smallThrust1;
+    hide smallThrust2;
+    hide mainThrust1;
+    hide mainThrust2;
+	hide nanoFlare1;
+    hide nanoFlare2;
+    hide nanoFlare3;
+
+    turn smallThrust1 to x-axis <-90> now;
+    turn smallThrust2 to x-axis <-90> now;
+
+    turn wingR to y-axis <9> now;
+    turn wingL to y-axis <-9> now;
+    turn door to x-axis <20> now;
+
+    whichNano = nanoFlare1;
+
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script IdleHover();
+}
+
+Activate()
+{
+    show smallThrust1;
+    show smallThrust2;
+    show mainThrust1;
+    show mainThrust2;
+
+    turn wingR to y-axis <0> speed <20>;
+    turn wingL to y-axis <0> speed <20>;
+}
+
+Deactivate()
+{
+    hide smallThrust1;
+    hide smallThrust2;
+    hide mainThrust1;
+    hide mainThrust2;
+
+    turn wingR to y-axis <9>  speed <10>;
+    turn wingL to y-axis <-9> speed <10>;
+}
+
+MoveRate3()
+{
+	turn thruster1XPivot to x-axis <90> speed <45>;
+    turn thruster2XPivot to x-axis <90> speed <45>;
+
+}
+
+MoveRate2()
+{
+	turn thruster1XPivot to x-axis <90> speed <60>;
+    turn thruster2XPivot to x-axis <90> speed <60>;
+}
+
+MoveRate1()
+{
+	turn thruster1XPivot to x-axis <50> speed <90>;
+    turn thruster2XPivot to x-axis <50> speed <90>;
+
+}
+
+MoveRate0()
+{
+	turn thruster1XPivot to x-axis <0> speed <150>;
+    turn thruster2XPivot to x-axis <0> speed <150>;
+}
+
+StartBuilding()
+{
+    turn door to x-axis <0> speed <60>;
+    wait-for-turn door around x-axis;
+
+	show nanoFlare1;
+    show nanoFlare2;
+    show nanoFlare3;
+
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+StopBuilding()
+{
+	hide nanoFlare1;
+    hide nanoFlare2;
+    hide nanoFlare3;
+	set INBUILDSTANCE to 0;
+    turn door to x-axis <-20> speed <60>;
+    wait-for-turn door around x-axis;
+	return (0);
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	whichNano = (whichNano + 1) % 3;
+	pieceIndex = nanoFlare1 + whichNano;
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode duct1 type BITMAPONLY | NOHEATCLOUD;
+		// explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode duct2 type BITMAPONLY | NOHEATCLOUD;
+		// explode fan2 type BITMAPONLY | NOHEATCLOUD;
+		// explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		// explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode duct1 type FALL | NOHEATCLOUD;
+		// explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode duct2 type BITMAPONLY | NOHEATCLOUD;
+		// explode fan2 type FALL | NOHEATCLOUD;
+		// explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		// explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode duct1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		// explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode duct2 type BITMAPONLY | NOHEATCLOUD;
+		// explode fan2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		// explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		// explode duct1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode fan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		// explode duct2 type BITMAPONLY | NOHEATCLOUD;
+		// explode fan2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		// explode thrust1 type BITMAPONLY | NOHEATCLOUD;
+		// explode thrust2 type BITMAPONLY | NOHEATCLOUD;
+		// explode nano type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}

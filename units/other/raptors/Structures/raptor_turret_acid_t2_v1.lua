@@ -24,8 +24,6 @@ return {
 		--extractsmetal = 0.001,
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 700,
 		health = 1670,
@@ -53,6 +51,7 @@ return {
 		yardmap = "oo oo",
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
@@ -114,6 +113,8 @@ return {
 					area_onhit_damage = 200,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

@@ -2,23 +2,22 @@ return {
 	corfhp = {
 		builder = true,
 		buildpic = "CORFHP.DDS",
-		buildtime = 11000,
+		buildtime = 8700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 5 0",
 		collisionvolumescales = "96 32 96",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 3000,
+		energycost = 2000,
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
 		footprintz = 6,
 		health = 3750,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
-		metalcost = 900,
+		metalcost = 670,
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/CORFHP.s3o",
@@ -28,7 +27,7 @@ return {
 		sightdistance = 312,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 100,
+		workertime = 150,
 		yardmap = "weeeew weeeew weeeew weeeew weeeew weeeew",
 		buildoptions = {
 			[1] = "corch",
@@ -41,8 +40,10 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "CorBuildings/SeaFactories",
 			unitgroup = "builder",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -58,13 +59,6 @@ return {
 				metal = 715,
 				object = "Units/corfhp_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

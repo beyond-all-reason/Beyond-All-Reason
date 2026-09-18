@@ -9,7 +9,16 @@ local teams = Spring.GetTeamList()
 for i = 1, #teams do
 	local teamID = teams[i]
 	local luaAI = Spring.GetTeamLuaAI(teamID)
-	if luaAI and luaAI ~= "" and (string.sub(luaAI, 1, 8) == 'SimpleAI' or string.sub(luaAI, 1, 15) == 'SimpleCheaterAI' or string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' or string.sub(luaAI, 1, 19) == 'SimpleConstructorAI') then
+	if
+		luaAI
+		and luaAI ~= ""
+		and (
+			string.sub(luaAI, 1, 8) == "SimpleAI"
+			or string.sub(luaAI, 1, 15) == "SimpleCheaterAI"
+			or string.sub(luaAI, 1, 16) == "SimpleDefenderAI"
+			or string.sub(luaAI, 1, 19) == "SimpleConstructorAI"
+		)
+	then
 		enabled = true
 		SimpleAITeamIDsCount = SimpleAITeamIDsCount + 1
 		SimpleAITeamIDs[SimpleAITeamIDsCount] = teamID
@@ -46,6 +55,13 @@ local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_REPAIR = CMD.REPAIR
 local CMD_FIGHT = CMD.FIGHT
+local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_MOVE_STATE = CMD.MOVE_STATE
+local string_sub = string.sub
+local math_ceil = math.ceil
+local math_sqrt = math.sqrt
+local math_huge = math.huge
+local mapdiagonal = math_ceil(math_sqrt(mapsizeX * mapsizeX + mapsizeZ * mapsizeZ))
 
 local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
 local HashPosTable = MakeHashedPosTable()
@@ -67,9 +83,9 @@ local function RandomChoice(self)
 	-- lazy initialization
 	if self.array == nil then
 		local array = {}
-		for k,v in pairs(self) do
+		for k, v in pairs(self) do
 			if k ~= "RandomChoice" then
-				array[#array+1] = k
+				array[#array + 1] = k
 			end
 		end
 		self.array = array
@@ -86,15 +102,15 @@ end
 -- SimpleCommanderDefs:RandomChoice()
 -- SimpleCommanderDefs.RandomChoice(SimpleCommanderDefs)
 
-local SimpleCommanderDefs = {RandomChoice = RandomChoice}
-local SimpleFactoriesDefs = {RandomChoice = RandomChoice}
-local SimpleConstructorDefs = {RandomChoice = RandomChoice}
-local SimpleExtractorDefs = {RandomChoice = RandomChoice}
-local SimpleGeneratorDefs = {RandomChoice = RandomChoice}
-local SimpleConverterDefs = {RandomChoice = RandomChoice}
-local SimpleTurretDefs = {RandomChoice = RandomChoice}
-local SimpleUndefinedBuildingDefs = {RandomChoice = RandomChoice}
-local SimpleUndefinedUnitDefs = {RandomChoice = RandomChoice}
+local SimpleCommanderDefs = { RandomChoice = RandomChoice }
+local SimpleFactoriesDefs = { RandomChoice = RandomChoice }
+local SimpleConstructorDefs = { RandomChoice = RandomChoice }
+local SimpleExtractorDefs = { RandomChoice = RandomChoice }
+local SimpleGeneratorDefs = { RandomChoice = RandomChoice }
+local SimpleConverterDefs = { RandomChoice = RandomChoice }
+local SimpleTurretDefs = { RandomChoice = RandomChoice }
+local SimpleUndefinedBuildingDefs = { RandomChoice = RandomChoice }
+local SimpleUndefinedUnitDefs = { RandomChoice = RandomChoice }
 
 local BuildOptions = {} -- {unitDefHasBuildOptions = {1= buildOpt0, RandomChoice = RandomChoice}}
 
@@ -102,10 +118,10 @@ local isBuilding = {}
 local isCommander = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.isBuilding then
-		isBuilding[unitDefID] = {unitDef.xsize, unitDef.zsize}
+		isBuilding[unitDefID] = { unitDef.xsize, unitDef.zsize }
 	end
 	if unitDef.customParams.iscommander then
-		isCommander[unitDefID] = {unitDef.xsize, unitDef.zsize}
+		isCommander[unitDefID] = { unitDef.xsize, unitDef.zsize }
 	end
 
 	local skip = false
@@ -134,7 +150,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		skip = true
 	end
 	-- objects/walls
-	if unitDef.modCategories['object'] or unitDef.customParams.objectify then
+	if unitDef.modCategories.object or unitDef.customParams.objectify then
 		skip = true
 	end
 
@@ -147,7 +163,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			SimpleConstructorDefs[unitDefID] = 1
 		elseif unitDef.extractsMetal > 0 or unitDef.customParams.metal_extractor then
 			SimpleExtractorDefs[unitDefID] = 1
-		elseif (unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10)) or (unitDef.windGenerator > 0 and wind > 10) or unitDef.tidalGenerator > 0 or unitDef.customParams.solar then
+		elseif
+			(unitDef.energyMake > 19 and (not unitDef.energyUpkeep or unitDef.energyUpkeep < 10))
+			or (unitDef.windGenerator > 0 and wind > 10)
+			or unitDef.tidalGenerator > 0
+			or unitDef.customParams.solar
+		then
 			SimpleGeneratorDefs[unitDefID] = 1
 		elseif unitDef.customParams.energyconv_capacity and unitDef.customParams.energyconv_efficiency then
 			SimpleConverterDefs[unitDefID] = 1
@@ -159,19 +180,20 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			SimpleUndefinedUnitDefs[unitDefID] = 1
 		end
 		if #unitDef.buildOptions > 0 then
-			BuildOptions[unitDefID] = {RandomChoice = RandomChoice}
-			for i=1, #unitDef.buildOptions do
+			BuildOptions[unitDefID] = { RandomChoice = RandomChoice }
+			for i = 1, #unitDef.buildOptions do
 				BuildOptions[unitDefID][unitDef.buildOptions[i]] = 1
 			end
 		end
 	end
 end
 
-
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundInfo = Spring.GetGroundInfo
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -180,13 +202,19 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetTeamResources = Spring.GetTeamResources
 local spTestBuildOrder = Spring.TestBuildOrder
-
+local spGetFullBuildQueue = Spring.GetFullBuildQueue
+local spGetTeamUnits = Spring.GetTeamUnits
+local spGetAllUnits = Spring.GetAllUnits
+local spSetTeamResource = Spring.SetTeamResource
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetTeamLuaAI = Spring.GetTeamLuaAI
+local spDgunCommand = CMD.DGUN
 
 local function SimpleGetClosestMexSpot(x, z)
 	--tracy.ZoneBeginN("SimpleAI:SimpleGetClosestMexSpot")
 	local bestSpot
-	local bestDist = math.huge
-	local metalSpots = GG["resource_spot_finder"] and GG["resource_spot_finder"].metalSpotsList or nil
+	local bestDist = math_huge
+	local metalSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
 	if metalSpots then
 		for i = 1, #metalSpots do
 			local spot = metalSpots[i]
@@ -194,7 +222,7 @@ local function SimpleGetClosestMexSpot(x, z)
 			local dist = dx * dx + dz * dz
 			if dist < bestDist then
 				local units = spGetUnitsInCylinder(spot.x, spot.z, 128)
-				if #units == 0 then
+				if units and #units == 0 then
 					bestSpot = spot
 					bestDist = dist
 				end
@@ -204,24 +232,28 @@ local function SimpleGetClosestMexSpot(x, z)
 		-- optimize for metal maps a bit
 		local searchwidth = HashPosTable.resolution / 2 - 32
 		for hashposindex = 1, HashPosTable.numPos do
-			local tilecenterx, tilecenterz = HashPosTable:GetNthCenter(x,z,hashposindex)
-			for attempt = 1,5 do
+			local tilecenterx, tilecenterz = HashPosTable:GetNthCenter(x, z, hashposindex)
+			for attempt = 1, 5 do
 				local posx = tilecenterx + random(-searchwidth, searchwidth)
 				local posz = tilecenterz + random(-searchwidth, searchwidth)
 				local posy = spGetGroundHeight(posx, posz)
-				local _,_,hasmetal = Spring.GetGroundInfo(posx, posz)
-				if hasmetal > 0.1 then
-					local flat = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true)
-					if flat then
-						local unoccupied = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 48)
-						if unoccupied then
-							bestSpot = {x = posx, y = posy, z = posz}
-							break
+				if posy then
+					local _, _, hasmetal = spGetGroundInfo(posx, posz)
+					if hasmetal and hasmetal > 0.1 then
+						local flat = positionCheckLibrary.FlatAreaCheck(posx, posy, posz, 64, 25, true)
+						if flat then
+							local unoccupied = positionCheckLibrary.OccupancyCheck(posx, posy, posz, 48)
+							if unoccupied then
+								bestSpot = { x = posx, y = posy, z = posz }
+								break
+							end
 						end
 					end
 				end
 			end
-			if bestSpot then break end
+			if bestSpot then
+				break
+			end
 		end
 	end
 	--tracy.ZoneEnd()
@@ -229,58 +261,75 @@ local function SimpleGetClosestMexSpot(x, z)
 end
 
 local function SimpleBuildOrder(cUnitID, building)
-
 	--tracy.ZoneBeginN("SimpleAI:SimpleBuildOrder")
 	--Spring.Echo( UnitDefs[spGetUnitDefID(cUnitID)].name, " ordered to build", UnitDefs[building].name)
 	local searchRange = 0
 	local numtests = 0
-	--Spring.Echo("SBO", cUnitID,"Start")
-	for b2 = 1,20 do
-		searchRange = searchRange + 300 -- WARNING, THIS EVENTUALLY ENDS UP BEING A 6000 RADIUS CIRCLE!
-		local team = spGetUnitTeam(cUnitID)
-		local cunitposx, _, cunitposz = spGetUnitPosition(cUnitID)
-		local units = spGetUnitsInCylinder(cunitposx, cunitposz, searchRange, team)
-		if #units > 1 then
-			local gaveOrder = false
-			for k=1,min(#units, 5 + b2 * 2) do
-				numtests = numtests+1
-				local buildnear = units[random(1, #units)]
-				local refDefID = spGetUnitDefID(buildnear)
-				if isBuilding[refDefID] or isCommander[refDefID] then
-					local refx, _, refz = spGetUnitPosition(buildnear)
-					local reffootx = (isBuilding[refDefID] and isBuilding[refDefID][1] or isCommander[refDefID][1]) * 8
-					local reffootz = (isBuilding[refDefID] and isBuilding[refDefID][2] or isCommander[refDefID][2]) * 8
-					local spacing = random(64, 128)
-					local testspacing = spacing * 0.75
-					local buildingDefID = building
-					local r = random(0,3)
-					local rx = 0
-					local rz = 0
-					if r == 0 then
-						rz = reffootz + spacing
-					elseif r == 1 then
-						rx = reffootx + spacing
-					elseif r == 2 then
-						rz = - reffootz - spacing
-					else
-						rx = - reffootx - spacing
-					end
+	local cunitposx, _, cunitposz = spGetUnitPosition(cUnitID)
+	if not cunitposx then
+		return
+	end
 
-					local bposx = refx + rx
-					local bposz = refz + rz
-					local bposy = spGetGroundHeight(bposx, bposz)--+100
-					local testpos = spTestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
-					if testpos == 2 then
-						local nearbyunits = Spring.GetUnitsInRectangle(bposx - testspacing, bposz - testspacing, bposx + testspacing, bposz + testspacing)
-						if #nearbyunits == 0 then
-							spGiveOrderToUnit(cUnitID, -buildingDefID, { bposx, bposy, bposz, r }, { "shift" })
-							gaveOrder = true
-							break
+	local team = spGetUnitTeam(cUnitID)
+	--Spring.Echo("SBO", cUnitID,"Start")
+	for b2 = 1, 20 do
+		searchRange = searchRange + 300 -- WARNING, THIS EVENTUALLY ENDS UP BEING A 6000 RADIUS CIRCLE!
+		local units = spGetUnitsInCylinder(cunitposx, cunitposz, searchRange)
+		if units and #units > 1 then
+			local gaveOrder = false
+			local numUnits = #units
+			local maxTests = min(numUnits, 5 + b2 * 2)
+			for k = 1, maxTests do
+				numtests = numtests + 1
+				local buildnear = units[random(1, numUnits)]
+				local refDefID = spGetUnitDefID(buildnear)
+				local refEntry = refDefID and (isBuilding[refDefID] or isCommander[refDefID])
+				if refEntry and spGetUnitTeam(buildnear) == team then
+					local refx, _, refz = spGetUnitPosition(buildnear)
+					if refx then
+						local reffootx = refEntry[1] * 8
+						local reffootz = refEntry[2] * 8
+						local spacing = random(64, 128)
+						local testspacing = spacing * 0.75
+						local buildingDefID = building
+						local r = random(0, 3)
+						local rx = 0
+						local rz = 0
+						if r == 0 then
+							rz = reffootz + spacing
+						elseif r == 1 then
+							rx = reffootx + spacing
+						elseif r == 2 then
+							rz = -reffootz - spacing
+						else
+							rx = -reffootx - spacing
+						end
+
+						local bposx = refx + rx
+						local bposz = refz + rz
+						local bposy = spGetGroundHeight(bposx, bposz)
+						if bposy then
+							local testpos = spTestBuildOrder(buildingDefID, bposx, bposy, bposz, r)
+							if testpos == 2 then
+								local nearbyunits = spGetUnitsInRectangle(
+									bposx - testspacing,
+									bposz - testspacing,
+									bposx + testspacing,
+									bposz + testspacing
+								)
+								if nearbyunits and #nearbyunits == 0 then
+									spGiveOrderToUnit(cUnitID, -buildingDefID, { bposx, bposy, bposz, r }, { "shift" })
+									gaveOrder = true
+									break
+								end
+							end
 						end
 					end
 				end
 			end
-			if gaveOrder then break end
+			if gaveOrder then
+				break
+			end
 		end
 	end
 	--tracy.ZoneEnd()
@@ -297,15 +346,15 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 
 	local buildOptions = BuildOptions[unitDefID]
 	-- Builders
-	for b1 = 1,10 do
+	for b1 = 1, 10 do
 		if type == "Builder" or type == "Commander" then
 			--Spring.Echo("unitCommands for",b1, UnitDefs[ unitDefID].name, b1)
-			SimpleFactoryDelay[unitTeam] = SimpleFactoryDelay[unitTeam]-1
+			SimpleFactoryDelay[unitTeam] = SimpleFactoryDelay[unitTeam] - 1
 			local r = random(0, 20)
 			local mexspotpos = SimpleGetClosestMexSpot(unitposx, unitposz)
 			if (mexspotpos and SimpleT1Mexes[unitTeam] < 3) and type == "Commander" then
 				local project = SimpleExtractorDefs:RandomChoice()
-				if buildOptions  and buildOptions[project] then
+				if buildOptions and buildOptions[project] then
 					spGiveOrderToUnit(unitID, -project, { mexspotpos.x, mexspotpos.y, mexspotpos.z, 0 }, { "shift" })
 					--Spring.Echo("Success! Project Type: Extractor.")
 					success = true
@@ -317,19 +366,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 					--Spring.Echo("Success! Project Type: Generator.")
 					success = true
 				end
-
 			elseif mcurrent < mstorage * 0.30 or r == 1 then
-				-- if type == "Commander" then
-				-- 	for t = 1,10 do
-				-- 		local targetUnit = units[math.random(1,#units)]
-				-- 		if isBuilding[spGetUnitDefID(targetUnit)] then
-				-- 			local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-				-- 			spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + math.random(-100, 100), tUnitY, tUnitZ + math.random(-100, 100) }, { "shift", "alt", "ctrl" })
-				-- 			success = true
-				-- 			break
-				-- 		end
-				-- 	end
-				-- elseif
 				if (not mexspotpos) and (ecurrent > estorage * 0.85 or r == 1) then
 					local project = SimpleConverterDefs:RandomChoice()
 					if buildOptions and buildOptions[project] then
@@ -339,16 +376,26 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 					end
 				elseif mexspotpos and type ~= "Commander" then
 					local project = SimpleExtractorDefs:RandomChoice()
-					local xoffsets = {0, 100, -100}
-					local zoffsets = {0, 100, -100}
+					local xoffsets = { 0, 100, -100 }
+					local zoffsets = { 0, 100, -100 }
 					if buildOptions and buildOptions[project] then
-						spGiveOrderToUnit(unitID, -project, { mexspotpos.x, mexspotpos.y, mexspotpos.z, 0 }, { "shift" })
+						spGiveOrderToUnit(
+							unitID,
+							-project,
+							{ mexspotpos.x, mexspotpos.y, mexspotpos.z, 0 },
+							{ "shift" }
+						)
 						for _, xoffset in ipairs(xoffsets) do
 							for _, zoffset in ipairs(zoffsets) do
 								if xoffset ~= 0 and zoffset ~= 0 then
 									local projectturret = SimpleTurretDefs:RandomChoice()
 									if buildOptions[projectturret] then
-										spGiveOrderToUnit(unitID, -projectturret, { mexspotpos.x + xoffset, mexspotpos.y, mexspotpos.z + zoffset , random(0,3) }, { "shift" })
+										spGiveOrderToUnit(unitID, -projectturret, {
+											mexspotpos.x + xoffset,
+											mexspotpos.y,
+											mexspotpos.z + zoffset,
+											random(0, 3),
+										}, { "shift" })
 									end
 								end
 							end
@@ -362,38 +409,63 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 					--Spring.Echo("Success! Project Type: Turret.")
 					success = true
 				end
-			elseif SimpleFactoriesCount[unitTeam] < 1 or ((mcurrent > mstorage * 0.75 and ecurrent > estorage * 0.75) and SimpleFactoryDelay[unitTeam] <= 0) then
+			elseif
+				SimpleFactoriesCount[unitTeam] < 1
+				or ((mcurrent > mstorage * 0.75 and ecurrent > estorage * 0.75) and SimpleFactoryDelay[unitTeam] <= 0)
+			then
 				local project = SimpleFactoriesDefs:RandomChoice()
-				if buildOptions and buildOptions[project] and (not SimpleFactories[unitTeam][project]) then
+				if buildOptions and buildOptions[project] and not SimpleFactories[unitTeam][project] then
 					SimpleBuildOrder(unitID, project)
 					SimpleFactoryDelay[unitTeam] = 30
 					--Spring.Echo("Success! Project Type: Factory.")
 					success = true
 				end
 			elseif r == 11 then
-				for t = 1,10 do
-					local targetUnit = units[random(1,#units)]
-					if isBuilding[spGetUnitDefID(targetUnit)] then
-						local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-						spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
-						success = true
-						break
+				for t = 1, 10 do
+					local targetUnit = units[random(1, #units)]
+					if targetUnit then
+						local targetDefID = spGetUnitDefID(targetUnit)
+						if targetDefID and isBuilding[targetDefID] then
+							local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
+							if tUnitX then
+								spGiveOrderToUnit(
+									unitID,
+									CMD_MOVE,
+									{ tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) },
+									{ "shift", "alt", "ctrl" }
+								)
+								success = true
+								break
+							end
+						end
 					end
 				end
 			elseif r == 12 and type ~= "Commander" then
-				local mapcenterX = mapsizeX/2
-				local mapcenterZ = mapsizeZ/2
+				local mapcenterX = mapsizeX / 2
+				local mapcenterZ = mapsizeZ / 2
 				local mapcenterY = spGetGroundHeight(mapcenterX, mapcenterZ)
-				local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-				spGiveOrderToUnit(unitID, CMD_RECLAIM,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
-				success = true
+				if mapcenterY then
+					spGiveOrderToUnit(
+						unitID,
+						CMD_RECLAIM,
+						{ mapcenterX + random(-100, 100), mapcenterY, mapcenterZ + random(-100, 100), mapdiagonal },
+						0
+					)
+					success = true
+				end
 			elseif r == 13 and type ~= "Commander" then
-				local mapcenterX = mapsizeX/2
-				local mapcenterZ = mapsizeZ/2
+				local mapcenterX = mapsizeX / 2
+				local mapcenterZ = mapsizeZ / 2
 				local mapcenterY = spGetGroundHeight(mapcenterX, mapcenterZ)
-				local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
-				spGiveOrderToUnit(unitID, CMD_REPAIR,{mapcenterX+random(-100,100),mapcenterY,mapcenterZ+random(-100,100),mapdiagonal}, 0)
-				success = true
+				if mapcenterY then
+					spGiveOrderToUnit(
+						unitID,
+						CMD_REPAIR,
+						{ mapcenterX + random(-100, 100), mapcenterY, mapcenterZ + random(-100, 100), mapdiagonal },
+						0
+					)
+					success = true
+				end
 			else
 				local r2 = random(0, 1)
 				if r2 == 0 then
@@ -413,24 +485,32 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 				end
 			end
 		elseif type == "Factory" then
-			if #Spring.GetFullBuildQueue(unitID) < 5 then
+			if #spGetFullBuildQueue(unitID) < 5 then
 				local r = random(0, 5)
-				local luaAI = Spring.GetTeamLuaAI(unitTeam)
-				if r == 0 or mcurrent > mstorage*0.9 or string.sub(luaAI, 1, 19) == 'SimpleConstructorAI' then
+				local luaAI = spGetTeamLuaAI(unitTeam)
+				if
+					r == 0
+					or mcurrent > mstorage * 0.9
+					or (luaAI and string_sub(luaAI, 1, 19) == "SimpleConstructorAI")
+				then
 					local project = SimpleConstructorDefs:RandomChoice()
 					if buildOptions and buildOptions[project] then
 						local x, y, z = spGetUnitPosition(unitID)
-						spGiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
-						--Spring.Echo("Success! Project Type: Constructor.")
-						success = true
+						if x then
+							spGiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
+							--Spring.Echo("Success! Project Type: Constructor.")
+							success = true
+						end
 					end
 				else
 					local project = SimpleUndefinedUnitDefs:RandomChoice()
 					if buildOptions and buildOptions[project] then
 						local x, y, z = spGetUnitPosition(unitID)
-						spGiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
-						--Spring.Echo("Success! Project Type: Unit.")
-						success = true
+						if x then
+							spGiveOrderToUnit(unitID, -project, { x, y, z, 0 }, 0)
+							--Spring.Echo("Success! Project Type: Unit.")
+							success = true
+						end
 					end
 				end
 			else
@@ -440,9 +520,7 @@ local function SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, u
 		if success == true then
 			break
 		end
-	end
-
-	--tracy.ZoneEnd()
+	end --tracy.ZoneEnd()
 	return success
 end
 
@@ -451,131 +529,216 @@ function gadget:GameOver()
 end
 
 if gadgetHandler:IsSyncedCode() then
-
 	function gadget:GameFrame(n)
 		if n % 15 == 0 then
 			local allunits -- will lazy load later if needed
 			for i = 1, SimpleAITeamIDsCount do
-				if n%(15*SimpleAITeamIDsCount) == 15*(i-1) then
+				if n % (15 * SimpleAITeamIDsCount) == 15 * (i - 1) then
 					--tracy.ZoneBeginN("SimpleAI:GameFrame")
 					local teamID = SimpleAITeamIDs[i]
-					local _, _, _, _, _, allyTeamID = Spring.GetTeamInfo(teamID)
+					local _, _, _, _, _, allyTeamID = spGetTeamInfo(teamID)
 					local mcurrent, mstorage = spGetTeamResources(teamID, "metal")
 					local ecurrent, estorage = spGetTeamResources(teamID, "energy")
-					for j = 1, #SimpleAITeamIDs do
-						if teamID == SimpleAITeamIDs[j] then
-							-- --cheats
-							if mcurrent < mstorage * 0.20 then
-								Spring.SetTeamResource(teamID, "m", mstorage * 0.25)
-							end
-							if ecurrent < estorage * 0.20 then
-								Spring.SetTeamResource(teamID, "e", estorage * 0.25)
-							end
-						end
+
+					-- resource boost (teamID is always in SimpleAITeamIDs)
+					if mcurrent < mstorage * 0.20 then
+						spSetTeamResource(teamID, "m", mstorage * 0.25)
+					end
+					if ecurrent < estorage * 0.20 then
+						spSetTeamResource(teamID, "e", estorage * 0.25)
 					end
 
-					local units = Spring.GetTeamUnits(teamID)
-					for k = 1, #units do
-						local unitID = units[k]
-						local unitDefID = spGetUnitDefID(unitID)
-						local unitTeam = teamID
-						local unitHealth, unitMaxHealth, _, _, _ = spGetUnitHealth(unitID)
-						local unitCommandCount = spGetUnitCommandCount(unitID)
-						local unitposx, unitposy, unitposz = spGetUnitPosition(unitID)
-						--Spring.Echo(UnitDefs[unitDefID].name, "has commands:",unitCommandCount, SimpleConstructorDefs[unitDefID] , SimpleCommanderDefs[unitDefID], SimpleFactoriesDefs[unitDefID] ,SimpleUndefinedUnitDefs[unitDefID] )
-						-- Commanders
-						if SimpleCommanderDefs[unitDefID] then
-							local nearestEnemyCloak = spGetUnitNearestEnemy(unitID, 2000, false)
-							if nearestEnemyCloak and ecurrent > 1000 then
-								spGiveOrderToUnit(unitID, 37382, {1}, 0)
-							else
-								spGiveOrderToUnit(unitID, 37382, {0}, 0)
-							end
+					local luaAI = spGetTeamLuaAI(teamID)
+					local units = spGetTeamUnits(teamID)
+					if units then
+						for k = 1, #units do
+							local unitID = units[k]
+							if unitID then
+								local unitDefID = spGetUnitDefID(unitID)
+								if unitDefID then
+									local unitTeam = teamID
+									local unitHealth, unitMaxHealth = spGetUnitHealth(unitID)
+									local unitCommandCount = spGetUnitCommandCount(unitID)
+									local unitposx, unitposy, unitposz = spGetUnitPosition(unitID)
 
+									if unitposx then
+										--Spring.Echo(UnitDefs[unitDefID].name, "has commands:",unitCommandCount, SimpleConstructorDefs[unitDefID] , SimpleCommanderDefs[unitDefID], SimpleFactoriesDefs[unitDefID] ,SimpleUndefinedUnitDefs[unitDefID] )
+										-- Commanders
+										if SimpleCommanderDefs[unitDefID] then
+											local nearestEnemyCloak = spGetUnitNearestEnemy(unitID, 2000, false)
+											if nearestEnemyCloak and ecurrent > 1000 then
+												spGiveOrderToUnit(unitID, 37382, { 1 }, 0)
+											else
+												spGiveOrderToUnit(unitID, 37382, { 0 }, 0)
+											end
 
-							local nearestEnemy = spGetUnitNearestEnemy(unitID, 250, true)
-							local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
+											local nearestEnemy = spGetUnitNearestEnemy(unitID, 250, true)
+											local unitHealthPercentage = unitHealth
+													and unitMaxHealth
+													and (unitHealth / unitMaxHealth) * 100
+												or 0
 
-							if nearestEnemy and unitHealthPercentage > 30 then
-								if ecurrent < estorage*0.9 then
-									Spring.SetTeamResource(teamID, "e", estorage*0.9)
-								end
-								spGiveOrderToUnit(unitID, CMD.DGUN, {nearestEnemy}, 0)
-								local nearestEnemies = spGetUnitsInCylinder(unitposx, unitposz, 300)
-								for x = 1,#nearestEnemies do
-									local enemy = nearestEnemies[x]
-									if spGetUnitTeam(enemy) == spGetUnitTeam(nearestEnemy) and enemy ~= nearestEnemy then
-										spGiveOrderToUnit(unitID, CMD.DGUN, {enemy}, {"shift"})
-									end
-								end
-								spGiveOrderToUnit(unitID, CMD_MOVE, {unitposx, unitposy, unitposz}, {"shift"})
-							elseif nearestEnemy then
-								for x = 1,10 do
-									local targetUnit = units[random(1,#units)]
-									if isBuilding[spGetUnitDefID(targetUnit)] then
-										local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-										spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, 0)
-										break
-									end
-								end
-							end
-						end
-
-						-- Constructors
-						if SimpleConstructorDefs[unitDefID] then
-							local unitHealthPercentage = (unitHealth/unitMaxHealth)*100
-							local nearestEnemy = spGetUnitNearestEnemy(unitID, 500, true)
-							if nearestEnemy and unitHealthPercentage > 90 then
-								spGiveOrderToUnit(unitID, CMD_RECLAIM, {nearestEnemy}, 0)
-							elseif nearestEnemy then
-								for x = 1,100 do
-									local targetUnit = units[random(1,#units)]
-									if isBuilding[spGetUnitDefID(targetUnit)] then
-										local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-										spGiveOrderToUnit(unitID, CMD_MOVE, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, 0)
-										break
-									end
-								end
-							end
-						end
-
-						if unitCommandCount == 0 then
-							if SimpleConstructorDefs[unitDefID] then
-								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Builder")
-							end
-
-
-							if SimpleCommanderDefs[unitDefID] then
-								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Commander")
-							end
-
-							if SimpleFactoriesDefs[unitDefID] then
-								SimpleConstructionProjectSelection(unitID, unitDefID, unitTeam, units, "Factory")
-							end
-
-							-- army
-							if SimpleUndefinedUnitDefs[unitDefID] then
-								local luaAI = Spring.GetTeamLuaAI(teamID)
-								if string.sub(luaAI, 1, 16) == 'SimpleDefenderAI' then
-									allunits = allunits or Spring.GetAllUnits()
-									for t = 1,10 do
-										local targetUnit = allunits[random(1,#allunits)]
-										if spGetUnitAllyTeam(targetUnit) == allyTeamID then
-											local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-											spGiveOrderToUnit(unitID, CMD_FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
-											break
+											if nearestEnemy and unitHealthPercentage > 30 then
+												if ecurrent < estorage * 0.9 then
+													spSetTeamResource(teamID, "e", estorage * 0.9)
+												end
+												spGiveOrderToUnit(unitID, spDgunCommand, { nearestEnemy }, 0)
+												local nearestEnemies = spGetUnitsInCylinder(unitposx, unitposz, 300)
+												if nearestEnemies then
+													local nearestEnemyTeam = spGetUnitTeam(nearestEnemy)
+													for x = 1, #nearestEnemies do
+														local enemy = nearestEnemies[x]
+														if
+															spGetUnitTeam(enemy) == nearestEnemyTeam
+															and enemy ~= nearestEnemy
+														then
+															spGiveOrderToUnit(
+																unitID,
+																spDgunCommand,
+																{ enemy },
+																{ "shift" }
+															)
+														end
+													end
+												end
+												spGiveOrderToUnit(
+													unitID,
+													CMD_MOVE,
+													{ unitposx, unitposy, unitposz },
+													{ "shift" }
+												)
+											elseif nearestEnemy then
+												for x = 1, 10 do
+													local targetUnit = units[random(1, #units)]
+													if targetUnit then
+														local targetDefID = spGetUnitDefID(targetUnit)
+														if targetDefID and isBuilding[targetDefID] then
+															local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
+															if tUnitX then
+																spGiveOrderToUnit(unitID, CMD_MOVE, {
+																	tUnitX + random(-100, 100),
+																	tUnitY,
+																	tUnitZ + random(-100, 100),
+																}, 0)
+																break
+															end
+														end
+													end
+												end
+											end
 										end
-									end
-								else
-									local targetUnitNear = spGetUnitNearestEnemy(unitID, 2000, false)
-									if targetUnitNear then
-										local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnitNear)
-										spGiveOrderToUnit(unitID, CMD_FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
-									elseif n%3600 <= 15*SimpleAITeamIDsCount then
-										local targetUnit = spGetUnitNearestEnemy(unitID, 999999, false)
-										if targetUnit then
-											local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
-											spGiveOrderToUnit(unitID, CMD_FIGHT, { tUnitX + random(-100, 100), tUnitY, tUnitZ + random(-100, 100) }, { "shift", "alt", "ctrl" })
+
+										-- Constructors
+										if SimpleConstructorDefs[unitDefID] then
+											local unitHealthPercentage = unitHealth
+													and unitMaxHealth
+													and (unitHealth / unitMaxHealth) * 100
+												or 0
+											local nearestEnemy = spGetUnitNearestEnemy(unitID, 500, true)
+											if nearestEnemy and unitHealthPercentage > 90 then
+												spGiveOrderToUnit(unitID, CMD_RECLAIM, { nearestEnemy }, 0)
+											elseif nearestEnemy then
+												for x = 1, 100 do
+													local targetUnit = units[random(1, #units)]
+													if targetUnit then
+														local targetDefID = spGetUnitDefID(targetUnit)
+														if targetDefID and isBuilding[targetDefID] then
+															local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
+															if tUnitX then
+																spGiveOrderToUnit(unitID, CMD_MOVE, {
+																	tUnitX + random(-100, 100),
+																	tUnitY,
+																	tUnitZ + random(-100, 100),
+																}, 0)
+																break
+															end
+														end
+													end
+												end
+											end
+										end
+
+										if unitCommandCount == 0 then
+											if SimpleConstructorDefs[unitDefID] then
+												SimpleConstructionProjectSelection(
+													unitID,
+													unitDefID,
+													unitTeam,
+													units,
+													"Builder"
+												)
+											end
+
+											if SimpleCommanderDefs[unitDefID] then
+												SimpleConstructionProjectSelection(
+													unitID,
+													unitDefID,
+													unitTeam,
+													units,
+													"Commander"
+												)
+											end
+
+											if SimpleFactoriesDefs[unitDefID] then
+												SimpleConstructionProjectSelection(
+													unitID,
+													unitDefID,
+													unitTeam,
+													units,
+													"Factory"
+												)
+											end
+
+											-- army
+											if SimpleUndefinedUnitDefs[unitDefID] then
+												if luaAI and string_sub(luaAI, 1, 16) == "SimpleDefenderAI" then
+													allunits = allunits or spGetAllUnits()
+													if allunits then
+														for t = 1, 10 do
+															local targetUnit = allunits[random(1, #allunits)]
+															if
+																targetUnit
+																and spGetUnitAllyTeam(targetUnit) == allyTeamID
+															then
+																local tUnitX, tUnitY, tUnitZ =
+																	spGetUnitPosition(targetUnit)
+																if tUnitX then
+																	spGiveOrderToUnit(unitID, CMD_FIGHT, {
+																		tUnitX + random(-100, 100),
+																		tUnitY,
+																		tUnitZ + random(-100, 100),
+																	}, { "shift", "alt", "ctrl" })
+																	break
+																end
+															end
+														end
+													end
+												else
+													local targetUnitNear = spGetUnitNearestEnemy(unitID, 2000, false)
+													if targetUnitNear then
+														local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnitNear)
+														if tUnitX then
+															spGiveOrderToUnit(unitID, CMD_FIGHT, {
+																tUnitX + random(-100, 100),
+																tUnitY,
+																tUnitZ + random(-100, 100),
+															}, { "shift", "alt", "ctrl" })
+														end
+													elseif n % 3600 <= 15 * SimpleAITeamIDsCount then
+														local targetUnit = spGetUnitNearestEnemy(unitID, 999999, false)
+														if targetUnit then
+															local tUnitX, tUnitY, tUnitZ = spGetUnitPosition(targetUnit)
+															if tUnitX then
+																spGiveOrderToUnit(unitID, CMD_FIGHT, {
+																	tUnitX + random(-100, 100),
+																	tUnitY,
+																	tUnitZ + random(-100, 100),
+																}, { "shift", "alt", "ctrl" })
+															end
+														end
+													end
+												end
+											end
 										end
 									end
 								end
@@ -592,8 +755,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
-				spGiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-				spGiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+				spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { 2 }, 0)
+				spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 2 }, 0)
 
 				if SimpleFactoriesDefs[unitDefID] then
 					SimpleFactoriesCount[unitTeam] = SimpleFactoriesCount[unitTeam] + 1
@@ -604,7 +767,6 @@ if gadgetHandler:IsSyncedCode() then
 					SimpleT1Mexes[unitTeam] = SimpleT1Mexes[unitTeam] + 1
 					break
 				end
-
 			end
 		end
 	end
@@ -628,8 +790,8 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		for i = 1, SimpleAITeamIDsCount do
 			if SimpleAITeamIDs[i] == unitTeam then
-				spGiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},0)
-				spGiveOrderToUnit(unitID,CMD.MOVE_STATE,{2},0)
+				spGiveOrderToUnit(unitID, CMD_FIRE_STATE, { 2 }, 0)
+				spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 2 }, 0)
 			end
 		end
 	end

@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "Aug 24, 2024",
 		license = "Public Domain",
 		layer = 1,
-		enabled = false
+		enabled = false,
 	}
 end
 
@@ -16,7 +16,9 @@ local selectApi = VFS.Include("luaui/Include/select_api.lua")
 
 local function handleSetCommand(_, commandDef)
 	local command = selectApi.getCommand(commandDef)
-	command()
+	if command then
+		command()
+	end
 end
 
 function widget:Initialize()
@@ -24,5 +26,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['keyselect'] = nil
+	WG.keyselect = nil
 end

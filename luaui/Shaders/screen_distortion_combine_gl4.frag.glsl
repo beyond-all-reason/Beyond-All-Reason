@@ -40,10 +40,10 @@ void main(void) {
     vec4 distortion = texture2D(distortionTexture, gl_TexCoord[0].st);
     distortion.rgb = distortion.rgb;
     distortion.rg = (1536.0 * distortion.rg) * inverseScreenResolution;
-    if (length(distortion.rg) < 0.001) {
+    if (length(distortion.rg) < 0.01) {
         // Bail early if no real distortion is present
         gl_FragColor = vec4(0.0);
-        
+        return;
     }
     // Declare the UV sets and final screen color
     vec2 offsetUV1;
@@ -76,6 +76,7 @@ void main(void) {
         outputRGBA.g = sample1.g;
         outputRGBA.r = sample2.r;
         outputRGBA.b = sample3.b;
+        outputRGBA.rgb += 1.0 / 255.0;
         outputRGBA.a = 1.0;
     }else{ // Motion Blur
         outputRGBA.rgb = (sample1.rgb + sample2.rgb + sample3.rgb) / 3.0;
@@ -85,7 +86,8 @@ void main(void) {
     }
 
     #if (DEBUGCOMBINER == 0)
-        gl_FragColor = outputRGBA;
+
+        gl_FragColor = outputRGBA ;
 
     #else
         if (gl_TexCoord[0].x > 0.66){ // right half?

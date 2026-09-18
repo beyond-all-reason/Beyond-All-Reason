@@ -1,7 +1,9 @@
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
-// This shader is (c) Beherith (mysterme@gmail.com)
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2026 Beherith (mysterme@gmail.com)
+// This shader is part of the Beyond All Reason repository.  
 
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
@@ -106,41 +108,45 @@ void main(void)
 {
 	vec3 campos = cameraViewInv[3].xyz;
 	vec3 camtoworld = normalize(g_position.xyz - campos);
-	
-	vec3 tangentviewpos = (tbnmatrix * campos.xzy).xyz; // Y points to camera
-	vec3 tangentfragpos = (tbnmatrix * g_position.xzy).xyz; // Y points up
-	vec3 tangentviewdir =  normalize(tangentfragpos - tangentviewpos); // Y points up!
-	vec3 tspace = tangentfragpos - tangentviewpos;
-	
-	#if (PARALLAX == 1) 
+
+	#if (PARALLAX == 1)
+		vec3 tangentviewpos = (tbnmatrix * campos.xzy).xyz; // Y points to camera
+		vec3 tangentfragpos = (tbnmatrix * g_position.xzy).xyz; // Y points up
+		vec3 tangentviewdir =  normalize(tangentfragpos - tangentviewpos); // Y points up!
 		vec4 tex3color = texture(atlasHeights, g_uv.xy);
-		//float height = 
-		
+		//float height =
+
 		// do parallax here !
 		vec2 parallaxUV = (tangentviewdir.xz) * (1.0 - tex3color.b )* 0.00002;
 	#else
 		vec2 parallaxUV = vec2(0.0);
-		
+
 	#endif
 
-	
+	// Sample the decal color first, so invisible fragments bail before all the sampling and shading below.
+	// This matters a lot in fields of overlapping alpha-blended decals: most of every decal quad is
+	// transparent padding, and faded decals linger in the VBOs long before batched removal kicks in.
+	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy);
+
+	// The blended alpha is tex1color.a^2 * fade, so below ~1/255 this fragment cannot change the framebuffer.
+	// The glow contribution is provably black too: Temperature() is black below 300 kelvin, and its argument
+	// hotness * glowChannel is bounded by g_parameters.w * tex1color.a.
+	if (tex1color.a * tex1color.a * g_position.w < 0.0039 && g_parameters.w * tex1color.a < 300.0){
+		discard;
+		return;
+	}
+
 	vec2 uvhm = heightmapUVatWorldPos(g_position.xz);
 	vec4 minimapcolor = textureLod(miniMapTex, uvhm, 0.0);
 	vec3 mapnormal = textureLod(mapNormalsTex, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y	from it
 	float offaxis = 1.0 - clamp(dot(mapnormal,-camtoworld), 0.0, 1.0);
 	float bias = (offaxis*offaxis)*-2.0;
-	
-	vec4 tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
-	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), g_parameters.x);
-	
-	// bail early if theres shit here, but this might not be useful in the long term, due to no emissive application?
-	
-	if (tex1color.a < 0.005){
-		fragColor.rgba = vec4(0.0); 
-		discard; 
-		return;
+
+	if (bias < -0.01){ // only pay for the sharper-mip resample at grazing view angles
+		tex1color = texture(atlasColorAlpha, g_uv.xy - parallaxUV.xy, bias);
 	}
+	tex1color.rgb = mix (tex1color.rgb, vec3(dot(tex1color.rgb, vec3(0.299, 0.587, 0.114))), g_parameters.x);
 	
 	vec4 tex2color = texture(atlasNormals, g_uv.xy  - parallaxUV.xy, bias);
 	vec3 fragNormal = tex2color.rgb * 2.0 - 1.0;
@@ -172,8 +178,8 @@ void main(void)
 	fragColor.rgb += vec3(diffuselight) * ( fragColor.rgb * sunDiffuseMap.rgb * 2.0);
 	
 	// Specular Color
-	vec3 reflvect = reflect(normalize(1.0 * sunDir.xyz), reorientedNormal);
-	float specular = clamp(pow(clamp(dot(normalize(camtoworld), normalize(reflvect)), 0.0, 1.0), SPECULAREXPONENT), 0.0, 1.0) * SPECULARSTRENGTH;// * shadow;
+	vec3 reflvect = reflect(normalize(sunDir.xyz), reorientedNormal); // stays unit length, reflect() preserves it
+	float specular = clamp(pow(clamp(dot(camtoworld, reflvect), 0.0, 1.0), SPECULAREXPONENT), 0.0, 1.0) * SPECULARSTRENGTH;// * shadow;
 	fragColor.rgb += fragColor.rgb * specular;
 	
 	// Apply darkening based on LOS texture
@@ -203,20 +209,24 @@ void main(void)
 	//fragColor.a = fract(g_position.w*10);
 	
 	// add emissive heat, if required
-	#if (USEGLOW == 1) 
-		float glowChannel = tex2color.a; // Could use a power operator here?
+	#if (USEGLOW == 1)
+	// Temperature() is black below 300 kelvin and hotness * glowChannel <= g_parameters.w * tex1color.a,
+	// so cold decals (the vast majority) skip the log/pow heavy glow math entirely.
+	if (g_parameters.w * tex1color.a >= 300.0){
+		float glowChannel = tex2color.a * tex1color.a; // Could use a power operator here?
 
 		float hotness = max(0,g_parameters.w);
 		vec3 heatColor = Temperature(hotness*glowChannel);
 		//fragColor.rgb += heatColor * pow(glowChannel.r, 2) * hotness ;
 		//fragColor.rgb = vec3(fract(g_uv.w*20));
 		fragColor.rgb += (heatColor.rgb * max(glowChannel,0.0)*12); //was *10 - icex increase to more brightness
-		
+
 		//experiment with glowadd:
-		// we kinda need to additively blend here... 
+		// we kinda need to additively blend here...
 		float heatalpha = dot (vec3(1.0),heatColor);
-		fragColor.rgba +=  g_parameters.z * heatalpha * vec4(heatColor.rgb ,g_position.w); 
-	#endif 
+		fragColor.rgba +=  g_parameters.z * heatalpha * vec4(heatColor.rgb ,g_position.w);
+	}
+	#endif
 	
 	//fragColor.a = 1.0;
 	// plenty of debug outputs for your viewing pleasure

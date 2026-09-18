@@ -18,8 +18,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 2,
-		idletime = 1800,
 		sightemitheight = 80,
 		health = 39000,
 		maxslope = 10,
@@ -41,7 +39,7 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removewait = true,
@@ -78,13 +76,6 @@ return {
 				object = "Units/cor3X3E.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

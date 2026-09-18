@@ -2,7 +2,7 @@ return {
 	armsjam = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSJAM.DDS",
-		buildtime = 17000,
+		buildtime = 20000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "28 32 64",
@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1350,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.04059,
 		maxdec = 0.04059,
 		metalcost = 310,
@@ -36,6 +34,7 @@ return {
 		turnrate = 405,
 		waterline = 0,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			off_on_stun = "true",
@@ -77,11 +76,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:waterwake-tiny",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -1322,17 +1322,6 @@ Shot4(zero) {
 FireWeapon4(){
     spin barrelSpinPivot around y-axis speed <900>;
     stop-spin barrelSpinPivot around y-axis decelerate <45>;
-    // if(whichMissile == 0){
-    //     whichMissile = 1;
-    // }
-    // else if(whichMissile == 1){
-    //     whichMissile = 2;
-    // }
-    // else if(whichMissile == 2){
-    //     whichMissile = 0;
-    // }
-    // sleep 1;
-
 }
 
 

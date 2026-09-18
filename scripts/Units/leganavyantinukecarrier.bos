@@ -1,0 +1,209 @@
+
+#include "../recoil_common_includes.h"
+
+piece
+    smoke3,
+    smoke2,
+    smoke1,
+    pads,
+    pad6,
+    pad5,
+    pad4,
+    pad3,
+    pad2,
+    pad1,
+    missileSpinPivot2,
+    missileSpinPivot1,
+    missileFlare2,
+    missileFlare1,
+    greebles,
+    flare,
+    base,
+    antinuke,
+    anpanelr,
+    anpanell,
+    anpanelf,
+    wake,
+    bow
+;
+
+static-var  Stunned, oldHead, restore_delay, missiles_stockpiled;
+
+// Signal definitions
+#define SIGNAL_MOVE 1
+
+#define SIGNAL_AIM1 256
+#define SIGNAL_AIM2 512
+
+#define RB_MASS 40
+#define RB_LENGTH 8
+#define RB_WIDTH 3
+#define RB_PITCH_ACCELERATION 10
+#define RB_ROLL_ACCELERATION 8
+#define RB_WAKE_PIECE wake
+#define RB_WAKE_CEG 1024 + 1
+#define RB_BOWSPLASH_PIECE bow
+#define RB_BOWSPLASH_CEG 1024 + 2
+
+#include "../bar_ships_common.h"
+
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+
+	} else {
+
+	}
+}
+
+
+Create()
+{
+
+    turn anpanell to y-axis <30> now;
+	turn anpanelr to y-axis <-30> now;
+
+	restore_delay = 3000;
+	missiles_stockpiled = 0;
+
+	start-script InitRockBoat();
+	SLEEP_UNTIL_UNITFINISHED;
+	start-script BoatPhysics();
+    start-script Activate();
+}
+
+Activate()
+{
+	if (Stunned){
+		return (0);
+	}
+	// spin bladesf around z-axis speed <-150> accelerate <5>;
+	// spin bladesl around z-axis speed <-150> accelerate <5>;
+	// spin bladesr around z-axis speed <-150> accelerate <5>;
+	// spin turbineb around x-axis speed <50> accelerate <1>;
+	// spin turbinel around x-axis speed <-50> accelerate <1>;
+	// spin turbiner around x-axis speed <-50> accelerate <1>;
+	
+	// signal SIGNAL_SMOKE;
+	// start-script repeatsmoke();
+}
+
+openAbm()
+{
+	move anpanell to x-axis [-8.66]/2 speed [17.32];
+	move anpanell to z-axis [-5]/2 speed [10];
+	move anpanelr to x-axis [8.66]/2 speed [17.32];
+	move anpanelr to z-axis [-5]/2 speed [10];
+	move anpanelf to z-axis [10]/2 speed [20];
+	
+	turn anpanelf to x-axis <60> speed <180>;
+	turn anpanell to z-axis <60> speed <180>;
+	turn anpanelr to z-axis <-60> speed <180>;
+	
+	move anpanelf to y-axis [-5] speed [5];
+	move anpanell to y-axis [-5] speed [5];
+	move anpanelr to y-axis [-5] speed [5];
+	
+	start-script RestoreAfterDelay();
+}
+
+closeAbm()
+{
+	move anpanelf to y-axis [0] speed [8];
+	move anpanell to y-axis [0] speed [8];
+	move anpanelr to y-axis [0] speed [8];
+	
+	wait-for-move anpanelf along y-axis;
+	
+	move anpanell to x-axis [0] speed [8.66];
+	move anpanell to z-axis [0] speed [5];
+	move anpanelr to x-axis [0] speed [8.66];
+	move anpanelr to z-axis [0] speed [5];
+	move anpanelf to z-axis [0] speed [10];
+	
+	turn anpanelf to x-axis <0> speed <120>;
+	turn anpanell to z-axis <0> speed <120>;
+	turn anpanelr to z-axis <0> speed <120>;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+AimFromWeapon2(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+QueryWeapon1(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+QueryWeapon2(pieceIndex)
+{
+	pieceIndex = flare;
+}
+
+AimWeapon2(heading, pitch)
+{	
+	signal SIGNAL_AIM2;
+	set-signal-mask SIGNAL_AIM2;
+	start-script openAbm();
+	return (1);
+}
+
+AimWeapon1(heading, pitch)
+{	
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	return (0);
+}
+
+FireWeapon1()
+{	
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	start-script ExecuteRestoreAfterDelay();
+}
+
+ExecuteRestoreAfterDelay()
+{
+	start-script closeAbm();
+}
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		// explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		// explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		// explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		// explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+	return corpsetype;
+}

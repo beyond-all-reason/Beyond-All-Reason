@@ -18,8 +18,6 @@ return {
 		footprintx = 4,
 		footprintz = 4,
 		health = 4200,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 30,
@@ -45,6 +43,7 @@ return {
 			buildinggrounddecalsizey = 7.4,
 			buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
 			cvbuildable = true,
+			firestateoncloak = 0,
 			metal_extractor = 4,
 			model_author = "Hornet",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -89,11 +88,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:gausscannonprojectile",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			activate = "mexrun2",
@@ -133,6 +127,7 @@ return {
 				energypershot = 80,
 				explosiongenerator = "custom:genericshellexplosion-small-lightning",
 				firestarter = 100,
+				gravityaffected = "true",
 				impactonly = 0,
 				impulsefactor = 0,
 				laserflaresize = 7.7,

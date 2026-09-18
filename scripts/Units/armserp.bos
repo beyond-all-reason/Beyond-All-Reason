@@ -25,8 +25,10 @@ static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAn
 #define TB_TURNRATE <15.0> 
 #define TB_TILT_X <-0.32>
 #define TB_BANK_Z <0.5> // Do not define this if you dont want banking
-#define TB_WAKE_PIECE lprop
-#define TB_WAKE_PIECE2 rprop
+#define TB_WAKE_PIECE bprop
+#define TB_WAKE_FOAM 1024 + 1
+#define TB_WAKE_PIECE2 lprop
+#define TB_WAKE_PIECE3 rprop
 #include "../tilt_bank_submarine.h"
 
 
@@ -68,11 +70,13 @@ StopMoving()
 
 FireWeapon1()
 {
+	emit-sfx 1024 + 2 from lturret;
 	sleep 200;
 }
 
 FireWeapon2()
 {
+	emit-sfx 1024 + 2 from rturret;
 	sleep 200;
 }
 

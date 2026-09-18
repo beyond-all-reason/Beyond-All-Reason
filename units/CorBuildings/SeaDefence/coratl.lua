@@ -11,8 +11,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 1050,
@@ -49,13 +47,6 @@ return {
 				reclaimable = true,
 			},
 		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
-		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -80,7 +71,7 @@ return {
 		weapondefs = {
 			coratl_torpedo = {
 				areaofeffect = 16,
-				avoidfriendly = false,
+				avoidfriendly = true,
 				burnblow = true,
 				cegtag = "torpedotrail-small",
 				collidefriendly = false,

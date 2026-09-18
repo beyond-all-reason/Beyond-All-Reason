@@ -11,8 +11,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -74,11 +72,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium-impulse",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -114,6 +107,7 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
 				impulsefactor = 0.123,
 				name = "Pop-up heavy g2g gauss cannon",
 				nogap = false,

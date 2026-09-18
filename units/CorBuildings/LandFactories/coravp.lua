@@ -3,8 +3,9 @@ return {
 		buildangle = 1024,
 		builder = true,
 		buildpic = "CORAVP.DDS",
-		buildtime = 18500,
+		buildtime = 28000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 8 0",
 		collisionvolumescales = "144 70 144",
 		collisionvolumetype = "Box",
@@ -15,14 +16,12 @@ return {
 		footprintx = 9,
 		footprintz = 9,
 		health = 5100,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = false,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 15,
 		maxwaterdepth = 0,
-		metalcost = 2800,
+		metalcost = 2600,
 		metalstorage = 200,
 		objectname = "Units/CORAVP.s3o",
 		script = "Units/CORAVP.cob",
@@ -30,7 +29,7 @@ return {
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
 		terraformspeed = 1000,
-		workertime = 300,
+		workertime = 600,
 		yardmap = "ooooooooo ooooooooo ooooooooo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo ooeeeeeoo",
 		buildoptions = {
 			[1] = "coracv",
@@ -91,10 +90,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

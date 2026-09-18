@@ -2,10 +2,10 @@ return {
 	corvrad = {
 		activatewhenbuilt = true,
 		buildpic = "CORVRAD.DDS",
-		buildtime = 4220,
+		buildtime = 5000,
 		canattack = false,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "24 18 29",
 		collisionvolumetype = "box",
 		corpse = "dead",
@@ -14,14 +14,12 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 570,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.02086,
-		maxdec = 0.04172,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 0,
-		metalcost = 92,
+		metalcost = 100,
 		movementclass = "TANK3",
 		movestate = 0,
 		objectname = "Units/CORVRAD.s3o",
@@ -32,7 +30,7 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 900,
 		sonardistance = 0,
-		speed = 48,
+		speed = 50,
 		trackstrength = 10,
 		tracktype = "corwidetracks",
 		trackwidth = 23,
@@ -41,6 +39,7 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 315,
 		customparams = {
+			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",
@@ -81,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

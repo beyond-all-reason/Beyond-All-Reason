@@ -25,8 +25,6 @@ return {
 		floater = true,
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 10,
-		idletime = 1800,
 		levelground = false,
 		mass = 4000,
 		health = 67000,
@@ -52,7 +50,7 @@ return {
 		reclaimable = false,
 		customparams = {
 			fall_damage_multiplier = 0,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
 			paratrooper = true,
@@ -61,10 +59,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:LootboxLightGold",
 				[2] = "custom:LootboxBeaconPlatinum",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

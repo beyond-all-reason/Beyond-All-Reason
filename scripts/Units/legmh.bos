@@ -174,8 +174,8 @@ Create()
 	{
 		sleep 400;
 	}
-	spin fan1 around y-axis speed <-300>;
-	spin fan2 around y-axis speed <300>;
+	spin fan1 around y-axis speed <300>;
+	spin fan2 around y-axis speed <-300>;
 	start-script BankControl();
 	start-script WobbleUnit();
 }

@@ -14,8 +14,6 @@ return {
 		explodeas = "scavcomexplosion",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 300,
 		initcloaked = true,
 		levelground = false,
 		health = 2800,
@@ -36,11 +34,6 @@ return {
 			removestop = true,
 			removewait = true,
 			subfolder = "ArmBuildings/LandUtil",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

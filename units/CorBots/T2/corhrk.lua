@@ -1,7 +1,7 @@
 return {
 	corhrk = {
 		buildpic = "CORHRK.DDS",
-		buildtime = 6600,
+		buildtime = 9500,
 		canmove = true,
 		collisionvolumeoffsets = "0 1 -1",
 		collisionvolumescales = "26 31 33",
@@ -12,14 +12,12 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 610,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0.1265,
 		maxdec = 0.6486,
 		maxslope = 14,
 		maxwaterdepth = 21,
 		metalcost = 600,
-		movementclass = "BOT4",
+		movementclass = "BOT3",
 		movestate = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/CORHRK.s3o",
@@ -27,7 +25,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		separationdistance = 8,
-		sightdistance = 370.5,
+		sightdistance = 380,
 		speed = 54,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -38,6 +36,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -71,13 +70,6 @@ return {
 				object = "Units/cor2X2B.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

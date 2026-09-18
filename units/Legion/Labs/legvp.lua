@@ -3,12 +3,13 @@ return {
 		maxacc = 0,
 		maxdec = 0,
 		buildangle = 2048,
-		energycost = 1800,
-		metalcost = 720,
+		energycost = 1650,
+		metalcost = 570,
 		builder = true,
 		buildpic = "LEGVP.DDS",
-		buildtime = 7200,
+		buildtime = 5700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 19 0",
 		collisionvolumescales = "101 53 106",
 		collisionvolumetype = "Box",
@@ -17,8 +18,6 @@ return {
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 6,
 		footprintz = 6,
-		idleautoheal = 5,
-		idletime = 1800,
 		levelground = true,
 		health = 3000,
 		maxslope = 15,
@@ -31,7 +30,7 @@ return {
 		selfdestructas = "largeBuildingexplosiongenericSelfd",
 		sightdistance = 279,
 		terraformspeed = 500,
-		workertime = 100,
+		workertime = 150,
 		yardmap = [[h
     oo oo oo oo oo oo
     oo oo oo oo oo oo
@@ -64,9 +63,10 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Protar/Ghoulish",
 			normaltex = "unittextures/leg_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "Legion/Labs",
 		},
 		featuredefs = {
@@ -101,10 +101,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

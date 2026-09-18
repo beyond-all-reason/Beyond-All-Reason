@@ -1,0 +1,381 @@
+body {
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* === Main window (label browser) === */
+.ml-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 40vw;
+	top: 20vh;
+	z-index: 920;
+	width: 240dp;
+	min-width: 220px;
+}
+
+.ml-drag-handle {
+	cursor: move;
+	padding: 6dp 0;
+}
+
+.ml-quit-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 4dp;
+}
+
+.ml-quit-btn:hover {
+	background-color: #4a2424;
+}
+
+.ml-icon-sm { width: 16dp; height: 16dp; }
+
+/* === Section headers (match weather brush look) === */
+.ml-section-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	padding: 2dp 0 4dp 0;
+}
+
+.ml-section-label {
+	font-size: 0.95rem;
+	font-weight: bold;
+	color: #9ca3af;
+}
+
+.ml-section-line {
+	flex: 1;
+	height: 1dp;
+	background-color: #3a3a4a;
+}
+
+/* === Author input === */
+.ml-author-input {
+	box-sizing: border-box;
+	width: 100%;
+	height: 36dp;
+	padding: 2dp 10dp;
+	line-height: 30dp;
+	font-size: 1.4rem;
+	color: #e5e7eb;
+	background-color: #161620;
+	border: 1dp #3a3a4a;
+	border-radius: 5dp;
+}
+
+.ml-author-input:focus {
+	border-color: #06b6d4aa;
+}
+
+/* === New label button === */
+.ml-new-btn {
+	padding: 6dp 8dp;
+	text-align: center;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #fdc04c;
+	background-color: #2b2113;
+	border: 1dp #fdc04c66;
+	border-radius: 5dp;
+	cursor: pointer;
+}
+
+.ml-new-btn:hover {
+	background-color: #3b2d17;
+	border-color: #fdc04c;
+}
+
+.ml-new-btn.placing {
+	color: #101018;
+	background-color: #fdc04c;
+	border-color: #fdc04c;
+}
+
+/* === Label list === */
+.ml-list {
+	max-height: 42vh;
+	overflow-y: auto;
+}
+
+.ml-item {
+	display: flex;
+	flex-direction: row;
+	gap: 6dp;
+	padding: 5dp 6dp;
+	border-radius: 5dp;
+	border: 1dp transparent;
+	cursor: pointer;
+}
+
+.ml-item:hover {
+	background-color: #ffffff10;
+	border-color: #ffffff22;
+}
+
+.ml-item-dot {
+	width: 10dp;
+	height: 10dp;
+	border-radius: 10dp;
+	border: 1dp #00000080;
+	margin-top: 3dp;
+	flex-shrink: 0;
+}
+
+.ml-item-body { flex: 1; }
+
+.ml-item-author {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #9ca3af;
+}
+
+.ml-item-snippet {
+	font-size: 1.0rem;
+	color: #e5e7eb;
+	word-break: break-word;
+}
+
+.ml-empty {
+	padding: 8dp 6dp;
+	font-size: 1.0rem;
+	color: #6b7280;
+}
+
+/* === World dots overlay === */
+#ml-dots-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+/* Dots are visual only: hover and click/drag are hit-tested in Lua against the
+   dot's screen rect, so presses reach widget:MousePress and can be consumed
+   before the terrain brush sees them. */
+.ml-dot {
+	pointer-events: none;
+	position: absolute;
+	width: 14dp;
+	height: 14dp;
+	border-radius: 14dp;
+	border: 2dp #ffffffcc;
+	box-shadow: #000a 1dp 1dp 2dp 0dp;
+	z-index: 880;
+}
+
+.ml-dot.hovered {
+	border-color: #ffffff;
+	z-index: 890;
+}
+
+/* Hover preview attached to a dot */
+.ml-dot-preview {
+	display: none;
+	position: absolute;
+	left: 16dp;
+	top: -4dp;
+	width: 190dp;
+	padding: 5dp 8dp;
+	background-color: #14141ce6;
+	border: 1dp #3a3a4a;
+	border-radius: 6dp;
+}
+
+.ml-dot.hovered .ml-dot-preview {
+	display: block;
+}
+
+.ml-preview-author {
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #9ca3af;
+	margin-bottom: 1dp;
+}
+
+.ml-preview-text {
+	font-size: 1.0rem;
+	color: #e5e7eb;
+	word-break: break-word;
+}
+
+/* === Comment popup (anchored to a dot, constant screen size) === */
+.ml-popup {
+	pointer-events: auto;
+	position: absolute;
+	z-index: 930;
+	width: 230dp;
+}
+
+.ml-popup-author {
+	font-size: 1.0rem;
+	font-weight: bold;
+	color: #e5e7eb;
+}
+
+.ml-popup-date {
+	font-size: 0.85rem;
+	color: #6b7280;
+}
+
+.ml-popup-btn {
+	width: 20dp;
+	height: 20dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 4dp;
+	flex-shrink: 0;
+}
+
+.ml-popup-btn:hover {
+	background-color: #ffffff16;
+}
+
+.ml-popup-btn-danger:hover {
+	background-color: #4a2424;
+}
+
+.ml-popup-icon { width: 12dp; height: 12dp; }
+
+.ml-popup-text {
+	font-size: 1.05rem;
+	color: #e5e7eb;
+	padding: 4dp 0;
+	max-height: 30vh;
+	overflow-y: auto;
+	word-break: break-word;
+}
+
+.ml-edit-textarea {
+	box-sizing: border-box;
+	width: 100%;
+	height: 96dp;
+	padding: 5dp 8dp;
+	font-size: 1.4rem;
+	color: #e5e7eb;
+	background-color: #161620;
+	border: 1dp #3a3a4a;
+	border-radius: 5dp;
+}
+
+.ml-edit-textarea:focus {
+	border-color: #06b6d4aa;
+}
+
+.ml-action-btn {
+	padding: 3dp 10dp;
+	border-radius: 5dp;
+	font-size: 1.0rem;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.ml-action-save {
+	color: #101018;
+	background-color: #fdc04c;
+	border: 1dp #fdc04c;
+}
+
+.ml-action-save:hover {
+	background-color: #ffd47a;
+}
+
+.ml-action-cancel {
+	color: #9ca3af;
+	background-color: #32323c;
+	border: 1dp #55556040;
+}
+
+.ml-action-cancel:hover {
+	background-color: #484858;
+}
+
+/* Color button in the popup header: shows the label's current color,
+   click expands the swatch row below the header */
+.ml-color-btn {
+	width: 16dp;
+	height: 16dp;
+	border-radius: 16dp;
+	border: 2dp #ffffff55;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.ml-color-btn:hover {
+	border-color: #ffffff;
+}
+
+/* Inline expanding swatch row — normal flow, no absolute positioning, so it
+   cannot be clipped or mispositioned inside the popup */
+.ml-color-pop {
+	display: flex;
+	flex-direction: row;
+	gap: 4dp;
+	margin: 5dp 0 2dp 0;
+	padding: 5dp 6dp;
+	background-color: #14141c;
+	border: 1dp #3a3a4a;
+	border-radius: 6dp;
+}
+
+/* .ml-color-pop sets display:flex with the same specificity as the shared
+   .hidden rule, and this sheet loads later — restate the hide explicitly */
+.ml-color-pop.hidden {
+	display: none;
+}
+
+.ml-swatch {
+	width: 16dp;
+	height: 16dp;
+	border-radius: 4dp;
+	border: 1dp #00000080;
+	cursor: pointer;
+}
+
+.ml-swatch:hover {
+	border-color: #ffffffaa;
+}
+
+.ml-swatch.active {
+	border: 2dp #ffffff;
+}
+
+/* === Placement-mode ghost cursor === */
+.ml-ghost {
+	position: absolute;
+	z-index: 990;
+	pointer-events: none;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+}
+
+.ml-ghost-icon { width: 18dp; height: 18dp; }
+
+.ml-ghost-hint {
+	font-size: 0.95rem;
+	color: #e5e7eb;
+	background-color: #101018cc;
+	border: 1dp #3a3a4a;
+	border-radius: 4dp;
+	padding: 2dp 6dp;
+}
+
+/* .ml-ghost sets display:flex at the same specificity as the shared .hidden
+   rule and this sheet loads later, which kept the ghost permanently visible —
+   restate the hide with higher specificity */
+.ml-ghost.hidden {
+	display: none;
+}

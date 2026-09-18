@@ -2,7 +2,7 @@ return {
 	armseer = {
 		activatewhenbuilt = true,
 		buildpic = "ARMSEER.DDS",
-		buildtime = 6200,
+		buildtime = 7500,
 		canattack = false,
 		canmove = true,
 		collisionvolumeoffsets = "0 -4 0",
@@ -14,11 +14,9 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 980,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		maxacc = 0.04878,
-		maxdec = 0.09757,
+		maxdec = 0.1,
 		maxslope = 16,
 		maxwaterdepth = 0,
 		metalcost = 125,
@@ -41,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles/T2",
@@ -81,11 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

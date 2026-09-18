@@ -1,5 +1,6 @@
 return {
 	armrectr = {
+		autoheal = 5,
 		builddistance = 96,
 		builder = true,
 		buildpic = "ARMRECTR.DDS",
@@ -16,14 +17,12 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		health = 220,
-		idleautoheal = 5,
-		idletime = 60,
 		maxacc = 0.23,
 		maxdec = 0.8625,
 		maxslope = 14,
 		maxwaterdepth = 22,
 		metalcost = 130,
-		movementclass = "BOT3",
+		movementclass = "BOT2",
 		objectname = "Units/ARMRECTR.s3o",
 		radardistance = 50,
 		script = "Units/ARMRECTR.cob",
@@ -40,6 +39,7 @@ return {
 		upright = true,
 		workertime = 200,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",
@@ -74,13 +74,6 @@ return {
 				object = "Units/arm2X2D.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3-builder",
-				[2] = "deathceg2-builder",
-				[3] = "deathceg2",
 			},
 		},
 		sounds = {

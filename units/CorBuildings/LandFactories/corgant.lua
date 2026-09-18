@@ -2,8 +2,9 @@ return {
 	corgant = {
 		builder = true,
 		buildpic = "CORGANT.DDS",
-		buildtime = 67300,
+		buildtime = 68000,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 12 0",
 		collisionvolumescales = "196 110 196",
 		collisionvolumetype = "Box",
@@ -14,8 +15,6 @@ return {
 		footprintx = 12,
 		footprintz = 12,
 		health = 17800,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -28,7 +27,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		terraformspeed = 3000,
-		workertime = 600,
+		workertime = 1800,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo ooeeeeeeeeoo",
 		buildoptions = {
 			[1] = "corkorg",
@@ -85,10 +84,6 @@ return {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",
 				[3] = "custom:WhiteLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {

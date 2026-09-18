@@ -2,22 +2,21 @@ return {
 	armfhp = {
 		builder = true,
 		buildpic = "ARMFHP.DDS",
-		buildtime = 11000,
+		buildtime = 8700,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumescales = "100 40 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 3000,
+		energycost = 2000,
 		energystorage = 200,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 6,
 		footprintz = 6,
 		health = 3350,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
-		metalcost = 900,
+		metalcost = 670,
 		metalstorage = 200,
 		minwaterdepth = 5,
 		objectname = "Units/ARMFHP.s3o",
@@ -27,7 +26,7 @@ return {
 		sightdistance = 286,
 		terraformspeed = 1000,
 		waterline = 4,
-		workertime = 100,
+		workertime = 150,
 		yardmap = "weeeew weeeew weeeew weeeew weeeew weeeew",
 		buildoptions = {
 			[1] = "armch",
@@ -39,8 +38,10 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "ArmBuildings/SeaFactories",
 			unitgroup = "builder",
+			techlevel = 1.5,
 		},
 		featuredefs = {
 			dead = {
@@ -56,13 +57,6 @@ return {
 				metal = 670,
 				object = "Units/armfhp_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

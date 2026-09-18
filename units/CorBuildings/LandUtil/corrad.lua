@@ -15,9 +15,7 @@ return {
 		explodeas = "smallBuildingexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 90,
-		idleautoheal = 5,
-		idletime = 1800,
+		health = 180,
 		mass = 5100,
 		maxacc = 0,
 		maxdec = 0,
@@ -39,6 +37,7 @@ return {
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecaltype = "decals/corrad_aoplane.dds",
+			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
@@ -81,10 +80,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t1_slow",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -12,6 +12,9 @@ function widget:GetInfo()
 	}
 end
 
+-- Localized Spring API for performance
+local spGetSpectatingState = Spring.GetSpectatingState
+
 local hideBelowGameframe = 100
 
 local GetGroupUnits = Spring.GetGroupUnits
@@ -29,7 +32,7 @@ local minGroupID = 0
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance  = InstanceVBOTable.popElementInstance
+local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 -- Configurables:
@@ -38,13 +41,14 @@ local groupNumberHeight = 0
 local healthbartexture = "LuaUI/Images/healtbars_exo4.tga"
 local debugmode = false
 
--- Managment:
+-- Management:
 local unitIDtoGroup = {} -- keys unitID's to group numbers
 local grouptounitID = {}
 for i = minGroupID, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
+---@type InstanceVBOTable?
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -150,7 +154,7 @@ end
 ------------------------------------------- End GL4 Stuff -------------------------------------------
 
 function widget:PlayerChanged()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -189,7 +193,7 @@ function widget:GroupChanged(groupID)
 end
 
 function widget:Initialize()
-	if Spring.GetSpectatingState() then
+	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -233,13 +237,15 @@ function widget:GameFrame(gf)
 	gameFrame = gf
 end
 
-function widget:DrawWorld()
+function widget:DrawScreenEffects()
+	-- DrawScreenEffects so group numbers render after deferred lighting/distortion/bloom/tonemap;
+	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
 	if spIsGUIHidden() or gameFrame < hideBelowGameframe then
 		return
 	end
 
 	if unitGroupVBO.usedElements > 0 then
-		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
+		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesn't update :/
 		gl.Texture(0, healthbartexture)
 		unitGroupShader:Activate()
 		unitGroupVBO.VAO:DrawArrays(GL.POINTS, unitGroupVBO.usedElements)

@@ -95,52 +95,67 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
-RestoreAfterDelay2()
-{
-	sleep restore_delay;
-	turn tur2 to y-axis <0.0> speed <50.0>;
-	turn sleeve2 to x-axis <0.0> speed <30.0>;
-	turn tur4 to y-axis <0.0> speed <50.0>;
-	turn sleeve4 to x-axis <0.0> speed <30.0>;
-	turn tur5 to y-axis <0.0> speed <50.0>;
-	turn sleeve5 to x-axis <0.0> speed <30.0>;
-	turn misbox2 to x-axis <-25> speed <25.0>;
-	spin turretmis2 around y-axis speed <25.0>;
-}
-
 static-var  Stunned;
-ExecuteRestoreAfterDelay()
-{
-    if (Stunned) {
-        return (1);
-    }
-	turn tur1 to y-axis <0.0> speed <10.0>;
-	turn sleeve1 to x-axis <0.0> speed <10.0>;
-	turn tur3 to y-axis <0.0> speed <10.0>;
-	turn sleeve3 to x-axis <0.0> speed <10.0>;
-	turn misbox2 to x-axis <-25> speed <25.0>;
-	spin turretmis2 around y-axis speed <25.0>;
-}
 SetStunned(State)
 {
     Stunned = State;
 	if (Stunned) {
 	    call-script Stop();
 	} else {
-	    start-script ExecuteRestoreAfterDelay();
+	    start-script RestoreAfterDelay();
+		start-script RestoreAfterDelay2();
+		start-script RestoreAfterDelay3();
+		start-script RestoreAfterDelay4();
+		start-script RestoreAfterDelay5();
+		start-script RestoreAfterDelay6();
+		start-script RestoreAfterDelay7();
 	}
 }
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	start-script ExecuteRestoreAfterDelay();
+	turn tur1 to y-axis <0.0> speed <17.0>;
+	turn sleeve1 to x-axis <0.0> speed <10.0>;
+}
+
+RestoreAfterDelay2()
+{
+	sleep restore_delay;
+	turn tur2 to y-axis <0.0> speed <50.0>;
+	turn sleeve2 to x-axis <0.0> speed <30.0>;
 }
 
 RestoreAfterDelay3()
 {
 	sleep restore_delay;
+	turn tur3 to y-axis <0.0> speed <17.0>;
+	turn sleeve3 to x-axis <0.0> speed <10.0>;
+}
+
+RestoreAfterDelay4()
+{
+	sleep restore_delay;
+	turn tur4 to y-axis <0.0> speed <50.0>;
+	turn sleeve4 to x-axis <0.0> speed <30.0>;
+}
+
+RestoreAfterDelay5()
+{
+	sleep restore_delay;
+	turn tur5 to y-axis <0.0> speed <50.0>;
+	turn sleeve5 to x-axis <0.0> speed <30.0>;
+}
+
+RestoreAfterDelay6()
+{
+	sleep restore_delay;
 	turn turretmis1 to y-axis <0.0> speed <80.0>;
 	turn misbox1 to x-axis <0.0> speed <50.0>;
+}
+
+RestoreAfterDelay7()
+{
+	sleep restore_delay;
 	turn turretmis2 to y-axis <0.0> speed <80.0>;
 	turn misbox2 to x-axis <-25> speed <25.0>;
 	spin turretmis2 around y-axis speed <25.0>;
@@ -170,12 +185,20 @@ AimWeapon1(heading, pitch)
 
 FireWeapon1()
 {
+	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+}
+
+Shot1()
+{
 	if( gun_1 )
 	{
 	    emit-sfx 1024 + 1 from flare1b;
 		move barrel1b to z-axis [-3.0] speed [500.0];
 		sleep 100;
 		move barrel1b to z-axis [0.0] speed [3.0];
+		gun_1 = 0;
+		// unfortunately, while the EndBurstX() habit prevents single shot units from swapping barrels after the Friendly-Fire check, 
+		// you still have to sleep at least 1 frame for per-burst-shot barrel swaps
 	}
 	else
 	{
@@ -183,9 +206,13 @@ FireWeapon1()
 		move barrel1a to z-axis [-3.0] speed [500.0];
 		sleep 100;
 		move barrel1a to z-axis [0.0] speed [3.0];
+		gun_1 = 1;
 	}
-	gun_1 = !gun_1;
-	RB_RECOILBOAT(aimDir1, RB_RECOIL_ENERGY_1);
+}
+
+EndBurst1()
+{
+	gun_1 = 1; //Makes sure barrel is properly reset even if the burst is interrupted
 }
 
 AimFromWeapon1(pieceIndex)
@@ -256,11 +283,16 @@ AimWeapon3(heading, pitch)
 	turn sleeve3 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	wait-for-turn tur3 around y-axis;
 	wait-for-turn sleeve3 around x-axis;
-	start-script RestoreAfterDelay();
+	start-script RestoreAfterDelay3();
 	return (1);
 }
 
 FireWeapon3()
+{
+	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
+}
+
+Shot3()
 {
 	if( gun_3 )
 	{
@@ -268,6 +300,7 @@ FireWeapon3()
 		move barrel3b to z-axis [-3.0] speed [500.0];
 		sleep 100;
 		move barrel3b to z-axis [0.0] speed [3.0];
+		gun_3 = 0;
 	}
 	else
 	{
@@ -275,10 +308,15 @@ FireWeapon3()
 		move barrel3a to z-axis [-3.0] speed [500.0];
 		sleep 100;
 		move barrel3a to z-axis [0.0] speed [3.0];
+		gun_3 = 1;
 	}
-	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
-	gun_3 = !gun_3;
 }
+
+EndBurst3()
+{
+	gun_3 = 1; //Makes sure barrel is properly reset even if the burst is interrupted
+}
+
 
 AimFromWeapon3(pieceIndex)
 {
@@ -298,7 +336,7 @@ AimWeapon4(heading, pitch)
 	turn sleeve4 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	wait-for-turn tur4 around y-axis;
 	wait-for-turn sleeve4 around x-axis;
-	start-script RestoreAfterDelay2();
+	start-script RestoreAfterDelay4();
 	return (1);
 }
 
@@ -346,7 +384,7 @@ AimWeapon5(heading, pitch)
 	turn sleeve5 to x-axis RB_AIMPITCHCORRECTION(heading) - pitch speed <25.0>;
 	wait-for-turn tur5 around y-axis;
 	wait-for-turn sleeve5 around x-axis;
-	start-script RestoreAfterDelay2();
+	start-script RestoreAfterDelay5();
 	return (1);
 }
 
@@ -394,7 +432,7 @@ AimWeapon6(heading, pitch)
 	turn misbox1 to x-axis <0> - pitch speed <200.0>;
 	wait-for-turn turretmis1 around y-axis;
 	wait-for-turn misbox1 around x-axis;
-	start-script RestoreAfterDelay3();
+	start-script RestoreAfterDelay6();
 	return (1);
 }
 
@@ -421,7 +459,7 @@ AimWeapon7(heading, pitch)
 	turn misbox2 to x-axis <0> - pitch speed <200.0>;
 	wait-for-turn turretmis2 around y-axis;
 	wait-for-turn misbox2 around x-axis;
-	start-script RestoreAfterDelay3();
+	start-script RestoreAfterDelay7();
 	return (1);
 }
 

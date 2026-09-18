@@ -26,7 +26,8 @@ local function rot_to_facing(rotation)
 	"east" | "e" | 1  == 16384
 	"north" | "n" | 2 == +32 or -32k
 	"west" | "w" | 3 == -16384
-	]]--
+	]]
+	--
 	if rotation < 8192 and rotation > -8192 then
 		return 0
 	end
@@ -39,9 +40,6 @@ local function rot_to_facing(rotation)
 	return 2
 end
 
-local startMetal = 1000
-local startEnergy = 1000
-local teamList = {}
 local additionalStorage = {}
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
@@ -50,10 +48,10 @@ function gadget:Initialize()
 end
 
 function gadget:GamePreload()
-  if Spring.GetGameRulesParam("loadedGame") == 1 then
-    Spring.Echo("Scenario: Loading saved game, skipping loadout")
+	if Spring.GetGameRulesParam("loadedGame") == 1 then
+		Spring.Echo("Scenario: Loading saved game, skipping loadout")
 		gadgetHandler:RemoveGadget(self)
-  end
+	end
 
 	if Spring.GetGameFrame() < 1 and not loadoutcomplete then
 		-- so that loaded savegames dont re-place
@@ -68,23 +66,34 @@ function gadget:GamePreload()
 					for k, unit in pairs(unitloadout) do
 						-- make sure unitdefname is valid
 						if UnitDefNames[unit.name] then
-
 							local rot = rot_to_facing(unit.rot)
-							local unitID = Spring.CreateUnit(unit.name, unit.x, Spring.GetGroundHeight(unit.x, unit.z), unit.z, rot, unit.team)
+							local unitID = Spring.CreateUnit(
+								unit.name,
+								unit.x,
+								Spring.GetGroundHeight(unit.x, unit.z),
+								unit.z,
+								rot,
+								unit.team
+							)
 							if unitID then
 								Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-								if UnitDefNames[unit.name].energyStorage > 0 or UnitDefNames[unit.name].metalStorage > 0 then
+								if
+									UnitDefNames[unit.name].energyStorage > 0
+									or UnitDefNames[unit.name].metalStorage > 0
+								then
 									if additionalStorage[unit.team] == nil then
-										additionalStorage[unit.team] = {metal = 0, energy = 0}
+										additionalStorage[unit.team] = { metal = 0, energy = 0 }
 									end
-									additionalStorage[unit.team].metal  = additionalStorage[unit.team].metal + (UnitDefNames[unit.name].metalStorage  or 0 )
-									additionalStorage[unit.team].energy  = additionalStorage[unit.team].energy + (UnitDefNames[unit.name].energyStorage or 0 )
+									additionalStorage[unit.team].metal = additionalStorage[unit.team].metal
+										+ (UnitDefNames[unit.name].metalStorage or 0)
+									additionalStorage[unit.team].energy = additionalStorage[unit.team].energy
+										+ (UnitDefNames[unit.name].energyStorage or 0)
 								end
 							end
-							if string.find(unit.name, "nanotc") then
+							if UnitDefNames[unit.name].customParams.isnanoturret then
 								nanoturretunitIDs[unitID] = true
 							end
-							if unit.neutral == true or unit.neutral == 'true' then
+							if unit.neutral == true or unit.neutral == "true" then
 								Spring.SetUnitNeutral(unitID, true)
 							end
 						else
@@ -100,7 +109,14 @@ function gadget:GamePreload()
 					for k, feature in pairs(featureloadout) do
 						if FeatureDefNames[feature.name] then
 							local rot = tonumber(feature.rot) or 0
-							local featureID = Spring.CreateFeature(feature.name, feature.x, Spring.GetGroundHeight(feature.x, feature.z), feature.z, rot, gaiaTeamID)
+							local featureID = Spring.CreateFeature(
+								feature.name,
+								feature.x,
+								Spring.GetGroundHeight(feature.x, feature.z),
+								feature.z,
+								rot,
+								gaiaTeamID
+							)
 							if feature.resurrectas and UnitDefNames[feature.resurrectas] then
 								Spring.SetFeatureResurrect(featureID, feature.resurrectas)
 							end
@@ -112,10 +128,9 @@ function gadget:GamePreload()
 			end
 		end
 	end
-  loadoutcomplete = true
+	loadoutcomplete = true
 	--gadgetHandler:RemoveGadget(self)
 end
-
 
 function gadget:GameFrame(n)
 	if n == 1 then
@@ -128,23 +143,11 @@ function gadget:GameFrame(n)
 			for teamID, additionalstorage in pairs(additionalStorage) do
 				local m, mstore = Spring.GetTeamResources(teamID, "metal")
 				local e, estore = Spring.GetTeamResources(teamID, "energy")
-				Spring.SetTeamResource(teamID, 'ms', mstore + additionalstorage.metal)
-				Spring.SetTeamResource(teamID, 'es', estore + additionalstorage.energy)
+				Spring.SetTeamResource(teamID, "ms", mstore + additionalstorage.metal)
+				Spring.SetTeamResource(teamID, "es", estore + additionalstorage.energy)
 			end
 			additionalStorage = nil
 		end
 		gadgetHandler:RemoveGadget()
 	end
-	--[[ periodic checking isnt very good
-	if n %17 == 7 then
-		local teamList = Spring.GetTeamList()
-		for i = 1, #teamList do
-			local teamID = teamList[i]
-			local m, mstore = Spring.GetTeamResources(teamID, "metal")
-			local e, estore = Spring.GetTeamResources(teamID, "energy")
-			if mstore < 500 then Spring.SetTeamResource(teamID, 'ms', 500) end
-			if estore < 500 then Spring.SetTeamResource(teamID, 'es', 500) end
-		end
-	end
-	]]--
 end

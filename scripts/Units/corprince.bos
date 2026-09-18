@@ -288,7 +288,7 @@ Shot1(heading) {
 #define CATT1_RESTORE_SPEED <1.0>
 #define CATT1_PITCH_SPEED <45>
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 AimWeapon1(heading, pitch)
 {

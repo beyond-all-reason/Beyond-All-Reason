@@ -16,8 +16,6 @@ return {
 		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 2000,
 		maxslope = 16,
@@ -37,7 +35,7 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9834,
 		turnrate = 1000,
-		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			[1] = "armsolar",
 			[2] = "armwin",
@@ -68,17 +66,10 @@ return {
 			[27] = "armfhp",
 		},
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			build = "nanlath1",

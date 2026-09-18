@@ -471,7 +471,6 @@ Sparks()
 		{
 			sleep 100;
 		}
-		emit-sfx 1024 + 0 from spark_emit;	
 		sleep 200;
 	}
 }
@@ -575,7 +574,6 @@ FireWeapon1()
 {
 	show gun_emit;
 	hide static_emit;
-	emit-sfx 1024 + 0 from flare;
 	start-script FireSparks();
 }
 // For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\armzeus_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9))

@@ -592,6 +592,7 @@ Create()
 	moveHands = TRUE;
 	isMoving = FALSE;
 	isAiming = FALSE;
+	call-script CATT1_Init();
 	animSpeed = 5;
 	gun_1 = 0;
 	gun_3 = 0;
@@ -663,7 +664,7 @@ AimHands() {
 #define CATT1_RESTORE_SPEED <1.0>
 #define CATT1_RESTORE_DELAY 1000
 
-#include "../constant_acceleration_turret_turning_1.h"
+#include "../constant_acceleration_turret_turning.h"
 
 AimWeapon1(heading, pitch) //hand cannons
 {
@@ -722,7 +723,7 @@ FireWeapon1()
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = torso;
+	pieceIndex = aimy1;
 }
 
 AimFromWeapon2(pieceIndex)

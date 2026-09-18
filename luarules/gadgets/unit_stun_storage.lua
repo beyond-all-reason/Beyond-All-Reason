@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "June 15, 2014",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -24,8 +24,7 @@ local paralyzedUnits = {}
 local storageDefs = {}
 local isCommander = {}
 for udid, ud in pairs(UnitDefs) do
-	if not ud.canMove then	-- this is to exclude transportable units since they get stunned while being transported
-
+	if not ud.canMove then -- this is to exclude transportable units since they get stunned while being transported
 		-- instead of checking every unit to see if it is a commander we add them in late, except we don't cause they move
 		-- i don't understand our decision making but i'm future proofing this
 		-- commanders were tested to be excluded for the first 150 game frames
@@ -33,7 +32,6 @@ for udid, ud in pairs(UnitDefs) do
 		if ud.customParams.iscommander then
 			isCommander[udid] = true
 		else
-
 			if ud.metalStorage >= 50 then
 				if not storageDefs[udid] then
 					storageDefs[udid] = {}
@@ -51,38 +49,45 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function restoreStorage(unitID, unitDefID, teamID)
-	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage + storageDefs[unitDefID].metal)
-	end
-	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage + storageDefs[unitDefID].energy)
+	local storage = storageDefs[unitDefID]
+	if storage then
+		if storage.metal then
+			local _, totalStorage = spGetTeamResources(teamID, "metal")
+			spSetTeamResource(teamID, "ms", totalStorage + storage.metal)
+		end
+		if storage.energy then
+			local _, totalStorage = spGetTeamResources(teamID, "energy")
+			spSetTeamResource(teamID, "es", totalStorage + storage.energy)
+		end
 	end
 	paralyzedUnits[unitID] = nil
 end
 
 local function reduceStorage(unitID, unitDefID, teamID)
 	paralyzedUnits[unitID] = unitDefID
-	if storageDefs[unitDefID].metal then
-		local _, totalStorage = spGetTeamResources(teamID, "metal")
-		spSetTeamResource(teamID, "ms", totalStorage - storageDefs[unitDefID].metal)
-	end
-	if storageDefs[unitDefID].energy then
-		local _, totalStorage = spGetTeamResources(teamID, "energy")
-		spSetTeamResource(teamID, "es", totalStorage - storageDefs[unitDefID].energy)
+	local storage = storageDefs[unitDefID]
+	if storage then
+		if storage.metal then
+			local _, totalStorage = spGetTeamResources(teamID, "metal")
+			spSetTeamResource(teamID, "ms", totalStorage - storage.metal)
+		end
+		if storage.energy then
+			local _, totalStorage = spGetTeamResources(teamID, "energy")
+			spSetTeamResource(teamID, "es", totalStorage - storage.energy)
+		end
 	end
 end
 
 if #isCommander > 0 then
 	function gadget:GameFrame(n)
 		if n > 150 then
+			-- Avoid reducing storage during the spawn-in time when commanders may be stunned.
 			for commander, _ in pairs(isCommander) do
 				if UnitDefs[commander].metalStorage >= 50 then
-					storageDefs[udid].metal = UnitDefs[commander].metalStorage
+					storageDefs[commander].metal = UnitDefs[commander].metalStorage
 				end
 				if UnitDefs[commander].energyStorage >= 100 then
-					storageDefs[udid].energy = UnitDefs[commander].energyStorage
+					storageDefs[commander].energy = UnitDefs[commander].energyStorage
 				end
 			end
 			isCommander = nil

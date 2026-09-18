@@ -15,8 +15,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 2400,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 10,
@@ -35,6 +33,7 @@ return {
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecaltype = "decals/corason_aoplane.dds",
+			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
@@ -58,13 +57,6 @@ return {
 				metal = 99,
 				object = "Units/corason_dead.s3o",
 				reclaimable = true,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

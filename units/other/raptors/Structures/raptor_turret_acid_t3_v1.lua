@@ -22,8 +22,6 @@ return {
 		explodeas = "tentacle_death",
 		footprintx = 4,
 		footprintz = 4,
-		idleautoheal = 15,
-		idletime = 300,
 		levelground = false,
 		mass = 1400,
 		health = 11100,
@@ -51,6 +49,7 @@ return {
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
@@ -112,6 +111,8 @@ return {
 					area_onhit_damage = 200,
 					area_onhit_range = 150,
 					area_onhit_resistance = "_RAPTORACID_",
+					nofire = true,
+					water_splash = 0,
 				},
 				damage = {
 					default = 1,

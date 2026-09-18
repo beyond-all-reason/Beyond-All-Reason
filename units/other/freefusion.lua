@@ -15,8 +15,6 @@ return {
 		explodeas = "fusionExplosion",
 		footprintx = 5,
 		footprintz = 5,
-		idleautoheal = 5,
-		idletime = 1800,
 		health = 560,
 		maxslope = 20,
 		maxwaterdepth = 0,
@@ -60,12 +58,6 @@ return {
 				object = "Units/arm5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

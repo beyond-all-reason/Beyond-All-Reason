@@ -1,7 +1,6 @@
 return {
 	legforti = {
 		maxacc = 0,
-		autoheal = 12,
 		blocking = true,
 		maxdec = 0,
 		buildangle = 0,
@@ -20,7 +19,6 @@ return {
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-		idleautoheal = 0,
 		levelground = false,
 		health = 8900,
 		maxslope = 24,
@@ -45,7 +43,9 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			subfolder = "legion/Defenses",
+			subfolder = "Legion/Defenses",
+			unitgroup = "util",
+			techlevel = 2,
 		},
 		featuredefs = {
 			rockteethx = {
@@ -65,12 +65,6 @@ return {
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
-			},
-		},
-		sfxtypes = {
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 	},

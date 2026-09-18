@@ -1,4 +1,3 @@
-
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -9,7 +8,7 @@ function gadget:GetInfo()
 		date = "3 27 2011",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -38,7 +37,11 @@ for unitDefID, udef in pairs(UnitDefs) do
 	if not (udef.isBuilding or udef.speed == 0) then
 		isMobileUnit[unitDefID] = true
 	end
-	if udef.isBuilder and (udef.buildSpeed and udef.buildSpeed > 0) and (udef.buildDistance and udef.buildDistance > 0) then
+	if
+		udef.isBuilder
+		and (udef.buildSpeed and udef.buildSpeed > 0)
+		and (udef.buildDistance and udef.buildDistance > 0)
+	then
 		isBuilder[unitDefID] = true
 	end
 end
@@ -88,7 +91,7 @@ function gadget:GameFrame(f)
 end
 
 local function isInsideMap(unitID)
-	local x,_,z = spGetUnitPosition(unitID)
+	local x, _, z = spGetUnitPosition(unitID)
 	return spIsPosInMap(x, z)
 end
 

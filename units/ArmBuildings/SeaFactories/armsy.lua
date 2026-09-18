@@ -2,23 +2,22 @@ return {
 	armsy = {
 		builder = true,
 		buildpic = "ARMSY.DDS",
-		buildtime = 6660,
+		buildtime = 5160,
 		canmove = true,
+		canReclaim = false,
 		collisionvolumeoffsets = "0 16 0",
 		collisionvolumescales = "90 60 90",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 1200,
+		energycost = 950,
 		energystorage = 100,
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 6,
 		footprintz = 6,
 		health = 4100,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
-		metalcost = 600,
+		metalcost = 450,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		objectname = "Units/ARMSY.s3o",
@@ -28,7 +27,7 @@ return {
 		sightdistance = 340,
 		terraformspeed = 500,
 		waterline = 1,
-		workertime = 165,
+		workertime = 150,
 		yardmap = "oyyyyo yeeeey yeeeey yeeeey yeeeey oyyyyo",
 		buildoptions = {
 			[1] = "armcs",
@@ -42,6 +41,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			quickstart_discountable = true,
 			subfolder = "ArmBuildings/SeaFactories",
 			unitgroup = "builder",
 		},
@@ -64,11 +64,6 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
 			},
 		},
 		sounds = {

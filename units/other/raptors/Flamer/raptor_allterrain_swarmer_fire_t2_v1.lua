@@ -55,6 +55,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
@@ -104,7 +105,6 @@ return {
 				soundstart = "cflamhvy1",
 				soundtrigger = false,
 				sprayangle = 100,
-				targetborder = 0.75,
 				targetmoveerror = 0.001,
 				tolerance = 2500,
 				turret = true,

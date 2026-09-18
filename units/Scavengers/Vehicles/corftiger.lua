@@ -14,8 +14,6 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
-		idleautoheal = 5,
-		idletime = 1800,
 		leavetracks = true,
 		health = 5300,
 		maxslope = 12,
@@ -37,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 347,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -45,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -84,10 +80,6 @@ return {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:dust_cloud_dirt_light",
 				[3] = "custom:pilotlight",
-			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg3",
-				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,6 +132,10 @@ return {
 				soundtrigger = true,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 14.5, --109
 					vtol = 4.7,

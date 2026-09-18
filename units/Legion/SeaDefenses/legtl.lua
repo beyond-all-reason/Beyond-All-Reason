@@ -14,8 +14,6 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		health = 1300,
-		idleautoheal = 5,
-		idletime = 1800,
 		maxacc = 0,
 		maxdec = 0,
 		metalcost = 170,
@@ -55,11 +53,6 @@ return {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 			},
-			pieceexplosiongenerators = {
-				[1] = "deathceg2",
-				[2] = "deathceg3",
-				[3] = "deathceg4",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -88,7 +81,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = true,
 				burnblow = true,
-				cegtag = "torpedotrail-tiny",
+				cegtag = "torpedotrail-small",
 				collidefriendly = true,
 				craterareaofeffect = 0,
 				craterboost = 0,
