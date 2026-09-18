@@ -77,7 +77,7 @@ local expireCount = 0
 local spawnList = {} -- [index] = {.spawnDef, .teamID, .x, .y, .z, .ownerID}, subtables reused
 local spawnCount = 0
 local spawnNames = {}
-local minWaterDepth = -12 --calibrated off of the armpw's (minimum found) maxwaterdepth value
+local minWaterDepth = -20 -- see movedefs.lua
 
 for weaponDefID = 0, #WeaponDefs do
 	local wdcp = WeaponDefs[weaponDefID].customParams
@@ -157,17 +157,19 @@ local function SpawnUnit(spawnData)
 			local rot = random() * TAU
 			spSetFeatureDirection(featureID, cos(rot), 0, sin(rot))
 		else
+
 			local validSurface = false
+			local unitDetonates = x <= 0 or x >= mapsizeX or z <= 0 or z >= mapsizeZ -- out of bounds?
 			local y = spGetGroundHeight(x, z)
 
 			if not spawnDef.surface then
 				validSurface = true
-			elseif spawnData.y < mathMax(y + 32, 32) then
+			else
 				local surface = spawnDef.surface
-				if stringFind(surface, "LAND", 1, true) and y > minWaterDepth then
-					validSurface = true
-				elseif stringFind(surface, "SEA", 1, true) and y <= 0 then
-					validSurface = true
+				validSurface = (surface:find("LAND", 1, true) and y >= minWaterDepth)
+					or (surface:find("SEA", 1, true) and y <= 0)
+				if validSurface and spawnData.y >= mathMax(y + 32, 32) then
+					unitDetonates = true
 				end
 			end
 
@@ -233,6 +235,11 @@ local function SpawnUnit(spawnData)
 				FaceAwayFromOwner(unitID, ownerID, x, z)
 			end
 
+			if unitDetonates then
+				spDestroyUnit(unitID, false, false) -- e.g. mines use explodeas
+				return
+			end
+
 			if spawnDef.expire then
 				expireCount = expireCount + 1
 				expireByID[unitID] = expireCount
@@ -284,6 +291,18 @@ function gadget:Initialize()
 	end
 end
 
+local function getProjectileTeam(projectileID, ownerID)
+	local teamID = spGetProjectileTeamID(projectileID) or (ownerID and spGetUnitTeam(ownerID))
+	if teamID then
+		return teamID
+	end
+
+	local allyTeamID = Spring.GetProjectileAllyTeamID(projectileID)
+	if allyTeamID then
+		return (Spring.GetTeamList(allyTeamID) or {})[1]
+	end
+end
+
 function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 	if noCreate then
 		noCreate = false
@@ -292,10 +311,7 @@ function gadget:Explosion(weaponDefID, x, y, z, ownerID, proID)
 
 	if spawnDefs[weaponDefID] then
 		local spawnDef = spawnDefs[weaponDefID] -- guaranteed not nil by Explosion_GetWantedWeaponDef
-		local teamID = proID and spGetProjectileTeamID(proID)
-		if not teamID and ownerID then
-			teamID = spGetUnitTeam(ownerID)
-		end
+		local teamID = proID and getProjectileTeam(proID, ownerID)
 		if not teamID then
 			return
 		end

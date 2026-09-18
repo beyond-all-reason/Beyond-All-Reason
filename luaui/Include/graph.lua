@@ -18,6 +18,7 @@
 --       smooth = true,                          -- monotone cubic between samples, no overshoot
 --       markers = {                             -- unit pictures on the chart, with a text for hover
 --           { x = 3000, texture = "#143", text = "1:40 First factory (Bot Lab)", series = 1 },
+--           { x = 3000, texture = "#143", text = "...", y = 2.2 },  -- or at a value of its own
 --       },
 --   })
 --   chart:draw()                              -- in DrawScreen
@@ -27,7 +28,8 @@
 --
 -- Everything in the constructor can be changed later through chart:configure({ ... }),
 -- chart:setSeries(list), chart:setMarkers(list), chart:setBounds(x, y, w, h) and
--- chart:setHighlight(seriesIndex); each marks the picture for a rebuild on the next draw.
+-- chart:setHighlight(seriesIndex, or { [seriesIndex] = true, ... } for several); each
+-- marks the picture for a rebuild on the next draw.
 -- chart:destroy() frees the list. Radar charts take `radar = { axes = { { key = "speed",
 -- label = "Speed", max = 100 }, ... }, rings = 4 }` and series with `values` keyed by axis
 -- (an array in axis order, or a table by axis key). A stacked chart turns every sample
@@ -37,7 +39,8 @@
 ---@field cfg table<string, any>
 ---@field series table[]
 ---@field markers table[]
----@field highlight integer?
+---@field highlight integer|table<integer, boolean>|nil
+---@field highlightKey any
 ---@field hover table?
 ---@field list integer?
 ---@field dirty boolean
@@ -49,6 +52,8 @@
 ---@field area table<string, number>
 ---@field placed table[]
 ---@field markerRow table<integer, integer>
+---@field markerSize number
+---@field markerLaneRows integer
 ---@field yMin number
 ---@field yMax number
 ---@field yStep number
@@ -72,7 +77,7 @@ local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
 local glColor = gl.Color
 local glTexture = gl.Texture
-local glTexRect = gl.TexRect
+local glTexCoord = gl.TexCoord
 local glLineWidth = gl.LineWidth
 -- Anti-aliased lines; absent in an offline stub.
 ---@type function?
@@ -119,6 +124,9 @@ local DEFAULTS = {
 	yFormat = nil,
 	-- Stacked: each band named inside it at its right end, where it is thick enough.
 	bandLabels = false,
+	-- Bands of colour laid across the plot between two values, under everything else:
+	-- { { from = 0.5, to = 1.5, color = { r, g, b, a } }, ... }.
+	valueBands = nil,
 	-- The y axis: fixed ends, or found from the data (a line chart always shows zero).
 	yMin = nil,
 	yMax = nil,
@@ -129,6 +137,9 @@ local DEFAULTS = {
 	-- as m:ss. `xStep` fixes the tick step in x units instead.
 	xUnit = nil,
 	xStep = nil,
+	-- Where the x axis starts, when not at the first sample: 0 for a game clock that runs
+	-- from the start whatever the first sample is.
+	xMin = nil,
 	-- Curves through the samples rather than corners at them. Steps between two samples
 	-- come from the pixel distance when left nil.
 	smooth = false,
@@ -139,14 +150,25 @@ local DEFAULTS = {
 	legend = true,
 	-- Markers: pictures with a hover text, at an x, on a series or in a lane above the plot.
 	-- The picture is zoomed in by this share of its edges (nil: a subtle share that grows
-	-- as the picture shrinks), and framed this thick.
+	-- as the picture shrinks), its corners cut off by this much (nil: a small cut that
+	-- grows with the picture, like the unit pictures elsewhere), and framed this thick.
 	markerSize = nil,
 	markerZoom = nil,
+	markerCorner = nil,
 	markerFrameWidth = 2,
+	-- The lane of markers above the plot never takes more than this share of the chart's
+	-- height: pictures shrink (down to `markerMinSize`) until the rows they need fit, and
+	-- the rows past that wrap back into the lane, where the hovered one is drawn on top.
+	markerLaneShare = 0.4,
+	markerMinSize = 14,
+	-- How much larger the hovered picture is drawn.
+	markerHoverScale = 1.2,
 	radar = {
 		rings = 4,
 		axes = nil,
 		fill = true,
+		-- The axes are named around the wheel; off for a chart too small to read them.
+		labels = true,
 	},
 	look = {
 		-- A backdrop under the whole chart, for one drawn straight over the world rather
@@ -161,11 +183,10 @@ local DEFAULTS = {
 		crosshair = { 1, 1, 1, 0.22 },
 		hoverDot = { 1, 1, 1, 0.9 },
 		-- The other series step back to this share of their colour when one is highlighted.
-		dimAlpha = 0.28,
+		dimAlpha = 0.22,
 		areaAlpha = 0.6,
 		fillAlpha = 0.16,
 		markerFrame = { 1, 1, 1, 0.35 },
-		markerHover = { 1, 0.78, 0.51, 0.95 },
 		markerTick = { 1, 1, 1, 0.22 },
 		radarFillAlpha = 0.22,
 	},
@@ -372,10 +393,28 @@ function Graph:setBounds(x, y, width, height)
 	end
 end
 
--- The series drawn in front, the others stepped back. nil for none.
-function Graph:setHighlight(index)
-	if self.highlight ~= index then
-		self.highlight = index
+-- A highlight as a value that compares equal for the same series, set or not.
+local function highlightKey(highlight)
+	if type(highlight) ~= "table" then
+		return highlight
+	end
+	local keys = {}
+	for si, on in pairs(highlight) do
+		if on then
+			keys[#keys + 1] = si
+		end
+	end
+	table.sort(keys)
+	return "set:" .. table.concat(keys, ",")
+end
+
+-- The series drawn in front, the others stepped back: one index, or a set of them
+-- ({ [index] = true }). nil for none.
+function Graph:setHighlight(highlight)
+	local key = highlightKey(highlight)
+	if self.highlightKey ~= key then
+		self.highlight = highlight
+		self.highlightKey = key
 		self.dirty = true
 	end
 end
@@ -511,6 +550,7 @@ function Graph:prepareSamples()
 			end
 		end
 		prepared[si] = {
+			index = si,
 			source = s,
 			name = s.name or ("Series " .. si),
 			color = s.color or { 0.8, 0.8, 0.8 },
@@ -626,7 +666,7 @@ function Graph:prepareLine()
 	local bottom = mathFloor(plot.bottom + fs * 1.5)
 	local right = plot.right
 
-	local xMin, xMax = xs[1] or 0, xs[#xs] or 1
+	local xMin, xMax = cfg.xMin or xs[1] or 0, xs[#xs] or 1
 	if xMax <= xMin then
 		xMax = xMin + 1
 	end
@@ -635,9 +675,27 @@ function Graph:prepareLine()
 	self.sx = function(x)
 		return left + (x - xMin) * xScale
 	end
-	-- The lane above the plot takes as many rows as the markers need.
-	local rows = self:markerRows()
+	-- The lane above the plot takes as many rows as the markers need, up to the share of
+	-- the chart it may have; past that the pictures shrink, and past the smallest they
+	-- wrap back into the lane and overlap, the hovered one drawn on top of the rest.
 	local size = cfg.markerSize or mathFloor(fs * 2.6)
+	-- Never more than a share of the chart itself, so the same marker is small on a small
+	-- chart and readable on a large one.
+	size = mathMax(6, mathMin(size, mathFloor((plot.top - bottom) * 0.22), mathFloor((right - left) * 0.18)))
+	-- What a picture is when the lane is not crowded: a hovered one is drawn at least as
+	-- large, so one shrunk in a crowd can be read.
+	self.markerFullSize = size
+	local laneMax = mathMax(0, (plot.top - bottom) * cfg.markerLaneShare)
+	local minSize = mathMin(size, cfg.markerMinSize)
+	local rows = self:markerRows(size)
+	while rows > 0 and rows * size > laneMax and size > minSize do
+		size = mathMax(minSize, mathFloor(size * 0.8))
+		rows = self:markerRows(size)
+	end
+	if rows * size > laneMax then
+		rows = mathMax(1, mathFloor(laneMax / size))
+	end
+	self.markerSize, self.markerLaneRows = size, rows
 	local top = plot.top - (rows > 0 and (rows * size + mathFloor(fs * 0.4)) or 0)
 	self.area = { left = left, right = right, bottom = bottom, top = top }
 	local yScale = (top - bottom) / (yMax - yMin)
@@ -653,10 +711,9 @@ end
 
 -- The lane above the plot: every marker without a series takes the first row of it in
 -- which no earlier marker sits too close in x, rows stacking upwards. Returns the rows
--- needed; each marker's row is kept for placeMarkers. Needs the x mapping.
-function Graph:markerRows()
-	local cfg = self.cfg
-	local size = cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
+-- needed at this picture size; each marker's row is kept for placeMarkers. Needs the x
+-- mapping.
+function Graph:markerRows(size)
 	local rows = {}
 	local count = 0
 	self.markerRow = {}
@@ -688,7 +745,7 @@ end
 -- Where each marker goes: on its series' value at its x, or in its row of the lane.
 function Graph:placeMarkers()
 	local cfg = self.cfg
-	local size = cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
+	local size = self.markerSize or cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
 	local area = self.area
 	self.placed = {}
 	for mi, m in ipairs(self.markers) do
@@ -697,18 +754,50 @@ function Graph:placeMarkers()
 			if px >= area.left - size and px <= area.right + size then
 				local py
 				local onSeries = m.series and self.prepared[m.series]
-				if onSeries then
+				if m.y then
+					-- A marker that names its own value sits there, wherever its series runs.
+					py = self.sy(m.y)
+					onSeries = true
+				elseif onSeries then
 					local i = self:nearestIndex(m.x)
 					local v = cfg.kind == "stacked" and self:stackTop(m.series, i) or onSeries.ys[i]
 					py = self.sy(v or self.yMin)
 				else
+					-- Rows past what the lane holds wrap back into it: those pictures
+					-- overlap, and hovering one lifts it.
 					local row = self.markerRow[mi] or 1
+					local lane = mathMax(1, self.markerLaneRows or 1)
+					row = (row - 1) % lane + 1
 					py = area.top + mathFloor(cfg.fontSize * 0.4) + size * 0.5 + (row - 1) * size
 				end
 				local half = size * 0.5
 				-- The picture stays inside the plot's width, so one at the first sample does
 				-- not sit on the axis labels; its tick still points at the true x.
 				local cx = mathMin(mathMax(px, area.left + half), area.right - half)
+				-- And out of the way of the ones already placed: a run of milestones close
+				-- together climbs away from the line instead of piling on one spot.
+				if onSeries then
+					local step = size * 0.9
+					local tries = 0
+					local up = true
+					local base = py
+					while tries < 12 do
+						local clash = false
+						for _, other in ipairs(self.placed) do
+							if mathAbs(other.cx - cx) < size and mathAbs(other.py - py) < step * 0.9 then
+								clash = true
+								break
+							end
+						end
+						if not clash then
+							break
+						end
+						tries = tries + 1
+						py = base + (up and 1 or -1) * mathFloor((tries + 1) / 2) * step
+						up = not up
+					end
+					py = mathMin(mathMax(py, area.bottom + half), area.top - half)
+				end
 				self.placed[#self.placed + 1] = {
 					marker = m,
 					x1 = mathFloor(cx - half),
@@ -752,11 +841,42 @@ end
 -- Drawing a line or stacked chart into the list
 ----------------------------------------------------------------
 
-local function alphaOf(self, si, base)
-	if self.highlight and self.highlight ~= si then
-		return base * self.cfg.look.dimAlpha
+-- Whether a series is drawn at full strength: every one while nothing is highlighted.
+local function isLit(self, si)
+	local highlight = self.highlight
+	if highlight == nil then
+		return true
+	elseif type(highlight) == "table" then
+		return highlight[si] == true
 	end
-	return base
+	return highlight == si
+end
+
+-- Whether a series is lifted above the rest: lit while something is highlighted.
+local function isLifted(self, si)
+	return self.highlight ~= nil and isLit(self, si)
+end
+
+local function alphaOf(self, si, base)
+	if isLit(self, si) then
+		return base
+	end
+	return base * self.cfg.look.dimAlpha
+end
+
+-- The series in drawing order: the stepped back ones first, so the highlighted ones lie
+-- on top of them. Each one knows its own index (`index`, set when it was prepared), which
+-- is what the alpha and the width are read off.
+local function drawOrder(self)
+	local order, lit = {}, {}
+	for si, p in ipairs(self.prepared) do
+		local list = isLit(self, si) and lit or order
+		list[#list + 1] = p
+	end
+	for _, p in ipairs(lit) do
+		order[#order + 1] = p
+	end
+	return order
 end
 
 -- The points of a curve in pixels: the samples, or the smoothed run through them. A gap
@@ -840,6 +960,21 @@ function Graph:drawGrid()
 		glVertex(area.left, area.top)
 	end)
 
+	-- The bands a chart lays across its plot, under its grid.
+	for _, band in ipairs(cfg.valueBands or {}) do
+		local c = band.color
+		local y1, y2 = self.sy(mathMax(self.yMin, band.from)), self.sy(mathMin(self.yMax, band.to))
+		if y2 > y1 then
+			glColor(c[1], c[2], c[3], c[4] or 0.1)
+			glBeginEnd(GL_QUADS, function()
+				glVertex(area.left, y1)
+				glVertex(area.right, y1)
+				glVertex(area.right, y2)
+				glVertex(area.left, y2)
+			end)
+		end
+	end
+
 	-- Horizontal lines and their labels.
 	local v = self.yMin
 	local yFormat = self.yFormatter
@@ -895,11 +1030,12 @@ function Graph:drawLines()
 	local sx, sy = self.sx, self.sy
 	local smoothAll = cfg.smooth
 
+	local order = drawOrder(self)
 	-- Fills first, so every line lies on top of every fill.
 	if cfg.fill then
-		for si, p in ipairs(self.prepared) do
+		for _, p in ipairs(order) do
 			local c = p.color
-			local a = alphaOf(self, si, look.fillAlpha)
+			local a = alphaOf(self, p.index, look.fillAlpha)
 			glColor(c[1], c[2], c[3], a)
 			local smooth = p.smooth
 			if smooth == nil then
@@ -920,11 +1056,11 @@ function Graph:drawLines()
 	if glSmoothing then
 		glSmoothing(false, true, false)
 	end
-	for si, p in ipairs(self.prepared) do
+	for _, p in ipairs(order) do
 		local c = p.color
-		local a = alphaOf(self, si, 1)
+		local a = alphaOf(self, p.index, 1)
 		local width = p.width
-		if self.highlight == si then
+		if isLifted(self, p.index) then
 			width = width + 1
 		end
 		glLineWidth(width)
@@ -933,27 +1069,34 @@ function Graph:drawLines()
 		if smooth == nil then
 			smooth = smoothAll
 		end
-		for _, run in ipairs(self:curveRuns(p.ys, smooth)) do
-			if #run == 1 then
-				local px, py = sx(run[1][1]), sy(run[1][2])
-				glBeginEnd(GL_QUADS, function()
-					glVertex(px - width, py - width)
-					glVertex(px + width, py - width)
-					glVertex(px + width, py + width)
-					glVertex(px - width, py + width)
-				end)
-			else
-				glBeginEnd(GL_LINE_STRIP, function()
-					for _, pt in ipairs(run) do
-						glVertex(sx(pt[1]), sy(pt[2]))
-					end
-				end)
-			end
-		end
+		p.runs = self:curveRuns(p.ys, smooth)
+		self:strokeRuns(p.runs, width)
 	end
 	glLineWidth(1)
 	if glSmoothing then
 		glSmoothing(false, false, false)
+	end
+end
+
+-- A line's runs as the current colour and width set them: a lone sample as a dot.
+function Graph:strokeRuns(runs, width)
+	local sx, sy = self.sx, self.sy
+	for _, run in ipairs(runs) do
+		if #run == 1 then
+			local px, py = sx(run[1][1]), sy(run[1][2])
+			glBeginEnd(GL_QUADS, function()
+				glVertex(px - width, py - width)
+				glVertex(px + width, py - width)
+				glVertex(px + width, py + width)
+				glVertex(px - width, py + width)
+			end)
+		else
+			glBeginEnd(GL_LINE_STRIP, function()
+				for _, pt in ipairs(run) do
+					glVertex(sx(pt[1]), sy(pt[2]))
+				end
+			end)
+		end
 	end
 end
 
@@ -1080,62 +1223,113 @@ function Graph:drawStacked()
 	end
 end
 
-function Graph:drawMarkers()
+-- The eight corners of a rect with its corners cut off by `cut`, counter-clockwise from
+-- the bottom edge, as x, y pairs.
+local function chamfered(x1, y1, x2, y2, cut)
+	return {
+		x1 + cut,
+		y1,
+		x2 - cut,
+		y1,
+		x2,
+		y1 + cut,
+		x2,
+		y2 - cut,
+		x2 - cut,
+		y2,
+		x1 + cut,
+		y2,
+		x1,
+		y2 - cut,
+		x1,
+		y1 + cut,
+	}
+end
+
+-- A band `w` wide along the inside of a cut-corner rect's edge. The diagonal sides stay
+-- as thick as the straight ones: moved in by w along its normal, a diagonal edge cuts
+-- each axis w * (2 - sqrt 2) less.
+local function chamferRing(x1, y1, x2, y2, cut, w)
+	local inner = mathMax(0, cut - w * 0.5857864376)
+	local o = chamfered(x1, y1, x2, y2, cut)
+	local i = chamfered(x1 + w, y1 + w, x2 - w, y2 - w, inner)
+	glBeginEnd(GL_QUADS, function()
+		for k = 1, 8 do
+			local a = k * 2 - 1
+			local b = (k % 8) * 2 + 1
+			glVertex(o[a], o[a + 1])
+			glVertex(o[b], o[b + 1])
+			glVertex(i[b], i[b + 1])
+			glVertex(i[a], i[a + 1])
+		end
+	end)
+end
+
+-- How much of each corner a marker picture this many pixels wide loses.
+function Graph:markerCut(width)
+	local cut = self.cfg.markerCorner or mathMax(2, mathFloor(width * 0.08))
+	return mathMin(cut, mathFloor(width * 0.5))
+end
+
+-- One marker: its tick, its picture with the corners cut, and its frame. `scale` grows
+-- the picture about its middle, for the one under the cursor.
+function Graph:drawMarker(m, scale)
 	local look = self.cfg.look
+	local marker = m.marker
+	local x1, y1, x2, y2 = m.x1, m.y1, m.x2, m.y2
+	if scale and scale ~= 1 then
+		local gx = mathFloor((x2 - x1) * (scale - 1) * 0.5)
+		local gy = mathFloor((y2 - y1) * (scale - 1) * 0.5)
+		x1, y1, x2, y2 = x1 - gx, y1 - gy, x2 + gx, y2 + gy
+	end
+	local cut = self:markerCut(x2 - x1)
+	-- A tick from the picture down to the plot, or to the point it sits on.
+	glColor(look.markerTick)
+	glBeginEnd(GL_LINES, function()
+		glVertex(m.cx + 0.5, y1)
+		glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
+	end)
+	local corners = chamfered(x1, y1, x2, y2, cut)
+	if marker.texture then
+		-- Zoomed in a little, the more the smaller the picture: a unit picture has air
+		-- around the unit. The engine's textures load flipped, so t runs from 1 down to 0
+		-- going up.
+		local z = marker.zoom or self.cfg.markerZoom or mathMin(0.06, 2.5 / mathMax(1, x2 - x1))
+		local w, h = mathMax(1, x2 - x1), mathMax(1, y2 - y1)
+		glColor(1, 1, 1, 1)
+		glTexture(marker.texture)
+		glBeginEnd(GL_TRIANGLE_FAN, function()
+			for k = 1, 16, 2 do
+				local x, y = corners[k], corners[k + 1]
+				glTexCoord(z + (x - x1) / w * (1 - 2 * z), 1 - z - (y - y1) / h * (1 - 2 * z))
+				glVertex(x, y)
+			end
+		end)
+		glTexture(false)
+	else
+		local c = marker.color or { 1, 1, 1 }
+		glColor(c[1], c[2], c[3], 0.9)
+		glBeginEnd(GL_TRIANGLE_FAN, function()
+			for k = 1, 16, 2 do
+				glVertex(corners[k], corners[k + 1])
+			end
+		end)
+	end
+	-- The frame, in the marker's own colour when it has one (a team's), following the cut
+	-- corners.
+	local frame = marker.frame
+	if frame then
+		glColor(frame[1], frame[2], frame[3], frame[4] or 1)
+	else
+		glColor(look.markerFrame)
+	end
+	chamferRing(x1, y1, x2, y2, cut, self.cfg.markerFrameWidth)
+	return x1, y1, x2, y2
+end
+
+function Graph:drawMarkers()
 	for _, m in ipairs(self.placed) do
-		local marker = m.marker
-		-- A tick from the picture down to the plot, or to the point it sits on.
-		glColor(look.markerTick)
-		glBeginEnd(GL_LINES, function()
-			glVertex(m.cx + 0.5, m.y1)
-			glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
-		end)
-		if marker.texture then
-			-- Zoomed in a little, the more the smaller the picture: a unit picture has
-			-- air around the unit. The engine's textures load flipped, so t runs from 1
-			-- down to 0, as the plain call does on its own.
-			local z = marker.zoom or self.cfg.markerZoom or mathMin(0.06, 2.5 / mathMax(1, m.x2 - m.x1))
-			glColor(1, 1, 1, 1)
-			glTexture(marker.texture)
-			glTexRect(m.x1, m.y1, m.x2, m.y2, z, 1 - z, 1 - z, z)
-			glTexture(false)
-		else
-			local c = marker.color or { 1, 1, 1 }
-			glColor(c[1], c[2], c[3], 0.9)
-			glBeginEnd(GL_QUADS, function()
-				glVertex(m.x1, m.y1)
-				glVertex(m.x2, m.y1)
-				glVertex(m.x2, m.y2)
-				glVertex(m.x1, m.y2)
-			end)
-		end
-		-- The frame, in the marker's own colour when it has one (a team's), as four
-		-- whole-pixel bars so it is the same thickness all round.
-		local frame = marker.frame
-		local w = self.cfg.markerFrameWidth
-		if frame then
-			glColor(frame[1], frame[2], frame[3], frame[4] or 1)
-		else
-			glColor(look.markerFrame)
-		end
-		glBeginEnd(GL_QUADS, function()
-			glVertex(m.x1, m.y1)
-			glVertex(m.x2, m.y1)
-			glVertex(m.x2, m.y1 + w)
-			glVertex(m.x1, m.y1 + w)
-			glVertex(m.x1, m.y2 - w)
-			glVertex(m.x2, m.y2 - w)
-			glVertex(m.x2, m.y2)
-			glVertex(m.x1, m.y2)
-			glVertex(m.x1, m.y1 + w)
-			glVertex(m.x1 + w, m.y1 + w)
-			glVertex(m.x1 + w, m.y2 - w)
-			glVertex(m.x1, m.y2 - w)
-			glVertex(m.x2 - w, m.y1 + w)
-			glVertex(m.x2, m.y1 + w)
-			glVertex(m.x2, m.y2 - w)
-			glVertex(m.x2 - w, m.y2 - w)
-		end)
+		self:drawMarker(m, 1)
 	end
 end
 
@@ -1172,7 +1366,7 @@ function Graph:drawLegend()
 			glVertex(x + swatch, y + swatch)
 			glVertex(x, y + swatch)
 		end)
-		local color = self.highlight and self.highlight ~= si and "\255\130\130\130" or look.text
+		local color = isLit(self, si) and look.text or "\255\130\130\130"
 		self:text(color .. p.name, mathFloor(x + swatch + fs * 0.4), mathFloor(y + swatch * 0.15), "o", fs)
 		x = mathFloor(x + swatch + fs * 0.4 + w + fs * 1.2)
 	end
@@ -1189,9 +1383,9 @@ function Graph:prepareRadar()
 	local axes = cfg.radar.axes or {}
 	self.axes = axes
 	local n = #axes
-	-- Label room around the wheel.
+	-- Label room around the wheel; a wheel drawn without labels keeps that room.
 	local labelW = 0
-	for _, a in ipairs(axes) do
+	for _, a in ipairs(cfg.radar.labels ~= false and axes or {}) do
 		labelW = mathMax(labelW, self:textWidth(a.label or a.key or "", fs))
 	end
 	local cx = mathFloor((plot.left + plot.right) * 0.5)
@@ -1264,14 +1458,14 @@ function Graph:drawRadar()
 	end)
 
 	-- Series: a filled polygon and its outline.
-	for si, p in ipairs(self.prepared) do
+	for _, p in ipairs(drawOrder(self)) do
 		local c = p.color
 		local shares = {}
 		for ai = 1, n do
 			shares[ai] = mathMin(1, mathMax(0, p.axisValues[ai] / self.axisMax(ai)))
 		end
 		if cfg.radar.fill then
-			glColor(c[1], c[2], c[3], alphaOf(self, si, look.radarFillAlpha))
+			glColor(c[1], c[2], c[3], alphaOf(self, p.index, look.radarFillAlpha))
 			glBeginEnd(GL_TRIANGLE_FAN, function()
 				glVertex(r.cx, r.cy)
 				for ai = 1, n do
@@ -1280,8 +1474,8 @@ function Graph:drawRadar()
 				glVertex(axisPoint(1, shares[1]))
 			end)
 		end
-		glLineWidth(self.highlight == si and p.width + 1 or p.width)
-		glColor(c[1], c[2], c[3], alphaOf(self, si, 1))
+		glLineWidth(isLifted(self, p.index) and p.width + 1 or p.width)
+		glColor(c[1], c[2], c[3], alphaOf(self, p.index, 1))
 		glBeginEnd(GL_LINE_LOOP, function()
 			for ai = 1, n do
 				glVertex(axisPoint(ai, shares[ai]))
@@ -1294,7 +1488,7 @@ function Graph:drawRadar()
 	end
 
 	-- Labels, past the end of each spoke.
-	for ai, a in ipairs(self.axes) do
+	for ai, a in ipairs(cfg.radar.labels ~= false and self.axes or {}) do
 		local x, y = axisPoint(ai, 1)
 		local dx, dy = x - r.cx, y - r.cy
 		local opts = "o"
@@ -1418,20 +1612,36 @@ function Graph:drawOverlay()
 	local look = self.cfg.look
 	if hit.kind == "marker" then
 		local m = hit.placed
-		glLineWidth(2)
-		glColor(look.markerHover)
-		glBeginEnd(GL_LINE_LOOP, function()
-			glVertex(m.x1 - 1, m.y1 - 1)
-			glVertex(m.x2 + 1, m.y1 - 1)
-			glVertex(m.x2 + 1, m.y2 + 1)
-			glVertex(m.x1 - 1, m.y2 + 1)
-		end)
-		glLineWidth(1)
+		-- Drawn again over the baked ones, larger - at least the size it has in an uncrowded
+		-- lane: pictures that overlap and shrink in a crowded one are read by hovering them.
+		local scale = self.cfg.markerHoverScale
+		local width = m.x2 - m.x1
+		if self.markerFullSize and width > 0 then
+			scale = mathMax(scale, self.markerFullSize / width)
+		end
+		self:drawMarker(m, scale)
 		glColor(1, 1, 1, 1)
 		return
 	end
 	if hit.kind == "point" and self.area then
 		local area = self.area
+		-- The line under the cursor drawn again over the others, at full strength.
+		---@type table?
+		local near = hit.nearest and self.prepared[hit.nearest]
+		if near and near.runs then
+			local c = near.color
+			local width = near.width + 1
+			if glSmoothing then
+				glSmoothing(false, true, false)
+			end
+			glLineWidth(width)
+			glColor(c[1], c[2], c[3], 1)
+			self:strokeRuns(near.runs, width)
+			glLineWidth(1)
+			if glSmoothing then
+				glSmoothing(false, false, false)
+			end
+		end
 		glColor(look.crosshair)
 		glBeginEnd(GL_LINES, function()
 			glVertex(mathFloor(hit.px) + 0.5, area.bottom)
@@ -1544,7 +1754,17 @@ function Graph:hitTest(mx, my)
 			}
 		end
 	end
-	return { kind = "point", index = i, x = self.xs[i], px = px, entries = entries }
+	-- The line the cursor is over, if one is close enough to it: brought to the front.
+	local nearest, best = nil, mathMax(8, cfg.fontSize) + 0.5
+	if cfg.kind == "line" then
+		for _, e in ipairs(entries) do
+			local d = mathAbs(e.py - my)
+			if d < best then
+				nearest, best = e.series, d
+			end
+		end
+	end
+	return { kind = "point", index = i, x = self.xs[i], px = px, entries = entries, nearest = nearest }
 end
 
 -- A tooltip for a hit: the x, then every series' value in its colour, largest first.

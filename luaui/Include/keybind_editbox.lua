@@ -7,6 +7,26 @@ local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
 local text = VFS.Include("luaui/Include/keybind_text.lua")
 
+-- Declared rather than inferred: the fields live on the instance new() builds, which is not
+-- something the type checker can follow back from a method's self.
+---@class Editbox
+---@field text string
+---@field caret integer
+---@field selAnchor any
+---@field focused boolean
+---@field dragging boolean
+---@field placeholder string
+---@field maxChars integer
+---@field maxCharsOwn integer The limit it was built with, restored when a raise is dropped
+---@field onChange any
+---@field outline any
+---@field clearable any
+---@field rect any
+---@field fontSize any
+---@field pad any
+---@field blinkStart any
+---@field blinkText any
+---@field blinkCaret any
 local Editbox = {}
 Editbox.__index = Editbox
 
@@ -50,6 +70,7 @@ function Editbox.new(opts)
 	self.dragging = false
 	self.placeholder = opts.placeholder or ""
 	self.maxChars = opts.maxChars or 127
+	self.maxCharsOwn = self.maxChars
 	self.onChange = opts.onChange
 	-- An outline to draw the text with, for a panel that pins its own. The font is shared with
 	-- every other widget and keeps whatever outline was set on it last; without one this takes
@@ -69,6 +90,13 @@ function Editbox:setRect(x1, y1, x2, y2, fontSize, pad)
 	self.rect = { x1, y1, x2, y2 }
 	self.fontSize = fontSize or (y2 - y1) * 0.5
 	self.pad = pad or floor((y2 - y1) * 0.3)
+end
+
+-- How much the field will take, for as long as a caller wants more than it was built with.
+-- Nothing hands back the raised limit, so it falls to what the field asked for rather than
+-- to the constructor default, which would quietly widen every other user of the field.
+function Editbox:setMaxChars(n)
+	self.maxChars = n or self.maxCharsOwn
 end
 
 function Editbox:getText()
