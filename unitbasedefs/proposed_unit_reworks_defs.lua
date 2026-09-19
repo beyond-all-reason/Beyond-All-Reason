@@ -1,15 +1,17 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 
+
 	if name == "armrock" or name == "corstorm" then
 		uDef.speed = uDef.speed + 4.3
-		uDef.turnrate = 900
+		uDef.turnrate = 950
 		uDef.buildtime = math.ceil(uDef.buildtime * 1.15 / 100) * 100
 	end
 	
 	if name == "armwar" then
 		uDef.metalcost = 200
 		uDef.energycost = 2300
-		uDef.turnrate = 650
+		uDef.turnrate = 700
+		uDef.maxacc = 0.06
 		uDef.health = 1500
 		uDef.speed = 50
 		uDef.weapondefs.armwar_laser.range = 290
@@ -19,34 +21,37 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "armham" then
 		uDef.speed = 47
 		uDef.weapondefs.arm_ham.areaofeffect = 48
-		uDef.weapondefs.arm_ham.reloadtime = 1.8
+		uDef.weapondefs.arm_ham.reloadtime = 1.7
+		uDef.turnrate = 1200
 	end
 	if name == "corthud" then
 		uDef.health = 1200
 		uDef.buildtime = 2300
 		uDef.weapondefs.arm_ham.areaofeffect = 48
-		uDef.weapondefs.arm_ham.reloadtime = 1.8
+		uDef.weapondefs.arm_ham.reloadtime = 1.7
+		uDef.turnrate = 1200
 	end
 
 
 	if name == "armart" then
 		uDef.speed = 56 --was 54
-		uDef.weapondefs.tawf113_weapon.weaponvelocity = 400
+		uDef.weapondefs.tawf113_weapon.weaponvelocity = 390
 		uDef.weapondefs.tawf113_weapon.mygravity = nil
-		uDef.weapondefs.tawf113_weapon.areaofeffect = 100 --75
+		uDef.weapondefs.tawf113_weapon.areaofeffect = 80 --75
 		uDef.weapondefs.tawf113_weapon.range = 730 --710
-		uDef.weapondefs.tawf113_weapon.impulsefactor = 0.7
-		uDef.weapondefs.tawf113_weapon.damage.default = 210
+		uDef.weapondefs.tawf113_weapon.impulsefactor = 0.5
+		uDef.weapondefs.tawf113_weapon.damage.default = 210 --182
+		uDef.weapondefs.tawf113_weapon.accuracy = 100
 	end
 	if name == "corwolv" then
 		uDef.speed = 50 --was 48
-		uDef.weapondefs.corwolv_gun.weaponvelocity = 400
+		uDef.weapondefs.corwolv_gun.weaponvelocity = 390
 		uDef.weapondefs.corwolv_gun.mygravity = nil
 		uDef.weapondefs.corwolv_gun.range = 730 --710
-		uDef.weapondefs.corwolv_gun.areaofeffect = 140 --113
-		uDef.weapondefs.corwolv_gun.impulsefactor = 0.7
-		uDef.weapondefs.corwolv_gun.damage.default = 320
-		uDef.health = 850
+		uDef.weapondefs.corwolv_gun.areaofeffect = 144 --113
+		uDef.weapondefs.corwolv_gun.impulsefactor = 0.5
+		--uDef.weapondefs.corwolv_gun.damage.default = 320
+		uDef.health = 900
 	end
 
 	if name == "armmart" then
@@ -54,25 +59,27 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.speed = 48 --was 60
 		uDef.weapondefs.arm_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.arm_artillery.accuracy = 0
-		uDef.weapondefs.arm_artillery.reloadtime = 3.4 --3.05
-		uDef.weapondefs.arm_artillery.damage.default = 300 --260. DPS 85 -> 91
+		uDef.weapondefs.arm_artillery.reloadtime = 3 --3.05
+		uDef.weapondefs.arm_artillery.damage.default = 260 --260.
 	end
 	if name == "cormart" then
 		uDef.metalcost = 320 --400
 		uDef.speed = 46 -- was 58
 		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.cor_artillery.accuracy = 0
-		uDef.weapondefs.cor_artillery.reloadtime = 6.4 --5
-		uDef.weapondefs.cor_artillery.damage.default = 580 --420. DPS 84 -> 90
+		uDef.weapondefs.cor_artillery.reloadtime = 6 --5
+		uDef.weapondefs.cor_artillery.damage.default = 500 --420. 
 	end
 
 	if name == "armsam" then
 		uDef.weapondefs.armtruck_missile.flighttime = 1.6
 		uDef.weapondefs.armtruck_missile.tracks = true
 		uDef.weapondefs.armtruck_missile.turnrate = 10000
-		uDef.weapondefs.armtruck_missile.damage.default = 55
+		uDef.weapondefs.armtruck_missile.damage.default = 54
 		--uDef.weapondefs.armtruck_missile.range = 525
 		uDef.weapondefs.armtruck_missile.weaponvelocity = 550
+		uDef.weapondefs.armtruck_missile.reloadtime = 3
+		uDef.weapondefs.armtruck_aa.reloadtime = 3
 	end
 	if name == "cormist" then
 		uDef.weapondefs.cortruck_missile.tracks = true
@@ -81,10 +88,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cortruck_missile.damage.default = 40
 		uDef.weapondefs.cortruck_missile.flighttime = 1.6
 		uDef.weapondefs.cortruck_missile.weaponvelocity = 550		
+		uDef.weapondefs.cortruck_missile.reloadtime = 2.2
+		uDef.weapondefs.cortruck_aa.reloadtime = 2.2
 	end
 
 	if name == "armjanus" then
-		uDef.weapondefs.janus_rocket.edgeeffectiveness = 0.55
+		uDef.weapondefs.janus_rocket.edgeeffectiveness = 0.5
 		uDef.weapondefs.janus_rocket.impulsefactor = 1
 		uDef.speed = 56
 		uDef.turnrate = 300
@@ -148,6 +157,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "corvipe" then
 		uDef.weapondefs.vipersabot.range = 600
 		uDef.weapondefs.vipersabot.areaofeffect = 48
+		uDef.weapondefs.vipersabot.edgeeffectiveness = 0.5
 		uDef.weapondefs.vipersabot.targetmoveerror = 0
 		uDef.metalcost = 500
 		uDef.energycost = 6000
@@ -156,13 +166,13 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.health = 2700
 	end
 
-	if name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
-	or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
-	or name == "legaap" or name == "legalab" or name == "legadvshipyard" or name == "legavp"
-	then
-		uDef.metalcost = uDef.metalcost - 300
-		uDef.energycost = uDef.energycost + 7000
-	end
+	--if name == "armaap" or name == "armalab" or name == "armasy" or name == "armavp"
+	--or name == "coraap" or name == "coralab" or name == "corasy" or name == "coravp"
+	--or name == "legaap" or name == "legalab" or name == "legadvshipyard" or name == "legavp"
+	--then
+	--	uDef.metalcost = uDef.metalcost - 100
+	--	uDef.energycost = uDef.energycost + 3000
+	--end
 
 	if name == "armap" or name == "armlab" or name == "armsy" or name == "armvp"
 	or name == "corap" or name == "corlab" or name == "corsy" or name == "corvp"
@@ -183,13 +193,49 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armck" or name == "corck" or name == "legck" 
 	or name == "armcv" or name == "corcv" or name == "legcv" 
-	or name == "armca" or name == "corca" or name == "legca" 
+	or name == "armcs" or name == "corcs" or name == "legcs" 
 	then
-		uDef.energycost = uDef.energycost + 200
+		uDef.energycost = uDef.energycost + 300
+		uDef.buildtime = uDef.buildtime + 150
 	end
 
+	if name == "armanac" then
+		uDef.health = 1600
+		uDef.turnrate = 600
+		uDef.weapondefs.armanac_weapon.damage.default = 100
+		uDef.weapondefs.armanac_weapon.areaofeffect = 48
+		uDef.sightdistance = 510
+	end
+	if name == "armsnap" then
+		uDef.health = 1800
+		uDef.turnrate = 575
+		uDef.weapondefs.armanac_weapon.damage.default = 100
+		uDef.weapondefs.armanac_weapon.areaofeffect = 48
+		uDef.sightdistance = 510
+	end
+
+	if name == "corgarp" then
+		uDef.health = 1600
+		uDef.weapondefs.arm_pincer_gauss.damage.default = 120
+		uDef.weapondefs.arm_pincer_gauss.areaofeffect = 24
+		uDef.weapondefs.arm_pincer_gauss.range = 320
+
+	end
+	if name == "armpincer" then
+		uDef.health = 1400
+		uDef.weapondefs.arm_pincer_gauss.damage.default = 120
+		uDef.weapondefs.arm_pincer_gauss.areaofeffect = 24
+		uDef.weapondefs.arm_pincer_gauss.range = 320
+	end
+	if name == "legamphtank" then
+		uDef.health = 1400
+		uDef.weapondefs.leg_amph_gauss.damage.default = 120
+		uDef.weapondefs.leg_amph_gauss.areaofeffect = 24
+		uDef.weapondefs.leg_amph_gauss.range = 320
+	end
 
 	return uDef
+
 end
 
 return {
