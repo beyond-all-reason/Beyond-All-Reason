@@ -134,8 +134,8 @@ local DEADLINES_BY_CONFIG = {
 	["60_minutes"] = 10,
 }
 local DEFAULT_MAX_DEADLINES = DEADLINES_BY_CONFIG[MOD_OPTIONS.territorial_domination_config] or 5
-local DEADLINE_SCORE_MULTIPLIER = tonumber(MOD_OPTIONS.territorial_domination_elimination_threshold_multiplier) or 1.2
-local DEADLINE_SCORE_MULTIPLIER_LABEL = string.format("%.1f", DEADLINE_SCORE_MULTIPLIER)
+local DEADLINE_SCORE_MULTIPLIER = tonumber(MOD_OPTIONS.territorial_domination_elimination_threshold_multiplier) or 1.25
+local DEADLINE_SCORE_PERCENT_LABEL = string.format("%d", math.round(DEADLINE_SCORE_MULTIPLIER * 100, 0))
 
 local widgetState = {
 	allyTeamsByID = {},
@@ -1526,7 +1526,7 @@ local function initializeModel()
 		dangerMarkTooltip = I18N("ui.territorialDomination.tooltip.eliminationDanger"),
 		deadlineLineTooltip = I18N("ui.territorialDomination.tooltip.deadlineScore"),
 		deadlineLineSecondaryTooltip = I18N("ui.territorialDomination.tooltip.deadlineScoreRule", {
-			multiplier = DEADLINE_SCORE_MULTIPLIER_LABEL,
+			percentage = DEADLINE_SCORE_PERCENT_LABEL,
 		}),
 		popupVisible = false,
 		popupTitle = "",

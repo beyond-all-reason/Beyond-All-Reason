@@ -1050,7 +1050,7 @@
 				"team": "Team",
 				"currentScore": "Current Score",
 				"deadlineScore": "Get this many points or be eliminated",
-				"deadlineScoreRule": "Deadlines are set to the highest score x %{multiplier} at the end of each countdown",
+				"deadlineScoreRule": "Deadlines are %{percentage}%% of the highest score at the end of each countdown",
 				"highestScore": "The Highest Score",
 				"highestProjectedScore": "This will be the highest score at the end of this Deadline",
 				"highestProjectedScoreYou": "You will have the highest score at the end of this Deadline",

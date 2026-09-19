@@ -218,10 +218,10 @@ local options = {
 		name = "Deadline Multiplier",
 		desc = "Teams below the Deadline value are eliminated when a Deadline ends. The next Deadline value is the leader's score multiplied by this value. Lower values are more lenient.",
 		type = "number",
-		def = 1.2,
-		min = 1.0,
+		def = 1.25,
+		min = 0,
 		max = 1.5,
-		step = 0.1,
+		step = 0.01,
 		section = "options_main",
 	},
 

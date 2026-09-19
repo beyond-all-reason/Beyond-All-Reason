@@ -47,7 +47,7 @@ local SELECTED_CONFIG = TERRITORIAL_DOMINATION_CONFIG[modOptions.territorial_dom
 	or TERRITORIAL_DOMINATION_CONFIG["30_minutes"]
 local MAX_DEADLINES = SELECTED_CONFIG.maxDeadlines
 local DEADLINE_SECONDS = 60 * SELECTED_CONFIG.minutesPerDeadline
-local DEADLINE_SCORE_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.2
+local DEADLINE_SCORE_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.25
 local DEBUG_MODE = false
 
 local GRID_SIZE = 1024
