@@ -99,25 +99,20 @@ local commanders = {} ---@type table<UnitID, true?>
 local companionCritters = {} ---@type table<UnitID, table?>
 local companionData = {} ---@type table<UnitID, table?>
 
-local function makeCircleSampler(x, z, radius)
-	return function()
-		local a = rad(random(0, 360))
-		local r = random(0, radius)
-		return x + r * sin(a), z + r * cos(a)
+local function getRandomPointInArea(area)
+	if area.x1 then
+		return area.x1 + random() * (area.x2 - area.x1), area.z1 + random() * (area.z2 - area.z1)
 	end
+	local a = rad(random(0, 360))
+	local r = random() * area.radius
+	return area.x + r * sin(a), area.z + r * cos(a)
 end
 
-local function makeBoxSampler(x1, z1, x2, z2)
-	return function()
-		return random(x1, x2), random(z1, z2)
-	end
-end
-
-local function givePatrolOrders(unitID, sampler, maxWaterHeight)
+local function givePatrolOrders(unitID, area, maxWaterHeight)
 	local orders = {}
 	local attempts = maxWaterHeight and waterPatrolAttempts or patrolPoints
 	for _ = 1, attempts do
-		local x, z = sampler()
+		local x, z = getRandomPointInArea(area)
 		if x > 0 and z > 0 and x < mapSizeX and z < mapSizeZ then
 			local y = GetGroundHeight(x, z)
 			if not maxWaterHeight or y < maxWaterHeight then
@@ -136,34 +131,28 @@ end
 local function patrolAround(unitID, radius)
 	local x, _, z = GetUnitPosition(unitID)
 	if x then
-		givePatrolOrders(unitID, makeCircleSampler(x, z, radius))
+		givePatrolOrders(unitID, { x = x, z = z, radius = radius })
 	end
 end
 
-local function areaSampler(area, ux, uz)
-	local box, circle = area.spawnBox, area.spawnCircle
-	if ux and uz then
-		if box then
-			return makeBoxSampler(
-				max(box.x1, ux - waterPatrolRadius),
-				max(box.z1, uz - waterPatrolRadius),
-				min(box.x2, ux + waterPatrolRadius),
-				min(box.z2, uz + waterPatrolRadius)
-			)
-		elseif circle.r >= waterPatrolRadius then
-			return makeCircleSampler(ux, uz, waterPatrolRadius)
-		end
+local function getWaterPatrolArea(spawnArea, x, z)
+	if spawnArea.x1 then
+		return {
+			x1 = max(spawnArea.x1, x - waterPatrolRadius),
+			z1 = max(spawnArea.z1, z - waterPatrolRadius),
+			x2 = min(spawnArea.x2, x + waterPatrolRadius),
+			z2 = min(spawnArea.z2, z + waterPatrolRadius),
+		}
+	elseif spawnArea.radius < waterPatrolRadius then
+		return spawnArea
 	end
-	if box then
-		return makeBoxSampler(box.x1, box.z1, box.x2, box.z2)
-	end
-	return makeCircleSampler(circle.x, circle.z, circle.r)
+	return { x = x, z = z, radius = waterPatrolRadius }
 end
 
 local function spawnMapCritters()
 	spawningMapCritters = true
 	for _, area in pairs(mapConfig) do
-		local spawnPoint = areaSampler(area)
+		local spawnArea = area.spawnBox or area.spawnCircle
 		for unitName, unitAmount in pairs(area.unitNames) do
 			local unitDef = UnitDefNames[unitName]
 			if not unitDef then
@@ -178,16 +167,16 @@ local function spawnMapCritters()
 					amount = 1.0 -- a small amount times a small multiplier would otherwise always round away to nothing
 				end
 				for _ = 1, round(amount, 0) do
-					local x, z = spawnPoint()
+					local x, z = getRandomPointInArea(spawnArea)
 					local y = GetGroundHeight(x, z)
 					if not maxWaterHeight or y < maxWaterHeight then
 						local unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if not unitID then
 							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
 						elseif maxWaterHeight then
-							givePatrolOrders(unitID, areaSampler(area, x, z), maxWaterHeight)
+							givePatrolOrders(unitID, getWaterPatrolArea(spawnArea, x, z), maxWaterHeight)
 						else
-							givePatrolOrders(unitID, spawnPoint)
+							givePatrolOrders(unitID, spawnArea)
 						end
 					end
 				end
@@ -385,7 +374,7 @@ local function updateCompanions()
 			for companionID in pairs(companions) do
 				local cx, _, cz = GetUnitPosition(companionID)
 				if cx and (abs(x - cx) > leash or abs(z - cz) > leash) then
-					givePatrolOrders(companionID, makeCircleSampler(x, z, companionPatrolRadius))
+					givePatrolOrders(companionID, { x = x, z = z, radius = companionPatrolRadius })
 				end
 			end
 		end
