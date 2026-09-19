@@ -2328,14 +2328,11 @@ local function getStatePrefPresetsToggle(presetName, widgetName)
 	if widgetHandler.orderList[widgetName] then
 		return widgetHandler.orderList[widgetName] ~= 0
 	end
-	local defaults = {
+	local defaults = { --priority defaults set in stateprefs widget
 		bombers_default_hold_fire = true,
 		factoryguard = true,
 		fighters_default_fly = true,
 		factory_hold_position = true,
-		constructors_priority = true,
-		factories_priority = false,
-		nano_turrets_priority = false,
 		factory_repeat = false,
 	}
 	return defaults[presetName] or false
@@ -5264,6 +5261,8 @@ function init()
 			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
 		  end,
 		},
+		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
+		
 		{ id = "label_state_prefs", group = "game", name = Spring.I18N('ui.settings.option.label_unit_defaults'), category = types.basic },
 		{ id = "label_state_prefs_spacer", group = "game", category = types.basic },
 
@@ -5327,7 +5326,7 @@ function init()
 			end,
 		},
 
-		{ id = "fightersfly", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = getStatePrefPresetsToggle("fighters_default_fly", "Fighters Default Fly"), description = Spring.I18N('ui.settings.option.fightersfly_descr'),
+		{ id = "fightersfly", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.fightersfly'), type = "bool", value = getStatePrefPresetsToggle("fighters_default_fly", "Set fighters on Fly mode"), description = Spring.I18N('ui.settings.option.fightersfly_descr'),
 			onchange = function(i, value)
 				if WG['stateprefs'] then
 					WG['stateprefs'].setPresetState("fighters_default_fly", value)
@@ -5335,11 +5334,10 @@ function init()
 			end,
 			onload = function(i)
 				if WG['stateprefs'] and WG['stateprefs'].getPresetState("fighters_default_fly") == nil then
-					WG['stateprefs'].setPresetState("fighters_default_fly", getStatePrefPresetsToggle("fighters_default_fly", "Fighters Default Fly"))
+					WG['stateprefs'].setPresetState("fighters_default_fly", getStatePrefPresetsToggle("fighters_default_fly", "Set fighters on Fly mode"))
 				end
 			end
 		},
-		{ id = "onlyfighterspatrol", group = "game", category = types.basic, widget = "OnlyFightersPatrol", name = Spring.I18N('ui.settings.option.onlyfighterspatrol'), type = "bool", value = GetWidgetToggleValue("Autoquit"), description = Spring.I18N('ui.settings.option.onlyfighterspatrol_descr') },
 		{ id = "bombers_default_hold_fire", group = "game", category = types.basic, name = Spring.I18N('ui.settings.option.bombers_default_hold_fire'), type = "bool", value = getStatePrefPresetsToggle("bombers_default_hold_fire", "BombersDefaultHoldFire"), description = Spring.I18N('ui.settings.option.bombers_default_hold_fire_descr'),
 			onchange = function(i, value)
 				if WG['stateprefs'] then

@@ -202,8 +202,8 @@ function widget:SetConfigData(data)
 	if unitSet.presets.constructors_priority == nil then
 		if widgetHandler.configData["Builder Priority"] then
 			unitSet.presets = unitSet.presets or {}
-			unitSet.presets.constructors_priority = not widgetHandler.configData["Builder Priority"].lowpriorityLabs
-			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
+			unitSet.presets.factories_priority = not widgetHandler.configData["Builder Priority"].lowpriorityLabs
+			togglePreset("factories_priority", unitSet.presets.factories_priority, false)
 
 			unitSet.presets.nano_turrets_priority = not widgetHandler.configData["Builder Priority"].lowpriorityNanos
 			togglePreset("nano_turrets_priority", unitSet.presets.nano_turrets_priority, false)
@@ -211,13 +211,13 @@ function widget:SetConfigData(data)
 			unitSet.presets.constructors_priority = not widgetHandler.configData["Builder Priority"].lowpriorityCons
 			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
 		else
-			unitSet.presets.constructors_priority = true
-			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
+			unitSet.presets.factories_priority = false
+			togglePreset("factories_priority", unitSet.presets.factories_priority, false)
 
 			unitSet.presets.nano_turrets_priority = false
 			togglePreset("nano_turrets_priority", unitSet.presets.nano_turrets_priority, false)
-			
-			unitSet.presets.constructors_priority = false
+
+			unitSet.presets.constructors_priority = true
 			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
 		end
 	end
@@ -375,7 +375,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	local prefs = unitSet[name]
 	if unitTeam == Spring.GetMyTeamID() then
 		for cmdID, cmdParam in pairs(prefs or {}) do
-			if cmdID == 115 then
+			if cmdID == 115 and not factories[name] then
 				return
 			end -- we're skipping "repeat" command here for now
 			Spring.GiveOrderToUnit(unitID, cmdID, { cmdParam }, cmdOpts)
