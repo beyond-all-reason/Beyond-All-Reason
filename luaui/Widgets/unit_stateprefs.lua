@@ -48,8 +48,7 @@ local priorUserFirestateFunction = nil
 
 VFS.Include("luaui/Include/user_firestate_commands.lua")
 
-local CMD_WANT_CLOAK = CMD.WANT_CLOAK
-local CMD_FIRE_STATE = CMD.FIRE_STATE
+local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
 local uDefID2UnitName = {}
 for udid, ud in pairs(UnitDefs) do
@@ -157,6 +156,92 @@ local function togglePreset(presetName, state, force)
 	end
 end
 
+-----------------------------------------------------------------------------------
+-- preset helpers
+
+local bombers = {}
+local builderFactories = {}
+local factories = {}
+local fighters = {}
+local landFactories = {}
+local constructors = {}
+local nanoTurrets = {}
+
+local function UnitDefIsBomber(unitDef) -- stolen from old bomber default hold fire widget
+	if not unitDef or not unitDef.weapons then
+		return false
+	end
+
+	for i = 1, #unitDef.weapons do
+		local wname = unitDef.weapons[i].weaponDef
+		local weaponDef = WeaponDefs[wname]
+		if weaponDef then
+			if weaponDef.type == "AircraftBomb" then
+				return true
+			end
+		end
+	end
+
+	return false
+end
+
+for unitName, unitDef in pairs(UnitDefNames) do
+	if UnitDefIsBomber(unitDef) then
+		bombers[unitName] = true
+	end
+	if unitDef.isFactory then -- code stolen from old factory guard pref widget
+		local buildOptions = unitDef.buildOptions
+
+		for i = 1, #buildOptions do
+			local buildOptDefID = buildOptions[i]
+			local buildOpt = UnitDefs[buildOptDefID]
+
+			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
+				builderFactories[unitName] = true  -- only factories that can build builders are included
+				break
+			end
+		end
+	end
+	if unitDef.customParams.fighter or unitDef.customParams.drone or unitDef.customParams.flyingcarrier then -- code from old fighter default fly pref widget
+        fighters[unitName] = true
+    end
+	if unitDef.isFactory and not unitDef.customParams.airfactory then
+		landFactories[unitName] = true
+	end
+	if unitDef.isBuilder and unitDef.canMove and unitDef.canAssist and not unitDef.isFactory and unitDef.customParams.iscommander then
+		constructors[unitName] = true
+	end
+	if unitDef.isBuilder and unitDef.isFactory then
+		factories[unitName] = true
+	end
+	if unitDef.isBuilder and not unitDef.isFactory and not unitDef.canMove then
+		nanoTurrets[unitName] = true
+	end
+end
+
+local presets = { -- CMD_ID, state_false, state_true, units
+	bombers_default_hold_fire = {CMD.FIRE_STATE, nil, 0, bombers}, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
+	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, builderFactories},
+	fighters_default_fly = {CMD.IDLEMODE, nil, 0, fighters},
+	factory_hold_position = {CMD.MOVE_STATE, nil, 0, landFactories},
+	constructors_priority = {GameCMD.PRIORITY, 0, 1, constructors},
+	factories_priority = {GameCMD.PRIORITY, 0, 1, factories},
+	nano_turrets_priority = {GameCMD.PRIORITY, 0, 1, nanoTurrets},
+	factory_repeat = {CMD.REPEAT, 0, 1, factories},
+}
+
+local function togglePreset(presetName, state, force)
+	unitSet.presets = unitSet.presets or {}
+	unitSet.presets[presetName] = state
+	for unitName, _ in pairs(presets[presetName][4]) do
+		if force or not unitSet[unitName] or not unitSet[unitName][presets[presetName][1]] then
+			unitSet[unitName] = unitSet[unitName] or {}
+			unitSet[unitName][presets[presetName][1]] = state and presets[presetName][3] or presets[presetName][2]
+		end
+	end
+end
+
+-------------------------------------------------------------------------------------------
 -- The config was previously using a seperate file, but after a bug with this file
 -- it was decided to simply use the widgetHandler shared config instead.
 local function migrateOldConfig()
