@@ -34,8 +34,9 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Arbitrarily chosen heuristics to prevent stall in engine code
-local stallMarginInc = 0.4 -- Builder priority is checked every 6 frames, so this represents a buffer of 2 cycles without stalling.
+-- Arbitrarily chosen heuristics to prevent stall in engine code.
+local stallMarginIncMetal = 0.2
+local stallMarginIncEnergy = 0.4 -- 2 builder-priority cycles
 local stallMarginSto = 0.01
 
 local passiveCons = {} -- passiveCons[teamID][builderID]
@@ -326,9 +327,16 @@ local function UpdatePassiveBuilders(
 	-- Second pass: ONLY if we have passive builders building
 	-- Metal/energy (non-passive): theoretical full-speed cost for reservation gate
 	-- Energy pull: measured builder share of ePull via GetUnitResources (to peel
-	-- builders out of team pull when computing non-builder drain)
+	-- builders out of team pull when computing non-builder drain). Cloak drain is
+	-- excluded so it stays in non-builder pull (GG.GetUnitCloakEnergyPerSec).
+
+	-- Note: This currently does not handle weapon energy pull and incorrectly considers it to be part of the builder
+	-- pull. It requires additional engine work to handle this correctly as there is no way to split out weapon
+	-- energy pull from builder pull.
+
 	if anyPassiveBuilding then
 		local teamBuilders = canBuild[teamID]
+		local getCloakEnergyPerSec = GG.GetUnitCloakEnergyPerSec
 		for builderID in pairs(teamBuilders) do
 			if not passiveTeamCons[builderID] then
 				local builtUnit = spGetUnitIsBuilding(builderID)
@@ -348,10 +356,14 @@ local function UpdatePassiveBuilders(
 
 			local energyUse = select(4, spGetUnitResources(builderID))
 			if energyUse and energyUse > 0 then
-				if passiveTeamCons[builderID] then
-					passiveConsEnergyPull = passiveConsEnergyPull + energyUse
-				else
-					nonPassiveConsEnergyPull = nonPassiveConsEnergyPull + energyUse
+				local cloakEnergy = getCloakEnergyPerSec and getCloakEnergyPerSec(builderID) or 0
+				local builderEnergyPull = mathMax(0, energyUse - cloakEnergy)
+				if builderEnergyPull > 0 then
+					if passiveTeamCons[builderID] then
+						passiveConsEnergyPull = passiveConsEnergyPull + builderEnergyPull
+					else
+						nonPassiveConsEnergyPull = nonPassiveConsEnergyPull + builderEnergyPull
+					end
 				end
 			end
 		end
@@ -362,16 +374,16 @@ local function UpdatePassiveBuilders(
 	-- Metal: reserve theoretical full-speed metal for non-passive cons only
 	--   (nonPassiveConsTotalExpenseMetal).
 	--
-	-- Energy: peel measured builder draw out of ePull (minus converters) to get
-	--   non-builder pull. Reserve that plus theoretical full-speed non-passive
-	--   con energy (nonPassiveConsTotalExpenseEnergy). Leave passive
-	--   measured pull out so the allocation loop can re-test each passive at
-	--   full realBuildSpeed.
+	-- Energy: peel measured builder draw (minus cloak) out of ePull
+	--   (minus converters) to get non-builder pull — cloak stays in
+	--   that residual. Reserve non-builder pull plus theoretical full-speed
+	--   non-passive con energy. Leave passive measured pull out so the
+	--   allocation loop can re-test each passive at full realBuildSpeed.
 	local intervalOverSpeed = interval / simSpeed
 
 	local mStorEff = mStor * mShare
 	local teamStallingMetal = mCur
-		- mathMax(mInc * stallMarginInc, mStorEff * stallMarginSto)
+		- mathMax(mInc * stallMarginIncMetal, mStorEff * stallMarginSto)
 		- 1
 		+ intervalOverSpeed * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
 
@@ -380,7 +392,7 @@ local function UpdatePassiveBuilders(
 	local nonConverterEnergyPull = mathMax(0, ePull - converterEnergyUse)
 	local nonBuilderEnergyPull = mathMax(0, nonConverterEnergyPull - nonPassiveConsEnergyPull - passiveConsEnergyPull)
 	local teamStallingEnergy = eCur
-		- mathMax(eInc * stallMarginInc, eStorEff * stallMarginSto)
+		- mathMax(eInc * stallMarginIncEnergy, eStorEff * stallMarginSto)
 		- 1
 		+ intervalOverSpeed * (eInc + eRec - eSent - nonBuilderEnergyPull - nonPassiveConsTotalExpenseEnergy)
 
