@@ -32,6 +32,7 @@ local GetUnitTeam = Spring.GetUnitTeam
 
 local fallingDamageTypes = {
 	[Game.envDamageTypes.GroundCollision] = true,
+	[Game.envDamageTypes.ObjectCollision] = true,
 	[Game.envDamageTypes.Debris] = true,
 }
 
