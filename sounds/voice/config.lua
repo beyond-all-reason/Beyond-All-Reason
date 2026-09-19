@@ -173,6 +173,9 @@ return {
 	["TerritorialDomination/LostLead"] = {
 		delay = 20,
 	},
+	["TerritorialDomination/EliminationDanger"] = {
+		delay = 60,
+	},
 
 	TeammateCaughtUp = {
 		delay = 5,

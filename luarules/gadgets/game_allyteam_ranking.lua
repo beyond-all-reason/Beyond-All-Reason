@@ -21,6 +21,9 @@ if not BAR.Utilities.Gametype.IsFFA() or BAR.Utilities.Gametype.IsSinglePlayer()
 end
 
 local prevRanking = {}
+-- The standing as last worked out: each ally team's place, 1 the best, and its score.
+local places = {}
+local scores = {}
 local allyteamCost = {}
 local unfinishedUnits = {}
 local teamAllyteam = {}
@@ -41,8 +44,13 @@ local spGetTeamList = Spring.GetTeamList
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local mathFloor = math.floor
 local tableSort = table.sort
+-- Equal scores (every side at the start) keep the ally teams' own order, so the ranking does
+-- not shuffle between two looks at the same numbers.
 local rankSortFunc = function(m1, m2)
-	return m1.totalCost > m2.totalCost
+	if m1.totalCost ~= m2.totalCost then
+		return m1.totalCost > m2.totalCost
+	end
+	return m1.allyTeamID < m2.allyTeamID
 end
 
 local unitCost = {}
@@ -101,67 +109,67 @@ function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitTeam, oldTeam)
-	local allyTeamID = teamAllyteam[unitTeam]
-	local oldAllyTeamID = teamAllyteam[oldTeam]
-	if not allyTeamID or not oldAllyTeamID then
-		return
-	end
-
-	if spGetUnitIsBeingBuilt(unitID) then
-		unfinishedUnits[oldAllyTeamID][unitID] = nil
-		unfinishedUnits[allyTeamID][unitID] = unitDefID
-	else
-		allyteamCost[oldAllyTeamID] = allyteamCost[oldAllyTeamID] + unitCost[unitDefID]
-		allyteamCost[allyTeamID] = allyteamCost[allyTeamID] - unitCost[unitDefID]
-	end
-end
-
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
 	end
+	-- The standing for other gadgets: the team stats gadget samples it into its history,
+	-- which gives the scores to spectators and, once the game is over, to everyone. LuaUI
+	-- is told the order alone, through RankingEvent.
+	GG.AllyTeamRanking = {
+		GetPlace = function(allyTeamID)
+			return places[allyTeamID]
+		end,
+		GetScore = function(allyTeamID)
+			return scores[allyTeamID]
+		end,
+	}
+end
+
+function gadget:Shutdown()
+	GG.AllyTeamRanking = nil
 end
 
 function gadget:GameFrame(gf)
 	if gf % 200 == 1 then
-		if Script.LuaUI("RankingEvent") then
-			local temp = {}
-			for allyTeamID, totalCost in pairs(allyteamCost) do
-				-- get current resources in storage
-				local totalResCost = 0
-				local teamList = spGetTeamList(allyTeamID)
-				for i = 1, #teamList do
-					local availableMetal = spGetTeamResources(teamList[i], "metal")
-					local availableEnergy = spGetTeamResources(teamList[i], "energy")
-					totalResCost = mathFloor(totalResCost + availableMetal + (availableEnergy / 65))
-				end
-				-- get unfinished units worth
-				local totalConstructionCost = 0
-				for unitID, unitDefID in pairs(unfinishedUnits[allyTeamID]) do
-					local completeness = select(2, spGetUnitIsBeingBuilt(unitID))
-					if not completeness then -- this shouldn't occur
-						unfinishedUnits[allyTeamID][unitID] = nil
-					else
-						totalConstructionCost = totalConstructionCost + mathFloor(unitCost[unitDefID] * completeness)
-					end
-				end
-				temp[#temp + 1] =
-					{ allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
+		local temp = {}
+		for allyTeamID, totalCost in pairs(allyteamCost) do
+			-- get current resources in storage
+			local totalResCost = 0
+			local teamList = spGetTeamList(allyTeamID)
+			for i = 1, #teamList do
+				local availableMetal = spGetTeamResources(teamList[i], "metal")
+				local availableEnergy = spGetTeamResources(teamList[i], "energy")
+				totalResCost = mathFloor(totalResCost + availableMetal + (availableEnergy / 65))
 			end
-			tableSort(temp, rankSortFunc)
-			local rankingChanged = false
-			local ranking = {}
-			for i, params in ipairs(temp) do
-				ranking[i] = params.allyTeamID
-				if not prevRanking[i] or ranking[i] ~= prevRanking[i] then
-					rankingChanged = true
+			-- get unfinished units worth
+			local totalConstructionCost = 0
+			for unitID, unitDefID in pairs(unfinishedUnits[allyTeamID]) do
+				local completeness = select(2, spGetUnitIsBeingBuilt(unitID))
+				if not completeness then -- this shouldn't occur
+					unfinishedUnits[allyTeamID][unitID] = nil
+				else
+					totalConstructionCost = totalConstructionCost + mathFloor(unitCost[unitDefID] * completeness)
 				end
 			end
-			if rankingChanged then
-				prevRanking = ranking
-				Script.LuaUI.RankingEvent(ranking)
+			temp[#temp + 1] = { allyTeamID = allyTeamID, totalCost = totalCost + totalResCost + totalConstructionCost }
+		end
+		tableSort(temp, rankSortFunc)
+		local rankingChanged = false
+		local ranking = {}
+		for i, params in ipairs(temp) do
+			ranking[i] = params.allyTeamID
+			places[params.allyTeamID] = i
+			scores[params.allyTeamID] = params.totalCost
+			if not prevRanking[i] or ranking[i] ~= prevRanking[i] then
+				rankingChanged = true
 			end
+		end
+		-- Worked out whether or not a widget listens, for the other gadgets; the order is
+		-- only kept as told once a widget was told it.
+		if rankingChanged and Script.LuaUI("RankingEvent") then
+			prevRanking = ranking
+			Script.LuaUI.RankingEvent(ranking)
 		end
 	end
 end
