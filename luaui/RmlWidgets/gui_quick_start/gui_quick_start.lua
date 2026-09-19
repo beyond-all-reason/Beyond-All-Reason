@@ -2,7 +2,7 @@ if not RmlUi then
 	return
 end
 
-local widget = widget
+local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
@@ -22,6 +22,9 @@ if not modOptions or not modOptions.quick_start then
 	return false
 end
 
+---@type table<integer, UnitDef>
+local UnitDefs = UnitDefs
+
 local quickStart = VFS.Include("common/quick_start_shared.lua")
 local startingMetal = modOptions.startmetal or 1000
 local _, shouldRunWidget, shouldApplyFactoryDiscount = quickStart.getModeFlags(modOptions)
@@ -34,7 +37,27 @@ local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spI18N = BAR.I18N
 
-local wgBuildMenu, wgGridMenu, wgTopbar, wgPregameBuild, wgPregameUI, wgPregameUIDraft, wgGetBuildQueueFunc, wgGetBuildPositionsFunc, wgGetPregameUnitSelectedFunc
+---@type table<string, any>
+local WG = WG
+
+---@type any
+local wgBuildMenu
+---@type any
+local wgGridMenu
+---@type any
+local wgTopbar
+---@type any
+local wgPregameBuild
+---@type any
+local wgPregameUI
+---@type any
+local wgPregameUIDraft
+---@type any
+local wgGetBuildQueueFunc
+---@type any
+local wgGetBuildPositionsFunc
+---@type any
+local wgGetPregameUnitSelectedFunc
 
 local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
@@ -61,8 +84,9 @@ local lastPreloadedCommanderZ = nil
 
 local cachedOverlapLines = {}
 local cachedGameRules = {}
-local lastRulesUpdate = 0
+local lastRulesUpdate = 0.0
 local RULES_CACHE_DURATION = 0.1
+---@type integer?
 local overlapLinesDisplayList = nil
 local previousOverlapLines = {}
 local externalSpawnPositions = {}
@@ -210,18 +234,45 @@ local function updateDisplayList(commanderX, commanderZ)
 	end)
 end
 
+---@class QuickStartBudgetBarElements
+---@field fillElement RmlUi.Element?
+---@field projectedElement RmlUi.Element?
+
+---@class QuickStartWarningElements
+---@field warningText RmlUi.Element?
+---@field factoryText RmlUi.Element?
+
+---@class QuickStartWidgetState
+---@field rmlContext RmlUi.Context?
+---@field dmHandle any
+---@field document RmlUi.Document?
+---@field lastUpdate number
+---@field updateInterval number
+---@field lastQueueLength integer
+---@field budgetBarElements QuickStartBudgetBarElements
+---@field lastBudgetRemaining number
+---@field deductionElements RmlUi.Element[]
+---@field currentDeductionIndex integer
+---@field warningsHidden boolean
+---@field warningElements QuickStartWarningElements
+---@field lastFactoryAlreadyPlaced boolean?
+---@field lastWidgetUpdate number
+---@field widgetUpdateInterval number
+---@field refundOverlayElement RmlUi.Element?
+
+---@type QuickStartWidgetState
 local widgetState = {
 	rmlContext = nil,
 	dmHandle = nil,
 	document = nil,
-	lastUpdate = 0,
+	lastUpdate = 0.0,
 	updateInterval = 0.15,
 	lastQueueLength = 0,
 	budgetBarElements = {
 		fillElement = nil,
 		projectedElement = nil,
 	},
-	lastBudgetRemaining = 0,
+	lastBudgetRemaining = 0.0,
 	deductionElements = {},
 	currentDeductionIndex = 1,
 	warningsHidden = false,
@@ -230,7 +281,7 @@ local widgetState = {
 		factoryText = nil,
 	},
 	lastFactoryAlreadyPlaced = nil,
-	lastWidgetUpdate = 0,
+	lastWidgetUpdate = 0.0,
 	widgetUpdateInterval = 0.2,
 }
 
@@ -483,22 +534,21 @@ local function getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, c
 		local buildData = buildQueue[buildIndex]
 		local unitDefID = buildData[1]
 		local unitDef = unitDefID and unitDefID > 0 and UnitDefs[unitDefID]
-		if unitDef and unitDef.isFactory then
-			factoryAlreadyQueued = true
-		end
-		if
-			unitDef
-			and isWithinBuildRange(commanderX, commanderZ, buildData[2], buildData[4], gameRules.instantBuildRange)
-		then
-			local buildCost = calculateBudgetWithDiscount(
-				unitDefID,
-				gameRules.factoryDiscountAmount,
-				shouldApplyFactoryDiscount,
-				not firstFactoryPlaced
-			)
-			budgetRemaining = math.max(0, budgetRemaining - buildCost)
-			if unitDef.isFactory and not firstFactoryPlaced then
-				firstFactoryPlaced = true
+		if unitDef then
+			if unitDef.isFactory then
+				factoryAlreadyQueued = true
+			end
+			if isWithinBuildRange(commanderX, commanderZ, buildData[2], buildData[4], gameRules.instantBuildRange) then
+				local buildCost = calculateBudgetWithDiscount(
+					unitDefID,
+					gameRules.factoryDiscountAmount,
+					shouldApplyFactoryDiscount,
+					not firstFactoryPlaced
+				)
+				budgetRemaining = math.max(0, budgetRemaining - buildCost)
+				if unitDef.isFactory and not firstFactoryPlaced then
+					firstFactoryPlaced = true
+				end
 			end
 		end
 	end
@@ -568,8 +618,8 @@ local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, pla
 				buildY,
 				buildZ,
 				context.defaultFacing,
+				[QUICK_START_GENERATED_KEY] = true,
 			}
-			generatedBuildData[QUICK_START_GENERATED_KEY] = true
 			buildQueue[#buildQueue + 1] = generatedBuildData
 			budgetRemaining = budgetRemaining - buildCost
 		end
@@ -629,7 +679,7 @@ local function showDeductionAnimation(deductionAmount)
 	local currentIndex = widgetState.currentDeductionIndex
 	local deductionElement = widgetState.deductionElements[currentIndex]
 
-	if not deductionElement then
+	if not deductionElement or not widgetState.dmHandle then
 		return
 	end
 
@@ -708,24 +758,27 @@ local function computeProjectedUsage()
 	if pregame and #pregame > 0 then
 		for i = 1, #pregame do
 			local item = pregame[i]
-			local defID = item[1]
-			local buildX, buildZ = item[2], item[4]
+			if item then
+				local defID = item[1]
+				local buildX, buildZ = item[2], item[4]
 
-			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-				local budgetCost =
-					calculateBudgetForItem(defID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
-				budgetUsed = budgetUsed + budgetCost
+				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+					local budgetCost =
+						calculateBudgetForItem(defID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+					budgetUsed = budgetUsed + budgetCost
 
-				if UnitDefs[defID] and UnitDefs[defID].isFactory and not firstFactoryPlaced then
-					firstFactoryPlaced = true
+					local queuedUnitDef = UnitDefs[defID]
+					if queuedUnitDef and queuedUnitDef.isFactory and not firstFactoryPlaced then
+						firstFactoryPlaced = true
+					end
 				end
 			end
 		end
 	end
 
 	local budgetProjected = 0
-	if pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected] then
-		local uDef = UnitDefs[pregameUnitSelected]
+	local uDef = pregameUnitSelected > 0 and UnitDefs[pregameUnitSelected]
+	if uDef then
 		local mx, my = Spring.GetMouseState()
 
 		local positionsToCheck = {}
@@ -735,8 +788,7 @@ local function computeProjectedUsage()
 		if buildPositions and #buildPositions > 0 then
 			positionsToCheck = buildPositions
 		else
-			local _, pos =
-				Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories and uDef.modCategories.underwater)
+			local _, pos = Spring.TraceScreenRay(mx, my, true, false, false, uDef.modCategories.underwater)
 			if pos then
 				positionsToCheck = { { x = pos[1], y = pos[2], z = pos[3] } }
 			end
@@ -833,15 +885,16 @@ local function updateAllCostOverrides(force)
 
 	for i = 1, #buildQueue do
 		local queueItem = buildQueue[i]
-		local unitDefID = queueItem[1]
-
-		if unitDefID and unitDefID > 0 and UnitDefs[unitDefID] then
-			local buildX, buildZ = queueItem[2], queueItem[4]
-
-			if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-				if UnitDefs[unitDefID].isFactory then
-					factoryAlreadyPlaced = true
-					break
+		if queueItem then
+			local unitDefID = queueItem[1]
+			local unitDef = unitDefID and unitDefID > 0 and UnitDefs[unitDefID]
+			if unitDef then
+				local buildX, buildZ = queueItem[2], queueItem[4]
+				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+					if unitDef.isFactory then
+						factoryAlreadyPlaced = true
+						break
+					end
 				end
 			end
 		end
@@ -994,22 +1047,28 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	if buildQueue and #buildQueue > 0 then
 		for i = 1, #buildQueue do
 			local queueItem = buildQueue[i]
-			local unitDefID = queueItem[1]
 			local isSpawned = false
+			if queueItem then
+				local unitDefID = queueItem[1]
+				local unitDef = unitDefID and unitDefID > 0 and UnitDefs[unitDefID]
+				if unitDef then
+					local buildX, buildZ = queueItem[2], queueItem[4]
 
-			if unitDefID and unitDefID > 0 and UnitDefs[unitDefID] then
-				local buildX, buildZ = queueItem[2], queueItem[4]
+					if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
+						local budgetCost = calculateBudgetForItem(
+							unitDefID,
+							gameRules,
+							shouldApplyFactoryDiscount,
+							not firstFactoryPlaced
+						)
 
-				if isWithinBuildRange(commanderX, commanderZ, buildX, buildZ, gameRules.instantBuildRange) then
-					local budgetCost =
-						calculateBudgetForItem(unitDefID, gameRules, shouldApplyFactoryDiscount, not firstFactoryPlaced)
+						if remainingBudget >= budgetCost then
+							isSpawned = true
+							remainingBudget = remainingBudget - budgetCost
 
-					if remainingBudget >= budgetCost then
-						isSpawned = true
-						remainingBudget = remainingBudget - budgetCost
-
-						if UnitDefs[unitDefID].isFactory and not firstFactoryPlaced then
-							firstFactoryPlaced = true
+							if unitDef.isFactory and not firstFactoryPlaced then
+								firstFactoryPlaced = true
+							end
 						end
 					end
 				end
@@ -1107,7 +1166,6 @@ function widget:Initialize()
 	updateAllCostOverrides(true)
 
 	updateDataModel(true)
-	widgetState.lastBudgetRemaining = widgetState.dmHandle.budgetRemaining or 0
 	return true
 end
 

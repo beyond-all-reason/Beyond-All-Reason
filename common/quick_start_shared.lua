@@ -4,6 +4,9 @@ local overlapLines = VFS.Include("common/overlap_lines.lua")
 
 local customRound = aestheticCustomCostRound.customRound
 
+---@type table<string, UnitDef?>
+local unitDefNames = UnitDefNames
+
 local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1 / 60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
 local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1 / 300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
 local TRAVERSABILITY_GRID_RESOLUTION = 32
@@ -20,7 +23,21 @@ local DEFAULT_FACING = 0
 local UNOCCUPIED = 2
 local MIN_GRID_THRESHOLD = 0.20
 local MIN_CENTER_WEIGHT = 0.5
-local MAX_CENTER_WEIGHT = 1
+local MAX_CENTER_WEIGHT = 1.0
+
+---@class QuickStartGridPosition
+---@field x number
+---@field y number
+---@field z number
+
+---@class QuickStartBaseNode
+---@field x number
+---@field z number
+---@field grid QuickStartGridPosition[]
+---@field score integer
+---@field distanceFromCenter number
+---@field goodEnough boolean
+---@field resultantScore number
 
 local function getModeFlags(modOptions)
 	if not modOptions or not modOptions.quick_start then
@@ -78,7 +95,7 @@ local function getCommanderBuildDefs(commanderName)
 
 	local buildDefs = {}
 	for optionName, unitName in pairs(commanderOptions) do
-		local unitDef = UnitDefNames[unitName]
+		local unitDef = unitDefNames[unitName]
 		if unitDef then
 			buildDefs[optionName] = unitDef.id
 		end
@@ -244,7 +261,9 @@ local function generateLocalGrid(context)
 	return gridList
 end
 
+---@return QuickStartBaseNode[]
 local function createBaseNodes(commanderX, commanderZ, baseGenerationRange)
+	---@type QuickStartBaseNode[]
 	local nodes = {}
 	local angleIncrement = 2 * math.pi / BASE_NODE_COUNT
 	for nodeIndex = 0, BASE_NODE_COUNT - 1 do
@@ -254,6 +273,9 @@ local function createBaseNodes(commanderX, commanderZ, baseGenerationRange)
 			z = commanderZ + (baseGenerationRange / 2) * math.sin(angle),
 			grid = {},
 			score = 0,
+			distanceFromCenter = 0.0,
+			goodEnough = false,
+			resultantScore = 0.0,
 		}
 	end
 	return nodes
@@ -286,7 +308,7 @@ local function generateBaseNodesFromLocalGrid(context, localGrid)
 	populateNodeGrids(nodes, localGrid, mapCenterX, mapCenterZ)
 
 	local minimumDistance = math.huge
-	local maximumDistance = 0
+	local maximumDistance = 0.0
 	for nodeIndex = 1, #nodes do
 		local node = nodes[nodeIndex]
 		minimumDistance = math.min(minimumDistance, node.distanceFromCenter)
@@ -305,7 +327,7 @@ local function generateBaseNodesFromLocalGrid(context, localGrid)
 			)
 		end
 
-		local averageDistance = 0
+		local averageDistance = 0.0
 		for gridIndex = 1, #node.grid do
 			local position = node.grid[gridIndex]
 			averageDistance = averageDistance + math.distance2d(position.x, position.z, node.x, node.z)
@@ -320,11 +342,13 @@ local function generateBaseNodesFromLocalGrid(context, localGrid)
 	local bestResultantScore = math.huge
 	for nodeIndex = 1, BASE_NODE_COUNT do
 		local nextNodeIndex = (nodeIndex % BASE_NODE_COUNT) + 1
-		if nodes[nodeIndex].goodEnough and nodes[nextNodeIndex].goodEnough then
-			local combinedScore = nodes[nodeIndex].resultantScore + nodes[nextNodeIndex].resultantScore
+		local currentNode = nodes[nodeIndex]
+		local nextNode = nodes[nextNodeIndex]
+		if currentNode and nextNode and currentNode.goodEnough and nextNode.goodEnough then
+			local combinedScore = currentNode.resultantScore + nextNode.resultantScore
 			if combinedScore < bestResultantScore then
 				bestResultantScore = combinedScore
-				selectedPair = { nodes[nodeIndex], nodes[nextNodeIndex] }
+				selectedPair = { currentNode, nextNode }
 			end
 		end
 	end

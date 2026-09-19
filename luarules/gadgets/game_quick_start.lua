@@ -22,7 +22,8 @@ if not shouldRunGadget then
 	return false
 end
 
-local overridesEnabled = modOptions.enable_quickstart_overrides
+---@type boolean
+local overridesEnabled = modOptions.enable_quickstart_overrides and true or false
 local overrideQuickStartBudget = overridesEnabled and tonumber(modOptions.override_quick_start_budget)
 
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
@@ -85,7 +86,9 @@ local config = quickStart.config
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
 local overlapLines = VFS.Include("common/overlap_lines.lua")
 local commanderNonLabOptions = config.commanderNonLabOptions
+---@type table<integer, UnitDef>
 local unitDefs = UnitDefs
+---@type table<string, UnitDef?>
 local unitDefNames = UnitDefNames
 
 -- factories carrying customparams.quickstart_discountable earn the quick-start factory
@@ -104,13 +107,21 @@ local isMetalMap = false
 local metalSpotsList = nil
 local running = false
 
+---@type integer[]
 local allTeamsList = {}
+---@type table<integer, boolean>
 local boostableCommanders = {}
+---@type table<integer, table>
 local commanders = {}
+---@type table<integer, number>
 local defMetergies = {}
+---@type table<integer, boolean>
 local commanderFactoryDiscounts = {}
+---@type table<any, any>
 local optionDefIDToTypes = {}
+---@type table<any, any>
 local queuedCommanders = {}
+---@type table<integer, table>
 local buildsInProgress = {}
 
 GG.quick_start = {}
@@ -138,13 +149,16 @@ for unitDefID, unitDef in pairs(unitDefs) do
 	end
 end
 for unitDefID, _ in pairs(discountableFactories) do
-	local labBudget = defMetergies[unitDefID]
+	local labBudget = defMetergies[unitDefID] or 0
 	FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, customRound(labBudget * FACTORY_DISCOUNT_MULTIPLIER))
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
 	if unitDefNames[commanderName] then
 		for optionName, trueName in pairs(nonLabOptions) do
-			optionDefIDToTypes[unitDefNames[trueName].id] = optionName
+			local namedDef = unitDefNames[trueName]
+			if namedDef then
+				optionDefIDToTypes[namedDef.id] = optionName
+			end
 		end
 	end
 end
@@ -224,72 +238,88 @@ local function generateOverlapLines(commanderID)
 	comData.overlapLines = overlapLines.getOverlapLines(comData.spawnX, comData.spawnZ, neighbors, INSTANT_BUILD_RANGE)
 end
 
+---@class QuickStartSpawnParams
+---@field id integer
+---@field x number?
+---@field y number?
+---@field z number?
+---@field facing integer
+---@field cmdTag any
+
+---@return QuickStartSpawnParams[]
 local function getCommanderBuildQueue(commanderID)
+	---@type QuickStartSpawnParams[]
 	local spawnQueue = {}
 	local commandsToRemove = {}
 	local comData = commanders[commanderID]
+	if not comData then
+		return spawnQueue
+	end
 	local commands = spGetUnitCommands(commanderID, ALL_COMMANDS)
-	local totalBudgetCost = 0
+	local totalBudgetCost = 0.0
 	local discountUsedLocal = commanderFactoryDiscounts[commanderID]
 
 	if not comData.overlapLines then
 		generateOverlapLines(commanderID)
 	end
 
-	for _, cmd in ipairs(commands) do
+	for _, cmd in ipairs(commands or {}) do
 		if isBuildCommand(cmd.id) then
 			local unitDefID = -cmd.id
-			local spawnParams = {
-				id = unitDefID,
-				x = cmd.params[1],
-				y = cmd.params[2],
-				z = cmd.params[3],
-				facing = cmd.params[4] or 0,
-				cmdTag = cmd.tag,
-			}
+			local cmdParams = cmd.params
 			local unitDef = unitDefs[unitDefID]
-			local isWithinBuildRange = quickStart.isWithinInstantBuildRange(
-				comData.spawnX,
-				comData.spawnZ,
-				spawnParams.x,
-				spawnParams.z,
-				INSTANT_BUILD_RANGE,
-				comData.overlapLines,
-				function(buildX, buildZ)
-					return traversabilityGrid.canMoveToPosition(
-						commanderID,
-						buildX,
-						buildZ,
-						GRID_CHECK_RESOLUTION_MULTIPLIER
-					)
-				end
-			)
+			if cmdParams and unitDef then
+				local spawnParams = {
+					id = unitDefID,
+					x = cmdParams[1],
+					y = cmdParams[2],
+					z = cmdParams[3],
+					facing = cmdParams[4] or 0,
+					cmdTag = cmd.tag,
+				}
+				local isWithinBuildRange = quickStart.isWithinInstantBuildRange(
+					comData.spawnX,
+					comData.spawnZ,
+					spawnParams.x,
+					spawnParams.z,
+					INSTANT_BUILD_RANGE,
+					comData.overlapLines,
+					function(buildX, buildZ)
+						return traversabilityGrid.canMoveToPosition(
+							commanderID,
+							buildX,
+							buildZ,
+							GRID_CHECK_RESOLUTION_MULTIPLIER
+						)
+					end
+				)
 
-			if isWithinBuildRange then
-				local budgetCost = defMetergies[unitDefID] or 0
+				if isWithinBuildRange then
+					local budgetCost = defMetergies[unitDefID] or 0
 
-				local currentDiscount = 0
-				if shouldApplyFactoryDiscount and unitDef.isFactory and not discountUsedLocal then
-					currentDiscount = FACTORY_DISCOUNT
-				end
+					local currentDiscount = 0.0
+					if shouldApplyFactoryDiscount and unitDef.isFactory and not discountUsedLocal then
+						currentDiscount = FACTORY_DISCOUNT
+					end
 
-				budgetCost = quickStart.applyFactoryDiscount(budgetCost, unitDef.isFactory, currentDiscount, true)
+					budgetCost = quickStart.applyFactoryDiscount(budgetCost, unitDef.isFactory, currentDiscount, true)
 
-				if currentDiscount > 0 then
-					discountUsedLocal = true
-				end
+					if currentDiscount > 0 then
+						discountUsedLocal = true
+					end
 
-				table.insert(spawnQueue, spawnParams)
-				comData.hasBuildsIntercepted = true
+					table.insert(spawnQueue, spawnParams)
+					comData.hasBuildsIntercepted = true
 
-				totalBudgetCost = totalBudgetCost + budgetCost
-				if totalBudgetCost > comData.budget then
-					comData.commandsToRemove = commandsToRemove
-					return spawnQueue
-				end
+					totalBudgetCost = totalBudgetCost + budgetCost
+					if totalBudgetCost > comData.budget then
+						comData.commandsToRemove = commandsToRemove
+						return spawnQueue
+					end
 
-				if cmd.tag then
-					table.insert(commandsToRemove, cmd.tag)
+					if cmd.tag then
+						table.insert(commandsToRemove, cmd.tag)
+					end
 				end
 			end
 		end
@@ -436,10 +466,11 @@ local function initializeCommander(commanderID, teamID)
 	end
 
 	populateNearbyMexes(commanderID)
-	comData.spawnQueue = getCommanderBuildQueue(commanderID)
+	local spawnQueue = getCommanderBuildQueue(commanderID)
+	comData.spawnQueue = spawnQueue
 
-	for buildIndex = #comData.spawnQueue, 1, -1 do
-		local build = comData.spawnQueue[buildIndex]
+	for buildIndex = #spawnQueue, 1, -1 do
+		local build = spawnQueue[buildIndex]
 		local isWithinBuildRange = quickStart.isWithinInstantBuildRange(
 			comData.spawnX,
 			comData.spawnZ,
@@ -457,7 +488,7 @@ local function initializeCommander(commanderID, teamID)
 			end
 		)
 		if not isWithinBuildRange then
-			table.remove(comData.spawnQueue, buildIndex)
+			table.remove(spawnQueue, buildIndex)
 		end
 	end
 	local placementContext = {
@@ -533,6 +564,9 @@ end
 
 local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, facing)
 	local unitDef, comData = unitDefs[unitDefID], commanders[commanderID]
+	if not unitDef or not comData or not unitDef.name then
+		return false, nil
+	end
 	local discount = getFactoryDiscount(unitDef, commanderID)
 	local cost = defMetergies[unitDefID] - discount
 
@@ -564,7 +598,7 @@ end
 function gadget:GameFrame(frame)
 	if not initialized and frame > PREGAME_DELAY_FRAMES then
 		if #allTeamsList == 0 then
-			allTeamsList = Spring.GetTeamList()
+			allTeamsList = Spring.GetTeamList() or allTeamsList
 		end
 
 		local modulo = frame % #allTeamsList
@@ -634,7 +668,7 @@ function gadget:GameFrame(frame)
 		if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 			buildsInProgress[unitID] = nil
 		elseif buildData.addedProgress >= buildData.targetProgress then
-			local buildProgress = select(5, spGetUnitHealth(unitID))
+			local buildProgress = select(5, spGetUnitHealth(unitID)) or 0
 			if buildProgress >= 1 then
 				-- due to some kind of glitch related to incrimentally increasing build progress to 1, we gotta cycle mexes off and on to get them to actually extract metal.
 				Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { 0 }, 0)
@@ -685,9 +719,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 			and getFactoryDiscount(unitDef, builderID)
 		or 0
 	if discount > 0 and builderID then
-		if builderID then
-			commanderFactoryDiscounts[builderID] = true
-		end
+		commanderFactoryDiscounts[builderID] = true
 		Spring.SetTeamRulesParam(unitTeam, "quickStartFactoryDiscountUsed", 1)
 
 		local fullBudgetCost = defMetergies[unitDefID]
@@ -696,7 +728,8 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 end
 
 function gadget:Initialize()
-	for _, teamID in ipairs(Spring.GetTeamList()) do
+	local teamList = Spring.GetTeamList() or {}
+	for _, teamID in ipairs(teamList) do
 		Spring.SetTeamRulesParam(teamID, "quickStartFactoryDiscountUsed", nil)
 	end
 	isGoodWind = windFunctions.isGoodWind()
