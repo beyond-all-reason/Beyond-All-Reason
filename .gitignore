@@ -8,3 +8,5 @@
 .project
 *.code-workspace
 .lux
+
+recoil-lua-library
