@@ -18,6 +18,10 @@ local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
 local BACKUP_FILE = "uikeys.txt.bak"
 local STORE_VERSION = 2
+-- Bindable action that makes a profile active, one per profile, named after it. That puts
+-- the name in the keymap as well as in the store, so renaming or deleting one has to follow
+-- it into every profile's binds.
+local SWITCH_COMMAND = "keybindprofile"
 
 -- The shipped profiles a player can select but not edit; editing forks a copy. They
 -- carry binds rather than a file path so every surface reads one shape, and applying
@@ -51,6 +55,8 @@ local store
 -- Set while reading a store written before profiles named a meta key, so the launch that
 -- upgrades one can still recognise the files that version wrote.
 local storePredatesMeta = false
+-- Set when another surface may have written the store since this one read it.
+local stale = false
 
 -- Shape a fresh store file takes.
 local function emptyStore()
@@ -69,6 +75,40 @@ local function indexOf(name)
 end
 
 local M = { builtins = builtins, activeFile = ACTIVE_FILE }
+
+-- The action a key is bound to in order to switch to this profile.
+function M.switchAction(name)
+	return SWITCH_COMMAND .. " " .. name
+end
+
+-- Points the binds that switch to oldName at newName instead, or drops them when newName is
+-- nil. Hands back the list to use and whether anything moved, so a caller can leave a
+-- profile it did not touch alone.
+function M.retargetSwitchBinds(binds, oldName, newName)
+	local from = M.switchAction(oldName)
+	local out, moved = {}, false
+	for _, bind in ipairs(binds or {}) do
+		if bind.action ~= from then
+			out[#out + 1] = bind
+		else
+			moved = true
+			if newName then
+				out[#out + 1] = { keyset = bind.keyset, action = M.switchAction(newName) }
+			end
+		end
+	end
+
+	return out, moved
+end
+
+local function retargetStore(oldName, newName)
+	for _, p in ipairs(store.profiles) do
+		local binds, moved = M.retargetSwitchBinds(p.binds, oldName, newName)
+		if moved then
+			p.binds = binds
+		end
+	end
+end
 
 -- The shipped profile of that name, nil when the player owns it instead.
 function M.isBuiltin(name)
@@ -369,6 +409,25 @@ local function keymapOf(text)
 	return table.concat(parts, "\n"), fakeMetaOf(text)
 end
 
+-- A short stand-in for a keymap, recorded when we write one so the file can later be told
+-- apart from one somebody edited. Taken over the bindings rather than the bytes holding them,
+-- so changing how we emit does not make every player's file read as edited the day we do.
+-- djb2 with the length alongside it, which is plenty for telling an edit from our own output.
+local function stampOf(text)
+	local binds, meta = keymapOf(text)
+	if not binds then
+		return nil
+	end
+
+	local subject = binds .. "\n" .. tostring(meta)
+	local h = 5381
+	for i = 1, #subject do
+		h = (h * 33 + subject:byte(i)) % 4294967296
+	end
+
+	return #subject .. ":" .. string.format("%08x", h)
+end
+
 -- The profile already holding this keymap, nil when none does. The one migration just made of
 -- the player's own file counts, which is what keeps the launch they arrive on from forking a
 -- second copy of what it has only now imported.
@@ -540,14 +599,29 @@ local function migrate()
 	end
 end
 
+-- Marks the cached store for re-reading rather than dropping it. Each VFS.Include of this
+-- module runs it again and gets a store of its own, so a surface that did not make a change
+-- has no way of knowing another one did.
+function M.invalidate()
+	stale = true
+end
+
 -- Reads the store once, migrating an older layout on the way in.
 function M.load()
-	if store then
+	if store and not stale then
 		return store
 	end
+	stale = false
 
 	local content = VFS.LoadFile(PROFILES_PATH)
 	if not content then
+		-- Migration is for a player who has never had a store, not for one whose file went
+		-- missing mid-session: re-running it would snapshot the live keymap as a new profile
+		-- every time anything reloaded. What was already read stands until a read succeeds.
+		if store then
+			return store
+		end
+
 		migrate()
 		return store
 	end
@@ -657,14 +731,27 @@ function M.adoptEditedKeymap()
 		return nil
 	end
 
+	-- Ours, and untouched since we wrote it. The store is then the authority on what should be
+	-- loaded, whichever side moved: a shipped profile changed by a game update, one of the
+	-- player's own changed by a tool between sessions, or a selection changed the same way.
+	-- Writing the selected profile back out is what carries any of those onto the keymap.
+	if store.written and store.written.stamp == stampOf(text) then
+		local name = M.activeName()
+		if name then
+			M.materialize(name)
+		end
+
+		return nil
+	end
+
+	-- Not what we last wrote, which covers a store from before any of this was recorded and a
+	-- player who points KeybindingFile at a file of their own, since what gets stamped is the
+	-- one we emit. Matching the whole keymap is the older, weaker test - it cannot tell a
+	-- profile that changed from a file that did - but it still says this is nobody's edit, and
+	-- writing out what it found records the stamp the test above wants.
 	local matched = matchesKnownProfile(text)
 	if matched then
-		-- A keymap still matching its profile is never rewritten, so the "fakemeta none" the
-		-- previous version wrote into every file would outlive the upgrade that gave the
-		-- profiles a meta key. Left until here so a file the player did edit is adopted first.
-		if storePredatesMeta then
-			M.materialize(matched)
-		end
+		M.materialize(matched)
 
 		return nil
 	end
@@ -859,6 +946,7 @@ function M.rename(oldName, newName)
 			p.basedOn = newName
 		end
 	end
+	retargetStore(oldName, newName)
 	if not M.save() then
 		Spring.Echo(
 			"[keybind_profiles] Error: could not write "
@@ -891,6 +979,7 @@ function M.delete(name)
 			p.basedOn = M.inferBase(p)
 		end
 	end
+	retargetStore(name, nil)
 
 	return M.save()
 end
@@ -973,8 +1062,15 @@ function M.materialize(name)
 		return nil
 	end
 
-	file:write(toBindFile(profile))
+	local text = toBindFile(profile)
+	file:write(text)
 	file:close()
+
+	-- What the keymap held the last time it was ours. A file still holding this has not been
+	-- edited since, so the profile behind it can be rewritten over the top; one that does not
+	-- is the player's own work and is kept.
+	store.written = { name = name, stamp = stampOf(text) }
+	M.save()
 
 	return ACTIVE_FILE
 end

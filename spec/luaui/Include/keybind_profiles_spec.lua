@@ -3,6 +3,10 @@
 -- bound has to come from common/configs; a keyload that resolves to nothing costs the player
 -- every binding it held, silently.
 --
+-- Also guards the binds that switch between profiles, which name their profile and so have
+-- to be moved when one is renamed and dropped when one is deleted. Every surface owes that,
+-- so it is the module's rule rather than the editor's.
+--
 -- Nothing here reaches disk: the store and the keymap the migration writes are both discarded.
 
 local Json = VFS.Include("common/luaUtilities/json.lua")
@@ -128,5 +132,71 @@ describe("migrating a keyload of a bind file the game no longer ships", function
 		}, "\n"))
 
 		assert.are.equal(1, #profile.binds)
+	end)
+end)
+
+-- The module with its shipped profiles read in. Included rather than required so each call
+-- gets a store of its own, and only the reader is stubbed: nothing here has a store on disk.
+local function includeProfiles()
+	local realLoadFile, realGetKeyCode = VFS.LoadFile, Spring.GetKeyCode
+	VFS.LoadFile = function(path)
+		local file = io.open(path, "rb")
+		if not file then
+			return nil
+		end
+
+		local contents = file:read("*a")
+		file:close()
+
+		return contents
+	end
+	Spring.GetKeyCode = function()
+		return 1
+	end
+
+	local ok, result = pcall(VFS.Include, "luaui/Include/keybind_profiles.lua")
+	VFS.LoadFile, Spring.GetKeyCode = realLoadFile, realGetKeyCode
+	assert(ok, tostring(result))
+
+	return result
+end
+
+describe("the binds that switch between profiles", function()
+	it("names the profile the key switches to", function()
+		assert.are.equal("keybindprofile Grid", includeProfiles().switchAction("Grid"))
+	end)
+
+	it("follows a rename", function()
+		local profiles = includeProfiles()
+		local out, moved = profiles.retargetSwitchBinds({
+			{ keyset = "Ctrl+1", action = profiles.switchAction("Mine") },
+			{ keyset = "Ctrl+2", action = "screenshot" },
+		}, "Mine", "Yours")
+
+		assert.is_true(moved)
+		assert.are.same({
+			{ keyset = "Ctrl+1", action = "keybindprofile Yours" },
+			{ keyset = "Ctrl+2", action = "screenshot" },
+		}, out)
+	end)
+
+	it("goes with a delete", function()
+		local profiles = includeProfiles()
+		local out, moved = profiles.retargetSwitchBinds({
+			{ keyset = "Ctrl+1", action = profiles.switchAction("Mine") },
+			{ keyset = "Ctrl+2", action = "screenshot" },
+		}, "Mine", nil)
+
+		assert.is_true(moved)
+		assert.are.same({ { keyset = "Ctrl+2", action = "screenshot" } }, out)
+	end)
+
+	it("leaves a keymap that switches to nothing of that name alone", function()
+		local profiles = includeProfiles()
+		local binds = { { keyset = "Ctrl+2", action = "screenshot" } }
+		local out, moved = profiles.retargetSwitchBinds(binds, "Mine", "Yours")
+
+		assert.is_false(moved)
+		assert.are.same(binds, out)
 	end)
 end)

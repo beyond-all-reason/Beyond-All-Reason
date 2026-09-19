@@ -384,6 +384,14 @@ function widget:Initialize()
 		return true
 	end, nil, "t")
 
+	-- "keybindprofile <name>" makes that profile live. One action per profile rather than a
+	-- cycle, so a key means the same profile whatever is active. The whole argument line is
+	-- the name: profile names hold spaces, and the engine hands back the args it was bound
+	-- with, so this matches the action ids the editor lists.
+	widgetHandler:AddAction("keybindprofile", function(_, line)
+		return keybindEditor.applyProfile(line)
+	end, nil, "tp")
+
 	-- Sent as commands because widgetHandler here is a per-widget proxy, which carries no
 	-- Enable/DisableWidget.
 	keybindEditor.setMenuToggle(function(useGrid)
