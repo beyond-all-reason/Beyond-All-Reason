@@ -16,17 +16,8 @@ local modOptions = Spring.GetModOptions()
 if not isSynced then
 	return false
 end
-local shouldRunGadget = modOptions
-	and modOptions.quick_start
-	and (
-		modOptions.quick_start == "enabled"
-		or modOptions.quick_start == "factory_discount"
-		or modOptions.quick_start == "factory_discount_only"
-		or (
-			modOptions.quick_start == "default"
-			and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination")
-		)
-	)
+local quickStart = VFS.Include("common/quick_start_shared.lua")
+local shouldRunGadget, _, shouldApplyFactoryDiscount = quickStart.getModeFlags(modOptions)
 if not shouldRunGadget then
 	return false
 end
@@ -34,43 +25,15 @@ end
 local overridesEnabled = modOptions.enable_quickstart_overrides
 local overrideQuickStartBudget = overridesEnabled and tonumber(modOptions.override_quick_start_budget)
 
-local shouldApplyFactoryDiscount = modOptions.quick_start == "factory_discount"
-	or modOptions.quick_start == "factory_discount_only"
-	or (
-		modOptions.quick_start == "default"
-		and (modOptions.temp_enable_territorial_domination or modOptions.deathmode == "territorial_domination")
-	)
-
 local FACTORY_DISCOUNT_MULTIPLIER = 0.90 -- The factory discount will be the budget cost of the cheapest listed factory multiplied by this value.
 
 local QUICK_START_COST_ENERGY = 400 --will be deducted from commander's energy upon start.
 local QUICK_START_COST_METAL = 800 --will be deducted from commander's metal upon start.
 local READY_REFUNDABLE_BUDGET = 800 -- Budget threshold when players are allowed to "ready" the game
-local quickStartAmountConfig = {
-	small = {
-		budget = 800,
-		range = 435,
-		baseGenerationRange = 435,
-		traversabilityGridRange = 480, --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
-	},
-	normal = {
-		budget = 1200,
-		range = 435,
-		baseGenerationRange = 435,
-		traversabilityGridRange = 480,
-	},
-	large = {
-		budget = 2400,
-		range = 600,
-		baseGenerationRange = 500,
-		traversabilityGridRange = 544,
-	},
-}
 
 local MIN_OVERRIDE_BUILD_RANGE = 200
 
-local configKey = modOptions.quick_start_amount or "normal"
-local selectedConfig = quickStartAmountConfig[configKey] or quickStartAmountConfig.normal
+local selectedConfig = quickStart.getAmountConfig(modOptions)
 local BUDGET = overrideQuickStartBudget or selectedConfig.budget
 local overrideQuickStartRange = nil
 if overridesEnabled then
@@ -83,8 +46,6 @@ local INSTANT_BUILD_RANGE = overrideQuickStartRange or selectedConfig.range
 local BASE_GENERATION_RANGE = selectedConfig.baseGenerationRange
 local TRAVERSABILITY_GRID_GENERATION_RANGE = selectedConfig.traversabilityGridRange
 
-local BUILD_TIME_VALUE_CONVERSION_MULTIPLIER = 1 / 300 --300 being a representative of commander workertime, statically defined so future com unitdef adjustments don't change this.
-local ENERGY_VALUE_CONVERSION_MULTIPLIER = 1 / 60 --60 being the energy conversion rate of t2 energy converters, statically defined so future changes not to affect this.
 local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
 local customRound = aestheticCustomCostRound.customRound
 local windFunctions = VFS.Include("common/wind_functions.lua")
@@ -92,25 +53,16 @@ local windFunctions = VFS.Include("common/wind_functions.lua")
 -------------------------------------------------------------------------
 
 local ALL_COMMANDS = -1
-local UNOCCUPIED = 2
-local BUILD_SPACING = 64
-local COMMANDER_NO_GO_DISTANCE = 100
-local CONVERTER_GRID_DISTANCE = 200
+local UNOCCUPIED = quickStart.UNOCCUPIED
 local FACTORY_DISCOUNT = math.huge
-local MAP_CENTER_X = Game.mapSizeX / 2
-local MAP_CENTER_Z = Game.mapSizeZ / 2
-local NODE_GRID_SORT_DISTANCE = 300
 local PREGAME_DELAY_FRAMES = 61 --after gui_pregame_build.lua is loaded
-local SKIP_STEP = 3
 local UPDATE_FRAMES = Game.gameSpeed
-local BASE_NODE_COUNT = 8
-local SAFETY_COUNT = 100
+local SAFETY_COUNT = quickStart.SAFETY_COUNT
 local BUILT_ENOUGH_FOR_FULL = 0.9
-local MAX_HEIGHT_DIFFERENCE = 100
-local DEFAULT_FACING = 0
+local DEFAULT_FACING = quickStart.DEFAULT_FACING
 local INITIAL_BUILD_PROGRESS = 0.01
-local TRAVERSABILITY_GRID_RESOLUTION = 32
-local GRID_CHECK_RESOLUTION_MULTIPLIER = 1
+local TRAVERSABILITY_GRID_RESOLUTION = quickStart.TRAVERSABILITY_GRID_RESOLUTION
+local GRID_CHECK_RESOLUTION_MULTIPLIER = quickStart.GRID_CHECK_RESOLUTION_MULTIPLIER
 
 local spCreateUnit = Spring.CreateUnit
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -127,21 +79,12 @@ local spGetUnitHealth = Spring.GetUnitHealth
 local random = math.random
 local ceil = math.ceil
 local max = math.max
-local clamp = math.clamp
-local abs = math.abs
-local distance2d = math.distance2d
-local floor = math.floor
-local pi = math.pi
 local min = math.min
-local atan2 = math.atan2
-local sin = math.sin
-local cos = math.cos
 
-local config = VFS.Include("LuaRules/Configs/quick_start_build_defs.lua")
+local config = quickStart.config
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
 local overlapLines = VFS.Include("common/overlap_lines.lua")
 local commanderNonLabOptions = config.commanderNonLabOptions
-local optionsToNodeType = config.optionsToNodeType
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 
@@ -188,95 +131,9 @@ function GG.quick_start.transferCommanderData(oldUnitID, newUnitID)
 	end
 end
 
-local function getBuildSequence(isMetalMap, isInWater, isGoodWind)
-	return config.buildSequence[isMetalMap and "metalMap" or "nonMetalMap"][isInWater and "water" or "land"][isGoodWind and "goodWind" or "badWind"]
-end
-
-local function generateLocalGrid(commanderID)
-	local comData = commanders[commanderID]
-	local originX, originY, originZ = comData.spawnX, comData.spawnY, comData.spawnZ
-	local buildDefID = comData.isInWater and (comData.buildDefs and comData.buildDefs.tidal)
-		or (comData.buildDefs and comData.buildDefs.windmill)
-	if not buildDefID then
-		return {}
-	end
-	local dx = MAP_CENTER_X - originX
-	local dz = MAP_CENTER_Z - originZ
-	local skipDirection = abs(dx) >= abs(dz) and "x" or "z"
-	local maxOffset = BASE_GENERATION_RANGE
-	local gridList = {}
-	local used = {}
-	local noGoZones = {}
-	table.insert(noGoZones, { x = originX, z = originZ, distance = COMMANDER_NO_GO_DISTANCE })
-	if comData.nearbyMexes then
-		for i = 1, #comData.nearbyMexes do
-			local mex = comData.nearbyMexes[i]
-			table.insert(noGoZones, { x = mex.x, z = mex.z, distance = BUILD_SPACING })
-		end
-	end
-	for offsetX = -maxOffset, maxOffset, BUILD_SPACING do
-		for offsetZ = -maxOffset, maxOffset, BUILD_SPACING do
-			local index = (skipDirection == "x" and offsetZ or offsetX) + maxOffset
-			if (index / BUILD_SPACING) % SKIP_STEP ~= 0 then
-				local testX = originX + offsetX
-				local testZ = originZ + offsetZ
-				if distance2d(testX, testZ, originX, originZ) <= BASE_GENERATION_RANGE then
-					local tooClose = false
-					for i = 1, #noGoZones do
-						local g = noGoZones[i]
-						if distance2d(testX, testZ, g.x, g.z) <= g.distance then
-							tooClose = true
-							break
-						end
-					end
-					if not tooClose then
-						local searchY = spGetGroundHeight(testX, testZ)
-						local heightDiff = abs(searchY - originY)
-						if heightDiff <= MAX_HEIGHT_DIFFERENCE then
-							local snappedX, snappedY, snappedZ = spPos2BuildPos(buildDefID, testX, searchY, testZ)
-							local isPastFriendlyLines = overlapLines.isPointPastLines(
-								snappedX,
-								snappedZ,
-								originX,
-								originZ,
-								comData.overlapLines
-							)
-							if
-								snappedX
-								and not isPastFriendlyLines
-								and spTestBuildOrder(buildDefID, snappedX, snappedY, snappedZ, DEFAULT_FACING)
-									== UNOCCUPIED
-							then
-								local isTraversable = traversabilityGrid.canMoveToPosition(
-									commanderID,
-									snappedX,
-									snappedZ,
-									GRID_CHECK_RESOLUTION_MULTIPLIER
-								) or false
-								if isTraversable then
-									local key = snappedX .. "_" .. snappedZ
-									if not used[key] then
-										used[key] = true
-										table.insert(gridList, { x = snappedX, y = snappedY, z = snappedZ })
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-	return gridList
-end
-
 for unitDefID, unitDef in pairs(unitDefs) do
-	local metalCost, energyCost = unitDef.metalCost or 0, unitDef.energyCost or 0
-	defMetergies[unitDefID] = customRound(
-		metalCost
-			+ energyCost * ENERGY_VALUE_CONVERSION_MULTIPLIER
-			+ unitDef.buildTime * BUILD_TIME_VALUE_CONVERSION_MULTIPLIER
-	)
+	defMetergies[unitDefID] =
+		quickStart.calculateBudgetCost(unitDef.metalCost, unitDef.energyCost, unitDef.buildTime)
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
@@ -392,22 +249,24 @@ local function getCommanderBuildQueue(commanderID)
 				cmdTag = cmd.tag,
 			}
 			local unitDef = unitDefs[unitDefID]
-			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
-			local isTraversable = traversabilityGrid.canMoveToPosition(
-				commanderID,
-				spawnParams.x,
-				spawnParams.z,
-				GRID_CHECK_RESOLUTION_MULTIPLIER
-			) or false
-			local isPastFriendlyLines = overlapLines.isPointPastLines(
-				spawnParams.x,
-				spawnParams.z,
+			local isWithinBuildRange = quickStart.isWithinInstantBuildRange(
 				comData.spawnX,
 				comData.spawnZ,
-				comData.overlapLines
+				spawnParams.x,
+				spawnParams.z,
+				INSTANT_BUILD_RANGE,
+				comData.overlapLines,
+				function(buildX, buildZ)
+					return traversabilityGrid.canMoveToPosition(
+						commanderID,
+						buildX,
+						buildZ,
+						GRID_CHECK_RESOLUTION_MULTIPLIER
+					)
+				end
 			)
 
-			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
+			if isWithinBuildRange then
 				local budgetCost = defMetergies[unitDefID] or 0
 
 				local currentDiscount = 0
@@ -415,7 +274,7 @@ local function getCommanderBuildQueue(commanderID)
 					currentDiscount = FACTORY_DISCOUNT
 				end
 
-				budgetCost = max(budgetCost - currentDiscount, 0)
+				budgetCost = quickStart.applyFactoryDiscount(budgetCost, unitDef.isFactory, currentDiscount, true)
 
 				if currentDiscount > 0 then
 					discountUsedLocal = true
@@ -473,174 +332,21 @@ local function getBuildSpace(commanderID, option)
 	if not comData then
 		return nil, nil, nil
 	end
-
-	if option ~= "mex" or isMetalMap then
-		local nodeType = optionsToNodeType[option] or "other"
-		local gridList = comData.gridLists[nodeType] or {}
-
-		while #gridList > 0 do
-			local candidate = gridList[1]
-			table.remove(gridList, 1)
-
-			if candidate.x and candidate.y and candidate.z then
-				local unitDefID = comData.buildDefs[option]
-				if unitDefID then
-					if spTestBuildOrder(unitDefID, candidate.x, candidate.y, candidate.z, 0) == UNOCCUPIED then
-						comData.gridLists[nodeType] = gridList
-						return candidate.x, candidate.y, candidate.z
-					end
-				else
-					comData.gridLists[nodeType] = gridList
-					return candidate.x, candidate.y, candidate.z
-				end
-			end
-		end
-
-		comData.gridLists[nodeType] = gridList
-		return nil, nil, nil
-	else
-		while comData.nearbyMexes and #comData.nearbyMexes > 0 do
-			local mexSpot = comData.nearbyMexes[1]
-			table.remove(comData.nearbyMexes, 1)
-
-			if mexSpot.x and mexSpot.y and mexSpot.z then
-				local mexDefID = comData.buildDefs.mex
-				if mexDefID then
-					if spTestBuildOrder(mexDefID, mexSpot.x, mexSpot.y, mexSpot.z, DEFAULT_FACING) == UNOCCUPIED then
-						return mexSpot.x, mexSpot.y, mexSpot.z
-					end
-				else
-					return mexSpot.x, mexSpot.y, mexSpot.z
-				end
-			end
-		end
-		return nil, nil, nil
-	end
-end
-
-local function createBaseNodes(spawnX, spawnZ)
-	local nodes = {}
-	local angleIncrement = 2 * pi / BASE_NODE_COUNT
-	for i = 0, BASE_NODE_COUNT - 1 do
-		local angle = i * angleIncrement
-		local nodeX = spawnX + (BASE_GENERATION_RANGE / 2) * cos(angle)
-		local nodeZ = spawnZ + (BASE_GENERATION_RANGE / 2) * sin(angle)
-		nodes[i + 1] = { x = nodeX, z = nodeZ, index = i + 1, grid = {}, score = 0 }
-	end
-	return nodes
-end
-
-local function populateNodeGrids(nodes, localGrid)
-	local totalValid = #localGrid
-	for i = 1, #nodes do
-		local node = nodes[i]
-		for j = 1, totalValid do
-			local p = localGrid[j]
-			if distance2d(p.x, p.z, node.x, node.z) <= NODE_GRID_SORT_DISTANCE then
-				table.insert(node.grid, { x = p.x, y = p.y, z = p.z })
-			end
-		end
-		node.score = #node.grid
-		node.distanceFromCenter = distance2d(node.x, node.z, MAP_CENTER_X, MAP_CENTER_Z)
-		local MIN_GRID_THRESHOLD = 0.20
-		node.goodEnough = node.score >= ceil(totalValid * MIN_GRID_THRESHOLD)
-	end
-end
-
-local function generateBaseNodesFromLocalGrid(commanderID, localGrid)
-	local comData = commanders[commanderID]
-	local spawnX, spawnZ = comData.spawnX, comData.spawnZ
-	local nodes = createBaseNodes(spawnX, spawnZ)
-	populateNodeGrids(nodes, localGrid)
-
-	local minDistance = math.huge
-	local maxDistance = 0
-	for i = 1, #nodes do
-		local node = nodes[i]
-		minDistance = min(minDistance, node.distanceFromCenter)
-		maxDistance = max(maxDistance, node.distanceFromCenter)
-	end
-
-	for i = 1, #nodes do
-		local node = nodes[i]
-		local MIN_CENTER_WEIGHT, MAX_CENTER_WEIGHT = 0.5, 1.0
-		local centerWeight = clamp(
-			1.0 - (node.distanceFromCenter - minDistance) / (maxDistance - minDistance),
-			MIN_CENTER_WEIGHT,
-			MAX_CENTER_WEIGHT
-		)
-		local averageDistance = 0
-		if #node.grid > 0 then
-			for j = 1, #node.grid do
-				averageDistance = averageDistance + distance2d(node.grid[j].x, node.grid[j].z, node.x, node.z)
-			end
-			averageDistance = averageDistance / #node.grid
-		end
-		node.resultantScore = centerWeight * averageDistance
-	end
-
-	local selectedPair
-	local bestResultantScore = math.huge
-	for i = 1, BASE_NODE_COUNT do
-		local j = (i % BASE_NODE_COUNT) + 1
-		if nodes[i].goodEnough and nodes[j].goodEnough then
-			local combinedScore = nodes[i].resultantScore + nodes[j].resultantScore
-			if combinedScore < bestResultantScore then
-				bestResultantScore = combinedScore
-				selectedPair = { nodes[i], nodes[j] }
-			end
-		end
-	end
-	if not selectedPair then
-		return { other = { x = spawnX, z = spawnZ, grid = {} }, converters = { x = spawnX, z = spawnZ, grid = {} } }
-	end
-	local nodeA = selectedPair[1]
-	local nodeB = selectedPair[2]
-	local converterNode = nodeA.score <= nodeB.score and nodeA or nodeB
-	local otherNode = converterNode == nodeA and nodeB or nodeA
-	local filteredConverter = {}
-	local converterKeys = {}
-	for i = 1, #converterNode.grid do
-		local p = converterNode.grid[i]
-		if distance2d(p.x, p.z, converterNode.x, converterNode.z) <= CONVERTER_GRID_DISTANCE then
-			table.insert(filteredConverter, p)
-			converterKeys[p.x .. "_" .. p.z] = true
-		end
-	end
-
-	local filteredOther = {}
-	for i = 1, #localGrid do
-		local p = localGrid[i]
-		if not converterKeys[p.x .. "_" .. p.z] then
-			table.insert(filteredOther, p)
-		end
-	end
-
-	for i = 1, #filteredConverter do
-		filteredConverter[i].d =
-			distance2d(filteredConverter[i].x, filteredConverter[i].z, converterNode.x, converterNode.z)
-	end
-	for i = 1, #filteredOther do
-		filteredOther[i].d = distance2d(filteredOther[i].x, filteredOther[i].z, otherNode.x, otherNode.z)
-	end
-	table.sort(filteredConverter, function(a, b)
-		return a.d < b.d
+	return quickStart.getBuildSpace({
+		buildDefs = comData.buildDefs,
+		defaultFacing = DEFAULT_FACING,
+		gridLists = comData.gridLists,
+		isMetalMap = isMetalMap,
+		nearbyMexes = comData.nearbyMexes,
+	}, option, function(unitDefID, buildX, buildY, buildZ, facing)
+		return spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) == UNOCCUPIED
 	end)
-	table.sort(filteredOther, function(a, b)
-		return a.d < b.d
-	end)
-	return {
-		other = { x = otherNode.x, z = otherNode.z, grid = filteredOther },
-		converters = { x = converterNode.x, z = converterNode.z, grid = filteredConverter },
-	}
 end
 
 local function populateNearbyMexes(commanderID)
 	local comData = commanders[commanderID]
-	local commanderX, _, commanderZ = comData.spawnX, comData.spawnY, comData.spawnZ
-
-	comData.nearbyMexes = {}
 	if isMetalMap or not metalSpotsList then
+		comData.nearbyMexes = {}
 		return
 	end
 
@@ -648,33 +354,21 @@ local function populateNearbyMexes(commanderID)
 		generateOverlapLines(commanderID)
 	end
 
-	for i = 1, #metalSpotsList do
-		local metalSpot = metalSpotsList[i]
-		if metalSpot then
-			local distance = distance2d(metalSpot.x, metalSpot.z, commanderX, commanderZ)
-			local isTraversable = traversabilityGrid.canMoveToPosition(
+	comData.nearbyMexes = quickStart.getNearbyMexes(
+		comData.spawnX,
+		comData.spawnZ,
+		INSTANT_BUILD_RANGE,
+		metalSpotsList,
+		comData.overlapLines,
+		function(buildX, buildZ)
+			return traversabilityGrid.canMoveToPosition(
 				commanderID,
-				metalSpot.x,
-				metalSpot.z,
+				buildX,
+				buildZ,
 				GRID_CHECK_RESOLUTION_MULTIPLIER
-			) or false
-			local isPastFriendlyLines =
-				overlapLines.isPointPastLines(metalSpot.x, metalSpot.z, commanderX, commanderZ, comData.overlapLines)
-			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
-				table.insert(comData.nearbyMexes, {
-					x = metalSpot.x,
-					y = metalSpot.y,
-					z = metalSpot.z,
-					distance = distance,
-				})
-			end
+			)
 		end
-	end
-	if #comData.nearbyMexes > 1 then
-		table.sort(comData.nearbyMexes, function(a, b)
-			return a.distance < b.distance
-		end)
-	end
+	)
 end
 
 local function initializeCommander(commanderID, teamID)
@@ -696,25 +390,17 @@ local function initializeCommander(commanderID, teamID)
 	if not commanderX or not commanderY or not commanderZ then
 		return
 	end
-	local directionX = MAP_CENTER_X - commanderX
-	local directionZ = MAP_CENTER_Z - commanderZ
-	local angle = atan2(directionX, directionZ)
-	local defaultFacing = floor((angle / (pi / 2)) + 0.5) % 4
+	local defaultFacing = quickStart.getDefaultFacing(commanderX, commanderZ)
 
 	local commanderDefID = Spring.GetUnitDefID(commanderID)
 	local commanderName = UnitDefs[commanderDefID].name
 	local isInWater = commanderY < 0
-	local buildDefs = {}
-	local buildOptions = commanderNonLabOptions[commanderName]
-	if buildOptions then
-		for optionName, trueName in pairs(commanderNonLabOptions[commanderName]) do
-			buildDefs[optionName] = unitDefNames[trueName].id
-		end
-	else
+	local buildDefs = quickStart.getCommanderBuildDefs(commanderName)
+	if not buildDefs then
 		return
 	end
 
-	local commanderBuildSequence = getBuildSequence(isMetalMap, isInWater, isGoodWind)
+	local commanderBuildSequence = quickStart.getBuildSequence(isMetalMap, isInWater, isGoodWind)
 	local buildIndex = 1
 
 	commanders[commanderID] = {
@@ -754,30 +440,50 @@ local function initializeCommander(commanderID, teamID)
 	populateNearbyMexes(commanderID)
 	comData.spawnQueue = getCommanderBuildQueue(commanderID)
 
-	for i = #comData.spawnQueue, 1, -1 do
-		local build = comData.spawnQueue[i]
-		local distance = distance2d(build.x, build.z, comData.spawnX, comData.spawnZ)
-		local isTraversable = traversabilityGrid.canMoveToPosition(
-			commanderID,
+	for buildIndex = #comData.spawnQueue, 1, -1 do
+		local build = comData.spawnQueue[buildIndex]
+		local isWithinBuildRange = quickStart.isWithinInstantBuildRange(
+			comData.spawnX,
+			comData.spawnZ,
 			build.x,
 			build.z,
-			GRID_CHECK_RESOLUTION_MULTIPLIER
-		) or false
-		if distance > INSTANT_BUILD_RANGE or not isTraversable then
-			table.remove(comData.spawnQueue, i)
+			INSTANT_BUILD_RANGE,
+			comData.overlapLines,
+			function(buildX, buildZ)
+				return traversabilityGrid.canMoveToPosition(
+					commanderID,
+					buildX,
+					buildZ,
+					GRID_CHECK_RESOLUTION_MULTIPLIER
+				)
+			end
+		)
+		if not isWithinBuildRange then
+			table.remove(comData.spawnQueue, buildIndex)
 		end
 	end
-	local localGrid = generateLocalGrid(commanderID)
-	comData.baseNodes = generateBaseNodesFromLocalGrid(commanderID, localGrid)
-	if not comData.baseNodes then
-		comData.baseNodes = {
-			other = { x = comData.spawnX, z = comData.spawnZ, grid = {} },
-			converters = { x = comData.spawnX, z = comData.spawnZ, grid = {} },
-		}
-	end
-
-	comData.gridLists.other = comData.baseNodes.other.grid or {}
-	comData.gridLists.converters = comData.baseNodes.converters.grid or {}
+	local placementContext = {
+		baseGenerationRange = BASE_GENERATION_RANGE,
+		buildDefID = comData.isInWater and comData.buildDefs.tidal or comData.buildDefs.windmill,
+		canMoveToPosition = function(buildX, buildZ)
+			return traversabilityGrid.canMoveToPosition(
+				commanderID,
+				buildX,
+				buildZ,
+				GRID_CHECK_RESOLUTION_MULTIPLIER
+			)
+		end,
+		commanderX = comData.spawnX,
+		commanderY = comData.spawnY,
+		commanderZ = comData.spawnZ,
+		defaultFacing = DEFAULT_FACING,
+		nearbyMexes = comData.nearbyMexes,
+		overlapLines = comData.overlapLines,
+	}
+	local localGrid = quickStart.generateLocalGrid(placementContext)
+	comData.baseNodes = quickStart.generateBaseNodesFromLocalGrid(placementContext, localGrid)
+	comData.gridLists.other = comData.baseNodes.other
+	comData.gridLists.converters = comData.baseNodes.converters
 end
 
 local function generateBuildCommands(commanderID)
