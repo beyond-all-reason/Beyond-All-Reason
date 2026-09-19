@@ -4,9 +4,9 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Transport To (Gadget)",
-		desc = [[This gadget adds the CMD_AUTO_TRANSPORT, which determines if a transport can be used in the widget, 
-                    it also allows the existance of CMD_TRANSPORT_TO in the queue in CommandFallback()
-                    it also removes it once a unit has been loaded (not always the case, i think a weird race condition, but does´nt seem to change anything)]],
+		desc = [[
+        Allows the existance of CMD_TRANSPORT_TO in the queue in CommandFallback(),
+        Removes it once a unit has been loaded]],
 		author = "Silla Noble",
 		date = "uhhhhh.....",
 		license = "A what now?",
@@ -34,13 +34,12 @@ local CMD_INSERT = CMD.INSERT
 
 -- ========= command id & description =========
 local CMD_TRANSPORT_TO = GameCMD.TRANSPORT_TO
-local CMD_AUTO_TRANSPORT = GameCMD.AUTO_TRANSPORT
 
 -- ========= classification thresholds =========
 local HEAVY_TRANSPORT_MASS_THRESHOLD = 3000
 local LIGHT_UNIT_SIZE_THRESHOLD = 6
 local UNLOAD_RADIUS = 10
-local TRANSPORT_COMMAND_COMPLETE_RADIUS = 20
+local TRANSPORT_COMMAND_COMPLETE_RADIUS = 100
 
 -- ========= def caches =========
 local isFactoryDef = {}

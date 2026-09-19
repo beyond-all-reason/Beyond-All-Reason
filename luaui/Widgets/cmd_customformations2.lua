@@ -272,8 +272,8 @@ local function CanUnitExecute(uID, cmdID)
 	end
     local ud = UnitDefs[spGetUnitDefID(uID)]
 	local grounded = not ud.canFly
-	local canBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
-    if cmdID == CMD_TRANSPORT_TO and grounded and canBeTransported then
+	local CanBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
+    if cmdID == CMD_TRANSPORT_TO and grounded and CanBeTransported then
         return true
     end
     return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
