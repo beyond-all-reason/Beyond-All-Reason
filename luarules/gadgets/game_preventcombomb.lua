@@ -99,8 +99,7 @@ function gadget:UnitPreDamaged(
 	attackerDefID,
 	attackerTeam
 )
-	--falling & debris damage
-	if weaponDefID < 0 and cantFall[unitID] and fallingDamageTypes[weaponDefID] then
+	if fallingDamageTypes[weaponDefID] and cantFall[unitID] then
 		return 0, 0
 	end
 
