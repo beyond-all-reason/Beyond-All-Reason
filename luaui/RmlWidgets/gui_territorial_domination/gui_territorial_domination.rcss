@@ -696,6 +696,13 @@ body {
 	display: block;
 }
 
+.td-tooltip-header {
+	display: block;
+	min-height: 22dp;
+	color: #ffffff;
+	white-space: nowrap;
+}
+
 .td-tooltip-title {
 	display: block;
 	min-height: 22dp;

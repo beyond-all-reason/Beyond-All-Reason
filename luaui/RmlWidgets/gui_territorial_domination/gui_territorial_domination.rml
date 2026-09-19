@@ -127,7 +127,7 @@
 								data-class-local="score.isLocalPlayer"
 								data-event-mousedown="blockPanelDrag()"
 								data-event-click="selectExpandedScore(score.allyTeamID)"
-								data-event-mouseover="showScoreTooltip(score.allyTeamID)"
+								data-event-mouseover="showVerticalBarTooltip(score.allyTeamID)"
 								data-event-mouseout="hideTooltip()"
 							>
 								<div
@@ -202,6 +202,7 @@
 			<div class="td-tooltip-texture"></div>
 			<div class="td-tooltip-gradient"></div>
 			<div class="td-tooltip-content">
+				<div class="td-tooltip-header" data-if="tooltipHeader != ''">{{tooltipHeader}}</div>
 				<div class="td-tooltip-row td-tooltip-team-row" data-if="tooltipShowTeam">
 					<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
 					<span class="td-allyteam-color" data-style-background-color="tooltipTeamColor"></span>

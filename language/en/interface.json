@@ -1039,6 +1039,8 @@
 				"ally": "Ally %{allyNumber}"
 			},
 			"tooltip": {
+				"clickToExpand": "Click to expand",
+				"clickToSelect": "Click to select",
 				"territories": "Territories: %{count}",
 				"gainRate": "Points Per Minute: %{points}",
 				"currentPoints": "Current points: %{points}",

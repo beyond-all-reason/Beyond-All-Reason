@@ -90,6 +90,8 @@ local TOOLTIP_SOURCE_COUNTDOWN = "countdown"
 local TOOLTIP_SOURCE_TARGET = "target"
 local TOOLTIP_SOURCE_DANGER = "danger"
 local TOOLTIP_SOURCE_DEADLINE = "deadline"
+local TOOLTIP_HEADER_EXPAND = "expand"
+local TOOLTIP_HEADER_SELECT = "select"
 local DEFAULT_COLOR = {
 	red = 0.5,
 	green = 0.5,
@@ -150,6 +152,7 @@ local widgetState = {
 	tooltipIsSimple = false,
 	tooltipAllyTeamID = nil,
 	tooltipSimpleSource = nil,
+	tooltipHeaderSource = nil,
 	tooltipRowCount = 1,
 	tooltipWidthDp = TOOLTIP_MIN_WIDTH_DP,
 	popupActive = false,
@@ -921,6 +924,16 @@ local function getAllyTeamGainRate(allyTeam)
 	return allyTeam.territoryCount * widgetState.currentDeadline * TERRITORY_POINTS_PER_DEADLINE
 end
 
+local function getTooltipHeaderText()
+	if widgetState.tooltipHeaderSource == TOOLTIP_HEADER_EXPAND then
+		return I18N("ui.territorialDomination.tooltip.clickToExpand")
+	end
+	if widgetState.tooltipHeaderSource == TOOLTIP_HEADER_SELECT then
+		return I18N("ui.territorialDomination.tooltip.clickToSelect")
+	end
+	return ""
+end
+
 local function updateScoreTooltipContent(allyTeamID)
 	local dataModel = widgetState.dmHandle
 	local allyTeam = widgetState.allyTeamsByID[allyTeamID]
@@ -957,6 +970,7 @@ local function updateScoreTooltipContent(allyTeamID)
 		I18N("ui.territorialDomination.tooltip.belowLeader", { points = formatScore(pointsBelowLeader) })
 	dataModel.tooltipLeaderColor = leader.color
 	dataModel.tooltipTitle = ""
+	dataModel.tooltipHeader = getTooltipHeaderText()
 	local lineWidths = {
 		getTooltipTextWidthDp(dataModel.tooltipTeamLabel) + TOOLTIP_TEAM_EXTRA_DP,
 		getTooltipTextWidthDp(dataModel.tooltipTerritories),
@@ -964,6 +978,9 @@ local function updateScoreTooltipContent(allyTeamID)
 		getTooltipTextWidthDp(dataModel.tooltipCurrentScore),
 		getTooltipTextWidthDp(dataModel.tooltipProjectedScore),
 	}
+	if dataModel.tooltipHeader ~= "" then
+		lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(dataModel.tooltipHeader)
+	end
 	if allyTeam.players then
 		for playerIndex = 1, #allyTeam.players do
 			lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(allyTeam.players[playerIndex].name)
@@ -1006,6 +1023,7 @@ local function updateSimpleTooltipContent()
 	dataModel.tooltipIsScore = false
 	dataModel.tooltipText = tooltipText
 	dataModel.tooltipTitle = ""
+	dataModel.tooltipHeader = ""
 	dataModel.tooltipShowTeam = false
 	dataModel.tooltipShowLeader = false
 	applyTooltipSize(dataModel, { getTooltipTextWidthDp(tooltipText) })
@@ -1031,6 +1049,7 @@ local function updateProjectedLeaderTooltipContent()
 	dataModel.tooltipTitle = isSelectedProjectedLeader
 			and I18N("ui.territorialDomination.tooltip.highestProjectedScoreYou")
 		or I18N("ui.territorialDomination.tooltip.highestProjectedScore")
+	dataModel.tooltipHeader = ""
 	dataModel.tooltipShowTeam = true
 	dataModel.tooltipShowLeader = false
 	dataModel.tooltipTeamLabel = I18N("ui.territorialDomination.tooltip.team")
@@ -1051,9 +1070,10 @@ local function updateProjectedLeaderTooltipContent()
 	return true
 end
 
-local function showScoreTooltip(event, allyTeamID)
+local function showScoreTooltip(event, allyTeamID, tooltipHeaderSource)
 	widgetState.tooltipIsScore = true
 	widgetState.tooltipAllyTeamID = tonumber(allyTeamID)
+	widgetState.tooltipHeaderSource = tooltipHeaderSource
 	widgetState.tooltipActive = updateScoreTooltipContent(widgetState.tooltipAllyTeamID)
 
 	if widgetState.dmHandle then
@@ -1069,6 +1089,7 @@ local function showSimpleTooltip(tooltipSource)
 	widgetState.tooltipIsSimple = true
 	widgetState.tooltipAllyTeamID = nil
 	widgetState.tooltipSimpleSource = tooltipSource
+	widgetState.tooltipHeaderSource = nil
 	widgetState.tooltipActive = updateSimpleTooltipContent()
 
 	if widgetState.dmHandle then
@@ -1102,6 +1123,7 @@ local function showTargetTooltip(event)
 	widgetState.tooltipIsSimple = false
 	widgetState.tooltipAllyTeamID = widgetState.projectedLeaderAllyTeamID
 	widgetState.tooltipSimpleSource = TOOLTIP_SOURCE_TARGET
+	widgetState.tooltipHeaderSource = nil
 	widgetState.tooltipActive = updateProjectedLeaderTooltipContent()
 
 	if widgetState.dmHandle then
@@ -1120,6 +1142,7 @@ local function hideTooltip(event)
 	widgetState.tooltipActive = false
 	widgetState.tooltipAllyTeamID = nil
 	widgetState.tooltipSimpleSource = nil
+	widgetState.tooltipHeaderSource = nil
 	if widgetState.dmHandle then
 		widgetState.dmHandle.tooltipVisible = false
 	end
@@ -1161,7 +1184,11 @@ local function showDistributionTooltip(event)
 		hideTooltip()
 		return
 	end
-	showScoreTooltip(event, allyTeamID)
+	showScoreTooltip(event, allyTeamID, TOOLTIP_HEADER_EXPAND)
+end
+
+local function showVerticalBarTooltip(event, allyTeamID)
+	showScoreTooltip(event, allyTeamID, TOOLTIP_HEADER_SELECT)
 end
 
 local function isScrollbarElement(element)
@@ -1396,6 +1423,7 @@ local function initializeModel()
 		tooltipIsSimple = false,
 		tooltipText = "",
 		tooltipTitle = "",
+		tooltipHeader = "",
 		tooltipPlayersRml = "",
 		tooltipTerritories = "",
 		tooltipGainRate = "",
@@ -1425,6 +1453,7 @@ local function initializeModel()
 		hideTooltip = hideTooltip,
 		showScoreTooltip = showScoreTooltip,
 		showDistributionTooltip = showDistributionTooltip,
+		showVerticalBarTooltip = showVerticalBarTooltip,
 		showCurrentScoreTooltip = showCurrentScoreTooltip,
 		showCountdownTooltip = showCountdownTooltip,
 		showTargetTooltip = showTargetTooltip,
