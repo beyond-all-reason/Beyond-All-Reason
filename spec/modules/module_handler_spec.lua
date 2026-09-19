@@ -35,6 +35,38 @@ describe("ModuleHandler", function()
 		end)
 	end)
 
+	describe("LiveModulesFor", function()
+		setup(function()
+			ModuleHandler.ResetCaches()
+		end)
+
+		it("reads the modoption fragments once: the live set for a selection is the same table each ask", function()
+			local includes = 0
+			local realInclude = VFS.Include
+			VFS.Include = function(path, ...)
+				if type(path) == "string" and path:match("/modoptions%.lua$") then
+					includes = includes + 1
+				end
+				return realInclude(path, ...)
+			end
+			local first = ModuleHandler.LiveModulesFor({})
+			local afterFirst = includes
+			local second = ModuleHandler.LiveModulesFor({})
+			local third = ModuleHandler.LiveModulesFor({ transfer_mode = "disabled" })
+			VFS.Include = realInclude
+			assert.is_true(afterFirst > 0, "the first ask reads the fragments")
+			assert.are.equal(afterFirst, includes, "later asks read nothing")
+			assert.is_true(rawequal(first, second))
+			assert.is_false(rawequal(first, third), "a different selection is its own live set")
+		end)
+
+		it("forgets both on ResetCaches", function()
+			local before = ModuleHandler.LiveModulesFor({})
+			ModuleHandler.ResetCaches()
+			assert.is_false(rawequal(before, ModuleHandler.LiveModulesFor({})))
+		end)
+	end)
+
 	describe("Resolve", function()
 		describe("a missing requirement", function()
 			local function manifest(name, requires)
