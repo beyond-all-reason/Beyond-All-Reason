@@ -6882,7 +6882,8 @@ function init()
 				"ui.settings.option.topbar_hidebuttons"
 			),
 			type = "bool",
-			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons()) or false,
+			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons())
+				or false,
 			onload = function(i)
 				loadWidgetData("Top Bar Buttons", "topbar_hidebuttons", { "autoHideButtons" })
 			end,
@@ -8991,59 +8992,118 @@ function init()
 			description = BAR.I18N("ui.settings.option.prioconturrets_descr"),
 		},
 
-
-		{ id = "transportOrderedUnits",
+		{
+			id = "transportOrderedUnits",
 			group = "game",
 			category = types.basic,
 			name = "Ferry ignores units with manual orders",
 			type = "bool",
-		value = (WG['transportFactoryGuard'] ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits ~= nil and WG['transportFactoryGuard'].getBlacklistOrderedUnits()),
+			value = (
+				WG["transportFactoryGuard"] ~= nil
+				and WG["transportFactoryGuard"].getBlacklistOrderedUnits ~= nil
+				and WG["transportFactoryGuard"].getBlacklistOrderedUnits()
+			),
 			description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
 			onload = function(i)
-			  loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { 'blacklistOrderedUnits' })
+				loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { "blacklistOrderedUnits" })
 			end,
 			onchange = function(_, value)
 				if widgetHandler.configData["transportFactoryGuard"] == nil then
 					widgetHandler.configData["transportFactoryGuard"] = {}
 				end
 				widgetHandler.configData["Auto Group"].immediate = value
-			  	saveOptionValue('Transport Factory Guard', 'transportFactoryGuard', 'setBlacklistOrderedUnits', { 'blacklistOrderedUnits' }, value)
-				if WG['transportFactoryGuard'] and WG['transportFactoryGuard'].setBlacklistOrderedUnits then
-					WG['transportFactoryGuard'].setBlacklistOrderedUnits(value)
+				saveOptionValue(
+					"Transport Factory Guard",
+					"transportFactoryGuard",
+					"setBlacklistOrderedUnits",
+					{ "blacklistOrderedUnits" },
+					value
+				)
+				if WG["transportFactoryGuard"] and WG["transportFactoryGuard"].setBlacklistOrderedUnits then
+					WG["transportFactoryGuard"].setBlacklistOrderedUnits(value)
 				end
 			end,
 		},
 
+		{
+			id = "settargetdefault",
+			group = "game",
+			category = types.basic,
+			widget = "Set target default",
+			name = BAR.I18N("ui.settings.option.settargetdefault"),
+			type = "bool",
+			value = GetWidgetToggleValue("Set target default"),
+			description = BAR.I18N("ui.settings.option.settargetdefault_descr"),
+		},
+		{
+			id = "dgunnogroundenemies",
+			group = "game",
+			category = types.advanced,
+			widget = "DGun no ground enemies",
+			name = BAR.I18N("ui.settings.option.dgunnogroundenemies"),
+			type = "bool",
+			value = GetWidgetToggleValue("DGun no ground enemies"),
+			description = BAR.I18N("ui.settings.option.dgunnogroundenemies_descr"),
+		},
+		{
+			id = "dgunstallassist",
+			group = "game",
+			category = types.advanced,
+			widget = "DGun Stall Assist",
+			name = BAR.I18N("ui.settings.option.dgunstallassist"),
+			type = "bool",
+			value = GetWidgetToggleValue("DGun Stall Assist"),
+			description = BAR.I18N("ui.settings.option.dgunstallassist_descr"),
+		},
 
-		{ id = "settargetdefault", group = "game", category = types.basic, widget = "Set target default", name = BAR.I18N('ui.settings.option.settargetdefault'), type = "bool", value = GetWidgetToggleValue("Set target default"), description = BAR.I18N('ui.settings.option.settargetdefault_descr') },
-		{ id = "dgunnogroundenemies", group = "game", category = types.advanced, widget = "DGun no ground enemies", name = BAR.I18N('ui.settings.option.dgunnogroundenemies'), type = "bool", value = GetWidgetToggleValue("DGun no ground enemies"), description = BAR.I18N('ui.settings.option.dgunnogroundenemies_descr') },
-		{ id = "dgunstallassist", group = "game", category = types.advanced, widget = "DGun Stall Assist", name = BAR.I18N('ui.settings.option.dgunstallassist'), type = "bool", value = GetWidgetToggleValue("DGun Stall Assist"), description = BAR.I18N('ui.settings.option.dgunstallassist_descr') },
+		{
+			id = "unitreclaimer",
+			group = "game",
+			category = types.basic,
+			widget = "Specific Unit Reclaimer",
+			name = BAR.I18N("ui.settings.option.unitreclaimer"),
+			type = "bool",
+			value = GetWidgetToggleValue("Specific Unit Reclaimer"),
+			description = BAR.I18N("ui.settings.option.unitreclaimer_descr"),
+		},
 
-		{ id = "unitreclaimer", group = "game", category = types.basic, widget = "Specific Unit Reclaimer", name = BAR.I18N('ui.settings.option.unitreclaimer'), type = "bool", value = GetWidgetToggleValue("Specific Unit Reclaimer"), description = BAR.I18N('ui.settings.option.unitreclaimer_descr') },
-
-		{ id = "autogroup_immediate", group = "game", category = types.basic, name = BAR.I18N('ui.settings.option.autogroup_immediate'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getImmediate ~= nil and WG['autogroup'].getImmediate()), description = BAR.I18N('ui.settings.option.autogroup_immediate_descr'),
+		{
+			id = "autogroup_immediate",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.autogroup_immediate"),
+			type = "bool",
+			value = (WG["autogroup"] ~= nil and WG["autogroup"].getImmediate ~= nil and WG["autogroup"].getImmediate()),
+			description = BAR.I18N("ui.settings.option.autogroup_immediate_descr"),
 			onload = function(i)
-			  loadWidgetData("Auto Group", "autogroup_immediate", { 'immediate' })
+				loadWidgetData("Auto Group", "autogroup_immediate", { "immediate" })
 			end,
 			onchange = function(i, value)
 				if widgetHandler.configData["Auto Group"] == nil then
 					widgetHandler.configData["Auto Group"] = {}
 				end
 				widgetHandler.configData["Auto Group"].immediate = value
-			  saveOptionValue('Auto Group', 'autogroup', 'setImmediate', { 'immediate' }, value)
+				saveOptionValue("Auto Group", "autogroup", "setImmediate", { "immediate" }, value)
 			end,
 		},
 
-		{ id = "autogroup_persist", group = "game", category = types.basic, name = BAR.I18N('ui.settings.option.autogroup_persist'), type = "bool", value = (WG['autogroup'] ~= nil and WG['autogroup'].getPersist ~= nil and WG['autogroup'].getPersist()), description = BAR.I18N('ui.settings.option.autogroup_persist_descr'),
+		{
+			id = "autogroup_persist",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.autogroup_persist"),
+			type = "bool",
+			value = (WG["autogroup"] ~= nil and WG["autogroup"].getPersist ~= nil and WG["autogroup"].getPersist()),
+			description = BAR.I18N("ui.settings.option.autogroup_persist_descr"),
 			onload = function(i)
-			  loadWidgetData("Auto Group", "autogroup_persist", { 'persist' })
+				loadWidgetData("Auto Group", "autogroup_persist", { "persist" })
 			end,
 			onchange = function(i, value)
 				if widgetHandler.configData["Auto Group"] == nil then
 					widgetHandler.configData["Auto Group"] = {}
 				end
 				widgetHandler.configData["Auto Group"].persist = value
-			  saveOptionValue('Auto Group', 'autogroup', 'setPersist', { 'persist' }, value)
+				saveOptionValue("Auto Group", "autogroup", "setPersist", { "persist" }, value)
 			end,
 		},
 		{
@@ -12019,14 +12079,33 @@ function init()
 	for i, option in pairs(options) do
 		count = count + 1
 		newOptions[count] = option
-		if option.id == 'label_ui_cloak_spacer' then --previous option was label_ui_cloak_spacer
+		if option.id == "label_ui_cloak_spacer" then --previous option was label_ui_cloak_spacer
 			for unitName, value in pairs(autoCloakDefaults) do
-				local faction = BAR.I18N('units.factions.' .. string.sub(unitName,1,3))
+				local faction = BAR.I18N("units.factions." .. string.sub(unitName, 1, 3))
 				if faction and UnitDefNames[unitName] then
 					count = count + 1
-					newOptions[count] = { id = "autocloak_" .. unitName, group = "game", category = types.basic, name = widgetOptionColor .. "   " .. UnitDefNames[unitName].translatedHumanName..'  ('..faction..')', type = "bool", value = value, description = UnitDefNames[unitName].translatedTooltip,
+					newOptions[count] = {
+						id = "autocloak_" .. unitName,
+						group = "game",
+						category = types.basic,
+						name = widgetOptionColor
+							.. "   "
+							.. UnitDefNames[unitName].translatedHumanName
+							.. "  ("
+							.. faction
+							.. ")",
+						type = "bool",
+						value = value,
+						description = UnitDefNames[unitName].translatedTooltip,
 						onchange = function(i, value)
-							saveOptionValue('State Prefs V2', 'stateprefs', 'setUnitDefaultState', { unitName, GameCMD.WANT_CLOAK }, value and 1 or 0, { unitName, GameCMD.WANT_CLOAK, value and 1 or 0 } )
+							saveOptionValue(
+								"State Prefs V2",
+								"stateprefs",
+								"setUnitDefaultState",
+								{ unitName, GameCMD.WANT_CLOAK },
+								value and 1 or 0,
+								{ unitName, GameCMD.WANT_CLOAK, value and 1 or 0 }
+							)
 						end,
 					}
 				end
