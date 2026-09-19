@@ -443,6 +443,12 @@ local function finishStrokeSnapshot()
 	if not strokeSnap then
 		return
 	end
+	-- A finished stroke is an edit the project does not have yet.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("diffuse")
+	end
 	local items = strokeSnap.items
 	strokeSnap = nil
 	if #items == 0 then

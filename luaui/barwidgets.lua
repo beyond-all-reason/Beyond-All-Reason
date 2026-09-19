@@ -213,6 +213,7 @@ local callInLists = {
 	"Update",
 	"TextCommand",
 	"CommandNotify",
+	"AllowQuit",
 	"AddConsoleLine",
 	"ViewResize",
 	"DrawScreen",
@@ -1919,6 +1920,20 @@ function widgetHandler:CommandNotify(id, params, options)
 	end
 	tracy.ZoneEnd()
 	return false
+end
+
+-- Engine AllowQuit callin (Engine.FeatureSupport.allowQuitCallin): a window
+-- close request (the close button, Alt+F4) asks before the game quits. Every
+-- widget that answers must allow; a widget that returns false keeps the game
+-- open and is expected to quit it later itself (Spring.Quit never asks).
+-- Engines without the callin never call this.
+function widgetHandler:AllowQuit()
+	for _, w in ipairs(self.AllowQuitList) do
+		if w:AllowQuit() == false then
+			return false
+		end
+	end
+	return true
 end
 
 function widgetHandler:AddConsoleLine(msg, priority)
