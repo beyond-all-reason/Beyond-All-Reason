@@ -1,0 +1,478 @@
+// These two static-var's MUST be declared in the script that includes this header.
+// static-var  isMoving, maxSpeed;
+// Im uncertain if the isMoving is really needed, but it doesnt cost much and it works. 
+
+// The animation function's name gets exported as ANIMATIONNAME, e.g. WALK
+
+
+// Times here are specified as milliseconds per frame. So 33 is the default speed.
+// If you want to accelerate or decelerate the animation, adjust this accordingly. 
+// Best results are always with the default baked animation time of 33, so consider remastering the animation if it differs significantly. 
+#ifndef ANIMATIONNAME_DEFAULT_ANIM_TIME
+	#define ANIMATIONNAME_DEFAULT_ANIM_TIME 33
+#endif
+
+// Controls the lowest speed percentage for the animation, given as a fraction of mastered speed
+#ifndef ANIMATIONNAME_MIN_SPEED_PERCENT
+	#define ANIMATIONNAME_MIN_SPEED_PERCENT 33
+#endif
+
+// Controls the highest speed percentage for the animation, given as a fraction of mastered speed
+#ifndef ANIMATIONNAME_MAX_SPEED_PERCENT
+	#define ANIMATIONNAME_MAX_SPEED_PERCENT 175
+#endif
+
+// This is a hard-coded scaling factor affecting moves only that is only needed if the model is ever upscaled (turns are unaffected by model scaling)
+#ifndef ANIMATIONNAME_MOVESCALE
+	#define ANIMATIONNAME_MOVESCALE 100
+#endif
+
+// The default signal mask is just movement. Please ensure that you change it if you want the animation to be interruptible by other signals.
+#ifndef ANIMATIONNAME_SIGNAL_MASK
+	#define ANIMATIONNAME_SIGNAL_MASK SIGNAL_MOVE
+#endif
+
+// The canonical way to override the duration of the first frame (e.g. from stance to walk loop) is by setting this count.
+#ifndef ANIMATIONNAME_FIRST_FRAME_COUNT
+	#define ANIMATIONNAME_FIRST_FRAME_COUNT 3
+#endif
+
+// The speed at which the stop animation should play, expressed in realative percent of the mastering
+#ifndef ANIMATIONNAME_STOP_SPEED
+	#define ANIMATIONNAME_STOP_SPEED 100
+#endif
+
+// Call this from Create(), this is the quick initializer that ensure maxSpeed is set and has a minimum value of 1.
+#ifndef ANIMATIONNAME_INIT
+	#define ANIMATIONNAME_INIT()\
+		maxSpeed = get (MAX_SPEED); \
+		if (maxSpeed < 1) maxSpeed = 1; 
+#endif
+
+// The following macro is used only within the script itself, and is responsible for blending move speeds and and animation amplitude
+// Along with keeping track of fractional milliseconds of animation time needed. 
+#ifndef ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE
+	#define ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE() \
+            ANIMATIONNAME_currentPercent = ((100 * get (CURRENT_SPEED) ) / maxSpeed  - 100); \
+			if (ANIMATIONNAME_currentPercent <  ANIMATIONNAME_MIN_SPEED_PERCENT - 100) ANIMATIONNAME_currentPercent = ANIMATIONNAME_MIN_SPEED_PERCENT - 100; \
+			if (ANIMATIONNAME_currentPercent > ANIMATIONNAME_MAX_SPEED_PERCENT - 100) ANIMATIONNAME_currentPercent = ANIMATIONNAME_MAX_SPEED_PERCENT - 100; \
+            ANIMATIONNAME_currentTime = (ANIMATIONNAME_DEFAULT_ANIM_TIME * (100 - ((ANIMATIONNAME_currentPercent /2)))) / 100; \
+            ANIMATIONNAME_amplitude = 100 + ((ANIMATIONNAME_currentPercent * 60) / 100); \
+			ANIMATIONNAME_currentTime = ANIMATIONNAME_desiredFrames * ANIMATIONNAME_currentTime + ANIMATIONNAME_remainder_ms; \
+			ANIMATIONNAME_remainder_ms = ANIMATIONNAME_currentTime % 33;  \
+			ANIMATIONNAME_desiredFrames = ANIMATIONNAME_currentTime / 33;  \
+
+            //get PRINT (get (GAME_FRAME), ANIMATIONNAME_currentPercent, ANIMATIONNAME_currentTime, ANIMATIONNAME_amplitude); \
+
+ #endif
+
+
+// Start-script ANIMATIONNAME(); usually in StartMoving()
+ANIMATIONNAME() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corak_anim_walk_v2.blend 
+	set-signal-mask ANIMATIONNAME_SIGNAL_MASK;
+    var ANIMATIONNAME_remainder_ms;
+	var ANIMATIONNAME_currentTime;
+    var ANIMATIONNAME_currentPercent;
+	var ANIMATIONNAME_desiredFrames;
+    var ANIMATIONNAME_amplitude; // Always expressed in percent.
+	//ANIMATIONNAME_remainder_ms = RAND(0, 66); // Could make sense to randomize by 1 or 2 frames, but hardly noticeable anyway.
+
+    if (isMoving) { // The first frame of the walking animation MUST be done at at most 2x the desired frames. 
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+            ANIMATIONNAME_desiredFrames = ANIMATIONNAME_FIRST_FRAME_COUNT;
+            // Note that due to COB angular constants being 182, <1> == 182 in integers, putting the division by 100 only makes sense on speed terms, which are much larger. On the turn axis targets, constant folding would truncate our small, less than <1> angles 
+            // Moves have a linear constant of 64K, so there we can safely put the division by 100 before the mults with amplitude.
+			turn lfoot to x-axis ((<-40.243512>/ 100)  *ANIMATIONNAME_amplitude) speed ((<1273.943828> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to z-axis ((<-7.440659> *ANIMATIONNAME_amplitude)/100) speed ((<223.219252> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to y-axis ((<-5.865953> *ANIMATIONNAME_amplitude)/100) speed ((<727.995439> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<-6.830024> *ANIMATIONNAME_amplitude)/100) speed ((<172.844587> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<0.345820> *ANIMATIONNAME_amplitude)/100) speed ((<29.023982> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<0.304802> *ANIMATIONNAME_amplitude)/100) speed ((<19.258346> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<26.076006> *ANIMATIONNAME_amplitude)/100) speed ((<770.050910> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<-0.157717> *ANIMATIONNAME_amplitude)/100) speed ((<7.701529> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-0.087720> *ANIMATIONNAME_amplitude)/100) speed ((<27.150911> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<18.795205> *ANIMATIONNAME_amplitude)/100) speed ((<152.239487> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<23.125820> *ANIMATIONNAME_amplitude)/100) speed ((<731.292682> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<4.131044> *ANIMATIONNAME_amplitude)/100) speed ((<165.843277> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<-0.006083> *ANIMATIONNAME_amplitude)/100) speed ((<9.977088> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<-15.533187> *ANIMATIONNAME_amplitude)/100) speed ((<362.612128> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<-4.025448> *ANIMATIONNAME_amplitude)/100) speed ((<134.371865> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<-1.012513> *ANIMATIONNAME_amplitude)/100) speed ((<204.477528> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<-2.390000> *ANIMATIONNAME_amplitude)/100) speed ((<71.699998> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<3.0> *ANIMATIONNAME_amplitude)/100) speed ((<90.0> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<39.611634> *ANIMATIONNAME_amplitude)/100) speed ((<1130.819000> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<-9.393908> *ANIMATIONNAME_amplitude)/100) speed ((<282.235463> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<5.383341> *ANIMATIONNAME_amplitude)/100) speed ((<241.075747> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<0.381296> *ANIMATIONNAME_amplitude)/100) speed ((<29.623899> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<-0.363446> *ANIMATIONNAME_amplitude)/100) speed ((<38.107235> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<-31.505187> *ANIMATIONNAME_amplitude)/100) speed ((<1037.860666> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<3.062627> *ANIMATIONNAME_amplitude)/100) speed ((<76.071680> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<3.820081> *ANIMATIONNAME_amplitude)/100) speed ((<190.336606> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<-0.115769> *ANIMATIONNAME_amplitude)/100) speed ((<357.617331> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<-22.733392> *ANIMATIONNAME_amplitude)/100) speed ((<614.661624> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<2.905186> *ANIMATIONNAME_amplitude)/100) speed ((<18.693993> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<2.837642> *ANIMATIONNAME_amplitude)/100) speed ((<115.024912> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<6.073401> *ANIMATIONNAME_amplitude)/100) speed ((<288.740629> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<-2.618910> *ANIMATIONNAME_amplitude)/100) speed ((<373.295110> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<0.276228> *ANIMATIONNAME_amplitude)/100) speed ((<187.966625> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<-6.060918> *ANIMATIONNAME_amplitude)/100) speed ((<182.948716> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+	}
+	while(isMoving) {
+		if (isMoving) { //Frame:4
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+            
+			turn lfoot to x-axis ((<-30.657758> *ANIMATIONNAME_amplitude)/100) speed ((<287.572616> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to z-axis ((<-1.578026> *ANIMATIONNAME_amplitude)/100) speed ((<175.878977> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to y-axis ((<-3.384192> *ANIMATIONNAME_amplitude)/100) speed ((<74.452829> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<-6.365428> *ANIMATIONNAME_amplitude)/100) speed ((<13.937889> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<0.627497> *ANIMATIONNAME_amplitude)/100) speed ((<8.450319> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<-0.125771> *ANIMATIONNAME_amplitude)/100) speed ((<12.917179> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<34.419505> *ANIMATIONNAME_amplitude)/100) speed ((<250.304986> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<4.133390> *ANIMATIONNAME_amplitude)/100) speed ((<126.633291> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<38.934206> *ANIMATIONNAME_amplitude)/100) speed ((<604.170018> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<43.405395> *ANIMATIONNAME_amplitude)/100) speed ((<608.387233> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<-0.157018> *ANIMATIONNAME_amplitude)/100) speed ((<128.641886> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<4.913218> *ANIMATIONNAME_amplitude)/100) speed ((<147.579022> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<-38.188086> *ANIMATIONNAME_amplitude)/100) speed ((<679.646972> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<-9.569086> *ANIMATIONNAME_amplitude)/100) speed ((<166.309155> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<-6.279474> *ANIMATIONNAME_amplitude)/100) speed ((<158.008808> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-0.520000] *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([15.599999]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<-0.0> *ANIMATIONNAME_amplitude)/100) speed ((<71.699998> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<5.0> *ANIMATIONNAME_amplitude)/100) speed ((<59.999993> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<24.484406> *ANIMATIONNAME_amplitude)/100) speed ((<453.816842> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<-0.003345> *ANIMATIONNAME_amplitude)/100) speed ((<281.716910> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<-25.170605> *ANIMATIONNAME_amplitude)/100) speed ((<916.618362> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<1.658174> *ANIMATIONNAME_amplitude)/100) speed ((<38.306322> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<2.094784> *ANIMATIONNAME_amplitude)/100) speed ((<73.746915> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<12.264737> *ANIMATIONNAME_amplitude)/100) speed ((<1313.097704> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<-0.090587> *ANIMATIONNAME_amplitude)/100) speed ((<94.596422> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<-1.066060> *ANIMATIONNAME_amplitude)/100) speed ((<146.584218> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<-4.646985> *ANIMATIONNAME_amplitude)/100) speed ((<135.936497> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<-39.697541> *ANIMATIONNAME_amplitude)/100) speed ((<508.924481> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<2.737817> *ANIMATIONNAME_amplitude)/100) speed ((<5.021079> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<5.181143> *ANIMATIONNAME_amplitude)/100) speed ((<70.305026> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<14.323402> *ANIMATIONNAME_amplitude)/100) speed ((<247.500020> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<-3.641867> *ANIMATIONNAME_amplitude)/100) speed ((<30.688723> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<-1.015437> *ANIMATIONNAME_amplitude)/100) speed ((<38.749968> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<-8.679222> *ANIMATIONNAME_amplitude)/100) speed ((<78.549118> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:6
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<-39.010424> *ANIMATIONNAME_amplitude)/100) speed ((<250.579970> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to z-axis ((<-0.002108> *ANIMATIONNAME_amplitude)/100) speed ((<47.277535> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to y-axis ((<-0.006890> *ANIMATIONNAME_amplitude)/100) speed ((<101.319038> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<22.853738> *ANIMATIONNAME_amplitude)/100) speed ((<876.574965> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<-1.186151> *ANIMATIONNAME_amplitude)/100) speed ((<54.409440> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<4.123133> *ANIMATIONNAME_amplitude)/100) speed ((<127.467114> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<-14.821478> *ANIMATIONNAME_amplitude)/100) speed ((<1477.229506> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<-0.568119> *ANIMATIONNAME_amplitude)/100) speed ((<10.721675> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-1.088983> *ANIMATIONNAME_amplitude)/100) speed ((<156.671196> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<7.764953> *ANIMATIONNAME_amplitude)/100) speed ((<935.077597> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<34.201735> *ANIMATIONNAME_amplitude)/100) speed ((<276.109782> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<-1.961119> *ANIMATIONNAME_amplitude)/100) speed ((<54.123014> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<5.895231> *ANIMATIONNAME_amplitude)/100) speed ((<29.460377> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<-19.159760> *ANIMATIONNAME_amplitude)/100) speed ((<570.849794> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<-4.950884> *ANIMATIONNAME_amplitude)/100) speed ((<138.546089> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<-1.486378> *ANIMATIONNAME_amplitude)/100) speed ((<143.792862> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-0.990000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([14.100001]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<6.740000> *ANIMATIONNAME_amplitude)/100) speed ((<202.199998> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<2.970000> *ANIMATIONNAME_amplitude)/100) speed ((<60.900003> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<37.153043> *ANIMATIONNAME_amplitude)/100) speed ((<380.059097> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to z-axis ((<8.934135> *ANIMATIONNAME_amplitude)/100) speed ((<268.003689> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<-12.813064> *ANIMATIONNAME_amplitude)/100) speed ((<384.291590> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<-9.596093> *ANIMATIONNAME_amplitude)/100) speed ((<467.235346> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<-1.342735> *ANIMATIONNAME_amplitude)/100) speed ((<90.027277> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<1.142380> *ANIMATIONNAME_amplitude)/100) speed ((<28.572115> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<-10.387000> *ANIMATIONNAME_amplitude)/100) speed ((<679.552101> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<-0.839981> *ANIMATIONNAME_amplitude)/100) speed ((<22.481842> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<3.611564> *ANIMATIONNAME_amplitude)/100) speed ((<140.328704> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<-15.163607> *ANIMATIONNAME_amplitude)/100) speed ((<315.498660> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<-25.794549> *ANIMATIONNAME_amplitude)/100) speed ((<417.089753> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<-2.194373> *ANIMATIONNAME_amplitude)/100) speed ((<147.965705> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<4.020788> *ANIMATIONNAME_amplitude)/100) speed ((<34.810670> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<13.726036> *ANIMATIONNAME_amplitude)/100) speed ((<17.920974> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<-3.523284> *ANIMATIONNAME_amplitude)/100) speed ((<3.557483> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<-5.940345> *ANIMATIONNAME_amplitude)/100) speed ((<82.166318> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:8
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<2.496757> *ANIMATIONNAME_amplitude)/100) speed ((<1245.215437> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<23.683565> *ANIMATIONNAME_amplitude)/100) speed ((<24.894810> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<-0.307654> *ANIMATIONNAME_amplitude)/100) speed ((<26.354925> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<1.733618> *ANIMATIONNAME_amplitude)/100) speed ((<71.685440> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<-41.143980> *ANIMATIONNAME_amplitude)/100) speed ((<789.675070> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<-1.093781> *ANIMATIONNAME_amplitude)/100) speed ((<15.769877> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-4.328630> *ANIMATIONNAME_amplitude)/100) speed ((<97.189416> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<-0.334923> *ANIMATIONNAME_amplitude)/100) speed ((<242.996259> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<8.135991> *ANIMATIONNAME_amplitude)/100) speed ((<781.972333> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<-2.494973> *ANIMATIONNAME_amplitude)/100) speed ((<16.015626> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<2.347090> *ANIMATIONNAME_amplitude)/100) speed ((<106.444227> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<-2.433948> *ANIMATIONNAME_amplitude)/100) speed ((<501.774362> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<-0.551755> *ANIMATIONNAME_amplitude)/100) speed ((<131.973857> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<-0.128355> *ANIMATIONNAME_amplitude)/100) speed ((<40.740708> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-0.028000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([28.860000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<3.070000> *ANIMATIONNAME_amplitude)/100) speed ((<110.099994> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<-0.010000> *ANIMATIONNAME_amplitude)/100) speed ((<89.400000> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<0.579182> *ANIMATIONNAME_amplitude)/100) speed ((<1097.215835> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to z-axis ((<9.697182> *ANIMATIONNAME_amplitude)/100) speed ((<22.891422> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<-5.852873> *ANIMATIONNAME_amplitude)/100) speed ((<208.805747> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<-2.039017> *ANIMATIONNAME_amplitude)/100) speed ((<226.712269> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<-2.372498> *ANIMATIONNAME_amplitude)/100) speed ((<30.892883> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<0.697846> *ANIMATIONNAME_amplitude)/100) speed ((<13.336030> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<1.418999> *ANIMATIONNAME_amplitude)/100) speed ((<354.179965> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<-1.985140> *ANIMATIONNAME_amplitude)/100) speed ((<34.354772> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<3.043927> *ANIMATIONNAME_amplitude)/100) speed ((<17.029096> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<-3.987276> *ANIMATIONNAME_amplitude)/100) speed ((<335.289948> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<-2.410771> *ANIMATIONNAME_amplitude)/100) speed ((<701.513340> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<-4.519230> *ANIMATIONNAME_amplitude)/100) speed ((<69.745691> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<2.522605> *ANIMATIONNAME_amplitude)/100) speed ((<44.945490> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<1.362851> *ANIMATIONNAME_amplitude)/100) speed ((<370.895552> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<-0.497283> *ANIMATIONNAME_amplitude)/100) speed ((<90.780029> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<-0.026282> *ANIMATIONNAME_amplitude)/100) speed ((<31.278638> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<0.085185> *ANIMATIONNAME_amplitude)/100) speed ((<180.765899> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:10
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<38.743818> *ANIMATIONNAME_amplitude)/100) speed ((<1087.411814> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<6.114390> *ANIMATIONNAME_amplitude)/100) speed ((<527.075257> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<-1.151940> *ANIMATIONNAME_amplitude)/100) speed ((<25.328603> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<0.462818> *ANIMATIONNAME_amplitude)/100) speed ((<38.124001> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<-32.212361> *ANIMATIONNAME_amplitude)/100) speed ((<267.948594> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<-1.218581> *ANIMATIONNAME_amplitude)/100) speed ((<3.743992> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-1.139046> *ANIMATIONNAME_amplitude)/100) speed ((<95.687518> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<11.429264> *ANIMATIONNAME_amplitude)/100) speed ((<352.925592> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<-23.522654> *ANIMATIONNAME_amplitude)/100) speed ((<949.759345> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<-4.561886> *ANIMATIONNAME_amplitude)/100) speed ((<62.007396> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<-1.962713> *ANIMATIONNAME_amplitude)/100) speed ((<129.294085> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<-11.546510> *ANIMATIONNAME_amplitude)/100) speed ((<273.376866> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<0.020005> *ANIMATIONNAME_amplitude)/100) speed ((<17.152801> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<-2.829427> *ANIMATIONNAME_amplitude)/100) speed ((<81.032159> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-0.295000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([8.010001]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<-2.090000> *ANIMATIONNAME_amplitude)/100) speed ((<154.800001> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<-3.020000> *ANIMATIONNAME_amplitude)/100) speed ((<90.299997> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<-42.315286> *ANIMATIONNAME_amplitude)/100) speed ((<1286.834032> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to z-axis ((<7.682254> *ANIMATIONNAME_amplitude)/100) speed ((<60.447840> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<6.232020> *ANIMATIONNAME_amplitude)/100) speed ((<362.546770> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<-5.922912> *ANIMATIONNAME_amplitude)/100) speed ((<116.516840> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<0.237168> *ANIMATIONNAME_amplitude)/100) speed ((<78.289998> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<-0.176416> *ANIMATIONNAME_amplitude)/100) speed ((<26.227860> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<24.980239> *ANIMATIONNAME_amplitude)/100) speed ((<706.837193> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<-0.548087> *ANIMATIONNAME_amplitude)/100) speed ((<43.111597> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<0.357049> *ANIMATIONNAME_amplitude)/100) speed ((<80.606348> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<13.709837> *ANIMATIONNAME_amplitude)/100) speed ((<530.913396> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<23.022121> *ANIMATIONNAME_amplitude)/100) speed ((<762.986759> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<-4.234439> *ANIMATIONNAME_amplitude)/100) speed ((<8.543721> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<0.031378> *ANIMATIONNAME_amplitude)/100) speed ((<74.736792> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<-14.629546> *ANIMATIONNAME_amplitude)/100) speed ((<479.771920> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<4.218827> *ANIMATIONNAME_amplitude)/100) speed ((<141.483307> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<1.933472> *ANIMATIONNAME_amplitude)/100) speed ((<58.792617> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<6.110734> *ANIMATIONNAME_amplitude)/100) speed ((<180.766460> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:12
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<25.040025> *ANIMATIONNAME_amplitude)/100) speed ((<411.113782> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<-25.275077> *ANIMATIONNAME_amplitude)/100) speed ((<941.684012> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<-1.282850> *ANIMATIONNAME_amplitude)/100) speed ((<3.927293> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<-2.896653> *ANIMATIONNAME_amplitude)/100) speed ((<100.784134> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<11.758685> *ANIMATIONNAME_amplitude)/100) speed ((<1319.131382> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<-0.728330> *ANIMATIONNAME_amplitude)/100) speed ((<14.707537> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<1.978969> *ANIMATIONNAME_amplitude)/100) speed ((<93.540465> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<-5.147298> *ANIMATIONNAME_amplitude)/100) speed ((<497.296866> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<-39.148165> *ANIMATIONNAME_amplitude)/100) speed ((<468.765325> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<-2.765572> *ANIMATIONNAME_amplitude)/100) speed ((<53.889431> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<-5.165048> *ANIMATIONNAME_amplitude)/100) speed ((<96.070032> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<15.052499> *ANIMATIONNAME_amplitude)/100) speed ((<797.970266> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<2.670525> *ANIMATIONNAME_amplitude)/100) speed ((<79.515585> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<0.899942> *ANIMATIONNAME_amplitude)/100) speed ((<111.881066> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-0.510000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([6.449999]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<-0.020000> *ANIMATIONNAME_amplitude)/100) speed ((<62.100001> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<-5.360000> *ANIMATIONNAME_amplitude)/100) speed ((<70.200006> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<-30.524095> *ANIMATIONNAME_amplitude)/100) speed ((<353.735736> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to z-axis ((<1.575841> *ANIMATIONNAME_amplitude)/100) speed ((<183.192403> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<3.379851> *ANIMATIONNAME_amplitude)/100) speed ((<85.565069> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<0.124295> *ANIMATIONNAME_amplitude)/100) speed ((<3.386209> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<0.562551> *ANIMATIONNAME_amplitude)/100) speed ((<22.169016> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<34.785873> *ANIMATIONNAME_amplitude)/100) speed ((<294.169042> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<-0.766034> *ANIMATIONNAME_amplitude)/100) speed ((<6.538402> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<-4.202078> *ANIMATIONNAME_amplitude)/100) speed ((<136.773819> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<36.269674> *ANIMATIONNAME_amplitude)/100) speed ((<676.795095> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<42.784230> *ANIMATIONNAME_amplitude)/100) speed ((<592.863272> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<-0.065047> *ANIMATIONNAME_amplitude)/100) speed ((<125.081756> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<-4.734660> *ANIMATIONNAME_amplitude)/100) speed ((<142.981142> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<-36.734161> *ANIMATIONNAME_amplitude)/100) speed ((<663.138439> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<10.583475> *ANIMATIONNAME_amplitude)/100) speed ((<190.939458> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<8.318628> *ANIMATIONNAME_amplitude)/100) speed ((<191.554687> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<8.849594> *ANIMATIONNAME_amplitude)/100) speed ((<82.165818> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:14
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<37.387998> *ANIMATIONNAME_amplitude)/100) speed ((<370.439186> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to z-axis ((<-8.962304> *ANIMATIONNAME_amplitude)/100) speed ((<268.846559> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to y-axis ((<12.859584> *ANIMATIONNAME_amplitude)/100) speed ((<385.678150> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<-9.441686> *ANIMATIONNAME_amplitude)/100) speed ((<475.001758> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<1.271139> *ANIMATIONNAME_amplitude)/100) speed ((<76.619681> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<-1.407645> *ANIMATIONNAME_amplitude)/100) speed ((<44.670228> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<-10.324155> *ANIMATIONNAME_amplitude)/100) speed ((<662.485225> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<0.960237> *ANIMATIONNAME_amplitude)/100) speed ((<50.657005> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-3.255075> *ANIMATIONNAME_amplitude)/100) speed ((<157.021326> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<-15.936846> *ANIMATIONNAME_amplitude)/100) speed ((<323.686434> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<-25.377240> *ANIMATIONNAME_amplitude)/100) speed ((<413.127749> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<2.240162> *ANIMATIONNAME_amplitude)/100) speed ((<150.172014> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<-4.056589> *ANIMATIONNAME_amplitude)/100) speed ((<33.253758> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<13.964900> *ANIMATIONNAME_amplitude)/100) speed ((<32.627976> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<2.304844> *ANIMATIONNAME_amplitude)/100) speed ((<10.970419> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<1.097682> *ANIMATIONNAME_amplitude)/100) speed ((<5.932195> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-1.027000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([15.509999]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<6.120000> *ANIMATIONNAME_amplitude)/100) speed ((<184.199989> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<-3.020000> *ANIMATIONNAME_amplitude)/100) speed ((<70.199999> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<-37.669118> *ANIMATIONNAME_amplitude)/100) speed ((<214.350700> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to z-axis ((<0.002079> *ANIMATIONNAME_amplitude)/100) speed ((<47.212867> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to y-axis ((<0.006794> *ANIMATIONNAME_amplitude)/100) speed ((<101.191700> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<22.375748> *ANIMATIONNAME_amplitude)/100) speed ((<849.199349> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<-3.001270> *ANIMATIONNAME_amplitude)/100) speed ((<106.914647> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<-15.573975> *ANIMATIONNAME_amplitude)/100) speed ((<1510.795463> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<1.078429> *ANIMATIONNAME_amplitude)/100) speed ((<55.333897> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<0.621153> *ANIMATIONNAME_amplitude)/100) speed ((<144.696955> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<7.481300> *ANIMATIONNAME_amplitude)/100) speed ((<863.651218> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<35.130125> *ANIMATIONNAME_amplitude)/100) speed ((<229.623139> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<1.654511> *ANIMATIONNAME_amplitude)/100) speed ((<51.586739> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<-5.841921> *ANIMATIONNAME_amplitude)/100) speed ((<33.217822> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<-19.401972> *ANIMATIONNAME_amplitude)/100) speed ((<519.965670> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<5.353858> *ANIMATIONNAME_amplitude)/100) speed ((<156.888527> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<3.084982> *ANIMATIONNAME_amplitude)/100) speed ((<157.009377> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<5.762510> *ANIMATIONNAME_amplitude)/100) speed ((<92.612524> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:16
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<0.464192> *ANIMATIONNAME_amplitude)/100) speed ((<1107.714192> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to z-axis ((<-9.697005> *ANIMATIONNAME_amplitude)/100) speed ((<22.041012> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to y-axis ((<5.833231> *ANIMATIONNAME_amplitude)/100) speed ((<210.790579> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<-2.0> *ANIMATIONNAME_amplitude)/100) speed ((<223.240686> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<2.411943> *ANIMATIONNAME_amplitude)/100) speed ((<34.224105> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<-0.749186> *ANIMATIONNAME_amplitude)/100) speed ((<19.753780> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<1.204694> *ANIMATIONNAME_amplitude)/100) speed ((<345.865479> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<1.961544> *ANIMATIONNAME_amplitude)/100) speed ((<30.039223> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-2.972589> *ANIMATIONNAME_amplitude)/100) speed ((<8.474591> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<-4.648268> *ANIMATIONNAME_amplitude)/100) speed ((<338.657342> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<-2.351720> *ANIMATIONNAME_amplitude)/100) speed ((<690.765615> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<4.489955> *ANIMATIONNAME_amplitude)/100) speed ((<67.493810> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<-2.580664> *ANIMATIONNAME_amplitude)/100) speed ((<44.277734> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<2.055360> *ANIMATIONNAME_amplitude)/100) speed ((<357.286182> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<-0.287076> *ANIMATIONNAME_amplitude)/100) speed ((<77.757598> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<0.713883> *ANIMATIONNAME_amplitude)/100) speed ((<11.513976> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			move pelvis to y-axis ((([-0.065000]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) speed ((([28.860001]  *ANIMATIONNAME_MOVESCALE)/ 10000) *ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<3.050000> *ANIMATIONNAME_amplitude)/100) speed ((<92.099998> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<-0.060000> *ANIMATIONNAME_amplitude)/100) speed ((<88.799998> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<4.648639> *ANIMATIONNAME_amplitude)/100) speed ((<1269.532721> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<22.810462> *ANIMATIONNAME_amplitude)/100) speed ((<13.041427> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<-1.186372> *ANIMATIONNAME_amplitude)/100) speed ((<40.379282> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<-0.668387> *ANIMATIONNAME_amplitude)/100) speed ((<69.986508> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<-41.861666> *ANIMATIONNAME_amplitude)/100) speed ((<788.630717> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<2.536832> *ANIMATIONNAME_amplitude)/100) speed ((<43.752081> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<4.475032> *ANIMATIONNAME_amplitude)/100) speed ((<115.616342> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<-0.686195> *ANIMATIONNAME_amplitude)/100) speed ((<245.024858> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<8.108854> *ANIMATIONNAME_amplitude)/100) speed ((<810.638150> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<2.222653> *ANIMATIONNAME_amplitude)/100) speed ((<17.044253> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<-2.104883> *ANIMATIONNAME_amplitude)/100) speed ((<112.111131> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<-3.048251> *ANIMATIONNAME_amplitude)/100) speed ((<490.611639> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<-0.061343> *ANIMATIONNAME_amplitude)/100) speed ((<162.456033> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<0.968246> *ANIMATIONNAME_amplitude)/100) speed ((<63.502084> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<-0.411658> *ANIMATIONNAME_amplitude)/100) speed ((<185.225044> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+		if (isMoving) { //Frame:18
+            ANIMATIONNAME_desiredFrames = 2;
+		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
+			turn lfoot to x-axis ((<-40.243512> *ANIMATIONNAME_amplitude)/100) speed ((<1221.231110> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to z-axis ((<-7.440659> *ANIMATIONNAME_amplitude)/100) speed ((<67.690385> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lfoot to y-axis ((<-5.865953> *ANIMATIONNAME_amplitude)/100) speed ((<350.975516> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to x-axis ((<-6.830024> *ANIMATIONNAME_amplitude)/100) speed ((<144.890839> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to z-axis ((<0.345820> *ANIMATIONNAME_amplitude)/100) speed ((<61.983694> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lknee to y-axis ((<0.304802> *ANIMATIONNAME_amplitude)/100) speed ((<31.619633> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to x-axis ((<26.076006> *ANIMATIONNAME_amplitude)/100) speed ((<746.139360> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to z-axis ((<-0.157717> *ANIMATIONNAME_amplitude)/100) speed ((<63.577841> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lleg to y-axis ((<-0.087720> *ANIMATIONNAME_amplitude)/100) speed ((<86.546071> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lloarm to x-axis ((<18.795205> *ANIMATIONNAME_amplitude)/100) speed ((<703.304203> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to x-axis ((<23.125820> *ANIMATIONNAME_amplitude)/100) speed ((<764.326189> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to z-axis ((<4.131044> *ANIMATIONNAME_amplitude)/100) speed ((<10.767332> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn lthigh to y-axis ((<-0.006083> *ANIMATIONNAME_amplitude)/100) speed ((<77.237453> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to x-axis ((<-15.533187> *ANIMATIONNAME_amplitude)/100) speed ((<527.656427> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to z-axis ((<-4.025448> *ANIMATIONNAME_amplitude)/100) speed ((<112.151159> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn luparm to y-axis ((<-1.012513> *ANIMATIONNAME_amplitude)/100) speed ((<51.791888> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to x-axis ((<-2.390000> *ANIMATIONNAME_amplitude)/100) speed ((<163.199994> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn pelvis to y-axis ((<3.0> *ANIMATIONNAME_amplitude)/100) speed ((<91.800016> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rfoot to x-axis ((<39.693501> *ANIMATIONNAME_amplitude)/100) speed ((<1051.345854> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to x-axis ((<5.049624> *ANIMATIONNAME_amplitude)/100) speed ((<532.825140> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to z-axis ((<0.401872> *ANIMATIONNAME_amplitude)/100) speed ((<47.647319> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rknee to y-axis ((<-0.387074> *ANIMATIONNAME_amplitude)/100) speed ((<8.439376> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to x-axis ((<-31.194563> *ANIMATIONNAME_amplitude)/100) speed ((<320.013077> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to z-axis ((<2.029706> *ANIMATIONNAME_amplitude)/100) speed ((<15.213766> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rleg to y-axis ((<1.439265> *ANIMATIONNAME_amplitude)/100) speed ((<91.072985> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rloarm to x-axis ((<13.871573> *ANIMATIONNAME_amplitude)/100) speed ((<436.733046> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to x-axis ((<-22.875507> *ANIMATIONNAME_amplitude)/100) speed ((<929.530826> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to z-axis ((<4.381601> *ANIMATIONNAME_amplitude)/100) speed ((<64.768449> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn rthigh to y-axis ((<1.935411> *ANIMATIONNAME_amplitude)/100) speed ((<121.208802> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to x-axis ((<-11.229837> *ANIMATIONNAME_amplitude)/100) speed ((<245.447582> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to z-axis ((<-0.266262> *ANIMATIONNAME_amplitude)/100) speed ((<6.147563> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn ruparm to y-axis ((<3.633788> *ANIMATIONNAME_amplitude)/100) speed ((<79.966261> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+			turn torso to y-axis ((<-6.060918> *ANIMATIONNAME_amplitude)/100) speed ((<169.477809> / 100 ) * ANIMATIONNAME_amplitude) / ANIMATIONNAME_desiredFrames; //delta=%.2f
+		sleep ((33*ANIMATIONNAME_desiredFrames) -1);
+		}
+	}
+}
+
+// Call-script this when you want to stop the animation
+// This is generated by collecting the maximum speeds during the animation, so it is dependant on the setup, but should still be adjustable via ANIMATIONNAME_STOP_SPEED
+STOP_ANIMATIONNAME() {
+	move pelvis to y-axis ([0.0]*ANIMATIONNAME_MOVESCALE)/100 speed ([14.430001]*ANIMATIONNAME_MOVESCALE)/100;
+	turn lfoot to x-axis <2.221282> speed ((<636.971914> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lfoot to y-axis <18.400562> speed ((<363.997720> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lfoot to z-axis <0.0> speed ((<134.425701> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lknee to x-axis <-1.068538> speed ((<445.542661> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lknee to y-axis <-0.337143> speed ((<63.733557> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lknee to z-axis <-0.621646> speed ((<40.672059> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lleg to x-axis <0.407642> speed ((<738.614753> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lleg to y-axis <0.817311> speed ((<78.466755> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lleg to z-axis <-0.414435> speed ((<31.788921> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lloarm to x-axis <13.720556> speed ((<467.538799> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lthigh to x-axis <-1.250603> speed ((<474.879672> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lthigh to y-axis <0.326487> speed ((<76.971956> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn lthigh to z-axis <-1.397065> speed ((<111.814142> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn luparm to x-axis <-3.446116> speed ((<398.985133> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn luparm to y-axis <5.803404> speed ((<102.238764> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn luparm to z-axis <-8.504510> speed ((<83.154578> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn pelvis to x-axis <0.0> speed ((<101.099999> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn pelvis to y-axis <0.0> speed ((<45.900008> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rfoot to x-axis <1.917668> speed ((<643.417016> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rfoot to y-axis <-18.801757> speed ((<192.146661> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rfoot to z-axis <0.0> speed ((<134.003519> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rknee to x-axis <-2.652517> speed ((<443.287956> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rknee to y-axis <0.906795> speed ((<53.457324> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rknee to z-axis <1.368760> speed ((<45.019783> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rleg to x-axis <3.090169> speed ((<755.397732> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rleg to y-axis <-2.524473> speed ((<95.168303> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rleg to z-axis <0.526905> speed ((<44.996533> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rloarm to x-axis <11.804809> speed ((<431.825609> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rthigh to x-axis <-2.244671> speed ((<464.765413> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rthigh to y-axis <-0.996521> speed ((<71.490571> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn rthigh to z-axis <3.528319> speed ((<98.292017> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn ruparm to x-axis <-3.551286> speed ((<331.569220> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn ruparm to y-axis <-5.989326> speed ((<95.777344> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn ruparm to z-axis <9.824261> speed ((<186.647555> /100 ) * ANIMATIONNAME_STOP_SPEED);
+	turn torso to y-axis <0.0> speed ((<92.612522> /100 ) * ANIMATIONNAME_STOP_SPEED) ;
+}

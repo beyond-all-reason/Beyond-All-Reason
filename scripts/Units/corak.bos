@@ -16,25 +16,7 @@ static-var  isAiming, gun_1, moveSpeed, currentSpeed, curHead1, curPitch1, weapo
 #define ANIMATIONNAME_MAX_ANIM_TIME 100
 #define ANIMATIONNAME_SIGNAL_MASK SIGNAL_MOVE
 static-var isMoving, maxSpeed;
-#include "corak_walk.h"
-
-/*
-// REMEMBER TO animspeed = 2 in Create() !!
-UnitSpeed(){
-	maxSpeed = get MAX_SPEED; // this returns cob units per frame i think
-	animFramesPerKeyframe = 2; //we need to calc the frames per keyframe value, from the known animtime
-	maxSpeed = maxSpeed + (maxSpeed /(2*animFramesPerKeyframe)); // add fudge
-	while(TRUE){
-		animSpeed = (get CURRENT_SPEED);
-	    if (animSpeed<1) animSpeed=1;
-		animSpeed = (maxSpeed * 2) / animSpeed; 
-		//get PRINT(maxSpeed, animFramesPerKeyframe, animSpeed); //how to print debug info from bos
-		if (animSpeed<1) animSpeed=1;
-		if (animspeed>6) animSpeed = 6;
-		sleep 198;
-	}
-}
-*/
+#include "corak_walk_speed_amplitude.h"
 
 
 #define BASEPIECE pelvis
@@ -70,12 +52,12 @@ StartMoving(reversing){
 	set-signal-mask SIGNAL_MOVE;
 	//start-script UnitSpeed();
 	call-script StopAnimation();
-	start-script ANIMNAME();
+	start-script ANIMATIONNAME();
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-	call-script STOP_ANIMNAME();
+	call-script STOP_ANIMATIONNAME();
 	start-script Animate();
 }
 
@@ -197,7 +179,7 @@ Killed(severity, corpsetype)
 	hide lfire;
 		if( severity <= 25 )
 	{
-		call-script STOP_ANIMNAME();
+		call-script STOP_ANIMATIONNAME();
 		call-script DeathAnim();
 		corpsetype = 1;
 		return (corpsetype);

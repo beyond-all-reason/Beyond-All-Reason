@@ -277,18 +277,17 @@ ANIMNAME() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animat
 	var currTime;
     var currentPCt;
 	var desiredFrames;
-    var tmp;
     var ANIMATIONNAME_amplitude; // Always expressed in percent.
-    var rawSpeed;
+
     ANIMATIONNAME_amplitude = 100;
-	ANIMATIONNAME_remainder_ms = RAND(0, 66); // Im pretty sure any static
+	ANIMATIONNAME_remainder_ms = 0;// RAND(0, 66); // Im pretty sure any static
 
     if (isMoving) { // The first frame of the walking animation MUST be done at at most 2x the desired frames. 
             desiredFrames = 2;
 		    ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE();
             desiredFrames = 4;
 
-			turn lfoot to x-axis ((<-40.243512> *ANIMATIONNAME_amplitude)/100) speed ((<1273.943828> *ANIMATIONNAME_amplitude)/100) / desiredFrames; //delta=%.2f
+			turn lfoot to x-axis ((<-40.243512>/ 100)  *ANIMATIONNAME_amplitude) speed ((<1273.943828> *ANIMATIONNAME_amplitude)/100) / desiredFrames; //delta=%.2f
 			turn lfoot to z-axis ((<-7.440659> *ANIMATIONNAME_amplitude)/100) speed ((<223.219252> *ANIMATIONNAME_amplitude)/100) / desiredFrames; //delta=%.2f
 			turn lfoot to y-axis ((<-5.865953> *ANIMATIONNAME_amplitude)/100) speed ((<727.995439> *ANIMATIONNAME_amplitude)/100) / desiredFrames; //delta=%.2f
 			turn lknee to x-axis ((<-6.830024> *ANIMATIONNAME_amplitude)/100) speed ((<172.844587> *ANIMATIONNAME_amplitude)/100) / desiredFrames; //delta=%.2f
