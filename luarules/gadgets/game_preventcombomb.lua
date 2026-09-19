@@ -119,22 +119,17 @@ function gadget:UnitPreDamaged(
 			combombDamage = damage
 		end
 
-		if weaponDefID == COM_BLAST and isCommander[unitDefID] and attackerID then
-			local unitTeamID = GetUnitTeam(unitID)
-			local attackerTeamID = GetUnitTeam(attackerID)
-
-			if unitTeamID and attackerTeamID and CommCount(unitTeamID) <= 1 and CommCount(attackerTeamID) <= 1 then
+		if attackerID and isCommander[unitDefID] then
+			if unitTeam and attackerTeam and CommCount(unitTeam) <= 1 and CommCount(attackerTeam) <= 1 then
 				if unitID ~= attackerID then
-					-- make unitID immune to DGun
 					local currentFrame = GetGameFrame()
 					immuneDgunList[unitID] = currentFrame + 45
-					--prevent falling damage to the unitID, and lock position
-					MoveCtrlEnable(unitID)
+					MoveCtrlEnable(unitID) -- prevent falling damage and lock position
 					ctrlCom[unitID] = currentFrame + 30
 					cantFall[unitID] = currentFrame + 30
 					return combombDamage, 0
 				else
-					--com blast hurts the attackerID
+					--com blast hurts the attackerID -- but literally why though
 					return damage
 				end
 			end
