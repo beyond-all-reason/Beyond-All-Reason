@@ -28,8 +28,6 @@ local glTexture = gl.Texture
 local mathSin = math.sin
 local mathPi = math.pi
 local mathCeil = math.ceil
-local mathMax = math.max
-local mathMin = math.min
 
 local ICON_SIZE = 16 -- world units half-width
 local ICON_TEX = "luaui/images/easytax/share.dds"

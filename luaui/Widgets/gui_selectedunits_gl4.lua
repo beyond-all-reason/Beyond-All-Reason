@@ -14,7 +14,6 @@ end
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -24,6 +23,7 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGameFrame = Spring.GetGameFrame
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetMouseState = Spring.GetMouseState
+local spGetActiveCommand = Spring.GetActiveCommand
 local spTraceScreenRay = Spring.TraceScreenRay
 local spValidUnitID = Spring.ValidUnitID
 local spValidFeatureID = Spring.ValidFeatureID
@@ -227,7 +227,6 @@ local function AddPrimitiveAtUnit(unitID, noUpload, waterLevel)
 		unitBufferUniformCache[1] = 1
 		spSetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
-	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
 	if useUnfinishedRenderPath then
 		targetVBO = selectionVBOUnfinished
@@ -547,7 +546,9 @@ function widget:Update(dt)
 	-- +2 means its mouseovered
 	if mouseoverHighlight then
 		local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = spGetMouseState()
-		if mouseOffScreen or cameraPanMode or mmb or p1 then
+		local _, activeCmdID = spGetActiveCommand()
+		-- negative activeCmdID = placing a building: no mouseover highlight then
+		if mouseOffScreen or cameraPanMode or mmb or p1 or (activeCmdID and activeCmdID < 0) then
 			ClearLastMouseOver()
 		else
 			local shouldTraceMouse = true
@@ -574,7 +575,6 @@ function widget:Update(dt)
 			end
 
 			local result, data = spTraceScreenRay(mx, my)
-			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
 			if result == "unit" and not guiHidden then
 				local unitID = data
 				if lastMouseOverUnitID ~= unitID then
@@ -648,7 +648,6 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitDestroyed(unitID)
-	--spEcho("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
 	if selUnits[unitID] then
 		RemovePrimitive(unitID)
 	end

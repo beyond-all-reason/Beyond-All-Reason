@@ -152,4 +152,3 @@ Then open **User Settings (JSON)** and add:
     }
 ],
 ```
-

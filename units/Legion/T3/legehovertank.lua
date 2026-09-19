@@ -41,6 +41,7 @@ return {
 		customparams = {
 			model_author = "Gabs/ShadowsAIT & ZephyrSkies (Model), Protar (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 4,
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",

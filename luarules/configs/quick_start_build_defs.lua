@@ -1,24 +1,5 @@
 local quickStartConfig = {
-	discountableFactories = {
-		armap = true,
-		armfhp = true,
-		armhp = true,
-		armlab = true,
-		armsy = true,
-		armvp = true,
-		corap = true,
-		corfhp = true,
-		corhp = true,
-		corlab = true,
-		corsy = true,
-		corvp = true,
-		legap = true,
-		legfhp = true,
-		leghp = true,
-		leglab = true,
-		legsy = true,
-		legvp = true,
-	},
+	-- discountable factories are marked via customparams.quickstart_discountable on the unit defs
 	commanderNonLabOptions = {
 		armcom = {
 			windmill = "armwin",

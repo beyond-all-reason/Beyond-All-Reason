@@ -11,12 +11,22 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, undoCount, redoCount)
-		if name == "CloneToolStacks" then
-			if Script.LuaUI("CloneToolStackUpdate") then
-				Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
-			end
+	-- Registered as a sync action (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function onStacks(_, undoCount, redoCount)
+		if Script.LuaUI("CloneToolStackUpdate") then
+			Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
 		end
+		return true
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("CloneToolStacks", onStacks)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("CloneToolStacks")
 	end
 	return
 end
@@ -49,18 +59,13 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spSetHeightMapFunc = Spring.SetHeightMapFunc
 local spLevelHeightMap = Spring.LevelHeightMap
 local spSetMetalAmount = Spring.SetMetalAmount
-local spGetMetalAmount = Spring.GetMetalAmount
 local spCreateFeature = Spring.CreateFeature
 local spDestroyFeature = Spring.DestroyFeature
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureHeading = Spring.GetFeatureHeading
 local spEcho = Spring.Echo
 local SendToUnsynced = SendToUnsynced
 
 local min = math.min
-local max = math.max
 local floor = math.floor
 local tonumber = tonumber
 
@@ -71,7 +76,6 @@ local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0
 local MAX_UNDO = 100
-local MAX_SNAPSHOT_VERTICES = 4000000
 
 -- ---------------------------------------------------------------------------
 -- Height map application (same pattern as terraform brush)

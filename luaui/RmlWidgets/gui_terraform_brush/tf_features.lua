@@ -3,13 +3,7 @@ local M = {}
 
 function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
 
 	-- Cache section elements (used by M.sync)
 	widgetState.tfControlsEl = doc:GetElementById("tf-terraform-controls")
@@ -125,6 +119,14 @@ function M.sync(doc, ctx, fpState, setSummary)
 			if dm.fpRotRandomStr ~= v then
 				dm.fpRotRandomStr = v
 			end
+			v = string.format("%.2f", fpState.scaleMin or 1)
+			if dm.fpScaleMinStr ~= v then
+				dm.fpScaleMinStr = v
+			end
+			v = string.format("%.2f", fpState.scaleMax or 1)
+			if dm.fpScaleMaxStr ~= v then
+				dm.fpScaleMaxStr = v
+			end
 			v = tostring(fpState.featureCount)
 			if dm.fpCountStr ~= v then
 				dm.fpCountStr = v
@@ -139,6 +141,8 @@ function M.sync(doc, ctx, fpState, setSummary)
 		syncAndFlash(getCachedEl(doc, "fp-slider-size"), "fp-size", tostring(fpState.radius))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rotation"), "fp-rotation", tostring(fpState.rotation))
 		syncAndFlash(getCachedEl(doc, "fp-slider-rot-random"), "fp-rot-random", tostring(fpState.rotRandom))
+		syncAndFlash(getCachedEl(doc, "fp-slider-scale-min"), "fp-scale-min", tostring(fpState.scaleMin or 1))
+		syncAndFlash(getCachedEl(doc, "fp-slider-scale-max"), "fp-scale-max", tostring(fpState.scaleMax or 1))
 		syncAndFlash(getCachedEl(doc, "fp-slider-count"), "fp-count", tostring(fpState.featureCount))
 		syncAndFlash(getCachedEl(doc, "fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
 
@@ -445,6 +449,19 @@ function M.sync(doc, ctx, fpState, setSummary)
 			"fp-slider-rot-random-numbox",
 			"btn-fp-rot-random-down",
 			"btn-fp-rot-random-up",
+		}, remove)
+
+		-- Scale variation applies to whatever gets placed -- scatter and point
+		-- alike -- so like randomise-alignment it only greys out in remove mode.
+		ctx.setDisabledIds(doc, {
+			"fp-slider-scale-min",
+			"fp-slider-scale-min-numbox",
+			"btn-fp-scale-min-down",
+			"btn-fp-scale-min-up",
+			"fp-slider-scale-max",
+			"fp-slider-scale-max-numbox",
+			"btn-fp-scale-max-down",
+			"btn-fp-scale-max-up",
 		}, remove)
 		ctx.setDisabledIds(doc, {
 			"fp-slider-count",

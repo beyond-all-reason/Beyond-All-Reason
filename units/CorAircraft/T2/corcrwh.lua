@@ -38,6 +38,7 @@ return {
 			maxrange = "425",
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 7,
 			subfolder = "CorAircraft/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

@@ -165,7 +165,11 @@ When the **Height Colormap** overlay is active, each cap row shows a **SAMPLE** 
 
 ### Clay Mode
 
-"Flat buildup" — creates plateau-like terrain with a flat top at the brush's target height rather than the standard dome falloff. Sent as a flag (`0`/`1`) in the terraform message. Toggle with `X`.
+"Flat buildup" — creates plateau-like terrain with a flat top at the brush's target height rather than the standard dome falloff. Toggle with `X`.
+
+Each dab targets a **plane** at the stroke's reference height plus `INTENSITY × 8` elmos (raise) or minus it (lower); cells on the wrong side of the plane blend toward it by `falloff × opacity × intensity` per dab and never cross it. The reference is the **pre-stroke surface**: the heights every cell had when the stroke started, averaged over the dab centre and four taps half a radius out. A stroke therefore lays exactly one layer over the ground it started on, however slowly you drag or however much the dabs overlap, and the layer's edge follows the falloff. Measuring the plane on the live centre height instead stacked a new disc every tick, and the disc edges came out as concentric rings; that behaviour survives as **Settings > Stroke > Clay build-up** for anyone who wants a held brush to keep piling layers.
+
+Sent as the clay flag in the terraform messages: `0` off, `1` clay, `2` clay with build-up.
 
 Clay mode applies to **all terrain modes** (raise, lower, level, smooth, ramp, restore, noise) and **all shapes** (circle, square, triangle, hexagon, octagon, ring). In ramp mode the flattened profile applies along the full ramp length.
 
@@ -225,9 +229,47 @@ The panel exposes a **Tools row** of icon buttons. Each tool has its own sub-pan
 
 ### Feature Placer
 
-Distribution mode (random/regular/clustered) · Size/rotation/count/cadence sliders · Undo/redo · Save/load/clear
+Distribution mode (random/regular/clustered) · Size/rotation/count/cadence sliders · Scale variation · Undo/redo · Save/load/clear
 
 **Files:** `luaui/Widgets/cmd_feature_placer.lua` · `luaui/RmlWidgets/gui_feature_placer/`
+
+#### Scale Variation
+
+Scale Min / Scale Max sliders (0.1-3.0x) roll a per-feature scale at placement
+time. The roll is realised by snapping to the nearest **pre-baked model
+variant** of the chosen def and placing that variant instead: a def opts in by
+shipping sibling defs tagged `customParams.scale_base` (the def they vary) and
+`scale_factor` (their size), with the model, collision cylinder, wood value and
+mass all baked at that size. Variant defs are hidden from the asset library --
+the placer reaches them only through snapping.
+
+**No variant sets ship yet**, so the sliders are currently inert: a def with no
+variants ignores the roll and places at its normal size, and the ghost preview
+shows exactly that. The fir tree variants that drove this feature are shelved on
+the `feature-densification` branch along with the tree clump work, together
+with the offline script that bakes them.
+
+- Rolls are bottom-heavy (many small, few large), matching a natural stand.
+- With **Clustered** distribution, scale correlates with distance to the cluster
+  nucleus: big features in the core, small ones at the fringe, and the minimum
+  spacing scales per pair so small features pack tighter.
+- Point mode rolls a scale per placement too.
+- Variants are ordinary defs, so save/load, undo/redo, gizmo, and map projects
+  need no special handling.
+
+Why baked variants rather than scaling at runtime: the engine has no
+feature-scale API. `Spring.Set{Unit,Feature}PieceMatrix` looks like one, but
+`LocalModelPiece::SetPieceSpaceMatrix` is only
+`return blockScriptAnims = mat.IsRotOrRotTranMatrix();` -- it validates the
+matrix, sets a flag, and **discards the geometry entirely** (no member stores
+it; a piece's transform comes solely from `CalcPieceSpaceTransform(pos, rot,
+scale)`, and `SetPosition`/`SetRotation`/`SetScaling` are reachable only from
+unit animation scripts). Features therefore cannot be scaled -- or have their
+pieces posed at all -- from Lua. The gadget still understands a per-entry scale
+token on the wire (4/5/7/8-token forms) and applies collision/radius/mid-aim
+scaling, but only when the engine reports the matrix accepted, so on current
+engines that path is a clean no-op and it lights up automatically if a real API
+ever lands.
 
 #### WYSIWYG Preview
 
@@ -635,6 +677,23 @@ Mode buttons (raise/lower/level/smooth/ramp/restore/noise) · Shape buttons · P
 | Dust effects | off | CEG particle bursts + rumble sounds on each op (DJ Mode) |
 | Velocity intensity | off | Scale brush intensity by mouse drag speed |
 
+### Performance Mode
+
+**Settings > General > Performance mode** (persisted in `ui_prefs.lua`). For big maps and slower machines; the tools stay the same, sculpting just samples more economically:
+
+| Lever | Default | Performance mode |
+|-------|---------|------------------|
+| Dab spacing along the stroke | 15 % of radius | 24 % for soft curves (≤ 1.0) and clay, 20 % up to curve 2.0, 15 % above |
+| Dabs per 20 Hz tick (cap) | 48 | 32 |
+| FOLLOW STROKE angle step | 2° | 6° (a third of the stamp builds on shaped brushes) |
+| Panel terraform mirror | every frame (every 4th frame while dragging) | every 4th frame; frame rate again while the mouse is over the panel |
+
+The spacing rule is falloff-aware: a soft dome sums smoothly at a quarter radius and a clay stroke converges on one plane whatever the spacing, while hard-edged curves keep the full density so they do not band.
+
+Two free levers regardless of the toggle: pausing the game while sculpting spares the pathfinder's terrain updates, and Focus mode (the eye icon in the header) drops the rest of the HUD.
+
+Always on, no toggle needed: the gadget commits a tick's dabs in one heightmap write and one undo entry (see Undo / Redo System), the falloff-stamp cache is rotation-invariant for circles and rings and budgeted by cells, and the ground mesh refresh is armed by the engine's heightmap-update event rather than per brush tick.
+
 ### Presets
 
 Built-in presets (non-deletable) and unlimited user presets. Stored in `LuaUI/Config/TerraformPresets/*.lua`.
@@ -679,6 +738,7 @@ All terrain edits go through `SendLuaRulesMsg()` to the server-side gadget.
 | Message | Format |
 |---------|--------|
 | `$terraform_brush$` | `dir x z radius shape rot curve capMin capMax intensity lengthScale clay dust opacity instant flattenHeight [ringInnerRatio]` |
+| `$terraform_stroke$` | `dir radius shape curve capMin capMax intensity lengthScale clay dust opacity instant flattenHeight ringInnerRatio nDabs x1 z1 rot1 [x2 z2 rot2 ...]` — one per tick per symmetry copy, every dab of the tick; applied as one batch (one heightmap commit, one undo entry) |
 | `$terraform_ramp$` | `startX startZ startY endX endZ endY radius clay dust` |
 | `$terraform_ramp_spline$` | `radius pointCount [x1 z1 x2 z2 ...] clay dust` |
 | `$terraform_restore$` | `x z radius shape rot curve intensity lengthScale` |
@@ -686,15 +746,15 @@ All terrain edits go through `SendLuaRulesMsg()` to the server-side gadget.
 | `$terraform_import$` | `columnX height1 height2 ...` |
 | `$terraform_undo$` | (no args) |
 | `$terraform_redo$` | (no args) |
-| `$terraform_merge_end$` | (no args) — sent by widget on mouse release to finalize the drag-stroke undo entry |
-| `$terraform_stroke_end$` | (no args) — marks the end of a distinct stroke for diagnostics |
+| `$terraform_merge_end$` | (no args) — sent by the widget after every brush tick; closes the tick's undo entry |
+| `$terraform_stroke_end$` | (no args) — sent on mouse release; advances the stroke id (`$terraform_undo_stroke$` pops all entries of the latest id) and drops the pre-stroke heights the clay plane measures against |
 
 **Feature placer messages** (`luarules/gadgets/cmd_feature_placer.lua`). Every
 mutating branch is gated on `Spring.IsCheatingEnabled()`.
 
 | Message | Format |
 |---------|--------|
-| `$feature_place_list$` | `strokeId` then `name x z heading [pitch roll y]` per entry, joined by `\|`, 40 per message |
+| `$feature_place_list$` | `strokeId` then `name x z heading [pitch roll y] [scale]` per entry, joined by `\|`, 40 per message. Token count disambiguates: 4 plain, 5 scale, 7 tilt, 8 tilt+scale |
 | `$feature_transform$` | `strokeId` then `fid x y z pitch yaw roll` per entry, joined by `\|` |
 | `$feature_remove_ids$` | `fid` per entry, joined by `\|` |
 | `$feature_remove$` | `x z radius shape rot` |
@@ -703,7 +763,8 @@ mutating branch is gated on `Spring.IsCheatingEnabled()`.
 | `$feature_undo$` / `$feature_redo$` / `$feature_clearall$` | (no args) |
 
 The optional `pitch roll y` tail is only sent for features the gizmo tilted or
-lifted. `strokeId` collapses one user action into one undo entry even when it is
+lifted, and the optional `scale` token only for features whose scale roll came
+out different from 1. `strokeId` collapses one user action into one undo entry even when it is
 split across several messages -- a 500-feature stamp is 13 batches, a gizmo drag
 over a large selection several more -- the same way the terraform brush merges a
 paint stroke. Only one stroke is open at a time, and the entry is pushed lazily
@@ -754,7 +815,7 @@ gizmo-transformed anyway.
 | 8–9 | `capMin capMax` | float or empty | Height cap bounds |
 | 10 | `intensity` | float | 0.1–100 |
 | 11 | `lengthScale` | float | 0.2–5.0 |
-| 12 | `clay` | 0/1 | Clay mode |
+| 12 | `clay` | 0/1/2 | Clay mode (`2` = with per-tick build-up) |
 | 13 | `dust` | 0/1 | Dust/DJ mode |
 | 14 | `opacity` | float | 0.01–1.0 |
 | 15 | `instant` | 0/1 | Stamp mode |
@@ -819,25 +880,23 @@ After each terraform op, `tessellationDirtyFrames` is set to 10. Counter decreme
 
 History is maintained as a **server-side stack** in the gadget. All terrain modifications snapshot the previous state before applying.
 
-#### Stroke Merge (Drag → Single Undo Entry)
+#### Stroke Entries (One Per Tick)
 
-Each brush stroke fires many `$terraform_brush$` messages per second while the mouse is held. Rather than creating hundreds of separate undo entries, all changes during a single drag are merged into **one entry**:
+Each brush tick sends one `$terraform_stroke$` message per symmetry copy carrying every dab of that tick. The gadget applies the dabs in order against a working copy of the cells they touch (read from the engine once, on first touch) and commits **once per message**: one `SetHeightMapFunc` (so one engine terrain recalculation) and **one undo entry** built straight from the pre-tick heights of the cells it wrote. Dab k still sees dab k-1's writes, so the result is what sequential commits produced, at a fraction of the engine work.
 
-- On each push during an active drag, new vertices are added to the current snapshot — duplicates (same x/z already snapshotted) are skipped via a numeric hash set, so re-visiting a cell doesn't grow the snapshot.
-- When the mouse is released the widget sends **`$terraform_merge_end$`**, which finalizes the snapshot and closes the merge window.
-- Undo/redo each restore the entire drag stroke in a single step.
+Entries of one drag share a stroke id: `$terraform_merge_end$` closes the tick, `$terraform_stroke_end$` (mouse release) advances the id, and `$terraform_undo_stroke$` pops every entry with the latest id in one step. Cross-tick merging is deliberately not done (it produced striped leftovers on undo).
 
-Ramp and spline operations always produce a new independent entry (no merge).
+Ramp and spline operations always produce a new independent entry.
 
 #### Storage Format
 
-Snapshots are stored as **flat arrays** `{x, z, h, x, z, h, ...}` instead of sub-tables `{{x,z,h},...}`. This eliminates the tens-of-thousands of per-vertex sub-table allocations that caused `SetHeightMapFunc` heavy operations to spike GC.
+Snapshots are stored as a **bbox grid**: a mask and a height grid over the entry's bounding box (`minX`, `minZ`, `w`, `h`, `ss`). Cells still at their map-original height store a mask bit only (`2`) and no height; edited cells store `1` plus the pre-edit height. Brush ticks build the grid directly from their working copy; the ramp, noise, erode and fill ops convert a flat `{x, z, h, ...}` buffer, which itself replaced per-vertex sub-tables that used to spike GC.
 
 #### Vertex Budget (Anti-OOM)
 
 | Constant | Value | Meaning |
 |----------|-------|---------|
-| `MAX_UNDO` | 2000 | Maximum entries in undo or redo stack |
+| `MAX_UNDO` | 10000 | Maximum entries in undo or redo stack |
 | `MAX_SNAPSHOT_VERTICES` | 8 000 000 | ~192 MB — total vertex budget across all stacked snapshots |
 
 When `totalVertexCount` exceeds the budget, the **oldest** undo entries are evicted until under budget. If still over, the oldest redo entries are also evicted. This prevents OOM crashes with very large-radius restore/noise operations on wide maps.
@@ -950,7 +1009,7 @@ Temporal dimension: **record and playback** brush strokes for dynamic, time-vary
 | # | Item | Notes |
 |---|------|-------|
 | 2 | **Feature placement preview** | WYSIWYG ghosts: the exact features about to be placed, at their exact positions and orientations, drawn as instanced translucent models under the cursor. Remove mode tints what the brush would destroy. See [Feature Placer → WYSIWYG Preview](#wysiwyg-preview). |
-| 3 | **Feature gizmo tool** | Click / shift-click / box-drag to select placed features; 3D gizmo with X/Y/Z translate arrows, pitch/yaw/roll rings and a free-move centre handle. Groups transform rigidly about their centroid. Scale is not implemented because the engine exposes no feature-scale API. See [Feature Placer → Selection & Gizmo](#selection--gizmo). |
+| 3 | **Feature gizmo tool** | Click / shift-click / box-drag to select placed features; 3D gizmo with X/Y/Z translate arrows, pitch/yaw/roll rings and a free-move centre handle. Groups transform rigidly about their centroid; per-feature visual scale is rolled at placement time (see [Feature Placer → Scale Variation](#scale-variation)). See [Feature Placer → Selection & Gizmo](#selection--gizmo). |
 | 4 | **Symmetry tool** | Full implementation. Mirror X/Y modes with axis angle rotation; N-way radial mode (2–16 copies); draggable origin gizmo; Flipped mode (mirror + invert heights); one-shot Mirror Terrain button. See [Instruments → Symmetry / Mirror Tool](#symmetry--mirror-tool). |
 | 5 | **Velocity-sensitive intensity** | Toggle in Overlays section; scales brush strength by mouse drag speed. See [Velocity-Sensitive Intensity](#velocity-sensitive-intensity). |
 | 7 | **Partial restore slider** | Slider in restore mode; 0–100% blend target sent to gadget. See [Restore](#restore). |

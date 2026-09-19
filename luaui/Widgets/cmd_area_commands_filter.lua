@@ -221,7 +221,7 @@ local function distributeTargetsToTransports(transports, targets)
 	--- with small units and "small" transports remain empty. After picking transport we search for passengers.
 	--- Passengers are grouped by priority - the smaller the number, the harder they are to transport.
 	--- We start with the hardest passengers and pick the one which is the closest to the transport. We look at lower
-	--- priority passengers only when there are noone left in the higher bracket.
+	--- priority passengers only when there are no one left in the higher bracket.
 	for _, transDefId in ipairs(orderedTransportDefs) do
 		local transportTypeData = transportTypeDataMap[transDefId]
 		local passengersByPriority = transportTypeData.passengersByPriority
@@ -419,7 +419,6 @@ local allowedCommands = {
 }
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
-	local alt = options.alt
 	local ctrl = options.ctrl
 	local filteredTargets = {}
 	local unitDefId = spGetUnitDefID(targetId)

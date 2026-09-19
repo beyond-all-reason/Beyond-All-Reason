@@ -33,16 +33,6 @@ local SpringGetFeatureTeam = Spring.GetFeatureTeam
 local SpringGetSpectatingState = Spring.GetSpectatingState
 local SpringGetMapDrawMode = Spring.GetMapDrawMode
 
--- util
-
-local function map(list, func)
-	local result = {}
-	for i, v in ipairs(list) do
-		result[i] = func(v, i)
-	end
-	return result
-end
-
 -- GL4
 
 local LuaShader = gl.LuaShader

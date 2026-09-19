@@ -255,17 +255,17 @@ end
 ---DrawUnitGL4(unitID, unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
 ---Draw a copy of an actual unit, with all of its animations too. That unit must be in view. For things like highlighting under construction stuff.
 ---note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID). Note that prompt removal when widget:VisibleUnitRemoved(unitID) is essential here!
----@param unitID number the actual unitID that you want to draw
----@param unitDefID number which unitDef do you want to draw
+---@param unitID UnitID the actual unitID that you want to draw
+---@param unitDefID UnitDefID which unitDef do you want to draw
 ---@param px number optional where in the world to do you want to draw it
 ---@param py number optional where in the world to do you want to draw it
 ---@param pz number optional where in the world to do you want to draw it
 ---@param rotationY number optional Angle in radians on how much to rotate the unit around Y, 0 means it faces south, (+Z), pi/2 points west (-X) -pi/2 points east
 ---@param alpha number optional the transparency level of the unit
----@param teamID number optional which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
+---@param teamID TeamID? optional which teams teamcolor should this unit get, leave `nil` if you want to keep the original teamID
 ---@param teamcoloroverride number optional much we should mix the teamcolor into the model color [0-1]
 ---@param highlight number optional how much we should add a highlighting animation to the unit (blends white with [0-1])
----@param updateID number optional specify the previous uniqueID if you want to update it
+---@param updateID integer? optional specify the previous uniqueID if you want to update it
 ---@param ownerID any optional unique identifier so that widgets can batch remove all of their own stuff
 ---@return uniqueID number a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 local function DrawUnitGL4(
@@ -331,16 +331,16 @@ end
 ---DrawUnitShapeGL4(unitDefID, px, py, pz, rotationY, alpha, teamID, teamcoloroverride, highlight, updateID, ownerID)
 ---Draw a static unit shape model anywhere. Like for ghosted buildings
 ---note that widgets are responsible for stopping the drawing of every unit that they submit! They may use RemoveMyDraws(ownerID)
----@param unitDefID number which unitDef do you want to draw
+---@param unitDefID UnitDefID which unitDef do you want to draw
 ---@param px number where in the world to do you want to draw it
 ---@param py number where in the world to do you want to draw it
 ---@param pz number where in the world to do you want to draw it
 ---@param rotationY number Angle in radians on how much to rotate the unit around Y, 0 means it faces south, (+Z), pi/2 points west (-X) -pi/2 points east
 ---@param alpha number optional the transparency level of the unit
----@param teamID number optional which teams teamcolor should this unit get, leave nil if you want to keep the original teamID
+---@param teamID TeamID? optional which teams teamcolor should this unit get, leave `nil` if you want to keep the original teamID
 ---@param teamcoloroverride number optional much we should mix the teamcolor into the model color [0-1]
 ---@param highlight number optional how much we should add a highlighting animation to the unit (blends white with [0-1])
----@param updateID number optional specify the previous uniqueID if you want to update it
+---@param updateID integer? optional specify the previous uniqueID if you want to update it
 ---@param ownerID any optional unique identifier so that widgets can batch remove all of their own stuff
 ---@return uniqueID number a unique handler ID number that you should store and call StopDrawUnitGL4(uniqueID) with to stop drawing it
 local function DrawUnitShapeGL4(
@@ -395,7 +395,7 @@ local function DrawUnitShapeGL4(
 end
 
 ---StopDrawUnitGL4(uniqueID)
----@param uniqueID number the unique id of whatever you want to stop drawing
+---@param uniqueID integer the unique id of whatever you want to stop drawing
 ---@return the ownerID the uniqueID was associated to
 local function StopDrawUnitGL4(uniqueID)
 	if corDrawUnitVBOTable.instanceIDtoIndex[uniqueID] then
@@ -412,7 +412,7 @@ local function StopDrawUnitGL4(uniqueID)
 end
 
 ---StopDrawUnitGL4(uniqueID)
----@param uniqueID number the unique id of whatever you want to stop drawing
+---@param uniqueID integer the unique id of whatever you want to stop drawing
 ---@return the ownerID the uniqueID was associated to
 local function StopDrawUnitShapeGL4(uniqueID)
 	if uniqueIDtoUnitShapeVBOTable[uniqueID] then

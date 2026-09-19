@@ -9,7 +9,6 @@
 -- Author:	Nemo, Smoth
 -- Date:	3/18/2011
 -------------------------------------------------------
-local inStance = false
 local gravFactor = Game.gravity / 120
 
 function walk()

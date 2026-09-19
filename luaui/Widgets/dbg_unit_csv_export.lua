@@ -26,7 +26,6 @@ local function round(num, numDecimalPlaces)
 end
 
 local weaponShowGroups = { [0] = true, [1] = true }
-local weaponHideRoles = { secondary = true }
 
 local function buildTree(conDefID, tree)
 	local buildOptions = UnitDefs[conDefID].buildOptions

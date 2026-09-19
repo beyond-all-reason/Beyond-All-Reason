@@ -1551,7 +1551,6 @@ local function updateBolts()
 	local w = 0
 	for r = 1, nActive do
 		local burst = active[r]
-		local cfg = burst.cfg
 		local age = frame - burst.birthFrame
 		local life = age / burst.lifeFrames
 		if life < 1.0 then

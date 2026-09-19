@@ -32,6 +32,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
+			islrpc = true,
 			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			model_author = "ZephyrSkies",

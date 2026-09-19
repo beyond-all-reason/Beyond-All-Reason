@@ -226,6 +226,8 @@ local autoReload = { enabled = false, vssrc = "", fssrc = "", lastUpdate = Sprin
 
 -- Indicates whether the first round of getting units should grab all instead of delta
 local manualReload = autoReload.enabled or false
+local printfPass = "forward" -- Chose which pass to print debug information for. Can be any of "forward", "shadow", "deferred", "reflection"
+local printfMaterial = "unit"
 local debugmode = false
 local perfdebug = false
 
@@ -495,10 +497,6 @@ local objectTypeAttribID = 6 -- this is the attribute index for instancedata in 
 
 local initiated = false
 
-local function Bit(p)
-	return 2 ^ (p - 1) -- 1-based indexing
-end
-
 -- Typical call:  if hasbit(x, bit(3)) then ...
 local function HasBit(x, p)
 	return x % (p + p) >= p
@@ -507,14 +505,6 @@ end
 local math_bit_and = math.bit_and
 local function HasAllBits(x, p)
 	return math_bit_and(x, p) == p
-end
-
-local function SetBit(x, p)
-	return HasBit(x, p) and x or x + p
-end
-
-local function ClearBit(x, p)
-	return HasBit(x, p) and x - p or x
 end
 
 -- Precomputed bin membership for every possible drawFlag below 128 (the icon threshold).
@@ -693,8 +683,6 @@ end
 
 local LuaShader = gl.LuaShader
 
-local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-
 local QUATERNIONDEFS = ""
 if Engine.FeatureSupport.transformsInGL4 then
 	QUATERNIONDEFS = LuaShader.GetQuaternionDefs()
@@ -844,19 +832,13 @@ local DEFAULT_VERSION = [[#version 430 core
 	#extension GL_ARB_shading_language_420pack: require
 	]]
 
-local function dumpShaderCodeToFile(defs, src, filename) -- no IO in unsynced gadgets :/
-	local vsfile = io.open("cus_" .. filename .. ".glsl", "w+")
-	vsfile:write(defs .. src)
-	vsfile:close()
-end
-
 local function dumpShaderCodeToInfolog(defs, src, filename) -- no IO in unsynced gadgets :/
 	Spring.Echo(filename)
 	Spring.Echo(defs)
 	Spring.Echo(src)
 end
 
-local function CompileLuaShader(shader, definitions, plugIns, addName, recompilation)
+local function CompileLuaShader(shader, definitions, plugIns, addName, recompilation, stripPrintf)
 	--Spring.Echo(" CompileLuaShader",shader, definitions, plugIns, addName)
 	if definitions == nil or definitions == {} then
 		Spring.Echo(addName, "nul definitions", definitions)
@@ -874,9 +856,6 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 
 	-- First the default default defs
 	shader.definitions = table.concat(definitions, "\n") .. "\n"
-
-	-- Then the engineUniformBufferDefs (see LuaShader.lua)
-	shader.definitions = shader.definitions .. engineUniformBufferDefs
 
 	--// insert small pieces of code named `plugins`
 	--// this way we can use a basic shader and add some simple vertex animations etc.
@@ -902,9 +881,22 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 		end
 	end
 
-	local luaShader = LuaShader(shader, "CUS_" .. addName)
-	local compilationResult = luaShader:Initialize()
-	if compilationResult ~= true then
+	local function CompleteSource(source)
+		return source and (shader.definitions .. source)
+	end
+
+	local luaShader = LuaShader.CheckShaderUpdates({
+		vsSrc = CompleteSource(shader.vertex),
+		fsSrc = CompleteSource(shader.fragment),
+		gsSrc = CompleteSource(shader.geometry),
+		shaderConfig = { stripPrintf = stripPrintf },
+		shaderName = "CUS_" .. addName,
+		uniformInt = shader.uniformInt,
+		uniformFloat = shader.uniformFloat,
+		forceupdate = true,
+		silent = true,
+	}, 0)
+	if not luaShader then
 		Spring.Echo("Custom Unit Shaders. " .. addName .. " shader compilation failed")
 		--dumpShaderCodeToInfolog(shader.definitions, shader.vertex, "vs" .. addName)
 		--dumpShaderCodeToInfolog(shader.definitions, shader.fragment, "fs" .. addName)
@@ -914,8 +906,15 @@ local function CompileLuaShader(shader, definitions, plugIns, addName, recompila
 		return nil
 	end
 
-	return (compilationResult and luaShader) or nil
+	luaShader.ignoreUnkUniform = false
+	return luaShader
 end
+
+-- {shaderName : {textureUnit : true}}: the texture units the shadow pass has to bind for a
+-- material. The shadow shaders never sample anything except texture2 (alpha test, unit 1),
+-- and only when HASALPHASHADOWS is defined, so every other gl.Texture call in that pass
+-- (tex1, normal map, shadow map, reflection, info, BRDF LUT, noise) is wasted engine time.
+local shadowPassTextureUnits = {}
 
 local function compileMaterialShader(template, name, recompilation)
 	--Spring.Echo("Compiling", template, name)
@@ -924,28 +923,32 @@ local function compileMaterialShader(template, name, recompilation)
 		template.shaderDefinitions,
 		template.shaderPlugins,
 		name .. "_forward",
-		recompilation
+		recompilation,
+		printfPass ~= "forward" or printfMaterial ~= name
 	)
 	local shadowShader = CompileLuaShader(
 		template.shadow,
 		template.shadowDefinitions,
 		template.shaderPlugins,
 		name .. "_shadow",
-		recompilation
+		recompilation,
+		printfPass ~= "shadow" or printfMaterial ~= name
 	)
 	local deferredShader = CompileLuaShader(
 		template.deferred,
 		template.deferredDefinitions,
 		template.shaderPlugins,
 		name .. "_deferred",
-		recompilation
+		recompilation,
+		printfPass ~= "deferred" or printfMaterial ~= name
 	)
 	local reflectionShader = CompileLuaShader(
 		template.reflection,
 		template.reflectionDefinitions,
 		template.shaderPlugins,
 		name .. "_reflection",
-		recompilation
+		recompilation,
+		printfPass ~= "reflection" or printfMaterial ~= name
 	)
 	if recompilation then
 		if (not forwardShader) or not shadowShader or not deferredShader or not reflectionShader then
@@ -961,6 +964,14 @@ local function compileMaterialShader(template, name, recompilation)
 	shaders[0][name] = deferredShader
 	shaders[5][name] = reflectionShader
 	shaders[16][name] = shadowShader
+
+	local shadowNeedsAlphaTex = false
+	for _, defline in ipairs(template.shadowDefinitions or {}) do
+		if type(defline) == "string" and defline:find("#define%s+HASALPHASHADOWS") then
+			shadowNeedsAlphaTex = true
+		end
+	end
+	shadowPassTextureUnits[name] = shadowNeedsAlphaTex and { [1] = true } or {}
 	return true
 end
 
@@ -1225,7 +1236,7 @@ local function initBinsAndTextures()
 				or (lowercasenormaltex:find("leg_normal") and "unittextures/leg_wreck_normal.dds")
 				or false
 
-			if unitDef.name:find("_scav", nil, true) then -- it better be a scavenger unit, or ill kill you
+			if unitDef.customParams.isscavenger then
 				textureTable[3] = wreckTex1
 				textureTable[4] = wreckTex2
 				textureTable[5] = wreckNormalTex
@@ -1236,7 +1247,7 @@ local function initBinsAndTextures()
 				elseif factionBinTag == "leg" then
 					objectDefToUniformBin[unitDefID] = "legscavenger"
 				end
-			elseif unitDef.name:find("raptor", nil, true) or unitDef.name:find("raptor_hive", nil, true) then
+			elseif unitDef.customParams.israptor then
 				textureTable[5] = wreckAtlases.raptor[1]
 				objectDefToUniformBin[unitDefID] = "raptor"
 				--Spring.Echo("Raptorwreck", textureTable[5])
@@ -2262,10 +2273,6 @@ local function ProcessUnits(units, drawFlags, reason)
 		end
 	end
 end
-local spValidFeatureID = Spring.ValidFeatureID
-local spSetFeatureEngineDrawMask = Spring.SetFeatureEngineDrawMask
-local spSetFeatureNoDraw = Spring.SetFeatureNoDraw
-local spSetFeatureFade = Spring.SetFeatureFade
 
 local function ProcessFeatures(features, drawFlags, reason)
 	local numFeatures = #features
@@ -2388,6 +2395,8 @@ local function ExecuteDrawPass(drawPass)
 			tracy.ZoneEnd()
 
 			local shaderTable = shaders[drawPass][shaderName]
+			-- shadow pass: bind only the units its shader samples (see shadowPassTextureUnits)
+			local wantedTextureUnits = (drawPass == 16) and shadowPassTextureUnits[shaderName] or nil
 
 			if unitscountforthisshader > 0 then
 				tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:ShaderActivate")
@@ -2448,7 +2457,7 @@ local function ExecuteDrawPass(drawPass)
 									tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:BindTextures")
 								end
 								for bindPosition, tex in pairs(texAndObj.textures) do
-									if lastBoundTextures[bindPosition] ~= tex then
+									if (wantedTextureUnits == nil or wantedTextureUnits[bindPosition]) and lastBoundTextures[bindPosition] ~= tex then
 										gl.Texture(bindPosition, tex)
 										lastBoundTextures[bindPosition] = tex
 									end
@@ -2885,28 +2894,6 @@ end
 
 local updateframe = 0
 
-local function countbintypes(flagarray)
-	local fwcnt = 0
-	local defcnt = 0
-	local reflcnt = 0
-	local shadcnt = 0
-
-	for i = 1, #flagarray do
-		local flag = flagarray[i]
-		if HasBit(flag, 1) then
-			fwcnt = fwcnt + 1
-			defcnt = defcnt + 1
-		end
-		if HasBit(flag, 4) then
-			reflcnt = reflcnt + 1
-		end
-		if HasBit(flag, 16) then
-			shadcnt = shadcnt + 1
-		end
-	end
-	return fwcnt, defcnt, reflcnt, shadcnt
-end
-
 local destroyedUnitIDs = {} -- maps unitID to drawflag
 local destroyedUnitDrawFlags = {}
 local numdestroyedUnits = 0
@@ -3231,4 +3218,20 @@ function gadget:DrawShadowUnitsLua()
 	tracy.ZoneBeginN("G:CUS:DrawShadowUnitsLua")
 	local batches, units = ExecuteDrawPass(16)
 	tracy.ZoneEnd()
+end
+
+if autoReload.enabled then
+	function gadget:DrawScreen()
+		--Spring.Echo("DrawScreen Called")
+		local yoffset = 0
+		for drawflag, drawpass in pairs(shaders) do 
+			for binname, shader in pairs(drawpass) do
+				--Spring.Echo("DrawScreen:", drawflag, binname, "has drawprintf", shader.DrawPrintf ~= nil)
+				if shader.DrawPrintf then
+					shader.DrawPrintf(0, yoffset)
+					yoffset = yoffset + 24
+				end
+			end
+		end
+	end
 end
