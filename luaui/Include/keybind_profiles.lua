@@ -11,6 +11,10 @@
 
 local Json = Json or VFS.Include("common/luaUtilities/json.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
+-- For canonicalKeyset alone: a keyset has to be matched the way the engine parses it, not as
+-- the text it was written as. A player naming "alt" means the keyset the engine calls
+-- "Any+alt", and "Alt+Ctrl+x" is "Ctrl+Alt+x" reordered.
+local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
@@ -320,16 +324,16 @@ local function readBindFile(text, depth)
 				return b.action:match("^%S+") == command
 			end)
 		elseif line:match("^%s*unbindkeyset%s+%S") then
-			local target = line:match("^%s*unbindkeyset%s+(%S+)"):lower()
+			local target = keybindModel.canonicalKeyset(line:match("^%s*unbindkeyset%s+(%S+)"))
 			drop(function(b)
-				return b.keyset:lower() == target
+				return keybindModel.canonicalKeyset(b.keyset) == target
 			end)
 		elseif line:match("^%s*unbind%s+%S") then
 			local target, command = line:match("^%s*unbind%s+(%S+)%s+(%S+)")
 			if target then
-				target = target:lower()
+				target = keybindModel.canonicalKeyset(target)
 				drop(function(b)
-					return b.keyset:lower() == target and b.action:match("^%S+") == command
+					return keybindModel.canonicalKeyset(b.keyset) == target and b.action:match("^%S+") == command
 				end)
 			end
 		elseif line:match("^%s*keysym%s+%S+%s+%S") then
@@ -796,7 +800,7 @@ function M.inferBase(profile)
 			set = {}
 			ownSets[b.action] = set
 		end
-		set[b.keyset:lower()] = true
+		set[keybindModel.canonicalKeyset(b.keyset)] = true
 	end
 
 	local best, bestDiff
@@ -808,7 +812,7 @@ function M.inferBase(profile)
 				set = {}
 				theirSets[b.action] = set
 			end
-			set[b.keyset:lower()] = true
+			set[keybindModel.canonicalKeyset(b.keyset)] = true
 		end
 
 		local diff = 0

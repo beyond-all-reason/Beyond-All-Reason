@@ -61,6 +61,16 @@ local modToken = {
 	["shift+"] = "shift",
 }
 
+-- The engine folds a modifier bound on its own into its Any+ form, so it reads "alt" and
+-- "Any+alt" as one keyset. Only these four names bind at all; add a real key and the fold
+-- stops, which is why this is keyed on the whole keyset being a modifier.
+local bareModifier = {
+	alt = true,
+	ctrl = true,
+	meta = true,
+	shift = true,
+}
+
 local function canonicalElement(raw)
 	local rest, held = raw, {}
 	local stripped = true
@@ -81,6 +91,9 @@ local function canonicalElement(raw)
 		key = key:sub(4)
 	end
 	key = keyNameAlias[key] or key
+	if bareModifier[key] then
+		held.any = true
+	end
 
 	local out = {}
 	for _, name in ipairs(canonicalMods) do

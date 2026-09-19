@@ -200,3 +200,72 @@ describe("the binds that switch between profiles", function()
 		assert.are.same(binds, out)
 	end)
 end)
+
+-- What a player wrote in their own uikeys.txt, read the way the engine would have read it.
+-- The reader resolves a keyload itself, so the file stub has to outlast the include.
+local function parse(text)
+	local profiles = includeProfiles()
+	local realLoadFile = VFS.LoadFile
+	VFS.LoadFile = function(path)
+		local file = io.open(path, "rb")
+		if not file then
+			return nil
+		end
+
+		local contents = file:read("*a")
+		file:close()
+
+		return contents
+	end
+
+	local ok, binds = pcall(profiles.parseBindFile, text)
+	VFS.LoadFile = realLoadFile
+	assert(ok, tostring(binds))
+
+	return binds or {}
+end
+
+local function keysetsFor(binds, action)
+	local out = {}
+	for _, b in ipairs(binds) do
+		if b.action == action then
+			out[#out + 1] = b.keyset
+		end
+	end
+
+	return out
+end
+
+local GRID = "unbindall\nkeyload luaui/configs/hotkeys/grid_keys.txt\n"
+
+describe("unbinding a keyset a player named their own way", function()
+	-- CKeySet::Parse promotes a modifier named on its own to Any+, so this is the keyset the
+	-- profiles bind movereset and moverotate to. Matched as the text it was written as, it was
+	-- neither, and both survived into the profile the migration made.
+	it("takes a bare modifier as the Any+ keyset the engine reads it as", function()
+		local binds = parse(GRID .. "unbindkeyset alt\n")
+
+		assert.are.same({}, keysetsFor(binds, "moverotate"))
+		assert.are.same({}, keysetsFor(binds, "movereset"))
+	end)
+
+	it("takes the modifiers in whatever order they were written", function()
+		local binds = parse("unbindall\nbind Ctrl+Alt+sc_x attack\nunbindkeyset Alt+Ctrl+sc_x\n")
+
+		assert.are.same({}, keysetsFor(binds, "attack"))
+	end)
+
+	it("names one action on the keyset without taking the others with it", function()
+		local binds = parse(GRID .. "unbind alt moverotate\n")
+
+		assert.are.same({}, keysetsFor(binds, "moverotate"))
+		assert.are.same({ "Any+alt" }, keysetsFor(binds, "movereset"))
+	end)
+
+	-- A scancode and a keycode are different keys off qwerty, so they stay different keysets.
+	it("leaves a scancode alone when a keycode of the same letter is named", function()
+		local binds = parse("unbindall\nbind sc_a attack\nunbindkeyset a\n")
+
+		assert.are.same({ "sc_a" }, keysetsFor(binds, "attack"))
+	end)
+end)
