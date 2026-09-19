@@ -34,7 +34,9 @@ return {
 			unitgroup = "weapon",
 			model_author = "Odin",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBots",
+			reaimtime = 2,
+			stompable = true,
+			subfolder = "Legion/Bots",
 		},
 		featuredefs = {
 			dead = {

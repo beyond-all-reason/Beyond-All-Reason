@@ -37,7 +37,8 @@ return {
 			maxrange = "315",
 			model_author = "Ghoulish & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "leggantry",
+			reaimtime = 3,
+			subfolder = "Legion/T3",
 			techlevel = 3,
 		},
 		featuredefs = {

@@ -19,7 +19,6 @@ local Echo = Spring.Echo
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 local SetMapSquareTexture = Spring.SetMapSquareTexture
 local GetMapSquareTextureFn = Spring.GetMapSquareTexture
 local SetMapShadingTexture = Spring.SetMapShadingTexture
@@ -39,9 +38,6 @@ local glColor = gl.Color
 local glBlending = gl.Blending
 local glLineWidth = gl.LineWidth
 local glDrawGroundCircle = gl.DrawGroundCircle
-local glBeginEnd = gl.BeginEnd
-local glVertex = gl.Vertex
-local glDepthTest = gl.DepthTest
 
 local floor, max, min = math.floor, math.max, math.min
 local cos, sin, pi = math.cos, math.sin, math.pi
@@ -82,7 +78,6 @@ local MIN_FRACTAL = 0.0
 local MAX_FRACTAL = 1.0
 local MIN_FRACTAL_FREQ = 0.0001
 local MAX_FRACTAL_FREQ = 0.05
-local FRACTAL_FREQ_STEP = 0.001
 
 -- ============================================================================
 -- State
@@ -98,8 +93,6 @@ local squares = {}
 -- For hand-paint layers, strokes are baked here with material*layerColor already
 -- composited in, so switching material later only affects FUTURE strokes.
 local masks = {}
--- maskClearTex: tiny zeroed FBO used to clear newly-allocated masks (lazy)
-local maskClearTex = nil
 
 -- Layer record table; one starter built-in layer pre-populated in Initialize.
 -- layer = { id, name, enabled, opacity, color={r,g,b}, blend (string),
@@ -168,6 +161,7 @@ local brushCurve = DEFAULT_CURVE
 local eraseMode = false
 local brushFractalAmount = 0.0 -- 0 = no warp, 1 = maximum organic fractal edge
 local brushFractalFreq = 0.003 -- world-space fBm frequency (1/elmos)
+local edgeFade = 1 -- cursor fade past the map edge (from getWorldPositionExtended)
 
 -- Pen-pressure modulation (reuses WG.TerraformBrush pen-pressure system).
 -- Returns (effRadius, effStrength) for the current frame. When pressure is
@@ -332,9 +326,22 @@ local function ensureLayerMaskTex(layerId, key)
 end
 
 local function getWorldMousePosition()
+	-- Shared resolver: keeps following the mouse slightly past the map edge
+	-- (fade = 1 while the brush footprint still touches the map, then falls
+	-- to 0 over a further distance; nil once fully faded out).
+	local tfBrush = WG.TerraformBrush
+	if tfBrush and tfBrush.getWorldPositionExtended then
+		local wx, wz, fade = tfBrush.getWorldPositionExtended(brushRadius)
+		if wx then
+			edgeFade = fade or 1
+			return wx, wz
+		end
+		return nil, nil
+	end
 	local mx, my = GetMouseState()
 	local _, pos = TraceScreenRay(mx, my, true)
 	if pos then
+		edgeFade = 1
 		return pos[1], pos[3]
 	end
 	return nil, nil
@@ -3098,14 +3105,14 @@ function widget:DrawWorld()
 			local groundY = GetGroundHeight(wx, wz)
 			local effR = getEffectiveBrush()
 			local col = eraseMode and { 1.0, 0.55, 0.1, 0.9 } or { 0.4, 0.85, 1.0, 0.9 }
-			glColor(col[1], col[2], col[3], col[4])
+			glColor(col[1], col[2], col[3], col[4] * edgeFade)
 			glLineWidth(2.0)
 			glDrawGroundCircle(wx, groundY, wz, effR, 64)
 			glLineWidth(1.0)
 			-- Falloff ring at 50%
 			if brushCurve > 0.1 then
 				local halfR = effR * (0.5 ^ (1 / brushCurve))
-				glColor(col[1], col[2], col[3], 0.35)
+				glColor(col[1], col[2], col[3], 0.35 * edgeFade)
 				glDrawGroundCircle(wx, groundY, wz, halfR, 64)
 			end
 		end

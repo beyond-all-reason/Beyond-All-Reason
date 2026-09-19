@@ -44,6 +44,9 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaDamage = lava.damage * (DAMAGE_RATE / gameSpeed)
 	local lavaDamageFeatures = lava.damageFeatures
 	local lavaDamageAirUnits = true
+	-- lava damage is dealt as the engine's environmental water damage type (the engine uses it for
+	-- lava/acid water too), so other gadgets can tell it apart from weapon damage (e.g. no rush mode)
+	local DAMAGE_EXTSOURCE_WATER = Game.envDamageTypes.Water
 
 	-- ceg effects
 	local lavaEffectBurst = lava.effectBurst
@@ -95,12 +98,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local geoThermal = {}
 	local featureHasMetal = {}
+	local isDecorationFeature = {}
 	for featureDefID, featureDef in pairs(FeatureDefs) do
 		if featureDef.geoThermal then
 			geoThermal[featureDefID] = true
 		end
 		if featureDef.metal and featureDef.metal > 0 then
 			featureHasMetal[featureDefID] = true
+		end
+		if featureDef.customParams and featureDef.customParams.decoration then
+			isDecorationFeature[featureDefID] = true
 		end
 	end
 
@@ -182,7 +189,7 @@ if gadgetHandler:IsSyncedCode() then
 						data.currentSlow = unitSlow
 					end
 				end
-				spAddUnitDamage(unitID, lavaDamage, nil, nil)
+				spAddUnitDamage(unitID, lavaDamage, nil, nil, DAMAGE_EXTSOURCE_WATER)
 				spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 			else -- unit exited lava
 				if data.slowed then
@@ -207,7 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 					if lavaDamageAirUnits then
 						local x, y, z = spGetUnitBasePosition(unitID)
 						if y and y < lavaLevel then
-							spAddUnitDamage(unitID, lavaDamage, nil, nil)
+							spAddUnitDamage(unitID, lavaDamage, nil, nil, DAMAGE_EXTSOURCE_WATER)
 							spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 						end
 					end
@@ -236,7 +243,7 @@ if gadgetHandler:IsSyncedCode() then
 							data = { unitDefID = unitDefID, slowed = false }
 						end
 						lavaUnits[unitID] = data
-						spAddUnitDamage(unitID, lavaDamage, nil, nil)
+						spAddUnitDamage(unitID, lavaDamage, nil, nil, DAMAGE_EXTSOURCE_WATER)
 						spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 					end
 				end
@@ -254,7 +261,12 @@ if gadgetHandler:IsSyncedCode() then
 	local function trackFeature(featureID)
 		local featureDefID = spGetFeatureDefID(featureID)
 		-- always damage non-metal features (trees, foliage); metal features only if lavaDamageFeatures is set
-		if not geoThermal[featureDefID] and (lavaDamageFeatures or not featureHasMetal[featureDefID]) then
+		-- decoration features (e.g. commander tombstones) are never damaged
+		if
+			not geoThermal[featureDefID]
+			and not isDecorationFeature[featureDefID]
+			and (lavaDamageFeatures or not featureHasMetal[featureDefID])
+		then
 			featureX[featureID], featureY[featureID], featureZ[featureID] = spGetFeaturePosition(featureID)
 		end
 	end
@@ -270,7 +282,7 @@ if gadgetHandler:IsSyncedCode() then
 		for featureID, y in pairs(featureY) do
 			if y < lavaLevel then
 				local x, z = featureX[featureID], featureZ[featureID]
-				spAddFeatureDamage(featureID, lavaDamage, nil, nil)
+				spAddFeatureDamage(featureID, lavaDamage, nil, nil, DAMAGE_EXTSOURCE_WATER)
 				spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 			end
 		end
@@ -401,8 +413,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- 	Spring.Echo("LavaIsDropping")
 		-- end
 	end
-
-	local DAMAGE_EXTSOURCE_WATER = -5
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID)
 		if weaponDefID ~= DAMAGE_EXTSOURCE_WATER then

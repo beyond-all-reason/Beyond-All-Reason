@@ -20,17 +20,21 @@ end
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
+local resolveAttachPiece = VFS.Include("luarules/gadgets/include/unit_attachments.lua").ResolveAttachPiece
 
--- TODO: do not use hardcoded unit names
-local unitDefData = {
-	legmohocon = { mex = "legmohoconin", con = "legmohoconct" },
-}
-for unitName, unitPair in pairs(unitDefData) do
-	if not unitName:find("_scav") then
-		unitDefData[unitName .. "_scav"] = {
-			mex = unitPair.mex .. "_scav",
-			con = unitPair.con .. "_scav",
-		}
+-- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
+-- mark builds that split into a mex plus an attached con turret; scav copies inherit the
+-- params and get the _scav variants of both spawned defs
+local unitDefData = {}
+for udid, ud in pairs(UnitDefs) do
+	local con = ud.customParams.attached_con_turret
+	local mex = ud.customParams.attached_con_turret_mex
+	if con and mex then
+		if ud.customParams.isscavenger then
+			con = con .. "_scav"
+			mex = mex .. "_scav"
+		end
+		unitDefData[ud.name] = { mex = mex, con = con }
 	end
 end
 
@@ -87,7 +91,6 @@ local function doSwapMex(unitID, unitTeam, unitData)
 		return
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
-	Spring.SetUnitNoSelect(mexID, true)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
 	Spring.SetUnitStealth(mexID, true)
 
@@ -100,8 +103,22 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitHealth(conID, unitHealth)
 
-	-- TODO: Get attachment piece by customparam.
-	Spring.UnitAttach(mexID, conID, 6, true)
+	local piece = resolveAttachPiece(conID)
+	if not piece then
+		Spring.DestroyUnit(conID, false, true)
+		Spring.DestroyUnit(mexID, false, true)
+		Spring.AddTeamResource(unitTeam, "m", unitData.metal)
+		Spring.AddTeamResource(unitTeam, "e", unitData.energy)
+		return
+	end
+
+	-- transported units can't be targeted, so the turret carries the mex
+	Spring.UnitAttach(conID, mexID, piece, true)
+	-- attaching resets these
+	Spring.SetUnitNoSelect(mexID, true)
+	Spring.SetUnitNoMinimap(mexID, true)
+	Spring.SetUnitIconDraw(mexID, false)
+	Spring.SetUnitNoDraw(mexID, true)
 	Spring.SetUnitRulesParam(conID, "pairedUnitID", mexID)
 	Spring.SetUnitRulesParam(mexID, "pairedUnitID", conID)
 	pairedUnits[conID] = mexID

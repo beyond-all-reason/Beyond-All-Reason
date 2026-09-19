@@ -124,7 +124,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitHealth = Spring.GetUnitHealth
-local spTestMoveOrder = Spring.TestMoveOrder
 local random = math.random
 local ceil = math.ceil
 local max = math.max
@@ -142,10 +141,18 @@ local config = VFS.Include("LuaRules/Configs/quick_start_build_defs.lua")
 local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
 local overlapLines = VFS.Include("common/overlap_lines.lua")
 local commanderNonLabOptions = config.commanderNonLabOptions
-local discountableFactories = config.discountableFactories
 local optionsToNodeType = config.optionsToNodeType
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
+
+-- factories carrying customparams.quickstart_discountable earn the quick-start factory
+-- discount; scav copies are excluded so their altered costs can't lower FACTORY_DISCOUNT
+local discountableFactories = {}
+for unitDefID, unitDef in pairs(unitDefs) do
+	if unitDef.isFactory and unitDef.customParams.quickstart_discountable and not unitDef.customParams.isscavenger then
+		discountableFactories[unitDefID] = true
+	end
+end
 
 local gameFrameTryCount = 0
 local initialized = false
@@ -274,11 +281,9 @@ for unitDefID, unitDef in pairs(unitDefs) do
 		boostableCommanders[unitDefID] = true
 	end
 end
-for name, _ in pairs(discountableFactories) do
-	if unitDefNames[name] then
-		local labBudget = defMetergies[unitDefNames[name].id]
-		FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, customRound(labBudget * FACTORY_DISCOUNT_MULTIPLIER))
-	end
+for unitDefID, _ in pairs(discountableFactories) do
+	local labBudget = defMetergies[unitDefID]
+	FACTORY_DISCOUNT = min(FACTORY_DISCOUNT, customRound(labBudget * FACTORY_DISCOUNT_MULTIPLIER))
 end
 for commanderName, nonLabOptions in pairs(commanderNonLabOptions) do
 	if unitDefNames[commanderName] then
@@ -375,9 +380,7 @@ local function getCommanderBuildQueue(commanderID)
 		generateOverlapLines(commanderID)
 	end
 
-	Spring.Echo(string.format("=== Validating Build Queue for Commander %d (Team %d) ===", commanderID, comData.teamID))
-
-	for i, cmd in ipairs(commands) do
+	for _, cmd in ipairs(commands) do
 		if isBuildCommand(cmd.id) then
 			local unitDefID = -cmd.id
 			local spawnParams = {
@@ -389,7 +392,6 @@ local function getCommanderBuildQueue(commanderID)
 				cmdTag = cmd.tag,
 			}
 			local unitDef = unitDefs[unitDefID]
-			local unitDefName = unitDef and unitDef.name or "UNKNOWN"
 			local distance = distance2d(comData.spawnX, comData.spawnZ, spawnParams.x, spawnParams.z)
 			local isTraversable = traversabilityGrid.canMoveToPosition(
 				commanderID,
@@ -404,14 +406,6 @@ local function getCommanderBuildQueue(commanderID)
 				comData.spawnZ,
 				comData.overlapLines
 			)
-
-			local validationResults = {
-				distanceCheck = distance <= INSTANT_BUILD_RANGE,
-				traversableCheck = isTraversable,
-				notPastLinesCheck = not isPastFriendlyLines,
-				distance = distance,
-				maxDistance = INSTANT_BUILD_RANGE,
-			}
 
 			if distance <= INSTANT_BUILD_RANGE and isTraversable and not isPastFriendlyLines then
 				local budgetCost = defMetergies[unitDefID] or 0
@@ -432,19 +426,6 @@ local function getCommanderBuildQueue(commanderID)
 
 				totalBudgetCost = totalBudgetCost + budgetCost
 				if totalBudgetCost > comData.budget then
-					Spring.Echo(
-						string.format(
-							"  [%d] %s at (%.1f, %.1f, %.1f) facing: %d - REJECTED (Budget exceeded: %.1f > %.1f)",
-							i,
-							unitDefName,
-							spawnParams.x,
-							spawnParams.y,
-							spawnParams.z,
-							spawnParams.facing,
-							totalBudgetCost,
-							comData.budget
-						)
-					)
 					comData.commandsToRemove = commandsToRemove
 					return spawnQueue
 				end
@@ -452,42 +433,10 @@ local function getCommanderBuildQueue(commanderID)
 				if cmd.tag then
 					table.insert(commandsToRemove, cmd.tag)
 				end
-			else
-				local failReasons = {}
-				if not validationResults.distanceCheck then
-					table.insert(
-						failReasons,
-						string.format(
-							"OutOfRange(%.1f > %.1f)",
-							validationResults.distance,
-							validationResults.maxDistance
-						)
-					)
-				end
-				if not validationResults.traversableCheck then
-					table.insert(failReasons, "NotTraversable")
-				end
-				if not validationResults.notPastLinesCheck then
-					table.insert(failReasons, "PastFriendlyLines")
-				end
-				local failReasonsStr = table.concat(failReasons, ", ")
-				Spring.Echo(
-					string.format(
-						"  [%d] %s at (%.1f, %.1f, %.1f) facing: %d - REJECTED (%s)",
-						i,
-						unitDefName,
-						spawnParams.x,
-						spawnParams.y,
-						spawnParams.z,
-						spawnParams.facing,
-						failReasonsStr
-					)
-				)
 			end
 		end
 	end
 	comData.commandsToRemove = commandsToRemove
-	Spring.Echo(string.format("=== Accepted %d/%d build queue items ===", #spawnQueue, #commands))
 	return spawnQueue
 end
 
@@ -885,22 +834,11 @@ end
 
 local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, facing)
 	local unitDef, comData = unitDefs[unitDefID], commanders[commanderID]
-	local unitDefName = unitDef and unitDef.name or "UNKNOWN"
 	local discount = getFactoryDiscount(unitDef, commanderID)
 	local cost = defMetergies[unitDefID] - discount
 
 	local unitID = spCreateUnit(unitDef.name, buildX, buildY, buildZ, facing, comData.teamID)
 	if not unitID then
-		Spring.Echo(
-			string.format(
-				"  SPAWN FAILED: %s at (%.1f, %.1f, %.1f) facing: %d - CreateUnit returned nil (terrain/collision conflict)",
-				unitDefName,
-				buildX,
-				buildY,
-				buildZ,
-				facing
-			)
-		)
 		return false, nil
 	end
 
@@ -908,7 +846,7 @@ local function tryToSpawnBuild(commanderID, unitDefID, buildX, buildY, buildZ, f
 	local projectedBuildProgress = queueBuildForProgression(unitID, unitDef, affordableCost, cost)
 	comData.budget = comData.budget - affordableCost
 
-	if unitDef.isFactory and discountableFactories[unitDef.name] and discount > 0 then
+	if discountableFactories[unitDefID] and discount > 0 then
 		commanderFactoryDiscounts[commanderID] = true
 	end
 
@@ -954,19 +892,13 @@ function gadget:GameFrame(frame)
 			break
 		end
 		local loop = modOptions.quick_start ~= "factory_discount_only"
-		if loop and gameFrameTryCount == 1 then
-			Spring.Echo("=== Beginning Quick Start Spawn Phase ===")
-		end
 		while loop do
 			loop = false
 			for commanderID, comData in pairs(commanders) do
 				if comData.spawnQueue then
-					for i, buildItem in ipairs(comData.spawnQueue) do
+					for _, buildItem in ipairs(comData.spawnQueue) do
 						local buildType = optionDefIDToTypes[buildItem.id]
-						local unitDef = unitDefs[buildItem.id]
-						local unitDefName = unitDef and unitDef.name or "UNKNOWN"
 						local buildX, buildY, buildZ = buildItem.x, buildItem.y, buildItem.z
-						local hadCoordinates = buildX and buildY and buildZ
 						if not buildX or not buildZ or not buildY then
 							buildX, buildY, buildZ = getBuildSpace(commanderID, buildType)
 						end
@@ -975,40 +907,6 @@ function gadget:GameFrame(frame)
 							local success = tryToSpawnBuild(commanderID, buildItem.id, buildX, buildY, buildZ, facing)
 							if success then
 								loop = true
-							end
-						else
-							local failReasons = {}
-							if not buildItem.id then
-								table.insert(failReasons, "NoUnitDefID")
-							end
-							if not buildX then
-								table.insert(
-									failReasons,
-									hadCoordinates and "InvalidCoordinates" or "NoBuildSpaceAvailable"
-								)
-							end
-							if comData.budget <= 0 then
-								table.insert(failReasons, "NoBudget")
-							end
-							if #failReasons > 0 then
-								local failReasonsStr = table.concat(failReasons, ", ")
-								local coordsStr = buildItem.x
-										and string.format(
-											"(%.1f, %.1f, %.1f)",
-											buildItem.x,
-											buildItem.y or 0,
-											buildItem.z
-										)
-									or "(no coords)"
-								Spring.Echo(
-									string.format(
-										"  SPAWN SKIPPED: %s at %s facing: %d - %s",
-										unitDefName,
-										coordsStr,
-										facing,
-										failReasonsStr
-									)
-								)
 							end
 						end
 					end

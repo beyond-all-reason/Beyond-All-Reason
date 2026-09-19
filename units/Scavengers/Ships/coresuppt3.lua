@@ -1,4 +1,3 @@
-local unitName = "Epic Supporter"
 return {
 	coresuppt3 = {
 		maxacc = 0.015,

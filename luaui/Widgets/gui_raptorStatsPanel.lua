@@ -119,7 +119,6 @@ local rules = {
 	"raptor_hiveKills",
 }
 
-local waveColor = "\255\255\0\0"
 local textColor = "\255\255\255\255"
 
 local raptorTypes = {
@@ -135,18 +134,6 @@ local raptorTypes = {
 	"raptorr",
 	"raptor_turret",
 }
-
-local function commaValue(amount)
-	local formatted = amount
-	local k
-	while true do
-		formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", "%1,%2")
-		if k == 0 then
-			break
-		end
-	end
-	return formatted
-end
 
 local function getRaptorCounts(type)
 	local total = 0

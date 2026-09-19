@@ -49,9 +49,6 @@ local glUniform = gl.Uniform
 local glUniformInt = gl.UniformInt
 local glUniformMatrix = gl.UniformMatrix
 
-local GL_DEPTH_COMPONENT = 0x1902
-local GL_DEPTH_COMPONENT16 = 0x81A5
-local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_DEPTH_COMPONENT32 = 0x81A7
 
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0

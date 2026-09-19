@@ -29,7 +29,7 @@ end
 
 ---Register a unit definition. Accepts either a UnitDefBuilder or a (defID, defTable) pair.
 ---@overload fun(self: UnitDefsBuilder, udb: UnitDefBuilder): UnitDefsBuilder
----@param defID number
+---@param defID UnitDefID
 ---@param def table
 ---@return UnitDefsBuilder
 function UDFB:WithUnitDef(defID, def)
@@ -55,7 +55,7 @@ end
 ---Register a live unit instance. defIDOrName accepts either a numeric defID
 ---or the name of a previously-registered def. Errors loudly if the def has
 ---not been registered (via WithUnitDef or WithRealUnitDefs).
----@param unitID number
+---@param unitID UnitID
 ---@param defIDOrName number|string
 ---@return UnitDefsBuilder
 function UDFB:WithUnit(unitID, defIDOrName)
@@ -166,7 +166,7 @@ function UDFB:GetUnitDefNames()
 	return self._names
 end
 
----@param unitID number
+---@param unitID UnitID
 ---@return number|nil
 function UDFB:GetUnitDefID(unitID)
 	return self._instances[unitID]

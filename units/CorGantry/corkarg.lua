@@ -33,8 +33,10 @@ return {
 		turnrate = 400,
 		upright = false,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 3,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",

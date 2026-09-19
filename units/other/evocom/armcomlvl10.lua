@@ -123,6 +123,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "armstone",
 			workertimeboost = 3.5,
 			wtboostunittype = "TURRET MOBILE",
 			effigy = "comeffigylvl5",
