@@ -29,7 +29,7 @@ local myTeamID = spGetMyTeamID()
 -- widget global settings and assigned defaults
 local lowpriorityLabs = true
 local lowpriorityNanos = true
-local lowpriorityCons = false
+local lowpriorityCons = true
 
 -- controlled units by category
 local builderLabs = {}
