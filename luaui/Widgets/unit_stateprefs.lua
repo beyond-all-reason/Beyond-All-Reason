@@ -71,9 +71,12 @@ end
 -- preset helpers
 
 local bombers = {}
+local builderFactories = {}
 local factories = {}
 local fighters = {}
 local landFactories = {}
+local constructors = {}
+local nanoTurrets = {}
 
 local function UnitDefIsBomber(unitDef) -- stolen from old bomber default hold fire widget
 	if not unitDef or not unitDef.weapons then
@@ -105,7 +108,7 @@ for unitName, unitDef in pairs(UnitDefNames) do
 			local buildOpt = UnitDefs[buildOptDefID]
 
 			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
-				factories[unitName] = true  -- only factories that can build builders are included
+				builderFactories[unitName] = true  -- only factories that can build builders are included
 				break
 			end
 		end
@@ -116,13 +119,25 @@ for unitName, unitDef in pairs(UnitDefNames) do
 	if unitDef.isFactory and not unitDef.customParams.airfactory then
 		landFactories[unitName] = true
 	end
+	if unitDef.isBuilder and unitDef.canMove and unitDef.canAssist and not unitDef.isFactory and unitDef.customParams.iscommander then
+		constructors[unitName] = true
+	end
+	if unitDef.isBuilder and unitDef.isFactory then
+		factories[unitName] = true
+	end
+	if unitDef.isBuilder and not unitDef.isFactory and not unitDef.canMove then
+		nanoTurrets[unitName] = true
+	end
 end
 
 local presets = { -- CMD_ID, state_false, state_true, units
 	bombers_default_hold_fire = {CMD.FIRE_STATE, nil, 0, bombers}, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
-	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, factories},
+	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, builderFactories},
 	fighters_default_fly = {CMD.IDLEMODE, nil, 0, fighters},
 	factory_hold_position = {CMD.MOVE_STATE, nil, 0, landFactories},
+	constructors_priority = {GameCMD.PRIORITY, 0, 1, constructors},
+	factories_priority = {GameCMD.PRIORITY, 0, 1, factories},
+	nano_turrets_priority = {GameCMD.PRIORITY, 0, 1, nanoTurrets},
 }
 
 local function togglePreset(presetName, state, force)
@@ -178,6 +193,34 @@ function widget:SetConfigData(data)
 	unitSet = data
 	pruneAllUnitPrefs(unitSet)
 
+	unitSet.presets = unitSet.presets or {} -- handle presets for groups of units like bombers defaulting on hold fire
+	for presetName, state in pairs(unitSet.presets) do
+		togglePreset(presetName, state, false)
+	end
+
+	if unitSet.presets.constructors_priority == nil then
+		if widgetHandler.configData["Builder Priority"] then
+			unitSet.presets = unitSet.presets or {}
+			unitSet.presets.constructors_priority = not widgetHandler.configData["Builder Priority"].lowpriorityLabs
+			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
+
+			unitSet.presets.nano_turrets_priority = not widgetHandler.configData["Builder Priority"].lowpriorityNanos
+			togglePreset("nano_turrets_priority", unitSet.presets.nano_turrets_priority, false)
+
+			unitSet.presets.constructors_priority = not widgetHandler.configData["Builder Priority"].lowpriorityCons
+			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
+		else
+			unitSet.presets.constructors_priority = true
+			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
+
+			unitSet.presets.nano_turrets_priority = false
+			togglePreset("nano_turrets_priority", unitSet.presets.nano_turrets_priority, false)
+			
+			unitSet.presets.constructors_priority = false
+			togglePreset("constructors_priority", unitSet.presets.constructors_priority, false)
+		end
+	end
+
 	-- handle porting of config from old auto cloak widget, can be removed after some time (implemented 2026-07)
 	if widgetHandler.configData["Auto Cloak Units"] and widgetHandler.configData["Auto Cloak Units"].unitdefConfig then
 		for unitName, cloak in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
@@ -186,11 +229,6 @@ function widget:SetConfigData(data)
 				unitSet[unitName][CMD_WANT_CLOAK] = cloak and 1 or 0
 			end
 		end
-	end
-
-	unitSet.presets = unitSet.presets or {} -- handle presets for groups of units like bombers defaulting on hold fire
-	for presetName, state in pairs(unitSet.presets) do
-		togglePreset(presetName, state, false)
 	end
 end
 
