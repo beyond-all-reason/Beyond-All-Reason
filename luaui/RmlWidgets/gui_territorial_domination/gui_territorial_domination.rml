@@ -221,7 +221,10 @@
 						<span class="td-allyteam-color" data-style-background-color="tooltipLeaderColor"></span>
 					</div>
 				</div>
-				<div class="td-tooltip-simple" data-if="tooltipIsSimple">{{tooltipText}}</div>
+				<div data-if="tooltipIsSimple">
+					<div class="td-tooltip-simple">{{tooltipText}}</div>
+					<div class="td-tooltip-simple" data-if="tooltipSecondaryText != ''">{{tooltipSecondaryText}}</div>
+				</div>
 			</div>
 		</div>
 

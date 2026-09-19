@@ -133,6 +133,8 @@ local DEADLINES_BY_CONFIG = {
 	["35_minutes"] = 7,
 }
 local DEFAULT_MAX_DEADLINES = DEADLINES_BY_CONFIG[MOD_OPTIONS.territorial_domination_config] or 5
+local DEADLINE_SCORE_MULTIPLIER = tonumber(MOD_OPTIONS.territorial_domination_elimination_threshold_multiplier) or 1.2
+local DEADLINE_SCORE_MULTIPLIER_LABEL = string.format("%.1f", DEADLINE_SCORE_MULTIPLIER)
 
 local widgetState = {
 	allyTeamsByID = {},
@@ -250,6 +252,14 @@ local function formatCountdown(deadlineEndTimestamp, currentDeadline, maxDeadlin
 	local minutes = math.floor(displayedSeconds / SECONDS_PER_MINUTE)
 	local seconds = displayedSeconds % SECONDS_PER_MINUTE
 	return string.format("%d:%02d", minutes, seconds), remainingSeconds
+end
+
+local function getCountdownTooltip(currentDeadline, maxDeadlines)
+	local safeMaxDeadlines = math.max(1, math.floor(tonumber(maxDeadlines) or DEFAULT_MAX_DEADLINES))
+	return I18N("ui.territorialDomination.tooltip.countdownUntilDeadlineEnds", {
+		currentDeadline = math.max(1, math.min(math.floor(tonumber(currentDeadline) or 1), safeMaxDeadlines)),
+		maxDeadlines = safeMaxDeadlines,
+	})
 end
 
 local function getAllyTeamColor(allyTeamID, teamID)
@@ -1019,6 +1029,7 @@ local function updateSimpleTooltipContent()
 	end
 
 	local tooltipText
+	local tooltipSecondaryText = ""
 	if widgetState.tooltipSource == TOOLTIP.SOURCE_CURRENT_SCORE then
 		tooltipText = dataModel.footerScoreTooltip
 	elseif widgetState.tooltipSource == TOOLTIP.SOURCE_COUNTDOWN then
@@ -1027,17 +1038,23 @@ local function updateSimpleTooltipContent()
 		tooltipText = dataModel.dangerMarkTooltip
 	elseif widgetState.tooltipSource == TOOLTIP.SOURCE_DEADLINE then
 		tooltipText = dataModel.deadlineLineTooltip
+		tooltipSecondaryText = dataModel.deadlineLineSecondaryTooltip
 	else
 		return false
 	end
 	dataModel.tooltipIsSimple = true
 	dataModel.tooltipIsScore = false
 	dataModel.tooltipText = tooltipText
+	dataModel.tooltipSecondaryText = tooltipSecondaryText
 	dataModel.tooltipTitle = ""
 	dataModel.tooltipHeader = ""
 	dataModel.tooltipShowTeam = false
 	dataModel.tooltipShowLeader = false
-	applyTooltipSize(dataModel, { getTooltipTextWidthDp(tooltipText) })
+	local lineWidths = { getTooltipTextWidthDp(tooltipText) }
+	if tooltipSecondaryText ~= "" then
+		lineWidths[#lineWidths + 1] = getTooltipTextWidthDp(tooltipSecondaryText)
+	end
+	applyTooltipSize(dataModel, lineWidths)
 	return true
 end
 
@@ -1402,6 +1419,7 @@ end
 ---@field tooltipIsScore boolean
 ---@field tooltipIsSimple boolean
 ---@field tooltipText string
+---@field tooltipSecondaryText string
 ---@field tooltipTitle string
 ---@field tooltipHeader string
 ---@field tooltipPlayersRml string
@@ -1421,6 +1439,7 @@ end
 ---@field footerCountdownTooltip string
 ---@field dangerMarkTooltip string
 ---@field deadlineLineTooltip string
+---@field deadlineLineSecondaryTooltip string
 ---@field popupVisible boolean
 ---@field popupTitle string
 ---@field popupRateText string
@@ -1485,6 +1504,7 @@ local function initializeModel()
 		tooltipIsScore = true,
 		tooltipIsSimple = false,
 		tooltipText = "",
+		tooltipSecondaryText = "",
 		tooltipTitle = "",
 		tooltipHeader = "",
 		tooltipPlayersRml = "",
@@ -1501,9 +1521,12 @@ local function initializeModel()
 		tooltipLeaderDifference = "",
 		tooltipLeaderColor = makeColorString(DEFAULT_COLOR),
 		footerScoreTooltip = I18N("ui.territorialDomination.tooltip.currentScore"),
-		footerCountdownTooltip = I18N("ui.territorialDomination.tooltip.timeUntilFirstDeadline"),
+		footerCountdownTooltip = getCountdownTooltip(1, DEFAULT_MAX_DEADLINES),
 		dangerMarkTooltip = I18N("ui.territorialDomination.tooltip.eliminationDanger"),
 		deadlineLineTooltip = I18N("ui.territorialDomination.tooltip.deadlineScore"),
+		deadlineLineSecondaryTooltip = I18N("ui.territorialDomination.tooltip.deadlineScoreRule", {
+			multiplier = DEADLINE_SCORE_MULTIPLIER_LABEL,
+		}),
 		popupVisible = false,
 		popupTitle = "",
 		popupRateText = "",
@@ -1846,13 +1869,7 @@ local function updateDataModel()
 	)
 	dataModel.footerScore = formatScore(selectedScore)
 
-	if currentDeadline >= maxDeadlines then
-		dataModel.footerCountdownTooltip = I18N("ui.territorialDomination.tooltip.timeUntilHighestScoreWins")
-	elseif currentDeadline <= 1 or not hasDeadline then
-		dataModel.footerCountdownTooltip = I18N("ui.territorialDomination.tooltip.timeUntilFirstDeadline")
-	else
-		dataModel.footerCountdownTooltip = I18N("ui.territorialDomination.tooltip.timeUntilNextDeadline")
-	end
+	dataModel.footerCountdownTooltip = getCountdownTooltip(currentDeadline, maxDeadlines)
 
 	if isBelowDeadline then
 		dataModel.footerTargetIcon = DEADLINE_SKULL_ICON
