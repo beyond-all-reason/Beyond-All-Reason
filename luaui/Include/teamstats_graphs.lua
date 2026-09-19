@@ -38,20 +38,162 @@ local BUCKET_COLORS = {
 	{ 0.82, 0.68, 0.76 },
 }
 
--- Which kinds of milestone belong on a chart of which column group, so a chart is not
--- littered with moments that say nothing about it. `always` goes on every chart: the end of
--- a team explains the end of all of its lines.
-local MILESTONE_GROUPS = {
-	tech2 = { units = true, value = true, metal = true, energy = true, industry = true },
-	tech3 = { units = true, value = true, metal = true, energy = true, industry = true },
-	nuke = { damage = true, value = true, traded = true, energy = true },
-	antinuke = { damage = true, value = true, energy = true },
-	lrpc = { damage = true, value = true, traded = true },
-	firstKill = { damage = true, units = true, traded = true },
-	firstLoss = { damage = true, units = true, traded = true, value = true },
-	commanderLost = { commanders = true, damage = true, units = true, value = true, metal = true, energy = true },
-	teamDied = { always = true },
+-- What goes on each chart besides its lines, in the order its settings list them: the
+-- milestones that say something about what it plots, and the marks its own lines make -
+-- `lead` (one overtaking the rest and staying ahead), `peak` (a line's high point, once it
+-- has come down from it), `drop` (a line's steepest fall) and `crossing` (a line crossing
+-- its even mark) - and the stretches of time `dry` (no energy left) and `full` (the
+-- storage of the chart's resource full). `teammateOut` is a teammate out of the game, whose
+-- units and resources the rest were handed. Every chart over time has `teamDied` as well:
+-- a team's end explains the end of its lines.
+local MARKS = {
+	-- Flow
+	metalIncome = { "moho", "converter", "advConverter", "commanderLost", "peak" },
+	metalExpense = { "tech2" },
+	metalLevel = { "full" },
+	energyIncome = { "fusion", "afus", "geo", "peak" },
+	energyExpense = { "converter", "advConverter", "nuke", "antinuke", "dry" },
+	energyLevel = { "dry", "full" },
+	conversion = { "converter", "advConverter", "dry" },
+	buildPower = { "tech2", "nano", "commanderLost", "peak", "drop" },
+	buildPowerUse = { "dry" },
+	incomeMetal = { "moho", "converter", "advConverter" },
+	incomeEnergy = { "fusion", "afus", "geo" },
+	-- Economy
+	metalProduced = { "lead", "moho", "converter", "advConverter" },
+	metalReclaimed = { "lead" },
+	metalUsed = { "lead", "tech2" },
+	metalExcess = { "full" },
+	metalReceived = { "teammateOut" },
+	metalStored = { "full" },
+	energyProduced = { "lead", "fusion", "afus", "geo" },
+	energyReclaimed = { "lead" },
+	energyUsed = { "lead", "converter", "advConverter" },
+	energyExcess = { "full", "converter" },
+	energyReceived = { "teammateOut" },
+	energyStored = { "dry", "full" },
+	-- Combat
+	damageDealt = { "lead", "nukeLaunched", "lrpc", "firstKill" },
+	damageReceived = { "nuked", "firstLoss", "commanderLost" },
+	damageEfficiency = { "crossing", "firstKill", "firstLoss" },
+	unitsKilled = { "lead", "firstKill", "nukeLaunched" },
+	unitsDied = { "nuked", "firstLoss", "commanderLost" },
+	killEfficiency = { "crossing", "firstKill", "firstLoss" },
+	killedValue = { "lead", "commanderKill", "nukeLaunched", "firstKill" },
+	lostValue = { "nuked", "commanderLost", "firstLoss" },
+	valueEfficiency = { "crossing", "commanderKill", "commanderLost" },
+	damagePerMetal = { "tech2", "tech3", "peak" },
+	teamKillValue = { "commanderLost" },
+	comKills = { "commanderKill" },
+	comLost = { "commanderLost" },
+	losses = { "nuked", "commanderLost" },
+	-- Units
+	unitsProduced = { "lead", "tech2", "air", "naval" },
+	unitsReceived = { "teammateOut" },
+	unitsActive = { "peak", "drop" },
+	-- Composition
+	composition = { "air", "naval", "tech2", "tech3", "nuke", "antinuke", "lrpc" },
+	tech = { "tech2", "tech3" },
+	unitValue = { "drop", "peak", "tech2", "tech3" },
+	valueArmy = { "drop", "peak", "tech3" },
+	armyShare = { "drop" },
+	valueAir = { "air", "drop" },
+	valueSea = { "naval", "drop" },
+	valueDefense = { "drop", "peak" },
+	valueStrategic = { "nuke", "antinuke", "lrpc" },
+	valueFactories = { "tech2", "tech3", "air", "naval" },
+	valueBuilders = { "tech2", "nano", "commanderLost" },
+	valueEconomy = { "moho", "fusion", "afus", "converter", "advConverter", "geo" },
+	valueUtility = { "radar" },
+	-- Map
+	metalSpots = { "moho", "drop", "peak" },
+	incomeMex = { "moho", "drop", "peak" },
+	geoSpots = { "geo", "drop" },
+	visionCoverage = { "drop", "peak" },
+	radarCoverage = { "radar", "drop" },
+	frontLine = { "crossing", "drop" },
+	-- Activity
+	actionsPerMinute = { "peak" },
+	buildPowerIdle = { "dry" },
+	-- The timeline is made of the milestones that tell the game's story.
+	timeline = {
+		"tech2",
+		"tech3",
+		"firstKill",
+		"firstLoss",
+		"commanderKill",
+		"commanderLost",
+		"moho",
+		"fusion",
+		"afus",
+		"air",
+		"naval",
+		"nuke",
+		"antinuke",
+		"lrpc",
+		"nukeLaunched",
+		"nuked",
+	},
 }
+-- The charts that have no time, or no team, to mark.
+---@type table<string, boolean?>
+local UNMARKED = { profile = true, wind = true }
+-- The marks a chart's own lines make, and the shape each is drawn as; the stretches of time.
+local LINE_MARKS = { lead = "dot", peak = "up", drop = "down", crossing = "diamond" }
+local SPAN_MARKS = { dry = true, full = true }
+-- The marks a card explains beyond their name.
+local DESCRIBED =
+	{ lead = true, peak = true, drop = true, crossing = true, dry = true, full = true, teammateOut = true }
+-- Where a line crosses from behind to ahead, and what that is called either way.
+---@type table<string, { at: number, up: string, down: string }?>
+local CROSSING = {
+	damageEfficiency = { at = 100, up = "aheadEven", down = "behindEven" },
+	killEfficiency = { at = 100, up = "aheadEven", down = "behindEven" },
+	valueEfficiency = { at = 100, up = "aheadEven", down = "behindEven" },
+	frontLine = { at = 50, up = "pastMiddle", down = "behindMiddle" },
+}
+-- A sample's period in frames, and how much of it (per cent) without energy or with the
+-- storage full makes the sample part of a stretch.
+local PERIOD = 450
+local SPAN_SHARE = 20
+-- A lead taken by less than this share of the leader's value is no lead; only this many of
+-- the latest changes of lead, and of crossings a line, are marked.
+local LEAD_MARGIN = 0.05
+local MAX_LEADS = 12
+local MAX_CROSSINGS = 8
+
+-- The marks a chart can carry, in the order its settings list them, `teamDied` last.
+---@type table<string, string[]?>
+local marksCache = {}
+---@return string[]
+local function marksOf(stat)
+	if not stat then
+		return {}
+	end
+	local held = marksCache[stat]
+	if held then
+		return held
+	end
+	---@type string[]
+	local list = {}
+	if not UNMARKED[stat] then
+		for _, kind in ipairs(MARKS[stat] or {}) do
+			list[#list + 1] = kind
+		end
+		list[#list + 1] = "teamDied"
+	end
+	marksCache[stat] = list
+	return list
+end
+
+-- The items of one list put at the end of another.
+---@param list table[]
+---@param items table[]
+local function append(list, items)
+	for _, item in ipairs(items) do
+		list[#list + 1] = item
+	end
+end
 
 -- The grids a page can be split into, in the order the setting cycles through them.
 local PAGES = {
@@ -148,6 +290,13 @@ local PLATE = { 1, 1, 1, 0.05 }
 local PICKED_FRAME = { 1, 0.78, 0.51, 0.85 }
 local HOVER_FRAME = { 1, 1, 1, 0.85 }
 
+-- A number with an SI prefix, when the game's string helpers are there to give one.
+local function siText(v)
+	---@diagnostic disable-next-line: undefined-field
+	local formatSI = string.formatSI
+	return formatSI and formatSI(v) or nil
+end
+
 -- A percentage for an axis or a tooltip: whole, a prefix past a million, infinity as
 -- its sign.
 local function percentFormat(v)
@@ -156,10 +305,36 @@ local function percentFormat(v)
 	elseif v == -mathHuge then
 		return "-\226\136\158"
 	end
-	if math.abs(v) >= 1e6 and string.formatSI then
-		return string.formatSI(v) .. "%"
+	local si = math.abs(v) >= 1e6 and siText(v)
+	if si then
+		return si .. "%"
 	end
 	return string.format("%.0f%%", v)
+end
+
+-- A value in a mark's text, the way the chart's axis prints it.
+local function valueText(column, v)
+	if column and column.fmt == "percent" then
+		return percentFormat(v)
+	end
+	local si = mathAbs(v) >= 1000 and siText(v)
+	if si then
+		return si
+	end
+	if mathAbs(v) < 10 and v ~= mathFloor(v) then
+		return string.format("%.1f", v)
+	end
+	return string.format("%d", mathFloor(v + 0.5))
+end
+
+-- A colour as a text colour code, lifted towards white so a dark team still reads.
+local function tint(c)
+	return string.char(
+		255,
+		mathFloor((c[1] * 0.65 + 0.35) * 255),
+		mathFloor((c[2] * 0.65 + 0.35) * 255),
+		mathFloor((c[3] * 0.65 + 0.35) * 255)
+	)
 end
 
 local M = {}
@@ -264,10 +439,10 @@ function M.new(ctx)
 		-- Where the card of milestone kinds is anchored: the settings row that opens it.
 		---@type table?
 		kindsAnchor = nil,
-		-- The kinds of milestone left off the charts, by key, and whether the card that
-		-- picks them is open.
-		---@type table<string, boolean>
-		milestoneOff = {},
+		-- The marks left off each chart, by stat and kind, and whether the card that picks
+		-- them for the chart open is open.
+		---@type table<string, table<string, boolean>>
+		marksOff = {},
 		kindsOpen = false,
 		---@type table[]
 		kindRects = {},
@@ -306,8 +481,30 @@ function M.new(ctx)
 		return on and not ctx.soloTeams
 	end
 
+	-- The stat a chart shows, whatever its entry is called.
+	local function statOf(key)
+		local entry = key and page.entryByKey[key]
+		return entry and entry.stat or key
+	end
+
+	-- The marks left off a chart: a custom category's graph keeps its own, the page one set
+	-- a chart, made when first asked for.
+	local function marksOffFor(key)
+		local entry = key and page.entryByKey[key]
+		if entry and entry.graph then
+			return entry.graph.off
+		end
+		local stat = statOf(key) or ""
+		local off = page.marksOff[stat]
+		if not off then
+			off = {}
+			page.marksOff[stat] = off
+		end
+		return off
+	end
+
 	-- The settings a chart is drawn with: a custom category's graph keeps its own, every
-	-- other chart takes the switches'.
+	-- other chart takes the switches' and the marks left off it.
 	local function settingsOf(key)
 		local entry = key and page.entryByKey[key]
 		if entry and entry.graph then
@@ -317,21 +514,13 @@ function M.new(ctx)
 			grouped = page.grouped,
 			share = ctx.filters.shareOfTotal,
 			milestones = ctx.filters.milestones,
-			off = page.milestoneOff,
+			off = marksOffFor(key),
 		}
 	end
 
-	-- The stat a chart shows, whatever its entry is called.
-	local function statOf(key)
-		local entry = key and page.entryByKey[key]
-		return entry and entry.stat or key
-	end
-
-	-- The kinds of milestone left off the chart being set: the open custom graph's own, the
-	-- page's otherwise.
+	-- The marks left off the chart open.
 	local function kindsOff()
-		local graph = page.openGraph()
-		return graph and graph.off or page.milestoneOff
+		return marksOffFor(page.zoom or page.stat)
 	end
 
 	-- Picks and hides are kept per player - "team<id>" - whichever way the bar groups them,
@@ -410,11 +599,28 @@ function M.new(ctx)
 	-- The stat list
 	----------------------------------------------------------------
 
-	-- The stats of the sidebar's group, the composition chart first in its group. The
-	-- gadget's columns, and the ones only it keeps a history of, only while it is there.
-	-- The kinds of milestone, in the order the panel names them.
+	-- The marks the chart open can carry, in the order its settings name them; none on a
+	-- grid, where the charts are too small for any.
 	local function milestoneKinds()
-		return ctx.L.milestoneOrder or {}
+		if page.zoom == nil then
+			return {}
+		end
+		return marksOf(statOf(page.zoom))
+	end
+
+	-- What a kind of mark is called.
+	local function markName(kind)
+		return ctx.i18n("ui.teamStats.milestone." .. kind)
+	end
+
+	-- Whether the chart open has anything to mark - on a grid, whether the charts it opens
+	-- may - and whether there is a card of marks to pick from, which only a chart open has.
+	function page.marksApply()
+		return page.zoom == nil or #marksOf(statOf(page.zoom)) > 0
+	end
+
+	function page.kindsApply()
+		return #milestoneKinds() > 0
 	end
 
 	-- What a settings row with a value says, and what pressing it does. The panel asks
@@ -424,6 +630,9 @@ function M.new(ctx)
 			return page.perPage
 		end
 		local kinds = milestoneKinds()
+		if #kinds == 0 then
+			return "\226\128\147"
+		end
 		local off = kindsOff()
 		local on = 0
 		for _, kind in ipairs(kinds) do
@@ -1288,8 +1497,14 @@ function M.new(ctx)
 		end
 		local all = { all = true, label = ctx.i18n("ui.teamStats.graph.all"), members = {} }
 		all.labelW = widthOf(all.label)
+		-- One unit on the bar - the viewer alone, the other side not to be seen yet - leaves
+		-- nothing to pick between: no All, no You.
+		local single = #page.units <= 1
 		---@type table[]
-		local blocks = { all }
+		local blocks = {}
+		if not single then
+			blocks[1] = all
+		end
 		-- Whoever is playing gets their own team a press away, beside All - unless every
 		-- side is one player, when their own block already carries their name.
 		---@type table?
@@ -1299,7 +1514,7 @@ function M.new(ctx)
 				mine = unit
 			end
 		end
-		if mine then
+		if mine and not single then
 			local me = { me = true, unit = mine, label = ctx.i18n("ui.teamStats.graph.you"), members = {} }
 			me.labelW = widthOf(me.label)
 			blocks[#blocks + 1] = me
@@ -1464,7 +1679,12 @@ function M.new(ctx)
 	function page.shareApplies()
 		local key = page.zoom or page.stat
 		if page.zoom then
-			local column = ctx.COLUMNS[statOf(key)]
+			local stat = statOf(key)
+			-- A whole in its parts is shares or amounts whoever is on it.
+			if PARTS[stat] or stat == "composition" then
+				return true
+			end
+			local column = ctx.COLUMNS[stat]
 			if not (column and column.fmt == "si") then
 				return false
 			end
@@ -1508,36 +1728,67 @@ function M.new(ctx)
 	-- keeps its height: the first free row whose last picture is far enough behind.
 	local LANE_ROWS = { 0, 0.24, -0.24, 0.12, -0.12, 0.36, -0.36 }
 
-	-- Whether a kind of milestone says anything about the column being charted.
-	local function kindFits(kind, column, off)
-		if off[kind] then
-			return false
+	-- The kinds of milestone a chart shows: the ones it can carry, less those left off and
+	-- those its own lines make.
+	local function eventKinds(statKey, off)
+		---@type table<string, boolean>
+		local wanted = {}
+		for _, kind in ipairs(marksOf(statKey)) do
+			if not off[kind] and not LINE_MARKS[kind] and not SPAN_MARKS[kind] then
+				wanted[kind] = true
+			end
 		end
-		local groups = MILESTONE_GROUPS[kind]
-		if not groups or groups.always then
-			return true
-		end
-		-- A chart that is not one column's (the composition, the profile) takes them all.
-		return column == nil or groups[column.group] == true
+		return wanted
 	end
 
-	local function milestoneMarkers(list, indexByKey, always, column, settings)
+	---@return table[]
+	local function milestoneMarkers(list, indexByKey, always, statKey, settings)
+		---@type table[]
 		local markers = {}
 		local live = ctx.live()
 		if not live or not (always or settings.milestones) then
 			return markers
 		end
+		local wanted = eventKinds(statKey, settings.off)
+		if not next(wanted) then
+			return markers
+		end
 		for _, unit in ipairs(list) do
 			-- One set of rows per unit: its lane is its own.
 			local taken = {}
+			-- Its own players' milestones; where the chart asks for them, the ends of the
+			-- teammates it is not made of, whose units and resources it was handed.
+			local sources = {}
 			for _, team in ipairs(unit.teams) do
+				sources[#sources + 1] = team
+			end
+			local own = #sources
+			if wanted.teammateOut then
+				local mine = {}
+				for _, team in ipairs(unit.teams) do
+					mine[team.id] = true
+				end
+				for _, ally in ipairs(ctx.allies()) do
+					if ally.id == unit.allyID then
+						for _, team in ipairs(ally.teams) do
+							if not mine[team.id] then
+								sources[#sources + 1] = team
+							end
+						end
+					end
+				end
+			end
+			for si, team in ipairs(sources) do
 				local teamLive = live[team.id]
 				for _, m in ipairs(teamLive and teamLive.milestones or {}) do
-					-- Kinds switched off in the milestone settings never make a marker.
-					if kindFits(m.key, column, settings.off) then
+					local kind = m.key
+					if si > own then
+						kind = kind == "teamDied" and "teammateOut" or nil
+					end
+					if kind and wanted[kind] then
 						local ud = m.unitDefID and UnitDefs[m.unitDefID] or nil
 						---@cast ud table?
-						local label = ctx.L.milestone[m.key] or m.key
+						local label = markName(kind)
 						if ud then
 							label = label .. " (" .. (ud.translatedHumanName or ud.name) .. ")"
 						end
@@ -1613,10 +1864,350 @@ function M.new(ctx)
 				color = u.color,
 				points = pointsOf(u.members, column.key, false, column.clamp),
 				width = 2,
+				step = column.step,
 			}
 			lifted[#series] = isPicked(u)
 		end
 		return series, lifted
+	end
+
+	-- The marks a chart's own lines make, for the units `marked` among those `plotted` (the
+	-- lines of `series`, in their order): where one overtakes the rest and stays ahead two
+	-- samples, a line's highest point once it has come down from it, its steepest fall
+	-- within three samples, and where it crosses its even mark. Each is a small shape on its
+	-- line, in its colour; an overtaking and a crossing where the lines really cross, between
+	-- the samples either side.
+	---@return table[]
+	local function lineMarkers(statKey, column, series, plotted, marked, off)
+		---@type table[]
+		local markers = {}
+		---@type table<string, boolean>
+		local want = {}
+		for _, kind in ipairs(marksOf(statKey)) do
+			if LINE_MARKS[kind] and not off[kind] then
+				want[kind] = true
+			end
+		end
+		if not next(want) then
+			return markers
+		end
+		local isMarked = {}
+		for _, u in ipairs(marked) do
+			isMarked[u.key] = true
+		end
+		local function mark(u, si, x, kind, what, y)
+			markers[#markers + 1] = {
+				x = x,
+				y = y,
+				series = si,
+				shape = LINE_MARKS[kind],
+				color = u.color,
+				text = tint(u.color) .. u.name .. "\n" .. ctx.colors.title .. Graph.frameLabel(x) .. "  " .. what,
+			}
+		end
+		-- The chart's scale: a fall smaller than a tenth of it is no drop.
+		local scale = 0
+		for _, s in ipairs(series) do
+			for _, p in ipairs(s.points) do
+				scale = mathMax(scale, p[2])
+			end
+		end
+		local cross = want.crossing and CROSSING[statKey]
+		for si, s in ipairs(series) do
+			local u = plotted[si]
+			local pts = s.points
+			local n = #pts
+			if u and isMarked[u.key] and n > 1 then
+				if want.peak and n > 2 then
+					---@type number, integer
+					local best, at = -mathHuge, 1
+					for i = 1, n do
+						if pts[i][2] > best then
+							best, at = pts[i][2], i
+						end
+					end
+					local last = pts[n][2]
+					if best > 0 and at < n - 1 and last <= best * 0.85 then
+						mark(
+							u,
+							si,
+							pts[at][1],
+							"peak",
+							ctx.i18n("ui.teamStats.mark.peak", {
+								value = valueText(column, pts[at][3] or best),
+								now = valueText(column, pts[n][3] or last),
+							})
+						)
+					end
+				end
+				if want.drop then
+					---@type number, integer?, integer?
+					local fall, from, to = 0, nil, nil
+					for i = 1, n - 1 do
+						local v = pts[i][2]
+						for j = i + 1, mathMin(n, i + 3) do
+							if v - pts[j][2] > fall then
+								fall, from, to = v - pts[j][2], i, j
+							end
+						end
+					end
+					if from and to and fall >= pts[from][2] * 0.3 and fall >= scale * 0.1 then
+						mark(
+							u,
+							si,
+							pts[to][1],
+							"drop",
+							ctx.i18n("ui.teamStats.mark.drop", {
+								from = valueText(column, pts[from][3] or pts[from][2]),
+								to = valueText(column, pts[to][3] or pts[to][2]),
+								since = Graph.frameLabel(pts[from][1]),
+							})
+						)
+					end
+				end
+				if cross then
+					-- Past the mark by a twentieth of it either way, so a line along it does
+					-- not cross it at every sample.
+					local margin = cross.at * 0.05
+					if margin < 1 then
+						margin = 1
+					end
+					---@type integer?
+					local state = nil
+					---@type { i: integer, up: boolean }[]
+					local found = {}
+					for i = 1, n do
+						local v = pts[i][3] or pts[i][2]
+						local now = (v >= cross.at + margin and 1) or (v <= cross.at - margin and -1) or nil
+						if now then
+							if state and now ~= state then
+								found[#found + 1] = { i = i, up = now > 0 }
+							end
+							state = now
+						end
+					end
+					for k = mathMax(1, #found - MAX_CROSSINGS + 1), #found do
+						local c = found[k]
+						---@cast c -?
+						-- Back to the samples either side of the mark, and between them.
+						local j = c.i
+						while j > 1 do
+							local before = pts[j - 1][3] or pts[j - 1][2]
+							if (c.up and before < cross.at) or (not c.up and before > cross.at) then
+								break
+							end
+							j = j - 1
+						end
+						local p1 = pts[j]
+						---@cast p1 -?
+						local x = p1[1]
+						if j > 1 then
+							local p0 = pts[j - 1]
+							---@cast p0 -?
+							local v0, v1 = p0[3] or p0[2], p1[3] or p1[2]
+							if v1 ~= v0 then
+								x = p0[1] + (cross.at - v0) / (v1 - v0) * (p1[1] - p0[1])
+							end
+						end
+						mark(
+							u,
+							si,
+							x,
+							"crossing",
+							ctx.i18n("ui.teamStats.mark." .. (c.up and cross.up or cross.down)),
+							cross.at
+						)
+					end
+				end
+			end
+		end
+		if want.lead and #series > 1 then
+			-- Every line by frame, over the frames of the longest.
+			---@type table<integer, table<number, number?>>, table[]
+			local byFrame, frames = {}, {}
+			for si, s in ipairs(series) do
+				local map = {}
+				for _, p in ipairs(s.points) do
+					map[p[1]] = p[2]
+				end
+				byFrame[si] = map
+				if #s.points > #frames then
+					frames = s.points
+				end
+			end
+			---@type integer?, integer?, integer, integer
+			local leader, candidate, since, count = nil, nil, 1, 0
+			---@type { at: number, y: number?, from: integer, to: integer }[]
+			local changes = {}
+			-- Where the one taking the lead really passed the other: back to the samples either
+			-- side of it, and between them.
+			---@param k integer
+			---@return number
+			local function frameAt(k)
+				local p = frames[k]
+				---@cast p -?
+				return p[1]
+			end
+			---@param from integer
+			---@param to integer
+			---@param idx integer
+			local function passed(from, to, idx)
+				local a, b = byFrame[from], byFrame[to]
+				---@cast a -?
+				---@cast b -?
+				local j = idx
+				while j > 1 do
+					local f = frameAt(j - 1)
+					local va, vb = a[f], b[f]
+					if not (va and vb) or vb <= va then
+						break
+					end
+					j = j - 1
+				end
+				local f1 = frameAt(j)
+				local a1, b1 = a[f1], b[f1]
+				if j < 2 then
+					return f1, b1
+				end
+				local f0 = frameAt(j - 1)
+				local a0, b0 = a[f0], b[f0]
+				if not (a0 and b0 and a1 and b1) then
+					return f1, b1
+				end
+				local d0, d1 = b0 - a0, b1 - a1
+				local t = d1 ~= d0 and -d0 / (d1 - d0) or 1
+				return f0 + t * (f1 - f0), b0 + t * (b1 - b0)
+			end
+			for idx, p in ipairs(frames) do
+				---@type integer?, number, number
+				local top, topV, second = nil, -mathHuge, -mathHuge
+				for si = 1, #series do
+					local v = byFrame[si][p[1]]
+					if v then
+						if v > topV then
+							top, topV, second = si, v, topV
+						elseif v > second then
+							second = v
+						end
+					end
+				end
+				-- Ahead of another by a margin: a lead; a tie or a race of one is none.
+				if top and second > -mathHuge and topV > 0 and topV - second >= topV * LEAD_MARGIN then
+					if not leader then
+						leader = top
+					elseif top == leader then
+						candidate = nil
+					else
+						if candidate ~= top then
+							candidate, since, count = top, idx, 0
+						end
+						count = count + 1
+						if count >= 2 then
+							local x, v = passed(leader, top, since)
+							changes[#changes + 1] = { at = x, y = v, from = leader, to = top }
+							leader, candidate = top, nil
+						end
+					end
+				else
+					candidate = nil
+				end
+			end
+			-- The latest, and only the picked units' while some are picked.
+			local shown = 0
+			for i = #changes, 1, -1 do
+				local c = changes[i]
+				---@cast c -?
+				local to, from = plotted[c.to], plotted[c.from]
+				if to and from and (isMarked[to.key] or isMarked[from.key]) and shown < MAX_LEADS then
+					shown = shown + 1
+					mark(
+						to,
+						c.to,
+						c.at,
+						"lead",
+						ctx.i18n("ui.teamStats.mark.lead", { name = tint(from.color) .. from.name .. ctx.colors.title }),
+						c.y
+					)
+				end
+			end
+		end
+		return markers
+	end
+
+	-- The stretches along a chart's edges, for the players of the units `marked`: without
+	-- energy along the bottom (`dry`), the storage of the chart's resource full along the top
+	-- (`full`), a row per player. A sample is in a stretch when its period was that way a
+	-- fifth of the time or more.
+	local function spansOf(statKey, column, marked, off)
+		local spans = {}
+		---@type table<string, boolean>
+		local kinds = {}
+		for _, kind in ipairs(marksOf(statKey)) do
+			if SPAN_MARKS[kind] and not off[kind] then
+				kinds[kind] = true
+			end
+		end
+		if not next(kinds) then
+			return spans
+		end
+		local fullKey = (column and column.group == "energy") and "energyFull" or "metalFull"
+		local rows = { bottom = 0, top = 0 }
+		local function stretches(team, key, edge)
+			local g = page.gadget[team.id]
+			local run = g and g.values[key]
+			if not run then
+				return
+			end
+			local frames = g.frames
+			local label = ctx.i18n("ui.teamStats.mark." .. key)
+			---@type integer?
+			local row = nil
+			local i, n = 1, #frames
+			while i <= n do
+				if (run[i] or 0) >= SPAN_SHARE then
+					local j, sum = i, 0
+					while j <= n and (run[j] or 0) >= SPAN_SHARE do
+						sum = sum + run[j]
+						j = j + 1
+					end
+					if not row then
+						rows[edge] = rows[edge] + 1
+						row = rows[edge]
+					end
+					local from, to = frames[i] - PERIOD, frames[j - 1]
+					if from < 0 then
+						from = 0
+					end
+					spans[#spans + 1] = {
+						from = from,
+						to = to,
+						row = row,
+						edge = edge,
+						color = { team.accent[1], team.accent[2], team.accent[3], 0.85 },
+						text = (team.nameColor or "") .. team.name .. "\n" .. ctx.colors.title .. Graph.frameLabel(
+							from
+						) .. " - " .. Graph.frameLabel(to) .. "  " .. label .. ctx.colors.dim .. "  " .. ctx.i18n(
+							"ui.teamStats.mark.ofTheTime",
+							{ share = percentFormat(sum / (j - i)) }
+						),
+					}
+					i = j
+				else
+					i = i + 1
+				end
+			end
+		end
+		for _, u in ipairs(marked) do
+			for _, team in ipairs(u.teams) do
+				if kinds.dry then
+					stretches(team, "energyDry", "bottom")
+				end
+				if kinds.full then
+					stretches(team, fullKey, "top")
+				end
+			end
+		end
+		return spans
 	end
 
 	-- What a chart of one stat is made of: the same rules for the big chart and for every
@@ -1635,7 +2226,12 @@ function M.new(ctx)
 		-- Something stands out only while the selection is not everything plotted.
 		local lifts = anyPicked and #picked < #plotted
 		local marked = anyPicked and picked or plotted
-		local series, markers = {}, {}
+		local series, spans = {}, {}
+		---@type table[]
+		local markers = {}
+		-- A small chart has no room for marks: none are worked out for it but the timeline's,
+		-- which is made of them.
+		local marking = not small
 		local kind = "line"
 		local title
 		local yFormat = nil
@@ -1645,6 +2241,8 @@ function M.new(ctx)
 
 		lanes, timelineGap = {}, 0
 		target.cfg.valueBands = nil
+		-- Shares of a whole, unless a whole in its parts is set to pile its amounts up.
+		target.cfg.stackShares = true
 		if statKey == "timeline" then
 			-- A lane per team, drawn from the first frame to now, with its milestones on
 			-- it: what happened to whom, and when. Every team gets the same height, and
@@ -1691,7 +2289,7 @@ function M.new(ctx)
 				local u = plotted[n - mathFloor(v + 0.5) + 1]
 				return u and u.name or ""
 			end
-			markers = milestoneMarkers(plotted, indexByKey, true, nil, settings)
+			markers = milestoneMarkers(plotted, indexByKey, true, statKey, settings)
 			title = ctx.i18n("ui.teamStats.graph.timeline")
 		elseif statKey == "profile" then
 			kind = "radar"
@@ -1748,8 +2346,13 @@ function M.new(ctx)
 				end
 			end
 			lifts = false
+			-- The amounts piled up, or with % of total each bucket's share of the whole.
+			target.cfg.stackShares = settings.share == true
 			title = ctx.i18n("ui.teamStats.graph.composition") .. " \194\183 " .. namesOf(of)
-			markers = milestoneMarkers(of, nil, false, nil, settings)
+			if settings.share then
+				title = title .. " \194\183 " .. ctx.L.switch.shareOfTotal
+			end
+			markers = marking and milestoneMarkers(of, nil, false, statKey, settings) or {}
 		elseif PARTS[statKey] then
 			-- One whole of the picked teams - every shown team's without a pick - in its
 			-- parts: each one's share of it over the game.
@@ -1778,8 +2381,12 @@ function M.new(ctx)
 				end
 			end
 			lifts = false
+			target.cfg.stackShares = settings.share == true
 			title = ctx.i18n("ui.teamStats.graph." .. statKey) .. " \194\183 " .. namesOf(of)
-			markers = milestoneMarkers(of, nil, false, nil, settings)
+			if settings.share then
+				title = title .. " \194\183 " .. ctx.L.switch.shareOfTotal
+			end
+			markers = marking and milestoneMarkers(of, nil, false, statKey, settings) or {}
 		elseif statKey == "wind" then
 			-- The wind, which every team's sample carries: one line off the first team with
 			-- samples, over a faint band of the range the map's wind keeps to. The sample at
@@ -1820,7 +2427,10 @@ function M.new(ctx)
 				lifted[#series] = isPicked(u)
 			end
 			title = ctx.columnTitle(column) .. " \194\183 " .. ctx.L.switch.shareOfTotal
-			markers = milestoneMarkers(marked, nil, false, column, settings)
+			if marking then
+				markers = milestoneMarkers(marked, nil, false, statKey, settings)
+				spans = settings.milestones and spansOf(statKey, column, marked, settings.off) or {}
+			end
 		elseif column then
 			local indexByKey = {}
 			series, lifted = lineSeries(column, plotted)
@@ -1836,7 +2446,12 @@ function M.new(ctx)
 			if column.fmt == "percent" then
 				yFormat = percentFormat
 			end
-			markers = milestoneMarkers(marked, indexByKey, false, column, settings)
+			markers = marking and milestoneMarkers(marked, indexByKey, false, statKey, settings) or {}
+			-- And what the lines themselves make, and the stretches along the edges.
+			if marking and settings.milestones then
+				append(markers, lineMarkers(statKey, column, series, plotted, marked, settings.off))
+				spans = spansOf(statKey, column, marked, settings.off)
+			end
 		end
 
 		local empty = true
@@ -1865,9 +2480,11 @@ function M.new(ctx)
 			bandLabels = kind == "stacked" and not small,
 			endLabels = kind == "line" and not small and #series > 1 and statKey ~= "timeline",
 			xTicks = small and 2 or 5,
+			totalLabel = ctx.i18n("ui.teamStats.graph.total"),
 		})
 		target:setSeries(series)
-		target:setMarkers((small and statKey ~= "timeline") and {} or markers)
+		target:setMarkers(markers)
+		target:setSpans(spans)
 		target:setHighlight(lifts and lifted or nil)
 		return empty
 	end
@@ -2352,7 +2969,7 @@ function M.new(ctx)
 			end
 			local cy = mathFloor((rect[2] + rect[4]) * 0.5)
 			texts[#texts + 1] = {
-				(on and colors.selected or colors.faded) .. (ctx.L.milestone[kind] or kind),
+				(on and colors.selected or colors.faded) .. markName(kind),
 				rect[1] + metrics.sidePad,
 				cy,
 			}
@@ -3393,7 +4010,11 @@ function M.new(ctx)
 	function page.tooltip()
 		local kindRow = page.kindRects[page.hover.kind]
 		if kindRow then
-			return ctx.L.milestone[kindRow.key] or kindRow.key, ctx.i18n("ui.teamStats.graph.kindHint")
+			local hint = ctx.i18n("ui.teamStats.graph.kindHint")
+			if DESCRIBED[kindRow.key] then
+				hint = ctx.i18n("ui.teamStats.milestoneDesc." .. kindRow.key) .. "\n" .. ctx.colors.dim .. hint
+			end
+			return markName(kindRow.key), hint
 		end
 		if page.chartHit then
 			local hovered = page.miniHit and page.miniHit.chart or chart
@@ -3462,10 +4083,18 @@ function M.new(ctx)
 	----------------------------------------------------------------
 
 	function page.getConfig()
+		-- The marks left off, a list a chart; charts with none left off are not kept.
 		local off = {}
-		for kind, on in pairs(page.milestoneOff) do
-			if on then
-				off[#off + 1] = kind
+		for stat, kinds in pairs(page.marksOff) do
+			local list = {}
+			for kind, on in pairs(kinds) do
+				if on then
+					list[#list + 1] = kind
+				end
+			end
+			if #list > 0 then
+				tableSort(list)
+				off[stat] = list
 			end
 		end
 		return {
@@ -3473,7 +4102,7 @@ function M.new(ctx)
 			graphsOpen = page.open,
 			graphGroupByTeam = page.grouped,
 			graphPerPage = page.perPage,
-			graphMilestonesOff = off,
+			graphMarksOff = off,
 			graphHideUnselected = page.hideUnselected,
 			customCategories = page.custom.getConfig(),
 		}
@@ -3484,10 +4113,16 @@ function M.new(ctx)
 		if type(data.graphStat) == "string" then
 			page.stat = data.graphStat
 		end
-		if type(data.graphMilestonesOff) == "table" then
-			page.milestoneOff = {}
-			for _, kind in ipairs(data.graphMilestonesOff) do
-				page.milestoneOff[kind] = true
+		if type(data.graphMarksOff) == "table" then
+			page.marksOff = {}
+			for stat, list in pairs(data.graphMarksOff) do
+				if type(stat) == "string" and type(list) == "table" then
+					local set = {}
+					for _, kind in ipairs(list) do
+						set[kind] = true
+					end
+					page.marksOff[stat] = set
+				end
 			end
 		end
 		if data.graphsOpen ~= nil then

@@ -27,10 +27,10 @@ local SHIPPED_STATS = {
 	"energyProduced",
 	"buildPower",
 	"unitValue",
-	"unitsProduced",
+	"frontLine",
 	"damageDealt",
 	"killedValue",
-	"lostValue",
+	"composition",
 	"valueEfficiency",
 	"actionsPerMinute",
 }
