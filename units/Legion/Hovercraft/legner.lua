@@ -104,7 +104,7 @@ return {
 			},
 		},
 		weapondefs = {
-			legner_weapon = {
+			nereus_plasma_cannon = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -114,7 +114,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Medium g2g plasma cannon",
+				name = "Light Rapid-Fire Cannon",
 				noselfdamage = true,
 				range = 370,
 				reloadtime = 0.9,
@@ -134,7 +134,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "LEGNER_WEAPON",
+				def = "nereus_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},
