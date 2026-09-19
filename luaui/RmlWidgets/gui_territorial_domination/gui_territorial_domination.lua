@@ -171,18 +171,6 @@ local widgetState = {
 	verticalContentWidthDp = VERTICAL.CONTENT_MINIMUM_WIDTH_DP,
 }
 
-local function clampNumber(value, minimum, maximum)
-	return math.max(minimum, math.min(maximum, value))
-end
-
-local function roundNumber(value)
-	return math.floor(value + 0.5)
-end
-
-local function lerpNumber(fromValue, toValue, amount)
-	return fromValue + (toValue - fromValue) * amount
-end
-
 local function easeCubicInOut(amount)
 	if amount < 0.5 then
 		return 4 * amount * amount * amount
@@ -192,7 +180,7 @@ local function easeCubicInOut(amount)
 end
 
 local function formatScore(value)
-	return tostring(roundNumber(tonumber(value) or 0))
+	return tostring(math.round(tonumber(value) or 0))
 end
 
 local function getTooltipTextWidthDp(value)
@@ -222,7 +210,7 @@ local function applyTooltipSize(dataModel, lineWidths)
 end
 
 local function formatPercentage(value)
-	return string.format("%.3f%%", clampNumber(value, 0, 100))
+	return string.format("%.3f%%", math.clamp(value, 0, 100))
 end
 
 local function formatOrdinal(place)
@@ -285,9 +273,9 @@ end
 
 local function makeColorString(color, multiplier)
 	local colorMultiplier = multiplier or 1
-	local red = roundNumber(clampNumber(color.red * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
-	local green = roundNumber(clampNumber(color.green * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
-	local blue = roundNumber(clampNumber(color.blue * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
+	local red = math.round(math.clamp(color.red * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
+	local green = math.round(math.clamp(color.green * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
+	local blue = math.round(math.clamp(color.blue * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
 	return string.format("rgba(%d, %d, %d, 255)", red, green, blue)
 end
 
@@ -626,7 +614,7 @@ local function buildVerticalBars(ascendingAllyTeams, verticalScale, localAllyTea
 	local sidePadding = VERTICAL.CONTENT_PADDING_DP / 2
 	local localPlayerSlotCenterDp = nil
 	local isSpectating = Spring.GetSpectatingState()
-	local deadlinePercent = clampNumber(deadlineScore / math.max(1, verticalScale) * 100, 0, 100)
+	local deadlinePercent = math.clamp(deadlineScore / math.max(1, verticalScale) * 100, 0, 100)
 
 	for allyTeamIndex = 1, allyTeamCount do
 		local allyTeam = ascendingAllyTeams[allyTeamIndex]
@@ -634,7 +622,7 @@ local function buildVerticalBars(ascendingAllyTeams, verticalScale, localAllyTea
 		if allyTeam.allyTeamID == localAllyTeamID then
 			localPlayerSlotCenterDp = slotLeft + VERTICAL.SLOT_WIDTH_DP / 2
 		end
-		local projectedPercent = clampNumber(allyTeam.projectedScore / math.max(1, verticalScale) * 100, 0, 100)
+		local projectedPercent = math.clamp(allyTeam.projectedScore / math.max(1, verticalScale) * 100, 0, 100)
 		local overlayTopPercent = hasDeadline and deadlinePercent or 100
 		local overlayHeightPercent = math.max(0, overlayTopPercent - projectedPercent)
 		local showDangerOverlay = isAllyTeamInEliminationDanger(
@@ -678,8 +666,8 @@ local function getPanelPixelSize()
 end
 
 local function setPanelPosition(panelPixelX, panelPixelY)
-	local roundedPixelX = roundNumber(panelPixelX)
-	local roundedPixelY = roundNumber(panelPixelY)
+	local roundedPixelX = math.round(panelPixelX)
+	local roundedPixelY = math.round(panelPixelY)
 	if widgetState.panelPixelX == roundedPixelX and widgetState.panelPixelY == roundedPixelY then
 		return
 	end
@@ -721,7 +709,7 @@ local function clampPanelPosition(panelPixelX, panelPixelY)
 	local panelWidth, panelHeight = getPanelPixelSize()
 	local maximumX = math.max(0, viewSizeX - panelWidth)
 	local maximumY = math.max(0, viewSizeY - panelHeight)
-	setPanelPosition(clampNumber(panelPixelX, 0, maximumX), clampNumber(panelPixelY, 0, maximumY))
+	setPanelPosition(math.clamp(panelPixelX, 0, maximumX), math.clamp(panelPixelY, 0, maximumY))
 end
 
 local function isStoredPanelDocked()
@@ -742,8 +730,8 @@ local function savePanelPosition()
 	end
 
 	Spring.SetConfigInt(PANEL.DOCKED_KEY, PANEL.UNDOCKED_VALUE)
-	Spring.SetConfigInt(PANEL.POSITION_X_KEY, roundNumber(widgetState.panelPixelX / viewSizeX * POSITION_SCALE))
-	Spring.SetConfigInt(PANEL.POSITION_Y_KEY, roundNumber(widgetState.panelPixelY / viewSizeY * POSITION_SCALE))
+	Spring.SetConfigInt(PANEL.POSITION_X_KEY, math.round(widgetState.panelPixelX / viewSizeX * POSITION_SCALE))
+	Spring.SetConfigInt(PANEL.POSITION_Y_KEY, math.round(widgetState.panelPixelY / viewSizeY * POSITION_SCALE))
 	widgetState.isUndocked = true
 end
 
@@ -786,8 +774,8 @@ local function getPanelOriginPosition()
 	local flowUIAnchorTop = getFlowUIAnchorTop()
 	local maximumX = math.max(0, viewSizeX - panelWidth)
 	local maximumY = math.max(0, viewSizeY - panelHeight)
-	local panelPixelX = clampNumber(viewSizeX - panelWidth, 0, maximumX)
-	local panelPixelY = clampNumber(viewSizeY - flowUIAnchorTop - panelHeight - margin, 0, maximumY)
+	local panelPixelX = math.clamp(viewSizeX - panelWidth, 0, maximumX)
+	local panelPixelY = math.clamp(viewSizeY - flowUIAnchorTop - panelHeight - margin, 0, maximumY)
 	widgetState.dockedOriginPixelX = panelPixelX
 	widgetState.dockedOriginPixelY = panelPixelY
 	return panelPixelX, panelPixelY
@@ -804,8 +792,8 @@ local function updateDockGhostPosition()
 	end
 
 	local dockGhostPixelX, dockGhostPixelY = getPanelOriginPosition()
-	widgetState.dataModel.dockGhostLeft = tostring(roundNumber(dockGhostPixelX)) .. "px"
-	widgetState.dataModel.dockGhostTop = tostring(roundNumber(dockGhostPixelY)) .. "px"
+	widgetState.dataModel.dockGhostLeft = tostring(math.round(dockGhostPixelX)) .. "px"
+	widgetState.dataModel.dockGhostTop = tostring(math.round(dockGhostPixelY)) .. "px"
 end
 
 local function positionPanelAtOrigin()
@@ -923,10 +911,10 @@ local function positionTooltip()
 	if tooltipHeight < 1 then
 		tooltipHeight = (TOOLTIP.VERTICAL_PADDING_DP + widgetState.tooltipRowCount * TOOLTIP.ROW_HEIGHT_DP) * dpRatio
 	end
-	local tooltipX = clampNumber(mouseX + TOOLTIP.OFFSET_X, 0, math.max(0, viewSizeX - tooltipWidth))
-	local tooltipY = clampNumber(viewSizeY - mouseY + TOOLTIP.OFFSET_Y, 0, math.max(0, viewSizeY - tooltipHeight))
-	local roundedTooltipX = roundNumber(tooltipX)
-	local roundedTooltipY = roundNumber(tooltipY)
+	local tooltipX = math.clamp(mouseX + TOOLTIP.OFFSET_X, 0, math.max(0, viewSizeX - tooltipWidth))
+	local tooltipY = math.clamp(viewSizeY - mouseY + TOOLTIP.OFFSET_Y, 0, math.max(0, viewSizeY - tooltipHeight))
+	local roundedTooltipX = math.round(tooltipX)
+	local roundedTooltipY = math.round(tooltipY)
 	if widgetState.lastTooltipPixelX == roundedTooltipX and widgetState.lastTooltipPixelY == roundedTooltipY then
 		return
 	end
@@ -1172,7 +1160,7 @@ local function getDistributionAllyTeamIDAtMouse()
 	local innerLeft = widgetState.panelPixelX
 		+ (PANEL.BORDER_DP + DISTRIBUTION.LEFT_DP + DISTRIBUTION.BORDER_DP) * dpRatio
 	local innerWidth = math.max(1, (DISTRIBUTION.WIDTH_DP - DISTRIBUTION.BORDER_DP * 2) * dpRatio)
-	local fraction = clampNumber((mouseX - innerLeft) / innerWidth, 0, 0.999999)
+	local fraction = math.clamp((mouseX - innerLeft) / innerWidth, 0, 0.999999)
 
 	for rangeIndex = 1, #distributionHitRanges do
 		local hitRange = distributionHitRanges[rangeIndex]
@@ -1253,7 +1241,7 @@ local function getExpandedScrollTarget(clientWidth, scrollWidth)
 		return 0
 	end
 
-	return clampNumber(slotCenterDp / contentWidthDp * scrollWidth - clientWidth / 2, 0, maximumScroll)
+	return math.clamp(slotCenterDp / contentWidthDp * scrollWidth - clientWidth / 2, 0, maximumScroll)
 end
 
 local function applyExpandedScroll()
@@ -1278,7 +1266,7 @@ local function applyExpandedScroll()
 		return
 	end
 
-	scrollElement.scroll_left = roundNumber(getExpandedScrollTarget(clientWidth, scrollWidth))
+	scrollElement.scroll_left = math.round(getExpandedScrollTarget(clientWidth, scrollWidth))
 	widgetState.pendingVerticalScroll = false
 end
 
@@ -1718,8 +1706,8 @@ local function updateDataModel()
 	local selectedProjectedScore = selectedAllyTeam and selectedAllyTeam.projectedScore or 0
 	local isBelowDeadline = hasDeadline and selectedScore < deadlineScore
 	local horizontalScale = math.max(1, isBelowDeadline and deadlineScore or highestProjectedScore)
-	local selectedProjectedPercent = clampNumber(selectedProjectedScore / horizontalScale * 100, 0, 100)
-	local deadlineExcessPercent = clampNumber(
+	local selectedProjectedPercent = math.clamp(selectedProjectedScore / horizontalScale * 100, 0, 100)
+	local deadlineExcessPercent = math.clamp(
 		(selectedProjectedScore - deadlineScore) / math.max(1, deadlineScore) * 100,
 		0,
 		100
@@ -1776,7 +1764,7 @@ local function updateDataModel()
 	dataModel.isBelowDeadline = isBelowDeadline
 	dataModel.deadlineLineBottom = string.format(
 		"%.3fdp",
-		VERTICAL.TRACK_BOTTOM_DP + clampNumber(deadlineScore / verticalScale, 0, 1) * VERTICAL.TRACK_HEIGHT_DP
+		VERTICAL.TRACK_BOTTOM_DP + math.clamp(deadlineScore / verticalScale, 0, 1) * VERTICAL.TRACK_HEIGHT_DP
 	)
 	dataModel.footerScore = formatScore(selectedScore)
 
@@ -1852,16 +1840,16 @@ local function updateCountdownPulse()
 	end
 
 	local pulseElapsed = remainingSeconds > 0 and math.ceil(remainingSeconds) - remainingSeconds or 1
-	local pulseAmount = easeCubicInOut(clampNumber(pulseElapsed, 0, 1))
+	local pulseAmount = easeCubicInOut(math.clamp(pulseElapsed, 0, 1))
 	local pulseColor = string.format(
 		"rgba(%d, %d, %d, 255)",
-		roundNumber(lerpNumber(COUNTDOWN.PULSE_START_RED, COUNTDOWN.PULSE_END_RED, pulseAmount)),
-		roundNumber(lerpNumber(COUNTDOWN.PULSE_START_GREEN, COUNTDOWN.PULSE_END_GREEN, pulseAmount)),
-		roundNumber(lerpNumber(COUNTDOWN.PULSE_START_BLUE, COUNTDOWN.PULSE_END_BLUE, pulseAmount))
+		math.round(math.mix(COUNTDOWN.PULSE_START_RED, COUNTDOWN.PULSE_END_RED, pulseAmount)),
+		math.round(math.mix(COUNTDOWN.PULSE_START_GREEN, COUNTDOWN.PULSE_END_GREEN, pulseAmount)),
+		math.round(math.mix(COUNTDOWN.PULSE_START_BLUE, COUNTDOWN.PULSE_END_BLUE, pulseAmount))
 	)
 	local pulseTransform = string.format(
 		"scale(%.4f)",
-		lerpNumber(COUNTDOWN.PULSE_START_SCALE, COUNTDOWN.PULSE_END_SCALE, pulseAmount)
+		math.mix(COUNTDOWN.PULSE_START_SCALE, COUNTDOWN.PULSE_END_SCALE, pulseAmount)
 	)
 	if dataModel.countdownPulseColor ~= pulseColor then
 		dataModel.countdownPulseColor = pulseColor
