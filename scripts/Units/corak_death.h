@@ -4,7 +4,7 @@
 DeathAnim() {// For C:\Users\ptasz\Documents\GitHub\support\Animation_sources\death_anims\corak_anim_death.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 3, 9)) 
 	signal SIGNAL_MOVE;
 	signal SIGNAL_AIM1;
-	call-script StopWalking();
+	//call-script StopWalking();
 	turn pelvis to y-axis <0> speed <120>;
 	turn torso to x-axis <0> speed <120>;
 		if (TRUE) { //Frame:10
