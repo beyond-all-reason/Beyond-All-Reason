@@ -225,7 +225,7 @@ Walk_VA(){
 
 #endif
 */
-
+/*
 // Optimized:
 
 // Ok knowing that its a 50/50 blend:
@@ -242,6 +242,24 @@ Walk_VA(){
 			ANIMATIONNAME_remainder_ms = currTime % 33;  \
 			desiredFrames = currTime / 33;  \
 
+            //get PRINT (get (GAME_FRAME), currentPCt, currTime, ANIMATIONNAME_amplitude); \
+
+ #endif
+*/
+// Optimized further
+
+// Ok knowing that its a 50/50 blend:
+
+#ifndef ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE
+	#define ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE() \
+            currentPCt = ((100 * get (CURRENT_SPEED) ) / maxSpeed  - 100); \
+			if (currentPCt < -66) currentPCt = -66; \
+			if (currentPCt > 75) currentPCt = 75; \
+            currTime = (ANIMATIONNAME_DEFAULT_ANIM_TIME * (100 - (currentPCt / 2))) / 100; \
+            ANIMATIONNAME_amplitude = 100 + ((currentPCt * 60) / 100); \
+			currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; \
+			ANIMATIONNAME_remainder_ms = currTime % 33;  \
+			desiredFrames = currTime / 33;  \
 
             //get PRINT (get (GAME_FRAME), currentPCt, currTime, ANIMATIONNAME_amplitude); \
 
