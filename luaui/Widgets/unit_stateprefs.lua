@@ -128,7 +128,7 @@ for unitName, unitDef in pairs(UnitDefNames) do
 		and unitDef.canMove
 		and unitDef.canAssist
 		and not unitDef.isFactory
-		and unitDef.customParams.iscommander
+		and not unitDef.customParams.iscommander
 	then
 		constructors[unitName] = true
 	end
@@ -163,7 +163,7 @@ local function togglePreset(presetName, state, force)
 end
 
 -------------------------------------------------------------------------------------------
--- The config was previously using a seperate file, but after a bug with this file
+-- The config was previously using a separate file, but after a bug with this file
 -- it was decided to simply use the widgetHandler shared config instead.
 local function migrateOldConfig()
 	local oldConfigPath = "LuaUI/config/StatesPrefs.lua"
@@ -348,7 +348,7 @@ local function recordUserFirestateChanged(unitID, userState)
 	local selectedUnits = spGetSelectedUnits()
 	for index = 1, #selectedUnits do
 		local unitDefID = spGetUnitDefID(selectedUnits[index])
-		local name = unitName[unitDefID]
+		local name = uDefID2UnitName[unitDefID]
 		local prefs = unitSet[name]
 		if isClearPressed then
 			if prefs and prefs[CMD.FIRE_STATE] ~= nil then
@@ -451,7 +451,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local block = false
 		for i = 1, #selectedUnits do
 			local unitID = selectedUnits[i]
-			local name = unitName[spGetUnitDefID(unitID)]
+			local name = uDefID2UnitName[spGetUnitDefID(unitID)]
 			if handleStockpilePref(unitID, name) then
 				block = true
 			end
