@@ -143,6 +143,7 @@ local presets = { -- CMD_ID, state_false, state_true, units
 	constructors_priority = {GameCMD.PRIORITY, 0, 1, constructors},
 	factories_priority = {GameCMD.PRIORITY, 0, 1, factories},
 	nano_turrets_priority = {GameCMD.PRIORITY, 0, 1, nanoTurrets},
+	factory_repeat = {CMD.REPEAT, 0, 1, factories},
 }
 
 local function togglePreset(presetName, state, force)

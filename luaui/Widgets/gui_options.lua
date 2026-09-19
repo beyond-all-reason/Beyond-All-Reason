@@ -3008,10 +3008,24 @@ local function getAutoCloakDefaults()
 end
 
 local function getStatePrefPresetsToggle(presetName, widgetName)
-	if WG['stateprefs'] and WG['stateprefs'].getPresetState("presetName") ~= nil then
-		return WG['stateprefs'].getPresetState("presetName")
+	if WG['stateprefs'] and WG['stateprefs'].getPresetState(presetName) ~= nil then
+		return WG['stateprefs'].getPresetState(presetName)
 	end
-	return widgetHandler.orderList["widgetName"] ~= 0
+
+	if widgetHandler.orderList[widgetName] then
+		return widgetHandler.orderList[widgetName] ~= 0
+	end
+	local defaults = {
+		bombers_default_hold_fire = true,
+		factoryguard = true,
+		fighters_default_fly = true,
+		factory_hold_position = true,
+		constructors_priority = true,
+		factories_priority = false,
+		nano_turrets_priority = false,
+		factory_repeat = false,
+	}
+	return defaults[presetName] or false
 end
 
 function init()
@@ -9105,10 +9119,8 @@ function init()
 				end
 			end,
 			onload = function(i)
-				if WG['stateprefs'] then
-					if WG['stateprefs'].getPresetState("fighters_default_fly") == nil then
-						WG['stateprefs'].setPresetState("fighters_default_fly", widgetHandler.orderList["Fighters Default Fly"] ~= 0)
-					end
+				if WG['stateprefs'] and WG['stateprefs'].getPresetState("fighters_default_fly") == nil then
+					WG['stateprefs'].setPresetState("fighters_default_fly", getStatePrefPresetsToggle("fighters_default_fly", "Fighters Default Fly"))
 				end
 			end
 		},
@@ -9120,10 +9132,8 @@ function init()
 				end
 			end,
 			onload = function(i)
-				if WG['stateprefs'] then
-					if WG['stateprefs'].getPresetState("bombers_default_hold_fire") == nil then
-						WG['stateprefs'].setPresetState("bombers_default_hold_fire", widgetHandler.orderList["BombersDefaultHoldFire"] ~= 0)
-					end
+				if WG['stateprefs'] and WG['stateprefs'].getPresetState("bombers_default_hold_fire") == nil then
+					WG['stateprefs'].setPresetState("bombers_default_hold_fire", getStatePrefPresetsToggle("bombers_default_hold_fire", "BombersDefaultHoldFire"))
 				end
 			end
 		},
@@ -9135,10 +9145,8 @@ function init()
 				end
 			end,
 			onload = function(i)
-				if WG['stateprefs'] then
-					if WG['stateprefs'].getPresetState("factoryguard") == nil then
-						WG['stateprefs'].setPresetState("factoryguard", widgetHandler.orderList["Factory Guard Default On"] ~= 0)
-					end
+				if WG['stateprefs'] and WG['stateprefs'].getPresetState("factoryguard") == nil then
+					WG['stateprefs'].setPresetState("factoryguard", getStatePrefPresetsToggle("factoryguard", "Factory Guard Default On"))
 				end
 			end
 		},
@@ -9149,14 +9157,23 @@ function init()
 				end
 			end,
 			onload = function(i)
-				if WG['stateprefs'] then
-					if WG['stateprefs'].getPresetState("factory_hold_position") == nil then
-						WG['stateprefs'].setPresetState("factory_hold_position", widgetHandler.orderList["Factory hold position"] ~= 0)
-					end
+				if WG['stateprefs'] and WG['stateprefs'].getPresetState("factory_hold_position") == nil then
+					WG['stateprefs'].setPresetState("factory_hold_position", getStatePrefPresetsToggle("factory_hold_position", "Factory hold position"))
 				end
 			end
 		},
-		{ id = "factoryrepeat", group = "game", category = types.basic, widget = "Factory Auto-Repeat", name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = GetWidgetToggleValue("Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr') },
+		{ id = "factoryrepeat", group = "game", category = types.basic, name = widgetOptionColor .. "   " .. Spring.I18N('ui.settings.option.factoryrepeat'), type = "bool", value = getStatePrefPresetsToggle("factory_repeat", "Factory Auto-Repeat"), description = Spring.I18N('ui.settings.option.factoryrepeat_descr'),
+			onchange = function(i, value)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("factory_repeat", value)
+				end
+			end,
+			onload = function(i)
+				if WG['stateprefs'] and WG['stateprefs'].getPresetState("factory_repeat") == nil then
+					WG['stateprefs'].setPresetState("factory_repeat", getStatePrefPresetsToggle("factory_repeat", "Factory Auto-Repeat"))
+				end
+			end
+		},
 
 		{ id = "label_ui_cloak", group = "game", name = Spring.I18N('ui.settings.option.label_cloak'), category = types.basic },
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
