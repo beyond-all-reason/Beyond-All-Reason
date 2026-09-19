@@ -20,12 +20,20 @@ end
 local isCritter = {}
 local isCommander = {}
 local isFlyingCritter = {}
+local setCompanionData = {} ---@type table<UnitDefID, function> -- TODO: replace with new attributes module
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscritter then
 		isCritter[unitDefID] = true
 		if unitDef.canFly then
 			isFlyingCritter[unitDefID] = true
+			if unitDef.isHoveringAirUnit then
+				setCompanionData[unitDefID] = Spring.MoveCtrl.SetGunshipMoveTypeData
+			else
+				setCompanionData[unitDefID] = Spring.MoveCtrl.SetAirMoveTypeData
+			end
+		elseif not unitDef.isImmobile then
+			setCompanionData[unitDefID] = Spring.MoveCtrl.SetGroundMoveTypeData
 		end
 	elseif unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
@@ -52,19 +60,26 @@ local GaiaTeamID = Spring.GetGaiaTeamID()
 local critterConfig = include("LuaRules/configs/critters.lua")
 local critterUnits = {} --critter units that are currently alive
 local critterBackup = {} --critter units to restore
-local companionCritters = {}
+local companionCritters = {} ---@type table<UnitID, table?>
+local companionData = {} ---@type table<UnitID, table?>
 local sceduledOrders = {}
 local commanders = {}
 
 local GetGroundHeight = Spring.GetGroundHeight
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitDefID = Spring.GetUnitDefID
-local GiveOrderToUnit = Spring.GiveOrderToUnit
+local GetUnitHealth = Spring.GetUnitHealth
+local GetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local GetUnitRulesParam = Spring.GetUnitRulesParam
+local SetUnitHealth = Spring.SetUnitHealth
+local SetUnitMaxHealth = Spring.SetUnitMaxHealth
 local CreateUnit = Spring.CreateUnit
+local DestroyUnit = Spring.DestroyUnit
+local GiveOrderToUnit = Spring.GiveOrderToUnit
 local ValidUnitID = Spring.ValidUnitID
 
 local random = math.random
-local floor = math.floor
+local round = math.round
 local ceil = math.ceil
 local sin, cos, abs, rad = math.sin, math.cos, math.abs, math.rad
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
@@ -370,13 +385,72 @@ local function nearUnits(x, z, radius, units)
 	return false
 end
 
+local function setCompanionSpeed(companionID, speed)
+	local setMoveTypeData = setCompanionData[GetUnitDefID(companionID)]
+	if setMoveTypeData then
+		setMoveTypeData(companionID, { maxSpeed = speed, maxWantedSpeed = speed })
+	end
+end
+
+local function syncCompanionToCommander(companionID, data, commanderID)
+	local health = GetUnitHealth(companionID)
+	local _, commanderMaxHealth = GetUnitHealth(commanderID)
+	local commanderMoveType = GetUnitMoveTypeData(commanderID)
+	if not health or not commanderMaxHealth or not commanderMoveType then
+		return
+	end
+	local damage = data.boostedMaxHealth - health
+	data.boostedMaxHealth = commanderMaxHealth
+	SetUnitMaxHealth(companionID, commanderMaxHealth)
+	SetUnitHealth(companionID, commanderMaxHealth - damage)
+	setCompanionSpeed(companionID, commanderMoveType.maxSpeed)
+end
+
+local function revertCompanion(companionID, data)
+	companionData[companionID] = nil
+	local health = GetUnitHealth(companionID)
+	if not health then
+		return
+	end
+	health = data.maxHealth - (data.boostedMaxHealth - health)
+	if health <= 0 then
+		DestroyUnit(companionID)
+		return
+	end
+	SetUnitMaxHealth(companionID, data.maxHealth)
+	SetUnitHealth(companionID, health)
+	setCompanionSpeed(companionID, data.speed)
+end
+
+local function addCompanion(companionID, data, commanderID)
+	local companions = companionCritters[commanderID] or {}
+	companions[companionID] = true
+	companionCritters[commanderID] = companions
+	data.commanderID = commanderID
+	syncCompanionToCommander(companionID, data, commanderID)
+end
+
 local function pairCompanionToUnit(companionID, unitID)
-	local companions = companionCritters[unitID] or {}
-	companions[#companions + 1] = companionID
-	companionCritters[unitID] = companions
-	if critterUnits[unitID] ~= nil then
-		critterUnits[unitID] = nil
+	if companionData[companionID] then
+		return
+	end
+	local _, maxHealth = GetUnitHealth(companionID)
+	local moveType = GetUnitMoveTypeData(companionID)
+	if not maxHealth or not moveType then
+		return
+	end
+	local data = {
+		commanderID = unitID,
+		maxHealth = maxHealth,
+		speed = moveType.maxSpeed,
+		boostedMaxHealth = maxHealth,
+	}
+	companionData[companionID] = data
+	addCompanion(companionID, data, unitID)
+	if critterUnits[companionID] ~= nil then
+		critterUnits[companionID] = nil
 		totalCritters = totalCritters - 1
+		aliveCritters = aliveCritters - 1
 	end
 end
 
@@ -391,14 +465,13 @@ local function critterToCompanion(unitID)
 end
 
 local function convertMapCrittersToCompanion()
-	for unitID, critter in pairs(critterUnits) do
-		if critter and not companionCritters[unitID] then
+	for unitID in pairs(critterUnits) do
+		if not companionData[unitID] then
 			critterToCompanion(unitID)
 		end
 	end
 end
 
--- add map dependent critters
 local function addMapCritters()
 	if mapConfig == nil then
 		return
@@ -422,7 +495,7 @@ local function addMapCritters()
 				if amount > 0 and amount < 1 then
 					amount = 1
 				end
-				amount = round(amount)
+				amount = round(amount, 0)
 
 				for i = 1, amount do
 					local unitID = nil
@@ -437,8 +510,6 @@ local function addMapCritters()
 						unitID = CreateUnit(unitName, x, y, z, 0, GaiaTeamID)
 						if unitID then
 							randomPatrolInBox(unitID, cC.spawnBox, supplyMinWaterDepth)
-							--makeUnitCritter(unitID)
-							critterUnits[unitID].unitName = unitName
 						else
 							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
 						end
@@ -463,7 +534,7 @@ local function addMapCritters()
 				if amount > 0 and amount < 1 then
 					amount = 1
 				end
-				amount = round(amount)
+				amount = round(amount, 0)
 
 				local unitID = nil
 				for i = 1, amount do
@@ -486,8 +557,6 @@ local function addMapCritters()
 								spawnCircle.r,
 								supplyMinWaterDepth
 							)
-							--makeUnitCritter(unitID)
-							critterUnits[unitID].unitName = unitName
 						else
 							Spring.Echo("[Gaia Critters] Failed to create " .. unitName)
 						end
@@ -500,7 +569,6 @@ local function addMapCritters()
 	companionRadius = companionRadiusAfterStart
 end
 
--- increase/decrease critters according to unitcount
 function gadget:GameFrame(gameFrame)
 	if gameFrame == 1 and addedInitialCritters == nil then -- using gameframe 1 cause at GameStart commanders aren't spawn yet
 		addedInitialCritters = true
@@ -508,82 +576,72 @@ function gadget:GameFrame(gameFrame)
 	end
 
 	-- update companion critters
-	if totalCritters > 0 then
-		if gameFrame % 77 == 1 then
-			local removeOwners
-			local removeOwnersCount = 0
-			for unitID, critters in pairs(companionCritters) do
-				local x, y, z = GetUnitPosition(unitID)
-				local radius = companionPatrolRadius
-				if not ValidUnitID(unitID) then
-					if not removeOwners then
-						removeOwners = {}
-					end
-					removeOwnersCount = removeOwnersCount + 1
-					removeOwners[removeOwnersCount] = unitID
-				else
-					local removeCritterIDs
-					local removeCritterCount = 0
-					for _, critterID in pairs(critters) do
-						if not ValidUnitID(critterID) then
-							if not removeCritterIDs then
-								removeCritterIDs = {}
-							end
-							removeCritterCount = removeCritterCount + 1
-							removeCritterIDs[removeCritterCount] = critterID
-						else
-							local cx, cy, cz = GetUnitPosition(critterID)
-							if abs(x - cx) > radius * 1.1 or abs(z - cz) > radius * 1.1 then
-								randomPatrolInCircle(critterID, x, z, radius)
-							end
+	if gameFrame % 77 == 1 then
+		local removeOwners
+		local removeOwnersCount = 0
+		for unitID, critters in pairs(companionCritters) do
+			local x, y, z = GetUnitPosition(unitID)
+			local radius = companionPatrolRadius
+			if not ValidUnitID(unitID) then
+				if not removeOwners then
+					removeOwners = {}
+				end
+				removeOwnersCount = removeOwnersCount + 1
+				removeOwners[removeOwnersCount] = unitID
+			else
+				local removeCritterIDs
+				local removeCritterCount = 0
+				for critterID in pairs(critters) do
+					if not ValidUnitID(critterID) then
+						if not removeCritterIDs then
+							removeCritterIDs = {}
+						end
+						removeCritterCount = removeCritterCount + 1
+						removeCritterIDs[removeCritterCount] = critterID
+					else
+						local cx, cy, cz = GetUnitPosition(critterID)
+						if abs(x - cx) > radius * 1.1 or abs(z - cz) > radius * 1.1 then
+							randomPatrolInCircle(critterID, x, z, radius)
 						end
 					end
-					for i = 1, removeCritterCount do
-						companionCritters[unitID][removeCritterIDs[i]] = nil
-					end
+				end
+				for i = 1, removeCritterCount do
+					companionCritters[unitID][removeCritterIDs[i]] = nil
 				end
 			end
-			for i = 1, removeOwnersCount do
-				companionCritters[removeOwners[i]] = nil
-			end
-			if companionRadius > 0 then
-				convertMapCrittersToCompanion()
-			end
 		end
-
-		if removeCritters == false then
-			return
+		for i = 1, removeOwnersCount do
+			companionCritters[removeOwners[i]] = nil
 		end
-
-		if processOrders then
-			processSceduledOrders()
-		end
-
-		if gameFrame % 202 == 0 then
-			local totalUnits = getTotalUnits() -- is without critters
-			local multiplier = 1 - ((totalUnits - minTotalUnits) / (maxTotalunits - minTotalUnits))
-			if multiplier < minimumCritters then
-				multiplier = minimumCritters
-			end
-			if multiplier > 1 then
-				multiplier = 1
-			end
-			local newAliveCritters = ceil(totalCritters * multiplier)
-			if newAliveCritters < minCritters then
-				local mc = minCritters
-				if totalCritters < minCritters then
-					mc = totalCritters
-				end
-				newAliveCritters = mc
-			end
-			adjustCritters(newAliveCritters)
+		if companionRadius > 0 then
+			convertMapCrittersToCompanion()
 		end
 	end
-end
 
-function round(num, idp)
-	local mult = 10 ^ (idp or 0)
-	return floor(num * mult + 0.5) / mult
+	if processOrders then
+		processSceduledOrders()
+	end
+
+	-- increase/decrease critters according to unitcount:
+	if removeCritters and totalCritters > 0 and gameFrame % 202 == 0 then
+		local totalUnits = getTotalUnits() -- is without critters
+		local multiplier = 1.0 - ((totalUnits - minTotalUnits) / (maxTotalunits - minTotalUnits))
+		if multiplier < minimumCritters then
+			multiplier = minimumCritters
+		end
+		if multiplier > 1.0 then
+			multiplier = 1.0
+		end
+		local newAliveCritters = ceil(totalCritters * multiplier)
+		if newAliveCritters < minCritters then
+			local mc = minCritters
+			if totalCritters < minCritters then
+				mc = totalCritters
+			end
+			newAliveCritters = mc
+		end
+		adjustCritters(newAliveCritters)
+	end
 end
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
@@ -648,8 +706,25 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+	companionData[unitID] = nil
 	if commanders[unitID] then
 		commanders[unitID] = nil
+		local companions = companionCritters[unitID]
+		if companions ~= nil then
+			companionCritters[unitID] = nil
+			-- Evolution destroys the old commander _after_ creating the new unit.
+			local evolvedID = GetUnitRulesParam(unitID, "unit_evolved")
+			for companionID in pairs(companions) do
+				local data = companionData[companionID]
+				if data and data.commanderID == unitID then
+					if evolvedID and commanders[evolvedID] then
+						addCompanion(companionID, data, evolvedID)
+					else
+						revertCompanion(companionID, data)
+					end
+				end
+			end
+		end
 	elseif critterUnits[unitID] then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
@@ -672,8 +747,8 @@ function gadget:AllowCommand(
 )
 	-- accepts: CMD.ATTACK
 	if cmdParams and #cmdParams == 1 then
-		local critter = critterUnits[cmdParams[1]]
-		if critter then
+		local targetID = cmdParams[1]
+		if critterUnits[targetID] or companionData[targetID] then
 			return false
 		end
 	end
