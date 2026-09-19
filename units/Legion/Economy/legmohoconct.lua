@@ -50,6 +50,7 @@ return { --costs should be same as legmohocon and legmohoconin
 			unitgroup = "builder",
 			model_author = "Tharsis and Protar",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/Economy",
 			scav_swap_override_created = "delete", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			scav_swap_override_captured = "legmohocon", -- (delete = removes the unit, null = cancels swap, unitdefname = overrides what unit are we swapping into)
 			techlevel = 2,

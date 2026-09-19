@@ -182,6 +182,8 @@ local colorName = "\255\185\183\180"
 local colorValue = "\255\145\145\145"
 local colorNameOn = "\255\240\240\240"
 local colorValueOn = "\255\255\205\100"
+-- Between a changed option's default and its value.
+local defaultArrow = "  \226\134\146  "
 -- Facts read off the map and the engine rather than settings, so they take neither the
 -- muted look of a default nor the warm one of a change.
 local colorInfo = "\255\205\202\199"
@@ -366,6 +368,14 @@ local ignoredModoptions = {
 local function isIgnoredModoption(key)
 	return ignoredModoptions[key] or string.sub(key, 1, 5) == "date_"
 end
+
+-- Map metadata the lobby fills in: listed, but not something a player needs flagged, so
+-- it stays out of the change count and the changed-only filter.
+local unflaggedModoptions = {
+	mapmetadata_startpos = true,
+	mapmetadata_startboxes_set = true,
+	mapmetadata_startbox_override = true,
+}
 
 -- What puts an option in the Map category instead of the section it was declared under.
 -- Matched on the key, so an option added later lands there without this list growing.
@@ -761,17 +771,21 @@ local function addOption(block, key, value)
 	local option = optionDefs[key]
 	-- An option modoptions.lua does not declare has no default to compare against, so it
 	-- counts as adjusted: it was set by something outside the game's own list.
-	local changed = not (option and value == option.def)
+	local changed = not unflaggedModoptions[key] and not (option and value == option.def)
 	if changed then
 		countChanges(block, 1)
 	end
 
 	local name = getModoptionName(key)
 	value = tostring(value)
+	-- What the option would have been, shown beside what it is. An empty default says
+	-- nothing worth the room.
+	local default = changed and option and option.def ~= nil and tostring(option.def) or nil
 	block.entries[#block.entries + 1] = {
 		type = "option",
 		name = name,
 		value = value,
+		default = default ~= "" and default or nil,
 		changed = changed,
 		nameLower = string.lower(name),
 		search = string.lower(name .. " " .. key .. " " .. value),
@@ -1717,7 +1731,20 @@ local function fitRow(row)
 		end
 		row.fitName = (row.changed and colorNameOn or colorName)
 			.. text.fit(font, row.name, valueX1 - listX1 - metrics.rowPad * 3, metrics.rowFs)
-		row.fitValue = valueColor .. text.fit(font, row.value, listRight - valueX1 - metrics.rowPad * 2, metrics.rowFs)
+		local valueW = listRight - valueX1 - metrics.rowPad * 2
+		if row.default then
+			-- The default leads, dimmed, as the value it was changed from. It gives up its room
+			-- first: what the game runs with is the half that has to stay readable.
+			local default = text.fit(font, row.default, mathFloor(valueW * 0.4), metrics.rowFs)
+			local leadW = font:GetTextWidth(default .. defaultArrow) * metrics.rowFs
+			row.fitValue = colorDim
+				.. default
+				.. defaultArrow
+				.. valueColor
+				.. text.fit(font, row.value, valueW - leadW, metrics.rowFs)
+		else
+			row.fitValue = valueColor .. text.fit(font, row.value, valueW, metrics.rowFs)
+		end
 	end
 end
 

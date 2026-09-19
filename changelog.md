@@ -1,4 +1,19 @@
 # September
+- [Laser weapons] given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
+- [T1 Air Constructors] -10 buildpower
+- [Grunt, Pawn, Goblin] Script improvements. No longer fire sideways when switching targets mid-shot or going in and out of range
+- [Mobile Jammers]
+  - Smuggler 48.3 -> 37 speed
+  - Deceiver, Tiresias: 39 -> 35 speed, 1550 -> 1300 energycost
+  - Umbra 33 -> 43 speed, 1700 -> 2000 energycost
+- [Heavy Ships] -15 -> -8 minimum water depth - Able to pass into same shallow waters as other ships.
+- [Legion changes]
+  - Perdition doesn't gain extra range from elevation
+  - Martyr damages are added to its team's damage dealt
+  - Harbinger mines now spawn and detonate on tall targets
+  - EMP damage prevents reactive armor from regenerating
+  - Disable Air Units now removes and refunds drone spawners
+  - Range rings, graphics, blueprints, and other housekeeping
 - [Scavenger Zombies]
   - After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
   - Zombies spawn with XP skewed to the minimum veterancy so they aren't so tanky so often.
