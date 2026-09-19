@@ -4,7 +4,7 @@
 
 piece  base, pad, flare1, flare2, pivot1, arm1, end1, pivot2, arm2, end2, dish, blink, blinka, blinkb, cagelight1, cagelight2, cagelight_emit1, cagelight_emit2;
 
-static-var  spray;
+static-var  spray, hasOpened;
 static-var  Stunned;
 
 // Signal definitions
@@ -63,6 +63,7 @@ Create()
 	spin dish around y-axis speed <60>;
 	start-script Lights();
 	call-script SetStunned(0);
+	hasOpened = 0;
 }
 
 
@@ -78,32 +79,30 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	turn arm1 to x-axis <135> speed <120>;
-	turn arm2 to x-axis <135> speed <120>;
-	sleep (300);
-	turn pivot1 to y-axis <-135> speed <90>;
-	turn pivot2 to y-axis <135> speed <90>;
-	turn end1 to x-axis <70> speed <90>;
-	turn end2 to x-axis <70> speed <90>;
-	wait-for-turn arm1 around x-axis;
+	if( !hasOpened )
+	{
+		turn arm1 to x-axis <135> speed <120>;
+		turn arm2 to x-axis <135> speed <120>;
+		sleep (300);
+		turn pivot1 to y-axis <-135> speed <90>;
+		turn pivot2 to y-axis <135> speed <90>;
+		turn end1 to x-axis <70> speed <90>;
+		turn end2 to x-axis <70> speed <90>;
+		wait-for-turn arm1 around x-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-    sleep 5000;
-	
-	turn pivot1 to y-axis <0> speed <120>;
-	turn pivot2 to y-axis <0> speed <120>;
-	turn arm1 to x-axis <0> speed <30>;
-	turn arm2 to x-axis <0> speed <30>;
-	turn end1 to x-axis <0> speed <90>;
-	turn end2 to x-axis <0> speed <90>;
 
 	FACTORY_CLOSE_BUILD;
 }
