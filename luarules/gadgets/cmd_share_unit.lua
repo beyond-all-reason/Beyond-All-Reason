@@ -19,7 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spGetTeamInfo = Spring.GetTeamInfo
 	local spAreTeamsAllied = Spring.AreTeamsAllied
-	local spValidUnitID = Spring.ValidUnitID
+	local spGetGameFrame = Spring.GetGameFrame
 	local spTransferUnit = Spring.TransferUnit
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
@@ -46,7 +46,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local pendingTransfers = {} -- unitID -> targetTeamID
+	local alliedAccess = { allied = true }
 
 	local function isShareTarget(teamID, targetTeamID)
 		return targetTeamID ~= nil
@@ -72,30 +72,11 @@ if gadgetHandler:IsSyncedCode() then
 
 		local targetTeamID = cmdParams[1]
 		if isShareTarget(teamID, targetTeamID) and not select(3, spGetTeamInfo(targetTeamID, false)) then
-			-- transfer outside of command processing
-			pendingTransfers[unitID] = targetTeamID
+			-- lets widgets tell these shares apart, e.g. gui_chat doesn't announce them
+			spSetUnitRulesParam(unitID, "shareCommandFrame", spGetGameFrame(), alliedAccess)
+			spTransferUnit(unitID, targetTeamID, true)
 		end
 		return true, true
-	end
-
-	local alliedAccess = { allied = true }
-
-	function gadget:GameFrame(frame)
-		if next(pendingTransfers) == nil then
-			return
-		end
-		for unitID, targetTeamID in pairs(pendingTransfers) do
-			pendingTransfers[unitID] = nil
-			if spValidUnitID(unitID) then
-				-- lets widgets tell these shares apart, e.g. gui_chat doesn't announce them
-				spSetUnitRulesParam(unitID, "shareCommandFrame", frame, alliedAccess)
-				spTransferUnit(unitID, targetTeamID, true)
-			end
-		end
-	end
-
-	function gadget:UnitDestroyed(unitID)
-		pendingTransfers[unitID] = nil
 	end
 
 	local function insertShareCmdDesc(unitID, teamID)
