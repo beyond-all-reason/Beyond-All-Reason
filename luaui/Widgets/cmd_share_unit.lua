@@ -326,8 +326,6 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 		return false
 	end
 
-	-- the order only carries the team to share to, so resolve the click here: what the preview
-	-- showed is what gets sent, and the gadget needs no target lookup of its own
 	local targetTeamID
 	if #cmdParams == 1 then
 		targetTeamID = GetUnitTeam(cmdParams[1])
@@ -388,7 +386,6 @@ local function drawShareIcon(x, y, z, teamID)
 	glPopMatrix()
 end
 
--- the share happens wherever the unit is by then, so mark the spot the queue reached
 local function drawShareQueueIcons()
 	glDepthTest(false)
 	for unitID, commands in pairs(shareQueues) do
