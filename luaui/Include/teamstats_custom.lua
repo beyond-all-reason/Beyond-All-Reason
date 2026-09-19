@@ -16,27 +16,40 @@ local M = {}
 -- The key of the category that ships with the game.
 local SHIPPED_KEY = "overview"
 
--- What it holds: every team's shape and when things happened to them, then a column of
--- each kind the game is decided by.
+-- What it holds - one page of twelve: every team's shape and when things happened to them;
+-- the economy each built (metal, energy, build power) and what it has on the field; what
+-- it produced and fought with; the value it traded, which weighs a kill by what it cost
+-- where unit counts and damage do not; and how fast it played.
 local SHIPPED_STATS = {
 	"profile",
 	"timeline",
-	"damageDealt",
-	"damageReceived",
-	"damageEfficiency",
-	"unitsProduced",
-	"unitsKilled",
-	"unitsDied",
 	"metalProduced",
-	"metalExcess",
 	"energyProduced",
-	"energyExcess",
-	"aggressionLevel",
+	"buildPower",
+	"unitValue",
+	"unitsProduced",
+	"damageDealt",
+	"killedValue",
+	"lostValue",
+	"valueEfficiency",
 	"actionsPerMinute",
 }
 
 -- The charts that are not one column's: listed by the page, never a table column.
-local CHART_ONLY = { profile = true, timeline = true, composition = true }
+---@type table<string, boolean>
+local CHART_ONLY = {
+	incomeMetal = true,
+	incomeEnergy = true,
+	tech = true,
+	profile = true,
+	timeline = true,
+	composition = true,
+	wind = true,
+	losses = true,
+}
+
+-- The first field of a category written out as text: what it is, and in which version.
+local FORMAT = "teamstats1"
 
 -- A graph's settings as they come when nothing says otherwise: the switches' defaults.
 local function defaultSettings()
@@ -292,6 +305,96 @@ function M.new(ctx)
 			end
 		end
 		return false
+	end
+
+	----------------------------------------------------------------
+	-- Shared as text
+	----------------------------------------------------------------
+
+	-- A category as one line, for the clipboard: its name, then each graph's stat, its
+	-- switches as letters (g grouped, s % of total, m milestones) and the milestone kinds it
+	-- leaves off, e.g. "teamstats1;Eco;metalProduced,gs;damageDealt,m,nuke+lrpc".
+	function custom.export(key)
+		local category = custom.byKey(key)
+		if not category then
+			return nil
+		end
+		local parts = { FORMAT, (custom.label(category):gsub("[;,]", " ")) }
+		for _, graph in ipairs(category.graphs) do
+			local flags = (graph.grouped and "g" or "")
+				.. (graph.share and "s" or "")
+				.. (graph.milestones and "m" or "")
+			local off = {}
+			for kind, on in pairs(graph.off) do
+				if on then
+					off[#off + 1] = kind
+				end
+			end
+			table.sort(off)
+			parts[#parts + 1] = graph.stat .. "," .. flags .. (#off > 0 and ("," .. table.concat(off, "+")) or "")
+		end
+		return table.concat(parts, ";")
+	end
+
+	-- Text read back as a category, or nil for text that is not one. A stat this game does
+	-- not have is left out.
+	function custom.parse(text)
+		if type(text) ~= "string" then
+			return nil
+		end
+		text = text:gsub("^%s+", ""):gsub("%s+$", "")
+		local fields = {}
+		for field in (text .. ";"):gmatch("([^;]*);") do
+			fields[#fields + 1] = field
+		end
+		if fields[1] ~= FORMAT or #fields < 2 then
+			return nil
+		end
+		local out = { name = fields[2]:sub(1, 32), graphs = {} }
+		for i = 3, #fields do
+			local stat, flags, off = fields[i]:match("^(%w+),?([gsm]*),?([%w+]*)$")
+			if stat and (CHART_ONLY[stat] or ctx.COLUMNS[stat]) then
+				local offSet = {}
+				for kind in off:gmatch("[^+]+") do
+					offSet[kind] = true
+				end
+				out.graphs[#out.graphs + 1] = {
+					stat = stat,
+					grouped = flags:find("g", 1, true) ~= nil,
+					share = flags:find("s", 1, true) ~= nil,
+					milestones = flags:find("m", 1, true) ~= nil,
+					off = offSet,
+				}
+			end
+		end
+		return out
+	end
+
+	-- A parsed category made a new one, at the end of the player's own.
+	-- A name no category has yet: pasted next to the one it was copied off, "Overview"
+	-- comes in as "Overview 2".
+	local function freeName(name)
+		local taken = {}
+		for _, category in ipairs(custom.list) do
+			taken[custom.label(category):lower()] = true
+		end
+		local n, free = 1, name
+		while taken[free:lower()] do
+			n = n + 1
+			free = name .. " " .. n
+		end
+		return free
+	end
+
+	function custom.import(parsed)
+		local name = parsed.name ~= "" and freeName(parsed.name) or nil
+		local category = custom.create()
+		category.name = name
+		for _, g in ipairs(parsed.graphs) do
+			category.graphs[#category.graphs + 1] = newGraph(g.stat, g)
+		end
+		custom.apply()
+		return category
 	end
 
 	----------------------------------------------------------------
