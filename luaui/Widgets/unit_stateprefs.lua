@@ -111,19 +111,25 @@ for unitName, unitDef in pairs(UnitDefNames) do
 			local buildOptDefID = buildOptions[i]
 			local buildOpt = UnitDefs[buildOptDefID]
 
-			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
-				builderFactories[unitName] = true  -- only factories that can build builders are included
+			if buildOpt and buildOpt.isBuilder and buildOpt.canAssist then
+				builderFactories[unitName] = true -- only factories that can build builders are included
 				break
 			end
 		end
 	end
 	if unitDef.customParams.fighter or unitDef.customParams.drone or unitDef.customParams.flyingcarrier then -- code from old fighter default fly pref widget
-        fighters[unitName] = true
-    end
+		fighters[unitName] = true
+	end
 	if unitDef.isFactory and not unitDef.customParams.airfactory then
 		landFactories[unitName] = true
 	end
-	if unitDef.isBuilder and unitDef.canMove and unitDef.canAssist and not unitDef.isFactory and unitDef.customParams.iscommander then
+	if
+		unitDef.isBuilder
+		and unitDef.canMove
+		and unitDef.canAssist
+		and not unitDef.isFactory
+		and unitDef.customParams.iscommander
+	then
 		constructors[unitName] = true
 	end
 	if unitDef.isBuilder and unitDef.isFactory then
@@ -135,14 +141,14 @@ for unitName, unitDef in pairs(UnitDefNames) do
 end
 
 local presets = { -- CMD_ID, state_false, state_true, units
-	bombers_default_hold_fire = {CMD.FIRE_STATE, nil, 0, bombers}, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
-	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, builderFactories},
-	fighters_default_fly = {CMD.IDLEMODE, nil, 0, fighters},
-	factory_hold_position = {CMD.MOVE_STATE, nil, 0, landFactories},
-	constructors_priority = {GameCMD.PRIORITY, 0, 1, constructors},
-	factories_priority = {GameCMD.PRIORITY, 0, 1, factories},
-	nano_turrets_priority = {GameCMD.PRIORITY, 0, 1, nanoTurrets},
-	factory_repeat = {CMD.REPEAT, 0, 1, factories},
+	bombers_default_hold_fire = { CMD.FIRE_STATE, nil, 0, bombers }, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
+	factoryguard = { GameCMD.FACTORY_GUARD, nil, 1, builderFactories },
+	fighters_default_fly = { CMD.IDLEMODE, nil, 0, fighters },
+	factory_hold_position = { CMD.MOVE_STATE, nil, 0, landFactories },
+	constructors_priority = { GameCMD.PRIORITY, 0, 1, constructors },
+	factories_priority = { GameCMD.PRIORITY, 0, 1, factories },
+	nano_turrets_priority = { GameCMD.PRIORITY, 0, 1, nanoTurrets },
+	factory_repeat = { CMD.REPEAT, 0, 1, factories },
 }
 
 local function togglePreset(presetName, state, force)
@@ -196,19 +202,25 @@ for unitName, unitDef in pairs(UnitDefNames) do
 			local buildOptDefID = buildOptions[i]
 			local buildOpt = UnitDefs[buildOptDefID]
 
-			if (buildOpt and buildOpt.isBuilder and buildOpt.canAssist) then
-				builderFactories[unitName] = true  -- only factories that can build builders are included
+			if buildOpt and buildOpt.isBuilder and buildOpt.canAssist then
+				builderFactories[unitName] = true -- only factories that can build builders are included
 				break
 			end
 		end
 	end
 	if unitDef.customParams.fighter or unitDef.customParams.drone or unitDef.customParams.flyingcarrier then -- code from old fighter default fly pref widget
-        fighters[unitName] = true
-    end
+		fighters[unitName] = true
+	end
 	if unitDef.isFactory and not unitDef.customParams.airfactory then
 		landFactories[unitName] = true
 	end
-	if unitDef.isBuilder and unitDef.canMove and unitDef.canAssist and not unitDef.isFactory and unitDef.customParams.iscommander then
+	if
+		unitDef.isBuilder
+		and unitDef.canMove
+		and unitDef.canAssist
+		and not unitDef.isFactory
+		and unitDef.customParams.iscommander
+	then
 		constructors[unitName] = true
 	end
 	if unitDef.isBuilder and unitDef.isFactory then
@@ -220,14 +232,14 @@ for unitName, unitDef in pairs(UnitDefNames) do
 end
 
 local presets = { -- CMD_ID, state_false, state_true, units
-	bombers_default_hold_fire = {CMD.FIRE_STATE, nil, 0, bombers}, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
-	factoryguard = {GameCMD.FACTORY_GUARD, nil, 1, builderFactories},
-	fighters_default_fly = {CMD.IDLEMODE, nil, 0, fighters},
-	factory_hold_position = {CMD.MOVE_STATE, nil, 0, landFactories},
-	constructors_priority = {GameCMD.PRIORITY, 0, 1, constructors},
-	factories_priority = {GameCMD.PRIORITY, 0, 1, factories},
-	nano_turrets_priority = {GameCMD.PRIORITY, 0, 1, nanoTurrets},
-	factory_repeat = {CMD.REPEAT, 0, 1, factories},
+	bombers_default_hold_fire = { CMD.FIRE_STATE, nil, 0, bombers }, -- state_false can evaluate to false, since fake ternary only has issues with the second argument
+	factoryguard = { GameCMD.FACTORY_GUARD, nil, 1, builderFactories },
+	fighters_default_fly = { CMD.IDLEMODE, nil, 0, fighters },
+	factory_hold_position = { CMD.MOVE_STATE, nil, 0, landFactories },
+	constructors_priority = { GameCMD.PRIORITY, 0, 1, constructors },
+	factories_priority = { GameCMD.PRIORITY, 0, 1, factories },
+	nano_turrets_priority = { GameCMD.PRIORITY, 0, 1, nanoTurrets },
+	factory_repeat = { CMD.REPEAT, 0, 1, factories },
 }
 
 local function togglePreset(presetName, state, force)
@@ -269,7 +281,10 @@ function widget:GetConfigData()
 		local presetState = unitSet.presets and unitSet.presets[presetName]
 		if presetState ~= nil then
 			for unitName, _ in pairs(presetData[4]) do
-				if saveUnitSet[unitName] and saveUnitSet[unitName][presetData[1]] == (presetState and presetData[3] or presetData[2]) then
+				if
+					saveUnitSet[unitName]
+					and saveUnitSet[unitName][presetData[1]] == (presetState and presetData[3] or presetData[2])
+				then
 					saveUnitSet[unitName][presetData[1]] = nil
 				end
 			end
@@ -321,7 +336,6 @@ function widget:SetConfigData(data)
 		end
 	end
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -463,25 +477,25 @@ function widget:Initialize()
 	widgetHandler.actionHandler:AddAction(self, "stateprefs_clear", onClearRelease, nil, "r")
 	widgetHandler.actionHandler:AddAction(self, "stateprefs_clearunit", doClearUnit, nil, "p")
 
-	WG['stateprefs'] = {}
-	WG['stateprefs'].getUnitDefaultState = function(unitName, cmdID) -- use unitName instead of unitDefID in case of not loaded units (like legion)
+	WG["stateprefs"] = {}
+	WG["stateprefs"].getUnitDefaultState = function(unitName, cmdID) -- use unitName instead of unitDefID in case of not loaded units (like legion)
 		if unitSet[unitName] then
 			return unitSet[unitName][cmdID]
 		end
 	end
-	WG['stateprefs'].setUnitDefaultState = function(unitName, cmdID, state)
+	WG["stateprefs"].setUnitDefaultState = function(unitName, cmdID, state)
 		if not cmdID then
 			unitName, cmdID, state = unitName[1], unitName[2], unitName[3]
 		end
 		unitSet[unitName] = unitSet[unitName] or {}
 		unitSet[unitName][cmdID] = state
 	end
-	WG['stateprefs'].getPresetState = function(presetName)
+	WG["stateprefs"].getPresetState = function(presetName)
 		if unitSet.presets then
 			return unitSet.presets[presetName]
 		end
 	end
-	WG['stateprefs'].setPresetState = function(presetName, state)
+	WG["stateprefs"].setPresetState = function(presetName, state)
 		unitSet.presets = unitSet.presets or {}
 		unitSet.presets[presetName] = state
 		togglePreset(presetName, state, true)
@@ -618,7 +632,7 @@ end
 
 function widget:Shutdown()
 	WG.firestate.userFirestateChanged = priorUserFirestateFunction
-	WG['stateprefs'] = nil
+	WG["stateprefs"] = nil
 	widgetHandler.actionHandler:RemoveAction(self, "stateprefs_record")
 	widgetHandler.actionHandler:RemoveAction(self, "stateprefs_clear")
 	widgetHandler.actionHandler:RemoveAction(self, "stateprefs_clearunit")
