@@ -25,7 +25,6 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -51,6 +50,7 @@ local UNIT = "unit"
 local commandLimit = 2000
 
 local myAllyTeamID
+local getCapableUnits
 
 ---------------------------------------------------------------------------------------
 --- Target sorting logic (pick the closest first)
@@ -98,18 +98,6 @@ for defId, def in pairs(UnitDefs) do
 	unitMass[defId] = def.mass
 	unitXSize[defId] = def.xsize
 	cantBeTransported[defId] = def.cantBeTransported
-end
-
-local canAttack, canCapture, canReclaim = {}, {}, {}
-local canGuard, canRepair, canResurrect = {}, {}, {}
-
-for unitDefID, unitDef in pairs(UnitDefs) do
-	canAttack[unitDefID] = unitDef.canAttack and unitDef.maxWeaponRange > 0 or nil
-	canCapture[unitDefID] = unitDef.canCapture or nil
-	canGuard[unitDefID] = unitDef.canGuard or nil
-	canRepair[unitDefID] = unitDef.canRepair or unitDef.canAssist or nil -- assist without repair is nanoframes only, decided per target
-	canReclaim[unitDefID] = unitDef.canReclaim or nil
-	canResurrect[unitDefID] = unitDef.canResurrect or nil
 end
 
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
@@ -394,9 +382,9 @@ end
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
----@field capableDefs table<number, true>
+---@field capability string
 
-local function commandConfig(targetTypes, targetAllegiance, capableDefs, handler)
+local function commandConfig(targetTypes, targetAllegiance, capability, handler)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -405,49 +393,22 @@ local function commandConfig(targetTypes, targetAllegiance, capableDefs, handler
 	config.handle = handler or defaultHandler
 	config.allowedTargetTypes = allowedTargetTypes
 	config.targetAllegiance = targetAllegiance
-	config.capableDefs = capableDefs
+	config.capability = capability
 	return config
 end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
-	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS, canCapture),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
-	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS, canGuard),
-	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS, canRepair),
-	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS, canReclaim),
-	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, transportDefs, loadUnitsHandler),
-	[CMD.RESURRECT] = commandConfig({ FEATURE }, nil, canResurrect),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, "attack"),
+	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS, "capture"),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, "attack"),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, "attack"),
+	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS, "guard"),
+	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS, "repairs"),
+	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS, "reclaim"),
+	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, "transport", loadUnitsHandler),
+	[CMD.RESURRECT] = commandConfig({ FEATURE }, nil, "resurrect"),
 }
-
-local function getCapableUnits(selectedUnits, capableDefs)
-	local firstDrop
-	for index = 1, #selectedUnits do
-		if not capableDefs[spGetUnitDefID(selectedUnits[index])] then
-			firstDrop = index
-			break
-		end
-	end
-
-	if not firstDrop then
-		return selectedUnits[1] and selectedUnits or nil
-	end
-
-	local keep, count = {}, firstDrop - 1
-	for index = 1, count do
-		keep[index] = selectedUnits[index]
-	end
-	for index = firstDrop + 1, #selectedUnits do
-		local unitID = selectedUnits[index]
-		if capableDefs[spGetUnitDefID(unitID)] then
-			count = count + 1
-			keep[count] = unitID
-		end
-	end
-	return count > 0 and keep or nil
-end
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
 	local ctrl = options.ctrl
@@ -551,7 +512,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local capableUnits = getCapableUnits(spGetSelectedUnits(), currentCommand.capableDefs)
+	local capableUnits = getCapableUnits(currentCommand.capability)
 	if not capableUnits then
 		return false
 	end
@@ -588,7 +549,14 @@ end
 local function initialize()
 	if spGetSpectatingState() then
 		widgetHandler:RemoveWidget()
+		return
 	end
+	if not WG.UnitSelection then
+		Spring.Echo("Area Command Filter: the unit selection API is missing, disabling")
+		widgetHandler:RemoveWidget()
+		return
+	end
+	getCapableUnits = WG.UnitSelection.GetCapableUnits
 	myAllyTeamID = spGetMyAllyTeamID()
 end
 
