@@ -461,6 +461,34 @@ local function getCommanderBuildDefs(startDefID)
 	return buildDefs
 end
 
+local function calculateCheapestFactoryBudgetCost(startDefID, gameRules)
+	local commanderDef = UnitDefs[startDefID]
+	if not commanderDef then
+		return 0
+	end
+
+	local cheapestFactoryBudgetCost = math.huge
+	for buildOptionIndex = 1, #commanderDef.buildOptions do
+		local unitDefID = commanderDef.buildOptions[buildOptionIndex]
+		local unitDef = UnitDefs[unitDefID]
+		if unitDef and unitDef.isFactory then
+			local factoryBudgetCost = calculateBudgetWithDiscount(
+				unitDefID,
+				gameRules.factoryDiscountAmount,
+				shouldApplyFactoryDiscount,
+				true
+			)
+			cheapestFactoryBudgetCost = math.min(cheapestFactoryBudgetCost, factoryBudgetCost)
+		end
+	end
+
+	if cheapestFactoryBudgetCost == math.huge then
+		return 0
+	end
+
+	return math.ceil(cheapestFactoryBudgetCost)
+end
+
 local function getNearbyMexes(commanderX, commanderZ, instantBuildRange)
 	local resourceSpotFinder = WG.resource_spot_finder
 	local nearbyMexes = {}
@@ -757,11 +785,15 @@ end
 local function getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, commanderZ)
 	local budgetRemaining = gameRules.budgetTotal
 	local firstFactoryPlaced = false
+	local factoryAlreadyQueued = false
 
 	for buildIndex = 1, #buildQueue do
 		local buildData = buildQueue[buildIndex]
 		local unitDefID = buildData[1]
 		local unitDef = unitDefID and unitDefID > 0 and UnitDefs[unitDefID]
+		if unitDef and unitDef.isFactory then
+			factoryAlreadyQueued = true
+		end
 		if
 			unitDef
 			and isWithinBuildRange(commanderX, commanderZ, buildData[2], buildData[4], gameRules.instantBuildRange)
@@ -779,7 +811,7 @@ local function getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, c
 		end
 	end
 
-	return budgetRemaining
+	return budgetRemaining, factoryAlreadyQueued
 end
 
 local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, playerBuildQueue)
@@ -818,11 +850,13 @@ local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, pla
 		buildQueue[#buildQueue + 1] = playerBuildQueue[buildIndex]
 	end
 	local buildSequence = getQuickStartBuildSequence(isMetalMap, isInWater, windFunctions.isGoodWind())
-	local budgetRemaining = getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, commanderZ)
+	local budgetRemaining, factoryAlreadyPlaced =
+		getBuildQueueBudgetRemaining(buildQueue, gameRules, commanderX, commanderZ)
+	local factoryBudgetReserve = factoryAlreadyPlaced and 0 or calculateCheapestFactoryBudgetCost(startDefID, gameRules)
 	local buildIndex = 1
 	local attempts = 0
 
-	while budgetRemaining > 0 and attempts < SAFETY_COUNT do
+	while budgetRemaining > factoryBudgetReserve and attempts < SAFETY_COUNT do
 		attempts = attempts + 1
 		local buildType = buildSequence[buildIndex]
 		local unitDefID = buildDefs[buildType]
@@ -831,7 +865,7 @@ local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, pla
 				and calculateBudgetCost(unitDef.metalCost or 0, unitDef.energyCost or 0, unitDef.buildTime or 0)
 			or math.huge
 
-		if buildCost > budgetRemaining then
+		if buildCost > budgetRemaining - factoryBudgetReserve then
 			break
 		end
 
