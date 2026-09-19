@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local math_random = math.random
+
 local GetTeamInfo = Spring.GetTeamInfo
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitHealth = Spring.GetUnitHealth
@@ -27,7 +29,11 @@ local MoveCtrlDisable = Spring.MoveCtrl.Disable
 local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
 local GetGameFrame = Spring.GetGameFrame
 local GetUnitTeam = Spring.GetUnitTeam
-local math_random = math.random
+
+local fallingDamageTypes = {
+	[Game.envDamageTypes.GroundCollision] = true,
+	[Game.envDamageTypes.Debris] = true,
+}
 
 local immuneDgunList = {}
 local ctrlCom = {}
@@ -86,18 +92,18 @@ function gadget:UnitPreDamaged(
 	unitTeam,
 	damage,
 	paralyzer,
-	weaponID,
+	weaponDefID,
 	projectileID,
 	attackerID,
 	attackerDefID,
 	attackerTeam
 )
 	--falling & debris damage
-	if weaponID < 0 and cantFall[unitID] then
+	if weaponDefID < 0 and cantFall[unitID] and fallingDamageTypes[weaponDefID] then
 		return 0, 0
 	end
 
-	if weaponID == COM_BLAST then
+	if weaponDefID == COM_BLAST then
 		local hp = GetUnitHealth(unitID)
 		if not hp then
 			return damage
@@ -113,7 +119,7 @@ function gadget:UnitPreDamaged(
 			combombDamage = damage
 		end
 
-		if weaponID == COM_BLAST and isCommander[unitDefID] and attackerID then
+		if weaponDefID == COM_BLAST and isCommander[unitDefID] and attackerID then
 			local unitTeamID = GetUnitTeam(unitID)
 			local attackerTeamID = GetUnitTeam(attackerID)
 
