@@ -276,11 +276,12 @@ local function syncCompanionToCommander(companionID, data, commanderID)
 	if not health or not commanderMaxHealth or not commanderMoveType then
 		return
 	end
+	local boostedMaxHealth = max(data.maxHealth, commanderMaxHealth)
 	local damage = data.boostedMaxHealth - health
-	data.boostedMaxHealth = commanderMaxHealth
-	SetUnitMaxHealth(companionID, commanderMaxHealth)
-	SetUnitHealth(companionID, commanderMaxHealth - damage)
-	setCompanionSpeed(companionID, commanderMoveType.maxSpeed)
+	data.boostedMaxHealth = boostedMaxHealth
+	SetUnitMaxHealth(companionID, boostedMaxHealth)
+	SetUnitHealth(companionID, boostedMaxHealth - damage)
+	setCompanionSpeed(companionID, max(data.speed, commanderMoveType.maxSpeed))
 end
 
 local function addCompanion(companionID, data, commanderID)
