@@ -1845,9 +1845,9 @@ local options = {
 		name = "Placeholder for BLT testing",
 		desc = "Placeholder for official balance testing mod option",
 		type = "bool",
-		hidden = true,
+		--hidden = true,
 		section = "options_experimental",
-		def = false,
+		def = true,
 	},
 
 	-- NOTE: update language/en/interface.json when you change name or desc

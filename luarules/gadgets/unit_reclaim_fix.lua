@@ -50,6 +50,9 @@ local function getStep(featureDefID, unitDefID)
 	if maxResource == nil or reclaimTime == nil or reclaimSpeed == nil then
 		return nil
 	end
+	if Spring.GetModOptions().proposed_unit_reworks == true then
+		return ((4.4 - 0.2 * reclaimSpeed ) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
+	end
 	return ((0.05 * reclaimSpeed + 4.5) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
 end
 
