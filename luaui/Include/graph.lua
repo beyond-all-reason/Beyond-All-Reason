@@ -19,6 +19,10 @@
 --       markers = {                             -- unit pictures on the chart, with a text for hover
 --           { x = 3000, texture = "#143", text = "1:40 First factory (Bot Lab)", series = 1 },
 --           { x = 3000, texture = "#143", text = "...", y = 2.2 },  -- or at a value of its own
+--           { x = 5400, shape = "up", color = { 1, 0.5, 0.3 }, text = "Peak", series = 2 },
+--       },
+--       spans = {                               -- stretches of x in strips outside an edge
+--           { from = 900, to = 2700, row = 1, edge = "bottom", color = { 1, 0.5, 0.3 }, text = "..." },
 --       },
 --   })
 --   chart:draw()                              -- in DrawScreen
@@ -27,18 +31,26 @@
 --   WG.tooltip.ShowTooltip("mychart", chart:describe(hit))
 --
 -- Everything in the constructor can be changed later through chart:configure({ ... }),
--- chart:setSeries(list), chart:setMarkers(list), chart:setBounds(x, y, w, h) and
+-- chart:setSeries(list), chart:setMarkers(list), chart:setSpans(list), chart:setBounds(x, y, w, h) and
 -- chart:setHighlight(seriesIndex, or { [seriesIndex] = true, ... } for several); each
 -- marks the picture for a rebuild on the next draw.
 -- chart:destroy() frees the list. Radar charts take `radar = { axes = { { key = "speed",
 -- label = "Speed", max = 100 }, ... }, rings = 4 }` and series with `values` keyed by axis
 -- (an array in axis order, or a table by axis key). A stacked chart turns every sample
--- into shares of that sample's total, so the y axis is 0 to 100%.
+-- into shares of that sample's total, so the y axis is 0 to 100% - or, with
+-- `stackShares = false`, piles the amounts themselves up. A series with `step = true` holds
+-- its value until the next sample rather than running a line to it: a count.
 
 ---@class Graph
 ---@field cfg table<string, any>
 ---@field series table[]
 ---@field markers table[]
+---@field spans table[]
+---@field spanRects table[]
+---@field spanBelow number
+---@field spanAbove number
+---@field stripH number
+---@field totals number[]
 ---@field highlight integer|table<integer, boolean>|nil
 ---@field highlightKey any
 ---@field hover table?
@@ -129,6 +141,10 @@ local DEFAULTS = {
 	yFormat = nil,
 	-- Stacked: each band named inside it at its right end, where it is thick enough.
 	bandLabels = false,
+	-- Stacked: every sample as the shares of its total, or the amounts piled up. The name
+	-- the total goes by in the tooltip of the amounts; none leaves it out.
+	stackShares = true,
+	totalLabel = nil,
 	-- Bands of colour laid across the plot between two values, under everything else:
 	-- { { from = 0.5, to = 1.5, color = { r, g, b, a } }, ... }.
 	valueBands = nil,
@@ -169,6 +185,9 @@ local DEFAULTS = {
 	-- the rows past that wrap back into the lane, where the hovered one is drawn on top.
 	markerLaneShare = 0.4,
 	markerMinSize = 14,
+	-- A marker drawn as a shape rather than a picture - a point of a line - is this share of
+	-- the font size across.
+	markerShapeSize = 1.0,
 	-- How much larger the hovered picture is drawn.
 	markerHoverScale = 1.2,
 	radar = {
@@ -356,8 +375,11 @@ function Graph.new(cfg)
 	end
 	self.series = self.cfg.series or {}
 	self.markers = self.cfg.markers or {}
+	self.spans = self.cfg.spans or {}
 	self.cfg.series = nil
 	self.cfg.markers = nil
+	self.cfg.spans = nil
+	self.spanRects = {}
 	self.highlight = nil
 	self.hover = nil
 	self.list = nil
@@ -380,6 +402,10 @@ function Graph:configure(cfg)
 		self.markers = cfg.markers
 		self.cfg.markers = nil
 	end
+	if cfg.spans then
+		self.spans = cfg.spans
+		self.cfg.spans = nil
+	end
 	self.dirty = true
 end
 
@@ -390,6 +416,11 @@ end
 
 function Graph:setMarkers(markers)
 	self.markers = markers or {}
+	self.dirty = true
+end
+
+function Graph:setSpans(spans)
+	self.spans = spans or {}
 	self.dirty = true
 end
 
@@ -628,6 +659,7 @@ function Graph:prepareSamples()
 			raw = raw,
 			width = s.width or cfg.lineWidth,
 			smooth = s.smooth,
+			step = s.step,
 		}
 	end
 	self.xs = xs
@@ -662,14 +694,18 @@ function Graph:prepareLine()
 	local fs = cfg.fontSize
 	local xs = self.xs
 	local stacked = cfg.kind == "stacked"
+	-- Piled up as amounts rather than shares: the totals make the range.
+	local amounts = stacked and cfg.stackShares == false
 
 	-- Stacked: every sample's values become shares of the sample's total.
+	self.totals = {}
 	if stacked then
 		for i = 1, #xs do
 			local total = 0
 			for _, p in ipairs(self.prepared) do
 				total = total + (p.ys[i] or 0)
 			end
+			self.totals[i] = total
 			for _, p in ipairs(self.prepared) do
 				p.shares = p.shares or {}
 				p.shares[i] = total > 0 and (p.ys[i] or 0) / total * 100 or 0
@@ -678,10 +714,16 @@ function Graph:prepareLine()
 	end
 
 	local yMin, yMax = mathHuge, -mathHuge
-	if stacked then
+	if stacked and not amounts then
 		yMin, yMax = 0, 100
 	else
-		for _, p in ipairs(self.prepared) do
+		if amounts then
+			yMin, yMax = 0, 0
+			for i = 1, #xs do
+				yMax = mathMax(yMax, self.totals[i] or 0)
+			end
+		end
+		for _, p in ipairs(amounts and {} or self.prepared) do
 			for i = 1, #xs do
 				local v = p.ys[i]
 				if v then
@@ -719,12 +761,12 @@ function Graph:prepareLine()
 
 	-- The y labels decide the left inset.
 	local yFormat = cfg.yFormat
-		or (stacked and function(v)
+		or (stacked and not amounts and function(v)
 			return stringFormat("%d%%", mathFloor(v + 0.5))
 		end)
 		or defaultFormat
 	self.yFormatter = yFormat
-	local step = stacked and 25 or niceStep(yMax - yMin, cfg.gridLines)
+	local step = (stacked and not amounts) and 25 or niceStep(yMax - yMin, cfg.gridLines)
 	self.yStep = step
 	local labelW = 0
 	local v = yMin
@@ -733,7 +775,21 @@ function Graph:prepareLine()
 		v = v + step
 	end
 	local left = mathFloor(plot.left + labelW + fs * 0.6)
-	local bottom = mathFloor(plot.bottom + fs * 1.5)
+	-- Rows of strips for the spans, outside the values: under the plot, over the x axis
+	-- labels, and over it, under the marker lane.
+	local stripH = mathMax(2, mathFloor(fs * 0.35))
+	local rowsBelow, rowsAbove = 0, 0
+	for _, s in ipairs(self.spans) do
+		if s.edge == "top" then
+			rowsAbove = mathMax(rowsAbove, s.row or 1)
+		else
+			rowsBelow = mathMax(rowsBelow, s.row or 1)
+		end
+	end
+	self.stripH = stripH
+	self.spanBelow = rowsBelow > 0 and rowsBelow * (stripH + 1) + 4 or 0
+	self.spanAbove = rowsAbove > 0 and rowsAbove * (stripH + 1) + 4 or 0
+	local bottom = mathFloor(plot.bottom + fs * 1.5) + self.spanBelow
 	local right = plot.right
 	-- A legend too wide for one row wraps onto more, each taken from the plot's height.
 	self.legendRows = 1
@@ -796,7 +852,7 @@ function Graph:prepareLine()
 		rows = mathMax(1, mathFloor(laneMax / size))
 	end
 	self.markerSize, self.markerLaneRows = size, rows
-	local top = plot.top - (rows > 0 and (rows * size + mathFloor(fs * 0.4)) or 0)
+	local top = plot.top - (rows > 0 and (rows * size + mathFloor(fs * 0.4)) or 0) - self.spanAbove
 	self.area = { left = left, right = right, bottom = bottom, top = top }
 	local yScale = (top - bottom) / (yMax - yMin)
 	self.sy = function(y)
@@ -842,13 +898,16 @@ function Graph:markerRows(size)
 	return count
 end
 
--- Where each marker goes: on its series' value at its x, or in its row of the lane.
+-- Where each marker goes: on its series' value at its x, or in its row of the lane. A
+-- shape - a point of a line rather than a picture - is small, whatever the pictures are.
 function Graph:placeMarkers()
 	local cfg = self.cfg
-	local size = self.markerSize or cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
+	local pictureSize = self.markerSize or cfg.markerSize or mathFloor(cfg.fontSize * 2.6)
+	local shapeSize = mathMax(6, mathFloor(cfg.fontSize * cfg.markerShapeSize))
 	local area = self.area
 	self.placed = {}
 	for mi, m in ipairs(self.markers) do
+		local size = m.shape and shapeSize or pictureSize
 		if isFinite(m.x) then
 			local px = self.sx(m.x)
 			if px >= area.left - size and px <= area.right + size then
@@ -868,12 +927,18 @@ function Graph:placeMarkers()
 					local row = self.markerRow[mi] or 1
 					local lane = mathMax(1, self.markerLaneRows or 1)
 					row = (row - 1) % lane + 1
-					py = area.top + mathFloor(cfg.fontSize * 0.4) + size * 0.5 + (row - 1) * size
+					py = area.top
+						+ (self.spanAbove or 0)
+						+ mathFloor(cfg.fontSize * 0.4)
+						+ size * 0.5
+						+ (row - 1) * size
 				end
 				local half = size * 0.5
 				-- The picture stays inside the plot's width, so one at the first sample does
 				-- not sit on the axis labels; its tick still points at the true x.
 				local cx = mathMin(mathMax(px, area.left + half), area.right - half)
+				-- The point it stands for, before it is moved out of the way.
+				local ty = py
 				-- And out of the way of the ones already placed: a run of milestones close
 				-- together climbs away from the line instead of piling on one spot.
 				if onSeries then
@@ -884,7 +949,8 @@ function Graph:placeMarkers()
 					while tries < 12 do
 						local clash = false
 						for _, other in ipairs(self.placed) do
-							if mathAbs(other.cx - cx) < size and mathAbs(other.py - py) < step * 0.9 then
+							local reach = (size + other.size) * 0.5
+							if mathAbs(other.cx - cx) < reach and mathAbs(other.py - py) < reach * 0.81 then
 								clash = true
 								break
 							end
@@ -906,7 +972,9 @@ function Graph:placeMarkers()
 					y2 = mathFloor(py + half),
 					px = px,
 					py = py,
+					ty = ty,
 					cx = cx,
+					size = size,
 					onSeries = onSeries ~= nil,
 				}
 			end
@@ -926,13 +994,15 @@ function Graph:nearestIndex(x)
 	return best
 end
 
--- The top of a stacked series at sample i: its share and every share under it.
+-- The top of a stacked series at sample i: its share and every share under it, or its
+-- amount and every amount under it.
 function Graph:stackTop(si, i)
+	local amounts = self.cfg.stackShares == false
 	local top = 0
 	for k = 1, si do
 		local p = self.prepared[k]
 		---@cast p -?
-		top = top + (p.shares[i] or 0)
+		top = top + (amounts and mathMax(0, p.ys[i] or 0) or (p.shares[i] or 0))
 	end
 	return top
 end
@@ -979,10 +1049,10 @@ local function drawOrder(self)
 	return order
 end
 
--- The points of a curve: the samples, or the smoothed run through them, each run flat as
--- x1, y1, x2, y2, ... (no table a point). A gap (a sample with no value) ends one run and
--- starts the next.
-function Graph:curveRuns(ys, smooth)
+-- The points of a curve: the samples, the smoothed run through them or steps from one to
+-- the next, each run flat as x1, y1, x2, y2, ... (no table a point). A gap (a sample with no
+-- value) ends one run and starts the next.
+function Graph:curveRuns(ys, smooth, step)
 	local xs = self.xs
 	local cfg = self.cfg
 	local runs = {}
@@ -990,7 +1060,17 @@ function Graph:curveRuns(ys, smooth)
 	local rxs, rys = {}, {}
 	local function flush()
 		if #rxs > 0 then
-			if smooth and #rxs > 2 then
+			if step then
+				-- Held until the next sample, where it moves at once.
+				for i = 1, #rxs do
+					if i > 1 then
+						run[#run + 1] = rxs[i]
+						run[#run + 1] = rys[i - 1]
+					end
+					run[#run + 1] = rxs[i]
+					run[#run + 1] = rys[i]
+				end
+			elseif smooth and #rxs > 2 then
 				local m = monotoneSlopes(rxs, rys)
 				local steps = cfg.smoothSteps
 				if not steps then
@@ -1027,6 +1107,53 @@ function Graph:curveRuns(ys, smooth)
 	end
 	flush()
 	return runs
+end
+
+-- The spans: each a stretch of x in a strip under the plot or over it, its row counted out
+-- from that edge - outside the values, so a line along the edge stays clear of them. Worked
+-- out with the rest of the layout, so the hit test has them before anything is drawn. A
+-- stretch too short to see keeps a sliver.
+function Graph:placeSpans()
+	self.spanRects = {}
+	local area = self.area
+	if not area or #self.spans == 0 then
+		return
+	end
+	local h = self.stripH or mathMax(2, mathFloor(self.cfg.fontSize * 0.3))
+	for _, s in ipairs(self.spans) do
+		if isFinite(s.from) and isFinite(s.to) and s.to >= self.xMin and s.from <= self.xMax then
+			local x1 = self.sx(mathMax(s.from, self.xMin))
+			local x2 = self.sx(mathMin(s.to, self.xMax))
+			if x2 - x1 < 2 then
+				local mid = (x1 + x2) * 0.5
+				x1, x2 = mid - 1, mid + 1
+			end
+			local row = (s.row or 1) - 1
+			local y1, y2
+			if s.edge == "top" then
+				y1 = mathFloor(area.top + 3 + row * (h + 1))
+				y2 = y1 + h
+			else
+				y2 = mathFloor(area.bottom - 3 - row * (h + 1))
+				y1 = y2 - h
+			end
+			self.spanRects[#self.spanRects + 1] =
+				{ span = s, x1 = mathFloor(x1), y1 = y1, x2 = mathFloor(x2 + 0.5), y2 = y2 }
+		end
+	end
+end
+
+function Graph:drawSpans()
+	for _, r in ipairs(self.spanRects) do
+		local c = r.span.color or { 1, 1, 1 }
+		glColor(c[1], c[2], c[3], c[4] or 0.8)
+		glBeginEnd(GL_QUADS, function()
+			glVertex(r.x1, r.y1)
+			glVertex(r.x2, r.y1)
+			glVertex(r.x2, r.y2)
+			glVertex(r.x1, r.y2)
+		end)
+	end
 end
 
 -- Whole seconds, minutes and hours make the ticks of a time axis, at the coarsest step
@@ -1114,7 +1241,13 @@ function Graph:drawGrid()
 	end)
 	local x = x0
 	while x <= self.xMax + xStep * 0.001 do
-		self:text(look.text .. xFormat(x), mathFloor(self.sx(x)), mathFloor(area.bottom - fs * 1.2), "oc", fs)
+		self:text(
+			look.text .. xFormat(x),
+			mathFloor(self.sx(x)),
+			mathFloor(area.bottom - (self.spanBelow or 0) - fs * 1.2),
+			"oc",
+			fs
+		)
 		x = x + xStep
 	end
 
@@ -1141,7 +1274,7 @@ function Graph:drawLines()
 		if smooth == nil then
 			smooth = smoothAll
 		end
-		p.runs = self:curveRuns(p.ys, smooth)
+		p.runs = self:curveRuns(p.ys, smooth, p.step)
 	end
 	-- Fills first, so every line lies on top of every fill.
 	if cfg.fill then
@@ -1262,7 +1395,9 @@ function Graph:drawStacked()
 		return
 	end
 
-	-- Every band's share along the (smoothed) x run.
+	-- Every band's share - or amount - along the (smoothed) x run.
+	local amounts = cfg.stackShares == false
+	local cap = amounts and self.yMax or 100
 	local runs = {}
 	for si, p in ipairs(self.prepared) do
 		local smooth = p.smooth
@@ -1271,7 +1406,7 @@ function Graph:drawStacked()
 		end
 		local filled = {}
 		for i = 1, #xs do
-			filled[i] = p.shares[i] or 0
+			filled[i] = amounts and mathMax(0, p.ys[i] or 0) or (p.shares[i] or 0)
 		end
 		runs[si] = self:curveRuns(filled, smooth)[1] or {}
 	end
@@ -1279,8 +1414,9 @@ function Graph:drawStacked()
 	for si = 2, n do
 		count = mathMin(count, mathFloor(#runs[si] / 2))
 	end
-	-- Where every band ends at every point of the run, as a share of the whole there: the
-	-- bands, the seams and the names all read these, worked out once.
+	-- Where every band ends at every point of the run, as a share of the whole there (or
+	-- the amounts piled up to it): the bands, the seams and the names all read these,
+	-- worked out once.
 	---@type number[]
 	local pxs = {}
 	---@type number[][]
@@ -1298,7 +1434,9 @@ function Graph:drawStacked()
 		---@type number
 		local top = 0
 		for j = 1, n do
-			if total > 0 then
+			if amounts then
+				top = top + mathMax(0, runs[j][2 * k])
+			elseif total > 0 then
 				top = top + mathMax(0, runs[j][2 * k]) / total * 100
 			end
 			local band = tops[j]
@@ -1320,7 +1458,7 @@ function Graph:drawStacked()
 				local px = pxs[k]
 				---@cast px -?
 				glVertex(px, sy(under and under[k] or 0))
-				glVertex(px, sy(mathMin(100, own[k] or 0)))
+				glVertex(px, sy(mathMin(cap, own[k] or 0)))
 			end
 		end)
 	end
@@ -1361,7 +1499,7 @@ function Graph:drawStacked()
 			local band = tops[si]
 			---@cast band -?
 			local share = (band[k] or 0) - under
-			local y0, y1 = sy(under), sy(mathMin(100, under + share))
+			local y0, y1 = sy(under), sy(mathMin(cap, under + share))
 			if mathAbs(y1 - y0) >= fs * 1.3 then
 				local p = self.prepared[si]
 				---@cast p -?
@@ -1422,6 +1560,56 @@ function Graph:markerCut(width)
 	return mathMin(cut, mathFloor(width * 0.5))
 end
 
+-- The outline of a shape marker in a rect, as x, y pairs round it: a triangle pointing up
+-- or down, a diamond, or a round dot.
+local function shapeCorners(shape, x1, y1, x2, y2)
+	local cx, cy = (x1 + x2) * 0.5, (y1 + y2) * 0.5
+	if shape == "up" then
+		return { cx, y2, x1, y1, x2, y1 }
+	elseif shape == "down" then
+		return { cx, y1, x2, y2, x1, y2 }
+	elseif shape == "diamond" then
+		return { cx, y2, x1, cy, cx, y1, x2, cy }
+	end
+	local corners = {}
+	local rx, ry = (x2 - x1) * 0.5, (y2 - y1) * 0.5
+	for k = 0, 15 do
+		local ang = k / 16 * 2 * mathPi
+		corners[#corners + 1] = cx + mathCos(ang) * rx
+		corners[#corners + 1] = cy + mathSin(ang) * ry
+	end
+	return corners
+end
+
+local function fillCorners(corners)
+	glBeginEnd(GL_TRIANGLE_FAN, function()
+		for k = 1, #corners - 1, 2 do
+			glVertex(corners[k], corners[k + 1])
+		end
+	end)
+end
+
+-- A marker drawn as a shape in its colour, over a dark one a little larger, so it reads on
+-- any line; a thin line down to the point it stands for when it had to move off it.
+function Graph:drawShape(m, x1, y1, x2, y2)
+	local marker = m.marker
+	local look = self.cfg.look
+	if m.ty and mathAbs(m.ty - m.py) > 1 then
+		glColor(look.markerTick)
+		glBeginEnd(GL_LINES, function()
+			glVertex(m.px + 0.5, m.py)
+			glVertex(m.px + 0.5, m.ty)
+		end)
+	end
+	local rim = mathMax(1, mathFloor((x2 - x1) * 0.14))
+	glColor(0, 0, 0, 0.75)
+	fillCorners(shapeCorners(marker.shape, x1 - rim, y1 - rim, x2 + rim, y2 + rim))
+	local c = marker.color or { 1, 1, 1 }
+	glColor(c[1], c[2], c[3], 1)
+	fillCorners(shapeCorners(marker.shape, x1, y1, x2, y2))
+	return x1, y1, x2, y2
+end
+
 -- One marker: its tick, its picture with the corners cut, and its frame. `scale` grows
 -- the picture about its middle, for the one under the cursor.
 function Graph:drawMarker(m, scale)
@@ -1432,6 +1620,9 @@ function Graph:drawMarker(m, scale)
 		local gx = mathFloor((x2 - x1) * (scale - 1) * 0.5)
 		local gy = mathFloor((y2 - y1) * (scale - 1) * 0.5)
 		x1, y1, x2, y2 = x1 - gx, y1 - gy, x2 + gx, y2 + gy
+	end
+	if marker.shape then
+		return self:drawShape(m, x1, y1, x2, y2)
 	end
 	local cut = self:markerCut(x2 - x1)
 	-- A tick from the picture down to the plot, or to the point it sits on.
@@ -1716,10 +1907,12 @@ function Graph:measure()
 	self:layout()
 	if cfg.kind == "radar" then
 		self.placed = {}
+		self.spanRects = {}
 		self:prepareRadar()
 	else
 		self:prepareLine()
 		self:placeMarkers()
+		self:placeSpans()
 	end
 	-- What a hit remembered is only good for the layout it was found in.
 	self.measures = (self.measures or 0) + 1
@@ -1760,6 +1953,8 @@ function Graph:build()
 			self:drawLines()
 			self:drawEndLabels()
 		end
+		-- Over the curves: a stretch along the bottom is often where a line lies, at nothing.
+		self:drawSpans()
 		self:drawMarkers()
 		self:drawLegend()
 	end
@@ -1799,6 +1994,26 @@ function Graph:drawOverlay()
 			scale = mathMax(scale, self.markerFullSize / width)
 		end
 		self:drawMarker(m, scale)
+		glColor(1, 1, 1, 1)
+		return
+	end
+	if hit.kind == "span" then
+		local r = hit.rect
+		local c = r.span.color or { 1, 1, 1 }
+		glColor(c[1], c[2], c[3], 1)
+		glBeginEnd(GL_QUADS, function()
+			glVertex(r.x1, r.y1 - 1)
+			glVertex(r.x2, r.y1 - 1)
+			glVertex(r.x2, r.y2 + 1)
+			glVertex(r.x1, r.y2 + 1)
+		end)
+		glColor(look.crosshair)
+		glBeginEnd(GL_LINES, function()
+			glVertex(r.x1 + 0.5, self.area.bottom)
+			glVertex(r.x1 + 0.5, self.area.top)
+			glVertex(r.x2 - 0.5, self.area.bottom)
+			glVertex(r.x2 - 0.5, self.area.top)
+		end)
 		glColor(1, 1, 1, 1)
 		return
 	end
@@ -1884,6 +2099,17 @@ function Graph:hitTest(mx, my)
 			)
 		end
 	end
+	for i = #self.spanRects, 1, -1 do
+		local r = self.spanRects[i]
+		---@cast r -?
+		if mx >= r.x1 - 1 and mx <= r.x2 + 1 and my >= r.y1 - 1 and my <= r.y2 + 1 then
+			local last = lastHit(self)
+			if last and last.rect == r then
+				return last
+			end
+			return remember(self, { kind = "span", rect = r, text = r.span.text })
+		end
+	end
 	if cfg.kind == "radar" then
 		local r = self.radar
 		if not r or r.n < 3 then
@@ -1944,13 +2170,14 @@ function Graph:hitTest(mx, my)
 		local v = p.ys[i]
 		if cfg.kind == "stacked" then
 			local share = p.shares and p.shares[i] or 0
+			local part = cfg.stackShares == false and mathMax(0, v or 0) or share
 			entries[#entries + 1] = {
 				series = si,
 				name = p.name,
 				color = p.color,
 				value = v or 0,
 				share = share,
-				py = self.sy(self:stackTop(si, i) - share * 0.5),
+				py = self.sy(self:stackTop(si, i) - part * 0.5),
 			}
 		elseif v then
 			entries[#entries + 1] = {
@@ -1963,7 +2190,15 @@ function Graph:hitTest(mx, my)
 			}
 		end
 	end
-	return remember(self, { kind = "point", index = i, x = self.xs[i], px = px, entries = entries, nearest = nearest })
+	return remember(self, {
+		kind = "point",
+		index = i,
+		x = self.xs[i],
+		px = px,
+		entries = entries,
+		nearest = nearest,
+		total = cfg.kind == "stacked" and cfg.stackShares == false and self.totals[i] or nil,
+	})
 end
 
 -- A tooltip for a hit: the x, then every series' value in its colour, largest first.
@@ -1971,7 +2206,7 @@ function Graph:describe(hit)
 	if not hit then
 		return nil
 	end
-	if hit.kind == "marker" then
+	if hit.kind == "marker" or hit.kind == "span" then
 		return hit.text
 	end
 	-- Worked out once for a hit, which is handed back while the cursor stays on it.
@@ -1990,6 +2225,9 @@ function Graph:describe(hit)
 	if hit.kind == "point" then
 		lines[1] = cfg.look.title .. (self.xFormatter or defaultFormat)(hit.x)
 		local yFormat = cfg.kind == "stacked" and (cfg.yFormat or defaultFormat) or self.yFormatter
+		if hit.total and cfg.totalLabel then
+			lines[2] = cfg.look.text .. cfg.totalLabel .. "  " .. cfg.look.title .. yFormat(hit.total)
+		end
 		for _, e in ipairs(entries) do
 			local value = yFormat(e.raw or e.value)
 			if e.share then

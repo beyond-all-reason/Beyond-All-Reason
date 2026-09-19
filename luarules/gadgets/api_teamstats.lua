@@ -128,9 +128,27 @@ local ENERGY_PER_METAL = 60
 -- floating nuke silo is strategic, not sea.
 local BUCKETS = { "army", "air", "sea", "defense", "strategic", "factories", "builders", "economy", "utility" }
 
+-- A unit's tech level, 1 when it names none.
+local function techOf(ud)
+	return tonumber(ud.customParams.techlevel) or 1
+end
+
+-- What a power plant of the second tech level or above makes: the fusion reactors, not the
+-- geothermal plants (which have milestones of their own) or anything that moves.
+local function plantMakes(ud)
+	local cp = ud.customParams
+	if ud.speed ~= 0 or cp.geothermal or cp.iscommander or techOf(ud) < 2 then
+		return 0
+	end
+	return ud.energyMake or 0
+end
+-- What a fusion reactor makes at the least, and an advanced one.
+local FUSION_ENERGY = 500
+local ADVANCED_FUSION_ENERGY = 2500
+
 -- The moments worth remembering, and what marks them. `built` is tested on every unit
--- a team finishes and `lost` on every unit it loses, and the ones with neither are marked
--- where they happen; a milestone is kept once per team,
+-- a team finishes (with the bucket it counts in) and `lost` on every unit it loses, and
+-- the ones with neither are marked where they happen; a milestone is kept once per team,
 -- or every time when `every` is set. The unit that reached it is stored with it.
 local MILESTONES = {
 	{
@@ -172,6 +190,74 @@ local MILESTONES = {
 	},
 	{ key = "firstKill" },
 	{ key = "firstLoss" },
+	-- The economy's steps: the first extractor of the second tech level, converter,
+	-- advanced converter, fusion reactor, advanced one and geothermal plant.
+	{
+		key = "moho",
+		built = function(ud)
+			return (ud.extractsMetal or 0) > 0 and techOf(ud) >= 2
+		end,
+	},
+	{
+		key = "converter",
+		built = function(ud)
+			return ud.customParams.energyconv_capacity ~= nil
+		end,
+	},
+	{
+		key = "advConverter",
+		built = function(ud)
+			return ud.customParams.energyconv_capacity ~= nil and techOf(ud) >= 2
+		end,
+	},
+	{
+		key = "fusion",
+		built = function(ud)
+			return plantMakes(ud) >= FUSION_ENERGY
+		end,
+	},
+	{
+		key = "afus",
+		built = function(ud)
+			return plantMakes(ud) >= ADVANCED_FUSION_ENERGY
+		end,
+	},
+	{
+		key = "geo",
+		built = function(ud)
+			return ud.customParams.geothermal ~= nil
+		end,
+	},
+	-- What the team grows into: the first radar tower, construction turret, aircraft and
+	-- ship.
+	{
+		key = "radar",
+		built = function(ud)
+			return (ud.radarDistance or 0) > 0 and ud.speed == 0 and ud.customParams.unitgroup == "util"
+		end,
+	},
+	{
+		key = "nano",
+		built = function(ud)
+			return ud.isBuilder and not ud.isFactory and ud.speed == 0
+		end,
+	},
+	{
+		key = "air",
+		built = function(_, bucket)
+			return bucket == "air"
+		end,
+	},
+	{
+		key = "naval",
+		built = function(_, bucket)
+			return bucket == "sea"
+		end,
+	},
+	-- Every time: an enemy commander killed, a nuke launched, a nuke come down on the team.
+	{ key = "commanderKill", every = true },
+	{ key = "nukeLaunched", every = true },
+	{ key = "nuked", every = true },
 	{ key = "teamDied" },
 }
 
@@ -234,8 +320,12 @@ local INCOME_METAL = { "incomeMex", "incomeConverters", "incomeReclaim", "income
 local INCOME_ENERGY = { "incomeWind", "incomeSolar", "incomeTidal", "incomeGeo", "incomeFusion", "incomeEnergyOther" }
 -- The value on the field by tech level, the third holding everything above it too.
 local TECH_KEYS = { "valueT1", "valueT2", "valueT3" }
-local INCOME_KEYS = { INCOME_METAL, INCOME_ENERGY }
-for _, list in ipairs({ MAP_KEYS, INCOME_METAL, INCOME_ENERGY, TECH_KEYS }) do
+-- How much of the time the team had no energy left, and its metal and energy storage full
+-- (per cent), as often as the income is read.
+local STORAGE_KEYS = { "energyDry", "metalFull", "energyFull" }
+-- What a pass of the scan finds for each team.
+local PASS_KEYS = { INCOME_METAL, INCOME_ENERGY, STORAGE_KEYS }
+for _, list in ipairs({ MAP_KEYS, INCOME_METAL, INCOME_ENERGY, TECH_KEYS, STORAGE_KEYS }) do
 	for i = 1, #list do
 		SAMPLED[#SAMPLED + 1] = list[i]
 	end
@@ -273,6 +363,9 @@ for i = 1, #LOSS_CAUSES do
 end
 TALLIED[#TALLIED + 1] = "metalSpots"
 TALLIED[#TALLIED + 1] = "geoSpots"
+-- The metal spots held by an extractor that draws more than the least one does: an upgrade.
+-- Live only, for what the count is made of.
+TALLIED[#TALLIED + 1] = "metalSpotsUpgraded"
 for i = 1, #TECH_KEYS do
 	TALLIED[#TALLIED + 1] = TECH_KEYS[i]
 end
@@ -359,6 +452,14 @@ local defIncomeMetal = {}
 -- The units whose place makes the front line: the army on land and at sea.
 ---@type table<integer, boolean>
 local defArmy = {}
+-- Extractors that draw more from their spot than the least one does.
+---@type table<integer, boolean>
+local defUpgraded = {}
+-- Nuke silos, and their missiles' weapons with the silo that fires them.
+---@type table<integer, boolean>
+local defNuke = {}
+---@type table<integer, integer>
+local nukeWeapon = {}
 ---@type table<string, string?>
 local killedAs = {
 	army = "killedArmyValue",
@@ -406,6 +507,15 @@ local function bucketOf(ud)
 	return armed and "army" or "utility"
 end
 
+-- The least any extractor draws.
+local baseExtraction = math.huge
+for _, ud in pairs(UnitDefs) do
+	local draws = ud.extractsMetal or 0
+	if draws > 0 and draws < baseExtraction then
+		baseExtraction = draws
+	end
+end
+
 for unitDefID, ud in pairs(UnitDefs) do
 	defCost[unitDefID] = ud.metalCost + ud.energyCost / ENERGY_PER_METAL
 	local bucket = bucketOf(ud)
@@ -436,14 +546,24 @@ for unitDefID, ud in pairs(UnitDefs) do
 		defIncome[unitDefID] = "incomeTidal"
 	elseif cp.geothermal then
 		defIncome[unitDefID] = "incomeGeo"
-	elseif ((ud.energyMake or 0) > 0 or (ud.energyUpkeep or 0) < 0) and not cp.iscommander then
-		-- Made outright, or as a negative upkeep, the way the solar collectors do it.
+	elseif ((ud.energyMake or 0) > 0 or (ud.energyUpkeep or 0) < 0) and not cp.iscommander and ud.speed == 0 then
+		-- Made outright, or as a negative upkeep, the way the solar collectors do it. What a
+		-- ship or a commander makes is the rest's.
 		defIncome[unitDefID] = tech >= 2 and "incomeFusion" or "incomeSolar"
 	end
 	defArmy[unitDefID] = bucket == "army" or bucket == "sea"
+	defUpgraded[unitDefID] = (ud.extractsMetal or 0) > baseExtraction * 1.5
+	if cp.unitgroup == "nuke" then
+		defNuke[unitDefID] = true
+		for _, weapon in ipairs(ud.weapons) do
+			if type(weapon) == "table" and weapon.weaponDef then
+				nukeWeapon[weapon.weaponDef] = unitDefID
+			end
+		end
+	end
 	for i = 1, #MILESTONES do
 		local m = MILESTONES[i]
-		if m.built and m.built(ud) then
+		if m.built and m.built(ud, bucket) then
 			local list = defBuiltMilestones[unitDefID] or {}
 			list[#list + 1] = m
 			defBuiltMilestones[unitDefID] = list
@@ -485,6 +605,11 @@ local gameOver = false
 -- and is then destroyed, by the ground or by the game, with no attacker named.
 ---@type table<integer, integer?>
 local lastHitBy = {}
+-- [teamID] = the frame a nuke last came down on the team: one explosion hurts many units,
+-- over more than one frame, so hits this close together are the same one.
+---@type table<integer, integer?>
+local nukedAt = {}
+local NUKE_FRAMES = 90
 
 -- The metal and geothermal spots: the metal ones as the resource spot finder left them in
 -- the game rules (none on a metal map), the geothermal ones off the map's vents. Read the
@@ -592,7 +717,7 @@ end
 
 -- A finished extractor or plant takes the spot under it, from the one it was built over
 -- too: an upgrade's spot is the upgrade's.
-local function claimSpot(unitID, kind, teamID)
+local function claimSpot(unitID, kind, teamID, unitDefID)
 	local x, _, z = spGetUnitPosition(unitID)
 	if not x then
 		return
@@ -621,14 +746,21 @@ local function claimSpot(unitID, kind, teamID)
 		local held = finished[before] and teams[finished[before]]
 		if held then
 			held[key] = held[key] - 1
+			if best.upgraded then
+				held.metalSpotsUpgraded = held.metalSpotsUpgraded - 1
+			end
 		end
 		spotOf[before] = nil
 	end
 	best.holder = unitID
+	best.upgraded = defUpgraded[unitDefID] or nil
 	spotOf[unitID] = best
 	local t = teams[teamID]
 	---@cast t -?
 	t[key] = t[key] + 1
+	if best.upgraded then
+		t.metalSpotsUpgraded = t.metalSpotsUpgraded + 1
+	end
 end
 
 local function releaseSpot(unitID, kind, teamID)
@@ -643,6 +775,10 @@ local function releaseSpot(unitID, kind, teamID)
 		---@cast t -?
 		local key = SPOT_KEY[kind]
 		t[key] = t[key] - 1
+		if spot.upgraded then
+			t.metalSpotsUpgraded = t.metalSpotsUpgraded - 1
+		end
+		spot.upgraded = nil
 	end
 end
 
@@ -666,7 +802,7 @@ local function addUnit(unitID, unitDefID, teamID)
 	t[tk] = t[tk] + cost
 	local site = defSite[unitDefID]
 	if site then
-		claimSpot(unitID, site, teamID)
+		claimSpot(unitID, site, teamID, unitDefID)
 	end
 	if defIsCommander[unitDefID] and not commanderAt[teamID] then
 		local x, _, z = spGetUnitPosition(unitID)
@@ -745,8 +881,13 @@ end
 local PASS_FRAMES = SAMPLE_PERIOD - 30
 -- The grid's points a side.
 local GRID = 40
--- The teams' income is read this often over a pass, for what the rest made.
+-- The teams' income is read this often over a pass, for what the rest made, and whether
+-- their storage is empty or full.
 local INCOME_EVERY = 15
+-- Energy at or below this share of the storage is none left; metal or energy at or above
+-- this one fills it.
+local DRY_SHARE = 0.01
+local FULL_SHARE = 0.99
 
 ---@type integer[]
 local allyList = {}
@@ -776,7 +917,7 @@ local scan = {
 	reach = {},
 	---@type table<integer, table<string, number>>
 	made = {},
-	---@type table<integer, { metal: number, energy: number, n: integer }>
+	---@type table<integer, { metal: number, energy: number, n: integer, dry: integer, metalFull: integer, energyFull: integer }>
 	income = {},
 	---@type table<integer, number>
 	reclaimedAt = {},
@@ -882,6 +1023,10 @@ local function finishPass()
 			energy = energy + v
 		end
 		src.incomeEnergyOther = math.max(0, energyIncome - energy)
+		local reads = income and income.n or 0
+		src.energyDry = reads > 0 and income.dry / reads * 100 or 0
+		src.metalFull = reads > 0 and income.metalFull / reads * 100 or 0
+		src.energyFull = reads > 0 and income.energyFull / reads * 100 or 0
 		scan.sources[teamID] = src
 	end
 	scan.seen, scan.radar, scan.weight, scan.reach, scan.made, scan.income = {}, {}, {}, {}, {}, {}
@@ -972,14 +1117,24 @@ local function scanStep(frame)
 		for teamID in pairs(teams) do
 			local income = scan.income[teamID]
 			if not income then
-				income = { metal = 0, energy = 0, n = 0 }
+				income = { metal = 0, energy = 0, n = 0, dry = 0, metalFull = 0, energyFull = 0 }
 				scan.income[teamID] = income
 			end
-			local _, _, _, metal = spGetTeamResources(teamID, "metal")
-			local _, _, _, energy = spGetTeamResources(teamID, "energy")
+			local metalHas, metalMax, _, metal = spGetTeamResources(teamID, "metal")
+			local energyHas, energyMax, _, energy = spGetTeamResources(teamID, "energy")
 			income.metal = income.metal + (metal or 0)
 			income.energy = income.energy + (energy or 0)
 			income.n = income.n + 1
+			if energyHas and energyMax and energyMax > 0 then
+				if energyHas <= energyMax * DRY_SHARE then
+					income.dry = income.dry + 1
+				elseif energyHas >= energyMax * FULL_SHARE then
+					income.energyFull = income.energyFull + 1
+				end
+			end
+			if metalHas and metalMax and metalMax > 0 and metalHas >= metalMax * FULL_SHARE then
+				income.metalFull = income.metalFull + 1
+			end
 		end
 	end
 end
@@ -1017,7 +1172,7 @@ local function readLive(teamID, out)
 	out.radarCoverage = scan.radarCover[ally] or 0
 	out.frontLine = scan.front[ally] or 0
 	local src = scan.sources[teamID]
-	for _, list in ipairs(INCOME_KEYS) do
+	for _, list in ipairs(PASS_KEYS) do
 		for i = 1, #list do
 			local key = list[i]
 			out[key] = src and src[key] or 0
@@ -1111,7 +1266,8 @@ local function replacedInPlace(unitID, unitDefID)
 	return false
 end
 
--- Aircraft only: whose fire brought one down, for when it hits the ground.
+-- Whose fire brought an aircraft down, for when it hits the ground; and a nuke come down
+-- on a team, once for all it hurt of the team.
 function gadget:UnitDamaged(
 	unitID,
 	unitDefID,
@@ -1126,6 +1282,23 @@ function gadget:UnitDamaged(
 )
 	if defCanFly[unitDefID] and attackerTeam and damage > 0 and not paralyzer then
 		lastHitBy[unitID] = attackerTeam
+	end
+	local silo = nukeWeapon[weaponDefID]
+	if silo and teams[unitTeam] then
+		local frame = spGetGameFrame()
+		local last = nukedAt[unitTeam]
+		if not last or frame - last > NUKE_FRAMES then
+			markMilestone(unitTeam, MILESTONE_BY_KEY.nuked, attackerDefID or silo, attackerID)
+		end
+		nukedAt[unitTeam] = frame
+	end
+end
+
+-- A silo's stockpile going down is a missile on its way.
+---@diagnostic disable-next-line: undefined-field
+function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	if defNuke[unitDefID] and newCount < oldCount and teams[unitTeam] then
+		markMilestone(unitTeam, MILESTONE_BY_KEY.nukeLaunched, unitDefID, unitID)
 	end
 end
 
@@ -1199,6 +1372,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 	if defIsCommander[unitDefID] then
 		killer.comKills = killer.comKills + 1
+		markMilestone(attackerTeam, MILESTONE_BY_KEY.commanderKill, unitDefID, unitID)
 	end
 end
 

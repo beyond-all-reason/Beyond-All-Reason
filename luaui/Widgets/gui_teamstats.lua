@@ -311,11 +311,13 @@ local COLUMNS = {
 		clamp = { 0, 1000 },
 	},
 	teamKillValue = { group = "traded", stat = "teamKillValue", short = "shortTeamKill", fmt = "si", rate = true },
-	comKills = { group = "commanders", stat = "comKills", short = "unitsKilled", fmt = "si", rate = true },
+	-- `step`: a count, charted as steps from one sample to the next rather than a slope.
+	comKills = { group = "commanders", stat = "comKills", short = "unitsKilled", fmt = "si", rate = true, step = true },
 	-- The map as each side holds it: the spots under its extractors and geothermal plants
-	-- (none on a map without them, and then the columns are left out), how much of the map
-	-- it sees and has on radar, and how far toward the enemy its army stands. The last three
-	-- are the ally team's own, alike for each of its teams (`ally`): a band shows them once.
+	-- (none on a map without them, and then the columns are left out; `held` counts them),
+	-- what its extractors draw from theirs, how much of the map it sees and has on radar, and
+	-- how far toward the enemy its army stands. The last three are the ally team's own,
+	-- alike for each of its teams (`ally`): a band shows them once.
 	metalSpots = {
 		group = "map",
 		stat = "metalSpots",
@@ -323,8 +325,29 @@ local COLUMNS = {
 		fmt = "si",
 		gadget = true,
 		spots = "metal",
+		held = true,
+		step = true,
 	},
-	geoSpots = { group = "map", stat = "geoSpots", short = "shortGeoSpots", fmt = "si", gadget = true, spots = "geo" },
+	-- What the spots held are worth: more on a rich spot, four times as much under an
+	-- extractor of the second tech level.
+	incomeMex = {
+		group = "map",
+		stat = "incomeMex",
+		short = "shortIncomeMex",
+		fmt = "si",
+		gadget = true,
+		spots = "metal",
+	},
+	geoSpots = {
+		group = "map",
+		stat = "geoSpots",
+		short = "shortGeoSpots",
+		fmt = "si",
+		gadget = true,
+		spots = "geo",
+		held = true,
+		step = true,
+	},
 	visionCoverage = {
 		group = "map",
 		stat = "visionCoverage",
@@ -349,7 +372,7 @@ local COLUMNS = {
 		gadget = true,
 		ally = true,
 	},
-	comLost = { group = "commanders", stat = "comLost", short = "unitsDied", fmt = "si", rate = true },
+	comLost = { group = "commanders", stat = "comLost", short = "unitsDied", fmt = "si", rate = true, step = true },
 }
 for key, column in pairs(COLUMNS) do
 	column.key = key
@@ -469,6 +492,7 @@ local GROUPS = {
 		key = "map",
 		columns = {
 			"metalSpots",
+			"incomeMex",
 			"geoSpots",
 			"visionCoverage",
 			"radarCoverage",
@@ -525,9 +549,11 @@ local SUMMED = {
 	"energyStorage",
 	"convCapacity",
 	"convUse",
-	-- A side's spots are its teams' together.
+	-- A side's spots are its teams' together, and what its extractors draw.
 	"metalSpots",
+	"metalSpotsUpgraded",
 	"geoSpots",
+	"incomeMex",
 	"buildPower",
 	"buildPowerActive",
 	"unitCount",
@@ -1115,10 +1141,17 @@ local function cellDetail(column, stats)
 		if known(a) and known(b) then
 			return BAR.I18N("ui.teamStats.ofTotal", { value = formatWhole(a), total = formatWhole(b) })
 		end
-	elseif column.spots then
-		-- Held out of how many the map has.
+	elseif column.held then
+		-- Held out of how many the map has, and how many of the metal ones under an upgrade.
 		local n, total = stats[column.key], handover.spotCount(column.spots)
 		if known(n) and total > 0 then
+			local upgraded = column.spots == "metal" and stats.metalSpotsUpgraded
+			if known(upgraded) and upgraded > 0 then
+				return BAR.I18N(
+					"ui.teamStats.ofTotalUpgraded",
+					{ value = formatWhole(n), total = formatWhole(total), upgraded = formatWhole(upgraded) }
+				)
+			end
 			return BAR.I18N("ui.teamStats.ofTotal", { value = formatWhole(n), total = formatWhole(total) })
 		end
 	end
@@ -1965,7 +1998,12 @@ local function setLayout()
 				cy - mathFloor(togH * 0.5) + togH,
 			}
 			-- Nothing to say: the switch stays where it is and greys out.
-			sw.disabled = (sw.key == "milestones" and graphs and (not graphs.overTime() or graphs.milestonesOwn()))
+			sw.disabled = (
+				sw.key == "milestones"
+				and graphs
+				and (not graphs.overTime() or graphs.milestonesOwn() or not graphs.marksApply())
+			)
+				or (sw.key == "milestoneKinds" and graphs and not graphs.kindsApply())
 				or (sw.key == "vsMe" and not canCompare)
 				or (sw.key == "shareOfTotal" and onGraphs and not graphs.shareApplies())
 				or (sw.perGraph and customCharts)
@@ -2758,20 +2796,36 @@ local function nameCard(team)
 	end
 
 	-- The milestones, when the gadget has any: the game time, what it was and the unit
-	-- that made it so, a few to a line.
+	-- that made it so, a few to a line. The ones that tell the game's story - the economy's
+	-- smaller steps are left to their charts - and one that came again (a commander lost, a
+	-- nuke) at its first time, with how often.
 	local marks = team.milestones
 	if marks and #marks > 0 then
-		local parts = {}
+		local shown, times = {}, {}
 		for i = 1, #marks do
 			local m = marks[i]
-			local label = L.milestone[m.key] or m.key
+			if L.milestone[m.key] then
+				if times[m.key] then
+					times[m.key] = times[m.key] + 1
+				else
+					times[m.key] = 1
+					shown[#shown + 1] = m
+				end
+			end
+		end
+		local parts = {}
+		for i, m in ipairs(shown) do
+			local label = L.milestone[m.key]
 			local ud = m.unitDefID and UnitDefs[m.unitDefID] or nil
 			---@cast ud table?
 			if ud then
 				label = label .. " (" .. (ud.translatedHumanName or ud.name) .. ")"
 			end
+			if times[m.key] > 1 then
+				label = label .. colorDim .. " \195\151" .. times[m.key]
+			end
 			parts[#parts + 1] = colorDim .. gameTime(m.frame) .. " " .. colorTitle .. label
-			if #parts == 3 or i == #marks then
+			if #parts == 3 or i == #shown then
 				local caption = i <= 3 and (colorHeader .. L.milestones .. ": ") or "      "
 				lines[#lines + 1] = caption .. table.concat(parts, colorDim .. "  \194\183  ")
 				parts = {}
@@ -2845,11 +2899,28 @@ local function loadLabels()
 	L.notYet = BAR.I18N("ui.teamStats.notYet")
 	L.foldHint = BAR.I18N("ui.teamStats.foldHint")
 	L.memberOne = BAR.I18N("ui.teamStats.memberOne")
-	-- The milestone kinds the gadget records.
+	-- The milestone kinds a player's card lists: the ones that tell the game's story.
 	L.milestones = BAR.I18N("ui.teamStats.milestones")
 	L.milestone = {}
-	L.milestoneOrder =
-		{ "tech2", "tech3", "nuke", "antinuke", "lrpc", "firstKill", "firstLoss", "commanderLost", "teamDied" }
+	L.milestoneOrder = {
+		"tech2",
+		"tech3",
+		"moho",
+		"fusion",
+		"afus",
+		"air",
+		"naval",
+		"nuke",
+		"antinuke",
+		"lrpc",
+		"firstKill",
+		"firstLoss",
+		"commanderKill",
+		"commanderLost",
+		"nukeLaunched",
+		"nuked",
+		"teamDied",
+	}
 	for _, key in ipairs(L.milestoneOrder) do
 		L.milestone[key] = BAR.I18N("ui.teamStats.milestone." .. key)
 	end
