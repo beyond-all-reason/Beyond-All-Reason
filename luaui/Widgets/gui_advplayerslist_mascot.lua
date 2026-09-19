@@ -42,6 +42,7 @@ OPTIONS.defaults = { -- merged into every mascot by loadOption(); per-mascot ove
 	soundInterval = 20, -- seconds between ambient sound playbacks
 	emoteInterval = 15, -- seconds between automatic random-emote triggers
 	emoteDuration = 2.5, -- seconds each triggered emote is displayed
+	noBob = false,
 }
 
 -- Base name (no extension) of the xmas overlay. Defined once so the exclusion set
@@ -62,6 +63,7 @@ local SPECIAL_FILE_BASES = {
 local MASCOT_OVERRIDES = {
 	-- Teifion's MrBeans wanted a smaller draw size and a nudged head under the old setup.
 	mrbeans = { imageSize = 50, yOffset = -58 / 4, head_xOffset = -0.01, head_yOffset = 0.13 },
+	gizzard = { imageSize = 175, yOffset = -58 / 4, head_xOffset = -0.05, head_yOffset = -0.28, noBob = true },
 }
 
 -- Named emotes recognised by filename suffix.
@@ -672,8 +674,13 @@ function widget:DrawScreen()
 	glTranslate(xPos, yPos, 0)
 	glCallList(drawlist[1]) -- body (may be a GL no-op when body = false)
 	glPushMatrix()
-	glTranslate(0, bob, 0)
-	glRotate(rot, 0, 0, 1)
+
+	local opt = OPTIONS[currentOption]
+	if not (opt and opt.noBob) then
+		glTranslate(0, bob, 0)
+		glRotate(rot, 0, 0, 1)
+	end
+
 	local dl = drawlist[activeDrawSlot]
 	if dl then
 		glCallList(dl)
