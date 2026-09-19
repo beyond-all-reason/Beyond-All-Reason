@@ -250,8 +250,45 @@ local COLUMNS = {
 		gadget = true,
 		low = true,
 	},
+	-- The constructors with no orders and the factories with nothing queued, as the gadget's
+	-- scan last found them, out of how many the team has (`of`): commanders and nano turrets
+	-- are no constructors here.
+	idleCons = {
+		group = "idle",
+		stat = "idleCons",
+		short = "shortIdleCons",
+		fmt = "si",
+		gadget = true,
+		low = true,
+		of = { "idleCons", "cons" },
+		step = true,
+	},
+	idleLabs = {
+		group = "idle",
+		stat = "idleLabs",
+		short = "shortIdleLabs",
+		fmt = "si",
+		gadget = true,
+		low = true,
+		of = { "idleLabs", "labs" },
+		step = true,
+	},
 	-- The total sits with the unit counts, so a view showing it alone captions it "Units".
 	unitValue = { group = "units", stat = "unitValue", short = "shortValue", fmt = "si", count = "unitCount" },
+	-- In a ranked game, what the ranking orders the ally teams by - their units' worth, the
+	-- ones under construction as far as they are built, and what is in their storage - the
+	-- ally team's own (`ally`); shown once more than one ally team's may be seen (`ranked`):
+	-- to a spectator, and to everyone after the game. Beside the units' value, under its
+	-- caption: a caption of its own over one narrow column would not fit.
+	allyScore = {
+		group = "units",
+		stat = "allyScore",
+		short = "shortAllyScore",
+		fmt = "si",
+		gadget = true,
+		ally = true,
+		ranked = true,
+	},
 	valueArmy = { group = "value", stat = "valueArmy", short = "shortArmy", fmt = "si", count = "countArmy" },
 	-- How much of what a team has on the field is fighting rather than building it.
 	armyShare = { group = "value", stat = "armyShare", short = "shortArmyShare", fmt = "percent" },
@@ -360,6 +397,15 @@ local COLUMNS = {
 		group = "map",
 		stat = "radarCoverage",
 		short = "shortRadar",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	-- The share of the map the side's radar jammers hide its units in.
+	jammerCoverage = {
+		group = "map",
+		stat = "jammerCoverage",
+		short = "shortJammer",
 		fmt = "percent",
 		gadget = true,
 		ally = true,
@@ -476,6 +522,7 @@ local GROUPS = {
 		key = "composition",
 		columns = {
 			"unitValue",
+			"allyScore",
 			"valueArmy",
 			"armyShare",
 			"valueAir",
@@ -496,6 +543,7 @@ local GROUPS = {
 			"geoSpots",
 			"visionCoverage",
 			"radarCoverage",
+			"jammerCoverage",
 			"frontLine",
 		},
 	},
@@ -505,6 +553,8 @@ local GROUPS = {
 			"actionsPerMinute",
 			"aggressionLevel",
 			"buildPowerIdle",
+			"idleCons",
+			"idleLabs",
 		},
 	},
 }
@@ -556,6 +606,10 @@ local SUMMED = {
 	"incomeMex",
 	"buildPower",
 	"buildPowerActive",
+	"cons",
+	"idleCons",
+	"labs",
+	"idleLabs",
 	"unitCount",
 	"unitValue",
 	"killedValue",
@@ -636,6 +690,7 @@ local CARD_LINES = {
 	{ "value", { "valueArmy", "valueAir", "valueSea", "valueDefense", "valueStrategic" } },
 	{ "", { "valueFactories", "valueBuilders", "valueEconomy", "valueUtility" } },
 	{ "activity", { "aggressionLevel", "actionsPerMinute" } },
+	{ "idle", { "idleCons", "idleLabs" } },
 }
 
 ----------------------------------------------------------------
@@ -887,10 +942,26 @@ handover.spotCount = function(kind)
 	local info = WG.teamStats and WG.teamStats.getInfo()
 	return info and info[kind .. "Spots"] or 0
 end
+-- Whether the ally teams are ranked as far as the viewer may see: more than one ally team's
+-- place known - a spectator's view, or anyone's once the game is over; never a player's own
+-- side alone.
+handover.rankedIn = function(all)
+	local seen, count = {}, 0
+	for _, live in pairs(all or {}) do
+		local place = live.allyRank
+		if place and place > 0 and not seen[place] then
+			seen[place] = true
+			count = count + 1
+		end
+	end
+	return count > 1
+end
 -- Whether a column can be shown: the gadget's while it is there, a count of the map's spots
--- on a map that has some.
+-- on a map that has some, the ranking's in a ranked game.
 handover.shows = function(column)
-	return (handover.on or not column.gadget) and (not column.spots or handover.spotCount(column.spots) > 0)
+	return (handover.on or not column.gadget)
+		and (not column.spots or handover.spotCount(column.spots) > 0)
+		and (not column.ranked or handover.ranked == true)
 end
 -- The last name seen for each team, for a player who has since left.
 local teamControllers = {}
@@ -2797,14 +2868,16 @@ local function nameCard(team)
 
 	-- The milestones, when the gadget has any: the game time, what it was and the unit
 	-- that made it so, a few to a line. The ones that tell the game's story - the economy's
-	-- smaller steps are left to their charts - and one that came again (a commander lost, a
-	-- nuke) at its first time, with how often.
+	-- smaller steps are left to their charts, and strikes that cost less than a quarter of
+	-- what they hit - and one that came again (a commander lost, a nuke) at its first time,
+	-- with how often.
 	local marks = team.milestones
 	if marks and #marks > 0 then
 		local shown, times = {}, {}
 		for i = 1, #marks do
 			local m = marks[i]
-			if L.milestone[m.key] then
+			local strike = m.key == "ecoStrike" or m.key == "armyLoss" or m.key == "raid"
+			if L.milestone[m.key] and not (strike and (m.share or 0) < 0.25) then
 				if times[m.key] then
 					times[m.key] = times[m.key] + 1
 				else
@@ -2919,6 +2992,9 @@ local function loadLabels()
 		"commanderLost",
 		"nukeLaunched",
 		"nuked",
+		"ecoStrike",
+		"armyLoss",
+		"raid",
 		"teamDied",
 	}
 	for _, key in ipairs(L.milestoneOrder) do
@@ -3190,6 +3266,17 @@ end
 -- so a reopen shows the last ones until the next hand-over rather than nothing.
 local function receiveLive(all, frame)
 	handover.all, handover.frame = all, frame
+	-- The ranking comes and goes with what may be seen: a spectator's, everyone's after the
+	-- game. The views, the columns and the charts follow.
+	local ranked = handover.rankedIn(all)
+	if ranked ~= (handover.ranked == true) then
+		handover.ranked = ranked
+		if show then
+			rebuildEntries()
+			setLayout()
+			dropLists()
+		end
+	end
 	if show and (not gameover or handover.postGame) then
 		handover.postGame = false
 		refresh()
@@ -3203,7 +3290,12 @@ local function listen(on)
 	if on then
 		if hub then
 			if not hub.isSubscribed("teamstats") then
-				hub.subscribe("teamstats", { live = receiveLive, history = graphs.receiveHistory })
+				hub.subscribe("teamstats", {
+					live = receiveLive,
+					history = graphs.receiveHistory,
+					units = graphs.receiveUnits,
+					reset = graphs.gadgetRestarted,
+				})
 			end
 		elseif not handover.direct then
 			-- The receiver is the API widget's when it is there: only one the panel
@@ -3400,14 +3492,10 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	-- The Graphs page scrolls its grid of charts, or with one chart open goes to the one
-	-- before or after it; the wheel is the panel's either way.
+	-- The Graphs page scrolls its grid of charts, or the rows of an open chart that has more
+	-- than fit; the wheel is the panel's either way.
 	if graphs.open then
-		local stat = graphs.stat
 		graphs.wheel(up)
-		if graphs.stat ~= stat then
-			setLayout()
-		end
 		return true
 	end
 
@@ -3880,6 +3968,10 @@ graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
 	end,
 	overFrame = function()
 		return handover.overFrame
+	end,
+	-- Whether the ally teams' places in a ranking may be seen, more than one of them.
+	ranked = function()
+		return handover.ranked == true
 	end,
 	i18n = BAR.I18N,
 	playSound = function()
