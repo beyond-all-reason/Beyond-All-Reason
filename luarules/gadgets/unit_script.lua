@@ -516,6 +516,9 @@ Format: {
 --]]
 local scripts = {}
 
+-- Recursively collect files below UNITSCRIPT_DIR and ModuleHandler-defined paths
+local scriptFiles = {}
+
 -- Creates a new prototype environment for a unit script.
 -- This environment is used as prototype for the unit script instances.
 -- (To save on time copying and space for a copy for each and every unit.)
@@ -565,12 +568,23 @@ function gadget:Initialize()
 	--  * exact path can be specified to resolve ambiguous basenames
 	--  * engine default scriptName (with .cob extension) works
 
-	-- Recursively collect files below UNITSCRIPT_DIR.
-	local scriptFiles = {}
+	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
 	for _, filename in ipairs(VFS.DirList(UNITSCRIPT_DIR, "*.lua", VFSMODE, true)) do
-		local basename = Basename(filename)
-		scriptFiles[filename] = filename -- for exact match
-		scriptFiles[basename] = filename -- for basename match
+		scriptFiles[filename:lower()] = filename -- for exact match
+		scriptFiles[Basename(filename):lower()] = filename -- for basename match
+	end
+	for _, dir in ipairs(ModuleHandler.ScriptDirs(VFSMODE)) do
+		for _, filename in ipairs(VFS.DirList(dir, "*.lua", VFSMODE, true)) do
+			local name = filename:lower()
+			scriptFiles[name] = filename -- for exact match `modules/<name>/scripts/<scriptName>.lua`
+			-- The engine hardcodes the assumption that unit scripts live under "scripts/",
+			-- so when a def names a module script by its real modules/ path,
+			-- UnitDefs[i].scriptName comes back with the prefix prepended — there's no way
+			-- to hand the engine a path it won't mangle. Registering the mangled spelling
+			-- ("scripts/modules/<name>/scripts/<scriptName>.lua") is the game-side
+			-- workaround; probe 1's scriptFiles[scriptName] then hits it directly.
+			scriptFiles[UNITSCRIPT_DIR .. name] = filename -- for module match
+		end
 	end
 
 	-- Go through all UnitDefs and load scripts.
@@ -582,11 +596,16 @@ function gadget:Initialize()
 	for i = 1, #UnitDefs do
 		local unitDef = UnitDefs[i]
 		if unitDef and not scripts[unitDef.scriptName] then
-			local fn = UNITSCRIPT_DIR .. unitDef.scriptName:lower()
-			local bn = Basename(fn)
+			local scriptName = unitDef.scriptName:lower()
+			local fn = UNITSCRIPT_DIR .. scriptName
+			local bn = Basename(scriptName)
 			local cfn = fn:gsub("%.cob$", "%.lua")
 			local cbn = bn:gsub("%.cob$", "%.lua")
-			local filename = scriptFiles[fn] or scriptFiles[bn] or scriptFiles[cfn] or scriptFiles[cbn]
+			local filename = scriptFiles[scriptName]
+				or scriptFiles[fn]
+				or scriptFiles[bn]
+				or scriptFiles[cfn]
+				or scriptFiles[cbn]
 			if filename then
 				Spring.Log(section, LOG.INFO, "  Loading unit script: " .. filename)
 				LoadScript(unitDef.scriptName, filename)
@@ -693,8 +712,8 @@ local include_cache = {}
 
 -- core of include() function for unit scripts
 local function ScriptInclude(filename)
-	--Spring.Echo("  Loading include: " .. UNITSCRIPT_DIR .. filename)
-	local chunk = LoadChunk(UNITSCRIPT_DIR .. filename)
+	local path = scriptFiles[filename:lower()] or UNITSCRIPT_DIR .. filename
+	local chunk = LoadChunk(path)
 	if chunk then
 		include_cache[filename] = chunk
 		return chunk
