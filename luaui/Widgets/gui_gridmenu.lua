@@ -351,8 +351,8 @@ end
 
 local backgroundRect = Rect:new(0, 0, 0, 0)
 local backRect = Rect:new(0, 0, 0, 0, {
-	name = "Back",
-	keyText = "Shift",
+	name = BAR.I18N("ui.buildMenu.back"),
+	keyText = keyConfig.sanitizeKey("shift", currentLayout),
 })
 local nextPageRect = Rect:new(0, 0, 0, 0)
 local categoriesRect = Rect:new(0, 0, 0, 0)
@@ -1864,6 +1864,7 @@ end
 
 -- PERF: It seems we get i18n resources inside draw functions, we should do that in state instead
 function widget:LanguageChanged()
+	backRect.opts.name = BAR.I18N("ui.buildMenu.back")
 	refreshUnitDefs()
 	redraw = true
 end
@@ -2185,6 +2186,13 @@ local function drawCell(rect)
 	local disabled = rect.opts.disabled
 	local underConstructionDim = backgroundRect.opts.builderUnderConstruction and not rect.opts.hovered and not disabled
 	local queuenr = rect.opts.queuenr
+	if queuenr and WG.Quotas then
+		-- Ignore the count from the quota widget.
+		queuenr = queuenr - WG.Quotas.getQuotaOrderCount(activeBuilderID, uid)
+		if queuenr < 1 then
+			queuenr = nil
+		end
+	end
 	local quotaNumber
 	if WG.Quotas and WG.Quotas.getQuotas()[activeBuilderID] and WG.Quotas.getQuotas()[activeBuilderID][uid] then
 		quotaNumber = WG.Quotas.getQuotas()[activeBuilderID][uid]
@@ -2937,7 +2945,9 @@ function widget:MousePress(x, y, button)
 							end
 
 							local isQuotaMode = WG.Quotas and WG.Quotas.isOnQuotaMode(activeBuilderID) and not alt
+							-- Ignore the count from the quota widget.
 							local queueCount = tonumber(cellRect.opts.queuenr or 0)
+								- (WG.Quotas and WG.Quotas.getQuotaOrderCount(activeBuilderID, unitDefID) or 0)
 							local quotas = WG.Quotas and WG.Quotas.getQuotas()
 							local currentQuota = (
 								quotas
@@ -3203,10 +3213,10 @@ function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, optio
 		return
 	end
 
-	-- If factory is in repeat, queue does not change, except if it is alt-queued
+	-- The queue does not change under repeat because the order is recycled to the back.
 	local factoryRepeat = select(4, Spring.GetUnitStates(unitID, false, true))
-
-	if factoryRepeat and not options.alt then
+	-- Internal orders are the exception; see `CFactoryCAI::DecreaseQueueCount`.
+	if factoryRepeat and not options.internal then
 		return
 	end
 
