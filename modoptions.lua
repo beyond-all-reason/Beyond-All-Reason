@@ -151,7 +151,7 @@ local options = {
 			{
 				key = "territorial_domination",
 				name = "Territorial Domination",
-				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins.",
+				desc = "Teams earn points by capturing territory to stay in the game. At the end of the final Deadline, the team with the most points wins.",
 				unlock = { "territorial_domination_config", "territorial_domination_elimination_threshold_multiplier" },
 			},
 			{
@@ -179,29 +179,29 @@ local options = {
 	{
 		key = "territorial_domination_config",
 		name = "Territorial Domination Length",
-		desc = "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+		desc = "Configures the number of five-minute Deadlines and the total time before final score resolution.",
 		type = "list",
 		def = "25_minutes",
 		section = "options_main",
 		items = {
 			{
 				key = "20_minutes",
-				name = "4 Rounds, 20 Minutes",
+				name = "4 Deadlines, 20 Minutes",
 				desc = "Early tech emphasis, comebacks very likely, elimination unlikely.",
 			},
 			{
 				key = "25_minutes",
-				name = "5 Rounds, 25 Minutes(Default)",
+				name = "5 Deadlines, 25 Minutes(Default)",
 				desc = "Mid/late-game tech, comebacks a significant factor, eliminations uncommon",
 			},
 			{
 				key = "30_minutes",
-				name = "6 Rounds, 30 Minutes",
+				name = "6 Deadlines, 30 Minutes",
 				desc = "Late-game tech, comebacks less significant, eliminations likely",
 			},
 			{
 				key = "35_minutes",
-				name = "7 Rounds, 35 Minutes",
+				name = "7 Deadlines, 35 Minutes",
 				desc = "Super lategame tech, eliminations extremely likely",
 			},
 		},
@@ -210,8 +210,8 @@ local options = {
 	-- NOTE: update language/en/interface.json when you change name or desc
 	{
 		key = "territorial_domination_elimination_threshold_multiplier",
-		name = "Elimination Threshold Multiplier",
-		desc = "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient.",
+		name = "Deadline Multiplier",
+		desc = "Teams below the Deadline value are eliminated when a Deadline ends. The next Deadline value is the leader's score multiplied by this value. Lower values are more lenient.",
 		type = "number",
 		def = 1.2,
 		min = 1.0,
