@@ -91,6 +91,21 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- After a reload, the totals so far: the rules params outlive the gadget. A param never set
+	-- is no value at all rather than nil, so each is read into a local before it is looked at.
+	function gadget:Initialize()
+		local teamList = Spring.GetTeamList() or {}
+		for i = 1, #teamList do
+			local teamID = teamList[i]
+			local metal = Spring.GetTeamRulesParam(teamID, "teamStatsReclaimedMetal")
+			local energy = Spring.GetTeamRulesParam(teamID, "teamStatsReclaimedEnergy")
+			metal, energy = tonumber(metal), tonumber(energy)
+			if metal or energy then
+				reclaimed[teamID] = { metal = metal or 0, energy = energy or 0 }
+			end
+		end
+	end
+
 	function gadget:GameFrame(frame)
 		if frame % 30 ~= 0 or not next(changed) then
 			return
@@ -258,8 +273,37 @@ local MILESTONES = {
 	{ key = "commanderKill", every = true },
 	{ key = "nukeLaunched", every = true },
 	{ key = "nuked", every = true },
+	-- Strikes (see below): the team's economy or its army hit hard, and a strike the team
+	-- dealt. Each carries what it cost (`value`), the share of that side of the team it was
+	-- (`share`), what dealt it (`cause`: air, artillery, ground) and, dealt, on whom (`victim`).
+	{ key = "ecoStrike", every = true },
+	{ key = "armyLoss", every = true },
+	{ key = "raid", every = true },
 	{ key = "teamDied" },
 }
+
+-- Strikes: an enemy's kills on a team this close together are one strike, a milestone once it
+-- cost enough of what the team had on that side - its economy (what produces and builds: the
+-- economy's buildings, labs, builders, utilities) or its military - a tenth of it, or a lot
+-- outright. A commander has milestones of its own; what a nuke kills goes to the nuke's hit.
+local STRIKE_GAP = 20 * 30
+local STRIKE_VALUE = 300
+local STRIKE_SHARE = 0.1
+local STRIKE_BIG = 4000
+---@type table<string, string?>
+local SIDE_OF = {
+	economy = "eco",
+	factories = "eco",
+	builders = "eco",
+	utility = "eco",
+	army = "mil",
+	air = "mil",
+	sea = "mil",
+	defense = "mil",
+	strategic = "mil",
+}
+local STRIKE_KIND = { eco = "ecoStrike", mil = "armyLoss" }
+local SIDES = { "eco", "mil" }
 
 ----------------------------------------------------------------
 -- What a sample holds
@@ -310,14 +354,25 @@ end
 -- team's for every team in it), and how far toward the enemy its army stands (per cent of
 -- the way from its team's start to the nearest enemy's, each unit weighing what it is
 -- worth).
-local MAP_KEYS = { "metalSpots", "geoSpots", "visionCoverage", "radarCoverage", "frontLine" }
+local MAP_KEYS = { "metalSpots", "geoSpots", "visionCoverage", "radarCoverage", "frontLine", "jammerCoverage" }
 -- Where the income comes from right now, per second: metal from extractors, converters,
--- reclaim and the rest (the commander, the game's gifts); energy from wind, solar, tidal,
--- geothermal and fusion plants, and the rest.
+-- reclaim and the rest (the commanders and other units that make some, the game's gifts);
+-- energy from wind, solar, tidal, geothermal and fusion plants, reclaim, and the rest (the
+-- commanders, the constructors and other units that make some).
 ---@type string[]
 local INCOME_METAL = { "incomeMex", "incomeConverters", "incomeReclaim", "incomeMetalOther" }
 ---@type string[]
-local INCOME_ENERGY = { "incomeWind", "incomeSolar", "incomeTidal", "incomeGeo", "incomeFusion", "incomeEnergyOther" }
+local INCOME_ENERGY = {
+	"incomeWind",
+	"incomeSolar",
+	"incomeTidal",
+	"incomeGeo",
+	"incomeFusion",
+	"incomeEnergyReclaim",
+	"incomeEnergyOther",
+}
+-- The producers' own among them: the rest is the income less these.
+local PLANT_ENERGY = 5
 -- The value on the field by tech level, the third holding everything above it too.
 local TECH_KEYS = { "valueT1", "valueT2", "valueT3" }
 -- How much of the time the team had no energy left, and its metal and energy storage full
@@ -325,19 +380,53 @@ local TECH_KEYS = { "valueT1", "valueT2", "valueT3" }
 local STORAGE_KEYS = { "energyDry", "metalFull", "energyFull" }
 -- What a pass of the scan finds for each team.
 local PASS_KEYS = { INCOME_METAL, INCOME_ENERGY, STORAGE_KEYS }
-for _, list in ipairs({ MAP_KEYS, INCOME_METAL, INCOME_ENERGY, TECH_KEYS, STORAGE_KEYS }) do
+-- Where a ranked game - a free-for-all, its ally teams ranked by what they are worth (the
+-- AllyTeam ranking gadget) - has the team's ally team: its place, 1 the best, 0 while there
+-- is none, and the score it is ranked by. Alike for every team of an ally team.
+local RANK_KEYS = { "allyRank", "allyScore" }
+-- What the team's losses to an enemy were dealt by, and what dealt its kills on one:
+-- aircraft, long-range plasma cannons, nukes and the rest - running totals of value.
+local STRIKE_CLASSES = { "air", "ground", "artillery", "nuke" }
+---@type table<string, string>, table<string, string>
+local LOST_TO, KILLED_WITH = {}, {}
+local CLASS_KEYS = {}
+for i = 1, #STRIKE_CLASSES do
+	local class = STRIKE_CLASSES[i]
+	local cap = class:sub(1, 1):upper() .. class:sub(2)
+	LOST_TO[class] = "lostTo" .. cap
+	KILLED_WITH[class] = "killedWith" .. cap
+	CLASS_KEYS[#CLASS_KEYS + 1] = LOST_TO[class]
+	CLASS_KEYS[#CLASS_KEYS + 1] = KILLED_WITH[class]
+end
+-- The team's constructors (commanders left out) and labs at the scan's last look, and how
+-- many of them had nothing to do.
+local WORK_KEYS = { "cons", "idleCons", "labs", "idleLabs" }
+for _, list in ipairs({
+	MAP_KEYS,
+	INCOME_METAL,
+	INCOME_ENERGY,
+	TECH_KEYS,
+	STORAGE_KEYS,
+	RANK_KEYS,
+	CLASS_KEYS,
+	WORK_KEYS,
+}) do
 	for i = 1, #list do
 		SAMPLED[#SAMPLED + 1] = list[i]
 	end
 end
-local countKey, valueKey = {}, {}
+local countKey, valueKey, builtKey = {}, {}, {}
 for i = 1, #BUCKETS do
 	local bucket = BUCKETS[i]
 	local cap = bucket:sub(1, 1):upper() .. bucket:sub(2)
 	countKey[bucket] = "count" .. cap
 	valueKey[bucket] = "value" .. cap
+	-- And what the team built of the kind: the value of every unit of it it finished, its
+	-- commander left out - where its metal went.
+	builtKey[bucket] = "built" .. cap
 	SAMPLED[#SAMPLED + 1] = countKey[bucket]
 	SAMPLED[#SAMPLED + 1] = valueKey[bucket]
+	SAMPLED[#SAMPLED + 1] = builtKey[bucket]
 end
 
 -- The keys the tally keeps as running counters; the rest of a sample is read live.
@@ -357,6 +446,10 @@ local TALLIED = {
 for i = 1, #BUCKETS do
 	TALLIED[#TALLIED + 1] = countKey[BUCKETS[i]]
 	TALLIED[#TALLIED + 1] = valueKey[BUCKETS[i]]
+	TALLIED[#TALLIED + 1] = builtKey[BUCKETS[i]]
+end
+for i = 1, #CLASS_KEYS do
+	TALLIED[#TALLIED + 1] = CLASS_KEYS[i]
 end
 for i = 1, #LOSS_CAUSES do
 	TALLIED[#TALLIED + 1] = LOSS_CAUSES[i]
@@ -415,6 +508,11 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetPositionLosState = Spring.GetPositionLosState
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetUnitResources = Spring.GetUnitResources
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
+	or function(unitID)
+		return Spring.GetFactoryCommands(unitID, 0)
+	end
 local spGetGroundHeight = Spring.GetGroundHeight
 
 ---@type table<integer, number>
@@ -458,7 +556,16 @@ local defUpgraded = {}
 -- Nuke silos, and their missiles' weapons with the silo that fires them.
 ---@type table<integer, boolean>
 local defNuke = {}
----@type table<integer, integer>
+-- What a unit strikes as: aircraft bomb, long-range plasma cannons shell, the rest raid.
+---@type table<integer, string>
+local defStrikeClass = {}
+-- The key what a unit is built for goes under, and what the scan looks at it as: a
+-- constructor that moves, or a lab.
+---@type table<integer, string>
+local defBuiltKey = {}
+---@type table<integer, string?>
+local defWorker = {}
+---@type table<integer, integer?>
 local nukeWeapon = {}
 ---@type table<string, string?>
 local killedAs = {
@@ -553,6 +660,13 @@ for unitDefID, ud in pairs(UnitDefs) do
 	end
 	defArmy[unitDefID] = bucket == "army" or bucket == "sea"
 	defUpgraded[unitDefID] = (ud.extractsMetal or 0) > baseExtraction * 1.5
+	defStrikeClass[unitDefID] = ud.canFly and "air" or (cp.islrpc and "artillery" or "ground")
+	defBuiltKey[unitDefID] = builtKey[bucket]
+	if ud.isFactory then
+		defWorker[unitDefID] = "lab"
+	elseif ud.isBuilder and ud.speed > 0 and not cp.iscommander then
+		defWorker[unitDefID] = "con"
+	end
 	if cp.unitgroup == "nuke" then
 		defNuke[unitDefID] = true
 		for _, weapon in ipairs(ud.weapons) do
@@ -600,16 +714,60 @@ local history = {}
 local milestones = {}
 local reached = {}
 local dead = {}
+-- [teamID] = true for a team that died since the last sample: sampled once more, on the frame
+-- everyone is, so what it lost at the end - its base, its units going up with the commander -
+-- reaches its history.
+---@type table<integer, boolean?>
+local lastSample = {}
 local gameOver = false
 -- [unitID] = the team whose fire last hurt an aircraft. A plane shot down falls for a while
 -- and is then destroyed, by the ground or by the game, with no attacker named.
 ---@type table<integer, integer?>
 local lastHitBy = {}
+-- And the type of unit that fired, so the plane is its kill.
+---@type table<integer, integer?>
+local lastHitDef = {}
+-- [teamID][unitDefID] = what the team's units of a type did: how many were built and what
+-- they were worth, how many an enemy killed and their worth, the value they destroyed of
+-- the enemy and the damage they dealt it.
+---@type table<integer, table<integer, table>>
+local unitStats = {}
+
+local function unitRecord(teamID, unitDefID)
+	local byDef = unitStats[teamID]
+	if not byDef then
+		return nil
+	end
+	local r = byDef[unitDefID]
+	if not r then
+		r = { built = 0, builtValue = 0, lost = 0, lostValue = 0, killed = 0, damage = 0 }
+		byDef[unitDefID] = r
+	end
+	return r
+end
 -- [teamID] = the frame a nuke last came down on the team: one explosion hurts many units,
--- over more than one frame, so hits this close together are the same one.
+-- over more than one frame, so hits this close together are the same one; and its milestone,
+-- which what the nuke kills over the next seconds is added to.
 ---@type table<integer, integer?>
 local nukedAt = {}
+---@type table<integer, table?>
+local nukedMark = {}
 local NUKE_FRAMES = 90
+local NUKE_KILLS = 10 * 30
+-- [teamID] = the value of the team's commanders: its economy's worth is taken without them.
+---@type table<integer, number>
+local comValue = {}
+-- [teamID] = the strike on the team still going: when it began and last hit, what each side
+-- lost and was worth before it, by what and by whom, its dearest loss a side, and the
+-- milestones it made so far.
+---@type table<integer, table?>
+local strikes = {}
+-- [teamID] = how many times the team's milestones changed, and the count a receiver that
+-- keeps them was last handed: a team's go over only when they changed.
+---@type table<integer, integer>
+local mileVersion = {}
+---@type table<integer, integer?>
+local sentVersion = {}
 
 -- The metal and geothermal spots: the metal ones as the resource spot finder left them in
 -- the game rules (none on a metal map), the geothermal ones off the map's vents. Read the
@@ -625,6 +783,7 @@ local SPOT_KEY = { metal = "metalSpots", geo = "geoSpots" }
 
 -- A set of units kept as an array too, so a scan can walk it a slice a frame; each unit
 -- with what it is worth to the scan.
+---@return { list: integer[], at: table<integer, integer?>, what: table<integer, any> }
 local function newRoster()
 	return { list = {}, at = {}, what = {} }
 end
@@ -650,9 +809,11 @@ local function delist(roster, unitID)
 	roster.at[unitID] = nil
 	roster.what[unitID] = nil
 end
--- The army, by value, for the front line; the producing units, by income key.
+-- The army, by value, for the front line; the producing units, by income key; the
+-- constructors and labs, by what they are.
 local army = newRoster()
 local producers = newRoster()
+local workers = newRoster()
 -- [teamID] = where its first commander appeared: its start, for a team the game gave none
 -- (an AI's can stay unset).
 ---@type table<integer, number[]?>
@@ -804,6 +965,9 @@ local function addUnit(unitID, unitDefID, teamID)
 	if site then
 		claimSpot(unitID, site, teamID, unitDefID)
 	end
+	if defIsCommander[unitDefID] then
+		comValue[teamID] = (comValue[teamID] or 0) + cost
+	end
 	if defIsCommander[unitDefID] and not commanderAt[teamID] then
 		local x, _, z = spGetUnitPosition(unitID)
 		if x and (x > 0 or z > 0) then
@@ -815,6 +979,9 @@ local function addUnit(unitID, unitDefID, teamID)
 	end
 	if defIncome[unitDefID] then
 		enlist(producers, unitID, unitDefID)
+	end
+	if defWorker[unitDefID] then
+		enlist(workers, unitID, defWorker[unitDefID])
 	end
 	local buildSpeed = defBuildSpeed[unitDefID]
 	if buildSpeed then
@@ -834,6 +1001,7 @@ local function removeUnit(unitID, unitDefID)
 	end
 	delist(army, unitID)
 	delist(producers, unitID)
+	delist(workers, unitID)
 	finished[unitID] = nil
 	local t = teams[teamID]
 	---@cast t -?
@@ -845,6 +1013,9 @@ local function removeUnit(unitID, unitDefID)
 	t[vk] = t[vk] - cost
 	local tk = defTechKey[unitDefID]
 	t[tk] = t[tk] - cost
+	if defIsCommander[unitDefID] then
+		comValue[teamID] = (comValue[teamID] or 0) - cost
+	end
 	local buildSpeed = builders[teamID][unitID]
 	if buildSpeed then
 		builders[teamID][unitID] = nil
@@ -858,15 +1029,151 @@ for i = 1, #MILESTONES do
 	MILESTONE_BY_KEY[MILESTONES[i].key] = MILESTONES[i]
 end
 
+-- A team's milestones changed: a receiver that keeps them is handed them again.
+local function touched(teamID)
+	mileVersion[teamID] = (mileVersion[teamID] or 0) + 1
+end
+
+-- Adds a milestone, at a frame of its own when given one, and answers it - a strike goes on
+-- filling it in.
+local function addMilestone(teamID, key, frame, unitDefID, unitID)
+	local list = milestones[teamID]
+	local mark = { key = key, frame = frame or spGetGameFrame(), unitDefID = unitDefID, unitID = unitID }
+	list[#list + 1] = mark
+	touched(teamID)
+	return mark
+end
+
 local function markMilestone(teamID, m, unitDefID, unitID)
 	if not m.every then
 		if reached[teamID][m.key] then
-			return
+			return nil
 		end
 		reached[teamID][m.key] = true
 	end
-	local list = milestones[teamID]
-	list[#list + 1] = { key = m.key, frame = spGetGameFrame(), unitDefID = unitDefID, unitID = unitID }
+	return addMilestone(teamID, m.key, nil, unitDefID, unitID)
+end
+
+-- What a team's economy and its military are worth right now, commanders left out.
+local function sideValues(teamID)
+	local t = teams[teamID]
+	---@cast t -?
+	local eco = t.valueEconomy + t.valueFactories + t.valueBuilders + t.valueUtility - (comValue[teamID] or 0)
+	local mil = t.valueArmy + t.valueAir + t.valueSea + t.valueDefense + t.valueStrategic
+	return eco, mil
+end
+
+-- The largest of a set of amounts, and its key.
+---@return any, number
+local function largest(amounts)
+	local best, most = nil, 0
+	for key, v in pairs(amounts) do
+		if v > most then
+			best, most = key, v
+		end
+	end
+	return best, most
+end
+
+-- A unit an enemy killed, on the strike it is part of: a strike begins after a pause, keeps
+-- what the team's sides were worth before it, and makes a milestone of a side once that side
+-- lost enough - kept up to date while the strike goes on, along with one for the team that
+-- dealt the most of it.
+local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
+	local side = SIDE_OF[defBucket[unitDefID]]
+	if not side or value <= 0 then
+		return
+	end
+	local frame = spGetGameFrame()
+	local s = strikes[teamID]
+	if not s or frame - s.last > STRIKE_GAP then
+		-- Worth before it: the unit just lost is already off the tally.
+		local eco, mil = sideValues(teamID)
+		if side == "eco" then
+			eco = eco + value
+		else
+			mil = mil + value
+		end
+		s = {
+			start = frame,
+			last = frame,
+			lost = { eco = 0, mil = 0 },
+			units = { eco = 0, mil = 0 },
+			base = { eco = eco, mil = mil },
+			by = {},
+			killers = {},
+			killed = {},
+			top = {},
+			marks = {},
+		}
+		strikes[teamID] = s
+	end
+	s.last = frame
+	s.lost[side] = s.lost[side] + value
+	s.units[side] = s.units[side] + 1
+	local class = attackerDefID and defStrikeClass[attackerDefID] or "ground"
+	s.by[class] = (s.by[class] or 0) + value
+	if attackerTeam then
+		s.killers[attackerTeam] = (s.killers[attackerTeam] or 0) + value
+		s.killed[attackerTeam] = (s.killed[attackerTeam] or 0) + 1
+	end
+	local top = s.top[side]
+	if not top or value > top.value then
+		s.top[side] = { def = unitDefID, value = value }
+	end
+	local cause = largest(s.by)
+	local changed = false
+	---@type string?, number
+	local dearest, severest = nil, 0
+	for _, which in ipairs(SIDES) do
+		local kind = STRIKE_KIND[which]
+		local lost, base = s.lost[which], s.base[which]
+		local share = base > 0 and math.min(1, lost / base) or 1
+		local mark = s.marks[which]
+		if not mark and lost >= STRIKE_VALUE and (share >= STRIKE_SHARE or lost >= STRIKE_BIG) then
+			mark = addMilestone(teamID, kind, s.start)
+			s.marks[which] = mark
+		end
+		if mark then
+			mark.value, mark.share, mark.cause, mark.side = lost, share, cause, which
+			mark.count, mark.unitDefID = s.units[which], s.top[which].def
+			changed = true
+			if share >= severest then
+				dearest, severest = which, share
+			end
+		end
+	end
+	if changed then
+		touched(teamID)
+		-- The strike as the team that dealt most of it has it.
+		local striker = largest(s.killers)
+		if striker and teams[striker] then
+			-- Given to the team that had dealt the most when it became one, and kept there.
+			local raid = s.marks.raid
+			if not raid then
+				raid = addMilestone(striker, "raid", s.start)
+				s.marks.raid = raid
+				s.striker = striker
+			end
+			local which = dearest or side
+			raid.value, raid.share, raid.cause, raid.side = s.killers[s.striker] or 0, severest, cause, which
+			raid.count = s.killed[s.striker] or 0
+			raid.victim, raid.unitDefID = teamID, s.top[which] and s.top[which].def
+			touched(s.striker)
+		end
+	end
+end
+
+-- What a nuke killed of the team over the seconds after it came down, on its hit.
+local function nukeLoss(teamID, value)
+	local mark = nukedMark[teamID]
+	if not mark or spGetGameFrame() - mark.frame > NUKE_KILLS then
+		return
+	end
+	mark.value = (mark.value or 0) + value
+	mark.count = (mark.count or 0) + 1
+	mark.share = math.min(1, mark.value / math.max(1, mark.base or 0))
+	touched(teamID)
 end
 
 ----------------------------------------------------------------
@@ -903,14 +1210,20 @@ local scan = {
 	point = 1,
 	armyAt = 1,
 	producerAt = 1,
+	workerAt = 1,
 	pointQuota = 0,
 	armyQuota = 0,
 	producerQuota = 0,
+	workerQuota = 0,
 	-- this pass so far
 	---@type table<integer, number>
 	seen = {},
 	---@type table<integer, number>
 	radar = {},
+	---@type table<integer, number>
+	jam = {},
+	---@type table<integer, table<string, integer>>
+	work = {},
 	---@type table<integer, number>
 	weight = {},
 	---@type table<integer, number>
@@ -921,11 +1234,17 @@ local scan = {
 	income = {},
 	---@type table<integer, number>
 	reclaimedAt = {},
+	---@type table<integer, number>
+	energyReclaimedAt = {},
 	-- the last pass's
 	---@type table<integer, number>
 	vision = {},
 	---@type table<integer, number>
 	radarCover = {},
+	---@type table<integer, number>
+	jamCover = {},
+	---@type table<integer, table<string, integer>>
+	workDone = {},
 	---@type table<integer, number>
 	front = {},
 	---@type table<integer, table<string, number>>
@@ -993,6 +1312,7 @@ local function finishPass()
 			local ally = allyList[i]
 			scan.vision[ally] = (scan.seen[ally] or 0) / points * 100
 			scan.radarCover[ally] = (scan.radar[ally] or 0) / points * 100
+			scan.jamCover[ally] = (scan.jam[ally] or 0) / points * 100
 			local weight = scan.weight[ally] or 0
 			scan.front[ally] = weight > 0 and (scan.reach[ally] or 0) / weight * 100 or 0
 		end
@@ -1013,27 +1333,36 @@ local function finishPass()
 		src.incomeConverters = made.incomeConverters or 0
 		src.incomeReclaim = reclaimRate
 		src.incomeMetalOther = math.max(0, metalIncome - src.incomeMex - src.incomeConverters - reclaimRate)
+		-- Energy reclaimed - trees above all - the same way.
+		local reclaimedEnergy = spGetTeamRulesParam(teamID, "teamStatsReclaimedEnergy") or 0
+		local energyReclaimRate =
+			math.max(0, (reclaimedEnergy - (scan.energyReclaimedAt[teamID] or reclaimedEnergy)) / seconds)
+		scan.energyReclaimedAt[teamID] = reclaimedEnergy
 		---@type number
 		local energy = 0
-		for i = 1, #INCOME_ENERGY - 1 do
+		for i = 1, PLANT_ENERGY do
 			local key = INCOME_ENERGY[i]
 			---@cast key -?
 			local v = made[key] or 0
 			src[key] = v
 			energy = energy + v
 		end
-		src.incomeEnergyOther = math.max(0, energyIncome - energy)
+		src.incomeEnergyReclaim = energyReclaimRate
+		src.incomeEnergyOther = math.max(0, energyIncome - energy - energyReclaimRate)
 		local reads = income and income.n or 0
 		src.energyDry = reads > 0 and income.dry / reads * 100 or 0
 		src.metalFull = reads > 0 and income.metalFull / reads * 100 or 0
 		src.energyFull = reads > 0 and income.energyFull / reads * 100 or 0
 		scan.sources[teamID] = src
 	end
+	scan.workDone = scan.work
 	scan.seen, scan.radar, scan.weight, scan.reach, scan.made, scan.income = {}, {}, {}, {}, {}, {}
-	scan.point, scan.armyAt, scan.producerAt = 1, 1, 1
+	scan.jam, scan.work = {}, {}
+	scan.point, scan.armyAt, scan.producerAt, scan.workerAt = 1, 1, 1, 1
 	scan.pointQuota = math.ceil(points / PASS_FRAMES)
 	scan.armyQuota = math.ceil(#army.list / PASS_FRAMES)
 	scan.producerQuota = math.ceil(#producers.list / PASS_FRAMES)
+	scan.workerQuota = math.ceil(#workers.list / PASS_FRAMES)
 	scan.left = PASS_FRAMES
 end
 
@@ -1059,12 +1388,15 @@ local function scanStep(frame)
 		local x, y, z = grid[k * 3 - 2], grid[k * 3 - 1], grid[k * 3]
 		for i = 1, #allyList do
 			local ally = allyList[i]
-			local _, inLos, inRadar = spGetPositionLosState(x, y, z, ally)
+			local _, inLos, inRadar, inJammer = spGetPositionLosState(x, y, z, ally)
 			if inLos then
 				scan.seen[ally] = (scan.seen[ally] or 0) + 1
 			end
 			if inRadar then
 				scan.radar[ally] = (scan.radar[ally] or 0) + 1
+			end
+			if inJammer then
+				scan.jam[ally] = (scan.jam[ally] or 0) + 1
 			end
 		end
 	end
@@ -1110,6 +1442,34 @@ local function scanStep(frame)
 			end
 			local v = (defIncomeMetal[unitDefID] and metalMake or energyMake) or 0
 			made[key] = (made[key] or 0) + v
+		end
+	end
+	-- Whether a few constructors and labs have anything to do.
+	for _ = 1, scan.workerQuota do
+		local unitID = workers.list[scan.workerAt]
+		if not unitID then
+			break
+		end
+		scan.workerAt = scan.workerAt + 1
+		local teamID = finished[unitID]
+		local kind = workers.what[unitID]
+		if teamID and kind then
+			local w = scan.work[teamID]
+			if not w then
+				w = { cons = 0, idleCons = 0, labs = 0, idleLabs = 0 }
+				scan.work[teamID] = w
+			end
+			if kind == "lab" then
+				w.labs = w.labs + 1
+				if (spGetFactoryCommandCount(unitID) or 0) == 0 then
+					w.idleLabs = w.idleLabs + 1
+				end
+			else
+				w.cons = w.cons + 1
+				if (spGetUnitCommandCount(unitID) or 0) == 0 then
+					w.idleCons = w.idleCons + 1
+				end
+			end
 		end
 	end
 	-- And every team's whole income now and then, for what the rest made.
@@ -1168,8 +1528,17 @@ local function readLive(teamID, out)
 	out.energyReclaimed = spGetTeamRulesParam(teamID, "teamStatsReclaimedEnergy") or 0
 	out.windSpeed = select(4, spGetWind()) or 0
 	local ally = allyOf[teamID]
+	local ranking = GG.AllyTeamRanking
+	out.allyRank = ranking and ranking.GetPlace(ally) or 0
+	out.allyScore = ranking and ranking.GetScore(ally) or 0
 	out.visionCoverage = scan.vision[ally] or 0
 	out.radarCoverage = scan.radarCover[ally] or 0
+	out.jammerCoverage = scan.jamCover[ally] or 0
+	local work = scan.workDone[teamID]
+	for i = 1, #WORK_KEYS do
+		local key = WORK_KEYS[i]
+		out[key] = work and work[key] or 0
+	end
 	out.frontLine = scan.front[ally] or 0
 	local src = scan.sources[teamID]
 	for _, list in ipairs(PASS_KEYS) do
@@ -1198,7 +1567,8 @@ local SAMPLE_MINUTES = SAMPLE_PERIOD / 1800
 
 local function sample(frame)
 	for teamID, h in pairs(history) do
-		if not dead[teamID] then
+		if not dead[teamID] or lastSample[teamID] then
+			lastSample[teamID] = nil
 			readLive(teamID, scratch)
 			-- What was not building over the period just gone, in build power minutes.
 			local t = teams[teamID]
@@ -1232,6 +1602,19 @@ end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	addUnit(unitID, unitDefID, unitTeam)
+	local t = teams[unitTeam]
+	if t then
+		-- Built: the kind's total (a commander is no spending), and the type's.
+		local cost = defCost[unitDefID]
+		if not defIsCommander[unitDefID] then
+			local key = defBuiltKey[unitDefID]
+			t[key] = t[key] + cost
+		end
+		local r = unitRecord(unitTeam, unitDefID)
+		if r then
+			r.built, r.builtValue = r.built + 1, r.builtValue + cost
+		end
+	end
 	local list = defBuiltMilestones[unitDefID]
 	if list and teams[unitTeam] then
 		for i = 1, #list do
@@ -1282,13 +1665,27 @@ function gadget:UnitDamaged(
 )
 	if defCanFly[unitDefID] and attackerTeam and damage > 0 and not paralyzer then
 		lastHitBy[unitID] = attackerTeam
+		lastHitDef[unitID] = attackerDefID
+	end
+	-- The damage an enemy took, on the type of unit that dealt it.
+	if attackerTeam and attackerDefID and damage > 0 and not paralyzer and allyOf[attackerTeam] ~= allyOf[unitTeam] then
+		local r = unitRecord(attackerTeam, attackerDefID)
+		if r then
+			r.damage = r.damage + damage
+		end
 	end
 	local silo = nukeWeapon[weaponDefID]
 	if silo and teams[unitTeam] then
 		local frame = spGetGameFrame()
 		local last = nukedAt[unitTeam]
 		if not last or frame - last > NUKE_FRAMES then
-			markMilestone(unitTeam, MILESTONE_BY_KEY.nuked, attackerDefID or silo, attackerID)
+			local mark = markMilestone(unitTeam, MILESTONE_BY_KEY.nuked, attackerDefID or silo, attackerID)
+			if mark then
+				-- What the team had to lose, for the share of it the nuke takes.
+				local eco, mil = sideValues(unitTeam)
+				mark.value, mark.share, mark.side, mark.base = 0, 0, "all", eco + mil
+				nukedMark[unitTeam] = mark
+			end
 		end
 		nukedAt[unitTeam] = frame
 	end
@@ -1307,11 +1704,16 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	local hitBy = lastHitBy[unitID]
 	if hitBy then
 		lastHitBy[unitID] = nil
+		local hitDef = lastHitDef[unitID]
+		lastHitDef[unitID] = nil
 		local moveType = not attackerTeam and spGetUnitMoveTypeData(unitID)
 		if moveType and moveType.aircraftState == "crashing" then
 			attackerTeam = hitBy
+			attackerDefID = attackerDefID or hitDef
 		end
 	end
+	-- What dealt it: a nuke, else the kind of unit that did.
+	local class = nukeWeapon[weaponDefID] and "nuke" or (attackerDefID and defStrikeClass[attackerDefID]) or "ground"
 	local value = defCost[unitDefID]
 	if not finished[unitID] then
 		-- A unit still under construction is worth what was put into it.
@@ -1344,6 +1746,21 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			cause = CAUSE_OF[weaponDefID or 0] or (attackerAlly ~= nil and "lostFriendly" or "lostOther")
 		end
 		victim[cause] = victim[cause] + value
+		if cause == "lostEnemy" then
+			local key = LOST_TO[class]
+			victim[key] = victim[key] + value
+			local r = unitRecord(unitTeam, unitDefID)
+			if r then
+				r.lost, r.lostValue = r.lost + 1, r.lostValue + value
+			end
+		end
+		if cause == "lostEnemy" and not defIsCommander[unitDefID] then
+			if nukeWeapon[weaponDefID] then
+				nukeLoss(unitTeam, value)
+			else
+				strikeLoss(unitTeam, unitDefID, value, attackerTeam, attackerDefID)
+			end
+		end
 		markMilestone(unitTeam, MILESTONE_BY_KEY.firstLoss, unitDefID, unitID)
 		if defIsCommander[unitDefID] then
 			victim.comLost = victim.comLost + 1
@@ -1365,6 +1782,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		return
 	end
 	killer.killedValue = killer.killedValue + value
+	local with = KILLED_WITH[class]
+	killer[with] = killer[with] + value
+	local r = attackerDefID and unitRecord(attackerTeam, attackerDefID)
+	if r then
+		r.killed = r.killed + value
+	end
 	markMilestone(attackerTeam, MILESTONE_BY_KEY.firstKill, unitDefID, unitID)
 	local split = killedAs[defBucket[unitDefID]]
 	if split then
@@ -1381,6 +1804,7 @@ function gadget:TeamDied(teamID)
 		return
 	end
 	dead[teamID] = true
+	lastSample[teamID] = true
 	for i = 1, #MILESTONES do
 		if MILESTONES[i].key == "teamDied" then
 			markMilestone(teamID, MILESTONES[i])
@@ -1424,7 +1848,18 @@ local function copyMilestones(teamID)
 	local list = milestones[teamID]
 	for i = 1, #list do
 		local m = list[i]
-		out[i] = { key = m.key, frame = m.frame, unitDefID = m.unitDefID, unitID = m.unitID }
+		out[i] = {
+			key = m.key,
+			frame = m.frame,
+			unitDefID = m.unitDefID,
+			unitID = m.unitID,
+			value = m.value,
+			share = m.share,
+			count = m.count,
+			cause = m.cause,
+			side = m.side,
+			victim = m.victim,
+		}
 	end
 	return out
 end
@@ -1478,6 +1913,27 @@ local function GetTeamStatsHistory(teamID, from)
 	return out
 end
 
+-- The team's units by type: for each type the team had, how many it built and their value,
+-- how many an enemy killed and their value, the value they destroyed and the damage they
+-- dealt - { [unitDefID] = { built, builtValue, lost, lostValue, killed, damage } }.
+local function GetTeamStatsUnits(teamID)
+	if not visible(teamID) then
+		return nil
+	end
+	local out = {}
+	for unitDefID, r in pairs(unitStats[teamID] or {}) do
+		out[unitDefID] = {
+			built = r.built,
+			builtValue = r.builtValue,
+			lost = r.lost,
+			lostValue = r.lostValue,
+			killed = r.killed,
+			damage = r.damage,
+		}
+	end
+	return out
+end
+
 local function GetTeamStatsMilestones(teamID)
 	if not visible(teamID) then
 		return nil
@@ -1510,6 +1966,8 @@ local function GetTeamStatsInfo()
 		-- How many spots the map has of either kind: none, and their counts say nothing.
 		metalSpots = #found.metal,
 		geoSpots = #found.geo,
+		-- Whether the ally teams are ranked in this game.
+		ranked = GG.AllyTeamRanking ~= nil,
 	}
 end
 
@@ -1519,6 +1977,7 @@ local exports = {
 	GetLive = GetTeamStatsLive,
 	GetHistory = GetTeamStatsHistory,
 	GetMilestones = GetTeamStatsMilestones,
+	GetUnits = GetTeamStatsUnits,
 	GetInfo = GetTeamStatsInfo,
 }
 
@@ -1530,6 +1989,9 @@ local exports = {
 -- state, and Script.LuaUI("<name>") says whether there is one to run.
 ---@diagnostic disable-next-line: undefined-global
 local Script = Script
+-- Which run of the gadget LuaUI's copies come from, handed over with the live values: a new one
+-- when it starts over, the old one when it picked up after a reload where it left off.
+local session = math.random(1, 1000000000)
 
 -- LuaUI takes part by registering globals (luaui/Widgets/api_teamstats.lua holds them
 -- for every widget): `TeamStatsLive(all, frame)` is handed the live values of every
@@ -1539,12 +2001,51 @@ local Script = Script
 -- `TeamStatsHistory(teamID, history)` with the samples from that index on (see
 -- GetTeamStatsHistory for the shape), so a caller holding the first n samples asks for
 -- what came after them.
+-- The live values for LuaUI. A receiver that keeps the milestones - it registers
+-- `TeamStatsMilestoneRequest()`, answering true when it wants all of them again - is handed a
+-- team's only when they changed since; any other, every team's every time.
+local function liveForLuaUI(keeps)
+	local out = {}
+	for id in pairs(teams) do
+		if visible(id) then
+			local live = readLive(id, {})
+			live.dead = dead[id] or false
+			local version = mileVersion[id] or 0
+			if not keeps or sentVersion[id] ~= version then
+				live.milestones = copyMilestones(id)
+				if keeps then
+					sentVersion[id] = version
+				end
+			end
+			out[id] = live
+		end
+	end
+	return out
+end
+
 local function serveLuaUI(frame)
 	if Script.LuaUI("TeamStatsLive") then
-		Script.LuaUI.TeamStatsLive(GetTeamStatsLive(), frame)
+		local keeps = Script.LuaUI("TeamStatsMilestoneRequest")
+		if keeps and Script.LuaUI.TeamStatsMilestoneRequest() then
+			sentVersion = {}
+		end
+		Script.LuaUI.TeamStatsLive(liveForLuaUI(keeps), frame, session)
 	end
 	if Script.LuaUI("TeamStatsInfo") then
 		Script.LuaUI.TeamStatsInfo(GetTeamStatsInfo())
+	end
+	-- `TeamStatsUnitsRequest()` returning { [teamID] = true } is answered through
+	-- `TeamStatsUnits(teamID, units)` with the team's units by type (see GetTeamStatsUnits).
+	if Script.LuaUI("TeamStatsUnitsRequest") and Script.LuaUI("TeamStatsUnits") then
+		local wanted = Script.LuaUI.TeamStatsUnitsRequest()
+		if type(wanted) == "table" then
+			for teamID in pairs(wanted) do
+				local units = GetTeamStatsUnits(teamID)
+				if units then
+					Script.LuaUI.TeamStatsUnits(teamID, units)
+				end
+			end
+		end
 	end
 	if Script.LuaUI("TeamStatsHistoryRequest") and Script.LuaUI("TeamStatsHistory") then
 		local wanted = Script.LuaUI.TeamStatsHistoryRequest()
@@ -1557,6 +2058,244 @@ local function serveLuaUI(frame)
 			end
 		end
 	end
+end
+
+----------------------------------------------------------------
+-- Through a reload
+----------------------------------------------------------------
+
+-- A reload of LuaRules starts the gadget over, and what it gathered - the history, the
+-- milestones, the running totals - would be gone. So as it shuts down it hands LuaUI (the team
+-- stats API widget keeps it) what the units standing cannot tell again, and as it starts it
+-- takes that back, once it is sure it is this game's, whole and sound; else it starts over as
+-- before, under a new session, so LuaUI drops what it copied from the old one. What the units
+-- standing tell - counts, values, build power, spots, tech levels - is counted again from them.
+-- At the end of a game LuaUI goes before the gadget, and nothing is handed over.
+local STASH_VERSION = 1
+-- Taken this many frames or less before the gadget started again: a reload is the same frame;
+-- one disabled for longer would have missed what happened meanwhile.
+local STASH_GAP = SAMPLE_PERIOD
+-- The counters that add up what happened rather than what stands.
+local RUNNING = {
+	"buildPowerIdle",
+	"killedValue",
+	"killedArmyValue",
+	"killedEcoValue",
+	"lostValue",
+	"teamKillValue",
+	"comKills",
+	"comLost",
+}
+for i = 1, #BUCKETS do
+	RUNNING[#RUNNING + 1] = builtKey[BUCKETS[i]]
+end
+for _, list in ipairs({ CLASS_KEYS, LOSS_CAUSES }) do
+	for i = 1, #list do
+		RUNNING[#RUNNING + 1] = list[i]
+	end
+end
+-- A milestone's own fields besides its kind and frame, and their types; a unit type's record.
+local MILESTONE_FIELDS = {
+	unitDefID = "number",
+	unitID = "number",
+	value = "number",
+	share = "number",
+	count = "number",
+	base = "number",
+	cause = "string",
+	side = "string",
+	victim = "number",
+}
+local RECORD_FIELDS = { "built", "builtValue", "lost", "lostValue", "killed", "damage" }
+---@type table<string, boolean?>
+local KINDS = {}
+for i = 1, #MILESTONES do
+	KINDS[MILESTONES[i].key] = true
+end
+local function finite(v)
+	return type(v) == "number" and v == v and v > -math.huge and v < math.huge
+end
+
+-- What the gadget hands LuaUI as it shuts down.
+local function snapshot()
+	local out = {
+		version = STASH_VERSION,
+		frame = spGetGameFrame(),
+		map = Game.mapName,
+		session = session,
+		gameOver = gameOver,
+		allyOf = {},
+		teams = {},
+	}
+	for teamID, t in pairs(teams) do
+		out.allyOf[teamID] = allyOf[teamID]
+		local running = {}
+		for i = 1, #RUNNING do
+			running[RUNNING[i]] = t[RUNNING[i]]
+		end
+		out.teams[teamID] = {
+			running = running,
+			history = history[teamID],
+			milestones = milestones[teamID],
+			units = unitStats[teamID],
+			lastSample = lastSample[teamID] or nil,
+		}
+	end
+	return out
+end
+
+-- The stash made sound: this game's - the same map, the same teams in the same ally teams, from
+-- just now, of this version - each team whole, every number a number and every milestone of a
+-- kind there is. Samples of a key the gadget did not have yet are nothing (0), of one it no
+-- longer has dropped. Nil and why not otherwise.
+---@return table?, string?
+local function checked(data)
+	if type(data) ~= "table" or data.version ~= STASH_VERSION then
+		return nil, "another version"
+	end
+	local now = spGetGameFrame()
+	if not finite(data.frame) or data.frame > now or now - data.frame > STASH_GAP then
+		return nil, "not from just now"
+	end
+	if data.map ~= Game.mapName then
+		return nil, "another map"
+	end
+	if type(data.allyOf) ~= "table" or type(data.teams) ~= "table" then
+		return nil, "no teams"
+	end
+	for teamID, ally in pairs(allyOf) do
+		if data.allyOf[teamID] ~= ally then
+			return nil, "other teams"
+		end
+	end
+	for teamID in pairs(data.allyOf) do
+		if allyOf[teamID] == nil then
+			return nil, "other teams"
+		end
+	end
+	local out = { session = finite(data.session) and data.session or nil, gameOver = data.gameOver == true, teams = {} }
+	for teamID in pairs(teams) do
+		local src = data.teams[teamID]
+		if type(src) ~= "table" then
+			return nil, "a team missing"
+		end
+		local h = src.history
+		if type(h) ~= "table" or type(h.frames) ~= "table" or type(h.values) ~= "table" then
+			return nil, "a history missing"
+		end
+		local frames, last = {}, 0
+		for i = 1, #h.frames do
+			local f = h.frames[i]
+			if not finite(f) or f < last or f > data.frame then
+				return nil, "a history out of order"
+			end
+			frames[i], last = f, f
+		end
+		local values = {}
+		for i = 1, #SAMPLED do
+			local key = SAMPLED[i]
+			local run = h.values[key]
+			local copy = {}
+			for n = 1, #frames do
+				local v = type(run) == "table" and run[n] or nil
+				copy[n] = finite(v) and v or 0
+			end
+			values[key] = copy
+		end
+		if type(src.running) ~= "table" then
+			return nil, "the totals missing"
+		end
+		local running = {}
+		for i = 1, #RUNNING do
+			local v = src.running[RUNNING[i]]
+			if v ~= nil and (not finite(v) or v < 0) then
+				return nil, "a total unsound"
+			end
+			running[RUNNING[i]] = v or 0
+		end
+		if type(src.milestones) ~= "table" then
+			return nil, "the milestones missing"
+		end
+		local marks = {}
+		for i = 1, #src.milestones do
+			local m = src.milestones[i]
+			if type(m) ~= "table" or not KINDS[m.key] or not finite(m.frame) or m.frame < 0 or m.frame > data.frame then
+				return nil, "a milestone unsound"
+			end
+			---@type table<string, any>
+			local mark = { key = m.key, frame = m.frame }
+			for field, kind in pairs(MILESTONE_FIELDS) do
+				local v = m[field]
+				if type(v) == kind and (kind ~= "number" or finite(v)) then
+					mark[field] = v
+				end
+			end
+			if mark.unitDefID and not UnitDefs[mark.unitDefID] then
+				mark.unitDefID = nil
+			end
+			if mark.victim and not teams[mark.victim] then
+				mark.victim = nil
+			end
+			marks[#marks + 1] = mark
+		end
+		if type(src.units) ~= "table" then
+			return nil, "the unit records missing"
+		end
+		local byDef = {}
+		for defID, r in pairs(src.units) do
+			if type(defID) ~= "number" or not UnitDefs[defID] or type(r) ~= "table" then
+				return nil, "a unit record unsound"
+			end
+			local rec = {}
+			for i = 1, #RECORD_FIELDS do
+				local v = r[RECORD_FIELDS[i]]
+				if not finite(v) or v < 0 then
+					return nil, "a unit record unsound"
+				end
+				rec[RECORD_FIELDS[i]] = v
+			end
+			byDef[defID] = rec
+		end
+		out.teams[teamID] = {
+			frames = frames,
+			values = values,
+			running = running,
+			marks = marks,
+			units = byDef,
+			lastSample = src.lastSample == true,
+		}
+	end
+	return out
+end
+
+-- Puts back what the stash holds, all of it or - when it is not sound - none of it. Answers
+-- whether it did, and why not.
+---@return boolean, string?
+local function restore(data)
+	local sound, why = checked(data)
+	if not sound then
+		return false, why
+	end
+	for teamID, s in pairs(sound.teams) do
+		history[teamID] = { frames = s.frames, values = s.values }
+		local t = teams[teamID]
+		---@cast t -?
+		for key, v in pairs(s.running) do
+			t[key] = v
+		end
+		milestones[teamID] = s.marks
+		local got = {}
+		for i = 1, #s.marks do
+			got[s.marks[i].key] = true
+		end
+		reached[teamID] = got
+		unitStats[teamID] = s.units
+		lastSample[teamID] = (s.lastSample and dead[teamID]) and true or nil
+		mileVersion[teamID] = (mileVersion[teamID] or 0) + 1
+	end
+	gameOver = sound.gameOver
+	session = sound.session or session
+	return true
 end
 
 function gadget:GameFrame(frame)
@@ -1583,6 +2322,7 @@ function gadget:Initialize()
 			history[teamID] = newHistory()
 			milestones[teamID] = {}
 			reached[teamID] = {}
+			unitStats[teamID] = {}
 			local _, _, isDead = Spring.GetTeamInfo(teamID, false)
 			dead[teamID] = isDead == true or nil
 		end
@@ -1595,6 +2335,18 @@ function gadget:Initialize()
 		allyList[#allyList + 1] = ally
 	end
 	table.sort(allyList)
+	-- What it gathered before a reload, if LuaUI kept it and it is sound. At the start of a game
+	-- LuaUI is not there yet.
+	if Script.LuaUI("TeamStatsUnstash") then
+		local stash = Script.LuaUI.TeamStatsUnstash()
+		if stash ~= nil then
+			local picked, why = restore(stash)
+			Spring.Echo(
+				picked and "Team stats: picked up the game so far after a reload"
+					or ("Team stats: started over after a reload (" .. tostring(why) .. ")")
+			)
+		end
+	end
 	-- Units already standing, after a reload or when the game is joined late.
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
@@ -1605,5 +2357,9 @@ function gadget:Initialize()
 end
 
 function gadget:Shutdown()
+	-- Kept by LuaUI through a reload.
+	if Script.LuaUI("TeamStatsStash") then
+		Script.LuaUI.TeamStatsStash(snapshot())
+	end
 	GG.TeamStats = nil
 end

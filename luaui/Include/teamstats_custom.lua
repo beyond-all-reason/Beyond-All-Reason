@@ -18,10 +18,12 @@ local SHIPPED_KEY = "overview"
 
 -- What it holds - one page of twelve: every team's shape and when things happened to them;
 -- the economy each built (metal, energy, build power) and what it has on the field; what
--- it produced and fought with; the value it traded, which weighs a kill by what it cost
--- where unit counts and damage do not; and how fast it played.
+-- it produced and fought with; where its metal comes from; how well it traded, which weighs
+-- a kill by what it cost where unit counts and damage do not; and how fast it played. A
+-- ranked game adds the standing, second: it is left out where there is none.
 local SHIPPED_STATS = {
 	"profile",
+	"ranking",
 	"timeline",
 	"metalProduced",
 	"energyProduced",
@@ -29,7 +31,7 @@ local SHIPPED_STATS = {
 	"unitValue",
 	"frontLine",
 	"damageDealt",
-	"killedValue",
+	"incomeMetal",
 	"composition",
 	"valueEfficiency",
 	"actionsPerMinute",
@@ -38,6 +40,7 @@ local SHIPPED_STATS = {
 -- The charts that are not one column's: listed by the page, never a table column.
 ---@type table<string, boolean>
 local CHART_ONLY = {
+	ranking = true,
 	incomeMetal = true,
 	incomeEnergy = true,
 	tech = true,
@@ -46,6 +49,10 @@ local CHART_ONLY = {
 	composition = true,
 	wind = true,
 	losses = true,
+	built = true,
+	lostTo = true,
+	killedWith = true,
+	unitReport = true,
 }
 
 -- The first field of a category written out as text: what it is, and in which version.
