@@ -121,7 +121,7 @@ function gadget:UnitEnteredWater(unitID, unitDefID, unitTeam)
 				spSpawnCEG(largeSplashCEG, posX, posY, posZ)
 				spPlaySoundFile("xplodep3", 0.5, posX, posY, posZ, "sfx")
 				if defData then
-					local health, maxHealth = spGetUnitHealth(unitID)
+					local health, _ = spGetUnitHealth(unitID)
 					local damage = (defData.fallDamage * velLength) * (fallDamageCompoundingFactor ^ velLength)
 					if damage >= health then
 						if spGetUnitRulesParam(unitID, "unit_effigy") then

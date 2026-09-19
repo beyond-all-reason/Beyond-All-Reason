@@ -2084,7 +2084,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	if damage and damage < 1 then
 		return
 	end
-	local ux, uy, uz = spGetUnitPosition(unitID)
+	local ux, uy, _ = spGetUnitPosition(unitID)
 	if not ux or uy < 0 then
 		return
 	end -- underwater: no fire
