@@ -2,6 +2,8 @@ if not RmlUi then
 	return
 end
 
+local widget = widget ---@type Widget
+
 function widget:GetInfo()
 	return {
 		name = "Territorial Domination Score Display",
@@ -100,7 +102,7 @@ local DEFAULT_COLOR = {
 }
 local DEADLINE_ICON_COLOR = "rgba(255, 48, 48, 255)"
 
-local DATA_UPDATE_INTERVAL = 1
+local DATA_UPDATE_INTERVAL = 1.0
 local POPUP_DURATION_SECONDS = 5
 local POPUP_INITIAL_WINDOW_SECONDS = 10
 local DANGER_POPUP_COOLDOWN_SECONDS = 60
@@ -135,11 +137,11 @@ local DEFAULT_MAX_DEADLINES = DEADLINES_BY_CONFIG[MOD_OPTIONS.territorial_domina
 local widgetState = {
 	allyTeamsByID = {},
 	distributionHitRanges = {},
-	currentDeadline = 0,
-	maxDeadlines = DEFAULT_MAX_DEADLINES,
-	deadlineEndTimestamp = 0,
-	deadlineScore = 0,
-	totalTerritories = 0,
+	currentDeadline = 0.0,
+	maxDeadlines = DEFAULT_MAX_DEADLINES + 0.0,
+	deadlineEndTimestamp = 0.0,
+	deadlineScore = 0.0,
+	totalTerritories = 0.0,
 	hasDeadline = false,
 	isBelowDeadline = false,
 	isExpanded = false,
@@ -150,25 +152,27 @@ local widgetState = {
 	isNearDockOrigin = false,
 	isInDanger = false,
 	isInFirstPlace = false,
-	dragOffsetX = 0,
-	dragOffsetY = 0,
-	panelPixelX = 0,
-	panelPixelY = 0,
+	dragOffsetX = 0.0,
+	dragOffsetY = 0.0,
+	panelPixelX = 0.0,
+	panelPixelY = 0.0,
 	isUndocked = false,
 	tooltipActive = false,
 	tooltipRowCount = 1,
 	tooltipWidthDp = TOOLTIP.MIN_WIDTH_DP,
 	popupActive = false,
-	popupStartClock = 0,
+	popupStartClock = 0.0,
 	hasObservedDeadline = false,
 	lastObservedDeadline = 0,
 	allyTeamColorByID = {},
 	allyTeamRosterByID = {},
 	rosterDirty = true,
-	territoryPointsPerDeadline = TERRITORY_POINTS_PER_DEADLINE,
+	territoryPointsPerDeadline = TERRITORY_POINTS_PER_DEADLINE + 0.0,
 	pendingVerticalScroll = false,
 	verticalBarsOverflow = false,
-	verticalContentWidthDp = VERTICAL.CONTENT_MINIMUM_WIDTH_DP,
+	verticalContentWidthDp = VERTICAL.CONTENT_MINIMUM_WIDTH_DP + 0.0,
+	dockedOriginPixelX = 0.0,
+	dockedOriginPixelY = 0.0,
 }
 
 local function easeCubicInOut(amount)
@@ -180,7 +184,7 @@ local function easeCubicInOut(amount)
 end
 
 local function formatScore(value)
-	return tostring(math.round(tonumber(value) or 0))
+	return tostring(math.round(tonumber(value) or 0, 0))
 end
 
 local function getTooltipTextWidthDp(value)
@@ -192,7 +196,7 @@ local function getTooltipTextWidthDp(value)
 	if font and font.GetTextWidth then
 		return font:GetTextWidth(text) * TOOLTIP.FONT_SIZE_DP
 	end
-	local characterCount = utf8 and utf8.len and utf8.len(text) or #text
+	local characterCount = #text
 	return characterCount * TOOLTIP.CHAR_WIDTH_DP
 end
 
@@ -273,9 +277,9 @@ end
 
 local function makeColorString(color, multiplier)
 	local colorMultiplier = multiplier or 1
-	local red = math.round(math.clamp(color.red * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
-	local green = math.round(math.clamp(color.green * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
-	local blue = math.round(math.clamp(color.blue * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM)
+	local red = math.round(math.clamp(color.red * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM, 0)
+	local green = math.round(math.clamp(color.green * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM, 0)
+	local blue = math.round(math.clamp(color.blue * colorMultiplier, 0, 1) * COLOR_BYTE_MAXIMUM, 0)
 	return string.format("rgba(%d, %d, %d, 255)", red, green, blue)
 end
 
@@ -451,7 +455,8 @@ local function collectAllyTeamData()
 			if roster then
 				local allyTeamRulesPrefix = "territorialDomination_ally_" .. allyTeamID .. "_"
 				local score = tonumber(Spring.GetGameRulesParam(allyTeamRulesPrefix .. "score")) or 0
-				local projectedScore = tonumber(Spring.GetGameRulesParam(allyTeamRulesPrefix .. "projectedScore")) or score
+				local projectedScore = tonumber(Spring.GetGameRulesParam(allyTeamRulesPrefix .. "projectedScore"))
+					or score
 				local firstLivingTeamID = getFirstLivingTeamID(roster.teamList)
 				local allyTeamData = {
 					allyTeamID = allyTeamID,
@@ -517,11 +522,7 @@ local function findProjectedLeader(allyTeams, selectedAllyTeam)
 		highestProjectedScore = math.max(highestProjectedScore, allyTeams[allyTeamIndex].projectedScore)
 	end
 
-	if
-		selectedAllyTeam
-		and selectedAllyTeam.isAlive
-		and selectedAllyTeam.projectedScore == highestProjectedScore
-	then
+	if selectedAllyTeam and selectedAllyTeam.isAlive and selectedAllyTeam.projectedScore == highestProjectedScore then
 		return selectedAllyTeam, highestProjectedScore
 	end
 
@@ -541,7 +542,7 @@ end
 
 local function buildDistributionData(allyTeams)
 	local ascendingAllyTeams = {}
-	local totalScore = 0
+	local totalScore = 0.0
 
 	for allyTeamIndex = 1, #allyTeams do
 		local allyTeam = allyTeams[allyTeamIndex]
@@ -551,7 +552,7 @@ local function buildDistributionData(allyTeams)
 
 	table.sort(ascendingAllyTeams, compareAscendingScores)
 
-	local totalHitWeight = 0
+	local totalHitWeight = 0.0
 	for allyTeamIndex = 1, #ascendingAllyTeams do
 		local score = math.max(0, ascendingAllyTeams[allyTeamIndex].score)
 		local hitWeight = totalScore > 0 and math.max(score / totalScore, MINIMUM_SEGMENT_HIT_FRACTION) or 1
@@ -560,14 +561,15 @@ local function buildDistributionData(allyTeams)
 
 	local distributionHitRanges = {}
 	local segmentMarkupParts = {}
-	local leftPercentage = 0
-	local leftHitFraction = 0
+	local leftPercentage = 0.0
+	local leftHitFraction = 0.0
 
 	for allyTeamIndex = 1, #ascendingAllyTeams do
 		local allyTeam = ascendingAllyTeams[allyTeamIndex]
 		local startPercentage = leftPercentage
 		local scoreShare = math.max(0, allyTeam.score)
-		local width = totalScore > 0 and scoreShare / totalScore * 100 or (#ascendingAllyTeams > 0 and 100 / #ascendingAllyTeams or 0)
+		local width = totalScore > 0 and scoreShare / totalScore * 100
+			or (#ascendingAllyTeams > 0 and 100 / #ascendingAllyTeams or 0)
 		local flexGrow = totalScore > 0 and scoreShare or 1
 		if allyTeamIndex == #ascendingAllyTeams then
 			width = math.max(0, 100 - startPercentage)
@@ -581,8 +583,7 @@ local function buildDistributionData(allyTeams)
 			allyTeam.outlineColor
 		)
 		local hitWeight = totalScore > 0 and math.max(scoreShare / totalScore, MINIMUM_SEGMENT_HIT_FRACTION) or 1
-		local endHitFraction = allyTeamIndex == #ascendingAllyTeams
-				and 1
+		local endHitFraction = allyTeamIndex == #ascendingAllyTeams and 1
 			or leftHitFraction + hitWeight / math.max(totalHitWeight, 1)
 		distributionHitRanges[#distributionHitRanges + 1] = {
 			allyTeamID = allyTeam.allyTeamID,
@@ -603,7 +604,15 @@ local function isAllyTeamInEliminationDanger(allyTeam, hasDeadline, deadlineScor
 	return (hasDeadline and allyTeam.projectedScore < deadlineScore) or currentDeadline >= maxDeadlines
 end
 
-local function buildVerticalBars(ascendingAllyTeams, verticalScale, localAllyTeamID, hasDeadline, deadlineScore, currentDeadline, maxDeadlines)
+local function buildVerticalBars(
+	ascendingAllyTeams,
+	verticalScale,
+	localAllyTeamID,
+	hasDeadline,
+	deadlineScore,
+	currentDeadline,
+	maxDeadlines
+)
 	local verticalBars = {}
 	local allyTeamCount = #ascendingAllyTeams
 	local packedWidth = allyTeamCount * VERTICAL.SLOT_WIDTH_DP + VERTICAL.CONTENT_PADDING_DP
@@ -631,8 +640,7 @@ local function buildVerticalBars(ascendingAllyTeams, verticalScale, localAllyTea
 			deadlineScore,
 			currentDeadline,
 			maxDeadlines
-		)
-			and overlayHeightPercent > 0
+		) and overlayHeightPercent > 0
 		verticalBars[#verticalBars + 1] = {
 			allyTeamID = allyTeam.allyTeamID,
 			rank = formatOrdinal(allyTeam.rank),
@@ -656,7 +664,7 @@ local function getDpRatio()
 	if widgetState.rmlContext and widgetState.rmlContext.dp_ratio then
 		return widgetState.rmlContext.dp_ratio
 	end
-	return 1
+	return 1.0
 end
 
 local function getPanelPixelSize()
@@ -666,8 +674,8 @@ local function getPanelPixelSize()
 end
 
 local function setPanelPosition(panelPixelX, panelPixelY)
-	local roundedPixelX = math.round(panelPixelX)
-	local roundedPixelY = math.round(panelPixelY)
+	local roundedPixelX = math.round(panelPixelX, 0)
+	local roundedPixelY = math.round(panelPixelY, 0)
 	if widgetState.panelPixelX == roundedPixelX and widgetState.panelPixelY == roundedPixelY then
 		return
 	end
@@ -730,8 +738,8 @@ local function savePanelPosition()
 	end
 
 	Spring.SetConfigInt(PANEL.DOCKED_KEY, PANEL.UNDOCKED_VALUE)
-	Spring.SetConfigInt(PANEL.POSITION_X_KEY, math.round(widgetState.panelPixelX / viewSizeX * POSITION_SCALE))
-	Spring.SetConfigInt(PANEL.POSITION_Y_KEY, math.round(widgetState.panelPixelY / viewSizeY * POSITION_SCALE))
+	Spring.SetConfigInt(PANEL.POSITION_X_KEY, math.floor(widgetState.panelPixelX / viewSizeX * POSITION_SCALE + 0.5))
+	Spring.SetConfigInt(PANEL.POSITION_Y_KEY, math.floor(widgetState.panelPixelY / viewSizeY * POSITION_SCALE + 0.5))
 	widgetState.isUndocked = true
 end
 
@@ -792,8 +800,8 @@ local function updateDockGhostPosition()
 	end
 
 	local dockGhostPixelX, dockGhostPixelY = getPanelOriginPosition()
-	widgetState.dataModel.dockGhostLeft = tostring(math.round(dockGhostPixelX)) .. "px"
-	widgetState.dataModel.dockGhostTop = tostring(math.round(dockGhostPixelY)) .. "px"
+	widgetState.dataModel.dockGhostLeft = tostring(math.round(dockGhostPixelX, 0)) .. "px"
+	widgetState.dataModel.dockGhostTop = tostring(math.round(dockGhostPixelY, 0)) .. "px"
 end
 
 local function positionPanelAtOrigin()
@@ -856,7 +864,8 @@ local function updatePanelDrag()
 	local originDeltaX = draggedPanelPixelX - originPanelPixelX
 	local originDeltaY = draggedPanelPixelY - originPanelPixelY
 	local snapDistance = PANEL.ORIGIN_SNAP_DISTANCE_DP * getDpRatio()
-	widgetState.isNearDockOrigin = originDeltaX * originDeltaX + originDeltaY * originDeltaY <= snapDistance * snapDistance
+	widgetState.isNearDockOrigin = originDeltaX * originDeltaX + originDeltaY * originDeltaY
+		<= snapDistance * snapDistance
 
 	if widgetState.isNearDockOrigin then
 		setPanelPosition(originPanelPixelX, originPanelPixelY)
@@ -865,10 +874,7 @@ local function updatePanelDrag()
 	end
 	if
 		widgetState.isExpanded
-		and (
-			widgetState.panelPixelX ~= previousPanelPixelX
-			or widgetState.panelPixelY ~= previousPanelPixelY
-		)
+		and (widgetState.panelPixelX ~= previousPanelPixelX or widgetState.panelPixelY ~= previousPanelPixelY)
 	then
 		widgetState.collapsedPanelPixelY = nil
 	end
@@ -907,14 +913,14 @@ local function positionTooltip()
 		widgetState.tooltipElement = widgetState.document:GetElementById("td-tooltip")
 	end
 	local tooltipWidth = widgetState.tooltipWidthDp * dpRatio
-	local tooltipHeight = widgetState.tooltipElement and widgetState.tooltipElement.offset_height or 0
+	local tooltipHeight = widgetState.tooltipElement and widgetState.tooltipElement.offset_height or 0.0
 	if tooltipHeight < 1 then
 		tooltipHeight = (TOOLTIP.VERTICAL_PADDING_DP + widgetState.tooltipRowCount * TOOLTIP.ROW_HEIGHT_DP) * dpRatio
 	end
 	local tooltipX = math.clamp(mouseX + TOOLTIP.OFFSET_X, 0, math.max(0, viewSizeX - tooltipWidth))
 	local tooltipY = math.clamp(viewSizeY - mouseY + TOOLTIP.OFFSET_Y, 0, math.max(0, viewSizeY - tooltipHeight))
-	local roundedTooltipX = math.round(tooltipX)
-	local roundedTooltipY = math.round(tooltipY)
+	local roundedTooltipX = math.round(tooltipX, 0)
+	local roundedTooltipY = math.round(tooltipY, 0)
 	if widgetState.lastTooltipPixelX == roundedTooltipX and widgetState.lastTooltipPixelY == roundedTooltipY then
 		return
 	end
@@ -945,8 +951,8 @@ local function updateScoreTooltipContent(allyTeamID)
 	end
 
 	local leader = widgetState.allyTeamsByID[widgetState.leaderAllyTeamID] or allyTeam
-	local pointsBelowDeadline = math.max(0, widgetState.deadlineScore - allyTeam.score)
-	local pointsBelowLeader = math.max(0, leader.score - allyTeam.score)
+	local pointsBelowDeadline = math.max(0.0, widgetState.deadlineScore - allyTeam.score)
+	local pointsBelowLeader = math.max(0.0, leader.score - allyTeam.score)
 	local showDeadline = widgetState.hasDeadline and pointsBelowDeadline > 0
 	local showLeader = pointsBelowLeader > 0
 
@@ -1095,8 +1101,7 @@ local function showScoreTooltip(event, allyTeamID, tooltipHeaderSource)
 end
 
 local function showSimpleTooltip(event, tooltipSource)
-	local contentChanged = widgetState.tooltipMode ~= TOOLTIP.MODE_SIMPLE
-		or widgetState.tooltipSource ~= tooltipSource
+	local contentChanged = widgetState.tooltipMode ~= TOOLTIP.MODE_SIMPLE or widgetState.tooltipSource ~= tooltipSource
 	widgetState.tooltipMode = TOOLTIP.MODE_SIMPLE
 	widgetState.tooltipAllyTeamID = nil
 	widgetState.tooltipSource = tooltipSource
@@ -1126,9 +1131,7 @@ local function showTargetTooltip(event)
 	widgetState.tooltipSource = widgetState.isBelowDeadline and TOOLTIP.SOURCE_DEADLINE or nil
 	widgetState.tooltipHeaderSource = nil
 	setTooltipActive(
-		widgetState.isBelowDeadline
-				and updateSimpleTooltipContent()
-			or updateProjectedLeaderTooltipContent()
+		widgetState.isBelowDeadline and updateSimpleTooltipContent() or updateProjectedLeaderTooltipContent()
 	)
 	positionTooltip()
 end
@@ -1159,7 +1162,7 @@ local function getDistributionAllyTeamIDAtMouse()
 	local dpRatio = getDpRatio()
 	local innerLeft = widgetState.panelPixelX
 		+ (PANEL.BORDER_DP + DISTRIBUTION.LEFT_DP + DISTRIBUTION.BORDER_DP) * dpRatio
-	local innerWidth = math.max(1, (DISTRIBUTION.WIDTH_DP - DISTRIBUTION.BORDER_DP * 2) * dpRatio)
+	local innerWidth = math.max(1.0, (DISTRIBUTION.WIDTH_DP - DISTRIBUTION.BORDER_DP * 2) * dpRatio)
 	local fraction = math.clamp((mouseX - innerLeft) / innerWidth, 0, 0.999999)
 
 	for rangeIndex = 1, #distributionHitRanges do
@@ -1266,7 +1269,7 @@ local function applyExpandedScroll()
 		return
 	end
 
-	scrollElement.scroll_left = math.round(getExpandedScrollTarget(clientWidth, scrollWidth))
+	scrollElement.scroll_left = math.floor(getExpandedScrollTarget(clientWidth, scrollWidth) + 0.5)
 	widgetState.pendingVerticalScroll = false
 end
 
@@ -1281,7 +1284,8 @@ local function setExpandedState(isExpanded)
 	widgetState.pendingVerticalScroll = isExpanded
 	if widgetState.dataModel then
 		widgetState.dataModel.isExpanded = widgetState.isExpanded
-		widgetState.dataModel.showHorizontalDangerOutline = widgetState.dataModel.showDangerMark and not widgetState.isExpanded
+		widgetState.dataModel.showHorizontalDangerOutline = widgetState.dataModel.showDangerMark
+			and not widgetState.isExpanded
 	end
 	invalidatePanelOrigin()
 	if not widgetState.isUndocked then
@@ -1291,9 +1295,9 @@ local function setExpandedState(isExpanded)
 		if isExpanded and not wasExpanded then
 			widgetState.collapsedPanelPixelY = widgetState.panelPixelY
 		end
-		local adjustedPanelPixelY = isExpanded
-				and widgetState.panelPixelY - expandedHeightDifference
-			or widgetState.collapsedPanelPixelY or widgetState.panelPixelY + expandedHeightDifference
+		local adjustedPanelPixelY = isExpanded and widgetState.panelPixelY - expandedHeightDifference
+			or widgetState.collapsedPanelPixelY
+			or widgetState.panelPixelY + expandedHeightDifference
 		if not isExpanded then
 			widgetState.collapsedPanelPixelY = nil
 		end
@@ -1351,6 +1355,88 @@ local function selectExpandedScore(event, allyTeamID)
 	stopEventPropagation(event)
 end
 
+---@class TerritorialDominationModel
+---@field isVisible boolean
+---@field isExpanded boolean
+---@field isDragging boolean
+---@field showOriginHalo boolean
+---@field showDockGhost boolean
+---@field showFirstPlaceHalo boolean
+---@field showDangerHalo boolean
+---@field panelLeft string
+---@field panelTop string
+---@field dockGhostLeft string
+---@field dockGhostTop string
+---@field distributionFillRml string
+---@field distributionHeight string
+---@field selectedAllyTeamID integer
+---@field selectedProjectedWidth string
+---@field selectedDarkColor string
+---@field selectedActualWidth string
+---@field selectedColor string
+---@field showDangerMark boolean
+---@field showHorizontalDangerOutline boolean
+---@field dangerOverlayWidth string
+---@field showDeadlineExcessBackfill boolean
+---@field deadlineExcessBackfillWidth string
+---@field hasDeadline boolean
+---@field isBelowDeadline boolean
+---@field deadlineLineBottom string
+---@field deadlineLabel string
+---@field deadlineLabelBottom string
+---@field verticalContentWidth string
+---@field verticalBarsOverflow boolean
+---@field verticalBars table
+---@field footerScore string
+---@field countdownWarning boolean
+---@field countdownPulseColor string
+---@field countdownPulseTransform string
+---@field footerCountdown string
+---@field footerTargetIcon string
+---@field footerTargetValue string
+---@field footerTargetIconColor string
+---@field tooltipVisible boolean
+---@field tooltipLeft string
+---@field tooltipTop string
+---@field tooltipWidth string
+---@field tooltipIsScore boolean
+---@field tooltipIsSimple boolean
+---@field tooltipText string
+---@field tooltipTitle string
+---@field tooltipHeader string
+---@field tooltipPlayersRml string
+---@field tooltipTerritories string
+---@field tooltipGainRate string
+---@field tooltipCurrentScore string
+---@field tooltipProjectedScore string
+---@field tooltipShowDeadline boolean
+---@field tooltipDeadlineDifference string
+---@field tooltipShowLeader boolean
+---@field tooltipShowTeam boolean
+---@field tooltipTeamLabel string
+---@field tooltipTeamColor string
+---@field tooltipLeaderDifference string
+---@field tooltipLeaderColor string
+---@field footerScoreTooltip string
+---@field footerCountdownTooltip string
+---@field dangerMarkTooltip string
+---@field deadlineLineTooltip string
+---@field popupVisible boolean
+---@field popupTitle string
+---@field popupRateText string
+---@field popupDeadlineText string
+---@field beginPanelDrag fun(event: any)
+---@field blockPanelDrag fun(event: any)
+---@field toggleExpanded fun(event: any)
+---@field selectExpandedScore fun(event: any, allyTeamID: any)
+---@field hideTooltip fun(event: any)
+---@field showScoreTooltip fun(event: any, allyTeamID: any, tooltipHeaderSource: any)
+---@field showSimpleTooltip fun(event: any, tooltipSource: any)
+---@field showDistributionTooltip fun(event: any)
+---@field showTargetTooltip fun(event: any)
+---@field showDangerMarkTooltip fun(event: any)
+---@field hideDangerMarkTooltip fun(event: any)
+---@return TerritorialDominationModel
 local function initializeModel()
 	return {
 		isVisible = false,
@@ -1536,11 +1622,10 @@ local function showDeadlinePopup(currentDeadline, maxDeadlines, deadlineScore, a
 		else
 			title = I18N("ui.territorialDomination.deadlinePopup.deadline", { deadlineNumber = currentDeadline })
 		end
-		rateText =
-			I18N(
-				"ui.territorialDomination.deadlinePopup.territoryRate",
-				{ points = formatScore(currentDeadline * widgetState.territoryPointsPerDeadline) }
-			)
+		rateText = I18N(
+			"ui.territorialDomination.deadlinePopup.territoryRate",
+			{ points = formatScore(currentDeadline * widgetState.territoryPointsPerDeadline) }
+		)
 		if deadlineScore > 0 and currentDeadline < maxDeadlines then
 			deadlineText = I18N(
 				"ui.territorialDomination.deadlinePopup.eliminationBelow",
@@ -1653,14 +1738,13 @@ local function readDominationRules()
 	return {
 		currentDeadline = tonumber(Spring.GetGameRulesParam("territorialDominationCurrentDeadline"))
 			or widgetState.currentDeadline,
-		maxDeadlines = tonumber(Spring.GetGameRulesParam("territorialDominationMaxDeadlines"))
-			or DEFAULT_MAX_DEADLINES,
+		maxDeadlines = tonumber(Spring.GetGameRulesParam("territorialDominationMaxDeadlines")) or DEFAULT_MAX_DEADLINES,
 		deadlineEndTimestamp = tonumber(Spring.GetGameRulesParam("territorialDominationDeadlineEndTimestamp")) or 0,
 		deadlineScore = tonumber(Spring.GetGameRulesParam("territorialDominationDeadlineScore")) or 0,
 		totalTerritories = tonumber(Spring.GetGameRulesParam("territorialDominationTotalTerritories")) or 0,
-		territoryPointsPerDeadline =
-			tonumber(Spring.GetGameRulesParam("territorialDominationTerritoryPointsPerDeadline"))
-			or TERRITORY_POINTS_PER_DEADLINE,
+		territoryPointsPerDeadline = tonumber(
+			Spring.GetGameRulesParam("territorialDominationTerritoryPointsPerDeadline")
+		) or TERRITORY_POINTS_PER_DEADLINE,
 	}
 end
 
@@ -1672,9 +1756,7 @@ local function refreshActiveTooltip()
 	local isActive = false
 	if widgetState.tooltipMode == TOOLTIP.MODE_TARGET then
 		widgetState.tooltipSource = widgetState.isBelowDeadline and TOOLTIP.SOURCE_DEADLINE or nil
-		isActive = widgetState.isBelowDeadline
-				and updateSimpleTooltipContent()
-			or updateProjectedLeaderTooltipContent()
+		isActive = widgetState.isBelowDeadline and updateSimpleTooltipContent() or updateProjectedLeaderTooltipContent()
 	elseif widgetState.tooltipMode == TOOLTIP.MODE_SIMPLE then
 		isActive = updateSimpleTooltipContent()
 	elseif widgetState.tooltipMode == TOOLTIP.MODE_SCORE and widgetState.tooltipAllyTeamID then
@@ -1701,28 +1783,24 @@ local function updateDataModel()
 	local deadlineScore = rules.deadlineScore
 	local projectedLeader, highestProjectedScore = findProjectedLeader(allyTeams, selectedAllyTeam)
 	local hasDeadline = currentDeadline < maxDeadlines and deadlineEndTimestamp > 0 and deadlineScore > 0
-	local verticalScale = math.max(1, highestProjectedScore, hasDeadline and deadlineScore or 0)
-	local selectedScore = selectedAllyTeam and selectedAllyTeam.score or 0
-	local selectedProjectedScore = selectedAllyTeam and selectedAllyTeam.projectedScore or 0
+	local verticalScale = math.max(1.0, highestProjectedScore, hasDeadline and deadlineScore or 0.0)
+	local selectedScore = selectedAllyTeam and selectedAllyTeam.score or 0.0
+	local selectedProjectedScore = selectedAllyTeam and selectedAllyTeam.projectedScore or 0.0
 	local isBelowDeadline = hasDeadline and selectedScore < deadlineScore
-	local horizontalScale = math.max(1, isBelowDeadline and deadlineScore or highestProjectedScore)
+	local horizontalScale = math.max(1.0, isBelowDeadline and deadlineScore or highestProjectedScore)
 	local selectedProjectedPercent = math.clamp(selectedProjectedScore / horizontalScale * 100, 0, 100)
-	local deadlineExcessPercent = math.clamp(
-		(selectedProjectedScore - deadlineScore) / math.max(1, deadlineScore) * 100,
-		0,
-		100
-	)
+	local deadlineExcessPercent =
+		math.clamp((selectedProjectedScore - deadlineScore) / math.max(1, deadlineScore) * 100, 0, 100)
 	local distributionFillRml, distributionHitRanges, ascendingAllyTeams = buildDistributionData(allyTeams)
-	local verticalBars, verticalBarsOverflow, verticalContentWidth, localPlayerSlotCenterDp =
-		buildVerticalBars(
-			ascendingAllyTeams,
-			verticalScale,
-			Spring.GetLocalAllyTeamID(),
-			hasDeadline,
-			deadlineScore,
-			currentDeadline,
-			maxDeadlines
-		)
+	local verticalBars, verticalBarsOverflow, verticalContentWidth, localPlayerSlotCenterDp = buildVerticalBars(
+		ascendingAllyTeams,
+		verticalScale,
+		Spring.GetLocalAllyTeamID(),
+		hasDeadline,
+		deadlineScore,
+		currentDeadline,
+		maxDeadlines
+	)
 
 	widgetState.allyTeamsByID = allyTeamsByID
 	widgetState.distributionHitRanges = distributionHitRanges
@@ -1808,16 +1886,11 @@ local function updateCountdownPulse()
 		widgetState.lastExpiredDeadlineTimestamp = widgetState.deadlineEndTimestamp
 		widgetState.updateAccumulator = DATA_UPDATE_INTERVAL
 	end
-	local displayedSecond = widgetState.currentDeadline > widgetState.maxDeadlines
-			and -1
-		or math.ceil(remainingSeconds)
+	local displayedSecond = widgetState.currentDeadline > widgetState.maxDeadlines and -1 or math.ceil(remainingSeconds)
 	if widgetState.lastCountdownSecond ~= displayedSecond then
 		widgetState.lastCountdownSecond = displayedSecond
-		local countdownText = formatCountdown(
-			widgetState.deadlineEndTimestamp,
-			widgetState.currentDeadline,
-			widgetState.maxDeadlines
-		)
+		local countdownText =
+			formatCountdown(widgetState.deadlineEndTimestamp, widgetState.currentDeadline, widgetState.maxDeadlines)
 		if dataModel.footerCountdown ~= countdownText then
 			dataModel.footerCountdown = countdownText
 		end
@@ -1843,14 +1916,12 @@ local function updateCountdownPulse()
 	local pulseAmount = easeCubicInOut(math.clamp(pulseElapsed, 0, 1))
 	local pulseColor = string.format(
 		"rgba(%d, %d, %d, 255)",
-		math.round(math.mix(COUNTDOWN.PULSE_START_RED, COUNTDOWN.PULSE_END_RED, pulseAmount)),
-		math.round(math.mix(COUNTDOWN.PULSE_START_GREEN, COUNTDOWN.PULSE_END_GREEN, pulseAmount)),
-		math.round(math.mix(COUNTDOWN.PULSE_START_BLUE, COUNTDOWN.PULSE_END_BLUE, pulseAmount))
+		math.round(math.mix(COUNTDOWN.PULSE_START_RED, COUNTDOWN.PULSE_END_RED, pulseAmount), 0),
+		math.round(math.mix(COUNTDOWN.PULSE_START_GREEN, COUNTDOWN.PULSE_END_GREEN, pulseAmount), 0),
+		math.round(math.mix(COUNTDOWN.PULSE_START_BLUE, COUNTDOWN.PULSE_END_BLUE, pulseAmount), 0)
 	)
-	local pulseTransform = string.format(
-		"scale(%.4f)",
-		math.mix(COUNTDOWN.PULSE_START_SCALE, COUNTDOWN.PULSE_END_SCALE, pulseAmount)
-	)
+	local pulseTransform =
+		string.format("scale(%.4f)", math.mix(COUNTDOWN.PULSE_START_SCALE, COUNTDOWN.PULSE_END_SCALE, pulseAmount))
 	if dataModel.countdownPulseColor ~= pulseColor then
 		dataModel.countdownPulseColor = pulseColor
 	end
@@ -1866,7 +1937,7 @@ function widget:Initialize()
 	end
 
 	RmlUi.LoadFontFace(EMOJI_FONT_PATH, true)
-	widgetState.dataModel = widgetState.rmlContext:OpenDataModel(DATA_MODEL_NAME, initializeModel(), self)
+	widgetState.dataModel = widgetState.rmlContext:OpenDataModel(DATA_MODEL_NAME, initializeModel(), self) ---@as TerritorialDominationModel?
 	if not widgetState.dataModel then
 		widgetState.rmlContext = nil
 		return false
@@ -1880,7 +1951,7 @@ function widget:Initialize()
 		return false
 	end
 
-	widgetState.document:ReloadStyleSheet(true)
+	widgetState.document:ReloadStyleSheet()
 	widgetState.document:Show()
 	widgetState.document:AddEventListener("mouseup", function()
 		finishPanelDrag()
