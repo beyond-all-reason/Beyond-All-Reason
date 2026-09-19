@@ -762,12 +762,13 @@ local comValue = {}
 -- milestones it made so far.
 ---@type table<integer, table?>
 local strikes = {}
--- [teamID] = how many times the team's milestones changed, and the count a receiver that
--- keeps them was last handed: a team's go over only when they changed.
----@type table<integer, integer>
-local mileVersion = {}
+-- For a receiver that keeps the milestones: [teamID] = the first of the team's that was added
+-- or changed since it was last handed them - only those from there on go over - and whether
+-- it was handed the team's at all yet (all of them go over the first time).
 ---@type table<integer, integer?>
-local sentVersion = {}
+local mileFrom = {}
+---@type table<integer, boolean?>
+local mileSent = {}
 
 -- The metal and geothermal spots: the metal ones as the resource spot finder left them in
 -- the game rules (none on a metal map), the geothermal ones off the map's vents. Read the
@@ -814,6 +815,21 @@ end
 local army = newRoster()
 local producers = newRoster()
 local workers = newRoster()
+-- Build power in use: a slice of the builders is read every frame, every one of them once in
+-- BUILD_FRAMES, and each team's total kept up to date from each builder's last reading - a
+-- live read or a sample takes it as it is, rather than asking the engine about every builder
+-- of every team at once.
+local BUILD_FRAMES = 60
+local buildRoster = newRoster()
+local buildAt = 1
+-- [unitID] = its last reading: build speed times the share of it in use.
+---@type table<integer, number?>
+local buildActive = {}
+-- [teamID] = its builders' readings added up.
+---@type table<integer, number>
+local teamActive = {}
+-- The wind, read once a frame for every team rather than once a team.
+local windFrame, windNow = -1, 0
 -- [teamID] = where its first commander appeared: its start, for a team the game gave none
 -- (an AI's can stay unset).
 ---@type table<integer, number[]?>
@@ -987,6 +1003,7 @@ local function addUnit(unitID, unitDefID, teamID)
 	if buildSpeed then
 		builders[teamID][unitID] = buildSpeed
 		t.buildPower = t.buildPower + buildSpeed
+		enlist(buildRoster, unitID, teamID)
 	end
 end
 
@@ -1020,6 +1037,36 @@ local function removeUnit(unitID, unitDefID)
 	if buildSpeed then
 		builders[teamID][unitID] = nil
 		t.buildPower = t.buildPower - buildSpeed
+		delist(buildRoster, unitID)
+		local was = buildActive[unitID]
+		if was then
+			buildActive[unitID] = nil
+			teamActive[teamID] = (teamActive[teamID] or 0) - was
+		end
+	end
+end
+
+-- This frame's slice of the builders: what each has in use now, into its team's total.
+local function readBuilders()
+	local list = buildRoster.list
+	local n = #list
+	if n == 0 then
+		return
+	end
+	for _ = 1, math.ceil(n / BUILD_FRAMES) do
+		if buildAt > n then
+			buildAt = 1
+		end
+		local unitID = list[buildAt]
+		buildAt = buildAt + 1
+		---@type integer?
+		local teamID = buildRoster.what[unitID]
+		local speed = teamID and builders[teamID][unitID]
+		if speed then
+			local now = speed * (spGetUnitCurrentBuildPower(unitID) or 0)
+			teamActive[teamID] = (teamActive[teamID] or 0) + now - (buildActive[unitID] or 0)
+			buildActive[unitID] = now
+		end
 	end
 end
 
@@ -1029,18 +1076,24 @@ for i = 1, #MILESTONES do
 	MILESTONE_BY_KEY[MILESTONES[i].key] = MILESTONES[i]
 end
 
--- A team's milestones changed: a receiver that keeps them is handed them again.
-local function touched(teamID)
-	mileVersion[teamID] = (mileVersion[teamID] or 0) + 1
+-- A team's milestone was added or changed: a receiver that keeps them is handed the team's
+-- from that one on (`at`, its place in the list; one without is handed all of them).
+local function touched(teamID, mark)
+	local at = mark.at or 1
+	local from = mileFrom[teamID]
+	if not from or at < from then
+		mileFrom[teamID] = at
+	end
 end
 
 -- Adds a milestone, at a frame of its own when given one, and answers it - a strike goes on
 -- filling it in.
 local function addMilestone(teamID, key, frame, unitDefID, unitID)
 	local list = milestones[teamID]
-	local mark = { key = key, frame = frame or spGetGameFrame(), unitDefID = unitDefID, unitID = unitID }
-	list[#list + 1] = mark
-	touched(teamID)
+	local n = #list + 1
+	local mark = { key = key, frame = frame or spGetGameFrame(), unitDefID = unitDefID, unitID = unitID, at = n }
+	list[n] = mark
+	touched(teamID, mark)
 	return mark
 end
 
@@ -1137,6 +1190,7 @@ local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
 		if mark then
 			mark.value, mark.share, mark.cause, mark.side = lost, share, cause, which
 			mark.count, mark.unitDefID = s.units[which], s.top[which].def
+			touched(teamID, mark)
 			changed = true
 			if share >= severest then
 				dearest, severest = which, share
@@ -1144,7 +1198,6 @@ local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
 		end
 	end
 	if changed then
-		touched(teamID)
 		-- The strike as the team that dealt most of it has it.
 		local striker = largest(s.killers)
 		if striker and teams[striker] then
@@ -1159,7 +1212,7 @@ local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
 			raid.value, raid.share, raid.cause, raid.side = s.killers[s.striker] or 0, severest, cause, which
 			raid.count = s.killed[s.striker] or 0
 			raid.victim, raid.unitDefID = teamID, s.top[which] and s.top[which].def
-			touched(s.striker)
+			touched(s.striker, raid)
 		end
 	end
 end
@@ -1173,7 +1226,7 @@ local function nukeLoss(teamID, value)
 	mark.value = (mark.value or 0) + value
 	mark.count = (mark.count or 0) + 1
 	mark.share = math.min(1, mark.value / math.max(1, mark.base or 0))
-	touched(teamID)
+	touched(teamID, mark)
 end
 
 ----------------------------------------------------------------
@@ -1505,7 +1558,7 @@ end
 
 -- Fills `out` with every SAMPLED key for the team, as things stand right now: the
 -- counters from the tally, the economy and the conversion from the engine, and the
--- build power in use from every builder's nano activity.
+-- build power in use from the builders' rolling reading.
 local function readLive(teamID, out)
 	local t = teams[teamID]
 	---@cast t -?
@@ -1526,7 +1579,11 @@ local function readLive(teamID, out)
 	out.actionsPerMinute = apm and apm[teamID] or 0
 	out.metalReclaimed = spGetTeamRulesParam(teamID, "teamStatsReclaimedMetal") or 0
 	out.energyReclaimed = spGetTeamRulesParam(teamID, "teamStatsReclaimedEnergy") or 0
-	out.windSpeed = select(4, spGetWind()) or 0
+	local frame = spGetGameFrame()
+	if windFrame ~= frame then
+		windFrame, windNow = frame, select(4, spGetWind()) or 0
+	end
+	out.windSpeed = windNow
 	local ally = allyOf[teamID]
 	local ranking = GG.AllyTeamRanking
 	out.allyRank = ranking and ranking.GetPlace(ally) or 0
@@ -1547,12 +1604,8 @@ local function readLive(teamID, out)
 			out[key] = src and src[key] or 0
 		end
 	end
-	---@type number
-	local active = 0
-	for unitID, buildSpeed in pairs(builders[teamID]) do
-		active = active + buildSpeed * (spGetUnitCurrentBuildPower(unitID) or 0)
-	end
-	out.buildPowerActive = active
+	-- Kept up to date by the builders' rolling reading; a sum of differences never below none.
+	out.buildPowerActive = math.max(0, teamActive[teamID] or 0)
 	for i = 1, #TALLIED do
 		local key = TALLIED[i]
 		out[key] = t[key]
@@ -1843,12 +1896,14 @@ local function visible(teamID)
 	return allyOf[teamID] == spGetMyAllyTeamID()
 end
 
-local function copyMilestones(teamID)
+-- The team's milestones from `from` (1 by default) on, copied.
+local function copyMilestones(teamID, from)
 	local out = {}
 	local list = milestones[teamID]
-	for i = 1, #list do
+	from = from or 1
+	for i = from, #list do
 		local m = list[i]
-		out[i] = {
+		out[i - from + 1] = {
 			key = m.key,
 			frame = m.frame,
 			unitDefID = m.unitDefID,
@@ -1911,6 +1966,32 @@ local function GetTeamStatsHistory(teamID, from)
 		out.values[key] = run
 	end
 	return out
+end
+
+-- The same samples for LuaUI, flat: the frames, and every sampled key's run one after another
+-- in the order of the info's `keys` - `flat[(k - 1) * #frames + i]` is key k at the i-th frame.
+-- One table where the other shape has one a key: the engine copies every table into LuaUI on
+-- its own, and a period's new sample of every team came to thousands of them in one frame.
+local function historyForLuaUI(teamID, from)
+	if not visible(teamID) then
+		return nil
+	end
+	from = math.max(1, from or 1)
+	local h = history[teamID]
+	local count = #h.frames
+	local frames, flat = {}, {}
+	for n = from, count do
+		frames[n - from + 1] = h.frames[n]
+	end
+	local at = 0
+	for i = 1, #SAMPLED do
+		local src = h.values[SAMPLED[i]]
+		for n = from, count do
+			at = at + 1
+			flat[at] = src[n]
+		end
+	end
+	return { period = SAMPLE_PERIOD, from = from, frames = frames, flat = flat }
 end
 
 -- The team's units by type: for each type the team had, how many it built and their value,
@@ -1992,30 +2073,44 @@ local Script = Script
 -- Which run of the gadget LuaUI's copies come from, handed over with the live values: a new one
 -- when it starts over, the old one when it picked up after a reload where it left off.
 local session = math.random(1, 1000000000)
+-- Each team's table of live values for LuaUI, filled again every hand-over.
+---@type table<integer, table>
+local liveOut = {}
 
 -- LuaUI takes part by registering globals (luaui/Widgets/api_teamstats.lua holds them
 -- for every widget): `TeamStatsLive(all, frame)` is handed the live values of every
 -- team the viewer may see, keyed by team, every LIVE_PERIOD frames for as long as it is
 -- registered; `TeamStatsInfo(info)` is handed the layout while it is registered;
 -- `TeamStatsHistoryRequest()` returning { [teamID] = fromIndex } is answered through
--- `TeamStatsHistory(teamID, history)` with the samples from that index on (see
--- GetTeamStatsHistory for the shape), so a caller holding the first n samples asks for
--- what came after them.
+-- `TeamStatsHistory(teamID, history)` with the samples from that index on (flat: see
+-- historyForLuaUI), so a caller holding the first n samples asks for what came after them.
 -- The live values for LuaUI. A receiver that keeps the milestones - it registers
 -- `TeamStatsMilestoneRequest()`, answering true when it wants all of them again - is handed a
--- team's only when they changed since; any other, every team's every time.
+-- team's only when they changed since, and then only from the first that changed on:
+-- `milestonesFrom` says where they go in the list it keeps, 1 for all of them. A team's
+-- milestones grow with every strike of a long game, and a strike still going changes one
+-- of the last every time it takes a unit. Any other receiver is handed every team's all of
+-- them every time.
 local function liveForLuaUI(keeps)
 	local out = {}
 	for id in pairs(teams) do
 		if visible(id) then
-			local live = readLive(id, {})
+			-- Each team's table used again: the engine copies it into LuaUI, and every key but
+			-- the milestones is written anew.
+			local live = liveOut[id]
+			if not live then
+				live = {}
+				liveOut[id] = live
+			end
+			readLive(id, live)
+			live.milestones, live.milestonesFrom = nil, nil
 			live.dead = dead[id] or false
-			local version = mileVersion[id] or 0
-			if not keeps or sentVersion[id] ~= version then
+			if not keeps then
 				live.milestones = copyMilestones(id)
-				if keeps then
-					sentVersion[id] = version
-				end
+			elseif mileFrom[id] or not mileSent[id] then
+				local from = mileSent[id] and mileFrom[id] or 1
+				live.milestones, live.milestonesFrom = copyMilestones(id, from), from
+				mileFrom[id], mileSent[id] = nil, true
 			end
 			out[id] = live
 		end
@@ -2027,7 +2122,7 @@ local function serveLuaUI(frame)
 	if Script.LuaUI("TeamStatsLive") then
 		local keeps = Script.LuaUI("TeamStatsMilestoneRequest")
 		if keeps and Script.LuaUI.TeamStatsMilestoneRequest() then
-			sentVersion = {}
+			mileSent = {}
 		end
 		Script.LuaUI.TeamStatsLive(liveForLuaUI(keeps), frame, session)
 	end
@@ -2051,7 +2146,7 @@ local function serveLuaUI(frame)
 		local wanted = Script.LuaUI.TeamStatsHistoryRequest()
 		if type(wanted) == "table" then
 			for teamID, from in pairs(wanted) do
-				local h = GetTeamStatsHistory(teamID, from)
+				local h = historyForLuaUI(teamID, from)
 				if h then
 					Script.LuaUI.TeamStatsHistory(teamID, h)
 				end
@@ -2287,11 +2382,12 @@ local function restore(data)
 		local got = {}
 		for i = 1, #s.marks do
 			got[s.marks[i].key] = true
+			s.marks[i].at = i
 		end
 		reached[teamID] = got
 		unitStats[teamID] = s.units
 		lastSample[teamID] = (s.lastSample and dead[teamID]) and true or nil
-		mileVersion[teamID] = (mileVersion[teamID] or 0) + 1
+		mileSent[teamID] = nil
 	end
 	gameOver = sound.gameOver
 	session = sound.session or session
@@ -2301,6 +2397,7 @@ end
 function gadget:GameFrame(frame)
 	if frame > 0 then
 		scanStep(frame)
+		readBuilders()
 	end
 	if frame % SAMPLE_PERIOD == 0 and not gameOver then
 		sample(frame)

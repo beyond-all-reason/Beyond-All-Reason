@@ -36,7 +36,9 @@ end
 -- A live table is keyed by team and holds the keys `getInfo().keys` plus `dead` and
 -- `milestones` ({ key, frame, unitDefID, unitID }, in order). A history is
 -- { period, from, frames = {...}, values = { [key] = {...} } } from `fromIndex` on, so a
--- caller holding the first n samples asks for what came after them. A team's units are
+-- caller holding the first n samples asks for what came after them. The gadget hands the
+-- values over flat - `flat[(k - 1) * #frames + i]` is `keys[k]` at the i-th frame, `keys`
+-- being the layout's - and `values` is made from them the first time it is read. A team's units are
 -- { [unitDefID] = { built, builtValue, lost, lostValue, killed, damage } }: how many of
 -- the type it built and their value, how many an enemy killed and their value, the value
 -- they destroyed and the damage they dealt. `reset` says the gadget started over - a reload
@@ -68,7 +70,8 @@ local info
 local milestonesSeen = {}
 -- Each team's milestones as last handed over: the gadget leaves out a team's while they have
 -- not changed, once this widget says it keeps them - by being there to ask whether it wants
--- all of them again (it does when it begins to listen).
+-- all of them again (it does when it begins to listen) - and then hands over only those
+-- from the first that changed on, `milestonesFrom` saying where they go.
 ---@type table<integer, table>
 local keptMilestones = {}
 local milestonesWanted = true
@@ -118,8 +121,30 @@ local function receiveLive(all, frame, from)
 		session = from
 	end
 	for teamID, team in pairs(all) do
-		if team.milestones then
-			keptMilestones[teamID] = team.milestones
+		local marks = team.milestones
+		if marks then
+			local from = team.milestonesFrom
+			if from and from > 1 then
+				-- The ones before `from` are the ones kept; a new list, as a whole one would be.
+				local kept = keptMilestones[teamID]
+				if kept and #kept >= from - 1 then
+					local merged = {}
+					for i = 1, from - 1 do
+						merged[i] = kept[i]
+					end
+					for i = 1, #marks do
+						merged[from - 1 + i] = marks[i]
+					end
+					marks = merged
+				else
+					-- Out of step: the ones kept for now, and all of them asked for again.
+					marks = kept
+					milestonesWanted = true
+				end
+				team.milestones = marks
+			end
+			team.milestonesFrom = nil
+			keptMilestones[teamID] = marks
 		else
 			team.milestones = keptMilestones[teamID]
 		end
@@ -178,7 +203,30 @@ local function historyRequest()
 	return wanted
 end
 
+-- A flat history's runs by key, made when a subscriber reads `values`.
+local lazyValues = {
+	__index = function(h, field)
+		if field ~= "values" or not h.flat or not h.keys then
+			return nil
+		end
+		local values, flat, keys, n = {}, h.flat, h.keys, #h.frames
+		for k = 1, #keys do
+			local run, base = {}, (k - 1) * n
+			for i = 1, n do
+				run[i] = flat[base + i]
+			end
+			values[keys[k]] = run
+		end
+		rawset(h, "values", values)
+		return values
+	end,
+}
+
 local function receiveHistory(teamID, history)
+	if type(history) == "table" and history.flat then
+		history.keys = history.keys or (info and info.keys)
+		setmetatable(history, lazyValues)
+	end
 	for _, callbacks in pairs(subscribers) do
 		if callbacks.history then
 			callbacks.history(teamID, history)

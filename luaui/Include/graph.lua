@@ -100,6 +100,8 @@
 ---@field barOffset number?
 ---@field barScrolls boolean?
 ---@field barKey any
+---@field slopes number[]?
+---@field secants number[]?
 local Graph = {}
 Graph.__index = Graph
 
@@ -188,6 +190,9 @@ local DEFAULTS = {
 	-- come from the pixel distance when left nil.
 	smooth = false,
 	smoothSteps = nil,
+	-- A point hit takes the tables of the one before it, for a caller that uses a hit only
+	-- until its next hitTest: a hover sweeping over a chart made a table a series a frame.
+	reuseHits = false,
 	lineWidth = 2,
 	-- A faint fill under each line.
 	fill = false,
@@ -348,30 +353,24 @@ end
 
 -- Monotone cubic interpolation (Fritsch-Carlson): a curve through the samples that never
 -- overshoots them, so a value that never went above 10 is never drawn above 10.
-local function monotoneSlopes(xs, ys)
-	local n = #xs
-	---@type table<integer, number>
-	local m = {}
-	if n < 2 then
-		m[1] = 0
-		return m
-	end
-	---@type table<integer, number>
-	local d = {}
-	for i = 1, n - 1 do
+-- The slopes of samples first..last of xs/ys, three or more, into `m` at the same indices;
+-- `d` takes the secants between them. Both are the caller's to keep and use again: what they
+-- hold outside the range is never read.
+local function slopesInto(m, d, xs, ys, first, last)
+	for i = first, last - 1 do
 		local dx = xs[i + 1] - xs[i]
 		d[i] = dx > 0 and (ys[i + 1] - ys[i]) / dx or 0
 	end
-	m[1] = d[1]
-	m[n] = d[n - 1]
-	for i = 2, n - 1 do
+	m[first] = d[first]
+	m[last] = d[last - 1]
+	for i = first + 1, last - 1 do
 		if d[i - 1] * d[i] <= 0 then
 			m[i] = 0
 		else
 			m[i] = (d[i - 1] + d[i]) * 0.5
 		end
 	end
-	for i = 1, n - 1 do
+	for i = first, last - 1 do
 		if d[i] == 0 then
 			m[i] = 0
 			m[i + 1] = 0
@@ -386,7 +385,6 @@ local function monotoneSlopes(xs, ys)
 			end
 		end
 	end
-	return m
 end
 
 -- The y at `x` between samples i and i + 1, from the slopes.
@@ -404,6 +402,94 @@ local function hermite(xs, ys, m, i, x)
 	local h01 = -2 * t3 + 3 * t2
 	local h11 = t3 - t2
 	return h00 * ys[i] + h10 * h * m[i] + h01 * ys[i + 1] + h11 * h * m[i + 1]
+end
+
+----------------------------------------------------------------
+-- Vertex emitters
+----------------------------------------------------------------
+
+-- What gl.BeginEnd calls, handed what it draws as arguments: named once, rather than a
+-- closure made for every primitive of every bake (and every hover frame).
+local function emitStrip(run, sx, sy)
+	for k = 1, #run - 1, 2 do
+		glVertex(sx(run[k]), sy(run[k + 1]))
+	end
+end
+
+local function emitFill(run, sx, sy, bottom)
+	for k = 1, #run - 1, 2 do
+		local px = sx(run[k])
+		glVertex(px, bottom)
+		glVertex(px, sy(run[k + 1]))
+	end
+end
+
+local function emitSquare(px, py, w)
+	glVertex(px - w, py - w)
+	glVertex(px + w, py - w)
+	glVertex(px + w, py + w)
+	glVertex(px - w, py + w)
+end
+
+local function emitLine(x1, y1, x2, y2)
+	glVertex(x1, y1)
+	glVertex(x2, y2)
+end
+
+local function emitBand(pxs, count, own, under, cap, sy)
+	for k = 1, count do
+		local px = pxs[k]
+		glVertex(px, sy(under and under[k] or 0))
+		glVertex(px, sy(mathMin(cap, own[k] or 0)))
+	end
+end
+
+local function emitSeam(pxs, count, own, sy)
+	for k = 1, count do
+		glVertex(pxs[k], sy(own[k] or 0))
+	end
+end
+
+local function emitFan(corners)
+	for k = 1, #corners - 1, 2 do
+		glVertex(corners[k], corners[k + 1])
+	end
+end
+
+-- A picture's cut-corner outline with its texture laid over it, zoomed in by z.
+local function emitPictureFan(corners, x1, y1, w, h, z)
+	for k = 1, #corners - 1, 2 do
+		local x, y = corners[k], corners[k + 1]
+		glTexCoord(z + (x - x1) / w * (1 - 2 * z), 1 - z - (y - y1) / h * (1 - 2 * z))
+		glVertex(x, y)
+	end
+end
+
+-- The unit circle, worked out once: 16 points round (a round mark or badge) and 12 steps
+-- round with both ends (the fan of a dot under the cursor).
+local CIRCLE16, CIRCLE12 = {}, {}
+for k = 0, 15 do
+	local ang = k / 16 * 2 * mathPi
+	CIRCLE16[#CIRCLE16 + 1] = mathCos(ang)
+	CIRCLE16[#CIRCLE16 + 1] = mathSin(ang)
+end
+for k = 0, 12 do
+	local ang = k / 12 * 2 * mathPi
+	CIRCLE12[#CIRCLE12 + 1] = mathCos(ang)
+	CIRCLE12[#CIRCLE12 + 1] = mathSin(ang)
+end
+
+local function emitEllipse(cx, cy, rx, ry)
+	for k = 1, #CIRCLE16 - 1, 2 do
+		glVertex(cx + CIRCLE16[k] * rx, cy + CIRCLE16[k + 1] * ry)
+	end
+end
+
+local function emitDot(cx, cy, r)
+	glVertex(cx, cy)
+	for k = 1, #CIRCLE12 - 1, 2 do
+		glVertex(cx + CIRCLE12[k] * r, cy + CIRCLE12[k + 1] * r)
+	end
 end
 
 ----------------------------------------------------------------
@@ -1100,56 +1186,66 @@ function Graph:curveRuns(ys, smooth, step)
 	local xs = self.xs
 	local cfg = self.cfg
 	local runs = {}
-	local run = {}
-	local rxs, rys = {}, {}
-	local function flush()
-		if #rxs > 0 then
-			if step then
-				-- Held until the next sample, where it moves at once.
-				for i = 1, #rxs do
-					if i > 1 then
-						run[#run + 1] = rxs[i]
-						run[#run + 1] = rys[i - 1]
-					end
-					run[#run + 1] = rxs[i]
-					run[#run + 1] = rys[i]
+	local n = #xs
+	local i = 1
+	-- Each stretch of samples with a value, first..last, read where it is rather than copied.
+	while i <= n do
+		while i <= n and not ys[i] do
+			i = i + 1
+		end
+		if i > n then
+			break
+		end
+		local first = i
+		while i <= n and ys[i] do
+			i = i + 1
+		end
+		local last = i - 1
+		local run, r = {}, 0
+		if step then
+			-- Held until the next sample, where it moves at once.
+			for k = first, last do
+				if k > first then
+					run[r + 1], run[r + 2] = xs[k], ys[k - 1]
+					r = r + 2
 				end
-			elseif smooth and #rxs > 2 then
-				local m = monotoneSlopes(rxs, rys)
-				local steps = cfg.smoothSteps
-				if not steps then
-					local px = (self.sx(rxs[#rxs]) - self.sx(rxs[1])) / mathMax(1, #rxs - 1)
-					steps = mathMax(1, mathMin(10, mathFloor(px / 3)))
-				end
-				for i = 1, #rxs - 1 do
-					for k = 0, steps - 1 do
-						local x = rxs[i] + (rxs[i + 1] - rxs[i]) * k / steps
-						run[#run + 1] = x
-						run[#run + 1] = hermite(rxs, rys, m, i, x)
-					end
-				end
-				run[#run + 1] = rxs[#rxs]
-				run[#run + 1] = rys[#rys]
-			else
-				for i = 1, #rxs do
-					run[#run + 1] = rxs[i]
-					run[#run + 1] = rys[i]
+				run[r + 1], run[r + 2] = xs[k], ys[k]
+				r = r + 2
+			end
+		elseif smooth and last - first > 1 then
+			local m, d = self.slopes, self.secants
+			if not m then
+				m, d = {}, {}
+				self.slopes, self.secants = m, d
+			end
+			slopesInto(m, d, xs, ys, first, last)
+			local steps = cfg.smoothSteps
+			if not steps then
+				local xFirst, xLast = xs[first], xs[last]
+				---@cast xFirst -?
+				---@cast xLast -?
+				local px = (self.sx(xLast) - self.sx(xFirst)) / mathMax(1, last - first)
+				steps = mathMax(1, mathMin(10, mathFloor(px / 3)))
+			end
+			for k = first, last - 1 do
+				local x1, x2 = xs[k], xs[k + 1]
+				---@cast x1 -?
+				---@cast x2 -?
+				for s = 0, steps - 1 do
+					local x = x1 + (x2 - x1) * s / steps
+					run[r + 1], run[r + 2] = x, hermite(xs, ys, m, k, x)
+					r = r + 2
 				end
 			end
-			runs[#runs + 1] = run
-		end
-		run, rxs, rys = {}, {}, {}
-	end
-	for i = 1, #xs do
-		local y = ys[i]
-		if y then
-			rxs[#rxs + 1] = xs[i]
-			rys[#rys + 1] = y
+			run[r + 1], run[r + 2] = xs[last], ys[last]
 		else
-			flush()
+			for k = first, last do
+				run[r + 1], run[r + 2] = xs[k], ys[k]
+				r = r + 2
+			end
 		end
+		runs[#runs + 1] = run
 	end
-	flush()
 	return runs
 end
 
@@ -1327,13 +1423,7 @@ function Graph:drawLines()
 			local a = alphaOf(self, p.index, look.fillAlpha)
 			glColor(c[1], c[2], c[3], a)
 			for _, run in ipairs(p.runs) do
-				glBeginEnd(GL_TRIANGLE_STRIP, function()
-					for k = 1, #run - 1, 2 do
-						local px = sx(run[k])
-						glVertex(px, area.bottom)
-						glVertex(px, sy(run[k + 1]))
-					end
-				end)
+				glBeginEnd(GL_TRIANGLE_STRIP, emitFill, run, sx, sy, area.bottom)
 			end
 		end
 	end
@@ -1409,19 +1499,9 @@ function Graph:strokeRuns(runs, width)
 	local sx, sy = self.sx, self.sy
 	for _, run in ipairs(runs) do
 		if #run == 2 then
-			local px, py = sx(run[1]), sy(run[2])
-			glBeginEnd(GL_QUADS, function()
-				glVertex(px - width, py - width)
-				glVertex(px + width, py - width)
-				glVertex(px + width, py + width)
-				glVertex(px - width, py + width)
-			end)
+			glBeginEnd(GL_QUADS, emitSquare, sx(run[1]), sy(run[2]), width)
 		else
-			glBeginEnd(GL_LINE_STRIP, function()
-				for k = 1, #run - 1, 2 do
-					glVertex(sx(run[k]), sy(run[k + 1]))
-				end
-			end)
+			glBeginEnd(GL_LINE_STRIP, emitStrip, run, sx, sy)
 		end
 	end
 end
@@ -1497,14 +1577,7 @@ function Graph:drawStacked()
 		local own, under = tops[si], tops[si - 1]
 		---@cast own -?
 		glColor(c[1], c[2], c[3], a)
-		glBeginEnd(GL_TRIANGLE_STRIP, function()
-			for k = 1, count do
-				local px = pxs[k]
-				---@cast px -?
-				glVertex(px, sy(under and under[k] or 0))
-				glVertex(px, sy(mathMin(cap, own[k] or 0)))
-			end
-		end)
+		glBeginEnd(GL_TRIANGLE_STRIP, emitBand, pxs, count, own, under, cap, sy)
 	end
 
 	-- The seams between the bands, so neighbours in similar colours stay apart.
@@ -1514,15 +1587,7 @@ function Graph:drawStacked()
 	glLineWidth(1)
 	glColor(0, 0, 0, 0.25)
 	for si = 1, n - 1 do
-		local own = tops[si]
-		---@cast own -?
-		glBeginEnd(GL_LINE_STRIP, function()
-			for k = 1, count do
-				local px = pxs[k]
-				---@cast px -?
-				glVertex(px, sy(own[k] or 0))
-			end
-		end)
+		glBeginEnd(GL_LINE_STRIP, emitSeam, pxs, count, tops[si], sy)
 	end
 	if glSmoothing then
 		glSmoothing(false, false, false)
@@ -1579,23 +1644,24 @@ local function chamfered(x1, y1, x2, y2, cut)
 	}
 end
 
+-- The band between two cut-corner outlines, a quad an edge.
+local function emitRing(o, i)
+	for k = 1, 8 do
+		local a = k * 2 - 1
+		local b = (k % 8) * 2 + 1
+		glVertex(o[a], o[a + 1])
+		glVertex(o[b], o[b + 1])
+		glVertex(i[b], i[b + 1])
+		glVertex(i[a], i[a + 1])
+	end
+end
+
 -- A band `w` wide along the inside of a cut-corner rect's edge. The diagonal sides stay
 -- as thick as the straight ones: moved in by w along its normal, a diagonal edge cuts
 -- each axis w * (2 - sqrt 2) less.
 local function chamferRing(x1, y1, x2, y2, cut, w)
 	local inner = mathMax(0, cut - w * 0.5857864376)
-	local o = chamfered(x1, y1, x2, y2, cut)
-	local i = chamfered(x1 + w, y1 + w, x2 - w, y2 - w, inner)
-	glBeginEnd(GL_QUADS, function()
-		for k = 1, 8 do
-			local a = k * 2 - 1
-			local b = (k % 8) * 2 + 1
-			glVertex(o[a], o[a + 1])
-			glVertex(o[b], o[b + 1])
-			glVertex(i[b], i[b + 1])
-			glVertex(i[a], i[a + 1])
-		end
-	end)
+	glBeginEnd(GL_QUADS, emitRing, chamfered(x1, y1, x2, y2, cut), chamfered(x1 + w, y1 + w, x2 - w, y2 - w, inner))
 end
 
 -- How much of each corner a marker picture this many pixels wide loses.
@@ -1626,21 +1692,26 @@ local function shapeCorners(shape, x1, y1, x2, y2)
 end
 
 local function fillCorners(corners)
-	glBeginEnd(GL_TRIANGLE_FAN, function()
-		for k = 1, #corners - 1, 2 do
-			glVertex(corners[k], corners[k + 1])
-		end
-	end)
+	glBeginEnd(GL_TRIANGLE_FAN, emitFan, corners)
+end
+
+-- A shape filled in a rect: the round one straight off the unit circle, no outline made.
+local function fillShape(shape, x1, y1, x2, y2)
+	if shape == "up" or shape == "down" or shape == "diamond" then
+		fillCorners(shapeCorners(shape, x1, y1, x2, y2))
+	else
+		glBeginEnd(GL_TRIANGLE_FAN, emitEllipse, (x1 + x2) * 0.5, (y1 + y2) * 0.5, (x2 - x1) * 0.5, (y2 - y1) * 0.5)
+	end
 end
 
 -- A badge's plate and sign, centred on cx, cy with radius r: a dark rim, the plate in its
 -- colour, the sign in white - a plus, a minus, a cross or an arrowhead up.
 local function drawBadgeAt(badge, cx, cy, r)
 	glColor(0, 0, 0, 0.8)
-	fillCorners(shapeCorners("dot", cx - r - 1, cy - r - 1, cx + r + 1, cy + r + 1))
+	fillShape("dot", cx - r - 1, cy - r - 1, cx + r + 1, cy + r + 1)
 	local c = badge.color or { 1, 1, 1 }
 	glColor(c[1], c[2], c[3], 1)
-	fillCorners(shapeCorners("dot", cx - r, cy - r, cx + r, cy + r))
+	fillShape("dot", cx - r, cy - r, cx + r, cy + r)
 	glColor(1, 1, 1, 1)
 	local s = r * 0.55
 	local t = mathMax(0.75, r * 0.17)
@@ -1672,7 +1743,7 @@ local function drawBadgeAt(badge, cx, cy, r)
 			glVertex(cx + d - e, cy - d - e)
 		end)
 	elseif sign == "up" then
-		fillCorners(shapeCorners("up", cx - s, cy - s * 0.8, cx + s, cy + s * 0.9))
+		fillShape("up", cx - s, cy - s * 0.8, cx + s, cy + s * 0.9)
 	end
 end
 
@@ -1685,9 +1756,9 @@ end
 
 function Graph.drawShapeAt(shape, cx, cy, r, color)
 	glColor(0, 0, 0, 0.75)
-	fillCorners(shapeCorners(shape, cx - r - 1, cy - r - 1, cx + r + 1, cy + r + 1))
+	fillShape(shape, cx - r - 1, cy - r - 1, cx + r + 1, cy + r + 1)
 	glColor(color[1], color[2], color[3], color[4] or 1)
-	fillCorners(shapeCorners(shape, cx - r, cy - r, cx + r, cy + r))
+	fillShape(shape, cx - r, cy - r, cx + r, cy + r)
 	glColor(1, 1, 1, 1)
 end
 
@@ -1759,17 +1830,14 @@ function Graph:drawShape(m, x1, y1, x2, y2)
 	local look = self.cfg.look
 	if m.ty and mathAbs(m.ty - m.py) > 1 then
 		glColor(look.markerTick)
-		glBeginEnd(GL_LINES, function()
-			glVertex(m.px + 0.5, m.py)
-			glVertex(m.px + 0.5, m.ty)
-		end)
+		glBeginEnd(GL_LINES, emitLine, m.px + 0.5, m.py, m.px + 0.5, m.ty)
 	end
 	local rim = mathMax(1, mathFloor((x2 - x1) * 0.14))
 	glColor(0, 0, 0, 0.75)
-	fillCorners(shapeCorners(marker.shape, x1 - rim, y1 - rim, x2 + rim, y2 + rim))
+	fillShape(marker.shape, x1 - rim, y1 - rim, x2 + rim, y2 + rim)
 	local c = marker.color or { 1, 1, 1 }
 	glColor(c[1], c[2], c[3], 1)
-	fillCorners(shapeCorners(marker.shape, x1, y1, x2, y2))
+	fillShape(marker.shape, x1, y1, x2, y2)
 	return x1, y1, x2, y2
 end
 
@@ -1790,10 +1858,7 @@ function Graph:drawMarker(m, scale, noBadge)
 	end
 	-- A tick from the picture down to the plot, or to the point it sits on.
 	glColor(look.markerTick)
-	glBeginEnd(GL_LINES, function()
-		glVertex(m.cx + 0.5, y1)
-		glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
-	end)
+	glBeginEnd(GL_LINES, emitLine, m.cx + 0.5, y1, m.px + 0.5, m.onSeries and m.py or self.area.bottom)
 	self:drawPicture(marker, x1, y1, x2, y2)
 	if marker.badge and not noBadge then
 		self:drawBadge(marker.badge, x1, y1, x2, y2)
@@ -1811,11 +1876,7 @@ function Graph:drawPicture(marker, x1, y1, x2, y2)
 	local backdrop = marker.backdrop
 	if backdrop then
 		glColor(backdrop[1], backdrop[2], backdrop[3], backdrop[4] or 1)
-		glBeginEnd(GL_TRIANGLE_FAN, function()
-			for k = 1, 16, 2 do
-				glVertex(corners[k], corners[k + 1])
-			end
-		end)
+		glBeginEnd(GL_TRIANGLE_FAN, emitFan, corners)
 	end
 	if marker.texture then
 		-- Zoomed in a little, the more the smaller the picture: a unit picture has air
@@ -1825,22 +1886,12 @@ function Graph:drawPicture(marker, x1, y1, x2, y2)
 		local w, h = mathMax(1, x2 - x1), mathMax(1, y2 - y1)
 		glColor(1, 1, 1, 1)
 		glTexture(marker.texture)
-		glBeginEnd(GL_TRIANGLE_FAN, function()
-			for k = 1, 16, 2 do
-				local x, y = corners[k], corners[k + 1]
-				glTexCoord(z + (x - x1) / w * (1 - 2 * z), 1 - z - (y - y1) / h * (1 - 2 * z))
-				glVertex(x, y)
-			end
-		end)
+		glBeginEnd(GL_TRIANGLE_FAN, emitPictureFan, corners, x1, y1, w, h, z)
 		glTexture(false)
 	else
 		local c = marker.color or { 1, 1, 1 }
 		glColor(c[1], c[2], c[3], 0.9)
-		glBeginEnd(GL_TRIANGLE_FAN, function()
-			for k = 1, 16, 2 do
-				glVertex(corners[k], corners[k + 1])
-			end
-		end)
+		glBeginEnd(GL_TRIANGLE_FAN, emitFan, corners)
 	end
 	-- The frame, in the marker's own colour when it has one (a team's), following the cut
 	-- corners.
@@ -2457,13 +2508,7 @@ function Graph:drawOverlay()
 		for _, e in ipairs(hit.entries) do
 			local c = e.color
 			glColor(c[1], c[2], c[3], 1)
-			glBeginEnd(GL_TRIANGLE_FAN, function()
-				glVertex(hit.px, e.py)
-				for k = 0, 12 do
-					local ang = k / 12 * 2 * mathPi
-					glVertex(hit.px + mathCos(ang) * r, e.py + mathSin(ang) * r)
-				end
-			end)
+			glBeginEnd(GL_TRIANGLE_FAN, emitDot, hit.px, e.py, r)
 		end
 		glColor(1, 1, 1, 1)
 		return
@@ -2589,30 +2634,34 @@ function Graph:hitTest(mx, my)
 		return last
 	end
 	local px = self.sx(self.xs[i] or 0)
-	local entries = {}
+	-- A series an entry, in the tables of the chart's last point hit when the caller lets it
+	-- go at every hitTest (`reuseHits`).
+	local old = cfg.reuseHits and self.memoHit or nil
+	local entries = old and old.kind == "point" and old.entries or {}
+	local n = 0
 	for si, p in ipairs(self.prepared) do
 		local v = p.ys[i]
-		if cfg.kind == "stacked" then
-			local share = p.shares and p.shares[i] or 0
-			local part = cfg.stackShares == false and mathMax(0, v or 0) or share
-			entries[#entries + 1] = {
-				series = si,
-				name = p.name,
-				color = p.color,
-				value = v or 0,
-				share = share,
-				py = self.sy(self:stackTop(si, i) - part * 0.5),
-			}
-		elseif v then
-			entries[#entries + 1] = {
-				series = si,
-				name = p.name,
-				color = p.color,
-				value = v,
-				raw = p.raw and p.raw[i] or nil,
-				py = self.sy(v),
-			}
+		if cfg.kind == "stacked" or v then
+			n = n + 1
+			local e = entries[n]
+			if not e then
+				e = {}
+				entries[n] = e
+			end
+			e.series, e.name, e.color = si, p.name, p.color
+			if cfg.kind == "stacked" then
+				local share = p.shares and p.shares[i] or 0
+				local part = cfg.stackShares == false and mathMax(0, v or 0) or share
+				e.value, e.share, e.raw = v or 0, share, nil
+				e.py = self.sy(self:stackTop(si, i) - part * 0.5)
+			else
+				e.value, e.share, e.raw = v, nil, p.raw and p.raw[i] or nil
+				e.py = self.sy(v)
+			end
 		end
+	end
+	for k = #entries, n + 1, -1 do
+		entries[k] = nil
 	end
 	return remember(self, {
 		kind = "point",
