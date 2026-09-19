@@ -234,6 +234,17 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.leg_amph_gauss.range = 320
 	end
 
+	--if name == "armack" or name == "corack" or name == "legack" 
+	--or name == "armacv" or name == "coracv" or name == "legacv" 
+	--then
+	--	uDef.workertime = math.ceil(uDef.workertime * 1.2 / 10) * 10
+	--end
+	if name == "armmoho" or name == "cormoho" or name == "legmoho" then
+		uDef.energycost = uDef.energycost + 3900
+	--	uDef.buildtime = uDef.buildtime + 2000
+		uDef.health = math.ceil(uDef.health * 0.8 / 100) * 100
+	end
+
 	return uDef
 
 end
