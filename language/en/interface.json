@@ -3133,22 +3133,26 @@
 		},
 		"territorial_domination_config": {
 			"name": "Territorial Domination Length",
-			"desc": "Configures the number of five-minute Deadlines and the total time before final score resolution.",
+			"desc": "Configures the number of six-minute Deadlines and the total time before final score resolution.",
 			"items": {
-				"20_minutes": {
-					"name": "4 Deadlines, 20 Minutes",
+				"18_minutes": {
+					"name": "3 Deadlines, 18 Minutes",
 					"desc": "Early tech emphasis, comebacks very likely, elimination unlikely."
 				},
-				"25_minutes": {
-					"name": "5 Deadlines, 25 Minutes(Default)",
-					"desc": "Mid/late-game tech, comebacks a significant factor, eliminations uncommon"
+				"24_minutes": {
+					"name": "4 Deadlines, 24 Minutes",
+					"desc": "Early/mid-game tech, comebacks likely, elimination uncommon"
 				},
 				"30_minutes": {
-					"name": "6 Deadlines, 30 Minutes",
+					"name": "5 Deadlines, 30 Minutes(Default)",
+					"desc": "Mid/late-game tech, comebacks a significant factor, eliminations uncommon"
+				},
+				"42_minutes": {
+					"name": "7 Deadlines, 42 Minutes",
 					"desc": "Late-game tech, comebacks less significant, eliminations likely"
 				},
-				"35_minutes": {
-					"name": "7 Deadlines, 35 Minutes",
+				"60_minutes": {
+					"name": "10 Deadlines, 60 Minutes",
 					"desc": "Super lategame tech, eliminations extremely likely"
 				}
 			}

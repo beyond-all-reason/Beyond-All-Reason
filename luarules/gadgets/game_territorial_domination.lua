@@ -19,27 +19,32 @@ if modOptions.deathmode ~= "territorial_domination" or not isSynced then
 	return false
 end
 
+local MINUTES_PER_DEADLINE = 6
 local TERRITORIAL_DOMINATION_CONFIG = {
-	["20_minutes"] = {
-		maxDeadlines = 4,
-		minutesPerDeadline = 5,
+	["18_minutes"] = {
+		maxDeadlines = 3,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
 	},
-	["25_minutes"] = {
-		maxDeadlines = 5,
-		minutesPerDeadline = 5,
+	["24_minutes"] = {
+		maxDeadlines = 4,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
 	},
 	["30_minutes"] = {
-		maxDeadlines = 6,
-		minutesPerDeadline = 5,
+		maxDeadlines = 5,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
 	},
-	["35_minutes"] = {
+	["42_minutes"] = {
 		maxDeadlines = 7,
-		minutesPerDeadline = 5,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
+	},
+	["60_minutes"] = {
+		maxDeadlines = 10,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
 	},
 }
 
 local SELECTED_CONFIG = TERRITORIAL_DOMINATION_CONFIG[modOptions.territorial_domination_config]
-	or TERRITORIAL_DOMINATION_CONFIG["25_minutes"]
+	or TERRITORIAL_DOMINATION_CONFIG["30_minutes"]
 local MAX_DEADLINES = SELECTED_CONFIG.maxDeadlines
 local DEADLINE_SECONDS = 60 * SELECTED_CONFIG.minutesPerDeadline
 local DEADLINE_SCORE_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.2

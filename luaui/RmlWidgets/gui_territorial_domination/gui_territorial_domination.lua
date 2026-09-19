@@ -127,10 +127,11 @@ local DEADLINE_LABEL_OFFSET_DP = 10
 local TROPHY_ICON = "🏆"
 local KEY_ESCAPE = 27
 local DEADLINES_BY_CONFIG = {
-	["20_minutes"] = 4,
-	["25_minutes"] = 5,
-	["30_minutes"] = 6,
-	["35_minutes"] = 7,
+	["18_minutes"] = 3,
+	["24_minutes"] = 4,
+	["30_minutes"] = 5,
+	["42_minutes"] = 7,
+	["60_minutes"] = 10,
 }
 local DEFAULT_MAX_DEADLINES = DEADLINES_BY_CONFIG[MOD_OPTIONS.territorial_domination_config] or 5
 local DEADLINE_SCORE_MULTIPLIER = tonumber(MOD_OPTIONS.territorial_domination_elimination_threshold_multiplier) or 1.2
