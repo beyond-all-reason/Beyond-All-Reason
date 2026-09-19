@@ -16,7 +16,6 @@ local CMD_SHARE_UNIT = GameCMD.SHARE_UNIT
 
 if gadgetHandler:IsSyncedCode() then
 	local spGetUnitTeam = Spring.GetUnitTeam
-	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 	local spGetTeamInfo = Spring.GetTeamInfo
 	local spAreTeamsAllied = Spring.AreTeamsAllied
@@ -24,11 +23,8 @@ if gadgetHandler:IsSyncedCode() then
 	local spTransferUnit = Spring.TransferUnit
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
-	local spGetUnitPosition = Spring.GetUnitPosition
-	local reissueOrder = Game.Commands.ReissueOrder
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
-	local range = 200 -- same as the widget's preview radius
 
 	local shareUnitCmdDesc = {
 		id = CMD_SHARE_UNIT,
@@ -59,62 +55,11 @@ if gadgetHandler:IsSyncedCode() then
 			and spAreTeamsAllied(teamID, targetTeamID)
 	end
 
-	-- picks the allied team with the most units around the target position
-	local function findTeamInArea(teamID, x, z)
-		local teamCounts = {}
-		local selectedTeam, selectedCount
-		local foundUnits = spGetUnitsInCylinder(x, z, range)
-		for i = 1, #foundUnits do
-			local unitTeamID = spGetUnitTeam(foundUnits[i])
-			if isShareTarget(teamID, unitTeamID) then
-				local count = (teamCounts[unitTeamID] or 0) + 1
-				teamCounts[unitTeamID] = count
-				if not selectedCount or count > selectedCount then
-					selectedTeam, selectedCount = unitTeamID, count
-				end
-			end
-		end
-		return selectedTeam
-	end
-
-	function gadget:AllowCommand(
-		unitID,
-		unitDefID,
-		teamID,
-		cmdID,
-		cmdParams,
-		cmdOptions,
-		cmdTag,
-		playerID,
-		fromSynced,
-		fromLua,
-		fromInsert
-	)
-		-- accepts: CMD_SHARE_UNIT
-		local paramCount = #cmdParams
-		if paramCount == 4 then
-			-- target team already resolved: { x, y, z, targetTeamID }
-			-- factories queue it for the units they build, like a move order
-			return isShareTarget(teamID, cmdParams[4])
-		end
-
-		-- resolve the target team when the order is given, so a queued share still goes to
-		-- that team even if its units have moved away by the time the command runs
-		local x, y, z, targetTeamID
-		if paramCount == 1 then
-			local targetUnitID = cmdParams[1]
-			if targetUnitID then
-				x, y, z = spGetUnitPosition(targetUnitID)
-				targetTeamID = spGetUnitTeam(targetUnitID)
-			end
-		elseif paramCount == 3 then
-			x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
-			targetTeamID = findTeamInArea(teamID, x, z)
-		end
-		if x and isShareTarget(teamID, targetTeamID) then
-			reissueOrder(unitID, CMD_SHARE_UNIT, { x, y, z, targetTeamID }, cmdOptions, cmdTag, fromInsert)
-		end
-		return false
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
+		-- accepts: CMD_SHARE_UNIT, params are { targetTeamID }
+		-- the widget resolves the clicked unit or spot into a team, raw targets are rejected
+		-- factories queue it for the units they build, like a move order
+		return #cmdParams == 1 and isShareTarget(teamID, cmdParams[1])
 	end
 
 	function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams)
@@ -125,7 +70,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true, false
 		end
 
-		local targetTeamID = cmdParams[4]
+		local targetTeamID = cmdParams[1]
 		if isShareTarget(teamID, targetTeamID) and not select(3, spGetTeamInfo(targetTeamID, false)) then
 			-- transfer outside of command processing
 			pendingTransfers[unitID] = targetTeamID
@@ -171,9 +116,5 @@ if gadgetHandler:IsSyncedCode() then
 			local unitID = allUnits[i]
 			insertShareCmdDesc(unitID, spGetUnitTeam(unitID))
 		end
-	end
-else -- UNSYNCED
-	function gadget:Initialize()
-		Spring.SetCustomCommandDrawData(CMD_SHARE_UNIT, "settarget", { 0.88, 0.88, 0.88, 0.8 }, false)
 	end
 end

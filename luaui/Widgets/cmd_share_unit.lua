@@ -24,9 +24,11 @@ local secondPart = 0
 local mouseDistance = 1000
 local range = 200
 
--- queued share orders are drawn here in the target team's color, the engine line is hidden
-local queueLineWidth = 1.49
-local queueLineAlpha = 0.5
+-- queued share orders are marked with the share icon, in the target team's color
+local shareIconTexture = "luaui/images/advplayerslist/share.dds"
+local shareIconSize = 16 -- world units, half width
+local shareIconAlpha = 0.85
+local shareIconHeight = 24 -- above the spot where the unit is shared
 local queueRefreshInterval = 0.1
 local queueRefreshTimer = queueRefreshInterval
 local shareQueues = {} -- unitID -> command queue, for selected units that have a share order queued
@@ -54,7 +56,7 @@ local GetUnitPosition = Spring.GetUnitPosition
 local GetFeaturePosition = Spring.GetFeaturePosition
 local ValidUnitID = Spring.ValidUnitID
 local IsGUIHidden = Spring.IsGUIHidden
-local SetCustomCommandDrawData = Spring.SetCustomCommandDrawData
+local GiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local maxUnits = Game.maxUnits
 
 local glBeginEnd = gl.BeginEnd
@@ -68,10 +70,11 @@ local glPushMatrix = gl.PushMatrix
 local glScale = gl.Scale
 local glTranslate = gl.Translate
 local glVertex = gl.Vertex
-local glLineStipple = gl.LineStipple
 local glDepthTest = gl.DepthTest
+local glBillboard = gl.Billboard
+local glTexture = gl.Texture
+local glTexRect = gl.TexRect
 local GL_LINE_LOOP = GL.LINE_LOOP
-local GL_LINES = GL.LINES
 
 local PI = math.pi
 local cos = math.cos
@@ -318,7 +321,28 @@ local function getSelectedTeam()
 	return tx, ty, tz, selectedTeam
 end
 
--- position the engine's queue line passes through for a command, nil if it has none
+function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	if cmdID ~= cmdQuickShareToTargetId then
+		return false
+	end
+
+	-- the order only carries the team to share to, so resolve the click here: what the preview
+	-- showed is what gets sent, and the gadget needs no target lookup of its own
+	local targetTeamID
+	if #cmdParams == 1 then
+		targetTeamID = GetUnitTeam(cmdParams[1])
+	elseif #cmdParams == 3 then
+		local mouseX, mouseY = WorldToScreenCoords(cmdParams[1], cmdParams[2], cmdParams[3])
+		targetTeamID = tonumber(findTeamInArea(mouseX, mouseY))
+	end
+
+	if targetTeamID and isAlly(targetTeamID) then
+		GiveOrderToUnitArray(GetSelectedUnits(), cmdQuickShareToTargetId, { targetTeamID }, cmdOptions)
+	end
+	return true -- always consume, the raw target params are not a valid order
+end
+
+-- position a command in the queue points at, nil if it has none
 local function getCommandPosition(cmd)
 	local params = cmd.params
 	local paramCount = #params
@@ -352,34 +376,39 @@ local function refreshShareQueues()
 	end
 end
 
-local function lineVertices(x1, y1, z1, x2, y2, z2)
-	glVertex(x1, y1, z1)
-	glVertex(x2, y2, z2)
+local function drawShareIcon(x, y, z, teamID)
+	local r, g, b = GetTeamColor(teamID)
+	glPushMatrix()
+	glTranslate(x, y + shareIconHeight, z)
+	glBillboard()
+	glColor(r or 1, g or 1, b or 1, shareIconAlpha)
+	glTexture(shareIconTexture)
+	glTexRect(-shareIconSize, -shareIconSize, shareIconSize, shareIconSize)
+	glTexture(false)
+	glPopMatrix()
 end
 
-local function drawShareQueueLines()
+-- the share happens wherever the unit is by then, so mark the spot the queue reached
+local function drawShareQueueIcons()
 	glDepthTest(false)
-	glLineWidth(queueLineWidth)
-	glLineStipple("springdefault") -- the engine's animated queue line dashes
 	for unitID, commands in pairs(shareQueues) do
 		local px, py, pz = GetUnitPosition(unitID)
 		for i = 1, #commands do
 			local cmd = commands[i]
-			local x, y, z = getCommandPosition(cmd)
-			if x then
-				local targetTeamID = cmd.params[4]
-				if cmd.id == cmdQuickShareToTargetId and targetTeamID and px then
-					local r, g, b = GetTeamColor(targetTeamID)
-					glColor(r or 1, g or 1, b or 1, queueLineAlpha)
-					glBeginEnd(GL_LINES, lineVertices, px, py, pz, x, y, z)
+			if cmd.id == cmdQuickShareToTargetId then
+				local targetTeamID = cmd.params[1]
+				if targetTeamID and px then
+					drawShareIcon(px, py, pz, targetTeamID)
 				end
-				px, py, pz = x, y, z
+			else
+				local x, y, z = getCommandPosition(cmd)
+				if x then
+					px, py, pz = x, y, z
+				end
 			end
 		end
 	end
-	glLineStipple(false)
 	glColor(1, 1, 1, 1)
-	glLineWidth(1)
 	glDepthTest(true)
 end
 
@@ -393,7 +422,7 @@ end
 
 function widget:DrawWorld()
 	if next(shareQueues) and not IsGUIHidden() then
-		drawShareQueueLines()
+		drawShareQueueIcons()
 	end
 
 	local targetX, targetY, targetZ, selectedTeam = getSelectedTeam()
@@ -423,12 +452,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	defaultColor = { 0.88, 0.88, 0.88, 1 }
 	setupDisplayLists()
-	-- keep the engine's queue icon but hide its line, drawShareQueueLines draws it in team color
-	SetCustomCommandDrawData(cmdQuickShareToTargetId, "settarget", { 1, 1, 1, 0 }, false)
 end
 
 function widget:Shutdown()
 	deleteDisplayLists()
-	-- back to the default set in luarules/gadgets/cmd_share_unit.lua
-	SetCustomCommandDrawData(cmdQuickShareToTargetId, "settarget", { 0.88, 0.88, 0.88, 0.8 }, false)
 end
