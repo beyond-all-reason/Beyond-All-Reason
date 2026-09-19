@@ -24,6 +24,8 @@
   - Units that don't leave corpses like the Fiend will no longer respawn as zombies.
   - Zombie constructors get a boosted capture range of a minimum of 300. This makes them capable of capturing aircraft.
   - Zombies now can control aircraft when they're captured or produced.
+- [Critters]
+  - Map critters can gain health and follow your Commander as a companion.
 
 # August
 - [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
