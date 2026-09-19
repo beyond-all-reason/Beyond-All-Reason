@@ -36,6 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 	local SLOW_STEP = 0.05 -- quantize slow so wading units don't rewrite move data every damage tick
 	local SLOW_STEP_INV = 1 / SLOW_STEP
+	local ATTRIBUTE_SOURCE = "watertype_lava"
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -60,8 +61,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetMoveData = Spring.GetUnitMoveTypeData
-	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
-	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetUnitsInBox = Spring.GetUnitsInBox
 	local spSpawnCEG = Spring.SpawnCEG
@@ -73,9 +72,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMoveDef = {}
 	local canFly = {}
 	local unitHeight = {}
-	local speedDefs = {}
-	local turnDefs = {}
-	local accDefs = {}
+	local canBeSlowed = {} ---@type table<UnitDefID, boolean?>
 	local isDecoration = {}
 	local maxUnitHeight = 0 -- upper bound for midPos.y of a unit whose base is at lava level
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -83,9 +80,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		else
-			speedDefs[unitDefID] = unitDef.speed
-			turnDefs[unitDefID] = unitDef.turnRate
-			accDefs[unitDefID] = unitDef.maxAcc
+			canBeSlowed[unitDefID] = (unitDef.speed or 0) ~= 0
+				and (unitDef.turnRate or 0) ~= 0
+				and (unitDef.maxAcc or 0) ~= 0
 		end
 		local height = Spring.GetUnitDefDimensions(unitDefID).height
 		unitHeight[unitDefID] = height
@@ -148,28 +145,20 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaGrow = lavaGrow
 	end
 
-	local function updateSlow(unitID, unitDefID, unitSlow)
-		if spMoveCtrlEnabled(unitID) then
-			return false
-		end
-		local baseSpeed = speedDefs[unitDefID]
-		local baseTurnRate = turnDefs[unitDefID]
-		local baseAccRate = accDefs[unitDefID]
-		if not baseSpeed or not baseTurnRate or not baseAccRate then
-			return false
-		end
-		return (pcall(spSetMoveData, unitID, {
-			maxSpeed = baseSpeed * unitSlow,
-			turnRate = baseTurnRate * unitSlow,
-			accRate = baseAccRate * unitSlow,
-		}))
+	---@param unitID UnitID
+	---@param unitSlow number? A nil releases this gadget's claim on the unit.
+	local function updateSlow(unitID, unitSlow)
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		setUnitModifier(unitID, "speed", unitSlow, ATTRIBUTE_SOURCE)
+		setUnitModifier(unitID, "turnRate", unitSlow, ATTRIBUTE_SOURCE)
+		setUnitModifier(unitID, "maxAcc", unitSlow, ATTRIBUTE_SOURCE)
 	end
 
 	-- Bulk-restore all slowed units when lava retreats below the map surface
 	local function restoreAllLavaUnits()
 		for unitID, data in pairs(lavaUnits) do
 			if data.slowed then
-				updateSlow(unitID, data.unitDefID, 1)
+				updateSlow(unitID, nil)
 			end
 		end
 		lavaUnits = {}
@@ -185,7 +174,8 @@ if gadgetHandler:IsSyncedCode() then
 				if data.slowed then
 					local unitSlow = clamp(1 - (((lavaLevel - y) / data.height) * lavaSlow), 1 - lavaSlow, 0.9)
 					unitSlow = floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
-					if unitSlow ~= data.currentSlow and updateSlow(unitID, data.unitDefID, unitSlow) then
+					if unitSlow ~= data.currentSlow then
+						updateSlow(unitID, unitSlow)
 						data.currentSlow = unitSlow
 					end
 				end
@@ -193,7 +183,7 @@ if gadgetHandler:IsSyncedCode() then
 				spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 			else -- unit exited lava
 				if data.slowed then
-					updateSlow(unitID, data.unitDefID, 1)
+					updateSlow(unitID, nil)
 				end
 				lavaUnits[unitID] = nil
 			end
@@ -222,25 +212,18 @@ if gadgetHandler:IsSyncedCode() then
 					local x, y, z = spGetUnitBasePosition(unitID)
 					if y and y < lavaLevel then -- first entry into lava
 						local height = unitHeight[unitDefID]
-						local maxSpeed = speedDefs[unitDefID]
-						local turnRate = turnDefs[unitDefID]
-						local accelRate = accDefs[unitDefID]
 						local data
 						if
 							(height and height > 0)
-							and (maxSpeed and maxSpeed ~= 0)
-							and (turnRate and turnRate ~= 0)
-							and (accelRate and accelRate ~= 0)
+							and canBeSlowed[unitDefID]
 							and (spGetMoveData(unitID).name == "ground")
 						then
-							data = { unitDefID = unitDefID, height = height, currentSlow = 1, slowed = true }
 							local unitSlow = clamp(1 - (((lavaLevel - y) / height) * lavaSlow), 1 - lavaSlow, 0.9)
 							unitSlow = floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
-							if updateSlow(unitID, unitDefID, unitSlow) then
-								data.currentSlow = unitSlow
-							end
+							updateSlow(unitID, unitSlow)
+							data = { height = height, currentSlow = unitSlow, slowed = true }
 						else
-							data = { unitDefID = unitDefID, slowed = false }
+							data = { slowed = false }
 						end
 						lavaUnits[unitID] = data
 						spAddUnitDamage(unitID, lavaDamage, nil, nil, DAMAGE_EXTSOURCE_WATER)

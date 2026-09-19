@@ -50,9 +50,10 @@ local builderWatch = {}
 local isAllyTeamWinning
 local averageAlliedTechGuesstimate
 
+local ATTRIBUTE_SOURCE = "cheat_no_waste"
+
 --localized functions
 local spGetTeamResources = Spring.GetTeamResources
-local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 
 for id, def in pairs(UnitDefs) do
 	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then --we only want base factories and construction turrets to get boosted
@@ -110,11 +111,12 @@ end
 
 local function updateAllyUnitsBuildPowers(allyID, boostMultiplier)
 	local teamIDs = boostableAllies[allyID]
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 	for teamID, _ in pairs(teamIDs) do
 		local units = teamBoostableUnits[teamID]
-		for unitID, buildPower in pairs(units) do
+		for unitID in pairs(units) do
 			if builderWatch[unitID] then
-				spSetUnitBuildSpeed(unitID, buildPower * boostMultiplier)
+				setUnitModifier(unitID, "buildSpeed", boostMultiplier, ATTRIBUTE_SOURCE)
 			else
 				units[unitID] = nil
 			end
@@ -142,6 +144,9 @@ function gadget:GameFrame(frame)
 			if newBuildPowerMultiplier ~= 1 then
 				updateAllyUnitsBuildPowers(allyID, newBuildPowerMultiplier)
 				overflowingAllies[allyID] = newBuildPowerMultiplier
+			elseif oldBuildPowerMultiplier ~= 1 then
+				updateAllyUnitsBuildPowers(allyID, nil)
+				overflowingAllies[allyID] = 1
 			end
 			if newBuildPowerMultiplier == 1 then
 				for teamID, _ in pairs(boostableAllies[allyID]) do

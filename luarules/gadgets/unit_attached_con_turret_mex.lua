@@ -92,7 +92,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
-	Spring.SetUnitStealth(mexID, true)
+	GG.UnitAttributes.SetUnitAttribute(mexID, "stealth", true, "invariant")
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then

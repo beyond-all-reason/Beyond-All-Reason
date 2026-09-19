@@ -55,6 +55,7 @@ local typeConfig = {
 ------------------------------------------------------------------------
 local gameSpeed = Game.gameSpeed
 local DAMAGE_RATE = 10 -- apply damage every N frames (same cadence as map_lava)
+local ATTRIBUTE_SOURCE = "wateroverlay"
 
 ------------------------------------------------------------------------
 -- Cached engine calls
@@ -68,8 +69,6 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMoveData = Spring.GetUnitMoveTypeData
-local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
-local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spSpawnCEG = Spring.SpawnCEG
 local clamp = math.clamp
@@ -82,9 +81,7 @@ local clamp = math.clamp
 -- activated.
 ------------------------------------------------------------------------
 local canFly = {}
-local speedDefs = {}
-local turnDefs = {}
-local accDefs = {}
+local canBeSlowed = {} ---@type table<UnitDefID, boolean?>
 local unitHeight = {}
 local geoThermal = {}
 local defCachesBuilt = false
@@ -99,9 +96,9 @@ local function buildDefCaches()
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		else
-			speedDefs[unitDefID] = unitDef.speed
-			turnDefs[unitDefID] = unitDef.turnRate
-			accDefs[unitDefID] = unitDef.maxAcc
+			canBeSlowed[unitDefID] = (unitDef.speed or 0) ~= 0
+				and (unitDef.turnRate or 0) ~= 0
+				and (unitDef.maxAcc or 0) ~= 0
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -118,26 +115,19 @@ end
 ------------------------------------------------------------------------
 local affectedUnits = {} -- unitID → { currentSlow, slowed }
 
-local function updateSlow(unitID, unitDefID, unitSlow)
-	if spMoveCtrlEnabled(unitID) then
-		return false
-	end
-	local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
-	local slowedTurnRate = turnDefs[unitDefID] * unitSlow
-	local slowedAccRate = accDefs[unitDefID] * unitSlow
-	local ok = pcall(function()
-		spSetMoveData(unitID, { maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate })
-	end)
-	return ok
+---@param unitID UnitID
+---@param unitSlow number? A nil releases this gadget's claim on the unit.
+local function updateSlow(unitID, unitSlow)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	setUnitModifier(unitID, "speed", unitSlow, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "turnRate", unitSlow, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "maxAcc", unitSlow, ATTRIBUTE_SOURCE)
 end
 
 local function restoreAllUnits()
 	for unitID, data in pairs(affectedUnits) do
 		if data.slowed then
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitDefID then
-				updateSlow(unitID, unitDefID, 1)
-			end
+			updateSlow(unitID, nil)
 		end
 	end
 	affectedUnits = {}
@@ -165,16 +155,7 @@ local function damageCheck(cfg, waterLevel)
 				local unitSlow = clamp(1 - (((waterLevel - y) / unitHeight[unitDefID]) * slowFrac), 1 - slowFrac, 0.9)
 
 				if not affectedUnits[unitID] then
-					local moveType = spGetMoveData(unitID).name
-					local maxSpd = speedDefs[unitDefID]
-					local turn = turnDefs[unitDefID]
-					local acc = accDefs[unitDefID]
-					if
-						moveType == "ground"
-						and (maxSpd and maxSpd ~= 0)
-						and (turn and turn ~= 0)
-						and (acc and acc ~= 0)
-					then
+					if spGetMoveData(unitID).name == "ground" and canBeSlowed[unitDefID] then
 						affectedUnits[unitID] = { currentSlow = 1, slowed = true }
 					else
 						affectedUnits[unitID] = { slowed = false }
@@ -183,9 +164,8 @@ local function damageCheck(cfg, waterLevel)
 
 				local data = affectedUnits[unitID]
 				if data.slowed and unitSlow ~= data.currentSlow then
-					if updateSlow(unitID, unitDefID, unitSlow) then
-						data.currentSlow = unitSlow
-					end
+					updateSlow(unitID, unitSlow)
+					data.currentSlow = unitSlow
 				end
 
 				spAddUnitDamage(unitID, dmg, 0, gaiaTeamID, 1)
@@ -194,7 +174,7 @@ local function damageCheck(cfg, waterLevel)
 				end
 			elseif affectedUnits[unitID] then
 				if affectedUnits[unitID].slowed then
-					updateSlow(unitID, unitDefID, 1)
+					updateSlow(unitID, nil)
 				end
 				affectedUnits[unitID] = nil
 			end

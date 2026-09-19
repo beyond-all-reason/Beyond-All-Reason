@@ -22,7 +22,9 @@ end
 
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitDefID = Spring.GetUnitDefID
-local spSetUnitRulesParam = Spring.SetUnitRulesParam
+
+local ATTRIBUTE_SOURCE = "workertime_boost"
+
 local boostableUnits = {}
 local builderWatchDefs = {}
 local builderWatch = {}
@@ -69,6 +71,7 @@ end
 
 function gadget:GameFrame(frame)
 	if frame % 16 == 0 then
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 		for id, data in pairs(builderWatch) do
 			if data.timestamp < frame then
 				local project = spGetUnitIsBuilding(id) or nil
@@ -82,15 +85,14 @@ function gadget:GameFrame(frame)
 						end
 					end
 					if enableBoost == true then
-						Spring.SetUnitBuildSpeed(id, data.boost)
-						spSetUnitRulesParam(id, "workertimeBoosted", data.boost)
+						local factor = data.buildspeed > 0 and data.boost / data.buildspeed or 1.0
+						setUnitModifier(id, "buildSpeed", factor, ATTRIBUTE_SOURCE)
 					else
-						Spring.SetUnitBuildSpeed(id, data.buildspeed)
+						setUnitModifier(id, "buildSpeed", nil, ATTRIBUTE_SOURCE)
 						data.timestamp = frame + 60
-						spSetUnitRulesParam(id, "workertimeBoosted", 0)
 					end
 				else
-					Spring.SetUnitBuildSpeed(id, data.buildspeed)
+					setUnitModifier(id, "buildSpeed", nil, ATTRIBUTE_SOURCE)
 				end
 			end
 		end
