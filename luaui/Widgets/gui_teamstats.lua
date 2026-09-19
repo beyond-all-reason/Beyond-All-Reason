@@ -146,6 +146,16 @@ local COLUMNS = {
 	-- What the metal spent bought in damage: army worth rather than army size.
 	damagePerMetal = { group = "damage", stat = "damagePerMetal", short = "shortDamagePerMetal", fmt = "plain" },
 	metalProduced = { group = "metal", stat = "resourceProduced", short = "shortProduced", fmt = "si", rate = true },
+	-- What the team's builders took from wrecks, rocks and trees: part of what it produced,
+	-- which only the team stats gadget tells apart.
+	metalReclaimed = {
+		group = "metal",
+		stat = "resourceReclaimed",
+		short = "shortReclaimed",
+		fmt = "si",
+		rate = true,
+		gadget = true,
+	},
 	metalUsed = { group = "metal", stat = "resourceUsed", short = "resourceUsed", fmt = "si", rate = true },
 	metalExcess = {
 		group = "metal",
@@ -159,6 +169,14 @@ local COLUMNS = {
 	metalReceived = { group = "metal", stat = "resourceReceived", short = "shortReceived", fmt = "si", rate = true },
 	metalStored = { group = "metal", stat = "resourceStored", short = "resourceStored", fmt = "si" },
 	energyProduced = { group = "energy", stat = "resourceProduced", short = "shortProduced", fmt = "si", rate = true },
+	energyReclaimed = {
+		group = "energy",
+		stat = "resourceReclaimed",
+		short = "shortReclaimed",
+		fmt = "si",
+		rate = true,
+		gadget = true,
+	},
 	energyUsed = { group = "energy", stat = "resourceUsed", short = "resourceUsed", fmt = "si", rate = true },
 	energyExcess = {
 		group = "energy",
@@ -223,8 +241,7 @@ local COLUMNS = {
 		fmt = "percent",
 		of = { "buildPowerActive", "buildPower" },
 	},
-	-- A running total in build power minutes. Not a rate: the Live view it sits in shows
-	-- what is happening right now, and a per-minute switch there would say little.
+	-- A running total in build power minutes: the building a team could have done and did not.
 	buildPowerIdle = {
 		group = "industry",
 		stat = "buildPowerIdle",
@@ -295,6 +312,43 @@ local COLUMNS = {
 	},
 	teamKillValue = { group = "traded", stat = "teamKillValue", short = "shortTeamKill", fmt = "si", rate = true },
 	comKills = { group = "commanders", stat = "comKills", short = "unitsKilled", fmt = "si", rate = true },
+	-- The map as each side holds it: the spots under its extractors and geothermal plants
+	-- (none on a map without them, and then the columns are left out), how much of the map
+	-- it sees and has on radar, and how far toward the enemy its army stands. The last three
+	-- are the ally team's own, alike for each of its teams (`ally`): a band shows them once.
+	metalSpots = {
+		group = "map",
+		stat = "metalSpots",
+		short = "shortMetalSpots",
+		fmt = "si",
+		gadget = true,
+		spots = "metal",
+	},
+	geoSpots = { group = "map", stat = "geoSpots", short = "shortGeoSpots", fmt = "si", gadget = true, spots = "geo" },
+	visionCoverage = {
+		group = "map",
+		stat = "visionCoverage",
+		short = "shortVision",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	radarCoverage = {
+		group = "map",
+		stat = "radarCoverage",
+		short = "shortRadar",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
+	frontLine = {
+		group = "map",
+		stat = "frontLine",
+		short = "shortFrontLine",
+		fmt = "percent",
+		gadget = true,
+		ally = true,
+	},
 	comLost = { group = "commanders", stat = "comLost", short = "unitsDied", fmt = "si", rate = true },
 }
 for key, column in pairs(COLUMNS) do
@@ -326,11 +380,11 @@ for _, column in pairs(COLUMNS) do
 	end
 end
 
--- The column's views: which columns each shows, in order. The first is the overview the
--- panel opens on; the others each take one side of the game and have room for all of it.
+-- The column's views: which columns each shows, in order, each taking one side of the game.
 -- The built-in categories, which never change. The player's own come before them - the
 -- Graphs page's custom module keeps them at the front of this list - and the overview that
--- ships with the game is one of those.
+-- ships with the game is one of those. A stat is in one built-in category only: the
+-- overview and the player's own are where stats from several sides meet.
 ---@type table[]
 local GROUPS = {
 	{
@@ -345,21 +399,20 @@ local GROUPS = {
 			"conversion",
 			"buildPower",
 			"buildPowerUse",
-			"buildPowerIdle",
-			"unitValue",
-			"unitsActive",
 		},
 	},
 	{
 		key = "economy",
 		columns = {
 			"metalProduced",
+			"metalReclaimed",
 			"metalUsed",
 			"metalExcess",
 			"metalSent",
 			"metalReceived",
 			"metalStored",
 			"energyProduced",
+			"energyReclaimed",
 			"energyUsed",
 			"energyExcess",
 			"energySent",
@@ -389,9 +442,6 @@ local GROUPS = {
 		key = "units",
 		columns = {
 			"unitsProduced",
-			"unitsKilled",
-			"unitsDied",
-			"killEfficiency",
 			"unitsCaptured",
 			"unitsStolen",
 			"unitsReceived",
@@ -416,14 +466,21 @@ local GROUPS = {
 		},
 	},
 	{
+		key = "map",
+		columns = {
+			"metalSpots",
+			"geoSpots",
+			"visionCoverage",
+			"radarCoverage",
+			"frontLine",
+		},
+	},
+	{
 		key = "activity",
 		columns = {
 			"actionsPerMinute",
 			"aggressionLevel",
-			"damageDealt",
-			"unitsProduced",
-			"metalProduced",
-			"energyProduced",
+			"buildPowerIdle",
 		},
 	},
 }
@@ -468,6 +525,9 @@ local SUMMED = {
 	"energyStorage",
 	"convCapacity",
 	"convUse",
+	-- A side's spots are its teams' together.
+	"metalSpots",
+	"geoSpots",
 	"buildPower",
 	"buildPowerActive",
 	"unitCount",
@@ -479,6 +539,8 @@ local SUMMED = {
 	"teamKillValue",
 	"comKills",
 	"comLost",
+	"metalReclaimed",
+	"energyReclaimed",
 }
 -- The composition buckets the gadget counts, each with a count and a value.
 for _, bucket in ipairs({ "Army", "Air", "Sea", "Defense", "Strategic", "Factories", "Builders", "Economy", "Utility" }) do
@@ -493,19 +555,20 @@ end
 local switches = {
 	-- The Graphs page: a mode, so it leads the column; its state is the page's, not a filter.
 	{ key = "graphs", mode = true },
-	-- The page's alone: how many charts it shows at once, whether the selected teams'
-	-- milestones go on them, and which kinds. Graphs per page and the kinds are values a
-	-- press changes rather than switches, so they are drawn with what they are set to.
+	-- The page's alone: how many charts it shows at once - a value a press changes rather
+	-- than a switch, so it is drawn with what it is set to.
 	{ key = "perPage", page = true, value = true },
 	-- Over the rows below while a custom category's graph is open: they are its own then,
 	-- and greyed out on that category's page of charts, where each graph keeps its own.
 	{ key = "thisGraph", page = true, heading = true },
-	{ key = "milestones", page = true, perGraph = true },
-	{ key = "milestoneKinds", page = true, value = true, perGraph = true },
 	-- Both views: players under their team or on their own - the page keeps a grouping of
 	-- its own - and every amount as the part of the total it makes up, enemies included.
 	{ key = "groupByTeam", perGraph = true },
 	{ key = "shareOfTotal", perGraph = true },
+	-- The page's alone again, below what the charts are made of: whether the selected
+	-- teams' milestones go on them, and which kinds - a value, like Graphs per page.
+	{ key = "milestones", page = true, perGraph = true },
+	{ key = "milestoneKinds", page = true, value = true, perGraph = true },
 	-- The table's alone: every number as the difference from your own, a bar behind it,
 	-- or the line its history draws. The last two are both painted behind the number, so
 	-- one turns the other off.
@@ -620,6 +683,9 @@ local metrics = {
 	-- The name column: never narrower than this, and otherwise this share of the table.
 	nameMinW = 150,
 	nameShare = 0.2,
+	-- A number's column at its widest, twice what a view of twelve gives each: a view of a
+	-- few keeps its numbers near the names, and the table ends with its last column.
+	colMaxW = 150,
 	-- The sort marker beside the caption of the sorted column.
 	triW = 5,
 	triH = 4,
@@ -779,9 +845,27 @@ local teamAPM = {}
 -- panel has been open (`opened`) for `stale` frames without a hand-over, or the
 -- hand-overs stop; while it is not, the gadget's columns, views and the history page
 -- are left out of the panel rather than shown empty. `wanted` is the view the player
--- picked while that leaves it out, gone back to when it is shown again.
+-- picked while that leaves it out, gone back to when it is shown again. `overFrame` is the
+-- frame the game ended on, where the charts stop.
 ---@type table<string, any>
 local handover = { all = nil, frame = nil, opened = nil, stale = UPDATE_FRAMES * 3, postGame = false, on = true }
+-- How many spots of a kind the map has: the spot finder's count (none of metal on a metal
+-- map), or else the gadget's.
+handover.spotCount = function(kind)
+	local finder = WG.resource_spot_finder
+	if finder then
+		local list = (kind == "metal" and not finder.isMetalMap and finder.metalSpotsList)
+			or (kind == "geo" and finder.geoSpotsList)
+		return type(list) == "table" and #list or 0
+	end
+	local info = WG.teamStats and WG.teamStats.getInfo()
+	return info and info[kind .. "Spots"] or 0
+end
+-- Whether a column can be shown: the gadget's while it is there, a count of the map's spots
+-- on a map that has some.
+handover.shows = function(column)
+	return (handover.on or not column.gadget) and (not column.spots or handover.spotCount(column.spots) > 0)
+end
 -- The last name seen for each team, for a player who has since left.
 local teamControllers = {}
 -- The frame each team died on, so a rate is over the time the team was in the game.
@@ -861,12 +945,46 @@ end
 
 -- Ratios and levels, from the counters they are made of. Run for a team and for an ally
 -- team's total alike, so a band's efficiency is the efficiency of its sums.
+-- What each value derive() makes is made of, for the charts: they add up only these over
+-- a unit's teams rather than every counter. The engine's ratios read the whole set of its
+-- counters derive() works from, the live ones their two amounts.
+ratio.engine = {
+	"metalProduced",
+	"metalReceived",
+	"metalUsed",
+	"energyProduced",
+	"energyReceived",
+	"damageDealt",
+	"damageReceived",
+	"unitsProduced",
+	"unitsReceived",
+	"unitsCaptured",
+	"unitsDied",
+	"unitsSent",
+	"unitsOutCaptured",
+	"unitsKilled",
+}
+ratio.inputs = {
+	unitsStolen = ratio.engine,
+	unitsActive = ratio.engine,
+	damageEfficiency = ratio.engine,
+	damagePerMetal = ratio.engine,
+	killEfficiency = ratio.engine,
+	aggressionLevel = ratio.engine,
+	metalStored = { "metalCurrent" },
+	energyStored = { "energyCurrent" },
+	metalLevel = { "metalCurrent", "metalStorage" },
+	energyLevel = { "energyCurrent", "energyStorage" },
+	conversion = { "convUse", "convCapacity" },
+	buildPowerUse = { "buildPowerActive", "buildPower" },
+	valueEfficiency = { "killedValue", "lostValue" },
+	armyShare = { "valueArmy", "unitValue" },
+}
+
 local function derive(s)
 	-- The engine's counters come as a set or not at all: a graph sample taken from the
 	-- gadget alone has none of them.
 	if s.metalProduced ~= nil then
-		s.metalStored = s.metalProduced + s.metalReceived - (s.metalUsed + s.metalSent + s.metalExcess)
-		s.energyStored = s.energyProduced + s.energyReceived - (s.energyUsed + s.energySent + s.energyExcess)
 		s.unitsStolen = s.unitsOutCaptured
 		s.unitsActive = s.unitsProduced
 			+ s.unitsReceived
@@ -896,7 +1014,11 @@ local function derive(s)
 		end
 	end
 	-- The live ratios, from amounts that can be unknown: a team the viewer may not see
-	-- has none, and its ally team's sums are unknown with it.
+	-- has none, and its ally team's sums are unknown with it. What is in storage is read,
+	-- not counted up from the counters: those leave out what a team started with, which
+	-- the game sets rather than produces, and would put a spent start below zero.
+	s.metalStored = known(s.metalCurrent) and s.metalCurrent or NAN
+	s.energyStored = known(s.energyCurrent) and s.energyCurrent or NAN
 	s.metalLevel = ratio.level(s.metalCurrent, s.metalStorage)
 	s.energyLevel = ratio.level(s.energyCurrent, s.energyStorage)
 	s.conversion = ratio.share(s.convUse, s.convCapacity)
@@ -992,6 +1114,12 @@ local function cellDetail(column, stats)
 		local a, b = stats[column.of[1]], stats[column.of[2]]
 		if known(a) and known(b) then
 			return BAR.I18N("ui.teamStats.ofTotal", { value = formatWhole(a), total = formatWhole(b) })
+		end
+	elseif column.spots then
+		-- Held out of how many the map has.
+		local n, total = stats[column.key], handover.spotCount(column.spots)
+		if known(n) and total > 0 then
+			return BAR.I18N("ui.teamStats.ofTotal", { value = formatWhole(n), total = formatWhole(total) })
 		end
 	end
 	return nil
@@ -1211,6 +1339,20 @@ local function refreshStats()
 			end
 		end
 		if #ally.teams > 0 then
+			-- What the ally team holds as one - its sight, its radar, its army's standing - is
+			-- alike for each of its teams: the band shows it once, off the first that knows it.
+			for key, column in pairs(COLUMNS) do
+				if column.ally then
+					local v = NAN
+					for j = #ally.teams, 1, -1 do
+						local own = ally.teams[j].stats[key]
+						if known(own) then
+							v = own
+						end
+					end
+					ally.total[key] = v
+				end
+			end
 			derive(ally.total)
 			allies[#allies + 1] = ally
 		end
@@ -1625,24 +1767,32 @@ end
 
 -- The columns the open view shows, each given its x range: the name column takes its
 -- share and the numeric ones split the rest evenly, with the leftover pixels going to the
--- name so the last column ends exactly at the table's right edge.
+-- name, up to a width a number's column never passes. The table's right edge is where its
+-- last column ends.
 local function layoutColumns()
 	local group = groupByKey[selectedGroup] or GROUPS[1]
 	---@cast group -?
 	columns = { COLUMNS.name }
 	for i = 1, #group.columns do
 		local c = COLUMNS[group.columns[i]]
-		if handover.on or not c.gadget then
+		if handover.shows(c) then
 			columns[#columns + 1] = c
 		end
 	end
 
-	local tableW = listRight - listX1
+	-- The room is the channel up to the scrollbar's; the table itself ends with its last
+	-- column, which a view of few columns leaves short of it.
+	local tableW = barX1 - metrics.listGap - listX1
 	local n = #columns - 1
 	---@type number
 	local nameW = mathMax(metrics.nameMinW, mathFloor(tableW * metrics.nameShare))
-	local colW = mathFloor((tableW - nameW) / n)
-	nameW = tableW - colW * n
+	---@type number
+	local colW = metrics.colMaxW
+	if n > 0 and mathFloor((tableW - nameW) / n) < colW then
+		colW = mathFloor((tableW - nameW) / n)
+		nameW = tableW - colW * n
+	end
+	listRight = listX1 + nameW + colW * n
 
 	local x = listX1
 	for i = 1, #columns do
@@ -1728,6 +1878,7 @@ local function setLayout()
 	metrics.pageGap = mathFloor(8 * s)
 	metrics.barW = mathFloor(14 * s)
 	metrics.nameMinW = mathFloor(150 * s)
+	metrics.colMaxW = mathFloor(150 * s)
 	-- Narrower than the cell padding it sits in.
 	metrics.triW = mathMax(4, mathFloor(5 * s))
 	metrics.triH = mathMax(3, mathFloor(4 * s))
@@ -2064,28 +2215,6 @@ local function drawBand(row, top, bottom, hovered)
 			row.folded == true
 		)
 	end
-	-- The team's history behind its totals as well, in its colour when the band is one
-	-- team's, else in the header's own hue.
-	if filters.trend and row.trendKey then
-		local accent = row.team and row.team.accent
-		local color = accent and { accent[1], accent[2], accent[3], 0.65 } or look.trendBand
-		for i = 2, #columns do
-			local c = columns[i]
-			local right = c.x2 - metrics.cellPad - mathFloor(font:GetTextWidth(row.cells[i]) * metrics.rowFs)
-			graphs.drawTrend(
-				row.trendKey,
-				c.key,
-				c.rate == true,
-				c.x1 + metrics.cellPad,
-				bottom + metrics.barInset,
-				right - metrics.rowPad,
-				top - metrics.csSmall - metrics.barInset,
-				color,
-				metrics.trendW
-			)
-		end
-	end
-
 	local vy = text.baseline(font, bottom, top, metrics.rowFs)
 	for i = 2, #columns do
 		local v = row.vals[i]
@@ -2122,29 +2251,6 @@ local function drawTeamRow(row, top, bottom, hovered)
 		0,
 		team.accent
 	)
-
-	-- The history behind the number, in the team's own colour: where the number came from
-	-- rather than only where it stands now.
-	if filters.trend and row.trendKey then
-		local color = { team.accent[1], team.accent[2], team.accent[3], (team.dead or team.gone) and 0.4 or 0.75 }
-		for i = 2, #columns do
-			local c = columns[i]
-			-- Beside the number, in what the number leaves of its cell, so neither is read
-			-- through the other.
-			local right = c.x2 - metrics.cellPad - mathFloor(font:GetTextWidth(row.cells[i]) * metrics.rowFs)
-			graphs.drawTrend(
-				row.trendKey,
-				c.key,
-				c.rate == true,
-				c.x1 + metrics.cellPad,
-				bottom + metrics.barInset,
-				right - metrics.rowPad,
-				top - metrics.barInset,
-				color,
-				metrics.trendW
-			)
-		end
-	end
 
 	if filters.bars then
 		for i = 2, #columns do
@@ -2538,6 +2644,7 @@ local function dropLists()
 		panelList = nil
 		panelSig = nil
 	end
+	graphs.dropTrendList()
 	if windowList then
 		glDeleteList(windowList)
 		windowList = nil
@@ -2635,7 +2742,7 @@ local function nameCard(team)
 		local parts = {}
 		for j = 1, #spec[2] do
 			local column = COLUMNS[spec[2][j]]
-			if handover.on or not column.gadget then
+			if handover.shows(column) then
 				local v = cellValue(column, team)
 				parts[#parts + 1] = colorDim
 					.. L.full[column.key]
@@ -2702,12 +2809,10 @@ local function rebuildEntries()
 				entries[#entries + 1] = { divider = true }
 				afterCustom = false
 			end
-			shown = handover.on
-			if not shown then
-				for i = 1, #group.columns do
-					if not COLUMNS[group.columns[i]].gadget then
-						shown = true
-					end
+			shown = false
+			for i = 1, #group.columns do
+				if handover.shows(COLUMNS[group.columns[i]]) then
+					shown = true
 				end
 			end
 			if shown then
@@ -2817,11 +2922,13 @@ local function refresh()
 	end
 	refreshStats()
 	-- Whether the viewer has a team of their own is only known once the teams are read,
-	-- which is after the first layout: the comparison switch appears when it is.
+	-- which is after the first layout: the comparison switch lights up when it is. Only a
+	-- switch laid out out of step is laid out again: a layout rebuilds every chart.
 	---@diagnostic disable-next-line: undefined-field
 	local canCompare = allies.me ~= nil
 	for i = 1, #switches do
-		if switches[i].key == "vsMe" and canCompare ~= (switches[i].hit ~= nil) then
+		local sw = switches[i]
+		if sw.key == "vsMe" and sw.hit and (sw.disabled == true) == canCompare then
 			setLayout()
 		end
 	end
@@ -2898,6 +3005,11 @@ function widget:DrawScreen()
 	---@cast panelList -?
 	glCallList(windowList)
 	glCallList(panelList)
+	-- The table's trend lines, from a list of their own: the panel is baked again whenever
+	-- the cursor moves onto another row, and would draw every line again with it.
+	if show and filters.trend and not graphs.open then
+		graphs.drawTrendList(rowsGen, scroll, layoutGen)
+	end
 	if show and graphs.open then
 		-- The chart keeps its own list and draws its hover overlay straight, so the
 		-- cursor moving over it never rebakes the panel.
@@ -3065,8 +3177,13 @@ local function setShown(state)
 	listen(true)
 	handover.opened = spGetGameFrame()
 	-- The numbers freeze at game over; a panel first opened after it still needs one read.
+	-- The charts ask for what they do not have yet whenever the panel opens: after game
+	-- over nothing else would, and an answer the panel was closed for is lost.
+	graphs.lastPeriod = -1
 	if not gameover or #allies == 0 then
 		refresh()
+	elseif graphs.open or filters.trend then
+		graphs.refresh()
 	end
 end
 
@@ -3173,6 +3290,17 @@ function widget:KeyPress(key)
 		dropLists()
 		return true
 	end
+	-- With one chart open, the arrow keys go through the category's charts; the settings
+	-- follow the chart.
+	if show and graphs.open and not graphs.menuOpen() and not graphs.kindsOpen then
+		local stat = graphs.stat
+		if graphs.keyPress(key) then
+			if graphs.stat ~= stat then
+				setLayout()
+			end
+			return true
+		end
+	end
 	if show and key == 27 and graphs.open and graphs.kindsOpen then
 		-- ESC closes what is open on the panel before it closes the panel.
 		graphs.closeKinds()
@@ -3201,9 +3329,14 @@ function widget:MouseWheel(up, _value)
 		return false
 	end
 
-	-- The Graphs page scrolls its grid of charts; the wheel is the panel's either way.
+	-- The Graphs page scrolls its grid of charts, or with one chart open goes to the one
+	-- before or after it; the wheel is the panel's either way.
 	if graphs.open then
+		local stat = graphs.stat
 		graphs.wheel(up)
+		if graphs.stat ~= stat then
+			setLayout()
+		end
 		return true
 	end
 
@@ -3385,6 +3518,7 @@ function widget:GameOver()
 	refresh()
 	gameover = true
 	handover.postGame = true
+	handover.overFrame = spGetGameFrame()
 end
 
 function widget:TeamDied(teamID)
@@ -3550,6 +3684,55 @@ graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
 	L = L,
 	columnTitle = columnTitle,
 	derive = derive,
+	derivedInputs = ratio.inputs,
+	columnShown = handover.shows,
+	-- The history behind every number on screen, for the page's trend list: in the team's
+	-- own colour, a band's in its team's when it is one team's, else in the header's hue;
+	-- beside the number, in what it leaves of its cell, so neither is read through the other.
+	trendRows = function()
+		local base = scrollOffset()
+		for i = scroll + 1, #rows do
+			local row = rows[i]
+			---@cast row -?
+			local top = listTop - (row.off - base)
+			local bottom = top - rowHeightOf(row)
+			if bottom < listBottom then
+				break
+			end
+			fitRow(row)
+			if row.trendKey then
+				local team = row.team
+				local color, lineTop
+				if row.type == "band" then
+					local accent = team and team.accent
+					color = accent and { accent[1], accent[2], accent[3], 0.65 } or look.trendBand
+					lineTop = top - metrics.csSmall - metrics.barInset
+				else
+					---@cast team -?
+					color = { team.accent[1], team.accent[2], team.accent[3], (team.dead or team.gone) and 0.4 or 0.75 }
+					lineTop = top - metrics.barInset
+				end
+				for c = 2, #columns do
+					local column = columns[c]
+					---@cast column -?
+					local right = column.x2
+						- metrics.cellPad
+						- mathFloor(font:GetTextWidth(row.cells[c]) * metrics.rowFs)
+					graphs.drawTrend(
+						row.trendKey,
+						column.key,
+						column.rate == true,
+						column.x1 + metrics.cellPad,
+						bottom + metrics.barInset,
+						right - metrics.rowPad,
+						lineTop,
+						color,
+						metrics.trendW
+					)
+				end
+			end
+		end
+	end,
 	look = look,
 	metrics = metrics,
 	colors = {
@@ -3619,8 +3802,13 @@ graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
 	end,
 	frame = spGetGameFrame,
 	history = spGetTeamStatsHistory,
+	-- Only while the panel is on the hub's list: a history asked for then comes back to it.
 	hub = function()
-		return WG.teamStats
+		local hub = WG.teamStats
+		return hub and hub.isSubscribed("teamstats") and hub or nil
+	end,
+	overFrame = function()
+		return handover.overFrame
 	end,
 	i18n = BAR.I18N,
 	playSound = function()

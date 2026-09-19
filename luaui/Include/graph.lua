@@ -61,6 +61,11 @@
 ---@field xMax number
 ---@field sx fun(x: number): number
 ---@field sy fun(y: number): number
+---@field endLabelW number
+---@field measures integer
+---@field memoGen integer
+---@field memoHit table?
+---@field legendRows integer
 ---@field xFormatter fun(v: number): string
 ---@field yFormatter fun(v: number): string
 ---@field radar table<string, number>
@@ -140,6 +145,9 @@ local DEFAULTS = {
 	-- Where the x axis starts, when not at the first sample: 0 for a game clock that runs
 	-- from the start whatever the first sample is.
 	xMin = nil,
+	-- A line chart's series named at their right ends, in their colours, kept apart; the
+	-- plot gives up the room they take, and they are left out when they would not fit.
+	endLabels = false,
 	-- Curves through the samples rather than corners at them. Steps between two samples
 	-- come from the pixel distance when left nil.
 	smooth = false,
@@ -495,27 +503,75 @@ function Graph:prepareSamples()
 			xs[i] = i
 		end
 	end
-	-- Series with their own points are sampled onto the shared list as well, and add
-	-- their x values to it, so the hover column means the same for all.
-	local extra = {}
-	for _, s in ipairs(self.series) do
-		if s.points and not s.values then
-			for _, p in ipairs(s.points) do
-				extra[p[1]] = true
+	-- Series that all have their points at the same x values, rising - the usual case,
+	-- every team sampled at once - are read straight into place: no map of x a series.
+	---@type table[]?
+	local direct = nil
+	if not shared and n == 0 then
+		for _, s in ipairs(self.series) do
+			local points = s.points
+			if not points then
+				direct = nil
+				break
+			end
+			if not direct then
+				direct = points
+				for i = 2, #points do
+					if points[i][1] <= points[i - 1][1] then
+						direct = nil
+						break
+					end
+				end
+				if not direct then
+					break
+				end
+			elseif #points ~= #direct then
+				direct = nil
+				break
+			else
+				for i = 1, #points do
+					local d = direct[i]
+					---@cast d -?
+					if points[i][1] ~= d[1] then
+						direct = nil
+						break
+					end
+				end
+				if not direct then
+					break
+				end
 			end
 		end
 	end
-	local seen = {}
-	for i = 1, #xs do
-		seen[xs[i]] = true
-	end
-	for x in pairs(extra) do
-		if not seen[x] then
-			xs[#xs + 1] = x
-			seen[x] = true
+	if direct then
+		for i = 1, #direct do
+			local d = direct[i]
+			---@cast d -?
+			xs[i] = d[1]
 		end
+	else
+		-- Series with their own points are sampled onto the shared list as well, and add
+		-- their x values to it, so the hover column means the same for all.
+		local extra = {}
+		for _, s in ipairs(self.series) do
+			if s.points and not s.values then
+				for _, p in ipairs(s.points) do
+					extra[p[1]] = true
+				end
+			end
+		end
+		local seen = {}
+		for i = 1, #xs do
+			seen[xs[i]] = true
+		end
+		for x in pairs(extra) do
+			if not seen[x] then
+				xs[#xs + 1] = x
+				seen[x] = true
+			end
+		end
+		table.sort(xs)
 	end
-	table.sort(xs)
 
 	local prepared = {}
 	for si, s in ipairs(self.series) do
@@ -528,7 +584,21 @@ function Graph:prepareSamples()
 		end
 		---@type table?
 		local raw = nil
-		if not s.values then
+		if direct then
+			local points = s.points
+			for i = 1, #points do
+				local p = points[i]
+				if isFinite(p[2]) then
+					ys[i] = p[2]
+					-- A third value is what the point really is, when the plotted one was
+					-- bounded: the tooltip says that one.
+					if p[3] ~= nil then
+						raw = raw or {}
+						raw[i] = p[3]
+					end
+				end
+			end
+		elseif not s.values then
 			local byX = {}
 			local rawByX = {}
 			for _, p in ipairs(s.points or {}) do
@@ -665,6 +735,36 @@ function Graph:prepareLine()
 	local left = mathFloor(plot.left + labelW + fs * 0.6)
 	local bottom = mathFloor(plot.bottom + fs * 1.5)
 	local right = plot.right
+	-- A legend too wide for one row wraps onto more, each taken from the plot's height.
+	self.legendRows = 1
+	if cfg.legend and #self.prepared > 0 then
+		local rows, x = 1, left
+		for _, p in ipairs(self.prepared) do
+			local w = mathFloor(fs * 0.8) + fs * 0.4 + self:textWidth(p.name, fs)
+			if x + w > plot.right and x > left then
+				rows = rows + 1
+				x = left
+			end
+			x = mathFloor(x + w + fs * 1.2)
+		end
+		if rows > 1 then
+			plot.top = mathFloor(plot.top - (rows - 1) * fs * 1.7)
+			self.legendRows = rows
+		end
+	end
+	-- The names at the lines' ends take their room from the plot, never more than a third.
+	self.endLabelW = 0
+	if cfg.endLabels and not stacked and #self.prepared > 0 then
+		local w = 0
+		for _, p in ipairs(self.prepared) do
+			w = mathMax(w, self:textWidth(p.name, fs))
+		end
+		local room = mathFloor(w + fs * 0.8)
+		if room < (right - left) / 3 then
+			right = right - room
+			self.endLabelW = room
+		end
+	end
 
 	local xMin, xMax = cfg.xMin or xs[1] or 0, xs[#xs] or 1
 	if xMax <= xMin then
@@ -879,8 +979,9 @@ local function drawOrder(self)
 	return order
 end
 
--- The points of a curve in pixels: the samples, or the smoothed run through them. A gap
--- (a sample with no value) ends one run and starts the next.
+-- The points of a curve: the samples, or the smoothed run through them, each run flat as
+-- x1, y1, x2, y2, ... (no table a point). A gap (a sample with no value) ends one run and
+-- starts the next.
 function Graph:curveRuns(ys, smooth)
 	local xs = self.xs
 	local cfg = self.cfg
@@ -899,13 +1000,16 @@ function Graph:curveRuns(ys, smooth)
 				for i = 1, #rxs - 1 do
 					for k = 0, steps - 1 do
 						local x = rxs[i] + (rxs[i + 1] - rxs[i]) * k / steps
-						run[#run + 1] = { x, hermite(rxs, rys, m, i, x) }
+						run[#run + 1] = x
+						run[#run + 1] = hermite(rxs, rys, m, i, x)
 					end
 				end
-				run[#run + 1] = { rxs[#rxs], rys[#rys] }
+				run[#run + 1] = rxs[#rxs]
+				run[#run + 1] = rys[#rys]
 			else
 				for i = 1, #rxs do
-					run[#run + 1] = { rxs[i], rys[i] }
+					run[#run + 1] = rxs[i]
+					run[#run + 1] = rys[i]
 				end
 			end
 			runs[#runs + 1] = run
@@ -1031,22 +1135,26 @@ function Graph:drawLines()
 	local smoothAll = cfg.smooth
 
 	local order = drawOrder(self)
+	-- Each curve worked out once, for its fill, its line and the hover overlay.
+	for _, p in ipairs(order) do
+		local smooth = p.smooth
+		if smooth == nil then
+			smooth = smoothAll
+		end
+		p.runs = self:curveRuns(p.ys, smooth)
+	end
 	-- Fills first, so every line lies on top of every fill.
 	if cfg.fill then
 		for _, p in ipairs(order) do
 			local c = p.color
 			local a = alphaOf(self, p.index, look.fillAlpha)
 			glColor(c[1], c[2], c[3], a)
-			local smooth = p.smooth
-			if smooth == nil then
-				smooth = smoothAll
-			end
-			for _, run in ipairs(self:curveRuns(p.ys, smooth)) do
+			for _, run in ipairs(p.runs) do
 				glBeginEnd(GL_TRIANGLE_STRIP, function()
-					for _, pt in ipairs(run) do
-						local px = sx(pt[1])
+					for k = 1, #run - 1, 2 do
+						local px = sx(run[k])
 						glVertex(px, area.bottom)
-						glVertex(px, sy(pt[2]))
+						glVertex(px, sy(run[k + 1]))
 					end
 				end)
 			end
@@ -1065,11 +1173,6 @@ function Graph:drawLines()
 		end
 		glLineWidth(width)
 		glColor(c[1], c[2], c[3], a)
-		local smooth = p.smooth
-		if smooth == nil then
-			smooth = smoothAll
-		end
-		p.runs = self:curveRuns(p.ys, smooth)
 		self:strokeRuns(p.runs, width)
 	end
 	glLineWidth(1)
@@ -1078,12 +1181,58 @@ function Graph:drawLines()
 	end
 end
 
+-- Each line's name at its last point, just right of the plot, in its colour - faded with
+-- the line when another is lifted. Sorted by height and pushed apart so none touch, then
+-- back inside the plot from the top; left out altogether when they cannot all fit.
+function Graph:drawEndLabels()
+	if (self.endLabelW or 0) <= 0 then
+		return
+	end
+	local area = self.area
+	local fs = self.cfg.fontSize
+	local items = {}
+	for si, p in ipairs(self.prepared) do
+		for i = #self.xs, 1, -1 do
+			local v = p.ys[i]
+			if v then
+				items[#items + 1] = { p = p, si = si, y = self.sy(v) }
+				break
+			end
+		end
+	end
+	local gap = fs * 1.1
+	if #items == 0 or #items * gap > area.top - area.bottom + gap then
+		return
+	end
+	table.sort(items, function(a, b)
+		return a.y < b.y
+	end)
+	local low = area.bottom + fs * 0.5
+	for _, it in ipairs(items) do
+		it.y = mathMax(it.y, low)
+		low = it.y + gap
+	end
+	local high = area.top - fs * 0.5
+	for i = #items, 1, -1 do
+		local it = items[i]
+		it.y = mathMin(it.y, high)
+		high = it.y - gap
+	end
+	local x = mathFloor(area.right + fs * 0.4)
+	for _, it in ipairs(items) do
+		local c = it.p.color
+		local k = alphaOf(self, it.si, 1)
+		local faded = { c[1] * k + 0.1 * (1 - k), c[2] * k + 0.1 * (1 - k), c[3] * k + 0.1 * (1 - k) }
+		self:text(colorCode(faded) .. it.p.name, x, mathFloor(it.y), "ov", fs)
+	end
+end
+
 -- A line's runs as the current colour and width set them: a lone sample as a dot.
 function Graph:strokeRuns(runs, width)
 	local sx, sy = self.sx, self.sy
 	for _, run in ipairs(runs) do
-		if #run == 1 then
-			local px, py = sx(run[1][1]), sy(run[1][2])
+		if #run == 2 then
+			local px, py = sx(run[1]), sy(run[2])
 			glBeginEnd(GL_QUADS, function()
 				glVertex(px - width, py - width)
 				glVertex(px + width, py - width)
@@ -1092,8 +1241,8 @@ function Graph:strokeRuns(runs, width)
 			end)
 		else
 			glBeginEnd(GL_LINE_STRIP, function()
-				for _, pt in ipairs(run) do
-					glVertex(sx(pt[1]), sy(pt[2]))
+				for k = 1, #run - 1, 2 do
+					glVertex(sx(run[k]), sy(run[k + 1]))
 				end
 			end)
 		end
@@ -1126,9 +1275,36 @@ function Graph:drawStacked()
 		end
 		runs[si] = self:curveRuns(filled, smooth)[1] or {}
 	end
-	local count = #runs[1]
+	local count = mathFloor(#runs[1] / 2)
 	for si = 2, n do
-		count = mathMin(count, #runs[si])
+		count = mathMin(count, mathFloor(#runs[si] / 2))
+	end
+	-- Where every band ends at every point of the run, as a share of the whole there: the
+	-- bands, the seams and the names all read these, worked out once.
+	---@type number[]
+	local pxs = {}
+	---@type number[][]
+	local tops = {}
+	for si = 1, n do
+		tops[si] = {}
+	end
+	for k = 1, count do
+		pxs[k] = sx(runs[1][2 * k - 1])
+		---@type number
+		local total = 0
+		for j = 1, n do
+			total = total + mathMax(0, runs[j][2 * k])
+		end
+		---@type number
+		local top = 0
+		for j = 1, n do
+			if total > 0 then
+				top = top + mathMax(0, runs[j][2 * k]) / total * 100
+			end
+			local band = tops[j]
+			---@cast band -?
+			band[k] = top
+		end
 	end
 
 	for si = 1, n do
@@ -1136,32 +1312,15 @@ function Graph:drawStacked()
 		---@cast p -?
 		local c = p.color
 		local a = alphaOf(self, si, look.areaAlpha)
+		local own, under = tops[si], tops[si - 1]
+		---@cast own -?
 		glColor(c[1], c[2], c[3], a)
 		glBeginEnd(GL_TRIANGLE_STRIP, function()
 			for k = 1, count do
-				---@type number
-				local total = 0
-				for j = 1, n do
-					total = total + mathMax(0, runs[j][k][2])
-				end
-				---@type number, number
-				local under, own = 0, 0
-				for j = 1, si do
-					local share = mathMax(0, runs[j][k][2])
-					if total > 0 then
-						share = share / total * 100
-					else
-						share = 0
-					end
-					if j < si then
-						under = under + share
-					else
-						own = share
-					end
-				end
-				local px = sx(runs[si][k][1])
-				glVertex(px, sy(under))
-				glVertex(px, sy(mathMin(100, under + own)))
+				local px = pxs[k]
+				---@cast px -?
+				glVertex(px, sy(under and under[k] or 0))
+				glVertex(px, sy(mathMin(100, own[k] or 0)))
 			end
 		end)
 	end
@@ -1173,20 +1332,13 @@ function Graph:drawStacked()
 	glLineWidth(1)
 	glColor(0, 0, 0, 0.25)
 	for si = 1, n - 1 do
+		local own = tops[si]
+		---@cast own -?
 		glBeginEnd(GL_LINE_STRIP, function()
 			for k = 1, count do
-				---@type number
-				local total = 0
-				for j = 1, n do
-					total = total + mathMax(0, runs[j][k][2])
-				end
-				---@type number
-				local top = 0
-				for j = 1, si do
-					local share = mathMax(0, runs[j][k][2])
-					top = top + (total > 0 and share / total * 100 or 0)
-				end
-				glVertex(sx(runs[si][k][1]), sy(top))
+				local px = pxs[k]
+				---@cast px -?
+				glVertex(px, sy(own[k] or 0))
 			end
 		end)
 	end
@@ -1199,17 +1351,16 @@ function Graph:drawStacked()
 	if cfg.bandLabels and count > 0 then
 		local fs = cfg.fontSize
 		local k = count
-		---@type number
-		local total = 0
-		for j = 1, n do
-			total = total + mathMax(0, runs[j][k][2])
-		end
-		local right = mathFloor(sx(runs[1][k][1]) - fs * 0.4)
+		local lastX = pxs[k]
+		---@cast lastX -?
+		local right = mathFloor(lastX - fs * 0.4)
 		local left = self.area and self.area.left or right
 		---@type number
 		local under = 0
 		for si = 1, n do
-			local share = total > 0 and mathMax(0, runs[si][k][2]) / total * 100 or 0
+			local band = tops[si]
+			---@cast band -?
+			local share = (band[k] or 0) - under
 			local y0, y1 = sy(under), sy(mathMin(100, under + share))
 			if mathAbs(y1 - y0) >= fs * 1.3 then
 				local p = self.prepared[si]
@@ -1290,6 +1441,16 @@ function Graph:drawMarker(m, scale)
 		glVertex(m.px + 0.5, m.onSeries and m.py or self.area.bottom)
 	end)
 	local corners = chamfered(x1, y1, x2, y2, cut)
+	-- A picture with see-through parts can sit on a backdrop of its own.
+	local backdrop = marker.backdrop
+	if backdrop then
+		glColor(backdrop[1], backdrop[2], backdrop[3], backdrop[4] or 1)
+		glBeginEnd(GL_TRIANGLE_FAN, function()
+			for k = 1, 16, 2 do
+				glVertex(corners[k], corners[k + 1])
+			end
+		end)
+	end
 	if marker.texture then
 		-- Zoomed in a little, the more the smaller the picture: a unit picture has air
 		-- around the unit. The engine's textures load flipped, so t runs from 1 down to 0
@@ -1340,7 +1501,7 @@ function Graph:drawLegend()
 	local fs = cfg.fontSize
 	local plot = self.plot
 	local titleH = cfg.title and fs * 1.9 or 0
-	local legendH = (cfg.legend and #self.prepared > 0) and fs * 1.7 or 0
+	local legendH = (cfg.legend and #self.prepared > 0) and fs * 1.7 * (self.legendRows or 1) or 0
 	local top = plot.top + titleH + legendH
 	if cfg.title then
 		self:text(look.title .. cfg.title, plot.left, mathFloor(top - fs * 1.1), "o", fs * 1.15)
@@ -1350,12 +1511,15 @@ function Graph:drawLegend()
 	end
 	local y = mathFloor(top - titleH - fs * 1.3)
 	---@type number
-	local x = self.area and self.area.left or plot.left
+	local x0 = self.area and self.area.left or plot.left
+	local x = x0
 	local swatch = mathFloor(fs * 0.8)
 	for si, p in ipairs(self.prepared) do
 		local w = self:textWidth(p.name, fs)
-		if x + swatch + fs * 0.5 + w > plot.right then
-			break
+		-- Wrapped where the layout counted a row for it.
+		if x + swatch + fs * 0.4 + w > plot.right and x > x0 then
+			x = x0
+			y = mathFloor(y - fs * 1.7)
 		end
 		local c = p.color
 		local a = alphaOf(self, si, 1)
@@ -1557,6 +1721,20 @@ function Graph:measure()
 		self:prepareLine()
 		self:placeMarkers()
 	end
+	-- What a hit remembered is only good for the layout it was found in.
+	self.measures = (self.measures or 0) + 1
+end
+
+-- The hit found last is handed back while the chart is laid out as it was and the cursor
+-- is over the same thing, the tooltip it worked out with it, rather than made again every
+-- frame; `last` is it while it may be.
+local function lastHit(self)
+	return self.memoGen == self.measures and self.memoHit or nil
+end
+
+local function remember(self, hit)
+	self.memoHit, self.memoGen = hit, self.measures
+	return hit
 end
 
 function Graph:build()
@@ -1580,6 +1758,7 @@ function Graph:build()
 			self:drawStacked()
 		else
 			self:drawLines()
+			self:drawEndLabels()
 		end
 		self:drawMarkers()
 		self:drawLegend()
@@ -1695,7 +1874,14 @@ function Graph:hitTest(mx, my)
 		local m = self.placed[i]
 		---@cast m -?
 		if mx >= m.x1 and mx <= m.x2 and my >= m.y1 and my <= m.y2 then
-			return { kind = "marker", marker = m.marker, placed = m, px = m.px, py = m.py, text = m.marker.text }
+			local last = lastHit(self)
+			if last and last.placed == m then
+				return last
+			end
+			return remember(
+				self,
+				{ kind = "marker", marker = m.marker, placed = m, px = m.px, py = m.py, text = m.marker.text }
+			)
 		end
 	end
 	if cfg.kind == "radar" then
@@ -1712,13 +1898,17 @@ function Graph:hitTest(mx, my)
 		local turn = (mathPi * 0.5 - ang) / (2 * mathPi)
 		turn = turn - mathFloor(turn)
 		local axis = mathFloor(turn * r.n + 0.5) % r.n + 1
+		local last = lastHit(self)
+		if last and last.kind == "axis" and last.axis == axis then
+			return last
+		end
 		local entries = {}
 		for si, p in ipairs(self.prepared) do
 			entries[#entries + 1] = { series = si, name = p.name, color = p.color, value = p.axisValues[axis] }
 		end
 		local a = self.axes[axis]
 		---@cast a -?
-		return { kind = "axis", axis = axis, label = a.label or a.key, entries = entries }
+		return remember(self, { kind = "axis", axis = axis, label = a.label or a.key, entries = entries })
 	end
 	local area = self.area
 	if not area or #self.xs == 0 then
@@ -1729,6 +1919,25 @@ function Graph:hitTest(mx, my)
 	end
 	local x = self.xMin + (mx - area.left) / mathMax(1, area.right - area.left) * (self.xMax - self.xMin)
 	local i = self:nearestIndex(x)
+	-- The line the cursor is over, if one is close enough to it: brought to the front.
+	---@type integer?
+	local nearest = nil
+	if cfg.kind == "line" then
+		local best = mathMax(8, cfg.fontSize) + 0.5
+		for si, p in ipairs(self.prepared) do
+			local v = p.ys[i]
+			if v then
+				local d = mathAbs(self.sy(v) - my)
+				if d < best then
+					nearest, best = si, d
+				end
+			end
+		end
+	end
+	local last = lastHit(self)
+	if last and last.kind == "point" and last.index == i and last.nearest == nearest then
+		return last
+	end
 	local px = self.sx(self.xs[i] or 0)
 	local entries = {}
 	for si, p in ipairs(self.prepared) do
@@ -1754,17 +1963,7 @@ function Graph:hitTest(mx, my)
 			}
 		end
 	end
-	-- The line the cursor is over, if one is close enough to it: brought to the front.
-	local nearest, best = nil, mathMax(8, cfg.fontSize) + 0.5
-	if cfg.kind == "line" then
-		for _, e in ipairs(entries) do
-			local d = mathAbs(e.py - my)
-			if d < best then
-				nearest, best = e.series, d
-			end
-		end
-	end
-	return { kind = "point", index = i, x = self.xs[i], px = px, entries = entries, nearest = nearest }
+	return remember(self, { kind = "point", index = i, x = self.xs[i], px = px, entries = entries, nearest = nearest })
 end
 
 -- A tooltip for a hit: the x, then every series' value in its colour, largest first.
@@ -1774,6 +1973,10 @@ function Graph:describe(hit)
 	end
 	if hit.kind == "marker" then
 		return hit.text
+	end
+	-- Worked out once for a hit, which is handed back while the cursor stays on it.
+	if hit.described then
+		return hit.described
 	end
 	local cfg = self.cfg
 	local lines = {}
@@ -1801,7 +2004,8 @@ function Graph:describe(hit)
 			lines[#lines + 1] = colorCode(e.color) .. e.name .. "  " .. cfg.look.title .. yFormat(e.value)
 		end
 	end
-	return table.concat(lines, "\n")
+	hit.described = table.concat(lines, "\n")
+	return hit.described
 end
 
 return Graph
