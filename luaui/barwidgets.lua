@@ -148,6 +148,7 @@ local flexCallIns = {
 	"UnitCmdDone",
 	"UnitDamaged",
 	"UnitStunned",
+	"UnitFlightRegimeChanged",
 	"UnitEnteredRadar",
 	"UnitEnteredLos",
 	"UnitLeftRadar",
@@ -3068,6 +3069,13 @@ function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyze
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
+	for _, w in ipairs(self.UnitFlightRegimeChangedList) do
+		w:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
+	end
 	return
 end
 
