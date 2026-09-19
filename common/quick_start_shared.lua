@@ -35,9 +35,7 @@ local function getModeFlags(modOptions)
 		or quickStartMode == "factory_discount"
 		or quickStartMode == "factory_discount_only"
 		or defaultModeEnabled
-	local shouldRunWidget = quickStartMode == "enabled"
-		or quickStartMode == "factory_discount"
-		or defaultModeEnabled
+	local shouldRunWidget = quickStartMode == "enabled" or quickStartMode == "factory_discount" or defaultModeEnabled
 	local shouldApplyFactoryDiscount = quickStartMode == "factory_discount"
 		or quickStartMode == "factory_discount_only"
 		or defaultModeEnabled
@@ -119,14 +117,7 @@ local function isWithinInstantBuildRange(
 	return canMoveToPosition(buildX, buildZ) or false
 end
 
-local function getNearbyMexes(
-	originX,
-	originZ,
-	instantBuildRange,
-	metalSpotsList,
-	overlapLineList,
-	canMoveToPosition
-)
+local function getNearbyMexes(originX, originZ, instantBuildRange, metalSpotsList, overlapLineList, canMoveToPosition)
 	local nearbyMexes = {}
 	if not metalSpotsList then
 		return nearbyMexes
@@ -200,12 +191,8 @@ local function generateLocalGrid(context)
 			if (gridOffset / BUILD_SPACING) % SKIP_STEP ~= 0 then
 				local testX = context.commanderX + offsetX
 				local testZ = context.commanderZ + offsetZ
-				local withinGenerationRange = math.distance2d(
-					testX,
-					testZ,
-					context.commanderX,
-					context.commanderZ
-				) <= context.baseGenerationRange
+				local withinGenerationRange = math.distance2d(testX, testZ, context.commanderX, context.commanderZ)
+					<= context.baseGenerationRange
 				if withinGenerationRange then
 					local tooClose = false
 					for zoneIndex = 1, #noGoZones do

@@ -452,12 +452,7 @@ local function getNearbyMexes(commanderX, commanderZ, instantBuildRange)
 		resourceSpotFinder.metalSpotsList,
 		cachedOverlapLines,
 		function(buildX, buildZ)
-			return traversabilityGrid.canMoveToPosition(
-				"myGrid",
-				buildX,
-				buildZ,
-				GRID_CHECK_RESOLUTION_MULTIPLIER
-			)
+			return traversabilityGrid.canMoveToPosition("myGrid", buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER)
 		end
 	)
 end
@@ -527,12 +522,7 @@ local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, pla
 		buildDefID = isInWater and buildDefs.tidal or buildDefs.windmill,
 		buildDefs = buildDefs,
 		canMoveToPosition = function(buildX, buildZ)
-			return traversabilityGrid.canMoveToPosition(
-				"myGrid",
-				buildX,
-				buildZ,
-				GRID_CHECK_RESOLUTION_MULTIPLIER
-			)
+			return traversabilityGrid.canMoveToPosition("myGrid", buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER)
 		end,
 		commanderX = commanderX,
 		commanderY = groundY,

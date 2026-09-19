@@ -132,8 +132,7 @@ function GG.quick_start.transferCommanderData(oldUnitID, newUnitID)
 end
 
 for unitDefID, unitDef in pairs(unitDefs) do
-	defMetergies[unitDefID] =
-		quickStart.calculateBudgetCost(unitDef.metalCost, unitDef.energyCost, unitDef.buildTime)
+	defMetergies[unitDefID] = quickStart.calculateBudgetCost(unitDef.metalCost, unitDef.energyCost, unitDef.buildTime)
 	if unitDef.customParams and unitDef.customParams.iscommander then
 		boostableCommanders[unitDefID] = true
 	end
@@ -332,15 +331,19 @@ local function getBuildSpace(commanderID, option)
 	if not comData then
 		return nil, nil, nil
 	end
-	return quickStart.getBuildSpace({
-		buildDefs = comData.buildDefs,
-		defaultFacing = DEFAULT_FACING,
-		gridLists = comData.gridLists,
-		isMetalMap = isMetalMap,
-		nearbyMexes = comData.nearbyMexes,
-	}, option, function(unitDefID, buildX, buildY, buildZ, facing)
-		return spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) == UNOCCUPIED
-	end)
+	return quickStart.getBuildSpace(
+		{
+			buildDefs = comData.buildDefs,
+			defaultFacing = DEFAULT_FACING,
+			gridLists = comData.gridLists,
+			isMetalMap = isMetalMap,
+			nearbyMexes = comData.nearbyMexes,
+		},
+		option,
+		function(unitDefID, buildX, buildY, buildZ, facing)
+			return spTestBuildOrder(unitDefID, buildX, buildY, buildZ, facing) == UNOCCUPIED
+		end
+	)
 end
 
 local function populateNearbyMexes(commanderID)
@@ -361,12 +364,7 @@ local function populateNearbyMexes(commanderID)
 		metalSpotsList,
 		comData.overlapLines,
 		function(buildX, buildZ)
-			return traversabilityGrid.canMoveToPosition(
-				commanderID,
-				buildX,
-				buildZ,
-				GRID_CHECK_RESOLUTION_MULTIPLIER
-			)
+			return traversabilityGrid.canMoveToPosition(commanderID, buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER)
 		end
 	)
 end
@@ -466,12 +464,7 @@ local function initializeCommander(commanderID, teamID)
 		baseGenerationRange = BASE_GENERATION_RANGE,
 		buildDefID = comData.isInWater and comData.buildDefs.tidal or comData.buildDefs.windmill,
 		canMoveToPosition = function(buildX, buildZ)
-			return traversabilityGrid.canMoveToPosition(
-				commanderID,
-				buildX,
-				buildZ,
-				GRID_CHECK_RESOLUTION_MULTIPLIER
-			)
+			return traversabilityGrid.canMoveToPosition(commanderID, buildX, buildZ, GRID_CHECK_RESOLUTION_MULTIPLIER)
 		end,
 		commanderX = comData.spawnX,
 		commanderY = comData.spawnY,
