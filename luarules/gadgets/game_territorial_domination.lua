@@ -756,6 +756,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:Initialize()
+	Spring.SetGameRulesParam("territorialDominationTerritoryPointsPerDeadline", TERRITORY_POINTS_PER_DEADLINE)
 	numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
 	numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 	sendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)

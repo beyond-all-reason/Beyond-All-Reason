@@ -98,12 +98,12 @@
 					<div
 						class="td-deadline-label"
 						data-style-bottom="deadlineLabelBottom"
-						data-event-mouseover="showDeadlineLineTooltip()"
+						data-event-mouseover="showSimpleTooltip('deadline')"
 						data-event-mouseout="hideTooltip()"
 					>{{deadlineLabel}}</div>
 					<div
 						class="td-deadline-hotspot"
-						data-event-mouseover="showDeadlineLineTooltip()"
+						data-event-mouseover="showSimpleTooltip('deadline')"
 						data-event-mouseout="hideTooltip()"
 					>
 						<div class="td-deadline-line"></div>
@@ -127,7 +127,7 @@
 								data-class-local="score.isLocalPlayer"
 								data-event-mousedown="blockPanelDrag()"
 								data-event-click="selectExpandedScore(score.allyTeamID)"
-								data-event-mouseover="showVerticalBarTooltip(score.allyTeamID)"
+									data-event-mouseover="showScoreTooltip(score.allyTeamID, 'select')"
 								data-event-mouseout="hideTooltip()"
 							>
 								<div
@@ -165,7 +165,7 @@
 			<div class="td-footer">
 				<div
 					class="td-footer-score"
-					data-event-mouseover="showCurrentScoreTooltip()"
+					data-event-mouseover="showSimpleTooltip('currentScore')"
 					data-event-mouseout="hideTooltip()"
 				>
 					<span class="td-allyteam-color" data-style-background-color="selectedColor"></span>
@@ -176,7 +176,7 @@
 					data-class-warning="countdownWarning"
 					data-style-color="countdownPulseColor"
 					data-style-transform="countdownPulseTransform"
-					data-event-mouseover="showCountdownTooltip()"
+					data-event-mouseover="showSimpleTooltip('countdown')"
 					data-event-mouseout="hideTooltip()"
 				>{{footerCountdown}}</div>
 				<div
