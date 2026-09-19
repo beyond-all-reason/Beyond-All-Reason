@@ -45,10 +45,8 @@ ANIMATIONNAME_CALC(desiredFrames, remainder_ms){ // we can abuse the stack of Wa
 			currTime = ANIMATIONNAME_DEFAULT_ANIM_TIME * maxSpeed / (get (CURRENT_SPEED) + 1); \
 			if (currTime < ANIMATIONNAME_MIN_ANIM_TIME) currTime = ANIMATIONNAME_MIN_ANIM_TIME; \
 			if (currTime > ANIMATIONNAME_MAX_ANIM_TIME) currTime = ANIMATIONNAME_MAX_ANIM_TIME; \
-            tmp = currTime; \
 			currTime = desiredFrames * currTime + remainder_ms; \
 			remainder_ms = currTime % 33;  \
-			get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp); \
 			desiredFrames = currTime / 33;  
 #endif
 
@@ -205,6 +203,7 @@ Walk_VA(){
 #endif
 */
 
+/*
 // Ok knowing that its a 50/50 blend:
 
 #ifndef ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE
@@ -225,6 +224,29 @@ Walk_VA(){
 			get PRINT (currentPCt, currTime, ANIMATIONNAME_amplitude, tmp); \
 
 #endif
+*/
+
+// Optimized:
+
+// Ok knowing that its a 50/50 blend:
+
+#ifndef ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE
+	#define ANIMATIONNAME_CALC_DESIRED_FRAMES_AMPLITUDE() \
+			currTime = ANIMATIONNAME_DEFAULT_ANIM_TIME * maxSpeed / (get (CURRENT_SPEED) + 1); \
+			if (currTime < ANIMATIONNAME_MIN_ANIM_TIME) currTime = ANIMATIONNAME_MIN_ANIM_TIME; \
+			if (currTime > ANIMATIONNAME_MAX_ANIM_TIME) currTime = ANIMATIONNAME_MAX_ANIM_TIME; \
+			currentPCt = (ANIMATIONNAME_DEFAULT_ANIM_TIME * 100 / currTime) - 100; \
+            currTime = (ANIMATIONNAME_DEFAULT_ANIM_TIME * (100 - (currentPCt / 2))) / 100; \
+            ANIMATIONNAME_amplitude = 100 + ((currentPCt * 60) / 100); \
+			currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; \
+			ANIMATIONNAME_remainder_ms = currTime % 33;  \
+			desiredFrames = currTime / 33;  \
+
+
+            //get PRINT (get (GAME_FRAME), currentPCt, currTime, ANIMATIONNAME_amplitude); \
+
+ #endif
+
 
 
 #ifndef ANIMATIONNAME_SIGNAL_MASK
@@ -240,10 +262,8 @@ ANIMNAME() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animat
     var tmp;
     var ANIMATIONNAME_amplitude; // Always expressed in percent.
     var rawSpeed;
-    var ANIMATIONNAME_speedblendfactor;
-    var act_time;
     ANIMATIONNAME_amplitude = 100;
-	ANIMATIONNAME_remainder_ms = get RAND(0, 66); // Im pretty sure any static
+	ANIMATIONNAME_remainder_ms = RAND(0, 66); // Im pretty sure any static
 
     if (isMoving) { // The first frame of the walking animation MUST be done at at most 2x the desired frames. 
             desiredFrames = 2;

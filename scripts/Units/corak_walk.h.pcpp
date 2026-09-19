@@ -107,373 +107,527 @@
 
 
 
-Walk() {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ANIMNAME() {
 	set-signal-mask SIGNAL_MOVE;
-    var remainder_ms;
+    var ANIMATIONNAME_remainder_ms;
 	var currTime;
+    var currentPCt;
 	var desiredFrames;
     var tmp;
+    var ANIMATIONNAME_amplitude;
+    var rawSpeed;
+    var ANIMATIONNAME_speedblendfactor;
+    var act_time;
+    ANIMATIONNAME_amplitude = 100;
+	ANIMATIONNAME_remainder_ms = get RAND(0, 66);
 
-	remainder_ms = 0;
-	if (isMoving) {
+    if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+            desiredFrames = 4;
 
-
-			turn lfoot to x-axis <-40.243512> speed <1273.943828> / desiredFrames;
-			turn lfoot to z-axis <-7.440659> speed <223.219252> / desiredFrames;
-			turn lfoot to y-axis <-5.865953> speed <727.995439> / desiredFrames;
-			turn lknee to x-axis <-6.830024> speed <172.844587> / desiredFrames;
-			turn lknee to z-axis <0.345820> speed <29.023982> / desiredFrames;
-			turn lknee to y-axis <0.304802> speed <19.258346> / desiredFrames;
-			turn lleg to x-axis <26.076006> speed <770.050910> / desiredFrames;
-			turn lleg to z-axis <-0.157717> speed <7.701529> / desiredFrames;
-			turn lleg to y-axis <-0.087720> speed <27.150911> / desiredFrames;
-			turn lloarm to x-axis <18.795205> speed <152.239487> / desiredFrames;
-			turn lthigh to x-axis <23.125820> speed <731.292682> / desiredFrames;
-			turn lthigh to z-axis <4.131044> speed <165.843277> / desiredFrames;
-			turn lthigh to y-axis <-0.006083> speed <9.977088> / desiredFrames;
-			turn luparm to x-axis <-15.533187> speed <362.612128> / desiredFrames;
-			turn luparm to z-axis <-4.025448> speed <134.371865> / desiredFrames;
-			turn luparm to y-axis <-1.012513> speed <204.477528> / desiredFrames;
-			turn pelvis to x-axis <-2.390000> speed <71.699998> / desiredFrames;
-			turn pelvis to y-axis <3.0> speed <90.0> / desiredFrames;
-			turn rfoot to x-axis <39.611634> speed <1130.819000> / desiredFrames;
-			turn rfoot to y-axis <-9.393908> speed <282.235463> / desiredFrames;
-			turn rknee to x-axis <5.383341> speed <241.075747> / desiredFrames;
-			turn rknee to z-axis <0.381296> speed <29.623899> / desiredFrames;
-			turn rknee to y-axis <-0.363446> speed <38.107235> / desiredFrames;
-			turn rleg to x-axis <-31.505187> speed <1037.860666> / desiredFrames;
-			turn rleg to z-axis <3.062627> speed <76.071680> / desiredFrames;
-			turn rleg to y-axis <3.820081> speed <190.336606> / desiredFrames;
-			turn rloarm to x-axis <-0.115769> speed <357.617331> / desiredFrames;
-			turn rthigh to x-axis <-22.733392> speed <614.661624> / desiredFrames;
-			turn rthigh to z-axis <2.905186> speed <18.693993> / desiredFrames;
-			turn rthigh to y-axis <2.837642> speed <115.024912> / desiredFrames;
-			turn ruparm to x-axis <6.073401> speed <288.740629> / desiredFrames;
-			turn ruparm to z-axis <-2.618910> speed <373.295110> / desiredFrames;
-			turn ruparm to y-axis <0.276228> speed <187.966625> / desiredFrames;
-			turn torso to y-axis <-6.060918> speed <182.948716> / desiredFrames;
+			turn lfoot to x-axis ((<-40.243512> *ANIMATIONNAME_amplitude)/100) speed ((<1273.943828> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to z-axis ((<-7.440659> *ANIMATIONNAME_amplitude)/100) speed ((<223.219252> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to y-axis ((<-5.865953> *ANIMATIONNAME_amplitude)/100) speed ((<727.995439> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<-6.830024> *ANIMATIONNAME_amplitude)/100) speed ((<172.844587> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<0.345820> *ANIMATIONNAME_amplitude)/100) speed ((<29.023982> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<0.304802> *ANIMATIONNAME_amplitude)/100) speed ((<19.258346> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<26.076006> *ANIMATIONNAME_amplitude)/100) speed ((<770.050910> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<-0.157717> *ANIMATIONNAME_amplitude)/100) speed ((<7.701529> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-0.087720> *ANIMATIONNAME_amplitude)/100) speed ((<27.150911> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<18.795205> *ANIMATIONNAME_amplitude)/100) speed ((<152.239487> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<23.125820> *ANIMATIONNAME_amplitude)/100) speed ((<731.292682> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<4.131044> *ANIMATIONNAME_amplitude)/100) speed ((<165.843277> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<-0.006083> *ANIMATIONNAME_amplitude)/100) speed ((<9.977088> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<-15.533187> *ANIMATIONNAME_amplitude)/100) speed ((<362.612128> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<-4.025448> *ANIMATIONNAME_amplitude)/100) speed ((<134.371865> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<-1.012513> *ANIMATIONNAME_amplitude)/100) speed ((<204.477528> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to x-axis ((<-2.390000> *ANIMATIONNAME_amplitude)/100) speed ((<71.699998> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<3.0> *ANIMATIONNAME_amplitude)/100) speed ((<90.0> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<39.611634> *ANIMATIONNAME_amplitude)/100) speed ((<1130.819000> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<-9.393908> *ANIMATIONNAME_amplitude)/100) speed ((<282.235463> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<5.383341> *ANIMATIONNAME_amplitude)/100) speed ((<241.075747> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<0.381296> *ANIMATIONNAME_amplitude)/100) speed ((<29.623899> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<-0.363446> *ANIMATIONNAME_amplitude)/100) speed ((<38.107235> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<-31.505187> *ANIMATIONNAME_amplitude)/100) speed ((<1037.860666> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<3.062627> *ANIMATIONNAME_amplitude)/100) speed ((<76.071680> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<3.820081> *ANIMATIONNAME_amplitude)/100) speed ((<190.336606> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<-0.115769> *ANIMATIONNAME_amplitude)/100) speed ((<357.617331> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<-22.733392> *ANIMATIONNAME_amplitude)/100) speed ((<614.661624> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<2.905186> *ANIMATIONNAME_amplitude)/100) speed ((<18.693993> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<2.837642> *ANIMATIONNAME_amplitude)/100) speed ((<115.024912> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<6.073401> *ANIMATIONNAME_amplitude)/100) speed ((<288.740629> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<-2.618910> *ANIMATIONNAME_amplitude)/100) speed ((<373.295110> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<0.276228> *ANIMATIONNAME_amplitude)/100) speed ((<187.966625> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<-6.060918> *ANIMATIONNAME_amplitude)/100) speed ((<182.948716> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 	}
 	while(isMoving) {
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
 
-			turn lfoot to x-axis <-30.657758> speed <287.572616> / desiredFrames;
-			turn lfoot to z-axis <-1.578026> speed <175.878977> / desiredFrames;
-			turn lfoot to y-axis <-3.384192> speed <74.452829> / desiredFrames;
-			turn lknee to x-axis <-6.365428> speed <13.937889> / desiredFrames;
-			turn lknee to z-axis <0.627497> speed <8.450319> / desiredFrames;
-			turn lknee to y-axis <-0.125771> speed <12.917179> / desiredFrames;
-			turn lleg to x-axis <34.419505> speed <250.304986> / desiredFrames;
-			turn lleg to y-axis <4.133390> speed <126.633291> / desiredFrames;
-			turn lloarm to x-axis <38.934206> speed <604.170018> / desiredFrames;
-			turn lthigh to x-axis <43.405395> speed <608.387233> / desiredFrames;
-			turn lthigh to z-axis <-0.157018> speed <128.641886> / desiredFrames;
-			turn lthigh to y-axis <4.913218> speed <147.579022> / desiredFrames;
-			turn luparm to x-axis <-38.188086> speed <679.646972> / desiredFrames;
-			turn luparm to z-axis <-9.569086> speed <166.309155> / desiredFrames;
-			turn luparm to y-axis <-6.279474> speed <158.008808> / desiredFrames;
-			move pelvis to y-axis [-0.520000] speed [15.599999] / desiredFrames;
-			turn pelvis to x-axis <-0.0> speed <71.699998> / desiredFrames;
-			turn pelvis to y-axis <5.0> speed <59.999993> / desiredFrames;
-			turn rfoot to x-axis <24.484406> speed <453.816842> / desiredFrames;
-			turn rfoot to y-axis <-0.003345> speed <281.716910> / desiredFrames;
-			turn rknee to x-axis <-25.170605> speed <916.618362> / desiredFrames;
-			turn rknee to z-axis <1.658174> speed <38.306322> / desiredFrames;
-			turn rknee to y-axis <2.094784> speed <73.746915> / desiredFrames;
-			turn rleg to x-axis <12.264737> speed <1313.097704> / desiredFrames;
-			turn rleg to z-axis <-0.090587> speed <94.596422> / desiredFrames;
-			turn rleg to y-axis <-1.066060> speed <146.584218> / desiredFrames;
-			turn rloarm to x-axis <-4.646985> speed <135.936497> / desiredFrames;
-			turn rthigh to x-axis <-39.697541> speed <508.924481> / desiredFrames;
-			turn rthigh to z-axis <2.737817> speed <5.021079> / desiredFrames;
-			turn rthigh to y-axis <5.181143> speed <70.305026> / desiredFrames;
-			turn ruparm to x-axis <14.323402> speed <247.500020> / desiredFrames;
-			turn ruparm to z-axis <-3.641867> speed <30.688723> / desiredFrames;
-			turn ruparm to y-axis <-1.015437> speed <38.749968> / desiredFrames;
-			turn torso to y-axis <-8.679222> speed <78.549118> / desiredFrames;
+			turn lfoot to x-axis ((<-30.657758> *ANIMATIONNAME_amplitude)/100) speed ((<287.572616> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to z-axis ((<-1.578026> *ANIMATIONNAME_amplitude)/100) speed ((<175.878977> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to y-axis ((<-3.384192> *ANIMATIONNAME_amplitude)/100) speed ((<74.452829> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<-6.365428> *ANIMATIONNAME_amplitude)/100) speed ((<13.937889> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<0.627497> *ANIMATIONNAME_amplitude)/100) speed ((<8.450319> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<-0.125771> *ANIMATIONNAME_amplitude)/100) speed ((<12.917179> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<34.419505> *ANIMATIONNAME_amplitude)/100) speed ((<250.304986> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<4.133390> *ANIMATIONNAME_amplitude)/100) speed ((<126.633291> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<38.934206> *ANIMATIONNAME_amplitude)/100) speed ((<604.170018> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<43.405395> *ANIMATIONNAME_amplitude)/100) speed ((<608.387233> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<-0.157018> *ANIMATIONNAME_amplitude)/100) speed ((<128.641886> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<4.913218> *ANIMATIONNAME_amplitude)/100) speed ((<147.579022> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<-38.188086> *ANIMATIONNAME_amplitude)/100) speed ((<679.646972> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<-9.569086> *ANIMATIONNAME_amplitude)/100) speed ((<166.309155> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<-6.279474> *ANIMATIONNAME_amplitude)/100) speed ((<158.008808> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-0.520000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([15.599999] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<-0.0> *ANIMATIONNAME_amplitude)/100) speed ((<71.699998> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<5.0> *ANIMATIONNAME_amplitude)/100) speed ((<59.999993> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<24.484406> *ANIMATIONNAME_amplitude)/100) speed ((<453.816842> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<-0.003345> *ANIMATIONNAME_amplitude)/100) speed ((<281.716910> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<-25.170605> *ANIMATIONNAME_amplitude)/100) speed ((<916.618362> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<1.658174> *ANIMATIONNAME_amplitude)/100) speed ((<38.306322> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<2.094784> *ANIMATIONNAME_amplitude)/100) speed ((<73.746915> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<12.264737> *ANIMATIONNAME_amplitude)/100) speed ((<1313.097704> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<-0.090587> *ANIMATIONNAME_amplitude)/100) speed ((<94.596422> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<-1.066060> *ANIMATIONNAME_amplitude)/100) speed ((<146.584218> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<-4.646985> *ANIMATIONNAME_amplitude)/100) speed ((<135.936497> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<-39.697541> *ANIMATIONNAME_amplitude)/100) speed ((<508.924481> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<2.737817> *ANIMATIONNAME_amplitude)/100) speed ((<5.021079> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<5.181143> *ANIMATIONNAME_amplitude)/100) speed ((<70.305026> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<14.323402> *ANIMATIONNAME_amplitude)/100) speed ((<247.500020> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<-3.641867> *ANIMATIONNAME_amplitude)/100) speed ((<30.688723> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<-1.015437> *ANIMATIONNAME_amplitude)/100) speed ((<38.749968> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<-8.679222> *ANIMATIONNAME_amplitude)/100) speed ((<78.549118> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <-39.010424> speed <250.579970> / desiredFrames;
-			turn lfoot to z-axis <-0.002108> speed <47.277535> / desiredFrames;
-			turn lfoot to y-axis <-0.006890> speed <101.319038> / desiredFrames;
-			turn lknee to x-axis <22.853738> speed <876.574965> / desiredFrames;
-			turn lknee to z-axis <-1.186151> speed <54.409440> / desiredFrames;
-			turn lknee to y-axis <4.123133> speed <127.467114> / desiredFrames;
-			turn lleg to x-axis <-14.821478> speed <1477.229506> / desiredFrames;
-			turn lleg to z-axis <-0.568119> speed <10.721675> / desiredFrames;
-			turn lleg to y-axis <-1.088983> speed <156.671196> / desiredFrames;
-			turn lloarm to x-axis <7.764953> speed <935.077597> / desiredFrames;
-			turn lthigh to x-axis <34.201735> speed <276.109782> / desiredFrames;
-			turn lthigh to z-axis <-1.961119> speed <54.123014> / desiredFrames;
-			turn lthigh to y-axis <5.895231> speed <29.460377> / desiredFrames;
-			turn luparm to x-axis <-19.159760> speed <570.849794> / desiredFrames;
-			turn luparm to z-axis <-4.950884> speed <138.546089> / desiredFrames;
-			turn luparm to y-axis <-1.486378> speed <143.792862> / desiredFrames;
-			move pelvis to y-axis [-0.990000] speed [14.100001] / desiredFrames;
-			turn pelvis to x-axis <6.740000> speed <202.199998> / desiredFrames;
-			turn pelvis to y-axis <2.970000> speed <60.900003> / desiredFrames;
-			turn rfoot to x-axis <37.153043> speed <380.059097> / desiredFrames;
-			turn rfoot to z-axis <8.934135> speed <268.003689> / desiredFrames;
-			turn rfoot to y-axis <-12.813064> speed <384.291590> / desiredFrames;
-			turn rknee to x-axis <-9.596093> speed <467.235346> / desiredFrames;
-			turn rknee to z-axis <-1.342735> speed <90.027277> / desiredFrames;
-			turn rknee to y-axis <1.142380> speed <28.572115> / desiredFrames;
-			turn rleg to x-axis <-10.387000> speed <679.552101> / desiredFrames;
-			turn rleg to z-axis <-0.839981> speed <22.481842> / desiredFrames;
-			turn rleg to y-axis <3.611564> speed <140.328704> / desiredFrames;
-			turn rloarm to x-axis <-15.163607> speed <315.498660> / desiredFrames;
-			turn rthigh to x-axis <-25.794549> speed <417.089753> / desiredFrames;
-			turn rthigh to z-axis <-2.194373> speed <147.965705> / desiredFrames;
-			turn rthigh to y-axis <4.020788> speed <34.810670> / desiredFrames;
-			turn ruparm to x-axis <13.726036> speed <17.920974> / desiredFrames;
-			turn ruparm to z-axis <-3.523284> speed <3.557483> / desiredFrames;
-			turn torso to y-axis <-5.940345> speed <82.166318> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<-39.010424> *ANIMATIONNAME_amplitude)/100) speed ((<250.579970> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to z-axis ((<-0.002108> *ANIMATIONNAME_amplitude)/100) speed ((<47.277535> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to y-axis ((<-0.006890> *ANIMATIONNAME_amplitude)/100) speed ((<101.319038> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<22.853738> *ANIMATIONNAME_amplitude)/100) speed ((<876.574965> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<-1.186151> *ANIMATIONNAME_amplitude)/100) speed ((<54.409440> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<4.123133> *ANIMATIONNAME_amplitude)/100) speed ((<127.467114> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<-14.821478> *ANIMATIONNAME_amplitude)/100) speed ((<1477.229506> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<-0.568119> *ANIMATIONNAME_amplitude)/100) speed ((<10.721675> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-1.088983> *ANIMATIONNAME_amplitude)/100) speed ((<156.671196> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<7.764953> *ANIMATIONNAME_amplitude)/100) speed ((<935.077597> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<34.201735> *ANIMATIONNAME_amplitude)/100) speed ((<276.109782> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<-1.961119> *ANIMATIONNAME_amplitude)/100) speed ((<54.123014> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<5.895231> *ANIMATIONNAME_amplitude)/100) speed ((<29.460377> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<-19.159760> *ANIMATIONNAME_amplitude)/100) speed ((<570.849794> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<-4.950884> *ANIMATIONNAME_amplitude)/100) speed ((<138.546089> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<-1.486378> *ANIMATIONNAME_amplitude)/100) speed ((<143.792862> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-0.990000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([14.100001] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<6.740000> *ANIMATIONNAME_amplitude)/100) speed ((<202.199998> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<2.970000> *ANIMATIONNAME_amplitude)/100) speed ((<60.900003> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<37.153043> *ANIMATIONNAME_amplitude)/100) speed ((<380.059097> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to z-axis ((<8.934135> *ANIMATIONNAME_amplitude)/100) speed ((<268.003689> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<-12.813064> *ANIMATIONNAME_amplitude)/100) speed ((<384.291590> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<-9.596093> *ANIMATIONNAME_amplitude)/100) speed ((<467.235346> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<-1.342735> *ANIMATIONNAME_amplitude)/100) speed ((<90.027277> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<1.142380> *ANIMATIONNAME_amplitude)/100) speed ((<28.572115> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<-10.387000> *ANIMATIONNAME_amplitude)/100) speed ((<679.552101> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<-0.839981> *ANIMATIONNAME_amplitude)/100) speed ((<22.481842> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<3.611564> *ANIMATIONNAME_amplitude)/100) speed ((<140.328704> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<-15.163607> *ANIMATIONNAME_amplitude)/100) speed ((<315.498660> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<-25.794549> *ANIMATIONNAME_amplitude)/100) speed ((<417.089753> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<-2.194373> *ANIMATIONNAME_amplitude)/100) speed ((<147.965705> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<4.020788> *ANIMATIONNAME_amplitude)/100) speed ((<34.810670> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<13.726036> *ANIMATIONNAME_amplitude)/100) speed ((<17.920974> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<-3.523284> *ANIMATIONNAME_amplitude)/100) speed ((<3.557483> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<-5.940345> *ANIMATIONNAME_amplitude)/100) speed ((<82.166318> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <2.496757> speed <1245.215437> / desiredFrames;
-			turn lknee to x-axis <23.683565> speed <24.894810> / desiredFrames;
-			turn lknee to z-axis <-0.307654> speed <26.354925> / desiredFrames;
-			turn lknee to y-axis <1.733618> speed <71.685440> / desiredFrames;
-			turn lleg to x-axis <-41.143980> speed <789.675070> / desiredFrames;
-			turn lleg to z-axis <-1.093781> speed <15.769877> / desiredFrames;
-			turn lleg to y-axis <-4.328630> speed <97.189416> / desiredFrames;
-			turn lloarm to x-axis <-0.334923> speed <242.996259> / desiredFrames;
-			turn lthigh to x-axis <8.135991> speed <781.972333> / desiredFrames;
-			turn lthigh to z-axis <-2.494973> speed <16.015626> / desiredFrames;
-			turn lthigh to y-axis <2.347090> speed <106.444227> / desiredFrames;
-			turn luparm to x-axis <-2.433948> speed <501.774362> / desiredFrames;
-			turn luparm to z-axis <-0.551755> speed <131.973857> / desiredFrames;
-			turn luparm to y-axis <-0.128355> speed <40.740708> / desiredFrames;
-			move pelvis to y-axis [-0.028000] speed [28.860000] / desiredFrames;
-			turn pelvis to x-axis <3.070000> speed <110.099994> / desiredFrames;
-			turn pelvis to y-axis <-0.010000> speed <89.400000> / desiredFrames;
-			turn rfoot to x-axis <0.579182> speed <1097.215835> / desiredFrames;
-			turn rfoot to z-axis <9.697182> speed <22.891422> / desiredFrames;
-			turn rfoot to y-axis <-5.852873> speed <208.805747> / desiredFrames;
-			turn rknee to x-axis <-2.039017> speed <226.712269> / desiredFrames;
-			turn rknee to z-axis <-2.372498> speed <30.892883> / desiredFrames;
-			turn rknee to y-axis <0.697846> speed <13.336030> / desiredFrames;
-			turn rleg to x-axis <1.418999> speed <354.179965> / desiredFrames;
-			turn rleg to z-axis <-1.985140> speed <34.354772> / desiredFrames;
-			turn rleg to y-axis <3.043927> speed <17.029096> / desiredFrames;
-			turn rloarm to x-axis <-3.987276> speed <335.289948> / desiredFrames;
-			turn rthigh to x-axis <-2.410771> speed <701.513340> / desiredFrames;
-			turn rthigh to z-axis <-4.519230> speed <69.745691> / desiredFrames;
-			turn rthigh to y-axis <2.522605> speed <44.945490> / desiredFrames;
-			turn ruparm to x-axis <1.362851> speed <370.895552> / desiredFrames;
-			turn ruparm to z-axis <-0.497283> speed <90.780029> / desiredFrames;
-			turn ruparm to y-axis <-0.026282> speed <31.278638> / desiredFrames;
-			turn torso to y-axis <0.085185> speed <180.765899> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<2.496757> *ANIMATIONNAME_amplitude)/100) speed ((<1245.215437> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<23.683565> *ANIMATIONNAME_amplitude)/100) speed ((<24.894810> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<-0.307654> *ANIMATIONNAME_amplitude)/100) speed ((<26.354925> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<1.733618> *ANIMATIONNAME_amplitude)/100) speed ((<71.685440> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<-41.143980> *ANIMATIONNAME_amplitude)/100) speed ((<789.675070> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<-1.093781> *ANIMATIONNAME_amplitude)/100) speed ((<15.769877> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-4.328630> *ANIMATIONNAME_amplitude)/100) speed ((<97.189416> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<-0.334923> *ANIMATIONNAME_amplitude)/100) speed ((<242.996259> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<8.135991> *ANIMATIONNAME_amplitude)/100) speed ((<781.972333> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<-2.494973> *ANIMATIONNAME_amplitude)/100) speed ((<16.015626> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<2.347090> *ANIMATIONNAME_amplitude)/100) speed ((<106.444227> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<-2.433948> *ANIMATIONNAME_amplitude)/100) speed ((<501.774362> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<-0.551755> *ANIMATIONNAME_amplitude)/100) speed ((<131.973857> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<-0.128355> *ANIMATIONNAME_amplitude)/100) speed ((<40.740708> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-0.028000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([28.860000] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<3.070000> *ANIMATIONNAME_amplitude)/100) speed ((<110.099994> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<-0.010000> *ANIMATIONNAME_amplitude)/100) speed ((<89.400000> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<0.579182> *ANIMATIONNAME_amplitude)/100) speed ((<1097.215835> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to z-axis ((<9.697182> *ANIMATIONNAME_amplitude)/100) speed ((<22.891422> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<-5.852873> *ANIMATIONNAME_amplitude)/100) speed ((<208.805747> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<-2.039017> *ANIMATIONNAME_amplitude)/100) speed ((<226.712269> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<-2.372498> *ANIMATIONNAME_amplitude)/100) speed ((<30.892883> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<0.697846> *ANIMATIONNAME_amplitude)/100) speed ((<13.336030> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<1.418999> *ANIMATIONNAME_amplitude)/100) speed ((<354.179965> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<-1.985140> *ANIMATIONNAME_amplitude)/100) speed ((<34.354772> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<3.043927> *ANIMATIONNAME_amplitude)/100) speed ((<17.029096> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<-3.987276> *ANIMATIONNAME_amplitude)/100) speed ((<335.289948> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<-2.410771> *ANIMATIONNAME_amplitude)/100) speed ((<701.513340> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<-4.519230> *ANIMATIONNAME_amplitude)/100) speed ((<69.745691> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<2.522605> *ANIMATIONNAME_amplitude)/100) speed ((<44.945490> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<1.362851> *ANIMATIONNAME_amplitude)/100) speed ((<370.895552> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<-0.497283> *ANIMATIONNAME_amplitude)/100) speed ((<90.780029> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<-0.026282> *ANIMATIONNAME_amplitude)/100) speed ((<31.278638> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<0.085185> *ANIMATIONNAME_amplitude)/100) speed ((<180.765899> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <38.743818> speed <1087.411814> / desiredFrames;
-			turn lknee to x-axis <6.114390> speed <527.075257> / desiredFrames;
-			turn lknee to z-axis <-1.151940> speed <25.328603> / desiredFrames;
-			turn lknee to y-axis <0.462818> speed <38.124001> / desiredFrames;
-			turn lleg to x-axis <-32.212361> speed <267.948594> / desiredFrames;
-			turn lleg to z-axis <-1.218581> speed <3.743992> / desiredFrames;
-			turn lleg to y-axis <-1.139046> speed <95.687518> / desiredFrames;
-			turn lloarm to x-axis <11.429264> speed <352.925592> / desiredFrames;
-			turn lthigh to x-axis <-23.522654> speed <949.759345> / desiredFrames;
-			turn lthigh to z-axis <-4.561886> speed <62.007396> / desiredFrames;
-			turn lthigh to y-axis <-1.962713> speed <129.294085> / desiredFrames;
-			turn luparm to x-axis <-11.546510> speed <273.376866> / desiredFrames;
-			turn luparm to z-axis <0.020005> speed <17.152801> / desiredFrames;
-			turn luparm to y-axis <-2.829427> speed <81.032159> / desiredFrames;
-			move pelvis to y-axis [-0.295000] speed [8.010001] / desiredFrames;
-			turn pelvis to x-axis <-2.090000> speed <154.800001> / desiredFrames;
-			turn pelvis to y-axis <-3.020000> speed <90.299997> / desiredFrames;
-			turn rfoot to x-axis <-42.315286> speed <1286.834032> / desiredFrames;
-			turn rfoot to z-axis <7.682254> speed <60.447840> / desiredFrames;
-			turn rfoot to y-axis <6.232020> speed <362.546770> / desiredFrames;
-			turn rknee to x-axis <-5.922912> speed <116.516840> / desiredFrames;
-			turn rknee to z-axis <0.237168> speed <78.289998> / desiredFrames;
-			turn rknee to y-axis <-0.176416> speed <26.227860> / desiredFrames;
-			turn rleg to x-axis <24.980239> speed <706.837193> / desiredFrames;
-			turn rleg to z-axis <-0.548087> speed <43.111597> / desiredFrames;
-			turn rleg to y-axis <0.357049> speed <80.606348> / desiredFrames;
-			turn rloarm to x-axis <13.709837> speed <530.913396> / desiredFrames;
-			turn rthigh to x-axis <23.022121> speed <762.986759> / desiredFrames;
-			turn rthigh to z-axis <-4.234439> speed <8.543721> / desiredFrames;
-			turn rthigh to y-axis <0.031378> speed <74.736792> / desiredFrames;
-			turn ruparm to x-axis <-14.629546> speed <479.771920> / desiredFrames;
-			turn ruparm to z-axis <4.218827> speed <141.483307> / desiredFrames;
-			turn ruparm to y-axis <1.933472> speed <58.792617> / desiredFrames;
-			turn torso to y-axis <6.110734> speed <180.766460> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<38.743818> *ANIMATIONNAME_amplitude)/100) speed ((<1087.411814> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<6.114390> *ANIMATIONNAME_amplitude)/100) speed ((<527.075257> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<-1.151940> *ANIMATIONNAME_amplitude)/100) speed ((<25.328603> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<0.462818> *ANIMATIONNAME_amplitude)/100) speed ((<38.124001> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<-32.212361> *ANIMATIONNAME_amplitude)/100) speed ((<267.948594> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<-1.218581> *ANIMATIONNAME_amplitude)/100) speed ((<3.743992> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-1.139046> *ANIMATIONNAME_amplitude)/100) speed ((<95.687518> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<11.429264> *ANIMATIONNAME_amplitude)/100) speed ((<352.925592> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<-23.522654> *ANIMATIONNAME_amplitude)/100) speed ((<949.759345> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<-4.561886> *ANIMATIONNAME_amplitude)/100) speed ((<62.007396> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<-1.962713> *ANIMATIONNAME_amplitude)/100) speed ((<129.294085> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<-11.546510> *ANIMATIONNAME_amplitude)/100) speed ((<273.376866> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<0.020005> *ANIMATIONNAME_amplitude)/100) speed ((<17.152801> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<-2.829427> *ANIMATIONNAME_amplitude)/100) speed ((<81.032159> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-0.295000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([8.010001] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<-2.090000> *ANIMATIONNAME_amplitude)/100) speed ((<154.800001> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<-3.020000> *ANIMATIONNAME_amplitude)/100) speed ((<90.299997> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<-42.315286> *ANIMATIONNAME_amplitude)/100) speed ((<1286.834032> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to z-axis ((<7.682254> *ANIMATIONNAME_amplitude)/100) speed ((<60.447840> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<6.232020> *ANIMATIONNAME_amplitude)/100) speed ((<362.546770> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<-5.922912> *ANIMATIONNAME_amplitude)/100) speed ((<116.516840> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<0.237168> *ANIMATIONNAME_amplitude)/100) speed ((<78.289998> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<-0.176416> *ANIMATIONNAME_amplitude)/100) speed ((<26.227860> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<24.980239> *ANIMATIONNAME_amplitude)/100) speed ((<706.837193> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<-0.548087> *ANIMATIONNAME_amplitude)/100) speed ((<43.111597> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<0.357049> *ANIMATIONNAME_amplitude)/100) speed ((<80.606348> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<13.709837> *ANIMATIONNAME_amplitude)/100) speed ((<530.913396> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<23.022121> *ANIMATIONNAME_amplitude)/100) speed ((<762.986759> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<-4.234439> *ANIMATIONNAME_amplitude)/100) speed ((<8.543721> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<0.031378> *ANIMATIONNAME_amplitude)/100) speed ((<74.736792> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<-14.629546> *ANIMATIONNAME_amplitude)/100) speed ((<479.771920> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<4.218827> *ANIMATIONNAME_amplitude)/100) speed ((<141.483307> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<1.933472> *ANIMATIONNAME_amplitude)/100) speed ((<58.792617> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<6.110734> *ANIMATIONNAME_amplitude)/100) speed ((<180.766460> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <25.040025> speed <411.113782> / desiredFrames;
-			turn lknee to x-axis <-25.275077> speed <941.684012> / desiredFrames;
-			turn lknee to z-axis <-1.282850> speed <3.927293> / desiredFrames;
-			turn lknee to y-axis <-2.896653> speed <100.784134> / desiredFrames;
-			turn lleg to x-axis <11.758685> speed <1319.131382> / desiredFrames;
-			turn lleg to z-axis <-0.728330> speed <14.707537> / desiredFrames;
-			turn lleg to y-axis <1.978969> speed <93.540465> / desiredFrames;
-			turn lloarm to x-axis <-5.147298> speed <497.296866> / desiredFrames;
-			turn lthigh to x-axis <-39.148165> speed <468.765325> / desiredFrames;
-			turn lthigh to z-axis <-2.765572> speed <53.889431> / desiredFrames;
-			turn lthigh to y-axis <-5.165048> speed <96.070032> / desiredFrames;
-			turn luparm to x-axis <15.052499> speed <797.970266> / desiredFrames;
-			turn luparm to z-axis <2.670525> speed <79.515585> / desiredFrames;
-			turn luparm to y-axis <0.899942> speed <111.881066> / desiredFrames;
-			move pelvis to y-axis [-0.510000] speed [6.449999] / desiredFrames;
-			turn pelvis to x-axis <-0.020000> speed <62.100001> / desiredFrames;
-			turn pelvis to y-axis <-5.360000> speed <70.200006> / desiredFrames;
-			turn rfoot to x-axis <-30.524095> speed <353.735736> / desiredFrames;
-			turn rfoot to z-axis <1.575841> speed <183.192403> / desiredFrames;
-			turn rfoot to y-axis <3.379851> speed <85.565069> / desiredFrames;
-			turn rknee to z-axis <0.124295> speed <3.386209> / desiredFrames;
-			turn rknee to y-axis <0.562551> speed <22.169016> / desiredFrames;
-			turn rleg to x-axis <34.785873> speed <294.169042> / desiredFrames;
-			turn rleg to z-axis <-0.766034> speed <6.538402> / desiredFrames;
-			turn rleg to y-axis <-4.202078> speed <136.773819> / desiredFrames;
-			turn rloarm to x-axis <36.269674> speed <676.795095> / desiredFrames;
-			turn rthigh to x-axis <42.784230> speed <592.863272> / desiredFrames;
-			turn rthigh to z-axis <-0.065047> speed <125.081756> / desiredFrames;
-			turn rthigh to y-axis <-4.734660> speed <142.981142> / desiredFrames;
-			turn ruparm to x-axis <-36.734161> speed <663.138439> / desiredFrames;
-			turn ruparm to z-axis <10.583475> speed <190.939458> / desiredFrames;
-			turn ruparm to y-axis <8.318628> speed <191.554687> / desiredFrames;
-			turn torso to y-axis <8.849594> speed <82.165818> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<25.040025> *ANIMATIONNAME_amplitude)/100) speed ((<411.113782> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<-25.275077> *ANIMATIONNAME_amplitude)/100) speed ((<941.684012> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<-1.282850> *ANIMATIONNAME_amplitude)/100) speed ((<3.927293> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<-2.896653> *ANIMATIONNAME_amplitude)/100) speed ((<100.784134> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<11.758685> *ANIMATIONNAME_amplitude)/100) speed ((<1319.131382> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<-0.728330> *ANIMATIONNAME_amplitude)/100) speed ((<14.707537> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<1.978969> *ANIMATIONNAME_amplitude)/100) speed ((<93.540465> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<-5.147298> *ANIMATIONNAME_amplitude)/100) speed ((<497.296866> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<-39.148165> *ANIMATIONNAME_amplitude)/100) speed ((<468.765325> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<-2.765572> *ANIMATIONNAME_amplitude)/100) speed ((<53.889431> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<-5.165048> *ANIMATIONNAME_amplitude)/100) speed ((<96.070032> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<15.052499> *ANIMATIONNAME_amplitude)/100) speed ((<797.970266> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<2.670525> *ANIMATIONNAME_amplitude)/100) speed ((<79.515585> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<0.899942> *ANIMATIONNAME_amplitude)/100) speed ((<111.881066> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-0.510000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([6.449999] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<-0.020000> *ANIMATIONNAME_amplitude)/100) speed ((<62.100001> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<-5.360000> *ANIMATIONNAME_amplitude)/100) speed ((<70.200006> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<-30.524095> *ANIMATIONNAME_amplitude)/100) speed ((<353.735736> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to z-axis ((<1.575841> *ANIMATIONNAME_amplitude)/100) speed ((<183.192403> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<3.379851> *ANIMATIONNAME_amplitude)/100) speed ((<85.565069> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<0.124295> *ANIMATIONNAME_amplitude)/100) speed ((<3.386209> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<0.562551> *ANIMATIONNAME_amplitude)/100) speed ((<22.169016> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<34.785873> *ANIMATIONNAME_amplitude)/100) speed ((<294.169042> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<-0.766034> *ANIMATIONNAME_amplitude)/100) speed ((<6.538402> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<-4.202078> *ANIMATIONNAME_amplitude)/100) speed ((<136.773819> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<36.269674> *ANIMATIONNAME_amplitude)/100) speed ((<676.795095> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<42.784230> *ANIMATIONNAME_amplitude)/100) speed ((<592.863272> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<-0.065047> *ANIMATIONNAME_amplitude)/100) speed ((<125.081756> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<-4.734660> *ANIMATIONNAME_amplitude)/100) speed ((<142.981142> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<-36.734161> *ANIMATIONNAME_amplitude)/100) speed ((<663.138439> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<10.583475> *ANIMATIONNAME_amplitude)/100) speed ((<190.939458> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<8.318628> *ANIMATIONNAME_amplitude)/100) speed ((<191.554687> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<8.849594> *ANIMATIONNAME_amplitude)/100) speed ((<82.165818> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <37.387998> speed <370.439186> / desiredFrames;
-			turn lfoot to z-axis <-8.962304> speed <268.846559> / desiredFrames;
-			turn lfoot to y-axis <12.859584> speed <385.678150> / desiredFrames;
-			turn lknee to x-axis <-9.441686> speed <475.001758> / desiredFrames;
-			turn lknee to z-axis <1.271139> speed <76.619681> / desiredFrames;
-			turn lknee to y-axis <-1.407645> speed <44.670228> / desiredFrames;
-			turn lleg to x-axis <-10.324155> speed <662.485225> / desiredFrames;
-			turn lleg to z-axis <0.960237> speed <50.657005> / desiredFrames;
-			turn lleg to y-axis <-3.255075> speed <157.021326> / desiredFrames;
-			turn lloarm to x-axis <-15.936846> speed <323.686434> / desiredFrames;
-			turn lthigh to x-axis <-25.377240> speed <413.127749> / desiredFrames;
-			turn lthigh to z-axis <2.240162> speed <150.172014> / desiredFrames;
-			turn lthigh to y-axis <-4.056589> speed <33.253758> / desiredFrames;
-			turn luparm to x-axis <13.964900> speed <32.627976> / desiredFrames;
-			turn luparm to z-axis <2.304844> speed <10.970419> / desiredFrames;
-			turn luparm to y-axis <1.097682> speed <5.932195> / desiredFrames;
-			move pelvis to y-axis [-1.027000] speed [15.509999] / desiredFrames;
-			turn pelvis to x-axis <6.120000> speed <184.199989> / desiredFrames;
-			turn pelvis to y-axis <-3.020000> speed <70.199999> / desiredFrames;
-			turn rfoot to x-axis <-37.669118> speed <214.350700> / desiredFrames;
-			turn rfoot to z-axis <0.002079> speed <47.212867> / desiredFrames;
-			turn rfoot to y-axis <0.006794> speed <101.191700> / desiredFrames;
-			turn rknee to x-axis <22.375748> speed <849.199349> / desiredFrames;
-			turn rknee to y-axis <-3.001270> speed <106.914647> / desiredFrames;
-			turn rleg to x-axis <-15.573975> speed <1510.795463> / desiredFrames;
-			turn rleg to z-axis <1.078429> speed <55.333897> / desiredFrames;
-			turn rleg to y-axis <0.621153> speed <144.696955> / desiredFrames;
-			turn rloarm to x-axis <7.481300> speed <863.651218> / desiredFrames;
-			turn rthigh to x-axis <35.130125> speed <229.623139> / desiredFrames;
-			turn rthigh to z-axis <1.654511> speed <51.586739> / desiredFrames;
-			turn rthigh to y-axis <-5.841921> speed <33.217822> / desiredFrames;
-			turn ruparm to x-axis <-19.401972> speed <519.965670> / desiredFrames;
-			turn ruparm to z-axis <5.353858> speed <156.888527> / desiredFrames;
-			turn ruparm to y-axis <3.084982> speed <157.009377> / desiredFrames;
-			turn torso to y-axis <5.762510> speed <92.612524> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<37.387998> *ANIMATIONNAME_amplitude)/100) speed ((<370.439186> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to z-axis ((<-8.962304> *ANIMATIONNAME_amplitude)/100) speed ((<268.846559> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to y-axis ((<12.859584> *ANIMATIONNAME_amplitude)/100) speed ((<385.678150> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<-9.441686> *ANIMATIONNAME_amplitude)/100) speed ((<475.001758> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<1.271139> *ANIMATIONNAME_amplitude)/100) speed ((<76.619681> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<-1.407645> *ANIMATIONNAME_amplitude)/100) speed ((<44.670228> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<-10.324155> *ANIMATIONNAME_amplitude)/100) speed ((<662.485225> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<0.960237> *ANIMATIONNAME_amplitude)/100) speed ((<50.657005> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-3.255075> *ANIMATIONNAME_amplitude)/100) speed ((<157.021326> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<-15.936846> *ANIMATIONNAME_amplitude)/100) speed ((<323.686434> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<-25.377240> *ANIMATIONNAME_amplitude)/100) speed ((<413.127749> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<2.240162> *ANIMATIONNAME_amplitude)/100) speed ((<150.172014> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<-4.056589> *ANIMATIONNAME_amplitude)/100) speed ((<33.253758> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<13.964900> *ANIMATIONNAME_amplitude)/100) speed ((<32.627976> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<2.304844> *ANIMATIONNAME_amplitude)/100) speed ((<10.970419> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<1.097682> *ANIMATIONNAME_amplitude)/100) speed ((<5.932195> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-1.027000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([15.509999] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<6.120000> *ANIMATIONNAME_amplitude)/100) speed ((<184.199989> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<-3.020000> *ANIMATIONNAME_amplitude)/100) speed ((<70.199999> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<-37.669118> *ANIMATIONNAME_amplitude)/100) speed ((<214.350700> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to z-axis ((<0.002079> *ANIMATIONNAME_amplitude)/100) speed ((<47.212867> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to y-axis ((<0.006794> *ANIMATIONNAME_amplitude)/100) speed ((<101.191700> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<22.375748> *ANIMATIONNAME_amplitude)/100) speed ((<849.199349> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<-3.001270> *ANIMATIONNAME_amplitude)/100) speed ((<106.914647> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<-15.573975> *ANIMATIONNAME_amplitude)/100) speed ((<1510.795463> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<1.078429> *ANIMATIONNAME_amplitude)/100) speed ((<55.333897> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<0.621153> *ANIMATIONNAME_amplitude)/100) speed ((<144.696955> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<7.481300> *ANIMATIONNAME_amplitude)/100) speed ((<863.651218> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<35.130125> *ANIMATIONNAME_amplitude)/100) speed ((<229.623139> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<1.654511> *ANIMATIONNAME_amplitude)/100) speed ((<51.586739> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<-5.841921> *ANIMATIONNAME_amplitude)/100) speed ((<33.217822> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<-19.401972> *ANIMATIONNAME_amplitude)/100) speed ((<519.965670> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<5.353858> *ANIMATIONNAME_amplitude)/100) speed ((<156.888527> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<3.084982> *ANIMATIONNAME_amplitude)/100) speed ((<157.009377> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<5.762510> *ANIMATIONNAME_amplitude)/100) speed ((<92.612524> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <0.464192> speed <1107.714192> / desiredFrames;
-			turn lfoot to z-axis <-9.697005> speed <22.041012> / desiredFrames;
-			turn lfoot to y-axis <5.833231> speed <210.790579> / desiredFrames;
-			turn lknee to x-axis <-2.0> speed <223.240686> / desiredFrames;
-			turn lknee to z-axis <2.411943> speed <34.224105> / desiredFrames;
-			turn lknee to y-axis <-0.749186> speed <19.753780> / desiredFrames;
-			turn lleg to x-axis <1.204694> speed <345.865479> / desiredFrames;
-			turn lleg to z-axis <1.961544> speed <30.039223> / desiredFrames;
-			turn lleg to y-axis <-2.972589> speed <8.474591> / desiredFrames;
-			turn lloarm to x-axis <-4.648268> speed <338.657342> / desiredFrames;
-			turn lthigh to x-axis <-2.351720> speed <690.765615> / desiredFrames;
-			turn lthigh to z-axis <4.489955> speed <67.493810> / desiredFrames;
-			turn lthigh to y-axis <-2.580664> speed <44.277734> / desiredFrames;
-			turn luparm to x-axis <2.055360> speed <357.286182> / desiredFrames;
-			turn luparm to z-axis <-0.287076> speed <77.757598> / desiredFrames;
-			turn luparm to y-axis <0.713883> speed <11.513976> / desiredFrames;
-			move pelvis to y-axis [-0.065000] speed [28.860001] / desiredFrames;
-			turn pelvis to x-axis <3.050000> speed <92.099998> / desiredFrames;
-			turn pelvis to y-axis <-0.060000> speed <88.799998> / desiredFrames;
-			turn rfoot to x-axis <4.648639> speed <1269.532721> / desiredFrames;
-			turn rknee to x-axis <22.810462> speed <13.041427> / desiredFrames;
-			turn rknee to z-axis <-1.186372> speed <40.379282> / desiredFrames;
-			turn rknee to y-axis <-0.668387> speed <69.986508> / desiredFrames;
-			turn rleg to x-axis <-41.861666> speed <788.630717> / desiredFrames;
-			turn rleg to z-axis <2.536832> speed <43.752081> / desiredFrames;
-			turn rleg to y-axis <4.475032> speed <115.616342> / desiredFrames;
-			turn rloarm to x-axis <-0.686195> speed <245.024858> / desiredFrames;
-			turn rthigh to x-axis <8.108854> speed <810.638150> / desiredFrames;
-			turn rthigh to z-axis <2.222653> speed <17.044253> / desiredFrames;
-			turn rthigh to y-axis <-2.104883> speed <112.111131> / desiredFrames;
-			turn ruparm to x-axis <-3.048251> speed <490.611639> / desiredFrames;
-			turn ruparm to z-axis <-0.061343> speed <162.456033> / desiredFrames;
-			turn ruparm to y-axis <0.968246> speed <63.502084> / desiredFrames;
-			turn torso to y-axis <-0.411658> speed <185.225044> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<0.464192> *ANIMATIONNAME_amplitude)/100) speed ((<1107.714192> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to z-axis ((<-9.697005> *ANIMATIONNAME_amplitude)/100) speed ((<22.041012> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to y-axis ((<5.833231> *ANIMATIONNAME_amplitude)/100) speed ((<210.790579> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<-2.0> *ANIMATIONNAME_amplitude)/100) speed ((<223.240686> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<2.411943> *ANIMATIONNAME_amplitude)/100) speed ((<34.224105> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<-0.749186> *ANIMATIONNAME_amplitude)/100) speed ((<19.753780> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<1.204694> *ANIMATIONNAME_amplitude)/100) speed ((<345.865479> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<1.961544> *ANIMATIONNAME_amplitude)/100) speed ((<30.039223> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-2.972589> *ANIMATIONNAME_amplitude)/100) speed ((<8.474591> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<-4.648268> *ANIMATIONNAME_amplitude)/100) speed ((<338.657342> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<-2.351720> *ANIMATIONNAME_amplitude)/100) speed ((<690.765615> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<4.489955> *ANIMATIONNAME_amplitude)/100) speed ((<67.493810> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<-2.580664> *ANIMATIONNAME_amplitude)/100) speed ((<44.277734> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<2.055360> *ANIMATIONNAME_amplitude)/100) speed ((<357.286182> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<-0.287076> *ANIMATIONNAME_amplitude)/100) speed ((<77.757598> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<0.713883> *ANIMATIONNAME_amplitude)/100) speed ((<11.513976> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			move pelvis to y-axis ((([-0.065000] *100)/100) *ANIMATIONNAME_amplitude)/100 speed ((([28.860001] *100)/100) *ANIMATIONNAME_amplitude)/100 / desiredFrames;
+			turn pelvis to x-axis ((<3.050000> *ANIMATIONNAME_amplitude)/100) speed ((<92.099998> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<-0.060000> *ANIMATIONNAME_amplitude)/100) speed ((<88.799998> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<4.648639> *ANIMATIONNAME_amplitude)/100) speed ((<1269.532721> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<22.810462> *ANIMATIONNAME_amplitude)/100) speed ((<13.041427> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<-1.186372> *ANIMATIONNAME_amplitude)/100) speed ((<40.379282> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<-0.668387> *ANIMATIONNAME_amplitude)/100) speed ((<69.986508> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<-41.861666> *ANIMATIONNAME_amplitude)/100) speed ((<788.630717> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<2.536832> *ANIMATIONNAME_amplitude)/100) speed ((<43.752081> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<4.475032> *ANIMATIONNAME_amplitude)/100) speed ((<115.616342> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<-0.686195> *ANIMATIONNAME_amplitude)/100) speed ((<245.024858> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<8.108854> *ANIMATIONNAME_amplitude)/100) speed ((<810.638150> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<2.222653> *ANIMATIONNAME_amplitude)/100) speed ((<17.044253> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<-2.104883> *ANIMATIONNAME_amplitude)/100) speed ((<112.111131> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<-3.048251> *ANIMATIONNAME_amplitude)/100) speed ((<490.611639> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<-0.061343> *ANIMATIONNAME_amplitude)/100) speed ((<162.456033> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<0.968246> *ANIMATIONNAME_amplitude)/100) speed ((<63.502084> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<-0.411658> *ANIMATIONNAME_amplitude)/100) speed ((<185.225044> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 		if (isMoving) {
             desiredFrames = 2;
-		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*2)) currTime = (33*2); tmp = currTime; currTime = desiredFrames * currTime + remainder_ms; desiredFrames = currTime / 33; remainder_ms = currTime % 33; get PRINT (get GAME_FRAME, desiredFrames, remainder_ms, tmp);;
-			turn lfoot to x-axis <-40.243512> speed <1221.231110> / desiredFrames;
-			turn lfoot to z-axis <-7.440659> speed <67.690385> / desiredFrames;
-			turn lfoot to y-axis <-5.865953> speed <350.975516> / desiredFrames;
-			turn lknee to x-axis <-6.830024> speed <144.890839> / desiredFrames;
-			turn lknee to z-axis <0.345820> speed <61.983694> / desiredFrames;
-			turn lknee to y-axis <0.304802> speed <31.619633> / desiredFrames;
-			turn lleg to x-axis <26.076006> speed <746.139360> / desiredFrames;
-			turn lleg to z-axis <-0.157717> speed <63.577841> / desiredFrames;
-			turn lleg to y-axis <-0.087720> speed <86.546071> / desiredFrames;
-			turn lloarm to x-axis <18.795205> speed <703.304203> / desiredFrames;
-			turn lthigh to x-axis <23.125820> speed <764.326189> / desiredFrames;
-			turn lthigh to z-axis <4.131044> speed <10.767332> / desiredFrames;
-			turn lthigh to y-axis <-0.006083> speed <77.237453> / desiredFrames;
-			turn luparm to x-axis <-15.533187> speed <527.656427> / desiredFrames;
-			turn luparm to z-axis <-4.025448> speed <112.151159> / desiredFrames;
-			turn luparm to y-axis <-1.012513> speed <51.791888> / desiredFrames;
-			turn pelvis to x-axis <-2.390000> speed <163.199994> / desiredFrames;
-			turn pelvis to y-axis <3.0> speed <91.800016> / desiredFrames;
-			turn rfoot to x-axis <39.693501> speed <1051.345854> / desiredFrames;
-			turn rknee to x-axis <5.049624> speed <532.825140> / desiredFrames;
-			turn rknee to z-axis <0.401872> speed <47.647319> / desiredFrames;
-			turn rknee to y-axis <-0.387074> speed <8.439376> / desiredFrames;
-			turn rleg to x-axis <-31.194563> speed <320.013077> / desiredFrames;
-			turn rleg to z-axis <2.029706> speed <15.213766> / desiredFrames;
-			turn rleg to y-axis <1.439265> speed <91.072985> / desiredFrames;
-			turn rloarm to x-axis <13.871573> speed <436.733046> / desiredFrames;
-			turn rthigh to x-axis <-22.875507> speed <929.530826> / desiredFrames;
-			turn rthigh to z-axis <4.381601> speed <64.768449> / desiredFrames;
-			turn rthigh to y-axis <1.935411> speed <121.208802> / desiredFrames;
-			turn ruparm to x-axis <-11.229837> speed <245.447582> / desiredFrames;
-			turn ruparm to z-axis <-0.266262> speed <6.147563> / desiredFrames;
-			turn ruparm to y-axis <3.633788> speed <79.966261> / desiredFrames;
-			turn torso to y-axis <-6.060918> speed <169.477809> / desiredFrames;
+		    currTime = 33 * maxSpeed / (get (CURRENT_SPEED) + 1); if (currTime < (33/2)) currTime = (33/2); if (currTime > (33*3)) currTime = (33*3); currentPCt = (33 * 100 / currTime) - 100; currTime = (33 * (100 - (currentPCt * 2))) / 100; ANIMATIONNAME_amplitude = 100 + (currentPCt * 50) / 100; currTime = desiredFrames * currTime + ANIMATIONNAME_remainder_ms; ANIMATIONNAME_remainder_ms = currTime % 33; desiredFrames = currTime / 33;;
+			turn lfoot to x-axis ((<-40.243512> *ANIMATIONNAME_amplitude)/100) speed ((<1221.231110> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to z-axis ((<-7.440659> *ANIMATIONNAME_amplitude)/100) speed ((<67.690385> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lfoot to y-axis ((<-5.865953> *ANIMATIONNAME_amplitude)/100) speed ((<350.975516> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to x-axis ((<-6.830024> *ANIMATIONNAME_amplitude)/100) speed ((<144.890839> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to z-axis ((<0.345820> *ANIMATIONNAME_amplitude)/100) speed ((<61.983694> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lknee to y-axis ((<0.304802> *ANIMATIONNAME_amplitude)/100) speed ((<31.619633> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to x-axis ((<26.076006> *ANIMATIONNAME_amplitude)/100) speed ((<746.139360> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to z-axis ((<-0.157717> *ANIMATIONNAME_amplitude)/100) speed ((<63.577841> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lleg to y-axis ((<-0.087720> *ANIMATIONNAME_amplitude)/100) speed ((<86.546071> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lloarm to x-axis ((<18.795205> *ANIMATIONNAME_amplitude)/100) speed ((<703.304203> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to x-axis ((<23.125820> *ANIMATIONNAME_amplitude)/100) speed ((<764.326189> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to z-axis ((<4.131044> *ANIMATIONNAME_amplitude)/100) speed ((<10.767332> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn lthigh to y-axis ((<-0.006083> *ANIMATIONNAME_amplitude)/100) speed ((<77.237453> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to x-axis ((<-15.533187> *ANIMATIONNAME_amplitude)/100) speed ((<527.656427> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to z-axis ((<-4.025448> *ANIMATIONNAME_amplitude)/100) speed ((<112.151159> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn luparm to y-axis ((<-1.012513> *ANIMATIONNAME_amplitude)/100) speed ((<51.791888> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to x-axis ((<-2.390000> *ANIMATIONNAME_amplitude)/100) speed ((<163.199994> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn pelvis to y-axis ((<3.0> *ANIMATIONNAME_amplitude)/100) speed ((<91.800016> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rfoot to x-axis ((<39.693501> *ANIMATIONNAME_amplitude)/100) speed ((<1051.345854> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to x-axis ((<5.049624> *ANIMATIONNAME_amplitude)/100) speed ((<532.825140> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to z-axis ((<0.401872> *ANIMATIONNAME_amplitude)/100) speed ((<47.647319> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rknee to y-axis ((<-0.387074> *ANIMATIONNAME_amplitude)/100) speed ((<8.439376> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to x-axis ((<-31.194563> *ANIMATIONNAME_amplitude)/100) speed ((<320.013077> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to z-axis ((<2.029706> *ANIMATIONNAME_amplitude)/100) speed ((<15.213766> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rleg to y-axis ((<1.439265> *ANIMATIONNAME_amplitude)/100) speed ((<91.072985> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rloarm to x-axis ((<13.871573> *ANIMATIONNAME_amplitude)/100) speed ((<436.733046> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to x-axis ((<-22.875507> *ANIMATIONNAME_amplitude)/100) speed ((<929.530826> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to z-axis ((<4.381601> *ANIMATIONNAME_amplitude)/100) speed ((<64.768449> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn rthigh to y-axis ((<1.935411> *ANIMATIONNAME_amplitude)/100) speed ((<121.208802> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to x-axis ((<-11.229837> *ANIMATIONNAME_amplitude)/100) speed ((<245.447582> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to z-axis ((<-0.266262> *ANIMATIONNAME_amplitude)/100) speed ((<6.147563> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn ruparm to y-axis ((<3.633788> *ANIMATIONNAME_amplitude)/100) speed ((<79.966261> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
+			turn torso to y-axis ((<-6.060918> *ANIMATIONNAME_amplitude)/100) speed ((<169.477809> *ANIMATIONNAME_amplitude)/100) / desiredFrames;
 		sleep ((33*desiredFrames) -1);
 		}
 	}
 }
 
-StopWalking() {
+STOP_ANIMNAME() {
 	move pelvis to y-axis [0.0] speed [14.430001];
 	turn lfoot to x-axis <2.221282> speed <636.971914>;
 	turn lfoot to y-axis <18.400562> speed <363.997720>;
