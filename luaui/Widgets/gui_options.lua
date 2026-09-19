@@ -9042,11 +9042,9 @@ function init()
 			id = "builderpriority",
 			group = "game",
 			category = types.basic,
-			widget = "Builder Priority",
-			name = BAR.I18N("ui.settings.option.builderpriority"),
-			type = "bool",
-			value = GetWidgetToggleValue("Builder Priority"),
-			description = BAR.I18N("ui.settings.option.builderpriority_descr"),
+			type = "text",
+			name = Spring.I18N('ui.settings.option.builderpriority'),
+			description = Spring.I18N('ui.settings.option.builderpriority_descr'),
 		},
 
 		{
@@ -9056,22 +9054,13 @@ function init()
 			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_nanos"),
 			type = "bool",
 			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityNanos ~= nil
-				and WG.builderpriority.getLowPriorityNanos()
+					WG['stateprefs'] and WG['stateprefs'].getPresetState("nano_turrets_priority") -- defaults handled in stateprefs
 			),
-			description = BAR.I18N("ui.settings.option.builderpriority_nanos_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_nanos", { "lowpriorityNanos" })
-			end,
+			description = Spring.I18N('ui.settings.option.builderpriority_nanos_descr'),
 			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityNanos",
-					{ "lowpriorityNanos" },
-					value
-				)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("nano_turrets_priority", value)
+				end
 			end,
 		},
 
@@ -9082,22 +9071,13 @@ function init()
 			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_cons"),
 			type = "bool",
 			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityCons ~= nil
-				and WG.builderpriority.getLowPriorityCons()
+					WG['stateprefs'] and WG['stateprefs'].getPresetState("constructors_priority")
 			),
-			description = BAR.I18N("ui.settings.option.builderpriority_cons_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_cons", { "lowpriorityCons" })
-			end,
+			description = Spring.I18N('ui.settings.option.builderpriority_cons_descr'),
 			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityCons",
-					{ "lowpriorityCons" },
-					value
-				)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("constructors_priority", value)
+				end
 			end,
 		},
 
@@ -9108,22 +9088,13 @@ function init()
 			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_labs"),
 			type = "bool",
 			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityLabs ~= nil
-				and WG.builderpriority.getLowPriorityLabs()
+					WG['stateprefs'] and WG['stateprefs'].getPresetState("factories_priority")
 			),
-			description = BAR.I18N("ui.settings.option.builderpriority_labs_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_labs", { "lowpriorityLabs" })
-			end,
+			description = Spring.I18N('ui.settings.option.builderpriority_labs_descr'),
 			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityLabs",
-					{ "lowpriorityLabs" },
-					value
-				)
+				if WG['stateprefs'] then
+					WG['stateprefs'].setPresetState("factories_priority", value)
+				end
 			end,
 		},
 
