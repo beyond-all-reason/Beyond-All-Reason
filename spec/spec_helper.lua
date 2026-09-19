@@ -94,6 +94,12 @@ _G.unpack = _G.unpack
 		return t[i], _G.unpack(t, i + 1, j)
 	end
 
+-- Not fields on VFS, because the sealing at the end of this file would reject the
+-- writes. Neither depends on which spec file is running: one is the repo's file list,
+-- the other the text of each file read so far.
+local fileCache
+local sources = {}
+
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
 
@@ -106,25 +112,23 @@ _G.VFS.FileExists = function(path)
 	end
 
 	-- Fallback: Case-insensitive check using cached file list
-	if not _G.VFS._ci_file_cache then
-		_G.VFS._ci_file_cache = {}
+	if not fileCache then
+		fileCache = {}
 		-- Find all files, excluding .git directory
 		local handle = io.popen("find . -name '.git' -prune -o -type f -print")
 		if handle then
 			for line in handle:lines() do
 				-- Strip leading ./
 				local p = line:gsub("^%./", "")
-				_G.VFS._ci_file_cache[p:lower()] = p
+				fileCache[p:lower()] = p
 			end
 			handle:close()
 		end
 	end
 
 	local cleanPath = path:gsub("^%./", "")
-	return _G.VFS._ci_file_cache[cleanPath:lower()] ~= nil
+	return fileCache[cleanPath:lower()] ~= nil
 end
-
-_G.VFS._sources = _G.VFS._sources or {}
 
 _G.VFS.Include = function(path, env, mode)
 	-- Try direct path first
@@ -134,13 +138,13 @@ _G.VFS.Include = function(path, env, mode)
 		file:close()
 	else
 		-- Check case-insensitive cache
-		if not _G.VFS._ci_file_cache then
+		if not fileCache then
 			-- Force cache population by calling FileExists with a dummy path
 			_G.VFS.FileExists("___dummy_path___")
 		end
 
 		local cleanPath = path:gsub("^%./", "")
-		local cachedPath = _G.VFS._ci_file_cache[cleanPath:lower()]
+		local cachedPath = fileCache[cleanPath:lower()]
 		if cachedPath then
 			realPath = cachedPath
 		end
@@ -152,14 +156,14 @@ _G.VFS.Include = function(path, env, mode)
 	-- unit file includes another, and whichever loads second mutates the first.
 	-- Each call compiles its own chunk, so a nested include of a path already on
 	-- the include stack cannot retarget the environment of the outer one.
-	local source = _G.VFS._sources[realPath]
+	local source = sources[realPath]
 	if source == nil then
 		local sourceFile = io.open(realPath, "r")
 		source = sourceFile and sourceFile:read("*a") or false
 		if sourceFile then
 			sourceFile:close()
 		end
-		_G.VFS._sources[realPath] = source
+		sources[realPath] = source
 	end
 
 	-- Missing source is a real error. Larger feature tests will try to fallback and
@@ -199,7 +203,7 @@ VFS.Include("common/tablefunctions.lua")
 
 _G.VFS.SubDirs = function(path)
 	-- Check case-insensitive cache for correct directory path
-	if not _G.VFS._ci_file_cache then
+	if not fileCache then
 		-- Force cache population
 		_G.VFS.FileExists("___dummy_path___")
 	end
@@ -332,18 +336,70 @@ _G.VFS.LoadFile = function(path)
 	file:close()
 	return contents
 end
-
-_G.Json = _G.Json or VFS.Include("common/luaUtilities/json.lua")
-
--- Every spec file is run in a single Lua process via busted, so their globals are
--- left behind from one file to the next in the order they are run. Clearing GG is
--- one way to protect against those leaks; guarded against reruns using a _G gate.
-if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
-	local ok, busted = pcall(require, "busted")
-	if ok and type(busted) == "table" and busted.subscribe then
-		_G.__SPEC_HELPER_GG_RESET_INSTALLED = true
-		busted.subscribe({ "file", "start" }, function()
-			_G.GG = {}
-		end)
-	end
+-- These tables are shared by every spec file, so a write to one reaches every file
+-- that runs after it. Sealing turns that into an error where it happens.
+--
+-- The proxies hold nothing themselves: __newindex only fires for a key the table
+-- does not already have, so a metatable on the real Spring would not catch an
+-- assignment to Spring.Log.
+local function sealed(name, backing)
+	return setmetatable({}, {
+		__index = backing,
+		__newindex = function(_, key)
+			error(
+				("spec: %s.%s is shared by every spec file and cannot be assigned. Build an env instead: SpecEnv.new({ %s = { %s = ... } })"):format(
+					name,
+					tostring(key),
+					name,
+					tostring(key)
+				),
+				2
+			)
+		end,
+		__metatable = false,
+	})
 end
+
+-- The names have to be absent from _G itself for __newindex below to see a write
+-- to one, so they are reached through __index instead.
+local shared = {}
+for _, name in ipairs({ "Spring", "VFS", "Game", "GG", "io" }) do
+	shared[name] = sealed(name, _G[name])
+	rawset(_G, name, nil)
+end
+
+local protected = {
+	BAR = true,
+	CMD = true,
+	DEFS = true,
+	FeatureDefs = true,
+	GG = true,
+	Game = true,
+	GameCMD = true,
+	Json = true,
+	LOG = true,
+	Shared = true,
+	Spring = true,
+	UnitDefNames = true,
+	UnitDefs = true,
+	VFS = true,
+	WeaponDefNames = true,
+	io = true,
+}
+
+setmetatable(_G, {
+	__index = shared,
+	__newindex = function(globals, key, value)
+		if protected[key] then
+			error(
+				("spec: %s is shared by every spec file and cannot be assigned. Build an env instead: SpecEnv.new({ %s = ... })"):format(
+					tostring(key),
+					tostring(key)
+				),
+				2
+			)
+		end
+
+		rawset(globals, key, value)
+	end,
+})
