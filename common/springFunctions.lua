@@ -60,6 +60,7 @@ utilities = {
 	FacingToHeading = facingFunctions.FacingToHeading,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
+	AngleToHeading = facingFunctions.AngleToHeading,
 
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
