@@ -1,0 +1,575 @@
+/* Novel PBR tuning panel. Sized and styled like the Terraform Brush floating windows
+ * (gui_terraform_brush.rcss: .tf-root / .tf-env-float-window width, .tf-section-frame, .tf-slider,
+ * .tf-slider-numbox, .tf-overlay-chip, .tf-action-btn, header title). Type scale:
+ * title 15dp bold, section titles 1.05rem bold, labels and values 1.05rem, chips 1rem, hints 0.95rem. */
+
+body {
+	pointer-events: none;
+}
+
+/* === Window: the Terraform Brush panel width === */
+.nt-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 64vw;
+	top: 8vh;
+	width: 13vw;
+	min-width: 220px;
+	z-index: 900;
+}
+
+.nt-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6dp;
+	margin-bottom: 4dp;
+}
+
+.nt-title {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 7dp;
+	white-space: nowrap;
+	overflow: hidden;
+	cursor: move;
+	padding: 4dp 0 4dp 4dp;
+}
+
+.nt-title-gem {
+	width: 4dp;
+	height: 18dp;
+	flex-shrink: 0;
+	border-radius: 2dp;
+	decorator: vertical-gradient(#ffe2a0 #d99a28);
+	box-shadow: 0dp 0dp 7dp 0dp #fdc04c70, inset 0dp 1dp 0dp 0dp #ffffff80;
+}
+
+.nt-title-main {
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 1.5dp;
+	color: #eef1f6;
+}
+
+.nt-title-accent {
+	font-size: 15dp;
+	font-weight: bold;
+	letter-spacing: 2dp;
+	color: #fdc04c;
+}
+
+.nt-header-btn {
+	width: 22dp;
+	height: 22dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 6dp;
+	border: 1dp transparent;
+	flex-shrink: 0;
+	transition: background-color 0.12s, border-color 0.12s;
+}
+
+.nt-close-btn:hover {
+	background-color: #4a2424;
+	border-color: #cc666690;
+}
+
+.nt-header-icon { width: 14dp; height: 14dp; }
+.nt-icon-sm { width: 14dp; min-width: 14dp; height: 14dp; }
+.nt-icon-xs { width: 10dp; height: 10dp; }
+
+/* === Scrollable body (room for the scrollbar on the right) === */
+.nt-body {
+	max-height: 76vh;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding: 0 6dp 2dp 0;
+}
+
+.nt-body scrollbarvertical {
+	width: 5dp;
+	margin-left: 2dp;
+}
+
+.nt-body scrollbarvertical sliderbar {
+	background-color: #505060;
+	border-radius: 3dp;
+}
+
+.nt-body scrollbarvertical sliderbar:hover {
+	background-color: #7a7a8a;
+}
+
+.nt-body scrollbarvertical slidertrack {
+	background-color: #1a1a22;
+	border-radius: 3dp;
+}
+
+/* === Section frame: title row floats on the top border (.tf-section-frame) === */
+.nt-frame {
+	position: relative;
+	margin-top: 16dp;
+	margin-bottom: 4dp;
+	padding: 10dp 5dp 4dp 5dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+.nt-frame.nt-collapsed {
+	border-left-width: 0;
+	border-right-width: 0;
+	border-bottom-width: 0;
+	border-radius: 0;
+	padding-top: 0;
+	/* the title row hangs ~10dp below the border line; keep it inside the scroll area when last */
+	padding-bottom: 10dp;
+	margin-bottom: 0;
+}
+
+.nt-collapsed .nt-frame-body {
+	display: none;
+}
+
+.nt-frame-title {
+	position: absolute;
+	top: -10dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 5dp;
+	background-color: #1d1d1d; /* bg-darkest: punches the label through the border */
+	padding: 0 5dp;
+	cursor: pointer;
+}
+
+.nt-frame-title-text {
+	font-size: 1.05rem;
+	font-weight: bold;
+	color: #c8d0d8;
+	white-space: nowrap;
+}
+
+.nt-frame-title:hover .nt-frame-title-text {
+	color: #eef1f6;
+}
+
+/* RESET / REFRESH in the title row (.tf-env-reset-btn) */
+.nt-title-btn {
+	height: 14dp;
+	line-height: 14dp;
+	padding: 0 5dp;
+	background-color: #26262e;
+	border: 1dp #4a4a5a40;
+	border-radius: 3dp;
+	font-size: 0.75rem;
+	color: #9ca3af;
+	cursor: pointer;
+	text-align: center;
+}
+
+.nt-title-btn:hover {
+	background-color: #343440;
+	border-color: #8a8aa080;
+	color: #d8dce4;
+}
+
+/* sub-heading inside a section (Environment, Weathering, ...) */
+.nt-group {
+	font-size: 0.9rem;
+	font-weight: bold;
+	letter-spacing: 0.5dp;
+	color: #8b93a3;
+	padding: 7dp 1dp 3dp 1dp;
+	border-bottom: 1dp #2c2c36;
+	margin-bottom: 4dp;
+}
+
+.nt-frame-body > .nt-group:first-child {
+	padding-top: 0;
+}
+
+.nt-hint {
+	font-size: 0.95rem;
+	color: #8b909c;
+	padding: 0 1dp 5dp 1dp;
+}
+
+.nt-note {
+	font-size: 0.95rem;
+	color: #d9c28a; /* text-keybind */
+	padding: 0 1dp 5dp 1dp;
+}
+
+.nt-info {
+	font-size: 0.95rem;
+	color: #8b909c;
+	padding: 3dp 1dp 2dp 1dp;
+}
+
+.nt-hidden {
+	display: none;
+}
+
+/* === Rows: label | slider | value | reset === */
+.nt-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	min-height: 24dp;
+	margin-bottom: 2dp;
+}
+
+.nt-label {
+	flex: 0 0 84dp;
+	font-size: 1.05rem;
+	color: #d4d8e0;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.nt-label.nt-sublabel {
+	padding-left: 12dp;
+	flex: 0 0 72dp;
+	color: #8b909c;
+}
+
+/* differs from its default: the Terraform accent */
+.nt-label.nt-changed {
+	color: #fdc04c;
+}
+
+.nt-fill {
+	flex: 1;
+}
+
+.nt-slider {
+	flex: 1;
+	min-width: 0;
+	width: 0;
+	height: 24dp;
+	tab-index: none;
+	/* the shared input style draws a box; only the track should show */
+	background-color: transparent;
+	border-width: 0;
+}
+
+.nt-slider slidertrack {
+	background-color: #13131c;
+	border-radius: 3dp;
+	height: 4dp;
+	margin-top: 10dp;
+	box-shadow: inset 0dp 1dp 3dp 0dp #00000080;
+}
+
+.nt-slider sliderbar {
+	width: 10dp;
+	height: 16dp;
+	background-color: #b0b4c0;
+	decorator: vertical-gradient(#dde0ec #7d8190);
+	border-radius: 4dp;
+	border: 1dp #ffffff40;
+	margin-top: 4dp;
+	transition: background-color 0.1s;
+	box-shadow: 0dp 2dp 4dp 0dp #00000070, inset 0dp 1dp 0dp 0dp #ffffff40;
+}
+
+.nt-slider sliderbar:hover {
+	background-color: #d4d8e4;
+	decorator: vertical-gradient(#f4f6ff #9ea2b0);
+	box-shadow: 0dp 2dp 6dp 0dp #00000090, inset 0dp 1dp 0dp 0dp #ffffff60;
+}
+
+.nt-slider sliderarrowdec,
+.nt-slider sliderarrowinc {
+	display: none;
+}
+
+.nt-numbox {
+	flex: 0 0 38dp;
+	height: 20dp;
+	padding: 0dp 4dp;
+	line-height: 20dp;
+	font-size: 1.05rem;
+	color: #d8dce4;
+	background-color: #161620;
+	border: 1dp #40404a60;
+	border-radius: 4dp;
+	text-align: right;
+	tab-index: none;
+	box-shadow: inset 0dp 1dp 2dp 0dp #00000030;
+}
+
+.nt-numbox:focus {
+	border-color: #6a6a80cc;
+	background-color: #1c1c28;
+}
+
+/* per-row reset: space always kept, shown only once the row differs from its default */
+.nt-reset,
+.nt-reset-spacer {
+	flex: 0 0 16dp;
+	width: 16dp;
+	height: 16dp;
+	border: 1dp transparent;
+}
+
+.nt-reset {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3dp;
+	cursor: pointer;
+	visibility: hidden;
+}
+
+.nt-reset.nt-reset-on {
+	visibility: visible;
+	background-color: #2b2113;
+	border-color: #fdc04c50;
+}
+
+.nt-reset.nt-reset-on:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+/* === Choice chips (.tf-overlay-chip) === */
+.nt-chips {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 3dp;
+}
+
+.nt-chips.nt-chips-wide {
+	margin: 0 0 4dp 0;
+}
+
+.nt-chip {
+	padding: 2dp 6dp;
+	border-radius: 5dp;
+	background-color: #2a2a34;
+	border: 1dp #3e3e4a50;
+	font-size: 1.0rem;
+	color: #9ca3af;
+	cursor: pointer;
+	decorator: vertical-gradient(#3a3a46 #1e1e28);
+	box-shadow: 0dp 2dp 3dp 0dp #00000050, inset 0dp 1dp 0dp 0dp #ffffff14;
+	transition: background-color 0.1s, border-color 0.1s;
+}
+
+.nt-chip:hover {
+	border-color: #4e4e5c;
+	decorator: vertical-gradient(#40404c #24242e);
+	color: #c4c8d0;
+}
+
+/* selected: a muted teal, readable next to the sliders without glowing (the TF chip teal was too loud here) */
+.nt-chip.nt-chip-on {
+	background-color: #13261f;
+	border-color: #3f8f7f99;
+	decorator: vertical-gradient(#183029 #0f1e1a);
+	box-shadow: 0dp 1dp 2dp 0dp #00000050;
+	color: #b4d6cd;
+}
+
+.nt-chip.nt-chip-on:hover {
+	border-color: #5aa898aa;
+	color: #cde6df;
+}
+
+/* === Colour swatch (vec3 rows) === */
+.nt-swatch-cell {
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+}
+
+.nt-swatch {
+	width: 38dp;
+	height: 14dp;
+	border-radius: 3dp;
+	border: 1dp #ffffff30;
+	background-color: #000000;
+}
+
+.nt-swatch-note {
+	font-size: 0.95rem;
+	color: #8b909c;
+}
+
+/* === Footer (.tf-action-btn) === */
+.nt-footer {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4dp;
+	padding-top: 8dp;
+	margin-top: 6dp;
+	border-top: 1dp #34343e;
+}
+
+.nt-action-btn {
+	flex: 1;
+	height: 26dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6dp;
+	border: 1dp #55556040;
+	cursor: pointer;
+	background-color: #32323c;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+	transition: background-color 0.15s;
+}
+
+.nt-action-btn:hover {
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+}
+
+.nt-action-text {
+	font-size: 1.0rem;
+	font-weight: bold;
+	color: #dce0e8;
+	white-space: nowrap;
+}
+
+.nt-save-btn {
+	border-color: #40e0c080;
+	decorator: vertical-gradient(#133a30 #081e18);
+}
+
+.nt-save-btn:hover {
+	border-color: #7cecd6cc;
+	decorator: vertical-gradient(#18463a #0d2c24);
+}
+
+.nt-save-btn .nt-action-text {
+	color: #b4d6cd;
+}
+
+.nt-danger-btn:hover {
+	border-color: #e8787880;
+	decorator: vertical-gradient(#6a3a3a #3a2020);
+}
+
+/* ---- named presets ---------------------------------------------------------- */
+
+.nt-presets {
+	display: flex;
+	flex-direction: column;
+	gap: 4dp;
+	margin-top: 6dp;
+}
+
+.nt-preset-bar {
+	display: flex;
+	flex-direction: row;
+	gap: 4dp;
+}
+
+.nt-preset-input {
+	flex: 1;
+	height: 26dp;
+	padding: 0dp 8dp;
+	border-radius: 6dp;
+	border: 1dp #55556080;
+	background-color: #1a1a22;
+	color: #dce0e8;
+	font-size: 1.0rem;
+}
+
+.nt-preset-input:focus {
+	border-color: #8a8aa0bb;
+}
+
+.nt-preset-btn {
+	width: 62dp;
+	height: 26dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6dp;
+	border: 1dp #55556040;
+	cursor: pointer;
+	background-color: #32323c;
+	decorator: vertical-gradient(#484856 #242430);
+	box-shadow: 0dp 2dp 4dp 0dp #00000058, inset 0dp 1dp 0dp 0dp #ffffff18;
+}
+
+.nt-preset-btn:hover {
+	border-color: #8a8aa0bb;
+	decorator: vertical-gradient(#5c5c6c #383848);
+}
+
+.nt-preset-list {
+	display: flex;
+	flex-direction: column;
+	gap: 2dp;
+	max-height: 180dp;
+	overflow-y: auto;
+	padding: 4dp;
+	border-radius: 6dp;
+	border: 1dp #55556040;
+	background-color: #1a1a2280;
+}
+
+.nt-preset-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6dp;
+	padding: 5dp 7dp;
+	border-radius: 4dp;
+	cursor: pointer;
+	background-color: #2a2a34;
+}
+
+.nt-preset-row:hover {
+	background-color: #3a3a48;
+}
+
+.nt-preset-name {
+	flex: 1;
+	font-size: 1.0rem;
+	color: #dce0e8;
+	white-space: nowrap;
+}
+
+.nt-preset-delete {
+	width: 18dp;
+	height: 18dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 3dp;
+	font-size: 0.9rem;
+	font-weight: bold;
+	color: #c08080;
+	background-color: #3a2a2a;
+}
+
+.nt-preset-delete:hover {
+	color: #ffb0b0;
+	background-color: #5a3030;
+}
+
+.nt-preset-empty {
+	padding: 6dp 7dp;
+	font-size: 0.95rem;
+	color: #8a8a98;
+}
