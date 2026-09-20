@@ -5067,7 +5067,9 @@ function M.new(ctx)
 			-- Explained by what it shows: a custom category's graph is keyed as itself, and
 			-- says it can be moved or removed.
 			local stat = entry.stat or entry.key
-			local desc = entry.column and ctx.L.desc[stat] or ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
+			-- A column that reads off this moment in the table covers the whole game here.
+			local desc = entry.column and (ctx.L.graphDesc[stat] or ctx.L.desc[stat])
+				or ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
 			if entry.graph then
 				desc = desc .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
 			end
@@ -5092,7 +5094,7 @@ function M.new(ctx)
 			local b = page.barBlocks[page.hover.block]
 			---@cast b -?
 			if b.me then
-				local tip = ''
+				local tip = ""
 				-- Grouped, your own line is your whole team's.
 				if grouped() and b.unit and #b.unit.members > 1 then
 					tip = tip .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.youGrouped")

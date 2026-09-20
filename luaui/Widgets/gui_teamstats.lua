@@ -448,6 +448,31 @@ for _, column in pairs(COLUMNS) do
 		column.gadget = true
 	end
 end
+-- The columns whose tooltip speaks of this moment: what comes in per second, how full the
+-- storage is, how many stand idle. A chart of one of them shows the whole game instead, so
+-- it says so in words of its own (ui.teamStats.graphDesc).
+for _, key in ipairs({
+	"metalIncome",
+	"metalExpense",
+	"metalLevel",
+	"metalStored",
+	"energyIncome",
+	"energyExpense",
+	"energyLevel",
+	"energyStored",
+	"unitsActive",
+	"conversion",
+	"buildPowerUse",
+	"idleCons",
+	"idleLabs",
+	"visionCoverage",
+	"radarCoverage",
+	"jammerCoverage",
+	"frontLine",
+	"allyScore",
+}) do
+	COLUMNS[key].overTime = true
+end
 
 -- The column's views: which columns each shows, in order, each taking one side of the game.
 -- The built-in categories, which never change. The player's own come before them - the
@@ -3165,7 +3190,7 @@ local function loadLabels()
 		sw.label = L.switch[sw.key]
 	end
 
-	L.caption, L.stat, L.full, L.desc = {}, {}, {}, {}
+	L.caption, L.stat, L.full, L.desc, L.graphDesc = {}, {}, {}, {}, {}
 	for key, column in pairs(COLUMNS) do
 		if column.group ~= "" and not L.caption[column.group] then
 			L.caption[column.group] = BAR.I18N("ui.teamStats." .. column.group)
@@ -3174,6 +3199,10 @@ local function loadLabels()
 		L.full[key] = BAR.I18N("ui.teamStats." .. column.stat)
 		if key ~= "name" then
 			L.desc[key] = BAR.I18N("ui.teamStats.desc." .. key)
+		end
+		-- What the same stat means on a chart, where it runs over the whole game.
+		if column.overTime then
+			L.graphDesc[key] = BAR.I18N("ui.teamStats.graphDesc." .. key)
 		end
 	end
 
