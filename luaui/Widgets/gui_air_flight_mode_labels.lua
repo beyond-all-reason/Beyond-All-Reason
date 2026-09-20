@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Air Flight Mode Labels",
-		desc = "Debug: writes CRUISE or MANOEUVRE over every fixed-wing aircraft the engine flies with its agile flight regime. Toggle in the Air Flight Tuning panel or with /airmodelabels",
+		desc = "Debug: writes CRUISE or MANEUVER over every fixed-wing aircraft the engine flies with its agile flight regime. Toggle in the Air Flight Tuning panel or with /airmodelabels",
 		author = "PtaQ",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -29,9 +29,9 @@ local glColor = gl.Color
 
 local LABELS = {
 	cruise = { text = "CRUISE", color = { 0.45, 0.85, 1.0, 0.95 } },
-	agile = { text = "MANOEUVRE", color = { 1.0, 0.75, 0.25, 0.95 } },
+	agile = { text = "MANEUVER", color = { 1.0, 0.75, 0.25, 0.95 } },
 }
-local FONT_SIZE = 13
+local FONT_SIZE = 17 -- at 1080 lines of screen, scaled with the resolution
 local MAX_LABELS = 250
 local REFRESH_SECONDS = 0.5 -- for aircraft that changed mode before this widget could hear of it
 
@@ -43,6 +43,8 @@ end
 local regimes = {} -- unitID -> "cruise" | "agile", only for aircraft that report one
 local labelled = {} -- unitIDs in view, refreshed a few times a second
 local sinceRefresh = math.huge
+
+local fontScale = 1
 
 local function enabled()
 	return WG.airFlightModeLabels ~= false
@@ -76,7 +78,13 @@ local function refresh()
 	end
 end
 
+function widget:ViewResize()
+	local _, vsy = Spring.GetViewGeometry()
+	fontScale = math.max(0.75, (vsy or 1080) / 1080)
+end
+
 function widget:Initialize()
+	widget:ViewResize()
 	if WG.airFlightModeLabels == nil then
 		WG.airFlightModeLabels = true
 	end
@@ -135,7 +143,7 @@ function widget:DrawScreenEffects()
 				local sx, sy, sz = spWorldToScreenCoords(x, y + (spGetUnitRadius(unitID) or 20) * 1.2, z)
 				if sz and sz < 1 then
 					glColor(label.color)
-					glText(label.text, sx, sy, (spIsUnitIcon(unitID) and FONT_SIZE - 2 or FONT_SIZE), "oc")
+					glText(label.text, sx, sy, (spIsUnitIcon(unitID) and FONT_SIZE * 0.8 or FONT_SIZE) * fontScale, "oc")
 				end
 			end
 		end

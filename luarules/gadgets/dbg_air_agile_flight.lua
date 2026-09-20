@@ -35,7 +35,7 @@ end
 -- /luarules agileinfo          print what the engine reports for one aircraft of each type, and the overrides
 -- /luarules lookahead 0|1      1 (default): fixed-wing altitude hold looks at the terrain along the whole
 --                              flight path (climbs for cliffs early, descends gently past them); 0 is stock
--- /luarules agilearmed 0|1     0 (default): weapons are held while manoeuvring, live only in cruise
+-- /luarules agilearmed 0|1     0 (default): weapons are held while maneuvering, live only in cruise
 --
 -- The Air Flight Tuning widget sends the same commands as Lua messages ("airtune:<command>"), which are not echoed
 -- for every slider step.
@@ -52,7 +52,7 @@ local SetData = Spring.MoveCtrl.SetAirMoveTypeData
 local Echo = Spring.Echo
 
 local enabled = true
-local armedWhileManoeuvring = false
+local armedWhileManeuvering = false
 local terrainLookahead = true
 local overrides = {}
 -- unitDefID -> { key -> value }, applied after the overrides for all
@@ -131,14 +131,14 @@ local function setArmed(unitID, unitDefID, armed)
 	end
 end
 
-local function isManoeuvring(unitID)
+local function isManeuvering(unitID)
 	local mt = Spring.GetUnitMoveTypeData(unitID)
 	return (mt ~= nil and mt.flightRegime == "agile")
 end
 
--- the engine calls this the moment an aircraft changes between manoeuvring and cruise
+-- the engine calls this the moment an aircraft changes between maneuvering and cruise
 function gadget:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
-	setArmed(unitID, unitDefID, armedWhileManoeuvring or regime ~= "agile")
+	setArmed(unitID, unitDefID, armedWhileManeuvering or regime ~= "agile")
 end
 local supported = nil
 
@@ -264,7 +264,7 @@ local function apply(unitID, unitDefID)
 		end
 	end
 
-	setArmed(unitID, unitDefID, armedWhileManoeuvring or not isManoeuvring(unitID))
+	setArmed(unitID, unitDefID, armedWhileManeuvering or not isManeuvering(unitID))
 end
 
 local function applyAll()
@@ -285,7 +285,7 @@ end
 local function publishState()
 	Spring.SetGameRulesParam("airtune_agile", enabled and 1 or 0)
 	Spring.SetGameRulesParam("airtune_lookahead", terrainLookahead and 1 or 0)
-	Spring.SetGameRulesParam("airtune_armed", armedWhileManoeuvring and 1 or 0)
+	Spring.SetGameRulesParam("airtune_armed", armedWhileManeuvering and 1 or 0)
 	-- for the header of the widget's export
 	Spring.SetGameRulesParam("airtune_altitude_fraction", ALTITUDE_FRACTION)
 	Spring.SetGameRulesParam("airtune_hover_bob_radii", HOVER_BOB_RADII)
@@ -471,10 +471,10 @@ local function handleCommand(words, quiet)
 		publishState()
 		Echo("[agile] terrain lookahead for fixed-wing flight: " .. (terrainLookahead and "ON" or "OFF (stock)"))
 	elseif words[1] == "agilearmed" and (words[2] == "0" or words[2] == "1") then
-		armedWhileManoeuvring = (words[2] == "1")
+		armedWhileManeuvering = (words[2] == "1")
 		applyAll()
 		publishState()
-		Echo("[agile] weapons while manoeuvring: " .. (armedWhileManoeuvring and "LIVE" or "HELD (live only in cruise)"))
+		Echo("[agile] weapons while maneuvering: " .. (armedWhileManeuvering and "LIVE" or "HELD (live only in cruise)"))
 	elseif words[1] == "agileset" and words[2] then
 		local key = KEY_ALIAS[words[2]] or words[2]
 		local value, why = parseValue(key, words[3])
@@ -602,5 +602,5 @@ function gadget:Initialize()
 	applyAll()
 	publishState()
 	publishOverrides()
-	Echo("[agile] debug gadget active: agile flight ON, manoeuvring at 45% of cruise altitude with weapons held. /luarules agile 0|1, agilearmed 0|1, agileinfo, agileset <key> <value>")
+	Echo("[agile] debug gadget active: agile flight ON, maneuvering at 45% of cruise altitude with weapons held. /luarules agile 0|1, agilearmed 0|1, agileinfo, agileset <key> <value>")
 end

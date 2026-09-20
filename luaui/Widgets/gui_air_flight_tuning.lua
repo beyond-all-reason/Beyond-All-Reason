@@ -74,7 +74,7 @@ local SECTIONS = {
 				command = "agile",
 				param = "airtune_agile",
 				default = true,
-				desc = "Master switch: manoeuvre slowly near goals, cruise fast between them. Off is stock flight.",
+				desc = "Master switch: maneuver slowly near goals, cruise fast between them. Off is stock flight.",
 			},
 			{
 				key = "terrainLookahead",
@@ -86,13 +86,13 @@ local SECTIONS = {
 				desc = "Altitude hold looks at the terrain along the flight path, climbs early for cliffs. Off is stock.",
 			},
 			{
-				key = "armedWhileManoeuvring",
+				key = "armedWhileManeuvering",
 				label = "Weapons live",
 				kind = "switch",
 				command = "agilearmed",
 				param = "airtune_armed",
 				default = false,
-				desc = "Off: weapons are held while manoeuvring and live only in cruise. On: always live.",
+				desc = "Off: weapons are held while maneuvering and live only in cruise. On: always live.",
 			},
 			{
 				-- (not the gadget's: a switch of the Air Flight Mode Labels widget, through WG)
@@ -101,7 +101,7 @@ local SECTIONS = {
 				kind = "switch",
 				wg = "airFlightModeLabels",
 				default = true,
-				desc = "Debug: CRUISE / MANOEUVRE written over every fixed-wing aircraft, from the engine's flight regime.",
+				desc = "Debug: CRUISE / MANEUVER written over every fixed-wing aircraft, from the engine's flight regime.",
 			},
 			{
 				key = "agileLandOnly",
@@ -114,7 +114,7 @@ local SECTIONS = {
 	},
 	{
 		id = "agile",
-		title = "MANOEUVRING",
+		title = "MANEUVERING",
 		hint = "0 asks the engine for its default",
 		rows = {
 			{
@@ -124,7 +124,7 @@ local SECTIONS = {
 				max = 400,
 				step = 1,
 				digits = 0,
-				desc = "Top speed while manoeuvring, and the speed at which it hands over to cruise (elmos per second).",
+				desc = "Top speed while maneuvering, and the speed at which it hands over to cruise (elmos per second).",
 			},
 			{
 				key = "agileTurnRate",
@@ -133,7 +133,7 @@ local SECTIONS = {
 				max = 2000,
 				step = 5,
 				digits = 0,
-				desc = "Heading change per frame at top manoeuvre speed; 65536 is a full circle, 0 gives 270.",
+				desc = "Heading change per frame at top maneuver speed; 65536 is a full circle, 0 gives 270.",
 			},
 			{
 				key = "agileAccRate",
@@ -142,7 +142,7 @@ local SECTIONS = {
 				max = 1,
 				step = 0.005,
 				digits = 3,
-				desc = "Acceleration and braking limit while manoeuvring (elmos per frame squared); 0 uses maxAcc.",
+				desc = "Acceleration and braking limit while maneuvering (elmos per frame squared); 0 uses maxAcc.",
 			},
 			{
 				key = "agileAltitude",
@@ -152,7 +152,7 @@ local SECTIONS = {
 				step = 1,
 				digits = 0,
 				maxFrom = "wantedHeight",
-				desc = "Height flown while manoeuvring, never above cruise altitude; 0 uses the cruise altitude.",
+				desc = "Height flown while maneuvering, never above cruise altitude; 0 uses the cruise altitude.",
 			},
 			{
 				key = "cruiseDistance",
@@ -171,7 +171,7 @@ local SECTIONS = {
 				step = 1,
 				digits = 0,
 				optional = true,
-				desc = "Degrees the nose may be off the goal when it goes over to cruise; higher leaves manoeuvring sooner.",
+				desc = "Degrees the nose may be off the goal when it goes over to cruise; higher leaves maneuvering sooner.",
 			},
 			{
 				key = "cruiseEntrySpeed",
@@ -181,7 +181,7 @@ local SECTIONS = {
 				step = 0.05,
 				digits = 2,
 				optional = true,
-				desc = "How fast it must be to go over to cruise, as a share of the manoeuvre speed.",
+				desc = "How fast it must be to go over to cruise, as a share of the maneuver speed.",
 			},
 			{
 				key = "cruiseEntryTurnBoost",
@@ -1218,8 +1218,8 @@ local function ExportText(onlyDefName, tweak, count, skipped)
 	else
 		lines[#lines + 1] = "-- Agile flight was switched OFF when this was saved: agileflight is in no entry."
 	end
-	lines[#lines + 1] = "-- Weapons live while manoeuvring was "
-		.. (armed and "ON" or "OFF (held while manoeuvring, live in cruise)")
+	lines[#lines + 1] = "-- Weapons live while maneuvering was "
+		.. (armed and "ON" or "OFF (held while maneuvering, live in cruise)")
 		.. ": that is game logic of the debug gadget"
 	lines[#lines + 1] = "--   (UnitFlightRegimeChanged in luarules/gadgets/dbg_air_agile_flight.lua), not a unitdef tag."
 	local skippedKeys = SortedKeys(skipped)
