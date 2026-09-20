@@ -1,6 +1,12 @@
 local rnd = math.random
 
--- USE LOWERCASE MAPNAMES (partial mapnames work too!)
+---@class MapCritterConfig
+---@field spawnBox {x1:number, z1:number, x2:number, z2:number}?
+---@field spawnCircle {x:number, z:number, radius:number}?
+---@field unitNames table
+
+---Partial map names will work for the map name key, so you can typically drop versions from the name.
+---@type table<string, MapCritterConfig[]>
 local critterConfig = {
 
 	avalanche = {
@@ -418,5 +424,12 @@ local critterConfig = {
 		{ spawnCircle = { x = 16000, z = 6000, radius = 700 }, unitNames = { critter_gull = rnd(2, 3) } }, -- new zealand
 	},
 }
+
+for k, v in pairs(critterConfig) do
+	if k ~= k:lower() then
+		critterConfig[k] = nil
+		critterConfig[k:lower()] = v
+	end
+end
 
 return critterConfig
