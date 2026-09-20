@@ -16,6 +16,8 @@ local LAYOUT = {
 	rmlWidgets = "rml_widgets/",
 	gadgets = "gadgets/",
 	scripts = "scripts/",
+	modes = "modes/",
+	modeVerbs = "mode_verbs.lua",
 	actions = "actions/",
 	policies = "policies/",
 	modOptions = "modoptions.lua",
@@ -190,6 +192,12 @@ function ModuleHandler.GadgetDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.gadgets, vfsMode)
 end
 
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ModeDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.modes, vfsMode)
+end
+
 ---@param filePath string
 ---@return string
 local function nameFromFile(filePath)
@@ -282,6 +290,7 @@ function ModuleHandler.LoadActions(name, vfsMode)
 end
 
 local policiesCache = {}
+local presetsCache = nil
 local policyFiles = nil ---@type { chains: table, enrichments: table }|nil every module's policy chains and enrichments, read once
 
 ---@param map table<string, table<string, table[]>>
@@ -616,6 +625,163 @@ function ModuleHandler.State(name)
 	return root.__moduleState[name]
 end
 
+---@class ModulePreset
+---@field key string
+---@field category string
+---@field module string the module whose modes/ holds it
+---@field uses string[] modules the preset makes live besides its own
+
+local modeVerbsCache = {} ---@type table<string, table<string, ModeVerb>>
+
+---@param category string the axis, e.g. "game"
+---@param vfsMode string?
+---@return table<string, ModeVerb> verbs by name
+function ModuleHandler.ModeVerbs(category, vfsMode)
+	if modeVerbsCache[category] then
+		return modeVerbsCache[category]
+	end
+	local verbs = {} ---@type table<string, ModeVerb>
+	local shippedBy = {} ---@type table<string, string>
+	local names = {}
+	for name in pairs(ModuleHandler.Manifests(vfsMode)) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	for _, name in ipairs(names) do
+		local filePath = ModuleHandler.Manifests(vfsMode)[name].dir .. LAYOUT.modeVerbs
+		if VFS.FileExists(filePath, vfsMode) then
+			local fragment = VFS.Include(filePath, nil, vfsMode)
+			if type(fragment) ~= "table" or type(fragment.category) ~= "string" or type(fragment.verbs) ~= "table" then
+				error(
+					filePath
+						.. ": mode_verbs.lua must return { category = <axis>, verbs = { Name = ModeBuilder.Verb(...) } }"
+				)
+			end
+			if fragment.category == category then
+				for verbName, verb in pairs(fragment.verbs) do
+					if shippedBy[verbName] then
+						error(
+							filePath
+								.. ": verb "
+								.. verbName
+								.. " for axis "
+								.. category
+								.. " is already shipped by "
+								.. shippedBy[verbName]
+						)
+					end
+					shippedBy[verbName] = name
+					verbs[verbName] = verb
+				end
+			end
+		end
+	end
+	modeVerbsCache[category] = verbs
+	return verbs
+end
+
+---@param vfsMode string?
+---@return table<string, table<string, ModulePreset>> presets by category, by key
+---@return table<string, boolean> modules that ship no presets: always live
+function ModuleHandler.Presets(vfsMode)
+	if presetsCache then
+		return presetsCache.byCategory, presetsCache.alwaysLive
+	end
+	local manifests = ModuleHandler.Manifests(vfsMode)
+	local byCategory = {} ---@type table<string, table<string, ModulePreset>>
+	local alwaysLive = {} ---@type table<string, boolean>
+	for name, manifest in pairs(manifests) do
+		local dir = manifest.dir .. LAYOUT.modes
+		local files = VFS.DirList(dir, "*.lua", vfsMode)
+		local shipped = false
+		for _, filePath in ipairs(files) do
+			local ok, mode = pcall(VFS.Include, filePath, nil, vfsMode)
+			if ok and type(mode) == "table" and mode.key and mode.category then
+				shipped = true
+				byCategory[mode.category] = byCategory[mode.category] or {}
+				byCategory[mode.category][mode.key] = {
+					key = mode.key,
+					category = mode.category,
+					module = name,
+					uses = mode.uses or {},
+				}
+			end
+		end
+		if not shipped then
+			alwaysLive[name] = true
+		end
+	end
+	presetsCache = { byCategory = byCategory, alwaysLive = alwaysLive }
+	return byCategory, alwaysLive
+end
+
+-- The default selection reads every module's modoptions fragment off the VFS, and the live set
+-- is asked for on every enrichment, from every gadget and widget that asks a pipeline: the
+-- fragments and presets are fixed for the life of the Lua state, so both are computed once.
+local defaultSelectionCache = nil ---@type table<string, string>|nil
+local liveSetCache = {} ---@type table<string, table<string, boolean>>
+
+---@param vfsMode string?
+---@return table<string, string> category -> default preset key
+local function defaultSelection(vfsMode)
+	if defaultSelectionCache then
+		return defaultSelectionCache
+	end
+	local defaults = {}
+	for _, option in ipairs(ModuleHandler.ModOptions(vfsMode)) do
+		local category = type(option.key) == "string" and option.key:match("^(.+)_mode$")
+		if category and option.def ~= nil then
+			defaults[category] = tostring(option.def)
+		end
+	end
+	defaultSelectionCache = defaults
+	return defaults
+end
+
+---@param byCategory table<string, table<string, ModulePreset>>
+---@param alwaysLive table<string, boolean>
+---@param selection table<string, string> category -> preset key
+---@return table<string, boolean>
+function ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+	local live = {}
+	for name in pairs(alwaysLive) do
+		live[name] = true
+	end
+	for category, presets in pairs(byCategory) do
+		local preset = selection[category] and presets[selection[category]]
+		if preset then
+			live[preset.module] = true
+			for _, used in ipairs(preset.uses) do
+				live[used] = true
+			end
+		end
+	end
+	return live
+end
+
+---@param modOptions table<string, any>
+---@param vfsMode string?
+---@return table<string, boolean>
+function ModuleHandler.LiveModulesFor(modOptions, vfsMode)
+	local byCategory, alwaysLive = ModuleHandler.Presets(vfsMode)
+	local defaults = defaultSelection(vfsMode)
+	local selection = {}
+	local keyParts = {}
+	for category in pairs(byCategory) do
+		local picked = modOptions and modOptions[category .. "_mode"]
+		selection[category] = picked ~= nil and tostring(picked) or defaults[category]
+		keyParts[#keyParts + 1] = category .. "=" .. tostring(selection[category])
+	end
+	table.sort(keyParts)
+	local key = table.concat(keyParts, ";")
+	local live = liveSetCache[key]
+	if not live then
+		live = ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+		liveSetCache[key] = live
+	end
+	return live
+end
+
 ---@param policies AssembledPipeline
 ---@param ctx table
 ---@param ... any
@@ -689,6 +855,10 @@ end
 
 function ModuleHandler.ResetCaches()
 	registered = nil
+	presetsCache = nil
+	defaultSelectionCache = nil
+	liveSetCache = {}
+	modeVerbsCache = {}
 	actionsCache = {}
 	policiesCache = {}
 	policyFiles = nil
