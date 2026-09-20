@@ -193,18 +193,18 @@ end)
 describe("facts", function()
 	it("carries identity, and provisions are named or refused", function()
 		local Contract = declared("transfer", {
-			TeamPairing = Policy.Facts({ TechBlocking = "techBlocking" }),
+			TeamPairing = Policy.Facts({ Weather = "weather" }),
 		})
 		assert.are.same(
 			{ owner = "transfer", category = "team_pairing", facts = true },
 			Policy.IdentityOf(Contract.TeamPairing)
 		)
 		local ops = Policy.Enrichment(Contract.TeamPairing)
-			.Provide(Contract.TeamPairing.TechBlocking, function(ctx)
+			.Provide(Contract.TeamPairing.Weather, function(ctx)
 				return { level = 2 }
 			end)
 			.Build()
-		assert.are.same({ "techBlocking" }, ops[1].names)
+		assert.are.same({ "weather" }, ops[1].names)
 	end)
 
 	it("a provider may add a fact the contract did not declare, and never removes one", function()
@@ -492,7 +492,129 @@ describe("a declared contribution", function()
 	end)
 end)
 
-describe("a condition", function()
+describe("a contract's facts", function()
+	local function enrichment(module, ops)
+		return { module = module, ops = ops, file = module .. "/policies/x.lua" }
+	end
+	local function defaults(...)
+		local chain = Policy.Enrichment()
+		for _, name in ipairs({ ... }) do
+			chain.Default(name, function()
+				return "default:" .. name
+			end)
+		end
+		return chain.Build()
+	end
+	local function provides(name, value)
+		return Policy.Enrichment()
+			.Provide(name, function()
+				return value
+			end)
+			.Build()
+	end
+
+	it("a slot nobody Defaults or provides is the context's field of its name", function()
+		local resolved = ModuleHandler.ResolveProvisions("transfer.team_terms", "transfer", { "taxRate" }, {})
+		assert.are.equal(0.3, ModuleHandler.EnrichWith(resolved, {}, { taxRate = 0.3 }).taxRate)
+		assert.is_nil(ModuleHandler.EnrichWith(resolved, {}, {}).taxRate)
+		assert.has_error(function()
+			ModuleHandler.ResolveProvisions("k", "transfer", { "taxRate" }, { enrichment("tech", defaults("taxRate")) })
+		end, "tech/policies/x.lua: only transfer may Default taxRate on k")
+		assert.has_error(function()
+			ModuleHandler.ResolveProvisions(
+				"k",
+				"transfer",
+				{ "taxRate" },
+				{ enrichment("transfer", defaults("other", "taxRate")) }
+			)
+		end, "transfer/policies/x.lua: k declares no slot named other to Default")
+	end)
+
+	it("may be provided by any number of modules; the mode decides who is live", function()
+		local resolved = ModuleHandler.ResolveProvisions("k", "transfer", { "taxRate" }, {
+			enrichment("transfer", defaults("taxRate")),
+			enrichment("tech", provides("taxRate", 0.5)),
+			enrichment("other", provides("taxRate", 0.9)),
+		})
+		assert.are.equal(2, #resolved.providers)
+		assert.are.equal("default:taxRate", ModuleHandler.EnrichWith(resolved, { transfer = true }, {}).taxRate)
+		assert.are.equal(0.5, ModuleHandler.EnrichWith(resolved, { tech = true }, {}).taxRate)
+		assert.are.equal(0.9, ModuleHandler.EnrichWith(resolved, { other = true }, {}).taxRate)
+		assert.has_error(
+			function()
+				ModuleHandler.EnrichWith(resolved, { tech = true, other = true }, {})
+			end,
+			"taxRate answered by both tech/policies/x.lua and other/policies/x.lua in one ask: the mode leaves both live"
+		)
+	end)
+
+	it("a provider that answers nil declines, and the Default steps in", function()
+		local resolved = ModuleHandler.ResolveProvisions("k", "transfer", { "taxRate" }, {
+			enrichment("transfer", defaults("taxRate")),
+			enrichment("tech", provides("taxRate", nil)),
+		})
+		assert.are.equal("default:taxRate", ModuleHandler.EnrichWith(resolved, { tech = true }, {}).taxRate)
+	end)
+end)
+
+describe("what a mode makes live", function()
+	local byCategory = {
+		transfer = {
+			enabled = { key = "enabled", category = "transfer", module = "transfer", modules = { "transfer" } },
+			tech_core = { key = "tech_core", category = "transfer", module = "tech", modules = { "tech" } },
+			customize = {
+				key = "customize",
+				category = "transfer",
+				module = "transfer",
+				modules = { "tech", "transfer" },
+			},
+		},
+		game = {
+			standard = { key = "standard", category = "game", module = "modes", modules = { "modes" } },
+		},
+	}
+	local alwaysLive = { economy = true, construction = true }
+
+	it("is what the picked presets make live, and every module that ships no presets", function()
+		assert.are.same(
+			{ economy = true, construction = true, transfer = true, modes = true },
+			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "enabled", game = "standard" })
+		)
+		assert.are.same(
+			{ economy = true, construction = true, tech = true, modes = true },
+			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "tech_core", game = "standard" })
+		)
+		assert.are.same(
+			{ economy = true, construction = true, transfer = true, tech = true, modes = true },
+			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "customize", game = "standard" })
+		)
+	end)
+
+	it("is walked, every combination, to prove no preset leaves two providers live for one slot", function()
+		local function provider(module)
+			return {
+				op = { names = { "taxRate" }, evaluate = function() end },
+				module = module,
+				file = module .. "/p.lua",
+			}
+		end
+		assert.are.same(
+			{},
+			ModuleHandler.IsolationConflicts(byCategory, alwaysLive, { provider("tech"), provider("other") })
+		)
+		local withOther = {
+			transfer = byCategory.transfer,
+			game = byCategory.game,
+			experiments = {
+				other = { key = "other", category = "experiments", module = "other", modules = { "other" } },
+			},
+		}
+		assert.are.same({
+			"taxRate is provided by both other/p.lua and tech/p.lua under experiments=other, game=standard, transfer=customize",
+			"taxRate is provided by both other/p.lua and tech/p.lua under experiments=other, game=standard, transfer=tech_core",
+		}, ModuleHandler.IsolationConflicts(withOther, alwaysLive, { provider("other"), provider("tech") }))
+	end)
+
 	it("a step When'd on a condition steps aside when it does not hold: an Answer passes, a guard holds", function()
 		local steps = Policy.Single({ Bar = "Bar", Quick = "Quick", Slow = "Slow" })
 		Policy.Declare("t", { Steps = steps })
