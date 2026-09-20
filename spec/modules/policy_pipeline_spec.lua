@@ -501,3 +501,32 @@ describe("a declared contribution", function()
 		assert.is_nil(ModuleHandler.UndeclaredStep(ops, {}))
 	end)
 end)
+
+describe("what a mode makes live", function()
+	local byCategory = {
+		transfer = {
+			enabled = { key = "enabled", category = "transfer", module = "transfer", uses = {} },
+			tech_core = { key = "tech_core", category = "transfer", module = "tech", uses = {} },
+			customize = { key = "customize", category = "transfer", module = "transfer", uses = { "tech" } },
+		},
+		game = {
+			standard = { key = "standard", category = "game", module = "modes", uses = {} },
+		},
+	}
+	local alwaysLive = { economy = true, construction = true }
+
+	it("is the preset's module, what it Uses, and every module that ships no presets", function()
+		assert.are.same(
+			{ economy = true, construction = true, transfer = true, modes = true },
+			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "enabled", game = "standard" })
+		)
+		assert.are.same(
+			{ economy = true, construction = true, tech = true, modes = true },
+			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "tech_core", game = "standard" })
+		)
+		assert.are.same(
+			{ economy = true, construction = true, transfer = true, tech = true, modes = true },
+			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "customize", game = "standard" })
+		)
+	end)
+end)
