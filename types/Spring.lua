@@ -14,25 +14,6 @@
 ---@field GetScriptEnv fun(unitID: UnitID): table
 ---@field GetLongestReloadTime fun(unitID: UnitID): number
 
--- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
----@class ResourceData
----@field resourceType ResourceName
----@field current number
----@field storage number
----@field pull number
----@field income number
----@field expense number
----@field shareSlider number
----@field sent number
----@field received number
----@field excess number
-
----@class TeamResourceData
----@field allyTeam number
----@field isDead boolean
----@field metal ResourceData
----@field energy ResourceData
-
 -- TODO: delete when recoil-lua-library publishes TeamData types
 ---@class TeamData
 ---@field id TeamID
@@ -65,3 +46,7 @@
 ---@class ObjectRenderingTable
 ---@field ActivateMaterial fun(objectID: ObjectID, lod: integer)
 ---@field DeactivateMaterial fun(objectID: ObjectID, lod: integer)
+
+---@alias Spring table
+
+---@alias ResourceExcesses table<integer, { [1]: number, [2]: number }>

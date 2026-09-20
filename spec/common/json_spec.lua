@@ -93,10 +93,18 @@ describe("json string escapes", function()
 		-- characters or pushes the rest of the literal out of step, so it has to be caught
 		-- where it is parsed rather than surfacing as a loadstring failure later.
 		it("is rejected rather than silently dropped", function()
-			assert.has_error(function() Json.decode([[{"a":"\u47"}]]) end)
-			assert.has_error(function() Json.decode([[{"a":"\uZZZZ"}]]) end)
-			assert.has_error(function() Json.decode([[{"a":"\u"}]]) end)
-			assert.has_error(function() Json.decode([[{"a":"x\u47y"}]]) end)
+			assert.has_error(function()
+				Json.decode([[{"a":"\u47"}]])
+			end)
+			assert.has_error(function()
+				Json.decode([[{"a":"\uZZZZ"}]])
+			end)
+			assert.has_error(function()
+				Json.decode([[{"a":"\u"}]])
+			end)
+			assert.has_error(function()
+				Json.decode([[{"a":"x\u47y"}]])
+			end)
 		end)
 
 		it("names the escape it choked on", function()
@@ -117,8 +125,7 @@ describe("json string escapes", function()
 			assert.is_table(decoded, path .. " failed to decode")
 			-- Asserting the value, not just that it parsed: an interpreter that treats an
 			-- unknown escape as the bare character decodes happily but corrupts the string.
-			assert.are.equal(true,
-				decoded.cmd.set.AutoAddBuiltUnitsToFactoryGroup:find("factory's", 1, true) ~= nil)
+			assert.are.equal(true, decoded.cmd.set.AutoAddBuiltUnitsToFactoryGroup:find("factory's", 1, true) ~= nil)
 		end)
 	end)
 end)

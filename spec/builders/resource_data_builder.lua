@@ -24,7 +24,7 @@ local function clone(tableValue)
 end
 
 ---@class ResourceDataBuilder
----@field data ResourceData
+---@field data EconomyResource
 local ResourceDataBuilder = {}
 ResourceDataBuilder.__index = ResourceDataBuilder
 
