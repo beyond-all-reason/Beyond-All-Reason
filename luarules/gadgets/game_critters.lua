@@ -149,23 +149,23 @@ local function getWaterPatrolArea(spawnArea, x, z)
 	return { x = x, z = z, radius = waterPatrolRadius }
 end
 
-local function spawnMapCritters()
+local function spawnMapCritters(config)
 	spawningMapCritters = true
-	for _, area in pairs(mapConfig) do
+	for _, area in pairs(config) do
 		local spawnArea = area.spawnBox or area.spawnCircle
-		for unitName, unitAmount in pairs(area.unitNames) do
+		for unitName, unitAmount in pairs(area.unitNames or {}) do
 			local unitDef = UnitDefNames[unitName]
 			if not unitDef then
-				Spring.Echo("[Gaia Critters] Unknown critter " .. unitName)
+				Spring.Echo("[Gaia Critters] Unknown critter " .. tostring(unitName))
 			else
 				local maxWaterHeight
 				if unitDef.minWaterDepth > 0 and not area.nowatercheck then
 					maxWaterHeight = -unitDef.minWaterDepth
 				end
+				-- Give small amounts with small multipliers a chance to spawn, else bias downward slightly.
+				-- A tiny amount of randomness prevents companions from becoming an info leak on commanders.
 				local amount = unitAmount * amountMultiplier
-				if amount > 0.0 and amount < 1.0 then
-					amount = 1.0 -- a small amount times a small multiplier would otherwise always round away to nothing
-				end
+				amount = amount <= 0 and 0 or amount + random() * 0.75 * (amount < 1 and 1 or -1)
 				for _ = 1, round(amount, 0) do
 					local x, z = getRandomPointInArea(spawnArea)
 					local y = GetGroundHeight(x, z)
@@ -422,7 +422,7 @@ end
 
 function gadget:GameFrame(gameFrame)
 	if gameFrame == 1 and mapConfig then
-		spawnMapCritters() -- delayed so commanders & companions can pair
+		spawnMapCritters(mapConfig)
 	end
 	if gameFrame % updateFramesCompanions == 1 then
 		updateCompanions()
