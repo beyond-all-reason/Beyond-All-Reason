@@ -7310,9 +7310,8 @@ local initialModel = {
 	end,
 	onSpSave = function(_event)
 		playSound("apply")
-		if WG.StartPosTool then
-			WG.StartPosTool.saveStartPositions()
-			WG.StartPosTool.saveStartboxes()
+		if WG.StartPosTool and WG.StartPosTool.saveAll then
+			WG.StartPosTool.saveAll()
 		end
 	end,
 	-- Copies the startbox override as a !bSet the user can paste into lobby chat. Startbox
