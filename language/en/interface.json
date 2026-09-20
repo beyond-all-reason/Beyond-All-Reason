@@ -2138,6 +2138,8 @@
 				"networksmoothing_descr": "Adds additional delay to assure smooth gameplay and stability\nDisable for increased responsiveness: if you have a quality network connection",
 				"autoquit": "Auto quit",
 				"autoquit_descr": "Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.",
+				"quickstartsuggestions": "Auto-generate Quick Start suggestions",
+				"quickstartsuggestions_descr": "Automatically fill the pregame build queue with suggested structures when you choose a start position",
 				"smartselect_includebuildings": "Include structures in area-selection",
 				"smartselect_includebuildings_descr": "When rectangle-drag-selecting an area, include building units too?\n\nDisabled: non-mobile units will be excluded (hold Shift to override)\nNote: Construction Turrets will always be selected",
 				"smartselect_includebuilders": "include builders (if above is off)",
