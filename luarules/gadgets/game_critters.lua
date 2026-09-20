@@ -44,6 +44,7 @@ local companionPatrolRadius = 200
 
 local random = math.random
 local round, ceil, max, min, abs = math.round, math.ceil, math.max, math.min, math.abs
+local mix, smoothstep = math.mix, math.smoothstep
 local sin, cos, rad = math.sin, math.cos, math.rad
 
 local GetGroundHeight = Spring.GetGroundHeight
@@ -252,9 +253,9 @@ local function adjustMapCritterPopulation()
 	if total == 0 then
 		return
 	end
-	local multiplier = 1.0 - (getPlayerUnitCount() - minTotalUnits) / (maxTotalUnits - minTotalUnits)
-	multiplier = max(minCritterFraction, min(1.0, multiplier))
-	local target = max(ceil(total * multiplier), min(minCritters, total))
+	local crowding = smoothstep(minTotalUnits, maxTotalUnits, getPlayerUnitCount())
+	local critterFraction = mix(1.0, minCritterFraction, crowding)
+	local target = max(ceil(total * critterFraction), min(minCritters, total))
 	if target < alive then
 		cullMapCritters(alive - target)
 	elseif target > alive then
