@@ -752,9 +752,15 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG.topbar and WG.topbar.getShowButtons() then
-		local topBarPosition = WG.topbar.GetPosition()
-		widgetDimensions.top = (topBarPosition[6] or topBarPosition[2]) -- widgetDimensions.distanceFromTopBar
+	-- Sit under whatever occupies the top right corner: the menu button strip (its own
+	-- widget owns that rect, with no height while auto-hidden), otherwise the top bar,
+	-- otherwise the screen edge.
+	local buttonsArea = WG.topbar and WG.topbar.GetButtonsPosition and WG.topbar.GetButtonsPosition()
+	local topBarPosition = WG.topbar and WG.topbar.GetPosition and WG.topbar.GetPosition()
+	if buttonsArea then
+		widgetDimensions.top = buttonsArea[2]
+	elseif topBarPosition then
+		widgetDimensions.top = topBarPosition[2]
 	else
 		widgetDimensions.top = viewScreenHeight
 	end

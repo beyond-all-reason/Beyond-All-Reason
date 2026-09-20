@@ -24,8 +24,6 @@ local mathMin = math.min
 local mathRandom = math.random
 local mathExp = math.exp
 local tableSort = table.sort
-local tableInsert = table.insert
-local tableRemove = table.remove
 local stringChar = string.char
 local stringSub = string.sub
 local stringFind = string.find
@@ -40,9 +38,6 @@ local type = type
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
-local spGetLuaMemUsage = Spring.GetLuaMemUsage
-local spDiffTimers = Spring.DiffTimers
-local spGetTimer = Spring.GetTimer
 local glText = gl.Text
 local glColor = gl.Color
 local glBeginText = gl.BeginText
@@ -51,10 +46,12 @@ local glGetViewSizes = gl.GetViewSizes
 local glRect = gl.Rect
 local glGetTextWidth = gl.GetTextWidth
 
-local usePrefixedNames = true
+-- The measurement itself, which the widget selector reads too. Wrapping every callin is
+-- global and does not nest, so exactly one thing may do it; this widget draws what that
+-- one thing measures.
+local profiling = VFS.Include("luaui/Include/widget_profiling.lua")
 
-local tick = 0.1
-local retainSortTime = 100
+local usePrefixedNames = true
 
 local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
 local maxPerc = 0.02 -- above this value, we mark a widget as red
@@ -74,49 +71,21 @@ local prefixColor = {
 	dbg = "\255\120\120\120",
 }
 
-local s
-local callinStats = {}
-local highres
-
-local timeLoadAverages = {}
-local spaceLoadAverages = {}
-local startTimer
-
 local userWidgets = {}
-local oldUpdateWidgetCallIn
-local oldInsertWidget
-
-local listOfHooks = {}
-setmetatable(listOfHooks, { __mode = "k" })
-local inHook = false
-
-local lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
-
-local allOverTime = 0
-local allOverTimeSec = 0 -- currently unused
-local allOverSpace = 0
-local avgTLoad = {}
 
 local sortedList = {}
+-- Copied off the include on each sample, since the drawing reads them many times over.
+local lm, gm, um, sm = 0, 0, 0, 0
+local allOverTime = 0
+local allOverSpace = 0
 
--- Per-callin drill-down state (only populated for the currently selected widget)
-local callinLoadAverages = {} -- [wname] = { [cname] = { tLoad, sLoad } }
-local selectedWidget = nil -- wname (prefixed plainname) currently drilled into, or nil
+local selectedWidget = nil -- name of the widget currently drilled into, or nil
 local clickableRows = {} -- reused each frame: { {x1, y1, x2, y2, plainname}, ... }
 local clickableRowCount = 0 -- how many entries of clickableRows are valid this frame
 local detailColour = "\255\255\255\255"
 
-local deltaTime
 local redStrength = {}
-
 local ColorString = BAR.Utilities.Color.ToString
-
-if Spring.GetTimerMicros and Spring.GetConfigInt("UseHighResTimer", 0) == 1 then
-	spGetTimer = Spring.GetTimerMicros
-	highres = true
-end
-
-spEcho("Profiler using highres timers", highres, Spring.GetConfigInt("UseHighResTimer", 0))
 
 local prefixedWnames = {}
 local widgetNameColors = {} -- Store RGB values for background tinting
@@ -150,34 +119,6 @@ local function ConstructPrefixedName(ghInfo)
 	return prefixedWnames[gadgetName]
 end
 
-local function ArrayInsert(t, f, g)
-	if f then
-		local layer = g.whInfo.layer
-		local index = 1
-		local tLen = #t
-		for i = 1, tLen do
-			local v = t[i]
-			if v == g then
-				return -- already in the table
-			end
-			if layer >= v.whInfo.layer then
-				index = i + 1
-			end
-		end
-		tableInsert(t, index, g)
-	end
-end
-
-local function ArrayRemove(t, g)
-	local tLen = #t
-	for k = 1, tLen do
-		if t[k] == g then
-			tableRemove(t, k)
-			return -- Only one instance to remove
-		end
-	end
-end
-
 local function widgetprofilertickrateCmd(_, line)
 	local token = {}
 	local n = 0
@@ -186,9 +127,9 @@ local function widgetprofilertickrateCmd(_, line)
 		token[n] = w
 	end
 	if token[1] then
-		tick = tonumber(token[1]) or tick
+		profiling.setTick(token[1])
 	end
-	spEcho("Setting widget profiler to tick=", tick)
+	spEcho("Setting widget profiler to tick=", profiling.getTick())
 	return true
 end
 
@@ -202,181 +143,10 @@ function widget:Initialize()
 	for name, wData in pairs(widgetHandler.knownWidgets) do
 		userWidgets[name] = not wData.fromZip
 	end
-end
 
-local function IsHook(func)
-	return listOfHooks[func]
-end
-
--- Cache CallInsList to avoid rebuilding it multiple times
-local cachedCallInsList
-local function BuildCallInsList(wh)
-	local CallInsList = {}
-	local CallInsListCount = 0
-	for name, e in pairs(wh) do
-		local i = stringFind(name, "List", nil, true)
-		if i and type(e) == "table" then
-			CallInsListCount = CallInsListCount + 1
-			CallInsList[CallInsListCount] = stringSub(name, 1, i - 1)
-		end
-	end
-	return CallInsList
-end
-
-local wname2name = {}
-local function Hook(w, name)
-	-- name is the callin
-	local widgetName = w.whInfo.name
-
-	local wname = prefixedWnames[widgetName] or ConstructPrefixedName(w.whInfo)
-	wname2name[wname] = widgetName
-
-	local realFunc = w[name]
-	w["_old" .. name] = realFunc
-
-	if widgetName == "Widget Profiler" then
-		return realFunc -- don't profile the profilers callins (it works, but it is better that our DrawScreen call is unoptimized and expensive anyway!)
-	end
-
-	local widgetCallinTime = callinStats[wname] or {}
-	callinStats[wname] = widgetCallinTime
-	widgetCallinTime[name] = widgetCallinTime[name] or { 0, 0, 0, 0 }
-	local c = widgetCallinTime[name]
-
-	local t
-
-	local helper_func = function(...)
-		local dt = spDiffTimers(spGetTimer(), t, nil, highres)
-		local _, _, new_s, _ = spGetLuaMemUsage()
-		local ds = new_s - s
-		c[1] = c[1] + dt
-		c[2] = c[2] + dt
-		c[3] = c[3] + ds
-		c[4] = c[4] + ds
-		inHook = nil
-		return ...
-	end
-
-	local hook_func = function(...)
-		if inHook then
-			return realFunc(...)
-		end
-
-		inHook = true
-		t = spGetTimer()
-		local _, _, new_s, _ = spGetLuaMemUsage()
-		s = new_s
-		return helper_func(realFunc(...))
-	end
-
-	listOfHooks[hook_func] = true
-	return hook_func
-end
-
-local function StartHook()
-	spEcho("start profiling")
-
-	local wh = widgetHandler
-
-	-- Build and cache CallInsList
-	if not cachedCallInsList then
-		cachedCallInsList = BuildCallInsList(wh)
-	end
-	local CallInsList = cachedCallInsList
-
-	--// hook all existing callins
-	for i = 1, #CallInsList do
-		local callin = CallInsList[i]
-		local callinGadgets = wh[callin .. "List"]
-		if callinGadgets then
-			for j = 1, #callinGadgets do
-				local w = callinGadgets[j]
-				w[callin] = Hook(w, callin)
-			end
-		end
-	end
-
-	spEcho("hooked all callins")
-
-	--// hook the UpdateCallin function
-	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
-	wh.UpdateWidgetCallInRaw = function(self, name, w)
-		local listName = name .. "List"
-		local ciList = self[listName]
-		if ciList then
-			local func = w[name]
-			if type(func) == "function" then
-				if not IsHook(func) then
-					w[name] = Hook(w, name)
-				end
-				ArrayInsert(ciList, func, w)
-			else
-				ArrayRemove(ciList, w)
-			end
-			self:UpdateCallIn(name)
-		else
-			print("UpdateWidgetCallIn: bad name: " .. name)
-		end
-	end
-
-	spEcho("hooked UpdateCallin")
-
-	--// hook the InsertWidget function
-	oldInsertWidget = wh.InsertWidgetRaw
-	widgetHandler.InsertWidgetRaw = function(self, widget)
-		if widget == nil then
-			return
-		end
-
-		oldInsertWidget(self, widget)
-
-		for i = 1, #CallInsList do
-			local callin = CallInsList[i]
-			local func = widget[callin]
-			if type(func) == "function" then
-				widget[callin] = Hook(widget, callin)
-			end
-		end
-	end
-
-	spEcho("hooked InsertWidget")
-end
-
-local function StopHook()
-	spEcho("stop profiling")
-
-	local wh = widgetHandler
-
-	-- Use cached CallInsList
-	local CallInsList = cachedCallInsList or BuildCallInsList(wh)
-
-	--// unhook all existing callins
-	for i = 1, #CallInsList do
-		local callin = CallInsList[i]
-		local callinWidgets = wh[callin .. "List"]
-		if callinWidgets then
-			for j = 1, #callinWidgets do
-				local w = callinWidgets[j]
-				if w["_old" .. callin] then
-					w[callin] = w["_old" .. callin]
-				end
-			end
-		end
-	end
-
-	spEcho("unhooked all callins")
-
-	--// unhook the UpdateCallin and InsertWidget functions
-	wh.UpdateWidgetCallInRaw = oldUpdateWidgetCallIn
-	spEcho("unhooked UpdateCallin")
-	wh.InsertWidgetRaw = oldInsertWidget
-	spEcho("unhooked InsertWidget")
-end
-
-function widget:Update()
-	widgetHandler:RemoveWidgetCallIn("Update", self)
-	StartHook()
-	startTimer = spGetTimer()
+	-- Being loaded is this widget's on switch, so this is where the hooks go in. The
+	-- include counts who wants them; the widget selector may already have asked.
+	profiling.subscribe(self)
 end
 
 function widget:Shutdown()
@@ -385,7 +155,7 @@ function widget:Shutdown()
 	elseif widgetHandler.actionHandler and widgetHandler.actionHandler.RemoveAction then
 		widgetHandler.actionHandler:RemoveAction(self, "widgetprofilertickrate", "t")
 	end
-	StopHook()
+	profiling.unsubscribe(self)
 end
 
 -- Click a widget row to drill into its per-callin breakdown; click it again to close.
@@ -400,21 +170,13 @@ function widget:MousePress(mx, my, button)
 				selectedWidget = nil
 			else
 				selectedWidget = r[5]
-				callinLoadAverages[r[5]] = {} -- start a fresh smoothing window
 			end
+			-- Only one breakdown is smoothed at a time, and setting it starts a fresh window.
+			profiling.setDetail(selectedWidget)
 			return true
 		end
 	end
 	return false
-end
-
-local function CalcLoad(old_load, new_load, t)
-	if t and t > 0 then
-		local exptick = mathExp(-tick / t)
-		return old_load * exptick + new_load * (1 - exptick)
-	else
-		return new_load
-	end
 end
 
 -- Precompute constants for GetRedColourStrings
@@ -427,7 +189,7 @@ function GetRedColourStrings(v)
 	local tTime = v.tTime
 	local sLoad = v.sLoad
 	local name = v.plainname
-	local u = mathExp(-deltaTime / 5) --magic colour changing rate
+	local u = mathExp(-profiling.deltaTime / 5) --magic colour changing rate
 	local oneMinusU = 1 - u
 
 	-- Clamp tTime
@@ -586,7 +348,7 @@ end
 
 -- Drill-down view: every callin of the selected widget, sorted by cpu time
 local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
-	local avgs = callinLoadAverages[selectedWidget]
+	local avgs = selectedWidget and profiling.callins(selectedWidget)
 	if not avgs then
 		return
 	end
@@ -634,13 +396,7 @@ local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
 		return ly
 	end
 
-	glText(
-		title_colour .. "CALLIN BREAKDOWN  " .. detailColour .. (wname2name[selectedWidget] or selectedWidget),
-		x,
-		line(1),
-		fontSize,
-		"no"
-	)
+	glText(title_colour .. "CALLIN BREAKDOWN  " .. detailColour .. selectedWidget, x, line(1), fontSize, "no")
 
 	local hy = line()
 	glText(totals_colour .. "time", timeColX, hy, fontSize, "no")
@@ -675,105 +431,37 @@ local function DrawDetailPanel(x, y, fontSize, lineSpace, panelWidth)
 end
 
 function widget:DrawScreen()
-	if not next(callinStats) then
-		return
-	end
-
-	local averageTime = Spring.GetConfigFloat("profiler_averagetime", 2)
-
-	-- sort & count timing
-	deltaTime = spDiffTimers(spGetTimer(), startTimer, nil, highres)
-	if deltaTime >= tick then
-		startTimer = spGetTimer()
+	-- Whatever else is subscribed, the numbers are only recomputed on a tick; this
+	-- answers true on the frames a new set landed, which is when the list is rebuilt.
+	if profiling.sample() then
 		sortedList = {}
-
 		allOverTime = 0
 		allOverSpace = 0
 		local n = 1
 		local sortByLoad = Spring.GetConfigInt("profiler_sort_by_load", 1) == 1
 
-		-- Cache FPS and frame calculation
-		local frames = mathMin(1 / tick, Spring.GetFPS()) * retainSortTime
-		local framesMinusOne = frames - 1
-
-		for wname, callins in pairs(callinStats) do
-			local t = 0 -- would call it time, but protected
-			local cmax_t = 0
-			local cmaxname_t = "-"
-			local space = 0
-			local cmax_space = 0
-			local cmaxname_space = "-"
-
-			-- Only smooth the per-callin breakdown for the widget being drilled into,
-			-- so there is zero extra cost when nothing is selected.
-			local capture = wname == selectedWidget
-			local wCallinAvg
-			if capture then
-				wCallinAvg = callinLoadAverages[wname]
-				if not wCallinAvg then
-					wCallinAvg = {}
-					callinLoadAverages[wname] = wCallinAvg
-				end
-			end
-
-			for cname, c in pairs(callins) do
-				local c1, c2, c3, c4 = c[1], c[2], c[3], c[4]
-				t = t + c1
-				if c2 > cmax_t then
-					cmax_t = c2
-					cmaxname_t = cname
-				end
-				c[1] = 0
-
-				space = space + c3
-				if c4 > cmax_space then
-					cmax_space = c4
-					cmaxname_space = cname
-				end
-				c[3] = 0
-
-				if capture then
-					local relT = 100 * c1 / deltaTime
-					local relS = c3 / deltaTime
-					local prev = wCallinAvg[cname]
-					if prev then
-						prev[1] = CalcLoad(prev[1], relT, averageTime)
-						prev[2] = CalcLoad(prev[2], relS, averageTime)
-					else
-						wCallinAvg[cname] = { relT, relS }
-					end
-				end
-			end
-
-			local relTime = 100 * t / deltaTime
-			timeLoadAverages[wname] = CalcLoad(timeLoadAverages[wname] or relTime, relTime, averageTime)
-
-			local relSpace = space / deltaTime
-			spaceLoadAverages[wname] = CalcLoad(spaceLoadAverages[wname] or relSpace, relSpace, averageTime)
-
-			allOverTimeSec = allOverTimeSec + t
-
-			local tLoad = timeLoadAverages[wname]
-			if not avgTLoad[wname] then
-				avgTLoad[wname] = tLoad * 0.7
-			end
-			avgTLoad[wname] = ((avgTLoad[wname] * framesMinusOne) + tLoad) / frames
-			local sLoad = spaceLoadAverages[wname]
-			if not sortByLoad or avgTLoad[wname] >= 0.05 or sLoad >= 5 then -- only show heavy ones
+		for name, stat in pairs(profiling.stats) do
+			if not sortByLoad or stat.avg >= 0.05 or stat.space >= 5 then -- only show heavy ones
 				sortedList[n] = {
-					name = wname2name[wname],
-					plainname = wname,
-					fullname = wname .. " \255\166\166\166(" .. cmaxname_t .. "," .. cmaxname_space .. ")",
-					tLoad = tLoad,
-					sLoad = sLoad,
-					tTime = t / deltaTime,
-					avgTLoad = avgTLoad[wname],
+					name = name,
+					plainname = name,
+					fullname = (prefixedWnames[name] or ConstructPrefixedName({ name = name, basename = name }))
+						.. " ­vvv("
+						.. stat.peakTime
+						.. ","
+						.. stat.peakSpace
+						.. ")",
+					tLoad = stat.load,
+					sLoad = stat.space,
+					tTime = stat.share,
+					avgTLoad = stat.avg,
 				}
 				n = n + 1
 			end
-			allOverTime = allOverTime + tLoad
-			allOverSpace = allOverSpace + sLoad
 		end
+
+		allOverTime, allOverSpace = profiling.total.load, profiling.total.space
+
 		if sortByLoad then
 			tableSort(sortedList, function(a, b)
 				return a.avgTLoad > b.avgTLoad
@@ -788,7 +476,7 @@ function widget:DrawScreen()
 		for i = 1, sortedLen do
 			GetRedColourStrings(sortedList[i])
 		end
-		lm, _, gm, _, um, _, sm, _ = spGetLuaMemUsage()
+		lm, gm, um, sm = profiling.mem.lua, profiling.mem.global, profiling.mem.unsynced, profiling.mem.shared
 	end
 
 	if not sortedList[1] then
@@ -970,9 +658,17 @@ function widget:DrawScreen()
 	)
 
 	j = j + 2
-	glText(title_colour .. "Tick time: " .. tick .. "s", x, y - lineSpace * j, fontSize, "no")
+	glText(title_colour .. "Tick time: " .. profiling.getTick() .. "s", x, y - lineSpace * j, fontSize, "no")
 	j = j + 1
-	glText(title_colour .. "Smoothing time: " .. averageTime .. "s", x, y - lineSpace * j, fontSize, "no")
+	-- Read here rather than carried down from the sampling block, which moved into the
+	-- profiling include along with the smoothing it names.
+	glText(
+		title_colour .. "Smoothing time: " .. Spring.GetConfigFloat("profiler_averagetime", 2) .. "s",
+		x,
+		y - lineSpace * j,
+		fontSize,
+		"no"
+	)
 
 	glEndText()
 end

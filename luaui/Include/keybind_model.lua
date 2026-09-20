@@ -107,6 +107,41 @@ local function displayKeyset(raw, layout)
 	return table.concat(parts, chainSep)
 end
 
+-- A keyset as the editor's chip for it reads. A paired action holds one key as two binds, bare
+-- and Shift+, and that Shift is the action's rather than the player's, so the Shift half reads
+-- as the bare key and both halves share one chip.
+local function displayWithoutShift(raw, layout)
+	local parts = splitChain(raw)
+	parts[1] = (parts[1]:gsub("[Ss][Hh][Ii][Ff][Tt]%+", ""))
+
+	return displayKeyset(table.concat(parts, ","), layout)
+end
+
+-- Whether a displayed keyset holds every one of the keys given, in any order: whole keys as the
+-- chip prints them, modifiers included, lowercased. Split once per display string, of which a
+-- keymap has a few hundred at most.
+local keySets = {}
+local function holdsKeys(display, keys)
+	if #keys == 0 then
+		return false
+	end
+	local set = keySets[display]
+	if not set then
+		set = {}
+		for key in display:lower():gmatch("[^%s%+]+") do
+			set[key] = true
+		end
+		keySets[display] = set
+	end
+	for i = 1, #keys do
+		if not set[keys[i]] then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function canonicalKeyset(raw)
 	local parts = splitChain(raw)
 	for i = 1, #parts do
@@ -114,6 +149,27 @@ local function canonicalKeyset(raw)
 	end
 
 	return table.concat(parts, ",")
+end
+
+-- The first tap of a canonical keyset, taken apart: the modifiers it names as a set ("any"
+-- among them when the engine's qualifier is on) and the key token ("sc:q", "kc:a"). What the
+-- keyboard page places a binding by, and what a filter on one key matches chips against.
+local function splitElement(canon)
+	local first = canon:match("^[^,]+") or canon
+	local mods, key = {}, nil
+	-- The key runs from its "sc:"/"kc:" tag to the end: a key can be named "+" itself
+	-- ("kc:numpad+"), so the tag decides where the modifiers stop, not the separator.
+	local at = first:find("[sk]c:")
+	local modPart = first
+	if at then
+		key = first:sub(at)
+		modPart = first:sub(1, at - 1)
+	end
+	for token in modPart:gmatch("[^+]+") do
+		mods[token] = true
+	end
+
+	return mods, key
 end
 
 -- A bound action is identified by the full command string passed to /bind:
@@ -164,7 +220,10 @@ end
 return {
 	build = build,
 	displayKeyset = displayKeyset,
+	displayWithoutShift = displayWithoutShift,
+	holdsKeys = holdsKeys,
 	canonicalKeyset = canonicalKeyset,
+	splitElement = splitElement,
 	splitChain = splitChain,
 	chainSep = chainSep,
 }

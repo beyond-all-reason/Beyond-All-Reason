@@ -4,6 +4,8 @@
 	"profiles": [
 		{
 			"name": "Grid",
+			"description": "ui.keybinds.presets.grid",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -910,6 +912,10 @@
 					"action": "unit_stats"
 				},
 				{
+					"keyset": "Ctrl+sc_i",
+					"action": "customgameinfo"
+				},
+				{
 					"keyset": "sc_j",
 					"action": "loadunits"
 				},
@@ -1337,6 +1343,8 @@
 		},
 		{
 			"name": "Grid (60% Keyboard)",
+			"description": "ui.keybinds.presets.grid60",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -2159,6 +2167,10 @@
 					"action": "unit_stats"
 				},
 				{
+					"keyset": "Ctrl+sc_i",
+					"action": "customgameinfo"
+				},
+				{
 					"keyset": "sc_j",
 					"action": "loadunits"
 				},
@@ -2582,6 +2594,8 @@
 		},
 		{
 			"name": "Legacy",
+			"description": "ui.keybinds.presets.legacy",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -4304,6 +4318,10 @@
 					"action": "unit_stats"
 				},
 				{
+					"keyset": "sc_i",
+					"action": "customgameinfo"
+				},
+				{
 					"keyset": "Ctrl+Shift+sc_o",
 					"action": "cameraflip"
 				},
@@ -4367,6 +4385,8 @@
 		},
 		{
 			"name": "Legacy (60% Keyboard)",
+			"description": "ui.keybinds.presets.legacy60",
+			"fakeMeta": "space",
 			"binds": [
 				{
 					"keyset": "esc",
@@ -5987,6 +6007,10 @@
 				{
 					"keyset": "Any+space",
 					"action": "unit_stats"
+				},
+				{
+					"keyset": "sc_i",
+					"action": "customgameinfo"
 				},
 				{
 					"keyset": "Ctrl+Shift+sc_o",

@@ -1,4 +1,4 @@
-# Beyond All Reason - Copilot Instructions
+# Beyond All Reason - Agent Instructions
 
 Mixed script types: LuaUI widgets, LuaRules gadgets, BOS animation scripts, shaders, RmlUi documents, busted specs.
 
@@ -17,10 +17,23 @@ Before editing code:
 
 Keep patches narrowly scoped and easy to review. Large cross-subsystem refactors need an explicit request.
 
+Before you hand work over:
+
+Four checks decide whether a change is mergeable. Three of them run Lua tooling pinned to a version you can install
+locally and reproduce exactly. Run the ones your changes touch.
+
+| Check | Tool and pin | What it scopes | Local command |
+| --- | --- | --- | --- |
+| `busted` | lux-cli 0.28.3 | Whole spec suite, never a diff | `lx --lua-version 5.1 test` |
+| `stylua` | StyLua 2.5.2 | Only hunks overlapping lines you wrote | `stylua --check --respect-ignores <files>` |
+| `emmylua_check` | emmylua 0.24.0 | Whole tree, compared against the base | `emmylua_check -c .emmyrc.json .` |
+| `docker compose up (headless)` | stock engine | Whole game, headless | `tools/headless_testing/README.md` |
+
 ## Keeping These Instructions Current
 
-Instruction files: this one, `.github/RmlUi-instructions.md`, and
-`luarules/mission_api/mission-api-instructions.md`. The rules below apply to all of them.
+Instruction files: this one, `.github/RmlUi-instructions.md`, `.github/spec-instructions.md`, and
+(only on the `mission-api/dev` branch) `luarules/mission_api/mission-api-instructions.md`.
+The rules below apply to all of them.
 
 - Update the affected file and section in the same pull request whenever a change alters a convention, tool,
   workflow, directory, or command they describe. A change to a subsystem covered by its own file updates that file,
@@ -113,11 +126,13 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 - lux 0.28.x appends duplicate `dependencies` and `entrypoints` entries to `lux.lock` on every cold sync (a run with
   no `.lux/` tree), growing the file by ~13 lines each time without ever converging. Tests still pass. Do not commit
   that churn: `git checkout -- lux.lock` afterwards, and only commit a lockfile change you made deliberately.
-- Lint: `luacheck` 1.2.0 with `.luacheckrc`; CI reports only lines changed in the PR (`.github/workflows/lint.yml`).
-- Format: StyLua with `.stylua.toml` (tabs, indent width 4, 120 columns, CRLF, sorted requires) and `.styluaignore`;
-  `.editorconfig` mirrors the indent and whitespace rules.
-- Types: EmmyLua analyzer via `.emmyrc.json`, stubs in `types/`, engine definitions from the `recoil-lua-library`
-  submodule. The codebase is at zero type errors — keep it there.
+- Lint: `luacheck` 1.2.0 with `.luacheckrc`. Treat `.luacheckrc` as a style record, not as a gate.
+- Format: StyLua 2.5.2 with `.stylua.toml` (tabs, indent width 4, 120 columns, CRLF, sorted requires) and
+  `.styluaignore`; `.editorconfig` mirrors the indent and whitespace rules. The gate fails only on changed hunks.
+- Types: EmmyLua analyzer 0.24.0 via `.emmyrc.json`, stubs in `types/`, engine definitions from the
+  `recoil-lua-library` submodule. This is not a zero-errors gate. A new error blocks anywhere, and warnings run on
+  two budgets: fifteen net-new warnings per thousand changed lines, and thirty total warnings per thousand lines in
+  the files you changed. A change with no type errors still fails when it adds warnings faster than that per line.
 - Integration tests: headless engine via `docker compose -f tools/headless_testing/docker-compose.yml`
   (`.github/workflows/test_integration.yml`). They can also be run without docker against an engine already
   downloaded by an installed BAR client — see `tools/headless_testing/README.md`.
@@ -128,17 +143,18 @@ Match the validator to the file type. If unsure of a tool's scope, inspect the p
 ### Commands
 
 ```sh
-lx --lua-version 5.1 test                      # full busted suite (what CI runs)
-busted --output=plainTerminal                  # same suite, when the .lux tree is already synced
-busted spec/common/lib_spline_spec.lua         # single spec file
-lx lint                                        # luacheck over the project; provisions luacheck itself
-luacheck path/to/file.lua                      # lint one file, if luacheck is installed directly
-stylua path/to/file.lua                        # format one file (`lx fmt` reformats the whole codebase)
+lx --lua-version 5.1 test                           # full busted suite (what CI runs); needs lux-cli 0.28.3
+busted --output=plainTerminal                       # same suite, when the .lux tree is already synced
+busted spec/common/lib_spline_spec.lua              # single spec file
+stylua --check --respect-ignores path/to/file.lua   # what the format gate sees; needs stylua 2.5.2
+stylua path/to/file.lua                             # format one file (`lx fmt` reformats the whole codebase)
+emmylua_check -c .emmyrc.json .                     # what the type gate sees; needs emmylua 0.24.0
 ```
 
-Scope `luacheck` and `stylua` to the files you touched; repository-wide runs create large unrelated diffs. `lx lint`
-reports pre-existing warnings across the tree, so compare against the baseline rather than assuming your change
-caused them.
+These mean nothing without the pinned versions, and the versions are not installed for you.
+
+Scope `stylua` to the files you touched; repository-wide runs create large unrelated diffs. The type check has no
+scoped mode, so read its output against the baseline rather than assuming your change caused everything in it.
 
 ### By file type
 
@@ -153,16 +169,17 @@ caused them.
 
 ## Tests
 
+Read `.github/spec-instructions.md` before adding or changing anything under `spec/`.
+
 - Add or update unit tests for the behavior you change, not only for shared logic in `common/` and `modules/`: new
   logic arrives with tests, changed logic has its tests updated, and a bug fix gets a test that fails without it.
+- A new test must fail against the commit before yours and pass against yours. A test that passes both is asserting
+  something nobody changed, and it goes stale without anyone noticing. Never write pending tests.
 - When rendering or engine callins make code hard to test, extract the decision-making part into a testable function
   and cover that. Only genuinely rendering-bound behavior stays manual and in-engine.
 - Tests live in `spec/`, mirroring source layout (`spec/common/`, `spec/luaui/Widgets/`, `spec/gamedata/`) and named
   `*_spec.lua`. `.busted` sets `pattern = "_spec"` and `ROOT = spec/`, and puts `common/`, `luarules/`, `luaui/`, and
   `spec/` on `package.path`, so require modules by their repo-relative path.
-- `spec/spec_helper.lua` mocks the engine surface (`Spring`, `LOG`, `GG`, `unpack`) — extend it instead of re-mocking
-  per file. Build engine state with `spec/builders/` (`spring_synced_builder`, `unit_def_builder`, and friends)
-  rather than hand-rolled tables.
 
 ## Compatibility and Data Ownership
 
@@ -184,8 +201,9 @@ caused them.
   (`.github/PULL_REQUEST_GUIDELINES.md`).
 - Fill in the "Test steps" checklist in `.github/PULL_REQUEST_TEMPLATE.md`, and attach before/after media for visible
   changes.
-- Player-visible balance and gameplay changes get a `changelog.txt` entry under the current `# Month` heading, in the
-  existing style: `• [Unit] 1500 -> 1400 health`. Internal refactors and tooling changes do not.
+- Player-visible balance and gameplay changes get a `changelog.md` entry under the current `# Month` heading, in the
+  existing style: `- [Unit] 1500 -> 1400 health`, with sub-points as nested list items. The file is Markdown and is
+  rendered in-game by `gui_changelog_info.lua`. Internal refactors and tooling changes do not.
 - Style expectations beyond this file live in `CONTRIBUTING.md` (engine-call overhead, caching Defs lookups, correct
   iterators, comments explain "why" not "what", no dead code).
 
@@ -203,7 +221,8 @@ caused them.
 
 The data-driven mission runtime has load-order and dispatch conventions of its own. Read
 `luarules/mission_api/mission-api-instructions.md` before editing `luarules/mission_api/`,
-`luarules/gadgets/api_missions*.lua`, `singleplayer/`, or `spec/mission_api/`.
+`luarules/gadgets/api_missions*.lua`, `singleplayer/`, or `spec/mission_api/`. That file, and most of what it
+describes, lives on `mission-api/dev` rather than `master`.
 
 ## RmlUi
 

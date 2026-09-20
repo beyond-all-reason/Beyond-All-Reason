@@ -137,5 +137,24 @@ describe("keybind catalog", function()
 				check(bind.action, "profile bind")
 			end
 		end
+
+		local retired = loadJson("common/configs/keybind_retired_includes.json")
+		for _, binds in pairs(retired) do
+			for _, bind in ipairs(binds) do
+				check(bind.action, "retired include bind")
+			end
+		end
+	end)
+end)
+
+-- Read only while migrating a player's own bind file that still keyloads one of the
+-- fragments the shipped presets used to pull in. It records what those files bound, so it
+-- tracks what was deleted rather than what the game ships now.
+describe("retired keybind includes", function()
+	it("matches its schema", function()
+		conformsTo(
+			"common/configs/keybind_retired_includes.schema.json",
+			"common/configs/keybind_retired_includes.json"
+		)
 	end)
 end)

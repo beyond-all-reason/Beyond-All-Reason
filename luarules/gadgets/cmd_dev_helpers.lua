@@ -543,8 +543,7 @@ if gadgetHandler:IsSyncedCode() then
 			subPermission = "modmarker"
 		end
 
-		local bypassSyncedAuthorization = cmd == "godmode" or cmd == "godmodeally"
-		if not bypassSyncedAuthorization and not isAuthorized(playerID, subPermission) then
+		if not isAuthorized(playerID, subPermission) then
 			return
 		end
 
@@ -2806,6 +2805,9 @@ else -- UNSYNCED
 				or (ud.extractsMetal or 0) > 0
 				or (ud.metalMake or 0) > 0
 				or (cp and cp.unitgroup == "metal")
+		end)
+		addFilter("rework", function(ud)
+			return string.find(string.lower(ud.name or ""), "_rework", 1, true) ~= nil
 		end)
 		addFilter("all", function()
 			return true
