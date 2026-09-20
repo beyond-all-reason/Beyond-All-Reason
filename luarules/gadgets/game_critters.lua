@@ -71,7 +71,7 @@ local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local isCritter = {} ---@type table<UnitDefID, true?>
 local isFlyingCritter = {} ---@type table<UnitDefID, true?>
 local isCommander = {} ---@type table<UnitDefID, true?>
-local setCompanionData = {} ---@type table<UnitDefID, function?> -- TODO: replace with new attributes module
+local moveTypeDataSetter = {} ---@type table<UnitDefID, function?> -- TODO: replace with new attributes module
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.iscritter then
@@ -79,12 +79,12 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if unitDef.canFly then
 			isFlyingCritter[unitDefID] = true
 			if unitDef.isHoveringAirUnit then
-				setCompanionData[unitDefID] = Spring.MoveCtrl.SetGunshipMoveTypeData
+				moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetGunshipMoveTypeData
 			else
-				setCompanionData[unitDefID] = Spring.MoveCtrl.SetAirMoveTypeData
+				moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetAirMoveTypeData
 			end
 		elseif not unitDef.isImmobile then
-			setCompanionData[unitDefID] = Spring.MoveCtrl.SetGroundMoveTypeData
+			moveTypeDataSetter[unitDefID] = Spring.MoveCtrl.SetGroundMoveTypeData
 		end
 	elseif unitDef.customParams.iscommander then
 		isCommander[unitDefID] = true
@@ -263,7 +263,7 @@ local function adjustMapCritterPopulation()
 end
 
 local function setCompanionSpeed(companionID, speed)
-	local setMoveTypeData = setCompanionData[GetUnitDefID(companionID)]
+	local setMoveTypeData = moveTypeDataSetter[GetUnitDefID(companionID)]
 	if setMoveTypeData then
 		setMoveTypeData(companionID, { maxSpeed = speed, maxWantedSpeed = speed })
 	end
@@ -374,7 +374,7 @@ local function updateCompanions()
 		if x then
 			for companionID in pairs(companions) do
 				local cx, _, cz = GetUnitPosition(companionID)
-				if cx and (abs(x - cx) > leash or abs(z - cz) > leash) then
+				if cx and cz and (abs(x - cx) > leash or abs(z - cz) > leash) then
 					givePatrolOrders(companionID, { x = x, z = z, radius = companionPatrolRadius })
 				end
 			end
