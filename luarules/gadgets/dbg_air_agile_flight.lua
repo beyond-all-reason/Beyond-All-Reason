@@ -231,12 +231,19 @@ local function apply(unitID, unitDefID)
 		return
 	end
 
+	-- (a stock engine warns about every member it does not know, once per unit and key: ask it
+	-- once, then leave its aircraft alone)
+	if supported == false then
+		return
+	end
+
 	local accepted = SetData(unitID, "agileFlight", enabled)
 
 	if supported == nil then
 		supported = (accepted ~= 0)
 		if not supported then
 			Echo("[agile] this engine does not know agileFlight: it is a stock build, nothing will change")
+			return
 		end
 	end
 
