@@ -5019,6 +5019,15 @@ function M.new(ctx)
 			local key = group and "milestonesGroup" or "milestones"
 			lines[#lines + 1] = ctx.colors.title .. ctx.i18n(L .. "state." .. key)
 		end
+		-- Grouped, a team is one line on the bar: its players are picked apart only with the
+		-- grouping off.
+		local several = false
+		for _, u in ipairs(targets) do
+			several = several or #u.members > 1
+		end
+		if grouped() and several then
+			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "state.grouped")
+		end
 		local suffix = group and "Group" or ""
 		for _, control in ipairs({ "click", "ctrlClick", "rightClick" }) do
 			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "control." .. control .. suffix)
@@ -5083,7 +5092,12 @@ function M.new(ctx)
 			local b = page.barBlocks[page.hover.block]
 			---@cast b -?
 			if b.me then
-				return b.label, ctx.i18n("ui.teamStats.graph.youHint")
+				local tip = ''
+				-- Grouped, your own line is your whole team's.
+				if grouped() and b.unit and #b.unit.members > 1 then
+					tip = tip .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.youGrouped")
+				end
+				return b.label, tip
 			end
 			if b.all then
 				local tip = ctx.i18n("ui.teamStats.graph.allHint")

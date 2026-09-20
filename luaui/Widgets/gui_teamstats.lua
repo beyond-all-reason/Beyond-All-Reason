@@ -973,6 +973,47 @@ handover.shows = function(column)
 end
 -- The last name seen for each team, for a player who has since left.
 local teamControllers = {}
+-- Every team's player, read and kept from the moment the widget loads rather than from the
+-- first time the panel is opened: a player who resigns or is knocked out starts spectating,
+-- and the engine leaves their team without a leader (-1) to ask for a name, so a panel
+-- opened after that had nothing to show but "(dead)". Read again whenever a player changes -
+-- a substitute takes a team over, a name is set - and kept through a LuaUI reload in the
+-- config, under the game they were read in.
+handover.rememberNames = function()
+	local named = WG.playernames and WG.playernames.getPlayername
+	local function nameOf(playerID)
+		local name = spGetPlayerInfo(playerID, false)
+		return (named and named(playerID)) or name
+	end
+	for _, teamID in ipairs(spGetTeamList()) do
+		local _, leader = spGetTeamInfo(teamID, false)
+		local name
+		if leader and leader >= 0 then
+			name = nameOf(leader)
+		end
+		if not name then
+			-- No leader left: the one player who still carries the team - their own, dead or
+			-- given away. Only when they are the only one, so a watcher the lobby put on the
+			-- team is not taken for the player who had it.
+			local found, count = nil, 0
+			for _, playerID in ipairs(Spring.GetPlayerList() or {}) do
+				local playerName, _, _, playerTeam = spGetPlayerInfo(playerID, false)
+				if playerName and playerTeam == teamID then
+					found, count = playerID, count + 1
+				end
+			end
+			if count == 1 then
+				name = nameOf(found)
+			end
+		end
+		if name and name ~= "" then
+			teamControllers[teamID] = name
+		elseif teamControllers[teamID] == nil then
+			-- Nothing to be had: said so, rather than looked for again every second.
+			teamControllers[teamID] = false
+		end
+	end
+end
 -- The frame each team died on, so a rate is over the time the team was in the game.
 local deathFrame = {}
 ---@type boolean
@@ -1009,8 +1050,11 @@ local graphs
 -- or a ratio with nothing under it.
 local NAN = 0 / 0
 
+-- A number to show: not missing, not the NaN an unknown value is carried as. Anything else
+-- counts as unknown, so a caller that hands over what an `and` left behind cannot go on to
+-- compare it with a number.
 local function known(v)
-	return v ~= nil and v == v
+	return type(v) == "number" and v == v
 end
 
 -- The percentages a row derives from two amounts, in one table: the file is near Lua's
@@ -1302,7 +1346,7 @@ local function cellDetail(column, stats)
 		-- Held out of how many the map has, and how many of the metal ones under an upgrade.
 		local n, total = stats[column.key], handover.spotCount(column.spots)
 		if known(n) and total > 0 then
-			local upgraded = column.spots == "metal" and stats.metalSpotsUpgraded
+			local upgraded = column.spots == "metal" and stats.metalSpotsUpgraded or nil
 			if known(upgraded) and upgraded > 0 then
 				return BAR.I18N(
 					"ui.teamStats.ofTotalUpgraded",
@@ -1439,7 +1483,13 @@ local function readTeam(teamID, allyID, frame, live)
 	if name then
 		teamControllers[teamID] = name
 	else
-		name = teamControllers[teamID] or ""
+		-- Nobody to ask any more: the name this team was last read under, else one last look
+		-- for whoever carries it; a team nothing is known about is said to be unknown rather
+		-- than left as a bare "(dead)".
+		if teamControllers[teamID] == nil then
+			handover.rememberNames()
+		end
+		name = teamControllers[teamID] or L.unknownPlayer
 	end
 	local gone = not isActive
 
@@ -3060,6 +3110,7 @@ local function loadLabels()
 	L.title = BAR.I18N("ui.teamStats.title")
 	L.titleText = colorTitle .. L.title
 	L.notYet = BAR.I18N("ui.teamStats.notYet")
+	L.unknownPlayer = BAR.I18N("ui.teamStats.unknownPlayer")
 	L.foldHint = BAR.I18N("ui.teamStats.foldHint")
 	L.memberOne = BAR.I18N("ui.teamStats.memberOne")
 	-- The milestone kinds a player's card lists: the ones that tell the game's story.
@@ -3787,6 +3838,9 @@ end
 function widget:PlayerChanged()
 	isSpec = spGetSpectatingState()
 	localTeamID = spGetLocalTeamID()
+	-- A player resigning or being knocked out leaves their team without a leader: their name
+	-- is still to be had at this moment, and kept for the rows.
+	handover.rememberNames()
 	if show and not gameover then
 		refresh()
 	elseif gameover then
@@ -3810,6 +3864,7 @@ end
 
 function widget:Initialize()
 	loadLabels()
+	handover.rememberNames()
 	widget:ViewResize()
 
 	widgetHandler:AddAction("teamstats", function()
@@ -3872,7 +3927,17 @@ end
 -- The sort, the view and the switches are kept between games: someone who reads the
 -- table one way wants it that way every time they open it.
 function widget:GetConfigData()
+	-- The names of this game's teams, for a reload mid-game: a team whose player has gone
+	-- cannot be named again from the engine. Copied, not the table the rows are read from.
+	local names = {}
+	for teamID, name in pairs(teamControllers) do
+		if type(name) == "string" then
+			names[teamID] = name
+		end
+	end
 	local data = {
+		gameID = Game.gameID or spGetGameRulesParam("GameID"),
+		names = names,
 		sortKey = sortKey,
 		sortAscending = sortAscending,
 		-- The player's pick, even while the gadget's absence has it hidden.
@@ -3895,6 +3960,18 @@ end
 function widget:SetConfigData(data)
 	if type(data) ~= "table" then
 		return
+	end
+	-- The names read in this same game, from before a reload.
+	if
+		data.gameID
+		and data.gameID == (Game.gameID or spGetGameRulesParam("GameID"))
+		and type(data.names) == "table"
+	then
+		for teamID, name in pairs(data.names) do
+			if type(name) == "string" and name ~= "" then
+				teamControllers[tonumber(teamID) or teamID] = name
+			end
+		end
 	end
 	-- The old panel saved the sort under another name, with the name column as "frame".
 	local key = data.sortKey or data.sortVar
