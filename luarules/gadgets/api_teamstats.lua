@@ -703,6 +703,9 @@ local allyOf = {}
 -- in here and counts for nothing until it is done.
 ---@type table<integer, integer?>
 local finished = {}
+-- [unitID] = the type it was counted as, so what was added is what is taken off again.
+---@type table<integer, integer?>
+local countedAs = {}
 -- [teamID][unitID] = build speed, for every finished builder and factory.
 ---@type table<integer, table<integer, number?>>
 local builders = {}
@@ -969,6 +972,7 @@ local function addUnit(unitID, unitDefID, teamID)
 		return
 	end
 	finished[unitID] = teamID
+	countedAs[unitID] = unitDefID
 	local cost = defCost[unitDefID]
 	t.unitCount = t.unitCount + 1
 	t.unitValue = t.unitValue + cost
@@ -1007,11 +1011,20 @@ local function addUnit(unitID, unitDefID, teamID)
 	end
 end
 
-local function removeUnit(unitID, unitDefID)
+-- What a unit added to its team's tally is taken off it again. The type is the one it was
+-- counted under rather than the one the call-in gives: the two are the same unit's today, but
+-- a tally that trusts the call-in cannot be made whole again if they ever differ - it would
+-- leave a team a few metal short or over for good, and a team that lost everything showing a
+-- unit value below nothing.
+local function removeUnit(unitID)
 	local teamID = finished[unitID]
 	if not teamID then
 		return
 	end
+	-- Set beside `finished`, so a unit that is counted always has the type it counted as.
+	local unitDefID = countedAs[unitID]
+	---@cast unitDefID -?
+	countedAs[unitID] = nil
 	local site = defSite[unitDefID]
 	if site then
 		releaseSpot(unitID, site, teamID)
@@ -1644,6 +1657,12 @@ end
 ----------------------------------------------------------------
 
 local function unitCreated(unitID, unitDefID, unitTeam)
+	-- The engine gives a unit id out again once the unit that had it is gone. One still
+	-- counted here means its end was never seen: it is taken off the tally now, so what it
+	-- left behind does not stay in the team's totals for the rest of the game.
+	if finished[unitID] then
+		removeUnit(unitID)
+	end
 	if not spGetUnitIsBeingBuilt(unitID) then
 		addUnit(unitID, unitDefID, unitTeam)
 	end
@@ -1678,7 +1697,7 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if finished[unitID] then
-		removeUnit(unitID, unitDefID)
+		removeUnit(unitID)
 		addUnit(unitID, unitDefID, newTeam)
 	end
 end
@@ -1773,7 +1792,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local _, progress = spGetUnitIsBeingBuilt(unitID)
 		value = value * (progress or 0)
 	end
-	removeUnit(unitID, unitDefID)
+	removeUnit(unitID)
 
 	local victim = teams[unitTeam]
 	if victim then
