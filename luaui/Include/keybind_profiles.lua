@@ -473,7 +473,6 @@ local function matchesKnownProfile(text)
 	return nil
 end
 
--- The first of "<base>", "<base> 2", ... that `taken` says nothing holds.
 local function freeName(base, taken)
 	if not taken(base) then
 		return base
@@ -532,6 +531,7 @@ function M.save()
 	return true
 end
 
+-- VFS.FileExists searches the game archives too, and a copy can only go in the write dir.
 local function fileExists(path)
 	local file = io.open(path, "r")
 	if not file then
@@ -543,28 +543,29 @@ local function fileExists(path)
 	return true
 end
 
--- Copies a file aside before something overwrites it, to the first name nothing holds. An
--- earlier copy is never replaced: the first is the keymap the player had before any of this
--- existed, and each one after it is whatever the next migration or unreadable store was
--- about to destroy.
-local function backupFile(path)
-	local text = VFS.LoadFile(path)
+-- The first copy is the keymap the player had before any of this existed.
+local function backupFile(path, text)
+	text = text or VFS.LoadFile(path)
 	if not text then
 		return nil
 	end
 
 	local target = path .. BACKUP_SUFFIX
-	local n = 1
+	local n, last = 1, nil
 	while fileExists(target) do
+		last = target
 		n = n + 1
 		target = path .. BACKUP_SUFFIX .. "." .. n
 	end
 
+	-- A caller failing the same way every time asks for the same copy every time.
+	if last and VFS.LoadFile(last) == text then
+		return last
+	end
+
 	local file = io.open(target, "w")
 	if not file then
-		Spring.Echo(
-			"[keybind_profiles] Error: could not write " .. target .. "; continuing without a copy of " .. path
-		)
+		Spring.Echo("[keybind_profiles] Error: could not write " .. target .. "; continuing without a copy of " .. path)
 
 		return nil
 	end
@@ -608,7 +609,11 @@ local function migrate()
 		end
 	end
 
-	M.save()
+	if not M.save() then
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write " .. PROFILES_PATH .. "; this will migrate again next launch"
+		)
+	end
 
 	-- A keyload naming a retired preset resolves to that profile's bindings here and to
 	-- nothing engine-side, so hand it the store rather than the file the store came from.
@@ -650,7 +655,7 @@ function M.load()
 	local ok, decoded = pcall(Json.decode, content)
 	if not ok or type(decoded) ~= "table" or type(decoded.profiles) ~= "table" then
 		Spring.Echo("[keybind_profiles] could not decode " .. PROFILES_PATH .. "; starting empty")
-		backupFile(PROFILES_PATH)
+		backupFile(PROFILES_PATH, content)
 		store = emptyStore()
 		return store
 	end
@@ -659,23 +664,32 @@ function M.load()
 	storePredatesMeta = (tonumber(store.version) or 1) < 2
 	store.version = STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
-	local seen, kept, inferred = {}, {}, false
+	local seen, kept, changed = {}, {}, false
 	for _, p in ipairs(store.profiles) do
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
 			p.binds = type(p.binds) == "table" and p.binds or {}
-			-- A shipped profile is not the store's to define. Keeping the entry under a free name
-			-- leaves the player whatever they had without it standing in for what ships.
+			-- A shipped profile is not the store to define.
 			if M.isBuiltin(p.name) then
-				local renamed = freeName(p.name, function(name)
+				local taken = p.name
+				local renamed = freeName(taken, function(name)
 					return seen[name] or M.isBuiltin(name)
 				end)
 				Spring.Echo(
-					"[keybind_profiles] " .. PROFILES_PATH .. " names a profile " .. p.name
-						.. ", which ships with the game; kept as " .. renamed
+					"[keybind_profiles] "
+						.. PROFILES_PATH
+						.. " names a profile "
+						.. taken
+						.. ", which ships with the game; kept as "
+						.. renamed
 				)
-				p.binds = M.retargetSwitchBinds(p.binds, p.name, renamed)
+				p.binds = M.retargetSwitchBinds(p.binds, taken, renamed)
 				p.name = renamed
-				inferred = true
+				-- Otherwise the name goes back to what ships and the player lands on stock bindings.
+				if store.active == taken then
+					store.active = renamed
+				end
+				seen[taken] = true
+				changed = true
 			end
 			seen[p.name] = true
 			-- Said here rather than on the way out, where the emitter runs once per profile per
@@ -697,13 +711,13 @@ function M.load()
 			-- that is written back so every surface reads the same origin from then on.
 			if not M.baseIsUsable(p.basedOn, store.profiles) then
 				p.basedOn = M.inferBase(p)
-				inferred = inferred or p.basedOn ~= nil
+				changed = changed or p.basedOn ~= nil
 			end
 			kept[#kept + 1] = p
 		end
 	end
 	store.profiles = kept
-	if inferred or storePredatesMeta then
+	if changed or storePredatesMeta then
 		M.save()
 	end
 
