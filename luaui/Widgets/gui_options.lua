@@ -2970,6 +2970,61 @@ function applyFilter()
 	windowList = gl.CreateList(DrawWindow)
 end
 
+local function getAutoCloakDefaults()
+	local autoCloakDefaults = {
+		["armdecom"] = false,
+		["cordecom"] = false,
+		["armferret"] = false,
+		["armamb"] = false,
+		["armpb"] = false,
+		["armsnipe"] = false,
+		["corsktl"] = false,
+		["armgremlin"] = true,
+		["armamex"] = true,
+		["armshockwave"] = true,
+		["armckfus"] = true,
+		["armspy"] = true,
+		["corspy"] = true,
+		["legaspy"] = true,
+		["corphantom"] = true,
+	}
+	if WG["stateprefs"] then
+		for unitName, default in pairs(autoCloakDefaults) do
+			if WG["stateprefs"].getUnitDefaultState(unitName, GameCMD.WANT_CLOAK) then
+				autoCloakDefaults[unitName] = WG["stateprefs"].getUnitDefaultState(unitName, GameCMD.WANT_CLOAK) == 1
+			else
+				WG["stateprefs"].setUnitDefaultState(unitName, GameCMD.WANT_CLOAK, default and 1 or 0)
+			end
+		end
+	elseif widgetHandler.configData["State Prefs V2"] then
+		for unitName, defaults in pairs(widgetHandler.configData["State Prefs V2"]) do
+			if defaults[GameCMD.WANT_CLOAK] then
+				autoCloakDefaults[unitName] = defaults[GameCMD.WANT_CLOAK] == 1
+			end
+		end
+	end
+
+	return autoCloakDefaults
+end
+
+local function getStatePrefPresetsToggle(presetName, widgetName)
+	if WG["stateprefs"] and WG["stateprefs"].getPresetState(presetName) ~= nil then
+		return WG["stateprefs"].getPresetState(presetName)
+	end
+
+	if widgetHandler.orderList[widgetName] then
+		return widgetHandler.orderList[widgetName] ~= 0
+	end
+	local defaults = { --priority defaults set in stateprefs widget
+		bombers_default_hold_fire = true,
+		factoryguard = true,
+		fighters_default_fly = true,
+		factory_hold_position = true,
+		factory_repeat = false,
+	}
+	return defaults[presetName] or false
+end
+
 function init()
 	presets = {
 		lowest = {
@@ -6827,7 +6882,8 @@ function init()
 				"ui.settings.option.topbar_hidebuttons"
 			),
 			type = "bool",
-			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons()) or false,
+			value = (WG.topbar ~= nil and WG.topbar.getAutoHideButtons ~= nil and WG.topbar.getAutoHideButtons())
+				or false,
 			onload = function(i)
 				loadWidgetData("Top Bar Buttons", "topbar_hidebuttons", { "autoHideButtons" })
 			end,
@@ -8937,155 +8993,23 @@ function init()
 		},
 
 		{
-			id = "builderpriority",
-			group = "game",
-			category = types.basic,
-			widget = "Builder Priority",
-			name = BAR.I18N("ui.settings.option.builderpriority"),
-			type = "bool",
-			value = GetWidgetToggleValue("Builder Priority"),
-			description = BAR.I18N("ui.settings.option.builderpriority_descr"),
-		},
-
-		{
-			id = "builderpriority_nanos",
-			group = "game",
-			category = types.advanced,
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_nanos"),
-			type = "bool",
-			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityNanos ~= nil
-				and WG.builderpriority.getLowPriorityNanos()
-			),
-			description = BAR.I18N("ui.settings.option.builderpriority_nanos_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_nanos", { "lowpriorityNanos" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityNanos",
-					{ "lowpriorityNanos" },
-					value
-				)
-			end,
-		},
-
-		{
-			id = "builderpriority_cons",
-			group = "game",
-			category = types.advanced,
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_cons"),
-			type = "bool",
-			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityCons ~= nil
-				and WG.builderpriority.getLowPriorityCons()
-			),
-			description = BAR.I18N("ui.settings.option.builderpriority_cons_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_cons", { "lowpriorityCons" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityCons",
-					{ "lowpriorityCons" },
-					value
-				)
-			end,
-		},
-
-		{
-			id = "builderpriority_labs",
-			group = "game",
-			category = types.advanced,
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_labs"),
-			type = "bool",
-			value = (
-				WG.builderpriority ~= nil
-				and WG.builderpriority.getLowPriorityLabs ~= nil
-				and WG.builderpriority.getLowPriorityLabs()
-			),
-			description = BAR.I18N("ui.settings.option.builderpriority_labs_descr"),
-			onload = function(i)
-				loadWidgetData("Builder Priority", "builderpriority_labs", { "lowpriorityLabs" })
-			end,
-			onchange = function(i, value)
-				saveOptionValue(
-					"Builder Priority",
-					"builderpriority",
-					"setLowPriorityLabs",
-					{ "lowpriorityLabs" },
-					value
-				)
-			end,
-		},
-
-		{
-			id = "factoryguard",
-			group = "game",
-			category = types.basic,
-			widget = "Factory Guard Default On",
-			name = BAR.I18N("ui.settings.option.factory") .. widgetOptionColor .. "  " .. BAR.I18N(
-				"ui.settings.option.factoryguard"
-			),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory Guard Default On"),
-			description = BAR.I18N("ui.settings.option.factoryguard_descr"),
-		},
-		{
-			id = "factoryholdpos",
-			group = "game",
-			category = types.basic,
-			widget = "Factory hold position",
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.factoryholdpos"),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory hold position"),
-			description = BAR.I18N("ui.settings.option.factoryholdpos_descr"),
-		},
-		{
-			id = "factoryrepeat",
-			group = "game",
-			category = types.basic,
-			widget = "Factory Auto-Repeat",
-			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.factoryrepeat"),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory Auto-Repeat"),
-			description = BAR.I18N("ui.settings.option.factoryrepeat_descr"),
-		},
-		{
-			id = "factorypreset",
-			group = "game",
-			category = types.basic,
-			widget = "FactoryQ Manager",
-			name = BAR.I18N("ui.settings.option.factorypreset"),
-			type = "bool",
-			value = GetWidgetToggleValue("Factory Presets"),
-			description = BAR.I18N("ui.settings.option.factorypreset_descr"),
-		},
-
-		{
 			id = "transportOrderedUnits",
 			group = "game",
 			category = types.basic,
 			name = "Ferry ignores units with manual orders",
 			type = "bool",
 			value = (
-				WG.transportFactoryGuard ~= nil
-				and WG.transportFactoryGuard.getBlacklistOrderedUnits ~= nil
-				and WG.transportFactoryGuard.getBlacklistOrderedUnits()
+				WG["transportFactoryGuard"] ~= nil
+				and WG["transportFactoryGuard"].getBlacklistOrderedUnits ~= nil
+				and WG["transportFactoryGuard"].getBlacklistOrderedUnits()
 			),
 			description = "If enabled, transports guarding factories will not transport units that were given explicit orders during construction to their move waypoint.",
 			onload = function(i)
 				loadWidgetData("Transport Factory Guard", "blacklistOrderedUnits", { "blacklistOrderedUnits" })
 			end,
 			onchange = function(_, value)
-				if widgetHandler.configData.transportFactoryGuard == nil then
-					widgetHandler.configData.transportFactoryGuard = {}
+				if widgetHandler.configData["transportFactoryGuard"] == nil then
+					widgetHandler.configData["transportFactoryGuard"] = {}
 				end
 				widgetHandler.configData["Auto Group"].immediate = value
 				saveOptionValue(
@@ -9095,41 +9019,10 @@ function init()
 					{ "blacklistOrderedUnits" },
 					value
 				)
-				if WG.transportFactoryGuard and WG.transportFactoryGuard.setBlacklistOrderedUnits then
-					WG.transportFactoryGuard.setBlacklistOrderedUnits(value)
+				if WG["transportFactoryGuard"] and WG["transportFactoryGuard"].setBlacklistOrderedUnits then
+					WG["transportFactoryGuard"].setBlacklistOrderedUnits(value)
 				end
 			end,
-		},
-
-		{
-			id = "onlyfighterspatrol",
-			group = "game",
-			category = types.basic,
-			widget = "OnlyFightersPatrol",
-			name = BAR.I18N("ui.settings.option.onlyfighterspatrol"),
-			type = "bool",
-			value = GetWidgetToggleValue("Autoquit"),
-			description = BAR.I18N("ui.settings.option.onlyfighterspatrol_descr"),
-		},
-		{
-			id = "bombers_default_hold_fire",
-			group = "game",
-			category = types.basic,
-			widget = "BombersDefaultHoldFire",
-			name = BAR.I18N("ui.settings.option.bombers_default_hold_fire"),
-			type = "bool",
-			value = GetWidgetToggleValue("BombersDefaultHoldFire"),
-			description = BAR.I18N("ui.settings.option.bombers_default_hold_fire_descr"),
-		},
-		{
-			id = "fightersfly",
-			group = "game",
-			category = types.basic,
-			widget = "Set fighters on Fly mode",
-			name = BAR.I18N("ui.settings.option.fightersfly"),
-			type = "bool",
-			value = GetWidgetToggleValue("Set fighters on Fly mode"),
-			description = BAR.I18N("ui.settings.option.fightersfly_descr"),
 		},
 
 		{
@@ -9180,7 +9073,7 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.autogroup_immediate"),
 			type = "bool",
-			value = (WG.autogroup ~= nil and WG.autogroup.getImmediate ~= nil and WG.autogroup.getImmediate()),
+			value = (WG["autogroup"] ~= nil and WG["autogroup"].getImmediate ~= nil and WG["autogroup"].getImmediate()),
 			description = BAR.I18N("ui.settings.option.autogroup_immediate_descr"),
 			onload = function(i)
 				loadWidgetData("Auto Group", "autogroup_immediate", { "immediate" })
@@ -9200,7 +9093,7 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.autogroup_persist"),
 			type = "bool",
-			value = (WG.autogroup ~= nil and WG.autogroup.getPersist ~= nil and WG.autogroup.getPersist()),
+			value = (WG["autogroup"] ~= nil and WG["autogroup"].getPersist ~= nil and WG["autogroup"].getPersist()),
 			description = BAR.I18N("ui.settings.option.autogroup_persist_descr"),
 			onload = function(i)
 				loadWidgetData("Auto Group", "autogroup_persist", { "persist" })
@@ -9213,6 +9106,195 @@ function init()
 				saveOptionValue("Auto Group", "autogroup", "setPersist", { "persist" }, value)
 			end,
 		},
+		{
+			id = "onlyfighterspatrol",
+			group = "game",
+			category = types.basic,
+			widget = "OnlyFightersPatrol",
+			name = BAR.I18N("ui.settings.option.onlyfighterspatrol"),
+			type = "bool",
+			value = GetWidgetToggleValue("Autoquit"),
+			description = BAR.I18N("ui.settings.option.onlyfighterspatrol_descr"),
+		},
+
+		{
+			id = "label_state_prefs",
+			group = "game",
+			name = BAR.I18N("ui.settings.option.label_unit_defaults"),
+			category = types.basic,
+		},
+		{ id = "label_state_prefs_spacer", group = "game", category = types.basic },
+
+		{
+			id = "builderpriority",
+			group = "game",
+			category = types.basic,
+			type = "text",
+			name = BAR.I18N("ui.settings.option.builderpriority"),
+			description = BAR.I18N("ui.settings.option.builderpriority_descr"),
+		},
+
+		{
+			id = "builderpriority_nanos",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_nanos"),
+			type = "bool",
+			value = (
+				WG["stateprefs"]
+				and WG["stateprefs"].getPresetState("nano_turrets_priority") -- defaults handled in stateprefs
+			),
+			description = BAR.I18N("ui.settings.option.builderpriority_nanos_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("nano_turrets_priority", value)
+				end
+			end,
+		},
+
+		{
+			id = "builderpriority_cons",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_cons"),
+			type = "bool",
+			value = (WG["stateprefs"] and WG["stateprefs"].getPresetState("constructors_priority")),
+			description = BAR.I18N("ui.settings.option.builderpriority_cons_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("constructors_priority", value)
+				end
+			end,
+		},
+
+		{
+			id = "builderpriority_labs",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.builderpriority_labs"),
+			type = "bool",
+			value = (WG["stateprefs"] and WG["stateprefs"].getPresetState("factories_priority")),
+			description = BAR.I18N("ui.settings.option.builderpriority_labs_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("factories_priority", value)
+				end
+			end,
+		},
+
+		{
+			id = "fightersfly",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.fightersfly"),
+			type = "bool",
+			value = getStatePrefPresetsToggle("fighters_default_fly", "Set fighters on Fly mode"),
+			description = BAR.I18N("ui.settings.option.fightersfly_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("fighters_default_fly", value)
+				end
+			end,
+			onload = function(i)
+				if WG["stateprefs"] and WG["stateprefs"].getPresetState("fighters_default_fly") == nil then
+					WG["stateprefs"].setPresetState(
+						"fighters_default_fly",
+						getStatePrefPresetsToggle("fighters_default_fly", "Set fighters on Fly mode")
+					)
+				end
+			end,
+		},
+		{
+			id = "bombers_default_hold_fire",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.bombers_default_hold_fire"),
+			type = "bool",
+			value = getStatePrefPresetsToggle("bombers_default_hold_fire", "BombersDefaultHoldFire"),
+			description = BAR.I18N("ui.settings.option.bombers_default_hold_fire_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("bombers_default_hold_fire", value)
+				end
+			end,
+			onload = function(i)
+				if WG["stateprefs"] and WG["stateprefs"].getPresetState("bombers_default_hold_fire") == nil then
+					WG["stateprefs"].setPresetState(
+						"bombers_default_hold_fire",
+						getStatePrefPresetsToggle("bombers_default_hold_fire", "BombersDefaultHoldFire")
+					)
+				end
+			end,
+		},
+
+		{
+			id = "factoryguard",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.factory") .. widgetOptionColor .. "  " .. BAR.I18N(
+				"ui.settings.option.factoryguard"
+			),
+			type = "bool",
+			value = getStatePrefPresetsToggle("factoryguard", "Factory Guard Default On"),
+			description = BAR.I18N("ui.settings.option.factoryguard_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("factoryguard", value)
+				end
+			end,
+			onload = function(i)
+				if WG["stateprefs"] and WG["stateprefs"].getPresetState("factoryguard") == nil then
+					WG["stateprefs"].setPresetState(
+						"factoryguard",
+						getStatePrefPresetsToggle("factoryguard", "Factory Guard Default On")
+					)
+				end
+			end,
+		},
+		{
+			id = "factoryholdpos",
+			group = "game",
+			category = types.basic,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.factoryholdpos"),
+			type = "bool",
+			value = getStatePrefPresetsToggle("factory_hold_position", "Factory hold position"),
+			description = BAR.I18N("ui.settings.option.factoryholdpos_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("factory_hold_position", value)
+				end
+			end,
+			onload = function(i)
+				if WG["stateprefs"] and WG["stateprefs"].getPresetState("factory_hold_position") == nil then
+					WG["stateprefs"].setPresetState(
+						"factory_hold_position",
+						getStatePrefPresetsToggle("factory_hold_position", "Factory hold position")
+					)
+				end
+			end,
+		},
+		{
+			id = "factoryrepeat",
+			group = "game",
+			category = types.basic,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.factoryrepeat"),
+			type = "bool",
+			value = getStatePrefPresetsToggle("factory_repeat", "Factory Auto-Repeat"),
+			description = BAR.I18N("ui.settings.option.factoryrepeat_descr"),
+			onchange = function(i, value)
+				if WG["stateprefs"] then
+					WG["stateprefs"].setPresetState("factory_repeat", value)
+				end
+			end,
+			onload = function(i)
+				if WG["stateprefs"] and WG["stateprefs"].getPresetState("factory_repeat") == nil then
+					WG["stateprefs"].setPresetState(
+						"factory_repeat",
+						getStatePrefPresetsToggle("factory_repeat", "Factory Auto-Repeat")
+					)
+				end
+			end,
+		},
 
 		{
 			id = "label_ui_cloak",
@@ -9221,16 +9303,7 @@ function init()
 			category = types.basic,
 		},
 		{ id = "label_ui_cloak_spacer", group = "game", category = types.basic },
-
-		{
-			id = "autocloak",
-			group = "game",
-			category = types.basic,
-			widget = "Auto Cloak Units",
-			name = BAR.I18N("ui.settings.option.autocloak"),
-			type = "bool",
-			value = GetWidgetToggleValue("Auto Cloak Units"),
-		},
+		-- auto cloak settings get added here
 
 		-- ACCESSIBILITY
 
@@ -12000,76 +12073,41 @@ function init()
 	end
 
 	-- add auto cloak toggles
-	local defaultUnitdefConfig = { -- copy pasted defaults from the widget
-		[UnitDefNames.armdecom and UnitDefNames.armdecom.id or -1] = false,
-		[UnitDefNames.cordecom and UnitDefNames.cordecom.id or -1] = false,
-		[UnitDefNames.armferret and UnitDefNames.armferret.id or -1] = false,
-		[UnitDefNames.armamb and UnitDefNames.armamb.id or -1] = false,
-		[UnitDefNames.armpb and UnitDefNames.armpb.id or -1] = false,
-		[UnitDefNames.armsnipe and UnitDefNames.armsnipe.id or -1] = false,
-		[UnitDefNames.corsktl and UnitDefNames.corsktl.id or -1] = false,
-		[UnitDefNames.armgremlin and UnitDefNames.armgremlin.id or -1] = true,
-		[UnitDefNames.armamex and UnitDefNames.armamex.id or -1] = true,
-		[UnitDefNames.armshockwave and UnitDefNames.armshockwave.id or -1] = true,
-		[UnitDefNames.armckfus and UnitDefNames.armckfus.id or -1] = true,
-		[UnitDefNames.armspy and UnitDefNames.armspy.id or -1] = true,
-		[UnitDefNames.corspy and UnitDefNames.corspy.id or -1] = true,
-		[UnitDefNames.corphantom and UnitDefNames.corphantom.id or -1] = true,
-		[UnitDefNames.legaspy and UnitDefNames.legaspy.id or -1] = true,
-	}
-	local unitdefConfig = {}
-	if WG.autocloak ~= nil then
-		unitdefConfig = WG.autocloak.getUnitdefConfig()
-	elseif
-		widgetHandler.configData["Auto Cloak Units"] ~= nil
-		and widgetHandler.configData["Auto Cloak Units"].unitdefConfig ~= nil
-	then
-		for unitName, value in pairs(widgetHandler.configData["Auto Cloak Units"].unitdefConfig) do
-			if UnitDefNames[unitName] then
-				local unitDefID = UnitDefNames[unitName].id
-				unitdefConfig[unitDefID] = value
-			end
-		end
-	end
-	unitdefConfig = table.merge(defaultUnitdefConfig, unitdefConfig)
-	if type(unitdefConfig) == "table" then
-		local newOptions = {}
-		local count = 0
-		for i, option in pairs(options) do
-			count = count + 1
-			newOptions[count] = option
-			if option.id == "autocloak" then
-				for k, v in pairs(unitdefConfig) do
-					if UnitDefs[k] then
-						local faction = BAR.I18N("units.factions." .. string.sub(UnitDefs[k].name, 1, 3))
-						if faction then
-							count = count + 1
-							newOptions[count] = {
-								id = "autocloak_" .. k,
-								group = "game",
-								category = types.basic,
-								name = widgetOptionColor
-									.. "   "
-									.. UnitDefs[k].translatedHumanName
-									.. "  ("
-									.. faction
-									.. ")",
-								type = "bool",
-								value = v,
-								description = UnitDefs[k].translatedTooltip,
-								onchange = function(i, value)
-									saveOptionValue(
-										"Auto Cloak Units",
-										"autocloak",
-										"setUnitdefConfig",
-										{ "unitdefConfig", k },
-										value,
-										{ k, value }
-									)
-								end,
-							}
-						end
-					end
+	local autoCloakDefaults = getAutoCloakDefaults()
+	local newOptions = {}
+	local count = 0
+	for i, option in pairs(options) do
+		count = count + 1
+		newOptions[count] = option
+		if option.id == "label_ui_cloak_spacer" then --previous option was label_ui_cloak_spacer
+			for unitName, value in pairs(autoCloakDefaults) do
+				local faction = BAR.I18N("units.factions." .. string.sub(unitName, 1, 3))
+				if faction and UnitDefNames[unitName] then
+					count = count + 1
+					newOptions[count] = {
+						id = "autocloak_" .. unitName,
+						group = "game",
+						category = types.basic,
+						name = widgetOptionColor
+							.. "   "
+							.. UnitDefNames[unitName].translatedHumanName
+							.. "  ("
+							.. faction
+							.. ")",
+						type = "bool",
+						value = value,
+						description = UnitDefNames[unitName].translatedTooltip,
+						onchange = function(i, value)
+							saveOptionValue(
+								"State Prefs V2",
+								"stateprefs",
+								"setUnitDefaultState",
+								{ unitName, GameCMD.WANT_CLOAK },
+								value and 1 or 0,
+								{ unitName, GameCMD.WANT_CLOAK, value and 1 or 0 }
+							)
+						end,
+					}
 				end
 			end
 		end
