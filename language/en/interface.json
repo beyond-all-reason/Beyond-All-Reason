@@ -381,7 +381,8 @@
 			"members": "%{count} players",
 			"memberOne": "1 player",
 			"notYet": "Not available yet",
-			"foldHint": "Click to fold this team's players away, and again to show them.",
+			"unknownPlayer": "Unknown player",
+			"foldHint": "Click to fold.",
 			"timeInGame": "Time in game: %{time}",
 			"diedAt": "Died at %{time}",
 			"partOfTotal": "%{value}, %{share} of the %{total} of every team together",
@@ -457,15 +458,15 @@
 					"lostOther": "Other"
 				},
 				"timelineDesc": "A lane per team along the game clock, with every milestone it reached on it: who teched first, who lost a commander, who died. Hover a picture for what it was.",
-				"profile": "Team profile",
-				"profileDesc": "Every team's shape as it stands: damage, units, metal, energy, what it has on the field and how fast it plays, each axis measured against the best team on the chart.",
+				"profile": "Profile",
+				"profileDesc": " ",
 				"all": "All",
 				"you": "You",
-				"youHint": "Your own team alone - spectating, the one you are watching: the selection becomes it, whatever was picked before.",
+				"youGrouped": "\"Group by team\" toggle is on: this picks your whole team. Turn it off to pick yourself alone.",
 				"shareOne": "% of total is on for this chart, but only one team or player is on it - all of its own total - so it keeps its line until there are more.",
 				"hideUnselected": "Remove unselected",
-				"hideUnselectedDesc": "Removes the teams you have not picked from every chart, and fits the axes to the ones that are left. Off, the picked teams only stand out and the rest fade behind them. With nothing picked, every team shows. Together with % of total, the picked ones' shares of what they made together.",
-				"allHint": "Clears the selection and shows hidden teams again, so every team is drawn alike.",
+				"hideUnselectedDesc": "Removes data from players/teams data that currently aren't in the selection.",
+				"allHint": "Include all players+teams into the selection.",
 				"allMilestones": "Every team's milestones go on the chart.",
 				"teams": "%{count} teams",
 				"players": "%{count} players",
@@ -481,12 +482,13 @@
 					"alike": "Nothing is selected: every team is drawn alike.",
 					"allCounted": "Nothing is selected: every team is counted in the composition.",
 					"milestones": "Its milestones are on the chart.",
-					"milestonesGroup": "Their milestones are on the chart."
+					"milestonesGroup": "Their milestones are on the chart.",
+					"grouped": "\"Group by team\" toggle is on: a team's players share one line. Turn it off to pick them one by one."
 				},
 				"control": {
 					"click": "Click: select or deselect",
 					"clickGroup": "Click: select or deselect all its players",
-					"ctrlClick": "Ctrl+click: select only this one",
+					"ctrlClick": "Ctrl+click: select only this team",
 					"ctrlClickGroup": "Ctrl+click: select only its players",
 					"rightClick": "Right-click: hide or show",
 					"rightClickGroup": "Right-click: hide or show all its players"
@@ -597,18 +599,18 @@
 				"copy": "Copy to clipboard",
 				"paste": "Paste category",
 				"empty": "Nothing here yet: open any graph and use Add to… to put it in this category.",
-				"categoryHint": "Your own category. Right-click to rename, move or delete it.",
-				"overviewHint": "Ships with the game, and yours to change: Add to… on any open graph puts it here. Right-click to rename, move or reset it.",
+				"categoryHint": "Your own category.\nRight-click to rename, move or delete it.",
+				"overviewHint": "Ships with the game, and yours to change: \nOpen a graph... Click the Add to… button to add to your (custom) overview.\nRight-click a graphto rename, move or reset it.",
 				"graphHint": "Drag it to another place in this category. Right-click to move it or take it out."
 			},
 			"switch": {
 				"thisGraph": "This graph",
 				"graphs": "Graphs",
-				"graphsDesc": "The picked group's stats as charts over the game instead of the table.",
+				"graphsDesc": "Display graphs instead of tables",
 				"groupByTeam": "Group by team",
-				"groupByTeamDesc": "Players under their team, with the team's totals above them; on the charts, a line per team. Off, every player on their own: one sorted list, a line each.",
+				"groupByTeamDesc": "Combine all players under their team as a single entity",
 				"shareOfTotal": "% of total",
-				"shareOfTotalDesc": "Every amount as the part of the total it makes up, so teams and players are compared with each other, enemies included. The table takes the total of every team it lists; the charts stack whatever they show into one whole - teams while grouped, players otherwise - so pick them, with Remove unselected on, to choose what is compared. Greyed out while only one is on the charts: it would be all of its own total. Ratios and levels stay as they are.",
+				"shareOfTotalDesc": "Y-axis displays percentage of total",
 				"bars": "Bars",
 				"barsDesc": "A bar behind every number, scaled to the largest in its column.",
 				"vsMe": "vs. me",
@@ -616,11 +618,11 @@
 				"trend": "Trend",
 				"trendDesc": "A small line beside every number: how it moved over the game, every team against the same scale. A running total shows the pace it rose at, so a cell says how it is going, not only where it stands.",
 				"milestones": "Milestones",
-				"milestonesDesc": "Marks on the open chart: milestones as unit pictures framed in their player's colour, small shapes where a line peaks, drops, crosses its even mark or takes the lead, and strips along the edges while energy ran out or storage was full - the selected teams', every team's when none is selected. Every chart has its own, only what says something about what it plots. Where they crowd, each stretch of the game keeps its most telling few - a strike by what it cost - and the hover of one names the rest. Hover one for whose it was and what.",
+				"milestonesDesc": "Show key events on the graphs as milestones",
 				"milestoneKinds": "Milestone kinds",
-				"milestoneKindsDesc": "Which of the open chart's marks go on it. Opens a list of the ones it can carry; the count says how many are on. Every chart keeps its own - open one to pick them.",
+				"milestoneKindsDesc": "Select which types of milestones to display on the currently opened graph",
 				"perPage": "Graphs per page",
-				"perPageDesc": "How many graphs the page shows at once, as a grid of the picked group's stats. The wheel scrolls it when the group has more than fit, and a click opens one on its own."
+				"perPageDesc": "How many graphs the page shows at once in the overview grid layout"
 			},
 			"damage": "Damage",
 			"damageDealt": "Dealt",
@@ -1022,51 +1024,41 @@
 			}
 		},
 		"territorialDomination": {
-			"roundOverPopup": {
+			"deadlinePopup": {
 				"gameOver": "Game Over",
 				"victory": "Victory",
 				"defeat": "Defeat",
-				"round": "Round %{roundNumber}",
-				"finalRound": "Final Round",
-				"territoryWorth": "Territories are worth %{points} points each",
-				"eliminationBelow": "Elimination below %{threshold}!"
+				"deadline": "Deadline %{deadlineNumber}",
+				"finalDeadline": "Final Deadline",
+				"territoryRate": "Each territory earns %{points} points per minute",
+				"eliminationBelow": "Elimination below %{threshold}!",
+				"eliminationDanger": "You're in danger of being eliminated!"
 			},
-			"round": {
-				"display": "Round %{currentRound}",
-				"displayWithMax": "Round %{currentRound}/%{maxRounds}",
-				"displayDefault": "Round 1/%{maxRounds}",
-				"displayMax": "Round %{maxRounds}/%{maxRounds}",
-				"overtime": "Overtime",
-				"finalRound": "Final Round"
+			"deadline": {
+				"end": "End"
 			},
 			"team": {
 				"ally": "Ally %{allyNumber}"
 			},
-			"rank": {
-				"place": " place"
-			},
-			"elimination": {
-				"aboveElimination": "%{points}pts above elimination",
-				"belowElimination": "%{points}pts below elimination",
-				"zeroAboveElimination": "0pts above elimination",
-				"eliminationsNextRound": "Eliminations next round",
-				"finalRound": "Final Round",
-				"threshold": "Elimination Threshold: %{threshold}pts"
-			},
-			"territories": {
-				"worth": "Territories are worth %{points}pts"
-			},
-			"scoreboard": {
-				"title": "Leaderboard",
-				"viewLeaderboard": "View leaderboard",
-				"headerTeam": "Team",
-				"headerScore": "Score",
-				"headerTerritories": "Territories",
-				"headerGains": "Gains",
-				"headerTotal": "Total",
-				"eliminationThreshold": "Elimination Threshold"
-			},
-			"eliminationBelow": "Elimination Below %{value}"
+			"tooltip": {
+				"clickToExpand": "Click to expand",
+				"clickToSelect": "Click to select",
+				"territories": "Territories: %{count}",
+				"gainRate": "Points Per Minute: %{points}",
+				"currentPoints": "Current points: %{points}",
+				"projectedPoints": "Projected points: %{points}",
+				"belowDeadline": "%{points} points below the Deadline",
+				"belowLeader": "%{points} points below the leader",
+				"team": "Team",
+				"currentScore": "Current Score",
+				"deadlineScore": "Get this many points or be eliminated",
+				"deadlineScoreRule": "Deadlines are %{percentage}%% of the highest score at the end of each countdown",
+				"highestScore": "The Highest Score",
+				"highestProjectedScore": "This will be the highest score at the end of this Deadline",
+				"highestProjectedScoreYou": "You will have the highest score at the end of this Deadline",
+				"countdownUntilDeadlineEnds": "Countdown until Deadline %{currentDeadline}/%{maxDeadlines} ends",
+				"eliminationDanger": "You're in danger of being eliminated!"
+			}
 		},
 		"loadScreen": {
 			"lowRamWarning": "%{textColor}Your system has below the recommended %{warnColor}12GB memory %{textColor}.     Try running with lower settings if you encounter out-of-memory crashes"
@@ -3125,7 +3117,7 @@
 				},
 				"territorial_domination": {
 					"name": "Territorial Domination",
-					"desc": "Teams earn points by capturing territory to stay in the game. At the end of the final round, the team with the most points wins."
+					"desc": "Teams earn points by capturing territory to stay in the game. At the end of the final Deadline, the team with the most points wins."
 				},
 				"builders": {
 					"name": "Kill all Builders",
@@ -3143,29 +3135,33 @@
 		},
 		"territorial_domination_config": {
 			"name": "Territorial Domination Length",
-			"desc": "Configures the grace period and the amount of time in minutes it takes to reach the maximum required territory.",
+			"desc": "Configures the number of six-minute Deadlines and the total time before final score resolution.",
 			"items": {
-				"20_minutes": {
-					"name": "4 Rounds, 20 Minutes",
+				"18_minutes": {
+					"name": "3 Deadlines, 18 Minutes",
 					"desc": "Early tech emphasis, comebacks very likely, elimination unlikely."
 				},
-				"25_minutes": {
-					"name": "5 Rounds, 25 Minutes(Default)",
-					"desc": "Mid/late-game tech, comebacks a significant factor, eliminations uncommon"
+				"24_minutes": {
+					"name": "4 Deadlines, 24 Minutes",
+					"desc": "Early/mid-game tech, comebacks likely, elimination uncommon"
 				},
 				"30_minutes": {
-					"name": "6 Rounds, 30 Minutes",
+					"name": "5 Deadlines, 30 Minutes(Default)",
+					"desc": "Mid/late-game tech, comebacks a significant factor, eliminations uncommon"
+				},
+				"42_minutes": {
+					"name": "7 Deadlines, 42 Minutes",
 					"desc": "Late-game tech, comebacks less significant, eliminations likely"
 				},
-				"35_minutes": {
-					"name": "7 Rounds, 35 Minutes",
+				"60_minutes": {
+					"name": "10 Deadlines, 60 Minutes",
 					"desc": "Super lategame tech, eliminations extremely likely"
 				}
 			}
 		},
 		"territorial_domination_elimination_threshold_multiplier": {
-			"name": "Elimination Threshold Multiplier",
-			"desc": "Teams are eliminated at round end when score < elimination threshold which is set by highest score multiplied by this value. Lower values are more lenient."
+			"name": "Deadline Multiplier",
+			"desc": "Teams below the Deadline value are eliminated when a Deadline ends. The next Deadline value is the leader's score multiplied by this value. Lower values are more lenient."
 		},
 		"draft_mode": {
 			"name": "Draft Spawn Order Mode",
