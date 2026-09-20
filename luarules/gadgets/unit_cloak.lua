@@ -144,7 +144,7 @@ end
 ---@param unitID UnitID
 ---@param unitDefID UnitDefID
 ---@return number
-local function GetCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
+local function getCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
 	local areaCloaked = (spGetUnitRulesParam(unitID, "areacloaked") == 1)
 		and ((spGetUnitRulesParam(unitID, "cloak_shield") or 0) == 0)
 	if areaCloaked then
@@ -164,7 +164,7 @@ local function GetUnitCloakEnergyPerSec(unitID, unitDefID)
 	if not canCloak[unitDefID] or not spGetUnitIsCloaked(unitID) then
 		return 0
 	end
-	return GetCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
+	return getCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
 end
 
 GG.GetUnitCloakEnergyPerSec = GetUnitCloakEnergyPerSec
@@ -192,7 +192,7 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 		return false
 	end
 
-	local cost = GetCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
+	local cost = getCurrentUnitCloakEnergyPerSec(unitID, unitDefID)
 	if cost > 0 then
 		if not spUseUnitResource(unitID, "e", cost / 2) then -- SlowUpdate happens twice a second.
 			return false

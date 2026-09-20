@@ -354,6 +354,7 @@ local function UpdatePassiveBuilders(
 				end
 			end
 
+			-- This is a best-effort approximation of the builder's energy pull. We do not account for weapon energy pull of builders.
 			local energyUse = select(4, spGetUnitResources(builderID))
 			if energyUse and energyUse > 0 then
 				local cloakEnergy = getCloakEnergyPerSec and getCloakEnergyPerSec(builderID) or 0
@@ -379,13 +380,13 @@ local function UpdatePassiveBuilders(
 	--   that residual. Reserve non-builder pull plus theoretical full-speed
 	--   non-passive con energy. Leave passive measured pull out so the
 	--   allocation loop can re-test each passive at full realBuildSpeed.
-	local intervalOverSpeed = interval / simSpeed
+	local durationSeconds = interval / simSpeed
 
 	local mStorEff = mStor * mShare
 	local teamStallingMetal = mCur
 		- mathMax(mInc * stallMarginIncMetal, mStorEff * stallMarginSto)
 		- 1
-		+ intervalOverSpeed * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
+		+ durationSeconds * (mInc + mRec - mSent - nonPassiveConsTotalExpenseMetal)
 
 	local eStorEff = eStor * eShare
 	local converterEnergyUse = spGetTeamRulesParam(teamID, converterEnergyUsageParamName) or 0
@@ -394,7 +395,7 @@ local function UpdatePassiveBuilders(
 	local teamStallingEnergy = eCur
 		- mathMax(eInc * stallMarginIncEnergy, eStorEff * stallMarginSto)
 		- 1
-		+ intervalOverSpeed * (eInc + eRec - eSent - nonBuilderEnergyPull - nonPassiveConsTotalExpenseEnergy)
+		+ durationSeconds * (eInc + eRec - eSent - nonBuilderEnergyPull - nonPassiveConsTotalExpenseEnergy)
 
 	-- work through passive cons allocating as much expense as we have left
 	for builderID in pairs(passiveTeamCons) do
@@ -402,8 +403,8 @@ local function UpdatePassiveBuilders(
 
 		local pMetal = _passiveMetal[builderID] ---@as number?
 		if pMetal then
-			local passivePullMetal = pMetal * intervalOverSpeed
-			local passivePullEnergy = _passiveEnergy[builderID] * intervalOverSpeed
+			local passivePullMetal = pMetal * durationSeconds
+			local passivePullEnergy = _passiveEnergy[builderID] * durationSeconds
 			if passivePullMetal > 0 or passivePullEnergy > 0 then
 				if
 					(teamStallingMetal - passivePullMetal <= 0 and passivePullMetal > 0)
