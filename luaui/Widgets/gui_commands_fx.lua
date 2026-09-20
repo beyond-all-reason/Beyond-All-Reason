@@ -43,7 +43,7 @@ local CMDS = {
 	-- SET_TARGET = GameCMD.UNIT_SET_TARGET,  -- custom command, doesn't go through UnitCommand
 	UNLOAD_UNIT = CMD.UNLOAD_UNIT,
 	UNLOAD_UNITS = CMD.UNLOAD_UNITS,
-	CMD_TRANSPORT_TO = CMD.TRANSPORT_TO, -- icon map
+	CMD_TRANSPORT_TO = CMD.TRANSPORT_TO,
 	BUILD = -1,
 }
 

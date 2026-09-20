@@ -97,8 +97,8 @@ local positionCmds = {
 	[CMD.GUARD] = true,
 	[CMD.AREA_ATTACK] = true,
 	[CMD_SETTARGET] = true,
-	[CMD_MANUAL_LAUNCH] = true,
-	[CMD_TRANSPORT_TO]=true
+	[CMD_MANUAL_LAUNCH] = true, 
+	[CMD_TRANSPORT_TO]=true,
 }
 
 -- What commands need more than one unit selected to be issued as a formation command
@@ -275,8 +275,8 @@ local function CanUnitExecute(uID, cmdID)
 	local CanBeTransported = (ud.cantBeTransported == nil) or (ud.cantBeTransported == false)
     if cmdID == CMD_TRANSPORT_TO and grounded and CanBeTransported then
         return true
-    end
-    return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
+    end	
+	return (spFindUnitCmdDesc(uID, cmdID) ~= nil)
 end
 
 local function GetExecutingUnits(cmdID)
@@ -411,14 +411,6 @@ local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOp
 	uArr[#uArr + 1] = uID
 	oArr[#oArr + 1] = { cmdID, cmdParams, cmdOpts.coded }
 	return
-end
-
-local function NotifyOrderGivenToUnits(uArr, oArr)
-    for _, w in ipairs(widgetHandler.widgets) do
-        if w.OrderGivenToUnitsArr then
-            w:OrderGivenToUnitsArr(uArr, oArr)
-        end
-    end
 end
 
 function widget:SelectionChanged(sel)
@@ -727,7 +719,6 @@ function widget:MouseRelease(mx, my, mButton)
 							altOpts
 						)
 						if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-							NotifyOrderGivenToUnits(unitArr, orderArr)
 							Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
 							unitArr = {}
 							orderArr = {}
@@ -738,7 +729,6 @@ function widget:MouseRelease(mx, my, mButton)
 						local orderPair = orders[i]
 						GiveNotifyingOrderToUnit(unitArr, orderArr, orderPair[1], usingCmd, orderPair[2], cmdOpts)
 						if (i == #orders and #unitArr > 0) or #unitArr >= 100 then
-							NotifyOrderGivenToUnits(unitArr, orderArr)
 							Spring.GiveOrderArrayToUnitArray(unitArr, orderArr, true)
 							unitArr = {}
 							orderArr = {}

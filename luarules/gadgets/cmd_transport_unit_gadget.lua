@@ -1,4 +1,3 @@
----@diagnostic disable: param-type-mismatch
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
@@ -23,7 +22,8 @@ end
 local Echo = Spring.Echo
 local GameFrame = Spring.GetGameFrame
 local GetUnitDefID = Spring.GetUnitDefID
-local ValidUnitID = Spring.ValidUnitID
+local GetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+local GetUnitCommands = Spring.GetUnitCommands
 
 local CMDTYPE_ICON_MAP = CMDTYPE.ICON_MAP
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
@@ -51,6 +51,9 @@ local transportSizeLimit = {}
 local transportCapSlots = {}
 
 local isTransportableDef = {}
+local unitMass = {}
+local unitXsize = {}
+
 -- ========= UnitDef scanning =========
 local function buildDefCaches()
 	for defID, ud in pairs(UnitDefs) do
@@ -83,6 +86,9 @@ local function buildDefCaches()
 			isFactoryDef[defID] = true
 			isTransportableDef[defID] = true
 		end
+
+		unitMass[defID] = ud.mass or 0
+		unitXsize[defID] = ud.xsize or 0
 	end
 end
 
@@ -117,27 +123,30 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	loadedUnits[unitID] = nil
 end
 
---this is here to expose setgoal and cleargoal for widgets to use
+--this is here to expose TransportCMDContinue / TransportCMDHold for widgets to use
+--only works if the units is executing a CMD_TRANSPORT_TO to prevent other widgets from abusing this for illegal unit control
 function gadget:RecvLuaMsg(msg, playerID)
 	local _, _, _, teamID = Spring.GetPlayerInfo(playerID)
+
 	if msg:sub(1, 4) == "POS|" then
-		local _, unitID, x, y, z = msg:match("([^|]+)|([^|]+)|([^|]+)|([^|]+)|([^|]+)")
-
-		unitID = tonumber(unitID)
-		if unitID and ValidUnitID(unitID) and Spring.GetUnitTeam(unitID) == teamID then
-			x, y, z = tonumber(x), tonumber(y), tonumber(z)
-
-			if unitID and x and y and z then
-				Spring.SetUnitMoveGoal(unitID, x, y, z)
+		local unitID = tonumber(msg:match("^POS|([^|]+)"))
+		if unitID and Spring.GetUnitTeam(unitID) == teamID then
+			-- BREAKCHECK: current command may be CMD_INSERT instead of CMD_TRANSPORT_TO when meta-inserted.
+			-- BREAKCHECK: if the command queue advances before this message arrives, this becomes a no-op.
+			local commandQueue = GetUnitCommands(unitID, -1) or {}
+			local currentCommand = commandQueue[1]
+			if currentCommand and currentCommand.id == CMD_TRANSPORT_TO then
+				Spring.SetUnitMoveGoal(unitID, currentCommand.params[1], currentCommand.params[2], currentCommand.params[3])
 			end
 			return true
 		end
 	elseif msg:sub(1, 4) == "TSTP" then
-		local _, unitID = msg:match("([^|]+)|([^|]+)")
-
-		unitID = tonumber(unitID)
-		if unitID and ValidUnitID(unitID) and Spring.GetUnitTeam(unitID) == teamID then
-			if unitID then
+		local unitID = tonumber(msg:match("^TSTP|([^|]+)"))
+		if unitID and Spring.GetUnitTeam(unitID) == teamID then
+			-- BREAKCHECK: same current-command race as above.
+			-- BREAKCHECK: original TSTP also set move goal to current position to stop; kept here.
+			local cmdID = GetUnitCurrentCommand(unitID)
+			if cmdID == CMD_TRANSPORT_TO then
 				local x, y, z = Spring.GetUnitPosition(unitID)
 				Spring.ClearUnitGoal(unitID)
 				Spring.SetUnitMoveGoal(unitID, x, y, z)
@@ -160,7 +169,7 @@ end
 
 function gadget:Initialize()
 	buildDefCaches()
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
+	for _, unitID in ipairs(Spring.GetAllUnits()) do -- handle /luarules reload
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
 end

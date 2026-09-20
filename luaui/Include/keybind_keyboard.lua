@@ -13,11 +13,13 @@
 -- after the bindings that name that layer exactly - the order the engine tries them in.
 --
 -- The face of a key shows one action, and it is the one a player thinks of the key as
--- doing: the first by catalog order, not by bind order. The engine walks a key's actions
--- in bind order until one takes it, and the presets lean on that to put a special case
--- ahead of the general one - the Grid preset binds "stopproduction" ahead of "stop" on G,
--- and the spectator's "specteam" ahead of "group select" on the digits. Catalog order puts
--- the general action first, which is what the key is for. The tooltip lists them all.
+-- doing: the best by catalog order, not the first by bind order. The engine walks a key's
+-- actions in bind order until one takes it, and the presets lean on that to put a special
+-- case ahead of the general one - the Grid preset binds "stopproduction" ahead of "stop" on
+-- G, and the spectator's "specteam" ahead of "group select" on the digits. Catalog order
+-- picks out the general action, which is what the key is for. The tooltip lists them all: what
+-- one press can fire first, in bind order, since that is the order they are actually tried in,
+-- and the chains this key only begins after, since a press alone never reaches those.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
@@ -44,8 +46,6 @@ local glBlending = gl.Blending
 ---@field query table The search, from Search.query
 ---@field queryTokens string[]
 ---@field queryGen integer
----@field filter table? The key the list is filtered to: `id` and `layer`
----@field filterGen integer
 ---@field gen integer Bumped by every placement
 ---@field layoutGen integer Bumped by every resize
 ---@field unplaced integer Bindings on keys neither view draws
@@ -294,7 +294,7 @@ local colorKey = "\255\235\185\070"
 
 local look = {
 	-- Caps: a bound key, one with nothing on this layer, a modifier at rest, a modifier
-	-- whose layer is showing, and a key the search found or the list is filtered to.
+	-- whose layer is showing, and a key the search found.
 	bound = { 0.22, 0.22, 0.22, 1 },
 	unbound = { 0.16, 0.16, 0.16, 1 },
 	modifier = { 0.28, 0.28, 0.28, 1 },
@@ -391,8 +391,6 @@ function M.new()
 	self.query = Search.query(nil)
 	self.queryTokens = {}
 	self.queryGen = 0
-	self.filter = nil
-	self.filterGen = 0
 	self.gen = 0
 	self.layoutGen = 0
 	self.unplaced = 0
@@ -660,33 +658,31 @@ function M:infoOf(entry)
 	return entry.info
 end
 
--- What a key shows on a layer: the bindings naming exactly those modifiers, then the Any+
--- ones, each block in catalog order. Kept per layer until the bindings change.
+-- What a key holds on a layer. What one press of it can fire comes first, in the order the
+-- engine tries them - the bindings naming exactly those modifiers, then the Any+ ones, each
+-- block as it was bound - and the chains this key only begins come after, since a press alone
+-- never reaches them. Which of them the face wears is a different question, and faceEntry
+-- answers it. Kept per layer until the bindings change.
 function M:entries(key, layer)
 	local show = key.show[layer]
 	if show and show.gen == self.gen then
 		return show.entries
 	end
 
-	local entries = {}
+	local presses, chains = {}, {}
 	local function take(list)
-		local sorted = {}
-		for i, e in ipairs(list) do
-			sorted[i] = e
-		end
-		table.sort(sorted, function(a, b)
-			local ra, rb = self:infoOf(a).rank or math.huge, self:infoOf(b).rank or math.huge
-			if ra ~= rb then
-				return ra < rb
-			end
-			return a.action < b.action
-		end)
-		for _, e in ipairs(sorted) do
-			entries[#entries + 1] = e
+		for _, e in ipairs(list or {}) do
+			local into = e.chain and chains or presses
+			into[#into + 1] = e
 		end
 	end
-	take(key.layers[layer] or {})
+	take(key.layers[layer])
 	take(key.any)
+
+	local entries = presses
+	for _, e in ipairs(chains) do
+		entries[#entries + 1] = e
+	end
 
 	-- A paired order's Shift half does what the bare key does; on a layer holding Shift it is
 	-- marked, so the layer reads as what Shift adds rather than everything Shift keeps.
@@ -755,13 +751,6 @@ function M:setQuery(str)
 	self.queryGen = self.queryGen + 1
 end
 
--- The key the list is filtered to, lit here and nowhere else: `id` names the key and `layer`
--- the modifiers it was clicked under. Nil clears it.
-function M:setFilter(filter)
-	self.filter = filter
-	self.filterGen = self.filterGen + 1
-end
-
 function M:matches(key, entries)
 	local query = self.query
 	if query.empty then
@@ -812,7 +801,6 @@ function M:signature(hoverIdx)
 		.. "|"
 		.. self.view
 		.. "|"
-		.. self.filterGen
 end
 
 -- A click: the toggle swaps the view; a modifier toggles its layer; a bound key is handed
@@ -881,8 +869,8 @@ function M:tooltip(idx)
 	return "kb|" .. idx .. "|" .. layer .. "|" .. self.gen, self:keysetName(key)
 end
 
--- The tooltip's lines: every action on the key for this layer, in the order the face ranks
--- them, each with what it does; then what a click here does.
+-- The tooltip's lines: every action on the key for this layer, what one press fires first and
+-- in the order the engine tries them, each with what it does; then what a click here does.
 function M:tooltipLines(idx)
 	local L = self.L
 	if idx == -1 then
@@ -945,14 +933,46 @@ function M:nameSize(key, room)
 	return size
 end
 
+-- The one action a key wears. Not the first the engine would try: the presets lean on bind
+-- order to put a special case ahead of the general one - "stopproduction" before "stop" on G
+-- - and the face is for what the key is for. Lowest catalog rank takes it, ties by action so
+-- the pick does not move between frames.
+function M:faceEntry(key, layer)
+	local best, bestRank, bestChain
+	for _, e in ipairs(self:entries(key, layer)) do
+		local rank = self:infoOf(e).rank or math.huge
+		local chain = e.chain and true or false
+		local better
+		if not best then
+			better = true
+		elseif chain ~= bestChain then
+			-- A press wins over a chain whatever the catalog says: the cap answers for what
+			-- pressing the key does, not for what it begins.
+			better = not chain
+		elseif rank ~= bestRank then
+			better = rank < bestRank
+		else
+			better = e.action < best.action
+		end
+		if better then
+			best, bestRank, bestChain = e, rank, chain
+		end
+	end
+
+	return best
+end
+
 -- The label a key wears on a layer, wrapped and fitted to its face, kept until the bindings
 -- or the geometry change.
-function M:faceLines(key, layer, entries, faceW, maxLines)
+function M:faceLines(key, layer, faceW, maxLines)
+	-- Asked for before the cache is looked at: a placement this answer is stale for rebuilds the
+	-- show table, and reading it first would leave this writing its lines into the one that was
+	-- thrown away, so the cache would never hit again.
+	local first = self:faceEntry(key, layer)
 	local show = key.show[layer]
 	if show.lines and show.linesGen == self.layoutGen and show.linesMax == maxLines then
 		return show.lines, show.first
 	end
-	local first = entries[1]
 	local lines = {}
 	if first then
 		local info = self:infoOf(first)
@@ -1016,7 +1036,6 @@ function M:draw(hoverIdx)
 	local unit, pad, cs = self.unit, self.pad, self.cs
 	local padY = self.padY
 	local searching = not self.query.empty
-	local filter = self.filter
 	local nameLineH = floor(self.nameFs * 1.12)
 	local lineH = floor(self.labelFs * 1.1)
 	local prints = {}
@@ -1030,8 +1049,7 @@ function M:draw(hoverIdx)
 		local key = self.keys[i] --[[@as table]]
 		local entries = self:entries(key, layer)
 		local active = key.mod and mods[key.mod]
-		local filtered = filter and filter.id == key.id and filter.layer == layer
-		local hit = (searching and self:matches(key, entries)) or filtered
+		local hit = searching and self:matches(key, entries)
 		local fill = (active and look.modifierActive)
 			or (hit and look.hit)
 			or (key.mod and look.modifier)
@@ -1070,7 +1088,7 @@ function M:draw(hoverIdx)
 		local bandTop = nameTop - nameLineH
 		local bandBottom = fy1 + floor(padY * 0.5)
 		local maxLines = min(3, max(1, floor((bandTop - bandBottom) / lineH)))
-		local lines, first = self:faceLines(key, layer, entries, faceW, maxLines)
+		local lines, first = self:faceLines(key, layer, faceW, maxLines)
 		-- The top right corner: the action's picture, and how many more actions the tooltip
 		-- lists, which sits left of the picture when there is one.
 		local cornerX = fx2 - pad
