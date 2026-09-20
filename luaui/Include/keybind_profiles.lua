@@ -11,9 +11,6 @@
 
 local Json = Json or VFS.Include("common/luaUtilities/json.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
--- For canonicalKeyset alone: a keyset has to be matched the way the engine parses it, not as
--- the text it was written as. A player naming "alt" means the keyset the engine calls
--- "Any+alt", and "Alt+Ctrl+x" is "Ctrl+Alt+x" reordered.
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
@@ -264,6 +261,35 @@ local function retiredBinds(path)
 	return retiredIncludes[path]
 end
 
+-- The engine lowercases an action's command word, so a file naming it in any other case
+-- still targets the same action.
+local function commandOf(action)
+	return (action:match("^%S+") or ""):lower()
+end
+
+local function actionKey(action)
+	local command, args = action:match("^(%S+)(.*)$")
+
+	return command and (command:lower() .. args) or action
+end
+
+-- The engine cannot parse a comma chain as an unbind target, so a directive naming one hits
+-- nothing.
+local function unbindTarget(keyset)
+	if keyset:find(",", 1, true) then
+		return nil
+	end
+
+	return keybindModel.canonicalKeyset(keyset)
+end
+
+-- A chain is stored under its last tap, which is the keyset an unbind has to name.
+local function chainEnd(keyset)
+	local taps = keybindModel.splitChain(keyset)
+
+	return keybindModel.canonicalKeyset(taps[#taps] or keyset)
+end
+
 -- The engine has no Lua getter for the fakemeta key, so migration is the only
 -- chance to carry a non-default one over from the file the player already had.
 -- Reads the bind lines back out of a keybind file. Needed for the player's own
@@ -319,21 +345,24 @@ local function readBindFile(text, depth)
 		elseif line:match("^%s*unbindall%s*$") then
 			binds = {}
 		elseif line:match("^%s*unbindaction%s+%S") then
-			local command = line:match("^%s*unbindaction%s+(%S+)")
+			local command = line:match("^%s*unbindaction%s+(%S+)"):lower()
 			drop(function(b)
-				return b.action:match("^%S+") == command
+				return commandOf(b.action) == command
 			end)
 		elseif line:match("^%s*unbindkeyset%s+%S") then
-			local target = keybindModel.canonicalKeyset(line:match("^%s*unbindkeyset%s+(%S+)"))
-			drop(function(b)
-				return keybindModel.canonicalKeyset(b.keyset) == target
-			end)
+			local target = unbindTarget(line:match("^%s*unbindkeyset%s+(%S+)"))
+			if target then
+				drop(function(b)
+					return chainEnd(b.keyset) == target
+				end)
+			end
 		elseif line:match("^%s*unbind%s+%S") then
 			local target, command = line:match("^%s*unbind%s+(%S+)%s+(%S+)")
+			target = target and unbindTarget(target)
 			if target then
-				target = keybindModel.canonicalKeyset(target)
+				command = command:lower()
 				drop(function(b)
-					return keybindModel.canonicalKeyset(b.keyset) == target and b.action:match("^%S+") == command
+					return chainEnd(b.keyset) == target and commandOf(b.action) == command
 				end)
 			end
 		elseif line:match("^%s*keysym%s+%S+%s+%S") then
@@ -786,55 +815,54 @@ function M.adoptEditedKeymap()
 	return name
 end
 
--- The shipped profile a player's profile is closest to: the one it differs from on the
--- fewest actions, comparing each action's keysets as written. For a profile with no recorded
--- origin - imported, or made before origins were recorded - this stands in for one: a fork
--- of Grid differs from Grid on a handful of actions and from Legacy on a hundred, so the
--- closest is the right answer, and even a layout written from scratch is best measured
--- against whatever it most resembles.
-function M.inferBase(profile)
-	local ownSets = {}
-	for _, b in ipairs(profile.binds or {}) do
-		local set = ownSets[b.action]
+local function keysetsByAction(binds)
+	local out = {}
+	for _, b in ipairs(binds or {}) do
+		local key = actionKey(b.action)
+		local set = out[key]
 		if not set then
 			set = {}
-			ownSets[b.action] = set
+			out[key] = set
 		end
 		set[keybindModel.canonicalKeyset(b.keyset)] = true
 	end
 
+	return out
+end
+
+local function sameKeysets(ours, theirs)
+	if not theirs then
+		return false
+	end
+
+	for keyset in pairs(ours) do
+		if not theirs[keyset] then
+			return false
+		end
+	end
+	for keyset in pairs(theirs) do
+		if not ours[keyset] then
+			return false
+		end
+	end
+
+	return true
+end
+
+-- The shipped profile a player's profile is closest to, standing in for an origin it never
+-- recorded: a fork of Grid differs from Grid on a handful of actions and from Legacy on a
+-- hundred.
+function M.inferBase(profile)
+	local ownSets = keysetsByAction(profile.binds)
+
 	local best, bestDiff
 	for _, builtin in ipairs(builtins) do
-		local theirSets = {}
-		for _, b in ipairs(builtin.binds or {}) do
-			local set = theirSets[b.action]
-			if not set then
-				set = {}
-				theirSets[b.action] = set
-			end
-			set[keybindModel.canonicalKeyset(b.keyset)] = true
-		end
+		local theirSets = keysetsByAction(builtin.binds)
 
 		local diff = 0
 		for action, set in pairs(ownSets) do
-			local theirs = theirSets[action]
-			if not theirs then
+			if not sameKeysets(set, theirSets[action]) then
 				diff = diff + 1
-			else
-				for keyset in pairs(set) do
-					if not theirs[keyset] then
-						diff = diff + 1
-						break
-					end
-				end
-				if diff == 0 or theirs then
-					for keyset in pairs(theirs) do
-						if not set[keyset] then
-							diff = diff + 1
-							break
-						end
-					end
-				end
 			end
 		end
 		for action in pairs(theirSets) do

@@ -269,3 +269,57 @@ describe("unbinding a keyset a player named their own way", function()
 		assert.are.same({ "sc_a" }, keysetsFor(binds, "attack"))
 	end)
 end)
+
+describe("unbinding an action a file spells in a different case", function()
+	-- The engine lowercases a command word as it parses the bind, so the two spellings are one
+	-- action to it. The shipped presets moved HideInterface to hideinterface at some point, and
+	-- a file written either side of that still means to unbind the same thing.
+	it("matches whatever case the action was bound under", function()
+		local binds = parse("bind sc_a HideInterface\nunbindaction hideinterface\n")
+
+		assert.are.same({}, keysetsFor(binds, "HideInterface"))
+	end)
+
+	it("does the same for the unbind that names a keyset", function()
+		local binds = parse("bind sc_a HideInterface\nunbind sc_a hideinterface\n")
+
+		assert.are.same({}, keysetsFor(binds, "HideInterface"))
+	end)
+end)
+
+describe("unbinding a keychain", function()
+	-- The engine stores a chain under its last tap, so that is the keyset an unbind names.
+	it("drops a chain named by its last tap", function()
+		local binds = parse("bind sc_l,sc_l,sc_l probe_chain\nunbindkeyset sc_l\n")
+
+		assert.are.same({}, keysetsFor(binds, "probe_chain"))
+	end)
+
+	it("drops it for the unbind that also names the command", function()
+		local binds = parse("bind sc_l,sc_l,sc_l probe_chain\nunbind sc_l probe_chain\n")
+
+		assert.are.same({}, keysetsFor(binds, "probe_chain"))
+	end)
+
+	-- CKeySet::Parse rejects the commas, so the directive names no keyset and takes nothing.
+	it("drops nothing for a directive naming the whole chain", function()
+		local binds = parse("bind sc_l,sc_l,sc_l probe_chain\nunbindkeyset sc_l,sc_l,sc_l\n")
+
+		assert.are.same({ "sc_l,sc_l,sc_l" }, keysetsFor(binds, "probe_chain"))
+	end)
+end)
+
+describe("inferring which shipped profile a keymap came from", function()
+	-- The engine lowercases a command word as it parses a bind, and the shipped data has moved
+	-- between spellings, so a profile carrying the older one is still that profile.
+	it("is not thrown by the case an action was written in", function()
+		local profiles = includeProfiles()
+		local grid = assert(profiles.isBuiltin("Grid"))
+		local capitalised = {}
+		for i, b in ipairs(grid.binds) do
+			capitalised[i] = { keyset = b.keyset, action = (b.action:gsub("^%l", string.upper)) }
+		end
+
+		assert.are.equal("Grid", profiles.inferBase({ binds = capitalised }))
+	end)
+end)

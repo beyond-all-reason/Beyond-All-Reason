@@ -46,11 +46,9 @@ local function splitChain(raw)
 	return elems
 end
 
--- Whether two keysets are the same binding, which is a different question from whether
--- they print the same. Any+ and a bare modifier set resolve differently when the engine
--- picks an action, and scancodes and keycodes are separate maps that land on different
--- physical keys off qwerty, so both distinctions survive here. Only spellings of one key
--- fold. Display is no use for this: it drops exactly the qualifiers that decide priority.
+-- Whether two keysets are the same binding, which is a different question from whether they
+-- print the same: scancodes and keycodes land on different physical keys off qwerty, and
+-- display drops exactly the qualifiers that decide priority.
 local canonicalMods = { "any", "alt", "ctrl", "meta", "shift" }
 local modToken = {
 	["any+"] = "any",
@@ -61,9 +59,8 @@ local modToken = {
 	["shift+"] = "shift",
 }
 
--- The engine folds a modifier bound on its own into its Any+ form, so it reads "alt" and
--- "Any+alt" as one keyset. Only these four names bind at all; add a real key and the fold
--- stops, which is why this is keyed on the whole keyset being a modifier.
+-- The engine reads a modifier bound on its own as its Any+ form. Only these four bind at
+-- all, and adding a real key stops the fold.
 local bareModifier = {
 	alt = true,
 	ctrl = true,
