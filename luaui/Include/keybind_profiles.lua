@@ -16,7 +16,7 @@ local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
-local BACKUP_FILE = "uikeys.txt.bak"
+local BACKUP_SUFFIX = ".bak"
 local STORE_VERSION = 2
 -- Bindable action that makes a profile active, one per profile, named after it. That puts
 -- the name in the keymap as well as in the store, so renaming or deleting one has to follow
@@ -473,19 +473,27 @@ local function matchesKnownProfile(text)
 	return nil
 end
 
--- A name no existing profile holds, for copies.
-function M.uniqueName(base)
-	M.load()
-	if not indexOf(base) and not M.isBuiltin(base) then
+-- The first of "<base>", "<base> 2", ... that `taken` says nothing holds.
+local function freeName(base, taken)
+	if not taken(base) then
 		return base
 	end
 
 	local n = 2
-	while indexOf(base .. " " .. n) or M.isBuiltin(base .. " " .. n) do
+	while taken(base .. " " .. n) do
 		n = n + 1
 	end
 
 	return base .. " " .. n
+end
+
+-- A name no existing profile holds, for copies.
+function M.uniqueName(base)
+	M.load()
+
+	return freeName(base, function(name)
+		return indexOf(name) or M.isBuiltin(name)
+	end)
 end
 
 -- The next free "<name> (n)". A name already carrying one counts up from it, anything else
@@ -524,42 +532,54 @@ function M.save()
 	return true
 end
 
--- Players upgrading from the old preset picker keep what they had, so dropping the
--- preset list does not silently reset anyone.
--- The player's file as it was before any of this touched it. Written once and never again,
--- including on a later migration, so the copy is always the original rather than our own
--- output. Nothing reads it back: it exists for a human with a broken keymap.
-local function backupActiveFile()
-	local existing = io.open(BACKUP_FILE, "r")
-	if existing then
-		existing:close()
-
-		return
+local function fileExists(path)
+	local file = io.open(path, "r")
+	if not file then
+		return false
 	end
 
-	local text = VFS.LoadFile(ACTIVE_FILE)
+	file:close()
+
+	return true
+end
+
+-- Copies a file aside before something overwrites it, to the first name nothing holds. An
+-- earlier copy is never replaced: the first is the keymap the player had before any of this
+-- existed, and each one after it is whatever the next migration or unreadable store was
+-- about to destroy.
+local function backupFile(path)
+	local text = VFS.LoadFile(path)
 	if not text then
-		return
+		return nil
 	end
 
-	local file = io.open(BACKUP_FILE, "w")
+	local target = path .. BACKUP_SUFFIX
+	local n = 1
+	while fileExists(target) do
+		n = n + 1
+		target = path .. BACKUP_SUFFIX .. "." .. n
+	end
+
+	local file = io.open(target, "w")
 	if not file then
 		Spring.Echo(
-			"[keybind_profiles] Error: could not write "
-				.. BACKUP_FILE
-				.. "; continuing without a copy of the original keymap"
+			"[keybind_profiles] Error: could not write " .. target .. "; continuing without a copy of " .. path
 		)
 
-		return
+		return nil
 	end
 
 	file:write(text)
 	file:close()
-	Spring.Echo("[keybind_profiles] kept the original " .. ACTIVE_FILE .. " as " .. BACKUP_FILE)
+	Spring.Echo("[keybind_profiles] kept a copy of " .. path .. " as " .. target)
+
+	return target
 end
 
+-- Players upgrading from the old preset picker keep what they had, so dropping the
+-- preset list does not silently reset anyone.
 local function migrate()
-	backupActiveFile()
+	backupFile(ACTIVE_FILE)
 	store = emptyStore()
 
 	-- Every preset still ships, so a player on one only needs it selected; there is nothing
@@ -630,6 +650,7 @@ function M.load()
 	local ok, decoded = pcall(Json.decode, content)
 	if not ok or type(decoded) ~= "table" or type(decoded.profiles) ~= "table" then
 		Spring.Echo("[keybind_profiles] could not decode " .. PROFILES_PATH .. "; starting empty")
+		backupFile(PROFILES_PATH)
 		store = emptyStore()
 		return store
 	end
@@ -641,8 +662,22 @@ function M.load()
 	local seen, kept, inferred = {}, {}, false
 	for _, p in ipairs(store.profiles) do
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
-			seen[p.name] = true
 			p.binds = type(p.binds) == "table" and p.binds or {}
+			-- A shipped profile is not the store's to define. Keeping the entry under a free name
+			-- leaves the player whatever they had without it standing in for what ships.
+			if M.isBuiltin(p.name) then
+				local renamed = freeName(p.name, function(name)
+					return seen[name] or M.isBuiltin(name)
+				end)
+				Spring.Echo(
+					"[keybind_profiles] " .. PROFILES_PATH .. " names a profile " .. p.name
+						.. ", which ships with the game; kept as " .. renamed
+				)
+				p.binds = M.retargetSwitchBinds(p.binds, p.name, renamed)
+				p.name = renamed
+				inferred = true
+			end
+			seen[p.name] = true
 			-- Said here rather than on the way out, where the emitter runs once per profile per
 			-- comparison and would repeat it all session.
 			if p.fakeMeta and not validFakeMeta(p.fakeMeta) then
@@ -1051,7 +1086,9 @@ end
 
 -- Write a profile out where the engine can keyreload it, and return that path.
 function M.materialize(name)
-	local profile = M.get(name) or M.isBuiltin(name)
+	M.load()
+
+	local profile = M.isBuiltin(name) or M.get(name)
 	if not profile then
 		return nil
 	end
