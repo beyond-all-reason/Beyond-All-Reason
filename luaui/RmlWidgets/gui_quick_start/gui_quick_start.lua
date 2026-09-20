@@ -63,6 +63,7 @@ local MODEL_NAME = "quick_start_model"
 local RML_PATH = "luaui/RmlWidgets/gui_quick_start/gui_quick_start.rml"
 local QUICK_START_CONDITION_KEY = "quickStartUnallocatedBudget"
 local QUICK_START_GENERATED_KEY = "quickStartGenerated"
+local AUTO_GENERATE_SUGGESTIONS_CONFIG = "QuickStartSuggestions"
 
 local selectedAmountConfig = quickStart.getAmountConfig(modOptions)
 local DEFAULT_INSTANT_BUILD_RANGE = selectedAmountConfig.range
@@ -81,6 +82,7 @@ local lastCommanderX = nil
 local lastCommanderZ = nil
 local lastPreloadedCommanderX = nil
 local lastPreloadedCommanderZ = nil
+local autoGenerateSuggestions = Spring.GetConfigInt(AUTO_GENERATE_SUGGESTIONS_CONFIG, 1) == 1
 
 local cachedOverlapLines = {}
 local cachedGameRules = {}
@@ -631,6 +633,10 @@ local function createPreloadedBuildQueue(startDefID, commanderX, commanderZ, pla
 end
 
 local function populatePreloadedBuildQueue(commanderPositionChanged)
+	if not autoGenerateSuggestions then
+		return false
+	end
+
 	local myTeamID = spGetMyTeamID()
 	if not myTeamID or not wgPregameBuild or not wgPregameBuild.setBuildQueue then
 		return false
@@ -1093,6 +1099,31 @@ local function getBuildQueueSpawnStatus(buildQueue, selectedBuildData)
 	return spawnResults
 end
 
+local function setAutoGenerateSuggestions(enabled)
+	autoGenerateSuggestions = enabled and true or false
+	Spring.SetConfigInt(AUTO_GENERATE_SUGGESTIONS_CONFIG, autoGenerateSuggestions and 1 or 0)
+	lastPreloadedCommanderX = nil
+	lastPreloadedCommanderZ = nil
+	if not wgPregameBuild or not wgPregameBuild.setBuildQueue then
+		return
+	end
+	if autoGenerateSuggestions then
+		lastCommanderX = nil
+		lastCommanderZ = nil
+		updateTraversabilityGrid()
+		if populatePreloadedBuildQueue(true) then
+			updateDataModel(true)
+		end
+		return
+	end
+	local currentBuildQueue = wgPregameBuild.getBuildQueue and wgPregameBuild.getBuildQueue() or {}
+	wgPregameBuild.setBuildQueue(getPlayerBuildQueue(currentBuildQueue))
+	if wgPregameBuild.forceRefresh then
+		wgPregameBuild.forceRefresh()
+	end
+	updateDataModel(true)
+end
+
 function widget:Initialize()
 	local isSpectating = Spring.GetSpectatingState()
 	if isSpectating then
@@ -1156,6 +1187,12 @@ function widget:Initialize()
 
 	WG.getBuildQueueSpawnStatus = getBuildQueueSpawnStatus
 	WG.quick_start_updateSpawnPositions = updateSpawnPositions
+	WG.quickStart = {
+		getAutoGenerateSuggestions = function()
+			return autoGenerateSuggestions
+		end,
+		setAutoGenerateSuggestions = setAutoGenerateSuggestions,
+	}
 
 	for id, def in pairs(UnitDefs) do
 		if def.isFactory then
@@ -1166,6 +1203,9 @@ function widget:Initialize()
 	updateAllCostOverrides(true)
 
 	updateDataModel(true)
+	if not autoGenerateSuggestions then
+		setAutoGenerateSuggestions(false)
+	end
 	return true
 end
 
@@ -1176,6 +1216,7 @@ function widget:Shutdown()
 
 	WG.getBuildQueueSpawnStatus = nil
 	WG.quick_start_updateSpawnPositions = nil
+	WG.quickStart = nil
 
 	if wgBuildMenu and wgBuildMenu.clearCostOverrides then
 		wgBuildMenu.clearCostOverrides()
