@@ -719,11 +719,17 @@ agileShapes.diamond = function(count, spacing, width)
 		for j = -reach, reach do
 			local along, across = (i + j) * diag, (i - j) * diag
 			placeCount = placeCount + 1
-			places[placeCount] = { along, across, abs(along) / halfWidth + abs(across) / halfDepth * 1.03 + ((across < 0) and 0.0001 or 0) }
+			places[placeCount] = {
+				along,
+				across,
+				abs(along) / halfWidth + abs(across) / halfDepth * 1.03 + ((across < 0) and 0.0001 or 0),
+			}
 		end
 	end
 
-	table.sort(places, function(a, b) return a[3] < b[3] end)
+	table.sort(places, function(a, b)
+		return a[3] < b[3]
+	end)
 	return places
 end
 
@@ -871,7 +877,17 @@ local function GetPreviewNodes()
 	local nodeCount = #fNodes
 	local _, _, meta, shift = GetModKeys()
 	local shifted = (shift and not meta) and true or false
-	local key = nodeCount .. ":" .. lineLength .. ":" .. tostring(usingCmd) .. ":" .. tostring(WG.formationShape) .. ":" .. selectedUnitsCount .. ":" .. tostring(shifted)
+	local key = nodeCount
+		.. ":"
+		.. lineLength
+		.. ":"
+		.. tostring(usingCmd)
+		.. ":"
+		.. tostring(WG.formationShape)
+		.. ":"
+		.. selectedUnitsCount
+		.. ":"
+		.. tostring(shifted)
 	if key ~= previewKey then
 		previewKey = key
 		previewNodes = nil
@@ -916,7 +932,9 @@ local function MatchPreviewTargets(shown, nodes)
 		end
 		order[i] = { i, nearest }
 	end
-	tsort(order, function(a, b) return a[2] > b[2] end)
+	tsort(order, function(a, b)
+		return a[2] > b[2]
+	end)
 
 	for o = 1, count do
 		local i = order[o][1]
@@ -945,7 +963,10 @@ local function MatchPreviewTargets(shown, nodes)
 					local sj = shown[j]
 					local ti, tj = targets[i], targets[j]
 					local kept = (ti[1] - si[1]) ^ 2 + (ti[3] - si[3]) ^ 2 + (tj[1] - sj[1]) ^ 2 + (tj[3] - sj[3]) ^ 2
-					local swapped = (tj[1] - si[1]) ^ 2 + (tj[3] - si[3]) ^ 2 + (ti[1] - sj[1]) ^ 2 + (ti[3] - sj[3]) ^ 2
+					local swapped = (tj[1] - si[1]) ^ 2
+						+ (tj[3] - si[3]) ^ 2
+						+ (ti[1] - sj[1]) ^ 2
+						+ (ti[3] - sj[3]) ^ 2
 					if swapped < kept - 0.01 then
 						targets[i], targets[j] = tj, ti
 						traded = true
