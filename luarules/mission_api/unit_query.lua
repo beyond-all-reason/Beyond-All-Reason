@@ -32,8 +32,8 @@ local function unitsWithDef(unitDefID, teamID)
 
 	local units = {}
 	for _, allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-		for _, teamIDOfAllyTeam in ipairs(Spring.GetTeamList(allyTeamID)) do
-			table.append(units, Spring.GetTeamUnitsByDefs(teamIDOfAllyTeam, unitDefID))
+		for _, alliedTeam in ipairs(Spring.GetTeamList(allyTeamID)) do
+			table.append(units, Spring.GetTeamUnitsByDefs(alliedTeam, unitDefID))
 		end
 	end
 	return units
@@ -70,6 +70,4 @@ end
 
 return {
 	MatchingUnits = matchingUnits,
-	UnitsWithDef = unitsWithDef,
-	UnitsWithName = unitsWithName,
 }
