@@ -72,7 +72,6 @@ local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ""
-local lockText = ""
 local locked = false
 local showLockButton = true
 local buttonDrawn = false
@@ -135,10 +134,7 @@ local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
-local uiLockRect = { 0, 0, 0, 0 }
 local buttonRect = { 0, 0, 0, 0 }
-local lockRect = { 0, 0, 0, 0 }
-local blinkButton = false
 
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode

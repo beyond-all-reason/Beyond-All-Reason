@@ -358,7 +358,7 @@ end
 --- Applies the filter function to the unit represented by the unit ID to determine if the unit
 --- passes the filter.
 ---
---- @param uid integer The unit ID
+--- @param uid UnitID
 --- @param filterFunctions table List of filter functions
 --- @return boolean? passes Whether the unit passes the filter, nil if the unit doesn't exist
 function SelectApi.unitPassesFilter(uid, filterFunctions)

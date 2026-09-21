@@ -11,23 +11,34 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, a, b)
-		if name == "FeaturePlacerHistory" then
-			if Script.LuaUI("terraform_feature_history") then
-				Script.LuaUI.terraform_feature_history(a, b)
+	-- Registered as sync actions (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function forwardToLuaUI(luaUIName)
+		return function(_, a, b)
+			if Script.LuaUI(luaUIName) then
+				Script.LuaUI[luaUIName](a, b)
 			end
-		elseif name == "feature_save_begin" then
-			if Script.LuaUI("terraform_feature_save_begin") then
-				Script.LuaUI.terraform_feature_save_begin(a)
-			end
-		elseif name == "feature_save_data" then
-			if Script.LuaUI("terraform_feature_save_data") then
-				Script.LuaUI.terraform_feature_save_data(a)
-			end
-		elseif name == "feature_save_end" then
-			if Script.LuaUI("terraform_feature_save_end") then
-				Script.LuaUI.terraform_feature_save_end(a)
-			end
+			return true
+		end
+	end
+
+	local syncActions = {
+		FeaturePlacerHistory = forwardToLuaUI("terraform_feature_history"),
+		feature_save_begin = forwardToLuaUI("terraform_feature_save_begin"),
+		feature_save_data = forwardToLuaUI("terraform_feature_save_data"),
+		feature_save_end = forwardToLuaUI("terraform_feature_save_end"),
+	}
+
+	function gadget:Initialize()
+		for name, func in pairs(syncActions) do
+			gadgetHandler:AddSyncAction(name, func)
+		end
+	end
+
+	function gadget:Shutdown()
+		for name in pairs(syncActions) do
+			gadgetHandler:RemoveSyncAction(name)
 		end
 	end
 	return

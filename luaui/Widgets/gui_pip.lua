@@ -461,6 +461,10 @@ local pipR2T = {
 	-- frames so cached textures aren't stale (engine textures like $minimap may need a
 	-- frame or two to become valid again after graphics preset changes).
 	forceRefreshFrames = 0,
+	-- Engine map overlay (height / traversability / resources) mirrored onto the ground
+	infoOverlayActive = false,
+	infoOverlayMode = "normal", -- Last seen Spring.GetMapDrawMode()
+	infoOverlayRefreshFrames = 0, -- Extra content re-renders after a draw-mode change
 }
 render.minModeDlist = nil -- Display list for minimized mode button
 
@@ -2966,16 +2970,26 @@ local shaders = {
 		fragment = [[
 			uniform sampler2D minimapTex;
 			uniform sampler2D shadingTex;
+			uniform sampler2D infoTex;   // engine $info (active height/path/metal overlay)
+			uniform vec2 infoUvMult;     // map size / pwr2 info texture size
+			uniform float infoTexMul;    // 1.0 while an engine map overlay mode is active
 			varying vec2 texCoord;
 			void main() {
 				vec4 minimapColor = texture2D(minimapTex, texCoord, -2.0);
 				vec4 shadingColor = texture2D(shadingTex, texCoord);
-				gl_FragColor = vec4(minimapColor.rgb * shadingColor.rgb, 1.0);
+				// Engine minimap: info texture is stored with a +0.5 bias and added on top
+				vec3 infoColor = texture2D(infoTex, texCoord * infoUvMult, -2.0).rgb - vec3(0.5);
+				gl_FragColor = vec4(minimapColor.rgb * shadingColor.rgb + infoColor * infoTexMul, 1.0);
 			}
 		]],
 		uniformInt = {
 			minimapTex = 0,
 			shadingTex = 1,
+			infoTex = 2,
+		},
+		uniformFloat = {
+			infoUvMult = { 1.0, 1.0 },
+			infoTexMul = 0.0,
 		},
 	},
 	-- GL4 instanced decal overlay: GPU computes alpha fade, single draw call
@@ -9235,7 +9249,12 @@ function widget:Initialize()
 
 	-- Initialize minimap+shading compositing shader
 	shaders.minimapShading = gl.CreateShader(shaders.minimapShadingCode)
-	if not shaders.minimapShading then
+	if shaders.minimapShading then
+		shaders.minimapShadingLocs = {
+			infoUvMult = gl.GetUniformLocation(shaders.minimapShading, "infoUvMult"),
+			infoTexMul = gl.GetUniformLocation(shaders.minimapShading, "infoTexMul"),
+		}
+	else
 		Spring.Echo("PIP: Failed to compile minimap shading shader")
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 	end
@@ -9822,7 +9841,16 @@ function widget:ViewResize()
 	font = WG.fonts.getFont(2)
 
 	local oldVsx, oldVsy = render.vsx, render.vsy
+	local oldWidgetScale = render.widgetScale
 	render.vsx, render.vsy = Spring.GetViewGeometry()
+
+	-- Update the UI scale before any dimension validation below: helpers like
+	-- AreExpandedDimensionsValid/BuildDefaultExpandedDimensions derive the minimum
+	-- panel size from it, and they are applied to dimensions already rescaled to the
+	-- new resolution. Keeping the old scale here made a shrink falsely reject valid
+	-- saved dimensions (and build oversized defaults).
+	render.widgetScale = (render.vsy / 2000) * render.uiScale
+	render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
 
 	-- In minimap mode, calculate position and size like the minimap widget does
 	if isMinimapMode then
@@ -9952,7 +9980,9 @@ function widget:ViewResize()
 	else
 		-- Normal PIP mode: scale dimensions with screen size
 		-- When in minMode, render.dim is the tiny button — use savedDimensions as the real dimensions
-		local minSize = math.floor(config.minPanelSize * render.widgetScale)
+		-- render.dim is still in old-resolution pixels here, so validate it against the
+		-- minimum size of the *old* scale.
+		local minSize = math.floor(config.minPanelSize * (oldWidgetScale or render.widgetScale))
 
 		-- Capture old PIP width before rescaling so we can adjust zoom proportionally
 		local oldPipWidth
@@ -9981,8 +10011,20 @@ function widget:ViewResize()
 
 		if uiState.inMinMode then
 			-- In min mode, render.dim is the tiny button — don't validate it as expanded dims.
-			-- Just ensure we have valid savedDimensions (or build defaults).
-			if not AreExpandedDimensionsValid(uiState.savedDimensions) then
+			-- savedDimensions was just rescaled into the new resolution; repair it in place
+			-- (grow to the new minimum size, keep the user's position) the same way
+			-- CorrectScreenPosition repairs render.dim when not minimized. Only genuinely
+			-- corrupt dimensions fall back to defaults, so a resize never teleports the PIP.
+			if AreDimensionsValid(uiState.savedDimensions, 1, 1) then
+				local newMinSize = math.floor(config.minPanelSize * render.widgetScale)
+				if uiState.savedDimensions.r - uiState.savedDimensions.l < newMinSize then
+					uiState.savedDimensions.r = uiState.savedDimensions.l + newMinSize
+				end
+				if uiState.savedDimensions.t - uiState.savedDimensions.b < newMinSize then
+					uiState.savedDimensions.t = uiState.savedDimensions.b + newMinSize
+				end
+				ClampDimensionsToScreen(uiState.savedDimensions)
+			else
 				uiState.savedDimensions = BuildDefaultExpandedDimensions()
 			end
 			-- render.dim will be overwritten to the button position below
@@ -10045,8 +10087,7 @@ function widget:ViewResize()
 		end
 	end
 
-	render.widgetScale = (render.vsy / 2000) * render.uiScale
-	render.usedButtonSize = math.floor(config.buttonSize * render.widgetScale * render.uiScale)
+	-- (render.widgetScale / render.usedButtonSize are updated at the top of ViewResize)
 
 	render.elementPadding = WG.FlowUI.elementPadding
 	render.elementCorner = WG.FlowUI.elementCorner
@@ -16296,6 +16337,61 @@ end
 
 -- Render only the cheap/lightweight layers (ground texture, water, LOS overlay)
 -- Called inside R2T context with rotation matrix already set up
+-- Engine map overlay (Height / Traversability / Resources) on the pip ground.
+-- Mirrors the engine minimap: the active "$info" combiner texture is sampled with
+-- the pwr2 UV scale and added with its 0.5 bias removed (MiniMapFragProg.glsl).
+-- "los" is excluded because the pip draws its own LOS overlay; in "normal" mode
+-- the engine leaves "$info" holding stale data, so the mode gate is required.
+shaders.UpdateMinimapInfoOverlay = function()
+	local mode = Spring.GetMapDrawMode()
+	local active = (mode ~= "normal" and mode ~= "los")
+	if mode ~= pipR2T.infoOverlayMode then
+		pipR2T.infoOverlayMode = mode
+		-- The engine combiner fades a new overlay in at 0.3 alpha per frame; keep
+		-- re-rendering the cached ground for a few frames so the pip converges
+		pipR2T.infoOverlayRefreshFrames = 12
+		pipR2T.contentNeedsUpdate = true
+	end
+	if active and not pipR2T.infoOverlayUvMultX then
+		local info = gl.TextureInfo("$info")
+		if info and info.xsize and info.xsize > 0 and info.ysize and info.ysize > 0 then
+			pipR2T.infoOverlayUvMultX = (Game.mapSizeX / Game.squareSize) / info.xsize
+			pipR2T.infoOverlayUvMultY = (Game.mapSizeZ / Game.squareSize) / info.ysize
+		else
+			active = false
+		end
+	end
+	if pipR2T.infoOverlayRefreshFrames > 0 then
+		pipR2T.infoOverlayRefreshFrames = pipR2T.infoOverlayRefreshFrames - 1
+		pipR2T.contentNeedsUpdate = true
+	end
+	pipR2T.infoOverlayActive = active and shaders.minimapShadingLocs ~= nil
+end
+
+-- Bind the minimap+shading(+info overlay) ground shader and its textures
+shaders.BindMinimapGround = function()
+	gl.UseShader(shaders.minimapShading)
+	glFunc.Texture(0, "$minimap")
+	glFunc.Texture(1, "$shading")
+	local locs = shaders.minimapShadingLocs
+	if pipR2T.infoOverlayActive then
+		glFunc.Texture(2, "$info")
+		gl.Uniform(locs.infoUvMult, pipR2T.infoOverlayUvMultX, pipR2T.infoOverlayUvMultY)
+		gl.Uniform(locs.infoTexMul, 1.0)
+	elseif locs then
+		gl.Uniform(locs.infoTexMul, 0.0)
+	end
+end
+
+shaders.UnbindMinimapGround = function()
+	glFunc.Texture(0, false)
+	glFunc.Texture(1, false)
+	if pipR2T.infoOverlayActive then
+		glFunc.Texture(2, false)
+	end
+	gl.UseShader(0)
+end
+
 local function RenderCheapLayers()
 	-- Apply rotation to content if minimap is rotated
 	if render.minimapRotation ~= 0 then
@@ -16321,13 +16417,9 @@ local function RenderCheapLayers()
 		-- Draw ground minimap with shading in single pass (matches engine compositing)
 		glFunc.Color(1, 1, 1, 1)
 		if shaders.minimapShading then
-			gl.UseShader(shaders.minimapShading)
-			glFunc.Texture(0, "$minimap")
-			glFunc.Texture(1, "$shading")
+			shaders.BindMinimapGround()
 			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-			glFunc.Texture(0, false)
-			glFunc.Texture(1, false)
-			gl.UseShader(0)
+			shaders.UnbindMinimapGround()
 		else
 			glFunc.Texture("$minimap")
 			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
@@ -16652,13 +16744,9 @@ local function RenderPipContents()
 		-- Draw ground minimap with shading in single pass (matches engine compositing)
 		glFunc.Color(1, 1, 1, 1)
 		if shaders.minimapShading then
-			gl.UseShader(shaders.minimapShading)
-			glFunc.Texture(0, "$minimap")
-			glFunc.Texture(1, "$shading")
+			shaders.BindMinimapGround()
 			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
-			glFunc.Texture(0, false)
-			glFunc.Texture(1, false)
-			gl.UseShader(0)
+			shaders.UnbindMinimapGround()
 		else
 			glFunc.Texture("$minimap")
 			glFunc.BeginEnd(glConst.QUADS, GroundTextureVertices)
@@ -17384,17 +17472,13 @@ local function DrawTrackedPlayerMinimap()
 	-- Draw minimap ground texture with shading in single pass (matches engine compositing)
 	glFunc.Color(1, 1, 1, 1)
 	if shaders.minimapShading then
-		gl.UseShader(shaders.minimapShading)
-		glFunc.Texture(0, "$minimap")
-		glFunc.Texture(1, "$shading")
+		shaders.BindMinimapGround()
 		pools.scratchTexQuad.l = cLeft
 		pools.scratchTexQuad.b = cBottom
 		pools.scratchTexQuad.r = cRight
 		pools.scratchTexQuad.t = cTop
 		glFunc.BeginEnd(GL.QUADS, DrawTexturedQuad)
-		glFunc.Texture(0, false)
-		glFunc.Texture(1, false)
-		gl.UseShader(0)
+		shaders.UnbindMinimapGround()
 	else
 		glFunc.Texture("$minimap")
 		pools.scratchTexQuad.l = cLeft
@@ -19455,6 +19539,11 @@ function widget:DrawScreen()
 	end
 	miscState.pipLastDrawGameFrame = drawGameFrame
 	miscState.pipSawRenderOnlyDraw = sameGameFrameAsLastDraw
+
+	-- Track engine map overlay mode (Height / Traversability / Resources) so the
+	-- ground draw mirrors it and the cached content re-renders on a mode change
+	shaders.UpdateMinimapInfoOverlay()
+
 	local mx, my, mbl = spFunc.GetMouseState()
 
 	-- During animation, disable mouse interaction
