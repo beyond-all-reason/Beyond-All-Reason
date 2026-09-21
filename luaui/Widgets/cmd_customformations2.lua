@@ -396,9 +396,9 @@ end
 -- What a group needs of its formation: how far apart its spots should be, how near they may
 -- get where the line bends, and what a spot has to be tested for. nil: leave the group alone.
 local function GetFormationInfo(mUnits)
-	local maxSize = 0 -- of the room one unit takes (elmos across)
-	local maxLoose = 0 -- of that room with the clearance units should have around them
-	local maxSway = 0
+	local maxSize = 0.0 -- of the room one unit takes (elmos across)
+	local maxLoose = 0.0 -- of that room with the clearance units should have around them
+	local maxSway = 0.0
 	local xsize, zsize = 1, 1
 	local canWater = ((Game.waterDamage or 0) <= 0)
 	local allLanders = true
@@ -414,8 +414,9 @@ local function GetFormationInfo(mUnits)
 
 		if unitDef.canFly then
 			local radius = spGetUnitRadius(uID) or 0
-			local moveType = unitDef.isStrafingAirUnit and spGetUnitMoveTypeData(uID) or nil
-			local agile = (moveType ~= nil and moveType.agileFlight == true)
+			---@type table<string, any>
+			local moveType = (unitDef.isStrafingAirUnit and spGetUnitMoveTypeData(uID)) or {}
+			local agile = (moveType.agileFlight == true)
 			local states = spGetUnitStates(uID)
 			local flies = (states ~= nil and states.autoland == false)
 
@@ -512,11 +513,9 @@ local function IsAgileSpotLandable(x, z, info)
 		return false
 	end
 
-	if spGetGroundNormal then
-		local _, _, _, slope = spGetGroundNormal(x, z)
-		if slope and slope > agileMaxLandSlope then
-			return false
-		end
+	local _, _, _, slope = spGetGroundNormal(x, z)
+	if slope and slope > agileMaxLandSlope then
+		return false
 	end
 
 	return not IsAgileSpotBlocked(x, z, info)
@@ -532,12 +531,10 @@ local function IsFormationSpotUsable(x, z, info)
 	if info.landers then
 		return IsAgileSpotLandable(x, z, info)
 	end
-	if spTestMoveOrder then
-		local y = spGetGroundHeight(x, z) or 0
-		for i = 1, #info.groundDefs do
-			if not spTestMoveOrder(info.groundDefs[i], x, y, z, 0, 0, 0, true, true, false) then
-				return false
-			end
+	local y = spGetGroundHeight(x, z) or 0
+	for i = 1, #info.groundDefs do
+		if not spTestMoveOrder(info.groundDefs[i], x, y, z, 0, 0, 0, true, true, false) then
+			return false
 		end
 	end
 	return true
@@ -547,13 +544,14 @@ end
 -- carries straight on, a shape wider than the line was drawn has to go somewhere
 local function GetAgilePathPoint(dist)
 	local nodeCount = #fNodes
-	local pathLength = fDists[nodeCount]
+	local pathLength = fDists[nodeCount] or 0
 
 	if dist < 0 or dist > pathLength then
 		local i = (dist < 0) and 2 or nodeCount
 		local sPos, ePos = fNodes[i - 1], fNodes[i]
-		local segLength = fDists[i] - fDists[i - 1]
-		if segLength > 0 then
+		local sDist, eDist = fDists[i - 1], fDists[i]
+		if sPos and ePos and sDist and eDist and eDist > sDist then
+			local segLength = eDist - sDist
 			local dx, dz = (ePos[1] - sPos[1]) / segLength, (ePos[3] - sPos[3]) / segLength
 			if dist < 0 then
 				return sPos[1] + dx * dist, sPos[3] + dz * dist
@@ -564,15 +562,20 @@ local function GetAgilePathPoint(dist)
 	end
 
 	for i = 2, nodeCount do
-		if dist <= fDists[i] or i == nodeCount then
-			local sPos, ePos = fNodes[i - 1], fNodes[i]
-			local segLength = fDists[i] - fDists[i - 1]
-			local t = (segLength > 0) and ((dist - fDists[i - 1]) / segLength) or 0
+		local sPos, ePos = fNodes[i - 1], fNodes[i]
+		local sDist, eDist = fDists[i - 1], fDists[i]
+		if sPos and ePos and sDist and eDist and (dist <= eDist or i == nodeCount) then
+			local segLength = eDist - sDist
+			local t = (segLength > 0) and ((dist - sDist) / segLength) or 0
 			return sPos[1] + (ePos[1] - sPos[1]) * t, sPos[3] + (ePos[3] - sPos[3]) * t
 		end
 	end
 
-	return fNodes[1][1], fNodes[1][3]
+	local first = fNodes[1]
+	if first then
+		return first[1], first[3]
+	end
+	return 0, 0
 end
 
 -- Unit normal of the drawn path at <dist>, from a stretch of it as long as one spacing so that
@@ -584,7 +587,9 @@ local function GetAgilePathNormal(dist, spacing)
 	local length = sqrt(dx * dx + dz * dz)
 	if length < 0.01 then
 		local sPos, ePos = fNodes[1], fNodes[#fNodes]
-		dx, dz = ePos[1] - sPos[1], ePos[3] - sPos[3]
+		if sPos and ePos then
+			dx, dz = ePos[1] - sPos[1], ePos[3] - sPos[3]
+		end
 		length = sqrt(dx * dx + dz * dz)
 		if length < 0.01 then
 			return 0, 1
@@ -689,7 +694,7 @@ end
 agileShapes.sunflower = function(count, spacing, width)
 	local step = spacing / 1.65
 	local stretch = max(1, (width * 0.5) / (step * sqrt(count + 1)))
-	local places = {}
+	local places = {} ---@type number[][]
 
 	places[1] = { 0, 0 }
 	for n = 1, count * 4 + 64 do
@@ -727,7 +732,7 @@ agileShapes.diamond = function(count, spacing, width)
 		end
 	end
 
-	table.sort(places, function(a, b)
+	tsort(places, function(a, b)
 		return a[3] < b[3]
 	end)
 	return places
@@ -742,12 +747,12 @@ local function GetAgileSpots(count, info, places, side, strict)
 	local spacing = info.spacing
 	local margin = info.margin
 	local maxX, maxZ = mapSizeX - margin, mapSizeZ - margin
-	local midDist = fDists[#fNodes] * 0.5
+	local midDist = (fDists[#fNodes] or 0) * 0.5
 	local minDistSq = (info.minSpacing or spacing) ^ 2
 	-- The direction "across" is taken from a stretch of the path, not from a point of it: the
 	-- direction of a hand-drawn line wobbles, and the deeper a shape is, the less it can follow a
 	-- tight bend before its inner rows run into each other
-	local depth = 0
+	local depth = 0.0
 	for p = 1, min(count, #places) do
 		depth = max(depth, abs(places[p][2]))
 	end
@@ -775,7 +780,7 @@ local function GetAgileSpots(count, info, places, side, strict)
 		if usable then
 			for j = 1, spotCount do
 				local spot = spots[j]
-				if (spot[1] - x) ^ 2 + (spot[3] - z) ^ 2 < minDistSq then
+				if spot and (spot[1] - x) ^ 2 + (spot[3] - z) ^ 2 < minDistSq then
 					usable = false
 					break
 				end
@@ -830,7 +835,7 @@ local function GetAgileLandingNodes(mUnits, interpNodes, shifted)
 	local normX, normZ = GetAgilePathNormal(pathLength * 0.5, max(spacing, pathLength * 0.5))
 	local side = 1
 
-	local sumX, sumZ, sumCount = 0, 0, 0
+	local sumX, sumZ, sumCount = 0.0, 0.0, 0
 	for i = 1, count do
 		local ux, uz, _
 		if shifted then
@@ -891,11 +896,12 @@ local function GetPreviewNodes()
 	if key ~= previewKey then
 		previewKey = key
 		previewNodes = nil
-		if nodeCount >= 2 and usingCmd and shapedCmds[usingCmd] then
-			local mUnits = GetExecutingUnits(usingCmd)
+		local cmdID = usingCmd --[[@as integer?]]
+		if nodeCount >= 2 and cmdID and shapedCmds[cmdID] then
+			local mUnits = GetExecutingUnits(cmdID)
 			if #mUnits > 1 then
 				local ok, nodes = pcall(GetAgileLandingNodes, mUnits, nil, shifted)
-				if ok and nodes then
+				if ok and type(nodes) == "table" then
 					previewNodes = nodes
 				end
 			end
@@ -907,8 +913,10 @@ end
 -- What is drawn of them: every dot glides to where it belongs now. The layout is worked out afresh
 -- for every bit of line that is added, and without this the dots jump about while the line is
 -- still short. Only the preview is eased, the orders are given to the exact spots.
-local previewShown, previewShownTime = nil, 0
-local previewTargets, previewTargetsFor = nil, nil
+local previewShown = nil ---@type number[][]?
+local previewShownTime = 0.0
+local previewTargets = nil ---@type number[][]?
+local previewTargetsFor = nil ---@type number[][]?
 local previewEaseRate = 12 -- per second: most of the way in a tenth of a second
 
 -- Which new spot each drawn dot glides to: the nearest one still free, the dots that are furthest
@@ -923,7 +931,7 @@ local function MatchPreviewTargets(shown, nodes)
 	local order = {}
 	for i = 1, count do
 		local sx, sz = shown[i][1], shown[i][3]
-		local nearest = math.huge
+		local nearest = huge
 		for j = 1, count do
 			local d = (nodes[j][1] - sx) ^ 2 + (nodes[j][3] - sz) ^ 2
 			if d < nearest then
@@ -939,7 +947,7 @@ local function MatchPreviewTargets(shown, nodes)
 	for o = 1, count do
 		local i = order[o][1]
 		local sx, sz = shown[i][1], shown[i][3]
-		local best, bestDist = nil, math.huge
+		local best, bestDist = nil, huge
 		for j = 1, count do
 			if not taken[j] then
 				local d = (nodes[j][1] - sx) ^ 2 + (nodes[j][3] - sz) ^ 2
@@ -955,21 +963,26 @@ local function MatchPreviewTargets(shown, nodes)
 	-- Then trade spots wherever that shortens the squares of the two ways: when a spot goes at one
 	-- end of a shape and a new one comes up at the other, everybody moves up one, nobody crosses it
 	if count <= 150 then
-		for pass = 1, 6 do
+		for _ = 1, 6 do
 			local traded = false
 			for i = 1, count - 1 do
 				local si = shown[i]
 				for j = i + 1, count do
 					local sj = shown[j]
 					local ti, tj = targets[i], targets[j]
-					local kept = (ti[1] - si[1]) ^ 2 + (ti[3] - si[3]) ^ 2 + (tj[1] - sj[1]) ^ 2 + (tj[3] - sj[3]) ^ 2
-					local swapped = (tj[1] - si[1]) ^ 2
-						+ (tj[3] - si[3]) ^ 2
-						+ (ti[1] - sj[1]) ^ 2
-						+ (ti[3] - sj[3]) ^ 2
-					if swapped < kept - 0.01 then
-						targets[i], targets[j] = tj, ti
-						traded = true
+					if ti and tj then
+						local kept = (ti[1] - si[1]) ^ 2
+							+ (ti[3] - si[3]) ^ 2
+							+ (tj[1] - sj[1]) ^ 2
+							+ (tj[3] - sj[3]) ^ 2
+						local swapped = (tj[1] - si[1]) ^ 2
+							+ (tj[3] - si[3]) ^ 2
+							+ (ti[1] - sj[1]) ^ 2
+							+ (ti[3] - sj[3]) ^ 2
+						if swapped < kept - 0.01 then
+							targets[i], targets[j] = tj, ti
+							traded = true
+						end
 					end
 				end
 			end
@@ -990,31 +1003,36 @@ local function GetShownPreviewNodes()
 	end
 
 	local now = osclock()
-	if not previewShown or #previewShown ~= #nodes or (now - previewShownTime) > 0.5 then
+	local shownList = previewShown
+	if not shownList or #shownList ~= #nodes or (now - previewShownTime) > 0.5 then
 		-- (nothing to glide from: a new group, or a new line)
-		previewShown = {}
+		shownList = {}
 		for i = 1, #nodes do
-			previewShown[i] = { nodes[i][1], nodes[i][2], nodes[i][3] }
+			shownList[i] = { nodes[i][1], nodes[i][2], nodes[i][3] }
 		end
+		previewShown = shownList
 		previewTargets, previewTargetsFor = nodes, nodes
 	else
-		if previewTargetsFor ~= nodes then
+		local targetList = previewTargets
+		if previewTargetsFor ~= nodes or not targetList then
 			-- the layout has changed (matching is quadratic, a very large group keeps its numbering)
-			previewTargets = (#nodes <= 300) and MatchPreviewTargets(previewShown, nodes) or nodes
-			previewTargetsFor = nodes
+			targetList = (#nodes <= 300) and MatchPreviewTargets(shownList, nodes) or nodes
+			previewTargets, previewTargetsFor = targetList, nodes
 		end
 		-- (drawn more than once a frame, world and minimap: the second time no time has passed)
 		local blend = 1 - math.exp(-(now - previewShownTime) * previewEaseRate)
 		for i = 1, #nodes do
-			local shown, node = previewShown[i], previewTargets[i]
-			shown[1] = shown[1] + (node[1] - shown[1]) * blend
-			shown[2] = shown[2] + (node[2] - shown[2]) * blend
-			shown[3] = shown[3] + (node[3] - shown[3]) * blend
+			local shown, node = shownList[i], targetList[i]
+			if shown and node then
+				shown[1] = shown[1] + (node[1] - shown[1]) * blend
+				shown[2] = shown[2] + (node[2] - shown[2]) * blend
+				shown[3] = shown[3] + (node[3] - shown[3]) * blend
+			end
 		end
 	end
 	previewShownTime = now
 
-	return previewShown
+	return shownList
 end
 
 local function GetCmdOpts(alt, ctrl, meta, shift, right)
