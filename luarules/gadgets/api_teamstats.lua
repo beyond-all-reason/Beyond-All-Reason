@@ -340,6 +340,10 @@ local SAMPLED = {
 	"energyReclaimed",
 	-- The wind is everyone's; every team's sample carries it, so a chart reads it off any.
 	"windSpeed",
+	-- So is the lava's height, on a lava map.
+	"lavaLevel",
+	-- The damage lava did to the team's units.
+	"lavaDamage",
 }
 -- What the team's losses were lost to, as value, adding up to lostValue: enemies, its own
 -- side's fire, lava or deep water, self-destruction, reclaim or a cancelled build, and the
@@ -442,6 +446,7 @@ local TALLIED = {
 	"teamKillValue",
 	"comKills",
 	"comLost",
+	"lavaDamage",
 }
 for i = 1, #BUCKETS do
 	TALLIED[#TALLIED + 1] = countKey[BUCKETS[i]]
@@ -483,6 +488,16 @@ for name, key in pairs({
 end
 -- What the engine names when a gadget destroyed the unit, whatever it did that for.
 local KILLED_BY_LUA = Game.envDamageTypes and Game.envDamageTypes.KilledByLua
+-- The map's own hazards: lava burns what stands in it through the engine's water damage, and
+-- on a map of void water a unit that ends up below the ground line is taken away by a gadget
+-- (map_voidground). Both are losses to the map, as deep water is.
+local WATER_DAMAGE = Game.envDamageTypes and Game.envDamageTypes.Water
+local LAVA_MAP = BAR ~= nil and BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
+local VOID_MAP
+do
+	local ok, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	VOID_MAP = ok and type(mapinfo) == "table" and mapinfo.voidwater == true
+end
 
 ----------------------------------------------------------------
 -- Unit defs
@@ -514,6 +529,9 @@ local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 		return Spring.GetFactoryCommands(unitID, 0)
 	end
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGameSpeed = Spring.GetGameSpeed
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
 
 ---@type table<integer, number>
 local defCost = {}
@@ -579,8 +597,10 @@ local killedAs = {
 
 local ARMED_GROUPS =
 	{ weapon = true, aa = true, sub = true, emp = true, explo = true, weaponaa = true, weaponsub = true }
----@type table<string, boolean?>
-local SEA_CLASSES = { BOAT = true, UBOAT = true, EPICSHIP = true }
+-- What the engine calls a ship: the class it gives every move definition whose name says
+-- boat or ship, and the one a definition can set outright (the T4 ships and submarines do).
+-- The name itself is no test - the engine lowercases it, and it is the game's to change.
+local SHIP_CLASS = Game.speedModClasses.Ship
 
 local function bucketOf(ud)
 	local cp = ud.customParams
@@ -607,8 +627,7 @@ local function bucketOf(ud)
 	if ud.canFly then
 		return "air"
 	end
-	local moveClass = ud.moveDef and ud.moveDef.name or ""
-	if SEA_CLASSES[moveClass:match("^%u+") or ""] then
+	if ud.moveDef and ud.moveDef.smClass == SHIP_CLASS then
 		return "sea"
 	end
 	return armed and "army" or "utility"
@@ -703,6 +722,9 @@ local allyOf = {}
 -- in here and counts for nothing until it is done.
 ---@type table<integer, integer?>
 local finished = {}
+-- [unitID] = the type it was counted as, so what was added is what is taken off again.
+---@type table<integer, integer?>
+local countedAs = {}
 -- [teamID][unitID] = build speed, for every finished builder and factory.
 ---@type table<integer, table<integer, number?>>
 local builders = {}
@@ -969,6 +991,7 @@ local function addUnit(unitID, unitDefID, teamID)
 		return
 	end
 	finished[unitID] = teamID
+	countedAs[unitID] = unitDefID
 	local cost = defCost[unitDefID]
 	t.unitCount = t.unitCount + 1
 	t.unitValue = t.unitValue + cost
@@ -1007,11 +1030,20 @@ local function addUnit(unitID, unitDefID, teamID)
 	end
 end
 
-local function removeUnit(unitID, unitDefID)
+-- What a unit added to its team's tally is taken off it again. The type is the one it was
+-- counted under rather than the one the call-in gives: the two are the same unit's today, but
+-- a tally that trusts the call-in cannot be made whole again if they ever differ - it would
+-- leave a team a few metal short or over for good, and a team that lost everything showing a
+-- unit value below nothing.
+local function removeUnit(unitID)
 	local teamID = finished[unitID]
 	if not teamID then
 		return
 	end
+	-- Set beside `finished`, so a unit that is counted always has the type it counted as.
+	local unitDefID = countedAs[unitID]
+	---@cast unitDefID -?
+	countedAs[unitID] = nil
 	local site = defSite[unitDefID]
 	if site then
 		releaseSpot(unitID, site, teamID)
@@ -1584,6 +1616,9 @@ local function readLive(teamID, out)
 		windFrame, windNow = frame, select(4, spGetWind()) or 0
 	end
 	out.windSpeed = windNow
+	-- The lava gadget sets it as the lava moves, to a far-off height before it has.
+	local lava = LAVA_MAP and spGetGameRulesParam("lavaLevel") or nil
+	out.lavaLevel = (lava and lava > -9999) and lava or 0
 	local ally = allyOf[teamID]
 	local ranking = GG.AllyTeamRanking
 	out.allyRank = ranking and ranking.GetPlace(ally) or 0
@@ -1644,6 +1679,12 @@ end
 ----------------------------------------------------------------
 
 local function unitCreated(unitID, unitDefID, unitTeam)
+	-- The engine gives a unit id out again once the unit that had it is gone. One still
+	-- counted here means its end was never seen: it is taken off the tally now, so what it
+	-- left behind does not stay in the team's totals for the rest of the game.
+	if finished[unitID] then
+		removeUnit(unitID)
+	end
 	if not spGetUnitIsBeingBuilt(unitID) then
 		addUnit(unitID, unitDefID, unitTeam)
 	end
@@ -1678,7 +1719,7 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if finished[unitID] then
-		removeUnit(unitID, unitDefID)
+		removeUnit(unitID)
 		addUnit(unitID, unitDefID, newTeam)
 	end
 end
@@ -1719,6 +1760,12 @@ function gadget:UnitDamaged(
 	if defCanFly[unitDefID] and attackerTeam and damage > 0 and not paralyzer then
 		lastHitBy[unitID] = attackerTeam
 		lastHitDef[unitID] = attackerDefID
+	end
+	if LAVA_MAP and weaponDefID == WATER_DAMAGE and damage > 0 then
+		local victim = teams[unitTeam]
+		if victim then
+			victim.lavaDamage = victim.lavaDamage + damage
+		end
 	end
 	-- The damage an enemy took, on the type of unit that dealt it.
 	if attackerTeam and attackerDefID and damage > 0 and not paralyzer and allyOf[attackerTeam] ~= allyOf[unitTeam] then
@@ -1773,7 +1820,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local _, progress = spGetUnitIsBeingBuilt(unitID)
 		value = value * (progress or 0)
 	end
-	removeUnit(unitID, unitDefID)
+	removeUnit(unitID)
 
 	local victim = teams[unitTeam]
 	if victim then
@@ -1790,6 +1837,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			-- upgrade, or for some other reason of its own.
 			if (spGetUnitSelfDTime(unitID) or 0) > 0 then
 				cause = "lostSelfD"
+			elseif VOID_MAP and (select(2, spGetUnitPosition(unitID)) or 1) < 0 then
+				cause = "lostWater"
 			elseif replacedInPlace(unitID, unitDefID) then
 				cause = "lostReclaimed"
 			else
@@ -2173,6 +2222,7 @@ local STASH_GAP = SAMPLE_PERIOD
 -- The counters that add up what happened rather than what stands.
 local RUNNING = {
 	"buildPowerIdle",
+	"lavaDamage",
 	"killedValue",
 	"killedArmyValue",
 	"killedEcoValue",
@@ -2405,6 +2455,32 @@ function gadget:GameFrame(frame)
 	if frame % LIVE_PERIOD == 0 then
 		serveLuaUI(frame)
 	end
+end
+
+-- The game paused, no frame is stepped and nothing above runs: a panel opened while the game
+-- stands still would be handed nothing until it moved again - no live numbers, and no answer
+-- to what its charts ask for. So the hand-over is served from the clock on the wall instead
+-- while the game is paused, as often as a running game serves it. Only the hand-over: what it
+-- reads cannot change while the simulation is still, so there is nothing to scan or sample.
+
+-- When it was last served that way.
+---@type integer?
+local pausedAt
+
+---@diagnostic disable-next-line: undefined-field
+function gadget:Update()
+	local _, _, paused = spGetGameSpeed()
+	if not paused then
+		pausedAt = nil
+		return
+	end
+	local now = spGetTimer()
+	-- The first Update of a pause serves at once: what asks is waiting on it.
+	if pausedAt and spDiffTimers(now, pausedAt) < LIVE_PERIOD / Game.gameSpeed then
+		return
+	end
+	pausedAt = now
+	serveLuaUI(spGetGameFrame())
 end
 
 function gadget:Initialize()
