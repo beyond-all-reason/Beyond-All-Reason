@@ -55,9 +55,22 @@ local unitIncreaseThresh = 0.85 -- We only increase maxUnits if the units are gr
 -- Alpha loss per second after releasing mouse
 local lineFadeRate = 2.0
 
+-- Landing spots of agile aircraft, these mirror the engine (CStrafeAirMoveType::FindAgileSpot / CanSetDownAt)
+local agileSpotSpacing = 2.5 -- Distance between neighbouring spots, in unit radii (what the engine uses for its own pattern)
+local groundSpotSpacing = 1.5 -- The same for units on the ground, in footprints: room to get past each other
+local agileSpotSpacingExtra = 1 -- Added to the above (elmos), so rounding never puts two spots too close
+local agileRowStep = 0.8660254 -- Distance between rows in spacings (hexagonal packing)
+local agileMaxLandSlope = 0.03 -- Steeper ground than this can not be landed on
+
 -- What commands are eligible for custom formations
 local CMD_SETTARGET = GameCMD.UNIT_SET_TARGET
 local CMD_MANUAL_LAUNCH = GameCMD.MANUAL_LAUNCH
+
+-- Commands whose line formation is laid out in a shape when the line is too tight for one row
+local shapedCmds = {
+	[CMD.MOVE] = true,
+	[CMD.FIGHT] = true,
+}
 
 local formationCmds = {
 	[CMD.MOVE] = true,
@@ -170,6 +183,13 @@ local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetViewGeometry = Spring.GetViewGeometry
 local spTraceScreenRay = Spring.TraceScreenRay
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitRadius = Spring.GetUnitRadius
+local spGetUnitStates = Spring.GetUnitStates
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
+local spGetGroundNormal = Spring.GetGroundNormal
+local spGetGroundBlocked = Spring.GetGroundBlocked
+local spTestMoveOrder = Spring.TestMoveOrder
 
 local mapSizeX, mapSizeZ = Game.mapSizeX, Game.mapSizeZ
 local maxUnits = Game.maxUnits
@@ -178,7 +198,12 @@ local osclock = os.clock
 local tsort = table.sort
 local floor = math.floor
 local sqrt = math.sqrt
+local abs = math.abs
+local ceil = math.ceil
+local sin = math.sin
+local cos = math.cos
 local max = math.max
+local min = math.min
 local huge = math.huge
 
 local CMD_INSERT = CMD.INSERT
@@ -357,6 +382,657 @@ local function GetInterpNodes(mUnits)
 	interpNodes[number] = { eX, eY, eZ }
 
 	return interpNodes
+end
+
+--------------------------------------------------------------------------------
+-- Agile aircraft landing spots
+--------------------------------------------------------------------------------
+-- Aircraft with the engine's agile flight model land exactly on their move goal. When goals are closer
+-- together than the aircraft can land, the engine moves each to the nearest free spot on arrival, so a
+-- short line does not end up as drawn. Such a line is turned into hexagonally packed rows of spots that
+-- can all be kept instead. Anything but a move order to landing agile aircraft only is left as it was.
+
+-- Returns what the spots have to allow for, or nil if any of the units is not a landing agile aircraft
+-- What a group needs of its formation: how far apart its spots should be, how near they may
+-- get where the line bends, and what a spot has to be tested for. nil: leave the group alone.
+local function GetFormationInfo(mUnits)
+	local maxSize = 0.0 -- of the room one unit takes (elmos across)
+	local maxLoose = 0.0 -- of that room with the clearance units should have around them
+	local maxSway = 0.0
+	local xsize, zsize = 1, 1
+	local canWater = ((Game.waterDamage or 0) <= 0)
+	local allLanders = true
+	local groundDefs, groundDefCount, seenDefs = {}, 0, {}
+
+	for i = 1, #mUnits do
+		local uID = mUnits[i]
+		local unitDefID = spGetUnitDefID(uID)
+		local unitDef = UnitDefs[unitDefID or -1]
+		if not unitDef then
+			return nil
+		end
+
+		if unitDef.canFly then
+			local radius = spGetUnitRadius(uID) or 0
+			---@type table<string, any>
+			local moveType = (unitDef.isStrafingAirUnit and spGetUnitMoveTypeData(uID)) or {}
+			local agile = (moveType.agileFlight == true)
+			local states = spGetUnitStates(uID)
+			local flies = (states ~= nil and states.autoland == false)
+
+			if unitDef.isStrafingAirUnit and (not agile or (flies and moveType.agileLandOnly)) then
+				-- a stock fixed-wing aircraft circles its goal, it holds no spot
+				allLanders = false
+			else
+				if agile and not flies then
+					xsize = max(xsize, unitDef.xsize or 1)
+					zsize = max(zsize, unitDef.zsize or 1)
+					if not (unitDef.floatOnWater or unitDef.canSubmerge) then
+						canWater = false
+					end
+				else
+					-- it holds in the air over its spot (where the engine keeps room for a hover sway)
+					allLanders = false
+					if agile then
+						maxSway = max(maxSway, min(moveType.agileHoverSway or 0, max(radius, 16) * 0.5))
+					end
+				end
+				maxSize = max(maxSize, radius * 2)
+				maxLoose = max(maxLoose, radius * agileSpotSpacing)
+			end
+		else
+			-- on the ground (or the water): its footprint, and room to get past each other
+			allLanders = false
+			local size = max(unitDef.xsize or 2, unitDef.zsize or 2) * 8
+			maxSize = max(maxSize, size)
+			maxLoose = max(maxLoose, size * groundSpotSpacing)
+			if not seenDefs[unitDefID] and groundDefCount < 8 then
+				seenDefs[unitDefID] = true
+				groundDefCount = groundDefCount + 1
+				groundDefs[groundDefCount] = unitDefID
+			end
+		end
+	end
+
+	if maxSize <= 0 then
+		return nil
+	end
+
+	return {
+		spacing = maxLoose + maxSway * 2 + agileSpotSpacingExtra,
+		-- What two of them can not do without (for aircraft that land: the sum of their radii, what
+		-- the engine insists on). The spacing above is roomier, which lets a shape bend with the line
+		minSpacing = maxSize + maxSway * 2 + agileSpotSpacingExtra,
+		margin = maxSize * 0.5,
+		xsize = xsize,
+		zsize = zsize,
+		canWater = canWater,
+		landers = allLanders,
+		groundDefs = groundDefs,
+	}
+end
+
+local function IsAgileSpotBlocked(x, z, info)
+	if not spGetGroundBlocked then
+		return false
+	end
+
+	local x1 = (floor(x / 8) - floor(info.xsize / 2)) * 8 + 4
+	local z1 = (floor(z / 8) - floor(info.zsize / 2)) * 8 + 4
+	local x2 = x1 + (info.xsize - 1) * 8
+	local z2 = z1 + (info.zsize - 1) * 8
+
+	if not spGetGroundBlocked(x1, z1, x2, z2) then
+		return false
+	end
+
+	-- Mobile units are expected to have moved on, look for anything else square by square
+	for sx = x1, x2, 8 do
+		for sz = z1, z2, 8 do
+			local objType, objID = spGetGroundBlocked(sx, sz)
+			if objType == "feature" then
+				return true
+			elseif objType == "unit" then
+				local unitDef = UnitDefs[(objID and spGetUnitDefID(objID)) or -1]
+				if (not unitDef) or unitDef.isImmobile then
+					return true
+				end
+			end
+		end
+	end
+
+	return false
+end
+
+local function IsAgileSpotLandable(x, z, info)
+	local y = spGetGroundHeight(x, z)
+	if not y then
+		return false
+	end
+	if y < 0 and not info.canWater then
+		return false
+	end
+
+	local _, _, _, slope = spGetGroundNormal(x, z)
+	if slope and slope > agileMaxLandSlope then
+		return false
+	end
+
+	return not IsAgileSpotBlocked(x, z, info)
+end
+
+-- Rows of spots, the first one centred on (midX, midZ) along dir, the next ones further along perp.
+-- strict: spots off the map or not fit for landing are left out (nil if there are too few good ones)
+-- not strict: every spot is used, pushed back inside the map if need be
+-- Can the group use this spot: aircraft that land have to be able to set down on it, everything
+-- that drives, walks or floats has to be able to stand there (terrain and buildings, not the units
+-- that happen to be in the way now)
+local function IsFormationSpotUsable(x, z, info)
+	if info.landers then
+		return IsAgileSpotLandable(x, z, info)
+	end
+	local y = spGetGroundHeight(x, z) or 0
+	for i = 1, #info.groundDefs do
+		if not spTestMoveOrder(info.groundDefs[i], x, y, z, 0, 0, 0, true, true, false) then
+			return false
+		end
+	end
+	return true
+end
+
+-- Where the drawn path is after <dist> elmos along it; before its start and past its end it
+-- carries straight on, a shape wider than the line was drawn has to go somewhere
+local function GetAgilePathPoint(dist)
+	local nodeCount = #fNodes
+	local pathLength = fDists[nodeCount] or 0
+
+	if dist < 0 or dist > pathLength then
+		local i = (dist < 0) and 2 or nodeCount
+		local sPos, ePos = fNodes[i - 1], fNodes[i]
+		local sDist, eDist = fDists[i - 1], fDists[i]
+		if sPos and ePos and sDist and eDist and eDist > sDist then
+			local segLength = eDist - sDist
+			local dx, dz = (ePos[1] - sPos[1]) / segLength, (ePos[3] - sPos[3]) / segLength
+			if dist < 0 then
+				return sPos[1] + dx * dist, sPos[3] + dz * dist
+			end
+			return ePos[1] + dx * (dist - pathLength), ePos[3] + dz * (dist - pathLength)
+		end
+		dist = max(0, min(pathLength, dist))
+	end
+
+	for i = 2, nodeCount do
+		local sPos, ePos = fNodes[i - 1], fNodes[i]
+		local sDist, eDist = fDists[i - 1], fDists[i]
+		if sPos and ePos and sDist and eDist and (dist <= eDist or i == nodeCount) then
+			local segLength = eDist - sDist
+			local t = (segLength > 0) and ((dist - sDist) / segLength) or 0
+			return sPos[1] + (ePos[1] - sPos[1]) * t, sPos[3] + (ePos[3] - sPos[3]) * t
+		end
+	end
+
+	local first = fNodes[1]
+	if first then
+		return first[1], first[3]
+	end
+	return 0, 0
+end
+
+-- Unit normal of the drawn path at <dist>, from a stretch of it as long as one spacing so that
+-- the kinks of a hand-drawn line do not show
+local function GetAgilePathNormal(dist, spacing)
+	local x1, z1 = GetAgilePathPoint(dist - spacing * 0.5)
+	local x2, z2 = GetAgilePathPoint(dist + spacing * 0.5)
+	local dx, dz = x2 - x1, z2 - z1
+	local length = sqrt(dx * dx + dz * dz)
+	if length < 0.01 then
+		local sPos, ePos = fNodes[1], fNodes[#fNodes]
+		if sPos and ePos then
+			dx, dz = ePos[1] - sPos[1], ePos[3] - sPos[3]
+		end
+		length = sqrt(dx * dx + dz * dz)
+		if length < 0.01 then
+			return 0, 1
+		end
+	end
+	return -dz / length, dx / length
+end
+
+-- The shapes. Each is a list of places {along, across} in elmos around the middle of the drawn
+-- line, best place first, no two nearer than the spacing; <width> is the length of the line.
+-- A line too short for its shape says where, not how wide: the shape then takes the width it needs.
+-- But a line that fits them in a few rows is exactly as wide as the player wants it.
+local agileShapes = {}
+local agileMaxRowsAsDrawn = 3
+
+local function GetAgileLattice(count, spacing, width, rowStep, stagger)
+	local perRow = floor(width / spacing) + 1
+	local rows = ceil(count / perRow)
+	if rows > agileMaxRowsAsDrawn then
+		-- at least as wide as deep
+		perRow = max(perRow, ceil(sqrt(count * rowStep)))
+		rows = ceil(count / perRow)
+	end
+	local rowWidth = max(width, (perRow - 1) * spacing)
+
+	-- As many rows as it takes, all of them as long as the line and as full as each other (the
+	-- odd ones out go to the middle rows): two even rows, not one row with a clump behind its middle
+	local rowCounts = {}
+	for r = 1, rows do
+		rowCounts[r] = floor(count / rows)
+	end
+	local extra = count - floor(count / rows) * rows
+	local r = ceil(rows / 2)
+	local stepOut = 0
+	while extra > 0 do
+		rowCounts[r] = rowCounts[r] + 1
+		extra = extra - 1
+		stepOut = (stepOut <= 0) and (1 - stepOut) or -stepOut
+		r = ceil(rows / 2) + stepOut
+		if r < 1 or r > rows then
+			r = ceil(rows / 2)
+			stepOut = 0
+		end
+	end
+	local fullest = 1
+	for i = 1, rows do
+		fullest = max(fullest, rowCounts[i])
+	end
+
+	-- (two full rows next to each other have to be pushed apart along the line to interlock,
+	-- a full row next to a shorter one interlocks as it is)
+	local fullNeighbours = false
+	for i = 1, rows - 1 do
+		if rowCounts[i] == fullest and rowCounts[i + 1] == fullest then
+			fullNeighbours = true
+		end
+	end
+
+	local places = {}
+	local placeCount = 0
+	local function AddRow(rowIndex, slots)
+		local across = (rowIndex - (rows + 1) * 0.5) * spacing * rowStep
+		local step = (slots > 1) and (rowWidth / (slots - 1)) or 0
+		local start = -(slots - 1) * step * 0.5
+		if stagger and fullest > 1 then
+			-- every row on the same step, every other row half of it along
+			step = rowWidth / (fullest - 1)
+			start = -(slots - 1) * step * 0.5
+			if slots == fullest and (fullNeighbours or rowIndex < 1 or rowIndex > rows) then
+				start = start + step * ((rowIndex % 2 == 0) and 0.25 or -0.25)
+			end
+		end
+		for i = 0, slots - 1 do
+			placeCount = placeCount + 1
+			places[placeCount] = { start + i * step, across }
+		end
+	end
+
+	for i = 1, rows do
+		AddRow(i, rowCounts[i])
+	end
+	-- (further rows on either side, for the places above that turn out to be unusable)
+	for i = 1, rows + 3 do
+		AddRow(rows + i, fullest)
+		AddRow(1 - i, fullest)
+	end
+
+	return places
+end
+
+agileShapes.square = function(count, spacing, width)
+	return GetAgileLattice(count, spacing, width, 1, false)
+end
+
+agileShapes.hex = function(count, spacing, width)
+	return GetAgileLattice(count, spacing, width, agileRowStep, true)
+end
+
+-- The engine's own pattern for aircraft sent to one point (FindAgileSpot): the point itself, then
+-- seed n at the golden angle times n and a distance growing with sqrt(n + 2), no two seeds nearer
+-- than 1.65 steps. Stretched along the line when that is longer than the disc is wide.
+agileShapes.sunflower = function(count, spacing, width)
+	local step = spacing / 1.65
+	local stretch = max(1, (width * 0.5) / (step * sqrt(count + 1)))
+	local places = {} ---@type number[][]
+
+	places[1] = { 0, 0 }
+	for n = 1, count * 4 + 64 do
+		local angle = n * 2.39996323
+		local dist = step * sqrt(n + 2)
+		places[n + 1] = { sin(angle) * dist * stretch, cos(angle) * dist }
+	end
+
+	return places
+end
+
+-- A square grid standing on its corner, filled from the middle so that its outline is a diamond
+-- as wide as the line (or as wide as it is deep, when the line is shorter than that)
+agileShapes.diamond = function(count, spacing, width)
+	local diag = spacing * 0.7071068
+	local halfWidth = max(width * 0.5, spacing * 0.5)
+	if count * spacing * spacing / (2 * halfWidth) > agileMaxRowsAsDrawn * spacing * 0.5 then
+		-- at least as wide as deep
+		halfWidth = max(halfWidth, sqrt(count * 0.5) * spacing)
+	end
+	local halfDepth = max(spacing, count * spacing * spacing / (2 * halfWidth))
+	local reach = ceil(sqrt(count)) * 2 + 4
+	local places = {}
+	local placeCount = 0
+
+	for i = -reach, reach do
+		for j = -reach, reach do
+			local along, across = (i + j) * diag, (i - j) * diag
+			placeCount = placeCount + 1
+			places[placeCount] = {
+				along,
+				across,
+				abs(along) / halfWidth + abs(across) / halfDepth * 1.03 + ((across < 0) and 0.0001 or 0),
+			}
+		end
+	end
+
+	tsort(places, function(a, b)
+		return a[3] < b[3]
+	end)
+	return places
+end
+
+-- Lays a shape over the drawn path: <along> is measured along the path from its middle, <across>
+-- along the path's normal there (<side> decides which way is positive). Where the path bends toward
+-- a row its places move closer together; that is fine down to what the engine insists on, only a
+-- place nearer than that to a spot already taken is left out (its aircraft gets the next free place,
+-- which is out on the edge of the shape, so this must stay the exception).
+local function GetAgileSpots(count, info, places, side, strict)
+	local spacing = info.spacing
+	local margin = info.margin
+	local maxX, maxZ = mapSizeX - margin, mapSizeZ - margin
+	local midDist = (fDists[#fNodes] or 0) * 0.5
+	local minDistSq = (info.minSpacing or spacing) ^ 2
+	-- The direction "across" is taken from a stretch of the path, not from a point of it: the
+	-- direction of a hand-drawn line wobbles, and the deeper a shape is, the less it can follow a
+	-- tight bend before its inner rows run into each other
+	local depth = 0.0
+	for p = 1, min(count, #places) do
+		depth = max(depth, abs(places[p][2]))
+	end
+	local normalSpan = max(spacing * 3, depth * 4)
+
+	local spots = {}
+	local spotCount = 0
+
+	for p = 1, #places do
+		local place = places[p]
+		local x, z = GetAgilePathPoint(midDist + place[1])
+		if place[2] ~= 0 then
+			local nx, nz = GetAgilePathNormal(midDist + place[1], normalSpan)
+			x, z = x + nx * place[2] * side, z + nz * place[2] * side
+		end
+
+		local usable = true
+		if strict then
+			usable = (x >= margin and z >= margin and x <= maxX and z <= maxZ and IsFormationSpotUsable(x, z, info))
+		else
+			x = max(margin, min(maxX, x))
+			z = max(margin, min(maxZ, z))
+		end
+
+		if usable then
+			for j = 1, spotCount do
+				local spot = spots[j]
+				if spot and (spot[1] - x) ^ 2 + (spot[3] - z) ^ 2 < minDistSq then
+					usable = false
+					break
+				end
+			end
+		end
+
+		if usable then
+			spotCount = spotCount + 1
+			spots[spotCount] = { x, max(spGetGroundHeight(x, z) or 0, 0), z }
+			if spotCount >= count then
+				return spots
+			end
+		end
+	end
+
+	return nil
+end
+
+local function GetAgileLandingNodes(mUnits, interpNodes, shifted)
+	local count = #mUnits
+	if not shapedCmds[usingCmd] or count < 2 or (interpNodes and #interpNodes ~= count) then
+		return nil
+	end
+	-- ("line": the player wants the line as drawn, however tight)
+	local shapeName = WG.formationShape or "hex"
+	if shapeName == "line" then
+		return nil
+	end
+	if not (spGetUnitMoveTypeData and spGetUnitDefID and spGetUnitRadius and spGetUnitStates) then
+		return nil
+	end
+
+	local nodeCount = #fNodes
+	local pathLength = fDists[nodeCount]
+	if nodeCount < 2 or not pathLength then
+		return nil
+	end
+
+	local info = GetFormationInfo(mUnits)
+	if not info then
+		return nil
+	end
+
+	-- The line is long enough for all of them
+	local spacing = info.spacing
+	if pathLength / (count - 1) >= spacing then
+		return nil
+	end
+
+	-- Further rows go behind the line, as seen from where the units are (or will be)
+	local midX, midZ = GetAgilePathPoint(pathLength * 0.5)
+	local normX, normZ = GetAgilePathNormal(pathLength * 0.5, max(spacing, pathLength * 0.5))
+	local side = 1
+
+	local sumX, sumZ, sumCount = 0.0, 0.0, 0
+	for i = 1, count do
+		local ux, uz, _
+		if shifted then
+			ux, _, uz = GetUnitFinalPosition(mUnits[i])
+		else
+			ux, _, uz = spGetUnitPosition(mUnits[i])
+		end
+		if ux and uz then
+			sumX, sumZ, sumCount = sumX + ux, sumZ + uz, sumCount + 1
+		end
+	end
+	if sumCount > 0 and ((sumX / sumCount - midX) * normX + (sumZ / sumCount - midZ) * normZ) > 0 then
+		side = -1
+	end
+
+	-- The shape the player picked (Formation Shape widget), hexagonal rows when there is none
+	local shape = agileShapes[shapeName] or agileShapes.hex
+	local places = shape(count, spacing, pathLength)
+	-- (spots that can be landed on first, whatever fits as the last resort)
+	local nodes = GetAgileSpots(count, info, places, side, true) or GetAgileSpots(count, info, places, side, false)
+	if not nodes or #nodes ~= count then
+		return nil
+	end
+
+	return nodes
+end
+
+-- The positions handed out to mUnits: along the drawn line, but see above
+local function GetFormationTargets(mUnits, shifted)
+	local interpNodes = GetInterpNodes(mUnits)
+
+	local ok, agileNodes = pcall(GetAgileLandingNodes, mUnits, interpNodes, shifted)
+	if ok and agileNodes then
+		return agileNodes
+	end
+
+	return interpNodes
+end
+
+-- The dots shown while the line is being drawn: where the units will be sent, which is not along
+-- the line when that is too tight for them. Worked out again only when the line has changed.
+local previewNodes, previewKey
+local function GetPreviewNodes()
+	local nodeCount = #fNodes
+	local _, _, meta, shift = GetModKeys()
+	local shifted = (shift and not meta) and true or false
+	local key = nodeCount
+		.. ":"
+		.. lineLength
+		.. ":"
+		.. tostring(usingCmd)
+		.. ":"
+		.. tostring(WG.formationShape)
+		.. ":"
+		.. selectedUnitsCount
+		.. ":"
+		.. tostring(shifted)
+	if key ~= previewKey then
+		previewKey = key
+		previewNodes = nil
+		local cmdID = usingCmd --[[@as integer?]]
+		if nodeCount >= 2 and cmdID and shapedCmds[cmdID] then
+			local mUnits = GetExecutingUnits(cmdID)
+			if #mUnits > 1 then
+				local ok, nodes = pcall(GetAgileLandingNodes, mUnits, nil, shifted)
+				if ok and type(nodes) == "table" then
+					previewNodes = nodes
+				end
+			end
+		end
+	end
+	return previewNodes
+end
+
+-- What is drawn of them: every dot glides to where it belongs now. The layout is worked out afresh
+-- for every bit of line that is added, and without this the dots jump about while the line is
+-- still short. Only the preview is eased, the orders are given to the exact spots.
+local previewShown = nil ---@type number[][]?
+local previewShownTime = 0.0
+local previewTargets = nil ---@type number[][]?
+local previewTargetsFor = nil ---@type number[][]?
+local previewEaseRate = 12 -- per second: most of the way in a tenth of a second
+
+-- Which new spot each drawn dot glides to: the nearest one still free, the dots that are furthest
+-- from any spot choosing first. Matching them by their number instead sends dots right across the
+-- formation whenever the number of rows changes.
+local function MatchPreviewTargets(shown, nodes)
+	local count = #nodes
+	local targets = {}
+	local taken = {}
+
+	-- (the dots with the longest way to go first, or they are left with the far corners)
+	local order = {}
+	for i = 1, count do
+		local sx, sz = shown[i][1], shown[i][3]
+		local nearest = huge
+		for j = 1, count do
+			local d = (nodes[j][1] - sx) ^ 2 + (nodes[j][3] - sz) ^ 2
+			if d < nearest then
+				nearest = d
+			end
+		end
+		order[i] = { i, nearest }
+	end
+	tsort(order, function(a, b)
+		return a[2] > b[2]
+	end)
+
+	for o = 1, count do
+		local i = order[o][1]
+		local sx, sz = shown[i][1], shown[i][3]
+		local best, bestDist = nil, huge
+		for j = 1, count do
+			if not taken[j] then
+				local d = (nodes[j][1] - sx) ^ 2 + (nodes[j][3] - sz) ^ 2
+				if d < bestDist then
+					best, bestDist = j, d
+				end
+			end
+		end
+		taken[best] = true
+		targets[i] = nodes[best]
+	end
+
+	-- Then trade spots wherever that shortens the squares of the two ways: when a spot goes at one
+	-- end of a shape and a new one comes up at the other, everybody moves up one, nobody crosses it
+	if count <= 150 then
+		for _ = 1, 6 do
+			local traded = false
+			for i = 1, count - 1 do
+				local si = shown[i]
+				for j = i + 1, count do
+					local sj = shown[j]
+					local ti, tj = targets[i], targets[j]
+					if ti and tj then
+						local kept = (ti[1] - si[1]) ^ 2
+							+ (ti[3] - si[3]) ^ 2
+							+ (tj[1] - sj[1]) ^ 2
+							+ (tj[3] - sj[3]) ^ 2
+						local swapped = (tj[1] - si[1]) ^ 2
+							+ (tj[3] - si[3]) ^ 2
+							+ (ti[1] - sj[1]) ^ 2
+							+ (ti[3] - sj[3]) ^ 2
+						if swapped < kept - 0.01 then
+							targets[i], targets[j] = tj, ti
+							traded = true
+						end
+					end
+				end
+			end
+			if not traded then
+				break
+			end
+		end
+	end
+
+	return targets
+end
+
+local function GetShownPreviewNodes()
+	local nodes = GetPreviewNodes()
+	if not nodes then
+		previewShown, previewTargets, previewTargetsFor = nil, nil, nil
+		return nil
+	end
+
+	local now = osclock()
+	local shownList = previewShown
+	if not shownList or #shownList ~= #nodes or (now - previewShownTime) > 0.5 then
+		-- (nothing to glide from: a new group, or a new line)
+		shownList = {}
+		for i = 1, #nodes do
+			shownList[i] = { nodes[i][1], nodes[i][2], nodes[i][3] }
+		end
+		previewShown = shownList
+		previewTargets, previewTargetsFor = nodes, nodes
+	else
+		local targetList = previewTargets
+		if previewTargetsFor ~= nodes or not targetList then
+			-- the layout has changed (matching is quadratic, a very large group keeps its numbering)
+			targetList = (#nodes <= 300) and MatchPreviewTargets(shownList, nodes) or nodes
+			previewTargets, previewTargetsFor = targetList, nodes
+		end
+		-- (drawn more than once a frame, world and minimap: the second time no time has passed)
+		local blend = 1 - math.exp(-(now - previewShownTime) * previewEaseRate)
+		for i = 1, #nodes do
+			local shown, node = shownList[i], targetList[i]
+			if shown and node then
+				shown[1] = shown[1] + (node[1] - shown[1]) * blend
+				shown[2] = shown[2] + (node[2] - shown[2]) * blend
+				shown[3] = shown[3] + (node[3] - shown[3]) * blend
+			end
+		end
+	end
+	previewShownTime = now
+
+	return shownList
 end
 
 local function GetCmdOpts(alt, ctrl, meta, shift, right)
@@ -684,7 +1360,7 @@ function widget:MouseRelease(mx, my, mButton)
 			local mUnits = GetExecutingUnits(usingCmd)
 
 			if #mUnits > 0 then
-				local interpNodes = GetInterpNodes(mUnits)
+				local interpNodes = GetFormationTargets(mUnits, shift and not meta)
 
 				local orders
 				if #mUnits <= maxHungarianUnits then
@@ -776,6 +1452,15 @@ local function DrawGroundquad(x, y, z, size)
 end
 
 local function DrawFormationDotQuads(dotSize, lengthPerUnit)
+	local shapedNodes = GetShownPreviewNodes()
+	if shapedNodes then
+		for i = 1, #shapedNodes do
+			local node = shapedNodes[i]
+			DrawGroundquad(node[1], node[2], node[3], dotSize)
+		end
+		return
+	end
+
 	local nodeCount = #fNodes
 	local firstNode = fNodes[1]
 	DrawGroundquad(firstNode[1], firstNode[2], firstNode[3], dotSize)
@@ -1517,7 +2202,7 @@ function widget:Initialize()
 				-- Formation order
 				local mUnits = GetExecutingUnits(usingCmd)
 				if #mUnits > 0 then
-					local interpNodes = GetInterpNodes(mUnits)
+					local interpNodes = GetFormationTargets(mUnits, shift and not meta)
 					local orders
 					if #mUnits <= maxHungarianUnits then
 						orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shift and not meta)
@@ -1619,7 +2304,7 @@ function widget:Initialize()
 			if #mUnits == 0 then
 				return nil
 			end
-			local interpNodes = GetInterpNodes(mUnits)
+			local interpNodes = GetFormationTargets(mUnits, shifted)
 			local orders
 			if #mUnits <= maxHungarianUnits then
 				orders = GetOrdersHungarian(interpNodes, mUnits, #mUnits, shifted, false)

@@ -1,4 +1,5 @@
 # September
+- [Formations] A drawn line too short for the selected units no longer spreads them along it closer than they can stand: they are laid out in rows along the drawn line, or in a shape (square, hex, sunflower, diamond) chosen in the new Formation Shape window shown while two or more mobile units are selected. Lines that fit the group in one row are unchanged.
 - [Territorial Domination]
   - Points are now gained continuously, rounds are renamed to "Deadlines", GUI Reworked to better represent the new points system.
   - Default length is now 5 Deadlines of 6 minutes (30 minutes). Length options are 3, 4, 5, 7, or 10 Deadlines.
