@@ -86,6 +86,16 @@ end
   repurposing one silently discards existing user config. Never change serialization or persistent shapes silently.
 - `VFS.Include("gamedata/icontypes.lua")` is the pattern for pulling in shared data files.
 
+## Code Comments
+
+- Default to no comment. Add one only when the code cannot say it: a non-obvious reason, an engine quirk or
+  workaround, units or coordinate space, or why the obvious alternative is wrong.
+- Keep comments to one line where possible. A comment longer than the code it describes is usually a sign the code
+  should be clearer instead.
+- Describe the code as it is, not how it got there: no "changed", "now", "fixed", "new", or references to the task,
+  prompt, or conversation. That history belongs in the commit message and pull request.
+- When your change makes an existing comment wrong, update or delete it. Leave unrelated comments alone.
+
 ## Lua 5.1
 
 - Lua 5.1 syntax and semantics throughout. The game runs on Recoil, a SpringRTS fork; engine Lua API:

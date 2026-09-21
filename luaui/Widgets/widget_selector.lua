@@ -958,6 +958,7 @@ local function buildCategories()
 	local counts, active, total, on = {}, {}, 0, 0
 	local changed, changedOn = 0, 0
 	local mine, mineOn = 0, 0
+	local rml, rmlOn = 0, 0
 	local starred, starredOn = 0, 0
 	for i = 1, #entries do
 		local e = entries[i]
@@ -980,6 +981,12 @@ local function buildCategories()
 				mine = mine + 1
 				if e.data.active then
 					mineOn = mineOn + 1
+				end
+			end
+			if e.isRml then
+				rml = rml + 1
+				if e.data.active then
+					rmlOn = rmlOn + 1
 				end
 			end
 			if fav.names[e.name] then
@@ -1012,6 +1019,15 @@ local function buildCategories()
 	-- the header had no room to spare.
 	if mine > 0 then
 		categories[#categories + 1] = { key = "local", label = L.mine, count = mine, active = mineOn }
+	end
+	-- The widgets that build their interface through RmlUi rather than drawing it the way
+	-- the rest of the list does. The same kind of view as Your own, and matched the same way
+	-- the tag on the row is: whether the source uses the API, not where the file sits, since
+	-- a player's own can live anywhere. It carries no colour for the same reason Your own
+	-- does not - an RmlUi widget still has a prefix, and the colour ahead of it on the row
+	-- is its group's.
+	if rml > 0 then
+		categories[#categories + 1] = { key = "rml", label = L.rmlui, count = rml, active = rmlOn }
 	end
 	for _, g in ipairs(GROUP_ORDER) do
 		if counts[g] then
@@ -1148,12 +1164,13 @@ rebuildRows = function()
 		-- The loop covers every index, so this cannot be nil.
 		---@cast e -?
 		if (not filters.enabledOnly or e.state > 0) and (not filters.errorsOnly or e.errors) then
-			-- `favorite`, `changed` and `local` are views of the whole list rather than filename
-			-- prefixes, so each is matched on what it means instead of on the group.
+			-- `favorite`, `changed`, `local` and `rml` are views of the whole list rather than
+			-- filename prefixes, so each is matched on what it means instead of on the group.
 			local inView = not selectedCategory
 				or (selectedCategory == fav.key and fav.names[e.name])
 				or (selectedCategory == "changed" and e.changed)
 				or (selectedCategory == "local" and e.isLocal)
+				or (selectedCategory == "rml" and e.isRml)
 				or e.group == selectedCategory
 			if not scored then
 				if inView then
@@ -1177,6 +1194,7 @@ rebuildRows = function()
 					add(fav.names[e.name] and found[fav.key], on)
 					add(e.changed and found.changed, on)
 					add(e.isLocal and found["local"], on)
+					add(e.isRml and found.rml, on)
 				end
 			end
 		end
@@ -2757,7 +2775,7 @@ local function drawSidebar()
 		end
 		local ty = mathFloor((y1 + y2) * 0.5)
 		-- A prefix group carries its colour ahead of its label, which is the key to the squares on
-		-- the rows. All, Changed and Your own cut across the groups, so they have none.
+		-- the rows. All, Changed, Your own and RmlUi cut across the groups, so they have none.
 		--
 		-- Favourites carries the same star its rows are starred with instead, in the slot the
 		-- colour would have taken: the mark on the rows and the mark on the category it
@@ -3309,6 +3327,7 @@ local function loadLabels()
 
 	L.search = tr("search", "Search...")
 	L.mine = tr("category.local", "Your own")
+	L.rmlui = tr("category.rml", "RmlUi")
 	L.enabledOnly = tr("enabledonly", "Enabled only")
 	L.errorsOnly = tr("errorsonly", "Errors only")
 	L.byOrder = tr("byorder", "By load order")
@@ -3429,6 +3448,10 @@ local function loadLabels()
 			"localdesc",
 			"The widgets in your own LuaUI folder rather than the ones the game ships. They carry a local tag on the row too."
 		),
+		rmlui = tr(
+			"rmldesc",
+			"The widgets that build their interface with RmlUi, laid out from markup and style sheets, rather than drawing it themselves. Found by what their source uses rather than where the file sits, so your own count too. They carry an rml tag on the row as well."
+		),
 		enabledOnly = tr(
 			"enabledonlydesc",
 			"Show only the widgets the config says to load - running or not - so what is off stays out of the way."
@@ -3529,12 +3552,17 @@ local function bindUi()
 		searchBox = Editbox.new({
 			outline = look.outline,
 			placeholder = L.search,
+			-- It is focused from the moment the panel opens, so it would otherwise never show.
+			keepPlaceholder = true,
 			clearable = true,
 			onChange = function()
 				setScroll(0)
 				rebuildRows()
 			end,
 		})
+		-- Focused from the start: a panel opened before FlowUI was up had no field to focus yet,
+		-- and a hidden panel never takes the keyboard.
+		searchBox:focus()
 		nameBox = Editbox.new({ outline = look.outline })
 		setPicker = Dropdown.new({
 			outline = look.outline,
@@ -3637,6 +3665,10 @@ local function setShow(state)
 			end
 		end
 		refreshContent()
+		-- Ready to type into; Update takes the keyboard next frame.
+		if uiBound then
+			searchBox:focus()
+		end
 	else
 		closePanel()
 	end
@@ -3872,6 +3904,8 @@ local function showTooltip(row)
 			body = L.desc.changed
 		elseif c.key == "local" then
 			body = L.desc.mine
+		elseif c.key == "rml" then
+			body = L.desc.rmlui
 		else
 			-- Which filename prefix this one collects. The full-word label deliberately does
 			-- not say it, and it is the one thing about a category worth knowing.
@@ -4241,7 +4275,7 @@ end
 -- Input
 ----------------------------------------------------------------
 
-function widget:KeyPress(key)
+function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, actions)
 	if not show or not uiBound then
 		return false
 	end
@@ -4296,6 +4330,12 @@ function widget:KeyPress(key)
 	end
 
 	if searchBox:isFocused() then
+		-- Let the panel's own toggle (F11) through, or the focused field would swallow it.
+		for _, bound in ipairs(actions or {}) do
+			if bound.command == "widgetselector" or (bound.command == "luaui" and bound.extra == "selector") then
+				return false
+			end
+		end
 		searchBox:keyPress(key)
 
 		return true
