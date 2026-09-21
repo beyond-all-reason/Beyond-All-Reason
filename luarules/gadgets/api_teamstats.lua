@@ -514,6 +514,9 @@ local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 		return Spring.GetFactoryCommands(unitID, 0)
 	end
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGameSpeed = Spring.GetGameSpeed
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
 
 ---@type table<integer, number>
 local defCost = {}
@@ -2424,6 +2427,32 @@ function gadget:GameFrame(frame)
 	if frame % LIVE_PERIOD == 0 then
 		serveLuaUI(frame)
 	end
+end
+
+-- The game paused, no frame is stepped and nothing above runs: a panel opened while the game
+-- stands still would be handed nothing until it moved again - no live numbers, and no answer
+-- to what its charts ask for. So the hand-over is served from the clock on the wall instead
+-- while the game is paused, as often as a running game serves it. Only the hand-over: what it
+-- reads cannot change while the simulation is still, so there is nothing to scan or sample.
+
+-- When it was last served that way.
+---@type integer?
+local pausedAt
+
+---@diagnostic disable-next-line: undefined-field
+function gadget:Update()
+	local _, _, paused = spGetGameSpeed()
+	if not paused then
+		pausedAt = nil
+		return
+	end
+	local now = spGetTimer()
+	-- The first Update of a pause serves at once: what asks is waiting on it.
+	if pausedAt and spDiffTimers(now, pausedAt) < LIVE_PERIOD / Game.gameSpeed then
+		return
+	end
+	pausedAt = now
+	serveLuaUI(spGetGameFrame())
 end
 
 function gadget:Initialize()
