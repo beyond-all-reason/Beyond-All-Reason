@@ -427,6 +427,28 @@ local COLUMNS = {
 		ally = true,
 	},
 	comLost = { group = "commanders", stat = "comLost", short = "unitsDied", fmt = "si", rate = true, step = true },
+	-- The map's own hazards: the damage lava did to a team's units, and what it lost to lava,
+	-- deep water or the void. Only on a map that has them (`hazard`).
+	lavaDamage = {
+		group = "map",
+		stat = "lavaDamage",
+		short = "shortLavaDamage",
+		fmt = "si",
+		rate = true,
+		low = true,
+		gadget = true,
+		hazard = "lava",
+	},
+	lostWater = {
+		group = "map",
+		stat = "lostWater",
+		short = "shortLostWater",
+		fmt = "si",
+		rate = true,
+		low = true,
+		gadget = true,
+		hazard = "any",
+	},
 }
 for key, column in pairs(COLUMNS) do
 	column.key = key
@@ -578,6 +600,8 @@ local GROUPS = {
 			"radarCoverage",
 			"jammerCoverage",
 			"frontLine",
+			"lavaDamage",
+			"lostWater",
 		},
 	},
 	{
@@ -1002,12 +1026,19 @@ handover.rankedIn = function(all)
 	end
 	return count > 1
 end
+-- The map's hazards: lava, and void water that takes away what ends up below the ground line.
+handover.lavaMap = BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
+do
+	local ok, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	handover.voidMap = ok and type(mapinfo) == "table" and mapinfo.voidwater == true
+end
 -- Whether a column can be shown: the gadget's while it is there, a count of the map's spots
--- on a map that has some, the ranking's in a ranked game.
+-- on a map that has some, the ranking's in a ranked game, a hazard's on a map that has it.
 handover.shows = function(column)
 	return (handover.on or not column.gadget)
 		and (not column.spots or handover.spotCount(column.spots) > 0)
 		and (not column.ranked or handover.ranked == true)
+		and (not column.hazard or handover.lavaMap or (column.hazard == "any" and handover.voidMap))
 end
 -- The last name seen for each team, for a player who has since left.
 local teamControllers = {}
@@ -3553,7 +3584,7 @@ local function setShown(state)
 	-- The numbers freeze at game over; a panel first opened after it still needs one read.
 	-- The charts ask for what they do not have yet whenever the panel opens: after game
 	-- over nothing else would, and an answer the panel was closed for is lost.
-	graphs.lastPeriod = -1
+	graphs.askAgain()
 	if not gameover or #allies == 0 then
 		refresh()
 	elseif graphs.open or filters.trend then
@@ -3885,6 +3916,9 @@ end
 
 -- The numbers stop at game over: what happens in the minutes after is not the game.
 function widget:GameOver()
+	-- The gadget takes its last sample and opens every team's numbers: asked for again, as
+	-- nothing refreshes the charts on its own after this.
+	graphs.askAgain()
 	refresh()
 	gameover = true
 	handover.postGame = true
