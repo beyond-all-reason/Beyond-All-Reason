@@ -27,6 +27,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	if name == "corthud" then
 		uDef.health = 1200
 		uDef.buildtime = 2300
+		uDef.energycost = 1400
 		uDef.weapondefs.arm_ham.areaofeffect = 48
 		uDef.weapondefs.arm_ham.reloadtime = 1.7
 		uDef.turnrate = 1200
@@ -34,24 +35,31 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 
 	if name == "armart" then
-		uDef.speed = 56 --was 54
+		uDef.speed = 55 --was 54
+		uDef.turnrate = 320 --394
 		uDef.weapondefs.tawf113_weapon.weaponvelocity = 390
 		uDef.weapondefs.tawf113_weapon.mygravity = nil
 		uDef.weapondefs.tawf113_weapon.areaofeffect = 80 --75
 		uDef.weapondefs.tawf113_weapon.range = 730 --710
 		uDef.weapondefs.tawf113_weapon.impulsefactor = 0.5
-		uDef.weapondefs.tawf113_weapon.damage.default = 210 --182
+		uDef.weapondefs.tawf113_weapon.damage.default = 230 --182
+		uDef.weapondefs.tawf113_weapon.reloadtime = 4.6
 		uDef.weapondefs.tawf113_weapon.accuracy = 100
 	end
 	if name == "corwolv" then
-		uDef.speed = 50 --was 48
+		uDef.speed = 53 --was 48
+		uDef.turnrate = 280 --466
+		uDef.metalcost = 200
+		uDef.energycost = 3000
+		uDef.buildtime = 4000
 		uDef.weapondefs.corwolv_gun.weaponvelocity = 390
 		uDef.weapondefs.corwolv_gun.mygravity = nil
-		uDef.weapondefs.corwolv_gun.range = 730 --710
+		uDef.weapondefs.corwolv_gun.range = 750 --710
 		uDef.weapondefs.corwolv_gun.areaofeffect = 144 --113
 		uDef.weapondefs.corwolv_gun.impulsefactor = 0.5
-		--uDef.weapondefs.corwolv_gun.damage.default = 320
-		uDef.health = 900
+		uDef.weapondefs.corwolv_gun.damage.default = 400
+		uDef.weapondefs.corwolv_gun.reloadtime = 8
+		uDef.health = 1100
 	end
 
 	if name == "armmart" then
