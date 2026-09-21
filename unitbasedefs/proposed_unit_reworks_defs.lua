@@ -227,19 +227,21 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.arm_pincer_gauss.damage.default = 120
 		uDef.weapondefs.arm_pincer_gauss.areaofeffect = 24
 		uDef.weapondefs.arm_pincer_gauss.range = 320
-
+		uDef.weapondefs.arm_pincer_gauss.predictboost = 0.4
 	end
 	if name == "armpincer" then
-		uDef.health = 1400
+		uDef.health = 1300
 		uDef.weapondefs.arm_pincer_gauss.damage.default = 120
 		uDef.weapondefs.arm_pincer_gauss.areaofeffect = 24
 		uDef.weapondefs.arm_pincer_gauss.range = 320
+		uDef.weapondefs.arm_pincer_gauss.predictboost = 0.4
 	end
 	if name == "legamphtank" then
-		uDef.health = 1400
+		uDef.health = 1300
 		uDef.weapondefs.leg_amph_gauss.damage.default = 120
 		uDef.weapondefs.leg_amph_gauss.areaofeffect = 24
 		uDef.weapondefs.leg_amph_gauss.range = 320
+		uDef.weapondefs.leg_amph_gauss.predictboost = 0.4
 	end
 
 	--if name == "armack" or name == "corack" or name == "legack" 
