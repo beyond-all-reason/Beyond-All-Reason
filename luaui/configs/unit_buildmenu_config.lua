@@ -87,10 +87,9 @@ table.sort(unitOrder, function(aID, bID)
 	return aOrder < bOrder
 end)
 
----Whether a build option is greyed out: blocked for the whole team, or blocked for
----the given builder unit type only (see GG.BuildBlocking in api_build_blocking.lua).
+---Blocked for the whole team, or for this builder type.
 ---@param unitDefID number
----@param builderDefID number? The builder unit type whose menu is shown.
+---@param builderDefID number?
 ---@return boolean
 local function isRestricted(unitDefID, builderDefID)
 	if unitRestricted[unitDefID] then
@@ -103,10 +102,10 @@ local function isRestricted(unitDefID, builderDefID)
 	return builderRestricted ~= nil and builderRestricted[unitDefID] ~= nil
 end
 
----Records a block change (the UnitBlocked callin).
+---Applies a UnitBlocked callin.
 ---@param unitDefID number
----@param reasons table<string, boolean> Empty once the unit is no longer blocked.
----@param builderDefID number? Set when the block applies to one builder unit type only.
+---@param reasons table<string, boolean> empty when unblocked
+---@param builderDefID number? set for a per-builder block
 local function setBlocked(unitDefID, reasons, builderDefID)
 	if builderDefID then
 		table.ensureTable(builderUnitRestricted, builderDefID)[unitDefID] = next(reasons) ~= nil and reasons or nil
@@ -116,7 +115,7 @@ local function setBlocked(unitDefID, reasons, builderDefID)
 	end
 end
 
----Loads the current blocks from the team rules params (widget load, /luaui reload).
+---Loads the current blocks (widget load).
 local function loadBlocked()
 	local teamID = Spring.GetLocalTeamID()
 	for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs(teamID)) do
@@ -136,7 +135,7 @@ local units = {
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
 	unitHidden = unitHidden,
-	---Units greyed out for one builder type only: builder UnitDefID -> blocked UnitDefID -> reasons.
+	---Per-builder blocks: builder UnitDefID -> blocked UnitDefID -> reasons.
 	builderUnitRestricted = builderUnitRestricted,
 	unitIconType = unitIconType,
 	unitMaxWeaponRange = unitMaxWeaponRange,

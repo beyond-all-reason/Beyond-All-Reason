@@ -44,9 +44,7 @@ if gadgetHandler:IsSyncedCode() then
 	local teamBlockedUnitDefs = {}
 	-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
 
-	-- Blocks that only apply when a specific builder unit type gives the order.
-	-- data structure: teamID = { builderUnitDefID = { unitDefID = {reasonKey = true, ...} } }
-	-- Published as team rules params "builder_blocked_<builderUnitDefID>_<unitDefID>".
+	-- blocks for one builder type only: teamID = { builderUnitDefID = { unitDefID = {reasonKey = true, ...} } }
 	local teamBuilderBlockedUnitDefs = {}
 
 	local teamsList = Spring.GetTeamList()
@@ -91,6 +89,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local unitRestrictions = VFS.Include("common/configs/unit_restrictions_config.lua")
+	local unitBlocking = VFS.Include("common/unitBlocking.lua")
+
+	---@param blockedUnits table<number, table<string, boolean>> unitDefID -> reasons
+	local function reapplyBlocks(teamID, blockedUnits, builderUnitDefID)
+		for unitDefID, reasons in pairs(blockedUnits) do
+			for reasonKey in pairs(reasons) do
+				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
+			end
+		end
+	end
 
 	local function parseTeamParameter(teamParam, playerID)
 		if teamParam == "all" then
@@ -266,19 +274,11 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		GG.BuildBlocking = GG.BuildBlocking or {}
 
-		-- The published params outlive a /luarules reload (a fresh start has none):
-		-- reapply them so mission and chat blocks keep refusing orders and the
-		-- menus stay in sync.
+		-- reapply the blocks published before a /luarules reload (a fresh start has none)
 		for _, teamID in ipairs(teamsList) do
-			for paramName, reasonsStr in pairs(Spring.GetTeamRulesParams(teamID) or {}) do
-				local unitDefIDStr = string.match(paramName, "^unitdef_blocked_(%d+)$")
-				local builderStr, builtStr = string.match(paramName, "^builder_blocked_(%d+)_(%d+)$")
-				local unitDefID = tonumber(unitDefIDStr or builtStr)
-				if unitDefID and type(reasonsStr) == "string" then
-					for reasonKey in string.gmatch(reasonsStr, "[^,]+") do
-						GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey, tonumber(builderStr))
-					end
-				end
+			reapplyBlocks(teamID, unitBlocking.getBlockedUnitDefs(teamID))
+			for builderUnitDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs(teamID)) do
+				reapplyBlocks(teamID, blockedUnits, builderUnitDefID)
 			end
 		end
 
@@ -342,13 +342,10 @@ if gadgetHandler:IsSyncedCode() then
 
 	---Marks a unit definition as unbuildable by a team for the given reason.
 	---Reasons stack: the unit stays blocked until every reason is removed.
-	---With `builderUnitDefID` only orders from that builder unit type are refused.
-	---Team-wide and per-builder blocks are separate: remove a reason with the
-	---same `builderUnitDefID` it was added with.
 	---@param unitDefID UnitDefID
 	---@param teamID TeamID
 	---@param reasonKey string Identifier for why the unit is blocked, e.g. "terrain_water".
-	---@param builderUnitDefID UnitDefID? Limit the block to this builder unit type.
+	---@param builderUnitDefID UnitDefID? Block orders from this builder type only.
 	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
@@ -371,7 +368,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@param unitDefID UnitDefID
 	---@param teamID TeamID
 	---@param reasonKey string Identifier previously passed to `AddBlockedUnit`.
-	---@param builderUnitDefID UnitDefID? The builder unit type the reason was added for; `nil` for a team-wide reason.
+	---@param builderUnitDefID UnitDefID? As passed to `AddBlockedUnit`.
 	---@return boolean removed `true` if that reason was set and has been cleared.
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
@@ -407,7 +404,7 @@ if gadgetHandler:IsSyncedCode() then
 	---Whether a team is currently blocked from building a unit definition.
 	---@param unitDefID UnitDefID
 	---@param teamID TeamID
-	---@param builderUnitDefID UnitDefID? Also consider blocks specific to this builder unit type.
+	---@param builderUnitDefID UnitDefID? Also check blocks for this builder type.
 	---@return boolean blocked
 	local function isUnitBlocked(unitDefID, teamID, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]

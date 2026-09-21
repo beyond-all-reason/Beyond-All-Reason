@@ -25,7 +25,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
-local dynamicBuildOptions = VFS.Include("luaui/Include/dynamicBuildOptions.lua")
+local dynamicBuildOptions = VFS.Include("common/dynamicBuildOptions.lua")
 
 local pairs = pairs
 local ipairs = ipairs
@@ -260,9 +260,7 @@ local function getCachedActiveCmdDescs()
 	return cachedActiveCmdDescs
 end
 
----Whether a build option is greyed out for the current selection: blocked for the
----whole team, or blocked for every selected builder type that offers it (blocks can
----be limited to one builder type, see GG.BuildBlocking).
+---Greyed out when blocked for the team, or for every selected builder type that offers it.
 local function isUnitRestricted(uDefID)
 	if preGamestartPlayer then
 		return units.isRestricted(uDefID, startDefID)

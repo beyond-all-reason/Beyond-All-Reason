@@ -6,39 +6,15 @@ function gadget:GetInfo()
 		desc = "Adds and removes build options of builder and factory unit types at runtime, for existing and future units",
 		date = "2026.09.15",
 		license = "GNU GPL, v2 or later",
-		layer = -1, -- initializes before unit_prevent_strange_orders.lua, which uses GG.DynamicBuildOptions
+		layer = -1, -- before unit_prevent_strange_orders.lua, which uses GG.DynamicBuildOptions
 		enabled = true,
 	}
 end
 
---[[
-	API (synced):
-		GG.DynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position) -> boolean
-			Every current and future unit of `builderUnitDefID` can build `builtUnitDefID`.
-			`position` (optional, 1-based) is the slot among the unit's build options in
-			its command descriptions; without it the option goes after the last one.
-			Menus that sort options themselves (grid menu, smart ordering) ignore it.
-		GG.DynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID) -> boolean
-			Takes the option away again. The engine also removes queued orders for it
-			from the units' queues (CCommandAI::HandleBuildOptionRemoval).
-		GG.DynamicBuildOptions.HasBuildOption(builtUnitDefID, builderUnitDefID) -> boolean
+-- Build options are per-unit command descriptions (id = -unitDefID); inserting or removing one also
+-- updates what the unit can build. Changes are kept per builder unit def and applied to new units in
+-- UnitCreated. LuaUI reads them through common/dynamicBuildOptions.lua and the BuildOptionsChanged callin.
 
-	The engine keeps build options per unit as command descriptions with a negative
-	id (-unitDefID); Spring.InsertUnitCmdDesc / RemoveUnitCmdDesc on a builder or
-	factory also update its command AI's build option set, so the unit really can,
-	or no longer can, build it. Unit defs cannot change, so the changes are kept per
-	builder unit def and applied to new units in UnitCreated.
-
-	The game rules param "dynamic_build_options" lists the changes for LuaUI, so a
-	build menu that loads mid-game knows them (luaui/Include/dynamicBuildOptions.lua):
-	comma-separated "<builderUnitDefID>:<builtUnitDefID>:<1 added / 0 removed>" entries.
-	Script.LuaUI.BuildOptionsChanged tells open build menus to refresh.
-
-	Only unit defs with a builder or factory command AI (isBuilder) accept options,
-	and the BAR build menus only open for unit types whose def has build options.
-]]
-
-local RULES_PARAM = "dynamic_build_options"
 local SYNC_ACTION = "DynamicBuildOptionsChanged"
 
 if gadgetHandler:IsSyncedCode() then
@@ -48,16 +24,16 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 	local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 	local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
-	local spSetGameRulesParam = Spring.SetGameRulesParam
 
 	local CMDTYPE_ICON = CMDTYPE.ICON
 	local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 
+	local buildOptionChanges = VFS.Include("common/dynamicBuildOptions.lua")
+
 	local teamsList = Spring.GetTeamList()
 	---@cast teamsList -?
 
-	-- builderUnitDefID -> { builtUnitDefID = true }, as defined by the unit defs.
-	-- Only unit defs that get a builder or factory command AI have an entry.
+	-- builderUnitDefID -> { builtUnitDefID = true } from the unit defs, for builders and factories only
 	---@type table<number, table<number, true>?>
 	local staticBuildOptions = {}
 	---@type table<number, boolean>
@@ -96,8 +72,7 @@ if gadgetHandler:IsSyncedCode() then
 		}
 	end
 
-	---Index in the unit's command descriptions at which an inserted build option
-	---becomes the `position`-th build option; `nil` appends after the last one.
+	---Command description index that makes the option the `position`-th build option; nil appends.
 	local function resolveInsertIndex(unitID, position)
 		local cmdDescs = spGetUnitCmdDescs(unitID)
 		if not cmdDescs then
@@ -154,23 +129,21 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function publish(builderUnitDefID, builtUnitDefID, added)
-		local entries = {}
+		local changes = {}
 		for builder, options in pairs(addedBuildOptions) do
 			for built in pairs(options) do
-				entries[#entries + 1] = builder .. ":" .. built .. ":1"
+				table.ensureTable(changes, builder)[built] = true
 			end
 		end
 		for builder, options in pairs(removedBuildOptions) do
 			for built in pairs(options) do
-				entries[#entries + 1] = builder .. ":" .. built .. ":0"
+				table.ensureTable(changes, builder)[built] = false
 			end
 		end
-		spSetGameRulesParam(RULES_PARAM, entries[1] and table.concat(entries, ",") or nil)
+		buildOptionChanges.publish(changes)
 		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, added)
 	end
 
-	-- Unit def ids are validated by the callers (the mission API's UnitDefID parameter
-	-- type); whether a unit type can take build options is this gadget's rule.
 	local function isBuilderDef(builderUnitDefID, caller)
 		if staticBuildOptions[builderUnitDefID] then
 			return true
@@ -206,10 +179,10 @@ if gadgetHandler:IsSyncedCode() then
 	local dynamicBuildOptions = {}
 
 	---Gives every current and future unit of a builder or factory type a build option.
-	---@param builtUnitDefID UnitDefID The unit to make buildable.
-	---@param builderUnitDefID UnitDefID The builder or factory unit type that gets the option.
-	---@param position integer? 1-based slot among the unit's build options; `nil` puts it after the last one.
-	---@return boolean applied `false` when the builder type cannot build.
+	---@param builtUnitDefID UnitDefID
+	---@param builderUnitDefID UnitDefID
+	---@param position integer? Slot among the unit's build options; last when nil. Menus that sort options ignore it.
+	---@return boolean applied false when the builder type cannot build
 	function dynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, position)
 		if not isBuilderDef(builderUnitDefID, "Add") then
 			return false
@@ -221,10 +194,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	---Takes a build option away from every current and future unit of a builder or factory type.
-	---The engine also removes queued orders for it from the units' queues.
+	---The engine also drops queued orders for it.
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID
-	---@return boolean applied `false` when the builder type cannot build.
+	---@return boolean applied false when the builder type cannot build
 	function dynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID)
 		if not isBuilderDef(builderUnitDefID, "Remove") then
 			return false
@@ -235,8 +208,7 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	---Whether units of a builder or factory type currently get a build option
-	---(from the unit def or added at runtime, and not removed).
+	---Whether units of a builder or factory type currently have a build option.
 	---@param builtUnitDefID UnitDefID
 	---@param builderUnitDefID UnitDefID
 	---@return boolean
@@ -274,9 +246,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Shutdown()
 		GG.DynamicBuildOptions = nil
 	end
-
--------------------------------------------------------------------------------- Unsynced Code --------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------
 else
 	local function handleBuildOptionsChanged(_, builderUnitDefID, builtUnitDefID, added)
 		if Script.LuaUI.BuildOptionsChanged then

@@ -154,7 +154,7 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local dynamicBuildOptions = VFS.Include("luaui/Include/dynamicBuildOptions.lua")
+local dynamicBuildOptions = VFS.Include("common/dynamicBuildOptions.lua")
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
@@ -1017,9 +1017,7 @@ local function refreshCommands()
 	else
 		updateCategories(CONFIG.buildCategories)
 
-		-- The selected unit's live command descriptions, so options added or removed at
-		-- runtime (GG.DynamicBuildOptions) show up; the unit def copy serves the pregame
-		-- start unit, which has no unit yet.
+		-- the unit's live build options (they can change at runtime); the def copy is for pregame
 		local buildOptions = unitBuildOptions[activeBuilder]
 		local cmdDescs = activeBuilderID and Spring.GetUnitCmdDescs(activeBuilderID)
 		if cmdDescs then
@@ -1036,8 +1034,7 @@ local function refreshCommands()
 		gridOpts = grid.getSortedGridForBuilder(activeBuilder, buildOptions, currentCategory)
 	end
 
-	-- Filter out hidden units from gridOpts, and options the unit no longer has
-	-- (the home page comes from the static grid layout, not from buildOptions)
+	-- Filter out hidden units from gridOpts, and options the unit lacks (the home page layout is static)
 	if gridOpts then
 		local filteredOpts = {}
 		for i, opt in pairs(gridOpts) do

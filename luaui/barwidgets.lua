@@ -2914,7 +2914,7 @@ function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracy.ZoneEnd()
 end
 
----A build option was added to or removed from a builder unit type at runtime (api_dynamic_build_options.lua).
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
 function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 	tracy.ZoneBeginN("W:BuildOptionsChanged")
 	for _, w in ipairs(self.BuildOptionsChangedList) do

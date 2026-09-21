@@ -1,12 +1,9 @@
---- Reads the build blocks that api_build_blocking.lua (GG.BuildBlocking) publishes as team rules
---- params, for widgets and gadgets alike:
----   "unitdef_blocked_<unitDefID>"                    blocked for the whole team
----   "builder_blocked_<builderUnitDefID>_<unitDefID>" blocked for one builder unit type only
---- The values are the comma-separated blocking reasons.
+--- Reads the build blocks api_build_blocking.lua publishes as team rules params
+--- ("unitdef_blocked_<unitDefID>", "builder_blocked_<builderUnitDefID>_<unitDefID>" = comma-separated reasons).
 local unitBlocking = {}
 
----@param value string|number A rules param value: the comma-separated reasons.
----@return table<string, boolean> reasons reason -> true
+---@param value string|number
+---@return table<string, boolean>
 local function parseReasons(value)
 	local reasons = {}
 	for _, reason in ipairs(string.split(tostring(value), ",")) do
@@ -75,13 +72,9 @@ function unitBlocking.getBlockedUnitDefs(teamID, unitDefIDs)
 	return blockedUnits
 end
 
---- Gets unit definitions blocked only for a specific builder unit type from TeamRulesParams
---- (see `GG.BuildBlocking.AddBlockedUnit` with a `builderUnitDefID`).
+--- Gets unit definitions blocked for one builder unit type only from TeamRulesParams
 ---@param teamID TeamID
----@return table<number, table<number, table<string, boolean>>> blockedUnits Keyed by builder UnitDefID, then by blocked UnitDefID, with a table of blocking reasons (reason -> true)
----@usage
----   local byBuilder = unitBlocking.getBuilderBlockedUnitDefs(teamID)
----   if byBuilder[builderDefID] and byBuilder[builderDefID][unitDefID] then ... end
+---@return table<number, table<number, table<string, boolean>>> blockedUnits builder UnitDefID -> UnitDefID -> reasons
 function unitBlocking.getBuilderBlockedUnitDefs(teamID)
 	local teamRules = Spring.GetTeamRulesParams(teamID) or {}
 	local blockedUnits = {}
