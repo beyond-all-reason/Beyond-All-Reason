@@ -27,6 +27,8 @@ MINE_BLAST[WeaponDefNames.mine_light.id] = true
 MINE_BLAST[WeaponDefNames.mine_medium.id] = true
 MINE_BLAST[WeaponDefNames.mine_heavy.id] = true
 
+local ATTRIBUTE_SOURCE = "commando_watch"
+
 local isMine = {}
 local isParatrooper = {}
 local isMineResistant = {}
@@ -81,18 +83,22 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		mines[unitID] = builderID
 	end
 end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	mines[unitID] = nil
-end
-
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	mines[unitID] = nil
 end
 
--- So unloading the passenger releases the claim on the transport but does not remove the transport's stealth:
 local function stealthSource(unitID)
-	return "from_transportee_:" .. unitID
+	return ATTRIBUTE_SOURCE .. unitID -- so unloading one unit does not drop another passenger's factors
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	mines[unitID] = nil
+	if isStealthsTransport[unitDefID] then
+		local transportID = Spring.GetUnitTransporter(unitID) -- unit dies without "unloading"
+		if transportID then
+			GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", nil, stealthSource(unitID))
+		end
+	end
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
@@ -104,5 +110,14 @@ end
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if isStealthsTransport[unitDefID] then
 		GG.UnitAttributes.SetUnitAttribute(transportID, "stealth", nil, stealthSource(unitID))
+	end
+end
+
+function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local transportID = Spring.GetUnitTransporter(unitID)
+		if transportID then
+			gadget:UnitLoaded(unitID, Spring.GetUnitDefID(unitID), nil, transportID, nil)
+		end
 	end
 end

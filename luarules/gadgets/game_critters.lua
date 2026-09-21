@@ -217,7 +217,7 @@ local function setGaiaUnitSpecifics(unitID)
 	Spring.SetUnitNoSelect(unitID, true)
 	GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
 	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.SetUnitMaxHealth(unitID, 2)
+	GG.UnitAttributes.SetUnitAttribute(unitID, "maxHealth", 2, ATTRIBUTE_SOURCE)
 	Spring.SetUnitBlocking(unitID, false)
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 	for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
@@ -246,6 +246,12 @@ function gadget:Initialize()
 		if unitDefID and isCommander[unitDefID] then
 			local x, _, z = GetUnitPosition(unitID)
 			commanders[unitID] = { x, z }
+		end
+	end
+
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		if isCritter[GetUnitDefID(unitID)] then
+			setGaiaUnitSpecifics(unitID)
 		end
 	end
 

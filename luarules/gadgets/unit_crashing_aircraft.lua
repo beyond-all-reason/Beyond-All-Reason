@@ -107,10 +107,10 @@ if gadgetHandler:IsSyncedCode() then
 			SetUnitCrashing(unitID, true)
 			local wCount = unitWeaponCount[unitDefID]
 			if wCount then
+				GG.UnitAttributes.SetUnitAttribute(unitID, "reloadTime", 9999, ATTRIBUTE_SOURCE)
+				GG.UnitAttributes.SetUnitAttribute(unitID, "maxWeaponRange", 0, ATTRIBUTE_SOURCE)
 				for i = 1, wCount do
 					SetUnitWeaponState(unitID, i, "reloadState", 0)
-					SetUnitWeaponState(unitID, i, "reloadTime", 9999)
-					SetUnitWeaponState(unitID, i, "range", 0)
 					SetUnitWeaponState(unitID, i, "burst", 0)
 					SetUnitWeaponState(unitID, i, "aimReady", 0)
 					SetUnitWeaponState(unitID, i, "salvoLeft", 0)

@@ -46,7 +46,7 @@ local buildTargetOwnersByTeam = {} -- buildTargetOwnersByTeam[teamID] = {[builde
 
 local canBuild = {} --builders[teamID][builderID], contains all builders
 local realBuildSpeed = {} --build speed of builderID, as in UnitDefs (contains all builders)
-local isBuildRestricted = {} ---@type table<UnitID, boolean?>
+local isBuildRestricted = {} ---@type table<UnitID, true?>
 
 local costID = {} -- costID[unitID] (contains all non-finished units)
 
@@ -115,7 +115,7 @@ end
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	-- All builders can have their build speeds changed via lua
-	if unitDef.buildSpeed > 0 then
+	if unitDef.isBuilder then
 		unitBuildSpeed[unitDefID] = unitDef.buildSpeed
 	end
 	-- Units that can only repair, resurrect, or capture don't have a passive mode (in this gadget)
@@ -168,7 +168,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID)
 				passiveCons[teamID][unitID] = true
 				passiveConsCount[teamID] = (passiveConsCount[teamID] or 0) + 1
 			end
-			isBuildRestricted[unitID] = false
+			isBuildRestricted[unitID] = nil
 		end
 	end
 
@@ -239,7 +239,7 @@ function gadget:AllowCommand(
 				end
 			elseif realBuildSpeed[unitID] then
 				restrictBuildSpeed(unitID, false)
-				isBuildRestricted[unitID] = false
+				isBuildRestricted[unitID] = nil
 				if passiveCons[teamID][unitID] then
 					passiveCons[teamID][unitID] = nil
 					passiveConsCount[teamID] = passiveConsCount[teamID] - 1
@@ -276,6 +276,12 @@ local function UpdatePassiveBuilders(
 	suspendBuilderPriority = spGetTeamRulesParam(teamID, "suspendbuilderpriority")
 
 	if suspendBuilderPriority ~= 0 then
+		for builderID in pairs(passiveTeamCons) do
+			if isBuildRestricted[builderID] then
+				restrictBuildSpeed(builderID, false)
+				isBuildRestricted[builderID] = nil
+			end
+		end
 		return
 	end
 
@@ -324,13 +330,13 @@ local function UpdatePassiveBuilders(
 
 	-- Second pass: check non-passive builders ONLY if we have passive builders building
 	if anyPassiveBuilding then
-		local teamBuilders = canBuild[teamID]
-		for builderID in pairs(teamBuilders) do
+		local getUnitAttributeValue = GG.UnitAttributes.GetUnitAttributeValue
+		for builderID in pairs(canBuild[teamID]) do
 			if not passiveTeamCons[builderID] then
 				local builtUnit = spGetUnitIsBuilding(builderID)
 				if builtUnit then
 					local targetCosts = costID[builtUnit]
-					local buildSpeed = realBuildSpeed[builderID]
+					local buildSpeed = realBuildSpeed[builderID] and getUnitAttributeValue(builderID, "buildSpeed")
 					if targetCosts and buildSpeed then
 						local rate = buildSpeed / targetCosts[3]
 						local mcost = targetCosts[1]
@@ -382,10 +388,8 @@ local function UpdatePassiveBuilders(
 
 		-- turn this passive builder on/off as appropriate
 		local wasGated = isBuildRestricted[builderID]
-		if wasGated ~= wouldStall then
-			restrictBuildSpeed(builderID, wouldStall)
-			isBuildRestricted[builderID] = wouldStall
-		end
+		restrictBuildSpeed(builderID, wouldStall)
+		isBuildRestricted[builderID] = wouldStall or nil
 
 		-- override buildTargetOwners build speeds for a single frame;
 		-- let them build at a tiny rate to prevent nanoframes from possibly decaying
@@ -404,7 +408,7 @@ function gadget:GameFrame(n)
 		for builderID, builtUnit in pairs(owners) do
 			if spValidUnitID(builderID) and spGetUnitIsBuilding(builderID) == builtUnit then
 				if suspend == 0 then
-					restrictBuildSpeed(builderID, isBuildRestricted[builderID] == true)
+					restrictBuildSpeed(builderID, isBuildRestricted[builderID])
 				end
 			end
 		end

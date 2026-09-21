@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Unit Attributes API",
-		desc = "Unitdef and unit attribute overrides via GG.UnitAttributes",
+		desc = "Unitdef and unit attribute overrides and modifiers via GG.UnitAttributes",
 		author = "efrec",
 		date = "September 2026",
 		license = "GNU GPL, v2 or later",
@@ -47,6 +47,11 @@ end
 local onGiven = attributes.ApplyOnGiven
 function gadget:UnitGiven(unitID, unitDefID, newTeamID, oldTeamID)
 	onGiven(unitID, unitDefID, newTeamID, oldTeamID)
+end
+
+local onExperience = attributes.ApplyOnExperience
+function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
+	onExperience(unitID)
 end
 
 function gadget:Shutdown()

@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local ATTRIBUTE_SOURCE = "stealthy_passengers"
+
 local spGetUnitDefID = Spring.GetUnitDefID
 
 local stealthyUnits = {}
@@ -29,18 +31,23 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local function stealthSource(unitID)
-	return "from_transport_" .. unitID
-end
-
 function gadget:UnitLoaded(uID, uDefID, uTeam, transID, transTeam)
 	if not stealthyUnits[uDefID] and stealthyTransports[spGetUnitDefID(transID)] then
-		GG.UnitAttributes.SetUnitAttribute(uID, "stealth", true, stealthSource(transID))
+		GG.UnitAttributes.SetUnitAttribute(uID, "stealth", true, ATTRIBUTE_SOURCE)
 	end
 end
 
 function gadget:UnitUnloaded(uID, uDefID, tID, transID)
 	if not stealthyUnits[uDefID] and stealthyTransports[spGetUnitDefID(transID)] then
-		GG.UnitAttributes.SetUnitAttribute(uID, "stealth", nil, stealthSource(transID))
+		GG.UnitAttributes.SetUnitAttribute(uID, "stealth", nil, ATTRIBUTE_SOURCE)
+	end
+end
+
+function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local transportID = Spring.GetUnitTransporter(unitID)
+		if transportID then
+			gadget:UnitLoaded(unitID, spGetUnitDefID(unitID), nil, transportID)
+		end
 	end
 end

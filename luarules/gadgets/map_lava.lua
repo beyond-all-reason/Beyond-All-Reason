@@ -60,7 +60,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetFeaturePosition = Spring.GetFeaturePosition
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetMoveData = Spring.GetUnitMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetUnitsInBox = Spring.GetUnitsInBox
 	local spSpawnCEG = Spring.SpawnCEG
@@ -80,7 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		else
-			canBeSlowed[unitDefID] = (unitDef.speed or 0) ~= 0
+			canBeSlowed[unitDefID] = not unitDef.isImmobile
 				and (unitDef.turnRate or 0) ~= 0
 				and (unitDef.maxAcc or 0) ~= 0
 		end
@@ -145,8 +144,13 @@ if gadgetHandler:IsSyncedCode() then
 		_G.lavaGrow = lavaGrow
 	end
 
+	local function getLavaSlow(height, y)
+		local unitSlow = clamp(1 - (((lavaLevel - y) / height) * lavaSlow), 1 - lavaSlow, 0.9)
+		return floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
+	end
+
 	---@param unitID UnitID
-	---@param unitSlow number? A nil releases this gadget's claim on the unit.
+	---@param unitSlow number? A nil clears this source's factor.
 	local function updateSlow(unitID, unitSlow)
 		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 		setUnitModifier(unitID, "speed", unitSlow, ATTRIBUTE_SOURCE)
@@ -172,8 +176,7 @@ if gadgetHandler:IsSyncedCode() then
 				lavaUnits[unitID] = nil
 			elseif y < lavaLevel then
 				if data.slowed then
-					local unitSlow = clamp(1 - (((lavaLevel - y) / data.height) * lavaSlow), 1 - lavaSlow, 0.9)
-					unitSlow = floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
+					local unitSlow = getLavaSlow(data.height, y)
 					if unitSlow ~= data.currentSlow then
 						updateSlow(unitID, unitSlow)
 						data.currentSlow = unitSlow
@@ -213,13 +216,8 @@ if gadgetHandler:IsSyncedCode() then
 					if y and y < lavaLevel then -- first entry into lava
 						local height = unitHeight[unitDefID]
 						local data
-						if
-							(height and height > 0)
-							and canBeSlowed[unitDefID]
-							and (spGetMoveData(unitID).name == "ground")
-						then
-							local unitSlow = clamp(1 - (((lavaLevel - y) / height) * lavaSlow), 1 - lavaSlow, 0.9)
-							unitSlow = floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
+						if (height and height > 0) and canBeSlowed[unitDefID] then
+							local unitSlow = getLavaSlow(height, y)
 							updateSlow(unitID, unitSlow)
 							data = { height = height, currentSlow = unitSlow, slowed = true }
 						else
@@ -408,6 +406,10 @@ if gadgetHandler:IsSyncedCode() then
 			return damage, 1.0
 		end
 		return 0.0, 1.0
+	end
+
+	function gadget:Shutdown()
+		restoreAllLavaUnits()
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)

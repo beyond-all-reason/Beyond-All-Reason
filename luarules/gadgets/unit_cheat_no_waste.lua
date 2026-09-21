@@ -56,7 +56,7 @@ local ATTRIBUTE_SOURCE = "cheat_no_waste"
 local spGetTeamResources = Spring.GetTeamResources
 
 for id, def in pairs(UnitDefs) do
-	if def.buildSpeed and def.buildSpeed > 0 and def.speed and def.speed == 0 then --we only want base factories and construction turrets to get boosted
+	if def.isBuilder and def.speed == 0 then --we only want base factories and construction turrets to get boosted
 		builderWatchDefs[id] = def.buildSpeed
 	end
 end
@@ -112,9 +112,8 @@ end
 local function updateAllyUnitsBuildPowers(allyID, boostMultiplier)
 	local teamIDs = boostableAllies[allyID]
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
-	for teamID, _ in pairs(teamIDs) do
-		local units = teamBoostableUnits[teamID]
-		for unitID in pairs(units) do
+	for teamID in pairs(teamIDs) do
+		for unitID in pairs(teamBoostableUnits[teamID]) do
 			if builderWatch[unitID] then
 				setUnitModifier(unitID, "buildSpeed", boostMultiplier, ATTRIBUTE_SOURCE)
 			else
@@ -127,7 +126,7 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderWatchDefs[unitDefID] then
 		if teamBoostableUnits[unitTeam] then
-			teamBoostableUnits[unitTeam][unitID] = builderWatchDefs[unitDefID]
+			teamBoostableUnits[unitTeam][unitID] = true
 			builderWatch[unitID] = true
 		end
 	end
@@ -135,6 +134,9 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	builderWatch[unitID] = nil
+	if teamBoostableUnits[unitTeam] then
+		teamBoostableUnits[unitTeam][unitID] = nil
+	end
 end
 
 function gadget:GameFrame(frame)

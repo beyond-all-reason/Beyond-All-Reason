@@ -825,7 +825,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local hideFromSensors, restoreSensors = (function()
+	local hideFromSensors, restoreSensors ---@type function, function
+	do
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
 		local SENSOR_SOURCE = "setsensors"
 		local SENSOR_ATTRIBUTES = {
 			"losRadius",
@@ -836,18 +838,17 @@ if gadgetHandler:IsSyncedCode() then
 			"jammerRadius",
 			"sonarJamRadius",
 		}
-		return function(unitID)
-			local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		hideFromSensors = function(unitID)
 			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
 				setUnitModifier(unitID, attribute, 0, SENSOR_SOURCE)
 			end
-		end, function(unitID)
-			local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		end
+		restoreSensors = function(unitID)
 			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
 				setUnitModifier(unitID, attribute, nil, SENSOR_SOURCE)
 			end
 		end
-	end)()
+	end
 
 	function ExecuteSelUnits(words, playerID, action, params)
 		if #words < 2 then

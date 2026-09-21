@@ -20,6 +20,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local math_floor = math.floor
 local math_max = math.max
 local math_min = math.min
 
@@ -30,6 +31,9 @@ local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local LOS_ACCESS = { inlos = true }
 
 local SLOW_MOVE_MAX = 0.9
+local SLOW_BRAKE_BOOST = 1000 -- so a unit decelerates into its new max speed instead of coasting
+local SLOW_STEP = 1 / 64 -- quantize so an undecayed slow rewrites identical factors
+local SLOW_STEP_INV = 64
 local SLOW_RELOAD_RATE_MIN = 0.01
 local ATTRIBUTE_SOURCE = "timeslow"
 
@@ -45,6 +49,7 @@ local function applySlow(unitID, percent)
 		setUnitModifier(unitID, "speed", nil, ATTRIBUTE_SOURCE)
 		setUnitModifier(unitID, "turnRate", nil, ATTRIBUTE_SOURCE)
 		setUnitModifier(unitID, "maxAcc", nil, ATTRIBUTE_SOURCE)
+		setUnitModifier(unitID, "maxDec", nil, ATTRIBUTE_SOURCE)
 		setUnitModifier(unitID, "buildSpeed", nil, ATTRIBUTE_SOURCE)
 		setUnitModifier(unitID, "reloadTime", nil, ATTRIBUTE_SOURCE)
 		return
@@ -54,6 +59,7 @@ local function applySlow(unitID, percent)
 	setUnitModifier(unitID, "speed", moveFactor, ATTRIBUTE_SOURCE)
 	setUnitModifier(unitID, "turnRate", moveFactor, ATTRIBUTE_SOURCE)
 	setUnitModifier(unitID, "maxAcc", moveFactor, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "maxDec", SLOW_BRAKE_BOOST, ATTRIBUTE_SOURCE)
 	setUnitModifier(unitID, "buildSpeed", moveFactor, ATTRIBUTE_SOURCE)
 
 	local reloadTime = 1 / math_max(1 - percent * 2, SLOW_RELOAD_RATE_MIN)
@@ -69,6 +75,7 @@ local function updateSlow(unitID, state)
 		end
 
 		local percentSlow = paralyzeDamage / maxHealth
+		percentSlow = math_floor(percentSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
 		if paralyzeDamage < 5 then
 			percentSlow = 0
 		end
@@ -132,4 +139,17 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	removeUnit(unitID)
+end
+
+function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		local _, _, paralyzeDamage = spGetUnitHealth(unitID)
+		if paralyzeDamage >= 5 then
+			slowedUnits[unitID] = {
+				slowDamage = paralyzeDamage,
+				degradeTimer = DEGRADE_TIMER,
+			}
+			updateSlow(unitID, slowedUnits[unitID])
+		end
+	end
 end
