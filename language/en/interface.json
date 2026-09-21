@@ -401,6 +401,8 @@
 				"overviewDesc": "Back to the page of charts this one was opened from.",
 				"timeline": "Timeline",
 				"wind": "Wind speed",
+				"lavaLevel": "Lava level",
+				"lavaLevelDesc": "How high the lava stood over the game.",
 				"windDesc": "How hard the wind blew over the game: what every wind generator made its energy from. The band is the range the map's wind keeps to.",
 				"losses": "Losses by cause",
 				"lossesDesc": "The value the picked players and teams lost, piled up by what took it: enemies, their own side, the map, self-destruction, reclaim and the rest.",
@@ -451,7 +453,7 @@
 				"cause": {
 					"lostEnemy": "Enemies",
 					"lostFriendly": "Friendly fire",
-					"lostWater": "Lava & water",
+					"lostWater": "Lava, water & void",
 					"lostSelfD": "Self-destructed",
 					"lostReclaimed": "Reclaimed & cancelled",
 					"lostOther": "Other"
@@ -636,7 +638,7 @@
 			"unitsStolen": "Stolen",
 			"unitsReceived": "Received",
 			"unitsSent": "Sent",
-			"unitsActive": "Active",
+			"unitsActive": "Alive",
 			"activity": "Activity",
 			"aggression": "Aggression",
 			"actionsPerMinute": "Actions per minute",
@@ -719,6 +721,10 @@
 			"shortFrontLine": "Front",
 			"jammerCoverage": "Map jammed",
 			"shortJammer": "Jammed",
+			"lavaDamage": "Lava damage",
+			"shortLavaDamage": "Lava",
+			"lostWater": "Lost to the map",
+			"shortLostWater": "Lost",
 			"idle": "Idle",
 			"idleCons": "Constructors",
 			"shortIdleCons": "Cons",
@@ -819,6 +825,8 @@
 				"valueEfficiency": "Value destroyed as a share of value lost.",
 				"teamKillValue": "What the allied units this team destroyed were worth.",
 				"comKills": "Enemy commanders destroyed.",
+				"lavaDamage": "Damage the team's units took from lava.",
+				"lostWater": "What the units the team lost to lava, deep water or the void were worth.",
 				"comLost": "Commanders lost."
 			}
 		},
