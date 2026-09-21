@@ -1,6 +1,5 @@
--- Single-line text input, written for the keybind editor's search field and shared with
--- the game info panel's.
--- Active only while focused, so it is safe to host alongside game input.
+-- Single-line text input for the keybind editor search field, shared with the game info
+-- panel. Active only while focused, so it is safe to host alongside game input.
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
@@ -35,14 +34,11 @@ local floor = math.floor
 local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
 
--- Caret look and blink taken from gui_chat's input, so the two fields read as the same
--- control: a sharp bar that starts bright on a keystroke and fades over a second before
--- snapping back, rather than a hard on/off blink.
+-- Taken from gui_chat input so the two fields read as the same control.
 local cursorBlinkDuration = 1
 local cursorGrey = 0.7
 
--- What the panels light a row with under the cursor. The field takes the same, so it
--- reads as something you can click into rather than a plate with text on it.
+-- What the panels light a row with under the cursor, so the field reads as clickable.
 local hoverOpacity = 0.14
 local white = { 1, 1, 1 }
 
@@ -72,12 +68,9 @@ function Editbox.new(opts)
 	self.maxChars = opts.maxChars or 127
 	self.maxCharsOwn = self.maxChars
 	self.onChange = opts.onChange
-	-- An outline to draw the text with, for a panel that pins its own. The font is shared with
-	-- every other widget and keeps whatever outline was set on it last; without one this takes
-	-- that, as it always has.
+	-- The font is shared with every other widget and keeps whatever outline was set on it last.
 	self.outline = opts.outline
-	-- A faint button at the right end that empties the field, shown while there is text. Asked
-	-- for rather than given: a field whose text is not a filter has nothing it should clear.
+	-- Asked for rather than given: a field whose text is not a filter has nothing to clear to.
 	self.clearable = opts.clearable
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
@@ -92,9 +85,7 @@ function Editbox:setRect(x1, y1, x2, y2, fontSize, pad)
 	self.pad = pad or floor((y2 - y1) * 0.3)
 end
 
--- How much the field will take, for as long as a caller wants more than it was built with.
--- Nothing hands back the raised limit, so it falls to what the field asked for rather than
--- to the constructor default, which would quietly widen every other user of the field.
+-- Nothing hands back the raised limit, so it falls to what the field asked for.
 function Editbox:setMaxChars(n)
 	self.maxChars = n or self.maxCharsOwn
 end
@@ -114,11 +105,10 @@ function Editbox:setText(t)
 	end
 end
 
--- SDL text input is owned by the panel, not by this field: blurring the search box to
--- click a keybind must not stop text events while the editor is still open.
+-- SDL text input is owned by the panel: blurring this field must not stop text events while
+-- the editor is open.
 function Editbox:focus()
-	-- A field that just took focus shows a bright caret, not whatever phase the fade
-	-- happened to be in when it was last used.
+	-- A field that just took focus shows a bright caret, not whatever phase the fade was in.
 	if not self.focused then
 		resetBlink(self)
 	end
@@ -301,8 +291,7 @@ function Editbox:keyPress(key)
 	return true
 end
 
--- The clear button: a square the height of the field against its right end, inset like the
--- caret and the selection are.
+-- Inset like the caret and the selection are.
 local function clearRect(self)
 	local x2, y1, y2 = self.rect[3], self.rect[2], self.rect[4]
 	local inset = floor((y2 - y1) * 0.18)
@@ -357,25 +346,21 @@ local function update(self)
 		end
 	end
 
-	-- Watched here rather than reset from each editing path: every way the caret can move
-	-- (typing, deleting, arrows, a click, a drag, setText) shows up as one of these two
-	-- changing, so none of them can be missed.
+	-- Every way the caret can move shows up as one of these two changing.
 	if not self.blinkStart or self.text ~= self.blinkText or self.caret ~= self.blinkCaret then
 		resetBlink(self)
 	end
 end
 
--- Alpha of the caret this frame: full brightness at the last edit, fading to 0.15 over
--- the blink duration, then starting over. Matches gui_chat's sawtooth exactly.
+-- Full brightness at the last edit, fading to 0.15 over the blink duration, then over again.
 local function caretAlpha(self)
 	local elapsed = Spring.DiffTimers(Spring.GetTimer(), self.blinkStart) % cursorBlinkDuration
 
 	return 1 - (elapsed * (1 / cursorBlinkDuration)) + 0.15
 end
 
--- How far into the text the caret sits, in pixels. Measured only when the text, the caret
--- or the size moved: the field is drawn live every frame so the blink can animate, and
--- measuring the leading substring each of those frames is the one real cost in here.
+-- Measured only when the text, the caret or the size moved: the field is drawn every frame so
+-- the blink can animate.
 local function caretOffset(self, font)
 	if self.caretPxAt ~= self.caret or self.caretPxText ~= self.text or self.caretPxFs ~= self.fontSize then
 		self.caretPxAt, self.caretPxText, self.caretPxFs = self.caret, self.text, self.fontSize
@@ -389,9 +374,7 @@ end
 local fieldFill = { 0, 0, 0, 0.35 }
 local clearFill = { 1, 1, 1, 0.04 }
 
--- A thin cross, drawn as geometry rather than a glyph so it does not depend on the font
--- carrying one. The second bar is two halves either side of the first, so the middle is not
--- painted twice and does not show as a brighter dot.
+-- Geometry rather than a glyph so it does not depend on the font carrying one.
 local function drawClear(self, hot, cs)
 	local bx1, by1, bx2, by2 = clearRect(self)
 	WG.FlowUI.Draw.RectRound(bx1, by1, bx2, by2, cs, 1, 1, 1, 1, clearFill)
@@ -418,14 +401,11 @@ function Editbox:draw()
 	local font = getFont()
 	local R = WG.FlowUI.Draw.RectRound
 	local x1, y1, x2, y2 = self.rect[1], self.rect[2], self.rect[3], self.rect[4]
-	-- Rounded like the rest of the panel's inner elements; the caret and selection sit
-	-- inside the field by their own inset.
-	-- Whole pixels: an edge on a fraction is blended across two of them and reads soft.
+	-- Whole pixels: an edge on a fraction is blended across two and reads as a blur.
 	local cs = floor(WG.FlowUI.elementCorner * 0.66)
 	local inset = floor((y2 - y1) * 0.18)
 	local tx = x1 + self.pad
-	-- The middle of the field, for the caret and the selection, which are box-shaped and
-	-- want the box; and the baseline the text is drawn from, which wants the font.
+	-- The caret and selection want the box; the text baseline wants the font.
 	local cy = floor((y1 + y2) * 0.5)
 	local ty = text.baseline(font, y1, y2, self.fontSize)
 
@@ -473,8 +453,7 @@ function Editbox:draw()
 	end
 
 	if self.focused then
-		-- Sharp bar rather than a rounded one, sized and placed off the font like chat's:
-		-- a fixed span around the text's middle, so it does not stretch with the field.
+		-- Sized and placed off the font like chat, so it does not stretch with the field.
 		local cx = floor(tx + caretOffset(self, font))
 		local cWidth = 1 + floor(self.fontSize / 14)
 		local cy1 = math.max(y1 + 1, floor(cy - self.fontSize * 0.6))

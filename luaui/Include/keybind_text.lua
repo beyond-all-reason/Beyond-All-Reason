@@ -8,41 +8,28 @@ local M = {}
 
 local mathFloor = math.floor
 
--- Body height per font, in em. Asked of the font once: it does not change with the size
--- the text is drawn at, and `baseline` is called for every label on every frame.
+-- Asked of the font once: it does not change with the size the text is drawn at, and baseline
+-- runs for every label on every frame.
 local bodyHeight = setmetatable({}, { __mode = "k" })
 
--- Where a line's baseline goes for the text to sit centred in a box, whatever it says.
---
--- Printing with "v" centres the glyphs the string happens to have: "Search..." has no
--- descenders and so centres on its capitals, while "Legacy (2)" centres on a box that
--- reaches below the baseline, which lifts everything you actually read. Two controls
--- side by side then disagree with each other.
---
--- Centred on the font's x-height instead, so every label sits alike. A UI label is
--- mostly lowercase, and that band is where the eye puts the middle of a line: centring
--- the capitals leaves the text reading low, because little of it reaches that high.
--- Ascenders and descenders then sit above and below, the way type intends.
---
--- Print with "o" rather than "ov": with no vertical option the y is the baseline.
+-- Printing with "v" centres the glyphs the string happens to have, so a string with no
+-- descender sits lower than one beside it. Measuring the band instead keeps a row of labels
+-- on one line.
 function M.baseline(font, y1, y2, size)
 	local body = bodyHeight[font]
 	if not body then
-		-- A lowercase x sits on the baseline and reaches neither above nor below the band,
-		-- so the height of its ink is the x-height.
+		-- A lowercase x sits on the baseline and reaches neither above nor below the band.
 		body = font:GetTextHeight("x")
 		bodyHeight[font] = body
 	end
 
-	-- Rounded, not floored: a whole pixel keeps the glyphs off a fraction, but always
-	-- taking the lower one leaves every label sitting up to a pixel low.
+	-- Rounded, not floored: always taking the lower one leaves every label sitting a pixel low.
 	return mathFloor((y1 + y2) * 0.5 - size * body * 0.5 + 0.5)
 end
 
 -- Shortens text until it draws inside maxWidth, marking the cut with "..".
 function M.fit(font, text, maxWidth, size)
-	-- Callers derive the width by subtracting, so it can come through negative. Returning
-	-- the text whole there draws it straight out of whatever it was meant to fit inside.
+	-- Callers derive the width by subtracting, so it can come through negative.
 	if maxWidth <= 0 then
 		return ""
 	end
@@ -53,8 +40,6 @@ function M.fit(font, text, maxWidth, size)
 	end
 
 	-- Trimmed by character, not byte: translated labels and the chain arrow are multi-byte.
-	-- Cut straight to the length the average glyph predicts and correct from there by one
-	-- character either way, rather than measuring every length down from the whole string.
 	local len = utf8.len(text)
 	local markW = font:GetTextWidth("..") * size
 	local keep = math.max(1, math.min(len - 1, math.floor(len * (maxWidth - markW) / width)))
@@ -74,8 +59,7 @@ function M.fit(font, text, maxWidth, size)
 	return cut .. ".."
 end
 
--- Splits text into lines that each draw inside maxWidth. A word too long to fit is left
--- over-long for the caller to shorten, there being nowhere sensible to break it.
+-- A word too long to fit is left over-long, there being nowhere sensible to break it.
 function M.wrap(font, text, maxWidth, size)
 	local lines = {}
 	local line
@@ -95,9 +79,8 @@ function M.wrap(font, text, maxWidth, size)
 	return lines
 end
 
--- Starts each line of wrapped text in the colour the line before it ended in. A tooltip prints its
--- text a line at a time, each line from the tooltip's own colour, so a colour set partway along one
--- line would otherwise stop where the line does - and wrapping ends lines wherever it has to.
+-- A tooltip prints its text a line at a time, each from the tooltip own colour, so a colour
+-- set on one line would be lost on the next.
 function M.carryColors(str)
 	local out, current = {}, nil
 	for line in (str .. "\n"):gmatch("([^\n]*)\n") do
