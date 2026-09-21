@@ -1,4 +1,5 @@
 # October
+- [Formations] A drawn line too short for the selected units no longer spreads them along it closer than they can stand: they are laid out in rows along the drawn line, or in a shape (square, hex, sunflower, diamond) chosen in the new Formation Shape window shown while two or more mobile units are selected. Lines that fit the group in one row are unchanged.
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
