@@ -1,12 +1,12 @@
--- Interactive view for the in-game keybind editor, hosted as the first tab of
--- the Keybind/Mouse Info panel. Immediate-mode in shape, but the panel body is baked
--- into a display list and replayed until something it was painted from changes.
+-- Interactive view for the in-game keybind editor, the first tab of the Keybind/Mouse Info
+-- panel. Immediate-mode in shape, but the body is baked into a display list and replayed
+-- until something it was painted from changes.
 --
--- The picker lists the shipped presets, tagged as defaults, then the player's own. Edits
--- are staged in the working model and touch neither the engine nor disk until Save, which
--- is also where a default forks: it cannot take the edits, so saving makes a new preset of
--- them, and the footer says so before anything is saved. Unsaved work is marked with a "*"
--- on the preset's name and guarded on the way out.
+-- Edits are staged and touch neither the engine nor disk until Save, which is also where a
+-- default forks: it cannot take the edits, so saving makes a new preset of them.
+--
+-- This chunk sits at Lua ceiling of 200 locals, so related state shares a table (`metrics`,
+-- `hover`, `state`, `shade`) rather than taking a slot each.
 
 local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
 local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
@@ -131,13 +131,8 @@ local rows = {}
 local rowsGen = 0
 local scroll = 0
 
--- What the cursor is over, in the terms the panel paints hover with. Refilled in place
--- each frame rather than allocated.
--- `grab` is where the scrollbar's thumb was taken hold of, as the distance from the cursor
--- to its top edge, so the thumb follows the cursor instead of jumping its middle to the
--- press. It rides here rather than in a local of its own: this chunk is at Lua's ceiling of
--- 200 locals, which is why the sizes above share `metrics` too.
--- `kb` is the key under the cursor on the keyboard page.
+-- `grab` is the distance from the cursor to the thumb top edge, so the thumb follows the
+-- cursor instead of jumping its middle to the press.
 local hover = {
 	sb = 0,
 	row = 0,
@@ -157,22 +152,10 @@ local hover = {
 }
 local dirty = false
 
--- Blur behind whatever floats over the panel, and the floating content drawn back on top
--- of it.
---
--- The panel's own backdrop is registered with InsertDlist, which is the *world* set: it
--- blurs the map behind the panel and leaves the UI alone. A popup has to blur UI - the
--- rows and buttons it covers - so it goes into the screen set instead.
---
--- That set is drawn by gfx_guishader, which copies the screen as it stands and blurs it
--- inside those rects. widgetHandler walks DrawScreen in reverse layer order, so this
--- panel (-99990) draws well before guishader (-990000) and a popup of ours inside one of
--- those rects would be blurred along with what it covers. Handing the drawing to
--- insertRenderDlist gets it replayed after the blur, which is how gui_options keeps its
--- select list crisp.
---
--- One table rather than a handful of locals, and for the same reason as `hover` above:
--- this chunk is at Lua's ceiling of 200.
+-- The panel backdrop goes in guishader world set, which blurs the map and leaves the UI
+-- alone. A popup has to blur UI, so it goes in the screen set - but widgetHandler walks
+-- DrawScreen in reverse layer order, so ours would be blurred along with what it covers.
+-- insertRenderDlist replays it after the blur, the way gui_options keeps its list crisp.
 local shade = { owner = nil, rects = {}, lists = {} }
 
 -- Only touched when the rect actually moves: every insert marks the stencil dirty, so
@@ -282,10 +265,8 @@ local look = {
 	chipFillHit = { 0.92, 0.72, 0.27, 0.3 },
 	-- A chip whose key another listed action also answers to: reddened, and its tooltip says which.
 	chipFillConflict = { 0.62, 0.16, 0.12, 0.4 },
-	-- The key a row had in the preset it was forked from, against the row's right edge as a
-	-- hollow chip: an amber border - the hue the headings and the unsaved notice use - with the
-	-- row's own dark inside it and a "default:" caption, so it reads as a note about the row
-	-- rather than one more of its keys. Clicking it puts that key back.
+	-- An amber border with the row own dark inside it, so it reads as a note about the row
+	-- rather than one more of its keys.
 	ghostBorder = { 1, 0.78, 0.51, 0.3 },
 	ghostBorderHover = { 1, 0.78, 0.51, 0.7 },
 	ghostInner = { 0.09, 0.09, 0.09, 1 },
@@ -304,10 +285,8 @@ local look = {
 	-- of taking the white overlay, which would wash the green out to grey.
 	addFillHover = { 0.32, 0.74, 0.4, 0.6 },
 	selectedFill = { 1, 1, 1, 0.13 },
-	-- The outline every string the panel prints is drawn with, set on every batch rather than
-	-- once: the font is shared with every other widget, some of which set an outline of their
-	-- own and leave it set, and text baked into a display list keeps whatever outline was set
-	-- last. The settings panel's value, which this panel is styled after.
+	-- The font is shared with every other widget, some of which set an outline and leave it set,
+	-- and text baked into a display list keeps whatever was set last.
 	outline = { 0, 0, 0, 0.4 },
 	-- The keyboard page's toggle in the header, pressed while that page is showing: lifted
 	-- above the resting button grey, and further under the cursor, since a tinted face takes
@@ -335,10 +314,8 @@ local look = {
 	-- The glyph goes to full white with it, the way a chip's key does under the cursor.
 	plusTextHover = "\255\255\255\255" .. "+",
 	arrow = colorKey .. string.char(226, 128, 186),
-	-- The cursor an order shows in game, by the command at the front of its action, so its row
-	-- carries the picture a player already knows the order by. File stems in anims/: the engine's
-	-- own pairing (MouseHandler.cpp), and the cursors BAR's custom commands declare, which borrow
-	-- the attack one. An order with no cursor of its own, like stop or cloak, has no entry.
+	-- File stems in anims/: the engine own pairing (MouseHandler.cpp) and the cursors BAR custom
+	-- commands declare. An order with no cursor of its own has no entry.
 	cursors = {
 		move = "move",
 		attack = "attack",
@@ -365,11 +342,8 @@ local look = {
 	cursorAlpha = 0.85,
 }
 
--- FlowUI's Button gradients from a bottom stop to a top one. Left to its defaults it
--- fades black up to near-transparent white, which washes a tinted button out to grey, so
--- each fill becomes a darker bottom and itself on top - the same shape gui_pregameui
--- gives its ready button. Derived once per fill and kept, since the pair is passed every
--- draw and a table per button per frame is what the rest of this file avoids.
+-- Left to its defaults FlowUI Button fades black up to near-transparent white, which washes a
+-- tinted button out to grey. Derived once per fill, since the pair is passed every draw.
 look.gradients = setmetatable({}, {
 	__index = function(self, fill)
 		local pair = {
@@ -410,12 +384,8 @@ local switchToPreset, scrollFromY
 ---@type table?
 local dialog
 
--- `tip` names the tooltip's text in L, and `tipLocked` the text shown instead while the
--- active preset is a default. That is when Edit is greyed out, and its tooltip is then the
--- one place saying why.
--- The two with icons act on the active preset; the two with captions carry presets in and out
--- through the clipboard. The last is the page toggle, set apart by a wider gap: it swaps the
--- list for the keyboard overview and back, and sits pressed while the keyboard is showing.
+-- `tipLocked` is the text shown while the active preset is a default and Edit is greyed out,
+-- which is the one place saying why.
 local headerButtons = {
 	{
 		id = "duplicate",
@@ -444,33 +414,8 @@ local footerButtons = {
 
 local buttonSets = { headerButtons, footerButtons }
 
--- Panel state that is neither a size nor a colour, in one table: this chunk is at Lua's
--- ceiling of 200 locals, and the functions that only this state needs hang off it too, the
--- way `shade` does.
---   headerH/footerH: the header and footer bands, shared by the layout and by every
---     geometry derived from it.
---   layoutPending: the layout ran before the font existed and has to run again.
---   tooltipsRegistered: header tooltips are registered once per layout rather than per
---     frame, since registering with a value throws the tooltip's cached text away each time.
---   panelList/panelSig: the panel below the header controls, baked once and replayed until
---     something it was painted from changes.
---   hidden: the catalog's hidden actions. They share keys with listed ones on purpose, so
---     they are no conflict.
---   labels: each action's listed name, for naming it where another action's key clashes.
---   base: the shipped preset the active one is measured against, with its keysets by
---     action; nil when the active preset has no known origin.
---   changedKey/changedCount: the column entry listing the rows that differ from the base,
---     and how many there are, which its label says.
---   refit: the column's labels changed and have to be fitted again before they are drawn.
---   undo/snapshot: the staged keymap as it stood before each edit, and as it stands now,
---     which the next edit files. batching/batchEdited: one gesture making several edits
---     files one snapshot for the lot.
---   tipKey/tipTitle/tipText: the tooltip last built, kept until the cursor is on something
---     else, since building one wraps text.
---   page: "list" or "keyboard", the page the body shows. keyboard is the keyboard page
---     itself, and keyboardGen the rowsGen its bindings were placed from, so it is placed
---     again only once the staged keymap has changed. keyInfo: each action's card for it,
---     built from the catalog on first use and dropped with the catalog.
+-- Panel state in one table: this chunk is at Lua ceiling of 200 locals, and the functions
+-- that only this state needs hang off it too.
 local state = {
 	headerH = 0,
 	footerH = 0,
@@ -514,10 +459,8 @@ end
 
 local presetOptions = {}
 
--- Picker contents: the shipped presets, tagged as defaults, then the player's own, which the
--- open list sets apart with a rule. Staged edits mark whichever one is active with a "*", a
--- default included: the edits are real and unsaved either way, and where they will be saved
--- is for the footer to say, beside the button that saves them.
+-- Staged edits mark the active one with a "*", a default included: the edits are real and
+-- unsaved either way.
 local function buildPresetOptions()
 	local active = profiles.activeName()
 
@@ -570,10 +513,8 @@ local function listBottom()
 	return area.y1 + state.footerH + metrics.footerGap
 end
 
--- Whole rows the band can paint.
--- A category heading is taller than the bindings under it, so a row's position is a sum of
--- what is above it rather than its index times one height. The running total is stamped
--- onto the rows, which rebuildRows replaces wholesale, and redone when the layout moves.
+-- A category heading is taller than the bindings under it, so a row position is a sum of what
+-- is above it rather than its index times one height.
 local rowMetrics = { gen = -1, rows = -1, totalH = 0 }
 
 local function rowHeightOf(row)
@@ -622,10 +563,8 @@ local function maxScroll()
 	return i
 end
 
--- The painted row under y, as its offset from the first painted one, plus the edges it was
--- painted with. Every hover test, click and the panel signature go through this, so none of
--- them can disagree with what was drawn. nil when y is outside the band or past the last
--- whole row the band can hold.
+-- Every hover test, click and the panel signature go through this, so none can disagree with
+-- what was drawn.
 local function rowAt(y)
 	ensureRowMetrics()
 	local lb = listBottom()
@@ -688,10 +627,7 @@ local function buildResolvedCatalog()
 	catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 	state.hidden, state.labels = {}, {}
 
-	-- What an action does, for its tooltip: the catalog's own key when it names one, else the
-	-- command card's tooltip for a row labelled off the card, else the engine's description of
-	-- the command - a string of its own, the heading of a structured one, or a gadget's. Asked
-	-- for with an empty default, so a missing key is silent and reads as none.
+	-- Asked for with an empty default, so a missing key is silent and reads as none.
 	local function describe(item)
 		local command = (item.action or item.prefix or ""):match("^%S+")
 		-- Appended one by one: a nil in a table constructor ends what ipairs walks.
@@ -916,10 +852,7 @@ local function canonOf(k)
 	return k.canon
 end
 
--- How an action's keys differ from the preset the active one is measured against: nil when
--- they match, or there is nothing to measure against; else the base's raws for the action,
--- which may be none at all. Compared as sets of canonical keysets, so spelling and order do
--- not count as a change.
+-- Compared as sets of canonical keysets, so spelling and order do not count as a change.
 local function rowChange(action)
 	local base = state.base
 	if not base then
@@ -945,11 +878,9 @@ local function rowChange(action)
 	return nil
 end
 
--- The other listed actions these keysets drive, in bind order, each flagged when the engine
--- tries it before this action, and when the game itself ships the two on one key - sharing
--- by design, which is no clash of the player's making. Nil when there are none. Hidden
--- actions are left out: one sharing a key with a listed action is how the catalog says the
--- two belong together.
+-- Flagged when the engine tries it first, and when the game ships the two on one key - by
+-- design, so no clash of the player making. Hidden actions are left out: sharing a key with
+-- a listed one is how the catalog says they belong together.
 local function conflictsOf(action, raws)
 	local byKeyset = working.byKeyset
 	if not byKeyset then
@@ -1050,10 +981,8 @@ local function rebuildRows()
 	local changedOnly = selectedCategory == state.changedKey
 	local changedCount = 0
 
-	-- A query can name keys as well as words. An action matches by key when one of its chips holds
-	-- every key the query names, modifiers included and in any order, so "ctrl+q", "ctrl q" and
-	-- "q ctrl" all find what Ctrl+Q does. Whole keys only, as the chips print them: "f1" does not
-	-- find F11, and a paired action's hidden Shift half does not answer to "shift".
+	-- Whole keys only, as the chips print them: "f1" does not find F11, and a paired action
+	-- hidden Shift half does not answer to "shift".
 	local wantKeys = {}
 	-- The same keys with the modifiers dropped. An Any+ binding fires whatever is held, so it
 	-- answers a query naming modifiers even though its chip prints the bare key and holds none
@@ -1153,10 +1082,8 @@ local function rebuildRows()
 					end
 				end
 
-				-- A declared member is a row whether or not it is bound, so unbinding the last
-				-- key of "group select 3" leaves the row there to bind again. Families the
-				-- catalog cannot enumerate (buildunit_ is per unit) list no members and are
-				-- still discovered from what is bound.
+				-- A declared member is a row whether or not it is bound. Families the catalog cannot
+				-- enumerate (buildunit_ is per unit) list none and are discovered from what is bound.
 				local matched = {}
 				for _, member in ipairs(members or {}) do
 					local action = item.prefix .. member
@@ -1569,10 +1496,8 @@ local function activeFakeMeta()
 	return source and source.fakeMeta or nil
 end
 
--- Which build menu a profile implies. Only the shipped ones imply anything: a profile of
--- the player's own leaves the menu alone, so the settings toggle stays theirs to set.
--- Read from the binds rather than the name, since the grid menu is inert without its
--- gridmenu_* keys and the build menu is what buildunit_* hotkeys drive.
+-- Read from the binds rather than the name: the grid menu is inert without its gridmenu_*
+-- keys, and the build menu is what buildunit_* hotkeys drive.
 local function wantsGridMenu(name)
 	local source = profiles.isBuiltin(name)
 	if not source then
@@ -1680,11 +1605,8 @@ function state.refreshBase()
 	state.refreshCompare()
 end
 
--- The column's Changed entry: there for every preset of the player's own, with the count of
--- rows differing from the compared preset in its label, or a question mark while nothing is
--- being compared with. A shipped preset is measured against itself, so it only has the entry
--- while staged edits differ from it: a "Changed (0)" on a default is noise. With the entry
--- gone from under the selection, the column falls back to everything.
+-- A shipped preset is measured against itself, so it only has the entry while staged edits
+-- differ from it: a "Changed (0)" on a default is noise.
 function state.syncChangedEntry()
 	local listed = categories[2] ~= nil and categories[2].key == state.changedKey
 	if activeIsOwn() or (state.base and state.changedCount > 0) then
@@ -1855,12 +1777,9 @@ end
 -- Profile commands
 ----------------------------------------------------------------
 
--- Makes a profile the live one, leaving its stored binds alone. Answers whether it took.
 -- A keymap that never reached disk must not clear the staged flag: the reload below would
--- load whatever file is still there and the player would watch their edits revert.
--- offPanel marks a caller the player is not looking at, a bound key with the editor
--- closed, where a modal would sit unseen and then surface attributed to whatever they did
--- next; that failure goes to the console instead.
+-- load whatever file is still there and the edits would revert. offPanel marks a caller the
+-- player is not looking at, where a modal would surface attributed to something else.
 local function selectProfile(name, fromName, offPanel)
 	if not profiles.materialize(name) then
 		if offPanel then
@@ -2111,10 +2030,9 @@ local function startEdit()
 				retargetSwitch(snap, from, to)
 			end
 
-			-- The rename moved the store's copy of the binding, so the file has to be written
-			-- again or the next launch finds a keymap matching no profile and adopts it as a
-			-- separate one. Reloading it is the part staged edits cannot take, so with edits
-			-- pending only the file is written and the engine catches up on Save.
+			-- The rename moved the store copy, so the file has to be written again or the next launch
+			-- adopts the keymap as a separate profile. With edits pending only the file is written,
+			-- since reloading is the part staged edits cannot take.
 			if dirty then
 				profiles.materialize(settled)
 				refreshPicker()
@@ -2401,10 +2319,8 @@ function view.refresh()
 	rebuildRows()
 end
 
--- Takes the panel rect from the host; every band and column is derived from it.
--- `wx1..wy2` is the window the area sits inside; without it a modal can only dim as far
--- as the area goes, leaving the panel's own border lit. Kept in `metrics` rather than a
--- local of its own, this chunk being at Lua's ceiling of 200.
+-- `wx1..wy2` is the window the area sits inside; without it a modal can only dim as far as
+-- the area goes, leaving the panel own border lit.
 function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	ensureControls()
 	area.x1, area.y1, area.x2, area.y2 = x1, y1, x2, y2
@@ -2453,10 +2369,8 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 	-- room it takes from them: the strip plus a gap, so it stands apart from the first heading.
 	metrics.compareStripH = floor(rowHeight * 1.45)
 	metrics.compareBandH = metrics.compareStripH + floor(rowHeight * 0.5)
-	-- The scrollbar owns a column of its own: its right edge lines up with the buttons
-	-- above it, and the list stops a clear gap short of it rather than running up against
-	-- it. That gap matches the one the bar keeps from the panel edge on its other side, so
-	-- the bar sits in a channel rather than hugging the rows.
+	-- The gap matches the one the bar keeps from the panel edge on its other side, so it sits in
+	-- a channel rather than hugging the rows.
 	local barW = floor(14 * scale)
 	barX1 = area.x2 - metrics.edgeInset - barW
 	listRight = barX1 - metrics.listGap
@@ -2582,10 +2496,8 @@ end
 -- Editing keysets
 ----------------------------------------------------------------
 
--- Whether the action already carries this binding. Compared canonically rather than by
--- the printed label: the label drops Any+ and resolves scancodes through the layout, so it
--- reports two bindings the engine resolves differently as the same one. exceptRaw skips
--- the keyset being rebound.
+-- Compared canonically rather than by the printed label: the label drops Any+ and resolves
+-- scancodes through the layout, so two bindings the engine separates would read as one.
 local function actionHasKeyset(action, newKeyset, exceptRaw)
 	local ks = working.byAction[action]
 	if not ks then
@@ -2662,12 +2574,9 @@ local function stageReplace(action, oldRaw, newRaw)
 	return true
 end
 
--- The grid menu answers its category keys whether or not Shift is held, which the engine
--- can only express as two binds. Deriving both from one capture keeps a rebind from
--- leaving the halves on different keys.
--- Built from the captured elements rather than the joined keyset, so Shift lands after any
--- other modifiers the way the engine writes them: Ctrl+K pairs as Ctrl+K and Ctrl+Shift+K.
--- Shift qualifies the first tap only; later taps in a chain are the same in both halves.
+-- The grid menu answers its category keys whether or not Shift is held, which the engine can
+-- only express as two binds. Built from the captured elements so Shift lands after any other
+-- modifiers, and qualifies the first tap only.
 local function shiftPairRaws(elems)
 	local bare, shifted = {}, {}
 	for i = 1, #elems do
@@ -2802,10 +2711,7 @@ local function commitCapture(keyset)
 		end
 	elseif c.oldRaw then
 		rebindKeyset(c.action, c.oldRaw, keyset)
-		-- One chip stood for every binding that read as the same key, so they all move to
-		-- the new one. Collapsing them costs nothing: they were interchangeable already.
-		-- Skip the one the rebind already landed on, or this undoes it and leaves the
-		-- action bound to nothing.
+		-- Skip the one the rebind already landed on, or this undoes it and leaves it bound to none.
 		if keyset ~= c.oldRaw then
 			for i = 2, #(c.oldRaws or {}) do
 				if c.oldRaws[i] ~= keyset then
@@ -2830,10 +2736,8 @@ local function rawHasAny(raw)
 	return raw ~= nil and raw:find("[Aa][Nn][Yy]%+") ~= nil
 end
 
--- Nothing lets a player choose this, so a rebind infers it: the catalog's alwaysModifier
--- flag first, then whatever the action is bound with today. The engine's own stateful
--- commands (CKeyBindings::statefulCommands - drawinmap, the move* family) carry the flag in
--- the catalog rather than a list here, so one place states it and every surface can read it.
+-- Inferred: the catalog alwaysModifier flag first, then whatever it is bound with today. The
+-- engine stateful commands carry the flag in the catalog so every surface reads one place.
 local function actionUsesAny(action, oldRaw)
 	if catalogAny[action] then
 		return true
@@ -2985,11 +2889,8 @@ local function modPrefix()
 	return prefix
 end
 
--- Whether the capture is holding something worth committing. The Accept button is shown
--- only when this is true and acts only when this is true, so a button that is not on screen
--- cannot be clicked. Seeded means the modal is still showing the binding it was opened on
--- and nothing has been pressed yet: accepting that would rewrite a keyset to itself, so
--- there is nothing to offer and the way out is Cancel.
+-- Accept is shown and acts only on this, so a button not on screen cannot be clicked. Seeded
+-- means nothing has been pressed yet: accepting would rewrite a keyset to itself.
 local function captureCanAccept()
 	local c = capturing
 
@@ -3157,10 +3058,8 @@ local function rowChipBand(action, fs, pad, reserve)
 	return mets, cx, addW, rightGap
 end
 
--- Everything drawRow needs that does not move with the mouse: the fitted label and the
--- chip band, each string already carrying its colour code. Built on first use and kept on
--- the row, which rebuildRows replaces outright; a geometry change bumps layoutGen so a
--- row laid out against the old widths is measured again.
+-- Built on first use and kept on the row; a geometry change bumps layoutGen so a row laid out
+-- against the old widths is measured again.
 local function rowLayout(row)
 	local lay = row.layout
 	if lay and lay.gen == layoutGen then
@@ -3290,11 +3189,9 @@ local function rowZone(lay, x, y, c1, c2)
 	return nil
 end
 
--- Geometry drawn between font:Begin and font:End interleaves with the font's batched
--- glyphs and makes both flicker. The list alternates shapes and text row by row, so it
--- queues here and flushes once all the shapes are down; the modals draw every shape
--- before any text and so print directly. Held flat and refilled in place, since a table
--- per string per frame is hundreds of allocations a second.
+-- Geometry drawn between font:Begin and font:End interleaves with the batched glyphs and
+-- makes both flicker, so shapes queue here and flush once. Held flat and refilled in place:
+-- a table per string per frame is hundreds of allocations a second.
 local pendingText = {}
 local pendingCount = 0
 
@@ -3334,10 +3231,7 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
--- Rows are laid out from the top of the list band down, so the column lines up with the
--- keybind rows beside it.
--- The category column starts below where the keybind rows do, so the title above it is not
--- crowded by the first entry. Everything in the column measures from here.
+-- The category column starts below where the keybind rows do, so the title is not crowded.
 local function sidebarTop()
 	-- Off the band's fixed top, not the rows' own: the Changed section lowers the rows for its
 	-- comparison picker, and the column beside them must not move with it.
@@ -3448,10 +3342,7 @@ local function gridCellRect(row, col, x1, gridBottom, cell)
 	return cx, cy, cx + cell, cy + cell
 end
 
--- Through FlowUI's Button so these carry the same border, gloss and corner as every other
--- button in the UI. It serves a repeated draw from a display-list cache; the cached form
--- was checked against the immediate one and is identical, so a button does not change as
--- the cache takes over.
+-- Through FlowUI Button so these carry the same border, gloss and corner as the rest.
 local function drawButtonFace(r, base)
 	local pair = look.gradients[base]
 
@@ -3607,10 +3498,8 @@ local function gridCycleRect(x1, bsize)
 	return cx1, cx1 + math.max(need, floor(bsize * 2))
 end
 
--- Which grid element sits under x,y: a build cell (row, col), a category pill (index),
--- Next page or the cycle-builder pill. Hover, the baked panel's signature and clicks all
--- read it, so the three cannot disagree. Back is left out on purpose: gui_gridmenu
--- hardcodes its key, so there is nothing to rebind and nothing to light up.
+-- Hover, the baked signature and clicks all read this, so the three cannot disagree. Back is
+-- left out: gui_gridmenu hardcodes its key, so there is nothing to rebind.
 local function gridZone(x, y)
 	local x1, x2, gridBottom, cell, strip, _, stripY, builderY = gridGeometry()
 	local pad = floor(3 * scale)
@@ -3658,10 +3547,8 @@ local function drawGridMenu(zone, zoneA, zoneB)
 	-- The same heading the list puts above a category, drawn by the same code.
 	drawHeaderBand(listTop, listTop - headH, colorHeader .. gridGroup.title)
 
-	-- These stand in for the build menu's unit tiles, so they take the same frame FlowUI
-	-- puts around a unit picture, minus the picture. Every cell is the same size, so the
-	-- corner is derived once and shared with the fill under it; left to itself the frame
-	-- would derive its own and the two would not quite line up.
+	-- The corner is derived once and shared with the fill under it; left to itself the frame
+	-- would derive its own and the two would not line up.
 	local cellInner = cell - pad * 2
 	local frameCs = math.max(1, floor(cellInner * 0.024))
 
@@ -3688,11 +3575,8 @@ local function drawGridMenu(zone, zoneA, zoneB)
 						"ro"
 					)
 				end
-				-- Last, so the border and shine sit over the fill and the hover rather than
-				-- under them. Plain: a group icon would name a group these cells do not have.
-				-- The second grid is the same keys seen from the category view and binds
-				-- nothing, so its frames are drawn faint: it is there to show the layout, not
-				-- to be clicked, and a full-strength frame invites the click.
+				-- Last, so the border and shine sit over the fill and the hover. The second grid binds
+				-- nothing, so its frames are faint: a full-strength frame invites a click.
 				local border = (pass == 1) and nil or look.idleBorder
 				UiUnitFrame(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, 1, 1, 1, 1, nil, border)
 			end
@@ -3880,10 +3764,8 @@ local function drawCaptureModal(mx, my)
 	local tfs = floor(rowHeight * 0.6)
 	local sfs = floor(rowHeight * 0.5)
 	local bigfs = floor(rowHeight * 0.95)
-	-- Preview held modifiers while forming the first element, through the same formatter a
-	-- finished keyset uses so the two do not render differently. A capture opened on an
-	-- existing binding still shows it, but a held modifier previews over the top - the player
-	-- is part-way through a replacement - and letting go puts the original back.
+	-- A capture opened on an existing binding still shows it, but a held modifier previews over
+	-- the top, and letting go puts the original back.
 	local heldRaw = modPrefix()
 	local held = heldRaw ~= "" and keybindModel.displayKeyset(heldRaw, working.layout) or ""
 	-- What the big line in the middle shows: the keyset formed so far, which includes the
@@ -4044,10 +3926,7 @@ function state.previewScrollFromY(pv, bar, lineH, most, y)
 	pv.scroll = floor(f * most + 0.5)
 end
 
--- The import preview: the clipboard's lines in a box, in the monospaced face source gets,
--- numbered down a gutter of their own, each in the colour of what the reader makes of it, the
--- ones it will drop on a red band. Scrolled by the wheel or by the bar, whose thumb can be
--- taken hold of. The lines are fitted to the box once per width and face.
+-- Fitted to the box once per width and face.
 function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 	local mono = WG.fonts.getFont(3) or font
 	local fs = floor(rowHeight * 0.5)
@@ -4399,10 +4278,8 @@ local function panelSignature(mx, my)
 		.. (keyboardPage and state.keyboard:signature(h.kb) or "")
 end
 
--- The card the keyboard page shows for an action: its label, what it does, its picture, its
--- category and where the catalog ranks it. Built from the resolved catalog on first use and
--- dropped with it; an action under a prefix family takes the family's card with the label the
--- list gave its row, and one the catalog never lists is its own id under Other.
+-- An action under a prefix family takes the family card with the label the list gave its row;
+-- one the catalog never lists is its own id under Other.
 function state.keyInfoFor(action)
 	local info = state.keyInfo
 	if not info then
@@ -4505,10 +4382,7 @@ local function drawPanel()
 		drawGridMenu(h.gk, h.ga, h.gb)
 		flushText()
 	else
-		-- The Changed section's comparison strip, above its rows: a dark strip rather than a
-		-- heading, so it reads as a control and not as a second title over the first heading,
-		-- with a dim caption against the picker, which draws live over the strip's right end
-		-- since its list can open.
+		-- A dark strip rather than a heading, so it reads as a control and not as a second title.
 		if state.compareBand() and metrics.compareY1 then
 			local y1, y2 = metrics.compareY1, metrics.compareY2
 			RectRound(listX1, y1, listRight, y2, metrics.csSmall, 1, 1, 1, 1, look.previewFill)
@@ -4572,10 +4446,8 @@ local function registerTooltips()
 	state.tooltipsRegistered = true
 end
 
--- What the cursor is over, said in a tooltip: a preset's description in the picker, what the
--- column's Changed entry lists, and on a row the action's description, the other actions its
--- hovered key drives, and the key the base preset had. Built once per thing hovered and shown
--- every frame after, the tooltip widget showing only what it was told this frame.
+-- Built once per thing hovered and shown every frame after, the tooltip widget showing only
+-- what it was told this frame.
 function state.showTooltips(mx, my)
 	local tip = WG["tooltip"]
 	if not tip or dialog or capturing then
@@ -4706,10 +4578,8 @@ function state.showTooltips(mx, my)
 	end
 end
 
--- Paints the whole panel. The header controls and the modals draw live; the body is
--- replayed from its display list until panelSignature says something in it moved.
--- Which of the popups is up, and where. Defined down here rather than beside the rest of
--- `shade`: it reads the popup state and geometry, none of which exists that far up.
+-- The header controls and the modals draw live; the body is replayed until panelSignature
+-- says something moved. Defined here rather than beside `shade`: it reads popup geometry.
 function shade.update()
 	if capturing then
 		local bx1, by1, bx2, by2 = captureGeometry()
@@ -4950,18 +4820,14 @@ local function sidebarPress(x, y)
 	return true
 end
 
--- A binding for an action the catalog does not list. Only the command is asked for; the key
--- comes from the same capture every row uses, and the action lands under Other by itself,
--- since that is where the list puts whatever it does not recognise. Hung off state rather
--- than taken as a local, this chunk being at Lua's ceiling of 200 of them.
+-- Only the command is asked for; the key comes from the same capture every row uses, and the
+-- action lands under Other, where the list puts whatever it does not recognise.
 function state.addBind()
 	openDialog({
 		title = L.addBindTitle,
 		freeText = true,
-		-- The field neither scrolls nor clips, so it must not take more than it can show. The
-		-- wide box fits about a hundred characters, and the longest the game itself binds is
-		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one - so a command
-		-- past this is refused rather than drawn over the panel behind the dialog.
+		-- The field neither scrolls nor clips. The longest the game itself binds is
+		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
 		maxChars = 96,
 		accept = function(typed)
@@ -5167,10 +5033,8 @@ function view.mousePress(x, y, button)
 	end
 
 	if not gridGroup and isInRect(x, y, barX1, listBottom(), area.x2, listTop) then
-		-- Taking hold of the bar. On the thumb that is a grab and the list stays put; on the
-		-- track either side the thumb jumps to the cursor first and is then dragged from its
-		-- middle, which is what a press on bare track is asking for. Inline because this chunk
-		-- is at Lua's ceiling of 200 locals and a function of its own would need a slot.
+		-- On the thumb that is a grab and the list stays put; on bare track the thumb jumps to the
+		-- cursor first, which is what a press there is asking for.
 		local top, height = scrollerThumb()
 		if top then
 			hover.drag = true
