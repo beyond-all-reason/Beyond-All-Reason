@@ -1,5 +1,25 @@
 local quickStartConfig = {
 	-- discountable factories are marked via customparams.quickstart_discountable on the unit defs
+	amountConfig = {
+		small = {
+			budget = 800,
+			range = 435,
+			baseGenerationRange = 435,
+			traversabilityGridRange = 480, --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
+		},
+		normal = {
+			budget = 1200,
+			range = 435,
+			baseGenerationRange = 435,
+			traversabilityGridRange = 480,
+		},
+		large = {
+			budget = 2400,
+			range = 600,
+			baseGenerationRange = 500,
+			traversabilityGridRange = 544,
+		},
+	},
 	commanderNonLabOptions = {
 		armcom = {
 			windmill = "armwin",

@@ -66,6 +66,16 @@ form each action. Listing them makes those rows exist whether or not anything is
 unbinding one leaves it there to bind again. Families that cannot be enumerated - `buildunit_`
 is per unit - list none and are discovered from what is bound instead.
 
+Where the members exist but are the player's rather than the game's, the entry names where
+to read them with `"membersFrom"` instead of listing them. The one source is `"profiles"`,
+which is what `keybindprofile ` covers: one bindable action per profile, named after it, so
+a key means the same profile whatever is active.
+
+That source is every selectable profile, shipped and the player's own, except the active
+one - switching to the profile already loaded can only do nothing. A key that already names
+the active profile is still read from the keymap and listed, so there is somewhere to remove
+it from.
+
 An entry may carry `"alwaysModifier"`, naming a modifier the action always tolerates so no
 surface shows it or lets the player pick it:
 
@@ -121,7 +131,11 @@ Structure lives in the schemas; these are the operations, which a schema can't e
 Every surface answers the same questions from the same facts.
 
 The player's own profiles live in `LuaUI/Config/keybind_profiles.json`, in the same
-shape as the shipped ones plus an `active` field naming the selected profile. That file
+shape as the shipped ones plus an `active` field naming the selected profile and a
+`written` field recording the keymap last emitted - `{ "name": <profile>, "stamp": <stamp> }`.
+The stamp stands for the bindings the file holds rather than its bytes, so changing how the
+file is emitted does not make every player's keymap read as edited; it is taken over the same
+normalised `<keyset> <action>` lines a comparison uses, plus the meta key. That file
 is per-install rather than shared, but its format is the contract - a surface that can
 read one can read the other.
 
@@ -148,12 +162,28 @@ the clipboard and what Import reads back, and the same text a player would put i
   reload. Reloading clears the keymap first, which is why a profile has to define every
   binding it wants. It does not clear the meta key, so always write that line: leave it out
   and whatever the last profile set stays. A profile naming no key wants the engine's own,
-  `space`; `fakemeta none` asks for no Meta modifier at all.
+  `space`; `fakemeta none` asks for no Meta modifier at all. Record what was written in the
+  store as `written`, above - a surface that skips this makes the next launch read its own
+  output as a keymap the player hand-wrote.
+- **Reconcile on load.** Either side can have moved since the keymap was written: a game
+  update changes a shipped profile, or a tool changes the store between sessions. Compare the
+  keymap on disk against `written.stamp`. Equal means nobody has touched the file, so the
+  store is the authority and the selected profile is written out again, carrying whichever
+  change it was. Unequal means the player edited the file themselves, and that is kept as a
+  profile of theirs rather than overwritten. Where there is no stamp to compare - a store from
+  before this was recorded, or a player who points the engine at a keymap file of their own -
+  fall back to matching the whole keymap against every profile first, which still says nobody
+  edited it and stops a file being copied afresh on every launch. That older test cannot tell a
+  profile that changed from a file that did, so do not change a shipped profile in the same
+  release that starts recording stamps.
 - **Edit a binding.** Only in the player's own profiles. Shipped profiles are read-only,
   so the first edit made while one is selected forks it into a copy and edits that.
 - **Create / rename / delete.** Names are the identity, so they must stay unique across
   both files; disambiguate rather than overwrite. Deleting the active profile means
-  falling back and applying whatever is left.
+  falling back and applying whatever is left. A name is also an id inside the keymaps,
+  because `keybindprofile <name>` is what a key switching to that profile is bound to, so
+  a rename has to rewrite those binds everywhere they appear and a delete has to drop
+  them - in every profile, not just the one being changed.
 
 ### Same rules, different plumbing
 
