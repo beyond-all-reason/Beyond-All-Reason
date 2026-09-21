@@ -379,7 +379,6 @@
 			"gone": "%{player} (gone)",
 			"team": "Team %{number}",
 			"members": "%{count} players",
-			"memberOne": "1 player",
 			"notYet": "Not available yet",
 			"unknownPlayer": "Unknown player",
 			"foldHint": "Click to fold.",

@@ -144,7 +144,15 @@ local COLUMNS = {
 	unitsSent = { group = "units", stat = "unitsSent", short = "unitsSent", fmt = "si", rate = true },
 	unitsActive = { group = "units", stat = "unitsActive", short = "unitsActive", fmt = "si" },
 	-- What the metal spent bought in damage: army worth rather than army size.
-	damagePerMetal = { group = "damage", stat = "damagePerMetal", short = "shortDamagePerMetal", fmt = "plain" },
+	damagePerMetal = {
+		group = "damage",
+		stat = "damagePerMetal",
+		short = "shortDamagePerMetal",
+		fmt = "plain",
+		-- A few damage for every metal: whole numbers would round most of the column to the
+		-- same figure, so it keeps a decimal.
+		decimal = true,
+	},
 	metalProduced = { group = "metal", stat = "resourceProduced", short = "shortProduced", fmt = "si", rate = true },
 	-- What the team's builders took from wrecks, rocks and trees: part of what it produced,
 	-- which only the team stats gadget tells apart.
@@ -726,6 +734,11 @@ local area = { x1 = 0, y1 = 0, x2 = 0, y2 = 0 }
 -- Sizes derived from the scale, in one table rather than a local each, the way the other
 -- panels hold their own.
 local metrics = {
+	-- The numbers are set in the monospaced face, so a column of them lines up figure
+	-- under figure however wide each one is, and the player names in the face the rest of
+	-- the interface names players in; everything else is the interface's own.
+	numFont = nil,
+	nameFont = nil,
 	rowHeight = 24,
 	rowFs = 13,
 	-- An ally team's band stands taller than the rows under it and is set larger, so it
@@ -1242,27 +1255,19 @@ local function derive(s)
 			+ s.unitsReceived
 			+ s.unitsCaptured
 			- (s.unitsDied + s.unitsSent + s.unitsOutCaptured)
-		if s.damageReceived ~= 0 then
-			s.damageEfficiency = (s.damageDealt / s.damageReceived) * 100
-		else
-			s.damageEfficiency = mathHuge
-		end
-		if s.metalUsed ~= 0 then
-			s.damagePerMetal = s.damageDealt / s.metalUsed
-		else
-			s.damagePerMetal = 0
-		end
-		if s.unitsDied ~= 0 then
-			s.killEfficiency = (s.unitsKilled / s.unitsDied) * 100
-		else
-			s.killEfficiency = mathHuge
-		end
+		-- A ratio of nothing to nothing is no number at all, not a boundless one: a team
+		-- that has neither dealt nor taken a blow has no efficiency yet, and a chart that
+		-- read one would run along its ceiling from the first second of the game. Trading
+		-- something for nothing lost is boundless, and stays so.
+		s.damageEfficiency = ratio.efficiency(s.damageDealt, s.damageReceived)
+		s.killEfficiency = ratio.efficiency(s.unitsKilled, s.unitsDied)
+		s.damagePerMetal = s.metalUsed ~= 0 and s.damageDealt / s.metalUsed or NAN
 		-- Energy counts at a sixtieth of metal, the game's usual exchange.
 		local resources = s.metalProduced + s.metalReceived + (s.energyProduced + s.energyReceived) / 60
 		if resources ~= 0 and s.damageDealt ~= 0 then
 			s.aggressionLevel = mathFloor(10 * mathLog10(s.damageDealt / resources) + 0.5)
 		else
-			s.aggressionLevel = -mathHuge
+			s.aggressionLevel = NAN
 		end
 	end
 	-- The live ratios, from amounts that can be unknown: a team the viewer may not see
@@ -1310,7 +1315,7 @@ local function formatCell(column, v, share, mine)
 			return "-", nil
 		end
 		local d = v - mine
-		if mathAbs(d) < 0.5 then
+		if mathAbs(d) < (column.decimal and 0.05 or 0.5) then
 			return "=", colorDim
 		end
 		local better = column.low and d < 0 or (not column.low and d > 0)
@@ -1324,6 +1329,9 @@ local function formatCell(column, v, share, mine)
 	elseif column.fmt == "plain" then
 		if not isFinite(v) then
 			return "-"
+		end
+		if column.decimal then
+			return stringFormat("%.1f", v)
 		end
 		return stringFormat("%d", mathFloor(v + 0.5))
 	end
@@ -1491,7 +1499,7 @@ local function readTeam(teamID, allyID, frame, live)
 	end
 	derive(s)
 
-	local _, leader, isDead = spGetTeamInfo(teamID, false)
+	local _, leader, isDead, isAI = spGetTeamInfo(teamID, false)
 	local name, isActive = spGetPlayerInfo(leader, false)
 	if WG.playernames and WG.playernames.getPlayername then
 		name = WG.playernames.getPlayername(leader) or name
@@ -1515,6 +1523,11 @@ local function readTeam(teamID, allyID, frame, live)
 			handover.rememberNames()
 		end
 		name = teamControllers[teamID] or L.unknownPlayer
+	end
+	-- An AI says so after its name, the way the player list writes it. The name kept for a
+	-- team nobody answers for any more is the bare one, so this is never said twice.
+	if isAI then
+		name = BAR.I18N("ui.playersList.aiName", { name = name })
 	end
 	local gone = not isActive
 
@@ -2128,7 +2141,7 @@ local function setLayout()
 	-- The Graphs page takes the table's room, header rows and scrollbar included. Its
 	-- stat list is a card like the column's, so it sits closer and spans the same height.
 	if graphs then
-		graphs.setFont(font, metrics.rowFs)
+		graphs.setFont(font, metrics.rowFs, metrics.nameFont)
 		graphs.setLayout(
 			area.x1 + metrics.sidebarW + metrics.pageGap,
 			listBottom,
@@ -2219,14 +2232,37 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
-local function queueText(str, x, y, size, opts)
-	local at = pendingCount * 5
+-- `face` says which of the three the string is set in: the interface's own, the numbers'
+-- or the names'.
+local function queueText(str, x, y, size, opts, face)
+	local at = pendingCount * 6
 	pending[at + 1] = str
 	pending[at + 2] = x
 	pending[at + 3] = y
 	pending[at + 4] = size
 	pending[at + 5] = opts
+	pending[at + 6] = face or false
 	pendingCount = pendingCount + 1
+end
+
+-- One batch a face: it draws what was queued for it, in the order it was queued in. The
+-- three never overlap on the screen, so the order between them does not matter.
+local function flushBatch(face, key)
+	local began = false
+	for i = 0, pendingCount - 1 do
+		local at = i * 6
+		if pending[at + 6] == key then
+			if not began then
+				began = true
+				face:Begin()
+				face:SetOutlineColor(look.outline)
+			end
+			face:Print(pending[at + 1], pending[at + 2], pending[at + 3], pending[at + 4], pending[at + 5])
+		end
+	end
+	if began then
+		face:End()
+	end
 end
 
 local function flushText()
@@ -2234,13 +2270,9 @@ local function flushText()
 		return
 	end
 
-	font:Begin()
-	font:SetOutlineColor(look.outline)
-	for i = 0, pendingCount - 1 do
-		local at = i * 5
-		font:Print(pending[at + 1], pending[at + 2], pending[at + 3], pending[at + 4], pending[at + 5])
-	end
-	font:End()
+	flushBatch(font, false)
+	flushBatch(metrics.numFont or font, "number")
+	flushBatch(metrics.nameFont or font, "name")
 
 	pendingCount = 0
 end
@@ -2275,7 +2307,7 @@ end
 -- The mark under the number of a column its row leads: a short bar the width of the
 -- number, in the warm hue the panel uses for what stands out.
 local function drawLeadMark(column, cell, bottom)
-	local w = mathFloor(font:GetTextWidth(cell) * metrics.rowFs)
+	local w = mathFloor((metrics.numFont or font):GetTextWidth(cell) * metrics.rowFs)
 	if w < 4 then
 		return
 	end
@@ -2310,7 +2342,7 @@ local function fitRow(row)
 		local team = row.team
 		local share = shareMode()
 		local room = nameColumn.x2 - nameColumn.x1 - metrics.nameIndent - metrics.cellPad
-		row.fitName = text.fit(font, team.label, room, metrics.rowFs)
+		row.fitName = text.fit(metrics.nameFont or font, team.label, room, metrics.rowFs)
 		---@type table?
 		---@diagnostic disable-next-line: undefined-field
 		local me = (filters.vsMe and not team.isLocal) and allies.me or nil
@@ -2327,16 +2359,19 @@ local function fitRow(row)
 		end
 	else
 		local ally = row.ally
-		local caption = BAR.I18N("ui.teamStats.team", { number = ally.id + 1 })
-		local members = row.team and row.team.label
-			or (#ally.teams == 1 and L.memberOne or BAR.I18N("ui.teamStats.members", { count = #ally.teams }))
+		-- A side of one player is that player: the band says their name rather than the
+		-- side's number, which would say nothing the colour does not. A side of more is
+		-- named after itself, with how many players it holds beside it.
+		local caption = row.team and row.team.label or BAR.I18N("ui.teamStats.team", { number = ally.id + 1 })
+		local members = not row.team and BAR.I18N("ui.teamStats.members", { count = #ally.teams }) or nil
 		local room = nameColumn.x2 - nameColumn.x1 - metrics.rowPad * 2
-		row.caption = text.fit(font, caption, room, metrics.bandFs)
-		row.captionW = mathFloor(font:GetTextWidth(row.caption) * metrics.bandFs)
+		local face = row.team and (metrics.nameFont or font) or font
+		row.caption = text.fit(face, caption, room, metrics.bandFs)
+		row.captionW = mathFloor(face:GetTextWidth(row.caption) * metrics.bandFs)
 		-- The count goes after the caption when it fits beside it, and is dropped when
 		-- not: cut short it would say nothing.
 		local left = room - row.captionW - metrics.rowPad * 2 - metrics.triW * 2
-		if font:GetTextWidth(members) * metrics.rowFs <= left then
+		if members and font:GetTextWidth(members) * metrics.rowFs <= left then
 			row.members = members
 			row.membersW = mathFloor(font:GetTextWidth(members) * metrics.rowFs) + metrics.rowPad
 		else
@@ -2418,7 +2453,7 @@ local function drawBand(row, top, bottom, hovered)
 	)
 	local by = text.baseline(font, bottom, top, metrics.bandFs)
 	local captionX = listX1 + (row.team and metrics.nameIndent or metrics.rowPad)
-	queueText(colorHeader .. row.caption, captionX, by, metrics.bandFs, "o")
+	queueText(colorHeader .. row.caption, captionX, by, metrics.bandFs, "o", row.team and "name" or nil)
 	if row.members then
 		local team = row.team
 		local color = colorDim
@@ -2446,7 +2481,7 @@ local function drawBand(row, top, bottom, hovered)
 	for i = 2, #columns do
 		local v = row.vals[i]
 		local valueColor = row.tones[i] or ((v == 0 or not isFinite(v)) and look.zeroText or colorTotal)
-		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, vy, metrics.rowFs, "or")
+		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, vy, metrics.rowFs, "or", "number")
 		if row.ally.leads[columns[i].key] then
 			drawLeadMark(columns[i], row.cells[i], bottom)
 		end
@@ -2512,7 +2547,8 @@ local function drawTeamRow(row, top, bottom, hovered)
 		listX1 + metrics.nameIndent,
 		by,
 		metrics.rowFs,
-		"o"
+		"o",
+		"name"
 	)
 	for i = 2, #columns do
 		local v = row.vals[i]
@@ -2528,7 +2564,7 @@ local function drawTeamRow(row, top, bottom, hovered)
 		else
 			valueColor = colorValue
 		end
-		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, by, metrics.rowFs, "or")
+		queueText(valueColor .. row.cells[i], columns[i].x2 - metrics.cellPad, by, metrics.rowFs, "or", "number")
 		if team.leads[columns[i].key] then
 			drawLeadMark(columns[i], row.cells[i], bottom)
 		end
@@ -3137,7 +3173,6 @@ local function loadLabels()
 	L.notYet = BAR.I18N("ui.teamStats.notYet")
 	L.unknownPlayer = BAR.I18N("ui.teamStats.unknownPlayer")
 	L.foldHint = BAR.I18N("ui.teamStats.foldHint")
-	L.memberOne = BAR.I18N("ui.teamStats.memberOne")
 	-- The milestone kinds a player's card lists: the ones that tell the game's story.
 	L.milestones = BAR.I18N("ui.teamStats.milestones")
 	L.milestone = {}
@@ -3265,6 +3300,8 @@ function widget:ViewResize()
 	screenY = mathFloor((vsy * 0.5) + (screenHeight / 2))
 
 	font = WG.fonts.getFont()
+	metrics.numFont = WG.fonts.getFont(3)
+	metrics.nameFont = WG.fonts.getFont(2)
 	elementCorner = WG.FlowUI.elementCorner
 
 	RectRound = WG.FlowUI.Draw.RectRound
@@ -4077,7 +4114,7 @@ graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
 					---@cast column -?
 					local right = column.x2
 						- metrics.cellPad
-						- mathFloor(font:GetTextWidth(row.cells[c]) * metrics.rowFs)
+						- mathFloor((metrics.numFont or font):GetTextWidth(row.cells[c]) * metrics.rowFs)
 					graphs.trendCell(
 						row.trendKey,
 						column.key,
@@ -4145,6 +4182,10 @@ graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
 	text = text,
 	font = function()
 		return font
+	end,
+	-- The face the interface names players in, for what the page calls a team or a player.
+	nameFont = function()
+		return metrics.nameFont or font
 	end,
 	filters = filters,
 	soloTeams = soloTeams,

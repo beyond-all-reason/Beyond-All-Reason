@@ -604,10 +604,34 @@ end
 -- Text, queued while the list is built and printed in one batch
 ----------------------------------------------------------------
 
-function Graph:text(str, x, y, opts, size)
+-- `asName` marks what a series is called - a player, a team - which the caller can ask to
+-- be set in a face of its own (`cfg.nameFont`), the way the rest of the interface writes
+-- names. Everything else is the interface's own face.
+function Graph:text(str, x, y, opts, size, asName)
 	local n = self.pendingCount + 1
 	self.pendingCount = n
-	self.pending[n] = { str, x, y, size or self.cfg.fontSize, opts or "o" }
+	self.pending[n] = { str, x, y, size or self.cfg.fontSize, opts or "o", asName or false }
+end
+
+-- One batch a face, with the outline pinned: the fonts are shared with every widget, so a
+-- bake would otherwise freeze in whatever outline the last one set.
+function Graph:printBatch(face, asName, all)
+	local began = false
+	for i = 1, self.pendingCount do
+		local p = self.pending[i]
+		---@cast p -?
+		if all or p[6] == asName then
+			if not began then
+				began = true
+				face:Begin()
+				face:SetOutlineColor(self.cfg.look.outline)
+			end
+			face:Print(p[1], p[2], p[3], p[4], p[5])
+		end
+	end
+	if began then
+		face:End()
+	end
 end
 
 function Graph:flushText()
@@ -616,22 +640,21 @@ function Graph:flushText()
 		self.pendingCount = 0
 		return
 	end
-	font:Begin()
-	-- The font is shared with every widget; pinned so a bake does not freeze in whatever
-	-- outline the last one set.
-	font:SetOutlineColor(self.cfg.look.outline)
+	local nameFont = self.cfg.nameFont or font
+	if nameFont == font then
+		self:printBatch(font, false, true)
+	else
+		self:printBatch(font, false)
+		self:printBatch(nameFont, true)
+	end
 	for i = 1, self.pendingCount do
-		local p = self.pending[i]
-		---@cast p -?
-		font:Print(p[1], p[2], p[3], p[4], p[5])
 		self.pending[i] = nil
 	end
-	font:End()
 	self.pendingCount = 0
 end
 
-function Graph:textWidth(str, size)
-	local font = self.cfg.font
+function Graph:textWidth(str, size, asName)
+	local font = (asName and self.cfg.nameFont) or self.cfg.font
 	if not font then
 		return #str * (size or self.cfg.fontSize) * 0.55
 	end
@@ -926,7 +949,7 @@ function Graph:prepareLine()
 	if cfg.legend and #self.prepared > 0 then
 		local rows, x = 1, left
 		for _, p in ipairs(self.prepared) do
-			local w = mathFloor(fs * 0.8) + fs * 0.4 + self:textWidth(p.name, fs)
+			local w = mathFloor(fs * 0.8) + fs * 0.4 + self:textWidth(p.name, fs, true)
 			if x + w > plot.right and x > left then
 				rows = rows + 1
 				x = left
@@ -943,7 +966,7 @@ function Graph:prepareLine()
 	if cfg.endLabels and not stacked and #self.prepared > 0 then
 		local w = 0
 		for _, p in ipairs(self.prepared) do
-			w = mathMax(w, self:textWidth(p.name, fs))
+			w = mathMax(w, self:textWidth(p.name, fs, true))
 		end
 		local room = mathFloor(w + fs * 0.8)
 		if room < (right - left) / 3 then
@@ -1490,7 +1513,7 @@ function Graph:drawEndLabels()
 		local c = it.p.color
 		local k = alphaOf(self, it.si, 1)
 		local faded = { c[1] * k + 0.1 * (1 - k), c[2] * k + 0.1 * (1 - k), c[3] * k + 0.1 * (1 - k) }
-		self:text(colorCode(faded) .. it.p.name, x, mathFloor(it.y), "ov", fs)
+		self:text(colorCode(faded) .. it.p.name, x, mathFloor(it.y), "ov", fs, true)
 	end
 end
 
@@ -1950,7 +1973,7 @@ function Graph:drawLegend()
 	local x = x0
 	local swatch = mathFloor(fs * 0.8)
 	for si, p in ipairs(entries) do
-		local w = self:textWidth(p.name, fs)
+		local w = self:textWidth(p.name, fs, true)
 		-- Wrapped where the layout counted a row for it.
 		if x + swatch + fs * 0.4 + w > plot.right and x > x0 then
 			x = x0
@@ -1966,7 +1989,7 @@ function Graph:drawLegend()
 			glVertex(x, y + swatch)
 		end)
 		local color = isLit(self, si) and look.text or "\255\130\130\130"
-		self:text(color .. p.name, mathFloor(x + swatch + fs * 0.4), mathFloor(y + swatch * 0.15), "o", fs)
+		self:text(color .. p.name, mathFloor(x + swatch + fs * 0.4), mathFloor(y + swatch * 0.15), "o", fs, true)
 		x = mathFloor(x + swatch + fs * 0.4 + w + fs * 1.2)
 	end
 end
@@ -2322,7 +2345,7 @@ function Graph:drawRadar()
 		local y = mathFloor(self.plot.top - fs * 1.2)
 		local swatch = mathFloor(fs * 0.8)
 		for si, p in ipairs(self.prepared) do
-			local w = self:textWidth(p.name, fs)
+			local w = self:textWidth(p.name, fs, true)
 			if x + swatch + fs * 0.5 + w > self.plot.right then
 				break
 			end
@@ -2334,7 +2357,14 @@ function Graph:drawRadar()
 				glVertex(x + swatch, y + swatch)
 				glVertex(x, y + swatch)
 			end)
-			self:text(look.text .. p.name, mathFloor(x + swatch + fs * 0.4), mathFloor(y + swatch * 0.15), "o", fs)
+			self:text(
+				look.text .. p.name,
+				mathFloor(x + swatch + fs * 0.4),
+				mathFloor(y + swatch * 0.15),
+				"o",
+				fs,
+				true
+			)
 			x = mathFloor(x + swatch + fs * 0.4 + w + fs * 1.2)
 		end
 	end
