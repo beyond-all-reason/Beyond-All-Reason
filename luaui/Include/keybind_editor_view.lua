@@ -123,6 +123,9 @@ local resolvedCatalog
 local chipGroups = {}
 local catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 local L = {}
+-- Headers, notes, links, the way in to a custom binding and the bindable rows themselves,
+-- which share no shape beyond the type naming which they are.
+---@type table[]
 local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
 local rowsGen = 0
@@ -138,6 +141,8 @@ local scroll = 0
 local hover = {
 	sb = 0,
 	row = 0,
+	-- Named for whatever is under the cursor once it moves, not the empty string it starts at.
+	---@type string
 	zone = "",
 	idx = 0,
 	gk = "",
@@ -704,7 +709,11 @@ local function buildResolvedCatalog()
 		end
 		for _, key in ipairs(keys) do
 			local found = BAR.I18N(key, { default = "" })
-			if type(found) == "string" and found ~= "" and found ~= key then
+			-- The engine command descriptions were filled in in bulk, and the few commands that
+			-- had none got a stand-in reading "<chat command description: Select>" rather than
+			-- being left out. Shown, that is what a row says it does.
+			local placeholder = type(found) == "string" and found:match("^%b<>$") ~= nil
+			if type(found) == "string" and found ~= "" and found ~= key and not placeholder then
 				return found
 			end
 		end
@@ -737,6 +746,7 @@ local function buildResolvedCatalog()
 						label = item.label,
 						unit = item.unit,
 						members = item.members,
+						membersFrom = item.membersFrom,
 						description = describe(item),
 						icon = (item.icon and VFS.FileExists(item.icon) and item.icon) or nil,
 					}
@@ -800,6 +810,8 @@ local function buildResolvedCatalog()
 	end
 
 	L.other = BAR.I18N("categories.other")
+	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
+	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -857,7 +869,6 @@ local function buildResolvedCatalog()
 	L.compareNoneHint = BAR.I18N("ui.keybinds.editor.compareNoneHint")
 	L.conflictOrder = BAR.I18N("ui.keybinds.editor.conflictOrder")
 	L.conflictShipped = BAR.I18N("ui.keybinds.editor.conflictShipped")
-	L.revertHint = BAR.I18N("ui.keybinds.editor.revertHint")
 	L.revertNone = BAR.I18N("ui.keybinds.editor.revertNone")
 	L.presetDefault = BAR.I18N("ui.keybinds.editor.presetDefault")
 	L.presetOwn = BAR.I18N("ui.keybinds.editor.presetOwn")
@@ -887,6 +898,12 @@ local function buildResolvedCatalog()
 	L.applyFailedTitle = BAR.I18N("ui.keybinds.editor.applyFailedTitle")
 	L.accept = BAR.I18N("ui.keybinds.editor.accept")
 	L.cancel = BAR.I18N("ui.keybinds.editor.cancel")
+end
+
+-- The modifier names a search can name, off the same list the chips are printed from.
+local modifierKey = {}
+for _, name in ipairs(keyConfig.modifierOrder) do
+	modifierKey[name:lower()] = true
 end
 
 -- A keyset's canonical form, kept on the keyset record against the raw it came from: the
@@ -1032,22 +1049,31 @@ local function rebuildRows()
 	-- there are is counted whatever is shown, since its label says so.
 	local changedOnly = selectedCategory == state.changedKey
 	local changedCount = 0
-	-- A key clicked on the keyboard page: the list shows what is bound to it and nothing else,
-	-- whatever the category, the search text narrowing that by name.
-	local filter = state.keyFilter
 
 	-- A query can name keys as well as words. An action matches by key when one of its chips holds
 	-- every key the query names, modifiers included and in any order, so "ctrl+q", "ctrl q" and
 	-- "q ctrl" all find what Ctrl+Q does. Whole keys only, as the chips print them: "f1" does not
 	-- find F11, and a paired action's hidden Shift half does not answer to "shift".
 	local wantKeys = {}
+	-- The same keys with the modifiers dropped. An Any+ binding fires whatever is held, so it
+	-- answers a query naming modifiers even though its chip prints the bare key and holds none
+	-- of them; without this it is missing from the one search that should find it.
+	local wantPlain, namedMods = {}, false
 	for key in query.text:gmatch("[^%s%+]+") do
 		wantKeys[#wantKeys + 1] = key
+		if modifierKey[key] then
+			namedMods = true
+		else
+			wantPlain[#wantPlain + 1] = key
+		end
 	end
+	-- How the action answers the query: "exact" when a chip holds every key named, "any" when it
+	-- only holds the keys and carries Any+ for the modifiers, false when neither.
 	local function boundToQuery(action)
 		if not (wantKeys[1] and action) then
 			return false
 		end
+		local any = false
 		local pair = catalogShiftPair[action]
 		for _, k in ipairs(working.byAction[action] or {}) do
 			-- The chip's text, which for a paired action is not the keyset's own. Kept on the keyset
@@ -1060,62 +1086,28 @@ local function rebuildRows()
 				shown = k.unshifted
 			end
 			if keybindModel.holdsKeys(shown, wantKeys) then
-				return true
+				return "exact"
 			end
-		end
-
-		return false
-	end
-	-- How one of the action's keysets fires from the filtered key on its layer: "exact" when
-	-- its first tap lands on the key (any of the engine's spellings of it) and names exactly
-	-- the layer's modifiers, "any" when it carries Any+ instead, which fires on every layer;
-	-- false when neither. Precise where the typed key search is loose: "1" here is the 1 key
-	-- with nothing held, not every chip holding a 1.
-	local function boundToFilter(action)
-		local any = false
-		for _, k in ipairs(working.byAction[action] or look.noRaws) do
-			local mods, keyToken = keybindModel.splitElement(canonOf(k))
-			if keyToken and filter.tokens[keyToken] then
-				if mods.any then
+			if namedMods and wantPlain[1] then
+				local mods = keybindModel.splitElement(canonOf(k))
+				if mods.any and keybindModel.holdsKeys(shown, wantPlain) then
 					any = true
-				else
-					local same = true
-					for name in pairs(mods) do
-						if not filter.mods[name] then
-							same = false
-						end
-					end
-					for name in pairs(filter.mods) do
-						if not mods[name] then
-							same = false
-						end
-					end
-					if same then
-						return "exact"
-					end
 				end
 			end
 		end
 
 		return any and "any" or false
 	end
-	-- Whether an action is listed by key: under a filter, by the filtered key and then the
-	-- search text, answering how it is bound there; otherwise by the keys the search text
-	-- names, within the category shown.
-	local function keyHit(action, label, inCategory)
-		if filter then
-			local how = boundToFilter(action)
-
-			return how and (Search.matches(query, label:lower()) or Search.matches(query, action:lower())) and how
-		end
-
+	-- Whether an action is listed by key: by the keys the search text names, within the
+	-- category shown.
+	local function keyHit(action, _, inCategory)
 		return inCategory and boundToQuery(action)
 	end
 	-- Rows found by key are listed ahead of everything found by name, under a heading of their
 	-- own, and only there. Gathered as they are met, so they keep the catalog's order.
 	local keyRows = {}
 	local catalogActions = {}
-	local otherGroupEnd
+	local otherHeaderRow, otherGroupEnd
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
 	-- Exact ids only (not prefixes), so a future action can't be hidden by coincidence.
@@ -1130,7 +1122,7 @@ local function rebuildRows()
 	for _, group in ipairs(resolvedCatalog) do
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
-		local inCategory = filter ~= nil or not selectedCategory or changedOnly or group.category == selectedCategory
+		local inCategory = not selectedCategory or changedOnly or group.category == selectedCategory
 		-- A group whose own title matches keeps every row under it, so searching for a
 		-- category's name shows the category rather than emptying it.
 		local categoryMatch = Search.claims(query, group.titleLower)
@@ -1139,12 +1131,34 @@ local function rebuildRows()
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
+				-- A family whose members are the player's is named a source rather than listed,
+				-- and read here rather than with the rest of the catalog, so a profile made a
+				-- moment ago gets its row without waiting for a refresh.
+				local members = item.members
+				if item.membersFrom == "profiles" then
+					-- Switching to the one already on is a key that can only do nothing, so it is
+					-- not offered. One already bound is still found from the keymap below, which
+					-- is what leaves a stale self-binding somewhere to remove it.
+					local active = profiles.activeName()
+					members = {}
+					for _, builtin in ipairs(profiles.builtins) do
+						if builtin.name ~= active then
+							members[#members + 1] = builtin.name
+						end
+					end
+					for _, own in ipairs(profiles.list()) do
+						if own ~= active then
+							members[#members + 1] = own
+						end
+					end
+				end
+
 				-- A declared member is a row whether or not it is bound, so unbinding the last
 				-- key of "group select 3" leaves the row there to bind again. Families the
 				-- catalog cannot enumerate (buildunit_ is per unit) list no members and are
 				-- still discovered from what is bound.
 				local matched = {}
-				for _, member in ipairs(item.members or {}) do
+				for _, member in ipairs(members or {}) do
 					local action = item.prefix .. member
 					-- Skipped when an explicit entry already covers it, or a family whose
 					-- members are also listed individually renders each of them twice.
@@ -1194,14 +1208,9 @@ local function rebuildRows()
 						(change or not changedOnly)
 						and (
 							byKey
-							or (
-								not filter
-								and (
-									categoryMatch
-									or Search.matches(query, action:lower())
-									or Search.matches(query, label:lower())
-								)
-							)
+							or categoryMatch
+							or Search.matches(query, action:lower())
+							or Search.matches(query, label:lower())
 						)
 					then
 						local entry = {
@@ -1210,7 +1219,7 @@ local function rebuildRows()
 							label = label,
 							description = item.description,
 							change = change,
-							filterAny = byKey == "any",
+							queryAny = byKey == "any",
 						}
 						if not byKey then
 							groupRows[#groupRows + 1] = entry
@@ -1236,14 +1245,9 @@ local function rebuildRows()
 					(change or not changedOnly)
 					and (
 						byKey
-						or (
-							not filter
-							and (
-								categoryMatch
-								or Search.matches(query, item.labelLower)
-								or Search.matches(query, item.actionLower)
-							)
-						)
+						or categoryMatch
+						or Search.matches(query, item.labelLower)
+						or Search.matches(query, item.actionLower)
 					)
 				then
 					local entry = {
@@ -1254,7 +1258,7 @@ local function rebuildRows()
 						cursorColumn = group.hasCursors,
 						description = item.description,
 						change = change,
-						filterAny = byKey == "any",
+						queryAny = byKey == "any",
 					}
 					if not byKey then
 						groupRows[#groupRows + 1] = entry
@@ -1274,6 +1278,9 @@ local function rebuildRows()
 
 		if inCategory and #groupRows > 0 then
 			rows[#rows + 1] = { type = "header", text = group.title }
+			if group.title == L.other then
+				otherHeaderRow = rows[#rows]
+			end
 			if group.layout == "grid" then
 				-- Its keys only read laid out, so the list points at that view rather than
 				-- repeating them flat. Still driven by the rows a search matched, so hunting
@@ -1303,7 +1310,7 @@ local function rebuildRows()
 				-- Not what the column entry asked for.
 			elseif keyHit(action, action, inOther) then
 				otherKeyed[#otherKeyed + 1] = action
-			elseif not filter and (otherMatch or Search.matches(query, action:lower())) then
+			elseif otherMatch or Search.matches(query, action:lower()) then
 				others[#others + 1] = action
 			end
 		end
@@ -1316,23 +1323,34 @@ local function rebuildRows()
 			action = action,
 			label = action,
 			change = rowChange(action),
-			filterAny = filter ~= nil and boundToFilter(action) == "any",
+			queryAny = boundToQuery(action) == "any",
 		}
 	end
 
-	if #others > 0 and inOther then
+	-- The section is drawn for the way in alone, so a player with nothing of their own still
+	-- has somewhere to add the first one. Not while searching or reading the changed list:
+	-- neither is a list anything would be added to.
+	local offerAdd = inOther and not changedOnly and query.empty
+	if (offerAdd or #others > 0) and inOther then
 		table.sort(others)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
 		-- the leftovers join it after its own items instead of repeating the header.
 		local tail = {}
+		local header = otherHeaderRow
 		if otherGroupEnd then
 			for i = otherGroupEnd + 1, #rows do
 				tail[#tail + 1] = rows[i]
 				rows[i] = nil
 			end
 		else
-			rows[#rows + 1] = { type = "header", text = L.other }
+			header = { type = "header", text = L.other }
+			rows[#rows + 1] = header
+		end
+		-- The way in rides on the heading rather than taking a row of its own, which read as
+		-- one more binding among the ones it is there to add to.
+		if offerAdd and header then
+			header.add = L.addBind
 		end
 
 		for _, action in ipairs(others) do
@@ -1345,8 +1363,7 @@ local function rebuildRows()
 
 	-- The key rows go on top, under a heading that names the keys the way a chip would. One
 	-- cursor among them gives them all the column, as it does within a category.
-	-- Under a key filter the heading is always there, since it is where the filter is cleared.
-	if #keyRows > 0 or filter then
+	if #keyRows > 0 then
 		-- Modifiers ahead of the key, as a chip prints them, whatever order they were typed in.
 		local modifierAt = { ctrl = 1, alt = 2, meta = 3, shift = 4 }
 		local keys, column = {}, false
@@ -1362,18 +1379,20 @@ local function rebuildRows()
 		for i = 1, #keyRows do
 			column = column or keyRows[i].cursor ~= nil
 		end
-		local named = filter and filter.display or table.concat(keys, " + ")
 		local ordered = {
-			{ type = "header", text = BAR.I18N("ui.keybinds.editor.boundTo", { keys = named }), clear = filter ~= nil },
+			{
+				type = "header",
+				text = BAR.I18N("ui.keybinds.editor.boundTo", { keys = table.concat(keys, " + ") }),
+			},
 		}
-		-- Under a filter on a layer with modifiers, what fires through Any+ is set apart under a
-		-- heading of its own: it does fire on that layer, but its chip reads as the bare key,
-		-- and side by side with the exact bindings that reads as a mistake.
+		-- What answers only through Any+ is set apart: it does fire on the keys searched for, but
+		-- its chip reads as the bare key, and side by side with the exact bindings that reads as a
+		-- mistake.
 		local anyRows = {}
 		for i = 1, #keyRows do
 			keyRows[i].cursorColumn = column
 			keyRows[i].hitKeys = wantKeys
-			if keyRows[i].filterAny and filter and next(filter.mods) then
+			if keyRows[i].queryAny then
 				anyRows[#anyRows + 1] = keyRows[i]
 			else
 				ordered[#ordered + 1] = keyRows[i]
@@ -1404,7 +1423,7 @@ local function rebuildRows()
 
 	-- The Changed section with nothing to list says why: no preset is being compared with,
 	-- or nothing differs from the one that is.
-	if changedOnly and not filter and #rows == 0 then
+	if changedOnly and #rows == 0 then
 		if not state.base then
 			rows[1] = { type = "note", text = L.compareNoneHint }
 		else
@@ -1499,15 +1518,6 @@ function state.pickBase(option)
 	end
 	profiles.setBase(profiles.activeName(), option and option.name or nil)
 	state.refreshBase()
-	rebuildRows()
-end
-
--- Filters the list to one key of the keyboard page, or clears the filter. The keyboard
--- lights the key while the filter stands.
-function state.setKeyFilter(filter)
-	state.keyFilter = filter
-	state.keyboard:setFilter(filter and { id = filter.id, layer = filter.layer } or nil)
-	scroll = 0
 	rebuildRows()
 end
 
@@ -1777,6 +1787,7 @@ local function openDialog(d)
 	dialog = d
 	searchBox:blur()
 	if not d.message then
+		nameBox:setMaxChars(d.maxChars)
 		nameBox:setText(d.initial or "")
 		nameBox:focus()
 	end
@@ -1815,7 +1826,11 @@ local function dialogName()
 	end
 
 	local name = nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
-	local taken = name ~= dialog.allow and (profiles.get(name) ~= nil or profiles.isBuiltin(name) ~= nil)
+	-- Only a profile name has to be one of a kind. A dialog asking for anything else - a bind
+	-- command - is free to repeat whatever a profile happens to be called.
+	local taken = not dialog.freeText
+		and name ~= dialog.allow
+		and (profiles.get(name) ~= nil or profiles.isBuiltin(name) ~= nil)
 
 	-- A dialog can be blocked outright, like an import with nothing to import.
 	return name, name == "" or taken or dialog.blocked == true
@@ -1843,13 +1858,20 @@ end
 -- Makes a profile the live one, leaving its stored binds alone. Answers whether it took.
 -- A keymap that never reached disk must not clear the staged flag: the reload below would
 -- load whatever file is still there and the player would watch their edits revert.
-local function selectProfile(name, fromName)
+-- offPanel marks a caller the player is not looking at, a bound key with the editor
+-- closed, where a modal would sit unseen and then surface attributed to whatever they did
+-- next; that failure goes to the console instead.
+local function selectProfile(name, fromName, offPanel)
 	if not profiles.materialize(name) then
-		openDialog({
-			title = L.applyFailedTitle,
-			message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
-			accept = function() end,
-		})
+		if offPanel then
+			Spring.Echo("Keybind profile: could not apply " .. name)
+		else
+			openDialog({
+				title = L.applyFailedTitle,
+				message = BAR.I18N("ui.keybinds.editor.applyFailedMessage", { name = name }),
+				accept = function() end,
+			})
+		end
 
 		return false
 	end
@@ -2055,13 +2077,51 @@ end
 -- middle button deletes. Deleting asks again, since it cannot be undone.
 local function startEdit()
 	local name = profiles.activeName()
+
+	-- One keymap's binds and its index by action, with the switch to one profile pointed at
+	-- another. The staged keymap and everything undo can put back move with the rename too,
+	-- or a save writes back a key that switches to a profile no longer there.
+	local function retargetSwitch(set, from, to)
+		local keysets = set and set.byAction[from]
+		if not keysets then
+			return
+		end
+
+		for _, bind in ipairs(set.binds) do
+			if bind.action == from then
+				bind.action = to
+			end
+		end
+		set.byAction[from] = nil
+		set.byAction[to] = keysets
+	end
+
 	openDialog({
 		title = L.editTitle,
 		initial = name,
 		allow = name,
 		accept = function(newName)
-			profiles.rename(name, newName)
-			refreshPicker()
+			-- The store renumbers a name already taken, so follow what it settled on.
+			local from = profiles.switchAction(name)
+			local settled = profiles.rename(name, newName)
+			local to = profiles.switchAction(settled)
+			retargetSwitch(working, from, to)
+			retargetSwitch(state.snapshot, from, to)
+			for _, snap in ipairs(state.undo) do
+				retargetSwitch(snap, from, to)
+			end
+
+			-- The rename moved the store's copy of the binding, so the file has to be written
+			-- again or the next launch finds a keymap matching no profile and adopts it as a
+			-- separate one. Reloading it is the part staged edits cannot take, so with edits
+			-- pending only the file is written and the engine catches up on Save.
+			if dirty then
+				profiles.materialize(settled)
+				refreshPicker()
+				rebuildRows()
+			else
+				selectProfile(settled, nil)
+			end
 		end,
 		middle = {
 			label = L.delete,
@@ -2233,7 +2293,7 @@ end
 -- field; an information dialog has one button, OK, in the middle, and no Cancel.
 local function dialogGeometry()
 	local preview = dialog and dialog.preview
-	local w = floor((preview and 620 or 315) * scale)
+	local w = floor(((preview or (dialog and dialog.wide)) and 620 or 315) * scale)
 	local h = floor((preview and 420 or 150) * scale)
 	local messageLines, messageStep
 	if dialog and dialog.message and font then
@@ -2450,10 +2510,12 @@ function view.blur()
 		nameBox:blur()
 	end
 	capturing = nil
-	-- A key filter is a view of the moment; the panel opens on the whole list next time.
-	if state.keyFilter then
-		state.keyFilter = nil
-		state.keyboard:setFilter(nil)
+	-- The search is a view of the moment; the panel opens on the whole list next time. Clicking
+	-- a key on the keyboard page narrows through the same box, so this is what keeps that from
+	-- outliving the visit that asked for it.
+	if searchBox and searchBox:getText() ~= "" then
+		searchBox:setText("")
+		scroll = 0
 	end
 
 	-- Or the blur outlives the panel: guishader keeps drawing a rect nobody owns any more.
@@ -2475,6 +2537,31 @@ end
 function view.setOwner(w)
 	shade.owner = w
 end
+-- Host hook for the bindable per-profile actions. Answers whether the profile was there to
+-- switch to, so a key naming one the player has since deleted falls through to whatever else
+-- is on it rather than being swallowed.
+function view.applyProfile(name)
+	if not name or not (profiles.get(name) or profiles.isBuiltin(name)) then
+		return false
+	end
+
+	local from = profiles.activeName()
+	if name == from then
+		return true
+	end
+
+	-- Switching drops whatever is staged. Every other way of doing that asks first, and this
+	-- one can arrive from the console or another widget while the panel is open, so it
+	-- declines rather than discarding edits the player never answered for.
+	if dirty then
+		Spring.Echo("Keybind profile: save or discard your keybind changes before switching to " .. name)
+
+		return false
+	end
+
+	return selectProfile(name, from, true)
+end
+
 -- Host hook for swapping the build menu when a profile implies one.
 function view.setMenuToggle(fn)
 	menuToggle = fn
@@ -3083,8 +3170,17 @@ local function rowLayout(row)
 	lay = { gen = layoutGen }
 	if row.type == "header" then
 		lay.text = colorHeader .. row.text
+		if row.add then
+			-- Against the right edge, measured so the click lands on the words and not on the
+			-- whole band, which is a heading and does nothing.
+			lay.addW = floor(font:GetTextWidth(row.add) * metrics.headerFs)
+			lay.addX = listRight - metrics.rowPad - lay.addW
+			lay.addText = colorAction .. row.add
+			lay.addTextHover = colorHeader .. row.add
+		end
 	elseif row.type == "note" then
 		lay.text = colorDim .. text.fit(font, row.text, listRight - listX1 - metrics.rowPad * 4, metrics.rowFs)
+
 	elseif row.type == "link" then
 		lay.text = colorAction .. row.label
 		lay.arrow = look.arrow
@@ -3116,6 +3212,8 @@ local function rowLayout(row)
 				end
 			end
 			local keys = #shown > 0 and table.concat(shown, ", ") or L.revertNone
+			-- Kept whole for the chip's own tooltip, which has room the chip itself does not.
+			lay.ghostKeysFull = keys
 			lay.ghostFs = floor(metrics.rowFs * 0.9)
 			keys = text.fit(font, keys, floor((listRight - metrics.keyAreaX1) * 0.3), lay.ghostFs)
 			lay.ghostKeys = keys
@@ -3685,11 +3783,11 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
-		-- A heading that stands for a key filter carries the mark that clears it.
-		if row.clear then
-			local mark = zone == "clear" and look.removeHot or look.removeCold
-			queueText(mark, listRight - metrics.rowPad * 2, cyc, fs, "cov")
+		if lay.addText then
+			local over = zone == "addbind"
+			queueText(over and lay.addTextHover or lay.addText, lay.addX, cyc, metrics.headerFs, "ov")
 		end
+
 		return
 	end
 
@@ -4245,8 +4343,11 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
-			elseif row.type == "header" and row.clear and mx >= listRight - metrics.rowPad * 4 then
-				h.zone = "clear"
+			elseif row.type == "header" and row.add then
+				local lay = rowLayout(row)
+				if mx >= lay.addX - metrics.rowPad then
+					h.zone = "addbind"
+				end
 			end
 		end
 	end
@@ -4538,35 +4639,46 @@ function state.showTooltips(mx, my)
 			key = "row|" .. row.action .. "|" .. hover.zone .. "|" .. hover.idx .. "|" .. rowsGen .. "|" .. layoutGen
 			title = row.label
 			if key ~= state.tipKey then
-				lines = {}
-				if row.description then
-					lines[#lines + 1] = colorText .. row.description
-				end
 				local lay = rowLayout(row)
-				local m = hover.idx > 0 and lay.mets[hover.idx]
-				if m and m.others then
-					local names = {}
-					for i, o in ipairs(m.others) do
-						local name = state.labels[o.action] or o.action
-						names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name }) or name
+				lines = {}
+				-- The chip is a control of its own, so it says what clicking it does and nothing
+				-- else. Leading with the row, which describes something the click does not do,
+				-- buries the one line that belongs to what is under the cursor.
+				if hover.zone == "revert" and row.change and state.base then
+					title = nil
+					lines[1] = colorText .. BAR.I18N("ui.keybinds.editor.revertTooltip", { keys = lay.ghostKeysFull })
+				else
+					if row.description then
+						lines[#lines + 1] = colorText .. row.description
 					end
-					-- A warning when the sharing is the player's; a note when the game ships it so.
-					lines[#lines + 1] = (m.clash and colorDanger or colorDim)
-						.. BAR.I18N(
-							"ui.keybinds.editor.conflict",
-							{ keys = m.group.display, actions = table.concat(names, ", ") }
-						)
-					lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
-				end
-				if row.change and state.base then
-					if #row.change > 0 then
-						lines[#lines + 1] = colorHeader
-							.. BAR.I18N("ui.keybinds.editor.defaultIn", { name = state.base.name, keys = lay.ghostKeys })
-					else
-						lines[#lines + 1] = colorHeader
-							.. BAR.I18N("ui.keybinds.editor.defaultNone", { name = state.base.name })
+					local m = hover.idx > 0 and lay.mets[hover.idx]
+					if m and m.others then
+						local names = {}
+						for i, o in ipairs(m.others) do
+							local name = state.labels[o.action] or o.action
+							names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name })
+								or name
+						end
+						-- A warning when the sharing is the player's; a note when the game ships it so.
+						lines[#lines + 1] = (m.clash and colorDanger or colorDim)
+							.. BAR.I18N(
+								"ui.keybinds.editor.conflict",
+								{ keys = m.group.display, actions = table.concat(names, ", ") }
+							)
+						lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
 					end
-					lines[#lines + 1] = colorDim .. L.revertHint
+					if row.change and state.base then
+						if #row.change > 0 then
+							lines[#lines + 1] = colorHeader
+								.. BAR.I18N(
+									"ui.keybinds.editor.defaultIn",
+									{ name = state.base.name, keys = lay.ghostKeys }
+								)
+						else
+							lines[#lines + 1] = colorHeader
+								.. BAR.I18N("ui.keybinds.editor.defaultNone", { name = state.base.name })
+						end
+					end
 				end
 			end
 		end
@@ -4838,6 +4950,35 @@ local function sidebarPress(x, y)
 	return true
 end
 
+-- A binding for an action the catalog does not list. Only the command is asked for; the key
+-- comes from the same capture every row uses, and the action lands under Other by itself,
+-- since that is where the list puts whatever it does not recognise. Hung off state rather
+-- than taken as a local, this chunk being at Lua's ceiling of 200 of them.
+function state.addBind()
+	openDialog({
+		title = L.addBindTitle,
+		freeText = true,
+		-- The field neither scrolls nor clips, so it must not take more than it can show. The
+		-- wide box fits about a hundred characters, and the longest the game itself binds is
+		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one - so a command
+		-- past this is refused rather than drawn over the panel behind the dialog.
+		wide = true,
+		maxChars = 96,
+		accept = function(typed)
+			-- The engine lower-cases the command as it parses the bind line, so a capitalised one
+			-- would read back from the keymap as something else and the row would never meet the
+			-- binding again. Its arguments keep their case, which the selection language needs.
+			local command, rest = typed:match("^(%S+)(.*)$")
+			if not command then
+				return
+			end
+
+			local action = command:lower() .. rest
+			startCapture(action, action)
+		end,
+	})
+end
+
 -- Routes a click on a keybind row to the edit it implies.
 local function handleZone(kind, action, label, raws)
 	if kind == "remove" then
@@ -5002,36 +5143,25 @@ function view.mousePress(x, y, button)
 
 	-- The keyboard page: a modifier toggles its layer, the toggle swaps the view, and a bound
 	-- key goes to the list page filtered to that key on that layer, which lists everything on
-	-- it with its bindings to hand. The search text is left alone: the filter is its own thing.
+	-- it with its bindings to hand.
 	if state.page == "keyboard" then
 		state.ensureKeyboard()
 		local kind, key, layer = state.keyboard:mousePress(x, y, button)
 		if kind == "key" then
-			local tokens, mods = {}, {}
-			for _, token in ipairs(key.tokens or {}) do
-				tokens[token] = true
-			end
-			for name in layer:gmatch("[^+]+") do
-				mods[name] = true
-			end
+			-- Handed to the search box rather than filtered behind the scenes. It finds what a
+			-- key holds already, and it does it somewhere the player can see what is narrowing
+			-- the list and clear it. The keyset is spelled the way they would have typed it.
 			state.setPage("list")
 			selectedCategory = nil
-			state.setKeyFilter({
-				id = key.id,
-				layer = layer,
-				tokens = tokens,
-				mods = mods,
-				display = state.keyboard:keysetName(key, layer),
-			})
+			scroll = 0
+			if searchBox then
+				searchBox:setText(state.keyboard:keysetName(key, layer))
+			end
 		end
 
 		return true
 	end
 
-	-- Picking a category is asking for the whole of it, so a key filter goes first.
-	if state.keyFilter and x >= area.x1 and x <= area.x1 + sidebarW and y > listBottom() and y <= sidebarTop() then
-		state.setKeyFilter(nil)
-	end
 	if sidebarPress(x, y) then
 		return true
 	end
@@ -5069,8 +5199,8 @@ function view.mousePress(x, y, button)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
 			end
-		elseif row and row.type == "header" and row.clear and x >= listRight - metrics.rowPad * 4 then
-			state.setKeyFilter(nil)
+		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
+			state.addBind()
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
@@ -5161,12 +5291,6 @@ function view.keyPress(key, scanCode)
 	-- the search made, and the first Escape is asking for that back. With nothing left to
 	-- clear it goes unclaimed, and the widget above closes the panel on it.
 	if key == KEYSYMS.ESCAPE then
-		-- A key filter goes before the search text: it is the narrower of the two.
-		if state.keyFilter then
-			state.setKeyFilter(nil)
-
-			return true
-		end
 		if searchBox and searchBox:getText() ~= "" then
 			-- Focus stays, so the next thing typed starts a new search.
 			searchBox:setText("")

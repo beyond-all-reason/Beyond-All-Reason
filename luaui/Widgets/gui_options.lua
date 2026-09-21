@@ -9213,6 +9213,21 @@ function init()
 				saveOptionValue("Auto Group", "autogroup", "setPersist", { "persist" }, value)
 			end,
 		},
+		{
+			id = "quickstartsuggestions",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.quickstartsuggestions"),
+			type = "bool",
+			value = Spring.GetConfigInt("QuickStartSuggestions", 1) == 1,
+			description = BAR.I18N("ui.settings.option.quickstartsuggestions_descr"),
+			onchange = function(i, value)
+				Spring.SetConfigInt("QuickStartSuggestions", value and 1 or 0)
+				if WG.quickStart and WG.quickStart.setAutoGenerateSuggestions then
+					WG.quickStart.setAutoGenerateSuggestions(value)
+				end
+			end,
+		},
 
 		{
 			id = "label_ui_cloak",

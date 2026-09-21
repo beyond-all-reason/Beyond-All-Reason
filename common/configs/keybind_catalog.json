@@ -866,6 +866,12 @@
 					"7",
 					"8"
 				]
+			},
+			{
+				"prefix": "keybindprofile ",
+				"label": "actions.keybindProfiles.activate",
+				"description": "actions.keybindProfiles.activateDescription",
+				"membersFrom": "profiles"
 			}
 		]
 	},
