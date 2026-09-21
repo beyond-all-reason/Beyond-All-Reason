@@ -3552,12 +3552,17 @@ local function bindUi()
 		searchBox = Editbox.new({
 			outline = look.outline,
 			placeholder = L.search,
+			-- It is focused from the moment the panel opens, so it would otherwise never show.
+			keepPlaceholder = true,
 			clearable = true,
 			onChange = function()
 				setScroll(0)
 				rebuildRows()
 			end,
 		})
+		-- Focused from the start: a panel opened before FlowUI was up had no field to focus yet,
+		-- and a hidden panel never takes the keyboard.
+		searchBox:focus()
 		nameBox = Editbox.new({ outline = look.outline })
 		setPicker = Dropdown.new({
 			outline = look.outline,
@@ -3660,6 +3665,10 @@ local function setShow(state)
 			end
 		end
 		refreshContent()
+		-- Ready to type into; Update takes the keyboard next frame.
+		if uiBound then
+			searchBox:focus()
+		end
 	else
 		closePanel()
 	end
@@ -4266,7 +4275,7 @@ end
 -- Input
 ----------------------------------------------------------------
 
-function widget:KeyPress(key)
+function widget:KeyPress(key, _mods, _isRepeat, _label, _unicode, _scanCode, actions)
 	if not show or not uiBound then
 		return false
 	end
@@ -4321,6 +4330,12 @@ function widget:KeyPress(key)
 	end
 
 	if searchBox:isFocused() then
+		-- Let the panel's own toggle (F11) through, or the focused field would swallow it.
+		for _, bound in ipairs(actions or {}) do
+			if bound.command == "widgetselector" or (bound.command == "luaui" and bound.extra == "selector") then
+				return false
+			end
+		end
 		searchBox:keyPress(key)
 
 		return true
