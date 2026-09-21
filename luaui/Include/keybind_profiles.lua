@@ -12,7 +12,7 @@ local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"
 local RETIRED_INCLUDES_PATH = "common/configs/keybind_retired_includes.json"
 local ACTIVE_FILE = "uikeys.txt"
-local BACKUP_FILE = "uikeys.txt.bak"
+local BACKUP_SUFFIX = ".bak"
 local STORE_VERSION = 2
 -- A profile name is an id inside the keymaps too, so a rename or delete has to follow it there.
 local SWITCH_COMMAND = "keybindprofile"
@@ -466,22 +466,31 @@ local function matchesKnownProfile(text)
 	return nil
 end
 
--- A name no existing profile holds, for copies.
-function M.uniqueName(base)
-	M.load()
-	if not indexOf(base) and not M.isBuiltin(base) then
+local function freeName(base, taken)
+	if not taken(base) then
 		return base
 	end
 
 	local n = 2
-	while indexOf(base .. " " .. n) or M.isBuiltin(base .. " " .. n) do
+	while taken(base .. " " .. n) do
 		n = n + 1
 	end
 
 	return base .. " " .. n
 end
 
--- Kept distinct from uniqueName suffix so a copy the player never asked for reads as one.
+-- A name no existing profile holds, for copies.
+function M.uniqueName(base)
+	M.load()
+
+	return freeName(base, function(name)
+		return indexOf(name) or M.isBuiltin(name)
+	end)
+end
+
+-- The next free "<name> (n)". A name already carrying one counts up from it, anything else
+-- starts at 2. Kept distinct from uniqueName's suffix so a copy the player never asked for
+-- reads as one rather than as another profile they made.
 local function nextCopyName(name)
 	local stem, n = name:match("^(.-) %((%d+)%)$")
 	n = tonumber(n) or 1
@@ -515,42 +524,56 @@ function M.save()
 	return true
 end
 
--- Players upgrading from the old preset picker keep what they had, so dropping the
--- preset list does not silently reset anyone.
--- The player's file as it was before any of this touched it. Written once and never again,
--- including on a later migration, so the copy is always the original rather than our own
--- output. Nothing reads it back: it exists for a human with a broken keymap.
-local function backupActiveFile()
-	local existing = io.open(BACKUP_FILE, "r")
-	if existing then
-		existing:close()
-
-		return
-	end
-
-	local text = VFS.LoadFile(ACTIVE_FILE)
-	if not text then
-		return
-	end
-
-	local file = io.open(BACKUP_FILE, "w")
+-- VFS.FileExists searches the game archives too, and a copy can only go in the write dir.
+local function fileExists(path)
+	local file = io.open(path, "r")
 	if not file then
-		Spring.Echo(
-			"[keybind_profiles] Error: could not write "
-				.. BACKUP_FILE
-				.. "; continuing without a copy of the original keymap"
-		)
+		return false
+	end
 
-		return
+	file:close()
+
+	return true
+end
+
+-- The first copy is the keymap the player had before any of this existed.
+local function backupFile(path, text)
+	text = text or VFS.LoadFile(path)
+	if not text then
+		return nil
+	end
+
+	local target = path .. BACKUP_SUFFIX
+	local n, last = 1, nil
+	while fileExists(target) do
+		last = target
+		n = n + 1
+		target = path .. BACKUP_SUFFIX .. "." .. n
+	end
+
+	-- A caller failing the same way every time asks for the same copy every time.
+	if last and VFS.LoadFile(last) == text then
+		return last
+	end
+
+	local file = io.open(target, "w")
+	if not file then
+		Spring.Echo("[keybind_profiles] Error: could not write " .. target .. "; continuing without a copy of " .. path)
+
+		return nil
 	end
 
 	file:write(text)
 	file:close()
-	Spring.Echo("[keybind_profiles] kept the original " .. ACTIVE_FILE .. " as " .. BACKUP_FILE)
+	Spring.Echo("[keybind_profiles] kept a copy of " .. path .. " as " .. target)
+
+	return target
 end
 
+-- Players upgrading from the old preset picker keep what they had, so dropping the
+-- preset list does not silently reset anyone.
 local function migrate()
-	backupActiveFile()
+	backupFile(ACTIVE_FILE)
 	store = emptyStore()
 
 	-- Every preset still ships, so a player on one only needs it selected.
@@ -577,7 +600,11 @@ local function migrate()
 		end
 	end
 
-	M.save()
+	if not M.save() then
+		Spring.Echo(
+			"[keybind_profiles] Error: could not write " .. PROFILES_PATH .. "; this will migrate again next launch"
+		)
+	end
 
 	-- A keyload naming a retired preset resolves here and to nothing engine-side, so hand it the
 	-- store rather than the file the store came from.
@@ -617,6 +644,7 @@ function M.load()
 	local ok, decoded = pcall(Json.decode, content)
 	if not ok or type(decoded) ~= "table" or type(decoded.profiles) ~= "table" then
 		Spring.Echo("[keybind_profiles] could not decode " .. PROFILES_PATH .. "; starting empty")
+		backupFile(PROFILES_PATH, content)
 		store = emptyStore()
 		return store
 	end
@@ -625,12 +653,36 @@ function M.load()
 	storePredatesMeta = (tonumber(store.version) or 1) < 2
 	store.version = STORE_VERSION
 	-- A hand-edited file can repeat a name; keep the first so lookups stay unambiguous.
-	local seen, kept, inferred = {}, {}, false
+	local seen, kept, changed = {}, {}, false
 	for _, p in ipairs(store.profiles) do
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
-			seen[p.name] = true
 			p.binds = type(p.binds) == "table" and p.binds or {}
-			-- Said here rather than on the way out, where the emitter would repeat it all session.
+			-- A shipped profile is not the store to define.
+			if M.isBuiltin(p.name) then
+				local taken = p.name
+				local renamed = freeName(taken, function(name)
+					return seen[name] or M.isBuiltin(name)
+				end)
+				Spring.Echo(
+					"[keybind_profiles] "
+						.. PROFILES_PATH
+						.. " names a profile "
+						.. taken
+						.. ", which ships with the game; kept as "
+						.. renamed
+				)
+				p.binds = M.retargetSwitchBinds(p.binds, taken, renamed)
+				p.name = renamed
+				-- Otherwise the name goes back to what ships and the player lands on stock bindings.
+				if store.active == taken then
+					store.active = renamed
+				end
+				seen[taken] = true
+				changed = true
+			end
+			seen[p.name] = true
+			-- Said here rather than on the way out, where the emitter runs once per profile per
+			-- comparison and would repeat it all session.
 			if p.fakeMeta and not validFakeMeta(p.fakeMeta) then
 				Spring.Echo(
 					"[keybind_profiles] profile "
@@ -646,13 +698,13 @@ function M.load()
 			-- closest and that is written back.
 			if not M.baseIsUsable(p.basedOn, store.profiles) then
 				p.basedOn = M.inferBase(p)
-				inferred = inferred or p.basedOn ~= nil
+				changed = changed or p.basedOn ~= nil
 			end
 			kept[#kept + 1] = p
 		end
 	end
 	store.profiles = kept
-	if inferred or storePredatesMeta then
+	if changed or storePredatesMeta then
 		M.save()
 	end
 
@@ -1014,7 +1066,9 @@ end
 
 -- Write a profile out where the engine can keyreload it, and return that path.
 function M.materialize(name)
-	local profile = M.get(name) or M.isBuiltin(name)
+	M.load()
+
+	local profile = M.isBuiltin(name) or M.get(name)
 	if not profile then
 		return nil
 	end

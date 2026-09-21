@@ -39,7 +39,9 @@ they held. It is a frozen record of files that no longer exist, not something to
 with the profiles.
 
 Every shipped profile is selectable and read-only; editing one forks a copy under a name
-the player chooses.
+the player chooses. A shipped profile is not the store's to define either: a store naming one
+is the player's own entry under a name that collides, so keep it under a free name rather than
+letting it stand in for what ships.
 
 ## Catalog item kinds
 
@@ -165,6 +167,10 @@ the clipboard and what Import reads back, and the same text a player would put i
   `space`; `fakemeta none` asks for no Meta modifier at all. Record what was written in the
   store as `written`, above - a surface that skips this makes the next launch read its own
   output as a keymap the player hand-wrote.
+- **Never overwrite without a copy.** Before writing over a keymap or a profiles file that
+  did not come from you - a migration, or a store that will not decode - copy it aside first,
+  to a name nothing already holds (`<file>.bak`, then `<file>.bak.2`, and so on). An earlier
+  copy is never replaced: the first one is what the player had before any of this existed.
 - **Reconcile on load.** Either side can have moved since the keymap was written: a game
   update changes a shipped profile, or a tool changes the store between sessions. Compare the
   keymap on disk against `written.stamp`. Equal means nobody has touched the file, so the
