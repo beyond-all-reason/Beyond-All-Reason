@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 505,
 		customparams = {
+			deactivate_time = 8,
 			juno_kill = true,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
