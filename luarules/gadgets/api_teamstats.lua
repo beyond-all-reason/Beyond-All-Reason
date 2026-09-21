@@ -582,8 +582,10 @@ local killedAs = {
 
 local ARMED_GROUPS =
 	{ weapon = true, aa = true, sub = true, emp = true, explo = true, weaponaa = true, weaponsub = true }
----@type table<string, boolean?>
-local SEA_CLASSES = { BOAT = true, UBOAT = true, EPICSHIP = true }
+-- What the engine calls a ship: the class it gives every move definition whose name says
+-- boat or ship, and the one a definition can set outright (the T4 ships and submarines do).
+-- The name itself is no test - the engine lowercases it, and it is the game's to change.
+local SHIP_CLASS = Game.speedModClasses.Ship
 
 local function bucketOf(ud)
 	local cp = ud.customParams
@@ -610,8 +612,7 @@ local function bucketOf(ud)
 	if ud.canFly then
 		return "air"
 	end
-	local moveClass = ud.moveDef and ud.moveDef.name or ""
-	if SEA_CLASSES[moveClass:match("^%u+") or ""] then
+	if ud.moveDef and ud.moveDef.smClass == SHIP_CLASS then
 		return "sea"
 	end
 	return armed and "army" or "utility"
