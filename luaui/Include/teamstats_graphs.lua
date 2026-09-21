@@ -1088,8 +1088,8 @@ function M.new(ctx)
 		return layoutParts().toggle
 	end
 
-	function page.setFont(font, fontSize)
-		chart:configure({ font = font, fontSize = fontSize })
+	function page.setFont(font, fontSize, nameFont)
+		chart:configure({ font = font, fontSize = fontSize, nameFont = nameFont or font })
 		page.dirty = true
 	end
 
@@ -1909,7 +1909,10 @@ function M.new(ctx)
 			local unit = {
 				key = "ally" .. ally.id,
 				allyID = ally.id,
-				name = ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
+				-- A side of one player goes by that player's name: its number would say
+				-- nothing beside it.
+				name = (#ally.teams == 1 and ally.teams[1].name)
+					or ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
 				color = first and { first.accent[1], first.accent[2], first.accent[3] } or { 0.8, 0.8, 0.8 },
 				members = members,
 				teams = ally.teams,
@@ -2026,8 +2029,12 @@ function M.new(ctx)
 		local pad = ctx.metrics.sidePad
 		local fs = ctx.metrics.catFs
 		local font = ctx.font()
-		local function widthOf(label)
-			return font and mathFloor(font:GetTextWidth(label) * fs) or #label * fs * 0.55
+		-- A block standing for a team or a player is captioned with its name, in the face
+		-- the interface names players in, so its room is measured in that face too.
+		local nameFont = ctx.nameFont()
+		local function widthOf(label, isName)
+			local face = isName and nameFont or font
+			return face and mathFloor(face:GetTextWidth(label) * fs) or #label * fs * 0.55
 		end
 		local all = { all = true, label = ctx.i18n("ui.teamStats.graph.all"), members = {} }
 		all.labelW = widthOf(all.label)
@@ -2060,10 +2067,15 @@ function M.new(ctx)
 				local block = seen[team.allyID]
 				if not block then
 					-- A side of one is named after its player, and the viewer's own - playing
-					-- or watching it - is "You".
+					-- or watching it - is "You" where every side is one player, since nothing
+					-- else on the bar is theirs. In a game of teams the viewer has a block of
+					-- their own beside All, so a side of one keeps its player's name there.
+					local allyUnit = page.unitByKey and page.unitByKey["ally" .. team.allyID]
 					local label = ctx.i18n("ui.teamStats.team", { number = team.allyID + 1 })
 					if ctx.soloTeams then
 						label = team.isLocal and youLabel or team.name
+					elseif allyUnit and #allyUnit.teams == 1 then
+						label = team.name
 					end
 					block = {
 						ally = team.allyID,
@@ -2090,7 +2102,8 @@ function M.new(ctx)
 			local b = blocks[i]
 			if not b.all and not b.me then
 				count = count + #b.members
-				b.labelW = widthOf(b.label)
+				b.named = true
+				b.labelW = widthOf(b.label, true)
 				labelW = labelW + b.labelW + pad
 				if b.short then
 					b.shortW = widthOf(b.short)
@@ -3484,7 +3497,7 @@ function M.new(ctx)
 		fillChart(chartOf, mini.key, true)
 		-- A column's chart says itself whether its % of total is on it; the others take
 		-- their short name from the list.
-		local setup = { font = ctx.font(), fontSize = mini.fs }
+		local setup = { font = ctx.font(), fontSize = mini.fs, nameFont = ctx.nameFont() }
 		if not ctx.COLUMNS[statOf(mini.key)] then
 			setup.title = mini.label
 		end
@@ -3725,7 +3738,14 @@ function M.new(ctx)
 				Highlight(b.x1, py1, b.x2, py2, cs, look.barHoverOpacity, look.white)
 			end
 			if b.labelX then
-				ctx.queueText((lit and colors.selected or colors.dim) .. (b.caption or b.label), b.labelX, cy, fs, "ov")
+				ctx.queueText(
+					(lit and colors.selected or colors.dim) .. (b.caption or b.label),
+					b.labelX,
+					cy,
+					fs,
+					"ov",
+					b.named and not b.caption and "name" or nil
+				)
 			end
 			if b.swatch and b.unit then
 				local c = b.unit.color
