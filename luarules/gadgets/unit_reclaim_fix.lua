@@ -50,11 +50,24 @@ local function getStep(featureDefID, unitDefID)
 	if maxResource == nil or reclaimTime == nil or reclaimSpeed == nil then
 		return nil
 	end
-	if Spring.GetModOptions().proposed_unit_reworks == true then
-		return ((4.4 - 0.2 * reclaimSpeed ) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
-	end
 	return ((0.05 * reclaimSpeed + 4.5) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
 end
+
+
+local function getStepWithUnitReworks(featureDefID, unitDefID)
+	local maxResource = featureListMaxResource[featureDefID]
+	local reclaimTime = featureListReclaimTime[featureDefID]
+	local reclaimSpeed = unitListReclaimSpeed[unitDefID]
+	if maxResource == nil or reclaimTime == nil or reclaimSpeed == nil then
+		return nil
+	end
+	return ((4.4 - 0.2 * reclaimSpeed ) / reclaimTime) --there's [reclaimSpeed / reclaimTime] amount of reclaim, added on top of this from engine
+end
+
+if Spring.GetModOptions().proposed_unit_reworks == true then
+	getStep = getStepWithUnitReworks
+end
+
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
 	if step > 0 or featureListMaxResource[featureDefID] == nil then
