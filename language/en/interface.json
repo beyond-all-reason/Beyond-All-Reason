@@ -600,7 +600,7 @@
 				"paste": "Paste category",
 				"empty": "Nothing here yet: open any graph and use Add to… to put it in this category.",
 				"categoryHint": "Your own category.\nRight-click to rename, move or delete it.",
-				"overviewHint": "Ships with the game, and yours to change: \nOpen a graph... Click the Add to… button to add to your (custom) overview.\nRight-click a graphto rename, move or reset it.",
+				"overviewHint": "Ships with the game, and yours to change: \nOpen a graph... Click the Add to… button to add to your (custom) overview.\nRight-click a graph to rename, move or reset it.",
 				"graphHint": "Drag it to another place in this category. Right-click to move it or take it out."
 			},
 			"switch": {
