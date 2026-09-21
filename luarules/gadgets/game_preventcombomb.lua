@@ -28,7 +28,6 @@ local MoveCtrlEnable = Spring.MoveCtrl.Enable
 local MoveCtrlDisable = Spring.MoveCtrl.Disable
 local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
 local GetGameFrame = Spring.GetGameFrame
-local GetUnitTeam = Spring.GetUnitTeam
 
 local fallingDamageTypes = {
 	[Game.envDamageTypes.GroundCollision] = true,
@@ -129,8 +128,7 @@ function gadget:UnitPreDamaged(
 					cantFall[unitID] = currentFrame + 30
 					return combombDamage, 0
 				else
-					--com blast hurts the attackerID -- but literally why though
-					return damage
+					return damage -- will just be ignored as self-damages
 				end
 			end
 		end
