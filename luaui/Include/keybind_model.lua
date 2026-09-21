@@ -4,16 +4,14 @@
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
--- Synonymous key names that should read the same however they were bound
--- (e.g. the file keysym "enter" vs the scancode-based "return" from capture).
+-- The file keysym "enter" and the scancode-based "return" from capture are one key.
 local keyNameAlias = { enter = "return" }
 
 -- Keychain separator (U+2192) shown between taps, since the engine's "," collides with a bound comma key.
 local chainSep = " \226\134\146 "
 
--- One engine keyset element as the player's keyboard layout would label it.
--- The Any+ qualifier is not shown: it is fixed per action rather than chosen, so there is
--- nothing on that key for a player to change. sanitizeKey is what drops it.
+-- The Any+ qualifier is not shown: it is fixed per action rather than chosen. sanitizeKey
+-- drops it.
 local function displayElement(raw, layout)
 	local mods, key = raw:match("^(.-)([^+]*)$")
 	if key and keyNameAlias[key:lower()] then
@@ -23,8 +21,8 @@ local function displayElement(raw, layout)
 	return (keyConfig.sanitizeKey(raw, layout):gsub("%+", " + "))
 end
 
--- Split a chain on separator commas. A comma is the bound key rather than a separator
--- when nothing has been read yet (","), straight after a modifier ("Alt+,") or after "sc_".
+-- A comma is the bound key rather than a separator when nothing has been read yet (","),
+-- straight after a modifier ("Alt+,") or after "sc_".
 local function splitChain(raw)
 	local elems = {}
 	local cur = ""
@@ -107,9 +105,8 @@ local function displayKeyset(raw, layout)
 	return table.concat(parts, chainSep)
 end
 
--- A keyset as the editor's chip for it reads. A paired action holds one key as two binds, bare
--- and Shift+, and that Shift is the action's rather than the player's, so the Shift half reads
--- as the bare key and both halves share one chip.
+-- A paired action holds one key as two binds, bare and Shift+, and that Shift is the action
+-- own, so both halves share one chip.
 local function displayWithoutShift(raw, layout)
 	local parts = splitChain(raw)
 	parts[1] = (parts[1]:gsub("[Ss][Hh][Ii][Ff][Tt]%+", ""))
@@ -117,9 +114,7 @@ local function displayWithoutShift(raw, layout)
 	return displayKeyset(table.concat(parts, ","), layout)
 end
 
--- Whether a displayed keyset holds every one of the keys given, in any order: whole keys as the
--- chip prints them, modifiers included, lowercased. Split once per display string, of which a
--- keymap has a few hundred at most.
+-- Whole keys as the chip prints them, modifiers included, lowercased.
 local keySets = {}
 local function holdsKeys(display, keys)
 	if #keys == 0 then
@@ -151,14 +146,11 @@ local function canonicalKeyset(raw)
 	return table.concat(parts, ",")
 end
 
--- The first tap of a canonical keyset, taken apart: the modifiers it names as a set ("any"
--- among them when the engine's qualifier is on) and the key token ("sc:q", "kc:a"). What the
--- keyboard page places a binding by, and what a filter on one key matches chips against.
+-- What the keyboard page places a binding by, and what a filter on one key matches against.
 local function splitElement(canon)
 	local first = canon:match("^[^,]+") or canon
 	local mods, key = {}, nil
-	-- The key runs from its "sc:"/"kc:" tag to the end: a key can be named "+" itself
-	-- ("kc:numpad+"), so the tag decides where the modifiers stop, not the separator.
+	-- A key can be named "+" itself ("kc:numpad+"), so the tag decides where the modifiers stop.
 	local at = first:find("[sk]c:")
 	local modPart = first
 	if at then
@@ -172,10 +164,8 @@ local function splitElement(canon)
 	return mods, key
 end
 
--- A bound action is identified by the full command string passed to /bind:
--- command plus its space-separated args (.extra) - exactly what bind/unbind
--- expect. This includes "chain", whose .extra is the sequence; dropping it would
--- collapse every chain into one id and lose the sequence on rebind.
+-- Command plus its space-separated args, which is what bind and unbind expect. Dropping the
+-- args would collapse every chain into one id.
 local function actionId(b)
 	if b.extra and b.extra ~= "" then
 		return b.command .. " " .. b.extra
