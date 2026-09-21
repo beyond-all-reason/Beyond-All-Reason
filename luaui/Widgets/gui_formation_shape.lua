@@ -36,6 +36,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	isMobile[unitDefID] = (unitDef.canMove and not unitDef.isBuilding and (unitDef.speed or 0) > 0) or nil
 end
 
+---@type table<string, any>
 local S = {
 	shape = DEFAULT_SHAPE,
 	pos = nil,
@@ -72,7 +73,10 @@ end
 local function NextShape()
 	for i = 1, #SHAPES do
 		if SHAPES[i].key == S.shape then
-			SetShape(SHAPES[(i % #SHAPES) + 1].key)
+			local following = SHAPES[(i % #SHAPES) + 1]
+			if following then
+				SetShape(following.key)
+			end
 			return
 		end
 	end
@@ -84,7 +88,8 @@ local function SelectionIsGroup()
 	local selection = Spring.GetSelectedUnits()
 	local mobile = 0
 	for i = 1, math.min(#selection, MAX_CHECKED) do
-		if isMobile[Spring.GetUnitDefID(selection[i]) or -1] then
+		local unitDefID = Spring.GetUnitDefID(selection[i])
+		if unitDefID and isMobile[unitDefID] then
 			mobile = mobile + 1
 			if mobile >= 2 then
 				return true
