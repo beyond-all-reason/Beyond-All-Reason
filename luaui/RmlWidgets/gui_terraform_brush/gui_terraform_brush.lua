@@ -2653,7 +2653,19 @@ widgetState.applyEnvConfig = function(d)
 		local sdx, sdy, sdz = d.sunDir[1] or 0, d.sunDir[2] or 0, d.sunDir[3] or 0
 		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
 		-- it would black out the map, so a degenerate direction is ignored.
-		if sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
+		--
+		-- (0, 0.4472, 0.8944) is ignored for a different reason: it is the ENGINE
+		-- default (MapInfo.cpp normalizes sunDir (0,1,2)), so a config carrying it
+		-- recorded the absence of a sun rather than a chosen one. Projects saved
+		-- from a canvas that never had one are full of it; applying it would put
+		-- the flat southern light back every time they are opened. Leaving it
+		-- alone keeps whatever the canvas already applied.
+		local isEngineDefault = math.abs(sdx) < 0.002
+			and math.abs(sdy - 0.4472136) < 0.002
+			and math.abs(sdz - 0.8944272) < 0.002
+		if isEngineDefault then
+			Spring.Echo("[Terraform Brush] environment carries the engine default sun; keeping the current one")
+		elseif sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
 			-- A config without an intensity (the harvested map moods have none)
 			-- keeps the session's; only an explicit value changes it.
 			local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
@@ -18515,6 +18527,37 @@ function widget:Initialize()
 						Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
 					end
 				end
+			end
+		end
+	end
+
+	-- Every OTHER way onto a blank canvas - the Chobby launcher, a map transform
+	-- restart, a /luaui reload, a project whose environment section carries no
+	-- sun - used to leave the ENGINE default lighting. rts/Map/MapInfo.cpp
+	-- defaults sunDir to (0,1,2), which normalizes to (0, 0.4472, 0.8944): a
+	-- flat light from due south that reads as "the sun reset itself", and which
+	-- the first FILE > Save then records into the project for good. Twelve of
+	-- the projects on this disk carry exactly that vector. Only New Map applied
+	-- the canonical sun, and only when it had written a pending preset, so the
+	-- launcher path never got one.
+	--
+	-- The engine default means "this map declares no sun", never a choice
+	-- somebody made, so a canvas still sitting on it gets the editor sun on the
+	-- same countdown a mood would use. A project load applies its own
+	-- environment later and wins.
+	if not widgetState._pendingEnvApply and _isGeneratedBlankMap() then
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		if
+			sunX
+			and math.abs(sunX) < 0.002
+			and math.abs((sunY or 0) - 0.4472136) < 0.002
+			and math.abs((sunZ or 0) - 0.8944272) < 0.002
+		then
+			local envDef = widgetState.newMapDefaultEnv()
+			if envDef then
+				widgetState._pendingEnvApply = envDef
+				widgetState._pendingEnvCountdown = 15
+				Spring.Echo("[Terraform Brush] canvas had the engine default sun; applying the editor sun")
 			end
 		end
 	end
