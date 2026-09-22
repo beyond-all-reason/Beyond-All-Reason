@@ -470,9 +470,9 @@ local applyUnitAttribute = {
 	end,
 }
 
-local getUnitDefScope, getUnitScope ---@type function, function
+local getUnitDefFactors, getUnitFactors ---@type function, function
 do
-	local function getScope(root, key, create)
+	local function getChild(root, key, create)
 		local child = root[key]
 		if child == nil and create then
 			child = {}
@@ -481,19 +481,19 @@ do
 		return child
 	end
 
-	getUnitDefScope = function(unitDefID, teamID, attribute, create)
+	getUnitDefFactors = function(unitDefID, teamID, attribute, create)
 		if teamID == nil then
-			local attributes = getScope(unitdefFactors, unitDefID, create)
-			return attributes and getScope(attributes, attribute, create)
+			local attributes = getChild(unitdefFactors, unitDefID, create)
+			return attributes and getChild(attributes, attribute, create)
 		end
-		local teams = getScope(unitdefTeamFactors, unitDefID, create)
-		local attributes = teams and getScope(teams, teamID, create)
-		return attributes and getScope(attributes, attribute, create)
+		local teams = getChild(unitdefTeamFactors, unitDefID, create)
+		local attributes = teams and getChild(teams, teamID, create)
+		return attributes and getChild(attributes, attribute, create)
 	end
 
-	getUnitScope = function(unitID, attribute, create)
-		local attributes = getScope(unitFactors, unitID, create)
-		return attributes and getScope(attributes, attribute, create)
+	getUnitFactors = function(unitID, attribute, create)
+		local attributes = getChild(unitFactors, unitID, create)
+		return attributes and getChild(attributes, attribute, create)
 	end
 end
 
@@ -533,16 +533,16 @@ do
 end
 
 ---@return boolean changed `false` only when the composed value _cannot_ have changed
-local function record(scope, source, kind, value)
-	local factor = scope[source]
+local function record(factors, source, kind, value)
+	local factor = factors[source]
 	if value == nil then
-		scope[source] = nil
+		factors[source] = nil
 		return factor ~= nil
 	end
 
 	sequence = sequence + 1
 	if not factor then
-		scope[source] = { kind = kind, value = value, sequence = sequence }
+		factors[source] = { kind = kind, value = value, sequence = sequence }
 		return true
 	end
 
@@ -555,10 +555,10 @@ local function record(scope, source, kind, value)
 	return not unchanged
 end
 
-local function resolveSet(scope)
+local function resolveSet(factors)
 	local value, sequence
-	if scope then
-		for _, factor in pairs(scope) do
+	if factors then
+		for _, factor in pairs(factors) do
 			if factor.kind == "set" and (sequence == nil or factor.sequence > sequence) then
 				value, sequence = factor.value, factor.sequence
 			end
@@ -567,9 +567,9 @@ local function resolveSet(scope)
 	return value, sequence
 end
 
-local function applyMult(value, scope)
-	if scope then
-		for _, factor in pairs(scope) do
+local function applyMult(value, factors)
+	if factors then
+		for _, factor in pairs(factors) do
 			if factor.kind == "multiply" then
 				value = value * factor.value
 			end
@@ -580,30 +580,30 @@ end
 
 local function composeValue(unitID, unitDefID, teamID, attribute, baseline)
 	local unitdefAttributes = unitdefFactors[unitDefID]
-	local unitdefScope = unitdefAttributes and unitdefAttributes[attribute]
+	local fromUnitDef = unitdefAttributes and unitdefAttributes[attribute]
 
 	local teams = unitdefTeamFactors[unitDefID]
 	local teamdefAttributes = teams and teams[teamID]
-	local teamdefScope = teamdefAttributes and teamdefAttributes[attribute]
+	local fromTeam = teamdefAttributes and teamdefAttributes[attribute]
 
 	local unitAttributes = unitFactors[unitID]
-	local unitScope = unitAttributes and unitAttributes[attribute]
+	local fromUnit = unitAttributes and unitAttributes[attribute]
 
-	local value, sequence = resolveSet(unitScope)
+	local value, sequence = resolveSet(fromUnit)
 	if sequence == nil then
-		value, sequence = resolveSet(teamdefScope)
+		value, sequence = resolveSet(fromTeam)
 	end
 	if sequence == nil then
-		value, sequence = resolveSet(unitdefScope)
+		value, sequence = resolveSet(fromUnitDef)
 	end
 	if sequence == nil then
 		value = baseline
 	end
 
 	if type(value) == "number" then
-		value = applyMult(value, unitdefScope)
-		value = applyMult(value, teamdefScope)
-		value = applyMult(value, unitScope)
+		value = applyMult(value, fromUnitDef)
+		value = applyMult(value, fromTeam)
+		value = applyMult(value, fromUnit)
 	end
 
 	return value
@@ -716,12 +716,12 @@ local function recordUnitDefAttribute(unitDefID, attribute, value, source, kind,
 		return
 	end
 
-	local scope = getUnitDefScope(unitDefID, teamID, attribute, value ~= nil)
-	if not scope then
+	local factors = getUnitDefFactors(unitDefID, teamID, attribute, value ~= nil)
+	if not factors then
 		return
 	end
 
-	if record(scope, source or SOURCE_DEFAULT, kind, value) then
+	if record(factors, source or SOURCE_DEFAULT, kind, value) then
 		markUnitDefDirty(unitDefID, teamID, attribute)
 	end
 	if value == nil then
@@ -743,8 +743,8 @@ local function recordUnitAttribute(unitID, attribute, value, source, kind)
 	end
 
 	local attributes = unitFactors[unitID]
-	local scope = attributes and attributes[attribute]
-	if not scope then
+	local factors = attributes and attributes[attribute]
+	if not factors then
 		if value == nil then
 			return
 		end
@@ -758,10 +758,10 @@ local function recordUnitAttribute(unitID, attribute, value, source, kind)
 				return
 			end
 		end
-		scope = getUnitScope(unitID, attribute, true)
+		factors = getUnitFactors(unitID, attribute, true)
 	end
 
-	if record(scope, source or SOURCE_DEFAULT, kind, value) then
+	if record(factors, source or SOURCE_DEFAULT, kind, value) then
 		markUnitDirty(unitID, attribute)
 	end
 	if value == nil then
