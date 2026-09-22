@@ -21,17 +21,23 @@ local spGetMouseState = Spring.GetMouseState
 local spGetModKeyState = Spring.GetModKeyState
 local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 local spIsCheatingEnabled = Spring.IsCheatingEnabled
+local spGetAllFeatures = Spring.GetAllFeatures
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureHeading = Spring.GetFeatureHeading
+local spGetFeatureRotation = Spring.GetFeatureRotation
+local spGetGroundNormal = Spring.GetGroundNormal
 local spEcho = Spring.Echo
+local spGetGameFrame = Spring.GetGameFrame
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
+local glTexCoord = gl.TexCoord
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
 local glPolygonOffset = gl.PolygonOffset
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -39,10 +45,11 @@ local glTexRect = gl.TexRect
 local glCreateTexture = gl.CreateTexture
 local glDeleteTexture = gl.DeleteTexture
 local glRenderToTexture = gl.RenderToTexture
-local glReadPixels = gl.ReadPixels
 
 local GL_LINE_LOOP = GL.LINE_LOOP
+local GL_LINES = GL.LINES
 local GL_QUADS = GL.QUADS
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
@@ -55,6 +62,7 @@ local sin = math.sin
 local rad = math.rad
 local abs = math.abs
 local huge = math.huge
+local pi = math.pi
 
 local Game = Game
 local mapSizeX = Game.mapSizeX
@@ -65,6 +73,7 @@ local metalSquareSize = 16
 -- ---------------------------------------------------------------------------
 -- Message headers (must match gadget)
 -- ---------------------------------------------------------------------------
+local MSG_TERRAIN = "$clone_terrain$"
 local MSG_METAL = "$clone_metal$"
 local MSG_FEATURES = "$clone_features$"
 local MSG_FEATURES_CLEAR = "$clone_features_clear$"
@@ -74,6 +83,7 @@ local MSG_TBEGIN = "$clone_tbegin$"
 local MSG_TGRID = "$clone_tgrid$"
 local MSG_TEND = "$clone_tend$"
 
+local TERRAIN_CHUNK_SIZE = 400 -- vertices per message (legacy triplet format)
 local GRID_HEIGHTS_PER_CHUNK = 3000 -- heights per grid message (~15KB)
 
 -- ---------------------------------------------------------------------------
@@ -134,13 +144,34 @@ local historyUndoCount = 0
 local historyRedoCount = 0
 
 -- Coroutine for async operations
+local activeCoroutine = nil
 local coroutineProgress = 0
 local coroutineLabel = ""
 
 -- Splat FBO
 local splatCaptureFBO = nil
+local splatCaptureW = 0
+local splatCaptureH = 0
 local SPLAT_TEX_NAME = "$ssmf_splat_distr"
+
+-- gl.TextureInfo answers for a texture the map does not have (a canvas with no
+-- DNTS set bound) with a TABLE whose sizes are zero, so `if info then` never
+-- fires and the paste went on to ask for a 0x0 texture. gl.CreateTexture throws
+-- on that, the error escaped DrawWorld and the handler REMOVED the clone tool -
+-- every paste on such a map killed the widget.
+local function splatTexSize()
+	local info = gl.TextureInfo(SPLAT_TEX_NAME)
+	local w = (info and info.xsize) or 0
+	local h = (info and info.ysize) or 0
+	if w > 0 and h > 0 then
+		return w, h
+	end
+	return nil
+end
 local pendingSplatCapture = nil -- deferred GL capture (GL calls need Draw context)
+local splatPasteFBO = nil -- the texture the engine is currently showing (see the paste)
+local pendingSurfaceCapture = nil -- same, for the tileset variant mask
+local pendingSurfacePaste = nil
 local pendingSplatPaste = nil -- deferred GL paste (GL calls need Draw context)
 
 -- ---------------------------------------------------------------------------
@@ -188,6 +219,75 @@ local function transformPoint(lx, lz, sizeX, sizeZ, rot, mirX, mirZ, targetX, ta
 	return rx + targetX, rz + targetZ
 end
 
+-- LuaUI runs ONE Lua heap (1.6 GB) shared by every widget, and a copy or a
+-- paste is among the larger single allocations an editor session makes. Both
+-- report where the heap stands and what the operation added, so an OOM report
+-- names a culprit instead of leaving it to guesswork. Learned the hard way on
+-- 2026-09-22: LuaUI died mid-paste, and a full heap cannot even load the code
+-- to fix itself - `/luaui reload` failed with OOM inside LoadCode, so the
+-- session was unrecoverable and the fix looked like it had not worked.
+-- TWO numbers, because on 2026-09-22 they disagreed and only one of them kills
+-- you: collectgarbage("count") is what the Lua GC tracks (barwidgets.lua runs an
+-- emergency collect over 1.2 GB of it - that watchdog never fired), while
+-- Spring.GetLuaMemUsage reports what the engine's allocator handed this Lua
+-- state, which is the number in the OOM message. The crash came with the first
+-- well under its limit and the second at the ceiling, so anything that shows
+-- only the GC view can miss the growth entirely.
+local function heapMB()
+	local gcMB = collectgarbage("count") / 1024
+	local allocMB = nil
+	if spGetLuaMemUsage then
+		local kb = spGetLuaMemUsage()
+		allocMB = kb and (kb / 1024) or nil
+	end
+	return gcMB, allocMB
+end
+
+local function heapNote(beforeGC, beforeAlloc)
+	local gcMB, allocMB = heapMB()
+	local note = string.format(" | lua %.0f MB", gcMB)
+	if beforeGC then
+		note = note .. string.format(" (%+.0f)", gcMB - beforeGC)
+	end
+	if allocMB then
+		note = note .. string.format(", alloc %.0f MB", allocMB)
+		if beforeAlloc then
+			note = note .. string.format(" (%+.0f)", allocMB - beforeAlloc)
+		end
+	end
+	return note
+end
+
+-- The four destination corners of a pasted box in normalized map coordinates,
+-- in the captured patch's own corner order ((0,0) (1,0) (1,1) (0,1)). Rotation
+-- and mirroring already live in transformPoint, so the corner ORDER carries
+-- them and a texture layer needs no separate rotation code: the same quad
+-- serves the splat blit and the surface painter.
+local function pasteQuadUV(sizeX, sizeZ, rot, mirX, mirZ, targetX, targetZ)
+	local quad = {}
+	local corners = { 0, 0, sizeX, 0, sizeX, sizeZ, 0, sizeZ }
+	for i = 1, 8, 2 do
+		local wx, wz = transformPoint(corners[i], corners[i + 1], sizeX, sizeZ, rot, mirX, mirZ, targetX, targetZ)
+		quad[#quad + 1] = wx / mapSizeX
+		quad[#quad + 1] = wz / mapSizeZ
+	end
+	return quad
+end
+
+-- The surface painter owns its mask textures, so a captured region is freed
+-- through it. Every place that drops the clone buffer goes through here.
+local function discardBuffer()
+	if cloneBuffer and cloneBuffer.surface then
+		---@type table?
+		local sp = WG.SurfacePainter
+		if sp and sp.region then
+			sp.region.free(cloneBuffer.surface)
+		end
+		cloneBuffer.surface = nil
+	end
+	cloneBuffer = nil
+end
+
 -- ---------------------------------------------------------------------------
 -- Activate / Deactivate API
 -- ---------------------------------------------------------------------------
@@ -204,6 +304,7 @@ end
 local function deactivate()
 	active = false
 	state = "idle"
+	activeCoroutine = nil
 	coroutineProgress = 0
 	boxDrag.active = false
 end
@@ -259,6 +360,8 @@ end
 -- COPY: capture data from selection box
 -- ---------------------------------------------------------------------------
 local function doCopy()
+	discardBuffer() -- the previous capture's mask region belongs to the painter
+	local heapGC, heapAlloc = heapMB()
 	local box = normalizeBox(selBox)
 	local sizeX = box.x2 - box.x1
 	local sizeZ = box.z2 - box.z1
@@ -366,21 +469,21 @@ local function doCopy()
 	end
 
 	-- Splats: defer GL capture to next DrawWorld (GL calls not allowed in KeyPress)
+	local boxU0 = box.x1 / mapSizeX
+	local boxV0 = box.z1 / mapSizeZ
+	local boxU1 = box.x2 / mapSizeX
+	local boxV1 = box.z2 / mapSizeZ
+
 	if layers.splats then
-		local texInfo = gl.TextureInfo(SPLAT_TEX_NAME)
-		if texInfo then
-			local tw, th = texInfo.xsize, texInfo.ysize
-			local u0 = box.x1 / mapSizeX
-			local v0 = box.z1 / mapSizeZ
-			local u1 = box.x2 / mapSizeX
-			local v1 = box.z2 / mapSizeZ
-			local pw = max(1, floor((u1 - u0) * tw))
-			local ph = max(1, floor((v1 - v0) * th))
+		local tw, th = splatTexSize()
+		if tw then
+			local pw = max(1, floor((boxU1 - boxU0) * tw))
+			local ph = max(1, floor((boxV1 - boxV0) * th))
 			pendingSplatCapture = {
-				u0 = u0,
-				v0 = v0,
-				u1 = u1,
-				v1 = v1,
+				u0 = boxU0,
+				v0 = boxV0,
+				u1 = boxU1,
+				v1 = boxV1,
 				pw = pw,
 				ph = ph,
 			}
@@ -481,7 +584,7 @@ local function doCopy()
 
 	cloneBuffer = buf
 	state = "copied"
-	spEcho("[Clone Tool] Region copied")
+	spEcho("[Clone Tool] Region copied" .. heapNote(heapGC, heapAlloc))
 end
 
 local function doUndo()
@@ -516,6 +619,7 @@ local function applyPaste(targetX, targetZ)
 		return
 	end
 	local buf = cloneBuffer
+	local heapGC, heapAlloc = heapMB()
 	local rotRad = rad(pasteRotation)
 
 	-- Helper to build grid-based terrain messages with quality control
@@ -799,16 +903,16 @@ local function applyPaste(targetX, targetZ)
 
 	-- Splats: defer GL operations to next DrawWorld
 	local function applySplats()
-		if not buf.splats or not buf.splats.pixels then
+		if not buf.splats or not buf.splats.fboHandle then
 			return
 		end
-		local splatTexInfo = gl.TextureInfo(SPLAT_TEX_NAME)
-		if not splatTexInfo then
+		local tw, th = splatTexSize()
+		if not tw then
 			return
 		end
 		pendingSplatPaste = {
-			tw = splatTexInfo.xsize,
-			th = splatTexInfo.ysize,
+			tw = tw,
+			th = th,
 			fboHandle = buf.splats.fboHandle,
 			sizeX = buf.sizeX,
 			sizeZ = buf.sizeZ,
@@ -911,7 +1015,7 @@ local function applyPaste(targetX, targetZ)
 	applyLights()
 	-- Weather: would need to place CEGs at positions; deferred for now
 
-	spEcho("[Clone Tool] Paste applied")
+	spEcho("[Clone Tool] Paste applied" .. heapNote(heapGC, heapAlloc))
 end
 
 -- ---------------------------------------------------------------------------
@@ -1018,17 +1122,17 @@ local function drawFeatureMarkers(box)
 	end
 	glColor(0.2, 1.0, 0.3, 0.8)
 	local markerSize = 8
-	for _, fid in ipairs(feats) do
-		local fx, fy, fz = spGetFeaturePosition(fid)
-		if fx then
-			glBeginEnd(GL_QUADS, function()
+	glBeginEnd(GL_QUADS, function()
+		for _, fid in ipairs(feats) do
+			local fx, fy, fz = spGetFeaturePosition(fid)
+			if fx then
 				glVertex(fx - markerSize, fy + 4, fz - markerSize)
 				glVertex(fx + markerSize, fy + 4, fz - markerSize)
 				glVertex(fx + markerSize, fy + 4, fz + markerSize)
 				glVertex(fx - markerSize, fy + 4, fz + markerSize)
-			end)
+			end
 		end
-	end
+	end)
 	glColor(1, 1, 1, 1)
 end
 
@@ -1044,22 +1148,22 @@ local function drawMetalMarkers(box)
 	local endMZ = min(mSizeZ - 1, ceil(box.z2 / metalSquareSize))
 	glColor(0.8, 0.6, 0.1, 0.7)
 	local ms = 6
-	for mz = startMZ, endMZ do
-		for mx = startMX, endMX do
-			local val = spGetMetalAmount(mx, mz)
-			if val and val > 0 then
-				local wx = mx * metalSquareSize
-				local wz = mz * metalSquareSize
-				local wy = spGetGroundHeight(wx, wz) + 4
-				glBeginEnd(GL_QUADS, function()
+	glBeginEnd(GL_QUADS, function()
+		for mz = startMZ, endMZ do
+			for mx = startMX, endMX do
+				local val = spGetMetalAmount(mx, mz)
+				if val and val > 0 then
+					local wx = mx * metalSquareSize
+					local wz = mz * metalSquareSize
+					local wy = spGetGroundHeight(wx, wz) + 4
 					glVertex(wx - ms, wy, wz - ms)
 					glVertex(wx + ms, wy, wz - ms)
 					glVertex(wx + ms, wy, wz + ms)
 					glVertex(wx - ms, wy, wz + ms)
-				end)
+				end
 			end
 		end
-	end
+	end)
 	glColor(1, 1, 1, 1)
 end
 
@@ -1110,34 +1214,52 @@ local function drawPastePreview(targetX, targetZ)
 	if buf.features and layers.features then
 		glColor(0.2, 1.0, 0.3, 0.5)
 		local ms = 10
-		for _, f in ipairs(buf.features) do
-			local wx, wz =
-				transformPoint(f.lx, f.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-			local wy = spGetGroundHeight(wx, wz) + yoff
-			glBeginEnd(GL_QUADS, function()
+		glBeginEnd(GL_QUADS, function()
+			for _, f in ipairs(buf.features) do
+				local wx, wz = transformPoint(
+					f.lx,
+					f.lz,
+					buf.sizeX,
+					buf.sizeZ,
+					rotRad,
+					pasteMirrorX,
+					pasteMirrorZ,
+					targetX,
+					targetZ
+				)
+				local wy = spGetGroundHeight(wx, wz) + yoff
 				glVertex(wx - ms, wy, wz - ms)
 				glVertex(wx + ms, wy, wz - ms)
 				glVertex(wx + ms, wy, wz + ms)
 				glVertex(wx - ms, wy, wz + ms)
-			end)
-		end
+			end
+		end)
 	end
 
 	-- Metal ghost markers
 	if buf.metal and layers.metal then
 		glColor(0.8, 0.6, 0.1, 0.5)
 		local ms = 6
-		for _, m in ipairs(buf.metal) do
-			local wx, wz =
-				transformPoint(m.lx, m.lz, buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ)
-			local wy = spGetGroundHeight(wx, wz) + yoff
-			glBeginEnd(GL_QUADS, function()
+		glBeginEnd(GL_QUADS, function()
+			for _, m in ipairs(buf.metal) do
+				local wx, wz = transformPoint(
+					m.lx,
+					m.lz,
+					buf.sizeX,
+					buf.sizeZ,
+					rotRad,
+					pasteMirrorX,
+					pasteMirrorZ,
+					targetX,
+					targetZ
+				)
+				local wy = spGetGroundHeight(wx, wz) + yoff
 				glVertex(wx - ms, wy, wz - ms)
 				glVertex(wx + ms, wy, wz - ms)
 				glVertex(wx + ms, wy, wz + ms)
 				glVertex(wx - ms, wy, wz + ms)
-			end)
-		end
+			end
+		end)
 	end
 
 	-- Terrain height preview (sample grid)
@@ -1189,26 +1311,30 @@ local function drawPastePreview(targetX, targetZ)
 			ppKey.buf = buf
 		end
 		local ms = max(4, t.stepX * previewStep * 0.4)
-		for n = 0, ppCellCount - 4, 4 do
-			local wx = ppCells[n + 1]
-			local wz = ppCells[n + 2]
-			local currentH = ppCells[n + 3]
-			local delta = (ppCells[n + 4] + pasteHeightOffset) - currentH
-			-- Color by delta: blue=lower, green=same, red=raise
-			if delta > 5 then
-				glColor(0.9, 0.3, 0.1, 0.35)
-			elseif delta < -5 then
-				glColor(0.1, 0.3, 0.9, 0.35)
-			else
-				glColor(0.3, 0.8, 0.3, 0.2)
-			end
-			glBeginEnd(GL_QUADS, function()
+		-- ONE BeginEnd for the whole grid. A closure per cell meant ~2500 new
+		-- closures every frame the preview was up, which is LuaUI heap churn
+		-- for nothing (colour is legal between vertices, so the per-cell tint
+		-- still works). The heap this fed ran out mid-preview on 2026-09-22.
+		glBeginEnd(GL_QUADS, function()
+			for n = 0, ppCellCount - 4, 4 do
+				local wx = ppCells[n + 1]
+				local wz = ppCells[n + 2]
+				local currentH = ppCells[n + 3]
+				local delta = (ppCells[n + 4] + pasteHeightOffset) - currentH
+				-- Color by delta: blue=lower, green=same, red=raise
+				if delta > 5 then
+					glColor(0.9, 0.3, 0.1, 0.35)
+				elseif delta < -5 then
+					glColor(0.1, 0.3, 0.9, 0.35)
+				else
+					glColor(0.3, 0.8, 0.3, 0.2)
+				end
 				glVertex(wx - ms, currentH + yoff, wz - ms)
 				glVertex(wx + ms, currentH + yoff, wz - ms)
 				glVertex(wx + ms, currentH + yoff, wz + ms)
 				glVertex(wx - ms, currentH + yoff, wz + ms)
-			end)
-		end
+			end
+		end)
 	end
 
 	glColor(1, 1, 1, 1)
@@ -1289,10 +1415,14 @@ function widget:DrawWorld()
 				glTexRect(-1, -1, 1, 1, sc.u0, sc.v0, sc.u1, sc.v1)
 				glTexture(0, false)
 			end)
-			local pixelData = {}
-			glRenderToTexture(splatCaptureFBO, function()
-				pixelData = glReadPixels(0, 0, sc.pw, sc.ph)
-			end)
+			splatCaptureW = sc.pw
+			splatCaptureH = sc.ph
+			-- NO gl.ReadPixels here. It used to pull the whole patch back into a
+			-- nested Lua table purely so the paste could test that the capture
+			-- had happened - and that table is one small table per texel: a few
+			-- copies of a mid-sized box filled LuaUI's 1.6 GB Lua heap and the
+			-- engine killed the whole interface with an OOM inside DrawWorld
+			-- (2026-09-22). The paste only ever needed the texture handle.
 			cloneBuffer.splats = {
 				fboHandle = splatCaptureFBO,
 				pixelW = sc.pw,
@@ -1301,7 +1431,6 @@ function widget:DrawWorld()
 				v0 = sc.v0,
 				u1 = sc.u1,
 				v1 = sc.v1,
-				pixels = pixelData,
 			}
 		end
 	end
@@ -1330,15 +1459,28 @@ function widget:DrawWorld()
 				local tv1 = (sp.targetZ + sp.sizeZ) / mapSizeZ
 				glRenderToTexture(fullFBO, function()
 					glTexture(0, sp.fboHandle)
-					local ndcX0 = tu0 * 2 - 1
-					local ndcY0 = tv0 * 2 - 1
-					local ndcX1 = tu1 * 2 - 1
-					local ndcY1 = tv1 * 2 - 1
-					glTexRect(ndcX0, ndcY0, ndcX1, ndcY1, 0, 0, 1, 1)
+					glBeginEnd(GL_QUADS, function()
+						glTexCoord(0, 0)
+						glVertex(q[1] * 2 - 1, q[2] * 2 - 1)
+						glTexCoord(1, 0)
+						glVertex(q[3] * 2 - 1, q[4] * 2 - 1)
+						glTexCoord(1, 1)
+						glVertex(q[5] * 2 - 1, q[6] * 2 - 1)
+						glTexCoord(0, 1)
+						glVertex(q[7] * 2 - 1, q[8] * 2 - 1)
+					end)
 					glTexture(0, false)
 				end)
 			end
-			Spring.SetMapShadingTexture("$ssmf_splat_distr", fullFBO)
+			Spring.SetMapShadingTexture(SPLAT_TEX_NAME, fullFBO)
+			-- SetMapShadingTexture stores the GL id itself, so the texture the
+			-- PREVIOUS paste handed over stops being referenced the moment this
+			-- one is bound. Free it then, and never before: every paste used to
+			-- leave a full-map RGBA8 behind (16 MB on a 32x32 map).
+			if splatPasteFBO and splatPasteFBO ~= fullFBO then
+				glDeleteTexture(splatPasteFBO)
+			end
+			splatPasteFBO = fullFBO
 			-- the tileset's far cache / clipmap bake the splat channels: tell it
 			-- the pasted rect changed (elmos) or the paste vanishes at zoom-out
 			local T = WG.TilesetTerrain
