@@ -38,8 +38,9 @@ local flyingPatrolRadiusIdle = 750
 local waterPatrolRadius = 1000
 local waterPatrolAttempts = 150
 
+local companionCountMax = 2
 local companionRadiusStart = 140
-local companionRadiusAfterStart = 13
+local companionRadiusAfterStart = 100
 local companionPatrolRadius = 200
 
 local random = math.random
@@ -53,6 +54,8 @@ local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetUnitHealth = Spring.GetUnitHealth
 local GetUnitRulesParam = Spring.GetUnitRulesParam
+local GetUnitIsCloaked = Spring.GetUnitIsCloaked
+local GetUnitTransporter = Spring.GetUnitTransporter
 local GiveOrderToUnit = Spring.GiveOrderToUnit
 local GiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local CreateUnit = Spring.CreateUnit
@@ -255,6 +258,21 @@ local function adjustMapCritterPopulation()
 	end
 end
 
+local function canAdoptCompanion(commanderID)
+	if GetUnitIsCloaked(commanderID) or GetUnitTransporter(commanderID) then
+		return false
+	end
+	local companions = companionCritters[commanderID]
+	if not companions then
+		return true
+	end
+	local count = 0
+	for _ in pairs(companions) do
+		count = count + 1
+	end
+	return count < companionCountMax
+end
+
 local function setCompanionHealth(companionID, maxHealth, health)
 	local setUnitAttribute = GG.UnitAttributes.SetUnitAttribute
 	setUnitAttribute(companionID, "maxHealth", maxHealth, ATTRIBUTE_SOURCE)
@@ -311,6 +329,24 @@ local function revertCompanion(companionID, data)
 	mapCritters[companionID] = data.mapCritterName
 end
 
+local function releaseCompanions(commanderID, inheritorID)
+	local companions = companionCritters[commanderID]
+	if not companions then
+		return
+	end
+	companionCritters[commanderID] = nil
+	for companionID in pairs(companions) do
+		local data = companionData[companionID]
+		if data then
+			if inheritorID then
+				addCompanion(companionID, data, inheritorID)
+			else
+				revertCompanion(companionID, data)
+			end
+		end
+	end
+end
+
 local function pairCompanion(companionID, commanderID)
 	if companionData[companionID] then
 		return
@@ -340,7 +376,7 @@ local function getNearestCommander(x, z, radius, teamID)
 			local cx, _, cz = GetUnitPosition(commanderID)
 			if cx then
 				local distanceSq = (x - cx) * (x - cx) + (z - cz) * (z - cz)
-				if distanceSq < nearestDistanceSq then
+				if distanceSq < nearestDistanceSq and canAdoptCompanion(commanderID) then
 					nearestID = commanderID
 					nearestDistanceSq = distanceSq
 				end
@@ -460,22 +496,24 @@ function gadget:UnitDestroyed(unitID)
 	end
 	commanders[unitID] = nil
 
-	local companions = companionCritters[unitID]
-	if not companions then
-		return
-	end
-	companionCritters[unitID] = nil
 	-- Evolution destroys the old commander _after_ creating the new unit.
 	local evolvedID = GetUnitRulesParam(unitID, "unit_evolved")
-	for companionID in pairs(companions) do
-		local companion = companionData[companionID]
-		if companion then
-			if evolvedID and commanders[evolvedID] then
-				addCompanion(companionID, companion, evolvedID)
-			else
-				revertCompanion(companionID, companion)
-			end
-		end
+	if evolvedID and commanders[evolvedID] then
+		releaseCompanions(unitID, evolvedID)
+	else
+		releaseCompanions(unitID)
+	end
+end
+
+function gadget:UnitCloaked(unitID, unitDefID)
+	if isCommander[unitDefID] then
+		releaseCompanions(unitID)
+	end
+end
+
+function gadget:UnitLoaded(unitID, unitDefID)
+	if isCommander[unitDefID] then
+		releaseCompanions(unitID)
 	end
 end
 
