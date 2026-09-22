@@ -674,7 +674,7 @@ local function setApplied(unitID, attribute, value)
 	return applied
 end
 
-local function checkUnitDefAttribute(entry, attribute, kind, value)
+local function checkUnitDefAttribute(entry, attribute, kind, value, unitDefID)
 	if not entry then
 		warn(attribute, "not found")
 		return
@@ -700,8 +700,9 @@ local function checkUnitAttribute(entry, attribute, kind, value)
 	elseif entry.isUnitState then
 		if kind ~= "set" then
 			warn(attribute, "keeps no factors")
+			return
 		end
-		return
+		return true
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
 		warn(attribute, "takes no set value")
 		return
@@ -711,7 +712,7 @@ end
 
 local function recordUnitDefAttribute(unitDefID, attribute, value, source, kind, teamID)
 	local entry = definitions[attribute]
-	if not checkUnitDefAttribute(entry, attribute, kind, value) then
+	if not checkUnitDefAttribute(entry, attribute, kind, value, unitDefID) then
 		return
 	end
 
@@ -736,6 +737,9 @@ local function recordUnitAttribute(unitID, attribute, value, source, kind)
 
 	if kind == "set" and value ~= nil then
 		applyUnitAttribute[attribute](unitID, value)
+		if entry.isUnitState then
+			return
+		end
 	end
 
 	local attributes = unitFactors[unitID]
