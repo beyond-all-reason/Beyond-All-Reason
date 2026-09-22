@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  tracks, base, flare1, flare2, turret, base, sleeves, barrel1, barrel2, dirt1, dirt2, exhaust1, exhaust2, exhaust3, exhaust4;
+piece  tracks, base, flare1, flare2, turret, sleeves, barrel1, barrel2, dirt1, dirt2, exhaust1, exhaust2, exhaust3, exhaust4;
 
 static-var  restore_delay, gun_1;
 
