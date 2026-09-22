@@ -60,6 +60,9 @@ Full table in [Interaction → Keyboard](#interaction).
 
 ### Saving Your Work
 
+- **Full map projects / team library**: **File > Save / Save As** saves a project; **File > Open Project** is one browser over this disk and the campaign team's private library, with a Sync column, a Team Sync line at the top and a start card for the companion. The team workflow is documented for the team in the library repository itself.
+- **Autosave**: on by default (Settings > General). Every 10 minutes while the open project has unsaved changes, a snapshot lands under `MapProjects/_autosave/<project>-YYYYMMDDHHMM`; snapshots list under the Autosaves chip in **File > Open Project** and are swept after 3 days (the newest per project after 10). Opening one makes its project the Save target again.
+- **Quitting with unsaved changes** asks first (Save, then continue / Don't save / Cancel) on the top bar's Quit and on New Map. The window's own close button cannot be caught; autosave covers that.
 - **Terrain heightmap**: `/terraformexport` writes a PNG + metadata to your writeable data dir; `/terraformimport <file>` reloads it.
 - **Features / grass / splats / decals**: each tool has its own Save/Load/Clear row in its sub-panel.
 - **Environment**: Save/Load preset buttons in the env panel.

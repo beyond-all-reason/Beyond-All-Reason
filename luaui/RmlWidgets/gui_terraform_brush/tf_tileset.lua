@@ -4,6 +4,7 @@
 -- tool. The knobs live in the write-dir widget dev_tileset_terrain.lua and are
 -- driven through WG.TilesetTerrain (getKnobs/setKnob/reset). The RML rows are
 -- generated from the same spec below, so this list and the .rml stay in step.
+local tfStrings = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua")
 local M = {}
 
 -- Capture WG as an upvalue: RmlUi-dispatched event closures can run outside the
@@ -265,6 +266,46 @@ local function rgbToHsv(r, g, b)
 	return h, s, maxc
 end
 
+-- Hue does not survive RGB storage: any gray reads back as h = 0, so dragging
+-- SAT down to 0 and back up used to snap the chip to red (Moose, 2026-09-09).
+-- Value 0 loses the saturation the same way. Remember the last well-defined
+-- H/S per chip and hand those back while the colour is degenerate, so a round
+-- trip through the sliders returns the colour the user picked.
+local hgHsvMem = {}
+
+-- forced: an explicit edit (a slider drag, a stored H/S/V chip), which always
+-- wins; otherwise the pair is only worth keeping while the colour carries it
+local function hgMemo(target, h, s, v, forced)
+	if not target then
+		return
+	end
+	h, s, v = tonumber(h) or 0, tonumber(s) or 0, tonumber(v) or 0
+	local m = hgHsvMem[target]
+	if not m then
+		m = { h = 0, s = 1 }
+		hgHsvMem[target] = m
+	end
+	if forced or (v > 0 and s > 0) then
+		m.h = h % 1.0
+	end
+	if forced or v > 0 then
+		m.s = s
+	end
+end
+
+local function hgRecall(target, h, s, v)
+	local m = target and hgHsvMem[target]
+	if not m then
+		return h, s
+	end
+	if v <= 0 then
+		return m.h, m.s -- black: the hue and the saturation are both gone
+	elseif s <= 0 then
+		return m.h, s -- gray: only the hue is gone
+	end
+	return h, s
+end
+
 -- A chip's colour in both spaces: r, g, b, h, s, v (nil when the knobs are missing).
 local function hgGet(knobs, target)
 	local t = HG_TARGETS[target]
@@ -277,9 +318,12 @@ local function hgGet(knobs, target)
 	end
 	if t.hsv then
 		local r, g, bb = hsvToRgb(a, b, c)
+		hgMemo(target, a, b, c, true) -- stored H/S/V: authoritative
 		return r, g, bb, a, b, c
 	end
 	local h, s, v = rgbToHsv(a, b, c)
+	hgMemo(target, h, s, v)
+	h, s = hgRecall(target, h, s, v)
 	return a, b, c, h, s, v
 end
 
@@ -296,10 +340,13 @@ local function hgSet(target, r, g, b, h, s, v)
 	if t.hsv then
 		if h == nil then
 			h, s, v = rgbToHsv(r, g, b)
+			h, s = hgRecall(target, h, s, v)
 		end
+		hgMemo(target, h, s, v, true)
 		a, bb, c = h, s, v
 	else
 		if r == nil then
+			hgMemo(target, h, s, v, true)
 			r, g, b = hsvToRgb(h, s, v)
 		end
 		a, bb, c = r, g, b
@@ -723,6 +770,88 @@ function M.syncDeposit(doc, ctx)
 	local knobs = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
 	if knobs then
 		stampKnobRows(doc, ctx, knobs, DEPOSIT_KNOBS)
+	end
+end
+
+-- SHADER UPDATE row. Deliberately NOT gated on WG.TilesetTerrain: the row has
+-- to work when the shader widget is missing or stale, which is exactly when it
+-- is not loaded. Hidden outright without a companion, like the team library tab.
+local BRUSH_VERSION = "1.15"
+
+local function shaderFitsBrush(shader)
+	local wanted = shader.brush_versions
+	if type(wanted) ~= "table" or #wanted == 0 then
+		return true -- a manifest that names no brush release is treated as universal
+	end
+	for _, value in ipairs(wanted) do
+		if tostring(value) == BRUSH_VERSION then
+			return true
+		end
+	end
+	return false
+end
+
+local function shaderSize(bytes)
+	local count = tonumber(bytes) or 0
+	if count < 1024 * 1024 then
+		return string.format("%.0f KB", count / 1024)
+	end
+	return string.format("%.0f MB", count / (1024 * 1024))
+end
+
+function M.syncShader(doc, ctx)
+	local dm = ctx.widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	local project = WG.MapProject
+	local client = project and project.library
+	local shader = client and client.shader and client.shader()
+	if not shader or not ctx.widgetState.teamSyncEnabled then
+		dm.tsShaderSyncShown = false
+		return
+	end
+	dm.tsShaderSyncShown = true
+	if not client.state.online then
+		-- Team Sync is not running. The row stays and says what it needs, so
+		-- the update path is there to be found; clicking it opens the start
+		-- card in the Projects window.
+		if dm.tsShaderSyncState ~= "offline" then
+			dm.tsShaderSyncState = "offline"
+		end
+		local offline = tfStrings.text("shaderOffline")
+		if dm.tsShaderSyncLabel ~= offline then
+			dm.tsShaderSyncLabel = offline
+		end
+		return
+	end
+	local code = tostring(shader.code or "")
+	local version = tostring(shader.shader_version or "")
+	local state, label
+	if client.isBusy() or code == "unchecked" or code == "" then
+		state = "checking"
+		label = tfStrings.text("shaderChecking")
+	elseif code == "synced" then
+		state = "synced"
+		label = tfStrings.text("shaderSynced", { version = version })
+	elseif code == "update" and shaderFitsBrush(shader) then
+		state = "update"
+		label = tfStrings.text("shaderUpdate", {
+			version = version,
+			size = shaderSize(shader.bytes),
+		})
+	elseif code == "update" then
+		state = "mismatch"
+		label = tfStrings.text("shaderMismatch", { version = version })
+	else
+		state = "error"
+		label = tfStrings.text("shaderError")
+	end
+	if dm.tsShaderSyncState ~= state then
+		dm.tsShaderSyncState = state
+	end
+	if dm.tsShaderSyncLabel ~= label then
+		dm.tsShaderSyncLabel = label
 	end
 end
 
