@@ -75,8 +75,6 @@ local mathSqrt = math.sqrt
 local mathPi = math.pi
 
 local LuaShader = gl.LuaShader
-local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
-local popElementInstance = gl.InstanceVBOTable.popElementInstance
 
 --------------------------------------------------------------------------------
 -- Priority levels for particle budgeting
@@ -481,10 +479,28 @@ void main(void)
 ---@type InstanceVBOTable?
 local particleVBO = nil
 local particleShader = nil
-local nextParticleID = 0
 
--- Particle removal queue: [deathFrame] = {particleID, ...}
+-- Particle removal queue: [deathFrame] = {slot, ...} (1-based ring slots)
 local particleRemoveQueue = {}
+
+--------------------------------------------------------------------------------
+-- Ring slot allocator
+--
+-- Particles are written straight into the VBO mirror at the next ring slot whose
+-- previous occupant has expired; the vertex shader already hides expired
+-- particles, so a death only clears the slot's death frame. Consecutive slots
+-- written since the last flush form one upload run.
+--------------------------------------------------------------------------------
+local RING_MAX_SKIPS = 64 -- alive slots skipped per spawn before giving up
+local ring = {
+	data = nil, -- particleVBO.instanceData, 16 floats per slot
+	capacity = 0,
+	head = 0, -- next slot to try (0-based)
+	death = nil, -- [slot + 1] = death frame of the occupant, 0 when never used
+	live = 0, -- particles whose death frame has not been processed yet
+	runStart = -1, -- first slot of the pending upload run, -1 when empty
+	runEnd = -2, -- last slot of the pending upload run
+}
 
 --------------------------------------------------------------------------------
 -- Object pools (cuts allocation rate when many pieces are spawning per frame)
@@ -532,6 +548,13 @@ function pools.releaseTracker(t)
 	t.offscreenSkip = nil
 	t.offscreenBuffer = nil
 	t.bufferLen = nil
+	t.lx = nil
+	t.ly = nil
+	t.lz = nil
+	t.lf = nil
+	t.losUntil = nil
+	t.inLos = nil
+	t.viewUntil = nil
 	local n = pools.trackerN + 1
 	pools.trackerN = n
 	pools.tracker[n] = t
@@ -655,7 +678,7 @@ local function updateQualityPreset(gameFrame)
 		visibilityState.nextQualitySampleFrame = gameFrame + 4
 		sampleIndex = (sampleIndex % maxSamples) + 1
 		local oldVal = particleCountSamples[sampleIndex] or 0
-		local newVal = particleVBO.usedElements
+		local newVal = ring.live
 		particleCountSamples[sampleIndex] = newVal
 		runningSum = runningSum - oldVal + newVal
 		if sampleCount < maxSamples then
@@ -737,10 +760,21 @@ end
 -- Particle spawning
 --------------------------------------------------------------------------------
 
-local particleData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0 }
+local lastRemovedFrame = 0
+
+-- Uploads the pending run of freshly written slots (one Upload per contiguous run)
+local function flushParticleUploads()
+	local s = ring.runStart
+	if s < 0 then
+		return
+	end
+	particleVBO.instanceVBO:Upload(ring.data, nil, s, s * 16 + 1, (ring.runEnd + 1) * 16)
+	ring.runStart = -1
+	ring.runEnd = -2
+end
 
 local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime, alphaMult, tintBrightness, birthFrame)
-	if particleVBO.usedElements >= currentBudgetLimit then
+	if ring.live >= currentBudgetLimit then
 		return
 	end
 
@@ -750,36 +784,69 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 		return
 	end -- already expired (retroactive particle)
 
-	local seed = mathRandom()
+	-- Walk the ring past slots whose occupant is still alive
+	local death = ring.death
+	local capacity = ring.capacity
+	local slot = ring.head
+	local oldDeath = death[slot + 1]
+	if oldDeath > cachedGameFrame then
+		local skips = 0
+		repeat
+			skips = skips + 1
+			if skips > RING_MAX_SKIPS then
+				ring.head = slot
+				return
+			end
+			slot = slot + 1
+			if slot >= capacity then
+				slot = 0
+			end
+			oldDeath = death[slot + 1]
+		until oldDeath <= cachedGameFrame
+	end
+	ring.head = (slot + 1 < capacity) and slot + 1 or 0
+	death[slot + 1] = deathFrame
+	-- The occupant expired but its removal queue has not run yet: uncount it now,
+	-- the queued entry no longer matches this slot's death frame.
+	ring.live = ring.live + (oldDeath > lastRemovedFrame and 0 or 1)
+	if slot >= particleVBO.usedElements then
+		particleVBO.usedElements = slot + 1
+	end
 
-	particleData[1] = px
-	particleData[2] = py
-	particleData[3] = pz
-	particleData[4] = bf
-	particleData[5] = vx
-	particleData[6] = vy
-	particleData[7] = vz
-	particleData[8] = lifetime
-	particleData[9] = size
-	particleData[10] = cmapVariant
-	particleData[11] = seed
-	particleData[12] = (mathRandom() * 2 - 1) * mathPi
+	-- Extend the run across small gaps of skipped slots (their mirror data is unchanged)
+	local gap = slot - ring.runEnd
+	if ring.runStart < 0 or gap < 1 or gap > RING_MAX_SKIPS then
+		flushParticleUploads()
+		ring.runStart = slot
+	end
+	ring.runEnd = slot
+
+	local d = ring.data
+	local o = slot * 16
 	local tb = tintBrightness or 1.0
-	particleData[13] = tb
-	particleData[14] = tb
-	particleData[15] = tb
-	particleData[16] = alphaMult
-
-	nextParticleID = nextParticleID + 1
-	local particleID = nextParticleID
-	pushElementInstance(particleVBO, particleData, particleID, true, visibilityState.deferParticleUploads or false)
+	d[o + 1] = px
+	d[o + 2] = py
+	d[o + 3] = pz
+	d[o + 4] = bf
+	d[o + 5] = vx
+	d[o + 6] = vy
+	d[o + 7] = vz
+	d[o + 8] = lifetime
+	d[o + 9] = size
+	d[o + 10] = cmapVariant
+	d[o + 11] = mathRandom()
+	d[o + 12] = (mathRandom() * 2 - 1) * mathPi
+	d[o + 13] = tb
+	d[o + 14] = tb
+	d[o + 15] = tb
+	d[o + 16] = alphaMult
 
 	local queue = particleRemoveQueue[deathFrame]
 	if not queue then
 		queue = pools.acquireQueue()
 		particleRemoveQueue[deathFrame] = queue
 	end
-	queue[#queue + 1] = particleID
+	queue[#queue + 1] = slot + 1
 end
 
 --------------------------------------------------------------------------------
@@ -834,6 +901,18 @@ local function initGL4()
 		return false
 	end
 
+	ring.data = particleVBO.instanceData
+	ring.capacity = MAX_PARTICLES
+	ring.head = 0
+	ring.live = 0
+	ring.runStart = -1
+	ring.runEnd = -2
+	local death = {}
+	for i = 1, MAX_PARTICLES do
+		death[i] = 0
+	end
+	ring.death = death
+
 	particleVBO.numVertices = numVertices
 	particleVBO.vertexVBO = quadVBO
 	particleVBO.VAO = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO)
@@ -866,6 +945,8 @@ local function DrawParticles()
 	if not particleShader then
 		return
 	end
+
+	flushParticleUploads()
 
 	glDepthTest(true)
 	glDepthMask(false)
@@ -905,32 +986,26 @@ local function DrawParticles()
 	glDepthTest(false)
 end
 
--- Remove expired particles from VBO (runs every frame, pops exact deathFrame queue)
--- Processes all frames from lastRemovedFrame+1 to current to handle frame skips during fast-forward
-local lastRemovedFrame = 0
+-- Frees the slots of particles that expired since the last call. A slot whose death
+-- frame no longer matches was already reused (and uncounted) by spawnParticle.
 local function removeExpiredParticles(gameFrame)
-	local startFrame = lastRemovedFrame + 1
-	-- Cap catch-up window to avoid stalling on very large frame jumps
-	if gameFrame - startFrame > 300 then
-		-- Discard any queues that are too old to matter
-		for f = startFrame, gameFrame - 301 do
-			particleRemoveQueue[f] = nil
-		end
-		startFrame = gameFrame - 300
-	end
-	for f = startFrame, gameFrame do
+	local death = ring.death
+	local live = ring.live
+	for f = lastRemovedFrame + 1, gameFrame do
 		local queue = particleRemoveQueue[f]
 		if queue then
 			for i = 1, #queue do
-				local id = queue[i]
-				if particleVBO.instanceIDtoIndex[id] then
-					popElementInstance(particleVBO, id)
+				local s = queue[i]
+				if death[s] == f then
+					death[s] = 0
+					live = live - 1
 				end
 			end
 			particleRemoveQueue[f] = nil
 			pools.releaseQueue(queue)
 		end
 	end
+	ring.live = live
 	lastRemovedFrame = gameFrame
 end
 
@@ -1052,6 +1127,7 @@ end
 -- Piece projectile tracking (debris fire trails)
 --------------------------------------------------------------------------------
 local trackedPieceProjectiles = {}
+local bufferedPieces = {} -- [proID] = tracked, for pieces holding an off-screen buffer
 local pendingDeathUnitRadii = {}
 local excludedDeathUnits = {}
 local pieceGeneration = 0
@@ -1165,6 +1241,14 @@ local function replayPieceBuffer(tracked, gameFrame)
 	offscreenBufferCount = offscreenBufferCount - 1
 end
 
+local function releasePieceBuffer(proID, tracked)
+	pools.releaseBuffer(tracked.offscreenBuffer)
+	tracked.offscreenBuffer = nil
+	tracked.bufferLen = nil
+	bufferedPieces[proID] = nil
+	offscreenBufferCount = offscreenBufferCount - 1
+end
+
 -- Debug counters (consolidated into table to reduce top-level local count)
 local debugPiece = { spawn = 0, call = 0, skipGround = 0, skipOffscreen = 0, skipExpired = 0, skipNoPos = 0 }
 
@@ -1190,29 +1274,51 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 		debugPiece.skipGround = debugPiece.skipGround + 1
 		return
 	end
-	if not isEffectVisible(px, py, pz) then
+
+	-- Velocity from the previous visit's position; the engine query only on the first visit
+	local pvx, pvy, pvz
+	local lf = tracked.lf
+	if lf and lf < gameFrame then
+		local inv = 1 / (gameFrame - lf)
+		pvx, pvy, pvz = (px - tracked.lx) * inv, (py - tracked.ly) * inv, (pz - tracked.lz) * inv
+	else
+		pvx, pvy, pvz = spGetProjectileVelocity(proID)
+	end
+	tracked.lx, tracked.ly, tracked.lz, tracked.lf = px, py, pz, gameFrame
+
+	-- Air LOS changes slowly relative to a piece's flight; recheck every few frames
+	local inLos = tracked.inLos
+	if inLos == nil or gameFrame >= tracked.losUntil then
+		inLos = isEffectVisible(px, py, pz)
+		tracked.inLos = inLos
+		tracked.losUntil = gameFrame + 6
+	end
+	if not inLos then
 		if tracked.offscreenBuffer then
-			pools.releaseBuffer(tracked.offscreenBuffer)
-			tracked.offscreenBuffer = nil
-			tracked.bufferLen = nil
-			offscreenBufferCount = offscreenBufferCount - 1
+			releasePieceBuffer(proID, tracked)
 		end
 		tracked.offscreenSkip = nil
 		return
 	end
 
-	local inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
+	-- The culling sphere carries a 200 elmo margin, so an in-view result stays good for
+	-- a few frames of piece and camera motion (mirrors offscreenSkip below)
+	local inView = true
+	if gameFrame >= (tracked.viewUntil or 0) then
+		inView = spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS)
+		tracked.viewUntil = inView and gameFrame + 4 or nil
+	end
 	if not inView then
 		debugPiece.skipOffscreen = debugPiece.skipOffscreen + 1
 		tracked.offscreenSkip = 2 -- skip next 2 frames without re-querying position
 		-- Buffer position/velocity every 3rd frame for retroactive spawning
 		if not fastForward and gameFrame % 3 == 0 then
-			local pvx, pvy, pvz = spGetProjectileVelocity(proID)
 			local buf = tracked.offscreenBuffer
 			local n = tracked.bufferLen or 0
 			if not buf then
 				buf = pools.acquireBuffer()
 				tracked.offscreenBuffer = buf
+				bufferedPieces[proID] = tracked
 				offscreenBufferCount = offscreenBufferCount + 1
 				n = 0
 			end
@@ -1233,6 +1339,7 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 	-- Transition to in-view: replay buffered particles
 	if tracked.offscreenBuffer then
 		replayPieceBuffer(tracked, gameFrame)
+		bufferedPieces[proID] = nil
 	end
 	tracked.offscreenSkip = nil
 
@@ -1246,7 +1353,6 @@ local function spawnPieceTrailParticles(tracked, proID, gameFrame)
 		lodMult = t >= 1.0 and LOD_MIN_MULT or (1.0 - t * LOD_MULT_RANGE)
 	end
 
-	local pvx, pvy, pvz = spGetProjectileVelocity(proID)
 	local vxs = pvx and pvx * PIECE_VEL_COMBINED or 0
 	local vys = pvy and pvy * PIECE_VEL_COMBINED or 0
 	local vzs = pvz and pvz * PIECE_VEL_COMBINED or 0
@@ -1388,8 +1494,7 @@ local function updatePieceProjectiles(gameFrame, phase, phaseCount)
 		for proID, tracked in pairs(trackedPieceProjectiles) do
 			if tracked.gen ~= gen then
 				if tracked.offscreenBuffer then
-					pools.releaseBuffer(tracked.offscreenBuffer)
-					offscreenBufferCount = offscreenBufferCount - 1
+					releasePieceBuffer(proID, tracked)
 				end
 				trackedPieceProjectiles[proID] = nil
 				pools.releaseTracker(tracked)
@@ -1820,7 +1925,7 @@ end
 -- Query current state
 ---@return integer count Particles currently alive.
 local function apiGetParticleCount()
-	return particleVBO and particleVBO.usedElements or 0
+	return ring.live
 end
 
 ---@return number count Particle budget for the whole system.
@@ -1851,6 +1956,8 @@ function gadget:Initialize()
 	if not initGL4() then
 		return
 	end
+	cachedGameFrame = Spring.GetGameFrame()
+	lastRemovedFrame = cachedGameFrame
 
 	-- Subscribe to the shared projectile dispatcher (map-wide piece scan,
 	-- no defID filter -- we track every piece projectile, same as the
@@ -1972,8 +2079,6 @@ local function runFireSmokeFrame(n)
 	end
 	visibilityState.emitterPhase = phase
 
-	local uploadStart = pVBO.usedElements
-	visibilityState.deferParticleUploads = true
 	updatePieceProjectiles(n, phase, phaseCount)
 
 	-- Debug output every 30 frames
@@ -2020,11 +2125,6 @@ local function runFireSmokeFrame(n)
 	end
 
 	updatePointEmitters(n, phase, phaseCount)
-	visibilityState.deferParticleUploads = nil
-	local uploadEnd = pVBO.usedElements
-	if uploadEnd > uploadStart then
-		gl.InstanceVBOTable.uploadElementRange(pVBO, uploadStart, uploadEnd)
-	end
 	if phase >= phaseCount then
 		visibilityState.emitterPhase = nil
 		visibilityState.emitterPhaseCount = nil
@@ -2111,8 +2211,11 @@ function gadget:Update()
 	end
 
 	cachedGameFrame = n
-	visibilityState.allyTeamID = Spring.GetLocalAllyTeamID()
-	visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+	if n >= (visibilityState.nextViewStateFrame or 0) then
+		visibilityState.nextViewStateFrame = n + 15
+		visibilityState.allyTeamID = Spring.GetLocalAllyTeamID()
+		visibilityState.fullView = select(2, Spring.GetSpectatingState()) or false
+	end
 	cachedCamX, cachedCamY, cachedCamZ = spGetCameraPosition()
 
 	-- Detect fast-forward: actual sim speed > 1.5 means catching up or user speed-up
@@ -2169,36 +2272,23 @@ function gadget:DrawWorld()
 	end
 
 	-- Flush off-screen buffers that are now in view (works while paused too)
-	if offscreenBufferCount > 0 then
-		local pVBO = particleVBO
-		if pVBO then
-			local uploadStart = pVBO.usedElements
-			-- Replays can create hundreds of retroactive particles. Defer their VBO
-			-- writes so a visibility transition produces one upload instead of one per particle.
-			visibilityState.deferParticleUploads = true
-			if crashingAircraftCount > 0 then
-				for unitID, tracked in pairs(trackedCrashingAircraft) do
-					if tracked.offscreenBuffer then
-						local px, py, pz = spGetUnitPosition(unitID)
-						if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
-							replayCrashBuffer(tracked, cachedGameFrame)
-						end
-					end
-				end
-			end
-
-			for proID, tracked in pairs(trackedPieceProjectiles) do
+	if offscreenBufferCount > 0 and particleVBO then
+		if crashingAircraftCount > 0 then
+			for unitID, tracked in pairs(trackedCrashingAircraft) do
 				if tracked.offscreenBuffer then
-					local px, py, pz = spGetProjectilePosition(proID)
-					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
-						replayPieceBuffer(tracked, cachedGameFrame)
+					local px, py, pz = spGetUnitPosition(unitID)
+					if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, CRASH_CULLING_TOTAL) then
+						replayCrashBuffer(tracked, cachedGameFrame)
 					end
 				end
 			end
-			visibilityState.deferParticleUploads = nil
-			local uploadEnd = pVBO.usedElements
-			if uploadEnd > uploadStart then
-				gl.InstanceVBOTable.uploadElementRange(pVBO, uploadStart, uploadEnd)
+		end
+
+		for proID, tracked in pairs(bufferedPieces) do
+			local px, py, pz = spGetProjectilePosition(proID)
+			if px and isEffectVisible(px, py, pz) and spIsSphereInView(px, py, pz, PIECE_CULLING_RADIUS) then
+				replayPieceBuffer(tracked, cachedGameFrame)
+				bufferedPieces[proID] = nil
 			end
 		end
 	end
