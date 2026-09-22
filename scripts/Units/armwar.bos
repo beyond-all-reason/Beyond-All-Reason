@@ -9,6 +9,7 @@ static-var Turret1curHeading, Turret1curPitch;
 static-var goalHeading, goalPitch, isAiming, Turret1HeadingSpeed, Turret1PitchSpeed;
 static-var canShoot, delta, pastChassisHeading;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

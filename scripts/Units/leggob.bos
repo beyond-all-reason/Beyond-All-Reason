@@ -5,6 +5,7 @@ piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, a
 
 static-var  isMoving, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading, aimBelief, lastAimFrame;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 

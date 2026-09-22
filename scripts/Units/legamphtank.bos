@@ -10,6 +10,7 @@ piece base, lTrack, rTrack, turretBase, turret, barrelPivot, barrelSleeve, barre
 
 static-var  open, restore_delay;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "unitDefsTurretSpeeds.h"
 
 // Signal definitions

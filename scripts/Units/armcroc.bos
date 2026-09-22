@@ -5,6 +5,7 @@ piece  base, turret, barrel, flare, sleeve, head, tail, lid, turretmis, misbox, 
 
 static-var  restore_delay, gun_2, corrected;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

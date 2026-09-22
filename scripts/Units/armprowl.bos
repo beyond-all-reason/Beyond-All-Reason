@@ -5,6 +5,7 @@ piece  pelvis, grill, lthigh, lleg, lshin, lfoot, rthigh, rleg, rshin, rfoot, ai
 
 static-var  isAiming,  restore_delay, gun_1, wpn1_lasthead;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

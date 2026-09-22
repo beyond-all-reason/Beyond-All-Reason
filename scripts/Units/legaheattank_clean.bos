@@ -6,6 +6,7 @@ piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
 static-var  statechg_DesiredState, statechg_StateChanging, whichGun, timeLeft, isfiring, gameframe, lastfired, fireTime, reloadTime, oldhead, aimAdj, oldsteerheading, cooldown, isFiring, restore_delay, gun_lasthead, gun_lastpitch;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

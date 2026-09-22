@@ -5,6 +5,7 @@ piece  base, lfwheel, rfwheel, bwheel, gun, flare;
 
 static-var  restore_delay, moveSpeed, wheelSpeed, gun_2,	oldHeading, wpn1_lasthead;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

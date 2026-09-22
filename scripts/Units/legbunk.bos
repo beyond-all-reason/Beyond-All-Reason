@@ -62,6 +62,7 @@ pile;
 
 static-var torsoHeading, isAiming, animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, restore_delay, stunned, oldHeadingTS, torsofunkyHeading, oldHeadingBunker, oldHeadingRailgun, fuelSaver, isturning;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 #define MOVESCALE 100

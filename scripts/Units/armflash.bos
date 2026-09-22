@@ -6,6 +6,7 @@ piece base, parts, track, turret, sleeve, lbarrel, lflare, rbarrel, rflare;
 static-var  restore_delay, gun_1, fire_count;
 static-var  last_primary_heading, last_primary_pitch;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

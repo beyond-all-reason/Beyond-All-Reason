@@ -9,6 +9,7 @@ piece  base, tracks, shell, aimy1, turret, aimx1, sleeve, barrel, cover, flare;
 
 static-var  restore_delay, currentSpeed, moveSpeed;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 

@@ -6,6 +6,7 @@ piece  	pelvis, torso, aaturret, aasleeve, aabarrel, lshoulder, rshoulder, larm,
 
 static-var  isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, restore_delay, gun_left, miniguncount, wpnheading, shotcount;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

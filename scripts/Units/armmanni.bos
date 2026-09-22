@@ -6,6 +6,7 @@ piece  base, flare, turret, sensor, sleeve;
 static-var  restore_delay;
 static-var  out_of_arc_count;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

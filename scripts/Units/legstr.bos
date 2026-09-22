@@ -5,6 +5,7 @@ piece  	pelvis, aimy, torso, aimx, lthigh, rthigh, lleg, rleg, lkeel, rkeel, lfo
 
 static-var  isMoving, isAiming, Static_Var_3, restore_delay, wpn1_lasthead, miniguncount, animspeed, maxSpeed, animFramesPerKeyframe;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

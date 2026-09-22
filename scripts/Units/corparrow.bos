@@ -5,6 +5,7 @@ piece  base, turret, barrel, sleeve, flare ,smoke1, smoke2, smoke3;
 
 static-var  restore_delay;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

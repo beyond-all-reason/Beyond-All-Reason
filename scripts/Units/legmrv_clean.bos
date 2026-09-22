@@ -6,6 +6,7 @@
 piece base, flWheel, frWheel, rrTrack, rlTrack, turret, aimfrom, sleeveTop, sleeveBottom, flareTop, flareBottom, barrelTop, barrelBottom, flTyre, frTyre;
 static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft, Stunned, last_primary_heading;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 

@@ -4,6 +4,7 @@ piece  torso, flare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, ruparm, luparm, 
 
 static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

@@ -6,6 +6,7 @@ piece base, tracks, turretBase, barrelPivot, barrelBack, barrelMid, barrelAim, b
 
 static-var   statechg_DesiredState, statechg_StateChanging, restore_delay, Stunned, timeLeft, last_primary_heading;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

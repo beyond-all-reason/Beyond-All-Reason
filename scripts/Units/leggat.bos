@@ -8,6 +8,7 @@ piece body, bars, tracks, turret, sleeve, barrel, flare, smoke1, smoke2;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, wpn1_lasthead;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "unitDefsTurretSpeeds.h"
 
 // Signal definitions

@@ -8,6 +8,7 @@ piece  pelvis, rthigh, rleg, rfoot, rrfinger, rlfinger, lthigh, lleg, lfoot, llf
 
 static-var  gun_1, isMoving, animSpeed, maxSpeed, animFramesPerKeyframe, shotcount, isAiming; 
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

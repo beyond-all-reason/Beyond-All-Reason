@@ -6,6 +6,7 @@ piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lc
 static-var  isAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
 static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // Signal definitions

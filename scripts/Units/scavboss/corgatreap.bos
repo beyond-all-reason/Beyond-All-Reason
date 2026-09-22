@@ -7,6 +7,7 @@ piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "unitDefsTurretSpeeds.h"
 
 // Signal definitions

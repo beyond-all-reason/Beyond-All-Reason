@@ -8,6 +8,7 @@ piece 	base, torso, lshoulder, rshoulder, lsleeve, rsleeve, lbarrel, heatraycoil
 
 static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead, moveSpeed, explosions, shieldup, torsoHeading, shotcount;
 
+#define TURRET_SPEED_WEAPONS 1
 #include "../unitDefsTurretSpeeds.h"
 
 // signal definitions
