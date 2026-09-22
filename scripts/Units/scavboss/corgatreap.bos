@@ -178,8 +178,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn turret to x-axis <0.000000> speed <35.005495>;
+	turn turret to y-axis <0.000000> speed Weapon1TurretY * 7 / 54;
+	turn turret to x-axis <0.000000> speed Weapon1TurretX * 7 / 9;
 	//turn sleeves to x-axis <0.000000> speed <15.000000>;
 }
 SetStunned(State)
@@ -201,8 +201,8 @@ RestoreAfterDelay()
 // A high precision requirement can result in overshoots if desired 
 
 #define MAX_AIMY1_VELOCITY (Weapon1TurretY / GAME_SPEED)
-#define AIMY1_ACCELERATION <0.2>
-#define AIMY1_JERK <1.0>
+#define AIMY1_ACCELERATION (Weapon1TurretY / 45 / GAME_SPEED)
+#define AIMY1_JERK (Weapon1TurretY / 9 / GAME_SPEED)
 #define AIMY1_PRECISION <1.2>
 static-var aimy1delta, timetozero, deceleratethreshold, gameFrame;
 
