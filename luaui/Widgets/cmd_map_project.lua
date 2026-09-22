@@ -102,6 +102,10 @@ local diffuseLoadedSlug = nil
 -- until it does, the defaults stand (configureAutosave fills the table, so
 -- its fields type from that assignment rather than from literals here).
 local AUTOSAVE_DIR = "_autosave"
+-- Scratch projects written by the map transform (cmd_map_transform.lua):
+-- the session's capture and the transformed copy it boots into. Hidden from
+-- the browser like the snapshots, and swept once the transformed map is in.
+local TRANSFORM_DIR = "_transform"
 local autosaveCfg = {}
 local autosaveNextAt = 0.0 -- os.clock() of the next attempt
 local autosavePruneAt = 0.0 -- os.clock() of the next sweep of old snapshots
@@ -792,7 +796,7 @@ local function stepDiffuse()
 			end
 			sectionSkip("diffuse", "no diffuse paint state")
 			job.diffuseStateEmpty = true -- the ONE case where cleanup may wipe diffuse/
-			if not job.autosave then
+			if not (job.autosave or job.internal) then
 				diffuseLoadedSlug = job.slug -- an empty painter now matches an empty folder
 			end
 			return true
@@ -845,7 +849,7 @@ local function stepDiffuse()
 	end
 	if kept > 0 then
 		warn(string.format("kept %d unloaded diffuse square(s) beside the %d captured", kept, #res.squares))
-	elseif not job.autosave then
+	elseif not (job.autosave or job.internal) then
 		-- The folder is exactly what the painter holds. A snapshot's folder is
 		-- too, but the painter's project is still the one it was loaded from.
 		diffuseLoadedSlug = job.slug
@@ -1986,21 +1990,33 @@ local function finishSave()
 	job.result.done = true
 	job.result.ok = not job.failed
 	job.result.uploadReady = not job.failed and not job.uploadBlocked and findSection("heightmap") ~= nil
-	if job.autosave then
+	if job.internal then
+		-- neither receipt: the transform holds its own
+	elseif job.autosave then
 		lastAutosaveInfo = job.result
 	else
 		lastSaveInfo = job.result
 	end
 	if job.failed then
 		echoP(
-			(job.autosave and "AUTOSAVE FAILED for '" or "SAVE FAILED for project '") .. job.slug .. "': " .. job.failed
+			(
+				job.autosave and "AUTOSAVE FAILED for '"
+				or (job.internal and "STAGING FAILED for '" or "SAVE FAILED for project '")
+			)
+				.. job.slug
+				.. "': "
+				.. job.failed
 		)
 		job = nil
 		return
 	end
 	-- Any finished save, either kind, starts the autosave interval over.
 	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
-	if job.autosave then
+	if job.internal then
+		-- Same reasoning as a snapshot, one step further: the staging copy is
+		-- not even a snapshot the user can open, so it leaves no trace at all.
+		echoP("staged the session at " .. job.dir)
+	elseif job.autosave then
 		-- A snapshot changes nothing about the session: the project is still
 		-- the Save target and its unsaved changes are still unsaved.
 		echoP("autosaved to " .. job.dir)
@@ -2062,9 +2078,13 @@ local function startSave(slug, opts)
 		warnings = {},
 		saveUnits = (opts and opts.saveUnits) and true or false,
 		autosave = (opts and opts.autosave) and true or false,
+		-- Scratch capture for the map transform: a real save of every section,
+		-- but not the session's business. It must not become the Save target,
+		-- enter the recent list, or clear the unsaved-changes count.
+		internal = (opts and opts.internal) and true or false,
 	}
 	echoP(
-		(job.autosave and "autosaving to '" or "saving project '")
+		(job.autosave and "autosaving to '" or (job.internal and "staging '" or "saving project '"))
 			.. slug
 			.. "'..."
 			.. (job.saveUnits and " (with units loadout)" or "")
@@ -2147,7 +2167,8 @@ local function walkProjects(rel, depth, out, seen, touchedAt)
 		-- _replaced holds the copies a Team Sync download replaced (newest
 		-- three per project), kept for a hand recovery; they are not projects.
 		-- _autosave holds the timed snapshots, listed by their own view.
-		if seg and seg:sub(1, 1) ~= "." and seg ~= "_replaced" and seg ~= AUTOSAVE_DIR then
+		-- _transform is the map transform's scratch space, alive for one restart.
+		if seg and seg:sub(1, 1) ~= "." and seg ~= "_replaced" and seg ~= AUTOSAVE_DIR and seg ~= TRANSFORM_DIR then
 			local slug = rel == "" and seg or (rel .. "/" .. seg)
 			if validateSlug(slug) then
 				local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
@@ -2289,6 +2310,21 @@ local function deleteProject(slug)
 		currentSlug = nil
 	end
 	return true
+end
+
+-- Remove both transform scratch projects and the folder holding them. The
+-- browser never shows them, so nothing asks: this runs when a transform starts
+-- (clearing an aborted run) and again once the transformed session has loaded.
+local function clearTransformStaging()
+	local removed = 0
+	for _, leaf in ipairs({ "source", "staged" }) do
+		local slug = TRANSFORM_DIR .. "/" .. leaf
+		if readPrevManifest(PROJECTS_DIR .. slug .. "/") and deleteProject(slug) then
+			removed = removed + 1
+		end
+	end
+	os.remove(PROJECTS_DIR .. TRANSFORM_DIR)
+	return removed
 end
 
 -- Delete a folder under MapProjects/ and every project inside it. The browser
@@ -2733,13 +2769,50 @@ end
 
 local function writePointer(t)
 	Spring.CreateDir("Terraform Brush")
+	-- The transform rides in the pointer rather than in the staged manifest: it
+	-- describes how to REPLAY the recorded sections onto this session's canvas,
+	-- which is a property of the pending load, not of the project on disk. The
+	-- heightmap phase is its only consumer (the masks and tables were already
+	-- rewritten when the staging copy was written).
+	local xf = ""
+	if type(t.transform) == "table" and type(t.transform.placements) == "table" then
+		local x = t.transform
+		-- One placement per copy of the old map on the new canvas: two when the
+		-- map was doubled with a duplicated half, one otherwise.
+		local parts = {}
+		for _, p in ipairs(x.placements) do
+			parts[#parts + 1] = string.format(
+				"{ rot = %d, mirrorX = %s, mirrorZ = %s, fit = %q, anchorX = %d, anchorZ = %d }",
+				tonumber(p.rot) or 0,
+				p.mirrorX and "true" or "false",
+				p.mirrorZ and "true" or "false",
+				tostring(p.fit or "stretch"),
+				tonumber(p.anchorX) or 0,
+				tonumber(p.anchorZ) or 0
+			)
+		end
+		-- fill_height: what ground no placement covers becomes. Absent means
+		-- "continue the old border" (the importer clamps).
+		local fill = ""
+		if tonumber(x.fill_height) then
+			fill = string.format(", fill_height = %.3f", tonumber(x.fill_height))
+		end
+		xf = string.format(
+			", transform = { src_x = %d, src_z = %d%s, placements = { %s } }",
+			tonumber(x.src_x) or 0,
+			tonumber(x.src_z) or 0,
+			fill,
+			table.concat(parts, ", ")
+		)
+	end
 	local content = string.format(
 		"return { path = %q, size_x = %d, size_z = %d, phase = %d, phases = %d }\n",
 		t.path,
 		t.size_x,
 		t.size_z,
 		t.phase or 0,
-		t.phases or 0
+		t.phases or 0,
+		xf
 	)
 	return writeFile(POINTER_PATH, content) ~= nil
 end
@@ -2903,7 +2976,10 @@ local function phaseHeightmap(c)
 		c.frameAtSend = Spring.GetGameFrame()
 		local range = loadJob.manifest.map and loadJob.manifest.map.height_range
 		if tb.importHeightmap then
-			tb.importHeightmap(path, range and range.min, range and range.max)
+			-- loadJob.transform is set when the session was booted by the map
+			-- transform: the PNG is the OLD map's, and the importer resamples it
+			-- onto this canvas through that turn/mirror/fit instead of straight.
+			tb.importHeightmap(path, range and range.min, range and range.max, loadJob.transform)
 		else
 			Spring.SendCommands("terraformimport " .. path)
 		end
@@ -3649,8 +3725,11 @@ local function finishLoad()
 	-- until it is saved back, so the session starts out with changes; the
 	-- timer waits for an edit on top of that before taking the next snapshot.
 	local fromAutosave = loadJob.autosaveOf ~= nil
+	-- A transform is an unsaved edit of the project it came from, exactly like
+	-- a snapshot: the session holds it, the project on disk does not yet.
+	local fromTransform = loadJob.transformOf ~= nil
 	loadJob = nil
-	dirtyCount = fromAutosave and 1 or 0
+	dirtyCount = (fromAutosave or fromTransform) and 1 or 0
 	autosaveDirtyMark = dirtyCount
 	dirtyGraceUntil = os.clock() + 8
 	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
@@ -3850,6 +3929,7 @@ local function maybeStartLoad()
 		dir = ptr.path,
 		sizeX = ptr.size_x,
 		sizeZ = ptr.size_z,
+		transform = (type(ptr.transform) == "table") and ptr.transform or nil,
 		manifest = manifest,
 		phase = startPhase,
 		cursor = {},
@@ -3873,6 +3953,18 @@ local function maybeStartLoad()
 				or "this is an autosave of an unsaved canvas: FILE > Save asks for a name"
 		)
 	end
+	-- A transformed copy opens as the project it came from, the same way a
+	-- snapshot does: FILE > Save writes the new orientation and size back to
+	-- that project, and a transform of a canvas with no project still has none.
+	if type(manifest.transform_of) == "string" then
+		local origin = validateSlug(manifest.transform_of)
+		loadJob.transformOf = origin or ""
+		currentSlug = origin
+		echoP(
+			origin and ("transformed map: FILE > Save writes back to '" .. origin .. "'")
+				or "transformed map: FILE > Save asks for a name"
+		)
+	end
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
 	else
@@ -3884,7 +3976,10 @@ end
 -- Load: open (validate + restart), callable from UI and console
 ----------------------------------------------------------------
 
-local function openProject(slug)
+-- opts.transform: replay the sections through a map transform (see
+-- cmd_map_transform.lua). opts.staging: the project is scratch, so it stays out
+-- of the recent list.
+local function openProject(slug, opts)
 	if mapLibrary and mapLibrary.isBusy() then
 		echoP("cannot open while the map library is transferring a project")
 		return false
@@ -3947,12 +4042,23 @@ local function openProject(slug)
 	os.remove("Terraform Brush/pending_newmap.lua")
 	os.remove("Terraform Brush/pending_newmap_env.lua")
 	local m = manifest.map
-	if not writePointer({ path = dir, size_x = m.size_x, size_z = m.size_z, phase = 0, phases = #LOAD_PHASES }) then
+	if
+		not writePointer({
+			path = dir,
+			size_x = m.size_x,
+			size_z = m.size_z,
+			phase = 0,
+			phases = #LOAD_PHASES,
+			transform = opts and opts.transform or nil,
+		})
+	then
 		echoP("cannot open: failed to write " .. POINTER_PATH)
 		return false
 	end
 	echoP(string.format("restarting into a blank %dx%d map for project '%s'...", m.size_x, m.size_z, slug))
-	touchRecent(slug)
+	if not (opts and opts.staging) then
+		touchRecent(slug)
+	end
 	Spring.Restart("", script)
 	return true
 end
@@ -4068,6 +4174,13 @@ function widget:Initialize()
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		-- openStaged(slug, { transform = ... }): the map transform's restart. The
+		-- staged project is scratch (no recent entry), and the transform travels
+		-- in the pointer so the heightmap phase can replay through it.
+		openStaged = function(slug, opts)
+			return openProject(slug, { transform = opts and opts.transform, staging = true })
+		end,
+		clearTransformStaging = clearTransformStaging,
 		-- One known slug's entry, read from its manifest rather than found by
 		-- walking folders, so a project that landed this session is visible.
 		describe = describeProject,
@@ -4144,6 +4257,14 @@ function widget:Initialize()
 			return loadJob ~= nil
 		end,
 	}
+	-- A transform's staging folder has to outlive its own load: the session it
+	-- produced still resolves its DNTS textures out of it (the start script
+	-- points there) until the map is saved into a project of its own. So it is
+	-- swept on the next start that is NOT a project load, and again when the
+	-- next transform begins.
+	if not readPointer() then
+		clearTransformStaging()
+	end
 	maybeStartLoad()
 end
 
