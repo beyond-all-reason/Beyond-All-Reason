@@ -21,8 +21,8 @@ end
 
 local armorBreakMethod = "ReactiveArmorBreak"
 local armorRestoreMethod = "ReactiveArmorRestore"
-local unitCombatDuration = math.round(5 * Game.gameSpeed) -- Also sets the minimum `reactive_armor_restore`.
-local unitUpdateInterval = math.round((1 / 6) * Game.gameSpeed)
+local unitCombatDuration = math.round(5 * Game.gameSpeed, 0) -- Also sets the minimum `reactive_armor_restore`.
+local unitUpdateInterval = math.round((1 / 6) * Game.gameSpeed, 0)
 
 -- Localization
 
@@ -43,8 +43,8 @@ local armoredUnitDefs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.reactive_armor_health and unitDef.customParams.reactive_armor_restore then
 		local params = {
-			health = tonumber(unitDef.customParams.reactive_armor_health),
-			frames = tonumber(unitDef.customParams.reactive_armor_restore) * gameSpeed,
+			health = (tonumber(unitDef.customParams.reactive_armor_health) or 0),
+			frames = (tonumber(unitDef.customParams.reactive_armor_restore) or 0) * gameSpeed,
 			first = true,
 		}
 
@@ -65,7 +65,7 @@ end
 -- since that is the first time the game gives us info on them.
 local function checkReactiveArmor(unitID, unitDefID, params)
 	local hasMethod
-	local lusEnv = Spring.UnitScript.GetScriptEnv(unitID)
+	local lusEnv = Spring.UnitScript.GetScriptEnv(unitID) ---@as table?
 
 	if lusEnv then
 		hasMethod = function(name)
@@ -149,7 +149,7 @@ local function checkReactiveArmor(unitID, unitDefID, params)
 	-- Fix for the different argument types used between COB and LUS.
 	params.call = (not lusEnv and callFromCob)
 		or function(unitID, funcName, ...)
-			callFromLus(unitID, lusEnv[funcName], ...)
+			callFromLus(unitID, lusEnv[funcName], ...) ---@diagnostic disable-line: need-check-nil
 		end
 
 	return true
@@ -164,7 +164,7 @@ local regenerateFrame = table_new(0, 2 ^ 6) -- Next frame that the unit will beg
 local gameFrame = 0
 local combatEndFrame = gameFrame + unitCombatDuration
 
----@return table<"countdown"|integer, integer> restoreFrames
+---@return { countdown : integer, [integer] : true }|{ countdown : integer, [0] : true } restoreFrames
 local function getArmorRestoreFrames(defData, duration)
 	local armorPieceCount = defData.pieces
 	local restoreDuration = duration or defData.frames
@@ -261,7 +261,7 @@ local function doArmorDamage(unitID, defData, damage)
 end
 
 local function restoreUnitArmor(unitID, piece)
-	local defData = armoredUnitDefs[spGetUnitDefID(unitID)]
+	local defData = armoredUnitDefs[spGetUnitDefID(unitID)] ---@type table
 
 	if piece ~= true then
 		defData.call(unitID, defData[armorRestoreMethod][piece])
@@ -317,7 +317,7 @@ end
 
 local function showDebugInfo(unitID)
 	local info = getUnitDebugInfo(unitID)
-	if info.unitCountdown then
+	if tonumber(info.unitCountdown) then
 		local display = ("hp:%s res:%s"):format(tostring(info.armorHealth), tostring(info.unitCountdown))
 		Spring.MarkerAddPoint(info.x, info.y, info.z, display)
 		Spring.Echo("Reactive Armor", info)
@@ -352,7 +352,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	if not paralyzer and damage > 0 and armoredUnitDefs[unitDefID] then
+	if not armoredUnitDefs[unitDefID] then
+		return
+	end
+	---@cast paralyzer boolean -- todo: odd
+	if paralyzer then
+		regenerateFrame[unitID] = combatEndFrame
+	elseif damage > 0 then
 		doArmorDamage(unitID, armoredUnitDefs[unitDefID], damage)
 	end
 end
@@ -365,7 +371,7 @@ end
 ---@return boolean changed `false` when the unit has no reactive armor, its armor is
 ---already broken, or a repair was requested while already at full armor.
 GG.AddReactiveArmorDamage = function(unitID, damage)
-	local unitDefData = armoredUnitDefs[spGetUnitDefID(unitID)]
+	local unitDefData = armoredUnitDefs[spGetUnitDefID(unitID)] ---@as table
 	if unitDefData and damage ~= 0 then
 		return doArmorDamage(unitID, unitDefData, damage)
 	else
@@ -401,8 +407,8 @@ function gadget:Initialize()
 			return
 		end
 
-		local armorHealth = spGetUnitRulesParam(unitID, "reactiveArmorHealth")
-		local armorFrames = spGetUnitRulesParam(unitID, "reactiveArmorFrames")
+		local armorHealth = spGetUnitRulesParam(unitID, "reactiveArmorHealth") ---@as number|false
+		local armorFrames = spGetUnitRulesParam(unitID, "reactiveArmorFrames") ---@as number|false
 		local combatUntil = spGetUnitRulesParam(unitID, "unitIsInCombatUntil")
 		gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		spSetUnitRulesParam(unitID, "reactiveArmorFrames", nil)

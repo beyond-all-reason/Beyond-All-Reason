@@ -603,6 +603,11 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				--Spring.Echo(i,line)
 				local glslvariable = line:match(printfpattern)
 				if glslvariable then
+					-- shaderconfig.stripPrintf is convenience for reused megashaders (e.g. CUS_GL4) to only printf from one draw pass or bin
+					if shadersourcecache.shaderConfig.stripPrintf then 
+						Spring.Echo("Stripping printf from fragment shader line", i)
+						fsSrcNewLines[i] = ""
+					else
 					--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
 					-- init our printf table
 
@@ -640,6 +645,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					)
 					Spring.Echo(string.format("Replacing f:%d %s", i, line))
 					fsSrcNewLines[i] = replacementstring
+					end
 				end
 			end
 
@@ -699,6 +705,9 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				fsSrcNew = table.concat(fsSrcNewLines, "\n")
 				--Spring.Echo(fsSrcNew)
 			end
+
+			if shadersourcecache.shaderConfig.stripPrintf then fsSrcNew = table.concat(fsSrcNewLines, "\n") end
+
 			if vsSrcNew then
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)

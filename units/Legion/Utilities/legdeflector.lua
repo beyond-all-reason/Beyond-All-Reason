@@ -43,7 +43,7 @@ return {
 			shield_color_mult = 0.8,
 			shield_power = 6175,
 			shield_radius = 550,
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Utilities",
 			techlevel = 2,
 			unitgroup = "util",
 			usebuildinggrounddecal = true,

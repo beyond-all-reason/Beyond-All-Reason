@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1200000,
 		enabled = true,
+		modalExempt = true, -- the windows show their own tooltips through this widget
 	}
 end
 
@@ -424,14 +425,16 @@ local function drawTooltip(name, x, y)
 			posY - maxHeight - paddingH,
 			posX + maxWidth + paddingW - bgpadding,
 			posY + paddingH,
-			"tooltip_" .. name
+			"tooltip_" .. name,
+			widget
 		)
 		WG.guishader.InsertScreenRect(
 			posX - paddingW,
 			posY - maxHeight - paddingH + bgpadding,
 			posX + maxWidth + paddingW,
 			posY + paddingH - bgpadding,
-			"2tooltip_" .. name
+			"2tooltip_" .. name,
+			widget
 		)
 	end
 
@@ -467,6 +470,10 @@ function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
+	-- Hover tooltips belong to elements that a modal window is hiding, so they must not
+	-- pop up over it. Tooltips shown outright (option descriptions and the like) stay.
+	local modalActive = widgetHandler:IsModalActive()
+
 	if WG.guishader then
 		for name, _ in pairs(cleanupGuishaderAreas) do
 			WG.guishader.RemoveScreenRect("tooltip_" .. name)
@@ -479,6 +486,7 @@ function widget:DrawScreen()
 			(tooltip.area == nil and not tooltip.disabled)
 			or (
 				tooltip.area
+				and not modalActive
 				and tooltip.area[4] ~= nil
 				and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])
 			)

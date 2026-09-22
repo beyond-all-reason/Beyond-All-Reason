@@ -1,10 +1,31 @@
--- Single-line text input for the keybind editor's search field.
--- Active only while focused, so it is safe to host alongside game input.
+-- Single-line text input for the keybind editor search field, shared with the game info
+-- panel. Active only while focused, so it is safe to host alongside game input.
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
 local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
+local text = VFS.Include("luaui/Include/keybind_text.lua")
 
+-- Declared rather than inferred: the fields live on the instance new() builds, which is not
+-- something the type checker can follow back from a method's self.
+---@class Editbox
+---@field text string
+---@field caret integer
+---@field selAnchor any
+---@field focused boolean
+---@field dragging boolean
+---@field placeholder string
+---@field maxChars integer
+---@field maxCharsOwn integer The limit it was built with, restored when a raise is dropped
+---@field onChange any
+---@field outline any
+---@field clearable any
+---@field rect any
+---@field fontSize any
+---@field pad any
+---@field blinkStart any
+---@field blinkText any
+---@field blinkCaret any
 local Editbox = {}
 Editbox.__index = Editbox
 
@@ -13,11 +34,13 @@ local floor = math.floor
 local colorText = "\255\235\235\235"
 local colorDim = "\255\160\160\160"
 
--- Caret look and blink taken from gui_chat's input, so the two fields read as the same
--- control: a sharp bar that starts bright on a keystroke and fades over a second before
--- snapping back, rather than a hard on/off blink.
+-- Taken from gui_chat input so the two fields read as the same control.
 local cursorBlinkDuration = 1
 local cursorGrey = 0.7
+
+-- What the panels light a row with under the cursor, so the field reads as clickable.
+local hoverOpacity = 0.14
+local white = { 1, 1, 1 }
 
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
@@ -43,7 +66,12 @@ function Editbox.new(opts)
 	self.dragging = false
 	self.placeholder = opts.placeholder or ""
 	self.maxChars = opts.maxChars or 127
+	self.maxCharsOwn = self.maxChars
 	self.onChange = opts.onChange
+	-- The font is shared with every other widget and keeps whatever outline was set on it last.
+	self.outline = opts.outline
+	-- Asked for rather than given: a field whose text is not a filter has nothing to clear to.
+	self.clearable = opts.clearable
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
@@ -54,7 +82,12 @@ end
 function Editbox:setRect(x1, y1, x2, y2, fontSize, pad)
 	self.rect = { x1, y1, x2, y2 }
 	self.fontSize = fontSize or (y2 - y1) * 0.5
-	self.pad = pad or floor((y2 - y1) * 0.2)
+	self.pad = pad or floor((y2 - y1) * 0.3)
+end
+
+-- Nothing hands back the raised limit, so it falls to what the field asked for.
+function Editbox:setMaxChars(n)
+	self.maxChars = n or self.maxCharsOwn
 end
 
 function Editbox:getText()
@@ -72,11 +105,10 @@ function Editbox:setText(t)
 	end
 end
 
--- SDL text input is owned by the panel, not by this field: blurring the search box to
--- click a keybind must not stop text events while the editor is still open.
+-- SDL text input is owned by the panel: blurring this field must not stop text events while
+-- the editor is open.
 function Editbox:focus()
-	-- A field that just took focus shows a bright caret, not whatever phase the fade
-	-- happened to be in when it was last used.
+	-- A field that just took focus shows a bright caret, not whatever phase the fade was in.
 	if not self.focused then
 		resetBlink(self)
 	end
@@ -259,10 +291,35 @@ function Editbox:keyPress(key)
 	return true
 end
 
+-- Inset like the caret and the selection are.
+local function clearRect(self)
+	local x2, y1, y2 = self.rect[3], self.rect[2], self.rect[4]
+	local inset = floor((y2 - y1) * 0.18)
+
+	return x2 - (y2 - y1) + inset, y1 + inset, x2 - inset, y2 - inset
+end
+
+local function overClear(self, x, y)
+	if not self.clearable or self.text == "" then
+		return false
+	end
+	local bx1, by1, bx2, by2 = clearRect(self)
+
+	return x >= bx1 and x <= bx2 and y >= by1 and y <= by2
+end
+
 -- Click to place the caret, or start a drag selection.
 function Editbox:mousePress(x, y)
 	if x < self.rect[1] or x > self.rect[3] or y < self.rect[2] or y > self.rect[4] then
 		return false
+	end
+
+	-- Focus stays, so the next thing typed starts a new search.
+	if overClear(self, x, y) then
+		self:focus()
+		self:setText("")
+
+		return true
 	end
 
 	local _, _, _, shift = Spring.GetModKeyState()
@@ -289,25 +346,21 @@ local function update(self)
 		end
 	end
 
-	-- Watched here rather than reset from each editing path: every way the caret can move
-	-- (typing, deleting, arrows, a click, a drag, setText) shows up as one of these two
-	-- changing, so none of them can be missed.
+	-- Every way the caret can move shows up as one of these two changing.
 	if not self.blinkStart or self.text ~= self.blinkText or self.caret ~= self.blinkCaret then
 		resetBlink(self)
 	end
 end
 
--- Alpha of the caret this frame: full brightness at the last edit, fading to 0.15 over
--- the blink duration, then starting over. Matches gui_chat's sawtooth exactly.
+-- Full brightness at the last edit, fading to 0.15 over the blink duration, then over again.
 local function caretAlpha(self)
 	local elapsed = Spring.DiffTimers(Spring.GetTimer(), self.blinkStart) % cursorBlinkDuration
 
 	return 1 - (elapsed * (1 / cursorBlinkDuration)) + 0.15
 end
 
--- How far into the text the caret sits, in pixels. Measured only when the text, the caret
--- or the size moved: the field is drawn live every frame so the blink can animate, and
--- measuring the leading substring each of those frames is the one real cost in here.
+-- Measured only when the text, the caret or the size moved: the field is drawn every frame so
+-- the blink can animate.
 local function caretOffset(self, font)
 	if self.caretPxAt ~= self.caret or self.caretPxText ~= self.text or self.caretPxFs ~= self.fontSize then
 		self.caretPxAt, self.caretPxText, self.caretPxFs = self.caret, self.text, self.fontSize
@@ -319,6 +372,28 @@ end
 
 -- Held rather than built per draw: a colour table a frame is an allocation a frame.
 local fieldFill = { 0, 0, 0, 0.35 }
+local clearFill = { 1, 1, 1, 0.04 }
+
+-- Geometry rather than a glyph so it does not depend on the font carrying one.
+local function drawClear(self, hot, cs)
+	local bx1, by1, bx2, by2 = clearRect(self)
+	WG.FlowUI.Draw.RectRound(bx1, by1, bx2, by2, cs, 1, 1, 1, 1, clearFill)
+	if hot then
+		WG.FlowUI.Draw.SelectHighlight(bx1, by1, bx2, by2, cs, hoverOpacity, white)
+	end
+
+	local arm = math.max(2, floor((bx2 - bx1) * 0.24))
+	local half = math.max(1, floor((bx2 - bx1) * 0.035 + 0.5))
+	gl.Color(1, 1, 1, hot and 0.75 or 0.32)
+	gl.PushMatrix()
+	gl.Translate(floor((bx1 + bx2) * 0.5), floor((by1 + by2) * 0.5), 0)
+	gl.Rotate(45, 0, 0, 1)
+	gl.Rect(-arm, -half, arm, half)
+	gl.Rect(-half, half, half, arm)
+	gl.Rect(-half, -arm, half, -half)
+	gl.PopMatrix()
+	gl.Color(1, 1, 1, 1)
+end
 
 function Editbox:draw()
 	update(self)
@@ -326,15 +401,20 @@ function Editbox:draw()
 	local font = getFont()
 	local R = WG.FlowUI.Draw.RectRound
 	local x1, y1, x2, y2 = self.rect[1], self.rect[2], self.rect[3], self.rect[4]
-	-- Rounded like the rest of the panel's inner elements; the caret and selection sit
-	-- inside the field by their own inset.
-	-- Whole pixels: an edge on a fraction is blended across two of them and reads soft.
+	-- Whole pixels: an edge on a fraction is blended across two and reads as a blur.
 	local cs = floor(WG.FlowUI.elementCorner * 0.66)
 	local inset = floor((y2 - y1) * 0.18)
 	local tx = x1 + self.pad
-	local ty = floor((y1 + y2) * 0.5)
+	-- The caret and selection want the box; the text baseline wants the font.
+	local cy = floor((y1 + y2) * 0.5)
+	local ty = text.baseline(font, y1, y2, self.fontSize)
 
 	R(x1, y1, x2, y2, cs, 1, 1, 1, 1, fieldFill)
+
+	local mx, my = Spring.GetMouseState()
+	if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+		WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
+	end
 
 	if self:hasSelection() then
 		local a, b = self:selRange()
@@ -362,16 +442,22 @@ function Editbox:draw()
 	end
 
 	font:Begin()
-	font:Print(shown, tx, ty, self.fontSize, "ov")
+	if self.outline then
+		font:SetOutlineColor(self.outline)
+	end
+	font:Print(shown, tx, ty, self.fontSize, "o")
 	font:End()
 
+	if self.clearable and self.text ~= "" then
+		drawClear(self, overClear(self, mx, my), cs)
+	end
+
 	if self.focused then
-		-- Sharp bar rather than a rounded one, sized and placed off the font like chat's:
-		-- a fixed span around the text's middle, so it does not stretch with the field.
+		-- Sized and placed off the font like chat, so it does not stretch with the field.
 		local cx = floor(tx + caretOffset(self, font))
 		local cWidth = 1 + floor(self.fontSize / 14)
-		local cy1 = math.max(y1 + 1, floor(ty - self.fontSize * 0.6))
-		local cy2 = math.min(y2 - 1, floor(ty + self.fontSize * 0.64))
+		local cy1 = math.max(y1 + 1, floor(cy - self.fontSize * 0.6))
+		local cy2 = math.min(y2 - 1, floor(cy + self.fontSize * 0.64))
 		gl.Color(cursorGrey, cursorGrey, cursorGrey, caretAlpha(self))
 		gl.Rect(cx, cy1, cx + cWidth, cy2)
 		gl.Color(1, 1, 1, 1)

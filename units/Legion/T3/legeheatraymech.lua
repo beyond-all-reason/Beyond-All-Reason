@@ -151,7 +151,7 @@ return {
 				explosiongenerator = "custom:heatray-large",
 				firestarter = 90,
 				-- tolerance = 750,
-				firetolerance = 750,
+				firetolerance = 50,
 				largebeamlaser = true,
 				impulsefactor = 0,
 				intensity = 5,

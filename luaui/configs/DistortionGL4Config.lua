@@ -126,6 +126,46 @@ local unitDistortions = {
 			},
 		},
 	},
+
+	legeconv = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "flare",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 16,
+				noiseStrength = 0.6,
+				noiseScaleSpace = 1.5,
+				distanceFalloff = 0.5,
+				lifeTime = 0,
+				rampUp = 30,
+				decay = -1.2,
+				effectType = 0,
+			},
+		},
+	},
+
+	legfeconv = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "light",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 16,
+				noiseStrength = 0.6,
+				noiseScaleSpace = 1.5,
+				distanceFalloff = 0.5,
+				lifeTime = 0,
+				rampUp = 30,
+				decay = -1.2,
+				effectType = 0,
+			},
+		},
+	},
 	armmmkr = {
 		distortion = {
 			distortionType = "point",
@@ -156,6 +196,46 @@ local unitDistortions = {
 				radius = 18,
 				noiseStrength = 0.5,
 				noiseScaleSpace = 1.4,
+				distanceFalloff = 0.5,
+				lifeTime = 0,
+				rampUp = 30,
+				decay = -1.2,
+				effectType = 0,
+			},
+		},
+	},
+
+	legadveconv = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "largeMidCell",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 27,
+				noiseStrength = 0.5,
+				noiseScaleSpace = 1.4,
+				distanceFalloff = 0.5,
+				lifeTime = 0,
+				rampUp = 30,
+				decay = -1.2,
+				effectType = 0,
+			},
+		},
+	},
+
+	leganavaleconv = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "topLight",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 22,
+				noiseStrength = 0.6,
+				noiseScaleSpace = 1.5,
 				distanceFalloff = 0.5,
 				lifeTime = 0,
 				rampUp = 30,
@@ -485,6 +565,30 @@ local unitDistortions = {
 		},
 	},
 
+	legestor = {
+		distortion = {
+			distortionType = "beam",
+			pieceName = "legestor",
+			distortionConfig = {
+				posx = 0,
+				posy = 4,
+				posz = 0.01,
+				radius = 24,
+				pos2x = 0,
+				pos2y = 24,
+				pos2z = 0,
+				radius2 = 24,
+				noiseStrength = 0.6,
+				noiseScaleSpace = -1.2,
+				distanceFalloff = 0.8,
+				rampUp = 30,
+				decay = -1.2,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	coruwadves = {
 		distortion = {
 			distortionType = "beam",
@@ -498,6 +602,30 @@ local unitDistortions = {
 				pos2y = 25,
 				pos2z = 0,
 				radius2 = 40,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -1.4,
+				distanceFalloff = 0.8,
+				rampUp = 30,
+				decay = -1.3,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legadvestore = {
+		distortion = {
+			distortionType = "beam",
+			pieceName = "base",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0.01,
+				radius = 30,
+				pos2x = 0,
+				pos2y = 32,
+				pos2z = 0,
+				radius2 = 30,
 				noiseStrength = 0.5,
 				noiseScaleSpace = -1.4,
 				distanceFalloff = 0.8,
@@ -775,6 +903,115 @@ local unitDistortions = {
 		-- 					windAffected = -1, riseRate = 1,
 		-- 					lifeTime = 0, effectType = 'heatDistortion'},
 		-- },
+	},
+
+	legavp = {
+		heatvent1 = {
+			distortionType = "beam",
+			pieceName = "base",
+			distortionConfig = {
+				posx = 53.6,
+				posy = 26.2,
+				posz = -27.1,
+				radius = 16,
+				pos2x = 53.6,
+				pos2y = 44.2,
+				pos2z = -27.0,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
+	},
+
+	legvp = {
+		heatvent1 = {
+			distortionType = "beam",
+			pieceName = "exhaust",
+			distortionConfig = {
+				posx = -1.17,
+				posy = 17.84,
+				posz = 1.04,
+				radius = 11,
+				pos2x = -1.17,
+				pos2y = 31.84,
+				pos2z = 1.14,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
+	},
+
+	legageo = {
+		heatvent1 = {
+			distortionType = "beam",
+			pieceName = "exhaust1",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 9,
+				pos2x = 0,
+				pos2y = 14,
+				pos2z = 0.1,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
+		heatvent2 = {
+			distortionType = "beam",
+			pieceName = "exhaust2",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 9,
+				pos2x = 0,
+				pos2y = 14,
+				pos2z = 0.1,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
+		heatvent3 = {
+			distortionType = "beam",
+			pieceName = "exhaust3",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 9,
+				pos2x = 0,
+				pos2y = 14,
+				pos2z = 0.1,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
 	},
 
 	armsd = {
@@ -1114,30 +1351,6 @@ local unitDistortions = {
 				noiseScaleSpace = 0.85,
 				distanceFalloff = 2.0,
 				effectStrength = 15.0,
-				lifeTime = 0,
-				effectType = 0,
-			},
-		},
-	},
-
-	armblade = {
-		thrustdown = {
-			distortionType = "cone",
-			pieceName = "trust",
-			distortionConfig = {
-				posx = 0,
-				posy = 4,
-				posz = 4,
-				radius = 40,
-				dirx = 0,
-				diry = -1,
-				dirz = 0.1,
-				theta = 0.8,
-				noiseStrength = 0.7,
-				noiseScaleSpace = 1.45,
-				distanceFalloff = 1.0,
-				effectStrength = 1.5,
-				riseRate = -8,
 				lifeTime = 0,
 				effectType = 0,
 			},
@@ -1512,6 +1725,32 @@ local unitDistortions = {
 				pos2x = 0,
 				pos2y = -2.2,
 				pos2z = 10,
+				noiseStrength = 2.5,
+				noiseScaleSpace = 0.7,
+				distanceFalloff = 0.75,
+				rampUp = 0,
+				decay = 0,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legtide = {
+		waterflow = {
+			distortionType = "beam",
+			pieceName = "wheel",
+			distortionConfig = {
+				posx = 0,
+				posy = -2.2,
+				posz = -16,
+				radius = 12,
+				pos2x = 0,
+				pos2y = -2.2,
+				pos2z = 16,
+				radius2 = 12,
 				noiseStrength = 2.5,
 				noiseScaleSpace = 0.7,
 				distanceFalloff = 0.75,
@@ -2217,6 +2456,25 @@ local unitDistortions = {
 		},
 	},
 
+	legajam = {
+		jamdistortion = {
+			distortionType = "point",
+			pieceName = "jamLight",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 25,
+				noiseStrength = 10,
+				noiseScaleSpace = 0.4,
+				distanceFalloff = 1.5,
+				windAffected = -1,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corap = {
 		heatvent1 = {
 			distortionType = "beam",
@@ -2321,6 +2579,29 @@ local unitDistortions = {
 				pos2x = 0,
 				pos2y = 26,
 				pos2z = -14.4,
+				noiseStrength = 0.5,
+				noiseScaleSpace = -2,
+				distanceFalloff = 1.4,
+				windAffected = -1,
+				riseRate = 1,
+				lifeTime = 0,
+				effectType = "heatDistortion",
+			},
+		},
+	},
+
+	leglrpc = {
+		heatvent1 = {
+			distortionType = "beam",
+			pieceName = "exhaustCell",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 8,
+				pos2x = 0,
+				pos2y = 8,
+				pos2z = 0.1,
 				noiseStrength = 0.5,
 				noiseScaleSpace = -2,
 				distanceFalloff = 1.4,
@@ -2812,6 +3093,44 @@ local unitDistortions = {
 		-- },
 	},
 
+	legdeflector = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "shieldFlare",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 14,
+				noiseStrength = 1,
+				noiseScaleSpace = 0.5,
+				distanceFalloff = 0.3,
+				windAffected = -0.5,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	leggatet3 = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "base",
+			distortionConfig = {
+				posx = 0,
+				posy = 50,
+				posz = 0,
+				radius = 20,
+				noiseStrength = 1,
+				noiseScaleSpace = 0.5,
+				distanceFalloff = 0.3,
+				windAffected = -0.5,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
 	corfgate = {
 		distortion = {
 			distortionType = "point",
@@ -2835,6 +3154,25 @@ local unitDistortions = {
 		distortion = {
 			distortionType = "point",
 			pieceName = "jam",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 12,
+				noiseStrength = 10,
+				noiseScaleSpace = 0.4,
+				distanceFalloff = 1.5,
+				windAffected = -1,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legjam = {
+		jamdistortion = {
+			distortionType = "point",
+			pieceName = "strut",
 			distortionConfig = {
 				posx = 0,
 				posy = 0,
@@ -3121,6 +3459,25 @@ local unitDistortions = {
 				posz = 0,
 				radius = 11,
 				noiseStrength = 3,
+				noiseScaleSpace = -0.2,
+				distanceFalloff = 0.5,
+				windAffected = -0.5,
+				lifeTime = 0,
+				effectType = 0,
+			},
+		},
+	},
+
+	legjuno = {
+		distortion = {
+			distortionType = "point",
+			pieceName = "junoSphere",
+			distortionConfig = {
+				posx = 0,
+				posy = 0,
+				posz = 0,
+				radius = 10,
+				noiseStrength = 1.5,
 				noiseScaleSpace = -0.2,
 				distanceFalloff = 0.5,
 				windAffected = -0.5,
