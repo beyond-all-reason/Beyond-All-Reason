@@ -330,7 +330,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envDefaults = nil,
 	-- Slider wheel-lock state
 	lockedSliders = {}, -- {[sliderId] = element}
-	sliderLastClickTime = {}, -- {[sliderId] = timerObj}
 	sliderPulsePhase = false,
 	sliderPulseTimer = 0,
 	-- Slider keybind-scroll flash state
@@ -15528,11 +15527,29 @@ local function getEffectiveMaxIntensity()
 	return DEFAULT_MAX_INTENSITY
 end
 
+-- RmlUi mouse button indices.
+local MOUSE_MIDDLE = 2
+
 local function trackSliderDrag(element, id)
 	element:AddEventListener("mousedown", function(event)
 		local ls = widgetState.lockedSliders
-		local lt = widgetState.sliderLastClickTime
-		local now = Spring.GetTimer()
+
+		-- MIDDLE CLICK toggles the wheel lock. It used to be a double LEFT
+		-- click, which fired by accident all the time: two ordinary clicks on
+		-- the same slider inside a third of a second is something you do while
+		-- adjusting a value, not a deliberate gesture (PtaQ, 2026-09-22).
+		if event.parameters.button == MOUSE_MIDDLE then
+			if ls[id] then
+				ls[id] = nil
+				element:SetClass("slider-locked", false)
+				element:SetClass("slider-pulse", false)
+			else
+				ls[id] = element
+				element:SetClass("slider-locked", true)
+				playSound("sliderLock")
+			end
+			return
+		end
 
 		-- Click-to-jump: clicking on the track (not the thumb) jumps to mouse position
 		-- and then follows the mouse until mouseup (synthetic drag).
@@ -15580,29 +15597,16 @@ local function trackSliderDrag(element, id)
 			end
 		end
 
-		-- If already locked, single click unlocks
+		-- A plain click on a locked slider still releases it: the lock steals
+		-- the wheel, so there has to be an escape that needs no second thought.
 		if ls[id] then
 			ls[id] = nil
 			element:SetClass("slider-locked", false)
 			element:SetClass("slider-pulse", false)
-			lt[id] = nil
 			uiState.draggingSlider = id
 			uiState.draggingSliderEl = element
 			return
 		end
-
-		-- Double-click detection: lock the slider
-		if lt[id] then
-			local dt = Spring.DiffTimers(now, lt[id])
-			if dt < 0.35 then
-				ls[id] = element
-				element:SetClass("slider-locked", true)
-				lt[id] = nil
-				playSound("sliderLock")
-				return
-			end
-		end
-		lt[id] = now
 
 		-- Normal drag behavior
 		uiState.draggingSlider = id
@@ -16363,6 +16367,8 @@ populateKeybindList = function(doc)
 	parts[#parts + 1] = '<div class="tf-keybind-separator"><div class="tf-keybind-sep-line"></div>'
 		.. '<div class="tf-keybind-sep-label">System Keys</div>'
 		.. '<div class="tf-keybind-sep-line"></div></div>'
+	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Lock a slider to the mouse wheel</div>'
+		.. '<div class="tf-keybind-key-fixed">MMB</div></div>'
 	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Clear locked sliders</div>'
 		.. '<div class="tf-keybind-key-fixed">ESC</div></div>'
 
@@ -20440,7 +20446,6 @@ function widget:Update()
 					element:SetClass("slider-pulse", false)
 				end
 				widgetState.lockedSliders = {}
-				widgetState.sliderLastClickTime = {}
 			end
 			-- Clear flash state and prev-sync tracking
 			for id, flash in pairs(widgetState.sliderFlashes) do
@@ -22718,7 +22723,6 @@ function widget:KeyPress(key, mods, isRepeat)
 				element:SetClass("slider-pulse", false)
 			end
 			widgetState.lockedSliders = {}
-			widgetState.sliderLastClickTime = {}
 			return true
 		end
 	end
