@@ -69,6 +69,7 @@ local function registerMissionApiModules()
 	local modules = _G.GG["MissionAPI"].Modules or {}
 	_G.GG["MissionAPI"].Modules = modules
 	modules.ParameterTypes = modules.ParameterTypes or VFS.Include("luarules/mission_api/parameter_types.lua")
+	modules.UnitQuery = modules.UnitQuery or VFS.Include("luarules/mission_api/unit_query.lua")
 	modules.SeismicContacts = modules.SeismicContacts or VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	modules.DetectionLevels = modules.DetectionLevels or VFS.Include("luarules/mission_api/detection_levels.lua")
 	return modules
