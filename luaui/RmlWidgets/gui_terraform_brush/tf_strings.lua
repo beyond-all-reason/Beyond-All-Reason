@@ -262,6 +262,7 @@ local STRINGS = {
 	sumUploadTo = "Yes, to %{stage}",
 	sumSaved = "saved %{age}",
 	dismiss = "Dismiss",
+	sign_in = "Git is not signed in to GitHub, and Team Sync cannot open the sign-in window. Sign in once as the CampaignMaps README explains, then Refresh.",
 	no_access = "You don't have access to the team repository. Ask the campaign lead for access, then Refresh.",
 	no_network = "No connection to GitHub. Check your network, then Refresh.",
 	already_running = "Another Team Sync is already running for this data folder. Close it first.",

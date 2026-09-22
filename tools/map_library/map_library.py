@@ -65,8 +65,13 @@ class LibraryError(Exception):
 
 # What Git's stderr means, as a code the game translates. The text itself is
 # never passed on: it can carry a URL with credentials in it.
-NO_ACCESS = ("authentication failed", "could not read username", "permission denied",
-             "repository not found", "access denied", "not authorized", " 403", " 401")
+# SIGN_IN: Git has no GitHub login stored, or GitHub rejected the stored one.
+# The helper forbids every prompt, so Git Credential Manager cannot open its
+# browser sign-in from here; the user signs in once from a terminal instead.
+SIGN_IN = ("cannot prompt because user interactivity", "unable to get password",
+           "could not read username", "could not read password", "terminal prompts disabled",
+           "authentication failed", " 401")
+NO_ACCESS = ("permission denied", "repository not found", "access denied", "not authorized", " 403")
 NO_NETWORK = ("could not resolve host", "connection timed out", "connection refused",
               "network is unreachable", "failed to connect", "unable to access",
               "could not connect", "timed out")
@@ -74,6 +79,8 @@ NO_NETWORK = ("could not resolve host", "connection timed out", "connection refu
 
 def classify_git_error(stderr: bytes) -> str:
     text = stderr.decode("utf-8", errors="replace").lower()
+    if any(mark in text for mark in SIGN_IN):
+        return "sign_in"
     if any(mark in text for mark in NO_ACCESS):
         return "no_access"
     if any(mark in text for mark in NO_NETWORK):
