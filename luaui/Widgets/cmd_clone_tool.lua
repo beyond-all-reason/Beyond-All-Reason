@@ -914,10 +914,27 @@ local function applyPaste(targetX, targetZ)
 			tw = tw,
 			th = th,
 			fboHandle = buf.splats.fboHandle,
-			sizeX = buf.sizeX,
-			sizeZ = buf.sizeZ,
-			targetX = targetX,
-			targetZ = targetZ,
+			-- The quad, not a rectangle: the paste target is the box CENTRE and
+			-- may be turned or mirrored, which an axis-aligned blit from the
+			-- corner could represent neither of.
+			quad = pasteQuadUV(buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
+		}
+	end
+
+	-- Tileset variant paint, through the painter (it snapshots for undo and
+	-- refreshes the tileset's far-field cache itself).
+	local function applySurface()
+		if not buf.surface then
+			return
+		end
+		---@type table?
+		local sp = WG.SurfacePainter
+		if not (sp and sp.region) then
+			return
+		end
+		pendingSurfacePaste = {
+			region = buf.surface,
+			quad = pasteQuadUV(buf.sizeX, buf.sizeZ, rotRad, pasteMirrorX, pasteMirrorZ, targetX, targetZ),
 		}
 	end
 
@@ -1435,6 +1452,31 @@ function widget:DrawWorld()
 		end
 	end
 
+	-- Cut the variant-mask patch out through the painter (it owns the masks)
+	if pendingSurfaceCapture and cloneBuffer then
+		local sc = pendingSurfaceCapture
+		pendingSurfaceCapture = nil
+		---@type table?
+		local painter = WG.SurfacePainter
+		if painter and painter.region then
+			if cloneBuffer.surface then
+				painter.region.free(cloneBuffer.surface)
+			end
+			cloneBuffer.surface = painter.region.copy(sc.u0, sc.v0, sc.u1, sc.v1)
+		end
+	end
+
+	-- Lay it down again at the paste target
+	if pendingSurfacePaste then
+		local ps = pendingSurfacePaste
+		pendingSurfacePaste = nil
+		---@type table?
+		local painter = WG.SurfacePainter
+		if painter and painter.region then
+			painter.region.paste(ps.region, ps.quad)
+		end
+	end
+
 	-- Complete deferred splat paste (GL calls require Draw context)
 	if pendingSplatPaste then
 		local sp = pendingSplatPaste
@@ -1452,11 +1494,11 @@ function widget:DrawWorld()
 				glTexRect(-1, -1, 1, 1, 0, 0, 1, 1)
 				glTexture(0, false)
 			end)
-			if sp.fboHandle then
-				local tu0 = sp.targetX / mapSizeX
-				local tv0 = sp.targetZ / mapSizeZ
-				local tu1 = (sp.targetX + sp.sizeX) / mapSizeX
-				local tv1 = (sp.targetZ + sp.sizeZ) / mapSizeZ
+			if sp.fboHandle and sp.quad then
+				-- Four corners, so the patch lands turned and mirrored the way
+				-- every other layer of the paste does, and centred on the
+				-- cursor rather than half a box down and to the right.
+				local q = sp.quad
 				glRenderToTexture(fullFBO, function()
 					glTexture(0, sp.fboHandle)
 					glBeginEnd(GL_QUADS, function()
@@ -1484,8 +1526,16 @@ function widget:DrawWorld()
 			-- the tileset's far cache / clipmap bake the splat channels: tell it
 			-- the pasted rect changed (elmos) or the paste vanishes at zoom-out
 			local T = WG.TilesetTerrain
-			if T and T.refreshSurface then
-				T.refreshSurface(sp.targetX, sp.targetZ, sp.targetX + sp.sizeX, sp.targetZ + sp.sizeZ)
+			if T and T.refreshSurface and sp.quad then
+				local q = sp.quad
+				local minU, maxU, minV, maxV = q[1], q[1], q[2], q[2]
+				for i = 3, 7, 2 do
+					minU = math.min(minU, q[i])
+					maxU = math.max(maxU, q[i])
+					minV = math.min(minV, q[i + 1])
+					maxV = math.max(maxV, q[i + 1])
+				end
+				T.refreshSurface(minU * mapSizeX, minV * mapSizeZ, maxU * mapSizeX, maxV * mapSizeZ)
 			end
 		end
 	end
