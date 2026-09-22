@@ -22,6 +22,7 @@ in DataVS {
 	vec4 v_position;
 	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
+	flat float v_sourceVisibility;
 };
 
 uniform sampler2D mapDepths;
@@ -431,8 +432,9 @@ vec4 halfconeIntersectScatter( in vec3  rayOrigin, in vec3 rayDirection, in vec3
 		coneflatdistances.y = max(coneflatdistances.y,coneflatdistances.z);
 	}
 	 // vec3 normal =normalize(ConeHeightSqr*(ConeHeightSqr*(TipToEye+CloseDistToCone*rayDirection))-TipToEnd*CapeLengthSqr*y)
-	// Bail early if we are not on the cone
-	if (abs(coneflatdistances.y - coneflatdistances.x) < 0.1) return vec4(-1, -1, 0, 0);
+	// Bail early if we are not on the cone. A miss leaves both distances equal; the threshold used to be 0.1 elmo,
+	// which also dropped the real, very short chords through the apex and punched a dark pixel into the source.
+	if (abs(coneflatdistances.y - coneflatdistances.x) < 0.001) return vec4(-1, -1, 0, 0);
 	 
 	// try to get some sort of falloff factor
 	// calc angle between entry and exit
@@ -460,9 +462,13 @@ vec4 halfconeIntersectScatter( in vec3  rayOrigin, in vec3 rayDirection, in vec3
 		#endif
 		
 		// Calculate the distatten (which is squared)
-		float distatten = clamp((1.0 - dot(marchPos - coneTip, marchPos - coneTip) * ConeHeightSqrInv), 0.0, 1.0);
-		
-		vec3 tiptomarchnorm = normalize(marchPos - coneTip);
+		vec3 tiptomarch = marchPos - coneTip;
+		float tiptomarchlensqr = dot(tiptomarch, tiptomarch);
+		float distatten = clamp((1.0 - tiptomarchlensqr * ConeHeightSqrInv), 0.0, 1.0);
+
+		// A march step on the tip would be normalize(vec3(0)), a NaN that poisons both scatter sums for the whole
+		// fragment. On the axis the falloff is 1, so the axis is the right answer there, not just a safe one.
+		vec3 tiptomarchnorm = (tiptomarchlensqr > 1e-12) ? tiptomarch * inversesqrt(tiptomarchlensqr) : coneDirection;
 		float falloffatten = clamp(1.0 - (1.0-dot(coneDirection, tiptomarchnorm))* oneminuscosThetainv, 0.0,1.0);
 		
 		float rayleighhere = distatten*falloffatten * noise;
@@ -769,9 +775,14 @@ void main(void)
 		scatteringRayleigh = iCone.z * 0.33;
 		scatteringMie = iCone.w;
 
-		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
-		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15 / (0.01 +v_modelfactor_specular_scattering_lensflare.w)) +1, 0, 1);
-		
+		#if (CONESOURCEVISIBILITY == 1)
+			// soft source visibility from the vertex shader; it dims the flare rather than also widening it
+			lensFlare = v_sourceVisibility * clamp( LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15 / (0.01 +v_modelfactor_specular_scattering_lensflare.w)) +1, 0, 1);
+		#else
+			lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
+			lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15 / (0.01 +v_modelfactor_specular_scattering_lensflare.w)) +1, 0, 1);
+		#endif
+
 		float lightandcameraangle = dot(coneDirection, viewDirection) + 1.0;
 		//lensFlare *= smoothstep(lightCosTheta, 1.0, lightandcameraangle);
 		lensFlare *= lightandcameraangle;

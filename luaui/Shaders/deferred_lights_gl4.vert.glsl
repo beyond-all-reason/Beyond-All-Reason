@@ -99,6 +99,7 @@ out DataVS {
     vec4 v_position;
     vec4 v_noiseoffset;
     noperspective vec2 v_screenUV;
+    flat float v_sourceVisibility; // how much of a cone light's source is unoccluded, drives its lens flare
 };
 
 
@@ -135,6 +136,35 @@ vec4 depthAtWorldPos(vec4 worldPosition){
     depths.w = min(mapdepth, modeldepth);
     return depths;
 }
+
+#if (CONESOURCEVISIBILITY == 1)
+// Soft visibility of a world position against the scene depth, in [0, 1].
+// The old test was a single depth texel compared with step(), so it flipped outright whenever the texel under
+// the light changed, which is every sub-pixel camera move once the source sits near any silhouette. This does
+// a 2x2 percentage-closer comparison, bilinearly weighted by the sub-texel position, and in linear depth
+// with a band in elmos, so the answer moves continuously both across the screen and in depth.
+float softVisibilityAtWorldPos(vec3 worldPos){
+    vec4 clipPos = cameraViewProj * vec4(worldPos, 1.0);
+    if (clipPos.w <= 0.0) return 0.0; // behind the camera, nothing of it can be seen
+    vec2 uv = clamp(SNORM2NORM(clipPos.xy / clipPos.w), 0.0, 1.0);
+    float pointDepth = abs((cameraView * vec4(worldPos, 1.0)).z);
+
+    vec2 texelPos = uv * vec2(textureSize(mapDepths, 0)) - 0.5;
+    vec2 subTexel = fract(texelPos);
+    vec4 sceneDepths = min(textureGather(mapDepths, uv, 0), textureGather(modelDepths, uv, 0));
+    #if (DEPTH_CLIP01 == 0)
+        sceneDepths = sceneDepths * 2.0 - 1.0;
+    #endif
+    // view depth of each texel: for a perspective projection the inverse's z and w rows do not depend on x and y
+    sceneDepths = abs((cameraProjInv[2][2] * sceneDepths + cameraProjInv[3][2]) / (cameraProjInv[2][3] * sceneDepths + cameraProjInv[3][3]));
+
+    // depth precision falls off with distance, so the band widens with it
+    float band = max(CONESOURCEDEPTHBAND, pointDepth * 0.003);
+    vec4 visible = smoothstep(vec4(-band), vec4(band), sceneDepths - pointDepth + band);
+    // textureGather order is (0,1) (1,1) (1,0) (0,0)
+    return mix(mix(visible.w, visible.z, subTexel.x), mix(visible.x, visible.y, subTexel.x), subTexel.y);
+}
+#endif
 
 
 void main()
@@ -217,6 +247,7 @@ void main()
 
     v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
     v_depths_center_map_model_min = vec4(1.0); // just a sanity init
+    v_sourceVisibility = 1.0;
     v_otherparams = otherparams;
    
     vec4 worldPos = vec4(1.0);
@@ -313,10 +344,13 @@ void main()
        
         // TODO rotate this box
         vec3 oldfw = vec3(0,1,0); // The old forward direction is -y
-        vec3 newfw = normalize(centertoend); // the new forward direction shall be the normal that we want
-        vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
+        // A vertical beam is parallel to oldfw, so cross() is zero and normalize() is NaN, which
+        // collapses the whole volume. Pick a reference axis that is never parallel to newfw. The box
+        // circumscribes a round beam, so the roll this changes is not observable.
+        vec3 newfw = (halfbeamlength > 1e-6) ? centertoend / halfbeamlength : oldfw; // the new forward direction shall be the normal that we want
+        vec3 reffw = (abs(newfw.y) > 0.999) ? vec3(0, 0, 1) : oldfw;
+        vec3 newright = normalize(cross(newfw, reffw)); // the new right direction shall be the vector perpendicular to old and new forward
         vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
-        // TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
         mat3 rotmat = mat3( // assemble the rotation matrix
                 newup,
                 newfw,
@@ -382,10 +416,16 @@ void main()
        
         // Now our cone is opening forward towards  -y, but we want it to point into the worldposrad2.xyz
         vec3 oldfw = vec3(0, -1,0); // The old forward direction is -y
-        vec3 newfw = normalize(worldposrad2.xyz); // the new forward direction shall be the normal that we want
-        vec3 newright = normalize(cross(newfw, oldfw)); // the new right direction shall be the vector perpendicular to old and new forward
+        // Guard the zero-length direction: normalize(vec3(0)) is NaN and takes the volume with it.
+        float rawfwlensqr = dot(worldposrad2.xyz, worldposrad2.xyz);
+        vec3 newfw = (rawfwlensqr > 1e-12) ? worldposrad2.xyz * inversesqrt(rawfwlensqr) : oldfw; // the new forward direction shall be the normal that we want
+        // A cone aimed straight up or straight down is parallel to oldfw, so cross() is zero, normalize() is NaN,
+        // and the light vanished. The config ships such cones (legatrans lgThrust/rgThrust, corsilo afterglow).
+        // Pick a reference axis that is never parallel to newfw; the cone is round, so the roll this changes is
+        // not observable.
+        vec3 reffw = (abs(newfw.y) > 0.999) ? vec3(0, 0, 1) : oldfw;
+        vec3 newright = normalize(cross(newfw, reffw)); // the new right direction shall be the vector perpendicular to old and new forward
         vec3 newup = normalize(cross(newright, newfw)); // the new up direction shall be the vector perpendicular to new right and new forward
-        // TODO: handle the two edge cases where newfw == (oldfw or -1*oldfw)
         mat3 rotmat = mat3( // assemble the rotation matrix
                 newup,
                 newfw,
@@ -434,9 +474,36 @@ void main()
         // set the center pos of the light:
         v_worldPosRad.xyz = (placeInWorldMatrix * vec4(lightCenterPosition.xyz, 1.0)).xyz;;
         v_depths_center_map_model_min = depthAtWorldPos(vec4(v_worldPosRad.xyz,1.0));
-       
+
+        #if (CONESOURCEVISIBILITY == 1)
+            // The source visibility only feeds the lens flare, so lights without one skip it.
+            // A unit-attached cone usually starts on, or inside, the piece that emits it (armpw's headlight sits at
+            // posz 1 on its head, its eyes light at posz 8.3), so the apex alone reads as hidden from most angles and pops into
+            // view only where it grazes a silhouette. Probe the first stretch of the beam as well and take the most
+            // visible point: a buried apex shows once the beam leaves the model, a source aimed at nearby ground
+            // still shows at the apex. Seen from behind, those beam points lie beyond the emitter and would show a
+            // flare through it, so they fade out as the camera moves behind the source. max() of continuous terms
+            // stays continuous.
+            if (modelfactor_specular_scattering_lensflare.w > 0.0) {
+                vec3 conedirworld = mat3(placeInWorldMatrix) * newfw;
+                float conedirworldlensqr = dot(conedirworld, conedirworld);
+                v_sourceVisibility = 0.0;
+                if (conedirworldlensqr > 1e-12) { // the drawflag gate above zeroes the matrix
+                    conedirworld *= inversesqrt(conedirworldlensqr);
+                    v_sourceVisibility = softVisibilityAtWorldPos(v_worldPosRad.xyz);
+                    float facingcamera = dot(conedirworld, normalize(cameraViewInv[3].xyz - v_worldPosRad.xyz));
+                    float beamweight = smoothstep(-0.2, 0.2, facingcamera);
+                    if (beamweight > 0.0) {
+                        vec3 probestep = conedirworld * min(lightRadius * CONESOURCEPROBELENGTH, CONESOURCEPROBEMAX) * 0.5;
+                        float beamvisible = max(softVisibilityAtWorldPos(v_worldPosRad.xyz + probestep), softVisibilityAtWorldPos(v_worldPosRad.xyz + probestep * 2.0));
+                        v_sourceVisibility = max(v_sourceVisibility, beamvisible * beamweight);
+                    }
+                }
+            }
+        #endif
+
         v_worldPosRad2.w = cos(worldposrad2.w); // pass through the cosine to avoid this calc later on
-        v_worldPosRad2.xyz = normalize(worldposrad2.xyz); // normalize this here for sanity
+        v_worldPosRad2.xyz = newfw; // already normalized above, with the zero-length case guarded
        
         // Clear out the translation from the cone direction, and turn the cone according to the piece matrix
         v_worldPosRad2.xyz = mat3(placeInWorldMatrix) * v_worldPosRad2.xyz;
@@ -455,7 +522,16 @@ void main()
    
     //  vec4 windInfo; // windx, windy, windz, windStrength
     v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
-    v_noiseoffset.a = float(gl_InstanceID); // InstanceID is only avail in vertex shader, and we use this as a unique offset for noise sampling. 
+    // InstanceID is only avail in vertex shader, and we use this as a unique offset for noise sampling.
+    // It is the light's slot in the instance VBO though, and slots churn: popElementInstance swaps the last element
+    // into a freed slot, and VisibleUnitsChanged rebuilds the unit light VBOs under pairs(). A light that changes
+    // slot shifts its blue-noise offset, and so its screen-space shadow dither, between frames. Key unit-attached
+    // lights off the unit and piece, which is stable for their life.
+    v_noiseoffset.a = float(gl_InstanceID);
+    #if (STABLENOISEOFFSET == 1)
+        if (attachedtounitID > 0.0)
+            v_noiseoffset.a = float((UNITID * 13u + pieceIndex * 7u) % 1021u);
+    #endif
     //v_noiseoffset = vec4(0.0);
     //v_noiseoffset.y = windX + windZ;
    
