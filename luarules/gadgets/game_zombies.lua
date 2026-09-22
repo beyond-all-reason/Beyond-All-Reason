@@ -30,7 +30,6 @@ end
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
-local ZOMBIE_UNIT_CAP_FLOOR = 2000
 local ZOMBIE_REZ_FRAME_PARAM = "zombie_rez_frame"
 local WAS_ZOMBIE_PARAM = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS = { public = true }
@@ -1202,12 +1201,6 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction("zombiekillall")
 	gadgetHandler:RemoveChatAction("zombieclearallorders")
 	gadgetHandler:RemoveChatAction("zombiemode")
-end
-
-function gadget:GamePreload()
-	local currentUnitCap = spring.GetTeamMaxUnits(gaiaTeamID)
-	local newUnitCap = math.max(ZOMBIE_UNIT_CAP_FLOOR, currentUnitCap)
-	spring.SetTeamMaxUnits(gaiaTeamID, newUnitCap)
 end
 
 function gadget:GameStart()

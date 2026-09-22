@@ -340,6 +340,10 @@ local SAMPLED = {
 	"energyReclaimed",
 	-- The wind is everyone's; every team's sample carries it, so a chart reads it off any.
 	"windSpeed",
+	-- So is the lava's height, on a lava map.
+	"lavaLevel",
+	-- The damage lava did to the team's units.
+	"lavaDamage",
 }
 -- What the team's losses were lost to, as value, adding up to lostValue: enemies, its own
 -- side's fire, lava or deep water, self-destruction, reclaim or a cancelled build, and the
@@ -442,6 +446,7 @@ local TALLIED = {
 	"teamKillValue",
 	"comKills",
 	"comLost",
+	"lavaDamage",
 }
 for i = 1, #BUCKETS do
 	TALLIED[#TALLIED + 1] = countKey[BUCKETS[i]]
@@ -483,6 +488,16 @@ for name, key in pairs({
 end
 -- What the engine names when a gadget destroyed the unit, whatever it did that for.
 local KILLED_BY_LUA = Game.envDamageTypes and Game.envDamageTypes.KilledByLua
+-- The map's own hazards: lava burns what stands in it through the engine's water damage, and
+-- on a map of void water a unit that ends up below the ground line is taken away by a gadget
+-- (map_voidground). Both are losses to the map, as deep water is.
+local WATER_DAMAGE = Game.envDamageTypes and Game.envDamageTypes.Water
+local LAVA_MAP = BAR ~= nil and BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
+local VOID_MAP
+do
+	local ok, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	VOID_MAP = ok and type(mapinfo) == "table" and mapinfo.voidwater == true
+end
 
 ----------------------------------------------------------------
 -- Unit defs
@@ -1601,6 +1616,9 @@ local function readLive(teamID, out)
 		windFrame, windNow = frame, select(4, spGetWind()) or 0
 	end
 	out.windSpeed = windNow
+	-- The lava gadget sets it as the lava moves, to a far-off height before it has.
+	local lava = LAVA_MAP and spGetGameRulesParam("lavaLevel") or nil
+	out.lavaLevel = (lava and lava > -9999) and lava or 0
 	local ally = allyOf[teamID]
 	local ranking = GG.AllyTeamRanking
 	out.allyRank = ranking and ranking.GetPlace(ally) or 0
@@ -1743,6 +1761,12 @@ function gadget:UnitDamaged(
 		lastHitBy[unitID] = attackerTeam
 		lastHitDef[unitID] = attackerDefID
 	end
+	if LAVA_MAP and weaponDefID == WATER_DAMAGE and damage > 0 then
+		local victim = teams[unitTeam]
+		if victim then
+			victim.lavaDamage = victim.lavaDamage + damage
+		end
+	end
 	-- The damage an enemy took, on the type of unit that dealt it.
 	if attackerTeam and attackerDefID and damage > 0 and not paralyzer and allyOf[attackerTeam] ~= allyOf[unitTeam] then
 		local r = unitRecord(attackerTeam, attackerDefID)
@@ -1813,6 +1837,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			-- upgrade, or for some other reason of its own.
 			if (spGetUnitSelfDTime(unitID) or 0) > 0 then
 				cause = "lostSelfD"
+			elseif VOID_MAP and (select(2, spGetUnitPosition(unitID)) or 1) < 0 then
+				cause = "lostWater"
 			elseif replacedInPlace(unitID, unitDefID) then
 				cause = "lostReclaimed"
 			else
@@ -2196,6 +2222,7 @@ local STASH_GAP = SAMPLE_PERIOD
 -- The counters that add up what happened rather than what stands.
 local RUNNING = {
 	"buildPowerIdle",
+	"lavaDamage",
 	"killedValue",
 	"killedArmyValue",
 	"killedEcoValue",

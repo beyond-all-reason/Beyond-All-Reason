@@ -213,6 +213,7 @@ local callInLists = {
 	"Update",
 	"TextCommand",
 	"CommandNotify",
+	"AllowQuit",
 	"AddConsoleLine",
 	"ViewResize",
 	"DrawScreen",
@@ -236,6 +237,7 @@ local callInLists = {
 	"CommandsChanged",
 	"LanguageChanged",
 	"UnitBlocked",
+	"BuildOptionsChanged",
 	"VisibleUnitAdded",
 	"VisibleUnitRemoved",
 	"VisibleUnitsChanged",
@@ -1921,6 +1923,20 @@ function widgetHandler:CommandNotify(id, params, options)
 	return false
 end
 
+-- Engine AllowQuit callin (Engine.FeatureSupport.allowQuitCallin): a window
+-- close request (the close button, Alt+F4) asks before the game quits. Every
+-- widget that answers must allow; a widget that returns false keeps the game
+-- open and is expected to quit it later itself (Spring.Quit never asks).
+-- Engines without the callin never call this.
+function widgetHandler:AllowQuit()
+	for _, w in ipairs(self.AllowQuitList) do
+		if w:AllowQuit() == false then
+			return false
+		end
+	end
+	return true
+end
+
 function widgetHandler:AddConsoleLine(msg, priority)
 	tracy.ZoneBeginN("W:AddConsoleLine")
 	for _, w in ipairs(self.AddConsoleLineList) do
@@ -2905,10 +2921,19 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:UnitBlocked(unitDefID, reasons)
+function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracy.ZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
-		w:UnitBlocked(unitDefID, reasons)
+		w:UnitBlocked(unitDefID, reasons, builderUnitDefID)
+	end
+	tracy.ZoneEnd()
+end
+
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+	tracy.ZoneBeginN("W:BuildOptionsChanged")
+	for _, w in ipairs(self.BuildOptionsChangedList) do
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 	end
 	tracy.ZoneEnd()
 end

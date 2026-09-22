@@ -149,7 +149,7 @@ local MARKS = {
 }
 -- The charts that have no time, or no team, to mark.
 ---@type table<string, boolean?>
-local UNMARKED = { profile = true, wind = true, unitReport = true }
+local UNMARKED = { profile = true, wind = true, lavaLevel = true, unitReport = true }
 -- What kind of event a milestone is, as a badge on its picture - the picture is the unit, the
 -- frame the team's colour, the badge the kind - named once in the chart's title row: the first
 -- of something built, a tech level reached, an attack made, a loss taken. A team out of the
@@ -323,6 +323,7 @@ local CAUSE_COLORS = {
 	{ 0.55, 0.55, 0.55 },
 }
 local WIND_COLOR = { 0.6, 0.82, 1 }
+local LAVA_COLOR = { 1, 0.45, 0.12 }
 -- What dealt a loss or a kill, as the gadget tells them apart: the forces on the ground,
 -- aircraft, long-range artillery and nukes - earth, sky, fire and the flash.
 local DEALT_BY = { "ground", "air", "artillery", "nuke" }
@@ -429,6 +430,7 @@ local GADGET_CHARTS = {
 	ranking = true,
 	composition = true,
 	wind = true,
+	lavaLevel = true,
 	losses = true,
 	incomeMetal = true,
 	incomeEnergy = true,
@@ -439,9 +441,25 @@ local GADGET_CHARTS = {
 	unitReport = true,
 }
 
--- Whether the map has any wind to chart.
+-- Whether the map's wind changes at all: wind that always blows the same would chart as a
+-- flat line, and a map without any as a line along the floor.
 local function windy()
-	return (Game and Game.windMax or 0) > 0
+	return Game ~= nil and (Game.windMax or 0) > (Game.windMin or 0)
+end
+
+-- Whether the map's lava rises or falls at all, by the tides the map sets it: lava that stays
+-- where it starts would chart as a flat line.
+local function lavaMoves()
+	local lava = BAR and BAR.Lava
+	if not (lava and lava.isLavaMap) then
+		return false
+	end
+	for _, tide in ipairs(lava.tideRhythm or {}) do
+		if math.abs((tide[1] or lava.level) - lava.level) > 1 then
+			return true
+		end
+	end
+	return false
 end
 
 -- The team profile's axes, in the order they go round the wheel from the top.
@@ -563,7 +581,10 @@ function M.new(ctx)
 		typeStats = {},
 		---@type integer?
 		typesAsked = nil,
-		lastPeriod = -1,
+		-- [teamID] = the sample period its history was last asked for in. Per team, so a team
+		-- that comes into view - the other side at game over - is asked for at once.
+		---@type table<integer, integer>
+		askedPeriod = {},
 		-- Bumped when either history grows: what was worked out from it is worked out again.
 		version = 0,
 		-- Whether any team has a sample at all: tells a chart that waits for the first
@@ -883,11 +904,12 @@ function M.new(ctx)
 			for _, graph in ipairs(group.graphs) do
 				local column = ctx.COLUMNS[graph.stat]
 				local needsGadget = column and (column.gadget or column.liveOnly) or GADGET_CHARTS[graph.stat]
-				-- The wind on a map without any would be a line along the floor, a count of the
+				-- The wind on a map where it never changes would be a flat line, a count of the
 				-- map's spots on one without them nothing.
 				if
 					(ctx.gadgetOn() or not needsGadget)
 					and (graph.stat ~= "wind" or windy())
+					and (graph.stat ~= "lavaLevel" or lavaMoves())
 					and (graph.stat ~= "ranking" or ctx.ranked())
 					and (not column or ctx.columnShown(column))
 				then
@@ -923,13 +945,16 @@ function M.new(ctx)
 				end
 			end
 			-- Charts that are no one column's: where the income comes from, what the combat's
-			-- losses were lost to, and the map's wind, on a map that has any.
+			-- losses were lost to, and the map's wind, on a map where it changes.
 			if group.key == "live" and ctx.gadgetOn() then
 				list[#list + 1] = { key = "incomeMetal", label = ctx.i18n("ui.teamStats.graph.incomeMetal") }
 				list[#list + 1] = { key = "incomeEnergy", label = ctx.i18n("ui.teamStats.graph.incomeEnergy") }
 			end
 			if group.key == "map" and ctx.gadgetOn() and windy() then
 				list[#list + 1] = { key = "wind", label = ctx.i18n("ui.teamStats.graph.wind") }
+			end
+			if group.key == "map" and ctx.gadgetOn() and lavaMoves() then
+				list[#list + 1] = { key = "lavaLevel", label = ctx.i18n("ui.teamStats.graph.lavaLevel") }
 			end
 			if group.key == "combat" and ctx.gadgetOn() then
 				list[#list + 1] = { key = "losses", label = ctx.i18n("ui.teamStats.graph.losses") }
@@ -1088,8 +1113,8 @@ function M.new(ctx)
 		return layoutParts().toggle
 	end
 
-	function page.setFont(font, fontSize)
-		chart:configure({ font = font, fontSize = fontSize })
+	function page.setFont(font, fontSize, nameFont)
+		chart:configure({ font = font, fontSize = fontSize, nameFont = nameFont or font })
 		page.dirty = true
 	end
 
@@ -1111,9 +1136,6 @@ function M.new(ctx)
 		local frame = ctx.frame()
 		local hub = ctx.hub()
 		local period = mathFloor(frame / 450)
-		local ask = hub ~= nil and period ~= page.lastPeriod
-		-- The period counts as asked for only once the hub took every request.
-		local sent = ask
 		-- The engine goes on counting after game over; the charts stop where the game did.
 		local over = ctx.overFrame()
 		for _, ally in ipairs(ctx.allies()) do
@@ -1142,16 +1164,14 @@ function M.new(ctx)
 						grew = true
 					end
 				end
-				if ask then
+				-- Asked for once a period, and counted as asked only once the hub took it.
+				if hub and page.askedPeriod[teamID] ~= period then
 					local g = page.gadget[teamID]
-					if not hub.requestHistory(teamID, (g and #g.frames or 0) + 1) then
-						sent = false
+					if hub.requestHistory(teamID, (g and #g.frames or 0) + 1) then
+						page.askedPeriod[teamID] = period
 					end
 				end
 			end
-		end
-		if sent then
-			page.lastPeriod = period
 		end
 		if grew then
 			page.version = page.version + 1
@@ -1214,9 +1234,15 @@ function M.new(ctx)
 
 	-- The gadget started over - a reload it could not pick up from: the samples and records held
 	-- here are its old run's, so they go, and are asked for again from the first.
+	-- Everything asked for again at the next refresh: the panel opened, or the game ended - its
+	-- last sample taken and the other side's numbers open to everyone.
+	function page.askAgain()
+		page.askedPeriod, page.typesAsked = {}, nil
+	end
+
 	function page.gadgetRestarted()
 		page.gadget, page.typeStats = {}, {}
-		page.lastPeriod, page.typesAsked = -1, nil
+		page.askAgain()
 		page.version = page.version + 1
 		page.dirty = true
 	end
@@ -1909,7 +1935,10 @@ function M.new(ctx)
 			local unit = {
 				key = "ally" .. ally.id,
 				allyID = ally.id,
-				name = ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
+				-- A side of one player goes by that player's name: its number would say
+				-- nothing beside it.
+				name = (#ally.teams == 1 and ally.teams[1].name)
+					or ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
 				color = first and { first.accent[1], first.accent[2], first.accent[3] } or { 0.8, 0.8, 0.8 },
 				members = members,
 				teams = ally.teams,
@@ -2026,8 +2055,12 @@ function M.new(ctx)
 		local pad = ctx.metrics.sidePad
 		local fs = ctx.metrics.catFs
 		local font = ctx.font()
-		local function widthOf(label)
-			return font and mathFloor(font:GetTextWidth(label) * fs) or #label * fs * 0.55
+		-- A block standing for a team or a player is captioned with its name, in the face
+		-- the interface names players in, so its room is measured in that face too.
+		local nameFont = ctx.nameFont()
+		local function widthOf(label, isName)
+			local face = isName and nameFont or font
+			return face and mathFloor(face:GetTextWidth(label) * fs) or #label * fs * 0.55
 		end
 		local all = { all = true, label = ctx.i18n("ui.teamStats.graph.all"), members = {} }
 		all.labelW = widthOf(all.label)
@@ -2060,10 +2093,15 @@ function M.new(ctx)
 				local block = seen[team.allyID]
 				if not block then
 					-- A side of one is named after its player, and the viewer's own - playing
-					-- or watching it - is "You".
+					-- or watching it - is "You" where every side is one player, since nothing
+					-- else on the bar is theirs. In a game of teams the viewer has a block of
+					-- their own beside All, so a side of one keeps its player's name there.
+					local allyUnit = page.unitByKey and page.unitByKey["ally" .. team.allyID]
 					local label = ctx.i18n("ui.teamStats.team", { number = team.allyID + 1 })
 					if ctx.soloTeams then
 						label = team.isLocal and youLabel or team.name
+					elseif allyUnit and #allyUnit.teams == 1 then
+						label = team.name
 					end
 					block = {
 						ally = team.allyID,
@@ -2090,7 +2128,8 @@ function M.new(ctx)
 			local b = blocks[i]
 			if not b.all and not b.me then
 				count = count + #b.members
-				b.labelW = widthOf(b.label)
+				b.named = true
+				b.labelW = widthOf(b.label, true)
 				labelW = labelW + b.labelW + pad
 				if b.short then
 					b.shortW = widthOf(b.short)
@@ -3289,6 +3328,27 @@ function M.new(ctx)
 			-- scrolls the grid, counts the rest.
 			target.cfg.bars.scroll = not small
 			target.cfg.bars.key = key
+		elseif statKey == "lavaLevel" then
+			-- The lava's height, which every team's sample carries: one line off the first team
+			-- with samples, as the wind's.
+			local points = {}
+			for _, ally in ipairs(ctx.allies()) do
+				for _, team in ipairs(ally.teams) do
+					local g = page.gadget[team.id]
+					local level = g and g.values.lavaLevel
+					if #points == 0 and level then
+						for i, frame in ipairs(g.frames) do
+							if level[i] then
+								points[#points + 1] = { frame, level[i] }
+							end
+						end
+					end
+				end
+			end
+			series =
+				{ { name = ctx.i18n("ui.teamStats.graph.lavaLevel"), color = LAVA_COLOR, points = points, width = 2 } }
+			lifts = false
+			title = ctx.i18n("ui.teamStats.graph.lavaLevel")
 		elseif statKey == "wind" then
 			-- The wind, which every team's sample carries: one line off the first team with
 			-- samples, over a faint band of the range the map's wind keeps to. The sample at
@@ -3484,7 +3544,7 @@ function M.new(ctx)
 		fillChart(chartOf, mini.key, true)
 		-- A column's chart says itself whether its % of total is on it; the others take
 		-- their short name from the list.
-		local setup = { font = ctx.font(), fontSize = mini.fs }
+		local setup = { font = ctx.font(), fontSize = mini.fs, nameFont = ctx.nameFont() }
 		if not ctx.COLUMNS[statOf(mini.key)] then
 			setup.title = mini.label
 		end
@@ -3725,7 +3785,14 @@ function M.new(ctx)
 				Highlight(b.x1, py1, b.x2, py2, cs, look.barHoverOpacity, look.white)
 			end
 			if b.labelX then
-				ctx.queueText((lit and colors.selected or colors.dim) .. (b.caption or b.label), b.labelX, cy, fs, "ov")
+				ctx.queueText(
+					(lit and colors.selected or colors.dim) .. (b.caption or b.label),
+					b.labelX,
+					cy,
+					fs,
+					"ov",
+					b.named and not b.caption and "name" or nil
+				)
 			end
 			if b.swatch and b.unit then
 				local c = b.unit.color
@@ -5035,6 +5102,22 @@ function M.new(ctx)
 		return table.concat(lines, "\n")
 	end
 
+	-- What a stat's chart shows, in words: its column's description where it is a column's -
+	-- the chart's own wording where the table's speaks of this moment - else the chart's.
+	-- Nothing for one whose description is left empty.
+	local function describeStat(stat)
+		local desc
+		if ctx.COLUMNS[stat] then
+			desc = ctx.L.graphDesc[stat] or ctx.L.desc[stat]
+		else
+			desc = ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
+		end
+		if not desc or not desc:find("%S") then
+			return nil
+		end
+		return desc
+	end
+
 	-- The tooltip for the cursor: the chart's description, a stat's explanation, or the
 	-- units under the cursor in the bar and how the bar works.
 	function page.tooltip()
@@ -5046,15 +5129,23 @@ function M.new(ctx)
 			end
 			return markName(kindRow.key), hint
 		end
-		if page.chartHit then
+		if page.chartHit or page.miniHit then
 			local hovered = page.miniHit and page.miniHit.chart or chart
-			local desc = hovered:describe(page.chartHit)
+			local desc = page.chartHit and hovered:describe(page.chartHit) or nil
 			-- Its % of total faded in the title: why it keeps its line.
 			local key = page.miniHit and page.miniHit.key or page.zoom or page.stat
 			local column = ctx.COLUMNS[statOf(key)]
 			local idle = settingsOf(key).share and column and column.fmt == "si" and hovered.cfg.kind ~= "stacked"
-			if idle and page.chartHit.kind ~= "marker" then
+			if page.chartHit and idle and page.chartHit.kind ~= "marker" then
 				desc = (desc or "") .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.shareOne")
+			end
+			-- A chart of a grid says what it shows, as its name in the list does, over what is
+			-- under the cursor: small, its title alone may not.
+			if page.miniHit then
+				local about = describeStat(statOf(key))
+				if about then
+					desc = desc and (about .. "\n\n" .. desc) or about
+				end
 			end
 			return hovered.cfg.title, desc
 		end
@@ -5066,14 +5157,11 @@ function M.new(ctx)
 			end
 			-- Explained by what it shows: a custom category's graph is keyed as itself, and
 			-- says it can be moved or removed.
-			local stat = entry.stat or entry.key
-			-- A column that reads off this moment in the table covers the whole game here.
-			local desc = entry.column and (ctx.L.graphDesc[stat] or ctx.L.desc[stat])
-				or ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
+			local desc = describeStat(entry.stat or entry.key)
 			if entry.graph then
-				desc = desc .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
+				desc = (desc and desc .. "\n" or "") .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
 			end
-			return entry.label, desc
+			return entry.label, desc or ""
 		end
 		if page.hover.filter == 1 then
 			return ctx.i18n("ui.teamStats.graph.hideUnselected"), ctx.i18n("ui.teamStats.graph.hideUnselectedDesc")
