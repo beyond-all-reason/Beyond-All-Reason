@@ -368,7 +368,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@param unitDefID UnitDefID
 	---@param teamID TeamID
 	---@param reasonKey string Identifier previously passed to `AddBlockedUnit`.
-	---@param builderUnitDefID UnitDefID? As passed to `AddBlockedUnit`.
+	---@param builderUnitDefID UnitDefID? The builder unit type the reason was added for; `nil` for a team-wide reason.
 	---@return boolean removed `true` if that reason was set and has been cleared.
 	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]

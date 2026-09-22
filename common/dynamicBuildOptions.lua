@@ -5,12 +5,18 @@ local dynamicBuildOptions = {}
 local RULES_PARAM = "dynamic_build_options"
 
 --- Publishes the changes (synced).
----@param changes table<number, table<number, boolean>> builder UnitDefID -> built UnitDefID -> added
-function dynamicBuildOptions.publish(changes)
+---@param added table<number, table<number, any>?> builder UnitDefID -> added built UnitDefIDs (keys)
+---@param removed table<number, table<number, any>?> builder UnitDefID -> removed built UnitDefIDs (keys)
+function dynamicBuildOptions.publish(added, removed)
 	local entries = {}
-	for builderDefID, options in pairs(changes) do
-		for builtDefID, added in pairs(options) do
-			entries[#entries + 1] = builderDefID .. ":" .. builtDefID .. ":" .. (added and 1 or 0)
+	for builderDefID, options in pairs(added) do
+		for builtDefID in pairs(options) do
+			entries[#entries + 1] = builderDefID .. ":" .. builtDefID .. ":1"
+		end
+	end
+	for builderDefID, options in pairs(removed) do
+		for builtDefID in pairs(options) do
+			entries[#entries + 1] = builderDefID .. ":" .. builtDefID .. ":0"
 		end
 	end
 	Spring.SetGameRulesParam(RULES_PARAM, entries[1] and table.concat(entries, ",") or nil)

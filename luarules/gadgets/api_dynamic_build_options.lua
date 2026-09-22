@@ -129,18 +129,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function publish(builderUnitDefID, builtUnitDefID, added)
-		local changes = {}
-		for builder, options in pairs(addedBuildOptions) do
-			for built in pairs(options) do
-				table.ensureTable(changes, builder)[built] = true
-			end
-		end
-		for builder, options in pairs(removedBuildOptions) do
-			for built in pairs(options) do
-				table.ensureTable(changes, builder)[built] = false
-			end
-		end
-		buildOptionChanges.publish(changes)
+		buildOptionChanges.publish(addedBuildOptions, removedBuildOptions)
 		SendToUnsynced(SYNC_ACTION, builderUnitDefID, builtUnitDefID, added)
 	end
 
