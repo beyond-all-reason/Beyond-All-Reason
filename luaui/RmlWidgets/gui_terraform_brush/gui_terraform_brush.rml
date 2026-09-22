@@ -753,6 +753,12 @@
 				<div id="btn-cl-splats" class="tf-overlay-chip" data-class-active="clLayerSplats" style="flex: 1 0 30%; text-align: center;" data-event-mousedown="onClToggleLayer('splats')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Splats</div>
 				</div>
+				<!-- The tileset shader's variant paint. Reads "Surface" because that
+				     is the tool that paints it; it rides along with Splats so a
+				     cloned patch keeps the material it was painted with. -->
+				<div id="btn-cl-surface" class="tf-overlay-chip" data-class-active="clLayerSurface" style="flex: 1 0 30%; text-align: center;" data-event-mousedown="onClToggleLayer('surface')">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Surface</div>
+				</div>
 				<div id="btn-cl-grass" class="tf-overlay-chip" data-class-active="clLayerGrass" style="flex: 1 0 30%; text-align: center;" data-event-mousedown="onClToggleLayer('grass')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Grass</div>
 				</div>

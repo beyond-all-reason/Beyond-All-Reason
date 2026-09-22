@@ -112,6 +112,10 @@ local layers = {
 	metal = true,
 	features = true,
 	splats = true,
+	-- The tileset shader's variant paint (the SURFACE tool). Its mask belongs to
+	-- the surface painter, which is a write-dir widget, so the layer quietly
+	-- carries nothing when that widget is not installed.
+	surface = true,
 	grass = true,
 	decals = false,
 	weather = false,
@@ -294,7 +298,7 @@ end
 local function activate()
 	active = true
 	state = "idle"
-	cloneBuffer = nil
+	discardBuffer()
 	pasteRotation = 0
 	pasteHeightOffset = 0
 	pasteMirrorX = false
@@ -487,6 +491,16 @@ local function doCopy()
 				pw = pw,
 				ph = ph,
 			}
+		end
+	end
+
+	-- Tileset variant paint: the painter cuts the patch out of its own masks
+	-- (there are two once variant 4 is in use) inside the next draw frame.
+	if layers.surface then
+		---@type table?
+		local sp = WG.SurfacePainter
+		if sp and sp.region and sp.hasMaskState and sp.hasMaskState() then
+			pendingSurfaceCapture = { u0 = boxU0, v0 = boxV0, u1 = boxU1, v1 = boxV1 }
 		end
 	end
 
@@ -1025,6 +1039,7 @@ local function applyPaste(targetX, targetZ)
 	-- Execute in order
 	applyTerrain()
 	applySplats()
+	applySurface()
 	applyMetal()
 	applyGrass()
 	applyFeatures()
@@ -1043,7 +1058,7 @@ local function cancelOperation()
 		state = "copied"
 	elseif state == "copied" or state == "box_drawn" then
 		state = "idle"
-		cloneBuffer = nil
+		discardBuffer()
 	end
 end
 
@@ -1618,7 +1633,7 @@ function widget:MousePress(mx, my, button)
 			selBox.z1 = wz
 			selBox.x2 = wx
 			selBox.z2 = wz
-			cloneBuffer = nil
+			discardBuffer()
 			return true
 		elseif state == "paste_preview" then
 			-- Apply paste at cursor position (with snap + symmetric fan-out)
@@ -1712,7 +1727,7 @@ function widget:MouseMove(mx, my, dmx, dmy, button)
 
 		-- Invalidate buffer on resize
 		if h ~= "center" and cloneBuffer then
-			cloneBuffer = nil
+			discardBuffer()
 			state = "box_drawn"
 		end
 
@@ -1882,6 +1897,7 @@ end
 function widget:Shutdown()
 	WG.CloneTool = nil
 	widgetHandler:DeregisterGlobal("CloneToolStackUpdate")
+	discardBuffer()
 	if splatCaptureFBO then
 		glDeleteTexture(splatCaptureFBO)
 		splatCaptureFBO = nil

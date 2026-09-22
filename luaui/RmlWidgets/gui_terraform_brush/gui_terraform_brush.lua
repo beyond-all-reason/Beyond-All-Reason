@@ -6653,6 +6653,7 @@ local initialModel = {
 	clLayerMetal = true,
 	clLayerFeatures = true,
 	clLayerSplats = true,
+	clLayerSurface = true,
 	clLayerGrass = true,
 	clLayerDecals = false,
 	clLayerWeather = false,
