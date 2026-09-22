@@ -3691,25 +3691,37 @@ end
 
 -- One pump tick. The cheat gate is a PRECONDITION, not a journaled phase: the
 -- synced gadgets ($terraform_import$, $metal_load$, $feature_load$) all require
--- live cheat outside replays ($c$ certification is replay-only), and cheat
--- resets across engine restart AND can be toggled off by the user mid-load, so
--- it is re-verified on every tick. "cheat" TOGGLES — only (re)send while
--- observed OFF, with a generous gap so an in-flight send cannot be doubled.
+-- live cheat outside map-editor sessions (where a $c$-certified message is
+-- accepted instead), and cheat resets across engine restart AND can be toggled
+-- off by the user mid-load, so it is re-verified on every tick. "cheat"
+-- TOGGLES — only (re)send while observed OFF, with a generous gap so an
+-- in-flight send cannot be doubled.
 local function runLoadTick()
 	if not Spring.IsCheatingEnabled() then
 		local c = loadJob
 		c.cheatTicks = (c.cheatTicks or 0) + 1
 		if not c.cheatLastSend or (c.cheatTicks - c.cheatLastSend) >= CHEAT_RESEND_TICKS then
-			c.cheatSends = (c.cheatSends or 0) + 1
-			if c.cheatSends > CHEAT_MAX_SENDS then
+			if (c.cheatSends or 0) + 1 > CHEAT_MAX_SENDS then
 				abortLoad(
 					"could not enable /cheat (required for terrain/metal/feature replay); enable cheats and open the project again"
 				)
 				return
 			end
-			c.cheatLastSend = c.cheatTicks
-			Spring.SendCommands("cheat")
-			echoP("enabling /cheat for the load (attempt " .. c.cheatSends .. ")...")
+			-- Route through the terraform widget's shared single-flight window
+			-- when it is loaded: "cheat" TOGGLES, so a send of ours landing on
+			-- top of one another editor widget already has in flight turns cheat
+			-- back OFF. Only count the attempt when a toggle really went out.
+			local sent = true
+			if type(WG.TerraformEnsureCheat) == "function" then
+				sent = WG.TerraformEnsureCheat() and true or false
+			else
+				Spring.SendCommands("cheat")
+			end
+			if sent then
+				c.cheatSends = (c.cheatSends or 0) + 1
+				c.cheatLastSend = c.cheatTicks
+				echoP("enabling /cheat for the load (attempt " .. c.cheatSends .. ")...")
+			end
 		end
 		return
 	end
