@@ -1,4 +1,5 @@
 # September
+- [Cone lights] Searchlights, thrusters and other cone lights no longer flicker, and their glow no longer blinks out when something passes near the light source.
 - [Territorial Domination]
   - Points are now gained continuously, rounds are renamed to "Deadlines", GUI Reworked to better represent the new points system.
   - Default length is now 5 Deadlines of 6 minutes (30 minutes). Length options are 3, 4, 5, 7, or 10 Deadlines.

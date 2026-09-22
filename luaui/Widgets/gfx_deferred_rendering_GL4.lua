@@ -288,6 +288,13 @@ local shaderConfig = {
 	BLEEDFACTOR = 0.15, -- How much oversaturated color channels will bleed into other color channels.
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	SCREENSPACESHADOWS = 1, -- set to nil to disable completely
+	-- Cone light source flicker controls, see the cone branch of the vertex shader.
+	CONESOURCEVISIBILITY = 1, -- soft, filtered visibility of the cone source for its lens flare. 0 restores the single-texel step() at the apex
+	CONESOURCEPROBELENGTH = "0.25", -- how far down the beam, in light radii, the source visibility is probed as well as at the apex
+	CONESOURCEPROBEMAX = "16.0", -- cap on that distance in elmos, so big searchlights do not probe out into the scene
+	CONESOURCEDEPTHBAND = "1.0", -- minimum half width, in elmos, of the depth ramp between hidden and visible
+	STABLENOISEOFFSET = 1, -- key the per-light noise offset to the unit and piece rather than the instance VBO slot, which churns
+	DEPTH_CLIP01 = (Platform.glSupportClipSpaceControl and "1" or "0"),
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
