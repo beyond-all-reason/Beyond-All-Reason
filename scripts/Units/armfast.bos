@@ -4,6 +4,8 @@ piece  torso, flare, pelvis, rthigh, lthigh, lleg, rleg, rfoot, ruparm, luparm, 
 
 static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead, animSpeed, maxSpeed, animFramesPerKeyframe;
 
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
@@ -471,8 +473,8 @@ AimWeapon1(heading, pitch)
 		aimoffset_while_kiting = <0>; 
 	}
 	
-	turn aimy1 to y-axis heading speed <400>;
-	turn aimx1 to x-axis <-90.0> + aimoffset_while_kiting - pitch speed <500>;
+	turn aimy1 to y-axis heading speed Weapon1TurretY;
+	turn aimx1 to x-axis <-90.0> + aimoffset_while_kiting - pitch speed Weapon1TurretX;
 	//turn ruparm to x-axis <90> - pitch speed <500>;
 
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <19>))

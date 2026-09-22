@@ -7,6 +7,8 @@ piece  base, blleg, bltrack, frleg, frtrack, flleg, fltrack, brleg, brtrack, rdo
 
 static-var  isOpen, restore_delay;
 
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -142,8 +144,8 @@ AimWeapon1(heading, pitch)
 	{
 		sleep 200;
 	}
-	turn turret to y-axis heading speed <360.0>;
-	turn sleeve to x-axis <0> - pitch speed <3600.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn sleeve to x-axis <0> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

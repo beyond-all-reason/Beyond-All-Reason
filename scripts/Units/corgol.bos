@@ -7,6 +7,8 @@ piece  base, flare, turret, sleeve, barrel, smoke1, smoke2;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay;
 
+#include "unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE			4
@@ -105,8 +107,8 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <40.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <30.000000>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn sleeve to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

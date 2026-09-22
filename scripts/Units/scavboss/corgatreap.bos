@@ -7,6 +7,8 @@ piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
 
+#include "unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE				4
@@ -197,7 +199,7 @@ RestoreAfterDelay()
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 
-#define MAX_AIMY1_VELOCITY <9.00>
+#define MAX_AIMY1_VELOCITY (Weapon1TurretY / 30)
 #define AIMY1_ACCELERATION <0.2>
 #define AIMY1_JERK <1.0>
 #define AIMY1_PRECISION <1.2>
@@ -209,7 +211,7 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	//We can do this any time
-	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	
 	aimy1target = heading;
 	aimy1delta = aimy1position - aimy1target;

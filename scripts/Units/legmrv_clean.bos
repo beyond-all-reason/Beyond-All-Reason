@@ -6,6 +6,8 @@
 piece base, flWheel, frWheel, rrTrack, rlTrack, turret, aimfrom, sleeveTop, sleeveBottom, flareTop, flareBottom, barrelTop, barrelBottom, flTyre, frTyre;
 static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft, Stunned, last_primary_heading;
 
+#include "../unitDefsTurretSpeeds.h"
+
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -132,9 +134,9 @@ AimWeapon1(heading, pitch)
     timeLeft = restore_delay;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <400.000000>;
-	turn sleeveTop to x-axis <0.000000> - pitch speed <200.000000>;
-	turn sleeveBottom to x-axis <0.000000> - pitch speed <200.000000>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn sleeveTop to x-axis <0.000000> - pitch speed Weapon1TurretX;
+	turn sleeveBottom to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	if (get ABS(last_primary_heading - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process

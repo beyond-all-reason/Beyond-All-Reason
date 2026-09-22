@@ -5,6 +5,8 @@ piece  base, lfwheel, rfwheel, bwheel, gun, flare;
 
 static-var  restore_delay, moveSpeed, wheelSpeed, gun_2,	oldHeading, wpn1_lasthead;
 
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -112,8 +114,8 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	turn gun to y-axis heading speed <300.0>;
-	turn gun to x-axis <0.0> - pitch speed <300.0>;
+	turn gun to y-axis heading speed Weapon1TurretY;
+	turn gun to x-axis <0.0> - pitch speed Weapon1TurretX;
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
 		wpn1_lasthead = 0xbadface;

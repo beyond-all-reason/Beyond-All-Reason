@@ -5,6 +5,8 @@ piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, a
 
 static-var  isMoving, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading, aimBelief, lastAimFrame;
 
+#include "../unitDefsTurretSpeeds.h"
+
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
@@ -15,7 +17,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIGNAL_SHOOT1 16
 #define SIGNAL_MOVE 1
 
-#define AIM_SPEED_YAW <300>
+#define AIM_SPEED_YAW Weapon1TurretY
 Walk() {// For C:\Users\logst\Downloads\BAR\leggob anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 		if (isMoving) { //Frame:0
@@ -270,7 +272,7 @@ AimWeapon1(heading, pitch)
 	}
 
 	turn aimy1 to y-axis heading speed AIM_SPEED_YAW;
-	turn aimx1 to x-axis <0.0> - pitch speed <100>;
+	turn aimx1 to x-axis <0.0> - pitch speed Weapon1TurretX;
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
 

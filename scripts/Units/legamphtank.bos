@@ -10,6 +10,8 @@ piece base, lTrack, rTrack, turretBase, turret, barrelPivot, barrelSleeve, barre
 
 static-var  open, restore_delay;
 
+#include "unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_DEPLOY			4
@@ -114,8 +116,8 @@ AimPrimary(heading, pitch)
 	{
 		start-script deploy();
 	}
-	turn turret to y-axis heading speed <130.000000>;
-	turn barrelPivot to x-axis <0.000000> - pitch speed <130.000000>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn barrelPivot to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn barrelPivot around x-axis;
 	start-script RestoreAfterDelay();

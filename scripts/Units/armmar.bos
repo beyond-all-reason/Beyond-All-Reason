@@ -6,6 +6,8 @@ piece pelvis, torso, rthigh, lthigh, lleg, rleg, rfoot,lfoot, luparm, ruparm, lc
 static-var  isAiming, restore_delay, gun_primary, gun_2, wpn1_lasthead, wpn2_lasthead, secondary_deployed;
 static-var last_primary_heading, last_primary_pitch, last_secondary_heading, last_secondary_pitch;
 
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_AIM2 512
@@ -609,8 +611,8 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn torso to y-axis heading speed <270.0>; //<140.0>
-	turn aimx1 to x-axis <0.0> - pitch speed <360.0>;
+	turn torso to y-axis heading speed Weapon1TurretY; //<140.0>
+	turn aimx1 to x-axis <0.0> - pitch speed Weapon1TurretX;
 	// only wait-for-turn if it takes more than 3 frames to finish the turn
 	if ( (get ABS(last_primary_heading - heading)>4860) OR (get ABS(last_primary_pitch - pitch)>6480) )
 	{
