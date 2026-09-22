@@ -7,6 +7,9 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+// Engine constants
+#define GAME_SPEED      30    // The frames per second rate of the simulation.
+
 // Indices for emit-sfx
 #ifndef __SFXTYPE_H_
 #define SFXTYPE_VTOL		0

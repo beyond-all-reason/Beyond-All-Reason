@@ -32,13 +32,13 @@ static-var  restore_delay, Stunned;
 #define CATT1_PIECE_Y turret
 #define CATT1_PIECE_X sleeve
 
-#define CATT1_MAX_VELOCITY (Weapon1TurretY / 30)
-#define CATT1_ACCELERATION <90>/30
-#define CATT1_JERK <90>/30
+#define CATT1_MAX_VELOCITY (Weapon1TurretY / GAME_SPEED)
+#define CATT1_ACCELERATION <90> / GAME_SPEED
+#define CATT1_JERK <90> / GAME_SPEED
 #define CATT1_PRECISION <6.66>
 #define CATT1_PITCH_SPEED Weapon1TurretX
 #define CATT1_RESTORE_DELAY 3000
-#define CATT1_RESTORE_SPEED <90>/30
+#define CATT1_RESTORE_SPEED <90> / GAME_SPEED
 
 #include "../constant_acceleration_turret_turning.h"
 

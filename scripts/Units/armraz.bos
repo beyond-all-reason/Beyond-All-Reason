@@ -395,7 +395,7 @@ lua_UnitScriptDistortion(lightIndex, count)
 
 #define CATT1_PIECE_Y aimy1
 #define CATT1_PIECE_X aimx1
-#define CATT1_MAX_VELOCITY (Weapon1TurretY / 30) // degrees per frame
+#define CATT1_MAX_VELOCITY (Weapon1TurretY / GAME_SPEED) // degrees per frame
 #define CATT1_ACCELERATION <1.5> // degrees per frame
 #define CATT1_JERK <4> // degrees per frame
 #define CATT1_PRECISION <9> // degrees
