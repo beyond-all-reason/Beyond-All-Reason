@@ -2070,17 +2070,8 @@ function M.attach(doc, ctx)
 
 	-- ---- Dimensions panel controls ----
 	do
-		-- Populate map size labels (driven by {{envMapXStr}}/{{envMapZStr}} in RML)
-		if widgetState.dmHandle then
-			local vx = tostring(Game.mapSizeX)
-			if widgetState.dmHandle.envMapXStr ~= vx then
-				widgetState.dmHandle.envMapXStr = vx
-			end
-			local vz = tostring(Game.mapSizeZ)
-			if widgetState.dmHandle.envMapZStr ~= vz then
-				widgetState.dmHandle.envMapZStr = vz
-			end
-		end
+		-- (the map size readout moved into MAP TRANSFORM, which states it in the
+		-- unit its own controls use; envRefreshXform writes those strings)
 
 		-- Height extreme labels (driven by {{envInitMinStr}}/etc. in RML)
 		local function refreshDimExtremes()
@@ -2301,6 +2292,298 @@ function M.attach(doc, ctx)
 		-- colorSliders loop for the same reason as the HEIGHT RANGE pair.
 		widgetState.envWireDimStepper("waterlevel")
 		widgetState.envWireDimStepper("wl")
+
+		-- ---- MAP TRANSFORM section ----
+		-- One function owns every reactive part of it: the canonical spec, the
+		-- labels, and the three boxes in the footprint preview. The handlers in
+		-- gui_terraform_brush.lua only move state and call this, so there is a
+		-- single place where a spec turns into what the user sees.
+		-- On widgetState, not locals: M.attach is near the Lua 5.1 200-local cap.
+		widgetState.envResetXform = function()
+			widgetState.xformMode = "transform"
+			widgetState.xformDir = "right"
+			widgetState.xformFill = "copy"
+			widgetState.xformCopy = "mirror"
+			widgetState.xformRot = 0
+			widgetState.xformMirrorX = false
+			widgetState.xformMirrorZ = false
+			widgetState.xformFit = "stretch"
+			widgetState.xformAnchorX = 0
+			widgetState.xformAnchorZ = 0
+			widgetState.xformW = math.floor(Game.mapSizeX / 512)
+			widgetState.xformH = math.floor(Game.mapSizeZ / 512)
+			widgetState.xformArmedUntil = nil
+			if widgetState.envRefreshXform then
+				widgetState.envRefreshXform()
+			end
+		end
+
+		-- Where each side of the map sits after the transform, in words.
+		widgetState.envXformAnchorWords = function(ax, az)
+			local vertical = (az < 0) and "top" or ((az > 0) and "bottom" or "")
+			local horizontal = (ax < 0) and "left" or ((ax > 0) and "right" or "")
+			if vertical == "" and horizontal == "" then
+				return "kept centred"
+			elseif vertical == "" then
+				return "pinned " .. horizontal
+			elseif horizontal == "" then
+				return "pinned " .. vertical
+			end
+			return "pinned " .. vertical .. " " .. horizontal
+		end
+
+		widgetState.envRefreshXform = function()
+			local dm = widgetState.dmHandle
+			if not dm then
+				return
+			end
+			---@type table?
+			local mt = WG.MapTransform
+			if not (mt and mt.math) then
+				if dm.envXformSummaryStr ~= "The map transform widget is not loaded." then
+					dm.envXformSummaryStr = "The map transform widget is not loaded."
+					dm.envXformApplyStr = "UNAVAILABLE"
+				end
+				return
+			end
+			local math_lib = mt.math
+			local srcW, srcH = Game.mapSizeX, Game.mapSizeZ
+			local expanding = (widgetState.xformMode == "expand")
+			local spec = math_lib.canonical({
+				rot = widgetState.xformRot or 0,
+				mirrorX = widgetState.xformMirrorX,
+				mirrorZ = widgetState.xformMirrorZ,
+				fit = widgetState.xformFit or "stretch",
+				anchorX = widgetState.xformAnchorX or 0,
+				anchorZ = widgetState.xformAnchorZ or 0,
+			})
+			-- canonical() folds a double mirror into a half turn; write it back so
+			-- the buttons and the transform agree on what is set.
+			widgetState.xformRot = spec.rot
+			widgetState.xformMirrorX = spec.mirrorX
+			widgetState.xformMirrorZ = spec.mirrorZ
+
+			-- Both modes end as a list of placements on a destination canvas,
+			-- which is all the preview and the summary below need to know.
+			local plan, dstW, dstH
+			local copyMode = nil
+			if expanding then
+				if widgetState.xformFill ~= "empty" then
+					copyMode = widgetState.xformCopy or "mirror"
+				end
+				plan, dstW, dstH = math_lib.expandPlan(widgetState.xformDir or "right", copyMode, srcW, srcH)
+			else
+				local unitsW = widgetState.xformW or math.floor(srcW / 512)
+				local unitsH = widgetState.xformH or math.floor(srcH / 512)
+				dstW, dstH = unitsW * 512, unitsH * 512
+				plan = { spec }
+			end
+			local unitsW, unitsH = math.floor(dstW / 512), math.floor(dstH / 512)
+			local placements = {}
+			for i, p in ipairs(plan) do
+				placements[i] = math_lib.new(p, srcW, srcH, dstW, dstH)
+			end
+			local T = placements[1]
+
+			local function setStr(key, value)
+				if dm[key] ~= value then
+					dm[key] = value
+				end
+			end
+			setStr("envXformWStr", tostring(unitsW))
+			setStr("envXformHStr", tostring(unitsH))
+			setStr("envXformFit", spec.fit)
+			setStr("envXformAnchor", string.format("%d,%d", spec.anchorX, spec.anchorZ))
+			setStr("envXformMode", expanding and "expand" or "transform")
+			setStr("envXformDir", widgetState.xformDir or "right")
+			setStr("envXformFill", widgetState.xformFill or "copy")
+			setStr("envXformCopy", widgetState.xformCopy or "mirror")
+			-- One derived flag rather than a two-term test in the RML: the data
+			-- expression parser would need an escaped `&&` in the attribute.
+			setStr("envXformAnchorRow", (not expanding) and spec.fit == "keep")
+			-- The steppers already say "units", so the line under them carries the
+			-- figure they do not: what the canvas measures in elmos.
+			setStr("envXformSizeStr", string.format("%d x %d elmos", dstW, dstH))
+			setStr("envXformCurrentStr", string.format("%d x %d units", math.floor(srcW / 512), math.floor(srcH / 512)))
+			setStr("envXformCurrentElmoStr", string.format("%d x %d elmos", srcW, srcH))
+			setStr("envXformAnchorStr", widgetState.envXformAnchorWords(spec.anchorX, spec.anchorZ))
+			-- A screen-space flip is a mirror in X on an upright map and a mirror
+			-- in Z on a quarter-turned one; light the button the user pressed.
+			-- Not an `and/or` ternary: both sides are booleans, so a false left
+			-- hand would fall through to the wrong mirror.
+			local flipH, flipV = spec.mirrorX, spec.mirrorZ
+			if spec.rot == 90 or spec.rot == 270 then
+				flipH, flipV = spec.mirrorZ, spec.mirrorX
+			end
+			setStr("envXformFlipH", flipH)
+			setStr("envXformFlipV", flipV)
+
+			-- Where the current map lands on the new canvas, in destination elmos.
+			local x0, z0 = T:srcToDst(0, 0)
+			local x1, z1 = T:srcToDst(srcW, srcH)
+			local minX, maxX = math.min(x0, x1), math.max(x0, x1)
+			local minZ, maxZ = math.min(z0, z1), math.max(z0, z1)
+
+			-- Summary. What is lost and what is gained is the part a preview
+			-- cannot say precisely, so it is spelled out.
+			local parts = {}
+			if expanding then
+				local words = math_lib.describeExpand(widgetState.xformDir or "right", copyMode)
+				parts[#parts + 1] = words:sub(1, 1):upper() .. words:sub(2)
+				if copyMode then
+					parts[#parts + 1] = "everything on it is duplicated with the ground"
+				end
+			elseif T:isIdentity() then
+				parts[#parts + 1] = "This is the map you already have."
+			else
+				local orient = math_lib.describe(spec)
+				local sized = (dstW ~= srcW or dstH ~= srcH)
+				if orient ~= "no rotation" then
+					parts[#parts + 1] = orient:sub(1, 1):upper() .. orient:sub(2)
+				end
+				if sized then
+					if spec.fit == "keep" then
+						parts[#parts + 1] = string.format(
+							"%dx%d units at true scale, %s",
+							unitsW,
+							unitsH,
+							widgetState.envXformAnchorWords(spec.anchorX, spec.anchorZ)
+						)
+					else
+						parts[#parts + 1] = string.format("stretched onto %dx%d units", unitsW, unitsH)
+					end
+				end
+				local overlapW = math.max(0, math.min(maxX, dstW) - math.max(minX, 0))
+				local overlapH = math.max(0, math.min(maxZ, dstH) - math.max(minZ, 0))
+				local srcArea = (maxX - minX) * (maxZ - minZ)
+				local overlap = overlapW * overlapH
+				if srcArea > 0 and overlap < srcArea * 0.999 then
+					parts[#parts + 1] =
+						string.format("cuts %d%% of the map", math.floor((1 - overlap / srcArea) * 100 + 0.5))
+				end
+				if dstW * dstH > 0 and overlap < dstW * dstH * 0.999 then
+					parts[#parts + 1] =
+						string.format("adds %d%% new ground", math.floor((1 - overlap / (dstW * dstH)) * 100 + 0.5))
+				end
+			end
+			setStr(
+				"envXformSummaryStr",
+				table.concat(parts, ", ") .. ((not expanding and T:isIdentity()) and "" or ".")
+			)
+
+			-- Button label doubles as the state: idle, armed, or running.
+			local label = "APPLY"
+			-- Nothing to apply = the button greys out (data-class-disabled picks up
+			-- the shared .disabled rule, which also stops the click).
+			local idle = false
+			local step, total, name = mt.progress()
+			if step then
+				label = string.format("WORKING %d/%d %s", step, total, tostring(name):upper())
+			elseif unitsW > 32 or unitsH > 32 then
+				-- the blank map generator's ceiling; doubling walks into it fast
+				label = "TOO BIG"
+				idle = true
+			elseif not expanding and T:isIdentity() then
+				label = "NO CHANGE"
+				idle = true
+			elseif widgetState.xformArmedUntil then
+				if os.clock() > widgetState.xformArmedUntil then
+					widgetState.xformArmedUntil = nil
+				else
+					label = "CONFIRM - RESTARTS"
+				end
+			end
+			setStr("envXformApplyStr", label)
+			setStr("envXformIdle", idle)
+
+			-- Preview. Both footprints are drawn in one shared frame so a crop
+			-- and an extension read the same way: the union of the new canvas and
+			-- the placed map, scaled to fit the box.
+			local pad, avail = 4, 110
+			local ux0, uz0 = math.min(0, minX), math.min(0, minZ)
+			local ux1, uz1 = math.max(dstW, maxX), math.max(dstH, maxZ)
+			for i = 2, #placements do
+				local bx0, bz0 = placements[i]:srcToDst(0, 0)
+				local bx1, bz1 = placements[i]:srcToDst(srcW, srcH)
+				ux0 = math.min(ux0, bx0, bx1)
+				uz0 = math.min(uz0, bz0, bz1)
+				ux1 = math.max(ux1, bx0, bx1)
+				uz1 = math.max(uz1, bz0, bz1)
+			end
+			local span = math.max(ux1 - ux0, uz1 - uz0)
+			if span <= 0 then
+				return
+			end
+			local scale = avail / span
+			local offX = pad + (avail - (ux1 - ux0) * scale) * 0.5
+			local offZ = pad + (avail - (uz1 - uz0) * scale) * 0.5
+			local function place(id, px0, pz0, px1, pz1)
+				local el = doc:GetElementById(id)
+				if not el then
+					return
+				end
+				el:SetAttribute(
+					"style",
+					string.format(
+						"left: %.1fdp; top: %.1fdp; width: %.1fdp; height: %.1fdp;",
+						offX + (px0 - ux0) * scale,
+						offZ + (pz0 - uz0) * scale,
+						math.max(2, (px1 - px0) * scale),
+						math.max(2, (pz1 - pz0) * scale)
+					)
+				)
+			end
+			local function hide(id)
+				local el = doc:GetElementById(id)
+				if el then
+					el:SetAttribute("style", "width: 0dp; height: 0dp;")
+				end
+			end
+			place("tf-xform-prev-dst", 0, 0, dstW, dstH)
+			place("tf-xform-prev-src", minX, minZ, maxX, maxZ)
+			-- The duplicated half, in its own colour, with its own corner dot:
+			-- together they say which way the copy was turned over.
+			if placements[2] then
+				local cx0, cz0 = placements[2]:srcToDst(0, 0)
+				local cx1, cz1 = placements[2]:srcToDst(srcW, srcH)
+				place(
+					"tf-xform-prev-src2",
+					math.min(cx0, cx1),
+					math.min(cz0, cz1),
+					math.max(cx0, cx1),
+					math.max(cz0, cz1)
+				)
+				local el = doc:GetElementById("tf-xform-prev-mark2")
+				if el then
+					el:SetAttribute(
+						"style",
+						string.format(
+							"left: %.1fdp; top: %.1fdp;",
+							offX + (cx0 - ux0) * scale - 4.5,
+							offZ + (cz0 - uz0) * scale - 4.5
+						)
+					)
+				end
+			else
+				hide("tf-xform-prev-src2")
+				hide("tf-xform-prev-mark2")
+			end
+			-- The dot marks where the map's present north-west corner ends up, so
+			-- a turn and a flip are told apart at a glance.
+			local markEl = doc:GetElementById("tf-xform-prev-mark")
+			if markEl then
+				local mx, mz = T:srcToDst(0, 0)
+				markEl:SetAttribute(
+					"style",
+					string.format(
+						"left: %.1fdp; top: %.1fdp;",
+						offX + (mx - ux0) * scale - 4.5,
+						offZ + (mz - uz0) * scale - 4.5
+					)
+				)
+			end
+		end
+		widgetState.envResetXform()
 	end
 
 	-- (onEnvSave / onEnvLoad now in initialModel in gui_terraform_brush.lua)

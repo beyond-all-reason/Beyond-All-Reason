@@ -1959,6 +1959,104 @@ body {
 	color: #b9bfca;
 }
 
+/* ---- MAP TRANSFORM (Dimensions window) ---- */
+/* Orientation row: four equal buttons, shorter than a tool button. */
+.tf-xform-btn {
+	height: 34dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-xform-btn .tf-btn-text {
+	font-size: 1.0rem;
+}
+.tf-xform-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-xform-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+/* Footprint preview. Outlined box = the new canvas, filled box = where the
+   current map lands in it, dot = the corner that is north-west today, which is
+   what makes a turn or a flip readable at a glance. All three are positioned
+   from Lua (envRefreshXformPreview). */
+.tf-xform-preview {
+	width: 118dp;
+	height: 118dp;
+	position: relative;
+	background-color: #1b1b20;
+	border: 1dp #50505a80;
+	border-radius: 4dp;
+}
+.tf-xform-prev-dst {
+	position: absolute;
+	border: 1dp #8d94a4;
+	background-color: #ffffff08;
+}
+.tf-xform-prev-src {
+	position: absolute;
+	background-color: #fdc04c30;
+	border: 1dp #fdc04c;
+}
+.tf-xform-prev-mark {
+	position: absolute;
+	width: 9dp;
+	height: 9dp;
+	border-radius: 5dp;
+	background-color: #fdc04c;
+}
+
+/* The duplicated half of an expansion, so the copy reads as a second thing
+   rather than as part of the original. */
+.tf-xform-prev-copy {
+	background-color: #6fb3ff30;
+	border-color: #6fb3ff;
+}
+.tf-xform-prev-mark-copy {
+	background-color: #6fb3ff;
+}
+
+/* Map size readout between its two steppers. */
+.tf-xform-num {
+	width: 30dp;
+	text-align: center;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #e5e7eb;
+}
+
+/* Trailing unit word, and the elmo figure beside the current size. */
+.tf-xform-unit {
+	margin-left: 6dp;
+	font-size: 1.0rem;
+	color: #8d94a4;
+}
+
+/* 3x3 anchor pad: which part of the new canvas the old map is pinned to. */
+.tf-xform-anchor-row {
+	display: flex;
+	flex-direction: row;
+	gap: 2dp;
+}
+.tf-xform-anchor-cell {
+	width: 17dp;
+	height: 17dp;
+	background-color: #393942;
+	border: 1dp #50505a50;
+	border-radius: 3dp;
+	cursor: pointer;
+}
+.tf-xform-anchor-cell:hover {
+	background-color: #4c4c58;
+}
+.tf-xform-anchor-cell.active {
+	background-color: #fdc04c;
+	border-color: #ffd47a;
+}
+
 .tf-preset-btn {
 	height: 28dp;
 	padding: 0 10dp;

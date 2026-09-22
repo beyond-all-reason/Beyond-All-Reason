@@ -6481,8 +6481,6 @@ local initialModel = {
 	clRotationStr = "0\194\176",
 	clHeightStr = "0",
 	-- Phase 2 step 4: environment dimensions label interpolation strings
-	envMapXStr = "--",
-	envMapZStr = "--",
 	envInitMinStr = "--",
 	envInitMaxStr = "--",
 	envCurrMinStr = "--",
@@ -6490,6 +6488,27 @@ local initialModel = {
 	envWaterPlaneStr = "--",
 	envWaterTargetStr = "Drag to move the shoreline.",
 	envDimRangeMode = "scale",
+	-- MAP TRANSFORM. The spec itself lives on widgetState (xformRot /
+	-- xformMirrorX / xformMirrorZ / xformW / xformH / xformFit / xformAnchor*);
+	-- these are what the panel shows, refreshed by envRefreshXform.
+	envXformMode = "transform",
+	envXformDir = "right",
+	envXformFill = "copy",
+	envXformCopy = "mirror",
+	envXformAnchorRow = false,
+	envXformWStr = "--",
+	envXformHStr = "--",
+	envXformCurrentStr = "--",
+	envXformCurrentElmoStr = "",
+	envXformIdle = true,
+	envXformFit = "stretch",
+	envXformAnchor = "0,0",
+	envXformFlipH = false,
+	envXformFlipV = false,
+	envXformSizeStr = "",
+	envXformAnchorStr = "",
+	envXformSummaryStr = "",
+	envXformApplyStr = "APPLY",
 	envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off.",
 	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
 	tfRingWidthStr = "40%",
@@ -12214,6 +12233,192 @@ local initialModel = {
 			dm.envDimRangeDescStr = "Cuts everything outside the range. Peaks and pits come out flat."
 		else
 			dm.envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off."
+		end
+	end,
+	-- ---- MAP TRANSFORM (Dimensions window) ----
+	-- TURN & SIZE moves the map you have; EXPAND doubles the canvas one way and
+	-- either leaves the new half empty or fills it with a copy. Both end up in
+	-- the same machinery (a list of placements of one source), so the preview,
+	-- the summary and APPLY are shared.
+	onXformMode = function(_event, mode)
+		if widgetState.xformMode == mode then
+			return
+		end
+		widgetState.xformMode = mode
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformDir = function(_event, dir)
+		if widgetState.xformDir == dir then
+			return
+		end
+		widgetState.xformDir = dir
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformFill = function(_event, fill)
+		if widgetState.xformFill == fill then
+			return
+		end
+		widgetState.xformFill = fill
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformCopy = function(_event, copy)
+		if widgetState.xformCopy == copy then
+			return
+		end
+		widgetState.xformCopy = copy
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	-- The buttons speak screen space: ROTATE RIGHT turns the preview right
+	-- whatever else is already set, FLIP flips what you see. The spec
+	-- underneath composes mirror THEN rotate, so a screen-space flip is not
+	-- always the mirror of the same name (map_transform.flipScreen converts).
+	onXformRotate = function(_event, dir)
+		local step = (dir == "ccw") and -90 or 90
+		widgetState.xformRot = ((widgetState.xformRot or 0) + step) % 360
+		-- A quarter turn swaps the footprint, so swap the target canvas with
+		-- it: the map keeps its shape unless the user asks for another size.
+		local w, h = widgetState.xformW, widgetState.xformH
+		widgetState.xformW, widgetState.xformH = h, w
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformFlip = function(_event, axis)
+		---@type table?
+		local mt = WG.MapTransform
+		if not (mt and mt.math) then
+			return
+		end
+		local flipped = mt.math.flipScreen({
+			rot = widgetState.xformRot or 0,
+			mirrorX = widgetState.xformMirrorX,
+			mirrorZ = widgetState.xformMirrorZ,
+		}, axis)
+		-- Two mirrors are a half turn, which flipScreen folds into rot; the
+		-- footprint parity is unchanged by that, so the size stays as it is.
+		widgetState.xformRot = flipped.rot
+		widgetState.xformMirrorX = flipped.mirrorX
+		widgetState.xformMirrorZ = flipped.mirrorZ
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	-- Map units are the blank-map generator's own unit (512 elmos) and must be
+	-- even, so the steppers move in twos.
+	onXformSize = function(_event, which)
+		local axis = which:sub(1, 1)
+		local delta = (which:sub(2, 2) == "-") and -2 or 2
+		local key = (axis == "x") and "xformW" or "xformH"
+		local v = (widgetState[key] or 12) + delta
+		if v < 4 then
+			v = 4
+		elseif v > 32 then
+			v = 32
+		end
+		if widgetState[key] == v then
+			return
+		end
+		widgetState[key] = v
+		widgetState.xformArmedUntil = nil
+		playSound("tick")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformFit = function(_event, mode)
+		if widgetState.xformFit == mode then
+			return
+		end
+		widgetState.xformFit = mode
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformAnchor = function(_event, key)
+		local ax, az = key:match("^(-?%d+),(-?%d+)$")
+		if not (ax and az) then
+			return
+		end
+		widgetState.xformAnchorX = tonumber(ax)
+		widgetState.xformAnchorZ = tonumber(az)
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformReset = function(_event)
+		playSound("click")
+		if widgetState.envResetXform then
+			widgetState.envResetXform()
+		end
+	end,
+	-- Two clicks: the first arms the button, the second starts a transform that
+	-- restarts the session. Same shape as the Save As overwrite guard, and
+	-- cheaper than a modal for something that is reversible by not saving.
+	onXformApply = function(_event)
+		---@type table?
+		local mt = WG.MapTransform
+		if not (mt and mt.apply) then
+			Spring.Echo("[Terraform Brush] The map transform widget is not loaded.")
+			return
+		end
+		local ok, why = mt.can()
+		if not ok then
+			Spring.Echo("[Terraform Brush] Cannot transform right now: " .. tostring(why))
+			return
+		end
+		local now = os.clock()
+		if not widgetState.xformArmedUntil or now > widgetState.xformArmedUntil then
+			widgetState.xformArmedUntil = now + 6
+			playSound("click")
+			if widgetState.envRefreshXform then
+				widgetState.envRefreshXform()
+			end
+			return
+		end
+		widgetState.xformArmedUntil = nil
+		playSound("save")
+		if widgetState.xformMode == "expand" then
+			local copy = nil
+			if widgetState.xformFill ~= "empty" then
+				copy = widgetState.xformCopy or "mirror"
+			end
+			mt.expand(widgetState.xformDir or "right", copy)
+		else
+			mt.apply({
+				rot = widgetState.xformRot or 0,
+				mirrorX = widgetState.xformMirrorX,
+				mirrorZ = widgetState.xformMirrorZ,
+				fit = widgetState.xformFit or "stretch",
+				anchorX = widgetState.xformAnchorX or 0,
+				anchorZ = widgetState.xformAnchorZ or 0,
+			}, widgetState.xformW or 12, widgetState.xformH or 12)
+		end
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
 		end
 	end,
 	-- Applies the slider min/max to the whole map. RESCALE remaps the live
@@ -20353,6 +20558,12 @@ function widget:Update()
 						if widgetState.envFillDimRangeInputs then
 							widgetState.envFillDimRangeInputs()
 						end
+						-- MAP TRANSFORM starts from the map you have: no turn, no
+						-- flip, the current size. Anything else would be a transform
+						-- nobody asked for sitting armed in the panel.
+						if widgetState.envResetXform then
+							widgetState.envResetXform()
+						end
 					elseif not widgetState.envDimensionsOpen then
 						widgetState.envDimWasOpen = false
 					end
@@ -20375,6 +20586,12 @@ function widget:Update()
 						if widgetState.envDimTick >= 10 and widgetState.envRefreshDimExtremes then
 							widgetState.envDimTick = 0
 							widgetState.envRefreshDimExtremes()
+							-- Same tick drives the MAP TRANSFORM button: the armed
+							-- state times out and a running transform reports its
+							-- step there.
+							if widgetState.envDimensionsOpen and widgetState.envRefreshXform then
+								widgetState.envRefreshXform()
+							end
 						end
 						-- Reseed after an apply, once the sim has moved the terrain the
 						-- slider's bounds were measured against.
