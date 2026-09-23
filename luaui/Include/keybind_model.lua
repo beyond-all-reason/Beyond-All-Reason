@@ -4,16 +4,14 @@
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 
--- Synonymous key names that should read the same however they were bound
--- (e.g. the file keysym "enter" vs the scancode-based "return" from capture).
+-- The file keysym "enter" and the scancode-based "return" from capture are one key.
 local keyNameAlias = { enter = "return" }
 
 -- Keychain separator (U+2192) shown between taps, since the engine's "," collides with a bound comma key.
 local chainSep = " \226\134\146 "
 
--- One engine keyset element as the player's keyboard layout would label it.
--- The Any+ qualifier is not shown: it is fixed per action rather than chosen, so there is
--- nothing on that key for a player to change. sanitizeKey is what drops it.
+-- The Any+ qualifier is not shown: it is fixed per action rather than chosen. sanitizeKey
+-- drops it.
 local function displayElement(raw, layout)
 	local mods, key = raw:match("^(.-)([^+]*)$")
 	if key and keyNameAlias[key:lower()] then
@@ -23,8 +21,8 @@ local function displayElement(raw, layout)
 	return (keyConfig.sanitizeKey(raw, layout):gsub("%+", " + "))
 end
 
--- Split a chain on separator commas. A comma is the bound key rather than a separator
--- when nothing has been read yet (","), straight after a modifier ("Alt+,") or after "sc_".
+-- A comma is the bound key rather than a separator when nothing has been read yet (","),
+-- straight after a modifier ("Alt+,") or after "sc_".
 local function splitChain(raw)
 	local elems = {}
 	local cur = ""
@@ -46,11 +44,9 @@ local function splitChain(raw)
 	return elems
 end
 
--- Whether two keysets are the same binding, which is a different question from whether
--- they print the same. Any+ and a bare modifier set resolve differently when the engine
--- picks an action, and scancodes and keycodes are separate maps that land on different
--- physical keys off qwerty, so both distinctions survive here. Only spellings of one key
--- fold. Display is no use for this: it drops exactly the qualifiers that decide priority.
+-- Whether two keysets are the same binding, which is a different question from whether they
+-- print the same: scancodes and keycodes land on different physical keys off qwerty, and
+-- display drops exactly the qualifiers that decide priority.
 local canonicalMods = { "any", "alt", "ctrl", "meta", "shift" }
 local modToken = {
 	["any+"] = "any",
@@ -59,6 +55,15 @@ local modToken = {
 	["ctrl+"] = "ctrl",
 	["meta+"] = "meta",
 	["shift+"] = "shift",
+}
+
+-- The engine reads a modifier bound on its own as its Any+ form. Only these four bind at
+-- all, and adding a real key stops the fold.
+local bareModifier = {
+	alt = true,
+	ctrl = true,
+	meta = true,
+	shift = true,
 }
 
 local function canonicalElement(raw)
@@ -81,6 +86,9 @@ local function canonicalElement(raw)
 		key = key:sub(4)
 	end
 	key = keyNameAlias[key] or key
+	if bareModifier[key] then
+		held.any = true
+	end
 
 	local out = {}
 	for _, name in ipairs(canonicalMods) do
@@ -107,6 +115,38 @@ local function displayKeyset(raw, layout)
 	return table.concat(parts, chainSep)
 end
 
+-- A paired action holds one key as two binds, bare and Shift+, and that Shift is the action
+-- own, so both halves share one chip.
+local function displayWithoutShift(raw, layout)
+	local parts = splitChain(raw)
+	parts[1] = (parts[1]:gsub("[Ss][Hh][Ii][Ff][Tt]%+", ""))
+
+	return displayKeyset(table.concat(parts, ","), layout)
+end
+
+-- Whole keys as the chip prints them, modifiers included, lowercased.
+local keySets = {}
+local function holdsKeys(display, keys)
+	if #keys == 0 then
+		return false
+	end
+	local set = keySets[display]
+	if not set then
+		set = {}
+		for key in display:lower():gmatch("[^%s%+]+") do
+			set[key] = true
+		end
+		keySets[display] = set
+	end
+	for i = 1, #keys do
+		if not set[keys[i]] then
+			return false
+		end
+	end
+
+	return true
+end
+
 local function canonicalKeyset(raw)
 	local parts = splitChain(raw)
 	for i = 1, #parts do
@@ -116,10 +156,26 @@ local function canonicalKeyset(raw)
 	return table.concat(parts, ",")
 end
 
--- A bound action is identified by the full command string passed to /bind:
--- command plus its space-separated args (.extra) - exactly what bind/unbind
--- expect. This includes "chain", whose .extra is the sequence; dropping it would
--- collapse every chain into one id and lose the sequence on rebind.
+-- What the keyboard page places a binding by, and what a filter on one key matches against.
+local function splitElement(canon)
+	local first = canon:match("^[^,]+") or canon
+	local mods, key = {}, nil
+	-- A key can be named "+" itself ("kc:numpad+"), so the tag decides where the modifiers stop.
+	local at = first:find("[sk]c:")
+	local modPart = first
+	if at then
+		key = first:sub(at)
+		modPart = first:sub(1, at - 1)
+	end
+	for token in modPart:gmatch("[^+]+") do
+		mods[token] = true
+	end
+
+	return mods, key
+end
+
+-- Command plus its space-separated args, which is what bind and unbind expect. Dropping the
+-- args would collapse every chain into one id.
 local function actionId(b)
 	if b.extra and b.extra ~= "" then
 		return b.command .. " " .. b.extra
@@ -164,7 +220,10 @@ end
 return {
 	build = build,
 	displayKeyset = displayKeyset,
+	displayWithoutShift = displayWithoutShift,
+	holdsKeys = holdsKeys,
 	canonicalKeyset = canonicalKeyset,
+	splitElement = splitElement,
 	splitChain = splitChain,
 	chainSep = chainSep,
 }

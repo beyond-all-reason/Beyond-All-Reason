@@ -2,6 +2,7 @@
 -- Install() must be called on the result.
 
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
+local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
 
 --- Only a name for readers: .emmyrc.json keeps spec/builders out of the
 --- workspace, so emmylua cannot resolve this class from a spec. A spec that
@@ -71,6 +72,28 @@ end
 
 local function isNilOrEmpty(tbl)
 	return tbl == nil or next(tbl) == nil
+end
+
+---Refill an installed table rather than replace it, down through its nested tables, so that a
+---module which captured one at load keeps reading this install's data.
+---@generic T
+---@param previous T?
+---@param contents T
+---@return T
+local function refill(previous, contents)
+	if previous == contents or type(previous) ~= "table" or type(contents) ~= "table" then
+		return contents
+	end
+
+	for key, value in pairs(contents) do
+		previous[key] = refill(previous[key], value)
+	end
+	for key in pairs(previous) do
+		if contents[key] == nil then
+			previous[key] = nil
+		end
+	end
+	return previous
 end
 
 ---@return MissionApiBuilder
@@ -254,12 +277,16 @@ function MB:WithoutParameterTypes()
 	return self
 end
 
+---@param installed MissionApiMock? The table Install() writes into, whose tracking tables the
+---stubs then share with any module already holding them.
 ---@return MissionApiMock
-function MB:Build()
-	local trackedUnitIDs = {}
-	local trackedUnitNames = {}
-	local trackedFeatureIDs = {}
-	local trackedFeatureNames = {}
+function MB:Build(installed)
+	installed = installed or {}
+
+	local trackedUnitIDs = refill(installed.trackedUnitIDs, {})
+	local trackedUnitNames = refill(installed.trackedUnitNames, {})
+	local trackedFeatureIDs = refill(installed.trackedFeatureIDs, {})
+	local trackedFeatureNames = refill(installed.trackedFeatureNames, {})
 
 	-- Mirrors luarules/mission_api/tracking.lua
 	local function trackEntity(name, ID, trackedIDs, trackedNames)
@@ -560,28 +587,37 @@ end
 ---valid even if another spec replaces GG['MissionAPI'] with its own table.
 local installedTable = nil
 
+---The real modules, included once and kept, as the gadget includes them once.
+local unitQueryModule = nil
+
 ---Build the mock and install it as GG['MissionAPI'].
 ---@return MissionApiMock
 function MB:Install()
-	local mock = self:Build()
-
 	_G.GG = _G.GG or {}
 
 	local target = installedTable
 	if type(target) ~= "table" then
 		target = {}
 		installedTable = target
-	else
-		for key in pairs(target) do
-			target[key] = nil
-		end
 	end
 
-	for key, value in pairs(mock) do
-		target[key] = value
-	end
+	local mock = self:Build(target)
+
+	local recorded = mock.calls
+	mock.calls = nil
+
+	refill(target, mock)
+	target.calls = recorded
 
 	_G.GG["MissionAPI"] = target
+
+	-- The mission_api modules read GG at load, so the real ones are included once the mock stands,
+	-- and kept, since what they captured is refilled by every install after this one.
+	if not self.moduleOverrides.UnitQuery then
+		unitQueryModule = unitQueryModule or VFS.Include(UNIT_QUERY_PATH)
+		target.Modules.UnitQuery = unitQueryModule
+	end
+
 	return target
 end
 

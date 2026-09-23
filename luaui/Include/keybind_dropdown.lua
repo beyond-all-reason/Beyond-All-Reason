@@ -1,6 +1,8 @@
--- Select control for the keybind editor's preset picker.
--- Uses FlowUI's Selector visuals to match the Settings look. Shows the current
--- selection; onSelect(option, index) fires when a choice is picked.
+-- Select control for the keybind editor preset picker, on FlowUI Selector visuals.
+-- onSelect(option, index) fires when a choice is picked.
+--
+-- An option may carry a `tag`, drawn on a faint pill, and a `group`, which rules a line
+-- between neighbours whose groups differ.
 
 local text = VFS.Include("luaui/Include/keybind_text.lua")
 
@@ -10,11 +12,21 @@ Dropdown.__index = Dropdown
 local floor = math.floor
 
 local colorText = "\255\235\235\235"
--- SelectHighlight defaults to 0.35 and the rest of the UI stays near it. At 1 the
--- overlay is opaque and swallows the option label under it.
+-- Quieter than the name beside it: a tag qualifies the option rather than naming it.
+local colorTag = "\255\175\175\175"
+-- SelectHighlight defaults to 0.35; at 1 the overlay swallows the option label under it.
 local hoverOpacity = 0.25
+-- Lighter for the control than for a row of the open list: one says the cursor is on it, the
+-- other says a click would take this option.
+local controlHoverOpacity = 0.14
 local white = { 1, 1, 1 }
+-- Taken from the colour SelectHighlight would be handed, so a row and the control above it
+-- cannot drift apart.
+local washLow = { white[1] * 0.5, white[2] * 0.5, white[3] * 0.5, hoverOpacity }
+local washHigh = { white[1], white[2], white[3], hoverOpacity }
 local listFill = { 0.09, 0.09, 0.09, 0.96 }
+local tagFill = { 1, 1, 1, 0.08 }
+local ruleColor = { 1, 1, 1, 0.14 }
 
 -- Font is fetched per draw; it does not exist when this file is included.
 local function getFont()
@@ -30,6 +42,14 @@ local function optionLabel(opt)
 	return tostring(opt)
 end
 
+local function optionTag(opt)
+	return type(opt) == "table" and opt.tag or nil
+end
+
+local function optionGroup(opt)
+	return type(opt) == "table" and opt.group or nil
+end
+
 -- A select: closed it shows the selection, open it overlays its options.
 function Dropdown.new(opts)
 	opts = opts or {}
@@ -39,6 +59,10 @@ function Dropdown.new(opts)
 	self.onSelect = opts.onSelect
 	self.selected = opts.selected or 1
 	self.placeholder = opts.placeholder
+	-- The font is shared with every other widget and keeps whatever outline was set on it last.
+	self.outline = opts.outline
+	-- For a picker whose selection is always a real choice, never a placeholder standing in.
+	self.markSelected = opts.markSelected
 	self.open = false
 	self.rect = { 0, 0, 0, 0 }
 	self.optRects = {}
@@ -51,6 +75,8 @@ end
 function Dropdown:setRect(x1, y1, x2, y2, fontSize)
 	self.rect = { x1, y1, x2, y2 }
 	self.fontSize = fontSize or (y2 - y1) * 0.5
+	-- Tag pills are measured against the row height and the font size, both just set.
+	self.tagCache = nil
 
 	local optH = floor(y2 - y1)
 	self.optRects = {}
@@ -61,8 +87,8 @@ end
 
 -- Swaps the options, closing the list and keeping the selection in range.
 function Dropdown:setOptions(options)
-	-- Closed as well as rebuilt: a refresh while the list is down would otherwise leave it
-	-- open over a different set of options than the one it was opened on.
+	-- Closed as well as rebuilt: a refresh would otherwise leave the list open over a different
+	-- set of options than the one it was opened on.
 	self.open = false
 	self.options = options or {}
 	if self.selected > #self.options then
@@ -75,8 +101,7 @@ function Dropdown:setOptions(options)
 	self:setRect(r[1], r[2], r[3], r[4], self.fontSize)
 end
 
--- The caption shortened to its box, measured once per text and width rather than per
--- frame. The result is kept on the cache table under the key given.
+-- Measured once per text and width rather than per frame.
 local function fittedLabel(cache, key, font, label, w, fs)
 	local hit = cache[key]
 	if hit and hit.label == label and hit.w == w then
@@ -87,6 +112,33 @@ local function fittedLabel(cache, key, font, label, w, fs)
 	cache[key] = { label = label, w = w, text = fitted }
 
 	return fitted
+end
+
+-- Measured once per tag rather than per frame; setRect drops them when the size changes.
+local function tagMetrics(self, font, tag)
+	local cache = self.tagCache
+	if not cache then
+		cache = {}
+		self.tagCache = cache
+	end
+
+	local hit = cache[tag]
+	if not hit then
+		local fs = floor(self.fontSize * 0.8)
+		local pad = floor((self.rect[4] - self.rect[2]) * 0.25)
+		hit = { w = floor(font:GetTextWidth(tag) * fs) + pad * 2, fs = fs, pad = pad, text = colorTag .. tag }
+		cache[tag] = hit
+	end
+
+	return hit
+end
+
+-- Vertical span of a tag's pill in a row: a little over half the row's height, centred.
+local function tagSpan(y1, y2)
+	local h = floor((y2 - y1) * 0.62)
+	local py1 = floor((y1 + y2 - h) * 0.5)
+
+	return py1, py1 + h
 end
 
 -- Moves the selection without notifying the owner, for syncing from outside.
@@ -100,12 +152,29 @@ function Dropdown:isOpen()
 	return self.open
 end
 
+-- An option index in the open list, 0 for the control itself, nil for neither.
+function Dropdown:optionAt(x, y)
+	if self.open then
+		for i, r in ipairs(self.optRects) do
+			if x >= r.x1 and x <= r.x2 and y >= r.y1 and y <= r.y2 then
+				return i
+			end
+		end
+	end
+
+	local b = self.rect
+	if x >= b[1] and x <= b[3] and y >= b[2] and y <= b[4] then
+		return 0
+	end
+
+	return nil
+end
+
 function Dropdown:close()
 	self.open = false
 end
 
--- Chevron corners, held as upvalues so the vertex callback can be built once rather
--- than closing over fresh geometry on every draw.
+-- Upvalues so the vertex callback is built once rather than closing over fresh geometry.
 local chevronX, chevronY, chevronH = 0, 0, 0
 local function chevronVertices()
 	gl.Vertex(chevronX - chevronH, chevronY)
@@ -122,19 +191,37 @@ function Dropdown:draw()
 	local mx, my = Spring.GetMouseState()
 	local x1, y1, x2, y2 = self.rect[1], self.rect[2], self.rect[3], self.rect[4]
 	local inset = floor((y2 - y1) * 0.3)
+	local tagCs = math.max(1, floor(WG.FlowUI.elementCorner * 0.5))
+	-- Clear of the square FlowUI Selector draws at the right end, as wide as the control is tall.
+	local tagRight = x2 - (y2 - y1) - inset
 
 	Selector(x1, y1, x2, y2)
+	-- Lighting is what tells a player something will happen when they press, and here nothing will.
+	if not self.disabled and mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+		Highlight(x1, y1, x2, y2, floor(WG.FlowUI.elementCorner * 0.66), controlHoverOpacity, white)
+	end
 
-	-- Chevron in the gap already reserved at the right edge, so the control reads as a
-	-- select rather than a button. Drawn before the text: geometry inside a font batch
-	-- makes both flicker.
+	-- Drawn before the text: geometry inside a font batch makes both draw wrong.
 	local arrowH = floor((y2 - y1) * 0.16)
 	local arrowX = x2 - inset - arrowH
 	local arrowY = floor((y1 + y2) * 0.5 + arrowH * 0.5)
-	gl.Color(1, 1, 1, self.open and 0.9 or 0.55)
+	gl.Color(1, 1, 1, self.disabled and 0.25 or (self.open and 0.9 or 0.55))
 	chevronX, chevronY, chevronH = arrowX, arrowY, arrowH
 	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
 	gl.Color(1, 1, 1, 1)
+
+	-- Its pill is geometry too, so it goes down here and its caption waits for the font batch.
+	local current = self.options[self.selected]
+	local currentTag = not self.placeholder and optionTag(current)
+	local tag = currentTag and tagMetrics(self, font, currentTag)
+	local labelRight = (arrowX - arrowH) - inset * 2
+	local tagX1, tagY1, tagY2
+	if tag then
+		tagX1 = tagRight - tag.w
+		tagY1, tagY2 = tagSpan(y1, y2)
+		R(tagX1, tagY1, tagRight, tagY2, tagCs, 1, 1, 1, 1, tagFill)
+		labelRight = tagX1 - inset
+	end
 
 	local fitted = self.optFitted
 	if not fitted then
@@ -143,18 +230,23 @@ function Dropdown:draw()
 	end
 
 	font:Begin()
-	local current = self.options[self.selected]
+	if self.outline then
+		font:SetOutlineColor(self.outline)
+	end
 	local label = self.placeholder or (current and optionLabel(current) or "")
-	-- A profile name is free text and can outrun the control, which is fixed width so the
-	-- header does not reflow every time the selection changes.
-	local labelW = (arrowX - arrowH) - (x1 + inset) - inset * 2
+	-- A preset name is free text and can outrun the control, which is fixed width so the header
+	-- does not reflow every time the selection changes.
+	local labelW = labelRight - (x1 + inset)
 	font:Print(
 		fittedLabel(fitted, 0, font, label, labelW, self.fontSize),
 		x1 + inset,
-		floor((y1 + y2) * 0.5),
+		text.baseline(font, y1, y2, self.fontSize),
 		self.fontSize,
-		"ov"
+		"o"
 	)
+	if tag then
+		font:Print(tag.text, tagX1 + tag.pad, text.baseline(font, tagY1, tagY2, tag.fs), tag.fs, "o")
+	end
 	font:End()
 
 	if self.open and #self.optRects > 0 then
@@ -164,31 +256,65 @@ function Dropdown:draw()
 		local cs = floor(WG.FlowUI.elementCorner * 0.66)
 		R(x1, bottom, x2, top, cs, 1, 1, 1, 1, listFill)
 
-		for i in ipairs(self.options) do
+		local ruleH = math.max(1, floor((y2 - y1) * 0.04))
+		for i, opt in ipairs(self.options) do
 			---@type table
 			local r = self.optRects[i]
-			if mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2 then
-				Highlight(r.x1, r.y1, r.x2, r.y2, cs, hoverOpacity, white)
+			-- One treatment for the list rather than two washes of different weights side by side.
+			local hovered = mx >= r.x1 and mx <= r.x2 and my >= r.y1 and my <= r.y2
+			if hovered or (self.markSelected and i == self.selected) then
+				-- SelectHighlight rounds all four corners, and a row has corners only where the list does.
+				local first = (i == 1) and 1 or 0
+				local last = (i == #self.options) and 1 or 0
+				R(r.x1, r.y1, r.x2, r.y2, cs, first, first, last, last, washLow, washHigh)
+			end
+
+			local optTag = optionTag(opt)
+			if optTag then
+				local m = tagMetrics(self, font, optTag)
+				local py1, py2 = tagSpan(r.y1, r.y2)
+				R(tagRight - m.w, py1, tagRight, py2, tagCs, 1, 1, 1, 1, tagFill)
+			end
+
+			-- A rule along the top of the row where one group of options gives way to the next.
+			if i > 1 and optionGroup(opt) ~= optionGroup(self.options[i - 1]) then
+				gl.Color(ruleColor[1], ruleColor[2], ruleColor[3], ruleColor[4])
+				gl.Rect(r.x1 + inset, r.y2 - ruleH, r.x2 - inset, r.y2)
+				gl.Color(1, 1, 1, 1)
 			end
 		end
 
+		-- Still the caption's outline: it was set on this same font a moment ago, in this draw.
 		font:Begin()
 		for i, opt in ipairs(self.options) do
 			local r = self.optRects[i]
-			local w = (r.x2 - inset) - (r.x1 + inset)
+			local optTag = optionTag(opt)
+			local m = optTag and tagMetrics(self, font, optTag)
+			-- The name stops short of its tag when it has one, as the closed control's does.
+			local right = m and (tagRight - m.w - inset) or (r.x2 - inset)
 			font:Print(
-				fittedLabel(fitted, i, font, optionLabel(opt), w, self.fontSize),
+				fittedLabel(fitted, i, font, optionLabel(opt), right - (r.x1 + inset), self.fontSize),
 				r.x1 + inset,
-				floor((r.y1 + r.y2) * 0.5),
+				text.baseline(font, r.y1, r.y2, self.fontSize),
 				self.fontSize,
-				"ov"
+				"o"
 			)
+			if m then
+				local py1, py2 = tagSpan(r.y1, r.y2)
+				font:Print(m.text, tagRight - m.w + m.pad, text.baseline(font, py1, py2, m.fs), m.fs, "o")
+			end
 		end
 		font:End()
 	end
 end
 
 function Dropdown:mousePress(x, y)
+	if self.disabled then
+		self.open = false
+
+		return false
+	end
+
 	if self.open then
 		for i, r in ipairs(self.optRects) do
 			if x >= r.x1 and x <= r.x2 and y >= r.y1 and y <= r.y2 then

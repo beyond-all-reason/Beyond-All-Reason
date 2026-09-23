@@ -1,15 +1,35 @@
--- Text measuring shared by the keybind editor's controls, so a label clipped in one
--- control clips the same way in the next. The font is passed in because each control
--- draws with its own.
+-- Text measuring shared by the keybind editor's controls and the game info panel's rows,
+-- so a label clipped in one control clips the same way in the next. The font is passed in
+-- because each control draws with its own.
 
 local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
 
 local M = {}
 
+local mathFloor = math.floor
+
+-- Asked of the font once: it does not change with the size the text is drawn at, and baseline
+-- runs for every label on every frame.
+local bodyHeight = setmetatable({}, { __mode = "k" })
+
+-- Printing with "v" centres the glyphs the string happens to have, so a string with no
+-- descender sits lower than one beside it. Measuring the band instead keeps a row of labels
+-- on one line.
+function M.baseline(font, y1, y2, size)
+	local body = bodyHeight[font]
+	if not body then
+		-- A lowercase x sits on the baseline and reaches neither above nor below the band.
+		body = font:GetTextHeight("x")
+		bodyHeight[font] = body
+	end
+
+	-- Rounded, not floored: always taking the lower one leaves every label sitting a pixel low.
+	return mathFloor((y1 + y2) * 0.5 - size * body * 0.5 + 0.5)
+end
+
 -- Shortens text until it draws inside maxWidth, marking the cut with "..".
 function M.fit(font, text, maxWidth, size)
-	-- Callers derive the width by subtracting, so it can come through negative. Returning
-	-- the text whole there draws it straight out of whatever it was meant to fit inside.
+	-- Callers derive the width by subtracting, so it can come through negative.
 	if maxWidth <= 0 then
 		return ""
 	end
@@ -20,8 +40,6 @@ function M.fit(font, text, maxWidth, size)
 	end
 
 	-- Trimmed by character, not byte: translated labels and the chain arrow are multi-byte.
-	-- Cut straight to the length the average glyph predicts and correct from there by one
-	-- character either way, rather than measuring every length down from the whole string.
 	local len = utf8.len(text)
 	local markW = font:GetTextWidth("..") * size
 	local keep = math.max(1, math.min(len - 1, math.floor(len * (maxWidth - markW) / width)))
@@ -41,8 +59,7 @@ function M.fit(font, text, maxWidth, size)
 	return cut .. ".."
 end
 
--- Splits text into lines that each draw inside maxWidth. A word too long to fit is left
--- over-long for the caller to shorten, there being nowhere sensible to break it.
+-- A word too long to fit is left over-long, there being nowhere sensible to break it.
 function M.wrap(font, text, maxWidth, size)
 	local lines = {}
 	local line
@@ -60,6 +77,23 @@ function M.wrap(font, text, maxWidth, size)
 	end
 
 	return lines
+end
+
+-- A tooltip prints its text a line at a time, each from the tooltip own colour, so a colour
+-- set on one line would be lost on the next.
+function M.carryColors(str)
+	local out, current = {}, nil
+	for line in (str .. "\n"):gmatch("([^\n]*)\n") do
+		if current and line ~= "" and line:byte(1) ~= 255 then
+			line = current .. line
+		end
+		for code in line:gmatch("\255...") do
+			current = code
+		end
+		out[#out + 1] = line
+	end
+
+	return table.concat(out, "\n")
 end
 
 return M

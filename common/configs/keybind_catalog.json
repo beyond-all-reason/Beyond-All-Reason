@@ -23,7 +23,6 @@
 			"edit_prev_word",
 			"edit_return",
 			"losradar",
-			"luaui selector",
 			"movereset",
 			"moverotate",
 			"moveslow",
@@ -156,11 +155,6 @@
 				"alwaysModifier": "shift"
 			},
 			{
-				"action": "wantcloak",
-				"label": "actions.orders.cloak",
-				"alwaysModifier": "any"
-			},
-			{
 				"action": "stop",
 				"label": "commands.stop",
 				"alwaysModifier": "shift"
@@ -277,44 +271,109 @@
 			},
 			{
 				"action": "repeat 0",
-				"label": "actions.unitStates.repeatOff"
+				"label": "actions.unitStates.repeatOff",
+				"description": "commands.repeat_tooltip"
 			},
 			{
 				"action": "repeat 1",
-				"label": "actions.unitStates.repeatOn"
+				"label": "actions.unitStates.repeatOn",
+				"description": "commands.repeat_tooltip"
 			},
 			{
-				"prefix": "trajectory_toggle ",
-				"label": "actions.unitStates.trajectory",
-				"members": [
-					"0",
-					"1",
-					"2"
-				]
+				"action": "wantcloak",
+				"label": "actions.orders.cloak",
+				"description": "commands.wantcloak_tooltip",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "trajectory_toggle 0",
+				"label": "actions.unitStates.trajectoryLow",
+				"description": "commands.trajectory_toggle_tooltip"
+			},
+			{
+				"action": "trajectory_toggle 1",
+				"label": "actions.unitStates.trajectoryHigh",
+				"description": "commands.trajectory_toggle_tooltip"
+			},
+			{
+				"action": "trajectory_toggle 2",
+				"label": "actions.unitStates.trajectoryAuto",
+				"description": "commands.trajectory_toggle_tooltip"
 			},
 			{
 				"action": "firestate 0",
-				"label": "actions.unitStates.fireHold"
+				"label": "actions.unitStates.fireHold",
+				"description": "commands.firestate_hold_fire_descr"
 			},
 			{
 				"action": "firestate 1",
-				"label": "actions.unitStates.fireReturn"
+				"label": "actions.unitStates.fireReturn",
+				"description": "commands.firestate_return_fire_descr"
 			},
 			{
 				"action": "firestate 2",
-				"label": "actions.unitStates.fireAtWill"
+				"label": "actions.unitStates.fireAtWill",
+				"description": "commands.firestate_fire_at_will_descr"
 			},
 			{
 				"action": "movestate 0",
-				"label": "actions.unitStates.moveHold"
+				"label": "actions.unitStates.moveHold",
+				"description": "commands.movestate_tooltip"
 			},
 			{
 				"action": "movestate 1",
-				"label": "actions.unitStates.moveManeuver"
+				"label": "actions.unitStates.moveManeuver",
+				"description": "commands.movestate_tooltip"
 			},
 			{
 				"action": "movestate 2",
-				"label": "actions.unitStates.moveRoam"
+				"label": "actions.unitStates.moveRoam",
+				"description": "commands.movestate_tooltip"
+			},
+			{
+				"action": "idlemode",
+				"label": "actions.unitStates.idleMode",
+				"description": "commands.idlemode_tooltip"
+			},
+			{
+				"action": "idlemode 0",
+				"label": "actions.unitStates.idleModeFly",
+				"description": "commands.idlemode_tooltip"
+			},
+			{
+				"action": "idlemode 1",
+				"label": "actions.unitStates.idleModeLand",
+				"description": "commands.idlemode_tooltip"
+			},
+			{
+				"action": "priority",
+				"label": "actions.unitStates.buildPriority",
+				"description": "commands.priority_tooltip"
+			},
+			{
+				"action": "priority 0",
+				"label": "actions.unitStates.buildPriorityLow",
+				"description": "commands.priority_tooltip"
+			},
+			{
+				"action": "priority 1",
+				"label": "actions.unitStates.buildPriorityHigh",
+				"description": "commands.priority_tooltip"
+			},
+			{
+				"action": "aplandat",
+				"label": "actions.unitStates.airPlantExit",
+				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "aplandat 0",
+				"label": "actions.unitStates.airPlantExitFly",
+				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "aplandat 1",
+				"label": "actions.unitStates.airPlantExitLand",
+				"description": "commands.aplandat_tooltip"
 			}
 		]
 	},
@@ -502,7 +561,8 @@
 			},
 			{
 				"action": "factoryqueuemode",
-				"label": "actions.factory.queueMode"
+				"label": "actions.factory.queueMode",
+				"description": "commands.factoryqueuemode_tooltip"
 			},
 			{
 				"prefix": "factoryguard ",
@@ -708,12 +768,20 @@
 				"label": "actions.interfaceDisplay.settings"
 			},
 			{
+				"action": "luaui selector",
+				"label": "actions.interfaceDisplay.widgetSelector"
+			},
+			{
 				"action": "hideinterface",
 				"label": "actions.cameraModes.interface"
 			},
 			{
 				"action": "unit_stats",
 				"label": "actions.interfaceDisplay.unitStats"
+			},
+			{
+				"action": "customgameinfo",
+				"label": "actions.interfaceDisplay.gameInfo"
 			},
 			{
 				"action": "savegame",
@@ -798,6 +866,12 @@
 					"7",
 					"8"
 				]
+			},
+			{
+				"prefix": "keybindprofile ",
+				"label": "actions.keybindProfiles.activate",
+				"description": "actions.keybindProfiles.activateDescription",
+				"membersFrom": "profiles"
 			}
 		]
 	},
@@ -845,6 +919,10 @@
 				"action": "factory_preset_show",
 				"label": "actions.factory.showPresets",
 				"alwaysModifier": "any"
+			},
+			{
+				"action": "factory_preset_toggle",
+				"label": "actions.factory.togglePresets"
 			},
 			{
 				"action": "fov_inc 5",

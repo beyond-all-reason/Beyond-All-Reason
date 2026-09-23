@@ -23,7 +23,7 @@ local allExemptReasonKeys = {
 }
 
 if gadgetHandler:IsSyncedCode() then
-	local function notifyUnitBlocked(unitDefID, teamID, reasons)
+	local function notifyUnitBlocked(unitDefID, teamID, reasons, builderUnitDefID)
 		local reasonsStr = ""
 		local count = 0
 		for r, _ in pairs(reasons) do
@@ -34,7 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 			count = count + 1
 		end
 
-		SendToUnsynced("BuildBlocked_" .. teamID, unitDefID, reasonsStr)
+		SendToUnsynced("BuildBlocked_" .. teamID, unitDefID, reasonsStr, builderUnitDefID)
 	end
 
 	local windDisabled = false
@@ -44,7 +44,11 @@ if gadgetHandler:IsSyncedCode() then
 	local teamBlockedUnitDefs = {}
 	-- data structure: unitDefID = {reasonKey = true, reasonKey = true, ...}
 
+	-- blocks for one builder type only: teamID = { builderUnitDefID = { unitDefID = {reasonKey = true, ...} } }
+	local teamBuilderBlockedUnitDefs = {}
+
 	local teamsList = Spring.GetTeamList()
+	---@cast teamsList -?
 
 	local ignoredTeams = {}
 	local scavTeamID, raptorTeamID = BAR.Utilities.GetScavTeamID(), BAR.Utilities.GetRaptorTeamID()
@@ -85,6 +89,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local unitRestrictions = VFS.Include("common/configs/unit_restrictions_config.lua")
+	local unitBlocking = VFS.Include("common/unitBlocking.lua")
+
+	---@param blockedUnits table<number, table<string, boolean>> unitDefID -> reasons
+	local function reapplyBlocks(teamID, blockedUnits, builderUnitDefID)
+		for unitDefID, reasons in pairs(blockedUnits) do
+			for reasonKey in pairs(reasons) do
+				GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
+			end
+		end
+	end
 
 	local function parseTeamParameter(teamParam, playerID)
 		if teamParam == "all" then
@@ -260,6 +274,14 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		GG.BuildBlocking = GG.BuildBlocking or {}
 
+		-- reapply the blocks published before a /luarules reload (a fresh start has none)
+		for _, teamID in ipairs(teamsList) do
+			reapplyBlocks(teamID, unitBlocking.getBlockedUnitDefs(teamID))
+			for builderUnitDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs(teamID)) do
+				reapplyBlocks(teamID, blockedUnits, builderUnitDefID)
+			end
+		end
+
 		windDisabled = unitRestrictions.isWindDisabled()
 		waterAvailable = unitRestrictions.shouldShowWaterUnits()
 		for _, teamID in ipairs(teamsList) do
@@ -296,14 +318,43 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveChatAction("buildunblock")
 	end
 
+	local function getBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
+		local builderBlocked = teamBuilderBlockedUnitDefs[teamID]
+		local blockedUnitDefs = builderBlocked and builderBlocked[builderUnitDefID]
+		return blockedUnitDefs and blockedUnitDefs[unitDefID] or nil
+	end
+
+	local function ensureBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
+		local builderBlocked = table.ensureTable(teamBuilderBlockedUnitDefs, teamID)
+		local blockedUnitDefs = table.ensureTable(builderBlocked, builderUnitDefID)
+		return table.ensureTable(blockedUnitDefs, unitDefID)
+	end
+
+	local function publishBuilderBlock(teamID, builderUnitDefID, unitDefID, unitReasons)
+		local paramName = "builder_blocked_" .. builderUnitDefID .. "_" .. unitDefID
+		if next(unitReasons) then
+			Spring.SetTeamRulesParam(teamID, paramName, reasonConcatenator(unitReasons))
+		else
+			Spring.SetTeamRulesParam(teamID, paramName, nil)
+		end
+		notifyUnitBlocked(unitDefID, teamID, unitReasons, builderUnitDefID)
+	end
+
 	---Marks a unit definition as unbuildable by a team for the given reason.
 	---Reasons stack: the unit stays blocked until every reason is removed.
 	---@param unitDefID UnitDefID
 	---@param teamID TeamID
 	---@param reasonKey string Identifier for why the unit is blocked, e.g. "terrain_water".
-	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey)
+	---@param builderUnitDefID UnitDefID? Block orders from this builder type only.
+	function GG.BuildBlocking.AddBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
+			return
+		end
+		if builderUnitDefID then
+			local unitReasons = ensureBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
+			unitReasons[reasonKey] = true
+			publishBuilderBlock(teamID, builderUnitDefID, unitDefID, unitReasons)
 			return
 		end
 		local unitReasons = blockedUnitDefs[unitDefID]
@@ -317,11 +368,21 @@ if gadgetHandler:IsSyncedCode() then
 	---@param unitDefID UnitDefID
 	---@param teamID TeamID
 	---@param reasonKey string Identifier previously passed to `AddBlockedUnit`.
+	---@param builderUnitDefID UnitDefID? The builder unit type the reason was added for; `nil` for a team-wide reason.
 	---@return boolean removed `true` if that reason was set and has been cleared.
-	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey)
+	function GG.BuildBlocking.RemoveBlockedUnit(unitDefID, teamID, reasonKey, builderUnitDefID)
 		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
 		if not blockedUnitDefs then
 			return false
+		end
+		if builderUnitDefID then
+			local unitReasons = getBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
+			if not unitReasons or not unitReasons[reasonKey] then
+				return false
+			end
+			unitReasons[reasonKey] = nil
+			publishBuilderBlock(teamID, builderUnitDefID, unitDefID, unitReasons)
+			return true
 		end
 		local unitReasons = blockedUnitDefs[unitDefID]
 		if not unitReasons[reasonKey] then
@@ -340,14 +401,26 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
+	---Whether a team is currently blocked from building a unit definition.
+	---@param unitDefID UnitDefID
+	---@param teamID TeamID
+	---@param builderUnitDefID UnitDefID? Also check blocks for this builder type.
+	---@return boolean blocked
+	local function isUnitBlocked(unitDefID, teamID, builderUnitDefID)
+		local blockedUnitDefs = teamBlockedUnitDefs[teamID]
+		if blockedUnitDefs and blockedUnitDefs[unitDefID] and next(blockedUnitDefs[unitDefID]) then
+			return true
+		end
+		local builderReasons = builderUnitDefID and getBuilderBlockedReasons(teamID, builderUnitDefID, unitDefID)
+		return builderReasons ~= nil and next(builderReasons) ~= nil
+	end
+	GG.BuildBlocking.IsUnitBlocked = isUnitBlocked
+
 	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
 		-- Allows CMD.BUILD (cmdID < 0)
 		local buildDefID = -cmdID
-		local blockedUnitDefs = teamBlockedUnitDefs[unitTeam]
-		if blockedUnitDefs and blockedUnitDefs[buildDefID] and next(blockedUnitDefs[buildDefID]) then
-			return false
-		end
-		return true
+		---@cast buildDefID UnitDefID
+		return not isUnitBlocked(buildDefID, unitTeam, unitDefID)
 	end
 
 	function gadget:GameFrame(frame)
@@ -377,13 +450,13 @@ elseif not gadgetHandler:IsSyncedCode() then --elseif for readability
 	local myPlayerID = Spring.GetLocalPlayerID()
 	local myTeamID = Spring.GetLocalTeamID()
 
-	local function HandleBuildBlocked(_, unitDefID, reasonsStr)
+	local function HandleBuildBlocked(_, unitDefID, reasonsStr, builderUnitDefID)
 		if Script.LuaUI.UnitBlocked then
 			local reasons = {}
 			for r in string.gmatch(reasonsStr, "[^,]+") do
 				reasons[r] = true
 			end
-			Script.LuaUI.UnitBlocked(unitDefID, reasons)
+			Script.LuaUI.UnitBlocked(unitDefID, reasons, builderUnitDefID)
 		end
 	end
 
