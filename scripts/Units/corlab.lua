@@ -14,6 +14,7 @@ local pad, base, door1, door2, crane1, crane2, turret1, turret2, nano1, nano2, c
 )
 
 local spray = 0
+local hasOpened = false
 
 local SIG_ACTIVATE = 2
 local SIG_OPENCLOSE = 4
@@ -28,7 +29,7 @@ function open()
 	UnitScript.Signal(SIG_OPENCLOSE)
 	UnitScript.SetSignalMask(SIG_OPENCLOSE)
 	--Activate
-	if not litelab then
+	if not litelab and not hasOpened then
 		Move(door1, x_axis, -17, 10)
 		Move(door2, x_axis, 17, 10)
 		UnitScript.WaitForMove(door1, x_axis)
@@ -36,6 +37,7 @@ function open()
 		Move(crane2, x_axis, 21, 42)
 		UnitScript.WaitForMove(crane1, x_axis)
 		Sleep(1000)
+		hasOpened = true
 	end
 	--Open yard
 	open_yard()
@@ -50,16 +52,6 @@ function close()
 	UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0)
 	--Close yard
 	close_yard()
-	--Deactivate
-	if not litelab then
-		Move(crane1, x_axis, 2, 20)
-		Move(crane2, x_axis, 2, 20)
-		UnitScript.WaitForMove(crane1, x_axis)
-		Move(door1, x_axis, 0, 17)
-		Move(door2, x_axis, 0, 17)
-		UnitScript.WaitForMove(door1, x_axis)
-		Sleep(500)
-	end
 end
 
 function script.Create()
