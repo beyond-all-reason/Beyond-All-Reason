@@ -513,7 +513,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		return true
 	end
 	if rezzedCorpses[featureID] then
-		return false -- the corpse is deleted a frame later, so other rezzers on it must not spawn again
+		return false
 	end
 	local corpseData = corpsesData[featureID]
 	if corpseData then
@@ -537,7 +537,7 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 		featureX,
 		featureY,
 		featureZ,
-		false, -- a rezzed zombie corpse rolls the full count, only timer respawns are capped at one
+		false,
 		corpseData and corpseData.pastXp
 	)
 	return false
