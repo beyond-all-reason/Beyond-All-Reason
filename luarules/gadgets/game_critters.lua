@@ -64,6 +64,9 @@ local DestroyUnit = Spring.DestroyUnit
 local CMD_PATROL = CMD.PATROL
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_ATTACK = CMD.ATTACK
+
+local ATTRIBUTE_SOURCE = "invariant" -- critters are not interactive
+local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 
 local GaiaTeamID = Spring.GetGaiaTeamID()
@@ -190,14 +193,14 @@ end
 local function setGaiaCritterSpecifics(unitID, unitDefID)
 	Spring.SetUnitNeutral(unitID, true)
 	Spring.SetUnitNoSelect(unitID, true)
-	Spring.SetUnitStealth(unitID, true)
+	GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
 	Spring.SetUnitNoMinimap(unitID, true)
-	Spring.SetUnitMaxHealth(unitID, 2)
+	GG.UnitAttributes.SetUnitAttribute(unitID, "maxHealth", 2, ATTRIBUTE_SOURCE)
 	Spring.SetUnitBlocking(unitID, false)
-	Spring.SetUnitSensorRadius(unitID, "los", 0)
-	Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-	Spring.SetUnitSensorRadius(unitID, "radar", 0)
-	Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+		setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
+	end
 	if #UnitDefs[unitDefID].weapons > 0 then
 		GiveOrderToUnit(unitID, CMD_FIRE_STATE, { 0 }, 0)
 	end

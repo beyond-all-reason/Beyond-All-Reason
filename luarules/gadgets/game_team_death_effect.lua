@@ -39,9 +39,19 @@ local DISTANCE_LIMIT = math.max(Game.mapSizeX, Game.mapSizeZ) * math.max(Game.ma
 local destroyUnitQueue = {}
 local wipedoutTeams = {}
 
+local ATTRIBUTE_SOURCE = "team_death"
+local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
+
 local function getSqrDistance(x1, z1, x2, z2)
 	local dx, dz = x1 - x2, z1 - z2
 	return (dx * dx) + (dz * dz)
+end
+
+local function hideFromSensors(unitID)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+		setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
+	end
 end
 
 ---Neutralizes a team's units and queues them to explode
@@ -85,10 +95,7 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 
 			-- neutralize units
 			Spring.SetUnitNeutral(unitID, true)
-			Spring.SetUnitSensorRadius(unitID, "los", 0)
-			Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-			Spring.SetUnitSensorRadius(unitID, "radar", 0)
-			Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+			hideFromSensors(unitID)
 			local i = 0
 			for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 				Spring.UnitWeaponHoldFire(unitID, weaponID)

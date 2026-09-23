@@ -36,6 +36,7 @@ local definitions = {
 	reloadTime = { type = "number" },
 	experience = { type = "number", isUnitState = true },
 	cloaked = { type = "boolean", isUnitState = true },
+	shieldMaxPower = { type = "number" },
 	damage = { type = "number", multiplyOnly = true },
 }
 
