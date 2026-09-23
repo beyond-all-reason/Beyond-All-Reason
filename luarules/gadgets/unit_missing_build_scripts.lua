@@ -8,7 +8,7 @@ local modOptions = Spring.GetModOptions()
 local tweaked = modOptions.tweakunits ~= "" or modOptions.tweakdefs ~= ""
 local i = 1
 while i <= 9 and not tweaked do
-	tweaked = modOptions["tweakunits"..i] ~= "" or modOptions["tweakdefs"..i] ~= ""
+	tweaked = modOptions["tweakunits" .. i] ~= "" or modOptions["tweakdefs" .. i] ~= ""
 	i = i + 1
 end
 if not tweaked then
@@ -72,7 +72,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		return
 	end
 	Spring.SetUnitCOBValue(unitID, COB.INBUILDSTANCE, true)
-	Spring.SetUnitNanoPieces(unitID, {1})
+	Spring.SetUnitNanoPieces(unitID, { 1 })
 end
 
 function gadget:Initialize()
