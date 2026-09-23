@@ -499,6 +499,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	Weapon1TurretX = <200.000000>;
+	Weapon1TurretY = <200.000000>;
 	// hide rflare; // dont hide this; used for lights
 	hide lflare1;
 	hide lflare2;

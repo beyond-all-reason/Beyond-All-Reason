@@ -31,6 +31,8 @@ static-var  out_of_arc_count;
 
 Create()
 {
+	Weapon1TurretX = <90.0>;
+	Weapon1TurretY = <110.0>;
 	hide flare;
 	hide flare;
 	turn flare to z-axis <-45.0> now;

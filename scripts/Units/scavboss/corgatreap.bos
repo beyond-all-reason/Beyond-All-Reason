@@ -73,6 +73,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	Weapon1TurretX = <45.000000>;
+	Weapon1TurretY = <270>;
 	hide aimpoint;
 	hide flare;
 	hide smoke1;

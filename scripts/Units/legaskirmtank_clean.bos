@@ -39,6 +39,8 @@ static-var   statechg_DesiredState, statechg_StateChanging, restore_delay, Stunn
 
 Create()
 {
+	Weapon1TurretX = <60>;
+	Weapon1TurretY = <120>;
 	timeLeft = 0;
 	hide flare;
 	// hide flarer;

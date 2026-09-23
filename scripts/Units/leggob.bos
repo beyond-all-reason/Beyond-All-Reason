@@ -197,6 +197,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <100>;
+	Weapon1TurretY = <300>;
 	animSpeed = 5;
 	hide flare;
 	hide aimx1;

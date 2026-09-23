@@ -49,6 +49,8 @@ Steering(heading, steer, currentSpeed)
 
 Create()
 {
+	Weapon1TurretX = <300.0>;
+	Weapon1TurretY = <300.0>;
 	hide flare;
 	oldheading = get HEADING;
 	hide flare;

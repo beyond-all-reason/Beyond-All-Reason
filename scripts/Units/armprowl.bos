@@ -415,6 +415,8 @@ StopMoving(){
 
 Create()
 {
+	Weapon1TurretX = <85.0>;
+	Weapon1TurretY = <140.0>;
 	hide lflare;
 	hide rflare;
 	hide aimx1;

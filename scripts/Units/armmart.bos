@@ -31,6 +31,8 @@ static-var  out_of_arc_count;
 
 Create()
 {
+	Weapon1TurretX = <35.005495>;
+	Weapon1TurretY = <35.005495>;
 	hide flare;
 	hide flare;
 	restore_delay = 3000;

@@ -562,6 +562,8 @@ RestoreAfterDelay_Weapon2()
 
 Create()
 {
+	Weapon1TurretX = <360.0>;
+	Weapon1TurretY = <270.0>;
 	hide lturbfx;
 	hide lflare;
 	hide rflare;

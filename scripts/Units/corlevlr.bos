@@ -28,6 +28,8 @@ static-var  restore_delay;
 
 Create()
 {
+	Weapon1TurretX = <20.0>;
+	Weapon1TurretY = <170.038462>;
 	hide flare;
 	hide flare;
 	restore_delay = 3000;

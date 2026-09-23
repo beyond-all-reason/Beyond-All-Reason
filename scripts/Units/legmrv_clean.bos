@@ -41,6 +41,8 @@ static-var  restore_delay, moveSpeed, wheelSpeed, whichGun, oldHeading, timeLeft
 
 Create()
 {
+	Weapon1TurretX = <200.000000>;
+	Weapon1TurretY = <400.000000>;
 	hide flareTop;
 	hide flareBottom;
 	whichGun = 9;

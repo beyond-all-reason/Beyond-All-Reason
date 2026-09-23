@@ -48,6 +48,8 @@ StopMoving()
 static-var prevheading, prevpitch;
 Create()
 {
+	Weapon1TurretX = <50.0>;
+	Weapon1TurretY = <90.0>;
 	prevheading = 0;
 	prevpitch = 0;
 	turn turret to y-axis <0.0> speed <90.021978>;

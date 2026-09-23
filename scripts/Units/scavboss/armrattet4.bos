@@ -57,6 +57,7 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretY = <30.0>;
 	hide smoke1;
 	hide smoke2;
 	hide flare;

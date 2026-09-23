@@ -453,6 +453,8 @@ StopMoving(){
 
 Create()
 {
+	Weapon1TurretX = <85>;
+	Weapon1TurretY = <360>;
 	hide aimx;
 	hide aimy;
 	hide lsleeve;

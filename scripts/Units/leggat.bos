@@ -61,6 +61,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <65.000000>;
+	Weapon1TurretY = <120.000000>;
 	hide flare;
 	bMoving = FALSE;
 	moveSpeed = get (MAX_SPEED);

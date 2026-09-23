@@ -34,6 +34,8 @@ static-var  restore_delay, gun_1;
 
 Create()
 {
+	Weapon1TurretX = <50.005495>;
+	Weapon1TurretY = <85.005495>;
 	hide dirt1;
 	hide dirt2;
 	hide flare1;

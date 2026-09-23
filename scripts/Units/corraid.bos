@@ -39,6 +39,8 @@ StopMoving()
 }
 Create()
 {
+	Weapon1TurretX = <50.0>;
+	Weapon1TurretY = <90.0>;
 	hide flare;
 	hide flare;
 	restore_delay = 3000;

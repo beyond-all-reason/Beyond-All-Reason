@@ -316,6 +316,8 @@ HitByWeapon(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <360>;
+	Weapon1TurretY = <140.000000>;
 	hide rflare;
 	hide lflare;
 	hide misflare;

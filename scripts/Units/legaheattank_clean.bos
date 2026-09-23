@@ -90,6 +90,8 @@ RestoreAfterDelayGun(addTime)
 
 Create()
 {
+	Weapon1TurretX = <50.000000>;
+	Weapon1TurretY = <65.000000>;
 	start-script Steering();
 	restore_delay = 500;
 	timeLeft = 0;

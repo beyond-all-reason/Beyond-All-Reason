@@ -69,6 +69,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <130.000000>;
+	Weapon1TurretY = <130.000000>;
 	hide flare;
 	turn cannisterPivot to z-axis <25> now;
 	turn barrelSleeve to z-axis <30> now;

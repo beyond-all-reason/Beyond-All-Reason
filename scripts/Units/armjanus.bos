@@ -33,6 +33,10 @@ static-var  restore_delay, gun_2;
 
 Create()
 {
+	Weapon1TurretX = <50.0>;
+	Weapon1TurretY = <80.0>;
+	Weapon2TurretX = <50.0>;
+	Weapon2TurretY = <80.0>;
 	hide aimfrom;
 	hide flarel;
 	hide flarer;

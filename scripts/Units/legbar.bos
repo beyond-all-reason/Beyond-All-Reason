@@ -38,6 +38,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <50.000000>;
+	Weapon1TurretY = <90.000000>;
 	hide flare;
 	restore_delay = 3000;
 	call-script TB_Init();
