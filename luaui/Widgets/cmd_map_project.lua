@@ -2828,7 +2828,7 @@ local function writePointer(t)
 		)
 	end
 	local content = string.format(
-		"return { path = %q, size_x = %d, size_z = %d, phase = %d, phases = %d }\n",
+		"return { path = %q, size_x = %d, size_z = %d, phase = %d, phases = %d%s }\n",
 		t.path,
 		t.size_x,
 		t.size_z,
