@@ -177,8 +177,8 @@
 			"minimap_maximize": "Maximize minimap",
 			"history": "Show the rewind timeline",
 			"history_off": "Hide the rewind timeline",
-			"history_play": "Play the recorded history from here",
-			"history_pause": "Pause playback",
+			"history_play": "Play the recorded history from here\nRight click: play backwards",
+			"history_pause": "Pause playback\nRight click: play backwards",
 			"history_live": "Back to live view",
 			"history_speed": "Playback speed\nLeft click: faster, right click: slower",
 			"history_track": "Drag to rewind the PIP\nShows recorded unit positions and explosions"
