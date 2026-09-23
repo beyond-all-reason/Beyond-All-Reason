@@ -17,7 +17,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.14</span>
+					<span class="tf-title-version">1.15</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -6134,6 +6134,12 @@
 		<div class="tf-panel-body">
 			<div id="tf-tileset-controls">
 
+				<div class="tf-ts-shader-sync-row mb-1" data-if="tsShaderSyncShown">
+					<div id="btn-ts-shader-sync" class="tf-mode-btn tf-ts-shader-sync" data-class-pending="tsShaderSyncState == 'update'" data-class-disabled="tsShaderSyncState == 'checking' || tsShaderSyncState == 'mismatch'" data-event-mousedown="onTsShaderSync()">
+						<div class="tf-btn-text">{{tsShaderSyncLabel}}</div>
+					</div>
+				</div>
+
 				<div class="flex flex-row gap-1 mb-1">
 					<div id="btn-ts-shader" class="tf-mode-btn tf-ts-row-btn" data-class-active="tsShaderOn" data-event-mousedown="onTsToggleShader()">
 						<div class="tf-btn-text">ACTIVATE SHADER</div>
@@ -9380,87 +9386,444 @@
 				</div>
 				<div id="pill-ui-clear-units" class="tf-dj-toggle-pill">RUN</div>
 			</div>
+			<!-- Autosave: timed snapshots of the open project into the Autosaves view of the Projects window. -->
+			<div id="btn-autosave" class="tf-dj-activate-row" data-class-active="autosaveActive" data-event-mousedown="onGuideToggleAutosave()">
+				<div>
+					<div class="tf-dj-activate-name">Autosave</div>
+					<div class="tf-dj-activate-desc">Saves a snapshot of the open project (or the New Map canvas) while it has unsaved changes, named project-YYYYMMDDHHMM under MapProjects/_autosave. Snapshots list under the Autosaves chip of the Projects window and never in the other views; opening one makes its project the Save target again. The status strip reads AUTOSAVE while one runs.</div>
+				</div>
+				<div id="pill-autosave" class="tf-dj-toggle-pill">{{autosaveStr}}</div>
+			</div>
+			<div id="btn-autosave-minutes" class="tf-dj-activate-row" data-event-mousedown="onGuideCycleAutosave('autosaveMinutes')">
+				<div>
+					<div class="tf-dj-activate-name">Autosave every</div>
+					<div class="tf-dj-activate-desc">Minutes between snapshots; click to cycle 5, 10, 15, 30, 60. A manual save starts the interval over, and a snapshot waits while the brush is down.</div>
+				</div>
+				<div id="pill-autosave-minutes" class="tf-dj-toggle-pill">{{autosaveMinutesStr}}</div>
+			</div>
+			<div id="btn-autosave-keep" class="tf-dj-activate-row" data-event-mousedown="onGuideCycleAutosave('autosaveKeepDays')">
+				<div>
+					<div class="tf-dj-activate-name">Keep autosaves for</div>
+					<div class="tf-dj-activate-desc">Older snapshots are deleted a minute after the editor starts and every half hour after; click to cycle 1, 3, 7, 14 days.</div>
+				</div>
+				<div id="pill-autosave-keep" class="tf-dj-toggle-pill">{{autosaveKeepStr}}</div>
+			</div>
+			<div id="btn-autosave-keep-latest" class="tf-dj-activate-row" data-event-mousedown="onGuideCycleAutosave('autosaveKeepLatestDays')">
+				<div>
+					<div class="tf-dj-activate-name">Keep the newest autosave of each project for</div>
+					<div class="tf-dj-activate-desc">The most recent snapshot of a project outlives the rest by this much, so a project left alone for a week still has one; click to cycle 3, 10, 30, 90 days.</div>
+				</div>
+				<div id="pill-autosave-keep-latest" class="tf-dj-toggle-pill">{{autosaveKeepLatestStr}}</div>
+			</div>
+			<!-- Team Sync: the BAR campaign team's private map library. Off for everyone else. -->
+			<div id="btn-team-sync" class="tf-dj-activate-row" data-class-active="teamSyncActive" data-event-mousedown="onGuideToggleTeamSync()">
+				<div>
+					<div class="tf-dj-activate-name">Team Sync (campaign team)</div>
+					<div class="tf-dj-activate-desc">Shows the campaign team's shared map library in the Projects and Save As windows, and the shader update row in the Tileset window. Needs access to the team's private GitHub repository; leave it off otherwise.</div>
+				</div>
+				<div id="pill-team-sync" class="tf-dj-toggle-pill">{{teamSyncStr}}</div>
+			</div>
 		</div>
 		</div><!-- /tf-panel-body -->
 	</div>
 
-	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============ -->
-	<div id="tf-project-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 38vw; top: 30vh;" data-if="projectSaveOpen">
-		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Save Project As</div>
+	<!-- ============ SAVE PROJECT WINDOW (floating, opened from FILE menu) ============
+	     Shaped like a desktop "Save As" over ONE tree: this disk and the team
+	     library share their paths, so the browser lists both, the team's stages
+	     among the folders. Clicking a folder aims the save at it; a team stage
+	     also offers to upload afterwards, as a switch rather than a tab. The
+	     NAME field and the action sit in a pinned footer so the control that
+	     commits the save can never scroll out of reach. -->
+	<div id="tf-project-root" class="tf-newmap-window tf-project-window tf-project-save-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 34vw; top: 11vh;" data-if="projectSaveOpen">
+		<div class="flex flex-row justify-between items-center gap-1 mb-2">
+			<div id="tf-project-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_saveTitle}}</div>
 			<div id="btn-project-close" class="tf-header-btn tf-quit-btn" data-event-mousedown="onProjectSaveClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div class="tf-panel-body">
-
-		<div class="text-base text-keybind mb-2">Save this map's full state (terrain, metal, features, decals, lights, environment, weather, grass, start positions) into one folder: MapProjects/&lt;name&gt;. Type a new name, or pick an existing project below to overwrite it.</div>
-
-		<div class="flex flex-row justify-between items-center mb-1">
-			<div class="text-lg text-light">NAME</div>
-			<div class="text-sm text-keybind">letters, digits, spaces, - and _; / for a folder</div>
-		</div>
-		<div class="flex flex-row gap-1 mb-2">
-			<input type="text" id="input-project-name" class="tf-preset-input" maxlength="128" value="" />
-		</div>
-
-		<div id="tf-project-save-list" class="tf-hm-browser mb-2" style="max-height: 28vh;"></div>
-
-		<!-- Opt-in mission drafting: record position/team of every unit on the map -->
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-base text-light" style="flex: 1;">SAVE UNITS LOADOUT</div>
-			<div id="btn-project-units" class="tf-action-btn" style="flex: 0.9;" data-class-active="projectSaveUnits" data-event-mousedown="onProjectSaveUnitsToggle()">
-				<div class="tf-action-btn-text" data-if="projectSaveUnits">ON</div>
-				<div class="tf-action-btn-text" data-if="!projectSaveUnits">OFF</div>
+			<!-- The same Team Sync line as Projects: whether the team rows and
+			     stages below are today's library. Start… goes to the Projects
+			     window, where the start card is. -->
+			<div class="tf-project-strip bg-darker" data-if="libraryEnabled" data-class-on="libraryStripDot == 'on'" data-class-off="libraryStripDot == 'off' || libraryStripDot == 'unset'">
+				<div class="tf-strip-dot" data-class-on="libraryStripDot == 'on'" data-class-busy="libraryStripDot == 'busy' || libraryStripDot == 'starting'" data-class-off="libraryStripDot == 'off' || libraryStripDot == 'unset'"></div>
+				<div class="tf-strip-name">{{libraryLabel_syncName}}</div>
+				<div class="tf-strip-text" data-attr-title="libraryRemoteURL">{{libraryStripText}}</div>
+				<div class="tf-strip-age" data-if="libraryStripAge != ''">{{libraryStripAge}}</div>
+				<div class="tf-project-spacer"></div>
+				<div class="tf-action-btn tf-project-helper-btn" data-if="!libraryOnline" data-attr-title="libraryLabel_startHelperHint" data-event-mousedown="onProjectSaveStartSync()">
+					<div class="tf-action-btn-text" data-if="libraryConfigured">{{libraryLabel_startHelper}}</div>
+					<div class="tf-action-btn-text" data-if="!libraryConfigured">{{libraryLabel_stripSetup}}</div>
+				</div>
+				<div class="tf-action-btn tf-project-refresh" data-if="libraryOnline" data-attr-title="libraryLabel_pull" data-class-disabled="libraryBusy" data-event-click="libraryPull()">
+					<img class="tf-project-icon" src="/luaui/images/terraform_brush/rot_cw.png" />
+				</div>
 			</div>
-		</div>
-		<div class="text-sm text-keybind mb-2">Records every unit's position and team so opening the project restores the drafted mission loadout.</div>
-
-		<div class="text-base text-keybind mb-2" data-if="projectSaveHint != ''">{{projectSaveHint}}</div>
-
-		<div class="flex flex-row gap-1 items-center">
-			<div id="btn-project-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-mousedown="onProjectSaveConfirm()">
-				<div class="tf-action-btn-text">SAVE PROJECT</div>
+			<div class="tf-project-status bg-darker border-warning" data-if="libraryEnabled &amp;&amp; projectHelperHint != ''">{{projectHelperHint}}</div>
+			<!-- The field carries a label rather than a placeholder: this RmlUi
+			     build draws no placeholder text, so the box read as empty. -->
+			<div class="tf-project-toolbar">
+				<div class="tf-project-field-label">{{libraryLabel_searchLabel}}</div>
+				<div class="ll-search-wrapper tf-project-filter">
+					<input type="text" id="tf-project-save-search" class="ll-search-input tf-preset-input" data-attr-title="libraryLabel_filter" data-event-change="onProjectSaveSearch()" />
+					<div id="btn-project-save-search-clear" class="ll-search-clear-btn" data-event-mousedown="onProjectSaveSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+				</div>
+				<div id="btn-project-newfolder" class="tf-action-btn tf-project-newfolder-btn" data-class-active="projectSaveNewFolder" data-class-disabled="projectSavePending" data-event-mousedown="onProjectNewFolder()">
+					<img class="tf-project-icon" src="/luaui/images/terraform_brush/plus.png" />
+					<div class="tf-action-btn-text">{{libraryLabel_newFolder}}</div>
+				</div>
 			</div>
-		</div>
+			<div class="tf-project-newfolder-row" data-if="projectSaveNewFolder">
+				<img class="tf-project-newfolder-icon" src="/luaui/images/terraform_brush/folder.png" />
+				<div class="tf-project-newfolder-path">{{projectSaveDest}}</div>
+				<input type="text" id="input-project-newfolder" class="tf-preset-input tf-project-newfolder-input" maxlength="64" value="" data-attr-title="libraryLabel_newFolderHint" />
+				<div class="tf-action-btn tf-save-btn tf-project-newfolder-ok" data-event-mousedown="onProjectNewFolderCreate()"><div class="tf-action-btn-text">{{libraryLabel_create}}</div></div>
+				<div class="tf-action-btn tf-project-secondary" data-event-mousedown="onProjectNewFolderCancel()"><div class="tf-action-btn-text">{{libraryLabel_cancel}}</div></div>
+			</div>
+			<div class="tf-project-split">
+				<div class="tf-project-listcol">
+					<div class="tf-proj-colhead">
+						<div class="tf-proj-c-name tf-proj-col" data-class-sorted="projectOpenSort == 'name'" data-event-mousedown="onProjectSort('name')">{{libraryLabel_name}}{{projectSortName}}</div>
+						<div class="tf-proj-c-size tf-proj-col" data-class-sorted="projectOpenSort == 'size'" data-event-mousedown="onProjectSort('size')">{{libraryLabel_mapCol}}{{projectSortSize}}</div>
+						<div class="tf-proj-c-date tf-proj-col" data-class-sorted="projectOpenSort == 'recent'" data-event-mousedown="onProjectSort('recent')">{{libraryLabel_modifiedCol}}{{projectSortDate}}</div>
+						<div class="tf-proj-c-sync" data-if="libraryConfigured">{{libraryLabel_syncCol}}</div>
+					</div>
+					<div id="tf-project-save-list" class="tf-hm-browser" data-attr-title="libraryLabel_saveListHint"></div>
+					<div class="tf-project-count text-medium" data-if="projectDragLabel == ''">{{projectSaveCount}}</div>
+					<div class="tf-project-drag text-keybind" data-if="projectDragLabel != ''">{{projectDragLabel}}</div>
+				</div>
+				<!-- What SAVE is about to write, read before the button is pressed.
+				     When the name already belongs to a project, that project's
+				     picture and dates follow, so an overwrite can be checked. -->
+				<div class="tf-project-detail bg-darker">
+					<div class="tf-proj-sum-title">{{libraryLabel_sumTitle}}</div>
+					<div class="tf-proj-detail-row">
+						<div class="tf-proj-detail-key">{{libraryLabel_sumFolder}}</div>
+						<div class="tf-proj-detail-val">{{psaveSumFolder}}</div>
+					</div>
+					<div class="tf-proj-detail-row">
+						<div class="tf-proj-detail-key">{{libraryLabel_sumMap}}</div>
+						<div class="tf-proj-detail-val">{{psaveSumMap}}</div>
+					</div>
+					<div class="tf-proj-detail-row">
+						<div class="tf-proj-detail-key">{{libraryLabel_sumUnits}}</div>
+						<div class="tf-proj-detail-val">{{psaveSumUnits}}</div>
+					</div>
+					<div class="tf-proj-detail-row" data-if="libraryConfigured">
+						<div class="tf-proj-detail-key">{{libraryLabel_sumUpload}}</div>
+						<div class="tf-proj-detail-val">{{psaveSumUpload}}</div>
+					</div>
+					<div class="tf-project-detail-body tf-proj-sum-existing" data-if="psaveInfoShown">
+						<div class="tf-proj-sum-title">{{libraryLabel_sumExisting}}</div>
+						<div id="tf-psave-preview" class="tf-proj-preview"></div>
+						<div class="tf-proj-preview-modes" data-if="psaveInfoBoth">
+							<div class="tf-proj-preview-mode" data-class-active="projectPreviewMode == 'map'" data-event-mousedown="onProjectPreviewMode('map')">{{libraryLabel_previewMap}}</div>
+							<div class="tf-proj-preview-mode" data-class-active="projectPreviewMode == 'height'" data-event-mousedown="onProjectPreviewMode('height')">{{libraryLabel_previewHeight}}</div>
+						</div>
+						<div class="tf-proj-detail-name font-bold">{{psaveInfoName}}</div>
+						<div class="tf-proj-detail-path text-medium" data-if="psaveInfoPath != ''">{{psaveInfoPath}}</div>
+						<div class="tf-proj-detail-row">
+							<div class="tf-proj-detail-key">{{libraryLabel_modifiedCol}}</div>
+							<div class="tf-proj-detail-val">{{psaveInfoModified}}</div>
+						</div>
+						<div class="tf-proj-detail-row" data-if="psaveInfoUnits != ''">
+							<div class="tf-proj-detail-key">{{libraryLabel_units}}</div>
+							<div class="tf-proj-detail-val">{{psaveInfoUnits}}</div>
+						</div>
+						<div class="tf-proj-detail-flag text-keybind" data-if="psaveInfoLegacy">{{libraryLabel_legacyBadge}}</div>
+						<div class="tf-proj-detail-flag text-confirm" data-if="psaveInfoCurrent">{{libraryLabel_currentBadge}}</div>
+					</div>
+				</div>
+			</div>
 		</div><!-- /tf-panel-body -->
+		<div class="tf-project-footer">
+			<!-- Where it goes, as a chip: the folder picked in the tree, or the
+			     top level. A team stage wears the cloud, so the upload switch
+			     below never has to explain why it is there. -->
+			<div class="tf-project-namerow">
+				<div class="tf-project-field-label">{{libraryLabel_saveInto}}</div>
+				<div class="tf-project-destchip" data-class-team="projectSaveIsStage" data-attr-title="projectSaveDest">
+					<img class="tf-project-destchip-icon" src="/luaui/images/terraform_brush/folder.png" data-if="!projectSaveIsStage" />
+					<img class="tf-project-destchip-icon" src="/luaui/images/terraform_brush/mode_lights.png" data-if="projectSaveIsStage" />
+					<div class="tf-project-destchip-text">{{projectSaveDestLabel}}</div>
+				</div>
+			</div>
+			<div class="tf-project-namerow">
+				<div class="tf-project-field-label">{{libraryLabel_name}}</div>
+				<input type="text" id="input-project-name" class="tf-preset-input tf-project-nameinput" maxlength="64" value="" data-attr-title="libraryLabel_nameHint" data-attrif-disabled="projectSavePending" />
+			</div>
+			<!-- Live target readout: says which of the things SAVE is about to
+			     do before it is pressed, instead of only after the first click. -->
+			<div class="tf-project-target" data-class-text-keybind="projectSaveOverwrite" data-class-text-medium="!projectSaveOverwrite">{{projectSaveTarget}}</div>
+			<div class="tf-project-optrow">
+				<div class="tf-project-opt" data-attr-title="libraryLabel_unitsHelp">
+					<div class="tf-project-optrow-label">{{libraryLabel_units}}</div>
+					<div id="btn-project-units" class="tf-lp-compact-btn tf-ll-tab-btn tf-project-switch" data-class-active="projectSaveUnits" data-class-disabled="projectSavePending" data-event-mousedown="onProjectSaveUnitsToggle()">
+						<div data-if="projectSaveUnits">{{libraryLabel_on}}</div>
+						<div data-if="!projectSaveUnits">{{libraryLabel_off}}</div>
+					</div>
+				</div>
+				<!-- Only offered when the folder is a team stage: elsewhere there
+				     is nothing to upload to. -->
+				<div class="tf-project-opt" data-if="projectSaveIsStage">
+					<div class="tf-project-optrow-label">{{libraryLabel_uploadAfter}}</div>
+					<div id="btn-project-upload-switch" class="tf-lp-compact-btn tf-ll-tab-btn tf-project-switch" data-class-active="projectSaveUpload &amp;&amp; projectSaveUploadAllowed" data-class-disabled="projectSavePending || !projectSaveUploadAllowed" data-event-mousedown="projectSaveSetUpload(!projectSaveUpload)">
+						<div data-if="projectSaveUpload &amp;&amp; projectSaveUploadAllowed">{{libraryLabel_on}}</div>
+						<div data-if="!(projectSaveUpload &amp;&amp; projectSaveUploadAllowed)">{{libraryLabel_off}}</div>
+					</div>
+				</div>
+				<div class="tf-project-spacer"></div>
+			</div>
+			<div class="tf-project-note text-medium" data-if="projectSaveUploadNote != ''">{{projectSaveUploadNote}}</div>
+			<!-- Staged team moves, the same plan and bar as in Projects: a drop
+			     on a team stage here stages a move too. -->
+			<div class="tf-project-moves" data-if="libraryMovesOpen">
+				<div class="tf-project-moves-count text-confirm">{{libraryMovesPending}}</div>
+				<div class="tf-project-spacer"></div>
+				<div class="tf-action-btn tf-project-secondary" data-class-disabled="libraryBusy" data-event-click="libraryDiscardMoves()"><div class="tf-action-btn-text">{{libraryLabel_discardMoves}}</div></div>
+				<div class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryConfirmMoves()"><div class="tf-action-btn-text">{{libraryLabel_confirmMoves}}</div></div>
+			</div>
+			<div class="tf-project-status bg-darker" data-if="projectSaveHint != ''" data-class-border-warning="projectSaveConfirming" data-class-border-danger="projectSaveError" data-class-border-confirm="projectSaveSuccess">{{projectSaveHint}}</div>
+			<div class="tf-project-actions">
+				<div class="tf-project-spacer"></div>
+				<div class="tf-action-btn tf-project-secondary" data-class-disabled="projectSavePending" data-event-mousedown="onProjectSaveClose()"><div class="tf-action-btn-text">{{libraryLabel_cancel}}</div></div>
+				<div id="btn-project-save" class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="projectSavePending || libraryBusy" data-event-mousedown="onProjectSaveConfirm()">
+					<div class="tf-action-btn-text">{{projectSaveAction}}</div>
+				</div>
+			</div>
+		</div><!-- /tf-project-footer -->
 	</div>
 
-	<!-- ============ OPEN PROJECT WINDOW (floating, opened from FILE menu) ============ -->
-	<div id="tf-project-open-root" class="tf-newmap-window widget-shadow rounded-md bg-darkest p-2-5" style="left: 38vw; top: 26vh;" data-if="projectOpenOpen">
-		<div class="flex flex-row justify-between items-center mb-2">
-			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Open Project</div>
+	<!-- ============ PROJECTS WINDOW (floating, opened from FILE menu) ============
+	     One browser over this disk and the team library together: a project is
+	     listed once, with a SYNC column saying where it is. The Team Sync strip
+	     at the top is the one place the companion's state is shown, and the
+	     start card under it is the way out of "not running". The details pane
+	     carries the TEAM block, which holds every transfer for the selected
+	     project; the footer keeps DELETE (far left) apart from OPEN (far right).
+	     Double click a row to open it. -->
+	<div id="tf-project-open-root" class="tf-newmap-window tf-project-window tf-project-open-window widget-shadow rounded-md bg-darkest p-2-5 text-light" style="left: 16vw; top: 10vh;" data-if="projectOpenOpen">
+		<div class="flex flex-row justify-between items-center gap-1 mb-2">
+			<div id="tf-project-open-handle" class="tf-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">{{libraryLabel_title}}</div>
 			<div id="btn-project-open-close" class="tf-header-btn tf-quit-btn" data-event-mousedown="onProjectOpenClose()"><img class="tf-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
 		<div class="tf-panel-body">
-
-		<div class="text-base text-keybind mb-2">Load a saved project from MapProjects/. Subfolders list as a tree, so a git clone of a maps repository can sit inside MapProjects/ and pull straight into this browser. Opening restarts the session onto a blank map of the project's size and replays every section. Unsaved changes on the current map will be lost.</div>
-
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="ll-search-wrapper" style="flex: 1;">
-				<input type="text" id="tf-project-search" class="ll-search-input" placeholder="Search projects..." data-event-change="onProjectSearch()" />
-				<div id="btn-project-search-clear" class="ll-search-clear-btn" data-event-mousedown="onProjectSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+			<!-- The strip. -->
+			<div class="tf-project-strip bg-darker" data-if="libraryEnabled" data-class-on="libraryStripDot == 'on'" data-class-off="libraryStripDot == 'off' || libraryStripDot == 'unset'">
+				<div class="tf-strip-dot" data-class-on="libraryStripDot == 'on'" data-class-busy="libraryStripDot == 'busy' || libraryStripDot == 'starting'" data-class-off="libraryStripDot == 'off' || libraryStripDot == 'unset'"></div>
+				<div class="tf-strip-name">{{libraryLabel_syncName}}</div>
+				<div class="tf-strip-text" data-attr-title="libraryRemoteURL">{{libraryStripText}}</div>
+				<div class="tf-strip-age" data-if="libraryStripAge != ''">{{libraryStripAge}}</div>
+				<div class="tf-project-spacer"></div>
+				<div class="tf-action-btn tf-project-helper-btn" data-if="!libraryOnline &amp;&amp; !libraryCardOpen" data-attr-title="libraryLabel_startHelperHint" data-event-mousedown="libraryCardShow()">
+					<div class="tf-action-btn-text" data-if="libraryConfigured">{{libraryLabel_startHelper}}</div>
+					<div class="tf-action-btn-text" data-if="!libraryConfigured">{{libraryLabel_stripSetup}}</div>
+				</div>
+				<div class="tf-action-btn tf-project-refresh" data-if="libraryOnline" data-attr-title="libraryLabel_pull" data-class-disabled="libraryBusy" data-event-click="libraryPull()">
+					<img class="tf-project-icon" src="/luaui/images/terraform_brush/rot_cw.png" />
+				</div>
 			</div>
-			<div class="tf-action-btn" style="flex: 0.42;" data-class-active="projectOpenSort == 'recent'" data-event-mousedown="onProjectSort('recent')"><div class="tf-action-btn-text">RECENT</div></div>
-			<div class="tf-action-btn" style="flex: 0.36;" data-class-active="projectOpenSort == 'name'" data-event-mousedown="onProjectSort('name')"><div class="tf-action-btn-text">NAME</div></div>
-			<div class="tf-action-btn" style="flex: 0.32;" data-class-active="projectOpenSort == 'size'" data-event-mousedown="onProjectSort('size')"><div class="tf-action-btn-text">SIZE</div></div>
-		</div>
-
-		<div id="tf-project-open-list" class="tf-hm-browser mb-2" style="max-height: 55vh;"></div>
-
-		<div class="text-base text-keybind mb-1" data-if="projectOpenSelected == ''">Select a project above, then LOAD or DELETE it.</div>
-		<div class="text-base text-light mb-1" data-if="projectOpenSelected != ''">Selected: {{projectOpenSelected}}</div>
-
-		<div class="text-base text-keybind mb-1" data-if="projectOpenHint != ''">{{projectOpenHint}}</div>
-
-		<div class="flex flex-row gap-1 items-center">
-			<div id="btn-project-open-load" class="tf-action-btn tf-save-btn" style="flex: 1;" data-class-disabled="projectOpenSelected == ''" data-event-mousedown="onProjectOpenLoad()">
-				<div class="tf-action-btn-text">LOAD PROJECT</div>
+			<!-- The start card: three steps, and it closes itself when the
+			     connection appears. The editor cannot start a process, so step
+			     one writes a starter to double-click. -->
+			<div class="tf-project-card bg-darker" data-if="libraryCardOpen">
+				<div class="tf-project-card-title">{{libraryLabel_cardTitle}}</div>
+				<div class="tf-project-card-intro text-medium">{{libraryLabel_cardIntro}}</div>
+				<div class="tf-project-card-step">
+					<div class="tf-project-card-num" data-class-done="libraryCardWritten">1</div>
+					<div class="tf-project-card-body">
+						<div class="tf-action-btn tf-project-card-btn" data-if="!libraryCardWritten" data-event-mousedown="libraryCardWrite()"><div class="tf-action-btn-text">{{libraryLabel_cardStep1}}</div></div>
+						<div class="tf-project-card-done text-confirm" data-if="libraryCardWritten">{{libraryLabel_cardStep1Done}}</div>
+					</div>
+				</div>
+				<div class="tf-project-card-step">
+					<div class="tf-project-card-num">2</div>
+					<div class="tf-project-card-body">
+						<div class="tf-project-card-text">{{libraryLabel_cardStep2}}</div>
+						<div class="tf-project-card-pathrow" data-if="libraryCardWritten">
+							<div class="tf-project-card-path">{{libraryCardPath}}</div>
+							<div class="tf-action-btn tf-project-card-btn" data-event-mousedown="libraryCardCopy()">
+								<div class="tf-action-btn-text" data-if="!libraryCardCopied">{{libraryLabel_cardCopyPath}}</div>
+								<div class="tf-action-btn-text" data-if="libraryCardCopied">{{libraryLabel_cardCopied}}</div>
+							</div>
+						</div>
+						<div class="tf-project-card-note text-medium">{{libraryLabel_cardNeeds}}</div>
+					</div>
+				</div>
+				<div class="tf-project-card-step">
+					<div class="tf-project-card-num">3</div>
+					<div class="tf-project-card-body"><div class="tf-project-card-text">{{libraryLabel_cardStep3}}</div></div>
+				</div>
+				<div class="tf-project-actions">
+					<div class="tf-project-spacer"></div>
+					<div class="tf-action-btn tf-project-secondary" data-event-mousedown="libraryCardHide()"><div class="tf-action-btn-text">{{libraryLabel_cardClose}}</div></div>
+				</div>
 			</div>
-			<div id="btn-project-open-delete" class="tf-action-btn" style="flex: 0.8;" data-class-disabled="projectOpenSelected == ''" data-class-confirming="projectDeleteConfirming" data-event-mousedown="onProjectOpenDelete()">
-				<div class="tf-action-btn-text" data-if="!projectDeleteConfirming">DELETE</div>
-				<div class="tf-action-btn-text" data-if="projectDeleteConfirming">ARE YOU SURE?</div>
+			<div class="tf-project-status bg-darker border-warning" data-if="libraryEnabled &amp;&amp; projectHelperHint != ''">{{projectHelperHint}}</div>
+			<div class="tf-project-toolbar">
+				<div class="tf-project-field-label">{{libraryLabel_searchLabel}}</div>
+				<div class="ll-search-wrapper tf-project-filter">
+					<input type="text" id="tf-project-search" class="ll-search-input tf-preset-input" data-attr-title="libraryLabel_search" data-event-change="onProjectSearch()" />
+					<div id="btn-project-search-clear" class="ll-search-clear-btn" data-event-mousedown="onProjectSearchClear()"><img class="ll-search-clear-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+				</div>
+				<!-- Filter chips, in place of the two tabs: the same list, narrowed. The
+				     disk / team pair only means something once a companion has spoken;
+				     the Autosaves view (timed snapshots, kept out of every other view)
+				     is always there. -->
+				<div class="tf-project-chips">
+					<div class="tf-project-chip" data-class-active="libraryFilter == 'all'" data-event-click="librarySetFilter('all')">{{libraryLabel_filterAll}}</div>
+					<div class="tf-project-chip" data-if="libraryConfigured" data-class-active="libraryFilter == 'local'" data-event-click="librarySetFilter('local')">{{libraryLabel_filterLocal}}</div>
+					<div class="tf-project-chip" data-if="libraryConfigured" data-class-active="libraryFilter == 'team'" data-event-click="librarySetFilter('team')">{{libraryLabel_filterTeam}}</div>
+					<div class="tf-project-chip" data-class-active="libraryFilter == 'autosave'" data-event-click="librarySetFilter('autosave')">{{libraryLabel_filterAutosave}}</div>
+				</div>
+				<!-- Fetches every team project that is not on this disk yet, one at a
+				     time; the ones already here are left alone. -->
+				<div class="tf-action-btn tf-project-downloadall" data-if="libraryFilter == 'team' &amp;&amp; libraryOnline" data-class-disabled="libraryBusy" data-event-click="libraryDownloadAll()">
+					<div class="tf-action-btn-text">{{libraryLabel_downloadAll}}</div>
+				</div>
 			</div>
-		</div>
+			<div class="tf-project-split">
+				<div class="tf-project-listcol">
+					<div class="tf-proj-colhead">
+						<div class="tf-proj-c-name tf-proj-col" data-class-sorted="projectOpenSort == 'name'" data-event-mousedown="onProjectSort('name')">{{libraryLabel_name}}{{projectSortName}}</div>
+						<div class="tf-proj-c-size tf-proj-col" data-class-sorted="projectOpenSort == 'size'" data-event-mousedown="onProjectSort('size')">{{libraryLabel_mapCol}}{{projectSortSize}}</div>
+						<div class="tf-proj-c-date tf-proj-col" data-class-sorted="projectOpenSort == 'recent'" data-event-mousedown="onProjectSort('recent')">{{libraryLabel_modifiedCol}}{{projectSortDate}}</div>
+						<div class="tf-proj-c-sync" data-if="libraryConfigured">{{libraryLabel_syncCol}}</div>
+					</div>
+					<div id="tf-project-open-list" class="tf-hm-browser" data-attr-title="libraryLabel_openListHint"></div>
+					<div class="tf-project-count text-medium" data-if="projectDragLabel == '' &amp;&amp; libraryQueue == ''">{{projectOpenCount}}</div>
+					<div class="tf-project-drag text-keybind" data-if="projectDragLabel != ''">{{projectDragLabel}}</div>
+					<div class="tf-project-drag text-confirm" data-if="projectDragLabel == '' &amp;&amp; libraryQueue != ''">{{libraryQueue}}</div>
+				</div>
+				<div class="tf-project-detail bg-darker">
+					<div class="tf-project-detail-empty text-medium" data-if="projectOpenSelected == ''">{{libraryLabel_detailsEmpty}}</div>
+					<div class="tf-project-detail-body" data-if="projectOpenSelected != '' &amp;&amp; projectInfoFolder">
+						<div class="tf-proj-detail-name font-bold">{{projectInfoName}}/</div>
+						<div class="tf-proj-detail-path text-medium" data-if="projectInfoPath != ''">{{projectInfoPath}}</div>
+						<div class="tf-proj-detail-row">
+							<div class="tf-proj-detail-val">{{projectInfoCount}}</div>
+						</div>
+					</div>
+					<div class="tf-project-detail-body" data-if="projectOpenSelected != '' &amp;&amp; !projectInfoFolder">
+						<div id="tf-proj-preview" class="tf-proj-preview"></div>
+						<div class="tf-proj-preview-modes" data-if="projectInfoBoth">
+							<div class="tf-proj-preview-mode" data-class-active="projectPreviewMode == 'map'" data-event-mousedown="onProjectPreviewMode('map')">{{libraryLabel_previewMap}}</div>
+							<div class="tf-proj-preview-mode" data-class-active="projectPreviewMode == 'height'" data-event-mousedown="onProjectPreviewMode('height')">{{libraryLabel_previewHeight}}</div>
+						</div>
+						<div class="tf-proj-detail-name font-bold">{{projectInfoName}}</div>
+						<div class="tf-proj-detail-path text-medium" data-if="projectInfoPath != ''">{{projectInfoPath}}</div>
+						<div class="tf-proj-detail-row">
+							<div class="tf-proj-detail-key">{{libraryLabel_mapCol}}</div>
+							<div class="tf-proj-detail-val">{{projectInfoSize}}</div>
+						</div>
+						<div class="tf-proj-detail-row">
+							<div class="tf-proj-detail-key">{{libraryLabel_modifiedCol}}</div>
+							<div class="tf-proj-detail-val">{{projectInfoModified}}</div>
+						</div>
+						<div class="tf-proj-detail-row" data-if="projectInfoCreated != ''">
+							<div class="tf-proj-detail-key">{{libraryLabel_createdCol}}</div>
+							<div class="tf-proj-detail-val">{{projectInfoCreated}}</div>
+						</div>
+						<div class="tf-proj-detail-row" data-if="projectInfoUnits != ''">
+							<div class="tf-proj-detail-key">{{libraryLabel_units}}</div>
+							<div class="tf-proj-detail-val">{{projectInfoUnits}}</div>
+						</div>
+						<div class="tf-proj-detail-flag text-keybind" data-if="projectInfoLegacy">{{libraryLabel_legacyBadge}}</div>
+						<div class="tf-proj-detail-flag text-confirm" data-if="projectInfoCurrent">{{libraryLabel_currentBadge}}</div>
+						<!-- TEAM: where this project stands against the library, and
+						     every transfer that applies to it. -->
+						<div class="tf-proj-team" data-if="libraryConfigured">
+							<div class="tf-proj-sum-title">{{libraryLabel_teamHeader}}</div>
+							<div class="tf-proj-team-line" data-class-sync-synced="projectInfoSync == 'synced'" data-class-sync-mine="projectInfoSync == 'mine'" data-class-sync-theirs="projectInfoSync == 'theirs'">{{projectInfoTeamLine}}</div>
+							<div class="tf-proj-team-btns">
+								<div class="tf-action-btn tf-proj-team-btn" data-if="!projectInfoTeam" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryUploadTo()"><div class="tf-action-btn-text">{{libraryLabel_uploadTo}}</div></div>
+								<div class="tf-action-btn tf-proj-team-btn" data-if="projectInfoTeam &amp;&amp; projectInfoMine &amp;&amp; projectInfoSync != 'synced'" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryUpdateTeam()"><div class="tf-action-btn-text">{{libraryLabel_updateTeam}}</div></div>
+								<div class="tf-action-btn tf-proj-team-btn" data-if="projectInfoTeam &amp;&amp; projectInfoSync != 'synced'" data-class-disabled="!libraryOnline || libraryBusy" data-class-confirming="libraryGetConfirming" data-event-click="libraryDownload()">
+									<div class="tf-action-btn-text" data-if="libraryGetConfirming">{{libraryLabel_confirmGetTeam}}</div>
+									<div class="tf-action-btn-text" data-if="!libraryGetConfirming &amp;&amp; projectInfoSync == 'mine'">{{libraryLabel_replaceMine}}</div>
+									<div class="tf-action-btn-text" data-if="!libraryGetConfirming &amp;&amp; projectInfoSync != 'mine'">{{libraryLabel_getTeam}}</div>
+								</div>
+								<div class="tf-action-btn tf-proj-team-btn" data-if="projectInfoTeam" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryMoveTo()"><div class="tf-action-btn-text">{{libraryLabel_moveTo}}</div></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div><!-- /tf-panel-body -->
+		<div class="tf-project-footer">
+			<!-- One status slot. Good news fades by itself; bad news waits. -->
+			<div class="tf-project-status tf-project-status-slot bg-darker" data-if="libraryStatusVisible" data-class-border-confirm="libraryStatusSuccess" data-class-border-danger="libraryStatusError">
+				<div class="tf-project-status-text">{{libraryStatus}}</div>
+				<div class="tf-project-status-time text-medium" data-if="libraryStatusTime != ''">{{libraryStatusTime}}</div>
+				<div class="tf-project-status-dismiss" data-attr-title="libraryLabel_dismiss" data-event-mousedown="libraryDismissStatus()"><img class="tf-project-icon" src="/luaui/images/terraform_brush/close.png" /></div>
+			</div>
+			<div class="tf-project-status bg-darker border-warning" data-if="projectOpenHint != ''">{{projectOpenHint}}</div>
+			<!-- Offered after a local move, when the same project sits in the team
+			     library at the path it just left. -->
+			<div class="tf-project-upload bg-darker border-warning" data-if="libraryMoveOpen">
+				<div class="tf-project-caution text-keybind">{{libraryMoveQuestion}}</div>
+				<div class="tf-project-actions">
+					<div class="tf-action-btn tf-project-secondary" data-event-click="libraryMoveDismiss()"><div class="tf-action-btn-text">{{libraryLabel_moveLater}}</div></div>
+					<div class="tf-project-spacer"></div>
+					<div class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryMoveConfirm()"><div class="tf-action-btn-text">{{libraryLabel_moveConfirm}}</div></div>
+				</div>
+			</div>
+			<!-- The stage tray: one chip per pipeline folder. Opened by the TEAM
+			     block for an upload, or for a move (which is staged, not sent). -->
+			<div class="tf-project-upload bg-darker border-dark" data-if="libraryUploadOpen" data-class-border-warning="libraryConfirming">
+				<div class="tf-project-field-label">{{libraryTrayTitle}}</div>
+				<div id="tf-popen-stages" class="tf-project-stages"></div>
+				<div class="tf-project-caution text-medium" data-if="!libraryConfirming &amp;&amp; libraryTrayMode == 'upload'">{{libraryLabel_saveFirst}}</div>
+				<div class="tf-project-caution text-keybind" data-if="libraryConfirming">{{libraryStatus}}</div>
+				<div class="tf-project-actions">
+					<div class="tf-action-btn tf-project-secondary" data-event-click="libraryCancelUpload()"><div class="tf-action-btn-text">{{libraryLabel_cancel}}</div></div>
+					<div class="tf-project-spacer"></div>
+					<div class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="!libraryWritable || libraryBusy || projectOpenSelected == '' || libraryStage == ''" data-event-click="libraryTrayCommit()">
+						<div class="tf-action-btn-text" data-if="libraryTrayMode == 'move'">{{libraryLabel_stageMove}}</div>
+						<div class="tf-action-btn-text" data-if="libraryTrayMode != 'move' &amp;&amp; !libraryConfirming">{{libraryLabel_publish}}</div>
+						<div class="tf-action-btn-text" data-if="libraryTrayMode != 'move' &amp;&amp; libraryConfirming">{{libraryLabel_confirmPublish}}</div>
+					</div>
+				</div>
+			</div>
+			<div data-if="!libraryUploadOpen">
+				<!-- Staged team moves. Nothing reaches the repository until CONFIRM
+				     MOVES, because every move is a commit and a push on a branch
+				     other people are working in. -->
+				<div class="tf-project-moves" data-if="libraryMovesOpen">
+					<div class="tf-project-moves-count text-confirm">{{libraryMovesPending}}</div>
+					<div class="tf-project-spacer"></div>
+					<div class="tf-action-btn tf-project-secondary" data-class-disabled="libraryBusy" data-event-click="libraryDiscardMoves()"><div class="tf-action-btn-text">{{libraryLabel_discardMoves}}</div></div>
+					<div class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryConfirmMoves()"><div class="tf-action-btn-text">{{libraryLabel_confirmMoves}}</div></div>
+				</div>
+				<div class="tf-project-caution text-keybind" data-if="projectOpenSelected != '' &amp;&amp; projectInfoFolder">{{libraryLabel_deleteFolderWarning}}</div>
+				<!-- Rename, inline: the new name, Enter or the button commits, Esc puts it away. -->
+				<div class="tf-project-newfolder-row" data-if="projectRenameOpen">
+					<div class="tf-project-field-label">{{libraryLabel_rename}}</div>
+					<input type="text" id="input-project-rename" class="tf-preset-input tf-project-newfolder-input" maxlength="64" value="" data-attr-title="libraryLabel_renameHint" />
+					<div class="tf-action-btn tf-save-btn tf-project-newfolder-ok" data-event-mousedown="onProjectRenameApply()"><div class="tf-action-btn-text">{{libraryLabel_apply}}</div></div>
+					<div class="tf-action-btn tf-project-secondary" data-event-mousedown="onProjectRenameCancel()"><div class="tf-action-btn-text">{{libraryLabel_cancel}}</div></div>
+				</div>
+				<div class="tf-project-actions">
+					<div id="btn-project-open-delete" class="tf-action-btn tf-project-danger" data-if="projectInfoMine || projectInfoFolder" data-class-disabled="projectOpenSelected == '' || libraryBusy" data-class-confirming="projectDeleteConfirming" data-event-mousedown="onProjectOpenDelete()">
+						<img class="tf-project-icon" src="/luaui/images/terraform_brush/trash.png" />
+						<div class="tf-action-btn-text" data-if="!projectDeleteConfirming">{{libraryLabel_deleteLocal}}</div>
+						<div class="tf-action-btn-text" data-if="projectDeleteConfirming">{{libraryLabel_confirmDelete}}</div>
+					</div>
+					<div class="tf-action-btn tf-project-danger" data-if="projectInfoTeam &amp;&amp; !projectInfoFolder" data-class-disabled="!libraryWritable || libraryBusy || projectOpenSelected == ''" data-class-confirming="libraryRemoveConfirming" data-event-click="libraryRemoveRemote()">
+						<img class="tf-project-icon" src="/luaui/images/terraform_brush/trash.png" />
+						<div class="tf-action-btn-text" data-if="!libraryRemoveConfirming">{{libraryLabel_removeTeam}}</div>
+						<div class="tf-action-btn-text" data-if="libraryRemoveConfirming">{{libraryLabel_confirmRemoveTeam}}</div>
+					</div>
+					<div class="tf-action-btn tf-project-secondary" data-class-disabled="projectOpenSelected == '' || projectInfoFolder || libraryBusy" data-class-active="projectRenameOpen" data-event-mousedown="onProjectRename()"><div class="tf-action-btn-text">{{libraryLabel_rename}}</div></div>
+					<div class="tf-project-spacer"></div>
+					<!-- OPEN. A project on this disk restarts into it (after one
+					     confirm, since the restart drops unsaved work); one that is
+					     only in the team library is downloaded first. -->
+					<div id="btn-project-open-load" class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="projectOpenSelected == '' || libraryBusy || projectInfoFolder || (!projectInfoMine &amp;&amp; !libraryOnline)" data-class-confirming="projectOpenConfirming" data-event-mousedown="onProjectOpenLoad()">
+						<div class="tf-action-btn-text" data-if="!projectOpenConfirming">{{libraryLabel_open}}</div>
+						<div class="tf-action-btn-text" data-if="projectOpenConfirming">{{libraryLabel_confirmOpen}}</div>
+					</div>
+				</div>
+			</div>
+		</div><!-- /tf-project-footer -->
 	</div>
 
 	<!-- ============ CAPTURE WINDOW (floating, opened from the header rail) ============ -->
@@ -9733,5 +10096,30 @@
 	</div>
 
 	<div id="tf-guide-floating-tip" class="tf-guide-floating-tip hidden"></div>
+	<!-- QUIT GUARD: unsaved changes stand between the user and a quit, a lobby exit
+	     or a new map. The catcher spans the screen so nothing behind it takes the
+	     click; Esc cancels, Enter saves first (KeyPress). -->
+	<div id="tf-quit-guard" class="tf-quit-guard" data-if="quitGuardOpen">
+		<div class="tf-quit-card widget-shadow rounded-md bg-darkest p-2-5">
+			<div class="tf-quit-title">{{libraryLabel_quitTitle}}</div>
+			<div class="tf-quit-text">{{quitGuardText}}</div>
+			<div class="tf-quit-hint">{{quitGuardHint}}</div>
+			<div class="tf-quit-status" data-if="quitGuardStatus != ''">{{quitGuardStatus}}</div>
+			<div class="tf-quit-buttons">
+				<div id="btn-quit-guard-save" class="tf-action-btn tf-quit-primary" data-event-mousedown="onQuitGuardSave()">
+					<div class="tf-action-btn-text" data-if="quitGuardHasProject">{{libraryLabel_quitSaveAndGo}}</div>
+					<div class="tf-action-btn-text" data-if="!quitGuardHasProject">{{libraryLabel_quitSaveAs}}</div>
+				</div>
+				<div id="btn-quit-guard-discard" class="tf-action-btn tf-quit-discard" data-event-mousedown="onQuitGuardDiscard()">
+					<div class="tf-action-btn-text">{{libraryLabel_quitDiscard}}</div>
+				</div>
+				<div id="btn-quit-guard-cancel" class="tf-action-btn" data-event-mousedown="onQuitGuardCancel()">
+					<div class="tf-action-btn-text">{{libraryLabel_quitCancel}}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- The project being dragged, riding under the pointer (see projectDragUpdate). -->
+	<div id="tf-project-dragghost" class="tf-project-dragghost hidden"></div>
 </body>
 </rml>

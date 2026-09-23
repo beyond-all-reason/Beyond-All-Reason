@@ -79,8 +79,6 @@ local mathSqrt = math.sqrt
 local mathPi = math.pi
 
 local LuaShader = gl.LuaShader
-local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
-local popElementInstance = gl.InstanceVBOTable.popElementInstance
 
 --------------------------------------------------------------------------------
 -- CONFIG: tweak these to taste
@@ -248,6 +246,12 @@ local CONFIG = {
 
 local weaponConfigs = {}
 local hasFlameWeapons = false
+local scavUnitDef = {} -- [unitDefID] = true for scavenger units (customParams.isscavenger)
+for unitDefID, ud in pairs(UnitDefs) do
+	if ud.customParams.isscavenger then
+		scavUnitDef[unitDefID] = true
+	end
+end
 local missingAlldefsPost = 0 -- count of flame weapons missing the flame_orig_* customparams
 
 for weaponID, wd in pairs(WeaponDefs) do
@@ -299,6 +303,7 @@ for weaponID, wd in pairs(WeaponDefs) do
 			invRangeSq = invRangeSq,
 			velocity = origVelocity,
 			velPerFrame = velPerFrame,
+			maxSpeedSq = velPerFrame * velPerFrame * 4, -- derived per-frame speed above this means a recycled proID
 			areaOfEffect = origAoe,
 			sprayAngle = origSprayDeg,
 			damage = origDamage,
@@ -595,10 +600,32 @@ local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 ---@type InstanceVBOTable?
 local particleVBO = nil
 local particleShader = nil
-local nextParticleID = 0
 
-local particleRemoveQueue = {} -- [deathFrame] = { id, id, ... }
+local particleRemoveQueue = {} -- [deathFrame] = { n = count, slot, slot, ... } (1-based ring slots)
 local lastRemovedFrame = 0
+
+--------------------------------------------------------------------------------
+-- Ring slot allocator
+--
+-- Particles are written straight into the VBO mirror at the next ring slot whose
+-- previous occupant has expired; the vertex shader already hides expired
+-- particles, so a death only clears the slot's death frame. Consecutive slots
+-- written since the last flush form one upload run. The ring doubles when it
+-- fills up, like the InstanceVBOTable resize the uncapped core flame relied on.
+--------------------------------------------------------------------------------
+local RING_MAX_SKIPS = 64 -- alive slots skipped per spawn before giving up
+local ring = {
+	data = nil, -- particleVBO.instanceData, 16 floats per slot
+	capacity = 0,
+	growAt = 0, -- live count that triggers a doubling
+	head = 0, -- next slot to try (0-based)
+	death = nil, -- [slot + 1] = death frame of the occupant, 0 when free
+	owner = nil, -- [slot + 1] = tracked projectile that may kill the occupant early, or false
+	live = 0, -- particles whose death frame has not been processed yet
+	runStart = -1, -- first slot of the pending upload run, -1 when empty
+	runEnd = -2, -- last slot of the pending upload run
+	drops = 0, -- spawns that found no free slot
+}
 
 -- Free list of recyclable particleRemoveQueue arrays. Under heavy load each
 -- distinct deathFrame previously allocated a fresh table that became garbage
@@ -656,6 +683,11 @@ local function releaseInfo(info)
 	info.losHiddenFrame = nil
 	info.losVisibleFrame = nil
 	info.losSmokeCached = nil
+	info.viewUntil = nil
+	info.lx = nil
+	info.ly = nil
+	info.lz = nil
+	info.lf = nil
 	info.particles = nil
 	if infoPoolN < INFO_POOL_MAX then
 		infoPoolN = infoPoolN + 1
@@ -709,10 +741,8 @@ local ALLY_FASTPATH_CACHE_INTERVAL = 15
 --------------------------------------------------------------------------------
 local K = {
 	MAX_PARTICLES = CONFIG.maxParticles,
-	-- Absolute wall: only tier-3 essential cores may push past MAX_PARTICLES,
-	-- and even they stop at this value. Sized so a few hundred tracked
-	-- projectiles can each get their 1 core/frame for a few frames before
-	-- expirations claw the pool back below the soft cap.
+	-- Initial particle ring capacity (the ring doubles when it fills up) and
+	-- the headroom reference for paused snapshots.
 	HARD_MAX_PARTICLES = mathFloor(CONFIG.maxParticles * (1 + (CONFIG.essentialOverflowFrac or 0))),
 	LOS_CULL_ENABLED = CONFIG.losCullingEnabled,
 	LOD_MIN_MULT = CONFIG.lodMinMult,
@@ -828,20 +858,33 @@ local function initGL4()
 		{ id = 4, name = "tintAlpha", size = 4 },
 	}
 
-	particleVBO = gl.InstanceVBOTable.makeInstanceVBOTable(layout, CONFIG.maxParticles, "flameParticleVBO")
+	local capacity = K.HARD_MAX_PARTICLES
+	particleVBO = gl.InstanceVBOTable.makeInstanceVBOTable(layout, capacity, "flameParticleVBO")
 	if not particleVBO then
 		goodbye("VBO creation failed")
 		return false
 	end
 
-	particleVBO.numVertices = numVertices
-	particleVBO.vertexVBO = quadVBO
-	particleVBO.VAO = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO)
-	particleVBO.primitiveType = GL.TRIANGLES
+	ring.data = particleVBO.instanceData
+	ring.capacity = capacity
+	ring.growAt = mathFloor(capacity * 0.85)
+	ring.head = 0
+	ring.live = 0
+	ring.runStart = -1
+	ring.runEnd = -2
+	ring.drops = 0
+	local death, owner = {}, {}
+	for i = 1, capacity do
+		death[i] = 0
+		owner[i] = false
+	end
+	ring.death = death
+	ring.owner = owner
 
+	particleVBO.numVertices = numVertices
+	particleVBO.primitiveType = GL.TRIANGLES
 	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("flameIndexVBO")
-	particleVBO.VAO:AttachIndexBuffer(indexVBO)
-	particleVBO.indexVBO = indexVBO
+	particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
 
 	return true
 end
@@ -920,7 +963,6 @@ end
 --------------------------------------------------------------------------------
 -- Particle spawn
 --------------------------------------------------------------------------------
-local particleData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 }
 
 -- Set by emitStream before spawning so spawnParticle can attribute each new
 -- particle to its owning projectile (for bulk-kill on LOS loss). Reset to nil
@@ -928,77 +970,121 @@ local particleData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 }
 -- into a stale tracked entry.
 local emitInfoRef = nil
 
+-- Uploads the pending run of freshly written slots (one Upload per contiguous run)
+local function flushParticleUploads()
+	local s = ring.runStart
+	if s < 0 then
+		return
+	end
+	particleVBO.instanceVBO:Upload(ring.data, nil, s, s * 16 + 1, (ring.runEnd + 1) * 16)
+	ring.runStart = -1
+	ring.runEnd = -2
+end
+
+-- Doubles the ring: a new VBO (definitions are immutable), the used range
+-- re-uploaded and the VAO re-attached, as InstanceVBOTable's resize does.
+local function growRing()
+	local oldCap = ring.capacity
+	local newCap = oldCap * 2
+	local data, death, owner = ring.data, ring.death, ring.owner
+	for i = oldCap * 16 + 1, newCap * 16 do
+		data[i] = 0
+	end
+	for i = oldCap + 1, newCap do
+		death[i] = 0
+		owner[i] = false
+	end
+	ring.capacity = newCap
+	ring.growAt = mathFloor(newCap * 0.85)
+	ring.runStart = -1
+	ring.runEnd = -2
+	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	vbo:Define(newCap, particleVBO.layout)
+	vbo:Upload(data, nil, 0, 1, particleVBO.usedElements * 16)
+	particleVBO.instanceVBO:Delete()
+	particleVBO.maxElements = newCap
+	particleVBO.VAO:Delete()
+	particleVBO:makeVAOandAttach(particleVBO.vertexVBO, vbo, particleVBO.indexVBO)
+	spEcho("[Flamethrower GL4] particle ring grown to " .. newCap)
+end
+
 local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b, alpha, essential)
-	-- Core flame particles (ptype 0) are NEVER capped: with many flamethrowers
-	-- active the soft/hard caps would starve late-iterated streams of any
-	-- particles at all (the "some flamethrowers invisible" symptom). The VBO
-	-- auto-resizes on overflow (instancevbotable doubles maxElements when full),
-	-- so pushing past CONFIG.maxParticles is safe -- the cap here is a budget
-	-- throttle, not a hardware limit. Non-core decorations (jet/tail/smoke) still
-	-- respect the soft cap to keep total cost bounded.
-	if ptype ~= 0 and not essential and particleVBO.usedElements >= K.MAX_PARTICLES then
-		return nil
+	-- Core flame (ptype 0) is never capped: with many flamethrowers active the
+	-- caps would starve late-iterated streams of any particles at all (the
+	-- "some flamethrowers invisible" symptom); the ring grows instead. Non-core
+	-- decorations (jet/tail/smoke) respect the soft cap to keep total cost bounded.
+	if ptype ~= 0 and not essential and ring.live >= K.MAX_PARTICLES then
+		return
 	end
 	local deathFrame = cachedGameFrame + mathCeil(life) + 2
-
-	particleData[1] = px
-	particleData[2] = py
-	particleData[3] = pz
-	particleData[4] = cachedGameFrame
-	particleData[5] = vx
-	particleData[6] = vy
-	particleData[7] = vz
-	particleData[8] = life
-	particleData[9] = size
-	particleData[10] = ptype
-	particleData[11] = mathRandom()
-	particleData[12] = (mathRandom() * 2 - 1) * mathPi
-	particleData[13] = r
-	particleData[14] = g
-	particleData[15] = b
-	particleData[16] = alpha
-
-	-- Advance nextParticleID, wrapping safely below 2^24. Spring's unsynced
-	-- Lua uses float32 for lua_Number (to match GPU buffers), so integer
-	-- arithmetic loses precision at 2^24 (16777216): `x + 1 == x`. If we let
-	-- nextParticleID hit that ceiling it freezes forever, every spawn reuses
-	-- the same ID, pushElementInstance takes the updateExisting path on slot
-	-- 0, and the entire particle effect disappears. This was the long-run
-	-- "leak" observed after ~30 min of continuous flame.
-	--
-	-- We wrap well below the float ceiling (2^23 = 8388608) and on collision
-	-- with a still-live ID just keep incrementing. With <=10k live particles
-	-- in 8M slots the average collision rate is ~0.1%.
-	local nid = nextParticleID + 1
-	if nid >= 8388608 then
-		nid = 1
+	if deathFrame <= lastRemovedFrame then
+		return -- backdated paused-snapshot spawn that is already expired
 	end
-	local idToIndex = particleVBO.instanceIDtoIndex
-	while idToIndex[nid] do
-		nid = nid + 1
-		if nid >= 8388608 then
-			nid = 1
-		end
+	if ring.live >= ring.growAt then
+		growRing()
 	end
-	nextParticleID = nid
-	local id = nid
-	-- Per-element upload: only transmits this one slot (16 floats) to GPU.
-	-- Tried noUpload=true + uploadAllElements() once per frame, but that
-	-- uploads the ENTIRE used range every frame (~2-4k particles), which
-	-- transmits far more bytes per frame than the per-element path even
-	-- though it uses fewer GL calls. Net regression in profiling.
-	-- Also tried noUpload=true + uploadElementRange over a tracked
-	-- [dirtyMin, dirtyMax] span: looked promising on paper but regressed
-	-- ~33% in practice because particles die FIFO (low indices) while new
-	-- spawns push at the tail, so the dirty span covers essentially the
-	-- full used range every frame -- same trap as uploadAllElements, plus
-	-- extra Lua bookkeeping. Per-element upload wins.
-	pushElementInstance(particleVBO, particleData, id, true)
+
+	-- Walk the ring past slots whose occupant is still alive
+	local death = ring.death
+	local capacity = ring.capacity
+	local slot = ring.head
+	local oldDeath = death[slot + 1]
+	if oldDeath > cachedGameFrame then
+		local skips = 0
+		repeat
+			skips = skips + 1
+			if skips > RING_MAX_SKIPS then
+				ring.head = slot
+				ring.drops = ring.drops + 1
+				return
+			end
+			slot = slot + 1
+			if slot >= capacity then
+				slot = 0
+			end
+			oldDeath = death[slot + 1]
+		until oldDeath <= cachedGameFrame
+	end
+	ring.head = (slot + 1 < capacity) and slot + 1 or 0
+	death[slot + 1] = deathFrame
+	-- The occupant expired but its removal queue has not run yet: uncount it now,
+	-- the queued entry no longer matches this slot's death frame.
+	ring.live = ring.live + (oldDeath > lastRemovedFrame and 0 or 1)
+	if slot >= particleVBO.usedElements then
+		particleVBO.usedElements = slot + 1
+	end
+
+	-- Extend the run across small gaps of skipped slots (their mirror data is unchanged)
+	local gap = slot - ring.runEnd
+	if ring.runStart < 0 then
+		ring.runStart = slot
+	elseif gap < 1 or gap > RING_MAX_SKIPS then
+		flushParticleUploads()
+		ring.runStart = slot
+	end
+	ring.runEnd = slot
+
+	local d = ring.data
+	local o = slot * 16
+	d[o + 1] = px
+	d[o + 2] = py
+	d[o + 3] = pz
+	d[o + 4] = cachedGameFrame
+	d[o + 5] = vx
+	d[o + 6] = vy
+	d[o + 7] = vz
+	d[o + 8] = life
+	d[o + 9] = size
+	d[o + 10] = ptype
+	d[o + 11] = mathRandom()
+	d[o + 12] = (mathRandom() * 2 - 1) * mathPi
+	d[o + 13] = r
+	d[o + 14] = g
+	d[o + 15] = b
+	d[o + 16] = alpha
 
 	local q = particleRemoveQueue[deathFrame]
 	if not q then
-		-- Recycle a pooled table if available; otherwise allocate (rare once
-		-- steady state is reached).
 		if removeQueuePoolN > 0 then
 			q = removeQueuePool[removeQueuePoolN]
 			removeQueuePool[removeQueuePoolN] = nil
@@ -1009,16 +1095,16 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 		particleRemoveQueue[deathFrame] = q
 	end
 	local qn = q.n + 1
-	q[qn] = id
+	q[qn] = slot + 1
 	q.n = qn
 
 	-- Attribute this particle to the currently-emitting projectile, so we can
-	-- pop it early if/when that projectile loses LOS. Skipped when
+	-- kill it early if/when that projectile loses LOS. Skipped when
 	-- info.noKillNeeded is set (spectator full-view or ally fast-path -- those
-	-- paths can never call killProjectileParticles, so the list would just be
-	-- dead weight: a hash lookup + table push per particle for nothing).
-	if emitInfoRef and not emitInfoRef.noKillNeeded then
-		local plist = emitInfoRef.particles
+	-- paths can never call killProjectileParticles).
+	local info = emitInfoRef
+	if info and not info.noKillNeeded then
+		local plist = info.particles
 		if not plist then
 			if particlesPoolN > 0 then
 				plist = particlesPool[particlesPoolN]
@@ -1027,7 +1113,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 			else
 				plist = {}
 			end
-			emitInfoRef.particles = plist
+			info.particles = plist
 		end
 		local n = #plist
 		-- Cap list growth: old entries point to particles that are likely
@@ -1042,42 +1128,52 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b,
 			end
 			n = 512
 		end
-		plist[n + 1] = id
+		plist[n + 1] = slot + 1
+		ring.owner[slot + 1] = info
+	else
+		ring.owner[slot + 1] = false
 	end
-	return id
 end
 
+-- Frees the slots of particles that expired since the last call. A slot whose death
+-- frame no longer matches was already reused (and uncounted) by spawnParticle.
 local function removeExpiredParticles(gameFrame)
-	local startFrame = lastRemovedFrame + 1
-	if gameFrame - startFrame > 600 then
-		for f = startFrame, gameFrame - 601 do
-			particleRemoveQueue[f] = nil
-		end
-		startFrame = gameFrame - 600
-	end
-	for f = startFrame, gameFrame do
+	local death = ring.death
+	local live = ring.live
+	for f = lastRemovedFrame + 1, gameFrame do
 		local q = particleRemoveQueue[f]
 		if q then
-			local idToIndex = particleVBO.instanceIDtoIndex
-			local qn = q.n
-			for i = 1, qn do
-				local id = q[i]
-				if idToIndex[id] then
-					popElementInstance(particleVBO, id)
+			for i = 1, q.n do
+				local s = q[i]
+				if death[s] == f then
+					death[s] = 0
+					live = live - 1
 				end
-				q[i] = nil -- drop reference so id values can be GC'd
+				q[i] = nil
 			end
 			q.n = 0
 			particleRemoveQueue[f] = nil
-			-- Return the now-empty table to the pool for reuse instead of
-			-- letting it become garbage. Bounded to keep memory predictable.
 			if removeQueuePoolN < REMOVE_QUEUE_POOL_MAX then
 				removeQueuePoolN = removeQueuePoolN + 1
 				removeQueuePool[removeQueuePoolN] = q
 			end
 		end
 	end
+	ring.live = live
 	lastRemovedFrame = gameFrame
+end
+
+-- Empties the ring; the draw count restarts from zero so stale GPU slots are never drawn.
+local function clearRing()
+	local death = ring.death
+	for i = 1, ring.capacity do
+		death[i] = 0
+	end
+	ring.live = 0
+	ring.head = 0
+	ring.runStart = -1
+	ring.runEnd = -2
+	particleVBO.usedElements = 0
 end
 
 --------------------------------------------------------------------------------
@@ -1115,14 +1211,23 @@ local function killProjectileParticles(info)
 	if not list then
 		return
 	end
-	local idToIndex = particleVBO.instanceIDtoIndex
+	local death, owner, data = ring.death, ring.owner, ring.data
+	local vbo = particleVBO.instanceVBO
+	local live = ring.live
 	for i = 1, #list do
-		local id = list[i]
-		if idToIndex[id] then
-			popElementInstance(particleVBO, id)
+		local s = list[i]
+		-- Slots get reused by other streams; only kill what is still ours and alive
+		if owner[s] == info and death[s] > cachedGameFrame then
+			local o = (s - 1) * 16
+			data[o + 4] = -1000000 -- birth frame far in the past: the shader reads it as expired
+			vbo:Upload(data, nil, s - 1, o + 1, o + 16)
+			death[s] = 0
+			owner[s] = false
+			live = live - 1
 		end
 		list[i] = nil
 	end
+	ring.live = live
 end
 
 local function visibleToLocalPlayer(proID, info, px, py, pz, dirX, dirY, dirZ, speed, ownerAllyTeam, gameFrame)
@@ -1265,18 +1370,35 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 
 	-- Hard distance cull: at extreme camera distance the stream is well below
 	-- a pixel; skip ALL per-projectile work (emit, LOS, frustum, particle math).
-	local _dx = px - cachedCamX
-	local _dy = py - cachedCamY
-	local _dz = pz - cachedCamZ
-	if (_dx * _dx + _dy * _dy + _dz * _dz) > LOD_DIST_CULL_SQ then
+	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
+	local distSq = dx * dx + dy * dy + dz * dz
+	if distSq > LOD_DIST_CULL_SQ then
 		return
+	end
+
+	-- Distance LOD (squared-distance compare to avoid sqrt per projectile per frame)
+	local lodMult = 1
+	if distSq > LOD_DIST_FAR_SQ then
+		lodMult = K.LOD_MIN_MULT
+		-- At minimum LOD, only emit on every other frame (per-projectile parity
+		-- via proID) so we halve the per-projectile cost when zoomed all the way
+		-- out. Density stays roughly the same because particles live longer than
+		-- 2 frames at any LOD. Skip the parity gate during paused mode: gameFrame
+		-- is constant across all densification passes, so half of far-zoom streams
+		-- would receive zero particles otherwise.
+		if not pausedEmitMode and (gameFrame + proID) % 2 == 0 then
+			return
+		end
+	elseif distSq > LOD_DIST_NEAR_SQ then
+		local k = (distSq - LOD_DIST_NEAR_SQ) * LOD_DIST_RANGE_INV_SQ
+		lodMult = 1 - k * LOD_MULT_RANGE
 	end
 
 	-- Budget tier: 0=normal, 1=soft (drop smoke), 2=medium (also thin jet/core),
 	-- 3=hard (essentials only -- one core/frame). Sampled per projectile rather
 	-- than once-per-frame so a burst of spawns inside a single GameFrame degrades
 	-- gracefully as the pool fills up.
-	local used = particleVBO.usedElements
+	local used = ring.live
 	local budgetTier = 0
 	if used >= K.BUDGET_HARD then
 		budgetTier = 3
@@ -1291,18 +1413,34 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 		budgetTier = 0
 	end
 
-	-- View frustum cull
-	if not spIsSphereInView(px, py, pz, CULL_RADIUS) then
-		return
+	-- View frustum cull. The culling sphere carries a 200 elmo margin, so an
+	-- in-view verdict stays good for a few frames of projectile and camera motion.
+	if gameFrame >= (info.viewUntil or 0) then
+		if not spIsSphereInView(px, py, pz, CULL_RADIUS) then
+			return
+		end
+		info.viewUntil = gameFrame + 4
 	end
 
-	-- Velocity fetched here (instead of post-LOS) because the LOS gate needs
-	-- the projectile's forward direction to do a downrange-trajectory sample
-	-- ("is the spot where my particles will drift to in LOS?").
-	local vx, vy, vz = spGetProjectileVelocity(proID)
-	vx = vx or 0
-	vy = vy or 0
-	vz = vz or 0
+	-- Velocity from the previous visit's position (flame projectiles fly
+	-- straight at constant speed); the engine query only on the first visit.
+	-- Needed before the LOS gate, which samples downrange along the direction.
+	local vx, vy, vz
+	local lf = info.lf
+	if lf and lf < gameFrame then
+		local inv = 1 / (gameFrame - lf)
+		vx, vy, vz = (px - info.lx) * inv, (py - info.ly) * inv, (pz - info.lz) * inv
+		if vx * vx + vy * vy + vz * vz > info.cfg.maxSpeedSq then
+			vx = nil -- the position jumped (recycled proID): the engine knows the real velocity
+		end
+	end
+	if not vx then
+		vx, vy, vz = spGetProjectileVelocity(proID)
+		vx = vx or 0
+		vy = vy or 0
+		vz = vz or 0
+	end
+	info.lx, info.ly, info.lz, info.lf = px, py, pz, gameFrame
 	local speed = mathSqrt(vx * vx + vy * vy + vz * vz)
 	local invSpeed = speed > 0.001 and (1 / speed) or 0
 	local dirX, dirY, dirZ = vx * invSpeed, vy * invSpeed, vz * invSpeed
@@ -1360,26 +1498,6 @@ local function emitStream(proID, info, gameFrame, throttleMult)
 	local distT2 = distFromEmitSq * cfg.invRangeSq
 	if distT2 > 1 then
 		distT2 = 1
-	end
-
-	-- Distance LOD (squared-distance compare to avoid sqrt per projectile per frame)
-	local dx, dy, dz = px - cachedCamX, py - cachedCamY, pz - cachedCamZ
-	local distSq = dx * dx + dy * dy + dz * dz
-	local lodMult = 1
-	if distSq > LOD_DIST_FAR_SQ then
-		lodMult = K.LOD_MIN_MULT
-		-- At minimum LOD, only emit on every other frame (per-projectile parity
-		-- via proID) so we halve the per-projectile cost when zoomed all the way
-		-- out. Density stays roughly the same because particles live longer than
-		-- 2 frames at any LOD. Skip the parity gate during paused mode: gameFrame
-		-- is constant across all densification passes, so half of far-zoom streams
-		-- would receive zero particles otherwise.
-		if not pausedEmitMode and (gameFrame + proID) % 2 == 0 then
-			return
-		end
-	elseif distSq > LOD_DIST_NEAR_SQ then
-		local k = (distSq - LOD_DIST_NEAR_SQ) * LOD_DIST_RANGE_INV_SQ
-		lodMult = 1 - k * LOD_MULT_RANGE
 	end
 
 	-- During paused emit, force full LOD density: skipping particles for
@@ -1820,6 +1938,7 @@ local function updateProjectiles(gameFrame, throttleMult, iterFrac)
 		if info and (gameFrame - info.birthFrame) > info.cfg.expectedLife * 1.5 then
 			info.birthFrame = gameFrame
 			info.midFlightAcquired = false
+			info.lf = nil
 			local ex, ey, ez = spGetProjectilePosition(proID)
 			if ex then
 				info.emitX, info.emitY, info.emitZ = ex, ey, ez
@@ -1912,16 +2031,7 @@ local function updateProjectiles(gameFrame, throttleMult, iterFrac)
 								end
 							end
 						end
-						-- Scavenger ownership: matches BAR's standard convention
-						-- (unitDef.customParams.isscavenger, used by scav_spawner_defense,
-						-- pve_areahealers, gfx_raptor_scum_gl4, etc.).
-						local ownerDefID = spGetUnitDefID(ownerID)
-						if ownerDefID then
-							local ud = UnitDefs[ownerDefID]
-							if ud and ud.customParams and ud.customParams.isscavenger then
-								isScav = true
-							end
-						end
+						isScav = scavUnitDef[spGetUnitDefID(ownerID)] or false
 					end
 				end
 
@@ -1997,6 +2107,8 @@ local function drawParticles()
 		return
 	end
 
+	flushParticleUploads()
+
 	glDepthTest(true)
 	glDepthMask(false)
 	glCulling(false)
@@ -2029,6 +2141,8 @@ function gadget:Initialize()
 	if not initGL4() then
 		return
 	end
+	cachedGameFrame = Spring.GetGameFrame()
+	lastRemovedFrame = cachedGameFrame
 
 	cachedAllyTeamID = spGetMyAllyTeamID()
 	_, cachedFullView = spGetSpectatingState()
@@ -2062,7 +2176,7 @@ function gadget:Initialize()
 	GG.Flamethrower = {
 		---@return integer count Particles currently alive.
 		GetParticleCount = function()
-			return particleVBO and particleVBO.usedElements or 0
+			return ring.live
 		end,
 		---@return integer count Particle budget for the whole system.
 		GetMaxParticles = function()
@@ -2105,31 +2219,11 @@ end
 local fpsUpdateInterval = 1
 local lastFpsCheckFrame = 0
 
--- ----------------------------------------------------------------------------
--- Long-run leak instrumentation + self-healing safety net.
---
--- Background: after ~30 min of continuous heavy flame the visible effect
--- disappears. Code reading has not pinned the cause, so we run two things
--- in production:
---
---   1) Heartbeat dump every DIAG_INTERVAL frames so a long test logs which
---      counter is climbing (used, idMap, tracked, ignored, rmQ, fpsInt).
---      Disable by setting DIAG_ENABLED = false once root-caused.
---
---   2) SAFETY NET (always on): periodically validate that
---         particleVBO.usedElements == #instanceIDtoIndex
---      Those two MUST stay in lockstep -- every push +1 to both, every pop
---      -1 to both. If they ever diverge it means push/pop accounting drifted
---      (the prime leak hypothesis) and the soft cap will eventually lock the
---      pool full forever. When detected we log loudly and force-clear the
---      whole VBO + per-projectile attribution lists so the effect comes back
---      and the user can keep playing while we investigate. No-op cost when
---      everything is healthy (one pairs() walk per minute).
--- ----------------------------------------------------------------------------
+-- Heartbeat dump every DIAG_INTERVAL frames for long-run tests; the safety
+-- net recounts the ring's live particles once a minute and corrects drift.
 local DIAG_ENABLED = false
 local DIAG_INTERVAL = 300 -- 30s at 30Hz
 local SAFETY_INTERVAL = 1800 -- 60s at 30Hz
-local SAFETY_DRIFT_TOLERANCE = 4 -- |used - idMap| above this triggers heal
 
 local function countTable(t)
 	local n = 0
@@ -2140,103 +2234,45 @@ local function countTable(t)
 end
 
 local function dumpDiagnostics(n)
-	local trackedCount = countTable(tracked)
-	local ignoredCount = countTable(ignored)
 	local queueKeys, queueTotal = 0, 0
 	for _, q in pairs(particleRemoveQueue) do
 		queueKeys = queueKeys + 1
-		queueTotal = queueTotal + #q
+		queueTotal = queueTotal + q.n
 	end
-	local idMapSize = particleVBO and particleVBO.instanceIDtoIndex and countTable(particleVBO.instanceIDtoIndex) or 0
 	Spring.Echo(
 		string.format(
-			"[flameDiag] f=%d used=%d/%d(%d) idMap=%d  tracked=%d ignored=%d  rmQ=%d(%dids)  nextID=%d fpsInt=%d",
+			"[flameDiag] f=%d live=%d drawn=%d cap=%d drops=%d  tracked=%d ignored=%d  rmQ=%d(%dslots) fpsInt=%d",
 			n,
-			particleVBO and particleVBO.usedElements or -1,
-			K.MAX_PARTICLES,
-			K.HARD_MAX_PARTICLES,
-			idMapSize,
-			trackedCount,
-			ignoredCount,
+			ring.live,
+			particleVBO.usedElements,
+			ring.capacity,
+			ring.drops,
+			countTable(tracked),
+			countTable(ignored),
 			queueKeys,
 			queueTotal,
-			nextParticleID,
 			fpsUpdateInterval
 		)
 	)
 end
 
--- Force-clear the entire particle VBO and all per-projectile attribution
--- lists. Called by the safety net when accounting drift is detected. After
--- this runs the visual effect comes back within a few frames (every tracked
--- projectile re-emits naturally). Loud Spring.Echo so a leak event is
--- impossible to miss in logs/infolog.
-local function emergencyResetParticles(reason)
-	Spring.Echo("[gfx_flamethrower_gl4] EMERGENCY RESET: " .. tostring(reason))
-	if particleVBO then
-		-- clearInstanceTable resets usedElements + both id<->index maps in one
-		-- call, then re-uploads an empty buffer.
-		if gl.InstanceVBOTable.clearInstanceTable then
-			gl.InstanceVBOTable.clearInstanceTable(particleVBO)
-		else
-			-- Defensive: if the engine InstanceVBO module ever loses
-			-- clearInstanceTable, fall through to a manual reset of just the
-			-- accounting maps. Slots will be reclaimed lazily as new pushes
-			-- swap-replace them.
-			particleVBO.usedElements = 0
-			particleVBO.instanceIDtoIndex = {}
-			particleVBO.indextoInstanceID = {}
+local function runSafetyNet()
+	local death = ring.death
+	local live = 0
+	for i = 1, ring.capacity do
+		if death[i] > lastRemovedFrame then
+			live = live + 1
 		end
 	end
-	-- Drop every queued death-frame entry so future expirations don't try to
-	-- pop IDs that no longer exist in the VBO.
-	particleRemoveQueue = {}
-	lastRemovedFrame = cachedGameFrame
-	-- Detach particle attribution from every tracked projectile so they emit
-	-- fresh from this frame onward without dangling references to dead IDs.
-	-- Recycle the per-projectile lists into the pool instead of dropping
-	-- them to GC.
-	for _, info in pairs(tracked) do
-		local p = info.particles
-		if p then
-			for k = 1, #p do
-				p[k] = nil
-			end
-			if particlesPoolN < PARTICLES_POOL_MAX then
-				particlesPoolN = particlesPoolN + 1
-				particlesPool[particlesPoolN] = p
-			end
-			info.particles = nil
-		end
-	end
-end
-
-local function runSafetyNet(n)
-	if not particleVBO then
-		return
-	end
-	local used = particleVBO.usedElements
-	local idMap = particleVBO.instanceIDtoIndex
-	if not idMap then
-		return
-	end
-	local mapSize = countTable(idMap)
-	local drift = used - mapSize
-	if drift < 0 then
-		drift = -drift
-	end
-	if drift > SAFETY_DRIFT_TOLERANCE then
+	if live ~= ring.live then
 		Spring.Echo(
 			string.format(
-				"[gfx_flamethrower_gl4] ACCOUNTING DRIFT detected: usedElements=%d idMap=%d (diff=%d). "
-					.. "This is the suspected long-run leak. Triggering self-heal.",
-				used,
-				mapSize,
-				used - mapSize
+				"[gfx_flamethrower_gl4] live particle count drift: counted %d, tracked %d; corrected",
+				live,
+				ring.live
 			)
 		)
-		emergencyResetParticles("accounting drift used=" .. used .. " idMap=" .. mapSize)
-		return
+		ring.live = live
 	end
 end
 
@@ -2281,7 +2317,7 @@ local function processFlameFrame(n)
 
 	if n >= (K.NEXT_SAFETY_FRAME or SAFETY_INTERVAL) then
 		K.NEXT_SAFETY_FRAME = n + SAFETY_INTERVAL
-		runSafetyNet(n)
+		runSafetyNet()
 	end
 end
 
@@ -2365,8 +2401,8 @@ function gadget:Update()
 	-- particle per stream). Since we re-emit every visible stream, the
 	-- leftovers are redundant. Camera-move re-emits in subsequent paused
 	-- Updates do NOT clear, so the accumulated snapshot is preserved.
-	if firstPausedEmit and gl.InstanceVBOTable.clearInstanceTable then
-		gl.InstanceVBOTable.clearInstanceTable(particleVBO)
+	if firstPausedEmit then
+		clearRing()
 	end
 
 	-- Multi-pass densification: a single emitStream call only produces ~1
@@ -2425,7 +2461,7 @@ function gadget:Update()
 	-- age-based expiration reclaims slots between camera-move re-emits.
 	local MIN_PASSES = 3
 	if pendingCount > 0 then
-		local headroom = K.HARD_MAX_PARTICLES - particleVBO.usedElements
+		local headroom = K.HARD_MAX_PARTICLES - ring.live
 		if headroom < 0 then
 			headroom = 0
 		end

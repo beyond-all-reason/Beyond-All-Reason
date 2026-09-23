@@ -63,18 +63,54 @@ local UNITS_ACK_PARAM = "mpu_ack" -- rules param set by the units gadget after a
 
 local heightmapPNG = nil -- lazy VFS.Include of the shared 16-bit PNG codec
 
+-- The two job tables are declared nil and built by startSave / maybeStartLoad;
+-- every step function runs only while its job exists. Typed as tables so the
+-- analyzer reads the steps' field access as such rather than as nil.
+---@type table
 local job = nil -- active save job, nil when idle
+---@type table
 local loadJob = nil -- active load job, nil when idle (never both at once)
 local unitsRx = nil -- receive buffer for the synced units export (stepUnits)
+---@type table?
+local mapLibrary = nil -- unsynced companion queue; Git runs outside the engine
 
 -- The project this session IS: set when a load starts (the session exists to
 -- replay that project) and when a save completes. FILE > Save targets it.
+---@type string?
 local currentSlug = nil
 
 -- Outcome of the most recent save ({ok, slug}), for the UI's transient
 -- "SAVED: <name>" readout — it polls saveProgress() and reads this when the
 -- running save disappears.
 local lastSaveInfo = nil
+-- Unsaved-changes flag: how many edits were reported since the last save or
+-- load. Tools report through WG.MapProject.markDirty; the count is cleared by
+-- a finished save or load, and ignored for a few seconds after either, while
+-- the engine's own heightmap updates are still trickling in.
+local dirtyCount = 0
+local dirtyGraceUntil = 0.0
+-- The project whose diffuse/ squares the painter is known to hold: set when a
+-- load's diffuse phase delivered them (or the project had none) and when a
+-- save's capture left the folder exact. A save over a project whose squares
+-- this session never loaded (the phase skipped, failed or timed out) must not
+-- treat the painter's empty state as "no paint" and delete them.
+local diffuseLoadedSlug = nil
+
+-- Autosave (Settings > General): a snapshot of the open project every few
+-- minutes while it has unsaved changes, into MapProjects/_autosave/ as
+-- <project>-YYYYMMDDHHMM. The panel pushes the settings through setAutosave;
+-- until it does, the defaults stand (configureAutosave fills the table, so
+-- its fields type from that assignment rather than from literals here).
+local AUTOSAVE_DIR = "_autosave"
+local autosaveCfg = {}
+local autosaveNextAt = 0.0 -- os.clock() of the next attempt
+local autosavePruneAt = 0.0 -- os.clock() of the next sweep of old snapshots
+local autosaveDirtyMark = 0 -- dirtyCount when the last snapshot started
+local autosaveJournal = {} -- slugs written this session; VFS.SubDirs cannot see their folders yet
+---@type string?
+local autosaveLoadedSlug = nil -- the snapshot this session was opened from, spared by the sweep
+---@type table?
+local lastAutosaveInfo = nil
 
 ----------------------------------------------------------------
 -- Small helpers
@@ -166,10 +202,19 @@ end
 local function writeFile(path, content)
 	local f = io.open(path, "wb")
 	if not f then
+		if job then
+			job.uploadBlocked = true
+		end
 		return nil
 	end
-	f:write(content)
-	f:close()
+	local written = f:write(content)
+	local closed = f:close()
+	if not written or not closed then
+		if job then
+			job.uploadBlocked = true
+		end
+		return nil
+	end
 	return #content
 end
 
@@ -316,12 +361,18 @@ local function sectionOk(name, file, bytes, extra)
 	job.sections[#job.sections + 1] = { name = name, file = file, bytes = bytes or 0, extra = extra }
 end
 
-local function sectionSkip(name, reason)
+local function sectionSkip(name, reason, failed)
 	job.skipped[#job.skipped + 1] = { name = name, reason = reason }
+	if failed then
+		job.uploadBlocked = true
+	end
 end
 
-local function warn(msg)
+local function warn(msg, informational)
 	job.warnings[#job.warnings + 1] = msg
+	if not informational then
+		job.uploadBlocked = true
+	end
 	echoP("WARNING: " .. msg)
 end
 
@@ -349,7 +400,8 @@ local function stepPrepare()
 	local mo = job.mapOptions
 	if not (mo.blank_map_x or mo.blank_map_y) then
 		warn(
-			"current map is not an editor blank map; project will record its state, but loading will replay it onto a flat canvas"
+			"current map is not an editor blank map; project will record its state, but loading will replay it onto a flat canvas",
+			true
 		)
 	end
 	return true
@@ -415,7 +467,8 @@ local function stepHeightmap()
 					"terrain exceeded the recorded height range; widened to %d..%d (full heightmap diff this save)",
 					minH,
 					maxH
-				)
+				),
+				true
 			)
 		end
 	end
@@ -479,7 +532,7 @@ local function stepSplat()
 	if bytes then
 		sectionOk("splat", "splat.png", bytes)
 	else
-		sectionSkip("splat", "painter reported done but file missing")
+		sectionSkip("splat", "painter reported done but file missing", true)
 	end
 	return true
 end
@@ -520,7 +573,7 @@ local function stepSurface()
 	end
 	local bytes = fileSize(job.dir .. "surface.png")
 	if not bytes then
-		sectionSkip("surface", "painter reported done but file missing")
+		sectionSkip("surface", "painter reported done but file missing", true)
 		return true
 	end
 	local meta = (sp.getPersist and sp.getPersist()) or {}
@@ -685,10 +738,17 @@ end
 -- delete the diffuse dir or drop the section — hours of paint could live
 -- there. Carry the previous manifest section forward so the loader still sees
 -- the old files; only a genuine "no paint state" marks the dir as deletable.
-local function diffuseFailSkip(reason)
+local function diffuseFailSkip(reason, notLoaded)
 	local prev = job.prev and job.prev.sections and job.prev.sections.diffuse
+	if prev or reason ~= "diffuse painter widget not loaded" then
+		job.uploadBlocked = true
+	end
 	if prev and prev.dir then
-		warn("diffuse capture failed (" .. reason .. "); keeping the previous save's diffuse files")
+		if notLoaded then
+			warn(reason .. "; keeping the previous save's diffuse files")
+		else
+			warn("diffuse capture failed (" .. reason .. "); keeping the previous save's diffuse files")
+		end
 		job.diffuse = {
 			full = prev.full or false,
 			channels = prev.channels or {},
@@ -709,11 +769,32 @@ local function stepDiffuse()
 		if not (dp and dp.saveProject) then
 			return diffuseFailSkip("diffuse painter widget not loaded")
 		end
+		-- Saving over the open project while its diffuse squares on disk were
+		-- never loaded this session (the load phase skipped, failed or timed
+		-- out). A Save As over some other project is that project being
+		-- replaced on purpose, so only the session's own project is guarded.
+		local prevDiffuse = job.prev and job.prev.sections and job.prev.sections.diffuse
+		local guarded = prevDiffuse and prevDiffuse.dir and job.slug == currentSlug
+		job.diffuseOnDiskUnloaded = (guarded and diffuseLoadedSlug ~= job.slug) and true or false
 		local mo = job.mapOptions
 		local isBlank = (mo.blank_map_x or mo.blank_map_y) and true or false
 		if isBlank and not (dp.hasProjectState and dp.hasProjectState()) then
+			if job.diffuseOnDiskUnloaded then
+				-- The project on disk has squares this session never loaded;
+				-- the painter's empty state says nothing about them, and the
+				-- cleanup step would delete them. Carry the section forward.
+				return diffuseFailSkip(
+					"diffuse/ holds "
+						.. (tonumber(job.prev.sections.diffuse.squares) or 0)
+						.. " square(s) this session never loaded",
+					true
+				)
+			end
 			sectionSkip("diffuse", "no diffuse paint state")
 			job.diffuseStateEmpty = true -- the ONE case where cleanup may wipe diffuse/
+			if not job.autosave then
+				diffuseLoadedSlug = job.slug -- an empty painter now matches an empty folder
+			end
 			return true
 		end
 		Spring.CreateDir(job.dir .. "diffuse")
@@ -748,12 +829,26 @@ local function stepDiffuse()
 		writtenSet["channel_" .. key .. ".png"] = true
 	end
 	local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
+	local kept = 0
 	for _, p in ipairs(existing) do
 		local name = basename(p)
 		if not writtenSet[name] then
-			os.remove(job.dir .. "diffuse/" .. name)
-			echoP("removed stale diffuse/" .. name)
+			if job.diffuseOnDiskUnloaded then
+				-- Squares this session never loaded are not stale, they are
+				-- unseen: leave them for the next load's glob to pick up.
+				kept = kept + 1
+			else
+				os.remove(job.dir .. "diffuse/" .. name)
+				echoP("removed stale diffuse/" .. name)
+			end
 		end
+	end
+	if kept > 0 then
+		warn(string.format("kept %d unloaded diffuse square(s) beside the %d captured", kept, #res.squares))
+	elseif not job.autosave then
+		-- The folder is exactly what the painter holds. A snapshot's folder is
+		-- too, but the painter's project is still the one it was loaded from.
+		diffuseLoadedSlug = job.slug
 	end
 	local bytes = 0
 	for name in pairs(writtenSet) do
@@ -1097,7 +1192,7 @@ end
 local function stepUnits()
 	if not job.saveUnits then
 		if job.prev and job.prev.sections and job.prev.sections.units then
-			warn("'save units loadout' was OFF — the previous save's units.lua will be removed")
+			warn("'save units loadout' was OFF — the previous save's units.lua will be removed", true)
 		end
 		sectionSkip("units", "'save units loadout' toggle off")
 		return true
@@ -1188,7 +1283,7 @@ local function stepDecals()
 	local path = job.dir .. "decals.lua"
 	local n = dp.saveProject(path)
 	if not n then
-		sectionSkip("decals", "save failed")
+		sectionSkip("decals", "save failed", true)
 	elseif n == 0 then
 		os.remove(path)
 		sectionSkip("decals", "no placed decals")
@@ -1229,7 +1324,7 @@ local function stepLabels()
 	local path = job.dir .. "labels.lua"
 	local n = ml.saveProject(path)
 	if not n then
-		sectionSkip("labels", "save failed")
+		sectionSkip("labels", "save failed", true)
 	elseif n == 0 then
 		os.remove(path)
 		sectionSkip("labels", "no comments placed")
@@ -1269,7 +1364,7 @@ local function stepEnvironment()
 	end
 	local content = ui.buildEnvConfigContent({ nodate = true })
 	if type(content) ~= "string" then
-		sectionSkip("environment", "snapshot failed")
+		sectionSkip("environment", "snapshot failed", true)
 		return true
 	end
 	local bytes = writeFile(job.dir .. "environment.lua", content)
@@ -1360,7 +1455,7 @@ local function stepGrass()
 	end
 	local tgaPath = job.dir .. "grass_dist.tga"
 	if not api.saveGrassTGA(tgaPath) then
-		sectionSkip("grass", "TGA write failed")
+		sectionSkip("grass", "TGA write failed", true)
 		return true
 	end
 	api.saveGrassConfig(job.dir .. "grass_config.lua", { nodate = true })
@@ -1422,6 +1517,40 @@ local function stepAssets()
 			if not seenSource[name] then
 				seenSource[name] = tex
 				local data = VFS.LoadFile(tex, VFS.RAW_FIRST)
+				if not data then
+					-- The VFS cannot see a folder created this session (a project
+					-- moved or downloaded since the game started), but the file is
+					-- there: the engine is drawing it. Raw io reads it.
+					local f = io.open(tex, "rb")
+					if f then
+						data = f:read("*a")
+						f:close()
+					end
+				end
+				if not data then
+					-- The session references the texture where its project was when
+					-- the game started; a rename or a move since then took the file
+					-- with it. Look where the open project is now, then in this
+					-- project's own copy from an earlier save.
+					local candidates = {}
+					if currentSlug then
+						candidates[#candidates + 1] = PROJECTS_DIR .. currentSlug .. "/assets/dnts/" .. name
+					end
+					candidates[#candidates + 1] = job.dir .. "assets/dnts/" .. name
+					for _, candidate in ipairs(candidates) do
+						if candidate ~= tex then
+							local f = io.open(candidate, "rb")
+							if f then
+								data = f:read("*a")
+								f:close()
+								if data and #data > 0 then
+									break
+								end
+								data = nil
+							end
+						end
+					end
+				end
 				if data then
 					writeFile(job.dir .. "assets/dnts/" .. name, data)
 				else
@@ -1520,6 +1649,10 @@ end
 -- file-presence loader would resurrect deleted state.
 local SECTION_FILES = {
 	heightmap = { "heightmap.png" },
+	-- The thumbnail too: a save whose minimap step skipped (engine texture
+	-- not ready) used to keep the picture of two saves ago, so the browser
+	-- showed terrain the project no longer had.
+	minimap = { "minimap.png" },
 	splat = { "splat.png" },
 	metal = { "metal.lua" },
 	features = { "features.lua" },
@@ -1566,12 +1699,19 @@ local function stepManifest()
 	local mo = job.mapOptions
 	local prev = job.prev
 	local created = (prev and prev.created) or isoNow()
+	-- The name is the leaf: the folder is where the project is, not what it
+	-- is called. A manifest that carried the whole path listed as
+	-- "Random_maps/pojpjo"; one written that way is corrected on re-save.
+	local name = prev and prev.name
+	if type(name) ~= "string" or name == "" or name:find("/", 1, true) then
+		name = job.slug:match("([^/]+)$") or job.slug
+	end
 
 	local lines = {
 		"return {",
 		'\tkind = "bar-map-project",',
 		"\tformat_version = " .. FORMAT_VERSION .. ",",
-		string.format("\tname = %q,", (prev and prev.name) or job.slug),
+		string.format("\tname = %q,", name),
 		string.format("\tcreated = %q,", created),
 		string.format("\tmodified = %q,", isoNow()),
 		string.format("\tgame_version = %q,", Game.gameVersion or "unknown"),
@@ -1579,6 +1719,12 @@ local function stepManifest()
 		"\tmap = {",
 		string.format("\t\tsize_x = %d, size_z = %d,", Game.mapSizeX / ELMOS_PER_UNIT, Game.mapSizeZ / ELMOS_PER_UNIT),
 	}
+	if job.autosave then
+		-- Which project the snapshot belongs to ("" for a canvas without one):
+		-- opening it makes that project the Save target again, and the
+		-- Autosaves view labels the row with it.
+		table.insert(lines, 5, string.format("\tautosave_of = %q,", currentSlug or ""))
+	end
 	local function add(line)
 		lines[#lines + 1] = line
 	end
@@ -1642,6 +1788,7 @@ local function stepManifest()
 	-- Fixed emission order (deterministic diffs); only sections actually written.
 	local order = {
 		"heightmap",
+		"minimap",
 		"splat",
 		"surface",
 		"tileset",
@@ -1685,6 +1832,9 @@ local function stepManifest()
 				end
 				if name == "surface" then
 					extraFields = ' meta = "surface.lua",'
+				end
+				if name == "minimap" and job.minimapSize then
+					extraFields = string.format(" width = %d, height = %d,", job.minimapSize.w, job.minimapSize.h)
 				end
 				if name == "grass" then
 					if job.grassPatchResolution then
@@ -1731,9 +1881,83 @@ local function stepManifest()
 	return true
 end
 
+-- Minimap thumbnail, so a project can be recognised by its picture in the
+-- browsers rather than by its name. The engine keeps the map's colour in
+-- $minimap and its lighting in $shading, and the minimap everyone knows is the
+-- two multiplied -- exactly what the in-game minimap shader computes
+-- (minimapColor.rgb * shadingColor.rgb) -- so a second pass with a multiply
+-- blend reproduces it without a shader of our own.
+--
+-- $minimap is square whatever the map's proportions are, so the thumbnail takes
+-- its aspect from the map and the whole texture is sampled into it. Blit
+-- conventions (TexRect coordinates, SaveImage yflip) are captureLiveTexture's,
+-- which is the pattern already writing correct images from this file.
+local MINIMAP_LONG_EDGE = 512
+
+local function stepMinimap()
+	local info = gl.TextureInfo("$minimap")
+	if not (info and (info.xsize or 0) > 1) then
+		-- Regenerating after a graphics change, or never drawn this session.
+		sectionSkip("minimap", "engine minimap texture not ready")
+		return true
+	end
+	local mapX, mapZ = Game.mapSizeX or 0, Game.mapSizeZ or 0
+	if mapX <= 0 or mapZ <= 0 then
+		sectionSkip("minimap", "map size unavailable")
+		return true
+	end
+	local w, h = MINIMAP_LONG_EDGE, MINIMAP_LONG_EDGE
+	if mapX >= mapZ then
+		h = math.max(16, math.floor(MINIMAP_LONG_EDGE * mapZ / mapX + 0.5))
+	else
+		w = math.max(16, math.floor(MINIMAP_LONG_EDGE * mapX / mapZ + 0.5))
+	end
+	local fbo = gl.CreateTexture(w, h, {
+		border = false,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+		fbo = true,
+	})
+	if not fbo then
+		sectionSkip("minimap", "could not allocate the thumbnail buffer")
+		return true
+	end
+	local path = job.dir .. "minimap.png"
+	local ok
+	gl.RenderToTexture(fbo, function()
+		gl.Blending(false)
+		gl.Texture(0, "$minimap")
+		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		gl.Texture(0, false)
+		local shading = gl.TextureInfo("$shading")
+		if shading and (shading.xsize or 0) > 1 then
+			-- dst * src: the multiply the minimap shader does.
+			gl.Blending(GL.DST_COLOR, GL.ZERO)
+			gl.Texture(0, "$shading")
+			gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+			gl.Texture(0, false)
+		end
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		-- No alpha: this is a picture of the map, and a thumbnail with an alpha
+		-- channel would only cost bytes in every project and every upload.
+		ok = gl.SaveImage(0, 0, w, h, path, { yflip = false, alpha = false })
+	end)
+	gl.DeleteTexture(fbo)
+	if ok then
+		job.minimapSize = { w = w, h = h }
+		sectionOk("minimap", "minimap.png", fileSize(path), string.format("%dx%d", w, h))
+	else
+		sectionSkip("minimap", "write failed")
+	end
+	return true
+end
+
 local STEPS = {
 	{ name = "prepare", run = stepPrepare },
 	{ name = "heightmap", run = stepHeightmap },
+	{ name = "minimap", run = stepMinimap },
 	{ name = "splat", run = stepSplat },
 	{ name = "surface", run = stepSurface },
 	{ name = "tileset", run = stepTileset },
@@ -1758,16 +1982,38 @@ local STEPS = {
 ----------------------------------------------------------------
 
 local function finishSave()
+	-- The returned receipt belongs to THIS job, unlike an idle flag or old manifest.
+	job.result.done = true
+	job.result.ok = not job.failed
+	job.result.uploadReady = not job.failed and not job.uploadBlocked and findSection("heightmap") ~= nil
+	if job.autosave then
+		lastAutosaveInfo = job.result
+	else
+		lastSaveInfo = job.result
+	end
 	if job.failed then
-		echoP("SAVE FAILED for project '" .. job.slug .. "': " .. job.failed)
-		lastSaveInfo = { ok = false, slug = job.slug }
+		echoP(
+			(job.autosave and "AUTOSAVE FAILED for '" or "SAVE FAILED for project '") .. job.slug .. "': " .. job.failed
+		)
 		job = nil
 		return
 	end
-	echoP("saved project '" .. job.slug .. "' to " .. job.dir)
-	currentSlug = job.slug
-	lastSaveInfo = { ok = true, slug = job.slug }
-	touchRecent(currentSlug)
+	-- Any finished save, either kind, starts the autosave interval over.
+	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
+	if job.autosave then
+		-- A snapshot changes nothing about the session: the project is still
+		-- the Save target and its unsaved changes are still unsaved.
+		echoP("autosaved to " .. job.dir)
+		autosaveJournal[#autosaveJournal + 1] = job.slug
+		autosavePruneAt = os.clock() + 2
+	else
+		echoP("saved project '" .. job.slug .. "' to " .. job.dir)
+		currentSlug = job.slug
+		dirtyCount = 0
+		autosaveDirtyMark = 0
+		dirtyGraceUntil = os.clock() + 2
+		touchRecent(currentSlug)
+	end
 	for _, s in ipairs(job.sections) do
 		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
 	end
@@ -1782,7 +2028,12 @@ end
 
 -- opts.saveUnits: record the unit loadout (position/team of every unit) into
 -- units.lua so a loaded project restores the drafted mission state.
+-- Returns accepted, receipt; receipt gains done/ok/uploadReady at completion.
 local function startSave(slug, opts)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot save while the map library is transferring a project")
+		return false
+	end
 	if job then
 		echoP("a save is already running")
 		return false
@@ -1802,6 +2053,7 @@ local function startSave(slug, opts)
 	end
 	job = {
 		slug = slug,
+		result = { slug = slug, done = false },
 		dir = PROJECTS_DIR .. slug .. "/",
 		step = 1,
 		cursor = {},
@@ -1809,9 +2061,15 @@ local function startSave(slug, opts)
 		skipped = {},
 		warnings = {},
 		saveUnits = (opts and opts.saveUnits) and true or false,
+		autosave = (opts and opts.autosave) and true or false,
 	}
-	echoP("saving project '" .. slug .. "'..." .. (job.saveUnits and " (with units loadout)" or ""))
-	return true
+	echoP(
+		(job.autosave and "autosaving to '" or "saving project '")
+			.. slug
+			.. "'..."
+			.. (job.saveUnits and " (with units loadout)" or "")
+	)
+	return true, job.result
 end
 
 -- Does a project folder with a readable manifest exist? (UI overwrite guard:
@@ -1840,10 +2098,16 @@ end
 -- opened or saved through this widget).
 local function projectEntry(slug, manifest, touchedAt)
 	local m = manifest.map or {}
+	-- A manifest name that carries a path (saves made before the leaf rule)
+	-- lists by its leaf like every other project.
+	local name = manifest.name
+	if type(name) ~= "string" or name == "" or name:find("/", 1, true) then
+		name = slug:match("([^/]+)$") or slug
+	end
 	return {
 		slug = slug,
 		folder = slug:match("^(.*)/[^/]+$") or "",
-		name = manifest.name or slug:match("([^/]+)$") or slug,
+		name = name,
 		size_x = tonumber(m.size_x),
 		size_z = tonumber(m.size_z),
 		created = manifest.created,
@@ -1851,6 +2115,25 @@ local function projectEntry(slug, manifest, touchedAt)
 		last_touched = touchedAt,
 		format_version = tonumber(manifest.format_version),
 	}
+end
+
+-- One project's listing entry, read straight from its manifest, or nil if there
+-- is no project at that path. The listing walks folders with VFS.SubDirs, which
+-- cannot see a directory created during this session, so a project that has
+-- just been downloaded is missing from it until the next reload -- and the
+-- journal fallback does not cover it either, because a download is not an open
+-- or a save. Anything that knows the slug it wants can ask here instead: the
+-- manifest is read with raw io, which is disk truth.
+local function describeProject(slug)
+	local ok = validateSlug(slug)
+	if not ok then
+		return nil
+	end
+	local manifest = readPrevManifest(PROJECTS_DIR .. ok .. "/")
+	if not manifest or manifest.kind ~= "bar-map-project" then
+		return nil
+	end
+	return projectEntry(ok, manifest, nil)
 end
 
 -- Folder walk for the listing, MAX_SLUG_DEPTH deep: a folder with project.lua
@@ -1861,7 +2144,10 @@ local function walkProjects(rel, depth, out, seen, touchedAt)
 	local dirs = VFS.SubDirs(PROJECTS_DIR .. (rel ~= "" and (rel .. "/") or ""), "*", VFS.RAW) or {}
 	for _, d in ipairs(dirs) do
 		local seg = d:match("([^/\\]+)[/\\]*$")
-		if seg and seg:sub(1, 1) ~= "." then
+		-- _replaced holds the copies a Team Sync download replaced (newest
+		-- three per project), kept for a hand recovery; they are not projects.
+		-- _autosave holds the timed snapshots, listed by their own view.
+		if seg and seg:sub(1, 1) ~= "." and seg ~= "_replaced" and seg ~= AUTOSAVE_DIR then
 			local slug = rel == "" and seg or (rel .. "/" .. seg)
 			if validateSlug(slug) then
 				local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
@@ -1938,6 +2224,10 @@ end
 -- locked and the sweep leaves junk behind, the project has already stopped
 -- listing (both list paths need project.lua) instead of showing up half-deleted.
 local function deleteProject(slug)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot delete while the map library is transferring a project")
+		return false
+	end
 	if job then
 		echoP("cannot delete a project while a save is running")
 		return false
@@ -2001,12 +2291,446 @@ local function deleteProject(slug)
 	return true
 end
 
+-- Delete a folder under MapProjects/ and every project inside it. The browser
+-- asks twice before calling this. Each project goes through deleteProject, so
+-- the same guards apply to every one of them (validated path, readable
+-- manifest, never a folder this widget did not write); the folders themselves
+-- are only removed once they are empty, so anything unexpected inside is left
+-- alone rather than swept away with it.
+local function deleteFolder(path)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot delete while the map library is transferring a project")
+		return false
+	end
+	if job or loadJob then
+		echoP("cannot delete a folder while a save or load is running")
+		return false
+	end
+	local folder, err = validateSlug(path)
+	if not folder then
+		echoP("cannot delete: " .. tostring(err))
+		return false
+	end
+	local dir = PROJECTS_DIR .. folder .. "/"
+	if readPrevManifest(dir) then
+		echoP("'" .. folder .. "' is a project, not a folder")
+		return false
+	end
+	local inside = {}
+	for _, p in ipairs(listProjectsDetailed()) do
+		if p.slug:sub(1, #folder + 1) == (folder .. "/") then
+			inside[#inside + 1] = p.slug
+		end
+	end
+	-- Deepest first: a nested project has to go before the folder holding it.
+	table.sort(inside, function(a, b)
+		return #a > #b
+	end)
+	local removed = 0
+	for _, slug in ipairs(inside) do
+		if deleteProject(slug) then
+			removed = removed + 1
+		end
+	end
+	if removed < #inside then
+		echoP(string.format("deleted %d of %d projects in '%s'; folder kept", removed, #inside, folder))
+		return false
+	end
+	-- Now the empty folders, deepest first. os.remove refuses a non-empty
+	-- directory, which is the guard: anything still in there stays.
+	local subs = VFS.SubDirs(dir, "*", VFS.RAW, true) or {}
+	table.sort(subs, function(a, b)
+		return #a > #b
+	end)
+	subs[#subs + 1] = dir
+	for _, d in ipairs(subs) do
+		os.remove((d:gsub("[/\\]+$", "")))
+	end
+	echoP(string.format("deleted folder '%s' (%d project%s)", folder, removed, removed == 1 and "" or "s"))
+	return true
+end
+
+-- Move a project to another folder under MapProjects/ (the browser's drag and
+-- drop). Both ends go through validateSlug, so source and destination are
+-- always folders under PROJECTS_DIR, never ".." and never absolute; the source
+-- must hold a readable manifest, so this never moves a folder this widget did
+-- not write; and the destination must not exist, so a move never overwrites a
+-- project. os.rename does the whole thing in one step where the filesystem
+-- allows it (same volume, no handle open); the copy path is the fallback, and
+-- it only deletes the source once every file has been written.
+local function moveProject(slug, target)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot move while the map library is transferring a project")
+		return false
+	end
+	if job or loadJob then
+		echoP("cannot move a project while a save or load is running")
+		return false
+	end
+	local from, fromErr = validateSlug(slug)
+	if not from then
+		echoP("cannot move: " .. tostring(fromErr))
+		return false
+	end
+	local to, toErr = validateSlug(target)
+	if not to then
+		echoP("cannot move: " .. tostring(toErr))
+		return false
+	end
+	if from == to then
+		return false
+	end
+	-- A project cannot be moved inside itself.
+	if to:sub(1, #from + 1) == (from .. "/") then
+		echoP("cannot move '" .. from .. "' into itself")
+		return false
+	end
+	local fromDir = PROJECTS_DIR .. from .. "/"
+	local toDir = PROJECTS_DIR .. to .. "/"
+	if not readPrevManifest(fromDir) then
+		echoP("cannot move '" .. from .. "': no readable project.lua in " .. fromDir)
+		return false
+	end
+	if readPrevManifest(toDir) then
+		echoP("cannot move: '" .. to .. "' already exists")
+		return false
+	end
+	-- Parent folders first: CreateDir makes one level at a time.
+	local walked = PROJECTS_DIR:gsub("/+$", "")
+	for segment in to:gmatch("[^/]+") do
+		walked = walked .. "/" .. segment
+		Spring.CreateDir(walked)
+	end
+	local renamed = false
+	pcall(function()
+		renamed = os.rename(fromDir:gsub("/+$", ""), toDir:gsub("/+$", "")) and true or false
+	end)
+	if not renamed then
+		-- Copy every file across, then take the source down the way delete does.
+		local files = VFS.DirList(fromDir, "*", VFS.RAW, true) or {}
+		files[#files + 1] = fromDir .. "project.lua"
+		local copied, seen, written = 0, {}, {}
+		for _, path in ipairs(files) do
+			local rel = path:gsub("\\", "/"):sub(#fromDir + 1)
+			if rel ~= "" and not seen[rel] then
+				seen[rel] = true
+				local input = io.open(path, "rb")
+				if input then
+					local data = input:read("*a")
+					input:close()
+					local sub = rel:match("^(.*)/[^/]+$")
+					if sub then
+						local dir = toDir:gsub("/+$", "")
+						for segment in sub:gmatch("[^/]+") do
+							dir = dir .. "/" .. segment
+							Spring.CreateDir(dir)
+						end
+					end
+					local output = io.open(toDir .. rel, "wb")
+					if not output then
+						echoP("cannot move '" .. from .. "': could not write " .. toDir .. rel)
+						-- Take the half-made copy back out. Without a project.lua it
+						-- never listed, but its files were in the way of the next
+						-- move to this path.
+						for _, done in ipairs(written) do
+							os.remove(done)
+						end
+						return false
+					end
+					output:write(data)
+					output:close()
+					written[#written + 1] = toDir .. rel
+					copied = copied + 1
+				end
+			end
+		end
+		if copied == 0 then
+			echoP("cannot move '" .. from .. "': nothing could be read from " .. fromDir)
+			return false
+		end
+		-- The copy is complete, so the source can go. Leftovers are inert: a
+		-- folder without project.lua no longer lists.
+		os.remove(fromDir .. "project.lua")
+		for _, path in ipairs(VFS.DirList(fromDir, "*", VFS.RAW, true) or {}) do
+			os.remove(path)
+		end
+		local subs = VFS.SubDirs(fromDir, "*", VFS.RAW, true) or {}
+		table.sort(subs, function(a, b)
+			return #a > #b
+		end)
+		subs[#subs + 1] = fromDir
+		for _, d in ipairs(subs) do
+			os.remove((d:gsub("[/\\]+$", "")))
+		end
+	end
+	if currentSlug == from then
+		currentSlug = to
+	end
+	-- The journal addresses projects by slug, so the entry has to follow.
+	local kept = {}
+	for _, e in ipairs(readRecent()) do
+		kept[#kept + 1] = { slug = e.slug == from and to or e.slug, at = e.at }
+	end
+	local parts = { "-- Recently opened or saved map projects, newest first (Terraform Brush).", "return {" }
+	for _, e in ipairs(kept) do
+		parts[#parts + 1] = string.format("\t{ slug = %q, at = %q },", e.slug, e.at)
+	end
+	parts[#parts + 1] = "}"
+	Spring.CreateDir("Terraform Brush")
+	writeFile(RECENT_PATH, table.concat(parts, "\n") .. "\n")
+	echoP(string.format("moved project '%s' to '%s'%s", from, to, renamed and "" or " (copied)"))
+	return true
+end
+
+-- Rename a project in place: a move within its own folder, and the
+-- manifest's name follows, since that is what the browser shows. Returns
+-- true and the new slug.
+local function renameProject(slug, newLeaf)
+	local ok = validateSlug(slug)
+	if not ok then
+		echoP("cannot rename: bad project path")
+		return false
+	end
+	local leaf = tostring(newLeaf or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if leaf == "" or leaf:find("[/\\]") then
+		echoP("cannot rename: the new name must be a single name, not a path")
+		return false
+	end
+	local folder = ok:match("^(.*)/[^/]+$")
+	local target = validateSlug((folder and (folder .. "/") or "") .. leaf)
+	if not target then
+		echoP("cannot rename: '" .. leaf .. "' is not a valid project name")
+		return false
+	end
+	if target == ok then
+		return true, target
+	end
+	if not moveProject(ok, target) then
+		return false
+	end
+	local path = PROJECTS_DIR .. target .. "/project.lua"
+	local f = io.open(path, "rb")
+	if f then
+		local text = f:read("*a")
+		f:close()
+		-- The name line stepManifest writes; the charset validateSlug allows
+		-- has no quotes, so the balanced match is exact.
+		local patched, n = text:gsub('\n\tname = %b"",', "\n\tname = " .. string.format("%q", leaf) .. ",", 1)
+		if n == 1 then
+			local out = io.open(path, "wb")
+			if out then
+				out:write(patched)
+				out:close()
+			end
+		end
+	end
+	return true, target
+end
+
 ----------------------------------------------------------------
 -- Load: pointer file (restart survivor with phase journal)
 ----------------------------------------------------------------
 
 -- Raw io ONLY for the pointer: VFS caches stale content for files created or
 -- rewritten within a session (the reason pending_newmap.lua does the same).
+----------------------------------------------------------------
+-- Autosave
+----------------------------------------------------------------
+
+local function configureAutosave(cfg)
+	cfg = cfg or {}
+	local wasMinutes = autosaveCfg.minutes
+	autosaveCfg.enabled = cfg.enabled ~= false
+	autosaveCfg.minutes = math.max(1, math.floor(tonumber(cfg.minutes) or 10))
+	autosaveCfg.keepDays = math.max(0, tonumber(cfg.keepDays) or 3)
+	autosaveCfg.keepLatestDays = math.max(autosaveCfg.keepDays, tonumber(cfg.keepLatestDays) or 10)
+	if autosaveCfg.minutes ~= wasMinutes then
+		autosaveNextAt = os.clock() + autosaveCfg.minutes * 60
+	end
+end
+
+-- <project>-YYYYMMDDHHMM -> the project part and the stamp as os.time (local
+-- time, the way it was written). nil for a folder that is not one of ours.
+local function parseAutosaveLeaf(leaf)
+	local base, y, mo, d, h, mi = tostring(leaf):match("^(.+)%-(%d%d%d%d)(%d%d)(%d%d)(%d%d)(%d%d)$")
+	if not base then
+		return nil
+	end
+	local stamp = os.time({
+		year = tonumber(y) or 0,
+		month = tonumber(mo) or 0,
+		day = tonumber(d) or 0,
+		hour = tonumber(h) or 0,
+		min = tonumber(mi) or 0,
+		sec = 0,
+	})
+	return base, stamp
+end
+
+-- Every snapshot on disk, newest first: the folder walk plus this session's
+-- own writes, whose folders VFS.SubDirs cannot see yet. Entries are shaped
+-- like listDetailed's, flat (folder ""), plus the autosave fields.
+local function listAutosaves()
+	local out, seen = {}, {}
+	local function take(slug)
+		if seen[slug] then
+			return
+		end
+		local manifest = readPrevManifest(PROJECTS_DIR .. slug .. "/")
+		if not manifest or manifest.kind ~= "bar-map-project" then
+			return
+		end
+		seen[slug] = true
+		local p = projectEntry(slug, manifest, nil)
+		local base, stamp = parseAutosaveLeaf(slug:match("([^/]+)$") or slug)
+		out[#out + 1] = {
+			slug = p.slug,
+			folder = "",
+			name = p.name,
+			size_x = p.size_x,
+			size_z = p.size_z,
+			created = p.created,
+			modified = p.modified,
+			format_version = p.format_version,
+			autosave = true,
+			autosave_of = type(manifest.autosave_of) == "string" and manifest.autosave_of or "",
+			autosave_base = base or p.name,
+			autosave_stamp = stamp or 0,
+		}
+	end
+	for _, d in ipairs(VFS.SubDirs(PROJECTS_DIR .. AUTOSAVE_DIR .. "/", "*", VFS.RAW) or {}) do
+		local seg = d:match("([^/\\]+)[/\\]*$")
+		if seg and validateSlug(AUTOSAVE_DIR .. "/" .. seg) then
+			take(AUTOSAVE_DIR .. "/" .. seg)
+		end
+	end
+	for _, slug in ipairs(autosaveJournal) do
+		take(slug)
+	end
+	table.sort(out, function(a, b)
+		if a.autosave_stamp ~= b.autosave_stamp then
+			return a.autosave_stamp > b.autosave_stamp
+		end
+		return a.slug < b.slug
+	end)
+	return out
+end
+
+-- Which snapshots to delete: older than keepDays, except the newest of each
+-- project, which lives keepLatestDays. Pure, so the spec can pin it down.
+local function autosavePrunePlan(entries, now, keepDays, keepLatestDays)
+	---@type table<string, number>
+	local newestStamp = {}
+	---@type table<string, string>
+	local newestSlug = {}
+	for _, e in ipairs(entries) do
+		local base = tostring(e.autosave_base or "")
+		local stamp = tonumber(e.autosave_stamp) or 0
+		if stamp >= (newestStamp[base] or 0) then
+			newestStamp[base] = stamp
+			newestSlug[base] = e.slug
+		end
+	end
+	local doomed = {}
+	for _, e in ipairs(entries) do
+		local base = tostring(e.autosave_base or "")
+		local limit = (newestSlug[base] == e.slug) and keepLatestDays or keepDays
+		if now - (tonumber(e.autosave_stamp) or 0) > limit * 86400 then
+			doomed[#doomed + 1] = e.slug
+		end
+	end
+	return doomed
+end
+
+-- Deletes what the plan says, through deleteProject's guards. Never the
+-- snapshot this session was opened from, never while a save or load runs.
+local function pruneAutosaves()
+	local busy = job ~= nil or loadJob ~= nil or (mapLibrary ~= nil and mapLibrary.isBusy())
+	if busy then
+		return false
+	end
+	local doomed = autosavePrunePlan(listAutosaves(), os.time(), autosaveCfg.keepDays, autosaveCfg.keepLatestDays)
+	local removed = 0
+	for _, slug in ipairs(doomed) do
+		if slug ~= autosaveLoadedSlug and deleteProject(slug) then
+			removed = removed + 1
+		end
+	end
+	if removed > 0 then
+		echoP(string.format("autosave: removed %d old snapshot(s)", removed))
+	end
+	return true
+end
+
+-- The name a snapshot carries: the open project's leaf, else the map's name.
+local function autosaveBaseName()
+	local leaf = currentSlug and currentSlug:match("([^/]+)$") or nil
+	if leaf and leaf ~= "" then
+		return leaf
+	end
+	local name = tostring(Game.mapName or "map"):gsub("[^%w_%- ]", "_"):gsub("^%s+", ""):gsub("%s+$", "")
+	if name == "" then
+		return "map"
+	end
+	return name
+end
+
+-- One snapshot now. force skips the unsaved-changes check (the console
+-- action); the timer never does.
+local function autosaveNow(force)
+	local busy = job ~= nil or loadJob ~= nil or (mapLibrary ~= nil and mapLibrary.isBusy())
+	if busy then
+		return false, "busy"
+	end
+	if not force and dirtyCount <= autosaveDirtyMark then
+		return false, "no unsaved changes"
+	end
+	local slug = AUTOSAVE_DIR .. "/" .. autosaveBaseName() .. "-" .. os.date("%Y%m%d%H%M")
+	if projectExists(slug) then
+		return false, "a snapshot for this minute exists"
+	end
+	local withUnits = currentSlug ~= nil and projectHasUnits(currentSlug)
+	local ok = startSave(slug, { autosave = true, saveUnits = withUnits })
+	if not ok then
+		return false, "save refused"
+	end
+	autosaveDirtyMark = dirtyCount
+	return true
+end
+
+-- The timer. The sweep runs whatever the switch says (retention is a setting
+-- too); a snapshot only in an editor session with something to snapshot (a
+-- project this session opened or saved, or a New Map canvas), never a normal
+-- game, never mid-stroke, never while a save or load runs.
+local function autosaveTick()
+	local now = os.clock()
+	if autosavePruneAt > 0 and now >= autosavePruneAt then
+		-- Half an hour between sweeps; a minute when one could not run (a save
+		-- or load was in flight), so the startup sweep is not lost to the load.
+		autosavePruneAt = now + (pruneAutosaves() and 1800 or 60)
+	end
+	if not autosaveCfg.enabled or now < autosaveNextAt then
+		return
+	end
+	---@type table?
+	local ui = WG.TerraformBrushUI
+	local mo = Spring.GetMapOptions() or {}
+	local canvas = (mo.blank_map_x or mo.blank_map_y) and true or false
+	if not ui or not (currentSlug or canvas) or Spring.GetGameFrame() <= 0 then
+		autosaveNextAt = now + 30
+		return
+	end
+	local _, _, lmb, _, rmb = Spring.GetMouseState()
+	if lmb or rmb then
+		autosaveNextAt = now + 5
+		return
+	end
+	local ok = autosaveNow(false)
+	-- Nothing to snapshot yet: look again soon, so the first edit after a
+	-- pause is covered within the minute rather than a whole interval later.
+	autosaveNextAt = now + (ok and autosaveCfg.minutes * 60 or 30)
+end
+
 local function writePointer(t)
 	Spring.CreateDir("Terraform Brush")
 	local content = string.format(
@@ -2467,6 +3191,7 @@ end
 local function phaseDiffuse(c)
 	local sec = loadJob.manifest.sections and loadJob.manifest.sections.diffuse
 	if not (sec and sec.dir) then
+		diffuseLoadedSlug = loadJob.slug -- nothing on disk for the painter to be missing
 		return true
 	end
 	local dp = WG.DiffusePainter
@@ -2533,6 +3258,7 @@ local function phaseDiffuse(c)
 	if not res or res.error or ((res.loaded or 0) == 0 and (res.channels or 0) == 0) then
 		loadSkip("diffuse", (res and (res.error or ((res.failed or 0) .. " square(s) failed"))) or "no result reported")
 	else
+		diffuseLoadedSlug = loadJob.slug
 		loadOk(
 			"diffuse",
 			(res.loaded or 0)
@@ -2919,7 +3645,15 @@ local function finishLoad()
 		echoP(#loadJob.skipped .. " section(s) skipped — reasons above")
 	end
 	deletePointer()
+	-- What was loaded from a snapshot differs from the project it belongs to
+	-- until it is saved back, so the session starts out with changes; the
+	-- timer waits for an edit on top of that before taking the next snapshot.
+	local fromAutosave = loadJob.autosaveOf ~= nil
 	loadJob = nil
+	dirtyCount = fromAutosave and 1 or 0
+	autosaveDirtyMark = dirtyCount
+	dirtyGraceUntil = os.clock() + 8
+	autosaveNextAt = os.clock() + (tonumber(autosaveCfg.minutes) or 10) * 60
 
 	-- Leave pregame, or the whole map is unclickable above the canvas base height.
 	--
@@ -2957,25 +3691,37 @@ end
 
 -- One pump tick. The cheat gate is a PRECONDITION, not a journaled phase: the
 -- synced gadgets ($terraform_import$, $metal_load$, $feature_load$) all require
--- live cheat outside replays ($c$ certification is replay-only), and cheat
--- resets across engine restart AND can be toggled off by the user mid-load, so
--- it is re-verified on every tick. "cheat" TOGGLES — only (re)send while
--- observed OFF, with a generous gap so an in-flight send cannot be doubled.
+-- live cheat outside map-editor sessions (where a $c$-certified message is
+-- accepted instead), and cheat resets across engine restart AND can be toggled
+-- off by the user mid-load, so it is re-verified on every tick. "cheat"
+-- TOGGLES — only (re)send while observed OFF, with a generous gap so an
+-- in-flight send cannot be doubled.
 local function runLoadTick()
 	if not Spring.IsCheatingEnabled() then
 		local c = loadJob
 		c.cheatTicks = (c.cheatTicks or 0) + 1
 		if not c.cheatLastSend or (c.cheatTicks - c.cheatLastSend) >= CHEAT_RESEND_TICKS then
-			c.cheatSends = (c.cheatSends or 0) + 1
-			if c.cheatSends > CHEAT_MAX_SENDS then
+			if (c.cheatSends or 0) + 1 > CHEAT_MAX_SENDS then
 				abortLoad(
 					"could not enable /cheat (required for terrain/metal/feature replay); enable cheats and open the project again"
 				)
 				return
 			end
-			c.cheatLastSend = c.cheatTicks
-			Spring.SendCommands("cheat")
-			echoP("enabling /cheat for the load (attempt " .. c.cheatSends .. ")...")
+			-- Route through the terraform widget's shared single-flight window
+			-- when it is loaded: "cheat" TOGGLES, so a send of ours landing on
+			-- top of one another editor widget already has in flight turns cheat
+			-- back OFF. Only count the attempt when a toggle really went out.
+			local sent = true
+			if type(WG.TerraformEnsureCheat) == "function" then
+				sent = WG.TerraformEnsureCheat() and true or false
+			else
+				Spring.SendCommands("cheat")
+			end
+			if sent then
+				c.cheatSends = (c.cheatSends or 0) + 1
+				c.cheatLastSend = c.cheatTicks
+				echoP("enabling /cheat for the load (attempt " .. c.cheatSends .. ")...")
+			end
 		end
 		return
 	end
@@ -3090,8 +3836,17 @@ local function maybeStartLoad()
 		echoP("phase journal was written by a different version; restarting the load from the beginning")
 		startPhase = 0
 	end
+	-- The pointer's path is PROJECTS_DIR .. slug .. "/". Take the slug back out
+	-- WHOLE: keeping only the leaf turned "Other/CM01Draft1" into "CM01Draft1",
+	-- so the next FILE > Save wrote a new root project and the OPEN badge never
+	-- found its row.
+	local pointerSlug = tostring(ptr.path):gsub("\\", "/"):gsub("/+$", "")
+	if pointerSlug:sub(1, #PROJECTS_DIR) == PROJECTS_DIR then
+		pointerSlug = pointerSlug:sub(#PROJECTS_DIR + 1)
+	end
+	pointerSlug = validateSlug(pointerSlug) or pointerSlug:match("([^/]+)$") or pointerSlug
 	loadJob = {
-		slug = ptr.path:match("([^/\\]+)[/\\]*$") or ptr.path,
+		slug = pointerSlug,
 		dir = ptr.path,
 		sizeX = ptr.size_x,
 		sizeZ = ptr.size_z,
@@ -3104,6 +3859,20 @@ local function maybeStartLoad()
 		missingWarned = {},
 	}
 	currentSlug = loadJob.slug
+	-- A snapshot opens as the project it was taken from: FILE > Save writes
+	-- back to that project, the snapshot itself is never a Save target, and
+	-- the sweep spares it while it is the session's origin. A snapshot of a
+	-- canvas that had no project ("") leaves Save asking for a name.
+	if type(manifest.autosave_of) == "string" then
+		autosaveLoadedSlug = loadJob.slug
+		local origin = validateSlug(manifest.autosave_of)
+		loadJob.autosaveOf = origin or ""
+		currentSlug = origin
+		echoP(
+			origin and ("this is an autosave of '" .. origin .. "': FILE > Save writes there")
+				or "this is an autosave of an unsaved canvas: FILE > Save asks for a name"
+		)
+	end
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
 	else
@@ -3116,6 +3885,10 @@ end
 ----------------------------------------------------------------
 
 local function openProject(slug)
+	if mapLibrary and mapLibrary.isBusy() then
+		echoP("cannot open while the map library is transferring a project")
+		return false
+	end
 	if job then
 		echoP("cannot open a project while a save is running")
 		return false
@@ -3210,7 +3983,7 @@ function widget:DrawScreenPost()
 		if step.name == "manifest" then
 			job.failed = "manifest step errored: " .. tostring(done)
 		else
-			sectionSkip(step.name, "error: " .. tostring(done))
+			sectionSkip(step.name, "error: " .. tostring(done), true)
 		end
 		done = true
 	end
@@ -3237,15 +4010,39 @@ local function mapProjectAction(_, optLine, params)
 		listProjects()
 	elseif sub == "delete" then
 		deleteProject(params[2])
+	elseif sub == "autosave" then
+		local ok, why = autosaveNow(true)
+		if not ok then
+			echoP("autosave not started: " .. tostring(why))
+		end
+	elseif sub == "prune" then
+		pruneAutosaves()
+	elseif sub == "dirty" then
+		-- Marks the session as having unsaved changes, for exercising the guards
+		-- (the quit popup, Open's confirm, the autosave timer) without an edit.
+		dirtyCount = dirtyCount + 1
+		echoP("session marked as changed (unsaved changes: " .. dirtyCount .. ")")
 	else
 		echoP(
-			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>"
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune  |  /mapproject dirty"
 		)
 	end
 end
 
 function widget:Initialize()
+	mapLibrary = VFS.Include("luaui/Include/map_library.lua").new({
+		validateSlug = validateSlug,
+		downloaded = touchRecent,
+		isProjectBusy = function()
+			return job ~= nil or loadJob ~= nil
+		end,
+	})
 	widgetHandler:AddAction("mapproject", mapProjectAction, nil, "t")
+	-- A fresh session's opening heightmap updates are not edits.
+	dirtyGraceUntil = os.clock() + 8
+	configureAutosave({})
+	-- The first sweep of old snapshots a minute in, then every half hour.
+	autosavePruneAt = os.clock() + 60
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
 	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
@@ -3265,14 +4062,24 @@ function widget:Initialize()
 		unitsRx = { batches = {}, done = true, denied = tostring(reason or "export denied") }
 	end)
 	WG.MapProject = {
+		library = mapLibrary,
 		save = startSave,
+		validateSlug = validateSlug,
 		open = openProject,
 		list = listProjects,
 		listDetailed = listProjectsDetailed,
+		-- One known slug's entry, read from its manifest rather than found by
+		-- walking folders, so a project that landed this session is visible.
+		describe = describeProject,
 		-- { {slug, at}, ... } newest first: projects opened or saved through
 		-- this widget (the journal behind the dialog's RECENT order).
 		recent = readRecent,
 		delete = deleteProject,
+		deleteFolder = deleteFolder,
+		move = moveProject,
+		-- rename(slug, newLeaf) -> true, newSlug: a move within the folder,
+		-- and the manifest's name follows.
+		rename = renameProject,
 		hasUnitsSection = projectHasUnits,
 		exists = projectExists,
 		-- Slug of the project this session was loaded from or last saved to
@@ -3280,29 +4087,71 @@ function widget:Initialize()
 		current = function()
 			return currentSlug
 		end,
-		-- (step, total, stepName) of the running save, nil when idle — drives
-		-- the status-strip segment bar in the terraform UI.
+		-- Unsaved changes. Tools call markDirty when they change the map; the
+		-- terraform UI polls the terrain version for the heightmap. Cleared by
+		-- a finished save or load.
+		markDirty = function(_source)
+			if loadJob or job or os.clock() < dirtyGraceUntil then
+				return
+			end
+			dirtyCount = dirtyCount + 1
+		end,
+		isDirty = function()
+			return dirtyCount > 0
+		end,
+		-- (phase, total, phaseName) of the running load, nil when idle: the
+		-- status strip draws a LOADING bar from it after the restart.
+		loadProgress = function()
+			if not loadJob then
+				return nil
+			end
+			local index = math.min((tonumber(loadJob.phase) or 0) + 1, #LOAD_PHASES)
+			local entry = LOAD_PHASES[index] or {}
+			return index, #LOAD_PHASES, entry.name or ""
+		end,
+		-- (step, total, stepName, kind) of the running save, nil when idle —
+		-- drives the status-strip segment bar in the terraform UI; kind is
+		-- "save" or "autosave", which the strip labels differently.
 		saveProgress = function()
 			if not job then
 				return nil
 			end
 			local step = math.min(job.step, #STEPS)
-			return step, #STEPS, STEPS[step] and STEPS[step].name or ""
+			return step, #STEPS, STEPS[step] and STEPS[step].name or "", job.autosave and "autosave" or "save"
 		end,
-		-- {ok, slug} of the most recent save (nil until one finishes).
+		-- Completed receipt {done, ok, slug, uploadReady}; same object returned by save.
 		lastSave = function()
 			return lastSaveInfo
+		end,
+		-- Autosave (Settings > General). setAutosave({enabled, minutes, keepDays,
+		-- keepLatestDays}) from the panel; listAutosaves for the Projects
+		-- window's Autosaves view; autosaveNow(force) is the console action; the
+		-- prune plan is exposed for the spec. lastAutosave is the receipt of the
+		-- newest snapshot (the manual receipt in lastSave is never an autosave).
+		setAutosave = configureAutosave,
+		listAutosaves = listAutosaves,
+		autosaveNow = autosaveNow,
+		autosavePrunePlan = autosavePrunePlan,
+		lastAutosave = function()
+			return lastAutosaveInfo
 		end,
 		-- callback(entries) on success, callback(nil, reason) on failure
 		requestUnits = requestUnits,
 		isBusy = function()
-			return job ~= nil or loadJob ~= nil
+			return job ~= nil or loadJob ~= nil or mapLibrary.isBusy()
 		end,
 		isLoading = function()
 			return loadJob ~= nil
 		end,
 	}
 	maybeStartLoad()
+end
+
+function widget:Update(dt)
+	if mapLibrary then
+		mapLibrary.update(dt)
+	end
+	autosaveTick()
 end
 
 function widget:Shutdown()
@@ -3314,6 +4163,9 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("mapproject_units_save_denied")
 	if job then
 		echoP("save aborted by widget shutdown — project may be incomplete (no manifest written)")
+		job.result.done = true
+		job.result.ok = false
+		job.result.uploadReady = false
 		job = nil
 	end
 	if loadJob then

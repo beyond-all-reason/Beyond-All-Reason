@@ -3,11 +3,14 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
+local unitBlocking = VFS.Include("common/unitBlocking.lua")
+
 local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
 local unitGroup = {} ---@type table<number, number>
-local unitRestricted = {} ---@type table<number, true>
-local unitHidden = {} ---@type table<number, true>
+local unitRestricted = {} ---@type table<number, boolean>
+local unitHidden = {} ---@type table<number, boolean>
+local builderUnitRestricted = {} ---@type table<number, table<number, table<string, boolean>>> builder UnitDefID -> blocked UnitDefID -> reasons
 local isBuilder = {} ---@type table<number, true>
 local isFactory = {} ---@type table<number, true>
 local unitIconType = {} ---@type table<number, number>
@@ -84,12 +87,56 @@ table.sort(unitOrder, function(aID, bID)
 	return aOrder < bOrder
 end)
 
+---Blocked for the whole team, or for this builder type.
+---@param unitDefID number
+---@param builderDefID number?
+---@return boolean
+local function isRestricted(unitDefID, builderDefID)
+	if unitRestricted[unitDefID] then
+		return true
+	end
+	if not builderDefID then
+		return false
+	end
+	local builderRestricted = builderUnitRestricted[builderDefID]
+	return builderRestricted ~= nil and builderRestricted[unitDefID] ~= nil
+end
+
+---Applies a UnitBlocked callin.
+---@param unitDefID number
+---@param reasons table<string, boolean> empty when unblocked
+---@param builderDefID number? set for a per-builder block
+local function setBlocked(unitDefID, reasons, builderDefID)
+	if builderDefID then
+		table.ensureTable(builderUnitRestricted, builderDefID)[unitDefID] = next(reasons) ~= nil and reasons or nil
+	else
+		unitRestricted[unitDefID] = next(reasons) ~= nil
+		unitHidden[unitDefID] = reasons.hidden ~= nil
+	end
+end
+
+---Loads the current blocks (widget load).
+local function loadBlocked()
+	local teamID = Spring.GetLocalTeamID()
+	for unitDefID, reasons in pairs(unitBlocking.getBlockedUnitDefs(teamID)) do
+		setBlocked(unitDefID, reasons)
+	end
+	for builderDefID, blockedUnits in pairs(unitBlocking.getBuilderBlockedUnitDefs(teamID)) do
+		builderUnitRestricted[builderDefID] = blockedUnits
+	end
+end
+
 local units = {
+	isRestricted = isRestricted,
+	setBlocked = setBlocked,
+	loadBlocked = loadBlocked,
 	unitEnergyCost = unitEnergyCost,
 	unitMetalCost = unitMetalCost,
 	unitGroup = unitGroup,
 	unitRestricted = unitRestricted,
 	unitHidden = unitHidden,
+	---Per-builder blocks: builder UnitDefID -> blocked UnitDefID -> reasons.
+	builderUnitRestricted = builderUnitRestricted,
 	unitIconType = unitIconType,
 	unitMaxWeaponRange = unitMaxWeaponRange,
 	---Set of unit IDs that are factories.
