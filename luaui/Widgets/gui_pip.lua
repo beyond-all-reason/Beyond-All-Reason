@@ -312,6 +312,7 @@ config = {
 	historyDeathReplayLead = 6, -- Death replay (action pip_replay_death) starts this many seconds before the loss
 	historyDeathReplayMinCost = 150, -- Only losses of at least this metal-equivalent cost count as a death to replay
 	historyDeathReplayZoom = 1.2, -- Zoom the death replay centres with (0 = leave the camera alone)
+	historyPlaybackRate = 60, -- Max layer re-renders per second while rewinding (live's max is pipMaxUpdateRate)
 	historyExplosions = true, -- Log explosions into the rewind history
 	historyProjectiles = true, -- Log long-flight projectiles (nukes, artillery, bombs)
 	historyCommands = true, -- Log position-targeted orders
@@ -2141,6 +2142,7 @@ local cache = {
 	isDecoyCommander = {}, -- Commanders with customParams.decoyfor (show 'Decoy' instead of player name)
 	isScavCommander = {}, -- Scavenger commanders (show scav-specific name for decoys)
 	unitCost = {},
+	unitMaxHealth = {}, -- [unitDefID] = max health (hit strength without UnitDefs proxy reads)
 	-- Combat properties
 	canAttack = {},
 	empOnlyAttacker = {},
@@ -9220,6 +9222,7 @@ function widget:Initialize()
 			end
 		end
 		cache.unitCost[uDefID] = uDef.metalCost + uDef.energyCost / 60
+		cache.unitMaxHealth[uDefID] = uDef.health or 1
 
 		-- icon draw layer (render order) comes from the icontype's drawOrder, like the engine's sorting
 		local iconType = uDef.iconType and iconTypes[uDef.iconType]
@@ -14031,6 +14034,29 @@ miscState.hist.actions = {
 	pip_history_reverse = function()
 		miscState.hist.Reverse()
 	end,
+	pip_history_stats = function()
+		local store = miscState.hist.store
+		if not store then
+			Spring.Echo("[PIP] history: no store")
+			return
+		end
+		local s = store:GetStats()
+		Spring.Echo(
+			string.format(
+				"[PIP] history: %.1f MB hot / %.1f MB total, %d ticks, %d segments (%d loaded), tracked %d units; tick scan %.2f ms, projectile scan %.2f ms over %d projectiles, lua %.0f MB",
+				(s.hotBytes or 0) / 1048576,
+				(s.bytes or 0) / 1048576,
+				s.ticks or 0,
+				s.segments or 0,
+				s.loadedSegments or 0,
+				s.tracked or 0,
+				s.scanMs or 0,
+				s.projMs or 0,
+				s.projSeen or 0,
+				(Spring.GetLuaMemUsage() or 0) / 1024
+			)
+		)
+	end,
 	pip_history_play = function()
 		miscState.hist.PlayForward()
 	end,
@@ -14126,16 +14152,21 @@ function miscState.hist.TrackedCamera(playerID)
 	return st
 end
 
+-- hits arrive by the thousand in a big fight: no engine calls, no UnitDefs proxy reads here
 function miscState.hist.LogDamage(unitID, unitDefID, damage, paralyzer)
-	local store = miscState.hist.Feeds()
-	if not store or damage <= 0 then
+	local hist = miscState.hist
+	local store = damage > 0 and hist.Feeds() or nil
+	if not store then
 		return
 	end
 	if paralyzer then
 		damage = damage * 0.1
 	end
-	local maxHP = UnitDefs[unitDefID] and UnitDefs[unitDefID].health or 1
-	store:OnUnitDamaged(unitID, math.min(1, damage / maxHP * 3), Spring.GetGameFrame())
+	local strength = damage / (cache.unitMaxHealth[unitDefID] or 1) * 3
+	if strength > 1 then
+		strength = 1
+	end
+	store:OnUnitDamaged(unitID, strength, hist.frame or Spring.GetGameFrame())
 end
 
 function miscState.hist.LogMapDraw(playerID, cmdType, mx, mz, a, c)
@@ -14330,7 +14361,7 @@ function miscState.hist.LogCommand(unitID, unitTeam, cmdID, cmdParams, cmdOpts)
 	else
 		return
 	end
-	store:OnCommand(unitID, kind, x, z, target, cmdOpts and cmdOpts.shift, Spring.GetGameFrame())
+	store:OnCommand(unitID, kind, x, z, target, cmdOpts and cmdOpts.shift, miscState.hist.frame or Spring.GetGameFrame())
 end
 
 -- Effect builders shared by the live callins and playback ----------------------------------------
@@ -14842,9 +14873,9 @@ function miscState.hist.DrawIcons()
 		hist.inViewIdx = inView
 	end
 	local inViewCount = 0
+	local viewL, viewR = render.world.l - 220, render.world.r + 220
+	local viewT, viewB = render.world.t - 220, render.world.b + 220
 	if aboveUnitpicThreshold then
-		local viewL, viewR = render.world.l - 220, render.world.r + 220
-		local viewT, viewB = render.world.t - 220, render.world.b + 220
 		for i = 1, n do
 			local x, z = outX[i], outZ[i]
 			if x >= viewL and x <= viewR and z >= viewT and z <= viewB then
@@ -14951,7 +14982,8 @@ function miscState.hist.DrawIcons()
 		for i = 1, n do
 			local vis = visMask and visMask[i] or 2
 			local layer = -1
-			if vis > 0 then
+			local x, z = outX[i], outZ[i]
+			if vis > 0 and x >= viewL and x <= viewR and z >= viewT and z <= viewB then
 				layer = layerTbl[outDef[i]] or 1
 				layerCount[layer] = layerCount[layer] + 1
 				if layer == 0 then
@@ -22276,11 +22308,16 @@ function widget:DrawScreen()
 				pipR2T.losNeedsUpdate = true
 			end
 		end
-		-- playback advances the view every draw: re-render the layers whenever the frame moved
+		-- playback advances the view every draw: re-render the layers when the frame moved, at
+		-- most historyPlaybackRate times a second
+		hist.due = false
 		if hist.mode and hist.viewFrame ~= hist.renderedFrame then
-			hist.renderedFrame = hist.viewFrame
-			pipR2T.unitsNeedsUpdate = true
-			pipR2T.contentNeedsUpdate = true
+			local now = os.clock()
+			if now - (hist.renderedAt or 0) >= 1 / math.max(1, config.historyPlaybackRate) then
+				hist.renderedFrame, hist.renderedAt, hist.due = hist.viewFrame, now, true
+				pipR2T.unitsNeedsUpdate = true
+				pipR2T.contentNeedsUpdate = true
+			end
 		end
 	end
 
@@ -22295,7 +22332,7 @@ function widget:DrawScreen()
 		local urgentR2TUpdate = pipR2T.forceRefreshFrames > 0
 			or not pipR2T.contentTex
 			or not pipR2T.unitsTex
-			or miscState.hist.mode
+			or miscState.hist.due
 		if not urgentR2TUpdate then
 			if miscState.pendingPipR2TUpdate then
 				if sameGameFrameAsLastDraw then
@@ -24433,8 +24470,9 @@ function widget:Update(dt)
 end
 
 function widget:GameFrame(n)
-	local store = miscState.hist.store
-	if store and config.historyEnabled then
+	miscState.hist.frame = n
+	local store = miscState.hist.Feeds()
+	if store then
 		store:GameFrame(n)
 	end
 end

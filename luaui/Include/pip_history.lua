@@ -192,7 +192,7 @@ end
 ---@field pendingExplN number
 ---@field pendingCmd table<number, table<integer, number>>
 ---@field pendingCmdN number
----@field pendingBeam table<number, table<integer, number>>
+---@field pendingBeam table<number, table<integer, number|integer>>
 ---@field pendingBeamN number
 ---@field pendingEv table<number, table<integer, number>>
 ---@field pendingEvN number
@@ -211,6 +211,10 @@ end
 ---@field pW table<number, integer>
 ---@field pSeen table<number, number>
 ---@field pTracked number
+---@field pidDef table<number, integer?>
+---@field pidStamp table<number, number?>
+---@field scanStamp number
+---@field projStepNow number
 ---@field allyOfTeam table<number, integer>
 ---@field toleranceNow number
 ---@field explosionMinRadiusNow number
@@ -332,6 +336,7 @@ function Store:Reset()
 	self.hpDirty = {}
 	self.seenBeam = {}
 	self.pX, self.pZ, self.pVX, self.pVZ, self.pF, self.pW, self.pSeen = {}, {}, {}, {}, {}, {}, {}
+	self.pidDef, self.pidStamp, self.scanStamp, self.projStepNow = {}, {}, 0, self.opts.projectileStep
 	self.pTracked = 0
 	self.allyOfTeam = {}
 	self.toleranceNow = self.opts.tolerance
@@ -352,6 +357,8 @@ function Store:Reset()
 		loads = 0,
 		spilledBytes = 0,
 		frozen = 0,
+		projMs = 0,
+		projSeen = 0,
 	}
 	self.thawCache = {}
 	self.thawCount = 0
@@ -687,15 +694,30 @@ function Store:SampleProjectiles(frame)
 	local spGetProjectileDefID = Spring.GetProjectileDefID
 	local spGetProjectilePosition = Spring.GetProjectilePosition
 	local spGetProjectileVelocity = Spring.GetProjectileVelocity
+	local t0 = os.clock()
 	local projectiles = Spring.GetProjectilesInRectangle(0, 0, self.mapSizeX, self.mapSizeZ, false, true) --[[@as table<integer, integer>]]
 	local pX, pZ, pVX, pVZ, pF, pW, pSeen = self.pX, self.pZ, self.pVX, self.pVZ, self.pF, self.pW, self.pSeen
 	local tracked = self.pTracked
 	local cap = self.projectileCapNow
 	local tol = self.opts.projectileTolerance
 	local seenBeam = self.seenBeam
-	for i = 1, #projectiles do
+	-- a projectile keeps its weapon for its whole flight: the def is asked once per id and
+	-- reused while the id stays in consecutive scans (bullets and lasers are the bulk of a
+	-- battle's projectiles, and none of them are on the whitelist)
+	local pidDef, pidStamp = self.pidDef, self.pidStamp
+	local stamp = self.scanStamp + 1
+	self.scanStamp = stamp
+	local count = #projectiles
+	for i = 1, count do
 		local pid = projectiles[i]
-		local wd = spGetProjectileDefID(pid)
+		local wd
+		if pidStamp[pid] == stamp - 1 then
+			wd = pidDef[pid]
+		else
+			wd = spGetProjectileDefID(pid)
+			pidDef[pid] = wd
+		end
+		pidStamp[pid] = stamp
 		if wd and whitelist[wd] then
 			local f0 = pF[pid]
 			if f0 or tracked < cap then
@@ -754,12 +776,26 @@ function Store:SampleProjectiles(frame)
 		end
 	end
 	self.pTracked = tracked
+	if stamp % 60 == 0 then
+		for pid, st in pairs(pidStamp) do
+			if st ~= stamp then
+				pidStamp[pid] = nil
+				pidDef[pid] = nil
+			end
+		end
+	end
+	-- crowded battles are scanned less often; playback dead-reckons between records anyway
+	local base = self.opts.projectileStep
+	self.projStepNow = count > 3000 and base * 3 or (count > 1200 and base * 2 or base)
+	local stats = self.stats
+	stats.projSeen = count
+	stats.projMs = stats.projMs + 0.1 * ((os.clock() - t0) * 1000 - stats.projMs)
 end
 
 -- Called every game frame by whichever PIP instance runs first; records at tickFrames cadence.
 function Store:GameFrame(frame)
 	local o = self.opts
-	if o.logProjectiles and self.mapSizeX > 0 and frame % o.projectileStep == 0 then
+	if o.logProjectiles and self.mapSizeX > 0 and frame % (self.projStepNow or o.projectileStep) == 0 then
 		self:SampleProjectiles(frame)
 	end
 	if frame - self.lastTickFrame < o.tickFrames then
@@ -835,14 +871,24 @@ function Store:GameFrame(frame)
 				team = spGetUnitTeam(uid) or 0
 				tTeam[uid] = team
 			end
-			local x, _, z = spGetUnitBasePosition(uid)
+			-- a known structure does not move: its position and sight state are re-read on
+			-- every 8th tick only (the bulk of a late game's units are structures)
+			local bld = isBuilding[def]
+			local quick = bld and not isNew and not isKey and uid % 8 ~= defCheckSlot and tF[uid] ~= nil
+			local x, z
+			if quick then
+				x, z = tX[uid], tZ[uid]
+			else
+				x, _, z = spGetUnitBasePosition(uid)
+			end
 			if x and z then
 				local flags = 0
-				local bld = isBuilding[def]
 				if bld then
 					flags = F_BUILDING
 				end
-				if losChecks then
+				if quick then
+					flags = tFlags[uid] or flags
+				elseif losChecks then
 					local ally = allyOfTeam[team]
 					if ally == nil then
 						ally = spGetTeamAllyTeamID(team) or -1
@@ -1050,7 +1096,7 @@ function Store:GameFrame(frame)
 	end
 	-- shells missing from the latest scan are gone; a keyframe restates the ones in flight
 	local pF, pSeen = self.pF, self.pSeen
-	local lastScan = frame - frame % o.projectileStep
+	local lastScan = frame - frame % (self.projStepNow or o.projectileStep)
 	for pid, f0 in pairs(pF) do
 		if pSeen[pid] < lastScan then
 			pushProjEnd(self, pid, frame - pSeen[pid])
@@ -2519,7 +2565,7 @@ function View:CollectFeatures(frame)
 	self:UpdateFeatureLedger()
 	local led = self.ledger
 	local out = self.features
-	local n, key = 0, 0
+	local n, key = 0, 0.0
 	for i = 1, led.n do
 		local e = led.entries[i]
 		if e.created <= frame and (not e.gone or e.gone > frame) then
