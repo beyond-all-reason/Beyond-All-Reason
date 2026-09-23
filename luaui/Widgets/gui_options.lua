@@ -6043,6 +6043,30 @@ function init()
 				end
 			end,
 		},
+		{
+			id = "pip_history",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "      " .. BAR.I18N("ui.settings.option.pip_history"),
+			type = "bool",
+			value = true,
+			description = BAR.I18N("ui.settings.option.pip_history_descr"),
+			onload = function(i)
+				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
+					if WG["pip" .. n] and WG["pip" .. n].getHistoryEnabled then
+						options[getOptionByID("pip_history")].value = WG["pip" .. n].getHistoryEnabled()
+						break
+					end
+				end
+			end,
+			onchange = function(i, value)
+				for _, n in ipairs({ 0, 1, 2, 3, 4 }) do
+					if WG["pip" .. n] and WG["pip" .. n].setHistoryEnabled then
+						WG["pip" .. n].setHistoryEnabled(value)
+					end
+				end
+			end,
+		},
 		-- { id = "minimap_engine_fallback", group = "ui", category = types.advanced, name = widgetOptionColor .. "      " .. Spring.I18N('ui.settings.option.pip_minimap_engine_fallback'), type = "bool", value = false, description = Spring.I18N('ui.settings.option.pip_minimap_engine_fallback_descr'),
 		--   onload = function(i)
 		-- 	  if WG['minimap'] and WG['minimap'].getEngineMinimapFallback then
