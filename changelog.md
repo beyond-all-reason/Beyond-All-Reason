@@ -31,6 +31,7 @@
   - Map critters can gain health and follow your Commander as a companion.
 - [Fixed]
   - Bomber settings applied at unit creation could lock them out of Fight, Patrol, and autotargeting.
+  - Builder priority handling has been improved, and constructors now default to low priority (commanders remain high).
 
 # August
 - [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
