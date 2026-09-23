@@ -21,12 +21,27 @@ local attributes = VFS.Include("luarules/gadgets/include/unit_attributes_control
 GG.UnitAttributes = {
 	Definitions = attributes.Definitions,
 
+	WEAPON_ALL = attributes.WEAPON_ALL,
+	WEAPON_DEATH = attributes.WEAPON_DEATH,
+	WEAPON_SELFD = attributes.WEAPON_SELFD,
+
 	SetUnitDefAttribute = attributes.SetUnitDefAttribute,
 	SetUnitAttribute = attributes.SetUnitAttribute,
 	SetUnitDefModifier = attributes.SetUnitDefModifier,
 	SetUnitModifier = attributes.SetUnitModifier,
 
+	SetUnitDefWeaponAttribute = attributes.SetUnitDefWeaponAttribute,
+	SetUnitWeaponAttribute = attributes.SetUnitWeaponAttribute,
+	SetUnitDefWeaponModifier = attributes.SetUnitDefWeaponModifier,
+	SetUnitWeaponModifier = attributes.SetUnitWeaponModifier,
+
+	SetWeaponDefParent = attributes.SetWeaponDefParent,
+
 	GetUnitAttributeValue = attributes.GetUnitAttributeValue,
+	GetUnitWeaponAttributeValue = attributes.GetUnitWeaponAttributeValue,
+
+	AppliedWeaponValues = attributes.AppliedWeaponValues,
+	WeaponDamageFactors = attributes.WeaponDamageFactors,
 }
 
 local updateAll = attributes.UpdateAll
@@ -52,6 +67,11 @@ end
 local onExperience = attributes.ApplyOnExperience
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	onExperience(unitID)
+end
+
+local onPreDamaged = attributes.ApplyOnPreDamaged
+function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID)
+	return onPreDamaged(damage, weaponDefID, attackerID)
 end
 
 function gadget:Shutdown()
