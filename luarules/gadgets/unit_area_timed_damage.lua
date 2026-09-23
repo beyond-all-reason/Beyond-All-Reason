@@ -125,6 +125,7 @@ local frameWaitTime = round(gameSpeed * factoryWaitTime)
 local damageBypassScale = (gameSpeed / frameInterval) ^ 2
 
 local timedDamageWeapons = {}
+local weaponDamageFactors
 local unitDamageImmunity = {}
 local featureDamageImmunity = {}
 local isFactory = {}
@@ -316,6 +317,11 @@ local function getAllyTeam(attackerID, projectileID)
 	return (attackerID and spGetUnitAllyTeam(attackerID)) or (projectileID and spGetProjectileAllyTeam(projectileID))
 end
 
+local function getAreaDamageFactor(weaponDefID, attackerID)
+	local factors = weaponDamageFactors[attackerID] -- ondeath may not be able to pass the attacker
+	return factors and factors[weaponDefID] or 1.0
+end
+
 local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
 	local explosion = timedDamageWeapons[weaponDefID]
 	local elevation = max(spGetGroundHeight(px, pz), waterPlaneLevel)
@@ -353,6 +359,8 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 			end
 		end
 
+		local damageFactor = getAreaDamageFactor(weaponDefID, attackerID)
+
 		local area = {
 			weapon = explosion.weapon,
 			owner = attackerID,
@@ -366,12 +374,12 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 			dz = dz,
 			ceg = explosion.ceg,
 			range = areaRange,
-			damage = explosion.damage,
+			damage = explosion.damage * damageFactor,
 			damageCeg = explosion.damageCeg,
 			-- Use water-adjusted duration if we shortened frames above.
 			endFrame = frames + frameNumber,
 			lastFrames = explosion.lastFrames,
-			lastDamage = explosion.lastDamage,
+			lastDamage = explosion.lastDamage * damageFactor,
 			suppressed = blockingShields,
 		}
 
@@ -560,6 +568,7 @@ function gadget:Initialize()
 	inExplosion = GG.InTimedDamageArea or table.new(1, 0) -- lua trick for ref passing
 	GG.EnvAreaWeapons = areaDamageTypes
 	GG.InTimedDamageArea = inExplosion
+	weaponDamageFactors = GG.UnitAttributes.WeaponDamageFactors
 
 	timedDamageWeapons = {}
 	for weaponDefID = 0, #WeaponDefs do

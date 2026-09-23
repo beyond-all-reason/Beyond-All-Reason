@@ -66,8 +66,10 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-
 local gameFrame = 0
+
+-- Spawned projectiles take their damage scaling from the parent weapon:
+local childDefByParent = {} ---@type table<WeaponDefID, WeaponDefID> only the defs that spawn one
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
@@ -684,6 +686,9 @@ function gadget:Initialize()
 				if next(effectParams) then
 					-- When configured to a weapon's customParams, call the effect with its `params`:
 					weaponDefEffect[weaponDefID] = setmetatable(effectParams, metatables[effectName])
+					if effectParams.speceffect_def then
+						childDefByParent[weaponDefID] = effectParams.speceffect_def
+					end
 
 					if effectName == "cruise" then
 						cruiseWaitingDefs[weaponDefID] = setmetatable(table.copy(effectParams), cruiseWaitingMetatable)
@@ -695,6 +700,11 @@ function gadget:Initialize()
 				end
 			end
 		end
+	end
+
+	local setWeaponDefParent = GG.UnitAttributes.SetWeaponDefParent
+	for parentDefID, childDefID in pairs(childDefByParent) do
+		setWeaponDefParent(childDefID, parentDefID)
 	end
 
 	if next(weaponDefEffect) then
