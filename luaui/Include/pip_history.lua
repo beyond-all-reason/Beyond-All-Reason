@@ -160,6 +160,7 @@ end
 ---@field wantSeg integer? -- segment the viewer needs loaded
 ---@field useCounter number
 ---@field spillFailed boolean
+---@field feeder integer? -- the PIP instance whose callins feed this store (set by the widget)
 ---@field keyTicks table<integer, integer>
 ---@field totalBytes number
 ---@field rawBytes number

@@ -306,6 +306,12 @@ config = {
 	historyMergeStepsPerFrame = 4, -- Coarse-copy merges per frame while spilling
 	historyPreload = true, -- Also load the segment after the viewed one
 	historyKeyframeTicks = nil, -- Full snapshot every N ticks (nil = the include default)
+	historyReplaySeconds = 10, -- Instant replay (action pip_replay) starts this many seconds back
+	historyReplaySpeed = 1, -- Playback speed an instant or death replay starts with (0 = keep the current)
+	historyStepSeconds = 5, -- Seconds the pip_history_back / pip_history_forward actions move
+	historyDeathReplayLead = 6, -- Death replay (action pip_replay_death) starts this many seconds before the loss
+	historyDeathReplayMinCost = 150, -- Only losses of at least this metal-equivalent cost count as a death to replay
+	historyDeathReplayZoom = 1.2, -- Zoom the death replay centres with (0 = leave the camera alone)
 	historyExplosions = true, -- Log explosions into the rewind history
 	historyProjectiles = true, -- Log long-flight projectiles (nukes, artillery, bombs)
 	historyCommands = true, -- Log position-targeted orders
@@ -6592,7 +6598,7 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 				end
 
 				local maxTrailLength = trail.maxLen
-				local now = os.clock()
+				local now = pools.projClock or os.clock()
 
 				-- Add current position to trail using ring buffer (O(1) instead of O(n))
 				-- Starburst missiles use 3x longer update interval for longer trails without more positions
@@ -6640,7 +6646,7 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 					local wcx, wcz = cameraState.wcx, cameraState.wcz
 					local positions = trail.positions
 					local head = trail.head
-					local trailNow = os.clock()
+					local trailNow = pools.projClock or os.clock()
 
 					-- Set line width proportional to missile body size
 					-- Missile bodies bypass zoomScale (fixed world-unit size), so trails should too
@@ -6796,7 +6802,7 @@ local function DrawProjectile(pID, pDefID, hx, hy, hz, hvx, hvz, halpha)
 			and cache.weaponPlasmaTrailColor[pDefID]
 		if trailColor then
 			local trail = cache.plasmaTrails[pID]
-			local gameFrame = Spring.GetGameFrame()
+			local gameFrame = pools.projFrame or Spring.GetGameFrame()
 			if not trail then
 				-- Short ring buffer: 6 slots for max ~4 visible line segments
 				local projSpeed = 10
@@ -9959,6 +9965,7 @@ function widget:Initialize()
 			widgetHandler.actionHandler:AddAction(self, button.actionName, button.OnPress, nil, "p")
 		end
 	end
+	miscState.hist.RegisterActions(self)
 
 	-- Register guishader blur for PIP background
 	UpdateGuishaderBlur()
@@ -10738,6 +10745,7 @@ function widget:Shutdown()
 			widgetHandler.actionHandler:RemoveAction(self, button.actionName)
 		end
 	end
+	miscState.hist.RemoveActions(self)
 end
 
 function widget:GetConfigData()
@@ -13920,13 +13928,14 @@ function miscState.hist.Relayout(delta)
 		return
 	end
 	if isMinimapMode then
-		widget:ViewResize()
+		widget:ViewResize(render.vsx, render.vsy)
 	else
 		local pad = render.elementPadding or 0
 		local bottom = render.dim.b - miscState.hist.StripH() - pad
 		if bottom < 0 then
-			render.dim.b = render.dim.b - bottom
-			render.dim.t = render.dim.t - bottom
+			local shift = math.floor(bottom)
+			render.dim.b = render.dim.b - shift
+			render.dim.t = render.dim.t - shift
 		end
 	end
 	pipR2T.frameLastHeight = -1
@@ -13949,6 +13958,97 @@ function miscState.hist.ToggleStrip(show)
 		hist.Exit()
 	end
 	hist.Relayout(hist.StripH() - before)
+end
+
+-- Instant replay: back historyReplaySeconds from live (or from the viewed frame) and play;
+-- playback returns to live by itself when it catches up
+function miscState.hist.InstantReplay()
+	local hist = miscState.hist
+	if not hist.store or uiState.inMinMode or not config.historyEnabled then
+		return
+	end
+	local from = (hist.mode and hist.viewFrame or hist.LiveFrame()) - config.historyReplaySeconds * 30
+	if config.historyReplaySpeed > 0 then
+		hist.speed = config.historyReplaySpeed
+	end
+	hist.Seek(from)
+end
+
+-- Death replay: the last loss of one of the player's units worth at least
+-- historyDeathReplayMinCost, from historyDeathReplayLead seconds before it, centred on the spot
+function miscState.hist.DeathReplay()
+	local hist = miscState.hist
+	local d = hist.lastDeath
+	if not d or not hist.store or uiState.inMinMode or not config.historyEnabled then
+		return
+	end
+	if config.historyReplaySpeed > 0 then
+		hist.speed = config.historyReplaySpeed
+	end
+	hist.Seek(d.frame - config.historyDeathReplayLead * 30)
+	if config.historyDeathReplayZoom > 0 and not interactionState.trackingPlayerID then
+		SetStateApi({ targetWcx = d.x, targetWcz = d.z, targetZoom = config.historyDeathReplayZoom }, 0.3)
+	end
+end
+
+function miscState.hist.Step(seconds)
+	local hist = miscState.hist
+	if hist.mode then
+		hist.Seek(hist.viewFrame + seconds * 30)
+	elseif seconds < 0 then
+		hist.Seek(hist.LiveFrame() + seconds * 30)
+	end
+end
+
+-- Shared action names: every PIP instance answers them (a minimized one ignores them)
+miscState.hist.actions = {
+	pip_replay = function()
+		miscState.hist.InstantReplay()
+	end,
+	pip_replay_death = function()
+		miscState.hist.DeathReplay()
+	end,
+	pip_history_toggle = function()
+		if not uiState.inMinMode then
+			miscState.hist.ToggleStrip()
+		end
+	end,
+	pip_history_playpause = function()
+		miscState.hist.TogglePlay()
+	end,
+	pip_history_live = function()
+		miscState.hist.Exit()
+	end,
+	pip_history_back = function()
+		miscState.hist.Step(-config.historyStepSeconds)
+	end,
+	pip_history_forward = function()
+		miscState.hist.Step(config.historyStepSeconds)
+	end,
+	pip_history_faster = function()
+		miscState.hist.CycleSpeed(1)
+	end,
+	pip_history_reverse = function()
+		miscState.hist.Reverse()
+	end,
+	pip_history_play = function()
+		miscState.hist.PlayForward()
+	end,
+	pip_history_slower = function()
+		miscState.hist.CycleSpeed(-1)
+	end,
+}
+
+function miscState.hist.RegisterActions(self)
+	for name, fn in pairs(miscState.hist.actions) do
+		widgetHandler.actionHandler:AddAction(self, name, fn, nil, "tp")
+	end
+end
+
+function miscState.hist.RemoveActions(self)
+	for name in pairs(miscState.hist.actions) do
+		widgetHandler.actionHandler:RemoveAction(self, name)
+	end
 end
 
 -- the store is shared by every PIP instance: exactly one of them feeds it callin events
@@ -14890,7 +14990,7 @@ function miscState.hist.DrawIcons()
 		local mCount = math.min(base, maxInst)
 		for i = 1, n do
 			local layer = layerOf[i]
-			local d, off
+			local d, off = data, 0
 			if layer == 0 then
 				if not bldgSame and bCount < maxInst then
 					d = bdata
@@ -15020,6 +15120,13 @@ function miscState.hist.DrawEffects()
 	for k in pairs(seen) do
 		seen[k] = nil
 	end
+	-- trails age in view time, whatever the playback speed; a jump back starts them afresh
+	local vf = hist.viewFrame
+	if vf < (hist.trailFrame or vf) then
+		hist.ClearTrails()
+	end
+	hist.trailFrame = vf
+	pools.projClock, pools.projFrame = vf / 30, vf
 	for i = 1, view.projectileCount do
 		local p = view.projectiles[i]
 		local x, z = p.x, p.z
@@ -15029,6 +15136,7 @@ function miscState.hist.DrawEffects()
 			DrawProjectile(p.id, p.weaponDefID, x, 0, z, p.dirX, p.dirZ, p.alpha)
 		end
 	end
+	pools.projClock, pools.projFrame = nil, nil
 	for pid in pairs(cache.missileTrails) do
 		if not seen[pid] then
 			cache.missileTrails[pid] = nil
@@ -15155,6 +15263,12 @@ miscState.hist.api = {
 	historyShowStrip = function(show)
 		miscState.hist.ToggleStrip(show)
 	end,
+	historyReplay = function()
+		miscState.hist.InstantReplay()
+	end,
+	historyReplayDeath = function()
+		miscState.hist.DeathReplay()
+	end,
 	historyTune = function(values)
 		for k, v in pairs(values) do
 			config[k] = v
@@ -15247,6 +15361,7 @@ function miscState.hist.Exit()
 	local hist = miscState.hist
 	hist.ClearTrails()
 	hist.mode = false
+	hist.direction = 1
 	hist.playing = false
 	hist.dragging = false
 	hist.ClearFedCommanders()
@@ -15311,12 +15426,41 @@ end
 function miscState.hist.Advance(dt)
 	local hist = miscState.hist
 	if hist.mode and hist.playing and not hist.dragging then
-		local frame = hist.viewFrame + dt * 30 * (hist.speed or 1)
+		local frame = hist.viewFrame + dt * 30 * (hist.speed or 1) * (hist.direction or 1)
 		if frame >= hist.LiveFrame() - 1 then
 			hist.Exit()
+		elseif (hist.direction or 1) < 0 then
+			-- playing backwards stops at the start of the log
+			local first = hist.store and hist.store:GetRange() or frame
+			if frame <= first then
+				frame = first
+				hist.playing = false
+			end
+			hist.viewFrame = frame
 		else
 			hist.viewFrame = frame
 		end
+	end
+end
+
+-- play backwards from live (or from the viewed frame) until forward play is asked for again
+function miscState.hist.Reverse()
+	local hist = miscState.hist
+	if not hist.store or uiState.inMinMode or not config.historyEnabled then
+		return
+	end
+	if not hist.mode then
+		hist.Enter(hist.LiveFrame() - 2)
+	end
+	hist.direction = -1
+	hist.playing = true
+end
+
+function miscState.hist.PlayForward()
+	local hist = miscState.hist
+	if hist.mode then
+		hist.direction = 1
+		hist.playing = true
 	end
 end
 
@@ -15454,7 +15598,8 @@ function miscState.hist.DrawTimeline(mx, my)
 	else
 		font:SetTextColor(light[1], light[2], light[3], hoverSpeed and 0.9 or 0.5)
 	end
-	font:Print("x" .. hist.speed, math.floor((lay.speedL + lay.speedR) * 0.5), labelY, fontSize, "oc")
+	local speedText = ((hist.direction or 1) < 0 and hist.mode) and ("-x" .. hist.speed) or ("x" .. hist.speed)
+	font:Print(speedText, math.floor((lay.speedL + lay.speedR) * 0.5), labelY, fontSize, "oc")
 	font:End()
 
 	-- track
@@ -15564,9 +15709,15 @@ function miscState.hist.HandlePress(mx, my, mButton)
 		return true
 	end
 	if mx >= lay.playL and mx <= lay.playR then
-		if not hist.mode then
+		-- left: play / pause forward, right: play backwards
+		if mButton == 3 then
+			hist.Reverse()
+		elseif not hist.mode then
 			hist.Seek(lay.live - 30 * 10)
+		elseif hist.playing and (hist.direction or 1) < 0 then
+			hist.PlayForward()
 		else
+			hist.direction = 1
 			hist.TogglePlay()
 		end
 	elseif mx >= lay.liveL and mx <= lay.liveR then
@@ -24488,6 +24639,12 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if histStore then
 		local hx, _, hz = spFunc.GetUnitBasePosition(unitID)
 		histStore:OnUnitDestroyed(unitID, unitDefID, unitTeam, hx, hz, Spring.GetGameFrame())
+	end
+	if unitTeam == Spring.GetMyTeamID() and (cache.unitCost[unitDefID] or 0) >= config.historyDeathReplayMinCost then
+		local dx, _, dz = spFunc.GetUnitBasePosition(unitID)
+		if dx then
+			miscState.hist.lastDeath = { frame = Spring.GetGameFrame(), x = dx, z = dz }
+		end
 	end
 
 	-- Note: We intentionally do NOT clear crashingUnits here because DrawScreen may run
