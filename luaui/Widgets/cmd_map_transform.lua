@@ -45,7 +45,10 @@ end
 --               the shared math, anything off the new canvas dropped.
 --   environment sun azimuth turns with the map, so the authored light keeps
 --               falling on the terrain the way it was authored.
---   the rest    tileset knobs, DNTS assets, decal captures: copied verbatim.
+--   tileset     knobs copied verbatim (they are scales and looks, which mean
+--               the same on a turned map) plus the WORLD PATTERN FRAME, which
+--               is composed so the shader's automatic placement turns too.
+--   the rest    DNTS assets, decal captures: copied verbatim.
 --
 -- EXPAND is the same machine with TWO placements of the one source instead of
 -- one: the map keeps its scale on the side it grew from, and the new half is
@@ -842,6 +845,8 @@ local function stepPrepare()
 			job.copies[#job.copies + 1] = name
 		end
 	end
+	-- tileset.lua is NOT a verbatim copy: stepTileset rewrites its pattern frame
+	handled["tileset.lua"] = true
 	addCopy("heightmap.png")
 	addCopy("heightmap.txt")
 	addCopy("surface.lua")
@@ -1072,6 +1077,41 @@ local function stepEnvironment()
 	return true
 end
 
+-- Tileset knobs ride across untouched - a texture scale or a slope threshold
+-- means the same thing on a turned map - with one exception. Everything the
+-- shader places WITHOUT the artist (the stagger mask lerps, the fbm fields, the
+-- anti-tile warp, the deposit wind) is addressed in WORLD XZ, so a quarter turn
+-- slides all of it across terrain that did turn, which is what "the texture is
+-- messed up in many areas" looked like on CM02. The WORLD PATTERN FRAME carries
+-- the turn into the shader instead: composed here, applied by patternXZ in
+-- dev_tileset_terrain.lua, so the map comes out of a turn looking like the map
+-- that went in. See MapTransform:composeFrame.
+local function stepTileset()
+	local srcPath = job.srcDir .. "tileset.lua"
+	if not fileExists(srcPath) then
+		return true
+	end
+	local dstPath = job.dstDir .. "tileset.lua"
+	local data = readLuaFile(srcPath)
+	if type(data) ~= "table" then
+		-- unreadable knobs are still better carried across than dropped
+		copyFile(srcPath, dstPath)
+		echoT("WARNING: tileset.lua did not parse; copied verbatim, its pattern frame is stale")
+		return true
+	end
+	-- EXPAND places the source twice; job.T is the placement that KEEPS the map
+	-- (see stepPrepare), so the original half's patterns stay exactly where they
+	-- were and the new half continues them rather than mirroring them.
+	local m00, m01, m10, m11, tx, tz = job.T:composeFrame(data.pattern_frame)
+	if MapTransform.isIdentityFrame(m00, m01, m10, m11, tx, tz) then
+		data.pattern_frame = nil
+	else
+		data.pattern_frame = { m00, m01, m10, m11, tx, tz }
+	end
+	writeLuaFile(dstPath, data)
+	return true
+end
+
 local function stepManifest()
 	local m = job.manifest
 	m.map.size_x = math.floor(job.dstW / ELMOS_PER_UNIT)
@@ -1166,6 +1206,7 @@ local STEPS = {
 	{ name = "grass", run = stepGrass },
 	{ name = "assets", run = stepCopy },
 	{ name = "environment", run = stepEnvironment },
+	{ name = "tileset", run = stepTileset },
 	{ name = "manifest", run = stepManifest },
 	{ name = "restart", run = stepOpen },
 }

@@ -62,6 +62,9 @@ local UNITS_TIMEOUT_TICKS = 300 -- synced units export round-trip
 local UNITS_ACK_PARAM = "mpu_ack" -- rules param set by the units gadget after a replace
 
 local heightmapPNG = nil -- lazy VFS.Include of the shared 16-bit PNG codec
+-- Shared with the DIMENSIONS tools: the tileset section round-trips the WORLD
+-- PATTERN FRAME, and what counts as "no frame at all" is defined there.
+local MapTransform = VFS.Include("luaui/Include/map_transform.lua")
 
 -- The two job tables are declared nil and built by startSave / maybeStartLoad;
 -- every step function runs only while its job exists. Typed as tables so the
@@ -704,6 +707,25 @@ local function stepTileset()
 				)
 			end
 			lines[#lines + 1] = "\t},"
+		end
+	end
+	-- WORLD PATTERN FRAME (see patternXZ in dev_tileset_terrain.lua): the affine
+	-- that takes this map's world XZ back to the XZ it was authored in, so the
+	-- shader's automatic placement patterns turn with a map MAP TRANSFORM
+	-- turned. Written only when it says something - a map that was never
+	-- transformed carries identity, and no key at all.
+	if T.getPatternFrame then
+		local m00, m01, m10, m11, tx, tz = T.getPatternFrame()
+		if type(m00) == "number" and not MapTransform.isIdentityFrame(m00, m01, m10, m11, tx, tz) then
+			lines[#lines + 1] = string.format(
+				"\tpattern_frame = { %s, %s, %s, %s, %s, %s },",
+				fmtNum(m00),
+				fmtNum(m01),
+				fmtNum(m10),
+				fmtNum(m11),
+				fmtNum(tx),
+				fmtNum(tz)
+			)
 		end
 	end
 	-- keys sorted so repeated saves of unchanged state serialize identically
@@ -3199,12 +3221,21 @@ local function phaseTileset(c)
 		c.ticks = 0
 	end
 	local d = c.cfg
-	-- setSlot4Material attaches lazily from the tileset widget's DrawGenesis;
-	-- give it a few ticks before applying without it
-	if d.slot4_material and d.slot4_material ~= "" and not T.setSlot4Material then
+	-- setSlot4Material and setPatternFrame attach lazily from the tileset
+	-- widget's DrawGenesis; give them a few ticks before applying without them
+	local waitSlot4 = d.slot4_material and d.slot4_material ~= "" and not T.setSlot4Material
+	local waitFrame = d.pattern_frame and not T.setPatternFrame
+	if (waitSlot4 or waitFrame) and c.ticks < 90 then
 		c.ticks = c.ticks + 1
-		if c.ticks < 90 then
-			return false
+		return false
+	end
+	-- WORLD PATTERN FRAME: applied before the knobs, and ALWAYS - a project
+	-- without the key is a map that was never transformed, and has to clear
+	-- whatever frame the previous scene left in the widget.
+	if T.setPatternFrame then
+		local f = (type(d.pattern_frame) == "table") and d.pattern_frame or {}
+		if not T.setPatternFrame(f[1] or 1, f[2] or 0, f[3] or 0, f[4] or 1, f[5] or 0, f[6] or 0) then
+			echoP("WARNING: tileset pattern_frame is not invertible; left as it was")
 		end
 	end
 	if d.biome and d.biome ~= "" and T.setBiome then

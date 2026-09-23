@@ -210,3 +210,82 @@ describe("map expansion plan", function()
 		assert.are.equal(1, plan[1].anchorZ) -- the map keeps the south side
 	end)
 end)
+
+-- The WORLD PATTERN FRAME: the affine a turned map hands the tileset shader so
+-- its world-anchored placement patterns (the stagger mask, the fbm fields, the
+-- anti-tile warp) turn with it instead of staying locked to the world axes. A
+-- sign error here leaves a map's paint right and everything between it re-rolled,
+-- which is exactly the bug it was written for.
+describe("world pattern frame", function()
+	local function apply(f, x, z)
+		return f[1] * x + f[2] * z + f[5], f[3] * x + f[4] * z + f[6]
+	end
+
+	local function frameOf(T)
+		return { T:composeFrame(nil) }
+	end
+
+	it("reproduces dstToSrc exactly, for every turn and mirror", function()
+		for _, rot in ipairs({ 0, 90, 180, 270 }) do
+			for _, mir in ipairs({ { false, false }, { true, false }, { false, true } }) do
+				local ow, oh = MapTransform.orientedSize(rot, W, H)
+				local spec = { rot = rot, mirrorX = mir[1], mirrorZ = mir[2], fit = "keep" }
+				local T = MapTransform.new(spec, W, H, ow, oh)
+				local f = { T:affine() }
+				for _, p in ipairs({ { 0, 0 }, { ow, oh }, { 731, 2049 }, { 3001, 17 } }) do
+					local sx, sz = T:dstToSrc(p[1], p[2])
+					local ax, az = apply(f, p[1], p[2])
+					assert.are.equal(sx, ax)
+					assert.are.equal(sz, az)
+				end
+			end
+		end
+	end)
+
+	it("undoes the turn: a point of ground reads the pattern it was authored under", function()
+		local T = MapTransform.new({ rot = 90, fit = "keep" }, W, H, H, W)
+		local f = frameOf(T)
+		for _, p in ipairs({ { 0, 0 }, { W, H }, { 100, 4000 }, { 2048, 2560 } }) do
+			local dx, dz = T:srcToDst(p[1], p[2])
+			local px, pz = apply(f, dx, dz)
+			assert.are.equal(p[1], px)
+			assert.are.equal(p[2], pz)
+		end
+	end)
+
+	it("composes: a quarter turn twice is the half turn's frame", function()
+		local a = MapTransform.new({ rot = 90, fit = "keep" }, W, H, H, W)
+		local b = MapTransform.new({ rot = 90, fit = "keep" }, H, W, W, H)
+		local twice = { b:composeFrame(frameOf(a)) }
+		local half = { MapTransform.new({ rot = 180, fit = "keep" }, W, H, W, H):affine() }
+		for i = 1, 6 do
+			assert.are.equal(half[i], twice[i])
+		end
+	end)
+
+	it("comes back to identity after four quarter turns, and says so", function()
+		local f, w, h = nil, W, H
+		for _ = 1, 4 do
+			f = { MapTransform.new({ rot = 90, fit = "keep" }, w, h, h, w):composeFrame(f) }
+			w, h = h, w
+		end
+		assert.is_true(MapTransform.isIdentityFrame(f[1], f[2], f[3], f[4], f[5], f[6]))
+		assert.is_true(MapTransform.isIdentityFrame(nil))
+		assert.is_false(MapTransform.isIdentityFrame(0, 1, -1, 0, 0, 0))
+	end)
+
+	it("carries a mirror, and a stretch scales the pattern with the map", function()
+		local m = frameOf(MapTransform.new({ rot = 0, mirrorX = true, fit = "keep" }, W, H, W, H))
+		assert.are.equal(-1, m[1] * m[4] - m[2] * m[3]) -- a reflection, not a turn
+		assert.is_false(MapTransform.isIdentityFrame(m[1], m[2], m[3], m[4], m[5], m[6]))
+		local s = frameOf(MapTransform.new({ rot = 0, fit = "stretch" }, W, H, W * 2, H * 2))
+		assert.are.equal(0.5, s[1])
+		assert.are.equal(0.5, s[4])
+	end)
+
+	it("leaves the kept half's patterns put when the map is doubled", function()
+		local plan, dstW, dstH = MapTransform.expandPlan("right", "mirror", W, H)
+		local f = frameOf(MapTransform.new(plan[1], W, H, dstW, dstH))
+		assert.is_true(MapTransform.isIdentityFrame(f[1], f[2], f[3], f[4], f[5], f[6]))
+	end)
+end)

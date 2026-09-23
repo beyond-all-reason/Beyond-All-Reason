@@ -307,6 +307,74 @@ function MapTransform:sizeScale()
 end
 
 ----------------------------------------------------------------
+-- World pattern frame
+----------------------------------------------------------------
+
+-- This transform as a plain AFFINE, destination -> source:
+--   sx = m00 * x + m01 * z + tx
+--   sz = m10 * x + m11 * z + tz
+-- Sampled off dstToSrc rather than re-derived from rot/mirror/fit, so it cannot
+-- drift from the mapping every mask and every position already goes through.
+-- Six returns rather than a table: every caller does arithmetic with these, and
+-- an indexed read types as possibly-nil at each of them.
+---@return number, number, number, number, number, number
+function MapTransform:affine()
+	local ox, oz = self:dstToSrc(0, 0)
+	local ax, az = self:dstToSrc(1, 0)
+	local bx, bz = self:dstToSrc(0, 1)
+	return ax - ox, bx - ox, az - oz, bz - oz, ox, oz
+end
+
+-- WORLD PATTERN FRAME for the tileset shader (patternXZ in
+-- dev_tileset_terrain.lua). Where the artist has claimed no texel the shader
+-- picks the material from patterns addressed in WORLD XZ - the stagger mask
+-- behind the cliff and foothills lerps, the fbm fields behind the intermediate
+-- scatter and the macro drift, the anti-tile warp, the automatic deposit's
+-- wind. Those are nailed to the world axes, so a map turned under them keeps
+-- its terrain and its paint and re-rolls every automatic placement: "some
+-- surfaces aren't being rotated, but some are" (CM02, 2026-09-23).
+--
+-- The frame puts them back. It is an affine from the map's CURRENT world XZ to
+-- the XZ it was authored in, carried in the project's tileset.lua and composed
+-- afresh on every transform, and the shader samples those patterns through it.
+--
+-- `frame` is the map's existing frame as a project file carries it: the six
+-- numbers in the same order, or nil / short / junk for the map that was never
+-- transformed, which reads as identity. The result is that frame applied AFTER
+-- this transform's destination -> source map, which is function composition.
+---@param frame number[]|nil
+---@return number, number, number, number, number, number
+function MapTransform:composeFrame(frame)
+	local d00, d01, d10, d11, dx, dz = self:affine()
+	if type(frame) ~= "table" then
+		return d00, d01, d10, d11, dx, dz
+	end
+	local a00, a01 = tonumber(frame[1]) or 1, tonumber(frame[2]) or 0
+	local a10, a11 = tonumber(frame[3]) or 0, tonumber(frame[4]) or 1
+	local ax, az = tonumber(frame[5]) or 0, tonumber(frame[6]) or 0
+	return a00 * d00 + a01 * d10,
+		a00 * d01 + a01 * d11,
+		a10 * d00 + a11 * d10,
+		a10 * d01 + a11 * d11,
+		a00 * dx + a01 * dz + ax,
+		a10 * dx + a11 * dz + az
+end
+
+-- The frame that changes nothing, so a map turned all the way round again
+-- drops the key instead of carrying a rounding of itself. The quarter turns
+-- compose in exact integers; the tolerances are there for a stretch.
+---@return boolean
+function MapTransform.isIdentityFrame(m00, m01, m10, m11, tx, tz)
+	local abs = math.abs
+	return abs((tonumber(m00) or 1) - 1) < 1e-6
+		and abs(tonumber(m01) or 0) < 1e-6
+		and abs(tonumber(m10) or 0) < 1e-6
+		and abs((tonumber(m11) or 1) - 1) < 1e-6
+		and abs(tonumber(tx) or 0) < 1e-3
+		and abs(tonumber(tz) or 0) < 1e-3
+end
+
+----------------------------------------------------------------
 -- Expansion
 ----------------------------------------------------------------
 

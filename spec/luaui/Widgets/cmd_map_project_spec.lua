@@ -49,6 +49,13 @@ local function fixture()
 		widgetHandler = { AddAction = noop, RegisterGlobal = noop, RemoveAction = noop, DeregisterGlobal = noop },
 		VFS = {
 			Include = function(path)
+				-- The tileset section round-trips the WORLD PATTERN FRAME through the
+				-- shared transform math. That module is pure and has no engine calls,
+				-- so the real one is loaded rather than stubbed: a stub here could
+				-- disagree with the transform about what "no frame at all" means.
+				if path == "luaui/Include/map_transform.lua" then
+					return _G.VFS.Include(path)
+				end
 				if path == "luaui/Include/map_library.lua" then
 					return {
 						new = function()
