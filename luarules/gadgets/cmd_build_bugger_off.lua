@@ -25,7 +25,7 @@ local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitStates = Spring.GetUnitStates
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
-local spGetUnitIsDead = Spring.GetUnitIsDead
+local isUnitDead = table.ensureTable(GG, "IsUnitDead")
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -157,7 +157,7 @@ end
 
 local function ignoreBuggeroff(unitID, unitDefData)
 	return unitDefData.isImmobile
-		or spGetUnitIsDead(unitID) ~= false
+		or isUnitDead[unitID]
 		or spGetUnitIsBeingBuilt(unitID) ~= false
 		or gameFrame - (mostRecentCommandFrame[unitID] or -USER_COMMAND_TIMEOUT) < USER_COMMAND_TIMEOUT
 end
