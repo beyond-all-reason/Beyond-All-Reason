@@ -1,12 +1,11 @@
 local function proposed_unit_reworksTweaks(name, uDef)
 
-
 	if name == "armrock" or name == "corstorm" then
 		uDef.speed = uDef.speed + 4.3
 		uDef.turnrate = 950
 		uDef.buildtime = math.ceil(uDef.buildtime * 1.15 / 100) * 100
 	end
-	
+
 	if name == "armwar" then
 		uDef.metalcost = 200
 		uDef.energycost = 2300
@@ -33,7 +32,6 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.arm_ham.reloadtime = 1.7
 		uDef.turnrate = 1200
 	end
-
 
 	if name == "armart" then
 		uDef.speed = 55 --was 54
@@ -77,7 +75,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cor_artillery.edgeeffectiveness = 0.15
 		uDef.weapondefs.cor_artillery.accuracy = 0
 		uDef.weapondefs.cor_artillery.reloadtime = 6 --5
-		uDef.weapondefs.cor_artillery.damage.default = 500 --420. 
+		uDef.weapondefs.cor_artillery.damage.default = 500 --420.
 	end
 
 	if name == "armsam" then
@@ -96,7 +94,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cortruck_missile.turnrate = 10000
 		uDef.weapondefs.cortruck_missile.damage.default = 40
 		uDef.weapondefs.cortruck_missile.flighttime = 1.6
-		uDef.weapondefs.cortruck_missile.weaponvelocity = 550		
+		uDef.weapondefs.cortruck_missile.weaponvelocity = 550
 		uDef.weapondefs.cortruck_missile.reloadtime = 2.2
 		uDef.weapondefs.cortruck_aa.reloadtime = 2.2
 	end
@@ -112,7 +110,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.buildtime = uDef.buildtime - 700
 		uDef.health = uDef.health - 180
 		uDef.weapondefs.arm_lightlaser.range = uDef.weapondefs.arm_lightlaser.range - 10
-		uDef.weapondefs.arm_lightlaser.energypershot = 15		
+		uDef.weapondefs.arm_lightlaser.energypershot = 15
 		uDef.weapondefs.arm_lightlaser.reloadtime = 0.6
 	end
 	if name == "corllt" then
@@ -148,13 +146,12 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "armpb" then
 		uDef.weapondefs.armpb_weapon.range = 600
-		uDef.weapondefs.armpb_weapon.damage = 
-			{
-				default = 330,
-				vtol = 80,
-			}
+		uDef.weapondefs.armpb_weapon.damage = {
+			default = 330,
+			vtol = 80,
+		}
 		uDef.weapondefs.armpb_weapon.reloadtime = 0.8
-		--uDef.weapondefs.armpb_weapon.areaofeffect = 36		
+		--uDef.weapondefs.armpb_weapon.areaofeffect = 36
 		uDef.weapondefs.armpb_weapon.impulsefactor = 1.1
 		uDef.weapondefs.armpb_weapon.targetmoveerror = 0
 		uDef.metalcost = 470
@@ -175,9 +172,19 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.health = 2700
 	end
 
-	if name == "armap" or name == "armlab" or name == "armsy" or name == "armvp"
-	or name == "corap" or name == "corlab" or name == "corsy" or name == "corvp"
-	or name == "legap" or name == "leglab" or name == "legsy" or name == "legvp"
+	if
+		name == "armap"
+		or name == "armlab"
+		or name == "armsy"
+		or name == "armvp"
+		or name == "corap"
+		or name == "corlab"
+		or name == "corsy"
+		or name == "corvp"
+		or name == "legap"
+		or name == "leglab"
+		or name == "legsy"
+		or name == "legvp"
 	then
 		uDef.energycost = uDef.energycost + 150
 	end
@@ -192,9 +199,16 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.energycost = uDef.energycost + 100
 	end
 
-	if name == "armck" or name == "corck" or name == "legck" 
-	or name == "armcv" or name == "corcv" or name == "legcv" 
-	or name == "armcs" or name == "corcs" or name == "legcs" 
+	if
+		name == "armck"
+		or name == "corck"
+		or name == "legck"
+		or name == "armcv"
+		or name == "corcv"
+		or name == "legcv"
+		or name == "armcs"
+		or name == "corcs"
+		or name == "legcs"
 	then
 		uDef.energycost = uDef.energycost + 300
 		uDef.buildtime = uDef.buildtime + 150

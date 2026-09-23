@@ -40,8 +40,8 @@ local function setup(addResources, skipGaia)
 	local startMetal = Spring.GetModOptions().startmetal
 	local startEnergy = Spring.GetModOptions().startenergy
 	if Spring.GetModOptions().proposed_unit_reworks == true then
-	    startMetal = math.max(0, startMetal - 100)
-    	startEnergy = math.max(0, startEnergy - 100)
+		startMetal = math.max(0, startMetal - 100)
+		startEnergy = math.max(0, startEnergy - 100)
 	end
 	local bonusMultiplierEnabled = Spring.GetModOptions().bonusstartresourcemultiplier
 
