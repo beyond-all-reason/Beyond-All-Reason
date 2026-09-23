@@ -113,7 +113,6 @@ function gadget:GameFrame(frame)
 			end
 			if frame - math.ceil(18000 / aliveLootboxesCount) > lastTransportSentFrame then -- 10 minutes for 1 lootbox alive
 				local targetLootboxID = -1
-				local loopCount = 0
 				local success = false
 				for lootboxID, lootboxTier in pairs(aliveLootboxes) do
 					local lootboxPosX, lootboxPosY, lootboxPosZ = Spring.GetUnitPosition(lootboxID)

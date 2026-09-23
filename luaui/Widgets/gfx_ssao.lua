@@ -220,7 +220,7 @@ local definesSlidersParamsList = {
 		min = 0,
 		max = 1,
 		digits = 0,
-		tooltip = "USE_STENCIL set to zero if you dont wanna",
+		tooltip = "USE_STENCIL set to zero if you don't wanna",
 	},
 	{ name = "DOWNSAMPLE", default = 1, min = 1, max = 2, digits = 0, tooltip = "Set to 2 for half-rez buffers" },
 	{ name = "ENABLE", default = 1, min = 0, max = 1, digits = 0, tooltip = "Disable the whole SSAO" },

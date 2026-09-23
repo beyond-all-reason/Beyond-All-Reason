@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -985000,
 		enabled = true,
+		modalExempt = true, -- a vote must not be missed because a window is open
 	}
 end
 
@@ -116,7 +117,17 @@ local function StartVote(name) -- when called without params its just to refresh
 		local progressbarHeight = math.ceil(height * 0.055)
 
 		local fontSize = height / 5 -- title only
+		local maxWidth = mathFloor(vsx * 0.5)
 		local minWidth = font:GetTextWidth("  " .. voteName .. "  ") * fontSize
+		if minWidth > maxWidth then
+			local ellipsis = "..."
+			local truncated = voteName
+			while #truncated > 1 and font:GetTextWidth("  " .. truncated .. ellipsis .. "  ") * fontSize > maxWidth do
+				truncated = truncated:sub(1, -2)
+			end
+			voteName = truncated .. ellipsis
+			minWidth = maxWidth
+		end
 		if width < minWidth then
 			width = minWidth
 		end
@@ -521,7 +532,7 @@ local function StartVote(name) -- when called without params its just to refresh
 		dlistGuishader = gl.CreateList(function()
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 		end)
-		WG.guishader.InsertDlist(dlistGuishader, "voteinterface")
+		WG.guishader.InsertDlist(dlistGuishader, "voteinterface", nil, widget)
 	end
 end
 
@@ -661,7 +672,16 @@ function widget:AddConsoleLine(lines, priority)
 					end
 					weAreVoteOwner = (ownerPlayername == myPlayerName)
 
-					local title = ssub(line, sfind(line, ' "') + 2, sfind(line, '" ', nil, true) - 1) .. "?"
+					-- Host may truncate very long vote commands, omitting the closing quote / [!vote ...] suffix
+					local titleStart = sfind(line, ' "')
+					local titleEnd = sfind(line, '" ', nil, true)
+					local title
+					if titleEnd then
+						title = ssub(line, titleStart + 2, titleEnd - 1)
+					else
+						title = ssub(line, titleStart + 2) .. "..."
+					end
+					title = title .. "?"
 					title = title:sub(1, 1):upper() .. title:sub(2)
 
 					if not isreplay then

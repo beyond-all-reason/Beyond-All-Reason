@@ -1339,6 +1339,12 @@ function widget:DrawWorld()
 				end)
 			end
 			Spring.SetMapShadingTexture("$ssmf_splat_distr", fullFBO)
+			-- the tileset's far cache / clipmap bake the splat channels: tell it
+			-- the pasted rect changed (elmos) or the paste vanishes at zoom-out
+			local T = WG.TilesetTerrain
+			if T and T.refreshSurface then
+				T.refreshSurface(sp.targetX, sp.targetZ, sp.targetX + sp.sizeX, sp.targetZ + sp.sizeZ)
+			end
 		end
 	end
 

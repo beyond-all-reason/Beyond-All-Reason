@@ -40,6 +40,7 @@ return {
 		customparams = {
 			unitgroup = "weapon",
 			normaltex = "unittextures/leg_normal.dds",
+			subfolder = "Legion/T3",
 			paralyzemultiplier = 0.5,
 			model_author = "ZephyrSkies",
 			reaimtime = 9,

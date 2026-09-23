@@ -150,6 +150,8 @@ end
 -- needed here too, and gadget handler doesn't expose it
 VFS.Include("LuaGadgets/system.lua", nil, VFSMODE)
 
+local UnitScriptAttributes = VFS.Include("common/unit_script_attributes.lua")
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -701,7 +703,7 @@ local function ScriptInclude(filename)
 	end
 end
 
--- memoize it so we don't need to decompress and parse the .lua file everytime..
+-- memoize it so we don't need to decompress and parse the .lua file every time..
 local function MemoizedInclude(filename, env)
 	local chunk = include_cache[filename] or ScriptInclude(filename)
 	if chunk then
@@ -733,6 +735,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 		unitID = unitID,
 		unitDefID = unitDefID,
 		script = {}, -- will store the callins
+		attributes = UnitScriptAttributes.Get(unitDefID), -- customParam-derived attributes, see common/unit_script_attributes.lua
 	}
 
 	-- easy self-referencing (Note: use of _G differs from _G in gadgets & widgets)

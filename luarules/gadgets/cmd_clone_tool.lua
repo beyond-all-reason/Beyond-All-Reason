@@ -11,12 +11,22 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, undoCount, redoCount)
-		if name == "CloneToolStacks" then
-			if Script.LuaUI("CloneToolStackUpdate") then
-				Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
-			end
+	-- Registered as a sync action (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function onStacks(_, undoCount, redoCount)
+		if Script.LuaUI("CloneToolStackUpdate") then
+			Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
 		end
+		return true
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("CloneToolStacks", onStacks)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("CloneToolStacks")
 	end
 	return
 end
@@ -26,6 +36,18 @@ end
 -- ---------------------------------------------------------------------------
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
+-- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
+-- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
+-- packet that arrived with live cheat off. Demos replay the /cheat chat command,
+-- so cheat state is reproduced during playback anyway; what the certification is
+-- really for is map-editor sessions, where /cheat is a toggle that competing
+-- widgets can flip off mid-stream. The mapeditor modoption is synced from the
+-- start script and cannot be forged by a client.
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
 local CLONE_TERRAIN_HEADER = "$clone_terrain$"
 local CLONE_TERRAIN_HEADER_LEN = #CLONE_TERRAIN_HEADER
 local CLONE_METAL_HEADER = "$clone_metal$"
@@ -49,18 +71,13 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spSetHeightMapFunc = Spring.SetHeightMapFunc
 local spLevelHeightMap = Spring.LevelHeightMap
 local spSetMetalAmount = Spring.SetMetalAmount
-local spGetMetalAmount = Spring.GetMetalAmount
 local spCreateFeature = Spring.CreateFeature
 local spDestroyFeature = Spring.DestroyFeature
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureHeading = Spring.GetFeatureHeading
 local spEcho = Spring.Echo
 local SendToUnsynced = SendToUnsynced
 
 local min = math.min
-local max = math.max
 local floor = math.floor
 local tonumber = tonumber
 
@@ -71,7 +88,6 @@ local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0
 local MAX_UNDO = 100
-local MAX_SNAPSHOT_VERTICES = 4000000
 
 -- ---------------------------------------------------------------------------
 -- Height map application (same pattern as terraform brush)
@@ -154,10 +170,10 @@ end
 -- Auth check
 -- ---------------------------------------------------------------------------
 local function isAllowed(certified)
-	-- $c$ is self-asserted by the sender: trust it only during replay (where
-	-- live cheat is always false). Outside replay require live cheat, else any
-	-- modified client could forge the prefix to clone terrain in a no-cheat game.
-	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	-- $c$ is self-asserted by the sender: trust it only in a map-editor session.
+	-- Elsewhere require live cheat, else any modified client could forge the
+	-- prefix to clone terrain in a no-cheat game.
+	return Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)
 end
 
 -- ---------------------------------------------------------------------------

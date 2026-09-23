@@ -23,6 +23,8 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local draftMode = Spring.GetModOptions().draft_mode
 
+local isStartUnitSpawnDisabled = VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled()
+
 local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
@@ -516,6 +518,10 @@ end
 
 function widget:DrawWorld()
 	if not WG.StopDrawUnitShapeGL4 then
+		return
+	end
+
+	if isStartUnitSpawnDisabled then
 		return
 	end
 

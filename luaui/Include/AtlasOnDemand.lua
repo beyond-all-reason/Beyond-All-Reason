@@ -444,7 +444,7 @@ local function MakeAtlasOnDemand(config)
 			return { x = 0, X = 1, y = 0, Y = 1, w = 1, h = 1, id = text }
 		end
 		local textparams
-		if not params then -- render with default fot
+		if not params then -- render with default font
 			if self.uvcoords[text] then
 				return self.uvcoords[text]
 			else
