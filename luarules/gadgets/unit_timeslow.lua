@@ -44,6 +44,7 @@ Spring.SetGameRulesParam("slowState", 1)
 
 local function applySlow(unitID, percent)
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	local setUnitWeaponModifier = GG.UnitAttributes.SetUnitWeaponModifier
 
 	if percent <= 0.0 then
 		setUnitModifier(unitID, "speed", nil, ATTRIBUTE_SOURCE)
@@ -51,7 +52,7 @@ local function applySlow(unitID, percent)
 		setUnitModifier(unitID, "maxAcc", nil, ATTRIBUTE_SOURCE)
 		setUnitModifier(unitID, "maxDec", nil, ATTRIBUTE_SOURCE)
 		setUnitModifier(unitID, "buildSpeed", nil, ATTRIBUTE_SOURCE)
-		setUnitModifier(unitID, "reloadTime", nil, ATTRIBUTE_SOURCE)
+		setUnitWeaponModifier(unitID, nil, "reloadTime", nil, ATTRIBUTE_SOURCE)
 		return
 	end
 
@@ -63,7 +64,7 @@ local function applySlow(unitID, percent)
 	setUnitModifier(unitID, "buildSpeed", moveFactor, ATTRIBUTE_SOURCE)
 
 	local reloadTime = 1 / math_max(1 - percent * 2, SLOW_RELOAD_RATE_MIN)
-	setUnitModifier(unitID, "reloadTime", reloadTime, ATTRIBUTE_SOURCE)
+	setUnitWeaponModifier(unitID, nil, "reloadTime", reloadTime, ATTRIBUTE_SOURCE)
 end
 
 local function updateSlow(unitID, state)
