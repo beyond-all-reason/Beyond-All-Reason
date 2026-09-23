@@ -153,7 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 			local allPlayers = Spring.GetPlayerList()
 			local notificationEvent
 			for _, playerID in ipairs(allPlayers) do
-				local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
+				local _, _, isSpectator, teamID, _ = Spring.GetPlayerInfo(playerID, true)
 				if teamID and unitTeam and not isSpectator then
 					if teamID == unitTeam then
 						notificationEvent = "RespawningCommanders/CommanderTransposed"
@@ -200,7 +200,7 @@ if gadgetHandler:IsSyncedCode() then
 				local blockedIncrement = 1
 				for i = 1, 500, blockedIncrement do
 					local x, y, z = spGetUnitPosition(unitID)
-					local blockType, blockID = Spring.GetGroundBlocked(x - i, z - i)
+					local blockType, _ = Spring.GetGroundBlocked(x - i, z - i)
 					local groundH = Spring.GetGroundHeight(x - i, z - i)
 
 					if respawnMetaList[unitID].effigy_offset == 0 then
@@ -279,7 +279,7 @@ if gadgetHandler:IsSyncedCode() then
 
 				local allPlayers = Spring.GetPlayerList()
 				for _, playerID in ipairs(allPlayers) do
-					local playerName, active, isSpectator, teamID, allyTeamID = Spring.GetPlayerInfo(playerID, true)
+					local _, _, _, teamID, _ = Spring.GetPlayerInfo(playerID, true)
 					if teamID == commanderTeam then
 						GG.notifications.queueNotification(
 							"RespawningCommanders/CommanderEffigyLost",
@@ -343,7 +343,7 @@ if gadgetHandler:IsSyncedCode() then
 		local meta = respawnMetaList[unitID]
 		if meta then
 			if meta.respawn_condition == "health" then
-				local h, mh = spGetUnitHealth(unitID)
+				local h, _ = spGetUnitHealth(unitID)
 				local currentTime = spGetGameSeconds()
 				if
 					meta.effigyID

@@ -1433,7 +1433,7 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	local arg1, arg2 = ...
+	local arg1, _ = ...
 	if arg1 == CHAT_ACTION_REQUEST then
 		BroadcastChatActionSnapshot("unsynced", self.actionHandler.textActions)
 		return true
