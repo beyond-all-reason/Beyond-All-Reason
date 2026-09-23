@@ -130,6 +130,11 @@ local WG = WG
 -- the CI analyzer counts every bare engine global as an undefined-global
 -- finding. Same table objects, so Spring.X = ... still reaches every widget.
 local Spring = Spring
+-- RmlUi too: keydown and focus listeners are dispatched through RmlUi's own Lua
+-- plugin, and a listener invoked that way does not see this widget's globals. A
+-- bare `RmlUi` inside one of them reads nil, which is how Enter died silently in
+-- every text field (the pcall around the lookup swallowed it).
+local RmlUi = RmlUi
 local VFS = VFS
 local gl = gl
 local GetViewGeometry = Spring.GetViewGeometry
@@ -4220,13 +4225,37 @@ widgetState.projectShowDetails = function(p, save)
 	end
 end
 
--- Enter in a dialog text field. RmlUi.key_identifier is a readonly_property
--- that hands out a fresh table per access, so the id is resolved once and kept.
+-- Enter in any text field, for every field in the brush.
+--
+-- `RmlUi.key_identifier` is a FUNCTION in this engine build (the binding is a
+-- sol readonly_property returning a fresh table, which surfaces in Lua as
+-- something you call). Reading it as a table throws; the pcall swallows that,
+-- the id stays nil, the comparison below is never true, and Enter does nothing
+-- at all with nothing in the log. Older builds handed out a plain table, so try
+-- the call first and the property second, and say so rather than leaving the
+-- key quietly dead if neither shape works.
+--
+-- Resolved ONCE (the call builds a fresh table each time) and reached through
+-- upvalues only: `RmlUi` is captured at the top of this file because a listener
+-- dispatched by RmlUi has no globals, and the tool modules call this through
+-- widgetState for the same reason. false, not nil, marks a failed resolve so it
+-- is attempted once and not on every keystroke.
 widgetState.isReturnEvent = function(event)
-	if not widgetState.keyReturnId then
-		pcall(function()
-			widgetState.keyReturnId = RmlUi.key_identifier.RETURN
+	if widgetState.keyReturnId == nil then
+		local ok, ids = pcall(function()
+			local k = RmlUi and RmlUi.key_identifier
+			if type(k) == "function" then
+				return k()
+			end
+			return k
 		end)
+		widgetState.keyReturnId = (ok and type(ids) == "table" and ids.RETURN) or false
+		if not widgetState.keyReturnId then
+			Spring.Echo(
+				"[Terraform Brush] WARNING: RmlUi.key_identifier resolved to neither a call nor a table, "
+					.. "so Enter will not commit a text field (click away instead)"
+			)
+		end
 	end
 	local p = event and event.parameters
 	return (p and widgetState.keyReturnId and p.key_identifier == widgetState.keyReturnId) == true
@@ -16565,9 +16594,8 @@ end
 -- The numbox shows the raw slider value; typing a number and pressing Enter or
 -- clicking away updates the slider (and triggers its existing change handlers).
 
--- Resolve the RETURN key identifier lazily (RmlUi.key_identifier is a
--- readonly_property that creates a fresh table each access).
-local KEY_RETURN -- resolved on first keydown event
+-- The RETURN id is resolved once by widgetState.isReturnEvent (see there for
+-- why it must be called and why it may not be reached as a global here).
 
 -- Wire a single slider+numbox pair by slider element and its numbox element.
 local function wireSliderNumbox(slider, numbox)
@@ -16620,13 +16648,7 @@ local function wireSliderNumbox(slider, numbox)
 
 	-- Apply on Enter key
 	numbox:AddEventListener("keydown", function(event)
-		if not KEY_RETURN then
-			pcall(function()
-				KEY_RETURN = RmlUi.key_identifier.RETURN
-			end)
-		end
-		local p = event.parameters
-		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
+		if widgetState.isReturnEvent(event) then
 			applyNumboxValue()
 			numbox:Blur()
 		end
@@ -16675,13 +16697,7 @@ local function wireExportRangeInput(inputEl, commitFn)
 		event:StopPropagation()
 	end, false)
 	inputEl:AddEventListener("keydown", function(event)
-		if not KEY_RETURN then
-			pcall(function()
-				KEY_RETURN = RmlUi.key_identifier.RETURN
-			end)
-		end
-		local p = event.parameters
-		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
+		if widgetState.isReturnEvent(event) then
 			commitFn()
 			inputEl:Blur()
 		end
@@ -22577,6 +22593,13 @@ function widget:AllowQuit()
 	return true
 end
 
+-- RmlUi gets first refusal on every key: GameInputReceiver::KeyPressed returns
+-- as soon as RmlGui::ProcessKeyPressed consumes one, before LuaUI is asked at
+-- all. So a focused text field swallows its keys and this call-in never sees
+-- them: Enter inside a field CANNOT be handled here, it needs an RmlUi keydown
+-- listener (widgetState.isReturnEvent). The call-in still fires with a field
+-- focused, just not for the keys that field took, which is why the
+-- focusedRmlInput guards below are about ownership rather than delivery.
 function widget:KeyPress(key, mods, isRepeat)
 	-- QUIT GUARD popup: Esc cancels, Enter saves first; nothing else gets
 	-- through while it is up.
