@@ -221,8 +221,14 @@ describe("world pattern frame", function()
 		return f[1] * x + f[2] * z + f[5], f[3] * x + f[4] * z + f[6]
 	end
 
+	-- Six returns into a table literal: `{ T:affine() }` has unknown arity, so the
+	-- analyzer knows only [1] and reads every other index as an undefined field.
+	local function pack6(m00, m01, m10, m11, tx, tz)
+		return { m00, m01, m10, m11, tx, tz }
+	end
+
 	local function frameOf(T)
-		return { T:composeFrame(nil) }
+		return pack6(T:composeFrame(nil))
 	end
 
 	it("reproduces dstToSrc exactly, for every turn and mirror", function()
@@ -231,7 +237,7 @@ describe("world pattern frame", function()
 				local ow, oh = MapTransform.orientedSize(rot, W, H)
 				local spec = { rot = rot, mirrorX = mir[1], mirrorZ = mir[2], fit = "keep" }
 				local T = MapTransform.new(spec, W, H, ow, oh)
-				local f = { T:affine() }
+				local f = pack6(T:affine())
 				for _, p in ipairs({ { 0, 0 }, { ow, oh }, { 731, 2049 }, { 3001, 17 } }) do
 					local sx, sz = T:dstToSrc(p[1], p[2])
 					local ax, az = apply(f, p[1], p[2])
@@ -256,8 +262,8 @@ describe("world pattern frame", function()
 	it("composes: a quarter turn twice is the half turn's frame", function()
 		local a = MapTransform.new({ rot = 90, fit = "keep" }, W, H, H, W)
 		local b = MapTransform.new({ rot = 90, fit = "keep" }, H, W, W, H)
-		local twice = { b:composeFrame(frameOf(a)) }
-		local half = { MapTransform.new({ rot = 180, fit = "keep" }, W, H, W, H):affine() }
+		local twice = pack6(b:composeFrame(frameOf(a)))
+		local half = pack6(MapTransform.new({ rot = 180, fit = "keep" }, W, H, W, H):affine())
 		for i = 1, 6 do
 			assert.are.equal(half[i], twice[i])
 		end
@@ -266,7 +272,7 @@ describe("world pattern frame", function()
 	it("comes back to identity after four quarter turns, and says so", function()
 		local f, w, h = nil, W, H
 		for _ = 1, 4 do
-			f = { MapTransform.new({ rot = 90, fit = "keep" }, w, h, h, w):composeFrame(f) }
+			f = pack6(MapTransform.new({ rot = 90, fit = "keep" }, w, h, h, w):composeFrame(f))
 			w, h = h, w
 		end
 		assert.is_true(MapTransform.isIdentityFrame(f[1], f[2], f[3], f[4], f[5], f[6]))
