@@ -2365,25 +2365,36 @@ function M.attach(doc, ctx)
 
 			-- Both modes end as a list of placements on a destination canvas,
 			-- which is all the preview and the summary below need to know.
-			local plan, dstW, dstH
+			-- Seeded with the plain-transform case rather than declared bare: a
+			-- local with no value types nil for good, and every later read of
+			-- dstW/dstH then reads as possibly-nil however many branches assign it.
+			local setW = widgetState.xformW or math.floor(srcW / 512)
+			local setH = widgetState.xformH or math.floor(srcH / 512)
+			local plan, dstW, dstH = { spec }, setW * 512, setH * 512
 			local copyMode = nil
 			if expanding then
 				if widgetState.xformFill ~= "empty" then
 					copyMode = widgetState.xformCopy or "mirror"
 				end
-				plan, dstW, dstH = math_lib.expandPlan(widgetState.xformDir or "right", copyMode, srcW, srcH)
-			else
-				local unitsW = widgetState.xformW or math.floor(srcW / 512)
-				local unitsH = widgetState.xformH or math.floor(srcH / 512)
-				dstW, dstH = unitsW * 512, unitsH * 512
-				plan = { spec }
+				-- Through their own locals and back with `or`: expandPlan reaches the
+				-- panel as an `any` call (math_lib hangs off a `table?`), so a direct
+				-- multi-return assignment re-widens dstW/dstH to possibly-nil.
+				local xPlan, xW, xH = math_lib.expandPlan(widgetState.xformDir or "right", copyMode, srcW, srcH)
+				plan = xPlan or plan
+				dstW = xW or dstW
+				dstH = xH or dstH
 			end
 			local unitsW, unitsH = math.floor(dstW / 512), math.floor(dstH / 512)
 			local placements = {}
 			for i, p in ipairs(plan) do
 				placements[i] = math_lib.new(p, srcW, srcH, dstW, dstH)
 			end
-			local T = placements[1]
+			-- The first placement is built as its own value rather than read back
+			-- with placements[1]: an indexed read types as possibly-nil, and every
+			-- use of it below would have to be guarded against a case that cannot
+			-- happen. Same reasoning as job.T in cmd_map_transform, and the list
+			-- above is left exactly as it was so ITS reads keep their own typing.
+			local T = math_lib.new(plan[1] or spec, srcW, srcH, dstW, dstH)
 
 			local function setStr(key, value)
 				if dm[key] ~= value then
