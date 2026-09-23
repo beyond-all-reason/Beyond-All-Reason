@@ -4,7 +4,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
-local modOptions = Spring.GetModOptions()
+local modOptions = Spring.GetModOptions() or {}
 local tweaked = modOptions.tweakunits ~= "" or modOptions.tweakdefs ~= ""
 local i = 1
 while i <= 9 and not tweaked do
@@ -44,7 +44,7 @@ local function hasBuildScript(unitID, unitDefID)
 	if hasBuildScripts[unitDefID] ~= nil then
 		return hasBuildScripts[unitDefID]
 	end
-	local env = Spring.UnitScript.GetScriptEnv(unitID)
+	local env = Spring.UnitScript.GetScriptEnv(unitID)--[[@as table|nil]]
 	if env then
 		if env.script.StartBuilding then
 			hasBuildScripts[unitDefID] = true
@@ -61,7 +61,7 @@ local function hasBuildScript(unitID, unitDefID)
 	return false
 end
 
-function gadget:UnitCreated(unitID, unitDefID)
+local function HandleUnitCreated(unitID, unitDefID)
 	if not isBuilder[unitDefID] then
 		return
 	end
@@ -75,11 +75,15 @@ function gadget:UnitCreated(unitID, unitDefID)
 	Spring.SetUnitNanoPieces(unitID, { 1 })
 end
 
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	HandleUnitCreated(unitID, unitDefID)
+end
+
 function gadget:Initialize()
 	local units = Spring.GetAllUnits()
 	for i = 1, #units do
 		local unitID = units[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		gadget:UnitCreated(unitID, unitDefID)
+		HandleUnitCreated(unitID, unitDefID)
 	end
 end
