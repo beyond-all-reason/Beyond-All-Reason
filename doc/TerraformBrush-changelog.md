@@ -4,6 +4,13 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## Unreleased
+
+### Fixes
+
+- Opening a project no longer floods the log with `attempt to call field 'IsReplay' (a nil value)` and no longer silently loses columns of the imported heightmap (reported by Moose, on both 2026.07.04 and 2026.09.01). `Spring.IsReplay` exists only in unsynced Lua, so the synced gadgets' "trust a `$c$`-certified message during replay" fallback raised a Lua error the moment a certified message arrived while `/cheat` happened to be off, and the terrain rows in those frames were refused while the client had already moved past them. A demo replays the `/cheat` command anyway, so that fallback was never needed; the certification is now honoured inside a map-editor session instead, which is what the editor actually needs and is set by the launcher rather than asserted by the client. The same latent call is fixed in the clone tool, the metal brush and the water type overlay. The import also holds its stream while the gate is shut instead of pushing rows into it, and gives up with a message rather than stalling forever if cheats never come back.
+- The editor widgets share one `/cheat` window. `cheat` is a toggle and four widgets nudge it (the brush, the project loader, the match-end keep-alive and dev auto cheat), so two of them seeing it off in the same moment queued two toggles and turned it back off in the middle of a project load, which is what exposed the error above.
+
 ## 1.15 - 2026-09-13
 
 ### New
