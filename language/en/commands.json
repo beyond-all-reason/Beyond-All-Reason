@@ -237,6 +237,7 @@
 			"pipHistorySlower": "Picture-in-picture: slower rewind playback",
 			"pipHistoryReverse": "Picture-in-picture: play the history backwards from live",
 			"pipHistoryPlay": "Picture-in-picture: play the history forwards",
+			"pipHistoryStats": "Picture-in-picture: print the history recorder's size and timings",
 			"fovIncrease": "Increase field of view",
 			"fovDecrease": "Decrease field of view",
 			"cycleSelectedNext": "Cycle camera to next selected unit",

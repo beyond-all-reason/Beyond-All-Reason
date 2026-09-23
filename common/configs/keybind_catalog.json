@@ -784,6 +784,10 @@
 			{
 				"action": "pip_history_play",
 				"label": "actions.camera.pipHistoryPlay"
+			},
+			{
+				"action": "pip_history_stats",
+				"label": "actions.camera.pipHistoryStats"
 			}
 		]
 	},
