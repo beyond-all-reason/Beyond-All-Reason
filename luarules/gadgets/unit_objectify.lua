@@ -31,6 +31,9 @@ local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_REPAIR = CMD.REPAIR
 
+local ATTRIBUTE_SOURCE = "invariant" -- objects are not interactive
+local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
+
 local isBuilder = {}
 local isObject = {}
 local isClosedObject = {}
@@ -88,10 +91,17 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function hideFromSensors(unitID)
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+			setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
+		end
+	end
+
 	local function objectifyUnit(unitID)
 		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitSonarStealth(unitID, true)
+		GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
+		GG.UnitAttributes.SetUnitAttribute(unitID, "sonarStealth", true, ATTRIBUTE_SOURCE)
 		Spring.SetUnitBlocking(unitID, true, true, true, true, true, true, false) -- set as crushable
 		--for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 		--	Spring.UnitWeaponHoldFire(unitID, weaponID)
@@ -100,8 +110,8 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function decorationUnit(unitID)
 		Spring.SetUnitNeutral(unitID, true)
-		Spring.SetUnitStealth(unitID, true)
-		Spring.SetUnitSonarStealth(unitID, true)
+		GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
+		GG.UnitAttributes.SetUnitAttribute(unitID, "sonarStealth", true, ATTRIBUTE_SOURCE)
 		Spring.SetUnitBlocking(unitID, true, true, false, false, true, false, false)
 		for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
 			Spring.UnitWeaponHoldFire(unitID, weaponID)
@@ -109,10 +119,7 @@ if gadgetHandler:IsSyncedCode() then
 		Spring.SetUnitNoSelect(unitID, true)
 		Spring.SetUnitNoMinimap(unitID, true)
 		Spring.SetUnitIconDraw(unitID, false)
-		Spring.SetUnitSensorRadius(unitID, "los", 0)
-		Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-		Spring.SetUnitSensorRadius(unitID, "radar", 0)
-		Spring.SetUnitSensorRadius(unitID, "sonar", 0)
+		hideFromSensors(unitID)
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)

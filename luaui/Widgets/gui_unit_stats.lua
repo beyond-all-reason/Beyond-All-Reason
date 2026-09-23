@@ -158,6 +158,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
 
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
@@ -823,7 +824,7 @@ local function computeContent(uDefID, uID, shiftBool)
 	for i = 1, #wepsCompact do
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
-		local weaponNumber = weaponDefToNum[wDefId] or -1 -- No weaponNum for detonation weapons.
+		local weaponNumber = weaponDefToNum[wDefId] or -1 ---@as integer No weaponNum for detonation weapons.
 
 		-- Handle projectiles that spawn additional projectiles.
 		-- Many properties (might) have nothing to do with the spawned projectile:
@@ -843,9 +844,18 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local damages = uWep.damages
 		local defaultArmorIndex = armorTypes.default
-		local defaultArmorDamage = damages[defaultArmorIndex]
-		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
-		local baseArmorDamage = damages[baseArmorIndex]
+		local targetArmorIndex = damages[defaultArmorIndex] >= damages[armorTypes.vtol] and defaultArmorIndex
+			or armorTypes.vtol
+
+		local baseTargetDamage = damages[targetArmorIndex]
+		local damageFactor = 1.0 -- same factor across all armor types
+		if uID and weaponNumber > 0 and baseTargetDamage > 0 then
+			local current = spGetUnitWeaponDamages(uID, weaponNumber, targetArmorIndex)
+			damageFactor = current and current / baseTargetDamage or 1.0
+		end
+
+		local defaultArmorDamage = damages[defaultArmorIndex] * damageFactor
+		local targetArmorDamage = baseTargetDamage * damageFactor
 
 		local custom = uWep.customParams
 
@@ -854,20 +864,23 @@ local function computeContent(uDefID, uID, shiftBool)
 		end
 
 		if custom.spark_forkdamage then
-			-- Sparks are hardcoded to target the default armor type:
-			local spDamage = defaultArmorDamage
+			-- Sparks are hardcoded to target the default armor type.
+			local spDamage = damages[defaultArmorIndex] -- Does not use attribute factors -- FIXME
 			local spForkDamage = tonumber(custom.spark_forkdamage) or 0
 			local spCount = tonumber(custom.spark_maxunits) or 0
-			baseArmorDamage = baseArmorDamage + spDamage * spForkDamage * spCount
+			targetArmorDamage = targetArmorDamage + spDamage * spForkDamage * spCount
+			baseTargetDamage = baseTargetDamage + spDamage * spForkDamage * spCount
 		elseif custom.speceffect == "split" then
 			burst = burst * (custom.number or 1)
 			uWep = WeaponDefNames[custom.speceffect_def] or uWep
-			baseArmorDamage = damages[defaultArmorIndex]
+			targetArmorDamage = defaultArmorDamage
+			baseTargetDamage = damages[defaultArmorIndex] -- Does not use attribute factors -- FIXME
 		elseif custom.cluster then
 			local munition = uDef.name .. "_" .. custom.cluster_def
 			local cmNumber = custom.cluster_number
-			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
-			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
+			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex] -- Does not use attribute factors -- FIXME
+			targetArmorDamage = targetArmorDamage + cmDamage * cmNumber
+			baseTargetDamage = baseTargetDamage + cmDamage * cmNumber
 		end
 
 		if range > 0 then
@@ -980,9 +993,9 @@ local function computeContent(uDefID, uID, shiftBool)
 					end
 				end
 				DrawText(texts.intercepts .. ":", table.concat(intercepts, "; ") .. white .. ".")
-			elseif baseArmorDamage > 0 then
+			elseif targetArmorDamage > 0 then
 				local damageString = ""
-				local burstDamage = baseArmorDamage * burst
+				local burstDamage = targetArmorDamage * burst
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 					damageString = texts.burst .. " = " .. (format(yellow .. "%d", burstDamage)) .. white .. "."
 				else
@@ -1002,7 +1015,8 @@ local function computeContent(uDefID, uID, shiftBool)
 				end
 				DrawText(texts.dmg .. ":", damageString)
 
-				local modifiers = { [defaultArmorDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
+				local baseDefaultDamage = damages[defaultArmorIndex]
+				local modifiers = { [baseDefaultDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
 
 				local indestructibleArmorIndex = armorTypes.indestructable
 				local shieldsArmorIndex = shieldsRework and armorTypes.shields -- TODO: shield damage display is bugged since incorporating the shieldsrework
@@ -1013,7 +1027,7 @@ local function computeContent(uDefID, uID, shiftBool)
 						local armorDamage = damages[index]
 						if not modifiers[armorDamage] then
 							modifiers[armorDamage] = { armorName }
-						elseif armorDamage ~= defaultArmorDamage then
+						elseif armorDamage ~= baseDefaultDamage then
 							tableInsert(modifiers[armorDamage], armorName)
 						end
 					end
@@ -1021,21 +1035,21 @@ local function computeContent(uDefID, uID, shiftBool)
 
 				local sorted = {}
 				for k in pairs(modifiers) do
-					if k ~= defaultArmorDamage then
+					if k ~= baseDefaultDamage then
 						tableInsert(sorted, k)
 					end
 				end
 				tableSort(sorted, descending)
 
 				local modifierText =
-					{ ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
-				for _, armorDamage in ipairs(sorted) do
+					{ ("default = %s%d%%"):format(yellow, floor(100 * baseDefaultDamage / baseTargetDamage)) }
+				for _, baseArmorDamage in ipairs(sorted) do
 					tableInsert(
 						modifierText,
 						("%s = %s%d%%"):format(
-							table.concat(modifiers[armorDamage], ", "),
+							table.concat(modifiers[baseArmorDamage], ", "),
 							yellow,
-							floor(100 * armorDamage / baseArmorDamage)
+							floor(100 * baseArmorDamage / baseTargetDamage)
 						)
 					)
 				end

@@ -22,6 +22,8 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
 local resolveAttachPiece = require("luarules/gadgets/include/unit_attachments").ResolveAttachPiece
 
+local ATTRIBUTE_SOURCE = "invariant"
+
 -- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
 -- mark builds that split into a mex plus an attached con turret; scav copies inherit the
 -- params and get the _scav variants of both spawned defs
@@ -92,7 +94,7 @@ local function doSwapMex(unitID, unitTeam, unitData)
 	end
 	Spring.SetUnitBlocking(mexID, true, true, false)
 	SendToUnsynced("setUnitNoGroup", mexID, true)
-	Spring.SetUnitStealth(mexID, true)
+	GG.UnitAttributes.SetUnitAttribute(mexID, "stealth", true, ATTRIBUTE_SOURCE)
 
 	local conID = Spring.CreateUnit(unitData.swapDefs.con, ux, uy, uz, unitFacing, unitTeam)
 	if not conID then
@@ -309,6 +311,8 @@ function gadget:Initialize()
 			gadget:UnitFinished(unitID, unitDefID)
 
 			if mexActualDefID[unitDefID] then
+				GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, ATTRIBUTE_SOURCE)
+
 				local pairedUnitID = Spring.GetUnitRulesParam(unitID, "pairedUnitID")
 				if pairedUnitID then
 					pairedUnits[unitID] = pairedUnitID
