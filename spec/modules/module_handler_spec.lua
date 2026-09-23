@@ -1,12 +1,12 @@
 local ModuleHandler = VFS.Include("modules/module_handler.lua")
 
 describe("ModuleHandler", function()
-	describe("DiscoverManifests", function()
+	describe("Register", function()
 		local manifests
 
 		setup(function()
 			ModuleHandler.ResetCaches()
-			manifests = ModuleHandler.DiscoverManifests()
+			manifests = ModuleHandler.Register()
 		end)
 
 		it("finds every directory that has a manifest, keyed by directory name", function()
@@ -15,7 +15,7 @@ describe("ModuleHandler", function()
 				if VFS.FileExists("modules/" .. name .. "/manifest.lua") then
 					assert.is_table(
 						manifests[name],
-						"modules/" .. name .. "/manifest.lua exists but DiscoverManifests() did not load it"
+						"modules/" .. name .. "/manifest.lua exists but Register() did not load it"
 					)
 				end
 			end

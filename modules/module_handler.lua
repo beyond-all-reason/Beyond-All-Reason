@@ -83,14 +83,14 @@ local function loadManifest(moduleDir, vfsMode)
 	return manifest
 end
 
-local manifestsCache = nil ---@type table<string, ModuleManifest>|nil
+local registered = nil ---@type table<string, ModuleManifest>|nil
 
+---Reads every manifest under modules/ and decides which modules are in: a manifest that names its directory,
+---whose requirements are all in. Each Lua state that loads module code (gadgets, widgets, unit scripts) calls
+---this once as it initialises; the result is what the rest of the handler serves.
 ---@param vfsMode string?
----@return table<string, ModuleManifest> manifests of the modules that will load, keyed by module name
-function ModuleHandler.DiscoverManifests(vfsMode)
-	if manifestsCache then
-		return manifestsCache
-	end
+---@return table<string, ModuleManifest> the registered modules' manifests, keyed by module name
+function ModuleHandler.Register(vfsMode)
 	local manifests = {}
 	for _, moduleDir in ipairs(VFS.SubDirs(MODULES_DIR, "*", vfsMode)) do
 		local manifest = loadManifest(ensureSlash(moduleDir), vfsMode)
@@ -98,8 +98,14 @@ function ModuleHandler.DiscoverManifests(vfsMode)
 			manifests[manifest.name] = manifest
 		end
 	end
-	manifestsCache = ModuleHandler.Resolve(manifests, logError)
-	return manifestsCache
+	registered = ModuleHandler.Resolve(manifests, logError)
+	return registered
+end
+
+---@param vfsMode string?
+---@return table<string, ModuleManifest> the registered modules' manifests; registers first when no entry point has yet (defs, modoptions and the lobby read the handler without one)
+function ModuleHandler.Manifests(vfsMode)
+	return registered or ModuleHandler.Register(vfsMode)
 end
 
 ---@param manifests table<string, ModuleManifest> discovered, keyed by name
@@ -145,7 +151,7 @@ end
 ---@return string[] dirs
 local function moduleSubdirs(subdir, vfsMode)
 	local dirs = {}
-	for _, manifest in pairs(ModuleHandler.DiscoverManifests(vfsMode)) do
+	for _, manifest in pairs(ModuleHandler.Manifests(vfsMode)) do
 		local dir = manifest.dir .. subdir
 		if #VFS.DirList(dir, "*.lua", vfsMode) > 0 or #VFS.SubDirs(dir, "*", vfsMode) > 0 then
 			dirs[#dirs + 1] = dir
@@ -192,7 +198,7 @@ end
 ---@param vfsMode string?
 ---@return table[] options modoptions.lua entries ({ key, name, type, def, ... }) from every module, in module name order
 function ModuleHandler.ModOptions(vfsMode)
-	local manifests = ModuleHandler.DiscoverManifests(vfsMode)
+	local manifests = ModuleHandler.Manifests(vfsMode)
 
 	local options = {}
 	for _, name in ipairs(sortedKeysCopy(manifests)) do
@@ -212,7 +218,7 @@ function ModuleHandler.ModOptions(vfsMode)
 end
 
 function ModuleHandler.ResetCaches()
-	manifestsCache = nil
+	registered = nil
 end
 
 root.__moduleHandler = ModuleHandler

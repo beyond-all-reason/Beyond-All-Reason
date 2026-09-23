@@ -454,7 +454,7 @@ function widgetHandler:Initialize()
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
 	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFS.ZIP)
-	ModuleHandler.ResetCaches()
+	ModuleHandler.Register(VFS.ZIP)
 	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
 		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
 	end

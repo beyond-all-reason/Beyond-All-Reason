@@ -569,6 +569,7 @@ function gadget:Initialize()
 	--  * engine default scriptName (with .cob extension) works
 
 	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+	ModuleHandler.Register(VFSMODE)
 	for _, filename in ipairs(VFS.DirList(UNITSCRIPT_DIR, "*.lua", VFSMODE, true)) do
 		scriptFiles[filename:lower()] = filename -- for exact match
 		scriptFiles[Basename(filename):lower()] = filename -- for basename match

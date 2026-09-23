@@ -532,7 +532,7 @@ function gadgetHandler:Initialize()
 
 	if IS_LUARULES then
 		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE) ---@type ModuleHandler
-		ModuleHandler.ResetCaches()
+		ModuleHandler.Register(VFSMODE)
 		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
 			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
 				gadgetFiles[#gadgetFiles + 1] = gf
