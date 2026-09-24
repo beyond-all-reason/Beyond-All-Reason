@@ -126,9 +126,7 @@ end
 
 _G.VFS._sources = _G.VFS._sources or {}
 
--- Recoil shim for Lua-specific require -> VFS stub for Lua files. This is because EmmyLua currently favors
--- require and it's also the only sane Lua parser rn. VFS.Include still exists, it just doesn't provide
--- decorator-free type comprehension.
+-- require -> VFS.Include stub for Lua files.
 local realRequire = require
 _G.require = function(path, env, mode)
 	if type(path) == "string" then
