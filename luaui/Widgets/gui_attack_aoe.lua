@@ -663,7 +663,7 @@ local function GetCachedStarburstTarget(
 			and prediction.launchY == launchY
 			and prediction.launchZ == launchZ
 		then
-			return tx, ty, tz
+			return prediction.x, prediction.y, prediction.z
 		end
 
 		local pathCount = verticalizePath.GetFlightPath(
@@ -684,10 +684,12 @@ local function GetCachedStarburstTarget(
 			prediction.weaponNum = weaponInfo.weaponNum
 			prediction.targetX, prediction.targetY, prediction.targetZ = tx, ty, tz
 			prediction.launchX, prediction.launchY, prediction.launchZ = launchX, launchY, launchZ
-			prediction.x, prediction.y, prediction.z = tx, ty, tz
+			prediction.x = prediction.pathX[pathCount]
+			prediction.y = prediction.pathY[pathCount]
+			prediction.z = prediction.pathZ[pathCount]
 			prediction.pathCount = pathCount
 			RebuildStarburstTrajectoryList(prediction)
-			return tx, ty, tz
+			return prediction.x, prediction.y, prediction.z
 		end
 	end
 

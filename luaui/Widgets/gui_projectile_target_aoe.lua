@@ -858,9 +858,9 @@ local function UpdateTrackedProjectiles()
 
 					if tx and px then
 						local flightPlan = weaponInfo.flightPlan
-						local pathLength, _
+						local pathCount, pathLength, pathFrames
 						if flightPlan and not isUnitTarget then
-							_, pathLength = verticalizePath.GetFlightPath(
+							pathCount, pathLength, pathFrames = verticalizePath.GetFlightPath(
 								flightPlan,
 								px,
 								py,
@@ -876,6 +876,8 @@ local function UpdateTrackedProjectiles()
 
 						local impactX, impactY, impactZ = tx, ty, tz
 						if pathLength then
+							tx, ty, tz = flightPathX[pathCount], flightPathY[pathCount], flightPathZ[pathCount]
+							impactX, impactY, impactZ = tx, ty, tz
 							targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
 						else
 							local launchElapsed = GetProjectileLaunchElapsed(proID, weaponInfo, 0)
@@ -921,7 +923,7 @@ local function UpdateTrackedProjectiles()
 						local speed = max(weaponInfo.projectileSpeed * 30, 1)
 						local estimatedFlightTime = distance / speed
 						if pathLength then
-							estimatedFlightTime = verticalizePath.GetTravelFrames(flightPlan, pathLength) / gameSpeed
+							estimatedFlightTime = pathFrames / gameSpeed
 						end
 
 						newCount = newCount + 1
