@@ -1,4 +1,4 @@
-VFS.Include("luaui/Scenarios/stresstest/multi_attack.lua")
+require("luaui/Scenarios/stresstest/multi_attack")
 
 function radius_attack(targetsCenter, nattackers)
 	local y = Spring.GetGroundHeight(targetsCenter[1], targetsCenter[2])

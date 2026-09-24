@@ -9,7 +9,7 @@
 --
 -- Nothing here reaches disk: the store and the keymap the migration writes are both discarded.
 
-local Json = VFS.Include("common/luaUtilities/json.lua")
+local Json = require("common/luaUtilities/json")
 
 local function readFile(path)
 	local file = assert(io.open(path, "r"), "cannot open " .. path)
@@ -60,7 +60,7 @@ local function migrate(uikeys)
 	end
 
 	local ok, result = pcall(function()
-		local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
+		local profiles = require("luaui/Include/keybind_profiles")
 		profiles.load()
 
 		return profiles.get(profiles.list()[1])

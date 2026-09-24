@@ -995,7 +995,7 @@ local function ScanChanges()
 end
 
 local function LoadResources()
-	local resources = VFS.Include("gamedata/resources.lua")
+	local resources = require("gamedata/resources")
 	for k, v in pairs(resources.graphics.projectiletextures) do
 		--spEcho("projectileTexures", k,v)
 		projectileTexures[k] = v

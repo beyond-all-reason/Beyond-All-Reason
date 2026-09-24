@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local Markdown = VFS.Include("luaui/Include/markdown.lua")
+local Markdown = require("luaui/Include/markdown")
 
 -- Localized functions for performance
 local mathFloor = math.floor

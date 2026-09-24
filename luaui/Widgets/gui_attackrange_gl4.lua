@@ -193,7 +193,7 @@ local vtoldamagetag = Game.armorTypes.vtol
 local defaultdamagetag = Game.armorTypes.default
 
 -- globals
-local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local minimapUtils = require("luaui/Include/minimap_utils")
 local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
 local ROTATION = minimapUtils.ROTATION
 local selUnitCount = 0
@@ -630,7 +630,7 @@ local shaderSourceCache = {
 -- bit per class, mirroring the stencil bit layout: 1 = ground (and cannon), 2 = nano,
 -- 4 = AA, 8 = cannon when colorConfig.cannon_separate_stencil is set. lrpc rings are not
 -- merged, they are only clipped by the cannon class like in the stencil path.
-local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local RangeCoverageMask = require("luaui/Include/range_coverage_mask_gl4")
 local cannonMaskChannel = colorConfig.cannon_separate_stencil and 3 or 0
 local maskChannelClasses = { [0] = { "ground" }, { "nano" }, { "AA" }, {} }
 table.insert(maskChannelClasses[cannonMaskChannel], "cannon")
