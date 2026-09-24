@@ -14,7 +14,7 @@ function Addon:GetInfo() end
 ---@field author string?
 ---@field date string?
 ---@field license string?
----@field layer number?
+---@field layer integer?
 ---@field enabled boolean?
 ---Keep drawing and receiving input while an open modal window hides the rest of the
 ---interface (LuaUI only, see the "Modal windows" block in barwidgets.lua).
