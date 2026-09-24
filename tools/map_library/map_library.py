@@ -295,11 +295,11 @@ class GitStore:
             raise LibraryError(classify_git_error(result.stderr))
         return result.stdout if result.returncode == 0 else b""
 
-    def fetch(self) -> str:
+    def fetch(self, extra: tuple = ()) -> str:
         previous = self.git("rev-parse", "--verify", "refs/remotes/library", check=False).decode().strip()
         # Git permits non-FF updates outside refs/heads even WITHOUT '+'. Fetch
         # into FETCH_HEAD, then explicitly check ancestry before advancing our cache.
-        self.git("fetch", "--no-tags", "--no-recurse-submodules", self.remote,
+        self.git("fetch", "--no-tags", "--no-recurse-submodules", *(extra or ()), self.remote,
                  f"refs/heads/{self.branch}", timeout=NETWORK_TIMEOUT)
         head = self.git("rev-parse", "FETCH_HEAD").decode().strip()
         if previous and self.git("merge-base", previous, head, check=False).decode().strip() != previous:
@@ -307,15 +307,22 @@ class GitStore:
         self.git("update-ref", "refs/remotes/library", head)
         return head
 
-    def tree(self, revision: str) -> dict[str, tuple[str, str, int]]:
-        output = self.git("ls-tree", "-rlz", revision)
+    def tree(self, revision: str, sizes: bool = True) -> dict[str, tuple[str, str, int]]:
+        # `sizes` asks git for the blob length, which it can only answer by
+        # having the blob. In a PARTIAL clone that lazily fetches every one of
+        # them, so the shader mirror lists without it and carries -1 instead.
+        output = self.git("ls-tree", "-rlz" if sizes else "-rz", revision)
         entries = {}
         folded = {}
         for record in output.split(b"\0"):
             if not record:
                 continue
             metadata, raw_path = record.split(b"\t", 1)
-            mode, kind, oid, size = metadata.split()
+            if sizes:
+                mode, kind, oid, size = metadata.split()
+            else:
+                mode, kind, oid = metadata.split()
+                size = b"-1"
             path = raw_path.decode("utf-8", errors="strict")
             # Symlinks/submodules anywhere in the library fail closed.
             if mode != b"100644" or kind != b"blob":
@@ -331,8 +338,10 @@ class GitStore:
                 raise LibraryError("too_large")
         return entries
 
-    def blob(self, oid: str) -> bytes:
-        raw = self.git("cat-file", "blob", oid)
+    def blob(self, oid: str, timeout: int = GIT_TIMEOUT) -> bytes:
+        # In a partial clone this is where a missing blob is fetched, so the
+        # caller decides whether it is a local read or a network one.
+        raw = self.git("cat-file", "blob", oid, timeout=timeout)
         digest = hashlib.sha1 if len(oid) == 40 else hashlib.sha256
         if digest(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() != oid:
             raise LibraryError("blob_corrupted")
@@ -359,6 +368,27 @@ class ShaderLibrary(GitStore):
                        "brush_versions": [], "changed": 0, "bytes": 0,
                        "checked": 0, "revision": ""}
 
+    def partial(self) -> None:
+        """Make the mirror a blob:none partial clone, once.
+
+        A shader release is a few hundred kilobytes of Lua against a gigabyte
+        of textures, so fetching every blob to read a manifest is the wrong
+        shape - and on a fresh machine it was slow enough to be killed. Trees
+        and commits still come down whole; blobs arrive when a file is actually
+        wanted. Existing full mirrors keep every object they already have.
+        """
+        if self.git("config", "--get", "extensions.partialClone", check=False).strip():
+            return
+        self.git("config", "core.repositoryformatversion", "1")
+        self.git("config", "remote.library.url", self.remote)
+        self.git("config", "remote.library.promisor", "true")
+        self.git("config", "remote.library.partialclonefilter", "blob:none")
+        self.git("config", "extensions.partialClone", "library")
+
+    def fetch(self) -> str:
+        self.partial()
+        return super().fetch(extra=("--filter=blob:none",))
+
     def local_digest(self, relative: str) -> str | None:
         """SHA-256 of the installed file, memoised on (size, mtime)."""
         target = self.data / relative
@@ -378,10 +408,11 @@ class ShaderLibrary(GitStore):
     def manifest(self, entries: dict) -> dict:
         if SHADER_MANIFEST not in entries:
             raise LibraryError("missing_manifest")
-        if entries[SHADER_MANIFEST][2] > MAX_CONTROL:
+        raw = self.blob(entries[SHADER_MANIFEST][1], timeout=NETWORK_TIMEOUT)
+        if len(raw) > MAX_CONTROL:
             raise LibraryError("too_large")
         try:
-            document = json.loads(self.blob(entries[SHADER_MANIFEST][1]).decode("utf-8"))
+            document = json.loads(raw.decode("utf-8"))
         except (ValueError, UnicodeDecodeError) as exc:
             raise LibraryError("invalid_manifest") from exc
         if not isinstance(document, dict) or document.get("version") != VERSION:
@@ -395,7 +426,9 @@ class ShaderLibrary(GitStore):
 
     def plan(self, revision: str) -> tuple[dict, list, int]:
         """(manifest, entries needing a write, total bytes of those entries)."""
-        entries = self.tree(revision)
+        # Without sizes: see tree(). Asking for them here would pull every blob
+        # in the library, which is the cost this whole path exists to avoid.
+        entries = self.tree(revision, sizes=False)
         document = self.manifest(entries)
         delta, total, seen = [], 0, 0
         for record in document["files"]:
@@ -407,8 +440,13 @@ class ShaderLibrary(GitStore):
                 raise LibraryError("invalid_manifest")
             if relative not in entries:
                 raise LibraryError("invalid_manifest")
-            _mode, oid, size = entries[relative]
-            if size != record.get("size") or size > MAX_FILE:
+            _mode, oid, _unknown = entries[relative]
+            # The tree's own size is not consulted: a partial clone would have
+            # to fetch the blob to report it. The manifest's number bounds the
+            # download, and sync() checks the bytes that actually arrive
+            # against both it and the sha256 before anything is written.
+            size = record.get("size")
+            if not isinstance(size, int) or size < 0 or size > MAX_FILE:
                 raise LibraryError("invalid_manifest")
             seen += size
             if seen > SHADER_MAX_TOTAL:
@@ -435,9 +473,9 @@ class ShaderLibrary(GitStore):
         revision = self.fetch()
         document, delta, total = self.plan(revision)
         written = 0
-        for relative, oid, _size, digest in delta:
-            raw = self.blob(oid)
-            if hashlib.sha256(raw).hexdigest() != digest:
+        for relative, oid, size, digest in delta:
+            raw = self.blob(oid, timeout=NETWORK_TIMEOUT)
+            if len(raw) != size or hashlib.sha256(raw).hexdigest() != digest:
                 raise LibraryError("blob_corrupted")
             target = self.data / relative
             no_links(target.parent)
