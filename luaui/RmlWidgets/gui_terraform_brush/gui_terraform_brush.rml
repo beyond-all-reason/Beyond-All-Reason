@@ -6361,6 +6361,11 @@
 							<input type="text" id="ts-slider-metalness-numbox" class="tf-slider-numbox" readonly value="0.85" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Reflection</div>
+							<input type="range" id="ts-slider-metalReflect" class="tf-slider" min="0" max="2" step="0.01" value="0.9" data-event-change="onTilesetKnob('metalReflect')" />
+							<input type="text" id="ts-slider-metalReflect-numbox" class="tf-slider-numbox" readonly value="0.9" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Roughness x</div>
 							<input type="range" id="ts-slider-metalRoughMul" class="tf-slider" min="0" max="2" step="0.01" value="1.0" data-event-change="onTilesetKnob('metalRoughMul')" />
 							<input type="text" id="ts-slider-metalRoughMul-numbox" class="tf-slider-numbox" readonly value="1.0" />
@@ -6768,9 +6773,29 @@
 					</div>
 					<div id="section-ts-light" class="hidden">
 						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Specular</div>
+							<input type="range" id="ts-slider-specStrength" class="tf-slider" min="0" max="1" step="0.005" value="0.3" data-event-change="onTilesetKnob('specStrength')" />
+							<input type="text" id="ts-slider-specStrength-numbox" class="tf-slider-numbox" readonly value="0.3" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Spec AA</div>
 							<input type="range" id="ts-slider-specAA" class="tf-slider" min="0" max="2" step="0.01" value="0.5" data-event-change="onTilesetKnob('specAA')" />
 							<input type="text" id="ts-slider-specAA-numbox" class="tf-slider-numbox" readonly value="0.5" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Sky ambient</div>
+							<input type="range" id="ts-slider-hemiAmbient" class="tf-slider" min="0" max="1.5" step="0.0075" value="0.5" data-event-change="onTilesetKnob('hemiAmbient')" />
+							<input type="text" id="ts-slider-hemiAmbient-numbox" class="tf-slider-numbox" readonly value="0.5" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Exposure</div>
+							<input type="range" id="ts-slider-exposure" class="tf-slider" min="0.25" max="4" step="0.01" value="1" data-event-change="onTilesetKnob('exposure')" />
+							<input type="text" id="ts-slider-exposure-numbox" class="tf-slider-numbox" readonly value="1.00" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">AO depth</div>
+							<input type="range" id="ts-slider-aoStrength" class="tf-slider" min="0" max="1" step="0.005" value="0.6" data-event-change="onTilesetKnob('aoStrength')" />
+							<input type="text" id="ts-slider-aoStrength-numbox" class="tf-slider-numbox" readonly value="0.6" />
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Wet shore</div>
@@ -6784,8 +6809,13 @@
 						</div>
 						<div class="flex flex-row gap-1 items-center mb-1">
 							<div class="tf-slider-label text-light">Shadow mode</div>
-							<input type="range" id="ts-slider-shadowMode" class="tf-slider" min="0" max="1" step="1" value="1" data-event-change="onTilesetKnob('shadowMode')" />
+							<input type="range" id="ts-slider-shadowMode" class="tf-slider" min="0" max="2" step="1" value="1" data-event-change="onTilesetKnob('shadowMode')" />
 							<input type="text" id="ts-slider-shadowMode-numbox" class="tf-slider-numbox" readonly value="1" />
+						</div>
+						<div class="flex flex-row gap-1 items-center mb-1">
+							<div class="tf-slider-label text-light">Shadow bias</div>
+							<input type="range" id="ts-slider-shadowBias" class="tf-slider" min="0" max="0.005" step="2.5e-05" value="0.0015" data-event-change="onTilesetKnob('shadowBias')" />
+							<input type="text" id="ts-slider-shadowBias-numbox" class="tf-slider-numbox" readonly value="0.0015" />
 						</div>
 					</div>
 				</div><!-- /frame-ts-light -->
