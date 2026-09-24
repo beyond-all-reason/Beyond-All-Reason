@@ -14,7 +14,6 @@ end
 
 local lava = BAR.Lava
 local lavaMap = lava.isLavaMap
-
 local gameSpeed = Game.gameSpeed
 
 --_G.Game.mapSizeX = Game.mapSizeX
