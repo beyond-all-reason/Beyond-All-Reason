@@ -2,7 +2,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armrock" or name == "corstorm" then
 		uDef.speed = uDef.speed + 4.3
-		uDef.turnrate = 950
+		uDef.turnrate = 840
 		uDef.buildtime = math.ceil(uDef.buildtime * 1.15 / 100) * 100
 	end
 
@@ -35,7 +35,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 
 	if name == "armart" then
 		uDef.speed = 55 --was 54
-		uDef.turnrate = 320 --394
+		uDef.turnrate = 300 --394
 		uDef.weapondefs.tawf113_weapon.weaponvelocity = 390
 		uDef.weapondefs.tawf113_weapon.mygravity = nil
 		uDef.weapondefs.tawf113_weapon.areaofeffect = 80 --75
@@ -47,7 +47,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 	end
 	if name == "corwolv" then
 		uDef.speed = 53 --was 48
-		uDef.turnrate = 280 --466
+		uDef.turnrate = 260 --466
 		uDef.metalcost = 200
 		uDef.energycost = 3000
 		uDef.buildtime = 4000
@@ -119,6 +119,13 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cor_lightlaser.range = uDef.weapondefs.cor_lightlaser.range - 10
 		uDef.weapondefs.cor_lightlaser.energypershot = 15
 		uDef.weapondefs.cor_lightlaser.reloadtime = 0.6
+	end
+	if name == "corexp" then
+		uDef.buildtime = uDef.buildtime - 700
+		uDef.metalcost = 200
+		uDef.health = 1100
+		uDef.weapondefs.hllt_bottom.reloadtime = 0.6
+		uDef.weapondefs.hllt_bottom.range = 425
 	end
 	if name == "corhllt" then
 		uDef.health = 1500
@@ -203,20 +210,37 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		name == "armck"
 		or name == "corck"
 		or name == "legck"
-		or name == "armcv"
+	then
+		uDef.energycost = uDef.energycost + 400
+		uDef.buildtime = uDef.buildtime + 150
+	end
+	if
+		name == "armcv"
 		or name == "corcv"
 		or name == "legcv"
 		or name == "armcs"
 		or name == "corcs"
 		or name == "legcs"
 	then
-		uDef.energycost = uDef.energycost + 300
-		uDef.buildtime = uDef.buildtime + 150
+		uDef.energycost = uDef.energycost + 500
+		uDef.buildtime = math.floor(uDef.buildtime + 250 / 100) * 100
 	end
 
 	if name == "armmoho" or name == "cormoho" or name == "legmoho" then
 		uDef.energycost = uDef.energycost + 3900
 		uDef.health = math.ceil(uDef.health * 0.8 / 100) * 100
+	end
+
+	if name == "armflea" then
+		uDef.weapondefs.flea_laser.reloadtime = 0.7
+	end
+	if name == "corfav" then
+		uDef.speed = 150
+		uDef.weapondefs.cor_laser.reloadtime = 1.2
+	end
+	if name == "armfav" then
+		uDef.speed = 163
+		uDef.weapondefs.arm_laser.range = 170
 	end
 
 	return uDef
