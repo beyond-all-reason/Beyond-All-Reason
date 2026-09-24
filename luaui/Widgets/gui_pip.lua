@@ -13947,7 +13947,6 @@ function miscState.hist.StripH()
 		or not config.historyEnabled
 		or not hist.store
 		or uiState.inMinMode
-		or miscState.engineMinimapActive
 		or (isMinimapMode and miscState.minimapMinimized)
 	then
 		return 0
@@ -15715,7 +15714,10 @@ function miscState.hist.Seek(frame)
 	end
 	local live = hist.LiveFrame()
 	if frame >= live - 1 then
+		-- a drag that reaches live keeps dragging: moving back re-enters the history
+		local dragging = hist.dragging
 		hist.Exit()
+		hist.dragging = dragging
 		return
 	end
 	frame = math.max(first, frame)
@@ -15810,7 +15812,7 @@ function miscState.hist.ComputeLayout(mx, my)
 		first, live = 0, 30
 	end
 	local ib = math.floor(bs * 0.7)
-	local cy = b + math.floor(bs * 0.5)
+	local cy = b + math.floor(bandH * 0.5)
 	lay.visible = true
 	lay.l, lay.r, lay.b, lay.t = l, r, b, t
 	lay.cy = cy
@@ -15867,36 +15869,42 @@ function miscState.hist.DrawTimeline(mx, my)
 		return
 	end
 
-	-- play / pause and skip-to-live, only while rewinding
+	-- play / pause and skip-to-live: active while rewinding, a faint hint at live
 	local ib = lay.ib
 	local px, cy = lay.playL, lay.cy
 	local hoverPlay = hist.mode and inBand and mx >= lay.playL and mx <= lay.playR
 	local hoverLive = hist.mode and inBand and mx >= lay.liveL and mx <= lay.liveR
 	if hist.mode then
 		glFunc.Color(accent)
-		if hist.playing then
-			local w = ib * 0.22
-			gl.Rect(px + ib * 0.2, cy - ib * 0.32, px + ib * 0.2 + w, cy + ib * 0.32)
-			gl.Rect(px + ib * 0.8 - w, cy - ib * 0.32, px + ib * 0.8, cy + ib * 0.32)
-		else
-			glFunc.BeginEnd(GL.TRIANGLES, function()
-				glFunc.Vertex(px + ib * 0.25, cy - ib * 0.34)
-				glFunc.Vertex(px + ib * 0.25, cy + ib * 0.34)
-				glFunc.Vertex(px + ib * 0.82, cy)
-			end)
-		end
-		-- skip-to-live glyph: a triangle against an end bar
-		local lx = lay.liveL
-		glFunc.Color(light[1], light[2], light[3], hoverLive and 1 or 0.85)
-		local gh = math.floor(ib * 0.34)
-		local bw = math.max(2, math.floor(ib * 0.12))
-		glFunc.BeginEnd(GL.TRIANGLES, function()
-			glFunc.Vertex(lx + ib * 0.18, cy - gh)
-			glFunc.Vertex(lx + ib * 0.18, cy + gh)
-			glFunc.Vertex(lx + ib * 0.66, cy)
-		end)
-		gl.Rect(lx + ib * 0.7, cy - gh, lx + ib * 0.7 + bw, cy + gh)
+	else
+		glFunc.Color(light[1], light[2], light[3], 0.18)
 	end
+	if hist.mode and hist.playing then
+		local w = ib * 0.22
+		gl.Rect(px + ib * 0.2, cy - ib * 0.32, px + ib * 0.2 + w, cy + ib * 0.32)
+		gl.Rect(px + ib * 0.8 - w, cy - ib * 0.32, px + ib * 0.8, cy + ib * 0.32)
+	else
+		glFunc.BeginEnd(GL.TRIANGLES, function()
+			glFunc.Vertex(px + ib * 0.25, cy - ib * 0.34)
+			glFunc.Vertex(px + ib * 0.25, cy + ib * 0.34)
+			glFunc.Vertex(px + ib * 0.82, cy)
+		end)
+	end
+	-- skip-to-live glyph: a triangle against an end bar
+	local lx = lay.liveL
+	if hist.mode then
+		glFunc.Color(light[1], light[2], light[3], hoverLive and 1 or 0.85)
+	else
+		glFunc.Color(light[1], light[2], light[3], 0.18)
+	end
+	local gh = math.floor(ib * 0.34)
+	local bw = math.max(2, math.floor(ib * 0.12))
+	glFunc.BeginEnd(GL.TRIANGLES, function()
+		glFunc.Vertex(lx + ib * 0.18, cy - gh)
+		glFunc.Vertex(lx + ib * 0.18, cy + gh)
+		glFunc.Vertex(lx + ib * 0.66, cy)
+	end)
+	gl.Rect(lx + ib * 0.7, cy - gh, lx + ib * 0.7 + bw, cy + gh)
 	local fontSize = lay.fontSize
 	font:Begin()
 	font:SetOutlineColor(0, 0, 0, 0.6)
@@ -16045,9 +16053,6 @@ function miscState.hist.HandleMove(mx)
 	local lay = hist.ComputeLayout(mx, nil)
 	if lay.visible then
 		hist.Seek(hist.FrameAt(mx))
-		if not hist.mode then
-			hist.dragging = false
-		end
 	end
 	return true
 end
@@ -22447,7 +22452,8 @@ function widget:DrawScreen()
 		-- Exit fallback immediately when zooming in so PIP R2T content appears without lag.
 		-- Keep off-debounce for non-zoom transitions (e.g. unit count hovering near threshold).
 		local leavingBecauseZoom = not (IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom))
-		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingBecauseZoom and 0 or 0.75)
+		local leavingNow = leavingBecauseZoom or miscState.hist.mode
+		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingNow and 0 or 0.75)
 		if miscState.engineFallbackRawWantedSince and (now - miscState.engineFallbackRawWantedSince) < holdTime then
 			useEngineMinimapFallback = miscState.engineMinimapActive
 		else
