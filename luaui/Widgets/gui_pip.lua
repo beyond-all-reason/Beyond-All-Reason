@@ -313,6 +313,7 @@ config = {
 	historyDeathReplayMinCost = 150, -- Only losses of at least this metal-equivalent cost count as a death to replay
 	historyDeathReplayZoom = 1.2, -- Zoom the death replay centres with (0 = leave the camera alone)
 	historyPlaybackRate = 60, -- Max layer re-renders per second while rewinding (live's max is pipMaxUpdateRate)
+	historyLosFrames = 15, -- Rewind LOS view: frames between rebuilds of the sight circles (also rebuilt when an ally appears or dies)
 	historyExplosions = true, -- Log explosions into the rewind history
 	historyProjectiles = true, -- Log long-flight projectiles (nukes, artillery, bombs)
 	historyCommands = true, -- Log position-targeted orders
@@ -10981,7 +10982,8 @@ function widget:SetConfigData(data)
 	if type(data.historySpeed) == "number" and data.historySpeed >= 1 and data.historySpeed <= 24 then
 		miscState.hist.speed = data.historySpeed
 	end
-	miscState.hist.shown = data.historyStripShown == true
+	-- the open timeline only survives a /luaui reload of the same game
+	miscState.hist.shown = data.historyStripShown == true and isSameGame
 	if data.healthDarkenMax ~= nil then
 		config.healthDarkenMax = data.healthDarkenMax
 	end
@@ -14483,8 +14485,25 @@ function miscState.hist.LiveFrame()
 end
 
 -- Spectator LOS view: the log holds every unit, so playback re-derives what the viewed
--- allyteam could see from its units' sight and radar radii on a coarse grid. Rebuilt once per
--- recorded tick, not per frame. hist.visMask[i]: nil = not filtering, 0 hidden, 1 radar, 2 seen.
+-- allyteam could see from its units' sight and radar radii on a coarse grid. The circles are
+-- rebuilt every historyLosFrames and whenever the ally set changes (a scout that died or flew
+-- on must not keep revealing); the mask follows every materialised frame by unit id, since
+-- the view's output slots shift as units appear and die between ticks.
+-- hist.visMask[i]: nil = not filtering, 0 hidden, 1 radar, 2 seen.
+---@class PipVisGrid
+---@field cell number
+---@field cols integer
+---@field los table<integer, table<integer, integer>> -- cell -> sight circle entries
+---@field losN table<integer, integer>
+---@field radar table<integer, table<integer, integer>>
+---@field radarN table<integer, integer>
+---@field jam table<integer, table<integer, integer>> -- enemy jammers: radar contacts inside are dropped
+---@field jamN table<integer, integer>
+---@field used table<integer, integer>
+---@field usedN integer
+---@field ex table<integer, number> -- circle centres and squared radii by entry
+---@field ez table<integer, number>
+---@field er2 table<integer, number>
 function miscState.hist.BuildViewFilter()
 	local hist = miscState.hist
 	local view = hist.view
@@ -14494,23 +14513,33 @@ function miscState.hist.BuildViewFilter()
 	if not view or not store or not viewAlly or not (cameraState.mySpecState and fullview) then
 		hist.visMask = nil
 		hist.visTick = nil
+		hist.visSerial = nil
+		hist.visById = nil
+		hist.visSeenOnce = nil
 		return
 	end
-	if hist.visTick == view.appliedTick and hist.visAlly == viewAlly and hist.visGen == store.generation then
+	if hist.visSerial == hist.builtSerial and hist.visAlly == viewAlly and hist.visGen == store.generation then
 		return
 	end
-	hist.visTick, hist.visAlly, hist.visGen = view.appliedTick, viewAlly, store.generation
 	local tBuild = os.clock()
-	local sightOf, radarOf = hist.sightOf, hist.radarOf
-	if not sightOf then
-		sightOf, radarOf = {}, {}
+	local frame = hist.builtFrame
+	local rebuildGrid = hist.visAlly ~= viewAlly
+		or hist.visGen ~= store.generation
+		or not hist.visById
+		or math.abs(frame - (hist.visFrame or 0)) >= config.historyLosFrames
+	hist.visSerial, hist.visTick, hist.visAlly, hist.visGen =
+		hist.builtSerial, view.appliedTick, viewAlly, store.generation
+	local sightOf, radarOf, jamOf = hist.sightOf, hist.radarOf, hist.jamOf
+	if not jamOf then
+		sightOf, radarOf, jamOf = {}, {}, {}
 		for defID, ud in pairs(UnitDefs) do
 			sightOf[defID] = ud.sightDistance or 0
 			radarOf[defID] = ud.radarDistance or 0
+			jamOf[defID] = ud.radarDistanceJam or 0
 		end
-		hist.sightOf, hist.radarOf = sightOf, radarOf
+		hist.sightOf, hist.radarOf, hist.jamOf = sightOf, radarOf, jamOf
 	end
-	local grid = hist.visGrid
+	local grid = hist.visGrid --[[@as PipVisGrid?]]
 	if not grid then
 		grid = {
 			cell = 512,
@@ -14519,48 +14548,25 @@ function miscState.hist.BuildViewFilter()
 			losN = {},
 			radar = {},
 			radarN = {},
+			jam = {},
+			jamN = {},
 			used = {},
 			usedN = 0,
+			ex = {},
+			ez = {},
+			er2 = {},
 		}
 		hist.visGrid = grid
 	end
-	local cell, cols = grid.cell, grid.cols
-	local losCells, losN, radarCells, radarN, used = grid.los, grid.losN, grid.radar, grid.radarN, grid.used
-	for i = 1, grid.usedN do
-		local c = used[i]
-		losN[c] = 0
-		radarN[c] = 0
-	end
-	local usedN = 0
-	local function insert(cells, counts, x, z, r, idx)
-		local c0, c1 = math.floor((x - r) / cell), math.floor((x + r) / cell)
-		local r0, r1 = math.floor((z - r) / cell), math.floor((z + r) / cell)
-		for cz = r0, r1 do
-			for cx = c0, c1 do
-				local c = cz * cols + cx
-				local list = cells[c]
-				if not list then
-					list = {}
-					cells[c] = list
-				end
-				local cnt = counts[c] or 0
-				if cnt == 0 and (radarN[c] or 0) == 0 and (losN[c] or 0) == 0 then
-					usedN = usedN + 1
-					used[usedN] = c
-				end
-				cnt = cnt + 1
-				list[cnt] = idx
-				counts[c] = cnt
-			end
-		end
-	end
-	local outX, outZ, outDef, outTeam = view.outX, view.outZ, view.outDef, view.outTeam
+	local outX, outZ, outDef, outTeam, outId = view.outX, view.outZ, view.outDef, view.outTeam, view.outId
 	local count = view.outCount
 	local mask = hist.visMask
 	if not mask then
 		mask = {}
 		hist.visMask = mask
 	end
+	-- allies first: they are always seen, and their count and id sum tell when the set changed
+	local allyN, allyIds = 0, 0
 	for i = 1, count do
 		local team = outTeam[i]
 		local ally = teamAllyTeamCache[team]
@@ -14570,29 +14576,107 @@ function miscState.hist.BuildViewFilter()
 		end
 		if ally == viewAlly then
 			mask[i] = 2
-			local def = outDef[i]
-			local sight = sightOf[def] or 0
-			if sight > 0 then
-				insert(losCells, losN, outX[i], outZ[i], sight, i)
-			end
-			local radar = radarOf[def] or 0
-			if radar > 0 then
-				insert(radarCells, radarN, outX[i], outZ[i], radar, i)
-			end
+			allyN = allyN + 1
+			allyIds = allyIds + outId[i]
 		else
 			mask[i] = 0
 		end
 	end
-	grid.usedN = usedN
-	for i = 1, count do
-		if mask[i] == 0 then
-			mask[i] = hist.PosVisibility(outX[i], outZ[i])
-		end
+	if allyN ~= hist.visAllyN or allyIds ~= hist.visAllyIds then
+		rebuildGrid = true
 	end
+	if rebuildGrid then
+		hist.visFrame, hist.visAllyN, hist.visAllyIds = frame, allyN, allyIds
+		local byId = hist.visById
+		if byId then
+			for k in pairs(byId) do
+				byId[k] = nil
+			end
+		else
+			byId = {}
+			hist.visById = byId
+		end
+		local cell, cols = grid.cell, grid.cols
+		local losCells, losN, radarCells, radarN, used = grid.los, grid.losN, grid.radar, grid.radarN, grid.used
+		local jamCells, jamN = grid.jam, grid.jamN
+		local ex, ez, er2 = grid.ex, grid.ez, grid.er2
+		for i = 1, grid.usedN do
+			local c = used[i]
+			losN[c] = 0
+			radarN[c] = 0
+			jamN[c] = 0
+		end
+		local usedN, en = 0, 0
+		-- circles are copied out of the view: its slots are renumbered on every materialise
+		local function insert(cells, counts, x, z, r)
+			en = en + 1
+			ex[en], ez[en], er2[en] = x, z, r * r
+			local c0, c1 = math.floor((x - r) / cell), math.floor((x + r) / cell)
+			local r0, r1 = math.floor((z - r) / cell), math.floor((z + r) / cell)
+			for cz = r0, r1 do
+				for cx = c0, c1 do
+					local c = cz * cols + cx
+					local list = cells[c]
+					if not list then
+						list = {}
+						cells[c] = list
+					end
+					local cnt = counts[c] or 0
+					if cnt == 0 and (radarN[c] or 0) == 0 and (losN[c] or 0) == 0 and (jamN[c] or 0) == 0 then
+						usedN = usedN + 1
+						used[usedN] = c
+					end
+					cnt = cnt + 1
+					list[cnt] = en
+					counts[c] = cnt
+				end
+			end
+		end
+		for i = 1, count do
+			if mask[i] == 2 then
+				local def = outDef[i]
+				local sight = sightOf[def] or 0
+				if sight > 0 then
+					insert(losCells, losN, outX[i], outZ[i], sight)
+				end
+				local radar = radarOf[def] or 0
+				if radar > 0 then
+					insert(radarCells, radarN, outX[i], outZ[i], radar)
+				end
+			else
+				local jam = jamOf[outDef[i]] or 0
+				if jam > 0 then
+					insert(jamCells, jamN, outX[i], outZ[i], jam)
+				end
+			end
+		end
+		grid.usedN = usedN
+	end
+	-- other units keep their visibility by id until the circles are rebuilt; units once in
+	-- sight stay typed on radar afterwards (the engine's PREVLOS), the rest draw as blips
+	local byId = hist.visById --[[@as table<number, integer>]]
+	local seenOnce = hist.visSeenOnce
+	if not seenOnce then
+		seenOnce = {}
+		hist.visSeenOnce = seenOnce
+	end
+	local PosVisibility = hist.PosVisibility
 	local hidden = 0
 	for i = 1, count do
 		if mask[i] == 0 then
-			hidden = hidden + 1
+			local uid = outId[i]
+			local v = byId[uid]
+			if v == nil then
+				v = PosVisibility(outX[i], outZ[i])
+				byId[uid] = v
+				if v == 2 then
+					seenOnce[uid] = true
+				end
+			end
+			mask[i] = v
+			if v == 0 then
+				hidden = hidden + 1
+			end
 		end
 	end
 	for i = count + 1, #mask do
@@ -14605,33 +14689,39 @@ end
 -- 2 in sight, 1 on radar, 0 unseen for the viewed allyteam (after BuildViewFilter)
 function miscState.hist.PosVisibility(x, z)
 	local hist = miscState.hist
-	local grid = hist.visGrid
+	local grid = hist.visGrid --[[@as PipVisGrid?]]
 	local view = hist.view
 	if not grid or not hist.visMask or not view then
 		return 2
 	end
 	local c = math.floor(z / grid.cell) * grid.cols + math.floor(x / grid.cell)
-	local outX, outZ, outDef = view.outX, view.outZ, view.outDef
+	local ex, ez, er2 = grid.ex, grid.ez, grid.er2
 	local list = grid.los[c]
-	local sightOf = hist.sightOf
 	if list then
 		for k = 1, grid.losN[c] or 0 do
-			local i = list[k]
-			local dx, dz = outX[i] - x, outZ[i] - z
-			local r = sightOf[outDef[i]] or 0
-			if dx * dx + dz * dz <= r * r then
+			local e = list[k]
+			local dx, dz = ex[e] - x, ez[e] - z
+			if dx * dx + dz * dz <= er2[e] then
 				return 2
 			end
 		end
 	end
 	list = grid.radar[c]
-	local radarOf = hist.radarOf
 	if list then
 		for k = 1, grid.radarN[c] or 0 do
-			local i = list[k]
-			local dx, dz = outX[i] - x, outZ[i] - z
-			local r = radarOf[outDef[i]] or 0
-			if dx * dx + dz * dz <= r * r then
+			local e = list[k]
+			local dx, dz = ex[e] - x, ez[e] - z
+			if dx * dx + dz * dz <= er2[e] then
+				local jam = grid.jam[c]
+				if jam then
+					for j = 1, grid.jamN[c] or 0 do
+						local je = jam[j]
+						local jx, jz = ex[je] - x, ez[je] - z
+						if jx * jx + jz * jz <= er2[je] then
+							return 0
+						end
+					end
+				end
 				return 1
 			end
 		end
@@ -14783,8 +14873,8 @@ function miscState.hist.DrawIcons()
 		gl4Icons.DeactivateUnitpics()
 		return 1
 	end
-	local bdata = gl4Icons.bldgInstanceData --[[@as table<integer, number>]]
-	local data = gl4Icons.instanceData --[[@as table<integer, number>]]
+	local bdata = gl4Icons.bldgInstanceData --[[@as table<number, number>]]
+	local data = gl4Icons.instanceData --[[@as table<number, number>]]
 	local vbo, bldgVbo, vao, bldgVao = gl4Icons.vbo, gl4Icons.bldgVbo, gl4Icons.vao, gl4Icons.bldgVao
 	if not (bdata and data and vbo and bldgVbo and vao and bldgVao) then
 		return 1
@@ -14816,6 +14906,7 @@ function miscState.hist.DrawIcons()
 		view.outX, view.outZ, view.outDef, view.outTeam, view.outFlags, view.outId, view.outHealth
 	local outBuild, flashes = view.outBuild, view.flashes
 	local visMask = hist.visMask
+	local seenOnce, isBuilding = hist.visSeenOnce, cache.isBuilding
 	local layerTbl = gl4Icons.unitDefLayer
 	local serial = hist.builtSerial
 
@@ -14961,9 +15052,18 @@ function miscState.hist.DrawIcons()
 	-- recorded tick changed them. The live path marks its own uploads valid: those mean our
 	-- buffer contents are gone.
 	local bldgKept = hist.iconBldgVbo == bldgVbo and not gl4Icons._bldgVboValid
-	local fresh = bldgKept and hist.iconSerial == serial and hist.iconVbo == vbo and not gl4Icons._vboValid
+	-- only units in view are filled, so a camera move while paused refills too
+	local fresh = bldgKept
+		and hist.iconSerial == serial
+		and hist.iconVbo == vbo
+		and not gl4Icons._vboValid
+		and hist.iconViewL == viewL
+		and hist.iconViewR == viewR
+		and hist.iconViewT == viewT
+		and hist.iconViewB == viewB
 	if not fresh then
 		hist.iconSerial, hist.iconVbo, hist.iconBldgVbo = serial, vbo, bldgVbo
+		hist.iconViewL, hist.iconViewR, hist.iconViewT, hist.iconViewB = viewL, viewR, viewT, viewB
 		local instStep = gl4Icons.INSTANCE_STEP
 		local maxInst = gl4Icons.MAX_INSTANCES
 		local F_RADAR, F_GHOST = hist.lib.F_RADAR, hist.lib.F_GHOST
@@ -15022,7 +15122,8 @@ function miscState.hist.DrawIcons()
 		local mCount = math.min(base, maxInst)
 		for i = 1, n do
 			local layer = layerOf[i]
-			local d, off = data, 0
+			local d ---@type table<number, number>?
+			local off = 0
 			if layer == 0 then
 				if not bldgSame and bCount < maxInst then
 					d = bdata
@@ -15040,9 +15141,15 @@ function miscState.hist.DrawIcons()
 			if d then
 				local def = outDef[i]
 				local vis = visMask and visMask[i] or 2
-				local uvs = uvSizeLookup[def] or defaultUVSize
 				local flags = outFlags[i]
-				local isRadar = vis == 1 or flags % (F_RADAR * 2) >= F_RADAR
+				local onRadar = vis == 1 or flags % (F_RADAR * 2) >= F_RADAR
+				local uvs
+				if onRadar and not (seenOnce and seenOnce[outId[i]]) then
+					uvs = defaultUVSize
+				else
+					uvs = uvSizeLookup[def] or defaultUVSize
+				end
+				local isRadar = onRadar and not isBuilding[def]
 				local dim = (flags % (F_GHOST * 2) >= F_GHOST) and 0.6 or 1
 				local color = teamColors[outTeam[i]]
 				local r, g, b =
@@ -16895,8 +17002,11 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 	-- PipToWorldCoords to produce wrong results. Build preview is drawn
 	-- at full frame rate in DrawScreen via DrawBuildCursorWithRotation instead.
 	local mx, my = spFunc.GetMouseState()
-	DrawBuildDragPreview(iconRadiusZoomDistMult)
-	DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
+	-- live build plans have no place in a rewound frame
+	if not histMode then
+		DrawBuildDragPreview(iconRadiusZoomDistMult)
+		DrawQueuedBuilds(iconRadiusZoomDistMult, cachedSelectedUnits)
+	end
 
 	glFunc.LineWidth(1.0)
 	gl.Scissor(false)
