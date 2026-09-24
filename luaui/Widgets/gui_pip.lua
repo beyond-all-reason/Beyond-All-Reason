@@ -10982,7 +10982,8 @@ function widget:SetConfigData(data)
 	if type(data.historySpeed) == "number" and data.historySpeed >= 1 and data.historySpeed <= 24 then
 		miscState.hist.speed = data.historySpeed
 	end
-	miscState.hist.shown = data.historyStripShown == true
+	-- the open timeline only survives a /luaui reload of the same game
+	miscState.hist.shown = data.historyStripShown == true and isSameGame
 	if data.healthDarkenMax ~= nil then
 		config.healthDarkenMax = data.healthDarkenMax
 	end
