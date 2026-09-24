@@ -13,8 +13,8 @@
 -- Each named "source" keeps only one factor per-scope per-entry in that scope.
 -- A new value written to the same source and scope overrides any predecessors,
 -- regardless of type, so e.g. a source may replace a `multiply` with a `set`.
--- Clearing a source/factor requires setting it back to `nil`, likely followed
--- by waiting for the next attributes update pass on the following g:GameFrame.
+-- Clearing a source/factor requires setting it back to `nil`, then waiting
+-- for the next attributes update pass on the following g:GameFrame.
 
 local definitions = VFS.Include("luarules/gadgets/include/unit_attributes.lua").Definitions
 
