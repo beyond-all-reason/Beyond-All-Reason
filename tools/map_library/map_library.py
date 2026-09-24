@@ -57,6 +57,17 @@ SHADER_MANIFEST = "manifest.json"
 SHADER_MAX_FILES = 5000
 SHADER_MAX_TOTAL = 4 * 1024 * 1024 * 1024
 LFS_HEADER = b"version https://git-lfs.github.com/spec/v1"
+# Git calls are bounded so a wedged process can never hold the helper open. The
+# LOCAL plumbing (rev-parse, ls-tree, cat-file, update-ref) is instant, so 120s
+# is a generous bound on it. The calls that cross the NETWORK are a different
+# shape: a creator's FIRST shader fetch pulls the whole library, ~1 GB, and
+# fsckObjects verifies every object of it. That cannot finish in 120s on any
+# ordinary connection, which is why the in-game SHADER UPDATE button failed for
+# everyone except the person who already had the objects on disk (reported by
+# Moose, 2026-09-24). An upload of a large project has the same shape. Still
+# bounded, just bounded at something a real transfer can live inside.
+GIT_TIMEOUT = 120
+NETWORK_TIMEOUT = 60 * 60
 
 
 class LibraryError(Exception):
@@ -260,7 +271,8 @@ class GitStore:
 
 
     def git(self, *args: str, input_data: bytes | None = None,
-            extra_env: dict | None = None, outside: bool = False, check: bool = True) -> bytes:
+            extra_env: dict | None = None, outside: bool = False, check: bool = True,
+            timeout: int = GIT_TIMEOUT) -> bytes:
         # No shell interpolation, inherited GIT_DIR/index injection, checkout filters,
         # hooks, credential prompts or interactive SSH host-key acceptance.
         env = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
@@ -276,7 +288,7 @@ class GitStore:
         command += list(args)
         try:
             result = subprocess.run(command, input=input_data, stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE, env=env, timeout=120, check=False)
+                                    stderr=subprocess.PIPE, env=env, timeout=timeout, check=False)
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise LibraryError("git_unavailable") from exc
         if result.returncode and check:
@@ -288,7 +300,7 @@ class GitStore:
         # Git permits non-FF updates outside refs/heads even WITHOUT '+'. Fetch
         # into FETCH_HEAD, then explicitly check ancestry before advancing our cache.
         self.git("fetch", "--no-tags", "--no-recurse-submodules", self.remote,
-                 f"refs/heads/{self.branch}")
+                 f"refs/heads/{self.branch}", timeout=NETWORK_TIMEOUT)
         head = self.git("rev-parse", "FETCH_HEAD").decode().strip()
         if previous and self.git("merge-base", previous, head, check=False).decode().strip() != previous:
             raise LibraryError("history_rewritten")
@@ -720,7 +732,7 @@ class Library(GitStore):
             self.git("update-ref", "refs/library-pending/" + request_id, commit)
             atomic_json(journal_path, journal)  # Before push: a lost acknowledgement is recoverable.
             self.git("push", "--porcelain", "--no-verify", "--recurse-submodules=no", self.remote,
-                     commit + ":refs/heads/" + self.branch, check=False)
+                     commit + ":refs/heads/" + self.branch, check=False, timeout=NETWORK_TIMEOUT)
             # A normal fast-forward push is the concurrency guard. Re-fetch and
             # reconstruct on rejection; never rebase/merge/force-push map binaries.
         head = self.fetch()
@@ -820,7 +832,7 @@ class Library(GitStore):
             self.git("update-ref", "refs/library-pending/" + request_id, commit)
             atomic_json(journal_path, journal)  # Before push: a lost acknowledgement is recoverable.
             self.git("push", "--porcelain", "--no-verify", "--recurse-submodules=no", self.remote,
-                     commit + ":refs/heads/" + self.branch, check=False)
+                     commit + ":refs/heads/" + self.branch, check=False, timeout=NETWORK_TIMEOUT)
         head = self.fetch()
         if self.git("merge-base", head, journal["commit"], check=False).decode().strip() == journal["commit"]:
             self.refresh()
@@ -887,7 +899,7 @@ class Library(GitStore):
             self.git("update-ref", "refs/library-pending/" + request_id, commit)
             atomic_json(journal_path, journal)
             self.git("push", "--porcelain", "--no-verify", "--recurse-submodules=no", self.remote,
-                     commit + ":refs/heads/" + self.branch, check=False)
+                     commit + ":refs/heads/" + self.branch, check=False, timeout=NETWORK_TIMEOUT)
         head = self.fetch()
         if self.git("merge-base", head, journal["commit"], check=False).decode().strip() == journal["commit"]:
             self.refresh()
