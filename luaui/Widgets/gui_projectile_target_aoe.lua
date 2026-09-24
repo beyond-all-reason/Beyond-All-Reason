@@ -921,8 +921,7 @@ local function UpdateTrackedProjectiles()
 						local speed = max(weaponInfo.projectileSpeed * 30, 1)
 						local estimatedFlightTime = distance / speed
 						if pathLength then
-							estimatedFlightTime = verticalizePath.GetTravelFrames(flightPlan, pathLength)
-								/ gameSpeed
+							estimatedFlightTime = verticalizePath.GetTravelFrames(flightPlan, pathLength) / gameSpeed
 						end
 
 						newCount = newCount + 1
