@@ -157,7 +157,7 @@ if gadgetHandler:IsSyncedCode() then
 				pendingCleanup = true
 			end
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
-				lavaGrow = tideRhythm[tideIndex].speed 
+				lavaGrow = tideRhythm[tideIndex].speed
 			else
 				lavaGrow = -tideRhythm[tideIndex].speed 
 			end
@@ -172,7 +172,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function lavalevel(cmd, line, words, playerID)
 		-- lavalevel: Handles the '/lavalevel' chat command to adjust the lava level in-game.
-		-- Usage: /lavalevel [level] [speed] [remainTime], with no arguments progresses the current lava to the next tide Rhythm 
+		-- Usage: /lavalevel [level] [speed] [remainTime], with no arguments progresses the current lava to the next tide Rhythm
 		-- If speed and remainTime are not specified: defaults to 7.5 elmo/s (0.25 elmo/frame) and 1 second respectively.
 		local accountID = BAR.Utilities.GetAccountID(playerID)
 		local authorized = _G.permissions.lavalevel[accountID]
@@ -183,7 +183,7 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not words[1] then
 			tideContinueFrame = gameframe + 1
-			Spring.Log("Lava",LOG.INFO,'Progressing to next tide rhythm.')
+			Spring.Log("Lava", LOG.INFO, "Progressing to next tide rhythm.")
 		else
 			local insertLevel = tonumber(words[1])
 			local insertSpeed = tonumber(words[2]) or 7.5
@@ -589,7 +589,7 @@ else -- UNSYCNED
 	}
 
 	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID, false)
 	local authorized = SYNCED.permissions.lavalevel[myPlayerName]
 	function gadget:GameFrame(f)
 		local syncedLavaLevel = SYNCED.lavaLevel
@@ -738,6 +738,6 @@ else -- UNSYCNED
 
 	function gadget:Shutdown()
 		Spring.SetDrawWater(true)
-		gadgetHandler:RemoveChatAction('lavalevel')
+		gadgetHandler:RemoveChatAction("lavalevel")
 	end
 end --ende unsync
