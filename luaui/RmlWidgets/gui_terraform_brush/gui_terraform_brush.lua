@@ -1502,6 +1502,124 @@ function widgetState.measureFileMenuBox()
 		widgetState.fmBoxH = h
 	end
 end
+-- Every floating window that can cover a GL tile grid, in the order RmlUi
+-- PAINTS them: z-index first (the rcss gives most of them 900, the light
+-- library 910, the settings / project / capture / new-map dialogs 920), then
+-- document order for the ones sharing a z, because nothing here raises a window
+-- on click. The main panel is first, so every window is above it.
+--
+-- The tile passes run in DrawScreenPost, after RmlUi has rendered, so a grid is
+-- painted on top of whatever is already there: it has to skip tiles that fall
+-- under any window painted ABOVE the one it lives in. That is the same defect
+-- the FILE menu box below fixes, reported again by Moose for the BIOME LIBRARY
+-- tiles showing through DIMENSIONS.
+--
+-- Only the relative order of the windows that actually HOST a grid has to be
+-- right (the panel, TILESET and the skybox library); the rest merely have to
+-- sort after those. A new floating window belongs in this list.
+widgetState.overlayWindows = {
+	"tf-root",
+	"tf-env-tileset-root",
+	"tf-imgov-root",
+	"tf-skybox-library-root",
+	"tf-env-sun-root",
+	"tf-env-fog-root",
+	"tf-env-ground-lighting-root",
+	"tf-env-unit-lighting-root",
+	"tf-env-map-root",
+	"tf-env-water-root",
+	"tf-env-dimensions-root",
+	"tf-splattex-root",
+	"tf-grasscfg-root",
+	"tf-noise-root",
+	"tf-light-library-root",
+	"tf-settings-root",
+	"tf-project-root",
+	"tf-project-open-root",
+	"tf-capture-root",
+	"tf-newmap-root",
+}
+-- The data-model flag that says a window is up. Gated on these and never on the
+-- element box, for the reason measureFileMenuBox gives: an element that is not
+-- laid out still reports a stale non-zero box. The panel has no entry because
+-- nothing is painted below it, so it is never an occluder.
+widgetState.overlayFlags = {
+	["tf-env-tileset-root"] = "envTilesetVisible",
+	["tf-imgov-root"] = "imgOvVisible",
+	["tf-skybox-library-root"] = "skyboxLibraryVisible",
+	["tf-env-sun-root"] = "envSunVisible",
+	["tf-env-fog-root"] = "envFogVisible",
+	["tf-env-ground-lighting-root"] = "envGroundLightingVisible",
+	["tf-env-unit-lighting-root"] = "envUnitLightingVisible",
+	["tf-env-map-root"] = "envMapVisible",
+	["tf-env-water-root"] = "envWaterVisible",
+	["tf-env-dimensions-root"] = "envDimensionsVisible",
+	["tf-splattex-root"] = "splatTexVisible",
+	["tf-grasscfg-root"] = "grassCfgVisible",
+	["tf-noise-root"] = "noiseWindowVisible",
+	["tf-light-library-root"] = "lpLibraryOpen",
+	["tf-settings-root"] = "settingsOpen",
+	["tf-project-root"] = "projectSaveOpen",
+	["tf-project-open-root"] = "projectOpenOpen",
+	["tf-capture-root"] = "captureVisible",
+	["tf-newmap-root"] = "newMapOpen",
+}
+
+-- Boxes of the windows that are up, measured once per frame beside the file
+-- menu's. Each entry is { rank, x, y, w, h } in element coords, y down.
+function widgetState.measureOverlayBoxes()
+	local boxes = widgetState.ovBoxes
+	if not boxes then
+		boxes = {}
+		widgetState.ovBoxes = boxes
+		local rank = {}
+		for index, id in ipairs(widgetState.overlayWindows) do
+			rank[id] = index
+		end
+		widgetState.overlayRank = rank
+	end
+	for index = #boxes, 1, -1 do
+		boxes[index] = nil
+	end
+	local doc = widgetState.document
+	local dm = widgetState.dmHandle
+	if not (doc and dm) then
+		return
+	end
+	for index, id in ipairs(widgetState.overlayWindows) do
+		local flag = widgetState.overlayFlags[id]
+		if flag and dm[flag] then
+			local el = doc:GetElementById(id)
+			local w = el and el.offset_width or 0
+			local h = el and el.offset_height or 0
+			if w > 0 and h > 0 then
+				boxes[#boxes + 1] = { index, el.absolute_left, el.absolute_top, w, h }
+			end
+		end
+	end
+end
+
+-- True where a tile of a grid living in `ownerId` is covered by the file menu
+-- or by a window painted above it. An unknown owner ranks 0, i.e. everything
+-- covers it, which is the safe way round for a caller that forgets to say.
+function widgetState.underOverlay(x, y, w, h, ownerId)
+	if widgetState.underFileMenu(x, y, w, h) then
+		return true
+	end
+	local boxes = widgetState.ovBoxes
+	if not boxes then
+		return false
+	end
+	local rank = (widgetState.overlayRank or {})[ownerId] or 0
+	for index = 1, #boxes do
+		local box = boxes[index]
+		if box[1] > rank and x < box[2] + box[4] and x + w > box[2] and y < box[3] + box[5] and y + h > box[3] then
+			return true
+		end
+	end
+	return false
+end
+
 function widgetState.underFileMenu(x, y, w, h)
 	local bx = widgetState.fmBoxX
 	if not bx then
@@ -18954,7 +19072,7 @@ local function drawSkyboxThumbnailPreviews()
 				local y = el.absolute_top
 				local w = el.offset_width
 				local h = el.offset_height
-				if w > 4 and h > 4 and not widgetState.underFileMenu(x, y, w, h) then
+				if w > 4 and h > 4 and not widgetState.underOverlay(x, y, w, h, "tf-skybox-library-root") then
 					local glY1 = vsy - y - h
 					local glY2 = vsy - y
 					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
@@ -19039,7 +19157,7 @@ local function drawSurfPaletteThumbs()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					-- centered crop: a full 4K tile at 52dp reads as noise, so a
 					-- quarter-window shows the material's actual character.
 					-- Entries may widen it (the picker's hover preview is big
@@ -19104,7 +19222,7 @@ widgetState.drawTs4PaletteThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					-- centered quarter-window crop, like the surf tiles: a full
 					-- 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -19157,7 +19275,7 @@ widgetState.drawTsBiomeThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					if els[i].crop then
 						-- a 4K albedo at 60dp reads as noise: centered quarter crop
 						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -19273,6 +19391,7 @@ function widget:DrawScreenPost()
 
 	-- FILE dropdown box, read once for every pass below to skip tiles under it.
 	widgetState.measureFileMenuBox()
+	widgetState.measureOverlayBoxes()
 
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
@@ -19753,7 +19872,7 @@ function widget:DrawScreenPost()
 					gl.UniformInt(widgetState.spPreviewShaderChannelLoc, i - 1)
 				end
 
-				local bound = not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex)
+				local bound = not widgetState.underOverlay(x, y, w, h, "tf-root") and gl.Texture(0, tex)
 
 				if logDraw then
 					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
