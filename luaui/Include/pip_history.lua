@@ -133,6 +133,7 @@ end
 ---@field bytes number
 ---@field maxAge number? -- oldest event in the tick, in frames before tick.frame
 ---@field spread integer? -- unit records were scanned over this many frames from frame on
+---@field ally integer? -- allyteam the recorder saw the game from (-1 = everything)
 ---@field units string?
 ---@field moves string?
 ---@field expl string?
@@ -873,6 +874,9 @@ function Store:GameFrame(frame)
 	local myAlly = Spring.GetLocalAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
 	local losChecks = not fullview
+	if phase == 0 then
+		self.tickAlly = losChecks and myAlly or -1
+	end
 
 	local tX, tZ, tVX, tVZ, tF = self.tX, self.tZ, self.tVX, self.tVZ, self.tF
 	local tDef, tTeam, tFlags, tHp = self.tDef, self.tTeam, self.tFlags, self.tHp
@@ -1248,7 +1252,7 @@ function Store:GameFrame(frame)
 	frame = self.tickStart
 
 	-- pack the tick
-	local tick = { frame = frame, key = isKey, level = 0, maxAge = self.eventMaxAge, spread = spread }
+	local tick = { frame = frame, key = isKey, level = 0, maxAge = self.eventMaxAge, spread = spread, ally = self.tickAlly }
 	local bytes = TICK_OVERHEAD
 	local bufs, lens, stats = self.bufs, self.lens, self.stats
 	for i = 1, #STREAMS do
@@ -1422,6 +1426,7 @@ function Store:MergeTicks(a, b)
 	merged.cam = sb.cam or sa.cam
 	merged.cur = sb.cur or sa.cur
 	merged.spread = sb.spread or sa.spread
+	merged.ally = sb.ally or sa.ally
 	if sa.sel or sb.sel then
 		merged.sel = (sa.sel or "") .. (sb.sel or "") -- applied in order, the later record wins
 	end
@@ -1562,13 +1567,14 @@ local function writeTick(f, t)
 	end
 	f:write(
 		string.format(
-			"%d %d %d %d %d %d ",
+			"%d %d %d %d %d %d %d ",
 			t.frame,
 			t.key and 1 or 0,
 			t.level,
 			t.maxAge or 0,
 			t.z and 1 or 0,
-			t.spread or 1
+			t.spread or 1,
+			(t.ally or -1) + 1
 		),
 		table.concat(lens, " "),
 		"\n",
@@ -1590,18 +1596,25 @@ local function parseTicks(data, pos, count, maxFrame)
 		for v in line:gmatch("%d+") do
 			nums[#nums + 1] = tonumber(v)
 		end
-		if #nums < 6 + #STREAMS then
+		if #nums < 7 + #STREAMS then
 			break
 		end
 		local frame = nums[1]
 		if maxFrame and frame > maxFrame then
 			break
 		end
-		local t = { frame = frame, key = nums[2] == 1, level = nums[3], maxAge = nums[4], spread = nums[6] }
+		local t = {
+			frame = frame,
+			key = nums[2] == 1,
+			level = nums[3],
+			maxAge = nums[4],
+			spread = nums[6],
+			ally = nums[7] - 1,
+		}
 		local isZ = nums[5] == 1
 		local bytes = TICK_OVERHEAD
 		for k = 1, #STREAMS do
-			local n = mathFloor(nums[6 + k])
+			local n = mathFloor(nums[7 + k])
 			if n > 0 then
 				local s = data:sub(pos, pos + n - 1)
 				pos = pos + n
@@ -2165,6 +2178,7 @@ function PipHistory.newView(store)
 	self.features, self.featureCount, self.featureKey = {}, 0, 0
 	self.cX, self.cZ, self.cH, self.cRX, self.cRY, self.cF, self.cHF = {}, {}, {}, {}, {}, {}, {}
 	self.camIdx, self.camGen, self.camArr = -1, -1, nil
+	self.recAlly = nil -- perspective of the applied tick
 	self.selSet = {} -- playerID -> set of unit ids
 	self.mX, self.mZ, self.mF = {}, {}, {}
 	self.curIdx, self.curGen, self.curArr = -1, -1.0, nil
@@ -2193,6 +2207,7 @@ local function viewReset(self)
 	for pid in pairs(self.selSet) do
 		self.selSet[pid] = nil
 	end
+	self.recAlly = nil
 end
 
 local function applyShells(self, s, frame)
@@ -2233,6 +2248,7 @@ local function applyTick(self, store, tick)
 	local s = store:Streams(tick)
 	local frame = tick.frame
 	local sp = tick.spread or 1
+	self.recAlly = tick.ally
 	local uX, uZ, uVX, uVZ, uF = self.uX, self.uZ, self.uVX, self.uVZ, self.uF
 	local uDef, uTeam, uFlags = self.uDef, self.uTeam, self.uFlags
 	local present, ids = self.present, self.ids

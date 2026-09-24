@@ -5026,7 +5026,7 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
 	-- get the points drawn (to display point indicator)
-	if m_point.active then
+	if m_point.active and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		if cmdType == "point" then
 			player[playerID].pointX = px
 			player[playerID].pointY = py

@@ -161,7 +161,6 @@ config = {
 	activityFocusZoomOutTime = 1.3, -- Seconds for the zoom-out transition (smoothstep ease-in-out)
 	activityFocusZoom = 0.15, -- Zoom level when focusing on a marker (higher = more zoomed in)
 	activityFocusShowMinimap = true, -- Temporarily show pip-minimap overlay while focused on a map marker
-	activityFocusBlockIgnoredPlayers = true, -- Completely block activity focus for players on your ignore list (WG.ignoredAccounts)
 	activityFocusCooldown = 3, -- Minimum seconds between focus triggers from the same player
 	activityFocusThrottleWindow = 10, -- Time window (seconds) to count markers from a player
 	activityFocusThrottleCount = 3, -- After this many markers in the window, ignore that player temporarily
@@ -17590,6 +17589,20 @@ local function ShouldShowLOS()
 	return false, nil
 end
 
+-- the rewind shows the overlay of the perspective the data was recorded from when the live
+-- view has none (a fullview spectator looking at what was recorded as a player)
+function miscState.hist.LosView()
+	local show, ally = ShouldShowLOS()
+	local hist = miscState.hist
+	if not show and hist.mode and hist.ready and hist.view then
+		local rec = hist.view.recAlly
+		if rec and rec >= 0 then
+			return true, rec
+		end
+	end
+	return show, ally
+end
+
 -- Helper function to get the normalized water/lava threshold for the heightmap shader
 -- Returns the water/lava surface level in elmos for the heightmap shader
 -- On lava maps, does a lazy read from the game rule if not yet known
@@ -17705,7 +17718,7 @@ local function DrawWaterAndLOSOverlays()
 	gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Draw LOS darkening overlay
-	local shouldShowLOS = ShouldShowLOS()
+	local shouldShowLOS = miscState.hist.LosView()
 	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Only use scissor test if not rotated (scissor doesn't work with rotation)
 		if render.minimapRotation == 0 then
@@ -20199,7 +20212,7 @@ local function DrawTrackedPlayerMinimap()
 	end
 
 	-- Draw LOS overlay on minimap (only after game has started and when LOS should be shown)
-	local shouldShowLOS, _ = ShouldShowLOS()
+	local shouldShowLOS = miscState.hist.LosView()
 	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Engine-like reverse-subtract: result_rgb = dst - src (subtractive darkening)
 		gl.BlendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
@@ -21436,7 +21449,7 @@ function UpdateLOSTexture(currentTime)
 	end
 
 	-- Check if we should update LOS texture
-	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	local shouldShowLOS, losAllyTeam = miscState.hist.LosView()
 	if not shouldShowLOS or not pipR2T.losTex then
 		return
 	end
@@ -25649,6 +25662,10 @@ pools.EraseMapLinesAt = function(x, z, radius)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
+	-- same filter as the map: ignored players' marks are dropped, their erases still apply
+	if cmdType ~= "erase" and WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID) then
+		return
+	end
 	miscState.hist.LogMapDraw(playerID, cmdType, mx, mz, a, c)
 	if uiState.inMinMode then
 		return
@@ -25707,14 +25724,6 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
 				triggerFocus = false
-			end
-			-- Block activity focus for ignored players (uses WG.ignoredAccounts from api_ignore widget)
-			if triggerFocus and config.activityFocusBlockIgnoredPlayers and WG.ignoredAccounts then
-				local pName, _, _, _, _, _, _, _, _, _, pInfo = Spring.GetPlayerInfo(playerID)
-				local pAccountID = pInfo and pInfo.accountid and tonumber(pInfo.accountid)
-				if (pName and WG.ignoredAccounts[pName]) or (pAccountID and WG.ignoredAccounts[pAccountID]) then
-					triggerFocus = false
-				end
 			end
 			if triggerFocus and interactionState.trackingPlayerID then
 				triggerFocus = false
