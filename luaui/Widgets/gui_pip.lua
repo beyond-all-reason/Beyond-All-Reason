@@ -14157,7 +14157,8 @@ function miscState.hist.PlayerCameras()
 end
 
 -- selections for the recorder: playerID -> set of unit ids, only the players whose selection
--- changed since the last call (all of them when `all`); own selection comes from the engine
+-- changed since the last call (all of them when `all`); spectators are skipped, the own
+-- selection comes from the engine
 function miscState.hist.PlayerSelections(all)
 	local api = WG.allyselectedunits
 	local get = api and api.getPlayerSelectedUnits
@@ -14177,7 +14178,10 @@ function miscState.hist.PlayerSelections(all)
 	local players = Spring.GetPlayerList()
 	for i = 1, #players do
 		local pid = players[i]
-		if pid == myPlayerID then
+		local _, _, isSpec = Spring.GetPlayerInfo(pid, false)
+		if isSpec then
+			dirty[pid] = nil
+		elseif pid == myPlayerID then
 			-- the ally widget does not carry the local selection
 			local own = hist.selOwn
 			for k in pairs(own) do
@@ -14198,7 +14202,7 @@ function miscState.hist.PlayerSelections(all)
 	return out
 end
 
--- cursors for the recorder: {playerID, x, z} per player that moved recently
+-- cursors for the recorder: {playerID, x, z} per non-spectator that moved recently
 function miscState.hist.PlayerCursors()
 	local ac = WG.allycursors
 	if not (ac and ac.getCursors) then
@@ -14217,7 +14221,8 @@ function miscState.hist.PlayerCursors()
 	local n = 0
 	local myPlayerID = Spring.GetMyPlayerID()
 	for pid, cursor in pairs(cursors) do
-		if notIdle[pid] and cursor[1] and cursor[3] and pid ~= myPlayerID then
+		local _, _, isSpec = Spring.GetPlayerInfo(pid, false)
+		if notIdle[pid] and cursor[1] and cursor[3] and pid ~= myPlayerID and not isSpec then
 			n = n + 1
 			local c = list[n]
 			if not c then
@@ -14230,7 +14235,7 @@ function miscState.hist.PlayerCursors()
 	-- the local cursor is not in the broadcast: trace it once per tick
 	local mx, my = Spring.GetMouseState()
 	local kind, pos = Spring.TraceScreenRay(mx, my, true)
-	if kind == "ground" and pos then
+	if kind == "ground" and pos and not cameraState.mySpecState then
 		n = n + 1
 		local c = list[n]
 		if not c then
@@ -14926,8 +14931,8 @@ function miscState.hist.SyncFrame()
 	hist.builtReady = view:Materialize(frame)
 	hist.ready = hist.builtReady
 	hist.selSet = nil
-	if hist.ready and config.historySelections then
-		hist.selSet = view:SelectionAt(interactionState.trackingPlayerID or Spring.GetMyPlayerID(), frame)
+	if hist.ready and config.historySelections and interactionState.trackingPlayerID then
+		hist.selSet = view:SelectionAt(interactionState.trackingPlayerID, frame)
 	end
 	hist.BuildViewFilter()
 	local filtering = hist.visMask ~= nil
