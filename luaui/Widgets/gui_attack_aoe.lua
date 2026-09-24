@@ -12,6 +12,8 @@ function widget:GetInfo()
 	}
 end
 
+local verticalizePath = VFS.Include("luaui/Include/verticalize_flight_path.lua")
+
 -- Localized functions for performance
 local max = math.max
 local min = math.min
@@ -449,6 +451,16 @@ local function CreateStarburstTrajectoryList(prediction)
 	end)
 end
 
+local function RebuildStarburstTrajectoryList(prediction)
+	if prediction.trajectoryList and prediction.trajectoryList ~= 0 then
+		glDeleteList(prediction.trajectoryList)
+		prediction.trajectoryList = nil
+	end
+	if prediction.pathCount > 1 then
+		prediction.trajectoryList = CreateStarburstTrajectoryList(prediction)
+	end
+end
+
 local function GetStarburstGroundCollisionPos(
 	weaponInfo,
 	unitID,
@@ -636,9 +648,53 @@ local function GetCachedStarburstTarget(
 	if not launchX then
 		return tx, ty, tz
 	end
+
+	-- A flight path taken in lua has to be described via a weapon flight plan:
+	local flightPlan = weaponInfo.flightPlan
+	if flightPlan then
+		if
+			prediction.planned
+			and prediction.unitID == unitID
+			and prediction.weaponNum == weaponInfo.weaponNum
+			and prediction.targetX == tx
+			and prediction.targetY == ty
+			and prediction.targetZ == tz
+			and prediction.launchX == launchX
+			and prediction.launchY == launchY
+			and prediction.launchZ == launchZ
+		then
+			return tx, ty, tz
+		end
+
+		local pathCount = verticalizePath.GetFlightPath(
+			flightPlan,
+			launchX,
+			launchY,
+			launchZ,
+			tx,
+			ty,
+			tz,
+			prediction.pathX,
+			prediction.pathY,
+			prediction.pathZ
+		)
+		if pathCount then
+			prediction.planned = true
+			prediction.unitID = unitID
+			prediction.weaponNum = weaponInfo.weaponNum
+			prediction.targetX, prediction.targetY, prediction.targetZ = tx, ty, tz
+			prediction.launchX, prediction.launchY, prediction.launchZ = launchX, launchY, launchZ
+			prediction.x, prediction.y, prediction.z = tx, ty, tz
+			prediction.pathCount = pathCount
+			RebuildStarburstTrajectoryList(prediction)
+			return tx, ty, tz
+		end
+	end
+
 	local currentTime = osClock()
 	if
-		prediction.unitID == unitID
+		not prediction.planned
+		and prediction.unitID == unitID
 		and prediction.weaponNum == weaponInfo.weaponNum
 		and prediction.targetX == tx
 		and prediction.targetY == ty
@@ -672,6 +728,7 @@ local function GetCachedStarburstTarget(
 		launchDirY,
 		launchDirZ
 	)
+	prediction.planned = false
 	prediction.unitID = unitID
 	prediction.weaponNum = weaponInfo.weaponNum
 	prediction.targetX, prediction.targetY, prediction.targetZ = tx, ty, tz
@@ -682,13 +739,7 @@ local function GetCachedStarburstTarget(
 	prediction.updatedTime = currentTime
 	prediction.x, prediction.y, prediction.z = hitX or tx, hitY or ty, hitZ or tz
 	prediction.pathCount = pathCount or 0
-	if prediction.trajectoryList and prediction.trajectoryList ~= 0 then
-		glDeleteList(prediction.trajectoryList)
-		prediction.trajectoryList = nil
-	end
-	if prediction.pathCount > 1 then
-		prediction.trajectoryList = CreateStarburstTrajectoryList(prediction)
-	end
+	RebuildStarburstTrajectoryList(prediction)
 	return prediction.x, prediction.y, prediction.z
 end
 
@@ -1135,6 +1186,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.leadLimit = weaponDef.leadLimit or -1
 		info.leadBonus = weaponDef.leadBonus or 0
 		info.fixedLauncher = weaponDef.fixedLauncher
+		info.flightPlan = verticalizePath.GetFlightPlan(weaponDef)
 		-- Check for nuclear weapons (customParams.nuclear)
 		if info.isNuke then
 			info.type = "nuke"

@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+local verticalizePath = VFS.Include("luaui/Include/verticalize_flight_path.lua")
+
 --------------------------------------------------------------------------------
 -- Localized functions
 --------------------------------------------------------------------------------
@@ -144,6 +146,7 @@ local myTeamID = 0
 local isSpectator = false
 local updateAccum = 0 -- Accumulator for update rate limiting
 local currentGeneration = 0 -- Generation counter for tracking (avoids temp table allocation)
+local flightPathX, flightPathY, flightPathZ = {}, {}, {}
 
 --------------------------------------------------------------------------------
 -- Initialization - Build weapon cache
@@ -162,6 +165,7 @@ local function BuildWeaponCache()
 					isParalyzer = isParalyzer,
 					isJuno = wd.name:lower():find("juno") ~= nil,
 					isMoveCtrl = isMoveCtrl,
+					flightPlan = verticalizePath.GetFlightPlan(wd),
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
@@ -814,10 +818,13 @@ local function UpdateTrackedProjectiles()
 						end
 					end
 
-					local launchElapsed =
-						GetProjectileLaunchElapsed(proID, existingData.weaponInfo, currentTime - existingData.startTime)
 					local tx, ty, tz = existingData.impactX, existingData.impactY, existingData.impactZ
-					if px and tx then
+					if px and tx and not existingData.steered then
+						local launchElapsed = GetProjectileLaunchElapsed(
+							proID,
+							existingData.weaponInfo,
+							currentTime - existingData.startTime
+						)
 						tx, ty, tz = GetPredictedImpactPos(
 							proID,
 							existingData.weaponInfo,
@@ -850,9 +857,49 @@ local function UpdateTrackedProjectiles()
 					local px, py, pz = spGetProjectilePosition(proID)
 
 					if tx and px then
-						local launchElapsed = GetProjectileLaunchElapsed(proID, weaponInfo, 0)
-						if isUnitTarget and not weaponInfo.tracks then
-							tx, ty, tz = GetUntrackedUnitTargetPos(
+						local flightPlan = weaponInfo.flightPlan
+						local pathLength, _
+						if flightPlan and not isUnitTarget then
+							_, pathLength = verticalizePath.GetFlightPath(
+								flightPlan,
+								px,
+								py,
+								pz,
+								tx,
+								ty,
+								tz,
+								flightPathX,
+								flightPathY,
+								flightPathZ
+							)
+						end
+
+						local impactX, impactY, impactZ = tx, ty, tz
+						if pathLength then
+							targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
+						else
+							local launchElapsed = GetProjectileLaunchElapsed(proID, weaponInfo, 0)
+							if isUnitTarget and not weaponInfo.tracks then
+								tx, ty, tz = GetUntrackedUnitTargetPos(
+									proID,
+									weaponInfo,
+									launchElapsed,
+									px,
+									py,
+									pz,
+									tx,
+									ty,
+									tz,
+									targetVelocityX,
+									targetVelocityY,
+									targetVelocityZ
+								)
+							end
+							impactX, impactY, impactZ = tx, ty, tz
+							if not weaponInfo.tracks then
+								targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
+							end
+							tx, ty, tz = GetPredictedImpactPos(
 								proID,
 								weaponInfo,
 								launchElapsed,
@@ -866,31 +913,17 @@ local function UpdateTrackedProjectiles()
 								targetVelocityY,
 								targetVelocityZ
 							)
+							tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
 						end
-						local impactX, impactY, impactZ = tx, ty, tz
-						if not weaponInfo.tracks then
-							targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
-						end
-						tx, ty, tz = GetPredictedImpactPos(
-							proID,
-							weaponInfo,
-							launchElapsed,
-							px,
-							py,
-							pz,
-							tx,
-							ty,
-							tz,
-							targetVelocityX,
-							targetVelocityY,
-							targetVelocityZ
-						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
 
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)
 						local speed = max(weaponInfo.projectileSpeed * 30, 1)
 						local estimatedFlightTime = distance / speed
+						if pathLength then
+							estimatedFlightTime = verticalizePath.GetTravelFrames(flightPlan, pathLength)
+								/ gameSpeed
+						end
 
 						newCount = newCount + 1
 						if weaponInfo.isNuke then
@@ -920,6 +953,7 @@ local function UpdateTrackedProjectiles()
 							isOwnTeam = isOwnTeam,
 							isAlly = isAlly,
 							speed = speed,
+							steered = pathLength ~= nil,
 						}
 					end
 				end
@@ -1017,9 +1051,17 @@ local function DrawImpactIndicator(data, currentTime, camX, camY, camZ)
 		local closingSpeed = data.speed
 		local velocityX, velocityY, velocityZ = spGetProjectileVelocity(data.projectileID)
 		if velocityX then
-			local liveClosingSpeed = (remainingDX * velocityX + remainingDY * velocityY + remainingDZ * velocityZ)
-				* gameSpeed
-				/ remainingDistance
+			local liveClosingSpeed
+			if data.steered then
+				-- A steered missile climbs away from its target before diving onto it, so its closing
+				-- speed changes sign mid-flight, and a fade keyed to it would jump when it does.
+				liveClosingSpeed = sqrt(velocityX * velocityX + velocityY * velocityY + velocityZ * velocityZ)
+					* gameSpeed
+			else
+				liveClosingSpeed = (remainingDX * velocityX + remainingDY * velocityY + remainingDZ * velocityZ)
+					* gameSpeed
+					/ remainingDistance
+			end
 			if liveClosingSpeed > 0 then
 				closingSpeed = liveClosingSpeed
 			end
