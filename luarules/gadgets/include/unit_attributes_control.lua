@@ -7,8 +7,8 @@
 -- 2. `multiply`s are unordered so each apply: unit x unitdef-and-team x unitdef
 -- The full result, for a numeric type, is `(override or base) x (multipliers)`.
 --
--- An `isUnitState` attribute is not composed. It writes straight to the unit,
--- keeps no factor (willfix), cannot be cleared (willfix), and has unit scope.
+-- An `isUnitState` attribute is not composed across multiple factors. It writes
+-- straight to the unit and always updates rather than performing comparisons.
 --
 -- Each named "source" keeps only one factor per-scope per-entry in that scope.
 -- A new value written to the same source and scope overrides any predecessors,
@@ -41,7 +41,6 @@ local spSetUnitMass = Spring.SetUnitMass
 local spSetUnitStealth = Spring.SetUnitStealth
 local spSetUnitSonarStealth = Spring.SetUnitSonarStealth
 local spSetUnitSeismicSignature = Spring.SetUnitSeismicSignature
-local spSetUnitTooltip = Spring.SetUnitTooltip
 local spSetUnitExperience = Spring.SetUnitExperience
 local spSetUnitCloak = Spring.SetUnitCloak
 local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
@@ -55,11 +54,14 @@ local unitScript = Spring.UnitScript or {}
 local spCallLuaScript = unitScript.CallAsUnit
 
 local gameSpeed = Game.gameSpeed
+local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
 
 ---@class AttributeFactor
----@field kind "set"|"multiply"
+---@field kind AttributeFactorKind
 ---@field value number|boolean|string
 ---@field sequence integer tiebreaker, highest wins
+
+---@alias AttributeFactorKind "set"|"multiply"
 
 local SOURCE_DEFAULT = "default"
 
@@ -68,9 +70,6 @@ local unitdefTeamFactors = {} ---@type table<UnitDefID, table<TeamID, table<stri
 local unitFactors = {} ---@type table<UnitID, table<string, table<string, AttributeFactor>?>?>
 local appliedValues = {} ---@type table<UnitID, table<string, any>?>
 local dirty = {} ---@type table<UnitID, table<string, true?>?>
-local baseValues = {} ---@type table<UnitDefID, table<string, any>?>
-local baseWeapons = {} ---@type table<UnitDefID, WeaponBaseline[]?>
-local baseDamages = {} ---@type table<UnitDefID, table<integer, table<integer, number>>?>
 local sequence = 0
 
 -- Module internals ------------------------------------------------------------
@@ -125,8 +124,8 @@ local builderSpeedsByDef = table.map(UnitDefs, function(unitDef, unitDefID)
 end) ---@as table<UnitDefID, false|BuilderSpeeds>
 
 local moveTypeSetterByDef = table.map(UnitDefs, function(unitDef, unitDefID)
+	---@cast unitDef table
 	local setter = false ---@as false|fun(unitID:UnitID, key:any, value:any):integer
-	---@cast unitDef table what in the hell is wrong with emmylua. why, how, what?
 	if unitDef.isHoveringAirUnit then
 		setter = spSetGunshipMoveTypeData
 	elseif unitDef.isAirUnit then
@@ -150,10 +149,9 @@ local function setMoveTypeValue(unitID, key, value)
 	if not setter or spMoveCtrlIsEnabled(unitID) then
 		return false
 	end
-	-- StrafeAirMoveType has no turnRate and overwrites its wanted speed every frame, and a skipped
-	-- write still counts, or the flush retries one this move type is never going to take.
+	-- `StrafeAirMoveType` has no turnRate and may overwrite its wanted speed on each frame.
 	if setter == spSetAirMoveTypeData and (key == "turnRate" or key == "maxWantedSpeed") then
-		return true
+		return true -- Don't readd to the next flush.
 	end
 	setter(unitID, key, value)
 	return true
@@ -212,36 +210,38 @@ local baseFieldByAttribute = {
 	stealth = "stealth",
 	sonarStealth = "sonarStealth",
 	seismicSignature = "seismicSignature",
-	tooltip = "tooltip",
 }
 
-local nominalReloadByDef = table.map(UnitDefs, function(unitDef, unitDefID)
+local reloadScaleByDef = table.map(UnitDefs, function(unitDef, unitDefID)
 	---@cast unitDef table
-	local weapon = unitDef.weapons[1]
-	local weaponDef = weapon and WeaponDefs[weapon.weaponDef]
-	return weaponDef and weaponDef.reload or false, unitDefID
-end) ---@as table<UnitDefID, number|false>
+	return unitDef.weapons[1] ~= nil and 1.0 or false, unitDefID
+end) ---@as table<UnitDefID, 1|false>
 
+---Computed at load for unit attributes that have no unitDef property.
 ---@type table<string, table<UnitDefID, (false|number)?>?>
-local prebuiltBaseByAttribute = {
-	reloadTime = nominalReloadByDef,
+local derivedBaseByAttribute = {
+	reloadTime = reloadScaleByDef,
 }
+
+local baseValues = {} ---@type table<UnitDefID, table<string, any>?>
+local baseWeapons = {} ---@type table<UnitDefID, WeaponBaseline[]?>
+local baseDamages = {} ---@type table<UnitDefID, table<integer, table<integer, number>>?>
+
+for unitDefID in ipairs(UnitDefs) do
+	baseValues[unitDefID] = {}
+end
 
 local function getBaseline(unitDefID, attribute)
 	local values = baseValues[unitDefID]
-	if not values then
-		values = {}
-		baseValues[unitDefID] = values
-	end
 	local value = values[attribute]
 	if value == nil then
 		local field = baseFieldByAttribute[attribute]
-		local prebuilt = prebuiltBaseByAttribute[attribute]
+		local derived = derivedBaseByAttribute[attribute]
 		if field then
 			value = UnitDefs[unitDefID][field]
 			values[attribute] = value
-		elseif prebuilt then
-			value = prebuilt[unitDefID] or nil
+		elseif derived then
+			value = derived[unitDefID] or nil
 			values[attribute] = value
 		elseif definitions[attribute].multiplyOnly then
 			value = 1
@@ -261,10 +261,10 @@ local function getWeaponBaselines(unitDefID)
 	if not weapons then
 		weapons = {}
 		for index, weapon in ipairs(UnitDefs[unitDefID].weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
+			local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
 			weapons[index] = {
-				range = weaponDef and weaponDef.range or 0,
-				reload = weaponDef and weaponDef.reload or 0,
+				range = weaponDef.range or 1.0,
+				reload = weaponDef.reload or 1.0,
 			}
 		end
 		baseWeapons[unitDefID] = weapons
@@ -296,16 +296,13 @@ local function getWeaponDamages(unitDefID)
 	if not weapons then
 		weapons = {}
 		for index, weapon in ipairs(UnitDefs[unitDefID].weapons) do
-			local weaponDef = WeaponDefs[weapon.weaponDef]
-			local damages = weaponDef and weaponDef.damages
+			local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table
+			local damages = weaponDef.damages ---@as table?
 			if damages then
 				local armorClasses, isArmed = {}, false
-				for armorClass, damage in pairs(damages) do
-					-- Drops non-scaled weapondef properties, e.g.: impulse, cratering, ...
-					if type(armorClass) == "number" then
-						armorClasses[armorClass] = damage
-						isArmed = isArmed or damage ~= 0
-					end
+				for armorIndex = armorTypeMin, armorTypeMax do
+					armorClasses[armorIndex] = damages[armorIndex]
+					isArmed = isArmed or damages[armorIndex] ~= 0
 				end
 				if isArmed then
 					weapons[index] = armorClasses
@@ -317,29 +314,31 @@ local function getWeaponDamages(unitDefID)
 	return weapons
 end
 
-local damagesArray = table.new(#Game.armorTypes, 1) ---@as WeaponDamages reusable scratch table
+-- Ignores WeaponDamages properties that we do not scale, e.g. impulse, cratering.
+local damagesArray = table.new(armorTypeMax, 1 - armorTypeMin) ---@as number[] reusable scratch table
 
 local function setDamage(unitID, scale)
 	for weaponNum, damages in pairs(getWeaponDamages(spGetUnitDefID(unitID))) do
-		for armorIndex, damage in pairs(damages) do
-			damagesArray[armorIndex] = damage * scale
+		for armorIndex = armorTypeMin, armorTypeMax do
+			damagesArray[armorIndex] = damages[armorIndex] * scale
 		end
+		---@cast damagesArray WeaponDamages
 		spSetUnitWeaponDamages(unitID, weaponNum, damagesArray)
 	end
 end
 
-local function setReloadTime(unitID, value)
+local function setReloadTime(unitID, scale)
 	local unitDefID = spGetUnitDefID(unitID)
-	local baseline = getBaseline(unitDefID, "reloadTime")
-	if not baseline or baseline <= 0 then
+	if not getBaseline(unitDefID, "reloadTime") then
 		return
 	end
 
-	local scale = value / baseline
 	local gameFrame = spGetGameFrame()
 	local luaEnv = getUnitScriptEnv(unitID)
 	local reloadMax = 0.0
 
+	-- Rescale reloads for slowing effects to apply and restore immediately.
+	-- Units can have animation states tied to reload state and reload time.
 	for weaponNum, weapon in ipairs(getWeaponBaselines(unitDefID)) do
 		local previous = spGetUnitWeaponState(unitID, weaponNum, "reloadTime")
 		local reloadTime = toFrameTime(weapon.reload * scale)
@@ -347,7 +346,8 @@ local function setReloadTime(unitID, value)
 
 		local reloadState = spGetUnitWeaponState(unitID, weaponNum, "reloadState")
 		if previous and previous > 0 and reloadState and reloadState > gameFrame then
-			local framesLeft = (reloadState - gameFrame) * reloadTime / previous
+			-- Round ahead of the engine truncating integers passed from Lua:
+			local framesLeft = math_round((reloadState - gameFrame) * reloadTime / previous, 0)
 			spSetUnitWeaponState(unitID, weaponNum, "reloadState", gameFrame + framesLeft)
 		end
 
@@ -383,6 +383,7 @@ local function setMaxHealth(unitID, value)
 	local health, maxHealth = spGetUnitHealth(unitID)
 	spSetUnitMaxHealth(unitID, value)
 	if health and maxHealth and maxHealth > 0 then
+		-- Rescaled how the engine does when handling XP:
 		spSetUnitHealth(unitID, health * value / maxHealth)
 	end
 end
@@ -441,7 +442,6 @@ local applyUnitAttribute = {
 	stealth = spSetUnitStealth,
 	sonarStealth = spSetUnitSonarStealth,
 	seismicSignature = spSetUnitSeismicSignature,
-	tooltip = spSetUnitTooltip,
 
 	maxWeaponRange = setMaxWeaponRange,
 	reloadTime = setReloadTime,
@@ -517,6 +517,7 @@ do
 	end
 end
 
+---@param kind AttributeFactorKind
 ---@return boolean changed `false` only when the composed value _cannot_ have changed
 local function record(factors, source, kind, value)
 	local factor = factors[source]
@@ -531,7 +532,8 @@ local function record(factors, source, kind, value)
 		return true
 	end
 
-	-- A repeated multiply cannot change the final value. A repeated set can, via the tiebreak.
+	-- When a source repeats the same multiply, the result is never changed.
+	-- When a source repeats the same set, the sequence increases which changes the tiebreak.
 	local unchanged = kind == "multiply" and kind == factor.kind and value == factor.value
 
 	factor.kind = kind
@@ -659,42 +661,46 @@ local function setApplied(unitID, attribute, value)
 	return applied
 end
 
+---@param kind AttributeFactorKind
 local function checkUnitDefAttribute(entry, attribute, kind, value, unitDefID)
 	if not entry then
 		warn(attribute, "not found")
 		return
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
-		warn(attribute, "takes no set value")
+		warn(attribute, "is multiplication-only")
 		return
 	elseif entry.unitOnly or entry.isUnitState then
-		warn(attribute, "takes no unitdef scope")
+		warn(attribute, "cannot be set on unitdefs")
 		return
 	elseif
 		(entry.mobileOnly and not moveTypeSetterByDef[unitDefID])
 		or (entry.builderOnly and not builderSpeedsByDef[unitDefID])
 	then
+		warn(attribute, "has an inappropriate def (" .. UnitDefs[unitDefID].name .. ")")
 		return
 	end
 	return true
 end
 
+---@param kind AttributeFactorKind
 local function checkUnitAttribute(entry, attribute, kind, value)
 	if not entry then
 		warn(attribute, "not found")
 		return
 	elseif entry.isUnitState then
 		if kind ~= "set" then
-			warn(attribute, "keeps no factors")
+			warn(attribute, "cannot be multiplied")
 			return
 		end
 		return true
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
-		warn(attribute, "takes no set value")
+		warn(attribute, "is multiplication-only")
 		return
 	end
 	return true
 end
 
+---@param kind AttributeFactorKind
 local function recordUnitDefAttribute(unitDefID, attribute, value, source, kind, teamID)
 	local entry = definitions[attribute]
 	if not checkUnitDefAttribute(entry, attribute, kind, value, unitDefID) then
@@ -714,6 +720,7 @@ local function recordUnitDefAttribute(unitDefID, attribute, value, source, kind,
 	end
 end
 
+---@param kind AttributeFactorKind
 local function recordUnitAttribute(unitID, attribute, value, source, kind)
 	local entry = definitions[attribute]
 	if not checkUnitAttribute(entry, attribute, kind, value) then
@@ -794,10 +801,13 @@ local function setUnitModifier(unitID, attribute, multiplier, source)
 	recordUnitAttribute(unitID, attribute, multiplier, source, "multiply")
 end
 
----Reads what a unit's attribute composes to now, or its unitdef value when no source is on it.
+---Reads the currently composed attribute value, first, then the unitdef value, if possible.
+---
+---Factors are applied on the following frame, so can be up to one frame behind. The engine
+---getters are more general; they are not pending nor stale and can fetch unit states, also.
 ---@param unitID UnitID
 ---@param attribute string
----@return number|boolean|string|nil value # The resulting value. Often redundant to a more simple callout/getter.
+---@return number|boolean|string|nil value `nil` only for unit state or unknown attributes
 local function getUnitAttributeValue(unitID, attribute)
 	local applied = appliedValues[unitID]
 	local value = applied and applied[attribute]

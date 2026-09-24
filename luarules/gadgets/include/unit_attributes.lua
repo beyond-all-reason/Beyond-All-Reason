@@ -32,7 +32,6 @@ local definitions = {
 	stealth = { type = "boolean" },
 	sonarStealth = { type = "boolean" },
 	seismicSignature = { type = "number" },
-	tooltip = { type = "string" },
 	maxWeaponRange = { type = "number" },
 	reloadTime = { type = "number" },
 	experience = { type = "number", isUnitState = true },
