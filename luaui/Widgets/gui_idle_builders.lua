@@ -535,7 +535,7 @@ end
 
 local function checkUnitGroupsPos(isViewresize)
 	if WG.unitgroups then
-		local px, py, sx, sy = WG.unitgroups.getPosition()
+		local _, py, sx, _ = WG.unitgroups.getPosition()
 		local oldPosX, oldPosY = posX, posY
 		posY = py / vsy
 		posX = (sx + widgetSpaceMargin) / vsx

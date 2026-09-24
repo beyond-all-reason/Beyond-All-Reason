@@ -14922,7 +14922,7 @@ local initialModel = {
 		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then
 			return
 		end
-		local amt, freq = WG.DiffusePainter.getFractal()
+		local amt, _ = WG.DiffusePainter.getFractal()
 		if WG.DiffusePainter.setFractal then
 			WG.DiffusePainter.setFractal((amt or 0) + (delta or 0) / 100, nil)
 		end
@@ -19726,9 +19726,20 @@ function widget:Update()
 							"[Terraform Brush] Could not enable /cheat — match end protection unchanged. Enable cheats and try again."
 						)
 					else
-						ka.cheatSends = (ka.cheatSends or 0) + 1
-						ka.lastCheatSend = now
-						Spring.SendCommands("cheat")
+						-- "cheat" TOGGLES, and the project loader / brush widget
+						-- nudge it too. Share their single-flight window so two
+						-- observers of "off" cannot queue two toggles and leave
+						-- cheat off again; only count an attempt that went out.
+						if type(WG.TerraformEnsureCheat) == "function" then
+							if WG.TerraformEnsureCheat() then
+								ka.cheatSends = (ka.cheatSends or 0) + 1
+								ka.lastCheatSend = now
+							end
+						else
+							ka.cheatSends = (ka.cheatSends or 0) + 1
+							ka.lastCheatSend = now
+							Spring.SendCommands("cheat")
+						end
 					end
 				end
 			end

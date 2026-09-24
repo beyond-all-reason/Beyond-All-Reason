@@ -174,7 +174,14 @@
 			"help": "Zoom with ALT+scroll (configurable in Settings)\nMiddle-click to move the game camera\nMiddle-click (or ALT+leftmouse) drag to pan the camera",
 			"help_leftclick": "\nLeft-click moves the game camera when fully zoomed out\nZoom in to select units and give commands (or disable 'left click moves camera' in Settings)",
 			"minimap_minimize": "Minimize minimap",
-			"minimap_maximize": "Maximize minimap"
+			"minimap_maximize": "Maximize minimap",
+			"history": "Show the rewind timeline",
+			"history_off": "Hide the rewind timeline",
+			"history_play": "Play the recorded history from here\nRight click: play backwards",
+			"history_pause": "Pause playback\nRight click: play backwards",
+			"history_live": "Back to live view",
+			"history_speed": "Playback speed\nLeft click: faster, right click: slower",
+			"history_track": "Drag to rewind the PIP\nShows recorded unit positions and explosions"
 		},
 		"teamEconomy": {
 			"tooltipTitle": "Team Income",
@@ -1856,6 +1863,8 @@
 				"pip_mapdrawings_descr": "Show temporary map drawing lines from non-spectator players in PIP windows",
 				"pip_mapdrawing_duration": "map drawing line duration",
 				"pip_mapdrawing_duration_descr": "Seconds before map drawing lines disappear from PIP windows",
+				"pip_history": "rewind history",
+				"pip_history_descr": "Record unit positions and events so PIP windows can be rewound with the timeline at their bottom edge",
 				"pip_minimap_engine_fallback": "engine fallback",
 				"pip_minimap_engine_fallback_descr": "Use the engine minimap when fully zoomed out for better performance. The PIP takes over when you zoom in.",
 				"pip_engine_fallback_threshold": "engine fallback unit threshold",

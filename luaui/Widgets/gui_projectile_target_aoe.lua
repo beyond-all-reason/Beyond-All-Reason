@@ -153,13 +153,15 @@ local function BuildWeaponCache()
 		if wd.type == "StarburstLauncher" and wd.interceptor == 0 and not wd.tracks then
 			local aoe = wd.damageAreaOfEffect or 0
 			if aoe >= Config.minAoeThreshold then
-				local isNuke = wd.customParams and wd.customParams.nuclear
+				local isNuke = wd.customParams.nuclear ~= nil
+				local isMoveCtrl = wd.customParams.cruise_and_verticalize ~= nil
 				local isParalyzer = wd.paralyzer or false
 				starburstWeapons[wdid] = {
 					aoe = aoe,
 					isNuke = isNuke,
 					isParalyzer = isParalyzer,
 					isJuno = wd.name:lower():find("juno") ~= nil,
+					isMoveCtrl = isMoveCtrl,
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
@@ -506,7 +508,8 @@ end
 --------------------------------------------------------------------------------
 -- Projectile tracking
 --------------------------------------------------------------------------------
-local function GetProjectileTargetPos(proID)
+
+local function GetProjectileTargetPos(proID, usesMoveCtrl)
 	local targetType, targetData = spGetProjectileTarget(proID)
 
 	if not targetType then
@@ -516,7 +519,8 @@ local function GetProjectileTargetPos(proID)
 	-- Ground target
 	if targetType == 103 then -- ASCII 'g'
 		if type(targetData) == "table" then
-			return targetData[1], targetData[2], targetData[3], true
+			local elevation = usesMoveCtrl and max(spGetGroundHeight(targetData[1], targetData[3]), 0) or targetData[2]
+			return targetData[1], elevation, targetData[3], true
 		end
 	-- Unit target
 	elseif targetType == 117 then -- ASCII 'u'
@@ -794,7 +798,7 @@ local function UpdateTrackedProjectiles()
 
 					if existingData.weaponInfo.tracks then
 						local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ =
-							GetProjectileTargetPos(proID)
+							GetProjectileTargetPos(proID, existingData.weaponInfo.isMoveCtrl)
 						if tx then
 							existingData.impactX = tx
 							existingData.impactY = ty
@@ -842,7 +846,7 @@ local function UpdateTrackedProjectiles()
 
 				if isSpectator or isOwnTeam then
 					local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ, isUnitTarget =
-						GetProjectileTargetPos(proID)
+						GetProjectileTargetPos(proID, weaponInfo.isMoveCtrl)
 					local px, py, pz = spGetProjectilePosition(proID)
 
 					if tx and px then

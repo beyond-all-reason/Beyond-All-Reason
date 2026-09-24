@@ -30,7 +30,9 @@ local SAFEWRAP = 0
 -- 2: always enabled
 
 local HANDLER_DIR = "LuaGadgets/"
-local GADGETS_DIR = Script.GetName():gsub("US$", "") .. "/Gadgets/"
+local HANDLER_BASE_NAME = Script.GetName():gsub("US$", "") -- "LuaRules" or "LuaGaia" (unused)
+local IS_LUARULES = HANDLER_BASE_NAME == "LuaRules"
+local GADGETS_DIR = HANDLER_BASE_NAME .. "/Gadgets/"
 local SCRIPT_DIR = Script.GetName() .. "/"
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
@@ -527,6 +529,16 @@ function gadgetHandler:Initialize()
 	-- get the gadget names
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
+
+	if IS_LUARULES then
+		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE) ---@type ModuleHandler
+		ModuleHandler.Register(VFSMODE)
+		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
+			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
+				gadgetFiles[#gadgetFiles + 1] = gf
+			end
+		end
+	end
 
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
@@ -1433,7 +1445,7 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	local arg1, arg2 = ...
+	local arg1, _ = ...
 	if arg1 == CHAT_ACTION_REQUEST then
 		BroadcastChatActionSnapshot("unsynced", self.actionHandler.textActions)
 		return true
@@ -1891,7 +1903,6 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, ca
 	return true
 end
 
-
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 
@@ -1948,7 +1959,6 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	end
 	return true
 end
-
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")

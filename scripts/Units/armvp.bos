@@ -5,6 +5,8 @@
 piece  base, pad, head, wheel1, wheel2, nano, cagelight, cagelight_emit;
 
 
+
+static-var  hasOpened;
 // Signal definitions
 #define SIGNAL_TURNON 4
 
@@ -16,6 +18,7 @@ Create()
 	hide cagelight_emit;
 	
 	set ARMORED to 1;
+	hasOpened = 0;
 }
 
 
@@ -30,27 +33,25 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	set ARMORED to 0;
-	spin wheel1 around x-axis speed <120> accelerate <1>;
-	spin wheel2 around x-axis speed <120> accelerate <1>;
-	
+	if( !hasOpened )
+	{
+		set ARMORED to 0;
+		spin wheel1 around x-axis speed <120> accelerate <1>;
+		spin wheel2 around x-axis speed <120> accelerate <1>;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
-
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-    sleep 5000;
-
-	set ARMORED to 1;
-	
-	stop-spin wheel1 around x-axis decelerate <1>;
-	stop-spin wheel2 around x-axis decelerate <1>;
 
 	FACTORY_CLOSE_BUILD;
 }

@@ -18,10 +18,14 @@ end
 
 local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitStates = Spring.GetUnitStates
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spRemoveUnitCmdDesc = Spring.RemoveUnitCmdDesc
 
 local CMD_MOVE_STATE = CMD.MOVE_STATE
+local MOVESTATE_HOLDPOS = CMD.MOVESTATE_HOLDPOS
+local MOVESTATE_MANEUVER = CMD.MOVESTATE_MANEUVER
 
 local isBomberDef = {}
 
@@ -51,6 +55,16 @@ local function hideMoveState(unitID)
 	if cmdDescID then
 		spRemoveUnitCmdDesc(unitID, cmdDescID)
 	end
+	-- Air units on hold position cannot idle-autotarget, fight, or patrol.
+	local states = spGetUnitStates(unitID)
+	if states and states.movestate == MOVESTATE_HOLDPOS then
+		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, MOVESTATE_MANEUVER)
+	end
+end
+
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
+	-- accepts: CMD.MOVE_STATE
+	return not (isBomberDef[unitDefID] and cmdParams[1] == MOVESTATE_HOLDPOS)
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
@@ -72,6 +86,8 @@ function gadget:UnitTaken(unitID, unitDefID)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_MOVE_STATE)
+
 	for _, unitID in ipairs(spGetAllUnits()) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if isBomberDef[unitDefID] then

@@ -1,10 +1,4 @@
 # September
-- [Territorial Domination]
-  - Points are now gained continuously, rounds are renamed to "Deadlines", GUI Reworked to better represent the new points system.
-  - Default length is now 5 Deadlines of 6 minutes (30 minutes). Length options are 3, 4, 5, 7, or 10 Deadlines.
-- [Quick Start]
-  - Selecting start location now pre-fills your build queue with a suggested base you can edit or discard.
-  - Suggestions leave enough leftover budget to almost or exactly afford the cheapest factory, unless you already queued one.
 - [Laser weapons] given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
 - [T1 Air Constructors] -10 buildpower
 - [Grunt, Pawn, Goblin] Script improvements. No longer fire sideways when switching targets mid-shot or going in and out of range
@@ -27,8 +21,17 @@
   - Units that don't leave corpses like the Fiend will no longer respawn as zombies.
   - Zombie constructors get a boosted capture range of a minimum of 300. This makes them capable of capturing aircraft.
   - Zombies now can control aircraft when they're captured or produced.
+- [Territorial Domination]
+  - Points are now gained continuously, rounds are renamed to "Deadlines", GUI Reworked to better represent the new points system.
+  - Default length is now 5 Deadlines of 6 minutes (30 minutes). Length options are 3, 4, 5, 7, or 10 Deadlines.
+- [Quick Start]
+  - Selecting start location now pre-fills your build queue with a suggested base you can edit or discard.
+  - Suggestions leave enough leftover budget to almost or exactly afford the cheapest factory, unless you already queued one.
 - [Critters]
   - Map critters can gain health and follow your Commander as a companion.
+- [Fixed]
+  - Bomber settings applied at unit creation could lock them out of Fight, Patrol, and autotargeting.
+  - Builder priority handling has been improved, and constructors now default to low priority (commanders remain high).
 
 # August
 - [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health

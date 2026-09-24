@@ -138,7 +138,9 @@ return {
 					subs = 500,
 				},
 				customparams = {
-					projectile_destruction_method = "descend",
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 7,
 					overrange_distance = 1495,
 				},
 			},

@@ -5,7 +5,7 @@
 
 piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
-static-var  buildAnimPiece;
+static-var  buildAnimPiece, hasOpened;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -35,6 +35,7 @@ Create()
 	buildAnimPiece = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
+	hasOpened = 0;
 }
 
 QueryNanoPiece(pieceIndex)
@@ -45,30 +46,28 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	turn head1 to y-axis <-60.0> speed <225.0>;
-	turn head2 to y-axis <60.0> speed <225.0>;
-	turn head3 to y-axis <-60.0> speed <225.0>;
-	turn head4 to y-axis <60.0> speed <225.0>;
-	wait-for-turn head1 around y-axis;
-	
+	if( !hasOpened )
+	{
+		turn head1 to y-axis <-60.0> speed <225.0>;
+		turn head2 to y-axis <60.0> speed <225.0>;
+		turn head3 to y-axis <-60.0> speed <225.0>;
+		turn head4 to y-axis <60.0> speed <225.0>;
+		wait-for-turn head1 around y-axis;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn head1 to y-axis <0.0> speed <225.0>;
-	turn head2 to y-axis <0.0> speed <225.0>;
-	turn head3 to y-axis <0.0> speed <225.0>;
-	turn head4 to y-axis <0.0> speed <225.0>;
-	wait-for-turn head1 around y-axis;
-				
+
 	FACTORY_CLOSE_BUILD;
 }
 

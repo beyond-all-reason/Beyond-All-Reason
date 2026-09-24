@@ -35,9 +35,9 @@ local MSG = {
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
 
--- Prefix all terraform messages with $c$ when cheat is enabled.
--- This certification is recorded in demos, so during replay the gadget can
--- trust it without needing live cheat state (which is always false in replay).
+-- Prefix all terraform messages with $c$ when cheat is enabled. The gadget
+-- honours that certification inside a map-editor session, where /cheat is a
+-- toggle that can race OFF between a message being composed and it arriving.
 -- Guard against double-prefix: NewMap import pre-attaches $c$ to its messages,
 -- so skip wrapping if the message already starts with the signature.
 -- NOTE: no new chunk-level local for the prefix string (file is at 200-local limit).
@@ -215,7 +215,7 @@ local function loadKeybindsFromDisk()
 	if VFS.FileExists(KEYBINDS_FILE, VFS.RAW) then
 		local raw = VFS.LoadFile(KEYBINDS_FILE, VFS.RAW)
 		if raw then
-			local fn, err = loadstring(raw)
+			local fn, _err = loadstring(raw)
 			if fn then
 				local ok, data = pcall(fn)
 				if ok and type(data) == "table" then
@@ -1518,10 +1518,40 @@ end
 -- means this can only ever enable, never disable. On a server that disallows
 -- cheating the command is simply refused and the gadget's echo explains the rest.
 -- (Attached to extraState: main chunk is at the 200-local limit.)
+--
+-- Single-flight: "cheat" is a TOGGLE and several widgets nudge it (this one,
+-- the project loader, the RML match-end keep-alive, dev_autocheat). A send takes
+-- a network round trip to land, so two widgets that both observe "off" in the
+-- same moment queue two toggles and the second one turns cheat back OFF. Hold a
+-- short window after any send so the observers coalesce into one toggle, and
+-- publish the helper on WG so the other editor widgets share the same window.
+-- Returns true only when a toggle was actually put on the wire, so callers that
+-- count attempts (the project loader gives up after a few) do not burn a retry
+-- on a call this window swallowed.
 extraState.ensureCheat = function()
-	if not Spring.IsReplay() and not Spring.IsCheatingEnabled() then
-		Spring.SendCommands("cheat")
+	if Spring.IsReplay() or Spring.IsCheatingEnabled() then
+		return false
 	end
+	local now = os.clock()
+	if extraState._cheatSentAt and (now - extraState._cheatSentAt) < 3 then
+		return false
+	end
+	extraState._cheatSentAt = now
+	Spring.SendCommands("cheat")
+	return true
+end
+WG.TerraformEnsureCheat = extraState.ensureCheat
+
+-- Mirror of the synced gadget's auth gate (luarules/gadgets/cmd_terraform_brush.lua):
+-- it accepts height edits on live /cheat, or on a "$c$"-certified message inside
+-- a map-editor session. Messages pushed while the gate is shut are dropped
+-- silently by the gadget, which used to cost whole columns of an import.
+extraState.isMapEditorSession = (function()
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	return mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end)()
+extraState.terraformGateOpen = function(certified)
+	return Spring.IsCheatingEnabled() or (certified and extraState.isMapEditorSession) or false
 end
 
 local function activate(direction, mode, args)
@@ -2490,16 +2520,14 @@ extraState._newmapDrive = function()
 			return
 		end
 		-- Let the freshly-reloaded session settle (map + the synced terraform
-		-- gadget must be ready to receive messages) before streaming. We do NOT
-		-- gate on /cheat: the import is sent with the "$c$" certification prefix,
-		-- which the gadget trusts even though cheat resets to OFF across the
-		-- engine reload. We still nudge /cheat on once so the editor is usable
-		-- afterwards, but terrain no longer depends on it taking effect.
+		-- gadget must be ready to receive messages) before streaming. The import
+		-- carries the "$c$" certification prefix, which the gadget honours inside
+		-- a map-editor session (the mapeditor modoption the launcher sets), so it
+		-- survives /cheat resetting across the engine reload. We still nudge
+		-- /cheat on once so the rest of the editor is usable afterwards.
 		if not extraState._newmapStartFrame then
 			extraState._newmapStartFrame = GetDrawFrame() + 15
-			if not Spring.IsCheatingEnabled() then
-				Spring.SendCommands("cheat")
-			end
+			extraState.ensureCheat()
 			return
 		end
 		if GetDrawFrame() < extraState._newmapStartFrame then
@@ -3185,6 +3213,29 @@ local function doImportHeightmapSend()
 	if not importHeightRows then
 		return
 	end
+
+	-- Hold the stream while the synced gate is shut instead of feeding rows into
+	-- it. /cheat is a toggle that competing widgets can flip off mid-import, and
+	-- rows refused by the gadget are gone for good: the column index has already
+	-- advanced client-side, so the finished map is missing those strips with no
+	-- warning beyond the refusal echo. Give up rather than stall forever on a
+	-- server that refuses cheats outright.
+	if not extraState.terraformGateOpen(extraState._newmapCertify) then
+		extraState.ensureCheat()
+		extraState._importGateWaits = (extraState._importGateWaits or 0) + 1
+		if extraState._importGateWaits > 600 then
+			Echo(
+				"[Terraform Brush] Heightmap import aborted at column "
+					.. importRowIndex
+					.. ": /cheat stayed off. Enable cheats and import again."
+			)
+			extraState._importGateWaits = nil
+			importHeightRows = nil
+			importRowIndex = 0
+		end
+		return
+	end
+	extraState._importGateWaits = nil
 
 	local squareSize = Game.squareSize
 	local totalCols = #importHeightRows
@@ -4000,6 +4051,9 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("TerraformBrushStackUpdate")
 	hideBuildGrid()
 	WG.TerraformBrush = nil
+	-- Shared /cheat single-flight window: drop it so the other editor widgets
+	-- fall back to their own sends instead of calling into a dead widget.
+	WG.TerraformEnsureCheat = nil
 end
 
 local function smoothSplinePoints(points, passes)

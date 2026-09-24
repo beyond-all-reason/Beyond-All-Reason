@@ -740,6 +740,54 @@
 			{
 				"action": "pip1_track",
 				"label": "actions.camera.pipTrack"
+			},
+			{
+				"action": "pip_replay",
+				"label": "actions.camera.pipReplay"
+			},
+			{
+				"action": "pip_replay_death",
+				"label": "actions.camera.pipReplayDeath"
+			},
+			{
+				"action": "pip_history_toggle",
+				"label": "actions.camera.pipHistoryToggle"
+			},
+			{
+				"action": "pip_history_playpause",
+				"label": "actions.camera.pipHistoryPlayPause"
+			},
+			{
+				"action": "pip_history_back",
+				"label": "actions.camera.pipHistoryBack"
+			},
+			{
+				"action": "pip_history_forward",
+				"label": "actions.camera.pipHistoryForward"
+			},
+			{
+				"action": "pip_history_live",
+				"label": "actions.camera.pipHistoryLive"
+			},
+			{
+				"action": "pip_history_faster",
+				"label": "actions.camera.pipHistoryFaster"
+			},
+			{
+				"action": "pip_history_slower",
+				"label": "actions.camera.pipHistorySlower"
+			},
+			{
+				"action": "pip_history_reverse",
+				"label": "actions.camera.pipHistoryReverse"
+			},
+			{
+				"action": "pip_history_play",
+				"label": "actions.camera.pipHistoryPlay"
+			},
+			{
+				"action": "pip_history_stats",
+				"label": "actions.camera.pipHistoryStats"
 			}
 		]
 	},
