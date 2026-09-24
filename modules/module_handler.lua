@@ -290,6 +290,7 @@ function ModuleHandler.LoadActions(name, vfsMode)
 end
 
 local policiesCache = {}
+local enrichersCache = {}
 local presetsCache = nil
 local policyFiles = nil ---@type { chains: table, enrichments: table }|nil every module's policy chains and enrichments, read once
 
@@ -782,6 +783,203 @@ function ModuleHandler.LiveModulesFor(modOptions, vfsMode)
 	return live
 end
 
+---@class ResolvedProvisions
+---@field providers { op: PolicyProvision, module: string, file: string }[] every module's, in module order; the live set decides who answers
+---@field defaults table<string, PolicyProvision> the owner's answer per declared slot
+---@field slots string[]
+
+---@param key string owner.category, for messages
+---@param owner string the facts' module
+---@param slots string[] the facts the contract declares
+---@param list { module: string, ops: PolicyProvision[], file: string }[]
+---@return ResolvedProvisions
+function ModuleHandler.ResolveProvisions(key, owner, slots, list)
+	local providers = {}
+	local defaults = {} ---@type table<string, PolicyProvision>
+	local defaultFile = {}
+	local declared = {}
+	for _, field in ipairs(slots) do
+		declared[field] = true
+	end
+	for _, enrichment in ipairs(list) do
+		for _, op in ipairs(enrichment.ops) do
+			if op.default then
+				local field = op.names[1]
+				if enrichment.module ~= owner then
+					error(enrichment.file .. ": only " .. owner .. " may Default " .. field .. " on " .. key)
+				end
+				if not declared[field] then
+					error(enrichment.file .. ": " .. key .. " declares no slot named " .. field .. " to Default")
+				end
+				if defaults[field] then
+					error(
+						enrichment.file
+							.. ": "
+							.. field
+							.. " on "
+							.. key
+							.. " already has a Default in "
+							.. defaultFile[field]
+					)
+				end
+				defaults[field] = op
+				defaultFile[field] = enrichment.file
+			else
+				providers[#providers + 1] = { op = op, module = enrichment.module, file = enrichment.file }
+			end
+		end
+	end
+	local missing = {}
+	for _, field in ipairs(slots) do
+		if not defaults[field] then
+			missing[#missing + 1] = field
+		end
+	end
+	if #missing > 0 then
+		table.sort(missing)
+		error(
+			key
+				.. " declares "
+				.. table.concat(missing, ", ")
+				.. " without a Default; "
+				.. owner
+				.. " must say what the slot means when nobody provides it"
+		)
+	end
+	return { providers = providers, defaults = defaults, slots = slots }
+end
+
+---@param byCategory table<string, table<string, ModulePreset>>
+---@param alwaysLive table<string, boolean>
+---@param providers { op: PolicyProvision, module: string, file: string }[]
+---@return string[] conflicts, one line each; empty when the modes isolate every slot
+function ModuleHandler.IsolationConflicts(byCategory, alwaysLive, providers)
+	local categories = {}
+	for category in pairs(byCategory) do
+		categories[#categories + 1] = category
+	end
+	table.sort(categories)
+	local conflicts = {}
+	local function check(selection)
+		local live = ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+		local seen = {} ---@type table<string, string>
+		for _, provider in ipairs(providers) do
+			if live[provider.module] then
+				for _, field in ipairs(provider.op.names) do
+					if seen[field] and seen[field] ~= provider.file then
+						local picks = {}
+						for _, category in ipairs(categories) do
+							picks[#picks + 1] = category .. "=" .. tostring(selection[category])
+						end
+						conflicts[#conflicts + 1] = field
+							.. " is provided by both "
+							.. seen[field]
+							.. " and "
+							.. provider.file
+							.. " under "
+							.. table.concat(picks, ", ")
+					end
+					seen[field] = seen[field] or provider.file
+				end
+			end
+		end
+	end
+	local function walk(i, selection)
+		if i > #categories then
+			return check(selection)
+		end
+		local category = categories[i]
+		for key in pairs(byCategory[category]) do
+			selection[category] = key
+			walk(i + 1, selection)
+		end
+		selection[category] = nil
+	end
+	walk(1, {})
+	table.sort(conflicts)
+	return conflicts
+end
+
+---@param facts table the Facts table from the owner's contract.lua
+---@param vfsMode string?
+---@return ResolvedProvisions
+function ModuleHandler.LoadEnrichers(facts, vfsMode)
+	local identity = PolicyBuilder.IdentityOf(facts)
+	assert(identity and identity.facts, "LoadEnrichers(facts): expects a Facts table from a module's contract.lua")
+	local owner, category = identity.owner, identity.category
+	local key = owner .. "." .. category
+	if enrichersCache[key] then
+		return enrichersCache[key]
+	end
+	local list = (loadPolicyFiles(vfsMode).enrichments[owner] or {})[category] or {}
+	table.sort(list, function(a, b)
+		return a.module < b.module
+	end)
+	local slots = (loadPolicyFiles(vfsMode).facts[owner] or {})[category] or {}
+	local resolved = ModuleHandler.ResolveProvisions(key, owner, slots, list)
+	local byCategory, alwaysLive = ModuleHandler.Presets(vfsMode)
+	local conflicts = ModuleHandler.IsolationConflicts(byCategory, alwaysLive, resolved.providers)
+	if #conflicts > 0 then
+		error(key .. ": a mode leaves two providers live for one fact\n" .. table.concat(conflicts, "\n"))
+	end
+	enrichersCache[key] = resolved
+	return resolved
+end
+
+---@param resolved ResolvedProvisions|PolicyProvision[] a flat list is a test seam: every entry live, no defaults
+---@param live table<string, boolean>|nil nil means every provider is live
+---@param ctx table
+---@param ... any extra producer arguments
+---@return table<string, any>
+function ModuleHandler.EnrichWith(resolved, live, ctx, ...)
+	local out = {}
+	local answeredBy = {} ---@type table<string, string>
+	local providers = resolved.providers
+	if providers == nil then
+		providers = {}
+		for i, op in ipairs(resolved) do
+			providers[i] = { op = op, module = "?", file = "seam" }
+		end
+	end
+	for _, provider in ipairs(providers) do
+		if live == nil or live[provider.module] then
+			local results = { provider.op.evaluate(ctx, ...) }
+			for i, field in ipairs(provider.op.names) do
+				if results[i] ~= nil then
+					if answeredBy[field] and answeredBy[field] ~= provider.file then
+						error(
+							field
+								.. " answered by both "
+								.. answeredBy[field]
+								.. " and "
+								.. provider.file
+								.. " in one ask: the mode leaves both live"
+						)
+					end
+					answeredBy[field] = provider.file
+					out[field] = results[i]
+				end
+			end
+		end
+	end
+	for _, field in ipairs(resolved.slots or {}) do
+		if out[field] == nil and resolved.defaults and resolved.defaults[field] then
+			out[field] = resolved.defaults[field].evaluate(ctx, ...)
+		end
+	end
+	return out
+end
+
+---@param facts table the Facts table from the owner's contract.lua
+---@param modOptions table<string, any>
+---@param ctx table
+---@param ... any extra producer arguments
+---@return table<string, any>
+function ModuleHandler.Enrich(facts, modOptions, ctx, ...)
+	local resolved = ModuleHandler.LoadEnrichers(facts)
+	return ModuleHandler.EnrichWith(resolved, ModuleHandler.LiveModulesFor(modOptions), ctx, ...)
+end
+
 ---@param policies AssembledPipeline
 ---@param ctx table
 ---@param ... any
@@ -861,6 +1059,7 @@ function ModuleHandler.ResetCaches()
 	modeVerbsCache = {}
 	actionsCache = {}
 	policiesCache = {}
+	enrichersCache = {}
 	policyFiles = nil
 end
 

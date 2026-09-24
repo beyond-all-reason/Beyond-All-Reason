@@ -502,6 +502,74 @@ describe("a declared contribution", function()
 	end)
 end)
 
+describe("a contract's facts", function()
+	local function enrichment(module, ops)
+		return { module = module, ops = ops, file = module .. "/policies/x.lua" }
+	end
+	local function defaults(...)
+		local chain = PolicyBuilder.Enrichment()
+		for _, name in ipairs({ ... }) do
+			chain.Default(name, function()
+				return "default:" .. name
+			end)
+		end
+		return chain.Build()
+	end
+	local function provides(name, value)
+		return PolicyBuilder.Enrichment()
+			.Provide(name, function()
+				return value
+			end)
+			.Build()
+	end
+
+	it("must every one be given a Default by the owner, so a slot is a promise", function()
+		assert.has_error(
+			function()
+				ModuleHandler.ResolveProvisions("transfer.team_terms", "transfer", { "taxRate" }, {})
+			end,
+			"transfer.team_terms declares taxRate without a Default; transfer must say what the slot means when nobody provides it"
+		)
+		assert.has_error(function()
+			ModuleHandler.ResolveProvisions("k", "transfer", { "taxRate" }, { enrichment("tech", defaults("taxRate")) })
+		end, "tech/policies/x.lua: only transfer may Default taxRate on k")
+		assert.has_error(function()
+			ModuleHandler.ResolveProvisions(
+				"k",
+				"transfer",
+				{ "taxRate" },
+				{ enrichment("transfer", defaults("other", "taxRate")) }
+			)
+		end, "transfer/policies/x.lua: k declares no slot named other to Default")
+	end)
+
+	it("may be provided by any number of modules; the mode decides who is live", function()
+		local resolved = ModuleHandler.ResolveProvisions("k", "transfer", { "taxRate" }, {
+			enrichment("transfer", defaults("taxRate")),
+			enrichment("tech", provides("taxRate", 0.5)),
+			enrichment("other", provides("taxRate", 0.9)),
+		})
+		assert.are.equal(2, #resolved.providers)
+		assert.are.equal("default:taxRate", ModuleHandler.EnrichWith(resolved, { transfer = true }, {}).taxRate)
+		assert.are.equal(0.5, ModuleHandler.EnrichWith(resolved, { tech = true }, {}).taxRate)
+		assert.are.equal(0.9, ModuleHandler.EnrichWith(resolved, { other = true }, {}).taxRate)
+		assert.has_error(
+			function()
+				ModuleHandler.EnrichWith(resolved, { tech = true, other = true }, {})
+			end,
+			"taxRate answered by both tech/policies/x.lua and other/policies/x.lua in one ask: the mode leaves both live"
+		)
+	end)
+
+	it("a provider that answers nil declines, and the Default steps in", function()
+		local resolved = ModuleHandler.ResolveProvisions("k", "transfer", { "taxRate" }, {
+			enrichment("transfer", defaults("taxRate")),
+			enrichment("tech", provides("taxRate", nil)),
+		})
+		assert.are.equal("default:taxRate", ModuleHandler.EnrichWith(resolved, { tech = true }, {}).taxRate)
+	end)
+end)
+
 describe("what a mode makes live", function()
 	local byCategory = {
 		transfer = {
@@ -528,5 +596,28 @@ describe("what a mode makes live", function()
 			{ economy = true, construction = true, transfer = true, tech = true, modes = true },
 			ModuleHandler.LiveModules(byCategory, alwaysLive, { transfer = "customize", game = "standard" })
 		)
+	end)
+
+	it("is walked, every combination, to prove no preset leaves two providers live for one slot", function()
+		local function provider(module)
+			return {
+				op = { names = { "taxRate" }, evaluate = function() end },
+				module = module,
+				file = module .. "/p.lua",
+			}
+		end
+		assert.are.same(
+			{},
+			ModuleHandler.IsolationConflicts(byCategory, alwaysLive, { provider("tech"), provider("other") })
+		)
+		local withOther = {
+			transfer = byCategory.transfer,
+			game = byCategory.game,
+			experiments = { other = { key = "other", category = "experiments", module = "other", uses = {} } },
+		}
+		assert.are.same({
+			"taxRate is provided by both other/p.lua and tech/p.lua under experiments=other, game=standard, transfer=customize",
+			"taxRate is provided by both other/p.lua and tech/p.lua under experiments=other, game=standard, transfer=tech_core",
+		}, ModuleHandler.IsolationConflicts(withOther, alwaysLive, { provider("other"), provider("tech") }))
 	end)
 end)
