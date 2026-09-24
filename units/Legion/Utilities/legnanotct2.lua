@@ -43,10 +43,11 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'builder',
+			isnanoturret = true,
+			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Utilities",
 			techlevel = 2,
 		},
 		sounds = {

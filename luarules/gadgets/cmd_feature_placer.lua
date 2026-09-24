@@ -1,33 +1,44 @@
 function gadget:GetInfo()
 	return {
-		name    = "Feature Placer",
-		desc    = "Synced gadget for placing, removing, and managing map features via brush tool",
-		author  = "PtaQ",
-		date    = "2026",
+		name = "Feature Placer",
+		desc = "Synced gadget for placing, removing, and managing map features via brush tool",
+		author = "PtaQ",
+		date = "2026",
 		license = "GNU GPL, v2 or later",
-		layer   = 0,
+		layer = 0,
 		enabled = true,
 	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, a, b)
-		if name == "FeaturePlacerHistory" then
-			if Script.LuaUI("terraform_feature_history") then
-				Script.LuaUI.terraform_feature_history(a, b)
+	-- Registered as sync actions (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function forwardToLuaUI(luaUIName)
+		return function(_, a, b)
+			if Script.LuaUI(luaUIName) then
+				Script.LuaUI[luaUIName](a, b)
 			end
-		elseif name == "feature_save_begin" then
-			if Script.LuaUI("terraform_feature_save_begin") then
-				Script.LuaUI.terraform_feature_save_begin(a)
-			end
-		elseif name == "feature_save_data" then
-			if Script.LuaUI("terraform_feature_save_data") then
-				Script.LuaUI.terraform_feature_save_data(a)
-			end
-		elseif name == "feature_save_end" then
-			if Script.LuaUI("terraform_feature_save_end") then
-				Script.LuaUI.terraform_feature_save_end(a)
-			end
+			return true
+		end
+	end
+
+	local syncActions = {
+		FeaturePlacerHistory = forwardToLuaUI("terraform_feature_history"),
+		feature_save_begin = forwardToLuaUI("terraform_feature_save_begin"),
+		feature_save_data = forwardToLuaUI("terraform_feature_save_data"),
+		feature_save_end = forwardToLuaUI("terraform_feature_save_end"),
+	}
+
+	function gadget:Initialize()
+		for name, func in pairs(syncActions) do
+			gadgetHandler:AddSyncAction(name, func)
+		end
+	end
+
+	function gadget:Shutdown()
+		for name in pairs(syncActions) do
+			gadgetHandler:RemoveSyncAction(name)
 		end
 	end
 	return
@@ -43,11 +54,11 @@ end
 local PLACELIST_HEADER = "$feature_place_list$"
 local TRANSFORM_HEADER = "$feature_transform$"
 local REMOVEIDS_HEADER = "$feature_remove_ids$"
-local REMOVE_HEADER   = "$feature_remove$"
-local UNDO_HEADER     = "$feature_undo$"
-local REDO_HEADER     = "$feature_redo$"
-local SAVE_HEADER     = "$feature_save$"
-local LOAD_HEADER     = "$feature_load$"
+local REMOVE_HEADER = "$feature_remove$"
+local UNDO_HEADER = "$feature_undo$"
+local REDO_HEADER = "$feature_redo$"
+local SAVE_HEADER = "$feature_save$"
+local LOAD_HEADER = "$feature_load$"
 local CLEARALL_HEADER = "$feature_clearall$"
 
 local MAX_UNDO = 100
@@ -60,32 +71,41 @@ local LIFT_EPSILON = 0.5
 ----------------------------------------------------------------
 -- Localize
 ----------------------------------------------------------------
-local max    = math.max
-local min    = math.min
-local floor  = math.floor
-local cos    = math.cos
-local sin    = math.sin
-local abs    = math.abs
+local max = math.max
+local min = math.min
+local floor = math.floor
+local cos = math.cos
+local sin = math.sin
+local abs = math.abs
 local random = math.random
-local pi     = math.pi
+local pi = math.pi
 
-local SendToUnsynced       = SendToUnsynced
-local CreateFeature        = Spring.CreateFeature
-local DestroyFeature       = Spring.DestroyFeature
-local GetGroundHeight      = Spring.GetGroundHeight
-local GetGroundNormal      = Spring.GetGroundNormal
-local GetAllFeatures       = Spring.GetAllFeatures
+local SendToUnsynced = SendToUnsynced
+local CreateFeature = Spring.CreateFeature
+local DestroyFeature = Spring.DestroyFeature
+local GetGroundHeight = Spring.GetGroundHeight
+local GetGroundNormal = Spring.GetGroundNormal
+local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local GetFeaturePosition   = Spring.GetFeaturePosition
-local GetFeatureDefID      = Spring.GetFeatureDefID
-local GetFeatureHeading    = Spring.GetFeatureHeading
-local ValidFeatureID       = Spring.ValidFeatureID
-local GetGaiaTeamID        = Spring.GetGaiaTeamID
-local SetFeatureRotation   = Spring.SetFeatureRotation
-local GetFeatureRotation   = Spring.GetFeatureRotation
-local SetFeaturePosition   = Spring.SetFeaturePosition
-local SetFeatureMoveCtrl   = Spring.SetFeatureMoveCtrl
-local GetGameFrame         = Spring.GetGameFrame
+local GetFeaturePosition = Spring.GetFeaturePosition
+local GetFeatureDefID = Spring.GetFeatureDefID
+local GetFeatureHeading = Spring.GetFeatureHeading
+local ValidFeatureID = Spring.ValidFeatureID
+local GetGaiaTeamID = Spring.GetGaiaTeamID
+local SetFeatureRotation = Spring.SetFeatureRotation
+local GetFeatureRotation = Spring.GetFeatureRotation
+local SetFeaturePosition = Spring.SetFeaturePosition
+local SetFeatureMoveCtrl = Spring.SetFeatureMoveCtrl
+local GetGameFrame = Spring.GetGameFrame
+local GetFeatureRootPiece = Spring.GetFeatureRootPiece
+local GetFeaturePieceMatrix = Spring.GetFeaturePieceMatrix
+local SetFeaturePieceMatrix = Spring.SetFeaturePieceMatrix
+local GetFeatureCollisionVolumeData = Spring.GetFeatureCollisionVolumeData
+local SetFeatureCollisionVolumeData = Spring.SetFeatureCollisionVolumeData
+local GetFeatureRadius = Spring.GetFeatureRadius
+local GetFeatureHeight = Spring.GetFeatureHeight
+local SetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
+local SetFeatureMidAndAimPos = Spring.SetFeatureMidAndAimPos
 
 -- Same containment module the widget draws its brush outline from, so removal
 -- matches the shape the user sees. The copy that used to live here was
@@ -100,14 +120,115 @@ local undoStack = {}
 local redoStack = {}
 local gaiaTeamID
 
+-- Visual scale applied per feature, keyed by live featureID. Nothing engine-side
+-- records it (see applyFeatureScale), so this table is the only authority for
+-- capture/save. Entries exist only for features that were actually scaled.
+local featureScales = {}
+
+----------------------------------------------------------------
+-- Per-feature scaling
+----------------------------------------------------------------
+-- There is no way to scale a feature's model from Lua on current engines, so
+-- placement-time scaling ships as pre-baked model variants and this path stays
+-- dormant: Spring.SetFeaturePieceMatrix looks like the API for it, but
+-- LocalModelPiece::SetPieceSpaceMatrix only validates the matrix and throws the
+-- geometry away, leaving a piece's transform derived solely from its pos/rot/
+-- scale, which nothing outside a unit animation script can write.
+--
+-- Kept because the rest of it is correct and cheap: were the matrix honoured,
+-- visual scale alone would desync interaction, so the collision volume, the
+-- selection/reclaim radius+height, and the mid/aim positions are scaled to
+-- match. Footprint blocking stays def-side, which is fine for the 1x1 feature
+-- defs this tool mostly places.
+local SCALE_EPSILON = 0.001
+local SCALE_MIN = 0.05
+local SCALE_MAX = 10
+
+local function applyFeatureScale(featureID, s)
+	if not s or abs(s - 1) < SCALE_EPSILON then
+		return
+	end
+	if not (SetFeaturePieceMatrix and GetFeatureRootPiece) then
+		return
+	end
+	-- Model-less defs (editor_geocrack and friends) never get a LocalModel, and
+	-- the piece callouts deref the empty piece list -- an access violation, the
+	-- same crash the Initialize comment below documents for map features.
+	local def = FeatureDefs[GetFeatureDefID(featureID) or -1]
+	if not def or (def.modelname or "") == "" then
+		return
+	end
+	s = max(SCALE_MIN, min(SCALE_MAX, s))
+
+	local root = GetFeatureRootPiece(featureID) or 1
+	-- Compose onto the piece's current local matrix rather than assuming
+	-- identity. M * diag(s,s,s,1) scales the three basis columns -- the first
+	-- twelve floats of the engine's flat matrix -- and leaves translation alone.
+	local m = { GetFeaturePieceMatrix(featureID, root) }
+	if not m[16] then
+		m = { s, 0, 0, 0, 0, s, 0, 0, 0, 0, s, 0, 0, 0, 0, 1 }
+	else
+		for i = 1, 12 do
+			m[i] = m[i] * s
+		end
+	end
+	-- Engines to date cannot scale a feature at all: SetPieceSpaceMatrix only
+	-- validates the matrix with IsRotOrRotTranMatrix() and discards it, which
+	-- is why scaling ships as pre-baked model variants instead. Bail when the
+	-- call reports the matrix unusable, so collision and radius are not scaled
+	-- away from a model that stayed its original size. If a future engine
+	-- accepts the matrix, this path lights up as written.
+	if not SetFeaturePieceMatrix(featureID, root, m) then
+		return
+	end
+
+	local vsx, vsy, vsz, vox, voy, voz, vtype, ttype, axis = GetFeatureCollisionVolumeData(featureID)
+	if vsx and SetFeatureCollisionVolumeData then
+		SetFeatureCollisionVolumeData(
+			featureID,
+			vsx * s,
+			vsy * s,
+			vsz * s,
+			vox * s,
+			voy * s,
+			voz * s,
+			vtype,
+			ttype,
+			axis
+		)
+	end
+
+	local r = GetFeatureRadius and GetFeatureRadius(featureID)
+	local h = GetFeatureHeight and GetFeatureHeight(featureID)
+	if r and h and SetFeatureRadiusAndHeight then
+		SetFeatureRadiusAndHeight(featureID, r * s, h * s)
+	end
+
+	local bx, by, bz, mx, my, mz, ax, ay, az = GetFeaturePosition(featureID, true, true)
+	if mx and SetFeatureMidAndAimPos then
+		SetFeatureMidAndAimPos(
+			featureID,
+			(mx - bx) * s,
+			(my - by) * s,
+			(mz - bz) * s,
+			(ax - bx) * s,
+			(ay - by) * s,
+			(az - bz) * s,
+			true
+		)
+	end
+
+	featureScales[featureID] = s
+end
+
 ----------------------------------------------------------------
 -- Wobble animation
 ----------------------------------------------------------------
 local wobbleQueue = {}
-local WOBBLE_DURATION  = 22   -- frames (~0.73s at 30fps)
-local WOBBLE_AMPLITUDE = 8    -- degrees peak tilt
-local WOBBLE_FREQ      = 0.6  -- radians per frame
-local WOBBLE_RAMP      = 3    -- frames to ramp in
+local WOBBLE_DURATION = 22 -- frames (~0.73s at 30fps)
+local WOBBLE_AMPLITUDE = 8 -- degrees peak tilt
+local WOBBLE_FREQ = 0.6 -- radians per frame
+local WOBBLE_RAMP = 3 -- frames to ramp in
 
 -- GameFrame is registered only while wobble animations run; otherwise every
 -- match paid an empty pairs() walk every sim frame.
@@ -121,10 +242,10 @@ local function addWobble(featureID)
 		local pitch, yaw, roll = GetFeatureRotation(featureID)
 		wobbleQueue[featureID] = {
 			start = GetGameFrame(),
-			axis  = random() * 2 * pi,
+			axis = random() * 2 * pi,
 			pitch = pitch or 0,
-			yaw   = yaw or 0,
-			roll  = roll or 0,
+			yaw = yaw or 0,
+			roll = roll or 0,
 		}
 		if not wobbleActive then
 			wobbleActive = true
@@ -171,13 +292,17 @@ end
 
 local function readTransform(featureID)
 	local x, y, z = GetFeaturePosition(featureID)
-	if not x then return nil end
+	if not x then
+		return nil
+	end
 	local pitch, yaw, roll = GetFeatureRotation(featureID)
 	return { x = x, y = y, z = z, pitch = pitch or 0, yaw = yaw or 0, roll = roll or 0 }
 end
 
 local function applyTransform(featureID, t)
-	if not ValidFeatureID(featureID) then return false end
+	if not ValidFeatureID(featureID) then
+		return false
+	end
 
 	-- A transform supersedes any placement wobble still running on this feature.
 	-- Left in the queue, the wobble would keep writing its own rotation and then
@@ -194,9 +319,12 @@ local function applyTransform(featureID, t)
 end
 
 -- Wire format, entries separated by "|":
---   defName x z heading [pitch roll y]
--- The optional tail is omitted for the flat-on-ground case, which is almost
--- every feature, keeping messages small.
+--   defName x z heading                     (4 tokens, the common case)
+--   defName x z heading scale               (5)
+--   defName x z heading pitch roll y        (7)
+--   defName x z heading pitch roll y scale  (8)
+-- Disambiguated by token count; each optional tail is omitted whenever it holds
+-- the default, so an untouched map's wire traffic stays byte-identical.
 local function parsePlacement(entry)
 	local parts = {}
 	for word in entry:gmatch("%S+") do
@@ -213,20 +341,38 @@ local function parsePlacement(entry)
 	x = max(0, min(Game.mapSizeX, x))
 	z = max(0, min(Game.mapSizeZ, z))
 
+	local n = #parts
+	local scale
+	if n == 5 then
+		scale = tonumber(parts[5])
+	elseif n >= 8 then
+		scale = tonumber(parts[8])
+	end
+
+	local pitch, roll, y
+	if n >= 6 then
+		pitch = tonumber(parts[5]) or 0
+		roll = tonumber(parts[6]) or 0
+		y = tonumber(parts[7])
+	end
+
 	return {
 		defName = defName,
 		x = x,
 		z = z,
 		heading = (tonumber(parts[4]) or 0) % 65536,
-		pitch = tonumber(parts[5]) or 0,
-		roll = tonumber(parts[6]) or 0,
-		y = tonumber(parts[7]) or GetGroundHeight(x, z),
+		pitch = pitch or 0,
+		roll = roll or 0,
+		y = y or GetGroundHeight(x, z),
+		scale = scale,
 	}
 end
 
 local function createFromPlacement(p)
 	local id = CreateFeature(p.defName, p.x, p.y, p.z, p.heading, gaiaTeamID)
-	if not id then return nil end
+	if not id then
+		return nil
+	end
 
 	if p.y > GetGroundHeight(p.x, p.z) + LIFT_EPSILON then
 		lockFeatureInPlace(id)
@@ -240,6 +386,11 @@ local function createFromPlacement(p)
 		local _, yaw = GetFeatureRotation(id)
 		SetFeatureRotation(id, p.pitch, yaw or 0, p.roll)
 	end
+
+	-- After creation on purpose: FeatureCreated callins (the dynamic collision
+	-- volume gadget among them) fire inside CreateFeature, so scaling here
+	-- multiplies on top of whatever they set rather than being stomped by it.
+	applyFeatureScale(id, p.scale)
 
 	return id
 end
@@ -355,9 +506,7 @@ local function isRestingOrientation(featureID, def, x, z)
 		end
 	end
 
-	return abs(ux - ex) < UP_MATCH_EPSILON
-		and abs(uy - ey) < UP_MATCH_EPSILON
-		and abs(uz - ez) < UP_MATCH_EPSILON
+	return abs(ux - ex) < UP_MATCH_EPSILON and abs(uy - ey) < UP_MATCH_EPSILON and abs(uz - ez) < UP_MATCH_EPSILON
 end
 
 -- Snapshot everything needed to recreate a feature exactly, tilt and lift
@@ -366,10 +515,14 @@ end
 local function captureFeature(featureID)
 	local defID = GetFeatureDefID(featureID)
 	local def = defID and FeatureDefs[defID]
-	if not def then return nil end
+	if not def then
+		return nil
+	end
 
 	local x, y, z = GetFeaturePosition(featureID)
-	if not x then return nil end
+	if not x then
+		return nil
+	end
 
 	local pitch, _, roll = GetFeatureRotation(featureID)
 	return {
@@ -380,6 +533,7 @@ local function captureFeature(featureID)
 		heading = GetFeatureHeading(featureID) or 0,
 		pitch = pitch or 0,
 		roll = roll or 0,
+		scale = featureScales[featureID],
 		resting = isRestingOrientation(featureID, def, x, z),
 	}
 end
@@ -392,7 +546,9 @@ local function removeFeatures(centerX, centerZ, radius, shape, angleDeg)
 	local z2 = min(Game.mapSizeZ, centerZ + extent)
 
 	local features = GetFeaturesInRectangle(x1, z1, x2, z2)
-	if not features or #features == 0 then return end
+	if not features or #features == 0 then
+		return
+	end
 
 	local removed = {}
 	for i = 1, #features do
@@ -534,7 +690,9 @@ local function destroyAll(features)
 end
 
 local function featureUndo()
-	if #undoStack == 0 then return end
+	if #undoStack == 0 then
+		return
+	end
 	closeStroke()
 
 	local entry = undoStack[#undoStack]
@@ -556,7 +714,9 @@ local function featureUndo()
 end
 
 local function featureRedo()
-	if #redoStack == 0 then return end
+	if #redoStack == 0 then
+		return
+	end
 	closeStroke()
 
 	local entry = redoStack[#redoStack]
@@ -599,12 +759,15 @@ local function exportAllFeatures()
 			-- "Tilted" means tilted away from the engine's own resting alignment,
 			-- not simply non-zero pitch: ground-aligned features on a slope have
 			-- plenty of that without anyone having touched them.
-			if
-				not snapshot.resting
+			local tilted = not snapshot.resting
 				or abs(snapshot.y - GetGroundHeight(snapshot.x, snapshot.z)) > LIFT_EPSILON
-			then
-				entry = entry
-					.. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
+			if tilted then
+				entry = entry .. string.format(" %.4f %.4f %.1f", snapshot.pitch, snapshot.roll, snapshot.y)
+			end
+			-- Scale rides as the 5th token (no tilt) or 8th (tilt): the token
+			-- count is what tells the two tails apart on the other side.
+			if snapshot.scale then
+				entry = entry .. string.format(" %.3f", snapshot.scale)
 			end
 			data[#data + 1] = entry
 		end
@@ -658,14 +821,18 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
 	-- Undo
 	if msg == UNDO_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		featureUndo()
 		return true
 	end
 
 	-- Redo
 	if msg == REDO_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		featureRedo()
 		return true
 	end
@@ -727,7 +894,9 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 	-- Clear all
 	if msg == CLEARALL_HEADER then
-		if not Spring.IsCheatingEnabled() then return true end
+		if not Spring.IsCheatingEnabled() then
+			return true
+		end
 		closeStroke()
 		clearAllFeatures()
 		return true
@@ -744,10 +913,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 		for word in payload:gmatch("%S+") do
 			parts[#parts + 1] = word
 		end
-		local centerX  = tonumber(parts[1])
-		local centerZ  = tonumber(parts[2])
-		local radius   = tonumber(parts[3])
-		local shape    = parts[4] or "circle"
+		local centerX = tonumber(parts[1])
+		local centerZ = tonumber(parts[2])
+		local radius = tonumber(parts[3])
+		local shape = parts[4] or "circle"
 		local angleDeg = tonumber(parts[5]) or 0
 
 		if not centerX or not centerZ or not radius then
@@ -762,8 +931,26 @@ end
 
 function gadget:Initialize()
 	gaiaTeamID = GetGaiaTeamID()
+
+	-- Deliberately NO walk over existing features here. Calling
+	-- GetFeatureRootPiece / GetFeaturePieceMatrix during LuaRules load CRASHES
+	-- the engine (access violation): map features' local piece models are only
+	-- instantiated when the drawer first touches them, and the piece callouts
+	-- deref an empty piece list before that. Runtime calls on freshly created
+	-- features are fine -- load-time calls on map features are not. The only
+	-- cost is that the (currently dormant) runtime-scale bookkeeping forgets
+	-- its entries across a /luarules reload; baked variant defs, the shipping
+	-- mechanism, carry their scale in the def and are unaffected.
+
 	-- Idle until the first wobble is queued (see addWobble).
 	gadgetHandler:RemoveCallIn("GameFrame")
+end
+
+-- Feature ids are recycled by the engine; without this a reclaimed or burned
+-- scaled feature would leave its stale scale behind for whatever feature
+-- inherits the id.
+function gadget:FeatureDestroyed(featureID, allyTeamID)
+	featureScales[featureID] = nil
 end
 
 function gadget:GameFrame(frame)
@@ -781,7 +968,7 @@ function gadget:GameFrame(frame)
 			local angleDeg = WOBBLE_AMPLITUDE * sin(elapsed * WOBBLE_FREQ) * decay * ramp
 			local angle = angleDeg * pi / 180
 			local pitch = info.pitch + angle * cos(info.axis)
-			local roll  = info.roll + angle * sin(info.axis)
+			local roll = info.roll + angle * sin(info.axis)
 			SetFeatureRotation(fid, pitch, info.yaw, roll)
 		end
 	end

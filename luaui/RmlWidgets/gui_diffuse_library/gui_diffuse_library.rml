@@ -11,6 +11,7 @@
 			<div id="dml-handle" class="dml-drag-handle text-2xl font-bold text-light text-outline-darker" style="flex: 1;">Material Library</div>
 			<div id="btn-quit" class="dml-quit-btn" onclick="widget:OnQuit()"><img class="dml-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="dml-section-frame">
 			<div class="dml-section-title-row">
@@ -43,6 +44,7 @@
 				<!-- Populated dynamically by Lua -->
 			</div>
 		</div>
+		</div><!-- /tf-panel-body -->
 	</div>
 </body>
 </rml>

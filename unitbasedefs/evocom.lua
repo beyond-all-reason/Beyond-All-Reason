@@ -5,15 +5,15 @@ local commanderLevel1 = {
 }
 
 local commanderEffigies = {
-	[1]  = nil, -- already set up by the effigy modoption
-	[2]  = "comeffigylvl1",
-	[3]  = "comeffigylvl2",
-	[4]  = "comeffigylvl2",
-	[5]  = "comeffigylvl3",
-	[6]  = "comeffigylvl3",
-	[7]  = "comeffigylvl4",
-	[8]  = "comeffigylvl4",
-	[9]  = "comeffigylvl5",
+	[1] = nil, -- already set up by the effigy modoption
+	[2] = "comeffigylvl1",
+	[3] = "comeffigylvl2",
+	[4] = "comeffigylvl2",
+	[5] = "comeffigylvl3",
+	[6] = "comeffigylvl3",
+	[7] = "comeffigylvl4",
+	[8] = "comeffigylvl4",
+	[9] = "comeffigylvl5",
 	[10] = "comeffigylvl5",
 }
 
@@ -57,7 +57,7 @@ local function evolvingCommanders(name, unitDef, modOptions)
 
 		if modOptions.evocomlevelupmethod == "dynamic" then
 			customparams.evolution_condition = "power"
-			customparams.evolution_power_multiplier = 1                             -- Scales the power calculated based on your own combined power.
+			customparams.evolution_power_multiplier = 1 -- Scales the power calculated based on your own combined power.
 			local evolutionPowerThreshold = customparams.evolution_power_threshold or 10000 --sets threshold for level 1 commanders
 			customparams.evolution_power_threshold = evolutionPowerThreshold * modOptions.evocomlevelupmultiplier
 		elseif modOptions.evocomlevelupmethod == "timed" then

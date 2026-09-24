@@ -2,12 +2,12 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name    = "DrawFeatureShape GL4",
-		desc    = "Instanced feature ghosts at arbitrary transforms. Use WG.DrawFeatureShapeGL4",
-		author  = "PtaQ",
-		date    = "July 2026",
+		name = "DrawFeatureShape GL4",
+		desc = "Instanced feature ghosts at arbitrary transforms. Use WG.DrawFeatureShapeGL4",
+		author = "PtaQ",
+		date = "July 2026",
 		license = "GNU GPL, v2 or later",
-		layer   = -9998,
+		layer = -9998,
 		enabled = false,
 		depends = { "gl4" },
 	}
@@ -41,7 +41,7 @@ local INSTANCE_STEP = 20
 
 local VBO_LAYOUT = {
 	{ id = 6, name = "worldposyaw", size = 4 }, -- xyz = world position, w = yaw (radians)
-	{ id = 7, name = "pitchroll", size = 4 }, -- x = pitch, y = roll, zw reserved
+	{ id = 7, name = "pitchroll", size = 4 }, -- x = pitch, y = roll, z = uniform scale, w reserved
 	{ id = 8, name = "parameters", size = 4 }, -- x = alpha, y = tint amount, z = highlight, w reserved
 	{ id = 9, name = "tintcolor", size = 4 }, -- rgb = tint target, a reserved
 	{ id = 10, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
@@ -104,6 +104,13 @@ void main() {
 		Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex);
 		vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
 	#endif
+
+	// Uniform scale, applied after the piece matrix so piece offsets scale along
+	// with the geometry -- the same thing the gadget's root-piece-matrix scale
+	// does to the real feature. Instances written before this attribute existed
+	// carry 0 there; treat that as unscaled.
+	float ghostScale = (pitchroll.z > 0.0) ? pitchroll.z : 1.0;
+	localModelPos.xyz *= ghostScale;
 
 	// Match Spring.SetFeatureRotation exactly, or the ghost does not line up with
 	// the feature it previews.
@@ -173,7 +180,9 @@ void main() {
 local featureShapeShader
 local vertexVBO, indexVBO
 
-local texKeyToBucket = {} -- "tex1|tex2" -> instance table
+---Instance buffers keyed by the texture pair they draw with.
+---@type table<string, InstanceVBOTable?>
+local texKeyToBucket = {}
 local buckets = {} -- array of the above, for iteration
 local featureDefIDToBucket = {} -- featureDefID -> instance table
 local unsupportedDefIDs = {} -- featureDefIDs with no usable model, warned about once
@@ -224,7 +233,13 @@ local function getBucket(featureDefID)
 	local key = tex1:lower() .. "|" .. tostring(tex2 and tex2:lower())
 	bucket = texKeyToBucket[key]
 	if not bucket then
-		bucket = InstanceVBOIdTable.makeInstanceVBOTable(VBO_LAYOUT, 32, "DrawFeatureShapeVBO:" .. key, INSTDATA_ATTRIB_ID, "featureDefID")
+		bucket = InstanceVBOIdTable.makeInstanceVBOTable(
+			VBO_LAYOUT,
+			32,
+			"DrawFeatureShapeVBO:" .. key,
+			INSTDATA_ATTRIB_ID,
+			"featureDefID"
+		)
 		if not bucket then
 			unsupportedDefIDs[featureDefID] = true
 			Echo("[DrawFeatureShape GL4] Failed to create an instance table for " .. key)
@@ -249,7 +264,7 @@ end
 ---Callers own the lifetime of everything they submit: pair every call that
 ---creates a ghost with StopDrawFeatureShapeGL4, or batch-remove with
 ---StopDrawFeatureShapesGL4(ownerID).
----@param featureDefID number which featureDef to draw
+---@param featureDefID FeatureDefID which featureDef to draw
 ---@param px number world position
 ---@param py number world position
 ---@param pz number world position
@@ -261,10 +276,27 @@ end
 ---@param tintG number optional tint target colour
 ---@param tintB number optional tint target colour
 ---@param tintAmount number optional how much to blend the tint in [0-1], default 0
----@param updateID number optional a uniqueID returned earlier, to move that ghost instead of adding one
+---@param scale number optional uniform model scale, default 1 (matches the root-piece-matrix scale the feature placer applies)
+---@param updateID integer? optional a uniqueID returned earlier, to move that ghost instead of adding one
 ---@param ownerID any optional tag so a widget can batch-remove everything it submitted
 ---@return number|nil uniqueID pass to StopDrawFeatureShapeGL4 to stop drawing it
-local function DrawFeatureShapeGL4(featureDefID, px, py, pz, yaw, pitch, roll, alpha, tintR, tintG, tintB, tintAmount, updateID, ownerID)
+local function DrawFeatureShapeGL4(
+	featureDefID,
+	px,
+	py,
+	pz,
+	yaw,
+	pitch,
+	roll,
+	alpha,
+	tintR,
+	tintG,
+	tintB,
+	tintAmount,
+	scale,
+	updateID,
+	ownerID
+)
 	local bucket = getBucket(featureDefID)
 	if not bucket then
 		return nil
@@ -290,7 +322,7 @@ local function DrawFeatureShapeGL4(featureDefID, px, py, pz, yaw, pitch, roll, a
 	end
 
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, yaw or 0
-	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = pitch or 0, roll or 0, 0, 0
+	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = pitch or 0, roll or 0, scale or 1, 0
 	instanceCache[9], instanceCache[10], instanceCache[11], instanceCache[12] = alpha or 0.55, tintAmount or 0, 0, 0
 	instanceCache[13], instanceCache[14], instanceCache[15], instanceCache[16] = tintR or 1, tintG or 1, tintB or 1, 1
 
@@ -312,7 +344,7 @@ local function DrawFeatureShapeGL4(featureDefID, px, py, pz, yaw, pitch, roll, a
 	return updateID
 end
 
----@param handleID number a uniqueID returned by DrawFeatureShapeGL4
+---@param handleID integer a uniqueID returned by DrawFeatureShapeGL4
 ---@return any ownerID the owner the handle was registered under, if any
 local function StopDrawFeatureShapeGL4(handleID)
 	if handleID == nil then
@@ -363,6 +395,26 @@ end
 -- silhouette, or every ghost collapsing onto one spot.
 local testHandles = {}
 
+-- The uniform scale the feature placer's gadget baked into the root piece
+-- matrix, read back as the length of the first basis vector. 1 for anything
+-- never scaled.
+local sqrt = math.sqrt
+local function readFeatureVisualScale(featureID)
+	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
+		return 1
+	end
+	local root = Spring.GetFeatureRootPiece(featureID) or 1
+	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
+	if not m11 then
+		return 1
+	end
+	local s = sqrt(m11 * m11 + m12 * m12 + m13 * m13)
+	if s < 0.01 then
+		return 1
+	end
+	return s
+end
+
 local function clearTest()
 	for i = 1, #testHandles do
 		StopDrawFeatureShapeGL4(testHandles[i])
@@ -411,8 +463,23 @@ local function drawFeatureShapeTest(_cmd, _line, args)
 				offsetted = offsetted + 1
 			end
 
-			testHandles[#testHandles + 1] =
-				DrawFeatureShapeGL4(featureDefID, x + nudge, y, z, yaw, pitch, roll, 0.75, 0.2, 1.0, 0.4, 0.5, nil, "test")
+			testHandles[#testHandles + 1] = DrawFeatureShapeGL4(
+				featureDefID,
+				x + nudge,
+				y,
+				z,
+				yaw,
+				pitch,
+				roll,
+				0.75,
+				0.2,
+				1.0,
+				0.4,
+				0.5,
+				readFeatureVisualScale(featureID),
+				nil,
+				"test"
+			)
 		end
 	end
 

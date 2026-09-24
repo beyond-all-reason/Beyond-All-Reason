@@ -35,12 +35,13 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'util',
+			unitgroup = "util",
+			juno_kill = true,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "Legion/utilities",
+			subfolder = "Legion/Utilities",
 		},
 		featuredefs = {
 			dead = {

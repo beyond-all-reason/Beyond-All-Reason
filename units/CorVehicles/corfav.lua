@@ -4,7 +4,7 @@ return {
 		buildtime = 1150,
 		canmove = true,
 		category = "GROUNDSCOUT",
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "16 16 26",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
@@ -39,13 +39,16 @@ return {
 		customparams = {
 			basename = "base",
 			firingceg = "",
+			juno_deny = true,
+			juno_kill = true,
 			kickback = "0",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
+			reaim_spam = true,
+			reaimtime = 3,
+			stompable = true,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -133,6 +136,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 35,
 					vtol = 2,

@@ -29,7 +29,6 @@ return {
 			buildinggrounddecaltype = "decals/corerad_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			removestop = true,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "aa",

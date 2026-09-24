@@ -13,7 +13,7 @@ function gadget:GetInfo()
 		date = "2026.06.28",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -146,7 +146,18 @@ local function createUnitMeta(unitDefID)
 	return meta
 end
 
-function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+function gadget:UnitCommand(
+	unitID,
+	unitDefID,
+	unitTeamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	if cmdID == CMD_FIRE_STATE then
 		updateDefendWatchFromRulesParam(unitID)
 	end
@@ -235,7 +246,8 @@ function gadget:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attac
 end
 
 function gadget:Initialize()
-	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs = WeaponThreat.buildDefendData()
+	defThreatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs =
+		WeaponThreat.buildDefendData()
 
 	for _, unitID in ipairs(spGetAllUnits()) do
 		local unitDefID = spGetUnitDefID(unitID)

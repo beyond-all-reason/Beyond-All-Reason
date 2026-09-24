@@ -1,6 +1,6 @@
 return {
 	legionnaire = {
-		maxacc= 0.35,
+		maxacc = 0.35,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.0875,
@@ -15,7 +15,7 @@ return {
 		explodeas = "smallExplosionGenericAir",
 		footprintx = 2,
 		footprintz = 2,
-		maxacc= 0.4,
+		maxacc = 0.4,
 		maxaileron = 0.016,
 		maxbank = 0.72,
 		health = 480,
@@ -39,10 +39,11 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Hornet",
 			normaltex = "unittextures/cor_normal.dds",
-			subfolder = "CorAircraft/T2",
+			reaimtime = 5,
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,
 			fighter = 1,
@@ -111,11 +112,7 @@ return {
 					default = 2,
 					vtol = 80,
 				},
-				customparams = {
-					noattackrangearc= 1,
-				},
 			},
-
 		},
 		weapons = {
 			[1] = {

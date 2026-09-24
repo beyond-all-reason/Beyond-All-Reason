@@ -8,7 +8,7 @@ static-var  gun_1, restore_delay, fired, aiming;
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
-#define SIGNAL_AIM2 256
+#define SIGNAL_AIM2 512
 
 
 #define BASEPIECE base

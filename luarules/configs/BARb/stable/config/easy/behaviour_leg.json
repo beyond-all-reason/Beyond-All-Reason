@@ -413,7 +413,7 @@
 	
 			// Mobile Unit Behaviour Modifiers
 				// "role": [<main>, <enemy>, <enemy>, ...]
-				// <main> is the role to make desicions of when to build it and what task to assign
+				// <main> is the role to make decisions of when to build it and what task to assign
 				// <enemy> is to decide how to counter enemy unit, if missing then equals to <main>
 	
 				// Roles: builder, scout, raider, riot, assault, skirmish, artillery, anti_air, anti_sub, anti_heavy, bomber, support, mine, transport, air, sub, static, heavy, super, commander
@@ -453,7 +453,7 @@
 				// "open" - fire at will
 				// syntax::: "fire_state": "open",
 	
-				//"on"/"off": true/false - syntax:: "on":false | use to modifiy trajectory mode for weapons
+				//"on"/"off": true/false - syntax:: "on":false | use to modify trajectory mode for weapons
 	
 	
 			

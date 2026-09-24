@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = "UnitDamagedReplay",
-		desc	= 'Expose full UnitDamaged to widgets only during replays',
-		author	= 'Itanthias',
-		date	= 'Sept 2022',
-		license	= 'GNU GPL, v2 or later',
-		layer	= 1,
-		enabled	= true
+		name = "UnitDamagedReplay",
+		desc = "Expose full UnitDamaged to widgets only during replays",
+		author = "Itanthias",
+		date = "Sept 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 1,
+		enabled = true,
 	}
 end
 
@@ -38,10 +38,32 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	-- handle the UnitDamaged callin
-	function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+	function gadget:UnitDamaged(
+		unitID,
+		unitDefID,
+		unitTeam,
+		damage,
+		paralyzer,
+		weaponDefID,
+		projectileID,
+		attackerID,
+		attackerDefID,
+		attackerTeam
+	)
 		-- send to LuaUI, widget space, the UnitDamaged information
 		if Script.LuaUI("UnitDamagedReplay") then
-			Script.LuaUI.UnitDamagedReplay(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+			Script.LuaUI.UnitDamagedReplay(
+				unitID,
+				unitDefID,
+				unitTeam,
+				damage,
+				paralyzer,
+				weaponDefID,
+				projectileID,
+				attackerID,
+				attackerDefID,
+				attackerTeam
+			)
 		end
 	end
 end
@@ -88,4 +110,5 @@ function widget:Shutdown()
 
 end
 
-]]--
+]]
+--

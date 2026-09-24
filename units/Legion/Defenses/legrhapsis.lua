@@ -1,7 +1,7 @@
 return {
 	legrhapsis = {
 		maxacc = 0,
-		airsightdistance = 850,
+		airsightdistance = 950,
 		maxdec = 0,
 		buildangle = 8192,
 		energycost = 6500,
@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -113,7 +113,7 @@ return {
 				model = "cormissile.s3o",
 				name = "Advanced g2a Salvo Missile Launcher",
 				noselfdamage = true,
-				range = 840,
+				range = 950,
 				reloadtime = 0.5,
 				smoketrail = true,
 				smokePeriod = 7,
@@ -138,7 +138,7 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 2500,
 				damage = {
-					vtol = 13,
+					vtol = 15,
 				},
 			},
 		},

@@ -1,4 +1,6 @@
-if not Platform then return end
+if not Platform then
+	return
+end
 local hasGL4 = false
 local hasGL = false
 local hasShaders = false
@@ -30,13 +32,13 @@ local function checkRequires(allRequires)
 	end
 	for i = 1, #allRequires do
 		local req = allRequires[i]
-		if req == 'gl' and not hasGL then
+		if req == "gl" and not hasGL then
 			return false
-		elseif req == 'gl4' and not hasGL4 then
+		elseif req == "gl4" and not hasGL4 then
 			return false
-		elseif req == 'shaders' and not hasShaders then
+		elseif req == "shaders" and not hasShaders then
 			return false
-		elseif req == 'fbo' and not hasFBO then
+		elseif req == "fbo" and not hasFBO then
 			return false
 		end
 	end

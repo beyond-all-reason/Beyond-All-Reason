@@ -1,6 +1,6 @@
 return {
 	legvenator = {
-		maxacc= 0.6,
+		maxacc = 0.6,
 		airsightdistance = 1100,
 		blocking = false,
 		maxdec = 0.0675,
@@ -38,9 +38,10 @@ return {
 		wingangle = 0.06363,
 		wingdrag = 0.21,
 		customparams = {
-			unitgroup = 'aa',
+			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,
@@ -95,9 +96,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
-				customparams = {
-					noattackrangearc= 1,
-				},
 				damage = {
 					commanders = 8,
 					default = 24,

@@ -35,16 +35,17 @@ return {
 		turnrate = 240,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "tHARSIS",
 			normaltex = "unittextures/LEG_normal.dds",
-			subfolder = "CorAircraft/T2",
+			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -129,7 +130,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 400,
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 				damage = {
 					default = 166,

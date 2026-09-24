@@ -33,7 +33,9 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorAircraft",
+			reaimtime = 5,
+			subfolder = "Legion/Air/T2 Air",
+			unitgroup = "weapon",
 			drone = 1,
 			nohealthbars = 1,
 		},
@@ -99,7 +101,7 @@ return {
 					vtol = 2,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
 		},

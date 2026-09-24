@@ -35,13 +35,12 @@ return {
 		upright = true,
 		customparams = {
 			maxrange = "10",
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "leggantry",
+			reaimtime = 3,
+			subfolder = "Legion/T3",
 			techlevel = 3,
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -130,6 +129,8 @@ return {
 				customparams = {
 					bogus = 1,
 					noattackrangearc = 1,
+					turretspeedx = 200,
+					turretspeedy = 200,
 				},
 				damage = {
 					default = 0,
@@ -223,7 +224,7 @@ return {
 				def = "AIMHULL",
 				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
-				maxangledif = 340, --Needed because otherwise targetting logic breaks outside this area.
+				maxangledif = 340, --Needed because otherwise targeting logic breaks outside this area.
 			},
 			[2] = {
 				badtargetcategory = "GROUNDSCOUT",

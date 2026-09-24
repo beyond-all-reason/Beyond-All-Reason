@@ -35,6 +35,7 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
@@ -128,7 +129,7 @@ return {
 				sprayangle = 1900,
 				thickness = 0.6,
 				tolerance = 6000,
-                firetolerance = 6000,
+				firetolerance = 6000,
 				turret = true,
 				weapontype = "LaserCannon",
 				weaponvelocity = 969,

@@ -1,6 +1,5 @@
 return {
 	raptor_air_kamikaze_basic_t2_v1 = {
-		acceleration = 0.8,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,
@@ -62,6 +61,7 @@ return {
 		kamikazedistance = 128,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",

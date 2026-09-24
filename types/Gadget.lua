@@ -1,11 +1,12 @@
 ---@meta
 
----@class Gadget : Addon, RulesSyncedCallins
+---@class Gadget : Addon, RulesSyncedCallins, SyntheticCallins
 ---@field [string] any
 ---@field ghInfo FullGadgetInfo
 ---@see Callins
 ---@see SyncedCallins
 ---@see UnsyncedCallins
+---@see SyntheticCallins
 ---@see Spring.IsSyncedCode
 
 ---@class FullGadgetInfo : AddonInfo
@@ -16,5 +17,11 @@
 ---@diagnostic disable-next-line: lowercase-global
 gadget = nil
 
----Shared table for gadgets.
+---Shared cross-gadget namespace. Gadgets publish arbitrary keys onto it at
+---runtime (e.g. `GG.Crashing` from `unit_crashing_aircraft.lua`), so it is
+---modelled as an open table — the analyzer cannot know the key set.
+---@class GGTable
+---@field [string] any
+
+---@type GGTable
 GG = {}

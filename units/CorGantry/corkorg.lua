@@ -40,6 +40,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 1,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -169,7 +170,7 @@ return {
 				},
 				customparams = {
 					sound_volume_multiplier = 2.5,
-				}
+				},
 			},
 			corkorg_rocket = {
 				areaofeffect = 200,
@@ -210,8 +211,10 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2600,
 				customparams = {
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 3,
 					overrange_distance = 1093,
-					projectile_destruction_method = "descend",
 				},
 				damage = {
 					default = 800,

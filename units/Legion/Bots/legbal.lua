@@ -31,10 +31,11 @@ return {
 		turnrate = 1268.44995,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBots",
+			reaimtime = 5,
+			subfolder = "Legion/Bots",
 		},
 		featuredefs = {
 			dead = {

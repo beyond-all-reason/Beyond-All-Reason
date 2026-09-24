@@ -644,7 +644,7 @@ StartBuilding(heading, pitch)
 	//set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	bIsBuilding = 1;
-	//while( !Busy ) //aiming shouldnt block construction
+	//while( !Busy ) //aiming shouldn't block construction
 	//{
 	//	sleep 30;
 	//}

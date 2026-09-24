@@ -60,7 +60,7 @@ return {
 			[2] = "corkorg",
 		},
 		customparams = {
-			unitgroup = 'buildert4',
+			unitgroup = "buildert4",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.01,

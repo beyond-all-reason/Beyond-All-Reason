@@ -31,12 +31,12 @@ return {
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'metal',
+			unitgroup = "metal",
 			model_author = "Protar",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 		},
 		featuredefs = {
 			dead = {

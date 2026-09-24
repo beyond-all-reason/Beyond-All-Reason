@@ -4,8 +4,8 @@ return {
 		buildpic = "CORGARP.DDS",
 		buildtime = 3100,
 		canmove = true,
-		collisionvolumeoffsets = "0 -3 0",
-		collisionvolumescales = "30 21 36",
+		collisionvolumeoffsets = "0 1 0",
+		collisionvolumescales = "30 23 36",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		energycost = 2600,
@@ -46,8 +46,6 @@ return {
 			paralyzemultiplier = 0.2,
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 130,
-			weapon1turrety = 130,
 		},
 		featuredefs = {
 			dead = {
@@ -128,6 +126,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
+				customparams = {
+					turretspeedx = 130,
+					turretspeedy = 130,
+				},
 				damage = {
 					default = 116,
 					vtol = 25,

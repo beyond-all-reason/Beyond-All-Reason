@@ -38,7 +38,7 @@ return {
 		movementclass = "COMMANDERBOT",
 		movestate = 0,
 		nochasecategory = "ALL",
-		objectname = "Units/ARMCOM"..(Spring.GetModOptions().xmas and '-XMAS' or '')..".s3o",
+		objectname = "Units/ARMCOM" .. (Spring.GetModOptions().xmas and "-XMAS" or "") .. ".s3o",
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
@@ -93,6 +93,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "",
+			tombstone = "armstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {

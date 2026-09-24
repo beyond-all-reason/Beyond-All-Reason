@@ -31,7 +31,8 @@ return {
 			buildinggrounddecalsizey = 9,
 			buildinggrounddecalsizex = 9,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			islrpc = true,
+			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "ZephyrSkies",
@@ -128,9 +129,9 @@ return {
 				soundstart = "lrpcshot3",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 1100,
+				weaponvelocity = 900,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 6,
 				},
 				damage = {

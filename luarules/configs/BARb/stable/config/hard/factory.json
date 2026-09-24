@@ -78,7 +78,7 @@
 			"tier3": [ 0.40,     0.10,		 0.15,      0.10,     0.12,		0.05,	   0.10,      0.01,     0.01,		0.01,     	0.00,       0.00,      0.05,      0.10,		1.00, 		0.10],
             "tier4": [ 0.40,     0.10,		 0.15,      0.10,     0.12,		0.05,	   0.10,      0.01,     0.01,		0.01,     	0.00,       0.00,      0.02,      0.10,		1.00,		0.10]
 		},
-		"caretaker": 12  // maxiumum amount of nanos: #caretake x #factories | actual max total amount gets limited by income/nanobuilspeed (behaviour.json)| e.g. 3rd factory 4 caretaker => 3x4=12
+		"caretaker": 12  // maximum amount of nanos: #caretake x #factories | actual max total amount gets limited by income/nanobuilspeed (behaviour.json)| e.g. 3rd factory 4 caretaker => 3x4=12
 	},
 
 	"armvp": {

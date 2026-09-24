@@ -1,15 +1,15 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-    return {
-        name      = "Resurrection Behavior",
-        desc      = "Handles starting health, wait until repair, and transferring oldUnit > corpse > newUnit data.",
-        author    = "Floris, Chronographer, SethDGamre",
-        date      = "4 November 2025",
-        license   = "GNU GPL, v2 or later",
-        layer     = 5, -- FIXME why?
-        enabled   = true
-    }
+	return {
+		name = "Resurrection Behavior",
+		desc = "Handles starting health, wait until repair, and transferring oldUnit > corpse > newUnit data.",
+		author = "Floris, Chronographer, SethDGamre",
+		date = "4 November 2025",
+		license = "GNU GPL, v2 or later",
+		layer = 5, -- FIXME why?
+		enabled = true,
+	}
 end
 
 if not gadgetHandler:IsSyncedCode() then
@@ -20,7 +20,7 @@ local CMD_RESURRECT = CMD.RESURRECT
 local CMD_WAIT = CMD.WAIT
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_MOVE_STATE = CMD.MOVE_STATE
-local VISIBILITY_INLOS = {inlos = true}
+local VISIBILITY_INLOS = { inlos = true }
 local UPDATE_INTERVAL = Game.gameSpeed
 local TIMEOUT_FRAMES = Game.gameSpeed * 3 -- long enough to get grabbed by FeatureCreated callback
 
@@ -36,7 +36,7 @@ local prevHealth = {}
 local priorStates = {} -- unitID = { timeout, firestate, movestate, xp }
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-	shouldWaitForHealing[unitDefID] = (not unitDef.isBuilding) and (not unitDef.isBuilder)
+	shouldWaitForHealing[unitDefID] = (not unitDef.isBuilding) and not unitDef.isBuilder
 end
 
 local function RestoreStateMechanics(unitID, featureID)
@@ -94,7 +94,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		timeout = Spring.GetGameFrame() + TIMEOUT_FRAMES,
 		firestate = states.firestate,
 		movestate = states.movestate,
-		xp = Spring.GetUnitExperience(unitID)
+		xp = Spring.GetUnitExperience(unitID),
 	}
 end
 

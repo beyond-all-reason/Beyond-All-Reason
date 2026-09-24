@@ -31,13 +31,14 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Seaplanes",
+			subfolder = "Legion/SeaPlanes",
 			unitgroup = "sub",
 		},
 		sfxtypes = {
 			explosiongenerators = {
 				[0] = "custom:barrelshot-tiny",
-			},		},
+			},
+		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",
@@ -105,6 +106,7 @@ return {
 					vtol = 15,
 				},
 				customparams = {
+					land_damage_mult = 0.2,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 800,
 				},

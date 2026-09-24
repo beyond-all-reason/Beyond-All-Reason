@@ -1,6 +1,5 @@
 return {
 	armlichet4 = {
-		acceleration = 0.15,
 		blocking = false,
 		maxdec = 0.05,
 		energycost = 240000,
@@ -40,7 +39,7 @@ return {
 		wingangle = 0.062,
 		wingdrag = 0.135,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			lumamult = "1.7",
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",

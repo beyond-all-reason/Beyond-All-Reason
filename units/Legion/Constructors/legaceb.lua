@@ -57,10 +57,10 @@ return {
 			"legamph",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/constructors",
+			subfolder = "Legion/Constructors",
 			techlevel = 2,
 		},
 		featuredefs = {

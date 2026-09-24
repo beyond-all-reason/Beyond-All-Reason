@@ -35,13 +35,14 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 600,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorVehicles/T2",
+			reaimtime = 5,
+			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 			weapon1turretx = 200,
 			weapon1turrety = 400,
@@ -129,6 +130,10 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 550,
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 120,
 					vtol = 30,
@@ -141,7 +146,6 @@ return {
 				def = "QUICKSHOT_CANNON",
 				onlytargetcategory = "SURFACE",
 				burstControlWhenOutOfArc = 2,
-
 			},
 		},
 	},

@@ -33,13 +33,13 @@ return {
 			buildinggrounddecalsizey = 7,
 			buildinggrounddecalsizex = 7,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
 			solar = true,
-			subfolder = "Legion/economy",
+			subfolder = "Legion/Economy",
 		},
 		featuredefs = {
 			dead = {

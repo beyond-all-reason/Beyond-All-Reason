@@ -106,7 +106,7 @@ VehicleSteering(reversing)
 		#endif
 		
 		#if VS_CANREVERSE == 1 
-			// Reversing isnt very reliable, but can be used here to flip directions
+			// Reversing isn't very reliable, but can be used here to flip directions
 			if (reversing){
 				deltaHeading = -1 * deltaHeading;
 				deltaSpeed   = -1 * deltaSpeed;

@@ -22,7 +22,7 @@ return {
 		minwaterdepth = 6,
 		movementclass = "BOAT4",
 		movestate = 0,
-		nochasecategory = "VTOL UNDERWATER",
+		nochasecategory = "VTOL",
 		objectname = "Units/legnavyfrigate.s3o",
 		script = "Units/legnavyfrigate.cob",
 		seismicsignature = 0,
@@ -34,7 +34,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weaponsub',
+			unitgroup = "weaponsub",
 			model_author = "EnderRobo (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,

@@ -33,7 +33,8 @@ return {
 		turnrate = 200,
 		usepiececollisionvolumes = 1,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
+			allow_set_target = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots/T2",

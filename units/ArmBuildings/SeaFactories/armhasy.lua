@@ -64,6 +64,18 @@ return {
 				object = "Units/armhasy_dead.s3o",
 				reclaimable = true,
 			},
+			heap = {
+				blocking = false,
+				category = "heaps",
+				damage = 16000,
+				footprintx = 15,
+				footprintz = 15,
+				height = 4,
+				metal = 1250,
+				object = "Units/arm7X7A.s3o",
+				reclaimable = true,
+				resurrectable = 0,
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

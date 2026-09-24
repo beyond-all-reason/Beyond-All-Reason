@@ -1,8 +1,8 @@
 return {
 	armtdrone = {
-		acceleration = 0.22,
+		maxacc = 0.22,
 		blocking = false,
-		brakerate = 0.5,
+		maxdec = 0.5,
 		energycost = 750,
 		metalcost = 30,
 		buildpic = "ARMKAM.DDS",
@@ -10,14 +10,14 @@ return {
 		canfly = true,
 		canmove = true,
 		collide = true,
-		cruisealt = 40,
+		cruisealtitude = 40,
 		explodeas = "smallExplosionGeneric",
 		footprintx = 1,
 		footprintz = 1,
 		hoverattack = true,
 		health = 300,
 		maxslope = 10,
-		maxvelocity = 11,
+		speed = 330,
 		maxwaterdepth = 0,
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMDRONE.s3o",
@@ -92,6 +92,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
+					land_damage_mult = 0.2,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 700,
 				},
@@ -131,6 +132,9 @@ return {
 				waterweapon = true,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					land_damage_mult = 0.2,
+				},
 				damage = {
 					default = 215,
 				},

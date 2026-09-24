@@ -31,12 +31,14 @@ return {
 		turnrate = 1200,
 		upright = true,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
+			reaim_spam = true,
+			reaimtime = 2,
+			stompable = true,
 			subfolder = "CorBots",
 			unitgroup = "weapon",
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -121,6 +123,10 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					default = 37,
 					vtol = 7,

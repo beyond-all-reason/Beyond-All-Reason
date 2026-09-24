@@ -1,6 +1,8 @@
 // This shader is Copyright (c) 2025 Beherith (mysterme@gmail.com) and licensed under the MIT License
 //shader version is added via gadget
 
+//__ENGINEUNIFORMBUFFERDEFS__
+
 #if (RENDERING_MODE == 2) //shadows pass. AMD requests that extensions are declared right on top of the shader
 	#if (SUPPORT_DEPTH_LAYOUT == 1)
 		//#extension GL_ARB_conservative_depth : enable // this is commented out because AMD wants me to add it at start of shader, hope this works...
@@ -456,7 +458,7 @@ vec3 shToColor(mat3 shR, mat3 shG, mat3 shB, vec3 rayDir) {
 		shUnproject(shG, rayDir),
 		shUnproject(shB, rayDir));
 
-	// A "max" is usually recomended to avoid negative values (can happen with SH)
+	// A "max" is usually recommended to avoid negative values (can happen with SH)
 	rgbColor = max(vec3(0.0), vec3(rgbColor));
 	return rgbColor;
 }
@@ -1155,8 +1157,8 @@ void main(void){
 	}
 	#ifdef REFLECT_DISCARD
 		//if ((uint(drawPass) & 4u ) == 4u){ // reflections
-			//if (worldVertexPos.y < -2.0) discard; // I cant figure out how clipspace works, so this is poor mans clip
-		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS ARENT FREE!
+			//if (worldVertexPos.y < -2.0) discard; // I can't figure out how clipspace works, so this is poor mans clip
+		// AVOID THIS DISCARD LIKE THE PLAGUE, even DYNAMICALLY UNIFORM DISCARDS AREN'T FREE!
 		//}
 	#endif
 
@@ -1186,7 +1188,7 @@ void main(void){
 			// with a power curve, each next faster than the other, meaning .x is the bottom level, .w is the top level
 			vec4 progressLevels = vec4(buildProgress);
 			progressLevels = pow(progressLevels, vec4(3.0, 1.5, 0.7, 0.35));
-			// Add perlin and ensure that perlin doesnt cause inaccuracy at the top of the model:
+			// Add perlin and ensure that perlin doesn't cause inaccuracy at the top of the model:
 			progressLevels = mix(progressLevels, vec4(myPerlin.g + myPerlin.b*sin(simFrame * 0.042342)), 0.05 * smoothstep(0.00, 0.05, 1.0 - buildProgress));
 			
 			vec4 levelLines = clamp(1.0 - 100 * abs(progressLevels - vec4(height)), 0,1);

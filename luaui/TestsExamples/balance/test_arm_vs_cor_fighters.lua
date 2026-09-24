@@ -1,21 +1,21 @@
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 
 	Spring.SendCommands("setspeed " .. 1)
 end
 
-function test()
+local function test()
 	local units = {
 		[0] = "armfig",
-		[1] = "corveng"
+		[1] = "corveng",
 	}
 	local n = 200
 
@@ -42,7 +42,6 @@ function test()
 				local y = Spring.GetGroundHeight(x, z)
 				local unitID = Spring.CreateUnit(locals.units[1], x, y, z, "west", 1)
 			end
-
 		end
 	end)
 
@@ -95,3 +94,5 @@ function test()
 	-- cor fighters should win
 	assert(winner == 1)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

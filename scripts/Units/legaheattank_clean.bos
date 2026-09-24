@@ -4,7 +4,7 @@
 //piece base, turretBase, gun, gearR, gearL, coverR, coverL;
 piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
-static-var  statechg_DesiredState, statechg_StateChanging, restore_delay, whichGun, timeLeft, targetswap, isfiring, gameframe, lastfired, timer, firetime, oldhead, aimAdj, oldsteerheading;
+static-var  statechg_DesiredState, statechg_StateChanging, whichGun, timeLeft, isfiring, gameframe, lastfired, fireTime, reloadTime, oldhead, aimAdj, oldsteerheading, cooldown, isFiring, restore_delay, gun_lasthead, gun_lastpitch;
 
 // Signal definitions
 // Signal definitions
@@ -27,6 +27,24 @@ Steering(heading, steery, currentSpeed)
 	//set-signal-mask SIGNAL_MOVE;
 	while(1)
 	{
+		if (isFiring)
+		{
+			cooldown = cooldown + 1;
+			if (cooldown > reloadTime)
+			{
+				if (whichGun == 0)
+				{
+						whichGun = 1;
+				}
+				else if (whichGun == 1)
+				{
+						whichGun = 0;
+				}
+				cooldown = 0;
+				isFiring = 0;
+				//start-script RestoreAfterDelay();
+			}
+		}
 		heading = get HEADING;
 		aimAdj = (heading - oldsteerheading);
 		sleep 33;
@@ -49,34 +67,50 @@ Steering(heading, steery, currentSpeed)
 #define TB_BANK_Z <0.15> // Do not define this if you dont want banking
 #include "../tilt_bank_mobileunit.h"
 
+RestoreAfterDelay()
+{
+	set-signal-mask SIGNAL_AIM1;
+	sleep restore_delay;
+	start-script RestoreAfterDelayGun();
+}
+
+RestoreAfterDelayGun(addTime)
+{
+	signal SIGNAL_RESTORE;
+	set-signal-mask SIGNAL_RESTORE;
+	gun_lasthead = -1000000;
+	gun_lastpitch = -1000000;
+	aimAdj = 0;
+	turn turretBase to y-axis <0.000000> speed <90.000000>;
+	turn turretStrut to x-axis <0.000000> speed <50.000000>;
+}
 
 Create()
 {
-	//hide flare;
-	// hide flarer;
-	// hide flarel;
 	start-script Steering();
+	restore_delay = 500;
 	timeLeft = 0;
     isfiring = 0;
 	oldsteerheading = get HEADING;
 	oldhead = 1000000;
 	aimAdj = 0;
-	timer = 0;
-	targetswap = 0;
-	firetime = 54;
-	lastfired = get(GAME_FRAME)-200;	
-	restore_delay = 3000;
-	//call-script TB_Init();
-	call-script SweepFire();
+	cooldown = 0;
+	isFiring = 0;
+	fireTime = 54;
+	lastfired = -1000000;
 	whichGun = 0;
 	return (0);
 }
 
-
-
 SetMaxReloadTime(reloadMS)
 {
-	restore_delay = reloadMS * 2;
+	reloadTime = reloadMS; // FIXME: xp scaling
+}
+
+SetSweepfireTimeWeapon1(fireTimeValue, reloadTimeValue)
+{
+	fireTime = fireTimeValue;
+	reloadTime = reloadTimeValue;
 }
 
 StartMoving(reversing)
@@ -95,126 +129,46 @@ StopMoving()
 }
 
 
-static-var  Stunned;
-SetStunned(State)
-{
-    Stunned = State;
-}
-
-
-TimeToRestore(addTime){
-	signal SIGNAL_RESTORE;
-	set-signal-mask SIGNAL_RESTORE;
-    // This function may not be signal terminated
-    // If it has to be, it _must_ be immediately restarted
-    // PROBLEM: the time that is slept depends on number of aim calls.
-    while((timeLeft > 1) || Stunned){
-		//get PRINT(timeLeft, get GAME_FRAME);
-        addTime = timeLeft;
-        timeLeft = 1;
-        sleep addTime;//can sometimes sleep 6000 but never wake up again?
-    }
-	//get PRINT(77, timeLeft, get GAME_FRAME);
-    // The restore section must be atomic :/
-	turn turretBase to y-axis <0.000000> speed <40>;
-	turn turretStrut to x-axis <0.000000> speed <40>;
-
-    timeLeft = 0;
-    isfiring = 0;
-	oldhead = 1000000;
-	aimAdj = 0;
-	timer = 0;
-	targetswap = 0;
-		
-	//stop-spin barrelMid around z-axis decelerate <5>;
-	//wait-for-turn turretBase around y-axis;
-}
-
-
-SweepFire()
-{
-	signal SIGNAL_LIGHT;
-	set-signal-mask SIGNAL_LIGHT;
-	while (TRUE)
+AimPrimary(heading, pitch)
+{ 
+	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
+	turn turretBase to y-axis heading - aimAdj speed <65.000000>;
+	turn turretStrut to x-axis <0.000000> - pitch speed <50.000000>;
+	start-script RestoreAfterDelay();
+	if (cooldown > fireTime)
 	{
-		gameframe = get(GAME_FRAME);
-		//get PRINT(123, lastfired, gameframe, lastfired+firetime>gameframe);
-		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+firetime>gameframe)
-		{
-			if (whichGun == 0) {
-				emit-sfx 2048 from flarer;
-			} else {
-				emit-sfx 2048 from flarel;
-			}
-			timer = timer + 1;
-		}
-		if (timer > 150)
-		{
-			//signal SIGNAL_AIM;
-			//timer = 0;
-			//start-script RestoreAfterDelay();
-		}
-		sleep 20;
+		return (0);
 	}
+	if ( (get ABS(gun_lasthead - heading)< <20>) AND (get ABS(gun_lastpitch - pitch)< <20>) )
+	{
+		gun_lasthead = heading;
+		gun_lastpitch = pitch;
+		return (1);
+	}
+	wait-for-turn turretBase around y-axis;
+	wait-for-turn turretStrut around x-axis;
+	gun_lasthead = heading;
+	gun_lastpitch = pitch;
+	return (1);
 }
 
-
-
-
-AimWeapon1(heading, pitch)
+FirePrimary()
 {
-    signal SIGNAL_AIM1;
-    set-signal-mask SIGNAL_AIM1;
-    if (timeLeft == 0)
-    {
-        start-script TimeToRestore();
-    }
-    timeLeft = restore_delay;
-	if (get ABS(oldhead - heading) > 500)
-	{
-		targetswap = 1;
-	}
-	gameframe = get(GAME_FRAME);
-	turn turretBase to y-axis heading - aimAdj speed <65>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <65>;
-	if (((get ABS(oldhead - heading)) > 65536) OR(((get ABS(oldhead - heading)) > 5000) AND ((get ABS(oldhead - heading)) < 64236)))
-	{
-		oldhead = 1000000;
-		wait-for-turn turretBase around y-axis;
-		wait-for-turn turretStrut around x-axis;
-	}
-	oldhead = heading;
-	isfiring = 1;
-    return (1);
-}
-
-
-
-FireWeapon1()
-{
+	isFiring = 1;
 	gameframe = get(GAME_FRAME);
 	lastfired = gameframe;
 	if (whichGun == 0){
 		//emit-sfx 1024 + 0  from flarer;
 		sleep 2000;
-		whichGun = 1;
 		return(0);
 	}
 
 	if (whichGun == 1){
 		//emit-sfx 1024 + 0  from flarel;
 		sleep 2000;
-		whichGun = 0;
 		return(0);
 	}
-	//emit-sfx 1024 + 0 from flare;
-
-	// move sleeve to z-axis [-3.000000] speed [1250.000000];
-	// move barrel to z-axis [-6.000000] speed [1250.000000];
-	// wait-for-move sleeve along z-axis;
-	// move barrel to z-axis [0.000000] speed [7.500000];
-	// move sleeve to z-axis [0.000000] speed [7.500000];
 	return (0);
 }
 

@@ -1,18 +1,18 @@
 ---@class UnitScriptTable
----@field CallAsUnit fun(unitID: integer, fn: function, ...: any): any
+---@field CallAsUnit fun(unitID: UnitID, fn: function, ...: any): any
 ---@field WaitForMove fun(pieceNum: integer, axis: integer)
 ---@field WaitForTurn fun(pieceNum: integer, axis: integer)
 ---@field WaitForScale fun(pieceNum: integer)
----@field GetUnitCOBValue fun(unitID: integer, cobVal: integer, ...: any): integer
----@field SetUnitCOBValue fun(unitID: integer, cobVal: integer, param: integer|boolean): nil
+---@field GetUnitCOBValue fun(unitID: UnitID, cobVal: integer, ...: any): integer
+---@field SetUnitCOBValue fun(unitID: UnitID, cobVal: integer, param: integer|boolean): nil
 ---@field Sleep fun(ms: number)
 ---@field StartThread fun(fn: function, ...: any)
 ---@field SetSignalMask fun(mask: integer)
 ---@field Signal fun(mask: integer)
 ---@field Hide fun(pieceNum: integer)
 ---@field Show fun(pieceNum: integer)
----@field GetScriptEnv fun(unitID: integer): table
----@field GetLongestReloadTime fun(unitID: integer): number
+---@field GetScriptEnv fun(unitID: UnitID): table
+---@field GetLongestReloadTime fun(unitID: UnitID): number
 
 -- Engine types (temporary -- will move to recoil-lua-library when eco branch merges)
 ---@class ResourceData
@@ -35,7 +35,7 @@
 
 -- TODO: delete when recoil-lua-library publishes TeamData types
 ---@class TeamData
----@field id number
+---@field id TeamID
 ---@field name string
 ---@field leader number
 ---@field isDead boolean
@@ -44,7 +44,7 @@
 ---@field allyTeam number
 
 ---@class PlayerData
----@field id number
+---@field id PlayerID
 ---@field name string
 ---@field active boolean
 ---@field spectator boolean
@@ -63,6 +63,5 @@
 
 --- BAR extends engine `ObjectRenderingTable` in `luarules/Utilities/unitrendering.lua`.
 ---@class ObjectRenderingTable
----@field ActivateMaterial fun(objectID: integer, lod: integer)
----@field DeactivateMaterial fun(objectID: integer, lod: integer)
-
+---@field ActivateMaterial fun(objectID: ObjectID, lod: integer)
+---@field DeactivateMaterial fun(objectID: ObjectID, lod: integer)

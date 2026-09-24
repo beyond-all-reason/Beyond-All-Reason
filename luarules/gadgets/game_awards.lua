@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2013-07-06",
 		license = "GNU GPL, v2 or later",
 		layer = -1,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -22,38 +22,28 @@ if gadgetHandler:IsSyncedCode() then
 	local coopInfo = {}
 	local present = {}
 
-	local isEcon = {
-		--land t1
-		[UnitDefNames.armsolar.id] = true,
-		[UnitDefNames.corsolar.id] = true,
-		[UnitDefNames.armadvsol.id] = true,
-		[UnitDefNames.coradvsol.id] = true,
-		[UnitDefNames.armwin.id] = true,
-		[UnitDefNames.corwin.id] = true,
-		[UnitDefNames.armmakr.id] = true,
-		[UnitDefNames.cormakr.id] = true,
-		--sea t1
-		[UnitDefNames.armtide.id] = true,
-		[UnitDefNames.cortide.id] = true,
-		[UnitDefNames.armfmkr.id] = true,
-		[UnitDefNames.corfmkr.id] = true,
-		--land t2
-		[UnitDefNames.armmmkr.id] = true,
-		[UnitDefNames.cormmkr.id] = true,
-		[UnitDefNames.corfus.id] = true,
-		[UnitDefNames.armfus.id] = true,
-		[UnitDefNames.armafus.id] = true,
-		[UnitDefNames.corafus.id] = true,
-		--sea t2
-		[UnitDefNames.armuwfus.id] = true,
-		[UnitDefNames.coruwfus.id] = true,
-		[UnitDefNames.armuwmmm.id] = true,
-		[UnitDefNames.coruwmmm.id] = true,
-	}
+	-- economy structures (energy generators, geothermals and converters), derived from def
+	-- properties; storage produces nothing and drops out naturally, lootboxes and scav
+	-- beacons are excluded via their paratrooper tag.
+	-- thresholds mirror the economy classification in snd_notifications.lua: every dedicated
+	-- generator makes at least 20 energy (the margin keeps future units with incidental
+	-- trickle production out) and must not be a net energy consumer at the same time
+	local MIN_GENERATOR_ENERGY_MAKE = 20
+	local MAX_GENERATOR_ENERGY_UPKEEP = 10
+	local isEcon = {}
 	for udid, ud in pairs(UnitDefs) do
-		for id, v in pairs(isEcon) do
-			if string.find(ud.name, UnitDefs[id].name) then
-				isEcon[udid] = v
+		local cp = ud.customParams
+		if ud.speed == 0 and not cp.israptor and not cp.paratrooper then
+			local isGenerator = ud.energyMake >= MIN_GENERATOR_ENERGY_MAKE
+				and (not ud.energyUpkeep or ud.energyUpkeep < MAX_GENERATOR_ENERGY_UPKEEP)
+			if
+				isGenerator
+				or ud.windGenerator > 0
+				or ud.tidalGenerator > 0
+				or cp.solar
+				or (cp.energyconv_capacity and cp.energyconv_efficiency)
+			then
+				isEcon[udid] = true
 			end
 		end
 	end
@@ -90,8 +80,22 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					if numPlayers > 0 then
 						present[teamIDs[j]] = true
-						teamInfo[teamIDs[j]] = { allDmg = 0, ecoDmg = 0, fightDmg = 0, otherDmg = 0, dmgDealt = 0, ecoUsed = 0, effScore = 0, ecoProd = 0, lastKill = 0, dmgRec = 0, sleepTime = 0, present = true, teamDmg = 0, }
-						coopInfo[teamIDs[j]] = { players = numPlayers, }
+						teamInfo[teamIDs[j]] = {
+							allDmg = 0,
+							ecoDmg = 0,
+							fightDmg = 0,
+							otherDmg = 0,
+							dmgDealt = 0,
+							ecoUsed = 0,
+							effScore = 0,
+							ecoProd = 0,
+							lastKill = 0,
+							dmgRec = 0,
+							sleepTime = 0,
+							present = true,
+							teamDmg = 0,
+						}
+						coopInfo[teamIDs[j]] = { players = numPlayers }
 					else
 						present[teamIDs[j]] = false
 					end
@@ -228,7 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 		for teamID, _ in pairs(teamInfo) do
 			--deal with sleep times
 			local curTime = Spring.GetGameSeconds()
-			if (curTime - teamInfo[teamID].lastKill > teamInfo[teamID].sleepTime) then
+			if curTime - teamInfo[teamID].lastKill > teamInfo[teamID].sleepTime then
 				teamInfo[teamID].sleepTime = curTime - teamInfo[teamID].lastKill
 			end
 
@@ -250,12 +254,12 @@ if gadgetHandler:IsSyncedCode() then
 			if teamInfo[teamID].teamDmg > 0 then
 				table.insert(awards.traitor, { teamID = teamID, score = teamInfo[teamID].teamDmg })
 			end
-			if (teamInfo[teamID].sleepTime > 12 * 60) then
+			if teamInfo[teamID].sleepTime > 12 * 60 then
 				table.insert(awards.sleep, { teamID = teamID, score = teamInfo[teamID].sleepTime })
 			end
 		end
 
-		local awardSortFunction = function (award1, award2)
+		local awardSortFunction = function(award1, award2)
 			return award1.score > award2.score
 		end
 
@@ -263,7 +267,7 @@ if gadgetHandler:IsSyncedCode() then
 			table.sort(entries, awardSortFunction)
 
 			for index = #entries, topPlacementsCount + 1, -1 do
-					table.remove(entries, index)
+				table.remove(entries, index)
 			end
 
 			for index = 1, topPlacementsCount do
@@ -279,7 +283,12 @@ if gadgetHandler:IsSyncedCode() then
 		local efficiencyAwardTeam = awards.efficiency[1].teamID
 
 		--If one player won all the awards, they also win the Golden Cow award, but this is only meaningful in large games
-		if ecoKillAwardTeam ~= -1 and (ecoKillAwardTeam == fightKillAwardTeam) and (ecoKillAwardTeam == efficiencyAwardTeam) and nTeams > 3 then
+		if
+			ecoKillAwardTeam ~= -1
+			and (ecoKillAwardTeam == fightKillAwardTeam)
+			and (ecoKillAwardTeam == efficiencyAwardTeam)
+			and nTeams > 3
+		then
 			if winningAllyTeams then
 				table.insert(awards.goldenCow, { teamID = ecoKillAwardTeam, score = 1 })
 				table.sort(awards.goldenCow, awardSortFunction)
@@ -293,16 +302,61 @@ if gadgetHandler:IsSyncedCode() then
 
 	-------------------------------------------------------------------------------------
 else
-
 	local function ProcessAwards(_)
 		local awards = SYNCED.awards
 
 		-- record who won which awards in chat message (for demo parsing by replays.springrts.com)
 		-- make all values positive, as unsigned ints are easier to parse
-		local ecoKillLine = '\161' .. tostring(1 + awards.ecoKill[1].teamID) .. ':' .. tostring(awards.ecoKill[1].score) .. '\161' .. tostring(1 + awards.ecoKill[2].teamID) .. ':' .. tostring(awards.ecoKill[2].score) .. '\161' .. tostring(1 + awards.ecoKill[3].teamID) .. ':' .. tostring(awards.ecoKill[3].score)
-		local fightKillLine = '\162' .. tostring(1 + awards.fightKill[1].teamID) .. ':' .. tostring(awards.fightKill[1].score) .. '\162' .. tostring(1 + awards.fightKill[2].teamID) .. ':' .. tostring(awards.fightKill[2].score) .. '\162' .. tostring(1 + awards.fightKill[3].teamID) .. ':' .. tostring(awards.fightKill[3].score)
-		local efficientKillLine = '\163' .. tostring(1 + awards.efficiency[1].teamID) .. ':' .. tostring(awards.efficiency[1].score) .. '\163' .. tostring(1 + awards.efficiency[2].teamID) .. ':' .. tostring(awards.efficiency[2].score) .. '\163' .. tostring(1 + awards.efficiency[3].teamID) .. ':' .. tostring(awards.efficiency[3].score)
-		local otherLine = '\164' .. tostring(1 + awards.goldenCow[1].teamID) .. '\165' .. tostring(1 + awards.eco[1].teamID) .. ':' .. tostring(awards.eco[1].score) .. '\166' .. tostring(1 + awards.damageReceived[1].teamID) .. ':' .. tostring(awards.damageReceived[1].score) .. '\167' .. tostring(1 + awards.sleep[1].teamID) .. ':' .. tostring(awards.sleep[1].score)
+		local ecoKillLine = "\161"
+			.. tostring(1 + awards.ecoKill[1].teamID)
+			.. ":"
+			.. tostring(awards.ecoKill[1].score)
+			.. "\161"
+			.. tostring(1 + awards.ecoKill[2].teamID)
+			.. ":"
+			.. tostring(awards.ecoKill[2].score)
+			.. "\161"
+			.. tostring(1 + awards.ecoKill[3].teamID)
+			.. ":"
+			.. tostring(awards.ecoKill[3].score)
+		local fightKillLine = "\162"
+			.. tostring(1 + awards.fightKill[1].teamID)
+			.. ":"
+			.. tostring(awards.fightKill[1].score)
+			.. "\162"
+			.. tostring(1 + awards.fightKill[2].teamID)
+			.. ":"
+			.. tostring(awards.fightKill[2].score)
+			.. "\162"
+			.. tostring(1 + awards.fightKill[3].teamID)
+			.. ":"
+			.. tostring(awards.fightKill[3].score)
+		local efficientKillLine = "\163"
+			.. tostring(1 + awards.efficiency[1].teamID)
+			.. ":"
+			.. tostring(awards.efficiency[1].score)
+			.. "\163"
+			.. tostring(1 + awards.efficiency[2].teamID)
+			.. ":"
+			.. tostring(awards.efficiency[2].score)
+			.. "\163"
+			.. tostring(1 + awards.efficiency[3].teamID)
+			.. ":"
+			.. tostring(awards.efficiency[3].score)
+		local otherLine = "\164"
+			.. tostring(1 + awards.goldenCow[1].teamID)
+			.. "\165"
+			.. tostring(1 + awards.eco[1].teamID)
+			.. ":"
+			.. tostring(awards.eco[1].score)
+			.. "\166"
+			.. tostring(1 + awards.damageReceived[1].teamID)
+			.. ":"
+			.. tostring(awards.damageReceived[1].score)
+			.. "\167"
+			.. tostring(1 + awards.sleep[1].teamID)
+			.. ":"
+			.. tostring(awards.sleep[1].score)
 		local awardsMsg = ecoKillLine .. fightKillLine .. efficientKillLine .. otherLine
 
 		Spring.SendLuaRulesMsg(awardsMsg)
@@ -320,5 +374,4 @@ else
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction("ReceiveAwards")
 	end
-
 end

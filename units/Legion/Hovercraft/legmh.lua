@@ -30,10 +30,10 @@ return {
 		turninplacespeedlimit = 1.5972,
 		turnrate = 455,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorHovercraft",
+			subfolder = "Legion/Hovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -145,7 +145,9 @@ return {
 					subs = 175,
 				},
 				customparams = {
-					projectile_destruction_method = "descend",
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 7,
 					overrange_distance = 805,
 				},
 			},

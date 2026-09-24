@@ -12,7 +12,9 @@ function M.attach(doc, ctx)
 	-- Slider change events are wired declaratively via onchange= in RML.
 	for _, sid in ipairs({ "noise-scale", "noise-octaves", "noise-persistence", "noise-lacunarity", "noise-seed" }) do
 		local sl = doc:GetElementById("slider-" .. sid)
-		if sl then trackSliderDrag(sl, sid) end
+		if sl then
+			trackSliderDrag(sl, sid)
+		end
 	end
 	-- All data-event-click/change handlers (onNoXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua — Recoil forbids adding or replacing function

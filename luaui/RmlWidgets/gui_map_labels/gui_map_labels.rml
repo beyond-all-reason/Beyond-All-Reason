@@ -56,6 +56,7 @@
 			<div id="ml-handle" class="ml-drag-handle text-xl font-bold text-light text-outline-darker" style="flex: 1;">Map Labels</div>
 			<div id="ml-btn-quit" class="ml-quit-btn" onclick="widget:OnQuit()"><img class="ml-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
 		</div>
+		<div class="tf-panel-body">
 
 		<div class="ml-section-header">
 			<div class="ml-section-label">AUTHOR</div>
@@ -70,6 +71,7 @@
 			<div class="ml-section-line"></div>
 		</div>
 		<div id="ml-list" class="ml-list"></div>
+		</div><!-- /tf-panel-body -->
 	</div>
 </body>
 </rml>

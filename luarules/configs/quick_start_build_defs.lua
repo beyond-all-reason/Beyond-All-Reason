@@ -1,8 +1,24 @@
 local quickStartConfig = {
-	discountableFactories = {
-		armap = true, armfhp = true, armhp = true, armlab = true, armsy = true, armvp = true,
-		corap = true, corfhp = true, corhp = true, corlab = true, corsy = true, corvp = true,
-		legap = true, legfhp = true, leghp = true, leglab = true, legsy = true, legvp = true,
+	-- discountable factories are marked via customparams.quickstart_discountable on the unit defs
+	amountConfig = {
+		small = {
+			budget = 800,
+			range = 435,
+			baseGenerationRange = 435,
+			traversabilityGridRange = 480, --must match the value in gui_quick_start.lua. It has to be slightly larger than the instant build range to account for traversability_grid snapping at TRAVERSABILITY_GRID_RESOLUTION intervals
+		},
+		normal = {
+			budget = 1200,
+			range = 435,
+			baseGenerationRange = 435,
+			traversabilityGridRange = 480,
+		},
+		large = {
+			budget = 2400,
+			range = 600,
+			baseGenerationRange = 500,
+			traversabilityGridRange = 544,
+		},
 	},
 	commanderNonLabOptions = {
 		armcom = {
@@ -34,7 +50,7 @@ local quickStartConfig = {
 			floatingConverter = "legfeconv",
 			landEnergyStorage = "legestor",
 			waterEnergyStorage = "leguwestore",
-		}
+		},
 	},
 	optionsToNodeType = {
 		windmill = "other",
@@ -47,9 +63,9 @@ local quickStartConfig = {
 		waterEnergyStorage = "other",
 	},
 	buildSequence = {
-		["metalMap"] = {
-			["land"] = {
-				["badWind"] = {
+		metalMap = {
+			land = {
+				badWind = {
 					"mex",
 					"solar",
 					"solar",
@@ -62,7 +78,7 @@ local quickStartConfig = {
 					"solar",
 					"landEnergyStorage",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"windmill",
 					"windmill",
@@ -78,10 +94,10 @@ local quickStartConfig = {
 					"mex",
 					"mex",
 					"solar",
-				}
+				},
 			},
-			["water"] = {
-				["badWind"] = {
+			water = {
+				badWind = {
 					"mex",
 					"mex",
 					"tidal",
@@ -95,7 +111,7 @@ local quickStartConfig = {
 					"tidal",
 					"waterEnergyStorage",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"tidal",
@@ -108,12 +124,12 @@ local quickStartConfig = {
 					"mex",
 					"tidal",
 					"waterEnergyStorage",
-				}
-			}
+				},
+			},
 		},
-		["nonMetalMap"] = {
-			["land"] = {
-				["badWind"] = {
+		nonMetalMap = {
+			land = {
+				badWind = {
 					"solar",
 					"solar",
 					"solar",
@@ -127,7 +143,7 @@ local quickStartConfig = {
 					"solar",
 					"solar",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"windmill",
@@ -146,10 +162,10 @@ local quickStartConfig = {
 					"windmill",
 					"windmill",
 					"converter",
-				}
+				},
 			},
-			["water"] = {
-				["badWind"] = {
+			water = {
+				badWind = {
 					"mex",
 					"mex",
 					"mex",
@@ -164,7 +180,7 @@ local quickStartConfig = {
 					"tidal",
 					"tidal",
 				},
-				["goodWind"] = {
+				goodWind = {
 					"mex",
 					"mex",
 					"mex",
@@ -178,11 +194,10 @@ local quickStartConfig = {
 					"tidal",
 					"tidal",
 					"tidal",
-				}
-			}
-		}
-	}
+				},
+			},
+		},
+	},
 }
 
 return quickStartConfig
-

@@ -80,8 +80,7 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

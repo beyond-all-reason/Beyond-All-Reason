@@ -27,7 +27,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		hidedamage = true,
-   		holdsteady = true,
+		holdsteady = true,
 		mass = 2700, -- same as legcom's default mass (= metalcost)
 		health = 3700,
 		maxslope = 20,
@@ -40,7 +40,7 @@ return {
 		radardistance = 700,
 		radaremitheight = 40,
 		reclaimable = false,
-    	releaseheld  = true,
+		releaseheld = true,
 		script = "Units/legcom.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommanderSelfd",
@@ -72,13 +72,15 @@ return {
 			[16] = "legfeconv",
 		},
 		customparams = {
-			unitgroup = 'buildert2',
+			unitgroup = "buildert2",
+			canwearcosmetics = true,
 			decoyfor = "legcom",
 			firestateoncloak = 0,
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.025,
-			subfolder = "CorBots/T2",
+			reaimtime = 5,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			isdecoycommander = true,
 		},
@@ -213,7 +215,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "legsmallrocket.s3o",
-				name = "Anti Air Missile Launcher",
+				name = "Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 450,
 				reloadtime = 1.2,
@@ -295,7 +297,7 @@ return {
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				def = "disintegrator",

@@ -36,6 +36,7 @@ return {
 		customparams = {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -137,7 +138,7 @@ return {
 				},
 				customparams = {
 					--exclude_preaim = true
-				}
+				},
 			},
 			light_antiair_missile = {
 				areaofeffect = 16,

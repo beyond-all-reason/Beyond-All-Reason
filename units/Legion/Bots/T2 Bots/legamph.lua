@@ -1,7 +1,6 @@
 return {
 	legamph = {
 		activatewhenbuilt = true,
-		brakerate = 0.5,
 		buildpic = "LEGAMPH.DDS",
 		buildtime = 16980,
 		canmove = true,
@@ -42,7 +41,8 @@ return {
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
-			subfolder = "Legion/T2",
+			reaimtime = 4,
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "weaponsub",
 			speedfactorinwater = 1.3,
@@ -144,7 +144,8 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				customparams = {
-					sweepfire = 4.5,
+					sweepfire_firetime = 1.0,
+					sweepfire_reloadtime = 3.0,
 				},
 				damage = {
 					default = 33,
@@ -205,7 +206,7 @@ return {
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 				maxangledif = 180,
-				maindir = "0 0 1"
+				maindir = "0 0 1",
 			},
 			[2] = {
 				def = "COAX_DEPTHCHARGE",

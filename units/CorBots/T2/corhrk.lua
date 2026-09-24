@@ -36,6 +36,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -129,8 +130,10 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 800,
 				customparams = {
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 7,
 					overrange_distance = 1392,
-					projectile_destruction_method = "descend",
 				},
 				damage = {
 					default = 800,

@@ -36,6 +36,7 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 3,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -128,7 +129,6 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
-					weapons_group = 2,
 				},
 				damage = {
 					commanders = 1100,
@@ -167,7 +167,6 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_priority = true,
-					weapons_group = 1,
 				},
 				damage = {
 					commanders = 1100,

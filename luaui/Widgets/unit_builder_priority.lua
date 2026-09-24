@@ -10,13 +10,12 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		version = 8,
-		enabled = true
+		enabled = true,
 	}
 end
 
-
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 
 local CMD_PRIORITY = GameCMD.PRIORITY
@@ -30,7 +29,7 @@ local myTeamID = spGetMyTeamID()
 -- widget global settings and assigned defaults
 local lowpriorityLabs = true
 local lowpriorityNanos = true
-local lowpriorityCons = false
+local lowpriorityCons = true
 
 -- controlled units by category
 local builderLabs = {}

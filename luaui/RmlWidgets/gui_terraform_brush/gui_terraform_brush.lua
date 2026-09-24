@@ -37,7 +37,9 @@ local function sliderToIntensity(v)
 end
 
 local function intensityToSlider(intensity)
-	if intensity <= INTENSITY_LOG_MIN then return 0 end
+	if intensity <= INTENSITY_LOG_MIN then
+		return 0
+	end
 	return math.floor(INTENSITY_SLIDER_MAX * math.log(intensity / INTENSITY_LOG_MIN) / INTENSITY_LOG_RANGE + 0.5)
 end
 
@@ -51,7 +53,9 @@ local function sliderToCadence(v)
 end
 
 local function cadenceToSlider(c)
-	if c <= CADENCE_LOG_MIN then return 0 end
+	if c <= CADENCE_LOG_MIN then
+		return 0
+	end
 	return math.floor(CADENCE_SLIDER_MAX * math.log(c / CADENCE_LOG_MIN) / CADENCE_LOG_RANGE + 0.5)
 end
 
@@ -66,7 +70,9 @@ local function sliderToFrequency(v)
 end
 
 local function frequencyToSlider(f)
-	if f <= FREQ_LOG_MIN then return 0 end
+	if f <= FREQ_LOG_MIN then
+		return 0
+	end
 	return math.floor(FREQ_SLIDER_MAX * math.log(f / FREQ_LOG_MIN) / FREQ_LOG_RANGE + 0.5)
 end
 
@@ -77,8 +83,12 @@ local PERSIST_PERMANENT_VAL = 3601
 
 local function sliderToPersist(v)
 	v = math.max(0, math.min(PERSIST_SLIDER_MAX, math.floor(v + 0.5)))
-	if v >= PERSIST_SLIDER_MAX then return PERSIST_PERMANENT_VAL end
-	if v <= 0 then return 0 end
+	if v >= PERSIST_SLIDER_MAX then
+		return PERSIST_PERMANENT_VAL
+	end
+	if v <= 0 then
+		return 0
+	end
 	if v <= 200 then
 		return math.floor(v / 200 * 60 + 0.5)
 	elseif v <= 450 then
@@ -89,8 +99,12 @@ local function sliderToPersist(v)
 end
 
 local function persistToSlider(s)
-	if s >= PERSIST_PERMANENT_VAL then return PERSIST_SLIDER_MAX end
-	if s <= 0 then return 0 end
+	if s >= PERSIST_PERMANENT_VAL then
+		return PERSIST_SLIDER_MAX
+	end
+	if s <= 0 then
+		return 0
+	end
 	if s <= 60 then
 		return math.floor(s / 60 * 200 + 0.5)
 	elseif s <= 600 then
@@ -111,66 +125,79 @@ local function formatFrequency(f)
 end
 
 local WG = WG
+-- Engine globals as chunk locals (the tf_* modules do the same): RmlUi event
+-- closures can run outside the widget env where bare globals read nil, and
+-- the CI analyzer counts every bare engine global as an undefined-global
+-- finding. Same table objects, so Spring.X = ... still reaches every widget.
+local Spring = Spring
+local VFS = VFS
+local gl = gl
 local GetViewGeometry = Spring.GetViewGeometry
-local GetMouseState   = Spring.GetMouseState
-local TraceScreenRay  = Spring.TraceScreenRay
+local GetMouseState = Spring.GetMouseState
+local TraceScreenRay = Spring.TraceScreenRay
 
 -- ============ UI Sound Effects ============
 local uiSounds = {
-	modeSwitch  = "LuaUI/Sounds/buildbar_click.wav",
+	modeSwitch = "LuaUI/Sounds/buildbar_click.wav",
 	shapeSwitch = "LuaUI/Sounds/buildbar_hover.wav",
-	toolSwitch  = "LuaUI/Sounds/buildbar_add.wav",
-	toggleOn    = "LuaUI/Sounds/switchon.wav",
-	toggleOff   = "LuaUI/Sounds/switchoff.wav",
-	click       = "LuaUI/Sounds/tock.wav",
-	tick        = "LuaUI/Sounds/hover.wav",
-	undo        = "LuaUI/Sounds/buildbar_rem.wav",
-	redo        = "LuaUI/Sounds/buildbar_add.wav",
-	save        = "LuaUI/Sounds/buildbar_waypoint.wav",
-	dropdown    = "LuaUI/Sounds/buildbar_click.wav",
-	panelOpen   = "LuaUI/Sounds/buildbar_click.wav",
-	reset       = "LuaUI/Sounds/buildbar_rem.wav",
-	exit        = "LuaUI/Sounds/switchoff.wav",
-	sliderLock  = "sounds/ui/beep6.wav",
+	toolSwitch = "LuaUI/Sounds/buildbar_add.wav",
+	toggleOn = "LuaUI/Sounds/switchon.wav",
+	toggleOff = "LuaUI/Sounds/switchoff.wav",
+	click = "LuaUI/Sounds/tock.wav",
+	tick = "LuaUI/Sounds/hover.wav",
+	undo = "LuaUI/Sounds/buildbar_rem.wav",
+	redo = "LuaUI/Sounds/buildbar_add.wav",
+	save = "LuaUI/Sounds/buildbar_waypoint.wav",
+	dropdown = "LuaUI/Sounds/buildbar_click.wav",
+	panelOpen = "LuaUI/Sounds/buildbar_click.wav",
+	reset = "LuaUI/Sounds/buildbar_rem.wav",
+	exit = "LuaUI/Sounds/switchoff.wav",
+	sliderLock = "sounds/ui/beep6.wav",
 }
 local uiSoundVolumes = {
-	modeSwitch  = 0.45,
+	modeSwitch = 0.45,
 	shapeSwitch = 0.35,
-	toolSwitch  = 0.5,
-	toggleOn    = 0.4,
-	toggleOff   = 0.4,
-	click       = 0.35,
-	tick        = 0.15,
-	undo        = 0.4,
-	redo        = 0.4,
-	save        = 0.5,
-	dropdown    = 0.3,
-	panelOpen   = 0.3,
-	reset       = 0.4,
-	exit        = 0.35,
-	sliderLock  = 0.5,
+	toolSwitch = 0.5,
+	toggleOn = 0.4,
+	toggleOff = 0.4,
+	click = 0.35,
+	tick = 0.15,
+	undo = 0.4,
+	redo = 0.4,
+	save = 0.5,
+	dropdown = 0.3,
+	panelOpen = 0.3,
+	reset = 0.4,
+	exit = 0.35,
+	sliderLock = 0.5,
 }
 local soundCooldowns = {}
-local SOUND_COOLDOWN = 0.04  -- seconds between repeated sounds of the same type
+local SOUND_COOLDOWN = 0.04 -- seconds between repeated sounds of the same type
 -- soundMuted lives on widgetState (shared with tf_guide module)
-local widgetState  -- forward declaration so playSound can capture it as upvalue
+local widgetState -- forward declaration so playSound can capture it as upvalue
 
 local function playSound(name)
-	if widgetState and widgetState.soundMuted then return end
+	if widgetState and widgetState.soundMuted then
+		return
+	end
 	local path = uiSounds[name]
-	if not path then return end
+	if not path then
+		return
+	end
 	local now = Spring.GetTimer()
 	local last = soundCooldowns[name]
-	if last and Spring.DiffTimers(now, last) < SOUND_COOLDOWN then return end
+	if last and Spring.DiffTimers(now, last) < SOUND_COOLDOWN then
+		return
+	end
 	soundCooldowns[name] = now
 	Spring.PlaySoundFile(path, uiSoundVolumes[name] or 0.4, "ui")
 end
 
 -- UI prefs persistence ("Terraform Brush/ui_prefs.lua")
-local UI_PREFS_DIR        = "Terraform Brush/"
-local UI_PREFS_FILE       = UI_PREFS_DIR .. "ui_prefs.lua"
-local loadUiPrefs   -- defined after widgetState is declared
-local saveUiPrefs   -- defined after widgetState is declared
+local UI_PREFS_DIR = "Terraform Brush/"
+local UI_PREFS_FILE = UI_PREFS_DIR .. "ui_prefs.lua"
+local loadUiPrefs -- defined after widgetState is declared
+local saveUiPrefs -- defined after widgetState is declared
 
 local INITIAL_LEFT_VW = 78
 local INITIAL_TOP_VH = 25
@@ -201,9 +228,15 @@ local windowDragState = {
 local windowDragAllWindows = {}
 -- floatingTipEl, currentHint, lastRenderedHint live on widgetState (shared with tf_guide)
 
-widgetState = {  -- forward-declared above playSound so mute check works
+widgetState = { -- forward-declared above playSound so mute check works
+	-- Text for the Projects browser, Team Sync and the quit prompt. Its own
+	-- module rather than language/en/interface.json: the translation files
+	-- are written by hand, and none of this editor is translated. A field
+	-- and not a local: this file is close to Lua's 200-local limit.
+	text = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua").text,
 	rmlContext = nil,
 	document = nil,
+	---@type table?
 	dmHandle = nil,
 	rootElement = nil,
 	modeButtons = {},
@@ -229,6 +262,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	spMinimapSampleTex = nil,
 	spTerrainColor = nil,
 	spTerrainColorTime = nil,
+	spTerrainSampleTick = 0,
 	-- Lobby visibility tracking (document:Hide() does not set hidden class)
 	lobbyHidden = false,
 	-- Decal section elements
@@ -253,22 +287,22 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envControlsEl = nil,
 	envActive = false,
 	envSkyboxThumbs = {},
-	envSkyboxGridEl = nil,   -- grid container element for GL scissor clipping
+	envSkyboxGridEl = nil, -- grid container element for GL scissor clipping
 	envCurrentSkybox = nil,
 	envDefaultSkybox = nil,
-	envLoadedTextures = {},  -- DDS paths pre-loaded into GL, freed on shutdown
-	skyPreviewShader = nil,  -- GLSL cubemap-face preview shader (lazy-created in DrawScreenPost)
+	envLoadedTextures = {}, -- DDS paths pre-loaded into GL, freed on shutdown
+	skyPreviewShader = nil, -- GLSL cubemap-face preview shader (lazy-created in DrawScreenPost)
 	-- Light placer section elements
 	lightControlsEl = nil,
 	lightActive = false,
 	lightLibraryOpen = false,
 	lightLibraryRootEl = nil,
-	lightLibraryTab = "builtin",  -- "builtin" or "user"
+	lightLibraryTab = "builtin", -- "builtin" or "user"
 	lightLibrarySelectedPreset = nil,
 	-- Start Positions tool section elements
 	startposActive = false,
-	envFadeEnabled = true,   -- whether skybox transitions use fade effect
-	tsSkyboxSync = true,     -- TILESET tool: swap skybox to match the picked biome (BAR only)
+	envFadeEnabled = true, -- whether skybox transitions use fade effect
+	tsSkyboxSync = true, -- TILESET tool: swap skybox to match the picked biome (BAR only)
 	skyboxLibraryRootEl = nil, -- floating skybox library window element
 	-- Environment sub-window elements and open state
 	envSunRootEl = nil,
@@ -278,6 +312,7 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envMapRootEl = nil,
 	envWaterRootEl = nil,
 	envDimensionsRootEl = nil,
+	envTilesetRootEl = nil,
 	splatTexRootEl = nil,
 	grassCfgRootEl = nil,
 	captureOpen = false,
@@ -288,33 +323,39 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	envMapOpen = false,
 	envWaterOpen = false,
 	envDimensionsOpen = false,
+	envTilesetOpen = false,
 	splatTexOpen = false,
 	grassCfgOpen = false,
 	-- Map defaults captured at init for resets
 	envDefaults = nil,
 	-- Slider wheel-lock state
-	lockedSliders = {},         -- {[sliderId] = element}
-	sliderLastClickTime = {},   -- {[sliderId] = timerObj}
+	lockedSliders = {}, -- {[sliderId] = element}
+	sliderLastClickTime = {}, -- {[sliderId] = timerObj}
 	sliderPulsePhase = false,
 	sliderPulseTimer = 0,
 	-- Slider keybind-scroll flash state
-	sliderFlashes = {},         -- {[sliderId] = {el, timer}}
-	prevSyncValues = {},        -- {[sliderId] = valueString}
+	sliderFlashes = {}, -- {[sliderId] = {el, timer}}
+	prevSyncValues = {}, -- {[sliderId] = valueString}
 	-- Passthrough mode: deactivate all tools but keep panel visible
 	passthroughMode = false,
-	passthroughSaved = nil,     -- {tool=string, mode=string|nil}
+	passthroughSaved = nil, -- {tool=string, mode=string|nil}
+	-- Focus mode (game interface hidden, editor left alive): focusMode and
+	-- focusSetTimer are assigned by setFocusMode and deliberately NOT initialised
+	-- here. The analyzer takes a false/nil literal in this constructor as the
+	-- field's only value and flags every guard on it (the passthroughMode ones
+	-- above are all in the baseline for that reason).
 	-- Settings window
 	settingsRootEl = nil,
 	settingsOpen = false,
-	settingsCapturing = nil,    -- action name being rebound, or nil
+	settingsCapturing = nil, -- action name being rebound, or nil
 	settingsCaptureField = nil, -- "key" or "key2" for scroll controls
-	settingsCaptureEl = nil,    -- the DOM element currently being captured
+	settingsCaptureEl = nil, -- the DOM element currently being captured
 	settingsPendingBinds = nil, -- deep copy of keybinds being edited
-	settingsKeybindEls = {},    -- {[action] = keyElement}
+	settingsKeybindEls = {}, -- {[action] = keyElement}
 	-- G3: shortcut discovery tip state (guide mode only)
-	g3GroupCounts = {},  -- {[groupKey] = interactionCount}
-	g3GroupShown  = {},  -- {[groupKey] = true} once shown this session
-	g3Toast       = { text = nil, expiry = 0 },  -- active proactive hint
+	g3GroupCounts = {}, -- {[groupKey] = interactionCount}
+	g3GroupShown = {}, -- {[groupKey] = true} once shown this session
+	g3Toast = { text = nil, expiry = 0 }, -- active proactive hint
 	-- Full restore confirm state
 	fullRestoreConfirmExpiry = 0,
 	-- Metal clean confirm state
@@ -322,8 +363,23 @@ widgetState = {  -- forward-declared above playSound so mute check works
 	-- Open Project: selected row, DELETE confirm window, row elements to repaint
 	projectOpenSelectedSlug = nil,
 	projectDeleteConfirmExpiry = 0,
-	projectOpenRowEls = {},  -- {{slug = ..., el = ...}, ...} for selection painting
-	projectOpenNeedsRebuild = false,  -- set by a delete, consumed in Update
+	projectOpenRowEls = {}, -- {{slug = ..., el = ...}, ...} for selection painting
+	projectOpenNeedsRebuild = false, -- set by a delete, consumed in Update
+	projectOpenFilter = "", -- search box text (lowercased substring match on name/path/size)
+	projectOpenSort = "recent", -- "recent" (last touched) | "name" | "size"
+	projectOpenSortDesc = true, -- sort direction of the active column header
+	-- Save As browser: its own filter, rows and deferred rebuild (the two
+	-- dialogs share the sort, not the search).
+	projectSaveFilter = "",
+	projectSaveRowEls = {}, -- {{slug = ..., el = ...}, ...} for selection painting
+	projectSaveNeedsRebuild = false,
+	projectSaveBySlug = {}, -- last listing, keyed by slug, for the details pane
+	-- Drag and drop: the armed/active drag, and the drop targets both browsers
+	-- register (folder rows plus the list itself, which is the top level).
+	projectDrag = nil,
+	projectDropEls = {},
+	projectSaveFolderStr = "", -- destination beside the NAME box ("" = top level)
+	projectSaveNewFolders = {}, -- folders created this session (empty ones do not list)
 	-- Auto-scroll transport state (per-slider, keyed by slider element id)
 	transports = {},
 	-- Currently focused RmlUI input element (text/number boxes); cleared on blur.
@@ -355,9 +411,26 @@ widgetState = {  -- forward-declared above playSound so mute check works
 		seenLightsTypeHint = false,
 		seenCloneLayersHint = false,
 		seenSceneSkyboxHint = false,
+		perfMode = false, -- Settings > Performance
+		teamSync = false, -- Settings > General > Team Sync: the campaign team's map library; off for everyone else
+		clayStack = true, -- Settings > Stroke > Clay build-up (per-tick stacking), on by default
+		autosave = true, -- Settings > General > Autosave: timed snapshots while the project has unsaved changes
+		autosaveMinutes = 10,
+		autosaveKeepDays = 3,
+		autosaveKeepLatestDays = 10,
 		heightmapExportRangeMode = "auto",
 		heightmapExportCustomMin = 0,
 		heightmapExportCustomMax = 1,
+		windowPositions = {},
+		-- Folder paths folded shut in the project browsers. One set for both,
+		-- so a folder folded in Open Project is folded in Save As too, and it
+		-- holds only the folders actually folded: anything absent is open, which
+		-- is the default a first run wants and keeps the file to what changed.
+		projectCollapsed = {},
+		-- Team projects the browser has already shown. Absent (not empty)
+		-- until the first viewing, which is how a first run avoids flagging
+		-- the entire library as new.
+		librarySeen = nil,
 	},
 	-- ========================================================================
 	-- Per-frame RmlUI performance caches (cleared on doc close in Shutdown).
@@ -374,14 +447,42 @@ widgetState = {  -- forward-declared above playSound so mute check works
 -- first call, then serves subsequent calls from widgetState.elCache. Caches
 -- are invalidated in widget:Shutdown when the document closes. `nil` lookups
 -- are NOT cached (so late-loaded elements can be found on subsequent frames).
+-- Give an RmlUi text field the keyboard. Without this the game eats every
+-- keystroke and the field never types: SDL text input has to be started while
+-- the field has focus, and WG.TerraformBrushInputFocused is what tells the tool
+-- widgets to stand their single-letter hotkeys down. Every <input type="text">
+-- in the panel must go through here -- the search boxes shipped without it and
+-- were simply dead (reported by Moose, 2026-09-04).
+widgetState.wireTextInput = function(el)
+	if not el then
+		return
+	end
+	el:AddEventListener("focus", function(_e)
+		WG.TerraformBrushInputFocused = true
+		Spring.SDLStartTextInput()
+		widgetState.focusedRmlInput = el
+	end, false)
+	el:AddEventListener("blur", function(_e)
+		WG.TerraformBrushInputFocused = false
+		Spring.SDLStopTextInput()
+		widgetState.focusedRmlInput = nil
+	end, false)
+end
+
 local function getCachedEl(doc, id)
 	local cache = widgetState.elCache
 	local el = cache[id]
-	if el ~= nil then return el end
-	if not doc then return nil end
+	if el ~= nil then
+		return el
+	end
+	if not doc then
+		return nil
+	end
 	-- NOTE: use raw DOM lookup here (method-call form). Do NOT recurse.
 	el = doc.GetElementById(doc, id)
-	if el then cache[id] = el end
+	if el then
+		cache[id] = el
+	end
 	return el
 end
 
@@ -389,30 +490,63 @@ end
 -- RmlUI re-parse + style recalc cascade on unchanged labels. Uses element id
 -- as cache key (caller passes the id alongside the element).
 local function setInnerRmlIfChanged(el, id, str)
-	if not el then return end
-	if widgetState.lastInnerRml[id] == str then return end
+	if not el then
+		return
+	end
+	if widgetState.lastInnerRml[id] == str then
+		return
+	end
 	widgetState.lastInnerRml[id] = str
 	el.inner_rml = str
 end
 
 -- Dirty-check `value` attribute write (for sliders/numboxes). Skip if unchanged.
 local function setAttrValueIfChanged(el, id, str)
-	if not el then return end
-	if widgetState.lastAttrValue[id] == str then return end
+	if not el then
+		return
+	end
+	if widgetState.lastAttrValue[id] == str then
+		return
+	end
 	widgetState.lastAttrValue[id] = str
 	el:SetAttribute("value", str)
 end
 
 function loadUiPrefs()
-	if not VFS.FileExists(UI_PREFS_FILE, VFS.RAW) then return end
+	if not VFS.FileExists(UI_PREFS_FILE, VFS.RAW) then
+		return
+	end
 	local raw = VFS.LoadFile(UI_PREFS_FILE, VFS.RAW)
-	if not raw or raw == "" then return end
+	if not raw or raw == "" then
+		return
+	end
 	local chunk = loadstring(raw)
-	if not chunk then return end
+	if not chunk then
+		return
+	end
 	local ok, data = pcall(chunk)
-	if not ok or type(data) ~= "table" then return end
+	if not ok or type(data) ~= "table" then
+		return
+	end
 	if type(data.disableTips) == "boolean" then
 		widgetState.uiPrefs.disableTips = data.disableTips
+	end
+	if type(data.perfMode) == "boolean" then
+		widgetState.uiPrefs.perfMode = data.perfMode
+	end
+	if type(data.teamSync) == "boolean" then
+		widgetState.uiPrefs.teamSync = data.teamSync
+	end
+	if type(data.clayStack) == "boolean" then
+		widgetState.uiPrefs.clayStack = data.clayStack
+	end
+	if type(data.autosave) == "boolean" then
+		widgetState.uiPrefs.autosave = data.autosave
+	end
+	for _, key in ipairs({ "autosaveMinutes", "autosaveKeepDays", "autosaveKeepLatestDays" }) do
+		if tonumber(data[key]) then
+			widgetState.uiPrefs[key] = tonumber(data[key])
+		end
 	end
 	if type(data.seenInstrumentsHint) == "boolean" then
 		widgetState.uiPrefs.seenInstrumentsHint = data.seenInstrumentsHint
@@ -450,7 +584,11 @@ function loadUiPrefs()
 	if type(data.seenSceneSkyboxHint) == "boolean" then
 		widgetState.uiPrefs.seenSceneSkyboxHint = data.seenSceneSkyboxHint
 	end
-	if data.heightmapExportRangeMode == "auto" or data.heightmapExportRangeMode == "initial" or data.heightmapExportRangeMode == "custom" then
+	if
+		data.heightmapExportRangeMode == "auto"
+		or data.heightmapExportRangeMode == "initial"
+		or data.heightmapExportRangeMode == "custom"
+	then
 		widgetState.uiPrefs.heightmapExportRangeMode = data.heightmapExportRangeMode
 	end
 	if type(data.heightmapExportCustomMin) == "number" then
@@ -459,32 +597,373 @@ function loadUiPrefs()
 	if type(data.heightmapExportCustomMax) == "number" then
 		widgetState.uiPrefs.heightmapExportCustomMax = data.heightmapExportCustomMax
 	end
+	if type(data.windowPositions) == "table" then
+		local positions = {}
+		for id, pos in pairs(data.windowPositions) do
+			if
+				type(id) == "string"
+				and type(pos) == "table"
+				and type(pos.x) == "number"
+				and type(pos.y) == "number"
+			then
+				positions[id] = { x = pos.x, y = pos.y }
+			end
+		end
+		widgetState.uiPrefs.windowPositions = positions
+	end
+	if type(data.projectCollapsed) == "table" then
+		local folded = {}
+		for path, value in pairs(data.projectCollapsed) do
+			if type(path) == "string" and value == true then
+				folded[path] = true
+			end
+		end
+		widgetState.uiPrefs.projectCollapsed = folded
+	end
+	if type(data.librarySeen) == "table" then
+		local seen = {}
+		for path, value in pairs(data.librarySeen) do
+			if type(path) == "string" and value == true then
+				seen[path] = true
+			end
+		end
+		widgetState.uiPrefs.librarySeen = seen
+	end
 end
 
-function saveUiPrefs()	Spring.CreateDir(UI_PREFS_DIR)
+function saveUiPrefs()
+	Spring.CreateDir(UI_PREFS_DIR)
 	local f = io.open(UI_PREFS_FILE, "w")
-	if not f then return end
-	f:write(string.format("return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n}\n",
-		tostring(widgetState.uiPrefs.disableTips and true or false),
-		tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
-		tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
-		tostring(widgetState.uiPrefs.seenStartposShapeHint and true or false),
-		tostring(widgetState.uiPrefs.seenMetalStampHint and true or false),
-		tostring(widgetState.uiPrefs.seenMetalMapHint and true or false),
-		tostring(widgetState.uiPrefs.seenFeaturesFiltersHint and true or false),
-		tostring(widgetState.uiPrefs.seenGrassColorFilterHint and true or false),
-		tostring(widgetState.uiPrefs.seenSplatFiltersHint and true or false),
-		tostring(widgetState.uiPrefs.seenWeatherPersistHint and true or false),
-		tostring(widgetState.uiPrefs.seenLightsTypeHint and true or false),
-		tostring(widgetState.uiPrefs.seenCloneLayersHint and true or false),
-		tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false),
-		widgetState.uiPrefs.heightmapExportRangeMode or "auto",
-		tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
-		tonumber(widgetState.uiPrefs.heightmapExportCustomMax) or 1))
+	if not f then
+		return
+	end
+	f:write(
+		string.format(
+			"return {\n\tdisableTips = %s,\n\tseenInstrumentsHint = %s,\n\tseenSplatDisplayHint = %s,\n\tseenStartposShapeHint = %s,\n\tseenMetalStampHint = %s,\n\tseenMetalMapHint = %s,\n\tseenFeaturesFiltersHint = %s,\n\tseenGrassColorFilterHint = %s,\n\tseenSplatFiltersHint = %s,\n\tseenWeatherPersistHint = %s,\n\tseenLightsTypeHint = %s,\n\tseenCloneLayersHint = %s,\n\tseenSceneSkyboxHint = %s,\n\tperfMode = %s,\n\tteamSync = %s,\n\tclayStack = %s,\n\tautosave = %s,\n\tautosaveMinutes = %d,\n\tautosaveKeepDays = %d,\n\tautosaveKeepLatestDays = %d,\n\theightmapExportRangeMode = %q,\n\theightmapExportCustomMin = %.6f,\n\theightmapExportCustomMax = %.6f,\n\twindowPositions = {\n",
+			tostring(widgetState.uiPrefs.disableTips and true or false),
+			tostring(widgetState.uiPrefs.seenInstrumentsHint and true or false),
+			tostring(widgetState.uiPrefs.seenSplatDisplayHint and true or false),
+			tostring(widgetState.uiPrefs.seenStartposShapeHint and true or false),
+			tostring(widgetState.uiPrefs.seenMetalStampHint and true or false),
+			tostring(widgetState.uiPrefs.seenMetalMapHint and true or false),
+			tostring(widgetState.uiPrefs.seenFeaturesFiltersHint and true or false),
+			tostring(widgetState.uiPrefs.seenGrassColorFilterHint and true or false),
+			tostring(widgetState.uiPrefs.seenSplatFiltersHint and true or false),
+			tostring(widgetState.uiPrefs.seenWeatherPersistHint and true or false),
+			tostring(widgetState.uiPrefs.seenLightsTypeHint and true or false),
+			tostring(widgetState.uiPrefs.seenCloneLayersHint and true or false),
+			tostring(widgetState.uiPrefs.seenSceneSkyboxHint and true or false),
+			tostring(widgetState.uiPrefs.perfMode and true or false),
+			tostring(widgetState.uiPrefs.teamSync and true or false),
+			tostring(widgetState.uiPrefs.clayStack and true or false),
+			tostring(widgetState.uiPrefs.autosave and true or false),
+			math.floor(tonumber(widgetState.uiPrefs.autosaveMinutes) or 10),
+			math.floor(tonumber(widgetState.uiPrefs.autosaveKeepDays) or 3),
+			math.floor(tonumber(widgetState.uiPrefs.autosaveKeepLatestDays) or 10),
+			widgetState.uiPrefs.heightmapExportRangeMode or "auto",
+			tonumber(widgetState.uiPrefs.heightmapExportCustomMin) or 0,
+			tonumber(widgetState.uiPrefs.heightmapExportCustomMax) or 1
+		)
+	)
+	local ids = {}
+	for id in pairs(widgetState.uiPrefs.windowPositions or {}) do
+		ids[#ids + 1] = id
+	end
+	table.sort(ids)
+	for i = 1, #ids do
+		local id = ids[i]
+		local pos = widgetState.uiPrefs.windowPositions[id]
+		f:write(string.format("\t\t[%q] = { x = %.8f, y = %.8f },\n", id, pos.x, pos.y))
+	end
+	f:write("\t},\n\tprojectCollapsed = {\n")
+	local folded = {}
+	for path, value in pairs(widgetState.uiPrefs.projectCollapsed or {}) do
+		if value then
+			folded[#folded + 1] = path
+		end
+	end
+	table.sort(folded)
+	for i = 1, #folded do
+		f:write(string.format("\t\t[%q] = true,\n", folded[i]))
+	end
+	f:write("\t},\n")
+	local seen = widgetState.uiPrefs.librarySeen
+	if seen then
+		f:write("\tlibrarySeen = {\n")
+		local slugs = {}
+		for path, value in pairs(seen) do
+			if value then
+				slugs[#slugs + 1] = path
+			end
+		end
+		table.sort(slugs)
+		for i = 1, #slugs do
+			f:write(string.format("\t\t[%q] = true,\n", slugs[i]))
+		end
+		f:write("\t},\n")
+	end
+	f:write("}\n")
 	f:close()
 end
 
 widgetState.saveUiPrefs = saveUiPrefs
+
+-- Settings > Performance and Stroke > Clay build-up live in ui_prefs and in
+-- the brush widget: mirror the prefs into the data model and push them to
+-- the widget. Idempotent; called on toggle, after the prefs load, and once
+-- from Update if the widget shows up after this panel (load order is not
+-- fixed between LuaUI widget folders).
+-- QUIT GUARD. Unsaved changes stand between the user and anything that ends
+-- the session: the top bar's QuitForce (desktop) and ReloadForce / showLobby
+-- (lobby), Spring.Quit, and the editor's own New Map restart. The engine has
+-- no callin for the window's close button or Alt+F4, so those cannot be
+-- caught; autosave is the net under them. Everything Lua-side goes through
+-- the three globals wrapped below, for the life of this widget and handed
+-- back on shutdown, so a /luaui reload never stacks wrappers.
+widgetState.quitGuardWords = { quitforce = true, quit = true, reloadforce = true, reload = true }
+
+widgetState.quitGuardShouldAsk = function()
+	if widgetState.quitGuardBypassUntil and os.clock() < widgetState.quitGuardBypassUntil then
+		return false
+	end
+	---@type table?
+	local mp = WG.MapProject
+	return mp ~= nil and mp.isDirty ~= nil and mp.isDirty() == true
+end
+
+widgetState.quitGuardClose = function()
+	widgetState.quitGuardPending = nil
+	widgetState.quitGuardSaving = nil
+	local d = widgetState.dmHandle
+	if d then
+		d.quitGuardOpen = false
+		d.quitGuardStatus = ""
+	end
+end
+
+-- Opens the popup for `what` ("quit" | "leave" | "newmap") with `proceed` as
+-- the deferred action; true when the caller must stop, the popup owns it now.
+widgetState.quitGuardIntercept = function(what, proceed)
+	if not widgetState.quitGuardShouldAsk() then
+		return false
+	end
+	local d = widgetState.dmHandle
+	if not d then
+		return false
+	end
+	---@type table?
+	local mp = WG.MapProject
+	local current = mp and mp.current and mp.current() or nil
+	widgetState.quitGuardPending = proceed
+	widgetState.quitGuardSaving = nil
+	d.quitGuardHasProject = current ~= nil
+	d.quitGuardText = current and widgetState.text("quitTextProject", { name = current })
+		or widgetState.text("quitTextCanvas")
+	local hintKey = what == "leave" and "quitLoseLeave" or what == "newmap" and "quitLoseNewMap" or "quitLoseQuit"
+	d.quitGuardHint = widgetState.text(hintKey)
+	d.quitGuardStatus = ""
+	d.quitGuardOpen = true
+	playSound("click")
+	return true
+end
+
+-- Runs the deferred action with the guard standing down for a moment, so a
+-- quit that turns into a second command (the lobby path) is not asked twice.
+widgetState.quitGuardProceed = function()
+	local go = widgetState.quitGuardPending
+	widgetState.quitGuardClose()
+	widgetState.quitGuardBypassUntil = os.clock() + 15
+	if go then
+		go()
+	end
+end
+
+widgetState.installQuitGuard = function()
+	if widgetState.quitGuardOriginals then
+		return
+	end
+	local sendCommands = Spring.SendCommands
+	local sendMenuMsg = Spring.SendLuaMenuMsg
+	local quit = Spring.Quit
+	widgetState.quitGuardOriginals = { sendCommands = sendCommands, sendMenuMsg = sendMenuMsg, quit = quit }
+	local function quitWordIn(first, ...)
+		local list = type(first) == "table" and first or { first, ... }
+		for i = 1, #list do
+			local word = tostring(list[i]):match("^%s*(%S+)")
+			if word and widgetState.quitGuardWords[word:lower()] then
+				return word:lower()
+			end
+		end
+		return nil
+	end
+	Spring.SendCommands = function(...)
+		local word = quitWordIn(...)
+		if word then
+			local n = select("#", ...)
+			local args = { ... }
+			local what = (word == "reloadforce" or word == "reload") and "leave" or "quit"
+			if widgetState.quitGuardIntercept(what, function()
+				sendCommands(unpack(args, 1, n))
+			end) then
+				return
+			end
+		end
+		return sendCommands(...)
+	end
+	Spring.SendLuaMenuMsg = function(msg, ...)
+		if msg == "showLobby" then
+			if widgetState.quitGuardIntercept("leave", function()
+				sendMenuMsg(msg)
+			end) then
+				return
+			end
+		end
+		return sendMenuMsg(msg, ...)
+	end
+	Spring.Quit = function()
+		if widgetState.quitGuardIntercept("quit", function()
+			quit()
+		end) then
+			return
+		end
+		return quit()
+	end
+end
+
+widgetState.removeQuitGuard = function()
+	local o = widgetState.quitGuardOriginals
+	if not o then
+		return
+	end
+	Spring.SendCommands = o.sendCommands
+	Spring.SendLuaMenuMsg = o.sendMenuMsg
+	Spring.Quit = o.quit
+	widgetState.quitGuardOriginals = nil
+end
+
+-- The autosave values cycle through short lists on click (Settings > General):
+-- a slider for a number that changes twice a year is not worth its wiring.
+widgetState.autosaveSteps = {
+	autosaveMinutes = { 5, 10, 15, 30, 60 },
+	autosaveKeepDays = { 1, 3, 7, 14 },
+	autosaveKeepLatestDays = { 3, 10, 30, 90 },
+}
+widgetState.autosaveDaysText = function(value, default)
+	local days = math.floor(tonumber(value) or tonumber(default) or 0)
+	return tostring(days) .. (days == 1 and " DAY" or " DAYS")
+end
+
+widgetState.pushPerfPrefs = function()
+	local up = widgetState.uiPrefs or {}
+	local perf = up.perfMode and true or false
+	local stack = up.clayStack and true or false
+	local d = widgetState.dmHandle
+	if d then
+		if d.perfModeActive ~= perf then
+			d.perfModeActive = perf
+			d.perfModeStr = perf and "ON" or "OFF"
+		end
+		if d.clayStackActive ~= stack then
+			d.clayStackActive = stack
+			d.clayStackStr = stack and "ON" or "OFF"
+		end
+		local team = up.teamSync and true or false
+		if d.teamSyncActive ~= team then
+			d.teamSyncActive = team
+			d.teamSyncStr = team and "ON" or "OFF"
+		end
+		local auto = up.autosave and true or false
+		if d.autosaveActive ~= auto then
+			d.autosaveActive = auto
+			d.autosaveStr = auto and "ON" or "OFF"
+		end
+		local minutesStr = tostring(math.floor(tonumber(up.autosaveMinutes) or 10)) .. " MIN"
+		if d.autosaveMinutesStr ~= minutesStr then
+			d.autosaveMinutesStr = minutesStr
+		end
+		local keepStr = widgetState.autosaveDaysText(up.autosaveKeepDays, 3)
+		if d.autosaveKeepStr ~= keepStr then
+			d.autosaveKeepStr = keepStr
+		end
+		local keepLatestStr = widgetState.autosaveDaysText(up.autosaveKeepLatestDays, 10)
+		if d.autosaveKeepLatestStr ~= keepLatestStr then
+			d.autosaveKeepLatestStr = keepLatestStr
+		end
+	end
+	widgetState.perfMode = perf
+	-- The project browser's controller reads this every sync; off means the
+	-- windows are plain local browsers.
+	widgetState.teamSyncEnabled = up.teamSync and true or false
+	-- The project widget runs the autosave timer and the sweep; it may load
+	-- after this panel, so the push is retried from Update until it lands.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.setAutosave then
+		mp.setAutosave({
+			enabled = up.autosave and true or false,
+			minutes = tonumber(up.autosaveMinutes) or 10,
+			keepDays = tonumber(up.autosaveKeepDays) or 3,
+			keepLatestDays = tonumber(up.autosaveKeepLatestDays) or 10,
+		})
+		widgetState.autosavePrefsPushed = true
+	else
+		widgetState.autosavePrefsPushed = false
+	end
+	---@type table?
+	local tb = WG.TerraformBrush
+	if tb and tb.setPerfMode then
+		tb.setPerfMode(perf)
+		tb.setClayStack(stack)
+		widgetState.perfPrefsPushed = true
+	else
+		widgetState.perfPrefsPushed = false
+	end
+end
+
+-- The terraform mirror in Update (900 lines of per-frame readout, slider
+-- and class syncing that dirties RmlUi) is not being read while the brush
+-- is down on the world: stride it to every 4th draw frame during a sculpt
+-- drag, and always under performance mode. A hover over the panel ends the
+-- stride so its controls answer at frame rate.
+widgetState.mirrorStrided = function(tfState)
+	if not (tfState.dragging or widgetState.perfMode) then
+		return false
+	end
+	if widgetState.mouseOverPanel then
+		return false
+	end
+	return Spring.GetDrawFrame() % 4 ~= 0
+end
+
+function widgetState.restoreWindowPosition(rootId, rootEl)
+	local pos = widgetState.uiPrefs.windowPositions[rootId]
+	if not pos or not rootEl then
+		return
+	end
+	local vsx, vsy = GetViewGeometry()
+	if not vsx or not vsy or vsx <= 0 or vsy <= 0 then
+		return
+	end
+	local x = math.max(0, math.min(vsx - 1, pos.x * vsx))
+	local y = math.max(0, math.min(vsy - 1, pos.y * vsy))
+	rootEl.style.left = math.floor(x + 0.5) .. "px"
+	rootEl.style.top = math.floor(y + 0.5) .. "px"
+	if rootEl == widgetState.rootElement then
+		currentLeftVw = x / vsx * 100
+		currentTopVh = y / vsy * 100
+	end
+end
+
+function widgetState.saveWindowPosition(rootId, rootEl, vsx, vsy)
+	if not rootId or not rootEl or not vsx or not vsy or vsx <= 0 or vsy <= 0 then
+		return
+	end
+	widgetState.uiPrefs.windowPositions[rootId] = {
+		x = rootEl.offset_left / vsx,
+		y = rootEl.offset_top / vsy,
+	}
+	saveUiPrefs()
+end
 
 -- =============================================================================
 -- Blue-dot hint config: advertises one ergonomy-enhancing subtool per tool
@@ -502,71 +981,112 @@ widgetState.saveUiPrefs = saveUiPrefs
 -- Listeners are wired in tf_environment.lua; per-frame gating lives in Update.
 -- =============================================================================
 widgetState.hintDots = {
-	{ dotId = "startpos-mode-notify-dot",      prefKey = "seenStartposShapeHint",
-	  markOnClick = { "btn-sp-shape", "btn-sp-startbox" } },
-	{ dotId = "metal-mode-notify-dot",         prefKey = "seenMetalStampHint",
-	  markOnClick = { "btn-mb-stamp" } },
-	{ dotId = "mb-mapanalysis-notify-dot",     prefKey = "seenMetalMapHint",
-	  markOnClick = { "btn-toggle-mb-overlays", "btn-mb-mapoverlay", "btn-mb-clusters", "btn-mb-inspector", "btn-mb-lasso", "btn-mb-balance-axis" },
-	  sectionToggleId = "btn-toggle-mb-overlays", sectionId = "section-mb-overlays",
-	  pulseTargets = { "btn-mb-mapoverlay", "btn-mb-inspector" },
-	  pulseKey = "metalMapPulseFrame", pulseExpiryKey = "metalMapPulseExpiry" },
-	{ dotId = "features-filters-notify-dot",   prefKey = "seenFeaturesFiltersHint",
-	  markOnClick = { "btn-toggle-fp-smart", "fp-filter-chip-slope", "fp-filter-chip-altitude" },
-	  sectionToggleId = "btn-toggle-fp-smart", sectionId = "section-fp-smart",
-	  pulseTargets = { "fp-filter-chip-slope", "fp-filter-chip-altitude" },
-	  pulseKey = "featuresFiltersPulseFrame", pulseExpiryKey = "featuresFiltersPulseExpiry" },
-	{ dotId = "grass-color-filter-notify-dot", prefKey = "seenGrassColorFilterHint",
-	  markOnClick = { "btn-toggle-gb-smart", "btn-gb-pill-color" },
-	  sectionToggleId = "btn-toggle-gb-smart", sectionId = "section-gb-smart",
-	  pulseTargets = { "btn-gb-pill-color" },
-	  pulseKey = "grassColorFilterPulseFrame", pulseExpiryKey = "grassColorFilterPulseExpiry" },
-	{ dotId = "splat-filters-notify-dot",      prefKey = "seenSplatFiltersHint",
-	  markOnClick = { "btn-toggle-sp-smart", "sp-filter-chip-slope", "sp-filter-chip-altitude" },
-	  sectionToggleId = "btn-toggle-sp-smart", sectionId = "section-sp-smart",
-	  pulseTargets = { "sp-filter-chip-slope", "sp-filter-chip-altitude" },
-	  pulseKey = "splatFiltersPulseFrame", pulseExpiryKey = "splatFiltersPulseExpiry" },
-	{ dotId = "lights-type-notify-dot",        prefKey = "seenLightsTypeHint",
-	  markOnClick = { "btn-lt-cone", "btn-lt-beam" } },
-	{ dotId = "clone-layers-notify-dot",       prefKey = "seenCloneLayersHint",
-	  markOnClick = { "btn-cl-decals", "btn-cl-weather", "btn-cl-lights" } },
-	{ dotId = "scene-skybox-notify-dot",       prefKey = "seenSceneSkyboxHint",
-	  markOnClick = { "btn-env-skybox-library" } },
+	{
+		dotId = "startpos-mode-notify-dot",
+		prefKey = "seenStartposShapeHint",
+		markOnClick = { "btn-sp-shape", "btn-sp-startbox" },
+	},
+	{ dotId = "metal-mode-notify-dot", prefKey = "seenMetalStampHint", markOnClick = { "btn-mb-stamp" } },
+	{
+		dotId = "mb-mapanalysis-notify-dot",
+		prefKey = "seenMetalMapHint",
+		markOnClick = {
+			"btn-toggle-mb-overlays",
+			"btn-mb-mapoverlay",
+			"btn-mb-clusters",
+			"btn-mb-inspector",
+			"btn-mb-lasso",
+			"btn-mb-balance-axis",
+		},
+		sectionToggleId = "btn-toggle-mb-overlays",
+		sectionId = "section-mb-overlays",
+		pulseTargets = { "btn-mb-mapoverlay", "btn-mb-inspector" },
+		pulseKey = "metalMapPulseFrame",
+		pulseExpiryKey = "metalMapPulseExpiry",
+	},
+	{
+		dotId = "features-filters-notify-dot",
+		prefKey = "seenFeaturesFiltersHint",
+		markOnClick = { "btn-toggle-fp-smart", "fp-filter-chip-slope", "fp-filter-chip-altitude" },
+		sectionToggleId = "btn-toggle-fp-smart",
+		sectionId = "section-fp-smart",
+		pulseTargets = { "fp-filter-chip-slope", "fp-filter-chip-altitude" },
+		pulseKey = "featuresFiltersPulseFrame",
+		pulseExpiryKey = "featuresFiltersPulseExpiry",
+	},
+	{
+		dotId = "grass-color-filter-notify-dot",
+		prefKey = "seenGrassColorFilterHint",
+		markOnClick = { "btn-toggle-gb-smart", "btn-gb-pill-color" },
+		sectionToggleId = "btn-toggle-gb-smart",
+		sectionId = "section-gb-smart",
+		pulseTargets = { "btn-gb-pill-color" },
+		pulseKey = "grassColorFilterPulseFrame",
+		pulseExpiryKey = "grassColorFilterPulseExpiry",
+	},
+	{
+		dotId = "splat-filters-notify-dot",
+		prefKey = "seenSplatFiltersHint",
+		markOnClick = { "btn-toggle-sp-smart", "sp-filter-chip-slope", "sp-filter-chip-altitude" },
+		sectionToggleId = "btn-toggle-sp-smart",
+		sectionId = "section-sp-smart",
+		pulseTargets = { "sp-filter-chip-slope", "sp-filter-chip-altitude" },
+		pulseKey = "splatFiltersPulseFrame",
+		pulseExpiryKey = "splatFiltersPulseExpiry",
+	},
+	{
+		dotId = "lights-type-notify-dot",
+		prefKey = "seenLightsTypeHint",
+		markOnClick = { "btn-lt-cone", "btn-lt-beam" },
+	},
+	{
+		dotId = "clone-layers-notify-dot",
+		prefKey = "seenCloneLayersHint",
+		markOnClick = { "btn-cl-decals", "btn-cl-weather", "btn-cl-lights" },
+	},
+	{
+		dotId = "scene-skybox-notify-dot",
+		prefKey = "seenSceneSkyboxHint",
+		markOnClick = { "btn-env-skybox-library" },
+	},
 }
 
 -- Skybox fade transition state (outside widgetState to avoid serialisation concerns)
 local skyFade = {
-	active = false,       -- is a transition in progress?
-	phase = "idle",       -- "fadeout" | "fadein" | "idle"
-	progress = 0,         -- 0..1
-	speed = 3.0,          -- full fade in/out takes ~0.33 s
+	active = false, -- is a transition in progress?
+	phase = "idle", -- "fadeout" | "fadein" | "idle"
+	progress = 0, -- 0..1
+	speed = 3.0, -- full fade in/out takes ~0.33 s
 	pendingTexture = nil, -- DDS path to apply at the midpoint
 	-- Saved sun lighting values (restored after fade)
-	origUnitAmbient    = nil,
-	origUnitDiffuse    = nil,
-	origUnitSpecular   = nil,
-	origGroundAmbient  = nil,
-	origGroundDiffuse  = nil,
+	origUnitAmbient = nil,
+	origUnitDiffuse = nil,
+	origUnitSpecular = nil,
+	origGroundAmbient = nil,
+	origGroundDiffuse = nil,
 	origGroundSpecular = nil,
 }
 
 -- Dynamic skybox rotation state
 local skyDynamic = {
 	playing = false,
-	speedX = 0,  -- rad/s around X axis
-	speedY = 0,  -- rad/s around Y axis
-	speedZ = 0,  -- rad/s around Z axis
-	angleX = 0,  -- accumulated delta rotation since play
+	speedX = 0, -- rad/s around X axis
+	speedY = 0, -- rad/s around Y axis
+	speedZ = 0, -- rad/s around Z axis
+	angleX = 0, -- accumulated delta rotation since play
 	angleY = 0,
 	angleZ = 0,
-	startQuat = nil,  -- {x,y,z,w} skybox quaternion at play-start
-	sunSync = false,  -- rotate sun direction in lockstep
+	startQuat = nil, -- {x,y,z,w} skybox quaternion at play-start
+	sunSync = false, -- rotate sun direction in lockstep
 	origSunDir = nil, -- {x,y,z} captured when play is pressed
-	origQuat = nil,   -- alias for startQuat (used by sun delta calc)
+	origQuat = nil, -- alias for startQuat (used by sun delta calc)
 	-- Cached DOM elements for sun slider feedback (populated during init)
-	sunSliderX = nil, sunLabelX = nil,
-	sunSliderY = nil, sunLabelY = nil,
-	sunSliderZ = nil, sunLabelZ = nil,
+	sunSliderX = nil,
+	sunLabelX = nil,
+	sunSliderY = nil,
+	sunLabelY = nil,
+	sunSliderZ = nil,
+	sunLabelZ = nil,
 }
 
 -- Quaternion helpers for composing per-axis rotations
@@ -577,17 +1097,21 @@ local function quatFromAxisAngle(ax, ay, az, angle)
 end
 
 local function quatMul(ax, ay, az, aw, bx, by, bz, bw)
-	return aw*bx + ax*bw + ay*bz - az*by,
-	       aw*by - ax*bz + ay*bw + az*bx,
-	       aw*bz + ax*by - ay*bx + az*bw,
-	       aw*bw - ax*bx - ay*by - az*bz
+	return aw * bx + ax * bw + ay * bz - az * by,
+		aw * by - ax * bz + ay * bw + az * bx,
+		aw * bz + ax * by - ay * bx + az * bw,
+		aw * bw - ax * bx - ay * by - az * bz
 end
 
 local function quatToAxisAngle(qx, qy, qz, qw)
-	local len = math.sqrt(qx*qx + qy*qy + qz*qz + qw*qw)
-	if len > 0 then qx, qy, qz, qw = qx/len, qy/len, qz/len, qw/len end
-	if qw < 0 then qx, qy, qz, qw = -qx, -qy, -qz, -qw end
-	local sinHalf = math.sqrt(qx*qx + qy*qy + qz*qz)
+	local len = math.sqrt(qx * qx + qy * qy + qz * qz + qw * qw)
+	if len > 0 then
+		qx, qy, qz, qw = qx / len, qy / len, qz / len, qw / len
+	end
+	if qw < 0 then
+		qx, qy, qz, qw = -qx, -qy, -qz, -qw
+	end
+	local sinHalf = math.sqrt(qx * qx + qy * qy + qz * qz)
 	if sinHalf < 1e-8 then
 		return 0, 1, 0, 0
 	end
@@ -602,22 +1126,19 @@ end
 
 -- Rotate a vector by a quaternion: v' = q * v * q^-1
 local function quatRotateVec(qx, qy, qz, qw, vx, vy, vz)
-	local tx = 2 * (qy*vz - qz*vy)
-	local ty = 2 * (qz*vx - qx*vz)
-	local tz = 2 * (qx*vy - qy*vx)
-	return vx + qw*tx + (qy*tz - qz*ty),
-	       vy + qw*ty + (qz*tx - qx*tz),
-	       vz + qw*tz + (qx*ty - qy*tx)
-end
-
--- Quaternion inverse (conjugate for unit quaternions)
-local function quatInv(qx, qy, qz, qw)
-	return -qx, -qy, -qz, qw
+	local tx = 2 * (qy * vz - qz * vy)
+	local ty = 2 * (qz * vx - qx * vz)
+	local tz = 2 * (qx * vy - qy * vx)
+	return vx + qw * tx + (qy * tz - qz * ty), vy + qw * ty + (qz * tx - qx * tz), vz + qw * tz + (qx * ty - qy * tx)
 end
 
 local function tickSkyDynamic(dt)
-	if not skyDynamic.playing then return end
-	if skyDynamic.speedX == 0 and skyDynamic.speedY == 0 and skyDynamic.speedZ == 0 then return end
+	if not skyDynamic.playing then
+		return
+	end
+	if skyDynamic.speedX == 0 and skyDynamic.speedY == 0 and skyDynamic.speedZ == 0 then
+		return
+	end
 
 	skyDynamic.angleX = wrapAngle(skyDynamic.angleX + skyDynamic.speedX * dt)
 	skyDynamic.angleY = wrapAngle(skyDynamic.angleY + skyDynamic.speedY * dt)
@@ -649,13 +1170,20 @@ local function tickSkyDynamic(dt)
 		if skyDynamic.sunSliderX then
 			uiState.updatingFromCode = true
 			local function setSlLb(sl, lb, v)
-				if sl then sl:SetAttribute("value", tostring(math.floor(v * 10000 + 0.5))) end
-				if lb then lb.inner_rml = string.format("%.2f", v) end
+				if sl then
+					sl:SetAttribute("value", tostring(math.floor(v * 10000 + 0.5)))
+				end
+				if lb then
+					lb.inner_rml = string.format("%.2f", v)
+				end
 			end
 			setSlLb(skyDynamic.sunSliderX, skyDynamic.sunLabelX, sx)
 			setSlLb(skyDynamic.sunSliderY, skyDynamic.sunLabelY, sy)
 			setSlLb(skyDynamic.sunSliderZ, skyDynamic.sunLabelZ, sz)
 			uiState.updatingFromCode = false
+			if widgetState.refreshEnvSunAzEl then
+				widgetState.refreshEnvSunAzEl()
+			end
 		end
 	end
 end
@@ -663,13 +1191,15 @@ end
 -- Helper: read a sun lighting colour as {r,g,b}
 local function getSunColor(kind, scope)
 	local r, g, b = gl.GetSun(kind, scope)
-	if r then return {r, g, b} end
-	return {1, 1, 1}
+	if r then
+		return { r, g, b }
+	end
+	return { 1, 1, 1 }
 end
 
 -- Helper: scale a saved {r,g,b} colour and apply via SetSunLighting
 local function setSunColorScaled(key, base, scale)
-	Spring.SetSunLighting({ [key] = { base[1]*scale, base[2]*scale, base[3]*scale } })
+	Spring.SetSunLighting({ [key] = { base[1] * scale, base[2] * scale, base[3] * scale } })
 end
 
 -- Apply skybox using the successfully GL-bound texture name.
@@ -679,8 +1209,12 @@ local function applySkyboxNow(boundTexName, rawPath)
 	-- path if no bound name is available. Calling SetSkyBoxTexture with an
 	-- unregistered name clears the skybox, so we apply exactly ONE name.
 	local name = boundTexName
-	if not name or name == "" then name = rawPath end
-	if not name or name == "" then return end
+	if not name or name == "" then
+		name = rawPath
+	end
+	if not name or name == "" then
+		return
+	end
 	-- Swapping the skybox makes the engine re-derive sky state from mapinfo,
 	-- which stomps the LIVE fog params back to the map's baked values — fog
 	-- reappears while the ENV sliders still show the runtime values (seen on
@@ -714,11 +1248,11 @@ local function startSkyboxFade(newTexturePath, rawTexturePath)
 		return
 	end
 	-- Fresh start: capture current (full) lighting so we can dim and restore it.
-	skyFade.origUnitAmbient    = getSunColor("ambient", "unit")
-	skyFade.origUnitDiffuse    = getSunColor("diffuse", "unit")
-	skyFade.origUnitSpecular   = getSunColor("specular", "unit")
-	skyFade.origGroundAmbient  = getSunColor("ambient")
-	skyFade.origGroundDiffuse  = getSunColor("diffuse")
+	skyFade.origUnitAmbient = getSunColor("ambient", "unit")
+	skyFade.origUnitDiffuse = getSunColor("diffuse", "unit")
+	skyFade.origUnitSpecular = getSunColor("specular", "unit")
+	skyFade.origGroundAmbient = getSunColor("ambient")
+	skyFade.origGroundDiffuse = getSunColor("diffuse")
 	skyFade.origGroundSpecular = getSunColor("specular")
 	skyFade.pendingTexture = newTexturePath
 	skyFade.pendingTextureRaw = rawTexturePath or newTexturePath
@@ -730,7 +1264,9 @@ widgetState.startSkyboxFade = startSkyboxFade
 
 -- Apply a skybox change: uses fade if enabled, instant swap otherwise
 local function applySkybox(texturePath)
-	if not texturePath then return end
+	if not texturePath then
+		return
+	end
 	local normalized = texturePath:gsub("\\", "/")
 	-- VFS.RAW_FIRST ensures raw-filesystem skyboxes (Terraform Brush/SkyBoxes/)
 	-- are found, not just archive-resident ones.
@@ -738,23 +1274,12 @@ local function applySkybox(texturePath)
 		Spring.Echo("[Terraform Brush] Skybox texture not found: " .. normalized)
 		return
 	end
-	-- Engine limitation (verified at Recoil 2026.06.12): SetSkyBoxTexture routes
-	-- to ISky::SetLuaTexture, which only the CSkyBox sky class overrides. A map
-	-- that booted without a mapinfo skybox runs the procedural sky, where the
-	-- call is a complete silent no-op. Warn once so users know why nothing
-	-- changes; still apply, since newer engines may honour the swap.
-	if not widgetState._skyboxSwapProbed then
-		widgetState._skyboxSwapProbed = true
-		local mOk, mi = pcall(VFS.Include, "mapinfo.lua")
-		local baked = mOk and type(mi) == "table" and mi.atmosphere and mi.atmosphere.skyBox
-		if type(baked) ~= "string" or baked == "" then
-			Spring.Echo("[Terraform Brush] This map booted without a skybox, so the engine runs the procedural sky. Current engines ignore runtime skybox swaps on such maps (waiting on queued Recoil changes).")
-		end
-	end
 	-- Spring.SetSkyBoxTexture looks up by CNamedTextures, which requires the path
 	-- to be registered via gl.Texture first. gl.Texture can only be called from
 	-- Draw call-ins. RmlUI click handlers fire from Update, so we defer: store the
-	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in DrawScreen.
+	-- path in a pending field and do gl.Texture + SetSkyBoxTexture in the
+	-- DrawScreenPost drain (drainDeferredApplies; DrawScreen is skipped while the
+	-- interface is hidden, and FOCUS MODE hides it on purpose).
 	widgetState._pendingSkyboxPath = normalized
 end
 widgetState.applySkybox = applySkybox
@@ -765,33 +1290,46 @@ widgetState.applySkybox = applySkybox
 -- vary (SpaceSkybox1/2/3, EarthSkybox1/2/3, ...). namaqualand -> red desert planet
 -- is our pick (user specified only bismuth/teizer/enborelde).
 local IS_BAR = (Game.gameName or ""):find("Beyond All Reason") ~= nil
-local BIOME_SKYBOX_MATCH = {
-	bismuth     = "spaceskybox",      -- starry sky
-	teizer      = "goldsunrise",      -- sunset
-	enborelde   = "earthskybox",      -- sunny blue sky with clouds
-	namaqualand = "redplanet",        -- red desert planet
-	palehang    = "allthatglitters",  -- crystal-desert sky (Theta Crystals family)
-}
+-- The fragment per biome comes from its manifest (tileset_dev/tilesets/<key>.lua,
+-- field `skybox`), read through WG.TilesetTerrain.getBiomes(); nothing is
+-- hardcoded here any more, so a new biome brings its own sky.
 
 -- Resolve a biome key to a full DDS path in the skybox library, or nil if unmapped /
 -- the matching file is absent. Deterministic: lowest-sorted name wins (so *1 variants).
 local function resolveBiomeSkybox(biomeKey)
-	local frag = BIOME_SKYBOX_MATCH[biomeKey]
-	if not frag then return nil end
+	local frag
+	local T = WG.TilesetTerrain
+	local rows = T and T.getBiomes and T.getBiomes()
+	for _, b in ipairs(rows or {}) do
+		if b.key == biomeKey then
+			frag = b.skybox
+			break
+		end
+	end
+	if not frag or frag == "" then
+		return nil
+	end
+	frag = tostring(frag):lower()
 	local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
 	table.sort(files)
 	for _, fp in ipairs(files) do
 		local base = (fp:match("([^/\\]+)%.[Dd][Dd][Ss]$") or ""):lower()
-		if base:find(frag, 1, true) then return fp:gsub("\\", "/") end
+		if base:find(frag, 1, true) then
+			return fp:gsub("\\", "/")
+		end
 	end
 	return nil
 end
 
 -- Apply the skybox mapped to a biome, and keep the ENV library highlight in sync.
 local function syncSkyboxToBiome(biomeKey)
-	if not (IS_BAR and widgetState.tsSkyboxSync and widgetState.applySkybox) then return end
+	if not (IS_BAR and widgetState.tsSkyboxSync and widgetState.applySkybox) then
+		return
+	end
 	local sky = resolveBiomeSkybox(biomeKey)
-	if not sky then return end
+	if not sky then
+		return
+	end
 	widgetState.applySkybox(sky)
 	widgetState.envCurrentSkybox = sky
 	for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
@@ -799,19 +1337,42 @@ local function syncSkyboxToBiome(biomeKey)
 	end
 end
 
+-- Pick a biome: shared by the data-model onPickBiome and the BIOME LIBRARY
+-- tiles tf_tileset.lua builds at runtime from the manifests. On widgetState,
+-- not a local: the main chunk sits near Lua 5.1's 200-local ceiling.
+widgetState.pickBiome = function(key)
+	if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then
+		return false
+	end
+	local ok = WG.TilesetTerrain.setBiome(key)
+	if ok then
+		playSound("click")
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsBiome = key
+		end
+		-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
+		-- toggle on, or when the manifest names no sky).
+		syncSkyboxToBiome(key)
+	end
+	return ok
+end
+
 local function tickSkyboxFade(dt)
-	if not skyFade.active then return end
+	if not skyFade.active then
+		return
+	end
 	local step = skyFade.speed * dt
 
 	if skyFade.phase == "fadeout" then
 		skyFade.progress = math.min(1, skyFade.progress + step)
 		-- Dim lighting in sync with the sky overlay
 		local s = 1 - skyFade.progress
-		setSunColorScaled("unitAmbientColor",    skyFade.origUnitAmbient,    s)
-		setSunColorScaled("unitDiffuseColor",    skyFade.origUnitDiffuse,    s)
-		setSunColorScaled("unitSpecularColor",   skyFade.origUnitSpecular,   s)
-		setSunColorScaled("groundAmbientColor",  skyFade.origGroundAmbient,  s)
-		setSunColorScaled("groundDiffuseColor",  skyFade.origGroundDiffuse,  s)
+		setSunColorScaled("unitAmbientColor", skyFade.origUnitAmbient, s)
+		setSunColorScaled("unitDiffuseColor", skyFade.origUnitDiffuse, s)
+		setSunColorScaled("unitSpecularColor", skyFade.origUnitSpecular, s)
+		setSunColorScaled("groundAmbientColor", skyFade.origGroundAmbient, s)
+		setSunColorScaled("groundDiffuseColor", skyFade.origGroundDiffuse, s)
 		setSunColorScaled("groundSpecularColor", skyFade.origGroundSpecular, s)
 		if skyFade.progress >= 1 then
 			if skyFade.pendingTexture then
@@ -824,20 +1385,20 @@ local function tickSkyboxFade(dt)
 		skyFade.progress = math.min(1, skyFade.progress + step)
 		-- Restore lighting in sync
 		local s = skyFade.progress
-		setSunColorScaled("unitAmbientColor",    skyFade.origUnitAmbient,    s)
-		setSunColorScaled("unitDiffuseColor",    skyFade.origUnitDiffuse,    s)
-		setSunColorScaled("unitSpecularColor",   skyFade.origUnitSpecular,   s)
-		setSunColorScaled("groundAmbientColor",  skyFade.origGroundAmbient,  s)
-		setSunColorScaled("groundDiffuseColor",  skyFade.origGroundDiffuse,  s)
+		setSunColorScaled("unitAmbientColor", skyFade.origUnitAmbient, s)
+		setSunColorScaled("unitDiffuseColor", skyFade.origUnitDiffuse, s)
+		setSunColorScaled("unitSpecularColor", skyFade.origUnitSpecular, s)
+		setSunColorScaled("groundAmbientColor", skyFade.origGroundAmbient, s)
+		setSunColorScaled("groundDiffuseColor", skyFade.origGroundDiffuse, s)
 		setSunColorScaled("groundSpecularColor", skyFade.origGroundSpecular, s)
 		if skyFade.progress >= 1 then
 			-- Ensure exact original values are restored
 			Spring.SetSunLighting({
-				unitAmbientColor    = skyFade.origUnitAmbient,
-				unitDiffuseColor    = skyFade.origUnitDiffuse,
-				unitSpecularColor   = skyFade.origUnitSpecular,
-				groundAmbientColor  = skyFade.origGroundAmbient,
-				groundDiffuseColor  = skyFade.origGroundDiffuse,
+				unitAmbientColor = skyFade.origUnitAmbient,
+				unitDiffuseColor = skyFade.origUnitDiffuse,
+				unitSpecularColor = skyFade.origUnitSpecular,
+				groundAmbientColor = skyFade.origGroundAmbient,
+				groundDiffuseColor = skyFade.origGroundDiffuse,
 				groundSpecularColor = skyFade.origGroundSpecular,
 			})
 			skyFade.active = false
@@ -848,7 +1409,9 @@ end
 
 local function clampPanelPosition()
 	local vsx, vsy = GetViewGeometry()
-	if vsx <= 0 or vsy <= 0 then return end
+	if vsx <= 0 or vsy <= 0 then
+		return
+	end
 	-- Prefer live rendered width (px); fall back to dp baseline for the very
 	-- first frame before layout has run.
 	local panelWidthPx = (widgetState.rootElement and widgetState.rootElement.offset_width) or widgetState.panelWidthDp
@@ -863,8 +1426,88 @@ local function buildRootStyle()
 	clampPanelPosition()
 	-- Width lives in RCSS (.tf-root, .tf-env-float-window, .tf-*-root); we only
 	-- emit position here so dragging can override it inline.
-	return string.format("left: %.2fvw; top: %.2fvh;",
-		currentLeftVw, currentTopVh)
+	return string.format("left: %.2fvw; top: %.2fvh;", currentLeftVw, currentTopVh)
+end
+
+-- Every floating window pins its header and puts the rest of its content in a
+-- `.tf-panel-body` scroll box (see the RML). Capping those to the space left
+-- below each window is shared work across the whole editor suite, so it lives
+-- in WG.TerraformerShared; this is just the "re-measure now" nudge for the
+-- moments this widget knows about. Defined on widgetState rather than as a
+-- file local — this chunk is close to Lua 5.1's 200-local ceiling.
+function widgetState.refreshPanelBodies()
+	local ts = WG.TerraformerShared
+	if ts and ts.refreshPanelBodies then
+		ts.refreshPanelBodies()
+	end
+end
+
+-- GL overlays that paint on top of a panel element (texture previews) have to
+-- be clipped to the scroll box that element lives in — RmlUi clips its own
+-- rendering, but a raw gl.TexRect would keep painting over the pinned header or
+-- past the bottom of the panel once the content is scrolled. Returns true when
+-- a scissor was pushed; the caller must then gl.Scissor(false).
+function widgetState.pushPanelClip(el)
+	local vsy = select(2, GetViewGeometry())
+	if not vsy or vsy <= 0 then
+		return false
+	end
+	local node = el
+	while node do
+		if node:IsClassSet("tf-panel-body") then
+			local w, h = node.offset_width, node.offset_height
+			if w > 0 and h > 0 then
+				gl.Scissor(
+					math.floor(node.absolute_left),
+					math.floor(vsy - node.absolute_top - h),
+					math.ceil(w),
+					math.ceil(h)
+				)
+				return true
+			end
+			return false
+		end
+		node = node.parent_node
+	end
+	return false
+end
+
+-- The FILE dropdown must stay on top of everything, but the GL thumbnail
+-- passes run in DrawScreenPost, after RmlUi has rendered, so an open menu
+-- would be painted over (reported by Moose for the SURFACE tiles; the same
+-- held for every tile grid). Measured once per frame into widgetState.fmBox;
+-- every pass skips tiles that touch it. Element coords, y down. Gated on the
+-- data model, not the element box: an element that is not laid out can still
+-- report a stale non-zero box (the panel-down lesson above).
+function widgetState.measureFileMenuBox()
+	widgetState.fmBoxX = nil
+	local dm = widgetState.dmHandle
+	if not (dm and dm.fileMenuOpen) then
+		return
+	end
+	local doc = widgetState.document
+	local menu = doc and doc:GetElementById("tf-file-menu")
+	if not menu then
+		return
+	end
+	local w, h = menu.offset_width, menu.offset_height
+	if w and h and w > 0 and h > 0 then
+		widgetState.fmBoxX = menu.absolute_left
+		widgetState.fmBoxY = menu.absolute_top
+		widgetState.fmBoxW = w
+		widgetState.fmBoxH = h
+	end
+end
+function widgetState.underFileMenu(x, y, w, h)
+	local bx = widgetState.fmBoxX
+	if not bx then
+		return false
+	end
+	-- set together with fmBoxX; the or-defaults are for the analyzer
+	local by = widgetState.fmBoxY or 0
+	local bw = widgetState.fmBoxW or 0
+	local bh = widgetState.fmBoxH or 0
+	return x < bx + bw and x + w > bx and y < by + bh and y + h > by
 end
 
 -- Forward declaration: clearPassthrough is defined after initialModel but captured as upvalue
@@ -879,32 +1522,48 @@ local updateAllKeybindBadges
 -- All use widgetState/uiState/WG/playSound upvalues (file-level locals).
 local function _noSliderVal(id, default)
 	local doc = widgetState.document
-	if not doc then return default end
+	if not doc then
+		return default
+	end
 	local sl = doc:GetElementById("slider-" .. id)
-	if not sl then return default end
+	if not sl then
+		return default
+	end
 	return tonumber(sl:GetAttribute("value")) or default
 end
 local function _noSetSliderVal(id, v)
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local sl = doc:GetElementById("slider-" .. id)
-	if sl then sl:SetAttribute("value", tostring(v)) end
+	if sl then
+		sl:SetAttribute("value", tostring(v))
+	end
 end
 local function _noDmLabel(field, text)
 	local d = widgetState.dmHandle
-	if d and d[field] ~= text then d[field] = text end
+	if d and d[field] ~= text then
+		d[field] = text
+	end
 end
 -- Helper for sliders with non-standard ID format (e.g. "wb-slider-size" not "slider-wb-size").
 local function _elemSliderVal(fullId, default)
 	local doc = widgetState.document
-	if not doc then return default end
+	if not doc then
+		return default
+	end
 	local sl = doc:GetElementById(fullId)
-	if not sl then return default end
+	if not sl then
+		return default
+	end
 	return tonumber(sl:GetAttribute("value")) or default
 end
 local function _elemSetSliderVal(fullId, v)
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local sl = doc:GetElementById(fullId)
 	if sl then
 		local vStr = tostring(v)
@@ -922,14 +1581,19 @@ local function _splFindAnglePresetIdx(val)
 	local best, bestD = 2, math.huge
 	for i, p in ipairs(SP_ANGLE_PRESETS) do
 		local d = math.abs(p - (val or 15))
-		if d < bestD then bestD = d; best = i end
+		if d < bestD then
+			bestD = d
+			best = i
+		end
 	end
 	return best
 end
 local function _splApplyAnglePreset(idx)
 	idx = math.max(1, math.min(#SP_ANGLE_PRESETS, idx))
 	local pval = SP_ANGLE_PRESETS[idx]
-	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+	if WG.TerraformBrush then
+		WG.TerraformBrush.setAngleSnapStep(pval)
+	end
 end
 
 -- Grass angle-snap preset array and helpers (captured by onGb* closures in initialModel).
@@ -938,7 +1602,10 @@ local function _gbFindAnglePresetIdx(val)
 	local best, bestD = 2, math.huge
 	for i, p in ipairs(GB_ANGLE_PRESETS) do
 		local d = math.abs(p - (val or 15))
-		if d < bestD then bestD = d; best = i end
+		if d < bestD then
+			bestD = d
+			best = i
+		end
 	end
 	return best
 end
@@ -946,27 +1613,35 @@ local function _gbApplyAnglePreset(idx)
 	idx = math.max(1, math.min(#GB_ANGLE_PRESETS, idx))
 	local pval = GB_ANGLE_PRESETS[idx]
 	local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
-	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+	if WG.TerraformBrush then
+		WG.TerraformBrush.setAngleSnapStep(pval)
+	end
 	_elemSetSliderVal("gb-slider-angle-snap-step", idx - 1)
 	_noDmLabel("tbAngleSnapStepStr", pstr)
 	_elemSetSliderVal("gb-slider-angle-snap-step-numbox", pstr)
 end
 local function _gbApplyManualSpoke(idx)
-	if not WG.TerraformBrush then return end
+	if not WG.TerraformBrush then
+		return
+	end
 	WG.TerraformBrush.setAngleSnapManualSpoke(idx)
 	local step = (WG.TerraformBrush.getState() or {}).angleSnapStep or 15
-	local deg  = (idx * step) % 360
+	local deg = (idx * step) % 360
 	_noDmLabel("gbManualSpokeStr", tostring(deg))
 	_elemSetSliderVal("gb-slider-manual-spoke", idx)
 end
 local function _gbSnapStep(delta)
-	if not WG.TerraformBrush then return end
+	if not WG.TerraformBrush then
+		return
+	end
 	local cur = tonumber((WG.TerraformBrush.getState() or {}).gridSnapSize) or 48
 	WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
 end
 
 local function _fpSnapStep(delta)
-	if not WG.FeaturePlacer then return end
+	if not WG.FeaturePlacer then
+		return
+	end
 	local cur = tonumber((WG.FeaturePlacer.getState() or {}).gridSnapSize) or 48
 	WG.FeaturePlacer.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
 end
@@ -977,7 +1652,10 @@ local function _mbFindAnglePresetIdx(val)
 	local best, bestD = 2, math.huge
 	for i, p in ipairs(MB_ANGLE_PRESETS) do
 		local d = math.abs(p - (val or 15))
-		if d < bestD then bestD = d; best = i end
+		if d < bestD then
+			bestD = d
+			best = i
+		end
 	end
 	return best
 end
@@ -985,13 +1663,17 @@ local function _mbApplyAnglePreset(idx)
 	idx = math.max(1, math.min(#MB_ANGLE_PRESETS, idx))
 	local pval = MB_ANGLE_PRESETS[idx]
 	local pstr = (pval == math.floor(pval)) and tostring(math.floor(pval)) or tostring(pval)
-	if WG.TerraformBrush then WG.TerraformBrush.setAngleSnapStep(pval) end
+	if WG.TerraformBrush then
+		WG.TerraformBrush.setAngleSnapStep(pval)
+	end
 	_elemSetSliderVal("mb-slider-angle-snap-step", idx - 1)
 	_noDmLabel("tbAngleSnapStepStr", pstr)
 	_elemSetSliderVal("mb-slider-angle-snap-step-numbox", pstr)
 end
 local function _mbSnapStep(delta)
-	if not WG.TerraformBrush then return end
+	if not WG.TerraformBrush then
+		return
+	end
 	local cur = tonumber((WG.TerraformBrush.getState() or {}).gridSnapSize) or 48
 	WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, cur + delta)))
 end
@@ -999,11 +1681,11 @@ local function _mbSyncSymChipClasses()
 	local s = WG.TerraformBrush and WG.TerraformBrush.getState() or {}
 	local d = widgetState.dmHandle
 	if d then
-		d.mbSymmetryRadial    = s.symmetryRadial and true or false
-		d.mbSymMirrorX        = s.symmetryMirrorX and true or false
-		d.mbSymMirrorY        = s.symmetryMirrorY and true or false
+		d.mbSymmetryRadial = s.symmetryRadial and true or false
+		d.mbSymMirrorX = s.symmetryMirrorX and true or false
+		d.mbSymMirrorY = s.symmetryMirrorY and true or false
 		d.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
-		d.mbSymHasAxis        = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
+		d.mbSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 	end
 end
 
@@ -1011,17 +1693,27 @@ end
 -- Mirror tf_environment.lua's envSetSlider/updatePreview but use widgetState.document.
 local function _envSetSlider(sliderId, labelId, intVal, displayVal)
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local sl = doc:GetElementById(sliderId)
 	local lb = doc:GetElementById(labelId)
-	if sl then sl:SetAttribute("value", tostring(intVal)) end
-	if lb then lb.inner_rml = displayVal end
+	if sl then
+		sl:SetAttribute("value", tostring(intVal))
+	end
+	if lb then
+		lb.inner_rml = displayVal
+	end
 end
 local function _envUpdatePreview(previewId, r, g, b)
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local el = doc:GetElementById(previewId)
-	if not el then return end
+	if not el then
+		return
+	end
 	local ri = math.floor(math.min(math.max(r or 0, 0), 1) * 255 + 0.5)
 	local gi = math.floor(math.min(math.max(g or 0, 0), 1) * 255 + 0.5)
 	local bi = math.floor(math.min(math.max(b or 0, 0), 1) * 255 + 0.5)
@@ -1039,35 +1731,296 @@ local function _tbFindAnglePresetIdx(val)
 	local best, bestD = 2, math.huge
 	for i, p in ipairs(TB_ANGLE_PRESETS) do
 		local d = math.abs(p - (val or 15))
-		if d < bestD then bestD = d; best = i end
+		if d < bestD then
+			bestD = d
+			best = i
+		end
 	end
 	return best
 end
+-- FOLLOW STROKE applies to the terrain sculpt drag only: the other tools in the
+-- SHAPE row (metal, grass, features, splat) stamp rather than stroke, and ramp /
+-- noise / autoramp / restore / erode own their own sampling.
+local _tbFollowModes = { raise = true, lower = true, level = true, smooth = true, smudge = true }
+-- PASSABILITY overlay (MrBob's F6 check without a selected unit): the tileset
+-- shader tints everything steeper than the class's max slope in the engine's
+-- impassable purple, so a cliff can be judged while sculpting. Degrees are read
+-- off a representative unit's movedef so the band matches what F6 draws; the
+-- literals are gamedata/movedefs.lua's own SLOPE values as a fallback.
+local _tbPassClasses = {
+	{ key = "BOT", unit = "armpw", deg = 54 },
+	{ key = "VEH", unit = "armflash", deg = 27 },
+	{ key = "HOVER", unit = "corch", deg = 33 },
+	{ key = "AMPH", unit = "coramph", deg = 54 },
+}
+local _tbPassIdx = 0 -- 0 = off
+local function _tbPassDeg(entry)
+	---@diagnostic disable-next-line: undefined-global
+	local ud = UnitDefNames and UnitDefNames[entry.unit]
+	local ms = ud and ud.moveDef and ud.moveDef.maxSlope
+	-- movedef maxSlope is stored as 1 - cos(angle), same space as
+	-- Spring.GetGroundNormal's fourth return.
+	if ms and ms > 0 and ms < 2 then
+		return math.deg(math.acos(1 - ms))
+	end
+	return entry.deg
+end
 local function _tbMirrorToggle(P, stateKey, setter, dmKey)
-	if not WG.TerraformBrush then return end
+	if not WG.TerraformBrush then
+		return
+	end
 	local nv = not (WG.TerraformBrush.getState() or {})[stateKey]
 	setter(nv)
-	local dm = widgetState.dmHandle; if dm then dm[P..dmKey] = nv end
+	local dm = widgetState.dmHandle
+	if dm then
+		dm[P .. dmKey] = nv
+	end
 	playSound("tick")
 end
+-- ── IMAGE overlay (DISPLAY > Image) ──────────────────────────────────────────
+-- One overlay shared by every tool's DISPLAY row (WG.TerraformImageOverlay,
+-- cmd_terraform_image_overlay.lua). The chips toggle it or open the single
+-- IMAGE OVERLAY floating window (tf-imgov-root); the helpers sit on one table
+-- to stay clear of the main chunk's local budget.
+local _imgOv = {}
+-- { slider id suffix, state -> slider value, slider value -> overlay setter }
+_imgOv.SLIDERS = {
+	{
+		"opacity",
+		function(s)
+			return (s.opacity or 0) * 100
+		end,
+		function(v, IO)
+			IO.setOpacity(v / 100)
+		end,
+	},
+	{
+		"offx",
+		function(s)
+			return (s.offsetX or 0) * 100
+		end,
+		function(v, IO)
+			IO.setOffset(v / 100, nil)
+		end,
+	},
+	{
+		"offy",
+		function(s)
+			return (s.offsetZ or 0) * 100
+		end,
+		function(v, IO)
+			IO.setOffset(nil, v / 100)
+		end,
+	},
+	{
+		"scale",
+		function(s)
+			return (s.scale or 1) * 100
+		end,
+		function(v, IO)
+			IO.setScale(v / 100)
+		end,
+	},
+}
+function _imgOv.active()
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	return (IO and IO.isEnabled()) or false
+end
+function _imgOv.esc(s)
+	return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+-- Rebuild the file rows in the window (same row markup as the feature-map list).
+function _imgOv.rebuildList(rescan)
+	local doc = widgetState.document
+	if not doc then
+		return
+	end
+	local listEl = doc:GetElementById("imgov-list")
+	if not listEl then
+		return
+	end
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	listEl.inner_rml = ""
+	if not IO then
+		listEl.inner_rml = '<div class="tf-hm-empty">Image Overlay widget is not loaded (Settings &gt; Widgets).</div>'
+		return
+	end
+	local files = IO.list(rescan) or {}
+	if #files == 0 then
+		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
+			.. _imgOv.esc(IO.getDir())
+			.. " yet. Drop some in and hit Rescan folder.</div>"
+		return
+	end
+	local current = (IO.getState() or {}).file
+	for _, name in ipairs(files) do
+		local item = doc:CreateElement("div")
+		item:SetClass("tf-hm-row", true)
+		if name == current then
+			item:SetClass("imgov-current", true)
+		end
+		item.inner_rml = '<div class="tf-hm-row-line"><div class="tf-hm-mapname">' .. _imgOv.esc(name) .. "</div></div>"
+		item:AddEventListener("click", function(ev)
+			---@type table?
+			local api = WG.TerraformImageOverlay
+			if api then
+				local ok = api.select(name)
+				playSound(ok and "apply" or "toggleOff")
+			end
+			_imgOv.rebuildList(false)
+			ev:StopPropagation()
+		end, false)
+		listEl:AppendChild(item)
+	end
+end
+-- Push the overlay placement into the window sliders, skipping the one being
+-- dragged (the drag ids come from the SNAP_SLIDERS registration).
+function _imgOv.stamp(force)
+	local doc = widgetState.document
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	if not doc or not IO then
+		return
+	end
+	local s = IO.getState() or {}
+	local cache = widgetState.imgOvLastVal
+	if not cache then
+		cache = {}
+		widgetState.imgOvLastVal = cache
+	end
+	local ds = uiState.draggingSlider
+	local stamped = false
+	uiState.updatingFromCode = true
+	for _, row in ipairs(_imgOv.SLIDERS) do
+		local id = "imgov-slider-" .. row[1]
+		if ds ~= ("imgov-" .. row[1]) then
+			local str = tostring(math.floor(row[2](s) + 0.5))
+			if force or cache[id] ~= str then
+				cache[id] = str
+				local sl = doc:GetElementById(id)
+				if sl then
+					sl:SetAttribute("value", str)
+					stamped = true
+				end
+				local nb = doc:GetElementById(id .. "-numbox")
+				if nb then
+					nb:SetAttribute("value", str .. "%")
+				end
+			end
+		end
+	end
+	uiState.updatingFromCode = false
+	-- The change events these stamps raise land on a later frame (see
+	-- onTilesetKnob); onImgOvSlider drops them by this timestamp.
+	if stamped then
+		uiState.imgOvStampFrame = Spring.GetDrawFrame()
+	end
+end
+-- Numbox readout next to one placement slider ("37%").
+function _imgOv.setNumbox(key, str)
+	local doc = widgetState.document
+	if not doc or not key then
+		return
+	end
+	local nb = doc:GetElementById("imgov-slider-" .. key .. "-numbox")
+	if nb then
+		nb:SetAttribute("value", str .. "%")
+	end
+end
+function _imgOv.setWindow(open)
+	local dm = widgetState.dmHandle
+	if dm then
+		dm.imgOvVisible = open and true or false
+	end
+	if open then
+		_imgOv.rebuildList(true)
+		_imgOv.stamp(true)
+	end
+end
+-- Flip the overlay on/off; false when nothing is loaded yet.
+function _imgOv.toggleShow()
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	if not IO or not IO.hasImage() then
+		return false
+	end
+	local nv = not IO.isEnabled()
+	IO.setEnabled(nv)
+	local dm = widgetState.dmHandle
+	if dm then
+		dm.tbImgActive = nv
+	end
+	playSound(nv and "toggleOn" or "toggleOff")
+	return true
+end
+-- Per frame: chip state for every DISPLAY row, window readouts while it is up.
+function _imgOv.sync(setDm)
+	---@type table?
+	local IO = WG.TerraformImageOverlay
+	local s = IO and IO.getState() or nil
+	setDm("tbImgActive", (s and s.enabled and s.hasImage) or false)
+	local dm = widgetState.dmHandle
+	if not (dm and dm.imgOvVisible) then
+		return
+	end
+	setDm("imgOvHasImage", (s and s.hasImage) or false)
+	setDm("imgOvFileStr", (s and s.file) or "none")
+	setDm("imgOvSizeStr", (s and s.hasImage) and (tostring(s.width) .. " x " .. tostring(s.height) .. " px") or "")
+	setDm("imgOvError", (s and s.error) or (IO and "" or "Image Overlay widget is not loaded"))
+	setDm("imgOvFit", (s and s.fit) or "stretch")
+	setDm("imgOvFlipH", (s and s.flipH) or false)
+	setDm("imgOvFlipV", (s and s.flipV) or false)
+	setDm("imgOvSupported", not (s and s.supported == false))
+	_imgOv.stamp(false)
+end
 local function _deactivateAllTools()
-	if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-	if WG.FeaturePlacer  then WG.FeaturePlacer.deactivate()  end
-	if WG.WeatherBrush   then WG.WeatherBrush.deactivate()   end
-	if WG.SplatPainter   then WG.SplatPainter.deactivate()   end
-	if WG.MetalBrush     then WG.MetalBrush.deactivate()     end
-	if WG.GrassBrush     then WG.GrassBrush.deactivate()     end
-	if WG.DiffusePainter then WG.DiffusePainter.deactivate() end
-	widgetState.envActive      = false
-	widgetState.lightActive    = false
-	if WG.LightPlacer    then WG.LightPlacer.deactivate()    end
+	if WG.TerraformBrush then
+		WG.TerraformBrush.deactivate()
+	end
+	if WG.FeaturePlacer then
+		WG.FeaturePlacer.deactivate()
+	end
+	if WG.WeatherBrush then
+		WG.WeatherBrush.deactivate()
+	end
+	if WG.SplatPainter then
+		WG.SplatPainter.deactivate()
+	end
+	if WG.MetalBrush then
+		WG.MetalBrush.deactivate()
+	end
+	if WG.GrassBrush then
+		WG.GrassBrush.deactivate()
+	end
+	if WG.DiffusePainter then
+		WG.DiffusePainter.deactivate()
+	end
+	widgetState.envActive = false
+	widgetState.lightActive = false
+	if WG.LightPlacer then
+		WG.LightPlacer.deactivate()
+	end
 	widgetState.startposActive = false
-	if WG.StartPosTool   then WG.StartPosTool.deactivate()   end
-	widgetState.cloneActive    = false
-	if WG.CloneTool      then WG.CloneTool.deactivate()      end
-	widgetState.decalsActive   = false
-	if WG.DecalPlacer    then WG.DecalPlacer.deactivate()    end
-	widgetState.tilesetActive  = false
+	if WG.StartPosTool then
+		WG.StartPosTool.deactivate()
+	end
+	widgetState.cloneActive = false
+	if WG.CloneTool then
+		WG.CloneTool.deactivate()
+	end
+	widgetState.decalsActive = false
+	if WG.DecalPlacer then
+		WG.DecalPlacer.deactivate()
+	end
+	if WG.SurfacePainter then
+		WG.SurfacePainter.deactivate()
+	end
+	-- SURFACE hard submode drives WG.SplatPainter (deactivated above); the pin
+	-- that keeps the SURFACE panel open over it must drop with the engine.
+	widgetState.surfHardActive = false
+	widgetState.surfPickerSlot = nil -- leaving the tool closes the variant picker
 end
 
 -- ============ New Map (FILE > New Map) helpers ============
@@ -1076,11 +2029,11 @@ end
 -- same spring map dimensions (it internally halves them: mapSize = N/2), so the
 -- value entered here is passed through verbatim. Units must be even (the engine
 -- divides by 2 and mapx must be a multiple of 128 heightmap squares).
-local NEWMAP_MIN_UNITS    = 4
-local NEWMAP_MAX_UNITS    = 32
+local NEWMAP_MIN_UNITS = 4
+local NEWMAP_MAX_UNITS = 32
 local NEWMAP_DEFAULT_UNIT = 12
-local NEWMAP_BASE_HEIGHT  = 100              -- starting ground height (elmos)
-local NEWMAP_COLOR        = { 110, 130, 90 } -- base diffuse colour (0..255), muted grass
+local NEWMAP_BASE_HEIGHT = 100 -- starting ground height (elmos)
+local NEWMAP_COLOR = { 110, 130, 90 } -- base diffuse colour (0..255), muted grass
 
 -- ---- DNTS splat-set catalog (harvested from BAR maps) ----
 -- Each entry: { name, textures = {4 files}, scales = {4}, mults = {4}, diffuseAlpha }.
@@ -1098,17 +2051,27 @@ do
 		-- it, so loadstring() errors on the 0xEF byte and the catalog silently loads
 		-- empty (picker shows "None", arrows do nothing). dnts_sets.lua ships with a BOM.
 		chunk = chunk:gsub("^\239\187\191", "")
-		local ok, list = pcall(function() return loadstring(chunk)() end)
-		if ok and type(list) == "table" then dntsSets = list end
+		local ok, list = pcall(function()
+			return loadstring(chunk)()
+		end)
+		if ok and type(list) == "table" then
+			dntsSets = list
+		end
 	end
 	Spring.Echo("[Terraform Brush] Splat sets loaded: " .. #dntsSets)
 end
 
 -- Resolve the currently-selected splat set (1-based, wraps), or nil if none loaded.
 local function _nmCurrentSplatSet()
-	if #dntsSets == 0 then return nil end
+	if #dntsSets == 0 then
+		return nil
+	end
 	local i = widgetState.newMapSplatIdx or 1
-	if i < 1 then i = #dntsSets elseif i > #dntsSets then i = 1 end
+	if i < 1 then
+		i = #dntsSets
+	elseif i > #dntsSets then
+		i = 1
+	end
 	widgetState.newMapSplatIdx = i
 	return dntsSets[i]
 end
@@ -1116,30 +2079,51 @@ end
 -- Push the selected splat-set name into the data model label.
 local function _nmRefreshSplatLabel()
 	local d = widgetState.dmHandle
-	if not d then return end
+	if not d then
+		return
+	end
 	local s = _nmCurrentSplatSet()
 	local name = s and s.name or "None"
-	if d.newMapSplatStr ~= name then d.newMapSplatStr = name end
+	if d.newMapSplatStr ~= name then
+		d.newMapSplatStr = name
+	end
 end
 
 local function _isGeneratedBlankMap()
 	local mapName = Game.mapName or ""
 	-- Prefix match: generated names carry a per-session uniquifier suffix
 	-- (see buildBlankMapStartScript).
-	if mapName:find("^Editor Flat %d+x%d+") then return true end
+	if mapName:find("^Editor Flat %d+x%d+") then
+		return true
+	end
 	local mapOpts = Spring.GetMapOptions()
-	if type(mapOpts) ~= "table" then return false end
+	if type(mapOpts) ~= "table" then
+		return false
+	end
 	return (tonumber(mapOpts.blank_map_x) or 0) > 0 or (tonumber(mapOpts.blank_map_y) or 0) > 0
 end
 
 local function _newMapSplatNeedsDnts()
-	return _isGeneratedBlankMap() and #dntsSets == 0
+	if not _isGeneratedBlankMap() or #dntsSets > 0 then
+		return false
+	end
+	-- No library pack installed. That only matters when the library would be
+	-- needed to PICK a set (a fresh New Map): a loaded map project is
+	-- self-contained and injects its own DNTS set through the blank-map keys,
+	-- so the tool must not gate on a pack the map never reads.
+	local mapOpts = Spring.GetMapOptions()
+	local tex1 = type(mapOpts) == "table" and mapOpts.blank_map_splatdetailnormaltex1 or nil
+	return type(tex1) ~= "string" or tex1 == ""
 end
 
 local function _newMapSplatEnginePathMissing()
-	if not _isGeneratedBlankMap() then return false end
+	if not _isGeneratedBlankMap() then
+		return false
+	end
 	local mapOpts = Spring.GetMapOptions()
-	if type(mapOpts) ~= "table" then return true end
+	if type(mapOpts) ~= "table" then
+		return true
+	end
 	local tex1 = mapOpts.blank_map_splatdetailnormaltex1
 	return type(tex1) ~= "string" or tex1 == ""
 end
@@ -1154,7 +2138,16 @@ local function _mapHasUsableSplatTexture()
 end
 
 local function _splatToolUnavailable()
-	if _newMapSplatUnavailable() then return true end
+	-- While the tileset shader owns the ground, $ssmf_splat_distr is repurposed
+	-- as its override mask (R=auto, G=intermediate, B=cliff, A=plateau) — the legacy
+	-- DNTS panel would paint nonsense. Hard-surface painting lives in the
+	-- SURFACE tool (HARD submode) instead, which reuses the same engine.
+	if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+		return true
+	end
+	if _newMapSplatUnavailable() then
+		return true
+	end
 	-- Generated blank maps expose only a 1x1 fallback splat distribution; the
 	-- splat painter PROMOTES that to a map-sized editable target (see
 	-- cmd_splat_painter initSplatTexture), so the tool works as long as the DNTS
@@ -1164,8 +2157,7 @@ local function _splatToolUnavailable()
 	if _isGeneratedBlankMap() then
 		local distr = gl.TextureInfo("$ssmf_splat_distr")
 		local normals = gl.TextureInfo("$ssmf_splat_normals:0")
-		return not (distr and (distr.xsize or 0) > 0
-			and normals and (normals.xsize or 0) > 0)
+		return not (distr and (distr.xsize or 0) > 0 and normals and (normals.xsize or 0) > 0)
 	end
 	return not _mapHasUsableSplatTexture()
 end
@@ -1186,9 +2178,11 @@ end
 -- block in sync with tools/mapgen/scan_environments.py / env_presets.lua.
 widgetState.newMapEnvPresets = {
 	{
+		-- sunDir + sunColor = PtaQ's canonical editor sun (2026-09-03), see
+		-- envSunPresets[1]; the rest is the harvested Altair Crossing mood.
 		name = "Clear Daylight",
 		source = "Altair_Crossing_V4.1",
-		sunDir = { 0.8000, 0.8000, -0.7000 },
+		sunDir = { 0.4490, 0.5645, -0.6926 },
 		groundShadowDensity = 0.7500,
 		modelShadowDensity = 0.7500,
 		groundAmbientColor = { 0.5000, 0.5000, 0.5000 },
@@ -1200,19 +2194,32 @@ widgetState.newMapEnvPresets = {
 		fogStart = 0.8000,
 		fogEnd = 1.0000,
 		fogColor = { 0.8000, 0.8000, 0.5000, 1.0000 },
-		sunColor = { 1.0000, 0.9200, 0.7800 },
+		sunColor = { 1.0000, 1.0000, 1.0000 },
 		skyColor = { 0.4288, 0.5802, 0.6400 },
 		cloudColor = { 0.9600, 0.9600, 0.9600 },
 		splatTexMults = { 1.2000, 0.7000, 0.5300, 0.5000 },
 		splatTexScales = { 0.0100, 0.0050, 0.0075, 0.0100 },
 		voidWater = false,
 		water = {
-			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
-			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
-			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 1.4, specularPower = 40.0,
-			fresnelMin = 0.08, fresnelMax = 1.6, fresnelPower = 8.0,
-			perlinStartFreq = 15.0, perlinLacunarity = 1.35, perlinAmplitude = 0.8,
-			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 1.0,
+			shoreWaves = true,
+			hasWaterPlane = true,
+			forceRendering = false,
+			repeatX = 10.0,
+			repeatY = 10.0,
+			surfaceAlpha = 0.1,
+			ambientFactor = 1.0,
+			diffuseFactor = 1.0,
+			specularFactor = 1.4,
+			specularPower = 40.0,
+			fresnelMin = 0.08,
+			fresnelMax = 1.6,
+			fresnelPower = 8.0,
+			perlinStartFreq = 15.0,
+			perlinLacunarity = 1.35,
+			perlinAmplitude = 0.8,
+			blurBase = 2.0,
+			blurExponent = 1.5,
+			reflectionDistortion = 1.0,
 		},
 		waterColors_absorb = { 0.0500, 0.0050, 0.0010 },
 		waterColors_baseColor = { 0.3000, 0.5000, 0.5000 },
@@ -1243,12 +2250,24 @@ widgetState.newMapEnvPresets = {
 		splatTexScales = { 0.0100, 0.0050, 0.0030, 0.0078 },
 		voidWater = false,
 		water = {
-			shoreWaves = false, forceRendering = false,
-			repeatX = 0.0, repeatY = 0.0, surfaceAlpha = 0.55,
-			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 1.0, specularPower = 20.0,
-			fresnelMin = 0.2, fresnelMax = 0.8, fresnelPower = 4.0,
-			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.9,
-			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 1.0,
+			shoreWaves = false,
+			forceRendering = false,
+			repeatX = 0.0,
+			repeatY = 0.0,
+			surfaceAlpha = 0.55,
+			ambientFactor = 1.0,
+			diffuseFactor = 1.0,
+			specularFactor = 1.0,
+			specularPower = 20.0,
+			fresnelMin = 0.2,
+			fresnelMax = 0.8,
+			fresnelPower = 4.0,
+			perlinStartFreq = 8.0,
+			perlinLacunarity = 3.0,
+			perlinAmplitude = 0.9,
+			blurBase = 2.0,
+			blurExponent = 1.5,
+			reflectionDistortion = 1.0,
 		},
 		waterColors_absorb = { 1.5000, 1.5000, 1.5000 },
 		waterColors_baseColor = { 0.0100, 0.0100, 0.0100 },
@@ -1277,12 +2296,26 @@ widgetState.newMapEnvPresets = {
 		splatTexScales = { 0.0025, 0.0070, 0.0080, 0.0055 },
 		voidWater = false,
 		water = {
-			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
-			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
-			ambientFactor = 0.8, diffuseFactor = 1.3, specularFactor = 0.5, specularPower = 20.0,
-			fresnelMin = 0.1, fresnelMax = 0.5, fresnelPower = 3.0,
-			perlinStartFreq = 9.0, perlinLacunarity = 5.0, perlinAmplitude = 0.75, numTiles = 4.0,
-			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 0.5,
+			shoreWaves = true,
+			hasWaterPlane = true,
+			forceRendering = false,
+			repeatX = 10.0,
+			repeatY = 10.0,
+			surfaceAlpha = 0.1,
+			ambientFactor = 0.8,
+			diffuseFactor = 1.3,
+			specularFactor = 0.5,
+			specularPower = 20.0,
+			fresnelMin = 0.1,
+			fresnelMax = 0.5,
+			fresnelPower = 3.0,
+			perlinStartFreq = 9.0,
+			perlinLacunarity = 5.0,
+			perlinAmplitude = 0.75,
+			numTiles = 4.0,
+			blurBase = 2.0,
+			blurExponent = 1.5,
+			reflectionDistortion = 0.5,
 		},
 		waterColors_absorb = { 0.0080, 0.0055, 0.0030 },
 		waterColors_baseColor = { 0.6700, 0.7300, 0.9500 },
@@ -1337,12 +2370,26 @@ widgetState.newMapEnvPresets = {
 		splatTexScales = { 0.0100, 0.0050, 0.0075, 0.0030 },
 		voidWater = false,
 		water = {
-			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
-			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.02,
-			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 1.4, specularPower = 40.0,
-			fresnelMin = 0.08, fresnelMax = 0.5, fresnelPower = 8.0,
-			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.85, numTiles = 4.0,
-			blurBase = 2.1, blurExponent = 1.5, reflectionDistortion = 1.0,
+			shoreWaves = true,
+			hasWaterPlane = true,
+			forceRendering = false,
+			repeatX = 10.0,
+			repeatY = 10.0,
+			surfaceAlpha = 0.02,
+			ambientFactor = 1.0,
+			diffuseFactor = 1.0,
+			specularFactor = 1.4,
+			specularPower = 40.0,
+			fresnelMin = 0.08,
+			fresnelMax = 0.5,
+			fresnelPower = 8.0,
+			perlinStartFreq = 8.0,
+			perlinLacunarity = 3.0,
+			perlinAmplitude = 0.85,
+			numTiles = 4.0,
+			blurBase = 2.1,
+			blurExponent = 1.5,
+			reflectionDistortion = 1.0,
 		},
 		waterColors_absorb = { 0.0500, 0.0050, 0.0010 },
 		waterColors_baseColor = { 0.3000, 0.5000, 0.5000 },
@@ -1374,12 +2421,26 @@ widgetState.newMapEnvPresets = {
 		splatTexScales = { 0.0160, 0.0160, 0.0040, 0.0060 },
 		voidWater = false,
 		water = {
-			shoreWaves = true, hasWaterPlane = true, forceRendering = false,
-			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
-			ambientFactor = 0.28, diffuseFactor = 1.6, specularFactor = 0.8, specularPower = 90.0,
-			fresnelMin = 0.08, fresnelMax = 1.6, fresnelPower = 8.0,
-			perlinStartFreq = 15.0, perlinLacunarity = 1.27, perlinAmplitude = 1.0, numTiles = 4.0,
-			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 0.5,
+			shoreWaves = true,
+			hasWaterPlane = true,
+			forceRendering = false,
+			repeatX = 10.0,
+			repeatY = 10.0,
+			surfaceAlpha = 0.1,
+			ambientFactor = 0.28,
+			diffuseFactor = 1.6,
+			specularFactor = 0.8,
+			specularPower = 90.0,
+			fresnelMin = 0.08,
+			fresnelMax = 1.6,
+			fresnelPower = 8.0,
+			perlinStartFreq = 15.0,
+			perlinLacunarity = 1.27,
+			perlinAmplitude = 1.0,
+			numTiles = 4.0,
+			blurBase = 2.0,
+			blurExponent = 1.5,
+			reflectionDistortion = 0.5,
 		},
 		waterColors_absorb = { 0.0300, 0.0200, 0.0090 },
 		waterColors_baseColor = { 0.0500, 0.7000, 0.6000 },
@@ -1411,12 +2472,25 @@ widgetState.newMapEnvPresets = {
 		splatTexScales = { 0.0100, 0.0150, 0.0035, 0.0100 },
 		voidWater = false,
 		water = {
-			shoreWaves = true, forceRendering = false,
-			repeatX = 10.0, repeatY = 10.0, surfaceAlpha = 0.1,
-			ambientFactor = 1.0, diffuseFactor = 1.0, specularFactor = 0.2, specularPower = 30.0,
-			fresnelMin = 0.08, fresnelMax = 1.6, fresnelPower = 8.0,
-			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.85, numTiles = 4.0,
-			blurBase = 2.1, blurExponent = 1.5, reflectionDistortion = 1.0,
+			shoreWaves = true,
+			forceRendering = false,
+			repeatX = 10.0,
+			repeatY = 10.0,
+			surfaceAlpha = 0.1,
+			ambientFactor = 1.0,
+			diffuseFactor = 1.0,
+			specularFactor = 0.2,
+			specularPower = 30.0,
+			fresnelMin = 0.08,
+			fresnelMax = 1.6,
+			fresnelPower = 8.0,
+			perlinStartFreq = 8.0,
+			perlinLacunarity = 3.0,
+			perlinAmplitude = 0.85,
+			numTiles = 4.0,
+			blurBase = 2.1,
+			blurExponent = 1.5,
+			reflectionDistortion = 1.0,
 		},
 		waterColors_absorb = { 0.0080, 0.1200, 0.0160 },
 		waterColors_baseColor = { 0.6600, 0.4500, 0.9200 },
@@ -1447,12 +2521,24 @@ widgetState.newMapEnvPresets = {
 		splatTexScales = { 0.0033, 0.0030, 0.0030, 0.0072 },
 		voidWater = false,
 		water = {
-			shoreWaves = false, forceRendering = false,
-			repeatX = 0.0, repeatY = 0.0, surfaceAlpha = 0.3,
-			ambientFactor = 0.1, diffuseFactor = 0.8, specularFactor = 0.3, specularPower = 20.0,
-			fresnelMin = 0.2, fresnelMax = 0.8, fresnelPower = 4.0,
-			perlinStartFreq = 8.0, perlinLacunarity = 3.0, perlinAmplitude = 0.9,
-			blurBase = 2.0, blurExponent = 1.5, reflectionDistortion = 1.0,
+			shoreWaves = false,
+			forceRendering = false,
+			repeatX = 0.0,
+			repeatY = 0.0,
+			surfaceAlpha = 0.3,
+			ambientFactor = 0.1,
+			diffuseFactor = 0.8,
+			specularFactor = 0.3,
+			specularPower = 20.0,
+			fresnelMin = 0.2,
+			fresnelMax = 0.8,
+			fresnelPower = 4.0,
+			perlinStartFreq = 8.0,
+			perlinLacunarity = 3.0,
+			perlinAmplitude = 0.9,
+			blurBase = 2.0,
+			blurExponent = 1.5,
+			reflectionDistortion = 1.0,
 		},
 		waterColors_absorb = { 0.0020, 0.0030, 0.0040 },
 		waterColors_baseColor = { 1.0000, 1.0000, 1.0000 },
@@ -1468,25 +2554,43 @@ do
 	-- so the harvester workflow keeps working for future edits.
 	local raw = VFS.LoadFile("luaui/RmlWidgets/gui_terraform_brush/env_presets.lua")
 	if type(raw) == "string" and raw ~= "" then
-		raw = raw:gsub("^\239\187\191", "")  -- strip UTF-8 BOM (stock Lua 5.1 lexer chokes on it)
+		raw = raw:gsub("^\239\187\191", "") -- strip UTF-8 BOM (stock Lua 5.1 lexer chokes on it)
 		local fn = loadstring(raw)
 		if fn then
 			local okr, t = pcall(fn)
-			if okr and type(t) == "table" and #t > 0 then widgetState.newMapEnvPresets = t end
+			if okr and type(t) == "table" and #t > 0 then
+				widgetState.newMapEnvPresets = t
+			end
 		end
 	end
 	Spring.Echo("[Terraform Brush] Environment presets: " .. #widgetState.newMapEnvPresets)
 end
-widgetState.newMapEnvIdx = 0  -- 0 = Default (keep engine defaults); 1..N = preset
+-- Environment a fresh map starts with. 0 = Default, 1..N = a harvested mood.
+-- Default does NOT mean "leave the engine lighting alone": the engine's is
+-- placeholder lighting, ground ambient and diffuse both a flat 0.5 against ~0.99
+-- diffuse on a real BAR daylight map, so a new map receives roughly 60% of the
+-- light it should. A baked map texture carries the mapper's own brightness and
+-- hides that; the tileset shader draws raw PBR albedo and cannot, so new maps read
+-- as though the SHADER were broken (diagnosed 2026-08-12 — /tileset probe
+-- reported flat-lit 0.596 against ~0.91 for a real daylight mood). So Default
+-- applies the canonical sun instead (widgetState.newMapDefaultEnv below): the
+-- wizard opens on "Default" and a fresh map is still properly lit. The harvested
+-- moods stay in the picker for anyone who wants one, and picking a mood brings its
+-- water, fog and sky too, which Default deliberately leaves alone.
+widgetState.newMapEnvIdx = 0
 
 -- Push the selected environment name into the data-model label.
 widgetState._nmRefreshEnvLabel = function()
 	local d = widgetState.dmHandle
-	if not d then return end
+	if not d then
+		return
+	end
 	local idx = widgetState.newMapEnvIdx or 0
 	local p = widgetState.newMapEnvPresets[idx]
 	local name = (idx > 0 and p) and (p.name or ("Preset " .. idx)) or "Default"
-	if d.newMapEnvStr ~= name then d.newMapEnvStr = name end
+	if d.newMapEnvStr ~= name then
+		d.newMapEnvStr = name
+	end
 end
 
 -- TEMPORARY: the current fog is a placeholder to be replaced, and its defaults
@@ -1500,68 +2604,416 @@ widgetState.disableFog = function()
 	Spring.SetAtmosphere({ fogStart = FOG_OFF.fogStart, fogEnd = FOG_OFF.fogEnd })
 end
 
+-- Push the live sun state into the ENV panel sliders. The sliders seed only once
+-- at document attach, so an environment applied afterwards (project load) must
+-- refresh them — otherwise the next nudge on any sun slider writes its stale
+-- attach-time value back through Spring.SetSunDirection.
+widgetState.refreshEnvSunSliders = function()
+	local sx, sy, sz = gl.GetSun("pos")
+	if not sx then
+		return
+	end
+	uiState.updatingFromCode = true
+	_envSetSlider("slider-env-sun-x", "lbl-env-sun-x", math.floor(sx * 10000 + 0.5), string.format("%.2f", sx))
+	_envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(sy * 10000 + 0.5), string.format("%.2f", sy))
+	_envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(sz * 10000 + 0.5), string.format("%.2f", sz))
+	local si = widgetState.envSunIntensity or 1.0
+	_envSetSlider(
+		"slider-env-sun-intensity",
+		"lbl-env-sun-intensity",
+		math.floor(si * 1000 + 0.5),
+		string.format("%.2f", si)
+	)
+	uiState.updatingFromCode = false
+end
+
+-- Same for the AZIMUTH / ELEVATION pair. Kept separate from the XYZ refresh so a
+-- drag on either pair only restamps the other (restamping the slider under the
+-- pointer fights the drag).
+widgetState.refreshEnvSunAzEl = function()
+	local sx, sy, sz = gl.GetSun("pos")
+	if not sx then
+		return
+	end
+	local az, el = widgetState.azElFromSunDir(sx, sy, sz)
+	uiState.updatingFromCode = true
+	_envSetSlider("slider-env-sun-az", "lbl-env-sun-az", math.floor(az * 10 + 0.5), string.format("%.1f", az))
+	_envSetSlider("slider-env-sun-el", "lbl-env-sun-el", math.floor(el * 10 + 0.5), string.format("%.1f", el))
+	uiState.updatingFromCode = false
+end
+
 -- Apply a full environment config table (schema = env_presets.lua / onEnvSave) to
 -- the live engine. Mirrors onEnvLoad's apply body so the env editor and the New
 -- Map preset path drive the engine identically. Every field is optional.
 widgetState.applyEnvConfig = function(d)
-	if type(d) ~= "table" then return end
+	if type(d) ~= "table" then
+		return
+	end
 	if d.sunDir then
-		local intensity = d.sunIntensity or 1.0
-		Spring.SetSunDirection(d.sunDir[1] or 0, d.sunDir[2] or 1, d.sunDir[3] or 0, intensity)
-		widgetState.envSunIntensity = intensity
+		local sdx, sdy, sdz = d.sunDir[1] or 0, d.sunDir[2] or 0, d.sunDir[3] or 0
+		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
+		-- it would black out the map, so a degenerate direction is ignored.
+		if sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
+			-- A config without an intensity (the harvested map moods have none)
+			-- keeps the session's; only an explicit value changes it.
+			local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
+			Spring.SetSunDirection(sdx, sdy, sdz, intensity)
+			widgetState.envSunIntensity = intensity
+			widgetState.refreshEnvSunSliders()
+			if widgetState.refreshEnvSunAzEl then
+				widgetState.refreshEnvSunAzEl()
+			end
+		end
 	end
 	local shadowParams = {}
-	if d.groundShadowDensity then shadowParams.groundShadowDensity = d.groundShadowDensity end
-	if d.modelShadowDensity  then shadowParams.modelShadowDensity  = d.modelShadowDensity  end
-	if next(shadowParams) then Spring.SetSunLighting(shadowParams) end
+	if d.groundShadowDensity then
+		shadowParams.groundShadowDensity = d.groundShadowDensity
+	end
+	if d.modelShadowDensity then
+		shadowParams.modelShadowDensity = d.modelShadowDensity
+	end
+	if next(shadowParams) then
+		Spring.SetSunLighting(shadowParams)
+	end
 	local lightParams = {}
-	if d.groundAmbientColor  then lightParams.groundAmbientColor  = d.groundAmbientColor  end
-	if d.groundDiffuseColor  then lightParams.groundDiffuseColor  = d.groundDiffuseColor  end
-	if d.groundSpecularColor then lightParams.groundSpecularColor = d.groundSpecularColor end
-	if d.unitAmbientColor    then lightParams.unitAmbientColor    = d.unitAmbientColor    end
-	if d.unitDiffuseColor    then lightParams.unitDiffuseColor    = d.unitDiffuseColor    end
-	if d.unitSpecularColor   then lightParams.unitSpecularColor   = d.unitSpecularColor   end
+	if d.groundAmbientColor then
+		lightParams.groundAmbientColor = d.groundAmbientColor
+	end
+	if d.groundDiffuseColor then
+		lightParams.groundDiffuseColor = d.groundDiffuseColor
+	end
+	if d.groundSpecularColor then
+		lightParams.groundSpecularColor = d.groundSpecularColor
+	end
+	if d.unitAmbientColor then
+		lightParams.unitAmbientColor = d.unitAmbientColor
+	end
+	if d.unitDiffuseColor then
+		lightParams.unitDiffuseColor = d.unitDiffuseColor
+	end
+	if d.unitSpecularColor then
+		lightParams.unitSpecularColor = d.unitSpecularColor
+	end
 	if next(lightParams) then
 		Spring.SetSunLighting(lightParams)
 		Spring.SendCommands("luarules updatesun")
+		-- A skybox fade in flight scales the six sun colours from its captured
+		-- originals and restores those at the end, which would overwrite what
+		-- was just applied: retarget the fade at the new colours instead.
+		if skyFade.active then
+			skyFade.origGroundAmbient = lightParams.groundAmbientColor or skyFade.origGroundAmbient
+			skyFade.origGroundDiffuse = lightParams.groundDiffuseColor or skyFade.origGroundDiffuse
+			skyFade.origGroundSpecular = lightParams.groundSpecularColor or skyFade.origGroundSpecular
+			skyFade.origUnitAmbient = lightParams.unitAmbientColor or skyFade.origUnitAmbient
+			skyFade.origUnitDiffuse = lightParams.unitDiffuseColor or skyFade.origUnitDiffuse
+			skyFade.origUnitSpecular = lightParams.unitSpecularColor or skyFade.origUnitSpecular
+		end
 	end
 	local atmosParams = {}
 	-- Env-preset fog intentionally NOT applied (placeholder + obscuring): force it off.
 	atmosParams.fogStart = FOG_OFF.fogStart
-	atmosParams.fogEnd   = FOG_OFF.fogEnd
-	if d.fogColor      then atmosParams.fogColor      = d.fogColor      end
-	if d.sunColor      then atmosParams.sunColor      = d.sunColor      end
-	if d.skyColor      then atmosParams.skyColor      = d.skyColor      end
-	if d.cloudColor    then atmosParams.cloudColor    = d.cloudColor    end
-	if d.skyAxisAngle  then atmosParams.skyAxisAngle  = d.skyAxisAngle  end
-	if next(atmosParams) then Spring.SetAtmosphere(atmosParams) end
+	atmosParams.fogEnd = FOG_OFF.fogEnd
+	if d.fogColor then
+		atmosParams.fogColor = d.fogColor
+	end
+	if d.sunColor then
+		atmosParams.sunColor = d.sunColor
+	end
+	if d.skyColor then
+		atmosParams.skyColor = d.skyColor
+	end
+	if d.cloudColor then
+		atmosParams.cloudColor = d.cloudColor
+	end
+	if d.skyAxisAngle then
+		atmosParams.skyAxisAngle = d.skyAxisAngle
+	end
+	if next(atmosParams) then
+		Spring.SetAtmosphere(atmosParams)
+	end
 	local mrParams = {}
-	if d.splatDetailNormalDiffuseAlpha ~= nil then mrParams.splatDetailNormalDiffuseAlpha = d.splatDetailNormalDiffuseAlpha end
-	if d.splatTexMults  then mrParams.splatTexMults  = d.splatTexMults  end
-	if d.splatTexScales then mrParams.splatTexScales = d.splatTexScales end
-	if d.voidWater  ~= nil then mrParams.voidWater  = d.voidWater  end
-	if d.voidGround ~= nil then mrParams.voidGround = d.voidGround end
-	if next(mrParams) then Spring.SetMapRenderingParams(mrParams) end
+	if d.splatDetailNormalDiffuseAlpha ~= nil then
+		mrParams.splatDetailNormalDiffuseAlpha = d.splatDetailNormalDiffuseAlpha
+	end
+	if d.splatTexMults then
+		mrParams.splatTexMults = d.splatTexMults
+	end
+	if d.splatTexScales then
+		mrParams.splatTexScales = d.splatTexScales
+	end
+	if d.voidWater ~= nil then
+		mrParams.voidWater = d.voidWater
+	end
+	if d.voidGround ~= nil then
+		mrParams.voidGround = d.voidGround
+	end
+	if next(mrParams) then
+		Spring.SetMapRenderingParams(mrParams)
+	end
 	if type(d.water) == "table" then
 		Spring.SetWaterParams(d.water)
 		Spring.SendCommands("water 4")
 	end
 	local wcMap = {
-		waterColors_absorb        = "absorb",
-		waterColors_baseColor     = "baseColor",
-		waterColors_minColor      = "minColor",
-		waterColors_surfaceColor  = "surfaceColor",
-		waterColors_planeColor    = "planeColor",
-		waterColors_diffuseColor  = "diffuseColor",
+		waterColors_absorb = "absorb",
+		waterColors_baseColor = "baseColor",
+		waterColors_minColor = "minColor",
+		waterColors_surfaceColor = "surfaceColor",
+		waterColors_planeColor = "planeColor",
+		waterColors_diffuseColor = "diffuseColor",
 		waterColors_specularColor = "specularColor",
 	}
 	local wcParams = {}
 	for key, param in pairs(wcMap) do
-		if d[key] then wcParams[param] = d[key] end
+		if d[key] then
+			wcParams[param] = d[key]
+		end
 	end
 	if next(wcParams) then
 		Spring.SetWaterParams(wcParams)
 		Spring.SendCommands("water 4")
+	end
+	-- Skybox: the engine has no getter for the active skybox, so the config
+	-- carries the library path the user picked (applySkybox re-validates it).
+	if type(d.skybox) == "string" and d.skybox ~= "" and widgetState.applySkybox then
+		widgetState.applySkybox(d.skybox)
+		widgetState.envCurrentSkybox = d.skybox
+		for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
+			t.element:SetClass("active", t.path == d.skybox)
+		end
+	end
+	-- The ENV panel's RESET buttons return to "the defaults": after a project
+	-- or preset apply those are the applied values, not whatever the engine
+	-- held when the panel first opened (often the flat blank-map lighting).
+	if widgetState.captureEnvDefaults then
+		widgetState.captureEnvDefaults()
+	end
+end
+
+-- Sun direction <-> azimuth/elevation (degrees). Azimuth is compass-like on the
+-- map: 0 = north (toward -Z, the top of the minimap), 90 = east (+X).
+-- Elevation is the angle above the horizon. sunDir points AT the sun.
+widgetState.sunDirFromAzEl = function(azDeg, elDeg)
+	local az, el = math.rad(azDeg or 0), math.rad(math.max(0.5, math.min(89.5, elDeg or 45)))
+	local c = math.cos(el)
+	return c * math.sin(az), math.sin(el), -c * math.cos(az)
+end
+widgetState.azElFromSunDir = function(x, y, z)
+	local len = math.sqrt((x or 0) ^ 2 + (y or 0) ^ 2 + (z or 0) ^ 2)
+	if len < 1e-6 then
+		return 0, 45
+	end
+	local el = math.deg(math.asin(math.max(-1, math.min(1, (y or 0) / len))))
+	local az = math.deg(math.atan2(x or 0, -(z or 0)))
+	if az < 0 then
+		az = az + 360
+	end
+	return az, el
+end
+
+-- Sun-only quick presets for the ENV panel: azimuth, elevation, intensity, the
+-- six sun colours, the sun tint and both shadow densities. They never touch
+-- water, fog or sky, so they are safe on any map. Three on purpose (PtaQ,
+-- 2026-09-03): the canonical sun, a low warm one and a flat one.
+widgetState.envSunPresets = {
+	{
+		-- PtaQ's canonical editor sun (Terraform Brush/Environments/Canonical sun.lua,
+		-- 2026-09-03): the default here and the New Map wizard's Clear Daylight sun.
+		name = "Canonical",
+		az = 33,
+		el = 34.4,
+		sunIntensity = 1.0,
+		groundAmbientColor = { 0.5, 0.5, 0.5 },
+		groundDiffuseColor = { 0.99, 0.99, 0.95 },
+		groundSpecularColor = { 0.7, 0.7, 0.7 },
+		unitAmbientColor = { 0.56, 0.56, 0.6 },
+		unitDiffuseColor = { 0.95, 0.955, 0.9 },
+		unitSpecularColor = { 0.8, 0.6, 0.6 },
+		sunColor = { 1.0, 1.0, 1.0 },
+		groundShadowDensity = 0.75,
+		modelShadowDensity = 0.75,
+	},
+	{
+		name = "Dusk",
+		az = 272,
+		el = 10,
+		sunIntensity = 0.85,
+		groundAmbientColor = { 0.4, 0.36, 0.46 },
+		groundDiffuseColor = { 1.0, 0.66, 0.45 },
+		groundSpecularColor = { 0.6, 0.45, 0.4 },
+		unitAmbientColor = { 0.46, 0.42, 0.52 },
+		unitDiffuseColor = { 1.0, 0.72, 0.52 },
+		unitSpecularColor = { 0.8, 0.55, 0.45 },
+		sunColor = { 1.0, 0.62, 0.36 },
+		groundShadowDensity = 0.55,
+		modelShadowDensity = 0.55,
+	},
+	{
+		name = "Overcast",
+		az = 180,
+		el = 58,
+		sunIntensity = 0.75,
+		groundAmbientColor = { 0.62, 0.63, 0.66 },
+		groundDiffuseColor = { 0.72, 0.74, 0.77 },
+		groundSpecularColor = { 0.4, 0.4, 0.42 },
+		unitAmbientColor = { 0.64, 0.65, 0.68 },
+		unitDiffuseColor = { 0.75, 0.77, 0.8 },
+		unitSpecularColor = { 0.5, 0.5, 0.52 },
+		sunColor = { 0.85, 0.87, 0.9 },
+		groundShadowDensity = 0.35,
+		modelShadowDensity = 0.35,
+	},
+}
+
+-- The ENV panel's preset catalog: harvested map moods (the New Map wizard's
+-- list), the user's own files in Terraform Brush/Environments/ (SAVE in the
+-- panel; legacy Lightmaps/*_environ_*.lua saves are listed too), and the
+-- sun-only quick presets above. Each entry = { name, kind, data | path }.
+-- (Fields on widgetState, not chunk locals: the main chunk is near the Lua 5.1
+-- 200-local ceiling.)
+widgetState.envPresetDir = "Terraform Brush/Environments/"
+widgetState.listEnvPresets = function()
+	local ENV_PRESET_DIR = widgetState.envPresetDir
+	local out = {}
+	for _, p in ipairs(widgetState.envSunPresets) do
+		out[#out + 1] = { name = p.name, kind = "sun", data = p }
+	end
+	for _, p in ipairs(widgetState.newMapEnvPresets or {}) do
+		out[#out + 1] = { name = p.name, kind = "mood", data = p }
+	end
+	local user = {}
+	for _, f in ipairs(VFS.DirList(ENV_PRESET_DIR, "*.lua", VFS.RAW) or {}) do
+		local base = (f:match("([^/\\]+)%.lua$") or f)
+		user[#user + 1] = { name = base, kind = "user", path = f }
+	end
+	for _, f in ipairs(VFS.DirList("Terraform Brush/Lightmaps/", "*_environ_*.lua", VFS.RAW) or {}) do
+		local base = (f:match("([^/\\]+)%.lua$") or f)
+		user[#user + 1] = { name = base, kind = "user", path = f }
+	end
+	table.sort(user, function(a, b)
+		return a.name:lower() < b.name:lower()
+	end)
+	for _, u in ipairs(user) do
+		out[#out + 1] = u
+	end
+	return out
+end
+
+-- Resolve an entry's config table (files load on demand, BOM-stripped: Recoil
+-- runs stock Lua 5.1 and loadstring chokes on a UTF-8 BOM).
+widgetState.loadEnvPresetData = function(entry)
+	if entry.data then
+		return entry.data
+	end
+	local raw = entry.path and VFS.LoadFile(entry.path, VFS.RAW)
+	if not raw or raw == "" then
+		return nil, "could not read " .. tostring(entry.path)
+	end
+	raw = raw:gsub("^\239\187\191", "")
+	local chunk = loadstring(raw)
+	if not chunk then
+		return nil, "parse failed for " .. tostring(entry.path)
+	end
+	local ok, d = pcall(chunk)
+	if not ok or type(d) ~= "table" then
+		return nil, "invalid data in " .. tostring(entry.path)
+	end
+	return d
+end
+
+-- Apply a preset with the panel's scope. "sun" takes only the sun keys (a
+-- sun-only preset has nothing else anyway); "full" hands the whole table to
+-- applyEnvConfig. A sun-only preset's az/el become a sunDir first.
+widgetState.envSunKeys = {
+	"sunDir",
+	"sunIntensity",
+	"groundShadowDensity",
+	"modelShadowDensity",
+	"groundAmbientColor",
+	"groundDiffuseColor",
+	"groundSpecularColor",
+	"unitAmbientColor",
+	"unitDiffuseColor",
+	"unitSpecularColor",
+	"sunColor",
+}
+widgetState.applyEnvPreset = function(entry, scope)
+	local d, err = widgetState.loadEnvPresetData(entry)
+	if not d then
+		Spring.Echo("[Environ] preset '" .. tostring(entry.name) .. "': " .. tostring(err))
+		return false
+	end
+	if d.az and d.el and not d.sunDir then
+		local x, y, z = widgetState.sunDirFromAzEl(d.az, d.el)
+		local copy = {}
+		for k, v in pairs(d) do
+			copy[k] = v
+		end
+		copy.sunDir = { x, y, z }
+		d = copy
+	end
+	if scope == "sun" or entry.kind == "sun" then
+		local subset = {}
+		for _, k in ipairs(widgetState.envSunKeys) do
+			subset[k] = d[k]
+		end
+		d = subset
+	end
+	widgetState.applyEnvConfig(d)
+	widgetState.envPresetCurrent = entry.name
+	return true
+end
+
+-- SAVE in the panel: the full live environment (buildEnvConfigContent) under a
+-- user-chosen name, so it lists in every session and on every map.
+widgetState.saveEnvPreset = function(name)
+	local trimmed = tostring(name or ""):match("^%s*(.-)%s*$") or ""
+	name = trimmed:gsub("[^%w_%- ]", "_")
+	if name == "" then
+		return false, "type a preset name first"
+	end
+	Spring.CreateDir(widgetState.envPresetDir)
+	local path = widgetState.envPresetDir .. name .. ".lua"
+	local f = io.open(path, "w")
+	if not f then
+		return false, "could not write " .. path
+	end
+	f:write(widgetState.buildEnvConfigContent())
+	f:close()
+	Spring.Echo("[Environ] saved environment preset: " .. path)
+	return true, path
+end
+
+-- /tf_sunlog: log every sun write (direction and lighting) with a traceback, so
+-- "who reset my sun?" is answered by the console instead of by guessing. The
+-- wrappers sit on the shared Spring table, so every LuaUI widget's writes show.
+widgetState.setSunLog = function(on)
+	if on and not widgetState._sunLogOrig then
+		local orig = { dir = Spring.SetSunDirection, light = Spring.SetSunLighting }
+		widgetState._sunLogOrig = orig
+		Spring.SetSunDirection = function(x, y, z, i)
+			Spring.Echo(
+				string.format("[sunlog] SetSunDirection(%.3f, %.3f, %.3f, %s)", x or 0, y or 0, z or 0, tostring(i))
+			)
+			Spring.Echo(debug.traceback("", 2))
+			return orig.dir(x, y, z, i)
+		end
+		Spring.SetSunLighting = function(t)
+			local keys = {}
+			for k in pairs(type(t) == "table" and t or {}) do
+				keys[#keys + 1] = tostring(k)
+			end
+			table.sort(keys)
+			Spring.Echo("[sunlog] SetSunLighting{" .. table.concat(keys, ", ") .. "}")
+			Spring.Echo(debug.traceback("", 2))
+			return orig.light(t)
+		end
+		Spring.Echo("[Terraform Brush] sun write logging ON (/tf_sunlog again to stop)")
+	elseif not on and widgetState._sunLogOrig then
+		Spring.SetSunDirection = widgetState._sunLogOrig.dir
+		Spring.SetSunLighting = widgetState._sunLogOrig.light
+		widgetState._sunLogOrig = nil
+		Spring.Echo("[Terraform Brush] sun write logging OFF")
 	end
 end
 
@@ -1593,9 +3045,21 @@ widgetState.buildEnvConfigContent = function(opts)
 	local sdnda = gl.GetMapRendering("splatDetailNormalDiffuseAlpha")
 	local vW = gl.GetMapRendering("voidWater")
 	local vG = gl.GetMapRendering("voidGround")
-	local fmt3 = function(t) return string.format("{ %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0) end
-	local fmt4 = function(t) return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0) end
-	local bstr = function(v) return v and "true" or "false" end
+	local fmt3 = function(t)
+		return string.format("{ %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0)
+	end
+	local fmt4 = function(t)
+		return string.format("{ %.4f, %.4f, %.4f, %.4f }", t[1] or 0, t[2] or 0, t[3] or 0, t[4] or 0)
+	end
+	local bstr = function(v)
+		return v and "true" or "false"
+	end
+	-- A nil or zero-length sun vector must not serialize as {0,0,0} — a config
+	-- carrying that would black out the map it is later applied to.
+	local sunDirLine = "\t-- sunDir omitted: engine returned no sun position at save time"
+	if sX and ((sX * sX + (sY or 0) * (sY or 0) + (sZ or 0) * (sZ or 0)) > 1e-6) then
+		sunDirLine = "\tsunDir = " .. fmt3({ sX, sY, sZ }) .. ","
+	end
 	local outLines = {
 		"-- Environment config exported from BAR Terraform Brush",
 		"-- Map: " .. (Game.mapName or "unknown"),
@@ -1606,10 +3070,10 @@ widgetState.buildEnvConfigContent = function(opts)
 	local body = {
 		"return {",
 		"\tversion = 1,",
-		"\tmapName = \"" .. (Game.mapName or "unknown") .. "\",",
+		'\tmapName = "' .. (Game.mapName or "unknown") .. '",',
 		"",
 		"\t-- Sun direction",
-		"\tsunDir = " .. fmt3({sX, sY, sZ}) .. ",",
+		sunDirLine,
 		"",
 		"\t-- Shadow density",
 		"\tgroundShadowDensity = " .. string.format("%.4f", gShadow) .. ",",
@@ -1641,10 +3105,13 @@ widgetState.buildEnvConfigContent = function(opts)
 		"\t-- Skybox rotation",
 		"\tskyAxisAngle = " .. fmt4(skAA) .. ",",
 		"",
+		"\t-- Skybox texture (library path; the engine has no getter, the UI tracks the pick)",
+		"\tskybox = " .. string.format("%q", widgetState.envCurrentSkybox or "") .. ",",
+		"",
 		"\t-- Map rendering",
 		"\tsplatDetailNormalDiffuseAlpha = " .. bstr(sdnda) .. ",",
-		"\tsplatTexMults = " .. fmt4({smR, smG, smB, smA}) .. ",",
-		"\tsplatTexScales = " .. fmt4({ssR, ssG, ssB, ssA}) .. ",",
+		"\tsplatTexMults = " .. fmt4({ smR, smG, smB, smA }) .. ",",
+		"\tsplatTexScales = " .. fmt4({ ssR, ssG, ssB, ssA }) .. ",",
 		"\tvoidWater = " .. bstr(vW) .. ",",
 		"\tvoidGround = " .. bstr(vG) .. ",",
 		"",
@@ -1655,14 +3122,32 @@ widgetState.buildEnvConfigContent = function(opts)
 		outLines[#outLines + 1] = body[i]
 	end
 	local wParams = {
-		"shoreWaves", "hasWaterPlane", "forceRendering",
-		"repeatX", "repeatY", "surfaceAlpha",
-		"ambientFactor", "diffuseFactor", "specularFactor", "specularPower",
-		"fresnelMin", "fresnelMax", "fresnelPower",
-		"perlinStartFreq", "perlinLacunarity", "perlinAmplitude", "numTiles",
-		"blurBase", "blurExponent", "reflectionDistortion",
-		"waveOffsetFactor", "waveLength", "waveFoamDistortion", "waveFoamIntensity",
-		"causticsResolution", "causticsStrength",
+		"shoreWaves",
+		"hasWaterPlane",
+		"forceRendering",
+		"repeatX",
+		"repeatY",
+		"surfaceAlpha",
+		"ambientFactor",
+		"diffuseFactor",
+		"specularFactor",
+		"specularPower",
+		"fresnelMin",
+		"fresnelMax",
+		"fresnelPower",
+		"perlinStartFreq",
+		"perlinLacunarity",
+		"perlinAmplitude",
+		"numTiles",
+		"blurBase",
+		"blurExponent",
+		"reflectionDistortion",
+		"waveOffsetFactor",
+		"waveLength",
+		"waveFoamDistortion",
+		"waveFoamIntensity",
+		"causticsResolution",
+		"causticsStrength",
 	}
 	local boolParams = { shoreWaves = true, hasWaterPlane = true, forceRendering = true }
 	for _, p in ipairs(wParams) do
@@ -1677,9 +3162,13 @@ widgetState.buildEnvConfigContent = function(opts)
 	outLines[#outLines + 1] = ""
 	outLines[#outLines + 1] = "\t-- Water colors"
 	local waterColorExport = {
-		{"absorb", "absorb"}, {"baseColor", "baseColor"}, {"minColor", "minColor"},
-		{"surfaceColor", "surfaceColor"}, {"planeColor", "planeColor"},
-		{"diffuseColor", "diffuseColor"}, {"specularColor", "specularColor"},
+		{ "absorb", "absorb" },
+		{ "baseColor", "baseColor" },
+		{ "minColor", "minColor" },
+		{ "surfaceColor", "surfaceColor" },
+		{ "planeColor", "planeColor" },
+		{ "diffuseColor", "diffuseColor" },
+		{ "specularColor", "specularColor" },
 	}
 	for _, wce in ipairs(waterColorExport) do
 		local c = { gl.GetWaterRendering(wce[2]) }
@@ -1690,18 +3179,50 @@ widgetState.buildEnvConfigContent = function(opts)
 	return table.concat(outLines, "\n")
 end
 
--- Resolve the env preset to apply after a New Map reload (nil = Default/none).
+-- The wizard's "Default" environment: PtaQ's canonical sun and nothing else, so a
+-- fresh map is lit like a real one without adopting some other map's water, fog and
+-- sky. Built from envSunPresets[1], the single place that sun is defined, rather
+-- than from a copy: the harvested moods in env_presets.lua are regenerated by
+-- tools/mapgen/scan_environments.py, so a sun stored there cannot be trusted to
+-- survive a re-harvest. Lazy on purpose (envSunKeys is defined further down).
+widgetState.newMapDefaultEnv = function()
+	local sun = widgetState.envSunPresets and widgetState.envSunPresets[1]
+	if not sun then
+		return nil
+	end
+	local x, y, z = widgetState.sunDirFromAzEl(sun.az, sun.el)
+	---@type table
+	local out = { name = sun.name, sunDir = { x, y, z } }
+	for _, k in ipairs(widgetState.envSunKeys) do
+		local v = sun[k]
+		if k ~= "sunDir" and v ~= nil then
+			-- colours are copied element-wise: sharing the table would let an ENV
+			-- panel edit reach back into the preset
+			out[k] = (type(v) == "table") and { v[1], v[2], v[3] } or v
+		end
+	end
+	return out
+end
+
+-- Resolve the env preset to apply after a New Map reload (nil = Default, which the
+-- reader turns into newMapDefaultEnv above).
 widgetState._nmCurrentEnvPreset = function()
 	local idx = widgetState.newMapEnvIdx or 0
-	if idx <= 0 then return nil end
+	if idx <= 0 then
+		return nil
+	end
 	return widgetState.newMapEnvPresets[idx]
 end
 
 local function _nmClampEven(v, default)
 	v = tonumber(v) or default
 	v = math.floor(v / 2 + 0.5) * 2
-	if v < NEWMAP_MIN_UNITS then v = NEWMAP_MIN_UNITS end
-	if v > NEWMAP_MAX_UNITS then v = NEWMAP_MAX_UNITS end
+	if v < NEWMAP_MIN_UNITS then
+		v = NEWMAP_MIN_UNITS
+	end
+	if v > NEWMAP_MAX_UNITS then
+		v = NEWMAP_MAX_UNITS
+	end
 	return v
 end
 
@@ -1714,14 +3235,22 @@ end
 -- Push widgetState dimensions into the data-model labels (width/height/elmo).
 local function _nmRefreshLabels()
 	local d = widgetState.dmHandle
-	if not d then return end
+	if not d then
+		return
+	end
 	local w = widgetState.newMapW or NEWMAP_DEFAULT_UNIT
 	local h = widgetState.newMapH or NEWMAP_DEFAULT_UNIT
 	local ws, hs = tostring(w), tostring(h)
-	if d.newMapWidthStr  ~= ws then d.newMapWidthStr  = ws end
-	if d.newMapHeightStr ~= hs then d.newMapHeightStr = hs end
+	if d.newMapWidthStr ~= ws then
+		d.newMapWidthStr = ws
+	end
+	if d.newMapHeightStr ~= hs then
+		d.newMapHeightStr = hs
+	end
 	local elmoStr = string.format("%d x %d elmos", w * 512, h * 512)
-	if d.newMapElmoStr ~= elmoStr then d.newMapElmoStr = elmoStr end
+	if d.newMapElmoStr ~= elmoStr then
+		d.newMapElmoStr = elmoStr
+	end
 end
 
 -- Set one axis (explicit step / button path): clamp, store, move the slider
@@ -1835,17 +3364,25 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 	-- accepted a commander, flat ground mid-map did nothing). Write an explicit
 	-- full-map rect into every allyteam block instead, which is what an editor
 	-- canvas wants: place anywhere. Fractions of map size, 0..1.
-	script = script:gsub("(%[[Aa][Ll][Ll][Yy][Tt][Ee][Aa][Mm]%d+%]%s*\r?\n?%s*{)",
-		"%1\nstartrectleft=0;\nstartrecttop=0;\nstartrectright=1;\nstartrectbottom=1;")
+	script = script:gsub(
+		"(%[[Aa][Ll][Ll][Yy][Tt][Ee][Aa][Mm]%d+%]%s*\r?\n?%s*{)",
+		"%1\nstartrectleft=0;\nstartrecttop=0;\nstartrectright=1;\nstartrectbottom=1;"
+	)
 
 	-- Editor sessions must never end: with deathmode=neverend both game_end and
 	-- game_team_com_ends remove themselves at init, so teams survive with zero
 	-- units (edit without commanders) and commander death cannot end the session.
 	script = script:gsub("[Dd][Ee][Aa][Tt][Hh][Mm][Oo][Dd][Ee]%s*=[^;\r\n]*;?", "")
+	-- editor_sandbox=1 marks the session as a map editor canvas for the game
+	-- gadgets: game_initial_spawn spawns no commanders (the map maker edits an
+	-- empty canvas or the project's own unit loadout), and game_end /
+	-- game_team_com_ends stand down whatever deathmode the lobby set. Strip an
+	-- inherited copy first so editor-to-editor reloads stay idempotent.
+	script = script:gsub("[Ee][Dd][Ii][Tt][Oo][Rr]_[Ss][Aa][Nn][Dd][Bb][Oo][Xx]%s*=[^;\r\n]*;?", "")
 	local needModoptions = true
 	local _, moE = script:find("%[[Mm][Oo][Dd][Oo][Pp][Tt][Ii][Oo][Nn][Ss]%]%s*\r?\n?%s*{")
 	if moE then
-		script = script:sub(1, moE) .. "\ndeathmode=neverend;" .. script:sub(moE + 1)
+		script = script:sub(1, moE) .. "\ndeathmode=neverend;\neditor_sandbox=1;" .. script:sub(moE + 1)
 		needModoptions = false
 	end
 
@@ -1865,8 +3402,8 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 
 	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
 	-- makes the engine build a real cubemap sky (CSkyBox) for the blank map instead
-	-- of the procedural cloud dome; runtime skybox swapping only works once the sky
-	-- is a CSkyBox. Read back in mapgenerator/mapinfo_template.lua.
+	-- of the procedural cloud dome, so the map boots with the chosen sky already up.
+	-- Read back in mapgenerator/mapinfo_template.lua.
 	if skyboxPath and skyboxPath ~= "" then
 		opt[#opt + 1] = "blank_map_skybox=" .. skyboxPath .. ";"
 	end
@@ -1913,6 +3450,7 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		injectParts[#injectParts + 1] = "[modoptions]"
 		injectParts[#injectParts + 1] = "{"
 		injectParts[#injectParts + 1] = "deathmode=neverend;"
+		injectParts[#injectParts + 1] = "editor_sandbox=1;"
 		injectParts[#injectParts + 1] = "}"
 	end
 	local inject = table.concat(injectParts, "\n")
@@ -1975,7 +3513,8 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	end
 
 	-- The manifest records the skybox basename; find it in the library so the
-	-- engine bakes a real cubemap sky (runtime swaps need a CSkyBox).
+	-- project reopens with its own sky (widget:Initialize applies the
+	-- blank_map_skybox option at runtime, the engine does not).
 	local skyboxPath = nil
 	if type(m.skybox) == "string" and m.skybox ~= "" then
 		for _, thumb in ipairs(widgetState.envSkyboxThumbs or {}) do
@@ -1986,7 +3525,21 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 			end
 		end
 		if not skyboxPath then
-			Spring.Echo("[Terraform Brush] Project skybox '" .. m.skybox .. "' not found in the skybox library; using none.")
+			-- The thumb cache only exists once the panel document has been built;
+			-- resolve straight against the library so a project reopens with its
+			-- sky even when the panel was never opened this session.
+			local files = VFS.DirList("Terraform Brush/SkyBoxes/", "*.dds", VFS.RAW_FIRST) or {}
+			for _, fp in ipairs(files) do
+				if fp:match("([^/\\]+)$") == m.skybox then
+					skyboxPath = fp:gsub("\\", "/")
+					break
+				end
+			end
+		end
+		if not skyboxPath then
+			Spring.Echo(
+				"[Terraform Brush] Project skybox '" .. m.skybox .. "' not found in the skybox library; using none."
+			)
 		end
 	end
 
@@ -2002,11 +3555,11 @@ end
 -- onto a flat blank map; the command widget (cmd_terraform_brush.lua) reads the
 -- file post-reload, generates the heightmap and stamps it via the import path.
 local NEWMAP_SYMS = {
-	{ id = "rot180",  label = "Rotational 180\194\176" },
+	{ id = "rot180", label = "Rotational 180\194\176" },
 	{ id = "mirrorx", label = "Mirror H \226\134\148" },
 	{ id = "mirrorz", label = "Mirror V \226\134\149" },
-	{ id = "rot90",   label = "4-Way (square)" },
-	{ id = "none",    label = "Asymmetric" },
+	{ id = "rot90", label = "4-Way (square)" },
+	{ id = "none", label = "Asymmetric" },
 }
 
 -- Push widgetState.newMap into the data-model labels (and optionally the slider
@@ -2014,29 +3567,58 @@ local NEWMAP_SYMS = {
 -- slider change handler (which would fight the thumb the user is dragging).
 local function _nmRefreshTerrain(setSliders)
 	local d = widgetState.dmHandle
-	if not d then return end
+	if not d then
+		return
+	end
 	local nm = widgetState.newMap or {}
-	local function pct(v) return tostring(math.floor((v or 0) * 100 + 0.5)) .. "%" end
-	if d.newMapHilStr   ~= pct(nm.hilliness)    then d.newMapHilStr   = pct(nm.hilliness) end
-	if d.newMapRoughStr ~= pct(nm.roughness)    then d.newMapRoughStr = pct(nm.roughness) end
-	if d.newMapScaleStr ~= pct(nm.featureScale) then d.newMapScaleStr = pct(nm.featureScale) end
-	if d.newMapJagStr   ~= pct(nm.jaggedness)   then d.newMapJagStr   = pct(nm.jaggedness) end
-	if d.newMapWaterStr ~= pct(nm.waterLevel)   then d.newMapWaterStr = pct(nm.waterLevel) end
-	if d.newMapCoastStr ~= pct(nm.islandness)   then d.newMapCoastStr = pct(nm.islandness) end
-	if d.newMapMetalStr ~= pct(nm.metalDensity) then d.newMapMetalStr = pct(nm.metalDensity) end
+	local function pct(v)
+		return tostring(math.floor((v or 0) * 100 + 0.5)) .. "%"
+	end
+	if d.newMapHilStr ~= pct(nm.hilliness) then
+		d.newMapHilStr = pct(nm.hilliness)
+	end
+	if d.newMapRoughStr ~= pct(nm.roughness) then
+		d.newMapRoughStr = pct(nm.roughness)
+	end
+	if d.newMapScaleStr ~= pct(nm.featureScale) then
+		d.newMapScaleStr = pct(nm.featureScale)
+	end
+	if d.newMapJagStr ~= pct(nm.jaggedness) then
+		d.newMapJagStr = pct(nm.jaggedness)
+	end
+	if d.newMapWaterStr ~= pct(nm.waterLevel) then
+		d.newMapWaterStr = pct(nm.waterLevel)
+	end
+	if d.newMapCoastStr ~= pct(nm.islandness) then
+		d.newMapCoastStr = pct(nm.islandness)
+	end
+	if d.newMapMetalStr ~= pct(nm.metalDensity) then
+		d.newMapMetalStr = pct(nm.metalDensity)
+	end
 	local symLabel = NEWMAP_SYMS[1].label
-	for _, s in ipairs(NEWMAP_SYMS) do if s.id == nm.symmetry then symLabel = s.label break end end
-	if d.newMapSymStr ~= symLabel then d.newMapSymStr = symLabel end
+	for _, s in ipairs(NEWMAP_SYMS) do
+		if s.id == nm.symmetry then
+			symLabel = s.label
+			break
+		end
+	end
+	if d.newMapSymStr ~= symLabel then
+		d.newMapSymStr = symLabel
+	end
 	local seedStr = tostring(nm.seed or 0)
-	if d.newMapSeedStr ~= seedStr then d.newMapSeedStr = seedStr end
+	if d.newMapSeedStr ~= seedStr then
+		d.newMapSeedStr = seedStr
+	end
 	local arch = nm.archetypeName or ""
-	if d.newMapArchetypeStr ~= arch then d.newMapArchetypeStr = arch end
+	if d.newMapArchetypeStr ~= arch then
+		d.newMapArchetypeStr = arch
+	end
 	if setSliders then
 		uiState.updatingFromCode = true
-		_elemSetSliderVal("slider-newmap-hil",   math.floor((nm.hilliness or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-hil", math.floor((nm.hilliness or 0) * 100 + 0.5))
 		_elemSetSliderVal("slider-newmap-rough", math.floor((nm.roughness or 0) * 100 + 0.5))
 		_elemSetSliderVal("slider-newmap-scale", math.floor((nm.featureScale or 0) * 100 + 0.5))
-		_elemSetSliderVal("slider-newmap-jag",   math.floor((nm.jaggedness or 0) * 100 + 0.5))
+		_elemSetSliderVal("slider-newmap-jag", math.floor((nm.jaggedness or 0) * 100 + 0.5))
 		_elemSetSliderVal("slider-newmap-water", math.floor((nm.waterLevel or 0) * 100 + 0.5))
 		_elemSetSliderVal("slider-newmap-coast", math.floor((nm.islandness or 0) * 100 + 0.5))
 		_elemSetSliderVal("slider-newmap-metal", math.floor((nm.metalDensity or 0) * 100 + 0.5))
@@ -2051,13 +3633,25 @@ local function writePendingNewMapRecipe(nm)
 	local players = (nm.symmetry == "rot90") and 4 or 2
 	local body = string.format(
 		"return {\n  seed=%d,\n  hilliness=%g,\n  roughness=%g,\n  featureScale=%g,\n"
-		.. "  jaggedness=%g,\n  waterLevel=%g,\n  islandness=%g,\n  metalDensity=%g,\n"
-		.. "  symmetry=%q,\n  players=%d,\n}\n",
-		nm.seed or 1, nm.hilliness or 0.5, nm.roughness or 0.5, nm.featureScale or 0.5,
-		nm.jaggedness or 0.45, nm.waterLevel or 0, nm.islandness or 0, nm.metalDensity or 0.5,
-		nm.symmetry or "rot180", players)
+			.. "  jaggedness=%g,\n  waterLevel=%g,\n  islandness=%g,\n  metalDensity=%g,\n"
+			.. "  symmetry=%q,\n  players=%d,\n}\n",
+		nm.seed or 1,
+		nm.hilliness or 0.5,
+		nm.roughness or 0.5,
+		nm.featureScale or 0.5,
+		nm.jaggedness or 0.45,
+		nm.waterLevel or 0,
+		nm.islandness or 0,
+		nm.metalDensity or 0.5,
+		nm.symmetry or "rot180",
+		players
+	)
 	local f = io.open("Terraform Brush/pending_newmap.lua", "w")
-	if f then f:write(body); f:close(); return true end
+	if f then
+		f:write(body)
+		f:close()
+		return true
+	end
 	return false
 end
 
@@ -2068,7 +3662,9 @@ do
 	local ok, t = pcall(function()
 		return VFS.Include("luaui/RmlWidgets/gui_terraform_brush/newmap_archetypes.lua")
 	end)
-	if ok and type(t) == "table" then widgetState.newMapArchetypes = t end
+	if ok and type(t) == "table" then
+		widgetState.newMapArchetypes = t
+	end
 end
 
 -- ---- Capture (top-down map photo + per-unit SVG layer) ----
@@ -2084,16 +3680,29 @@ local capUI = {}
 
 function capUI.readout()
 	local api = WG.TerraformCapture
-	if not (api and api.estimate) then return "Capture widget is not enabled", "" end
+	if not (api and api.estimate) then
+		return "Capture widget is not enabled", ""
+	end
 	local ok, est = pcall(api.estimate)
-	if not ok or type(est) ~= "table" then return "unavailable", "" end
+	if not ok or type(est) ~= "table" then
+		return "unavailable", ""
+	end
 	-- Tight separators: this line lives in a 220dp panel and should stay on one row.
-	local readout = string.format("%d\195\151%d px \194\183 %d tiles \194\183 ~%ds",
-		est.outW, est.outH, est.tiles, math.max(1, math.floor(est.seconds + 0.5)))
+	local readout = string.format(
+		"%d\195\151%d px \194\183 %d tiles \194\183 ~%ds",
+		est.outW,
+		est.outH,
+		est.tiles,
+		math.max(1, math.floor(est.seconds + 0.5))
+	)
 	local warn = ""
 	if est.capped then
-		warn = string.format("%sx is wider than this GPU's %d px texture limit \226\128\148 capturing at %.2fx.",
-			tostring(est.detail), est.maxTex, est.effectiveDetail)
+		warn = string.format(
+			"%sx is wider than this GPU's %d px texture limit \226\128\148 capturing at %.2fx.",
+			tostring(est.detail),
+			est.maxTex,
+			est.effectiveDetail
+		)
 	elseif est.strips then
 		-- Not an error: too big for one image, so it lands as horizontal strips
 		-- whose filenames carry their Y offset. Say so before CAPTURE is pressed.
@@ -2104,25 +3713,27 @@ end
 
 function capUI.sync()
 	local d = widgetState.dmHandle
-	if not d then return end
+	if not d then
+		return
+	end
 	local api = WG.TerraformCapture
 	if api and api.getSettings then
 		local s = api.getSettings()
-		d.captureDetail         = tostring(s.detail)
-		d.capturePhotoWater     = s.photoWater and true or false
-		d.capturePhotoShadows   = s.photoShadows and true or false
-		d.capturePhotoBloom     = s.photoBloom and true or false
-		d.capturePhotoFog       = s.photoFog and true or false
-		d.capturePhotoFeatures  = s.photoFeatures and true or false
-		d.captureUnitLayer      = s.unitLayer and true or false
-		d.captureUnitStyle      = tostring(s.unitStyle)
-		d.captureUnitSizeStr    = tostring(math.floor(s.unitSize))
+		d.captureDetail = tostring(s.detail)
+		d.capturePhotoWater = s.photoWater and true or false
+		d.capturePhotoShadows = s.photoShadows and true or false
+		d.capturePhotoBloom = s.photoBloom and true or false
+		d.capturePhotoFog = s.photoFog and true or false
+		d.capturePhotoFeatures = s.photoFeatures and true or false
+		d.captureUnitLayer = s.unitLayer and true or false
+		d.captureUnitStyle = tostring(s.unitStyle)
+		d.captureUnitSizeStr = tostring(math.floor(s.unitSize))
 		d.captureUnitScalingStr = string.format("%.2f", s.unitScaling)
-		d.captureGroupTeam      = s.unitGroupTeam and true or false
-		d.captureLabels         = s.unitLabels and true or false
-		d.captureFeatureLayer   = s.featureLayer and true or false
-		d.captureCommentLayer   = s.commentLayer and true or false
-		d.capturePortraitOpts   = (s.unitLayer and s.unitStyle == "portrait") and true or false
+		d.captureGroupTeam = s.unitGroupTeam and true or false
+		d.captureLabels = s.unitLabels and true or false
+		d.captureFeatureLayer = s.featureLayer and true or false
+		d.captureCommentLayer = s.commentLayer and true or false
+		d.capturePortraitOpts = (s.unitLayer and s.unitStyle == "portrait") and true or false
 	end
 	local readout, warn = capUI.readout()
 	d.captureReadout = readout
@@ -2133,12 +3744,14 @@ end
 -- matching the rest of this document's bindings.
 function capUI.setResult(ok, head, body)
 	local d = widgetState.dmHandle
-	if not d then return end
+	if not d then
+		return
+	end
 	local shown = (body ~= nil and body ~= "")
-	d.captureResultOk   = (shown and ok) and true or false
-	d.captureResultBad  = (shown and not ok) and true or false
+	d.captureResultOk = (shown and ok) and true or false
+	d.captureResultBad = (shown and not ok) and true or false
 	d.captureResultHead = shown and (head or "") or ""
-	d.captureResult     = shown and body or ""
+	d.captureResult = shown and body or ""
 end
 
 -- Sliders are plain elements, not data-bound, so their handle position has to be
@@ -2146,20 +3759,2142 @@ end
 function capUI.syncSliders()
 	local doc = widgetState.document
 	local api = WG.TerraformCapture
-	if not (doc and api and api.getSettings) then return end
+	if not (doc and api and api.getSettings) then
+		return
+	end
 	local s = api.getSettings()
 	uiState.updatingFromCode = true
 	local elSize = doc:GetElementById("slider-capture-unitsize")
-	if elSize then elSize:SetAttribute("value", tostring(math.floor(s.unitSize))) end
+	if elSize then
+		elSize:SetAttribute("value", tostring(math.floor(s.unitSize)))
+	end
 	local elScale = doc:GetElementById("slider-capture-unitscaling")
-	if elScale then elScale:SetAttribute("value", tostring(math.floor(s.unitScaling * 100 + 0.5))) end
+	if elScale then
+		elScale:SetAttribute("value", tostring(math.floor(s.unitScaling * 100 + 0.5)))
+	end
 	uiState.updatingFromCode = false
 end
 
 function capUI.set(key, value)
 	local api = WG.TerraformCapture
-	if api and api.setSetting then api.setSetting(key, value) end
+	if api and api.setSetting then
+		api.setSetting(key, value)
+	end
 	capUI.sync()
+end
+
+-- "3 h ago" / "yesterday" / "2026-08-22" for the project lists. Manifests and
+-- the recent-projects journal stamp ISO-8601 UTC; os.time() reads a table as
+-- local time, so the parsed stamp is shifted by the local UTC offset. Dates a
+-- week or older show as the (local) calendar day. On widgetState: the main
+-- chunk is near the Lua 5.1 200-local ceiling.
+widgetState.relativeAge = function(iso, now)
+	local stamp = tostring(iso or "")
+	local y, mo, d, h, mi, s = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+):?(%d*)")
+	if not y then
+		return stamp ~= "" and stamp or "(no date)"
+	end
+	-- isdst = false on BOTH conversions: the stamp and the offset probe then go
+	-- through the same standard-time interpretation, so the offset cancels
+	-- exactly whatever the daylight-saving state of either date is.
+	local t = os.time({
+		year = math.floor(tonumber(y) or 0),
+		month = math.floor(tonumber(mo) or 1),
+		day = math.floor(tonumber(d) or 1),
+		hour = math.floor(tonumber(h) or 0),
+		min = math.floor(tonumber(mi) or 0),
+		sec = math.floor(tonumber(s) or 0),
+		isdst = false,
+	})
+	if not t then
+		return string.format("%s-%s-%s", y, mo, d)
+	end
+	local nowT = now or os.time()
+	local probe = os.date("!*t", nowT)
+	probe.isdst = false
+	local utcOffset = nowT - os.time(probe)
+	local epoch = t + utcOffset
+	local diff = nowT - epoch
+	if diff < 0 then
+		diff = 0
+	end
+	if diff < 60 then
+		return "just now"
+	elseif diff < 3600 then
+		return string.format("%d min ago", math.floor(diff / 60))
+	elseif diff < 86400 then
+		return string.format("%d h ago", math.floor(diff / 3600))
+	elseif diff < 2 * 86400 then
+		return "yesterday"
+	elseif diff < 7 * 86400 then
+		return string.format("%d d ago", math.floor(diff / 86400))
+	end
+	return os.date("%Y-%m-%d", epoch)
+end
+
+-- ===== Project browser, shared by Save As and Open Project =====
+-- Both dialogs draw the same single-line rows in the same three columns, sort
+-- through the same comparator and share the header carets, so the two lists
+-- read as one browser. Everything here hangs off widgetState rather than being
+-- a chunk local: the main chunk is near the Lua 5.1 200-local ceiling.
+
+widgetState.rmlEsc = function(s)
+	return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
+-- Is this file on disk right now? VFS answers first: it is the cheap probe and
+-- the same lookup RmlUi will make for the <img>. But VFS can be blind to files
+-- written during this session (cmd_map_project.lua documents the same thing and
+-- reads manifests with a raw handle for it), which is exactly a project that was
+-- just downloaded from the team library. A raw handle is the tiebreaker, so the
+-- preview offers what is actually there rather than what the cache remembers.
+-- The two floating project dialogs, and the model flag that says each is up.
+widgetState.projectDialogWindows = {
+	{ id = "tf-project-open-root", open = "projectOpenOpen" },
+	{ id = "tf-project-root", open = "projectSaveOpen" },
+}
+
+-- The editor panel's rectangle in Spring screen pixels (Y up from the bottom),
+-- or nil while it is hidden or not built. Tools that park their brush instead
+-- of working through the UI measure against this.
+widgetState.panelBounds = function()
+	local _, vsy = Spring.GetViewGeometry()
+	local root = widgetState.rootElement
+	if vsy <= 0 or not root or widgetState.panelHidden then
+		return nil
+	end
+	local leftPx, topPx = root.offset_left, root.offset_top
+	local widthPx, heightPx = root.offset_width, root.offset_height
+	if not leftPx or widthPx == 0 or heightPx == 0 then
+		return nil
+	end
+	return {
+		left = leftPx,
+		right = leftPx + widthPx,
+		topY = vsy - topPx,
+		bottomY = vsy - topPx - heightPx,
+	}
+end
+
+-- The project dialog under the pointer, as the same rectangle, or nil. A dialog
+-- covers the world the way the panel does, so the brush should park behind it
+-- rather than keep working through it. Both dialogs are windows the user can
+-- drag, so the rectangle is read each time rather than remembered.
+widgetState.projectDialogHoverBounds = function()
+	local d, doc = widgetState.dmHandle, widgetState.document
+	if not (d and doc) then
+		return nil
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	local mx, my = Spring.GetMouseState()
+	for _, window in ipairs(widgetState.projectDialogWindows) do
+		if d[window.open] then
+			local el = getCachedEl(doc, window.id)
+			local width = (el and el.offset_width) or 0
+			local height = (el and el.offset_height) or 0
+			if width > 0 and height > 0 then
+				local left, topPx = el.absolute_left, el.absolute_top
+				local topY, bottomY = vsy - topPx, vsy - topPx - height
+				if mx >= left and mx <= left + width and my >= bottomY and my <= topY then
+					return { left = left, right = left + width, topY = topY, bottomY = bottomY }
+				end
+			end
+		end
+	end
+	return nil
+end
+
+widgetState.projectFileOnDisk = function(path)
+	if VFS.FileExists(path, VFS.RAW) then
+		return true
+	end
+	local f = io.open(path, "rb")
+	if not f then
+		return false
+	end
+	f:close()
+	return true
+end
+
+-- RECENT means last touched: the newer of "opened or saved through the editor"
+-- (journal) and the manifest's modified stamp, both ISO-8601 so string order is
+-- time order.
+widgetState.projectTouched = function(p)
+	local a, b = tostring(p.last_touched or ""), tostring(p.modified or "")
+	return a > b and a or b
+end
+
+widgetState.projectLess = function(a, b)
+	local mode = widgetState.projectOpenSort or "recent"
+	local desc = widgetState.projectOpenSortDesc ~= false
+	local av, bv
+	if mode == "name" then
+		av, bv = tostring(a.name or a.slug):lower(), tostring(b.name or b.slug):lower()
+	elseif mode == "size" then
+		av = (tonumber(a.size_x) or 0) * (tonumber(a.size_z) or 0)
+		bv = (tonumber(b.size_x) or 0) * (tonumber(b.size_z) or 0)
+	else
+		av, bv = widgetState.projectTouched(a), widgetState.projectTouched(b)
+	end
+	if av ~= bv then
+		if desc then
+			return av > bv
+		end
+		return av < bv
+	end
+	return a.slug < b.slug
+end
+
+-- The indent, drawn as the tree's own lines. One tick per level in front of the
+-- row's content, so the whole row (disclosure glyph, folder icon and name) steps
+-- in together, and each tick is one indent step wide with its vertical rule
+-- sitting exactly under the parent's disclosure glyph.
+--
+-- `ancestors` is one character per level above this row: "1" where that level
+-- has more items below and its line carries on down, "0" where it does not and
+-- the column is blank. The row's own level is an elbow: the rule comes down the
+-- top half and turns right into the row, and the bottom half continues only
+-- when this is not the last item in its folder. That is what joins a subfolder
+-- to its parent instead of leaving two unrelated vertical strokes.
+widgetState.projectTicks = function(ancestors, isLast)
+	if not ancestors then
+		return ""
+	end
+	local out = {}
+	for i = 1, #ancestors do
+		out[#out + 1] = (ancestors:sub(i, i) == "1") and '<div class="tf-proj-tick"></div>'
+			or '<div class="tf-proj-tick blank"></div>'
+	end
+	out[#out + 1] = '<div class="tf-proj-tick elbow"><div class="tf-proj-elbow-top"></div>'
+		.. '<div class="tf-proj-elbow-bottom'
+		.. (isLast and " blank" or "")
+		.. '"></div></div>'
+	return table.concat(out)
+end
+
+-- One row: name (with its folder path and an OPEN tag when it is the loaded
+-- project) then the size and modified columns the header labels. The size wears
+-- the same framed badge the heightmap browser uses.
+widgetState.projectRowRml = function(id, ticks, name, path, tags, size, date, sync, extraClass)
+	local esc = widgetState.rmlEsc
+	local tagRml = {}
+	for _, tag in ipairs(tags or {}) do
+		if tag.dot then
+			tagRml[#tagRml + 1] = '<div class="tf-proj-dot '
+				.. esc(tag.dot)
+				.. '" title="'
+				.. esc(tag.title or "")
+				.. '"></div>'
+		else
+			tagRml[#tagRml + 1] = '<div class="' .. (tag.cls or "tf-proj-tag") .. '">' .. esc(tag.text) .. "</div>"
+		end
+	end
+	-- The Sync column: a dot for the glance, a word for the meaning, the
+	-- sentence on hover.
+	local syncRml = ""
+	if sync then
+		syncRml = '<div class="tf-proj-c-sync sync-'
+			.. esc(sync.state)
+			.. '" title="'
+			.. esc(sync.title or "")
+			.. '"><div class="tf-proj-dot '
+			.. esc(sync.dot or sync.state)
+			.. '"></div><div class="tf-proj-sync-text">'
+			.. esc(sync.text or "")
+			.. "</div></div>"
+	end
+	return string.format(
+		'<div id="%s" class="tf-hm-row tf-proj-row%s" title="%s">%s'
+			.. '<div class="tf-proj-c-name"><div class="tf-proj-name-text">%s</div>%s%s</div>'
+			.. '<div class="tf-proj-c-size"><div class="tf-hm-badge">%s</div></div>'
+			.. '<div class="tf-proj-c-date">%s</div>%s</div>',
+		esc(id),
+		extraClass and (" " .. extraClass) or "",
+		-- The name column is narrow enough to clip a long slug, so the row
+		-- carries the whole thing as its tooltip.
+		esc(name),
+		ticks or "",
+		esc(name),
+		(path and path ~= "") and ('<div class="tf-proj-path">' .. esc(path) .. "</div>") or "",
+		table.concat(tagRml),
+		esc(size),
+		esc(date),
+		syncRml
+	)
+end
+
+-- Sort caret: "^" ascending, "v" descending, on the sorted column only. ASCII
+-- on purpose, the UI font is not guaranteed to carry the geometric arrows.
+widgetState.projectSyncSort = function()
+	local d = widgetState.dmHandle
+	if not d then
+		return
+	end
+	local mode = widgetState.projectOpenSort or "recent"
+	local caret = (widgetState.projectOpenSortDesc ~= false) and " v" or " ^"
+	d.projectOpenSort = mode
+	d.projectSortName = (mode == "name") and caret or ""
+	d.projectSortSize = (mode == "size") and caret or ""
+	d.projectSortDate = (mode == "recent") and caret or ""
+end
+
+-- What fits on the status strip: the first sentence of a message, capped.
+widgetState.projectStripShort = function(text)
+	text = tostring(text or "")
+	local first = text:match("^(.-)%. ") or text
+	if #first > 44 then
+		first = first:sub(1, 43) .. "\226\128\166"
+	end
+	return first
+end
+
+widgetState.projectCountText = function(shown, total)
+	if total and shown < total then
+		return widgetState.text("countFiltered", { count = shown, total = total })
+	end
+	if shown == 1 then
+		return widgetState.text("countOne")
+	end
+	return widgetState.text("countMany", { count = shown })
+end
+
+-- "23 min ago (2026-09-09)". The date half stays as the manifest wrote it
+-- (UTC): relativeAge already does the timezone maths for the part that matters.
+widgetState.projectStampText = function(stamp, now)
+	local s = tostring(stamp or "")
+	local rel = widgetState.relativeAge(s, now)
+	local y, mo, d = s:match("^(%d+)%-(%d+)%-(%d+)")
+	if not y then
+		return rel
+	end
+	return string.format("%s (%s-%s-%s)", rel, y, mo, d)
+end
+
+-- Details pane for the selected row. The saved heightmap doubles as the
+-- thumbnail: it is the one image every project has, and relief alone is enough
+-- to recognise a map by. Only the selected project gets one, and only when it
+-- is small enough to be worth the memory -- RmlUi decompresses an <img> in full
+-- into TexMemPool, so a 32x32 map (4097^2 = 67 MB) is skipped.
+widgetState.projectShowDetails = function(p, save)
+	local d = widgetState.dmHandle
+	local doc = widgetState.document
+	if not d then
+		return
+	end
+	-- One writer, two panes: the field prefix and the preview host say which.
+	local key = save and "psaveInfo" or "projectInfo"
+	local prev = doc and doc:GetElementById(save and "tf-psave-preview" or "tf-proj-preview")
+	if not p then
+		d[key .. "Name"], d[key .. "Path"], d[key .. "Size"] = "", "", ""
+		d[key .. "Modified"], d[key .. "Created"], d[key .. "Units"] = "", "", ""
+		d[key .. "Legacy"], d[key .. "Current"] = false, false
+		d[key .. "Both"] = false
+		if save then
+			d.psaveInfoShown = false
+			widgetState.projectShownSave = nil
+		else
+			widgetState.projectShownOpen = nil
+		end
+		if prev then
+			prev.inner_rml = ""
+		end
+		return
+	end
+	local mp = WG.MapProject
+	local now = os.time()
+	local slug = tostring(p.slug or "")
+	-- A download lands at the repository's own path, so a team row's slug is
+	-- also its path on this disk. Whether there is a copy here is the question
+	-- worth asking: everything read off the files themselves keys on this, and
+	-- a row with no copy here is a catalogue row, metadata read as text.
+	local folder = "MapProjects/" .. slug .. "/"
+	local mine = widgetState.projectFileOnDisk(folder .. "project.lua")
+	local remote = not mine
+	d[key .. "Name"] = tostring(p.name or slug)
+	d[key .. "Path"] = (p.folder and p.folder ~= "") and (p.folder .. "/") or ""
+	d[key .. "Size"] = string.format("%s x %s", tostring(p.size_x or "?"), tostring(p.size_z or "?"))
+	d[key .. "Modified"] = widgetState.projectStampText(widgetState.projectTouched(p), now)
+	d[key .. "Created"] = (p.created and p.created ~= "") and widgetState.projectStampText(p.created, now) or ""
+	d[key .. "Units"] = ""
+	if mp and mp.hasUnitsSection and mine then
+		d[key .. "Units"] = widgetState.text((mp.hasUnitsSection(slug) and "unitsSaved" or "unitsNone"))
+	end
+	-- Team catalog rows carry no format_version (the helper reads the
+	-- manifest as text), so the flag is a local-project statement only.
+	d[key .. "Legacy"] = (not remote) and (tonumber(p.format_version) or 0) < 1
+	d[key .. "Current"] = (mp and mp.current and mp.current() == slug) or false
+	if not save then
+		-- TEAM: where this project stands against the library, in one line.
+		local team = widgetState.projectTeamBySlug()[slug]
+		local state = widgetState.projectSyncState(slug)
+		d.projectInfoTeam = team ~= nil
+		d.projectInfoMine = mine == true
+		d.projectInfoSync = state
+		local line
+		if not team then
+			line = widgetState.text("teamNotShared")
+		else
+			local stage = tostring(team.folder or "")
+			local parts = {
+				widgetState.text("teamIn", {
+					stage = stage ~= "" and stage or widgetState.text("rootFolder"),
+				}),
+			}
+			-- Who uploaded it and when, once the companion reports it.
+			local uploaded = tonumber(team.uploaded)
+			if uploaded and uploaded > 0 then
+				local age = widgetState.relativeAge(os.date("!%Y-%m-%dT%H:%M:%SZ", uploaded), now)
+				parts[#parts + 1] = team.author
+						and widgetState.text("teamUploadedBy", { age = age, author = tostring(team.author) })
+					or widgetState.text("teamUploaded", { age = age })
+			end
+			if not mine then
+				parts[#parts + 1] = widgetState.text("teamNotHere")
+			elseif state == "synced" then
+				parts[#parts + 1] = widgetState.text("teamSynced")
+			elseif state == "mine" then
+				parts[#parts + 1] = widgetState.text("teamMine")
+			else
+				parts[#parts + 1] = widgetState.text("teamTheirs")
+			end
+			line = table.concat(parts, " \194\183 ")
+		end
+		if d.libraryConfigured and not d.libraryOnline then
+			line = line .. " " .. widgetState.text("teamOffline")
+		end
+		d.projectInfoTeamLine = line
+	end
+	if save then
+		d.psaveInfoShown = true
+	end
+	-- Remember what this pane is showing so a change of preview mode can
+	-- redraw it without the caller having to hand the entry back.
+	if save then
+		widgetState.projectShownSave = p
+	else
+		widgetState.projectShownOpen = p
+	end
+	if not prev then
+		return
+	end
+	-- The minimap is the picture of the map, so it leads. The heightmap is the
+	-- fallback for projects saved before minimaps were written, and stays
+	-- available as a second view when both are there: relief answers different
+	-- questions than colour does.
+	-- Both tabs look in the same place (see `mine` above), so a downloaded team
+	-- project shows its picture; one that is not here has no files to find,
+	-- which is what its sync dot says too.
+	local minimap = mine and widgetState.projectFileOnDisk(folder .. "minimap.png") and (folder .. "minimap.png") or nil
+	-- RmlUi decompresses an <img> in full into TexMemPool, so a heightmap is
+	-- only offered while the map is small enough to be worth it (a 32x32 map is
+	-- 4097^2 = 67 MB). The minimap is a 512px thumbnail and always fits.
+	local sx, sz = tonumber(p.size_x) or 0, tonumber(p.size_z) or 0
+	local fits = sx > 0 and sz > 0 and (sx * 128 + 1) * (sz * 128 + 1) <= 10000000
+	local height = mine
+			and fits
+			and widgetState.projectFileOnDisk(folder .. "heightmap.png")
+			and (folder .. "heightmap.png")
+		or nil
+	d[key .. "Both"] = (minimap and height) and true or false
+	local chosen = minimap or height
+	if minimap and height and d.projectPreviewMode == "height" then
+		chosen = height
+	end
+	if chosen then
+		prev.inner_rml = '<img class="tf-proj-preview-img" src="/' .. widgetState.rmlEsc(chosen) .. '" />'
+	else
+		prev.inner_rml = '<div class="tf-proj-preview-none">'
+			.. widgetState.rmlEsc(widgetState.text("noPreview"))
+			.. "</div>"
+	end
+end
+
+-- Enter in a dialog text field. RmlUi.key_identifier is a readonly_property
+-- that hands out a fresh table per access, so the id is resolved once and kept.
+widgetState.isReturnEvent = function(event)
+	if not widgetState.keyReturnId then
+		pcall(function()
+			widgetState.keyReturnId = RmlUi.key_identifier.RETURN
+		end)
+	end
+	local p = event and event.parameters
+	return (p and widgetState.keyReturnId and p.key_identifier == widgetState.keyReturnId) == true
+end
+
+-- Live readout under the NAME field: says whether SAVE is about to create a
+-- project or write over one before the button is pressed, instead of only
+-- after the first click has armed the confirm.
+widgetState.projectSyncTarget = function()
+	local d = widgetState.dmHandle
+	if not d then
+		return
+	end
+	local folder, leaf = widgetState.projectSaveSplitName()
+	local raw = widgetState.projectSaveFullName()
+	widgetState.projectSaveFolderStr = folder
+	widgetState.projectNameStr = raw
+	local mp = WG.MapProject
+	local slug = (raw ~= "" and mp and mp.validateSlug) and mp.validateSlug(raw) or nil
+	d.projectSaveDest = "MapProjects/" .. (folder ~= "" and (folder .. "/") or "")
+	-- The destination chip: the folder as a place, or the top level.
+	local stages = widgetState.projectTeamDestinations()
+	local isStage = folder ~= "" and stages[folder] == true
+	d.projectSaveIsStage = isStage
+	d.projectSaveDestLabel = folder ~= "" and (folder:gsub("/", " / ")) or widgetState.text("rootFolder")
+	-- The upload switch: offered for a team stage, on by default while Team
+	-- Sync could carry it out, and remembered only until the folder changes.
+	local online, writable = d.libraryOnline == true, d.libraryWritable == true
+	local allowed = isStage and online and writable
+	d.projectSaveUploadAllowed = allowed
+	if folder ~= widgetState.projectSaveLastFolder then
+		widgetState.projectSaveLastFolder = folder
+		widgetState.projectSaveUploadChoice = nil
+	end
+	local choice = widgetState.projectSaveUploadChoice
+	if choice == nil then
+		choice = allowed
+	end
+	d.projectSaveUpload = (allowed and choice) and true or false
+	d.projectSaveUploadNote = (isStage and not allowed)
+			and widgetState.text(online and "uploadAfterReadOnly" or "uploadAfterOff")
+		or ""
+	local upload = d.projectSaveUpload
+	d.projectSaveDestOk = true
+	d.projectSaveOverwrite = false
+	local taken = slug ~= nil and (mp.exists and mp.exists(slug)) == true
+	local teamHas = slug ~= nil and widgetState.projectTeamBySlug()[slug] ~= nil
+	local isCurrent = slug ~= nil and mp.current and mp.current() == slug
+	if raw == "" then
+		d.projectSaveTarget = widgetState.text("targetInvalid")
+	elseif not slug then
+		d.projectSaveTarget = widgetState.text("nameHint")
+	elseif isCurrent then
+		d.projectSaveOverwrite = true
+		d.projectSaveTarget = widgetState.text(upload and "targetCurrentUpload" or "targetCurrent", { name = slug })
+	elseif taken then
+		d.projectSaveOverwrite = true
+		d.projectSaveTarget = widgetState.text(upload and "targetOverwriteUpload" or "targetOverwrite", { name = slug })
+	elseif teamHas and upload then
+		d.projectSaveOverwrite = true
+		d.projectSaveTarget = widgetState.text("targetTeamOnly", { name = slug })
+	elseif upload then
+		d.projectSaveTarget = widgetState.text("targetNewUpload", { stage = folder })
+	else
+		d.projectSaveTarget = widgetState.text("targetNew")
+	end
+	-- The summary pane: what SAVE writes, read before it is pressed.
+	d.psaveSumFolder = d.projectSaveDestLabel
+	d.psaveSumMap = string.format(
+		"%d x %d",
+		math.floor((Game.mapSizeX or 0) / 512 + 0.5),
+		math.floor((Game.mapSizeZ or 0) / 512 + 0.5)
+	)
+	d.psaveSumUnits = widgetState.text(widgetState.projectSaveUnits and "yes" or "no")
+	d.psaveSumUpload = upload and widgetState.text("sumUploadTo", { stage = folder }) or widgetState.text("no")
+	-- The existing project the name points at, if any, read from the listing
+	-- the browser already built: a fresh listDetailed() per keystroke would
+	-- walk the disk.
+	widgetState.projectShowDetails(slug and (widgetState.projectSaveBySlug or {})[slug] or nil, true)
+end
+
+-- Folding a folder: one set for both browsers, kept in ui_prefs so the tree
+-- comes back the way it was left rather than fully open every session. Both
+-- lists are rebuilt next frame, never from inside the click on a row the
+-- rebuild destroys.
+widgetState.projectToggleFolder = function(path)
+	local folded = widgetState.uiPrefs.projectCollapsed
+	folded[path] = (not folded[path]) and true or nil
+	widgetState.saveUiPrefs()
+	widgetState.projectOpenNeedsRebuild = true
+	widgetState.projectSaveNeedsRebuild = true
+end
+
+-- The team catalogue keyed by slug, as last snapshotted (see
+-- projectSnapshotLocal): the union list and the Sync column both read it.
+widgetState.projectTeamBySlug = function()
+	return widgetState.projectTeamCache or {}
+end
+
+-- Where one project stands: "local" (only on this disk), "team" (only in the
+-- library), "synced", "mine" (this disk newer) or "theirs" (the team newer).
+-- The two manifests' modified stamps are compared: both ISO-8601, so string
+-- order is time order, and every save rewrites the stamp.
+widgetState.projectSyncState = function(slug)
+	slug = tostring(type(slug) == "table" and slug.slug or slug or "")
+	local mine = (widgetState.projectLocalBySlug or {})[slug]
+	local team = widgetState.projectTeamBySlug()[slug]
+	if team and not mine then
+		return "team"
+	end
+	if not team then
+		return "local"
+	end
+	local here, there = tostring(mine.modified or ""), tostring(team.modified or "")
+	if here ~= "" and here == there then
+		return "synced"
+	end
+	return here > there and "mine" or "theirs"
+end
+
+-- The Sync cell for one row: state, the word, the sentence, the dot.
+widgetState.projectSyncCell = function(p)
+	local state = widgetState.projectSyncState(p)
+	local slug = tostring(p.slug or "")
+	local dot, key, title = state, "syncLocal", "dotMissing"
+	if state == "team" then
+		key = "syncTeam"
+		title = (widgetState.libraryNewSlugs or {})[slug] and "dotNew" or "dotMissing"
+		dot = (widgetState.libraryNewSlugs or {})[slug] and "new" or "team"
+	elseif state == "synced" then
+		key, title = "syncSynced", "dotSynced"
+	elseif state == "mine" then
+		key, title = "syncMine", "dotMineNewer"
+	elseif state == "theirs" then
+		key, title = "syncTheirs", "dotTheirsNewer"
+	else
+		title = nil
+	end
+	return {
+		state = state,
+		dot = dot,
+		text = widgetState.text(key),
+		title = title and widgetState.text(title) or "",
+	}
+end
+
+-- The grouping rows over the team's stages: every prefix of a stage that is
+-- not a stage itself ("Map Prototypes" over Drafts / Review / Done).
+widgetState.projectStageGroups = function(stages)
+	local set, isStage = {}, {}
+	for _, path in ipairs(stages or {}) do
+		isStage[path] = true
+	end
+	for _, path in ipairs(stages or {}) do
+		local walked = nil
+		for segment in path:gmatch("[^/]+") do
+			walked = walked and (walked .. "/" .. segment) or segment
+			if not isStage[walked] then
+				set[walked] = true
+			end
+		end
+	end
+	return set
+end
+
+-- One list over this disk and the team library, keyed by path: a project on
+-- both sides is one row. `view` narrows it: "local" keeps what is on this
+-- disk, "team" what the library holds, "all" everything. Returns the list and
+-- the same entries keyed by slug.
+widgetState.projectUnionList = function(view)
+	-- The Autosaves view is its own list: the timed snapshots under
+	-- MapProjects/_autosave, which the normal views never show. Cached with
+	-- the local snapshot, so a filter keystroke does not re-read manifests.
+	if view == "autosave" then
+		local mp = WG.MapProject
+		if widgetState.projectLocalDirty or not widgetState.projectAutosaveList then
+			widgetState.projectSnapshotLocal()
+			widgetState.projectAutosaveList = (mp and mp.listAutosaves and mp.listAutosaves()) or {}
+		end
+		local list, bySlug = {}, {}
+		for _, entry in ipairs(widgetState.projectAutosaveList) do
+			list[#list + 1] = entry
+			bySlug[entry.slug] = entry
+		end
+		return list, bySlug
+	end
+	if not widgetState.teamSyncEnabled then
+		view = "local"
+	end
+	if not widgetState.libraryNewSlugs then
+		widgetState.projectSnapshotLibrary()
+	elseif widgetState.projectLocalDirty or not widgetState.projectLocalBySlug then
+		widgetState.projectSnapshotLocal()
+	end
+	local mine = widgetState.projectLocalBySlug or {}
+	local team = widgetState.projectTeamBySlug()
+	local list, bySlug = {}, {}
+	for slug, entry in pairs(mine) do
+		if view ~= "team" or team[slug] then
+			list[#list + 1] = entry
+			bySlug[slug] = entry
+		end
+	end
+	if view ~= "local" then
+		for slug, entry in pairs(team) do
+			if not mine[slug] then
+				-- A catalogue row: what the companion read out of the manifest
+				-- as text, marked so the tree can dim it.
+				local row = {
+					slug = slug,
+					folder = entry.folder or (slug:match("^(.*)/[^/]+$") or ""),
+					name = entry.name or (slug:match("([^/]+)$") or slug),
+					size_x = entry.size_x,
+					size_z = entry.size_z,
+					modified = entry.modified,
+					remote = true,
+				}
+				list[#list + 1] = row
+				bySlug[slug] = row
+			end
+		end
+	end
+	return list, bySlug
+end
+
+-- Which team projects are new since the browser last showed the library,
+-- and the local manifests to compare the rest against. Both are snapshotted
+-- when the team list is about to be drawn, so they hold still while the
+-- list is filtered, sorted or folded; the seen set is written back when the
+-- dialog closes, so a project stays flagged for the whole of one viewing.
+-- What this disk holds, keyed by slug, for the team view's sync dots. Rebuilt
+-- every time the list is drawn: a download that has just landed has to be able
+-- to turn its own dot green, and this is the only thing that says so.
+--
+-- The folder walk behind listDetailed uses VFS.SubDirs, which cannot see a
+-- directory created during this session, so a project downloaded a moment ago
+-- is missing from it. Any catalogue slug it did not account for is therefore
+-- read straight from its own manifest, which is raw io and disk truth. Only the
+-- team's own slugs are looked up: this is about the rows that are on screen, not
+-- a second walk of everything.
+widgetState.projectSnapshotLocal = function()
+	local ui = widgetState.projectLibraryUi
+	local mp = WG.MapProject
+	widgetState.projectLocalDirty = false
+	widgetState.projectAutosaveList = nil
+	local bySlug = {}
+	for _, entry in ipairs((mp and mp.listDetailed and mp.listDetailed()) or {}) do
+		bySlug[entry.slug] = entry
+	end
+	if mp and mp.describe then
+		for _, entry in ipairs((ui and ui.projects()) or {}) do
+			if not bySlug[entry.slug] then
+				bySlug[entry.slug] = mp.describe(entry.slug)
+			end
+		end
+	end
+	widgetState.projectLocalBySlug = bySlug
+	widgetState.projectTeamCache = (ui and ui.teamBySlug and ui.teamBySlug()) or {}
+end
+
+-- Which team projects are new since the browser last showed the library. This
+-- half IS held still for the whole of one viewing, so a project stays flagged
+-- while the list is filtered, sorted or folded.
+widgetState.projectSnapshotLibrary = function()
+	local ui = widgetState.projectLibraryUi
+	widgetState.projectSnapshotLocal()
+	local seen = widgetState.uiPrefs.librarySeen
+	local fresh = {}
+	if seen then
+		for _, entry in ipairs((ui and ui.projects()) or {}) do
+			if not seen[entry.slug] then
+				fresh[entry.slug] = true
+			end
+		end
+	end
+	widgetState.libraryNewSlugs = fresh
+end
+
+-- Everything on show has now been seen. Written on close rather than on
+-- draw, so a new project keeps its mark for as long as the browser is open.
+widgetState.projectCommitLibrarySeen = function()
+	local ui = widgetState.projectLibraryUi
+	local catalog = (ui and ui.projects()) or {}
+	if #catalog == 0 then
+		return
+	end
+	local seen = widgetState.uiPrefs.librarySeen or {}
+	local changed = widgetState.uiPrefs.librarySeen == nil
+	for _, entry in ipairs(catalog) do
+		if not seen[entry.slug] then
+			seen[entry.slug] = true
+			changed = true
+		end
+	end
+	widgetState.uiPrefs.librarySeen = seen
+	if changed then
+		widgetState.saveUiPrefs()
+	end
+end
+
+-- Stage icons mirror the tool rail: noise for design, the SURFACE tool's splat
+-- for texturing, UNITS for gameplay, decals for review.
+-- `name` is a folder's leaf, so the three stages read the same under either
+-- group and a folder nobody configured still gets the plain folder icon.
+-- Keyed by a folder's leaf, so the three stages look the same under either
+-- group and a folder nobody configured gets the plain folder icon.
+widgetState.projectStageIcons = {
+	["map prototypes"] = "mode_lights.png",
+	["texture pass"] = "mode_splat.png",
+	drafts = "mb_paint.png",
+	review = "mode_decals.png",
+	done = "env_sun.png",
+}
+
+-- Images whose mark sits in more transparent margin than the rest: the sun
+-- fills 64% of its square where the pen beside it fills 80%, so drawn in the
+-- same box it reads as the smaller icon. The box is what changes -- the artwork
+-- is shared with other panels and stays as it is.
+widgetState.projectStagePaddedIcons = { ["env_sun.png"] = true }
+
+-- Returns the image, and the class for the box to draw it in.
+widgetState.projectStageIcon = function(name)
+	local key = tostring(name):lower():gsub("^%s+", ""):gsub("%s+$", "")
+	local file = widgetState.projectStageIcons[key] or "folder.png"
+	return "/luaui/images/terraform_brush/" .. file,
+		widgetState.projectStagePaddedIcons[file] and " tf-proj-icon-padded" or ""
+end
+
+-- The browser body, shared by both dialogs so Save As and Open Project list the
+-- same projects in the same shape: a flat list while a filter is on (the folder
+-- path travels with each row), a folder tree otherwise. A folder's own projects
+-- come first in the chosen order, then its subfolders, and every intermediate
+-- folder gets a node even when it holds no project of its own, so a cloned
+-- repository's layout shows as it is on disk.
+-- opts: idRow / idFolder (element id prefixes), collapsed (path -> true), flat,
+-- extraFolders (paths to show even when empty), current (slug to tag OPEN),
+-- dest (folder path to paint as selected), moves (slug -> staged destination),
+-- order (the library's folders, in the order work moves through them).
+-- Returns the markup, the project entries in row order, and the folder paths in
+-- folder order; the caller wires both by index.
+widgetState.projectTreeRml = function(projects, opts)
+	local esc = widgetState.rmlEsc
+	local touched = widgetState.projectTouched
+	local sortMode = tostring(widgetState.projectOpenSort or "recent")
+	local desc = widgetState.projectOpenSortDesc ~= false
+	local collapsed = opts.collapsed or {}
+	local groups = opts.groups or {}
+	local stages = opts.stages or {}
+	local now = os.time()
+	local parts, rows, folders = {}, {}, {}
+	local function projectRow(p, ticks, showPath)
+		rows[#rows + 1] = p
+		local tags = {}
+		if opts.current and opts.current ~= "" and p.slug == opts.current then
+			tags[#tags + 1] = { text = widgetState.text("currentTag") }
+		end
+		if p.autosave and p.autosave_of and p.autosave_of ~= "" then
+			tags[#tags + 1] = { text = widgetState.text("autosaveOf", { name = p.autosave_of }) }
+		end
+		-- A staged team move rides on the row it applies to, rather than
+		-- redrawing the project under its future folder.
+		local moving = opts.moves and opts.moves(p.slug)
+		if moving then
+			tags[#tags + 1] = { text = "-> " .. moving, cls = "tf-proj-tag tf-proj-moving" }
+		end
+		parts[#parts + 1] = widgetState.projectRowRml(
+			opts.idRow .. #rows,
+			ticks,
+			p.name or p.slug,
+			(showPath and p.folder and p.folder ~= "") and (p.folder .. "/") or "",
+			tags,
+			string.format("%sx%s", tostring(p.size_x or "?"), tostring(p.size_z or "?")),
+			widgetState.relativeAge(touched(p), now),
+			opts.sync and opts.sync(p) or nil,
+			p.remote and "remote-only" or nil
+		)
+	end
+	if opts.flat then
+		for _, p in ipairs(projects) do
+			projectRow(p, nil, true)
+		end
+		return table.concat(parts), rows, folders
+	end
+	local byFolder, children, count, newest = { [""] = {} }, {}, {}, {}
+	local function parentOf(path)
+		return path:match("^(.*)/[^/]+$") or ""
+	end
+	local function ensureFolder(path)
+		if path == "" or rawget(byFolder, path) then
+			return
+		end
+		byFolder[path] = {}
+		local parent = parentOf(path)
+		ensureFolder(parent)
+		children[parent] = children[parent] or {}
+		children[parent][#children[parent] + 1] = path
+	end
+	for _, path in ipairs(opts.extraFolders or {}) do
+		ensureFolder(path)
+	end
+	for _, p in ipairs(projects) do
+		local f = p.folder or ""
+		ensureFolder(f)
+		byFolder[f][#byFolder[f] + 1] = p
+		local t = touched(p)
+		local anc = f
+		while anc ~= "" do
+			count[anc] = (count[anc] or 0) + 1
+			if t > (newest[anc] or "") then
+				newest[anc] = t
+			end
+			anc = parentOf(anc)
+		end
+	end
+	-- The library's folders are a pipeline, so they hold the order the
+	-- companion declares them in whatever the sort column says. A grouping row
+	-- takes the rank of its earliest child, and anything the library does not
+	-- name sorts after all of them the ordinary way.
+	local rank = {}
+	for index, path in ipairs(opts.order or {}) do
+		local walked = nil
+		for segment in path:gmatch("[^/]+") do
+			walked = walked and (walked .. "/" .. segment) or segment
+			if not rank[walked] then
+				rank[walked] = index
+			end
+		end
+	end
+	local function folderLess(a, b)
+		local ra, rb = rank[a], rank[b]
+		if ra and rb then
+			return ra < rb
+		elseif ra or rb then
+			return ra ~= nil
+		end
+		if sortMode == "recent" then
+			local na, nb = newest[a] or "", newest[b] or ""
+			if na ~= nb then
+				if desc then
+					return na > nb
+				end
+				return na < nb
+			end
+		elseif sortMode == "size" then
+			local ca, cb = count[a] or 0, count[b] or 0
+			if ca ~= cb then
+				if desc then
+					return ca > cb
+				end
+				return ca < cb
+			end
+		elseif desc then
+			return a:lower() > b:lower()
+		end
+		return a:lower() < b:lower()
+	end
+	-- The title is wrapped: this RmlUi build draws no bare text inside a flex
+	-- container, so a heading typed straight into the row came out blank.
+	local function sectionRow(title, note)
+		parts[#parts + 1] = '<div class="tf-proj-section"><div class="tf-proj-section-title">'
+			.. esc(title)
+			.. "</div>"
+			.. (note and ('<div class="tf-proj-section-note">' .. esc(note) .. "</div>") or "")
+			.. '<div class="tf-proj-section-rule"></div></div>'
+	end
+	-- Folders before loose projects at every level, the way a file browser
+	-- orders a directory. A grouping row over the team's stages is a heading,
+	-- not a folder: no glyph, no count, nothing to click, and the stages under
+	-- it sit at its own level. At the root, everything the library does not
+	-- name comes after a "This disk" heading of its own.
+	local diskHeaded, teamHeaded = false, false
+	local function render(path, ancestors)
+		local subs = children[path] or {}
+		table.sort(subs, folderLess)
+		local loose = byFolder[path] or {}
+		local total = #subs + #loose
+		local index = 0
+		local function diskHeading()
+			if opts.diskSection and path == "" and not diskHeaded then
+				diskHeaded = true
+				sectionRow(widgetState.text("sectionDisk"))
+			end
+		end
+		for _, sub in ipairs(subs) do
+			index = index + 1
+			local isLast = index == total
+			if groups[sub] then
+				sectionRow(sub:match("([^/]+)$") or sub, widgetState.text("sectionTeam"))
+				render(sub, ancestors)
+			else
+				if not rank[sub] then
+					diskHeading()
+				elseif stages[sub] and parentOf(sub) == "" and not teamHeaded then
+					-- A stage with no grouping row over it ("Other") gets the same
+					-- heading the grouped ones have, so every team folder sits
+					-- under one that says so.
+					teamHeaded = true
+					sectionRow(widgetState.text("teamHeader"), widgetState.text("sectionTeam"))
+				end
+				local open = not collapsed[sub]
+				folders[#folders + 1] = sub
+				local leaf = sub:match("([^/]+)$") or sub
+				local icon, iconClass = widgetState.projectStageIcon(leaf)
+				parts[#parts + 1] = string.format(
+					'<div id="%s%d" class="tf-proj-folder%s">%s'
+						.. '<div id="%s%d-g" class="tf-proj-folder-glyph">%s</div>'
+						.. '<img class="tf-proj-folder-icon%s" src="%s" />'
+						.. '<div class="tf-proj-folder-name">%s/</div>'
+						.. '<div class="tf-proj-folder-count">%d</div>'
+						.. '<div class="tf-proj-folder-fill"></div></div>',
+					esc(opts.idFolder),
+					#folders,
+					(opts.dest and opts.dest ~= "" and sub == opts.dest) and " selected" or "",
+					widgetState.projectTicks(ancestors, isLast),
+					esc(opts.idFolder),
+					#folders,
+					open and "-" or "+",
+					iconClass,
+					icon,
+					esc(leaf),
+					count[sub] or 0
+				)
+				if open then
+					render(sub, ancestors and (ancestors .. (isLast and "0" or "1")) or "")
+				end
+			end
+		end
+		if #loose > 0 then
+			diskHeading()
+		end
+		for _, p in ipairs(loose) do
+			index = index + 1
+			projectRow(p, widgetState.projectTicks(ancestors, index == total), false)
+		end
+	end
+	render("", nil)
+	return table.concat(parts), rows, folders
+end
+
+-- The folder half and the leaf half of what is in the NAME field. Save As has
+-- no separate "current directory": the field is the destination, so picking a
+-- folder rewrites its folder half and leaves the name the user typed alone.
+-- The destination folder, and the name being typed. A path typed into the box
+-- still splits, so pasting one works, but the folder it names is taken out and
+-- kept beside the field rather than left in it.
+widgetState.projectSaveSplitName = function()
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-name")
+	local raw = tostring((inp and inp:GetAttribute("value")) or "")
+	raw = raw:gsub("^%s+", ""):gsub("%s+$", "")
+	local typed, leaf = raw:match("^(.*)/([^/]*)$")
+	if typed then
+		return typed, leaf
+	end
+	return tostring(widgetState.projectSaveFolderStr or ""), raw
+end
+
+-- The whole slug a save aims at: the folder beside the field plus the name in
+-- it. Every caller that used to read the field is asking for this.
+widgetState.projectSaveFullName = function()
+	local folder, leaf = widgetState.projectSaveSplitName()
+	if folder == "" then
+		return leaf
+	end
+	if leaf == "" then
+		return folder
+	end
+	return folder .. "/" .. leaf
+end
+
+-- Takes a whole slug and puts each half where it belongs.
+widgetState.projectSaveSetName = function(name)
+	name = tostring(name or "")
+	local folder, leaf = name:match("^(.*)/([^/]*)$")
+	if not folder then
+		folder, leaf = "", name
+	end
+	widgetState.projectSaveFolderStr = folder
+	widgetState.projectNameStr = name
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-name")
+	if inp then
+		inp:SetAttribute("value", leaf)
+	end
+	widgetState.projectSaveUi.changed()
+	local d = widgetState.dmHandle
+	if d then
+		d.projectSaveHint = ""
+	end
+	widgetState.projectSyncTarget()
+end
+
+-- Clicking a folder in Save As saves into it: the folder half of the NAME field
+-- is replaced, the typed name is kept, and a folded node opens (a click on the
+-- disclosure glyph is what folds it again).
+widgetState.projectSavePickFolder = function(path)
+	local d = widgetState.dmHandle
+	if d and d.projectSavePending then
+		return
+	end
+	playSound("click")
+	local _, leaf = widgetState.projectSaveSplitName()
+	widgetState.projectSaveSetName((path ~= "" and (path .. "/") or "") .. leaf)
+	-- Picking a folder as the destination opens it; folding it again is the
+	-- disclosure glyph's job.
+	if widgetState.uiPrefs.projectCollapsed[path] then
+		widgetState.uiPrefs.projectCollapsed[path] = nil
+		widgetState.saveUiPrefs()
+	end
+	widgetState.projectSaveNeedsRebuild = true
+end
+
+-- "New folder" creates it under whatever folder the NAME field points at, then
+-- points the field into it. The folder is made on disk so the next session sees
+-- it, and remembered for this one because an empty folder holds no project and
+-- would otherwise vanish from the tree the moment it is drawn.
+widgetState.projectSaveCreateFolder = function()
+	local d = widgetState.dmHandle
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-newfolder")
+	local typed = tostring((inp and inp:GetAttribute("value")) or "")
+	typed = typed:gsub("^%s+", ""):gsub("%s+$", ""):gsub("^/+", ""):gsub("/+$", "")
+	if typed == "" then
+		return
+	end
+	local parent = widgetState.projectSaveSplitName()
+	local path = (parent ~= "" and (parent .. "/") or "") .. typed
+	local mp = WG.MapProject
+	local ok = mp and mp.validateSlug and mp.validateSlug(path)
+	if not ok then
+		if d then
+			d.projectSaveHint = widgetState.text("invalid_path")
+			d.projectSaveError = true
+		end
+		return
+	end
+	-- One level at a time: CreateDir does not make parents.
+	local walked = "MapProjects"
+	for segment in tostring(ok):gmatch("[^/]+") do
+		walked = walked .. "/" .. segment
+		Spring.CreateDir(walked)
+	end
+	playSound("save")
+	widgetState.projectSaveNewFolders[tostring(ok)] = true
+	if inp then
+		inp:SetAttribute("value", "")
+		-- Blur before the row is hidden: focus stranded on a display:none
+		-- element leaves SDL text input running for the rest of the session.
+		inp:Blur()
+	end
+	if d then
+		d.projectSaveNewFolder = false
+		d.projectSaveHint = ""
+		d.projectSaveError = false
+	end
+	local _, leaf = widgetState.projectSaveSplitName()
+	widgetState.projectSaveSetName(tostring(ok) .. "/" .. leaf)
+	widgetState.projectSaveRebuild()
+end
+
+-- Rename, from the row under the Projects list. A project on this disk is
+-- renamed at once (a move within its folder; the manifest's name follows).
+-- One the team library holds has the rename staged into the moves plan, so
+-- CONFIRM MOVES renames the team copy too; until then the old name stays a
+-- team-only row beside the new local one, which is what is true.
+widgetState.projectRenameApply = function()
+	local d = widgetState.dmHandle
+	local slug = widgetState.projectOpenSelectedSlug
+	if not (d and slug) or widgetState.projectOpenIsFolder then
+		return
+	end
+	local doc = widgetState.document
+	local inp = doc and doc:GetElementById("input-project-rename")
+	local typed = tostring((inp and inp:GetAttribute("value")) or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	local oldLeaf = slug:match("([^/]+)$") or slug
+	local folder = slug:match("^(.*)/[^/]+$") or ""
+	local function close()
+		if inp then
+			inp:Blur()
+		end
+		d.projectRenameOpen = false
+	end
+	if typed == "" or typed == oldLeaf then
+		close()
+		return
+	end
+	local mp = WG.MapProject
+	local target = typed:find("[/\\]") == nil
+		and mp
+		and mp.validateSlug
+		and mp.validateSlug((folder ~= "" and (folder .. "/") or "") .. typed)
+	if not target then
+		d.projectOpenHint = widgetState.text("nameHint")
+		playSound("reset")
+		return
+	end
+	local mine = widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua")
+	local team = widgetState.projectTeamBySlug()[slug] ~= nil
+	if mine then
+		if mp.exists and mp.exists(target) then
+			d.projectOpenHint = widgetState.text("renameExists", { name = typed })
+			playSound("reset")
+			return
+		end
+		if mp.isBusy and mp.isBusy() then
+			d.projectOpenHint = widgetState.text("busy")
+			return
+		end
+		if not (mp.rename and mp.rename(slug, typed)) then
+			d.projectOpenHint = widgetState.text("renameFailed", { name = oldLeaf })
+			playSound("reset")
+			return
+		end
+		widgetState.projectLocalDirty = true
+	end
+	local staged = false
+	local ui = widgetState.projectLibraryUi
+	if team and ui and d.libraryWritable and widgetState.projectTeamDestinations()[folder] then
+		staged = ui.queueMove(slug, folder, typed) == true
+	end
+	if not mine and not staged then
+		d.projectOpenHint = widgetState.text("renameTeamUnavailable")
+		playSound("reset")
+		return
+	end
+	close()
+	playSound("save")
+	widgetState.projectOpenSelectedSlug = mine and target or slug
+	d.projectOpenHint =
+		widgetState.text(staged and (mine and "renamedTeamStaged" or "renameTeamOnly") or "renamed", { name = typed })
+	widgetState.projectOpenNeedsRebuild = true
+	widgetState.projectSaveNeedsRebuild = true
+	if ui then
+		ui.sync()
+	end
+end
+
+-- Destination picker. The pipeline folders are a short, fixed list that comes
+-- from the helper, so they are drawn as one chip each: every destination is
+-- visible and one click away, where the two-arrow stepper showed one at a time
+-- and made the least important control in the tray the loudest.
+widgetState.projectStagesRebuild = function()
+	local doc = widgetState.document
+	local ui = widgetState.projectLibraryUi
+	if not (doc and ui) then
+		return
+	end
+	local stages = ui.folders() or {}
+	-- The library's folders are drawn where they belong -- in the team view of
+	-- either browser -- rather than copied onto this disk as empty directories.
+	widgetState.projectOpenNeedsRebuild = true
+	widgetState.projectSaveNeedsRebuild = true
+	local active = widgetState.dmHandle and widgetState.dmHandle.libraryStage or ""
+	local esc = widgetState.rmlEsc
+	for _, host in ipairs({ "tf-popen-stages" }) do
+		local el = doc:GetElementById(host)
+		if el then
+			local parts = {}
+			for i, name in ipairs(stages) do
+				-- "Map Prototypes/Drafts" is a place, not a path: the group is
+				-- context for the stage beside it, so it is drawn quieter and the
+				-- stage keeps the chip's voice.
+				local group, leaf = name:match("^(.*)/([^/]+)$")
+				local icon, iconClass = widgetState.projectStageIcon(leaf or name)
+				parts[#parts + 1] = string.format(
+					'<div id="%s-%d" class="tf-project-stage-chip%s">'
+						.. '<img class="tf-project-stage-icon%s" src="%s" />'
+						.. '%s<div class="tf-project-stage-name">%s</div></div>',
+					esc(host),
+					i,
+					name == active and " active" or "",
+					iconClass,
+					icon,
+					group and ('<div class="tf-project-stage-group">' .. esc(group) .. "/</div>") or "",
+					esc(leaf or name)
+				)
+			end
+			if #stages == 0 then
+				parts[1] = '<div class="tf-project-stage-none">' .. esc(widgetState.text("noStages")) .. "</div>"
+			end
+			el.inner_rml = table.concat(parts)
+			for i, name in ipairs(stages) do
+				local chip = doc:GetElementById(host .. "-" .. i)
+				if chip then
+					chip:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						if widgetState.dmHandle and widgetState.dmHandle.projectSavePending then
+							return
+						end
+						playSound("click")
+						ui.setStage(name)
+						widgetState.projectStagesNeedsRebuild = true
+					end, false)
+				end
+			end
+		end
+	end
+end
+
+-- ===== Helper runner =====
+-- LuaUI cannot start a process. The engine's whole unsynced API offers exactly
+-- two launch calls, Spring.Restart and Spring.Start, and both start the spring
+-- executable; there is no shell, no os.execute and no URL opener. That is the
+-- same wall that keeps Git credentials and network access outside the game, so
+-- it is a property worth having rather than a gap to route around.
+--
+-- What the editor can do is take the typing out of it: unpack the helper next
+-- to the data directory and write a file the user double-clicks once. The
+-- runner resolves its own paths from %~dp0, so nothing absolute is baked in and
+-- it keeps working if the install moves.
+widgetState.projectHelperFiles = {
+	{ vfs = "tools/map_library/map_library.py", name = "map_library.py" },
+	{ vfs = "tools/map_library/start_campaign_maps.ps1", name = "start_campaign_maps.ps1" },
+}
+
+-- Re-extract the helper when the copy on disk no longer matches the one in
+-- the game files. The runner is double-clicked, not rebuilt, so without
+-- this it would go on running whatever snapshot was taken the day the
+-- button was first pressed -- which is exactly how a fixed helper went on
+-- behaving like the old one. Only ever touches a folder that already
+-- exists: nothing is written until the runner has been asked for once.
+widgetState.projectSyncHelperFiles = function()
+	if not widgetState.teamSyncEnabled then
+		return
+	end
+	local dir = "Terraform Brush/map library helper"
+	if not VFS.FileExists(dir .. "/map_library.py", VFS.RAW) then
+		return
+	end
+	local stale = false
+	for _, file in ipairs(widgetState.projectHelperFiles) do
+		local packaged = VFS.FileExists(file.vfs) and VFS.LoadFile(file.vfs)
+		local onDisk = VFS.FileExists(dir .. "/" .. file.name, VFS.RAW)
+			and VFS.LoadFile(dir .. "/" .. file.name, VFS.RAW)
+		if packaged and packaged ~= onDisk then
+			local out = io.open(dir .. "/" .. file.name, "wb")
+			if out then
+				out:write(packaged)
+				out:close()
+				stale = true
+			end
+		end
+	end
+	if stale then
+		Spring.Echo("[Terraform Brush] map library helper updated in " .. dir .. "; restart the helper to pick it up")
+		local d = widgetState.dmHandle
+		if d then
+			d.projectHelperHint = widgetState.text("helperStale")
+			widgetState.projectHelperHintSticky = true
+		end
+	end
+end
+
+widgetState.projectWriteRunner = function()
+	local d = widgetState.dmHandle
+	local dir = "Terraform Brush/map library helper"
+	local function fail(key)
+		if d then
+			d.projectHelperHint = widgetState.text(key)
+			widgetState.projectHelperHintSticky = false
+		end
+		playSound("reset")
+		return false
+	end
+	-- Read from the VFS, not from disk: the helper ships inside the game
+	-- archive on a normal install and is only loose in a development checkout.
+	local payload = {}
+	for _, file in ipairs(widgetState.projectHelperFiles) do
+		local raw = VFS.FileExists(file.vfs) and VFS.LoadFile(file.vfs)
+		if not raw or raw == "" then
+			return fail("helperMissing")
+		end
+		payload[file.name] = raw
+	end
+	Spring.CreateDir("Terraform Brush")
+	Spring.CreateDir(dir)
+	for name, raw in pairs(payload) do
+		local out = io.open(dir .. "/" .. name, "wb")
+		if not out then
+			return fail("helperWriteFailed")
+		end
+		out:write(raw)
+		out:close()
+	end
+	local windows = (Platform and Platform.osFamily) ~= "Linux" and (Platform and Platform.osFamily) ~= "MacOSX"
+	local runner = windows and "Terraform Brush/Start map library helper.bat"
+		or "Terraform Brush/start-map-library-helper.sh"
+	local body
+	if windows then
+		body = table.concat({
+			"@echo off",
+			"REM Starts the Terraform Brush map library helper (the Git companion).",
+			"REM Written by the editor's project browser. It runs nothing on its own;",
+			"REM delete it whenever you like and press the button again to get it back.",
+			"REM",
+			"REM -AllowPush lets confirmed in-game uploads and moves reach the team",
+			"REM repository. Remove it for a read-only helper.",
+			"REM",
+			'REM %~dp0 is this file\'s folder, so ".." is the BAR data directory.',
+			"setlocal",
+			'set "HELPER=%~dp0map library helper"',
+			'set "DATADIR=%~dp0.."',
+			'if not exist "%HELPER%\\start_campaign_maps.ps1" (',
+			"  echo Helper files are missing. Press the helper button in the project browser again.",
+			"  pause",
+			"  exit /b 1",
+			")",
+			'powershell -NoProfile -ExecutionPolicy Bypass -File "%HELPER%\\start_campaign_maps.ps1"'
+				.. ' -DataDir "%DATADIR%" -AllowPush %*',
+			"echo.",
+			"echo The helper has stopped. Run this file again to restart it.",
+			"pause",
+			"",
+		}, "\r\n")
+	else
+		-- No shell launcher ships for these platforms, so call the helper the
+		-- way the PowerShell one does: identity from the user's own Git config.
+		body = table.concat({
+			"#!/bin/sh",
+			"# Starts the Terraform Brush map library helper (the Git companion).",
+			"# Written by the editor's project browser; delete it whenever you like.",
+			"# Drop --allow-push for a read-only helper.",
+			"set -e",
+			'HERE="$(cd "$(dirname "$0")" && pwd)"',
+			'exec python3 -u "$HERE/map library helper/map_library.py" \\',
+			'  --data-dir "$HERE/.." \\',
+			"  --remote https://github.com/beyond-all-reason/CampaignMaps.git \\",
+			"  --branch main \\",
+			'  --author "$(git config user.name)" \\',
+			'  --email "$(git config user.email)" \\',
+			"  --shader-remote https://github.com/beyond-all-reason/tileset-shader.git \\",
+			"  --allow-push",
+			"",
+		}, "\n")
+	end
+	local out = io.open(runner, "wb")
+	if not out then
+		return fail("helperWriteFailed")
+	end
+	out:write(body)
+	out:close()
+	-- A replay path is the one absolute path this API hands out, so it is the
+	-- only way to tell the user where their data directory actually is.
+	local absolute = nil
+	-- The VFS names the file now that it is on disk. The replay recording
+	-- path below is the fallback; a session without a recording has none,
+	-- which used to leave the card with only the relative path.
+	pcall(function()
+		if VFS.GetFileAbsolutePath then
+			local found = VFS.GetFileAbsolutePath(runner, VFS.RAW)
+			if type(found) == "string" and found ~= "" then
+				absolute = found
+			end
+		end
+	end)
+	pcall(function()
+		if absolute then
+			return
+		end
+		local demo = Spring.GetReplayRecordingFilePath and Spring.GetReplayRecordingFilePath()
+		local root = demo and tostring(demo):match("^(.*)[/\\][Dd]emos[/\\]")
+		if root and root ~= "" then
+			absolute = root .. "/" .. runner
+		end
+	end)
+	if absolute then
+		Spring.SetClipboard(absolute)
+	end
+	playSound("save")
+	if d then
+		widgetState.projectHelperHintSticky = false
+		d.projectHelperHint = widgetState.text(absolute and "helperReadyPath" or "helperReady", {
+			path = absolute or runner,
+		})
+	end
+	Spring.Echo("[Terraform Brush] map library runner written to " .. (absolute or runner))
+	return true, absolute or runner
+end
+
+-- ===== Drag and drop: move a project into a folder =====
+-- RmlUi's own drag events are not used anywhere in this UI. Window dragging
+-- polls the mouse instead (see makeWindowDraggable), so this does too: mousedown
+-- arms, the pointer has to travel a few pixels before it counts as a drag (a
+-- click still selects), Update paints the folder under the cursor, and the drag
+-- ends when the button comes back up -- polled rather than taken from a mouseup
+-- event, so releasing the button off the panel cannot strand a drag.
+
+widgetState.projectDragArm = function(slug, save)
+	if not slug then
+		return
+	end
+	-- Two kinds of drag share this code. In the local views a drop moves the
+	-- folder on this disk straight away. In the team view it stages a move in
+	-- the repository instead, so it needs a helper that is allowed to push;
+	-- without one the row simply does not drag, rather than dragging into a
+	-- refusal.
+	-- A project on this disk moves on this disk (and the team copy is offered
+	-- the same move afterwards); one that is only in the team library can only
+	-- be staged for a team move, which Save As does not do.
+	local mine = widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua")
+	local remote = not mine
+	local d = widgetState.dmHandle
+	-- A team-only row can only be planned, and a plan needs no companion at
+	-- hand: only CONFIRM MOVES waits for one that can push. A row on this disk
+	-- may move at once, which a running save or transfer must not interrupt.
+	if remote and not (d and d.libraryWritable) then
+		return
+	end
+	if not remote and WG.MapProject and WG.MapProject.isBusy and WG.MapProject.isBusy() then
+		return
+	end
+	local mx, my = Spring.GetMouseState()
+	widgetState.projectDragClickEaten = nil
+	widgetState.projectDrag = { slug = slug, save = save, remote = remote, x = mx, y = my, active = false }
+end
+
+-- `side` is the dialog the drag belongs to (the drop entries' `save` flag).
+-- Only that dialog's elements are touched: the other one's registrations
+-- outlive it in the list, and its rows are gone the moment it is rebuilt.
+widgetState.projectDragPaint = function(path, side)
+	for _, t in ipairs(widgetState.projectDropEls or {}) do
+		if side == nil or t.save == side then
+			t.el:SetClass("drop-target", path ~= nil and t.path == path and t.row == true)
+		end
+	end
+end
+
+-- The team library's folders are fixed by the helper, and only the ones it
+-- lists are destinations: a row above them ("Map Prototypes") is the shared
+-- prefix of its children, not a place a project can be. So a team drag can
+-- only land on one of these, and the root of the tree is not one either.
+widgetState.projectTeamDestinations = function()
+	local set = {}
+	local ui = widgetState.projectLibraryUi
+	for _, path in ipairs((ui and ui.folders()) or {}) do
+		set[path] = true
+	end
+	return set
+end
+
+-- The drag ghost element, looked up once per document.
+widgetState.projectDragGhost = function()
+	local doc = widgetState.document
+	if not doc then
+		return nil
+	end
+	local cache = widgetState.projectDragGhostCache
+	if cache and cache.doc == doc then
+		return cache.el
+	end
+	local el = doc:GetElementById("tf-project-dragghost")
+	widgetState.projectDragGhostCache = { doc = doc, el = el }
+	return el
+end
+
+widgetState.projectDragEnd = function(commit)
+	local drag = widgetState.projectDrag
+	widgetState.projectDrag = nil
+	local d = widgetState.dmHandle
+	if d then
+		d.projectDragLabel = ""
+	end
+	-- Both of these touch elements, and a list rebuilt while the button was
+	-- down has destroyed the ones this drag started from. Tidying up is not
+	-- allowed to be what stops the move from happening, so it is guarded and
+	-- kept ahead of the decision below.
+	-- The ghost first, on its own: the row below may already be gone (the
+	-- list rebuilds on release) and its SetClass would abort the block
+	-- before the ghost was reached, leaving it parked on screen.
+	pcall(function()
+		local ghost = widgetState.projectDragGhost()
+		if ghost then
+			ghost:SetClass("hidden", true)
+		end
+	end)
+	pcall(function()
+		widgetState.projectDragPaint(nil, drag and drag.save)
+		if drag and drag.el then
+			drag.el:SetClass("dragging", false)
+		end
+	end)
+	if not (commit and drag and drag.active) then
+		return
+	end
+	-- RmlUi turns the press and release into a click once this returns, and the
+	-- row it lands on is the one the project just left. A drag is not a pick.
+	widgetState.projectDragClickEaten = true
+	if not drag.target then
+		return
+	end
+	-- One rule: a project the team library holds, dropped on one of the
+	-- team's stages, is a staged team move (its local copy follows when
+	-- CONFIRM MOVES runs); anything else is a local move, done now. Nothing
+	-- is pushed until CONFIRM MOVES, and dropping a project back into the
+	-- folder it is already in cancels its part of the plan.
+	local inTeam = widgetState.projectTeamBySlug()[drag.slug] ~= nil
+	local ontoStage = widgetState.projectTeamDestinations()[drag.target] == true
+	if drag.remote or (inTeam and ontoStage) then
+		local ui = widgetState.projectLibraryUi
+		if ui and ui.queueMove and ui.queueMove(drag.slug, drag.target) then
+			playSound("click")
+			widgetState.projectOpenNeedsRebuild = true
+			widgetState.projectSaveNeedsRebuild = true
+			ui.sync()
+		end
+		return
+	end
+	local leaf = drag.slug:match("([^/]+)$") or drag.slug
+	local target = (drag.target ~= "" and (drag.target .. "/") or "") .. leaf
+	if target == drag.slug then
+		return
+	end
+	if WG.MapProject and WG.MapProject.move and WG.MapProject.move(drag.slug, target) then
+		playSound("save")
+		widgetState.projectLocalDirty = true
+		-- The selection and the Save As name follow the project to its new path.
+		if widgetState.projectOpenSelectedSlug == drag.slug then
+			widgetState.projectOpenSelectedSlug = target
+		end
+		if widgetState.projectNameStr == drag.slug then
+			widgetState.projectSaveSetName(target)
+		end
+		widgetState.projectOpenNeedsRebuild = true
+		widgetState.projectSaveNeedsRebuild = true
+	else
+		playSound("reset")
+		if d then
+			d.projectOpenHint = widgetState.text("moveFailed", { name = leaf })
+		end
+	end
+end
+
+-- A local move only rearranges this disk. When the same project is in the
+-- team library at the path it just left, the same move can be made there --
+-- offered rather than done, because that request is the only one that removes
+-- anything from the remote. It is offered only when the helper could carry it
+-- out: connected, allowed to push, and with both folders in the pipeline.
+widgetState.projectOfferRemoteMove = function(oldSlug, newSlug)
+	local d = widgetState.dmHandle
+	local ui = widgetState.projectLibraryUi
+	if not (d and ui and d.libraryOnline and d.libraryWritable) then
+		return
+	end
+	local stage = newSlug:match("^(.*)/[^/]+$") or ""
+	local isStage = false
+	for _, path in ipairs(ui.folders() or {}) do
+		if path == stage then
+			isStage = true
+		end
+	end
+	if not isStage then
+		return
+	end
+	local published = false
+	for _, entry in ipairs(ui.projects() or {}) do
+		if entry.slug == oldSlug then
+			published = true
+		end
+	end
+	if not published then
+		return
+	end
+	widgetState.projectPendingMove = { source = oldSlug, stage = stage }
+	d.libraryMoveOpen = true
+	d.libraryMoveQuestion = widgetState.text("moveQuestion", {
+		name = oldSlug:match("([^/]+)$") or oldSlug,
+		stage = stage,
+	})
+end
+
+widgetState.projectDragUpdate = function()
+	local drag = widgetState.projectDrag
+	if not drag then
+		return
+	end
+	local mx, my, lmb = Spring.GetMouseState()
+	-- The button is not what ends this drag. RmlUi consumes the press a row is
+	-- dragged from, so Spring's own button state can stay false for the whole
+	-- gesture -- reading it here ended every drag on its first frame, which is
+	-- why nothing could be dragged at all. The release arrives as the document's
+	-- mouseup instead, which is where makeWindowDraggable (the only other polled
+	-- drag in this widget, and one that works) has always taken it. What is left
+	-- here is the net for the other case: a press the engine did see, released
+	-- somewhere the document never hears about.
+	if lmb then
+		drag.sawButtonDown = true
+	elseif drag.sawButtonDown then
+		widgetState.projectDragEnd(true)
+		return
+	end
+	if not drag.active then
+		if math.abs(mx - drag.x) + math.abs(my - drag.y) < 6 then
+			return
+		end
+		drag.active = true
+	end
+	local vsx, vsy = Spring.GetViewGeometry()
+	-- Spring measures y from the bottom, RmlUi from the top.
+	local py = (vsy or 0) - my
+	-- The row rides along under the pointer: its name, and its sync dot when
+	-- the library is configured. Built once per drag, moved every poll.
+	local ghost = widgetState.projectDragGhost()
+	if ghost and vsx and vsx > 0 and vsy and vsy > 0 then
+		if not drag.ghostSet then
+			drag.ghostSet = true
+			local escG = widgetState.rmlEsc
+			local leafG = drag.slug:match("([^/]+)$") or drag.slug
+			local dotRml = ""
+			local dm = widgetState.dmHandle
+			if dm and dm.libraryConfigured and widgetState.projectSyncCell then
+				local cell = widgetState.projectSyncCell({ slug = drag.slug })
+				dotRml = '<div class="tf-proj-dot ' .. escG(cell.dot or cell.state) .. '"></div>'
+			end
+			ghost.inner_rml = dotRml .. '<div class="tf-project-dragghost-text">' .. escG(leafG) .. "</div>"
+		end
+		local leftPx = math.max(0, mx + 14)
+		local topPx = math.max(0, py + 12)
+		ghost:SetAttribute("style", string.format("left: %.2fvw; top: %.2fvh;", leftPx / vsx * 100, topPx / vsy * 100))
+		ghost:SetClass("hidden", false)
+	end
+	local hit = nil
+	-- A team drag has a short list of places it may land (see
+	-- projectTeamDestinations); a local one may land anywhere in the tree,
+	-- including its root.
+	for _, t in ipairs(widgetState.projectDropEls or {}) do
+		local el = t.el
+		if
+			t.save == drag.save
+			and (not drag.remote or t.dest)
+			and mx >= el.absolute_left
+			and mx <= el.absolute_left + el.offset_width
+			and py >= el.absolute_top
+			and py <= el.absolute_top + el.offset_height
+		then
+			-- Later entries win: the folder rows are registered after the list
+			-- they sit in, which is the top-level target.
+			hit = t
+		end
+	end
+	drag.target = hit and hit.path or nil
+	widgetState.projectDragPaint(hit and hit.row and hit.path or nil, drag.save)
+	local d = widgetState.dmHandle
+	if d then
+		local leaf = drag.slug:match("([^/]+)$") or drag.slug
+		if not hit then
+			d.projectDragLabel = widgetState.text("dragHolding", { name = leaf })
+		elseif hit.path == (drag.slug:match("^(.*)/[^/]+$") or "") then
+			d.projectDragLabel = widgetState.text("dragSameFolder", { name = leaf })
+		else
+			d.projectDragLabel = widgetState.text("dragMove", {
+				name = leaf,
+				folder = hit.path ~= "" and hit.path or widgetState.text("dragTopLevel"),
+			})
+		end
+	end
+end
+
+-- Selecting a folder in Open Project. A folder is a selection here as well as
+-- a disclosure, because DELETE acts on whatever is picked and a folder full of
+-- projects is a thing people want gone in one go. The glyph still folds it.
+widgetState.projectSelectFolder = function(path)
+	local d = widgetState.dmHandle
+	if widgetState.projectLibraryUi then
+		widgetState.projectLibraryUi.disarm()
+	end
+	widgetState.projectOpenSelectedSlug = path
+	widgetState.projectOpenIsFolder = true
+	widgetState.projectDeleteConfirmExpiry = 0
+	local count = 0
+	local list = widgetState.projectUnionList("all")
+	for _, p in ipairs(list) do
+		if tostring(p.slug):sub(1, #path + 1) == (path .. "/") then
+			count = count + 1
+		end
+	end
+	if d then
+		d.projectOpenSelected = path
+		d.projectOpenIsFolder = true
+		d.projectDeleteConfirming = false
+		d.projectOpenHint = ""
+		d.projectRenameOpen = false
+		d.projectInfoFolder = true
+		d.projectInfoName = path:match("([^/]+)$") or path
+		local parent = path:match("^(.*)/[^/]+$")
+		d.projectInfoPath = parent and (parent .. "/") or ""
+		d.projectInfoCount = widgetState.text("folderCount", { count = count })
+	end
+	for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
+		r.el:SetClass("selected", false)
+	end
+	for _, f in ipairs(widgetState.projectOpenFolderEls or {}) do
+		f.el:SetClass("selected", f.path == path)
+	end
+	widgetState.projectShowDetails(nil)
+end
+
+-- Selecting a row in Open Project: paints the selection, disarms whatever the
+-- previous selection had armed, and refreshes the details pane.
+widgetState.projectSelectRow = function(rec)
+	if not rec then
+		return
+	end
+	if widgetState.projectLibraryUi then
+		widgetState.projectLibraryUi.disarm()
+	end
+	widgetState.projectOpenSelectedSlug = rec.slug
+	widgetState.projectOpenIsFolder = false
+	-- Picking a different project must not inherit the armed DELETE.
+	widgetState.projectDeleteConfirmExpiry = 0
+	widgetState.projectOpenArmed = nil
+	local dm = widgetState.dmHandle
+	if dm then
+		dm.projectOpenSelected = rec.label
+		dm.projectOpenIsFolder = false
+		dm.projectInfoFolder = false
+		dm.projectDeleteConfirming = false
+		dm.projectOpenConfirming = false
+		dm.projectRenameOpen = false
+		dm.projectOpenHint = ""
+	end
+	for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
+		r.el:SetClass("selected", r.slug == rec.slug)
+	end
+	for _, f in ipairs(widgetState.projectOpenFolderEls or {}) do
+		f.el:SetClass("selected", false)
+	end
+	widgetState.projectShowDetails(rec.p)
+end
+
+-- Up/Down walk the list. Folder rows are skipped: only projects can be opened,
+-- so only projects are steps.
+widgetState.projectStepSelection = function(dir)
+	local rows = widgetState.projectOpenRowEls or {}
+	if #rows == 0 then
+		return
+	end
+	local idx = 0
+	for i, r in ipairs(rows) do
+		if r.slug == widgetState.projectOpenSelectedSlug then
+			idx = i
+			break
+		end
+	end
+	idx = math.max(1, math.min(#rows, idx + dir))
+	local rec = rows[idx]
+	if not rec then
+		return
+	end
+	widgetState.projectSelectRow(rec)
+	-- Keeps the keyboard cursor on screen; not every RmlUi build exposes it.
+	pcall(function()
+		rec.el:ScrollIntoView()
+	end)
+end
+
+-- Opens the selected project (LOAD button, double click and Enter all land
+-- here). Nothing to guard beyond the selection: the button is
+-- pointer-events:none while nothing is picked.
+-- `fromTeam` is the team view asking for the same open. Opening is a local act
+-- either way -- it loads the copy on this disk -- but it is reachable from both
+-- tabs, so the team view no longer has to pretend to be the Local tab to get
+-- past this guard.
+widgetState.projectOpenCommit = function(force)
+	local slug = widgetState.projectOpenSelectedSlug
+	if not slug or widgetState.projectOpenIsFolder then
+		return
+	end
+	local d = widgetState.dmHandle
+	local mp = WG.MapProject
+	if not (mp and mp.open) then
+		if d then
+			d.projectOpenHint = widgetState.text("openUnavailable")
+		end
+		return
+	end
+	if mp.isBusy and mp.isBusy() then
+		if d then
+			d.projectOpenHint = widgetState.text("busy")
+		end
+		return
+	end
+	-- Not on this disk: fetch it first. Update takes it from there once the
+	-- download has landed (projectOpenChainReady), with force set, because
+	-- asking for the download was the confirmation.
+	if not widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua") then
+		if widgetState.projectOpenAfterDownload == slug then
+			return
+		end
+		local ui = widgetState.projectLibraryUi
+		if not (ui and ui.download) or not (d and d.libraryOnline) then
+			if d then
+				d.projectOpenHint = widgetState.text("offline")
+			end
+			return
+		end
+		playSound("click")
+		widgetState.projectOpenAfterDownload = slug
+		if d then
+			d.projectOpenHint = widgetState.text("downloadingThenOpen", { name = slug:match("([^/]+)$") or slug })
+		end
+		ui.download(slug)
+		return
+	end
+	-- The restart drops unsaved work, so it asks once -- unless nothing has
+	-- changed since the last save, when there is nothing to lose.
+	local dirty = not (mp.isDirty and not mp.isDirty())
+	if not force and dirty and widgetState.projectOpenArmed ~= slug then
+		widgetState.projectOpenArmed = slug
+		if d then
+			d.projectOpenConfirming = true
+			d.projectOpenHint = widgetState.text("openQuestion", { name = slug:match("([^/]+)$") or slug })
+		end
+		playSound("toggleOn")
+		return
+	end
+	widgetState.projectOpenArmed = nil
+	if d then
+		d.projectOpenConfirming = false
+	end
+	playSound("apply")
+	if not mp.open(slug) then
+		if d then
+			d.projectOpenHint = widgetState.text("openFailed", { name = slug })
+		end
+	end
+end
+
+-- Enter in the NAME field: same commit path as the SAVE button, including its
+-- overwrite and dropped-units confirms.
+widgetState.projectSaveFromField = function(_el)
+	widgetState.projectNameStr = widgetState.projectSaveFullName()
+	if widgetState.projectSaveUi.save(widgetState.projectNameStr) then
+		playSound("save")
+	end
+end
+
+-- Wires a dialog text field that commits on Enter (the NAME field saves, the
+-- Open search jumps to the first match).
+widgetState.wireProjectEnter = function(el, commit)
+	if not el then
+		return
+	end
+	widgetState.wireTextInput(el)
+	el:AddEventListener("keydown", function(event)
+		if widgetState.isReturnEvent(event) then
+			commit(el)
+		end
+	end, false)
+end
+
+-- Clicking a row in Save As reuses its name (pick-to-overwrite); SAVE still
+-- commits, and still asks its overwrite/units questions.
+widgetState.projectSavePick = function(slug, quiet)
+	local d = widgetState.dmHandle
+	if d and d.projectSavePending then
+		return
+	end
+	if not quiet then
+		playSound("click")
+	end
+	widgetState.projectSaveSetName(slug)
+	for _, r in ipairs(widgetState.projectSaveRowEls or {}) do
+		r.el:SetClass("selected", r.slug == slug)
+	end
+end
+
+-- Rebuilds the Save As browser (filter + sort + rows). Deferred through
+-- projectSaveNeedsRebuild whenever the caller is inside a row's own event.
+widgetState.projectSaveRebuild = function()
+	local doc = widgetState.document
+	local listEl = doc and doc:GetElementById("tf-project-save-list")
+	if not (doc and listEl) then
+		return
+	end
+	local esc = widgetState.rmlEsc
+	local d = widgetState.dmHandle
+	local mp = WG.MapProject
+	widgetState.projectSaveRowEls = {}
+	listEl.inner_rml = ""
+	if not (mp and mp.listDetailed) then
+		-- rml-dom-escape: existing imperative tree; no model-bound row template.
+		listEl.inner_rml = '<div class="tf-hm-empty text-medium">' .. esc(widgetState.text("unavailable")) .. "</div>"
+		if d then
+			d.projectSaveCount = ""
+		end
+		return
+	end
+	-- One tree for both libraries: a save can aim at a folder on this disk or
+	-- at one of the team's stages, and the team's projects are listed so a
+	-- name already taken there is seen before it is typed over.
+	local ui = widgetState.projectLibraryUi
+	local all, bySlug = widgetState.projectUnionList("all")
+	widgetState.projectSaveBySlug = bySlug
+	local filter = tostring(widgetState.projectSaveFilter or ""):lower()
+	local projects = {}
+	for _, p in ipairs(all) do
+		if filter == "" then
+			projects[#projects + 1] = p
+		else
+			local hay = string.format("%s %s %sx%s", p.name or "", p.slug or "", p.size_x or "", p.size_z or "")
+			if hay:lower():find(filter, 1, true) then
+				projects[#projects + 1] = p
+			end
+		end
+	end
+	if d then
+		d.projectSaveCount = widgetState.projectCountText(#projects, #all)
+	end
+	local stages = (ui and ui.folders()) or {}
+	if #projects == 0 then
+		-- rml-dom-escape: existing imperative tree; no model-bound row template.
+		listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+			.. esc(widgetState.text(#all == 0 and "localEmpty" or "noMatches"))
+			.. "</div>"
+		-- The team's folders draw even with nothing in them: they are where a
+		-- save is about to go.
+		if not (#stages > 0 and filter == "") then
+			return
+		end
+	end
+	table.sort(projects, widgetState.projectLess)
+	local extra = {}
+	for _, path in ipairs(stages) do
+		extra[#extra + 1] = path
+	end
+	local fresh = {}
+	for path in pairs(widgetState.projectSaveNewFolders or {}) do
+		fresh[#fresh + 1] = path
+	end
+	table.sort(fresh)
+	for _, path in ipairs(fresh) do
+		extra[#extra + 1] = path
+	end
+	local dest = widgetState.projectSaveSplitName()
+	local saveStageSet = widgetState.projectTeamDestinations()
+	local markup, rows, folders = widgetState.projectTreeRml(projects, {
+		idRow = "tf-psave-r",
+		idFolder = "tf-psave-f",
+		collapsed = widgetState.uiPrefs.projectCollapsed,
+		flat = filter ~= "",
+		extraFolders = extra,
+		current = mp.current and mp.current() or nil,
+		sync = (d and d.libraryConfigured) and widgetState.projectSyncCell or nil,
+		groups = widgetState.projectStageGroups(stages),
+		stages = widgetState.projectTeamDestinations(),
+		diskSection = #stages > 0,
+		dest = dest,
+		order = stages,
+		moves = ui and ui.pendingMove,
+	})
+	listEl.inner_rml = markup
+	for i = #widgetState.projectDropEls, 1, -1 do
+		if widgetState.projectDropEls[i].save == true then
+			table.remove(widgetState.projectDropEls, i)
+		end
+	end
+	widgetState.projectDropEls[#widgetState.projectDropEls + 1] = { path = "", el = listEl, row = false, save = true }
+	local selected = tostring(widgetState.projectNameStr or "")
+	for i, p in ipairs(rows) do
+		local row = doc:GetElementById("tf-psave-r" .. i)
+		if row then
+			-- Nested projects hand their full path to the NAME field: that is
+			-- the string the save writes to.
+			local slug = p.slug
+			widgetState.projectSaveRowEls[#widgetState.projectSaveRowEls + 1] = { slug = slug, el = row }
+			row:SetClass("selected", slug == selected)
+			row:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				if widgetState.projectDragClickEaten then
+					widgetState.projectDragClickEaten = nil
+					return
+				end
+				widgetState.projectSavePick(slug)
+			end, false)
+			row:AddEventListener("mousedown", function(ev)
+				local mp = ev.parameters
+				if mp and mp.button and mp.button ~= 0 then
+					return
+				end
+				widgetState.projectDragArm(slug, true)
+				if widgetState.projectDrag then
+					widgetState.projectDrag.el = row
+					row:SetClass("dragging", true)
+				end
+			end, false)
+			-- Double click saves straight over that project, the way a desktop
+			-- Save As does. The overwrite confirm still stands in the way.
+			row:AddEventListener("dblclick", function(ev)
+				ev:StopPropagation()
+				local dm = widgetState.dmHandle
+				if dm and dm.projectSavePending then
+					return
+				end
+				widgetState.projectSavePick(slug, true)
+				if widgetState.projectSaveUi.save(slug) then
+					playSound("save")
+				end
+			end, false)
+		end
+	end
+	for i, path in ipairs(folders) do
+		local fEl = doc:GetElementById("tf-psave-f" .. i)
+		local gEl = doc:GetElementById("tf-psave-f" .. i .. "-g")
+		if fEl then
+			widgetState.projectDropEls[#widgetState.projectDropEls + 1] =
+				{ path = path, el = fEl, row = true, save = true, dest = saveStageSet[path] == true }
+			-- Here a folder is a destination, so the row picks it and only the
+			-- disclosure glyph folds the node.
+			fEl:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				if widgetState.projectDragClickEaten then
+					widgetState.projectDragClickEaten = nil
+					return
+				end
+				widgetState.projectSavePickFolder(path)
+			end, false)
+		end
+		if gEl then
+			gEl:AddEventListener("click", function(ev)
+				ev:StopPropagation()
+				playSound("click")
+				widgetState.projectToggleFolder(path)
+			end, false)
+		end
+	end
+end
+
+-- Opens the Save Project As dialog: prefills the name (current project >
+-- last-typed > slugified map name) and rebuilds the existing-projects list,
+-- where clicking a row fills the NAME field (pick-to-overwrite, modern Save
+-- As semantics). Shared by FILE > Save As... and by FILE > Save when the
+-- session has no current project yet. On widgetState, not a chunk local:
+-- the main chunk is near the Lua 5.1 200-local ceiling.
+widgetState.openProjectSaveDialog = function()
+	local d = widgetState.dmHandle
+	if d then
+		d.fileMenuOpen = false
+		-- One browser at a time: both windows draw the same tree.
+		if d.projectOpenOpen then
+			d.projectOpenOpen = false
+			widgetState.projectCommitLibrarySeen()
+			widgetState.libraryNewSlugs = nil
+		end
+		widgetState.projectLocalDirty = true
+		d.projectSaveOpen = true
+		if widgetState.projectSaveUi and not widgetState.projectSaveUi.open() then
+			return
+		end
+		if widgetState.projectLibraryUi then
+			widgetState.projectLibraryUi.sync()
+		end
+		d.projectSaveHint = ""
+		if not widgetState.projectHelperHintSticky then
+			d.projectHelperHint = ""
+		end
+		d.projectSaveUnits = widgetState.projectSaveUnits and true or false
+	end
+	local doc = widgetState.document
+	local mp = WG.MapProject
+	local inp = doc and doc:GetElementById("input-project-name")
+	if inp then
+		local name = (mp and mp.current and mp.current()) or widgetState.projectNameStr
+		if not name or name == "" then
+			name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
+		end
+		widgetState.projectSaveSetName(name)
+		-- Focused on open: a save dialog that needs a click before it can be
+		-- typed into is a save dialog with an extra step in it.
+		pcall(function()
+			inp:Focus()
+		end)
+	end
+	widgetState.projectSyncSort()
+	widgetState.projectSyncHelperFiles()
+	widgetState.projectSaveRebuild()
+	-- After the rebuild: the target readout and the details pane both read the
+	-- listing it just cached.
+	widgetState.projectSyncTarget()
+	widgetState.projectStagesRebuild()
 end
 
 local initialModel = {
@@ -2175,6 +5910,7 @@ local initialModel = {
 
 	-- Phase 2 step 3: data-if visibility flags (tf_guide pilot)
 	passthroughActive = false,
+	focusActive = false,
 	settingsOpen = false,
 	settingsTab = "keybinds",
 	-- Map Labels window (gui_map_labels widget) — header button highlight
@@ -2211,43 +5947,235 @@ local initialModel = {
 	-- FILE menu + New Map dialog
 	fileMenuOpen = false,
 	newMapOpen = false,
-	-- Save Project dialog (FILE > Save Project, backed by WG.MapProject)
+	-- Save Project dialog (FILE > Save As, backed by WG.MapProject)
 	projectSaveOpen = false,
 	projectSaveHint = "",
-	projectSaveUnits = false,  -- "save units loadout" toggle (position/team of every unit)
+	projectSaveUnits = false, -- "save units loadout" toggle (position/team of every unit)
+	projectOpenSort = "recent", -- sorted column: recent | name | size
+	-- Sort carets, on the sorted column header only (see projectSyncSort)
+	projectSortName = "",
+	projectSortSize = "",
+	projectSortDate = " v",
+	-- Row counters under each browser
+	projectOpenCount = "",
+	projectSaveCount = "",
+	-- Save As: what the NAME field currently points at, read before the click
+	projectSaveTarget = "",
+	projectSaveOverwrite = false,
+	projectSaveNewFolder = false, -- inline "new folder" row open
+	projectSaveDest = "", -- folder the NAME field saves into, as a path label
+	projectSaveFolder = "", -- the same folder, drawn immediately before the NAME box
+	projectSaveDestOk = true, -- the team tab has a library folder picked to save into
+	-- Open Project details pane (filled from the selected row's manifest)
+	projectInfoName = "",
+	projectInfoPath = "",
+	projectInfoSize = "",
+	projectInfoModified = "",
+	projectInfoCreated = "",
+	projectInfoUnits = "",
+	projectInfoLegacy = false,
+	projectInfoCurrent = false,
+	projectInfoBoth = false, -- both a minimap and a heightmap are on disk
+	projectInfoFolder = false, -- a folder is selected rather than a project
+	projectInfoCount = "", -- how many projects the selected folder holds
+	projectOpenIsFolder = false, -- gates OPEN, and picks what DELETE removes
+	-- Which of the two the preview is showing, shared by both panes
+	projectPreviewMode = "map",
+	-- Save As details pane. Its own fields, not the Open Project ones: both
+	-- dialogs can be up at once, and each pane answers to its own list.
+	psaveInfoShown = false,
+	psaveInfoName = "",
+	psaveInfoPath = "",
+	psaveInfoSize = "",
+	psaveInfoModified = "",
+	psaveInfoCreated = "",
+	psaveInfoUnits = "",
+	psaveInfoLegacy = false,
+	psaveInfoCurrent = false,
+	psaveInfoBoth = false,
+	-- What the drag under way would do, said in words under the list
+	projectDragLabel = "",
+	-- Result of the "start helper" button (where the runner was written to)
+	projectHelperHint = "",
+	-- Details pane, TEAM block (see projectShowDetails)
+	projectInfoTeam = false, -- the team library holds this project
+	projectInfoMine = false, -- a copy is on this disk
+	projectInfoSync = "", -- local | team | synced | mine | theirs
+	projectInfoTeamLine = "",
+	projectOpenConfirming = false, -- OPEN armed, waiting for the second click
+	projectRenameOpen = false, -- the inline rename row under the list
+	-- Save As: the destination chip and the summary pane
+	projectSaveDestLabel = "",
+	psaveSumFolder = "",
+	psaveSumMap = "",
+	psaveSumUnits = "",
+	psaveSumUpload = "",
+	projectCurrentName = "", -- FILE > Save target ("" = none yet → Save acts as Save As)
 	-- Open Project dialog (FILE > Open Project, backed by WG.MapProject)
 	projectOpenOpen = false,
 	projectOpenHint = "",
-	projectOpenSelected = "",       -- display name of the picked row ("" = nothing picked)
-	projectDeleteConfirming = false,  -- DELETE armed, waiting for the second click
+	projectOpenSelected = "", -- display name of the picked row ("" = nothing picked)
+	projectDeleteConfirming = false, -- DELETE armed, waiting for the second click
 	newMapWidthStr = "12",
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
 	newMapEnvStr = "Default",
-	newMapEngineSkyboxNotice = false,
 	newMapEngineSplatNotice = false,
 	newMapSplatNeedsDnts = false,
 	-- Procedural terrain controls (0..1 recipe sliders displayed as %)
-	newMapHilStr   = "50%",
+	newMapHilStr = "50%",
 	newMapRoughStr = "50%",
 	newMapScaleStr = "50%",
-	newMapJagStr   = "45%",
+	newMapJagStr = "45%",
 	newMapWaterStr = "0%",
 	newMapCoastStr = "0%",
 	newMapMetalStr = "50%",
-	newMapSymStr   = "Rotational 180\194\176",
-	newMapSeedStr  = "\226\128\148",
+	newMapSymStr = "Rotational 180\194\176",
+	newMapSeedStr = "\226\128\148",
 	newMapArchetypeStr = "",
-	newMapGen = false,   -- procedural terrain toggle; off (default) = dead-flat map
+	newMapGen = false, -- procedural terrain toggle; off (default) = dead-flat map
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
+	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
+	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
+	tsShaderOn = false,
+	-- SHADER UPDATE row at the top of the TILESET window. Hidden unless the
+	-- map-library companion is running with a shader repository configured.
+	tsShaderSyncShown = false,
+	tsShaderSyncState = "checking",
+	tsShaderSyncLabel = "",
+	-- PROTECT CLIFFS button highlight (the cliffProtect shader knob, on/off —
+	-- a button rather than a 0/1 slider); synced from WG.TilesetTerrain.
+	tsCliffProtectOn = true,
 	-- Active biome key for the TILESET tool BIOME LIBRARY tiles
 	-- (data-class-active="tsBiome == '<key>'"); synced from WG.TilesetTerrain.
 	tsBiome = "",
-	tsDebugView = 0,   -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
+	-- SLOT 4 mode buttons in the PLACEMENT section (data-class-active =
+	-- "tsSlot4Mode == '<name>'"); synced from WG.TilesetTerrain.getSlot4Mode.
+	tsSlot4Mode = "plateau",
+	-- PERFORMANCE section quality preset (data-class-active="tsQuality == '<tier>'");
+	-- synced from WG.TilesetTerrain.getQuality.
+	tsQuality = "high",
+	tsDebugView = 0, -- active TILESET debug view (drives the DEBUG multi-toggle highlight)
 	tsMetalStyle = "", -- active METAL SPOTS style tile (data-class-active="tsMetalStyle == '<key>'")
+	tsGlowOn = false, -- METAL SPOTS glow light master (grays the GLOW LIGHT block via data-class-disabled)
+	-- HEIGHT TINT (tileset shader 0.27): axis mode chips, the selected colour
+	-- chip (grade stops / strata beds / snow) the shared palette + trio edits,
+	-- strata chip visibility + layer-mask chips, ramp mode chips + file label.
+	-- Synced from the knob table in tf_tileset.sync (syncHeightTint).
+	tsHgRef = 0,
+	tsHgTarget = "low",
+	tsHgTargetName = "GRADE LOW",
+	tsStrataCount = 4,
+	tsStrataBase = true,
+	tsStrataInter = true,
+	tsStrataCliff = true,
+	tsStrataPlat = true,
+	tsRampMode = 0,
+	tsRampFile = "none",
+	tsStopsCount = 3, -- GRADIENT STOPS chips shown (data-if) and the Multiply / Colorize chips
+	tsStopsMode = 1,
+	-- SURFACE tool (tileset variant paint; engine = dev_surface_painter.lua,
+	-- catalog/shader = dev_tileset_terrain.lua, UI module = tf_surface.lua)
+	surfPreset = "dot",
+	surfErase = false,
+	surfHasVariants = false,
+	surfHasSculpted = false,
+	surfShaderOff = false,
+	surfSlot1Name = "\226\128\148",
+	surfSlot2Name = "\226\128\148",
+	surfSlot3Name = "\226\128\148",
+	surfSlot4Name = "\226\128\148",
+	surfSlot5Name = "\226\128\148",
+	surfSlot6Name = "\226\128\148",
+	surfSlot7Name = "\226\128\148",
+	surfFillV1 = true,
+	surfFillV2 = true,
+	surfFillV3 = true,
+	surfFillV4 = true,
+	surfFillV5 = true,
+	surfFillV6 = true,
+	surfFillV7 = true,
+	-- FILL WITH NOISE is a no-op unless some slot is both assigned and enabled
+	-- (the fill shader preserves channels it is not allowed to write), so the
+	-- button grays out rather than looking broken.
+	surfCanFill = false,
+	-- NOW PAINTING strip + slot rail (persistent selection readout)
+	surfNowName = "base (erase)",
+	surfNowDetail = "",
+	surfNowMode = "PAINT",
+	surfSelSlot = 0, -- 0 = base/erase, 1-7 = variant slots
+	surfSlot1Assigned = false,
+	surfSlot2Assigned = false,
+	surfSlot3Assigned = false,
+	surfSlot4Assigned = false,
+	surfSlot5Assigned = false,
+	surfSlot6Assigned = false,
+	surfSlot7Assigned = false,
+	-- Per-slot variant picker (dropdown opened from a slot chip's caret)
+	surfPickerTitle = "",
+	surfPickSlot = 0, -- slot whose library is open (lights that tile's PICK)
+	-- Picker hover preview (tf_surface drives both from the hovered tile)
+	surfPreviewName = "\226\128\148",
+	surfPreviewHint = "",
+	surfPickerHasPaint = false,
+	surfClearArm = false, -- CLEAR VARIANT armed, waiting for the confirm click
+	surfClearAllArm = false, -- CLEAR ALL armed
+	-- SURFACE/LAYERS mode. "soft" = variant mask (WG.SurfacePainter, SURFACE
+	-- tool); "hard" = splat override channels of the tileset shader
+	-- (WG.SplatPainter reused headless, LAYERS tool). Both map to
+	-- activeTool == 'surf'; the shared panel picks its sections off this field.
+	surfMode = "soft",
+	-- Tool-button highlights for the SURFACE/LAYERS pair (activeTool alone
+	-- cannot tell them apart — both run as 'surf').
+	surfSoftOn = false,
+	surfHardOn = false,
+	surfBiomeName = "\226\128\148", -- active tileset biome, shown under the submode row
+	surfHardCh = 1, -- active splat channel: 1 AUTO / 2 INTERMEDIATE / 3 CLIFF / 4 PLATEAU
+	surfHardNowName = "AUTO",
+	surfHardNowDetail = "",
+	surfHardAvoidWater = false,
+	surfHardAvoidCliffs = false,
+	surfHardAltMin = false,
+	surfHardAltMax = false,
+	surfHardExportFmt = "PNG",
+	surfHardOverlay = false, -- LAYERS: splat override channel overlay (engine flag mirror)
+	-- SURFACE soft-submode smart filters (engine = dev_surface_painter)
+	surfSoftAvoidWater = false,
+	-- INFLUENCE section (both submodes): chip state + the profile's owner
+	surfInfAlt = false,
+	surfInfSlope = false,
+	surfInfKey = "",
+	surfSoftAvoidCliffs = false,
+	surfSoftAltMin = false,
+	surfAltMinSample = false,
+	surfAltMaxSample = false,
+	surfInfAltMinSample = false,
+	surfInfAltMaxSample = false,
+	surfSoftAltMax = false,
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes): holding Ctrl over
+	-- the map renders the selected layer inside the brush ring as if the
+	-- stroke had landed (engines drive WG.TilesetTerrain.setSurfacePreview),
+	-- so the artist can inspect where the texture's fixed features fall
+	-- before painting. This flag is the on/off gate, mirrored into both
+	-- engines by tf_surface's sync.
+	surfReveal = true,
+	-- sf (SURFACE/LAYERS shared panel) TB mirror set, syncTBMirrorControls
+	sfGridOverlay = false,
+	sfHeightColormap = false,
+	sfGridSnap = false,
+	sfAngleSnap = false,
+	sfMeasureActive = false,
+	sfSymmetryActive = false,
+	sfSymmetryRadial = false,
+	sfSymMirrorX = false,
+	sfSymMirrorY = false,
+	sfSymHasAxis = false,
+	sfMeasureShowLength = false,
+	sfMeasureRulerMode = false,
+	sfMeasureStickyMode = false,
 	stpSubMode = "",
 	stpStartboxMode = "",
 	-- Diffuse painter (Phase A MVP)
@@ -2389,58 +6317,92 @@ local initialModel = {
 	gbAltMaxEnable = false,
 	gbColorOpen = false,
 	-- Phase 2 step 2: active-state dm fields (data-class-active bindings)
-	activeMode = "",           -- "raise"/"lower"/"smooth"/"ramp"/"restore"/"noise"
-	activeShape = "circle",    -- shared shape for all tools
-	activeSmoothMode = "",     -- "smooth"/"level" when in smooth/level group, else ""
-	noiseType = "perlin",      -- noise type selection
-	mbSubMode = "paint",       -- metal brush sub-mode
-	gbSubMode = "paint",       -- grass brush sub-mode
-	fpSubMode = "point",       -- feature placer sub-mode
-	fpDistMode = "random",     -- feature placer distribution
-	dcLibMode = "",            -- decal library mode (scatter/point/remove)
+	activeMode = "", -- "raise"/"lower"/"smooth"/"ramp"/"restore"/"noise"
+	activeShape = "circle", -- shared shape for all tools
+	activeSmoothMode = "", -- "smooth"/"level"/"smudge" when in the modify group, else ""
+	noiseType = "perlin", -- noise type selection
+	mbSubMode = "paint", -- metal brush sub-mode
+	gbSubMode = "paint", -- grass brush sub-mode
+	fpSubMode = "point", -- feature placer sub-mode
+	fpDistMode = "random", -- feature placer distribution
+	dcLibMode = "", -- decal library mode (scatter/point/remove)
 	dcDistribution = "random", -- decal distribution (random/regular/clustered)
-	wbSubMode = "scatter",     -- weather brush sub-mode
-	wbDistMode = "random",     -- weather distribution
-	stpShapeMode = "circle",   -- startpos shape selection
-	lpDistMode = "random",     -- light placer distribution
-	guideMode = false,         -- guide/help overlay
-	soundMuted = false,        -- sound muted (data-class-muted on btn-sound)
+	wbSubMode = "scatter", -- weather brush sub-mode
+	wbDistMode = "random", -- weather distribution
+	stpShapeMode = "circle", -- startpos shape selection
+	lpDistMode = "random", -- light placer distribution
+	guideMode = false, -- guide/help overlay
+	soundMuted = false, -- sound muted (data-class-muted on btn-sound)
 	-- TB mirror controls: data-class-active for syncTBMirrorControls prefixes
 	-- lp (light placer) - lpSymmetryRadial already declared above
-	lpGridOverlay = false,    lpHeightColormap = false,
-	lpGridSnap = false,       lpAngleSnap = false,
-	lpMeasureActive = false,  lpSymmetryActive = false,
-	lpSymMirrorX = false,     lpSymMirrorY = false,
+	lpGridOverlay = false,
+	lpHeightColormap = false,
+	lpGridSnap = false,
+	lpAngleSnap = false,
+	lpMeasureActive = false,
+	lpSymmetryActive = false,
+	lpSymMirrorX = false,
+	lpSymMirrorY = false,
 	lpSymHasAxis = false,
-	lpMeasureShowLength = false, lpMeasureRulerMode = false, lpMeasureStickyMode = false,
+	lpMeasureShowLength = false,
+	lpMeasureRulerMode = false,
+	lpMeasureStickyMode = false,
 	-- dc (decal placer)
-	dcGridOverlay = false,    dcHeightColormap = false,
-	dcGridSnap = false,       dcAngleSnap = false,
-	dcMeasureActive = false,  dcSymmetryActive = false,
-	dcSymmetryRadial = false, dcSymMirrorX = false, dcSymMirrorY = false,
+	dcGridOverlay = false,
+	dcHeightColormap = false,
+	dcGridSnap = false,
+	dcAngleSnap = false,
+	dcMeasureActive = false,
+	dcSymmetryActive = false,
+	dcSymmetryRadial = false,
+	dcSymMirrorX = false,
+	dcSymMirrorY = false,
 	dcSymHasAxis = false,
-	dcMeasureShowLength = false, dcMeasureRulerMode = false, dcMeasureStickyMode = false,
+	dcMeasureShowLength = false,
+	dcMeasureRulerMode = false,
+	dcMeasureStickyMode = false,
 	-- wb (weather brush)
-	wbGridOverlay = false,    wbHeightColormap = false,
-	wbGridSnap = false,       wbAngleSnap = false,
-	wbMeasureActive = false,  wbSymmetryActive = false,
-	wbSymmetryRadial = false, wbSymMirrorX = false, wbSymMirrorY = false,
+	wbGridOverlay = false,
+	wbHeightColormap = false,
+	wbGridSnap = false,
+	wbAngleSnap = false,
+	wbMeasureActive = false,
+	wbSymmetryActive = false,
+	wbSymmetryRadial = false,
+	wbSymMirrorX = false,
+	wbSymMirrorY = false,
 	wbSymHasAxis = false,
-	wbMeasureShowLength = false, wbMeasureRulerMode = false, wbMeasureStickyMode = false,
+	wbMeasureShowLength = false,
+	wbMeasureRulerMode = false,
+	wbMeasureStickyMode = false,
 	-- st (start position)
-	stGridOverlay = false,    stHeightColormap = false,
-	stGridSnap = false,       stAngleSnap = false,
-	stMeasureActive = false,  stSymmetryActive = false,
-	stSymmetryRadial = false, stSymMirrorX = false, stSymMirrorY = false,
+	stGridOverlay = false,
+	stHeightColormap = false,
+	stGridSnap = false,
+	stAngleSnap = false,
+	stMeasureActive = false,
+	stSymmetryActive = false,
+	stSymmetryRadial = false,
+	stSymMirrorX = false,
+	stSymMirrorY = false,
 	stSymHasAxis = false,
-	stMeasureShowLength = false, stMeasureRulerMode = false, stMeasureStickyMode = false,
+	stMeasureShowLength = false,
+	stMeasureRulerMode = false,
+	stMeasureStickyMode = false,
 	-- cl (clone tool)
-	clGridOverlay = false,    clHeightColormap = false,
-	clGridSnap = false,       clAngleSnap = false,
-	clMeasureActive = false,  clSymmetryActive = false,
-	clSymmetryRadial = false, clSymMirrorX = false, clSymMirrorY = false,
+	clGridOverlay = false,
+	clHeightColormap = false,
+	clGridSnap = false,
+	clAngleSnap = false,
+	clMeasureActive = false,
+	clSymmetryActive = false,
+	clSymmetryRadial = false,
+	clSymMirrorX = false,
+	clSymMirrorY = false,
 	clSymHasAxis = false,
-	clMeasureShowLength = false, clMeasureRulerMode = false, clMeasureStickyMode = false,
+	clMeasureShowLength = false,
+	clMeasureRulerMode = false,
+	clMeasureStickyMode = false,
 	-- Phase 2 step 4: startpos label interpolation strings
 	stpAllyTeamsStr = "2",
 	stpTeamsPerAllyStr = "1",
@@ -2495,6 +6457,8 @@ local initialModel = {
 	fpRadiusStr = "200",
 	fpRotationStr = "0",
 	fpRotRandomStr = "0",
+	fpScaleMinStr = "1.00",
+	fpScaleMaxStr = "1.00",
 	fpCountStr = "1",
 	fpCadenceStr = "1",
 	fpSlopeMaxStr = "45",
@@ -2524,6 +6488,9 @@ local initialModel = {
 	envCurrMinStr = "--",
 	envCurrMaxStr = "--",
 	envWaterPlaneStr = "--",
+	envWaterTargetStr = "Drag to move the shoreline.",
+	envDimRangeMode = "scale",
+	envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off.",
 	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
 	tfRingWidthStr = "40%",
 	tfRestoreStrengthStr = "100%",
@@ -2560,8 +6527,18 @@ local initialModel = {
 	seismicEffectsStr = "OFF",
 	penPressureStr = "OFF",
 	wiggleStr = "OFF",
+	perfModeStr = "OFF", -- Settings > Performance
+	teamSyncStr = "OFF", -- Settings > General > Team Sync (campaign team)
+	autosaveStr = "ON", -- Settings > General > Autosave, and its three value pills
+	autosaveMinutesStr = "10 MIN",
+	autosaveKeepStr = "3 DAYS",
+	autosaveKeepLatestStr = "10 DAYS",
+	quitGuardText = "", -- the unsaved-changes popup (see installQuitGuard)
+	quitGuardHint = "",
+	quitGuardStatus = "",
+	clayStackStr = "OFF", -- Settings > Stroke > Clay build-up
 	disableTipsStr = "OFF",
-	keepAliveStr = "OFF",  -- Settings > General: match end disabled for this session
+	keepAliveStr = "OFF", -- Settings > General: match end disabled for this session
 	penSensitivityStr = "100",
 	-- Phase 2 step 6: guide toggle active states (data-class-active bindings)
 	djModeActive = false,
@@ -2569,6 +6546,12 @@ local initialModel = {
 	seismicActive = false,
 	penPressureActive = false,
 	wiggleActive = false,
+	perfModeActive = false,
+	teamSyncActive = false,
+	autosaveActive = true,
+	quitGuardOpen = false,
+	quitGuardHasProject = false,
+	clayStackActive = false,
 	disableTipsActive = false,
 	keepAliveActive = false,
 	-- Phase 2 step 6: sub-panel dj-disabled states (true = grayed out)
@@ -2596,6 +6579,9 @@ local initialModel = {
 	tfRingVisible = false,
 	tfInRestore = false,
 	tfRampMode = false,
+	tfRampType = "", -- "straight"/"spline"/"auto" when in a ramp mode, else ""
+	arStart = "average", -- autoramp cliff anchor: "extend"/"subtract"/"average"
+	arPreview = true, -- autoramp WYSIWYG hover preview toggle
 	tfShapeRowVisible = true,
 	tfSmoothSubmodesVisible = false,
 	tfErodeControlsVisible = false,
@@ -2607,6 +6593,22 @@ local initialModel = {
 	tfHeightColormap = false,
 	tfCurveOverlay = false,
 	tfVelocityIntensity = false,
+	tfFollowStroke = false,
+	tfFollowVisible = true,
+	-- PASSABILITY overlay: one shared state across every DISPLAY row
+	tbPassActive = false,
+	tbPassLabelStr = "Passability",
+	-- IMAGE overlay (DISPLAY > Image): one shared state across every DISPLAY row
+	tbImgActive = false,
+	imgOvVisible = false,
+	imgOvHasImage = false,
+	imgOvFileStr = "none",
+	imgOvSizeStr = "",
+	imgOvError = "",
+	imgOvFit = "stretch",
+	imgOvFlipH = false,
+	imgOvFlipV = false,
+	imgOvSupported = true,
 	tfSymMirrorX = false,
 	tfSymMirrorY = false,
 	tfSymFlipped = false,
@@ -2640,119 +6642,160 @@ local initialModel = {
 	splatTexVisible = false,
 	skyboxLibraryVisible = false,
 	envSunVisible = false,
+	envPresetScope = "full", -- Sun & Shadows PRESETS: what a preset click applies ("sun" | "full")
+	envPresetHint = "",
 	envFogVisible = false,
 	envGroundLightingVisible = false,
 	envUnitLightingVisible = false,
 	envMapVisible = false,
 	envWaterVisible = false,
 	envDimensionsVisible = false,
+	envTilesetVisible = false,
 	-- Phase 2 step 6: tf_noise model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR changing function keys after OpenDataModel.
 	-- All closures capture file-level widgetState/uiState/WG/playSound upvalues.
 	onNoClose = function(_event)
 		playSound("click")
 		widgetState.noiseManuallyHidden = true
-		local d = widgetState.dmHandle; if d then d.noiseWindowVisible = false end
+		local d = widgetState.dmHandle
+		if d then
+			d.noiseWindowVisible = false
+		end
 	end,
 	onNoSetType = function(_event, ntype)
 		playSound("modeSwitch")
-		if WG.TerraformBrush then WG.TerraformBrush.setNoiseType(ntype) end
-		local d = widgetState.dmHandle; if d then d.noiseType = ntype end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setNoiseType(ntype)
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.noiseType = ntype
+		end
 	end,
 	onNoScaleChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _noSliderVal("noise-scale", 64)
 		WG.TerraformBrush.setNoiseScale(val)
 		_noDmLabel("nsScaleStr", tostring(val))
 	end,
 	onNoScaleUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.min(512, _noSliderVal("noise-scale", 64) + 8)
 		WG.TerraformBrush.setNoiseScale(val)
 		_noSetSliderVal("noise-scale", val)
 		_noDmLabel("nsScaleStr", tostring(val))
 	end,
 	onNoScaleDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.max(8, _noSliderVal("noise-scale", 64) - 8)
 		WG.TerraformBrush.setNoiseScale(val)
 		_noSetSliderVal("noise-scale", val)
 		_noDmLabel("nsScaleStr", tostring(val))
 	end,
 	onNoOctavesChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _noSliderVal("noise-octaves", 4)
 		WG.TerraformBrush.setNoiseOctaves(val)
 		_noDmLabel("nsOctavesStr", tostring(val))
 	end,
 	onNoOctavesUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.min(8, _noSliderVal("noise-octaves", 4) + 1)
 		WG.TerraformBrush.setNoiseOctaves(val)
 		_noSetSliderVal("noise-octaves", val)
 		_noDmLabel("nsOctavesStr", tostring(val))
 	end,
 	onNoOctavesDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.max(1, _noSliderVal("noise-octaves", 4) - 1)
 		WG.TerraformBrush.setNoiseOctaves(val)
 		_noSetSliderVal("noise-octaves", val)
 		_noDmLabel("nsOctavesStr", tostring(val))
 	end,
 	onNoPersistChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _noSliderVal("noise-persistence", 50)
 		WG.TerraformBrush.setNoisePersistence(val / 100)
 		_noDmLabel("nsPersistenceStr", string.format("%.2f", val / 100))
 	end,
 	onNoPersistUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.min(90, _noSliderVal("noise-persistence", 50) + 5)
 		WG.TerraformBrush.setNoisePersistence(val / 100)
 		_noSetSliderVal("noise-persistence", val)
 		_noDmLabel("nsPersistenceStr", string.format("%.2f", val / 100))
 	end,
 	onNoPersistDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.max(10, _noSliderVal("noise-persistence", 50) - 5)
 		WG.TerraformBrush.setNoisePersistence(val / 100)
 		_noSetSliderVal("noise-persistence", val)
 		_noDmLabel("nsPersistenceStr", string.format("%.2f", val / 100))
 	end,
 	onNoLacunChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _noSliderVal("noise-lacunarity", 20)
 		WG.TerraformBrush.setNoiseLacunarity(val / 10)
 		_noDmLabel("nsLacunarityStr", string.format("%.1f", val / 10))
 	end,
 	onNoLacunUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.min(40, _noSliderVal("noise-lacunarity", 20) + 1)
 		WG.TerraformBrush.setNoiseLacunarity(val / 10)
 		_noSetSliderVal("noise-lacunarity", val)
 		_noDmLabel("nsLacunarityStr", string.format("%.1f", val / 10))
 	end,
 	onNoLacunDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local val = math.max(10, _noSliderVal("noise-lacunarity", 20) - 1)
 		WG.TerraformBrush.setNoiseLacunarity(val / 10)
 		_noSetSliderVal("noise-lacunarity", val)
 		_noDmLabel("nsLacunarityStr", string.format("%.1f", val / 10))
 	end,
 	onNoSeedChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _noSliderVal("noise-seed", 0)
 		WG.TerraformBrush.setNoiseSeed(val)
 		_noDmLabel("nsSeedStr", tostring(val))
 	end,
 	onNoReseed = function(_event)
 		local newSeed = math.floor(math.random() * 9999)
-		if WG.TerraformBrush then WG.TerraformBrush.setNoiseSeed(newSeed) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setNoiseSeed(newSeed)
+		end
 		_noSetSliderVal("noise-seed", newSeed)
 		_noDmLabel("nsSeedStr", tostring(newSeed))
 	end,
 	onNoSeedUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local st = WG.TerraformBrush.getState()
 		local cur = (st and st.noiseSeed) or 0
 		local newVal = math.min(9999, cur + 1)
@@ -2761,7 +6804,9 @@ local initialModel = {
 		_noDmLabel("nsSeedStr", tostring(newVal))
 	end,
 	onNoSeedDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local st = WG.TerraformBrush.getState()
 		local cur = (st and st.noiseSeed) or 0
 		local newVal = math.max(0, cur - 1)
@@ -2777,46 +6822,78 @@ local initialModel = {
 		clearPassthrough()
 		if widgetState.cloneActive then
 			widgetState.cloneActive = false
-			if WG.CloneTool then WG.CloneTool.deactivate() end
+			if WG.CloneTool then
+				WG.CloneTool.deactivate()
+			end
 			if WG.TerraformBrush then
 				local st = WG.TerraformBrush.getState()
 				WG.TerraformBrush.setMode(st and st.mode or "raise")
 			end
 		else
-			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-			if WG.SplatPainter then WG.SplatPainter.deactivate() end
-			if WG.MetalBrush then WG.MetalBrush.deactivate() end
-			if WG.GrassBrush then WG.GrassBrush.deactivate() end
+			if WG.TerraformBrush then
+				WG.TerraformBrush.deactivate()
+			end
+			if WG.FeaturePlacer then
+				WG.FeaturePlacer.deactivate()
+			end
+			if WG.WeatherBrush then
+				WG.WeatherBrush.deactivate()
+			end
+			if WG.SplatPainter then
+				WG.SplatPainter.deactivate()
+			end
+			if WG.MetalBrush then
+				WG.MetalBrush.deactivate()
+			end
+			if WG.GrassBrush then
+				WG.GrassBrush.deactivate()
+			end
 			widgetState.envActive = false
 			widgetState.lightActive = false
-			if WG.LightPlacer then WG.LightPlacer.deactivate() end
+			if WG.LightPlacer then
+				WG.LightPlacer.deactivate()
+			end
 			widgetState.startposActive = false
-			if WG.StartPosTool then WG.StartPosTool.deactivate() end
+			if WG.StartPosTool then
+				WG.StartPosTool.deactivate()
+			end
 			widgetState.decalsActive = false
-			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
+			if WG.DecalPlacer then
+				WG.DecalPlacer.deactivate()
+			end
 			widgetState.cloneActive = true
-			if WG.CloneTool then WG.CloneTool.activate() end
+			if WG.CloneTool then
+				WG.CloneTool.activate()
+			end
 		end
 	end,
 	onClToggleLayer = function(_event, name)
-		if not WG.CloneTool then return end
+		if not WG.CloneTool then
+			return
+		end
 		local st = WG.CloneTool.getState()
 		local cur = st and st.layers and st.layers[name] or false
 		WG.CloneTool.setLayer(name, not cur)
 	end,
 	onClCopy = function(_event)
-		if WG.CloneTool then WG.CloneTool.doCopy() end
+		if WG.CloneTool then
+			WG.CloneTool.doCopy()
+		end
 	end,
 	onClPaste = function(_event)
-		if WG.CloneTool then WG.CloneTool.startPaste() end
+		if WG.CloneTool then
+			WG.CloneTool.startPaste()
+		end
 	end,
 	onClClear = function(_event)
-		if WG.CloneTool then WG.CloneTool.cancelOperation() end
+		if WG.CloneTool then
+			WG.CloneTool.cancelOperation()
+		end
 	end,
 	onClRotChange = function(_event)
-		if uiState.updatingFromCode or not WG.CloneTool then return end
+		if uiState.updatingFromCode or not WG.CloneTool then
+			return
+		end
 		local val = _noSliderVal("cl-rotation", 0)
 		WG.CloneTool.setRotation(val)
 	end,
@@ -2833,7 +6910,9 @@ local initialModel = {
 		end
 	end,
 	onClHeightChange = function(_event)
-		if uiState.updatingFromCode or not WG.CloneTool then return end
+		if uiState.updatingFromCode or not WG.CloneTool then
+			return
+		end
 		local val = _noSliderVal("cl-height", 0)
 		WG.CloneTool.setHeightOffset(val)
 	end,
@@ -2852,35 +6931,53 @@ local initialModel = {
 		end
 	end,
 	onClToggleMirrorX = function(_event)
-		if not WG.CloneTool then return end
+		if not WG.CloneTool then
+			return
+		end
 		local st = WG.CloneTool.getState()
 		WG.CloneTool.setMirrorX(not (st and st.pasteMirrorX))
 	end,
 	onClToggleMirrorZ = function(_event)
-		if not WG.CloneTool then return end
+		if not WG.CloneTool then
+			return
+		end
 		local st = WG.CloneTool.getState()
 		WG.CloneTool.setMirrorZ(not (st and st.pasteMirrorZ))
 	end,
 	onClSetQuality = function(_event, qName)
-		if WG.CloneTool then WG.CloneTool.setTerrainQuality(qName) end
+		if WG.CloneTool then
+			WG.CloneTool.setTerrainQuality(qName)
+		end
 	end,
 	onClUndo = function(_event)
-		if WG.CloneTool and WG.CloneTool.undo then WG.CloneTool.undo() end
+		if WG.CloneTool and WG.CloneTool.undo then
+			WG.CloneTool.undo()
+		end
 	end,
 	onClRedo = function(_event)
-		if WG.CloneTool and WG.CloneTool.redo then WG.CloneTool.redo() end
+		if WG.CloneTool and WG.CloneTool.redo then
+			WG.CloneTool.redo()
+		end
 	end,
 	onClHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.CloneTool then return end
+		if uiState.updatingFromCode or not WG.CloneTool then
+			return
+		end
 		local val = _noSliderVal("cl-history", 0)
 		local clSt = WG.CloneTool.getState()
-		if not clSt then return end
+		if not clSt then
+			return
+		end
 		local currentUndoCount = clSt.undoCount or 0
 		local diff = val - currentUndoCount
 		if diff > 0 then
-			for i = 1, diff do WG.CloneTool.redo() end
+			for i = 1, diff do
+				WG.CloneTool.redo()
+			end
 		elseif diff < 0 then
-			for i = 1, -diff do WG.CloneTool.undo() end
+			for i = 1, -diff do
+				WG.CloneTool.undo()
+			end
 		end
 	end,
 	-- Phase 2 step 6: tf_weather model-king handlers — defined here (not in M.attach)
@@ -2890,16 +6987,28 @@ local initialModel = {
 	-- _elemSliderVal/_elemSetSliderVal upvalues.
 	onWbSetMode = function(_event, wmode)
 		playSound("modeSwitch")
-		if WG.WeatherBrush then WG.WeatherBrush.setMode(wmode) end
-		local d = widgetState.dmHandle; if d then d.wbSubMode = wmode end
+		if WG.WeatherBrush then
+			WG.WeatherBrush.setMode(wmode)
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.wbSubMode = wmode
+		end
 	end,
 	onWbSetDist = function(_event, dist)
 		playSound("shapeSwitch")
-		if WG.WeatherBrush then WG.WeatherBrush.setDistribution(dist) end
-		local d = widgetState.dmHandle; if d then d.wbDistMode = dist end
+		if WG.WeatherBrush then
+			WG.WeatherBrush.setDistribution(dist)
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.wbDistMode = dist
+		end
 	end,
 	onWbSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local val = _elemSliderVal("wb-slider-size", 200)
 		WG.WeatherBrush.setRadius(val)
 	end,
@@ -2916,7 +7025,9 @@ local initialModel = {
 		end
 	end,
 	onWbLengthChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local val = _elemSliderVal("wb-slider-length", 10)
 		WG.WeatherBrush.setLengthScale(val / 10)
 	end,
@@ -2933,18 +7044,26 @@ local initialModel = {
 		end
 	end,
 	onWbRotChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local val = _elemSliderVal("wb-slider-rotation", 0)
 		WG.WeatherBrush.setRotation(val)
 	end,
 	onWbRotCW = function(_event)
-		if WG.WeatherBrush then WG.WeatherBrush.rotate(ROTATION_STEP) end
+		if WG.WeatherBrush then
+			WG.WeatherBrush.rotate(ROTATION_STEP)
+		end
 	end,
 	onWbRotCCW = function(_event)
-		if WG.WeatherBrush then WG.WeatherBrush.rotate(-ROTATION_STEP) end
+		if WG.WeatherBrush then
+			WG.WeatherBrush.rotate(-ROTATION_STEP)
+		end
 	end,
 	onWbCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local val = _elemSliderVal("wb-slider-count", 3)
 		WG.WeatherBrush.setSpawnCount(val)
 	end,
@@ -2961,7 +7080,9 @@ local initialModel = {
 		end
 	end,
 	onWbCadenceChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local sliderVal = _elemSliderVal("wb-slider-cadence", 0)
 		WG.WeatherBrush.setCadence(sliderToCadence(sliderVal))
 	end,
@@ -2980,7 +7101,9 @@ local initialModel = {
 		end
 	end,
 	onWbFrequencyChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local sliderVal = _elemSliderVal("wb-slider-frequency", 383)
 		WG.WeatherBrush.setFrequency(sliderToFrequency(sliderVal))
 	end,
@@ -2999,7 +7122,9 @@ local initialModel = {
 		end
 	end,
 	onWbPersistChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then return end
+		if uiState.updatingFromCode or not WG.WeatherBrush then
+			return
+		end
 		local sliderVal = _elemSliderVal("wb-slider-persist", 0)
 		WG.WeatherBrush.setPersistenceSeconds(sliderToPersist(sliderVal))
 	end,
@@ -3026,7 +7151,9 @@ local initialModel = {
 	end,
 	onWbClearAll = function(_event)
 		playSound("reset")
-		if WG.WeatherBrush then WG.WeatherBrush.clearAllPersistent() end
+		if WG.WeatherBrush then
+			WG.WeatherBrush.clearAllPersistent()
+		end
 	end,
 	-- Phase 2 step 6: tf_startpos model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
@@ -3034,16 +7161,24 @@ local initialModel = {
 	-- Spring.GetMouseState/TraceScreenRay/Game accessed as globals (no upvalue cost).
 	onSpSetSubMode = function(_event, sm)
 		playSound("modeSwitch")
-		if WG.StartPosTool then WG.StartPosTool.setSubMode(sm) end
+		if WG.StartPosTool then
+			WG.StartPosTool.setSubMode(sm)
+		end
 	end,
 	onSpSetShape = function(_event, sh)
 		playSound("modeSwitch")
-		if WG.StartPosTool then WG.StartPosTool.setShape(sh) end
+		if WG.StartPosTool then
+			WG.StartPosTool.setShape(sh)
+		end
 	end,
 	onSpAllyTeamsChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local val = _noSliderVal("sp-allyteams", 2)
-		if WG.StartPosTool then WG.StartPosTool.setNumAllyTeams(val) end
+		if WG.StartPosTool then
+			WG.StartPosTool.setNumAllyTeams(val)
+		end
 	end,
 	onSpTeamsDown = function(_event)
 		if WG.StartPosTool then
@@ -3058,7 +7193,9 @@ local initialModel = {
 		end
 	end,
 	onSpTeamsPerAllyChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local val = _noSliderVal("sp-teams-per-ally", 1)
 		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
 			WG.StartPosTool.setNumTeamsPerAlly(val)
@@ -3089,9 +7226,13 @@ local initialModel = {
 		end
 	end,
 	onSpCountChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local val = _noSliderVal("sp-count", 4)
-		if WG.StartPosTool then WG.StartPosTool.setShapeCount(val) end
+		if WG.StartPosTool then
+			WG.StartPosTool.setShapeCount(val)
+		end
 	end,
 	onSpCountDown = function(_event)
 		if WG.StartPosTool then
@@ -3106,9 +7247,13 @@ local initialModel = {
 		end
 	end,
 	onSpSizeChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local val = _noSliderVal("sp-size", 2000)
-		if WG.StartPosTool then WG.StartPosTool.setRadius(val) end
+		if WG.StartPosTool then
+			WG.StartPosTool.setRadius(val)
+		end
 	end,
 	onSpSizeDown = function(_event)
 		if WG.StartPosTool then
@@ -3123,9 +7268,13 @@ local initialModel = {
 		end
 	end,
 	onSpRotChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local val = _noSliderVal("sp-rotation", 0)
-		if WG.StartPosTool then WG.StartPosTool.setRotation(val) end
+		if WG.StartPosTool then
+			WG.StartPosTool.setRotation(val)
+		end
 	end,
 	onSpRotCW = function(_event)
 		if WG.StartPosTool then
@@ -3165,6 +7314,14 @@ local initialModel = {
 			WG.StartPosTool.saveStartboxes()
 		end
 	end,
+	-- Copies the startbox override as a !bSet the user can paste into lobby chat. Startbox
+	-- only: start positions travel as a different modoption entirely.
+	onSpCopy = function(_event)
+		playSound("apply")
+		if WG.StartPosTool then
+			WG.StartPosTool.copyStartboxOverride()
+		end
+	end,
 	onSpLoad = function(_event)
 		playSound("apply")
 		if WG.StartPosTool then
@@ -3178,130 +7335,183 @@ local initialModel = {
 	-- CURVE_STEP/RADIUS_STEP/_splFindAnglePresetIdx/_splApplyAnglePreset upvalues.
 	onSplSetChannel = function(_event, ch)
 		playSound("modeSwitch")
-		if WG.SplatPainter then WG.SplatPainter.setChannel(ch) end
+		if WG.SplatPainter then
+			WG.SplatPainter.setChannel(ch)
+		end
 	end,
 	onSplStrengthChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-strength", 15)
 		WG.SplatPainter.setStrength(val / 100)
 	end,
 	onSplStrengthUp = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setStrength(st.strength + 0.05)
 	end,
 	onSplStrengthDown = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setStrength(st.strength - 0.05)
 	end,
 	onSplIntensityChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-intensity", 10)
 		WG.SplatPainter.setIntensity(val / 10)
 	end,
 	onSplIntensityUp = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setIntensity(st.intensity + 0.1)
 	end,
 	onSplIntensityDown = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setIntensity(st.intensity - 0.1)
 	end,
 	onSplSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-size", 100)
 		WG.SplatPainter.setRadius(val)
 	end,
 	onSplSizeUp = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setRadius(st.radius + RADIUS_STEP)
 	end,
 	onSplSizeDown = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setRadius(st.radius - RADIUS_STEP)
 	end,
 	onSplRotChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-rotation", 0)
 		WG.SplatPainter.setRotation(val)
 	end,
 	onSplRotCW = function(_event)
-		if WG.SplatPainter then WG.SplatPainter.rotate(ROTATION_STEP) end
+		if WG.SplatPainter then
+			WG.SplatPainter.rotate(ROTATION_STEP)
+		end
 	end,
 	onSplRotCCW = function(_event)
-		if WG.SplatPainter then WG.SplatPainter.rotate(-ROTATION_STEP) end
+		if WG.SplatPainter then
+			WG.SplatPainter.rotate(-ROTATION_STEP)
+		end
 	end,
 	onSplCurveChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-curve", 10)
 		WG.SplatPainter.setCurve(val / 10)
 	end,
 	onSplCurveUp = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setCurve(st.curve + CURVE_STEP)
 	end,
 	onSplCurveDown = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local st = WG.SplatPainter.getState()
 		WG.SplatPainter.setCurve(st.curve - CURVE_STEP)
 	end,
 	onSplFractalChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("sp-slider-fractal", 0)) or 0) / 100
-		if WG.SplatPainter.setFractal then WG.SplatPainter.setFractal(v, nil) end
+		if WG.SplatPainter.setFractal then
+			WG.SplatPainter.setFractal(v, nil)
+		end
 	end,
 	onSplFractalStep = function(_event, delta)
-		if not WG.SplatPainter or not WG.SplatPainter.getFractal then return end
+		if not WG.SplatPainter or not WG.SplatPainter.getFractal then
+			return
+		end
 		local amt = WG.SplatPainter.getFractal()
 		if WG.SplatPainter.setFractal then
 			WG.SplatPainter.setFractal((amt or 0) + (delta or 0) / 100, nil)
 		end
 	end,
 	onSplFractalFreqChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		-- slider 1-50 maps linearly to freq 0.0002..0.01 (1/elmos)
 		local v = tonumber(_elemSliderVal("sp-slider-fractal-freq", 30)) or 30
 		local freq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
-		if WG.SplatPainter.setFractal then WG.SplatPainter.setFractal(nil, freq) end
+		if WG.SplatPainter.setFractal then
+			WG.SplatPainter.setFractal(nil, freq)
+		end
 	end,
 	onSplFractalFreqStep = function(_event, delta)
-		if not WG.SplatPainter or not WG.SplatPainter.getFractal then return end
+		if not WG.SplatPainter or not WG.SplatPainter.getFractal then
+			return
+		end
 		local _, freq = WG.SplatPainter.getFractal()
 		-- convert current freq back to slider units (1-50), step, clamp, convert back
 		local v = math.floor(0.5 + 1 + ((freq or 0.0002) - 0.0002) / (0.01 - 0.0002) * 49)
 		v = math.max(1, math.min(50, v + (delta or 0)))
 		local newFreq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
-		if WG.SplatPainter.setFractal then WG.SplatPainter.setFractal(nil, newFreq) end
+		if WG.SplatPainter.setFractal then
+			WG.SplatPainter.setFractal(nil, newFreq)
+		end
 	end,
 	onSplToggleSmart = function(_event, filterKey)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local sf = WG.SplatPainter.getState().smartFilters
 		local newVal = not sf[filterKey]
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.SplatPainter.setSmartFilter(filterKey, newVal)
 		local sf2 = WG.SplatPainter.getState().smartFilters
-		local anyOn = sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes
-				or sf2.altMinEnable or sf2.altMaxEnable
+		local anyOn = sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable
 		WG.SplatPainter.setSmartEnabled(anyOn and true or false)
 	end,
 	onSplSlopeMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-slope-max", 45)
 		WG.SplatPainter.setSmartFilter("slopeMax", val)
 	end,
 	onSplSlopeMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-slope-min", 10)
 		WG.SplatPainter.setSmartFilter("slopeMin", val)
 	end,
 	onSplAltMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-alt-min", 0)
 		local sf = WG.SplatPainter.getState().smartFilters
 		if sf.altMaxEnable and val > sf.altMax then
@@ -3310,7 +7520,9 @@ local initialModel = {
 		WG.SplatPainter.setSmartFilter("altMin", val)
 	end,
 	onSplAltMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-alt-max", 200)
 		local sf = WG.SplatPainter.getState().smartFilters
 		if sf.altMinEnable and val < sf.altMin then
@@ -3319,130 +7531,188 @@ local initialModel = {
 		WG.SplatPainter.setSmartFilter("altMax", val)
 	end,
 	onSplSmartStep = function(_event, filterKey, step)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local sf = WG.SplatPainter.getState().smartFilters
 		WG.SplatPainter.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
 	end,
 	onSplAltSample = function(_event, target)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
 		WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
 	end,
 	onSplCycleExportFormat = function(_event)
 		playSound("click")
-		if WG.SplatPainter then WG.SplatPainter.cycleExportFormat() end
+		if WG.SplatPainter then
+			WG.SplatPainter.cycleExportFormat()
+		end
 	end,
 	onSplSave = function(_event)
 		playSound("save")
-		if WG.SplatPainter then WG.SplatPainter.saveSplats() end
+		if WG.SplatPainter then
+			WG.SplatPainter.saveSplats()
+		end
 	end,
 	onSplUndo = function(_event)
 		playSound("click")
-		if WG.SplatPainter then WG.SplatPainter.undo() end
+		if WG.SplatPainter then
+			WG.SplatPainter.undo()
+		end
 	end,
 	onSplRedo = function(_event)
 		playSound("click")
-		if WG.SplatPainter then WG.SplatPainter.redo() end
+		if WG.SplatPainter then
+			WG.SplatPainter.redo()
+		end
 	end,
 	onSplHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.SplatPainter then return end
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
 		local spSt = WG.SplatPainter.getState()
-		if not spSt then return end
+		if not spSt then
+			return
+		end
 		local newVal = _elemSliderVal("slider-sp-history", 0)
 		local curPos = spSt.undoCount or 0
 		local diff = newVal - curPos
 		if diff < 0 then
-			for _ = 1, -diff do WG.SplatPainter.undo() end
+			for _ = 1, -diff do
+				WG.SplatPainter.undo()
+			end
 		elseif diff > 0 then
-			for _ = 1, diff do WG.SplatPainter.redo() end
+			for _ = 1, diff do
+				WG.SplatPainter.redo()
+			end
 		end
 	end,
 	onSplToggleSplatOverlay = function(_event)
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
 		local newVal = not WG.SplatPainter.getState().showSplatOverlay
 		WG.SplatPainter.setSplatOverlay(newVal)
 		playSound(newVal and "toggleOn" or "toggleOff")
 	end,
 	onSplSnapSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-grid-snap-size", 48)
 		WG.TerraformBrush.setGridSnapSize(val)
 	end,
 	onSplSnapSizeStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = tonumber(WG.TerraformBrush.getState().gridSnapSize) or 48
 		local v = math.max(16, math.min(128, cur + delta))
 		WG.TerraformBrush.setGridSnapSize(v)
 	end,
 	onSplAngleStepChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local idx = _elemSliderVal("sp-slider-angle-snap-step", 1) + 1
 		_splApplyAnglePreset(idx)
 	end,
 	onSplAngleStepStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = WG.TerraformBrush.getState().angleSnapStep
 		_splApplyAnglePreset(_splFindAnglePresetIdx(cur) + delta)
 	end,
 	onSplToggleAutoSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not WG.TerraformBrush.getState().angleSnapAuto
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnapAuto(newVal)
 	end,
 	onSplManualSpokeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local idx = _elemSliderVal("sp-slider-manual-spoke", 0)
 		WG.TerraformBrush.setAngleSnapManualSpoke(idx)
 	end,
 	onSplManualSpokeStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local step = s.angleSnapStep or 15
-		local num  = math.max(1, math.floor(360 / step))
+		local num = math.max(1, math.floor(360 / step))
 		local cur = s.angleSnapManualSpoke or 0
 		WG.TerraformBrush.setAngleSnapManualSpoke((cur + delta + num) % num)
 	end,
 	onSplSymCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-symmetry-radial-count", 2)
 		WG.TerraformBrush.setSymmetryRadialCount(val)
 	end,
 	onSplSymCountStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
-		local c = math.max(2, math.min(16,
-			(WG.TerraformBrush.getState().symmetryRadialCount or 2) + delta))
+		if not WG.TerraformBrush then
+			return
+		end
+		local c = math.max(2, math.min(16, (WG.TerraformBrush.getState().symmetryRadialCount or 2) + delta))
 		WG.TerraformBrush.setSymmetryRadialCount(c)
 		_elemSetSliderVal("sp-slider-symmetry-radial-count", c)
 	end,
 	onSplSymAngleChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _elemSliderVal("sp-slider-symmetry-mirror-angle", 0)
 		WG.TerraformBrush.setSymmetryMirrorAngle(val)
 	end,
 	onSplSymAngleStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) + delta) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		_elemSetSliderVal("sp-slider-symmetry-mirror-angle", a)
 	end,
 	onSplToggleSymRadial = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local nv = not WG.TerraformBrush.getState().symmetryRadial
 		WG.TerraformBrush.setSymmetryRadial(nv)
-		local dm = widgetState.dmHandle; if dm then dm.spSymmetryRadial = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.spSymmetryRadial = nv
+		end
 	end,
 	onSplToggleSymMirrorX = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local nv = not WG.TerraformBrush.getState().symmetryMirrorX
 		WG.TerraformBrush.setSymmetryMirrorX(nv)
-		local dm = widgetState.dmHandle; if dm then dm.spSymMirrorX = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.spSymMirrorX = nv
+		end
 	end,
 	onSplToggleSymMirrorY = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local nv = not WG.TerraformBrush.getState().symmetryMirrorY
 		WG.TerraformBrush.setSymmetryMirrorY(nv)
-		local dm = widgetState.dmHandle; if dm then dm.spSymMirrorY = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.spSymMirrorY = nv
+		end
 	end,
 	onSplSymPlaceOrigin = function(_event)
 		if WG.TerraformBrush then
@@ -3457,22 +7727,37 @@ local initialModel = {
 		end
 	end,
 	onSplMeasureShowLength = function(_event)
-		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureShowLength then return end
+		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureShowLength then
+			return
+		end
 		local nv = not WG.TerraformBrush.getState().measureShowLength
 		WG.TerraformBrush.setMeasureShowLength(nv)
-		local dm = widgetState.dmHandle; if dm then dm.spMeasureShowLength = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.spMeasureShowLength = nv
+		end
 	end,
 	onSplMeasureRuler = function(_event)
-		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureRulerMode then return end
+		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureRulerMode then
+			return
+		end
 		local nv = not WG.TerraformBrush.getState().measureRulerMode
 		WG.TerraformBrush.setMeasureRulerMode(nv)
-		local dm = widgetState.dmHandle; if dm then dm.spMeasureRulerMode = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.spMeasureRulerMode = nv
+		end
 	end,
 	onSplMeasureSticky = function(_event)
-		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureStickyMode then return end
+		if not WG.TerraformBrush or not WG.TerraformBrush.setMeasureStickyMode then
+			return
+		end
 		local nv = not WG.TerraformBrush.getState().measureStickyMode
 		WG.TerraformBrush.setMeasureStickyMode(nv)
-		local dm = widgetState.dmHandle; if dm then dm.spMeasureStickyMode = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.spMeasureStickyMode = nv
+		end
 	end,
 	onSplMeasureClear = function(_event)
 		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
@@ -3483,121 +7768,169 @@ local initialModel = {
 	-- Phase 2 step 6: tf_grass model-king handlers
 	onGbSetSubMode = function(_event, gbMode)
 		playSound("modeSwitch")
-		if WG.GrassBrush then WG.GrassBrush.setSubMode(gbMode) end
+		if WG.GrassBrush then
+			WG.GrassBrush.setSubMode(gbMode)
+		end
 		local dm = widgetState.dmHandle
-		if dm then dm.gbSubMode = gbMode end
+		if dm then
+			dm.gbSubMode = gbMode
+		end
 	end,
 
 	-- Density
 	onGbDensityChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		local v = _elemSliderVal("slider-grass-density", 80)
 		WG.GrassBrush.setDensity(v / 100)
 	end,
 	onGbDensityUp = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setDensity(math.min(1.0, (s and s.density or 0.8) + 0.05))
 	end,
 	onGbDensityDown = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setDensity(math.max(0.0, (s and s.density or 0.8) - 0.05))
 	end,
 
 	-- Save / Load / Clean
 	onGbSave = function(_event)
-		local grassApi = WG['grassgl4']
+		local grassApi = WG.grassgl4
 		if grassApi and grassApi.saveGrassTGA then
 			playSound("save")
 			grassApi.saveGrassTGA()
 		end
 	end,
 	onGbLoad = function(_event)
-		local grassApi = WG['grassgl4']
-		if grassApi and grassApi.loadGrass then grassApi.loadGrass() end
+		local grassApi = WG.grassgl4
+		if grassApi and grassApi.loadGrass then
+			grassApi.loadGrass()
+		end
 	end,
 	onGbClean = function(_event)
 		playSound("undo")
-		local grassApi = WG['grassgl4']
-		if grassApi and grassApi.clearGrass then grassApi.clearGrass() end
+		local grassApi = WG.grassgl4
+		if grassApi and grassApi.clearGrass then
+			grassApi.clearGrass()
+		end
 	end,
 
 	-- Undo / Redo / History
 	onGbUndo = function(_event)
-		if WG.GrassBrush then playSound("undo"); WG.GrassBrush.undo() end
+		if WG.GrassBrush then
+			playSound("undo")
+			WG.GrassBrush.undo()
+		end
 	end,
 	onGbRedo = function(_event)
-		if WG.GrassBrush then playSound("redo"); WG.GrassBrush.redo() end
+		if WG.GrassBrush then
+			playSound("redo")
+			WG.GrassBrush.redo()
+		end
 	end,
 	onGbHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.undoToIndex(_noSliderVal("gb-history", 0))
 	end,
 
 	-- Size
 	onGbSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setRadius(_noSliderVal("gb-size", 100))
 	end,
 	onGbSizeUp = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setRadius((s.radius or 100) + RADIUS_STEP)
 	end,
 	onGbSizeDown = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setRadius((s.radius or 100) - RADIUS_STEP)
 	end,
 
 	-- Rotation (shared TerraformBrush — grass applyBrush always reads TB rotation)
 	onGbRotChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setRotation(_noSliderVal("gb-rotation", 0))
 	end,
 	onGbRotCW = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.rotate(ROTATION_STEP)
+		end
 	end,
 	onGbRotCCW = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.rotate(-ROTATION_STEP)
+		end
 	end,
 
 	-- Curve / Fall-off
 	onGbCurveChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setCurve(_noSliderVal("gb-curve", 10) / 10)
 	end,
 	onGbCurveUp = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setCurve((s.curve or 1.0) + CURVE_STEP)
 	end,
 	onGbCurveDown = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setCurve((s.curve or 1.0) - CURVE_STEP)
 	end,
 
 	-- Length
 	onGbLengthChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setLengthScale(_noSliderVal("gb-length", 10) / 10)
 	end,
 	onGbLengthUp = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setLengthScale((s.lengthScale or 1.0) + 0.1)
 	end,
 	onGbLengthDown = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local s = WG.GrassBrush.getState()
 		WG.GrassBrush.setLengthScale((s.lengthScale or 1.0) - 0.1)
 	end,
 
 	-- Smart filter master toggle
 	onGbSmartToggle = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local st = WG.GrassBrush.getState()
 		playSound(st.smartEnabled and "toggleOff" or "toggleOn")
 		WG.GrassBrush.setSmartEnabled(not st.smartEnabled)
@@ -3605,7 +7938,9 @@ local initialModel = {
 
 	-- Smart filter sub-toggle (altMinEnable / altMaxEnable)
 	onGbSmartSubToggle = function(_event, filterKey)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local sf = WG.GrassBrush.getState().smartFilters or {}
 		playSound(sf[filterKey] and "toggleOff" or "toggleOn")
 		WG.GrassBrush.setSmartFilter(filterKey, not sf[filterKey])
@@ -3613,7 +7948,9 @@ local initialModel = {
 
 	-- Slope pill: toggle avoidCliffs (default) when activating
 	onGbPillSlope = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local sf = WG.GrassBrush.getState().smartFilters or {}
 		if sf.avoidCliffs or sf.preferSlopes then
 			playSound("toggleOff")
@@ -3624,12 +7961,17 @@ local initialModel = {
 			WG.GrassBrush.setSmartFilter("avoidCliffs", true)
 		end
 		local sf2 = WG.GrassBrush.getState().smartFilters or {}
-		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+		WG.GrassBrush.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true
+				or false
+		)
 	end,
 
 	-- Altitude pill: toggle altMinEnable (default) when activating
 	onGbPillAlt = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local sf = WG.GrassBrush.getState().smartFilters or {}
 		if sf.altMinEnable or sf.altMaxEnable then
 			playSound("toggleOff")
@@ -3640,29 +7982,46 @@ local initialModel = {
 			WG.GrassBrush.setSmartFilter("altMinEnable", true)
 		end
 		local sf2 = WG.GrassBrush.getState().smartFilters or {}
-		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+		WG.GrassBrush.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true
+				or false
+		)
 	end,
 
 	-- Slope mode sub-chips: mutually exclusive
 	onGbSlopeModeAvoid = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local sf = WG.GrassBrush.getState().smartFilters or {}
 		local newVal = not sf.avoidCliffs
 		playSound(newVal and "toggleOn" or "toggleOff")
-		if newVal then WG.GrassBrush.setSmartFilter("preferSlopes", false) end
+		if newVal then
+			WG.GrassBrush.setSmartFilter("preferSlopes", false)
+		end
 		WG.GrassBrush.setSmartFilter("avoidCliffs", newVal)
 		local sf2 = WG.GrassBrush.getState().smartFilters or {}
-		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+		WG.GrassBrush.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true
+				or false
+		)
 	end,
 	onGbSlopeModePrefer = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local sf = WG.GrassBrush.getState().smartFilters or {}
 		local newVal = not sf.preferSlopes
 		playSound(newVal and "toggleOn" or "toggleOff")
-		if newVal then WG.GrassBrush.setSmartFilter("avoidCliffs", false) end
+		if newVal then
+			WG.GrassBrush.setSmartFilter("avoidCliffs", false)
+		end
 		WG.GrassBrush.setSmartFilter("preferSlopes", newVal)
 		local sf2 = WG.GrassBrush.getState().smartFilters or {}
-		WG.GrassBrush.setSmartEnabled((sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true or false)
+		WG.GrassBrush.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true
+				or false
+		)
 	end,
 
 	-- Altitude sample toggles (shared TerraformBrush)
@@ -3675,36 +8034,50 @@ local initialModel = {
 
 	-- Slope/altitude slider changes
 	onGbSlopeMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setSmartFilter("slopeMax", _noSliderVal("gb-slope-max", 45))
 	end,
 	onGbSlopeMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setSmartFilter("slopeMin", _noSliderVal("gb-slope-min", 10))
 	end,
 	onGbAltMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setSmartFilter("altMin", _noSliderVal("gb-alt-min", 0))
 	end,
 	onGbAltMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setSmartFilter("altMax", _noSliderVal("gb-alt-max", 200))
 	end,
 	onGbSmartStep = function(_event, filterKey, step)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local sf = WG.GrassBrush.getState().smartFilters or {}
 		WG.GrassBrush.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
 	end,
 
 	-- Color filter
 	onGbColorToggle = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local st = WG.GrassBrush.getState()
 		playSound(st.texFilterEnabled and "toggleOff" or "toggleOn")
 		WG.GrassBrush.setTexFilterEnabled(not st.texFilterEnabled)
 	end,
 	onGbPipette = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local st = WG.GrassBrush.getState()
 		if st.pipetteMode then
 			WG.GrassBrush.setPipetteMode(false)
@@ -3714,31 +8087,43 @@ local initialModel = {
 		end
 	end,
 	onGbColorThreshChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setTexFilterThreshold(_noSliderVal("gb-color-thresh", 35) / 100)
 	end,
 	onGbColorThreshStep = function(_event, step)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local cur = math.floor((WG.GrassBrush.getState().texFilterThreshold or 0.35) * 100 + 0.5)
 		WG.GrassBrush.setTexFilterThreshold(math.max(0, math.min(150, cur + step)) / 100)
 	end,
 	onGbColorPadChange = function(_event)
-		if uiState.updatingFromCode or not WG.GrassBrush then return end
+		if uiState.updatingFromCode or not WG.GrassBrush then
+			return
+		end
 		WG.GrassBrush.setTexFilterPadding(_noSliderVal("gb-color-pad", 0))
 	end,
 	onGbColorPadStep = function(_event, step)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local cur = WG.GrassBrush.getState().texFilterPadding or 0
 		WG.GrassBrush.setTexFilterPadding(math.max(0, math.min(200, cur + step)))
 	end,
 	onGbExcludeToggle = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local st = WG.GrassBrush.getState()
 		playSound(st.texExcludeEnabled and "toggleOff" or "toggleOn")
 		WG.GrassBrush.setTexExcludeEnabled(not st.texExcludeEnabled)
 	end,
 	onGbExcludePipette = function(_event)
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		local st = WG.GrassBrush.getState()
 		if st.pipetteExcludeMode then
 			WG.GrassBrush.setPipetteExcludeMode(false)
@@ -3750,13 +8135,17 @@ local initialModel = {
 
 	-- Display toggles (shared TerraformBrush state)
 	onGbToggleGridOverlay = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).gridOverlay
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setGridOverlay(newVal)
 	end,
 	onGbToggleHeightMap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).heightColormap
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setHeightColormap(newVal)
@@ -3764,25 +8153,33 @@ local initialModel = {
 
 	-- Grid / angle / measure / symmetry toggles (shared TerraformBrush state)
 	onGbToggleGridSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).gridSnap
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setGridSnap(newVal)
 	end,
 	onGbToggleAngleSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnap
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnap(newVal)
 	end,
 	onGbToggleMeasure = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).measureActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setMeasureActive(newVal)
 	end,
 	onGbToggleSymmetry = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local newVal = not s.symmetryActive
 		playSound(newVal and "toggleOn" or "toggleOff")
@@ -3794,30 +8191,44 @@ local initialModel = {
 
 	-- Grid snap size
 	onGbSnapSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setGridSnapSize(_elemSliderVal("gb-slider-grid-snap-size", 48))
 	end,
-	onGbSnapSizeDown = function(_event) _gbSnapStep(-16) end,
-	onGbSnapSizeUp   = function(_event) _gbSnapStep(16) end,
+	onGbSnapSizeDown = function(_event)
+		_gbSnapStep(-16)
+	end,
+	onGbSnapSizeUp = function(_event)
+		_gbSnapStep(16)
+	end,
 
 	-- Angle snap step presets
 	onGbAngleStepChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local idx = math.floor(_elemSliderVal("gb-slider-angle-snap-step", 1) or 1) + 1
 		_gbApplyAnglePreset(idx)
 	end,
 	onGbAngleStepDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = (WG.TerraformBrush.getState() or {}).angleSnapStep or 15
 		_gbApplyAnglePreset(_gbFindAnglePresetIdx(cur) - 1)
 	end,
 	onGbAngleStepUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = (WG.TerraformBrush.getState() or {}).angleSnapStep or 15
 		_gbApplyAnglePreset(_gbFindAnglePresetIdx(cur) + 1)
 	end,
 	onGbAngleAutoSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnapAuto
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnapAuto(newVal)
@@ -3825,33 +8236,45 @@ local initialModel = {
 
 	-- Manual spoke
 	onGbManualSpokeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		_gbApplyManualSpoke(math.floor(_elemSliderVal("gb-slider-manual-spoke", 0) or 0))
 	end,
 	onGbManualSpokeDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local step = s.angleSnapStep or 15
-		local num  = math.max(1, math.floor(360 / step))
+		local num = math.max(1, math.floor(360 / step))
 		_gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) - 1 + num) % num)
 	end,
 	onGbManualSpokeUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local step = s.angleSnapStep or 15
-		local num  = math.max(1, math.floor(360 / step))
+		local num = math.max(1, math.floor(360 / step))
 		_gbApplyManualSpoke(((s.angleSnapManualSpoke or 0) + 1) % num)
 	end,
 
 	-- Measure sub-row
 	onGbMeasureRuler = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setMeasureRulerMode(not (WG.TerraformBrush.getState() or {}).measureRulerMode) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMeasureRulerMode(not (WG.TerraformBrush.getState() or {}).measureRulerMode)
+		end
 	end,
 	onGbMeasureSticky = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setMeasureStickyMode(not (WG.TerraformBrush.getState() or {}).measureStickyMode) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMeasureStickyMode(not (WG.TerraformBrush.getState() or {}).measureStickyMode)
+		end
 	end,
 	onGbMeasureShowLength = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setMeasureShowLength(not (WG.TerraformBrush.getState() or {}).measureShowLength) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMeasureShowLength(not (WG.TerraformBrush.getState() or {}).measureShowLength)
+		end
 	end,
 	onGbMeasureClear = function(_event)
 		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
@@ -3861,146 +8284,284 @@ local initialModel = {
 
 	-- Symmetry axis buttons
 	onGbSymRadial = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial)
+		end
 	end,
 	onGbSymMirrorX = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX)
+		end
 	end,
 	onGbSymMirrorY = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY)
+		end
 	end,
 
 	-- Symmetry origin
 	onGbSymPlaceOrigin = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+			playSound("toggleOn")
+		end
 	end,
 	onGbSymCenterOrigin = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryOrigin(nil, nil)
+			playSound("toggleOff")
+		end
 	end,
 
 	-- Symmetry radial count
 	onGbSymCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = math.floor(_elemSliderVal("gb-slider-symmetry-radial-count", 2) or 2)
 		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(v); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(v)
+			if dm.tbSymCountStr ~= s then
+				dm.tbSymCountStr = s
+			end
+		end
 	end,
 	onGbSymCountDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local c = math.max(2, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) - 1
 		WG.TerraformBrush.setSymmetryRadialCount(c)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(c)
+			if dm.tbSymCountStr ~= s then
+				dm.tbSymCountStr = s
+			end
+		end
 	end,
 	onGbSymCountUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local c = math.min(16, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) + 1
 		WG.TerraformBrush.setSymmetryRadialCount(c)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(c)
+			if dm.tbSymCountStr ~= s then
+				dm.tbSymCountStr = s
+			end
+		end
 	end,
 
 	-- Symmetry mirror angle
 	onGbSymAngleChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = _elemSliderVal("gb-slider-symmetry-mirror-angle", 0)
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(v)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(math.floor(v))
+			if dm.tbSymAngleStr ~= s then
+				dm.tbSymAngleStr = s
+			end
+		end
 	end,
 	onGbSymAngleDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) - 5
 		a = a % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(math.floor(a))
+			if dm.tbSymAngleStr ~= s then
+				dm.tbSymAngleStr = s
+			end
+		end
 	end,
 	onGbSymAngleUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) + 5
 		a = a % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(math.floor(a))
+			if dm.tbSymAngleStr ~= s then
+				dm.tbSymAngleStr = s
+			end
+		end
 	end,
 
 	-- Phase 2 step 6: tf_features model-king handlers
 	onFpSetMode = function(_event, fmode)
 		playSound("modeSwitch")
-		if WG.FeaturePlacer then WG.FeaturePlacer.setMode(fmode) end
-		local dm = widgetState.dmHandle; if dm then dm.fpSubMode = fmode end
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.setMode(fmode)
+		end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.fpSubMode = fmode
+		end
 	end,
 	onFpSetDist = function(_event, dist)
 		playSound("shapeSwitch")
-		if WG.FeaturePlacer then WG.FeaturePlacer.setDistribution(dist) end
-		local dm = widgetState.dmHandle; if dm then dm.fpDistMode = dist end
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.setDistribution(dist)
+		end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.fpDistMode = dist
+		end
 	end,
 
 	-- Size
 	onFpSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setRadius(_elemSliderVal("fp-slider-size", 200))
 	end,
 	onFpSizeUp = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setRadius((WG.FeaturePlacer.getState() or {}).radius + RADIUS_STEP * 4)
 	end,
 	onFpSizeDown = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setRadius((WG.FeaturePlacer.getState() or {}).radius - RADIUS_STEP * 4)
 	end,
 
 	-- Rotation
 	onFpRotChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setRotation(_elemSliderVal("fp-slider-rotation", 0))
 	end,
 	onFpRotCW = function(_event)
-		if WG.FeaturePlacer then WG.FeaturePlacer.rotate(ROTATION_STEP) end
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.rotate(ROTATION_STEP)
+		end
 	end,
 	onFpRotCCW = function(_event)
-		if WG.FeaturePlacer then WG.FeaturePlacer.rotate(-ROTATION_STEP) end
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.rotate(-ROTATION_STEP)
+		end
 	end,
 
 	-- Rotation randomness
 	onFpRotRandomChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setRotRandom(_elemSliderVal("fp-slider-rot-random", 100))
 	end,
 	onFpRotRandomUp = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local st = WG.FeaturePlacer.getState()
 		WG.FeaturePlacer.setRotRandom(math.min(100, (st.rotRandom or 0) + 5))
 	end,
 	onFpRotRandomDown = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local st = WG.FeaturePlacer.getState()
 		WG.FeaturePlacer.setRotRandom(math.max(0, (st.rotRandom or 100) - 5))
 	end,
 
+	-- Scale variation (per-feature visual scale range)
+	onFpScaleMinChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(_elemSliderVal("fp-slider-scale-min", 1))
+	end,
+	onFpScaleMinDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(((WG.FeaturePlacer.getState() or {}).scaleMin or 1) - 0.1)
+	end,
+	onFpScaleMinUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMin(((WG.FeaturePlacer.getState() or {}).scaleMin or 1) + 0.1)
+	end,
+	onFpScaleMaxChange = function(_event)
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(_elemSliderVal("fp-slider-scale-max", 1))
+	end,
+	onFpScaleMaxDown = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) - 0.1)
+	end,
+	onFpScaleMaxUp = function(_event)
+		if not WG.FeaturePlacer then
+			return
+		end
+		WG.FeaturePlacer.setScaleMax(((WG.FeaturePlacer.getState() or {}).scaleMax or 1) + 0.1)
+	end,
+
 	-- Count
 	onFpCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setFeatureCount(_elemSliderVal("fp-slider-count", 10))
 	end,
 	onFpCountUp = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setFeatureCount((WG.FeaturePlacer.getState().featureCount or 5) + 1)
 	end,
 	onFpCountDown = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setFeatureCount((WG.FeaturePlacer.getState().featureCount or 5) - 1)
 	end,
 
 	-- Cadence
 	onFpCadenceChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setCadence(sliderToCadence(_elemSliderVal("fp-slider-cadence", 0)))
 	end,
 	onFpCadenceUp = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local st = WG.FeaturePlacer.getState()
 		local step = math.max(1, math.floor(st.cadence * 0.2))
 		WG.FeaturePlacer.setCadence(st.cadence + step)
 	end,
 	onFpCadenceDown = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local st = WG.FeaturePlacer.getState()
 		local step = math.max(1, math.floor(st.cadence * 0.2))
 		WG.FeaturePlacer.setCadence(st.cadence - step)
@@ -4008,36 +8569,63 @@ local initialModel = {
 
 	-- Undo / Redo / History
 	onFpUndo = function(_event)
-		playSound("undo"); if WG.FeaturePlacer then WG.FeaturePlacer.undo() end
+		playSound("undo")
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.undo()
+		end
 	end,
 	onFpRedo = function(_event)
-		playSound("undo"); if WG.FeaturePlacer then WG.FeaturePlacer.redo() end
+		playSound("undo")
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.redo()
+		end
 	end,
 	onFpHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-fp-history", 0)
 		local fpSt = WG.FeaturePlacer.getState()
-		if not fpSt then return end
+		if not fpSt then
+			return
+		end
 		local diff = math.floor(val) - (fpSt.undoCount or 0)
-		if diff > 0 then for i = 1, diff do WG.FeaturePlacer.redo() end
-		elseif diff < 0 then for i = 1, -diff do WG.FeaturePlacer.undo() end end
+		if diff > 0 then
+			for i = 1, diff do
+				WG.FeaturePlacer.redo()
+			end
+		elseif diff < 0 then
+			for i = 1, -diff do
+				WG.FeaturePlacer.undo()
+			end
+		end
 	end,
 
 	-- Save / Clear / Load (fpLoad uses imperative DOM build for save list — justified)
 	onFpSave = function(_event)
-		playSound("save"); if WG.FeaturePlacer then WG.FeaturePlacer.save() end
+		playSound("save")
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.save()
+		end
 	end,
 	onFpClearAll = function(_event)
-		playSound("reset"); if WG.FeaturePlacer then WG.FeaturePlacer.clearAll() end
+		playSound("reset")
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.clearAll()
+		end
 	end,
 	onFpLoad = function(_event)
 		playSound("dropdown")
 		local dm = widgetState.dmHandle
 		local doc = widgetState.document
 		local listEl = doc and doc:GetElementById("fp-save-load-list")
-		if not listEl then return end
+		if not listEl then
+			return
+		end
 		local willOpen = not (dm and dm.fpSaveLoadOpen)
-		if dm then dm.fpSaveLoadOpen = willOpen end
+		if dm then
+			dm.fpSaveLoadOpen = willOpen
+		end
 		if willOpen and WG.FeaturePlacer then
 			listEl.inner_rml = ""
 			local files = WG.FeaturePlacer.listSaves()
@@ -4052,11 +8640,16 @@ local initialModel = {
 					local item = doc:CreateElement("div")
 					item:SetClass("tf-hm-row", true)
 					item.inner_rml = '<div class="tf-hm-row-line"><div class="tf-hm-mapname">'
-						.. (fname:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) .. '</div></div>'
+						.. (fname:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+						.. "</div></div>"
 					item:AddEventListener("click", function(ev)
 						playSound("apply")
-						if WG.FeaturePlacer then WG.FeaturePlacer.load(filepath) end
-						if widgetState.dmHandle then widgetState.dmHandle.fpSaveLoadOpen = false end
+						if WG.FeaturePlacer then
+							WG.FeaturePlacer.load(filepath)
+						end
+						if widgetState.dmHandle then
+							widgetState.dmHandle.fpSaveLoadOpen = false
+						end
 						ev:StopPropagation()
 					end, false)
 					listEl:AppendChild(item)
@@ -4067,7 +8660,9 @@ local initialModel = {
 
 	-- Alt enable toggle
 	onFpToggleAltEnable = function(_event, filterKey)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local sf = WG.FeaturePlacer.getState().smartFilters
 		playSound(sf[filterKey] and "toggleOff" or "toggleOn")
 		WG.FeaturePlacer.setSmartFilter(filterKey, not sf[filterKey])
@@ -4086,171 +8681,272 @@ local initialModel = {
 
 	-- Gizmo selection
 	onFpSelectVisible = function(_event)
-		if not (WG.FeaturePlacer and WG.FeaturePlacer.selectAllVisible) then return end
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.selectAllVisible) then
+			return
+		end
 		playSound("toggleOn")
 		WG.FeaturePlacer.selectAllVisible()
 	end,
 	onFpClearSelection = function(_event)
-		if not (WG.FeaturePlacer and WG.FeaturePlacer.clearSelection) then return end
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.clearSelection) then
+			return
+		end
 		playSound("toggleOff")
 		WG.FeaturePlacer.clearSelection()
 	end,
 	onFpDeleteSelection = function(_event)
-		if not (WG.FeaturePlacer and WG.FeaturePlacer.deleteSelection) then return end
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.deleteSelection) then
+			return
+		end
 		playSound("toggleOff")
 		WG.FeaturePlacer.deleteSelection()
 	end,
 	onFpReroll = function(_event)
-		if not (WG.FeaturePlacer and WG.FeaturePlacer.reroll) then return end
+		if not (WG.FeaturePlacer and WG.FeaturePlacer.reroll) then
+			return
+		end
 		playSound("toggleOn")
 		WG.FeaturePlacer.reroll()
 	end,
 
 	-- Grid overlay / snap
 	onFpToggleGridOverlay = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local newVal = not (WG.FeaturePlacer.getState() or {}).gridOverlay
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.FeaturePlacer.setGridOverlay(newVal)
 	end,
 	onFpToggleGridSnap = function(_event)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setGridSnap(not (WG.FeaturePlacer.getState() or {}).gridSnap)
 	end,
 
 	-- Height map / measure / symmetry (shared TerraformBrush)
 	onFpToggleHeightMap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).heightColormap
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setHeightColormap(newVal)
 	end,
 	onFpToggleMeasure = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).measureActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setMeasureActive(newVal)
 	end,
 	onFpMeasureRuler = function(_event)
 		if WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode then
-			WG.TerraformBrush.setMeasureRulerMode(not (WG.TerraformBrush.getState() or {}).measureRulerMode); playSound("tick")
+			WG.TerraformBrush.setMeasureRulerMode(not (WG.TerraformBrush.getState() or {}).measureRulerMode)
+			playSound("tick")
 		end
 	end,
 	onFpMeasureSticky = function(_event)
 		if WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode then
-			WG.TerraformBrush.setMeasureStickyMode(not (WG.TerraformBrush.getState() or {}).measureStickyMode); playSound("tick")
+			WG.TerraformBrush.setMeasureStickyMode(not (WG.TerraformBrush.getState() or {}).measureStickyMode)
+			playSound("tick")
 		end
 	end,
 	onFpMeasureShowLength = function(_event)
 		if WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength then
-			WG.TerraformBrush.setMeasureShowLength(not (WG.TerraformBrush.getState() or {}).measureShowLength); playSound("tick")
+			WG.TerraformBrush.setMeasureShowLength(not (WG.TerraformBrush.getState() or {}).measureShowLength)
+			playSound("tick")
 		end
 	end,
 	onFpMeasureClear = function(_event)
 		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
-			WG.TerraformBrush.clearMeasureLines(); playSound("tick")
+			WG.TerraformBrush.clearMeasureLines()
+			playSound("tick")
 		end
 	end,
 	onFpToggleSymmetry = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).symmetryActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setSymmetryActive(newVal)
 	end,
 	onFpSymRadial = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryRadial(not (WG.TerraformBrush.getState() or {}).symmetryRadial)
+		end
 	end,
 	onFpSymMirrorX = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorX(not (WG.TerraformBrush.getState() or {}).symmetryMirrorX)
+		end
 	end,
 	onFpSymMirrorY = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryMirrorY(not (WG.TerraformBrush.getState() or {}).symmetryMirrorY)
+		end
 	end,
 	onFpSymPlaceOrigin = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+		end
 	end,
 	onFpSymCenterOrigin = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryOrigin(nil, nil)
+			playSound("toggleOff")
+		end
 	end,
 
 	-- Symmetry radial count
 	onFpSymCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = math.floor(_elemSliderVal("fp-slider-symmetry-radial-count", 2))
 		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(v); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(v)
+			if dm.tbSymCountStr ~= s then
+				dm.tbSymCountStr = s
+			end
+		end
 	end,
 	onFpSymCountDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local c = math.max(2, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) - 1
 		WG.TerraformBrush.setSymmetryRadialCount(c)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(c)
+			if dm.tbSymCountStr ~= s then
+				dm.tbSymCountStr = s
+			end
+		end
 	end,
 	onFpSymCountUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local c = math.min(16, (WG.TerraformBrush.getState() or {}).symmetryRadialCount or 2) + 1
 		WG.TerraformBrush.setSymmetryRadialCount(c)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(c); if dm.tbSymCountStr ~= s then dm.tbSymCountStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(c)
+			if dm.tbSymCountStr ~= s then
+				dm.tbSymCountStr = s
+			end
+		end
 	end,
 
 	-- Symmetry mirror angle
 	onFpSymAngleChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = _elemSliderVal("fp-slider-symmetry-mirror-angle", 0)
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(v)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(math.floor(v))
+			if dm.tbSymAngleStr ~= s then
+				dm.tbSymAngleStr = s
+			end
+		end
 	end,
 	onFpSymAngleDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) - 5
 		a = a % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(math.floor(a))
+			if dm.tbSymAngleStr ~= s then
+				dm.tbSymAngleStr = s
+			end
+		end
 	end,
 	onFpSymAngleUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState() or {}).symmetryMirrorAngle or 0) + 5
 		a = a % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
-		local dm = widgetState.dmHandle; if dm then local s = tostring(math.floor(a)); if dm.tbSymAngleStr ~= s then dm.tbSymAngleStr = s end end
+		local dm = widgetState.dmHandle
+		if dm then
+			local s = tostring(math.floor(a))
+			if dm.tbSymAngleStr ~= s then
+				dm.tbSymAngleStr = s
+			end
+		end
 	end,
 
 	-- Smart slope/altitude sliders
 	onFpSlopeMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setSmartFilter("slopeMax", _elemSliderVal("fp-slider-slope-max", 45))
 	end,
 	onFpSlopeMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setSmartFilter("slopeMin", _elemSliderVal("fp-slider-slope-min", 10))
 	end,
 	onFpAltMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		local val = _elemSliderVal("fp-slider-alt-min", 0)
 		local sf = WG.FeaturePlacer.getState().smartFilters
-		if sf.altMaxEnable and val > sf.altMax then WG.FeaturePlacer.setSmartFilter("altMax", val) end
+		if sf.altMaxEnable and val > sf.altMax then
+			WG.FeaturePlacer.setSmartFilter("altMax", val)
+		end
 		WG.FeaturePlacer.setSmartFilter("altMin", val)
 	end,
 	onFpAltMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		local val = _elemSliderVal("fp-slider-alt-max", 200)
 		local sf = WG.FeaturePlacer.getState().smartFilters
-		if sf.altMinEnable and val < sf.altMin then WG.FeaturePlacer.setSmartFilter("altMin", val) end
+		if sf.altMinEnable and val < sf.altMin then
+			WG.FeaturePlacer.setSmartFilter("altMin", val)
+		end
 		WG.FeaturePlacer.setSmartFilter("altMax", val)
 	end,
 	onFpSmartStep = function(_event, filterKey, step)
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		local sf = WG.FeaturePlacer.getState().smartFilters
 		WG.FeaturePlacer.setSmartFilter(filterKey, (sf[filterKey] or 0) + step)
 	end,
 
 	-- Grid snap size
 	onFpSnapSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.FeaturePlacer then return end
+		if uiState.updatingFromCode or not WG.FeaturePlacer then
+			return
+		end
 		WG.FeaturePlacer.setGridSnapSize(_elemSliderVal("fp-slider-grid-snap-size", 48))
 	end,
-	onFpSnapSizeDown = function(_event) _fpSnapStep(-16) end,
-	onFpSnapSizeUp   = function(_event) _fpSnapStep(16) end,
+	onFpSnapSizeDown = function(_event)
+		_fpSnapStep(-16)
+	end,
+	onFpSnapSizeUp = function(_event)
+		_fpSnapStep(16)
+	end,
 	-- Phase 2 step 6: tf_metal model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/RADIUS_STEP/
@@ -4258,11 +8954,15 @@ local initialModel = {
 	-- _noDmLabel/_mbFindAnglePresetIdx/_mbApplyAnglePreset/_mbSnapStep/_mbSyncSymChipClasses.
 	onMbSetSubMode = function(_event, mbMode)
 		playSound("modeSwitch")
-		if WG.MetalBrush then WG.MetalBrush.setSubMode(mbMode) end
+		if WG.MetalBrush then
+			WG.MetalBrush.setSubMode(mbMode)
+		end
 		_noDmLabel("mbSubMode", mbMode)
 	end,
 	onMbOnValueChange = function(_event)
-		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		if uiState.updatingFromCode or not WG.MetalBrush then
+			return
+		end
 		local v = _elemSliderVal("slider-metal-value", 566)
 		local mv = 0.01 * math.exp(v / 1000 * math.log(50.0 / 0.01))
 		WG.MetalBrush.setMetalValue(mv)
@@ -4281,7 +8981,9 @@ local initialModel = {
 		end
 	end,
 	onMbOnSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setRadius(_elemSliderVal("slider-mb-size", 100))
 	end,
 	onMbSizeUp = function(_event)
@@ -4297,17 +8999,25 @@ local initialModel = {
 		end
 	end,
 	onMbOnRotChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setRotation(_elemSliderVal("slider-mb-rotation", 0))
 	end,
 	onMbRotCW = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.rotate(ROTATION_STEP)
+		end
 	end,
 	onMbRotCCW = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.rotate(-ROTATION_STEP)
+		end
 	end,
 	onMbOnLengthChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setLengthScale(_elemSliderVal("slider-mb-length", 10) / 10)
 	end,
 	onMbLengthUp = function(_event)
@@ -4323,7 +9033,9 @@ local initialModel = {
 		end
 	end,
 	onMbOnCurveChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setCurve(_elemSliderVal("slider-mb-curve", 10) / 10)
 	end,
 	onMbCurveUp = function(_event)
@@ -4343,7 +9055,10 @@ local initialModel = {
 			local newVal = not (WG.TerraformBrush.getState() or {}).gridOverlay
 			playSound(newVal and "toggleOn" or "toggleOff")
 			WG.TerraformBrush.setGridOverlay(newVal)
-			local d = widgetState.dmHandle; if d then d.mbGridOverlay = newVal end
+			local d = widgetState.dmHandle
+			if d then
+				d.mbGridOverlay = newVal
+			end
 		end
 	end,
 	onMbToggleHeightColormap = function(_event)
@@ -4351,98 +9066,150 @@ local initialModel = {
 			local newVal = not (WG.TerraformBrush.getState() or {}).heightColormap
 			playSound(newVal and "toggleOn" or "toggleOff")
 			WG.TerraformBrush.setHeightColormap(newVal)
-			local d = widgetState.dmHandle; if d then d.mbHeightColormap = newVal end
+			local d = widgetState.dmHandle
+			if d then
+				d.mbHeightColormap = newVal
+			end
 		end
 	end,
 	onMbToggleGridSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).gridSnap
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setGridSnap(newVal)
-		local d = widgetState.dmHandle; if d then d.mbGridSnap = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbGridSnap = newVal
+		end
 	end,
 	onMbOnSnapSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setGridSnapSize(_elemSliderVal("mb-slider-grid-snap-size", 48))
 	end,
 	onMbSnapSizeStep = function(_event, delta)
 		_mbSnapStep(delta)
 	end,
 	onMbToggleAngleSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnap
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnap(newVal)
-		local d = widgetState.dmHandle; if d then d.mbAngleSnap = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbAngleSnap = newVal
+		end
 	end,
 	onMbOnAngleStepChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		_mbApplyAnglePreset(_elemSliderVal("mb-slider-angle-snap-step", 1) + 1)
 	end,
 	onMbAngleStepStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		_mbApplyAnglePreset(_mbFindAnglePresetIdx((WG.TerraformBrush.getState() or {}).angleSnapStep) + delta)
 	end,
 	onMbToggleAutoSnap = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).angleSnapAuto
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setAngleSnapAuto(newVal)
-		local d = widgetState.dmHandle; if d then d.mbAngleSnapAuto = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbAngleSnapAuto = newVal
+		end
 	end,
 	onMbOnManualSpokeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setAngleSnapManualSpoke(_elemSliderVal("mb-slider-manual-spoke", 0))
 	end,
 	onMbManualSpokeStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local step = s.angleSnapStep or 15
 		local num = math.max(1, math.floor(360 / step))
 		WG.TerraformBrush.setAngleSnapManualSpoke(((s.angleSnapManualSpoke or 0) + delta + num) % num)
 	end,
 	onMbToggleMeasure = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local newVal = not (WG.TerraformBrush.getState() or {}).measureActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setMeasureActive(newVal)
-		local d = widgetState.dmHandle; if d then d.mbMeasureActive = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbMeasureActive = newVal
+		end
 	end,
 	onMbMeasureRuler = function(_event)
 		if WG.TerraformBrush then
 			local nv = not (WG.TerraformBrush.getState() or {}).measureRulerMode
 			WG.TerraformBrush.setMeasureRulerMode(nv)
-			local d = widgetState.dmHandle; if d then d.mbMeasureRulerMode = nv end
+			local d = widgetState.dmHandle
+			if d then
+				d.mbMeasureRulerMode = nv
+			end
 		end
 	end,
 	onMbMeasureSticky = function(_event)
 		if WG.TerraformBrush then
 			local nv = not (WG.TerraformBrush.getState() or {}).measureStickyMode
 			WG.TerraformBrush.setMeasureStickyMode(nv)
-			local d = widgetState.dmHandle; if d then d.mbMeasureStickyMode = nv end
+			local d = widgetState.dmHandle
+			if d then
+				d.mbMeasureStickyMode = nv
+			end
 		end
 	end,
 	onMbMeasureShowLength = function(_event)
 		if WG.TerraformBrush then
 			local nv = not (WG.TerraformBrush.getState() or {}).measureShowLength
 			WG.TerraformBrush.setMeasureShowLength(nv)
-			local d = widgetState.dmHandle; if d then d.mbMeasureShowLength = nv end
+			local d = widgetState.dmHandle
+			if d then
+				d.mbMeasureShowLength = nv
+			end
 		end
 	end,
 	onMbMeasureClear = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.clearMeasureLines() end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.clearMeasureLines()
+		end
 	end,
 	onMbToggleSymmetry = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local newVal = not s.symmetryActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setSymmetryActive(newVal)
 		if newVal and not (s.symmetryMirrorX or s.symmetryMirrorY) then
 			WG.TerraformBrush.setSymmetryMirrorX(true)
-			local d = widgetState.dmHandle; if d then d.mbSymMirrorX = true end
+			local d = widgetState.dmHandle
+			if d then
+				d.mbSymMirrorX = true
+			end
 		end
-		local d = widgetState.dmHandle; if d then d.mbSymmetryActive = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbSymmetryActive = newVal
+		end
 	end,
 	onMbToggleSymRadial = function(_event)
 		if WG.TerraformBrush then
@@ -4463,64 +9230,92 @@ local initialModel = {
 		end
 	end,
 	onMbSymPlaceOrigin = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn") end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+			playSound("toggleOn")
+		end
 	end,
 	onMbSymCenterOrigin = function(_event)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff") end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryOrigin(nil, nil)
+			playSound("toggleOff")
+		end
 	end,
 	onMbSymCountDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local c = math.max(2, (WG.TerraformBrush.getState().symmetryRadialCount or 2) - 1)
 		WG.TerraformBrush.setSymmetryRadialCount(c)
 		_noDmLabel("tbSymCountStr", tostring(c))
 		_elemSetSliderVal("mb-slider-symmetry-radial-count", c)
 	end,
 	onMbSymCountUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local c = math.min(16, (WG.TerraformBrush.getState().symmetryRadialCount or 2) + 1)
 		WG.TerraformBrush.setSymmetryRadialCount(c)
 		_noDmLabel("tbSymCountStr", tostring(c))
 		_elemSetSliderVal("mb-slider-symmetry-radial-count", c)
 	end,
 	onMbOnSymCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = _elemSliderVal("mb-slider-symmetry-radial-count", 2)
 		WG.TerraformBrush.setSymmetryRadialCount(v)
 		_noDmLabel("tbSymCountStr", tostring(v))
 	end,
 	onMbSymAngleDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) - 5) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		_noDmLabel("tbSymAngleStr", tostring(math.floor(a)))
 		_elemSetSliderVal("mb-slider-symmetry-mirror-angle", a)
 	end,
 	onMbSymAngleUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local a = ((WG.TerraformBrush.getState().symmetryMirrorAngle or 0) + 5) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		_noDmLabel("tbSymAngleStr", tostring(math.floor(a)))
 		_elemSetSliderVal("mb-slider-symmetry-mirror-angle", a)
 	end,
 	onMbOnSymAngleChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = _elemSliderVal("mb-slider-symmetry-mirror-angle", 0)
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
 		_noDmLabel("tbSymAngleStr", tostring(math.floor(v)))
 	end,
 	onMbToggleMapOverlay = function(_event)
-		if not WG.MetalBrush then return end
+		if not WG.MetalBrush then
+			return
+		end
 		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).mapOverlay
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.MetalBrush.setMapOverlay(newVal)
-		local d = widgetState.dmHandle; if d then d.mbMapOverlay = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbMapOverlay = newVal
+		end
 	end,
 	onMbToggleClusters = function(_event)
-		if not WG.MetalBrush then return end
+		if not WG.MetalBrush then
+			return
+		end
 		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).clusterCounter
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.MetalBrush.setClusterCounter(newVal)
-		local d = widgetState.dmHandle; if d then d.mbClusterOpen = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbClusterOpen = newVal
+		end
 	end,
 	onMbToggleInspector = function(_event)
 		local st = (WG.MetalBrush and WG.MetalBrush.getState and WG.MetalBrush.getState()) or {}
@@ -4528,46 +9323,89 @@ local initialModel = {
 		widgetState.mbInspectorOpen = open
 		playSound(open and "toggleOn" or "toggleOff")
 		if not open and WG.MetalBrush then
-			if st.clusterCounter then WG.MetalBrush.setClusterCounter(false) end
-			if st.lassoActive or st.lassoClosed then WG.MetalBrush.clearLasso() end
-			if st.balanceAxisActive then WG.MetalBrush.setBalanceAxisActive(false) end
+			if st.clusterCounter then
+				WG.MetalBrush.setClusterCounter(false)
+			end
+			if st.lassoActive or st.lassoClosed then
+				WG.MetalBrush.clearLasso()
+			end
+			if st.balanceAxisActive then
+				WG.MetalBrush.setBalanceAxisActive(false)
+			end
 		end
-		local d = widgetState.dmHandle; if d then d.mbInspectorOpen = open end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbInspectorOpen = open
+		end
 	end,
 	onMbToggleLasso = function(_event)
-		if not WG.MetalBrush then return end
+		if not WG.MetalBrush then
+			return
+		end
 		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).lassoActive
 		playSound(newVal and "toggleOn" or "toggleOff")
-		if newVal then WG.MetalBrush.startLasso() else WG.MetalBrush.clearLasso() end
-		local d = widgetState.dmHandle; if d then d.mbLassoActive = newVal end
+		if newVal then
+			WG.MetalBrush.startLasso()
+		else
+			WG.MetalBrush.clearLasso()
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbLassoActive = newVal
+		end
 	end,
 	onMbLassoClose = function(_event)
-		if WG.MetalBrush then playSound("apply"); WG.MetalBrush.finishLasso() end
+		if WG.MetalBrush then
+			playSound("apply")
+			WG.MetalBrush.finishLasso()
+		end
 	end,
 	onMbLassoClear = function(_event)
-		if WG.MetalBrush then playSound("reset"); WG.MetalBrush.clearLasso() end
+		if WG.MetalBrush then
+			playSound("reset")
+			WG.MetalBrush.clearLasso()
+		end
 	end,
 	onMbToggleBalanceAxis = function(_event)
-		if not WG.MetalBrush then return end
+		if not WG.MetalBrush then
+			return
+		end
 		local newVal = not (WG.MetalBrush.getState and WG.MetalBrush.getState() or {}).balanceAxisActive
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.MetalBrush.setBalanceAxisActive(newVal)
-		local d = widgetState.dmHandle; if d then d.mbAxisOpen = newVal end
+		local d = widgetState.dmHandle
+		if d then
+			d.mbAxisOpen = newVal
+		end
 	end,
 	onMbAxisX = function(_event)
-		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(0) end
+		if WG.MetalBrush then
+			playSound("modeSwitch")
+			WG.MetalBrush.setBalanceAxisAngle(0)
+		end
 	end,
 	onMbAxisZ = function(_event)
-		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisAngle(90) end
+		if WG.MetalBrush then
+			playSound("modeSwitch")
+			WG.MetalBrush.setBalanceAxisAngle(90)
+		end
 	end,
 	onMbAxisPlace = function(_event)
-		if WG.MetalBrush then playSound("modeSwitch"); WG.MetalBrush.setBalanceAxisPlacingOrigin(true) end
+		if WG.MetalBrush then
+			playSound("modeSwitch")
+			WG.MetalBrush.setBalanceAxisPlacingOrigin(true)
+		end
 	end,
 	onMbAxisCenter = function(_event)
-		if WG.MetalBrush then playSound("reset"); WG.MetalBrush.setBalanceAxisOrigin(nil, nil) end
+		if WG.MetalBrush then
+			playSound("reset")
+			WG.MetalBrush.setBalanceAxisOrigin(nil, nil)
+		end
 	end,
 	onMbOnAxisAngleChange = function(_event)
-		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		if uiState.updatingFromCode or not WG.MetalBrush then
+			return
+		end
 		WG.MetalBrush.setBalanceAxisAngle(_elemSliderVal("mb-slider-axis-angle", 0))
 	end,
 	onMbAxisAngleDown = function(_event)
@@ -4583,7 +9421,9 @@ local initialModel = {
 		end
 	end,
 	onMbOnClusterRadiusChange = function(_event)
-		if uiState.updatingFromCode or not WG.MetalBrush then return end
+		if uiState.updatingFromCode or not WG.MetalBrush then
+			return
+		end
 		local v = _elemSliderVal("mb-slider-cluster-radius", 256)
 		WG.MetalBrush.setClusterRadius(v)
 		_noDmLabel("mbClusterRadiusStr", tostring(v))
@@ -4602,23 +9442,33 @@ local initialModel = {
 	end,
 	onMbSave = function(_event)
 		playSound("save")
-		if WG.MetalBrush then WG.MetalBrush.saveMetalMap() end
+		if WG.MetalBrush then
+			WG.MetalBrush.saveMetalMap()
+		end
 	end,
 	onMbLoad = function(_event)
 		playSound("apply")
-		if WG.MetalBrush then WG.MetalBrush.loadMetalMap() end
+		if WG.MetalBrush then
+			WG.MetalBrush.loadMetalMap()
+		end
 	end,
 	onMbClean = function(_event)
 		local d = widgetState.dmHandle
 		if (widgetState.metalCleanConfirmExpiry or 0) > 0 then
 			widgetState.metalCleanConfirmExpiry = 0
-			if d then d.mbCleanConfirming = false end
+			if d then
+				d.mbCleanConfirming = false
+			end
 			_noDmLabel("mbCleanLabelStr", "CLEAN")
 			playSound("reset")
-			if WG.MetalBrush then WG.MetalBrush.clearMetalMap() end
+			if WG.MetalBrush then
+				WG.MetalBrush.clearMetalMap()
+			end
 		else
 			widgetState.metalCleanConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
-			if d then d.mbCleanConfirming = true end
+			if d then
+				d.mbCleanConfirming = true
+			end
 			_noDmLabel("mbCleanLabelStr", "ARE YOU SURE?")
 			playSound("toggleOn")
 		end
@@ -4628,8 +9478,13 @@ local initialModel = {
 	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal/_noSliderVal upvalues.
 	onDcSetDist = function(_event, dist)
 		playSound("shapeSwitch")
-		if WG.DecalPlacer then WG.DecalPlacer.setDistribution(dist) end
-		local d = widgetState.dmHandle; if d then d.dcDistribution = dist end
+		if WG.DecalPlacer then
+			WG.DecalPlacer.setDistribution(dist)
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.dcDistribution = dist
+		end
 	end,
 	onDcHeatmapExport = function(_event)
 		playSound("tick")
@@ -4649,184 +9504,309 @@ local initialModel = {
 	end,
 	onDcLibScatter = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first"); return end
+		if not WG.DecalPlacer then
+			Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first")
+			return
+		end
 		WG.DecalPlacer.setMode("scatter")
 	end,
 	onDcLibPoint = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first"); return end
+		if not WG.DecalPlacer then
+			Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first")
+			return
+		end
 		WG.DecalPlacer.setMode("point")
 	end,
 	onDcLibRemove = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first"); return end
+		if not WG.DecalPlacer then
+			Spring.Echo("[Decal Library] Enable the 'Decal Placer' widget first")
+			return
+		end
 		WG.DecalPlacer.setMode("remove")
 	end,
 	onDcRadiusChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setRadius(_elemSliderVal("dc-slider-radius", 200))
 	end,
 	onDcRadiusDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setRadius(st.radius - 8)
 	end,
 	onDcRadiusUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setRadius(st.radius + 8)
 	end,
 	onDcRotationChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setRotation(_elemSliderVal("dc-slider-rotation", 0))
 	end,
 	onDcRotCCW = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setRotation(st.rotation - 5)
 	end,
 	onDcRotCW = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setRotation(st.rotation + 5)
 	end,
 	onDcRotRandChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setRotRandom(_elemSliderVal("dc-slider-rotrand", 100))
 	end,
 	onDcRotRandDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setRotRandom(st.rotRandom - 1)
 	end,
 	onDcRotRandUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setRotRandom(st.rotRandom + 1)
 	end,
 	onDcCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setDecalCount(_elemSliderVal("dc-slider-count", 8))
 	end,
 	onDcCountDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setDecalCount(st.decalCount - 1)
 	end,
 	onDcCountUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setDecalCount(st.decalCount + 1)
 	end,
 	onDcCadenceChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setCadence(_elemSliderVal("dc-slider-cadence", 50))
 	end,
 	onDcCadenceDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setCadence(st.cadence - 5)
 	end,
 	onDcCadenceUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setCadence(st.cadence + 5)
 	end,
 	onDcSizeMinChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setSizeMin(_elemSliderVal("dc-slider-sizemin", 32))
 	end,
 	onDcSizeMinDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setSizeMin(st.sizeMin - 4)
 	end,
 	onDcSizeMinUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setSizeMin(st.sizeMin + 4)
 	end,
 	onDcSizeMaxChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setSizeMax(_elemSliderVal("dc-slider-sizemax", 96))
 	end,
 	onDcSizeMaxDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setSizeMax(st.sizeMax - 4)
 	end,
 	onDcSizeMaxUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setSizeMax(st.sizeMax + 4)
 	end,
 	onDcAlphaChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		WG.DecalPlacer.setAlpha(_elemSliderVal("dc-slider-alpha", 85) / 100)
 	end,
 	onDcAlphaDown = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setAlpha(math.max(0, ((st.alpha or 0) * 100 - 1) / 100))
 	end,
 	onDcAlphaUp = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
-		local st = WG.DecalPlacer.getState(); if not st then return end
+		if not WG.DecalPlacer then
+			return
+		end
+		local st = WG.DecalPlacer.getState()
+		if not st then
+			return
+		end
 		WG.DecalPlacer.setAlpha(math.min(1, ((st.alpha or 0) * 100 + 1) / 100))
 	end,
 	onDcAlignToggle = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
+		if not WG.DecalPlacer then
+			return
+		end
 		local s = WG.DecalPlacer.getState()
-		if s then WG.DecalPlacer.setAlignToNormal(not s.alignToNormal) end
+		if s then
+			WG.DecalPlacer.setAlignToNormal(not s.alignToNormal)
+		end
 	end,
 	onDcUndo = function(_event)
-		if WG.DecalPlacer then playSound("undo"); WG.DecalPlacer.undo() end
+		if WG.DecalPlacer then
+			playSound("undo")
+			WG.DecalPlacer.undo()
+		end
 	end,
 	onDcRedo = function(_event)
 		-- placeholder; DC redo not implemented
 	end,
 	onDcHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.DecalPlacer then return end
+		if uiState.updatingFromCode or not WG.DecalPlacer then
+			return
+		end
 		local val = _noSliderVal("dc-history", 0)
 		local dcSt = WG.DecalPlacer.getState()
-		if not dcSt then return end
+		if not dcSt then
+			return
+		end
 		local cur = dcSt.undoCount or 0
 		local diff = val - cur
 		if diff < 0 then
-			for _ = 1, -diff do WG.DecalPlacer.undo() end
+			for _ = 1, -diff do
+				WG.DecalPlacer.undo()
+			end
 		end
 	end,
 	onDcClearAll = function(_event)
 		playSound("tick")
-		if WG.DecalPlacer then WG.DecalPlacer.clearAll() end
+		if WG.DecalPlacer then
+			WG.DecalPlacer.clearAll()
+		end
 	end,
 	onDcSave = function(_event)
 		playSound("tick")
-		if WG.DecalPlacer then WG.DecalPlacer.save() end
+		if WG.DecalPlacer then
+			WG.DecalPlacer.save()
+		end
 	end,
 	onDcLoad = function(_event)
 		playSound("tick")
-		if not WG.DecalPlacer then return end
+		if not WG.DecalPlacer then
+			return
+		end
 		local saves = WG.DecalPlacer.listSaves()
 		if not saves or #saves == 0 then
-			Spring.Echo("[Decal Placer] No saved files"); return
+			Spring.Echo("[Decal Placer] No saved files")
+			return
 		end
 		WG.DecalPlacer.load(saves[#saves])
 		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
@@ -4838,7 +9818,21 @@ local initialModel = {
 	-- ===== FILE menu + New Map dialog handlers =====
 	onFileMenuToggle = function(_event)
 		playSound("click")
-		local d = widgetState.dmHandle; if d then d.fileMenuOpen = not d.fileMenuOpen end
+		local d = widgetState.dmHandle
+		if d then
+			d.fileMenuOpen = not d.fileMenuOpen
+			-- Refresh the Save item's target label on every open (the current
+			-- project changes when a save finishes or a project is deleted).
+			if d.fileMenuOpen then
+				local mp = WG.MapProject
+				local cur = (mp and mp.current and mp.current()) or ""
+				-- Slugs go up to 64 chars; don't let one stretch the menu.
+				if #cur > 24 then
+					cur = cur:sub(1, 23) .. "\226\128\166"
+				end
+				d.projectCurrentName = cur
+			end
+		end
 	end,
 	onFileNewMap = function(_event)
 		playSound("click")
@@ -4849,15 +9843,15 @@ local initialModel = {
 		-- Seed the procedural-terrain recipe (keep last session's feel, reroll seed).
 		widgetState.newMap = widgetState.newMap or {}
 		local nm = widgetState.newMap
-		nm.hilliness    = nm.hilliness    or 0.5
-		nm.roughness    = nm.roughness    or 0.5
+		nm.hilliness = nm.hilliness or 0.5
+		nm.roughness = nm.roughness or 0.5
 		nm.featureScale = nm.featureScale or 0.5
-		nm.jaggedness   = nm.jaggedness   or 0.45
-		nm.waterLevel   = nm.waterLevel   or 0.0
-		nm.islandness   = nm.islandness   or 0.0
+		nm.jaggedness = nm.jaggedness or 0.45
+		nm.waterLevel = nm.waterLevel or 0.0
+		nm.islandness = nm.islandness or 0.0
 		nm.metalDensity = nm.metalDensity or 0.5
-		nm.symmetry     = nm.symmetry     or "rot180"
-		nm.seed         = math.random(1, 999999)
+		nm.symmetry = nm.symmetry or "rot180"
+		nm.seed = math.random(1, 999999)
 		-- Default to a flat canvas every time the dialog opens; procedural terrain
 		-- is opt-in via the GENERATE TERRAIN toggle.
 		widgetState.newMapGen = false
@@ -4877,7 +9871,9 @@ local initialModel = {
 		-- makes reuse safe — but an unnoticed leftover would misname the map).
 		widgetState.newMapNameStr = ""
 		local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
-		if nameInp then nameInp:SetAttribute("value", "") end
+		if nameInp then
+			nameInp:SetAttribute("value", "")
+		end
 		_nmRefreshLabels()
 		_nmRefreshSplatLabel()
 		widgetState._nmRefreshEnvLabel()
@@ -4885,39 +9881,57 @@ local initialModel = {
 	end,
 	onNewMapClose = function(_event)
 		playSound("click")
-		local d = widgetState.dmHandle; if d then d.newMapOpen = false end
+		local d = widgetState.dmHandle
+		if d then
+			d.newMapOpen = false
+		end
 	end,
-	-- ===== Save Project dialog handlers (backed by WG.MapProject) =====
-	onFileSaveProject = function(_event)
+	-- ===== Save / Save As dialog handlers (backed by WG.MapProject) =====
+	-- FILE > Save: one-click save to the session's current project (the one
+	-- last opened or saved). No current project yet → act as Save As.
+	onFileSave = function(_event)
 		playSound("click")
+		local mp = WG.MapProject
+		local current = mp and mp.current and mp.current() or nil
+		if not (current and mp.save) then
+			widgetState.openProjectSaveDialog()
+			return
+		end
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = false
-			d.projectSaveOpen = true
-			d.projectSaveHint = ""
-			d.projectSaveUnits = widgetState.projectSaveUnits and true or false
 		end
-		widgetState.projectUnitsDropArmed = nil
-		-- Prefill: last used name, else the slugified map name.
-		local doc = widgetState.document
-		local inp = doc and doc:GetElementById("input-project-name")
-		if inp then
-			local name = widgetState.projectNameStr
-			if not name or name == "" then
-				name = (Game.mapName or "map"):lower():gsub("[^%w_%-]+", "-"):gsub("^%-+", ""):gsub("%-+$", "")
-			end
-			widgetState.projectNameStr = name
-			inp:SetAttribute("value", name)
+		if mp.isBusy and mp.isBusy() then
+			Spring.Echo("[Terraform Brush] cannot save: a save or load is already running")
+			return
 		end
+		-- Keep the project's units loadout as it is on disk: re-record it when
+		-- the project has one, never silently add or drop one. Changing that is
+		-- what the Save As dialog's toggle is for.
+		local keepUnits = (mp.hasUnitsSection and mp.hasUnitsSection(current)) and true or false
+		if mp.save(current, { saveUnits = keepUnits }) then
+			playSound("save")
+		end
+	end,
+	onFileSaveProject = function(_event)
+		playSound("click")
+		widgetState.openProjectSaveDialog()
 	end,
 	onProjectSaveClose = function(_event)
 		playSound("click")
-		local d = widgetState.dmHandle; if d then d.projectSaveOpen = false end
+		widgetState.projectSaveUi.close()
+		local d = widgetState.dmHandle
+		if d then
+			d.projectSaveOpen = false
+		end
 	end,
 	onProjectSaveUnitsToggle = function(_event)
+		if widgetState.dmHandle and widgetState.dmHandle.projectSavePending then
+			return
+		end
 		playSound("click")
 		widgetState.projectSaveUnits = not widgetState.projectSaveUnits
-		widgetState.projectUnitsDropArmed = nil
+		widgetState.projectSaveUi.changed()
 		local d = widgetState.dmHandle
 		if d then
 			d.projectSaveUnits = widgetState.projectSaveUnits
@@ -4925,56 +9939,45 @@ local initialModel = {
 		end
 	end,
 	onProjectSaveConfirm = function(_event)
-		local d = widgetState.dmHandle
 		-- Read the input at click time (the change listener also tracks it, but
 		-- typed-and-not-yet-blurred text must not be lost).
-		local doc = widgetState.document
-		local inp = doc and doc:GetElementById("input-project-name")
-		local name = (inp and inp:GetAttribute("value")) or widgetState.projectNameStr or ""
-		name = name:gsub("^%s+", ""):gsub("%s+$", "")
-		if name == "" then
-			if d then d.projectSaveHint = "Enter a project name first." end
-			return
-		end
-		if not name:match("^[A-Za-z0-9_%-]+$") then
-			if d then d.projectSaveHint = "Only letters, digits, - and _ (no spaces)." end
-			return
-		end
-		if not (WG.MapProject and WG.MapProject.save) then
-			if d then d.projectSaveHint = "Map Project widget is not enabled (Settings > Widgets)." end
-			return
-		end
-		if WG.MapProject.isBusy and WG.MapProject.isBusy() then
-			if d then d.projectSaveHint = "A save is already running (see console)." end
-			return
-		end
+		-- Read the pair at click time, not from the mirror: typed-and-not-yet-
+		-- blurred text has not reached it.
+		local name = widgetState.projectSaveFullName()
 		widgetState.projectNameStr = name
-		-- Toggle-off re-save of a project that HAS a units loadout would silently
-		-- drop it (stale-section cleanup). Require a second SAVE click to confirm.
-		if not widgetState.projectSaveUnits
-			and widgetState.projectUnitsDropArmed ~= name
-			and WG.MapProject.hasUnitsSection and WG.MapProject.hasUnitsSection(name) then
-			widgetState.projectUnitsDropArmed = name
-			if d then d.projectSaveHint = "'" .. name .. "' includes a units loadout. Saving with the toggle OFF removes it — press SAVE PROJECT again to confirm." end
-			return
-		end
-		widgetState.projectUnitsDropArmed = nil
-		if WG.MapProject.save(name, { saveUnits = widgetState.projectSaveUnits and true or false }) then
+		if widgetState.projectSaveUi.save(name) then
 			playSound("save")
-			if d then d.projectSaveHint = "Saving to MapProjects/" .. name .. "/ — progress in console." end
-		else
-			if d then d.projectSaveHint = "Save could not start (see console)." end
 		end
 	end,
 	-- ===== Open Project dialog handlers (backed by WG.MapProject) =====
 	onFileOpenProject = function(_event)
 		playSound("click")
+		if widgetState.projectLibraryUi then
+			widgetState.projectLibraryUi.disarm()
+			widgetState.projectLibraryUi.sync()
+		end
 		local d = widgetState.dmHandle
 		if d then
 			d.fileMenuOpen = false
 			d.projectOpenOpen = true
 			d.projectOpenHint = ""
+			d.projectOpenConfirming = false
+			-- A fresh look at the window is not the moment the runner was
+			-- written; the hint about it belonged to that moment.
+			if not widgetState.projectHelperHintSticky then
+				d.projectHelperHint = ""
+			end
+			-- One browser at a time: both windows draw the same tree.
+			if d.projectSaveOpen then
+				d.projectSaveOpen = false
+				if widgetState.projectSaveUi then
+					widgetState.projectSaveUi.close()
+				end
+			end
 		end
+		widgetState.projectOpenArmed = nil
+		-- What is on this disk may have changed since the last look.
+		widgetState.projectLocalDirty = true
 		-- Imperative DOM list build (same justification as the feature placer's
 		-- save list: rows are dynamic, data-model arrays are not used here).
 		-- Markup, styling and the date/name/badge layout are shared with the Load
@@ -4985,151 +9988,525 @@ local initialModel = {
 		-- Clicking a row only selects it — LOAD and DELETE live at the bottom of
 		-- the dialog, like Save Project and New Map. Neither belongs on a stray
 		-- click in a list: one restarts the session, the other destroys files.
+		---@type table?
 		local doc = widgetState.document
 		local listEl = doc and doc:GetElementById("tf-project-open-list")
-		if not listEl then return end
+		if not (doc and listEl) then
+			return
+		end
 		local function rebuild()
+			if not doc then
+				return
+			end
+			-- The selection survives a folder toggle, a sort or a filter change;
+			-- it drops only when the selected project is no longer listed.
+			local keepSlug = tostring(widgetState.projectOpenSelectedSlug or "")
+			local keepFolder = widgetState.projectOpenIsFolder == true
 			widgetState.projectOpenRowEls = {}
+			widgetState.projectOpenFolderEls = {}
+			widgetState.projectOpenIsFolder = false
 			widgetState.projectOpenSelectedSlug = nil
 			widgetState.projectDeleteConfirmExpiry = 0
 			if widgetState.dmHandle then
 				widgetState.dmHandle.projectOpenSelected = ""
+				widgetState.dmHandle.projectOpenIsFolder = false
+				widgetState.dmHandle.projectInfoFolder = false
 				widgetState.dmHandle.projectDeleteConfirming = false
 			end
 			listEl.inner_rml = ""
 			local dm = widgetState.dmHandle
+			local function esc(s)
+				return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+			end
 			if not (WG.MapProject and WG.MapProject.listDetailed) then
-				listEl.inner_rml = '<div class="tf-hm-empty">Map Project widget is not enabled (Settings &gt; Widgets).</div>'
-				if dm then dm.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+				-- rml-dom-escape: existing imperative tree; Recoil cannot bind struct iterator children.
+				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+					.. esc(widgetState.text("unavailable"))
+					.. "</div>"
 				return
 			end
-			local projects = WG.MapProject.listDetailed()
-			if #projects == 0 then
-				listEl.inner_rml = '<div class="tf-hm-empty">'
-					.. 'No projects found in MapProjects/. Projects saved this session may need an engine restart to appear (VFS folder cache).</div>'
+			-- One list over this disk and the team library, keyed by path, then
+			-- narrowed by the filter chip.
+			local view = tostring(widgetState.projectFilter or "all")
+			local all, bySlug = widgetState.projectUnionList(view)
+			widgetState.projectOpenBySlug = bySlug
+			local stages = (widgetState.projectLibraryUi and widgetState.projectLibraryUi.folders()) or {}
+			-- The team's folders are drawn even when empty: the structure is
+			-- fixed and worth seeing before anything is in it. Not in the disk
+			-- view, which lists what is here.
+			local treeFolders = (view ~= "local" and view ~= "autosave") and stages or {}
+			local hasLibraryFolders = #treeFolders > 0
+			if #all == 0 and not hasLibraryFolders then
+				-- rml-dom-escape: existing imperative tree; no model-bound row template.
+				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+					.. esc(
+						widgetState.text(
+							view == "team" and "empty" or view == "autosave" and "autosaveEmpty" or "localEmpty"
+						)
+					)
+					.. "</div>"
+				if dm then
+					dm.projectOpenCount = ""
+				end
+				widgetState.projectShowDetails(nil)
 				return
 			end
-			local function esc(s) return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")) end
-			local parts = {}
-			for i, p in ipairs(projects) do
-				-- Manifests stamp ISO-8601 UTC ("2026-07-27T14:22:31Z"); the heightmap
-				-- browser shows "YYYY-MM-DD HH:MM", so drop the seconds and the T/Z.
-				local stamp = tostring(p.modified or "")
-				local y, mo, dd, hh, mi = stamp:match("^(%d+)%-(%d+)%-(%d+)T(%d+):(%d+)")
-				local when = y and string.format("%s-%s-%s %s:%s", y, mo, dd, hh, mi)
-					or (stamp ~= "" and stamp or "(no date)")
-				parts[#parts + 1] = string.format(
-					'<div id="tf-proj-r%d" class="tf-hm-row tf-proj-row"><div class="tf-hm-row-line">'
-					.. '<div class="tf-hm-date">%s</div>'
-					.. '<div class="tf-hm-mapname">%s</div>'
-					.. '<div class="tf-hm-badge">%sx%s</div>'
-					.. '</div></div>',
-					i, esc(when), esc(p.name or p.slug),
-					esc(p.size_x or "?"), esc(p.size_z or "?"))
+			local filter = tostring(widgetState.projectOpenFilter or ""):lower()
+			-- Search: case-insensitive substring over the name, the path and the
+			-- NxN size, so "cm0", "campaign/" and "16x16" all work.
+			local projects = {}
+			for _, p in ipairs(all) do
+				if filter == "" then
+					projects[#projects + 1] = p
+				else
+					local hay = string.format("%s %s %sx%s", p.name or "", p.slug or "", p.size_x or "", p.size_z or "")
+					if hay:lower():find(filter, 1, true) then
+						projects[#projects + 1] = p
+					end
+				end
 			end
-			listEl.inner_rml = table.concat(parts)
-			for i, p in ipairs(projects) do
+			if dm then
+				dm.projectOpenCount = widgetState.projectCountText(#projects, #all)
+			end
+			if #projects == 0 and (filter ~= "" or not hasLibraryFolders) then
+				-- rml-dom-escape: existing imperative tree; no model-bound row template.
+				listEl.inner_rml = '<div class="tf-hm-empty text-medium">'
+					.. esc(widgetState.text("noMatches"))
+					.. "</div>"
+				widgetState.projectShowDetails(nil)
+				return
+			end
+			table.sort(projects, widgetState.projectLess)
+			local stageSet = widgetState.projectTeamDestinations()
+			local markup, rows, folders = widgetState.projectTreeRml(projects, {
+				idRow = "tf-proj-r",
+				idFolder = "tf-proj-f",
+				collapsed = widgetState.uiPrefs.projectCollapsed,
+				flat = filter ~= "",
+				extraFolders = treeFolders,
+				current = WG.MapProject.current and WG.MapProject.current(),
+				sync = (dm and dm.libraryConfigured) and widgetState.projectSyncCell or nil,
+				groups = widgetState.projectStageGroups(stages),
+				stages = stageSet,
+				diskSection = hasLibraryFolders,
+				order = stages,
+				moves = widgetState.projectLibraryUi and widgetState.projectLibraryUi.pendingMove,
+			})
+			listEl.inner_rml = markup
+			-- Drop targets, list first so a folder row registered later wins the
+			-- hit test; the list itself is the top level. A project that is only
+			-- in the team library can only be dropped on one of the team's own
+			-- folders, so each row is registered with whether it is one.
+			for i = #widgetState.projectDropEls, 1, -1 do
+				if widgetState.projectDropEls[i].save == false then
+					table.remove(widgetState.projectDropEls, i)
+				end
+			end
+			widgetState.projectDropEls[#widgetState.projectDropEls + 1] =
+				{ path = "", el = listEl, row = false, save = false, dest = false }
+			for i, p in ipairs(rows) do
 				local row = doc:GetElementById("tf-proj-r" .. i)
 				if row then
-					local slug, label = p.slug, (p.name or p.slug)
-					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] = { slug = slug, el = row }
+					-- Nested projects select by their path so the details pane and
+					-- the console echoes say exactly what will open.
+					local rec = { slug = p.slug, label = p.slug, el = row, p = p }
+					widgetState.projectOpenRowEls[#widgetState.projectOpenRowEls + 1] = rec
 					row:AddEventListener("click", function(ev)
 						ev:StopPropagation()
-						playSound("click")
-						widgetState.projectOpenSelectedSlug = slug
-						-- Picking a different project must not inherit the armed DELETE.
-						widgetState.projectDeleteConfirmExpiry = 0
-						local dm2 = widgetState.dmHandle
-						if dm2 then
-							dm2.projectOpenSelected = label
-							dm2.projectDeleteConfirming = false
-							dm2.projectOpenHint = ""
+						if widgetState.projectDragClickEaten then
+							widgetState.projectDragClickEaten = nil
+							return
 						end
-						for _, r in ipairs(widgetState.projectOpenRowEls or {}) do
-							r.el:SetClass("selected", r.slug == slug)
+						playSound("click")
+						widgetState.projectSelectRow(rec)
+					end, false)
+					row:AddEventListener("mousedown", function(ev)
+						local mp = ev.parameters
+						if mp and mp.button and mp.button ~= 0 then
+							return
+						end
+						widgetState.projectDragArm(rec.slug, false)
+						if widgetState.projectDrag then
+							widgetState.projectDrag.el = row
+							row:SetClass("dragging", true)
 						end
 					end, false)
+					-- Double click opens it, the way a file browser does. It still
+					-- goes through the same guards as the OPEN button.
+					row:AddEventListener("dblclick", function(ev)
+						ev:StopPropagation()
+						widgetState.projectSelectRow(rec)
+						widgetState.projectOpenCommit()
+					end, false)
 				end
+			end
+			for i, path in ipairs(folders) do
+				local fEl = doc:GetElementById("tf-proj-f" .. i)
+				local gEl = doc:GetElementById("tf-proj-f" .. i .. "-g")
+				if fEl then
+					widgetState.projectDropEls[#widgetState.projectDropEls + 1] = {
+						path = path,
+						el = fEl,
+						row = true,
+						save = false,
+						dest = stageSet[path] == true,
+					}
+					widgetState.projectOpenFolderEls[#widgetState.projectOpenFolderEls + 1] = { path = path, el = fEl }
+					-- The row picks the folder, because DELETE acts on whatever is
+					-- selected; only the glyph folds it.
+					fEl:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						if widgetState.projectDragClickEaten then
+							widgetState.projectDragClickEaten = nil
+							return
+						end
+						playSound("click")
+						widgetState.projectSelectFolder(path)
+					end, false)
+				end
+				if gEl then
+					gEl:AddEventListener("click", function(ev)
+						ev:StopPropagation()
+						playSound("click")
+						-- Rebuild next frame, not from inside the click on a row the
+						-- rebuild destroys.
+						widgetState.projectToggleFolder(path)
+					end, false)
+				end
+			end
+			local restored = false
+			if keepSlug ~= "" and keepFolder then
+				for _, f in ipairs(widgetState.projectOpenFolderEls) do
+					if f.path == keepSlug then
+						widgetState.projectSelectFolder(keepSlug)
+						restored = true
+					end
+				end
+			end
+			if keepSlug ~= "" and not keepFolder then
+				for _, r in ipairs(widgetState.projectOpenRowEls) do
+					if r.slug == keepSlug then
+						widgetState.projectOpenSelectedSlug = keepSlug
+						r.el:SetClass("selected", true)
+						if dm then
+							dm.projectOpenSelected = r.label
+						end
+						widgetState.projectShowDetails(r.p)
+						restored = true
+					end
+				end
+			end
+			if not restored then
+				widgetState.projectShowDetails(nil)
 			end
 		end
 		-- Stashed on widgetState (not a chunk local) so the bottom buttons can
 		-- refresh the list after a delete.
 		widgetState.projectOpenRebuild = rebuild
+		widgetState.projectSyncSort()
+		widgetState.projectSyncHelperFiles()
 		rebuild()
 	end,
 	-- LOAD PROJECT / DELETE act on the selected row. Both are pointer-events:none
 	-- while nothing is selected (data-class-disabled), so neither needs its own
 	-- empty-selection branch beyond the guard below.
 	onProjectOpenLoad = function(_event)
+		widgetState.projectOpenCommit()
+	end,
+	-- OPEN in the team view. A project already on this disk opens straight
+	-- away; one that is not is downloaded first and opened when it lands,
+	-- because opening restarts the session and there is nothing to restart
+	-- into until the files are here.
+	onProjectTeamOpen = function(_event)
 		local slug = widgetState.projectOpenSelectedSlug
-		if not slug then return end
-		playSound("apply")
-		local d = widgetState.dmHandle
-		if not (WG.MapProject and WG.MapProject.open) then
-			if d then d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
-		elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
-			if d then d.projectOpenHint = "A save or load is already running (see console)." end
-		elseif not WG.MapProject.open(slug) then
-			if d then d.projectOpenHint = "Could not open '" .. slug .. "' — see console for the reason." end
+		if not slug or widgetState.projectOpenIsFolder then
+			return
+		end
+		playSound("click")
+		-- Opened from where it was picked. The view does not change under the
+		-- user for having pressed a button in it; the team library is a place to
+		-- work from, not a staging area to be shown the way out of.
+		if widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua") then
+			widgetState.projectOpenCommit(true)
+			return
+		end
+		widgetState.projectOpenAfterDownload = slug
+		if widgetState.projectLibraryUi and widgetState.projectLibraryUi.download then
+			widgetState.projectLibraryUi.download(slug)
 		end
 	end,
 	-- Two-step, same as FULL RESTORE: first click arms, second commits, Update
 	-- disarms after 3 s.
+	-- DELETE acts on whatever is selected: a project, or a folder and every
+	-- project inside it. Two clicks either way, and the second one is what
+	-- actually removes anything.
 	onProjectOpenDelete = function(_event)
+		if widgetState.projectLibraryRemote then
+			return
+		end
 		local slug = widgetState.projectOpenSelectedSlug
-		if not slug then return end
+		if not slug then
+			return
+		end
+		local folder = widgetState.projectOpenIsFolder == true
 		local d = widgetState.dmHandle
 		local now = Spring.GetGameSeconds() or 0
 		if (widgetState.projectDeleteConfirmExpiry or 0) > now then
 			widgetState.projectDeleteConfirmExpiry = 0
-			if d then d.projectDeleteConfirming = false end
+			if d then
+				d.projectDeleteConfirming = false
+			end
 			playSound("reset")
+			widgetState.projectLocalDirty = true
 			if not (WG.MapProject and WG.MapProject.delete) then
-				if d then d.projectOpenHint = "Map Project widget is not enabled (Settings > Widgets)." end
+				if d then
+					d.projectOpenHint = widgetState.text("openUnavailable")
+				end
 			elseif WG.MapProject.isBusy and WG.MapProject.isBusy() then
-				if d then d.projectOpenHint = "A save or load is already running (see console)." end
-			elseif WG.MapProject.delete(slug) then
-				if d then d.projectOpenHint = "Deleted '" .. slug .. "'." end
+				if d then
+					d.projectOpenHint = widgetState.text("busy")
+				end
+			elseif folder and WG.MapProject.deleteFolder and WG.MapProject.deleteFolder(slug) then
+				if d then
+					d.projectOpenHint = widgetState.text("deletedFolder", { name = slug })
+				end
+				widgetState.projectOpenSelectedSlug = nil
+				widgetState.projectOpenIsFolder = false
+				widgetState.projectOpenNeedsRebuild = true
+				widgetState.projectSaveNeedsRebuild = true
+			elseif not folder and WG.MapProject.delete(slug) then
+				if d then
+					d.projectOpenHint = widgetState.text("deleted", { name = slug })
+				end
 				-- Rebuild next frame, not here: the rebuild destroys the rows while
 				-- this click is still being dispatched.
 				widgetState.projectOpenNeedsRebuild = true
 			else
-				if d then d.projectOpenHint = "Could not delete '" .. slug .. "' — see console for the reason." end
+				if d then
+					d.projectOpenHint = widgetState.text("deleteFailed", { name = slug })
+				end
 			end
 		else
 			widgetState.projectDeleteConfirmExpiry = now + 3
-			if d then d.projectDeleteConfirming = true end
+			if d then
+				d.projectDeleteConfirming = true
+			end
 			playSound("toggleOn")
+		end
+	end,
+	-- Save As has the Team Sync line but not the start card: Start… there goes
+	-- to the Projects window with the card open (Update opens it, where the
+	-- handler is in scope; opening Projects closes Save As).
+	onProjectSaveStartSync = function(_event)
+		playSound("click")
+		widgetState.projectOpenRequest = { card = true }
+	end,
+	-- Rename: opens the row under the list with the current name in it.
+	onProjectRename = function(_event)
+		local d = widgetState.dmHandle
+		local slug = widgetState.projectOpenSelectedSlug
+		if not (d and slug) or widgetState.projectOpenIsFolder or d.libraryBusy then
+			return
+		end
+		playSound("click")
+		d.projectRenameOpen = not d.projectRenameOpen
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-rename")
+		if inp then
+			if d.projectRenameOpen then
+				inp:SetAttribute("value", slug:match("([^/]+)$") or slug)
+				pcall(function()
+					inp:Focus()
+				end)
+			else
+				inp:Blur()
+			end
+		end
+	end,
+	onProjectRenameApply = function(_event)
+		widgetState.projectRenameApply()
+	end,
+	onProjectRenameCancel = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-rename")
+		if inp then
+			inp:Blur()
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.projectRenameOpen = false
 		end
 	end,
 	onProjectOpenClose = function(_event)
 		playSound("click")
+		widgetState.projectCommitLibrarySeen()
+		widgetState.libraryNewSlugs = nil
 		local d = widgetState.dmHandle
 		if d then
 			d.projectOpenOpen = false
 			d.projectDeleteConfirming = false
+			d.projectRenameOpen = false
 		end
 		-- Never leave DELETE armed for the next time the dialog opens.
 		widgetState.projectDeleteConfirmExpiry = 0
+		-- Nor an OPEN waiting on a download nobody is watching any more.
+		widgetState.projectOpenAfterDownload = nil
+		widgetState.projectOpenArmed = nil
+		if d then
+			d.projectOpenConfirming = false
+		end
+	end,
+	-- Open Project search box (change fires per keystroke) and sort chips. All
+	-- three queue the deferred rebuild rather than rebuilding here: the list is
+	-- torn down and rebuilt, which must not happen inside an event dispatch.
+	onProjectSearch = function(_event)
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-search")
+		widgetState.projectOpenFilter = (inp and inp:GetAttribute("value")) or ""
+		widgetState.projectOpenNeedsRebuild = true
+	end,
+	onProjectSearchClear = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-search")
+		if inp then
+			inp:SetAttribute("value", "")
+		end
+		widgetState.projectOpenFilter = ""
+		widgetState.projectOpenNeedsRebuild = true
+	end,
+	-- Column header sort. A new column takes its natural direction (names read
+	-- A to Z, sizes and dates biggest and newest first); clicking the column
+	-- that is already sorted flips it. One sort drives both dialogs, so the two
+	-- browsers never disagree about the order of the same projects.
+	onProjectSort = function(_event, mode)
+		playSound("click")
+		mode = mode or "recent"
+		if widgetState.projectOpenSort == mode then
+			widgetState.projectOpenSortDesc = not (widgetState.projectOpenSortDesc ~= false)
+		else
+			widgetState.projectOpenSort = mode
+			widgetState.projectOpenSortDesc = mode ~= "name"
+		end
+		widgetState.projectSyncSort()
+		widgetState.projectOpenNeedsRebuild = true
+		widgetState.projectSaveNeedsRebuild = true
+	end,
+	-- Save As browser filter. Same deferred rebuild as the Open Project search:
+	-- the list is torn down and rebuilt, which must not happen inside a
+	-- dispatch on one of its own rows.
+	onProjectSaveSearch = function(_event)
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-save-search")
+		widgetState.projectSaveFilter = (inp and inp:GetAttribute("value")) or ""
+		widgetState.projectSaveNeedsRebuild = true
+	end,
+	-- MAP / HEIGHT under the preview. One setting for both panes, and both are
+	-- redrawn from the entry each is already showing.
+	onProjectPreviewMode = function(_event, mode)
+		local d = widgetState.dmHandle
+		if not d or d.projectPreviewMode == mode then
+			return
+		end
+		playSound("click")
+		d.projectPreviewMode = mode
+		widgetState.projectShowDetails(widgetState.projectShownOpen, false)
+		widgetState.projectShowDetails(widgetState.projectShownSave, true)
+	end,
+	-- New folder: opens the inline row under the toolbar, creates on Enter or
+	-- on the tick, and aims the NAME field into the folder it made.
+	onProjectNewFolder = function(_event)
+		local d = widgetState.dmHandle
+		if d and d.projectSavePending then
+			return
+		end
+		playSound("click")
+		if d then
+			d.projectSaveNewFolder = not d.projectSaveNewFolder
+		end
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-newfolder")
+		if inp then
+			if d and d.projectSaveNewFolder then
+				inp:SetAttribute("value", "")
+				pcall(function()
+					inp:Focus()
+				end)
+			else
+				inp:Blur()
+			end
+		end
+	end,
+	onProjectNewFolderCreate = function(_event)
+		widgetState.projectSaveCreateFolder()
+	end,
+	onProjectNewFolderCancel = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("input-project-newfolder")
+		if inp then
+			inp:Blur()
+		end
+		local d = widgetState.dmHandle
+		if d then
+			d.projectSaveNewFolder = false
+			d.projectSaveError = false
+		end
+	end,
+	-- "Helper offline" is a dead end without this: the editor cannot start a
+	-- process, so it writes the runner and points at it instead.
+	onProjectHelperSetup = function(_event)
+		playSound("click")
+		widgetState.projectWriteRunner()
+	end,
+	onProjectSaveSearchClear = function(_event)
+		playSound("click")
+		---@type table?
+		local doc2 = widgetState.document
+		local inp = doc2 and doc2:GetElementById("tf-project-save-search")
+		if inp then
+			inp:SetAttribute("value", "")
+		end
+		widgetState.projectSaveFilter = ""
+		widgetState.projectSaveNeedsRebuild = true
 	end,
 	-- GENERATE TERRAIN toggle: off (default) creates a dead-flat map; on reveals
 	-- the procedural terrain/water/resources/layout controls and the randomizer.
 	onNewMapGenToggle = function(_event)
 		playSound("click")
 		widgetState.newMapGen = not widgetState.newMapGen
-		local d = widgetState.dmHandle; if d then d.newMapGen = widgetState.newMapGen end
+		local d = widgetState.dmHandle
+		if d then
+			d.newMapGen = widgetState.newMapGen
+		end
 	end,
 	onNewMapSplatPrev = function(_event)
-		if #dntsSets == 0 then return end
+		if #dntsSets == 0 then
+			return
+		end
 		widgetState.newMapSplatIdx = (widgetState.newMapSplatIdx or 1) - 1
-		if widgetState.newMapSplatIdx < 1 then widgetState.newMapSplatIdx = #dntsSets end
+		if widgetState.newMapSplatIdx < 1 then
+			widgetState.newMapSplatIdx = #dntsSets
+		end
 		_nmRefreshSplatLabel()
 		playSound("click")
 	end,
 	onNewMapSplatNext = function(_event)
-		if #dntsSets == 0 then return end
+		if #dntsSets == 0 then
+			return
+		end
 		widgetState.newMapSplatIdx = (widgetState.newMapSplatIdx or 1) + 1
-		if widgetState.newMapSplatIdx > #dntsSets then widgetState.newMapSplatIdx = 1 end
+		if widgetState.newMapSplatIdx > #dntsSets then
+			widgetState.newMapSplatIdx = 1
+		end
 		_nmRefreshSplatLabel()
 		playSound("click")
 	end,
@@ -5137,24 +10514,36 @@ local initialModel = {
 	-- The choice is persisted on Create and applied to the fresh map after reload.
 	onNewMapEnvPrev = function(_event)
 		local n = #(widgetState.newMapEnvPresets or {})
-		if n == 0 then Spring.Echo("[Terraform Brush] No environment presets loaded (env_presets.lua missing?)") end
+		if n == 0 then
+			Spring.Echo("[Terraform Brush] No environment presets loaded (env_presets.lua missing?)")
+		end
 		widgetState.newMapEnvIdx = (widgetState.newMapEnvIdx or 0) - 1
-		if widgetState.newMapEnvIdx < 0 then widgetState.newMapEnvIdx = n end
+		if widgetState.newMapEnvIdx < 0 then
+			widgetState.newMapEnvIdx = n
+		end
 		widgetState._nmRefreshEnvLabel()
 		playSound("click")
 	end,
 	onNewMapEnvNext = function(_event)
 		local n = #(widgetState.newMapEnvPresets or {})
-		if n == 0 then Spring.Echo("[Terraform Brush] No environment presets loaded (env_presets.lua missing?)") end
+		if n == 0 then
+			Spring.Echo("[Terraform Brush] No environment presets loaded (env_presets.lua missing?)")
+		end
 		widgetState.newMapEnvIdx = (widgetState.newMapEnvIdx or 0) + 1
-		if widgetState.newMapEnvIdx > n then widgetState.newMapEnvIdx = 0 end
+		if widgetState.newMapEnvIdx > n then
+			widgetState.newMapEnvIdx = 0
+		end
 		widgetState._nmRefreshEnvLabel()
 		playSound("click")
 	end,
 	onNewMapWidthChange = function(event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local raw = (event and event.parameters and event.parameters.value)
-		if raw == nil then raw = _elemSliderVal("slider-newmap-width", NEWMAP_DEFAULT_UNIT) end
+		if raw == nil then
+			raw = _elemSliderVal("slider-newmap-width", NEWMAP_DEFAULT_UNIT)
+		end
 		widgetState.newMapW = _nmClampEven(raw, NEWMAP_DEFAULT_UNIT)
 		_nmRefreshLabels()
 	end,
@@ -5165,9 +10554,13 @@ local initialModel = {
 		_nmSetAxis("w", (widgetState.newMapW or NEWMAP_DEFAULT_UNIT) - 2)
 	end,
 	onNewMapHeightChange = function(event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		local raw = (event and event.parameters and event.parameters.value)
-		if raw == nil then raw = _elemSliderVal("slider-newmap-height", NEWMAP_DEFAULT_UNIT) end
+		if raw == nil then
+			raw = _elemSliderVal("slider-newmap-height", NEWMAP_DEFAULT_UNIT)
+		end
 		widgetState.newMapH = _nmClampEven(raw, NEWMAP_DEFAULT_UNIT)
 		_nmRefreshLabels()
 	end,
@@ -5180,22 +10573,37 @@ local initialModel = {
 	-- Parametric terrain slider: data-event-change="onNewMapSlider('hilliness')".
 	-- Value arrives 0..100 (the slider range); stored as 0..1 in widgetState.newMap.
 	onNewMapSlider = function(event, key)
-		if uiState.updatingFromCode then return end
-		if not key then return end
+		if uiState.updatingFromCode then
+			return
+		end
+		if not key then
+			return
+		end
 		local raw = (event and event.parameters and event.parameters.value)
-		if raw == nil then return end
+		if raw == nil then
+			return
+		end
 		local v = (tonumber(raw) or 0) / 100
-		if v < 0 then v = 0 elseif v > 1 then v = 1 end
+		if v < 0 then
+			v = 0
+		elseif v > 1 then
+			v = 1
+		end
 		widgetState.newMap = widgetState.newMap or {}
 		widgetState.newMap[key] = v
-		_nmRefreshTerrain(false)  -- labels only; don't fight the dragged thumb
+		_nmRefreshTerrain(false) -- labels only; don't fight the dragged thumb
 	end,
 	onNewMapSymCycle = function(_event)
 		playSound("click")
 		local nm = widgetState.newMap or {}
 		local cur = nm.symmetry or "rot180"
 		local idx = 1
-		for i, s in ipairs(NEWMAP_SYMS) do if s.id == cur then idx = i break end end
+		for i, s in ipairs(NEWMAP_SYMS) do
+			if s.id == cur then
+				idx = i
+				break
+			end
+		end
 		idx = idx % #NEWMAP_SYMS + 1
 		nm.symmetry = NEWMAP_SYMS[idx].id
 		widgetState.newMap = nm
@@ -5217,36 +10625,57 @@ local initialModel = {
 		local nm = widgetState.newMap or {}
 		widgetState.newMap = nm
 		local function rrange(r, dflt)
-			if type(r) ~= "table" then return dflt end
+			if type(r) ~= "table" then
+				return dflt
+			end
 			return r[1] + math.random() * (r[2] - r[1])
 		end
-		local function pickWeighted(weights)  -- {key=weight,...} -> key
+		local function pickWeighted(weights) -- {key=weight,...} -> key
 			local total = 0
-			for _, w in pairs(weights) do total = total + (w or 0) end
-			if total <= 0 then return nil end
+			for _, w in pairs(weights) do
+				total = total + (w or 0)
+			end
+			if total <= 0 then
+				return nil
+			end
 			local r = math.random() * total
-			for k, w in pairs(weights) do r = r - (w or 0); if r <= 0 then return k end end
+			for k, w in pairs(weights) do
+				r = r - (w or 0)
+				if r <= 0 then
+					return k
+				end
+			end
 			return nil
 		end
 		if A and A.archetypes and #A.archetypes > 0 then
 			local total = 0
-			for _, e in ipairs(A.archetypes) do total = total + (e.weight or 0) end
+			for _, e in ipairs(A.archetypes) do
+				total = total + (e.weight or 0)
+			end
 			local pick, r = A.archetypes[1], math.random() * total
-			for _, e in ipairs(A.archetypes) do r = r - (e.weight or 0); if r <= 0 then pick = e break end end
-			nm.hilliness    = rrange(pick.hilliness, 0.5)
-			nm.roughness    = rrange(pick.roughness, 0.5)
+			for _, e in ipairs(A.archetypes) do
+				r = r - (e.weight or 0)
+				if r <= 0 then
+					pick = e
+					break
+				end
+			end
+			nm.hilliness = rrange(pick.hilliness, 0.5)
+			nm.roughness = rrange(pick.roughness, 0.5)
 			nm.featureScale = rrange(pick.featureScale, 0.5)
-			nm.jaggedness   = rrange(pick.jaggedness, 0.45)
-			nm.waterLevel   = rrange(pick.waterLevel, 0.0)
-			nm.islandness   = rrange(pick.islandness, 0.0)
+			nm.jaggedness = rrange(pick.jaggedness, 0.45)
+			nm.waterLevel = rrange(pick.waterLevel, 0.0)
+			nm.islandness = rrange(pick.islandness, 0.0)
 			nm.archetypeName = pick.name
-			if A.symmetryWeights then nm.symmetry = pickWeighted(A.symmetryWeights) or nm.symmetry or "rot180" end
+			if A.symmetryWeights then
+				nm.symmetry = pickWeighted(A.symmetryWeights) or nm.symmetry or "rot180"
+			end
 			if A.sizeWeights then
 				local sk = pickWeighted(A.sizeWeights)
 				local sz = sk and tonumber(sk)
 				if sz then
 					sz = _nmClampEven(sz, NEWMAP_DEFAULT_UNIT)
-					widgetState.newMapW = sz   -- square so 4-way symmetry stays valid
+					widgetState.newMapW = sz -- square so 4-way symmetry stays valid
 					widgetState.newMapH = sz
 				end
 			end
@@ -5266,7 +10695,7 @@ local initialModel = {
 		nm.seed = math.random(1, 999999)
 		-- push everything to the dialog (thumbs + labels)
 		uiState.updatingFromCode = true
-		_elemSetSliderVal("slider-newmap-width",  widgetState.newMapW or NEWMAP_DEFAULT_UNIT)
+		_elemSetSliderVal("slider-newmap-width", widgetState.newMapW or NEWMAP_DEFAULT_UNIT)
 		_elemSetSliderVal("slider-newmap-height", widgetState.newMapH or NEWMAP_DEFAULT_UNIT)
 		uiState.updatingFromCode = false
 		_nmRefreshLabels()
@@ -5290,8 +10719,8 @@ local initialModel = {
 			local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
 			customName = nameInp and tostring(nameInp:GetAttribute("value") or "") or ""
 		end
-		local script, err = buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath,
-			{ customName = customName })
+		local script, err =
+			buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath, { customName = customName })
 		if not script then
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
@@ -5306,19 +10735,36 @@ local initialModel = {
 			if not writePendingNewMapRecipe(nm) then
 				Spring.Echo("[Terraform Brush] New Map: could not write terrain recipe (flat map only).")
 			end
-			Spring.Echo(string.format(
-				"[Terraform Brush] New Map %dx%d (%dx%d elmos), %s, water %d%%, seed %d; reloading...",
-				w, h, w * 512, h * 512, nm.symmetry or "rot180",
-				math.floor((nm.waterLevel or 0) * 100 + 0.5), nm.seed))
+			Spring.Echo(
+				string.format(
+					"[Terraform Brush] New Map %dx%d (%dx%d elmos), %s, water %d%%, seed %d; reloading...",
+					w,
+					h,
+					w * 512,
+					h * 512,
+					nm.symmetry or "rot180",
+					math.floor((nm.waterLevel or 0) * 100 + 0.5),
+					nm.seed
+				)
+			)
 		else
 			-- Blank any leftover recipe so a stale procedural recipe from a previous
 			-- create can't be picked up by the post-reload driver on this flat map.
 			Spring.CreateDir("Terraform Brush")
 			local rf = io.open("Terraform Brush/pending_newmap.lua", "w")
-			if rf then rf:write(""); rf:close() end
-			Spring.Echo(string.format(
-				"[Terraform Brush] New Map %dx%d (%dx%d elmos), flat; reloading...",
-				w, h, w * 512, h * 512))
+			if rf then
+				rf:write("")
+				rf:close()
+			end
+			Spring.Echo(
+				string.format(
+					"[Terraform Brush] New Map %dx%d (%dx%d elmos), flat; reloading...",
+					w,
+					h,
+					w * 512,
+					h * 512
+				)
+			)
 		end
 		-- Persist the chosen environment preset (independently of the terrain recipe,
 		-- since the environment applies to flat maps too). The file holds just the
@@ -5338,22 +10784,40 @@ local initialModel = {
 			ef:close()
 		end
 		playSound("exit")
+		-- Unsaved changes stand in the way of a new map like they do of a quit.
+		if widgetState.quitGuardIntercept("newmap", function()
+			Spring.Restart("", script)
+		end) then
+			return
+		end
 		Spring.Restart("", script)
 	end,
 	onGuideToggleSound = function(_event)
 		widgetState.soundMuted = not widgetState.soundMuted
-		local d = widgetState.dmHandle; if d then d.soundMuted = widgetState.soundMuted end
+		local d = widgetState.dmHandle
+		if d then
+			d.soundMuted = widgetState.soundMuted
+		end
 	end,
 	onGuideToggle = function(_event)
 		widgetState.guideMode = not widgetState.guideMode
-		local d = widgetState.dmHandle; if d then d.guideMode = widgetState.guideMode end
+		local d = widgetState.dmHandle
+		if d then
+			d.guideMode = widgetState.guideMode
+		end
 		if not widgetState.guideMode then
 			widgetState.currentHint = nil
 			widgetState.lastRenderedHint = nil
-			if widgetState.floatingTipEl then widgetState.floatingTipEl.inner_rml = "" end
-			widgetState.g3Toast.text   = nil
+			if widgetState.floatingTipEl then
+				widgetState.floatingTipEl.inner_rml = ""
+			end
+			widgetState.g3Toast.text = nil
 			widgetState.g3Toast.expiry = 0
 		end
+	end,
+	onGuideToggleFocus = function(_event)
+		widgetState.setFocusMode(not widgetState.focusMode)
+		playSound("modeSwitch")
 	end,
 	onGuideTogglePassthrough = function(_event)
 		if not widgetState.passthroughMode then
@@ -5367,14 +10831,23 @@ local initialModel = {
 			local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
 			local stSt = WG.StartPosTool and WG.StartPosTool.getState()
 			local clSt = WG.CloneTool and WG.CloneTool.getState()
+			---@type table?
+			local sfPtr = WG.SurfacePainter
+			local sfSt = sfPtr and sfPtr.getState and sfPtr.getState()
 			if tfSt and tfSt.active then
 				saved = { tool = "terraform", mode = tfSt.mode }
 			elseif fpSt and fpSt.active then
 				saved = { tool = "features", mode = fpSt.mode }
 			elseif wbSt and wbSt.active then
 				saved = { tool = "weather", mode = wbSt.mode }
+			elseif widgetState.surfHardActive then
+				-- LAYERS: the splat engine runs headless under the SURFACE panel;
+				-- the pin (not the engine) tells it apart from the legacy SPLAT tool.
+				saved = { tool = "surfaceHard" }
 			elseif spSt and spSt.active then
 				saved = { tool = "splat" }
+			elseif sfSt and sfSt.active then
+				saved = { tool = "surface" }
 			elseif mbSt and mbSt.active then
 				saved = { tool = "metal", mode = mbSt.subMode }
 			elseif gbSt and gbSt.active then
@@ -5382,57 +10855,101 @@ local initialModel = {
 			elseif widgetState.envActive then
 				saved = { tool = "environment" }
 			elseif widgetState.lightActive and lpSt and lpSt.active then
-				saved = { tool = "lights" }
+				saved = { tool = "lights", mode = lpSt.mode }
 			elseif widgetState.startposActive and stSt and stSt.active then
 				saved = { tool = "startpos", mode = stSt.mode }
 			elseif widgetState.cloneActive and clSt and clSt.active then
 				saved = { tool = "clone" }
 			end
-			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-			if WG.SplatPainter then WG.SplatPainter.deactivate() end
-			if WG.MetalBrush then WG.MetalBrush.deactivate() end
-			if WG.GrassBrush then WG.GrassBrush.deactivate() end
-			if WG.LightPlacer then WG.LightPlacer.deactivate() end
-			if WG.StartPosTool then WG.StartPosTool.deactivate() end
-			if WG.CloneTool then WG.CloneTool.deactivate() end
+			if WG.TerraformBrush then
+				WG.TerraformBrush.deactivate()
+			end
+			if WG.FeaturePlacer then
+				WG.FeaturePlacer.deactivate()
+			end
+			if WG.WeatherBrush then
+				WG.WeatherBrush.deactivate()
+			end
+			if WG.SplatPainter then
+				WG.SplatPainter.deactivate()
+			end
+			if sfPtr and sfPtr.deactivate then
+				sfPtr.deactivate()
+			end
+			if WG.MetalBrush then
+				WG.MetalBrush.deactivate()
+			end
+			if WG.GrassBrush then
+				WG.GrassBrush.deactivate()
+			end
+			if WG.LightPlacer then
+				WG.LightPlacer.deactivate()
+			end
+			if WG.StartPosTool then
+				WG.StartPosTool.deactivate()
+			end
+			if WG.CloneTool then
+				WG.CloneTool.deactivate()
+			end
 			widgetState.envActive = false
 			widgetState.lightActive = false
 			widgetState.startposActive = false
 			widgetState.cloneActive = false
+			widgetState.surfHardActive = false
+			widgetState.surfPickerSlot = nil -- pausing the tool closes the variant picker
 			widgetState.passthroughSaved = saved
 			widgetState.passthroughMode = true
-			local d = widgetState.dmHandle; if d then d.passthroughActive = true end
-			if widgetState.rootElement then widgetState.rootElement:SetClass("passthrough-dimmed", true) end
+			local d = widgetState.dmHandle
+			if d then
+				d.passthroughActive = true
+			end
+			if widgetState.rootElement then
+				widgetState.rootElement:SetClass("passthrough-dimmed", true)
+			end
 			playSound("modeSwitch")
 		else
 			widgetState.passthroughMode = false
-			local d = widgetState.dmHandle; if d then d.passthroughActive = false end
-			if widgetState.rootElement then widgetState.rootElement:SetClass("passthrough-dimmed", false) end
+			local d = widgetState.dmHandle
+			if d then
+				d.passthroughActive = false
+			end
+			if widgetState.rootElement then
+				widgetState.rootElement:SetClass("passthrough-dimmed", false)
+			end
 			local s = widgetState.passthroughSaved
 			widgetState.passthroughSaved = nil
+			---@type table?
+			local sfPtr = WG.SurfacePainter
+			---@type table?
+			local spPtr = WG.SplatPainter
 			if s then
+				-- Splat/Metal/Grass/StartPos expose activate(subMode), not setMode;
+				-- Weather's setMode only picks the submode without re-arming the tool.
 				if s.tool == "terraform" and WG.TerraformBrush then
 					WG.TerraformBrush.setMode(s.mode or "raise")
 				elseif s.tool == "features" and WG.FeaturePlacer then
 					WG.FeaturePlacer.setMode(s.mode or "point")
 				elseif s.tool == "weather" and WG.WeatherBrush then
-					WG.WeatherBrush.setMode(s.mode or "place")
+					WG.WeatherBrush.activate(s.mode or "scatter")
 				elseif s.tool == "splat" and WG.SplatPainter then
-					WG.SplatPainter.setMode("paint")
+					WG.SplatPainter.activate()
+				elseif s.tool == "surface" and sfPtr and sfPtr.activate then
+					sfPtr.activate()
+				elseif s.tool == "surfaceHard" and spPtr and spPtr.activate then
+					spPtr.activate()
+					widgetState.surfHardActive = true
 				elseif s.tool == "metal" and WG.MetalBrush then
-					WG.MetalBrush.setMode(s.mode or "add")
+					WG.MetalBrush.activate(s.mode or "stamp")
 				elseif s.tool == "grass" and WG.GrassBrush then
-					WG.GrassBrush.setMode(s.mode or "add")
+					WG.GrassBrush.activate(s.mode or "paint")
 				elseif s.tool == "environment" then
 					widgetState.envActive = true
 				elseif s.tool == "lights" and WG.LightPlacer then
 					widgetState.lightActive = true
-					WG.LightPlacer.setMode("scatter")
+					WG.LightPlacer.setMode(s.mode or "scatter")
 				elseif s.tool == "startpos" and WG.StartPosTool then
 					widgetState.startposActive = true
-					WG.StartPosTool.setMode(s.mode or "express")
+					WG.StartPosTool.activate(s.mode or "express")
 				elseif s.tool == "clone" and WG.CloneTool then
 					widgetState.cloneActive = true
 					WG.CloneTool.activate()
@@ -5448,7 +10965,10 @@ local initialModel = {
 		end
 		local open = WG.MapLabels.toggle()
 		playSound(open and "panelOpen" or "click")
-		local d = widgetState.dmHandle; if d then d.mapLabelsOpen = open end
+		local d = widgetState.dmHandle
+		if d then
+			d.mapLabelsOpen = open
+		end
 	end,
 	onToggleCapture = function(_event)
 		-- Opens even without the capture widget loaded: a window that says what
@@ -5469,7 +10989,10 @@ local initialModel = {
 		playSound("click")
 		widgetState.captureOpen = false
 		local d = widgetState.dmHandle
-		if d then d.captureOpen = false; d.captureVisible = false end
+		if d then
+			d.captureOpen = false
+			d.captureVisible = false
+		end
 	end,
 	onCaptureSetDetail = function(_event, value)
 		playSound("click")
@@ -5478,9 +11001,13 @@ local initialModel = {
 	onCaptureToggle = function(_event, key)
 		playSound("click")
 		local api = WG.TerraformCapture
-		if not (api and api.getSettings) then return end
+		if not (api and api.getSettings) then
+			return
+		end
 		local s = api.getSettings()
-		if s[key] == nil then return end
+		if s[key] == nil then
+			return
+		end
 		capUI.set(key, not s[key])
 	end,
 	onCaptureSetUnitStyle = function(_event, value)
@@ -5491,8 +11018,7 @@ local initialModel = {
 		local api = WG.TerraformCapture
 		if not (api and api.start) then
 			playSound("click")
-			capUI.setResult(false, "NOT LOADED",
-				"Enable the \"Terraform Brush Capture\" widget in Settings > Widgets.")
+			capUI.setResult(false, "NOT LOADED", 'Enable the "Terraform Brush Capture" widget in Settings > Widgets.')
 			return
 		end
 		local ok, err = api.start()
@@ -5513,7 +11039,10 @@ local initialModel = {
 	onGuideToggleSettings = function(_event)
 		playSound(widgetState.settingsOpen and "click" or "panelOpen")
 		widgetState.settingsOpen = not widgetState.settingsOpen
-		local d = widgetState.dmHandle; if d then d.settingsOpen = widgetState.settingsOpen end
+		local d = widgetState.dmHandle
+		if d then
+			d.settingsOpen = widgetState.settingsOpen
+		end
 		if widgetState.settingsOpen then
 			if WG.TerraformBrush and WG.TerraformBrush.getKeybinds then
 				widgetState.settingsPendingBinds = WG.TerraformBrush.getKeybinds()
@@ -5530,11 +11059,17 @@ local initialModel = {
 		widgetState.settingsCapturing = nil
 		widgetState.settingsCaptureField = nil
 		widgetState.settingsCaptureEl = nil
-		local d = widgetState.dmHandle; if d then d.settingsOpen = false end
+		local d = widgetState.dmHandle
+		if d then
+			d.settingsOpen = false
+		end
 	end,
 	onGuideTab = function(_event, name)
 		playSound("click")
-		local d = widgetState.dmHandle; if d then d.settingsTab = name end
+		local d = widgetState.dmHandle
+		if d then
+			d.settingsTab = name
+		end
 	end,
 	onGuideKbSave = function(_event)
 		playSound("save")
@@ -5570,93 +11105,276 @@ local initialModel = {
 		widgetState.settingsCaptureField = nil
 		widgetState.settingsCaptureEl = nil
 		widgetState.settingsPendingBinds = nil
-		local d = widgetState.dmHandle; if d then d.settingsOpen = false end
+		local d = widgetState.dmHandle
+		if d then
+			d.settingsOpen = false
+		end
 	end,
 	onGuideToggleDjActivate = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.djMode)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setDjMode(newVal)
 		local d = widgetState.dmHandle
-		if d then d.djModeActive = newVal; d.djModeStr = newVal and "ON" or "OFF"; d.djSubDisabled = not newVal end
+		if d then
+			d.djModeActive = newVal
+			d.djModeStr = newVal and "ON" or "OFF"
+			d.djSubDisabled = not newVal
+		end
 	end,
 	onGuideToggleDust = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.dustEffects)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setDustEffects(newVal)
 		local d = widgetState.dmHandle
-		if d then d.dustActive = newVal; d.dustEffectsStr = newVal and "ON" or "OFF" end
+		if d then
+			d.dustActive = newVal
+			d.dustEffectsStr = newVal and "ON" or "OFF"
+		end
 	end,
 	onGuideToggleSeismic = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.seismicEffects)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setSeismicEffects(newVal)
 		local d = widgetState.dmHandle
-		if d then d.seismicActive = newVal; d.seismicEffectsStr = newVal and "ON" or "OFF" end
+		if d then
+			d.seismicActive = newVal
+			d.seismicEffectsStr = newVal and "ON" or "OFF"
+		end
 	end,
 	onGuideTogglePenPressure = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.penPressureEnabled)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setPenPressure(newVal)
 		local d = widgetState.dmHandle
-		if d then d.penPressureActive = newVal; d.penPressureStr = newVal and "ON" or "OFF"; d.penSubDisabled = not newVal end
+		if d then
+			d.penPressureActive = newVal
+			d.penPressureStr = newVal and "ON" or "OFF"
+			d.penSubDisabled = not newVal
+		end
 	end,
 	onGuideTogglePenModInt = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.penPressureModulateIntensity)
 		WG.TerraformBrush.setPenPressureModulateIntensity(newVal)
 		local d = widgetState.dmHandle
-		if d then d.penModIntSrc = newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+		if d then
+			d.penModIntSrc = newVal and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png"
+		end
 	end,
 	onGuideTogglePenModSize = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.penPressureModulateSize)
 		WG.TerraformBrush.setPenPressureModulateSize(newVal)
 		local d = widgetState.dmHandle
-		if d then d.penModSizeSrc = newVal and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+		if d then
+			d.penModSizeSrc = newVal and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png"
+		end
 	end,
 	onGuidePenSensitivityChange = function(_event)
-		if uiState.updatingFromCode then return end
+		if uiState.updatingFromCode then
+			return
+		end
 		if WG.TerraformBrush then
 			local val = _elemSliderVal("slider-pen-sensitivity", 100)
 			WG.TerraformBrush.setPenPressureSensitivity(val / 100)
-			local d = widgetState.dmHandle; if d then d.penSensitivityStr = tostring(math.floor(val)) end
+			local d = widgetState.dmHandle
+			if d then
+				d.penSensitivityStr = tostring(math.floor(val))
+			end
 		end
 	end,
 	onGuideSetCurve = function(_event, n)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setPenPressureCurve(n)
-		local d = widgetState.dmHandle; if d then d.penCurveN = n end
+		local d = widgetState.dmHandle
+		if d then
+			d.penCurveN = n
+		end
 	end,
 	onGuideToggleWiggle = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		local newVal = not (state and state.wiggleEnabled)
 		playSound(newVal and "toggleOn" or "toggleOff")
 		WG.TerraformBrush.setWiggle(newVal, state and state.wiggleAmpIdx or 1, state and state.wiggleSpdIdx or 1)
 		local d = widgetState.dmHandle
-		if d then d.wiggleActive = newVal; d.wiggleStr = newVal and "ON" or "OFF"; d.wiggleSubDisabled = not newVal end
+		if d then
+			d.wiggleActive = newVal
+			d.wiggleStr = newVal and "ON" or "OFF"
+			d.wiggleSubDisabled = not newVal
+		end
 	end,
 	onGuideWiggleAmp = function(_event, i)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, i, state and state.wiggleSpdIdx or 1)
-		local d = widgetState.dmHandle; if d then d.wiggleAmpIdx = i end
+		local d = widgetState.dmHandle
+		if d then
+			d.wiggleAmpIdx = i
+		end
 	end,
 	onGuideWiggleSpd = function(_event, i)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local state = WG.TerraformBrush.getState()
 		WG.TerraformBrush.setWiggle(state and state.wiggleEnabled, state and state.wiggleAmpIdx or 1, i)
-		local d = widgetState.dmHandle; if d then d.wiggleSpdIdx = i end
+		local d = widgetState.dmHandle
+		if d then
+			d.wiggleSpdIdx = i
+		end
+	end,
+	onGuideTogglePerfMode = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.perfMode
+		widgetState.uiPrefs.perfMode = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+	end,
+	onGuideToggleTeamSync = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.teamSync
+		widgetState.uiPrefs.teamSync = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+		-- Both browsers change shape: the team's folders and projects come and
+		-- go, and a chip left on "Team" would show an empty list.
+		widgetState.projectFilter = "all"
+		local d = widgetState.dmHandle
+		if d then
+			d.libraryFilter = "all"
+		end
+		widgetState.projectLocalDirty = true
+		widgetState.libraryNewSlugs = nil
+		widgetState.projectOpenNeedsRebuild = true
+		widgetState.projectSaveNeedsRebuild = true
+		if widgetState.projectLibraryUi then
+			widgetState.projectLibraryUi.sync()
+		end
+	end,
+	onGuideToggleAutosave = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.autosave
+		widgetState.uiPrefs.autosave = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+	end,
+	-- One handler for the three value pills: the key names the pref, the
+	-- click moves to the next step (a hand-edited value snaps to the step above).
+	onGuideCycleAutosave = function(_event, key)
+		---@type number[]?
+		local steps = widgetState.autosaveSteps[key]
+		if not steps then
+			return
+		end
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local cur = tonumber(widgetState.uiPrefs[key]) or steps[1]
+		local nextVal = steps[1]
+		for i = 1, #steps do
+			if steps[i] >= cur then
+				nextVal = (steps[i] == cur) and (steps[i + 1] or steps[1]) or steps[i]
+				break
+			end
+		end
+		widgetState.uiPrefs[key] = nextVal
+		playSound("toggleOn")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
+	end,
+	-- QUIT GUARD popup buttons.
+	onQuitGuardCancel = function(_event)
+		playSound("click")
+		widgetState.quitGuardClose()
+	end,
+	onQuitGuardDiscard = function(_event)
+		playSound("click")
+		widgetState.quitGuardProceed()
+	end,
+	-- Save first, then carry on: the quick save when a project is open (its
+	-- receipt is watched from Update and the deferred action follows), Save
+	-- As when there is none, which drops the pending action, so the user
+	-- quits again once the save has a name.
+	onQuitGuardSave = function(_event)
+		playSound("click")
+		local d = widgetState.dmHandle
+		---@type table?
+		local mp = WG.MapProject
+		local current = mp and mp.current and mp.current() or nil
+		if not (mp and current and mp.save) then
+			widgetState.quitGuardClose()
+			widgetState.openProjectSaveDialog()
+			return
+		end
+		if mp.isBusy and mp.isBusy() then
+			if d then
+				d.quitGuardStatus = widgetState.text("quitSaveBusy")
+			end
+			return
+		end
+		local keepUnits = (mp.hasUnitsSection and mp.hasUnitsSection(current)) and true or false
+		local accepted, receipt = mp.save(current, { saveUnits = keepUnits })
+		if not accepted then
+			if d then
+				d.quitGuardStatus = widgetState.text("quitSaveFailed")
+			end
+			return
+		end
+		playSound("save")
+		widgetState.quitGuardSaving = receipt
+		if d then
+			d.quitGuardStatus = widgetState.text("quitSaving")
+		end
+	end,
+	onGuideToggleClayStack = function(_event)
+		widgetState.uiPrefs = widgetState.uiPrefs or {}
+		local newVal = not widgetState.uiPrefs.clayStack
+		widgetState.uiPrefs.clayStack = newVal
+		playSound(newVal and "toggleOn" or "toggleOff")
+		widgetState.pushPerfPrefs()
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
 	end,
 	onGuideToggleDisableTips = function(_event)
 		widgetState.uiPrefs = widgetState.uiPrefs or {}
@@ -5664,16 +11382,25 @@ local initialModel = {
 		widgetState.uiPrefs.disableTips = newVal
 		playSound(newVal and "toggleOn" or "toggleOff")
 		local d = widgetState.dmHandle
-		if d then d.disableTipsStr = newVal and "ON" or "OFF"; d.disableTipsActive = newVal end
-		if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		if d then
+			d.disableTipsStr = newVal and "ON" or "OFF"
+			d.disableTipsActive = newVal
+		end
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
 		if newVal then
 			widgetState.instrumentsHintActive = false
 			local doc2 = widgetState.document
 			if doc2 then
 				local measureImg = doc2:GetElementById("btn-measure")
-				if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
+				if measureImg then
+					measureImg:SetClass("tf-chip-2pulse", false)
+				end
 				local splatChip = doc2:GetElementById("btn-sp-splat-overlay")
-				if splatChip then splatChip:SetClass("tf-chip-2pulse", false) end
+				if splatChip then
+					splatChip:SetClass("tf-chip-2pulse", false)
+				end
 			end
 		end
 	end,
@@ -5687,7 +11414,9 @@ local initialModel = {
 		local ka = widgetState.keepAlive
 		if ka and ka.active then
 			playSound("click")
-			Spring.Echo("[Terraform Brush] Match end is already disabled for this session (one-way: re-enabling mid-game could end the match instantly).")
+			Spring.Echo(
+				"[Terraform Brush] Match end is already disabled for this session (one-way: re-enabling mid-game could end the match instantly)."
+			)
 			return
 		end
 		playSound("toggleOn")
@@ -5715,170 +11444,238 @@ local initialModel = {
 	-- are stored by tf_lights M.attach (cross-file bridge via widgetState).
 	onLpSetType = function(_event, lt)
 		playSound("modeSwitch")
-		if WG.LightPlacer then WG.LightPlacer.setLightType(lt) end
+		if WG.LightPlacer then
+			WG.LightPlacer.setLightType(lt)
+		end
 	end,
 	onLpSetMode = function(_event, mode)
 		playSound("modeSwitch")
-		if WG.LightPlacer then WG.LightPlacer.setMode(mode) end
+		if WG.LightPlacer then
+			WG.LightPlacer.setMode(mode)
+		end
 	end,
 	onLpSetDist = function(_event, dist)
 		playSound("shapeSwitch")
-		if WG.LightPlacer then WG.LightPlacer.setDistribution(dist) end
+		if WG.LightPlacer then
+			WG.LightPlacer.setDistribution(dist)
+		end
 	end,
 	onLpColorRChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-color-r", 1000)
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(val / 1000, s.color[2], s.color[3])
 	end,
 	onLpColorGChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-color-g", 900)
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(s.color[1], val / 1000, s.color[3])
 	end,
 	onLpColorBChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-color-b", 700)
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(s.color[1], s.color[2], val / 1000)
 	end,
 	onLpColorRDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(math.max(0, math.min(1, s.color[1] - 0.05)), s.color[2], s.color[3])
 	end,
 	onLpColorRUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(math.max(0, math.min(1, s.color[1] + 0.05)), s.color[2], s.color[3])
 	end,
 	onLpColorGDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(s.color[1], math.max(0, math.min(1, s.color[2] - 0.05)), s.color[3])
 	end,
 	onLpColorGUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(s.color[1], math.max(0, math.min(1, s.color[2] + 0.05)), s.color[3])
 	end,
 	onLpColorBDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(s.color[1], s.color[2], math.max(0, math.min(1, s.color[3] - 0.05)))
 	end,
 	onLpColorBUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setColor(s.color[1], s.color[2], math.max(0, math.min(1, s.color[3] + 0.05)))
 	end,
 	onLpSwatch = function(_event, idx)
 		local c = widgetState.lpPalette and widgetState.lpPalette[idx]
-		if c and WG.LightPlacer then WG.LightPlacer.setColor(c[1], c[2], c[3]) end
+		if c and WG.LightPlacer then
+			WG.LightPlacer.setColor(c[1], c[2], c[3])
+		end
 	end,
 	onLpBrightnessChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-brightness", 200)
 		WG.LightPlacer.setBrightness(val / 100)
 	end,
 	onLpBrightnessDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setBrightness(s.brightness - 0.1)
 	end,
 	onLpBrightnessUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setBrightness(s.brightness + 0.1)
 	end,
 	onLpLightRadiusChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-light-radius", 300)
 		WG.LightPlacer.setLightRadius(val)
 	end,
 	onLpLightRadiusDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setLightRadius(s.lightRadius - 50)
 	end,
 	onLpLightRadiusUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setLightRadius(s.lightRadius + 50)
 	end,
 	onLpElevChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-elevation", 20)
 		WG.LightPlacer.setElevation(val)
 	end,
 	onLpElevDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setElevation(s.elevation - 5)
 	end,
 	onLpElevUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setElevation(s.elevation + 5)
 	end,
 	onLpThetaChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-theta", 500)
 		WG.LightPlacer.setTheta(val / 1000)
 	end,
 	onLpThetaDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setTheta((s.theta or 0.5) - 0.05)
 	end,
 	onLpThetaUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setTheta((s.theta or 0.5) + 0.05)
 	end,
 	onLpBeamLenChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-beam-length", 300)
 		WG.LightPlacer.setBeamLength(val)
 	end,
 	onLpBeamLenDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setBeamLength((s.beamLength or 300) - 50)
 	end,
 	onLpBeamLenUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setBeamLength((s.beamLength or 300) + 50)
 	end,
 	onLpCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-count", 5)
 		WG.LightPlacer.setLightCount(val)
 	end,
 	onLpCountDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setLightCount(s.lightCount - 1)
 	end,
 	onLpCountUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setLightCount(s.lightCount + 1)
 	end,
 	onLpBrushRadiusChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-brush-radius", 200)
 		WG.LightPlacer.setRadius(val)
 	end,
 	onLpBrushRadiusDown = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setRadius(s.radius - 8)
 	end,
 	onLpBrushRadiusUp = function(_event)
-		if not WG.LightPlacer then return end
+		if not WG.LightPlacer then
+			return
+		end
 		local s = WG.LightPlacer.getState()
 		WG.LightPlacer.setRadius(s.radius + 8)
 	end,
@@ -5886,9 +11683,14 @@ local initialModel = {
 		playSound("panelOpen")
 		local open = not widgetState.lightLibraryOpen
 		widgetState.lightLibraryOpen = open
-		local d = widgetState.dmHandle; if d then d.lpLibraryOpen = open end
+		local d = widgetState.dmHandle
+		if d then
+			d.lpLibraryOpen = open
+		end
 		if open then
-			if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets() end
+			if widgetState.lpPopulateBuiltinPresets then
+				widgetState.lpPopulateBuiltinPresets()
+			end
 			if widgetState.lightLibraryTab == "user" and widgetState.lpPopulateUserPresets then
 				widgetState.lpPopulateUserPresets()
 			end
@@ -5898,52 +11700,81 @@ local initialModel = {
 	end,
 	onLpUndo = function(_event)
 		playSound("undo")
-		if WG.LightPlacer then WG.LightPlacer.undo() end
+		if WG.LightPlacer then
+			WG.LightPlacer.undo()
+		end
 	end,
 	onLpRedo = function(_event)
 		playSound("undo")
-		if WG.LightPlacer then WG.LightPlacer.redo() end
+		if WG.LightPlacer then
+			WG.LightPlacer.redo()
+		end
 	end,
 	onLpHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.LightPlacer then return end
+		if uiState.updatingFromCode or not WG.LightPlacer then
+			return
+		end
 		local val = _elemSliderVal("slider-lp-history", 100)
 		local lpSt = WG.LightPlacer.getState()
-		if not lpSt then return end
+		if not lpSt then
+			return
+		end
 		local currentUndoCount = lpSt.undoCount or 0
 		local diff = val - currentUndoCount
 		if diff > 0 then
-			for i = 1, diff do WG.LightPlacer.redo() end
+			for i = 1, diff do
+				WG.LightPlacer.redo()
+			end
 		elseif diff < 0 then
-			for i = 1, -diff do WG.LightPlacer.undo() end
+			for i = 1, -diff do
+				WG.LightPlacer.undo()
+			end
 		end
 	end,
 	onLpSave = function(_event)
 		playSound("save")
-		if WG.LightPlacer then WG.LightPlacer.save() end
+		if WG.LightPlacer then
+			WG.LightPlacer.save()
+		end
 	end,
 	onLpLoad = function(_event)
 		playSound("dropdown")
-		if WG.LightPlacer then WG.LightPlacer.load() end
+		if WG.LightPlacer then
+			WG.LightPlacer.load()
+		end
 	end,
 	onLpClearAll = function(_event)
 		playSound("reset")
-		if WG.LightPlacer then WG.LightPlacer.clearAll() end
+		if WG.LightPlacer then
+			WG.LightPlacer.clearAll()
+		end
 	end,
 	onLlTabBuiltin = function(_event)
 		playSound("click")
 		widgetState.lightLibraryTab = "builtin"
-		local d = widgetState.dmHandle; if d then d.lpLibraryTab = "builtin" end
+		local d = widgetState.dmHandle
+		if d then
+			d.lpLibraryTab = "builtin"
+		end
 	end,
 	onLlTabUser = function(_event)
 		playSound("click")
 		widgetState.lightLibraryTab = "user"
-		local d = widgetState.dmHandle; if d then d.lpLibraryTab = "user" end
-		if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+		local d = widgetState.dmHandle
+		if d then
+			d.lpLibraryTab = "user"
+		end
+		if widgetState.lpPopulateUserPresets then
+			widgetState.lpPopulateUserPresets()
+		end
 	end,
 	onLlClose = function(_event)
 		playSound("click")
 		widgetState.lightLibraryOpen = false
-		local d = widgetState.dmHandle; if d then d.lpLibraryOpen = false end
+		local d = widgetState.dmHandle
+		if d then
+			d.lpLibraryOpen = false
+		end
 		if WG.LightPlacer and WG.LightPlacer.clearPendingPreset then
 			WG.LightPlacer.clearPendingPreset()
 		end
@@ -5953,20 +11784,30 @@ local initialModel = {
 		local searchInput = doc2 and doc2:GetElementById("ll-search-input")
 		local filter = (searchInput and searchInput:GetAttribute("value") or ""):lower()
 		if widgetState.lightLibraryTab ~= "user" then
-			if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets(filter) end
+			if widgetState.lpPopulateBuiltinPresets then
+				widgetState.lpPopulateBuiltinPresets(filter)
+			end
 		else
-			if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets(filter) end
+			if widgetState.lpPopulateUserPresets then
+				widgetState.lpPopulateUserPresets(filter)
+			end
 		end
 	end,
 	onLlSearchClear = function(_event)
 		playSound("click")
 		local doc2 = widgetState.document
 		local searchInput = doc2 and doc2:GetElementById("ll-search-input")
-		if searchInput then searchInput:SetAttribute("value", "") end
+		if searchInput then
+			searchInput:SetAttribute("value", "")
+		end
 		if widgetState.lightLibraryTab ~= "user" then
-			if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets("") end
+			if widgetState.lpPopulateBuiltinPresets then
+				widgetState.lpPopulateBuiltinPresets("")
+			end
 		else
-			if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets("") end
+			if widgetState.lpPopulateUserPresets then
+				widgetState.lpPopulateUserPresets("")
+			end
 		end
 	end,
 	onLlSavePreset = function(_event)
@@ -5977,7 +11818,9 @@ local initialModel = {
 			local name = llNameInput:GetAttribute("value") or ""
 			if name ~= "" then
 				WG.LightPlacer.saveUserPreset(name)
-				if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+				if widgetState.lpPopulateUserPresets then
+					widgetState.lpPopulateUserPresets()
+				end
 			end
 		end
 	end,
@@ -5990,7 +11833,9 @@ local initialModel = {
 				if p.name == sel.name then
 					os.remove(p.path)
 					widgetState.lightLibrarySelectedPreset = nil
-					if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+					if widgetState.lpPopulateUserPresets then
+						widgetState.lpPopulateUserPresets()
+					end
 					break
 				end
 			end
@@ -5998,8 +11843,12 @@ local initialModel = {
 	end,
 	onLlRefresh = function(_event)
 		playSound("click")
-		if widgetState.lpPopulateBuiltinPresets then widgetState.lpPopulateBuiltinPresets() end
-		if widgetState.lpPopulateUserPresets then widgetState.lpPopulateUserPresets() end
+		if widgetState.lpPopulateBuiltinPresets then
+			widgetState.lpPopulateBuiltinPresets()
+		end
+		if widgetState.lpPopulateUserPresets then
+			widgetState.lpPopulateUserPresets()
+		end
 	end,
 
 	-- ======== Environment handlers (tf_environment.lua) ========
@@ -6011,7 +11860,9 @@ local initialModel = {
 	onEnvResetSkybox = function(_event)
 		playSound("reset")
 		local resetPath = widgetState.envDefaultSkybox or ""
-		if widgetState.applySkybox then widgetState.applySkybox(resetPath) end
+		if widgetState.applySkybox then
+			widgetState.applySkybox(resetPath)
+		end
 		widgetState.envCurrentSkybox = nil
 		for _, t in ipairs(widgetState.envSkyboxThumbs or {}) do
 			t.element:SetClass("active", false)
@@ -6023,10 +11874,11 @@ local initialModel = {
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("btn-env-fade-toggle")
 		if el then
-			el:SetAttribute("src",
-				widgetState.envFadeEnabled
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
+			el:SetAttribute(
+				"src",
+				widgetState.envFadeEnabled and "/luaui/images/terraform_brush/check_on.png"
+					or "/luaui/images/terraform_brush/check_off.png"
+			)
 		end
 	end,
 	onEnvSkyboxLibToggle = function(_event)
@@ -6036,7 +11888,9 @@ local initialModel = {
 			widgetState.skyboxLibraryRootEl:SetClass("hidden", not widgetState.skyboxLibraryOpen)
 		end
 		local dm = widgetState.dmHandle
-		if dm then dm.skyboxLibraryVisible = widgetState.skyboxLibraryOpen and true or false end
+		if dm then
+			dm.skyboxLibraryVisible = widgetState.skyboxLibraryOpen and true or false
+		end
 	end,
 	onEnvSkyboxLibClose = function(_event)
 		playSound("click")
@@ -6045,132 +11899,234 @@ local initialModel = {
 			widgetState.skyboxLibraryRootEl:SetClass("hidden", true)
 		end
 		local dm = widgetState.dmHandle
-		if dm then dm.skyboxLibraryVisible = false end
+		if dm then
+			dm.skyboxLibraryVisible = false
+		end
 		local doc = widgetState.document
 		local openBtn = doc and doc:GetElementById("btn-env-skybox-library")
-		if openBtn then openBtn:SetClass("env-open", false) end
+		if openBtn then
+			openBtn:SetClass("env-open", false)
+		end
 	end,
 	onEnvResetSun = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
-		Spring.SetSunDirection(d.sunPos[1], d.sunPos[2], d.sunPos[3])
+		if not d then
+			return
+		end
+		local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
+		Spring.SetSunDirection(d.sunPos[1], d.sunPos[2], d.sunPos[3], intensity)
+		widgetState.envSunIntensity = intensity
 		Spring.SetSunLighting({ groundShadowDensity = d.groundShadowDensity, modelShadowDensity = d.unitShadowDensity })
-		_envSetSlider("slider-env-sun-y",     "lbl-env-sun-y",     math.floor(d.sunPos[2] * 10000 + 0.5), string.format("%.2f", d.sunPos[2]))
-		_envSetSlider("slider-env-sun-x",     "lbl-env-sun-x",     math.floor(d.sunPos[1] * 10000 + 0.5), string.format("%.2f", d.sunPos[1]))
-		_envSetSlider("slider-env-sun-z",     "lbl-env-sun-z",     math.floor(d.sunPos[3] * 10000 + 0.5), string.format("%.2f", d.sunPos[3]))
-		_envSetSlider("slider-env-gshadow",   "lbl-env-gshadow",   math.floor(d.groundShadowDensity * 1000 + 0.5), string.format("%.2f", d.groundShadowDensity))
-		_envSetSlider("slider-env-ushadow",   "lbl-env-ushadow",   math.floor(d.unitShadowDensity * 1000 + 0.5),   string.format("%.2f", d.unitShadowDensity))
+		if widgetState.refreshEnvSunAzEl then
+			widgetState.refreshEnvSunAzEl()
+		end
+		_envSetSlider(
+			"slider-env-sun-intensity",
+			"lbl-env-sun-intensity",
+			math.floor(intensity * 1000 + 0.5),
+			string.format("%.2f", intensity)
+		)
+		_envSetSlider(
+			"slider-env-sun-y",
+			"lbl-env-sun-y",
+			math.floor(d.sunPos[2] * 10000 + 0.5),
+			string.format("%.2f", d.sunPos[2])
+		)
+		_envSetSlider(
+			"slider-env-sun-x",
+			"lbl-env-sun-x",
+			math.floor(d.sunPos[1] * 10000 + 0.5),
+			string.format("%.2f", d.sunPos[1])
+		)
+		_envSetSlider(
+			"slider-env-sun-z",
+			"lbl-env-sun-z",
+			math.floor(d.sunPos[3] * 10000 + 0.5),
+			string.format("%.2f", d.sunPos[3])
+		)
+		_envSetSlider(
+			"slider-env-gshadow",
+			"lbl-env-gshadow",
+			math.floor(d.groundShadowDensity * 1000 + 0.5),
+			string.format("%.2f", d.groundShadowDensity)
+		)
+		_envSetSlider(
+			"slider-env-ushadow",
+			"lbl-env-ushadow",
+			math.floor(d.unitShadowDensity * 1000 + 0.5),
+			string.format("%.2f", d.unitShadowDensity)
+		)
 	end,
 	onEnvResetFog = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetAtmosphere({ fogStart = d.fogStart, fogEnd = d.fogEnd })
-		_envSetSlider("slider-env-fog-start", "lbl-env-fog-start", math.floor(d.fogStart * 100 + 0.5), string.format("%.2f", d.fogStart))
-		_envSetSlider("slider-env-fog-end",   "lbl-env-fog-end",   math.floor(d.fogEnd   * 100 + 0.5), string.format("%.2f", d.fogEnd))
+		_envSetSlider(
+			"slider-env-fog-start",
+			"lbl-env-fog-start",
+			math.floor(d.fogStart * 100 + 0.5),
+			string.format("%.2f", d.fogStart)
+		)
+		_envSetSlider(
+			"slider-env-fog-end",
+			"lbl-env-fog-end",
+			math.floor(d.fogEnd * 100 + 0.5),
+			string.format("%.2f", d.fogEnd)
+		)
 	end,
 	onEnvResetFogColor = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetAtmosphere({ fogColor = d.fogColor })
-		for i, s in ipairs({"r", "g", "b", "a"}) do
-			_envSetSlider("slider-env-fog-" .. s, "lbl-env-fog-" .. s,
+		for i, s in ipairs({ "r", "g", "b", "a" }) do
+			_envSetSlider(
+				"slider-env-fog-" .. s,
+				"lbl-env-fog-" .. s,
 				math.floor((d.fogColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.fogColor[i] or 0))
+				string.format("%.2f", d.fogColor[i] or 0)
+			)
 		end
 	end,
 	onEnvResetSunCol = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetAtmosphere({ sunColor = d.sunColor })
-		for i, s in ipairs({"r", "g", "b"}) do
-			_envSetSlider("slider-env-suncol-" .. s, "lbl-env-suncol-" .. s,
+		for i, s in ipairs({ "r", "g", "b" }) do
+			_envSetSlider(
+				"slider-env-suncol-" .. s,
+				"lbl-env-suncol-" .. s,
 				math.floor((d.sunColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.sunColor[i] or 0))
+				string.format("%.2f", d.sunColor[i] or 0)
+			)
 		end
 	end,
 	onEnvResetSkyCol = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetAtmosphere({ skyColor = d.skyColor })
-		for i, s in ipairs({"r", "g", "b"}) do
-			_envSetSlider("slider-env-skycol-" .. s, "lbl-env-skycol-" .. s,
+		for i, s in ipairs({ "r", "g", "b" }) do
+			_envSetSlider(
+				"slider-env-skycol-" .. s,
+				"lbl-env-skycol-" .. s,
 				math.floor((d.skyColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.skyColor[i] or 0))
+				string.format("%.2f", d.skyColor[i] or 0)
+			)
 		end
 	end,
 	onEnvResetCloudCol = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetAtmosphere({ cloudColor = d.cloudColor })
-		for i, s in ipairs({"r", "g", "b"}) do
-			_envSetSlider("slider-env-cloudcol-" .. s, "lbl-env-cloudcol-" .. s,
+		for i, s in ipairs({ "r", "g", "b" }) do
+			_envSetSlider(
+				"slider-env-cloudcol-" .. s,
+				"lbl-env-cloudcol-" .. s,
 				math.floor((d.cloudColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.cloudColor[i] or 0))
+				string.format("%.2f", d.cloudColor[i] or 0)
+			)
 		end
 		_envUpdatePreview("env-cloudcol-preview", d.cloudColor[1], d.cloudColor[2], d.cloudColor[3])
 	end,
 	onEnvResetSnow = function(_event)
-		if WG['snow'] then
-			if WG['snow'].setMultiplier     then WG['snow'].setMultiplier(1.0)     end
-			if WG['snow'].setSpeedMultiplier then WG['snow'].setSpeedMultiplier(1.0) end
-			if WG['snow'].setSizeMultiplier  then WG['snow'].setSizeMultiplier(1.0)  end
-			if WG['snow'].setWindMultiplier  then WG['snow'].setWindMultiplier(4.5)  end
-			if WG['snow'].setOpacity         then WG['snow'].setOpacity(0.66)        end
-			if WG['snow'].setColor           then WG['snow'].setColor(0.8, 0.8, 0.9) end
+		if WG.snow then
+			if WG.snow.setMultiplier then
+				WG.snow.setMultiplier(1.0)
+			end
+			if WG.snow.setSpeedMultiplier then
+				WG.snow.setSpeedMultiplier(1.0)
+			end
+			if WG.snow.setSizeMultiplier then
+				WG.snow.setSizeMultiplier(1.0)
+			end
+			if WG.snow.setWindMultiplier then
+				WG.snow.setWindMultiplier(4.5)
+			end
+			if WG.snow.setOpacity then
+				WG.snow.setOpacity(0.66)
+			end
+			if WG.snow.setColor then
+				WG.snow.setColor(0.8, 0.8, 0.9)
+			end
 		end
-		_envSetSlider("slider-env-snow-density",  "lbl-env-snow-density",  100, "1.00")
-		_envSetSlider("slider-env-snow-speed",     "lbl-env-snow-speed",     100, "1.00")
-		_envSetSlider("slider-env-snow-size",      "lbl-env-snow-size",      100, "1.00")
-		_envSetSlider("slider-env-snow-wind",      "lbl-env-snow-wind",       45, "4.50")
-		_envSetSlider("slider-env-snow-opacity",   "lbl-env-snow-opacity",    66, "0.66")
-		_envSetSlider("slider-env-snowcol-r",      "lbl-env-snowcol-r",      800, "0.80")
-		_envSetSlider("slider-env-snowcol-g",      "lbl-env-snowcol-g",      800, "0.80")
-		_envSetSlider("slider-env-snowcol-b",      "lbl-env-snowcol-b",      900, "0.90")
+		_envSetSlider("slider-env-snow-density", "lbl-env-snow-density", 100, "1.00")
+		_envSetSlider("slider-env-snow-speed", "lbl-env-snow-speed", 100, "1.00")
+		_envSetSlider("slider-env-snow-size", "lbl-env-snow-size", 100, "1.00")
+		_envSetSlider("slider-env-snow-wind", "lbl-env-snow-wind", 45, "4.50")
+		_envSetSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", 66, "0.66")
+		_envSetSlider("slider-env-snowcol-r", "lbl-env-snowcol-r", 800, "0.80")
+		_envSetSlider("slider-env-snowcol-g", "lbl-env-snowcol-g", 800, "0.80")
+		_envSetSlider("slider-env-snowcol-b", "lbl-env-snowcol-b", 900, "0.90")
 		_envUpdatePreview("env-snowcol-preview", 0.8, 0.8, 0.9)
 	end,
 	onEnvResetGroundLighting = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetSunLighting({
-			groundAmbientColor  = d.groundAmbient,
-			groundDiffuseColor  = d.groundDiffuse,
+			groundAmbientColor = d.groundAmbient,
+			groundDiffuseColor = d.groundDiffuse,
 			groundSpecularColor = d.groundSpecular,
 		})
 		Spring.SendCommands("luarules updatesun")
 		local map = {
-			{ "gambient", d.groundAmbient }, { "gdiffuse", d.groundDiffuse }, { "gspecular", d.groundSpecular },
+			{ "gambient", d.groundAmbient },
+			{ "gdiffuse", d.groundDiffuse },
+			{ "gspecular", d.groundSpecular },
 		}
 		for _, entry in ipairs(map) do
-			for i, s in ipairs({"r", "g", "b"}) do
-				_envSetSlider("slider-env-" .. entry[1] .. "-" .. s, "lbl-env-" .. entry[1] .. "-" .. s,
+			for i, s in ipairs({ "r", "g", "b" }) do
+				_envSetSlider(
+					"slider-env-" .. entry[1] .. "-" .. s,
+					"lbl-env-" .. entry[1] .. "-" .. s,
 					math.floor((entry[2][i] or 0) * 1000 + 0.5),
-					string.format("%.2f", entry[2][i] or 0))
+					string.format("%.2f", entry[2][i] or 0)
+				)
 			end
 		end
 	end,
 	onEnvResetUnitLighting = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetSunLighting({
-			unitAmbientColor  = d.unitAmbient,
-			unitDiffuseColor  = d.unitDiffuse,
+			unitAmbientColor = d.unitAmbient,
+			unitDiffuseColor = d.unitDiffuse,
 			unitSpecularColor = d.unitSpecular,
 		})
 		Spring.SendCommands("luarules updatesun")
 		local map = {
-			{ "uambient", d.unitAmbient }, { "udiffuse", d.unitDiffuse }, { "uspecular", d.unitSpecular },
+			{ "uambient", d.unitAmbient },
+			{ "udiffuse", d.unitDiffuse },
+			{ "uspecular", d.unitSpecular },
 		}
 		for _, entry in ipairs(map) do
-			for i, s in ipairs({"r", "g", "b"}) do
-				_envSetSlider("slider-env-" .. entry[1] .. "-" .. s, "lbl-env-" .. entry[1] .. "-" .. s,
+			for i, s in ipairs({ "r", "g", "b" }) do
+				_envSetSlider(
+					"slider-env-" .. entry[1] .. "-" .. s,
+					"lbl-env-" .. entry[1] .. "-" .. s,
 					math.floor((entry[2][i] or 0) * 1000 + 0.5),
-					string.format("%.2f", entry[2][i] or 0))
+					string.format("%.2f", entry[2][i] or 0)
+				)
 			end
 		end
 	end,
 	onEnvResetSkyAxis = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		Spring.SetAtmosphere({ skyAxisAngle = d.skyAxisAngle })
 	end,
 	onEnvSkyDynPlay = function(_event)
@@ -6189,77 +12145,147 @@ local initialModel = {
 	end,
 	onEnvResetWaterColors = function(_event)
 		local d = widgetState.envDefaults
-		if not d then return end
+		if not d then
+			return
+		end
 		local resetMap = {
-			{ "absorb",        d.waterAbsorb        },
-			{ "basecolor",     d.waterBaseColor      },
-			{ "mincolor",      d.waterMinColor       },
-			{ "surfacecolor",  d.waterSurfaceColor   },
-			{ "planecolor",    d.waterPlaneColor     },
-			{ "diffusecolor",  d.waterDiffuseColor   },
-			{ "specularcolor", d.waterSpecularColor  },
+			{ "absorb", d.waterAbsorb },
+			{ "basecolor", d.waterBaseColor },
+			{ "mincolor", d.waterMinColor },
+			{ "surfacecolor", d.waterSurfaceColor },
+			{ "planecolor", d.waterPlaneColor },
+			{ "diffusecolor", d.waterDiffuseColor },
+			{ "specularcolor", d.waterSpecularColor },
 		}
 		local paramMap = {
-			absorb        = "absorb",        basecolor     = "baseColor",
-			mincolor      = "minColor",      surfacecolor  = "surfaceColor",
-			planecolor    = "planeColor",    diffusecolor  = "diffuseColor",
+			absorb = "absorb",
+			basecolor = "baseColor",
+			mincolor = "minColor",
+			surfacecolor = "surfaceColor",
+			planecolor = "planeColor",
+			diffusecolor = "diffuseColor",
 			specularcolor = "specularColor",
 		}
 		for _, entry in ipairs(resetMap) do
 			local prefix, defVal = entry[1], entry[2]
 			Spring.SetWaterParams({ [paramMap[prefix]] = defVal })
-			for i, s in ipairs({"r", "g", "b"}) do
-				_envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, "lbl-env-wc-" .. prefix .. "-" .. s,
+			for i, s in ipairs({ "r", "g", "b" }) do
+				_envSetSlider(
+					"slider-env-wc-" .. prefix .. "-" .. s,
+					"lbl-env-wc-" .. prefix .. "-" .. s,
 					math.floor((defVal[i] or 0) * 1000 + 0.5),
-					string.format("%.2f", defVal[i] or 0))
+					string.format("%.2f", defVal[i] or 0)
+				)
 			end
 			_envUpdatePreview("env-wc-preview-" .. prefix, defVal[1], defVal[2], defVal[3])
 		end
 		Spring.SendCommands("water 4")
 	end,
-	onEnvDimRefresh = function(_event)
-		if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
-	end,
+	-- Commits the previewed shoreline: the terrain slides so the water plane
+	-- lands on the slider's height. The slider is then reseeded (the terrain it
+	-- was measured against just moved) on a short delay, once the sim has
+	-- applied the shift.
 	onEnvApplyWaterLevel = function(_event)
+		local tb = WG.TerraformBrush
+		if not (tb and tb.applyWaterLevel) then
+			return
+		end
 		local doc = widgetState.document
-		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
-		local val = wlInputEl and tonumber(wlInputEl:GetAttribute("value"))
-		if val and val ~= 0 then
-			Spring.SendCommands("luarules waterlevel " .. tostring(val))
-			if wlInputEl then wlInputEl:SetAttribute("value", "0") end
-			if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
+		local sl = doc and doc:GetElementById("slider-env-waterlevel")
+		local level = sl and tonumber(sl:GetAttribute("value"))
+		if not level then
+			return
+		end
+		if not tb.applyWaterLevel(level) then
+			Spring.Echo("[Terraform Brush] Shoreline is already at that height.")
+			return
+		end
+		playSound("save")
+		widgetState.envWaterReseedTicks = 40
+	end,
+	onEnvDimRangeMode = function(_event, mode)
+		local dm = widgetState.dmHandle
+		if not dm or dm.envDimRangeMode == mode then
+			return
+		end
+		playSound("click")
+		dm.envDimRangeMode = mode
+		if mode == "clamp" then
+			dm.envDimRangeDescStr = "Cuts everything outside the range. Peaks and pits come out flat."
+		else
+			dm.envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off."
 		end
 	end,
-	onEnvApplyMinHeight = function(_event)
+	-- Applies the slider min/max to the whole map. RESCALE remaps the live
+	-- extremes onto the range (the thing the old clamp-only buttons could never
+	-- do: lowering the max used to just shear the mountain tops off); CLAMP is
+	-- the old behaviour, kept for shaving a single runaway peak.
+	onEnvApplyHeightRange = function(_event)
 		local doc = widgetState.document
-		local minHEl = doc and doc:GetElementById("input-dim-minheight")
-		local val = minHEl and tonumber(minHEl:GetAttribute("value"))
-		if val then
-			Spring.SendCommands("luarules clampminheight " .. tostring(val))
-			if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
+		local minHEl = doc and doc:GetElementById("slider-env-dim-minheight")
+		local maxHEl = doc and doc:GetElementById("slider-env-dim-maxheight")
+		local newMin = minHEl and tonumber(minHEl:GetAttribute("value"))
+		local newMax = maxHEl and tonumber(maxHEl:GetAttribute("value"))
+		if not newMin or not newMax then
+			Spring.Echo("[Terraform Brush] Height range needs a number on both sliders.")
+			return
 		end
-	end,
-	onEnvApplyMaxHeight = function(_event)
-		local doc = widgetState.document
-		local maxHEl = doc and doc:GetElementById("input-dim-maxheight")
-		local val = maxHEl and tonumber(maxHEl:GetAttribute("value"))
-		if val then
-			Spring.SendCommands("luarules clampmaxheight " .. tostring(val))
-			if widgetState.envRefreshDimExtremes then widgetState.envRefreshDimExtremes() end
+		if newMax - newMin < 1 then
+			Spring.Echo("[Terraform Brush] Height range needs a max at least 1 above the min.")
+			return
 		end
+		local tb = WG.TerraformBrush
+		if not (tb and tb.remapHeights) then
+			return
+		end
+		local dm = widgetState.dmHandle
+		playSound("save")
+		-- No refresh here: the sim applies a frame or two later, so it would
+		-- only re-show the pre-edit numbers. The window poll picks it up.
+		tb.remapHeights(newMin, newMax, dm and dm.envDimRangeMode or "scale")
 	end,
+	-- Put the water back where the map had it, undoing every water level apply
+	-- made this session. Parking the slider is not enough on its own: an apply
+	-- already recentres it, so a slider-only reset is a visible no-op.
 	onEnvResetWaterLevel = function(_event)
-		local doc = widgetState.document
-		local wlInputEl = doc and doc:GetElementById("input-dim-waterlevel")
-		if wlInputEl then wlInputEl:SetAttribute("value", "0") end
+		local tb = WG.TerraformBrush
+		local shift = tb and tb.resetWaterLevel and tb.resetWaterLevel()
+		if shift then
+			playSound("save")
+			Spring.Echo(string.format("[Terraform Brush] Water level restored (undid %.0f).", shift))
+			widgetState.envWaterReseedTicks = 40
+		else
+			playSound("click")
+			Spring.Echo("[Terraform Brush] Water is already at the map's own level.")
+			if widgetState.envSeedWaterSlider then
+				widgetState.envSeedWaterSlider()
+			end
+		end
 	end,
+	-- "CURRENT" button: park the slider back on the water's live plane —
+	-- recentres the track and clears the shoreline preview without touching
+	-- the terrain (reseed = bounds centred on the plane, handle in the middle).
+	onEnvWaterCurrent = function(_event)
+		if widgetState.envSeedWaterSlider then
+			playSound("click")
+			widgetState.envSeedWaterSlider()
+		end
+	end,
+	-- "RESET" chip: back to the map's own height range. Init min/max come from
+	-- the map's SMF header, so they survive every edit and stay a true default.
 	onEnvResetBounds = function(_event)
-		local doc = widgetState.document
-		if not doc then return end
-		local minHEl = doc:GetElementById("input-dim-minheight")
-		local maxHEl = doc:GetElementById("input-dim-maxheight")
-		if minHEl then minHEl:SetAttribute("value", "") end
-		if maxHEl then maxHEl:SetAttribute("value", "") end
+		if widgetState.envFillDimRangeInputs then
+			playSound("click")
+			widgetState.envFillDimRangeInputs(true)
+		end
+	end,
+	-- "CURRENT" button: refill both boxes from the live extremes, so editing one
+	-- end of the range does not need the other typed back in by hand.
+	onEnvFillBoundsCurrent = function(_event)
+		if widgetState.envFillDimRangeInputs then
+			playSound("click")
+			widgetState.envFillDimRangeInputs(false)
+		end
 	end,
 	onEnvSave = function(_event)
 		playSound("save")
@@ -6315,94 +12341,252 @@ local initialModel = {
 		playSound("save")
 		Spring.Echo("[Environ] Loaded environment config: " .. newest)
 	end,
+	-- ENV panel PRESETS (Sun & Shadows window): SAVE writes the live environment
+	-- under a name, BROWSE lists sun-only quick presets, the harvested map moods
+	-- and the user's files; the SUN ONLY / FULL chips set what a click applies.
+	onEnvPresetSave = function(_event)
+		---@type table?
+		local doc = widgetState.document
+		local inp = doc and doc:GetElementById("env-preset-name-input")
+		local name = inp and (inp:GetAttribute("value") or "") or ""
+		local ok, msg = widgetState.saveEnvPreset(name)
+		---@type table?
+		local d = widgetState.dmHandle
+		if d then
+			d.envPresetHint = ok and ("Saved " .. tostring(name)) or tostring(msg)
+		end
+		if ok then
+			playSound("save")
+			if inp then
+				inp:SetAttribute("value", "")
+			end
+			if widgetState.envPresetDropdownOpen and widgetState.rebuildEnvPresetList then
+				widgetState.rebuildEnvPresetList()
+			end
+		end
+	end,
+	onEnvPresetToggle = function(_event)
+		local open = not widgetState.envPresetDropdownOpen
+		if open and widgetState.rebuildEnvPresetList then
+			widgetState.rebuildEnvPresetList()
+		end
+		if widgetState.setEnvPresetDropdownOpen then
+			widgetState.setEnvPresetDropdownOpen(open)
+		end
+		playSound("click")
+	end,
+	onEnvPresetScope = function(_event, scope)
+		playSound("click")
+		widgetState.envPresetScope = scope == "sun" and "sun" or "full"
+		---@type table?
+		local d = widgetState.dmHandle
+		if d then
+			d.envPresetScope = widgetState.envPresetScope
+		end
+	end,
 
 	-- ── Terraform mode buttons ────────────────────────────────────────────────
 	-- data-event-click="onTfSetMode('raise')"
 	onTfSetMode = function(_event, mode)
-		if widgetState.noTerraform then return end
+		if widgetState.noTerraform then
+			return
+		end
 		playSound("modeSwitch")
 		clearPassthrough()
-		if WG.MetalBrush    then WG.MetalBrush.deactivate()    end
-		if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-		if WG.WeatherBrush  then WG.WeatherBrush.deactivate()  end
-		if WG.SplatPainter  then WG.SplatPainter.deactivate()  end
-		if WG.GrassBrush    then WG.GrassBrush.deactivate()    end
-		if WG.DiffusePainter then WG.DiffusePainter.deactivate() end
-		widgetState.envActive      = false
-		widgetState.lightActive    = false
-		if WG.LightPlacer   then WG.LightPlacer.deactivate()   end
+		if WG.MetalBrush then
+			WG.MetalBrush.deactivate()
+		end
+		if WG.FeaturePlacer then
+			WG.FeaturePlacer.deactivate()
+		end
+		if WG.WeatherBrush then
+			WG.WeatherBrush.deactivate()
+		end
+		if WG.SplatPainter then
+			WG.SplatPainter.deactivate()
+		end
+		if WG.GrassBrush then
+			WG.GrassBrush.deactivate()
+		end
+		if WG.DiffusePainter then
+			WG.DiffusePainter.deactivate()
+		end
+		widgetState.envActive = false
+		widgetState.lightActive = false
+		if WG.LightPlacer then
+			WG.LightPlacer.deactivate()
+		end
 		widgetState.startposActive = false
-		if WG.StartPosTool  then WG.StartPosTool.deactivate()  end
-		widgetState.cloneActive    = false
-		if WG.CloneTool     then WG.CloneTool.deactivate()     end
-		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		if widgetState.dmHandle then widgetState.dmHandle.activeMode = mode end
+		if WG.StartPosTool then
+			WG.StartPosTool.deactivate()
+		end
+		widgetState.cloneActive = false
+		if WG.CloneTool then
+			WG.CloneTool.deactivate()
+		end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMode(mode)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeMode = mode
+		end
 		local inRestore = mode == "restore"
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
 		if clayBtn then
 			clayBtn:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[mode] == true)
 		end
-		if widgetState.dmHandle then widgetState.dmHandle.tfInRestore = inRestore end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.tfInRestore = inRestore
+		end
 	end,
 
 	-- data-event-click="onTfSmoothSubMode('smooth')"
 	onTfSmoothSubMode = function(_event, mode)
 		playSound("modeSwitch")
-		if WG.TerraformBrush then WG.TerraformBrush.setMode(mode) end
-		if widgetState.dmHandle then widgetState.dmHandle.activeSmoothMode = mode end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMode(mode)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeSmoothMode = mode
+		end
 	end,
 
 	-- ── Erode mode: repose angle slider ──────────────────────────────────────
 	-- data-event-change="onTfErodeReposeChange()"
 	onTfErodeReposeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local val = _noSliderVal("erode-repose", 33)
-		if WG.TerraformBrush.setErodeReposeDeg then WG.TerraformBrush.setErodeReposeDeg(val) end
-		-- Keep the attribute coherent for the steppers: outside a change event
-		-- GetAttribute returns the stale pre-drag value (rmlui quirk).
-		_noSetSliderVal("erode-repose", val)
+		if WG.TerraformBrush.setErodeReposeDeg then
+			WG.TerraformBrush.setErodeReposeDeg(val)
+		end
+		-- No echo-write of the value attribute here: a stamp raises a DEFERRED
+		-- change event (see syncAndFlash), which re-enters this handler with
+		-- updatingFromCode already false and fights the native thumb drag.
+		-- The steppers read widget state, and the per-sync restamp reconciles
+		-- the attribute after release, so nothing needs the write.
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
 	-- Steppers read the authoritative widget state, not the slider attribute,
 	-- which is only guaranteed fresh inside a change handler.
 	onTfErodeReposeUp = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
 		local val = math.min(60, ((s and s.erodeReposeDeg) or 33) + 1)
-		if WG.TerraformBrush.setErodeReposeDeg then WG.TerraformBrush.setErodeReposeDeg(val) end
+		if WG.TerraformBrush.setErodeReposeDeg then
+			WG.TerraformBrush.setErodeReposeDeg(val)
+		end
 		_noSetSliderVal("erode-repose", val)
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
 	end,
 	onTfErodeReposeDown = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
 		local val = math.max(10, ((s and s.erodeReposeDeg) or 33) - 1)
-		if WG.TerraformBrush.setErodeReposeDeg then WG.TerraformBrush.setErodeReposeDeg(val) end
+		if WG.TerraformBrush.setErodeReposeDeg then
+			WG.TerraformBrush.setErodeReposeDeg(val)
+		end
 		_noSetSliderVal("erode-repose", val)
 		_noDmLabel("tfErodeReposeStr", tostring(val) .. "\xc2\xb0")
+	end,
+
+	-- ── Autoramp submode sliders ─────────────────────────────────────────────
+	-- data-event-change="onTfAutorampSlider('angle')" etc. Angle is degrees;
+	-- the percent sliders map 0–100 onto the widget's 0–1 knobs.
+	onTfAutorampSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		local tb = WG.TerraformBrush
+		-- Read-and-store only — no echo-write of the value attribute: a stamp
+		-- raises a deferred change event that re-enters this handler and fights
+		-- the native thumb drag (the marble sticks while the track still works).
+		-- The per-sync restamp reconciles the attribute once the drag ends.
+		if key == "angle" then
+			local val = _noSliderVal("ar-angle", 60)
+			if tb.setAutorampAngleDeg then
+				tb.setAutorampAngleDeg(val)
+			end
+		else
+			local setters = {
+				falloff = tb.setAutorampFalloff,
+				edgenoise = tb.setAutorampEdgeNoise,
+				erosion = tb.setAutorampErosion,
+				talus = tb.setAutorampTalus,
+			}
+			local defaults = { falloff = 50, edgenoise = 35, erosion = 35, talus = 40 }
+			local setter = setters[key]
+			if setter then
+				local val = _noSliderVal("ar-" .. key, defaults[key])
+				setter(val / 100)
+			end
+		end
+	end,
+
+	-- data-event-click="onTfArStart('extend')" — autoramp cliff anchor chips
+	onTfArStart = function(_event, mode)
+		playSound("toggleOn")
+		if WG.TerraformBrush and WG.TerraformBrush.setAutorampStart then
+			WG.TerraformBrush.setAutorampStart(mode)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.arStart = mode
+		end
+	end,
+
+	-- data-event-click="onTfArPreview()" — autoramp WYSIWYG preview toggle
+	onTfArPreview = function(_event)
+		local tb = WG.TerraformBrush
+		if not tb then
+			return
+		end
+		local s = tb.getState and tb.getState()
+		local nv = not (s and s.autorampPreview)
+		playSound(nv and "toggleOn" or "toggleOff")
+		if tb.setAutorampPreview then
+			tb.setAutorampPreview(nv)
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.arPreview = nv
+		end
 	end,
 
 	-- data-event-click="onTfSetShape('circle')"
 	onTfSetShape = function(_event, shape)
 		playSound("shapeSwitch")
 		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
-		local spState = WG.SplatPainter  and WG.SplatPainter.getState()
-		local lpState = WG.LightPlacer   and WG.LightPlacer.getState()
+		local spState = WG.SplatPainter and WG.SplatPainter.getState()
+		local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 		local lpActive = widgetState.lightActive and lpState and lpState.active
 		if lpActive then
-			if shape ~= "circle" and shape ~= "square" then return end
+			if shape ~= "circle" and shape ~= "square" then
+				return
+			end
 			WG.LightPlacer.setShape(shape)
 		elseif fpState and fpState.active then
-			if shape == "ring" or shape == "fill" then return end
+			if shape == "ring" or shape == "fill" then
+				return
+			end
 			WG.FeaturePlacer.setShape(shape)
 		elseif spState and spState.active then
-			if shape == "ring" or shape == "fill" then return end
+			if shape == "ring" or shape == "fill" then
+				return
+			end
 			WG.SplatPainter.setShape(shape)
 		elseif WG.TerraformBrush then
 			local state = WG.TerraformBrush.getState()
-			if state and state.mode == "ramp" and shape ~= "circle" and shape ~= "square" then return end
-			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then return end
+			if state and state.mode == "ramp" and shape ~= "circle" and shape ~= "square" then
+				return
+			end
+			if state and (state.mode == "level" or state.mode == "smooth") and shape == "ring" then
+				return
+			end
 			WG.TerraformBrush.setShape(shape)
 		end
 		if widgetState.dmHandle then
@@ -6415,43 +12599,86 @@ local initialModel = {
 	-- data-event-click="onTfRampStraight()"
 	onTfRampStraight = function(_event)
 		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.setShape("square") end
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "square" end
+		if WG.TerraformBrush then
+			-- Leaving Auto: shape changes are rejected while autoramp is active
+			local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+			if s and s.mode == "autoramp" then
+				WG.TerraformBrush.setMode("ramp")
+			end
+			WG.TerraformBrush.setShape("square")
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = "square"
+			widgetState.dmHandle.tfRampType = "straight"
+		end
 	end,
 
 	-- data-event-click="onTfRampSpline()"
 	onTfRampSpline = function(_event)
 		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.setShape("circle") end
-		if widgetState.dmHandle then widgetState.dmHandle.activeShape = "circle" end
+		if WG.TerraformBrush then
+			local s = WG.TerraformBrush.getState and WG.TerraformBrush.getState()
+			if s and s.mode == "autoramp" then
+				WG.TerraformBrush.setMode("ramp")
+			end
+			WG.TerraformBrush.setShape("circle")
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = "circle"
+			widgetState.dmHandle.tfRampType = "spline"
+		end
+	end,
+
+	-- data-event-click="onTfRampAuto()"
+	onTfRampAuto = function(_event)
+		playSound("modeSwitch")
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setMode("autoramp")
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.activeShape = "circle"
+			widgetState.dmHandle.tfRampType = "auto"
+		end
 	end,
 
 	-- data-event-click="onTfUndo()" / onTfRedo()
 	onTfUndo = function(_event)
 		playSound("undo")
-		if WG.TerraformBrush then WG.TerraformBrush.undo() end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.undo()
+		end
 	end,
 	onTfRedo = function(_event)
 		playSound("undo")
-		if WG.TerraformBrush then WG.TerraformBrush.redo() end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.redo()
+		end
 	end,
 	onTfMbUndo = function(_event)
 		playSound("undo")
-		if WG.MetalBrush and WG.MetalBrush.undo then WG.MetalBrush.undo() end
+		if WG.MetalBrush and WG.MetalBrush.undo then
+			WG.MetalBrush.undo()
+		end
 	end,
 	onTfMbRedo = function(_event)
 		playSound("undo")
-		if WG.MetalBrush and WG.MetalBrush.redo then WG.MetalBrush.redo() end
+		if WG.MetalBrush and WG.MetalBrush.redo then
+			WG.MetalBrush.redo()
+		end
 	end,
 
 	-- data-event-click="onTfRotCW()" / onTfRotCCW()
 	onTfRotCW = function(_event)
 		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(ROTATION_STEP) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.rotate(ROTATION_STEP)
+		end
 	end,
 	onTfRotCCW = function(_event)
 		playSound("tick")
-		if WG.TerraformBrush then WG.TerraformBrush.rotate(-ROTATION_STEP) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.rotate(-ROTATION_STEP)
+		end
 	end,
 
 	-- data-event-click="onTfCurveUp()" / onTfCurveDown()
@@ -6476,7 +12703,9 @@ local initialModel = {
 		if WG.TerraformBrush then
 			local state = WG.TerraformBrush.getState()
 			local newI = state.intensity * 1.15
-			if newI < state.intensity + 0.1 then newI = state.intensity + 0.1 end
+			if newI < state.intensity + 0.1 then
+				newI = state.intensity + 0.1
+			end
 			WG.TerraformBrush.setIntensity(newI)
 		end
 	end,
@@ -6485,7 +12714,9 @@ local initialModel = {
 		if WG.TerraformBrush then
 			local state = WG.TerraformBrush.getState()
 			local newI = state.intensity / 1.15
-			if newI > state.intensity - 0.1 then newI = state.intensity - 0.1 end
+			if newI > state.intensity - 0.1 then
+				newI = state.intensity - 0.1
+			end
 			WG.TerraformBrush.setIntensity(newI)
 		end
 	end,
@@ -6536,39 +12767,64 @@ local initialModel = {
 	onTfRingWidthUp = function(_event)
 		ringWidthPct = math.min(95, ringWidthPct + 5)
 		local doc = widgetState.document
-		local sl  = doc and getCachedEl(doc, "slider-ring-width")
-		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
-		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
+		local sl = doc and getCachedEl(doc, "slider-ring-width")
+		if sl then
+			sl:SetAttribute("value", tostring(ringWidthPct))
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%"
+		end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100)
+		end
 	end,
 	onTfRingWidthDown = function(_event)
 		ringWidthPct = math.max(5, ringWidthPct - 5)
 		local doc = widgetState.document
-		local sl  = doc and getCachedEl(doc, "slider-ring-width")
-		if sl  then sl:SetAttribute("value", tostring(ringWidthPct)) end
-		if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%" end
-		if WG.TerraformBrush then WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100) end
+		local sl = doc and getCachedEl(doc, "slider-ring-width")
+		if sl then
+			sl:SetAttribute("value", tostring(ringWidthPct))
+		end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.tfRingWidthStr = tostring(ringWidthPct) .. "%"
+		end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setRingInnerRatio(1 - ringWidthPct / 100)
+		end
 	end,
 
-	-- data-event-click="onTfCapMaxUp()" etc.
+	-- data-event-click="onTfCapMaxUp()" etc. Bounds follow the dynamic
+	-- height-band envelope (updateHeightBandSliderBounds), not a fixed ±500.
 	onTfCapMaxUp = function(_event)
-		capMaxValue = math.min(500, capMaxValue + HEIGHT_CAP_STEP)
-		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
+		capMaxValue = math.min(widgetState.heightBandHi or 500, capMaxValue + HEIGHT_CAP_STEP)
+		if capMinValue > capMaxValue then
+			capMinValue = capMaxValue
+			applyCap("min", capMinValue)
+		end
 		applyCap("max", capMaxValue)
 	end,
 	onTfCapMaxDown = function(_event)
-		capMaxValue = math.max(-500, capMaxValue - HEIGHT_CAP_STEP)
-		if capMinValue > capMaxValue then capMinValue = capMaxValue; applyCap("min", capMinValue) end
+		capMaxValue = math.max(widgetState.heightBandLo or -500, capMaxValue - HEIGHT_CAP_STEP)
+		if capMinValue > capMaxValue then
+			capMinValue = capMaxValue
+			applyCap("min", capMinValue)
+		end
 		applyCap("max", capMaxValue)
 	end,
 	onTfCapMinUp = function(_event)
-		capMinValue = math.min(500, capMinValue + HEIGHT_CAP_STEP)
-		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
+		capMinValue = math.min(widgetState.heightBandHi or 500, capMinValue + HEIGHT_CAP_STEP)
+		if capMaxValue < capMinValue then
+			capMaxValue = capMinValue
+			applyCap("max", capMaxValue)
+		end
 		applyCap("min", capMinValue)
 	end,
 	onTfCapMinDown = function(_event)
-		capMinValue = math.max(-500, capMinValue - HEIGHT_CAP_STEP)
-		if capMaxValue < capMinValue then capMaxValue = capMinValue; applyCap("max", capMaxValue) end
+		capMinValue = math.max(widgetState.heightBandLo or -500, capMinValue - HEIGHT_CAP_STEP)
+		if capMaxValue < capMinValue then
+			capMaxValue = capMinValue
+			applyCap("max", capMaxValue)
+		end
 		applyCap("min", capMinValue)
 	end,
 
@@ -6576,28 +12832,46 @@ local initialModel = {
 	onTfSwitchFeatures = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.FeaturePlacer then return end
+		if not WG.FeaturePlacer then
+			return
+		end
 		_deactivateAllTools()
 		WG.FeaturePlacer.setMode("point")
 	end,
 	onTfSwitchWeather = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.WeatherBrush then return end
+		if not WG.WeatherBrush then
+			return
+		end
 		_deactivateAllTools()
 		WG.WeatherBrush.activate("scatter")
 	end,
 	onTfSwitchSplat = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.SplatPainter then return end
+		if not WG.SplatPainter then
+			return
+		end
+		if WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive() then
+			Spring.Echo(
+				"[Terraform Brush] Tileset shader active \226\128\148 soft variants live in SURFACE, hard overrides in LAYERS. DNTS splat applies to legacy maps only."
+			)
+			return
+		end
 		if _splatToolUnavailable() then
 			if _newMapSplatNeedsDnts() then
-				Spring.Echo("[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. No DNTS splat-set pack is installed, so the tool stays unavailable on blank maps for now.")
+				Spring.Echo(
+					"[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. No DNTS splat-set pack is installed, so the tool stays unavailable on blank maps for now."
+				)
 			elseif _newMapSplatEnginePathMissing() then
-				Spring.Echo("[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. The generated blank map has no blank-map DNTS path from the engine yet, so the tool stays disabled for now.")
+				Spring.Echo(
+					"[Terraform Brush] Splat Painter on New Map is waiting on queued Recoil engine changes. The generated blank map has no blank-map DNTS path from the engine yet, so the tool stays disabled for now."
+				)
 			else
-				Spring.Echo("[Terraform Brush] This map has no SSMF splat textures, so the Splat Painter stays disabled here.")
+				Spring.Echo(
+					"[Terraform Brush] This map has no SSMF splat textures, so the Splat Painter stays disabled here."
+				)
 			end
 			return
 		end
@@ -6605,12 +12879,16 @@ local initialModel = {
 		WG.SplatPainter.activate()
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
+		if clayBtn then
+			clayBtn:SetClass("unavailable", true)
+		end
 	end,
 	onTfSwitchDiffuse = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		if WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() then
 			WG.DiffusePainter.deactivate()
 			return
@@ -6619,27 +12897,37 @@ local initialModel = {
 		WG.DiffusePainter.activate()
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
+		if clayBtn then
+			clayBtn:SetClass("unavailable", true)
+		end
 	end,
 	onTfSwitchMetal = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.MetalBrush then return end
+		if not WG.MetalBrush then
+			return
+		end
 		_deactivateAllTools()
 		WG.MetalBrush.activate("stamp")
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
+		if clayBtn then
+			clayBtn:SetClass("unavailable", true)
+		end
 	end,
 	onTfSwitchGrass = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.GrassBrush then return end
+		if not WG.GrassBrush then
+			return
+		end
 		_deactivateAllTools()
 		WG.GrassBrush.activate("paint")
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
+		if clayBtn then
+			clayBtn:SetClass("unavailable", true)
+		end
 	end,
 	onTfSwitchDecals = function(_event)
 		playSound("toolSwitch")
@@ -6648,11 +12936,15 @@ local initialModel = {
 		widgetState.decalsActive = true
 		if WG.DecalPlacer then
 			local s = WG.DecalPlacer.getState()
-			if not s or not s.active then WG.DecalPlacer.setMode("point") end
+			if not s or not s.active then
+				WG.DecalPlacer.setMode("point")
+			end
 		end
 		local doc = widgetState.document
 		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-		if clayBtn then clayBtn:SetClass("unavailable", true) end
+		if clayBtn then
+			clayBtn:SetClass("unavailable", true)
+		end
 	end,
 	onTfSwitchEnv = function(_event)
 		playSound("toolSwitch")
@@ -6669,57 +12961,648 @@ local initialModel = {
 				widgetState.envActive = true
 			end
 		end)
-		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchEnv: " .. tostring(err2)) end
+		if not ok2 then
+			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchEnv: " .. tostring(err2))
+		end
 	end,
-	onTfSwitchTileset = function(_event)
+	-- SURFACE tool: paints the soft-top variant mask of the tileset shader.
+	-- Active state lives in the painter widget (splat pattern). The old SOFT
+	-- submode of the combined panel — the SOFT|HARD switcher is gone, this
+	-- button IS soft now (LAYERS below is hard).
+	onTfSwitchSurface = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
-		if not WG.TilesetTerrain then return end
-		if widgetState.tilesetActive then
-			widgetState.tilesetActive = false
+		if not WG.SurfacePainter then
+			return
+		end
+		local st = WG.SurfacePainter.getState and WG.SurfacePainter.getState()
+		if st and st.active then
+			-- Toggle off back to the terraform brush.
+			_deactivateAllTools()
 			if WG.TerraformBrush then
-				local st = WG.TerraformBrush.getState()
-				WG.TerraformBrush.setMode(st and st.mode or "raise")
+				local ts = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
 			end
 		else
+			_deactivateAllTools() -- clears a running LAYERS session too
+			local dm = widgetState.dmHandle
+			if dm and dm.surfMode ~= "soft" then
+				dm.surfMode = "soft"
+			end
+			-- Sneak Peek re-arms on every entry into this mode: it is the
+			-- tool's discovery surface, so a mid-session toggle-off never
+			-- carries over to the next visit.
+			if dm then
+				dm.surfReveal = true
+			end
+			WG.SurfacePainter.activate()
+		end
+	end,
+	-- LAYERS tool: paints the tileset shader's splat-override channels
+	-- (R=auto, G=intermediate, B=cliff, A=plateau) through the Splat Painter engine,
+	-- reused headless. The splat engine keeps full ownership of mouse/keys/draw
+	-- while active; widgetState.surfHardActive pins the shared panel to 'surf'
+	-- (surfMode == 'hard' sections) so the legacy SPLAT panel never opens.
+	onTfSwitchLayers = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.SplatPainter then
+			return
+		end
+		if widgetState.surfHardActive then
+			-- Toggle off back to the terraform brush.
 			_deactivateAllTools()
-			widgetState.tilesetActive = true
+			if WG.TerraformBrush then
+				local ts = WG.TerraformBrush.getState()
+				WG.TerraformBrush.setMode(ts and ts.mode or "raise")
+			end
+			return
+		end
+		local ti = gl.TextureInfo and gl.TextureInfo("$ssmf_splat_distr")
+		if not (ti and (ti.xsize or 0) > 0) then
+			Spring.Echo("[Terraform Brush] LAYERS needs a splat distribution texture; this map exposes none.")
+			return
+		end
+		_deactivateAllTools()
+		local dm = widgetState.dmHandle
+		if dm and dm.surfMode ~= "hard" then
+			dm.surfMode = "hard"
+		end
+		-- Sneak Peek re-arms on every entry into this mode (see SURFACE above)
+		if dm then
+			dm.surfReveal = true
+		end
+		WG.SplatPainter.activate()
+		widgetState.surfHardActive = true
+		-- Strokes must be visible: the shader gates the override mask on
+		-- splatInfluence, so a zeroed knob would make painting look broken.
+		local T = WG.TilesetTerrain
+		if T and T.getKnobs and T.setKnob then
+			local k = T.getKnobs()
+			if k and (k.splatInfluence or 0) <= 0 then
+				T.setKnob("splatInfluence", 1)
+				Spring.Echo(
+					"[Terraform Brush] splat influence was 0 \226\128\148 enabled so hard-surface strokes show."
+				)
+			end
+		end
+	end,
+	-- SURFACE brush + fill sliders (ids surf-slider-<key>). The BRUSH section
+	-- serves both submodes: in HARD the size/strength/falloff sliders drive the
+	-- splat engine instead (same slider-unit mappings as the legacy panel).
+	onSurfSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.SurfacePainter then
+			return
+		end
+		-- RmlUi delivers change events a few frames after the value is stamped,
+		-- by which time updatingFromCode is false again. SOFT and HARD share
+		-- these three sliders, so an echo from the mode we just LEFT would
+		-- otherwise write one engine's value into the other (onTilesetKnob
+		-- carries the same guard).
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
+			return
+		end
+		local dm = widgetState.dmHandle
+		if dm and dm.surfMode == "hard" then
+			local hsp = WG.SplatPainter
+			if not hsp then
+				return
+			end
+			if key == "size" then
+				hsp.setRadius(_elemSliderVal("surf-slider-size", 72))
+			elseif key == "strength" then
+				hsp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
+			elseif key == "falloff" then
+				hsp.setCurve(_elemSliderVal("surf-slider-falloff", 10) / 10)
+			end
+			return
+		end
+		local sp = WG.SurfacePainter
+		if key == "size" then
+			sp.setRadius(_elemSliderVal("surf-slider-size", 72))
+		elseif key == "strength" then
+			sp.setStrength(_elemSliderVal("surf-slider-strength", 15) / 100)
+		elseif key == "falloff" then
+			sp.setCurve(_elemSliderVal("surf-slider-falloff", 5) / 10)
+		elseif key == "spacing" then
+			sp.setSpacing(_elemSliderVal("surf-slider-spacing", 0))
+		elseif key == "scatter-pos" then
+			sp.setScatterPos(_elemSliderVal("surf-slider-scatter-pos", 0) / 100)
+		elseif key == "scatter-size" then
+			sp.setScatterSize(_elemSliderVal("surf-slider-scatter-size", 0) / 100)
+		elseif key == "scatter-str" then
+			sp.setScatterStr(_elemSliderVal("surf-slider-scatter-str", 0) / 100)
+		elseif key == "fill-scale" then
+			sp.setFillScale(_elemSliderVal("surf-slider-fill-scale", 1400))
+		elseif key == "fill-seed" then
+			sp.setFillSeed(_elemSliderVal("surf-slider-fill-seed", 0))
+		elseif sp.setSmartFilter then
+			-- soft-submode FILTERS sliders (ids surf-soft-slider-*)
+			if key == "slope-max" then
+				sp.setSmartFilter("slopeMax", _elemSliderVal("surf-soft-slider-slope-max", 45))
+			elseif key == "alt-min" then
+				sp.setSmartFilter("altMin", _elemSliderVal("surf-soft-slider-alt-min", 0))
+			elseif key == "alt-max" then
+				sp.setSmartFilter("altMax", _elemSliderVal("surf-soft-slider-alt-max", 200))
+			end
+		end
+	end,
+	onSurfPreset = function(_event, name)
+		if not (WG.SurfacePainter and WG.SurfacePainter.setPreset) then
+			return
+		end
+		if WG.SurfacePainter.setPreset(name) then
+			playSound("click")
+		end
+	end,
+	onSurfEraseToggle = function(_event)
+		if not WG.SurfacePainter then
+			return
+		end
+		local st = WG.SurfacePainter.getState() or {}
+		WG.SurfacePainter.setEraseMode(not st.eraseMode)
+		playSound(st.eraseMode and "toggleOff" or "toggleOn")
+	end,
+	-- WYSIWYG Ctrl sneak peek (DISPLAY chip, both submodes). Pure panel state:
+	-- tf_surface mirrors it into both paint engines each sync; the engines
+	-- watch Ctrl and drive WG.TilesetTerrain.setSurfacePreview themselves.
+	onSurfRevealToggle = function(_event)
+		local dm = widgetState.dmHandle
+		if not dm then
+			return
+		end
+		dm.surfReveal = not dm.surfReveal
+		playSound(dm.surfReveal and "toggleOn" or "toggleOff")
+	end,
+	-- Soft-submode smart filters (engine = dev_surface_painter; mirrors
+	-- onSurfHardFilter's enable-follows-any-chip behaviour).
+	onSurfFilter = function(_event, key)
+		local sp = WG.SurfacePainter
+		if not (sp and sp.setSmartFilter) then
+			return
+		end
+		local sf = (sp.getState() or {}).smartFilters or {}
+		local nv = not sf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		sp.setSmartFilter(key, nv)
+		local sf2 = (sp.getState() or {}).smartFilters or {}
+		sp.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.altMinEnable or sf2.altMaxEnable) and true or false
+		)
+	end,
+	-- INFLUENCE (soft altitude / slope bands scaling the stroke): SURFACE edits
+	-- the armed texture's profile in dev_surface_painter, LAYERS the active
+	-- channel's in the splat engine. Same three handlers for both submodes.
+	onSurfInfluence = function(_event, key)
+		local dm = widgetState.dmHandle
+		local eng = (dm and dm.surfMode == "hard") and WG.SplatPainter or WG.SurfacePainter
+		if not (eng and eng.setInfluence and eng.getState) then
+			return
+		end
+		local inf = (eng.getState() or {}).influence or {}
+		local nv = not inf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		eng.setInfluence(key, nv)
+	end,
+	onSurfInfluenceSlider = function(_event, key)
+		if uiState.updatingFromCode then
+			return
+		end
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
+			return
+		end
+		local dm = widgetState.dmHandle
+		local eng = (dm and dm.surfMode == "hard") and WG.SplatPainter or WG.SurfacePainter
+		if not (eng and eng.setInfluence) then
+			return
+		end
+		local map = {
+			["alt-min"] = { "altMin", 0 },
+			["alt-max"] = { "altMax", 200 },
+			["alt-feather"] = { "altFeatherLo", 40 },
+			["slope-min"] = { "slopeMin", 0 },
+			["slope-max"] = { "slopeMax", 30 },
+			["slope-feather"] = { "slopeFeather", 10 },
+		}
+		local m = map[key]
+		if not m then
+			return
+		end
+		local v = _elemSliderVal("surf-slider-inf-" .. key, m[2])
+		eng.setInfluence(m[1], v)
+		-- one Feather slider drives both altitude feathers
+		if m[1] == "altFeatherLo" then
+			eng.setInfluence("altFeatherHi", v)
+		end
+	end,
+	onSurfInfluenceCopy = function(_event)
+		local sp = WG.SurfacePainter
+		if not (sp and sp.copyInfluenceToAll) then
+			return
+		end
+		local n = sp.copyInfluenceToAll()
+		playSound("click")
+		Spring.Echo("[Terraform Brush] influence profile copied to " .. tostring(n) .. " texture(s)")
+	end,
+	-- SELECTED SLOT tint (GRADING): per-asset albedo tint of the armed variant
+	-- in the tileset shader (T.setSlotTint, keyed like FLIP). One slider sets
+	-- one channel; the other two come from the current entry.
+	onSurfSlotTint = function(_event, ch)
+		if uiState.updatingFromCode then
+			return
+		end
+		---@type table?
+		local T = WG.TilesetTerrain
+		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		if not (T and T.setSlotTint and asset) then
+			return
+		end
+		local r, g, b = T.getSlotTint(asset)
+		local doc = widgetState.document
+		local sl = doc and doc:GetElementById("surf-slider-slotTint" .. tostring(ch))
+		local v = sl and tonumber(sl:GetAttribute("value"))
+		if not v then
+			return
+		end
+		if ch == "R" then
+			r = v
+		elseif ch == "G" then
+			g = v
+		elseif ch == "B" then
+			b = v
+		end
+		T.setSlotTint(asset, r, g, b)
+	end,
+	onSurfSlotTintReset = function(_event)
+		---@type table?
+		local T = WG.TilesetTerrain
+		local asset = widgetState.surfSelectedAsset and widgetState.surfSelectedAsset()
+		if not (T and T.setSlotTint and asset) then
+			return
+		end
+		T.setSlotTint(asset, 1, 1, 1)
+		playSound("reset")
+	end,
+	-- LAYERS display: the splat engine's channel overlay, colored per override
+	onSurfHardOverlay = function(_event)
+		local sp = WG.SplatPainter
+		if not (sp and sp.setSplatOverlay) then
+			return
+		end
+		local st = sp.getState() or {}
+		sp.setSplatOverlay(not st.showSplatOverlay)
+		playSound(st.showSplatOverlay and "toggleOff" or "toggleOn")
+	end,
+	-- Slot rail: click BASE = erase-to-base brush; click a slot = paint that
+	-- slot's variant (no-op when the slot is empty — the palette assigns).
+	onSurfSelectBase = function(_event)
+		if not (WG.SurfacePainter and WG.SurfacePainter.setVariant) then
+			return
+		end
+		WG.SurfacePainter.setVariant("")
+		playSound("click")
+	end,
+	-- The whole chip is the button: it opens that slot's palette, and if the slot
+	-- already holds a variant it also arms the brush with it, so one click both
+	-- switches which slot you are painting and offers the library to change it.
+	-- Clicking the open chip again closes the palette. There used to be a small
+	-- caret for this, which rendered as a missing-glyph box in the panel font.
+	onSurfSlotSelect = function(_event, n)
+		if not WG.SurfacePainter then
+			return
+		end
+		local slot = tonumber(n)
+		local st = WG.SurfacePainter.getState() or {}
+		if not (slot and slot >= 1 and slot <= (st.slotCount or 0)) then
+			return -- a chip the painter does not have (stale click)
+		end
+		local asset = st["slot" .. slot]
+		if asset and asset ~= "" then
+			-- ARM THE SLOT, nothing else. This used to open the library as well,
+			-- so switching brush threw the whole catalog on screen every time;
+			-- the tile's PICK button owns that now.
+			if WG.SurfacePainter.setVariant then
+				WG.SurfacePainter.setVariant(asset)
+			end
+			playSound("click")
+		else
+			-- an empty slot has nothing to paint with, so the only useful thing
+			-- a click can mean is "let me choose something for it"
+			local open = (widgetState.surfPickerSlot ~= slot) and slot or nil
+			widgetState.surfPickerSlot = open
+			widgetState.surfPaletteSig = nil
+			playSound(open and "dropdown" or "click")
+		end
+	end,
+	onSurfNoiseFill = function(_event)
+		if not (WG.SurfacePainter and WG.SurfacePainter.noiseFill) then
+			return
+		end
+		-- The fill shader only writes a channel whose slot carries a variant
+		-- AND whose V1/V2 chip is on; with neither eligible it preserves the
+		-- mask verbatim, so the button silently did nothing. The RML grays it
+		-- in that state (dm.surfCanFill) — this is the backstop that explains.
+		local st = (WG.SurfacePainter.getState and WG.SurfacePainter.getState()) or {}
+		local anyAssigned, anyFill = false, false
+		for i = 1, (st.slotCount or 0) do
+			if st["slot" .. i] then
+				anyAssigned = true
+				if st["fillV" .. i] then
+					anyFill = true
+				end
+			end
+		end
+		if not anyFill then
+			Spring.Echo(
+				"[Terraform Brush] SURFACE fill did nothing \226\128\148 "
+					.. (
+						anyAssigned and "enable a V chip below."
+						or "assign a variant to a slot first (click a slot chip)."
+					)
+			)
+			return
+		end
+		WG.SurfacePainter.noiseFill()
+		playSound("click")
+	end,
+	onSurfFillToggle = function(_event, n)
+		if not WG.SurfacePainter then
+			return
+		end
+		local st = WG.SurfacePainter.getState() or {}
+		local dm = widgetState.dmHandle
+		local slot = tonumber(n)
+		if not (slot and slot >= 1 and slot <= (st.slotCount or 0)) then
+			return
+		end
+		local want = not st["fillV" .. slot]
+		if WG.SurfacePainter.setFillV then
+			WG.SurfacePainter.setFillV(slot, want)
+		end
+		if dm then
+			dm["surfFillV" .. slot] = want
+		end
+		playSound("tick")
+	end,
+	-- CLEAR buttons arm on the first click and execute on the second (the
+	-- spec's "with confirm"; projectDeleteConfirming precedent).
+	onSurfClearVariant = function(_event)
+		local dm = widgetState.dmHandle
+		if not (dm and WG.SurfacePainter) then
+			return
+		end
+		if dm.surfClearArm then
+			dm.surfClearArm = false
+			if WG.SurfacePainter.clearVariant() then
+				playSound("reset")
+			else
+				-- Base/erase selected: nothing to clear — say so instead of a
+				-- silent no-op the user reads as "cleared".
+				Spring.Echo("[Surface] select a variant tile first, then CLEAR VARIANT")
+			end
+		else
+			dm.surfClearArm = true
+			dm.surfClearAllArm = false
+			playSound("click")
+		end
+	end,
+	onSurfClearAll = function(_event)
+		local dm = widgetState.dmHandle
+		if not (dm and WG.SurfacePainter) then
+			return
+		end
+		if dm.surfClearAllArm then
+			dm.surfClearAllArm = false
+			if WG.SurfacePainter.clearAll() then
+				playSound("reset")
+			end
+		else
+			dm.surfClearAllArm = true
+			dm.surfClearArm = false
+			playSound("click")
+		end
+	end,
+	-- GRADING group tints are shader knobs; ids surf-slider-<knobKey>
+	onSurfKnob = function(_event, key)
+		if uiState.updatingFromCode or not WG.TilesetTerrain then
+			return
+		end
+		-- No fallback default here: tint knobs default to 1.0, desat to 0, so a
+		-- failed element lookup writing 0 would black the whole group out.
+		local v = _elemSliderVal("surf-slider-" .. key, nil)
+		if v ~= nil and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob(key, v)
+		end
+	end,
+	-- ── SURFACE HARD submode (splat overrides via WG.SplatPainter) ──────────
+	-- All onSurfHard* handlers talk to the splat ENGINE only; the legacy
+	-- SPLAT panel keeps its own onSpl*/sp-* namespace untouched.
+	onSurfHardChannel = function(_event, n)
+		if not WG.SplatPainter then
+			return
+		end
+		playSound("modeSwitch")
+		WG.SplatPainter.setChannel(tonumber(n) or 1)
+	end,
+	-- SAMPLE buttons on the SURFACE altitude rows (FILTERS in both modes and the
+	-- INFLUENCE band): arm the brush widget's height sampler, which reads the
+	-- next click's ground height (or the colormap contour under the cursor)
+	-- into the target. 'infAltMin'/'infAltMax' resolve to the engine of the
+	-- active mode; the FILTERS rows pass their engine's target directly.
+	onSurfAltSample = function(_event, target)
+		if not WG.TerraformBrush then
+			return
+		end
+		if target == "infAltMin" or target == "infAltMax" then
+			target = (widgetState.surfHardActive and "spInf" or "sfInf") .. target:sub(4)
+		end
+		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
+		WG.TerraformBrush.setHeightSamplingMode(cur == target and nil or target)
+	end,
+	onSurfHardFilter = function(_event, key)
+		if not WG.SplatPainter then
+			return
+		end
+		local sp = WG.SplatPainter
+		local sf = (sp.getState() or {}).smartFilters or {}
+		local nv = not sf[key]
+		playSound(nv and "toggleOn" or "toggleOff")
+		sp.setSmartFilter(key, nv)
+		local sf2 = (sp.getState() or {}).smartFilters or {}
+		sp.setSmartEnabled(
+			(sf2.avoidWater or sf2.avoidCliffs or sf2.preferSlopes or sf2.altMinEnable or sf2.altMaxEnable) and true
+				or false
+		)
+	end,
+	onSurfHardSlider = function(_event, key)
+		if uiState.updatingFromCode or not WG.SplatPainter then
+			return
+		end
+		if uiState.surfStampFrame and (Spring.GetDrawFrame() - uiState.surfStampFrame) < 3 then
+			return
+		end
+		local sp = WG.SplatPainter
+		if key == "slope-max" then
+			sp.setSmartFilter("slopeMax", _elemSliderVal("surf-hard-slider-slope-max", 45))
+		elseif key == "alt-min" then
+			local v = _elemSliderVal("surf-hard-slider-alt-min", 0)
+			local sf = (sp.getState() or {}).smartFilters or {}
+			if sf.altMaxEnable and v > (sf.altMax or 0) then
+				sp.setSmartFilter("altMax", v)
+			end
+			sp.setSmartFilter("altMin", v)
+		elseif key == "alt-max" then
+			local v = _elemSliderVal("surf-hard-slider-alt-max", 200)
+			local sf = (sp.getState() or {}).smartFilters or {}
+			if sf.altMinEnable and v < (sf.altMin or 0) then
+				sp.setSmartFilter("altMin", v)
+			end
+			sp.setSmartFilter("altMax", v)
+		end
+	end,
+	onSurfHardUndo = function(_event)
+		playSound("undo")
+		if WG.SplatPainter then
+			WG.SplatPainter.undo()
+		end
+	end,
+	onSurfHardRedo = function(_event)
+		playSound("undo")
+		if WG.SplatPainter then
+			WG.SplatPainter.redo()
+		end
+	end,
+	onSurfHardCycleFormat = function(_event)
+		playSound("click")
+		if WG.SplatPainter then
+			WG.SplatPainter.cycleExportFormat()
+		end
+	end,
+	onSurfHardSave = function(_event)
+		playSound("save")
+		if WG.SplatPainter then
+			WG.SplatPainter.saveSplats()
+		end
+	end,
+	-- Albedo/normal tiling decoupling on the flat layers: off pins every albTile*
+	-- ratio to 1.0 in the shader, so this is the straight A/B against the coupled
+	-- look without having to reset the three sliders.
+	-- PROTECT CLIFFS: the cliffProtect shader knob as a highlight button. The
+	-- guard is one-way — soft strokes sweep around cliff bodies, painted CLIFF
+	-- always lands — so this only ever governs intermediate/plateau paint.
+	onTsToggleCliffProtect = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.setKnob) then
+			return
+		end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and (knobs.cliffProtect or 0) >= 1)
+		WG.TilesetTerrain.setKnob("cliffProtect", on and 1 or 0)
+		playSound(on and "toggleOn" or "toggleOff")
+		local d = widgetState.dmHandle
+		if d then
+			d.tsCliffProtectOn = on
+		end
+	end,
+	onTsToggleAlbDecouple = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setKnob and WG.TilesetTerrain.getKnobs) then
+			return
+		end
+		local knobs = WG.TilesetTerrain.getKnobs()
+		local on = not (knobs and knobs.albDecouple and knobs.albDecouple >= 1)
+		WG.TilesetTerrain.setKnob("albDecouple", on and 1 or 0)
+		playSound(on and "toggleOn" or "toggleOff")
+		widgetState.tsAlbDecoupleLast = on
+		local doc = widgetState.document
+		local el = doc and doc:GetElementById("btn-ts-alb-decouple")
+		if el then
+			el:SetAttribute(
+				"src",
+				on and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
+			)
 		end
 	end,
 	onTilesetKnob = function(_event, key)
-		if uiState.updatingFromCode or not WG.TilesetTerrain then return end
-		local v = _elemSliderVal("ts-slider-" .. key, 0)
-		if v ~= nil and WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob(key, v) end
+		if uiState.updatingFromCode or not WG.TilesetTerrain then
+			return
+		end
+		-- Drop the deferred echo of programmatic slider stamps: tf_tileset.M.sync
+		-- raises change events via SetAttribute that RmlUi delivers frames later,
+		-- after updatingFromCode is back to false, and GetAttribute can then read
+		-- clamped/stale values back into the knobs (per-swap config drift).
+		if uiState.tsStampFrame and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3 then
+			return
+		end
+		-- nil fallback, not 0: a failed element lookup must not zero the knob
+		-- (same hazard onSurfKnob already guards against).
+		local v = _elemSliderVal("ts-slider-" .. key, nil)
+		if v ~= nil and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob(key, v)
+		end
 	end,
 	-- DEBUG view multi-toggle (replaces the old debugView slider). Sets the knob and
 	-- lights the matching button; tf_tileset.sync mirrors debugView -> tsDebugView so
 	-- console-driven changes stay in sync.
 	onTilesetDebugView = function(_event, n)
-		if not WG.TilesetTerrain then return end
+		if not WG.TilesetTerrain then
+			return
+		end
 		n = tonumber(n) or 0
-		if WG.TilesetTerrain.setKnob then WG.TilesetTerrain.setKnob("debugView", n) end
+		if WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("debugView", n)
+		end
 		local dm = widgetState.dmHandle
-		if dm then dm.tsDebugView = n end
+		if dm then
+			dm.tsDebugView = n
+		end
 		playSound("click")
+	end,
+	-- Per-section RESET on the TILESET headers, matching the env windows'
+	-- convention. Restores only that section's knobs, to the same values the
+	-- panel-wide Restore Defaults would give them (global defaults overlaid with
+	-- the active biome's own recipe). The section->knobs map lives in
+	-- dev_tileset_terrain.lua next to the knob table it references.
+	onTilesetSectionReset = function(_event, section)
+		-- Belt and braces with the target check in envSectionToggle: this button
+		-- lives inside the header row that toggles the section, so the click must
+		-- not travel any further than here.
+		if _event and _event.StopPropagation then
+			_event:StopPropagation()
+		end
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.resetSection) then
+			return
+		end
+		if WG.TilesetTerrain.resetSection(section) then
+			playSound("reset")
+		end
 	end,
 	-- TILESET CONFIG & PRESETS
 	onTilesetReset = function(_event)
-		if WG.TilesetTerrain and WG.TilesetTerrain.reset then WG.TilesetTerrain.reset() end
+		if WG.TilesetTerrain and WG.TilesetTerrain.reset then
+			WG.TilesetTerrain.reset()
+		end
 		playSound("reset")
 	end,
 	onTilesetDump = function(_event)
-		if WG.TilesetTerrain and WG.TilesetTerrain.dumpConfig then WG.TilesetTerrain.dumpConfig() end
+		if WG.TilesetTerrain and WG.TilesetTerrain.dumpConfig then
+			WG.TilesetTerrain.dumpConfig()
+		end
 		playSound("click")
 	end,
 	onTilesetPresetSave = function(_event)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.savePreset) then return end
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.savePreset) then
+			return
+		end
 		local doc = widgetState.document
 		local inp = doc and doc:GetElementById("ts-preset-name-input")
 		local name = inp and (inp:GetAttribute("value") or "") or ""
 		name = tostring(name):match("^%s*(.-)%s*$")
-		if name == "" then return end
+		if name == "" then
+			return
+		end
 		WG.TilesetTerrain.savePreset(name)
-		if inp then inp:SetAttribute("value", "") end
+		if inp then
+			inp:SetAttribute("value", "")
+		end
 		playSound("save")
 		if widgetState.tsDropdownOpen and widgetState.rebuildTsPresetList then
 			widgetState.rebuildTsPresetList()
@@ -6727,8 +13610,12 @@ local initialModel = {
 	end,
 	onTilesetPresetToggle = function(_event)
 		local open = not widgetState.tsDropdownOpen
-		if open and widgetState.rebuildTsPresetList then widgetState.rebuildTsPresetList() end
-		if widgetState.setTsDropdownOpen then widgetState.setTsDropdownOpen(open) end
+		if open and widgetState.rebuildTsPresetList then
+			widgetState.rebuildTsPresetList()
+		end
+		if widgetState.setTsDropdownOpen then
+			widgetState.setTsDropdownOpen(open)
+		end
 		playSound("click")
 	end,
 	onTilesetReset = function(_event)
@@ -6738,15 +13625,38 @@ local initialModel = {
 		end
 	end,
 	onPickBiome = function(_event, key)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.setBiome) then return end
-		local ok = WG.TilesetTerrain.setBiome(key)
+		widgetState.pickBiome(key)
+	end,
+	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
+	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
+	-- widget reseeds the two reused sliders on a change; tf_tileset.sync
+	-- restamps them and retitles their labels.
+	-- METAL SPOTS suite toggle: what TU22-24 serve. false = the metal-spot
+	-- material (legacy), true = a third paintable SURFACE variant (slot 3).
+	onTsSlot4Mode = function(_event, name)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setSlot4Mode) then
+			return
+		end
+		local ok = WG.TilesetTerrain.setSlot4Mode(name)
 		if ok then
 			playSound("click")
 			local dm = widgetState.dmHandle
-			if dm then dm.tsBiome = key end
-			-- Each biome is a planet: swap the skybox to match (no-op unless BAR +
-			-- toggle on; also no-op on maps that booted without a real cubemap sky).
-			syncSkyboxToBiome(key)
+			if dm then
+				dm.tsSlot4Mode = name
+			end
+		end
+	end,
+	onTsQuality = function(_event, name)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setQuality) then
+			return
+		end
+		local ok = WG.TilesetTerrain.setQuality(name)
+		if ok then
+			playSound("click")
+			local dm = widgetState.dmHandle
+			if dm then
+				dm.tsQuality = name
+			end
 		end
 	end,
 	onTsToggleSkyboxSync = function(_event)
@@ -6755,40 +13665,234 @@ local initialModel = {
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("btn-ts-skybox-sync")
 		if el then
-			el:SetAttribute("src",
-				widgetState.tsSkyboxSync
-				and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
+			el:SetAttribute(
+				"src",
+				widgetState.tsSkyboxSync and "/luaui/images/terraform_brush/check_on.png"
+					or "/luaui/images/terraform_brush/check_off.png"
+			)
 		end
 		-- Turning it on snaps the skybox to the currently active biome right away.
 		if widgetState.tsSkyboxSync and WG.TilesetTerrain and WG.TilesetTerrain.getActiveBiome then
 			local _, _, bkey = WG.TilesetTerrain.getActiveBiome()
-			if bkey then syncSkyboxToBiome(bkey) end
+			if bkey then
+				syncSkyboxToBiome(bkey)
+			end
+		end
+	end,
+	-- Master SHADER switch. Off releases the map shader (and the $minimap/$grass
+	-- overrides) back to the engine, so maps that ship hand-authored textures
+	-- render the way they were authored; the tuning sections gray out in M.sync.
+	-- One button, four meanings: sync when an update is waiting, re-check when it
+	-- is not, and do nothing while busy or when the update wants a newer brush.
+	onTsShaderSync = function(_event)
+		local project = WG.MapProject
+		local client = project and project.library
+		if not (client and client.shader and client.shader()) then
+			return
+		end
+		local d = widgetState.dmHandle
+		local state = d and d.tsShaderSyncState
+		if state == "offline" then
+			-- Team Sync is not running: the Projects window's start card is the
+			-- way to get it running. Opened from Update, where the handler is
+			-- in scope.
+			playSound("click")
+			widgetState.projectOpenRequest = { card = true }
+			return
+		end
+		if state == "checking" or state == "mismatch" then
+			return
+		end
+		playSound("click")
+		client.request(state == "update" and "shader_sync" or "shader_check")
+	end,
+	onTsToggleShader = function(_event)
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setActive) then
+			return
+		end
+		local was = WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()
+		local on = WG.TilesetTerrain.setActive(not was)
+		playSound(on and "toggleOn" or "toggleOff")
+		-- Immediate highlight; tf_tileset.sync keeps it honest afterwards (and
+		-- handles the section gray-out via tsShaderLast).
+		local d = widgetState.dmHandle
+		if d then
+			d.tsShaderOn = on and true or false
 		end
 	end,
 	-- METAL SPOTS style tiles (mirrors onPickBiome; styles live in the shader
 	-- widget's METAL_STYLES and swap the metal material + knob baseline live).
 	onPickMetalStyle = function(_event, key)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalStyle) then return end
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalStyle) then
+			return
+		end
 		local ok = WG.TilesetTerrain.setMetalStyle(key)
 		if ok then
 			playSound("click")
 			local dm = widgetState.dmHandle
-			if dm then dm.tsMetalStyle = key end
+			if dm then
+				dm.tsMetalStyle = key
+			end
 		end
 	end,
 	-- Dim per-spot glow lights toggle (deferred point lights via lightsgl4).
 	onTsToggleMetalGlow = function(_event)
-		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalLights) then return end
-		local on = WG.TilesetTerrain.setMetalLights(not (WG.TilesetTerrain.getMetalLights and WG.TilesetTerrain.getMetalLights()))
+		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalLights) then
+			return
+		end
+		local on = WG.TilesetTerrain.setMetalLights(
+			not (WG.TilesetTerrain.getMetalLights and WG.TilesetTerrain.getMetalLights())
+		)
 		playSound(on and "toggleOn" or "toggleOff")
+		---@type table?
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsGlowOn = on
+		end
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("btn-ts-metal-glow")
 		if el then
-			el:SetAttribute("src",
-				on and "/luaui/images/terraform_brush/check_on.png"
-				or  "/luaui/images/terraform_brush/check_off.png")
+			el:SetAttribute(
+				"src",
+				on and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png"
+			)
 		end
+	end,
+	-- GLOW LIGHT colour swatches, borrowed from the LIGHTS tool: they only write
+	-- tileset knobs; the shader widget rebuilds the deferred lights from the
+	-- knob table.
+	onTsGlowSwatch = function(_event, idx)
+		local c = widgetState.lpPalette and widgetState.lpPalette[tonumber(idx) or 0]
+		if not (c and WG.TilesetTerrain and WG.TilesetTerrain.setKnob) then
+			return
+		end
+		WG.TilesetTerrain.setKnob("metalGlowR", c[1])
+		WG.TilesetTerrain.setKnob("metalGlowG", c[2])
+		WG.TilesetTerrain.setKnob("metalGlowB", c[3])
+		playSound("click")
+	end,
+	-- HEIGHT TINT (tileset shader 0.27). Axis mode chips, the colour target
+	-- chips (grade LOW / MID / HIGH, strata beds 1..8, SNOW) and the one shared
+	-- palette + R/G/B trio that edits whichever chip is selected. Everything
+	-- writes tileset knobs; tf_tileset.sync paints the chips and restamps the
+	-- trio from the knob table. The chip -> knob-prefix map comes from
+	-- tf_tileset (widgetState.tsHgTargets, set in its attach).
+	onTsHgRefMode = function(_event, n)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("hgRefMode", tonumber(n) or 0)
+		end
+		playSound("click")
+	end,
+	onTsHgTarget = function(_event, t)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tsHgTarget = tostring(t)
+		end
+		widgetState.tsHgTrioLast = nil -- restamp the trio from the new target
+		playSound("click")
+	end,
+	onTsHgSwatch = function(_event, idx)
+		local c = widgetState.lpPalette and widgetState.lpPalette[tonumber(idx) or 0]
+		local set = widgetState.tsHgSet
+		local dm = widgetState.dmHandle
+		if not (c and set and dm) then
+			return
+		end
+		-- tf_tileset converts to the chip's own storage (RGB, or HSV for the stops)
+		if set(dm.tsHgTarget, c[1], c[2], c[3]) then
+			playSound("click")
+		end
+	end,
+	onTsHgChannel = function(_event, ch)
+		if uiState.updatingFromCode or not WG.TilesetTerrain then
+			return
+		end
+		-- same deferred-echo guard as onTilesetKnob: a programmatic restamp of
+		-- the trio raises change events frames later
+		if uiState.tsStampFrame and (Spring.GetDrawFrame() - uiState.tsStampFrame) < 3 then
+			return
+		end
+		local get, set = widgetState.tsHgGet, widgetState.tsHgSet
+		local dm = widgetState.dmHandle
+		if not (get and set and dm) then
+			return
+		end
+		local k = WG.TilesetTerrain.getKnobs and WG.TilesetTerrain.getKnobs()
+		if not k then
+			return
+		end
+		ch = tostring(ch):lower()
+		local val = _elemSliderVal("ts-hg-slider-" .. ch, nil)
+		if val == nil then
+			return
+		end
+		-- one slider moved: rebuild the colour in that slider's space from the
+		-- chip's current value and write it back through tf_tileset, which
+		-- converts to the chip's own storage (RGB, or HSV for the stops)
+		local r, g, b, h, s, v = get(k, dm.tsHgTarget)
+		if r == nil then
+			return
+		end
+		if ch == "r" or ch == "g" or ch == "b" then
+			if ch == "r" then
+				r = val
+			elseif ch == "g" then
+				g = val
+			else
+				b = val
+			end
+			set(dm.tsHgTarget, r, g, b)
+		else
+			if ch == "h" then
+				h = val
+			elseif ch == "s" then
+				s = val
+			else
+				v = val
+			end
+			set(dm.tsHgTarget, nil, nil, nil, h, s, v)
+		end
+	end,
+	onTsStrataMask = function(_event, bit)
+		local T = WG.TilesetTerrain
+		if not (T and T.getKnobs and T.setKnob) then
+			return
+		end
+		local k = T.getKnobs() or {}
+		local m = math.floor((k.strataLayerMask or 0) + 0.5)
+		bit = tonumber(bit) or 0
+		if bit <= 0 then
+			return
+		end
+		local has = (m % (bit * 2)) >= bit
+		T.setKnob("strataLayerMask", has and (m - bit) or (m + bit))
+		playSound(has and "toggleOff" or "toggleOn")
+	end,
+	onTsRampMode = function(_event, n)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("rampMode", tonumber(n) or 0)
+		end
+		playSound("click")
+	end,
+	onTsStopsMode = function(_event, n)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setKnob then
+			WG.TilesetTerrain.setKnob("stopsMode", tonumber(n) or 1)
+		end
+		playSound("click")
+	end,
+	onTsRampRescan = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.getRamps then
+			WG.TilesetTerrain.getRamps(true)
+		end
+		widgetState.tsRampListSig = nil
+		playSound("click")
+	end,
+	onTsRampClear = function(_event)
+		if WG.TilesetTerrain and WG.TilesetTerrain.setRamp then
+			WG.TilesetTerrain.setRamp("")
+		end
+		widgetState.tsRampListSig = nil
+		playSound("toggleOff")
 	end,
 	onTfSwitchLights = function(_event)
 		playSound("toolSwitch")
@@ -6796,7 +13900,9 @@ local initialModel = {
 		local ok2, err2 = pcall(function()
 			if widgetState.lightActive then
 				widgetState.lightActive = false
-				if WG.LightPlacer then WG.LightPlacer.deactivate() end
+				if WG.LightPlacer then
+					WG.LightPlacer.deactivate()
+				end
 				if WG.TerraformBrush then
 					local st = WG.TerraformBrush.getState()
 					WG.TerraformBrush.setMode(st and st.mode or "raise")
@@ -6804,10 +13910,14 @@ local initialModel = {
 			else
 				_deactivateAllTools()
 				widgetState.lightActive = true
-				if WG.LightPlacer then WG.LightPlacer.setMode("point") end
+				if WG.LightPlacer then
+					WG.LightPlacer.setMode("point")
+				end
 			end
 		end)
-		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchLights: " .. tostring(err2)) end
+		if not ok2 then
+			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchLights: " .. tostring(err2))
+		end
 	end,
 	onTfSwitchStartpos = function(_event)
 		playSound("toolSwitch")
@@ -6815,9 +13925,13 @@ local initialModel = {
 		local ok2, err2 = pcall(function()
 			if widgetState.startposActive then
 				widgetState.startposActive = false
-				if WG.StartPosTool then WG.StartPosTool.deactivate() end
+				if WG.StartPosTool then
+					WG.StartPosTool.deactivate()
+				end
 				widgetState.cloneActive = false
-				if WG.CloneTool then WG.CloneTool.deactivate() end
+				if WG.CloneTool then
+					WG.CloneTool.deactivate()
+				end
 				if WG.TerraformBrush then
 					local st = WG.TerraformBrush.getState()
 					WG.TerraformBrush.setMode(st and st.mode or "raise")
@@ -6825,194 +13939,441 @@ local initialModel = {
 			else
 				_deactivateAllTools()
 				widgetState.startposActive = true
-				if WG.StartPosTool then WG.StartPosTool.activate("express") end
+				if WG.StartPosTool then
+					WG.StartPosTool.activate("express")
+				end
 			end
 		end)
-		if not ok2 then Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchStartpos: " .. tostring(err2)) end
+		if not ok2 then
+			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchStartpos: " .. tostring(err2))
+		end
 	end,
 
 	-- ── TB shared instrument controls ─────────────────────────────────────────
 	-- Prefix P is 'st','cl','wb','sp','dc','lp' — one handler set covers all tools.
 	-- Core terraform instrument handlers
 	onTfGridOverlay = function(_event)
-		_tbMirrorToggle("tf", "gridOverlay", function(v) WG.TerraformBrush.setGridOverlay(v) end, "GridOverlay")
+		_tbMirrorToggle("tf", "gridOverlay", function(v)
+			WG.TerraformBrush.setGridOverlay(v)
+		end, "GridOverlay")
 	end,
 	onTfGridSnap = function(_event)
-		_tbMirrorToggle("tf", "gridSnap", function(v) WG.TerraformBrush.setGridSnap(v) end, "GridSnap")
+		_tbMirrorToggle("tf", "gridSnap", function(v)
+			WG.TerraformBrush.setGridSnap(v)
+		end, "GridSnap")
 	end,
 	onTfSnapSizeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setGridSnapSize(_elemSliderVal("slider-grid-snap-size", 48))
 	end,
 	onTfSnapSizeStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		WG.TerraformBrush.setGridSnapSize(math.max(16, math.min(128, (tonumber(s.gridSnapSize) or 48) + (delta or 0))))
 	end,
 	onTfAngleSnap = function(_event)
-		_tbMirrorToggle("tf", "angleSnap", function(v) WG.TerraformBrush.setAngleSnap(v) end, "AngleSnap")
+		_tbMirrorToggle("tf", "angleSnap", function(v)
+			WG.TerraformBrush.setAngleSnap(v)
+		end, "AngleSnap")
 	end,
 	onTfAngleStepChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local idx = math.floor(_elemSliderVal("slider-angle-snap-step", 1) or 1) + 1
 		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx] or 15)
 	end,
 	onTfAngleStepStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local idx = _tbFindAnglePresetIdx(s.angleSnapStep)
 		idx = math.max(1, math.min(#TB_ANGLE_PRESETS, idx + (delta or 0)))
 		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx])
 	end,
 	onTfAutoSnap = function(_event)
-		_tbMirrorToggle("tf", "angleSnapAuto", function(v) WG.TerraformBrush.setAngleSnapAuto(v) end, "AngleSnapAuto")
+		_tbMirrorToggle("tf", "angleSnapAuto", function(v)
+			WG.TerraformBrush.setAngleSnapAuto(v)
+		end, "AngleSnapAuto")
 	end,
 	onTfManualSpokeChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.setAngleSnapManualSpoke(math.floor(_elemSliderVal("slider-manual-spoke", 0) or 0))
 	end,
 	onTfManualSpokeStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local step = s.angleSnapStep or 15
 		local numSpokes = math.max(1, math.floor(360 / step))
-		WG.TerraformBrush.setAngleSnapManualSpoke(((s.angleSnapManualSpoke or 0) + (delta or 0) + numSpokes) % numSpokes)
+		WG.TerraformBrush.setAngleSnapManualSpoke(
+			((s.angleSnapManualSpoke or 0) + (delta or 0) + numSpokes) % numSpokes
+		)
 	end,
 	onTfMeasure = function(_event)
-		_tbMirrorToggle("tf", "measureActive", function(v) WG.TerraformBrush.setMeasureActive(v) end, "MeasureActive")
+		_tbMirrorToggle("tf", "measureActive", function(v)
+			WG.TerraformBrush.setMeasureActive(v)
+		end, "MeasureActive")
 	end,
 	onTfMeasureClear = function(_event)
-		if not WG.TerraformBrush then return end
-		WG.TerraformBrush.clearMeasureLines(); playSound("toggleOff")
+		if not WG.TerraformBrush then
+			return
+		end
+		WG.TerraformBrush.clearMeasureLines()
+		playSound("toggleOff")
 	end,
 	onTfMeasureRuler = function(_event)
-		_tbMirrorToggle("tf", "measureRulerMode", function(v) WG.TerraformBrush.setMeasureRulerMode(v) end, "MeasureRuler")
+		_tbMirrorToggle("tf", "measureRulerMode", function(v)
+			WG.TerraformBrush.setMeasureRulerMode(v)
+		end, "MeasureRuler")
 	end,
 	onTfMeasureSticky = function(_event)
-		_tbMirrorToggle("tf", "measureStickyMode", function(v) WG.TerraformBrush.setMeasureStickyMode(v) end, "MeasureSticky")
+		_tbMirrorToggle("tf", "measureStickyMode", function(v)
+			WG.TerraformBrush.setMeasureStickyMode(v)
+		end, "MeasureSticky")
 	end,
 	onTfMeasureShowLength = function(_event)
-		_tbMirrorToggle("tf", "measureShowLength", function(v) WG.TerraformBrush.setMeasureShowLength(v) end, "MeasureShowLength")
+		_tbMirrorToggle("tf", "measureShowLength", function(v)
+			WG.TerraformBrush.setMeasureShowLength(v)
+		end, "MeasureShowLength")
 	end,
 	onTfMeasureRampAttach = function(_event)
-		_tbMirrorToggle("tf", "rampAutoAttach", function(v) WG.TerraformBrush.setRampAutoAttach(v) end, "MeasureRampAttach")
+		_tbMirrorToggle("tf", "rampAutoAttach", function(v)
+			WG.TerraformBrush.setRampAutoAttach(v)
+		end, "MeasureRampAttach")
 	end,
 	onTfMeasureClearRamps = function(_event)
-		if not WG.TerraformBrush then return end
-		WG.TerraformBrush.clearRampChains(); playSound("toggleOff")
+		if not WG.TerraformBrush then
+			return
+		end
+		WG.TerraformBrush.clearRampChains()
+		playSound("toggleOff")
 	end,
 	onTfMeasureDistort = function(_event)
-		_tbMirrorToggle("tf", "measureDistortMode", function(v) WG.TerraformBrush.setMeasureDistortMode(v) end, "MeasureDistort")
+		_tbMirrorToggle("tf", "measureDistortMode", function(v)
+			WG.TerraformBrush.setMeasureDistortMode(v)
+		end, "MeasureDistort")
 	end,
 	onTfSymmetry = function(_event)
-		_tbMirrorToggle("tf", "symmetryActive", function(v) WG.TerraformBrush.setSymmetryActive(v) end, "SymmetryActive")
+		_tbMirrorToggle("tf", "symmetryActive", function(v)
+			WG.TerraformBrush.setSymmetryActive(v)
+		end, "SymmetryActive")
 	end,
 	onTfSymRadial = function(_event)
-		_tbMirrorToggle("tf", "symmetryRadial", function(v) WG.TerraformBrush.setSymmetryRadial(v) end, "SymmetryRadial")
+		_tbMirrorToggle("tf", "symmetryRadial", function(v)
+			WG.TerraformBrush.setSymmetryRadial(v)
+		end, "SymmetryRadial")
 	end,
 	onTfSymMirrorX = function(_event)
-		_tbMirrorToggle("tf", "symmetryMirrorX", function(v) WG.TerraformBrush.setSymmetryMirrorX(v) end, "SymMirrorX")
+		_tbMirrorToggle("tf", "symmetryMirrorX", function(v)
+			WG.TerraformBrush.setSymmetryMirrorX(v)
+		end, "SymMirrorX")
 	end,
 	onTfSymMirrorY = function(_event)
-		_tbMirrorToggle("tf", "symmetryMirrorY", function(v) WG.TerraformBrush.setSymmetryMirrorY(v) end, "SymMirrorY")
+		_tbMirrorToggle("tf", "symmetryMirrorY", function(v)
+			WG.TerraformBrush.setSymmetryMirrorY(v)
+		end, "SymMirrorY")
 	end,
 	onTfSymFlipped = function(_event)
-		_tbMirrorToggle("tf", "symmetryFlipped", function(v) WG.TerraformBrush.setSymmetryFlipped(v) end, "SymFlipped")
+		_tbMirrorToggle("tf", "symmetryFlipped", function(v)
+			WG.TerraformBrush.setSymmetryFlipped(v)
+		end, "SymFlipped")
 	end,
 	onTfSymClear = function(_event)
-		if not WG.TerraformBrush then return end
-		WG.TerraformBrush.clearSymmetry(); playSound("toggleOff")
+		if not WG.TerraformBrush then
+			return
+		end
+		WG.TerraformBrush.clearSymmetry()
+		playSound("toggleOff")
 	end,
 	onTfSymCountChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = math.floor(_elemSliderVal("slider-symmetry-radial-count", 2) or 2)
 		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local vs = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vs then dm.tbSymCountStr = vs end
+		local vs = tostring(v)
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymCountStr ~= vs then
+			dm.tbSymCountStr = vs
+		end
 	end,
 	onTfSymCountStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local newVal = math.max(2, math.min(16, (s.symmetryRadialCount or 2) + (delta or 0)))
 		WG.TerraformBrush.setSymmetryRadialCount(newVal)
-		local vs = tostring(newVal); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vs then dm.tbSymCountStr = vs end
+		local vs = tostring(newVal)
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymCountStr ~= vs then
+			dm.tbSymCountStr = vs
+		end
 	end,
 	onTfSymAngleChange = function(_event)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
 		local v = _elemSliderVal("slider-symmetry-mirror-angle", 0)
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local vs = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vs then dm.tbSymAngleStr = vs end
+		local vs = tostring(math.floor(v))
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymAngleStr ~= vs then
+			dm.tbSymAngleStr = vs
+		end
 	end,
 	onTfSymAngleStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local newVal = ((s.symmetryMirrorAngle or 0) + (delta or 0)) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(newVal)
-		local vs = tostring(math.floor(newVal)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vs then dm.tbSymAngleStr = vs end
+		local vs = tostring(math.floor(newVal))
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymAngleStr ~= vs then
+			dm.tbSymAngleStr = vs
+		end
 	end,
 	onTfSymPlaceOrigin = function(_event)
-		if not WG.TerraformBrush then return end
-		WG.TerraformBrush.setSymmetryPlacingOrigin(true); playSound("toggleOn")
+		if not WG.TerraformBrush then
+			return
+		end
+		WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+		playSound("toggleOn")
 	end,
 	onTfSymCenterOrigin = function(_event)
-		if not WG.TerraformBrush then return end
-		WG.TerraformBrush.setSymmetryOrigin(nil, nil); playSound("toggleOff")
+		if not WG.TerraformBrush then
+			return
+		end
+		WG.TerraformBrush.setSymmetryOrigin(nil, nil)
+		playSound("toggleOff")
 	end,
 	onTfHeightColormap = function(_event)
-		_tbMirrorToggle("tf", "heightColormap", function(v) WG.TerraformBrush.setHeightColormap(v) end, "HeightColormap")
+		_tbMirrorToggle("tf", "heightColormap", function(v)
+			WG.TerraformBrush.setHeightColormap(v)
+		end, "HeightColormap")
 	end,
 	onTfCurveOverlay = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local nv = not (WG.TerraformBrush.getState() or {}).curveOverlay
 		WG.TerraformBrush.setCurveOverlay(nv)
-		local dm = widgetState.dmHandle; if dm then dm.tfCurveOverlay = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tfCurveOverlay = nv
+		end
 		playSound(nv and "toggleOn" or "toggleOff")
 	end,
 	onTfVelocityIntensity = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local nv = not (WG.TerraformBrush.getState() or {}).velocityIntensity
 		WG.TerraformBrush.setVelocityIntensity(nv)
-		local dm = widgetState.dmHandle; if dm then dm.tfVelocityIntensity = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tfVelocityIntensity = nv
+		end
+		playSound(nv and "toggleOn" or "toggleOff")
+	end,
+	onTbCyclePassability = function(_event)
+		local TT = WG.TilesetTerrain
+		if not (TT and TT.setKnob) then
+			Spring.Echo("[Terraform Brush] PASSABILITY needs the tileset shader (SHADER in the SCENE window)")
+			return
+		end
+		_tbPassIdx = (_tbPassIdx + 1) % (#_tbPassClasses + 1)
+		local entry = _tbPassClasses[_tbPassIdx]
+		TT.setKnob("passSlopeDeg", entry and _tbPassDeg(entry) or 0)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tbPassActive = entry ~= nil
+			dm.tbPassLabelStr = entry and ("Pass: " .. entry.key) or "Passability"
+		end
+		playSound(entry and "toggleOn" or "toggleOff")
+	end,
+	-- ── IMAGE overlay (DISPLAY > Image; chips and window shared by every tool) ──
+	onTbImageOverlay = function(event)
+		-- Left click toggles the overlay once an image is loaded; before that,
+		-- and on right click, it opens the IMAGE OVERLAY window instead.
+		local p = event and event.parameters
+		local rightClick = p and p.button == 1
+		if rightClick or not _imgOv.toggleShow() then
+			local dm = widgetState.dmHandle
+			local open = not (dm and dm.imgOvVisible)
+			_imgOv.setWindow(open)
+			playSound(open and "panelOpen" or "click")
+		end
+	end,
+	onImgOvOpen = function(_event)
+		local dm = widgetState.dmHandle
+		local open = not (dm and dm.imgOvVisible)
+		_imgOv.setWindow(open)
+		playSound(open and "panelOpen" or "click")
+	end,
+	onImgOvClose = function(_event)
+		_imgOv.setWindow(false)
+		playSound("click")
+	end,
+	onImgOvToggleShow = function(_event)
+		if not _imgOv.toggleShow() then
+			playSound("toggleOff")
+		end
+	end,
+	onImgOvRefresh = function(_event)
+		_imgOv.rebuildList(true)
+		playSound("tick")
+	end,
+	onImgOvSlider = function(_event, key)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if not IO or uiState.updatingFromCode then
+			return
+		end
+		-- Drop the deferred echo of a programmatic restamp (see onTilesetKnob).
+		if uiState.imgOvStampFrame and (Spring.GetDrawFrame() - uiState.imgOvStampFrame) < 3 then
+			return
+		end
+		for _, row in ipairs(_imgOv.SLIDERS) do
+			if row[1] == key then
+				local v = _elemSliderVal("imgov-slider-" .. key, nil)
+				if v ~= nil then
+					row[3](v, IO)
+					local str = tostring(math.floor(v + 0.5))
+					widgetState.imgOvLastVal = widgetState.imgOvLastVal or {}
+					widgetState.imgOvLastVal["imgov-slider-" .. key] = str
+					_imgOv.setNumbox(key, str)
+				end
+				return
+			end
+		end
+	end,
+	onImgOvFit = function(_event, mode)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if IO then
+			IO.setFit(mode)
+			playSound("tick")
+		end
+	end,
+	onImgOvFlip = function(_event, axis)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if not IO then
+			return
+		end
+		local s = IO.getState() or {}
+		if axis == "h" then
+			IO.setFlip(not s.flipH, nil)
+		else
+			IO.setFlip(nil, not s.flipV)
+		end
+		playSound("tick")
+	end,
+	onImgOvReset = function(_event)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if IO then
+			IO.resetPlacement()
+			_imgOv.stamp(true)
+			playSound("apply")
+		end
+	end,
+	onImgOvClear = function(_event)
+		---@type table?
+		local IO = WG.TerraformImageOverlay
+		if IO then
+			IO.clear()
+			_imgOv.rebuildList(false)
+			playSound("toggleOff")
+		end
+	end,
+	onTfFollowStroke = function(_event)
+		if not WG.TerraformBrush or not WG.TerraformBrush.setFollowStroke then
+			return
+		end
+		local nv = not (WG.TerraformBrush.getState() or {}).followStroke
+		WG.TerraformBrush.setFollowStroke(nv)
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tfFollowStroke = nv
+		end
 		playSound(nv and "toggleOn" or "toggleOff")
 	end,
 	onTfPenIntensity = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local nv = not s.penPressureModulateIntensity
-		if WG.TerraformBrush.setPenPressureModulateIntensity then WG.TerraformBrush.setPenPressureModulateIntensity(nv) end
+		if WG.TerraformBrush.setPenPressureModulateIntensity then
+			WG.TerraformBrush.setPenPressureModulateIntensity(nv)
+		end
 		playSound(nv and "toggleOn" or "toggleOff")
 	end,
 	onTfPenSize = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local nv = not s.penPressureModulateSize
-		if WG.TerraformBrush.setPenPressureModulateSize then WG.TerraformBrush.setPenPressureModulateSize(nv) end
+		if WG.TerraformBrush.setPenPressureModulateSize then
+			WG.TerraformBrush.setPenPressureModulateSize(nv)
+		end
 		playSound(nv and "toggleOn" or "toggleOff")
 	end,
 	onTfClayMode = function(_event)
 		local spActive = WG.SplatPainter and WG.SplatPainter.getState() and WG.SplatPainter.getState().active
-		if spActive or not WG.TerraformBrush then return end
+		if spActive or not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
-		if CLAY_UNAVAILABLE_MODES[s.mode] then return end
+		if CLAY_UNAVAILABLE_MODES[s.mode] then
+			return
+		end
 		local nv = not s.clayMode
 		WG.TerraformBrush.setClayMode(nv)
-		local dm = widgetState.dmHandle; if dm then dm.tfClayMode = nv end
+		local dm = widgetState.dmHandle
+		if dm then
+			dm.tfClayMode = nv
+		end
 		playSound(nv and "toggleOn" or "toggleOff")
 	end,
 	onTfCapSampleMax = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
 		WG.TerraformBrush.setHeightSamplingMode(cur == "max" and nil or "max")
 	end,
 	onTfCapSampleMin = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local cur = (WG.TerraformBrush.getState() or {}).heightSamplingMode
 		WG.TerraformBrush.setHeightSamplingMode(cur == "min" and nil or "min")
 	end,
 	onTfCapAbsolute = function(_event)
 		capAbsolute = not capAbsolute
-		if WG.TerraformBrush then WG.TerraformBrush.setHeightCapAbsolute(capAbsolute) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setHeightCapAbsolute(capAbsolute)
+		end
 		local dm = widgetState.dmHandle
-		if dm then dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+		if dm then
+			dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png"
+		end
 		playSound(capAbsolute and "toggleOn" or "toggleOff")
 	end,
 	onTfCapEnabled = function(_event)
@@ -7021,7 +14382,10 @@ local initialModel = {
 		applyCap("max", capMaxValue)
 		applyCap("min", capMinValue)
 		local dm = widgetState.dmHandle
-		if dm then dm.tfCapEnabledSrc = capEnabled and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
+		if dm then
+			dm.tfCapEnabledSrc = capEnabled and "/luaui/images/terraform_brush/check_on.png"
+				or "/luaui/images/terraform_brush/check_off.png"
+		end
 		playSound(capEnabled and "toggleOn" or "toggleOff")
 	end,
 	onTfExport = function(_event)
@@ -7031,104 +14395,165 @@ local initialModel = {
 			local maxEl = doc and doc:GetElementById("input-tf-export-max")
 			local minVal = minEl and tonumber(minEl:GetAttribute("value"))
 			local maxVal = maxEl and tonumber(maxEl:GetAttribute("value"))
-			if minVal then WG.TerraformBrush.setHeightmapExportCustomMin(minVal) end
-			if maxVal then WG.TerraformBrush.setHeightmapExportCustomMax(maxVal) end
+			if minVal then
+				WG.TerraformBrush.setHeightmapExportCustomMin(minVal)
+			end
+			if maxVal then
+				WG.TerraformBrush.setHeightmapExportCustomMax(maxVal)
+			end
 		end
 		Spring.SendCommands("terraformexport")
 	end,
 	onTfExportRangeCycle = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		WG.TerraformBrush.cycleHeightmapExportRangeMode()
 		local state = WG.TerraformBrush.getState and WG.TerraformBrush.getState() or nil
 		local mode = state and state.exportRangeMode or "auto"
 		widgetState.uiPrefs.heightmapExportRangeMode = mode
-		if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		if widgetState.saveUiPrefs then
+			widgetState.saveUiPrefs()
+		end
 		playSound("click")
 	end,
+	-- NB: the custom range never goes into uiPrefs. These change events also
+	-- fire (deferred) for every programmatic stamp of the input, so persisting
+	-- here is what used to burn the canvas seed (-75..696) into the prefs and
+	-- resurrect it on every map.
 	onTfExportCustomMinChange = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("input-tf-export-min")
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val then
 			WG.TerraformBrush.setHeightmapExportCustomMin(val)
-			widgetState.uiPrefs.heightmapExportCustomMin = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		end
 	end,
 	onTfExportCustomMaxChange = function(_event)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local doc = widgetState.document
 		local el = doc and doc:GetElementById("input-tf-export-max")
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val then
 			WG.TerraformBrush.setHeightmapExportCustomMax(val)
-			widgetState.uiPrefs.heightmapExportCustomMax = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
+		end
+	end,
+	-- FIT: snap the custom range to the terrain's exact extremes (vertex scan).
+	onTfExportFit = function(_event)
+		if not (WG.TerraformBrush and WG.TerraformBrush.fitExportRangeToTerrain) then
+			return
+		end
+		local mn, mx = WG.TerraformBrush.fitExportRangeToTerrain()
+		if mn then
+			playSound("click")
+			Spring.Echo(string.format("[Terraform Brush] Export range fit to terrain: %.2f .. %.2f", mn, mx))
 		end
 	end,
 
 	onTbSnapSizeChange = function(_event, P)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		WG.TerraformBrush.setGridSnapSize(_elemSliderVal(P.."-slider-grid-snap-size", 48))
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		WG.TerraformBrush.setGridSnapSize(_elemSliderVal(P .. "-slider-grid-snap-size", 48))
 	end,
 	onTbSnapSizeStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local cur = tonumber(s.gridSnapSize) or 48
 		local v = math.max(16, math.min(128, cur + (delta or 0)))
 		WG.TerraformBrush.setGridSnapSize(v)
 	end,
 	onTbAngleStepChange = function(_event, P)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local idx = math.floor(_elemSliderVal(P.."-slider-angle-snap-step", 1) or 1) + 1
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		local idx = math.floor(_elemSliderVal(P .. "-slider-angle-snap-step", 1) or 1) + 1
 		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx] or 15)
 	end,
 	onTbAngleStepStep = function(_event, delta)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState() or {}
 		local idx = _tbFindAnglePresetIdx(s.angleSnapStep)
 		idx = math.max(1, math.min(#TB_ANGLE_PRESETS, idx + (delta or 0)))
 		WG.TerraformBrush.setAngleSnapStep(TB_ANGLE_PRESETS[idx])
 	end,
 	onTbToggleGridOverlay = function(_event, P)
-		_tbMirrorToggle(P, "gridOverlay", function(v) WG.TerraformBrush.setGridOverlay(v) end, "GridOverlay")
+		_tbMirrorToggle(P, "gridOverlay", function(v)
+			WG.TerraformBrush.setGridOverlay(v)
+		end, "GridOverlay")
 	end,
 	onTbToggleHeightColormap = function(_event, P)
-		_tbMirrorToggle(P, "heightColormap", function(v) WG.TerraformBrush.setHeightColormap(v) end, "HeightColormap")
+		_tbMirrorToggle(P, "heightColormap", function(v)
+			WG.TerraformBrush.setHeightColormap(v)
+		end, "HeightColormap")
 	end,
 	onTbToggleGridSnap = function(_event, P)
-		_tbMirrorToggle(P, "gridSnap", function(v) WG.TerraformBrush.setGridSnap(v) end, "GridSnap")
+		_tbMirrorToggle(P, "gridSnap", function(v)
+			WG.TerraformBrush.setGridSnap(v)
+		end, "GridSnap")
 	end,
 	onTbToggleAngleSnap = function(_event, P)
-		_tbMirrorToggle(P, "angleSnap", function(v) WG.TerraformBrush.setAngleSnap(v) end, "AngleSnap")
+		_tbMirrorToggle(P, "angleSnap", function(v)
+			WG.TerraformBrush.setAngleSnap(v)
+		end, "AngleSnap")
 	end,
 	onTbToggleMeasure = function(_event, P)
-		_tbMirrorToggle(P, "measureActive", function(v) WG.TerraformBrush.setMeasureActive(v) end, "MeasureActive")
+		_tbMirrorToggle(P, "measureActive", function(v)
+			WG.TerraformBrush.setMeasureActive(v)
+		end, "MeasureActive")
 	end,
 	onTbToggleSymmetry = function(_event, P)
-		_tbMirrorToggle(P, "symmetryActive", function(v) WG.TerraformBrush.setSymmetryActive(v) end, "SymmetryActive")
+		_tbMirrorToggle(P, "symmetryActive", function(v)
+			WG.TerraformBrush.setSymmetryActive(v)
+		end, "SymmetryActive")
 	end,
 	onTbToggleSymRadial = function(_event, P)
-		_tbMirrorToggle(P, "symmetryRadial", function(v) WG.TerraformBrush.setSymmetryRadial(v) end, "SymmetryRadial")
+		_tbMirrorToggle(P, "symmetryRadial", function(v)
+			WG.TerraformBrush.setSymmetryRadial(v)
+		end, "SymmetryRadial")
 	end,
 	onTbToggleSymMirrorX = function(_event, P)
-		_tbMirrorToggle(P, "symmetryMirrorX", function(v) WG.TerraformBrush.setSymmetryMirrorX(v) end, "SymMirrorX")
+		_tbMirrorToggle(P, "symmetryMirrorX", function(v)
+			WG.TerraformBrush.setSymmetryMirrorX(v)
+		end, "SymMirrorX")
 	end,
 	onTbToggleSymMirrorY = function(_event, P)
-		_tbMirrorToggle(P, "symmetryMirrorY", function(v) WG.TerraformBrush.setSymmetryMirrorY(v) end, "SymMirrorY")
+		_tbMirrorToggle(P, "symmetryMirrorY", function(v)
+			WG.TerraformBrush.setSymmetryMirrorY(v)
+		end, "SymMirrorY")
 	end,
 	onTbToggleMeasureShowLength = function(_event, P)
-		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength) then return end
-		_tbMirrorToggle(P, "measureShowLength", function(v) WG.TerraformBrush.setMeasureShowLength(v) end, "MeasureShowLength")
+		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureShowLength) then
+			return
+		end
+		_tbMirrorToggle(P, "measureShowLength", function(v)
+			WG.TerraformBrush.setMeasureShowLength(v)
+		end, "MeasureShowLength")
 	end,
 	onTbToggleMeasureRuler = function(_event, P)
-		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode) then return end
-		_tbMirrorToggle(P, "measureRulerMode", function(v) WG.TerraformBrush.setMeasureRulerMode(v) end, "MeasureRulerMode")
+		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureRulerMode) then
+			return
+		end
+		_tbMirrorToggle(P, "measureRulerMode", function(v)
+			WG.TerraformBrush.setMeasureRulerMode(v)
+		end, "MeasureRulerMode")
 	end,
 	onTbToggleMeasureSticky = function(_event, P)
-		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode) then return end
-		_tbMirrorToggle(P, "measureStickyMode", function(v) WG.TerraformBrush.setMeasureStickyMode(v) end, "MeasureStickyMode")
+		if not (WG.TerraformBrush and WG.TerraformBrush.setMeasureStickyMode) then
+			return
+		end
+		_tbMirrorToggle(P, "measureStickyMode", function(v)
+			WG.TerraformBrush.setMeasureStickyMode(v)
+		end, "MeasureStickyMode")
 	end,
 	onTbMeasureClear = function(_event, P)
 		if WG.TerraformBrush and WG.TerraformBrush.clearMeasureLines then
@@ -7137,7 +14562,9 @@ local initialModel = {
 		playSound("tick")
 	end,
 	onTbSymPlaceOrigin = function(_event, P)
-		if WG.TerraformBrush then WG.TerraformBrush.setSymmetryPlacingOrigin(true) end
+		if WG.TerraformBrush then
+			WG.TerraformBrush.setSymmetryPlacingOrigin(true)
+		end
 		playSound("tick")
 	end,
 	onTbSymCenterOrigin = function(_event, P)
@@ -7147,111 +14574,175 @@ local initialModel = {
 		playSound("tick")
 	end,
 	onTbSymCountDown = function(_event, P)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local n = math.max(2, (s and s.symmetryRadialCount or 2) - 1)
 		WG.TerraformBrush.setSymmetryRadialCount(n)
 		local nStr = tostring(n)
-		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
-		if sl then sl:SetAttribute("value", nStr); widgetState.lastAttrValue[P.."-slider-symmetry-radial-count"] = nStr end
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymCountStr ~= nStr then
+			dm.tbSymCountStr = nStr
+		end
+		local sl = getCachedEl(widgetState.document, P .. "-slider-symmetry-radial-count")
+		if sl then
+			sl:SetAttribute("value", nStr)
+			widgetState.lastAttrValue[P .. "-slider-symmetry-radial-count"] = nStr
+		end
 		playSound("tick")
 	end,
 	onTbSymCountUp = function(_event, P)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local n = math.min(16, (s and s.symmetryRadialCount or 2) + 1)
 		WG.TerraformBrush.setSymmetryRadialCount(n)
 		local nStr = tostring(n)
-		local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= nStr then dm.tbSymCountStr = nStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-radial-count")
-		if sl then sl:SetAttribute("value", nStr); widgetState.lastAttrValue[P.."-slider-symmetry-radial-count"] = nStr end
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymCountStr ~= nStr then
+			dm.tbSymCountStr = nStr
+		end
+		local sl = getCachedEl(widgetState.document, P .. "-slider-symmetry-radial-count")
+		if sl then
+			sl:SetAttribute("value", nStr)
+			widgetState.lastAttrValue[P .. "-slider-symmetry-radial-count"] = nStr
+		end
 		playSound("tick")
 	end,
 	onTbSymCountChange = function(_event, P)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local v = math.max(2, math.min(16, math.floor(_elemSliderVal(P.."-slider-symmetry-radial-count", 2) or 2)))
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		local v = math.max(2, math.min(16, math.floor(_elemSliderVal(P .. "-slider-symmetry-radial-count", 2) or 2)))
 		WG.TerraformBrush.setSymmetryRadialCount(v)
-		local vStr = tostring(v); local dm = widgetState.dmHandle; if dm and dm.tbSymCountStr ~= vStr then dm.tbSymCountStr = vStr end
+		local vStr = tostring(v)
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymCountStr ~= vStr then
+			dm.tbSymCountStr = vStr
+		end
 	end,
 	onTbSymAngleDown = function(_event, P)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local a = ((s and s.symmetryMirrorAngle or 0) - 5) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		local aStr = tostring(math.floor(a))
-		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
-		if sl then sl:SetAttribute("value", tostring(a)); widgetState.lastAttrValue[P.."-slider-symmetry-mirror-angle"] = tostring(a) end
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymAngleStr ~= aStr then
+			dm.tbSymAngleStr = aStr
+		end
+		local sl = getCachedEl(widgetState.document, P .. "-slider-symmetry-mirror-angle")
+		if sl then
+			sl:SetAttribute("value", tostring(a))
+			widgetState.lastAttrValue[P .. "-slider-symmetry-mirror-angle"] = tostring(a)
+		end
 		playSound("tick")
 	end,
 	onTbSymAngleUp = function(_event, P)
-		if not WG.TerraformBrush then return end
+		if not WG.TerraformBrush then
+			return
+		end
 		local s = WG.TerraformBrush.getState()
 		local a = ((s and s.symmetryMirrorAngle or 0) + 5) % 360
 		WG.TerraformBrush.setSymmetryMirrorAngle(a)
 		local aStr = tostring(math.floor(a))
-		local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= aStr then dm.tbSymAngleStr = aStr end
-		local sl = getCachedEl(widgetState.document, P.."-slider-symmetry-mirror-angle")
-		if sl then sl:SetAttribute("value", tostring(a)); widgetState.lastAttrValue[P.."-slider-symmetry-mirror-angle"] = tostring(a) end
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymAngleStr ~= aStr then
+			dm.tbSymAngleStr = aStr
+		end
+		local sl = getCachedEl(widgetState.document, P .. "-slider-symmetry-mirror-angle")
+		if sl then
+			sl:SetAttribute("value", tostring(a))
+			widgetState.lastAttrValue[P .. "-slider-symmetry-mirror-angle"] = tostring(a)
+		end
 		playSound("tick")
 	end,
 	onTbSymAngleChange = function(_event, P)
-		if uiState.updatingFromCode or not WG.TerraformBrush then return end
-		local v = tonumber(_elemSliderVal(P.."-slider-symmetry-mirror-angle", 0)) or 0
+		if uiState.updatingFromCode or not WG.TerraformBrush then
+			return
+		end
+		local v = tonumber(_elemSliderVal(P .. "-slider-symmetry-mirror-angle", 0)) or 0
 		WG.TerraformBrush.setSymmetryMirrorAngle(v)
-		local vStr = tostring(math.floor(v)); local dm = widgetState.dmHandle; if dm and dm.tbSymAngleStr ~= vStr then dm.tbSymAngleStr = vStr end
+		local vStr = tostring(math.floor(v))
+		local dm = widgetState.dmHandle
+		if dm and dm.tbSymAngleStr ~= vStr then
+			dm.tbSymAngleStr = vStr
+		end
 	end,
 
 	-- ── Diffuse Painter handlers (Phase A MVP) ────────────────────────────────
 	onDfpSliderRadius = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local v = tonumber(_elemSliderVal("dfp-slider-radius", 128)) or 128
 		WG.DiffusePainter.setRadius(v)
 	end,
 	onDfpSliderStrength = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-strength", 60)) or 60) / 100
 		WG.DiffusePainter.setStrength(v)
 	end,
 	onDfpSliderCurve = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-curve", 15)) or 15) / 10
 		WG.DiffusePainter.setCurve(v)
 	end,
 	onDfpRadiusStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local r, _, _, _ = WG.DiffusePainter.getBrush()
 		WG.DiffusePainter.setRadius((r or 128) + (delta or 0))
 	end,
 	onDfpStrengthStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local _, s, _, _ = WG.DiffusePainter.getBrush()
 		WG.DiffusePainter.setStrength((s or 1.0) + (delta or 0))
 	end,
 	onDfpCurveStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local _, _, c, _ = WG.DiffusePainter.getBrush()
 		WG.DiffusePainter.setCurve((c or 1.5) + (delta or 0))
 	end,
 	onDfpToggleErase = function(_event)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local _, _, _, e = WG.DiffusePainter.getBrush()
 		WG.DiffusePainter.setErase(not e)
 		playSound("tick")
 	end,
 	onDfpBakeAll = function(_event)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		WG.DiffusePainter.bakeAll()
 		playSound("tick")
 	end,
 	onDfpResetAll = function(_event)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		WG.DiffusePainter.resetAll()
 		playSound("toggleOff")
 	end,
 	onDfpClearMaterial = function(_event)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
 		if id and WG.DiffusePainter.setLayerTexture then
 			WG.DiffusePainter.setLayerTexture(id, nil)
@@ -7259,7 +14750,9 @@ local initialModel = {
 		end
 	end,
 	onDfpAddLayer = function(_event)
-		if not (WG.DiffusePainter and WG.DiffusePainter.addLayer) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.addLayer) then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local id = WG.DiffusePainter.addLayer({
 			name = "Layer " .. (#layers + 1),
@@ -7274,7 +14767,9 @@ local initialModel = {
 		playSound("tick")
 	end,
 	onDfpRemoveLayer = function(_event)
-		if not (WG.DiffusePainter and WG.DiffusePainter.removeLayer) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.removeLayer) then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
 		if id then
 			WG.DiffusePainter.removeLayer(id)
@@ -7282,16 +14777,22 @@ local initialModel = {
 		end
 	end,
 	onDfpExport = function(_event)
-		if not (WG.DiffusePainter and WG.DiffusePainter.exportSquares) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.exportSquares) then
+			return
+		end
 		WG.DiffusePainter.exportSquares()
 		playSound("tick")
 	end,
 
 	-- ── Diffuse Painter: SSMF material channels ──────────────────────────────
 	onDfpToggleChannel = function(_event, key)
-		if not (WG.DiffusePainter and WG.DiffusePainter.setChannelEnabled) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.setChannelEnabled) then
+			return
+		end
 		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
-		if not st then return end
+		if not st then
+			return
+		end
 		local cur = (key == "normals" and st.channelNormals)
 			or (key == "specular" and st.channelSpecular)
 			or (key == "emission" and st.channelEmission)
@@ -7299,67 +14800,109 @@ local initialModel = {
 		playSound("tick")
 	end,
 	onDfpSliderSpecInt = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-specint", 25)) or 25) / 100
-		if WG.DiffusePainter.setSpecIntensity then WG.DiffusePainter.setSpecIntensity(v) end
+		if WG.DiffusePainter.setSpecIntensity then
+			WG.DiffusePainter.setSpecIntensity(v)
+		end
 	end,
 	onDfpSpecIntStep = function(_event, delta)
-		if not (WG.DiffusePainter and WG.DiffusePainter.setSpecIntensity) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.setSpecIntensity) then
+			return
+		end
 		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
 		WG.DiffusePainter.setSpecIntensity(((st and st.specIntensity) or 0.25) + (delta or 0))
 	end,
 	onDfpSliderGlow = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-glow", 0)) or 0) / 100
-		if WG.DiffusePainter.setLayerGlow then WG.DiffusePainter.setLayerGlow(id, v) end
+		if WG.DiffusePainter.setLayerGlow then
+			WG.DiffusePainter.setLayerGlow(id, v)
+		end
 	end,
 	onDfpGlowStep = function(_event, delta)
-		if not (WG.DiffusePainter and WG.DiffusePainter.setLayerGlow) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.setLayerGlow) then
+			return
+		end
 		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
-		if not st or not st.activeLayerId then return end
+		if not st or not st.activeLayerId then
+			return
+		end
 		local cur = 0
 		for i = 1, #st.layers do
-			if st.layers[i].id == st.activeLayerId then cur = st.layers[i].glowStrength or 0 break end
+			if st.layers[i].id == st.activeLayerId then
+				cur = st.layers[i].glowStrength or 0
+				break
+			end
 		end
 		WG.DiffusePainter.setLayerGlow(st.activeLayerId, cur + (delta or 0))
 	end,
 
 	-- ── Diffuse Painter: grass attach ────────────────────────────────────────
 	onDfpToggleGrassAttach = function(_event)
-		if not (WG.DiffusePainter and WG.DiffusePainter.setGrassAttach) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.setGrassAttach) then
+			return
+		end
 		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
 		WG.DiffusePainter.setGrassAttach(not (st and st.grassAttach))
 		playSound("tick")
 	end,
 	onDfpSliderGrass = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-grass", 0)) or 0) / 100
-		if WG.DiffusePainter.setLayerGrassDensity then WG.DiffusePainter.setLayerGrassDensity(id, v) end
+		if WG.DiffusePainter.setLayerGrassDensity then
+			WG.DiffusePainter.setLayerGrassDensity(id, v)
+		end
 	end,
 	onDfpGrassStep = function(_event, delta)
-		if not (WG.DiffusePainter and WG.DiffusePainter.setLayerGrassDensity) then return end
+		if not (WG.DiffusePainter and WG.DiffusePainter.setLayerGrassDensity) then
+			return
+		end
 		local st = WG.DiffusePainter.getState and WG.DiffusePainter.getState()
-		if not st or not st.activeLayerId then return end
+		if not st or not st.activeLayerId then
+			return
+		end
 		local cur = 0
 		for i = 1, #st.layers do
-			if st.layers[i].id == st.activeLayerId then cur = st.layers[i].grassDensity or 0 break end
+			if st.layers[i].id == st.activeLayerId then
+				cur = st.layers[i].grassDensity or 0
+				break
+			end
 		end
 		WG.DiffusePainter.setLayerGrassDensity(st.activeLayerId, cur + (delta or 0))
 	end,
 
 	-- ── Diffuse Painter: undo / redo / history ───────────────────────────────
 	onDfpUndo = function(_event)
-		if WG.DiffusePainter and WG.DiffusePainter.undo then playSound("undo"); WG.DiffusePainter.undo() end
+		if WG.DiffusePainter and WG.DiffusePainter.undo then
+			playSound("undo")
+			WG.DiffusePainter.undo()
+		end
 	end,
 	onDfpRedo = function(_event)
-		if WG.DiffusePainter and WG.DiffusePainter.redo then playSound("redo"); WG.DiffusePainter.redo() end
+		if WG.DiffusePainter and WG.DiffusePainter.redo then
+			playSound("redo")
+			WG.DiffusePainter.redo()
+		end
 	end,
 	onDfpHistoryChange = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		if WG.DiffusePainter.undoToIndex then
 			WG.DiffusePainter.undoToIndex(_elemSliderVal("dfp-slider-history", 0))
 		end
@@ -7367,37 +14910,53 @@ local initialModel = {
 
 	-- ── Diffuse Painter: fractal brush ───────────────────────────────────────
 	onDfpSliderFractal = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-fractal", 0)) or 0) / 100
-		if WG.DiffusePainter.setFractal then WG.DiffusePainter.setFractal(v, nil) end
+		if WG.DiffusePainter.setFractal then
+			WG.DiffusePainter.setFractal(v, nil)
+		end
 	end,
 	onDfpFractalStep = function(_event, delta)
-		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then return end
-		local amt, freq = WG.DiffusePainter.getFractal()
+		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then
+			return
+		end
+		local amt, _ = WG.DiffusePainter.getFractal()
 		if WG.DiffusePainter.setFractal then
 			WG.DiffusePainter.setFractal((amt or 0) + (delta or 0) / 100, nil)
 		end
 	end,
 	onDfpSliderFractalFreq = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		-- slider 1-50 maps linearly to freq 0.0002..0.01 (1/elmos)
 		local v = tonumber(_elemSliderVal("dfp-slider-fractal-freq", 30)) or 30
 		local freq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
-		if WG.DiffusePainter.setFractal then WG.DiffusePainter.setFractal(nil, freq) end
+		if WG.DiffusePainter.setFractal then
+			WG.DiffusePainter.setFractal(nil, freq)
+		end
 	end,
 	onDfpFractalFreqStep = function(_event, delta)
-		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then return end
+		if not WG.DiffusePainter or not WG.DiffusePainter.getFractal then
+			return
+		end
 		local _, freq = WG.DiffusePainter.getFractal()
 		-- convert current freq back to slider units (1-50), step, clamp, convert back
 		local v = math.floor(0.5 + 1 + ((freq or 0.0002) - 0.0002) / (0.01 - 0.0002) * 49)
 		v = math.max(1, math.min(50, v + (delta or 0)))
 		local newFreq = 0.0002 + (v - 1) / 49 * (0.01 - 0.0002)
-		if WG.DiffusePainter.setFractal then WG.DiffusePainter.setFractal(nil, newFreq) end
+		if WG.DiffusePainter.setFractal then
+			WG.DiffusePainter.setFractal(nil, newFreq)
+		end
 	end,
 
 	-- ── Diffuse Painter: blend mode ───────────────────────────────────────────
 	onDfpSetBlend = function(_event, mode)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
 		if id and WG.DiffusePainter.setLayerBlend then
 			WG.DiffusePainter.setLayerBlend(id, mode)
@@ -7407,69 +14966,124 @@ local initialModel = {
 
 	-- ── Diffuse Painter: hydro erosion mask ───────────────────────────────────
 	onDfpToggleHydro = function(_event)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerHydro then
 			WG.DiffusePainter.setLayerHydro(id, not layer.hydroEnabled, nil, nil, nil)
 			playSound("tick")
 		end
 	end,
 	onDfpSliderHydroStrength = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-hydro-strength", 20)) or 20) * 0.001
-		if WG.DiffusePainter.setLayerHydro then WG.DiffusePainter.setLayerHydro(id, nil, v, nil, nil) end
+		if WG.DiffusePainter.setLayerHydro then
+			WG.DiffusePainter.setLayerHydro(id, nil, v, nil, nil)
+		end
 	end,
 	onDfpHydroStrStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerHydro then
-			local raw = math.max(1, math.min(100, math.floor(0.5 + (layer.hydroStrength or 0.02) * 1000) + (delta or 0)))
+			local raw =
+				math.max(1, math.min(100, math.floor(0.5 + (layer.hydroStrength or 0.02) * 1000) + (delta or 0)))
 			WG.DiffusePainter.setLayerHydro(id, nil, raw * 0.001, nil, nil)
 		end
 	end,
 	onDfpSliderHydroFalloffLo = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-hydro-flo", 10)) or 10) / 100
-		if WG.DiffusePainter.setLayerHydro then WG.DiffusePainter.setLayerHydro(id, nil, nil, v, nil) end
+		if WG.DiffusePainter.setLayerHydro then
+			WG.DiffusePainter.setLayerHydro(id, nil, nil, v, nil)
+		end
 	end,
 	onDfpHydroFalloffLoStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerHydro then
 			local raw = math.max(0, math.min(100, math.floor(0.5 + (layer.hydroFalloffLo or 0.1) * 100) + (delta or 0)))
 			WG.DiffusePainter.setLayerHydro(id, nil, nil, raw / 100, nil)
 		end
 	end,
 	onDfpSliderHydroFalloffHi = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = (tonumber(_elemSliderVal("dfp-slider-hydro-fhi", 60)) or 60) / 100
-		if WG.DiffusePainter.setLayerHydro then WG.DiffusePainter.setLayerHydro(id, nil, nil, nil, v) end
+		if WG.DiffusePainter.setLayerHydro then
+			WG.DiffusePainter.setLayerHydro(id, nil, nil, nil, v)
+		end
 	end,
 	onDfpHydroFalloffHiStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerHydro then
 			local raw = math.max(1, math.min(100, math.floor(0.5 + (layer.hydroFalloffHi or 0.6) * 100) + (delta or 0)))
 			WG.DiffusePainter.setLayerHydro(id, nil, nil, nil, raw / 100)
@@ -7478,49 +15092,88 @@ local initialModel = {
 
 	-- ── Diffuse Painter: thermo erosion mask ──────────────────────────────────
 	onDfpToggleThermo = function(_event)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerThermo then
 			WG.DiffusePainter.setLayerThermo(id, not layer.thermoEnabled, nil, nil)
 			playSound("tick")
 		end
 	end,
 	onDfpSliderThermoAngle = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = tonumber(_elemSliderVal("dfp-slider-thermo-angle", 30)) or 30
-		if WG.DiffusePainter.setLayerThermo then WG.DiffusePainter.setLayerThermo(id, nil, v, nil) end
+		if WG.DiffusePainter.setLayerThermo then
+			WG.DiffusePainter.setLayerThermo(id, nil, v, nil)
+		end
 	end,
 	onDfpThermoAngleStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerThermo then
 			WG.DiffusePainter.setLayerThermo(id, nil, (layer.thermoAngle or 30) + (delta or 0), nil)
 		end
 	end,
 	onDfpSliderThermoFalloff = function(_event)
-		if uiState.updatingFromCode or not WG.DiffusePainter then return end
+		if uiState.updatingFromCode or not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local v = tonumber(_elemSliderVal("dfp-slider-thermo-falloff", 8)) or 8
-		if WG.DiffusePainter.setLayerThermo then WG.DiffusePainter.setLayerThermo(id, nil, nil, v) end
+		if WG.DiffusePainter.setLayerThermo then
+			WG.DiffusePainter.setLayerThermo(id, nil, nil, v)
+		end
 	end,
 	onDfpThermoFalloffStep = function(_event, delta)
-		if not WG.DiffusePainter then return end
+		if not WG.DiffusePainter then
+			return
+		end
 		local id = WG.DiffusePainter.getActiveLayerId and WG.DiffusePainter.getActiveLayerId()
-		if not id then return end
+		if not id then
+			return
+		end
 		local layers = WG.DiffusePainter.getLayers and WG.DiffusePainter.getLayers() or {}
 		local layer = nil
-		for i = 1, #layers do if layers[i].id == id then layer = layers[i]; break end end
+		for i = 1, #layers do
+			if layers[i].id == id then
+				layer = layers[i]
+				break
+			end
+		end
 		if layer and WG.DiffusePainter.setLayerThermo then
 			local v = math.max(1, math.min(40, math.floor(0.5 + (layer.thermoFalloff or 8)) + (delta or 0)))
 			WG.DiffusePainter.setLayerThermo(id, nil, nil, v)
@@ -7545,7 +15198,7 @@ local function setActiveClass(buttons, activeKey)
 	end
 end
 
-CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true }
+CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true, autoramp = true }
 
 clearPassthrough = function()
 	if widgetState.passthroughMode then
@@ -7554,85 +15207,91 @@ clearPassthrough = function()
 		local doc = widgetState.document
 		if doc then
 			local ptBtn = getCachedEl(doc, "btn-passthrough")
-			if ptBtn then ptBtn:SetClass("active", false) end
+			if ptBtn then
+				ptBtn:SetClass("active", false)
+			end
 		end
-		if widgetState.dmHandle then widgetState.dmHandle.passthroughActive = false end
+		if widgetState.dmHandle then
+			widgetState.dmHandle.passthroughActive = false
+		end
 		if widgetState.rootElement then
 			widgetState.rootElement:SetClass("passthrough-dimmed", false)
 		end
 	end
 end
 
-local function onRotateCW(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		WG.TerraformBrush.rotate(ROTATION_STEP)
+-- FOCUS MODE (the eye button next to pause): the engine's /hideinterface with
+-- the editor left alive. RmlUi documents are rendered by the engine outside
+-- the hidden-interface gate (CGame::Draw calls RmlGui::RenderFrame
+-- unconditionally, DrawInputReceivers is the only block hideInterface skips),
+-- so the panel survives on its own. The brush widget reads isFocusMode() to
+-- keep its ring, grid and water overlays drawing through it, and the deferred
+-- applies (skybox picks included) drain from DrawScreenPost because DrawScreen
+-- is the one call-in the widget handler gates on Spring.IsGUIHidden().
+-- widgetState field, not a chunk local: this chunk is near the 200-local cap.
+widgetState.setFocusMode = function(on)
+	on = on and true or false
+	if widgetState.focusMode == on then
+		return
 	end
-
-	event:StopPropagation()
+	widgetState.focusMode = on
+	widgetState.focusSetTimer = Spring.GetTimer()
+	if widgetState.dmHandle then
+		widgetState.dmHandle.focusActive = on
+	end
+	-- Explicit argument, never the bare toggle: the toggle would desync from the
+	-- flag the moment anything else touched the interface (F5, a map capture).
+	-- A running capture owns the interface; its restoreScene lands on this flag.
+	---@type table?
+	local cap = WG.TerraformCapture
+	if not (cap and cap.isBusy and cap.isBusy()) then
+		Spring.SendCommands(on and "hideinterface 1" or "hideinterface 0")
+	end
 end
 
-local function onRotateCCW(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		WG.TerraformBrush.rotate(-ROTATION_STEP)
+-- Update-side bookkeeping, called once per Update after the panel visibility
+-- sync. Two exits besides the button: every tool gone (panel close, quit, tool
+-- deactivation) hands the HUD back so nobody is left with no UI at all; and the
+-- interface coming back from outside (F5, /hideinterface) drops the flag so the
+-- eye reads right and the next click hides again. The T hotkey (panelHidden) is
+-- deliberately not an exit: focus + hidden panel is the clean-screenshot setup.
+widgetState.syncFocusMode = function(panelVisible, panelHidden)
+	if not widgetState.focusMode then
+		return
 	end
-
-	event:StopPropagation()
-end
-
-local function onCurveUp(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		WG.TerraformBrush.setCurve(state.curve + CURVE_STEP)
+	if not panelVisible and not panelHidden then
+		widgetState.setFocusMode(false)
+		return
 	end
-
-	event:StopPropagation()
-end
-
-local function onCurveDown(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		WG.TerraformBrush.setCurve(state.curve - CURVE_STEP)
+	---@type table?
+	local cap = WG.TerraformCapture
+	if cap and cap.isBusy and cap.isBusy() then
+		return
 	end
-
-	event:StopPropagation()
-end
-
-local function onIntensityUp(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		local newI = state.intensity * 1.15
-		if newI < state.intensity + 0.1 then newI = state.intensity + 0.1 end
-		WG.TerraformBrush.setIntensity(newI)
+	-- SendCommands may land a frame late; give a fresh toggle time to take.
+	-- (Member access, not a local copy: the analyzer types a copied dynamic
+	-- field as nil and calls the guard impossible.)
+	if widgetState.focusSetTimer and Spring.DiffTimers(Spring.GetTimer(), widgetState.focusSetTimer) < 0.5 then
+		return
 	end
-
-	event:StopPropagation()
-end
-
-local function onIntensityDown(event)
-	playSound("tick")
-	if WG.TerraformBrush then
-		local state = WG.TerraformBrush.getState()
-		local newI = state.intensity / 1.15
-		if newI > state.intensity - 0.1 then newI = state.intensity - 0.1 end
-		WG.TerraformBrush.setIntensity(newI)
+	if not Spring.IsGUIHidden() then
+		widgetState.focusMode = false
+		if widgetState.dmHandle then
+			widgetState.dmHandle.focusActive = false
+		end
 	end
-
-	event:StopPropagation()
 end
 
 capMinValue = 0
 capMaxValue = 0
-capEnabled = true  -- master on/off for the height cap; min/max values are retained when off
+capEnabled = true -- master on/off for the height cap; min/max values are retained when off
 local capAbsolute = true
-ringWidthPct = 40  -- percent of radius; inner ratio = 1 - ringWidthPct/100
+ringWidthPct = 40 -- percent of radius; inner ratio = 1 - ringWidthPct/100
 
 applyCap = function(which, value)
-	if not WG.TerraformBrush then return end
+	if not WG.TerraformBrush then
+		return
+	end
 	-- capEnabled gates the whole cap: when off, push nil so terraform is unclamped
 	-- but capMinValue/capMaxValue stay put so toggling back on restores them.
 	local eff = (capEnabled and value ~= 0) and value or nil
@@ -7686,7 +15345,9 @@ local function trackSliderDrag(element, id)
 				local doc = widgetState.document
 				local moveActive = true
 				doc:AddEventListener("mousemove", function(ev)
-					if not moveActive then return end
+					if not moveActive then
+						return
+					end
 					applyMX(ev.parameters.mouse_x)
 				end, false)
 				doc:AddEventListener("mouseup", function()
@@ -7748,40 +15409,63 @@ local function trackSliderDrag(element, id)
 end
 
 -- Helper: sync slider value from state and flash green if it changed externally
+-- Returns true when it actually issued a SetAttribute. Callers that arm an
+-- echo-suppression window (the deferred change event a stamp raises) must key
+-- that window off this, NOT off "sync ran" — sync runs every frame, so an
+-- unconditional stamp timestamp suppresses the user's own slider input
+-- forever. See tf_surface / tf_tileset.
 local function syncAndFlash(el, id, newValStr)
-	if not el or not newValStr then return end
-	if uiState.draggingSlider == id then return end
+	if not el or not newValStr then
+		return false
+	end
+	if uiState.draggingSlider == id then
+		return false
+	end
 	local prev = widgetState.prevSyncValues[id]
 	-- Dirty-check: skip SetAttribute if value unchanged since last write.
 	-- Avoids triggering RmlUI slider re-layout on no-op syncs.
+	local wrote = false
 	if prev ~= newValStr then
 		el:SetAttribute("value", newValStr)
 		-- Keep lastAttrValue cache coherent so setAttrValueIfChanged users
 		-- don't re-issue the same write if they target the same element.
 		widgetState.lastAttrValue[id] = newValStr
+		wrote = true
 	end
 	widgetState.prevSyncValues[id] = newValStr
 	if prev and prev ~= newValStr and not widgetState.lockedSliders[id] then
 		widgetState.sliderFlashes[id] = { el = el, timer = 1.0 }
 		el:SetClass("slider-flash", true)
 	end
+	return wrote
 end
 
 -- ============ Guide Mode ============
 
 local guideHints = {
 	-- MODE buttons
-	["btn-raise"]       = "Raise terrain upward under your cursor. Hold LMB and drag to continuously sculpt hills and ridges.",
-	["btn-lower"]       = "Lower terrain downward under your cursor. Hold RMB and drag to carve valleys and trenches.",
-	["btn-level"]       = "MODIFY: average heights within the brush and blend toward that mean with a smooth falloff. Use the LEVEL submode to pin the target to your first-click height instead.",
-	["btn-ramp"]        = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
-	["btn-restore"]     = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
-	["btn-noise"]       = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
-	["btn-erode"]       = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural talus aprons.",
+	["btn-raise"] = "Raise terrain upward under your cursor. Hold LMB and drag to continuously sculpt hills and ridges.",
+	["btn-lower"] = "Lower terrain downward under your cursor. Hold RMB and drag to carve valleys and trenches.",
+	["btn-level"] = "MODIFY: average heights within the brush and blend toward that mean with a smooth falloff. Use the LEVEL submode to pin the target to your first-click height instead.",
+	["btn-ramp"] = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
+	["btn-restore"] = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
+	["btn-noise"] = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
+	["btn-erode"] = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural intermediate aprons.",
 	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
-	["btn-passthrough"]  = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
-	["btn-features"]    = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
-	["btn-weather"]     = "Spawn persistent weather particle effects such as rain, snow or dust with configurable rate and lifetime.",
+	["btn-ramp-auto"] = "Autoramp: click an existing cliff to rebuild it at a chosen angle, with wavy edges, erosion gullies and scree buildup at the base. One click per cliff; each click is one undo step.",
+	["slider-ar-angle"] = "Target slope of the rebuilt cliff face (10\xc2\xb0\xe2\x80\x9385\xc2\xb0). Low values turn the cliff into a walkable ramp; high values keep it a sheer wall.",
+	["slider-ar-falloff"] = "How softly the new face shoulders into the plateaus above and below. Low = hard crisp lips, high = wide rounded blend.",
+	["slider-ar-edgenoise"] = "Waviness of the cliff line: perturbs the top and bottom lips so the face meanders instead of running straight.",
+	["slider-ar-erosion"] = "Depth of ridged gullies cut down the face, like water-carved channels.",
+	["slider-ar-talus"] = "Scree fan banked against the cliff base \xe2\x80\x94 ground buildup from washed-off material.",
+	["btn-ar-preview"] = "WYSIWYG preview: while hovering, shows the exact resulting terrain as a translucent mesh \xe2\x80\x94 green where ground is added, orange where it is cut.",
+	["btn-ar-start-extend"] = "Cliff start \xe2\x80\x94 Extend: the top lip stays where it is; the new face spills outward over the low ground, never biting into the mesa.",
+	["btn-ar-start-subtract"] = "Cliff start \xe2\x80\x94 Subtract: the bottom lip stays where it is; the new face carves back into the mesa top.",
+	["btn-ar-start-average"] = "Cliff start \xe2\x80\x94 Average: the face pivots on the cliff's mid line, biting half into the top and spilling half over the bottom.",
+	["btn-passthrough"] = "Pause all terraform tools and release keyboard/mouse controls back to the game. Click again or any mode button to resume.",
+	["btn-focus"] = "Focus mode: hide the game interface (like F5) but keep the Terraformer alive \xe2\x80\x94 panel, brush preview, overlays and skybox switching all stay on. Click again, close the panel or press F5 to bring the interface back.",
+	["btn-features"] = "Place decorative props like trees, rocks and crystals using the Feature Placer sub-tool.",
+	["btn-weather"] = "Spawn persistent weather particle effects such as rain, snow or dust with configurable rate and lifetime.",
 	["btn-environment"] = "Change the skybox texture at runtime. Select from the skybox library or reset to the map default.",
 	["btn-env-skybox-library"] = "Open the skybox library to browse and apply skybox textures with optional fade transitions.",
 	["btn-env-sun-shadows"] = "Open the Sun & Shadows panel to adjust sun direction, height, and shadow density.",
@@ -7790,329 +15474,366 @@ local guideHints = {
 	["btn-env-unit-lighting"] = "Open the Unit Lighting panel to adjust unit ambient, diffuse, and specular colors.",
 	["btn-env-map-render"] = "Open the Map Rendering panel to adjust splat textures, void settings, and detail normals.",
 	["btn-env-water"] = "Open the Water panel to adjust surface, fresnel, perlin noise, blur, wave, and caustics properties.",
+	["btn-env-tileset"] = "Open the Tileset window: shader switch, biome library, metal-spot styles and every tuning knob. Stays open while you work in any tool.",
 	["btn-env-save"] = "Export all current environment settings to a Lua file in the Terraform Brush/Lightmaps/ folder for use by mappers.",
 	["btn-env-load"] = "Load the most recent saved environment config for this map from the Terraform Brush/Lightmaps/ folder.",
-	["btn-lights"]      = "Place deferred GL4 lights on the map. Supports point, cone, and beam lights with scatter, single, and remove modes.",
+	["btn-lights"] = "Place deferred GL4 lights on the map. Supports point, cone, and beam lights with scatter, single, and remove modes.",
+	["btn-units"] = "Coming soon: place and arrange units on the map (ubdev-style unit placer panel).",
+	-- SURFACE tool (tileset variant paint)
+	["btn-surface"] = "Paint soft-surface VARIANTS of the active tileset biome over the automatic base. Hard surfaces (cliffs and the intermediary) belong to LAYERS — this brush never touches them.",
+	["btn-layers"] = "Paint the tileset shader's hard-surface override channels — force intermediate, cliff or plateau material anywhere, or paint AUTO to give the area back to slope-driven placement.",
+	["btn-surf-preset-dot"] = "DOT: small brush, low strength, soft falloff — the ZBrush-2% workflow. Dot variants in lightly so the base stays dominant.",
+	["btn-surf-preset-wash"] = "WASH: large brush at very low strength for broad, subtle variant drift.",
+	["btn-surf-preset-fill"] = "FILL: full strength with a hard edge, for blocking out variant areas fast.",
+	["btn-surf-erase"] = "Erase mode: strokes withdraw the painted claim so the ground returns to the shader's automatic choice. Right-click always erases. To force plain base instead, pick the BASE tile and paint.",
+	["surf-slider-spacing"] = "Photoshop-style brush spacing: 0 paints continuously, otherwise one stamp every N elmos of drag distance.",
+	["surf-slider-scatter-pos"] = "Scatter position: each stamp is offset by up to this many brush radii in a random direction. With Spacing set, one drag lays a dot field instead of a band.",
+	["surf-slider-scatter-size"] = "Scatter size: random size variation per stamp, as a fraction of the brush size.",
+	["surf-slider-scatter-str"] = "Scatter strength: random strength variation per stamp, as a fraction of the brush strength.",
+	["btn-ts-cliff-protect"] = "Keep soft strokes (intermediate, plateau) off cliff bodies and foothills — a big brush sweeps around them instead of eating them. One-way: painting CLIFF forces cliff rock anywhere regardless, and the SURFACE brush never touches hard surfaces either way.",
+	["ts-slider-exposure"] = "Final gain on the lit ground. The shader takes all its light from the map ENVIRONMENT (sun and ground ambient), never from the skybox, and it draws raw albedo where the engine draws a pre-brightened baked texture — so a dark set on a dimly lit map can go nearly black. This lifts it. Run /tileset probe to see whether the map is actually dark before reaching for it; relighting the environment is the honest fix.",
+	["ts-slider-lumaTops"] = "Whether the brightness bias above also applies to the soft tops. 0 keeps it off them, so how much ground a top takes is authored rather than decided by which top is paler; 1 is the old behaviour. Expect a slightly wider intermediary at 0, since a pale sand no longer gets a free boost against it.",
+	["ts-slider-surfClaim"] = "How strongly a SURFACE stroke decides WHICH TOP belongs somewhere. At 1 a painted top (base or variant) out-votes the automatic plateau band; at 0 the SURFACE brush only re-skins ground the sorter already gave to soil, which is what made high flats unpaintable. Cliffs and the intermediary are never affected.",
+	["btn-surf-noise-fill"] = "Seed the whole map's variant mask from the tileset noise field — the grunt-work pass. Erase and adjust from there. Undoable.",
+	-- HARD SURFACES section (LAYERS tool)
+	["btn-surf-hard-ch1"] = "AUTO: painting removes any override so the shader's slope-driven surface returns.",
+	["btn-surf-hard-ch2"] = "INTERMEDIATE: force the intermediate (scree) material where painted, regardless of slope.",
+	["btn-surf-hard-ch3"] = "CLIFF: force cliff rock where painted, regardless of slope.",
+	["btn-surf-hard-ch4"] = "PLATEAU: force the plateau cap material where painted, regardless of height.",
+	["btn-surf-hard-water"] = "Skip pixels below water level while painting hard overrides.",
+	["btn-surf-hard-cliffs"] = "Skip pixels steeper than the max-slope threshold while painting hard overrides.",
+	["btn-surf-hard-altmin"] = "Only paint above a minimum altitude.",
+	["btn-surf-hard-altmax"] = "Only paint below a maximum altitude.",
+	["btn-surf-hard-undo"] = "Undo the last hard-override stroke. Keyboard shortcut: Ctrl+Z.",
+	["btn-surf-hard-redo"] = "Redo a hard-override stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
+	["btn-surf-hard-save"] = "Export the splat distribution texture (override mask) to Terraform Brush/Splats/.",
+	["btn-ts-shader"] = "Master switch: render the ground with the tileset shader. Off hands the ground back to the engine, so old maps keep their own textures.",
+	["btn-ts-paint-surfaces"] = "Switch to the SURFACE tool: paint soft-top variants on the tileset ground. Needs the shader on. Hard intermediate/cliff/plateau overrides live in the LAYERS tool.",
 	-- SHAPE buttons
-	["btn-circle"]      = "Round brush with smooth radial falloff. The most natural-looking shape for hills and depressions.",
-	["btn-square"]      = "Square brush with hard corners. Great for angular structures, walls and grid-aligned terrain edits.",
+	["btn-circle"] = "Round brush with smooth radial falloff. The most natural-looking shape for hills and depressions.",
+	["btn-square"] = "Square brush with hard corners. Great for angular structures, walls and grid-aligned terrain edits.",
 	-- RAMP TYPE buttons
 	["btn-ramp-straight"] = "Straight ramp: drag from start to end point to create a linear slope. Simple and precise.",
-	["btn-ramp-spline"]   = "Spline ramp: drag freely along a curved path to create a winding slope that follows your mouse movement.",
-	["btn-hexagon"]     = "Hex-shaped brush, ideal for large flat tiles, honeycomb terrain layouts and hex-grid maps.",
-	["btn-octagon"]     = "Eight-sided brush — a compact middle ground between circle and square for mid-sized edits.",
-	["btn-triangle"]    = "Three-sided brush for sharp wedge-shaped terrain edits, cliff faces and triangular plateaus.",
-	["btn-ring"]        = "Hollow ring brush that only affects the outer edge of the area. Perfect for craters and moats.",
-	["btn-fill"]        = "Fill brush: click inside any enclosed terrain shape to flood-fill it. Flat fill when walls are uniform height; smooth biharmonic surface when walls vary.",
-	["btn-clay-mode"]   = "Clay Brush restricts edits to only push terrain in one direction, preventing accidental raise while lowering and vice versa.",
+	["btn-ramp-spline"] = "Spline ramp: drag freely along a curved path to create a winding slope that follows your mouse movement.",
+	["btn-hexagon"] = "Hex-shaped brush, ideal for large flat tiles, honeycomb terrain layouts and hex-grid maps.",
+	["btn-octagon"] = "Eight-sided brush — a compact middle ground between circle and square for mid-sized edits.",
+	["btn-triangle"] = "Three-sided brush for sharp wedge-shaped terrain edits, cliff faces and triangular plateaus.",
+	["btn-ring"] = "Hollow ring brush that only affects the outer edge of the area. Perfect for craters and moats.",
+	["btn-fill"] = "Fill brush: click inside any enclosed terrain shape to flood-fill it. Flat fill when walls are uniform height; smooth biharmonic surface when walls vary.",
+	["btn-clay-mode"] = "Clay Brush restricts edits to only push terrain in one direction, preventing accidental raise while lowering and vice versa.",
 	-- Overlay / visual toggles
-	["btn-grid-overlay"]      = "Draws a measurement grid across the terrain to help align structures and judge distances. Always visible, not just inside the brush.",
-	["btn-dust-effects"]      = "Toggle dust particle effects when terraforming. Purely cosmetic — only applies when DJ Mode is active.",
-	["btn-seismic-effects"]   = "Toggle ground impact sounds while sculpting terrain. Only applies when DJ Mode is active.",
-	["btn-dj-activate"]       = "Master switch for DJ Mode — when ON, all enabled DJ Mode effects (dust, seismic) are applied during sculpting.",
-	["btn-height-colormap"]   = "Overlay a topographic height colormap on the brush footprint — colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
-	["btn-curve-overlay"]     = "Draws the edge fall-off curve as an arc inside the brush circle so you can preview the blend gradient while painting.",
+	["btn-grid-overlay"] = "Draws a measurement grid across the terrain to help align structures and judge distances. Always visible, not just inside the brush.",
+	["btn-dust-effects"] = "Toggle dust particle effects when terraforming. Purely cosmetic — only applies when DJ Mode is active.",
+	["btn-seismic-effects"] = "Toggle ground impact sounds while sculpting terrain. Only applies when DJ Mode is active.",
+	["btn-dj-activate"] = "Master switch for DJ Mode — when ON, all enabled DJ Mode effects (dust, seismic) are applied during sculpting.",
+	["btn-height-colormap"] = "Overlay a topographic height colormap on the brush footprint — colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
+	["btn-curve-overlay"] = "Draws the edge fall-off curve as an arc inside the brush circle so you can preview the blend gradient while painting.",
 	["btn-velocity-intensity"] = "Scales brush intensity by mouse drag speed \xe2\x80\x94 move faster for stronger effect, slower for finer control.",
-	["btn-pen-pressure"]       = "Modulates brush intensity (and optionally size) using tablet pen pressure. Requires pen_pressure_server.py running.",
-	["btn-pen-intensity"]      = "Pen pressure is modulating intensity — click to toggle. Configure in Settings → Stroke.",
-	["btn-pen-size"]           = "Pen pressure is modulating size — click to toggle. Configure in Settings → Stroke.",
+	["btn-pen-pressure"] = "Modulates brush intensity (and optionally size) using tablet pen pressure. Requires pen_pressure_server.py running.",
+	["btn-pen-intensity"] = "Pen pressure is modulating intensity — click to toggle. Configure in Settings → Stroke.",
+	["btn-pen-size"] = "Pen pressure is modulating size — click to toggle. Configure in Settings → Stroke.",
 	-- Undo / History
-	["btn-undo"]        = "Undo the last brush stroke. Keyboard shortcut: Ctrl+Z.",
-	["btn-redo"]        = "Redo a stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
-	["slider-history"]  = "Scrub through your edit history. Drag left to undo multiple steps, right to redo — like a time-slider for your terrain.",
+	["btn-undo"] = "Undo the last brush stroke. Keyboard shortcut: Ctrl+Z.",
+	["btn-redo"] = "Redo a stroke that was undone. Keyboard shortcut: Ctrl+Shift+Z.",
+	["slider-history"] = "Scrub through your edit history. Drag left to undo multiple steps, right to redo — like a time-slider for your terrain.",
 	-- Rotation
-	["btn-rot-ccw"]     = "Rotate the brush counter-clockwise by a small step. Affects non-circular shapes and ramp direction.",
-	["btn-rot-cw"]      = "Rotate the brush clockwise by a small step. Affects non-circular shapes and ramp direction.",
+	["btn-rot-ccw"] = "Rotate the brush counter-clockwise by a small step. Affects non-circular shapes and ramp direction.",
+	["btn-rot-cw"] = "Rotate the brush clockwise by a small step. Affects non-circular shapes and ramp direction.",
 	["slider-rotation"] = "Set the brush rotation angle from 0–359°. Affects all non-circular shapes. Shortcut: Alt+Scroll.",
 	-- Intensity
 	["btn-intensity-down"] = "Decrease the sculpt speed — gentler edits that change height more slowly per second.",
-	["btn-intensity-up"]   = "Increase the sculpt speed — more aggressive edits that cut or raise terrain faster.",
-	["slider-intensity"]   = "Controls how fast terrain is sculpted. Low values are subtle and precise; high values are very aggressive. Space+Scroll.",
+	["btn-intensity-up"] = "Increase the sculpt speed — more aggressive edits that cut or raise terrain faster.",
+	["slider-intensity"] = "Controls how fast terrain is sculpted. Low values are subtle and precise; high values are very aggressive. Space+Scroll.",
 
 	-- Restore strength
 	["btn-restore-strength-down"] = "Decrease restore target \xe2\x80\x94 lower values blend only partway back toward original height.",
-	["btn-restore-strength-up"]   = "Increase restore target \xe2\x80\x94 100% restores fully to original map height.",
-	["slider-restore-strength"]   = "Controls how far toward original height the restore brush blends. 100% = full restore, 50% = halfway, 0% = no change.",
+	["btn-restore-strength-up"] = "Increase restore target \xe2\x80\x94 100% restores fully to original map height.",
+	["slider-restore-strength"] = "Controls how far toward original height the restore brush blends. 100% = full restore, 50% = halfway, 0% = no change.",
 
 	-- Size
-	["btn-size-down"]      = "Shrink the brush radius by one step. Keyboard shortcut: Ctrl+Scroll (scroll down).",
-	["btn-size-up"]        = "Grow the brush radius by one step. Keyboard shortcut: Ctrl+Scroll (scroll up).",
-	["slider-size"]        = "Sets the brush radius in world units. Small values give fine detail; large values reshape broad areas. Ctrl+Scroll.",
-	["slider-ring-width"]  = "Controls how thick the ring band is as a percentage of the brush radius. 5% = very thin edge; 95% = nearly full solid brush. Ctrl+R+Scroll.",
+	["btn-size-down"] = "Shrink the brush radius by one step. Keyboard shortcut: Ctrl+Scroll (scroll down).",
+	["btn-size-up"] = "Grow the brush radius by one step. Keyboard shortcut: Ctrl+Scroll (scroll up).",
+	["slider-size"] = "Sets the brush radius in world units. Small values give fine detail; large values reshape broad areas. Ctrl+Scroll.",
+	["slider-ring-width"] = "Controls how thick the ring band is as a percentage of the brush radius. 5% = very thin edge; 95% = nearly full solid brush. Ctrl+R+Scroll.",
 	["btn-ring-width-down"] = "Narrow the ring band, making it thinner and more precise.",
-	["btn-ring-width-up"]   = "Widen the ring band, filling more of the brush area with the effect.",
+	["btn-ring-width-up"] = "Widen the ring band, filling more of the brush area with the effect.",
 	-- Length
 	["btn-length-down"] = "Shorten the brush along its axis, making it more circular.",
-	["btn-length-up"]   = "Lengthen the brush along its rotation axis, stretching it into an oval or ramp shape.",
-	["slider-length"]   = "Stretches the brush into an oval or elongated ramp along its rotation direction. Ctrl+Alt+Scroll.",
+	["btn-length-up"] = "Lengthen the brush along its rotation axis, stretching it into an oval or ramp shape.",
+	["slider-length"] = "Stretches the brush into an oval or elongated ramp along its rotation direction. Ctrl+Alt+Scroll.",
 	-- Fall-off Curve
-	["btn-curve-down"]  = "Flatten the edge fall-off — gives a wider plateau and a gradual slope to the edge.",
-	["btn-curve-up"]    = "Sharpen the edge fall-off — terrain drops off more steeply right at the brush boundary.",
-	["slider-curve"]    = "Controls edge fall-off sharpness. Low = gentle gradient, high = cliff-like drop at the brush edge. Shift+Scroll.",
+	["btn-curve-down"] = "Flatten the edge fall-off — gives a wider plateau and a gradual slope to the edge.",
+	["btn-curve-up"] = "Sharpen the edge fall-off — terrain drops off more steeply right at the brush boundary.",
+	["slider-curve"] = "Controls edge fall-off sharpness. Low = gentle gradient, high = cliff-like drop at the brush edge. Shift+Scroll.",
 	-- Height Cap
-	["btn-cap-enabled"]  = "Master switch for the height cap. When off, the brush is unclamped and the Min/Max values are ignored (but kept, so turning it back on restores them).",
+	["btn-cap-enabled"] = "Master switch for the height cap. When off, the brush is unclamped and the Min/Max values are ignored (but kept, so turning it back on restores them).",
 	["btn-cap-absolute"] = "When on, cap values are world-space elevations. When off, they are offsets relative to where you start the stroke.",
-	["slider-cap-max"]   = "Clamps the maximum elevation the brush can raise terrain to. Useful to keep edits within a specific height band.",
+	["slider-cap-max"] = "Clamps the maximum elevation the brush can raise terrain to. Useful to keep edits within a specific height band.",
 	["btn-cap-max-down"] = "Decrease the height cap maximum by one step.",
-	["btn-cap-max-up"]   = "Increase the height cap maximum by one step.",
-	["btn-sample-max"]   = "Enter height-sampling mode: hover over a topo contour line and click to set that elevation as the Max cap. Click the peak number to use the highest point in the brush area.",
-	["slider-cap-min"]   = "Clamps the minimum elevation the brush can lower terrain to. Combine with Max to lock edits inside a height range.",
+	["btn-cap-max-up"] = "Increase the height cap maximum by one step.",
+	["btn-sample-max"] = "Enter height-sampling mode: hover over a topo contour line and click to set that elevation as the Max cap. Click the peak number to use the highest point in the brush area.",
+	["slider-cap-min"] = "Clamps the minimum elevation the brush can lower terrain to. Combine with Max to lock edits inside a height range.",
 	["btn-cap-min-down"] = "Decrease the height cap minimum by one step.",
-	["btn-cap-min-up"]   = "Increase the height cap minimum by one step.",
-	["btn-sample-min"]   = "Enter height-sampling mode: hover over a topo contour line and click to set that elevation as the Min cap. Click the peak number to use the highest point in the brush area.",
+	["btn-cap-min-up"] = "Increase the height cap minimum by one step.",
+	["btn-sample-min"] = "Enter height-sampling mode: hover over a topo contour line and click to set that elevation as the Min cap. Click the peak number to use the highest point in the brush area.",
 	["btn-fp-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-fp-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-gb-alt-min-sample"] = "Sample ground height: click this, then click the map to set Min Altitude to the sampled elevation. Enables Min filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	["btn-gb-alt-max-sample"] = "Sample ground height: click this, then click the map to set Max Altitude to the sampled elevation. Enables Max filter automatically. With the height colormap on, you can click a topo contour line for precise elevation.",
 	-- Map labels
-	["btn-maplabels"]   = "Show map comments: colored pins you can place, drag, colour-code and write notes in — for planning and review. Switching it off hides every comment.",
+	["btn-maplabels"] = "Show map comments: colored pins you can place, drag, colour-code and write notes in — for planning and review. Switching it off hides every comment.",
 	-- Capture
-	["btn-capture"]     = "Capture: export a maximum-resolution top-down photo of the whole map, plus a separate SVG layer holding every unit as its own movable image — drop both into Figma to draft a mission.",
+	["btn-capture"] = "Capture: export a maximum-resolution top-down photo of the whole map, plus a separate SVG layer holding every unit as its own movable image — drop both into Figma to draft a mission.",
 	["btn-capture-run"] = "Fly the camera over the map tile by tile and write the photo, the unit layer and any extra layers into Terraform Brush/Captures. Takes over the camera for a few seconds; Esc cancels.",
-	["btn-capture-water"]         = "Keep the water surface in the photo. Off renders the seabed dry.",
-	["btn-capture-shadows"]       = "Keep terrain and feature shadows in the photo.",
-	["btn-capture-bloom"]         = "Keep the bloom post-process in the photo.",
-	["btn-capture-fog"]           = "Leave the session's fog alone. Off forces fog out of the photo, which is usually what a design document wants.",
+	["btn-capture-water"] = "Keep the water surface in the photo. Off renders the seabed dry.",
+	["btn-capture-shadows"] = "Keep terrain and feature shadows in the photo.",
+	["btn-capture-bloom"] = "Keep the bloom post-process in the photo.",
+	["btn-capture-fog"] = "Leave the session's fog alone. Off forces fog out of the photo, which is usually what a design document wants.",
 	["btn-capture-photofeatures"] = "Bake trees, rocks and wrecks into the photo. Units are never baked in — they are the separate layer.",
-	["btn-capture-unitlayer"]     = "Write units.svg: one <image> per unit, so Figma imports every unit as its own movable layer over the photo.",
+	["btn-capture-unitlayer"] = "Write units.svg: one <image> per unit, so Figma imports every unit as its own movable layer over the photo.",
 	["btn-capture-style-portrait"] = "Build pictures in team-coloured tiles, like the zoomed-in minimap. Constant size, easy to read and label.",
-	["btn-capture-style-topdown"]  = "Plan-view renders of the actual models at true world scale and heading. Experimental.",
-	["btn-capture-groupteam"]     = "Put each team's units in their own SVG group, so Figma nests them under one layer per team.",
-	["btn-capture-labels"]        = "Write the unit name under every sprite as SVG text.",
-	["btn-capture-featurelayer"]  = "Also export features as their own SVG layer, movable independently of the photo.",
-	["btn-capture-commentlayer"]  = "Export the map comments as an SVG pin-and-text layer.",
+	["btn-capture-style-topdown"] = "Plan-view renders of the actual models at true world scale and heading. Experimental.",
+	["btn-capture-groupteam"] = "Put each team's units in their own SVG group, so Figma nests them under one layer per team.",
+	["btn-capture-labels"] = "Write the unit name under every sprite as SVG text.",
+	["btn-capture-featurelayer"] = "Also export features as their own SVG layer, movable independently of the photo.",
+	["btn-capture-commentlayer"] = "Export the map comments as an SVG pin-and-text layer.",
 	-- Restore defaults
-	["btn-defaults"]    = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
+	["btn-defaults"] = "Reset all brush settings — size, intensity, fall-off curve, rotation, height caps and toggle states — back to their factory defaults.",
 	-- Presets
 	["preset-name-input"] = "Type a name here to save the current brush settings as a reusable preset, or to filter the preset list.",
-	["btn-preset-save"]   = "Save the current brush settings under the typed name. Built-in presets show in italic and cannot be overwritten.",
+	["btn-preset-save"] = "Save the current brush settings under the typed name. Built-in presets show in italic and cannot be overwritten.",
 	["btn-preset-toggle"] = "Open or close the preset dropdown list to load or delete a saved brush configuration.",
 	-- Tileset config & presets
-	["btn-ts-defaults"]     = "Reset all TILESET shader knobs back to their factory defaults.",
-	["btn-ts-dump"]         = "Print the current tileset knob values to the console as a paste-ready Lua block (for baking new defaults).",
-	["btn-ts-preset-save"]  = "Save the current tileset shader knobs as a preset under the typed name.",
-	["btn-ts-preset-toggle"]= "Open or close the tileset preset list to load or delete a saved config.",
+	["btn-ts-defaults"] = "Reset all TILESET shader knobs back to their factory defaults.",
+	["btn-ts-dump"] = "Print the current tileset knob values to the console as a paste-ready Lua block (for baking new defaults).",
+	["btn-ts-preset-save"] = "Save the current tileset shader knobs as a preset under the typed name.",
+	["btn-ts-preset-toggle"] = "Open or close the tileset preset list to load or delete a saved config.",
 	-- Export / Import
-	["btn-export"]      = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
-	["btn-import"]      = "Load a heightmap PNG previously saved on this map (Terraform Brush/Heightmaps/) and apply it to the terrain. Generated canvases share saves across sessions by size.",
+	["btn-export"] = "Export the current heightmap as a 16-bit PNG image to disk for backup or external editing in other tools.",
+	["btn-export-fit"] = "Snap the custom export range to the terrain's exact current extremes (full heightmap scan).",
+	["btn-import"] = "Load a heightmap PNG previously saved on this map (Terraform Brush/Heightmaps/) and apply it to the terrain. Generated canvases share saves across sessions by size.",
 	["newmap-name-input"] = "Optional name for the new map. Leave blank for automatic naming (Editor Flat <size>). Saved heightmaps group under this name across sessions.",
 	-- Feature Placer sub-modes
-	["btn-fp-scatter"]  = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
-	["btn-fp-point"]    = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
-	["btn-fp-remove"]   = "Erase existing features under the brush cursor — removes props placed earlier without affecting terrain.",
+	["btn-fp-scatter"] = "Scatter features randomly across the brush area with each drag — ideal for natural-looking forests and rock fields.",
+	["btn-fp-point"] = "Place features exactly at the cursor position. Click once to plant a single feature precisely.",
+	["btn-fp-remove"] = "Erase existing features under the brush cursor — removes props placed earlier without affecting terrain.",
 	-- Feature distribution
-	["btn-fp-dist-random"]    = "Spread features at randomly chosen positions within the brush area for an organic, varied look.",
-	["btn-fp-dist-regular"]   = "Space features in a uniform grid pattern inside the brush for orderly, evenly distributed arrangements.",
+	["btn-fp-dist-random"] = "Spread features at randomly chosen positions within the brush area for an organic, varied look.",
+	["btn-fp-dist-regular"] = "Space features in a uniform grid pattern inside the brush for orderly, evenly distributed arrangements.",
 	["btn-fp-dist-clustered"] = "Group features in tight natural clusters, mimicking how plants or rocks tend to gather together.",
 	-- Feature smart filter
 	["btn-fp-smart-toggle"] = "Enable Smart Filter — makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
 	["btn-fp-grid-overlay"] = "Draws a measurement grid across the terrain to help align features and judge distances. Always visible, not just inside the brush.",
-	["btn-fp-grid-snap"]    = "Snap feature placement positions to the build grid (48 elmo intervals) for precise, aligned placement.",
-	["fp-filter-chip-avoid-water"]  = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
-	["fp-filter-chip-slope"]        = "Enable slope filtering — defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
-	["fp-filter-chip-altitude"]     = "Enable and configure a min/max altitude band — features will only be placed within this elevation range.",
-	["fp-slope-mode-avoid"]         = "Reject terrain steeper than Max Slope (avoid slopes). Mutually exclusive with Prefer Slopes.",
-	["fp-slope-mode-prefer"]        = "Only place on hillsides steeper than Min Slope.",
+	["btn-fp-grid-snap"] = "Snap feature placement positions to the build grid (48 elmo intervals) for precise, aligned placement.",
+	["fp-filter-chip-avoid-water"] = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
+	["fp-filter-chip-slope"] = "Enable slope filtering — defaults to Avoid Slopes (reject terrain steeper than Max Slope). Use sub-toggles inside to switch to Prefer Slopes (only hillsides steeper than Min Slope).",
+	["fp-filter-chip-altitude"] = "Enable and configure a min/max altitude band — features will only be placed within this elevation range.",
+	["fp-slope-mode-avoid"] = "Reject terrain steeper than Max Slope (avoid slopes). Mutually exclusive with Prefer Slopes.",
+	["fp-slope-mode-prefer"] = "Only place on hillsides steeper than Min Slope.",
 	["btn-fp-alt-min-enable"] = "Enable a minimum altitude filter — no features will be placed below this elevation threshold.",
 	["btn-fp-alt-max-enable"] = "Enable a maximum altitude filter — no features will be placed above this elevation threshold.",
 	-- Feature sliders
-	["fp-slider-size"]       = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
-	["fp-slider-rotation"]   = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
+	["fp-slider-size"] = "Radius of the feature placement area. Ctrl+Scroll to resize while painting.",
+	["fp-slider-rotation"] = "Base rotation angle for all placed features. Individual randomization is added on top of this value.",
 	["fp-slider-rot-random"] = "Randomizes each feature's orientation by ±this percentage. 100% = fully random; 0% = all face the same direction.",
-	["fp-slider-count"]      = "Number of features placed per brush stroke — higher counts fill the area more densely.",
-	["fp-slider-cadence"]    = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
+	["fp-slider-scale-min"] = "Smallest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). Most features land near this end — natural stands are mostly small with a few large.",
+	["fp-slider-scale-max"] = "Largest scale a placed feature can roll; snaps to the nearest baked size variant (trees have them). With Clustered distribution, large features gather at the clump cores and small ones at the fringes.",
+	["fp-slider-count"] = "Number of features placed per brush stroke — higher counts fill the area more densely.",
+	["fp-slider-cadence"] = "How fast features are placed while dragging — lower values produce more features per distance traveled.",
 	-- Feature undo/save/load
-	["btn-fp-undo"]    = "Undo the last batch of placed or removed features, restoring the previous state.",
-	["btn-fp-redo"]    = "Redo features that were just undone.",
+	["btn-fp-undo"] = "Undo the last batch of placed or removed features, restoring the previous state.",
+	["btn-fp-redo"] = "Redo features that were just undone.",
 	["slider-fp-history"] = "Scrub through feature placement history. Drag left to undo multiple steps, right to redo.",
-	["btn-fp-save"]    = "Save the current feature layout to a file on disk so you can restore it later.",
-	["btn-fp-load"]    = "Load a previously saved feature layout from disk, restoring all features from that session.",
+	["btn-fp-save"] = "Save the current feature layout to a file on disk so you can restore it later.",
+	["btn-fp-load"] = "Load a previously saved feature layout from disk, restoring all features from that session.",
 	["btn-fp-clearall"] = "Remove all features placed in this session from the map — cannot be undone.",
 	-- Weather sub-modes
-	["btn-wb-scatter"]  = "Scatter weather effects randomly across the brush area each time you paint.",
-	["btn-wb-point"]    = "Place a weather effect exactly at the clicked cursor position.",
-	["btn-wb-remove"]   = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
+	["btn-wb-scatter"] = "Scatter weather effects randomly across the brush area each time you paint.",
+	["btn-wb-point"] = "Place a weather effect exactly at the clicked cursor position.",
+	["btn-wb-remove"] = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
 	-- Weather distribution
-	["btn-wb-dist-random"]  = "Spawn weather particles at randomly chosen positions within the brush area.",
+	["btn-wb-dist-random"] = "Spawn weather particles at randomly chosen positions within the brush area.",
 	["btn-wb-dist-regular"] = "Spawn weather particles in a uniform grid pattern for organized, evenly spaced effects.",
 	["btn-wb-dist-clustered"] = "Group weather particles in tight clusters for concentrated effect zones.",
 	-- Decal distribution
-	["btn-dc-dist-random"]    = "Place decals at random positions within the brush area.",
-	["btn-dc-dist-regular"]   = "Space decals in a uniform grid pattern inside the brush.",
+	["btn-dc-dist-random"] = "Place decals at random positions within the brush area.",
+	["btn-dc-dist-regular"] = "Space decals in a uniform grid pattern inside the brush.",
 	["btn-dc-dist-clustered"] = "Group decals in tight clusters for natural-looking placement.",
 	-- Light distribution
-	["btn-lp-dist-random"]    = "Place lights at random positions within the brush area.",
-	["btn-lp-dist-regular"]   = "Space lights in a uniform grid pattern inside the brush.",
+	["btn-lp-dist-random"] = "Place lights at random positions within the brush area.",
+	["btn-lp-dist-regular"] = "Space lights in a uniform grid pattern inside the brush.",
 	["btn-lp-dist-clustered"] = "Group lights in tight clusters for concentrated illumination.",
 	-- Weather sliders
-	["wb-slider-size"]      = "Area radius of the weather effect zone. Ctrl+Scroll to resize while painting.",
-	["wb-slider-length"]    = "Elongates the weather pattern along its axis — makes rain streaks or gusts cover a longer area.",
-	["wb-slider-rotation"]  = "Direction the weather moves — adjust this to set wind angle for rain, snow or dust.",
-	["wb-slider-count"]     = "Number of particles spawned per emission tick — higher values create denser effects.",
-	["wb-slider-cadence"]   = "How quickly particles are emitted while dragging to paint — controls density per stroke.",
+	["wb-slider-size"] = "Area radius of the weather effect zone. Ctrl+Scroll to resize while painting.",
+	["wb-slider-length"] = "Elongates the weather pattern along its axis — makes rain streaks or gusts cover a longer area.",
+	["wb-slider-rotation"] = "Direction the weather moves — adjust this to set wind angle for rain, snow or dust.",
+	["wb-slider-count"] = "Number of particles spawned per emission tick — higher values create denser effects.",
+	["wb-slider-cadence"] = "How quickly particles are emitted while dragging to paint — controls density per stroke.",
 	["wb-slider-frequency"] = "How often persistent effects repeat their spawn cycle. Lower interval = more frequent bursts.",
-	["wb-slider-persist"]   = "How long particles from a painted effect linger before fading. Increase for long-lasting rain or snow.",
-	["btn-wb-persistent"]   = "Enable permanent mode — painted weather effects never fade away until you manually clear them.",
-	["btn-wb-clearall"]     = "Remove all persistent weather effects currently active on the map.",
+	["wb-slider-persist"] = "How long particles from a painted effect linger before fading. Increase for long-lasting rain or snow.",
+	["btn-wb-persistent"] = "Enable permanent mode — painted weather effects never fade away until you manually clear them.",
+	["btn-wb-clearall"] = "Remove all persistent weather effects currently active on the map.",
 	-- Noise Parameters (in noise window)
-	["btn-noise-perlin"]  = "Classic gradient noise — smooth, flowing and organic. The most natural-looking all-purpose noise type.",
+	["btn-noise-perlin"] = "Classic gradient noise — smooth, flowing and organic. The most natural-looking all-purpose noise type.",
 	["btn-noise-voronoi"] = "Cell-based noise producing cracked earth, tile-like or rocky terrain patterns with distinct cell edges.",
-	["btn-noise-fbm"]     = "Fractal Brownian Motion stacks multiple noise layers for highly detailed, multi-scale natural terrain.",
-	["btn-noise-billow"]  = "Absolute-value noise creating billowy cloud-like domes and rolling hills with soft rounded peaks.",
-	["slider-noise-scale"]       = "Size of each noise cell in world units — larger values give broader, smoother terrain shapes.",
-	["slider-noise-octaves"]     = "Number of detail layers stacked on top of each other. More octaves add progressively finer micro-detail.",
+	["btn-noise-fbm"] = "Fractal Brownian Motion stacks multiple noise layers for highly detailed, multi-scale natural terrain.",
+	["btn-noise-billow"] = "Absolute-value noise creating billowy cloud-like domes and rolling hills with soft rounded peaks.",
+	["slider-noise-scale"] = "Size of each noise cell in world units — larger values give broader, smoother terrain shapes.",
+	["slider-noise-octaves"] = "Number of detail layers stacked on top of each other. More octaves add progressively finer micro-detail.",
 	["slider-noise-persistence"] = "How much each successive octave's amplitude shrinks. Higher values keep fine details bold and prominent.",
-	["slider-noise-lacunarity"]  = "How much each octave's frequency multiplies per layer. Higher values pack in much more detail per octave.",
-	["slider-noise-seed"]        = "Random seed for the noise pattern. Change it to get a completely different terrain layout with the same settings.",
-	["btn-noise-reseed"]         = "Pick a new random seed instantly, generating a fresh noise pattern without adjusting any other parameters.",
-	["btn-noise-seed-down"]      = "Decrease noise seed by 1.",
-	["btn-noise-seed-up"]        = "Increase noise seed by 1.",
+	["slider-noise-lacunarity"] = "How much each octave's frequency multiplies per layer. Higher values pack in much more detail per octave.",
+	["slider-noise-seed"] = "Random seed for the noise pattern. Change it to get a completely different terrain layout with the same settings.",
+	["btn-noise-reseed"] = "Pick a new random seed instantly, generating a fresh noise pattern without adjusting any other parameters.",
+	["btn-noise-seed-down"] = "Decrease noise seed by 1.",
+	["btn-noise-seed-up"] = "Increase noise seed by 1.",
 	-- Splat Painter
-	["btn-splat"]               = "Paint the splatmap distribution texture that controls which ground detail texture is visible in each area of the map.",
+	["btn-splat"] = "Paint the splatmap distribution texture that controls which ground detail texture is visible in each area of the map.",
 	-- Metal brush
-	["btn-metal"]               = "Paint and stamp metal deposits on the map. LMB raises metal, RMB lowers. Stamp mode places standard metal spots. Requires /cheat.",
-	["btn-mb-paint"]            = "Continuous paint mode: hold LMB to add metal, RMB to remove. Intensity and falloff control the rate.",
-	["btn-mb-stamp"]            = "Stamp a complete metal spot in one click. LMB places, RMB erases. Metal value and brush size control the spot.",
-	["btn-mb-remove"]           = "Remove metal from the map. Click or drag to erase metal spots.",
-	["slider-metal-value"]      = "Target metal extraction rate for stamp mode. Standard mex spots use 2.0. Space+Scroll to adjust in-game.",
-	["btn-metal-value-down"]    = "Decrease metal extraction value by ~10%.",
-	["btn-metal-value-up"]      = "Increase metal extraction value by ~10%.",
-	["btn-metal-save"]          = "Save the current metal map to a Lua data file in LuaUI/Config/MetalMaps/.",
-	["btn-metal-load"]          = "Load a previously saved metal map from disk and apply it to the map.",
-	["btn-metal-clean"]         = "Remove ALL metal from the map. Click once to arm, click again to confirm.",
+	["btn-metal"] = "Paint and stamp metal deposits on the map. LMB raises metal, RMB lowers. Stamp mode places standard metal spots. Requires /cheat.",
+	["btn-mb-paint"] = "Continuous paint mode: hold LMB to add metal, RMB to remove. Intensity and falloff control the rate.",
+	["btn-mb-stamp"] = "Stamp a complete metal spot in one click. LMB places, RMB erases. Metal value and brush size control the spot.",
+	["btn-mb-remove"] = "Remove metal from the map. Click or drag to erase metal spots.",
+	["slider-metal-value"] = "Target metal extraction rate for stamp mode. Standard mex spots use 2.0. Space+Scroll to adjust in-game.",
+	["btn-metal-value-down"] = "Decrease metal extraction value by ~10%.",
+	["btn-metal-value-up"] = "Increase metal extraction value by ~10%.",
+	["btn-metal-save"] = "Save the current metal map to a Lua data file in LuaUI/Config/MetalMaps/.",
+	["btn-metal-load"] = "Load a previously saved metal map from disk and apply it to the map.",
+	["btn-metal-clean"] = "Remove ALL metal from the map. Click once to arm, click again to confirm.",
 	-- Grass brush
-	["btn-grass"]               = "Paint and erase grass density on the map. LMB grows grass, RMB removes. Fill mode sets entire area at once. Requires /cheat.",
-	["btn-gb-paint"]            = "Continuous paint mode: hold LMB to grow grass, RMB to remove. Density and falloff control the brush.",
-	["btn-gb-fill"]             = "Fill mode: click LMB to set brush area to target density, RMB to clear all grass in area.",
-	["slider-grass-density"]    = "Target grass density (0-100%). Paint mode paints toward this density; Fill mode stamps it instantly. Space+Scroll.",
-	["btn-grass-density-down"]  = "Decrease grass density by 5%.",
-	["btn-grass-density-up"]    = "Increase grass density by 5%.",
-	["btn-grass-save"]          = "Export the current grass map to a TGA image file for use in map distribution.",
-	["slider-gb-size"]          = "Brush radius for grass painting. Ctrl+Scroll.",
-	["slider-gb-rotation"]      = "Rotation angle for non-circular grass brush shapes (0-359°). Alt+Scroll.",
-	["slider-gb-curve"]         = "Edge fall-off sharpness for grass painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
-	["slider-mb-size"]          = "Brush radius for metal painting and stamping. Ctrl+Scroll.",
-	["slider-mb-rotation"]      = "Rotation angle for non-circular metal brush shapes (0–359°). Alt+Scroll.",
-	["slider-mb-length"]        = "Stretches the metal brush into an elongated shape along its rotation axis. Ctrl+Alt+Scroll.",
-	["slider-mb-curve"]         = "Edge fall-off sharpness for metal painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
+	["btn-grass"] = "Paint and erase grass density on the map. LMB grows grass, RMB removes. Fill mode sets entire area at once. Requires /cheat.",
+	["btn-gb-paint"] = "Continuous paint mode: hold LMB to grow grass, RMB to remove. Density and falloff control the brush.",
+	["btn-gb-fill"] = "Fill mode: click LMB to set brush area to target density, RMB to clear all grass in area.",
+	["slider-grass-density"] = "Target grass density (0-100%). Paint mode paints toward this density; Fill mode stamps it instantly. Space+Scroll.",
+	["btn-grass-density-down"] = "Decrease grass density by 5%.",
+	["btn-grass-density-up"] = "Increase grass density by 5%.",
+	["btn-grass-save"] = "Export the current grass map to a TGA image file for use in map distribution.",
+	["slider-gb-size"] = "Brush radius for grass painting. Ctrl+Scroll.",
+	["slider-gb-rotation"] = "Rotation angle for non-circular grass brush shapes (0-359°). Alt+Scroll.",
+	["slider-gb-curve"] = "Edge fall-off sharpness for grass painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
+	["slider-mb-size"] = "Brush radius for metal painting and stamping. Ctrl+Scroll.",
+	["slider-mb-rotation"] = "Rotation angle for non-circular metal brush shapes (0–359°). Alt+Scroll.",
+	["slider-mb-length"] = "Stretches the metal brush into an elongated shape along its rotation axis. Ctrl+Alt+Scroll.",
+	["slider-mb-curve"] = "Edge fall-off sharpness for metal painting. Low = gentle gradient, high = hard edge. Shift+Scroll.",
 	-- Start Positions
-	["btn-sp-rot-ccw"]          = "Rotate the start position layout counter-clockwise.",
-	["btn-sp-rot-cw"]           = "Rotate the start position layout clockwise.",
-	["btn-sp-ch1"]              = "Paint into channel 1 (Red) of the splatmap. Corresponds to the first detail ground texture.",
-	["btn-sp-ch2"]              = "Paint into channel 2 (Green) of the splatmap. Corresponds to the second detail ground texture.",
-	["btn-sp-ch3"]              = "Paint into channel 3 (Blue) of the splatmap. Corresponds to the third detail ground texture.",
-	["btn-sp-ch4"]              = "Paint into channel 4 (Alpha) of the splatmap. Corresponds to the fourth detail ground texture.",
-	["sp-slider-strength"]      = "Controls paint opacity per stroke. Low values let you blend textures subtly; high values replace quickly.",
-	["sp-slider-intensity"]     = "Multiplier on effective paint strength. Combines with Strength for aggressive or subtle painting. Space+Scroll.",
-	["sp-slider-size"]          = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
-	["sp-slider-rotation"]      = "Set the brush rotation angle from 0–359°. Affects non-circular shapes. Alt+Scroll.",
-	["sp-slider-curve"]         = "Controls edge fall-off sharpness. Low = gentle gradient, high = hard-edged painting at the brush boundary.",
-	["btn-sp-smart-toggle"]     = "Enable Smart Filter — makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
-	["btn-sp-avoid-water"]      = "Skip painting on underwater terrain so splats only affect dry ground above sea level.",
-	["btn-sp-avoid-cliffs"]     = "Prevent painting on slopes steeper than the Max Slope angle.",
-	["btn-sp-prefer-slopes"]    = "Only paint on slopes steeper than the Min Slope angle — useful for cliff-face texturing.",
-	["btn-sp-alt-min-enable"]   = "Enable a minimum altitude filter — no painting below this elevation threshold.",
-	["btn-sp-alt-max-enable"]   = "Enable a maximum altitude filter — no painting above this elevation threshold.",
-	["btn-sp-export-format"]    = "Click to cycle the export image format between PNG, DDS and TGA.",
-	["btn-sp-save"]             = "Save the current splatmap distribution texture to disk for backup or external editing.",
-	["btn-decals"]              = "Open the Decals panel: decal library (scars, explosions, tracks, builds) and combat heatmap tools.",
-	["btn-dc-heatmap-export"]   = "Save the combat heatmap (accumulated explosion density) as CSV grid + PGM grayscale image.",
-	["btn-dc-heatmap-reset"]    = "Reset the heatmap — clears all accumulated explosion tracking data.",
+	["btn-sp-rot-ccw"] = "Rotate the start position layout counter-clockwise.",
+	["btn-sp-rot-cw"] = "Rotate the start position layout clockwise.",
+	["btn-sp-ch1"] = "Paint into channel 1 (Red) of the splatmap. Corresponds to the first detail ground texture.",
+	["btn-sp-ch2"] = "Paint into channel 2 (Green) of the splatmap. Corresponds to the second detail ground texture.",
+	["btn-sp-ch3"] = "Paint into channel 3 (Blue) of the splatmap. Corresponds to the third detail ground texture.",
+	["btn-sp-ch4"] = "Paint into channel 4 (Alpha) of the splatmap. Corresponds to the fourth detail ground texture.",
+	["sp-slider-strength"] = "Controls paint opacity per stroke. Low values let you blend textures subtly; high values replace quickly.",
+	["sp-slider-intensity"] = "Multiplier on effective paint strength. Combines with Strength for aggressive or subtle painting. Space+Scroll.",
+	["sp-slider-size"] = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
+	["sp-slider-rotation"] = "Set the brush rotation angle from 0–359°. Affects non-circular shapes. Alt+Scroll.",
+	["sp-slider-curve"] = "Controls edge fall-off sharpness. Low = gentle gradient, high = hard-edged painting at the brush boundary.",
+	["btn-sp-smart-toggle"] = "Enable Smart Filter — makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
+	["btn-sp-avoid-water"] = "Skip painting on underwater terrain so splats only affect dry ground above sea level.",
+	["btn-sp-avoid-cliffs"] = "Prevent painting on slopes steeper than the Max Slope angle.",
+	["btn-sp-prefer-slopes"] = "Only paint on slopes steeper than the Min Slope angle — useful for cliff-face texturing.",
+	["btn-sp-alt-min-enable"] = "Enable a minimum altitude filter — no painting below this elevation threshold.",
+	["btn-sp-alt-max-enable"] = "Enable a maximum altitude filter — no painting above this elevation threshold.",
+	["btn-sp-export-format"] = "Click to cycle the export image format between PNG, DDS and TGA.",
+	["btn-sp-save"] = "Save the current splatmap distribution texture to disk for backup or external editing.",
+	["btn-decals"] = "Open the Decals panel: decal library (scars, explosions, tracks, builds) and combat heatmap tools.",
+	["btn-dc-heatmap-export"] = "Save the combat heatmap (accumulated explosion density) as CSV grid + PGM grayscale image.",
+	["btn-dc-heatmap-reset"] = "Reset the heatmap — clears all accumulated explosion tracking data.",
 	-- Light Placer controls
-	["btn-lt-point"]            = "Omnidirectional point light — radiates equally in all directions. Good for general ambient fill and glowing effects.",
-	["btn-lt-cone"]             = "Directional cone/spotlight — casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
-	["btn-lt-beam"]             = "Linear beam light with a start and end point. Useful for laser-like effects and long glowing lines.",
-	["btn-lp-point"]            = "Place a single light at the exact cursor position. Click to place one at a time for precise control.",
-	["btn-lp-scatter"]          = "Scatter multiple lights in the brush area with each click. Adjust count and brush radius below.",
-	["btn-lp-remove"]           = "Erase placed lights under the brush cursor — removes lights within the brush radius.",
-	["btn-lp-dist-random"]      = "Distribute scattered lights at random positions within the brush for an organic look.",
-	["btn-lp-dist-regular"]     = "Space scattered lights in a uniform grid pattern for orderly, evenly distributed placement.",
-	["btn-lp-dist-clustered"]   = "Group scattered lights in tight clusters, mimicking how light sources tend to gather naturally.",
-	["slider-lp-color-r"]       = "Red channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
-	["slider-lp-color-g"]       = "Green channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
-	["slider-lp-color-b"]       = "Blue channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
-	["slider-lp-brightness"]    = "Overall brightness multiplier. Higher values produce more intense light. Use with care — values above 5 can bloom significantly.",
-	["slider-lp-light-radius"]  = "How far the light reaches from its center in world units (elmos). Larger radius = softer, wider light.",
-	["slider-lp-elevation"]     = "Height offset above the ground where lights are placed (in elmos). 0 = on the ground, higher = floating above terrain. Shift+Scroll.",
-	["slider-lp-pitch"]         = "Vertical aiming angle for cone/beam lights. -90 = straight down, 0 = horizontal, 90 = straight up.",
-	["slider-lp-yaw"]           = "Horizontal rotation angle for cone/beam lights (0–360°). Controls which compass direction the light faces.",
-	["slider-lp-roll"]          = "Roll rotation of cone/beam lights (0–360°). Mostly useful for asymmetric beam patterns.",
-	["slider-lp-theta"]         = "Cone half-angle spread in radians. Smaller = tighter spotlight, larger = wider floodlight.",
-	["slider-lp-beam-length"]   = "Length of the beam from start to end point in world units.",
-	["slider-lp-count"]         = "Number of lights placed per scatter operation.",
-	["slider-lp-brush-radius"]  = "Radius of the scatter brush area in world units. Lights are distributed within this zone.",
-	["btn-lp-smart-toggle"]     = "Enable Smart Filter for light placement — skips water, cliffs or altitude zones.",
-	["btn-lp-sf-water"]         = "Skip light placement on underwater terrain.",
-	["btn-lp-sf-cliffs"]        = "Prevent lights from being placed on steep cliff faces.",
-	["btn-lp-library"]          = "Open the Light Library to browse built-in presets and your saved light arrangements.",
-	["btn-lp-undo"]             = "Undo the last light placement or removal action.",
-	["btn-lp-redo"]             = "Redo a light action that was just undone.",
-	["slider-lp-history"]       = "Scrub through light placement history. Drag left to undo multiple steps, right to redo.",
-	["btn-lp-save"]             = "Save all currently placed lights to a timestamped file on disk.",
-	["btn-lp-load"]             = "Load a previously saved light layout from disk.",
-	["btn-lp-clear-all"]        = "Remove all placed lights from the map — cannot be undone.",
-	["btn-lp-material-toggle"]  = "Show or hide the material properties section (model factor, specular, scattering, lens flare).",
+	["btn-lt-point"] = "Omnidirectional point light — radiates equally in all directions. Good for general ambient fill and glowing effects.",
+	["btn-lt-cone"] = "Directional cone/spotlight — casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
+	["btn-lt-beam"] = "Linear beam light with a start and end point. Useful for laser-like effects and long glowing lines.",
+	["btn-lp-point"] = "Place a single light at the exact cursor position. Click to place one at a time for precise control.",
+	["btn-lp-scatter"] = "Scatter multiple lights in the brush area with each click. Adjust count and brush radius below.",
+	["btn-lp-remove"] = "Erase placed lights under the brush cursor — removes lights within the brush radius.",
+	["btn-lp-dist-random"] = "Distribute scattered lights at random positions within the brush for an organic look.",
+	["btn-lp-dist-regular"] = "Space scattered lights in a uniform grid pattern for orderly, evenly distributed placement.",
+	["btn-lp-dist-clustered"] = "Group scattered lights in tight clusters, mimicking how light sources tend to gather naturally.",
+	["slider-lp-color-r"] = "Red channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
+	["slider-lp-color-g"] = "Green channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
+	["slider-lp-color-b"] = "Blue channel intensity for the light color (0–1). Combine R, G, B to mix any color.",
+	["slider-lp-brightness"] = "Overall brightness multiplier. Higher values produce more intense light. Use with care — values above 5 can bloom significantly.",
+	["slider-lp-light-radius"] = "How far the light reaches from its center in world units (elmos). Larger radius = softer, wider light.",
+	["slider-lp-elevation"] = "Height offset above the ground where lights are placed (in elmos). 0 = on the ground, higher = floating above terrain. Shift+Scroll.",
+	["slider-lp-pitch"] = "Vertical aiming angle for cone/beam lights. -90 = straight down, 0 = horizontal, 90 = straight up.",
+	["slider-lp-yaw"] = "Horizontal rotation angle for cone/beam lights (0–360°). Controls which compass direction the light faces.",
+	["slider-lp-roll"] = "Roll rotation of cone/beam lights (0–360°). Mostly useful for asymmetric beam patterns.",
+	["slider-lp-theta"] = "Cone half-angle spread in radians. Smaller = tighter spotlight, larger = wider floodlight.",
+	["slider-lp-beam-length"] = "Length of the beam from start to end point in world units.",
+	["slider-lp-count"] = "Number of lights placed per scatter operation.",
+	["slider-lp-brush-radius"] = "Radius of the scatter brush area in world units. Lights are distributed within this zone.",
+	["btn-lp-smart-toggle"] = "Enable Smart Filter for light placement — skips water, cliffs or altitude zones.",
+	["btn-lp-sf-water"] = "Skip light placement on underwater terrain.",
+	["btn-lp-sf-cliffs"] = "Prevent lights from being placed on steep cliff faces.",
+	["btn-lp-library"] = "Open the Light Library to browse built-in presets and your saved light arrangements.",
+	["btn-lp-undo"] = "Undo the last light placement or removal action.",
+	["btn-lp-redo"] = "Redo a light action that was just undone.",
+	["slider-lp-history"] = "Scrub through light placement history. Drag left to undo multiple steps, right to redo.",
+	["btn-lp-save"] = "Save all currently placed lights to a timestamped file on disk.",
+	["btn-lp-load"] = "Load a previously saved light layout from disk.",
+	["btn-lp-clear-all"] = "Remove all placed lights from the map — cannot be undone.",
+	["btn-lp-material-toggle"] = "Show or hide the material properties section (model factor, specular, scattering, lens flare).",
 	-- Diffuse Painter controls
-	["btn-diffuse"]                 = "Open the Diffuse Painter: paint layered materials from the library directly onto the map texture.",
-	["dfp-slider-radius"]           = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
-	["dfp-slider-strength"]         = "Paint opacity per stroke. Low values build texture up gradually; high values replace quickly. Alt+Scroll.",
-	["dfp-slider-curve"]            = "Edge fall-off sharpness. Low = soft gradient toward the rim, high = hard-edged stamp. Shift+Scroll.",
-	["dfp-slider-fractal"]          = "Warps the brush edge with fractal noise for organic, natural-looking material borders.",
-	["dfp-slider-fractal-freq"]     = "Scale of the fractal edge noise. Low = large sweeping irregularities, high = fine crinkly detail.",
-	["btn-dfp-erase"]               = "Toggle erase mode — strokes remove paint from the active layer instead of adding it. Right-click also erases.",
-	["btn-dfp-undo"]                = "Undo the last paint stroke.",
-	["btn-dfp-redo"]                = "Redo a paint stroke that was just undone.",
-	["dfp-slider-history"]          = "Scrub through paint history. Drag left to undo multiple strokes, right to redo.",
-	["btn-dfp-add-layer"]           = "Add a new empty paint layer above the current stack (8 max).",
-	["btn-dfp-remove-layer"]        = "Delete the active layer and all of its painted strokes.",
-	["btn-dfp-clear-material"]      = "Detach the material texture from the active layer — future strokes paint flat layer color instead.",
-	["btn-dfp-bake-all"]            = "Composite every map square through the layer stack (heavy on large maps — allocates all squares).",
-	["btn-dfp-reset-all"]           = "Clear all painted strokes on all layers. Cannot be undone.",
-	["btn-dfp-export"]              = "Export every painted map square as PNG tiles into the write directory, for repacking into an SMF map.",
-	["btn-dfp-ch-normals"]          = "Paint the material's normal map into the map's blend normals ($ssmf_normals) with each stroke — real bumpy lighting, not baked shading.",
-	["btn-dfp-ch-specular"]         = "Paint a specular map ($ssmf_specular) derived from the material's albedo and roughness — wet/shiny vs matte surfaces.",
-	["btn-dfp-ch-emission"]         = "Paint self-illumination ($ssmf_emission) using the layer color at the Layer Glow strength — lava, crystals, tech panels.",
-	["dfp-slider-specint"]          = "How much of the material's color tints the specular highlight. The guide wants spec color to be the albedo greatly darkened — keep this low.",
-	["dfp-slider-glow"]             = "Emission strength for the active layer (0 = none). Painted into the emissive channel when it is enabled.",
-	["btn-dfp-grass-attach"]        = "Master toggle: layers with a grass density also plant engine grass along each stroke (erase removes it). Grass tints itself to match the painted texture.",
-	["dfp-slider-grass"]            = "Grass density planted by the active layer's strokes (0 = none). Grass-category materials default to 80.",
+	["btn-diffuse"] = "Open the Diffuse Painter: paint layered materials from the library directly onto the map texture.",
+	["dfp-slider-radius"] = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
+	["dfp-slider-strength"] = "Paint opacity per stroke. Low values build texture up gradually; high values replace quickly. Alt+Scroll.",
+	["dfp-slider-curve"] = "Edge fall-off sharpness. Low = soft gradient toward the rim, high = hard-edged stamp. Shift+Scroll.",
+	["dfp-slider-fractal"] = "Warps the brush edge with fractal noise for organic, natural-looking material borders.",
+	["dfp-slider-fractal-freq"] = "Scale of the fractal edge noise. Low = large sweeping irregularities, high = fine crinkly detail.",
+	["btn-dfp-erase"] = "Toggle erase mode — strokes remove paint from the active layer instead of adding it. Right-click also erases.",
+	["btn-dfp-undo"] = "Undo the last paint stroke.",
+	["btn-dfp-redo"] = "Redo a paint stroke that was just undone.",
+	["dfp-slider-history"] = "Scrub through paint history. Drag left to undo multiple strokes, right to redo.",
+	["btn-dfp-add-layer"] = "Add a new empty paint layer above the current stack (8 max).",
+	["btn-dfp-remove-layer"] = "Delete the active layer and all of its painted strokes.",
+	["btn-dfp-clear-material"] = "Detach the material texture from the active layer — future strokes paint flat layer color instead.",
+	["btn-dfp-bake-all"] = "Composite every map square through the layer stack (heavy on large maps — allocates all squares).",
+	["btn-dfp-reset-all"] = "Clear all painted strokes on all layers. Cannot be undone.",
+	["btn-dfp-export"] = "Export every painted map square as PNG tiles into the write directory, for repacking into an SMF map.",
+	["btn-dfp-ch-normals"] = "Paint the material's normal map into the map's blend normals ($ssmf_normals) with each stroke — real bumpy lighting, not baked shading.",
+	["btn-dfp-ch-specular"] = "Paint a specular map ($ssmf_specular) derived from the material's albedo and roughness — wet/shiny vs matte surfaces.",
+	["btn-dfp-ch-emission"] = "Paint self-illumination ($ssmf_emission) using the layer color at the Layer Glow strength — lava, crystals, tech panels.",
+	["dfp-slider-specint"] = "How much of the material's color tints the specular highlight. The guide wants spec color to be the albedo greatly darkened — keep this low.",
+	["dfp-slider-glow"] = "Emission strength for the active layer (0 = none). Painted into the emissive channel when it is enabled.",
+	["btn-dfp-grass-attach"] = "Master toggle: layers with a grass density also plant engine grass along each stroke (erase removes it). Grass tints itself to match the painted texture.",
+	["dfp-slider-grass"] = "Grass density planted by the active layer's strokes (0 = none). Grass-category materials default to 80.",
 }
 
 -- G3: Shortcut discovery tip groups — shown near cursor after 3 interactions (guide mode only)
 local g3TipGroups = {
 	intensity = "Tip: Hold Space\xe2\x80\x94then scroll the mouse wheel to adjust intensity while sculpting. Faster than reaching for the slider!",
-	size      = "Tip: Hold Ctrl and scroll to resize the brush in real time \xe2\x80\x94 no need to touch the slider.",
-	rotation  = "Tip: Hold Alt and scroll to rotate the brush on the fly. Add Ctrl to also stretch its length (Ctrl+Alt+Scroll).",
-	curve     = "Tip: Hold Shift and scroll to sharpen or soften the edge fall-off while you paint.",
-	length    = "Tip: Hold Ctrl+Alt and scroll to stretch the brush length without using the slider.",
-	ring      = "Tip: Hold Ctrl+R and scroll to fine-tune the ring band width while painting.",
-	undo      = "Tip: Ctrl+Z undoes the last stroke \xe2\x80\x94 hold it down for rapid multi-step undo.",
-	redo      = "Tip: Ctrl+Shift+Z redoes \xe2\x80\x94 hold it down for rapid multi-step redo.",
+	size = "Tip: Hold Ctrl and scroll to resize the brush in real time \xe2\x80\x94 no need to touch the slider.",
+	rotation = "Tip: Hold Alt and scroll to rotate the brush on the fly. Add Ctrl to also stretch its length (Ctrl+Alt+Scroll).",
+	curve = "Tip: Hold Shift and scroll to sharpen or soften the edge fall-off while you paint.",
+	length = "Tip: Hold Ctrl+Alt and scroll to stretch the brush length without using the slider.",
+	ring = "Tip: Hold Ctrl+R and scroll to fine-tune the ring band width while painting.",
+	undo = "Tip: Ctrl+Z undoes the last stroke \xe2\x80\x94 hold it down for rapid multi-step undo.",
+	redo = "Tip: Ctrl+Shift+Z redoes \xe2\x80\x94 hold it down for rapid multi-step redo.",
 }
 -- Maps UI element IDs to their tip group key for G3 interaction counting
 local g3ElemGroup = {
-	["slider-intensity"]    = "intensity",
-	["btn-intensity-down"]  = "intensity",
-	["btn-intensity-up"]    = "intensity",
-	["slider-size"]         = "size",
-	["btn-size-down"]       = "size",
-	["btn-size-up"]         = "size",
-	["slider-rotation"]     = "rotation",
-	["btn-rot-ccw"]         = "rotation",
-	["btn-rot-cw"]          = "rotation",
-	["slider-curve"]        = "curve",
-	["btn-curve-down"]      = "curve",
-	["btn-curve-up"]        = "curve",
-	["slider-length"]       = "length",
-	["slider-ring-width"]   = "ring",
+	["slider-intensity"] = "intensity",
+	["btn-intensity-down"] = "intensity",
+	["btn-intensity-up"] = "intensity",
+	["slider-size"] = "size",
+	["btn-size-down"] = "size",
+	["btn-size-up"] = "size",
+	["slider-rotation"] = "rotation",
+	["btn-rot-ccw"] = "rotation",
+	["btn-rot-cw"] = "rotation",
+	["slider-curve"] = "curve",
+	["btn-curve-down"] = "curve",
+	["btn-curve-up"] = "curve",
+	["slider-length"] = "length",
+	["slider-ring-width"] = "ring",
 	["btn-ring-width-down"] = "ring",
-	["btn-ring-width-up"]   = "ring",
-	["btn-undo"]            = "undo",
-	["btn-redo"]            = "redo",
+	["btn-ring-width-up"] = "ring",
+	["btn-undo"] = "undo",
+	["btn-redo"] = "redo",
 }
 
 local function updateFloatingTip()
-	if not widgetState.floatingTipEl then return end
+	if not widgetState.floatingTipEl then
+		return
+	end
 	-- G3 toast takes priority over the hover hint while it is still active
 	local activeHint = widgetState.currentHint
 	local g3t = widgetState.g3Toast
@@ -8132,9 +15853,11 @@ local function updateFloatingTip()
 	end
 	local mx, my = GetMouseState()
 	local vsx, vsy = GetViewGeometry()
-	if not mx or vsx <= 0 or vsy <= 0 then return end
+	if not mx or vsx <= 0 or vsy <= 0 then
+		return
+	end
 	-- Spring y is bottom-up (0=bottom of viewport); convert to RmlUi top-down (0=top)
-	local TIP_W, TIP_H = 168, 100  -- approximate tooltip pixel size for edge clamping
+	local TIP_W, TIP_H = 168, 100 -- approximate tooltip pixel size for edge clamping
 	-- Show tooltip to the left of the cursor when in the right portion of the screen
 	-- (where the terraform brush panel lives, ~78vw+), so it never overlaps the panel.
 	local inRightRegion = mx > vsx * 0.62
@@ -8143,14 +15866,20 @@ local function updateFloatingTip()
 		leftPx = mx - TIP_W - 12
 	else
 		leftPx = mx + 16
-		if leftPx + TIP_W > vsx then leftPx = mx - TIP_W - 12 end
+		if leftPx + TIP_W > vsx then
+			leftPx = mx - TIP_W - 12
+		end
 	end
 	local topPx = (vsy - my) + 32
-	if topPx + TIP_H > vsy then topPx = (vsy - my) - TIP_H - 6 end
+	if topPx + TIP_H > vsy then
+		topPx = (vsy - my) - TIP_H - 6
+	end
 	leftPx = math.max(0, leftPx)
-	topPx  = math.max(0, topPx)
-	widgetState.floatingTipEl:SetAttribute("style", string.format("left: %.2fvw; top: %.2fvh;",
-		(leftPx / vsx) * 100, (topPx / vsy) * 100))
+	topPx = math.max(0, topPx)
+	widgetState.floatingTipEl:SetAttribute(
+		"style",
+		string.format("left: %.2fvw; top: %.2fvh;", (leftPx / vsx) * 100, (topPx / vsy) * 100)
+	)
 	if activeHint ~= widgetState.lastRenderedHint then
 		widgetState.floatingTipEl.inner_rml = activeHint
 		widgetState.lastRenderedHint = activeHint
@@ -8164,63 +15893,85 @@ end
 -- ═══════════════════════════════════════════════════════════════════════
 local BADGE_ACTION_MAP = {
 	-- Terrain mode buttons
-	["btn-level"]    = "mode_level",
-	["btn-ramp"]     = "mode_ramp",
-	["btn-restore"]  = "mode_restore",
-	["btn-noise"]    = "mode_noise",
+	["btn-level"] = "mode_level",
+	["btn-ramp"] = "mode_ramp",
+	["btn-restore"] = "mode_restore",
+	["btn-noise"] = "mode_noise",
 	-- Shape buttons
-	["btn-circle"]   = "shape_circle",
-	["btn-square"]   = "shape_square",
-	["btn-hexagon"]  = "shape_hexagon",
-	["btn-octagon"]  = "shape_octagon",
+	["btn-circle"] = "shape_circle",
+	["btn-square"] = "shape_square",
+	["btn-hexagon"] = "shape_hexagon",
+	["btn-octagon"] = "shape_octagon",
 	["btn-triangle"] = "shape_triangle",
 	-- Toggle buttons
 	["btn-clay-mode"] = "toggle_clay",
 	-- Tool buttons
-	["btn-grass"]       = "tool_grass",
-	["btn-metal"]       = "tool_metal",
-	["btn-features"]    = "tool_features",
-	["btn-splat"]       = "tool_splat",
-	["btn-decals"]      = "tool_decals",
-	["btn-weather"]     = "tool_weather",
+	["btn-grass"] = "tool_grass",
+	["btn-metal"] = "tool_metal",
+	["btn-features"] = "tool_features",
+	["btn-splat"] = "tool_splat",
+	["btn-decals"] = "tool_decals",
+	["btn-weather"] = "tool_weather",
 	["btn-environment"] = "tool_environment",
-	["btn-lights"]      = "tool_lights",
-	["btn-startpos"]    = "tool_startpos",
-	["btn-clone"]       = "tool_clone",
+	["btn-lights"] = "tool_lights",
+	["btn-startpos"] = "tool_startpos",
+	["btn-clone"] = "tool_clone",
 }
 
 -- Maps tool keybind action → button element ID for Click() dispatch
 local TOOL_BTN_MAP = {
-	tool_grass       = "btn-grass",
-	tool_metal       = "btn-metal",
-	tool_features    = "btn-features",
-	tool_splat       = "btn-splat",
-	tool_decals      = "btn-decals",
-	tool_weather     = "btn-weather",
+	tool_grass = "btn-grass",
+	tool_metal = "btn-metal",
+	tool_features = "btn-features",
+	tool_splat = "btn-splat",
+	tool_decals = "btn-decals",
+	tool_weather = "btn-weather",
 	tool_environment = "btn-environment",
-	tool_lights      = "btn-lights",
-	tool_startpos    = "btn-startpos",
-	tool_clone       = "btn-clone",
+	tool_lights = "btn-lights",
+	tool_startpos = "btn-startpos",
+	tool_clone = "btn-clone",
 }
 
 -- Keybind display order for the settings list (sorted)
 -- Scroll controls first (most used), then regular keybinds
 local SCROLL_DISPLAY_ORDER = {
-	"scroll_size", "scroll_rotation", "scroll_protractor", "scroll_curve",
-	"scroll_intensity", "scroll_length", "scroll_ring",
+	"scroll_size",
+	"scroll_rotation",
+	"scroll_protractor",
+	"scroll_curve",
+	"scroll_intensity",
+	"scroll_length",
+	"scroll_ring",
 }
 local KEYBIND_DISPLAY_ORDER = {
-	"mode_level", "mode_noise", "mode_ramp", "mode_restore",
-	"shape_circle", "shape_square", "shape_triangle", "shape_hexagon", "shape_octagon",
+	"mode_level",
+	"mode_noise",
+	"mode_ramp",
+	"mode_restore",
+	"shape_circle",
+	"shape_square",
+	"shape_triangle",
+	"shape_hexagon",
+	"shape_octagon",
 	"toggle_clay",
-	"tool_grass", "tool_metal", "tool_features", "tool_splat", "tool_decals",
-	"tool_weather", "tool_environment", "tool_lights", "tool_startpos", "tool_clone",
+	"tool_grass",
+	"tool_metal",
+	"tool_features",
+	"tool_splat",
+	"tool_decals",
+	"tool_weather",
+	"tool_environment",
+	"tool_lights",
+	"tool_startpos",
+	"tool_clone",
 }
 
-local badgeElements = {}  -- {[buttonId] = badgeDivElement}
+local badgeElements = {} -- {[buttonId] = badgeDivElement}
 
 local function keyCodeToLabel(keyCode)
-	if not keyCode or keyCode == 0 then return "?" end
+	if not keyCode or keyCode == 0 then
+		return "?"
+	end
 	local sym = Spring.GetKeySymbol(keyCode)
 	if sym and sym ~= "" then
 		return sym:upper()
@@ -8234,7 +15985,9 @@ end
 
 -- Update all keybind badge text from current widget keybinds
 updateAllKeybindBadges = function()
-	if not WG.TerraformBrush or not WG.TerraformBrush.getKeybinds then return end
+	if not WG.TerraformBrush or not WG.TerraformBrush.getKeybinds then
+		return
+	end
 	local binds = WG.TerraformBrush.getKeybinds()
 	for btnId, action in pairs(BADGE_ACTION_MAP) do
 		local el = badgeElements[btnId]
@@ -8246,40 +15999,48 @@ updateAllKeybindBadges = function()
 	local doc = widgetState.document
 	if doc then
 		local function normKey(s)
-			if not s or s == "" then return nil end
+			if not s or s == "" then
+				return nil
+			end
 			local u = s:upper()
-			if u == "LCTRL" or u == "RCTRL" then return "Ctrl"
-			elseif u == "LSHIFT" or u == "RSHIFT" then return "Shift"
-			elseif u == "LALT" or u == "RALT" then return "Alt"
-			elseif u == "SPACE" then return "Space"
-			else return u end
+			if u == "LCTRL" or u == "RCTRL" then
+				return "Ctrl"
+			elseif u == "LSHIFT" or u == "RSHIFT" then
+				return "Shift"
+			elseif u == "LALT" or u == "RALT" then
+				return "Alt"
+			elseif u == "SPACE" then
+				return "Space"
+			else
+				return u
+			end
 		end
 		local hintMap = {
-			["kbhint-cl-rotation"]  = "scroll_rotation",
-			["kbhint-cl-height"]    = "scroll_curve",
-			["kbhint-mb-size"]      = "scroll_size",
-			["kbhint-mb-rotation"]  = "scroll_rotation",
-			["kbhint-mb-length"]    = "scroll_length",
-			["kbhint-mb-curve"]     = "scroll_curve",
-			["kbhint-gb-size"]      = "scroll_size",
-			["kbhint-gb-length"]    = "scroll_length",
-			["kbhint-gb-rotation"]  = "scroll_rotation",
-			["kbhint-gb-curve"]     = "scroll_curve",
-			["kbhint-protractor"]   = "scroll_rotation",
-			["kbhint-rotation"]     = "scroll_rotation",
-			["kbhint-intensity"]    = "scroll_intensity",
-			["kbhint-size"]         = "scroll_size",
-			["kbhint-length"]       = "scroll_length",
-			["kbhint-curve"]        = "scroll_curve",
-			["kbhint-fp-size"]      = "scroll_size",
-			["kbhint-fp-rotation"]  = "scroll_rotation",
-			["kbhint-wb-size"]      = "scroll_size",
-			["kbhint-wb-length"]    = "scroll_length",
-			["kbhint-sp-strength"]  = "scroll_intensity",
+			["kbhint-cl-rotation"] = "scroll_rotation",
+			["kbhint-cl-height"] = "scroll_curve",
+			["kbhint-mb-size"] = "scroll_size",
+			["kbhint-mb-rotation"] = "scroll_rotation",
+			["kbhint-mb-length"] = "scroll_length",
+			["kbhint-mb-curve"] = "scroll_curve",
+			["kbhint-gb-size"] = "scroll_size",
+			["kbhint-gb-length"] = "scroll_length",
+			["kbhint-gb-rotation"] = "scroll_rotation",
+			["kbhint-gb-curve"] = "scroll_curve",
+			["kbhint-protractor"] = "scroll_rotation",
+			["kbhint-rotation"] = "scroll_rotation",
+			["kbhint-intensity"] = "scroll_intensity",
+			["kbhint-size"] = "scroll_size",
+			["kbhint-length"] = "scroll_length",
+			["kbhint-curve"] = "scroll_curve",
+			["kbhint-fp-size"] = "scroll_size",
+			["kbhint-fp-rotation"] = "scroll_rotation",
+			["kbhint-wb-size"] = "scroll_size",
+			["kbhint-wb-length"] = "scroll_length",
+			["kbhint-sp-strength"] = "scroll_intensity",
 			["kbhint-sp-intensity"] = "scroll_intensity",
-			["kbhint-sp-size"]      = "scroll_size",
-			["kbhint-sp-rotation"]  = "scroll_rotation",
-			["kbhint-sp-curve"]     = "scroll_curve",
+			["kbhint-sp-size"] = "scroll_size",
+			["kbhint-sp-rotation"] = "scroll_rotation",
+			["kbhint-sp-curve"] = "scroll_curve",
 		}
 		for hintId, hintAction in pairs(hintMap) do
 			local hintEl = getCachedEl(doc, hintId)
@@ -8288,9 +16049,13 @@ updateAllKeybindBadges = function()
 				local p1 = normKey(kb.label)
 				local p2 = normKey(kb.label2)
 				local keyParts = {}
-				if p1 then keyParts[#keyParts+1] = p1 end
-				if p2 then keyParts[#keyParts+1] = p2 end
-				keyParts[#keyParts+1] = "Scroll"
+				if p1 then
+					keyParts[#keyParts + 1] = p1
+				end
+				if p2 then
+					keyParts[#keyParts + 1] = p2
+				end
+				keyParts[#keyParts + 1] = "Scroll"
 				hintEl.inner_rml = table.concat(keyParts, "+")
 			end
 		end
@@ -8314,9 +16079,13 @@ end
 -- Populate keybind list in settings window
 populateKeybindList = function(doc)
 	local listEl = getCachedEl(doc, "keybind-list")
-	if not listEl then return end
+	if not listEl then
+		return
+	end
 	local binds = widgetState.settingsPendingBinds
-	if not binds then return end
+	if not binds then
+		return
+	end
 
 	-- Build inner RML
 	local parts = {}
@@ -8332,17 +16101,21 @@ populateKeybindList = function(doc)
 			local desc = kb.desc or action
 			local lbl1 = kb.label or "?"
 			local lbl2 = kb.label2 or ""
-			if lbl2 == "" then lbl2 = "-" end
+			if lbl2 == "" then
+				lbl2 = "-"
+			end
 			parts[#parts + 1] = string.format(
 				'<div class="tf-keybind-row"><div class="tf-keybind-action">%s</div>'
-				.. '<div class="tf-scroll-keys">'
-				.. '<div class="tf-keybind-key tf-scroll-mod">%s</div>'
-				.. '<div class="tf-scroll-plus">+</div>'
-				.. '<div class="tf-keybind-key tf-scroll-mod">%s</div>'
-				.. '<div class="tf-scroll-plus">+</div>'
-				.. '<div class="tf-scroll-fixed">Scroll</div>'
-				.. '</div></div>',
-				desc, lbl1, lbl2
+					.. '<div class="tf-scroll-keys">'
+					.. '<div class="tf-keybind-key tf-scroll-mod">%s</div>'
+					.. '<div class="tf-scroll-plus">+</div>'
+					.. '<div class="tf-keybind-key tf-scroll-mod">%s</div>'
+					.. '<div class="tf-scroll-plus">+</div>'
+					.. '<div class="tf-scroll-fixed">Scroll</div>'
+					.. "</div></div>",
+				desc,
+				lbl1,
+				lbl2
 			)
 		end
 	end
@@ -8360,8 +16133,10 @@ populateKeybindList = function(doc)
 			local label = kb.label or "?"
 			parts[#parts + 1] = string.format(
 				'<div class="tf-keybind-row"><div class="tf-keybind-action">%s</div>'
-				.. '<div class="tf-keybind-key" id="kb-key-%s">%s</div></div>',
-				desc, action, label
+					.. '<div class="tf-keybind-key" id="kb-key-%s">%s</div></div>',
+				desc,
+				action,
+				label
 			)
 		end
 	end
@@ -8439,7 +16214,7 @@ populateKeybindList = function(doc)
 		if kb then
 			local row = listEl:GetChild(childIdx)
 			if row then
-				local keyEl = row:GetChild(1)  -- second child is the key div
+				local keyEl = row:GetChild(1) -- second child is the key div
 				if keyEl then
 					widgetState.settingsKeybindEls[action] = keyEl
 					keyEl:AddEventListener("click", function(event)
@@ -8464,7 +16239,9 @@ end
 -- Handle captured key in settings window. Called from widget:KeyPress forwarding.
 local function handleSettingsKeyCapture(keyCode)
 	local action = widgetState.settingsCapturing
-	if not action then return false end
+	if not action then
+		return false
+	end
 	local keyEl = widgetState.settingsCaptureEl
 	local field = widgetState.settingsCaptureField or "key"
 	if not keyEl then
@@ -8532,8 +16309,12 @@ end
 -- Handle tool-switching key press. Matches key against tool keybinds and clicks
 -- the corresponding button. Called from cmd_terraform_brush KeyPress forwarding.
 local function handleToolKey(keyCode)
-	if not keyCode or keyCode == 0 then return false end
-	if not WG.TerraformBrush or not WG.TerraformBrush.getKeybinds then return false end
+	if not keyCode or keyCode == 0 then
+		return false
+	end
+	if not WG.TerraformBrush or not WG.TerraformBrush.getKeybinds then
+		return false
+	end
 	local binds = WG.TerraformBrush.getKeybinds()
 	for action, btnId in pairs(TOOL_BTN_MAP) do
 		local kb = binds[action]
@@ -8553,9 +16334,7 @@ end
 
 -- attachGuideMode moved to tf_guide.lua
 
-
 -- attachEnvironmentListeners moved to tf_environment.lua
-
 
 -- Wire up the static numbox text inputs next to every range slider.
 -- Each slider with id="foo" has a sibling <input type="text" id="foo-numbox">.
@@ -8564,7 +16343,7 @@ end
 
 -- Resolve the RETURN key identifier lazily (RmlUi.key_identifier is a
 -- readonly_property that creates a fresh table each access).
-local KEY_RETURN  -- resolved on first keydown event
+local KEY_RETURN -- resolved on first keydown event
 
 -- Wire a single slider+numbox pair by slider element and its numbox element.
 local function wireSliderNumbox(slider, numbox)
@@ -8582,7 +16361,9 @@ local function wireSliderNumbox(slider, numbox)
 	local function applyNumboxValue()
 		local raw = numbox:GetAttribute("value")
 		local val = tonumber(raw)
-		if not val then return end
+		if not val then
+			return
+		end
 		local smin = tonumber(slider:GetAttribute("min")) or 0
 		local smax = tonumber(slider:GetAttribute("max")) or 1000
 		local step = tonumber(slider:GetAttribute("step")) or 1
@@ -8616,7 +16397,9 @@ local function wireSliderNumbox(slider, numbox)
 	-- Apply on Enter key
 	numbox:AddEventListener("keydown", function(event)
 		if not KEY_RETURN then
-			pcall(function() KEY_RETURN = RmlUi.key_identifier.RETURN end)
+			pcall(function()
+				KEY_RETURN = RmlUi.key_identifier.RETURN
+			end)
 		end
 		local p = event.parameters
 		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
@@ -8630,7 +16413,9 @@ end
 -- then deriving the slider ID by stripping the "-numbox" suffix.
 local function attachSliderInputBoxes(doc)
 	local numboxes = doc:GetElementsByClassName("tf-slider-numbox")
-	if not numboxes then return end
+	if not numboxes then
+		return
+	end
 
 	-- Iterate safely: try pairs (works for both tables and userdata with __pairs)
 	local ok, err = pcall(function()
@@ -8651,7 +16436,9 @@ local function attachSliderInputBoxes(doc)
 end
 
 local function wireExportRangeInput(inputEl, commitFn)
-	if not inputEl then return end
+	if not inputEl then
+		return
+	end
 	inputEl:AddEventListener("focus", function(event)
 		Spring.SDLStartTextInput()
 		widgetState.focusedRmlInput = inputEl
@@ -8665,7 +16452,9 @@ local function wireExportRangeInput(inputEl, commitFn)
 	end, false)
 	inputEl:AddEventListener("keydown", function(event)
 		if not KEY_RETURN then
-			pcall(function() KEY_RETURN = RmlUi.key_identifier.RETURN end)
+			pcall(function()
+				KEY_RETURN = RmlUi.key_identifier.RETURN
+			end)
 		end
 		local p = event.parameters
 		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
@@ -8677,32 +16466,64 @@ end
 
 -- attachStartPosListeners moved to tf_startpos.lua
 
-
 -- attachCloneToolListeners moved to tf_clone.lua
-
 
 -- Transport listener registration extracted to avoid upvalue limit in attachEventListeners
 widgetState.regTransports = function(doc)
 	local TIDS = {
-		"slider-rotation","slider-intensity","slider-restore-strength","slider-size",
-		"slider-ring-width","slider-length","slider-curve","slider-cap-max","slider-cap-min",
-		"slider-sp-allyteams","slider-sp-count",
-		"slider-mb-size","slider-mb-rotation","slider-mb-length","slider-mb-curve",
-		"slider-gb-size","slider-gb-length","slider-gb-rotation","slider-gb-curve",
-		"slider-gb-slope-max","slider-gb-slope-min","slider-gb-alt-min","slider-gb-alt-max",
-		"fp-slider-size","fp-slider-rotation","fp-slider-rot-random",
-		"fp-slider-count","fp-slider-cadence",
-		"fp-slider-slope-max","fp-slider-slope-min","fp-slider-alt-min","fp-slider-alt-max",
-		"wb-slider-size","wb-slider-rotation","wb-slider-length","wb-slider-count",
-		"wb-slider-cadence","wb-slider-frequency","wb-slider-persist",
-		"sp-slider-strength","sp-slider-intensity","sp-slider-size","sp-slider-rotation",
-		"sp-slider-curve","sp-slider-slope-max","sp-slider-slope-min",
-		"sp-slider-alt-min","sp-slider-alt-max",
+		"slider-rotation",
+		"slider-intensity",
+		"slider-restore-strength",
+		"slider-size",
+		"slider-ring-width",
+		"slider-length",
+		"slider-curve",
+		"slider-cap-max",
+		"slider-cap-min",
+		"slider-sp-allyteams",
+		"slider-sp-count",
+		"slider-mb-size",
+		"slider-mb-rotation",
+		"slider-mb-length",
+		"slider-mb-curve",
+		"slider-gb-size",
+		"slider-gb-length",
+		"slider-gb-rotation",
+		"slider-gb-curve",
+		"slider-gb-slope-max",
+		"slider-gb-slope-min",
+		"slider-gb-alt-min",
+		"slider-gb-alt-max",
+		"fp-slider-size",
+		"fp-slider-rotation",
+		"fp-slider-rot-random",
+		"fp-slider-count",
+		"fp-slider-cadence",
+		"fp-slider-slope-max",
+		"fp-slider-slope-min",
+		"fp-slider-alt-min",
+		"fp-slider-alt-max",
+		"wb-slider-size",
+		"wb-slider-rotation",
+		"wb-slider-length",
+		"wb-slider-count",
+		"wb-slider-cadence",
+		"wb-slider-frequency",
+		"wb-slider-persist",
+		"sp-slider-strength",
+		"sp-slider-intensity",
+		"sp-slider-size",
+		"sp-slider-rotation",
+		"sp-slider-curve",
+		"sp-slider-slope-max",
+		"sp-slider-slope-min",
+		"sp-slider-alt-min",
+		"sp-slider-alt-max",
 	}
 	local function updateTransportBtns(t)
 		local active = t.dir ~= 0 and not t.paused
 		t.backEl:SetClass("active", active and t.dir < 0)
-		t.fwdEl:SetClass("active",  active and t.dir > 0)
+		t.fwdEl:SetClass("active", active and t.dir > 0)
 		if active then
 			t.playEl.inner_rml = '<img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_pause.png" />'
 			t.playEl:SetClass("active", true)
@@ -8713,28 +16534,38 @@ widgetState.regTransports = function(doc)
 		if t.groupEl then
 			local show = t.toggleVisible or (t.dir ~= 0)
 			t.groupEl:SetClass("hidden", not show)
-			if t.toggleEl then t.toggleEl:SetClass("active", show) end
+			if t.toggleEl then
+				t.toggleEl:SetClass("active", show)
+			end
 		end
 	end
 	widgetState.updateTransportBtns = updateTransportBtns
 	for _, sid in ipairs(TIDS) do
 		local slEl = getCachedEl(doc, sid)
 		if slEl then
-			local bEl   = getCachedEl(doc, sid .. "-back")
-			local pEl   = getCachedEl(doc, sid .. "-play")
-			local fEl   = getCachedEl(doc, sid .. "-fwd")
+			local bEl = getCachedEl(doc, sid .. "-back")
+			local pEl = getCachedEl(doc, sid .. "-play")
+			local fEl = getCachedEl(doc, sid .. "-fwd")
 			if bEl and pEl and fEl then
-				local ts = { el=slEl, dir=0, speed=0, paused=false, accum=0,
-				             backEl=bEl, playEl=pEl, fwdEl=fEl,
-				             wrap = (sid:find("rotation") ~= nil),
-				             toggleEl=getCachedEl(doc, sid .. "-transport-toggle"),
-				             groupEl=getCachedEl(doc, sid .. "-transport"),
-				             -- min/max/step cached at creation (never change at runtime,
-				             -- except slider-intensity max — refreshed at its write site).
-				             rmin  = tonumber(slEl:GetAttribute("min"))  or 0,
-				             rmax  = tonumber(slEl:GetAttribute("max"))  or 100,
-				             rstep = tonumber(slEl:GetAttribute("step")) or 1,
-				             toggleVisible=false }
+				local ts = {
+					el = slEl,
+					dir = 0,
+					speed = 0,
+					paused = false,
+					accum = 0,
+					backEl = bEl,
+					playEl = pEl,
+					fwdEl = fEl,
+					wrap = (sid:find("rotation") ~= nil),
+					toggleEl = getCachedEl(doc, sid .. "-transport-toggle"),
+					groupEl = getCachedEl(doc, sid .. "-transport"),
+					-- min/max/step cached at creation (never change at runtime,
+					-- except slider-intensity max — refreshed at its write site).
+					rmin = tonumber(slEl:GetAttribute("min")) or 0,
+					rmax = tonumber(slEl:GetAttribute("max")) or 100,
+					rstep = tonumber(slEl:GetAttribute("step")) or 1,
+					toggleVisible = false,
+				}
 				widgetState.transports[sid] = ts
 				if ts.toggleEl then
 					ts.toggleEl:AddEventListener("click", function(ev)
@@ -8742,7 +16573,9 @@ widgetState.regTransports = function(doc)
 						if t then
 							t.toggleVisible = not t.toggleVisible
 							if not t.toggleVisible then
-								t.dir = 0; t.speed = 0; t.paused = false
+								t.dir = 0
+								t.speed = 0
+								t.paused = false
 							end
 							updateTransportBtns(t)
 						end
@@ -8752,9 +16585,14 @@ widgetState.regTransports = function(doc)
 				bEl:AddEventListener("click", function(ev)
 					local t = widgetState.transports[sid]
 					if t then
-						if t.dir == -1 then t.speed = math.min(4, t.speed + 1)
-						else t.dir = -1; t.speed = 1 end
-						t.paused = false; updateTransportBtns(t)
+						if t.dir == -1 then
+							t.speed = math.min(4, t.speed + 1)
+						else
+							t.dir = -1
+							t.speed = 1
+						end
+						t.paused = false
+						updateTransportBtns(t)
 					end
 					ev:StopPropagation()
 				end, false)
@@ -8762,7 +16600,10 @@ widgetState.regTransports = function(doc)
 					local t = widgetState.transports[sid]
 					if t then
 						t.speed = math.max(0, t.speed - 1)
-						if t.speed == 0 then t.dir = 0; t.paused = false end
+						if t.speed == 0 then
+							t.dir = 0
+							t.paused = false
+						end
 						updateTransportBtns(t)
 					end
 					ev:StopPropagation()
@@ -8770,8 +16611,13 @@ widgetState.regTransports = function(doc)
 				pEl:AddEventListener("click", function(ev)
 					local t = widgetState.transports[sid]
 					if t then
-						if t.dir == 0 then t.dir = 1; t.speed = 1; t.paused = false
-						else t.paused = not t.paused end
+						if t.dir == 0 then
+							t.dir = 1
+							t.speed = 1
+							t.paused = false
+						else
+							t.paused = not t.paused
+						end
 						updateTransportBtns(t)
 					end
 					ev:StopPropagation()
@@ -8779,9 +16625,14 @@ widgetState.regTransports = function(doc)
 				fEl:AddEventListener("click", function(ev)
 					local t = widgetState.transports[sid]
 					if t then
-						if t.dir == 1 then t.speed = math.min(4, t.speed + 1)
-						else t.dir = 1; t.speed = 1 end
-						t.paused = false; updateTransportBtns(t)
+						if t.dir == 1 then
+							t.speed = math.min(4, t.speed + 1)
+						else
+							t.dir = 1
+							t.speed = 1
+						end
+						t.paused = false
+						updateTransportBtns(t)
 					end
 					ev:StopPropagation()
 				end, false)
@@ -8789,12 +16640,15 @@ widgetState.regTransports = function(doc)
 					local t = widgetState.transports[sid]
 					if t then
 						t.speed = math.max(0, t.speed - 1)
-						if t.speed == 0 then t.dir = 0; t.paused = false end
+						if t.speed == 0 then
+							t.dir = 0
+							t.paused = false
+						end
 						updateTransportBtns(t)
 					end
 					ev:StopPropagation()
 				end, false)
-end
+			end
 		end
 	end
 end
@@ -8813,6 +16667,25 @@ local tfSplat = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_splat.lua")
 local tfDiffuse = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse.lua")
 local tfEnvironment = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_environment.lua")
 local tfTileset = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_tileset.lua")
+-- Guarded include: tf_surface.lua was added mid-development, and a file the
+-- VFS can't see (added after game start — the .sdd archive is scanned at
+-- launch, /luaui reload does not rescan) must degrade to "no SURFACE tool",
+-- not kill the whole panel.
+local tfSurface
+do
+	-- Env must be passed explicitly: under pcall, VFS.Include no longer sees
+	-- the widget environment, so the module's `local WG = WG` captures nil.
+	local ok, mod = pcall(VFS.Include, "luaui/RmlWidgets/gui_terraform_brush/tf_surface.lua", getfenv(1))
+	if ok and type(mod) == "table" then
+		tfSurface = mod
+	else
+		Spring.Echo(
+			"[TFBrush] tf_surface.lua unavailable ("
+				.. tostring(mod)
+				.. ") — SURFACE tool disabled; restart the game if the file was just added"
+		)
+	end
+end
 local tfGuide = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_guide.lua")
 
 -- Shared context passed to all extracted tool modules
@@ -8862,11 +16735,15 @@ local ctx = {
 -- Shared "warn chip" helper: shows the warn chip only when the section is
 -- collapsed AND something is engaged. Called from each tool's M.sync.
 ctx.syncWarnChip = function(doc, chipId, sectionId, anyActive)
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local sec = getCachedEl(doc, sectionId)
 	local collapsed = sec and sec:IsClassSet("hidden")
 	local chip = getCachedEl(doc, chipId)
-	if chip then chip:SetClass("hidden", not (anyActive and collapsed)) end
+	if chip then
+		chip:SetClass("hidden", not (anyActive and collapsed))
+	end
 end
 
 -- Generic DISPLAY/INSTRUMENTS chip wirer for per-tool panels.
@@ -8882,7 +16759,9 @@ end
 
 -- Reflect TB shared state onto a tool's mirror chips. Called from per-tool M.sync.
 ctx.syncTBMirrorControls = function(doc, prefix)
-	if not doc or not prefix then return end
+	if not doc or not prefix then
+		return
+	end
 	local P = prefix
 	local tb = WG.TerraformBrush
 	local s = tb and tb.getState() or {}
@@ -8890,28 +16769,32 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	-- Active-class state: write to data model (drives data-class-active in RML).
 	-- Toolbar sub-rows driven by data-if on {P}MeasureActive/{P}SymmetryActive.
 	if dm then
-		local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
-		setDm(P.."GridOverlay",    s.gridOverlay)
-		setDm(P.."HeightColormap", s.heightColormap)
-		setDm(P.."GridSnap",       s.gridSnap)
-		setDm(P.."AngleSnap",      s.angleSnap)
-		setDm(P.."MeasureActive",  s.measureActive)
-		setDm(P.."SymmetryActive", s.symmetryActive)
-		setDm(P.."SymmetryRadial",   s.symmetryRadial)
-		setDm(P.."SymMirrorX",       s.symmetryMirrorX)
-		setDm(P.."SymMirrorY",       s.symmetryMirrorY)
-		setDm(P.."SymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
-		setDm(P.."MeasureShowLength", s.measureShowLength)
-		setDm(P.."MeasureRulerMode",  s.measureRulerMode)
-		setDm(P.."MeasureStickyMode", s.measureStickyMode)
+		local function setDm(f, v)
+			if dm[f] ~= v then
+				dm[f] = v
+			end
+		end
+		setDm(P .. "GridOverlay", s.gridOverlay)
+		setDm(P .. "HeightColormap", s.heightColormap)
+		setDm(P .. "GridSnap", s.gridSnap)
+		setDm(P .. "AngleSnap", s.angleSnap)
+		setDm(P .. "MeasureActive", s.measureActive)
+		setDm(P .. "SymmetryActive", s.symmetryActive)
+		setDm(P .. "SymmetryRadial", s.symmetryRadial)
+		setDm(P .. "SymMirrorX", s.symmetryMirrorX)
+		setDm(P .. "SymMirrorY", s.symmetryMirrorY)
+		setDm(P .. "SymHasAxis", (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false)
+		setDm(P .. "MeasureShowLength", s.measureShowLength)
+		setDm(P .. "MeasureRulerMode", s.measureRulerMode)
+		setDm(P .. "MeasureStickyMode", s.measureStickyMode)
 	end
 	-- Warn chips on DISPLAY/INSTRUMENTS toggle headers: show when the section
 	-- is collapsed AND at least one mirrored control is engaged. Missing chips
 	-- (tools that never got a warn chip added in RML) silently no-op.
-	local dispActive = s.gridOverlay or s.heightColormap
+	local dispActive = s.gridOverlay or s.heightColormap or _imgOv.active()
 	local instActive = s.gridSnap or s.angleSnap or s.measureActive or s.symmetryActive
-	ctx.syncWarnChip(doc, "warn-chip-"..P.."-overlays",    "section-"..P.."-overlays",    dispActive)
-	ctx.syncWarnChip(doc, "warn-chip-"..P.."-instruments", "section-"..P.."-instruments", instActive)
+	ctx.syncWarnChip(doc, "warn-chip-" .. P .. "-overlays", "section-" .. P .. "-overlays", dispActive)
+	ctx.syncWarnChip(doc, "warn-chip-" .. P .. "-instruments", "section-" .. P .. "-instruments", instActive)
 
 	-- Per-prefix grid-snap-size + angle-step expand-row sync (st, cl, wb, dc,
 	-- lp; mb, gb, sp own their own labels via per-tool sync). Missing IDs
@@ -8919,44 +16802,58 @@ ctx.syncTBMirrorControls = function(doc, prefix)
 	local TB_ANGLE_PRESETS_SYNC = { 7.5, 15, 30, 45, 60, 90 }
 	local snapSize = tonumber(s.gridSnapSize) or 48
 	local snapSizeStr = tostring(snapSize)
-	if dm and dm.tbGridSnapSizeStr ~= snapSizeStr then dm.tbGridSnapSizeStr = snapSizeStr end
-	local sliSnap = getCachedEl(doc, P.."-slider-grid-snap-size")
-	if sliSnap and uiState.draggingSlider ~= P.."-grid-snap-size" then
-		setAttrValueIfChanged(sliSnap, P.."-slider-grid-snap-size", snapSizeStr)
+	if dm and dm.tbGridSnapSizeStr ~= snapSizeStr then
+		dm.tbGridSnapSizeStr = snapSizeStr
+	end
+	local sliSnap = getCachedEl(doc, P .. "-slider-grid-snap-size")
+	if sliSnap and uiState.draggingSlider ~= P .. "-grid-snap-size" then
+		setAttrValueIfChanged(sliSnap, P .. "-slider-grid-snap-size", snapSizeStr)
 	end
 	-- NB: numboxes stay unconditional — the per-frame write is what restores
 	-- the text after a rejected (non-numeric) manual edit.
-	local nbSnap = getCachedEl(doc, P.."-slider-grid-snap-size-numbox")
-	if nbSnap then nbSnap:SetAttribute("value", snapSizeStr) end
+	local nbSnap = getCachedEl(doc, P .. "-slider-grid-snap-size-numbox")
+	if nbSnap then
+		nbSnap:SetAttribute("value", snapSizeStr)
+	end
 
 	local curStep = tonumber(s.angleSnapStep) or 15
 	local curIdx, bestD = 2, math.huge
 	for i, pp in ipairs(TB_ANGLE_PRESETS_SYNC) do
 		local d = math.abs(pp - curStep)
-		if d < bestD then bestD = d; curIdx = i end
+		if d < bestD then
+			bestD = d
+			curIdx = i
+		end
 	end
-	local stepStr = (curStep == math.floor(curStep))
-		and tostring(math.floor(curStep)) or tostring(curStep)
-	if dm and dm.tbAngleSnapStepStr ~= stepStr then dm.tbAngleSnapStepStr = stepStr end
-	local sliStep = getCachedEl(doc, P.."-slider-angle-snap-step")
-	if sliStep and uiState.draggingSlider ~= P.."-angle-snap-step" then
-		setAttrValueIfChanged(sliStep, P.."-slider-angle-snap-step", tostring(curIdx - 1))
+	local stepStr = (curStep == math.floor(curStep)) and tostring(math.floor(curStep)) or tostring(curStep)
+	if dm and dm.tbAngleSnapStepStr ~= stepStr then
+		dm.tbAngleSnapStepStr = stepStr
 	end
-	local nbStep = getCachedEl(doc, P.."-slider-angle-snap-step-numbox")
-	if nbStep then nbStep:SetAttribute("value", stepStr) end
+	local sliStep = getCachedEl(doc, P .. "-slider-angle-snap-step")
+	if sliStep and uiState.draggingSlider ~= P .. "-angle-snap-step" then
+		setAttrValueIfChanged(sliStep, P .. "-slider-angle-snap-step", tostring(curIdx - 1))
+	end
+	local nbStep = getCachedEl(doc, P .. "-slider-angle-snap-step-numbox")
+	if nbStep then
+		nbStep:SetAttribute("value", stepStr)
+	end
 
 	-- Symmetry radial count + mirror angle sync (shared sliders in st/cl/wb/dc/lp sections)
 	local countStr = tostring(math.floor(s.symmetryRadialCount or 2))
-	if dm and dm.tbSymCountStr ~= countStr then dm.tbSymCountStr = countStr end
-	local countSli = getCachedEl(doc, P.."-slider-symmetry-radial-count")
-	if countSli and uiState.draggingSlider ~= P.."-symmetry-radial-count" then
-		setAttrValueIfChanged(countSli, P.."-slider-symmetry-radial-count", countStr)
+	if dm and dm.tbSymCountStr ~= countStr then
+		dm.tbSymCountStr = countStr
+	end
+	local countSli = getCachedEl(doc, P .. "-slider-symmetry-radial-count")
+	if countSli and uiState.draggingSlider ~= P .. "-symmetry-radial-count" then
+		setAttrValueIfChanged(countSli, P .. "-slider-symmetry-radial-count", countStr)
 	end
 	local angleStr = tostring(math.floor(s.symmetryMirrorAngle or 0))
-	if dm and dm.tbSymAngleStr ~= angleStr then dm.tbSymAngleStr = angleStr end
-	local angleSli = getCachedEl(doc, P.."-slider-symmetry-mirror-angle")
-	if angleSli and uiState.draggingSlider ~= P.."-symmetry-mirror-angle" then
-		setAttrValueIfChanged(angleSli, P.."-slider-symmetry-mirror-angle", tostring(s.symmetryMirrorAngle or 0))
+	if dm and dm.tbSymAngleStr ~= angleStr then
+		dm.tbSymAngleStr = angleStr
+	end
+	local angleSli = getCachedEl(doc, P .. "-slider-symmetry-mirror-angle")
+	if angleSli and uiState.draggingSlider ~= P .. "-symmetry-mirror-angle" then
+		setAttrValueIfChanged(angleSli, P .. "-slider-symmetry-mirror-angle", tostring(s.symmetryMirrorAngle or 0))
 	end
 end
 
@@ -8965,18 +16862,26 @@ end
 -- opacity + pointer-events). Missing ids silently no-op. Use from per-tool
 -- M.sync to gray controls that are irrelevant to the current sub-mode/shape.
 ctx.setDisabled = function(doc, id, on)
-	if not doc or not id then return end
+	if not doc or not id then
+		return
+	end
 	local el = getCachedEl(doc, id)
-	if el then el:SetClass("disabled", on and true or false) end
+	if el then
+		el:SetClass("disabled", on and true or false)
+	end
 end
 
 -- Bulk version: disable a list of ids to the same state. Useful for control
 -- groups that don't share a wrapping row id (e.g. per-tool slider+buttons).
 ctx.setDisabledIds = function(doc, ids, on)
-	if not doc or not ids then return end
+	if not doc or not ids then
+		return
+	end
 	for i = 1, #ids do
 		local el = getCachedEl(doc, ids[i])
-		if el then el:SetClass("disabled", on and true or false) end
+		if el then
+			el:SetClass("disabled", on and true or false)
+		end
 	end
 end
 
@@ -8993,32 +16898,52 @@ local function attachDeclarativeHandlers(_ctx)
 	-- never set and the per-frame sync overwrites the slider position every frame,
 	-- making the thumb fight the mouse and appear to lag during drag.
 	local doc = widgetState.document
-	if not doc then return end
+	if not doc then
+		return
+	end
 	local SNAP_SLIDERS = {
-		{"slider-grid-snap-size",     "tf-grid-snap-size"},
-		{"st-slider-grid-snap-size",  "st-grid-snap-size"},
-		{"cl-slider-grid-snap-size",  "cl-grid-snap-size"},
-		{"wb-slider-grid-snap-size",  "wb-grid-snap-size"},
-		{"dc-slider-grid-snap-size",  "dc-grid-snap-size"},
-		{"lp-slider-grid-snap-size",  "lp-grid-snap-size"},
-		{"sp-slider-grid-snap-size",  "sp-grid-snap-size"},
-		{"fp-slider-grid-snap-size",  "fp-grid-snap-size"},
-		{"gb-slider-grid-snap-size",  "gb-grid-snap-size"},
-		{"mb-slider-grid-snap-size",  "mb-grid-snap-size"},
-		{"slider-angle-snap-step",    "tf-angle-snap-step"},
-		{"st-slider-angle-snap-step", "st-angle-snap-step"},
-		{"cl-slider-angle-snap-step", "cl-angle-snap-step"},
-		{"wb-slider-angle-snap-step", "wb-angle-snap-step"},
-		{"dc-slider-angle-snap-step", "dc-angle-snap-step"},
-		{"lp-slider-angle-snap-step", "lp-angle-snap-step"},
-		{"sp-slider-angle-snap-step", "sp-angle-snap-step"},
-		{"fp-slider-angle-snap-step", "fp-angle-snap-step"},
-		{"gb-slider-angle-snap-step", "gb-angle-snap-step"},
-		{"mb-slider-angle-snap-step", "mb-angle-snap-step"},
+		{ "slider-grid-snap-size", "tf-grid-snap-size" },
+		{ "st-slider-grid-snap-size", "st-grid-snap-size" },
+		{ "cl-slider-grid-snap-size", "cl-grid-snap-size" },
+		{ "wb-slider-grid-snap-size", "wb-grid-snap-size" },
+		{ "dc-slider-grid-snap-size", "dc-grid-snap-size" },
+		{ "lp-slider-grid-snap-size", "lp-grid-snap-size" },
+		{ "sp-slider-grid-snap-size", "sp-grid-snap-size" },
+		{ "fp-slider-grid-snap-size", "fp-grid-snap-size" },
+		{ "gb-slider-grid-snap-size", "gb-grid-snap-size" },
+		{ "mb-slider-grid-snap-size", "mb-grid-snap-size" },
+		{ "sf-slider-grid-snap-size", "sf-grid-snap-size" },
+		{ "slider-angle-snap-step", "tf-angle-snap-step" },
+		{ "st-slider-angle-snap-step", "st-angle-snap-step" },
+		{ "cl-slider-angle-snap-step", "cl-angle-snap-step" },
+		{ "wb-slider-angle-snap-step", "wb-angle-snap-step" },
+		{ "dc-slider-angle-snap-step", "dc-angle-snap-step" },
+		{ "lp-slider-angle-snap-step", "lp-angle-snap-step" },
+		{ "sp-slider-angle-snap-step", "sp-angle-snap-step" },
+		{ "fp-slider-angle-snap-step", "fp-angle-snap-step" },
+		{ "gb-slider-angle-snap-step", "gb-angle-snap-step" },
+		{ "mb-slider-angle-snap-step", "mb-angle-snap-step" },
+		{ "sf-slider-angle-snap-step", "sf-angle-snap-step" },
+		-- MODIFY/ERODE submode sliders: same data-event-change pattern, same
+		-- requirement. The drag ids must match the per-sync restamp guards
+		-- (uiState.draggingSlider ~= id) or the restamp fights the drag.
+		{ "slider-ar-angle", "ar-angle" },
+		{ "slider-ar-falloff", "ar-falloff" },
+		{ "slider-ar-edgenoise", "ar-edgenoise" },
+		{ "slider-ar-erosion", "ar-erosion" },
+		{ "slider-ar-talus", "ar-talus" },
+		{ "slider-erode-repose", "erode-repose" },
+		-- IMAGE OVERLAY window sliders: same pattern, drag ids match _imgOv.stamp.
+		{ "imgov-slider-opacity", "imgov-opacity" },
+		{ "imgov-slider-offx", "imgov-offx" },
+		{ "imgov-slider-offy", "imgov-offy" },
+		{ "imgov-slider-scale", "imgov-scale" },
 	}
 	for i = 1, #SNAP_SLIDERS do
 		local el = getCachedEl(doc, SNAP_SLIDERS[i][1])
-		if el then trackSliderDrag(el, SNAP_SLIDERS[i][2]) end
+		if el then
+			trackSliderDrag(el, SNAP_SLIDERS[i][2])
+		end
 	end
 end
 
@@ -9047,23 +16972,32 @@ local function attachEventListeners()
 	attachDeclarativeHandlers(ctx)
 
 	-- Shape buttons: still cached for disabled-state management (SetClass("disabled",...))
-	widgetState.shapeButtons.circle   = getCachedEl(doc, "btn-circle")
-	widgetState.shapeButtons.square   = getCachedEl(doc, "btn-square")
-	widgetState.shapeButtons.hexagon  = getCachedEl(doc, "btn-hexagon")
-	widgetState.shapeButtons.octagon  = getCachedEl(doc, "btn-octagon")
+	widgetState.shapeButtons.circle = getCachedEl(doc, "btn-circle")
+	widgetState.shapeButtons.square = getCachedEl(doc, "btn-square")
+	widgetState.shapeButtons.hexagon = getCachedEl(doc, "btn-hexagon")
+	widgetState.shapeButtons.octagon = getCachedEl(doc, "btn-octagon")
 	widgetState.shapeButtons.triangle = getCachedEl(doc, "btn-triangle")
-	widgetState.shapeButtons.ring     = getCachedEl(doc, "btn-ring")
-	widgetState.shapeButtons.fill     = getCachedEl(doc, "btn-fill")
+	widgetState.shapeButtons.ring = getCachedEl(doc, "btn-ring")
+	widgetState.shapeButtons.fill = getCachedEl(doc, "btn-fill")
 
 	local sliderHistory = getCachedEl(doc, "slider-history")
 	if sliderHistory then
 		trackSliderDrag(sliderHistory, "history")
 		sliderHistory:AddEventListener("change", function(event)
-			if uiState.updatingFromCode then event:StopPropagation(); return end
-			if not WG.TerraformBrush then event:StopPropagation(); return end
+			if uiState.updatingFromCode then
+				event:StopPropagation()
+				return
+			end
+			if not WG.TerraformBrush then
+				event:StopPropagation()
+				return
+			end
 			local val = tonumber(sliderHistory:GetAttribute("value")) or 0
 			local state = WG.TerraformBrush.getState()
-			if not state then event:StopPropagation(); return end
+			if not state then
+				event:StopPropagation()
+				return
+			end
 			local currentUndoCount = state.undoCount or 0
 			local diff = val - currentUndoCount
 			-- Cap per-event undo/redo steps. Each step triggers a gadget msg +
@@ -9071,8 +17005,11 @@ local function attachEventListeners()
 			-- slider drags. At 8 steps/event and multi-event drag semantics the
 			-- user still scrubs smoothly across arbitrary ranges.
 			local STEP_CAP = 8
-			if diff > STEP_CAP then diff = STEP_CAP
-			elseif diff < -STEP_CAP then diff = -STEP_CAP end
+			if diff > STEP_CAP then
+				diff = STEP_CAP
+			elseif diff < -STEP_CAP then
+				diff = -STEP_CAP
+			end
 			if diff > 0 then
 				for i = 1, diff do
 					WG.TerraformBrush.redo()
@@ -9090,22 +17027,38 @@ local function attachEventListeners()
 	if mbSliderHistory then
 		trackSliderDrag(mbSliderHistory, "mb-history")
 		mbSliderHistory:AddEventListener("change", function(event)
-			if uiState.updatingFromCode then event:StopPropagation(); return end
-			if not WG.TerraformBrush then event:StopPropagation(); return end
+			if uiState.updatingFromCode then
+				event:StopPropagation()
+				return
+			end
+			if not WG.TerraformBrush then
+				event:StopPropagation()
+				return
+			end
 			local val = tonumber(mbSliderHistory:GetAttribute("value")) or 0
 			local state = WG.TerraformBrush.getState()
-			if not state then event:StopPropagation(); return end
+			if not state then
+				event:StopPropagation()
+				return
+			end
 			local currentUndoCount = state.undoCount or 0
 			local diff = val - currentUndoCount
 			-- See slider-history above: cap per-event step count to avoid
 			-- frame stalls on fast drags.
 			local STEP_CAP = 8
-			if diff > STEP_CAP then diff = STEP_CAP
-			elseif diff < -STEP_CAP then diff = -STEP_CAP end
+			if diff > STEP_CAP then
+				diff = STEP_CAP
+			elseif diff < -STEP_CAP then
+				diff = -STEP_CAP
+			end
 			if diff > 0 then
-				for i = 1, diff do WG.TerraformBrush.redo() end
+				for i = 1, diff do
+					WG.TerraformBrush.redo()
+				end
 			elseif diff < 0 then
-				for i = 1, -diff do WG.TerraformBrush.undo() end
+				for i = 1, -diff do
+					WG.TerraformBrush.undo()
+				end
 			end
 			event:StopPropagation()
 		end, false)
@@ -9178,7 +17131,9 @@ local function attachEventListeners()
 			if not uiState.updatingFromCode and WG.TerraformBrush then
 				local val = tonumber(sliderRestoreStrength:GetAttribute("value")) or 100
 				WG.TerraformBrush.setRestoreStrength(val / 100)
-				if widgetState.dmHandle then widgetState.dmHandle.tfRestoreStrengthStr = tostring(val) .. "%" end
+				if widgetState.dmHandle then
+					widgetState.dmHandle.tfRestoreStrengthStr = tostring(val) .. "%"
+				end
 			end
 			event:StopPropagation()
 		end, false)
@@ -9215,7 +17170,9 @@ local function attachEventListeners()
 			if not uiState.updatingFromCode and WG.TerraformBrush then
 				local val = tonumber(sliderRingWidth:GetAttribute("value")) or 40
 				ringWidthPct = val
-				if widgetState.dmHandle then widgetState.dmHandle.tfRingWidthStr = tostring(val) .. "%" end
+				if widgetState.dmHandle then
+					widgetState.dmHandle.tfRingWidthStr = tostring(val) .. "%"
+				end
 				WG.TerraformBrush.setRingInnerRatio(1 - val / 100)
 			end
 			event:StopPropagation()
@@ -9226,7 +17183,10 @@ local function attachEventListeners()
 	if sliderCapMax then
 		trackSliderDrag(sliderCapMax, "capmax")
 		sliderCapMax:AddEventListener("change", function(event)
-			if uiState.updatingFromCode then event:StopPropagation(); return end
+			if uiState.updatingFromCode then
+				event:StopPropagation()
+				return
+			end
 			local val = tonumber(sliderCapMax:GetAttribute("value")) or 0
 			capMaxValue = val
 			if capMinValue > capMaxValue then
@@ -9242,7 +17202,10 @@ local function attachEventListeners()
 	if sliderCapMin then
 		trackSliderDrag(sliderCapMin, "capmin")
 		sliderCapMin:AddEventListener("change", function(event)
-			if uiState.updatingFromCode then event:StopPropagation(); return end
+			if uiState.updatingFromCode then
+				event:StopPropagation()
+				return
+			end
 			local val = tonumber(sliderCapMin:GetAttribute("value")) or 0
 			capMinValue = val
 			if capMaxValue < capMinValue then
@@ -9254,9 +17217,6 @@ local function attachEventListeners()
 		end, false)
 	end
 
-
-
-
 	do
 		local frBtn = getCachedEl(doc, "btn-full-restore")
 		if frBtn then
@@ -9265,7 +17225,9 @@ local function attachEventListeners()
 				if widgetState.fullRestoreConfirmExpiry > 0 then
 					-- Second click: confirmed
 					widgetState.fullRestoreConfirmExpiry = 0
-					if d then d.tfRestoreConfirming = false end
+					if d then
+						d.tfRestoreConfirming = false
+					end
 					_noDmLabel("tfRestoreLabel1Str", "FULL")
 					_noDmLabel("tfRestoreLabel2Str", "RESTORE")
 					playSound("reset")
@@ -9275,7 +17237,9 @@ local function attachEventListeners()
 				else
 					-- First click: ask for confirmation
 					widgetState.fullRestoreConfirmExpiry = (Spring.GetGameSeconds() or 0) + 3
-					if d then d.tfRestoreConfirming = true end
+					if d then
+						d.tfRestoreConfirming = true
+					end
 					_noDmLabel("tfRestoreLabel1Str", "ARE YOU")
 					_noDmLabel("tfRestoreLabel2Str", "SURE?")
 					playSound("toggleOn")
@@ -9285,14 +17249,16 @@ local function attachEventListeners()
 		end
 	end
 
-
-
 	-- Symmetry: keep slider drag tracking for radial-count and mirror-angle
 	do
 		local radialCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
-		if radialCountSlider then trackSliderDrag(radialCountSlider, "symmetry-radial-count") end
+		if radialCountSlider then
+			trackSliderDrag(radialCountSlider, "symmetry-radial-count")
+		end
 		local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
-		if mirrorAngleSlider then trackSliderDrag(mirrorAngleSlider, "symmetry-mirror-angle") end
+		if mirrorAngleSlider then
+			trackSliderDrag(mirrorAngleSlider, "symmetry-mirror-angle")
+		end
 	end
 	local importBtn = getCachedEl(doc, "btn-import")
 	local importDropdown = getCachedEl(doc, "import-dropdown")
@@ -9308,51 +17274,55 @@ local function attachEventListeners()
 			end
 		end
 		local function rebuildImportList()
-			if not importDropdown or not WG.TerraformBrush or not WG.TerraformBrush.listHeightmaps then return 0 end
+			if not importDropdown or not WG.TerraformBrush or not WG.TerraformBrush.listHeightmaps then
+				return 0
+			end
 			local entries = WG.TerraformBrush.listHeightmaps()
 			local count = #entries
 
 			-- Build entire list as HTML string and assign atomically via inner_rml.
 			-- Incremental AppendChild is unreliable when rebuild fires twice per click
 			-- (deferred DOM commits mean both clears see empty element, then both appends land).
-			local function esc(s) return (s:gsub("&","&amp;"):gsub("<","&lt;"):gsub(">","&gt;")) end
+			local function esc(s)
+				return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+			end
 			local parts = {}
-			local isCollapsed = importDropdown:IsClassSet("collapsed")
-			local chevron = isCollapsed and "&#9656;" or "&#9662;" -- ▸ / ▾
-			local headerLabel = count > 0
-				and ("Saved heightmaps  (" .. count .. ")")
-				or  "Saved heightmaps"
-			parts[#parts+1] = string.format(
+			local headerLabel = count > 0 and ("Saved heightmaps  (" .. count .. ")") or "Saved heightmaps"
+			parts[#parts + 1] = string.format(
 				'<div id="tf-hm-header" class="tf-hm-header">'
-				.. '<span id="tf-hm-chevron" class="tf-hm-header-chevron">%s</span>'
-				.. '<span class="tf-hm-header-text">%s</span>'
-				.. '</div>',
-				chevron, headerLabel
+					.. '<span class="tf-hm-header-text">%s</span>'
+					.. '<img id="tf-hm-refresh" class="tf-hm-refresh" src="/luaui/images/terraform_brush/rot_cw.png" title="Refresh heightmaps" />'
+					.. "</div>",
+				headerLabel
 			)
 
 			for i, entry in ipairs(entries) do
 				local isLegacy = (entry.label == "(legacy)")
 				local rowClass = isLegacy and "tf-hm-row legacy" or "tf-hm-row"
-				local badge    = isLegacy and "old" or "PNG"
-				local short    = (entry.path:match("([^/\\]+)$") or entry.path)
+				local badge = isLegacy and "old" or "PNG"
+				local short = (entry.path:match("([^/\\]+)$") or entry.path)
 				short = short:gsub("^heightmap_export_", "")
 				short = short:gsub("%.png$", "")
 				short = short:gsub("_%d%d%d%d%-%d%d%-%d%d_%d%d%-%d%d%-%d%d$", "")
 				-- Older generated-canvas saves embed the per-restart uniquifier
 				-- ("Editor Flat 12x12 s<time>") — hide it in the row label.
 				short = short:gsub("^(Editor Flat %d+x%d+) s%d+$", "%1")
-				parts[#parts+1] = string.format(
+				parts[#parts + 1] = string.format(
 					'<div id="tf-hm-r%d" class="%s"><div class="tf-hm-row-line">'
-					.. '<div class="tf-hm-date">%s</div>'
-					.. '<div class="tf-hm-mapname">%s</div>'
-					.. '<div class="tf-hm-badge">%s</div>'
-					.. '</div></div>',
-					i, rowClass, esc(entry.label), esc(short), badge
+						.. '<div class="tf-hm-date">%s</div>'
+						.. '<div class="tf-hm-mapname">%s</div>'
+						.. '<div class="tf-hm-badge">%s</div>'
+						.. "</div></div>",
+					i,
+					rowClass,
+					esc(entry.label),
+					esc(short),
+					badge
 				)
 			end
 
 			if count == 0 then
-				parts[#parts+1] = '<div class="tf-hm-empty">No saved heightmaps yet for this map.</div>'
+				parts[#parts + 1] = '<div class="tf-hm-empty">No saved heightmaps yet for this map.</div>'
 			end
 
 			-- Single atomic write - guaranteed to replace all existing content.
@@ -9376,18 +17346,22 @@ local function attachEventListeners()
 				end
 			end
 
-			-- Wire collapsible header: clicking header toggles collapsed class
-			-- and refreshes chevron without rebuilding the list.
+			-- Wire collapsible header: clicking header toggles collapsed class.
 			local headerEl = doc:GetElementById("tf-hm-header")
 			if headerEl then
 				headerEl:AddEventListener("click", function(event)
 					playSound("click")
 					local nowCollapsed = not importDropdown:IsClassSet("collapsed")
 					importDropdown:SetClass("collapsed", nowCollapsed)
-					local chevEl = doc:GetElementById("tf-hm-chevron")
-					if chevEl then
-						chevEl.inner_rml = nowCollapsed and "&#9656;" or "&#9662;"
-					end
+					event:StopPropagation()
+				end, false)
+			end
+
+			local refreshEl = doc:GetElementById("tf-hm-refresh")
+			if refreshEl then
+				refreshEl:AddEventListener("click", function(event)
+					playSound("click")
+					rebuildImportList()
 					event:StopPropagation()
 				end, false)
 			end
@@ -9416,7 +17390,7 @@ local function attachEventListeners()
 	local grassBtn = getCachedEl(doc, "btn-grass")
 	if grassBtn then
 		grassBtn:AddEventListener("mouseover", function(event)
-			local gApi = WG['grassgl4']
+			local gApi = WG.grassgl4
 			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
 			widgetState.grassHoverNoData = not hasGrass
 		end, false)
@@ -9424,6 +17398,35 @@ local function attachEventListeners()
 			widgetState.grassHoverNoData = false
 		end, false)
 		-- click handled declaratively via onclick="widget:tfSwitchGrass()"
+	end
+
+	-- Splat launch button: hover explains the contextual disable while the
+	-- tileset shader owns the splat texture (grass no-data precedent).
+	do
+		local splatBtn = getCachedEl(doc, "btn-splat")
+		if splatBtn then
+			splatBtn:AddEventListener("mouseover", function(event)
+				local T = WG.TilesetTerrain
+				widgetState.splatHoverTilesetOn = (T and T.isActive and T.isActive()) and true or false
+			end, false)
+			splatBtn:AddEventListener("mouseout", function(event)
+				widgetState.splatHoverTilesetOn = false
+			end, false)
+		end
+	end
+
+	-- UNITS placeholder button: no tool behind it yet, so hovering explains
+	-- itself in the status readout (same override pattern as grass/splat).
+	do
+		local unitsBtn = getCachedEl(doc, "btn-units")
+		if unitsBtn then
+			unitsBtn:AddEventListener("mouseover", function(event)
+				widgetState.unitsHoverSoon = true
+			end, false)
+			unitsBtn:AddEventListener("mouseout", function(event)
+				widgetState.unitsHoverSoon = false
+			end, false)
+		end
 	end
 
 	-- Decals launch button
@@ -9435,21 +17438,7 @@ local function attachEventListeners()
 		quitBtn:AddEventListener("click", function(event)
 			playSound("exit")
 			clearPassthrough()
-			if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-			if WG.FeaturePlacer then WG.FeaturePlacer.deactivate() end
-			if WG.WeatherBrush then WG.WeatherBrush.deactivate() end
-			if WG.SplatPainter then WG.SplatPainter.deactivate() end
-			if WG.MetalBrush then WG.MetalBrush.deactivate() end
-			if WG.GrassBrush then WG.GrassBrush.deactivate() end
-			if WG.LightPlacer then WG.LightPlacer.deactivate() end
-			if WG.StartPosTool then WG.StartPosTool.deactivate() end
-			if WG.CloneTool then WG.CloneTool.deactivate() end
-			if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-			widgetState.envActive = false
-			widgetState.lightActive = false
-			widgetState.startposActive = false
-			widgetState.cloneActive = false
-			widgetState.decalsActive = false
+			_deactivateAllTools()
 			event:StopPropagation()
 		end, false)
 	end
@@ -9481,23 +17470,45 @@ local function attachEventListeners()
 			capMaxValue = 0
 			capAbsolute = true
 			capEnabled = true
-			if dm then dm.tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png" end
-			if dm then dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png" end
-			if dm then dm.tfClayMode = false end
-			if dm then dm.tfGridOverlay = false end
+			local dm = widgetState.dmHandle
+			if dm then
+				dm.tfCapAbsoluteSrc = "/luaui/images/terraform_brush/check_on.png"
+			end
+			if dm then
+				dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png"
+			end
+			if dm then
+				dm.tfClayMode = false
+			end
+			if dm then
+				dm.tfGridOverlay = false
+			end
 			local dustEl = getCachedEl(doc, "btn-dust-effects")
 			if dustEl then
 				dustEl:SetClass("active", false)
-				if dm then dm.dustEffectsStr = "OFF" end
+				if dm then
+					dm.dustEffectsStr = "OFF"
+				end
 			end
 			local seismicEl = getCachedEl(doc, "btn-seismic-effects")
 			if seismicEl then
 				seismicEl:SetClass("active", false)
-				if dm then dm.seismicEffectsStr = "OFF" end
+				if dm then
+					dm.seismicEffectsStr = "OFF"
+				end
 			end
-			if dm then dm.tfHeightColormap = false end
-			if dm then dm.tfCurveOverlay = false end
-			if dm then dm.tfVelocityIntensity = false end
+			if dm then
+				dm.tfHeightColormap = false
+			end
+			if dm then
+				dm.tfCurveOverlay = false
+			end
+			if dm then
+				dm.tfVelocityIntensity = false
+			end
+			if dm then
+				dm.tfFollowStroke = false
+			end
 			event:StopPropagation()
 		end, false)
 	end
@@ -9511,35 +17522,39 @@ local function attachEventListeners()
 	local lastFilter = ""
 
 	if presetNameInput then
-		presetNameInput:AddEventListener("focus", function(event)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = presetNameInput
-		end, false)
-		presetNameInput:AddEventListener("blur", function(event)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(presetNameInput)
 	end
 
 	-- Save Project name input (FILE > Save Project): same SDL text-input capture
 	-- as the preset input, plus a change listener mirroring into widgetState so
 	-- the confirm handler has the value even if GetAttribute lags the keystroke.
+	-- The three search / name fields added later (Open Project filter, Light
+	-- Library filter and its preset name) shipped without the capture above and
+	-- could not be typed into at all.
+	widgetState.wireTextInput(getCachedEl(doc, "ll-search-input"))
+	widgetState.wireTextInput(getCachedEl(doc, "input-ll-preset-name"))
+	widgetState.wireTextInput(getCachedEl(doc, "tf-project-save-search"))
+	widgetState.wireProjectEnter(getCachedEl(doc, "input-project-newfolder"), function()
+		widgetState.projectSaveCreateFolder()
+	end)
+	widgetState.wireProjectEnter(getCachedEl(doc, "input-project-rename"), function()
+		widgetState.projectRenameApply()
+	end)
+	-- Enter in the Open Project search picks the first match, so a search can
+	-- be finished without reaching for the mouse.
+	widgetState.wireProjectEnter(getCachedEl(doc, "tf-project-search"), function()
+		widgetState.projectSelectRow((widgetState.projectOpenRowEls or {})[1])
+	end)
+
 	local projectNameInput = getCachedEl(doc, "input-project-name")
 	if projectNameInput then
-		projectNameInput:AddEventListener("focus", function(event)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = projectNameInput
-		end, false)
-		projectNameInput:AddEventListener("blur", function(event)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
-		projectNameInput:AddEventListener("change", function(event)
-			widgetState.projectNameStr = projectNameInput:GetAttribute("value") or ""
+		-- Enter commits the save, as it does in every save dialog. The confirm
+		-- steps (overwrite, dropped units loadout) still apply.
+		widgetState.wireProjectEnter(projectNameInput, widgetState.projectSaveFromField)
+		projectNameInput:AddEventListener("change", function(_event)
+			widgetState.projectNameStr = widgetState.projectSaveFullName()
+			widgetState.projectSaveUi.changed()
+			widgetState.projectSyncTarget()
 		end, false)
 	end
 
@@ -9547,16 +17562,7 @@ local function attachEventListeners()
 	-- game eats every keystroke and the field never types) + change mirror.
 	local newMapNameInput = getCachedEl(doc, "newmap-name-input")
 	if newMapNameInput then
-		newMapNameInput:AddEventListener("focus", function(event)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = newMapNameInput
-		end, false)
-		newMapNameInput:AddEventListener("blur", function(event)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(newMapNameInput)
 		newMapNameInput:AddEventListener("change", function(event)
 			widgetState.newMapNameStr = newMapNameInput:GetAttribute("value") or ""
 		end, false)
@@ -9574,11 +17580,17 @@ local function attachEventListeners()
 
 	-- G7: build a compact one-line parameter summary string for a preset row
 	local function buildPresetSummary(pdata, isBuiltin)
-		if not pdata then return "" end
+		if not pdata then
+			return ""
+		end
 		local m = type(pdata.mode) == "string" and pdata.mode or "?"
 		local s = type(pdata.shape) == "string" and pdata.shape or "?"
-		if #m > 0 then m = m:sub(1,1):upper() .. m:sub(2) end
-		if #s > 0 then s = s:sub(1,1):upper() .. s:sub(2) end
+		if #m > 0 then
+			m = m:sub(1, 1):upper() .. m:sub(2)
+		end
+		if #s > 0 then
+			s = s:sub(1, 1):upper() .. s:sub(2)
+		end
 		local r = math.floor(tonumber(pdata.radius) or 0)
 		local itxt = string.format("%.1f", tonumber(pdata.intensity) or 0)
 		local summary = m .. " · " .. s .. " · R:" .. r .. " · I:" .. itxt
@@ -9593,7 +17605,9 @@ local function attachEventListeners()
 	end
 
 	local function rebuildPresetList(filter)
-		if not presetDropdown or not WG.TerraformBrush then return end
+		if not presetDropdown or not WG.TerraformBrush then
+			return
+		end
 		presetDropdown.inner_rml = ""
 		local names = WG.TerraformBrush.getPresetNames()
 		local filterLower = filter and filter:lower() or ""
@@ -9716,29 +17730,107 @@ local function attachEventListeners()
 	-- tileset preset is just a named snapshot of the knob table, stored in the write-dir
 	-- widget via WG.TilesetTerrain.savePreset/loadPreset. Closures hang on widgetState so
 	-- the model handlers (onTilesetPreset*) can drive them.
+	-- Sun & Shadows PRESETS dropdown: same shape as the tileset one below. The
+	-- catalog is rebuilt on every open (user files change on disk); a row click
+	-- applies with the panel's scope; user rows carry an X that deletes the
+	-- file. In a do-block: this function is near the Lua 5.1 local/upvalue caps.
+	do
+		local envPresetNameInput = getCachedEl(doc, "env-preset-name-input")
+		local envPresetDropdown = getCachedEl(doc, "env-preset-dropdown")
+		local envPresetToggleBtn = getCachedEl(doc, "btn-env-preset-toggle")
+		if envPresetNameInput then
+			widgetState.wireTextInput(envPresetNameInput)
+		end
+		widgetState.setEnvPresetDropdownOpen = function(open)
+			widgetState.envPresetDropdownOpen = open
+			if envPresetDropdown then
+				envPresetDropdown:SetClass("hidden", not open)
+			end
+			if envPresetToggleBtn then
+				envPresetToggleBtn:SetClass("open", open)
+			end
+		end
+		widgetState.rebuildEnvPresetList = function()
+			if not envPresetDropdown then
+				return
+			end
+			envPresetDropdown.inner_rml = ""
+			local entries = widgetState.listEnvPresets()
+			local kindLabel = { sun = "sun only", mood = "map mood", user = "saved" }
+			local lastKind
+			for _, entry in ipairs(entries) do
+				if entry.kind ~= lastKind then
+					lastKind = entry.kind
+					local head = doc:CreateElement("div")
+					head:SetClass("tf-preset-summary", true)
+					head.inner_rml = kindLabel[entry.kind] or entry.kind
+					envPresetDropdown:AppendChild(head)
+				end
+				local row = doc:CreateElement("div")
+				row:SetClass("tf-preset-row", true)
+				if widgetState.envPresetCurrent == entry.name then
+					row:SetClass("selected", true)
+				end
+				local topRow = doc:CreateElement("div")
+				topRow:SetClass("tf-preset-row-top", true)
+				local nameEl = doc:CreateElement("div")
+				nameEl:SetClass("tf-preset-name", true)
+				nameEl.inner_rml = entry.name:gsub("&", "&amp;"):gsub("<", "&lt;")
+				topRow:AppendChild(nameEl)
+				if entry.kind == "user" and entry.path then
+					local delEl = doc:CreateElement("div")
+					delEl:SetClass("tf-preset-delete", true)
+					delEl.inner_rml = "X"
+					delEl:AddEventListener("click", function(event)
+						playSound("reset")
+						os.remove(entry.path)
+						Spring.Echo("[Environ] deleted environment preset: " .. entry.path)
+						widgetState.rebuildEnvPresetList()
+						event:StopPropagation()
+					end, false)
+					topRow:AppendChild(delEl)
+				end
+				row:AppendChild(topRow)
+				row:AddEventListener("click", function(event)
+					playSound("click")
+					local ok = widgetState.applyEnvPreset(entry, widgetState.envPresetScope or "full")
+					---@type table?
+					local d = widgetState.dmHandle
+					if d then
+						d.envPresetHint = ok and ("Applied " .. entry.name)
+							or ("Could not apply " .. entry.name .. " (see console)")
+					end
+					if ok and envPresetNameInput then
+						envPresetNameInput:SetAttribute("value", entry.name)
+					end
+					widgetState.setEnvPresetDropdownOpen(false)
+					event:StopPropagation()
+				end, false)
+				envPresetDropdown:AppendChild(row)
+			end
+		end
+	end
+
 	local tsPresetNameInput = getCachedEl(doc, "ts-preset-name-input")
-	local tsPresetDropdown  = getCachedEl(doc, "ts-preset-dropdown")
+	local tsPresetDropdown = getCachedEl(doc, "ts-preset-dropdown")
 	local tsPresetToggleBtn = getCachedEl(doc, "btn-ts-preset-toggle")
 	if tsPresetNameInput then
-		tsPresetNameInput:AddEventListener("focus", function(_e)
-			WG.TerraformBrushInputFocused = true
-			Spring.SDLStartTextInput()
-			widgetState.focusedRmlInput = tsPresetNameInput
-		end, false)
-		tsPresetNameInput:AddEventListener("blur", function(_e)
-			WG.TerraformBrushInputFocused = false
-			Spring.SDLStopTextInput()
-			widgetState.focusedRmlInput = nil
-		end, false)
+		widgetState.wireTextInput(tsPresetNameInput)
 	end
 	local function setTsDropdownOpen(open)
 		widgetState.tsDropdownOpen = open
-		if tsPresetDropdown  then tsPresetDropdown:SetClass("hidden", not open) end
-		if tsPresetToggleBtn then tsPresetToggleBtn:SetClass("open", open) end
+		if tsPresetDropdown then
+			tsPresetDropdown:SetClass("hidden", not open)
+		end
+		if tsPresetToggleBtn then
+			tsPresetToggleBtn:SetClass("open", open)
+		end
 	end
 	widgetState.setTsDropdownOpen = setTsDropdownOpen
 	local function rebuildTsPresetList()
-		if not tsPresetDropdown or not (WG.TilesetTerrain and WG.TilesetTerrain.getPresetNames) then return end
+		if not tsPresetDropdown or not (WG.TilesetTerrain and WG.TilesetTerrain.getPresetNames) then
+			return
+		end
 		tsPresetDropdown.inner_rml = ""
 		local names = WG.TilesetTerrain.getPresetNames()
 		if #names == 0 then
@@ -9766,7 +17858,9 @@ local function attachEventListeners()
 				playSound("click")
 				if WG.TilesetTerrain and WG.TilesetTerrain.loadPreset then
 					WG.TilesetTerrain.loadPreset(name)
-					if tsPresetNameInput then tsPresetNameInput:SetAttribute("value", name) end
+					if tsPresetNameInput then
+						tsPresetNameInput:SetAttribute("value", name)
+					end
 				end
 				setTsDropdownOpen(false)
 				event:StopPropagation()
@@ -9798,20 +17892,19 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	tfTileset.attach(doc, ctx)
+	if tfSurface then
+		tfSurface.attach(doc, ctx)
+	end
 	tfLights.attach(doc, ctx)
 	tfNoise.attach(doc, ctx)
-
 
 	-- ============ Start Positions tool controls ============
 	tfStartPos.attach(doc, ctx)
 
-
 	-- ============ Clone Tool controls ============
 	tfClone.attach(doc, ctx)
 
-
 	tfGuide.attach(doc, ctx)
-
 
 	-- ============ Keybind badges (G5) ============
 	initBadgeElements(doc)
@@ -9826,8 +17919,6 @@ local function attachEventListeners()
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val and WG.TerraformBrush then
 			WG.TerraformBrush.setHeightmapExportCustomMin(val)
-			widgetState.uiPrefs.heightmapExportCustomMin = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		end
 	end)
 	wireExportRangeInput(exportMaxInput, function()
@@ -9835,8 +17926,6 @@ local function attachEventListeners()
 		local val = el and tonumber(el:GetAttribute("value"))
 		if val and WG.TerraformBrush then
 			WG.TerraformBrush.setHeightmapExportCustomMax(val)
-			widgetState.uiPrefs.heightmapExportCustomMax = val
-			if widgetState.saveUiPrefs then widgetState.saveUiPrefs() end
 		end
 	end)
 
@@ -9846,18 +17935,27 @@ local function attachEventListeners()
 		local allW = windowDragAllWindows
 
 		local function makeWindowDraggable(handleId, rootEl)
-			if not rootEl then return end
+			if not rootEl then
+				return
+			end
 			local handleEl = getCachedEl(doc, handleId)
-			if not handleEl then return end
-			allW[#allW + 1] = { rootEl = rootEl, handleId = handleId }
+			if not handleEl then
+				return
+			end
+			local rootId = rootEl:GetAttribute("id")
+			allW[#allW + 1] = { rootEl = rootEl, handleId = handleId, rootId = rootId }
+			widgetState.restoreWindowPosition(rootId, rootEl)
 
 			handleEl:AddEventListener("mousedown", function(event)
 				local p = event.parameters
-				if not p or (p.button and p.button ~= 0) then return end
+				if not p or (p.button and p.button ~= 0) then
+					return
+				end
 				local mx, my = GetMouseState()
 				local vsx, vsy = GetViewGeometry()
 				ds.active = true
 				ds.rootEl = rootEl
+				ds.rootId = rootId
 				ds.offsetX = mx - rootEl.offset_left
 				ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
 				ds.ew = rootEl.offset_width
@@ -9883,9 +17981,24 @@ local function attachEventListeners()
 			end, false)
 		end
 
+		-- A project row being dragged between folders ends here too, for the
+		-- same reason window dragging does: this is the only report of the button
+		-- coming back up that is guaranteed to arrive, because RmlUi consumed the
+		-- press that started it.
+		doc:AddEventListener("mouseup", function(_event)
+			if widgetState.projectDrag then
+				widgetState.projectDragEnd(true)
+			elseif widgetState.projectDragClickEaten then
+				-- A drag that ended on a folder produces no row click to consume the
+				-- flag, so it expires here instead of lying in wait for the next one.
+				widgetState.projectDragClickEaten = nil
+			end
+		end, false)
+
 		-- End drag on any mouseup in the document
 		doc:AddEventListener("mouseup", function(event)
 			if ds.active then
+				widgetState.saveWindowPosition(ds.rootId, ds.rootEl, ds.vsx, ds.vsy)
 				if ds.rootEl == widgetState.rootElement then
 					local vsx, vsy = ds.vsx, ds.vsy
 					if vsx > 0 and vsy > 0 and ds.rootEl then
@@ -9895,7 +18008,10 @@ local function attachEventListeners()
 				end
 				ds.active = false
 				ds.rootEl = nil
+				ds.rootId = nil
 				ds.snapRects = nil
+				-- The window moved, so the room left below it changed.
+				widgetState.refreshPanelBodies()
 			end
 		end, false)
 
@@ -9909,6 +18025,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-env-map-handle", widgetState.envMapRootEl)
 		makeWindowDraggable("tf-env-water-handle", widgetState.envWaterRootEl)
 		makeWindowDraggable("tf-env-dimensions-handle", widgetState.envDimensionsRootEl)
+		makeWindowDraggable("tf-env-tileset-handle", widgetState.envTilesetRootEl)
 		makeWindowDraggable("tf-splattex-handle", widgetState.splatTexRootEl)
 		makeWindowDraggable("tf-grasscfg-handle", widgetState.grassCfgRootEl)
 		makeWindowDraggable("tf-light-library-handle", widgetState.lightLibraryRootEl)
@@ -9917,6 +18034,7 @@ local function attachEventListeners()
 		makeWindowDraggable("tf-project-handle", getCachedEl(doc, "tf-project-root"))
 		makeWindowDraggable("tf-project-open-handle", getCachedEl(doc, "tf-project-open-root"))
 		makeWindowDraggable("tf-capture-handle", getCachedEl(doc, "tf-capture-root"))
+		makeWindowDraggable("tf-imgov-handle", getCachedEl(doc, "tf-imgov-root"))
 	end
 
 	-- ===== Transport (auto-scroll) button listeners =====
@@ -9927,13 +18045,129 @@ local function attachEventListeners()
 		widgetState.noTerraform = true
 		do
 			local noticeEl = getCachedEl(doc, "tf-mapdamage-notice")
-			if noticeEl then noticeEl:SetClass("hidden", false) end
+			if noticeEl then
+				noticeEl:SetClass("hidden", false)
+			end
 			local terrainSectionEl = getCachedEl(doc, "section-terrain")
-			if terrainSectionEl then terrainSectionEl:SetClass("tf-terrain-locked", true) end
+			if terrainSectionEl then
+				terrainSectionEl:SetClass("tf-terrain-locked", true)
+			end
 		end
 	end
 end
 
+-- Tools whose engine widget can raise the panel from cold. The remaining panel
+-- modes (environment, lights, startpos, clone, decals) are driven by widgetState
+-- flags the panel itself sets, so they cannot be live before the document exists.
+local PANEL_TOOL_APIS = {
+	"TerraformBrush",
+	"FeaturePlacer",
+	"WeatherBrush",
+	"SplatPainter",
+	"MetalBrush",
+	"GrassBrush",
+	"SurfacePainter",
+}
+
+-- Cheap probe for "is the editor being used", safe to call with no document.
+local function editorWantsPanel()
+	if widgetState.passthroughMode then
+		return true
+	end
+	for i = 1, #PANEL_TOOL_APIS do
+		local api = WG[PANEL_TOOL_APIS[i]]
+		if api and api.getState then
+			local st = api.getState()
+			if st and st.active then
+				return true
+			end
+		end
+	end
+	if WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() then
+		return true
+	end
+	return false
+end
+
+-- Open the editor the way the terraformbrush action does: the brush in RAISE.
+-- A fresh editor canvas is only ever started to edit it (requested by PtaQ
+-- 2026-09-04), so a New Map opens it from its forcestart below and a project
+-- load from cmd_map_project's finishLoad (WG.TerraformBrushUI.openEditor).
+-- No-op while any tool already has the panel up, so it never yanks a user off
+-- the tool they picked. widgetState field: this chunk is near the local cap.
+widgetState.openEditor = function()
+	if editorWantsPanel() then
+		return
+	end
+	---@type table?
+	local tf = WG.TerraformBrush
+	if tf and tf.setMode then
+		tf.setMode("raise")
+	end
+end
+
+-- Build the panel document on first use.
+--
+-- The RML is ~6200 elements and ~1800 data bindings, and RmlUi carries that in
+-- its context update for as long as the document is loaded — Hide() only stops
+-- it drawing. The Terraformer is an opt-in editor tool (enabled = false), so a
+-- player who leaves the widget on must not pay for a panel they never open.
+--
+-- Built once and kept for the session rather than torn down on close: the tf_*
+-- modules cache ~50 element handles into widgetState, and a closed document
+-- would leave every one of them dangling.
+local function ensureDocument()
+	if widgetState.document then
+		return true
+	end
+	local rmlCtx = widgetState.rmlContext
+	if not rmlCtx or widgetState.documentLoadFailed then
+		return false
+	end
+
+	local document = rmlCtx:LoadDocument(RML_PATH, widget)
+	if not document then
+		-- Latch: Update calls this every frame while a tool is active, and a
+		-- failing load would otherwise echo once per frame forever.
+		widgetState.documentLoadFailed = true
+		Spring.Echo("[Terraform Brush] Failed to load the panel document.")
+		return false
+	end
+	widgetState.document = document
+	-- RecvLuaMsg only toggles an existing document, so a document born while the
+	-- lobby overlay is up has to start hidden or it paints over the lobby.
+	if widgetState.lobbyHidden then
+		document:Hide()
+	else
+		document:Show()
+	end
+
+	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
+		WG.TerraformerShared.registerDocument("terraform_brush", document)
+	end
+
+	widgetState.rootElement = getCachedEl(document, "tf-root")
+	if widgetState.rootElement then
+		widgetState.rootElement:SetClass("hidden", true)
+		widgetState.rootElement:SetAttribute("style", buildRootStyle())
+		-- Pen pressure: suppress brush modulation when cursor is over the UI panel
+		widgetState.rootElement:AddEventListener("mouseover", function()
+			widgetState.mouseOverPanel = true
+			if WG.TerraformBrush then
+				WG.TerraformBrush.setPenOverUI(true)
+			end
+		end, false)
+		widgetState.rootElement:AddEventListener("mouseout", function()
+			widgetState.mouseOverPanel = false
+			if WG.TerraformBrush then
+				WG.TerraformBrush.setPenOverUI(false)
+			end
+		end, false)
+	end
+
+	attachEventListeners()
+	return true
+end
 
 function widget:Initialize()
 	widgetState.rmlContext = RmlUi.GetContext("shared")
@@ -9941,6 +18175,10 @@ function widget:Initialize()
 		return false
 	end
 
+	widgetState.projectLibraryRemote = false
+	local projectUi = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
+	widgetState.projectLibraryUi = projectUi.new(widgetState, initialModel)
+	widgetState.projectSaveUi = projectUi.newSave(widgetState, initialModel)
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)
 	if not dm then
 		return false
@@ -9952,8 +18190,9 @@ function widget:Initialize()
 	-- single-allyteam sessions are engine sandbox (game_end removes itself) —
 	-- both mean the keep-alive toggle is already effectively ON.
 	do
-		local allyCount = #Spring.GetAllyTeamList() - 1  -- minus gaia
-		if Spring.GetModOptions().deathmode == "neverend" or allyCount < 2 then
+		local allyCount = #Spring.GetAllyTeamList() - 1 -- minus gaia
+		local mo = Spring.GetModOptions()
+		if mo.deathmode == "neverend" or tostring(mo.editor_sandbox or "") == "1" or allyCount < 2 then
 			widgetState.keepAlive = { active = true }
 			dm.keepAliveStr = "ON"
 			dm.keepAliveActive = true
@@ -9962,22 +18201,33 @@ function widget:Initialize()
 
 	-- Placeholder fog is obscuring; push it off a few frames after (re)load so new maps
 	-- AND plain luaui reloads come up fog-free until the fog system is replaced.
-	widgetState._pendingFogOff = 15
-
-	local document = widgetState.rmlContext:LoadDocument(RML_PATH, self)
-	if not document then
-		widget:Shutdown()
-		return false
+	-- Generated blank canvases only: on real maps the fog is the mapper's design and
+	-- killing it darkened every normal game this widget was enabled in.
+	if _isGeneratedBlankMap() then
+		widgetState._pendingFogOff = 15
 	end
-	widgetState.document = document
-	document:Show()
 
-	if WG.TerraformerShared and WG.TerraformerShared.registerDocument then
-		WG.TerraformerShared.registerDocument("terraform_brush", document)
+	-- Editor canvases have no commander to place (editor_sandbox=1 makes
+	-- game_initial_spawn skip it), so pregame has nothing to wait for, and
+	-- pregame clips every ground ray at the flat canvas height (see finishLoad in
+	-- cmd_map_project.lua): raise terrain before starting and it turns unclickable.
+	-- Start the game a few draw frames in. Project loads keep their own
+	-- forcestart at the end of the load pipeline; the countdown consumer skips
+	-- while one is running.
+	if _isGeneratedBlankMap() and Spring.GetGameFrame() <= 0 then
+		widgetState._pendingForceStart = 15
 	end
+
+	-- The document itself is deferred to ensureDocument(), called from Update the
+	-- first time a tool engages. Everything below is document-independent and has
+	-- to run at boot: prefs, the panel action, and the pending New Map preset all
+	-- apply to sessions where the panel is never opened.
 
 	-- Load persisted UI prefs (disableTips, etc.)
-	if loadUiPrefs then loadUiPrefs() end
+	if loadUiPrefs then
+		loadUiPrefs()
+	end
+	widgetState.pushPerfPrefs()
 	if WG.TerraformBrush then
 		local up = widgetState.uiPrefs
 		local state = WG.TerraformBrush.getState and WG.TerraformBrush.getState() or nil
@@ -9987,18 +18237,16 @@ function widget:Initialize()
 			else
 				WG.TerraformBrush.setHeightmapExportRangeMode("auto")
 			end
-			WG.TerraformBrush.setHeightmapExportCustomMin((type(up.heightmapExportCustomMin) == "number" and up.heightmapExportCustomMin) or state.exportInitMin or 0)
-			WG.TerraformBrush.setHeightmapExportCustomMax((type(up.heightmapExportCustomMax) == "number" and up.heightmapExportCustomMax) or state.exportInitMax or 1)
+			-- The custom min/max are deliberately NOT restored from prefs: the
+			-- range is map-specific, and re-applying another map's numbers (or
+			-- the stale canvas seed) is exactly what clipped project exports.
+			-- The brush widget seeds fresh values from the real terrain.
 		end
 	end
-
-	widgetState.rootElement = getCachedEl(document, "tf-root")
-	widgetState.rootElement:SetClass("hidden", true)
 
 	lastVsx, lastVsy = GetViewGeometry()
 	currentLeftVw = INITIAL_LEFT_VW
 	currentTopVh = INITIAL_TOP_VH
-	widgetState.rootElement:SetAttribute("style", buildRootStyle())
 
 	widgetState.panelHidden = false
 	widgetHandler:AddAction("terraformpanel", function()
@@ -10008,52 +18256,78 @@ function widget:Initialize()
 		end
 		return true
 	end, nil, "t")
-
-	attachEventListeners()
+	-- /tf_sunlog toggles a traceback on every sun write (see setSunLog).
+	widgetHandler:AddAction("tf_sunlog", function()
+		widgetState.setSunLog(not widgetState._sunLogOrig)
+		return true
+	end, nil, "t")
 
 	-- New Map environment preset: if the last Create wrote a pending preset, resolve
 	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
-	-- the fresh map has fully settled. The file is blanked on read so a plain /reload
-	-- never re-applies. Default (no preset) leaves the engine's blank-map lighting.
+	-- the fresh map has fully settled. The file is DELETED on read: it used to be
+	-- blanked instead, and an existing-but-empty file read as "New Map with Default
+	-- environment" on ANY later map, stomping real maps' skyboxes with the first
+	-- library one every game. Consuming it is additionally gated on the map actually
+	-- being a generated blank canvas; elsewhere the stale file is just cleaned up
+	-- (cmd_map_project.lua deletes it for the same reason before opening a project).
 	do
 		local rf = io.open("Terraform Brush/pending_newmap_env.lua", "r")
 		if rf then
-			local raw = rf:read("*a"); rf:close()
-			local wf = io.open("Terraform Brush/pending_newmap_env.lua", "w")
-			if wf then wf:write(""); wf:close() end
-			if raw and raw ~= "" then
-				local ok, t = pcall(function() return loadstring(raw)() end)
-				if ok and type(t) == "table" and t.preset then
-					for _, p in ipairs(widgetState.newMapEnvPresets) do
-						if p.name == t.preset then
-							widgetState._pendingEnvApply = p
-							widgetState._pendingEnvCountdown = 15
-							break
+			local raw = rf:read("*a")
+			rf:close()
+			os.remove("Terraform Brush/pending_newmap_env.lua")
+			if _isGeneratedBlankMap() then
+				if raw and raw ~= "" then
+					local ok, t = pcall(function()
+						return loadstring(raw)()
+					end)
+					if ok and type(t) == "table" and t.preset then
+						for _, p in ipairs(widgetState.newMapEnvPresets) do
+							if p.name == t.preset then
+								widgetState._pendingEnvApply = p
+								widgetState._pendingEnvCountdown = 15
+								break
+							end
 						end
 					end
-				end
-			else
-				-- New Map with Default environment selected: blank maps often have no
-				-- map-defined skybox, so apply the first available library skybox.
-				local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
-				if first and first.path then
-					widgetState._pendingSkyboxPath = first.path
-					widgetState.envCurrentSkybox = first.path
-					Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+				else
+					-- New Map with Default selected. Default is not "leave the engine
+					-- lighting alone" - that is the flat 0.5 ambient/diffuse placeholder
+					-- that makes a fresh map look like the shader is broken. It is the
+					-- canonical sun, applied on the same countdown a mood would use.
+					local envDef = widgetState.newMapDefaultEnv()
+					if envDef then
+						widgetState._pendingEnvApply = envDef
+						widgetState._pendingEnvCountdown = 15
+					end
+					-- blank maps often have no map-defined skybox, so apply the first
+					-- available library skybox
+					local first = widgetState.envSkyboxThumbs and widgetState.envSkyboxThumbs[1]
+					if first and first.path then
+						widgetState._pendingSkyboxPath = first.path
+						widgetState.envCurrentSkybox = first.path
+						Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
+					end
 				end
 			end
 		end
 	end
 
-	-- Pen pressure: suppress brush modulation when cursor is over the UI panel
-	if widgetState.rootElement then
-		widgetState.rootElement:AddEventListener("mouseover", function()
-			if WG.TerraformBrush then WG.TerraformBrush.setPenOverUI(true) end
-		end, false)
-		widgetState.rootElement:AddEventListener("mouseout", function()
-			if WG.TerraformBrush then WG.TerraformBrush.setPenOverUI(false) end
-		end, false)
+	-- A reopened map project boots with its sky in the blank_map_skybox map option, but the engine never
+	-- shows it: the generated mapinfo leaves atmosphere.skyBox empty (and the engine would look for it
+	-- under maps/). Apply it at runtime like a library pick; a skybox in the project's environment
+	-- section still wins when that section loads.
+	if not widgetState._pendingSkyboxPath and _isGeneratedBlankMap() then
+		local mapOpts = Spring.GetMapOptions()
+		local sky = type(mapOpts) == "table" and mapOpts.blank_map_skybox or nil
+		if type(sky) == "string" and sky ~= "" then
+			widgetState._pendingSkyboxPath = sky
+			widgetState.envCurrentSkybox = sky
+			Spring.Echo("[Terraform Brush] project skybox: " .. sky)
+		end
 	end
+
+	widgetState.installQuitGuard()
 
 	-- Expose UI-side API for key capture and badge refresh
 	WG.TerraformBrushUI = {
@@ -10064,6 +18338,11 @@ function widget:Initialize()
 		end,
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
+		end,
+		-- Runtime skybox pick (library path, nil if untouched); the manifest
+		-- records its basename so reopening the project boots with the same sky.
+		getCurrentSkybox = function()
+			return widgetState.envCurrentSkybox
 		end,
 		-- Start script for opening a map project (blank map at the manifest's
 		-- size with project-local DNTS assets); called by WG.MapProject.open.
@@ -10094,44 +18373,65 @@ function widget:Initialize()
 		-- Programmatically expand the HEIGHT CAP section (e.g. triggered by Alt+Shift scroll)
 		expandHeightCap = function()
 			local ctrl = widgetState.heightCapSectionCtrl
-			if ctrl and ctrl.expand then ctrl.expand() end
+			if ctrl and ctrl.expand then
+				ctrl.expand()
+			end
+		end,
+		-- True while the editor is actually in use (a tool or passthrough has
+		-- the panel up). Gates tool-switch hotkeys in cmd_terraform_brush so an
+		-- enabled-but-dormant Terraformer never swallows engine keybinds.
+		isEngaged = function()
+			return widgetState.panelEngaged == true
+		end,
+		-- FOCUS MODE: the game interface is hidden on purpose and the editor keeps
+		-- drawing through it. cmd_terraform_brush and the capture widget read this
+		-- to tell it apart from a plain F5 (see setFocusMode).
+		isFocusMode = function()
+			return widgetState.focusMode == true
+		end,
+		-- Bring the editor up (brush in RAISE) unless a tool already has the
+		-- panel; cmd_map_project calls this when a project load completes.
+		openEditor = function()
+			widgetState.openEditor()
+		end,
+		-- The editor surface the pointer is inside, for tools that park their
+		-- brush rather than work through the UI: the panel, or whichever project
+		-- dialog is open and under the cursor. Falls back to the panel's own
+		-- bounds, so a caller can use this wherever it used getPanelBounds and
+		-- keep the same behaviour everywhere else.
+		getHoverBounds = function()
+			local dialog = widgetState.projectDialogHoverBounds()
+			if dialog then
+				return dialog
+			end
+			return widgetState.panelBounds()
 		end,
 		-- Returns the panel pixel bounds in Spring screen coords (Y=0 at bottom).
 		-- Returns nil when the panel is hidden or not yet available.
 		getPanelBounds = function()
-			local vsx, vsy = Spring.GetViewGeometry()
-			if vsx <= 0 then return nil end
-			local root = widgetState.rootElement
-			if not root then return nil end
-			if widgetState.panelHidden then return nil end
-			local leftPx   = root.offset_left
-			local topPx    = root.offset_top
-			local widthPx  = root.offset_width
-			local heightPx = root.offset_height
-			if not leftPx or widthPx == 0 or heightPx == 0 then return nil end
-			-- Spring screen Y: 0=bottom, vsy=top
-			return {
-				left    = leftPx,
-				right   = leftPx + widthPx,
-				topY    = vsy - topPx,
-				bottomY = vsy - topPx - heightPx,
-			}
+			return widgetState.panelBounds()
 		end,
 		-- Returns bounds of the light library floating window, or nil if not visible.
 		getLightLibraryBounds = function()
-			if not widgetState.lightLibraryOpen then return nil end
+			if not widgetState.lightLibraryOpen then
+				return nil
+			end
 			local libRoot = widgetState.lightLibraryRootEl
-			if not libRoot then return nil end
+			if not libRoot then
+				return nil
+			end
 			local vsx, vsy = Spring.GetViewGeometry()
-			local leftPx   = libRoot.absolute_left
-			local topPx    = libRoot.absolute_top
-			local widthPx  = libRoot.offset_width
+			local leftPx = libRoot.absolute_left
+			local topPx = libRoot.absolute_top
+			local widthPx = libRoot.offset_width
 			local heightPx = libRoot.offset_height
-			if not leftPx or widthPx == 0 or heightPx == 0 then return nil end
+			if not leftPx or widthPx == 0 or heightPx == 0 then
+				return nil
+			end
 			return {
-				left    = leftPx,
-				right   = leftPx + widthPx,
-				topY    = vsy - topPx,
+				left = leftPx,
+				right = leftPx + widthPx,
+				topY = vsy - topPx,
 				bottomY = vsy - topPx - heightPx,
 			}
 		end,
@@ -10141,66 +18441,6 @@ end
 local lastUpdateClock = Spring.GetTimer()
 
 function widget:DrawScreen()
-	-- New Map environment preset: apply once, a few frames after a fresh-map reload
-	-- (gives the water renderer time to come up). Frame-counted rather than gated on
-	-- a game frame so it works while the editor is paused.
-	if widgetState._pendingEnvApply then
-		widgetState._pendingEnvCountdown = (widgetState._pendingEnvCountdown or 0) - 1
-		if widgetState._pendingEnvCountdown <= 0 then
-			local p = widgetState._pendingEnvApply
-			widgetState._pendingEnvApply = nil
-			widgetState.applyEnvConfig(p)
-			Spring.Echo("[Terraform Brush] Applied environment preset: " .. (p.name or "?"))
-		end
-	end
-
-	-- Placeholder-fog suppression: disable fog a few frames after (re)load. Separate
-	-- from the preset apply above so it also fires on a plain luaui reload (no preset).
-	if widgetState._pendingFogOff then
-		widgetState._pendingFogOff = widgetState._pendingFogOff - 1
-		if widgetState._pendingFogOff <= 0 then
-			widgetState._pendingFogOff = nil
-			widgetState.disableFog()
-		end
-	end
-
-	-- Deferred skybox apply: RmlUI click fires from Update, so gl.Texture must be
-	-- done here in DrawScreen. Register the DDS in the GL named-texture cache so
-	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
-	if widgetState._pendingSkyboxPath then
-		local rawTex = widgetState._pendingSkyboxPath
-		local tex = rawTex
-		widgetState._pendingSkyboxPath = nil
-		if tex ~= "" then
-			local bound = nil
-			local candidates = {
-				tex,
-				":r:" .. tex,
-				":l:" .. tex,
-				"maps/" .. tex,
-				":r:maps/" .. tex,
-				":l:maps/" .. tex,
-			}
-			for _, name in ipairs(candidates) do
-				if gl.Texture(name) then
-					gl.Texture(false)
-					bound = name
-					break
-				end
-			end
-			if not bound then
-				Spring.Echo("[Terraform Brush] Skybox bind failed: " .. tex)
-			else
-				tex = bound
-			end
-		end
-		if widgetState.envFadeEnabled then
-			startSkyboxFade(tex, rawTex)
-		else
-			applySkyboxNow(tex, rawTex)
-		end
-	end
-
 	-- NOTE: DDS skybox preloading removed. Spring.SetSkyBoxTexture() loads the
 	-- DDS file directly via the engine; eagerly binding all cubemaps into GL
 	-- exhausted the TexMemPool (512 MB) when many large skyboxes were present,
@@ -10276,7 +18516,26 @@ function widget:DrawScreen()
 	end
 
 	-- Sample terrain diffuse color under cursor via $map_gbuffer_difftex for splat preview tinting.
-	do
+	-- gl.ReadPixels below blocks until the GPU drains, so an ungated sample costs several
+	-- ms every frame — including with the panel hidden, where nothing reads the result.
+	-- Gate on the same condition the swatch draw uses (see DrawScreenPost) and only pay
+	-- the stall every Nth frame; the blend is dt-based, so a stride just coarsens its steps.
+	-- panelEngaged, not dm.activeTool alone: Update returns before writing activeTool
+	-- when the panel is down, so that field holds the last tool used and would keep
+	-- the sample alive after the splat tool closed.
+	local sampleDm = widgetState.dmHandle
+	local sampleSec = widgetState.spChannelSectionEl
+	local wantTerrainSample = widgetState.panelEngaged
+		and sampleDm ~= nil
+		and sampleDm.activeTool == "sp"
+		and not widgetState.lobbyHidden
+		and not (sampleSec and sampleSec:IsClassSet("hidden"))
+	local sampleTick = wantTerrainSample and ((widgetState.spTerrainSampleTick or 0) + 1) or 0
+	if sampleTick >= 3 then
+		sampleTick = 0
+	end
+	widgetState.spTerrainSampleTick = sampleTick
+	if wantTerrainSample and sampleTick == 0 then
 		local mx, my = GetMouseState()
 		if mx and my then
 			local _, coords = TraceScreenRay(mx, my, true)
@@ -10287,7 +18546,8 @@ function widget:DrawScreen()
 				if u >= 0 and u <= 1 and v >= 0 and v <= 1 then
 					if not widgetState.spMinimapSampleTex then
 						widgetState.spMinimapSampleTex = gl.CreateTexture(1, 1, {
-							min_filter = GL.NEAREST, mag_filter = GL.NEAREST,
+							min_filter = GL.NEAREST,
+							mag_filter = GL.NEAREST,
 							fbo = true,
 						})
 					end
@@ -10316,7 +18576,6 @@ function widget:DrawScreen()
 								prev[1] = prev[1] + (sr - prev[1]) * k
 								prev[2] = prev[2] + (sg - prev[2]) * k
 								prev[3] = prev[3] + (sb - prev[3]) * k
-
 							else
 								widgetState.spTerrainColor = { sr, sg, sb }
 								widgetState.spTerrainColorTime = Spring.GetTimer()
@@ -10327,17 +18586,35 @@ function widget:DrawScreen()
 			end
 		end
 	end
-
 end
 
 -- Draw GL-rendered cubemap face previews over skybox thumbnail tiles that have no preview image.
 -- Called from DrawScreenPost when the skybox library window is open.
 -- Uses a simple GLSL shader to sample the -Z (front) face of the cubemap DDS.
 local function drawSkyboxThumbnailPreviews()
-	if widgetState.lobbyHidden then return end
-	if not widgetState.skyboxLibraryOpen then return end
+	if widgetState.lobbyHidden then
+		return
+	end
+	if not widgetState.skyboxLibraryOpen then
+		return
+	end
+	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
+	-- panel is visible, so after closing the Terraformer it still reads as the
+	-- last tool, and these elements still report their last layout box - the
+	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
+	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
+	-- element carries the class the same sync sets.
+	if not widgetState.panelEngaged then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
 	local thumbs = widgetState.envSkyboxThumbs
-	if not thumbs or #thumbs == 0 then return end
+	if not thumbs or #thumbs == 0 then
+		return
+	end
 
 	-- Lazy-create cubemap preview shader
 	if widgetState.skyPreviewShader == nil and gl.CreateShader then
@@ -10366,14 +18643,16 @@ local function drawSkyboxThumbnailPreviews()
 		if not sh or sh == 0 then
 			local shLog = gl.GetShaderLog and gl.GetShaderLog() or "no log"
 			Spring.Echo("[TFBrush] Skybox preview shader FAILED: " .. shLog)
-			widgetState.skyPreviewShader = false  -- false = permanently failed, stop retrying
+			widgetState.skyPreviewShader = false -- false = permanently failed, stop retrying
 		else
 			widgetState.skyPreviewShader = sh
 		end
 	end
 
 	local shader = widgetState.skyPreviewShader
-	if not shader or shader == false then return end
+	if not shader or shader == false then
+		return
+	end
 
 	local vsx, vsy = Spring.GetViewGeometry()
 
@@ -10404,7 +18683,7 @@ local function drawSkyboxThumbnailPreviews()
 				local y = el.absolute_top
 				local w = el.offset_width
 				local h = el.offset_height
-				if w > 4 and h > 4 then
+				if w > 4 and h > 4 and not widgetState.underFileMenu(x, y, w, h) then
 					local glY1 = vsy - y - h
 					local glY2 = vsy - y
 					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
@@ -10417,22 +18696,344 @@ local function drawSkyboxThumbnailPreviews()
 		end
 	end
 
-	if useScissor then gl.Scissor(false) end
+	if useScissor then
+		gl.Scissor(false)
+	end
 	gl.UseShader(0)
 	gl.Color(1, 1, 1, 1)
 	gl.Blending(false)
 end
 
+-- GL albedo thumbnails for the SURFACE palette tiles (called from
+-- DrawScreenPost). Same approach as the splat channel previews below: the RML
+-- tile holds an empty .tf-surf-thumb rect and we overdraw it with gl.TexRect.
+-- The 4K albedos are already resident (the terrain shader binds these same
+-- textures), while an RmlUi <img> would decode the full uncompressed bitmap
+-- into the TexMemPool — the skybox-library bad_alloc lesson.
+local function drawSurfPaletteThumbs()
+	local dm = widgetState.dmHandle
+	if not dm or dm.activeTool ~= "surf" then
+		return
+	end
+	if widgetState.lobbyHidden then
+		return
+	end
+	-- PANEL DOWN = NOTHING TO OVERLAY. dm.activeTool is only refreshed while the
+	-- panel is visible, so after closing the Terraformer it still reads as the
+	-- last tool, and these elements still report their last layout box - the
+	-- thumbs then hang in the world over the map (reported 2026-08-22). Both
+	-- checks are cheap: panelEngaged is what the sync itself uses, and the root
+	-- element carries the class the same sync sets.
+	if not widgetState.panelEngaged then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	-- Draw call-ins do NOT auto-hide with RmlUi layout, and an element that is
+	-- not laid out can still report a stale non-zero box (the splat-preview
+	-- lesson), so every container that can hide these thumbs must be tested
+	-- explicitly: the whole palette frame is data-if'd away in HARD, and the
+	-- section itself collapses.
+	if dm.surfMode ~= "soft" then
+		return
+	end
+	local sec = widgetState.surfPaletteSectionEl
+	if sec and sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.surfPaletteEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		-- Entries tag their owning section (sculpt grid, picker); a collapsed or
+		-- closed owner must not paint its thumbs over whatever took its place.
+		local owner = els[i].sec
+		if owner and owner:IsClassSet("hidden") then
+			div = nil
+		end
+		if div and tex then
+			-- collapsed sections / hidden panels report zero size, which is the
+			-- same guard the splat previews rely on
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+					-- centered crop: a full 4K tile at 52dp reads as noise, so a
+					-- quarter-window shows the material's actual character.
+					-- Entries may widen it (the picker's hover preview is big
+					-- enough to want the whole tile).
+					local u0 = els[i].u0 or 0.25
+					local u1 = els[i].u1 or 0.75
+					gl.TexRect(x, vsy - y - h, x + w, vsy - y, u0, u0, u1, u1)
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- GL albedo thumbnails for the EXTRA LAYER material tiles (tf_tileset.lua's
+-- rebuildS4Palette). Same mechanism as drawSurfPaletteThumbs above, but gated
+-- on the TILESET floating window, not the active tool — the window is
+-- tool-independent by design. On widgetState, not a local: the main chunk sits
+-- near Lua 5.1's 200-local ceiling.
+widgetState.drawTs4PaletteThumbs = function()
+	local dm = widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	-- OFF mode grays the row out via the disabled class; GL overdraw ignores
+	-- CSS opacity, so it has to skip explicitly.
+	if dm.tsSlot4Mode == "off" then
+		return
+	end
+	if widgetState.lobbyHidden or not widgetState.document then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	local sec = widgetState.ts4SectionEl
+	if not sec or sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.ts4PaletteEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		if div and tex then
+			-- collapsed sections / hidden windows report zero size (the same
+			-- guard the surf palette relies on)
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+					-- centered quarter-window crop, like the surf tiles: a full
+					-- 4K tile at 52dp reads as noise
+					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- GL thumbnails for the BIOME LIBRARY tiles (tf_tileset.lua's rebuildBiomePalette):
+-- the shipped biome_<key>.png or a manifest `thumb` drawn whole, or the base
+-- layer's albedo as a centered crop when a biome has neither. Same mechanism and
+-- gates as drawTs4PaletteThumbs above.
+widgetState.drawTsBiomeThumbs = function()
+	local dm = widgetState.dmHandle
+	if not dm or not dm.envTilesetVisible then
+		return
+	end
+	if widgetState.lobbyHidden or not widgetState.document then
+		return
+	end
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
+	local sec = widgetState.tsBiomeSectionEl
+	if not sec or sec:IsClassSet("hidden") then
+		return
+	end
+	local els = widgetState.tsBiomeTileEls
+	if not els or #els == 0 then
+		return
+	end
+	local _, vsy = Spring.GetViewGeometry()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	local clipped = widgetState.pushPanelClip(els[1].el)
+	for i = 1, #els do
+		local div = els[i].el
+		local tex = els[i].tex
+		if div and tex then
+			local w = div.offset_width
+			local h = div.offset_height
+			if w > 0 and h > 0 then
+				local x = div.absolute_left
+				local y = div.absolute_top
+				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+					if els[i].crop then
+						-- a 4K albedo at 60dp reads as noise: centered quarter crop
+						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
+					else
+						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0, 1, 1, 0)
+					end
+					gl.Texture(0, false)
+				end
+			end
+		end
+	end
+	if clipped then
+		gl.Scissor(false)
+	end
+	gl.Blending(false)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- Deferred applies that need a draw call-in (gl.Texture) or a frame count after
+-- a reload. Drained from DrawScreenPost, NOT DrawScreen: the widget handler
+-- skips DrawScreen while the interface is hidden (barwidgets.lua, IsGUIHidden)
+-- and FOCUS MODE hides it on purpose, which used to leave a skybox pick parked
+-- until the HUD came back and would stall a New Map reload's env preset,
+-- fog-off and forcestart the same way. DrawScreenPost runs right after
+-- DrawScreen in the same frame, so nothing else moves.
+widgetState.drainDeferredApplies = function()
+	-- New Map environment preset: apply once, a few frames after a fresh-map reload
+	-- (gives the water renderer time to come up). Frame-counted rather than gated on
+	-- a game frame so it works while the editor is paused.
+	if widgetState._pendingEnvApply then
+		widgetState._pendingEnvCountdown = (widgetState._pendingEnvCountdown or 0) - 1
+		if widgetState._pendingEnvCountdown <= 0 then
+			local p = widgetState._pendingEnvApply
+			widgetState._pendingEnvApply = nil
+			widgetState.applyEnvConfig(p)
+			Spring.Echo("[Terraform Brush] Applied environment preset: " .. ((p and p.name) or "?"))
+		end
+	end
+
+	-- Placeholder-fog suppression: disable fog a few frames after (re)load. Separate
+	-- from the preset apply above so it also fires on a plain luaui reload (no preset).
+	if widgetState._pendingFogOff then
+		widgetState._pendingFogOff = widgetState._pendingFogOff - 1
+		if widgetState._pendingFogOff <= 0 then
+			widgetState._pendingFogOff = nil
+			widgetState.disableFog()
+		end
+	end
+
+	-- Leave pregame on editor canvases (armed in Initialize). A project load
+	-- started from its pointer file owns the forcestart itself.
+	if widgetState._pendingForceStart then
+		widgetState._pendingForceStart = widgetState._pendingForceStart - 1
+		if widgetState._pendingForceStart <= 0 then
+			widgetState._pendingForceStart = nil
+			---@type table?
+			local mp = WG.MapProject
+			local loading = mp and mp.isLoading and mp.isLoading()
+			if not loading then
+				if Spring.GetGameFrame() <= 0 then
+					Spring.Echo(
+						"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
+					)
+					Spring.SendCommands("forcestart")
+				end
+				-- New Map: the canvas is playable now, bring the editor up.
+				widgetState.openEditor()
+			end
+		end
+	end
+
+	-- Deferred skybox apply: RmlUI click fires from Update, so gl.Texture must be
+	-- done from a draw call-in. Register the DDS in the GL named-texture cache so
+	-- Spring.SetSkyBoxTexture (which calls CNamedTextures::GetInfo) can find it.
+	if widgetState._pendingSkyboxPath then
+		local rawTex = widgetState._pendingSkyboxPath
+		local tex = rawTex
+		widgetState._pendingSkyboxPath = nil
+		if tex ~= "" then
+			local bound = nil
+			local candidates = {
+				tex,
+				":r:" .. tex,
+				":l:" .. tex,
+				"maps/" .. tex,
+				":r:maps/" .. tex,
+				":l:maps/" .. tex,
+			}
+			for _, name in ipairs(candidates) do
+				if gl.Texture(name) then
+					gl.Texture(false)
+					bound = name
+					break
+				end
+			end
+			if not bound then
+				Spring.Echo("[Terraform Brush] Skybox bind failed: " .. tex)
+			else
+				tex = bound
+			end
+		end
+		if widgetState.envFadeEnabled then
+			startSkyboxFade(tex, rawTex)
+		else
+			applySkyboxNow(tex, rawTex)
+		end
+	end
+end
+
 function widget:DrawScreenPost()
+	-- Skybox pick, New Map env preset, fog-off, forcestart (see the definition).
+	widgetState.drainDeferredApplies()
+
+	-- FILE dropdown box, read once for every pass below to skip tiles under it.
+	widgetState.measureFileMenuBox()
 
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
 
+	-- SURFACE palette tile thumbnails (early-outs on its own tool check).
+	drawSurfPaletteThumbs()
+
+	-- EXTRA LAYER material tile thumbnails (early-outs on its own window check).
+	widgetState.drawTs4PaletteThumbs()
+
+	-- BIOME LIBRARY tile thumbnails (same gates).
+	widgetState.drawTsBiomeThumbs()
+
 	-- Render splat detail texture previews into the channel div elements.
 	-- Only render when splat tool is active; avoids gl.* overlay leaking over other tools/panels.
 	local dm = widgetState.dmHandle
-	if not dm or dm.activeTool ~= "sp" then return end
-	if widgetState.lobbyHidden then return end
+	-- panelEngaged first: activeTool goes stale when the panel closes (Update returns
+	-- before writing it), so the tool check alone keeps this drawing into a dead panel.
+	if not widgetState.panelEngaged then
+		return
+	end
+	if not dm or dm.activeTool ~= "sp" then
+		return
+	end
+	if widgetState.lobbyHidden then
+		return
+	end
+	-- ...and the root element carries the hidden class the same sync sets
+	local rootEl = widgetState.rootElement
+	if rootEl and rootEl:IsClassSet("hidden") then
+		return
+	end
 
 	-- The Channel section can be collapsed independently of the tool being
 	-- active. Draw* call-ins don't auto-hide with the panel (the engine only
@@ -10440,183 +19041,202 @@ function widget:DrawScreenPost()
 	-- the "hidden" class we must skip rendering or the preview PNGs leak on
 	-- screen after the section/menu is closed.
 	local secEl = widgetState.spChannelSectionEl
-	if secEl and secEl:IsClassSet("hidden") then return end
+	if secEl and secEl:IsClassSet("hidden") then
+		return
+	end
 
 	local els = widgetState.spPreviewEls
 
-	if not els then return end
-
-
+	if not els then
+		return
+	end
 
 	-- Feature 3: when the Tileset Terrain shader is active, the 4 splat channels
 	-- blend its 4 layers, so the swatches should preview those layer textures
 	-- instead of the map's DNTS normals. Re-run discovery whenever it flips.
-	local tilesetActive = (WG.TilesetTerrain and WG.TilesetTerrain.isActive
-		and WG.TilesetTerrain.isActive()) and true or false
+	local tilesetActive = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive()) and true
+		or false
 	if tilesetActive ~= widgetState.spPreviewTilesetActive then
 		widgetState.spPreviewTilesetActive = tilesetActive
 		widgetState.spPreviewVerified = false
 		widgetState.spPreviewRetries = 0
 	end
+	-- A biome swap keeps the shader active (no flip above) while replacing the
+	-- four layer textures, which left the swatches stuck on the previous biome.
+	-- Re-arm discovery whenever the channel set itself changes.
+	if tilesetActive and WG.TilesetTerrain.getChannelTextures then
+		local chTex = WG.TilesetTerrain.getChannelTextures()
+		local sig = type(chTex) == "table"
+				and (tostring(chTex[1]) .. "|" .. tostring(chTex[2]) .. "|" .. tostring(chTex[3]) .. "|" .. tostring(
+					chTex[4]
+				))
+			or ""
+		if sig ~= widgetState.spPreviewTilesetSig then
+			widgetState.spPreviewTilesetSig = sig
+			widgetState.spPreviewVerified = false
+			widgetState.spPreviewRetries = 0
+		end
+	end
 
 	if not widgetState.spPreviewVerified then
-
 		widgetState.spPreviewRetries = (widgetState.spPreviewRetries or 0) + 1
 
 		local found = {}
 
 		local isDNTS = true
 
-		local SP_PREVIEW_DEBUG = false  -- set true to log DNTS texture discovery to infolog
-		local logRetry = SP_PREVIEW_DEBUG and (widgetState.spPreviewRetries == 1 or widgetState.spPreviewRetries == 30 or widgetState.spPreviewRetries == 120)
+		local SP_PREVIEW_DEBUG = false -- set true to log DNTS texture discovery to infolog
+		local logRetry = SP_PREVIEW_DEBUG
+			and (
+				widgetState.spPreviewRetries == 1
+				or widgetState.spPreviewRetries == 30
+				or widgetState.spPreviewRetries == 120
+			)
 
 		local function tryTex(path)
+			if not path or type(path) ~= "string" or path == "" then
+				return nil
+			end
 
-			if not path or type(path) ~= "string" or path == "" then return nil end
-
-			for _, candidate in ipairs({path, "maps/" .. path, ":l:" .. path, ":l:maps/" .. path}) do
-
+			for _, candidate in ipairs({ path, "maps/" .. path, ":l:" .. path, ":l:maps/" .. path }) do
 				local info = gl.TextureInfo(candidate)
 
 				if info then
-
-					if logRetry then Spring.Echo("[TFBrush] tryTex OK: " .. candidate .. " id=" .. tostring(info.id or "nil") .. " xsize=" .. tostring(info.xsize or "nil")) end
+					if logRetry then
+						Spring.Echo(
+							"[TFBrush] tryTex OK: "
+								.. candidate
+								.. " id="
+								.. tostring(info.id or "nil")
+								.. " xsize="
+								.. tostring(info.xsize or "nil")
+						)
+					end
 
 					return candidate
-
 				end
-
 			end
 
 			return nil
-
 		end
 
 		-- Strategy 1: $ssmf_splat_normals:N engine bindings (DNTS packed, most reliable)
 
 		for i = 0, 3 do
-
 			local name = "$ssmf_splat_normals:" .. i
 
 			local info = gl.TextureInfo(name)
 
 			if logRetry then
-
 				if info then
-
-					Spring.Echo("[TFBrush] Strategy1 " .. name .. " id=" .. tostring(info.id or "nil") .. " xsize=" .. tostring(info.xsize or "nil"))
-
+					Spring.Echo(
+						"[TFBrush] Strategy1 "
+							.. name
+							.. " id="
+							.. tostring(info.id or "nil")
+							.. " xsize="
+							.. tostring(info.xsize or "nil")
+					)
 				else
-
 					Spring.Echo("[TFBrush] Strategy1 " .. name .. " -> nil")
-
 				end
-
 			end
 
 			if info and info.xsize and info.xsize > 0 then
-
 				found[i + 1] = name
-
 			end
-
 		end
 
 		-- Strategy 2: mapinfo.lua resources (prefer DNTS normals over diffuse)
 
 		if not next(found) then
-
-			if logRetry then Spring.Echo("[TFBrush] Strategy1 found nothing, trying mapinfo.lua") end
+			if logRetry then
+				Spring.Echo("[TFBrush] Strategy1 found nothing, trying mapinfo.lua")
+			end
 
 			local mOk, mapinfo = pcall(VFS.Include, "mapinfo.lua")
 
-			if logRetry then Spring.Echo("[TFBrush] mapinfo.lua load: ok=" .. tostring(mOk) .. " type=" .. type(mapinfo)) end
+			if logRetry then
+				Spring.Echo("[TFBrush] mapinfo.lua load: ok=" .. tostring(mOk) .. " type=" .. type(mapinfo))
+			end
 
 			if mOk and mapinfo then
-
 				local res = mapinfo.resources or {}
 
 				if logRetry then
-
 					for k, v in pairs(res) do
-
 						if type(k) == "string" and k:lower():find("splat") then
-
 							Spring.Echo("[TFBrush] mapinfo.resources." .. k .. " = " .. tostring(v))
-
 						end
-
 					end
-
 				end
 
 				for i = 1, 4 do
-
-					for _, key in ipairs({"splatDetailNormalTex" .. i, "splatDetailNormalTex" .. (i - 1), "splatdetailnormaltex" .. i, "splatdetailnormaltex" .. (i - 1)}) do
-
+					for _, key in ipairs({
+						"splatDetailNormalTex" .. i,
+						"splatDetailNormalTex" .. (i - 1),
+						"splatdetailnormaltex" .. i,
+						"splatdetailnormaltex" .. (i - 1),
+					}) do
 						local result = tryTex(res[key])
 
-						if result then found[i] = result; break end
-
+						if result then
+							found[i] = result
+							break
+						end
 					end
-
 				end
 
 				if not next(found) then
-
 					isDNTS = false
 
 					local sdt = res.splatDetailTex or res.splatdetailtex
 
 					if type(sdt) == "table" then
-
-						if logRetry then Spring.Echo("[TFBrush] splatDetailTex is table, #=" .. #sdt) end
-
-						for i = 1, 4 do
-
-							found[i] = tryTex(sdt[i]) or tryTex(sdt[i - 1])
-
+						if logRetry then
+							Spring.Echo("[TFBrush] splatDetailTex is table, #=" .. #sdt)
 						end
 
+						for i = 1, 4 do
+							found[i] = tryTex(sdt[i]) or tryTex(sdt[i - 1])
+						end
 					end
 
 					if not next(found) then
-
 						for i = 1, 4 do
-
-							for _, key in ipairs({"splatDetailTex" .. (i - 1), "splatDetailTex" .. i, "splatdetailtex" .. (i - 1), "splatdetailtex" .. i}) do
-
+							for _, key in ipairs({
+								"splatDetailTex" .. (i - 1),
+								"splatDetailTex" .. i,
+								"splatdetailtex" .. (i - 1),
+								"splatdetailtex" .. i,
+							}) do
 								local result = tryTex(res[key])
 
-								if result then found[i] = result; break end
-
+								if result then
+									found[i] = result
+									break
+								end
 							end
-
 						end
-
 					end
-
 				end
-
 			end
-
 		end
 
 		if logRetry then
-
-			Spring.Echo("[TFBrush] Discovery result (retry " .. widgetState.spPreviewRetries .. "): isDNTS=" .. tostring(isDNTS))
+			Spring.Echo(
+				"[TFBrush] Discovery result (retry " .. widgetState.spPreviewRetries .. "): isDNTS=" .. tostring(isDNTS)
+			)
 
 			for i = 1, 4 do
-
 				Spring.Echo("[TFBrush]   channel " .. i .. " = " .. tostring(found[i] or "NONE"))
-
 			end
-
 		end
 
 		-- Tileset Terrain shader owns the channels: override any map DNTS discovery
 		-- with the tileset's per-channel layer diffuse (rendered as lit diffuse,
 		-- isDNTS = false). Falls back to whatever was found if a texture is missing.
+		local tilesetPending = false
 		if tilesetActive and WG.TilesetTerrain.getChannelTextures then
 			local chTex = WG.TilesetTerrain.getChannelTextures()
 			if type(chTex) == "table" then
@@ -10625,10 +19245,20 @@ function widget:DrawScreenPost()
 					local p = chTex[i]
 					if type(p) == "string" and p ~= "" then
 						local info = gl.TextureInfo(p)
-						if info and info.xsize and info.xsize > 0 then tf[i] = p end
+						if info and info.xsize and info.xsize > 0 then
+							tf[i] = p
+						else
+							-- Layer texture declared but not loadable yet: don't let a
+							-- partial set (or the map-DNTS fallback) win the race and
+							-- get cached as verified — keep retrying until the cap.
+							tilesetPending = true
+						end
 					end
 				end
-				if next(tf) then found = tf; isDNTS = false end
+				if next(tf) then
+					found = tf
+					isDNTS = false
+				end
 			end
 		end
 
@@ -10636,28 +19266,29 @@ function widget:DrawScreenPost()
 
 		widgetState.spPreviewIsDNTS = isDNTS
 
-		if next(found) or widgetState.spPreviewRetries >= 120 then
-
+		if (next(found) and not tilesetPending) or widgetState.spPreviewRetries >= 120 then
 			widgetState.spPreviewVerified = true
 
-			if SP_PREVIEW_DEBUG then Spring.Echo("[TFBrush] Texture discovery DONE at retry " .. widgetState.spPreviewRetries .. " found=" .. tostring(next(found) ~= nil)) end
-
+			if SP_PREVIEW_DEBUG then
+				Spring.Echo(
+					"[TFBrush] Texture discovery DONE at retry "
+						.. widgetState.spPreviewRetries
+						.. " found="
+						.. tostring(next(found) ~= nil)
+				)
+			end
 		end
-
 	end
-
-
 
 	local textures = widgetState.spPreviewTextures
 
-	if not textures or not next(textures) then return end
-
-
+	if not textures or not next(textures) then
+		return
+	end
 
 	-- Lazy-init terrain preview shader (handles DNTS normal maps and diffuse fallback)
 
 	if not widgetState.spPreviewShader and gl.CreateShader then
-
 		widgetState.spPreviewShader = gl.CreateShader({
 
 			vertex = [[
@@ -10765,34 +19396,26 @@ function widget:DrawScreenPost()
 			uniformInt = { tex0 = 0, channel = 0, isDNTS = 1 },
 
 			uniformFloat = { terrainColor = { 0.4, 0.4, 0.4 } },
-
 		})
 
 		if not widgetState.spPreviewShader or widgetState.spPreviewShader == 0 then
-
 			local shLog = gl.GetShaderLog and gl.GetShaderLog() or "no log"
 
 			Spring.Echo("[TFBrush] Shader creation FAILED: " .. shLog)
 
 			widgetState.spPreviewShader = nil
-
 		else
-
 			Spring.Echo("[TFBrush] Shader created OK: " .. tostring(widgetState.spPreviewShader))
 
 			widgetState.spPreviewShaderChannelLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "channel")
 
 			widgetState.spPreviewShaderTerrainLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "terrainColor")
 
-			widgetState.spPreviewShaderIsDNTSLoc  = gl.GetUniformLocation(widgetState.spPreviewShader, "isDNTS")
-
+			widgetState.spPreviewShaderIsDNTSLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "isDNTS")
 		end
-
 	end
 
-
-
-	local vsx, vsy = Spring.GetViewGeometry()
+	local vsx, vsy = GetViewGeometry()
 
 	local shader = widgetState.spPreviewShader
 
@@ -10801,35 +19424,30 @@ function widget:DrawScreenPost()
 	gl.Color(1, 1, 1, 1)
 
 	if shader then
-
 		gl.UseShader(shader)
 
 		local tc = widgetState.spTerrainColor
 
 		if tc and widgetState.spPreviewShaderTerrainLoc then
-
 			gl.Uniform(widgetState.spPreviewShaderTerrainLoc, tc[1], tc[2], tc[3])
-
 		end
 
 		if widgetState.spPreviewShaderIsDNTSLoc then
-
 			gl.UniformInt(widgetState.spPreviewShaderIsDNTSLoc, widgetState.spPreviewIsDNTS and 1 or 0)
-
 		end
-
 	end
 
 	local logDraw = not widgetState.spPreviewDrawLogged
 
-	for i = 1, 4 do
+	-- Clip to the panel's scroll box so a scrolled-out swatch stops painting.
+	local spClipped = widgetState.pushPanelClip(els[1])
 
+	for i = 1, 4 do
 		local div = els[i]
 
 		local tex = textures[i]
 
 		if div and tex then
-
 			local x = div.absolute_left
 
 			local y = div.absolute_top
@@ -10839,75 +19457,79 @@ function widget:DrawScreenPost()
 			local h = div.offset_height
 
 			if logDraw then
-
-				Spring.Echo("[TFBrush] Draw ch" .. i .. " pos=(" .. x .. "," .. y .. ") size=(" .. w .. "," .. h .. ") tex=" .. tex)
-
+				Spring.Echo(
+					"[TFBrush] Draw ch"
+						.. i
+						.. " pos=("
+						.. x
+						.. ","
+						.. y
+						.. ") size=("
+						.. w
+						.. ","
+						.. h
+						.. ") tex="
+						.. tex
+				)
 			end
 
 			if w > 0 and h > 0 then
-
 				local glY1 = vsy - y - h
 
 				local glY2 = vsy - y
 
 				if shader and widgetState.spPreviewShaderChannelLoc then
-
 					gl.UniformInt(widgetState.spPreviewShaderChannelLoc, i - 1)
-
 				end
 
-				local bound = gl.Texture(0, tex)
+				local bound = not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex)
 
 				if logDraw then
-
 					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
-
 				end
 
 				if bound then
-
 					local aspect = w / h
 
 					local u0, u1, v0, v1
 
 					if aspect > 1 then
-
 						local inset = (1 - 1 / aspect) * 0.5
 
 						u0, u1, v0, v1 = 0, 1, inset, 1 - inset
-
 					else
-
 						local inset = (1 - aspect) * 0.5
 
 						u0, u1, v0, v1 = inset, 1 - inset, 0, 1
-
 					end
 
 					gl.TexRect(x, glY1, x + w, glY2, u0, v0, u1, v1)
 
 					gl.Texture(0, false)
-
 				end
-
 			end
-
 		end
-
 	end
 
 	widgetState.spPreviewDrawLogged = true
 
-	if shader then gl.UseShader(0) end
+	if spClipped then
+		gl.Scissor(false)
+	end
+
+	if shader then
+		gl.UseShader(0)
+	end
 
 	gl.Blending(true)
 
 	gl.Color(1, 1, 1, 1)
-
 end
 -- Shared: draw black overlay on sky pixels (depth == 1.0) for skybox fade
 local function drawSkyFadeOverlay()
-	if not skyFade.active then return end
+	if not skyFade.active then
+		return
+	end
 
 	local alpha = 0
 	if skyFade.phase == "fadeout" then
@@ -10915,7 +19537,9 @@ local function drawSkyFadeOverlay()
 	elseif skyFade.phase == "fadein" then
 		alpha = 1 - skyFade.progress
 	end
-	if alpha <= 0 then return end
+	if alpha <= 0 then
+		return
+	end
 
 	gl.DepthMask(false)
 	gl.DepthTest(GL.EQUAL)
@@ -10932,9 +19556,9 @@ local function drawSkyFadeOverlay()
 
 	gl.BeginEnd(GL.QUADS, function()
 		gl.Vertex(-1, -1, 1)
-		gl.Vertex( 1, -1, 1)
-		gl.Vertex( 1,  1, 1)
-		gl.Vertex(-1,  1, 1)
+		gl.Vertex(1, -1, 1)
+		gl.Vertex(1, 1, 1)
+		gl.Vertex(-1, 1, 1)
 	end)
 
 	gl.Color(1, 1, 1, 1)
@@ -10957,1356 +19581,2630 @@ function widget:DrawWorldReflection()
 	drawSkyFadeOverlay()
 end
 
-function widget:Update()
-	local ok, err = pcall(function()
+-- Sliders whose useful range is the map's height band. All ship with a
+-- hardcoded ±500 in the RML, which walls off the height cap (and altitude
+-- filters) on tall maps: CM03 tops out well past 500 and even TYPED values
+-- clamp to the slider attributes (wireSliderNumbox reads min/max from them).
+local HEIGHT_BAND_SLIDERS = {
+	"slider-cap-max",
+	"slider-cap-min",
+	"slider-cl-height",
+	"slider-gb-alt-min",
+	"slider-gb-alt-max",
+	"fp-slider-alt-min",
+	"fp-slider-alt-max",
+	"sp-slider-alt-min",
+	"sp-slider-alt-max",
+	"surf-hard-slider-alt-min",
+	"surf-hard-slider-alt-max",
+	"surf-slider-inf-alt-min",
+	"surf-slider-inf-alt-max",
+}
 
-	-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
-	-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
-	-- off, with a resend gap and an attempt cap (same rule as the project load
-	-- driver). The unit wipe waits a short delay after arming keep-alive because
-	-- the disablegadget chat path and SendLuaRulesMsg are separate channels with
-	-- no cross-ordering guarantee — wiping before game_end is gone would end the
-	-- match on the spot.
-	local ka = widgetState.keepAlive
-	if ka and (ka.pending or ka.clearQueued) then
-		if Spring.IsCheatingEnabled() then
-			ka.cheatSends, ka.lastCheatSend = nil, nil
-			if ka.pending then
-				ka.pending = nil
-				ka.active = true
-				Spring.SendCommands("luarules disablegadget Game End")
-				Spring.SendCommands("luarules disablegadget Team Com Ends")
-				local d = widgetState.dmHandle
-				if d then d.keepAliveStr = "ON"; d.keepAliveActive = true end
-				Spring.Echo("[Terraform Brush] Match end disabled for this session: teams now survive with zero units.")
-				if ka.clearQueued then ka.clearDelay = 90 end
-			end
-			if ka.clearQueued then
-				ka.clearDelay = (ka.clearDelay or 1) - 1
-				if ka.clearDelay <= 0 then
-					ka.clearQueued = nil
-					Spring.SendLuaRulesMsg("$mpunits_begin$")
-					Spring.SendLuaRulesMsg("$mpunits_end$")
-					Spring.Echo("[Terraform Brush] Removing all units from the map...")
-				end
-			end
-		else
-			local now = os.clock()
-			if not ka.lastCheatSend or (now - ka.lastCheatSend) > 5 then
-				if (ka.cheatSends or 0) >= 3 then
-					ka.pending, ka.clearQueued = nil, nil
-					ka.cheatSends, ka.lastCheatSend = nil, nil
-					local d = widgetState.dmHandle
-					if d and not ka.active then d.keepAliveStr = "OFF"; d.keepAliveActive = false end
-					Spring.Echo("[Terraform Brush] Could not enable /cheat — match end protection unchanged. Enable cheats and try again.")
-				else
-					ka.cheatSends = (ka.cheatSends or 0) + 1
-					ka.lastCheatSend = now
-					Spring.SendCommands("cheat")
-				end
-			end
-		end
-	end
-
-	-- One-shot: when map damage is disabled, auto-switch to Features tool on first update
-	if widgetState.noTerraform and not widgetState.noTerraformInitDone and WG.FeaturePlacer then
-		widgetState.noTerraformInitDone = true
-		if WG.TerraformBrush then WG.TerraformBrush.deactivate() end
-		WG.FeaturePlacer.setMode("point")
-	end
-
-	-- Mirror the Map Labels window state onto the header button highlight
-	-- (the window can close itself via its own X button)
-	do
-		local d = widgetState.dmHandle
-		if d then
-			local mlOpen = (WG.MapLabels and WG.MapLabels.isOpen()) and true or false
-			if d.mapLabelsOpen ~= mlOpen then d.mapLabelsOpen = mlOpen end
-		end
-	end
-
-	-- Poll-based window drag (position only — mouseup ends drag via doc listener)
-	local ds = windowDragState
-	if ds.active and ds.rootEl then
-		local mx, my = GetMouseState()
-		local vsx, vsy = ds.vsx, ds.vsy
-		local ew, eh = ds.ew, ds.eh
-		local T = WINDOW_SNAP_THRESHOLD
-		-- Spring Y is from bottom, RmlUI Y is from top
-		local rmlY = vsy - my
-		local newX = mx - ds.offsetX
-		local newY = rmlY - ds.offsetY
-
-		if newX < 0 then newX = 0
-		elseif newX + ew > vsx then newX = vsx - ew end
-		if newY < 0 then newY = 0
-		elseif newY + eh > vsy then newY = vsy - eh end
-
-		if newX < T then newX = 0
-		elseif vsx - newX - ew < T then newX = vsx - ew end
-		if newY < T then newY = 0
-		elseif vsy - newY - eh < T then newY = vsy - eh end
-
-		local rects = ds.snapRects
-		if rects then
-			local newR, newB = newX + ew, newY + eh
-			for i = 1, #rects do
-				local r = rects[i]
-				local ox, oy = r[1], r[2]
-				local oR, oB = ox + r[3], oy + r[4]
-				if newY < oB and newB > oy then
-					local d = newX - oR
-					if d > -T and d < T then newX = oR; newR = newX + ew
-					else d = newR - ox
-						if d > -T and d < T then newX = ox - ew; newR = ox
-						else d = newX - ox
-							if d > -T and d < T then newX = ox; newR = newX + ew
-							else d = newR - oR
-								if d > -T and d < T then newX = oR - ew; newR = oR end
-							end
-						end
-					end
-				end
-				if newX < oR and newR > ox then
-					local d = newY - oB
-					if d > -T and d < T then newY = oB; newB = newY + eh
-					else d = newB - oy
-						if d > -T and d < T then newY = oy - eh; newB = oy
-						else d = newY - oy
-							if d > -T and d < T then newY = oy; newB = newY + eh
-							else d = newB - oB
-								if d > -T and d < T then newY = oB - eh; newB = oB end
-							end
-						end
-					end
-				end
-			end
-		end
-
-		local ix = math.floor(newX)
-		local iy = math.floor(newY)
-		if ix ~= ds.lastX or iy ~= ds.lastY then
-			ds.lastX = ix
-			ds.lastY = iy
-			ds.rootEl.style.left = ix .. "px"
-			ds.rootEl.style.top  = iy .. "px"
-		end
-	end
-
-	-- When game chat input is open, auto-blur any focused RmlUI text input so
-	-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
-	if widgetState.focusedRmlInput and WG['chat'] and WG['chat'].isInputActive() then
-		widgetState.focusedRmlInput:Blur()
-		widgetState.focusedRmlInput = nil
-	end
-
-	-- Drive skybox fade transition
-	local now = Spring.GetTimer()
-	local dt = Spring.DiffTimers(now, lastUpdateClock)
-	lastUpdateClock = now
-	tickSkyboxFade(dt)
-	tickSkyDynamic(dt)
-
-	-- Transport auto-scroll tick
-	do
-		local TSPEEDS = {0.005, 0.02, 0.08, 0.25}  -- fraction of range per second at each speed level
-		for tid, t in pairs(widgetState.transports) do
-			if not t.paused then
-				-- min/max/step cached at transport creation (see regTransports);
-				-- slider-intensity max refreshes the cache where it is written.
-				local rmin  = t.rmin
-				local rmax  = t.rmax
-				local rstep = t.rstep
-				-- directional scroll
-				if t.dir ~= 0 then
-					local rate  = (TSPEEDS[t.speed] or 0.005) * (rmax - rmin) * t.dir
-					t.accum = t.accum + rate * dt
-					if math.abs(t.accum) >= rstep then
-						local stps  = math.floor(math.abs(t.accum) / rstep)
-						local delta = stps * rstep * (t.accum >= 0 and 1 or -1)
-						t.accum    = t.accum - delta
-						local cur  = tonumber(t.el:GetAttribute("value")) or rmin
-						local nv
-						if t.wrap then
-							nv = rmin + ((cur + delta - rmin) % (rmax - rmin + rstep))
-						else
-							nv = math.max(rmin, math.min(rmax, cur + delta))
-						end
-						if cur ~= nv then
-							local nvStr = tostring(nv)
-							t.el:SetAttribute("value", nvStr)
-							-- Transports are keyed by element id: keep the
-							-- setAttrValueIfChanged cache coherent so syncs
-							-- can still snap the value back when needed.
-							widgetState.lastAttrValue[tid] = nvStr
-						end
-					end
-				end
-			end
-		end
-	end
-
-	updateFloatingTip()
-	-- Detect viewport resize and re-clamp panel position (width lives in RCSS).
-	local vsx, vsy = GetViewGeometry()
-	if vsx ~= lastVsx or vsy ~= lastVsy then
-		lastVsx, lastVsy = vsx, vsy
-		if widgetState.rootElement then
-			widgetState.rootElement:SetAttribute("style", buildRootStyle())
-		end
-	end
-
-	local tfState = WG.TerraformBrush and WG.TerraformBrush.getState()
-	local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
-	local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
-	local spState = WG.SplatPainter and WG.SplatPainter.getState()
-	local mbState = WG.MetalBrush and WG.MetalBrush.getState()
-	local gbState = WG.GrassBrush and WG.GrassBrush.getState()
-	local dfpActive = WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() or false
-	local tfActive = tfState and tfState.active
-	local fpActive = fpState and fpState.active
-	local wbActive = wbState and wbState.active
-	local spActive = spState and spState.active
-	local mbActive = mbState and mbState.active
-	local gbActive = gbState and gbState.active
-	local envActive = widgetState.envActive
-	local lpState = WG.LightPlacer and WG.LightPlacer.getState()
-	local lpActive = widgetState.lightActive and lpState and lpState.active
-	local stpState = WG.StartPosTool and WG.StartPosTool.getState()
-	local stpActive = widgetState.startposActive and stpState and stpState.active
-	local clState = WG.CloneTool and WG.CloneTool.getState()
-	local clActive = widgetState.cloneActive and clState and clState.active
-	local decalsActive = widgetState.decalsActive and true or false
-
-	-- Deactivate environment mode when any other tool becomes active
-	if envActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or lpActive or stpActive or clActive or decalsActive or dfpActive) then
-		widgetState.envActive = false
-		envActive = false
-	end
-	-- Deactivate light mode when any other tool becomes active
-	if lpActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or stpActive or clActive or decalsActive or dfpActive) then
-		widgetState.lightActive = false
-		if WG.LightPlacer then WG.LightPlacer.deactivate() end
-		lpActive = false
-	end
-	-- Deactivate startpos mode when any other tool becomes active
-	if stpActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or clActive or decalsActive or dfpActive) then
-		widgetState.startposActive = false
-		if WG.StartPosTool then WG.StartPosTool.deactivate() end
-		stpActive = false
-	end
-	-- Deactivate clone mode when any other tool becomes active
-	if clActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or decalsActive or dfpActive) then
-		widgetState.cloneActive = false
-		if WG.CloneTool then WG.CloneTool.deactivate() end
-		clActive = false
-	end
-	-- Deactivate decals mode when any other (real) tool becomes active
-	if decalsActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or dfpActive) then
-		widgetState.decalsActive = false
-		if WG.DecalPlacer then WG.DecalPlacer.deactivate() end
-		decalsActive = false
-	end
-	-- Deactivate tileset mode when any other tool becomes active. The terraform
-	-- brush has no *Active branch in the tool derivation below (it maps to ""),
-	-- so without this the tileset panel would linger when you switch to it.
-	if widgetState.tilesetActive and (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive) then
-		widgetState.tilesetActive = false
-	end
-
-	-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
-	local panelVisible = (tfActive or fpActive or wbActive or spActive or mbActive or gbActive or envActive or lpActive or stpActive or clActive or decalsActive or dfpActive or widgetState.tilesetActive or widgetState.passthroughMode) and not widgetState.panelHidden
-	if widgetState.rootElement then
-		widgetState.rootElement:SetClass("hidden", not panelVisible)
-	end
-	if not panelVisible then
-		-- Clear any locked sliders when panel hides
-		if next(widgetState.lockedSliders) then
-			for id, element in pairs(widgetState.lockedSliders) do
-				element:SetClass("slider-locked", false)
-				element:SetClass("slider-pulse", false)
-			end
-			widgetState.lockedSliders = {}
-			widgetState.sliderLastClickTime = {}
-		end
-		-- Clear flash state and prev-sync tracking
-		for id, flash in pairs(widgetState.sliderFlashes) do
-			flash.el:SetClass("slider-flash", false)
-		end
-		widgetState.sliderFlashes = {}
-		widgetState.prevSyncValues = {}
+-- Widen those sliders to a padded envelope of the map's real height range,
+-- never narrower than the legacy ±500. Uses the union of init and current
+-- ground extremes, so it covers real maps at boot and grows as project loads
+-- or imports replace the canvas terrain (current extremes only ever widen —
+-- fine here, an envelope is exactly what a bound wants). Cheap early-out:
+-- only touches elements when the rounded band actually changes.
+local function updateHeightBandSliderBounds(doc)
+	local initMin, initMax, currMin, currMax = Spring.GetGroundExtremes()
+	local bandMin = math.min(initMin or 0, currMin or 0)
+	local bandMax = math.max(initMax or 0, currMax or 0)
+	local lo = math.min(-500, math.floor((bandMin - 100) / 100) * 100)
+	local hi = math.max(500, math.ceil((bandMax + 200) / 100) * 100)
+	if widgetState.heightBandLo == lo and widgetState.heightBandHi == hi then
 		return
 	end
-
-	-- Toggle section visibility
-	if panelVisible then
-	-- Drive panel-mode swap via data-if="activeTool == 'X'" — single dm field instead of 13 imperative SetClass writes.
-	do
-		local tool = ""
-		if widgetState.decalsActive then tool = "dc"
-		elseif fpActive then tool = "fp"
-		elseif wbActive then tool = "wb"
-		elseif spActive then tool = "sp"
-		elseif mbActive then tool = "mb"
-		elseif gbActive then tool = "gb"
-		elseif envActive then tool = "env"
-		elseif lpActive then tool = "lp"
-		elseif stpActive then tool = "stp"
-		elseif clActive then tool = "cl"
-		elseif dfpActive then tool = "diff"
-		elseif widgetState.tilesetActive then tool = "ts"
-		end
-		if widgetState.dmHandle then
-			if widgetState.dmHandle.activeTool ~= tool then widgetState.dmHandle.activeTool = tool end
-			-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
-			-- .active visual; only one button across both rows should highlight. When a non-tf
-			-- tool is active, clear activeMode so the stale terrain-mode highlight drops.
-			if tool ~= "" and widgetState.dmHandle.activeMode ~= "" then widgetState.dmHandle.activeMode = "" end
+	widgetState.heightBandLo = lo
+	widgetState.heightBandHi = hi
+	for i = 1, #HEIGHT_BAND_SLIDERS do
+		local el = getCachedEl(doc, HEIGHT_BAND_SLIDERS[i])
+		if el then
+			el:SetAttribute("min", tostring(lo))
+			el:SetAttribute("max", tostring(hi))
 		end
 	end
-	if not spActive then widgetState.splatTexOpen = false end
-	if not gbActive then widgetState.grassCfgOpen = false end
-	if not envActive then widgetState.skyboxLibraryOpen = false end
-	do
-		local dm = widgetState.dmHandle
-		if dm then
-			local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
-				local generatedBlankMap = _isGeneratedBlankMap()
-			setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
-			setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
-				setDm("newMapEngineSkyboxNotice", generatedBlankMap)
-				setDm("newMapEngineSplatNotice", generatedBlankMap)
-					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
-					setDm("spToolDisabled", _splatToolUnavailable())
-			local showTransforms = clActive and clState and (clState.state == "paste_preview" or clState.state == "copied")
-			setDm("clonePasteTransformsVisible", showTransforms and true or false)
-			setDm("skyboxLibraryVisible", envActive and (widgetState.skyboxLibraryOpen or false))
+end
 
-			-- Capture window: the readout has to track things the window does not
-			-- own (viewport size, another widget cancelling the job), so it is
-			-- refreshed here rather than only on click.
-			if widgetState.captureOpen then
-				local capApi = WG.TerraformCapture
-				local busy = (capApi and capApi.isBusy and capApi.isBusy()) or false
-				setDm("captureBusy", busy)
-				if capApi and capApi.getStatus then
-					local st = capApi.getStatus()
-					setDm("captureProgress", st.message or "")
-					if not busy then
-						if st.error ~= "" then
-							capUI.setResult(false, "FAILED", st.error)
-						elseif st.lastPath ~= "" then
-							capUI.setResult(true, st.lastSummary or "SAVED", st.lastPath)
+function widget:Update()
+	local ok, err = pcall(function()
+		-- A confirmed save/upload outlives either floating dialog and focus mode.
+		if widgetState.projectSaveUi then
+			widgetState.projectSaveUi.sync()
+		end
+		-- Lazy panel. While no tool is engaged there is no document, and nothing below
+		-- this point has anything to drive — the pumps and mirrors all feed panel state.
+		-- First engage builds the document (see ensureDocument) and the rest of the
+		-- session proceeds normally.
+		--
+		-- The skybox fade is the one exception: a New Map boots straight into one (the
+		-- default-skybox apply in Initialize, with envFadeEnabled on) and its driver is
+		-- below, so bailing out here would strand the screen mid-fade on black.
+		if not widgetState.document and not skyFade.active then
+			if not editorWantsPanel() then
+				return
+			end
+			if not ensureDocument() then
+				return
+			end
+		end
+
+		-- Performance / clay prefs reach the brush widget once it exists (it may
+		-- load after this panel).
+		if not widgetState.perfPrefsPushed and WG.TerraformBrush and WG.TerraformBrush.setPerfMode then
+			widgetState.pushPerfPrefs()
+		end
+		if not widgetState.autosavePrefsPushed and WG.MapProject and WG.MapProject.setAutosave then
+			widgetState.pushPerfPrefs()
+		end
+
+		-- QUIT GUARD: the save started from the popup finished; carry on, or
+		-- keep the popup up with the failure.
+		local qs = widgetState.quitGuardSaving
+		if qs and qs.done then
+			widgetState.quitGuardSaving = nil
+			if qs.ok then
+				widgetState.quitGuardProceed()
+			else
+				local dq = widgetState.dmHandle
+				if dq then
+					dq.quitGuardStatus = widgetState.text("quitSaveFailed")
+				end
+			end
+		end
+
+		-- Keep-match-alive / remove-all-units pump (Settings > General). Both need
+		-- /cheat OBSERVED on: "cheat" TOGGLES, so it is only (re)sent while observed
+		-- off, with a resend gap and an attempt cap (same rule as the project load
+		-- driver). The unit wipe waits a short delay after arming keep-alive because
+		-- the disablegadget chat path and SendLuaRulesMsg are separate channels with
+		-- no cross-ordering guarantee — wiping before game_end is gone would end the
+		-- match on the spot.
+		local ka = widgetState.keepAlive
+		if ka and (ka.pending or ka.clearQueued) then
+			if Spring.IsCheatingEnabled() then
+				ka.cheatSends, ka.lastCheatSend = nil, nil
+				if ka.pending then
+					ka.pending = nil
+					ka.active = true
+					Spring.SendCommands("luarules disablegadget Game End")
+					Spring.SendCommands("luarules disablegadget Team Com Ends")
+					local d = widgetState.dmHandle
+					if d then
+						d.keepAliveStr = "ON"
+						d.keepAliveActive = true
+					end
+					Spring.Echo(
+						"[Terraform Brush] Match end disabled for this session: teams now survive with zero units."
+					)
+					if ka.clearQueued then
+						ka.clearDelay = 90
+					end
+				end
+				if ka.clearQueued then
+					ka.clearDelay = (ka.clearDelay or 1) - 1
+					if ka.clearDelay <= 0 then
+						ka.clearQueued = nil
+						Spring.SendLuaRulesMsg("$mpunits_begin$")
+						Spring.SendLuaRulesMsg("$mpunits_end$")
+						Spring.Echo("[Terraform Brush] Removing all units from the map...")
+					end
+				end
+			else
+				local now = os.clock()
+				if not ka.lastCheatSend or (now - ka.lastCheatSend) > 5 then
+					if (ka.cheatSends or 0) >= 3 then
+						ka.pending, ka.clearQueued = nil, nil
+						ka.cheatSends, ka.lastCheatSend = nil, nil
+						local d = widgetState.dmHandle
+						if d and not ka.active then
+							d.keepAliveStr = "OFF"
+							d.keepAliveActive = false
+						end
+						Spring.Echo(
+							"[Terraform Brush] Could not enable /cheat — match end protection unchanged. Enable cheats and try again."
+						)
+					else
+						-- "cheat" TOGGLES, and the project loader / brush widget
+						-- nudge it too. Share their single-flight window so two
+						-- observers of "off" cannot queue two toggles and leave
+						-- cheat off again; only count an attempt that went out.
+						if type(WG.TerraformEnsureCheat) == "function" then
+							if WG.TerraformEnsureCheat() then
+								ka.cheatSends = (ka.cheatSends or 0) + 1
+								ka.lastCheatSend = now
+							end
+						else
+							ka.cheatSends = (ka.cheatSends or 0) + 1
+							ka.lastCheatSend = now
+							Spring.SendCommands("cheat")
 						end
 					end
 				end
-				if not busy then
-					local readout, warn = capUI.readout()
-					setDm("captureReadout", readout)
-					setDm("captureWarn", warn)
+			end
+		end
+
+		-- One-shot: when map damage is disabled, auto-switch to Features tool on first update
+		if widgetState.noTerraform and not widgetState.noTerraformInitDone and WG.FeaturePlacer then
+			widgetState.noTerraformInitDone = true
+			if WG.TerraformBrush then
+				WG.TerraformBrush.deactivate()
+			end
+			WG.FeaturePlacer.setMode("point")
+		end
+
+		-- Mirror the Map Labels window state onto the header button highlight
+		-- (the window can close itself via its own X button)
+		do
+			local d = widgetState.dmHandle
+			if d then
+				local mlOpen = (WG.MapLabels and WG.MapLabels.isOpen()) and true or false
+				if d.mapLabelsOpen ~= mlOpen then
+					d.mapLabelsOpen = mlOpen
 				end
 			end
-
-			-- env sub-windows
-			if not envActive then
-				widgetState.envSunOpen = false
-				widgetState.envFogOpen = false
-				widgetState.envGroundLightingOpen = false
-				widgetState.envUnitLightingOpen = false
-				widgetState.envMapOpen = false
-				widgetState.envWaterOpen = false
-				widgetState.envDimensionsOpen = false
-			end
-			setDm("envSunVisible",            envActive and (widgetState.envSunOpen or false))
-			setDm("envFogVisible",            envActive and (widgetState.envFogOpen or false))
-			setDm("envGroundLightingVisible", envActive and (widgetState.envGroundLightingOpen or false))
-			setDm("envUnitLightingVisible",   envActive and (widgetState.envUnitLightingOpen or false))
-			setDm("envMapVisible",            envActive and (widgetState.envMapOpen or false))
-			setDm("envWaterVisible",          envActive and (widgetState.envWaterOpen or false))
-			setDm("envDimensionsVisible",     envActive and (widgetState.envDimensionsOpen or false))
-			-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
-			if not lpActive and widgetState.lightLibraryOpen then
-				widgetState.lightLibraryOpen = false
-				dm.lpLibraryOpen = false
-			end
-			-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
-			local hideShape = envActive or clActive or stpActive or wbActive
-				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
-			setDm("tfShapeRowVisible", not hideShape)
-			-- smooth submodes: visible only in smooth/level terraform mode
-			local otherToolActive = fpActive or wbActive or spActive or mbActive or gbActive
-				or envActive or lpActive or stpActive or clActive or decalsActive
-			local inSmoothGroup = tfActive and tfState and (tfState.mode == "smooth" or tfState.mode == "level")
-			setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
-			-- erode controls: visible only in erode terraform mode
-			local inErode = tfActive and tfState and tfState.mode == "erode"
-			setDm("tfErodeControlsVisible", not otherToolActive and inErode and true or false)
-			-- clay/full-restore visibility
-			local inTfRestore = tfActive and tfState and tfState.mode == "restore"
-			setDm("tfInRestore", inTfRestore and true or false)
 		end
-	end
-	end -- if panelVisible
 
-	local dcActive = widgetState.decalsActive
+		-- Poll-based window drag (position only — mouseup ends drag via doc listener)
+		local ds = windowDragState
+		if ds.active and ds.rootEl then
+			local mx, my = GetMouseState()
+			local vsx, vsy = ds.vsx, ds.vsy
+			local ew, eh = ds.ew, ds.eh
+			local T = WINDOW_SNAP_THRESHOLD
+			-- Spring Y is from bottom, RmlUI Y is from top
+			local rmlY = vsy - my
+			local newX = mx - ds.offsetX
+			local newY = rmlY - ds.offsetY
 
-	-- Toggle noise floating window
-	local noiseActive = tfActive and tfState.mode == "noise"
-	if noiseActive and not widgetState.lastNoiseActive then
-		widgetState.noiseManuallyHidden = false
-		widgetState.noisePositioned = false  -- reposition on every fresh open
-	end
-	widgetState.lastNoiseActive = noiseActive
-	if widgetState.dmHandle then
-		local v = noiseActive and not widgetState.noiseManuallyHidden
-		if widgetState.dmHandle.noiseWindowVisible ~= v then widgetState.dmHandle.noiseWindowVisible = v end
-	end
-	-- Position noise window to the LEFT of the main panel on first open.
-	-- data-if creates the element asynchronously, so retry each frame until found + laid out.
-	if noiseActive and not widgetState.noiseManuallyHidden and not widgetState.noisePositioned then
-		local mainEl = widgetState.rootElement
-		local noiseDoc = widgetState.document
-		local noiseEl = noiseDoc and noiseDoc:GetElementById("tf-noise-root")
-		if noiseEl and mainEl and noiseEl.offset_width > 0 then
-			local gap = 6
-			local noiseLeft = math.max(0, mainEl.offset_left - noiseEl.offset_width - gap)
-			local noiseTop  = mainEl.offset_top
-			noiseEl:SetAttribute("style",
-				string.format("left: %dpx; top: %dpx;", math.floor(noiseLeft), math.floor(noiseTop)))
-			widgetState.noisePositioned = true
-		end
-	end
+			if newX < 0 then
+				newX = 0
+			elseif newX + ew > vsx then
+				newX = vsx - ew
+			end
+			if newY < 0 then
+				newY = 0
+			elseif newY + eh > vsy then
+				newY = vsy - eh
+			end
 
-	-- Disable ring shape when in feature, weather, splat, metal, or light mode
-	local ringBtn = widgetState.shapeButtons.ring
-	if ringBtn then
-		ringBtn:SetClass("disabled", fpActive or wbActive or spActive or mbActive or gbActive or lpActive or false)
-	end
+			if newX < T then
+				newX = 0
+			elseif vsx - newX - ew < T then
+				newX = vsx - ew
+			end
+			if newY < T then
+				newY = 0
+			elseif vsy - newY - eh < T then
+				newY = vsy - eh
+			end
 
-	-- Disable hexagon/octagon/triangle in light mode (LightPlacer only supports circle/square)
-	local hexBtn = widgetState.shapeButtons.hexagon
-	if hexBtn then hexBtn:SetClass("disabled", lpActive or false) end
-	local octBtn = widgetState.shapeButtons.octagon
-	if octBtn then octBtn:SetClass("disabled", lpActive or false) end
-	local triBtn = widgetState.shapeButtons.triangle
-	if triBtn then triBtn:SetClass("disabled", lpActive or false) end
-
-	-- Disable fill+clay in metal mode; disable fill in feature/grass/weather/light/noise modes
-	local fillBtn = widgetState.shapeButtons.fill
-	if fillBtn then
-		fillBtn:SetClass("disabled", mbActive or fpActive or gbActive or wbActive or lpActive or noiseActive or (tfActive and tfState and tfState.mode == "lower") or false)
-	end
-	local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
-	if clayBtn then
-		clayBtn:SetClass("disabled", mbActive or lpActive or false)
-	end
-
-	local doc = widgetState.document
-
-	-- Blue-dot hint gating: hide dots already seen or when tips disabled,
-	-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
-	do
-		if doc and widgetState.hintDots then
-			local up = widgetState.uiPrefs
-			local tipsDisabled = up and up.disableTips
-			local nowFrame = Spring.GetGameFrame()
-			local nowSec = Spring.GetGameSeconds() or 0
-			for _, h in ipairs(widgetState.hintDots) do
-				local dot = getCachedEl(doc, h.dotId)
-				if dot then
-					local alreadySeen = up and up[h.prefKey]
-					dot:SetClass("hidden", tipsDisabled or alreadySeen or false)
-				end
-				if h.pulseKey and widgetState[h.pulseKey] and nowFrame >= widgetState[h.pulseKey] then
-					widgetState[h.pulseKey] = nil
-					if not tipsDisabled and h.pulseTargets then
-						for _, tid in ipairs(h.pulseTargets) do
-							local t = getCachedEl(doc, tid)
-							if t then
-								t:SetClass("tf-chip-2pulse", false)
-								t:SetClass("tf-chip-2pulse", true)
+			local rects = ds.snapRects
+			if rects then
+				local newR, newB = newX + ew, newY + eh
+				for i = 1, #rects do
+					local r = rects[i]
+					local ox, oy = r[1], r[2]
+					local oR, oB = ox + r[3], oy + r[4]
+					if newY < oB and newB > oy then
+						local d = newX - oR
+						if d > -T and d < T then
+							newX = oR
+							newR = newX + ew
+						else
+							d = newR - ox
+							if d > -T and d < T then
+								newX = ox - ew
+								newR = ox
+							else
+								d = newX - ox
+								if d > -T and d < T then
+									newX = ox
+									newR = newX + ew
+								else
+									d = newR - oR
+									if d > -T and d < T then
+										newX = oR - ew
+										newR = oR
+									end
+								end
 							end
 						end
-						widgetState[h.pulseExpiryKey] = nowSec + 1.25
+					end
+					if newX < oR and newR > ox then
+						local d = newY - oB
+						if d > -T and d < T then
+							newY = oB
+							newB = newY + eh
+						else
+							d = newB - oy
+							if d > -T and d < T then
+								newY = oy - eh
+								newB = oy
+							else
+								d = newY - oy
+								if d > -T and d < T then
+									newY = oy
+									newB = newY + eh
+								else
+									d = newB - oB
+									if d > -T and d < T then
+										newY = oB - eh
+										newB = oB
+									end
+								end
+							end
+						end
 					end
 				end
-				if h.pulseExpiryKey and widgetState[h.pulseExpiryKey] and nowSec >= widgetState[h.pulseExpiryKey] then
-					widgetState[h.pulseExpiryKey] = nil
-					if h.pulseTargets then
-						for _, tid in ipairs(h.pulseTargets) do
-							local t = getCachedEl(doc, tid)
-							if t then t:SetClass("tf-chip-2pulse", false) end
+			end
+
+			local ix = math.floor(newX)
+			local iy = math.floor(newY)
+			if ix ~= ds.lastX or iy ~= ds.lastY then
+				ds.lastX = ix
+				ds.lastY = iy
+				ds.rootEl.style.left = ix .. "px"
+				ds.rootEl.style.top = iy .. "px"
+			end
+		end
+
+		-- When game chat input is open, auto-blur any focused RmlUI text input so
+		-- Tab reaches the chat widget for autocomplete instead of navigating RmlUI fields.
+		if widgetState.focusedRmlInput and WG.chat and WG.chat.isInputActive() then
+			widgetState.focusedRmlInput:Blur()
+			widgetState.focusedRmlInput = nil
+		end
+
+		-- Drive skybox fade transition
+		local now = Spring.GetTimer()
+		local dt = Spring.DiffTimers(now, lastUpdateClock)
+		lastUpdateClock = now
+		tickSkyboxFade(dt)
+		tickSkyDynamic(dt)
+
+		-- Transport auto-scroll tick
+		do
+			local TSPEEDS = { 0.005, 0.02, 0.08, 0.25 } -- fraction of range per second at each speed level
+			for tid, t in pairs(widgetState.transports) do
+				if not t.paused then
+					-- min/max/step cached at transport creation (see regTransports);
+					-- slider-intensity max refreshes the cache where it is written.
+					local rmin = t.rmin
+					local rmax = t.rmax
+					local rstep = t.rstep
+					-- directional scroll
+					if t.dir ~= 0 then
+						local rate = (TSPEEDS[t.speed] or 0.005) * (rmax - rmin) * t.dir
+						t.accum = t.accum + rate * dt
+						if math.abs(t.accum) >= rstep then
+							local stps = math.floor(math.abs(t.accum) / rstep)
+							local delta = stps * rstep * (t.accum >= 0 and 1 or -1)
+							t.accum = t.accum - delta
+							local cur = tonumber(t.el:GetAttribute("value")) or rmin
+							local nv
+							if t.wrap then
+								nv = rmin + ((cur + delta - rmin) % (rmax - rmin + rstep))
+							else
+								nv = math.max(rmin, math.min(rmax, cur + delta))
+							end
+							if cur ~= nv then
+								local nvStr = tostring(nv)
+								t.el:SetAttribute("value", nvStr)
+								-- Transports are keyed by element id: keep the
+								-- setAttrValueIfChanged cache coherent so syncs
+								-- can still snap the value back when needed.
+								widgetState.lastAttrValue[tid] = nvStr
+							end
 						end
 					end
 				end
 			end
 		end
-	end
 
-	-- Status summary helper (shared by all tool branches)
-	local sumEl = doc and getCachedEl(doc, "status-summary")
-	local function setSummary(title, color, ...)
-		if not sumEl then return end
-		local sep = '<span class="tf-ss-sep">|</span>'
-		local buf = { '<span class="tf-ss-mode" style="color: ' .. color .. ';">' .. title .. '</span>' }
-		local args = { ... }
-		for i = 1, #args, 2 do
-			buf[#buf + 1] = sep
-			local label = args[i] or ""
-			local value = args[i + 1] or ""
-			if label == "" then
-				buf[#buf + 1] = '<span class="tf-ss-val">' .. value .. '</span>'
-			else
-				buf[#buf + 1] = '<span class="tf-ss-label">' .. label .. '</span><span class="tf-ss-val">' .. value .. '</span>'
+		updateFloatingTip()
+		-- Detect viewport resize and re-clamp panel position (width lives in RCSS).
+		local vsx, vsy = GetViewGeometry()
+		if vsx ~= lastVsx or vsy ~= lastVsy then
+			lastVsx, lastVsy = vsx, vsy
+			if widgetState.rootElement then
+				widgetState.rootElement:SetAttribute("style", buildRootStyle())
 			end
+			widgetState.refreshPanelBodies()
 		end
-		setInnerRmlIfChanged(sumEl, "status-summary", table.concat(buf))
-	end
 
-	-- Tool button .active class is driven by data-class-active="activeTool == '<code>'" in RML.
-	-- Do NOT SetClass("active", ...) on btn-metal/features/splat/decals/weather/environment/lights/grass/startpos/clone here:
-	-- a per-frame imperative clear fights data-class-active (which only fires on value change),
-	-- leaving most buttons un-highlighted. dm.activeTool (set above) is the single owner.
-	if doc then
-		-- Reset ramp-type row and shape row visibility before per-tool branches
-		do
-			local hideShape2 = envActive or clActive or stpActive or wbActive
-				or widgetState.cloneActive or widgetState.startposActive or widgetState.envActive
-			if widgetState.dmHandle then
-				if widgetState.dmHandle.tfRampMode ~= false then widgetState.dmHandle.tfRampMode = false end
-				if widgetState.dmHandle.tfShapeRowVisible ~= not hideShape2 then widgetState.dmHandle.tfShapeRowVisible = not hideShape2 end
+		-- A locked slider takes over the mouse wheel (widget:MouseWheel drives it
+		-- from anywhere on screen), so the scrollable panel bodies stand down while
+		-- one is armed instead of fighting over the wheel under the cursor.
+		local pbLocked = next(widgetState.lockedSliders) ~= nil
+		if pbLocked ~= widgetState.panelBodyWheelHeld then
+			widgetState.panelBodyWheelHeld = pbLocked
+			local ts = WG.TerraformerShared
+			if ts and ts.setWheelHeld then
+				ts.setWheelHeld(pbLocked)
 			end
 		end
 
-		-- Track whether this map currently has any grass data. Keep this
-		-- informational-only: generated blank maps start with zero grass and the
-		-- Grass tool should still be usable so users can paint the first patches.
-		do
-			local gApi = WG['grassgl4']
-			local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
-			local grassBtnEl = getCachedEl(doc, "btn-grass")
-			if grassBtnEl then grassBtnEl:SetClass("disabled", false) end
-			local splatBtnEl = getCachedEl(doc, "btn-splat")
-				if splatBtnEl then splatBtnEl:SetClass("disabled", _splatToolUnavailable()) end
-			widgetState.grassNoDataThisMap = not hasGrass
+		local tfState = WG.TerraformBrush and WG.TerraformBrush.getState()
+		local fpState = WG.FeaturePlacer and WG.FeaturePlacer.getState()
+		local wbState = WG.WeatherBrush and WG.WeatherBrush.getState()
+		local spState = WG.SplatPainter and WG.SplatPainter.getState()
+		local mbState = WG.MetalBrush and WG.MetalBrush.getState()
+		local gbState = WG.GrassBrush and WG.GrassBrush.getState()
+		local dfpActive = WG.DiffusePainter and WG.DiffusePainter.isActive and WG.DiffusePainter.isActive() or false
+		-- SURFACE painter active flag on widgetState, NOT a local: this function
+		-- has flirted with Lua 5.1's 200-local ceiling before (see the wbSync note).
+		widgetState.surfActive = (
+			WG.SurfacePainter
+			and WG.SurfacePainter.getState
+			and (WG.SurfacePainter.getState() or {}).active
+		)
+				and true
+			or false
+		local tfActive = tfState and tfState.active
+		local fpActive = fpState and fpState.active
+		local wbActive = wbState and wbState.active
+		local spActive = spState and spState.active
+		-- SURFACE hard submode pin is only meaningful while its engine (the splat
+		-- painter) runs; anything that kills the engine (hotkey off, reload) must
+		-- also drop the pin or the panel would sit on a dead tool.
+		if widgetState.surfHardActive and not spActive then
+			widgetState.surfHardActive = false
 		end
-
-		-- Reveal the diffuse painter button only when its widget is loaded
-		-- (the RML default-hides it so the grid has no dead button otherwise).
-		do
-			local dfpAvail = WG.DiffusePainter ~= nil
-			if widgetState.dfpBtnShown ~= dfpAvail then
-				widgetState.dfpBtnShown = dfpAvail
-				local dfpBtnEl = getCachedEl(doc, "btn-diffuse")
-				if dfpBtnEl then dfpBtnEl:SetClass("hidden", not dfpAvail) end
+		-- Self-healing invariant: under the tileset shader the legacy splat panel
+		-- is never legitimate ($ssmf_splat_distr is the override mask), so any
+		-- splat-engine activation that arrives without the pin (/splatpaint
+		-- action, GUI widget reload over a live engine) is adopted by the SURFACE
+		-- tool's HARD submode instead of opening the legacy panel.
+		-- Only adopt when the SURFACE UI can actually take over (its module and
+		-- engine both loaded); otherwise the panel would show an unwired section
+		-- while the splat engine paints unlabelled.
+		if
+			spActive
+			and not widgetState.surfHardActive
+			and tfSurface
+			and WG.SurfacePainter
+			and WG.TilesetTerrain
+			and WG.TilesetTerrain.isActive
+			and WG.TilesetTerrain.isActive()
+		then
+			widgetState.surfHardActive = true
+			if widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "hard" then
+				widgetState.dmHandle.surfMode = "hard"
 			end
 		end
-		do
-			-- TILESET tool button: shown only when the tileset widget is loaded.
-			local tsAvail = WG.TilesetTerrain ~= nil
-			if widgetState.tsBtnShown ~= tsAvail then
-				widgetState.tsBtnShown = tsAvail
-				local tsBtnEl = getCachedEl(doc, "btn-tileset")
-				if tsBtnEl then tsBtnEl:SetClass("hidden", not tsAvail) end
+		-- Mirror invariant: the SOFT engine being live means the panel must read
+		-- SOFT, or HARD's chips and the shared brush sliders would drive an engine
+		-- that is not painting (/surfacepaint while the panel was left in HARD).
+		if widgetState.surfActive and widgetState.dmHandle and widgetState.dmHandle.surfMode ~= "soft" then
+			widgetState.dmHandle.surfMode = "soft"
+		end
+		local mbActive = mbState and mbState.active
+		local gbActive = gbState and gbState.active
+		local envActive = widgetState.envActive
+		local lpState = WG.LightPlacer and WG.LightPlacer.getState()
+		local lpActive = widgetState.lightActive and lpState and lpState.active
+		local stpState = WG.StartPosTool and WG.StartPosTool.getState()
+		local stpActive = widgetState.startposActive and stpState and stpState.active
+		local clState = WG.CloneTool and WG.CloneTool.getState()
+		local clActive = widgetState.cloneActive and clState and clState.active
+		local decalsActive = widgetState.decalsActive and true or false
+
+		-- Deactivate environment mode when any other tool becomes active
+		if
+			envActive
+			and (
+				tfActive
+				or fpActive
+				or wbActive
+				or spActive
+				or mbActive
+				or gbActive
+				or lpActive
+				or stpActive
+				or clActive
+				or decalsActive
+				or dfpActive
+			)
+		then
+			widgetState.envActive = false
+			envActive = false
+		end
+		-- Deactivate light mode when any other tool becomes active
+		if
+			lpActive
+			and (
+				tfActive
+				or fpActive
+				or wbActive
+				or spActive
+				or mbActive
+				or gbActive
+				or envActive
+				or stpActive
+				or clActive
+				or decalsActive
+				or dfpActive
+			)
+		then
+			widgetState.lightActive = false
+			if WG.LightPlacer then
+				WG.LightPlacer.deactivate()
 			end
+			lpActive = false
 		end
-	end
-
-	if mbActive then
-		-- Metal Brush sync (extracted to tf_metal.lua)
-		tfMetal.sync(doc, ctx, mbState, setSummary)
-
-	elseif gbActive then
-		-- Grass Brush sync (extracted to tf_grass.lua)
-		tfGrass.sync(doc, ctx, gbState, setSummary, sumEl)
-
-	elseif spActive then
-		tfSplat.sync(doc, ctx, spState, setSummary)
-
-	elseif dfpActive then
-		local dfpState = WG.DiffusePainter and WG.DiffusePainter.getState and WG.DiffusePainter.getState()
-		tfDiffuse.sync(doc, ctx, dfpState, setSummary)
-
-
-	elseif fpActive then
-		tfFeatures.sync(doc, ctx, fpState, setSummary)
-
-
-	elseif envActive then
-		tfEnvironment.sync(doc, ctx, setSummary)
-
-
-	elseif lpActive then
-		tfLights.sync(doc, ctx, lpState, setSummary)
-
-
-	elseif stpActive then
-		tfStartPos.sync(doc, ctx, stpState, setSummary)
-
-
-	elseif clActive then
-		tfClone.sync(doc, ctx, clState, setSummary)
-
-
-	elseif decalsActive then
-		tfDecals.sync(doc, ctx, setSummary)
-
-	elseif widgetState.tilesetActive then
-		tfTileset.sync(doc, ctx, setSummary)
-
-
-	elseif wbState and wbState.active then
-		-- Weather Brush has no M.sync; drive mirror chips directly here.
-		do
-			local weatherBtnEl = doc and getCachedEl(doc, "btn-weather")
-			if weatherBtnEl then weatherBtnEl:SetClass("active", true) end
+		-- Deactivate startpos mode when any other tool becomes active
+		if
+			stpActive
+			and (
+				tfActive
+				or fpActive
+				or wbActive
+				or spActive
+				or mbActive
+				or gbActive
+				or envActive
+				or lpActive
+				or clActive
+				or decalsActive
+				or dfpActive
+			)
+		then
+			widgetState.startposActive = false
+			if WG.StartPosTool then
+				WG.StartPosTool.deactivate()
+			end
+			stpActive = false
 		end
-		if ctx.syncTBMirrorControls then ctx.syncTBMirrorControls(doc, "wb") end
+		-- Deactivate clone mode when any other tool becomes active
+		if
+			clActive
+			and (
+				tfActive
+				or fpActive
+				or wbActive
+				or spActive
+				or mbActive
+				or gbActive
+				or envActive
+				or lpActive
+				or stpActive
+				or decalsActive
+				or dfpActive
+			)
+		then
+			widgetState.cloneActive = false
+			if WG.CloneTool then
+				WG.CloneTool.deactivate()
+			end
+			clActive = false
+		end
+		-- Deactivate decals mode when any other (real) tool becomes active
+		if
+			decalsActive
+			and (
+				tfActive
+				or fpActive
+				or wbActive
+				or spActive
+				or mbActive
+				or gbActive
+				or envActive
+				or lpActive
+				or stpActive
+				or clActive
+				or dfpActive
+				or widgetState.surfActive
+			)
+		then
+			widgetState.decalsActive = false
+			if WG.DecalPlacer then
+				WG.DecalPlacer.deactivate()
+			end
+			decalsActive = false
+		end
+		-- Deactivate the SURFACE painter when any other tool becomes active (its
+		-- active flag lives in the painter widget, like the splat painter's).
+		if
+			widgetState.surfActive
+			and (
+				tfActive
+				or fpActive
+				or wbActive
+				or spActive
+				or mbActive
+				or gbActive
+				or envActive
+				or lpActive
+				or stpActive
+				or clActive
+				or decalsActive
+				or dfpActive
+			)
+		then
+			if WG.SurfacePainter then
+				WG.SurfacePainter.deactivate()
+			end
+			widgetState.surfActive = false
+		end
 
-		-- Sync weather brush slider/label values from state.
-		-- Wrapped in a local function so its locals don't count against the
-		-- widget:Update pcall function's 200-local-variable limit.
-		if doc then
-			local function wbSync(wbs, ctxx, uiS, getCE, docc)
-				uiS.updatingFromCode = true
-				local drag = uiS.draggingSlider
-				local function ss(sid, val)
-					if drag == sid then return end
-					setAttrValueIfChanged(getCE(docc, sid), sid, tostring(val))
+		-- Show panel if any tool is active (and panel not manually hidden), or if in passthrough mode
+		local panelVisible = (
+			tfActive
+			or fpActive
+			or wbActive
+			or spActive
+			or mbActive
+			or gbActive
+			or envActive
+			or lpActive
+			or stpActive
+			or clActive
+			or decalsActive
+			or dfpActive
+			or widgetState.surfActive
+			or widgetState.passthroughMode
+		) and not widgetState.panelHidden
+		-- "Editor engaged" flag for hotkey gating: some tool (or passthrough) has
+		-- the panel up. Merely having the widget enabled must not swallow keys —
+		-- cmd_terraform_brush checks isEngaged() before tool-switch handling, so a
+		-- dormant Terraformer leaves f/m/g/etc. to the engine's own keybinds.
+		widgetState.panelEngaged = panelVisible and true or false
+		widgetState.syncFocusMode(panelVisible, widgetState.panelHidden)
+		if widgetState.rootElement then
+			widgetState.rootElement:SetClass("hidden", not panelVisible)
+		end
+		if not panelVisible then
+			-- The water level preview plane is drawn in the world by the other
+			-- widget, so hiding the panel has to take it down explicitly.
+			if widgetState.envWaterPreviewAt ~= nil then
+				widgetState.envWaterPreviewAt = nil
+				if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+					WG.TerraformBrush.setWaterLevelPreview(nil)
 				end
-				local function sl(id, text)
-					setInnerRmlIfChanged(getCE(docc, id), id, text)
-				end
-				-- Size (slider value = radius)
-				local sv = math.floor(wbs.radius)
-				ss("wb-slider-size", sv)
-				sl("wb-radius-label", tostring(sv))
-				-- Length (slider value = lengthScale*10)
-				local lv = math.floor(wbs.lengthScale * 10 + 0.5)
-				ss("wb-slider-length", lv)
-				sl("wb-length-label", string.format("%.1f", wbs.lengthScale))
-				-- Rotation (slider value = rotation degrees)
-				local rv = math.floor(wbs.rotation)
-				ss("wb-slider-rotation", rv)
-				sl("wb-rotation-label", tostring(rv))
-				-- Spawn count
-				ss("wb-slider-count", wbs.spawnCount)
-				sl("wb-count-label", tostring(wbs.spawnCount))
-				-- Cadence (logarithmic)
-				ss("wb-slider-cadence", ctxx.cadenceToSlider(wbs.cadence))
-				sl("wb-cadence-label", tostring(wbs.cadence))
-				-- Frequency (logarithmic)
-				local f = wbs.frequency
-				ss("wb-slider-frequency", ctxx.frequencyToSlider(f))
-				sl("wb-frequency-label",
-					f >= 10 and string.format("%.0fs", f)
-					or f >= 1 and string.format("%.1fs", f)
-					or string.format("%.2fs", f))
-				-- Persistence
-				ss("wb-slider-persist", ctxx.persistToSlider(wbs.persistenceSeconds))
-				local pv = wbs.persistenceSeconds
-				sl("wb-persist-label",
-					pv >= ctxx.PERSIST_PERMANENT_VAL and "Perm"
-					or pv <= 0 and "Off"
-					or (pv < 60 and string.format("%.0fs", pv)
-					   or pv < 3600 and string.format("%.0fm", pv / 60)
-					   or string.format("%.0fh", pv / 3600)))
-				-- Active effects count
-				sl("wb-persistent-count", tostring(wbs.persistentCount or 0))
-				-- Permanent checkbox visual
-				local pBtn = getCE(docc, "btn-wb-persistent")
-				if pBtn then
-					pBtn:SetAttribute("src", pv >= ctxx.PERSIST_PERMANENT_VAL
-						and "/luaui/images/terraform_brush/check_on.png"
-						or  "/luaui/images/terraform_brush/check_off.png")
-				end
-				uiS.updatingFromCode = false
 			end
-			wbSync(wbState, ctx, uiState, getCachedEl, doc)
+			-- Clear any locked sliders when panel hides
+			if next(widgetState.lockedSliders) then
+				for id, element in pairs(widgetState.lockedSliders) do
+					element:SetClass("slider-locked", false)
+					element:SetClass("slider-pulse", false)
+				end
+				widgetState.lockedSliders = {}
+				widgetState.sliderLastClickTime = {}
+			end
+			-- Clear flash state and prev-sync tracking
+			for id, flash in pairs(widgetState.sliderFlashes) do
+				flash.el:SetClass("slider-flash", false)
+			end
+			widgetState.sliderFlashes = {}
+			widgetState.prevSyncValues = {}
+			return
 		end
 
-		-- P3.2 Weather grayouts (per Phase 3 relevance matrix)
-		if doc then
-			local mode = wbState.mode or "scatter"
-			local remove = (mode == "remove")
-			local scatter = (mode == "scatter")
-			-- Rotation/length: always enabled (no shape picker, shape is always circle)
-			ctx.setDisabledIds(doc, {
-				"wb-slider-rotation", "wb-slider-rotation-numbox",
-				"btn-wb-rot-ccw", "btn-wb-rot-cw",
-				"wb-slider-length", "wb-slider-length-numbox",
-				"btn-wb-length-down", "btn-wb-length-up",
-			}, false)
-			-- Count/cadence/distribution: scatter-only
-			ctx.setDisabledIds(doc, {
-				"wb-slider-count", "wb-slider-count-numbox",
-				"btn-wb-count-down", "btn-wb-count-up",
-				"wb-slider-cadence", "wb-slider-cadence-numbox",
-				"btn-wb-cadence-down", "btn-wb-cadence-up",
-				"btn-wb-dist-random", "btn-wb-dist-regular", "btn-wb-dist-clustered",
-			}, not scatter)
-			-- Frequency/persist: irrelevant in remove
-			ctx.setDisabledIds(doc, {
-				"wb-slider-frequency", "wb-slider-frequency-numbox",
-				"wb-slider-persist", "wb-slider-persist-numbox",
-				"btn-wb-persist-down", "btn-wb-persist-up",
-			}, remove)
+		-- Toggle section visibility
+		if panelVisible then
+			-- Drive panel-mode swap via data-if="activeTool == 'X'" — single dm field instead of 13 imperative SetClass writes.
+			do
+				local tool = ""
+				if widgetState.decalsActive then
+					tool = "dc"
+				elseif fpActive then
+					tool = "fp"
+				elseif wbActive then
+					tool = "wb"
+				-- Hard-submode pin: the splat ENGINE is active but the SURFACE panel
+				-- owns it — the legacy splat panel must not open.
+				elseif spActive then
+					tool = widgetState.surfHardActive and "surf" or "sp"
+				elseif mbActive then
+					tool = "mb"
+				elseif gbActive then
+					tool = "gb"
+				elseif envActive then
+					tool = "env"
+				elseif lpActive then
+					tool = "lp"
+				elseif stpActive then
+					tool = "stp"
+				elseif clActive then
+					tool = "cl"
+				elseif dfpActive then
+					tool = "diff"
+				elseif widgetState.surfActive then
+					tool = "surf"
+				end
+				if widgetState.dmHandle then
+					if widgetState.dmHandle.activeTool ~= tool then
+						widgetState.dmHandle.activeTool = tool
+					end
+					-- SURFACE/LAYERS pair highlight: both run as 'surf'; surfMode says which.
+					do
+						local dmh = widgetState.dmHandle
+						local softOn = (tool == "surf") and dmh.surfMode ~= "hard"
+						local hardOn = (tool == "surf") and dmh.surfMode == "hard"
+						if dmh.surfSoftOn ~= softOn then
+							dmh.surfSoftOn = softOn
+						end
+						if dmh.surfHardOn ~= hardOn then
+							dmh.surfHardOn = hardOn
+						end
+					end
+					-- SURFACE clear-confirm arms don't survive leaving the tool
+					if tool ~= "surf" then
+						if widgetState.dmHandle.surfClearArm then
+							widgetState.dmHandle.surfClearArm = false
+						end
+						if widgetState.dmHandle.surfClearAllArm then
+							widgetState.dmHandle.surfClearAllArm = false
+						end
+					end
+					-- Mutual exclusion: terrain row (activeMode) and tools row (activeTool) share the
+					-- .active visual; only one button across both rows should highlight. When a non-tf
+					-- tool is active, clear activeMode so the stale terrain-mode highlight drops.
+					if tool ~= "" and widgetState.dmHandle.activeMode ~= "" then
+						widgetState.dmHandle.activeMode = ""
+					end
+				end
+			end
+			if not spActive then
+				widgetState.splatTexOpen = false
+			end
+			if not gbActive then
+				widgetState.grassCfgOpen = false
+			end
+			do
+				local dm = widgetState.dmHandle
+				if dm then
+					local function setDm(f, v)
+						if dm[f] ~= v then
+							dm[f] = v
+						end
+					end
+					local generatedBlankMap = _isGeneratedBlankMap()
+					setDm("splatTexVisible", spActive and (widgetState.splatTexOpen or false))
+					setDm("grassCfgVisible", gbActive and (widgetState.grassCfgOpen or false))
+					setDm("newMapEngineSplatNotice", generatedBlankMap)
+					setDm("newMapSplatNeedsDnts", generatedBlankMap and _newMapSplatUnavailable())
+					setDm("spToolDisabled", _splatToolUnavailable())
+					-- Contextual SPLAT-button hint: while the tileset shader owns
+					-- the splat texture, hovering the disabled button must explain
+					-- where the workflow moved (tf_guide reads guideHints live).
+					do
+						local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
+								and true
+							or false
+						if widgetState.splatHintTsLast ~= tsOn then
+							widgetState.splatHintTsLast = tsOn
+							guideHints["btn-splat"] = tsOn
+									and "Tileset shader active \226\128\148 soft variants live in SURFACE, hard overrides in LAYERS. DNTS splat applies to legacy maps only."
+								or "Paint the splatmap distribution texture that controls which ground detail texture is visible in each area of the map."
+						end
+					end
+					local showTransforms = clActive
+						and clState
+						and (clState.state == "paste_preview" or clState.state == "copied")
+					setDm("clonePasteTransformsVisible", showTransforms and true or false)
+					setDm("skyboxLibraryVisible", widgetState.skyboxLibraryOpen or false)
+
+					-- Capture window: the readout has to track things the window does not
+					-- own (viewport size, another widget cancelling the job), so it is
+					-- refreshed here rather than only on click.
+					if widgetState.captureOpen then
+						local capApi = WG.TerraformCapture
+						local busy = (capApi and capApi.isBusy and capApi.isBusy()) or false
+						setDm("captureBusy", busy)
+						if capApi and capApi.getStatus then
+							local st = capApi.getStatus()
+							setDm("captureProgress", st.message or "")
+							if not busy then
+								if st.error ~= "" then
+									capUI.setResult(false, "FAILED", st.error)
+								elseif st.lastPath ~= "" then
+									capUI.setResult(true, st.lastSummary or "SAVED", st.lastPath)
+								end
+							end
+						end
+						if not busy then
+							local readout, warn = capUI.readout()
+							setDm("captureReadout", readout)
+							setDm("captureWarn", warn)
+						end
+					end
+
+					-- env sub-windows: deliberately NOT gated on envActive — SCENE windows
+					-- (and the TILESET window) stay up while you work in any other tool,
+					-- so you can tweak the scene or shader while painting. Only their
+					-- open/close buttons and the window X control them.
+					setDm("envSunVisible", widgetState.envSunOpen or false)
+					setDm("envFogVisible", widgetState.envFogOpen or false)
+					setDm("envGroundLightingVisible", widgetState.envGroundLightingOpen or false)
+					setDm("envUnitLightingVisible", widgetState.envUnitLightingOpen or false)
+					setDm("envMapVisible", widgetState.envMapOpen or false)
+					setDm("envWaterVisible", widgetState.envWaterOpen or false)
+					setDm("envDimensionsVisible", widgetState.envDimensionsOpen or false)
+					setDm("envTilesetVisible", widgetState.envTilesetOpen or false)
+					-- IMAGE overlay: chip state on every DISPLAY row + the window readouts.
+					_imgOv.sync(setDm)
+					-- Dimensions window open edge: seed the HEIGHT RANGE sliders with
+					-- the range they are about to change.
+					if widgetState.envDimensionsOpen and not widgetState.envDimWasOpen then
+						widgetState.envDimWasOpen = true
+						if widgetState.envFillDimRangeInputs then
+							widgetState.envFillDimRangeInputs()
+						end
+					elseif not widgetState.envDimensionsOpen then
+						widgetState.envDimWasOpen = false
+					end
+					-- Shoreline machinery runs while EITHER window holding a track is
+					-- open: WATER LEVEL lives in Dimensions, its FLUID LEVEL mirror in
+					-- Water. The extremes/plane readouts poll here too — they are the
+					-- only feedback that a range or water edit landed, and the sim
+					-- applies it a frame or two after the click (GetGroundExtremes is
+					-- an engine-cached read).
+					if widgetState.envDimensionsOpen or widgetState.envWaterOpen then
+						if not widgetState.envWaterUIWasOpen then
+							widgetState.envWaterUIWasOpen = true
+							-- Seed on the open edge, but never over a live preview: the
+							-- other window may already be mid-adjustment on its track.
+							if widgetState.envWaterPreviewAt == nil and widgetState.envSeedWaterSlider then
+								widgetState.envSeedWaterSlider()
+							end
+						end
+						widgetState.envDimTick = (widgetState.envDimTick or 0) + 1
+						if widgetState.envDimTick >= 10 and widgetState.envRefreshDimExtremes then
+							widgetState.envDimTick = 0
+							widgetState.envRefreshDimExtremes()
+						end
+						-- Reseed after an apply, once the sim has moved the terrain the
+						-- slider's bounds were measured against.
+						if (widgetState.envWaterReseedTicks or 0) > 0 then
+							widgetState.envWaterReseedTicks = widgetState.envWaterReseedTicks - 1
+							if widgetState.envWaterReseedTicks == 0 and widgetState.envSeedWaterSlider then
+								widgetState.envSeedWaterSlider()
+							end
+						end
+						if widgetState.envSyncWaterPreview then
+							widgetState.envSyncWaterPreview()
+						end
+					elseif widgetState.envWaterUIWasOpen then
+						widgetState.envWaterUIWasOpen = false
+						widgetState.envWaterReseedTicks = 0
+						widgetState.envWaterPreviewAt = nil
+						if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+							WG.TerraformBrush.setWaterLevelPreview(nil)
+						end
+					end
+					-- light library already driven by dm.lpLibraryOpen in tf_lights; just reset widgetState when tool inactive
+					if not lpActive and widgetState.lightLibraryOpen then
+						widgetState.lightLibraryOpen = false
+						dm.lpLibraryOpen = false
+					end
+					-- shape row: hidden for env/clone/startpos/weather (weather has no shape picker)
+					-- and for SURFACE (v1 brush is circle-only)
+					local hideShape = envActive
+						or clActive
+						or stpActive
+						or wbActive
+						or widgetState.cloneActive
+						or widgetState.startposActive
+						or widgetState.envActive
+						or widgetState.surfActive
+						or widgetState.surfHardActive
+					setDm("tfShapeRowVisible", not hideShape)
+					setDm(
+						"tfFollowVisible",
+						(not hideShape) and tfActive and tfState and _tbFollowModes[tfState.mode] and true or false
+					)
+					-- smooth submodes: visible only in smooth/level terraform mode
+					local otherToolActive = fpActive
+						or wbActive
+						or spActive
+						or mbActive
+						or gbActive
+						or envActive
+						or lpActive
+						or stpActive
+						or clActive
+						or decalsActive
+						or widgetState.surfActive
+					local inSmoothGroup = tfActive
+						and tfState
+						and (tfState.mode == "smooth" or tfState.mode == "level" or tfState.mode == "smudge")
+					setDm("tfSmoothSubmodesVisible", not otherToolActive and inSmoothGroup and true or false)
+					-- erode controls: visible only in erode terraform mode
+					local inErode = tfActive and tfState and tfState.mode == "erode"
+					setDm("tfErodeControlsVisible", not otherToolActive and inErode and true or false)
+					-- Feature SELECTION / Reroll rows sit outside tf-feature-controls (they
+					-- belong above it in the panel), so activeTool does not gate them, and
+					-- their flags are only written by tf_features.sync, which runs for the
+					-- Features tool alone. Clear them here or the last state stays up and
+					-- follows you into whatever tool you switch to.
+					if not fpActive then
+						setDm("fpShowSelection", false)
+						setDm("fpShowReroll", false)
+						setDm("fpHasSelection", false)
+					end
+					-- clay/full-restore visibility
+					local inTfRestore = tfActive and tfState and tfState.mode == "restore"
+					setDm("tfInRestore", inTfRestore and true or false)
+				end
+			end
+		end -- if panelVisible
+
+		-- Toggle noise floating window
+		local noiseActive = tfActive and tfState.mode == "noise"
+		if noiseActive and not widgetState.lastNoiseActive then
+			widgetState.noiseManuallyHidden = false
+			widgetState.noisePositioned = false -- reposition on every fresh open
 		end
-
-
-	elseif tfActive then
-		-- ===== Terraform mode: update terraform controls =====
-		local state = tfState
-
-		local effectiveMaxIntensity = getEffectiveMaxIntensity()
-		if state.intensity > effectiveMaxIntensity then
-			WG.TerraformBrush.setIntensity(effectiveMaxIntensity)
-			state = WG.TerraformBrush.getState()
-		end
-
+		widgetState.lastNoiseActive = noiseActive
 		if widgetState.dmHandle then
-			local dm = widgetState.dmHandle
-			local shapeName = shapeNames[state.shape] or "Circle"
-			local curveStr = string.format("%.1f", state.curve)
-			local intensityStr = string.format("%.1f", state.intensity)
-			if dm.radius ~= state.radius then dm.radius = state.radius end
-			if dm.shapeName ~= shapeName then dm.shapeName = shapeName end
-			if dm.rotationDeg ~= state.rotationDeg then dm.rotationDeg = state.rotationDeg end
-			if dm.curve ~= curveStr then dm.curve = curveStr end
-			if dm.intensity ~= intensityStr then dm.intensity = intensityStr end
-
-			-- Stamp mode badge visibility
-			local stampBadge = doc and getCachedEl(doc, "stamp-badge")
-			if stampBadge then
-				local isStamp = WG.TerraformBrush.isStampMode and WG.TerraformBrush.isStampMode() or false
-				stampBadge:SetClass("hidden", not isStamp)
+			local v = noiseActive and not widgetState.noiseManuallyHidden
+			if widgetState.dmHandle.noiseWindowVisible ~= v then
+				widgetState.dmHandle.noiseWindowVisible = v
 			end
-
-			local lengthStr = string.format("%.1f", state.lengthScale)
-			local capMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
-			local capMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
-			if dm.lengthScale ~= lengthStr then dm.lengthScale = lengthStr end
-			if dm.heightCapMaxStr ~= capMaxStr then dm.heightCapMaxStr = capMaxStr end
-			if dm.heightCapMinStr ~= capMinStr then dm.heightCapMinStr = capMinStr end
+		end
+		-- Position noise window to the LEFT of the main panel on first open.
+		-- data-if creates the element asynchronously, so retry each frame until found + laid out.
+		if noiseActive and not widgetState.noiseManuallyHidden and not widgetState.noisePositioned then
+			local mainEl = widgetState.rootElement
+			local noiseDoc = widgetState.document
+			local noiseEl = noiseDoc and noiseDoc:GetElementById("tf-noise-root")
+			if noiseEl and mainEl and noiseEl.offset_width > 0 then
+				local gap = 6
+				local noiseLeft = math.max(0, mainEl.offset_left - noiseEl.offset_width - gap)
+				local noiseTop = mainEl.offset_top
+				noiseEl:SetAttribute(
+					"style",
+					string.format("left: %dpx; top: %dpx;", math.floor(noiseLeft), math.floor(noiseTop))
+				)
+				widgetState.noisePositioned = true
+			end
 		end
 
+		-- Disable ring shape when in feature, weather, splat, metal, or light mode
+		local ringBtn = widgetState.shapeButtons.ring
+		if ringBtn then
+			ringBtn:SetClass("disabled", fpActive or wbActive or spActive or mbActive or gbActive or lpActive or false)
+		end
+
+		-- Disable hexagon/octagon/triangle in light mode (LightPlacer only supports circle/square)
+		local hexBtn = widgetState.shapeButtons.hexagon
+		if hexBtn then
+			hexBtn:SetClass("disabled", lpActive or false)
+		end
+		local octBtn = widgetState.shapeButtons.octagon
+		if octBtn then
+			octBtn:SetClass("disabled", lpActive or false)
+		end
+		local triBtn = widgetState.shapeButtons.triangle
+		if triBtn then
+			triBtn:SetClass("disabled", lpActive or false)
+		end
+
+		-- Disable fill+clay in metal mode; disable fill in feature/grass/weather/light/noise modes
+		local fillBtn = widgetState.shapeButtons.fill
+		if fillBtn then
+			fillBtn:SetClass(
+				"disabled",
+				mbActive
+					or fpActive
+					or gbActive
+					or wbActive
+					or lpActive
+					or noiseActive
+					or (tfActive and tfState and tfState.mode == "lower")
+					or false
+			)
+		end
+
+		local doc = widgetState.document
+		local clayBtn = doc and getCachedEl(doc, "btn-clay-mode")
+		if clayBtn then
+			clayBtn:SetClass("disabled", mbActive or lpActive or false)
+		end
+
+		-- Keep height-band slider bounds in step with the map's real height range
 		if doc then
-			uiState.updatingFromCode = true
-			local ds = uiState.draggingSlider
+			updateHeightBandSliderBounds(doc)
+		end
 
-			syncAndFlash(getCachedEl(doc, "slider-rotation"), "rotation", tostring(state.rotationDeg))
-
-			syncAndFlash(getCachedEl(doc, "slider-curve"), "curve", tostring(math.floor(state.curve * 10 + 0.5)))
-
-			do
-				local elIntensity = getCachedEl(doc, "slider-intensity")
-				if elIntensity then
-					local maxStr = tostring(intensityToSlider(effectiveMaxIntensity))
-					if widgetState.lastAttrValue["slider-intensity@max"] ~= maxStr then
-						widgetState.lastAttrValue["slider-intensity@max"] = maxStr
-						elIntensity:SetAttribute("max", maxStr)
-						-- Keep the transport range cache coherent (see regTransports).
-						local tIntensity = widgetState.transports["slider-intensity"]
-						if tIntensity then tIntensity.rmax = tonumber(maxStr) or 100 end
+		-- Blue-dot hint gating: hide dots already seen or when tips disabled,
+		-- and handle chip 2-pulse animations scheduled by tf_environment listeners.
+		do
+			if doc and widgetState.hintDots then
+				local up = widgetState.uiPrefs
+				local tipsDisabled = up and up.disableTips
+				local nowFrame = Spring.GetGameFrame()
+				local nowSec = Spring.GetGameSeconds() or 0
+				for _, h in ipairs(widgetState.hintDots) do
+					local dot = getCachedEl(doc, h.dotId)
+					if dot then
+						local alreadySeen = up and up[h.prefKey]
+						dot:SetClass("hidden", tipsDisabled or alreadySeen or false)
+					end
+					if h.pulseKey and widgetState[h.pulseKey] and nowFrame >= widgetState[h.pulseKey] then
+						widgetState[h.pulseKey] = nil
+						if not tipsDisabled and h.pulseTargets then
+							for _, tid in ipairs(h.pulseTargets) do
+								local t = getCachedEl(doc, tid)
+								if t then
+									t:SetClass("tf-chip-2pulse", false)
+									t:SetClass("tf-chip-2pulse", true)
+								end
+							end
+							widgetState[h.pulseExpiryKey] = nowSec + 1.25
+						end
+					end
+					if
+						h.pulseExpiryKey
+						and widgetState[h.pulseExpiryKey]
+						and nowSec >= widgetState[h.pulseExpiryKey]
+					then
+						widgetState[h.pulseExpiryKey] = nil
+						if h.pulseTargets then
+							for _, tid in ipairs(h.pulseTargets) do
+								local t = getCachedEl(doc, tid)
+								if t then
+									t:SetClass("tf-chip-2pulse", false)
+								end
+							end
+						end
 					end
 				end
-				local penEnabled = state.penPressureEnabled == true
-				local penActive = penEnabled and state.penInContact and state.penPressureModulateIntensity
-				if penActive then
-					local pm = state.penPressureMapped or state.penPressure or 0
-					local sens = state.penPressureSensitivity or 1.0
-					local effInt = (state.intensity or 1) * (1.0 + pm * sens)
-					syncAndFlash(elIntensity, "intensity", tostring(intensityToSlider(effInt)))
+			end
+		end
+
+		-- Status summary helper (shared by all tool branches)
+		local sumEl = doc and getCachedEl(doc, "status-summary")
+		local function setSummary(title, color, ...)
+			if not sumEl then
+				return
+			end
+			local sep = '<span class="tf-ss-sep">|</span>'
+			local buf = { '<span class="tf-ss-mode" style="color: ' .. color .. ';">' .. title .. "</span>" }
+			local args = { ... }
+			for i = 1, #args, 2 do
+				buf[#buf + 1] = sep
+				local label = args[i] or ""
+				local value = args[i + 1] or ""
+				if label == "" then
+					buf[#buf + 1] = '<span class="tf-ss-val">' .. value .. "</span>"
 				else
-					syncAndFlash(elIntensity, "intensity", tostring(intensityToSlider(state.intensity)))
+					buf[#buf + 1] = '<span class="tf-ss-label">'
+						.. label
+						.. '</span><span class="tf-ss-val">'
+						.. value
+						.. "</span>"
 				end
 			end
+			setInnerRmlIfChanged(sumEl, "status-summary", table.concat(buf))
+		end
 
-			syncAndFlash(getCachedEl(doc, "slider-length"), "length", tostring(math.floor(state.lengthScale * 10 + 0.5)))
-
+		-- Tool button .active class is driven by data-class-active="activeTool == '<code>'" in RML.
+		-- Do NOT SetClass("active", ...) on btn-metal/features/splat/decals/weather/environment/lights/grass/startpos/clone here:
+		-- a per-frame imperative clear fights data-class-active (which only fires on value change),
+		-- leaving most buttons un-highlighted. dm.activeTool (set above) is the single owner.
+		if doc then
+			-- Reset ramp-type row and shape row visibility before per-tool branches
 			do
-				local penEnabled = state.penPressureEnabled == true
-				local penActive = penEnabled and state.penInContact and state.penPressureModulateSize
-				if penActive then
-					local pm = state.penPressureMapped or state.penPressure or 0
-					local sens = state.penPressureSensitivity or 1.0
-					local effSize = math.floor((state.radius or 100) * (1.0 + pm * sens) + 0.5)
-					syncAndFlash(getCachedEl(doc, "slider-size"), "size", tostring(effSize))
-				else
-					syncAndFlash(getCachedEl(doc, "slider-size"), "size", tostring(state.radius))
-				end
-			end
-
-			local ringWidthRowEl = getCachedEl(doc, "ring-width-row")
-			if ringWidthRowEl then
-				-- keep for cache; visibility driven by dm.tfRingVisible
-			end
-			if widgetState.dmHandle then
-				local v = (state.shape == "ring")
-				if widgetState.dmHandle.tfRingVisible ~= v then widgetState.dmHandle.tfRingVisible = v end
-			end
-			-- Sync ringWidthPct from widget state (e.g. changed by Ctrl+R scroll)
-			if state.ringInnerRatio then
-				ringWidthPct = math.floor((1 - state.ringInnerRatio) * 100 + 0.5)
-			end
-			syncAndFlash(getCachedEl(doc, "slider-ring-width"), "ring-width", tostring(ringWidthPct))
-			if widgetState.dmHandle then
-				local v = tostring(ringWidthPct) .. "%"
-				if widgetState.dmHandle.tfRingWidthStr ~= v then widgetState.dmHandle.tfRingWidthStr = v end
-			end
-
-			if widgetState.dmHandle then
-				local v = (state.mode == "restore")
-				if widgetState.dmHandle.tfInRestore ~= v then widgetState.dmHandle.tfInRestore = v end
-			end
-			local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
-			if restoreStrengthRow then
-				-- visibility driven by dm.tfInRestore
-			end
-			local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
-			if sliderRestoreStrength and ds ~= "restoreStrength" then
-				sliderRestoreStrength:SetAttribute("value", tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)))
-			end
-			if widgetState.dmHandle then
-				local v = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%"
-				if widgetState.dmHandle.tfRestoreStrengthStr ~= v then widgetState.dmHandle.tfRestoreStrengthStr = v end
-			end
-
-			local sliderCapMax = getCachedEl(doc, "slider-cap-max")
-			if sliderCapMax and ds ~= "capmax" then
-				sliderCapMax:SetAttribute("value", tostring(capMaxValue))
-			end
-
-			local sliderCapMin = getCachedEl(doc, "slider-cap-min")
-			if sliderCapMin and ds ~= "capmin" then
-				sliderCapMin:SetAttribute("value", tostring(capMinValue))
-			end
-			if dm then dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
-			if dm then dm.tfCapEnabledSrc = capEnabled and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png" end
-
-			local sliderHistory = getCachedEl(doc, "slider-history")
-			if sliderHistory and ds ~= "history" then
-				local totalSteps = (state.undoCount or 0) + (state.redoCount or 0)
-				local maxVal = math.min(totalSteps, 400)
-				if maxVal < 1 then maxVal = 1 end
-				sliderHistory:SetAttribute("max", tostring(maxVal))
-				sliderHistory:SetAttribute("value", tostring(state.undoCount or 0))
-			end
-
-			local clayImg = getCachedEl(doc, "btn-clay-mode")
-			if clayImg then
-				clayImg:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[state.mode] == true)
-			end
-			if dm then dm.tfClayMode = state.clayMode == true end
-
-			if dm then dm.tfGridOverlay = state.gridOverlay == true end
-
-
-			local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
-			if snapSizeRow then
-				-- visibility driven by dm.tfGridSnap
-			end
-			if widgetState.dmHandle then
-				local v = state.gridSnap and true or false
-				if widgetState.dmHandle.tfGridSnap ~= v then widgetState.dmHandle.tfGridSnap = v end
-			end
-			local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
-			if sliderSnapSizeSync and uiState.draggingSlider ~= "tf-grid-snap-size" then
-				sliderSnapSizeSync:SetAttribute("value", tostring(state.gridSnapSize or 48))
-			end
-			if widgetState.dmHandle then
-				local v = tostring(state.gridSnapSize or 48)
-				if widgetState.dmHandle.tbGridSnapSizeStr ~= v then widgetState.dmHandle.tbGridSnapSizeStr = v end
-			end
-			local snapSizeNb = getCachedEl(doc, "slider-grid-snap-size-numbox")
-			if snapSizeNb then
-				snapSizeNb:SetAttribute("value", tostring(state.gridSnapSize or 48))
-			end
-
-			-- Protractor state sync
-			local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
-			if angleStepRow then
-				-- visibility driven by dm.tfAngleSnap
-			end
-			if widgetState.dmHandle then
-				local v = state.angleSnap and true or false
-				if widgetState.dmHandle.tfAngleSnap ~= v then widgetState.dmHandle.tfAngleSnap = v end
-			end
-			local ANGLE_PRESETS_SYNC = {7.5, 15, 30, 45, 60, 90}
-			local function findAnglePresetIdxSync(val)
-				local best, bestD = 1, math.huge
-				for i, p in ipairs(ANGLE_PRESETS_SYNC) do
-					local d = math.abs(p - (val or 15))
-					if d < bestD then bestD = d; best = i end
-				end
-				return best
-			end
-			local curStep = state.angleSnapStep or 15
-			local curIdx  = findAnglePresetIdxSync(curStep)
-			local curStr  = (curStep == math.floor(curStep)) and tostring(math.floor(curStep)) or tostring(curStep)
-			local sliderAngleStepSync = getCachedEl(doc, "slider-angle-snap-step")
-			if sliderAngleStepSync and uiState.draggingSlider ~= "tf-angle-snap-step" then
-				sliderAngleStepSync:SetAttribute("value", tostring(curIdx - 1))
-			end
-			if widgetState.dmHandle then
-				if widgetState.dmHandle.tbAngleSnapStepStr ~= curStr then widgetState.dmHandle.tbAngleSnapStepStr = curStr end
-			end
-			local angleStepNb = getCachedEl(doc, "slider-angle-snap-step-numbox")
-			if angleStepNb then
-				angleStepNb:SetAttribute("value", curStr)
-			end
-
-			-- Autosnap toggle + manual spoke sync
-			do
-				local isAuto = state.angleSnapAuto ~= false
-				if widgetState.dmHandle and widgetState.dmHandle.tfAngleSnapAuto ~= isAuto then widgetState.dmHandle.tfAngleSnapAuto = isAuto end
-				if not isAuto then
-					local step2 = state.angleSnapStep or 15
-					local numSpokes2 = math.max(1, math.floor(360 / step2))
-					local spokeIdx = state.angleSnapManualSpoke or 0
-					local spokeAngle = (spokeIdx * step2) % 360
-					_noDmLabel("tfManualSpokeStr", tostring(spokeAngle))
-					local msSlider = getCachedEl(doc, "slider-manual-spoke")
-					if msSlider then
-						uiState.updatingFromCode = true
-						msSlider:SetAttribute("max", tostring(numSpokes2 - 1))
-						msSlider:SetAttribute("value", tostring(spokeIdx))
-						uiState.updatingFromCode = false
+				local hideShape2 = envActive
+					or clActive
+					or stpActive
+					or wbActive
+					or widgetState.cloneActive
+					or widgetState.startposActive
+					or widgetState.envActive
+					or widgetState.surfActive
+					or widgetState.surfHardActive
+				if widgetState.dmHandle then
+					if widgetState.dmHandle.tfRampMode ~= false then
+						widgetState.dmHandle.tfRampMode = false
+					end
+					if widgetState.dmHandle.tfShapeRowVisible ~= not hideShape2 then
+						widgetState.dmHandle.tfShapeRowVisible = not hideShape2
+					end
+					-- Same predicate as the shape row plus the modes whose drag runs the stroke
+					-- resampler: this reset block re-opens the shape row every frame, so the
+					-- FOLLOW chip has to be recomputed alongside it.
+					local followVis = not hideShape2 and tfActive and tfState and _tbFollowModes[tfState.mode] and true
+						or false
+					if widgetState.dmHandle.tfFollowVisible ~= followVis then
+						widgetState.dmHandle.tfFollowVisible = followVis
 					end
 				end
 			end
 
-			-- Measure tool state sync
-			local measureImg = getCachedEl(doc, "btn-measure")
-			-- Ramp-manipulator discoverability: dot + chip pulse once a ramp is drawn
+			-- Track whether this map currently has any grass data. Keep this
+			-- informational-only: generated blank maps start with zero grass and the
+			-- Grass tool should still be usable so users can paint the first patches.
 			do
-				local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
-				local curCount = state.measureChainCount or 0
-				local lastCount = widgetState.lastMeasureChainCount or 0
-				if curCount > lastCount and not tipsDisabled then
-					widgetState.instrumentsHintActive = true
+				local gApi = WG.grassgl4
+				local hasGrass = gApi and gApi.hasGrass and gApi.hasGrass()
+				local grassBtnEl = getCachedEl(doc, "btn-grass")
+				if grassBtnEl then
+					grassBtnEl:SetClass("disabled", false)
 				end
-				widgetState.lastMeasureChainCount = curCount
-				local instSec = getCachedEl(doc, "section-instruments")
-				local instDot = getCachedEl(doc, "instruments-notify-dot")
-				if instDot then
-					local secHidden = instSec and instSec:IsClassSet("hidden") or false
-					local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenInstrumentsHint
-					instDot:SetClass("hidden", tipsDisabled or alreadySeen or not (widgetState.instrumentsHintActive and secHidden))
+				local splatBtnEl = getCachedEl(doc, "btn-splat")
+				if splatBtnEl then
+					splatBtnEl:SetClass("disabled", _splatToolUnavailable())
 				end
-				if widgetState.instrumentsPulseFrame and Spring.GetGameFrame() >= widgetState.instrumentsPulseFrame then
-					widgetState.instrumentsPulseFrame = nil
-					if widgetState.instrumentsHintActive and not tipsDisabled then
-						widgetState.instrumentsHintActive = false
+				widgetState.grassNoDataThisMap = not hasGrass
+			end
+
+			-- Front tool pair: the tileset shader decides which surface-painting set
+			-- leads the TOOLS grid. Shader ON = SURFACE (soft variants) + LAYERS
+			-- (hard overrides); shader OFF = the legacy DIFFUSE + SPLAT pair. The
+			-- two sets replace each other in the same two leading slots.
+			-- Availability still gates each button so a missing write-dir widget
+			-- never leaves a dead button (diffuse/surface reveal pattern).
+			do
+				local tsOn = (WG.TilesetTerrain and WG.TilesetTerrain.isActive and WG.TilesetTerrain.isActive())
+						and true
+					or false
+				local surfShow = tsOn and (WG.SurfacePainter ~= nil) and (tfSurface ~= nil)
+				local layersShow = tsOn and (WG.SplatPainter ~= nil) and (tfSurface ~= nil)
+				local dfpShow = (not tsOn) and (WG.DiffusePainter ~= nil)
+				local splatShow = not tsOn
+				local sig = (surfShow and 1 or 0)
+					+ (layersShow and 2 or 0)
+					+ (dfpShow and 4 or 0)
+					+ (splatShow and 8 or 0)
+				if widgetState.toolPairSig ~= sig then
+					widgetState.toolPairSig = sig
+					local el
+					el = getCachedEl(doc, "btn-surface")
+					if el then
+						el:SetClass("hidden", not surfShow)
+					end
+					el = getCachedEl(doc, "btn-layers")
+					if el then
+						el:SetClass("hidden", not layersShow)
+					end
+					el = getCachedEl(doc, "btn-diffuse")
+					if el then
+						el:SetClass("hidden", not dfpShow)
+					end
+					el = getCachedEl(doc, "btn-splat")
+					if el then
+						el:SetClass("hidden", not splatShow)
+					end
+				end
+			end
+		end
+
+		-- TILESET floating window (opened from SCENE): synced whenever open, no
+		-- matter which tool is active — that is the point of it being a window.
+		-- The module early-outs on dm.envTilesetVisible, so this is cheap when
+		-- closed. No setSummary: the status strip belongs to the active tool.
+		tfTileset.sync(doc, ctx, nil)
+		-- Separate call: the shader row must still update when the shader widget
+		-- is absent, and tfTileset.sync early-outs on exactly that.
+		tfTileset.syncShader(doc, ctx)
+
+		if mbActive then
+			-- Metal Brush sync (extracted to tf_metal.lua)
+			tfMetal.sync(doc, ctx, mbState, setSummary)
+		elseif gbActive then
+			-- Grass Brush sync (extracted to tf_grass.lua)
+			tfGrass.sync(doc, ctx, gbState, setSummary, sumEl)
+		elseif spActive then
+			-- Hard-submode pin: SURFACE panel drives the splat engine, so it gets
+			-- the surf sync (surfMode == 'hard' branch), not the legacy splat one.
+			if widgetState.surfHardActive and tfSurface then
+				tfSurface.sync(
+					doc,
+					ctx,
+					WG.SurfacePainter and WG.SurfacePainter.getState and WG.SurfacePainter.getState(),
+					setSummary
+				)
+			else
+				tfSplat.sync(doc, ctx, spState, setSummary)
+			end
+		elseif dfpActive then
+			local dfpState = WG.DiffusePainter and WG.DiffusePainter.getState and WG.DiffusePainter.getState()
+			tfDiffuse.sync(doc, ctx, dfpState, setSummary)
+		elseif fpActive then
+			tfFeatures.sync(doc, ctx, fpState, setSummary)
+		elseif envActive then
+			tfEnvironment.sync(doc, ctx, setSummary)
+		elseif lpActive then
+			tfLights.sync(doc, ctx, lpState, setSummary)
+		elseif stpActive then
+			tfStartPos.sync(doc, ctx, stpState, setSummary)
+		elseif clActive then
+			tfClone.sync(doc, ctx, clState, setSummary)
+		elseif decalsActive then
+			tfDecals.sync(doc, ctx, setSummary)
+		elseif widgetState.surfActive then
+			if tfSurface then
+				tfSurface.sync(doc, ctx, WG.SurfacePainter and WG.SurfacePainter.getState(), setSummary)
+				-- AUTOMATIC DEPOSIT rows under FILL AND SEED are tileset knobs (ts-* ids)
+				tfTileset.syncDeposit(doc, ctx)
+			end
+		elseif wbState and wbState.active then
+			-- Weather Brush has no M.sync; drive mirror chips directly here.
+			do
+				local weatherBtnEl = doc and getCachedEl(doc, "btn-weather")
+				if weatherBtnEl then
+					weatherBtnEl:SetClass("active", true)
+				end
+			end
+			if ctx.syncTBMirrorControls then
+				ctx.syncTBMirrorControls(doc, "wb")
+			end
+
+			-- Weather readout (without one the strip keeps the previous tool's
+			-- line). Six groups like the other tools — see tf_decals for why.
+			do
+				local f = wbState.frequency or 0
+				local fStr = f >= 10 and string.format("%.0fs", f)
+					or f >= 1 and string.format("%.1fs", f)
+					or string.format("%.2fs", f)
+				setSummary(
+					"WEATHER",
+					"#fdc04c",
+					"",
+					(wbState.mode or "scatter"):upper(),
+					"R ",
+					tostring(math.floor(wbState.radius or 0)),
+					"Cnt ",
+					tostring(wbState.spawnCount or 0),
+					"Freq ",
+					fStr,
+					"Fx ",
+					tostring(wbState.persistentCount or 0)
+				)
+			end
+
+			-- Sync weather brush slider/label values from state.
+			-- Wrapped in a local function so its locals don't count against the
+			-- widget:Update pcall function's 200-local-variable limit.
+			if doc then
+				local function wbSync(wbs, ctxx, uiS, getCE, docc)
+					uiS.updatingFromCode = true
+					local drag = uiS.draggingSlider
+					local function ss(sid, val)
+						if drag == sid then
+							return
+						end
+						setAttrValueIfChanged(getCE(docc, sid), sid, tostring(val))
+					end
+					local function sl(id, text)
+						setInnerRmlIfChanged(getCE(docc, id), id, text)
+					end
+					-- Size (slider value = radius)
+					local sv = math.floor(wbs.radius)
+					ss("wb-slider-size", sv)
+					sl("wb-radius-label", tostring(sv))
+					-- Length (slider value = lengthScale*10)
+					local lv = math.floor(wbs.lengthScale * 10 + 0.5)
+					ss("wb-slider-length", lv)
+					sl("wb-length-label", string.format("%.1f", wbs.lengthScale))
+					-- Rotation (slider value = rotation degrees)
+					local rv = math.floor(wbs.rotation)
+					ss("wb-slider-rotation", rv)
+					sl("wb-rotation-label", tostring(rv))
+					-- Spawn count
+					ss("wb-slider-count", wbs.spawnCount)
+					sl("wb-count-label", tostring(wbs.spawnCount))
+					-- Cadence (logarithmic)
+					ss("wb-slider-cadence", ctxx.cadenceToSlider(wbs.cadence))
+					sl("wb-cadence-label", tostring(wbs.cadence))
+					-- Frequency (logarithmic)
+					local f = wbs.frequency
+					ss("wb-slider-frequency", ctxx.frequencyToSlider(f))
+					sl(
+						"wb-frequency-label",
+						f >= 10 and string.format("%.0fs", f)
+							or f >= 1 and string.format("%.1fs", f)
+							or string.format("%.2fs", f)
+					)
+					-- Persistence
+					ss("wb-slider-persist", ctxx.persistToSlider(wbs.persistenceSeconds))
+					local pv = wbs.persistenceSeconds
+					sl(
+						"wb-persist-label",
+						pv >= ctxx.PERSIST_PERMANENT_VAL and "Perm"
+							or pv <= 0 and "Off"
+							or (
+								pv < 60 and string.format("%.0fs", pv)
+								or pv < 3600 and string.format("%.0fm", pv / 60)
+								or string.format("%.0fh", pv / 3600)
+							)
+					)
+					-- Active effects count
+					sl("wb-persistent-count", tostring(wbs.persistentCount or 0))
+					-- Permanent checkbox visual
+					local pBtn = getCE(docc, "btn-wb-persistent")
+					if pBtn then
+						pBtn:SetAttribute(
+							"src",
+							pv >= ctxx.PERSIST_PERMANENT_VAL and "/luaui/images/terraform_brush/check_on.png"
+								or "/luaui/images/terraform_brush/check_off.png"
+						)
+					end
+					uiS.updatingFromCode = false
+				end
+				wbSync(wbState, ctx, uiState, getCachedEl, doc)
+			end
+
+			-- P3.2 Weather grayouts (per Phase 3 relevance matrix)
+			if doc then
+				local mode = wbState.mode or "scatter"
+				local remove = (mode == "remove")
+				local scatter = (mode == "scatter")
+				-- Rotation/length: always enabled (no shape picker, shape is always circle)
+				ctx.setDisabledIds(doc, {
+					"wb-slider-rotation",
+					"wb-slider-rotation-numbox",
+					"btn-wb-rot-ccw",
+					"btn-wb-rot-cw",
+					"wb-slider-length",
+					"wb-slider-length-numbox",
+					"btn-wb-length-down",
+					"btn-wb-length-up",
+				}, false)
+				-- Count/cadence/distribution: scatter-only
+				ctx.setDisabledIds(doc, {
+					"wb-slider-count",
+					"wb-slider-count-numbox",
+					"btn-wb-count-down",
+					"btn-wb-count-up",
+					"wb-slider-cadence",
+					"wb-slider-cadence-numbox",
+					"btn-wb-cadence-down",
+					"btn-wb-cadence-up",
+					"btn-wb-dist-random",
+					"btn-wb-dist-regular",
+					"btn-wb-dist-clustered",
+				}, not scatter)
+				-- Frequency/persist: irrelevant in remove
+				ctx.setDisabledIds(doc, {
+					"wb-slider-frequency",
+					"wb-slider-frequency-numbox",
+					"wb-slider-persist",
+					"wb-slider-persist-numbox",
+					"btn-wb-persist-down",
+					"btn-wb-persist-up",
+				}, remove)
+			end
+		elseif tfActive and not widgetState.mirrorStrided(tfState) then
+			-- ===== Terraform mode: update terraform controls =====
+			-- (skipped on strided frames mid-drag, see widgetState.mirrorStrided)
+			local state = tfState
+
+			local effectiveMaxIntensity = getEffectiveMaxIntensity()
+			if state.intensity > effectiveMaxIntensity then
+				WG.TerraformBrush.setIntensity(effectiveMaxIntensity)
+				state = WG.TerraformBrush.getState()
+			end
+
+			if widgetState.dmHandle then
+				local dm = widgetState.dmHandle
+				local shapeName = shapeNames[state.shape] or "Circle"
+				local curveStr = string.format("%.1f", state.curve)
+				local intensityStr = string.format("%.1f", state.intensity)
+				if dm.radius ~= state.radius then
+					dm.radius = state.radius
+				end
+				if dm.shapeName ~= shapeName then
+					dm.shapeName = shapeName
+				end
+				if dm.rotationDeg ~= state.rotationDeg then
+					dm.rotationDeg = state.rotationDeg
+				end
+				if dm.curve ~= curveStr then
+					dm.curve = curveStr
+				end
+				if dm.intensity ~= intensityStr then
+					dm.intensity = intensityStr
+				end
+
+				-- Stamp mode badge visibility
+				local stampBadge = doc and getCachedEl(doc, "stamp-badge")
+				if stampBadge then
+					local isStamp = WG.TerraformBrush.isStampMode and WG.TerraformBrush.isStampMode() or false
+					stampBadge:SetClass("hidden", not isStamp)
+				end
+
+				-- Adopt cap changes made brush-side (Alt+Shift scroll lives in
+				-- cmd_terraform_brush and writes heightCapMax directly): mirror them
+				-- into the panel's cap state and slider, unless the user is mid-drag
+				-- on that slider or typing in its numbox. Without this the scroll
+				-- combo moved the real cap while the panel sat on the stale value —
+				-- and the next panel interaction stomped the cap right back.
+				do
+					local scrollCap = state.heightCapMax
+					if
+						scrollCap
+						and scrollCap ~= 0
+						and scrollCap ~= capMaxValue
+						and uiState.draggingSlider ~= "capmax"
+					then
+						local nb = doc and getCachedEl(doc, "slider-cap-max-numbox")
+						if not (nb and widgetState.focusedRmlInput == nb) then
+							capMaxValue = scrollCap
+							-- The scroll combo explicitly asked for a cap: flip the
+							-- master toggle on so what the user sees matches what clamps.
+							if not capEnabled then
+								capEnabled = true
+								dm.tfCapEnabledSrc = "/luaui/images/terraform_brush/check_on.png"
+							end
+							if capMinValue > capMaxValue then
+								capMinValue = capMaxValue
+								applyCap("min", capMinValue)
+								local elMin = doc and getCachedEl(doc, "slider-cap-min")
+								if elMin then
+									local vs = tostring(capMinValue)
+									elMin:SetAttribute("value", vs)
+									widgetState.lastAttrValue["slider-cap-min"] = vs
+								end
+							end
+							local el = doc and getCachedEl(doc, "slider-cap-max")
+							if el then
+								local vs = tostring(capMaxValue)
+								el:SetAttribute("value", vs)
+								widgetState.lastAttrValue["slider-cap-max"] = vs
+							end
+						end
+					end
+				end
+				local lengthStr = string.format("%.1f", state.lengthScale)
+				local capMaxStr = capMaxValue ~= 0 and tostring(capMaxValue) or "--"
+				local capMinStr = capMinValue ~= 0 and tostring(capMinValue) or "--"
+				if dm.lengthScale ~= lengthStr then
+					dm.lengthScale = lengthStr
+				end
+				if dm.heightCapMaxStr ~= capMaxStr then
+					dm.heightCapMaxStr = capMaxStr
+				end
+				if dm.heightCapMinStr ~= capMinStr then
+					dm.heightCapMinStr = capMinStr
+				end
+			end
+
+			if doc then
+				uiState.updatingFromCode = true
+				local ds = uiState.draggingSlider
+
+				syncAndFlash(getCachedEl(doc, "slider-rotation"), "rotation", tostring(state.rotationDeg))
+
+				syncAndFlash(getCachedEl(doc, "slider-curve"), "curve", tostring(math.floor(state.curve * 10 + 0.5)))
+
+				do
+					local elIntensity = getCachedEl(doc, "slider-intensity")
+					if elIntensity then
+						local maxStr = tostring(intensityToSlider(effectiveMaxIntensity))
+						if widgetState.lastAttrValue["slider-intensity@max"] ~= maxStr then
+							widgetState.lastAttrValue["slider-intensity@max"] = maxStr
+							elIntensity:SetAttribute("max", maxStr)
+							-- Keep the transport range cache coherent (see regTransports).
+							local tIntensity = widgetState.transports["slider-intensity"]
+							if tIntensity then
+								tIntensity.rmax = tonumber(maxStr) or 100
+							end
+						end
+					end
+					local penEnabled = state.penPressureEnabled == true
+					local penActive = penEnabled and state.penInContact and state.penPressureModulateIntensity
+					if penActive then
+						local pm = state.penPressureMapped or state.penPressure or 0
+						local sens = state.penPressureSensitivity or 1.0
+						local effInt = (state.intensity or 1) * (1.0 + pm * sens)
+						syncAndFlash(elIntensity, "intensity", tostring(intensityToSlider(effInt)))
+					else
+						syncAndFlash(elIntensity, "intensity", tostring(intensityToSlider(state.intensity)))
+					end
+				end
+
+				syncAndFlash(
+					getCachedEl(doc, "slider-length"),
+					"length",
+					tostring(math.floor(state.lengthScale * 10 + 0.5))
+				)
+
+				do
+					local penEnabled = state.penPressureEnabled == true
+					local penActive = penEnabled and state.penInContact and state.penPressureModulateSize
+					if penActive then
+						local pm = state.penPressureMapped or state.penPressure or 0
+						local sens = state.penPressureSensitivity or 1.0
+						local effSize = math.floor((state.radius or 100) * (1.0 + pm * sens) + 0.5)
+						syncAndFlash(getCachedEl(doc, "slider-size"), "size", tostring(effSize))
+					else
+						syncAndFlash(getCachedEl(doc, "slider-size"), "size", tostring(state.radius))
+					end
+				end
+
+				local ringWidthRowEl = getCachedEl(doc, "ring-width-row")
+				if ringWidthRowEl then
+					-- keep for cache; visibility driven by dm.tfRingVisible
+				end
+				if widgetState.dmHandle then
+					local v = (state.shape == "ring")
+					if widgetState.dmHandle.tfRingVisible ~= v then
+						widgetState.dmHandle.tfRingVisible = v
+					end
+				end
+				-- Sync ringWidthPct from widget state (e.g. changed by Ctrl+R scroll)
+				if state.ringInnerRatio then
+					ringWidthPct = math.floor((1 - state.ringInnerRatio) * 100 + 0.5)
+				end
+				syncAndFlash(getCachedEl(doc, "slider-ring-width"), "ring-width", tostring(ringWidthPct))
+				if widgetState.dmHandle then
+					local v = tostring(ringWidthPct) .. "%"
+					if widgetState.dmHandle.tfRingWidthStr ~= v then
+						widgetState.dmHandle.tfRingWidthStr = v
+					end
+				end
+
+				if widgetState.dmHandle then
+					local v = (state.mode == "restore")
+					if widgetState.dmHandle.tfInRestore ~= v then
+						widgetState.dmHandle.tfInRestore = v
+					end
+				end
+				local restoreStrengthRow = getCachedEl(doc, "restore-strength-row")
+				if restoreStrengthRow then
+					-- visibility driven by dm.tfInRestore
+				end
+				local sliderRestoreStrength = getCachedEl(doc, "slider-restore-strength")
+				if sliderRestoreStrength and ds ~= "restoreStrength" then
+					sliderRestoreStrength:SetAttribute(
+						"value",
+						tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5))
+					)
+				end
+				if widgetState.dmHandle then
+					local v = tostring(math.floor((state.restoreStrength or 1.0) * 100 + 0.5)) .. "%"
+					if widgetState.dmHandle.tfRestoreStrengthStr ~= v then
+						widgetState.dmHandle.tfRestoreStrengthStr = v
+					end
+				end
+
+				local sliderCapMax = getCachedEl(doc, "slider-cap-max")
+				if sliderCapMax and ds ~= "capmax" then
+					setAttrValueIfChanged(sliderCapMax, "slider-cap-max", tostring(capMaxValue))
+				end
+
+				local sliderCapMin = getCachedEl(doc, "slider-cap-min")
+				if sliderCapMin and ds ~= "capmin" then
+					setAttrValueIfChanged(sliderCapMin, "slider-cap-min", tostring(capMinValue))
+				end
+				local dm = widgetState.dmHandle
+				if dm then
+					dm.tfCapAbsoluteSrc = capAbsolute and "/luaui/images/terraform_brush/check_on.png"
+						or "/luaui/images/terraform_brush/check_off.png"
+				end
+				if dm then
+					dm.tfCapEnabledSrc = capEnabled and "/luaui/images/terraform_brush/check_on.png"
+						or "/luaui/images/terraform_brush/check_off.png"
+				end
+
+				local sliderHistory = getCachedEl(doc, "slider-history")
+				if sliderHistory and ds ~= "history" then
+					local totalSteps = (state.undoCount or 0) + (state.redoCount or 0)
+					local maxVal = math.min(totalSteps, 400)
+					if maxVal < 1 then
+						maxVal = 1
+					end
+					sliderHistory:SetAttribute("max", tostring(maxVal))
+					setAttrValueIfChanged(sliderHistory, "slider-history", tostring(state.undoCount or 0))
+				end
+
+				local clayImg = getCachedEl(doc, "btn-clay-mode")
+				if clayImg then
+					clayImg:SetClass("unavailable", CLAY_UNAVAILABLE_MODES[state.mode] == true)
+				end
+				if dm then
+					dm.tfClayMode = state.clayMode == true
+				end
+
+				if dm then
+					dm.tfGridOverlay = state.gridOverlay == true
+				end
+
+				local snapSizeRow = getCachedEl(doc, "grid-snap-size-row")
+				if snapSizeRow then
+					-- visibility driven by dm.tfGridSnap
+				end
+				if widgetState.dmHandle then
+					local v = state.gridSnap and true or false
+					if widgetState.dmHandle.tfGridSnap ~= v then
+						widgetState.dmHandle.tfGridSnap = v
+					end
+				end
+				local sliderSnapSizeSync = getCachedEl(doc, "slider-grid-snap-size")
+				if sliderSnapSizeSync and uiState.draggingSlider ~= "tf-grid-snap-size" then
+					setAttrValueIfChanged(
+						sliderSnapSizeSync,
+						"slider-grid-snap-size",
+						tostring(state.gridSnapSize or 48)
+					)
+				end
+				if widgetState.dmHandle then
+					local v = tostring(state.gridSnapSize or 48)
+					if widgetState.dmHandle.tbGridSnapSizeStr ~= v then
+						widgetState.dmHandle.tbGridSnapSizeStr = v
+					end
+				end
+				local snapSizeNb = getCachedEl(doc, "slider-grid-snap-size-numbox")
+				if snapSizeNb then
+					setAttrValueIfChanged(
+						snapSizeNb,
+						"slider-grid-snap-size-numbox",
+						tostring(state.gridSnapSize or 48)
+					)
+				end
+
+				-- Protractor state sync
+				local angleStepRow = getCachedEl(doc, "angle-snap-step-row")
+				if angleStepRow then
+					-- visibility driven by dm.tfAngleSnap
+				end
+				if widgetState.dmHandle then
+					local v = state.angleSnap and true or false
+					if widgetState.dmHandle.tfAngleSnap ~= v then
+						widgetState.dmHandle.tfAngleSnap = v
+					end
+				end
+				local ANGLE_PRESETS_SYNC = { 7.5, 15, 30, 45, 60, 90 }
+				local function findAnglePresetIdxSync(val)
+					local best, bestD = 1, math.huge
+					for i, p in ipairs(ANGLE_PRESETS_SYNC) do
+						local d = math.abs(p - (val or 15))
+						if d < bestD then
+							bestD = d
+							best = i
+						end
+					end
+					return best
+				end
+				local curStep = state.angleSnapStep or 15
+				local curIdx = findAnglePresetIdxSync(curStep)
+				local curStr = (curStep == math.floor(curStep)) and tostring(math.floor(curStep)) or tostring(curStep)
+				local sliderAngleStepSync = getCachedEl(doc, "slider-angle-snap-step")
+				if sliderAngleStepSync and uiState.draggingSlider ~= "tf-angle-snap-step" then
+					setAttrValueIfChanged(sliderAngleStepSync, "slider-angle-snap-step", tostring(curIdx - 1))
+				end
+				if widgetState.dmHandle then
+					if widgetState.dmHandle.tbAngleSnapStepStr ~= curStr then
+						widgetState.dmHandle.tbAngleSnapStepStr = curStr
+					end
+				end
+				local angleStepNb = getCachedEl(doc, "slider-angle-snap-step-numbox")
+				if angleStepNb then
+					setAttrValueIfChanged(angleStepNb, "slider-angle-snap-step-numbox", curStr)
+				end
+
+				-- Autosnap toggle + manual spoke sync
+				do
+					local isAuto = state.angleSnapAuto ~= false
+					if widgetState.dmHandle and widgetState.dmHandle.tfAngleSnapAuto ~= isAuto then
+						widgetState.dmHandle.tfAngleSnapAuto = isAuto
+					end
+					if not isAuto then
+						local step2 = state.angleSnapStep or 15
+						local numSpokes2 = math.max(1, math.floor(360 / step2))
+						local spokeIdx = state.angleSnapManualSpoke or 0
+						local spokeAngle = (spokeIdx * step2) % 360
+						_noDmLabel("tfManualSpokeStr", tostring(spokeAngle))
+						local msSlider = getCachedEl(doc, "slider-manual-spoke")
+						if msSlider then
+							uiState.updatingFromCode = true
+							msSlider:SetAttribute("max", tostring(numSpokes2 - 1))
+							msSlider:SetAttribute("value", tostring(spokeIdx))
+							uiState.updatingFromCode = false
+						end
+					end
+				end
+
+				-- Measure tool state sync
+				local measureImg = getCachedEl(doc, "btn-measure")
+				-- Ramp-manipulator discoverability: dot + chip pulse once a ramp is drawn
+				do
+					local tipsDisabled = widgetState.uiPrefs and widgetState.uiPrefs.disableTips
+					local curCount = state.measureChainCount or 0
+					local lastCount = widgetState.lastMeasureChainCount or 0
+					if curCount > lastCount and not tipsDisabled then
+						widgetState.instrumentsHintActive = true
+					end
+					widgetState.lastMeasureChainCount = curCount
+					local instSec = getCachedEl(doc, "section-instruments")
+					local instDot = getCachedEl(doc, "instruments-notify-dot")
+					if instDot then
+						local secHidden = instSec and instSec:IsClassSet("hidden") or false
+						local alreadySeen = widgetState.uiPrefs and widgetState.uiPrefs.seenInstrumentsHint
+						instDot:SetClass(
+							"hidden",
+							tipsDisabled or alreadySeen or not (widgetState.instrumentsHintActive and secHidden)
+						)
+					end
+					if
+						widgetState.instrumentsPulseFrame
+						and Spring.GetGameFrame() >= widgetState.instrumentsPulseFrame
+					then
+						widgetState.instrumentsPulseFrame = nil
+						if widgetState.instrumentsHintActive and not tipsDisabled then
+							widgetState.instrumentsHintActive = false
+							if measureImg then
+								measureImg:SetClass("tf-chip-2pulse", false)
+								measureImg:SetClass("tf-chip-2pulse", true)
+								widgetState.instrumentsPulseExpiry = (Spring.GetGameSeconds() or 0) + 1.25
+							end
+						end
+					end
+					if
+						widgetState.instrumentsPulseExpiry
+						and (Spring.GetGameSeconds() or 0) >= widgetState.instrumentsPulseExpiry
+					then
+						widgetState.instrumentsPulseExpiry = nil
 						if measureImg then
 							measureImg:SetClass("tf-chip-2pulse", false)
-							measureImg:SetClass("tf-chip-2pulse", true)
-							widgetState.instrumentsPulseExpiry = (Spring.GetGameSeconds() or 0) + 1.25
 						end
 					end
 				end
-				if widgetState.instrumentsPulseExpiry and (Spring.GetGameSeconds() or 0) >= widgetState.instrumentsPulseExpiry then
-					widgetState.instrumentsPulseExpiry = nil
-					if measureImg then measureImg:SetClass("tf-chip-2pulse", false) end
+				local measureToolRow = getCachedEl(doc, "measure-toolbar-row")
+				if measureToolRow then
+					-- visibility driven by dm.tfMeasureActive
 				end
-			end
-			local measureToolRow = getCachedEl(doc, "measure-toolbar-row")
-			if measureToolRow then
-				-- visibility driven by dm.tfMeasureActive
-			end
-			if widgetState.dmHandle then
-				local v = state.measureActive and true or false
-				if widgetState.dmHandle.tfMeasureActive ~= v then widgetState.dmHandle.tfMeasureActive = v end
-			end
-			if dm then
-				dm.tfMeasureRuler = state.measureRulerMode == true
-				dm.tfMeasureSticky = state.measureStickyMode == true
-				dm.tfMeasureShowLength = state.measureShowLength == true
-				dm.tfMeasureRampAttach = state.rampAutoAttach ~= false
-			end
-
-			-- Symmetry tool state sync
-			do
+				if widgetState.dmHandle then
+					local v = state.measureActive and true or false
+					if widgetState.dmHandle.tfMeasureActive ~= v then
+						widgetState.dmHandle.tfMeasureActive = v
+					end
+				end
 				if dm then
-					dm.tfSymMirrorX = state.symmetryMirrorX == true
-					dm.tfSymMirrorY = state.symmetryMirrorY == true
-					dm.tfSymFlipped = state.symmetryFlipped == true
-					dm.tfMeasureDistort = state.measureDistortMode == true
-				end
-				if widgetState.dmHandle then local v = tostring(state.symmetryRadialCount or 2); if widgetState.dmHandle.tbSymCountStr ~= v then widgetState.dmHandle.tbSymCountStr = v end end
-				local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
-				if symCountSlider then symCountSlider:SetAttribute("value", tostring(state.symmetryRadialCount or 2)) end
-				if widgetState.dmHandle then local v = tostring(math.floor(state.symmetryMirrorAngle or 0)); if widgetState.dmHandle.tbSymAngleStr ~= v then widgetState.dmHandle.tbSymAngleStr = v end end
-				local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
-				if mirrorAngleSlider then mirrorAngleSlider:SetAttribute("value", tostring(state.symmetryMirrorAngle or 0)) end
-				local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
-				if widgetState.dmHandle then
-					local dm = widgetState.dmHandle
-					local function setDm(f, v) if dm[f] ~= v then dm[f] = v end end
-					setDm("tfSymmetryActive", state.symmetryActive and true or false)
-					setDm("tfSymmetryRadial", state.symmetryRadial and true or false)
-					setDm("tfSymmetryMirrorAny", hasAxial and true or false)
-					setDm("tfSymHasAxis", (state.symmetryRadial or state.symmetryMirrorX or state.symmetryMirrorY) and true or false)
-				end
-			end
-			if dustEl then
-				dustEl:SetClass("active", state.dustEffects == true)
-				if dm then dm.dustEffectsStr = state.dustEffects and "ON" or "OFF" end
-			end
-			local seismicEl = getCachedEl(doc, "btn-seismic-effects")
-			if seismicEl then
-				seismicEl:SetClass("active", state.seismicEffects == true)
-				if dm then dm.seismicEffectsStr = state.seismicEffects and "ON" or "OFF" end
-			end
-			local djActivateEl = getCachedEl(doc, "btn-dj-activate")
-			if djActivateEl then
-				djActivateEl:SetClass("active", state.djMode == true)
-				if dm then dm.djModeStr = state.djMode and "ON" or "OFF" end
-			end
-			local subSettings = getCachedEl(doc, "dj-sub-settings")
-			if subSettings then subSettings:SetClass("dj-disabled", not state.djMode) end
-			if dm then dm.tfHeightColormap = state.heightColormap == true end
-
-			if dm then
-				dm.tfCapSampleMax = state.heightSamplingMode == "max"
-				dm.tfCapSampleMin = state.heightSamplingMode == "min"
-			end
-
-			if dm then dm.tfCurveOverlay = state.curveOverlay == true end
-
-			if dm then dm.tfVelocityIntensity = state.velocityIntensity == true end
-
-
-
-			do
-				local penEnabled = state.penPressureEnabled == true
-				local pm = state.penPressureMapped or state.penPressure or 0
-				local pctStr = string.format("%d%%", math.floor(pm * 100 + 0.5))
-
-				-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
-				local showInt = penEnabled and (state.penPressureModulateIntensity == true)
-				if dm then dm.tfPenIntActive = showInt end
-				_noDmLabel("tfPenIntStr", pctStr)
-
-				-- Size pen pill: show only when pen enabled AND modulate size is on
-				local showSize = penEnabled and (state.penPressureModulateSize == true)
-				if dm then dm.tfPenSizeActive = showSize end
-				_noDmLabel("tfPenSizeStr", pctStr)
-				if widgetState.dmHandle then
-					local vi = showInt and true or false
-					if widgetState.dmHandle.tfPenIntVisible ~= vi then widgetState.dmHandle.tfPenIntVisible = vi end
-					local vs = showSize and true or false
-					if widgetState.dmHandle.tfPenSizeVisible ~= vs then widgetState.dmHandle.tfPenSizeVisible = vs end
+					dm.tfMeasureRuler = state.measureRulerMode == true
+					dm.tfMeasureSticky = state.measureStickyMode == true
+					dm.tfMeasureShowLength = state.measureShowLength == true
+					dm.tfMeasureRampAttach = state.rampAutoAttach ~= false
 				end
 
-				-- Pen pressure labels only (no slider movement to avoid feedback loops)
+				-- Symmetry tool state sync
+				do
+					if dm then
+						dm.tfSymMirrorX = state.symmetryMirrorX == true
+						dm.tfSymMirrorY = state.symmetryMirrorY == true
+						dm.tfSymFlipped = state.symmetryFlipped == true
+						dm.tfMeasureDistort = state.measureDistortMode == true
+					end
+					if widgetState.dmHandle then
+						local v = tostring(state.symmetryRadialCount or 2)
+						if widgetState.dmHandle.tbSymCountStr ~= v then
+							widgetState.dmHandle.tbSymCountStr = v
+						end
+					end
+					local symCountSlider = getCachedEl(doc, "slider-symmetry-radial-count")
+					if symCountSlider then
+						setAttrValueIfChanged(
+							symCountSlider,
+							"slider-symmetry-radial-count",
+							tostring(state.symmetryRadialCount or 2)
+						)
+					end
+					if widgetState.dmHandle then
+						local v = tostring(math.floor(state.symmetryMirrorAngle or 0))
+						if widgetState.dmHandle.tbSymAngleStr ~= v then
+							widgetState.dmHandle.tbSymAngleStr = v
+						end
+					end
+					local mirrorAngleSlider = getCachedEl(doc, "slider-symmetry-mirror-angle")
+					if mirrorAngleSlider then
+						setAttrValueIfChanged(
+							mirrorAngleSlider,
+							"slider-symmetry-mirror-angle",
+							tostring(state.symmetryMirrorAngle or 0)
+						)
+					end
+					local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
+					if widgetState.dmHandle then
+						local dm = widgetState.dmHandle
+						local function setDm(f, v)
+							if dm[f] ~= v then
+								dm[f] = v
+							end
+						end
+						setDm("tfSymmetryActive", state.symmetryActive and true or false)
+						setDm("tfSymmetryRadial", state.symmetryRadial and true or false)
+						setDm("tfSymmetryMirrorAny", hasAxial and true or false)
+						setDm(
+							"tfSymHasAxis",
+							(state.symmetryRadial or state.symmetryMirrorX or state.symmetryMirrorY) and true or false
+						)
+					end
+				end
+				local dustEl = getCachedEl(doc, "btn-dust-effects")
+				if dustEl then
+					dustEl:SetClass("active", state.dustEffects == true)
+					if dm then
+						dm.dustEffectsStr = state.dustEffects and "ON" or "OFF"
+					end
+				end
+				local seismicEl = getCachedEl(doc, "btn-seismic-effects")
+				if seismicEl then
+					seismicEl:SetClass("active", state.seismicEffects == true)
+					if dm then
+						dm.seismicEffectsStr = state.seismicEffects and "ON" or "OFF"
+					end
+				end
+				local djActivateEl = getCachedEl(doc, "btn-dj-activate")
+				if djActivateEl then
+					djActivateEl:SetClass("active", state.djMode == true)
+					if dm then
+						dm.djModeStr = state.djMode and "ON" or "OFF"
+					end
+				end
+				local subSettings = getCachedEl(doc, "dj-sub-settings")
+				if subSettings then
+					subSettings:SetClass("dj-disabled", not state.djMode)
+				end
+				if dm then
+					dm.tfHeightColormap = state.heightColormap == true
+				end
+
+				if dm then
+					dm.tfCapSampleMax = state.heightSamplingMode == "max"
+					dm.tfCapSampleMin = state.heightSamplingMode == "min"
+				end
+
+				if dm then
+					dm.tfCurveOverlay = state.curveOverlay == true
+				end
+
+				if dm then
+					dm.tfVelocityIntensity = state.velocityIntensity == true
+				end
+
+				if dm then
+					dm.tfFollowStroke = state.followStroke == true
+				end
+
+				do
+					local penEnabled = state.penPressureEnabled == true
+					local pm = state.penPressureMapped or state.penPressure or 0
+					local pctStr = string.format("%d%%", math.floor(pm * 100 + 0.5))
+
+					-- Intensity pen pill: show only when pen enabled AND modulate intensity is on
+					local showInt = penEnabled and (state.penPressureModulateIntensity == true)
+					if dm then
+						dm.tfPenIntActive = showInt
+					end
+					_noDmLabel("tfPenIntStr", pctStr)
+
+					-- Size pen pill: show only when pen enabled AND modulate size is on
+					local showSize = penEnabled and (state.penPressureModulateSize == true)
+					if dm then
+						dm.tfPenSizeActive = showSize
+					end
+					_noDmLabel("tfPenSizeStr", pctStr)
+					if widgetState.dmHandle then
+						local vi = showInt and true or false
+						if widgetState.dmHandle.tfPenIntVisible ~= vi then
+							widgetState.dmHandle.tfPenIntVisible = vi
+						end
+						local vs = showSize and true or false
+						if widgetState.dmHandle.tfPenSizeVisible ~= vs then
+							widgetState.dmHandle.tfPenSizeVisible = vs
+						end
+					end
+
+					-- Pen pressure labels only (no slider movement to avoid feedback loops)
+					uiState.updatingFromCode = false
+
+					-- Settings panel sync
+					local penToggle = getCachedEl(doc, "btn-pen-pressure-toggle")
+					if penToggle then
+						penToggle:SetClass("active", penEnabled)
+					end
+					if dm then
+						dm.penPressureStr = penEnabled and "ON" or "OFF"
+					end
+					local penSub = getCachedEl(doc, "pen-pressure-sub")
+					if penSub then
+						penSub:SetClass("dj-disabled", not penEnabled)
+					end
+					local modIntImg = getCachedEl(doc, "btn-pen-mod-intensity")
+					if modIntImg then
+						modIntImg:SetAttribute(
+							"src",
+							state.penPressureModulateIntensity and "/luaui/images/terraform_brush/check_on.png"
+								or "/luaui/images/terraform_brush/check_off.png"
+						)
+					end
+					local modSizeImg = getCachedEl(doc, "btn-pen-mod-size")
+					if modSizeImg then
+						modSizeImg:SetAttribute(
+							"src",
+							state.penPressureModulateSize and "/luaui/images/terraform_brush/check_on.png"
+								or "/luaui/images/terraform_brush/check_off.png"
+						)
+					end
+					-- Curve buttons
+					local curveMap = {
+						[1] = "btn-curve-linear",
+						[2] = "btn-curve-quad",
+						[3] = "btn-curve-cubic",
+						[4] = "btn-curve-scurve",
+						[5] = "btn-curve-log",
+					}
+					local curveVal = state.penPressureCurve or 2
+					for cv, cid in pairs(curveMap) do
+						local el = getCachedEl(doc, cid)
+						if el then
+							el:SetClass("active", cv == curveVal)
+						end
+					end
+				end
+
+				-- P3.2 Terraform grayouts (per Phase 3 relevance matrix in doc/TerraformBrush_1.0_Plan.md)
+				do
+					local tShape, tMode = state.shape, state.mode
+					local rotationIrrelevant = (tShape == "circle") or (tShape == "fill")
+					ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
+					-- Length irrelevant for circle/fill shapes (no directional footprint to stretch)
+					ctx.setDisabled(doc, "param-length-row", (tShape == "circle") or (tShape == "fill"))
+					-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore;
+					-- irrelevant for level and for autoramp (one-shot region op)
+					ctx.setDisabled(doc, "param-intensity-row", tMode == "level" or tMode == "autoramp")
+					-- Autoramp has its own Falloff knob in the AUTORAMP block; the
+					-- global FALL-OFF curve does not feed it
+					ctx.setDisabled(doc, "param-falloff-row", tMode == "autoramp")
+					-- Height cap (min/max) irrelevant for ramp, restore and autoramp modes
+					ctx.setDisabled(
+						doc,
+						"section-heightcap",
+						tMode == "ramp" or tMode == "restore" or tMode == "autoramp"
+					)
+				end
+
 				uiState.updatingFromCode = false
-
-				-- Settings panel sync
-				local penToggle = getCachedEl(doc, "btn-pen-pressure-toggle")
-				if penToggle then penToggle:SetClass("active", penEnabled) end
-				if dm then dm.penPressureStr = penEnabled and "ON" or "OFF" end
-				local penSub = getCachedEl(doc, "pen-pressure-sub")
-				if penSub then penSub:SetClass("dj-disabled", not penEnabled) end
-				local modIntImg = getCachedEl(doc, "btn-pen-mod-intensity")
-				if modIntImg then
-					modIntImg:SetAttribute("src", (state.penPressureModulateIntensity) and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
-				end
-				local modSizeImg = getCachedEl(doc, "btn-pen-mod-size")
-				if modSizeImg then
-					modSizeImg:SetAttribute("src", (state.penPressureModulateSize) and "/luaui/images/terraform_brush/check_on.png" or "/luaui/images/terraform_brush/check_off.png")
-				end
-				-- Curve buttons
-				local curveMap = { [1]="btn-curve-linear", [2]="btn-curve-quad", [3]="btn-curve-cubic", [4]="btn-curve-scurve", [5]="btn-curve-log" }
-				local curveVal = state.penPressureCurve or 2
-				for cv, cid in pairs(curveMap) do
-					local el = getCachedEl(doc, cid)
-					if el then el:SetClass("active", cv == curveVal) end
-				end
 			end
 
-			-- P3.2 Terraform grayouts (per Phase 3 relevance matrix in doc/TerraformBrush_1.0_Plan.md)
+			local dm = widgetState.dmHandle
 			do
-				local tShape, tMode = state.shape, state.mode
-				local rotationIrrelevant = (tShape == "circle") or (tShape == "fill")
-				ctx.setDisabled(doc, "param-rotation-row", rotationIrrelevant)
-				-- Length irrelevant for circle/fill shapes (no directional footprint to stretch)
-				ctx.setDisabled(doc, "param-length-row", (tShape == "circle") or (tShape == "fill"))
-				-- Intensity meaningful for raise/lower/smooth/noise/ramp/restore; irrelevant only for level
-				ctx.setDisabled(doc, "param-intensity-row", tMode == "level")
-				-- Height cap (min/max) irrelevant for ramp and restore modes
-				ctx.setDisabled(doc, "section-heightcap", tMode == "ramp" or tMode == "restore")
+				local primaryKey = (state.mode == "level" or state.mode == "smudge") and "smooth"
+					or (state.mode == "autoramp") and "ramp"
+					or state.mode
+				if dm and dm.activeMode ~= primaryKey then
+					dm.activeMode = primaryKey
+				end
+			end
+			if dm and dm.activeShape ~= state.shape then
+				dm.activeShape = state.shape
 			end
 
-			uiState.updatingFromCode = false
-		end
+			-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
+			do
+				local inSmoothGroup = state.mode == "smooth" or state.mode == "level" or state.mode == "smudge"
+				local v = (inSmoothGroup and state.mode) or ""
+				if dm and dm.activeSmoothMode ~= v then
+					dm.activeSmoothMode = v
+				end
+			end
 
-		local dm = widgetState.dmHandle
-		do
-			local primaryKey = (state.mode == "level") and "smooth" or state.mode
-			if dm and dm.activeMode ~= primaryKey then dm.activeMode = primaryKey end
-		end
-		if dm and dm.activeShape ~= state.shape then dm.activeShape = state.shape end
+			-- Show ramp-type-row when in a ramp mode (incl. autoramp); hide normal shape row
+			do
+				local isRamp = state.mode == "ramp" or state.mode == "autoramp"
+				local rampType = ""
+				if state.mode == "autoramp" then
+					rampType = "auto"
+				elseif state.mode == "ramp" then
+					rampType = (state.shape == "circle") and "spline" or "straight"
+				end
+				if widgetState.dmHandle then
+					if widgetState.dmHandle.tfRampType ~= rampType then
+						widgetState.dmHandle.tfRampType = rampType
+					end
+					if widgetState.dmHandle.tfRampMode ~= isRamp then
+						widgetState.dmHandle.tfRampMode = isRamp
+					end
+					if widgetState.dmHandle.tfShapeRowVisible ~= not isRamp then
+						widgetState.dmHandle.tfShapeRowVisible = not isRamp
+					end
+				end
+			end
+			-- Ramp type active state driven by dm.tfRampType (data-class-active in RML)
 
-		-- Smooth/Level submode active chip sync (visibility handled below, after tool-active checks)
-		do
-			local inSmoothGroup = state.mode == "smooth" or state.mode == "level"
-			local v = (inSmoothGroup and state.mode) or ""
-			if dm and dm.activeSmoothMode ~= v then dm.activeSmoothMode = v end
-		end
+			-- D4: Update contextual status summary line
+			do
+				local sumEl = doc and getCachedEl(doc, "status-summary")
+				if sumEl then
+					local modeColors = {
+						raise = "#fdc04c",
+						lower = "#ef4444",
+						level = "#fdc04c",
+						smooth = "#fdc04c",
+						smudge = "#fdc04c",
+						ramp = "#fdc04c",
+						restore = "#fdc04c",
+						noise = "#fdc04c",
+						erode = "#fdc04c",
+						autoramp = "#fdc04c",
+					}
+					local m = state.mode or "---"
+					local mc = modeColors[m] or "#9ca3af"
+					local sep = '<span class="tf-ss-sep">|</span>'
+					local function lv(label, value)
+						return '<span class="tf-ss-label">'
+							.. label
+							.. '</span><span class="tf-ss-val">'
+							.. value
+							.. "</span>"
+					end
+					local parts = {
+						'<span class="tf-ss-mode" style="color: ' .. mc .. ';">' .. m:upper() .. "</span>",
+						sep,
+						lv("", shapeNames[state.shape] or "Circle"),
+						sep,
+						lv("R ", tostring(state.radius)),
+						sep,
+						lv("Int ", string.format("%.1f", state.intensity)),
+					}
+					-- Restore appends Str below and Crv barely matters there — drop
+					-- it so the line fits the strip.
+					if state.mode ~= "restore" then
+						parts[#parts + 1] = sep
+						parts[#parts + 1] = lv("Crv ", string.format("%.1f", state.curve))
+					end
+					if state.velocityIntensity and state.dragVelocityFactor then
+						parts[#parts + 1] = sep
+						parts[#parts + 1] = '<span class="tf-ss-label">Vel </span><span class="tf-ss-val" style="color: #fdc04c;">'
+							.. string.format("x%.1f", state.dragVelocityFactor)
+							.. "</span>"
+					end
+					if state.mode == "restore" then
+						parts[#parts + 1] = sep
+						parts[#parts + 1] =
+							lv("Str ", tostring(math.floor((state.restoreStrength or 1) * 100 + 0.5)) .. "%")
+					end
+					setInnerRmlIfChanged(sumEl, "status-summary", table.concat(parts))
+				end
+			end
 
-		-- Show ramp-type-row when in ramp mode; hide normal shape row
-		do
+			-- Sync noise type buttons when in noise mode
+			if state.mode == "noise" and state.noiseType then
+				if dm and dm.noiseType ~= state.noiseType then
+					dm.noiseType = state.noiseType
+				end
+
+				-- Sync noise sliders from state (handles preset loads, keyboard changes, etc.)
+				uiState.updatingFromCode = true
+				local ds = uiState.draggingSlider
+
+				local noiseSliderScale = getCachedEl(doc, "slider-noise-scale")
+				if noiseSliderScale and ds ~= "noise-scale" then
+					setAttrValueIfChanged(noiseSliderScale, "slider-noise-scale", tostring(state.noiseScale))
+				end
+				if dm then
+					local v = tostring(state.noiseScale)
+					if dm.nsScaleStr ~= v then
+						dm.nsScaleStr = v
+					end
+				end
+
+				local noiseSliderOctaves = getCachedEl(doc, "slider-noise-octaves")
+				if noiseSliderOctaves and ds ~= "noise-octaves" then
+					setAttrValueIfChanged(noiseSliderOctaves, "slider-noise-octaves", tostring(state.noiseOctaves))
+				end
+				if dm then
+					local v = tostring(state.noiseOctaves)
+					if dm.nsOctavesStr ~= v then
+						dm.nsOctavesStr = v
+					end
+				end
+
+				local noiseSliderPersist = getCachedEl(doc, "slider-noise-persistence")
+				if noiseSliderPersist and ds ~= "noise-persistence" then
+					setAttrValueIfChanged(
+						noiseSliderPersist,
+						"slider-noise-persistence",
+						tostring(math.floor(state.noisePersistence * 100 + 0.5))
+					)
+				end
+				if dm then
+					local v = string.format("%.2f", state.noisePersistence)
+					if dm.nsPersistenceStr ~= v then
+						dm.nsPersistenceStr = v
+					end
+				end
+
+				local noiseSliderLacun = getCachedEl(doc, "slider-noise-lacunarity")
+				if noiseSliderLacun and ds ~= "noise-lacunarity" then
+					setAttrValueIfChanged(
+						noiseSliderLacun,
+						"slider-noise-lacunarity",
+						tostring(math.floor(state.noiseLacunarity * 10 + 0.5))
+					)
+				end
+				if dm then
+					local v = string.format("%.1f", state.noiseLacunarity)
+					if dm.nsLacunarityStr ~= v then
+						dm.nsLacunarityStr = v
+					end
+				end
+
+				local noiseSliderSeed = getCachedEl(doc, "slider-noise-seed")
+				if noiseSliderSeed and ds ~= "noise-seed" then
+					setAttrValueIfChanged(noiseSliderSeed, "slider-noise-seed", tostring(state.noiseSeed))
+				end
+				if dm then
+					local v = tostring(state.noiseSeed)
+					if dm.nsSeedStr ~= v then
+						dm.nsSeedStr = v
+					end
+				end
+
+				uiState.updatingFromCode = false
+			end
+
+			-- Sync repose slider from state when in erode mode (document reloads,
+			-- external setters); same pattern as the noise sliders above.
+			if state.mode == "erode" and state.erodeReposeDeg then
+				uiState.updatingFromCode = true
+				local erodeSlider = getCachedEl(doc, "slider-erode-repose")
+				if erodeSlider and uiState.draggingSlider ~= "erode-repose" then
+					-- Dirty-checked: an unconditional stamp raises a deferred change
+					-- event every sync pass (after updatingFromCode is already
+					-- cleared), re-entering the slider handler each frame.
+					setAttrValueIfChanged(erodeSlider, "slider-erode-repose", tostring(state.erodeReposeDeg))
+				end
+				if dm then
+					local v = tostring(state.erodeReposeDeg) .. "\xc2\xb0"
+					if dm.tfErodeReposeStr ~= v then
+						dm.tfErodeReposeStr = v
+					end
+				end
+				uiState.updatingFromCode = false
+			end
+
+			-- Sync the autoramp sliders from state when in autoramp mode; the
+			-- percent knobs are stored 0–1 widget-side, shown 0–100 here.
+			if state.mode == "autoramp" and state.autorampAngleDeg then
+				uiState.updatingFromCode = true
+				local arSync = {
+					{ "ar-angle", state.autorampAngleDeg },
+					{ "ar-falloff", (state.autorampFalloff or 0.5) * 100 },
+					{ "ar-edgenoise", (state.autorampEdgeNoise or 0.35) * 100 },
+					{ "ar-erosion", (state.autorampErosion or 0.35) * 100 },
+					{ "ar-talus", (state.autorampTalus or 0.4) * 100 },
+				}
+				for i = 1, #arSync do
+					local id, val = arSync[i][1], arSync[i][2]
+					local sl = getCachedEl(doc, "slider-" .. id)
+					if sl and uiState.draggingSlider ~= id then
+						-- Dirty-checked (cache keyed by element id, which is what
+						-- trackSliderDrag invalidates on mouseup): an unconditional
+						-- stamp raises a deferred change event every sync pass.
+						setAttrValueIfChanged(sl, "slider-" .. id, tostring(math.floor(val + 0.5)))
+					end
+				end
+				if dm then
+					local st = state.autorampStart or "average"
+					if dm.arStart ~= st then
+						dm.arStart = st
+					end
+					local pv = state.autorampPreview and true or false
+					if dm.arPreview ~= pv then
+						dm.arPreview = pv
+					end
+				end
+				uiState.updatingFromCode = false
+			end
+
+			-- Clear feature mode highlights
+			local featuresBtn = doc and getCachedEl(doc, "btn-features")
+			if featuresBtn then
+				featuresBtn:SetClass("active", false)
+			end
+			-- Clear weather mode highlight
+			local weatherBtn = doc and getCachedEl(doc, "btn-weather")
+			if weatherBtn then
+				weatherBtn:SetClass("active", false)
+			end
+			-- Clear splat mode highlight
+			local splatBtn3 = doc and getCachedEl(doc, "btn-splat")
+			if splatBtn3 then
+				splatBtn3:SetClass("active", false)
+			end
+			-- Clear decals mode highlight
+			local decalsBtn5 = doc and getCachedEl(doc, "btn-decals")
+			if decalsBtn5 then
+				decalsBtn5:SetClass("active", false)
+			end
+			-- Clear metal mode highlight
+			local metalBtn5 = doc and getCachedEl(doc, "btn-metal")
+			if metalBtn5 then
+				metalBtn5:SetClass("active", false)
+			end
+			local grassBtn7 = doc and getCachedEl(doc, "btn-grass")
+			if grassBtn7 then
+				grassBtn7:SetClass("active", false)
+			end
+
+			-- Gray out unsupported shapes per mode
 			local isRamp = state.mode == "ramp"
-			if widgetState.dmHandle then
-				if widgetState.dmHandle.tfRampMode ~= isRamp then widgetState.dmHandle.tfRampMode = isRamp end
-				if widgetState.dmHandle.tfShapeRowVisible ~= not isRamp then widgetState.dmHandle.tfShapeRowVisible = not isRamp end
-			end
-		end
-		-- Ramp type active state driven by dm.activeShape (data-class-active in RML)
-
-		-- D4: Update contextual status summary line
-		do
-			local sumEl = doc and getCachedEl(doc, "status-summary")
-			if sumEl then
-				local modeColors = {
-					raise = "#fdc04c", lower = "#ef4444", level = "#fdc04c", smooth = "#fdc04c",
-					ramp = "#fdc04c", restore = "#fdc04c", noise = "#fdc04c", erode = "#fdc04c",
-				}
-				local m = state.mode or "---"
-				local mc = modeColors[m] or "#9ca3af"
-				local sep = '<span class="tf-ss-sep">|</span>'
-				local function lv(label, value)
-					return '<span class="tf-ss-label">' .. label .. '</span><span class="tf-ss-val">' .. value .. '</span>'
+			local isLevel = state.mode == "level" or state.mode == "smooth"
+			local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true }
+			for shape, element in pairs(widgetState.shapeButtons) do
+				if element then
+					local disabled = (isRamp and rampDisabled[shape]) or (isLevel and shape == "ring")
+					element:SetClass("disabled", disabled or false)
 				end
-				local parts = {
-					'<span class="tf-ss-mode" style="color: ' .. mc .. ';">' .. m:upper() .. '</span>',
-					sep,
-					lv("", shapeNames[state.shape] or "Circle"),
-					sep,
-					lv("R ", tostring(state.radius)),
-					sep,
-					lv("Int ", string.format("%.1f", state.intensity)),
-					sep,
-					lv("Crv ", string.format("%.1f", state.curve)),
-				}
-				if state.velocityIntensity and state.dragVelocityFactor then
-					parts[#parts + 1] = sep
-					parts[#parts + 1] = '<span class="tf-ss-label">Vel </span><span class="tf-ss-val" style="color: #fdc04c;">' .. string.format("x%.1f", state.dragVelocityFactor) .. '</span>'
+			end
+
+			-- Import progress bar
+			local importRow = doc and getCachedEl(doc, "import-progress-row")
+			if importRow then
+				if state.importProgress and state.importTotal and state.importTotal > 0 then
+					importRow:SetClass("hidden", false)
+					local pct = math.floor(state.importProgress / state.importTotal * 100)
+					local fill = getCachedEl(doc, "import-progress-fill")
+					if fill then
+						fill:SetAttribute(
+							"style",
+							"height: 6dp; width: " .. pct .. "%; background-color: #fdc04c; border-radius: 3dp;"
+						)
+					end
+					_noDmLabel("tfImportPctStr", pct .. "%")
+				else
+					importRow:SetClass("hidden", true)
 				end
-				if state.mode == "restore" then
-					parts[#parts + 1] = sep
-					parts[#parts + 1] = lv("Str ", tostring(math.floor((state.restoreStrength or 1) * 100 + 0.5)) .. "%")
-				end
-				setInnerRmlIfChanged(sumEl, "status-summary", table.concat(parts))
 			end
-		end
 
-		-- Sync noise type buttons when in noise mode
-		if state.mode == "noise" and state.noiseType then
-			if dm and dm.noiseType ~= state.noiseType then dm.noiseType = state.noiseType end
-
-			-- Sync noise sliders from state (handles preset loads, keyboard changes, etc.)
-			uiState.updatingFromCode = true
-			local ds = uiState.draggingSlider
-
-			local noiseSliderScale = getCachedEl(doc, "slider-noise-scale")
-			if noiseSliderScale and ds ~= "noise-scale" then
-				noiseSliderScale:SetAttribute("value", tostring(state.noiseScale))
-			end
-			if dm then local v = tostring(state.noiseScale); if dm.nsScaleStr ~= v then dm.nsScaleStr = v end end
-
-			local noiseSliderOctaves = getCachedEl(doc, "slider-noise-octaves")
-			if noiseSliderOctaves and ds ~= "noise-octaves" then
-				noiseSliderOctaves:SetAttribute("value", tostring(state.noiseOctaves))
-			end
-			if dm then local v = tostring(state.noiseOctaves); if dm.nsOctavesStr ~= v then dm.nsOctavesStr = v end end
-
-			local noiseSliderPersist = getCachedEl(doc, "slider-noise-persistence")
-			if noiseSliderPersist and ds ~= "noise-persistence" then
-				noiseSliderPersist:SetAttribute("value", tostring(math.floor(state.noisePersistence * 100 + 0.5)))
-			end
-			if dm then local v = string.format("%.2f", state.noisePersistence); if dm.nsPersistenceStr ~= v then dm.nsPersistenceStr = v end end
-
-			local noiseSliderLacun = getCachedEl(doc, "slider-noise-lacunarity")
-			if noiseSliderLacun and ds ~= "noise-lacunarity" then
-				noiseSliderLacun:SetAttribute("value", tostring(math.floor(state.noiseLacunarity * 10 + 0.5)))
-			end
-			if dm then local v = string.format("%.1f", state.noiseLacunarity); if dm.nsLacunarityStr ~= v then dm.nsLacunarityStr = v end end
-
-			local noiseSliderSeed = getCachedEl(doc, "slider-noise-seed")
-			if noiseSliderSeed and ds ~= "noise-seed" then
-				noiseSliderSeed:SetAttribute("value", tostring(state.noiseSeed))
-			end
-			if dm then local v = tostring(state.noiseSeed); if dm.nsSeedStr ~= v then dm.nsSeedStr = v end end
-
-			uiState.updatingFromCode = false
-		end
-
-		-- Sync repose slider from state when in erode mode (document reloads,
-		-- external setters); same pattern as the noise sliders above.
-		if state.mode == "erode" and state.erodeReposeDeg then
-			uiState.updatingFromCode = true
-			local erodeSlider = getCachedEl(doc, "slider-erode-repose")
-			if erodeSlider and uiState.draggingSlider ~= "erode-repose" then
-				erodeSlider:SetAttribute("value", tostring(state.erodeReposeDeg))
-			end
+			local dm = widgetState.dmHandle
 			if dm then
-				local v = tostring(state.erodeReposeDeg) .. "\xc2\xb0"
-				if dm.tfErodeReposeStr ~= v then dm.tfErodeReposeStr = v end
+				local mode = state.exportRangeMode or "auto"
+				local modeLabel = (mode == "initial" and "INITIAL") or (mode == "custom" and "CUSTOM") or "AUTO"
+				if dm.tfExportRangeModeStr ~= modeLabel then
+					dm.tfExportRangeModeStr = modeLabel
+				end
+				if dm.tfExportCustomVisible ~= (mode == "custom") then
+					dm.tfExportCustomVisible = (mode == "custom")
+				end
+				local desc
+				if mode == "initial" then
+					desc = string.format("Initial %.2f..%.2f", state.exportInitMin or 0, state.exportInitMax or 0)
+				elseif mode == "custom" then
+					desc = string.format("Custom %.2f..%.2f", state.exportCustomMin or 0, state.exportCustomMax or 0)
+				else
+					desc = string.format("Auto live %.2f..%.2f", state.exportCurrMin or 0, state.exportCurrMax or 0)
+				end
+				if dm.tfExportRangeDescStr ~= desc then
+					dm.tfExportRangeDescStr = desc
+				end
 			end
-			uiState.updatingFromCode = false
-		end
-
-		-- Clear feature mode highlights
-		local featuresBtn = doc and getCachedEl(doc, "btn-features")
-		if featuresBtn then
-			featuresBtn:SetClass("active", false)
-		end
-		-- Clear weather mode highlight
-		local weatherBtn = doc and getCachedEl(doc, "btn-weather")
-		if weatherBtn then
-			weatherBtn:SetClass("active", false)
-		end
-		-- Clear splat mode highlight
-		local splatBtn3 = doc and getCachedEl(doc, "btn-splat")
-		if splatBtn3 then splatBtn3:SetClass("active", false) end
-		-- Clear decals mode highlight
-		local decalsBtn5 = doc and getCachedEl(doc, "btn-decals")
-		if decalsBtn5 then decalsBtn5:SetClass("active", false) end
-		-- Clear metal mode highlight
-		local metalBtn5 = doc and getCachedEl(doc, "btn-metal")
-		if metalBtn5 then metalBtn5:SetClass("active", false) end
-		local grassBtn7 = doc and getCachedEl(doc, "btn-grass")
-		if grassBtn7 then grassBtn7:SetClass("active", false) end
-
-		-- Gray out unsupported shapes per mode
-		local isRamp = state.mode == "ramp"
-		local isLevel = state.mode == "level" or state.mode == "smooth"
-		local rampDisabled = { triangle = true, hexagon = true, octagon = true, ring = true }
-		for shape, element in pairs(widgetState.shapeButtons) do
-			if element then
-				local disabled = (isRamp and rampDisabled[shape]) or (isLevel and shape == "ring")
-				element:SetClass("disabled", disabled or false)
+			local exportMinInput = doc and getCachedEl(doc, "input-tf-export-min")
+			if exportMinInput and widgetState.focusedRmlInput ~= exportMinInput then
+				local minStr = string.format("%.2f", state.exportCustomMin or 0)
+				setAttrValueIfChanged(exportMinInput, "input-tf-export-min", minStr)
+			end
+			local exportMaxInput = doc and getCachedEl(doc, "input-tf-export-max")
+			if exportMaxInput and widgetState.focusedRmlInput ~= exportMaxInput then
+				local maxStr = string.format("%.2f", state.exportCustomMax or 0)
+				setAttrValueIfChanged(exportMaxInput, "input-tf-export-max", maxStr)
 			end
 		end
-
-		-- Import progress bar
-		local importRow = doc and getCachedEl(doc, "import-progress-row")
-		if importRow then
-			if state.importProgress and state.importTotal and state.importTotal > 0 then
-				importRow:SetClass("hidden", false)
-				local pct = math.floor(state.importProgress / state.importTotal * 100)
-				local fill = getCachedEl(doc, "import-progress-fill")
-				if fill then fill:SetAttribute("style", "height: 6dp; width: " .. pct .. "%; background-color: #fdc04c; border-radius: 3dp;") end
-				_noDmLabel("tfImportPctStr", pct .. "%")
-			else
-				importRow:SetClass("hidden", true)
-			end
-		end
-
-		local dm = widgetState.dmHandle
-		if dm then
-			local mode = state.exportRangeMode or "auto"
-			local modeLabel = (mode == "initial" and "INITIAL") or (mode == "custom" and "CUSTOM") or "AUTO"
-			if dm.tfExportRangeModeStr ~= modeLabel then dm.tfExportRangeModeStr = modeLabel end
-			if dm.tfExportCustomVisible ~= (mode == "custom") then dm.tfExportCustomVisible = (mode == "custom") end
-			local desc
-			if mode == "initial" then
-				desc = string.format("Initial %.2f..%.2f", state.exportInitMin or 0, state.exportInitMax or 0)
-			elseif mode == "custom" then
-				desc = string.format("Custom %.2f..%.2f", state.exportCustomMin or 0, state.exportCustomMax or 0)
-			else
-				desc = string.format("Auto live %.2f..%.2f", state.exportCurrMin or 0, state.exportCurrMax or 0)
-			end
-			if dm.tfExportRangeDescStr ~= desc then dm.tfExportRangeDescStr = desc end
-		end
-		local exportMinInput = doc and getCachedEl(doc, "input-tf-export-min")
-		if exportMinInput and widgetState.focusedRmlInput ~= exportMinInput then
-			local minStr = string.format("%.2f", state.exportCustomMin or 0)
-			exportMinInput:SetAttribute("value", minStr)
-		end
-		local exportMaxInput = doc and getCachedEl(doc, "input-tf-export-max")
-		if exportMaxInput and widgetState.focusedRmlInput ~= exportMaxInput then
-			local maxStr = string.format("%.2f", state.exportCustomMax or 0)
-			exportMaxInput:SetAttribute("value", maxStr)
-		end
-	end
-	-- Slider wheel-lock pulse animation
-	do
-		local ls = widgetState.lockedSliders
-		if next(ls) then
-			widgetState.sliderPulseTimer = widgetState.sliderPulseTimer + dt
-			if widgetState.sliderPulseTimer >= 0.8 then
-				widgetState.sliderPulseTimer = 0
-				widgetState.sliderPulsePhase = not widgetState.sliderPulsePhase
-				for _, element in pairs(ls) do
-					element:SetClass("slider-pulse", widgetState.sliderPulsePhase)
+		-- Slider wheel-lock pulse animation
+		do
+			local ls = widgetState.lockedSliders
+			if next(ls) then
+				widgetState.sliderPulseTimer = widgetState.sliderPulseTimer + dt
+				if widgetState.sliderPulseTimer >= 0.8 then
+					widgetState.sliderPulseTimer = 0
+					widgetState.sliderPulsePhase = not widgetState.sliderPulsePhase
+					for _, element in pairs(ls) do
+						element:SetClass("slider-pulse", widgetState.sliderPulsePhase)
+					end
 				end
 			end
 		end
-	end
-	-- Full restore confirm timeout: auto-reset after 3 s if not confirmed
-	if widgetState.fullRestoreConfirmExpiry > 0 then
-		local now = Spring.GetGameSeconds() or 0
-		if now >= widgetState.fullRestoreConfirmExpiry then
-			widgetState.fullRestoreConfirmExpiry = 0
-			local d = widgetState.dmHandle
-			if d then d.tfRestoreConfirming = false end
-			_noDmLabel("tfRestoreLabel1Str", "FULL")
-			_noDmLabel("tfRestoreLabel2Str", "RESTORE")
+		-- Full restore confirm timeout: auto-reset after 3 s if not confirmed
+		if widgetState.fullRestoreConfirmExpiry > 0 then
+			local now = Spring.GetGameSeconds() or 0
+			if now >= widgetState.fullRestoreConfirmExpiry then
+				widgetState.fullRestoreConfirmExpiry = 0
+				local d = widgetState.dmHandle
+				if d then
+					d.tfRestoreConfirming = false
+				end
+				_noDmLabel("tfRestoreLabel1Str", "FULL")
+				_noDmLabel("tfRestoreLabel2Str", "RESTORE")
+			end
 		end
-	end
-	-- Metal clean confirm timeout: auto-reset after 3 s if not confirmed
-	if widgetState.metalCleanConfirmExpiry > 0 then
-		local now = Spring.GetGameSeconds() or 0
-		if now >= widgetState.metalCleanConfirmExpiry then
-			widgetState.metalCleanConfirmExpiry = 0
-			local d = widgetState.dmHandle
-			if d then d.mbCleanConfirming = false end
-			_noDmLabel("mbCleanLabelStr", "CLEAN")
+		-- Metal clean confirm timeout: auto-reset after 3 s if not confirmed
+		if widgetState.metalCleanConfirmExpiry > 0 then
+			local now = Spring.GetGameSeconds() or 0
+			if now >= widgetState.metalCleanConfirmExpiry then
+				widgetState.metalCleanConfirmExpiry = 0
+				local d = widgetState.dmHandle
+				if d then
+					d.mbCleanConfirming = false
+				end
+				_noDmLabel("mbCleanLabelStr", "CLEAN")
+			end
 		end
-	end
-	-- Open Project delete confirm timeout: same 3 s window as FULL RESTORE
-	if (widgetState.projectDeleteConfirmExpiry or 0) > 0 then
-		local now = Spring.GetGameSeconds() or 0
-		if now >= widgetState.projectDeleteConfirmExpiry then
-			widgetState.projectDeleteConfirmExpiry = 0
-			local d = widgetState.dmHandle
-			if d then d.projectDeleteConfirming = false end
-		end
-	end
-	-- Deferred Open Project list refresh (queued by a delete, which cannot
-	-- destroy its own row from inside the click handler)
-	if widgetState.projectOpenNeedsRebuild then
-		widgetState.projectOpenNeedsRebuild = false
-		if widgetState.projectOpenRebuild then widgetState.projectOpenRebuild() end
-	end
-	-- Slider keybind-scroll flash countdown
-	do
-		local sf = widgetState.sliderFlashes
-		if next(sf) then
-			for id, flash in pairs(sf) do
-				flash.timer = flash.timer - dt
-				if flash.timer <= 0 then
-					flash.el:SetClass("slider-flash", false)
-					sf[id] = nil
+		-- Open Project delete confirm timeout: same 3 s window as FULL RESTORE
+		if (widgetState.projectDeleteConfirmExpiry or 0) > 0 then
+			local now = Spring.GetGameSeconds() or 0
+			if now >= widgetState.projectDeleteConfirmExpiry then
+				widgetState.projectDeleteConfirmExpiry = 0
+				local d = widgetState.dmHandle
+				if d then
+					d.projectDeleteConfirming = false
 				end
 			end
 		end
-	end
-	-- Override status summary when hovering the grass button on maps with no grass data.
-	-- Done last so it beats any per-tool summary written above.
-	if widgetState.grassHoverNoData and widgetState.grassNoDataThisMap then
-		local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
-		if sumEl2 then
-			local sep = '<span class="tf-ss-sep">|</span>'
-			setInnerRmlIfChanged(sumEl2, "status-summary", 
-				'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">GRASS</span>' .. sep .. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">No grass yet - click Grass tool to paint</span>')
+		-- Always, not only while a window is open: the strip, the auto pull on
+		-- connect and the status echo in the editor strip all live in it. It is
+		-- throttled to four times a second and only reads tables.
+		if widgetState.projectLibraryUi and widgetState.dmHandle then
+			widgetState.projectLibraryUi.sync(dt)
 		end
-	end
-	-- Reactive refresh of section warn chips after state sync
-	if widgetState.warnRefreshFuncs then for i = 1, #widgetState.warnRefreshFuncs do widgetState.warnRefreshFuncs[i]() end end
+		-- Somewhere without the handlers in scope asked for the Projects window
+		-- (the shader row, offline).
+		if widgetState.projectOpenRequest then
+			local request = widgetState.projectOpenRequest
+			widgetState.projectOpenRequest = nil
+			initialModel.onFileOpenProject(nil)
+			if request.card and widgetState.dmHandle then
+				widgetState.dmHandle.libraryCardOpen = true
+				widgetState.dmHandle.libraryCardCopied = false
+			end
+		end
+		-- Unsaved changes: terrain edits are noticed here (the terrain version
+		-- moves on every heightmap update); the painters report theirs. The
+		-- flag only decides whether OPEN asks before restarting.
+		widgetState.projectHeaderClock = (widgetState.projectHeaderClock or 0) + (dt or 0)
+		if widgetState.projectHeaderClock > 0.5 then
+			widgetState.projectHeaderClock = 0
+			local mp = WG.MapProject
+			local tb = WG.TerraformBrush
+			local tv = tb and tb.getTerrainVersion and tb.getTerrainVersion()
+			if tv and tv ~= widgetState.projectTerrainVersion then
+				if
+					widgetState.projectTerrainVersion ~= nil
+					and mp
+					and mp.markDirty
+					and not (mp.isLoading and mp.isLoading())
+				then
+					mp.markDirty("terrain")
+				end
+				widgetState.projectTerrainVersion = tv
+			end
+		end
+		-- Deferred Open Project list refresh (queued by a delete, which cannot
+		-- destroy its own row from inside the click handler)
+		if widgetState.projectOpenNeedsRebuild then
+			widgetState.projectOpenNeedsRebuild = false
+			if widgetState.projectOpenRebuild then
+				widgetState.projectOpenRebuild()
+			end
+		end
+		if widgetState.projectSaveNeedsRebuild then
+			widgetState.projectSaveNeedsRebuild = false
+			if widgetState.dmHandle and widgetState.dmHandle.projectSaveOpen then
+				widgetState.projectSaveRebuild()
+			end
+		end
+		if widgetState.projectDrag then
+			widgetState.projectDragUpdate()
+		end
+		-- A team-view OPEN whose download has landed: the model flags it, the
+		-- open happens here rather than inside the sync that noticed it.
+		if widgetState.projectOpenChainReady then
+			widgetState.projectOpenChainReady = false
+			local slug = widgetState.projectOpenAfterDownload
+			widgetState.projectOpenAfterDownload = nil
+			if slug then
+				-- Still in the team view, and opened from it: the download was
+				-- a step in opening, not a move to the other tab.
+				widgetState.projectOpenSelectedSlug = slug
+				widgetState.projectOpenCommit(true)
+			end
+		end
+		-- Destination chips: the helper's folder list arrives asynchronously and
+		-- changes on every pull, so the row is redrawn when it moves.
+		if widgetState.projectStagesNeedsRebuild then
+			widgetState.projectStagesNeedsRebuild = false
+			widgetState.projectStagesRebuild()
+		end
+		-- Slider keybind-scroll flash countdown
+		do
+			local sf = widgetState.sliderFlashes
+			if next(sf) then
+				for id, flash in pairs(sf) do
+					flash.timer = flash.timer - dt
+					if flash.timer <= 0 then
+						flash.el:SetClass("slider-flash", false)
+						sf[id] = nil
+					end
+				end
+			end
+		end
+		-- Override status summary when hovering the grass button on maps with no grass data.
+		-- Done last so it beats any per-tool summary written above.
+		if widgetState.grassHoverNoData and widgetState.grassNoDataThisMap then
+			local sumEl2 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			if sumEl2 then
+				local sep = '<span class="tf-ss-sep">|</span>'
+				setInnerRmlIfChanged(
+					sumEl2,
+					"status-summary",
+					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">GRASS</span>'
+						.. sep
+						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">No grass yet - click Grass tool to paint</span>'
+				)
+			end
+		end
+		-- Same treatment for the SPLAT button while the tileset shader disables it:
+		-- hovering must say where hard-surface painting moved.
+		if widgetState.splatHoverTilesetOn then
+			local sumEl4 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			if sumEl4 then
+				local sep = '<span class="tf-ss-sep">|</span>'
+				setInnerRmlIfChanged(
+					sumEl4,
+					"status-summary",
+					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">SPLAT</span>'
+						.. sep
+						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Tileset shader active - hard surfaces moved to LAYERS</span>'
+				)
+			end
+		end
+		-- UNITS placeholder: hovering says the unit placer is not here yet.
+		if widgetState.unitsHoverSoon then
+			local sumEl5 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			if sumEl5 then
+				local sep = '<span class="tf-ss-sep">|</span>'
+				setInnerRmlIfChanged(
+					sumEl5,
+					"status-summary",
+					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">UNITS</span>'
+						.. sep
+						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Coming soon...</span>'
+				)
+			end
+		end
+		-- Project save takes over the status summary strip (last override = top
+		-- priority): green SAVING with one segment per saver step while running,
+		-- then SAVED: <name> held 4 s, faded out, and the tool's own readout
+		-- faded back in. Timers use os.clock — the readout must run while paused.
+		do
+			local mp = WG.MapProject
+			local sumEl3 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
+			local step, total, stepName, kind
+			if mp and mp.saveProgress then
+				step, total, stepName, kind = mp.saveProgress()
+			end
+			if step then
+				widgetState.saveWasRunning = true
+				widgetState.saveWasKind = kind
+				widgetState.saveDoneUntil = nil
+				widgetState.saveDoneInfo = nil
+				widgetState.saveFadeInStart = nil
+				if sumEl3 then
+					sumEl3.style.opacity = "1"
+					local buf = {
+						(kind == "autosave") and '<span class="tf-ss-mode" style="color: #7fb2ff;">AUTOSAVE</span>'
+							or '<span class="tf-ss-mode" style="color: #35d07f;">SAVING</span>',
+						'<span class="tf-ss-sep">|</span>',
+						'<div class="tf-ss-segwrap">',
+					}
+					for i = 1, total do
+						buf[#buf + 1] = (i < step) and '<div class="tf-ss-seg done"></div>'
+							or (i == step) and '<div class="tf-ss-seg cur"></div>'
+							or '<div class="tf-ss-seg"></div>'
+					end
+					buf[#buf + 1] = "</div>"
+					buf[#buf + 1] = '<span class="tf-ss-label">' .. tostring(stepName or "") .. "</span>"
+					setInnerRmlIfChanged(sumEl3, "status-summary", table.concat(buf))
+				end
+			elseif widgetState.saveWasRunning then
+				-- The save just ended: latch its outcome and start the 4 s hold.
+				widgetState.saveWasRunning = false
+				-- ... and the listing is stale.
+				widgetState.projectLocalDirty = true
+				local last = nil
+				if mp then
+					if widgetState.saveWasKind == "autosave" then
+						last = mp.lastAutosave and mp.lastAutosave()
+					else
+						last = mp.lastSave and mp.lastSave()
+					end
+				end
+				if last and last.slug then
+					widgetState.saveDoneInfo = last
+					widgetState.saveDoneKind = widgetState.saveWasKind
+					widgetState.saveDoneUntil = os.clock() + 4
+				end
+			end
+			if sumEl3 and not step and widgetState.saveDoneUntil then
+				local now = os.clock()
+				local FADE = 0.6
+				local info = widgetState.saveDoneInfo
+				if not info or now >= widgetState.saveDoneUntil + FADE then
+					-- Hand the strip back; the tool readout fades in below.
+					widgetState.saveDoneUntil = nil
+					widgetState.saveDoneInfo = nil
+					widgetState.saveFadeInStart = now
+				else
+					local rml
+					local auto = widgetState.saveDoneKind == "autosave"
+					-- A snapshot reads by its leaf: the folder is always _autosave.
+					local shown = auto and (tostring(info.slug):match("([^/]+)$") or info.slug) or info.slug
+					if info.ok then
+						rml = (
+							auto and '<span class="tf-ss-mode" style="color: #7fb2ff;">AUTOSAVED:</span>'
+							or '<span class="tf-ss-mode" style="color: #35d07f;">SAVED:</span>'
+						)
+							.. '<span class="tf-ss-val"> '
+							.. shown
+							.. "</span>"
+					else
+						rml = '<span class="tf-ss-mode" style="color: #e05252;">'
+							.. (auto and "AUTOSAVE FAILED:" or "SAVE FAILED:")
+							.. "</span>"
+							.. '<span class="tf-ss-val"> '
+							.. shown
+							.. " (see console)</span>"
+					end
+					setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+					local o = 1
+					if now > widgetState.saveDoneUntil then
+						o = 1 - (now - widgetState.saveDoneUntil) / FADE
+					end
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
+				end
+			end
+			-- Library and load readouts share the strip with the save ones:
+			-- LOADING with the phase bar after a restart, UPLOADING while a
+			-- confirmed save + upload is in flight, and the last team outcome
+			-- held 4 s the way SAVED is. A running save always wins.
+			widgetState.libraryOwnsStrip = false
+			if sumEl3 and not step and not widgetState.saveDoneUntil then
+				local escS = widgetState.rmlEsc
+				local phase, phases, phaseName
+				if mp and mp.loadProgress then
+					phase, phases, phaseName = mp.loadProgress()
+				end
+				local out = widgetState.libraryOutcome
+				if out and os.clock() >= out.until_ then
+					widgetState.libraryOutcome = nil
+					out = nil
+				end
+				local rml
+				if phase then
+					local buf = {
+						'<span class="tf-ss-mode" style="color: #4d92c9;">LOADING</span>',
+						'<span class="tf-ss-sep">|</span>',
+						'<div class="tf-ss-segwrap">',
+					}
+					for i = 1, phases do
+						buf[#buf + 1] = (i < phase) and '<div class="tf-ss-seg done"></div>'
+							or (i == phase) and '<div class="tf-ss-seg cur"></div>'
+							or '<div class="tf-ss-seg"></div>'
+					end
+					buf[#buf + 1] = "</div>"
+					buf[#buf + 1] = '<span class="tf-ss-label">' .. escS(phaseName or "") .. "</span>"
+					rml = table.concat(buf)
+				elseif widgetState.libraryProgress then
+					-- Same shape as SAVED: the mode, then the value with its own
+					-- leading space. Short on purpose; the strip is one line.
+					rml = '<span class="tf-ss-mode" style="color: #35d07f;">UPLOADING:</span>'
+						.. '<span class="tf-ss-val"> '
+						.. escS(widgetState.projectStripShort(widgetState.libraryProgress))
+						.. "</span>"
+				elseif out then
+					rml = '<span class="tf-ss-mode" style="color: '
+						.. (out.ok and "#35d07f" or "#e05252")
+						.. ';">'
+						.. (out.ok and "TEAM:" or "TEAM FAILED:")
+						.. '</span><span class="tf-ss-val"> '
+						.. escS(widgetState.projectStripShort(out.text or ""))
+						.. "</span>"
+				end
+				if rml then
+					widgetState.libraryOwnsStrip = true
+					widgetState.saveFadeInStart = nil
+					setInnerRmlIfChanged(sumEl3, "status-summary", rml)
+					local o = 1
+					if out and not phase and not widgetState.libraryProgress then
+						local left = out.until_ - os.clock()
+						if left < 0.6 then
+							o = left / 0.6
+						end
+					end
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, o))
+				end
+				-- The readout has just let go: ease the tool's own text back in,
+				-- the way SAVED does. Without this the strip stayed at the
+				-- opacity the fade ended on, which is none.
+				if widgetState.libraryOwnedStrip and not widgetState.libraryOwnsStrip then
+					widgetState.saveFadeInStart = os.clock()
+				end
+			end
+			widgetState.libraryOwnedStrip = widgetState.libraryOwnsStrip
+			-- Ease the normal tool output back in after the SAVED text faded out.
+			if sumEl3 and widgetState.saveFadeInStart then
+				local t = (os.clock() - widgetState.saveFadeInStart) / 0.4
+				if t >= 1 then
+					widgetState.saveFadeInStart = nil
+					sumEl3.style.opacity = "1"
+				else
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, t))
+				end
+			end
+			-- Snappier version of the same fade for normal tool/mode switches:
+			-- hold the OLD readout while fading out (the new tool already rewrote
+			-- the strip this frame, so replay last frame's snapshot), then let the
+			-- new readout fade in. Suppressed while the save display owns the strip.
+			local saveOwnsStrip = (step ~= nil)
+				or widgetState.saveDoneUntil
+				or widgetState.saveFadeInStart
+				or widgetState.libraryOwnsStrip
+			do
+				local dmT = widgetState.dmHandle
+				local toolKey = dmT and (tostring(dmT.activeTool or "") .. "/" .. tostring(dmT.activeMode or "")) or ""
+				if toolKey ~= widgetState.ssToolKey then
+					local hadPrev = widgetState.ssToolKey ~= nil
+					widgetState.ssToolKey = toolKey
+					if sumEl3 and hadPrev and not saveOwnsStrip then
+						widgetState.ssSwitchStart = os.clock()
+						widgetState.ssSwitchOldRml = widgetState.ssPrevFrameRml
+					end
+				end
+			end
+			if saveOwnsStrip then
+				widgetState.ssSwitchStart = nil
+				widgetState.ssSwitchOldRml = nil
+			elseif sumEl3 and widgetState.ssSwitchStart then
+				local OUT, IN = 0.09, 0.12
+				local e = os.clock() - widgetState.ssSwitchStart
+				if e < OUT then
+					if widgetState.ssSwitchOldRml then
+						setInnerRmlIfChanged(sumEl3, "status-summary", widgetState.ssSwitchOldRml)
+					end
+					sumEl3.style.opacity = string.format("%.2f", math.max(0, 1 - e / OUT))
+				elseif e < OUT + IN then
+					sumEl3.style.opacity = string.format("%.2f", math.min(1, (e - OUT) / IN))
+				else
+					widgetState.ssSwitchStart = nil
+					widgetState.ssSwitchOldRml = nil
+					sumEl3.style.opacity = "1"
+				end
+			end
+			-- Snapshot this frame's final readout; the next switch fades it out.
+			widgetState.ssPrevFrameRml = widgetState.lastInnerRml["status-summary"]
+		end
+		-- Reactive refresh of section warn chips after state sync
+		if widgetState.warnRefreshFuncs then
+			for i = 1, #widgetState.warnRefreshFuncs do
+				widgetState.warnRefreshFuncs[i]()
+			end
+		end
 	end) -- end pcall wrapper
 	if not ok then
 		Spring.Echo("[Terraform Brush UI] ERROR in Update: " .. tostring(err))
@@ -12315,11 +22213,13 @@ end
 
 function widget:RecvLuaMsg(message, playerID)
 	local document = widgetState.document
-	if not document then return end
-	if message:sub(1, 19) == 'LobbyOverlayActive0' then
+	if not document then
+		return
+	end
+	if message:sub(1, 19) == "LobbyOverlayActive0" then
 		document:Show()
 		widgetState.lobbyHidden = false
-	elseif message:sub(1, 19) == 'LobbyOverlayActive1' then
+	elseif message:sub(1, 19) == "LobbyOverlayActive1" then
 		document:Hide()
 		widgetState.lobbyHidden = true
 	end
@@ -12330,7 +22230,10 @@ function widget:MousePress(mx, my, button)
 	if button == 4 or button == 5 then
 		local anyActive = false
 		for _, t in pairs(widgetState.transports) do
-			if t.dir ~= 0 then anyActive = true; break end
+			if t.dir ~= 0 then
+				anyActive = true
+				break
+			end
 		end
 		if anyActive then
 			local isBack = (button == 4)
@@ -12338,14 +22241,24 @@ function widget:MousePress(mx, my, button)
 			for _, t in pairs(widgetState.transports) do
 				if t.dir ~= 0 then
 					if isBack then
-						if t.dir == -1 then t.speed = math.min(4, t.speed + 1)
-						else t.dir = -1; t.speed = 1 end
+						if t.dir == -1 then
+							t.speed = math.min(4, t.speed + 1)
+						else
+							t.dir = -1
+							t.speed = 1
+						end
 					else
-						if t.dir == 1 then t.speed = math.min(4, t.speed + 1)
-						else t.dir = 1; t.speed = 1 end
+						if t.dir == 1 then
+							t.speed = math.min(4, t.speed + 1)
+						else
+							t.dir = 1
+							t.speed = 1
+						end
 					end
 					t.paused = false
-					if utb then utb(t) end
+					if utb then
+						utb(t)
+					end
 				end
 			end
 			return true
@@ -12356,7 +22269,9 @@ end
 
 function widget:MouseWheel(up, value)
 	local ls = widgetState.lockedSliders
-	if not next(ls) then return false end
+	if not next(ls) then
+		return false
+	end
 
 	for id, element in pairs(ls) do
 		local min = tonumber(element:GetAttribute("min")) or 0
@@ -12377,17 +22292,129 @@ function widget:MouseWheel(up, value)
 	return true
 end
 
+-- The engine's AllowQuit callin (a window close request: the close button,
+-- Alt+F4) on engines that have it: the same popup as for the top bar's Quit,
+-- with Spring.Quit, which never asks, as the deferred action. SDL can report
+-- one click as two events, so a popup already up just keeps saying no.
+function widget:AllowQuit()
+	local d = widgetState.dmHandle
+	if d and d.quitGuardOpen then
+		return false
+	end
+	local originals = widgetState.quitGuardOriginals
+	local quit = (originals and originals.quit) or Spring.Quit
+	if widgetState.quitGuardIntercept("quit", function()
+		quit()
+	end) then
+		return false
+	end
+	return true
+end
+
 function widget:KeyPress(key, mods, isRepeat)
+	-- QUIT GUARD popup: Esc cancels, Enter saves first; nothing else gets
+	-- through while it is up.
+	local qd = widgetState.dmHandle
+	if qd and qd.quitGuardOpen then
+		if key == 27 then
+			initialModel.onQuitGuardCancel(nil)
+		elseif key == 13 or key == 271 then
+			initialModel.onQuitGuardSave(nil)
+		end
+		return true
+	end
 	-- Suppress all keys while the keybind editor is capturing a key press
 	if widgetState.settingsCapturing then
 		handleSettingsKeyCapture(key)
 		return true
 	end
+	-- Ctrl+S saves, Ctrl+Shift+S is Save As, Ctrl+O opens Projects: only while
+	-- the editor has the panel up and no text field owns the keys.
+	if mods and mods.ctrl and not isRepeat and widgetState.panelEngaged and not widgetState.focusedRmlInput then
+		if key == 115 then
+			if mods.shift then
+				initialModel.onFileSaveProject(nil)
+			else
+				initialModel.onFileSave(nil)
+			end
+			return true
+		elseif key == 111 then
+			initialModel.onFileOpenProject(nil)
+			return true
+		end
+	end
+	-- The project dialogs answer to the keys their desktop counterparts do:
+	-- Esc closes, Up/Down walk the list, Enter opens the selection. The list
+	-- keys stand down while a text field has focus, where SDL text input owns
+	-- the keystrokes and the NAME field has its own Enter handler; Esc does
+	-- not, because the caret starts in that field.
+	local pd = widgetState.dmHandle
+	if pd and (pd.projectSaveOpen or pd.projectOpenOpen) then
+		if key == 27 then
+			playSound("click")
+			-- Esc closes from inside the NAME field too, which is where the
+			-- caret starts. Blur first so SDL text input does not leak on.
+			if widgetState.focusedRmlInput then
+				widgetState.focusedRmlInput:Blur()
+			end
+			if pd.projectOpenOpen and not pd.projectSaveOpen and pd.projectRenameOpen then
+				pd.projectRenameOpen = false
+				return true
+			end
+			if pd.projectSaveOpen then
+				widgetState.projectSaveUi.close()
+				pd.projectSaveOpen = false
+			else
+				pd.projectOpenOpen = false
+				pd.projectDeleteConfirming = false
+				widgetState.projectDeleteConfirmExpiry = 0
+			end
+			return true
+		end
+		-- Save As sits on top of Open Project when both are up, and its list is
+		-- a name picker rather than a cursor, so list keys stay with Open.
+		if pd.projectOpenOpen and not pd.projectSaveOpen and not widgetState.focusedRmlInput then
+			if not widgetState.projectArrowKeys then
+				-- SDL2 keysyms for the arrows; the engine is asked first in case
+				-- this build reports different values.
+				widgetState.projectArrowKeys = { up = 1073741906, down = 1073741905, f2 = 1073741883 }
+				pcall(function()
+					-- 0 is Lua-truthy, and it is what an unknown key name
+					-- returns, so only a real code replaces the default.
+					local up, down = Spring.GetKeyCode("up"), Spring.GetKeyCode("down")
+					widgetState.projectArrowKeys.up = (tonumber(up) or 0) > 0 and up or widgetState.projectArrowKeys.up
+					widgetState.projectArrowKeys.down = (tonumber(down) or 0) > 0 and down
+						or widgetState.projectArrowKeys.down
+					local f2 = Spring.GetKeyCode("f2")
+					widgetState.projectArrowKeys.f2 = (tonumber(f2) or 0) > 0 and f2 or widgetState.projectArrowKeys.f2
+				end)
+			end
+			if key == widgetState.projectArrowKeys.f2 and widgetState.projectOpenSelectedSlug then
+				initialModel.onProjectRename(nil)
+				return true
+			end
+			if key == widgetState.projectArrowKeys.up then
+				widgetState.projectStepSelection(-1)
+				return true
+			end
+			if key == widgetState.projectArrowKeys.down then
+				widgetState.projectStepSelection(1)
+				return true
+			end
+			if (key == 13 or key == 1073741912) and widgetState.projectOpenSelectedSlug then
+				widgetState.projectOpenCommit()
+				return true
+			end
+		end
+	end
 	-- Space (key 32): pause/resume all active transports
 	if key == 32 then
 		local anyActive = false
 		for _, t in pairs(widgetState.transports) do
-			if t.dir ~= 0 and not t.paused then anyActive = true; break end
+			if t.dir ~= 0 and not t.paused then
+				anyActive = true
+				break
+			end
 		end
 		if anyActive then
 			for _, t in pairs(widgetState.transports) do
@@ -12403,7 +22430,10 @@ function widget:KeyPress(key, mods, isRepeat)
 			-- if everything is paused, unpause
 			local anyPaused = false
 			for _, t in pairs(widgetState.transports) do
-				if t.dir ~= 0 and t.paused then anyPaused = true; break end
+				if t.dir ~= 0 and t.paused then
+					anyPaused = true
+					break
+				end
 			end
 			if anyPaused then
 				for _, t in pairs(widgetState.transports) do
@@ -12436,9 +22466,27 @@ end
 
 function widget:Shutdown()
 	WG.TerraformBrushUI = nil
+	widgetState.removeQuitGuard()
 
-	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
-		WG.TerraformerShared.unregisterDocument("terraform_brush")
+	-- Hand the game interface back before anything else: a /luaui reload with
+	-- focus mode on must not leave the user with no UI at all.
+	widgetState.setFocusMode(false)
+
+	-- The water level preview plane is drawn by the other widget, so a shutdown
+	-- with the Dimensions window open would strand it on screen.
+	if WG.TerraformBrush and WG.TerraformBrush.setWaterLevelPreview then
+		WG.TerraformBrush.setWaterLevelPreview(nil)
+	end
+
+	if WG.TerraformerShared then
+		-- Hand the mouse wheel back before leaving: a slider locked at shutdown
+		-- would otherwise leave every sibling panel unable to scroll.
+		if WG.TerraformerShared.setWheelHeld then
+			WG.TerraformerShared.setWheelHeld(false)
+		end
+		if WG.TerraformerShared.unregisterDocument then
+			WG.TerraformerShared.unregisterDocument("terraform_brush")
+		end
 	end
 
 	-- If a text input had focus when we shut down, SDL text-input mode is still
@@ -12459,6 +22507,7 @@ function widget:Shutdown()
 	widgetState.lastInnerRml = {}
 	widgetState.lastAttrValue = {}
 	widgetState.prevSyncValues = {}
+	widgetState.panelBodyWheelHeld = nil
 	-- Open Project row handles belong to the closed document too; a queued
 	-- rebuild must not run against it after shutdown.
 	widgetState.projectOpenRowEls = {}
@@ -12491,6 +22540,7 @@ function widget:Shutdown()
 	widgetState.spPreviewTextures = nil
 	widgetState.spPreviewVerified = false
 	widgetState.spTerrainColor = nil
+	widgetState.spTerrainSampleTick = 0
 	if widgetState.spMinimapSampleTex then
 		gl.DeleteTexture(widgetState.spMinimapSampleTex)
 		widgetState.spMinimapSampleTex = nil
@@ -12514,7 +22564,9 @@ function widget:Shutdown()
 	widgetState.gbControlsEl = nil
 	widgetState.gbSubModeButtons = {}
 	widgetState.gbShapeButtons = {}
-	if WG.GrassBrush then WG.GrassBrush.deactivate() end
+	if WG.GrassBrush then
+		WG.GrassBrush.deactivate()
+	end
 	widgetState.noiseRootEl = nil
 	widgetState.noiseTypeButtons = {}
 	widgetState.envControlsEl = nil
@@ -12528,15 +22580,21 @@ function widget:Shutdown()
 	widgetState.lightControlsEl = nil
 	widgetState.lightActive = false
 	widgetState.startposActive = false
-	if WG.StartPosTool then WG.StartPosTool.deactivate() end
+	if WG.StartPosTool then
+		WG.StartPosTool.deactivate()
+	end
 	widgetState.cloneActive = false
 	widgetState.cloneControlsEl = nil
 	widgetState.clonePasteTransformsEl = nil
-	if WG.CloneTool then WG.CloneTool.deactivate() end
+	if WG.CloneTool then
+		WG.CloneTool.deactivate()
+	end
 	widgetState.lightLibraryRootEl = nil
 	widgetState.lightLibraryOpen = false
 	widgetState.lightLibrarySelectedPreset = nil
-	if WG.LightPlacer then WG.LightPlacer.deactivate() end
+	if WG.LightPlacer then
+		WG.LightPlacer.deactivate()
+	end
 
 	-- Free pre-loaded skybox textures
 	for _, texPath in ipairs(widgetState.envLoadedTextures or {}) do
@@ -12547,11 +22605,11 @@ function widget:Shutdown()
 	-- Restore sun lighting if shut down mid-fade
 	if skyFade.active and skyFade.origUnitAmbient then
 		Spring.SetSunLighting({
-			unitAmbientColor    = skyFade.origUnitAmbient,
-			unitDiffuseColor    = skyFade.origUnitDiffuse,
-			unitSpecularColor   = skyFade.origUnitSpecular,
-			groundAmbientColor  = skyFade.origGroundAmbient,
-			groundDiffuseColor  = skyFade.origGroundDiffuse,
+			unitAmbientColor = skyFade.origUnitAmbient,
+			unitDiffuseColor = skyFade.origUnitDiffuse,
+			unitSpecularColor = skyFade.origUnitSpecular,
+			groundAmbientColor = skyFade.origGroundAmbient,
+			groundDiffuseColor = skyFade.origGroundDiffuse,
 			groundSpecularColor = skyFade.origGroundSpecular,
 		})
 	end
@@ -12559,4 +22617,8 @@ function widget:Shutdown()
 	skyFade.phase = "idle"
 
 	widgetHandler:RemoveAction("terraformpanel")
+	widgetHandler:RemoveAction("tf_sunlog")
+	if widgetState.setSunLog then
+		widgetState.setSunLog(false)
+	end
 end

@@ -11,24 +11,33 @@
 --------------------------------------------------------------------------------
 
 VFS.Include(LUAUI_DIRNAME .. "Headers/keysym.h.lua", nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "system.lua",           nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "callins.lua",          nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "savetable.lua",        nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "system.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "callins.lua", nil, VFS.ZIP)
+VFS.Include(LUAUI_DIRNAME .. "savetable.lua", nil, VFS.ZIP)
+
+-- What each widget shares with others through WG, read out of its source as it loads, so the widget
+-- selector can say what depends on what. Optional: a file added to the game since it started is
+-- invisible to VFS until the next start, and that is no reason for LuaUI not to load.
+local widgetDependencies
+do
+	local ok, module = pcall(VFS.Include, LUAUI_DIRNAME .. "Include/widget_dependencies.lua", nil, VFS.ZIP)
+	widgetDependencies = ok and module or nil
+end
 
 local gl = gl
 
-local CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
-local WIDGET_DIRNAME = LUAUI_DIRNAME .. 'Widgets/'
-local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. 'RmlWidgets/'
+local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
+local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
+local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
 
-local SELECTOR_BASENAME = 'selector.lua'
+local SELECTOR_BASENAME = "selector.lua"
 
 local SAFEWRAP = 1
 -- 0: disabled
--- 1: enabled, but can be overriden by widget.GetInfo().unsafe
+-- 1: enabled, but can be overridden by widget.GetInfo().unsafe
 -- 2: always enabled
 
-local SAFEDRAW = false  -- requires SAFEWRAP to work
+local SAFEDRAW = false -- requires SAFEWRAP to work
 local glPopAttrib = gl.PopAttrib
 local glPushAttrib = gl.PushAttrib
 
@@ -50,9 +59,11 @@ local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
 	allowuserwidgets = false
 
-	-- disabling individual Spring functions isnt really good enough
-	-- disabling user widget draw access would probably do the job but that wouldnt be easy to do
-	Spring.SetTeamColor = function() return true end
+	-- disabling individual Spring functions isn't really good enough
+	-- disabling user widget draw access would probably do the job but that wouldn't be easy to do
+	Spring.SetTeamColor = function()
+		return true
+	end
 
 	if not Spring.GetSpectatingState() then
 		Spring.SendCommands("info 0")
@@ -68,6 +79,10 @@ widgetHandler = {
 	widgets = {},
 
 	configData = {},
+	-- Every error each widget has raised this session, kept against its file. See RecordError.
+	errorLog = {},
+	-- And how many in all, so a panel can notice a new one with a single comparison.
+	errorCount = 0,
 	orderList = {},
 
 	knownWidgets = {},
@@ -91,7 +106,7 @@ widgetHandler = {
 	mouseOwner = nil,
 	ownedButton = 0,
 
-	chobbyInterface = false,	-- will be true when chobby interface is on top
+	chobbyInterface = false, -- will be true when chobby interface is on top
 
 	xViewSize = 1,
 	yViewSize = 1,
@@ -99,174 +114,178 @@ widgetHandler = {
 	yViewSizeOld = 1,
 }
 
-
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local flexCallIns = {
-	'GameOver',
-	'GameFrame',
-	'GameFramePost',
-	'GameSetup',
-	'GamePaused',
-	'TeamDied',
-	'TeamChanged',
-	'PlayerAdded',
-	'PlayerRemoved',
-	'PlayerChanged',
-	'ShockFront',
-	'WorldTooltip',
-	'MapDrawCmd',
-	'ActiveCommandChanged',
-	'CameraRotationChanged',
-	'CameraPositionChanged',
-	'DefaultCommand',
-	'UnitCreated',
-	'UnitFinished',
-	'UnitFromFactory',
-	'UnitDestroyed',
-	'UnitDestroyedByTeam', -- NB: called via gadget, not engine
-	'RenderUnitDestroyed',
-	'UnitExperience',
-	'UnitTaken',
-	'UnitGiven',
-	'UnitIdle',
-	'UnitCommand',
-	'UnitCmdDone',
-	'UnitDamaged',
+	"GameOver",
+	"GameFrame",
+	"GameFramePost",
+	"GameSetup",
+	"GamePaused",
+	"TeamDied",
+	"TeamChanged",
+	"PlayerAdded",
+	"PlayerRemoved",
+	"PlayerChanged",
+	"ShockFront",
+	"WorldTooltip",
+	"MapDrawCmd",
+	"ActiveCommandChanged",
+	"CameraRotationChanged",
+	"CameraPositionChanged",
+	"DefaultCommand",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitFromFactory",
+	"UnitDestroyed",
+	"UnitDestroyedByTeam", -- NB: called via gadget, not engine
+	"RenderUnitDestroyed",
+	"UnitExperience",
+	"UnitTaken",
+	"UnitGiven",
+	"UnitIdle",
+	"UnitCommand",
+	"UnitCmdDone",
+	"UnitDamaged",
 	"UnitStunned",
-	'UnitEnteredRadar',
-	'UnitEnteredLos',
-	'UnitLeftRadar',
-	'UnitLeftLos',
-	'UnitEnteredWater',
-	'UnitEnteredAir',
-	'UnitLeftWater',
-	'UnitLeftAir',
-	'UnitSeismicPing',
-	'UnitLoaded',
-	'UnitUnloaded',
-	'UnitCloaked',
-	'UnitDecloaked',
-	'UnitMoveFailed',
-	'MetaUnitAdded',
-	'MetaUnitRemoved',
-	'RecvLuaMsg',
-	'StockpileChanged',
-	'SelectionChanged',
-	'DrawGenesis',
-	'DrawGroundPreForward',
-	'DrawGroundPostForward',
-	'DrawGroundPreDeferred',
-	'DrawGroundPostDeferred',
-	'DrawGroundDeferred',
-	'DrawWorld',
-	'DrawWorldPreUnit',
-	'DrawPreDecals',
-	'DrawWorldPreParticles',
-	'DrawWorldShadow',
-	'DrawWorldReflection',
-	'DrawWorldRefraction',
-	'DrawUnitsPostDeferred',
-	'DrawFeaturesPostDeferred',
-	'DrawScreenEffects',
-	'DrawScreenPost',
-	'DrawInMiniMap',
- 	'DrawBuildSquare',
-	'DrawOpaqueUnitsLua',
-	'DrawOpaqueFeaturesLua',
-	'DrawAlphaUnitsLua',
-	'DrawAlphaFeaturesLua',
-	'DrawShadowUnitsLua',
-	'DrawShadowFeaturesLua',
-	'SunChanged',
-	'FeatureCreated',
-	'FeatureDestroyed',
-	'UnsyncedHeightMapUpdate',
+	"UnitEnteredRadar",
+	"UnitEnteredLos",
+	"UnitLeftRadar",
+	"UnitLeftLos",
+	"UnitEnteredWater",
+	"UnitEnteredAir",
+	"UnitLeftWater",
+	"UnitLeftAir",
+	"UnitSeismicPing",
+	"UnitLoaded",
+	"UnitUnloaded",
+	"UnitCloaked",
+	"UnitDecloaked",
+	"UnitMoveFailed",
+	"MetaUnitAdded",
+	"MetaUnitRemoved",
+	"RecvLuaMsg",
+	"StockpileChanged",
+	"SelectionChanged",
+	"DrawGenesis",
+	"DrawGroundPreForward",
+	"DrawGroundPostForward",
+	"DrawGroundPreDeferred",
+	"DrawGroundPostDeferred",
+	"DrawGroundDeferred",
+	"DrawWorld",
+	"DrawWorldPreUnit",
+	"DrawPreDecals",
+	"DrawWorldPreParticles",
+	"DrawWorldShadow",
+	"DrawWorldReflection",
+	"DrawWorldRefraction",
+	"DrawUnitsPostDeferred",
+	"DrawFeaturesPostDeferred",
+	"DrawScreenEffects",
+	"DrawScreenPost",
+	"DrawInMiniMap",
+	"DrawBuildSquare",
+	"DrawOpaqueUnitsLua",
+	"DrawOpaqueFeaturesLua",
+	"DrawAlphaUnitsLua",
+	"DrawAlphaFeaturesLua",
+	"DrawShadowUnitsLua",
+	"DrawShadowFeaturesLua",
+	"SunChanged",
+	"FeatureCreated",
+	"FeatureDestroyed",
+	"UnsyncedHeightMapUpdate",
 }
+if Engine.FeatureSupport.nanoParticleUpdateCallin then
+	flexCallIns[#flexCallIns + 1] = "NanoParticleUpdate"
+end
 local flexCallInMap = {}
 for _, ci in ipairs(flexCallIns) do
 	flexCallInMap[ci] = true
 end
 
 local callInLists = {
-	'FontsChanged',
-	'GamePreload',
-	'GameStart',
-	'Shutdown',
-	'Update',
-	'TextCommand',
-	'CommandNotify',
-	'AddConsoleLine',
-	'ViewResize',
-	'DrawScreen',
-	'KeyPress',
-	'KeyRelease',
-	'TextInput',
-	'MousePress',
-	'MouseWheel',
-	'ControllerAdded',
-	'ControllerRemoved',
-	'ControllerConnected',
-	'ControllerDisconnected',
-	'ControllerRemapped',
-	'ControllerButtonUp',
-	'ControllerButtonDown',
-	'ControllerAxisMotion',
-	'IsAbove',
-	'GetTooltip',
-	'GroupChanged',
-	'GameProgress',
-	'CommandsChanged',
-	'LanguageChanged',
-	'UnitBlocked',
-	'VisibleUnitAdded',
-	'VisibleUnitRemoved',
-	'VisibleUnitsChanged',
-	'AlliedUnitAdded',
-	'AlliedUnitRemoved',
-	'AlliedUnitsChanged',
-	'UnitSale',
-	'UnitSold',
-	'VisibleExplosion',
-	'Barrelfire',
-	'CrashingAircraft',
-	'SendStats',
-	'SendStats_GameMode',
-	'ActivityEvent',
-	'FpsEvent',
-	'ApmEvent',
-	'GpuMemEvent',
-	'LuaMemEvent',
-	'SystemEvent',
-	'RankingEvent',
-	'MouseCursorEvent',
-	'CameraBroadcastEvent',
-	'FeatureReclaimStartedETA',
-	'UnitBuildspeedDebuffHealthbars',
-	'UnitBuildspeedDebuffEndHealthbars',
-	'GadgetAddMessage',
-	'GadgetReceiveAwards',
-	'UnitScriptLight',
-	'UnitScriptDistortion',
-	'UnitScriptDecal',
-	'GadgetRemoveGrass',
-	'GadgetCoopStartPoint',
-	'NotificationEvent',
-	'NightFactorChanged',
-	'ScavEvent',
-	'RaptorEvent',
-	'FeatureReclaimStartedHealthbars',
-	'UnitCaptureStartedHealthbars',
-	'ProjectileCreatedReloadHB',
-	'UnitParalyzeDamageHealthbars',
-	'UnitParalyzeDamageEffect',
-	'SelectedUnitsClear',
-	'SelectedUnitsSet',
-	'SelectedUnitsBatchUpdate',
-	'SelectedUnitsRemove',
-	'SelectedUnitsAdd',
-	'LavaRenderState',
-	'ClearMapMarks',
+	"FontsChanged",
+	"GamePreload",
+	"GameStart",
+	"Shutdown",
+	"Update",
+	"TextCommand",
+	"CommandNotify",
+	"AllowQuit",
+	"AddConsoleLine",
+	"ViewResize",
+	"DrawScreen",
+	"KeyPress",
+	"KeyRelease",
+	"TextInput",
+	"MousePress",
+	"MouseWheel",
+	"ControllerAdded",
+	"ControllerRemoved",
+	"ControllerConnected",
+	"ControllerDisconnected",
+	"ControllerRemapped",
+	"ControllerButtonUp",
+	"ControllerButtonDown",
+	"ControllerAxisMotion",
+	"IsAbove",
+	"GetTooltip",
+	"GroupChanged",
+	"GameProgress",
+	"CommandsChanged",
+	"LanguageChanged",
+	"UnitBlocked",
+	"BuildOptionsChanged",
+	"VisibleUnitAdded",
+	"VisibleUnitRemoved",
+	"VisibleUnitsChanged",
+	"AlliedUnitAdded",
+	"AlliedUnitRemoved",
+	"AlliedUnitsChanged",
+	"UnitSale",
+	"UnitSold",
+	"VisibleExplosion",
+	"Barrelfire",
+	"CrashingAircraft",
+	"SendStats",
+	"SendStats_GameMode",
+	"ActivityEvent",
+	"FpsEvent",
+	"ApmEvent",
+	"GpuMemEvent",
+	"LuaMemEvent",
+	"SystemEvent",
+	"RankingEvent",
+	"MouseCursorEvent",
+	"CameraBroadcastEvent",
+	"FeatureReclaimStartedETA",
+	"UnitBuildspeedDebuffHealthbars",
+	"UnitBuildspeedDebuffEndHealthbars",
+	"GadgetAddMessage",
+	"GadgetReceiveAwards",
+	"UnitScriptLight",
+	"UnitScriptDistortion",
+	"UnitScriptDecal",
+	"GadgetRemoveGrass",
+	"GadgetCoopStartPoint",
+	"NotificationEvent",
+	"NightFactorChanged",
+	"ScavEvent",
+	"RaptorEvent",
+	"FeatureReclaimStartedHealthbars",
+	"UnitCaptureStartedHealthbars",
+	"ProjectileCreatedReloadHB",
+	"UnitParalyzeDamageHealthbars",
+	"UnitParalyzeDamageEffect",
+	"SelectedUnitsClear",
+	"SelectedUnitsSet",
+	"SelectedUnitsBatchUpdate",
+	"SelectedUnitsRemove",
+	"SelectedUnitsAdd",
+	"LavaRenderState",
+	"ClearMapMarks",
 
 	-- these use mouseOwner instead of lists
 	--  'MouseMove',
@@ -309,7 +328,7 @@ end
 -- initialize the call-in lists
 do
 	for _, listname in ipairs(callInLists) do
-		widgetHandler[listname .. 'List'] = {}
+		widgetHandler[listname .. "List"] = {}
 	end
 end
 
@@ -326,7 +345,7 @@ function widgetHandler:LoadConfigData()
 		end
 		return {}
 	elseif chunk() == nil then
-		Spring.Log("barwidgets.lua", LOG.ERROR, 'Luaui config file was blank')
+		Spring.Log("barwidgets.lua", LOG.ERROR, "Luaui config file was blank")
 		return {}
 	end
 	local tmp = {}
@@ -342,7 +361,21 @@ function widgetHandler:LoadConfigData()
 	end
 end
 
+-- Writes the widget config out.
+--
+-- A reset asked for on the way out is honoured here rather than at the call site,
+-- because this is called from more places than the shutdown: a widget's own Shutdown can
+-- call it (cmd_terraform_suite does, to leave its suite switched off), and those run
+-- after Shutdown has written - which put the whole config back and left a factory reset
+-- looking like it had done nothing at all.
 function widgetHandler:SaveConfigData()
+	if self.__blankOutConfig then
+		-- Everything goes: which widgets are on, and whatever each of them had saved.
+		table.save({ allowUserWidgets = self.allowUserWidgets }, CONFIG_FILENAME, "-- Widget Custom data and order")
+
+		return
+	end
+
 	local filetable = {}
 	for i, w in ipairs(self.widgets) do
 		if w.GetConfigData then
@@ -350,10 +383,14 @@ function widgetHandler:SaveConfigData()
 		end
 		self.orderList[w.whInfo.name] = i
 	end
-	filetable.order = self.orderList
+	-- Which widgets are on goes back to what the game enables by default; what each of
+	-- them has saved is kept.
+	if not self.__blankOutOrder then
+		filetable.order = self.orderList
+	end
 	filetable.data = self.configData
 	filetable.allowUserWidgets = self.allowUserWidgets
-	table.save(filetable, CONFIG_FILENAME, '-- Widget Custom data and order, order = 0 disabled widget')
+	table.save(filetable, CONFIG_FILENAME, "-- Widget Custom data and order, order = 0 disabled widget")
 end
 
 function widgetHandler:SendConfigData()
@@ -366,10 +403,9 @@ function widgetHandler:SendConfigData()
 	end
 end
 
-
 --------------------------------------------------------------------------------
 local unsortedWidgets
-local doMoreYield = (Spring.Yield ~= nil);
+local doMoreYield = (Spring.Yield ~= nil)
 
 local function Yield()
 	if doMoreYield then
@@ -386,8 +422,8 @@ local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
 	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
 
-	for _, subDirectory in ipairs( VFS.SubDirs(folder) ) do
-		table.append( widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode) )
+	for _, subDirectory in ipairs(VFS.SubDirs(folder)) do
+		table.append(widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode))
 	end
 
 	for _, file in ipairs(widgetFiles) do
@@ -407,14 +443,14 @@ local function CreateSandboxedSystem()
 	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
-		if string.find(k, '^GiveOrder') then
+		if string.find(k, "^GiveOrder") then
 			SandboxedSpring[k] = disabledOrder
 		else
 			SandboxedSpring[k] = v
 		end
 	end
 	for k, v in pairs(System) do
-		if k == 'Spring' then
+		if k == "Spring" then
 			SandboxedSystem[k] = SandboxedSpring
 		else
 			SandboxedSystem[k] = v
@@ -426,12 +462,13 @@ function widgetHandler:Initialize()
 	widgetHandler:CreateQueuedReorderFuncs()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
+	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
 	end
 
-	Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
+	Spring.CreateDir(LUAUI_DIRNAME .. "Config")
 
 	unsortedWidgets = {}
 
@@ -449,6 +486,15 @@ function widgetHandler:Initialize()
 
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
+
+	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFS.ZIP)
+	ModuleHandler.Register(VFS.ZIP)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
 
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
@@ -487,24 +533,23 @@ function widgetHandler:AddSpadsMessage(contents)
 	-- The canonical, agreed format is the following:
 	-- This must be called from an unsynced context, cause it needs playername and playerid and stuff
 
-	-- The game sends a lua message, which should be base64'd to prevent wierd character bullshit:
+	-- The game sends a lua message, which should be base64'd to prevent weird character bullshit:
 	-- Lua Message Format:
-		-- leetspeek luaspads:base64message
-		-- lu@$p@d$:ABCEDFGS==
-		-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
+	-- leetspeek luaspads:base64message
+	-- lu@$p@d$:ABCEDFGS==
+	-- Must contain, with triangle bracket literals <playername>[space]<contents>[space]<gameseconds>
 	-- will get parsed by barmanager, and forwarded to autohostmonitor as:
 	-- match-event <UnnamedPlayer> <LuaUI\Widgets\test_unitshape_instancing.lua/czE3YEocdDJ8bLoO5++a2A==> <35>
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myPlayerName = Spring.GetPlayerInfo(myPlayerID,false)
-	local gameSeconds = math.max(0,math.round(Spring.GetGameFrame() / 30))
-	if type(contents) == 'table' then
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID, false)
+	local gameSeconds = math.max(0, math.round(Spring.GetGameFrame() / 30))
+	if type(contents) == "table" then
 		contents = Json.encode(contents)
 	end
 	local rawmessage = string.format("<%s> <%s> <%d>", myPlayerName, contents, gameSeconds)
-	local b64message = 'lu@$p@d$:' .. string.base64Encode(rawmessage)
+	local b64message = "lu@$p@d$:" .. string.base64Encode(rawmessage)
 	Spring.SendLuaRulesMsg(b64message)
 end
-
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
@@ -514,18 +559,77 @@ function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
 	if w then
 		widgetHandler:InsertWidgetRaw(w)
-		Spring.Echo('Reloaded from game: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+		Spring.Echo("Reloaded from game: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 	end
 	return w
 end
 
+-- Every error a widget raises is kept against its file for the rest of the session: by
+-- file rather than by name, because most of the ways loading can fail happen before the
+-- widget has told anyone its name. The same error from the same place is one entry with
+-- a count, moved to the end, rather than an entry per time - a widget re-enabled into the
+-- same crash would otherwise push everything else out. At most twenty are kept.
+--
+-- `callin` is nil for a failure to load. `stops` says this error is why the widget is not
+-- running, and `stopped` holds it until the widget next loads. The handler's `errorCount`
+-- counts every error of every widget, repeats included, so a panel can tell a new one has
+-- arrived with one comparison instead of reading anybody's log.
+function widgetHandler:RecordError(basename, callin, message, stops)
+	local log = self.errorLog[basename]
+	if not log then
+		log = { entries = {} }
+		self.errorLog[basename] = log
+	end
+
+	local entries = log.entries
+	local entry
+	for i = 1, #entries do
+		if entries[i].callin == callin and entries[i].message == message then
+			entry = table.remove(entries, i)
+			break
+		end
+	end
+	local frame = Spring.GetGameFrame()
+	if entry then
+		entry.count = entry.count + 1
+		entry.lastFrame = frame
+	else
+		entry = { callin = callin, message = message, count = 1, frame = frame, lastFrame = frame }
+	end
+	entries[#entries + 1] = entry
+	if #entries > 20 then
+		table.remove(entries, 1)
+	end
+
+	self.errorCount = self.errorCount + 1
+	if stops then
+		log.stopped = entry
+	end
+
+	return entry
+end
+
+-- Why a widget did not load, keyed by its file.
+--
+-- These used to be echoed and forgotten, which left the widget selector able to say a
+-- widget was asked for and is not running, but not why - and the reason was sitting in
+-- infolog.txt the whole time. Keyed by basename because most of the ways loading can fail
+-- happen before the widget has told anyone its name.
+local function loadFailed(basename, reason)
+	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
+	widgetHandler:RecordError(basename, nil, reason, true)
+
+	return nil
+end
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(filename, not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST)
+	local text = VFS.LoadFile(
+		filename,
+		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
+	)
 	if text == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (missing file: ' .. filename .. ')')
-		return nil
+		return loadFailed(basename, "missing file: " .. filename)
 	end
 
 	if enableLocalsAccess then
@@ -533,22 +637,20 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- opposed to not being able to access them at all from outside the widget). This is accomplished by loading the
 		-- widget with an additional code snippet to list all of the local variables, getting that result, and then
 		-- loading again with a code snippet that sets up external access to those variables.
-		localsAccess = localsAccess or VFS.Include('common/testing/locals_access.lua')
+		localsAccess = localsAccess or VFS.Include("common/testing/locals_access.lua")
 
 		local textWithLocalsDetector = text .. localsAccess.localsDetectorString
 
 		local chunk, err = loadstring(textWithLocalsDetector, filename)
 		if chunk == nil then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
-			return nil
+			return loadFailed(basename, err)
 		end
 
 		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
-			Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
-			return nil
+			return loadFailed(basename, err)
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
@@ -561,16 +663,14 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
-		return nil
+		return loadFailed(basename, err)
 	end
 
 	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
-		return nil
+		return loadFailed(basename, err)
 	end
 	if err == false then
 		return nil -- widget asked for a silent death
@@ -586,28 +686,27 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		if fromZip or true then
 			widget.widgetHandler = self
 		else
-			Spring.Echo('Failed to load: ' .. basename .. '  (user widgets may not access widgetHandler)', fromZip, filename, allowuserwidgets)
-			return nil
+			return loadFailed(basename, "user widgets may not access widgetHandler")
 		end
 	end
 
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
 	if basename == SELECTOR_BASENAME then
-		self.orderList[name] = 1  -- always load the widget selector
+		self.orderList[name] = 1 -- always load the widget selector
+	elseif widget.whInfo.hidden then
+		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
 	end
 
 	err = self:ValidateWidget(widget)
 	if err then
-		Spring.Echo('Failed to load: ' .. basename .. '  (' .. err .. ')')
-		return nil
+		return loadFailed(basename, err)
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
-			Spring.Echo('Failed to load: ' .. basename .. '  (duplicate name)')
-			return nil
+			return loadFailed(basename, "duplicate name")
 		end
 	else
 		-- create a knownInfo table
@@ -617,6 +716,23 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
+		knownInfo.hidden = widget.whInfo.hidden
+		-- Whether the widget ships switched on. Kept here because this is the only place it is
+		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
+		-- a widget that is off has no instance.
+		knownInfo.enabled = widget.whInfo.enabled
+		-- And whether it draws through RmlUi, which nothing else records. Read out of the
+		-- source, because where the file sits does not answer it: most RmlUi widgets live
+		-- under LuaUI/RmlWidgets but a player's own can sit anywhere and still use the API.
+		-- Matched on the API being reached for rather than the word appearing, so a widget
+		-- that only mentions RmlUi in a comment is not mistaken for one.
+		knownInfo.rml = string.find(text, "RmlUi%s*[%.%[]") ~= nil or string.find(text, "not%s+RmlUi") ~= nil
+		-- And what it shares with other widgets through WG. The source is in hand here, and a source
+		-- the reading trips over must not stop the widget from loading.
+		if widgetDependencies then
+			local ok, deps = pcall(widgetDependencies.scan, text, VFS.LoadFile)
+			knownInfo.deps = ok and deps or nil
+		end
 		self.knownWidgets[name] = knownInfo
 		self.knownCount = self.knownCount + 1
 		self.knownChanged = true
@@ -625,8 +741,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.localsAccess = enableLocalsAccess
 
 	if widget.GetInfo == nil then
-		Spring.Echo('Failed to load: ' .. basename .. '  (no GetInfo() call)')
-		return nil
+		return loadFailed(basename, "no GetInfo() call")
 	end
 
 	-- Get widget information
@@ -652,7 +767,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		return nil
 	end
 	if not fromZip then
-		local md5 = VFS.CalculateHash(text,0)
+		local md5 = VFS.CalculateHash(text, 0)
 		if widgetHandler.widgetHashes[md5] == nil then
 			widgetHandler.widgetHashes[md5] = filename
 		end
@@ -664,17 +779,22 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		widget:SetConfigData(config)
 	end
 
+	-- It loaded, so whatever stopped it last time no longer is. What it raised stays in the
+	-- log: a widget that crashed and came back is still worth being able to look into.
+	local log = self.errorLog[basename]
+	if log then
+		log.stopped = nil
+	end
+
 	return widget
 end
 
-local WidgetMeta =
-{
+local WidgetMeta = {
 	__index = System,
 	__metatable = true,
 }
 
-local SandboxedWidgetMeta =
-{
+local SandboxedWidgetMeta = {
 	__index = SandboxedSystem,
 	__metatable = true,
 }
@@ -696,7 +816,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 		setmetatable(widget, metaRef)
 	end
 
-	widget.WG = self.WG    -- the shared table
+	widget.WG = self.WG -- the shared table
 	widget.widget = widget -- easy self referencing
 
 	-- wrapped calls (closures)
@@ -774,6 +894,35 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	wh.SetGlobal = function(_, name, value)
 		return self:SetGlobal(widget, name, value)
 	end
+
+	-- Modal windows (see the "Modal windows" block further down)
+	wh.RegisterModalWindow = function(_, isOpen)
+		return self:RegisterModalWindow(widget, isOpen)
+	end
+	wh.DeregisterModalWindow = function(_)
+		return self:DeregisterModalWindow(widget)
+	end
+	wh.IsModalActive = function(_)
+		return self:IsModalActive()
+	end
+	wh.ModalAllows = function(_, owner)
+		return self:ModalAllows(owner)
+	end
+	wh.GetModalRevision = function(_)
+		return self:GetModalRevision()
+	end
+	wh.SetWindowsHideInterface = function(_, enabled)
+		return self:SetWindowsHideInterface(enabled)
+	end
+	wh.HideInterface = function(_, reason, keep)
+		return self:HideInterface(reason, keep)
+	end
+	wh.ShowInterface = function(_, reason)
+		return self:ShowInterface(reason)
+	end
+	wh.IsInterfaceHidden = function(_)
+		return self:IsInterfaceHidden()
+	end
 	tracy.ZoneEnd()
 	return widget
 end
@@ -794,32 +943,34 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.author = info.author or ""
 		wi.license = info.license or ""
 		wi.enabled = info.enabled or false
+		wi.hidden = info.hidden or false
+		wi.modalExempt = info.modalExempt or false
 	end
 
-	widget.whInfo = {}  --  a proxy table
+	widget.whInfo = {} --  a proxy table
 	local mt = {
 		__index = wi,
 		__newindex = function()
 			error("whInfo tables are read-only")
 		end,
-		__metatable = "protected"
+		__metatable = "protected",
 	}
 	setmetatable(widget.whInfo, mt)
 	-- cache tracy zone name strings to avoid per-frame string allocation. Saves 0.5us per tracy call, (1 us -> 0.5us)
 	if tracy then
-		widget._tracyUpdateName             = "W:Update:"             .. wi.name
-		widget._tracyViewResizeName         = "W:ViewResize:"         .. wi.name
-		widget._tracyDrawScreenName         = "W:DrawScreen:"         .. wi.name
-		widget._tracyDrawGenesisName        = "W:DrawGenesis:"        .. wi.name
-		widget._tracyDrawWorldName          = "W:DrawWorld:"          .. wi.name
-		widget._tracyDrawWorldPreUnitName   = "W:DrawWorldPreUnit:"   .. wi.name
-		widget._tracyDrawScreenEffectsName  = "W:DrawScreenEffects:"  .. wi.name
-		widget._tracyDrawScreenPostName     = "W:DrawScreenPost:"     .. wi.name
-		widget._tracyGameStartName          = "W:GameStart:"          .. wi.name
-		widget._tracyPlayerChangedName      = "W:PlayerChanged:"      .. wi.name
-		widget._tracyGameFrameName          = "W:GameFrame:"          .. wi.name
-		widget._tracyGameFramePostName      = "W:GameFramePost:"      .. wi.name
-		widget._tracyVisibleUnitsChangedName= "W:VisibleUnitsChanged:".. wi.name
+		widget._tracyUpdateName = "W:Update:" .. wi.name
+		widget._tracyViewResizeName = "W:ViewResize:" .. wi.name
+		widget._tracyDrawScreenName = "W:DrawScreen:" .. wi.name
+		widget._tracyDrawGenesisName = "W:DrawGenesis:" .. wi.name
+		widget._tracyDrawWorldName = "W:DrawWorld:" .. wi.name
+		widget._tracyDrawWorldPreUnitName = "W:DrawWorldPreUnit:" .. wi.name
+		widget._tracyDrawScreenEffectsName = "W:DrawScreenEffects:" .. wi.name
+		widget._tracyDrawScreenPostName = "W:DrawScreenPost:" .. wi.name
+		widget._tracyGameStartName = "W:GameStart:" .. wi.name
+		widget._tracyPlayerChangedName = "W:PlayerChanged:" .. wi.name
+		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
+		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
+		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
 	end
 end
 
@@ -830,24 +981,27 @@ function widgetHandler:ValidateWidget(widget)
 	return nil
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local function widgetFailure(w, funcName, errorMsg)
 	local name = w.whInfo.name
-	local errorBase = 'Error'
-	if funcName ~= 'Shutdown' then
+	-- Kept against the widget as well as said, and before anything below can reload it: the
+	-- log is how the widget selector shows what went wrong once the line has scrolled out of
+	-- the console. Shutdown is the one callin whose failure does not take the widget down.
+	widgetHandler:RecordError(w.whInfo.basename, funcName, tostring(errorMsg), funcName ~= "Shutdown")
+	local errorBase = "Error"
+	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
 		if not w.canControlUnits and errorMsg:find(SANDBOXED_ERROR_MSG) then
-			errorBase = 'Sandbox error'
+			errorBase = "Sandbox error"
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
 	else
-		Spring.Echo('Error in Shutdown()')
+		Spring.Echo("Error in Shutdown()")
 	end
-	Spring.Echo(errorBase .. ' in ' .. funcName .. '(): ' .. tostring(errorMsg))
-	Spring.Echo('Removed widget: ' .. name)
+	Spring.Echo(errorBase .. " in " .. funcName .. "(): " .. tostring(errorMsg))
+	Spring.Echo("Removed widget: " .. name)
 	return nil
 end
 
@@ -880,7 +1034,7 @@ local function SafeWrapFunc(func, funcName)
 	if not SAFEDRAW then
 		return SafeWrapFuncNoGL(func, funcName)
 	else
-		if string.sub(funcName, 1, 4) ~= 'Draw' then
+		if string.sub(funcName, 1, 4) ~= "Draw" then
 			return SafeWrapFuncNoGL(func, funcName)
 		else
 			return SafeWrapFuncGL(func, funcName)
@@ -893,7 +1047,7 @@ local function SafeWrapWidget(widget)
 		return
 	elseif SAFEWRAP == 1 then
 		if widget.GetInfo and widget.GetInfo().unsafe then
-			Spring.Echo('LuaUI: loaded unsafe widget: ' .. widget.whInfo.name)
+			Spring.Echo("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
 	end
@@ -905,10 +1059,9 @@ local function SafeWrapWidget(widget)
 	end
 
 	if widget.Initialize then
-		widget.Initialize = SafeWrapFunc(widget.Initialize, 'Initialize')
+		widget.Initialize = SafeWrapFunc(widget.Initialize, "Initialize")
 	end
 end
-
 
 --------------------------------------------------------------------------------
 
@@ -940,7 +1093,6 @@ local function ArrayRemove(t, value)
 	end
 end
 
-
 --------------------------------------------------------------------------------
 --- Safe reordering
 
@@ -958,11 +1110,11 @@ local callinDepth = 0
 function widgetHandler:HookReorderSpecialFuncs()
 	-- Methods that need manual PerformReorders calls because of not
 	-- being wrapped by UpdateCallIns.
-	self:HookReorderPost('DrawScreen', true)
-	self:HookReorderPost('Update', true)
-	self:HookReorderPost('MouseMove')
-	self:HookReorderPost('MouseRelease')
-	self:HookReorderPost('ConfigureLayout')
+	self:HookReorderPost("DrawScreen", true)
+	self:HookReorderPost("Update", true)
+	self:HookReorderPost("MouseMove")
+	self:HookReorderPost("MouseRelease")
+	self:HookReorderPost("ConfigureLayout")
 end
 
 function widgetHandler:HookReorderPost(name, topMethod)
@@ -971,15 +1123,15 @@ function widgetHandler:HookReorderPost(name, topMethod)
 	-- We define some methods to be topMethod, those will hard set the callinDepth as a consistency
 	-- measure.
 	local func = self[name]
-	if not func or not type(func) == 'function' then
+	if not func or not type(func) == "function" then
 		Spring.Log("barwidgets.lua", LOG.WARNING, name .. " does not exist or isn't a function")
 		return
 	end
-	if self[name .. 'Raw'] then
+	if self[name .. "Raw"] then
 		Spring.Log("barwidgets.lua", LOG.WARNING, name .. "Raw already exists")
 		return
 	end
-	self[name .. 'Raw'] = func
+	self[name .. "Raw"] = func
 	self[name] = function(...)
 		callinDepth = topMethod and 1 or callinDepth + 1
 		local res = func(...)
@@ -994,14 +1146,24 @@ end
 
 function widgetHandler:CreateQueuedReorderFuncs()
 	-- This will create an array with linked Raw methods so we can find them by index.
-	-- It will also create the widgetHandler usual api queing the calls.
-	local reorderFuncNames = {'InsertWidget', 'RemoveWidget', 'EnableWidget', 'DisableWidget', 'ReloadUserWidgetFromGame',
-		'ToggleWidget', 'LowerWidget', 'RaiseWidget', 'UpdateWidgetCallIn', 'RemoveWidgetCallIn'}
+	-- It will also create the widgetHandler usual api queueing the calls.
+	local reorderFuncNames = {
+		"InsertWidget",
+		"RemoveWidget",
+		"EnableWidget",
+		"DisableWidget",
+		"ReloadUserWidgetFromGame",
+		"ToggleWidget",
+		"LowerWidget",
+		"RaiseWidget",
+		"UpdateWidgetCallIn",
+		"RemoveWidgetCallIn",
+	}
 	local queueReorder = widgetHandler.QueueReorder
 
 	for idx, name in ipairs(reorderFuncNames) do
 		-- linked method index
-		reorderFuncs[#reorderFuncs + 1] = widgetHandler[name .. 'Raw']
+		reorderFuncs[#reorderFuncs + 1] = widgetHandler[name .. "Raw"]
 
 		-- widgetHandler api
 		widgetHandler[name] = function(s, ...)
@@ -1011,7 +1173,7 @@ function widgetHandler:CreateQueuedReorderFuncs()
 end
 
 function widgetHandler:QueueReorder(methodIndex, ...)
-	reorderQueue[#reorderQueue + 1] = {methodIndex, ...}
+	reorderQueue[#reorderQueue + 1] = { methodIndex, ... }
 	reorderNeeded = true
 end
 
@@ -1037,7 +1199,6 @@ end
 --------------------------------------------------------------------------------
 --- Unsafe insert/remove
 
-
 function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
@@ -1047,25 +1208,34 @@ function widgetHandler:InsertWidgetRaw(widget)
 		if self.knownWidgets[name] then
 			self.knownWidgets[name].active = false
 		end
-		Spring.Echo('Missing capabilities:  ' .. name .. '. Disabling.')
+		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
+		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
 	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
-			Spring.Echo('Blocked loading: ' .. name .. "  (user 'unit control' widgets disabled for this game)")
+			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
+			self:RecordError(
+				widget.whInfo.basename,
+				nil,
+				"user 'unit control' widgets are disabled for this game",
+				true
+			)
 		end
 		return
 	end
 
 	SafeWrapWidget(widget)
 
+	self:ApplyModalExempt(widget)
+
 	ArrayInsert(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
 		local func = widget[listname]
-		if type(func) == 'function' then
-			ArrayInsert(self[listname .. 'List'], func, widget)
+		if type(func) == "function" then
+			ArrayInsert(self[listname .. "List"], func, widget)
 		end
 	end
 	self:UpdateCallIns()
@@ -1096,10 +1266,11 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		widget:Shutdown()
 	end
 	ArrayRemove(self.widgets, widget)
+	self:ForgetModalWidget(widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
 	for _, listname in ipairs(callInLists) do
-		ArrayRemove(self[listname .. 'List'], widget)
+		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
 end
@@ -1107,16 +1278,21 @@ end
 --------------------------------------------------------------------------------
 
 function widgetHandler:UpdateCallIn(name)
-	local listName = name .. 'List'
+	local listName = name .. "List"
 	if isHeadless and headlessDisabledCallIns[name] then
 		_G[name] = nil
 		Script.UpdateCallIn(name)
 		return
 	end
-	if name == 'Update' or	name == 'DrawScreen' then
+	if name == "Update" or name == "DrawScreen" then
 		return
 	end
-	if #self[listName] > 0 or not flexCallInMap[name] or (name == 'GotChatMsg' and actionHandler.HaveChatAction()) or (name == 'RecvFromSynced' and actionHandler.HaveSyncAction()) then
+	if
+		#self[listName] > 0
+		or not flexCallInMap[name]
+		or (name == "GotChatMsg" and actionHandler.HaveChatAction())
+		or (name == "RecvFromSynced" and actionHandler.HaveSyncAction())
+	then
 		-- always assign these call-ins
 		local selffunc = self[name]
 
@@ -1141,29 +1317,29 @@ function widgetHandler:UpdateCallIn(name)
 end
 
 function widgetHandler:UpdateWidgetCallInRaw(name, w)
-	local listName = name .. 'List'
+	local listName = name .. "List"
 	local ciList = self[listName]
 	if ciList then
 		local func = w[name]
-		if type(func) == 'function' then
+		if type(func) == "function" then
 			ArrayInsert(ciList, func, w)
 		else
 			ArrayRemove(ciList, w)
 		end
 		self:UpdateCallIn(name)
 	else
-		Spring.Echo('UpdateWidgetCallIn: bad name: ' .. name)
+		Spring.Echo("UpdateWidgetCallIn: bad name: " .. name)
 	end
 end
 
 function widgetHandler:RemoveWidgetCallInRaw(name, w)
-	local listName = name .. 'List'
+	local listName = name .. "List"
 	local ciList = self[listName]
 	if ciList then
 		ArrayRemove(ciList, w)
 		self:UpdateCallIn(name)
 	else
-		Spring.Echo('RemoveWidgetCallIn: bad name: ' .. name)
+		Spring.Echo("RemoveWidgetCallIn: bad name: " .. name)
 	end
 end
 
@@ -1186,7 +1362,7 @@ function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 		return false
 	end
 	if not ki.active then
-		Spring.Echo('Loading:  ' .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
+		Spring.Echo("Loading:  " .. ki.filename .. (enableLocalsAccess and " (with locals)" or ""))
 		local order = widgetHandler.orderList[name]
 		if not order or order <= 0 then
 			self.orderList[name] = 1
@@ -1207,13 +1383,16 @@ function widgetHandler:DisableWidgetRaw(name)
 		Spring.Echo("DisableWidget(), could not find widget: " .. tostring(name))
 		return false
 	end
+	if ki.hidden then
+		return false -- hidden widgets back other widgets; disabling one breaks them with no way back
+	end
 	if ki.active then
 		local w = self:FindWidget(name)
 		if not w then
 			return false
 		end
-		Spring.Echo('Removed:  ' .. ki.filename)
-		self:RemoveWidgetRaw(w)     -- deactivate
+		Spring.Echo("Removed:  " .. ki.filename)
+		self:RemoveWidgetRaw(w) -- deactivate
 		self.orderList[name] = 0 -- disable
 		self:SaveConfigData()
 	end
@@ -1237,7 +1416,6 @@ function widgetHandler:ToggleWidgetRaw(name)
 	end
 	return true
 end
-
 
 --------------------------------------------------------------------------------
 
@@ -1279,7 +1457,7 @@ function widgetHandler:RaiseWidgetRaw(widget)
 	end
 	Raise(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
-		Raise(self[listname .. 'List'], widget[listname], widget)
+		Raise(self[listname .. "List"], widget[listname], widget)
 	end
 end
 
@@ -1307,18 +1485,18 @@ function widgetHandler:LowerWidgetRaw(widget)
 		end
 		local n = FindHighestIndex(t, i, w.whInfo.layer)
 		if n and n > i then
-			table.insert(t, n+1, w)
+			table.insert(t, n + 1, w)
 			table.remove(t, i)
 		end
 	end
 	Lower(self.widgets, true, widget)
 	for _, listname in ipairs(callInLists) do
-		Lower(self[listname .. 'List'], widget[listname], widget)
+		Lower(self[listname .. "List"], widget[listname], widget)
 	end
 end
 
 function widgetHandler:FindWidget(name)
-	if type(name) ~= 'string' then
+	if type(name) ~= "string" then
 		return nil
 	end
 	for k, v in ipairs(self.widgets) do
@@ -1328,7 +1506,6 @@ function widgetHandler:FindWidget(name)
 	end
 	return nil
 end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -1374,7 +1551,6 @@ function widgetHandler:RemoveWidgetGlobals(owner)
 	return count
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -1395,7 +1571,6 @@ function widgetHandler:ConfigLayoutHandler(data)
 	ConfigLayoutHandler(data)
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -1408,12 +1583,9 @@ function widgetHandler:Shutdown()
 		self.allowUserWidgets = self.__allowUserWidgets
 	end
 
-	-- save config
-	if self.__blankOutConfig then
-		table.save({ ["allowUserWidgets"] = self.allowUserWidgets }, CONFIG_FILENAME, '-- Widget Custom data and order')
-	else
-		self:SaveConfigData()
-	end
+	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
+	-- Shutdown calling it below cannot put back what a reset just took out.
+	self:SaveConfigData()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -1427,11 +1599,214 @@ function widgetHandler:BlankOut()
 	end
 end
 
+--------------------------------------------------------------------------------
+--
+--  Modal windows
+--
+--  Optional behaviour (springsetting "WindowsHideInterface", default off): while one
+--  of the big central windows is open, the rest of the screen interface is neither
+--  drawn nor clickable, so the window is the only thing the player can interact with.
+--
+--  A window widget opts in from its Initialize with an is-open predicate:
+--      widgetHandler:RegisterModalWindow(function() return show end)
+--  (widgets with handler = true get the real handler, so they pass themselves first:
+--   widgetHandler:RegisterModalWindow(widget, function() return show end))
+--
+--  A widget that must stay visible and usable regardless declares it in GetInfo:
+--      modalExempt = true,
+--
+--  Filtered while a window is open: DrawScreen, KeyPress, TextInput, MousePress,
+--  MouseWheel, IsAbove and GetTooltip, and a MousePress nothing claimed is swallowed
+--  so clicks never reach the engine (no unit orders under an open window).
+--  Deliberately not filtered: KeyRelease/MouseRelease (a hidden widget must still see
+--  the release of a press it got before the window opened), Update, the world and
+--  effects draw passes, and the action handler, so keybinds keep working.
+--
+--  Registered windows stay in the allowed set while closed, so a window that closes
+--  while another is open can still run its own cleanup frame.
+--
+--  The same hiding can also be asked for outright, with no window involved and
+--  regardless of the springsetting, for a cutscene or a tool:
+--      widgetHandler:HideInterface("cutscene")             -- keeps the menu buttons
+--      widgetHandler:HideInterface("cutscene", {"Chat"})   -- keeps only chat
+--      widgetHandler:HideInterface("cutscene", {})         -- keeps nothing
+--      widgetHandler:ShowInterface("cutscene")
+--  Requests are named so two callers cannot switch each other off, and the
+--  interface returns once the last one is released.
+--
+local modalWindows = {} -- widget -> is-open predicate
+local modalExempt = {} -- widget -> true
+local modalAllowed = {} -- widget -> true (exempt widgets and registered windows)
+local modalActive = false
+local modalRevision = 0
+local modalEnabled = false
+local modalConfigTimer = 0
+local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
+
+-- The same hiding, asked for outright rather than driven by an open window: for a
+-- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
+-- switch each other off, and each names the widgets it wants kept. Unlike the window
+-- case this ignores the springsetting: a caller that asks for it means it.
+local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
+local interfaceHidden = false
+local interfaceAllowedNames = {} -- union of the names every active reason keeps
+-- what a caller gets when it names nothing: the menu buttons, so there is always a
+-- way back out. Pass an explicit (possibly empty) list to keep something else.
+local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
+
+-- The single question every filtered call-in asks. Kept cheap: two upvalue reads
+-- when nothing is hiding anything.
+local function allowedWidget(widget)
+	if interfaceHidden then
+		return interfaceAllowedNames[widget.whInfo.name] == true
+	end
+	return (not modalActive) or (modalAllowed[widget] == true)
+end
+
+local function ModalAllowWidget(widget, allowed)
+	if (modalAllowed[widget] or false) ~= allowed then
+		modalAllowed[widget] = allowed or nil
+		modalRevision = modalRevision + 1
+	end
+end
+
+function widgetHandler:RegisterModalWindow(widget, isOpen)
+	if type(isOpen) ~= "function" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "RegisterModalWindow: expected an is-open function")
+		return false
+	end
+	modalWindows[widget] = isOpen
+	ModalAllowWidget(widget, true)
+	return true
+end
+
+function widgetHandler:DeregisterModalWindow(widget)
+	modalWindows[widget] = nil
+	ModalAllowWidget(widget, modalExempt[widget] == true)
+end
+
+-- Called from InsertWidgetRaw/RemoveWidgetRaw, which are defined above this block and
+-- so reach the state through the handler rather than as upvalues.
+function widgetHandler:ApplyModalExempt(widget)
+	if widget.whInfo and widget.whInfo.modalExempt then
+		modalExempt[widget] = true
+		ModalAllowWidget(widget, true)
+	end
+end
+
+function widgetHandler:ForgetModalWidget(widget)
+	modalWindows[widget] = nil
+	modalExempt[widget] = nil
+	ModalAllowWidget(widget, false)
+end
+
+function widgetHandler:IsModalActive()
+	return modalActive
+end
+
+local function rebuildInterfaceAllowed()
+	local hidden = false
+	local names = {}
+	for _, allow in pairs(interfaceHiddenReasons) do
+		hidden = true
+		for name in pairs(allow) do
+			names[name] = true
+		end
+	end
+	interfaceAllowedNames = names
+	interfaceHidden = hidden
+	-- cached visibility elsewhere (the guishader stencil) has to be rebuilt
+	modalRevision = modalRevision + 1
+end
+
+---Hide every widget except the ones named, until the same reason is released.
+---@param reason string caller-chosen key; pass the same one to ShowInterface
+---@param keep string[]? widget names to keep drawing and clickable.
+---Defaults to the menu buttons; pass {} to keep nothing at all.
+function widgetHandler:HideInterface(reason, keep)
+	if type(reason) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
+		return false
+	end
+	local names = {}
+	for _, name in ipairs(keep or DEFAULT_INTERFACE_ALLOW) do
+		names[name] = true
+	end
+	interfaceHiddenReasons[reason] = names
+	rebuildInterfaceAllowed()
+	return true
+end
+
+---Release one reason. The interface comes back once no reason is left.
+---@param reason string
+function widgetHandler:ShowInterface(reason)
+	if interfaceHiddenReasons[reason] == nil then
+		return false
+	end
+	interfaceHiddenReasons[reason] = nil
+	rebuildInterfaceAllowed()
+	return true
+end
+
+function widgetHandler:IsInterfaceHidden()
+	return interfaceHidden
+end
+
+-- Bumped whenever the allowed set changes, so cached state elsewhere (the guishader's
+-- stencil) can tell it needs rebuilding.
+function widgetHandler:GetModalRevision()
+	return modalRevision
+end
+
+-- Whether a widget is drawing and taking input right now, whether it is a window
+-- or an outright hide that is covering it. A nil widget (e.g. an unowned guishader
+-- region) counts as not allowed, which is the wanted default.
+function widgetHandler:ModalAllows(widget)
+	if widget == nil then
+		return (not modalActive) and (not interfaceHidden)
+	end
+	return allowedWidget(widget)
+end
+
+function widgetHandler:SetWindowsHideInterface(enabled)
+	modalEnabled = enabled and true or false
+	modalConfigTimer = 0
+	self:UpdateModalState()
+end
+
+function widgetHandler:UpdateModalState(deltaTime)
+	if deltaTime then
+		modalConfigTimer = modalConfigTimer + deltaTime
+		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
+			modalConfigTimer = 0
+			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+		end
+	end
+
+	local active = false
+	if modalEnabled then
+		for w, isOpen in pairs(modalWindows) do
+			local ok, open = pcall(isOpen)
+			if not ok then
+				Spring.Log(
+					"barwidgets.lua",
+					LOG.ERROR,
+					"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
+				)
+				modalWindows[w] = nil -- removing the current key mid-traversal is allowed
+				ModalAllowWidget(w, modalExempt[w] == true)
+			elseif open then
+				active = true
+				break
+			end
+		end
+	end
+	modalActive = active
+end
 
 local gcCheckCounter = 0
 
 function widgetHandler:Update()
-
 	gcCheckCounter = gcCheckCounter + 1
 	if gcCheckCounter >= 30 then
 		gcCheckCounter = 0
@@ -1444,9 +1819,14 @@ function widgetHandler:Update()
 	local deltaTime = Spring.GetLastUpdateSeconds()
 	-- update the hour timer
 	hourTimer = (hourTimer + deltaTime) % 3600.0
+
+	-- before the widgets run, so a widget asking IsModalActive this frame sees the
+	-- window that was opened by the input events just handled
+	self:UpdateModalState(deltaTime)
+
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("W:Update:"..w.whInfo.name)
+		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -1454,29 +1834,53 @@ function widgetHandler:Update()
 	return
 end
 
-function widgetHandler:ConfigureLayout(command)
+-- The widget selector is how widgets get switched back on from inside the game, so asking for it has to
+-- work when it is not running. An error in it removes the widget, and with it the /widgetselector action
+-- it registers - and so F11 - which left a LuaUI reload as the only way back. Switches it on again, and
+-- it opens itself once loaded, through the flag it reopens with after a reload it asked for. While it
+-- runs this does nothing, its own action answering instead; returns whether it did anything.
+function widgetHandler:RecoverWidgetSelector()
+	for name, ki in pairs(self.knownWidgets) do
+		if ki.basename == "widget_selector.lua" then
+			if ki.active then
+				return false
+			end
+			if type(self.configData[name]) ~= "table" then
+				self.configData[name] = {}
+			end
+			self.configData[name].reopen = true
+			self:EnableWidget(name)
+			return true
+		end
+	end
+	return false
+end
 
-	if command == 'reconf' then
+function widgetHandler:ConfigureLayout(command)
+	if command == "reconf" then
 		self:SendConfigData()
 		return true
-	elseif command == 'selector' then
-		for _, w in ipairs(self.widgets) do
-			if w.whInfo.basename == SELECTOR_BASENAME then
-				return true  -- there can only be one
-			end
+	elseif command == "selector" then
+		-- F11's binding in every shipped preset. It once looked for LuaUI/selector.lua, which this game does
+		-- not ship: its selector is Widgets/widget_selector.lua, reached through what it puts in WG, or
+		-- switched back on here when an error took it down.
+		if not self:RecoverWidgetSelector() and self.WG.widgetselector then
+			self.WG.widgetselector.toggle()
 		end
-		local sw = self:LoadWidget(LUAUI_DIRNAME .. SELECTOR_BASENAME, true) -- load the game's included widget_selector.lua, instead of the default selector.lua
-		self:InsertWidgetRaw(sw)
-		self:RaiseWidgetRaw(sw)
 		return true
-	elseif string.find(command, 'togglewidget') == 1 then
+	elseif string.find(command, "togglewidget") == 1 then
 		self:ToggleWidgetRaw(string.sub(command, 14))
 		return true
-	elseif string.find(command, 'enablewidget') == 1 then
+	elseif string.find(command, "enablewidget") == 1 then
 		self:EnableWidgetRaw(string.sub(command, 14))
 		return true
-	elseif string.find(command, 'disablewidget') == 1 then
+	elseif string.find(command, "disablewidget") == 1 then
 		self:DisableWidgetRaw(string.sub(command, 15))
+		return true
+	end
+
+	-- Answered by the widget selector's own action while it runs.
+	if command == "widgetselector" and self:RecoverWidgetSelector() then
 		return true
 	end
 
@@ -1502,7 +1906,7 @@ end
 
 function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
 	tracy.ZoneBeginN("W:CameraRotationChanged")
-	for _,w in ipairs(self.CameraRotationChangedList) do
+	for _, w in ipairs(self.CameraRotationChangedList) do
 		w:CameraRotationChanged(rotx, roty, rotz)
 	end
 	tracy.ZoneEnd()
@@ -1510,7 +1914,7 @@ end
 
 function widgetHandler:CameraPositionChanged(posx, posy, posz)
 	tracy.ZoneBeginN("W:CameraPositionChanged")
-	for _,w in ipairs(self.CameraPositionChangedList) do
+	for _, w in ipairs(self.CameraPositionChangedList) do
 		w:CameraPositionChanged(posx, posy, posz)
 	end
 	tracy.ZoneEnd()
@@ -1526,6 +1930,20 @@ function widgetHandler:CommandNotify(id, params, options)
 	end
 	tracy.ZoneEnd()
 	return false
+end
+
+-- Engine AllowQuit callin (Engine.FeatureSupport.allowQuitCallin): a window
+-- close request (the close button, Alt+F4) asks before the game quits. Every
+-- widget that answers must allow; a widget that returns false keeps the game
+-- open and is expected to quit it later itself (Spring.Quit never asks).
+-- Engines without the callin never call this.
+function widgetHandler:AllowQuit()
+	for _, w in ipairs(self.AllowQuitList) do
+		if w:AllowQuit() == false then
+			return false
+		end
+	end
+	return true
 end
 
 function widgetHandler:AddConsoleLine(msg, priority)
@@ -1563,12 +1981,10 @@ function widgetHandler:CommandsChanged()
 	return
 end
 
-
 --------------------------------------------------------------------------------
 --
 --  Drawing call-ins
 --
-
 
 -- generates ViewResize() calls for the widgets
 function widgetHandler:SetViewSize(vsx, vsy)
@@ -1585,10 +2001,10 @@ function widgetHandler:SetViewSize(vsx, vsy)
 end
 
 function widgetHandler:ViewResize(vsx, vsy)
-	if type(vsx) == 'table' then
+	if type(vsx) == "table" then
 		vsy = vsx.viewSizeY
 		vsx = vsx.viewSizeX
-		print('real ViewResize') -- FIXME
+		print("real ViewResize") -- FIXME
 	end
 
 	tracy.ZoneBeginN("W:ViewResize")
@@ -1606,17 +2022,21 @@ function widgetHandler:ViewResize(vsx, vsy)
 	return
 end
 
-
 function widgetHandler:DrawScreen()
 	tracy.ZoneBeginN("W:DrawScreen")
+	-- catches a window opened from another widget's Update, which ran after the
+	-- recompute at the top of widgetHandler:Update
+	self:UpdateModalState()
 	if not Spring.IsGUIHidden() then
-		if not self.chobbyInterface  then
+		if not self.chobbyInterface then
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
-				tracy.ZoneBeginN(w._tracyDrawScreenName)
-				w:DrawScreen()
-				tracy.ZoneEnd()
+				if allowedWidget(w) then
+					tracy.ZoneBeginN(w._tracyDrawScreenName)
+					w:DrawScreen()
+					tracy.ZoneEnd()
+				end
 			end
 		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
 			tracy.ZoneBeginN("W:DrawScreen:guishader")
@@ -1693,7 +2113,7 @@ end
 
 function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
-	if not self.chobbyInterface  then
+	if not self.chobbyInterface then
 		local list = self.DrawWorldList
 		for i = #list, 1, -1 do
 			local w = list[i]
@@ -1708,7 +2128,7 @@ end
 
 function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
-	if not self.chobbyInterface  then
+	if not self.chobbyInterface then
 		local list = self.DrawWorldPreUnitList
 		for i = #list, 1, -1 do
 			local w = list[i]
@@ -1893,7 +2313,11 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 	-- When PIP minimap replacement is active, skip normal DrawInMiniMap calls
 	-- The PIP widget will call these functions itself with proper coordinate transformations
 	-- during its render-to-texture pass in RenderPipContents()
-	if widgetHandler.minimap and widgetHandler.minimap.isPipMinimapActive and widgetHandler.minimap.isPipMinimapActive() then
+	if
+		widgetHandler.minimap
+		and widgetHandler.minimap.isPipMinimapActive
+		and widgetHandler.minimap.isPipMinimapActive()
+	then
 		tracy.ZoneEnd()
 		return
 	end
@@ -1917,7 +2341,7 @@ end
 
 function widgetHandler:SunChanged()
 	tracy.ZoneBeginN("W:SunChanged")
-	local nmp = _G['NightModeParams']
+	local nmp = _G.NightModeParams
 	local list = self.SunChangedList
 	for i = #list, 1, -1 do
 		list[i]:SunChanged(nmp)
@@ -1957,10 +2381,22 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 		return true
 	end
 
+	-- A key bound to /widgetselector - F11 - with no selector running to answer it.
+	if actions and not isRepeat then
+		for _, bound in ipairs(actions) do
+			if bound.command == "widgetselector" and self:RecoverWidgetSelector() then
+				tracy.ZoneEnd()
+				return true
+			end
+		end
+	end
+
 	for _, w in ipairs(self.KeyPressList) do
-		if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
-			tracy.ZoneEnd()
-			return true
+		if allowedWidget(w) then
+			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
+				tracy.ZoneEnd()
+				return true
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -1973,6 +2409,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
+			self.actionHandler:ClearPressedKey(scanCode)
 			tracy.ZoneEnd()
 			return true
 		end
@@ -2008,9 +2446,11 @@ function widgetHandler:TextInput(utf8, ...)
 
 	local list = self.TextInputList
 	for i = #list, 1, -1 do
-		if list[i]:TextInput(utf8, ...) then
-			tracy.ZoneEnd()
-			return true
+		if allowedWidget(list[i]) then
+			if list[i]:TextInput(utf8, ...) then
+				tracy.ZoneEnd()
+				return true
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -2026,7 +2466,7 @@ end
 function widgetHandler:WidgetAt(x, y)
 	tracy.ZoneBeginN("W:WidgetAt")
 	for _, w in ipairs(self.IsAboveList) do
-		if w:IsAbove(x, y) then
+		if allowedWidget(w) and w:IsAbove(x, y) then
 			tracy.ZoneEnd()
 			return w
 		end
@@ -2038,23 +2478,29 @@ end
 function widgetHandler:MousePress(x, y, button)
 	tracy.ZoneBeginN("W:MousePress")
 	if self.mouseOwner then
+		-- unfiltered: a drag that started before the window opened has to finish
 		self.mouseOwner:MousePress(x, y, button)
 	else
 		for _, w in ipairs(self.MousePressList) do
-			if w:MousePress(x, y, button) then
-				self.mouseOwner = w
-				break
+			if allowedWidget(w) then
+				if w:MousePress(x, y, button) then
+					self.mouseOwner = w
+					break
+				end
 			end
 		end
 	end
 
-	local hasMouseOwner = self.mouseOwner ~= nil
+	-- While a window is open the click is consumed even when nothing claimed it, so it
+	-- never reaches the engine and orders no units. No mouseOwner is taken for that:
+	-- there is nothing to route the follow-up move/release to.
+	local consumed = (self.mouseOwner ~= nil) or modalActive or interfaceHidden
 	if widgetHandler.WG.SmartSelect_MousePress2 then
-		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, hasMouseOwner)
+		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, consumed)
 	end
 
 	tracy.ZoneEnd()
-	return hasMouseOwner
+	return consumed
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
@@ -2089,7 +2535,7 @@ function widgetHandler:MouseWheel(up, value)
 	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
-		if w:MouseWheel(up, value) then
+		if allowedWidget(w) and w:MouseWheel(up, value) then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -2202,9 +2648,9 @@ end
 function widgetHandler:GetTooltip(x, y)
 	tracy.ZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
-		if w:IsAbove(x, y) then
+		if allowedWidget(w) and w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
-			if type(tip) == 'string' and #tip > 0 then
+			if type(tip) == "string" and #tip > 0 then
 				tracy.ZoneEnd()
 				return tip
 			end
@@ -2213,7 +2659,6 @@ function widgetHandler:GetTooltip(x, y)
 	tracy.ZoneEnd()
 	return ""
 end
-
 
 --------------------------------------------------------------------------------
 --
@@ -2319,7 +2764,6 @@ function widgetHandler:GameFrame(frameNum)
 	return
 end
 
-
 function widgetHandler:GameFramePost(frameNum)
 	tracy.ZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
@@ -2422,7 +2866,7 @@ function widgetHandler:WorldTooltip(ttType, ...)
 	tracy.ZoneBeginN("W:WorldTooltip")
 	for _, w in ipairs(self.WorldTooltipList) do
 		local tt = w:WorldTooltip(ttType, ...)
-		if type(tt) == 'string' and #tt > 0 then
+		if type(tt) == "string" and #tt > 0 then
 			tracy.ZoneEnd()
 			return tt
 		end
@@ -2471,13 +2915,13 @@ function widgetHandler:DefaultCommand(...)
 	local list = self.DefaultCommandList
 	for i = #list, 1, -1 do
 		local result = list[i]:DefaultCommand(...)
-		if type(result) == 'number' then
+		if type(result) == "number" then
 			tracy.ZoneEnd()
 			return result
 		end
 	end
 	tracy.ZoneEnd()
-	return nil  --  not a number, use the default engine command
+	return nil --  not a number, use the default engine command
 end
 
 function widgetHandler:LanguageChanged()
@@ -2488,14 +2932,22 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:UnitBlocked(unitDefID, reasons)
+function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracy.ZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
-		w:UnitBlocked(unitDefID, reasons)
+		w:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
 	tracy.ZoneEnd()
 end
 
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+	tracy.ZoneBeginN("W:BuildOptionsChanged")
+	for _, w in ipairs(self.BuildOptionsChangedList) do
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+	end
+	tracy.ZoneEnd()
+end
 
 --------------------------------------------------------------------------------
 --
@@ -2524,7 +2976,6 @@ function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("W:UnitCreated")
 	for _, w in ipairs(self.UnitCreatedList) do
-
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
 	tracy.ZoneEnd()
@@ -2543,8 +2994,7 @@ end
 function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	tracy.ZoneBeginN("W:UnitFromFactory")
 	for _, w in ipairs(self.UnitFromFactoryList) do
-		w:UnitFromFactory(unitID, unitDefID, unitTeam,
-			factID, factDefID, userOrders)
+		w:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2582,8 +3032,7 @@ end
 function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	tracy.ZoneBeginN("W:UnitExperience")
 	for _, w in ipairs(self.UnitExperienceList) do
-		w:UnitExperience(unitID, unitDefID, unitTeam,
-			experience, oldExperience)
+		w:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2620,7 +3069,18 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
-function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+function widgetHandler:UnitCommand(
+	unitID,
+	unitDefID,
+	unitTeam,
+	cmdId,
+	cmdParams,
+	cmdOpts,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua
+)
 	tracy.ZoneBeginN("W:UnitCommand")
 	for _, w in ipairs(self.UnitCommandList) do
 		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
@@ -2783,21 +3243,21 @@ function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg:"..msg:sub(1, 100))
+	tracy.ZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
 	local retval = false
-	if msg:find('LobbyOverlayActive', 1, true) == 1 then
+	if msg:find("LobbyOverlayActive", 1, true) == 1 then
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
-		tracy.ZoneBeginN("W:RecvLuaMsg:"..w.whInfo.name)
+		tracy.ZoneBeginN("W:RecvLuaMsg:" .. w.whInfo.name)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
-	return retval  --  FIXME  --  another actionHandler type?
+	return retval --  FIXME  --  another actionHandler type?
 end
 
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
@@ -2858,7 +3318,6 @@ function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	end
 	tracy.ZoneEnd()
 end
-
 
 --------------------------------------------------------------------------------
 --
@@ -3045,6 +3504,15 @@ function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	return
 end
 
+function widgetHandler:NanoParticleUpdate(events, eventCount, gameFrame)
+	tracy.ZoneBeginN("W:NanoParticleUpdate")
+	local list = self.NanoParticleUpdateList
+	for i = #list, 1, -1 do
+		list[i]:NanoParticleUpdate(events, eventCount, gameFrame)
+	end
+	tracy.ZoneEnd()
+end
+
 function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	tracy.ZoneBeginN("W:UnitScriptDistortion")
 	for _, w in ipairs(self.UnitScriptDistortionList) do
@@ -3215,7 +3683,6 @@ function widgetHandler:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
 	tracy.ZoneEnd()
 	return
 end
-
 
 --------------------------------------------------------------------------------
 --

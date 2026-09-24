@@ -32,7 +32,8 @@ return {
 			buildinggrounddecalsizey = 12,
 			buildinggrounddecalsizex = 12,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			islrpc = true,
+			unitgroup = "weapon",
 			restrictions_inclusion = "_nolrpc_",
 			canareaattack = 1,
 			model_author = "FireStorm",
@@ -123,7 +124,7 @@ return {
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				metalpershot = 96,
-				model = "armpw_anim_projectile.s3o",
+				model = "armpw_wings_projectile.s3o",
 				mygravity = 0.22,
 				name = "Long range bot cannon",
 				noselfdamage = true,
@@ -144,6 +145,7 @@ return {
 				weaponvelocity = 1250,
 				customparams = {
 					spawns_name = "armpw",
+					spawns_debris = "armpw_wings",
 					spawns_surface = "LAND", -- Available: "LAND SEA" blah
 					stockpilelimit = 50,
 				},

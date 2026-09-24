@@ -130,29 +130,69 @@ tabset tabs
 	display: block;
 }
 
-/* Scrollbar */
-scrollbarvertical,
-scrollbarhorizontal
+/* Scrollbar
+ * Deliberately narrow and low-contrast: a scrolling panel should cost almost
+ * none of the control width and should not pull the eye off the tools. The bar
+ * only picks up colour on hover/drag.
+ */
+scrollbarvertical
 {
-	width: 6dp;
+	width: 5dp;
+	margin-left: 2dp;
 }
 
-scrollbarvertical slidertrack
+scrollbarhorizontal
 {
-	background-color: rgb(100, 100, 100);
+	height: 5dp;
+	margin-top: 2dp;
+}
+
+scrollbarvertical slidertrack,
+scrollbarhorizontal slidertrack
+{
+	background-color: #ffffff08;
+	border-radius: 3dp;
 }
 
 scrollbarvertical sliderbar,
 scrollbarhorizontal sliderbar
 {
-	background-color: rgb(200, 200, 200);
-	border-radius: 2dp;
+	background-color: #ffffff2b;
+	border-radius: 3dp;
+	min-height: 22dp;
+}
+
+scrollbarvertical sliderbar:hover,
+scrollbarhorizontal sliderbar:hover
+{
+	background-color: #fdc04ccc;
+}
+
+scrollbarvertical sliderbar:active,
+scrollbarhorizontal sliderbar:active
+{
+	background-color: #fdc04c;
 }
 
 sliderarrowinc:hover,
 sliderarrowdec:hover
 {
 	background-color: rgb(150,150,150);
+}
+
+/* === Scrollable panel bodies ===
+ * Every floating terraformer window keeps its header (drag handle, close
+ * button, header rail) pinned and puts the rest of its content in a
+ * `.tf-panel-body`, so a panel taller than the screen can still be dragged and
+ * closed. The max-height here is only the pre-layout fallback: the shared
+ * helper widget re-caps each body to the space actually left below its window,
+ * so a panel near the top of the screen gets more room than one near the
+ * bottom.
+ */
+.tf-panel-body {
+	overflow-x: hidden;
+	overflow-y: auto;
+	max-height: 70vh;
 }
 
 .widget-shadow {

@@ -102,7 +102,7 @@ return {
 				craterareaofeffect = 1920,
 				craterboost = 2.4,
 				cratermult = 1.2,
-				edgeeffectiveness = 0.45,
+				edgeeffectiveness = 0,
 				energypershot = 187500,
 				explosiongenerator = "custom:newnukecor",
 				firestarter = 100,
@@ -136,14 +136,17 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1600,
 				customparams = {
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.1,
+					uptime_max = 12,
 					place_target_on_ground = "true",
 					shield_aoe_penetration = true,
 					stockpilelimit = 10,
 					nuclear = 1,
 				},
 				damage = {
-					commanders = 2500,
-					default = 11500,
+					commanders = 3000,
+					default = 15000,
 				},
 			},
 			nuclear_launch = {

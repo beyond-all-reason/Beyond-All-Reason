@@ -1,22 +1,23 @@
-function table.val_to_str ( v )
-	if "string" == type( v ) then
-		v = string.gsub( v, "\n", "\\n" )
-		if string.match( string.gsub(v,"[^'\"]",""), '^"+$' ) then
+function table.val_to_str(v)
+	if "string" == type(v) then
+		v = string.gsub(v, "\n", "\\n")
+		if string.match(string.gsub(v, "[^'\"]", ""), '^"+$') then
 			return "'" .. v .. "'"
 		end
-		return '"' .. string.gsub(v,'"', '\\"' ) .. '"'
+		return '"' .. string.gsub(v, '"', '\\"') .. '"'
 	else
-		return "table" == type( v ) and table.tostring( v ) or
-			tostring( v )
+		return "table" == type(v) and table.tostring(v) or tostring(v)
 	end
 end
 
-function table.key_to_str ( k )
-	if "string" == type( k ) and string.match( k, "^[_%a][_%a%d]*$" ) then
-		if k == "else" then k = "default" end -- handles deprecated ["else"] damage class
+function table.key_to_str(k)
+	if "string" == type(k) and string.match(k, "^[_%a][_%a%d]*$") then
+		if k == "else" then
+			k = "default"
+		end -- handles deprecated ["else"] damage class
 		return string.lower(k) -- make all key values lower case
 	else
-		return "[" .. table.val_to_str( k ) .. "]"
+		return "[" .. table.val_to_str(k) .. "]"
 	end
 end
 
@@ -24,21 +25,20 @@ local function isEmptyTable(v)
 	return type(v) == "table" and next(v) == nil
 end
 
-function table.tostring( tbl )
+function table.tostring(tbl)
 	local result, done = {}, {}
-	for k, v in ipairs( tbl ) do
+	for k, v in ipairs(tbl) do
 		if not isEmptyTable(v) then
-			table.insert( result, table.val_to_str( v ) )
-			done[ k ] = true
+			table.insert(result, table.val_to_str(v))
+			done[k] = true
 		end
 	end
-	for k, v in pairs( tbl ) do
-		if not done[ k ] and not isEmptyTable(v) then
-			table.insert( result,
-			table.key_to_str( k ) .. "=" .. table.val_to_str( v ) )
+	for k, v in pairs(tbl) do
+		if not done[k] and not isEmptyTable(v) then
+			table.insert(result, table.key_to_str(k) .. "=" .. table.val_to_str(v))
 		end
 	end
-	return "{" .. table.concat( result, "," ) .. "}"
+	return "{" .. table.concat(result, ",") .. "}"
 end
 
 local function saveDefToCustomParams(defType, name, def)
@@ -56,6 +56,6 @@ local function markDefOmittedInCustomParams(defType, name, def)
 end
 
 return {
-	SaveDefToCustomParams        = saveDefToCustomParams,
+	SaveDefToCustomParams = saveDefToCustomParams,
 	MarkDefOmittedInCustomParams = markDefOmittedInCustomParams,
 }

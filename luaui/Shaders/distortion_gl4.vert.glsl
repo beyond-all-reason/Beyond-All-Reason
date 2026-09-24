@@ -179,10 +179,10 @@ void main()
 		// this is centered around the target positional offset, and scaled locally
 		vec3 distortionVertexPosition = distortionCenterPosition + -1 * position.xyz * distortionRadius * 1.15; // 1.15 is a magic number that makes the sphere actually fit inside the sphere-ish geometry
 		
-		// tranform the vertices to world-space
+		// transform the vertices to world-space
 		distortionVertexPosition = (placeInWorldMatrix * vec4(distortionVertexPosition, 1.0)).xyz; 
 		
-		// tranform the center to world-space
+		// transform the center to world-space
 		distortionCenterPosition = (placeInWorldMatrix * vec4(distortionCenterPosition, 1.0)).xyz; 
 		
 		
@@ -204,7 +204,7 @@ void main()
 	}
 	#line 12000
 	else if (pointbeamcone < 1.5){ // beam
-		// we will tranform along this vector, where Y shall be the upvector
+		// we will transform along this vector, where Y shall be the upvector
 		// our null vector is +X
 		vec3 centertoend = distortionCenterPosition - worldposrad2.xyz;
 		float halfbeamlength = length(centertoend);
@@ -296,7 +296,7 @@ void main()
 		v_worldPosRad2 = uni[instData.y].speed;
 	}
 
-	// Initialze the distortion strength multiplier
+	// Initialize the distortion strength multiplier
 	v_baseparams.x = 1.0;
 	// if the distortion is attached to a unit, and the lifeTime is 0, and the decay is nonzero, then modulate the strength with the units selfillummod
 	if ((attachedtounitID > 0.5) && (LIFETIME == 0) && (DECAY < 0)){

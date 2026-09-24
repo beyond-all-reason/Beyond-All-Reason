@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.72656,
 		turnrate = 347,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			basename = "base",
 			firingceg = "barrelshot-medium",
 			kickback = "-2.4",
@@ -43,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
-			weapon1turretx = 65,
-			weapon1turrety = 105,
 		},
 		featuredefs = {
 			dead = {
@@ -134,6 +132,10 @@ return {
 				soundtrigger = true,
 				turret = true,
 				weapontype = "BeamLaser",
+				customparams = {
+					turretspeedx = 65,
+					turretspeedy = 105,
+				},
 				damage = {
 					default = 14.5, --109
 					vtol = 4.7,

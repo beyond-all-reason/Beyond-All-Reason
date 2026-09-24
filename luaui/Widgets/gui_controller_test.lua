@@ -2,15 +2,14 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Controller Test",
-		desc      = "Tests Controller Stuff",
-		author    = "badosu",
-		date      = "Oct 2022",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0
+		name = "Controller Test",
+		desc = "Tests Controller Stuff",
+		author = "badosu",
+		date = "Oct 2022",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
 	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -37,7 +36,14 @@ function widget:Initialize()
 	for _, controller in pairs(availableControllers) do
 		if controller.instanceId then
 			if connectedController then
-				spEcho("ControllerTest: Already connected to " .. connectedController .. ". Disconnecting " .. controller.instanceId .. ": " .. controller.name)
+				spEcho(
+					"ControllerTest: Already connected to "
+						.. connectedController
+						.. ". Disconnecting "
+						.. controller.instanceId
+						.. ": "
+						.. controller.name
+				)
 				Spring.DisconnectController(controller.instanceId)
 			else
 				spEcho("ControllerTest: Using already connected " .. controller.instanceId .. ": " .. controller.name)
@@ -107,7 +113,11 @@ end
 
 function widget:ControllerButtonUp(instanceId, buttonId, state, name)
 	if instanceId ~= connectedController then
-		spEcho("ControllerTest: ButtonUp -> Received event from controller not connected by this widget", instanceId, name)
+		spEcho(
+			"ControllerTest: ButtonUp -> Received event from controller not connected by this widget",
+			instanceId,
+			name
+		)
 		return
 	end
 
@@ -116,7 +126,11 @@ end
 
 function widget:ControllerButtonDown(instanceId, buttonId, state, name)
 	if instanceId ~= connectedController then
-		spEcho("ControllerTest: ButtonDown -> Received event from controller not connected by this widget", instanceId, name)
+		spEcho(
+			"ControllerTest: ButtonDown -> Received event from controller not connected by this widget",
+			instanceId,
+			name
+		)
 		return
 	end
 
@@ -125,7 +139,11 @@ end
 
 function widget:ControllerAxisMotion(instanceId, axisId, value, name)
 	if instanceId ~= connectedController then
-		spEcho("ControllerTest: AxisMotion -> Received event from controller not connected by this widget", instanceId, name)
+		spEcho(
+			"ControllerTest: AxisMotion -> Received event from controller not connected by this widget",
+			instanceId,
+			name
+		)
 		return
 	end
 

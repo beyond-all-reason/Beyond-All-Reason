@@ -11,12 +11,22 @@ function gadget:GetInfo()
 end
 
 if not gadgetHandler:IsSyncedCode() then
-	function gadget:RecvFromSynced(name, undoCount, redoCount)
-		if name == "CloneToolStacks" then
-			if Script.LuaUI("CloneToolStackUpdate") then
-				Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
-			end
+	-- Registered as a sync action (table lookup by message name) instead of a
+	-- RecvFromSynced callin, which would be invoked for every SendToUnsynced
+	-- message from every synced gadget. Returning true stops the broadcast.
+	local function onStacks(_, undoCount, redoCount)
+		if Script.LuaUI("CloneToolStackUpdate") then
+			Script.LuaUI.CloneToolStackUpdate(undoCount, redoCount)
 		end
+		return true
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("CloneToolStacks", onStacks)
+	end
+
+	function gadget:Shutdown()
+		gadgetHandler:RemoveSyncAction("CloneToolStacks")
 	end
 	return
 end
@@ -26,6 +36,18 @@ end
 -- ---------------------------------------------------------------------------
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
+-- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
+-- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
+-- packet that arrived with live cheat off. Demos replay the /cheat chat command,
+-- so cheat state is reproduced during playback anyway; what the certification is
+-- really for is map-editor sessions, where /cheat is a toggle that competing
+-- widgets can flip off mid-stream. The mapeditor modoption is synced from the
+-- start script and cannot be forged by a client.
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
 local CLONE_TERRAIN_HEADER = "$clone_terrain$"
 local CLONE_TERRAIN_HEADER_LEN = #CLONE_TERRAIN_HEADER
 local CLONE_METAL_HEADER = "$clone_metal$"
@@ -49,18 +71,13 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spSetHeightMapFunc = Spring.SetHeightMapFunc
 local spLevelHeightMap = Spring.LevelHeightMap
 local spSetMetalAmount = Spring.SetMetalAmount
-local spGetMetalAmount = Spring.GetMetalAmount
 local spCreateFeature = Spring.CreateFeature
 local spDestroyFeature = Spring.DestroyFeature
 local spGetFeaturesInRectangle = Spring.GetFeaturesInRectangle
-local spGetFeatureDefID = Spring.GetFeatureDefID
-local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetFeatureHeading = Spring.GetFeatureHeading
 local spEcho = Spring.Echo
 local SendToUnsynced = SendToUnsynced
 
 local min = math.min
-local max = math.max
 local floor = math.floor
 local tonumber = tonumber
 
@@ -71,7 +88,6 @@ local undoStack = {}
 local redoStack = {}
 local totalVertexCount = 0
 local MAX_UNDO = 100
-local MAX_SNAPSHOT_VERTICES = 4000000
 
 -- ---------------------------------------------------------------------------
 -- Height map application (same pattern as terraform brush)
@@ -92,7 +108,9 @@ local function heightMapApplyFn()
 end
 
 local function applyHeightChangesFlat(flatData, vertexCount)
-	if vertexCount == 0 then return end
+	if vertexCount == 0 then
+		return
+	end
 	pendingFlatData = flatData
 	local offset = 0
 	while offset < vertexCount do
@@ -152,10 +170,10 @@ end
 -- Auth check
 -- ---------------------------------------------------------------------------
 local function isAllowed(certified)
-	-- $c$ is self-asserted by the sender: trust it only during replay (where
-	-- live cheat is always false). Outside replay require live cheat, else any
-	-- modified client could forge the prefix to clone terrain in a no-cheat game.
-	return Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	-- $c$ is self-asserted by the sender: trust it only in a map-editor session.
+	-- Elsewhere require live cheat, else any modified client could forge the
+	-- prefix to clone terrain in a no-cheat game.
+	return Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)
 end
 
 -- ---------------------------------------------------------------------------
@@ -169,7 +187,9 @@ local function parseParts(payload)
 		idx = idx + 1
 		scratchParts[idx] = word
 	end
-	for i = idx + 1, #scratchParts do scratchParts[i] = nil end
+	for i = idx + 1, #scratchParts do
+		scratchParts[i] = nil
+	end
 	return scratchParts, idx
 end
 
@@ -177,9 +197,11 @@ end
 -- Handle terrain clone: "$clone_terrain$count x z h x z h ..."
 -- ---------------------------------------------------------------------------
 local function handleCloneTerrain(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local vertexCount = tonumber(parts[1]) or 0
-	if vertexCount == 0 then return end
+	if vertexCount == 0 then
+		return
+	end
 
 	-- Build flat buffer
 	local flatData = {}
@@ -205,9 +227,11 @@ end
 -- Handle metal clone: "$clone_metal$count mx mz val mx mz val ..."
 -- ---------------------------------------------------------------------------
 local function handleCloneMetal(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
-	if entryCount == 0 then return end
+	if entryCount == 0 then
+		return
+	end
 
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 3 + 1
@@ -242,10 +266,12 @@ end
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local function handleCloneFeatures(payload)
-	local parts, count = parseParts(payload)
+	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
 	spEcho("[Clone Gadget] Features recv: " .. entryCount)
-	if entryCount == 0 then return end
+	if entryCount == 0 then
+		return
+	end
 
 	local created = 0
 	for i = 1, entryCount do
@@ -275,13 +301,15 @@ local function handleTerrainBegin(payload)
 	pendingPaste = nil
 
 	local parts = parseParts(payload)
-	local gx0     = tonumber(parts[1]) or 0
-	local gz0     = tonumber(parts[2]) or 0
+	local gx0 = tonumber(parts[1]) or 0
+	local gz0 = tonumber(parts[2]) or 0
 	local srcStep = tonumber(parts[3]) or 8
 	local dstStep = tonumber(parts[4]) or 8
 	local srcCols = tonumber(parts[5]) or 0
 	local srcRows = tonumber(parts[6]) or 0
-	if srcCols == 0 or srcRows == 0 then return end
+	if srcCols == 0 or srcRows == 0 then
+		return
+	end
 
 	-- Compute full output area at dstStep resolution
 	local ratio = srcStep / dstStep
@@ -305,17 +333,22 @@ local function handleTerrainBegin(payload)
 	snapshot.vertexCount = vc
 
 	pendingPaste = {
-		gx0 = gx0, gz0 = gz0,
-		srcStep = srcStep, dstStep = dstStep,
-		srcCols = srcCols, srcRows = srcRows,
+		gx0 = gx0,
+		gz0 = gz0,
+		srcStep = srcStep,
+		dstStep = dstStep,
+		srcCols = srcCols,
+		srcRows = srcRows,
 		grid = {},
 		beforeSnapshot = snapshot,
 	}
 end
 
 local function handleTerrainGrid(payload)
-	if not pendingPaste then return end
-	local parts, cnt = parseParts(payload)
+	if not pendingPaste then
+		return
+	end
+	local parts, _ = parseParts(payload)
 	local rowStart = tonumber(parts[1]) or 0
 	local rowCount = tonumber(parts[2]) or 0
 	local cols = pendingPaste.srcCols
@@ -344,7 +377,9 @@ local function handleTerrainGrid(payload)
 end
 
 local function handleTerrainEnd()
-	if not pendingPaste then return end
+	if not pendingPaste then
+		return
+	end
 	local p = pendingPaste
 
 	-- If srcStep > dstStep, fill intermediate vertices via bilinear interpolation
@@ -365,15 +400,27 @@ local function handleTerrainEnd()
 					local sc = oc / ratio
 					local sr = or_ / ratio
 					local c0 = floor(sc)
-					if c0 < 0 then c0 = 0 end
-					if c0 > srcCols - 1 then c0 = srcCols - 1 end
+					if c0 < 0 then
+						c0 = 0
+					end
+					if c0 > srcCols - 1 then
+						c0 = srcCols - 1
+					end
 					local r0 = floor(sr)
-					if r0 < 0 then r0 = 0 end
-					if r0 > srcRows - 1 then r0 = srcRows - 1 end
+					if r0 < 0 then
+						r0 = 0
+					end
+					if r0 > srcRows - 1 then
+						r0 = srcRows - 1
+					end
 					local c1 = c0 + 1
-					if c1 > srcCols - 1 then c1 = srcCols - 1 end
+					if c1 > srcCols - 1 then
+						c1 = srcCols - 1
+					end
 					local r1 = r0 + 1
-					if r1 > srcRows - 1 then r1 = srcRows - 1 end
+					if r1 > srcRows - 1 then
+						r1 = srcRows - 1
+					end
 					local fc = sc - c0
 					local fr = sr - r0
 
@@ -384,10 +431,7 @@ local function handleTerrainEnd()
 						local h10 = row0[c1 + 1] or 0
 						local h01 = row1[c0 + 1] or 0
 						local h11 = row1[c1 + 1] or 0
-						local h = h00 * (1 - fc) * (1 - fr)
-							+ h10 * fc * (1 - fr)
-							+ h01 * (1 - fc) * fr
-							+ h11 * fc * fr
+						local h = h00 * (1 - fc) * (1 - fr) + h10 * fc * (1 - fr) + h01 * (1 - fc) * fr + h11 * fc * fr
 
 						local base = fillCount * 3
 						fillData[base + 1] = p.gx0 + oc * p.dstStep
@@ -413,7 +457,9 @@ end
 -- Undo / Redo handlers (height-only for now)
 -- ---------------------------------------------------------------------------
 local function handleUndo()
-	if #undoStack == 0 then return end
+	if #undoStack == 0 then
+		return
+	end
 
 	local snapshot = undoStack[#undoStack]
 	undoStack[#undoStack] = nil
@@ -432,7 +478,9 @@ local function handleUndo()
 end
 
 local function handleRedo()
-	if #redoStack == 0 then return end
+	if #redoStack == 0 then
+		return
+	end
 
 	local snapshot = redoStack[#redoStack]
 	redoStack[#redoStack] = nil
@@ -458,63 +506,81 @@ function gadget:RecvLuaMsg(msg, playerID)
 
 	-- Terrain
 	if msg:sub(1, CLONE_TERRAIN_HEADER_LEN) == CLONE_TERRAIN_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleCloneTerrain(msg:sub(CLONE_TERRAIN_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Metal
 	if msg:sub(1, CLONE_METAL_HEADER_LEN) == CLONE_METAL_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleCloneMetal(msg:sub(CLONE_METAL_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Features clear
 	if msg:sub(1, CLONE_FEATURES_CLEAR_HEADER_LEN) == CLONE_FEATURES_CLEAR_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleFeaturesClear(msg:sub(CLONE_FEATURES_CLEAR_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Features
 	if msg:sub(1, CLONE_FEATURES_HEADER_LEN) == CLONE_FEATURES_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleCloneFeatures(msg:sub(CLONE_FEATURES_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Undo
 	if msg == CLONE_UNDO_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleUndo()
 		return true
 	end
 
 	-- Redo
 	if msg == CLONE_REDO_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleRedo()
 		return true
 	end
 
 	-- Terrain grid begin
 	if msg:sub(1, CLONE_TBEGIN_HEADER_LEN) == CLONE_TBEGIN_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleTerrainBegin(msg:sub(CLONE_TBEGIN_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Terrain grid chunk
 	if msg:sub(1, CLONE_TGRID_HEADER_LEN) == CLONE_TGRID_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleTerrainGrid(msg:sub(CLONE_TGRID_HEADER_LEN + 1))
 		return true
 	end
 
 	-- Terrain grid end
 	if msg == CLONE_TEND_HEADER then
-		if not isAllowed(certified) then return true end
+		if not isAllowed(certified) then
+			return true
+		end
 		handleTerrainEnd()
 		return true
 	end

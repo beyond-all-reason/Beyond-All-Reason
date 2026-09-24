@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 10,
 			buildinggrounddecalsizex = 10,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			cvbuildable = true,
 			geothermal = 1,
 			standardextractor = true,
@@ -40,7 +40,7 @@ return {
 			normaltex = "unittextures/LEG_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 			techlevel = 2,
 		},
 		sounds = {

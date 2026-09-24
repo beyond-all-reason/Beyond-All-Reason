@@ -12,12 +12,12 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 ---@field UnitDef UnitDefBuilder
 ---@field UnitDefs UnitDefsBuilder
 local Builders = {
-    Team = TeamBuilder,
-    Spring = SpringSyncedBuilder,
-    SpringUnsynced = SpringUnsyncedBuilder,
-    ResourceData = ResourceDataBuilder,
-    UnitDef = UnitDefBuilder,
-    UnitDefs = UnitDefsBuilder,
+	Team = TeamBuilder,
+	Spring = SpringSyncedBuilder,
+	SpringUnsynced = SpringUnsyncedBuilder,
+	ResourceData = ResourceDataBuilder,
+	UnitDef = UnitDefBuilder,
+	UnitDefs = UnitDefsBuilder,
 }
 
 return Builders

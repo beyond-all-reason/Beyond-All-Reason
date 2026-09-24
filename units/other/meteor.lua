@@ -75,7 +75,6 @@ return {
 					raptor = 0.001,
 					commanders = 10,
 					default = 700,
-					tinyraptor = 0.001,
 				},
 			},
 		},
