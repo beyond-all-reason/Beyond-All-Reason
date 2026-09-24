@@ -317,6 +317,9 @@ config = {
 	historyExplosions = true, -- Log explosions into the rewind history
 	historyProjectiles = true, -- Log long-flight projectiles (nukes, artillery, bombs)
 	historyCommands = true, -- Log position-targeted orders
+	historySelections = true, -- Log every player's selection (the tracked player's shows in the rewind)
+	historySelectionCap = 200, -- Units kept per selection record
+	historyCursors = true, -- Log player cursors (the tracked player's shows in the rewind)
 }
 
 -- State variables
@@ -10441,6 +10444,10 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:SelectedUnitsClear(playerID)
+	local selDirty = miscState.hist.selDirty
+	if selDirty then
+		selDirty[playerID] = true
+	end
 	if CanSkipUntrackedSelectionUpdate(playerID) then
 		return
 	end
@@ -10450,6 +10457,10 @@ function widget:SelectedUnitsClear(playerID)
 end
 
 function widget:SelectedUnitsSet(playerID, units, unitCount)
+	local selDirty = miscState.hist.selDirty
+	if selDirty then
+		selDirty[playerID] = true
+	end
 	if CanSkipUntrackedSelectionUpdate(playerID) then
 		return
 	end
@@ -10466,6 +10477,10 @@ function widget:SelectedUnitsSet(playerID, units, unitCount)
 end
 
 function widget:SelectedUnitsAdd(playerID, unitID)
+	local selDirty = miscState.hist.selDirty
+	if selDirty then
+		selDirty[playerID] = true
+	end
 	if CanSkipUntrackedSelectionUpdate(playerID) then
 		return
 	end
@@ -10476,6 +10491,10 @@ function widget:SelectedUnitsAdd(playerID, unitID)
 end
 
 function widget:SelectedUnitsRemove(playerID, unitID)
+	local selDirty = miscState.hist.selDirty
+	if selDirty then
+		selDirty[playerID] = true
+	end
 	if CanSkipUntrackedSelectionUpdate(playerID) then
 		return
 	end
@@ -10488,6 +10507,10 @@ function widget:SelectedUnitsRemove(playerID, unitID)
 end
 
 function widget:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
+	local selDirty = miscState.hist.selDirty
+	if selDirty then
+		selDirty[playerID] = true
+	end
 	if CanSkipUntrackedSelectionUpdate(playerID) then
 		return
 	end
@@ -13897,6 +13920,11 @@ function miscState.hist.StoreOptions()
 		beamWeapon = cache.weaponHistoryBeam,
 		weaponRadius = cache.weaponExplosionRadius,
 		playerCameras = miscState.hist.PlayerCameras,
+		logSelections = config.historySelections,
+		selectionCap = math.max(1, math.floor(config.historySelectionCap)),
+		playerSelections = miscState.hist.PlayerSelections,
+		logCursors = config.historyCursors,
+		playerCursors = miscState.hist.PlayerCursors,
 		spillBytes = math.max(0.01, config.historySpillMB) * 1024 * 1024,
 		basicLevel = math.max(0, math.floor(config.historyBasicLevel)),
 		loadedSegments = math.max(1, math.floor(config.historyLoadedSegments)),
@@ -13919,7 +13947,6 @@ function miscState.hist.StripH()
 		or not config.historyEnabled
 		or not hist.store
 		or uiState.inMinMode
-		or miscState.engineMinimapActive
 		or (isMinimapMode and miscState.minimapMinimized)
 	then
 		return 0
@@ -14127,6 +14154,145 @@ function miscState.hist.PlayerCameras()
 		list[i] = nil
 	end
 	return list
+end
+
+-- selections for the recorder: playerID -> set of unit ids, only the players whose selection
+-- changed since the last call (all of them when `all`); own selection comes from the engine
+function miscState.hist.PlayerSelections(all)
+	local api = WG.allyselectedunits
+	local get = api and api.getPlayerSelectedUnits
+	if not get then
+		return nil
+	end
+	local hist = miscState.hist
+	local out, dirty = hist.selOut, hist.selDirty
+	if not out then
+		out, dirty = {}, {}
+		hist.selOut, hist.selDirty, hist.selEmpty, hist.selOwn = out, dirty, {}, {}
+	end
+	for pid in pairs(out) do
+		out[pid] = nil
+	end
+	local myPlayerID = Spring.GetMyPlayerID()
+	local players = Spring.GetPlayerList()
+	for i = 1, #players do
+		local pid = players[i]
+		if pid == myPlayerID then
+			-- the ally widget does not carry the local selection
+			local own = hist.selOwn
+			for k in pairs(own) do
+				own[k] = nil
+			end
+			local sel = Spring.GetSelectedUnits()
+			for k = 1, #sel do
+				own[sel[k]] = true
+			end
+			out[pid] = own
+		elseif all or dirty[pid] then
+			out[pid] = get(pid) or hist.selEmpty
+		end
+	end
+	for pid in pairs(dirty) do
+		dirty[pid] = nil
+	end
+	return out
+end
+
+-- cursors for the recorder: {playerID, x, z} per player that moved recently
+function miscState.hist.PlayerCursors()
+	local ac = WG.allycursors
+	if not (ac and ac.getCursors) then
+		return nil
+	end
+	local cursors, notIdle = ac.getCursors()
+	if not (cursors and notIdle) then
+		return nil
+	end
+	local hist = miscState.hist
+	local list = hist.curList
+	if not list then
+		list = {}
+		hist.curList = list
+	end
+	local n = 0
+	local myPlayerID = Spring.GetMyPlayerID()
+	for pid, cursor in pairs(cursors) do
+		if notIdle[pid] and cursor[1] and cursor[3] and pid ~= myPlayerID then
+			n = n + 1
+			local c = list[n]
+			if not c then
+				c = {}
+				list[n] = c
+			end
+			c[1], c[2], c[3] = pid, cursor[1], cursor[3]
+		end
+	end
+	-- the local cursor is not in the broadcast: trace it once per tick
+	local mx, my = Spring.GetMouseState()
+	local kind, pos = Spring.TraceScreenRay(mx, my, true)
+	if kind == "ground" and pos then
+		n = n + 1
+		local c = list[n]
+		if not c then
+			c = {}
+			list[n] = c
+		end
+		c[1], c[2], c[3] = myPlayerID, pos[1], pos[3]
+	end
+	for i = n + 1, #list do
+		list[i] = nil
+	end
+	return list
+end
+
+-- recorded cursors in the live ally-cursor API's shape, for the viewed frame
+function miscState.hist.CursorApi()
+	local hist = miscState.hist
+	local api = hist.cursorApi
+	if api then
+		return api
+	end
+	local tbls, notIdle, cursors = {}, {}, {}
+	---@return table?
+	local function cursorOf(pid)
+		local view = hist.view
+		if not (view and hist.ready and config.historyCursors) then
+			return nil
+		end
+		local x, z = view:CursorAt(pid, hist.viewFrame)
+		if not x then
+			return nil
+		end
+		local t = tbls[pid]
+		if not t then
+			t = { 0, 0, 0, nil, nil, nil, 1 }
+			tbls[pid] = t
+		end
+		t[1], t[3] = x, z
+		return t
+	end
+	api = {
+		getCursor = function(pid)
+			local t = cursorOf(pid)
+			return t, t ~= nil
+		end,
+		getCursors = function()
+			for pid in pairs(cursors) do
+				cursors[pid], notIdle[pid] = nil, nil
+			end
+			local players = Spring.GetPlayerList()
+			for i = 1, #players do
+				local pid = players[i]
+				local t = cursorOf(pid)
+				if t then
+					cursors[pid], notIdle[pid] = t, true
+				end
+			end
+			return cursors, notIdle
+		end,
+	}
+	hist.cursorApi = api
+	return api
 end
 
 -- the tracked player's recorded camera in the live tracker's table shape
@@ -14759,6 +14925,10 @@ function miscState.hist.SyncFrame()
 	store:Want(frame)
 	hist.builtReady = view:Materialize(frame)
 	hist.ready = hist.builtReady
+	hist.selSet = nil
+	if hist.ready and config.historySelections then
+		hist.selSet = view:SelectionAt(interactionState.trackingPlayerID or Spring.GetMyPlayerID(), frame)
+	end
 	hist.BuildViewFilter()
 	local filtering = hist.visMask ~= nil
 
@@ -14905,7 +15075,7 @@ function miscState.hist.DrawIcons()
 	local outX, outZ, outDef, outTeam, outFlags, outId, outHealth =
 		view.outX, view.outZ, view.outDef, view.outTeam, view.outFlags, view.outId, view.outHealth
 	local outBuild, flashes = view.outBuild, view.flashes
-	local visMask = hist.visMask
+	local visMask, selSet = hist.visMask, hist.selSet
 	local seenOnce, isBuilding = hist.visSeenOnce, cache.isBuilding
 	local layerTbl = gl4Icons.unitDefLayer
 	local serial = hist.builtSerial
@@ -15014,7 +15184,7 @@ function miscState.hist.DrawIcons()
 					up[2] = wtp.offsetZ + outZ[i] * wtp.scaleZ
 					up[3] = def
 					up[4] = outTeam[i]
-					up[5] = false
+					up[5] = selSet ~= nil and selSet[outId[i]] == true
 					up[6] = outBuild[i] or 1
 					up[7] = outId[i]
 					up[8] = (outHealth[i] or 100) / 100
@@ -15157,6 +15327,9 @@ function miscState.hist.DrawIcons()
 				local flash = flashes[outId[i]] or 0
 				if flash > 0 then
 					r, g, b = r + (1 - r) * flash, g + (1 - g) * flash, b + (1 - b) * flash
+				end
+				if selSet and selSet[outId[i]] then
+					r, g, b = 1, 1, 1
 				end
 				d[off + 1] = outX[i]
 				d[off + 2] = outZ[i]
@@ -15541,7 +15714,10 @@ function miscState.hist.Seek(frame)
 	end
 	local live = hist.LiveFrame()
 	if frame >= live - 1 then
+		-- a drag that reaches live keeps dragging: moving back re-enters the history
+		local dragging = hist.dragging
 		hist.Exit()
+		hist.dragging = dragging
 		return
 	end
 	frame = math.max(first, frame)
@@ -15636,11 +15812,12 @@ function miscState.hist.ComputeLayout(mx, my)
 		first, live = 0, 30
 	end
 	local ib = math.floor(bs * 0.7)
-	local cy = b + math.floor(bs * 0.5)
+	local cy = b + math.floor(bandH * 0.5)
 	lay.visible = true
 	lay.l, lay.r, lay.b, lay.t = l, r, b, t
 	lay.cy = cy
 	lay.ib = ib
+	-- play / pause and skip-to-live keep their slots at live (blank), so nothing shifts
 	lay.playL = l + pad * 2
 	lay.playR = lay.playL + ib
 	lay.liveL = lay.playR + pad
@@ -15692,11 +15869,16 @@ function miscState.hist.DrawTimeline(mx, my)
 		return
 	end
 
-	-- play / pause
+	-- play / pause and skip-to-live: active while rewinding, a faint hint at live
 	local ib = lay.ib
 	local px, cy = lay.playL, lay.cy
-	local hoverPlay = inBand and mx >= lay.playL and mx <= lay.playR
-	glFunc.Color(hist.mode and accent or { light[1], light[2], light[3], hoverPlay and 1 or 0.5 })
+	local hoverPlay = hist.mode and inBand and mx >= lay.playL and mx <= lay.playR
+	local hoverLive = hist.mode and inBand and mx >= lay.liveL and mx <= lay.liveR
+	if hist.mode then
+		glFunc.Color(accent)
+	else
+		glFunc.Color(light[1], light[2], light[3], 0.18)
+	end
 	if hist.mode and hist.playing then
 		local w = ib * 0.22
 		gl.Rect(px + ib * 0.2, cy - ib * 0.32, px + ib * 0.2 + w, cy + ib * 0.32)
@@ -15708,15 +15890,12 @@ function miscState.hist.DrawTimeline(mx, my)
 			glFunc.Vertex(px + ib * 0.82, cy)
 		end)
 	end
-
-	-- LIVE
-	-- skip-to-live glyph: a triangle against an end bar, red while at live
-	local hoverLive = inBand and mx >= lay.liveL and mx <= lay.liveR
+	-- skip-to-live glyph: a triangle against an end bar
 	local lx = lay.liveL
 	if hist.mode then
 		glFunc.Color(light[1], light[2], light[3], hoverLive and 1 or 0.85)
 	else
-		glFunc.Color(1, 0.35, 0.3, hoverLive and 1 or 0.8)
+		glFunc.Color(light[1], light[2], light[3], 0.18)
 	end
 	local gh = math.floor(ib * 0.34)
 	local bw = math.max(2, math.floor(ib * 0.12))
@@ -15847,19 +16026,17 @@ function miscState.hist.HandlePress(mx, my, mButton)
 	if mButton ~= 1 then
 		return true
 	end
-	if mx >= lay.playL and mx <= lay.playR then
+	if hist.mode and mx >= lay.playL and mx <= lay.playR then
 		-- left: play / pause forward, right: play backwards
 		if mButton == 3 then
 			hist.Reverse()
-		elseif not hist.mode then
-			hist.Seek(lay.live - 30 * 10)
 		elseif hist.playing and (hist.direction or 1) < 0 then
 			hist.PlayForward()
 		else
 			hist.direction = 1
 			hist.TogglePlay()
 		end
-	elseif mx >= lay.liveL and mx <= lay.liveR then
+	elseif hist.mode and mx >= lay.liveL and mx <= lay.liveR then
 		hist.Exit()
 	elseif mx >= lay.trackL and mx <= lay.trackR then
 		hist.Seek(hist.FrameAt(mx))
@@ -15876,9 +16053,6 @@ function miscState.hist.HandleMove(mx)
 	local lay = hist.ComputeLayout(mx, nil)
 	if lay.visible then
 		hist.Seek(hist.FrameAt(mx))
-		if not hist.mode then
-			hist.dragging = false
-		end
 	end
 	return true
 end
@@ -16426,9 +16600,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		and config.trackedPlayerCursorGroundGlow
 		and interactionState.trackingPlayerID
 		and WG.allycursors
-		and not histMode
 	then
-		local allyCursors = WG.allycursors
+		local allyCursors = histMode and miscState.hist.CursorApi() or WG.allycursors
 		local trackedPlayerID = interactionState.trackingPlayerID
 		local trackedName, _, trackedSpec, trackedTeamID = spFunc.GetPlayerInfo(trackedPlayerID, false)
 		if trackedName and not trackedSpec and trackedTeamID then
@@ -16929,7 +17102,8 @@ local function DrawUnitsAndFeatures(cachedSelectedUnits)
 		and WG.allycursors.getCursor
 		and interactionState.trackingPlayerID
 	then
-		local cursor, isNotIdle = WG.allycursors.getCursor(interactionState.trackingPlayerID)
+		local cursorApi = histMode and miscState.hist.CursorApi() or WG.allycursors
+		local cursor, isNotIdle = cursorApi.getCursor(interactionState.trackingPlayerID)
 		if cursor and isNotIdle then
 			local wx, wz = cursor[1], cursor[3]
 			local cx, cy = WorldToPipCoords(wx, wz)
@@ -22278,7 +22452,8 @@ function widget:DrawScreen()
 		-- Exit fallback immediately when zooming in so PIP R2T content appears without lag.
 		-- Keep off-debounce for non-zoom transitions (e.g. unit count hovering near threshold).
 		local leavingBecauseZoom = not (IsAtMinimumZoom(cameraState.zoom) and IsAtMinimumZoom(cameraState.targetZoom))
-		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingBecauseZoom and 0 or 0.75)
+		local leavingNow = leavingBecauseZoom or miscState.hist.mode
+		local holdTime = rawUseEngineMinimapFallback and 0.35 or (leavingNow and 0 or 0.75)
 		if miscState.engineFallbackRawWantedSince and (now - miscState.engineFallbackRawWantedSince) < holdTime then
 			useEngineMinimapFallback = miscState.engineMinimapActive
 		else

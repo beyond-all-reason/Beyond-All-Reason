@@ -30,11 +30,13 @@ local BLD_STRIDE = 2 -- id, build level 0..hpStates-1 (logged on change only)
 local DMG_STRIDE = 3 -- id, hit strength 0..100, age
 local FEAT_STRIDE = 7 -- kind, featureID, featureDefID, x, z, heading + 32768, age
 local CAM_STRIDE = 6 -- player | heightFlag << 8, x, z, distance, tilt, heading: a broadcast camera
+local CUR_STRIDE = 3 -- player, x, z: a broadcast cursor
+-- sel: player, count, unit ids: a player's selection when it changed (keyframes restate everyone)
 local V_SCALE = 64 -- velocity quantum: 1/64 elmo per frame
 local V_BIAS = 32768
 local V_MAX = 511 -- elmo per frame, ±(32767 / 64)
 local TICK_OVERHEAD = 128 -- rough per-tick table cost counted against the byte cap
-local STREAMS = { "units", "moves", "expl", "events", "proj", "pend", "hp", "bld", "dmg", "feat", "cam" }
+local STREAMS = { "units", "moves", "expl", "events", "proj", "pend", "hp", "bld", "dmg", "feat", "cam", "sel", "cur" }
 
 PipHistory.F_RADAR = 1 -- seen on radar only
 PipHistory.F_VANISH = 2 -- left vision (last known position)
@@ -202,6 +204,11 @@ end
 ---@field pendingDmgN number
 ---@field hpDirty table<number, boolean?>
 ---@field playerCameras (fun(): table<integer, table>?)?
+---@field playerSelections (fun(all: boolean): table<integer, table<number, boolean>>?)?
+---@field playerCursors (fun(): table<integer, table>?)?
+---@field selN table<integer, number>
+---@field selSum table<integer, number>
+---@field selSq table<integer, number>
 ---@field seenBeam table<number, number>
 ---@field pX table<number, number>
 ---@field pZ table<number, number>
@@ -237,6 +244,9 @@ local storeDefaults = {
 	logExplosions = true,
 	logProjectiles = true,
 	logCommands = true,
+	logSelections = true, -- every player's selection, logged when it changes
+	selectionCap = 40, -- unit ids kept per selection record
+	logCursors = true, -- every player's cursor, once per tick
 	explosionMinRadius = 8,
 	explosionCap = 400, -- per tick
 	projectileCap = 300, -- shells followed at once
@@ -291,6 +301,8 @@ function Store:Configure(opts)
 	self.isBuilding = opts.isBuilding or self.isBuilding
 	self.canFly = opts.canFly or self.canFly
 	self.playerCameras = opts.playerCameras or self.playerCameras
+	self.playerSelections = opts.playerSelections or self.playerSelections
+	self.playerCursors = opts.playerCursors or self.playerCursors
 	self.beamWeapon = opts.beamWeapon or self.beamWeapon
 	self.projectileWeapon = opts.projectileWeapon or self.projectileWeapon
 	self.weaponRadius = opts.weaponRadius or self.weaponRadius
@@ -327,6 +339,7 @@ function Store:Reset()
 		self.lens[STREAMS[i]] = 0
 	end
 	self.eventMaxAge = 0
+	self.selN, self.selSum, self.selSq = {}, {}, {}
 	self.pendingDeaths, self.pendingDeathN = {}, 0
 	self.pendingExpl, self.pendingExplN = {}, 0
 	self.pendingCmd, self.pendingCmdN = {}, 0
@@ -1088,6 +1101,53 @@ function Store:GameFrame(frame)
 		end
 		self.lens.cam = n
 	end
+	-- selections: a player's set goes in when its count / id sums changed, all of them on keyframes
+	local sels = o.logSelections and self.playerSelections and self.playerSelections(isKey)
+	if sels then
+		local buf = self.bufs.sel
+		local n = self.lens.sel
+		local cap = o.selectionCap
+		local selN, selSum, selSq = self.selN, self.selSum, self.selSq
+		for pid, set in pairs(sels) do
+			local cnt, sum, sq = 0, 0.0, 0.0
+			for uid in pairs(set) do
+				cnt = cnt + 1
+				sum = sum + uid
+				sq = (sq + uid * uid) % 1000000007
+			end
+			if isKey or cnt ~= selN[pid] or sum ~= selSum[pid] or sq ~= selSq[pid] then
+				selN[pid], selSum[pid], selSq[pid] = cnt, sum, sq
+				local stored = mathMin(cnt, cap)
+				buf[n + 1] = pid
+				buf[n + 2] = stored
+				n = n + 2
+				local k = 0
+				for uid in pairs(set) do
+					if k >= stored then
+						break
+					end
+					k = k + 1
+					buf[n + k] = mathFloor(uid % 65536)
+				end
+				n = n + stored
+			end
+		end
+		self.lens.sel = n
+	end
+	-- cursors: {playerID, x, z} per player, blended between ticks in playback like cameras
+	local curs = o.logCursors and self.playerCursors and self.playerCursors()
+	if curs then
+		local buf = self.bufs.cur
+		local n = self.lens.cur
+		for i = 1, #curs do
+			local c = curs[i]
+			buf[n + 1] = mathFloor(c[1] % 256)
+			buf[n + 2] = clampU16(c[2])
+			buf[n + 3] = clampU16(c[3])
+			n = n + CUR_STRIDE
+		end
+		self.lens.cur = n
+	end
 	local seenBeam = self.seenBeam
 	for pid, f in pairs(seenBeam) do
 		if frame - f > 90 then
@@ -1294,6 +1354,10 @@ function Store:MergeTicks(a, b)
 	merged.dmg = concatAged(sa.dmg, sb.dmg, DMG_STRIDE)
 	merged.feat = concatAged(sa.feat, sb.feat, FEAT_STRIDE)
 	merged.cam = sb.cam or sa.cam
+	merged.cur = sb.cur or sa.cur
+	if sa.sel or sb.sel then
+		merged.sel = (sa.sel or "") .. (sb.sel or "") -- applied in order, the later record wins
+	end
 
 	-- health and build levels: later value per unit
 	local function laterPerUnit(strA, strB)
@@ -1788,7 +1852,7 @@ function Store:SegmentRanges()
 end
 
 -- Persistence across /luaui reload: hot ticks and the spilled segments' basic copies go to a
--- binary file in the write dir (the segment files themselves stay). Layout: "PIPHIST5", game id,
+-- binary file in the write dir (the segment files themselves stay). Layout: "PIPHIST6", game id,
 -- hot tick count, tick counter, segment count; per segment its file path, "first last count bytes
 -- basicCount" and the basic ticks; then the hot ticks. A tick is a header line "frame key level
 -- maxAge z n1..nN" followed by the raw bytes (the zlib blob when z is 1).
@@ -1799,7 +1863,7 @@ function Store:SaveToFile(path, gameID)
 	end
 	local hot = self.hot
 	local segs = self.segments
-	f:write(string.format("PIPHIST5\n%s\n%d\n%d\n%d\n", tostring(gameID), #hot, self.tickCount, #segs))
+	f:write(string.format("PIPHIST6\n%s\n%d\n%d\n%d\n", tostring(gameID), #hot, self.tickCount, #segs))
 	for i = 1, #segs do
 		local seg = segs[i]
 		f:write(string.format("%s\n%d %d %d %d %d\n", seg.file, seg.first, seg.last, seg.count, seg.bytes, #seg.basic))
@@ -1829,7 +1893,7 @@ function PipHistory.loadStore(path, opts, gameID, maxFrame)
 	local count = tonumber(countLine)
 	local tickCount = tonumber(tickLine)
 	local segCount = tonumber(segLine)
-	if magic ~= "PIPHIST5" or id ~= tostring(gameID) or not count or not tickCount or not segCount then
+	if magic ~= "PIPHIST6" or id ~= tostring(gameID) or not count or not tickCount or not segCount then
 		f:close()
 		return nil
 	end
@@ -2025,6 +2089,9 @@ function PipHistory.newView(store)
 	self.features, self.featureCount, self.featureKey = {}, 0, 0
 	self.cX, self.cZ, self.cH, self.cRX, self.cRY, self.cF, self.cHF = {}, {}, {}, {}, {}, {}, {}
 	self.camIdx, self.camGen, self.camArr = -1, -1, nil
+	self.selSet = {} -- playerID -> set of unit ids
+	self.mX, self.mZ, self.mF = {}, {}, {}
+	self.curIdx, self.curGen, self.curArr = -1, -1.0, nil
 	return self
 end
 
@@ -2043,6 +2110,12 @@ local function viewReset(self)
 	self.sCount = 0
 	for pid in pairs(self.cF) do
 		self.cF[pid] = nil
+	end
+	for pid in pairs(self.mF) do
+		self.mF[pid] = nil
+	end
+	for pid in pairs(self.selSet) do
+		self.selSet[pid] = nil
 	end
 end
 
@@ -2143,6 +2216,35 @@ local function applyTick(self, store, tick)
 			cX[pid], cZ[pid], cH[pid] = cam[i + 1], cam[i + 2], cam[i + 3]
 			cRX[pid], cRY[pid] = cam[i + 4] / 10000 - 3.1416, cam[i + 5] / 10000 - 3.1416
 			cF[pid], cHF[pid] = frame, cam[i] >= 256
+		end
+	end
+	local sel = unpackAll(s.sel)
+	if sel then
+		local selSet = self.selSet
+		local i = 1
+		while i + 1 <= #sel do
+			local pid, cnt = sel[i], sel[i + 1]
+			local set = selSet[pid]
+			if set then
+				for uid in pairs(set) do
+					set[uid] = nil
+				end
+			else
+				set = {}
+				selSet[pid] = set
+			end
+			for k = 1, cnt do
+				set[sel[i + 1 + k]] = true
+			end
+			i = i + 2 + cnt
+		end
+	end
+	local cur = unpackAll(s.cur)
+	if cur then
+		local mX, mZ, mF = self.mX, self.mZ, self.mF
+		for i = 1, #cur - 2, CUR_STRIDE do
+			local pid = cur[i]
+			mX[pid], mZ[pid], mF[pid] = cur[i + 1], cur[i + 2], frame
 		end
 	end
 	applyShells(self, s, frame)
@@ -2620,6 +2722,54 @@ function View:CameraAt(playerID, frame)
 		end
 	end
 	return x, z, h, rx, ry, self.cHF[playerID]
+end
+
+-- The player's selection as last recorded at or before `frame` (a set of unit ids), or nil
+function View:SelectionAt(playerID, frame)
+	local store = self.store
+	if self.outFrame ~= frame or self.generation ~= store.generation then
+		if not self:Materialize(frame) then
+			return nil
+		end
+	end
+	return self.selSet[playerID]
+end
+
+-- The player's cursor at `frame`, blended towards the next tick's record; nil when the player
+-- had no cursor in the applied tick
+function View:CursorAt(playerID, frame)
+	local store = self.store
+	if self.outFrame ~= frame or self.generation ~= store.generation then
+		if not self:Materialize(frame) then
+			return nil
+		end
+	end
+	local f0 = self.mF[playerID]
+	if not f0 then
+		return nil
+	end
+	local x, z = self.mX[playerID] or 0, self.mZ[playerID] or 0
+	local ticks = store.ticks
+	local nextIdx = self.appliedTick + 1
+	local tick = ticks[nextIdx] ---@type PipHistoryTick?
+	if tick then
+		if self.curIdx ~= nextIdx or self.curGen ~= store.generation then
+			self.curArr = unpackAll(store:Streams(tick).cur)
+			self.curIdx, self.curGen = nextIdx, store.generation
+		end
+		local arr = self.curArr
+		if arr then
+			for j = 1, #arr - 2, CUR_STRIDE do
+				if arr[j] == playerID then
+					local t = mathMax(0, mathMin(1, (frame - f0) / mathMax(1, tick.frame - f0)))
+					x = x + (arr[j + 1] - x) * t
+					z = z + (arr[j + 2] - z) * t
+					break
+				end
+			end
+		end
+	end
+	return x, z
 end
 
 -- Shells in flight at `frame`, dead-reckoned from their latest record; a shell fades over
