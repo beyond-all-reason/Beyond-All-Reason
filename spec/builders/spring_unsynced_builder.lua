@@ -4,6 +4,7 @@
 -- (widget, widgetHandler, WG, GL, gl, Platform, UnitDefs) and Spring unsynced
 -- functions like GiveOrderToUnit / TestBuildOrder.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 
 ---@class UnsyncedWidgetMock
@@ -81,32 +82,8 @@ function SUB:WithHeadless(headless)
 end
 
 local function makeEnv(self)
-	local env = setmetatable({}, { __index = _G })
-
-	---@diagnostic disable-next-line: missing-fields
-	env.widget = {}
-	env.GL = {}
-	env.Platform = { gl = not self.headless }
-	env.WG = {}
-	env.Game = {
-		footprintScale = 2,
-	}
-	env.widgetHandler = {
-		RemoveWidget = function() end,
-		AddAction = function() end,
-	}
-	env.CMD = { GUARD = 25 }
-	env.UnitDefs = self.unitDefs:GetUnitDefsByID()
-	env.UnitDefNames = self.unitDefs:GetUnitDefNames()
-	env.gl = {
-		LuaShader = function() end,
-		InstanceVBOTable = {
-			pushElementInstance = function() end,
-			popElementInstance = function() end,
-		},
-	}
-
 	local unitDefs = self.unitDefs
+
 	local springTable = {
 		Utilities = {
 			IsDevMode = function()
@@ -144,26 +121,31 @@ local function makeEnv(self)
 	for k, v in pairs(self.springOverrides) do
 		springTable[k] = v
 	end
-	env.Spring = setmetatable(springTable, { __index = _G.Spring })
 
-	local realInclude = _G.VFS and _G.VFS.Include
-	local includeOverrides = self.vfsIncludeOverrides
-	env.VFS = setmetatable({
-		Include = function(path, ...)
-			local override = includeOverrides[path]
-			if override ~= nil then
-				if type(override) == "function" then
-					return override(path, ...)
-				end
-				return override
-			end
-			if realInclude then
-				return realInclude(path, ...)
-			end
-		end,
-	}, { __index = _G.VFS })
-
-	return env
+	return SpecEnv.new({
+		Spring = springTable,
+		Game = { footprintScale = 2 },
+		---@diagnostic disable-next-line: missing-fields
+		widget = {},
+		widgetHandler = {
+			RemoveWidget = function() end,
+			AddAction = function() end,
+		},
+		WG = {},
+		GL = {},
+		gl = {
+			LuaShader = function() end,
+			InstanceVBOTable = {
+				pushElementInstance = function() end,
+				popElementInstance = function() end,
+			},
+		},
+		Platform = { gl = not self.headless },
+		CMD = { GUARD = 25 },
+		UnitDefs = unitDefs:GetUnitDefsByID(),
+		UnitDefNames = unitDefs:GetUnitDefNames(),
+		includes = self.vfsIncludeOverrides,
+	})
 end
 
 ---Load the widget at widgetPath into a fresh sandboxed env and call its Initialize.
@@ -172,9 +154,7 @@ end
 function SUB:LoadWidget(widgetPath)
 	local env = makeEnv(self)
 
-	local chunk = assert(loadfile(widgetPath))
-	setfenv(chunk, env)
-	chunk()
+	SpecEnv.include(env, widgetPath)
 	env.widget:Initialize()
 
 	local mock = {

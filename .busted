@@ -35,8 +35,10 @@ return {
   pattern = "_spec",
   ROOT = specRoots(),
 
-  -- Named tasks
+  -- Named tasks. _all is merged whichever one runs, so the file order lives there.
   _all = {
+    -- Alphabetical, not the directory walk, which differs between machines.
+    ["sort-files"] = true,
     verbose = true,
     output = "utfTerminal",
     pattern = "_spec",

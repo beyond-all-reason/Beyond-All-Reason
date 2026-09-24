@@ -1,67 +1,22 @@
 local Builders = VFS.Include("spec/builders/index.lua")
 
--- A throwaway widget on disk used to exercise the builder. Written once,
--- removed in the final test. Kept tiny: it records what the env exposes,
--- then reads/writes through the standard widget surface.
-local TMP_WIDGET_PATH = "spec/builder_specs/_tmp_unsynced_widget.lua"
-
-local TMP_WIDGET_SOURCE = [[
-local function GetInfo() return { name = "tmp_unsynced" } end
-
-local seen = {
-    unitDefs    = UnitDefs,
-    platformGl  = Platform and Platform.gl,
-    isHeadless  = Platform and (Platform.isHeadless or not Platform.gl),
-}
-
-function widget:Initialize()
-    WG["tmp_unsynced"] = {
-        seen = seen,
-        callGiveOrder = function(unitID, cmdID)
-            Spring.GiveOrderToUnit(unitID, cmdID, {}, {})
-        end,
-        callGiveOrderArray = function(unitIDs, orders)
-            Spring.GiveOrderArrayToUnitArray(unitIDs, orders, {})
-        end,
-        getUnitDefID = function(id) return Spring.GetUnitDefID(id) end,
-    }
-end
-
-return GetInfo
-]]
-
-local function writeTmpWidget()
-	local f = io.open(TMP_WIDGET_PATH, "w")
-	if not f then
-		error("could not open " .. TMP_WIDGET_PATH)
-	end
-	f:write(TMP_WIDGET_SOURCE)
-	f:close()
-end
-
-local function removeTmpWidget()
-	os.remove(TMP_WIDGET_PATH)
-end
+local WIDGET_PATH = "spec/fixtures/unsynced_widget.lua"
 
 describe("SpringUnsyncedBuilder", function()
-	setup(writeTmpWidget)
-	teardown(removeTmpWidget)
 
 	it("loads a widget into a sandboxed env and runs Initialize", function()
-		local widget = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
+		local widget = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
 		assert.is_table(widget.WG.tmp_unsynced)
 	end)
 
 	it("defaults to headless (Platform.gl is falsy)", function()
-		local widget = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
+		local widget = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
 		assert.is_false(widget.WG.tmp_unsynced.seen.platformGl)
 	end)
 
 	it("exposes UnitDefs registered via WithUnitDef", function()
-		local widget = Builders.SpringUnsynced
-			.new()
-			:WithUnitDef(7, { name = "armcom", buildSpeed = 100 })
-			:LoadWidget(TMP_WIDGET_PATH)
+		local widget =
+			Builders.SpringUnsynced.new():WithUnitDef(7, { name = "armcom", buildSpeed = 100 }):LoadWidget(WIDGET_PATH)
 
 		local seenDefs = widget.WG.tmp_unsynced.seen.unitDefs
 		assert.equals("armcom", seenDefs[7].name)
@@ -72,7 +27,7 @@ describe("SpringUnsyncedBuilder", function()
 			.new()
 			:WithUnitDef(7, { name = "armcom", buildSpeed = 100 })
 			:WithUnit(42, 7)
-			:LoadWidget(TMP_WIDGET_PATH)
+			:LoadWidget(WIDGET_PATH)
 
 		assert.equals(7, widget.WG.tmp_unsynced.getUnitDefID(42))
 		assert.is_nil(widget.WG.tmp_unsynced.getUnitDefID(99))
@@ -89,7 +44,7 @@ describe("SpringUnsyncedBuilder", function()
 			.new()
 			:WithUnitDef(7, { name = "armcom", buildSpeed = 100 })
 			:WithUnit(42, "armcom")
-			:LoadWidget(TMP_WIDGET_PATH)
+			:LoadWidget(WIDGET_PATH)
 
 		assert.equals(7, widget.WG.tmp_unsynced.getUnitDefID(42))
 	end)
@@ -104,7 +59,7 @@ describe("SpringUnsyncedBuilder", function()
 		local widget = Builders.SpringUnsynced
 			.new()
 			:WithUnitDef(Builders.UnitDef.new("armcon"):WithDefID(100):WithSpeed(100):Builds(10, 11))
-			:LoadWidget(TMP_WIDGET_PATH)
+			:LoadWidget(WIDGET_PATH)
 
 		local defs = widget.WG.tmp_unsynced.seen.unitDefs
 		assert.equals("armcon", defs[100].name)
@@ -113,7 +68,7 @@ describe("SpringUnsyncedBuilder", function()
 	end)
 
 	it("captureUnitOrders records GiveOrderToUnit calls", function()
-		local widget = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
+		local widget = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
 		local calls = widget.captureUnitOrders()
 
 		widget.WG.tmp_unsynced.callGiveOrder(5, -10)
@@ -125,7 +80,7 @@ describe("SpringUnsyncedBuilder", function()
 	end)
 
 	it("captureArrayOrders records GiveOrderArrayToUnitArray calls", function()
-		local widget = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
+		local widget = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
 		local calls = widget.captureArrayOrders()
 
 		widget.WG.tmp_unsynced.callGiveOrderArray({ 1, 2 }, { { -10 }, { -11 } })
@@ -141,7 +96,7 @@ describe("SpringUnsyncedBuilder", function()
 			:WithSpringFn("GetMyTeamID", function()
 				return 99
 			end)
-			:LoadWidget(TMP_WIDGET_PATH)
+			:LoadWidget(WIDGET_PATH)
 
 		assert.equals(99, widget.env.Spring.GetMyTeamID())
 	end)
@@ -150,15 +105,15 @@ describe("SpringUnsyncedBuilder", function()
 		local widget = Builders.SpringUnsynced
 			.new()
 			:WithVFSInclude("any/fake/path.lua", { sentinel = true })
-			:LoadWidget(TMP_WIDGET_PATH)
+			:LoadWidget(WIDGET_PATH)
 
 		local result = widget.env.VFS.Include("any/fake/path.lua")
 		assert.is_true(result.sentinel)
 	end)
 
 	it("each LoadWidget call yields an isolated env", function()
-		local a = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
-		local b = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
+		local a = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
+		local b = Builders.SpringUnsynced.new():LoadWidget(WIDGET_PATH)
 		assert.are_not.equal(a.env, b.env)
 		assert.are_not.equal(a.WG, b.WG)
 	end)
