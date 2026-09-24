@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function adjustTideRhythm(targetLevel, speed, remainTime)
-		local nextTideIndex  = tideIndex + 1
+		local nextTideIndex = tideIndex + 1
 		local newTide = {}
 		newTide.targetLevel = targetLevel
 		newTide.speed = speed
@@ -152,7 +152,6 @@ if gadgetHandler:IsSyncedCode() then
 			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
 			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime*gameSpeed)
 			lavaGrow = 0
-			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
 
 		if gameframe == tideContinueFrame then
@@ -161,7 +160,6 @@ if gadgetHandler:IsSyncedCode() then
 				tideIndex = 1
 				pendingCleanup = true
 			end
-			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
 				lavaGrow = tideRhythm[tideIndex].speed 
 			else
@@ -462,20 +460,18 @@ if gadgetHandler:IsSyncedCode() then
 		local params = string.split(message, ':')
 		if not params[2] then
 			tideContinueFrame = gameframe + 1
-			Spring.Echo('Progressing to next tide rhythm.')
+			Spring.Log("Map Lava",LOG.INFO,'Progressing to next tide rhythm.')
 		else 
 			local tideParams = string.split(params[2], " ")
 			local insertLevel = tonumber(tideParams[1])
 			local insertSpeed = tonumber(tideParams[2])
 			local insertRemain = tonumber(tideParams[3])
-			if (insertLevel and insertLevel >= 0 and insertLevel % 1 == 0) and
-				(insertSpeed and insertSpeed > 0) and 
-				(insertRemain and insertRemain > 0 and insertRemain *gameSpeed % 1 == 0) then
+			if (insertLevel and insertLevel >= -1 ) and	insertSpeed and insertRemain then
 				adjustTideRhythm(insertLevel, insertSpeed, insertRemain)
-				Spring.Echo('Lava Rhythm progressing to height ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
+				Spring.Log("Map Lava",LOG.INFO,'Lava Rhythm progressing to height ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
 				tideContinueFrame = gameframe + 1 
 			else 
-				Spring.Echo('Lava tide Rhythm invalid.')
+				Spring.Log("Map Lava",LOG.ERROR,'Lava tide Rhythm invalid.')
 			end
 		end
 	end
@@ -630,7 +626,7 @@ else -- UNSYCNED
 	local function lavalevel(cmd, line, words, playerID)
 		-- lavalevel: Handles the '/lavalevel' chat command to adjust the lava level in-game.
 		-- Usage: /lavalevel [level] [speed] [remainTime], with no arguments progresses the current lava to the next tide Rhythm 
-		-- If speed and remainTime are not specified: defaults to 0.25 elmo/frame and 1 second respectively.
+		-- If speed and remainTime are not specified: defaults to 7.5 elmo/s (0.25 elmo/frame) and 1 second respectively.
 		if (authorized or Spring.IsCheatingEnabled()) and playerID == myPlayerID then
 			local message = PACKET_HEADER
 			if #words == 0 then
@@ -672,7 +668,7 @@ else -- UNSYCNED
 		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
 
 		if not lavaShader then
-			Spring.Echo("Failed to compile Lava Shader")
+			Spring.Log("Map Lava", LOG.ERROR, "Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -680,7 +676,7 @@ else -- UNSYCNED
 		foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache)
 
 		if not foglightShader then
-			Spring.Echo("Failed to compile foglightShader")
+			Spring.Log("Map Lava", LOG.ERROR, "Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
