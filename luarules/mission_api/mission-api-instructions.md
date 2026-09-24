@@ -110,8 +110,7 @@ breaking change to both the function and every mission using it.
   optional `severity = "warning"` and `parameterNameSuffix` for nested fields). An unvalidated type silently accepts
   anything.
 - `parameter_processing.lua` rewrites values after validation (ground height for `Position`, unit-def names to
-  negative build command IDs for `Orders`/`Command`, unit-def names to ids for `UnitDefID`, `.wav` length caching
-  for `SoundFile`, enum lists to sets). If
+  negative build command IDs for `Orders`/`Command`, `.wav` length caching for `SoundFile`, enum lists to sets). If
   your type needs normalisation, register a processor there — the action/trigger sees the processed value, and specs
   that call `actionFunction` directly do not, so pass processed-shaped data in tests.
 - `logError` sets `HasValidationErrors`, which makes `api_missions.lua` drop `GG['MissionAPI']` and remove itself,
@@ -141,24 +140,6 @@ breaking change to both the function and every mission using it.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
-- `GG.ScriptedPause` (`api_scripted_pause.lua`, synced + unsynced, not mission-specific) — `Pause()` / `Unpause()` /
-  `IsPaused()` behind the `Pause` and `Unpause` actions. Synced code cannot pause, so its unsynced half has one
-  client send the `pause` command and re-pause whenever a player unpauses. It publishes the game rules param
-  `scriptedPause` (1 while active); `gui_pausescreen.lua` reads it to hide the pause overlay for scripted pauses.
-  A scripted pause stops `GameFrame`, so `TimeElapsed` cannot end one — use a trigger that fires between frames
-  (`UnitOrdered`, for example) or an objective event.
-- `GG.BuildBlocking` (`api_build_blocking.lua`, synced, not mission-specific) — reason-stacked build blocks behind
-  `DisableBuildOption` / `EnableBuildOption` (reason key `mission`). A blocked option stays in the build menus,
-  greyed out, and `AllowCommand` refuses the order. The optional trailing `builderUnitDefID` limits a block to one
-  builder unit type; team-wide and per-builder blocks are separate, so remove a reason with the same builder it was
-  added with. Enabling only lifts the mission's own reason: terrain and modoption blocks stay. Blocks are published
-  as team rules params and restored from them after a `/luarules reload`.
-- `GG.DynamicBuildOptions` (`api_dynamic_build_options.lua`, synced + unsynced, not mission-specific) —
-  `Add(built, builder, position)` / `Remove(built, builder)` behind `AddBuildOption` / `RemoveBuildOption`. Edits the
-  engine command descriptions of every current and future unit of the builder type (all teams), so a removed
-  option is gone from the menus and queued orders for it are dropped. `position` is the 1-based slot among the
-  unit's build options; menus that sort options themselves ignore it. Only unit types the engine treats as builders
-  or factories accept options, and the BAR menus only open for types that have build options in their unit def.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 

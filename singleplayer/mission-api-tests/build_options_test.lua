@@ -76,7 +76,7 @@ local actions = {
 	disableSolar = {
 		type = actionTypes.DisableBuildOption,
 		parameters = {
-			builtUnitDefID = 'armsolar',
+			builtDefName ='armsolar',
 			teamID = 0,
 		},
 	},
@@ -84,7 +84,7 @@ local actions = {
 	enableSolar = {
 		type = actionTypes.EnableBuildOption,
 		parameters = {
-			builtUnitDefID = 'armsolar',
+			builtDefName ='armsolar',
 			teamID = 0,
 		},
 	},
@@ -100,8 +100,8 @@ local actions = {
 	disableWindForBot = {
 		type = actionTypes.DisableBuildOption,
 		parameters = {
-			builtUnitDefID = 'armwin',
-			builderUnitDefID = 'armck',
+			builtDefName ='armwin',
+			builderDefName ='armck',
 			teamID = 0,
 		},
 	},
@@ -109,8 +109,8 @@ local actions = {
 	enableWindForBot = {
 		type = actionTypes.EnableBuildOption,
 		parameters = {
-			builtUnitDefID = 'armwin',
-			builderUnitDefID = 'armck',
+			builtDefName ='armwin',
+			builderDefName ='armck',
 			teamID = 0,
 		},
 	},
@@ -125,16 +125,16 @@ local actions = {
 	removeMexFromBot = {
 		type = actionTypes.RemoveBuildOption,
 		parameters = {
-			builtUnitDefID = 'armmex',
-			builderUnitDefID = 'armck',
+			builtDefName ='armmex',
+			builderDefName ='armck',
 		},
 	},
 
 	removePeeweeFromLab = {
 		type = actionTypes.RemoveBuildOption,
 		parameters = {
-			builtUnitDefID = 'armpw',
-			builderUnitDefID = 'armlab',
+			builtDefName ='armpw',
+			builderDefName ='armlab',
 		},
 	},
 
@@ -148,8 +148,8 @@ local actions = {
 	addMexToBot = {
 		type = actionTypes.AddBuildOption,
 		parameters = {
-			builtUnitDefID = 'armmex',
-			builderUnitDefID = 'armck',
+			builtDefName ='armmex',
+			builderDefName ='armck',
 			buildMenuPosition = 1,
 		},
 	},
@@ -157,8 +157,8 @@ local actions = {
 	addFavToLab = {
 		type = actionTypes.AddBuildOption,
 		parameters = {
-			builtUnitDefID = 'armfav',
-			builderUnitDefID = 'armlab',
+			builtDefName ='armfav',
+			builderDefName ='armlab',
 			buildMenuPosition = 1,
 		},
 	},

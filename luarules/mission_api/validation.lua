@@ -585,21 +585,6 @@ validators[Types.Command] = function(command)
 	end
 end
 
--- A numeric unit def id, or a unit def name (converted to the id by parameter_processing).
-validators[Types.UnitDefID] = function(unitDefID)
-	if type(unitDefID) == "number" then
-		if not UnitDefs[unitDefID] then
-			return { { message = "Invalid unitDefID: " .. unitDefID } }
-		end
-	elseif type(unitDefID) == "string" then
-		if not UnitDefNames[unitDefID] then
-			return { { message = "Invalid unitDefName: " .. unitDefID } }
-		end
-	else
-		return { { message = "Unexpected parameter type, expected number or string, got " .. type(unitDefID) } }
-	end
-end
-
 validators[Types.SoundFile] = function(soundfile)
 	local luaTypeResult = validators[Types.String](soundfile)
 	if luaTypeResult then

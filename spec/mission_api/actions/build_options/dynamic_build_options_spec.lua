@@ -8,6 +8,9 @@ Builders.MissionApi.new():Install()
 local actions = VFS.Include("luarules/mission_api/actions/build_options/dynamic_build_options.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
+local unitDefNames =
+	Builders.UnitDefs.new():WithUnitDefs({ [42] = { name = "armsolar" }, [7] = { name = "armck" } }):GetUnitDefNames()
+
 local function findAction(actionType)
 	for _, action in ipairs(actions) do
 		if action.type == actionType then
@@ -27,6 +30,7 @@ describe("mission_api.actions.dynamic_build_options", function()
 
 	before_each(function()
 		calls = { add = {}, remove = {} }
+		_G.UnitDefNames = unitDefNames ---@diagnostic disable-line: global-in-non-module
 		GG["DynamicBuildOptions"] = {
 			Add = function(builtUnitDefID, builderUnitDefID, position)
 				calls.add[#calls.add + 1] = {
@@ -53,8 +57,8 @@ describe("mission_api.actions.dynamic_build_options", function()
 	it("declares AddBuildOption and its parameters", function()
 		assert.are.same({
 			type = "AddBuildOption",
-			builtUnitDefID = "UnitDefID!",
-			builderUnitDefID = "UnitDefID!",
+			builtDefName = "UnitDefName!",
+			builderDefName = "UnitDefName!",
 			buildMenuPosition = "PositiveInteger",
 		}, summarizeSchema(addAction))
 	end)
@@ -62,14 +66,14 @@ describe("mission_api.actions.dynamic_build_options", function()
 	it("declares RemoveBuildOption and its parameters", function()
 		assert.are.same({
 			type = "RemoveBuildOption",
-			builtUnitDefID = "UnitDefID!",
-			builderUnitDefID = "UnitDefID!",
+			builtDefName = "UnitDefName!",
+			builderDefName = "UnitDefName!",
 		}, summarizeSchema(removeAction))
 	end)
 
 	describe("AddBuildOption", function()
 		it("adds the option to the builder type at the end of its build options", function()
-			addAction.actionFunction(42, 7, nil)
+			addAction.actionFunction("armsolar", "armck", nil)
 
 			assert.are.equal(1, #calls.add)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7 }, calls.add[1])
@@ -77,7 +81,7 @@ describe("mission_api.actions.dynamic_build_options", function()
 		end)
 
 		it("passes the build menu position through", function()
-			addAction.actionFunction(42, 7, 3)
+			addAction.actionFunction("armsolar", "armck", 3)
 
 			assert.are.equal(1, #calls.add)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7, position = 3 }, calls.add[1])
@@ -86,7 +90,7 @@ describe("mission_api.actions.dynamic_build_options", function()
 
 	describe("RemoveBuildOption", function()
 		it("removes the option from the builder type", function()
-			removeAction.actionFunction(42, 7)
+			removeAction.actionFunction("armsolar", "armck")
 
 			assert.are.equal(1, #calls.remove)
 			assert.are.same({ builtUnitDefID = 42, builderUnitDefID = 7 }, calls.remove[1])

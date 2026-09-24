@@ -1,23 +1,20 @@
--- AddBuildOption / RemoveBuildOption change what a builder or factory unit type can build,
--- for every team's current and future units (GG.DynamicBuildOptions,
--- api_dynamic_build_options.lua). A removed option leaves the build menus. buildMenuPosition
--- is the 1-based slot among the unit's build options; menus with their own order ignore it.
+-- Adds or removes a build option of a builder or factory type, for its current and future units (GG.DynamicBuildOptions).
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
-local function addBuildOption(builtUnitDefID, builderUnitDefID, buildMenuPosition)
-	GG.DynamicBuildOptions.Add(builtUnitDefID, builderUnitDefID, buildMenuPosition)
+local function addBuildOption(builtDefName, builderDefName, buildMenuPosition)
+	GG.DynamicBuildOptions.Add(UnitDefNames[builtDefName].id, UnitDefNames[builderDefName].id, buildMenuPosition)
 end
 
-local function removeBuildOption(builtUnitDefID, builderUnitDefID)
-	GG.DynamicBuildOptions.Remove(builtUnitDefID, builderUnitDefID)
+local function removeBuildOption(builtDefName, builderDefName)
+	GG.DynamicBuildOptions.Remove(UnitDefNames[builtDefName].id, UnitDefNames[builderDefName].id)
 end
 
 return {
 	{
 		type = 'AddBuildOption',
 		parameters = {
-			{ name = 'builtUnitDefID', required = true, type = ParameterTypes.UnitDefID },
-			{ name = 'builderUnitDefID', required = true, type = ParameterTypes.UnitDefID },
+			{ name = 'builtDefName', required = true, type = ParameterTypes.UnitDefName },
+			{ name = 'builderDefName', required = true, type = ParameterTypes.UnitDefName },
 			{ name = 'buildMenuPosition', required = false, type = ParameterTypes.PositiveInteger },
 		},
 		actionFunction = addBuildOption,
@@ -25,8 +22,8 @@ return {
 	{
 		type = 'RemoveBuildOption',
 		parameters = {
-			{ name = 'builtUnitDefID', required = true, type = ParameterTypes.UnitDefID },
-			{ name = 'builderUnitDefID', required = true, type = ParameterTypes.UnitDefID },
+			{ name = 'builtDefName', required = true, type = ParameterTypes.UnitDefName },
+			{ name = 'builderDefName', required = true, type = ParameterTypes.UnitDefName },
 		},
 		actionFunction = removeBuildOption,
 	},

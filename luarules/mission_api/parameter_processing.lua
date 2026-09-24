@@ -55,15 +55,6 @@ local function processCommand(command)
 	end
 end
 
-local function processUnitDefID(unitDefID)
-	if type(unitDefID) == "string" then
-		local unitDef = UnitDefNames[unitDefID]
-		if unitDef then
-			return unitDef.id
-		end
-	end
-end
-
 local function processSoundFile(soundfile)
 	local wavData = ReadWAV(soundfile)
 	if wavData then
@@ -85,7 +76,6 @@ local processors = {
 	[ParameterTypes.Direction] = processDirection,
 	[ParameterTypes.Orders] = processOrders,
 	[ParameterTypes.Command] = processCommand,
-	[ParameterTypes.UnitDefID] = processUnitDefID,
 	[ParameterTypes.SoundFile] = processSoundFile,
 }
 for enumSetType in pairs(enumSets) do
