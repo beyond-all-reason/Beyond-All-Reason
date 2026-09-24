@@ -355,6 +355,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 		label == "Start " .. playerTeam
 		or cmdType ~= "point"
 		or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView))
+		or (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID))
 	then
 		return
 	end
