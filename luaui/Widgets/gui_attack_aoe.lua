@@ -63,6 +63,10 @@ local getStarburstWeapon = Starburst.getStarburstWeapon
 local newStarburst = Starburst.newStarburst
 local stepStarburst = Starburst.stepStarburst
 
+local Verticalize = VFS.Include("modules/verticalize.lua")
+local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
+local getLaunchTrajectory = Verticalize.getLaunchTrajectory
+
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
@@ -487,6 +491,15 @@ local function GetStarburstGroundCollisionPos(
 		dirX, dirY, dirZ = weaponDirX, weaponDirY, weaponDirZ
 	end
 
+	local verticalizeWeapon = weaponInfo.verticalize
+	if verticalizeWeapon then
+		local position = { px, py, pz }
+		local direction = { dirX, dirY, dirZ }
+		local target = { tx, max(spGetGroundHeight(tx, tz), 0), tz }
+		local path = prediction.path
+		return getLaunchTrajectory(verticalizeWeapon, weaponInfo.starburst, position, direction, target, path)
+	end
+
 	local maxSpeed = weaponInfo.projectileSpeed
 	targetVelocityX, targetVelocityY, targetVelocityZ = targetVelocityX or 0, targetVelocityY or 0, targetVelocityZ or 0
 	local targetMoves = weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0)
@@ -597,7 +610,8 @@ local function GetCachedStarburstTarget(
 	local predictions = State.starburstPredictions
 	local prediction = predictions[unitID]
 	if not prediction then
-		prediction = { pathX = {}, pathY = {}, pathZ = {} }
+		local pathX, pathY, pathZ = {}, {}, {}
+		prediction = { pathX = pathX, pathY = pathY, pathZ = pathZ, path = { pathX, pathY, pathZ } }
 		predictions[unitID] = prediction
 	end
 	local launchX, launchY, launchZ, launchDirX, launchDirY, launchDirZ =
@@ -1102,6 +1116,7 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.leadBonus = weaponDef.leadBonus or 0
 		info.fixedLauncher = weaponDef.fixedLauncher
 		info.starburst = getStarburstWeapon(weaponDef)
+		info.verticalize = getVerticalizeWeapon(weaponDef)
 		-- Check for nuclear weapons (customParams.nuclear)
 		if info.isNuke then
 			info.type = "nuke"
