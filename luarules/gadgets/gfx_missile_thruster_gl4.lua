@@ -31,13 +31,16 @@ local spGetProjectileDefID = Spring.GetProjectileDefID
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetTeamAllyTeamID = Spring.GetTeamAllyTeamID
+local spGetTeamList = Spring.GetTeamList
 local spIsPosInAirLos = Spring.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetFrameTimeOffset = Spring.GetFrameTimeOffset
+local spGetGameFrame = Spring.GetGameFrame
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetCameraDirection = Spring.GetCameraDirection
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
 
 local glBlending = gl.Blending
 local glTexture = gl.Texture
@@ -48,9 +51,7 @@ local glCulling = gl.Culling
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA = GL.SRC_ALPHA
-
-local mathRandom = math.random
-local mathSqrt = math.sqrt
+local GL_TRIANGLES = GL.TRIANGLES
 
 local LuaShader = gl.LuaShader
 local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
@@ -59,8 +60,7 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 -- Configuration
 --------------------------------------------------------------------------------
 
--- Max simultaneous missile flames (should be more than enough)
-local MAX_FLAMES = 4096
+local INITIAL_VBO_SIZE = 256 -- starting VBO capacity (doubles automatically when exceeded)
 
 -- Textures
 local muzzleTexture = "bitmaps/projectiletextures/muzzleside.tga"
@@ -406,7 +406,6 @@ for _, cfg in pairs(weaponConfigs) do
 	cfg.glowB = cfg.glowB or 0.02
 	cfg.lengthRand = cfg.lengthRand or defaultLengthRand
 	cfg.widthRand = cfg.widthRand or defaultWidthRand
-	cfg.hasRand = cfg.lengthRand > 0 or cfg.widthRand > 0
 	cfg.thrusterOffset = cfg.thrusterOffset or 0
 	-- Pre-multiply glow values with global multipliers (avoids 4 muls per missile per frame)
 	cfg.glowSizeFinal = cfg.glowSize * GLOW_SIZE_MULT
@@ -430,9 +429,10 @@ if not hasConfigs then
 end
 
 --------------------------------------------------------------------------------
--- Shader sources: Flame (velocity-aligned quad)
+-- Vertex shader head shared by all passes: the instance layout and the thruster
+-- motion between sim frames (the instance VBO only changes once per sim frame).
 --------------------------------------------------------------------------------
-local flameVsSrc = [[
+local vsHead = [[
 #version 420
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
@@ -441,14 +441,49 @@ local flameVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-// Quad vertex: xy = corner position (-1..1), zw = UV
-layout (location = 0) in vec4 position_xy_uv;
+// Quad vertex: xy = corner position (-1..1), z = 1 on the second (crossed) flame plane
+layout (location = 0) in vec4 quadVertex;
 
 // Per-instance data
-layout (location = 1) in vec4 posAndSize;      // xyz = projectile world pos, w = flame width (size)
-layout (location = 2) in vec4 dirAndLength;     // xyz = normalized direction, w = flame length
+layout (location = 1) in vec4 posAndSize;       // xyz = sim frame position, w = flame width (size)
+layout (location = 2) in vec4 velAndLength;     // xyz = velocity (elmos/frame), w = flame length
 layout (location = 3) in vec4 color1;           // base color (tip), a = alpha
-layout (location = 4) in vec4 color2;           // end color (tail), a = unused
+layout (location = 4) in vec4 color2;           // end color (tail), a = size growth
+layout (location = 5) in vec4 glowData;         // x = glowSize, yzw = glow RGB
+layout (location = 6) in vec4 shapeData;        // x = length rand, y = width rand, z = thruster offset
+
+// Drawn thruster position (between sim frames, offset behind the model), flight direction and
+// flame size. False for a missile without speed: it has no direction and is not drawn.
+bool thrusterMotion(out vec3 worldPos, out vec3 dir, out float flameWidth, out float flameLength)
+{
+	vec3 vel = velAndLength.xyz;
+	float speedSq = dot(vel, vel);
+	if (speedSq <= 0.0001) {
+		return false;
+	}
+	dir = vel * inversesqrt(speedSq);
+	worldPos = posAndSize.xyz + vel * (timeInfo.w - 1.0) - dir * shapeData.z;
+
+	// Random length/width flicker: new for every instance and draw frame, frozen while paused
+	uint h = floatBitsToUint(timeInfo.z) ^ (uint(gl_InstanceID) * 0x9E3779B9u);
+	h = (h ^ (h >> 16u)) * 0x7FEB352Du;
+	h = (h ^ (h >> 15u)) * 0x846CA68Bu;
+	h ^= h >> 16u;
+	float rand = float(h >> 8u) * (1.0 / 16777216.0);
+	flameWidth = posAndSize.w * (1.0 + rand * shapeData.y);
+	flameLength = velAndLength.w * (1.0 + rand * shapeData.x);
+	return true;
+}
+]]
+
+--------------------------------------------------------------------------------
+-- Shader sources: Flame (velocity-aligned quad)
+-- Each instance draws two planes turned 90 degrees about the flight direction,
+-- a cross that is visible from all angles.
+--------------------------------------------------------------------------------
+local flameVsSrc = vsHead
+	.. [[
+#line 11000
 
 out DataVS {
 	vec2 texCoords;
@@ -457,32 +492,29 @@ out DataVS {
 
 void main()
 {
-	vec3 worldPos = posAndSize.xyz;
-	float flameWidth = posAndSize.w;
-	vec3 dir = dirAndLength.xyz;
-	float flameLength = dirAndLength.w;
-
-	// Build orientation basis from direction vector
-	// The flame quad is stretched along 'dir', with width perpendicular
-	vec3 forward = normalize(dir);
-
-	// Fixed world-derived perpendicular axis (does not rotate with camera).
-	// The cross pass uses the other perpendicular — together they form a
-	// stable cross shape visible from all angles.
-	vec3 right = cross(forward, vec3(0.0, 1.0, 0.0));
-	float rightLen = length(right);
-	if (rightLen < 0.001) {
-		right = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
-	} else {
-		right = right / rightLen;
+	vec3 worldPos, forward;
+	float flameWidth, flameLength;
+	if (!thrusterMotion(worldPos, forward, flameWidth, flameLength)) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
 	}
 
+	// Fixed world-derived perpendicular axis (does not rotate with camera).
+	// The second plane uses the other perpendicular — together they form a
+	// stable cross shape visible from all angles.
+	vec3 axis1 = cross(forward, vec3(0.0, 1.0, 0.0));
+	float axis1Len = length(axis1);
+	if (axis1Len < 0.001) {
+		axis1 = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
+	} else {
+		axis1 = axis1 / axis1Len;
+	}
+	vec3 right = (quadVertex.z > 0.5) ? cross(axis1, forward) : axis1;
+
 	// The flame quad extends from the projectile position along the direction.
-	// position_xy_uv.y: 0..1 (from makeRectVBO UV), but position_xy_uv.y vertex: -1..1
-	// We want the flame to start at the projectile and extend in the flame direction.
 	// flameLength sign determines direction: negative = behind projectile, positive = forward
 	// Map vertex y from -1..1 to 0..1 (flame starts at projectile, extends away)
-	float yNorm = position_xy_uv.y * 0.5 + 0.5;  // 0 at projectile, 1 at tip/tail
+	float yNorm = quadVertex.y * 0.5 + 0.5;  // 0 at projectile, 1 at tip/tail
 
 	// SizeGrowth: flame widens from base to tail (matching engine sizegrowth behavior)
 	float sizeGrowth = color2.a;
@@ -497,13 +529,13 @@ void main()
 	float width = flameWidth * widthScale * shimmer;
 
 	vec3 vertexWorld = worldPos
-		+ right * position_xy_uv.x * width
+		+ right * quadVertex.x * width
 		+ forward * yNorm * flameLength;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
 	// Swap UV: texture u (256px) = flame length axis, v (128px) = flame width axis
-	texCoords = vec2(position_xy_uv.w, position_xy_uv.z);
+	texCoords = vec2(yNorm, quadVertex.x * 0.5 + 0.5);
 
 	// Interpolate color along the flame length
 	float t = yNorm;  // 0 = at projectile (base), 1 = end of flame (tip)
@@ -559,102 +591,13 @@ void main(void)
 ]]
 
 --------------------------------------------------------------------------------
--- Shader sources: Cross flame (90-degree rotated flame quad)
--- Uses axis2 = cross(axis1, forward) so the two flame quads form a cross.
--- Reuses the same fragment shader as the main flame pass.
---------------------------------------------------------------------------------
-local crossFlameVsSrc = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
-#line 50000
-
-//__DEFINES__
-//__ENGINEUNIFORMBUFFERDEFS__
-
-layout (location = 0) in vec4 position_xy_uv;
-
-layout (location = 1) in vec4 posAndSize;
-layout (location = 2) in vec4 dirAndLength;
-layout (location = 3) in vec4 color1;
-layout (location = 4) in vec4 color2;
-
-out DataVS {
-	vec2 texCoords;
-	vec4 flameColor;
-};
-
-void main()
-{
-	vec3 worldPos = posAndSize.xyz;
-	float flameWidth = posAndSize.w;
-	vec3 dir = dirAndLength.xyz;
-	float flameLength = dirAndLength.w;
-
-	vec3 forward = normalize(dir);
-
-	// Second perpendicular axis: cross(axis1, forward) where axis1 = cross(forward, worldUp).
-	// Together with the main pass (which uses axis1) this forms a stable cross.
-	vec3 axis1 = cross(forward, vec3(0.0, 1.0, 0.0));
-	float axis1Len = length(axis1);
-	if (axis1Len < 0.001) {
-		axis1 = normalize(cross(forward, vec3(1.0, 0.0, 0.0)));
-	} else {
-		axis1 = axis1 / axis1Len;
-	}
-	vec3 right = cross(axis1, forward);
-
-	float yNorm = position_xy_uv.y * 0.5 + 0.5;
-
-	float sizeGrowth = color2.a;
-	float widthScale = 1.0 + sizeGrowth * yNorm;
-
-	float phase = worldPos.x * 1.0 + worldPos.z * 1.3;
-	float shimmer = 1.0 + SHIMMER_AMPLITUDE * sin(timeInfo.z * SHIMMER_SPEED + phase) * (SHIMMER_TAIL_BIAS + (1.0 - SHIMMER_TAIL_BIAS) * yNorm);
-
-	float width = flameWidth * widthScale * shimmer;
-
-	vec3 vertexWorld = worldPos
-		+ right * position_xy_uv.x * width
-		+ forward * yNorm * flameLength;
-
-	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
-
-	texCoords = vec2(position_xy_uv.w, position_xy_uv.z);
-
-	float t = yNorm;
-	vec3 tipColor = color1.rgb;
-	vec3 endColor = color2.rgb;
-	float alpha = color1.a;
-
-	vec3 col = mix(tipColor, endColor, smoothstep(0.0, COLOR_GRADIENT_END, t));
-
-	float breathe = BREATHE_BASE + BREATHE_RANGE * sin(timeInfo.z * BREATHE_SPEED + phase * 3.1);
-	alpha *= breathe * (1.0 - smoothstep(TAIL_FADE_START, TAIL_FADE_END, t));
-
-	flameColor = vec4(col, alpha);
-}
-]]
-
---------------------------------------------------------------------------------
 -- Shader sources: Cross-section (camera-facing circular billboard)
 -- Visible when looking along the missile velocity direction (head-on).
 -- Fades out from the side so it doesn't double-up with flame quads.
 --------------------------------------------------------------------------------
-local crossSectionVsSrc = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+local crossSectionVsSrc = vsHead
+	.. [[
 #line 60000
-
-//__DEFINES__
-//__ENGINEUNIFORMBUFFERDEFS__
-
-layout (location = 0) in vec4 position_xy_uv;
-
-layout (location = 1) in vec4 posAndSize;
-layout (location = 2) in vec4 dirAndLength;
-layout (location = 3) in vec4 color1;
 
 out DataVS {
 	vec2 texCoords;
@@ -664,11 +607,12 @@ out DataVS {
 
 void main()
 {
-	vec3 worldPos = posAndSize.xyz;
-	float flameWidth = posAndSize.w;
-	vec3 dir = dirAndLength.xyz;
-
-	vec3 forward = normalize(dir);
+	vec3 worldPos, forward;
+	float flameWidth, flameLength;
+	if (!thrusterMotion(worldPos, forward, flameWidth, flameLength)) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+		return;
+	}
 
 	// How head-on is the camera view? (1 = looking along velocity, 0 = side view)
 	vec3 camPos = cameraViewInv[3].xyz;
@@ -688,12 +632,12 @@ void main()
 	float crossSize = flameWidth * CROSS_SECTION_SIZE_MULT;
 
 	vec3 vertexWorld = worldPos
-		+ camRight * position_xy_uv.x * crossSize
-		+ camUp    * position_xy_uv.y * crossSize;
+		+ camRight * quadVertex.x * crossSize
+		+ camUp    * quadVertex.y * crossSize;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
-	texCoords = position_xy_uv.zw;
+	texCoords = quadVertex.xy * 0.5 + 0.5;
 	flameColor = color1.rgb;
 	headOnFactor = smoothstep(0.3, 0.7, headOn);
 }
@@ -733,21 +677,9 @@ void main(void)
 --------------------------------------------------------------------------------
 -- Shader sources: Glow (camera-facing billboard)
 --------------------------------------------------------------------------------
-local glowVsSrc = [[
-#version 420
-#extension GL_ARB_uniform_buffer_object : require
-#extension GL_ARB_shading_language_420pack: require
+local glowVsSrc = vsHead
+	.. [[
 #line 30000
-
-//__DEFINES__
-//__ENGINEUNIFORMBUFFERDEFS__
-
-layout (location = 0) in vec4 position_xy_uv;
-
-// Per-instance (shared layout with flame VBO)
-layout (location = 1) in vec4 posAndSize;      // xyz = world pos, w = flame width (unused for glow)
-layout (location = 2) in vec4 dirAndLength;     // xyz = normalized direction, w = flame length
-layout (location = 5) in vec4 glowData;         // x = glowSize, yzw = glow RGB
 
 out DataVS {
 	vec2 texCoords;
@@ -756,18 +688,17 @@ out DataVS {
 
 void main()
 {
-	vec3 worldPos = posAndSize.xyz;
 	float glowSize = glowData.x;
+	vec3 worldPos, dir;
+	float flameWidth, flameLength;
 
 	// Skip instances with no glow (degenerate quad off-screen)
-	if (glowSize <= 0.0) {
+	if (glowSize <= 0.0 || !thrusterMotion(worldPos, dir, flameWidth, flameLength)) {
 		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 		return;
 	}
 
 	// Offset glow center 1/3 along the flame length (toward the tail)
-	vec3 dir = dirAndLength.xyz;
-	float flameLength = dirAndLength.w;
 	vec3 glowCenter = worldPos + dir * flameLength * 0.4;
 
 	// Billboard: camera-facing quad
@@ -775,11 +706,11 @@ void main()
 	vec3 camUp    = cameraViewInv[1].xyz;
 
 	vec3 vertexWorld = glowCenter
-		+ camRight * position_xy_uv.x * glowSize
-		+ camUp    * position_xy_uv.y * glowSize;
+		+ camRight * quadVertex.x * glowSize
+		+ camUp    * quadVertex.y * glowSize;
 
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
-	texCoords = position_xy_uv.zw;
+	texCoords = quadVertex.xy * 0.5 + 0.5;
 	color = vec4(glowData.yzw, 1.0);
 }
 ]]
@@ -820,36 +751,36 @@ void main(void)
 
 ---@type InstanceVBOTable?
 local flameVBO
-local flameShader
-local crossFlameShader -- 90-degree rotated flame for volume from all angles
+---@type VAO
+local flameVAO
+local flameShader -- both crossed velocity-aligned flame planes
 local crossSectionShader -- camera-facing billboard for head-on view
 local glowShader
 
--- Per-projectile persistent state (direction + position cache for pause fallback)
-local projectileCache = {} -- proID -> {dx, dy, dz, px, py, pz}
+-- Instances are rebuilt once per sim frame; the vertex shaders move them between sim frames
+local builtFrame = -1
+local needsRebuild = true
+local slotConfig = {} -- per instance slot: the config whose constant attributes it holds
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
 -- When nil, we fall back to calling Spring.GetVisibleProjectiles directly.
 local dispatchHandle = nil
-local cacheCleanupFrame = 0
 
 -- Cross-section billboard (camera-facing, visible when looking along missile velocity)
 local CROSS_SECTION_BRIGHTNESS = 0.5 -- brightness for head-on cross-section glow
 local CROSS_SECTION_SIZE_MULT = 1.5 -- cross-section billboard size relative to flame width
 
--- Idle skip: when no missiles found, throttle GetVisibleProjectiles polling
-local idleSkipCounter = 0
-local IDLE_SKIP_FRAMES = 5 -- only poll every Nth draw frame when idle
-
--- Paused-state camera tracking: while paused, only rebuild when camera moves
+-- Paused-state camera tracking: while paused, projectiles are frozen so the
+-- only thing that can change the drawn set is the camera moving.
+local wasPaused = false
 local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
-local pausedCamRX, pausedCamRY, pausedCamRZ = 0, 0, 0
+local pausedCamDX, pausedCamDY, pausedCamDZ = 0, 0, 0
 local pausedLastRebuildTimer = nil
 local PAUSED_MOVE_MIN_INTERVAL = 0.05
 
--- Cached ally team (updated via PlayerChanged / spectator change)
-local cachedAllyTeamID = spGetMyAllyTeamID()
-local cachedSpecFullView = false
+local myAllyTeamID = spGetMyAllyTeamID()
+local specFullView = false
+local alliedTeams = {} -- teamID -> true for the teams of myAllyTeamID
 
 local function goodbye(reason)
 	spEcho("Missile Thruster GL4 exiting: " .. reason)
@@ -881,22 +812,6 @@ local function initGL4()
 	flameShader = LuaShader.CheckShaderUpdates(flameShaderCache)
 	if not flameShader then
 		goodbye("Failed to compile flame shader")
-		return false
-	end
-
-	-- Cross flame shader (reuses flame FS with different VS axes)
-	local crossFlameShaderCache = {
-		vsSrc = crossFlameVsSrc,
-		fsSrc = flameFsSrc,
-		shaderName = "MissileThrusterCrossFlameGL4",
-		uniformInt = { flameTex = 0 },
-		uniformFloat = {},
-		shaderConfig = flameShaderCache.shaderConfig,
-		forceupdate = true,
-	}
-	crossFlameShader = LuaShader.CheckShaderUpdates(crossFlameShaderCache)
-	if not crossFlameShader then
-		goodbye("Failed to compile cross flame shader")
 		return false
 	end
 
@@ -935,31 +850,62 @@ local function initGL4()
 		return false
 	end
 
-	-- Shared quad VBOs
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "missileThrusterQuadVBO")
-	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("missileThrusterIndexVBO")
+	-- Two crossed quads of 6 vertices (xy = corner, z = plane); the billboard passes draw the first
+	local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not quadVBO then
+		goodbye("Failed to create quad VBO")
+		return false
+	end
+	local corners = { -1, -1, -1, 1, 1, 1, 1, 1, 1, -1, -1, -1 }
+	local quadVertices = {}
+	for plane = 0, 1 do
+		for i = 1, #corners, 2 do
+			local n = #quadVertices
+			quadVertices[n + 1] = corners[i]
+			quadVertices[n + 2] = corners[i + 1]
+			quadVertices[n + 3] = plane
+			quadVertices[n + 4] = 0
+		end
+	end
+	quadVBO:Define(12, { { id = 0, name = "quadVertex", size = 4 } })
+	quadVBO:Upload(quadVertices)
 
-	-- Flame VBO (combined layout: flame data + embedded glow data, UV flip via alpha sign)
+	-- Flame VBO (combined layout: flame data + embedded glow data)
 	local flameLayout = {
 		{ id = 1, name = "posAndSize", size = 4 },
-		{ id = 2, name = "dirAndLength", size = 4 },
+		{ id = 2, name = "velAndLength", size = 4 },
 		{ id = 3, name = "color1", size = 4 },
 		{ id = 4, name = "color2", size = 4 },
 		{ id = 5, name = "glowData", size = 4 },
+		{ id = 6, name = "shapeData", size = 4 },
 	}
-	flameVBO = gl.InstanceVBOTable.makeInstanceVBOTable(flameLayout, MAX_FLAMES, "missileThrusterFlameVBO")
+	flameVBO = gl.InstanceVBOTable.makeInstanceVBOTable(flameLayout, INITIAL_VBO_SIZE, "missileThrusterFlameVBO")
 	if not flameVBO then
 		goodbye("Failed to create flame VBO")
 		return false
 	end
-	flameVBO.numVertices = numVertices
-	flameVBO.vertexVBO = quadVBO
-	flameVBO.VAO = flameVBO:makeVAOandAttach(quadVBO, flameVBO.instanceVBO)
-	flameVBO.primitiveType = GL.TRIANGLES
-	flameVBO.VAO:AttachIndexBuffer(indexVBO)
-	flameVBO.indexVBO = indexVBO
+	flameVAO = flameVBO:makeVAOandAttach(quadVBO, flameVBO.instanceVBO)
 
 	return true
+end
+
+local function resizeFlameVBO(needed)
+	local newMax = flameVBO.maxElements
+	while newMax < needed do
+		newMax = newMax * 2
+	end
+	flameVBO.maxElements = newMax
+	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true)
+	newInstanceVBO:Define(newMax, flameVBO.layout)
+	flameVBO.instanceVBO:Delete()
+	flameVBO.instanceVBO = newInstanceVBO
+	local data = flameVBO.instanceData
+	local step = flameVBO.instanceStep
+	for i = #data + 1, step * newMax do
+		data[i] = 0
+	end
+	flameVAO:Delete()
+	flameVAO = flameVBO:makeVAOandAttach(flameVBO.vertexVBO, flameVBO.instanceVBO)
 end
 
 local function cleanupGL4()
@@ -973,35 +919,32 @@ end
 -- Drawing
 --------------------------------------------------------------------------------
 local function drawAll()
-	if flameVBO.usedElements == 0 then
+	local count = flameVBO.usedElements
+	if count == 0 then
 		return
 	end
+	local vao = flameVAO
 
 	glDepthTest(true)
 	glDepthMask(false)
 	glCulling(false)
 	glBlending(GL_ONE, GL_ONE)
 
-	-- Flame pass (axis1: cross(forward, worldUp))
+	-- Flame pass: both crossed planes
 	glTexture(0, muzzleTexture)
 	flameShader:Activate()
-	flameVBO:Draw()
+	vao:DrawArrays(GL_TRIANGLES, 12, 0, count)
 	flameShader:Deactivate()
-
-	-- Cross flame pass (axis2: cross(axis1, forward) — 90-degree rotated)
-	crossFlameShader:Activate()
-	flameVBO:Draw()
-	crossFlameShader:Deactivate()
 
 	-- Cross-section pass (camera-facing, head-on view)
 	glTexture(0, glowTexture)
 	crossSectionShader:Activate()
-	flameVBO:Draw()
+	vao:DrawArrays(GL_TRIANGLES, 6, 0, count)
 	crossSectionShader:Deactivate()
 
 	-- Glow pass (same VBO, glow shader reads glowData; zero-size glows culled in VS)
 	glowShader:Activate()
-	flameVBO:Draw()
+	vao:DrawArrays(GL_TRIANGLES, 6, 0, count)
 	glowShader:Deactivate()
 	glTexture(0, false)
 
@@ -1011,50 +954,13 @@ local function drawAll()
 end
 
 --------------------------------------------------------------------------------
--- Per-frame projectile scan + VBO upload
+-- Per-sim-frame projectile scan + VBO upload
 -- Uses direct instanceData writes instead of pushElementInstance to avoid
 -- per-instance hash lookups/writes and per-frame hash table allocations.
 --------------------------------------------------------------------------------
+local INSTANCE_STEP = 24 -- posAndSize, velAndLength, color1, color2, glowData, shapeData
 
-local function updateMissiles()
-	-- When paused, projectiles aren't moving and FPS is uncapped, so re-running
-	-- the full visible-projectile scan + VBO upload every draw frame is pure waste.
-	-- Only rebuild when the camera changes (so panning back to offscreen missiles
-	-- still works); otherwise reuse the previously uploaded VBO contents.
-	local _, _, isPaused = spGetGameSpeed()
-	if isPaused then
-		local cx, cy, cz = spGetCameraPosition()
-		local dx, dy, dz = spGetCameraDirection()
-		if
-			cx == pausedCamX
-			and cy == pausedCamY
-			and cz == pausedCamZ
-			and dx == pausedCamRX
-			and dy == pausedCamRY
-			and dz == pausedCamRZ
-		then
-			return
-		end
-		-- Camera moved while paused: cap rebuild rate by wall clock (FPS-indep).
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
-			return
-		end
-		pausedLastRebuildTimer = now
-		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
-		pausedCamRX, pausedCamRY, pausedCamRZ = dx, dy, dz
-	end
-
-	-- When idle (no missiles last check), throttle polling to every Nth draw frame
-	if idleSkipCounter > 0 then
-		idleSkipCounter = idleSkipCounter - 1
-		return
-	end
-
-	flameVBO.usedElements = 0
-
-	local ftoAdj = spGetFrameTimeOffset() - 1.0
-
+local function rebuildInstances()
 	-- Pull the pre-filtered missile projectile list from the shared dispatcher.
 	-- When the dispatcher is loaded it has already called GetProjectileDefID
 	-- once per projectile (shared with every other gfx_*_gl4 consumer) and
@@ -1070,120 +976,129 @@ local function updateMissiles()
 		projectiles = spGetVisibleProjectiles(-1, true, true, false)
 		nProj = projectiles and #projectiles or 0
 	end
-	if not projectiles or nProj == 0 then
-		idleSkipCounter = IDLE_SKIP_FRAMES
-		return
-	end
 
-	local flameData = flameVBO.instanceData
-	local flameStep = 20 -- posAndSize(4) + dirAndLength(4) + color1(4) + color2(4) + glowData(4)
-	local flameCount = 0
-	local myAllyTeam = cachedAllyTeamID
-	local needLosCheck = not cachedSpecFullView
+	local data = flameVBO.instanceData
+	local count = 0
+	local myAllyTeam = myAllyTeamID
+	local allied = alliedTeams
+	local needLosCheck = not specFullView
+	local configs = weaponConfigs
+	local slots = slotConfig
 
 	for i = 1, nProj do
 		local proID = projectiles[i]
 		local cfg
 		if dispatcherFiltered then
-			cfg = weaponConfigs[matchDefIDs[i]]
+			cfg = configs[matchDefIDs[i]]
 		else
-			cfg = weaponConfigs[spGetProjectileDefID(proID)]
+			cfg = configs[spGetProjectileDefID(proID)]
 		end
 		if cfg then
 			-- Skip thruster if missile has run out of propulsion (TTL expired)
 			local ttl = spGetProjectileTimeToLive(proID)
 			if not ttl or ttl > 0 then
 				local px, py, pz = spGetProjectilePosition(proID)
-				if px then
-					-- LOS check: own allyteam projectiles always visible, enemy ones need LOS
-					local visible = true
-					if needLosCheck then
-						local proTeam = spGetProjectileTeamID(proID)
-						local proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
-						if proAlly ~= myAllyTeam then
-							visible = spIsPosInAirLos(px, 0, pz, myAllyTeam)
-						end
-					end
-					if visible then
-						local vx, vy, vz = spGetProjectileVelocity(proID)
-						if vx then
-							local speedSq = vx * vx + vy * vy + vz * vz
-							local dx, dy, dz
-
-							if speedSq > 0.0001 then
-								local invSpeed = 1.0 / mathSqrt(speedSq)
-								dx, dy, dz = vx * invSpeed, vy * invSpeed, vz * invSpeed
-								px = px + vx * ftoAdj
-								py = py + vy * ftoAdj
-								pz = pz + vz * ftoAdj
-								local ofs = cfg.thrusterOffset
-								px = px - dx * ofs
-								py = py - dy * ofs
-								pz = pz - dz * ofs
-								local cached = projectileCache[proID]
-								if cached then
-									cached[1], cached[2], cached[3] = dx, dy, dz
-									cached[4], cached[5], cached[6] = px, py, pz
-								else
-									projectileCache[proID] = { dx, dy, dz, px, py, pz }
-								end
-							else
-								local cached = projectileCache[proID]
-								if cached then
-									dx, dy, dz = cached[1], cached[2], cached[3]
-									px, py, pz = cached[4], cached[5], cached[6]
-								end
-							end
-
-							if dx then
-								local length = cfg.length
-								local size = cfg.size
-								if cfg.hasRand then
-									local rand = mathRandom()
-									length = length * (1 + rand * cfg.lengthRand)
-									size = size * (1 + rand * cfg.widthRand)
-								end
-
-								if flameCount >= MAX_FLAMES then
-									break
-								end
-								flameCount = flameCount + 1
-								local offset = (flameCount - 1) * flameStep
-								flameData[offset + 1] = px
-								flameData[offset + 2] = py
-								flameData[offset + 3] = pz
-								flameData[offset + 4] = size
-								flameData[offset + 5] = dx
-								flameData[offset + 6] = dy
-								flameData[offset + 7] = dz
-								flameData[offset + 8] = length
-								flameData[offset + 9] = cfg.colorR
-								flameData[offset + 10] = cfg.colorG
-								flameData[offset + 11] = cfg.colorB
-								flameData[offset + 12] = 1.0
-								flameData[offset + 13] = cfg.colorEndR
-								flameData[offset + 14] = cfg.colorEndG
-								flameData[offset + 15] = cfg.colorEndB
-								flameData[offset + 16] = cfg.sizeGrowth
-								flameData[offset + 17] = cfg.glowSizeFinal
-								flameData[offset + 18] = cfg.glowRFinal
-								flameData[offset + 19] = cfg.glowGFinal
-								flameData[offset + 20] = cfg.glowBFinal
-							end
+				local visible = px ~= nil
+				-- LOS check: own allyteam projectiles always visible, enemy ones need LOS
+				-- (LOS is tested first, so missiles in LOS need no team lookup)
+				if visible and needLosCheck and not spIsPosInAirLos(px, 0, pz, myAllyTeam) then
+					visible = allied[spGetProjectileTeamID(proID)]
+				end
+				if visible then
+					local vx, vy, vz = spGetProjectileVelocity(proID)
+					if vx then
+						local offset = count * INSTANCE_STEP
+						count = count + 1
+						data[offset + 1] = px
+						data[offset + 2] = py
+						data[offset + 3] = pz
+						data[offset + 5] = vx
+						data[offset + 6] = vy
+						data[offset + 7] = vz
+						if slots[count] ~= cfg then
+							slots[count] = cfg
+							data[offset + 4] = cfg.size
+							data[offset + 8] = cfg.length
+							data[offset + 9] = cfg.colorR
+							data[offset + 10] = cfg.colorG
+							data[offset + 11] = cfg.colorB
+							data[offset + 12] = 1.0
+							data[offset + 13] = cfg.colorEndR
+							data[offset + 14] = cfg.colorEndG
+							data[offset + 15] = cfg.colorEndB
+							data[offset + 16] = cfg.sizeGrowth
+							data[offset + 17] = cfg.glowSizeFinal
+							data[offset + 18] = cfg.glowRFinal
+							data[offset + 19] = cfg.glowGFinal
+							data[offset + 20] = cfg.glowBFinal
+							data[offset + 21] = cfg.lengthRand
+							data[offset + 22] = cfg.widthRand
+							data[offset + 23] = cfg.thrusterOffset
+							data[offset + 24] = 0
 						end
 					end
 				end
-			end -- ttl check
-		end -- cfg check
+			end
+		end
 	end
 
-	flameVBO.usedElements = flameCount
-	if flameCount > 0 then
-		idleSkipCounter = 0 -- missiles active, poll every frame
+	flameVBO.usedElements = count
+	if count > 0 then
+		if count > flameVBO.maxElements then
+			resizeFlameVBO(count)
+		end
 		uploadAllElements(flameVBO)
-	else
-		idleSkipCounter = IDLE_SKIP_FRAMES -- no matching missiles, throttle
 	end
+end
+
+-- While paused only the camera can change which projectiles are visible: rebuild when it
+-- moves (throttled, paused FPS is uncapped) so missiles panned back on-screen reappear.
+local function pausedViewChanged()
+	local _, _, isPaused = spGetGameSpeed()
+	local firstPausedDraw = isPaused and not wasPaused
+	wasPaused = isPaused
+	if not isPaused then
+		return false
+	end
+	local cx, cy, cz = spGetCameraPosition()
+	local dx, dy, dz = spGetCameraDirection()
+	if firstPausedDraw then
+		pausedLastRebuildTimer = nil
+	else
+		if
+			cx == pausedCamX
+			and cy == pausedCamY
+			and cz == pausedCamZ
+			and dx == pausedCamDX
+			and dy == pausedCamDY
+			and dz == pausedCamDZ
+		then
+			return false
+		end
+		local now = spGetTimer()
+		if pausedLastRebuildTimer and spDiffTimers(now, pausedLastRebuildTimer) < PAUSED_MOVE_MIN_INTERVAL then
+			return false
+		end
+		pausedLastRebuildTimer = now
+	end
+	pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
+	pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
+	return true
+end
+
+local function updateLosView()
+	myAllyTeamID = spGetMyAllyTeamID()
+	local _, fullView = spGetSpectatingState()
+	specFullView = fullView
+	alliedTeams = {}
+	local teams = spGetTeamList()
+	---@cast teams -?
+	for i = 1, #teams do
+		if spGetTeamAllyTeamID(teams[i]) == myAllyTeamID then
+			alliedTeams[teams[i]] = true
+		end
+	end
+	needsRebuild = true
 end
 
 --------------------------------------------------------------------------------
@@ -1194,6 +1109,8 @@ function gadget:Initialize()
 	if not initGL4() then
 		return
 	end
+	-- PlayerChanged does not fire at game start
+	updateLosView()
 	local n = 0
 	for _ in pairs(weaponConfigs) do
 		n = n + 1
@@ -1214,31 +1131,8 @@ function gadget:Initialize()
 	spEcho("Missile Thruster GL4: initialized with " .. n .. " weapon configs")
 end
 
-function gadget:GameFrame(n)
-	-- Periodic cache cleanup (runs in GameFrame to avoid per-draw overhead)
-	if n > cacheCleanupFrame then
-		cacheCleanupFrame = n + 90
-		-- Two-pass cleanup: mark then sweep (avoids table alloc for removeList)
-		local hasEntries = false
-		for proID in pairs(projectileCache) do
-			if not spGetProjectilePosition(proID) then
-				projectileCache[proID] = false -- mark for removal
-			else
-				hasEntries = true
-			end
-		end
-		for proID, v in pairs(projectileCache) do
-			if v == false then
-				projectileCache[proID] = nil
-			end
-		end
-	end
-end
-
-function gadget:PlayerChanged(playerID)
-	local _, specFullView = spGetSpectatingState()
-	cachedSpecFullView = specFullView
-	cachedAllyTeamID = specFullView and -1 or spGetMyAllyTeamID()
+function gadget:PlayerChanged()
+	updateLosView()
 end
 
 function gadget:Shutdown()
@@ -1246,6 +1140,11 @@ function gadget:Shutdown()
 end
 
 function gadget:DrawWorld()
-	updateMissiles()
+	local gameFrame = spGetGameFrame()
+	if pausedViewChanged() or gameFrame ~= builtFrame or needsRebuild then
+		builtFrame = gameFrame
+		needsRebuild = false
+		rebuildInstances()
+	end
 	drawAll()
 end
