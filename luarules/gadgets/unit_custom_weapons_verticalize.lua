@@ -77,9 +77,12 @@ local math_sqrt = math.sqrt
 local math_floor = math.floor
 local math_diag = math.diag
 local math_pi = math.pi
-local math_acos = math.acos
-local math_sin = math.sin
 local math_asin = math.asin
+local distance2D = math.distance2d
+local distance2DSquared = math.distance2dSquared
+local quadraticRoots = math.quadraticRoots
+
+local slerp = VFS.Include("common/vectors.lua").slerp
 
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
@@ -101,19 +104,6 @@ local inSpawnProjectile = false
 
 --------------------------------------------------------------------------------
 -- Vectors minilib -------------------------------------------------------------
-
-local ARC_EPSILON = 1e-6
-local ARC_NORMAL_EPSILON = 1 - 1e-6
-
-local function distanceXZ(position1, position2)
-	return math_diag(position1[1] - position2[1], position1[3] - position2[3])
-end
-
-local function isInCylinder(vector, origin, radius)
-	local v1, v3 = vector[1], vector[3]
-	local o1, o3 = origin[1], origin[3]
-	return radius * radius >= (v1 - o1) * (v1 - o1) + (v3 - o3) * (v3 - o3)
-end
 
 local positionGuidance = table.new(3, 1) ---@type xyz
 local velocityGuidance = table.new(4, 0) ---@type xyzw
@@ -243,12 +233,12 @@ local function getUptime(projectile, height)
 	local speedMax = projectile.speedMax
 	local acceleration = projectile.acceleration
 
-	if acceleration == 0 or speedMin == speedMax then
+	if acceleration == 0.0 or speedMin == speedMax then
 		return height / speedMax
 	end
 
 	if height < speedMin then
-		return 0
+		return 0.0
 	end
 
 	local accelTime = (speedMax - speedMin) / acceleration
@@ -260,17 +250,12 @@ local function getUptime(projectile, height)
 		return height / speedAvg
 	end
 
-	-- Solve d = 0.5 a t^2 + v_0 t for time t:
-	local a, b, c = 0.5 * acceleration, speedMin, -height
-	local discriminant = b * b - 4 * a * c
+	local t1, t2 = quadraticRoots(0.5 * acceleration, speedMin, -height)
 
-	if discriminant < 0 then
-		return 0
+	if not t1 then
+		return 0.0
 	end
 
-	discriminant = math_sqrt(discriminant)
-	local t1 = (-b + discriminant) / (2 * a)
-	local t2 = (-b - discriminant) / (2 * a)
 	return (t1 >= 0 and t2 >= 0) and math_min(t1, t2) or (t1 >= 0 and t1 or t2)
 end
 
@@ -363,7 +348,7 @@ local function register(projectileID, weaponDefID)
 		cruiseEndInverse = 0,
 	}
 
-	local targetDistance = distanceXZ(position, target)
+	local targetDistance = distance2D(position[1], position[3], target[1], target[3])
 	local upTimeFrames =
 		math_clamp(getUptime(projectile, ascendHeight - position[2]), weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
 
@@ -385,7 +370,7 @@ local function register(projectileID, weaponDefID)
 	Spring.SetProjectileTarget(projectileID, target[1], targetHeight, target[3])
 end
 
--- Flight plan phases ----------------------------------------------------------
+-- Flight phases ---------------------------------------------------------------
 
 local function ascend(projectileID, projectile, frame)
 	local position, velocity = getPositionAndVelocity(projectileID)
@@ -405,7 +390,9 @@ local function ascend(projectileID, projectile, frame)
 	local turnFrames = pitchAngle / projectile.turnRate
 
 	local speedMax = projectile.speedMax
-	local dropRadiusFrames = (distanceXZ(position, projectile.target) - projectile.diveRadiusMax) / speedMax
+	local target = projectile.target
+	local targetDistance = distance2D(position[1], position[3], target[1], target[3])
+	local dropRadiusFrames = (targetDistance - projectile.diveRadiusMax) / speedMax
 
 	return frame + math_floor(math_min(turnFrames, dropRadiusFrames)) - checkWindowFrames
 end
@@ -447,7 +434,8 @@ local function turnToLevel(projectileID, projectile, frame)
 
 	projectile.phase = projectile.phase + 1
 	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
-	local cruiseDistance = distanceXZ(getPosition(projectileID), projectile.target) - cruiseEndRadius
+	local position, target = getPosition(projectileID), projectile.target
+	local cruiseDistance = distance2D(position[1], position[3], target[1], target[3]) - cruiseEndRadius
 	return frame + math_floor(cruiseDistance / projectile.speedMax) - checkWindowFrames
 end
 
@@ -460,7 +448,8 @@ local function cruise(projectileID, projectile, frame)
 	-- Most vertical-launch missiles accelerate slowly so are still gaining speed here.
 	local target = projectile.target
 	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
-	if not isInCylinder(position, target, cruiseEndRadius) then
+	local targetDistanceSquared = distance2DSquared(position[1], position[3], target[1], target[3])
+	if targetDistanceSquared > cruiseEndRadius * cruiseEndRadius then
 		return frame + 1
 	end
 
@@ -501,30 +490,7 @@ local function verticalize(projectileID, projectile)
 		tz = dz * distInverse
 	end
 
-	local cosAngle = (vx * tx + vy * ty + vz * tz) / speed
-	if cosAngle > 1 then
-		cosAngle = 1
-	elseif cosAngle < -1 then
-		cosAngle = -1
-	end
-
-	-- Spherical-lerp velocity toward the target up to the turnRate.
-	-- A vanishing sine is parallel or antiparallel so keeps steady.
-	local sinAngle = math_sqrt(1 - cosAngle * cosAngle)
-	if sinAngle > ARC_EPSILON then
-		local angle = math_acos(cosAngle)
-		local factor = projectile.turnRate / angle
-		if factor < ARC_NORMAL_EPSILON then
-			local weight1 = math_sin((1 - factor) * angle) / speed
-			local weight2 = math_sin(factor * angle)
-			local scale = speed / sinAngle
-			vx = (vx * weight1 + tx * weight2) * scale
-			vy = (vy * weight1 + ty * weight2) * scale
-			vz = (vz * weight1 + tz * weight2) * scale
-		else
-			vx, vy, vz = tx * speed, ty * speed, tz * speed
-		end
-	end
+	vx, vy, vz = slerp(vx, vy, vz, speed, tx, ty, tz, projectile.turnRate)
 
 	local speedNew = math_min(speed + projectile.acceleration, projectile.speedMax)
 	local ratio = speedNew / speed
