@@ -1,7 +1,7 @@
 -- The team stats panel's custom categories: the player's own lists of graphs, each graph with
--- the settings it is drawn with, shown above the built-in categories in the sidebar. The
--- table takes a custom category's graphs as its columns. One ships with the game - the
--- overview - editable like any other and put back as it came by a reset.
+-- the settings it is drawn with, shown above the built-in categories in the sidebar. One
+-- ships with the game - the overview - editable like any other and put back as it came by a
+-- reset.
 --
 --   local custom = require("luaui/Include/teamstats_custom").new(ctx)
 --   custom.setConfig(saved)                     -- or nothing, for the shipped overview alone
@@ -122,8 +122,7 @@ function M.new(ctx)
 		return ctx.i18n("ui.teamStats.custom.defaultName", { number = category.number or 1 })
 	end
 
-	-- The categories put where the panel reads its groups: at the front of GROUPS, each
-	-- with the columns its graphs give the table.
+	-- The categories put where the panel reads its groups: at the front of GROUPS.
 	function custom.apply()
 		local groups, byKey = ctx.GROUPS, ctx.groupByKey
 		for i = #groups, 1, -1 do
@@ -133,15 +132,6 @@ function M.new(ctx)
 			end
 		end
 		for i, category in ipairs(custom.list) do
-			local columns = {}
-			local seen = {}
-			for _, graph in ipairs(category.graphs) do
-				if not CHART_ONLY[graph.stat] and ctx.COLUMNS[graph.stat] and not seen[graph.stat] then
-					columns[#columns + 1] = graph.stat
-					seen[graph.stat] = true
-				end
-			end
-			category.columns = columns
 			category.custom = true
 			category.label = custom.label(category)
 			table.insert(groups, i, category)
