@@ -13898,12 +13898,12 @@ end
 -- Lua's 200-local limit)
 ----------------------------------------------------------------------------------------------------
 
--- Park-Miller generator: playback effects re-roll identically when a frame is scrubbed again
+-- Lehmer generator: playback effects re-roll identically when a frame is scrubbed again
 function miscState.hist.Rand(seed)
-	seed = (math.floor(seed) % 2147483646) + 1
+	seed = (math.floor(seed) % 65536) + 1
 	return function()
-		seed = (seed * 16807) % 2147483647
-		return seed / 2147483647
+		seed = (seed * 75) % 65537
+		return seed / 65537
 	end
 end
 
