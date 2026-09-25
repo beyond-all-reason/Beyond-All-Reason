@@ -38,6 +38,7 @@ local osClock = os.clock
 
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetMouseState = Spring.GetMouseState
@@ -529,6 +530,7 @@ local function GetStarburstGroundCollisionPos(
 	local ascentFrames = max(0, ceil(weaponInfo.uptime * Config.General.gameSpeed) - 1)
 	local starburstWeapon = weaponInfo.starburst
 	local speed, turnToTarget = weaponInfo.startVelocity, true
+	local _, _, _, groundMax = spGetGroundExtremes()
 
 	for frame = 1, 512 do
 		if targetMoves then
@@ -570,7 +572,7 @@ local function GetStarburstGroundCollisionPos(
 		end
 
 		local nextX, nextY, nextZ = px + dirX * speed, py + dirY * speed, pz + dirZ * speed
-		local groundY = spGetGroundHeight(nextX, nextZ)
+		local groundY = nextY < groundMax and spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
 			local hitDistance, hitX, hitY, hitZ =
 				spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)

@@ -37,6 +37,7 @@ local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
@@ -647,6 +648,7 @@ local function GetPredictedImpactPos(
 
 	local starburstWeapon = weaponInfo.starburst
 	local speed = velocityLength
+	local _, _, _, groundMax = spGetGroundExtremes()
 
 	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
 	local maxFrames = min(remainingTimeToLive or 512, 512)
@@ -689,7 +691,7 @@ local function GetPredictedImpactPos(
 		end
 
 		local nextX, nextY, nextZ = simX + dirX * speed, simY + dirY * speed, simZ + dirZ * speed
-		local groundY = spGetGroundHeight(nextX, nextZ)
+		local groundY = nextY < groundMax and spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
 			local hitDistance, hitX, hitY, hitZ =
 				spTraceRayGroundBetweenPositions(simX, simY, simZ, nextX, nextY, nextZ, false)

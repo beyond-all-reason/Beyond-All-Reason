@@ -64,6 +64,7 @@ local distance2DSquared = math.distance2dSquared
 local quadraticRoots = math.quadraticRoots
 
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 
 local Vectors = VFS.Include("common/vectors.lua")
@@ -474,6 +475,8 @@ local function simulateToImpact(
 	local aimX, aimY, aimZ = aim[1], aim[2], aim[3]
 	local dirX, dirY, dirZ = starburst.dirX, starburst.dirY, starburst.dirZ
 	local speed, ascentFrames, turnToTarget = starburst.speed, starburst.ascentFrames, starburst.turnToTarget
+	local _, _, _, groundMax = spGetGroundExtremes()
+	local collisionHeightMax = math_max(groundMax, 0.0)
 
 	local pathX, pathY, pathZ
 	local pathCount = 0
@@ -522,9 +525,9 @@ local function simulateToImpact(
 			x, y, z = x + dirX * speed, y + dirY * speed, z + dirZ * speed
 		end
 
-		local groundY = spGetGroundHeight(x, z)
+		local groundY = y < collisionHeightMax and spGetGroundHeight(x, z)
 		local hitX, hitY, hitZ
-		if y < groundY then
+		if groundY and y < groundY then
 			local _
 			_, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(x0, y0, z0, x, y, z, false)
 			if not hitX then
