@@ -175,6 +175,7 @@ local function BuildWeaponCache()
 					uptime = wd.uptime or 0,
 					starburst = getStarburstWeapon(wd),
 					verticalize = getVerticalizeWeapon(wd),
+					waterWeapon = wd.waterWeapon,
 					leadLimit = wd.leadLimit or -1,
 					leadBonus = wd.leadBonus or 0,
 					initialTimeToLive = wd.flightTime or 0,
@@ -735,11 +736,11 @@ local function GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
 	)
 end
 
-local function ProjectImpactToGround(x, y, z, projectToGround)
+local function ProjectImpactToSurface(x, y, z, projectToGround, waterWeapon)
 	if projectToGround then
 		local groundY = spGetGroundHeight(x, z)
 		if groundY then
-			y = groundY
+			y = waterWeapon and groundY or max(groundY, 0)
 		end
 	end
 	return x, y, z
@@ -819,6 +820,13 @@ local function UpdateTrackedProjectiles()
 							tx, ty, tz, isFromLaunch =
 								GetVerticalizeImpactPos(proID, existingData.weaponInfo, px, py, pz)
 							if tx then
+								tx, ty, tz = ProjectImpactToSurface(
+									tx,
+									ty,
+									tz,
+									existingData.projectToGround,
+									existingData.weaponInfo.waterWeapon
+								)
 								existingData.targetX = tx
 								existingData.targetY = ty
 								existingData.targetZ = tz
@@ -840,7 +848,13 @@ local function UpdateTrackedProjectiles()
 							existingData.targetVelocityY,
 							existingData.targetVelocityZ
 						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, existingData.projectToGround)
+						tx, ty, tz = ProjectImpactToSurface(
+							tx,
+							ty,
+							tz,
+							existingData.projectToGround,
+							existingData.weaponInfo.waterWeapon
+						)
 						existingData.targetX = tx
 						existingData.targetY = ty
 						existingData.targetZ = tz
@@ -886,8 +900,6 @@ local function UpdateTrackedProjectiles()
 								GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
 							if verticalizeX then
 								tx, ty, tz = verticalizeX, verticalizeY, verticalizeZ
-							else
-								ty = max(spGetGroundHeight(tx, tz), 0)
 							end
 						else
 							tx, ty, tz = GetPredictedImpactPos(
@@ -904,8 +916,8 @@ local function UpdateTrackedProjectiles()
 								targetVelocityY,
 								targetVelocityZ
 							)
-							tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
 						end
+						tx, ty, tz = ProjectImpactToSurface(tx, ty, tz, projectToGround, weaponInfo.waterWeapon)
 
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)

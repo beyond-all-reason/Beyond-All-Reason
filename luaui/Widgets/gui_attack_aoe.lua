@@ -675,10 +675,10 @@ local function GetCachedStarburstTarget(
 	return prediction.x, prediction.y, prediction.z
 end
 
-local function ProjectImpactToGround(x, y, z)
+local function ProjectImpactToSurface(x, y, z, waterWeapon)
 	local groundY = spGetGroundHeight(x, z)
 	if groundY then
-		y = groundY
+		y = waterWeapon and groundY or max(groundY, 0)
 	end
 	return x, y, z
 end
@@ -2362,7 +2362,7 @@ local function DrawUnitAoe(
 			targetVelocityY,
 			targetVelocityZ
 		)
-		tx, ty, tz = ProjectImpactToGround(tx, ty, tz)
+		tx, ty, tz = ProjectImpactToSurface(tx, ty, tz, weaponInfo.waterWeapon)
 	end
 	aimData.target.x, aimData.target.y, aimData.target.z = tx, ty, tz
 
