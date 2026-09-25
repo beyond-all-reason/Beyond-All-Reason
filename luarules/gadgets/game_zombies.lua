@@ -114,6 +114,8 @@ local spGetGroundHeight = spring.GetGroundHeight
 local spGetUnitPosition = spring.GetUnitPosition
 local spGetFeaturePosition = spring.GetFeaturePosition
 local spGetFeatureResurrect = spring.GetFeatureResurrect
+local spGetFeatureResources = spring.GetFeatureResources
+local spGetFeatureHealth = spring.GetFeatureHealth
 local spGetUnitDefID = spring.GetUnitDefID
 local spGetUnitHealth = spring.GetUnitHealth
 local spGetUnitRulesParam = spring.GetUnitRulesParam
@@ -139,6 +141,7 @@ local currentTechLevel = nil
 local autoSpawningEnabled = true
 
 local zombiesBeingBuilt = {}
+local rezzedCorpses = {}
 local zombieCorpseDefs = {}
 local corpseCheckFrames = {}
 local corpsesData = {}
@@ -490,7 +493,7 @@ end
 
 function gadget:FeatureBuildStepPost(featureID)
 	local featureData = corpsesData[featureID]
-	if featureData then
+	if featureData and featureData.zombieStepFrame ~= gameFrame then
 		if not featureData.tamperedFrame then
 			local remainingFrames = featureData.spawnFrame - gameFrame
 			if remainingFrames < featureData.spawnDelayFrames - TIMER_NEAR_MAX_THRESHOLD then
@@ -502,6 +505,41 @@ function gadget:FeatureBuildStepPost(featureID)
 		end
 		featureData.tamperedFrame = gameFrame
 	end
+end
+
+function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
+	if part <= 0 or builderTeam ~= gaiaTeamID or not isZombie(builderID) then
+		return true
+	end
+	if rezzedCorpses[featureID] then
+		return false -- the corpse is deleted a frame later, so other rezzers on it must not spawn again
+	end
+	local corpseData = corpsesData[featureID]
+	if corpseData then
+		corpseData.zombieStepFrame = gameFrame
+	end
+	local corpseDefData = zombieCorpseDefs[featureDefID]
+	local metal, maxMetal = spGetFeatureResources(featureID)
+	local _, _, resurrectProgress = spGetFeatureHealth(featureID)
+	if not corpseDefData or metal < maxMetal or resurrectProgress + part < 1 then
+		return true
+	end
+	local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+	if not featureX then
+		return true
+	end
+	rezzedCorpses[featureID] = true
+	spawnZombies(
+		featureID,
+		corpseDefData.unitDefID,
+		calculateHealthRatio(featureID),
+		featureX,
+		featureY,
+		featureZ,
+		false, -- a rezzed zombie corpse rolls the full count, only timer respawns are capped at one
+		corpseData and corpseData.pastXp
+	)
+	return false
 end
 
 function gadget:GameFrame(frame)
@@ -649,6 +687,7 @@ end
 function gadget:FeatureDestroyed(featureID, allyTeam)
 	clearCorpseRezRulesParam(featureID)
 	corpsesData[featureID] = nil
+	rezzedCorpses[featureID] = nil
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
