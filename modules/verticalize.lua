@@ -45,15 +45,24 @@
 -- angle to the target position. I don't want to rely on frame-perfect copies of
 -- engine behavior in the game lua. Also, we want to shape the vertical descent.
 
+local math_abs = math.abs
 local math_min = math.min
 local math_max = math.max
 local math_clamp = math.clamp
+local math_sqrt = math.sqrt
+local math_floor = math.floor
+local math_diag = math.diag
 local math_pi = math.pi
+local math_asin = math.asin
 local distance2D = math.distance2d
+local distance2DSquared = math.distance2dSquared
 local quadraticRoots = math.quadraticRoots
+
+local slerp = VFS.Include("common/vectors.lua").slerp
 
 local cruiseHeightMin = 50 -- note: barely above ground
 local cruiseHeightMax = 3000 -- note: not all that high up
+local checkWindowFrames = 6 -- count of polling frames used to predict new phases
 local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto target
 
 ---@class VerticalizeWeapon
@@ -254,7 +263,159 @@ local function getAimHeight(weapon, projectile)
 	return projectile.ascendHeight + weapon.ascentRadius
 end
 
+---@param projectile VerticalizeProjectile
+---@param position xyz
+---@param velocity xyzw
+---@param frame integer
+---@return integer
+local function ascend(projectile, position, velocity, frame)
+	if velocity[4] <= 0 then
+		return frame + 1
+	end
+
+	-- Hand off at the ascend height or, on a climb cut short, once it stops climbing.
+	if velocity[2] > 0 and projectile.ascendHeight - position[2] >= velocity[2] then
+		return frame + 1
+	end
+
+	projectile.phase = projectile.phase + 1
+
+	local pitchAngle = math_asin(math_clamp(math_abs(velocity[2]) / velocity[4], 0, 1))
+	local turnFrames = pitchAngle / projectile.turnRate
+
+	local speedMax = projectile.speedMax
+	local target = projectile.target
+	local targetDistance = distance2D(position[1], position[3], target[1], target[3])
+	local dropRadiusFrames = (targetDistance - projectile.diveRadiusMax) / speedMax
+
+	return frame + math_floor(math_min(turnFrames, dropRadiusFrames)) - checkWindowFrames
+end
+
+-- Descent curvature is constant at radius r := (1 + chase) * v / turnRate.
+-- The radius increases with chase factor, then. Once r exceeds the height,
+-- which has to be avoided by tuning the weapondef properly and has no fix,
+-- the projectile flies in on a wider drop and impacts before verticalized.
+--
+-- That impact comes before the quarter turn, then, at acos(1 - height/r).
+-- Taking the quarter turn as the arc length is therefore an upper bound:
+--     v^2 = speed^2 + 2 * acceleration * arc
+--  => v^2 - diveSpeedGain * v - speed^2 = 0
+---@param projectile VerticalizeProjectile
+---@param speed number
+---@return number
+local function getDiveSpeed(projectile, speed)
+	local gain = projectile.diveSpeedGain
+	local diveSpeed = 0.5 * (gain + math_sqrt(gain * gain + 4 * speed * speed))
+	return math_min(diveSpeed, projectile.speedMax)
+end
+
+---@param projectile VerticalizeProjectile
+---@param position xyz
+---@param velocity xyzw
+---@param frame integer
+---@return integer
+local function turnToLevel(projectile, position, velocity, frame)
+	if velocity[4] <= 0 then
+		return frame + 1
+	end
+
+	local pitch = math_asin(math_clamp(velocity[2] / velocity[4], -1, 1))
+
+	-- Pitch is constant while still climbing, too, so wait out an early hand-off.
+	if pitch >= math_pi * 0.5 - projectile.turnRate then
+		projectile.pitch = pitch
+		return frame + 1
+	end
+
+	-- StarburstProjectile disables turning at 8.1 degrees to target, then keeps constant pitch.
+	if projectile.pitch - pitch > projectile.turnRate * 0.5 then
+		projectile.pitch = pitch
+		return frame + 1
+	end
+
+	projectile.phase = projectile.phase + 1
+	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
+	local target = projectile.target
+	local cruiseDistance = distance2D(position[1], position[3], target[1], target[3]) - cruiseEndRadius
+	return frame + math_floor(cruiseDistance / projectile.speedMax) - checkWindowFrames
+end
+
+---@param projectile VerticalizeProjectile
+---@param position xyz
+---@param velocity xyzw
+---@param frame integer
+---@return integer?
+local function cruise(projectile, position, velocity, frame)
+	if velocity[4] <= 0 then
+		return frame + 1 -- guidance will div0
+	end
+
+	-- Most vertical-launch missiles accelerate slowly so are still gaining speed here.
+	local target = projectile.target
+	local cruiseEndRadius = (1 + projectile.chaseFactor) * getDiveSpeed(projectile, velocity[4]) / projectile.turnRate
+	local targetDistanceSquared = distance2DSquared(position[1], position[3], target[1], target[3])
+	if targetDistanceSquared > cruiseEndRadius * cruiseEndRadius then
+		return frame + 1
+	end
+
+	projectile.cruiseEndInverse = 1 / cruiseEndRadius
+	projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
+	projectile.vx, projectile.vy, projectile.vz = velocity[1], velocity[2], velocity[3]
+	projectile.speed = velocity[4]
+end
+
+---@param projectile VerticalizeProjectile
+local function verticalize(projectile)
+	local px, py, pz = projectile.px, projectile.py, projectile.pz
+	local vx, vy, vz = projectile.vx, projectile.vy, projectile.vz
+	local speed = projectile.speed
+
+	local target = projectile.target
+	local dx = target[1] - px
+	local dz = target[3] - pz
+	local distance = math_diag(dx, dz)
+
+	-- We don't have many weapondef-invariant checks left, so this
+	-- may be useful only for consistently shaping the drop, now.
+	local sinPitch = 1 - distance * projectile.cruiseEndInverse
+	if sinPitch < 0 then
+		sinPitch = 0
+	end
+	local cosPitch = math_sqrt(1 - sinPitch * sinPitch)
+
+	-- Unit vector towards target
+	local tx, ty, tz = 0.0, -sinPitch, 0.0
+	if distance > 0 then
+		local distInverse = cosPitch / distance
+		tx = dx * distInverse
+		tz = dz * distInverse
+	end
+
+	vx, vy, vz = slerp(vx, vy, vz, speed, tx, ty, tz, projectile.turnRate)
+
+	local speedNew = math_min(speed + projectile.acceleration, projectile.speedMax)
+	local ratio = speedNew / speed
+	vx, vy, vz = vx * ratio, vy * ratio, vz * ratio
+	px, py, pz = px + vx, py + vy, pz + vz
+
+	projectile.px, projectile.py, projectile.pz = px, py, pz
+	projectile.vx, projectile.vy, projectile.vz = vx, vy, vz
+	projectile.speed = speed * ratio
+end
+
+local enginePhases = { ascend, turnToLevel, cruise } -- end into => verticalize
+
+---@param projectile VerticalizeProjectile
+---@param position xyz
+---@param velocity xyzw
+---@param frame integer
+---@return integer?
+local function updateFlightPhase(projectile, position, velocity, frame)
+	return enginePhases[projectile.phase](projectile, position, velocity, frame)
+end
+
 return {
+	checkWindowFrames = checkWindowFrames,
 	getVerticalizeWeapon = getVerticalizeWeapon,
 	getUptime = getUptime,
 	getAscendHeight = getAscendHeight,
@@ -262,4 +423,6 @@ return {
 	getUpTimeFrames = getUpTimeFrames,
 	isTargetInsideAscentTurn = isTargetInsideAscentTurn,
 	getAimHeight = getAimHeight,
+	updateFlightPhase = updateFlightPhase,
+	verticalize = verticalize,
 }
