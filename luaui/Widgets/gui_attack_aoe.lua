@@ -38,6 +38,7 @@ local osClock = os.clock
 
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetMouseState = Spring.GetMouseState
@@ -60,7 +61,6 @@ local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 
 local Starburst = VFS.Include("modules/starburst.lua")
 local getStarburstWeapon = Starburst.getStarburstWeapon
-local newStarburst = Starburst.newStarburst
 local stepStarburst = Starburst.stepStarburst
 
 local Verticalize = VFS.Include("modules/verticalize.lua")
@@ -529,7 +529,8 @@ local function GetStarburstGroundCollisionPos(
 	-- The engine decrements uptime before the first trajectory update.
 	local ascentFrames = max(0, ceil(weaponInfo.uptime * Config.General.gameSpeed) - 1)
 	local starburstWeapon = weaponInfo.starburst
-	local starburst = newStarburst(dirX, dirY, dirZ, weaponInfo.startVelocity, ascentFrames, true)
+	local speed, turnToTarget = weaponInfo.startVelocity, true
+	local _, _, _, groundMax = spGetGroundExtremes()
 
 	for frame = 1, 512 do
 		if targetMoves then
@@ -546,14 +547,19 @@ local function GetStarburstGroundCollisionPos(
 			return tx, ty, tz, pathCount
 		end
 
-		stepStarburst(
-			starburst,
+		dirX, dirY, dirZ, speed, ascentFrames, turnToTarget = stepStarburst(
 			starburstWeapon,
+			dirX,
+			dirY,
+			dirZ,
+			speed,
+			ascentFrames,
+			turnToTarget,
 			targetDX / targetLength,
 			targetDY / targetLength,
 			targetDZ / targetLength
 		)
-		if not starburst.turnToTarget and not targetMoves then
+		if not turnToTarget and not targetMoves then
 			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, tx, ty, tz, false)
 			if hitDistance and hitDistance + 8 < targetLength then
 				pathCount = pathCount + 1
@@ -565,10 +571,8 @@ local function GetStarburstGroundCollisionPos(
 			return tx, ty, tz, pathCount
 		end
 
-		local speed = starburst.speed
-		dirX, dirY, dirZ = starburst.dirX, starburst.dirY, starburst.dirZ
 		local nextX, nextY, nextZ = px + dirX * speed, py + dirY * speed, pz + dirZ * speed
-		local groundY = spGetGroundHeight(nextX, nextZ)
+		local groundY = nextY < groundMax and spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
 			local hitDistance, hitX, hitY, hitZ =
 				spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)
@@ -582,7 +586,7 @@ local function GetStarburstGroundCollisionPos(
 				return hitX, hitY, hitZ, pathCount
 			end
 		end
-		if not starburst.turnToTarget and targetLength <= speed + 8 then
+		if not turnToTarget and targetLength <= speed + 8 then
 			pathCount = pathCount + 1
 			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
 			return tx, ty, tz, pathCount
