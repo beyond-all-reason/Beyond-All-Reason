@@ -9,6 +9,8 @@ local math_sin = math.sin
 local ARC_EPSILON = 1e-6
 local ARC_NORMAL_EPSILON = 1 - 1e-6
 
+local dirUp = { 0, 1, 0 } ---@type xyz
+
 ---@param vx number
 ---@param vy number
 ---@param vz number
@@ -49,5 +51,6 @@ local function slerp(vx, vy, vz, speed, tx, ty, tz, angleMax)
 end
 
 return {
+	dirUp = dirUp,
 	slerp = slerp,
 }

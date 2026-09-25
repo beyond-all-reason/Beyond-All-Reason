@@ -9,6 +9,11 @@
 -- cruise_chase_factor     := number?  [0, 2] 0:=hard turn 1:=constant 2:=chases
 --                                     else 0.2, not a flag, value is fractional
 
+local cruiseHeightMin = 50 -- note: barely above ground
+local cruiseHeightMax = 3000 -- note: not all that high up
+local checkWindowFrames = 6 -- count of polling frames used to predict new phases
+local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto target
+
 --------------------------------------------------------------------------------
 -- [1] Cruise altitude is set by the launcher and uptime -----------------------
 --                                                                            --
@@ -58,12 +63,20 @@ local distance2D = math.distance2d
 local distance2DSquared = math.distance2dSquared
 local quadraticRoots = math.quadraticRoots
 
-local slerp = VFS.Include("common/vectors.lua").slerp
+local spGetGroundHeight = Spring.GetGroundHeight
+local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 
-local cruiseHeightMin = 50 -- note: barely above ground
-local cruiseHeightMax = 3000 -- note: not all that high up
-local checkWindowFrames = 6 -- count of polling frames used to predict new phases
-local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto target
+local Vectors = VFS.Include("common/vectors.lua")
+local dirUp = Vectors.dirUp
+local slerp = Vectors.slerp
+
+local Starburst = VFS.Include("modules/starburst.lua")
+local newStarburst = Starburst.newStarburst
+local stepStarburst = Starburst.stepStarburst
+
+local simulationFramesMax = 3000
+local pathFrameInterval = 4
+local turnToTargetDot = 0.99
 
 ---@class VerticalizeWeapon
 ---@field acceleration number
@@ -96,13 +109,13 @@ local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto ta
 ---@field phase integer
 ---@field pitch number
 ---@field cruiseEndInverse number
----@field px number?
----@field py number?
----@field pz number?
----@field vx number?
----@field vy number?
----@field vz number?
----@field speed number?
+---@field px number
+---@field py number
+---@field pz number
+---@field vx number
+---@field vy number
+---@field vz number
+---@field speed number
 
 ---@return VerticalizeWeapon?
 local function getVerticalizeWeapon(weaponDef)
@@ -428,6 +441,178 @@ local function updateFlightPhase(projectile, position, velocity, frame)
 	return enginePhases[projectile.phase](projectile, position, velocity, frame)
 end
 
+local phasePosition = { 0.0, 0.0, 0.0 }
+local phaseVelocity = { 0.0, 0.0, 0.0, 0.0 }
+
+---@param starburstWeapon StarburstWeapon
+---@param projectile VerticalizeProjectile
+---@param starburst Starburst
+---@param position xyz
+---@param aim xyz
+---@param checkFrame integer? nil when the gadget does not check this projectile's flight phases
+---@param isMoveControl boolean
+---@param path number[][]? the x, y and z arrays of the draw path
+---@return number impactX
+---@return number impactY
+---@return number impactZ
+---@return integer pathCount
+local function simulateToImpact(starburstWeapon, projectile, starburst, position, aim, checkFrame, isMoveControl, path)
+	local x, y, z = position[1], position[2], position[3]
+	local aimX, aimY, aimZ = aim[1], aim[2], aim[3]
+
+	local pathX, pathY, pathZ
+	local pathCount = 0
+	if path then
+		pathX, pathY, pathZ = path[1], path[2], path[3]
+		pathCount = 1
+		pathX[1], pathY[1], pathZ[1] = x, y, z
+	end
+
+	for frame = 0, simulationFramesMax do
+		if checkFrame and frame >= checkFrame then
+			local speed = starburst.speed
+			local nextFrame
+			repeat
+				phasePosition[1], phasePosition[2], phasePosition[3] = x, y, z
+				phaseVelocity[1] = starburst.dirX * speed
+				phaseVelocity[2] = starburst.dirY * speed
+				phaseVelocity[3] = starburst.dirZ * speed
+				phaseVelocity[4] = speed
+				nextFrame = updateFlightPhase(projectile, phasePosition, phaseVelocity, frame)
+			until not nextFrame or nextFrame > frame
+			checkFrame = nextFrame
+			isMoveControl = not nextFrame
+		end
+
+		local x0, y0, z0 = x, y, z
+		if isMoveControl then
+			verticalize(projectile)
+			x, y, z = projectile.px, projectile.py, projectile.pz
+		else
+			local dx, dy, dz = aimX - x, aimY - y, aimZ - z
+			local length = math_sqrt(dx * dx + dy * dy + dz * dz)
+			if length > 0 then
+				stepStarburst(starburst, starburstWeapon, dx / length, dy / length, dz / length)
+			end
+			local speed = starburst.speed
+			x, y, z = x + starburst.dirX * speed, y + starburst.dirY * speed, z + starburst.dirZ * speed
+		end
+
+		local groundY = spGetGroundHeight(x, z)
+		if y < groundY then
+			local _, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(x0, y0, z0, x, y, z, false)
+			if not hitX then
+				hitX, hitY, hitZ = x, groundY, z
+			end
+			if path then
+				pathCount = pathCount + 1
+				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
+			end
+			return hitX, hitY, hitZ, pathCount
+		end
+
+		if path and (frame + 1) % pathFrameInterval == 0 then
+			pathCount = pathCount + 1
+			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = x, y, z
+		end
+	end
+
+	return x, y, z, pathCount
+end
+
+---@param weapon VerticalizeWeapon
+---@param starburstWeapon StarburstWeapon
+---@param position xyz where the launcher spawns the projectile
+---@param direction xyz the launch direction
+---@param target xyz
+---@param path number[][]? the x, y and z arrays of the draw path
+---@return number impactX
+---@return number impactY
+---@return number impactZ
+---@return integer pathCount
+local function getLaunchTrajectory(weapon, starburstWeapon, position, direction, target, path)
+	local projectile = newProjectile(weapon, target, getAscendHeight(weapon, position, target))
+	local upTimeFrames = getUpTimeFrames(weapon, projectile, position)
+
+	local upTime = math_floor(weapon.upTimeMinFrames)
+	local checkFrame
+	if shouldRespawn(weapon, upTimeFrames) then
+		upTime = math_floor(upTimeFrames)
+		checkFrame = getFirstCheckFrame(upTimeFrames, 0)
+	elseif not isTargetInsideAscentTurn(weapon, position, target) then
+		checkFrame = getFirstCheckFrame(upTimeFrames, 0)
+	end
+
+	local aim = target
+	if checkFrame then
+		aim = { target[1], getAimHeight(weapon, projectile), target[3] }
+	end
+
+	local ascentFrames = math_max(upTime - 1, 0) -- decremented before the first update in-engine
+	local starburst = newStarburst(direction[1], direction[2], direction[3], weapon.speedMin, ascentFrames, true)
+
+	return simulateToImpact(starburstWeapon, projectile, starburst, position, aim, checkFrame, false, path)
+end
+
+---@param weapon VerticalizeWeapon
+---@param starburstWeapon StarburstWeapon
+---@param position xyz
+---@param velocity xyzw
+---@param elapsedFrames integer the frames since the projectile was fired
+---@param aim xyz the projectile's current target
+---@param target xyz the target on the ground
+---@return number impactX
+---@return number impactY
+---@return number impactZ
+---@return boolean isFromLaunch
+local function getInFlightImpact(weapon, starburstWeapon, position, velocity, elapsedFrames, aim, target)
+	local vx, vy, vz, speed = velocity[1], velocity[2], velocity[3], velocity[4]
+	local impactX, impactY, impactZ
+
+	-- Exact launch point is knowable while the projectile is still perfectly vertical:
+	if vx == 0 and vz == 0 and vy > 0 then
+		local climb, climbSpeed = 0, weapon.speedMin
+		for _ = 1, elapsedFrames do
+			climbSpeed = math_min(climbSpeed + weapon.acceleration, weapon.speedMax)
+			climb = climb + climbSpeed
+		end
+		local launch = { position[1], position[2] - climb, position[3] }
+		impactX, impactY, impactZ = getLaunchTrajectory(weapon, starburstWeapon, launch, dirUp, target)
+		return impactX, impactY, impactZ, true
+	end
+
+	local dirX, dirY, dirZ = vx / speed, vy / speed, vz / speed
+	local targetDX, targetDY, targetDZ = aim[1] - position[1], aim[2] - position[2], aim[3] - position[3]
+	local targetLength = math_sqrt(targetDX * targetDX + targetDY * targetDY + targetDZ * targetDZ)
+	local turnToTarget = true
+	if targetLength > 0 then
+		turnToTarget = (dirX * targetDX + dirY * targetDY + dirZ * targetDZ) / targetLength <= turnToTargetDot
+	end
+	local starburst = newStarburst(dirX, dirY, dirZ, speed, 0, turnToTarget)
+
+	if aim[2] > target[2] + 1 then
+		local projectile = newProjectile(weapon, target, aim[2] - weapon.ascentRadius)
+		impactX, impactY, impactZ = simulateToImpact(starburstWeapon, projectile, starburst, position, aim, 0, false)
+		return impactX, impactY, impactZ, false
+	end
+
+	local projectile = newProjectile(weapon, target, aim[2])
+	local cruiseEndRadius = (1 + weapon.chaseFactor) * getDiveSpeed(projectile, speed) / weapon.turnRate
+	local targetDistance = distance2D(position[1], position[3], target[1], target[3])
+
+	if vy < 0 and targetDistance <= cruiseEndRadius then
+		projectile.cruiseEndInverse = 1 / cruiseEndRadius
+		projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
+		projectile.vx, projectile.vy, projectile.vz = vx, vy, vz
+		projectile.speed = speed
+		impactX, impactY, impactZ = simulateToImpact(starburstWeapon, projectile, starburst, position, aim, nil, true)
+	else
+		impactX, impactY, impactZ = simulateToImpact(starburstWeapon, projectile, starburst, position, aim, nil, false)
+	end
+
+	return impactX, impactY, impactZ, false
+end
+
 return {
 	checkWindowFrames = checkWindowFrames,
 	getVerticalizeWeapon = getVerticalizeWeapon,
@@ -441,4 +626,6 @@ return {
 	getAimHeight = getAimHeight,
 	updateFlightPhase = updateFlightPhase,
 	verticalize = verticalize,
+	getLaunchTrajectory = getLaunchTrajectory,
+	getInFlightImpact = getInFlightImpact,
 }
