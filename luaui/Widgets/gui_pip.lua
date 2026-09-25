@@ -14428,14 +14428,33 @@ function miscState.hist.Init()
 	if config.historyEnabled then
 		hist.RemoveStaleSegmentFiles()
 	end
-	hist.cmdColor = {
-		cmdColors[CMD.MOVE],
-		cmdColors[CMD.FIGHT],
-		cmdColors[CMD.ATTACK],
-		cmdColors[CMD.PATROL],
-		cmdColors.unknown,
-		cmdColors.unknown,
+	-- logged order kinds (1-6 keep their meaning in older logs; 5 = build, 6 = unknown)
+	local kinds = {
+		CMD.MOVE,
+		CMD.FIGHT,
+		CMD.ATTACK,
+		CMD.PATROL,
+		false,
+		false,
+		CMD.GUARD,
+		CMD.CAPTURE,
+		CMD.REPAIR,
+		CMD.RECLAIM,
+		CMD.RESTORE,
+		CMD.RESURRECT,
+		CMD.LOAD_UNITS,
+		CMD.UNLOAD_UNIT,
+		CMD.UNLOAD_UNITS,
+		GameCMD.UNIT_SET_TARGET_NO_GROUND,
 	}
+	hist.cmdKind, hist.cmdColor = {}, {}
+	for kind = 1, #kinds do
+		local cmdID = kinds[kind]
+		if cmdID then
+			hist.cmdKind[cmdID] = kind
+		end
+		hist.cmdColor[kind] = cmdID and cmdColors[cmdID] or cmdColors.unknown
+	end
 	hist.outIndex = {}
 	hist.explosionByKey = {}
 	hist.shatterByKey = {}
@@ -14515,27 +14534,26 @@ function miscState.hist.LogCommand(unitID, unitTeam, cmdID, cmdParams, cmdOpts)
 	if config.commandFXIgnoreNewUnits and finishTime and (wallClockTime - finishTime) < 0.3 then
 		return
 	end
-	local kind
-	if cmdID == CMD.MOVE then
-		kind = 1
-	elseif cmdID == CMD.FIGHT then
-		kind = 2
-	elseif cmdID == CMD.ATTACK then
-		kind = 3
-	elseif cmdID == CMD.PATROL then
-		kind = 4
-	elseif cmdID < 0 then
-		kind = 5
-	else
+	-- every order the live FX draws
+	local kind = miscState.hist.cmdKind[cmdID] or (cmdID < 0 and 5)
+	if not kind then
 		return
 	end
 	local n = cmdParams and #cmdParams or 0
-	local x, z, target = 0, 0, 0
+	local x, z, target, _
 	if n >= 3 then
 		x, z = cmdParams[1], cmdParams[3]
-	elseif n == 1 and kind == 3 and cmdParams[1] < (Game.maxUnits or 32000) then
-		target = cmdParams[1]
-	else
+	elseif n == 1 then
+		-- playback follows a unit target; its position here is the fallback
+		local id, maxUnits = cmdParams[1], Game.maxUnits or 32000
+		if id >= maxUnits then
+			x, _, z = spFunc.GetFeaturePosition((id - maxUnits) --[[@as integer]])
+		else
+			x, _, z = spFunc.GetUnitPosition(id)
+			target = id
+		end
+	end
+	if not x then
 		return
 	end
 	store:OnCommand(unitID, kind, x, z, target, cmdOpts and cmdOpts.shift, miscState.hist.frame or Spring.GetGameFrame())
@@ -15019,9 +15037,12 @@ function miscState.hist.SyncFrame()
 	-- explosions live at most ~2.1 s (see ExpireExplosions); deaths shatter for ~1.5 s
 	-- a hit flashes for 0.4 s of real time whatever the playback speed
 	local flashSpan = math.ceil(store.opts.flashFrames * (hist.speed or 1))
-	local window =
-		math.max(120, math.ceil(config.commandFXDuration * 30), math.ceil(config.mapDrawingDuration * 30), flashSpan)
-	view:CollectEvents(frame, window, flashSpan)
+	-- order lines fade over the live FX duration of real time too (up to 15 s of game time);
+	-- 5 more frames so an order chained from one just older still finds it
+	local fxSpan = math.max(1, math.min(450, config.commandFXDuration * 30 * (hist.speed or 1)))
+	hist.commandFXSpan = fxSpan
+	local window = math.max(120, math.ceil(fxSpan) + 5, math.ceil(config.mapDrawingDuration * 30), flashSpan)
+	view:CollectEvents(frame, window, flashSpan, fxSpan + 5)
 
 	local byKey = hist.explosionByKey
 	local list = hist.explosions
@@ -15556,9 +15577,11 @@ function miscState.hist.DrawEffects()
 	end
 
 	local frame = hist.viewFrame
-	local outIndex, outX, outZ = hist.outIndex, view.outX, view.outZ
+	local outIndex, outX, outZ, outTeam = hist.outIndex, view.outX, view.outZ, view.outTeam
 	local colors = hist.cmdColor
-	local fxFrames = math.max(1, config.commandFXDuration * 30)
+	-- like the live FX: order colours when tracking a player or playing, team colours otherwise
+	local byTeam = cameraState.mySpecState and not interactionState.trackingPlayerID
+	local fxFrames = hist.commandFXSpan or math.max(1, config.commandFXDuration * 30)
 	-- like the live FX, an order that follows another for the same unit within 0.15 s chains
 	-- from the previous target instead of the unit
 	local chainF, chainX, chainZ = hist.chainF, hist.chainX, hist.chainZ
@@ -15578,8 +15601,8 @@ function miscState.hist.DrawEffects()
 				local ti = outIndex[c.targetID]
 				if ti then
 					tx, tz = outX[ti], outZ[ti]
-				else
-					tx = nil
+				elseif tx == 0 and tz == 0 then
+					tx = nil -- older logs kept no target position
 				end
 			end
 			if tx then
@@ -15594,7 +15617,7 @@ function miscState.hist.DrawEffects()
 				local age = frame - c.frame
 				local alpha = config.commandFXOpacity * (1 - age / fxFrames)
 				if alpha > 0 and (math.abs(sx - tx) >= 1 or math.abs(sz - tz) >= 1) then
-					local col = colors[c.kind] or colors[6]
+					local col = (byTeam and teamColors[outTeam[src]]) or colors[c.kind] or colors[6]
 					local r, g, b = col[1], col[2], col[3]
 					GL4AddNormLine(sx, sz, tx, tz, r, g, b, alpha, r, g, b, alpha)
 				end
@@ -23737,6 +23760,16 @@ function widget:Update(dt)
 	-- Run optional API debug sequence regardless of minimization state.
 	UpdateDebugCameraSequenceApi(os.clock())
 
+	-- Update wall-clock time (always advances, even when paused — used for blink/pulse animations)
+	-- Both clocks run while minimized too: a minimized instance can be the history recorder
+	wallClockTime = wallClockTime + dt
+
+	-- Update game time (only when game is not paused)
+	local _, _, isPaused = Spring.GetGameSpeed()
+	if not isPaused then
+		gameTime = gameTime + dt
+	end
+
 	-- Skip ALL heavy processing when minimized and not animating.
 	-- DrawScreen/DrawWorld already return early when minimized, so ghost cleanup,
 	-- TV camera, zoom interpolation, hover detection, etc. are pure waste.
@@ -24192,15 +24225,6 @@ function widget:Update(dt)
 		and not middleButton
 	then
 		interactionState.arePanning = false
-	end
-
-	-- Update wall-clock time (always advances, even when paused — used for blink/pulse animations)
-	wallClockTime = wallClockTime + dt
-
-	-- Update game time (only when game is not paused)
-	local _, _, isPaused = Spring.GetGameSpeed()
-	if not isPaused then
-		gameTime = gameTime + dt
 	end
 
 	-- Handle minimize/maximize animation
