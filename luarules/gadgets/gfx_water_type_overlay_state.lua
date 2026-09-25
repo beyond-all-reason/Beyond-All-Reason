@@ -55,6 +55,7 @@ local typeConfig = {
 ------------------------------------------------------------------------
 local gameSpeed = Game.gameSpeed
 local DAMAGE_RATE = 10 -- apply damage every N frames (same cadence as map_lava)
+local ATTRIBUTE_SOURCE = "wateroverlay"
 
 ------------------------------------------------------------------------
 -- Cached engine calls
@@ -67,11 +68,9 @@ local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetMoveData = Spring.GetUnitMoveTypeData
-local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
-local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spSpawnCEG = Spring.SpawnCEG
+local floor = math.floor
 local clamp = math.clamp
 
 ------------------------------------------------------------------------
@@ -82,10 +81,8 @@ local clamp = math.clamp
 -- activated.
 ------------------------------------------------------------------------
 local canFly = {}
-local speedDefs = {}
-local turnDefs = {}
-local accDefs = {}
-local unitHeight = {}
+local canBeSlowed = {} ---@type table<UnitDefID, boolean?>
+local unitHeight = {} ---@type table<UnitDefID, number>
 local geoThermal = {}
 local defCachesBuilt = false
 
@@ -99,9 +96,9 @@ local function buildDefCaches()
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		else
-			speedDefs[unitDefID] = unitDef.speed
-			turnDefs[unitDefID] = unitDef.turnRate
-			accDefs[unitDefID] = unitDef.maxAcc
+			canBeSlowed[unitDefID] = not unitDef.isImmobile
+				and (unitDef.turnRate or 0) ~= 0
+				and (unitDef.maxAcc or 0) ~= 0
 		end
 		unitHeight[unitDefID] = Spring.GetUnitDefDimensions(unitDefID).height
 	end
@@ -118,26 +115,28 @@ end
 ------------------------------------------------------------------------
 local affectedUnits = {} -- unitID → { currentSlow, slowed }
 
-local function updateSlow(unitID, unitDefID, unitSlow)
-	if spMoveCtrlEnabled(unitID) then
-		return false
-	end
-	local slowedMaxSpeed = speedDefs[unitDefID] * unitSlow
-	local slowedTurnRate = turnDefs[unitDefID] * unitSlow
-	local slowedAccRate = accDefs[unitDefID] * unitSlow
-	local ok = pcall(function()
-		spSetMoveData(unitID, { maxSpeed = slowedMaxSpeed, turnRate = slowedTurnRate, accRate = slowedAccRate })
-	end)
-	return ok
+local SLOW_STEP = 0.05 -- avoid rewriting move data on every damage tick
+local SLOW_STEP_INV = 1 / SLOW_STEP
+
+local function getWaterSlow(unitDefID, y, waterLevel, slowFrac)
+	local height = unitHeight[unitDefID]
+	local unitSlow = clamp(1 - (((waterLevel - y) / height) * slowFrac), 1 - slowFrac, 0.9)
+	return floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
+end
+
+---@param unitID UnitID
+---@param unitSlow number? A nil clears this source's factor.
+local function updateSlow(unitID, unitSlow)
+	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	setUnitModifier(unitID, "speed", unitSlow, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "turnRate", unitSlow, ATTRIBUTE_SOURCE)
+	setUnitModifier(unitID, "maxAcc", unitSlow, ATTRIBUTE_SOURCE)
 end
 
 local function restoreAllUnits()
 	for unitID, data in pairs(affectedUnits) do
 		if data.slowed then
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitDefID then
-				updateSlow(unitID, unitDefID, 1)
-			end
+			updateSlow(unitID, nil)
 		end
 	end
 	affectedUnits = {}
@@ -159,42 +158,27 @@ local function damageCheck(cfg, waterLevel)
 	for _, unitID in ipairs(allUnits) do
 		local unitDefID = spGetUnitDefID(unitID)
 		if unitDefID and not canFly[unitDefID] then
+			local unitData = affectedUnits[unitID]
 			local x, y, z = spGetUnitBasePosition(unitID)
 			if y and y < waterLevel then
-				-- Compute slow factor based on submersion depth
-				local unitSlow = clamp(1 - (((waterLevel - y) / unitHeight[unitDefID]) * slowFrac), 1 - slowFrac, 0.9)
-
-				if not affectedUnits[unitID] then
-					local moveType = spGetMoveData(unitID).name
-					local maxSpd = speedDefs[unitDefID]
-					local turn = turnDefs[unitDefID]
-					local acc = accDefs[unitDefID]
-					if
-						moveType == "ground"
-						and (maxSpd and maxSpd ~= 0)
-						and (turn and turn ~= 0)
-						and (acc and acc ~= 0)
-					then
-						affectedUnits[unitID] = { currentSlow = 1, slowed = true }
-					else
-						affectedUnits[unitID] = { slowed = false }
-					end
+				if not unitData then
+					unitData = { currentSlow = 1.0, slowed = canBeSlowed[unitDefID] == true }
+					affectedUnits[unitID] = unitData
 				end
 
-				local data = affectedUnits[unitID]
-				if data.slowed and unitSlow ~= data.currentSlow then
-					if updateSlow(unitID, unitDefID, unitSlow) then
-						data.currentSlow = unitSlow
-					end
+				local unitSlow = getWaterSlow(unitDefID, y, waterLevel, slowFrac)
+				if unitData.slowed and unitSlow ~= unitData.currentSlow then
+					updateSlow(unitID, unitSlow)
+					unitData.currentSlow = unitSlow
 				end
 
 				spAddUnitDamage(unitID, dmg, 0, gaiaTeamID, 1)
 				if effectDmg then
 					spSpawnCEG(effectDmg, x, y + 5, z)
 				end
-			elseif affectedUnits[unitID] then
-				if affectedUnits[unitID].slowed then
-					updateSlow(unitID, unitDefID, 1)
+			elseif unitData then
+				if unitData.slowed then
+					updateSlow(unitID, nil)
 				end
 				affectedUnits[unitID] = nil
 			end
@@ -374,6 +358,10 @@ end
 ------------------------------------------------------------------------
 -- Cleanup
 ------------------------------------------------------------------------
+function gadget:UnitDestroyed(unitID)
+	affectedUnits[unitID] = nil
+end
+
 function gadget:Shutdown()
 	restoreAllUnits()
 	GG.WaterTypeOverlay = nil
