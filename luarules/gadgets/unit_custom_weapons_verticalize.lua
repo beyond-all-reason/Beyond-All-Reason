@@ -20,7 +20,7 @@ end
 
 local math_max = math.max
 
-local Verticalize = VFS.Include("modules/verticalize.lua")
+local Verticalize = require("modules/verticalize")
 local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
 local getAscendHeight = Verticalize.getAscendHeight
 local newProjectile = Verticalize.newProjectile
