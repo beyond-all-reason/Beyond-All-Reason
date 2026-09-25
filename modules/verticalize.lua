@@ -472,6 +472,8 @@ local function simulateToImpact(
 )
 	local x, y, z = position[1], position[2], position[3]
 	local aimX, aimY, aimZ = aim[1], aim[2], aim[3]
+	local dirX, dirY, dirZ = starburst.dirX, starburst.dirY, starburst.dirZ
+	local speed, ascentFrames, turnToTarget = starburst.speed, starburst.ascentFrames, starburst.turnToTarget
 
 	local pathX, pathY, pathZ
 	local pathCount = 0
@@ -483,13 +485,12 @@ local function simulateToImpact(
 
 	for frame = 0, simulationFramesMax do
 		if checkFrame and frame >= checkFrame then
-			local speed = starburst.speed
 			local nextFrame
 			repeat
 				phasePosition[1], phasePosition[2], phasePosition[3] = x, y, z
-				phaseVelocity[1] = starburst.dirX * speed
-				phaseVelocity[2] = starburst.dirY * speed
-				phaseVelocity[3] = starburst.dirZ * speed
+				phaseVelocity[1] = dirX * speed
+				phaseVelocity[2] = dirY * speed
+				phaseVelocity[3] = dirZ * speed
 				phaseVelocity[4] = speed
 				nextFrame = updateFlightPhase(projectile, phasePosition, phaseVelocity, frame)
 			until not nextFrame or nextFrame > frame
@@ -505,10 +506,20 @@ local function simulateToImpact(
 			local dx, dy, dz = aimX - x, aimY - y, aimZ - z
 			local length = math_sqrt(dx * dx + dy * dy + dz * dz)
 			if length > 0 then
-				stepStarburst(starburst, starburstWeapon, dx / length, dy / length, dz / length)
+				dirX, dirY, dirZ, speed, ascentFrames, turnToTarget = stepStarburst(
+					starburstWeapon,
+					dirX,
+					dirY,
+					dirZ,
+					speed,
+					ascentFrames,
+					turnToTarget,
+					dx / length,
+					dy / length,
+					dz / length
+				)
 			end
-			local speed = starburst.speed
-			x, y, z = x + starburst.dirX * speed, y + starburst.dirY * speed, z + starburst.dirZ * speed
+			x, y, z = x + dirX * speed, y + dirY * speed, z + dirZ * speed
 		end
 
 		local groundY = spGetGroundHeight(x, z)

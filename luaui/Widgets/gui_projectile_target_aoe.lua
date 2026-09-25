@@ -53,7 +53,6 @@ local spGetCameraPosition = Spring.GetCameraPosition
 
 local Starburst = VFS.Include("modules/starburst.lua")
 local getStarburstWeapon = Starburst.getStarburstWeapon
-local newStarburst = Starburst.newStarburst
 local stepStarburst = Starburst.stepStarburst
 
 local Verticalize = VFS.Include("modules/verticalize.lua")
@@ -647,7 +646,7 @@ local function GetPredictedImpactPos(
 	end
 
 	local starburstWeapon = weaponInfo.starburst
-	local starburst = newStarburst(dirX, dirY, dirZ, velocityLength, ascentFrames, turnToTarget)
+	local speed = velocityLength
 
 	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
 	local maxFrames = min(remainingTimeToLive or 512, 512)
@@ -668,15 +667,20 @@ local function GetPredictedImpactPos(
 			return tx, ty, tz, false
 		end
 
-		stepStarburst(
-			starburst,
+		dirX, dirY, dirZ, speed, ascentFrames, turnToTarget = stepStarburst(
 			starburstWeapon,
+			dirX,
+			dirY,
+			dirZ,
+			speed,
+			ascentFrames,
+			turnToTarget,
 			targetDX / targetLength,
 			targetDY / targetLength,
 			targetDZ / targetLength
 		)
 
-		if not starburst.turnToTarget and not targetMoves then
+		if not turnToTarget and not targetMoves then
 			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
 			if hitDistance and hitDistance + 8 < targetLength then
 				return hitX, hitY, hitZ, true
@@ -684,8 +688,6 @@ local function GetPredictedImpactPos(
 			return tx, ty, tz, false
 		end
 
-		local speed = starburst.speed
-		dirX, dirY, dirZ = starburst.dirX, starburst.dirY, starburst.dirZ
 		local nextX, nextY, nextZ = simX + dirX * speed, simY + dirY * speed, simZ + dirZ * speed
 		local groundY = spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
@@ -699,7 +701,7 @@ local function GetPredictedImpactPos(
 				return hitX, hitY, hitZ, true
 			end
 		end
-		if not starburst.turnToTarget and targetLength <= speed + 8 then
+		if not turnToTarget and targetLength <= speed + 8 then
 			return tx, ty, tz, false
 		end
 		simX, simY, simZ = nextX, nextY, nextZ

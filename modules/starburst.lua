@@ -63,27 +63,44 @@ local function newStarburst(dirX, dirY, dirZ, speed, ascentFrames, turnToTarget)
 	}
 end
 
----@param starburst Starburst
 ---@param weapon StarburstWeapon
+---@param dirX number
+---@param dirY number
+---@param dirZ number
+---@param speed number
+---@param ascentFrames integer
+---@param turnToTarget boolean
 ---@param targetDirX number
 ---@param targetDirY number
 ---@param targetDirZ number `targetDir` is the unit vector from the projectile to its target
-local function stepStarburst(starburst, weapon, targetDirX, targetDirY, targetDirZ)
-	local speed = starburst.speed
-
-	if starburst.ascentFrames > 0 then
-		starburst.speed = math_min(speed + weapon.acceleration, weapon.speedMax)
-		starburst.ascentFrames = starburst.ascentFrames - 1
-		return
+---@return number dirX
+---@return number dirY
+---@return number dirZ
+---@return number speed
+---@return integer ascentFrames
+---@return boolean turnToTarget
+local function stepStarburst(
+	weapon,
+	dirX,
+	dirY,
+	dirZ,
+	speed,
+	ascentFrames,
+	turnToTarget,
+	targetDirX,
+	targetDirY,
+	targetDirZ
+)
+	if ascentFrames > 0 then
+		return dirX, dirY, dirZ, math_min(speed + weapon.acceleration, weapon.speedMax), ascentFrames - 1, turnToTarget
 	end
 
-	local dirX, dirY, dirZ = starburst.dirX, starburst.dirY, starburst.dirZ
 	local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
 	local steerRate
-	if starburst.turnToTarget then
+	if turnToTarget then
 		if directionDotTarget > turnToTargetDot then
 			dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-			starburst.turnToTarget = false
+			turnToTarget = false
 		else
 			steerRate = weapon.turnRate
 		end
@@ -111,8 +128,7 @@ local function stepStarburst(starburst, weapon, targetDirX, targetDirY, targetDi
 		end
 	end
 
-	starburst.dirX, starburst.dirY, starburst.dirZ = dirX, dirY, dirZ
-	starburst.speed = speed
+	return dirX, dirY, dirZ, speed, ascentFrames, turnToTarget
 end
 
 return {
