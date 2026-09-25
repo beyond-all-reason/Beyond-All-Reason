@@ -248,6 +248,20 @@ local function getUpTimeFrames(weapon, projectile, position)
 end
 
 ---@param weapon VerticalizeWeapon
+---@param upTimeFrames number
+---@return boolean
+local function shouldRespawn(weapon, upTimeFrames)
+	return upTimeFrames >= weapon.upTimeMinFrames + 0.5
+end
+
+---@param upTimeFrames number
+---@param frame integer
+---@return integer
+local function getFirstCheckFrame(upTimeFrames, frame)
+	return math_max(frame + math_floor(upTimeFrames) - checkWindowFrames, frame + 1)
+end
+
+---@param weapon VerticalizeWeapon
 ---@param position xyz
 ---@param target xyz
 ---@return boolean
@@ -421,6 +435,8 @@ return {
 	getAscendHeight = getAscendHeight,
 	newProjectile = newProjectile,
 	getUpTimeFrames = getUpTimeFrames,
+	shouldRespawn = shouldRespawn,
+	getFirstCheckFrame = getFirstCheckFrame,
 	isTargetInsideAscentTurn = isTargetInsideAscentTurn,
 	getAimHeight = getAimHeight,
 	updateFlightPhase = updateFlightPhase,

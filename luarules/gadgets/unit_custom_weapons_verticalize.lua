@@ -19,14 +19,14 @@ end
 -- Localization ----------------------------------------------------------------
 
 local math_max = math.max
-local math_floor = math.floor
 
 local Verticalize = VFS.Include("modules/verticalize.lua")
-local checkWindowFrames = Verticalize.checkWindowFrames
 local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
 local getAscendHeight = Verticalize.getAscendHeight
 local newProjectile = Verticalize.newProjectile
 local getUpTimeFrames = Verticalize.getUpTimeFrames
+local shouldRespawn = Verticalize.shouldRespawn
+local getFirstCheckFrame = Verticalize.getFirstCheckFrame
 local isTargetInsideAscentTurn = Verticalize.isTargetInsideAscentTurn
 local getAimHeight = Verticalize.getAimHeight
 local updateFlightPhase = Verticalize.updateFlightPhase
@@ -152,7 +152,7 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	end
 
 	projectiles[respawnID] = projectile
-	scheduleAt(respawnID, math_max(gameFrame + math_floor(upTimeFrames) - checkWindowFrames, gameFrame + 1))
+	scheduleAt(respawnID, getFirstCheckFrame(upTimeFrames, gameFrame))
 
 	return true
 end
@@ -176,7 +176,7 @@ local function register(projectileID, weaponDefID)
 	local projectile = newProjectile(weapon, target, getAscendHeight(weapon, position, target))
 	local upTimeFrames = getUpTimeFrames(weapon, projectile, position)
 
-	if upTimeFrames >= weapon.upTimeMinFrames + 0.5 then
+	if shouldRespawn(weapon, upTimeFrames) then
 		if respawn(weapon, projectileID, projectile, upTimeFrames) then
 			return
 		end
@@ -188,7 +188,7 @@ local function register(projectileID, weaponDefID)
 	end
 
 	projectiles[projectileID] = projectile
-	scheduleAt(projectileID, math_max(gameFrame + math_floor(upTimeFrames) - checkWindowFrames, gameFrame + 1))
+	scheduleAt(projectileID, getFirstCheckFrame(upTimeFrames, gameFrame))
 
 	local targetHeight = getAimHeight(weapon, projectile)
 	Spring.SetProjectileTarget(projectileID, target[1], targetHeight, target[3])
