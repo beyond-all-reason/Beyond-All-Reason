@@ -19,6 +19,8 @@ local mathFloor = math.floor
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 local factions = {}
 
 local doUpdate
@@ -267,9 +269,10 @@ function widget:Initialize()
 	end
 
 	if Spring.GetModOptions().scenariooptions then
-		local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
-		scenarioopts = Json.decode(scenarioopts)
-		if scenarioopts and scenarioopts.disablefactionpicker == true then
+		local scenarioopts = decodeModoption(Spring.GetModOptions().scenariooptions)
+		if not scenarioopts then
+			Spring.Log(widget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+		elseif scenarioopts.disablefactionpicker == true then
 			widgetHandler:RemoveWidget()
 			return
 		end
