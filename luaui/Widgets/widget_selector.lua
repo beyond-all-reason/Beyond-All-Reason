@@ -27,15 +27,15 @@ end
 -- by clicking again, and asking every time would make the panel unusable.
 
 -- Shared with the keybind editor and the game info panel, which is where they were written.
-local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
-local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
-local text = VFS.Include("luaui/Include/keybind_text.lua")
-local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
-local Search = VFS.Include("luaui/Include/search.lua")
+local Dropdown = require("luaui/Include/keybind_dropdown")
+local Editbox = require("luaui/Include/keybind_editbox")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local Search = require("luaui/Include/search")
+local text = require("luaui/Include/keybind_text")
 -- Wrapping every callin to time it is global and does not nest, so one thing owns it and
 -- everything else reads what it measured. Subscribing is what puts the wrappers in, so
 -- nothing is paid for until the column is switched on.
-local profiling = VFS.Include("luaui/Include/widget_profiling.lua")
+local profiling = require("luaui/Include/widget_profiling")
 
 -- Localized functions for performance
 local mathFloor = math.floor

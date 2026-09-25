@@ -1,9 +1,9 @@
 local function Init(gl)
 	if gl then
-		gl.InstanceVBOTable = VFS.Include("modules/graphics/instancevbotable.lua")
-		gl.InstanceVBOIdTable = VFS.Include("modules/graphics/instancevboidtable.lua")
-		gl.LuaShader = VFS.Include("modules/graphics/LuaShader.lua")
-		gl.R2tHelper = VFS.Include("modules/graphics/r2thelper.lua")
+		gl.InstanceVBOTable = require("modules/graphics/instancevbotable")
+		gl.InstanceVBOIdTable = require("modules/graphics/instancevboidtable")
+		gl.LuaShader = require("modules/graphics/LuaShader")
+		gl.R2tHelper = require("modules/graphics/r2thelper")
 	end
 end
 

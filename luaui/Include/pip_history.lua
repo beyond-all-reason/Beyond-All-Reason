@@ -132,6 +132,8 @@ end
 ---@field level number
 ---@field bytes number
 ---@field maxAge number? -- oldest event in the tick, in frames before tick.frame
+---@field spread integer? -- unit records were scanned over this many frames from frame on
+---@field ally integer? -- allyteam the recorder saw the game from (-1 = everything)
 ---@field units string?
 ---@field moves string?
 ---@field expl string?
@@ -168,6 +170,10 @@ end
 ---@field rawBytes number
 ---@field tickCount number
 ---@field lastTickFrame number
+---@field tickStart number -- frame the current / last tick's scan began on
+---@field scanPhase integer? -- phase of the scan in progress, nil between ticks
+---@field phaseUnits table<integer, integer>
+---@field scanAcc number
 ---@field generation number
 ---@field tX table<number, number>
 ---@field tZ table<number, number>
@@ -253,6 +259,7 @@ local storeDefaults = {
 	projectileStep = 5, -- projectile scan cadence in frames (within a tick)
 	projectileTolerance = 2, -- elmos of course drift before a shell is re-logged
 	commandCap = 200, -- per tick
+	scanSpread = 4, -- a tick's unit scan runs over this many frames (unit id modulo phase)
 	lookaheadTicks = 8, -- playback searches this far ahead for a unit's next record
 	coldTicks = 240, -- ticks older than this are zlib-frozen
 	maxLevel = 5, -- merge rounds before a segment is dropped whole (thinning fallback)
@@ -323,6 +330,10 @@ function Store:Reset()
 	self.rawBytes = 0
 	self.tickCount = 0
 	self.lastTickFrame = -1
+	self.tickStart = -1
+	self.scanPhase = nil
+	self.phaseUnits = {}
+	self.scanAcc = 0
 	self.generation = (self.generation or 0) + 1 -- views drop their caches when this changes
 	-- per-unit tracks
 	self.tX, self.tZ, self.tVX, self.tVZ, self.tF = {}, {}, {}, {}, {}
@@ -341,6 +352,7 @@ function Store:Reset()
 	self.eventMaxAge = 0
 	self.selN, self.selSum, self.selSq = {}, {}, {}
 	self.pendingDeaths, self.pendingDeathN = {}, 0
+	self.pendingDead = {} -- unit id -> true while its death record is queued
 	self.pendingExpl, self.pendingExplN = {}, 0
 	self.pendingCmd, self.pendingCmdN = {}, 0
 	self.pendingBeam, self.pendingBeamN = {}, 0
@@ -491,6 +503,7 @@ function Store:OnUnitDestroyed(unitID, unitDefID, unitTeam, x, z, frame)
 	self.pendingDeaths[n] = d
 	d[1], d[2], d[3] = unitID, x or self.tPrevX[unitID] or 0, z or self.tPrevZ[unitID] or 0
 	d[4], d[5], d[6] = unitDefID or 0, unitTeam or 0, frame
+	self.pendingDead[unitID] = true
 end
 
 function Store:OnUnitTeamChanged(unitID, newTeam)
@@ -811,9 +824,20 @@ function Store:GameFrame(frame)
 	if o.logProjectiles and self.mapSizeX > 0 and frame % (self.projStepNow or o.projectileStep) == 0 then
 		self:SampleProjectiles(frame)
 	end
-	if frame - self.lastTickFrame < o.tickFrames then
-		return false
+	-- the unit scan of a tick is spread over scanSpread frames (unit id modulo phase): events
+	-- are written on the first, which is the tick's frame, and the tick is packed on the last;
+	-- a record scanned on phase p holds the unit's position at frame + p
+	local spread = mathMax(1, o.scanSpread or 1)
+	local phase = self.scanPhase
+	if not phase then
+		if frame - self.tickStart < o.tickFrames then
+			return false
+		end
+		self.tickStart = frame
+		self.scanAcc = 0
+		phase = 0
 	end
+	local lastPhase = phase >= spread - 1
 	local t0 = os.clock()
 	local isKey = (self.tickCount % o.keyframeTicks) == 0
 	local tickStamp = self.tickCount + 1
@@ -828,13 +852,31 @@ function Store:GameFrame(frame)
 	local spGetUnitHealth = Spring.GetUnitHealth
 
 	local allUnits = spGetAllUnits() --[[@as table<integer, integer>]]
+	currentDetail(self, #allUnits)
+	if spread > 1 then
+		local sub = self.phaseUnits
+		local n = 0
+		for i = 1, #allUnits do
+			local uid = allUnits[i]
+			if uid % spread == phase then
+				n = n + 1
+				sub[n] = uid
+			end
+		end
+		for i = n + 1, #sub do
+			sub[i] = nil
+		end
+		allUnits = sub
+	end
 	local unitCount = #allUnits
-	currentDetail(self, unitCount)
 	local tol = self.toleranceNow
 
 	local myAlly = Spring.GetLocalAllyTeamID()
 	local _, fullview = Spring.GetSpectatingState()
 	local losChecks = not fullview
+	if phase == 0 then
+		self.tickAlly = losChecks and myAlly or -1
+	end
 
 	local tX, tZ, tVX, tVZ, tF = self.tX, self.tZ, self.tVX, self.tVZ, self.tF
 	local tDef, tTeam, tFlags, tHp = self.tDef, self.tTeam, self.tFlags, self.tHp
@@ -851,18 +893,32 @@ function Store:GameFrame(frame)
 	local defCheckSlot = tickStamp % 8
 
 	-- deaths reported since the last tick: exact position + frame, drop from tracks
-	for i = 1, self.pendingDeathN do
-		local d = self.pendingDeaths[i]
-		local uid = d[1]
-		local def = d[4] ~= 0 and d[4] or (tDef[uid] or 0)
-		local team = d[5] ~= 0 and d[5] or (tTeam[uid] or 0)
-		pushEvent(self, EV_DEATH, uid, d[2], d[3], def, team, frame - d[6])
-		if tSeen[uid] then
-			pushUnit(self, uid, def, team, F_DEAD + (isBuilding[def] and F_BUILDING or 0), d[2], d[3], frame - d[6], 0)
-			removeLive(self, uid)
+	if phase == 0 then
+		local pendingDead = self.pendingDead
+		for i = 1, self.pendingDeathN do
+			local d = self.pendingDeaths[i]
+			local uid = d[1]
+			pendingDead[uid] = nil
+			local def = d[4] ~= 0 and d[4] or (tDef[uid] or 0)
+			local team = d[5] ~= 0 and d[5] or (tTeam[uid] or 0)
+			pushEvent(self, EV_DEATH, uid, d[2], d[3], def, team, frame - d[6])
+			if tSeen[uid] then
+				pushUnit(
+					self,
+					uid,
+					def,
+					team,
+					F_DEAD + (isBuilding[def] and F_BUILDING or 0),
+					d[2],
+					d[3],
+					frame - d[6],
+					0
+				)
+				removeLive(self, uid)
+			end
 		end
+		self.pendingDeathN = 0
 	end
-	self.pendingDeathN = 0
 
 	for i = 1, unitCount do
 		local uid = allUnits[i]
@@ -986,203 +1042,217 @@ function Store:GameFrame(frame)
 		end
 	end
 
-	-- units that were live last tick but are gone now: vanish (or ghost for buildings)
-	local w = 0
-	for i = 1, liveCount do
-		local uid = liveList[i]
-		local seen = tSeen[uid]
-		if seen == tickStamp then
-			w = w + 1
-			liveList[w] = uid
-		elseif seen == prevStamp then
-			local def = tDef[uid] or 0
-			local flags = isBuilding[def] and (F_GHOST + F_BUILDING) or F_VANISH
-			pushUnit(self, uid, def, tTeam[uid] or 0, flags, tPrevX[uid] or 0, tPrevZ[uid] or 0, 0, 0)
-			removeLive(self, uid)
-		end
-	end
-	for i = w + 1, liveCount do
-		liveList[i] = nil
-	end
-	self.liveCount = w
-
-	-- explosions: keep the biggest when over the per-tick cap
-	local en = self.pendingExplN
-	if en > 0 then
-		local list = self.pendingExpl
-		if en > o.explosionCap then
-			local idx = {} ---@type table<integer, integer>
-			for i = 1, en do
-				idx[i] = i
-			end
-			table.sort(idx, function(a, b)
-				return list[a][6] > list[b][6]
-			end)
-			for k = 1, o.explosionCap do
-				local e = list[idx[k]]
-				pushExpl(self, e[1], e[2], e[3], e[4], frame - e[5])
-			end
-		else
-			for i = 1, en do
-				local e = list[i]
-				pushExpl(self, e[1], e[2], e[3], e[4], frame - e[5])
+	if lastPhase then
+		-- units that were live last tick but are gone now: vanish (or ghost for buildings)
+		local w = 0
+		local pendingDead = self.pendingDead
+		for i = 1, liveCount do
+			local uid = liveList[i]
+			local seen = tSeen[uid]
+			if seen == tickStamp then
+				w = w + 1
+				liveList[w] = uid
+			elseif seen == prevStamp and not pendingDead[uid] then
+				local def = tDef[uid] or 0
+				local flags = isBuilding[def] and (F_GHOST + F_BUILDING) or F_VANISH
+				pushUnit(self, uid, def, tTeam[uid] or 0, flags, tPrevX[uid] or 0, tPrevZ[uid] or 0, 0, 0)
+				removeLive(self, uid)
 			end
 		end
-		self.pendingExplN = 0
+		for i = w + 1, liveCount do
+			liveList[i] = nil
+		end
+		self.liveCount = w
 	end
 
-	for i = 1, self.pendingCmdN do
-		local c = self.pendingCmd[i]
-		pushEvent(self, EV_COMMAND, c[1], c[2], c[3], c[4], c[5], frame - c[6])
-	end
-	self.pendingCmdN = 0
-
-	for i = 1, self.pendingBeamN do
-		local b = self.pendingBeam[i]
-		pushEvent(self, EV_BEAM, b[1], b[2], b[3], b[4], b[5], frame - b[6])
-	end
-	self.pendingBeamN = 0
-
-	for i = 1, self.pendingEvN do
-		local ev = self.pendingEv[i]
-		local kind = ev[1]
-		if kind == FEAT_CREATED or kind == FEAT_GONE then
-			local fb = self.bufs.feat
-			local fn = self.lens.feat
-			fb[fn + 1], fb[fn + 2], fb[fn + 3] = kind, ev[2] % 65536, ev[3]
-			fb[fn + 4], fb[fn + 5], fb[fn + 6], fb[fn + 7] = clampU16(ev[4]), clampU16(ev[5]), ev[6], frame - ev[7]
-			self.lens.feat = fn + FEAT_STRIDE
-		else
-			pushEvent(self, kind, ev[2], ev[3], ev[4], ev[5], ev[6], frame - ev[7])
-		end
-	end
-	self.pendingEvN = 0
-
-	-- hits: the strongest kept under the cap
-	local dn = self.pendingDmgN
-	if dn > 0 then
-		local list, q, f = self.pendingDmgList, self.pendingDmgQ, self.pendingDmgF
-		if dn > o.damageCap then
-			table.sort(list, function(a, b)
-				return (q[a] or 0) > (q[b] or 0)
-			end)
-		end
-		local buf = self.bufs.dmg
-		local n = self.lens.dmg
-		for i = 1, mathMin(dn, o.damageCap) do
-			local uid = list[i]
-			local age = frame - f[uid]
-			buf[n + 1], buf[n + 2], buf[n + 3] = uid, q[uid], clampU16(age)
-			n = n + DMG_STRIDE
-			noteAge(self, age)
-		end
-		self.lens.dmg = n
-		for i = 1, dn do
-			local uid = list[i]
-			q[uid], f[uid], list[i] = nil, nil, nil
-		end
-		self.pendingDmgN = 0
-	end
-
-	-- broadcast cameras: {playerID, x, z, distance, tilt, heading, isHeight} per player
-	local cams = self.playerCameras and self.playerCameras()
-	if cams then
-		local buf = self.bufs.cam
-		local n = self.lens.cam
-		for i = 1, #cams do
-			local c = cams[i]
-			buf[n + 1] = c[1] % 256 + (c[7] and 256 or 0)
-			buf[n + 2] = clampU16(c[2])
-			buf[n + 3] = clampU16(c[3])
-			buf[n + 4] = clampU16(c[4])
-			buf[n + 5] = clampU16((c[5] + 3.1416) * 10000)
-			buf[n + 6] = clampU16((c[6] + 3.1416) * 10000)
-			n = n + CAM_STRIDE
-		end
-		self.lens.cam = n
-	end
-	-- selections: a player's set goes in when its count / id sums changed, all of them on keyframes
-	local sels = o.logSelections and self.playerSelections and self.playerSelections(isKey)
-	if sels then
-		local buf = self.bufs.sel
-		local n = self.lens.sel
-		local cap = o.selectionCap
-		local selN, selSum, selSq = self.selN, self.selSum, self.selSq
-		for pid, set in pairs(sels) do
-			local cnt, sum, sq = 0, 0.0, 0.0
-			for uid in pairs(set) do
-				cnt = cnt + 1
-				sum = sum + uid
-				sq = (sq + uid * uid) % 1000000007
-			end
-			if isKey or cnt ~= selN[pid] or sum ~= selSum[pid] or sq ~= selSq[pid] then
-				selN[pid], selSum[pid], selSq[pid] = cnt, sum, sq
-				local stored = mathMin(cnt, cap)
-				buf[n + 1] = pid
-				buf[n + 2] = stored
-				n = n + 2
-				local k = 0
-				for uid in pairs(set) do
-					if k >= stored then
-						break
-					end
-					k = k + 1
-					buf[n + k] = mathFloor(uid % 65536)
+	if phase == 0 then
+		-- explosions: keep the biggest when over the per-tick cap
+		local en = self.pendingExplN
+		if en > 0 then
+			local list = self.pendingExpl
+			if en > o.explosionCap then
+				local idx = {} ---@type table<integer, integer>
+				for i = 1, en do
+					idx[i] = i
 				end
-				n = n + stored
+				table.sort(idx, function(a, b)
+					return list[a][6] > list[b][6]
+				end)
+				for k = 1, o.explosionCap do
+					local e = list[idx[k]]
+					pushExpl(self, e[1], e[2], e[3], e[4], frame - e[5])
+				end
+			else
+				for i = 1, en do
+					local e = list[i]
+					pushExpl(self, e[1], e[2], e[3], e[4], frame - e[5])
+				end
+			end
+			self.pendingExplN = 0
+		end
+
+		for i = 1, self.pendingCmdN do
+			local c = self.pendingCmd[i]
+			pushEvent(self, EV_COMMAND, c[1], c[2], c[3], c[4], c[5], frame - c[6])
+		end
+		self.pendingCmdN = 0
+
+		for i = 1, self.pendingBeamN do
+			local b = self.pendingBeam[i]
+			pushEvent(self, EV_BEAM, b[1], b[2], b[3], b[4], b[5], frame - b[6])
+		end
+		self.pendingBeamN = 0
+
+		for i = 1, self.pendingEvN do
+			local ev = self.pendingEv[i]
+			local kind = ev[1]
+			if kind == FEAT_CREATED or kind == FEAT_GONE then
+				local fb = self.bufs.feat
+				local fn = self.lens.feat
+				fb[fn + 1], fb[fn + 2], fb[fn + 3] = kind, ev[2] % 65536, ev[3]
+				fb[fn + 4], fb[fn + 5], fb[fn + 6], fb[fn + 7] = clampU16(ev[4]), clampU16(ev[5]), ev[6], frame - ev[7]
+				self.lens.feat = fn + FEAT_STRIDE
+			else
+				pushEvent(self, kind, ev[2], ev[3], ev[4], ev[5], ev[6], frame - ev[7])
 			end
 		end
-		self.lens.sel = n
-	end
-	-- cursors: {playerID, x, z} per player, blended between ticks in playback like cameras
-	local curs = o.logCursors and self.playerCursors and self.playerCursors()
-	if curs then
-		local buf = self.bufs.cur
-		local n = self.lens.cur
-		for i = 1, #curs do
-			local c = curs[i]
-			buf[n + 1] = mathFloor(c[1] % 256)
-			buf[n + 2] = clampU16(c[2])
-			buf[n + 3] = clampU16(c[3])
-			n = n + CUR_STRIDE
+		self.pendingEvN = 0
+
+		-- hits: the strongest kept under the cap
+		local dn = self.pendingDmgN
+		if dn > 0 then
+			local list, q, f = self.pendingDmgList, self.pendingDmgQ, self.pendingDmgF
+			if dn > o.damageCap then
+				table.sort(list, function(a, b)
+					return (q[a] or 0) > (q[b] or 0)
+				end)
+			end
+			local buf = self.bufs.dmg
+			local n = self.lens.dmg
+			for i = 1, mathMin(dn, o.damageCap) do
+				local uid = list[i]
+				local age = frame - f[uid]
+				buf[n + 1], buf[n + 2], buf[n + 3] = uid, q[uid], clampU16(age)
+				n = n + DMG_STRIDE
+				noteAge(self, age)
+			end
+			self.lens.dmg = n
+			for i = 1, dn do
+				local uid = list[i]
+				q[uid], f[uid], list[i] = nil, nil, nil
+			end
+			self.pendingDmgN = 0
 		end
-		self.lens.cur = n
-	end
-	local seenBeam = self.seenBeam
-	for pid, f in pairs(seenBeam) do
-		if frame - f > 90 then
-			seenBeam[pid] = nil
+
+		-- broadcast cameras: {playerID, x, z, distance, tilt, heading, isHeight} per player
+		local cams = self.playerCameras and self.playerCameras()
+		if cams then
+			local buf = self.bufs.cam
+			local n = self.lens.cam
+			for i = 1, #cams do
+				local c = cams[i]
+				buf[n + 1] = c[1] % 256 + (c[7] and 256 or 0)
+				buf[n + 2] = clampU16(c[2])
+				buf[n + 3] = clampU16(c[3])
+				buf[n + 4] = clampU16(c[4])
+				buf[n + 5] = clampU16((c[5] + 3.1416) * 10000)
+				buf[n + 6] = clampU16((c[6] + 3.1416) * 10000)
+				n = n + CAM_STRIDE
+			end
+			self.lens.cam = n
+		end
+		-- selections: a player's set goes in when its count / id sums changed, all of them on keyframes
+		local sels = o.logSelections and self.playerSelections and self.playerSelections(isKey)
+		if sels then
+			local buf = self.bufs.sel
+			local n = self.lens.sel
+			local cap = o.selectionCap
+			local selN, selSum, selSq = self.selN, self.selSum, self.selSq
+			for pid, set in pairs(sels) do
+				local cnt, sum, sq = 0, 0.0, 0.0
+				for uid in pairs(set) do
+					cnt = cnt + 1
+					sum = sum + uid
+					sq = (sq + uid * uid) % 1000000007
+				end
+				if isKey or cnt ~= selN[pid] or sum ~= selSum[pid] or sq ~= selSq[pid] then
+					selN[pid], selSum[pid], selSq[pid] = cnt, sum, sq
+					local stored = mathMin(cnt, cap)
+					buf[n + 1] = pid
+					buf[n + 2] = stored
+					n = n + 2
+					local k = 0
+					for uid in pairs(set) do
+						if k >= stored then
+							break
+						end
+						k = k + 1
+						buf[n + k] = mathFloor(uid % 65536)
+					end
+					n = n + stored
+				end
+			end
+			self.lens.sel = n
+		end
+		-- cursors: {playerID, x, z} per player, blended between ticks in playback like cameras
+		local curs = o.logCursors and self.playerCursors and self.playerCursors()
+		if curs then
+			local buf = self.bufs.cur
+			local n = self.lens.cur
+			for i = 1, #curs do
+				local c = curs[i]
+				buf[n + 1] = mathFloor(c[1] % 256)
+				buf[n + 2] = clampU16(c[2])
+				buf[n + 3] = clampU16(c[3])
+				n = n + CUR_STRIDE
+			end
+			self.lens.cur = n
+		end
+		local seenBeam = self.seenBeam
+		for pid, f in pairs(seenBeam) do
+			if frame - f > 90 then
+				seenBeam[pid] = nil
+			end
+		end
+		-- shells missing from the latest scan are gone; a keyframe restates the ones in flight
+		local pF, pSeen = self.pF, self.pSeen
+		local lastScan = frame - frame % (self.projStepNow or o.projectileStep)
+		for pid, f0 in pairs(pF) do
+			if pSeen[pid] < lastScan then
+				pushProjEnd(self, pid, frame - pSeen[pid])
+				pF[pid] = nil
+				self.pTracked = self.pTracked - 1
+			elseif isKey then
+				pushProj(
+					self,
+					pid,
+					self.pW[pid],
+					self.pX[pid],
+					self.pZ[pid],
+					quantV(self.pVX[pid]),
+					quantV(self.pVZ[pid]),
+					f0
+				)
+			end
+		end
+		-- projectile records carry their absolute frame until now
+		local pbuf = self.bufs.proj
+		for i = PROJ_STRIDE, self.lens.proj, PROJ_STRIDE do
+			pbuf[i] = mathFloor(mathMax(frame - pbuf[i], 0))
 		end
 	end
-	-- shells missing from the latest scan are gone; a keyframe restates the ones in flight
-	local pF, pSeen = self.pF, self.pSeen
-	local lastScan = frame - frame % (self.projStepNow or o.projectileStep)
-	for pid, f0 in pairs(pF) do
-		if pSeen[pid] < lastScan then
-			pushProjEnd(self, pid, frame - pSeen[pid])
-			pF[pid] = nil
-			self.pTracked = self.pTracked - 1
-		elseif isKey then
-			pushProj(
-				self,
-				pid,
-				self.pW[pid],
-				self.pX[pid],
-				self.pZ[pid],
-				quantV(self.pVX[pid]),
-				quantV(self.pVZ[pid]),
-				f0
-			)
-		end
+
+	if not lastPhase then
+		self.liveCount = liveCount -- units this phase added to the live list
+		self.scanPhase = phase + 1
+		self.scanAcc = self.scanAcc + (os.clock() - t0) * 1000
+		return false
 	end
-	-- projectile records carry their absolute frame until now
-	local pbuf = self.bufs.proj
-	for i = PROJ_STRIDE, self.lens.proj, PROJ_STRIDE do
-		pbuf[i] = mathFloor(mathMax(frame - pbuf[i], 0))
-	end
+	self.scanPhase = nil
+	frame = self.tickStart
 
 	-- pack the tick
-	local tick = { frame = frame, key = isKey, level = 0, maxAge = self.eventMaxAge }
+	local tick = { frame = frame, key = isKey, level = 0, maxAge = self.eventMaxAge, spread = spread, ally = self.tickAlly }
 	local bytes = TICK_OVERHEAD
 	local bufs, lens, stats = self.bufs, self.lens, self.stats
 	for i = 1, #STREAMS do
@@ -1237,7 +1307,7 @@ function Store:GameFrame(frame)
 			self:Compact()
 		end
 	end
-	stats.scanMs = stats.scanMs + 0.1 * ((os.clock() - t0) * 1000 - stats.scanMs)
+	stats.scanMs = stats.scanMs + 0.1 * (self.scanAcc + (os.clock() - t0) * 1000 - stats.scanMs)
 	return true
 end
 
@@ -1355,6 +1425,8 @@ function Store:MergeTicks(a, b)
 	merged.feat = concatAged(sa.feat, sb.feat, FEAT_STRIDE)
 	merged.cam = sb.cam or sa.cam
 	merged.cur = sb.cur or sa.cur
+	merged.spread = sb.spread or sa.spread
+	merged.ally = sb.ally or sa.ally
 	if sa.sel or sb.sel then
 		merged.sel = (sa.sel or "") .. (sb.sel or "") -- applied in order, the later record wins
 	end
@@ -1494,7 +1566,16 @@ local function writeTick(f, t)
 		end
 	end
 	f:write(
-		string.format("%d %d %d %d %d ", t.frame, t.key and 1 or 0, t.level, t.maxAge or 0, t.z and 1 or 0),
+		string.format(
+			"%d %d %d %d %d %d %d ",
+			t.frame,
+			t.key and 1 or 0,
+			t.level,
+			t.maxAge or 0,
+			t.z and 1 or 0,
+			t.spread or 1,
+			(t.ally or -1) + 1
+		),
 		table.concat(lens, " "),
 		"\n",
 		table.concat(parts)
@@ -1515,18 +1596,25 @@ local function parseTicks(data, pos, count, maxFrame)
 		for v in line:gmatch("%d+") do
 			nums[#nums + 1] = tonumber(v)
 		end
-		if #nums < 5 + #STREAMS then
+		if #nums < 7 + #STREAMS then
 			break
 		end
 		local frame = nums[1]
 		if maxFrame and frame > maxFrame then
 			break
 		end
-		local t = { frame = frame, key = nums[2] == 1, level = nums[3], maxAge = nums[4] }
+		local t = {
+			frame = frame,
+			key = nums[2] == 1,
+			level = nums[3],
+			maxAge = nums[4],
+			spread = nums[6],
+			ally = nums[7] - 1,
+		}
 		local isZ = nums[5] == 1
 		local bytes = TICK_OVERHEAD
 		for k = 1, #STREAMS do
-			local n = mathFloor(nums[5 + k])
+			local n = mathFloor(nums[7 + k])
 			if n > 0 then
 				local s = data:sub(pos, pos + n - 1)
 				pos = pos + n
@@ -1852,7 +1940,7 @@ function Store:SegmentRanges()
 end
 
 -- Persistence across /luaui reload: hot ticks and the spilled segments' basic copies go to a
--- binary file in the write dir (the segment files themselves stay). Layout: "PIPHIST6", game id,
+-- binary file in the write dir (the segment files themselves stay). Layout: "PIPHIST7", game id,
 -- hot tick count, tick counter, segment count; per segment its file path, "first last count bytes
 -- basicCount" and the basic ticks; then the hot ticks. A tick is a header line "frame key level
 -- maxAge z n1..nN" followed by the raw bytes (the zlib blob when z is 1).
@@ -1863,7 +1951,7 @@ function Store:SaveToFile(path, gameID)
 	end
 	local hot = self.hot
 	local segs = self.segments
-	f:write(string.format("PIPHIST6\n%s\n%d\n%d\n%d\n", tostring(gameID), #hot, self.tickCount, #segs))
+	f:write(string.format("PIPHIST7\n%s\n%d\n%d\n%d\n", tostring(gameID), #hot, self.tickCount, #segs))
 	for i = 1, #segs do
 		local seg = segs[i]
 		f:write(string.format("%s\n%d %d %d %d %d\n", seg.file, seg.first, seg.last, seg.count, seg.bytes, #seg.basic))
@@ -1893,7 +1981,7 @@ function PipHistory.loadStore(path, opts, gameID, maxFrame)
 	local count = tonumber(countLine)
 	local tickCount = tonumber(tickLine)
 	local segCount = tonumber(segLine)
-	if magic ~= "PIPHIST6" or id ~= tostring(gameID) or not count or not tickCount or not segCount then
+	if magic ~= "PIPHIST7" or id ~= tostring(gameID) or not count or not tickCount or not segCount then
 		f:close()
 		return nil
 	end
@@ -1944,6 +2032,7 @@ function PipHistory.loadStore(path, opts, gameID, maxFrame)
 	store.rawBytes = store.totalBytes
 	local lastTick = store.ticks[#store.ticks]
 	store.lastTickFrame = lastTick and lastTick.frame or -1
+	store.tickStart = store.lastTickFrame
 	-- the recorder starts with empty tracks, so its next tick must be a keyframe
 	local kf = store.opts.keyframeTicks
 	store.tickCount = math.ceil(tickCount / kf) * kf
@@ -2089,6 +2178,7 @@ function PipHistory.newView(store)
 	self.features, self.featureCount, self.featureKey = {}, 0, 0
 	self.cX, self.cZ, self.cH, self.cRX, self.cRY, self.cF, self.cHF = {}, {}, {}, {}, {}, {}, {}
 	self.camIdx, self.camGen, self.camArr = -1, -1, nil
+	self.recAlly = nil -- perspective of the applied tick
 	self.selSet = {} -- playerID -> set of unit ids
 	self.mX, self.mZ, self.mF = {}, {}, {}
 	self.curIdx, self.curGen, self.curArr = -1, -1.0, nil
@@ -2117,6 +2207,7 @@ local function viewReset(self)
 	for pid in pairs(self.selSet) do
 		self.selSet[pid] = nil
 	end
+	self.recAlly = nil
 end
 
 local function applyShells(self, s, frame)
@@ -2156,6 +2247,8 @@ end
 local function applyTick(self, store, tick)
 	local s = store:Streams(tick)
 	local frame = tick.frame
+	local sp = tick.spread or 1
+	self.recAlly = tick.ally
 	local uX, uZ, uVX, uVZ, uF = self.uX, self.uZ, self.uVX, self.uVZ, self.uF
 	local uDef, uTeam, uFlags = self.uDef, self.uTeam, self.uFlags
 	local present, ids = self.present, self.ids
@@ -2171,7 +2264,7 @@ local function applyTick(self, store, tick)
 			uZ[uid] = arr[i + 4]
 			uVX[uid] = (arr[i + 5] - V_BIAS) / V_SCALE
 			uVZ[uid] = (arr[i + 6] - V_BIAS) / V_SCALE
-			uF[uid] = frame
+			uF[uid] = frame + uid % sp
 			if not present[uid] then
 				present[uid] = true
 				self.idCount = self.idCount + 1
@@ -2188,7 +2281,7 @@ local function applyTick(self, store, tick)
 				uZ[uid] = moves[i + 2]
 				uVX[uid] = (moves[i + 3] - V_BIAS) / V_SCALE
 				uVZ[uid] = (moves[i + 4] - V_BIAS) / V_SCALE
-				uF[uid] = frame
+				uF[uid] = frame + uid % sp
 			end
 		end
 	end
@@ -2307,6 +2400,7 @@ function View:Materialize(frame)
 			local tick = ticks[i]
 			local s = store:Streams(tick)
 			local tf = tick.frame
+			local sp = tick.spread or 1
 			-- the change that caused a record happened inside the tick before it
 			local span = mathMax(tf - ticks[i - 1].frame, 1)
 			local arr = unpackAll(s.units)
@@ -2324,7 +2418,7 @@ function View:Materialize(frame)
 							nDef[uid] = -1
 						end
 					elseif not nF[uid] then
-						nF[uid] = tf
+						nF[uid] = tf + uid % sp
 						nX[uid] = arr[j + 3]
 						nZ[uid] = arr[j + 4]
 						nDef[uid] = arr[j + 1]
@@ -2341,7 +2435,7 @@ function View:Materialize(frame)
 				for j = 1, #moves, MOVE_STRIDE do
 					local uid = moves[j]
 					if not nF[uid] then
-						nF[uid] = tf
+						nF[uid] = tf + uid % sp
 						nX[uid] = moves[j + 1]
 						nZ[uid] = moves[j + 2]
 						nDef[uid] = uDef[uid] or 0

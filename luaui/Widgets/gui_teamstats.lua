@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local text = require("luaui/Include/keybind_text")
 
 -- Localized functions for performance
 local mathFloor = math.floor
@@ -4108,7 +4108,7 @@ end
 
 -- The Graphs page, handed everything of the panel's it reads. Made here, at the end, so
 -- every function above is in reach of it; the callins run later than this.
-graphs = VFS.Include("luaui/Include/teamstats_graphs.lua").new({
+graphs = require("luaui/Include/teamstats_graphs").new({
 	COLUMNS = COLUMNS,
 	GROUPS = GROUPS,
 	groupByKey = groupByKey,

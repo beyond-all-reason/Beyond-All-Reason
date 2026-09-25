@@ -531,7 +531,7 @@ function gadgetHandler:Initialize()
 	--  table.sort(gadgetFiles)
 
 	if IS_LUARULES then
-		local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE) ---@type ModuleHandler
+		local ModuleHandler = require("modules/module_handler", nil, VFSMODE) ---@type ModuleHandler
 		ModuleHandler.Register(VFSMODE)
 		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
 			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do

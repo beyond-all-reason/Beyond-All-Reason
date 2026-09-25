@@ -49,7 +49,7 @@ local glGetTextWidth = gl.GetTextWidth
 -- The measurement itself, which the widget selector reads too. Wrapping every callin is
 -- global and does not nest, so exactly one thing may do it; this widget draws what that
 -- one thing measures.
-local profiling = VFS.Include("luaui/Include/widget_profiling.lua")
+local profiling = require("luaui/Include/widget_profiling")
 
 local usePrefixedNames = true
 

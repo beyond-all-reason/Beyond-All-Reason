@@ -75,7 +75,7 @@ local aliveSpawners = {}
 local aliveSpawnersCount = 0
 local lastTransportSentFrame = 0
 local handledLootboxesList = {}
-local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
+local config = require("luarules/configs/scav_spawn_defs")
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if lootboxList[unitDefID] then

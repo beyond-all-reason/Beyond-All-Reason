@@ -4,7 +4,7 @@
 -- An option may carry a `tag`, drawn on a faint pill, and a `group`, which rules a line
 -- between neighbours whose groups differ.
 
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local text = require("luaui/Include/keybind_text")
 
 local Dropdown = {}
 Dropdown.__index = Dropdown

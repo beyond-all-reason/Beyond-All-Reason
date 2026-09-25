@@ -3,7 +3,7 @@
 -- table takes a custom category's graphs as its columns. One ships with the game - the
 -- overview - editable like any other and put back as it came by a reset.
 --
---   local custom = VFS.Include("luaui/Include/teamstats_custom.lua").new(ctx)
+--   local custom = require("luaui/Include/teamstats_custom").new(ctx)
 --   custom.setConfig(saved)                     -- or nothing, for the shipped overview alone
 --   custom.add("overview", "metalProduced", settings)
 --   saved = custom.getConfig()

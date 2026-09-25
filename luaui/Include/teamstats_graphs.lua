@@ -11,10 +11,10 @@
 -- (the ally teams read into the table, the gadget's last hand-over, the switches, the
 -- group picked in the sidebar). See gui_teamstats.lua for the fields.
 
-local Graph = VFS.Include("luaui/Include/graph.lua")
-local Custom = VFS.Include("luaui/Include/teamstats_custom.lua")
-local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
-local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
+local Custom = require("luaui/Include/teamstats_custom")
+local Editbox = require("luaui/Include/keybind_editbox")
+local Graph = require("luaui/Include/graph")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
 
 local mathFloor = math.floor
 local mathMax = math.max

@@ -83,9 +83,9 @@ local PREVIEW_GHOST_CAP = 300
 
 -- Same generators the gadget used to run, moved widget-side so the preview can
 -- see them. See the header of that file for why.
-local Scatter = VFS.Include("common/feature_scatter.lua")
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
-local Gizmo = VFS.Include("luaui/Include/gizmo3d_gl4.lua")
+local BrushShapes = require("common/brush_shapes")
+local Gizmo = require("luaui/Include/gizmo3d_gl4")
+local Scatter = require("common/feature_scatter")
 
 local abs = math.abs
 local asin = math.asin

@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized functions for performance
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 local mathFloor = math.floor
 local mathMax = math.max

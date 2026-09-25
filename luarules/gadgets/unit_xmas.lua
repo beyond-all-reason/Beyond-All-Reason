@@ -130,7 +130,7 @@ local random = math.random
 local GetGroundHeight = Spring.GetGroundHeight
 local initiated
 
-VFS.Include("luarules/configs/map_biomes.lua")
+require("luarules/configs/map_biomes")
 
 function initiateXmas()
 	if not initiated then

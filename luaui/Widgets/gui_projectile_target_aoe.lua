@@ -37,6 +37,7 @@ local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spGetProjectileTimeToLive = Spring.GetProjectileTimeToLive
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetProjectileTeamID = Spring.GetProjectileTeamID
@@ -50,6 +51,14 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spIsSphereInView = Spring.IsSphereInView
 local spGetCameraPosition = Spring.GetCameraPosition
+
+local Starburst = require("modules/starburst")
+local getStarburstWeapon = Starburst.getStarburstWeapon
+local stepStarburst = Starburst.stepStarburst
+
+local Verticalize = require("modules/verticalize")
+local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
+local getInFlightImpact = Verticalize.getInFlightImpact
 
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
@@ -154,21 +163,19 @@ local function BuildWeaponCache()
 			local aoe = wd.damageAreaOfEffect or 0
 			if aoe >= Config.minAoeThreshold then
 				local isNuke = wd.customParams.nuclear ~= nil
-				local isMoveCtrl = wd.customParams.cruise_and_verticalize ~= nil
 				local isParalyzer = wd.paralyzer or false
 				starburstWeapons[wdid] = {
 					aoe = aoe,
 					isNuke = isNuke,
 					isParalyzer = isParalyzer,
 					isJuno = wd.name:lower():find("juno") ~= nil,
-					isMoveCtrl = isMoveCtrl,
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
-					weaponAcceleration = wd.weaponAcceleration or 0,
 					uptime = wd.uptime or 0,
-					turnRate = wd.turnRate or 0,
-					tracking = wd.tracks and (wd.turnRate or 0) or 0,
+					starburst = getStarburstWeapon(wd),
+					verticalize = getVerticalizeWeapon(wd),
+					waterWeapon = wd.waterWeapon,
 					leadLimit = wd.leadLimit or -1,
 					leadBonus = wd.leadBonus or 0,
 					initialTimeToLive = wd.flightTime or 0,
@@ -509,7 +516,7 @@ end
 -- Projectile tracking
 --------------------------------------------------------------------------------
 
-local function GetProjectileTargetPos(proID, usesMoveCtrl)
+local function GetProjectileTargetPos(proID)
 	local targetType, targetData = spGetProjectileTarget(proID)
 
 	if not targetType then
@@ -519,8 +526,7 @@ local function GetProjectileTargetPos(proID, usesMoveCtrl)
 	-- Ground target
 	if targetType == 103 then -- ASCII 'g'
 		if type(targetData) == "table" then
-			local elevation = usesMoveCtrl and max(spGetGroundHeight(targetData[1], targetData[3]), 0) or targetData[2]
-			return targetData[1], elevation, targetData[3], true
+			return targetData[1], targetData[2], targetData[3], true
 		end
 	-- Unit target
 	elseif targetType == 117 then -- ASCII 'u'
@@ -626,15 +632,6 @@ local function GetPredictedImpactPos(
 
 	local simX, simY, simZ = px, py, pz
 	local dirX, dirY, dirZ = vx / velocityLength, vy / velocityLength, vz / velocityLength
-	local speed = velocityLength
-	local maxSpeed = weaponInfo.projectileSpeed
-	local acceleration = weaponInfo.weaponAcceleration
-	local turnRate = weaponInfo.turnRate
-	if turnRate == 0 then
-		turnRate = 0.06
-	end
-	local tracking = weaponInfo.tracking
-	local maxGoodDif = cos(tracking * 0.6)
 	targetVelocityX, targetVelocityY, targetVelocityZ = targetVelocityX or 0, targetVelocityY or 0, targetVelocityZ or 0
 	local targetMoves = weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0)
 
@@ -648,6 +645,10 @@ local function GetPredictedImpactPos(
 			turnToTarget = (dirX * targetDX + dirY * targetDY + dirZ * targetDZ) / targetLength <= 0.99
 		end
 	end
+
+	local starburstWeapon = weaponInfo.starburst
+	local speed = velocityLength
+	local _, _, _, groundMax = spGetGroundExtremes()
 
 	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
 	local maxFrames = min(remainingTimeToLive or 512, 512)
@@ -668,57 +669,29 @@ local function GetPredictedImpactPos(
 			return tx, ty, tz, false
 		end
 
-		if ascentFrames > 0 then
-			speed = min(speed + acceleration, maxSpeed)
-			ascentFrames = ascentFrames - 1
-		else
-			local targetDirX, targetDirY, targetDirZ =
-				targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
-			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
-			local steerRate
-			if turnToTarget then
-				if directionDotTarget > 0.99 then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-					turnToTarget = false
-				else
-					steerRate = turnRate
-				end
-			else
-				speed = min(speed + acceleration, maxSpeed)
-				if directionDotTarget > maxGoodDif then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-				elseif tracking > 0 then
-					steerRate = tracking
-				end
-			end
+		dirX, dirY, dirZ, speed, ascentFrames, turnToTarget = stepStarburst(
+			starburstWeapon,
+			dirX,
+			dirY,
+			dirZ,
+			speed,
+			ascentFrames,
+			turnToTarget,
+			targetDX / targetLength,
+			targetDY / targetLength,
+			targetDZ / targetLength
+		)
 
-			if steerRate then
-				local turnX = targetDirX - dirX * directionDotTarget
-				local turnY = targetDirY - dirY * directionDotTarget
-				local turnZ = targetDirZ - dirZ * directionDotTarget
-				local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
-				if turnLength > 0 then
-					turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
-					dirX = dirX + turnX * steerRate
-					dirY = dirY + turnY * steerRate
-					dirZ = dirZ + turnZ * steerRate
-					local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-					dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
-				end
+		if not turnToTarget and not targetMoves then
+			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
+			if hitDistance and hitDistance + 8 < targetLength then
+				return hitX, hitY, hitZ, true
 			end
-
-			if not turnToTarget and not targetMoves then
-				local hitDistance, hitX, hitY, hitZ =
-					spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
-				if hitDistance and hitDistance + 8 < targetLength then
-					return hitX, hitY, hitZ, true
-				end
-				return tx, ty, tz, false
-			end
+			return tx, ty, tz, false
 		end
 
 		local nextX, nextY, nextZ = simX + dirX * speed, simY + dirY * speed, simZ + dirZ * speed
-		local groundY = spGetGroundHeight(nextX, nextZ)
+		local groundY = nextY < groundMax and spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
 			local hitDistance, hitX, hitY, hitZ =
 				spTraceRayGroundBetweenPositions(simX, simY, simZ, nextX, nextY, nextZ, false)
@@ -739,11 +712,39 @@ local function GetPredictedImpactPos(
 	return tx, ty, tz, false
 end
 
-local function ProjectImpactToGround(x, y, z, projectToGround)
+local function GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
+	local targetType, targetData = spGetProjectileTarget(proID)
+	local aimX, aimY, aimZ
+	if targetType == 103 and type(targetData) == "table" then -- ASCII 'g'
+		aimX, aimY, aimZ = targetData[1], targetData[2], targetData[3]
+	elseif targetType == 117 then -- ASCII 'u'
+		local _
+		_, _, _, aimX, aimY, aimZ = spGetUnitPosition(targetData, false, true)
+	end
+	local vx, vy, vz, speed = spGetProjectileVelocity(proID)
+	if not aimX or not vx or speed <= 0 then
+		return nil
+	end
+
+	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
+	local elapsedFrames = remainingTimeToLive and floor(max(0, weaponInfo.initialTimeToLive - remainingTimeToLive)) or 0
+
+	return getInFlightImpact(
+		weaponInfo.verticalize,
+		weaponInfo.starburst,
+		{ px, py, pz },
+		{ vx, vy, vz, speed },
+		elapsedFrames,
+		{ aimX, aimY, aimZ },
+		{ aimX, max(spGetGroundHeight(aimX, aimZ), 0), aimZ }
+	)
+end
+
+local function ProjectImpactToSurface(x, y, z, projectToGround, waterWeapon)
 	if projectToGround then
 		local groundY = spGetGroundHeight(x, z)
 		if groundY then
-			y = groundY
+			y = waterWeapon and groundY or max(groundY, 0)
 		end
 	end
 	return x, y, z
@@ -798,7 +799,7 @@ local function UpdateTrackedProjectiles()
 
 					if existingData.weaponInfo.tracks then
 						local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ =
-							GetProjectileTargetPos(proID, existingData.weaponInfo.isMoveCtrl)
+							GetProjectileTargetPos(proID)
 						if tx then
 							existingData.impactX = tx
 							existingData.impactY = ty
@@ -817,7 +818,26 @@ local function UpdateTrackedProjectiles()
 					local launchElapsed =
 						GetProjectileLaunchElapsed(proID, existingData.weaponInfo, currentTime - existingData.startTime)
 					local tx, ty, tz = existingData.impactX, existingData.impactY, existingData.impactZ
-					if px and tx then
+					if existingData.weaponInfo.verticalize then
+						if px and not existingData.isImpactFromLaunch then
+							local isFromLaunch
+							tx, ty, tz, isFromLaunch =
+								GetVerticalizeImpactPos(proID, existingData.weaponInfo, px, py, pz)
+							if tx then
+								tx, ty, tz = ProjectImpactToSurface(
+									tx,
+									ty,
+									tz,
+									existingData.projectToGround,
+									existingData.weaponInfo.waterWeapon
+								)
+								existingData.targetX = tx
+								existingData.targetY = ty
+								existingData.targetZ = tz
+								existingData.isImpactFromLaunch = isFromLaunch
+							end
+						end
+					elseif px and tx then
 						tx, ty, tz = GetPredictedImpactPos(
 							proID,
 							existingData.weaponInfo,
@@ -832,7 +852,13 @@ local function UpdateTrackedProjectiles()
 							existingData.targetVelocityY,
 							existingData.targetVelocityZ
 						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, existingData.projectToGround)
+						tx, ty, tz = ProjectImpactToSurface(
+							tx,
+							ty,
+							tz,
+							existingData.projectToGround,
+							existingData.weaponInfo.waterWeapon
+						)
 						existingData.targetX = tx
 						existingData.targetY = ty
 						existingData.targetZ = tz
@@ -846,7 +872,7 @@ local function UpdateTrackedProjectiles()
 
 				if isSpectator or isOwnTeam then
 					local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ, isUnitTarget =
-						GetProjectileTargetPos(proID, weaponInfo.isMoveCtrl)
+						GetProjectileTargetPos(proID)
 					local px, py, pz = spGetProjectilePosition(proID)
 
 					if tx and px then
@@ -871,21 +897,31 @@ local function UpdateTrackedProjectiles()
 						if not weaponInfo.tracks then
 							targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
 						end
-						tx, ty, tz = GetPredictedImpactPos(
-							proID,
-							weaponInfo,
-							launchElapsed,
-							px,
-							py,
-							pz,
-							tx,
-							ty,
-							tz,
-							targetVelocityX,
-							targetVelocityY,
-							targetVelocityZ
-						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
+						local isImpactFromLaunch
+						if weaponInfo.verticalize then
+							local verticalizeX, verticalizeY, verticalizeZ
+							verticalizeX, verticalizeY, verticalizeZ, isImpactFromLaunch =
+								GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
+							if verticalizeX then
+								tx, ty, tz = verticalizeX, verticalizeY, verticalizeZ
+							end
+						else
+							tx, ty, tz = GetPredictedImpactPos(
+								proID,
+								weaponInfo,
+								launchElapsed,
+								px,
+								py,
+								pz,
+								tx,
+								ty,
+								tz,
+								targetVelocityX,
+								targetVelocityY,
+								targetVelocityZ
+							)
+						end
+						tx, ty, tz = ProjectImpactToSurface(tx, ty, tz, projectToGround, weaponInfo.waterWeapon)
 
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)
@@ -920,6 +956,7 @@ local function UpdateTrackedProjectiles()
 							isOwnTeam = isOwnTeam,
 							isAlly = isAlly,
 							speed = speed,
+							isImpactFromLaunch = isImpactFromLaunch,
 						}
 					end
 				end

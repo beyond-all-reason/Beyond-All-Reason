@@ -37,9 +37,9 @@ local LineTypes = {
 	System = 5,
 }
 
-local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
-local badWords = VFS.Include("luaui/configs/badwords.lua")
-local ChatEmoji = VFS.Include("luaui/Include/chat_emoji.lua")
+local ChatEmoji = require("luaui/Include/chat_emoji")
+local badWords = require("luaui/configs/badwords")
+local utf8 = require("common/luaUtilities/utf8")
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (BAR.Utilities.IsDevMode() and BAR.Utilities.Gametype.IsSinglePlayer())
@@ -205,7 +205,7 @@ local state = {
 	mapDrawLastLeftClickTime = 0,
 	inputTextInsertActive = false,
 	minimapViewportY = select(4, Spring.GetViewGeometry()),
-	minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld,
+	minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld,
 	inputHistory = {},
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
@@ -4246,7 +4246,8 @@ function widget:WorldTooltip(ttType, data1, data2, data3)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	if cmdType == "point" then
+	-- an ignored player's point is dropped and prints no "added point" line to pair with
+	if cmdType == "point" and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		lastMapmarkCoords = { x, y, z }
 	end
 end

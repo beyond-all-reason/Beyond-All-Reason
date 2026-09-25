@@ -1,5 +1,5 @@
-local serpent = VFS.Include("common/luaUtilities/serpent.lua")
-local Util = VFS.Include("common/testing/util.lua")
+local Util = require("common/testing/util")
+local serpent = require("common/luaUtilities/serpent")
 
 local function generateRandomString(length)
 	local charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

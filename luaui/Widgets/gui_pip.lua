@@ -76,7 +76,7 @@ end
 ----------------------------------------------------------------------------------------------------
 -- Keyboard config for hotkey display
 ----------------------------------------------------------------------------------------------------
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 keyConfig._pipHotkeyCache = keyConfig._pipHotkeyCache or {}
 
 ----------------------------------------------------------------------------------------------------
@@ -161,7 +161,6 @@ config = {
 	activityFocusZoomOutTime = 1.3, -- Seconds for the zoom-out transition (smoothstep ease-in-out)
 	activityFocusZoom = 0.15, -- Zoom level when focusing on a marker (higher = more zoomed in)
 	activityFocusShowMinimap = true, -- Temporarily show pip-minimap overlay while focused on a map marker
-	activityFocusBlockIgnoredPlayers = true, -- Completely block activity focus for players on your ignore list (WG.ignoredAccounts)
 	activityFocusCooldown = 3, -- Minimum seconds between focus triggers from the same player
 	activityFocusThrottleWindow = 10, -- Time window (seconds) to count markers from a player
 	activityFocusThrottleCount = 3, -- After this many markers in the window, ignore that player temporarily
@@ -314,6 +313,9 @@ config = {
 	historyDeathReplayZoom = 1.2, -- Zoom the death replay centres with (0 = leave the camera alone)
 	historyPlaybackRate = 60, -- Max layer re-renders per second while rewinding (live's max is pipMaxUpdateRate)
 	historyLosFrames = 15, -- Rewind LOS view: frames between rebuilds of the sight circles (also rebuilt when an ally appears or dies)
+	historyLosTerrain = true, -- Rewind LOS view: sight and radar rays are blocked by terrain
+	historyLosTerrainStep = 48, -- Elmos between terrain samples along a sight ray
+	historyScanSpread = 4, -- The recorder's unit scan runs over this many frames per tick
 	historyExplosions = true, -- Log explosions into the rewind history
 	historyProjectiles = true, -- Log long-flight projectiles (nukes, artillery, bombs)
 	historyCommands = true, -- Log position-targeted orders
@@ -9159,7 +9161,7 @@ function widget:Initialize()
 		glFunc.Texture(false)
 	end)
 
-	local iconTypes = VFS.Include("gamedata/icontypes.lua")
+	local iconTypes = require("gamedata/icontypes")
 	for uDefID, uDef in pairs(UnitDefs) do
 		cache.xsizes[uDefID] = uDef.xsize * 4
 		cache.zsizes[uDefID] = uDef.zsize * 4
@@ -12506,8 +12508,9 @@ local function GL4DrawIcons(checkAllyTeamID, selectedSet, trackingSet)
 						if not isBuildingLike then
 							isRadar = true
 						end
+						-- the engine's rule: seen before and radar contact kept since (both bits)
 						local typed = (losBits % (LOS_PREVLOS * 2) >= LOS_PREVLOS)
-							or (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
+							and (losBits % (LOS_CONTRADAR * 2) >= LOS_CONTRADAR)
 						if not (typed and uDefID) then
 							visibleDefID = nil
 						end
@@ -13925,6 +13928,7 @@ function miscState.hist.StoreOptions()
 		playerSelections = miscState.hist.PlayerSelections,
 		logCursors = config.historyCursors,
 		playerCursors = miscState.hist.PlayerCursors,
+		scanSpread = math.max(1, math.floor(config.historyScanSpread)),
 		spillBytes = math.max(0.01, config.historySpillMB) * 1024 * 1024,
 		basicLevel = math.max(0, math.floor(config.historyBasicLevel)),
 		loadedSegments = math.max(1, math.floor(config.historyLoadedSegments)),
@@ -14157,7 +14161,8 @@ function miscState.hist.PlayerCameras()
 end
 
 -- selections for the recorder: playerID -> set of unit ids, only the players whose selection
--- changed since the last call (all of them when `all`); own selection comes from the engine
+-- changed since the last call (all of them when `all`); spectators are skipped, the own
+-- selection comes from the engine
 function miscState.hist.PlayerSelections(all)
 	local api = WG.allyselectedunits
 	local get = api and api.getPlayerSelectedUnits
@@ -14177,7 +14182,10 @@ function miscState.hist.PlayerSelections(all)
 	local players = Spring.GetPlayerList()
 	for i = 1, #players do
 		local pid = players[i]
-		if pid == myPlayerID then
+		local _, _, isSpec = Spring.GetPlayerInfo(pid, false)
+		if isSpec then
+			dirty[pid] = nil
+		elseif pid == myPlayerID then
 			-- the ally widget does not carry the local selection
 			local own = hist.selOwn
 			for k in pairs(own) do
@@ -14198,7 +14206,7 @@ function miscState.hist.PlayerSelections(all)
 	return out
 end
 
--- cursors for the recorder: {playerID, x, z} per player that moved recently
+-- cursors for the recorder: {playerID, x, z} per non-spectator that moved recently
 function miscState.hist.PlayerCursors()
 	local ac = WG.allycursors
 	if not (ac and ac.getCursors) then
@@ -14217,7 +14225,8 @@ function miscState.hist.PlayerCursors()
 	local n = 0
 	local myPlayerID = Spring.GetMyPlayerID()
 	for pid, cursor in pairs(cursors) do
-		if notIdle[pid] and cursor[1] and cursor[3] and pid ~= myPlayerID then
+		local _, _, isSpec = Spring.GetPlayerInfo(pid, false)
+		if notIdle[pid] and cursor[1] and cursor[3] and pid ~= myPlayerID and not isSpec then
 			n = n + 1
 			local c = list[n]
 			if not c then
@@ -14230,7 +14239,7 @@ function miscState.hist.PlayerCursors()
 	-- the local cursor is not in the broadcast: trace it once per tick
 	local mx, my = Spring.GetMouseState()
 	local kind, pos = Spring.TraceScreenRay(mx, my, true)
-	if kind == "ground" and pos then
+	if kind == "ground" and pos and not cameraState.mySpecState then
 		n = n + 1
 		local c = list[n]
 		if not c then
@@ -14402,7 +14411,7 @@ end
 
 function miscState.hist.Init()
 	local hist = miscState.hist
-	hist.lib = VFS.Include("luaui/Include/pip_history.lua")
+	hist.lib = require("luaui/Include/pip_history")
 	local store = WG.pipHistoryStore
 	if not store then
 		-- a /luaui reload wipes WG: pick the log back up from the file Shutdown wrote
@@ -14670,6 +14679,8 @@ end
 ---@field ex table<integer, number> -- circle centres and squared radii by entry
 ---@field ez table<integer, number>
 ---@field er2 table<integer, number>
+---@field ea2 table<integer, number> -- squared radius against flying units
+---@field eh table<integer, number> -- emitter altitude for the terrain ray
 function miscState.hist.BuildViewFilter()
 	local hist = miscState.hist
 	local view = hist.view
@@ -14689,6 +14700,9 @@ function miscState.hist.BuildViewFilter()
 	end
 	local tBuild = os.clock()
 	local frame = hist.builtFrame
+	if hist.visAlly ~= viewAlly then
+		hist.visSeenOnce = nil -- what one perspective had seen does not type another's contacts
+	end
 	local rebuildGrid = hist.visAlly ~= viewAlly
 		or hist.visGen ~= store.generation
 		or not hist.visById
@@ -14698,13 +14712,21 @@ function miscState.hist.BuildViewFilter()
 	local sightOf, radarOf, jamOf = hist.sightOf, hist.radarOf, hist.jamOf
 	if not jamOf then
 		sightOf, radarOf, jamOf = {}, {}, {}
+		local airOf, eyeOf, radarHOf = {}, {}, {}
 		for defID, ud in pairs(UnitDefs) do
 			sightOf[defID] = ud.sightDistance or 0
+			airOf[defID] = ud.airSightDistance or 0
 			radarOf[defID] = ud.radarDistance or 0
 			jamOf[defID] = ud.radarDistanceJam or 0
+			eyeOf[defID] = ud.losHeight or 20
+			radarHOf[defID] = ud.radarEmitHeight or 8
 		end
 		hist.sightOf, hist.radarOf, hist.jamOf = sightOf, radarOf, jamOf
+		hist.airOf, hist.eyeOf, hist.radarHOf = airOf, eyeOf, radarHOf
 	end
+	local airOf, eyeOf, radarHOf = hist.airOf, hist.eyeOf, hist.radarHOf
+	local terrain = config.historyLosTerrain
+	local GroundAt = hist.GroundAt
 	local grid = hist.visGrid --[[@as PipVisGrid?]]
 	if not grid then
 		grid = {
@@ -14721,6 +14743,8 @@ function miscState.hist.BuildViewFilter()
 			ex = {},
 			ez = {},
 			er2 = {},
+			ea2 = {},
+			eh = {},
 		}
 		hist.visGrid = grid
 	end
@@ -14765,7 +14789,7 @@ function miscState.hist.BuildViewFilter()
 		local cell, cols = grid.cell, grid.cols
 		local losCells, losN, radarCells, radarN, used = grid.los, grid.losN, grid.radar, grid.radarN, grid.used
 		local jamCells, jamN = grid.jam, grid.jamN
-		local ex, ez, er2 = grid.ex, grid.ez, grid.er2
+		local ex, ez, er2, ea2, eh = grid.ex, grid.ez, grid.er2, grid.ea2, grid.eh
 		for i = 1, grid.usedN do
 			local c = used[i]
 			losN[c] = 0
@@ -14774,9 +14798,10 @@ function miscState.hist.BuildViewFilter()
 		end
 		local usedN, en = 0, 0
 		-- circles are copied out of the view: its slots are renumbered on every materialise
-		local function insert(cells, counts, x, z, r)
+		local function insert(cells, counts, x, z, r, rAir, h)
 			en = en + 1
-			ex[en], ez[en], er2[en] = x, z, r * r
+			ex[en], ez[en], er2[en], ea2[en], eh[en] = x, z, r * r, rAir * rAir, h
+			r = math.max(r, rAir)
 			local c0, c1 = math.floor((x - r) / cell), math.floor((x + r) / cell)
 			local r0, r1 = math.floor((z - r) / cell), math.floor((z + r) / cell)
 			for cz = r0, r1 do
@@ -14801,18 +14826,19 @@ function miscState.hist.BuildViewFilter()
 		for i = 1, count do
 			if mask[i] == 2 then
 				local def = outDef[i]
-				local sight = sightOf[def] or 0
-				if sight > 0 then
-					insert(losCells, losN, outX[i], outZ[i], sight)
+				local x, z = outX[i], outZ[i]
+				local sight, air = sightOf[def] or 0, airOf[def] or 0
+				if sight > 0 or air > 0 then
+					insert(losCells, losN, x, z, sight, air, terrain and GroundAt(x, z) + eyeOf[def] or 0)
 				end
 				local radar = radarOf[def] or 0
 				if radar > 0 then
-					insert(radarCells, radarN, outX[i], outZ[i], radar)
+					insert(radarCells, radarN, x, z, radar, radar, terrain and GroundAt(x, z) + radarHOf[def] or 0)
 				end
 			else
 				local jam = jamOf[outDef[i]] or 0
 				if jam > 0 then
-					insert(jamCells, jamN, outX[i], outZ[i], jam)
+					insert(jamCells, jamN, outX[i], outZ[i], jam, jam, 0)
 				end
 			end
 		end
@@ -14827,13 +14853,14 @@ function miscState.hist.BuildViewFilter()
 		hist.visSeenOnce = seenOnce
 	end
 	local PosVisibility = hist.PosVisibility
+	local flyer = cache.canFly
 	local hidden = 0
 	for i = 1, count do
 		if mask[i] == 0 then
 			local uid = outId[i]
 			local v = byId[uid]
 			if v == nil then
-				v = PosVisibility(outX[i], outZ[i])
+				v = PosVisibility(outX[i], outZ[i], flyer[outDef[i]])
 				byId[uid] = v
 				if v == 2 then
 					seenOnce[uid] = true
@@ -14852,8 +14879,46 @@ function miscState.hist.BuildViewFilter()
 	hist.visMs = (os.clock() - tBuild) * 1000
 end
 
--- 2 in sight, 1 on radar, 0 unseen for the viewed allyteam (after BuildViewFilter)
-function miscState.hist.PosVisibility(x, z)
+-- ground height on a 32-elmo grid, read from the engine once per cell
+function miscState.hist.GroundAt(x, z)
+	local hist = miscState.hist
+	local hg = hist.hgrid
+	if not hg then
+		hg = {}
+		hist.hgrid = hg
+		hist.hcols = math.ceil(mapInfo.mapSizeX / 32) + 2
+	end
+	local cx, cz = math.floor(x / 32), math.floor(z / 32)
+	local idx = cz * hist.hcols + cx
+	local h = hg[idx]
+	if h == nil then
+		h = Spring.GetGroundHeight(cx * 32 + 16, cz * 32 + 16)
+		hg[idx] = h
+	end
+	return h
+end
+
+-- true when no terrain sample along the ray rises above the line from the emitter altitude
+-- h0 to the target's ground h1 (the engine's LOS is a terrain-cell test too)
+function miscState.hist.LosClear(x0, z0, h0, x1, z1, h1)
+	local dx, dz = x1 - x0, z1 - z0
+	local n = math.floor(math.sqrt(dx * dx + dz * dz) / config.historyLosTerrainStep)
+	if n < 2 then
+		return true
+	end
+	local GroundAt = miscState.hist.GroundAt
+	for k = 1, n - 1 do
+		local t = k / n
+		if GroundAt(x0 + dx * t, z0 + dz * t) > h0 + (h1 - h0) * t then
+			return false
+		end
+	end
+	return true
+end
+
+-- 2 in sight, 1 on radar, 0 unseen for the viewed allyteam (after BuildViewFilter); a flying
+-- target uses the air sight radii and is never hidden by terrain
+function miscState.hist.PosVisibility(x, z, air)
 	local hist = miscState.hist
 	local grid = hist.visGrid --[[@as PipVisGrid?]]
 	local view = hist.view
@@ -14861,13 +14926,16 @@ function miscState.hist.PosVisibility(x, z)
 		return 2
 	end
 	local c = math.floor(z / grid.cell) * grid.cols + math.floor(x / grid.cell)
-	local ex, ez, er2 = grid.ex, grid.ez, grid.er2
+	local ex, ez, er2, ea2, eh = grid.ex, grid.ez, grid.er2, grid.ea2, grid.eh
+	local terrain = config.historyLosTerrain and not air
+	local gz = terrain and hist.GroundAt(x, z) or 0
+	local LosClear = hist.LosClear
 	local list = grid.los[c]
 	if list then
 		for k = 1, grid.losN[c] or 0 do
 			local e = list[k]
 			local dx, dz = ex[e] - x, ez[e] - z
-			if dx * dx + dz * dz <= er2[e] then
+			if dx * dx + dz * dz <= (air and ea2[e] or er2[e]) and (not terrain or LosClear(ex[e], ez[e], eh[e], x, z, gz)) then
 				return 2
 			end
 		end
@@ -14877,7 +14945,7 @@ function miscState.hist.PosVisibility(x, z)
 		for k = 1, grid.radarN[c] or 0 do
 			local e = list[k]
 			local dx, dz = ex[e] - x, ez[e] - z
-			if dx * dx + dz * dz <= er2[e] then
+			if dx * dx + dz * dz <= er2[e] and (not terrain or LosClear(ex[e], ez[e], eh[e], x, z, gz)) then
 				local jam = grid.jam[c]
 				if jam then
 					for j = 1, grid.jamN[c] or 0 do
@@ -14913,21 +14981,28 @@ function miscState.hist.SyncFrame()
 		hist.viewFrame = frame
 	end
 	local viewAlly = miscState.pipViewAllyTeamID
-	if hist.builtFrame == frame and hist.builtGen == store.generation and hist.builtAlly == viewAlly then
+	local tracked = interactionState.trackingPlayerID
+	if
+		hist.builtFrame == frame
+		and hist.builtGen == store.generation
+		and hist.builtAlly == viewAlly
+		and hist.builtTrack == tracked
+	then
 		hist.ready = hist.builtReady
 		return
 	end
 	hist.builtFrame = frame
 	hist.builtGen = store.generation
 	hist.builtAlly = viewAlly
+	hist.builtTrack = tracked
 	-- bumped on every rebuild: the icon fill reuses its buffers while this stays the same
 	hist.builtSerial = (hist.builtSerial or 0) + 1
 	store:Want(frame)
 	hist.builtReady = view:Materialize(frame)
 	hist.ready = hist.builtReady
 	hist.selSet = nil
-	if hist.ready and config.historySelections then
-		hist.selSet = view:SelectionAt(interactionState.trackingPlayerID or Spring.GetMyPlayerID(), frame)
+	if hist.ready and config.historySelections and interactionState.trackingPlayerID then
+		hist.selSet = view:SelectionAt(interactionState.trackingPlayerID, frame)
 	end
 	hist.BuildViewFilter()
 	local filtering = hist.visMask ~= nil
@@ -15740,6 +15815,12 @@ end
 
 function miscState.hist.Advance(dt)
 	local hist = miscState.hist
+	if uiState.inMinMode then
+		if hist.mode then
+			hist.Exit()
+		end
+		return
+	end
 	if hist.mode and hist.playing and not hist.dragging then
 		local frame = hist.viewFrame + dt * 30 * (hist.speed or 1) * (hist.direction or 1)
 		if frame >= hist.LiveFrame() - 1 then
@@ -17508,6 +17589,20 @@ local function ShouldShowLOS()
 	return false, nil
 end
 
+-- the rewind shows the overlay of the perspective the data was recorded from when the live
+-- view has none (a fullview spectator looking at what was recorded as a player)
+function miscState.hist.LosView()
+	local show, ally = ShouldShowLOS()
+	local hist = miscState.hist
+	if not show and hist.mode and hist.ready and hist.view then
+		local rec = hist.view.recAlly
+		if rec and rec >= 0 then
+			return true, rec
+		end
+	end
+	return show, ally
+end
+
 -- Helper function to get the normalized water/lava threshold for the heightmap shader
 -- Returns the water/lava surface level in elmos for the heightmap shader
 -- On lava maps, does a lazy read from the game rule if not yet known
@@ -17623,7 +17718,7 @@ local function DrawWaterAndLOSOverlays()
 	gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- Draw LOS darkening overlay
-	local shouldShowLOS = ShouldShowLOS()
+	local shouldShowLOS = miscState.hist.LosView()
 	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Only use scissor test if not rotated (scissor doesn't work with rotation)
 		if render.minimapRotation == 0 then
@@ -20117,7 +20212,7 @@ local function DrawTrackedPlayerMinimap()
 	end
 
 	-- Draw LOS overlay on minimap (only after game has started and when LOS should be shown)
-	local shouldShowLOS, _ = ShouldShowLOS()
+	local shouldShowLOS = miscState.hist.LosView()
 	if config.showLosOverlay and shouldShowLOS and pipR2T.losTex and gameHasStarted then
 		-- Engine-like reverse-subtract: result_rgb = dst - src (subtractive darkening)
 		gl.BlendEquationSeparate(GL.FUNC_REVERSE_SUBTRACT, GL.FUNC_ADD)
@@ -21354,7 +21449,7 @@ function UpdateLOSTexture(currentTime)
 	end
 
 	-- Check if we should update LOS texture
-	local shouldShowLOS, losAllyTeam = ShouldShowLOS()
+	local shouldShowLOS, losAllyTeam = miscState.hist.LosView()
 	if not shouldShowLOS or not pipR2T.losTex then
 		return
 	end
@@ -25567,6 +25662,10 @@ pools.EraseMapLinesAt = function(x, z, radius)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
+	-- same filter as the map: ignored players' marks are dropped, their erases still apply
+	if cmdType ~= "erase" and WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID) then
+		return
+	end
 	miscState.hist.LogMapDraw(playerID, cmdType, mx, mz, a, c)
 	if uiState.inMinMode then
 		return
@@ -25625,14 +25724,6 @@ function widget:MapDrawCmd(playerID, cmdType, mx, my, mz, a, b, c)
 			end
 			if triggerFocus and isSpec and config.activityFocusIgnoreSpectators then
 				triggerFocus = false
-			end
-			-- Block activity focus for ignored players (uses WG.ignoredAccounts from api_ignore widget)
-			if triggerFocus and config.activityFocusBlockIgnoredPlayers and WG.ignoredAccounts then
-				local pName, _, _, _, _, _, _, _, _, _, pInfo = Spring.GetPlayerInfo(playerID)
-				local pAccountID = pInfo and pInfo.accountid and tonumber(pInfo.accountid)
-				if (pName and WG.ignoredAccounts[pName]) or (pAccountID and WG.ignoredAccounts[pAccountID]) then
-					triggerFocus = false
-				end
 			end
 			if triggerFocus and interactionState.trackingPlayerID then
 				triggerFocus = false

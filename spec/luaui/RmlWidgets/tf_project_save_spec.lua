@@ -1,4 +1,4 @@
-local SaveUI = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
+local SaveUI = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library")
 
 -- The Save As controller: one tree, the folder in the name is the destination,
 -- and "upload to team after saving" is a switch the widget offers while the
@@ -173,7 +173,7 @@ describe("Save As and the upload switch", function()
 
 	it("installs final callbacks before the data model exists", function()
 		local environment = setmetatable({ WG = {} }, { __index = _G })
-		local module = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua", environment)
+		local module = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library", environment)
 		local model, state = {}, {}
 		local ui = module.newSave(state, model)
 		ui.sync()
