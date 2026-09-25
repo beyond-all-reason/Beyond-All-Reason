@@ -52,11 +52,11 @@ local spGetMyTeamID = Spring.GetLocalTeamID
 local spIsSphereInView = Spring.IsSphereInView
 local spGetCameraPosition = Spring.GetCameraPosition
 
-local Starburst = VFS.Include("modules/starburst.lua")
+local Starburst = require("modules/starburst")
 local getStarburstWeapon = Starburst.getStarburstWeapon
 local stepStarburst = Starburst.stepStarburst
 
-local Verticalize = VFS.Include("modules/verticalize.lua")
+local Verticalize = require("modules/verticalize")
 local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
 local getInFlightImpact = Verticalize.getInFlightImpact
 

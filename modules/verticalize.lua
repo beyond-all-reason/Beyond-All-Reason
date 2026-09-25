@@ -67,11 +67,11 @@ local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
 
-local Vectors = VFS.Include("common/vectors.lua")
+local Vectors = require("common/vectors")
 local dirUp = Vectors.dirUp
 local slerp = Vectors.slerp
 
-local Starburst = VFS.Include("modules/starburst.lua")
+local Starburst = require("modules/starburst")
 local newStarburst = Starburst.newStarburst
 local stepStarburst = Starburst.stepStarburst
 
