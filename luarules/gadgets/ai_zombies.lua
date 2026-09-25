@@ -102,6 +102,7 @@ local spGetUnitTeam = spring.GetUnitTeam
 local spGetUnitLosState = spring.GetUnitLosState
 local spGetUnitsInCylinder = spring.GetUnitsInCylinder
 local spAreTeamsAllied = spring.AreTeamsAllied
+local spGetUnitTransporter = spring.GetUnitTransporter
 
 local gaiaTeamID = spring.GetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
@@ -335,7 +336,7 @@ local function getCombatTargetData(unitDefID, targetID)
 		return
 	end
 	local targetTeamID = spGetUnitTeam(targetID)
-	if not targetTeamID or spAreTeamsAllied(gaiaTeamID, targetTeamID) then
+	if not targetTeamID or spAreTeamsAllied(gaiaTeamID, targetTeamID) or spGetUnitTransporter(targetID) then
 		return
 	end
 	local targetX, targetY, targetZ = spGetUnitPosition(targetID)
