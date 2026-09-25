@@ -7,7 +7,7 @@
 ]]
 
 local function processRawStages(rawStages)
-	return rawStages or {}
+	return rawStages
 end
 
 return {
