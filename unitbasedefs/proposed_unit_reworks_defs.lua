@@ -121,7 +121,7 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		uDef.weapondefs.cor_lightlaser.reloadtime = 0.6
 	end
 	if name == "corexp" then
-		uDef.buildtime = uDef.buildtime - 700
+		uDef.buildtime = 2400 --2900
 		uDef.metalcost = 200
 		uDef.health = 1100
 		uDef.weapondefs.hllt_bottom.reloadtime = 0.6
@@ -210,20 +210,15 @@ local function proposed_unit_reworksTweaks(name, uDef)
 		name == "armck"
 		or name == "corck"
 		or name == "legck"
-	then
-		uDef.energycost = uDef.energycost + 400
-		uDef.buildtime = uDef.buildtime + 150
-	end
-	if
-		name == "armcv"
+		or name == "armcv"
 		or name == "corcv"
 		or name == "legcv"
 		or name == "armcs"
 		or name == "corcs"
 		or name == "legcs"
 	then
-		uDef.energycost = uDef.energycost + 500
-		uDef.buildtime = math.floor(uDef.buildtime + 250 / 100) * 100
+		uDef.energycost = uDef.energycost + 300
+		uDef.buildtime = math.floor(uDef.buildtime + 150 / 100) * 100
 	end
 
 	if name == "armmoho" or name == "cormoho" or name == "legmoho" then
