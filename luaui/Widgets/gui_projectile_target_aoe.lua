@@ -56,6 +56,10 @@ local getStarburstWeapon = Starburst.getStarburstWeapon
 local newStarburst = Starburst.newStarburst
 local stepStarburst = Starburst.stepStarburst
 
+local Verticalize = VFS.Include("modules/verticalize.lua")
+local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
+local getInFlightImpact = Verticalize.getInFlightImpact
+
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 local gameSpeed = Game.gameSpeed
@@ -159,19 +163,18 @@ local function BuildWeaponCache()
 			local aoe = wd.damageAreaOfEffect or 0
 			if aoe >= Config.minAoeThreshold then
 				local isNuke = wd.customParams.nuclear ~= nil
-				local isMoveCtrl = wd.customParams.cruise_and_verticalize ~= nil
 				local isParalyzer = wd.paralyzer or false
 				starburstWeapons[wdid] = {
 					aoe = aoe,
 					isNuke = isNuke,
 					isParalyzer = isParalyzer,
 					isJuno = wd.name:lower():find("juno") ~= nil,
-					isMoveCtrl = isMoveCtrl,
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
 					uptime = wd.uptime or 0,
 					starburst = getStarburstWeapon(wd),
+					verticalize = getVerticalizeWeapon(wd),
 					leadLimit = wd.leadLimit or -1,
 					leadBonus = wd.leadBonus or 0,
 					initialTimeToLive = wd.flightTime or 0,
@@ -512,7 +515,7 @@ end
 -- Projectile tracking
 --------------------------------------------------------------------------------
 
-local function GetProjectileTargetPos(proID, usesMoveCtrl)
+local function GetProjectileTargetPos(proID)
 	local targetType, targetData = spGetProjectileTarget(proID)
 
 	if not targetType then
@@ -522,8 +525,7 @@ local function GetProjectileTargetPos(proID, usesMoveCtrl)
 	-- Ground target
 	if targetType == 103 then -- ASCII 'g'
 		if type(targetData) == "table" then
-			local elevation = usesMoveCtrl and max(spGetGroundHeight(targetData[1], targetData[3]), 0) or targetData[2]
-			return targetData[1], elevation, targetData[3], true
+			return targetData[1], targetData[2], targetData[3], true
 		end
 	-- Unit target
 	elseif targetType == 117 then -- ASCII 'u'
@@ -705,6 +707,34 @@ local function GetPredictedImpactPos(
 	return tx, ty, tz, false
 end
 
+local function GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
+	local targetType, targetData = spGetProjectileTarget(proID)
+	local aimX, aimY, aimZ
+	if targetType == 103 and type(targetData) == "table" then -- ASCII 'g'
+		aimX, aimY, aimZ = targetData[1], targetData[2], targetData[3]
+	elseif targetType == 117 then -- ASCII 'u'
+		local _
+		_, _, _, aimX, aimY, aimZ = spGetUnitPosition(targetData, false, true)
+	end
+	local vx, vy, vz, speed = spGetProjectileVelocity(proID)
+	if not aimX or not vx or speed <= 0 then
+		return nil
+	end
+
+	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
+	local elapsedFrames = remainingTimeToLive and floor(max(0, weaponInfo.initialTimeToLive - remainingTimeToLive)) or 0
+
+	return getInFlightImpact(
+		weaponInfo.verticalize,
+		weaponInfo.starburst,
+		{ px, py, pz },
+		{ vx, vy, vz, speed },
+		elapsedFrames,
+		{ aimX, aimY, aimZ },
+		{ aimX, max(spGetGroundHeight(aimX, aimZ), 0), aimZ }
+	)
+end
+
 local function ProjectImpactToGround(x, y, z, projectToGround)
 	if projectToGround then
 		local groundY = spGetGroundHeight(x, z)
@@ -764,7 +794,7 @@ local function UpdateTrackedProjectiles()
 
 					if existingData.weaponInfo.tracks then
 						local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ =
-							GetProjectileTargetPos(proID, existingData.weaponInfo.isMoveCtrl)
+							GetProjectileTargetPos(proID)
 						if tx then
 							existingData.impactX = tx
 							existingData.impactY = ty
@@ -783,7 +813,19 @@ local function UpdateTrackedProjectiles()
 					local launchElapsed =
 						GetProjectileLaunchElapsed(proID, existingData.weaponInfo, currentTime - existingData.startTime)
 					local tx, ty, tz = existingData.impactX, existingData.impactY, existingData.impactZ
-					if px and tx then
+					if existingData.weaponInfo.verticalize then
+						if px and not existingData.isImpactFromLaunch then
+							local isFromLaunch
+							tx, ty, tz, isFromLaunch =
+								GetVerticalizeImpactPos(proID, existingData.weaponInfo, px, py, pz)
+							if tx then
+								existingData.targetX = tx
+								existingData.targetY = ty
+								existingData.targetZ = tz
+								existingData.isImpactFromLaunch = isFromLaunch
+							end
+						end
+					elseif px and tx then
 						tx, ty, tz = GetPredictedImpactPos(
 							proID,
 							existingData.weaponInfo,
@@ -812,7 +854,7 @@ local function UpdateTrackedProjectiles()
 
 				if isSpectator or isOwnTeam then
 					local tx, ty, tz, projectToGround, targetVelocityX, targetVelocityY, targetVelocityZ, isUnitTarget =
-						GetProjectileTargetPos(proID, weaponInfo.isMoveCtrl)
+						GetProjectileTargetPos(proID)
 					local px, py, pz = spGetProjectilePosition(proID)
 
 					if tx and px then
@@ -837,21 +879,33 @@ local function UpdateTrackedProjectiles()
 						if not weaponInfo.tracks then
 							targetVelocityX, targetVelocityY, targetVelocityZ = 0, 0, 0
 						end
-						tx, ty, tz = GetPredictedImpactPos(
-							proID,
-							weaponInfo,
-							launchElapsed,
-							px,
-							py,
-							pz,
-							tx,
-							ty,
-							tz,
-							targetVelocityX,
-							targetVelocityY,
-							targetVelocityZ
-						)
-						tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
+						local isImpactFromLaunch
+						if weaponInfo.verticalize then
+							local verticalizeX, verticalizeY, verticalizeZ
+							verticalizeX, verticalizeY, verticalizeZ, isImpactFromLaunch =
+								GetVerticalizeImpactPos(proID, weaponInfo, px, py, pz)
+							if verticalizeX then
+								tx, ty, tz = verticalizeX, verticalizeY, verticalizeZ
+							else
+								ty = max(spGetGroundHeight(tx, tz), 0)
+							end
+						else
+							tx, ty, tz = GetPredictedImpactPos(
+								proID,
+								weaponInfo,
+								launchElapsed,
+								px,
+								py,
+								pz,
+								tx,
+								ty,
+								tz,
+								targetVelocityX,
+								targetVelocityY,
+								targetVelocityZ
+							)
+							tx, ty, tz = ProjectImpactToGround(tx, ty, tz, projectToGround)
+						end
 
 						local dx, dy, dz = tx - px, ty - py, tz - pz
 						local distance = sqrt(dx * dx + dy * dy + dz * dz)
@@ -886,6 +940,7 @@ local function UpdateTrackedProjectiles()
 							isOwnTeam = isOwnTeam,
 							isAlly = isAlly,
 							speed = speed,
+							isImpactFromLaunch = isImpactFromLaunch,
 						}
 					end
 				end
