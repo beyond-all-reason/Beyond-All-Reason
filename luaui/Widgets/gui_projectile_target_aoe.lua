@@ -51,6 +51,11 @@ local spGetMyTeamID = Spring.GetLocalTeamID
 local spIsSphereInView = Spring.IsSphereInView
 local spGetCameraPosition = Spring.GetCameraPosition
 
+local Starburst = VFS.Include("modules/starburst.lua")
+local getStarburstWeapon = Starburst.getStarburstWeapon
+local newStarburst = Starburst.newStarburst
+local stepStarburst = Starburst.stepStarburst
+
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 local gameSpeed = Game.gameSpeed
@@ -165,10 +170,8 @@ local function BuildWeaponCache()
 					name = wd.name,
 					range = wd.range,
 					projectileSpeed = wd.projectilespeed or 1,
-					weaponAcceleration = wd.weaponAcceleration or 0,
 					uptime = wd.uptime or 0,
-					turnRate = wd.turnRate or 0,
-					tracking = wd.tracks and (wd.turnRate or 0) or 0,
+					starburst = getStarburstWeapon(wd),
 					leadLimit = wd.leadLimit or -1,
 					leadBonus = wd.leadBonus or 0,
 					initialTimeToLive = wd.flightTime or 0,
@@ -626,15 +629,6 @@ local function GetPredictedImpactPos(
 
 	local simX, simY, simZ = px, py, pz
 	local dirX, dirY, dirZ = vx / velocityLength, vy / velocityLength, vz / velocityLength
-	local speed = velocityLength
-	local maxSpeed = weaponInfo.projectileSpeed
-	local acceleration = weaponInfo.weaponAcceleration
-	local turnRate = weaponInfo.turnRate
-	if turnRate == 0 then
-		turnRate = 0.06
-	end
-	local tracking = weaponInfo.tracking
-	local maxGoodDif = cos(tracking * 0.6)
 	targetVelocityX, targetVelocityY, targetVelocityZ = targetVelocityX or 0, targetVelocityY or 0, targetVelocityZ or 0
 	local targetMoves = weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0)
 
@@ -648,6 +642,9 @@ local function GetPredictedImpactPos(
 			turnToTarget = (dirX * targetDX + dirY * targetDY + dirZ * targetDZ) / targetLength <= 0.99
 		end
 	end
+
+	local starburstWeapon = weaponInfo.starburst
+	local starburst = newStarburst(dirX, dirY, dirZ, velocityLength, ascentFrames, turnToTarget)
 
 	local remainingTimeToLive = spGetProjectileTimeToLive(proID)
 	local maxFrames = min(remainingTimeToLive or 512, 512)
@@ -668,55 +665,24 @@ local function GetPredictedImpactPos(
 			return tx, ty, tz, false
 		end
 
-		if ascentFrames > 0 then
-			speed = min(speed + acceleration, maxSpeed)
-			ascentFrames = ascentFrames - 1
-		else
-			local targetDirX, targetDirY, targetDirZ =
-				targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
-			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
-			local steerRate
-			if turnToTarget then
-				if directionDotTarget > 0.99 then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-					turnToTarget = false
-				else
-					steerRate = turnRate
-				end
-			else
-				speed = min(speed + acceleration, maxSpeed)
-				if directionDotTarget > maxGoodDif then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-				elseif tracking > 0 then
-					steerRate = tracking
-				end
-			end
+		stepStarburst(
+			starburst,
+			starburstWeapon,
+			targetDX / targetLength,
+			targetDY / targetLength,
+			targetDZ / targetLength
+		)
 
-			if steerRate then
-				local turnX = targetDirX - dirX * directionDotTarget
-				local turnY = targetDirY - dirY * directionDotTarget
-				local turnZ = targetDirZ - dirZ * directionDotTarget
-				local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
-				if turnLength > 0 then
-					turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
-					dirX = dirX + turnX * steerRate
-					dirY = dirY + turnY * steerRate
-					dirZ = dirZ + turnZ * steerRate
-					local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-					dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
-				end
+		if not starburst.turnToTarget and not targetMoves then
+			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
+			if hitDistance and hitDistance + 8 < targetLength then
+				return hitX, hitY, hitZ, true
 			end
-
-			if not turnToTarget and not targetMoves then
-				local hitDistance, hitX, hitY, hitZ =
-					spTraceRayGroundBetweenPositions(simX, simY, simZ, tx, ty, tz, false)
-				if hitDistance and hitDistance + 8 < targetLength then
-					return hitX, hitY, hitZ, true
-				end
-				return tx, ty, tz, false
-			end
+			return tx, ty, tz, false
 		end
 
+		local speed = starburst.speed
+		dirX, dirY, dirZ = starburst.dirX, starburst.dirY, starburst.dirZ
 		local nextX, nextY, nextZ = simX + dirX * speed, simY + dirY * speed, simZ + dirZ * speed
 		local groundY = spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
@@ -730,7 +696,7 @@ local function GetPredictedImpactPos(
 				return hitX, hitY, hitZ, true
 			end
 		end
-		if not turnToTarget and targetLength <= speed + 8 then
+		if not starburst.turnToTarget and targetLength <= speed + 8 then
 			return tx, ty, tz, false
 		end
 		simX, simY, simZ = nextX, nextY, nextZ
