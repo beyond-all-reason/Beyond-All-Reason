@@ -4246,7 +4246,8 @@ function widget:WorldTooltip(ttType, data1, data2, data3)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	if cmdType == "point" then
+	-- an ignored player's point is dropped and prints no "added point" line to pair with
+	if cmdType == "point" and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		lastMapmarkCoords = { x, y, z }
 	end
 end
