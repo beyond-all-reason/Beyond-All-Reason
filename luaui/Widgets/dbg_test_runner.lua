@@ -1004,6 +1004,7 @@ local function initializeTestEnvironment()
 
 		-- game
 		VFS = VFS,
+		require = require, -- init.lua's: the modules a test includes spell their includes this way
 		Script = Script,
 		Spring = Spring,
 		Engine = Engine,

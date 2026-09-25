@@ -137,7 +137,8 @@ _G.require = function(path, env, mode)
 				2
 			)
 		end
-		env = env or callerEnv
+		-- env stays as given: the stub runs the file in _G unless a spec hands it a sandbox. Busted's own env
+		-- carries luassert's assert, whose errors carry a position, and included game code must not see it
 		local vfs = callerEnv.VFS or _G.VFS
 		local file = path:find("%.lua$") and path or (path .. ".lua")
 		if (vfs.FileExists or _G.VFS.FileExists)(file) then
