@@ -39,7 +39,11 @@ local slerp = VFS.Include("common/vectors.lua").slerp
 
 local Verticalize = VFS.Include("modules/verticalize.lua")
 local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
-local getUptime = Verticalize.getUptime
+local getAscendHeight = Verticalize.getAscendHeight
+local newProjectile = Verticalize.newProjectile
+local getUpTimeFrames = Verticalize.getUpTimeFrames
+local isTargetInsideAscentTurn = Verticalize.isTargetInsideAscentTurn
+local getAimHeight = Verticalize.getAimHeight
 
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
@@ -147,7 +151,7 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 
 	local aim = spawnParams["end"] -- must be known at spawn time for interceptors
 	aim[1] = projectile.target[1]
-	aim[2] = projectile.ascendHeight + weapon.ascentRadius
+	aim[2] = getAimHeight(weapon, projectile)
 	aim[3] = projectile.target[3]
 
 	Spring.DeleteProjectile(projectileID)
@@ -182,30 +186,8 @@ local function register(projectileID, weaponDefID)
 	end
 
 	local position = getPosition(projectileID)
-	local ascentRadius = weapon.ascentRadius ---@type number
-	local ascentAboveLauncher = position[2] + weapon.heightIntoTurn
-	local ascentAboveTarget = target[2] + weapon.cruiseHeight - ascentRadius
-	local ascendHeight = math_max(ascentAboveLauncher, ascentAboveTarget)
-
-	local projectile = {
-		acceleration = weapon.acceleration,
-		speedMax = weapon.speedMax,
-		speedMin = weapon.speedMin,
-		turnRate = weapon.turnRate,
-		chaseFactor = weapon.chaseFactor,
-		diveSpeedGain = weapon.diveSpeedGain,
-		target = target,
-		ascendHeight = ascendHeight,
-		diveRadiusMax = weapon.diveRadiusMax,
-
-		phase = 1,
-		pitch = 2,
-		cruiseEndInverse = 0,
-	}
-
-	local targetDistance = distance2D(position[1], position[3], target[1], target[3])
-	local upTimeFrames =
-		math_clamp(getUptime(projectile, ascendHeight - position[2]), weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
+	local projectile = newProjectile(weapon, target, getAscendHeight(weapon, position, target))
+	local upTimeFrames = getUpTimeFrames(weapon, projectile, position)
 
 	if upTimeFrames >= weapon.upTimeMinFrames + 0.5 then
 		if respawn(weapon, projectileID, projectile, upTimeFrames) then
@@ -214,14 +196,14 @@ local function register(projectileID, weaponDefID)
 		upTimeFrames = weapon.upTimeMinFrames ---@type number
 	end
 
-	if targetDistance <= ascentRadius * 0.5 then
+	if isTargetInsideAscentTurn(weapon, position, target) then
 		return -- Nothing to guide, with the target this far inside the ascent turn.
 	end
 
 	projectiles[projectileID] = projectile
 	scheduleAt(projectileID, math_max(gameFrame + math_floor(upTimeFrames) - checkWindowFrames, gameFrame + 1))
 
-	local targetHeight = ascendHeight + ascentRadius
+	local targetHeight = getAimHeight(weapon, projectile)
 	Spring.SetProjectileTarget(projectileID, target[1], targetHeight, target[3])
 end
 

@@ -46,8 +46,10 @@
 -- engine behavior in the game lua. Also, we want to shape the vertical descent.
 
 local math_min = math.min
+local math_max = math.max
 local math_clamp = math.clamp
 local math_pi = math.pi
+local distance2D = math.distance2d
 local quadraticRoots = math.quadraticRoots
 
 local cruiseHeightMin = 50 -- note: barely above ground
@@ -71,6 +73,27 @@ local chaseFactorDefault = 0.2 -- [0, 2] where 0 is a clean quarter-turn onto ta
 ---@field tracking number
 ---@field gravity number?
 ---@field cegTag string
+
+---@class VerticalizeProjectile
+---@field acceleration number
+---@field speedMax number
+---@field speedMin number
+---@field turnRate number
+---@field chaseFactor number
+---@field diveSpeedGain number
+---@field target xyz
+---@field ascendHeight number
+---@field diveRadiusMax number
+---@field phase integer
+---@field pitch number
+---@field cruiseEndInverse number
+---@field px number?
+---@field py number?
+---@field pz number?
+---@field vx number?
+---@field vy number?
+---@field vz number?
+---@field speed number?
 
 ---@return VerticalizeWeapon?
 local function getVerticalizeWeapon(weaponDef)
@@ -173,7 +196,70 @@ local function getUptime(projectile, height)
 	return (t1 >= 0 and t2 >= 0) and math_min(t1, t2) or (t1 >= 0 and t1 or t2)
 end
 
+---@param weapon VerticalizeWeapon
+---@param position xyz
+---@param target xyz
+---@return number
+local function getAscendHeight(weapon, position, target)
+	local ascentRadius = weapon.ascentRadius
+	local ascentAboveLauncher = position[2] + weapon.heightIntoTurn
+	local ascentAboveTarget = target[2] + weapon.cruiseHeight - ascentRadius
+	return math_max(ascentAboveLauncher, ascentAboveTarget)
+end
+
+---@param weapon VerticalizeWeapon
+---@param target xyz
+---@param ascendHeight number
+---@return VerticalizeProjectile
+local function newProjectile(weapon, target, ascendHeight)
+	return {
+		acceleration = weapon.acceleration,
+		speedMax = weapon.speedMax,
+		speedMin = weapon.speedMin,
+		turnRate = weapon.turnRate,
+		chaseFactor = weapon.chaseFactor,
+		diveSpeedGain = weapon.diveSpeedGain,
+		target = target,
+		ascendHeight = ascendHeight,
+		diveRadiusMax = weapon.diveRadiusMax,
+
+		phase = 1,
+		pitch = 2.0,
+		cruiseEndInverse = 0.0,
+	}
+end
+
+---@param weapon VerticalizeWeapon
+---@param projectile VerticalizeProjectile
+---@param position xyz
+---@return number
+local function getUpTimeFrames(weapon, projectile, position)
+	local upTime = getUptime(projectile, projectile.ascendHeight - position[2])
+	return math_clamp(upTime, weapon.upTimeMinFrames, weapon.upTimeMaxFrames)
+end
+
+---@param weapon VerticalizeWeapon
+---@param position xyz
+---@param target xyz
+---@return boolean
+local function isTargetInsideAscentTurn(weapon, position, target)
+	local targetDistance = distance2D(position[1], position[3], target[1], target[3])
+	return targetDistance <= weapon.ascentRadius * 0.5
+end
+
+---@param weapon VerticalizeWeapon
+---@param projectile VerticalizeProjectile
+---@return number
+local function getAimHeight(weapon, projectile)
+	return projectile.ascendHeight + weapon.ascentRadius
+end
+
 return {
 	getVerticalizeWeapon = getVerticalizeWeapon,
 	getUptime = getUptime,
+	getAscendHeight = getAscendHeight,
+	newProjectile = newProjectile,
+	getUpTimeFrames = getUpTimeFrames,
+	isTargetInsideAscentTurn = isTargetInsideAscentTurn,
+	getAimHeight = getAimHeight,
 }
