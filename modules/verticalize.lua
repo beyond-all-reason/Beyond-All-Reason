@@ -95,6 +95,7 @@ local turnToTargetDot = 0.99
 ---@field tracking number
 ---@field gravity number?
 ---@field cegTag string
+---@field waterWeapon boolean
 
 ---@class VerticalizeProjectile
 ---@field acceleration number
@@ -184,6 +185,7 @@ local function getVerticalizeWeapon(weaponDef)
 		tracking = weaponDef.tracks and turnRate or 0,
 		gravity = weaponDef.myGravity ~= 0 and -weaponDef.myGravity or nil,
 		cegTag = weaponDef.cegTag,
+		waterWeapon = weaponDef.waterWeapon and true or false,
 	}
 end
 
@@ -444,6 +446,7 @@ end
 local phasePosition = { 0.0, 0.0, 0.0 }
 local phaseVelocity = { 0.0, 0.0, 0.0, 0.0 }
 
+---@param weapon VerticalizeWeapon
 ---@param starburstWeapon StarburstWeapon
 ---@param projectile VerticalizeProjectile
 ---@param starburst Starburst
@@ -456,7 +459,17 @@ local phaseVelocity = { 0.0, 0.0, 0.0, 0.0 }
 ---@return number impactY
 ---@return number impactZ
 ---@return integer pathCount
-local function simulateToImpact(starburstWeapon, projectile, starburst, position, aim, checkFrame, isMoveControl, path)
+local function simulateToImpact(
+	weapon,
+	starburstWeapon,
+	projectile,
+	starburst,
+	position,
+	aim,
+	checkFrame,
+	isMoveControl,
+	path
+)
 	local x, y, z = position[1], position[2], position[3]
 	local aimX, aimY, aimZ = aim[1], aim[2], aim[3]
 
@@ -499,11 +512,19 @@ local function simulateToImpact(starburstWeapon, projectile, starburst, position
 		end
 
 		local groundY = spGetGroundHeight(x, z)
+		local hitX, hitY, hitZ
 		if y < groundY then
-			local _, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(x0, y0, z0, x, y, z, false)
+			local _
+			_, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(x0, y0, z0, x, y, z, false)
 			if not hitX then
 				hitX, hitY, hitZ = x, groundY, z
 			end
+		elseif y <= 0.0 and not weapon.waterWeapon then
+			local fraction = y0 > 0.0 and y0 / (y0 - y) or 0.0
+			hitX, hitY, hitZ = x0 + (x - x0) * fraction, 0.0, z0 + (z - z0) * fraction
+		end
+
+		if hitX then
 			if path then
 				pathCount = pathCount + 1
 				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
@@ -551,7 +572,7 @@ local function getLaunchTrajectory(weapon, starburstWeapon, position, direction,
 	local ascentFrames = math_max(upTime - 1, 0) -- decremented before the first update in-engine
 	local starburst = newStarburst(direction[1], direction[2], direction[3], weapon.speedMin, ascentFrames, true)
 
-	return simulateToImpact(starburstWeapon, projectile, starburst, position, aim, checkFrame, false, path)
+	return simulateToImpact(weapon, starburstWeapon, projectile, starburst, position, aim, checkFrame, false, path)
 end
 
 ---@param weapon VerticalizeWeapon
@@ -592,7 +613,8 @@ local function getInFlightImpact(weapon, starburstWeapon, position, velocity, el
 
 	if aim[2] > target[2] + 1 then
 		local projectile = newProjectile(weapon, target, aim[2] - weapon.ascentRadius)
-		impactX, impactY, impactZ = simulateToImpact(starburstWeapon, projectile, starburst, position, aim, 0, false)
+		impactX, impactY, impactZ =
+			simulateToImpact(weapon, starburstWeapon, projectile, starburst, position, aim, 0, false)
 		return impactX, impactY, impactZ, false
 	end
 
@@ -605,9 +627,11 @@ local function getInFlightImpact(weapon, starburstWeapon, position, velocity, el
 		projectile.px, projectile.py, projectile.pz = position[1], position[2], position[3]
 		projectile.vx, projectile.vy, projectile.vz = vx, vy, vz
 		projectile.speed = speed
-		impactX, impactY, impactZ = simulateToImpact(starburstWeapon, projectile, starburst, position, aim, nil, true)
+		impactX, impactY, impactZ =
+			simulateToImpact(weapon, starburstWeapon, projectile, starburst, position, aim, nil, true)
 	else
-		impactX, impactY, impactZ = simulateToImpact(starburstWeapon, projectile, starburst, position, aim, nil, false)
+		impactX, impactY, impactZ =
+			simulateToImpact(weapon, starburstWeapon, projectile, starburst, position, aim, nil, false)
 	end
 
 	return impactX, impactY, impactZ, false
