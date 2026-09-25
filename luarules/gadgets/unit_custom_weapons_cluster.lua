@@ -50,7 +50,7 @@ local waterDepthCoef = 0.1 -- reduce "separation" from ground in water by a mult
 --------------------------------------------------------------------------------
 -- Localize --------------------------------------------------------------------
 
-local DirectionsUtil = VFS.Include("LuaRules/Gadgets/Include/DirectionsUtil.lua")
+local DirectionsUtil = require("luarules/gadgets/include/DirectionsUtil")
 
 local clamp = math.clamp
 local max = math.max

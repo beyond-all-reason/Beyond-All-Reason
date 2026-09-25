@@ -4243,7 +4243,7 @@ local unitDistortions = {
 	},
 }
 
-local airjets_effects = VFS.Include("luaui/configs/airjet_effects.lua")
+local airjets_effects = require("luaui/configs/airjet_effects")
 --	["armfig"] = {
 --	{ color = { 0.7, 0.4, 0.1 }, width = 6, length = 45, piece = "thrust" },
 --},

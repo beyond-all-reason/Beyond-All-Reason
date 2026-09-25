@@ -99,7 +99,7 @@ local minWindText = "\255\166\166\166" .. tostring(minWind)
 local maxWindText = "\255\166\166\166" .. tostring(maxWind)
 local noWindText1 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind1")
 local noWindText2 = "\255\200\200\200" .. BAR.I18N("ui.topbar.wind.nowind2")
-local windFunctions = VFS.Include("common/wind_functions.lua")
+local windFunctions = require("common/wind_functions")
 local noWind = windFunctions.isNoWind() -- constant per game: Game.windMin/windMax never change
 
 local function refreshWindTidalTextCache()

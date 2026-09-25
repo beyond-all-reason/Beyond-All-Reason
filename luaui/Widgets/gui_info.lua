@@ -29,8 +29,8 @@ local activeCmdID
 local emptyInfo = false
 local showEngineTooltip = false -- straight up display old engine delivered text
 
-local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local weaponInfo = VFS.Include("common/weapons.lua")
+local iconTypes = require("gamedata/icontypes")
+local weaponInfo = require("common/weapons")
 
 local vsx, vsy = Spring.GetViewGeometry()
 

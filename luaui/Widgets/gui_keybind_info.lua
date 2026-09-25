@@ -18,7 +18,7 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
+local keybindEditor = require("luaui/Include/keybind_editor_view")
 
 local doUpdate
 

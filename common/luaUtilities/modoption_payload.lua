@@ -1,7 +1,7 @@
 -- modoptions decoder.
 -- Expected format: base64url(zlib(json)), but zlib is optional
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 local function decodeJson(text)
 	if not text or text == "" then

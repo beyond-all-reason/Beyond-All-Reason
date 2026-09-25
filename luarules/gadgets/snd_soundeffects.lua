@@ -92,7 +92,7 @@ local CMD_UNIT_SET_TARGET_NO_GROUND = GameCMD.UNIT_SET_TARGET_NO_GROUND
 local CMD_UNIT_SET_TARGET_RECTANGLE = GameCMD.UNIT_SET_TARGET_RECTANGLE
 local CMD_WANT_CLOAK = GameCMD.WANT_CLOAK
 
-VFS.Include("luarules/configs/gui_soundeffects.lua")
+require("luarules/configs/gui_soundeffects")
 
 -- convert key: name -> unitdefid
 -- + add scavenger units

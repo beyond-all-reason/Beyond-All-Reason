@@ -17,8 +17,8 @@ local spEcho = Spring.Echo
 
 -- spEcho(Spring.GetTeamInfo(Spring.GetMyTeamID()))
 
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-local StartPolygonSDF = VFS.Include("luaui/Include/startpolygon_sdf_gl4.lua")
+local StartPolygonSDF = require("luaui/Include/startpolygon_sdf_gl4")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 local pveAllyTeamID = BAR.Utilities.GetScavAllyTeamID() or BAR.Utilities.GetRaptorAllyTeamID()
 

@@ -76,7 +76,7 @@ end
 ----------------------------------------------------------------------------------------------------
 -- Keyboard config for hotkey display
 ----------------------------------------------------------------------------------------------------
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 keyConfig._pipHotkeyCache = keyConfig._pipHotkeyCache or {}
 
 ----------------------------------------------------------------------------------------------------
@@ -9161,7 +9161,7 @@ function widget:Initialize()
 		glFunc.Texture(false)
 	end)
 
-	local iconTypes = VFS.Include("gamedata/icontypes.lua")
+	local iconTypes = require("gamedata/icontypes")
 	for uDefID, uDef in pairs(UnitDefs) do
 		cache.xsizes[uDefID] = uDef.xsize * 4
 		cache.zsizes[uDefID] = uDef.zsize * 4
@@ -14411,7 +14411,7 @@ end
 
 function miscState.hist.Init()
 	local hist = miscState.hist
-	hist.lib = VFS.Include("luaui/Include/pip_history.lua")
+	hist.lib = require("luaui/Include/pip_history")
 	local store = WG.pipHistoryStore
 	if not store then
 		-- a /luaui reload wipes WG: pick the log back up from the file Shutdown wrote

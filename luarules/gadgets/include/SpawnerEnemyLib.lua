@@ -20,7 +20,7 @@ local adjustStartBox = function(startBoxXMin, startBoxZMin, startBoxXMax, startB
 	return startBoxXMin, startBoxZMin, startBoxXMax, startBoxZMax
 end
 
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 -- Not Spring.GetAllyTeamStartBox: callers ask for this while gadget files are still being
 -- loaded, and the config gadget does not apply the startbox modoption until its Initialize

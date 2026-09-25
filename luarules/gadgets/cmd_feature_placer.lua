@@ -110,7 +110,7 @@ local SetFeatureMidAndAimPos = Spring.SetFeatureMidAndAimPos
 -- Same containment module the widget draws its brush outline from, so removal
 -- matches the shape the user sees. The copy that used to live here was
 -- apothem-based and disagreed with the outline on hexagons and octagons.
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 local isInsideShape = BrushShapes.isInside
 
 ----------------------------------------------------------------

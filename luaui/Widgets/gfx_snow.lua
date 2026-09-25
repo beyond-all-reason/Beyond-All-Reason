@@ -52,7 +52,7 @@ local fpsDifference = (maxFps - minFps) / particleSteps -- fps difference need b
 
 local snowTexture = "LuaUI/Images/snow.dds"
 
-VFS.Include("luarules/configs/map_biomes.lua")
+require("luarules/configs/map_biomes")
 --[[
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante','cervino','avalanche'}
 local snowMaps = {}

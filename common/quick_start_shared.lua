@@ -1,6 +1,6 @@
-local quickStartConfig = VFS.Include("LuaRules/Configs/quick_start_build_defs.lua")
-local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
-local overlapLines = VFS.Include("common/overlap_lines.lua")
+local aestheticCustomCostRound = require("common/aestheticCustomCostRound")
+local overlapLines = require("common/overlap_lines")
+local quickStartConfig = require("luarules/configs/quick_start_build_defs")
 
 local customRound = aestheticCustomCostRound.customRound
 

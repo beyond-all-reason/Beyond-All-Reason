@@ -2,8 +2,8 @@
 How to issue a firestate change from your widget:
 
   1. Include these at the top of your widget file:
-       VFS.Include("luaui/Include/user_firestate_commands.lua")
-       local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+       require("luaui/Include/user_firestate_commands")
+       local CustomFirestateDefs = require("modules/custom_firestate_defs")
 
   2. Pick a state from CustomFirestateDefs:
        HOLD_FIRE, DEFEND, RETURN_FIRE, FIRE_AT_WILL, FIRE_AT_ALL
@@ -25,7 +25,7 @@ How to read a unit's current firestate:
   -- returns a CustomFirestateDefs value (e.g. DEFEND), or nil if invalid
 ]]
 
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE

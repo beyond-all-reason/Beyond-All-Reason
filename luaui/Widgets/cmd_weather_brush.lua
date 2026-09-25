@@ -36,7 +36,7 @@ local sin = math.sin
 local pi = math.pi
 local random = math.random
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 local WG = WG
 

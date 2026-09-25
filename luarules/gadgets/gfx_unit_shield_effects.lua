@@ -186,7 +186,7 @@ local huge = math.huge
 local tracyZoneBeginN = (tracy and tracy.ZoneBeginN) or function() end
 local tracyZoneEnd = (tracy and tracy.ZoneEnd) or function() end
 
-local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
+local IterableMap = require("luarules/gadgets/include/IterableMap")
 
 -----------------------------------------------------------------
 -- Shield rendering constants

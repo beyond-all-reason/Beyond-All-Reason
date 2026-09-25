@@ -55,7 +55,7 @@ local pi = math.pi
 local sqrt = math.sqrt
 local rad = math.rad
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 ----------------------------------------------------------------
 -- Light type defaults

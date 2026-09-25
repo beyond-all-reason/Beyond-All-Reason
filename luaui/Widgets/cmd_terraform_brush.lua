@@ -2346,16 +2346,16 @@ local pendingExport = false
 -- 16-bit greyscale PNG codec (see file header for why gl.SaveImage can't do this).
 -- Attached to extraState rather than a new chunk-level local (main chunk is at the
 -- 200-local limit).
-extraState._heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
+extraState._heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
 
 -- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
-extraState._mapgen = VFS.Include("luaui/Widgets/cmd_terraform_brush_mapgen.lua")
+extraState._mapgen = require("luaui/Widgets/cmd_terraform_brush_mapgen")
 
 -- Autoramp terrain math shared with the synced gadget: the hover preview and
 -- the actual apply run the same pure seeded computation, so the preview IS the
 -- result. (Attached to extraState — 200-local limit.)
-extraState._autorampProfile = VFS.Include("common/autoramp_profile.lua")
+extraState._autorampProfile = require("common/autoramp_profile")
 
 -- ============ New Map: post-reload procedural terrain apply ============
 -- The New Map dialog writes a recipe file and reloads the engine onto a flat

@@ -19,7 +19,7 @@ local spEcho = Spring.Echo
 -- Configurable Parts:
 local groundaoplatealpha = 1.0
 
-local atlas = VFS.Include("unittextures/decals/unitaoplates_atlas.lua")
+local atlas = require("unittextures/decals/unitaoplates_atlas")
 local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
 local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}

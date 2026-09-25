@@ -15,7 +15,7 @@ end
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
-local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
+local profiles = require("luaui/Include/keybind_profiles")
 
 local function reloadWidgetsBindings()
 	local reloadableWidgets = { "buildmenu", "ordermenu", "keybinds", "cmd_blueprint" }

@@ -105,7 +105,7 @@ local maxDecalLayersPerCell = 16
 
 local atlasHeights = nil
 
-local atlas = VFS.Include("luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua")
+local atlas = require("luaui/images/decals_gl4/decalsgl4_atlas_diffuse")
 local upperkeys = {}
 for k, v in pairs(atlas) do
 	if type(v) == "table" then

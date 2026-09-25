@@ -154,9 +154,9 @@ local costOverrides = {}
 -------------------------------------------------------------------------------
 
 include("keysym.h.lua")
-local dynamicBuildOptions = VFS.Include("common/dynamicBuildOptions.lua")
+local dynamicBuildOptions = require("common/dynamicBuildOptions")
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
 local categoryKeys = {}
 local keyLayout = {}
@@ -365,8 +365,8 @@ local isPregame
 --- Unit prep
 -------------------------------------------------------------------------------
 
-local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
-local grid = VFS.Include("luaui/configs/gridmenu_config.lua")
+local grid = require("luaui/configs/gridmenu_config")
+local units = require("luaui/configs/unit_buildmenu_config")
 
 local unitBuildOptions = {}
 local unitMetal_extractor = {}
@@ -380,7 +380,7 @@ local function refreshUnitDefs()
 	unitTranslatedHumanName = {}
 	unitTranslatedTooltip = {}
 	iconTypes = {}
-	local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+	local orgIconTypes = require("gamedata/icontypes")
 
 	-- unit names and icons
 	for udid, ud in pairs(UnitDefs) do
@@ -1425,7 +1425,7 @@ function widget:Initialize()
 
 	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
 	if isPregame then
-		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		local missionOptions = require("luaui/Include/mission_options")
 		isPregame = not missionOptions.IsStartUnitSpawnDisabled()
 	end
 

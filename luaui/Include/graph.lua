@@ -2,7 +2,7 @@
 -- baked into a display list and only the hover overlay is drawn each frame, so a chart
 -- costs a list call while nothing changes.
 --
---   local Graph = VFS.Include("luaui/Include/graph.lua")
+--   local Graph = require("luaui/Include/graph")
 --   local chart = Graph.new({
 --       kind = "line",                         -- "line" | "stacked" | "radar" | "bars"
 --       x = 100, y = 100, width = 600, height = 300,   -- bottom-left corner, screen pixels
