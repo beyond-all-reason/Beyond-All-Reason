@@ -523,6 +523,103 @@
 		]
 	},
 	{
+		"category": "categories.squads",
+		"items": [
+			{
+				"action": "squad_select",
+				"label": "actions.squads.select"
+			},
+			{
+				"action": "squad_select append_domain",
+				"label": "actions.squads.append"
+			},
+			{
+				"action": "squad_select_filtered retarget",
+				"label": "actions.squads.selectFiltered"
+			},
+			{
+				"action": "squad_select_filtered append distance_850",
+				"label": "actions.squads.appendFiltered"
+			},
+			{
+				"action": "squad_select_portion 0",
+				"label": "actions.squads.selectOne"
+			},
+			{
+				"action": "squad_select_portion 0 append_domain",
+				"label": "actions.squads.appendOne"
+			},
+			{
+				"action": "squad_select_portion_filtered 0",
+				"label": "actions.squads.selectOneFiltered"
+			},
+			{
+				"action": "squad_select_portion_filtered 0 append",
+				"label": "actions.squads.appendOneFiltered"
+			},
+			{
+				"action": "squad_select append locked",
+				"label": "actions.squads.appendLocked"
+			},
+			{
+				"action": "squad_create",
+				"label": "actions.squads.create"
+			},
+			{
+				"action": "squad_lock",
+				"label": "actions.squads.lock"
+			},
+			{
+				"action": "squad_limit_flip",
+				"label": "actions.squads.limitFlip"
+			},
+			{
+				"action": "squad_expand",
+				"label": "actions.squads.expand"
+			},
+			{
+				"action": "squad_cycle_recent",
+				"label": "actions.squads.cycleRecent"
+			},
+			{
+				"action": "squad_cycle_idle",
+				"label": "actions.squads.cycleIdle"
+			},
+			{
+				"prefix": "squad_select_group append_domain ",
+				"label": "actions.squads.groupAppend",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "squad_select_group ",
+				"label": "actions.squads.group",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			}
+		]
+	},
+	{
 		"category": "categories.buildHotkeys",
 		"items": [
 			{
@@ -970,7 +1067,8 @@
 			},
 			{
 				"action": "factory_preset_toggle",
-				"label": "actions.factory.togglePresets"
+				"label": "actions.factory.togglePresets",
+				"alwaysModifier": "any"
 			},
 			{
 				"action": "fov_inc 5",
