@@ -99,7 +99,7 @@ return {
 			},
 		},
 		weapondefs = {
-			lrpc = {
+			olympus_plasma_cannon = {
 				accuracy = 300,
 				sprayangle = 150,
 				areaofeffect = 135,
@@ -120,7 +120,7 @@ return {
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				model = "legbomb.s3o",
-				name = "Long-Range g2g Heavy Cluster Plasma Cannon",
+				name = "Heavy Long-Range Blast Triple Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 4800,
 				reloadtime = 18,
@@ -150,7 +150,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Plasma Burst",
+				name = "Cluster Munitions",
 				noselfdamage = true,
 				maxvelocity = 720,
 				range = 110,
@@ -169,7 +169,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "MOBILE",
-				def = "LRPC",
+				def = "olympus_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

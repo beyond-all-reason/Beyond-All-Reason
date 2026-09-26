@@ -96,7 +96,7 @@ return {
 			},
 		},
 		weapondefs = {
-			clusternapalm = {
+			belcher_plasma_cannon = {
 				areaofeffect = 150,
 				avoidfeature = false,
 				cegtag = "burnflame",
@@ -146,7 +146,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CLUSTERNAPALM",
+				def = "belcher_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

@@ -109,7 +109,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corlevlr_weapon = {
+			jaw_plasma_cannon = {
 				areaofeffect = 140,
 				avoidfeature = false,
 				burnblow = true,
@@ -122,7 +122,7 @@ return {
 				heightboostfactor = 0,
 				heightmod = 1,
 				impulsefactor = 2.0,
-				name = "Area Control Riot Cannon",
+				name = "Standard Riot-Gauss Blast Cannon",
 				noselfdamage = true,
 				range = 400,
 				reloadtime = 2.0,
@@ -152,7 +152,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CORLEVLR_WEAPON",
+				def = "jaw_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

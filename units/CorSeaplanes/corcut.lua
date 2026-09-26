@@ -59,7 +59,7 @@ return {
 			},
 		},
 		weapondefs = {
-			vtol_rocket2 = {
+			cutlass_plasma_cannons = {
 				areaofeffect = 18,
 				avoidfeature = false,
 				burnblow = true,
@@ -72,7 +72,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "RiotCannon",
+				name = "Dual Light Gauss Cannons",
 				noselfdamage = true,
 				predictboost = 0.3,
 				range = 430,
@@ -95,7 +95,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "VTOL_ROCKET2",
+				def = "cutlass_plasma_cannons",
 				onlytargetcategory = "SURFACE",
 			},
 		},
