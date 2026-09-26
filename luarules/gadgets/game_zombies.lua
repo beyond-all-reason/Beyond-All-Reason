@@ -147,6 +147,7 @@ local pendingUnitXp = {}
 local pendingZombieCaptures = {}
 local heapingZombies = {}
 local zombieHeapDefs = {}
+local captureSwapOverride = {}
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local featureDefNames = FeatureDefNames
@@ -162,6 +163,11 @@ local spawnEffects = {
 }
 
 for unitDefID, unitDef in pairs(unitDefs) do
+	local captureOverride = unitDef.customParams.scav_swap_override_captured
+	if captureOverride == "delete" or unitDefNames[captureOverride] then
+		captureSwapOverride[unitDefID] = captureOverride
+	end
+
 	local corpseDefName = unitDef.corpse
 	if featureDefNames[corpseDefName] then
 		local corpseDefID = featureDefNames[corpseDefName].id
@@ -697,8 +703,13 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 				healthReductionRatio = health / maxHealth
 			end
 			spring.DestroyUnit(unitID, false, true)
-			if unitX then
-				spawnZombies(nil, unitDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
+			local spawnDefID = unitDefID
+			local swapOverride = captureSwapOverride[unitDefID]
+			if swapOverride then
+				spawnDefID = swapOverride ~= "delete" and unitDefNames[swapOverride].id or nil
+			end
+			if unitX and spawnDefID then
+				spawnZombies(nil, spawnDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
 			end
 		end
 	end
