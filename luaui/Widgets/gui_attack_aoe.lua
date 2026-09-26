@@ -42,7 +42,7 @@ local spGetGroundExtremes = Spring.GetGroundExtremes
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetMouseState = Spring.GetMouseState
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
+local getSelectedUnitsByDefID = Spring.GetSelectedUnitsSorted -- replaced in init
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitVelocity = Spring.GetUnitVelocity
 local spGetUnitExperience = Spring.GetUnitExperience
@@ -1299,7 +1299,7 @@ local function UpdateSelection()
 	State.manualAimUnits = {}
 	ClearStarburstPredictions()
 
-	local sel = spGetSelectedUnitsSorted()
+	local sel = getSelectedUnitsByDefID()
 	for unitDefID, unitIDs in pairs(sel) do
 		local currCost = Cache.UnitProperties.cost[unitDefID] * #unitIDs
 		local manualWeaponInfos = Cache.manualWeaponInfos[unitDefID]
@@ -2299,6 +2299,8 @@ local WeaponTypeHandlers = {
 -- CALLINS
 --------------------------------------------------------------------------------
 function widget:Initialize()
+	getSelectedUnitsByDefID = WG.UnitSelection and WG.UnitSelection.GetUnitsByDefID or Spring.GetSelectedUnitsSorted
+
 	-- shader has to be created before setting up unit defs
 	napalmShader = LuaShader.CheckShaderUpdates(shaderSourceCache, 0)
 	for unitDefID, unitDef in pairs(UnitDefs) do
