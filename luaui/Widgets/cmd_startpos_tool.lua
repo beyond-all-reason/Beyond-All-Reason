@@ -521,14 +521,14 @@ end
 -- transition logic is easier to reason about and test
 local RoleCycle = {}
 
-function RoleCycle.nextRole(currentRole, direction, presets)
+function RoleCycle.nextRole(currentRole, direction, roleOptions)
 	direction = direction or 1
-	local n = #presets
+	local n = #roleOptions
 	if n == 0 then
 		return nil
 	end
 	local currentRoleIdx
-	for i, r in ipairs(presets) do
+	for i, r in ipairs(roleOptions) do
 		if r == currentRole then
 			currentRoleIdx = i
 			break
@@ -536,29 +536,29 @@ function RoleCycle.nextRole(currentRole, direction, presets)
 	end
 	if not currentRoleIdx then
 		-- No role assigned yet: forward starts at first, backward at last.
-		return direction > 0 and presets[1] or presets[n]
+		return direction > 0 and roleOptions[1] or roleOptions[n]
 	end
 	if direction > 0 then
 		if currentRoleIdx < n then
-			return presets[currentRoleIdx + 1]
+			return roleOptions[currentRoleIdx + 1]
 		end
 		-- Forward past the last role clears it so designers can panic-click back to blank.
 		return nil
 	else
 		if currentRoleIdx > 1 then
-			return presets[currentRoleIdx - 1]
+			return roleOptions[currentRoleIdx - 1]
 		end
 		-- Backward past the first role clears it so cycling in either direction can blank the role.
 		return nil
 	end
 end
 
-function roleConfig.cyclePositionRole(idx, direction, presets)
+function roleConfig.cyclePositionRole(idx, direction, roleOptions)
 	local pos = positions[idx]
 	if not pos then
 		return nil
 	end
-	pos.role = RoleCycle.nextRole(pos.role, direction, presets or roleConfig.options)
+	pos.role = RoleCycle.nextRole(pos.role, direction, roleOptions or roleConfig.options)
 	return pos.role
 end
 
@@ -2131,7 +2131,7 @@ local function getState()
 		currentBoxVerts = currentBoxVerts,
 		boxRectActive = boxRectActive,
 		freeDrawActive = freeDrawActive,
-		rolePresets = roleConfig.options,
+		roleOptions = roleConfig.options,
 	}
 end
 
