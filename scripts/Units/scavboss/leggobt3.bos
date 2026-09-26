@@ -5,6 +5,9 @@ piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, a
 
 static-var  isMoving, isAiming, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../../unitDefsTurretSpeeds.h"
+
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
 	return 0;
@@ -192,6 +195,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <50>;
+	Weapon1TurretY = <200>;
 	animSpeed = 17;
 	hide flare;
 	hide aimx1;
@@ -248,8 +253,8 @@ AimWeapon1(heading, pitch)
 	signal SIGNAL_AIM1;
 	
 	if (isAiming == 1) return;
-	turn aimy1 to y-axis heading speed <200>;
-	turn aimx1 to x-axis <0.0> - pitch speed <50>;
+	turn aimy1 to y-axis heading speed Weapon1TurretY;
+	turn aimx1 to x-axis <0.0> - pitch speed Weapon1TurretX;
 	
 	//needed for luarules\gadgets\unit_continuous_aim.lua
 	if ((get ABS(wpnheading - heading)) > 500){
