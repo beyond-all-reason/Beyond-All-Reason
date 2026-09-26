@@ -845,6 +845,11 @@ body {
 	background-color: #2b2113;
 }
 
+.tf-sp-btn-roles.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+
 /* Startbox placement sub-picker (Box / Polygon / Free) */
 .tf-sp-btn-sbx-box.active,
 .tf-sp-btn-sbx-polygon.active,
