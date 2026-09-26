@@ -45,7 +45,7 @@ local SpGetUnitHeading = Spring.GetUnitHeading
 local SpCallCOBScript = Spring.CallCOBScript
 local SendToUnsynced = SendToUnsynced
 
-local resolveAttachPiece = VFS.Include("luarules/gadgets/include/unit_attachments.lua").ResolveAttachPiece
+local resolveAttachPiece = require("luarules/gadgets/include/unit_attachments").ResolveAttachPiece
 local SpUnitAttach = Spring.UnitAttach
 
 --repairs and reclaims start at the edge of the unit radius

@@ -38,6 +38,7 @@ local osClock = os.clock
 
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundExtremes = Spring.GetGroundExtremes
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetMouseState = Spring.GetMouseState
@@ -57,6 +58,14 @@ local spGetUnitStockpile = Spring.GetUnitStockpile
 local spGetViewGeometry = Spring.GetViewGeometry
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spTraceRayGroundBetweenPositions = Spring.TraceRayGroundBetweenPositions
+
+local Starburst = require("modules/starburst")
+local getStarburstWeapon = Starburst.getStarburstWeapon
+local stepStarburst = Starburst.stepStarburst
+
+local Verticalize = require("modules/verticalize")
+local getVerticalizeWeapon = Verticalize.getVerticalizeWeapon
+local getLaunchTrajectory = Verticalize.getLaunchTrajectory
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
@@ -482,15 +491,16 @@ local function GetStarburstGroundCollisionPos(
 		dirX, dirY, dirZ = weaponDirX, weaponDirY, weaponDirZ
 	end
 
-	local speed = weaponInfo.startVelocity
-	local maxSpeed = weaponInfo.projectileSpeed
-	local acceleration = weaponInfo.weaponAcceleration
-	local turnRate = weaponInfo.turnRate
-	if turnRate == 0 then
-		turnRate = 0.06
+	local verticalizeWeapon = weaponInfo.verticalize
+	if verticalizeWeapon then
+		local position = { px, py, pz }
+		local direction = { dirX, dirY, dirZ }
+		local target = { tx, max(spGetGroundHeight(tx, tz), 0), tz }
+		local path = prediction.path
+		return getLaunchTrajectory(verticalizeWeapon, weaponInfo.starburst, position, direction, target, path)
 	end
-	local tracking = weaponInfo.tracking
-	local maxGoodDif = cos(tracking * 0.6)
+
+	local maxSpeed = weaponInfo.projectileSpeed
 	targetVelocityX, targetVelocityY, targetVelocityZ = targetVelocityX or 0, targetVelocityY or 0, targetVelocityZ or 0
 	local targetMoves = weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0)
 	if not weaponInfo.tracks and (targetVelocityX ~= 0 or targetVelocityY ~= 0 or targetVelocityZ ~= 0) then
@@ -518,7 +528,9 @@ local function GetStarburstGroundCollisionPos(
 	end
 	-- The engine decrements uptime before the first trajectory update.
 	local ascentFrames = max(0, ceil(weaponInfo.uptime * Config.General.gameSpeed) - 1)
-	local turnToTarget = true
+	local starburstWeapon = weaponInfo.starburst
+	local speed, turnToTarget = weaponInfo.startVelocity, true
+	local _, _, _, groundMax = spGetGroundExtremes()
 
 	for frame = 1, 512 do
 		if targetMoves then
@@ -535,58 +547,32 @@ local function GetStarburstGroundCollisionPos(
 			return tx, ty, tz, pathCount
 		end
 
-		if ascentFrames > 0 then
-			speed = min(speed + acceleration, maxSpeed)
-			ascentFrames = ascentFrames - 1
-		else
-			local targetDirX, targetDirY, targetDirZ =
-				targetDX / targetLength, targetDY / targetLength, targetDZ / targetLength
-			local directionDotTarget = dirX * targetDirX + dirY * targetDirY + dirZ * targetDirZ
-			local steerRate
-			if turnToTarget then
-				if directionDotTarget > 0.99 then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-					turnToTarget = false
-				else
-					steerRate = turnRate
-				end
-			else
-				speed = min(speed + acceleration, maxSpeed)
-				if directionDotTarget > maxGoodDif then
-					dirX, dirY, dirZ = targetDirX, targetDirY, targetDirZ
-				elseif tracking > 0 then
-					steerRate = tracking
-				end
-			end
-			if steerRate then
-				local turnX = targetDirX - dirX * directionDotTarget
-				local turnY = targetDirY - dirY * directionDotTarget
-				local turnZ = targetDirZ - dirZ * directionDotTarget
-				local turnLength = sqrt(turnX * turnX + turnY * turnY + turnZ * turnZ)
-				if turnLength > 0 then
-					turnX, turnY, turnZ = turnX / turnLength, turnY / turnLength, turnZ / turnLength
-					dirX = dirX + turnX * steerRate
-					dirY = dirY + turnY * steerRate
-					dirZ = dirZ + turnZ * steerRate
-					local directionLength = sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ)
-					dirX, dirY, dirZ = dirX / directionLength, dirY / directionLength, dirZ / directionLength
-				end
-			end
-			if not turnToTarget and not targetMoves then
-				local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, tx, ty, tz, false)
-				if hitDistance and hitDistance + 8 < targetLength then
-					pathCount = pathCount + 1
-					pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
-					return hitX, hitY, hitZ, pathCount
-				end
+		dirX, dirY, dirZ, speed, ascentFrames, turnToTarget = stepStarburst(
+			starburstWeapon,
+			dirX,
+			dirY,
+			dirZ,
+			speed,
+			ascentFrames,
+			turnToTarget,
+			targetDX / targetLength,
+			targetDY / targetLength,
+			targetDZ / targetLength
+		)
+		if not turnToTarget and not targetMoves then
+			local hitDistance, hitX, hitY, hitZ = spTraceRayGroundBetweenPositions(px, py, pz, tx, ty, tz, false)
+			if hitDistance and hitDistance + 8 < targetLength then
 				pathCount = pathCount + 1
-				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
-				return tx, ty, tz, pathCount
+				pathX[pathCount], pathY[pathCount], pathZ[pathCount] = hitX, hitY, hitZ
+				return hitX, hitY, hitZ, pathCount
 			end
+			pathCount = pathCount + 1
+			pathX[pathCount], pathY[pathCount], pathZ[pathCount] = tx, ty, tz
+			return tx, ty, tz, pathCount
 		end
 
 		local nextX, nextY, nextZ = px + dirX * speed, py + dirY * speed, pz + dirZ * speed
-		local groundY = spGetGroundHeight(nextX, nextZ)
+		local groundY = nextY < groundMax and spGetGroundHeight(nextX, nextZ)
 		if groundY and nextY < groundY then
 			local hitDistance, hitX, hitY, hitZ =
 				spTraceRayGroundBetweenPositions(px, py, pz, nextX, nextY, nextZ, false)
@@ -628,7 +614,8 @@ local function GetCachedStarburstTarget(
 	local predictions = State.starburstPredictions
 	local prediction = predictions[unitID]
 	if not prediction then
-		prediction = { pathX = {}, pathY = {}, pathZ = {} }
+		local pathX, pathY, pathZ = {}, {}, {}
+		prediction = { pathX = pathX, pathY = pathY, pathZ = pathZ, path = { pathX, pathY, pathZ } }
 		predictions[unitID] = prediction
 	end
 	local launchX, launchY, launchZ, launchDirX, launchDirY, launchDirZ =
@@ -692,10 +679,10 @@ local function GetCachedStarburstTarget(
 	return prediction.x, prediction.y, prediction.z
 end
 
-local function ProjectImpactToGround(x, y, z)
+local function ProjectImpactToSurface(x, y, z, waterWeapon)
 	local groundY = spGetGroundHeight(x, z)
 	if groundY then
-		y = groundY
+		y = waterWeapon and groundY or max(groundY, 0)
 	end
 	return x, y, z
 end
@@ -1127,14 +1114,13 @@ local function BuildWeaponInfo(unitDef, weaponDef, weaponNum)
 		info.isStarburst = true
 		info.projectileSpeed = weaponDef.projectilespeed
 		info.startVelocity = weaponDef.startvelocity
-		info.weaponAcceleration = weaponDef.weaponAcceleration
 		info.uptime = weaponDef.uptime
-		info.turnRate = weaponDef.turnRate
-		info.tracking = weaponDef.tracks and (weaponDef.turnRate or 0) or 0
 		info.tracks = weaponDef.tracks
 		info.leadLimit = weaponDef.leadLimit or -1
 		info.leadBonus = weaponDef.leadBonus or 0
 		info.fixedLauncher = weaponDef.fixedLauncher
+		info.starburst = getStarburstWeapon(weaponDef)
+		info.verticalize = getVerticalizeWeapon(weaponDef)
 		-- Check for nuclear weapons (customParams.nuclear)
 		if info.isNuke then
 			info.type = "nuke"
@@ -2380,7 +2366,7 @@ local function DrawUnitAoe(
 			targetVelocityY,
 			targetVelocityZ
 		)
-		tx, ty, tz = ProjectImpactToGround(tx, ty, tz)
+		tx, ty, tz = ProjectImpactToSurface(tx, ty, tz, weaponInfo.waterWeapon)
 	end
 	aimData.target.x, aimData.target.y, aimData.target.z = tx, ty, tz
 

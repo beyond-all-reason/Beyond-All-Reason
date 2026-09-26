@@ -193,7 +193,7 @@ local vtoldamagetag = Game.armorTypes.vtol
 local defaultdamagetag = Game.armorTypes.default
 
 -- globals
-local minimapUtils = VFS.Include("luaui/Include/minimap_utils.lua")
+local minimapUtils = require("luaui/Include/minimap_utils")
 local getCurrentMiniMapRotationOption = minimapUtils.getCurrentMiniMapRotationOption
 local ROTATION = minimapUtils.ROTATION
 local selUnitCount = 0
@@ -213,6 +213,8 @@ local unitBuilder = {}
 local unitOnOffable = {}
 local unitOnOffName = {}
 local unitDefRangeScale = {}
+local unitIsStrafingAir = {}
+local unitIsSubmarine = {}
 for udid, ud in pairs(UnitDefs) do
 	unitBuilder[udid] = ud.isBuilder and (ud.canAssist or ud.canReclaim) and not (ud.isFactory and #ud.buildOptions > 0)
 	if unitBuilder[udid] then
@@ -222,6 +224,8 @@ for udid, ud in pairs(UnitDefs) do
 	unitWeapons[udid] = ud.weapons
 	unitMaxWeaponRange[udid] = ud.maxWeaponRange
 	unitOnOffable[udid] = ud.onOffable
+	unitIsStrafingAir[udid] = ud.isStrafingAirUnit
+	unitIsSubmarine[udid] = ud.moveDef.isSubmarine
 	if ud.customParams.onoffname then
 		unitOnOffName[udid] = ud.customParams.onoffname
 	end
@@ -230,7 +234,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
-local chunk, err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
+local chunk, _err = loadfile("LuaUI/config/AttackRangeConfig2.lua")
 if chunk then
 	local tmp = {}
 	setfenv(chunk, tmp)
@@ -368,11 +372,8 @@ local function initializeUnitDefRing(unitDefID)
 
 			local maxangledif = 0
 
-			-- customParams (note the case), is a table of strings always
-			if
-				(weapons[weaponNum].maxAngleDif > -1)
-				and not (weaponDef.customParams and weaponDef.customParams.noattackrangearc)
-			then
+			local skipArc = weaponDef.customParams.noattackrangearc
+			if (weapons[weaponNum].maxAngleDif > -1) and not skipArc then
 				--spEcho(weaponDef.customParams)--, weapons[weaponNum].customParams.noattackarc)
 				local offsetdegrees = 0
 				local difffract = 0
@@ -407,6 +408,19 @@ local function initializeUnitDefRing(unitDefID)
 
 				--spEcho("weapons[weaponNum].maxAngleDif",weapons[weaponNum].maxAngleDif, maxangledif)
 				--for k,v in pairs(weapons[weaponNum]) do spEcho(k,v)end
+			elseif
+				-- Strafing aircraft / subs use weapondef tolerance (WeaponDefs.maxAngle, radians) as a forward fire cone.
+				(unitIsStrafingAir[unitDefID] or unitIsSubmarine[unitDefID])
+				and not skipArc
+				and not weaponDef.turret
+				and weaponDef.type ~= "StarburstLauncher"
+				and weaponDef.maxAngle > 0
+			then
+				local difffract = weaponDef.maxAngle / mathPi
+				-- fract(1.0)==0 in the shader, so keep strictly below a full ±180°
+				if difffract < 0.999 then
+					maxangledif = difffract
+				end
 			end
 
 			--if weapons[weaponNum].maxAngleDif then	spEcho(weapons[weaponNum].maxAngleDif,'for',weaponDef.name, 'saved as',maxangledif ) end
@@ -618,7 +632,7 @@ local shaderSourceCache = {
 -- bit per class, mirroring the stencil bit layout: 1 = ground (and cannon), 2 = nano,
 -- 4 = AA, 8 = cannon when colorConfig.cannon_separate_stencil is set. lrpc rings are not
 -- merged, they are only clipped by the cannon class like in the stencil path.
-local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local RangeCoverageMask = require("luaui/Include/range_coverage_mask_gl4")
 local cannonMaskChannel = colorConfig.cannon_separate_stencil and 3 or 0
 local maskChannelClasses = { [0] = { "ground" }, { "nano" }, { "AA" }, {} }
 table.insert(maskChannelClasses[cannonMaskChannel], "cannon")
@@ -804,7 +818,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 		end
 	end
 
-	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+	local x, y, z, mpx, mpy, mpz, _, _, _ = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
 	local addedRings = 0
@@ -857,7 +871,7 @@ local function AddSelectedUnit(unitID, mouseover, newRange)
 			-- This is quite important to pass in as posscale.y!
 			-- Need to cache weaponID of the respective weapon for this to work
 			-- also assumes that weapons are centered onto drawpos
-			local wpx, wpy, wpz, wdx, wdy, wdz = spGetUnitWeaponVectors(unitID, weaponID)
+			local _, wpy, _, _, _, _ = spGetUnitWeaponVectors(unitID, weaponID)
 			--spEcho("unitID", unitID,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 			-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
@@ -1310,7 +1324,7 @@ function widget:Update(dt)
 	end
 
 	if gameFrame % 3 == 2 then
-		local cmdIndex, cmdID, cmdType, cmdName = GetActiveCommand()
+		local _, cmdID, _, _ = GetActiveCommand()
 		if shift_only then
 			if shifted then
 				toggleShowSelectedRanges(true)

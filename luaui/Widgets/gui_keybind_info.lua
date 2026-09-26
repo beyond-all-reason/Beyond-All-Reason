@@ -18,7 +18,7 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
+local keybindEditor = require("luaui/Include/keybind_editor_view")
 
 local doUpdate
 
@@ -187,7 +187,7 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, _ = Spring.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			Spring.SetMouseCursor("cursornormal")
 		end

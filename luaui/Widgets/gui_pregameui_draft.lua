@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized functions for performance
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 local mathFloor = math.floor
 local mathMax = math.max
@@ -967,7 +967,7 @@ end
 
 local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
-	local spec, fullview = Spring.GetSpectatingState()
+	local spec, _ = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
 	if

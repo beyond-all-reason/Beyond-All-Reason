@@ -23,9 +23,9 @@ Spring.SetGameRulesParam("isSyncedProxyEnabled", true)
 
 local LOG_LEVEL = LOG.INFO
 
-local Proxy = VFS.Include("common/testing/synced_proxy.lua")
+local Proxy = require("common/testing/synced_proxy")
 
-local rpc = VFS.Include("common/testing/rpc.lua"):new()
+local rpc = require("common/testing/rpc"):new()
 
 local function log(level, str, ...)
 	if level < LOG_LEVEL then

@@ -1414,7 +1414,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 			local droneInFormation = droneData.inFormation
 			local droneDistance = diag((carrierx - sx), (carrierz - sz))
 
-			local droneCurrentHealth, droneMaxHealth = spGetUnitHealth(subUnitID)
+			local droneCurrentHealth, _ = spGetUnitHealth(subUnitID)
 			local droneAlive = true
 
 			if droneDocked and droneData.maxAmmo > 0 and droneData.remainingAmmo ~= droneData.maxAmmo then

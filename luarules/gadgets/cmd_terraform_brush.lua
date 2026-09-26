@@ -2243,7 +2243,7 @@ end
 -- This side feeds it the real heightmap and routes the result through the
 -- standard apply + undo-snapshot epilogue.
 -- ─────────────────────────────────────────────────────────────────────────────
-local AutorampProfile = VFS.Include("common/autoramp_profile.lua")
+local AutorampProfile = require("common/autoramp_profile")
 
 local function applyAutoramp(
 	centerX,

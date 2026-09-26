@@ -113,7 +113,7 @@ local function fixture()
 			end,
 		},
 	}, { __index = _G })
-	VFS.Include("luaui/Widgets/cmd_map_project.lua", f.environment)
+	require("luaui/Widgets/cmd_map_project", f.environment)
 	f.widget = f.environment.widget
 	f.widget:Initialize()
 	f.project = f.environment.WG.MapProject
@@ -230,7 +230,7 @@ describe("map project completion receipts", function()
 				end,
 				projectSyncTarget = function() end,
 			}
-			local ui = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua").newSave(state, model, {
+			local ui = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library").newSave(state, model, {
 				getMapProject = function()
 					return f.project
 				end,

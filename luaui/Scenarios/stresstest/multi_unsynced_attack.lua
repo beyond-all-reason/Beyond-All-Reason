@@ -1,4 +1,4 @@
-VFS.Include("luaui/Scenarios/stresstest/multi_attack.lua")
+require("luaui/Scenarios/stresstest/multi_attack")
 
 function test()
 	local t0 = os.clock()

@@ -25,7 +25,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
-local dynamicBuildOptions = VFS.Include("common/dynamicBuildOptions.lua")
+local dynamicBuildOptions = require("common/dynamicBuildOptions")
 
 local pairs = pairs
 local ipairs = ipairs
@@ -129,7 +129,7 @@ local advplayerlistLeft = vsx * 0.8
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
-local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
+local units = require("luaui/configs/unit_buildmenu_config")
 
 local isSpec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
@@ -196,7 +196,7 @@ local function refreshUnitDefs()
 	unitTranslatedHumanName = {}
 	unitTranslatedTooltip = {}
 	iconTypes = {}
-	local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+	local orgIconTypes = require("gamedata/icontypes")
 	for udid, ud in pairs(UnitDefs) do
 		unitName[udid] = ud.name
 		unitBuildOptions[udid] = ud.buildOptions
@@ -1615,7 +1615,7 @@ function widget:DrawScreen()
 						local uDefID = -cmd.id
 						WG.buildmenu.hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local _, _, meta, _ = Spring.GetModKeyState()
 						if WG.tooltip and not meta then
 							-- when meta: unitstats does the tooltip
 							local text
@@ -2288,7 +2288,7 @@ function widget:Initialize()
 
 	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
 	if preGamestartPlayer then
-		local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+		local missionOptions = require("luaui/Include/mission_options")
 		preGamestartPlayer = not missionOptions.IsStartUnitSpawnDisabled()
 	end
 

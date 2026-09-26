@@ -22,9 +22,9 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local OrderMenuFirestate = VFS.Include("luaui/Include/ordermenu_firestate.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local OrderMenuFirestate = require("luaui/Include/ordermenu_firestate")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local CANCEL_TARGET_CMD_ID = 34924
 local currentLayout
 
@@ -708,7 +708,7 @@ end
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	actionHotkeys = require("luaui/Include/action_hotkeys")
 end
 
 function widget:Initialize()

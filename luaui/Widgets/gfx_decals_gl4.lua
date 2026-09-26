@@ -105,7 +105,7 @@ local maxDecalLayersPerCell = 16
 
 local atlasHeights = nil
 
-local atlas = VFS.Include("luaui/images/decals_gl4/decalsgl4_atlas_diffuse.lua")
+local atlas = require("luaui/images/decals_gl4/decalsgl4_atlas_diffuse")
 local upperkeys = {}
 for k, v in pairs(atlas) do
 	if type(v) == "table" then
@@ -266,8 +266,8 @@ local function initGL4(DPATname)
 		smallDecalVAO:AttachVertexBuffer(decalVBO.instanceVBO)
 		decalVBO.VAO = smallDecalVAO
 	else
-		local planeVBOsmall, numVerticesSmall = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
-		local planeIndexVBOsmall, numIndicesSmall = InstanceVBOTable.makePlaneIndexVBO(4, 4)
+		local planeVBOsmall, _ = InstanceVBOTable.makePlaneVBO(1, 1, 4, 4)
+		local planeIndexVBOsmall, _ = InstanceVBOTable.makePlaneIndexVBO(4, 4)
 		decalVBO.vertexVBO = planeVBOsmall
 		decalVBO.indexVBO = planeIndexVBOsmall
 		decalVBO.VAO = InstanceVBOTable.makeVAOandAttach(decalVBO.vertexVBO, decalVBO.instanceVBO, decalVBO.indexVBO)

@@ -4,7 +4,7 @@
 local M = {}
 local WG = WG
 
-local text = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua").text
+local text = require("luaui/RmlWidgets/gui_terraform_brush/tf_strings").text
 
 -- "just now" / "3 min ago" / "2 h ago" / "4 d ago" for a seconds-ago count.
 local function ageText(seconds, translate)

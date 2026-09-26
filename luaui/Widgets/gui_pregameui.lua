@@ -23,7 +23,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local draftMode = Spring.GetModOptions().draft_mode
 
-local isStartUnitSpawnDisabled = VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled()
+local isStartUnitSpawnDisabled = require("luaui/Include/mission_options").IsStartUnitSpawnDisabled()
 
 local vsx, vsy = spGetViewGeometry()
 
@@ -214,7 +214,7 @@ end
 
 local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
-	local spec, fullview = Spring.GetSpectatingState()
+	local spec, _ = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
 	if

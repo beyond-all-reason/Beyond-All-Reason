@@ -1262,7 +1262,7 @@ function widget:GameFrame(n)
 	-- check EMP'd units
 	if (n + 1) % 3 == 0 then
 		for unitID, oldempvalue in pairs(unitEmpDamagedWatch) do
-			local health, maxHealth, newparalyzeDamage, capture, build = spGetUnitHealth(unitID)
+			local _, maxHealth, newparalyzeDamage, _, _ = spGetUnitHealth(unitID)
 			if newparalyzeDamage and oldempvalue ~= newparalyzeDamage then
 				if newparalyzeDamage == 0 then
 					unitEmpDamagedWatch[unitID] = nil
@@ -1280,7 +1280,7 @@ function widget:GameFrame(n)
 	if (n + 2) % 3 == 0 then
 		for unitID, paralyzetime in pairs(unitParalyzedWatch) do
 			if Spring.GetUnitIsStunned(unitID) then
-				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+				local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
 					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display

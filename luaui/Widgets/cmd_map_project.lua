@@ -2087,7 +2087,7 @@ local function startSave(slug, opts)
 	end
 	slug = ok
 	if not heightmapPNG then
-		heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
+		heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
 	end
 	job = {
 		slug = slug,
@@ -4167,7 +4167,7 @@ local function mapProjectAction(_, optLine, params)
 end
 
 function widget:Initialize()
-	mapLibrary = VFS.Include("luaui/Include/map_library.lua").new({
+	mapLibrary = require("luaui/Include/map_library").new({
 		validateSlug = validateSlug,
 		downloaded = touchRecent,
 		isProjectBusy = function()
