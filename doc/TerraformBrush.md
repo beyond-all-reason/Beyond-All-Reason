@@ -827,6 +827,16 @@ Two free levers regardless of the toggle: pausing the game while sculpting spare
 
 Always on, no toggle needed: the gadget commits a tick's dabs in one heightmap write and one undo entry (see Undo / Redo System), the falloff-stamp cache is rotation-invariant for circles and rings and budgeted by cells, and the ground mesh refresh is armed by the engine's heightmap-update event rather than per brush tick.
 
+### Multi-Screen Editing
+
+The suite works under the engine's dual-screen mode: set `DualScreenMode = 1` in springsettings and open a borderless window spanning two monitors, and the engine gives the world view one whole display while the other becomes a free screen for UI. `DualScreenMiniMapOnLeft` picks which side is which. The editor's panels then:
+
+- scale for the free screen (its height), not for the world view, so a 1440p tool screen beside a 4K world reads the same as a single-screen session;
+- keep their single-screen widths (the px/vw rules are replaced by dp pins while dual is active), so rows and tool grids hold their proportions;
+- drag freely between the two screens, and on engines with the per-document dp override a panel dropped on the world screen takes that screen's scale, back and forth.
+
+On mixed-DPI desks (for example a 150%-scaled 4K beside a 100% 1440p) the engine must declare per-monitor DPI awareness (RecoilEngine PR #3400); without it Windows bitmap-stretches the spanned window on the secondary monitor regardless of anything the UI does.
+
 ### Presets
 
 Built-in presets (non-deletable) and unlimited user presets. Stored in `LuaUI/Config/TerraformPresets/*.lua`.
