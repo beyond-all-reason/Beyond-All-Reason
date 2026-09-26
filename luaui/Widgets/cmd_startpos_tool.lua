@@ -90,7 +90,7 @@ local VERTEX_PICK_DIST_SQ = 60 * 60 -- world distance^2 to pick a startbox verte
 
 -- Role-labelling config and state for start-position-suggestions export.
 local roleConfig = {
-	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea","air/tech", "baseCenter" },
+	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech", "baseCenter" },
 	saveDir = "Terraform Brush/StartPositions/Suggestions/",
 }
 
