@@ -140,8 +140,7 @@ body {
 	position: absolute;
 	left: 78vw;
 	top: 25vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 	padding-left: 5dp;
 	padding-right: 5dp;
@@ -153,8 +152,7 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 25vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 }
 
@@ -164,8 +162,7 @@ body {
 	position: absolute;
 	left: 55vw;
 	top: 15vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 }
 
@@ -192,8 +189,7 @@ body {
 	pointer-events: auto;
 	position: absolute;
 	z-index: 900;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 }
 
 /* Ensure sliders can shrink inside the constrained flex rows */
@@ -207,8 +203,7 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 12vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 910;
 }
 
@@ -1957,6 +1952,104 @@ body {
 .tf-dim-desc {
 	font-size: 1.0rem;
 	color: #b9bfca;
+}
+
+/* ---- MAP TRANSFORM (Dimensions window) ---- */
+/* Orientation row: four equal buttons, shorter than a tool button. */
+.tf-xform-btn {
+	height: 34dp;
+	justify-content: center;
+	gap: 0dp;
+	padding-bottom: 0dp;
+}
+.tf-xform-btn .tf-btn-text {
+	font-size: 1.0rem;
+}
+.tf-xform-btn.active {
+	border-color: #fdc04c;
+	background-color: #2b2113;
+}
+.tf-xform-btn.active:hover {
+	background-color: #3b2d17;
+	border-color: #ffd47a;
+}
+
+/* Footprint preview. Outlined box = the new canvas, filled box = where the
+   current map lands in it, dot = the corner that is north-west today, which is
+   what makes a turn or a flip readable at a glance. All three are positioned
+   from Lua (envRefreshXformPreview). */
+.tf-xform-preview {
+	width: 118dp;
+	height: 118dp;
+	position: relative;
+	background-color: #1b1b20;
+	border: 1dp #50505a80;
+	border-radius: 4dp;
+}
+.tf-xform-prev-dst {
+	position: absolute;
+	border: 1dp #8d94a4;
+	background-color: #ffffff08;
+}
+.tf-xform-prev-src {
+	position: absolute;
+	background-color: #fdc04c30;
+	border: 1dp #fdc04c;
+}
+.tf-xform-prev-mark {
+	position: absolute;
+	width: 9dp;
+	height: 9dp;
+	border-radius: 5dp;
+	background-color: #fdc04c;
+}
+
+/* The duplicated half of an expansion, so the copy reads as a second thing
+   rather than as part of the original. */
+.tf-xform-prev-copy {
+	background-color: #6fb3ff30;
+	border-color: #6fb3ff;
+}
+.tf-xform-prev-mark-copy {
+	background-color: #6fb3ff;
+}
+
+/* Map size readout between its two steppers. */
+.tf-xform-num {
+	width: 30dp;
+	text-align: center;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #e5e7eb;
+}
+
+/* Trailing unit word, and the elmo figure beside the current size. */
+.tf-xform-unit {
+	margin-left: 6dp;
+	font-size: 1.0rem;
+	color: #8d94a4;
+}
+
+/* 3x3 anchor pad: which part of the new canvas the old map is pinned to. */
+.tf-xform-anchor-row {
+	display: flex;
+	flex-direction: row;
+	gap: 2dp;
+}
+.tf-xform-anchor-cell {
+	width: 17dp;
+	height: 17dp;
+	background-color: #393942;
+	border: 1dp #50505a50;
+	border-radius: 3dp;
+	cursor: pointer;
+}
+.tf-xform-anchor-cell:hover {
+	background-color: #4c4c58;
+}
+.tf-xform-anchor-cell.active {
+	background-color: #fdc04c;
+	border-color: #ffd47a;
 }
 
 .tf-preset-btn {
@@ -3777,6 +3870,25 @@ body {
 	height: 44dp;
 }
 
+/* Six tiles to a row in a 290dp panel leaves about 41dp for a label, and at
+   0.9rem the longest of them, FEATURES, did not fit at every scale: the layout
+   audit caught it clipping by 2px at 2560x1440, where the rounding goes against
+   it, while 1080p and 4K fitted by luck.
+   Tracking rather than font size, deliberately. rem is 10dp here, so 0.9rem is
+   already 9dp and renders barely over the audit's 9px floor; taking the size
+   down to fit would put every tool label under it and trade one finding for
+   twelve. Tightening the tracking shortens the word without touching the
+   glyphs: -0.5dp over eight characters is 4dp, comfortably more than the 2px
+   that was over, and the rest of this file already tracks text by a few
+   tenths of a dp.
+   Scoped to the tool rows: .tf-btn-text is on 133 labels panel-wide, including
+   wide buttons with room to spare, and the TERRAIN tiles are a different size
+   (54dp against these 44dp), so nothing above is made inconsistent. */
+#tf-tools-rows .tf-btn-text,
+#tf-tools-rows2 .tf-btn-text {
+	letter-spacing: -0.5dp;
+}
+
 /* === Sub-mode Buttons (smaller than main mode) === */
 #tf-feature-submodes .tf-mode-btn,
 #tf-weather-submodes .tf-mode-btn,
@@ -5196,8 +5308,7 @@ margin-top: 3dp;
 	pointer-events: auto;
 	position: absolute;
 	z-index: 920;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 }
 
 /* The size/tiles/time line. This is the control that stops a capture being a

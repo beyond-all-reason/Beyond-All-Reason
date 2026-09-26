@@ -17,7 +17,7 @@
 					<span class="tf-title-accent">BRUSH</span>
 					<!-- Version tracks the tf-brush-improvements-N branch this shipped from:
 					     branch N is version 1.N. -->
-					<span class="tf-title-version">1.15</span>
+					<span class="tf-title-version">1.16</span>
 				</div>
 				<div class="tf-header-top-btns">
 					<div id="btn-passthrough" class="tf-header-btn tf-passthrough-btn" data-class-active="passthroughActive" data-event-mousedown="onGuideTogglePassthrough()">
@@ -752,6 +752,12 @@
 				</div>
 				<div id="btn-cl-splats" class="tf-overlay-chip" data-class-active="clLayerSplats" style="flex: 1 0 30%; text-align: center;" data-event-mousedown="onClToggleLayer('splats')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Splats</div>
+				</div>
+				<!-- The tileset shader's variant paint. Reads "Surface" because that
+				     is the tool that paints it; it rides along with Splats so a
+				     cloned patch keeps the material it was painted with. -->
+				<div id="btn-cl-surface" class="tf-overlay-chip" data-class-active="clLayerSurface" style="flex: 1 0 30%; text-align: center;" data-event-mousedown="onClToggleLayer('surface')">
+					<div class="tf-overlay-chip-label" style="text-align: center;">Surface</div>
 				</div>
 				<div id="btn-cl-grass" class="tf-overlay-chip" data-class-active="clLayerGrass" style="flex: 1 0 30%; text-align: center;" data-event-mousedown="onClToggleLayer('grass')">
 					<div class="tf-overlay-chip-label" style="text-align: center;">Grass</div>
@@ -8809,18 +8815,159 @@
 		</div>
 		<div class="tf-panel-body">
 
-		<!-- MAP SIZE (read-only) -->
+		<!-- MAP TRANSFORM. Turn, flip or resize the whole map. Map size and
+		     orientation are fixed when a map is loaded, so this saves the
+		     session, carries every authored layer across and restarts onto the
+		     new canvas; the open project is only changed by a later FILE > Save.
+		     The preview is the whole explanation: the outlined box is the new
+		     canvas, the filled one is where the current map lands in it, and the
+		     dot is the corner that is the map's north-west today. -->
 		<div class="tf-section-frame">
 			<div class="tf-section-title-row">
-				<div class="tf-collapsible-title">MAP SIZE</div>
+				<div class="tf-collapsible-title">MAP TRANSFORM</div>
+				<div id="btn-xform-reset" class="tf-env-reset-btn" data-event-click="onXformReset()">RESET</div>
 			</div>
 			<div class="flex flex-row gap-1 items-center mb-1">
-				<div class="text-sm text-keybind" style="width: 70dp;">width (X)</div>
-				<div class="text-sm text-light" id="lbl-dim-map-x">{{envMapXStr}}</div>
+				<div class="text-sm text-keybind" style="width: 46dp;">current</div>
+				<div class="text-sm text-light font-bold" id="lbl-dim-map-x">{{envXformCurrentStr}}</div>
+				<div class="tf-xform-unit" id="lbl-dim-map-z">{{envXformCurrentElmoStr}}</div>
 			</div>
-			<div class="flex flex-row gap-1 items-center">
-				<div class="text-sm text-keybind" style="width: 70dp;">depth (Z)</div>
-				<div class="text-sm text-light" id="lbl-dim-map-z">{{envMapZStr}}</div>
+			<!-- Two jobs, one machine underneath: TURN moves the map you have,
+			     EXPAND doubles the canvas and optionally lays a copy of the map
+			     in the new half (do it twice and the map grows like a tiling). -->
+			<div class="flex flex-row gap-1 mb-1">
+				<div id="btn-xform-mode-transform" class="tf-mode-btn tf-dim-mode-btn" data-class-active="envXformMode == 'transform'" data-event-mousedown="onXformMode('transform')">
+					<div class="tf-btn-text">TURN &amp; SIZE</div>
+				</div>
+				<div id="btn-xform-mode-expand" class="tf-mode-btn tf-dim-mode-btn" data-class-active="envXformMode == 'expand'" data-event-mousedown="onXformMode('expand')">
+					<div class="tf-btn-text">EXPAND</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1" data-if="envXformMode == 'transform'">
+				<div id="btn-xform-rot-ccw" class="tf-mode-btn tf-xform-btn" data-event-mousedown="onXformRotate('ccw')">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_ccw.png" />
+				</div>
+				<div id="btn-xform-rot-cw" class="tf-mode-btn tf-xform-btn" data-event-mousedown="onXformRotate('cw')">
+					<img class="tf-icon-sm" src="/luaui/images/terraform_brush/rot_cw.png" />
+				</div>
+				<div id="btn-xform-flip-h" class="tf-mode-btn tf-xform-btn" data-class-active="envXformFlipH" data-event-mousedown="onXformFlip('h')">
+					<div class="tf-btn-text">FLIP ↔</div>
+				</div>
+				<div id="btn-xform-flip-v" class="tf-mode-btn tf-xform-btn" data-class-active="envXformFlipV" data-event-mousedown="onXformFlip('v')">
+					<div class="tf-btn-text">FLIP ↕</div>
+				</div>
+			</div>
+			<!-- Which way the map grows. The map keeps its ground and its scale;
+			     the new half appears on the side you point at. -->
+			<div class="flex flex-row gap-1 mb-1" data-if="envXformMode == 'expand'">
+				<div id="btn-xform-dir-left" class="tf-mode-btn tf-xform-btn" data-class-active="envXformDir == 'left'" data-event-mousedown="onXformDir('left')">
+					<div class="tf-btn-text">← W</div>
+				</div>
+				<div id="btn-xform-dir-right" class="tf-mode-btn tf-xform-btn" data-class-active="envXformDir == 'right'" data-event-mousedown="onXformDir('right')">
+					<div class="tf-btn-text">E →</div>
+				</div>
+				<div id="btn-xform-dir-up" class="tf-mode-btn tf-xform-btn" data-class-active="envXformDir == 'up'" data-event-mousedown="onXformDir('up')">
+					<div class="tf-btn-text">↑ N</div>
+				</div>
+				<div id="btn-xform-dir-down" class="tf-mode-btn tf-xform-btn" data-class-active="envXformDir == 'down'" data-event-mousedown="onXformDir('down')">
+					<div class="tf-btn-text">S ↓</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-2 mb-1">
+				<div id="tf-xform-preview" class="tf-xform-preview">
+					<div id="tf-xform-prev-dst" class="tf-xform-prev-dst"></div>
+					<div id="tf-xform-prev-src" class="tf-xform-prev-src"></div>
+					<div id="tf-xform-prev-src2" class="tf-xform-prev-src tf-xform-prev-copy"></div>
+					<div id="tf-xform-prev-mark" class="tf-xform-prev-mark"></div>
+					<div id="tf-xform-prev-mark2" class="tf-xform-prev-mark tf-xform-prev-mark-copy"></div>
+				</div>
+				<div class="flex flex-col gap-1" style="flex: 1;" data-if="envXformMode == 'transform'">
+					<!-- Flat row: label, minus, value, plus, unit. A wrapper div
+					     around the three stepper parts did NOT lay out as a row
+					     here (they stacked), so they stay direct children of the
+					     flex row like every other stepper in this panel. -->
+					<div class="flex flex-row gap-1 items-center">
+						<div class="text-sm text-keybind" style="width: 46dp;">width</div>
+						<div id="btn-xform-w-down" class="tf-sm-btn" data-event-click="onXformSize('x-')"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+						<div class="tf-xform-num">{{envXformWStr}}</div>
+						<div id="btn-xform-w-up" class="tf-sm-btn" data-event-click="onXformSize('x+')"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+						<div class="tf-xform-unit">units</div>
+					</div>
+					<div class="flex flex-row gap-1 items-center">
+						<div class="text-sm text-keybind" style="width: 46dp;">depth</div>
+						<div id="btn-xform-h-down" class="tf-sm-btn" data-event-click="onXformSize('z-')"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+						<div class="tf-xform-num">{{envXformHStr}}</div>
+						<div id="btn-xform-h-up" class="tf-sm-btn" data-event-click="onXformSize('z+')"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+						<div class="tf-xform-unit">units</div>
+					</div>
+					<div class="tf-dim-desc">{{envXformSizeStr}}</div>
+				</div>
+				<!-- What goes in the half that appears. A copy can be laid down as
+				     it is, mirrored across the seam (the one that makes a
+				     symmetric map), flipped along it, or both. -->
+				<div class="flex flex-col gap-1" style="flex: 1;" data-if="envXformMode == 'expand'">
+					<div class="flex flex-row gap-1">
+						<div id="btn-xform-fill-empty" class="tf-mode-btn tf-xform-btn" data-class-active="envXformFill == 'empty'" data-event-mousedown="onXformFill('empty')">
+							<div class="tf-btn-text">EMPTY</div>
+						</div>
+						<div id="btn-xform-fill-copy" class="tf-mode-btn tf-xform-btn" data-class-active="envXformFill == 'copy'" data-event-mousedown="onXformFill('copy')">
+							<div class="tf-btn-text">COPY</div>
+						</div>
+					</div>
+					<div class="flex flex-row gap-1" data-if="envXformFill == 'copy'">
+						<div id="btn-xform-copy-none" class="tf-mode-btn tf-xform-btn" data-class-active="envXformCopy == 'none'" data-event-mousedown="onXformCopy('none')">
+							<div class="tf-btn-text">PLAIN</div>
+						</div>
+						<div id="btn-xform-copy-mirror" class="tf-mode-btn tf-xform-btn" data-class-active="envXformCopy == 'mirror'" data-event-mousedown="onXformCopy('mirror')">
+							<div class="tf-btn-text">MIRROR</div>
+						</div>
+					</div>
+					<div class="flex flex-row gap-1" data-if="envXformFill == 'copy'">
+						<div id="btn-xform-copy-flip" class="tf-mode-btn tf-xform-btn" data-class-active="envXformCopy == 'flip'" data-event-mousedown="onXformCopy('flip')">
+							<div class="tf-btn-text">FLIP</div>
+						</div>
+						<div id="btn-xform-copy-both" class="tf-mode-btn tf-xform-btn" data-class-active="envXformCopy == 'both'" data-event-mousedown="onXformCopy('both')">
+							<div class="tf-btn-text">BOTH</div>
+						</div>
+					</div>
+					<div class="tf-dim-desc">{{envXformSizeStr}}</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1" data-if="envXformMode == 'transform'">
+				<div id="btn-xform-fit-stretch" class="tf-mode-btn tf-dim-mode-btn" data-class-active="envXformFit == 'stretch'" data-event-mousedown="onXformFit('stretch')">
+					<div class="tf-btn-text">STRETCH</div>
+				</div>
+				<div id="btn-xform-fit-keep" class="tf-mode-btn tf-dim-mode-btn" data-class-active="envXformFit == 'keep'" data-event-mousedown="onXformFit('keep')">
+					<div class="tf-btn-text">KEEP SCALE</div>
+				</div>
+			</div>
+			<div class="flex flex-row gap-2 items-center mb-1" data-if="envXformAnchorRow">
+				<div class="text-sm text-keybind" style="width: 50dp;">anchor</div>
+				<div class="flex flex-col gap-1">
+					<div class="tf-xform-anchor-row">
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '-1,-1'" data-event-click="onXformAnchor('-1,-1')"></div>
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '0,-1'" data-event-click="onXformAnchor('0,-1')"></div>
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '1,-1'" data-event-click="onXformAnchor('1,-1')"></div>
+					</div>
+					<div class="tf-xform-anchor-row">
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '-1,0'" data-event-click="onXformAnchor('-1,0')"></div>
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '0,0'" data-event-click="onXformAnchor('0,0')"></div>
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '1,0'" data-event-click="onXformAnchor('1,0')"></div>
+					</div>
+					<div class="tf-xform-anchor-row">
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '-1,1'" data-event-click="onXformAnchor('-1,1')"></div>
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '0,1'" data-event-click="onXformAnchor('0,1')"></div>
+						<div class="tf-xform-anchor-cell" data-class-active="envXformAnchor == '1,1'" data-event-click="onXformAnchor('1,1')"></div>
+					</div>
+				</div>
+				<div class="tf-dim-desc" style="flex: 1;">{{envXformAnchorStr}}</div>
+			</div>
+			<div class="tf-dim-desc mb-1">{{envXformSummaryStr}}</div>
+			<!-- Greys out (the shared .disabled rule also kills pointer events)
+			     whenever there is nothing to apply: no change, or a doubling the
+			     blank map generator cannot build. -->
+			<div id="btn-xform-apply" class="tf-action-btn tf-save-btn" data-class-disabled="envXformIdle" data-event-click="onXformApply()">
+				<div class="tf-action-btn-text">{{envXformApplyStr}}</div>
 			</div>
 		</div>
 

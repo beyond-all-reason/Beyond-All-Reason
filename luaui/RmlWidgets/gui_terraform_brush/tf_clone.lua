@@ -29,6 +29,10 @@ function M.sync(doc, ctx, clState, setSummary)
 	end
 	local widgetState = ctx.widgetState
 	local uiState = ctx.uiState
+	local WG = ctx.WG
+	local syncAndFlash = ctx.syncAndFlash
+	local cadenceToSlider = ctx.cadenceToSlider
+	local shapeNames = ctx.shapeNames
 	-- ===== Clone Tool mode: highlight button, sync controls =====
 	do
 		-- Update status label (dm.clStatusStr → {{clStatusStr}} in RML)
@@ -110,6 +114,9 @@ function M.sync(doc, ctx, clState, setSummary)
 				end
 				if dm.clLayerSplats ~= (ly.splats == true) then
 					dm.clLayerSplats = ly.splats == true
+				end
+				if dm.clLayerSurface ~= (ly.surface == true) then
+					dm.clLayerSurface = ly.surface == true
 				end
 				if dm.clLayerGrass ~= (ly.grass == true) then
 					dm.clLayerGrass = ly.grass == true

@@ -41,6 +41,37 @@ Click the **Environment** icon in the tool row (rightmost group). The env panel 
 
 To return to terrain editing, click any other tool icon (e.g. the mountain) — the env panel collapses automatically.
 
+### Map Transform (SCENE → Dimensions)
+
+**MAP TRANSFORM** at the top of the Dimensions window turns, flips, resizes and duplicates the whole map with everything on it: terrain, splat and SURFACE paint, diffuse art, metal, features, units, decals, lights, comments, start positions, start boxes, grass and weather.
+
+The section has two modes, sharing one preview and one APPLY.
+
+**TURN & SIZE** moves the map you have:
+
+- **Rotate left / rotate right** step the map a quarter turn at a time, and the target size follows the turn (a 12×16 map rotated once wants a 16×12 canvas).
+- **FLIP ↔ / FLIP ↕** mirror the map the way you see it on screen, whatever rotation is already set.
+- **width / depth** set the new canvas in map units (512 elmos each, even numbers, 4–32).
+- **STRETCH** scales the map onto the new canvas: the composition is kept, the scale changes. **KEEP SCALE** holds one elmo to one elmo and places the map by the 3×3 **anchor**, which is how you crop a map or add a strip of new ground. Anything outside the new canvas is dropped, and ground that reaches past the old map continues its border height.
+- The preview says the rest: the outlined box is the new canvas, the filled box is where the current map lands in it, and the dot marks the corner that is the map's north-west today. The line under it names what the transform costs, e.g. `Rotate 90°, 12x12 units at true scale, kept centred, cuts 11% of the map`.
+- **APPLY** asks for a second click, then saves the session, rewrites every layer and restarts the engine onto the new canvas. Map size and orientation are fixed when a map is loaded, so the restart is not optional.
+
+**EXPAND** doubles the canvas along one axis instead:
+
+- **← W / E → / ↑ N / S ↓** pick the side the map grows into. The map keeps its ground and its scale and stays on the opposite side.
+- **EMPTY** leaves the new half a flat canvas at the height a New Map starts at, ready to sculpt.
+- **COPY** fills it with the map itself: **PLAIN** repeats it, **MIRROR** reflects it across the seam (the one that makes a symmetric map, and the only one whose terrain meets exactly at the join), **FLIP** reflects it along the seam, **BOTH** turns it half way round. Everything on the map is duplicated with the ground: features, metal, paint, decals, lights, start positions: and the copies of the start positions and boxes are renumbered onto fresh ally teams so a doubled map has somewhere for the extra players to stand.
+- Doubling again grows the map the same way, so a small hand-made piece can be grown into a large symmetric map in two or three steps. 32 units is the blank map generator's ceiling, and APPLY reads TOO BIG when a doubling would pass it.
+- The preview draws the copy in its own colour with its own corner dot, so which way it was turned over is visible before anything runs.
+
+The **width** and **depth** steppers are in map units (512 elmos each); the line under them states the same canvas in elmos. APPLY greys out when there is nothing to apply.
+
+The transform does **not** write to your project: the session comes back transformed with the same project still as the Save target, so `FILE > Save` commits it and quitting without saving throws it away. The sun turns with the map, so the light keeps falling on the terrain the way it was authored. The skybox itself does not turn with it, so a rotated map can want its sky re-picked.
+
+The tileset's automatic placement turns with the map as well. Where nothing was painted, the shader picks the material from height, slope and a set of patterns anchored to the world: the stagger mask behind the cliff and foothill blends, the noise fields behind the intermediate scatter and the large-scale tone drift, and the wind the automatic deposit blows from. A transform records how the map was turned and the shader reads those patterns through that record, so a turned map comes back looking like the map that went in rather than with its paint right and everything between it re-rolled. It is kept in the project's `tileset.lua` and composes across transforms, so turning a map back the way it came restores the original exactly. A map that was never transformed carries no record and renders as it always did.
+
+Tilted features keep their lean, and mirrored features keep their silhouette rather than their handedness (a model cannot be mirrored without a mirrored mesh). A transform with no rotation, no flip and the current size is refused: the APPLY button reads NO CHANGE.
+
 ### Key Shortcuts (cheat sheet)
 
 | Key | Action |
@@ -54,6 +85,7 @@ To return to terrain editing, click any other tool icon (e.g. the mountain) — 
 | `Ctrl+R+Scroll` | Ring inner-ratio |
 | `Shift+drag` | Axis-lock + grid snap |
 | `RMB drag` | Temporary Lower (restores previous mode on release) |
+| `MMB` on a slider | Lock it to the mouse wheel (click it again, or any click on it, to release; `ESC` clears all) |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
 
 Full table in [Interaction → Keyboard](#interaction).
@@ -375,6 +407,99 @@ Each feature's 3D model is rendered to a 64×64 in-memory GL texture on first op
 
 **Note:** RML `<img src>` only resolves VFS archive paths, not the writeable data directory where `gl.SaveImage` stores files. This is why thumbnails use direct GL texture overlay instead of saved PNGs.
 
+#### Terrain Meshes
+
+A **terrain mesh** is a feature whose model becomes part of the map. Place it,
+move it, rotate, tilt or lift it with every Feature Placer control, and the
+ground under it follows: every heightmap vertex the model covers is set to the
+height of the model's upper surface, so units path and drive over the model
+exactly, its walls stop them by slope the way a cliff does, and a sloped top is
+a ramp. The typemap cells under it switch to a terrain type with hardness 1000
+(`Spring.SetTerrainTypeData` takes hardness as its sixth argument and the
+engine divides crater depth by it), so explosions leave the ground alone, and a
+synced reconcile pins the heights against anything that still moves them, the
+tail of an explosion or a brush stroke under the mesh. Removing the feature
+gives the ground back.
+
+The first asset is the **Concrete Block** in the new Structures category
+(128 x 128 x 48 elmos, generated together with its PBR textures and the
+category icon by `c:/BAR-Github/tools/tf_mesh_block.py`). Any s3o built in a 3D
+package works the same way: a feature def opts in with
+`customparams.terrainmesh = "1"` (`features/terraformbrush_meshes.lua` lists the
+other tags), and `luarules/gadgets/cmd_terrain_mesh.lua` reads the geometry
+straight from the model file, rasterises the upper envelope of its triangles at
+the feature's live transform (`GetFeatureDirection` hands back the engine's own
+matrix columns, so no Euler convention is involved) and stamps it. Models
+should carry a skirt below their origin, and `terrainmesh_inset` (default and
+floor 8 elmos, one heightmap cell) only raises a vertex when the mesh also
+covers that much ground around it. The terrain climbs to the top over the one
+cell after the last raised vertex, so the foot of that climb sits `inset - 8`
+elmos inside the wall; a half-cell inset put it outside for any mesh not
+aligned to the 8-elmo grid, a berm climbing half the wall. Keep a model's
+walls a couple of elmos outside its stamped footprint (the block's base is
+132 elmos for a 128-elmo stamp).
+
+The raised plateau sits exactly on the model's top face, so the two would
+z-fight. The CUS GL4 gadget gives terrain meshes their own uniform bin
+(`terrainmesh`, PBR like `featurepbr`) and draws it with
+`gl.PolygonOffset(-2, -2)` in the forward and deferred passes: a hair of depth
+toward the camera, enough to win the tie against the ground it sits on and
+nothing more, so a hill in front still occludes it and units stand exactly on
+the model. `terrainmesh_sink` (default 0) can still stamp the ground below the
+surface for models that want it.
+
+Why the feature is pinned with `SetFeatureMoveCtrl(enabled = true)` and zero
+vectors rather than the masks-only lock used for lifted features:
+`CFeature::UpdatePosition` lifts any feature the ground rises over, unmasked,
+and `CFeatureHandler::TerrainChanged` re-queues every feature in a changed
+area, so a block would pop onto its own top the frame after the stamp and the
+re-stamp would chase it upward forever. The enabled branch never consults the
+ground. Terrain meshes also skip the placement wobble, which would re-stamp
+the ground on every frame of tilt.
+
+Two more tags shape what counts as ground. `terrainmesh_clearance` (default 16
+elmos) is head room measured from the model's placement plane: where the
+mesh's lowest surface is higher than that above the plane, the spot is open
+air (a floorless arch, the underside of a bridge) and stays untouched. It is
+measured against the model, not the map, so a model lifted with the gizmo
+keeps pulling the ground up to it: one block lifted 100 elmos is a 148-elmo
+cliff. `terrainmesh_cap` lists model-space
+rectangles, `"x1 z1 x2 z2 cap; ..."`, inside which surfaces higher than `cap`
+are ignored. That is the explicit answer for a roofed passage whose model has
+its own floor under the roof: no vertical probe can tell a hollow pillar from
+a roofed passage (both show a floor, then a ceiling), so the def says where
+the passage is. The Sci-Fi Gate uses one rectangle with a 20-elmo cap: floor
+and door still count, roof and hanging lamp do not.
+
+Converted assets come from `c:/BAR-Github/tools/gltf2s3o.py`: it takes a glTF,
+GLB or a Sketchfab download zip, flattens the node hierarchy into one piece,
+scales (default 8 elmos per metre), re-centres, puts the origin at the largest
+flat surface, and merges materials into one texture pair, either an atlas with
+tiled regions (a low-poly kit whose wall texture repeats a few times) or a
+single texture whose UVs keep tiling (a SketchUp city with one facade texture
+repeated hundreds of times, flat-coloured faces pinned to the closest texel).
+`tools/tf_mesh_dump.lua` rasterises a converted s3o offline the way the gadget
+would, so a footprint can be checked before a game is started. The Structures
+category ships two such conversions as examples, both CC-BY-4.0 with the
+credit lines in `features/terraformbrush_meshes.lua`: the Sci-Fi Gate (Free
+Models., 1088 triangles, atlas) and the Cyberpunk City (Pasha, 289k triangles,
+about 6150 elmos wide at scale 0.332; the 17 MB model is a stress test as
+much as an asset: its stamp pins some 600k vertices, sampled per vertex rather
+than per half cell above 1.2M coverage cells). The city's own UVs are a
+single photo projected from one camera and smear from any other angle, so it
+is exported with `--uv-mode box`: the source UVs are dropped and a seamless
+texture pair is projected along the world axes, walls taking the two axes
+across their face and roofs and streets pinned to a plain texel. The pair is
+`unittextures/tf_facade_*.png` from `tools/tf_facade_tex.py`, dark concrete
+with a window grid, a share of the windows lit and emissive.
+
+Overlapping meshes stack in placement order; removing one unwinds the stamps
+above it and re-applies them. A mesh whose ground is not known to be real (a
+project load, whose heightmap already carries the stamp, or a `/luarules
+reload`) heals the ground on removal by relaxation from the surrounding ring
+instead of restoring a snapshot. `/luarules tmesh` prints the status,
+`/luarules tmesh restamp` recomputes every stamp.
+
 ### Grass Brush
 
 Brush-based grass density painting over the GL4 grass system.
@@ -406,12 +531,17 @@ Each layer can be independently enabled/disabled. Only enabled layers are captur
 | **Terrain** | `Spring.GetGroundHeight(x,z)` grid loop | `SetHeightMapFunc` batch via gadget | ✅ Full |
 | **Metal** | `Spring.GetMetalAmount(x,z)` per square | `Spring.SetMetalAmount` via gadget | ✅ Full |
 | **Features** | `GetFeaturesInRectangle` → defID, pos, heading | `CreateFeature` / `DestroyFeature` via gadget | ✅ Full |
-| **Splats** | FBO blit of `$ssmf_splat_distr` sub-rect | Shader paste into splat FBO → `SetMapShadingTexture` | ✅ Full |
+| **Splats** | FBO blit of `$ssmf_splat_distr` sub-rect | Quad paste into splat FBO → `SetMapShadingTexture` | ✅ Full |
+| **Surface** | `WG.SurfacePainter.region.copy()` of the tileset variant mask(s) | `region.paste()` onto the four destination corners | ✅ Full (needs the surface painter installed) |
 | **Grass** | `WG['grassgl4'].getDensityAt(x,z)` per patch | `setDensityAt(x,z,val)` per patch | ✅ Full |
 | **Decals** | `Spring.GetAllGroundDecals()` + per-decal queries | `Spring.CreateGroundDecal()` with transforms | ✅ Implemented (toggle disabled) |
 | **Weather** | Widget Lua table (weather brush state) | Re-emit via weather brush message | ⬜ Stub (awaiting `WG.WeatherBrush` API) |
 | **Lights** | `WG.LightPlacer` API state | `Spring.AddMapLight` with rotation/offset | ✅ Implemented (toggle disabled) |
 | **Terrain Texture (PBR)** | *Deferred* | *Deferred* | ⬜ Deferred |
+
+**Surface** is the tileset shader's variant paint: the material a patch of ground wears under the new terrain shader. It travels with Splats so a cloned piece of map keeps the look it was painted with, not just its height. The painter owns the masks (there are two once variant 4 is in use), so the clone tool asks it to cut the patch out and lay it down again; the paste snapshots for undo on the painter's own stack, so Ctrl+Z in the SURFACE tool takes it back. The mask belongs to a write-dir widget, so the layer quietly carries nothing on an install without it.
+
+Texture layers are pasted as a **quad**, not a rectangle: the four destination corners come from the same `transformPoint` every other layer uses, so a rotated or mirrored paste turns the paint with the terrain, and the patch lands centred on the cursor. (Before this, the splat patch pasted axis-aligned from the cursor, i.e. unrotated and half a box off.)
 
 #### Workflow States
 
@@ -696,6 +826,16 @@ The spacing rule is falloff-aware: a soft dome sums smoothly at a quarter radius
 Two free levers regardless of the toggle: pausing the game while sculpting spares the pathfinder's terrain updates, and Focus mode (the eye icon in the header) drops the rest of the HUD.
 
 Always on, no toggle needed: the gadget commits a tick's dabs in one heightmap write and one undo entry (see Undo / Redo System), the falloff-stamp cache is rotation-invariant for circles and rings and budgeted by cells, and the ground mesh refresh is armed by the engine's heightmap-update event rather than per brush tick.
+
+### Multi-Screen Editing
+
+The suite works under the engine's dual-screen mode: set `DualScreenMode = 1` in springsettings and open a borderless window spanning two monitors, and the engine gives the world view one whole display while the other becomes a free screen for UI. `DualScreenMiniMapOnLeft` picks which side is which. The editor's panels then:
+
+- scale for the free screen (its height), not for the world view, so a 1440p tool screen beside a 4K world reads the same as a single-screen session;
+- keep their single-screen widths (the px/vw rules are replaced by dp pins while dual is active), so rows and tool grids hold their proportions;
+- drag freely between the two screens, and on engines with the per-document dp override a panel dropped on the world screen takes that screen's scale, back and forth.
+
+On mixed-DPI desks (for example a 150%-scaled 4K beside a 100% 1440p) the engine must declare per-monitor DPI awareness (RecoilEngine PR #3400); without it Windows bitmap-stretches the spanned window on the secondary monitor regardless of anything the UI does.
 
 ### Presets
 

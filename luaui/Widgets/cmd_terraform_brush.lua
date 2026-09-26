@@ -2348,6 +2348,11 @@ local pendingExport = false
 -- 200-local limit).
 extraState._heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
 
+-- Map transform math, shared with cmd_map_transform.lua: a project opened by a
+-- map transform hands its turn/mirror/fit to the import below. Attached to
+-- extraState for the same 200-local reason.
+extraState._mapTransform = VFS.Include("luaui/Include/map_transform.lua")
+
 -- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
 extraState._mapgen = require("luaui/Widgets/cmd_terraform_brush_mapgen")
@@ -2974,8 +2979,31 @@ local function doImportHeightmapRead()
 	pendingImportFile = nil
 	local fallbackMin = extraState._importFallbackMin
 	local fallbackMax = extraState._importFallbackMax
+	local xformSpec = extraState._importXform
 	extraState._importFallbackMin = nil
 	extraState._importFallbackMax = nil
+	extraState._importXform = nil
+
+	-- Built once per import: dest vertex -> source elmo for every sample below.
+	-- A list, because a doubled map places the SAME heightmap twice (the second
+	-- placement mirrored or flipped); ground outside every placement takes
+	-- fill_height when the expansion left that half empty.
+	local importT = nil
+	local importFill = nil
+	if xformSpec and type(xformSpec.placements) == "table" then
+		local srcW = (tonumber(xformSpec.src_x) or 0) * 512
+		local srcH = (tonumber(xformSpec.src_z) or 0) * 512
+		if srcW > 0 and srcH > 0 then
+			local list = {}
+			for i, p in ipairs(xformSpec.placements) do
+				list[i] = extraState._mapTransform.new(p, srcW, srcH, Game.mapSizeX, Game.mapSizeZ)
+			end
+			if #list > 0 then
+				importT = list
+				importFill = tonumber(xformSpec.fill_height)
+			end
+		end
+	end
 
 	local squareSize = Game.squareSize
 
@@ -3048,7 +3076,63 @@ local function doImportHeightmapRead()
 				local w = Game.mapSizeX / squareSize + 1
 				local h = Game.mapSizeZ / squareSize + 1
 				local columns = {}
-				if pw == w and ph == h then
+				if importT then
+					-- Map transform replay. Each destination vertex is put back
+					-- through the placements to find where it sat on the old map
+					-- and sampled there. Ground no placement covers either takes
+					-- fill_height (an expansion's empty half is a flat canvas) or
+					-- clamps to the border, so a nudged edge continues the land
+					-- instead of dropping to the range floor.
+					for px = 1, w do
+						local col = {}
+						local wx = (px - 1) * squareSize
+						for py = 1, h do
+							local wz = (py - 1) * squareSize
+							local T, sxE, szE
+							local covered = false
+							for pi = 1, #importT do
+								local cand = importT[pi]
+								local a, b, inside = cand:dstToSrc(wx, wz)
+								if inside then
+									T, sxE, szE, covered = cand, a, b, true
+									break
+								elseif pi == 1 then
+									T, sxE, szE = cand, a, b -- the clamp fallback
+								end
+							end
+							if importFill and not covered then
+								col[py] = importFill
+							else
+								local fx = sxE / T.srcW * (pw - 1)
+								local fy = szE / T.srcH * (ph - 1)
+								if fx < 0 then
+									fx = 0
+								elseif fx > pw - 1 then
+									fx = pw - 1
+								end
+								if fy < 0 then
+									fy = 0
+								elseif fy > ph - 1 then
+									fy = ph - 1
+								end
+								local x0 = floor(fx)
+								local y0 = floor(fy)
+								local x1 = (x0 + 1 < pw) and (x0 + 1) or (pw - 1)
+								local y1 = (y0 + 1 < ph) and (y0 + 1) or (ph - 1)
+								local tx = fx - x0
+								local ty = fy - y0
+								local g00 = gray[y0 * pw + x0 + 1]
+								local g10 = gray[y0 * pw + x1 + 1]
+								local g01 = gray[y1 * pw + x0 + 1]
+								local g11 = gray[y1 * pw + x1 + 1]
+								local g0 = g00 + (g10 - g00) * tx
+								local g1 = g01 + (g11 - g01) * tx
+								col[py] = minH + (g0 + (g1 - g0) * ty) * heightRange
+							end
+						end
+						columns[px] = col
+					end
+				elseif pw == w and ph == h then
 					-- Same-size import: direct copy. This is the exact inverse of the
 					-- exporter; the bilinear path's float32 index math can produce
 					-- ~1e-4 fractional weights even at identical sizes, bleeding a
@@ -3105,6 +3189,15 @@ local function doImportHeightmapRead()
 		end
 		if heightmapFormat ~= nil then
 			Echo("[Terraform Brush] PNG decode failed, falling back to 8-bit GL load")
+		end
+		if importT then
+			-- The GL path stretches corner to corner and knows nothing about a
+			-- transform, so the terrain would come out unturned while every
+			-- other layer moved. Say so rather than leave it to be discovered.
+			Echo(
+				"[Terraform Brush] WARNING: this heightmap cannot be read at full depth, so the map transform "
+					.. "could not be applied to the terrain — the other layers still moved"
+			)
 		end
 	end
 
@@ -3432,12 +3525,17 @@ function widget:Initialize()
 		getTerrainVersion = function()
 			return extraState.terrainVersion
 		end,
-		importHeightmap = function(filename, fallbackMin, fallbackMax)
+		-- xform (optional): a map transform spec (rot / mirrorX / mirrorZ / fit /
+		-- anchorX / anchorZ / src_x / src_z in map units). With one, the PNG is
+		-- read as the OLD map's heightmap and resampled onto this canvas through
+		-- the transform instead of stretched edge to edge.
+		importHeightmap = function(filename, fallbackMin, fallbackMax, xform)
 			if not filename or filename == "" then
 				return false
 			end
 			extraState._importFallbackMin = tonumber(fallbackMin)
 			extraState._importFallbackMax = tonumber(fallbackMax)
+			extraState._importXform = (type(xform) == "table") and xform or nil
 			pendingImportFile = filename
 			Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 			return true
