@@ -35,7 +35,10 @@ function gadget:GameFrame(frame)
 					SendToUnsynced("unitCaptureFrame", unitID, math.max(captureLevel, 0))
 				end
 				if unitsWithCaptureProgress[unitID].ticksFromLastCapture >= 10 then -- with how things are set up, that will be about 10 seconds
-					captureLevel = math.max(captureLevel - ((unitsWithCaptureProgress[unitID].ticksFromLastCapture - 10) * 0.001), 0)
+					captureLevel = math.max(
+						captureLevel - ((unitsWithCaptureProgress[unitID].ticksFromLastCapture - 10) * 0.001),
+						0
+					)
 					Spring.SetUnitHealth(unitID, {
 						capture = captureLevel,
 					})
