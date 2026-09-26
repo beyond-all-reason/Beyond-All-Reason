@@ -350,6 +350,7 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
+		gadgetHandler:AddChatAction('lavalevel', lavalevel, 'Adjust the lava level in-game. Usage: /lavalevel [level] [speed] [remainTime]')
 		minGroundHeight = select(3, Spring.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
@@ -465,10 +466,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local DAMAGE_EXTSOURCE_WATER = -5
-
-	function gadget:Initialize()
-		gadgetHandler:AddChatAction('lavalevel', lavalevel, 'Adjust the lava level in-game. Usage: /lavalevel [level] [speed] [remainTime]')
-	end
 
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID)
 		if weaponDefID ~= DAMAGE_EXTSOURCE_WATER then
