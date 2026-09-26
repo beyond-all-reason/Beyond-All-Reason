@@ -147,6 +147,20 @@ body {
 	padding-right: 5dp;
 }
 
+/* Dual-screen sessions (class set on the DOCUMENT by the mission editor's
+   applyDualScreenLayout): 13vw of a two-monitor window is a fat panel, and the floating
+   windows share the rule. 290dp is what 13vw works out to on a single 4K, kept at any
+   scale, for the main panel and every floating window alike. */
+.tf-dual .tf-root,
+.tf-dual .tf-noise-root,
+.tf-dual .tf-skybox-library-root,
+.tf-dual .tf-env-float-window,
+.tf-dual .tf-light-library-root,
+.tf-dual .tf-capture-window {
+	width: 290dp;
+	min-width: 290dp;
+}
+
 /* === Noise Panel (separate floating window) === */
 .tf-noise-root {
 	pointer-events: auto;

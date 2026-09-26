@@ -18311,6 +18311,10 @@ local function attachEventListeners()
 				end
 				local mx, my = GetMouseState()
 				local vsx, vsy = GetViewGeometry()
+				-- Clamp to the WINDOW, not the world view, like the shared helper: in
+				-- dual-screen mode the window is two monitors wide and a view-width
+				-- clamp snaps the panel off the free screen and refuses the way back.
+				local winX = Spring.GetWindowGeometry()
 				ds.active = true
 				ds.rootEl = rootEl
 				ds.rootId = rootId
@@ -18318,7 +18322,7 @@ local function attachEventListeners()
 				ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
 				ds.ew = rootEl.offset_width
 				ds.eh = rootEl.offset_height
-				ds.vsx = vsx
+				ds.vsx = (winX and winX > vsx) and winX or vsx
 				ds.vsy = vsy
 				ds.lastX = -1
 				ds.lastY = -1
@@ -18356,6 +18360,7 @@ local function attachEventListeners()
 		-- End drag on any mouseup in the document
 		doc:AddEventListener("mouseup", function(event)
 			if ds.active then
+				local moved = ds.rootEl
 				widgetState.saveWindowPosition(ds.rootId, ds.rootEl, ds.vsx, ds.vsy)
 				if ds.rootEl == widgetState.rootElement then
 					local vsx, vsy = ds.vsx, ds.vsy
@@ -18370,6 +18375,10 @@ local function attachEventListeners()
 				ds.snapRects = nil
 				-- The window moved, so the room left below it changed.
 				widgetState.refreshPanelBodies()
+				-- Dual-screen: a drop on the other screen takes that screen's scale.
+				if WG.TerraformerShared and WG.TerraformerShared.applyScreenScale then
+					WG.TerraformerShared.applyScreenScale(moved)
+				end
 			end
 		end, false)
 
