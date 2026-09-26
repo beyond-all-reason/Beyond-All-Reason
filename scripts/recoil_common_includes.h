@@ -7,6 +7,9 @@
 #ifndef CONSTANTS_H_
 #define CONSTANTS_H_
 
+// Engine constants
+#define MILLISECONDS_PER_FRAME	33 // sleeps and other timers count in whole engine ticks
+
 // Indices for emit-sfx
 #ifndef __SFXTYPE_H_
 #define SFXTYPE_VTOL		0

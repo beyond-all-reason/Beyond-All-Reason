@@ -1,5 +1,6 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 piece pelvis, lthigh, rthigh, rleg, rfoot, lleg, lfoot, body, lloarm, rloarm, ruparm, luparm, aimy1;
 
@@ -270,7 +271,7 @@ HitByWeapon(anglex, anglez)
 		signal SIGNAL_TURNON;
 		set-signal-mask SIGNAL_TURNON;
 		set ACTIVATION to 0;
-		sleep 8000;
+		sleep deactivateTime;
 		isCloaked = 0;
 		set ACTIVATION to 100;
 	}

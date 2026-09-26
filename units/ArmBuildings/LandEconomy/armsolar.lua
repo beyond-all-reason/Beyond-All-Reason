@@ -34,6 +34,7 @@ return {
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecaltype = "decals/armsolar_aoplane.dds",
+			deactivate_time = 8,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

@@ -1,7 +1,8 @@
 #define TA			// This is a TA script
 
 #include "sfxtype.h"
-#include "exptype.h"
+#include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 #define SIGNAL_TURNON 4
 
@@ -259,7 +260,7 @@ HitByWeapon(anglex, anglez)
 	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 8000;
+	sleep deactivateTime;
 	Activating = 0;
 	if (wantOpen) {
 		set ACTIVATION to 100;
