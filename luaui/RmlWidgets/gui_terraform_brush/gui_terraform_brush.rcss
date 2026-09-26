@@ -140,25 +140,10 @@ body {
 	position: absolute;
 	left: 78vw;
 	top: 25vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 	padding-left: 5dp;
 	padding-right: 5dp;
-}
-
-/* Dual-screen sessions (class set on the DOCUMENT by the mission editor's
-   applyDualScreenLayout): 13vw of a two-monitor window is a fat panel, and the floating
-   windows share the rule. 290dp is what 13vw works out to on a single 4K, kept at any
-   scale, for the main panel and every floating window alike. */
-.tf-dual .tf-root,
-.tf-dual .tf-noise-root,
-.tf-dual .tf-skybox-library-root,
-.tf-dual .tf-env-float-window,
-.tf-dual .tf-light-library-root,
-.tf-dual .tf-capture-window {
-	width: 290dp;
-	min-width: 290dp;
 }
 
 /* === Noise Panel (separate floating window) === */
@@ -167,8 +152,7 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 25vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 }
 
@@ -178,8 +162,7 @@ body {
 	position: absolute;
 	left: 55vw;
 	top: 15vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 900;
 }
 
@@ -206,8 +189,7 @@ body {
 	pointer-events: auto;
 	position: absolute;
 	z-index: 900;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 }
 
 /* Ensure sliders can shrink inside the constrained flex rows */
@@ -221,8 +203,7 @@ body {
 	position: absolute;
 	left: 62vw;
 	top: 12vh;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 	z-index: 910;
 }
 
@@ -5308,8 +5289,7 @@ margin-top: 3dp;
 	pointer-events: auto;
 	position: absolute;
 	z-index: 920;
-	width: 13vw;
-	min-width: 220px;
+	width: 290dp;
 }
 
 /* The size/tiles/time line. This is the control that stops a capture being a
