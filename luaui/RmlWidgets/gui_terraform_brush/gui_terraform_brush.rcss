@@ -3870,6 +3870,25 @@ body {
 	height: 44dp;
 }
 
+/* Six tiles to a row in a 290dp panel leaves about 41dp for a label, and at
+   0.9rem the longest of them, FEATURES, did not fit at every scale: the layout
+   audit caught it clipping by 2px at 2560x1440, where the rounding goes against
+   it, while 1080p and 4K fitted by luck.
+   Tracking rather than font size, deliberately. rem is 10dp here, so 0.9rem is
+   already 9dp and renders barely over the audit's 9px floor; taking the size
+   down to fit would put every tool label under it and trade one finding for
+   twelve. Tightening the tracking shortens the word without touching the
+   glyphs: -0.5dp over eight characters is 4dp, comfortably more than the 2px
+   that was over, and the rest of this file already tracks text by a few
+   tenths of a dp.
+   Scoped to the tool rows: .tf-btn-text is on 133 labels panel-wide, including
+   wide buttons with room to spare, and the TERRAIN tiles are a different size
+   (54dp against these 44dp), so nothing above is made inconsistent. */
+#tf-tools-rows .tf-btn-text,
+#tf-tools-rows2 .tf-btn-text {
+	letter-spacing: -0.5dp;
+}
+
 /* === Sub-mode Buttons (smaller than main mode) === */
 #tf-feature-submodes .tf-mode-btn,
 #tf-weather-submodes .tf-mode-btn,
