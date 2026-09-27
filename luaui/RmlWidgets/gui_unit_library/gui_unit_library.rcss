@@ -5,9 +5,9 @@
 .ul-root {
 	left: 30vw;
 	top: 8vh;
-	/* 600dp: four tiles a row (128dp + a 2dp border each side, 4dp gaps, the scrollbar), and
-	   every filter row on one line beside its label (ROLE, the widest, sets it). */
-	width: 600dp;
+	/* 480dp (PtaQ: 20% thinner than 600): four 100dp tiles a row (plus a 2dp border each side,
+	   4dp gaps, the scrollbar). The filter chips keep their size; a long row wraps instead. */
+	width: 480dp;
 	z-index: 905;
 }
 
@@ -188,8 +188,8 @@
 /* A tile's place in the pick set: 1, 2, 3 at the picture's foot, left. */
 .ul-order {
 	position: absolute;
-	left: 12dp;
-	top: 76dp;
+	left: 10dp;
+	top: 56dp;
 	min-width: 18dp;
 	height: 18dp;
 	padding: 0dp 3dp;
@@ -219,13 +219,13 @@
 
 .ul-grid scrollbarvertical { width: 6dp; }
 
-/* One row of tiles (142dp + the grid padding). */
-.ul-grid-recent { max-height: 156dp; overflow-y: hidden; }
+/* One row of tiles (118dp + the grid padding). */
+.ul-grid-recent { max-height: 132dp; overflow-y: hidden; }
 
 .ul-tile {
 	position: relative;
-	width: 128dp;
-	height: 142dp;
+	width: 100dp;
+	height: 118dp;
 	cursor: pointer;
 	border-radius: 4dp;
 	border: 2dp transparent;
@@ -243,8 +243,8 @@
 .ul-tile.picked { border-color: #fdc04c; background-color: #2b2113; }
 
 .ul-pic {
-	width: 96dp;
-	height: 96dp;
+	width: 76dp;
+	height: 76dp;
 	margin-top: 3dp;
 	margin-bottom: 3dp;
 }
@@ -263,9 +263,9 @@
 /* A faction stripe along the picture's foot: two factions share many names. */
 .ul-faction {
 	position: absolute;
-	left: 12dp;
-	right: 12dp;
-	top: 99dp;
+	left: 10dp;
+	right: 10dp;
+	top: 79dp;
 	height: 3dp;
 	border-radius: 1dp;
 }
@@ -279,7 +279,7 @@
 	width: 100%;
 	box-sizing: border-box;
 	padding: 1dp 2dp;
-	font-size: 1.35rem;
+	font-size: 1.25rem;
 	line-height: 1.15em;
 	max-height: 2.3em;
 	color: #e1e6ee;

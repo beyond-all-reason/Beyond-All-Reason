@@ -49,10 +49,10 @@
 			<div class="tf-collapsible-title">FILTERS</div>
 		</div>
 		<div id="ul-body-filters" class="ul-section-body" data-class-hidden="folded.filters">
-			<!-- One line per row, the label at the left: the rows a search is narrowed by first
-			     (faction, tier) come first, the type is split into units and buildings so each
-			     half fits a line, and domain (which mostly repeats the type) rides on the tier line. A click on
-			     a label clears that row; the label lights while its row has a filter on. -->
+			<!-- Label at the left of each row. The rows a search is narrowed by first (faction,
+			     tier) come first, the type is split into units and buildings, and domain (which
+			     mostly repeats the type) comes last. A click on a label clears that row; the label
+			     lights while its row has a filter on. -->
 			<div id="ul-row-faction" class="ul-frow">
 				<div class="ul-flabel" data-class-active="rowActive.faction" data-event-click="clearRow('faction')" data-event-mouseover="rowNote('faction')">FACTION</div>
 				<div class="ul-chip-row">
@@ -60,14 +60,9 @@
 				</div>
 			</div>
 			<div id="ul-row-tier" class="ul-frow">
-				<!-- TIER and DOMAIN share a line: both are short. -->
 				<div class="ul-flabel" data-class-active="rowActive.tier" data-event-click="clearRow('tier')" data-event-mouseover="rowNote('tier')">TIER</div>
-				<div class="ul-chip-row ul-chip-row-fit">
+				<div class="ul-chip-row">
 					<div data-for="c : tierChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
-				</div>
-				<div class="ul-flabel ul-flabel-inline" data-class-active="rowActive.domain" data-event-click="clearRow('domain')" data-event-mouseover="rowNote('domain')">DOMAIN</div>
-				<div id="ul-row-domain" class="ul-chip-row ul-chip-row-fit">
-					<div data-for="c : domainChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
 				</div>
 			</div>
 			<div id="ul-row-mobile" class="ul-frow">
@@ -88,21 +83,11 @@
 					<div data-for="c : roleChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
 				</div>
 			</div>
-		</div>
-	</div>
-
-	<!-- Saved groups (U9): a click picks one up to place, x deletes the file. -->
-	<div id="ul-frame-blueprints" class="tf-section-frame" data-class-tf-collapsed="folded.blueprints" data-class-hidden="!blueprintsShown">
-		<div id="ul-fold-blueprints" class="tf-section-title-row" data-event-click="fold('blueprints')">
-			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.blueprints ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
-			<div class="tf-collapsible-title">BLUEPRINTS</div>
-		</div>
-		<div id="ul-blueprints" class="ul-section-body ul-grid ul-grid-recent" data-class-hidden="folded.blueprints">
-			<div data-for="b : blueprints" class="ul-tile ul-blueprint" data-class-blank="b.blank" data-event-click="pickBlueprint(b.name)">
-				<img class="ul-pic" data-attr-src="b.img" />
-				<div class="ul-tier">{{b.count}}</div>
-				<div class="ul-blueprint-delete" data-event-click="deleteBlueprint(b.name)"><span>x</span></div>
-				<div class="ul-name">{{b.name}}</div>
+			<div id="ul-row-domain" class="ul-frow">
+				<div class="ul-flabel" data-class-active="rowActive.domain" data-event-click="clearRow('domain')" data-event-mouseover="rowNote('domain')">DOMAIN</div>
+				<div class="ul-chip-row">
+					<div data-for="c : domainChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -144,6 +129,23 @@
 			<div class="ul-empty" data-if="none">No unit type matches. Clear a chip or the search.</div>
 		</div>
 	</div>
+	<!-- Saved groups (U9), at the bottom and folded until opened (PtaQ): a click picks one up
+	     to place, x deletes the file. -->
+	<div id="ul-frame-blueprints" class="tf-section-frame" data-class-tf-collapsed="folded.blueprints" data-class-hidden="!blueprintsShown">
+		<div id="ul-fold-blueprints" class="tf-section-title-row" data-event-click="fold('blueprints')">
+			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.blueprints ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
+			<div class="tf-collapsible-title">BLUEPRINTS</div>
+		</div>
+		<div id="ul-blueprints" class="ul-section-body ul-grid ul-grid-recent" data-class-hidden="folded.blueprints">
+			<div data-for="b : blueprints" class="ul-tile ul-blueprint" data-class-blank="b.blank" data-event-click="pickBlueprint(b.name)">
+				<img class="ul-pic" data-attr-src="b.img" />
+				<div class="ul-tier">{{b.count}}</div>
+				<div class="ul-blueprint-delete" data-event-click="deleteBlueprint(b.name)"><span>x</span></div>
+				<div class="ul-name">{{b.name}}</div>
+			</div>
+		</div>
+	</div>
+
 	<div id="ul-hover" class="ul-hover">{{hoverText}}</div>
 	<div class="ul-hint">Type to search, arrows move, Enter picks, Esc closes. Shift+click chips or tiles to add more; click a row's label to clear it. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
 </div>
