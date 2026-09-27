@@ -247,7 +247,9 @@ local callInLists = {
 	"UnitSale",
 	"UnitSold",
 	"VisibleExplosion",
+	"VisibleExplosionBatch",
 	"Barrelfire",
+	"BarrelfireBatch",
 	"CrashingAircraft",
 	"SendStats",
 	"SendStats_GameMode",
@@ -3325,21 +3327,39 @@ end
 --
 
 function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	tracy.ZoneBeginN("W:VisibleExplosion")
-	for _, w in ipairs(self.VisibleExplosionList) do
-		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	end
-	tracy.ZoneEnd()
-	return
+	self:VisibleExplosionBatch({ px, py, pz, weaponID, ownerID }, 5)
 end
 
 function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
-	tracy.ZoneBeginN("W:Barrelfire")
-	for _, w in ipairs(self.BarrelfireList) do
-		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	self:BarrelfireBatch({ px, py, pz, weaponID, ownerID }, 5)
+end
+
+-- a sim frame's events as px, py, pz, weaponID, ownerID runs: batch widgets get the array,
+-- the others one call per event
+function widgetHandler:VisibleExplosionBatch(events, count)
+	tracy.ZoneBeginN("W:VisibleExplosionBatch")
+	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		w:VisibleExplosionBatch(events, count)
+	end
+	for _, w in ipairs(self.VisibleExplosionList) do
+		for i = 1, count, 5 do
+			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
+		end
 	end
 	tracy.ZoneEnd()
-	return
+end
+
+function widgetHandler:BarrelfireBatch(events, count)
+	tracy.ZoneBeginN("W:BarrelfireBatch")
+	for _, w in ipairs(self.BarrelfireBatchList) do
+		w:BarrelfireBatch(events, count)
+	end
+	for _, w in ipairs(self.BarrelfireList) do
+		for i = 1, count, 5 do
+			w:Barrelfire(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
+		end
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
