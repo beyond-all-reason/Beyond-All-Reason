@@ -58,11 +58,12 @@ local BLUEPRINT_DIR = "LuaUI/Config/UnitBlueprints/"
 
 --- Tiles bound at once. A filter narrows faster than anyone scrolls 700 pictures.
 local PAGE = 120
-local RECENT_LIMIT = 8
+--- One row of the grid (PtaQ: RECENT shows a single row).
+local RECENT_LIMIT = 4
 --- Blueprint tiles bound at once.
 local BLUEPRINT_PAGE = 24
 --- Tiles per row in the grid, for the arrow keys (the grid is sized to fit this many).
-local COLUMNS = 5
+local COLUMNS = 4
 
 local CHIP_LABELS = {
 	faction = { arm = "ARM", cor = "COR", leg = "LEG", other = "OTHER" },
@@ -80,7 +81,7 @@ local CHIP_LABELS = {
 		factory = "FACTORY",
 	},
 	role = { builder = "BUILDER", scout = "SCOUT", raider = "RAIDER", skirmish = "SKIRMISH", arty = "ARTY", aa = "AA" },
-	domain = { land = "ALL LAND", sea = "ALL SEA", air = "ALL AIR" },
+	domain = { land = "LAND", sea = "SEA", air = "AIR" },
 }
 --- An icon before a chip's text (PtaQ, 2026-09-27). The factions wear the feature placer's own
 --- faction icons; a type, role or domain wears the strategic icon of a stock unit of that kind
@@ -113,6 +114,21 @@ local ICON_UNITS = {
 		aa = "armjeth",
 	},
 	domain = { land = "armstump", sea = "armpt", air = "armfig" },
+}
+
+--- The TYPE row is shown as two short rows, units that move and buildings, so each fits on
+--- one line and the eye finds "a bot" or "a turret" without reading ten chips. One filter row
+--- underneath: a chip in either is a value of `type`.
+local MOBILE_TYPES = { bot = true, veh = true, hover = true, ship = true, air = true, seaplane = true }
+
+--- What a row's label says on hover (the filter rows' explanations live here, not in the rows).
+local ROW_NOTES = {
+	faction = "Faction. Click a chip for that one alone, Shift+click to add another. Click FACTION to clear the row.",
+	tier = "Tech level. Click TIER to clear the row.",
+	mobile = "Units that move, by how they move. Click the label to clear the type row.",
+	building = "Buildings, by what they are for. Click the label to clear the type row.",
+	role = "Roles are inferred from stats, against the other units of the same tier and domain. Click ROLE to clear the row.",
+	domain = "Where a unit works: land, sea or air. Click DOMAIN to clear the row.",
 }
 
 local CHIP_VALUES = {
@@ -199,10 +215,18 @@ local function loadSort()
 	return { key = "name", desc = false }
 end
 
+--- Folded sections. RECENT starts folded (PtaQ); once anything is saved, what was saved wins,
+--- and "none" says "saved with everything open".
 local function loadFolded()
+	local saved = Spring.GetConfigString(FOLD_KEY, "") or ""
+	if saved == "" then
+		return { recent = true }
+	end
 	local folded = {}
-	for name in (Spring.GetConfigString(FOLD_KEY, "") or ""):gmatch("[^,]+") do
-		folded[name] = true
+	for name in saved:gmatch("[^,]+") do
+		if name ~= "none" then
+			folded[name] = true
+		end
 	end
 	return folded
 end
@@ -214,7 +238,7 @@ local function saveFolded()
 			names[#names + 1] = name
 		end
 	end
-	Spring.SetConfigString(FOLD_KEY, table.concat(names, ","))
+	Spring.SetConfigString(FOLD_KEY, #names > 0 and table.concat(names, ",") or "none")
 end
 
 --- The model's `folded` table: every section present, so no binding reads a nil.
@@ -464,6 +488,7 @@ local function refresh()
 
 	local counts = Catalogue.counts(state.entries, state.filter)
 	local anyActive = (m.search or "") ~= ""
+	local rowActive = {}
 	for _, row in ipairs(Catalogue.ROWS) do
 		local chips = {}
 		for _, value in ipairs(CHIP_VALUES[row]) do
@@ -480,10 +505,24 @@ local function refresh()
 				active = active,
 				zero = count == 0 and not active,
 			}
+			rowActive[row] = rowActive[row] or active
 		end
-		m[row .. "Chips"] = chips
+		if row == "type" then
+			local mobile, building = {}, {}
+			for _, chipEntry in ipairs(chips) do
+				local list = MOBILE_TYPES[chipEntry.value] and mobile or building
+				list[#list + 1] = chipEntry
+			end
+			m.mobileChips = mobile
+			m.buildingChips = building
+		else
+			m[row .. "Chips"] = chips
+		end
 	end
 	m.anyActive = anyActive
+	for _, row in ipairs(Catalogue.ROWS) do
+		m.rowActive[row] = rowActive[row] == true
+	end
 
 	-- Blueprints, matched by name against the search; offered only to an editor that takes them.
 	if not state.blueprints then
@@ -747,9 +786,24 @@ local initialModel = {
 	end,
 	factionChips = {},
 	tierChips = {},
-	typeChips = {},
+	mobileChips = {},
+	buildingChips = {},
 	roleChips = {},
 	domainChips = {},
+	rowActive = { faction = false, tier = false, type = false, role = false, domain = false },
+	-- A row's label clears that row.
+	clearRow = function(_, row)
+		row = tostring(row)
+		if state.filter[row] then
+			state.filter[row] = {}
+			state.focusIndex = 1
+			state.dirty = true
+			saveFilter()
+		end
+	end,
+	rowNote = function(_, key)
+		state.model.hoverText = ROW_NOTES[tostring(key)] or ""
+	end,
 	pick = function(event, name)
 		local additive = false
 		pcall(function()

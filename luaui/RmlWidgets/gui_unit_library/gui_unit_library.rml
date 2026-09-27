@@ -49,24 +49,44 @@
 			<div class="tf-collapsible-title">FILTERS</div>
 		</div>
 		<div id="ul-body-filters" class="ul-section-body" data-class-hidden="folded.filters">
-			<div class="ul-row-label">FACTION</div>
-			<div id="ul-row-faction" class="ul-chip-row">
-				<div data-for="c : factionChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			<!-- One line per row, the label at the left: the rows a search is narrowed by first
+			     (faction, tier) come first, the type is split into units and buildings so each
+			     half fits a line, and domain (which mostly repeats the type) rides on the tier line. A click on
+			     a label clears that row; the label lights while its row has a filter on. -->
+			<div id="ul-row-faction" class="ul-frow">
+				<div class="ul-flabel" data-class-active="rowActive.faction" data-event-click="clearRow('faction')" data-event-mouseover="rowNote('faction')">FACTION</div>
+				<div class="ul-chip-row">
+					<div data-for="c : factionChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
 			</div>
-			<div class="ul-row-label">TECH LEVEL</div>
-			<div id="ul-row-tier" class="ul-chip-row">
-				<div data-for="c : tierChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			<div id="ul-row-tier" class="ul-frow">
+				<!-- TIER and DOMAIN share a line: both are short. -->
+				<div class="ul-flabel" data-class-active="rowActive.tier" data-event-click="clearRow('tier')" data-event-mouseover="rowNote('tier')">TIER</div>
+				<div class="ul-chip-row ul-chip-row-fit">
+					<div data-for="c : tierChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
+				<div class="ul-flabel ul-flabel-inline" data-class-active="rowActive.domain" data-event-click="clearRow('domain')" data-event-mouseover="rowNote('domain')">DOMAIN</div>
+				<div id="ul-row-domain" class="ul-chip-row ul-chip-row-fit">
+					<div data-for="c : domainChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
 			</div>
-			<div class="ul-row-label">TYPE</div>
-			<div id="ul-row-type" class="ul-chip-row">
-				<div data-for="c : typeChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			<div id="ul-row-mobile" class="ul-frow">
+				<div class="ul-flabel" data-class-active="rowActive.type" data-event-click="clearRow('type')" data-event-mouseover="rowNote('mobile')">MOBILE</div>
+				<div class="ul-chip-row">
+					<div data-for="c : mobileChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
 			</div>
-			<div class="ul-row-label">ROLE <span class="ul-row-note">inferred from stats, per tier</span></div>
-			<div id="ul-row-role" class="ul-chip-row">
-				<div data-for="c : roleChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			<div id="ul-row-building" class="ul-frow">
+				<div class="ul-flabel" data-class-active="rowActive.type" data-event-click="clearRow('type')" data-event-mouseover="rowNote('building')">BUILDING</div>
+				<div class="ul-chip-row">
+					<div data-for="c : buildingChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
 			</div>
-			<div id="ul-row-domain" class="ul-chip-row">
-				<div data-for="c : domainChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			<div id="ul-row-role" class="ul-frow">
+				<div class="ul-flabel" data-class-active="rowActive.role" data-event-click="clearRow('role')" data-event-mouseover="rowNote('role')">ROLE</div>
+				<div class="ul-chip-row">
+					<div data-for="c : roleChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -125,7 +145,7 @@
 		</div>
 	</div>
 	<div id="ul-hover" class="ul-hover">{{hoverText}}</div>
-	<div class="ul-hint">Type to search, arrows move, Enter picks, Esc closes. Shift+click picks several to cycle through. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
+	<div class="ul-hint">Type to search, arrows move, Enter picks, Esc closes. Shift+click chips or tiles to add more; click a row's label to clear it. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
 </div>
 </body>
 </rml>

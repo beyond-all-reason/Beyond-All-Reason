@@ -659,12 +659,12 @@ Pressing it opens the **unit library** window, and the panel shows the tool's ow
 | Part | What it does |
 |------|--------------|
 | Search | Names and tags as you type, e.g. `t2 arty cor`. Arrows move the highlight, `Enter` picks it, `Esc` closes. |
-| FILTERS | FACTION, TECH LEVEL, TYPE, ROLE and domain chips. A click keeps that value alone (again clears the row), `Shift+click` adds or removes it. Every chip shows how many units it would leave. Roles are inferred from stats against the other units of the same tier. |
+| FILTERS | One line per row: FACTION, TIER (with DOMAIN beside it), MOBILE and BUILDING (the unit types, split so each fits a line) and ROLE. A click keeps that value alone (again clears the row), `Shift+click` adds or removes it, and a click on a row's label clears the row (the label lights while its row filters). Every chip shows how many units it would leave. Roles are inferred from stats against the other units of the same tier. |
 | SORT | NAME, POWER (metal + energy / 60), TYPE, SIZE (footprint), TIER, SPEED, RANGE, HEALTH. Click the active one again to reverse it; the arrow shows the direction. |
-| RECENT | The last units picked. |
+| RECENT | The last units picked, one row; folded until opened. |
 | BLUEPRINTS | Saved groups of units (`LuaUI/Config/UnitBlueprints/`). Picking one arms the whole group; `x` deletes the file. |
 
-Each section folds with its title row. The library remembers its filters, sort and folds between sessions.
+Units show four to a row, picture and name. Each section folds with its title row. The library remembers its filters, sort and folds between sessions.
 
 ---
 
