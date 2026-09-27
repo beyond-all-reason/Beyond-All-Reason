@@ -324,6 +324,7 @@ local unitOrderTable = {
 	armassimilator = 007220,
 
 	armpwt4        = 007300,
+	mygalomorph    = 007301,
     corakt4        = 007310,
     leggobt3       = 007315,
 	armsptkt4      = 007320,

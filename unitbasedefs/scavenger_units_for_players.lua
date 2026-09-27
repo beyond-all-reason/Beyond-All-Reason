@@ -56,7 +56,7 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
 		buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
-		buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
+		buildoptions[numBuildoptions + 3] = "mygalomorph" -- Epic Pawn replacement
 		buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 		buildoptions[numBuildoptions + 5] = "armdronecarryland" -- Nexus Terra - Drone Carrier
 	end
@@ -66,7 +66,7 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "armrattet4" -- Ratte - Very Heavy Tank
 		buildoptions[numBuildoptions + 2] = "armsptkt4" -- Epic Recluse
-		buildoptions[numBuildoptions + 3] = "armpwt4" -- Epic Pawn
+		buildoptions[numBuildoptions + 3] = "mygalomorph" -- Epic Pawn replacement
 		buildoptions[numBuildoptions + 4] = "armvadert4" -- Epic Tumbleweed - Nuclear Rolling Bomb
 	end
 
