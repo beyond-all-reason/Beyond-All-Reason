@@ -66,7 +66,7 @@ local BLUEPRINT_PAGE = 24
 local COLUMNS = 4
 
 local CHIP_LABELS = {
-	faction = { arm = "ARM", cor = "COR", leg = "LEG", other = "OTHER" },
+	faction = { arm = "ARMADA", cor = "CORTEX", leg = "LEGION", other = "OTHER" },
 	tier = { [1] = "T1", [2] = "T2", [3] = "T3", [4] = "T4" },
 	type = {
 		bot = "BOT",
