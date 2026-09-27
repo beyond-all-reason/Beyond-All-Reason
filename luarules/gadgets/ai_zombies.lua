@@ -855,15 +855,13 @@ local function getNearestResurrectableWreck(unitID)
 	return bestFeatureID
 end
 
-local function issueResurrectOrder(unitID, unitDefID, zombieData, currentCommand)
+local function issueResurrectOrder(unitID, zombieData, currentCommand)
 	local previousTargetID = zombieData.resurrectTargetID
-	if previousTargetID and not isResurrectableWreck(previousTargetID) then
-		zombieData.resurrectTargetID = nil
+	local targetID = previousTargetID
+	if spGetUnitWorkerTask(unitID) ~= CMD_RESURRECT then
+		targetID = getNearestResurrectableWreck(unitID)
 	end
-	if not zombieData.resurrectTargetID then
-		zombieData.resurrectTargetID = getNearestResurrectableWreck(unitID)
-	end
-	local targetID = zombieData.resurrectTargetID
+	zombieData.resurrectTargetID = targetID
 	if not targetID then
 		return false
 	end
@@ -930,7 +928,7 @@ local function updateOrders(unitID, unitDefID)
 		else
 			zombieData.lastCombatTargetX = nil
 			zombieData.lastCombatTargetZ = nil
-			if resurrectingUnits[unitDefID] and issueResurrectOrder(unitID, unitDefID, zombieData, currentCommand) then
+			if resurrectingUnits[unitDefID] and issueResurrectOrder(unitID, zombieData, currentCommand) then
 				return
 			end
 			local objective, objectiveChanged = ensureMovementObjective(
