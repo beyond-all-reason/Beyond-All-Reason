@@ -828,19 +828,12 @@ local function issueCombatMove(unitID, unitDefID, weaponRange, targetX, targetZ,
 	zombieData.lastCombatTargetZ = targetZ
 end
 
-local function addNoGoZone(zombieData, zoneX, zoneZ)
-	if #zombieData.noGoZones >= MAX_NOGO_ZONES then
-		table.remove(zombieData.noGoZones, 1)
-	end
-	table.insert(zombieData.noGoZones, { x = zoneX, z = zoneZ })
-end
-
 local function isResurrectableWreck(featureID)
 	local resurrectName = spGetFeatureResurrect(featureID)
 	return resurrectName ~= nil and resurrectName ~= ""
 end
 
-local function getNearestResurrectableWreck(unitID, unitDefID, zombieData)
+local function getNearestResurrectableWreck(unitID)
 	local unitX, _, unitZ = spGetUnitPosition(unitID)
 	if not unitX then
 		return
@@ -851,13 +844,9 @@ local function getNearestResurrectableWreck(unitID, unitDefID, zombieData)
 	for featureIndex = 1, #features do
 		local featureID = features[featureIndex]
 		if isResurrectableWreck(featureID) then
-			local featureX, featureY, featureZ = spGetFeaturePosition(featureID)
+			local featureX, _, featureZ = spGetFeaturePosition(featureID)
 			local featureDistanceSquared = distance2dSquared(unitX, unitZ, featureX, featureZ)
-			if
-				(not bestDistanceSquared or featureDistanceSquared < bestDistanceSquared)
-				and not isInNoGoZone(zombieData, featureX, featureZ)
-				and (aircraftUnitDefs[unitDefID] or spTestMoveOrder(unitDefID, featureX, featureY, featureZ, 0, 0, 0, true, false)) -- terrain only, the wreck blocks its own footprint
-			then
+			if not bestDistanceSquared or featureDistanceSquared < bestDistanceSquared then
 				bestFeatureID = featureID
 				bestDistanceSquared = featureDistanceSquared
 			end
@@ -872,7 +861,7 @@ local function issueResurrectOrder(unitID, unitDefID, zombieData, currentCommand
 		zombieData.resurrectTargetID = nil
 	end
 	if not zombieData.resurrectTargetID then
-		zombieData.resurrectTargetID = getNearestResurrectableWreck(unitID, unitDefID, zombieData)
+		zombieData.resurrectTargetID = getNearestResurrectableWreck(unitID)
 	end
 	local targetID = zombieData.resurrectTargetID
 	if not targetID then
@@ -903,12 +892,13 @@ local function updateOrders(unitID, unitDefID)
 		if not targetX then
 			zombieData.combatTargetID = nil
 		end
-		if not zombieData.combatTargetID and (capturingUnits[unitDefID] or unitDefWeaponRanges[unitDefID]) then
-			local closestKnownEnemy
-			closestKnownEnemy, targetX, targetZ, shouldCapture, weaponRange =
+		local retargetsEveryTick = capturingUnits[unitDefID] and not unitDefWeaponRanges[unitDefID]
+		if retargetsEveryTick or (not zombieData.combatTargetID and (capturingUnits[unitDefID] or unitDefWeaponRanges[unitDefID])) then
+			local closestKnownEnemy, nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange =
 				getNearestCombatTarget(unitID, unitDefID)
-			if targetX then
+			if nearestX then
 				zombieData.combatTargetID = closestKnownEnemy
+				targetX, targetZ, shouldCapture, weaponRange = nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange
 				rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
 			end
 		end
@@ -1187,14 +1177,7 @@ local function updateStuckZombies()
 				then
 					clearUnitOrders(unitID)
 					zombieData.combatTargetID = nil
-					local resurrectTargetID = zombieData.resurrectTargetID
-					if resurrectTargetID then
-						zombieData.resurrectTargetID = nil
-						local wreckX, _, wreckZ = spGetFeaturePosition(resurrectTargetID)
-						if wreckX and not isInNoGoZone(zombieData, wreckX, wreckZ) then
-							addNoGoZone(zombieData, wreckX, wreckZ)
-						end
-					end
+					zombieData.resurrectTargetID = nil
 					zombieData.lastCombatTargetX = nil
 					zombieData.lastCombatTargetZ = nil
 					if
@@ -1204,7 +1187,10 @@ local function updateStuckZombies()
 						zombieData.objective = nil
 					end
 					if not isInNoGoZone(zombieData, unitX, unitZ) then
-						addNoGoZone(zombieData, unitX, unitZ)
+						if #zombieData.noGoZones >= MAX_NOGO_ZONES then
+							table.remove(zombieData.noGoZones, 1)
+						end
+						table.insert(zombieData.noGoZones, { x = unitX, z = unitZ })
 					end
 					local recoveryObjective = ensureMovementObjective(unitID, zombieData, getActiveZombieAggro(unitID))
 					issueObjectiveMove(unitID, unitDefID, zombieData, recoveryObjective)
