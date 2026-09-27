@@ -881,41 +881,48 @@ end
 ---@param iT InstanceVBOTable
 ---@param removelist table<string|number, true>? Instance keys to drop.
 ---@param keeplist table<string|number, true>? Instance keys to keep, dropping the rest.
+---@return integer numremoved
+---@return integer? firstChanged Index of the first slot that changed; slots before it are untouched.
 local function compactInstanceVBO(iT, removelist, keeplist)
 	local usedElements = iT.usedElements
 	if usedElements == 0 then
-		return 0
+		return 0, nil
 	end
 	local instanceStep = iT.instanceStep
 	local instanceData = iT.instanceData
 	local indextoInstanceID = iT.indextoInstanceID
-	local newindextoInstanceID = {}
-	local newinstanceIDtoIndex = {}
+	local instanceIDtoIndex = iT.instanceIDtoIndex
 	local newUsedElements = 0
-	local numremoved = 0
+	local firstChanged
 	local removemode = (removelist ~= nil) and (keeplist == nil)
-	for index, instanceID in ipairs(indextoInstanceID) do
+	for index = 1, usedElements do
+		local instanceID = indextoInstanceID[index]
 		-- If its in keeplist,
 		if (removemode and (removelist[instanceID] == nil)) or ((removemode == false) and keeplist[instanceID]) then
-			local instanceOffset = (index - 1) * instanceStep
-			local newInstanceOffset = newUsedElements * instanceStep
-			for i = 1, instanceStep do
-				instanceData[newInstanceOffset + i] = instanceData[instanceOffset + i]
-			end
 			newUsedElements = newUsedElements + 1
-			newindextoInstanceID[newUsedElements] = instanceID
-			newinstanceIDtoIndex[instanceID] = newUsedElements
+			if newUsedElements ~= index then
+				local instanceOffset = (index - 1) * instanceStep
+				local newInstanceOffset = (newUsedElements - 1) * instanceStep
+				for i = 1, instanceStep do
+					instanceData[newInstanceOffset + i] = instanceData[instanceOffset + i]
+				end
+				indextoInstanceID[newUsedElements] = instanceID
+				instanceIDtoIndex[instanceID] = newUsedElements
+			end
 		else
-			numremoved = numremoved + 1
+			instanceIDtoIndex[instanceID] = nil
+			firstChanged = firstChanged or index
 		end
 	end
+	local numremoved = usedElements - newUsedElements
 	if numremoved > 0 then
+		for index = newUsedElements + 1, usedElements do
+			indextoInstanceID[index] = nil
+		end
 		iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
 		iT.usedElements = newUsedElements
-		iT.instanceIDtoIndex = newinstanceIDtoIndex
-		iT.indextoInstanceID = newindextoInstanceID
 	end
-	return numremoved
+	return numremoved, firstChanged
 end
 
 ---@param iT InstanceVBOTable
