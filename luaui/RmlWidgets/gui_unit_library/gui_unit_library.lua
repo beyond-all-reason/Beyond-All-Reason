@@ -215,12 +215,12 @@ local function loadSort()
 	return { key = "name", desc = false }
 end
 
---- Folded sections. RECENT starts folded (PtaQ); once anything is saved, what was saved wins,
+--- Folded sections. RECENT and BLUEPRINTS start folded (PtaQ); once anything is saved, what was saved wins,
 --- and "none" says "saved with everything open".
 local function loadFolded()
 	local saved = Spring.GetConfigString(FOLD_KEY, "") or ""
 	if saved == "" then
-		return { recent = true }
+		return { recent = true, blueprints = true }
 	end
 	local folded = {}
 	for name in saved:gmatch("[^,]+") do
