@@ -21305,30 +21305,31 @@ DestroyGL4Decals = function()
 end
 
 -- Rebuild VBO instance data from decal VBO tables (only when decals added/removed)
--- Uses sequential index iteration (1..usedElements) instead of pairs() for speed.
+-- Uses sequential index iteration instead of pairs() for speed.
 -- The VBO uses swap-with-last compaction so indices are always contiguous.
-local function RebuildDecalVBO(vboTables)
+local function RebuildDecalVBO(vboTables, frame)
 	local data = decalGL4.instanceData
 	local step = decalGL4.INSTANCE_STEP
 	local count = 0
 	local maxInst = decalGL4.MAX_INSTANCES
 
-	for vi = 1, #vboTables do
+	-- biggest decals first, then the newest: a full buffer keeps what shows most (GL_MIN ignores order)
+	for vi = #vboTables, 1, -1 do
 		local vbo = vboTables[vi]
 		if vbo and vbo.usedElements > 0 then
 			local srcStep = vbo.instanceStep
 			local srcData = vbo.instanceData
 			local used = vbo.usedElements
 			-- Sequential iteration: ~3x faster than pairs() over sparse hash table
-			for idx = 1, used do
+			for idx = used, 1, -1 do
 				if count >= maxInst then
 					break
 				end
 				local ofs = (idx - 1) * srcStep
 				local p = srcData[ofs + 5]
 				local s = srcData[ofs + 7]
-				-- Only include textured decals (skip untextured color-only)
-				if p and s then
+				-- Only include textured decals (skip untextured color-only) the shader would still draw
+				if p and s and srcData[ofs + 9] - (frame - srcData[ofs + 16]) * srcData[ofs + 10] >= 0.01 then
 					local o = count * step
 					-- posRot: worldX, worldZ, rotation, maxalpha
 					data[o + 1] = srcData[ofs + 13] -- posx
@@ -21442,7 +21443,7 @@ local function UpdateDecalTexture()
 	tracy.ZoneBeginN("W:PIP:Decals:UpdateTexture")
 	if not decalVersion or decalVersion ~= decalGL4.version then
 		tracy.ZoneBeginN("W:PIP:Decals:RebuildVBO")
-		RebuildDecalVBO(vboTables)
+		RebuildDecalVBO(vboTables, frame)
 		if decalVersion then
 			decalGL4.version = decalVersion
 		end
