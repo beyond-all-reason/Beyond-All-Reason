@@ -132,7 +132,10 @@ end
 
 function gadget:Initialize()
 	local minHeight = Spring.GetGroundExtremes()
-	if minHeight > 20 then
+	local success, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	local voidWater = success and mapinfo and mapinfo.voidwater
+	-- lava covers the water plane, and void water never spawns water CEGs
+	if minHeight > 20 or BAR.Lava.isLavaMap or voidWater then
 		gadgetHandler:RemoveGadget(self)
 		return
 	end
