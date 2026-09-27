@@ -60,7 +60,7 @@ local TWO_PI = 2 * math.pi
 local HEADING_TO_RAD = math.pi / 32768
 local walking = false
 local isAiming = false
-local frameDebt = 0
+local frameDebt = 0.0
 local GetUnitVelocity = Spring.GetUnitVelocity
 local GetUnitHeading = Spring.GetUnitHeading
 local GetUnitWeaponTarget = Spring.GetUnitWeaponTarget
@@ -69,42 +69,69 @@ local GetUnitPiecePosDir = Spring.GetUnitPiecePosDir
 local GetUnitIsStunned = Spring.GetUnitIsStunned
 local GetGameFrame = Spring.GetGameFrame
 
-local aimx = {laimx, raimx}
-local hands = {lhand, rhand}
-local flares = {{lflare1, lflare2}, {rflare1, rflare2}}
-local barrels = {{lbarrel1, lbarrel2}, {rbarrel1, rbarrel2}}
-local weaponHand = {1, 1, 2, 2}
+---@class Arm
+---@field aimx number
+---@field hand number
+---@field mirror number
+---@field goalPitch number
+---@field pitchBelief number
+---@field pitchRate number
+---@field lastAimPitch number
+---@field lastAimFrame integer
+---@field shots integer
+
+---@return Arm
+local function NewArm(aimxPiece, handPiece, mirror)
+	return {
+		aimx = aimxPiece,
+		hand = handPiece,
+		mirror = mirror,
+		goalPitch = 0.0,
+		pitchBelief = 0.0,
+		pitchRate = 0.0,
+		lastAimPitch = 0.0,
+		lastAimFrame = -1000,
+		shots = 0,
+	}
+end
+
+local leftArm, rightArm = NewArm(laimx, lhand, 1), NewArm(raimx, rhand, -1)
+local arms = { leftArm, rightArm }
+local weaponArm = { leftArm, leftArm, rightArm, rightArm }
+local weaponFlare = { lflare1, lflare2, rflare1, rflare2 }
+local weaponBarrel = { lbarrel1, lbarrel2, rbarrel1, rbarrel2 }
+local weaponIsHeavy = { true, false, true, false }
 local LIGHTNING = 5
-local tubes = {flarel3, flarer3}
+local tubes = { flarel3, flarer3 }
 local tubeSide = 1
-local weaponFlare = {1, 2, 1, 2}
-local nextHand = 1
-local handShots = {0, 0}
-local handShotFrame = -1000
-local lastHandFrame = -1000
+local nextArm = leftArm
+local armShotFrame = -1000
+local lastArmFrame = -1000
 local HAND_GAP = math.floor(WeaponDefs[UnitDefs[unitDefID].weapons[1].weaponDef].reload * Game.gameSpeed / 2)
 
-local goalYaw, beliefYaw, goalRate, lastAimHeading, lastAimFrame = 0, 0, 0, 0, -1000
+local goalYaw, beliefYaw, goalRate, lastAimHeading, lastAimFrame = 0.0, 0.0, 0.0, 0.0, -1000
 local HAND_POSE_X, HAND_POSE_Y = 0.253073, -0.031416
-local pivotZ = 0
-local goalPitch, pitchBelief, pitchRate, lastAimPitch, lastPitchFrame = {0, 0}, {0, 0}, {0, 0}, {0, 0}, {-1000, -1000}
+local pivotZ = 0.0
 
 local function wrap(angle)
 	return angle - TWO_PI * math.floor((angle + math.pi) / TWO_PI)
 end
 
-local function ToeIn(num, hand)
+local function ToeIn(num, arm)
 	local targetType, _, target = GetUnitWeaponTarget(unitID, num)
-	local tx, ty, tz
+	local tx, tz
 	if targetType == 1 then
-		_, _, _, tx, ty, tz = GetUnitPosition(target, true)
+		---@cast target UnitID
+		_, _, _, tx, _, tz = GetUnitPosition(target, true)
 	elseif targetType == 2 then
-		tx, ty, tz = target[1], target[2], target[3]
-	else
+		---@cast target float3
+		tx, tz = target[1], target[3]
+	end
+	local sx, _, sz = GetUnitPiecePosDir(unitID, arm.aimx)
+	local ux, _, uz = GetUnitPosition(unitID)
+	if not (tx and tz and sx and sz and ux and uz) then
 		return 0
 	end
-	local sx, sy, sz = GetUnitPiecePosDir(unitID, aimx[hand])
-	local ux, uy, uz = GetUnitPosition(unitID)
 	local hull = GetUnitHeading(unitID) * HEADING_TO_RAD
 	local px, pz = ux + pivotZ * math.sin(hull), uz + pivotZ * math.cos(hull)
 	local toe = wrap(math.atan2(tx - sx, tz - sz) - math.atan2(tx - px, tz - pz))
@@ -769,7 +796,6 @@ local function StopWalking()
 	end
 end
 
-
 local function PoseArms()
 	Turn(torso, y_axis, 0, POSE_SPEED)
 	Turn(lforearm, x_axis, 0.872665, POSE_SPEED)
@@ -829,34 +855,33 @@ local function AimController()
 				beliefYaw = stepToward(beliefYaw, 0, RESTORE_SPEED / Game.gameSpeed)
 			end
 			Turn(aimy, y_axis, beliefYaw)
-			if handShots[nextHand] > 0 and frame - handShotFrame > STALL_FRAMES then
-				handShots[nextHand] = 0
-				nextHand = 3 - nextHand
-				lastHandFrame = frame
+			if nextArm.shots > 0 and frame - armShotFrame > STALL_FRAMES then
+				nextArm.shots = 0
+				nextArm = (nextArm == leftArm) and rightArm or leftArm
+				lastArmFrame = frame
 			end
-			for i = 1, 2 do
-				if frame - lastPitchFrame[i] > RATE_FRAMES then
-					pitchRate[i] = 0
+			for _, arm in ipairs(arms) do
+				if frame - arm.lastAimFrame > RATE_FRAMES then
+					arm.pitchRate = 0
 				end
 				if isAiming then
-					goalPitch[i] = goalPitch[i] + pitchRate[i]
-					pitchBelief[i] = stepToward(pitchBelief[i], goalPitch[i], PITCH_SPEED / Game.gameSpeed)
+					arm.goalPitch = arm.goalPitch + arm.pitchRate
+					arm.pitchBelief = stepToward(arm.pitchBelief, arm.goalPitch, PITCH_SPEED / Game.gameSpeed)
 				else
-					goalPitch[i] = 0
-					pitchBelief[i] = stepToward(pitchBelief[i], 0, RESTORE_PITCH_SPEED / Game.gameSpeed)
+					arm.goalPitch = 0
+					arm.pitchBelief = stepToward(arm.pitchBelief, 0, RESTORE_PITCH_SPEED / Game.gameSpeed)
 				end
-				Turn(aimx[i], x_axis, -math.min(pitchBelief[i], PITCH_SPLIT))
+				Turn(arm.aimx, x_axis, -math.min(arm.pitchBelief, PITCH_SPLIT))
 				if isAiming then
-					local extra = HAND_PITCH_SIGN * math.max(0, pitchBelief[i] - PITCH_SPLIT)
-					local mirror = (i == 1) and 1 or -1
-					Turn(hands[i], x_axis, HAND_POSE_X + HAND_AXIS_X * extra, PITCH_SPEED)
-					Turn(hands[i], y_axis, mirror * (HAND_POSE_Y + HAND_AXIS_Y * extra), PITCH_SPEED)
+					local extra = HAND_PITCH_SIGN * math.max(0, arm.pitchBelief - PITCH_SPLIT)
+					Turn(arm.hand, x_axis, HAND_POSE_X + HAND_AXIS_X * extra, PITCH_SPEED)
+					Turn(arm.hand, y_axis, arm.mirror * (HAND_POSE_Y + HAND_AXIS_Y * extra), PITCH_SPEED)
 				else
-					Turn(aimx[i], y_axis, 0, RESTORE_SPEED)
+					Turn(arm.aimx, y_axis, 0, RESTORE_SPEED)
 				end
 			end
 		end
-		Sleep(33)
+		Sleep(FRAME_MS)
 	end
 end
 
@@ -890,14 +915,15 @@ function script.QueryWeapon(num)
 	if num == LIGHTNING then
 		return tubes[tubeSide]
 	end
-	return flares[weaponHand[num]][weaponFlare[num]]
+	return weaponFlare[num]
 end
 
 function script.AimWeapon(num, heading, pitch)
 	if num == LIGHTNING then
 		return true
 	end
-	local hand = weaponHand[num]
+	local arm = weaponArm[num]
+	---@cast arm Arm
 	local frame = GetGameFrame()
 	local frames = frame - lastAimFrame
 	if frames > 0 then
@@ -911,29 +937,29 @@ function script.AimWeapon(num, heading, pitch)
 		lastAimHeading = heading
 		lastAimFrame = frame
 	end
-	frames = frame - lastPitchFrame[hand]
+	frames = frame - arm.lastAimFrame
 	if frames > 0 then
-		pitchRate[hand] = 0
+		arm.pitchRate = 0
 		if frames <= RATE_FRAMES then
-			pitchRate[hand] = (pitch - lastAimPitch[hand]) / frames
-			if math.abs(pitchRate[hand]) > PITCH_SPEED / Game.gameSpeed then
-				pitchRate[hand] = 0
+			arm.pitchRate = (pitch - arm.lastAimPitch) / frames
+			if math.abs(arm.pitchRate) > PITCH_SPEED / Game.gameSpeed then
+				arm.pitchRate = 0
 			end
 		end
-		lastAimPitch[hand] = pitch
-		lastPitchFrame[hand] = frame
+		arm.lastAimPitch = pitch
+		arm.lastAimFrame = frame
 	end
 	if not isAiming then
 		isAiming = true
 		PoseArms()
 	end
 	goalYaw = heading
-	goalPitch[hand] = pitch
-	Turn(aimx[hand], y_axis, ToeIn(num, hand), YAW_SPEED)
-	if hand ~= nextHand or frame - lastHandFrame < HAND_GAP then
+	arm.goalPitch = pitch
+	Turn(arm.aimx, y_axis, ToeIn(num, arm), YAW_SPEED)
+	if arm ~= nextArm or frame - lastArmFrame < HAND_GAP then
 		return false
 	end
-	return math.abs(wrap(heading - beliefYaw)) <= FIRE_ANGLE and math.abs(pitch - pitchBelief[hand]) <= FIRE_ANGLE_PITCH
+	return math.abs(wrap(heading - beliefYaw)) <= FIRE_ANGLE and math.abs(pitch - arm.pitchBelief) <= FIRE_ANGLE_PITCH
 end
 
 function script.FireWeapon(num)
@@ -941,23 +967,24 @@ function script.FireWeapon(num)
 		tubeSide = 3 - tubeSide
 		return
 	end
-	local hand, side = weaponHand[num], weaponFlare[num]
+	local arm = weaponArm[num]
+	---@cast arm Arm
 	local frame = GetGameFrame()
-	handShots[hand] = handShots[hand] + 1
-	handShotFrame = frame
-	if handShots[hand] >= 2 then
-		handShots[hand] = 0
-		nextHand = 3 - hand
-		lastHandFrame = frame
+	arm.shots = arm.shots + 1
+	armShotFrame = frame
+	if arm.shots >= 2 then
+		arm.shots = 0
+		nextArm = (arm == leftArm) and rightArm or leftArm
+		lastArmFrame = frame
 	end
-	if side == 1 then
-		EmitSfx(flares[hand][side], SFX.CEG)
+	if weaponIsHeavy[num] then
+		EmitSfx(weaponFlare[num], SFX.CEG)
 	end
-	Move(barrels[hand][side], z_axis, -RECOIL, RECOIL * Game.gameSpeed)
-	Sleep(33)
-	Move(barrels[hand][side], z_axis, 0, RECOIL * 4)
+	Move(weaponBarrel[num], z_axis, -RECOIL, RECOIL * Game.gameSpeed)
+	Sleep(FRAME_MS)
+	Move(weaponBarrel[num], z_axis, 0, RECOIL * 4)
 end
 
-function script.Killed(recentDamage, maxHealth)
+function script.Killed()
 	return 1
 end
