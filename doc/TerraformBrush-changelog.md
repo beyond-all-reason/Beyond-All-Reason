@@ -4,6 +4,15 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
+## 1.17 - 2026-09-27
+
+### New
+
+- **UNITS places real units.** The UNITS button on the tool row, greyed out as a placeholder until now, opens the unit library and places units on the map. Pick a unit, then click to place one or drag to lay out several: SINGLE, LINE, GRID or BOX (Tab cycles the shape, R turns the units a quarter, Shift+R back). The preview and the layout come from the game's own blueprint tool, so a drag of units lays out exactly as a build drag does, footprints outlined and red where the ground refuses. The tool stays armed after each placement, so a base or a battle goes down one drag after another; a right click lets go. T (or the TEAM button) picks the team the units join, and Ctrl+Z / Ctrl+Y (or UNDO / REDO) take back or restore a whole placement at a time, however many units it was. Needs `/cheat`, like the rest of the editor.
+- **The unit library** is a window of its own, shared with the mission editor. Type to search names and tags ("t2 arty cor"), or narrow the list with chips for faction, tech level, type, role and domain, each showing how many units it would leave; Shift+click a chip to combine values in a row. Roles (builder, scout, raider, skirmish, arty, AA) are inferred from each unit's stats against the others of its tier. The chips carry the faction emblems and the game's strategic icons. **SORT** orders the grid by name, power (metal plus energy at 60 to 1), type, size (footprint), tier, speed, range or health; clicking the active sort again turns it round, and an arrow shows which way it runs. Recently picked units sit in a row of their own, and the arrow keys and Enter pick from the keyboard. FILTERS, BLUEPRINTS, RECENT and UNITS fold away like the brush's own sections, and the library remembers its filters, sort and folds.
+- **Several units at once.** Shift+click tiles in the library to pick a set (the tiles show 1, 2, 3); each placement then uses the next unit of the set, in order (A B C) or at random, chosen with the CYCLE chips. The facing and the shape set with R and Tab carry over from one unit to the next.
+- **Blueprints.** Saved groups of units (in `LuaUI/Config/UnitBlueprints/`) list in the library's BLUEPRINTS row; picking one arms the placer with the whole group, which R turns as one and a click drops.
+
 ## 1.16 - 2026-09-23
 
 ### New

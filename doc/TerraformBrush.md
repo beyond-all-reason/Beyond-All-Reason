@@ -26,6 +26,7 @@ Each icon switches the panel into a different tool. All tools share the same bru
 | **Splat Painter** | Paint per-channel splat textures into the SSMF splat distribution map. |
 | **Decal Placer** | Stamp ground decals (cracks, scorches, custom PNGs). |
 | **Clone Tool** | Region copy/paste across all map layers (terrain, metal, features, grass, splats, decals, lights). |
+| **Units** | Place real units from the unit library: click or drag formations, pick several to cycle through, undo a whole placement. See [Units](#units). |
 | **Environment** | Skybox, fog, sun, water, atmosphere, scene presets — see below. |
 
 Tools that are not currently active hide their sub-panel; click the icon to expand.
@@ -637,6 +638,33 @@ transform(lx, lz):
   height values += heightOffset
   feature headings += rotation
 ```
+
+### Units
+
+**UNITS** on the tool row places real units on the map: to lay out a base, a battle or a scene to light and screenshot. It needs `/cheat`, like the rest of the editor.
+
+Pressing it opens the **unit library** window, and the panel shows the tool's own controls: LIBRARY (reopens the window), TEAM (the team placed units join; `T` does the same), UNDO and REDO.
+
+**Placing.** Pick a unit in the library, then on the map:
+
+- **Click** places one; **drag** lays out several in the current shape. `Tab` cycles the shape (SINGLE, LINE, GRID, BOX) and `R` turns the units a quarter (`Shift+R` back).
+- The preview and the layout are the game's own blueprint tool: footprints are outlined, red where the ground refuses, and a drag lays units out exactly as a build drag would.
+- The tool **stays armed** after a placement, so one drag follows another. A **right click** lets go.
+- `Ctrl+Z` / `Ctrl+Y` undo and redo a whole placement at a time.
+
+**Picking several.** `Shift+click` tiles to pick a set; the tiles show their order. Each placement then uses the next unit of the set, in order (A B C) or at random, as the CYCLE chips say.
+
+**The library.** One window, shared with the mission editor.
+
+| Part | What it does |
+|------|--------------|
+| Search | Names and tags as you type, e.g. `t2 arty cor`. Arrows move the highlight, `Enter` picks it, `Esc` closes. |
+| FILTERS | FACTION, TECH LEVEL, TYPE, ROLE and domain chips. A click keeps that value alone (again clears the row), `Shift+click` adds or removes it. Every chip shows how many units it would leave. Roles are inferred from stats against the other units of the same tier. |
+| SORT | NAME, POWER (metal + energy / 60), TYPE, SIZE (footprint), TIER, SPEED, RANGE, HEALTH. Click the active one again to reverse it; the arrow shows the direction. |
+| RECENT | The last units picked. |
+| BLUEPRINTS | Saved groups of units (`LuaUI/Config/UnitBlueprints/`). Picking one arms the whole group; `x` deletes the file. |
+
+Each section folds with its title row. The library remembers its filters, sort and folds between sessions.
 
 ---
 
