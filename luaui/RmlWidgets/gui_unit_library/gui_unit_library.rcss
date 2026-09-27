@@ -5,9 +5,9 @@
 .ul-root {
 	left: 30vw;
 	top: 8vh;
-	/* 520dp: five tiles a row (86dp + a 2dp border each side, 4dp gaps, the scrollbar), and
-	   the TYPE chips in two rows at their bigger size. */
-	width: 520dp;
+	/* 600dp: four tiles a row (128dp + a 2dp border each side, 4dp gaps, the scrollbar), and
+	   every filter row on one line beside its label (ROLE, the widest, sets it). */
+	width: 600dp;
 	z-index: 905;
 }
 
@@ -33,13 +33,44 @@
 	margin-bottom: 2dp;
 }
 
+/* A filter row: its label in a fixed column at the left, the chips beside it. */
+.ul-frow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 3dp;
+}
+.ul-frow .ul-chip-row {
+	flex: 1 1 auto;
+	margin-bottom: 0dp;
+}
+
+/* The label is a button too: it clears its row, and lights while the row filters. */
+.ul-flabel {
+	flex: 0 0 64dp;
+	width: 64dp;
+	font-size: 1.1rem;
+	color: #8b93a3;
+	cursor: pointer;
+}
+.ul-flabel:hover { color: #d8dce4; }
+.ul-flabel.active { color: #ffd88f; }
+/* A second label on a shared line (DOMAIN after TIER). */
+.ul-flabel.ul-flabel-inline {
+	flex: 0 0 auto;
+	width: auto;
+	margin: 0dp 6dp 0dp 12dp;
+}
+.ul-frow .ul-chip-row.ul-chip-row-fit { flex: 0 0 auto; }
+
 .ul-chip {
 	flex: 0 0 auto;
 	min-width: 0dp;
-	/* A step up from 1.05rem / 4dp 6dp (PtaQ: "the filtering chips are a bit too small"). */
-	padding: 6dp 8dp;
+	/* A step up from 1.05rem / 4dp 6dp (PtaQ: "the filtering chips are a bit too small"),
+	   narrower sideways so a row of six fits one line beside its label. */
+	padding: 6dp 5dp;
 	font-size: 1.2rem;
-	gap: 5dp;
+	gap: 3dp;
 }
 
 /* A chip's icon, before its text: a faction's emblem or a unit type's strategic icon. */
@@ -157,8 +188,8 @@
 /* A tile's place in the pick set: 1, 2, 3 at the picture's foot, left. */
 .ul-order {
 	position: absolute;
-	left: 3dp;
-	top: 44dp;
+	left: 12dp;
+	top: 76dp;
 	min-width: 18dp;
 	height: 18dp;
 	padding: 0dp 3dp;
@@ -188,13 +219,13 @@
 
 .ul-grid scrollbarvertical { width: 6dp; }
 
-/* One row of tiles (118dp + the grid padding). */
-.ul-grid-recent { max-height: 132dp; overflow-y: hidden; }
+/* One row of tiles (142dp + the grid padding). */
+.ul-grid-recent { max-height: 156dp; overflow-y: hidden; }
 
 .ul-tile {
 	position: relative;
-	width: 86dp;
-	height: 118dp;
+	width: 128dp;
+	height: 142dp;
 	cursor: pointer;
 	border-radius: 4dp;
 	border: 2dp transparent;
@@ -212,8 +243,8 @@
 .ul-tile.picked { border-color: #fdc04c; background-color: #2b2113; }
 
 .ul-pic {
-	width: 64dp;
-	height: 64dp;
+	width: 96dp;
+	height: 96dp;
 	margin-top: 3dp;
 	margin-bottom: 3dp;
 }
@@ -232,9 +263,9 @@
 /* A faction stripe along the picture's foot: two factions share many names. */
 .ul-faction {
 	position: absolute;
-	left: 10dp;
-	right: 10dp;
-	top: 66dp;
+	left: 12dp;
+	right: 12dp;
+	top: 99dp;
 	height: 3dp;
 	border-radius: 1dp;
 }
@@ -246,6 +277,7 @@
    at most: the box is two lines high and hides a third. */
 .ul-name {
 	width: 100%;
+	box-sizing: border-box;
 	padding: 1dp 2dp;
 	font-size: 1.35rem;
 	line-height: 1.15em;
