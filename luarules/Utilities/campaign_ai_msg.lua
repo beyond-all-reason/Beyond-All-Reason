@@ -1,6 +1,7 @@
 -- Campaign AI messaging system.
+-- boolean is forbidden; accepted values: 1 as true, 0 as false.
 -- Message format:
--- "<version>|<cmd1>:<val1>;<val2>;<val3>|<cmd2>:<param1>=<val1.1>,<val1.2>,<val1.3>;<param2>=<val2>;<param3>=<val3>;"
+-- "<version>|<cmd1>:<val1>;<val2>;<val3>|<cmd2>:<param1>=<val1.1>,<val1.2>,<val1.3>;<param2>=<val2>;<param3>=<val3>"
 
 local version = "1"
 
@@ -19,15 +20,12 @@ local topic = {
 	ENABLE_UNITS_CONTROL             =   4,  -- array of unitIDs
 	DISABLE_UNITS_CONTROL            =   5,  -- array of unitIDs
 
-	UNIT_WEIGHTS                     =   9,
-
 	UNITDEF_RETREAT                  =  11,
 
 	REGION_AVOID                     =  12,
 
-	FACTORY_ENABLE                   =  13,
+	SET_FACTORY_ACTIVE               =  13,
 
-	EXEC_ORDER_66                    =  15,
 	SET_SCRIPTED_RECRUIT             =  16,  -- boolean
 
 	-- Base starts at 100
@@ -35,69 +33,91 @@ local topic = {
 	BASE_REBUILD                     = 102,
 
 	-- Squad Request starts at 200
-	REQUEST_SQUAD                    = 201,
-	REQUEST_COMPOSE                  = 202,
-	REQUEST_CANCEL                   = 203,
-	REQUEST_PARAMS                   = 204,
+	SQUAD_REQUEST_ID                 = 201,
+	SQUAD_REQUEST_COMPOSE            = 202,
+	SQUAD_REQUEST_CANCEL             = 203,
+	SQUAD_REQUEST_PARAMS             = 204,
 	-- Squad starts at 210
-	SQUAD_ASSEMBLE                   = 211,
+	SQUAD_ID                         = 211,
 	SQUAD_DISBAND                    = 212,
 	SQUAD_TASK                       = 213,
 	SQUAD_PARAMS                     = 214,
 }
 
 local param = {
-	SQUAD_POS_X        = 1,
-	SQUAD_POS_Z        = 2,
-	SQUAD_GATHER_RANGE = 3,
-	SQUAD_ATTACK_RANGE = 4,
-	SQUAD_IS_REPEAT    = 5,
-	SQUAD_RETREAT      = 6,
-	SQUAD_PRIO_TARGET  = 7,
-
-	BASE_POS_X = 101,
-	BASE_POS_Z = 102,
+	POSITION           = 1,
+	SQUAD_GATHER_RANGE = 2,
+	SQUAD_ATTACK_RANGE = 3,
+	SQUAD_REBUILD      = 4,
+	SQUAD_RETREAT      = 5,
+	SQUAD_PRIO_TARGET  = 6,
 }
 
 local task = {
-	TASK_DEFEND  = 1,
-	TASK_SCOUT   = 2,
-	TASK_RAID    = 3,
-	TASK_ATTACK  = 4,
-	TASK_BOMB    = 5,
-	TASK_ARTY    = 6,
-	TASK_AA      = 7,
-	TASK_SUPPORT = 8,
-	TASK_RETREAT = 9,
+	DEFEND  = 1,
+	SCOUT   = 2,
+	RAID    = 3,
+	ATTACK  = 4,
+	BOMB    = 5,
+	ARTY    = 6,
+	AA      = 7,
+	SUPPORT = 8,
 }
 
-local function BuildValue(cmd, param)
-	return version .. delimiter.SEP_PACKET .. cmd .. delimiter.SEP_COMMAND .. param
+local MsgBuilder = {}
+
+function MsgBuilder.new()
+	local self = setmetatable({}, MsgBuilder)
+	self.buffer = {version}
+	return self
 end
 
-local function BuildArray(cmd, params)
-	local msg = version .. delimiter.SEP_PACKET .. cmd .. delimiter.SEP_COMMAND
-	for index, value in ipairs(params) do
-		msg = msg .. value .. delimiter.SEP_PARAM
-	end
-	return msg
+function MsgBuilder:append(value)
+	table.insert(self.buffer, value)
+	return self
 end
 
-local function BuildDict(cmd, params)
-	local msg = version .. delimiter.SEP_PACKET .. cmd .. delimiter.SEP_COMMAND
+function MsgBuilder:cmdValue(cmd, param)
+	self:append(cmd .. delimiter.SEP_COMMAND .. param)
+	return self
+end
+
+function MsgBuilder:cmdArray(cmd, params)
+	self:append(cmd .. delimiter.SEP_COMMAND .. table.concat(params, delimiter.SEP_PARAM))
+	return self
+end
+
+function MsgBuilder:cmdDict(cmd, params)
+	local arrayKV = {}
 	for key, value in pairs(params) do
-		msg = msg .. key .. delimiter.SEP_KEY_VALUE .. value .. delimiter.SEP_PARAM
+		table.insert(arrayKV, key .. delimiter.SEP_KEY_VALUE .. value)
 	end
-	return msg
+	self:append(cmd .. delimiter.SEP_COMMAND .. table.concat(arrayKV, delimiter.SEP_PARAM))
+	return self
 end
+
+function MsgBuilder:cmdDictArray(cmd, key, values)
+	self:append(cmd .. delimiter.SEP_COMMAND .. key .. delimiter.SEP_KEY_VALUE ..
+			table.concat(values, delimiter.SEP_SUBPARAM))
+	return self
+end
+
+function MsgBuilder:paramArray(param, values)
+	self.buffer[#self.buffer] = self.buffer[#self.buffer] .. delimiter.SEP_PARAM ..
+			param .. delimiter.SEP_KEY_VALUE .. table.concat(values, delimiter.SEP_SUBPARAM)
+	return self
+end
+
+function MsgBuilder:toString()
+	return table.concat(self.buffer, delimiter.SEP_PACKET)
+end
+
+MsgBuilder.__index = MsgBuilder
+MsgBuilder.__tostring = MsgBuilder.toString
 
 return {
-	version    = version,
-	delimiter  = delimiter,
 	topic      = topic,
 	param      = param,
 	task       = task,
-	BuildValue = BuildValue,
-	BuildArray = BuildArray,
-	BuildDict  = BuildDict,
+	MsgBuilder = MsgBuilder,
 }

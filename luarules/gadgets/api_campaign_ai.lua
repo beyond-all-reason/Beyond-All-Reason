@@ -21,22 +21,30 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	function BroadcastEnableUnitDefs(_, teamID, unitDefIDs)
-		local msg = aiMsg.BuildArray(aiMsg.topic.ENABLE_UNITDEFS, unitDefIDs)
+		local msg = aiMsg.MsgBuilder.new()
+			:cmdArray(aiMsg.topic.ENABLE_UNITDEFS, unitDefIDs)
+			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 
 	function BroadcastDisableUnitDefs(_, teamID, unitDefIDs)
-		local msg = aiMsg.BuildArray(aiMsg.topic.DISABLE_UNITDEFS, unitDefIDs)
+		local msg = aiMsg.MsgBuilder.new()
+			:cmdArray(aiMsg.topic.DISABLE_UNITDEFS, unitDefIDs)
+			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 
 	function BroadcastEnableUnitsCtrl(_, teamID, unitIDs)
-		local msg = aiMsg.BuildArray(aiMsg.topic.ENABLE_UNITS_CONTROL, unitIDs)
+		local msg = aiMsg.MsgBuilder.new()
+			:cmdArray(aiMsg.topic.ENABLE_UNITS_CONTROL, unitIDs)
+			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 
 	function BroadcastDisableUnitsCtrl(_, teamID, unitIDs)
-		local msg = aiMsg.BuildArray(aiMsg.topic.DISABLE_UNITS_CONTROL, unitIDs)
+		local msg = aiMsg.MsgBuilder.new()
+			:cmdArray(aiMsg.topic.DISABLE_UNITS_CONTROL, unitIDs)
+			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 end
