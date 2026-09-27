@@ -44,6 +44,8 @@ local SUITE_WIDGETS = {
 	"Feature Placer UI",
 	"Weather Brush UI",
 	"Map Labels UI",
+	"Unit Library UI",
+	"Unit Placer",
 	"Map Project",
 	"Map Transform",
 }
