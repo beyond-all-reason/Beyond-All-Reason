@@ -1,0 +1,293 @@
+/* The shared unit library (refactor plan, U2 + U7). Builds on the feature placer's fp- styles,
+   so the two libraries read as one family. Text sizes follow the editors' own scale (rem is
+   10dp here): nothing under 1.1rem, which is 9.6px in a 1080p window (the 9px floor). */
+
+.ul-root {
+	left: 30vw;
+	top: 8vh;
+	/* 520dp: five tiles a row (86dp + a 2dp border each side, 4dp gaps, the scrollbar), and
+	   the TYPE chips in two rows at their bigger size. */
+	width: 520dp;
+	z-index: 905;
+}
+
+.ul-title { font-size: 1.5rem; }
+
+.ul-search-wrap { flex: 1 1 auto; }
+
+.ul-clear { flex: 0 0 auto; min-width: 0dp; padding: 5dp 8dp; font-size: 1.05rem; }
+
+.ul-row-label {
+	font-size: 1.1rem;
+	color: #8b93a3;
+	margin: 4dp 0dp 2dp 0dp;
+}
+
+.ul-row-note { color: #6f7788; }
+
+.ul-chip-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 3dp;
+	margin-bottom: 2dp;
+}
+
+.ul-chip {
+	flex: 0 0 auto;
+	min-width: 0dp;
+	/* A step up from 1.05rem / 4dp 6dp (PtaQ: "the filtering chips are a bit too small"). */
+	padding: 6dp 8dp;
+	font-size: 1.2rem;
+	gap: 5dp;
+}
+
+/* A chip's icon, before its text: a faction's emblem or a unit type's strategic icon. */
+.ul-chip-icon {
+	width: 16dp;
+	height: 16dp;
+	flex: 0 0 auto;
+}
+.ul-chip-icon.hidden { display: none; }
+
+.ul-sort-row { align-items: center; margin-bottom: 4dp; }
+/* Which way the active sort runs: down = biggest first, up = smallest first. */
+.ul-sort-arrow {
+	width: 12dp;
+	height: 12dp;
+	flex: 0 0 auto;
+}
+.ul-sort-arrow.hidden { display: none; }
+.ul-sort-label {
+	font-size: 1.1rem;
+	color: #8b93a3;
+	margin-right: 2dp;
+}
+
+.ul-chip-count {
+	font-size: 1.1rem;
+	color: #9aa3b2;
+}
+
+.ul-chip.active .ul-chip-count { color: #ffd88f; }
+
+/* A chip that would leave nothing: still pressable (it may be what someone wants to switch
+   to), but quiet, so an empty choice is visible before the click. */
+.ul-chip.zero { opacity: 0.45; }
+
+/* Collapsible sections (PtaQ's N5), the terraform brush's frame: the title row floats on
+   the top border and masks it, so its background is the window's (bg-darkest, #1d1d1d). The
+   library does not load the brush's stylesheet, so the frame rules are repeated here, as the
+   mission editor repeats them. */
+.tf-section-frame {
+	position: relative;
+	margin-top: 14dp;
+	margin-bottom: 6dp;
+	padding: 9dp 4dp 4dp 4dp;
+	border: 1dp #4a4a6899;
+	border-radius: 4dp;
+}
+
+.tf-section-frame.tf-collapsed {
+	border-left-width: 0;
+	border-right-width: 0;
+	border-bottom-width: 0;
+	border-radius: 0;
+	padding-top: 0;
+	padding-bottom: 0;
+	margin-bottom: 4dp;
+}
+
+.tf-section-title-row {
+	position: absolute;
+	top: -10dp;
+	left: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	background-color: #1d1d1d;
+	padding: 0 5dp;
+	cursor: pointer;
+}
+
+.tf-collapsible-title {
+	font-size: 1.2rem;
+	font-weight: bold;
+	color: #c8d0d8;
+	white-space: nowrap;
+}
+
+.tf-icon-sm {
+	width: 14dp;
+	min-width: 14dp;
+	max-width: 14dp;
+	height: 14dp;
+}
+
+.ul-title-note {
+	font-size: 1.1rem;
+	color: #9aa3b2;
+	white-space: nowrap;
+	margin-left: 4dp;
+}
+
+/* Every hide here must beat the element's own display (flex on the grids and the pick row):
+   the utility .hidden is loaded first and loses to them. */
+.tf-section-frame.hidden,
+.ul-section-body.hidden,
+.ul-pickset.hidden,
+.ul-order.hidden { display: none; }
+
+/* The pick set (PtaQ's N2): how many are picked and how a drop moves on through them. */
+.ul-pickset {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4dp;
+	margin: 4dp 0dp 0dp 0dp;
+}
+
+.ul-pickset-text {
+	font-size: 1.2rem;
+	color: #ffd88f;
+	margin-right: 4dp;
+}
+
+/* A tile's place in the pick set: 1, 2, 3 at the picture's foot, left. */
+.ul-order {
+	position: absolute;
+	left: 3dp;
+	top: 44dp;
+	min-width: 18dp;
+	height: 18dp;
+	padding: 0dp 3dp;
+	font-size: 1.2rem;
+	line-height: 18dp;
+	font-weight: bold;
+	text-align: center;
+	color: #1d1d1d;
+	background-color: #fdc04c;
+	border-radius: 9dp;
+}
+
+/* Five tiles a row: the arrow keys step by that. */
+.ul-grid {
+	max-height: 400dp;
+	overflow-y: auto;
+	background-color: #1a1a22;
+	border: 1dp #3a3a3a80;
+	border-radius: 4dp;
+	padding: 4dp;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 4dp;
+	align-content: flex-start;
+}
+
+.ul-grid scrollbarvertical { width: 6dp; }
+
+/* One row of tiles (118dp + the grid padding). */
+.ul-grid-recent { max-height: 132dp; overflow-y: hidden; }
+
+.ul-tile {
+	position: relative;
+	width: 86dp;
+	height: 118dp;
+	cursor: pointer;
+	border-radius: 4dp;
+	border: 2dp transparent;
+	background-color: #1e1e28;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	overflow: hidden;
+}
+
+.ul-tile:hover { border-color: #5a5a7a; }
+/* A padding tile (the arrays keep a fixed length): not there at all. */
+.ul-tile.blank { display: none; }
+.ul-tile.focus { border-color: #7aa2f7; }
+.ul-tile.picked { border-color: #fdc04c; background-color: #2b2113; }
+
+.ul-pic {
+	width: 64dp;
+	height: 64dp;
+	margin-top: 3dp;
+	margin-bottom: 3dp;
+}
+
+/* A blueprint's unit count, top-right. (Unit tiles carry no tier label: the TECH LEVEL chips
+   say it, and the picture and the name are what should read -- PtaQ.) */
+.ul-tier {
+	position: absolute;
+	right: 4dp;
+	top: 3dp;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #e1e6ee;
+}
+
+/* A faction stripe along the picture's foot: two factions share many names. */
+.ul-faction {
+	position: absolute;
+	left: 10dp;
+	right: 10dp;
+	top: 66dp;
+	height: 3dp;
+	border-radius: 1dp;
+}
+.ul-faction.ul-faction-arm { background-color: #4a8cf0; }
+.ul-faction.ul-faction-cor { background-color: #e0453a; }
+.ul-faction.ul-faction-leg { background-color: #48c25c; }
+
+/* Bigger, and a long name wraps onto a second line instead of being cut (PtaQ). Two lines
+   at most: the box is two lines high and hides a third. */
+.ul-name {
+	width: 100%;
+	padding: 1dp 2dp;
+	font-size: 1.35rem;
+	line-height: 1.15em;
+	max-height: 2.3em;
+	color: #e1e6ee;
+	text-align: center;
+	white-space: normal;
+	overflow: hidden;
+}
+
+.ul-empty {
+	font-size: 1.05rem;
+	color: #9aa3b2;
+	padding: 8dp 4dp;
+}
+
+/* What the tile under the pointer is, tags included, so a wrong role call is visible. */
+.ul-hover {
+	font-size: 1.05rem;
+	color: #d8dce4;
+	min-height: 16dp;
+	margin-top: 5dp;
+}
+
+.ul-hint {
+	font-size: 1.1rem;
+	color: #8b93a3;
+	margin-top: 4dp;
+}
+
+/* Blueprints (U9): a saved group, its first unit's picture and how many units it holds. */
+.ul-blueprint { border-color: #7aa2f766; }
+.ul-blueprint-delete {
+	position: absolute;
+	right: 2dp;
+	top: 2dp;
+	width: 18dp;
+	height: 18dp;
+	font-size: 1.1rem;
+	color: #ff9999;
+	text-align: center;
+	border-radius: 3dp;
+	background-color: #00000099;
+}
+.ul-blueprint-delete:hover { background-color: #802020; color: #ffffff; }

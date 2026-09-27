@@ -1,0 +1,131 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
+	<link type="text/rcss" href="../gui_feature_placer/gui_feature_placer.rcss" />
+	<link type="text/rcss" href="gui_unit_library.rcss" />
+</head>
+<!--
+	UNIT LIBRARY (refactor plan, U2 + U7). Shared by the mission editor and the terraform brush:
+	whichever opened it last gets the pick. Five filter rows that combine (AND across rows, OR
+	within a row: Shift+click adds), each chip with the count it would leave. Every control is a
+	fixed callback; the arrays are assigned from the widget's Update, at most a page of tiles.
+	Shift+click on TILES picks several; the editor cycles through them, one per drop.
+-->
+<body data-model="unit_library_model">
+<div id="ul-root" class="fp-root ul-root widget-shadow rounded-md bg-darkest p-2">
+	<div class="flex flex-row justify-between items-center mb-2">
+		<div id="ul-handle" class="fp-drag-handle text-2xl font-bold text-light text-outline-darker ul-title">{{title}}</div>
+		<div id="ul-close" class="fp-quit-btn" data-event-click="close()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+	</div>
+
+	<div class="flex flex-row gap-1 mb-1">
+		<div class="fp-search-wrapper ul-search-wrap">
+			<input type="text" id="ul-search" class="fp-search-input" placeholder="name, or words: t2 arty cor"
+				data-value="search"
+				data-event-change="searchChanged()"
+				data-event-focus="searchFocus()"
+				data-event-blur="searchBlur()" />
+			<div id="ul-search-clear" class="fp-search-clear-btn" data-event-click="searchClear()">
+				<img class="fp-search-clear-icon" src="/luaui/images/terraform_brush/close.png" />
+			</div>
+		</div>
+		<div id="ul-clear" class="fp-cat-btn ul-clear" data-class-active="anyActive" data-event-click="clearAll()"><span class="fp-cat-label">CLEAR</span></div>
+	</div>
+
+	<!-- Several picked (Shift+click on tiles): each drop places the next of them. -->
+	<div id="ul-pickset" class="ul-pickset" data-class-hidden="!pickSetShown">
+		<div class="ul-pickset-text">{{pickCount}} PICKED, CYCLE</div>
+		<div id="ul-cycle-abc" class="fp-cat-btn ul-chip" data-class-active="cycleMode == 'abc'" data-event-click="setCycle('abc')"><span class="fp-cat-label">A B C</span></div>
+		<div id="ul-cycle-random" class="fp-cat-btn ul-chip" data-class-active="cycleMode == 'random'" data-event-click="setCycle('random')"><span class="fp-cat-label">RANDOM</span></div>
+	</div>
+
+	<!-- Collapsible sections, the terraform brush's pattern: the title row folds its body. -->
+	<!-- Chips: click = that value alone (again: clear the row). Shift+click: add or remove it. -->
+	<div id="ul-frame-filters" class="tf-section-frame" data-class-tf-collapsed="folded.filters">
+		<div id="ul-fold-filters" class="tf-section-title-row" data-event-click="fold('filters')">
+			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.filters ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
+			<div class="tf-collapsible-title">FILTERS</div>
+		</div>
+		<div id="ul-body-filters" class="ul-section-body" data-class-hidden="folded.filters">
+			<div class="ul-row-label">FACTION</div>
+			<div id="ul-row-faction" class="ul-chip-row">
+				<div data-for="c : factionChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			</div>
+			<div class="ul-row-label">TECH LEVEL</div>
+			<div id="ul-row-tier" class="ul-chip-row">
+				<div data-for="c : tierChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			</div>
+			<div class="ul-row-label">TYPE</div>
+			<div id="ul-row-type" class="ul-chip-row">
+				<div data-for="c : typeChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			</div>
+			<div class="ul-row-label">ROLE <span class="ul-row-note">inferred from stats, per tier</span></div>
+			<div id="ul-row-role" class="ul-chip-row">
+				<div data-for="c : roleChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			</div>
+			<div id="ul-row-domain" class="ul-chip-row">
+				<div data-for="c : domainChips" class="fp-cat-btn ul-chip" data-class-active="c.active" data-class-zero="c.zero" data-event-click="chip(c.row, c.value)"><img class="ul-chip-icon" data-attr-src="c.icon" data-class-hidden="!c.hasIcon" /><span class="fp-cat-label">{{c.label}}</span><span class="ul-chip-count">{{c.count}}</span></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Saved groups (U9): a click picks one up to place, x deletes the file. -->
+	<div id="ul-frame-blueprints" class="tf-section-frame" data-class-tf-collapsed="folded.blueprints" data-class-hidden="!blueprintsShown">
+		<div id="ul-fold-blueprints" class="tf-section-title-row" data-event-click="fold('blueprints')">
+			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.blueprints ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
+			<div class="tf-collapsible-title">BLUEPRINTS</div>
+		</div>
+		<div id="ul-blueprints" class="ul-section-body ul-grid ul-grid-recent" data-class-hidden="folded.blueprints">
+			<div data-for="b : blueprints" class="ul-tile ul-blueprint" data-class-blank="b.blank" data-event-click="pickBlueprint(b.name)">
+				<img class="ul-pic" data-attr-src="b.img" />
+				<div class="ul-tier">{{b.count}}</div>
+				<div class="ul-blueprint-delete" data-event-click="deleteBlueprint(b.name)"><span>x</span></div>
+				<div class="ul-name">{{b.name}}</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="ul-frame-recent" class="tf-section-frame" data-class-tf-collapsed="folded.recent" data-class-hidden="!recentShown">
+		<div id="ul-fold-recent" class="tf-section-title-row" data-event-click="fold('recent')">
+			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.recent ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
+			<div class="tf-collapsible-title">RECENT</div>
+		</div>
+		<div id="ul-recent" class="ul-section-body ul-grid ul-grid-recent" data-class-hidden="folded.recent">
+			<div data-for="t : recent" class="ul-tile" data-class-blank="t.blank" data-class-picked="t.picked" data-event-click="pick(t.name)" data-event-mouseover="hover(t.name)">
+				<img class="ul-pic" data-attr-src="t.img" />
+				<div class="ul-order" data-class-hidden="t.order == ''">{{t.order}}</div>
+				<div class="ul-name">{{t.human}}</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="ul-frame-units" class="tf-section-frame" data-class-tf-collapsed="folded.units">
+		<div id="ul-fold-units" class="tf-section-title-row" data-event-click="fold('units')">
+			<img class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" data-attr-src="folded.units ? '/luaui/images/terraform_brush/plus.png' : '/luaui/images/terraform_brush/minus.png'" />
+			<div class="tf-collapsible-title">UNITS</div>
+			<div class="ul-title-note">{{countText}}</div>
+		</div>
+		<div id="ul-body-units" class="ul-section-body" data-class-hidden="folded.units">
+			<!-- SORT: click a key; click it again to turn it round. -->
+			<div id="ul-sort" class="ul-chip-row ul-sort-row">
+				<div class="ul-sort-label">SORT</div>
+				<div data-for="s : sortChips" class="fp-cat-btn ul-chip" data-class-active="s.active" data-event-click="setSort(s.key)"><span class="fp-cat-label">{{s.label}}</span><img class="ul-sort-arrow" src="/luaui/images/terraform_brush/sort_down.png" data-class-hidden="!s.down" /><img class="ul-sort-arrow" src="/luaui/images/terraform_brush/sort_up.png" data-class-hidden="!s.up" /></div>
+			</div>
+			<div id="ul-grid" class="ul-grid">
+				<div data-for="t : tiles" class="ul-tile" data-class-blank="t.blank" data-class-picked="t.picked" data-class-focus="t.index == focusIndex" data-event-click="pick(t.name)" data-event-mouseover="hover(t.name)">
+					<img class="ul-pic" data-attr-src="t.img" />
+					<div class="ul-order" data-class-hidden="t.order == ''">{{t.order}}</div>
+					<div class="ul-faction" data-class-ul-faction-arm="t.faction == 'arm'" data-class-ul-faction-cor="t.faction == 'cor'" data-class-ul-faction-leg="t.faction == 'leg'"></div>
+					<div class="ul-name">{{t.human}}</div>
+				</div>
+			</div>
+			<div class="ul-empty" data-if="none">No unit type matches. Clear a chip or the search.</div>
+		</div>
+	</div>
+	<div id="ul-hover" class="ul-hover">{{hoverText}}</div>
+	<div class="ul-hint">Type to search, arrows move, Enter picks, Esc closes. Shift+click picks several to cycle through. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
+</div>
+</body>
+</rml>
