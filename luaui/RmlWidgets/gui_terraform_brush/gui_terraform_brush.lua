@@ -2143,6 +2143,10 @@ local function _deactivateAllTools()
 	-- that keeps the SURFACE panel open over it must drop with the engine.
 	widgetState.surfHardActive = false
 	widgetState.surfPickerSlot = nil -- leaving the tool closes the variant picker
+	-- UNITS (the shared unit placer, cmd_unit_placer.lua).
+	if WG.UnitPlacerTool then
+		WG.UnitPlacerTool.deactivate()
+	end
 end
 
 -- ============ New Map (FILE > New Map) helpers ============
@@ -6197,6 +6201,7 @@ local initialModel = {
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
 	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
 	activeTool = "",
+	unitsTeam = "TEAM 0",
 	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
 	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
 	tsShaderOn = false,
@@ -13212,6 +13217,40 @@ local initialModel = {
 		_deactivateAllTools()
 		WG.WeatherBrush.activate("scatter")
 	end,
+	-- UNITS: the shared unit library + placer (cmd_unit_placer.lua); real units, stroke undo.
+	onTfSwitchUnits = function(_event)
+		playSound("toolSwitch")
+		clearPassthrough()
+		if not WG.UnitPlacerTool then
+			Spring.Echo("[Terraform Brush] the Unit Placer widget is not loaded")
+			return
+		end
+		_deactivateAllTools()
+		WG.UnitPlacerTool.activate()
+		if widgetState.dmHandle then
+			widgetState.dmHandle.unitsTeam = "TEAM " .. tostring(WG.UnitPlacerTool.team())
+		end
+	end,
+	onTfUnitsLibrary = function(_event)
+		if WG.UnitPlacerTool then
+			WG.UnitPlacerTool.openLibrary()
+		end
+	end,
+	onTfUnitsUndo = function(_event)
+		if WG.UnitPlacerTool then
+			WG.UnitPlacerTool.undo()
+		end
+	end,
+	onTfUnitsRedo = function(_event)
+		if WG.UnitPlacerTool then
+			WG.UnitPlacerTool.redo()
+		end
+	end,
+	onTfUnitsTeam = function(_event)
+		if WG.UnitPlacerTool and widgetState.dmHandle then
+			widgetState.dmHandle.unitsTeam = "TEAM " .. tostring(WG.UnitPlacerTool.cycleTeam())
+		end
+	end,
 	onTfSwitchSplat = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
@@ -15848,7 +15887,7 @@ local guideHints = {
 	["btn-env-save"] = "Export all current environment settings to a Lua file in the Terraform Brush/Lightmaps/ folder for use by mappers.",
 	["btn-env-load"] = "Load the most recent saved environment config for this map from the Terraform Brush/Lightmaps/ folder.",
 	["btn-lights"] = "Place deferred GL4 lights on the map. Supports point, cone, and beam lights with scatter, single, and remove modes.",
-	["btn-units"] = "Coming soon: place and arrange units on the map (ubdev-style unit placer panel).",
+	["btn-units"] = "Place real units: pick from the unit library, drag formations, paste blueprints. Ctrl+Z undoes a whole placement.",
 	-- SURFACE tool (tileset variant paint)
 	["btn-surface"] = "Paint soft-surface VARIANTS of the active tileset biome over the automatic base. Hard surfaces (cliffs and the intermediary) belong to LAYERS — this brush never touches them.",
 	["btn-layers"] = "Paint the tileset shader's hard-surface override channels — force intermediate, cliff or plateau material anywhere, or paint AUTO to give the area back to slope-driven placement.",
@@ -17770,20 +17809,6 @@ local function attachEventListeners()
 			end, false)
 			splatBtn:AddEventListener("mouseout", function(event)
 				widgetState.splatHoverTilesetOn = false
-			end, false)
-		end
-	end
-
-	-- UNITS placeholder button: no tool behind it yet, so hovering explains
-	-- itself in the status readout (same override pattern as grass/splat).
-	do
-		local unitsBtn = getCachedEl(doc, "btn-units")
-		if unitsBtn then
-			unitsBtn:AddEventListener("mouseover", function(event)
-				widgetState.unitsHoverSoon = true
-			end, false)
-			unitsBtn:AddEventListener("mouseout", function(event)
-				widgetState.unitsHoverSoon = false
 			end, false)
 		end
 	end
@@ -20632,6 +20657,8 @@ function widget:Update()
 					tool = "diff"
 				elseif widgetState.surfActive then
 					tool = "surf"
+				elseif WG.UnitPlacerTool and WG.UnitPlacerTool.isActive() then
+					tool = "un"
 				end
 				if widgetState.dmHandle then
 					if widgetState.dmHandle.activeTool ~= tool then
@@ -22382,20 +22409,6 @@ function widget:Update()
 					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">SPLAT</span>'
 						.. sep
 						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Tileset shader active - hard surfaces moved to LAYERS</span>'
-				)
-			end
-		end
-		-- UNITS placeholder: hovering says the unit placer is not here yet.
-		if widgetState.unitsHoverSoon then
-			local sumEl5 = widgetState.document and getCachedEl(widgetState.document, "status-summary")
-			if sumEl5 then
-				local sep = '<span class="tf-ss-sep">|</span>'
-				setInnerRmlIfChanged(
-					sumEl5,
-					"status-summary",
-					'<span class="tf-ss-mode tf-ss-pulse" style="color: #fdc04c;">UNITS</span>'
-						.. sep
-						.. '<span class="tf-ss-val tf-ss-pulse" style="color: #fdc04c;">Coming soon...</span>'
 				)
 			end
 		end

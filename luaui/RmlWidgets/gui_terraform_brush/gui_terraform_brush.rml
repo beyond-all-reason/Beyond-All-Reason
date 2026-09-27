@@ -148,9 +148,9 @@
 			</div>
 		</div>
 		<div id="tf-tools-rows2" class="flex flex-row gap-1 mb-1">
-			<!-- Placeholder: unit placer panel (ubdev-style) lands here later.
-			     Grayed out; hovering explains itself in the status readout. -->
-			<div id="btn-units" class="tf-mode-btn tf-btn-units">
+			<!-- UNITS: the shared unit library and placer (cmd_unit_placer.lua, gui_unit_library),
+			     placing real units with stroke undo. The same library the mission editor uses. -->
+			<div id="btn-units" class="tf-mode-btn tf-btn-units" data-class-active="activeTool == 'un'" data-event-mousedown="onTfSwitchUnits()">
 				<img class="tf-icon-md" src="/luaui/images/terraform_brush/env_unit.png" />
 				<div class="tf-btn-text">UNITS</div>
 			</div>
@@ -183,6 +183,23 @@
 		</div>
 		</div><!-- /frame-tools -->
 
+
+		<!-- UNITS controls (visible only when the unit placer is active). The library window
+		     holds the picking; this holds what acts on the map. -->
+		<div id="tf-units-controls" data-if="activeTool == 'un'">
+			<div class="tf-section-frame" id="frame-units">
+				<div class="tf-section-title-row">
+					<div class="tf-collapsible-title">UNITS</div>
+				</div>
+				<div class="tf-units-note">Pick in the library, then drag on the map. R turns, Tab shape, T team, Ctrl+Z / Ctrl+Y undo and redo a whole placement.</div>
+				<div class="flex flex-row gap-1 mb-1">
+					<div id="btn-units-library" class="tf-mode-btn" data-event-mousedown="onTfUnitsLibrary()"><div class="tf-btn-text">LIBRARY</div></div>
+					<div id="btn-units-team" class="tf-mode-btn" data-event-mousedown="onTfUnitsTeam()"><div class="tf-btn-text">{{unitsTeam}}</div></div>
+					<div id="btn-units-undo" class="tf-mode-btn" data-event-mousedown="onTfUnitsUndo()"><div class="tf-btn-text">UNDO</div></div>
+					<div id="btn-units-redo" class="tf-mode-btn" data-event-mousedown="onTfUnitsRedo()"><div class="tf-btn-text">REDO</div></div>
+				</div>
+			</div>
+		</div>
 
 		<!-- Start Positions sub-mode row (visible only when StartPos tool active) -->
 		<div id="tf-startpos-submodes" data-if="activeTool == 'stp'">

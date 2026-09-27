@@ -1757,18 +1757,11 @@ body {
 	cursor: default;
 }
 
-/* UNITS placeholder: permanently grayed until the unit placer panel lands.
-   Hit-testing stays alive so hovering can explain itself in the readout. */
-.tf-btn-units {
-	background-color: #252528;
-	border-color: #33333540;
-	cursor: default;
-	opacity: 0.4;
-}
-.tf-btn-units:hover {
-	background-color: #2a2a2e;
-	border-color: #33333560;
-	opacity: 0.55;
+/* UNITS: the shared unit placer (a live tool now, styled like its neighbours). */
+.tf-units-note {
+	font-size: 1.05rem;
+	color: #9ca3af;
+	margin: 2dp 0dp 5dp 0dp;
 }
 
 /* Pulsating summary text (used for "No grass data for this map") */
