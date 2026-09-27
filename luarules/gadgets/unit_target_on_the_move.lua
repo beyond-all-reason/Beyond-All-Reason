@@ -35,7 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-	local spGiveOrderToUnit = Spring.GiveOrderToUnit
+	local spUnitFinishCommand = Spring.UnitFinishCommand
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
@@ -59,7 +59,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
-	local CMD_REMOVE = CMD.REMOVE
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_WAIT = CMD.WAIT
@@ -324,13 +323,11 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, targetIndex, true)
 	end
 
-	-- Release both unit-owned and weapon-owned targets. An automatic Attack on
-	-- the released target can restore it, so remove that command before clearing
-	-- the target. Explicit attack commands retain ownership of their targets.
-	local function dropAutomaticAttack(unitID, targetID)
-		local inCommand, options, tag, param1, param2 = spGetUnitCurrentCommand(unitID)
+	-- Drop any automatic command that would restore a dropped target to the unit or its weapons.
+	local function dropAutomaticTargets(unitID, targetID)
+		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_ATTACK and not param2 and param1 == targetID and hasAutoTarget(options) then
-			spGiveOrderToUnit(unitID, CMD_REMOVE, tag)
+			spUnitFinishCommand(unitID)
 		end
 	end
 
@@ -340,7 +337,7 @@ if gadgetHandler:IsSyncedCode() then
 			releasedTarget = targetData and targetData.target
 		end
 		if type(releasedTarget) == "number" then
-			dropAutomaticAttack(unitID, releasedTarget)
+			dropAutomaticTargets(unitID, releasedTarget)
 		end
 		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
@@ -513,8 +510,6 @@ if gadgetHandler:IsSyncedCode() then
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
 				if unitData.activeTarget then
-					-- Cancelling the target the unit is firing at must stop that fire now;
-					-- the next update picks another listed target if one is attackable.
 					setTargetPassive(unitID, unitData, removed.target)
 				else
 					unitData.currentIndex = 1
