@@ -38,6 +38,7 @@ end
 
 local math_max = math.max
 local math_round = math.round
+local sameArray = table.sameArray
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitDefID = Spring.GetUnitDefID
@@ -994,15 +995,6 @@ local function composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVec
 	return out
 end
 
-local function sameVector(vector, other)
-	for index = 1, #vector do
-		if vector[index] ~= other[index] then
-			return false
-		end
-	end
-	return true
-end
-
 ---@return table<string, number[]>? applied
 local function setAppliedWeapons(unitID, attribute, vector)
 	local applied = appliedWeapons[unitID]
@@ -1124,8 +1116,8 @@ local function updateWeapons()
 				local baseVector = getBaselineVector(unitDefID, attribute)
 				local vector = composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVector, weaponVector)
 				local previous = applied and applied[attribute] or baseVector
-				if sameVector(vector, previous) or applyUnitAttribute[attribute](unitID, vector) ~= false then
-					if sameVector(vector, baseVector) then
+				if sameArray(vector, previous) or applyUnitAttribute[attribute](unitID, vector) ~= false then
+					if sameArray(vector, baseVector) then
 						applied = setAppliedWeapons(unitID, attribute, nil)
 					else
 						applied = setAppliedWeapons(unitID, attribute, vector)
