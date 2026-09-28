@@ -28,12 +28,14 @@ if gadgetHandler:IsSyncedCode() then
 	local spValidUnitID = Spring.ValidUnitID
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitIsDead = Spring.GetUnitIsDead
+	local crashing = table.ensureTable(GG, "Crashing")
 	local spGetUnitLosState = Spring.GetUnitLosState
 	local spGetUnitTeam = Spring.GetUnitTeam
 	local spAreTeamsAllied = Spring.AreTeamsAllied
 	local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
 	local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local spUnitFinishCommand = Spring.UnitFinishCommand
 	local spGetUnitWeaponTarget = Spring.GetUnitWeaponTarget
 	local spGetUnitWeaponTryTarget = Spring.GetUnitWeaponTryTarget
 	local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
@@ -55,12 +57,13 @@ if gadgetHandler:IsSyncedCode() then
 	local pairsNext = next
 	local type = type
 
-	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
-	local CMD_WAIT = CMD.WAIT
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
+	local CMD_STOP = CMD.STOP
+	local CMD_WAIT = CMD.WAIT
+	local CMD_AREA_ATTACK_GROUND = GameCMD.AREA_ATTACK_GROUND
 	local OPT_INTERNAL = CMD.OPT_INTERNAL
 	local FIRESTATE_RETURNFIRE = CMD.FIRESTATE_RETURNFIRE
 
@@ -68,7 +71,13 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD_ATTACK] = true,
 		[CMD_MANUALFIRE] = true,
 		[CMD.AREA_ATTACK] = true,
-		[GameCMD.AREA_ATTACK_GROUND] = true,
+		[CMD_AREA_ATTACK_GROUND] = true,
+	}
+
+	local issuesAttack = {
+		[CMD_FIGHT] = true,
+		[CMD.AREA_ATTACK] = true,
+		[CMD_AREA_ATTACK_GROUND] = true,
 	}
 
 	local validUnits = {}
@@ -238,8 +247,15 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local function isDeadOrCrashing(target)
+		if spGetUnitIsDead(target) ~= false then
+			return true
+		end
+		return crashing[target] ~= nil
+	end
+
 	local function checkTarget(teamID, target)
-		return type(target) ~= "number" or not isAlliedUnit(teamID, target)
+		return type(target) ~= "number" or (not isDeadOrCrashing(target) and not isAlliedUnit(teamID, target))
 	end
 
 	local function inReturnFire(unitID)
@@ -255,6 +271,71 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
+	local function hasTargetPrecedence(unitID, unitData)
+		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
+		if inCommand == CMD_WAIT then
+			return false
+		elseif inCommand == nil or isAttackCommand[inCommand] == nil then
+			return true
+		elseif inCommand ~= CMD_ATTACK then
+			return false
+		elseif param1 == nil then
+			return true
+		elseif param2 ~= nil and not hasAutoTarget(options) then
+			return false
+		end
+
+		local nextCommand, nextOptions, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
+		if nextCommand then
+			-- Automatic attacks may target ground positions, too.
+			if param2 ~= nil then
+				return not issuesAttack[nextCommand] or hasAutoTarget(nextOptions)
+			end
+			-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
+			if nextCommand == CMD_FIGHT then
+				return true
+			end
+			-- Retaliation behaviors take priority to protect the guardee despite being automatic.
+			if nextCommand == CMD_GUARD and inRetaliationAttack(param1, nextParam1) then
+				return false
+			elseif inReturnFire(unitID) and inRetaliationAttack(param1, unitID) then
+				return false
+			end
+		end
+
+		return hasAutoTarget(options) or not testTarget(unitID, unitData.teamID, unitData.weapons, param1)
+	end
+
+	local function setTargetActive(unitID, unitData, targetIndex)
+		local targetData = unitData.targets[targetIndex]
+		local target = targetData.target
+		unitData.activeTarget = target
+		unitData.currentIndex = targetIndex
+		if type(target) == "number" then
+			spSetUnitTarget(unitID, target, false, targetData.userTarget)
+			spSetUnitRulesParam(unitID, "unitTargetID", target)
+		else
+			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
+			spSetUnitRulesParam(unitID, "unitTargetID", nil)
+		end
+		SendToUnsynced("targetIndex", unitID, targetIndex, true)
+	end
+
+	-- Drop any automatic command that would restore a dropped target to the unit or its weapons.
+	local function dropAutomaticTargets(unitID, activeTarget)
+		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
+		if inCommand ~= CMD_ATTACK or not hasAutoTarget(options) then
+			return
+		elseif param2 then
+			local nextCommand = spGetUnitCurrentCommand(unitID, 2)
+			if issuesAttack[nextCommand] then
+				return
+			end
+		elseif param1 ~= activeTarget then
+			return
+		end
+		spUnitFinishCommand(unitID)
+	end
 
 	local function restoreCommandTarget(unitID)
 		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
@@ -273,67 +354,28 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 
-	local function hasTargetPrecedence(unitID, unitData)
-		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
-		if inCommand == CMD_WAIT then
-			return false
-		elseif not inCommand or not isAttackCommand[inCommand] then
-			return true
-		elseif param2 or inCommand ~= CMD_ATTACK then
-			return false
-		elseif not param1 then
-			return true
-		end
-
-		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
-		-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
-		if nextCommand == CMD_FIGHT then
-			return true
-		end
-		-- Retaliation behaviors take priority to protect the guardee despite being automatic.
-		if nextCommand == CMD_GUARD and inRetaliationAttack(param1, nextParam1) then
-			return false
-		elseif inReturnFire(unitID) and inRetaliationAttack(param1, unitID) then
-			return false
-		end
-
-		return hasAutoTarget(options) or not testTarget(unitID, unitData.teamID, unitData.weapons, param1)
-	end
-
-	local function setTargetActive(unitID, unitData, targetIndex)
-		unitData.activeTarget = true
-		unitData.currentIndex = targetIndex
-		local targetData = unitData.targets[targetIndex]
-		local target = targetData.target
-		if type(target) == "number" then
-			spSetUnitTarget(unitID, target, false, targetData.userTarget)
-			spSetUnitRulesParam(unitID, "unitTargetID", target)
-		else
-			spSetUnitTarget(unitID, target[1], target[2], target[3], false, targetData.userTarget)
-			spSetUnitRulesParam(unitID, "unitTargetID", nil)
-		end
-		SendToUnsynced("targetIndex", unitID, targetIndex, true)
-	end
-
 	local function setTargetPassive(unitID, unitData)
-		if not unitData then
+		local activeTarget = unitData.activeTarget
+		if not activeTarget then
 			return
 		end
-		unitData.activeTarget = false
+		unitData.activeTarget = nil
 		unitData.currentIndex = 1
-		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+		dropAutomaticTargets(unitID, activeTarget)
 		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
+		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
 	local function wasTargetLost(target, alwaysSeen, allyTeam)
 		if type(target) ~= "number" then
 			return false, false
+		elseif isDeadOrCrashing(target) then
+			return true, true
 		elseif alwaysSeen then
-			local isDead = spGetUnitIsDead(target) ~= false
-			return isDead, isDead
+			return false, false
 		end
 		local los = spGetUnitLosState(target, allyTeam, true)
 		if not los then
@@ -363,30 +405,29 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetList", unitID, targetCount + 1)
 	end
 
-	local function removeUnit(unitID, keeptrack)
-		if activeTargets[unitID] and not restoreCommandTarget(unitID) then
-			spSetUnitTarget(unitID, nil)
+	local function removeUnit(unitID)
+		local unitData = setTargetData[unitID]
+		if not unitData then
+			return
 		end
+		setTargetPassive(unitID, unitData)
+		setTargetData[unitID] = nil
 		activeTargets[unitID] = nil
+		pausedTargets[unitID] = nil
 		removeFromQueue(unitID)
-		if keeptrack then
-			setTargetPassive(unitID, setTargetData[unitID])
-		else
-			setTargetData[unitID] = nil
-			pausedTargets[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
-			spSetUnitRulesParam(unitID, "hasPriorityTarget", nil)
-		end
-		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+		SendToUnsynced("targetList", unitID, 0) -- clear command gfx
+		spSetUnitRulesParam(unitID, "hasPriorityTarget", nil)
 	end
 
-	local function pauseTargetting(unitID)
-		pausedTargets[unitID] = activeTargets[unitID]
-		removeUnit(unitID, true)
+	local function pauseTargeting(unitID, unitData)
+		setTargetPassive(unitID, unitData)
+		activeTargets[unitID] = nil
+		pausedTargets[unitID] = unitData
+		removeFromQueue(unitID)
 	end
 
-	local function unpauseTargetting(unitID)
-		activeTargets[unitID] = pausedTargets[unitID]
+	local function unpauseTargeting(unitID, unitData)
+		activeTargets[unitID] = unitData
 		pausedTargets[unitID] = nil
 		addToQueue(unitID)
 	end
@@ -405,7 +446,6 @@ if gadgetHandler:IsSyncedCode() then
 				allyTeam = spGetUnitAllyTeam(unitID),
 				weapons = unitWeapons[unitDefID],
 				currentIndex = 1,
-				activeTarget = false,
 			}
 		elseif not append then
 			data.targets = {}
@@ -448,7 +488,7 @@ if gadgetHandler:IsSyncedCode() then
 		sendTargetsToUnsynced(unitID)
 
 		if not hasTargetPrecedence(unitID, data) then
-			pauseTargetting(unitID)
+			pauseTargeting(unitID, data)
 		elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
 		end
@@ -468,20 +508,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		SendToUnsynced("targetList", unitID, n + 1) -- truncate the list
-		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget)
+		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget ~= nil)
 	end
 
 	local function removeTarget(unitID, unitData, index)
 		local removed = tremove(unitData.targets, index)
 		if removed then
-			if not unitData.targets[1] then
-				removeUnit(unitID)
-				return
-			end
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
-				unitData.currentIndex = 1
-				unitData.activeTarget = false
+				setTargetPassive(unitID, unitData)
 			elseif index < unitData.currentIndex then
 				unitData.currentIndex = unitData.currentIndex - 1
 			end
@@ -537,8 +572,7 @@ if gadgetHandler:IsSyncedCode() then
 			targetList[i] = nil
 		end
 		if currentIndex == 0 then
-			unitData.currentIndex = 1
-			unitData.activeTarget = false
+			setTargetPassive(unitID, unitData)
 		else
 			unitData.currentIndex = currentIndex
 			-- The active target remains the same.
@@ -794,7 +828,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
 			if not unitData then
-				removeUnit(unitID) -- Force clear drawings in unsynced when synced holds no data.
+				SendToUnsynced("targetList", unitID, 0) -- Force clear drawings in unsynced when synced holds no data.
 			else
 				if nParams == 0 then
 					removeUnit(unitID)
@@ -817,6 +851,9 @@ if gadgetHandler:IsSyncedCode() then
 							removeTarget(unitID, unitData, index)
 						end
 					end
+				end
+				if not unitData.targets[1] then
+					removeUnit(unitID)
 				end
 			end
 			--tracy.ZoneEnd()
@@ -884,11 +921,11 @@ if gadgetHandler:IsSyncedCode() then
 				removeUnit(unitID)
 			elseif activeTargets[unitID] then
 				if not hasTargetPrecedence(unitID, unitData) then
-					pauseTargetting(unitID)
+					pauseTargeting(unitID, unitData)
 				end
 			else
 				if hasTargetPrecedence(unitID, unitData) then
-					unpauseTargetting(unitID)
+					unpauseTargeting(unitID, unitData)
 				end
 			end
 		end
@@ -930,9 +967,7 @@ if gadgetHandler:IsSyncedCode() then
 		if updateIndex == 0 then
 			removeUnit(unitID)
 		elseif activeIndex == 0 then
-			if unitData.activeTarget then
-				setTargetPassive(unitID, unitData)
-			end
+			setTargetPassive(unitID, unitData)
 			if updateIndex + 1 <= targetCount then
 				-- Remove entries only once we are done shifting indices.
 				for index = updateIndex + 1, targetCount do

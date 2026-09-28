@@ -23,8 +23,8 @@ end
 
 --increase safety margin buffer so a pawn can walk through a minefield that's exposed
 
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local WeaponThreat = VFS.Include("modules/weaponthreat.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local WeaponThreat = require("modules/weaponthreat")
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local ALWAYS_SHOOT = WeaponThreat.ALWAYS_SHOOT
 local NO_THREAT = WeaponThreat.NO_THREAT

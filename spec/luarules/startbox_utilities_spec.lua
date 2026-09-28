@@ -1,7 +1,7 @@
 -- Arrangement resolution and the whole-map fill for allyteams the arrangement does not
 -- reach. Modoptions go through the spec helper's zlib and base64 stubs.
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 local MODULE_PATH = "luarules/gadgets/include/startbox_utilities.lua"
 local MAP_SIZE_X, MAP_SIZE_Z = 4096, 4096
@@ -52,7 +52,7 @@ local savedSpring = {
 }
 
 Game.mapSizeX, Game.mapSizeZ = MAP_SIZE_X, MAP_SIZE_Z
-_G.Json = VFS.Include("common/luaUtilities/json.lua")
+_G.Json = require("common/luaUtilities/json")
 
 local function setUpGame(numAllyTeams, modoptions)
 	local allyTeamList = {}

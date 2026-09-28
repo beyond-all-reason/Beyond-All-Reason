@@ -458,7 +458,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		{ id = 6, name = "pieceindex", size = 1 },
 	} --khm, this should be unsigned int
 
-	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
+	local VBOData = require("luaui/Include/grassPatches")
 
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36

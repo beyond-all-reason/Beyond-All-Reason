@@ -1,4 +1,4 @@
-local configs = VFS.Include("luaui/configs/gridmenu_layouts.lua")
+local configs = require("luaui/configs/gridmenu_layouts")
 local labGrids = configs.LabGrids
 local unitGrids = configs.UnitGrids
 local priorityUnits = configs.PriorityUnits or {}

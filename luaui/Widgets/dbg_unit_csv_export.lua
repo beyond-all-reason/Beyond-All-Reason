@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 local filename = "unitlist.csv"
-local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local weaponInfo = VFS.Include("common/weapons.lua")
+local iconTypes = require("gamedata/icontypes")
+local weaponInfo = require("common/weapons")
 
 local function round(num, numDecimalPlaces)
 	local mult = 10 ^ (numDecimalPlaces or 0)

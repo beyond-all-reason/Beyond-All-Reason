@@ -1551,33 +1551,53 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 300 > Spring.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
-		return
-	end
-	if explosionLights[weaponID] then
-		local lightParamTable = explosionLights[weaponID].lightParamTable
-		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px, pz) or 1
-			py = math_max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
-			lightParamTable[1] = px
-			lightParamTable[2] = py
-			lightParamTable[3] = pz
-			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+-- a sim frame's explosions (px, py, pz, weaponID, ownerID runs), appended and uploaded as one range
+function widget:VisibleExplosionBatch(explosions, count)
+	local vbo = pointLightVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = explosions[i], explosions[i + 1], explosions[i + 2], explosions[i + 3]
+		local light = explosionLights[weaponID]
+		-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+		if light and not (targetable[weaponID] and py - 300 > spGetGroundHeight(px, pz)) then
+			local lightParamTable = light.lightParamTable
+			if light.alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+				local groundHeight = spGetGroundHeight(px, pz) or 1
+				lightParamTable[1] = px
+				lightParamTable[2] = math_max(groundHeight + (light.yOffset or 0), py)
+				lightParamTable[3] = pz
+				AddLight(nil, nil, nil, vbo, lightParamTable, true)
+			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
-	if muzzleFlashLights[weaponID] then
-		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
-		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
-			lightParamTable[1] = px
-			lightParamTable[2] = py
-			lightParamTable[3] = pz
-			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+function widget:BarrelfireBatch(barrelfires, count)
+	local vbo = pointLightVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = barrelfires[i], barrelfires[i + 1], barrelfires[i + 2], barrelfires[i + 3]
+		local light = muzzleFlashLights[weaponID]
+		if light then
+			local lightParamTable = light.lightParamTable
+			if light.alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+				lightParamTable[1] = px
+				lightParamTable[2] = py
+				lightParamTable[3] = pz
+				AddLight(nil, nil, nil, vbo, lightParamTable, true)
+			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
@@ -1951,7 +1971,7 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weapon, _ = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	BAR.Debug.TraceFullEcho()
 end

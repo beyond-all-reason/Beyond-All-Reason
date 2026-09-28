@@ -47,28 +47,27 @@ local holidays = BAR.Utilities.Gametype.GetCurrentHolidays()
 local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
-local holidayModels = VFS.Include("unitbasedefs/holiday_models.lua")
+local holidayModels = require("unitbasedefs/holiday_models")
 
-local evocomTweaks = VFS.Include("unitbasedefs/evocom.lua").Tweaks
-local extraUnitsTweaks = VFS.Include("unitbasedefs/experimental_extra_units.lua").Tweaks
-local processRaptorsUnit = VFS.Include("unitbasedefs/raptor_unitdefs_post.lua").Tweaks
-local scavUnitsForPlayers = VFS.Include("unitbasedefs/scavenger_units_for_players.lua").Tweaks
-local junoReworkTweaks = VFS.Include("unitbasedefs/juno_rework.lua").Tweaks
-local navalBalanceTweaks = VFS.Include("unitbasedefs/naval_balance_tweaks.lua").Tweaks
-local skyshiftUnitTweaks = VFS.Include("unitbasedefs/skyshiftunits_post.lua").skyshiftUnitTweaks
-local proposed_unit_reworksTweaks =
-	VFS.Include("unitbasedefs/proposed_unit_reworks_defs.lua").proposed_unit_reworksTweaks
-local techsplitTweaks = VFS.Include("unitbasedefs/techsplit_defs.lua").techsplitTweaks
-local techsplit_balanceTweaks = VFS.Include("unitbasedefs/techsplit_balance_defs.lua").techsplit_balanceTweaks
+local evocomTweaks = require("unitbasedefs/evocom").Tweaks
+local extraUnitsTweaks = require("unitbasedefs/experimental_extra_units").Tweaks
+local processRaptorsUnit = require("unitbasedefs/raptor_unitdefs_post").Tweaks
+local scavUnitsForPlayers = require("unitbasedefs/scavenger_units_for_players").Tweaks
+local junoReworkTweaks = require("unitbasedefs/juno_rework").Tweaks
+local navalBalanceTweaks = require("unitbasedefs/naval_balance_tweaks").Tweaks
+local skyshiftUnitTweaks = require("unitbasedefs/skyshiftunits_post").skyshiftUnitTweaks
+local proposed_unit_reworksTweaks = require("unitbasedefs/proposed_unit_reworks_defs").proposed_unit_reworksTweaks
+local techsplitTweaks = require("unitbasedefs/techsplit_defs").techsplitTweaks
+local techsplit_balanceTweaks = require("unitbasedefs/techsplit_balance_defs").techsplit_balanceTweaks
 
-local airRework = VFS.Include("unitbasedefs/air_rework_defs.lua")
+local airRework = require("unitbasedefs/air_rework_defs")
 local airReworkUnitTweaks = airRework.UnitTweaks
 local airReworkWeaponTweaks = airRework.WeaponTweaks
-local empRework = VFS.Include("unitbasedefs/emp_rework.lua")
+local empRework = require("unitbasedefs/emp_rework")
 local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
-local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
+local scavWeaponDefPost = require("gamedata/scavengers/weapondef_post").scavWeaponDefPost
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -205,6 +204,19 @@ end
 -- MODULE FUNCTIONS
 -------------------------
 
+local function spawnedAirUnit(carriedUnits)
+	if not carriedUnits then
+		return
+	end
+	for carriedName in string.gmatch(carriedUnits, "%S+") do
+		-- Scav units still have the base unit here but check against both sets anyway.
+		local carriedDef = UnitDefs[carriedName] or UnitDefs[(string.gsub(carriedName, "_scav$", ""))] ---@as table
+		if carriedDef and carriedDef.canfly then
+			return carriedDef
+		end
+	end
+end
+
 local function unitDef_Post(name, uDef)
 	local isScav = string.sub(name, -5, -1) == "_scav"
 	local basename = isScav and string.sub(name, 1, -6) or name
@@ -311,8 +323,30 @@ local function unitDef_Post(name, uDef)
 			customparams.modoption_blocked = true
 		elseif uDef.canfly then
 			customparams.modoption_blocked = true
-		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories and drone carriers with no other purpose (ex. leghive but not rampart)
+		elseif customparams.restrictions_inclusion and string.find(customparams.restrictions_inclusion, "_noair_") then --used to remove factories with no other purpose (ex. legap)
 			customparams.modoption_blocked = true
+		else
+			local strippedDrones = false
+			for weaponName, weaponDef in pairs(weapondefs) do
+				local carriedUnit = weaponDef.customparams and weaponDef.customparams.carried_unit
+				local carriedDef = spawnedAirUnit(carriedUnit)
+				if carriedDef then
+					weapondefs[weaponName] = nil
+					strippedDrones = true
+					-- Make a minimal effort toward cost adjustments:
+					local count = weaponDef.customparams.startingdronecount
+					if count and tonumber(count) then
+						uDef.metalcost = (uDef.metalcost or 0) - count * (carriedDef.metalcost or 0)
+						uDef.energycost = (uDef.energycost or 0) - count * (carriedDef.energycost or 0)
+					end
+					uDef.metalcost = (uDef.metalcost or 0) * 0.95
+					uDef.energycost = (uDef.energycost or 0) * 0.95
+				end
+			end
+			-- Keep drone spawners that have other weapons:
+			if strippedDrones and not next(weapondefs) then
+				customparams.modoption_blocked = true
+			end
 		end
 	end
 
@@ -1038,6 +1072,12 @@ local function weaponDef_Post(name, wDef)
 			end
 		end
 
+		if wDef.weapontype == "BeamLaser" and wDef.impactonly == 1 then
+			wDef.impactonly = nil
+			wDef.areaofeffect = 11
+			wDef.edgeeffectiveness = 1
+		end
+
 		-- Remove water splashes on lava maps
 		if modOptions.map_waterislava and wDef.weapontype == "TorpedoLauncher" then
 			wDef.explosiongenerator = "custom:blank"
@@ -1056,7 +1096,7 @@ local function weaponDef_Post(name, wDef)
 
 		--[[Skyshift: Air rework
 		if modoptions.skyshift == true then
-			skyshiftUnits = VFS.Include("unitbasedefs/skyshiftunits_post.lua")
+			skyshiftUnits = require("unitbasedefs/skyshiftunits_post")
 			wDef = skyshiftUnits.skyshiftWeaponTweaks(name, wDef)
 		end]]
 

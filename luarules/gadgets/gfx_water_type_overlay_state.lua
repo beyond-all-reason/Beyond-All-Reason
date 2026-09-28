@@ -312,10 +312,21 @@ end
 ------------------------------------------------------------------------
 -- Message from widget
 ------------------------------------------------------------------------
--- Prefix embedded in messages when cheat was active at send time. During
--- replay the recorded prefix survives while live cheat is always false, so it
--- is the only trust signal available there.
+-- Prefix embedded in messages sent by an authorised editor session.
 local CHEAT_SIG = "$c$"
+
+-- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
+-- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
+-- packet that arrived with live cheat off. Demos replay the /cheat chat command,
+-- so cheat state is reproduced during playback anyway; what the certification is
+-- really for is map-editor sessions, where /cheat is a toggle that competing
+-- widgets can flip off mid-stream. The mapeditor modoption is synced from the
+-- start script and cannot be forged by a client.
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
 
 function gadget:RecvLuaMsg(msg, playerID)
 	if type(msg) ~= "string" then
@@ -331,11 +342,11 @@ function gadget:RecvLuaMsg(msg, playerID)
 		return
 	end
 
-	-- Auth gate: require live cheat, or a $c$-certified message during replay
-	-- only. Without this any modified client could send this message in a live
-	-- no-cheat match and flip the map into lava/acid mode, applying map-wide
-	-- Gaia damage to every unit and feature.
-	if not (Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())) then
+	-- Auth gate: require live cheat, or a $c$-certified message inside a
+	-- map-editor session. Without this any modified client could send this
+	-- message in a live no-cheat match and flip the map into lava/acid mode,
+	-- applying map-wide Gaia damage to every unit and feature.
+	if not (Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)) then
 		return
 	end
 

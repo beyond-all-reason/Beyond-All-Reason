@@ -75,6 +75,7 @@ local function resolve(schema, root)
 	return node
 end
 
+---@type fun(schema: table, value: any, root: table, path: string, errors: string[]): string[]
 local validate
 
 -- oneOf holds only when exactly one branch matches.
@@ -160,6 +161,15 @@ validate = function(schema, value, root, path, errors)
 		for name in pairs(value) do
 			if type(name) == "string" and declared[name] == nil then
 				errors[#errors + 1] = path .. ": unexpected property '" .. name .. "'"
+			end
+		end
+	end
+
+	if type(schema.additionalProperties) == "table" then
+		local declared = schema.properties or {}
+		for name, entry in pairs(value) do
+			if type(name) == "string" and declared[name] == nil then
+				validate(schema.additionalProperties, entry, root, path .. "." .. name, errors)
 			end
 		end
 	end

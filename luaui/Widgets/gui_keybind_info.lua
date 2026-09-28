@@ -18,14 +18,20 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
+local keybindEditor = require("luaui/Include/keybind_editor_view")
 
 local doUpdate
 
 local vsx, vsy = spGetViewGeometry()
 
-local screenHeightOrg = 610
-local screenWidthOrg = 1100
+-- The panel's size at 1080p: the list fits this panel, and the keyboard overview asks for
+-- whatever gets its keys read, worked out per screen below.
+local listWidthOrg = 1100
+local listHeightOrg = 610
+-- The page the panel is showing, which decides its size.
+local currentPage = "list"
+local screenHeightOrg = listHeightOrg
+local screenWidthOrg = listWidthOrg
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -81,10 +87,32 @@ local function refreshText()
 	keybindEditor.refresh()
 end
 
+-- The panel's size at 1080p for the page showing. The keyboard page keeps the list's panel
+-- wherever that already gives it keys of ninety pixels or more on screen, which a 1440p
+-- screen does, so the panel does not change between the pages there. Where it does not - a
+-- 1080p screen gives 68 - the page grows to keys of about a hundred pixels: fifteen of them
+-- plus the panel's margins across, and the keyboard's proportions with the bands around it
+-- down. The 96 is those bands at 1080p: the panel's padding, the header and the footer.
+local function pageSize(page)
+	if page ~= "keyboard" then
+		return listWidthOrg, listHeightOrg
+	end
+	local listKeys = (listHeightOrg - 96) / 7.5 * widgetScale
+	if listKeys >= 90 then
+		return listWidthOrg, listHeightOrg
+	end
+	local keysOrg = 100 * 15 / widgetScale
+	local width = mathFloor(math.max(listWidthOrg, math.min(1560, keysOrg + 40)))
+	local height = mathFloor(math.max(listHeightOrg, (width - 40) * 0.5 + 96))
+
+	return width, height
+end
+
 -- Rebuilds every rect and display list against the new screen size.
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
 	widgetScale = (vsy / 1080)
+	screenWidthOrg, screenHeightOrg = pageSize(currentPage)
 
 	screenHeight = mathFloor(screenHeightOrg * widgetScale)
 	screenWidth = mathFloor(screenWidthOrg * widgetScale)
@@ -159,7 +187,7 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, _ = Spring.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			Spring.SetMouseCursor("cursornormal")
 		end
@@ -345,11 +373,24 @@ end
 function widget:Initialize()
 	refreshText()
 
-	widgetHandler:AddAction("keybindeditor", function()
+	-- "keybindeditor keyboard" opens straight onto the keyboard overview, "keybindeditor list"
+	-- onto the list; bare, it leaves the page as it was last left.
+	widgetHandler:AddAction("keybindeditor", function(_, _, words)
+		if words and words[1] then
+			keybindEditor.setPage(words[1])
+		end
 		show = true
 		doUpdate = true
 		return true
 	end, nil, "t")
+
+	-- "keybindprofile <name>" makes that profile live. One action per profile rather than a
+	-- cycle, so a key means the same profile whatever is active. The whole argument line is
+	-- the name: profile names hold spaces, and the engine hands back the args it was bound
+	-- with, so this matches the action ids the editor lists.
+	widgetHandler:AddAction("keybindprofile", function(_, line)
+		return keybindEditor.applyProfile(line)
+	end, nil, "tp")
 
 	-- Sent as commands because widgetHandler here is a per-widget proxy, which carries no
 	-- Enable/DisableWidget.
@@ -364,6 +405,18 @@ function widget:Initialize()
 		else
 			Spring.SendCommands("luaui disablewidget Grid menu")
 			Spring.SendCommands("luaui enablewidget Build menu")
+		end
+	end)
+
+	-- The panel takes the size its page wants; a page switch lays everything out again.
+	keybindEditor.setPageHook(function(page)
+		currentPage = page
+		local width, height = pageSize(page)
+		if width ~= screenWidthOrg or height ~= screenHeightOrg then
+			local resize = widget.ViewResize
+			if resize then
+				resize(widget, vsx, vsy)
+			end
 		end
 	end)
 

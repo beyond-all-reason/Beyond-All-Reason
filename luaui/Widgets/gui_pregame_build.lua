@@ -1,7 +1,7 @@
 local widget = widget ---@type Widget
 
 -- Include the substitution logic directly with a shorter alias
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 function widget:GetInfo()
 	return {
@@ -283,7 +283,7 @@ end
 ------------------------------------------
 function widget:Initialize()
 
-	if VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled() then
+	if require("luaui/Include/mission_options").IsStartUnitSpawnDisabled() then
 		widgetHandler:RemoveWidget()
 		return
 	end
