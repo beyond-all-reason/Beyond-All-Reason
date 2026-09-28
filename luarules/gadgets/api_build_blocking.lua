@@ -88,8 +88,8 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	local unitRestrictions = VFS.Include("common/configs/unit_restrictions_config.lua")
-	local unitBlocking = VFS.Include("common/unitBlocking.lua")
+	local unitRestrictions = require("common/configs/unit_restrictions_config")
+	local unitBlocking = require("common/unitBlocking")
 
 	---@param blockedUnits table<number, table<string, boolean>> unitDefID -> reasons
 	local function reapplyBlocks(teamID, blockedUnits, builderUnitDefID)

@@ -9,10 +9,10 @@
 -- lean on bind order to put a special case ahead of the general one (Grid binds
 -- "stopproduction" ahead of "stop" on G), and the general one is what the key is for.
 
-local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local Search = VFS.Include("luaui/Include/search.lua")
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local Search = require("luaui/Include/search")
+local keyConfig = require("luaui/configs/keyboard_layouts")
+local keybindModel = require("luaui/Include/keybind_model")
+local text = require("luaui/Include/keybind_text")
 
 local floor = math.floor
 local max = math.max

@@ -29,7 +29,7 @@ local makeVAOandAttach = InstanceVBOTable.makeVAOandAttach
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = require("luaui/Include/minimap_utils").getMiniMapFlipped
 
 local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2

@@ -16,7 +16,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local critterConfig = VFS.Include("LuaRules/configs/critters.lua")
+local critterConfig = require("luarules/configs/critters")
 
 local amountMultiplier = tonumber(Spring.GetModOptions().critters) or 1.0
 local minMultiplier = 0.2

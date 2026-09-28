@@ -1,6 +1,6 @@
 local STARTUP_CAMERA_INITIAL_ZOOM_DISTANCE = 5000
 
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 local widget = widget ---@type Widget
 

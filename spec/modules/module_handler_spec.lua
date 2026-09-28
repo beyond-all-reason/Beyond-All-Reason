@@ -1,4 +1,4 @@
-local ModuleHandler = VFS.Include("modules/module_handler.lua")
+local ModuleHandler = require("modules/module_handler")
 
 describe("ModuleHandler", function()
 	describe("Register", function()

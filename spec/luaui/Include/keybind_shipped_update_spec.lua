@@ -4,7 +4,7 @@
 --
 -- Nothing here reaches disk. Every write the module makes is captured instead.
 
-local Json = VFS.Include("common/luaUtilities/json.lua")
+local Json = require("common/luaUtilities/json")
 
 local STORE = "LuaUI/Config/keybind_profiles.json"
 local KEYMAP = "uikeys.txt"
@@ -57,7 +57,7 @@ local function run(files, writes, body)
 	-- The body hands back one table: pcall keeps only the first result, and a nil answer among
 	-- several would not survive being packed either.
 	local ok, result = pcall(function()
-		return body(VFS.Include("luaui/Include/keybind_profiles.lua"))
+		return body(require("luaui/Include/keybind_profiles"))
 	end)
 
 	io.open, VFS.LoadFile = realOpen, realLoadFile

@@ -150,7 +150,7 @@ end
 -- needed here too, and gadget handler doesn't expose it
 VFS.Include("LuaGadgets/system.lua", nil, VFSMODE)
 
-local UnitScriptAttributes = VFS.Include("common/unit_script_attributes.lua")
+local UnitScriptAttributes = require("common/unit_script_attributes")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -570,7 +570,7 @@ function gadget:Initialize()
 	--  * exact path can be specified to resolve ambiguous basenames
 	--  * engine default scriptName (with .cob extension) works
 
-	local ModuleHandler = VFS.Include("modules/module_handler.lua", nil, VFSMODE)
+	local ModuleHandler = require("modules/module_handler", nil, VFSMODE)
 	ModuleHandler.Register(VFSMODE)
 	for _, filename in ipairs(VFS.DirList(UNITSCRIPT_DIR, "*.lua", VFSMODE, true)) do
 		scriptFiles[filename:lower()] = filename -- for exact match

@@ -1,6 +1,6 @@
 local widget = widget ---@type Widget
 
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 local ENABLE_REPORTS = BAR.Utilities.IsDevMode()
 

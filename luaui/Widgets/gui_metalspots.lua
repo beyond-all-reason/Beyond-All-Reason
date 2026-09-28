@@ -144,7 +144,7 @@ local shaderSourceCache = {
 
 local MetalSpotTextAtlas
 local AtlasTextureID
-local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
+local MakeAtlasOnDemand = require("luaui/Include/AtlasOnDemand")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)

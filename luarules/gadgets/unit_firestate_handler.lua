@@ -23,7 +23,7 @@ end
 
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
 local INLOS = { inlos = true }
 
 local spGiveOrderToUnit = Spring.GiveOrderToUnit

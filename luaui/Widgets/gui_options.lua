@@ -28,7 +28,7 @@ local types = {
 local version = 1.5 -- used to toggle previously default enabled/disabled widgets to the newer default in widget:initialize()
 local newerVersion = false -- configdata will set this true if it's a newer version
 
-local keyLayouts = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyLayouts = require("luaui/configs/keyboard_layouts")
 
 local languageCodes = { "en", "fr", "ru", "es" }
 languageCodes = table.merge(languageCodes, table.invert(languageCodes))
@@ -412,8 +412,8 @@ local function detectWater()
 	end
 end
 
-local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
-local Search = VFS.Include("luaui/Include/search.lua")
+local Search = require("luaui/Include/search")
+local utf8 = require("common/luaUtilities/utf8")
 --local textInputDlist, consoleCmdDlist, textCursorRect
 local updateTextInputDlist = true
 local showTextInput = true

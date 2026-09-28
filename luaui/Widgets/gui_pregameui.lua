@@ -23,7 +23,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local draftMode = Spring.GetModOptions().draft_mode
 
-local isStartUnitSpawnDisabled = VFS.Include("luaui/Include/mission_options.lua").IsStartUnitSpawnDisabled()
+local isStartUnitSpawnDisabled = require("luaui/Include/mission_options").IsStartUnitSpawnDisabled()
 
 local vsx, vsy = spGetViewGeometry()
 

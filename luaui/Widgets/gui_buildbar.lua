@@ -23,8 +23,8 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 local vsx, vsy = spGetViewGeometry()
 local ui_scale = tonumber(Spring.GetConfigFloat("ui_scale", 1) or 1)
@@ -75,7 +75,7 @@ local bopt_inext = { 0, 0 }
 
 local myTeamID = 0
 
-local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+local orgIconTypes = require("gamedata/icontypes")
 local unitIcon = {}
 local unitBuildOptions = {}
 for udid, unitDef in pairs(UnitDefs) do

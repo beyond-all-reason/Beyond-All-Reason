@@ -8,20 +8,20 @@
 -- This chunk sits at Lua ceiling of 200 locals, so related state shares a table (`metrics`,
 -- `hover`, `state`, `shade`) rather than taking a slot each.
 
-local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
-local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
+local keybindConfig = require("luaui/Include/keybind_config")
+local keybindModel = require("luaui/Include/keybind_model")
 
 -- Shape and rules are documented in common/configs/keybinds.README.md; this is the
 -- contract Chobby and the lobby read too, so it is data rather than Lua.
 local catalog = keybindConfig.load("common/configs/keybind_catalog.json") or {}
-local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
-local Dropdown = VFS.Include("luaui/Include/keybind_dropdown.lua")
-local Search = VFS.Include("luaui/Include/search.lua")
-local profiles = VFS.Include("luaui/Include/keybind_profiles.lua")
+local Dropdown = require("luaui/Include/keybind_dropdown")
+local Editbox = require("luaui/Include/keybind_editbox")
+local Search = require("luaui/Include/search")
+local profiles = require("luaui/Include/keybind_profiles")
 
-local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local text = require("luaui/Include/keybind_text")
 
 local view = {}
 
@@ -424,7 +424,7 @@ local state = {
 	batchEdited = false,
 	---@type string
 	page = "list",
-	keyboard = VFS.Include("luaui/Include/keybind_keyboard.lua").new(),
+	keyboard = require("luaui/Include/keybind_keyboard").new(),
 	keyboardGen = -1,
 }
 

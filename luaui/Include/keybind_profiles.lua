@@ -4,9 +4,9 @@
 -- Migration is the exception, and reads the subset of the bind-file grammar that changes what
 -- ends up bound. Everything after it goes through Spring.GetKeyBindings.
 
-local Json = Json or VFS.Include("common/luaUtilities/json.lua")
-local keybindConfig = VFS.Include("luaui/Include/keybind_config.lua")
-local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
+local Json = Json or require("common/luaUtilities/json")
+local keybindConfig = require("luaui/Include/keybind_config")
+local keybindModel = require("luaui/Include/keybind_model")
 
 local PROFILES_PATH = "LuaUI/Config/keybind_profiles.json"
 local DEFAULTS_PATH = "common/configs/keybind_defaults.json"

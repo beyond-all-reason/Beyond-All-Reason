@@ -5001,7 +5001,7 @@ function widget:ViewResize()
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2, 1.5, 0.13, 20)
 
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
+	local MakeAtlasOnDemand = require("luaui/Include/AtlasOnDemand")
 	if AdvPlayersListAtlas then
 		--AdvPlayersListAtlas:Delete()
 	end

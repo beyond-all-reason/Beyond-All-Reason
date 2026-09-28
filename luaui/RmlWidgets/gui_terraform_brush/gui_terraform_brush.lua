@@ -233,7 +233,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	-- module rather than language/en/interface.json: the translation files
 	-- are written by hand, and none of this editor is translated. A field
 	-- and not a local: this file is close to Lua's 200-local limit.
-	text = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua").text,
+	text = require("luaui/RmlWidgets/gui_terraform_brush/tf_strings").text,
 	rmlContext = nil,
 	document = nil,
 	---@type table?
@@ -3660,7 +3660,8 @@ end
 -- sensible hand ranges if the file is missing.
 do
 	local ok, t = pcall(function()
-		return VFS.Include("luaui/RmlWidgets/gui_terraform_brush/newmap_archetypes.lua")
+		local required = require("luaui/RmlWidgets/gui_terraform_brush/newmap_archetypes")
+		return required
 	end)
 	if ok and type(t) == "table" then
 		widgetState.newMapArchetypes = t
@@ -16654,19 +16655,19 @@ widgetState.regTransports = function(doc)
 end
 
 -- ============ Load extracted tool modules ============
-local tfMetal = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_metal.lua")
-local tfGrass = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_grass.lua")
-local tfFeatures = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_features.lua")
-local tfWeather = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_weather.lua")
-local tfDecals = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_decals.lua")
-local tfLights = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_lights.lua")
-local tfNoise = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_noise.lua")
-local tfStartPos = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_startpos.lua")
-local tfClone = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_clone.lua")
-local tfSplat = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_splat.lua")
-local tfDiffuse = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse.lua")
-local tfEnvironment = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_environment.lua")
-local tfTileset = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_tileset.lua")
+local tfClone = require("luaui/RmlWidgets/gui_terraform_brush/tf_clone")
+local tfDecals = require("luaui/RmlWidgets/gui_terraform_brush/tf_decals")
+local tfDiffuse = require("luaui/RmlWidgets/gui_terraform_brush/tf_diffuse")
+local tfEnvironment = require("luaui/RmlWidgets/gui_terraform_brush/tf_environment")
+local tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
+local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
+local tfLights = require("luaui/RmlWidgets/gui_terraform_brush/tf_lights")
+local tfMetal = require("luaui/RmlWidgets/gui_terraform_brush/tf_metal")
+local tfNoise = require("luaui/RmlWidgets/gui_terraform_brush/tf_noise")
+local tfSplat = require("luaui/RmlWidgets/gui_terraform_brush/tf_splat")
+local tfStartPos = require("luaui/RmlWidgets/gui_terraform_brush/tf_startpos")
+local tfTileset = require("luaui/RmlWidgets/gui_terraform_brush/tf_tileset")
+local tfWeather = require("luaui/RmlWidgets/gui_terraform_brush/tf_weather")
 -- Guarded include: tf_surface.lua was added mid-development, and a file the
 -- VFS can't see (added after game start — the .sdd archive is scanned at
 -- launch, /luaui reload does not rescan) must degrade to "no SURFACE tool",
@@ -16686,7 +16687,7 @@ do
 		)
 	end
 end
-local tfGuide = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_guide.lua")
+local tfGuide = require("luaui/RmlWidgets/gui_terraform_brush/tf_guide")
 
 -- Shared context passed to all extracted tool modules
 local ctx = {
@@ -18176,7 +18177,7 @@ function widget:Initialize()
 	end
 
 	widgetState.projectLibraryRemote = false
-	local projectUi = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
+	local projectUi = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library")
 	widgetState.projectLibraryUi = projectUi.new(widgetState, initialModel)
 	widgetState.projectSaveUi = projectUi.newSave(widgetState, initialModel)
 	local dm = widgetState.rmlContext:OpenDataModel(MODEL_NAME, initialModel, self)

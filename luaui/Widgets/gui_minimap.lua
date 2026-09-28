@@ -19,9 +19,9 @@ local mathMin = math.min
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 local maxWidthFraction = 0.25
 local maxAllowedWidth = maxWidthFraction

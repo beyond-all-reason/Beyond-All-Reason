@@ -714,7 +714,7 @@ end
 -- the dominant source of GC pressure -> LuaRAM warnings on large freedraw splines.
 -- The game tessellates startbox anchors through this same module, so a preview built with
 -- it matches what the match will enforce vertex for vertex.
-strengthEdit.spline = VFS.Include("common/lib_spline.lua")
+strengthEdit.spline = require("common/lib_spline")
 
 -- Refresh tessellated vertices for a spline-kind startbox after its controls have changed.
 -- Mutates box.vertices in place and only flags a *pending* fill rebuild — the actual fill
@@ -1037,7 +1037,7 @@ function boxExport.encode()
 		Echo("[StartPos Tool] Json unavailable; cannot encode.")
 		return nil
 	end
-	boxExport.b64 = boxExport.b64 or VFS.Include("common/luaUtilities/base64.lua")
+	boxExport.b64 = boxExport.b64 or require("common/luaUtilities/base64")
 	local ok, raw = pcall(Json.encode, { startboxes = arrangement })
 	if not ok or not raw then
 		return nil

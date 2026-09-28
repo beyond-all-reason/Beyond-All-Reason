@@ -69,7 +69,7 @@ local sqrt = math.sqrt
 
 -- Shared falloff curve (also used by the brush widgets) so the metal apply and
 -- the previewed ring stay in lockstep. See common/brush_shapes.lua.
-local computeFalloff = VFS.Include("common/brush_shapes.lua").computeFalloff
+local computeFalloff = require("common/brush_shapes").computeFalloff
 
 local spGetMetalAmount = Spring.GetMetalAmount
 local spSetMetalAmount = Spring.SetMetalAmount

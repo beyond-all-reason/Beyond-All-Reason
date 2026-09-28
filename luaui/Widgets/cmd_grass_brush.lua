@@ -51,7 +51,7 @@ local pi = math.pi
 local sqrt = math.sqrt
 local format = string.format
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 local KEYSYMS_SPACE = 0x20
 local KEYSYMS_ESCAPE = 0x1B

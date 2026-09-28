@@ -21,7 +21,7 @@ local decalAlpha = 0.66
 
 --------------- Atlas textures ----------------
 
-local atlas = VFS.Include("unittextures/decals_features/featureaoplates_atlas.lua")
+local atlas = require("unittextures/decals_features/featureaoplates_atlas")
 local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
 local atlassedImages = {}

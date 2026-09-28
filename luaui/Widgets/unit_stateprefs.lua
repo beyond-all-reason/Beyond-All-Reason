@@ -96,7 +96,7 @@ local spawnInitialFrame = Game.spawnInitialFrame
 local spectatingState = select(1, Spring.GetSpectatingState())
 local priorUserFirestateFunction = nil
 
-VFS.Include("luaui/Include/user_firestate_commands.lua")
+require("luaui/Include/user_firestate_commands")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

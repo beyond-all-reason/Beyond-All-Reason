@@ -1,5 +1,6 @@
 # September
 - [Laser weapons] given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
+- [Vertical launcher weapons] keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
 - [T1 Air Constructors] -10 buildpower
 - [Grunt, Pawn, Goblin] Script improvements. No longer fire sideways when switching targets mid-shot or going in and out of range
 - [Mobile Jammers]

@@ -53,9 +53,9 @@ end
 
 math_random = math.random -- not a local cause the includes below use it
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
-local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
+local blueprintController = require("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
+local scavConfig = require("luarules/configs/scav_spawn_defs")
 
 -- spawnAmountBudget scales ruin amounts with map area.
 local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3

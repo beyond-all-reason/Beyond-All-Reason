@@ -19,7 +19,7 @@ local spEcho = Spring.Echo
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups

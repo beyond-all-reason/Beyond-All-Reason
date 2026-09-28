@@ -258,7 +258,7 @@ local storeDefaults = {
 	projectileCap = 300, -- shells followed at once
 	projectileStep = 5, -- projectile scan cadence in frames (within a tick)
 	projectileTolerance = 2, -- elmos of course drift before a shell is re-logged
-	commandCap = 200, -- per tick
+	commandCap = 600, -- per tick
 	scanSpread = 4, -- a tick's unit scan runs over this many frames (unit id modulo phase)
 	lookaheadTicks = 8, -- playback searches this far ahead for a unit's next record
 	coldTicks = 240, -- ticks older than this are zlib-frozen
@@ -2524,7 +2524,8 @@ function View:Materialize(frame)
 end
 
 -- Events whose frame lies in (frame - window, frame]; fills explosions / deaths / commands / beams.
-function View:CollectEvents(frame, window, flashSpan)
+-- Commands only reach back commandSpan frames when given.
+function View:CollectEvents(frame, window, flashSpan, commandSpan)
 	local store = self.store
 	local ticks = store.ticks
 	self.explosionCount, self.deathCount, self.commandCount, self.beamCount = 0, 0, 0, 0
@@ -2534,6 +2535,7 @@ function View:CollectEvents(frame, window, flashSpan)
 	local minFrame = frame - window
 	local explMin = frame - 75 -- explosions and deaths draw for at most ~2.5 s
 	local markMin = frame - 120
+	local cmdMin = commandSpan and frame - commandSpan or minFrame
 	local flashMin = frame - (flashSpan or store.opts.flashFrames)
 	local first = findTickIndex(ticks, minFrame)
 	if first == 0 then
@@ -2624,7 +2626,7 @@ function View:CollectEvents(frame, window, flashSpan)
 							d.unitID, d.x, d.z, d.defID, d.team, d.frame =
 								arr[j + 1], arr[j + 2], arr[j + 3], arr[j + 4], arr[j + 5], ef
 						end
-					elseif kind == EV_COMMAND then
+					elseif kind == EV_COMMAND and ef > cmdMin then
 						cn = cn + 1
 						local c = cmds[cn]
 						if not c then

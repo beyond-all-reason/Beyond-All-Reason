@@ -4,7 +4,7 @@
 -- tool. The knobs live in the write-dir widget dev_tileset_terrain.lua and are
 -- driven through WG.TilesetTerrain (getKnobs/setKnob/reset). The RML rows are
 -- generated from the same spec below, so this list and the .rml stay in step.
-local tfStrings = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_strings.lua")
+local tfStrings = require("luaui/RmlWidgets/gui_terraform_brush/tf_strings")
 local M = {}
 
 -- Capture WG as an upvalue: RmlUi-dispatched event closures can run outside the

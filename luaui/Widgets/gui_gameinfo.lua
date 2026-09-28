@@ -22,10 +22,10 @@ end
 -- the list shows, so nothing is decoded or measured again while they are used.
 
 -- Shared with the keybind editor, which is where both were written for.
-local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
-local text = VFS.Include("luaui/Include/keybind_text.lua")
-local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
-local Search = VFS.Include("luaui/Include/search.lua")
+local Editbox = require("luaui/Include/keybind_editbox")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local Search = require("luaui/Include/search")
+local text = require("luaui/Include/keybind_text")
 -- Tweaks arrive minified, as one enormous line; this lays them out again. Wanted rather
 -- than required: the engine lists the game's files once at start, so a file added since is
 -- invisible until the next one, and a hard include would take the whole panel down on a
@@ -337,7 +337,7 @@ end
 local optionDefs = {}
 local sectionOrder = {}
 local sectionNames = {}
-for _, o in ipairs(VFS.Include("modoptions.lua")) do
+for _, o in ipairs(require("modoptions")) do
 	if o.type == "section" then
 		sectionOrder[#sectionOrder + 1] = o.key
 		sectionNames[o.key] = o.name

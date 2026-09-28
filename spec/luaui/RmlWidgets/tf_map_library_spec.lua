@@ -1,4 +1,4 @@
-local LibraryUI = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
+local LibraryUI = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library")
 
 -- The controller behind the Projects window: one browser over this disk and
 -- the team library, the Team Sync strip and start card, the stage tray, the
@@ -83,7 +83,7 @@ describe("Projects window controller", function()
 			Spring = {},
 			WG = {},
 		}, { __index = _G })
-		local runtimeUI = VFS.Include("luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua", environment)
+		local runtimeUI = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library", environment)
 		local model = { projectHelperHint = "" }
 		local state = { projectOpenSelectedSlug = "Design/arena", projectOpenIsFolder = false, teamSyncEnabled = true }
 		local ui = runtimeUI.new(state, model)

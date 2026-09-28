@@ -2,7 +2,7 @@
 -- Source of truth is Spring.GetKeyBindings(); we normalize each binding and group
 -- by action.
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 
 -- The file keysym "enter" and the scancode-based "return" from capture are one key.
 local keyNameAlias = { enter = "return" }

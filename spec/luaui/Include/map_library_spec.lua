@@ -1,4 +1,4 @@
-local Client = VFS.Include("luaui/Include/map_library.lua")
+local Client = require("luaui/Include/map_library")
 
 local function fixture()
 	local state = {
@@ -120,7 +120,7 @@ describe("map library queue", function()
 		local state = fixture()
 		local seen = {}
 		for _, operation in ipairs({ "pull", "publish", "download" }) do
-			local runtimeClient = VFS.Include("luaui/Include/map_library.lua", environment).new(state.options)
+			local runtimeClient = require("luaui/Include/map_library", environment).new(state.options)
 			local ok, requestID = runtimeClient.request(operation, "arena", "Design")
 			assert(ok and requestID == state.files.request.id)
 			assert(#requestID == 24 and requestID:match("^[a-f0-9]+$") and not seen[requestID])

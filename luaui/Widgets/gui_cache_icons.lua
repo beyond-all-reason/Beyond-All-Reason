@@ -15,7 +15,7 @@ end
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 
-local iconTypes = VFS.Include("gamedata/icontypes.lua")
+local iconTypes = require("gamedata/icontypes")
 local vsx, _ = Spring.GetViewGeometry()
 local delayedCacheUnitIcons
 local delayedCacheUnitIconsTimer = 0

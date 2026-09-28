@@ -26,7 +26,7 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local texts = {}
-local weaponInfo = VFS.Include("common/weapons.lua")
+local weaponInfo = require("common/weapons")
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua"))
 	and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
 local gameName = Game.gameName

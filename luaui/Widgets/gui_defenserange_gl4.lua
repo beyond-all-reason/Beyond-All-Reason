@@ -563,7 +563,7 @@ local shaderSourceCache = {
 -- the overlap; the outer rings read that mask instead of the stencil buffer. The 8-bit red
 -- channel holds one bit per class (the stencilMask values of colorConfig), with one mask per
 -- ally/enemy group. The stencil path remains as the fallback.
-local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local RangeCoverageMask = require("luaui/Include/range_coverage_mask_gl4")
 local maskShader = nil
 local maskFBO, maskTex -- the shared targets, fetched each draw
 local maskAcquired = false
