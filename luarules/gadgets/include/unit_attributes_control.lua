@@ -487,7 +487,7 @@ local pruneUnitFactors, pruneUnitDefFactors
 do
 	local function prune(parent, key)
 		local child = parent[key]
-		if child == nil or next(child) ~= nil then
+		if child ~= nil and next(child) ~= nil then
 			return false
 		end
 		parent[key] = nil
