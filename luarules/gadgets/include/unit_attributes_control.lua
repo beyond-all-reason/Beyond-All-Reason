@@ -387,6 +387,9 @@ local weaponLayoutByDef = {} ---@type table<UnitDefID, WeaponLayout>
 ---The same weapondef used in many weapons on the same unitdef maps to its first instance.
 local weaponNumbersByDef = {} ---@type table<UnitDefID, table<WeaponDefID, integer>?>
 
+---Scripted/spawned weapon damages are scaled in UnitPreDamaged, which would double-scale a real weapon.
+local isUnitWeaponDef = {} ---@type table<WeaponDefID, true?>
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local keys, slots = {}, {}
 	local weaponCount = 0
@@ -407,6 +410,7 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 			if not weaponNumbers[weaponDefID] then
 				weaponNumbers[weaponDefID] = weaponNum
 			end
+			isUnitWeaponDef[weaponDefID] = true
 		end
 		weaponNumbersByDef[unitDefID] = weaponNumbers
 	end
@@ -1569,12 +1573,9 @@ end
 ---@param weaponDefID WeaponDefID the spawned weapondef
 ---@param parentWeaponDefID WeaponDefID the weapon it is spawned from
 local function setWeaponDefParent(weaponDefID, parentWeaponDefID)
-	-- TODO: move runtime rules checks to load time
-	for _, weaponNumbers in pairs(weaponNumbersByDef) do
-		if weaponNumbers[weaponDefID] then
-			warn(weaponDefID, "is a unit weapon and cannot be a spawned weapondef")
-			return
-		end
+	if isUnitWeaponDef[weaponDefID] then
+		warn(weaponDefID, "is a unit weapon and cannot be a spawned weapondef")
+		return
 	end
 
 	local spawned = spawnedDefsByParent[parentWeaponDefID]
