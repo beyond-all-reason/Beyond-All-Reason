@@ -94,7 +94,6 @@ local unitdefTeamFactors = {} ---@type table<UnitDefID, table<TeamID, table<stri
 local unitFactors = {} ---@type table<UnitID, table<string, AttributeFactors|WeaponFactors>?>
 local appliedValues = {} ---@type table<UnitID, table<string, any>?> NB: Weapon attributes store their composed vectors.
 local dirty = {} ---@type table<UnitID, table<string, true?>?>
-local appliedWeapons = {} ---@type table<UnitID, table<string, number[]>?>
 local sequenceNum = math.int_min
 
 -- Module internals ------------------------------------------------------------
@@ -401,7 +400,7 @@ end
 ---@field keys integer[] Maps weapon slots to weapon keys.
 ---@field slots table<integer, integer> Maps weapon keys to weapon slots.
 
----Weapon, script-only, and explosion weapondef summaries by unitdef.
+---Weapon, explosion, and script-only weapondef summaries by unitdef.
 local weaponLayoutByDef = {} ---@type table<UnitDefID, WeaponLayout>
 
 ---The same weapondef used in many weapons on the same unitdef maps to its first instance.
@@ -1039,7 +1038,7 @@ local function composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVec
 	return out
 end
 
----Keeps a temp copy since the composed vector is a scratch table. Cleared in `setApplied`.
+---Keeps the applied values since the composed vector is a scratch table. Cleared in `setApplied`.
 ---@return table<string, any> applied
 local function setAppliedVector(unitID, attribute, vector)
 	local applied = appliedValues[unitID]
@@ -1047,13 +1046,13 @@ local function setAppliedVector(unitID, attribute, vector)
 		applied = {}
 		appliedValues[unitID] = applied
 	end
-	local temp = applied[attribute]
-	if not temp then
-		temp = {}
-		applied[attribute] = temp
+	local values = applied[attribute]
+	if not values then
+		values = {}
+		applied[attribute] = values
 	end
 	for index = 1, #vector do
-		temp[index] = vector[index]
+		values[index] = vector[index]
 	end
 	return applied
 end
