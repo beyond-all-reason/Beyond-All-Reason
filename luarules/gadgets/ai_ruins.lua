@@ -240,20 +240,28 @@ end
 
 -- Maps with a LuaGaia feature placer create their geovents after LuaRules has loaded, so the
 -- resource spot finder's geo list is empty for them. Collect the geovents ourselves in GamePreload.
+---@type { x: number, y: number, z: number }[]
 local geoSpots = {}
 local function findGeoSpots()
+	local geoFeatureDefs = {}
+	for defID, def in pairs(FeatureDefs) do
+		if def.geoThermal then
+			geoFeatureDefs[defID] = true
+		end
+	end
 	local spots = {}
 	local seen = {}
 	local features = Spring.GetAllFeatures()
 	for i = 1, #features do
-		local featureDef = FeatureDefs[Spring.GetFeatureDefID(features[i])]
-		if featureDef and featureDef.geoThermal then
+		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
 			local x, y, z = Spring.GetFeaturePosition(features[i])
-			-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
-			local key = math.floor(x / 16) * 65536 + math.floor(z / 16)
-			if not seen[key] then
-				seen[key] = true
-				spots[#spots + 1] = { x = x, y = y, z = z }
+			if x and y and z then
+				-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
+				local key = math.floor(x / 16) * 65536 + math.floor(z / 16)
+				if not seen[key] then
+					seen[key] = true
+					spots[#spots + 1] = { x = x, y = y, z = z }
+				end
 			end
 		end
 	end
@@ -275,14 +283,11 @@ function getNearestBlocker(x, z)
 			end
 		end
 	end
-	for i = 1, #geoSpots do
-		local spot = geoSpots[i]
-		if spot then
-			local dx, dz = x - spot.x, z - spot.z
-			local dist = dx * dx + dz * dz
-			if dist < lowestDist then
-				lowestDist = dist
-			end
+	for _, spot in ipairs(geoSpots) do
+		local dx, dz = x - spot.x, z - spot.z
+		local dist = dx * dx + dz * dz
+		if dist < lowestDist then
+			lowestDist = dist
 		end
 	end
 	--Spring.Echo(lowestDist, math.sqrt(lowestDist))
@@ -425,10 +430,9 @@ local function SpawnMexes(mexSpots)
 end
 
 local SpawnedGeos = {}
-local function SpawnGeos(geoSpots)
-	for i = 1, #geoSpots do
+local function SpawnGeos()
+	for i, spot in ipairs(geoSpots) do
 		if math_random() <= ruinMexGeoChance then
-			local spot = geoSpots[i]
 			local posx = math.ceil(spot.x / 16) * 16
 			local posz = math.ceil(spot.z / 16) * 16
 			local posy = Spring.GetGroundHeight(posx, posz)
@@ -544,9 +548,8 @@ local function SpawnMexGeoRandomStructures()
 	end
 
 	if #geoSpots >= 1 then
-		for i = 1, #geoSpots do
+		for i, spot in ipairs(geoSpots) do
 			if SpawnedGeos[i] then
-				local spot = geoSpots[i]
 				for j = 1, SpawnedGeos[i] do
 					local posx2 = math.ceil((spot.x + math.random(-1024, 1024)) / 16) * 16
 					local posz2 = math.ceil((spot.z + math.random(-1024, 1024)) / 16) * 16
@@ -747,7 +750,7 @@ function gadget:GamePreload()
 	-- spawn order affects placement success rates near resource spots
 	geoSpots = findGeoSpots()
 	if #geoSpots >= 1 then
-		SpawnGeos(geoSpots)
+		SpawnGeos()
 	end
 
 	local firstHalfTicks = math.floor(blueprintTicksTotal * 0.5)
