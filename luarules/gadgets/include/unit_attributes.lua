@@ -7,11 +7,14 @@
 ---@field builderOnly? boolean
 ---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
 ---@field isUnitState? boolean Has no baseline value. Drops any `multiply` and any unitdef scope.
----@field perWeapon? boolean Composes to one value per weapon. Written with the weapon functions.
----@field perExplosion? boolean Also composes for the death and self-destruct explosions.
+
+---@class WeaponAttributeDefinition
+---@field type "number"
+---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
+---@field perExplosion? boolean Composes for both weapons and the death and self-destruct explosions.
 
 ---@type table<string, UnitAttributeDefinition>
-local definitions = {
+local unitAttributes = {
 	losRadius = { type = "number" },
 	airLosRadius = { type = "number" },
 	radarRadius = { type = "number" },
@@ -34,14 +37,19 @@ local definitions = {
 	stealth = { type = "boolean" },
 	sonarStealth = { type = "boolean" },
 	seismicSignature = { type = "number" },
-	maxWeaponRange = { type = "number", perWeapon = true },
-	reloadTime = { type = "number", perWeapon = true },
 	experience = { type = "number", isUnitState = true },
 	cloaked = { type = "boolean", isUnitState = true },
 	shieldMaxPower = { type = "number" },
-	damage = { type = "number", multiplyOnly = true, perWeapon = true, perExplosion = true },
+}
+
+---@type table<string, WeaponAttributeDefinition>
+local weaponAttributes = {
+	maxWeaponRange = { type = "number" },
+	reloadTime = { type = "number" },
+	damage = { type = "number", multiplyOnly = true, perExplosion = true },
 }
 
 return {
-	Definitions = definitions,
+	UnitAttributeDefinitions = unitAttributes,
+	WeaponAttributeDefinitions = weaponAttributes,
 }

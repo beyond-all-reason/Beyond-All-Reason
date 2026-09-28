@@ -19,7 +19,8 @@ end
 local attributes = VFS.Include("luarules/gadgets/include/unit_attributes_control.lua")
 
 GG.UnitAttributes = {
-	Definitions = attributes.Definitions,
+	UnitAttributeDefinitions = attributes.UnitAttributeDefinitions,
+	WeaponAttributeDefinitions = attributes.WeaponAttributeDefinitions,
 
 	WEAPON_ALL = attributes.WEAPON_ALL,
 	WEAPON_DEATH = attributes.WEAPON_DEATH,

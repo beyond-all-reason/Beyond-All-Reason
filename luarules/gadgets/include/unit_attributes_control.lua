@@ -16,11 +16,25 @@
 -- Clearing a source/factor requires setting it back to `nil`, then waiting
 -- for the next attributes update pass on the following g:GameFrame.
 --
--- A `perWeapon` attribute composes to one value per weapon and is written with
--- its own functions. Factors on specific weapon numbers are more specified than
+-- A weapon attribute composes to one value per weapon and is written with its
+-- own functions. Factors on specific weapon numbers are more specified than
 -- factors over all weapons within the same scope (unitdef, def-and-team, unit).
 
-local definitions = VFS.Include("luarules/gadgets/include/unit_attributes.lua").Definitions
+local attributeDefinitions = VFS.Include("luarules/gadgets/include/unit_attributes.lua")
+local unitAttributes = attributeDefinitions.UnitAttributeDefinitions
+local weaponAttributes = attributeDefinitions.WeaponAttributeDefinitions
+
+-- Definition names are unique across unit and weapon attributes so can share one lookup table.
+local definitions = {} ---@type table<string, UnitAttributeDefinition|WeaponAttributeDefinition>
+for attribute, entry in pairs(unitAttributes) do
+	definitions[attribute] = entry
+end
+for attribute, entry in pairs(weaponAttributes) do
+	if definitions[attribute] then
+		error("Attribute is defined for both units and weapons: " .. attribute)
+	end
+	definitions[attribute] = entry
+end
 
 local math_max = math.max
 local math_round = math.round
@@ -418,7 +432,7 @@ end
 
 local function getSlotCount(unitDefID, attribute)
 	local layout = weaponLayoutByDef[unitDefID]
-	return definitions[attribute].perExplosion and layout.slotCount or layout.weaponCount
+	return weaponAttributes[attribute].perExplosion and layout.slotCount or layout.weaponCount
 end
 
 ---Consumer code paths are given a weaponDefID but need to know a weaponNum to look up factors.
@@ -1018,12 +1032,9 @@ local function setAppliedWeapons(unitID, attribute, vector)
 end
 
 local function checkWeaponAttribute(attribute, weaponKey, kind, value, unitDefID)
-	local entry = definitions[attribute]
+	local entry = weaponAttributes[attribute]
 	if not entry then
-		warn(attribute, "not found")
-		return
-	elseif not entry.perWeapon then
-		warn(attribute, "is not written per weapon")
+		warn(attribute, unitAttributes[attribute] and "is not written per weapon" or "not found")
 		return
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
 		warn(attribute, "is multiplication-only")
@@ -1205,13 +1216,10 @@ end
 ---@param kind AttributeFactorKind
 local function checkUnitDefAttribute(entry, attribute, kind, value, unitDefID)
 	if not entry then
-		warn(attribute, "not found")
+		warn(attribute, weaponAttributes[attribute] and "is written per weapon" or "not found")
 		return
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
 		warn(attribute, "is multiplication-only")
-		return
-	elseif entry.perWeapon then
-		warn(attribute, "is written per weapon")
 		return
 	elseif entry.unitOnly or entry.isUnitState then
 		warn(attribute, "cannot be set on unitdefs")
@@ -1229,10 +1237,7 @@ end
 ---@param kind AttributeFactorKind
 local function checkUnitAttribute(entry, attribute, kind, value)
 	if not entry then
-		warn(attribute, "not found")
-		return
-	elseif entry.perWeapon then
-		warn(attribute, "is written per weapon")
+		warn(attribute, weaponAttributes[attribute] and "is written per weapon" or "not found")
 		return
 	elseif entry.isUnitState then
 		if kind ~= "set" then
@@ -1249,7 +1254,7 @@ end
 
 ---@param kind AttributeFactorKind
 local function recordUnitDefAttribute(unitDefID, attribute, value, source, kind, teamID)
-	local entry = definitions[attribute]
+	local entry = unitAttributes[attribute]
 	if not checkUnitDefAttribute(entry, attribute, kind, value, unitDefID) then
 		return
 	end
@@ -1269,7 +1274,7 @@ end
 
 ---@param kind AttributeFactorKind
 local function recordUnitAttribute(unitID, attribute, value, source, kind)
-	local entry = definitions[attribute]
+	local entry = unitAttributes[attribute]
 	if not checkUnitAttribute(entry, attribute, kind, value) then
 		return
 	end
@@ -1396,12 +1401,9 @@ end
 ---@param attribute string
 ---@return number? value
 local function getUnitWeaponAttributeValue(unitID, weaponKey, attribute)
-	local entry = definitions[attribute]
+	local entry = weaponAttributes[attribute]
 	if not entry then
-		warn(attribute, "not found")
-		return
-	elseif not entry.perWeapon then
-		warn(attribute, "is not written per weapon")
+		warn(attribute, unitAttributes[attribute] and "is not written per weapon" or "not found")
 		return
 	elseif weaponKey < 0 and not entry.perExplosion then
 		return
@@ -1439,12 +1441,9 @@ local function getUnitAttributeValue(unitID, attribute)
 		return value
 	end
 
-	local entry = definitions[attribute]
+	local entry = unitAttributes[attribute]
 	if not entry then
-		warn(attribute, "not found")
-		return
-	elseif entry.perWeapon then
-		warn(attribute, "is read per weapon")
+		warn(attribute, weaponAttributes[attribute] and "is read per weapon" or "not found")
 		return
 	elseif entry.isUnitState then
 		return -- Ask the engine. The module writes state but cannot track it.
@@ -1631,7 +1630,8 @@ end
 -- Module export ---------------------------------------------------------------
 
 return {
-	Definitions = definitions,
+	UnitAttributeDefinitions = unitAttributes,
+	WeaponAttributeDefinitions = weaponAttributes,
 
 	WEAPON_ALL = WEAPON_ALL,
 	WEAPON_DEATH = WEAPON_DEATH,
