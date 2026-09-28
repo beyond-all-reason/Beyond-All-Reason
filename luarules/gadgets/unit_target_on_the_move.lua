@@ -264,23 +264,6 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
-	local function restoreCommandTarget(unitID)
-		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
-		if not inCommand or not isAttackCommand[inCommand] then
-			return false
-		end
-		if inCommand == CMD_ATTACK or inCommand == CMD_MANUALFIRE then
-			local manualFire = inCommand == CMD_MANUALFIRE
-			local userTarget = not hasAutoTarget(options)
-			if param2 then
-				spSetUnitTarget(unitID, param1, param2, param3, manualFire, userTarget)
-			else
-				spSetUnitTarget(unitID, param1, manualFire, userTarget)
-			end
-		end
-		return true
-	end
-
 	local function hasTargetPrecedence(unitID, unitData)
 		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_WAIT then
@@ -309,10 +292,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function setTargetActive(unitID, unitData, targetIndex)
-		unitData.activeTarget = true
-		unitData.currentIndex = targetIndex
 		local targetData = unitData.targets[targetIndex]
 		local target = targetData.target
+		unitData.activeTarget = target
+		unitData.currentIndex = targetIndex
 		if type(target) == "number" then
 			spSetUnitTarget(unitID, target, false, targetData.userTarget)
 			spSetUnitRulesParam(unitID, "unitTargetID", target)
@@ -326,31 +309,40 @@ if gadgetHandler:IsSyncedCode() then
 	-- Drop any automatic command that would restore a dropped target to the unit or its weapons.
 	local function dropAutomaticTargets(unitID, targetID)
 		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
-		if inCommand == CMD_ATTACK and not param2 and param1 == targetID and hasAutoTarget(options) then
+		-- `place_target_on_ground` and user widgets might reissue automatic commands onto positions.
+		if inCommand == CMD_ATTACK and (param2 or param1 == targetID) and hasAutoTarget(options) then
 			spUnitFinishCommand(unitID)
 		end
 	end
 
-	local function releaseEngineTarget(unitID, unitData, releasedTarget)
-		if releasedTarget == nil and unitData and unitData.activeTarget then
-			local targetData = unitData.targets[unitData.currentIndex]
-			releasedTarget = targetData and targetData.target
+	local function restoreCommandTarget(unitID)
+		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
+		if not inCommand or not isAttackCommand[inCommand] then
+			return false
 		end
-		if type(releasedTarget) == "number" then
-			dropAutomaticTargets(unitID, releasedTarget)
+		if inCommand == CMD_ATTACK or inCommand == CMD_MANUALFIRE then
+			local manualFire = inCommand == CMD_MANUALFIRE
+			local userTarget = not hasAutoTarget(options)
+			if param2 then
+				spSetUnitTarget(unitID, param1, param2, param3, manualFire, userTarget)
+			else
+				spSetUnitTarget(unitID, param1, manualFire, userTarget)
+			end
 		end
+		return true
+	end
+
+	local function setTargetPassive(unitID, unitData)
+		local releasedTarget = unitData.activeTarget
+		if not releasedTarget then
+			return
+		end
+		unitData.activeTarget = nil
+		unitData.currentIndex = 1
+		dropAutomaticTargets(unitID, releasedTarget)
 		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
-	end
-
-	local function setTargetPassive(unitID, unitData, releasedTarget)
-		if not unitData then
-			return
-		end
-		releaseEngineTarget(unitID, unitData, releasedTarget)
-		unitData.activeTarget = false
-		unitData.currentIndex = 1
 		spSetUnitRulesParam(unitID, "unitTargetID", nil)
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
@@ -391,31 +383,29 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetList", unitID, targetCount + 1)
 	end
 
-	local function removeUnit(unitID, keeptrack, releasedTarget)
-		local unitData = activeTargets[unitID]
-		if unitData and not keeptrack then
-			releaseEngineTarget(unitID, unitData, releasedTarget)
+	local function removeUnit(unitID)
+		local unitData = setTargetData[unitID]
+		if not unitData then
+			return
 		end
+		setTargetPassive(unitID, unitData)
+		setTargetData[unitID] = nil
 		activeTargets[unitID] = nil
+		pausedTargets[unitID] = nil
 		removeFromQueue(unitID)
-		if keeptrack then
-			setTargetPassive(unitID, setTargetData[unitID])
-		else
-			setTargetData[unitID] = nil
-			pausedTargets[unitID] = nil
-			SendToUnsynced("targetList", unitID, 0) -- clear command gfx
-			spSetUnitRulesParam(unitID, "hasPriorityTarget", nil)
-		end
-		spSetUnitRulesParam(unitID, "unitTargetID", nil)
+		SendToUnsynced("targetList", unitID, 0) -- clear command gfx
+		spSetUnitRulesParam(unitID, "hasPriorityTarget", nil)
 	end
 
-	local function pauseTargetting(unitID)
-		pausedTargets[unitID] = activeTargets[unitID]
-		removeUnit(unitID, true)
+	local function pauseTargeting(unitID, unitData)
+		setTargetPassive(unitID, unitData)
+		activeTargets[unitID] = nil
+		pausedTargets[unitID] = unitData
+		removeFromQueue(unitID)
 	end
 
-	local function unpauseTargetting(unitID)
-		activeTargets[unitID] = pausedTargets[unitID]
+	local function unpauseTargeting(unitID, unitData)
+		activeTargets[unitID] = unitData
 		pausedTargets[unitID] = nil
 		addToQueue(unitID)
 	end
@@ -434,7 +424,6 @@ if gadgetHandler:IsSyncedCode() then
 				allyTeam = spGetUnitAllyTeam(unitID),
 				weapons = unitWeapons[unitDefID],
 				currentIndex = 1,
-				activeTarget = false,
 			}
 		elseif not append then
 			data.targets = {}
@@ -477,7 +466,7 @@ if gadgetHandler:IsSyncedCode() then
 		sendTargetsToUnsynced(unitID)
 
 		if not hasTargetPrecedence(unitID, data) then
-			pauseTargetting(unitID)
+			pauseTargeting(unitID, data)
 		elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, targets[1].target) then
 			setTargetActive(unitID, data, 1)
 		end
@@ -497,23 +486,15 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		SendToUnsynced("targetList", unitID, n + 1) -- truncate the list
-		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget)
+		SendToUnsynced("targetIndex", unitID, unitData.currentIndex, unitData.activeTarget ~= nil)
 	end
 
 	local function removeTarget(unitID, unitData, index)
 		local removed = tremove(unitData.targets, index)
 		if removed then
-			if not unitData.targets[1] then
-				removeUnit(unitID, false, unitData.activeTarget and removed.target or nil)
-				return
-			end
 			unitData.currentTargets[removed.target] = nil
 			if index == unitData.currentIndex then
-				if unitData.activeTarget then
-					setTargetPassive(unitID, unitData, removed.target)
-				else
-					unitData.currentIndex = 1
-				end
+				setTargetPassive(unitID, unitData)
 			elseif index < unitData.currentIndex then
 				unitData.currentIndex = unitData.currentIndex - 1
 			end
@@ -540,7 +521,6 @@ if gadgetHandler:IsSyncedCode() then
 		-- Otherwise there really are targets to keep:
 		local currentTargets = unitData.currentTargets
 		local oldIndex = unitData.currentIndex
-		local oldTarget = targetList[oldIndex] and targetList[oldIndex].target
 		local currentIndex = oldIndex
 		local minIndex
 		local moveToIndex = 0
@@ -570,11 +550,7 @@ if gadgetHandler:IsSyncedCode() then
 			targetList[i] = nil
 		end
 		if currentIndex == 0 then
-			if unitData.activeTarget then
-				setTargetPassive(unitID, unitData, oldTarget)
-			else
-				unitData.currentIndex = 1
-			end
+			setTargetPassive(unitID, unitData)
 		else
 			unitData.currentIndex = currentIndex
 			-- The active target remains the same.
@@ -830,7 +806,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true
 		elseif cmdID == CMD_UNIT_CANCEL_TARGET then
 			if not unitData then
-				removeUnit(unitID) -- Force clear drawings in unsynced when synced holds no data.
+				SendToUnsynced("targetList", unitID, 0) -- Force clear drawings in unsynced when synced holds no data.
 			else
 				if nParams == 0 then
 					removeUnit(unitID)
@@ -853,6 +829,9 @@ if gadgetHandler:IsSyncedCode() then
 							removeTarget(unitID, unitData, index)
 						end
 					end
+				end
+				if not unitData.targets[1] then
+					removeUnit(unitID)
 				end
 			end
 			--tracy.ZoneEnd()
@@ -920,11 +899,11 @@ if gadgetHandler:IsSyncedCode() then
 				removeUnit(unitID)
 			elseif activeTargets[unitID] then
 				if not hasTargetPrecedence(unitID, unitData) then
-					pauseTargetting(unitID)
+					pauseTargeting(unitID, unitData)
 				end
 			else
 				if hasTargetPrecedence(unitID, unitData) then
-					unpauseTargetting(unitID)
+					unpauseTargeting(unitID, unitData)
 				end
 			end
 		end
@@ -966,9 +945,7 @@ if gadgetHandler:IsSyncedCode() then
 		if updateIndex == 0 then
 			removeUnit(unitID)
 		elseif activeIndex == 0 then
-			if unitData.activeTarget then
-				setTargetPassive(unitID, unitData)
-			end
+			setTargetPassive(unitID, unitData)
 			if updateIndex + 1 <= targetCount then
 				-- Remove entries only once we are done shifting indices.
 				for index = updateIndex + 1, targetCount do
