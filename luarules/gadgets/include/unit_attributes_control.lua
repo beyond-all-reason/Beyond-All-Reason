@@ -345,8 +345,20 @@ local function getWeaponDamages(unitDefID)
 	return weapons
 end
 
-local explosionFieldByIndex = { "deathExplosion", "selfDExplosion" }
-local explosionTargetByIndex = { "explode", "selfDestruct" }
+local WEAPON_ALL = 0 -- Packing index for non-specific weapon attributes scopes.
+local WEAPON_DEATH = -1
+local WEAPON_SELFD = -2
+
+---@class ExplosionKind
+---@field key integer
+---@field field string
+---@field target string The explosion argument to `SetUnitWeaponDamages`.
+
+---@type ExplosionKind[]
+local explosionKinds = {
+	{ key = WEAPON_DEATH, field = "deathExplosion", target = "explode" },
+	{ key = WEAPON_SELFD, field = "selfDExplosion", target = "selfDestruct" },
+}
 
 ---@return table<integer, table<integer, number>> # Left out when nondamaging, as ordinary weapons are
 local function getExplosionDamages(unitDefID)
@@ -354,8 +366,8 @@ local function getExplosionDamages(unitDefID)
 	if not explosions then
 		local unitDef = UnitDefs[unitDefID]
 		local weaponDefList = {}
-		for index, field in ipairs(explosionFieldByIndex) do
-			weaponDefList[index] = WeaponDefNames[unitDef[field]]
+		for index, explosion in ipairs(explosionKinds) do
+			weaponDefList[index] = WeaponDefNames[unitDef[explosion.field]]
 		end
 		explosions = getDamagesFromList(weaponDefList)
 		baseExplosions[unitDefID] = explosions
@@ -363,10 +375,30 @@ local function getExplosionDamages(unitDefID)
 	return explosions
 end
 
+---@class WeaponLayout
+---@field weaponCount integer
+---@field slotCount integer Weapons, then explosions, then script-only weapons.
+---@field keys integer[] Maps weapon slots to weapon keys.
+---@field slots table<integer, integer> Maps weapon keys to weapon slots.
+
+---Weapon, script-only, and explosion weapondef summaries by unitdef.
+local weaponLayoutByDef = {} ---@type table<UnitDefID, WeaponLayout>
+
 ---The same weapondef used in many weapons on the same unitdef maps to its first instance.
----@type table<UnitDefID, table<WeaponDefID, integer>?>
-local weaponNumbersByDef = {}
+local weaponNumbersByDef = {} ---@type table<UnitDefID, table<WeaponDefID, integer>?>
+
 for unitDefID, unitDef in ipairs(UnitDefs) do
+	local keys, slots = {}, {}
+	local weaponCount = 0
+	for weaponNum in ipairs(unitDef.weapons) do
+		keys[weaponNum], slots[weaponNum] = weaponNum, weaponNum
+		weaponCount = weaponNum
+	end
+	for index, explosion in ipairs(explosionKinds) do
+		keys[weaponCount + index], slots[explosion.key] = explosion.key, weaponCount + index
+	end
+	weaponLayoutByDef[unitDefID] = { weaponCount = weaponCount, slotCount = #keys, keys = keys, slots = slots }
+
 	local weapons = unitDef.weapons
 	if not table.isEmpty(weapons) then
 		local weaponNumbers = {}
@@ -378,6 +410,11 @@ for unitDefID, unitDef in ipairs(UnitDefs) do
 		end
 		weaponNumbersByDef[unitDefID] = weaponNumbers
 	end
+end
+
+local function getSlotCount(unitDefID, attribute)
+	local layout = weaponLayoutByDef[unitDefID]
+	return definitions[attribute].perExplosion and layout.slotCount or layout.weaponCount
 end
 
 ---Consumer code paths are given a weaponDefID but need to know a weaponNum to look up factors.
@@ -428,17 +465,18 @@ local function setDamage(unitID, scales)
 	-- Explosions are only modified directly. They ignore effects on "all weapons".
 	local applied = appliedWeapons[unitID]
 	local previous = applied and applied.damage
-	local weaponCount = #getWeaponBaselines(unitDefID)
+	local slots = weaponLayoutByDef[unitDefID].slots
 	local explosions = getExplosionDamages(unitDefID)
-	for index = 1, #explosionTargetByIndex do
+	for index, explosion in ipairs(explosionKinds) do
 		local damages = explosions[index]
-		local scale = scales[weaponCount + index]
-		local before = previous and previous[weaponCount + index] or 1.0
+		local slot = slots[explosion.key]
+		local scale = scales[slot]
+		local before = previous and previous[slot] or 1.0
 		if damages and (scale ~= 1.0 or before ~= 1.0) then
 			for armorIndex = armorTypeMin, armorTypeMax do
 				damagesArray[armorIndex] = damages[armorIndex] * scale
 			end
-			spSetUnitWeaponDamages(unitID, explosionTargetByIndex[index], damagesArray)
+			spSetUnitWeaponDamages(unitID, explosion.target, damagesArray)
 		end
 	end
 end
@@ -781,47 +819,6 @@ end
 
 -- Weapon attributes -----------------------------------------------------------
 
-local WEAPON_ALL = 0 -- Packing index for non-specific weapon attributes scopes.
-local WEAPON_DEATH = -1 -- TODO: remove or complete the `perExplosion` checks
-local WEAPON_SELFD = -2
-local WEAPON_CLUSTER = -3 -- Weaponless weapondefs
-local WEAPON_SPLIT = -4 -- Weaponless weapondefs
-
-local weaponSlotKeysByDef = {} ---@type table<UnitDefID, integer[]?>
-local explosionSlotKeysByDef = {} ---@type table<UnitDefID, integer[]?>
-
----@return integer[] slotsToKeys
-local function getWeaponKeys(unitDefID, perExplosion)
-	local cache = perExplosion and explosionSlotKeysByDef or weaponSlotKeysByDef
-	local slotKeys = cache[unitDefID]
-	if not slotKeys then
-		slotKeys = {}
-		local weaponCount = #getWeaponBaselines(unitDefID)
-		for i = 1, weaponCount do
-			slotKeys[i] = i
-		end
-		if perExplosion then
-			slotKeys[weaponCount + 1] = WEAPON_DEATH
-			slotKeys[weaponCount + 2] = WEAPON_SELFD
-		end
-		cache[unitDefID] = slotKeys
-	end
-	return slotKeys
-end
-
----@return integer? slot
-local function getWeaponSlot(unitDefID, weaponKey, perExplosion)
-	if weaponKey > 0 then
-		return weaponKey
-	elseif not perExplosion then
-		return nil
-	elseif weaponKey == WEAPON_DEATH then
-		return #getWeaponBaselines(unitDefID) + 1
-	elseif weaponKey == WEAPON_SELFD then
-		return #getWeaponBaselines(unitDefID) + 2
-	end
-end
-
 ---A composed vector used to compare a unit's weapons at baseline vs modified.
 ---@return number[]
 local function getBaselineVector(unitDefID, attribute)
@@ -835,8 +832,8 @@ local function getBaselineVector(unitDefID, attribute)
 		vector = {}
 		local field = weaponFieldByAttribute[attribute]
 		local weapons = getWeaponBaselines(unitDefID)
-		for slot, key in ipairs(getWeaponKeys(unitDefID, true)) do
-			local weapon = key > 0 and weapons[key]
+		for slot = 1, getSlotCount(unitDefID, attribute) do
+			local weapon = weapons[slot]
 			vector[slot] = weapon and field and weapon[field] or 1.0 -- OK: default value unused, for comparisons
 		end
 		vectors[attribute] = vector
@@ -914,9 +911,10 @@ local function composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVec
 	local unitdefAllWeapons = fromUnitDef and fromUnitDef[WEAPON_ALL]
 
 	local baseline = getBaseline(unitDefID, attribute)
-	local weaponSlotKeys = getWeaponKeys(unitDefID, true)
-	local slotCount = #weaponSlotKeys
-	local startExtraSlots = #getWeaponBaselines(unitDefID) + 1
+	local layout = weaponLayoutByDef[unitDefID]
+	local weaponSlotKeys = layout.keys
+	local slotCount = getSlotCount(unitDefID, attribute)
+	local startExtraSlots = layout.weaponCount + 1
 
 	for slot = 1, slotCount do
 		local weaponKey = weaponSlotKeys[slot]
@@ -1026,13 +1024,15 @@ local function checkWeaponAttribute(attribute, weaponKey, kind, value, unitDefID
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
 		warn(attribute, "is multiplication-only")
 		return
-	elseif weaponKey < 0 then
-		if weaponKey < WEAPON_SELFD then
+	elseif weaponKey < 0 and not entry.perExplosion then
+		warn(attribute, "is not written per explosion")
+		return
+	elseif weaponKey ~= WEAPON_ALL and not weaponLayoutByDef[unitDefID].slots[weaponKey] then
+		if weaponKey < 0 then
 			warn(attribute, "names an explosion that does not exist")
-			return
+		else
+			warn(attribute, "names a weapon the unitdef does not have")
 		end
-	elseif weaponKey ~= WEAPON_ALL and not getWeaponBaselines(unitDefID)[weaponKey] then
-		warn(attribute, "names a weapon the unitdef does not have")
 		return
 	end
 	return true
@@ -1042,7 +1042,7 @@ local function recordUnitWeaponAttribute(unitID, weaponKey, attribute, value, so
 	weaponKey = weaponKey or WEAPON_ALL
 
 	local unitDefID
-	if weaponKey > 0 then
+	if weaponKey ~= WEAPON_ALL then
 		unitDefID = spGetUnitDefID(unitID)
 		if not unitDefID then
 			return
@@ -1399,6 +1399,8 @@ local function getUnitWeaponAttributeValue(unitID, weaponKey, attribute)
 	elseif not entry.perWeapon then
 		warn(attribute, "is not written per weapon")
 		return
+	elseif weaponKey < 0 and not entry.perExplosion then
+		return
 	end
 
 	local unitDefID = spGetUnitDefID(unitID)
@@ -1406,7 +1408,7 @@ local function getUnitWeaponAttributeValue(unitID, weaponKey, attribute)
 		return
 	end
 
-	local slot = getWeaponSlot(unitDefID, weaponKey, true)
+	local slot = weaponLayoutByDef[unitDefID].slots[weaponKey]
 	if not slot then
 		return
 	end

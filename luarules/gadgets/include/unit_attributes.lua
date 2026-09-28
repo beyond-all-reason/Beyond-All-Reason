@@ -8,6 +8,7 @@
 ---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
 ---@field isUnitState? boolean Has no baseline value. Drops any `multiply` and any unitdef scope.
 ---@field perWeapon? boolean Composes to one value per weapon. Written with the weapon functions.
+---@field perExplosion? boolean Also composes for the death and self-destruct explosions.
 
 ---@type table<string, UnitAttributeDefinition>
 local definitions = {
@@ -38,7 +39,7 @@ local definitions = {
 	experience = { type = "number", isUnitState = true },
 	cloaked = { type = "boolean", isUnitState = true },
 	shieldMaxPower = { type = "number" },
-	damage = { type = "number", multiplyOnly = true, perWeapon = true },
+	damage = { type = "number", multiplyOnly = true, perWeapon = true, perExplosion = true },
 }
 
 return {
