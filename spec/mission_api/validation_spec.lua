@@ -394,6 +394,80 @@ describe("mission_api.validation", function()
 				)
 			)
 		end)
+
+		it("accepts difficulty-wrapped objective fields and inline trigger parameters", function()
+			validation.ValidateObjectives({
+				wrapped = {
+					textKey = "ok",
+					amount = { difficulties = { Easy = 2, Hard = 5 } },
+					trigger = {
+						type = triggerTypes.TimeElapsed,
+						parameters = { seconds = { difficulties = { Easy = 60, Hard = 30 } } },
+					},
+				},
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error for an invalid value in a wrapped objective field", function()
+			validation.ValidateObjectives({
+				badAmount = {
+					textKey = "ok",
+					amount = { difficulties = { Easy = "x" } },
+				},
+			})
+			assert.is_true(
+				hasError(
+					"Unexpected parameter type, expected number, got string. Objective: badAmount, Field: amount.difficulties.Easy"
+				)
+			)
+		end)
+
+		it("rejects a difficulty-wrapped trigger field", function()
+			validation.ValidateObjectives({
+				wrappedTrigger = {
+					textKey = "ok",
+					trigger = { difficulties = { Easy = { type = triggerTypes.TimeElapsed } } },
+				},
+			})
+			assert.is_true(
+				hasError(
+					"Objective 'trigger' field does not support difficulties. Objective: wrappedTrigger, Field: trigger"
+				)
+			)
+		end)
+
+		it("checks the Event type of every trigger in a wrapped event field", function()
+			GG["MissionAPI"].Triggers = {
+				doneEasy = { type = triggerTypes.Event, actions = { "ok" } },
+				timer = { type = triggerTypes.TimeElapsed, parameters = { seconds = 1 }, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvent = {
+					textKey = "ok",
+					onCompleted = { difficulties = { Easy = "doneEasy", Hard = "timer" } },
+				},
+			})
+			assert.is_true(
+				hasError(
+					"Objective event must name an Event trigger. Objective: withEvent, Field: onCompleted, Trigger: timer"
+				)
+			)
+		end)
+
+		it("accepts a wrapped event field naming Event triggers for every difficulty", function()
+			GG["MissionAPI"].Triggers = {
+				doneEasy = { type = triggerTypes.Event, actions = { "ok" } },
+				doneHard = { type = triggerTypes.Event, actions = { "ok" } },
+			}
+			validation.ValidateObjectives({
+				withEvent = {
+					textKey = "ok",
+					onCompleted = { difficulties = { Easy = "doneEasy", Hard = "doneHard" } },
+				},
+			})
+			assert.are.same({}, logged)
+		end)
 	end)
 
 	-- ── ValidateInitialStage ──────────────────────────────────────────────────
@@ -1180,6 +1254,135 @@ describe("mission_api.validation", function()
 				)
 			end)
 		end)
+
+		describe("difficulties parameters", function()
+			local function timedSecondsErrors(seconds)
+				triggerErrors({
+					type = triggerTypes.TimeElapsed,
+					parameters = { seconds = seconds },
+					actions = { "ok" },
+				})
+			end
+
+			it("accepts a wrapped parameter with valid difficulties and values", function()
+				timedSecondsErrors({ difficulties = { Easy = 60, Hard = 30 } })
+				assert.are.same({}, logged)
+			end)
+
+			it("satisfies the required-parameter check", function()
+				timedSecondsErrors({ difficulties = { Medium = 45 } })
+				assert.is_false(hasError("Trigger missing required parameter. Trigger: t, Parameter: seconds"))
+			end)
+
+			it("logs an error for an unknown difficulty name", function()
+				timedSecondsErrors({ difficulties = { Bogus = 60, Easy = 1 } })
+				assert.is_true(hasError("Invalid difficulty: Bogus. Trigger: t, Parameter: seconds.difficulties.Bogus"))
+			end)
+
+			it("validates every value, including ones under invalid difficulties", function()
+				timedSecondsErrors({ difficulties = { Easy = "bad", Bogus = "worse" } })
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds.difficulties.Easy"
+					)
+				)
+				assert.is_true(hasError("Invalid difficulty: Bogus. Trigger: t, Parameter: seconds.difficulties.Bogus"))
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds.difficulties.Bogus"
+					)
+				)
+			end)
+
+			it("logs an error for keys other than 'difficulties' in the wrapper", function()
+				timedSecondsErrors({ difficulties = { Easy = 1 }, extra = 2 })
+				assert.is_true(
+					hasError(
+						"Difficulties parameter must have no keys other than 'difficulties', got: extra. Trigger: t, Parameter: seconds"
+					)
+				)
+			end)
+
+			it("logs an error when difficulties is not a table", function()
+				timedSecondsErrors({ difficulties = 5 })
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected table, got number. Trigger: t, Parameter: seconds.difficulties"
+					)
+				)
+			end)
+
+			it("logs an error for an empty difficulties table", function()
+				timedSecondsErrors({ difficulties = {} })
+				assert.is_true(hasError("Difficulties table is empty. Trigger: t, Parameter: seconds.difficulties"))
+			end)
+
+			it("logs an error for a nested difficulties table", function()
+				timedSecondsErrors({ difficulties = { Easy = { difficulties = { Easy = 1 } } } })
+				assert.is_true(
+					hasError(
+						"Difficulties values must not be difficulties tables themselves. Trigger: t, Parameter: seconds.difficulties.Easy"
+					)
+				)
+			end)
+
+			it("accepts a wrapped action parameter", function()
+				actionErrors({
+					type = actionTypes.SendMessage,
+					parameters = { message = { difficulties = { Easy = "hi", Hard = "gl" } } },
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("validates each difficulty's value of a table-typed parameter, with nested suffixes", function()
+				triggerErrors({
+					type = triggerTypes.UnitEnteredLocation,
+					parameters = {
+						unitName = "x",
+						area = {
+							difficulties = {
+								Easy = { x = 0, z = 0, radius = 10 },
+								Hard = { x1 = 1, z1 = 0, x2 = 0, z2 = 1 },
+							},
+						},
+					},
+					actions = { "ok" },
+				})
+				assert.is_true(
+					hasError(
+						"Invalid area rectangle parameter, x1 must be less than x2. Trigger: t, Parameter: area.difficulties.Hard"
+					)
+				)
+			end)
+		end)
+
+		describe("difficulties setting", function()
+			local function settingsErrors(difficulties)
+				triggerErrors({
+					type = triggerTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					settings = { difficulties = difficulties },
+					actions = { "ok" },
+				})
+			end
+
+			it("accepts a gate keyed by valid difficulty names", function()
+				settingsErrors({ Easy = true, Hard = true })
+				assert.are.same({}, logged)
+			end)
+
+			it("logs an error for an unknown difficulty name", function()
+				settingsErrors({ Bogus = true })
+				assert.is_true(hasError("Invalid difficulty in settings. Trigger: t, Difficulty: Bogus"))
+			end)
+
+			it("warns for an empty gate", function()
+				settingsErrors({})
+				assert.is_true(
+					hasError("Trigger difficulties setting is empty, so the trigger can never fire. Trigger: t")
+				)
+			end)
+		end)
 	end)
 
 	-- ── ValidateReferences ────────────────────────────────────────────────────
@@ -1448,6 +1651,36 @@ describe("mission_api.validation", function()
 					"Unexpected parameter type, expected string, got number. Objective: badNextType, Field: nextStage"
 				)
 			)
+		end)
+
+		it("accepts a difficulty-wrapped nextStage naming existing stages", function()
+			GG["MissionAPI"].Objectives = {
+				o = { nextStage = { difficulties = { Easy = "s1", Hard = "s2" } } },
+			}
+			GG["MissionAPI"].Stages = {
+				s1 = { objectives = { "o" } },
+				s2 = { objectives = { "o" } },
+			}
+			validation.ValidateReferences()
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error for a wrapped nextStage naming a non-existent stage", function()
+			GG["MissionAPI"].Objectives = {
+				o = { nextStage = { difficulties = { Easy = "nowhere" } } },
+			}
+			GG["MissionAPI"].Stages = { validStage = { objectives = { "o" } } }
+			validation.ValidateReferences()
+			assert.is_true(hasError("Invalid stageID: nowhere. Objective: o, Field: nextStage.difficulties.Easy"))
+		end)
+
+		it("does not warn about ownerless Event triggers named only through a wrapped event field", function()
+			GG["MissionAPI"].Objectives = {
+				done = { textKey = "ok", onCompleted = { difficulties = { Easy = "onDone" } } },
+			}
+			GG["MissionAPI"].Triggers = { onDone = { type = triggerTypes.Event, actions = { "ok" } } }
+			validation.ValidateReferences()
+			assert.are.same({}, logged)
 		end)
 
 		it("does not log non-existent objective for non-string stage objective entries", function()

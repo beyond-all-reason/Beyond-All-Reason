@@ -120,6 +120,25 @@ breaking change to both the function and every mission using it.
   and triggers that consume them, via hard-coded type sets near the bottom of `validation.lua`. A new action that
   names or references units, features, or markers must be added to those sets.
 
+## Difficulty
+
+- `difficulties.json` is the difficulty enum, shared with the client: name → rank (`Story = 1`, `Easy = 2`,
+  `Medium = 3`, `Hard = 4`). Ranks order difficulties for resolution and must be unique; `GG['MissionAPI'].Difficulty`
+  holds the current rank. Difficulty is fixed per playthrough — nothing re-resolves at runtime.
+- Any trigger parameter, action parameter, or objective field may be authored per difficulty:
+  `seconds = { difficulties = { Medium = 60, Hard = 30 } }`. Resolution picks the exact rank, else the nearest
+  specified rank below, else the lowest specified one. Detection is by a non-nil `difficulties` key, not by Lua type,
+  so table parameters (`Area`, `Orders`, …) wrap the same way. Structural fields (`type`, `settings`, `actions`, an
+  objective's `trigger`) and fields nested inside loadout entries or orders do not support it — wrap the whole
+  parameter instead.
+- Wrappers survive until after validation so that every difficulty's value is validated, including values under
+  invalid difficulty names; `loadMission` then resolves them in place (`difficulty.lua`) before
+  `parameter_processing`. Anything reading parameter values **before** validation must resolve on read via
+  `difficulty.Resolve`, as `objectives_loader` does for `amount` and `nextStage`.
+- `settings.difficulties` (the per-trigger on/off gate) is keyed by difficulty name, is exact-match with **no**
+  inheritance between difficulties, and is rekeyed name → rank after validation for the runtime check in
+  `api_missions_triggers.lua`.
+
 ## Objectives and stages
 
 - `objectives_loader` splits objectives in two. A trigger type with a `Quantity` parameter becomes a **managed

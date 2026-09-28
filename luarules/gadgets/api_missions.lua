@@ -47,6 +47,13 @@ local function loadMission(scriptPath)
 		return
 	end
 
+	-- Difficulty-wrapped parameters stay wrapped through validation so every difficulty's
+	-- value is checked; from here on the mission only holds the resolved values.
+	local difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	difficulty.ResolveTriggers(GG["MissionAPI"].Triggers)
+	difficulty.ResolveActions(GG["MissionAPI"].Actions)
+	difficulty.ResolveObjectives(GG["MissionAPI"].Objectives)
+
 	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)

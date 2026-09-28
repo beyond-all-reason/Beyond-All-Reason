@@ -78,6 +78,21 @@ local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
+local isDifficultiesTable = VFS.Include("luarules/mission_api/difficulty.lua").IsDifficultiesTable
+local difficultyRanks = parameterTypeEnums[Types.Difficulty]
+
+-- The ranks order difficulties for nearest-lower resolution, so they must be unique.
+do
+	local namesByRank = {}
+	for difficultyName, rank in pairs(difficultyRanks) do
+		if namesByRank[rank] then
+			logError(
+				"difficulties.json has duplicate rank " .. rank .. ": " .. namesByRank[rank] .. ", " .. difficultyName
+			)
+		end
+		namesByRank[rank] = difficultyName
+	end
+end
 
 local validators = {}
 
@@ -670,6 +685,62 @@ local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
+--- Validates a { difficulties = { <difficultyName> = <value> } } parameter: the wrapper holds
+--- only the 'difficulties' key, every key is a known difficulty, and every value satisfies the
+--- parameter's own validator, including values under invalid difficulty names.
+local function validateDifficultiesTable(wrapper, parameterType, actionOrTrigger, actionOrTriggerID, parameterName)
+	local result = {}
+
+	for key in pairs(wrapper) do
+		if key ~= "difficulties" then
+			result[#result + 1] = {
+				message = "Difficulties parameter must have no keys other than 'difficulties', got: " .. tostring(key),
+			}
+		end
+	end
+
+	local difficulties = wrapper.difficulties
+	local luaTypeResult = validateLuaType(difficulties, "table")
+	if luaTypeResult then
+		result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = ".difficulties" }
+		return result
+	end
+	if next(difficulties) == nil then
+		result[#result + 1] = { message = "Difficulties table is empty", parameterNameSuffix = ".difficulties" }
+		return result
+	end
+
+	for difficultyName, value in pairs(difficulties) do
+		local suffix = ".difficulties." .. tostring(difficultyName)
+		if not difficultyRanks[difficultyName] then
+			result[#result + 1] =
+				{ message = "Invalid difficulty: " .. tostring(difficultyName), parameterNameSuffix = suffix }
+		end
+		if isDifficultiesTable(value) then
+			result[#result + 1] = {
+				message = "Difficulties values must not be difficulties tables themselves",
+				parameterNameSuffix = suffix,
+			}
+		else
+			local valueResults = validators[parameterType](
+				value,
+				actionOrTrigger,
+				actionOrTriggerID,
+				(parameterName or "") .. suffix
+			) or {}
+			for _, valueResult in ipairs(valueResults) do
+				result[#result + 1] = {
+					message = valueResult.message,
+					severity = valueResult.severity,
+					parameterNameSuffix = suffix .. (valueResult.parameterNameSuffix or ""),
+				}
+			end
+		end
+	end
+
+	return result
+end
+
 local function validate(
 	schemaParameters,
 	actionOrTriggerType,
@@ -729,12 +800,24 @@ local function validate(
 					)
 				end
 			else
-				local validationResults = validators[parameter.type](
-					value,
-					actionOrTrigger,
-					actionOrTriggerID,
-					parameter.name
-				) or {}
+				---@type table
+				local validationResults
+				if isDifficultiesTable(value) then
+					validationResults = validateDifficultiesTable(
+						value,
+						parameter.type,
+						actionOrTrigger,
+						actionOrTriggerID,
+						parameter.name
+					)
+				else
+					validationResults = validators[parameter.type](
+						value,
+						actionOrTrigger,
+						actionOrTriggerID,
+						parameter.name
+					) or {}
+				end
 				for _, validationResult in pairs(validationResults) do
 					local log = validationResult.severity == "warning" and logWarn or logError
 					log(
@@ -759,6 +842,24 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 		local luaTypeResult = validateLuaType(trigger.settings[schemaSetting], string.lower(schemaType))
 		if luaTypeResult then
 			logError(luaTypeResult .. ". Trigger: " .. triggerID .. ", Setting: " .. schemaSetting)
+		end
+	end
+
+	-- Validate the difficulties gate is keyed by known difficulty names:
+	local difficulties = trigger.settings.difficulties
+	if type(difficulties) == "table" then
+		if next(difficulties) == nil then
+			logWarn("Trigger difficulties setting is empty, so the trigger can never fire. Trigger: " .. triggerID)
+		end
+		for difficultyName in pairs(difficulties) do
+			if not difficultyRanks[difficultyName] then
+				logError(
+					"Invalid difficulty in settings. Trigger: "
+						.. triggerID
+						.. ", Difficulty: "
+						.. tostring(difficultyName)
+				)
+			end
 		end
 	end
 
@@ -791,13 +892,29 @@ end
 
 local function validateObjectiveSchemaFields(objective, objectiveIDText)
 	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
-		if fieldName ~= "nextStage" and objective[fieldName] ~= nil then
-			local validator = validators[fieldType]
-			local results = validator(objective[fieldName]) or {}
-			if #results > 0 then
-				for _, result in ipairs(results) do
-					logError(result.message .. ". Objective: " .. objectiveIDText .. ", Field: " .. fieldName)
+		local value = objective[fieldName]
+		if fieldName ~= "nextStage" and value ~= nil then
+			local results = {}
+			if isDifficultiesTable(value) then
+				if fieldName == "trigger" then
+					results = { { message = "Objective 'trigger' field does not support difficulties" } }
+				else
+					results = validateDifficultiesTable(value, fieldType, "Objective", objectiveIDText, fieldName)
 				end
+			else
+				results = validators[fieldType](value) or {}
+			end
+			---@cast results -?
+			for _, result in ipairs(results) do
+				local log = result.severity == "warning" and logWarn or logError
+				log(
+					result.message
+						.. ". Objective: "
+						.. objectiveIDText
+						.. ", Field: "
+						.. fieldName
+						.. (result.parameterNameSuffix or "")
+				)
 			end
 		end
 	end
@@ -814,8 +931,7 @@ local objectiveEventFields = {
 
 -- The TriggerID validator has already reported a trigger that does not exist.
 local function validateObjectiveEventTriggers(objective, objectiveIDText)
-	for _, fieldName in ipairs(objectiveEventFields) do
-		local triggerID = objective[fieldName]
+	local function checkEventTrigger(triggerID, fieldName)
 		local trigger = triggerID ~= nil and GG["MissionAPI"].Triggers[triggerID]
 		if trigger and trigger.type ~= triggerDefinitions.Types.Event then
 			logError(
@@ -826,6 +942,19 @@ local function validateObjectiveEventTriggers(objective, objectiveIDText)
 					.. ", Trigger: "
 					.. tostring(triggerID)
 			)
+		end
+	end
+
+	for _, fieldName in ipairs(objectiveEventFields) do
+		local value = objective[fieldName]
+		if isDifficultiesTable(value) then
+			if type(value.difficulties) == "table" then
+				for _, triggerID in pairs(value.difficulties) do
+					checkEventTrigger(triggerID, fieldName)
+				end
+			end
+		else
+			checkEventTrigger(value, fieldName)
 		end
 	end
 end
@@ -1013,7 +1142,24 @@ local function validateObjectiveNextStageReferences(objectives)
 	for objectiveID, objective in pairs(objectives) do
 		if type(objective) == "table" and objective.nextStage ~= nil then
 			local objectiveIDText = tostring(objectiveID)
-			if type(objective.nextStage) ~= "string" then
+			if isDifficultiesTable(objective.nextStage) then
+				local results = validateDifficultiesTable(
+					objective.nextStage,
+					Types.StageID,
+					"Objective",
+					objectiveIDText,
+					"nextStage"
+				)
+				for _, result in ipairs(results) do
+					logError(
+						result.message
+							.. ". Objective: "
+							.. objectiveIDText
+							.. ", Field: nextStage"
+							.. (result.parameterNameSuffix or "")
+					)
+				end
+			elseif type(objective.nextStage) ~= "string" then
 				logError(
 					"Unexpected parameter type, expected string, got "
 						.. type(objective.nextStage)
@@ -1224,6 +1370,21 @@ local function validateLoadouts(unitLoadout, featureLoadout)
 	end
 end
 
+--- A difficulty-wrapped parameter names every difficulty's value, so reference checks
+--- consider all of them; a plain value is returned as a single-element list.
+local function possibleValues(value)
+	if not isDifficultiesTable(value) then
+		return { value }
+	end
+	local values = {}
+	if type(value.difficulties) == "table" then
+		for _, difficultyValue in pairs(value.difficulties) do
+			values[#values + 1] = difficultyValue
+		end
+	end
+	return values
+end
+
 local function validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	local triggerTypesReferencingUnitNames = getTypesWithParameterType(triggersSchemaParameters, Types.UnitName)
 	local actionTypesNamingUnits = {
@@ -1248,13 +1409,15 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 	-- SpawnUnits actions with inline unitLoadout entries also create names.
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.SpawnUnits and action.parameters and action.parameters.unitLoadout then
-			for i, entry in ipairs(action.parameters.unitLoadout) do
-				if type(entry) == "table" and type(entry.unitName) == "string" then
-					createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
-					createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "action "
-						.. actionID
-						.. ", unitLoadout entry #"
-						.. i
+			for _, loadout in ipairs(possibleValues(action.parameters.unitLoadout)) do
+				for i, entry in ipairs(type(loadout) == "table" and loadout or {}) do
+					if type(entry) == "table" and type(entry.unitName) == "string" then
+						createdUnitNames[entry.unitName] = createdUnitNames[entry.unitName] or {}
+						createdUnitNames[entry.unitName][#createdUnitNames[entry.unitName] + 1] = "action "
+							.. actionID
+							.. ", unitLoadout entry #"
+							.. i
+					end
 				end
 			end
 		end
@@ -1263,11 +1426,13 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 	-- Orders on IssueOrders actions can also refer to unit names:
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.IssueOrders then
-			for _, order in ipairs(action.parameters.orders) do
-				local params = order[2]
-				if type(params) == "table" and type(params.unitName) == "string" then
-					local refsToUnitName = table.ensureTable(referencedUnitNames, params.unitName)
-					refsToUnitName[#refsToUnitName + 1] = "action " .. actionID .. " (orders)"
+			for _, orders in ipairs(possibleValues(action.parameters and action.parameters.orders)) do
+				for _, order in ipairs(type(orders) == "table" and orders or {}) do
+					local params = order[2]
+					if type(params) == "table" and type(params.unitName) == "string" then
+						local refsToUnitName = table.ensureTable(referencedUnitNames, params.unitName)
+						refsToUnitName[#refsToUnitName + 1] = "action " .. actionID .. " (orders)"
+					end
 				end
 			end
 		end
@@ -1275,12 +1440,14 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 
 	-- Objective inline triggers can also refer to unit names.
 	for objectiveID, objective in pairs(objectives or {}) do
-		local unitName = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.unitName
-		if type(unitName) == "string" then
-			referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
-			referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = "objective "
-				.. objectiveID
-				.. " (trigger)"
+		local unitNameValue = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.unitName
+		for _, unitName in ipairs(possibleValues(unitNameValue)) do
+			if type(unitName) == "string" then
+				referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
+				referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = "objective "
+					.. objectiveID
+					.. " (trigger)"
+			end
 		end
 	end
 
@@ -1291,14 +1458,15 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		label
 	)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
-			local unitName = (actionOrTrigger.parameters or {}).unitName
-			if type(unitName) == "string" then
-				if typesNamingUnits[actionOrTrigger.type] then
-					local creatorsOfUnitName = table.ensureTable(createdUnitNames, unitName)
-					creatorsOfUnitName[#creatorsOfUnitName + 1] = label .. actionOrTriggerID
-				elseif typesReferencingUnitNames[actionOrTrigger.type] then
-					referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
-					referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
+			for _, unitName in ipairs(possibleValues((actionOrTrigger.parameters or {}).unitName)) do
+				if type(unitName) == "string" then
+					if typesNamingUnits[actionOrTrigger.type] then
+						local creatorsOfUnitName = table.ensureTable(createdUnitNames, unitName)
+						creatorsOfUnitName[#creatorsOfUnitName + 1] = label .. actionOrTriggerID
+					elseif typesReferencingUnitNames[actionOrTrigger.type] then
+						referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
+						referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
+					end
 				end
 			end
 		end
@@ -1352,13 +1520,15 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	-- SpawnLoadout actions with inline featureLoadout entries also create names.
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.CreateFeatures and action.parameters and action.parameters.featureLoadout then
-			for i, entry in ipairs(action.parameters.featureLoadout) do
-				if type(entry) == "table" and type(entry.featureName) == "string" then
-					createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
-					createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "action "
-						.. actionID
-						.. ", featureLoadout entry #"
-						.. i
+			for _, loadout in ipairs(possibleValues(action.parameters.featureLoadout)) do
+				for i, entry in ipairs(type(loadout) == "table" and loadout or {}) do
+					if type(entry) == "table" and type(entry.featureName) == "string" then
+						createdFeatureNames[entry.featureName] = createdFeatureNames[entry.featureName] or {}
+						createdFeatureNames[entry.featureName][#createdFeatureNames[entry.featureName] + 1] = "action "
+							.. actionID
+							.. ", featureLoadout entry #"
+							.. i
+					end
 				end
 			end
 		end
@@ -1367,11 +1537,13 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 	-- Orders on IssueOrders actions can also refer to feature names:
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.IssueOrders then
-			for _, order in ipairs(action.parameters.orders) do
-				local params = order[2]
-				if type(params) == "table" and type(params.featureName) == "string" then
-					local refsToFeatureName = table.ensureTable(referencedFeatureNames, params.featureName)
-					refsToFeatureName[#refsToFeatureName + 1] = "action " .. actionID .. " (orders)"
+			for _, orders in ipairs(possibleValues(action.parameters and action.parameters.orders)) do
+				for _, order in ipairs(type(orders) == "table" and orders or {}) do
+					local params = order[2]
+					if type(params) == "table" and type(params.featureName) == "string" then
+						local refsToFeatureName = table.ensureTable(referencedFeatureNames, params.featureName)
+						refsToFeatureName[#refsToFeatureName + 1] = "action " .. actionID .. " (orders)"
+					end
 				end
 			end
 		end
@@ -1379,10 +1551,13 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 
 	-- Objective inline triggers can also refer to feature names.
 	for objectiveID, objective in pairs(objectives or {}) do
-		local featureName = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.featureName
-		if type(featureName) == "string" then
-			local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
-			refsToFeatureName[#refsToFeatureName + 1] = "objective " .. objectiveID .. " (trigger)"
+		local featureNameValue = ((objective or {}).trigger or {}).parameters
+			and objective.trigger.parameters.featureName
+		for _, featureName in ipairs(possibleValues(featureNameValue)) do
+			if type(featureName) == "string" then
+				local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
+				refsToFeatureName[#refsToFeatureName + 1] = "objective " .. objectiveID .. " (trigger)"
+			end
 		end
 	end
 
@@ -1393,14 +1568,15 @@ local function validateFeatureNameReferences(actionTypes, objectives, triggers, 
 		label
 	)
 		for actionOrTriggerID, actionOrTrigger in pairs(actionsOrTriggers) do
-			local featureName = (actionOrTrigger.parameters or {}).featureName
-			if type(featureName) == "string" then
-				if typesNamingFeatures[actionOrTrigger.type] then
-					local creatorsOfFeatureName = table.ensureTable(createdFeatureNames, featureName)
-					creatorsOfFeatureName[#creatorsOfFeatureName + 1] = label .. actionOrTriggerID
-				elseif typesReferencingFeatureNames[actionOrTrigger.type] then
-					local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
-					refsToFeatureName[#refsToFeatureName + 1] = label .. actionOrTriggerID
+			for _, featureName in ipairs(possibleValues((actionOrTrigger.parameters or {}).featureName)) do
+				if type(featureName) == "string" then
+					if typesNamingFeatures[actionOrTrigger.type] then
+						local creatorsOfFeatureName = table.ensureTable(createdFeatureNames, featureName)
+						creatorsOfFeatureName[#creatorsOfFeatureName + 1] = label .. actionOrTriggerID
+					elseif typesReferencingFeatureNames[actionOrTrigger.type] then
+						local refsToFeatureName = table.ensureTable(referencedFeatureNames, featureName)
+						refsToFeatureName[#refsToFeatureName + 1] = label .. actionOrTriggerID
+					end
 				end
 			end
 		end
@@ -1443,15 +1619,17 @@ local function validateMarkerNameReferences(actionTypes, actions)
 	local referencedMarkerNames = {}
 	for actionID, action in pairs(actions) do
 		if action.type == actionTypes.AddMapMarker then
-			local markerName = action.parameters.markerName
-			if markerName then
-				createdMarkerNames[markerName] = true
+			for _, markerName in ipairs(possibleValues(action.parameters.markerName)) do
+				if markerName then
+					createdMarkerNames[markerName] = true
+				end
 			end
 		elseif action.type == actionTypes.RemoveMapMarker then
-			local markerName = action.parameters.markerName
-			if markerName then
-				referencedMarkerNames[markerName] = referencedMarkerNames[markerName] or {}
-				referencedMarkerNames[markerName][#referencedMarkerNames[markerName] + 1] = actionID
+			for _, markerName in ipairs(possibleValues(action.parameters.markerName)) do
+				if markerName then
+					referencedMarkerNames[markerName] = referencedMarkerNames[markerName] or {}
+					referencedMarkerNames[markerName][#referencedMarkerNames[markerName] + 1] = actionID
+				end
 			end
 		end
 	end
@@ -1473,8 +1651,15 @@ local function validateObjectiveEventReferences(objectives, triggers)
 	for _, objective in pairs(objectives) do
 		if type(objective) == "table" then
 			for _, fieldName in ipairs(objectiveEventFields) do
-				if objective[fieldName] ~= nil then
-					namedTriggerIDs[objective[fieldName]] = true
+				local value = objective[fieldName]
+				if isDifficultiesTable(value) then
+					if type(value.difficulties) == "table" then
+						for _, triggerID in pairs(value.difficulties) do
+							namedTriggerIDs[triggerID] = true
+						end
+					end
+				elseif value ~= nil then
+					namedTriggerIDs[value] = true
 				end
 			end
 		end
@@ -1497,31 +1682,36 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 	local referencedCountdownIDs = {}
 
 	for actionID, action in pairs(actions) do
-		local countdownID = action.parameters and action.parameters.countdownID
-		if countdownID then
-			if action.type == actionTypes.AddCountdown then
-				addedCountdownIDs[countdownID] = true
-			elseif referencingActionTypes[action.type] then
-				local references = table.ensureTable(referencedCountdownIDs, countdownID)
-				references[#references + 1] = "action " .. actionID
+		for _, countdownID in ipairs(possibleValues(action.parameters and action.parameters.countdownID)) do
+			if countdownID then
+				if action.type == actionTypes.AddCountdown then
+					addedCountdownIDs[countdownID] = true
+				elseif referencingActionTypes[action.type] then
+					local references = table.ensureTable(referencedCountdownIDs, countdownID)
+					references[#references + 1] = "action " .. actionID
+				end
 			end
 		end
 	end
 
 	for triggerID, trigger in pairs(triggers) do
-		local countdownID = trigger.parameters and trigger.parameters.countdownID
-		if countdownID and triggerTypesReferencingCountdownIDs[trigger.type] then
-			local references = table.ensureTable(referencedCountdownIDs, countdownID)
-			references[#references + 1] = "trigger " .. triggerID
+		for _, countdownID in ipairs(possibleValues(trigger.parameters and trigger.parameters.countdownID)) do
+			if countdownID and triggerTypesReferencingCountdownIDs[trigger.type] then
+				local references = table.ensureTable(referencedCountdownIDs, countdownID)
+				references[#references + 1] = "trigger " .. triggerID
+			end
 		end
 	end
 
 	-- Objective inline triggers can also refer to countdown IDs.
 	for objectiveID, objective in pairs(objectives or {}) do
-		local countdownID = ((objective or {}).trigger or {}).parameters and objective.trigger.parameters.countdownID
-		if countdownID then
-			local references = table.ensureTable(referencedCountdownIDs, countdownID)
-			references[#references + 1] = "objective " .. objectiveID .. " (trigger)"
+		local countdownIDValue = ((objective or {}).trigger or {}).parameters
+			and objective.trigger.parameters.countdownID
+		for _, countdownID in ipairs(possibleValues(countdownIDValue)) do
+			if countdownID then
+				local references = table.ensureTable(referencedCountdownIDs, countdownID)
+				references[#references + 1] = "objective " .. objectiveID .. " (trigger)"
+			end
 		end
 	end
 

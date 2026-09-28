@@ -15,6 +15,7 @@ local stages = {
 			'objectiveWithMissingTriggerType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
+			'objectiveWithWrappedTrigger',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -71,6 +72,13 @@ local objectives = {
 			actions = { 'someAction' },  -- error: objective trigger must not have actions
 		},
 	},
+
+	objectiveWithWrappedTrigger = {
+		textKey = "trigger_field_must_not_be_wrapped",
+		trigger = {
+			difficulties = { Easy = { type = triggerTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
+		},
+	},
 }
 
 local initialStage = 'invalidStage' -- error: initialStage must exist in Stages
@@ -100,6 +108,46 @@ local triggers = {
 			difficulties = 0,
 			coop = 0,
 			active = 0,
+		},
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidDifficultiesValues = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = {
+				difficulties = {
+					Easy = 'notANumber',      -- error: seconds must be a number
+					invalidDifficulty = 30,   -- error: not a known difficulty (its value is still validated)
+				},
+			},
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithExtraKeyBesideDifficulties = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: only 'difficulties' is allowed in the wrapper
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithEmptyDifficulties = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = { difficulties = {} },  -- error: difficulties table is empty
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidDifficultyInGate = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			difficulties = { invalidDifficulty = true },  -- error: not a known difficulty
 		},
 		parameters = {
 			seconds = 100000000,
