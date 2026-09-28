@@ -57,12 +57,13 @@ if gadgetHandler:IsSyncedCode() then
 	local pairsNext = next
 	local type = type
 
-	local CMD_STOP = CMD.STOP
 	local CMD_ATTACK = CMD.ATTACK
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
-	local CMD_WAIT = CMD.WAIT
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
+	local CMD_STOP = CMD.STOP
+	local CMD_WAIT = CMD.WAIT
+	local CMD_AREA_ATTACK_GROUND = GameCMD.AREA_ATTACK_GROUND
 	local OPT_INTERNAL = CMD.OPT_INTERNAL
 	local FIRESTATE_RETURNFIRE = CMD.FIRESTATE_RETURNFIRE
 
@@ -70,7 +71,13 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD_ATTACK] = true,
 		[CMD_MANUALFIRE] = true,
 		[CMD.AREA_ATTACK] = true,
-		[GameCMD.AREA_ATTACK_GROUND] = true,
+		[CMD_AREA_ATTACK_GROUND] = true,
+	}
+
+	local issuesAttack = {
+		[CMD_FIGHT] = true,
+		[CMD.AREA_ATTACK] = true,
+		[CMD_AREA_ATTACK_GROUND] = true,
 	}
 
 	local validUnits = {}
@@ -268,24 +275,32 @@ if gadgetHandler:IsSyncedCode() then
 		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
 		if inCommand == CMD_WAIT then
 			return false
-		elseif not inCommand or not isAttackCommand[inCommand] then
+		elseif inCommand == nil or isAttackCommand[inCommand] == nil then
 			return true
-		elseif param2 or inCommand ~= CMD_ATTACK then
+		elseif inCommand ~= CMD_ATTACK then
 			return false
-		elseif not param1 then
+		elseif param1 == nil then
 			return true
+		elseif param2 ~= nil and not hasAutoTarget(options) then
+			return false
 		end
 
-		local nextCommand, _, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
-		-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
-		if nextCommand == CMD_FIGHT then
-			return true
-		end
-		-- Retaliation behaviors take priority to protect the guardee despite being automatic.
-		if nextCommand == CMD_GUARD and inRetaliationAttack(param1, nextParam1) then
-			return false
-		elseif inReturnFire(unitID) and inRetaliationAttack(param1, unitID) then
-			return false
+		local nextCommand, nextOptions, _, nextParam1 = spGetUnitCurrentCommand(unitID, 2)
+		if nextCommand then
+			-- Automatic attacks may target ground positions, too.
+			if param2 ~= nil then
+				return not issuesAttack[nextCommand] or hasAutoTarget(nextOptions)
+			end
+			-- ! FIXME: We assume the Attack command originated from within Fight but cannot be sure.
+			if nextCommand == CMD_FIGHT then
+				return true
+			end
+			-- Retaliation behaviors take priority to protect the guardee despite being automatic.
+			if nextCommand == CMD_GUARD and inRetaliationAttack(param1, nextParam1) then
+				return false
+			elseif inReturnFire(unitID) and inRetaliationAttack(param1, unitID) then
+				return false
+			end
 		end
 
 		return hasAutoTarget(options) or not testTarget(unitID, unitData.teamID, unitData.weapons, param1)
@@ -307,12 +322,19 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- Drop any automatic command that would restore a dropped target to the unit or its weapons.
-	local function dropAutomaticTargets(unitID, targetID)
+	local function dropAutomaticTargets(unitID, activeTarget)
 		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
-		-- `place_target_on_ground` and user widgets might reissue automatic commands onto positions.
-		if inCommand == CMD_ATTACK and (param2 or param1 == targetID) and hasAutoTarget(options) then
-			spUnitFinishCommand(unitID)
+		if inCommand ~= CMD_ATTACK or not hasAutoTarget(options) then
+			return
+		elseif param2 then
+			local nextCommand = spGetUnitCurrentCommand(unitID, 2)
+			if issuesAttack[nextCommand] then
+				return
+			end
+		elseif param1 ~= activeTarget then
+			return
 		end
+		spUnitFinishCommand(unitID)
 	end
 
 	local function restoreCommandTarget(unitID)
@@ -333,13 +355,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function setTargetPassive(unitID, unitData)
-		local releasedTarget = unitData.activeTarget
-		if not releasedTarget then
+		local activeTarget = unitData.activeTarget
+		if not activeTarget then
 			return
 		end
 		unitData.activeTarget = nil
 		unitData.currentIndex = 1
-		dropAutomaticTargets(unitID, releasedTarget)
+		dropAutomaticTargets(unitID, activeTarget)
 		if not restoreCommandTarget(unitID) then
 			spSetUnitTarget(unitID, nil)
 		end
