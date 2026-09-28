@@ -238,6 +238,28 @@ local function randomlyMirrorBlueprint(mirrored, direction, unitFacing)
 	end
 end
 
+-- Maps with a LuaGaia feature placer create their geovents after LuaRules has loaded, so the
+-- resource spot finder's geo list is empty for them. Collect the geovents ourselves in GamePreload.
+local geoSpots = {}
+local function findGeoSpots()
+	local spots = {}
+	local seen = {}
+	local features = Spring.GetAllFeatures()
+	for i = 1, #features do
+		local featureDef = FeatureDefs[Spring.GetFeatureDefID(features[i])]
+		if featureDef and featureDef.geoThermal then
+			local x, y, z = Spring.GetFeaturePosition(features[i])
+			-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
+			local key = math.floor(x / 16) * 65536 + math.floor(z / 16)
+			if not seen[key] then
+				seen[key] = true
+				spots[#spots + 1] = { x = x, y = y, z = z }
+			end
+		end
+	end
+	return spots
+end
+
 function getNearestBlocker(x, z)
 	local lowestDist = math.huge
 	local metalSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
@@ -253,16 +275,13 @@ function getNearestBlocker(x, z)
 			end
 		end
 	end
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots then
-		for i = 1, #geoSpots do
-			local spot = geoSpots[i]
-			if spot then
-				local dx, dz = x - spot.x, z - spot.z
-				local dist = dx * dx + dz * dz
-				if dist < lowestDist then
-					lowestDist = dist
-				end
+	for i = 1, #geoSpots do
+		local spot = geoSpots[i]
+		if spot then
+			local dx, dz = x - spot.x, z - spot.z
+			local dist = dx * dx + dz * dz
+			if dist < lowestDist then
+				lowestDist = dist
 			end
 		end
 	end
@@ -524,8 +543,7 @@ local function SpawnMexGeoRandomStructures()
 		end
 	end
 
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots and #geoSpots >= 1 then
+	if #geoSpots >= 1 then
 		for i = 1, #geoSpots do
 			if SpawnedGeos[i] then
 				local spot = geoSpots[i]
@@ -727,8 +745,8 @@ function gadget:GamePreload()
 	end
 
 	-- spawn order affects placement success rates near resource spots
-	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-	if geoSpots and #geoSpots >= 1 then
+	geoSpots = findGeoSpots()
+	if #geoSpots >= 1 then
 		SpawnGeos(geoSpots)
 	end
 
