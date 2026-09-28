@@ -47,6 +47,9 @@ local weaponAttributes = {
 	maxWeaponRange = { type = "number" },
 	reloadTime = { type = "number" },
 	damage = { type = "number", multiplyOnly = true, perExplosion = true },
+	-- The engine applies these as magnitudes relative to damage, so `damage` scales them, also.
+	impulse = { type = "number", multiplyOnly = true, perExplosion = true },
+	cratering = { type = "number", multiplyOnly = true, perExplosion = true },
 }
 
 return {

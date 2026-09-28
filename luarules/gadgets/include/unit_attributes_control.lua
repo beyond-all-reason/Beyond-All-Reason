@@ -450,7 +450,6 @@ local weaponDamageFactors = {}
 local spawnedWeaponDefs = {} ---@type table<WeaponDefID, true?>
 local spawnedDefsByParent = {} ---@type table<WeaponDefID, WeaponDefID[]?>
 
--- Ignores WeaponDamages properties that we do not scale, e.g. impulse, cratering.
 local damagesArray = table.new(armorTypeMax, 1 - armorTypeMin) ---@as number[] reusable scratch table
 local weaponVector = {} ---@type number[] reusable scratch, one composed value per weapon
 
@@ -503,6 +502,74 @@ local function setDamage(unitID, scales)
 			spSetUnitWeaponDamages(unitID, explosion.target, damagesArray)
 		end
 	end
+end
+
+---@type table<string, string>
+local damagesFieldByAttribute = {
+	impulse = "impulseFactor",
+	cratering = "craterMult",
+}
+
+local baseDamagesFields = {} ---@type table<UnitDefID, table<string, (number|false)[]>?>
+
+---@return (number|false)[] `false` for a slot with no weapondef
+local function getDamagesFieldBaselines(unitDefID, field)
+	local fields = baseDamagesFields[unitDefID]
+	if not fields then
+		fields = {}
+		baseDamagesFields[unitDefID] = fields
+	end
+	local baselines = fields[field]
+	if not baselines then
+		baselines = {}
+		local unitDef = UnitDefs[unitDefID]
+		local weaponCount = weaponLayoutByDef[unitDefID].weaponCount
+		for weaponNum, weapon in ipairs(unitDef.weapons) do
+			local weaponDef = WeaponDefs[weapon.weaponDef]
+			baselines[weaponNum] = weaponDef and weaponDef.damages and weaponDef.damages[field] or false
+		end
+		for index, explosion in ipairs(explosionKinds) do
+			local weaponDef = WeaponDefNames[unitDef[explosion.field]]
+			baselines[weaponCount + index] = weaponDef and weaponDef.damages and weaponDef.damages[field] or false
+		end
+		fields[field] = baselines
+	end
+	return baselines
+end
+
+local function setDamagesField(unitID, scales, attribute)
+	local unitDefID = spGetUnitDefID(unitID)
+	local field = damagesFieldByAttribute[attribute]
+	local baselines = getDamagesFieldBaselines(unitDefID, field)
+	local layout = weaponLayoutByDef[unitDefID]
+
+	for weaponNum = 1, layout.weaponCount do
+		local baseline = baselines[weaponNum]
+		if baseline then
+			spSetUnitWeaponDamages(unitID, weaponNum, field, baseline * scales[weaponNum])
+		end
+	end
+
+	-- Explosions are only modified directly. They ignore effects on "all weapons".
+	local applied = appliedValues[unitID]
+	local previous = applied and applied[attribute]
+	for _, explosion in ipairs(explosionKinds) do
+		local slot = layout.slots[explosion.key]
+		local baseline = baselines[slot]
+		local scale = scales[slot]
+		local before = previous and previous[slot] or 1.0
+		if baseline and (scale ~= 1.0 or before ~= 1.0) then
+			spSetUnitWeaponDamages(unitID, explosion.target, field, baseline * scale)
+		end
+	end
+end
+
+local function setImpulse(unitID, scales)
+	setDamagesField(unitID, scales, "impulse")
+end
+
+local function setCratering(unitID, scales)
+	setDamagesField(unitID, scales, "cratering")
 end
 
 local function setReloadTime(unitID, times)
@@ -620,6 +687,8 @@ local applyUnitAttribute = {
 	maxWeaponRange = setMaxWeaponRange,
 	reloadTime = setReloadTime,
 	damage = setDamage,
+	impulse = setImpulse,
+	cratering = setCratering,
 
 	experience = function(unitID, value)
 		spSetUnitExperience(unitID, value)
