@@ -322,6 +322,7 @@ config = {
 	historySelections = true, -- Log every player's selection (the tracked player's shows in the rewind)
 	historySelectionCap = 200, -- Units kept per selection record
 	historyCursors = true, -- Log player cursors (the tracked player's shows in the rewind)
+	historyResources = true, -- Log team resources (the tracked player's resource bars show them in the rewind)
 }
 
 -- State variables
@@ -465,6 +466,8 @@ local pipR2T = {
 	resbarTextLastUpdate = 0,
 	resbarTextUpdateRate = 0.5, -- Update resource text at 2 FPS
 	resbarTextLastPlayerID = nil,
+	resbarTextLastMode = nil, -- rewinding when the text was made
+	resbarTextLastFrame = nil, -- viewed rewind frame when the text was made
 	playerNameDlist = nil,
 	playerNameLastPlayerID = nil,
 	playerNameLastName = nil,
@@ -13928,6 +13931,7 @@ function miscState.hist.StoreOptions()
 		playerSelections = miscState.hist.PlayerSelections,
 		logCursors = config.historyCursors,
 		playerCursors = miscState.hist.PlayerCursors,
+		logResources = config.historyResources,
 		scanSpread = math.max(1, math.floor(config.historyScanSpread)),
 		spillBytes = math.max(0.01, config.historySpillMB) * 1024 * 1024,
 		basicLevel = math.max(0, math.floor(config.historyBasicLevel)),
@@ -14327,6 +14331,16 @@ function miscState.hist.TrackedCamera(playerID)
 		st.dist, st.height = h, nil
 	end
 	return st
+end
+
+-- the team's recorded resources at the viewed frame (see View:ResourcesAt), nil when the log has none
+function miscState.hist.TeamResources(teamID)
+	local hist = miscState.hist
+	if not hist.view then
+		return nil
+	end
+	hist.resOut = hist.resOut or {}
+	return hist.view:ResourcesAt(teamID, hist.viewFrame, hist.resOut)
 end
 
 -- hits arrive by the thousand in a big fight: no engine calls, no UnitDefs proxy reads here
@@ -19735,21 +19749,34 @@ local function DrawTrackedPlayerResourceBars()
 		return
 	end
 
-	-- Get team resources - this works for spectators viewing any team
-	-- Returns: current, storage, pull, income, expense, share
-	local metalCur, metalMax, metalPull, metalIncome, metalExpense, metalShare =
-		Spring.GetTeamResources(teamID, "metal")
-	local energyCur, energyMax, energyPull, energyIncome, energyExpense, energyShare =
-		Spring.GetTeamResources(teamID, "energy")
+	local hist = miscState.hist ---@type PipHistState
+	local metalCur, metalMax, metalPull, metalIncome, metalShare
+	local energyCur, energyMax, energyPull, energyIncome, energyShare, mmLevel
+	if hist.mode then
+		-- Rewinding: the resources recorded at the viewed frame (no bars when the log has none)
+		local r = hist.TeamResources(teamID)
+		if not r then
+			return
+		end
+		metalCur, metalMax, metalPull, metalIncome, metalShare = r[1], r[2], r[3], r[4], r[5]
+		energyCur, energyMax, energyPull, energyIncome, energyShare = r[6], r[7], r[8], r[9], r[10]
+		mmLevel = r[11]
+	else
+		-- Get team resources - this works for spectators viewing any team
+		-- Returns: current, storage, pull, income, expense, share
+		local _
+		metalCur, metalMax, metalPull, metalIncome, _, metalShare = Spring.GetTeamResources(teamID, "metal")
+		energyCur, energyMax, energyPull, energyIncome, _, energyShare = Spring.GetTeamResources(teamID, "energy")
 
-	if not (metalCur and energyCur) then
-		return
-	end
+		if not (metalCur and energyCur) then
+			return
+		end
 
-	-- Get energy conversion level (mmLevel)
-	local mmLevel = Spring.GetTeamRulesParam(teamID, "mmLevel")
-	if mmLevel == nil then
-		mmLevel = 1
+		-- Get energy conversion level (mmLevel)
+		mmLevel = Spring.GetTeamRulesParam(teamID, "mmLevel")
+		if mmLevel == nil then
+			mmLevel = 1
+		end
 	end
 
 	-- Check if player has teammates (for share slider)
@@ -19898,10 +19925,12 @@ local function DrawTrackedPlayerResourceBars()
 		end
 	end
 
-	-- Text rendering - use cached display list, update at ~2 FPS
+	-- Text rendering - use cached display list, update at ~2 FPS and on each frame a paused or dragged rewind lands on
 	local currentTime = os.clock()
 	local needsTextUpdate = pipR2T.resbarTextDlist == nil
 		or pipR2T.resbarTextLastPlayerID ~= interactionState.trackingPlayerID
+		or pipR2T.resbarTextLastMode ~= hist.mode
+		or (hist.mode and (not hist.playing or hist.dragging) and pipR2T.resbarTextLastFrame ~= hist.viewFrame)
 		or (currentTime - pipR2T.resbarTextLastUpdate) >= pipR2T.resbarTextUpdateRate
 
 	if needsTextUpdate then
@@ -19947,6 +19976,8 @@ local function DrawTrackedPlayerResourceBars()
 
 		pipR2T.resbarTextLastUpdate = currentTime
 		pipR2T.resbarTextLastPlayerID = interactionState.trackingPlayerID
+		pipR2T.resbarTextLastMode = hist.mode
+		pipR2T.resbarTextLastFrame = hist.viewFrame
 	end
 
 	-- Draw the cached text display list
