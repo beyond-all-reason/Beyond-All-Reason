@@ -368,7 +368,7 @@ end
 local weaponNumbersByDef = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	local weapons = unitDef.weapons
-	if weapons[1] then
+	if not table.isEmpty(weapons) then
 		local weaponNumbers = {}
 		for weaponNum, weapon in ipairs(weapons) do
 			local weaponDefID = weapon.weaponDef
