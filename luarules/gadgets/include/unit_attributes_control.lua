@@ -84,10 +84,15 @@ local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
 
 local SOURCE_DEFAULT = "default"
 
-local unitdefFactors = {} ---@type table<UnitDefID, table<string, table<string, AttributeFactor>?>?>
-local unitdefTeamFactors = {} ---@type table<UnitDefID, table<TeamID, table<string, table<string, AttributeFactor>?>?>?>
-local unitFactors = {} ---@type table<UnitID, table<string, table<string, AttributeFactor>?>?>
-local appliedValues = {} ---@type table<UnitID, table<string, any>?>
+---@alias AttributeFactors table<string, AttributeFactor>
+---@alias WeaponFactors table<integer, AttributeFactors?> Keyed by weapon key, then by source.
+
+-- Attribute names are unique, so unit and weapon attributes share their marks and update tables.
+
+local unitdefFactors = {} ---@type table<UnitDefID, table<string, AttributeFactors|WeaponFactors>?>
+local unitdefTeamFactors = {} ---@type table<UnitDefID, table<TeamID, table<string, AttributeFactors|WeaponFactors>?>?>
+local unitFactors = {} ---@type table<UnitID, table<string, AttributeFactors|WeaponFactors>?>
+local appliedValues = {} ---@type table<UnitID, table<string, any>?> NB: Weapon attributes store their composed vectors.
 local dirty = {} ---@type table<UnitID, table<string, true?>?>
 local appliedWeapons = {} ---@type table<UnitID, table<string, number[]>?>
 local sequenceNum = math.int_min
@@ -482,7 +487,7 @@ local function setDamage(unitID, scales)
 	end
 
 	-- Explosions are only modified directly. They ignore effects on "all weapons".
-	local applied = appliedWeapons[unitID]
+	local applied = appliedValues[unitID]
 	local previous = applied and applied.damage
 	local slots = weaponLayoutByDef[unitDefID].slots
 	local explosions = getExplosionDamages(unitDefID)
@@ -860,13 +865,6 @@ local function getBaselineVector(unitDefID, attribute)
 	return vector
 end
 
-local unitWeaponFactors = {} ---@type table<UnitID, table<string, WeaponFactors?>?>
-local unitdefWeaponFactors = {} ---@type table<UnitDefID, table<string, WeaponFactors?>?>
-local unitdefTeamWeaponFactors = {} ---@type table<UnitDefID, table<TeamID, table<string, WeaponFactors?>?>?>
-local dirtyWeapons = {} ---@type table<UnitID, table<string, true?>?>
-
----@alias WeaponFactors table<integer, table<string, AttributeFactor>?>
-
 local function getWeaponFactors(attributes, attribute, weaponKey, create)
 	local weapons = attributes and getChild(attributes, attribute, create)
 	return weapons and getChild(weapons, weaponKey, create)
@@ -876,29 +874,6 @@ local function pruneWeaponFactors(root, key, attributes, attribute, weaponKey)
 	local weapons = attributes and attributes[attribute]
 	if weapons and prune(weapons, weaponKey) and prune(attributes, attribute) then
 		prune(root, key)
-	end
-end
-
-local function markUnitWeaponDirty(unitID, attribute)
-	local attributes = dirtyWeapons[unitID]
-	if not attributes then
-		attributes = takeFromPool()
-		dirtyWeapons[unitID] = attributes
-	end
-	attributes[attribute] = true
-end
-
-local function markUnitDefWeaponDirty(unitDefID, teamID, attribute)
-	if teamID then
-		for _, unitID in ipairs(spGetTeamUnitsByDefs(teamID, unitDefID)) do
-			markUnitWeaponDirty(unitID, attribute)
-		end
-		return
-	end
-	for _, team in ipairs(spGetTeamList()) do
-		for _, unitID in ipairs(spGetTeamUnitsByDefs(team, unitDefID)) do
-			markUnitWeaponDirty(unitID, attribute)
-		end
 	end
 end
 
@@ -915,14 +890,14 @@ end
 ---@param out number[]
 ---@return number[] out
 local function composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVector, out)
-	local attributes = unitWeaponFactors[unitID]
+	local attributes = unitFactors[unitID]
 	local fromUnit = attributes and attributes[attribute]
 
-	local teams = unitdefTeamWeaponFactors[unitDefID]
+	local teams = unitdefTeamFactors[unitDefID]
 	attributes = teams and teams[teamID]
 	local fromTeam = attributes and attributes[attribute]
 
-	attributes = unitdefWeaponFactors[unitDefID]
+	attributes = unitdefFactors[unitDefID]
 	local fromUnitDef = attributes and attributes[attribute]
 
 	local unitAllWeapons = fromUnit and fromUnit[WEAPON_ALL]
@@ -995,41 +970,48 @@ local function composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVec
 	return out
 end
 
----@return table<string, number[]>? applied
-local function setAppliedWeapons(unitID, attribute, vector)
-	local applied = appliedWeapons[unitID]
-	if vector == nil then
-		if applied then
-			applied[attribute] = nil
-			if next(applied) == nil then
-				appliedWeapons[unitID] = nil
-				return
-			end
-		end
-		return applied
-	end
+---Keeps a temp copy since the composed vector is a scratch table. Cleared in `setApplied`.
+---@return table<string, any> applied
+local function setAppliedVector(unitID, attribute, vector)
+	local applied = appliedValues[unitID]
 	if not applied then
 		applied = {}
-		appliedWeapons[unitID] = applied
+		appliedValues[unitID] = applied
 	end
-	local held = applied[attribute]
-	if not held then
-		held = {}
-		applied[attribute] = held
+	local temp = applied[attribute]
+	if not temp then
+		temp = {}
+		applied[attribute] = temp
 	end
 	for index = 1, #vector do
-		held[index] = vector[index]
+		temp[index] = vector[index]
 	end
 	return applied
 end
 
-local function checkWeaponAttribute(attribute, weaponKey, kind, value, unitDefID)
-	local entry = weaponAttributes[attribute]
+---@param entry UnitAttributeDefinition|WeaponAttributeDefinition|nil
+---@param kind AttributeFactorKind
+local function checkFactor(entry, attribute, kind, value)
 	if not entry then
-		warn(attribute, unitAttributes[attribute] and "is not written per weapon" or "not found")
-		return
+		if weaponAttributes[attribute] then
+			warn(attribute, "is written per weapon")
+		elseif unitAttributes[attribute] then
+			warn(attribute, "is not written per weapon")
+		else
+			warn(attribute, "not found")
+		end
+		return false
 	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
 		warn(attribute, "is multiplication-only")
+		return false
+	end
+	return true
+end
+
+---@param kind AttributeFactorKind
+local function checkWeaponAttribute(attribute, weaponKey, kind, value, unitDefID)
+	local entry = weaponAttributes[attribute]
+	if not checkFactor(entry, attribute, kind, value) then
 		return
 	elseif weaponKey < 0 and not entry.perExplosion then
 		warn(attribute, "is not written per explosion")
@@ -1060,17 +1042,17 @@ local function recordUnitWeaponAttribute(unitID, weaponKey, attribute, value, so
 		return
 	end
 
-	local attributes = getChild(unitWeaponFactors, unitID, value ~= nil)
+	local attributes = getChild(unitFactors, unitID, value ~= nil)
 	local factors = getWeaponFactors(attributes, attribute, weaponKey, value ~= nil)
 	if not factors then
 		return
 	end
 
 	if record(factors, source or SOURCE_DEFAULT, kind, value) then
-		markUnitWeaponDirty(unitID, attribute)
+		markUnitDirty(unitID, attribute)
 	end
 	if value == nil then
-		pruneWeaponFactors(unitWeaponFactors, unitID, attributes, attribute, weaponKey)
+		pruneWeaponFactors(unitFactors, unitID, attributes, attribute, weaponKey)
 	end
 end
 
@@ -1082,10 +1064,10 @@ local function recordUnitDefWeaponAttribute(unitDefID, weaponKey, attribute, val
 
 	local root, key, attributes
 	if teamID == nil then
-		root, key = unitdefWeaponFactors, unitDefID
-		attributes = getChild(unitdefWeaponFactors, unitDefID, value ~= nil)
+		root, key = unitdefFactors, unitDefID
+		attributes = getChild(unitdefFactors, unitDefID, value ~= nil)
 	else
-		local teams = getChild(unitdefTeamWeaponFactors, unitDefID, value ~= nil)
+		local teams = getChild(unitdefTeamFactors, unitDefID, value ~= nil)
 		root, key = teams, teamID
 		attributes = teams and getChild(teams, teamID, value ~= nil)
 	end
@@ -1096,120 +1078,19 @@ local function recordUnitDefWeaponAttribute(unitDefID, weaponKey, attribute, val
 	end
 
 	if record(factors, source or SOURCE_DEFAULT, kind, value) then
-		markUnitDefWeaponDirty(unitDefID, teamID, attribute)
+		markUnitDefDirty(unitDefID, teamID, attribute)
 	end
 	if value == nil then
 		pruneWeaponFactors(root, key, attributes, attribute, weaponKey)
 		if teamID ~= nil then
-			prune(unitdefTeamWeaponFactors, unitDefID)
+			prune(unitdefTeamFactors, unitDefID)
 		end
-	end
-end
-
-local function updateWeapons()
-	for unitID, attributes in pairs(dirtyWeapons) do
-		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID then
-			local teamID = spGetUnitTeam(unitID)
-			local applied = appliedWeapons[unitID]
-			for attribute in pairs(attributes) do
-				local baseVector = getBaselineVector(unitDefID, attribute)
-				local vector = composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVector, weaponVector)
-				local previous = applied and applied[attribute] or baseVector
-				if sameArray(vector, previous) or applyUnitAttribute[attribute](unitID, vector) ~= false then
-					if sameArray(vector, baseVector) then
-						applied = setAppliedWeapons(unitID, attribute, nil)
-					else
-						applied = setAppliedWeapons(unitID, attribute, vector)
-					end
-					attributes[attribute] = nil
-				end
-			end
-		else
-			for attribute in pairs(attributes) do
-				attributes[attribute] = nil
-			end
-		end
-
-		if next(attributes) == nil then
-			dirtyWeapons[unitID] = nil
-			addToPool(attributes)
-		end
-	end
-end
-
-local function markWeaponsOnCreated(unitID, unitDefID, teamID)
-	local attributes = unitdefWeaponFactors[unitDefID]
-	if attributes then
-		for attribute in pairs(attributes) do
-			markUnitWeaponDirty(unitID, attribute)
-		end
-	end
-
-	local teams = unitdefTeamWeaponFactors[unitDefID]
-	attributes = teams and teams[teamID]
-	if attributes then
-		for attribute in pairs(attributes) do
-			markUnitWeaponDirty(unitID, attribute)
-		end
-	end
-end
-
-local function markWeaponsOnGiven(unitID, unitDefID, newTeamID, oldTeamID)
-	local teams = unitdefTeamWeaponFactors[unitDefID]
-	if not teams then
-		return
-	end
-	local attributes = teams[newTeamID]
-	if attributes then
-		for attribute in pairs(attributes) do
-			markUnitWeaponDirty(unitID, attribute)
-		end
-	end
-	attributes = teams[oldTeamID]
-	if attributes then
-		for attribute in pairs(attributes) do
-			markUnitWeaponDirty(unitID, attribute)
-		end
-	end
-end
-
-local function dropUnitWeapons(unitID)
-	unitWeaponFactors[unitID] = nil
-	appliedWeapons[unitID] = nil
-	weaponDamageFactors[unitID] = nil
-	dirtyWeapons[unitID] = nil
-end
-
-local function clearWeapons()
-	for unitID, attributes in pairs(appliedWeapons) do
-		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID then
-			for attribute in pairs(attributes) do
-				applyUnitAttribute[attribute](unitID, getBaselineVector(unitDefID, attribute))
-			end
-		end
-	end
-
-	unitWeaponFactors = {}
-	unitdefWeaponFactors = {}
-	unitdefTeamWeaponFactors = {}
-	dirtyWeapons = {}
-	appliedWeapons = {}
-
-	-- Consumers read this for live values:
-	for unitID in pairs(weaponDamageFactors) do
-		weaponDamageFactors[unitID] = nil
 	end
 end
 
 ---@param kind AttributeFactorKind
 local function checkUnitDefAttribute(entry, attribute, kind, value, unitDefID)
-	if not entry then
-		warn(attribute, weaponAttributes[attribute] and "is written per weapon" or "not found")
-		return
-	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
-		warn(attribute, "is multiplication-only")
+	if not checkFactor(entry, attribute, kind, value) then
 		return
 	elseif entry.unitOnly or entry.isUnitState then
 		warn(attribute, "cannot be set on unitdefs")
@@ -1226,17 +1107,10 @@ end
 
 ---@param kind AttributeFactorKind
 local function checkUnitAttribute(entry, attribute, kind, value)
-	if not entry then
-		warn(attribute, weaponAttributes[attribute] and "is written per weapon" or "not found")
+	if not checkFactor(entry, attribute, kind, value) then
 		return
-	elseif entry.isUnitState then
-		if kind ~= "set" then
-			warn(attribute, "cannot be multiplied")
-			return
-		end
-		return true
-	elseif entry.multiplyOnly and kind == "set" and value ~= nil then
-		warn(attribute, "is multiplication-only")
+	elseif entry.isUnitState and kind ~= "set" then
+		warn(attribute, "cannot be multiplied")
 		return
 	end
 	return true
@@ -1409,7 +1283,7 @@ local function getUnitWeaponAttributeValue(unitID, weaponKey, attribute)
 		return
 	end
 
-	local applied = appliedWeapons[unitID]
+	local applied = appliedValues[unitID]
 	local vector = applied and applied[attribute]
 	if vector then
 		return vector[slot]
@@ -1425,16 +1299,16 @@ end
 ---@param attribute string
 ---@return number|boolean|string|nil value `nil` only for unit state or unknown attributes
 local function getUnitAttributeValue(unitID, attribute)
-	local applied = appliedValues[unitID]
-	local value = applied and applied[attribute]
-	if value ~= nil then
-		return value
-	end
-
 	local entry = unitAttributes[attribute]
 	if not entry then
 		warn(attribute, weaponAttributes[attribute] and "is read per weapon" or "not found")
 		return
+	end
+
+	local applied = appliedValues[unitID]
+	local value = applied and applied[attribute]
+	if value ~= nil then
+		return value
 	elseif entry.isUnitState then
 		return -- Ask the engine. The module writes state but cannot track it.
 	end
@@ -1447,24 +1321,22 @@ end
 
 -- Engine callin events --------------------------------------------------------
 
----@param unitID UnitID
----@param unitDefID UnitDefID
-local function applyOnCreated(unitID, unitDefID)
-	markWeaponsOnCreated(unitID, unitDefID, spGetUnitTeam(unitID))
-
-	local attributes = unitdefFactors[unitDefID]
+---@param attributes table<string, any>?
+local function markAttributesDirty(unitID, attributes)
 	if attributes then
 		for attribute in pairs(attributes) do
 			markUnitDirty(unitID, attribute)
 		end
 	end
+end
 
+---@param unitID UnitID
+---@param unitDefID UnitDefID
+local function applyOnCreated(unitID, unitDefID)
+	markAttributesDirty(unitID, unitdefFactors[unitDefID])
 	local teams = unitdefTeamFactors[unitDefID]
-	local teamAttributes = teams and teams[spGetUnitTeam(unitID)] ---@type table?
-	if teamAttributes then
-		for attribute in pairs(teamAttributes) do
-			markUnitDirty(unitID, attribute)
-		end
+	if teams then
+		markAttributesDirty(unitID, teams[spGetUnitTeam(unitID)])
 	end
 end
 
@@ -1479,11 +1351,10 @@ end
 
 ---@param unitID UnitID
 local function applyOnDestroyed(unitID)
-	dropUnitWeapons(unitID)
-
 	unitFactors[unitID] = nil
 	appliedValues[unitID] = nil
 	dirty[unitID] = nil
+	weaponDamageFactors[unitID] = nil
 end
 
 ---@param unitID UnitID
@@ -1491,32 +1362,15 @@ end
 ---@param newTeamID TeamID
 ---@param oldTeamID TeamID
 local function applyOnGiven(unitID, unitDefID, newTeamID, oldTeamID)
-	markWeaponsOnGiven(unitID, unitDefID, newTeamID, oldTeamID)
-
 	local teams = unitdefTeamFactors[unitDefID]
-	if not teams then
-		return
-	end
-	local newAttributes = teams[newTeamID]
-	if newAttributes then
-		for attribute in pairs(newAttributes) do
-			markUnitDirty(unitID, attribute)
-		end
-	end
-
-	local oldAttributes = teams[oldTeamID]
-	if oldAttributes then
-		for attribute in pairs(oldAttributes) do
-			markUnitDirty(unitID, attribute)
-		end
+	if teams then
+		markAttributesDirty(unitID, teams[newTeamID])
+		markAttributesDirty(unitID, teams[oldTeamID])
 	end
 end
 
 ---@param frame integer
 local function updateAll(frame)
-	if next(dirtyWeapons) ~= nil then
-		updateWeapons()
-	end
 	if next(dirty) == nil then
 		return
 	end
@@ -1527,20 +1381,34 @@ local function updateAll(frame)
 			local teamID = spGetUnitTeam(unitID)
 			local applied = appliedValues[unitID]
 			for attribute in pairs(attributes) do
-				local baseline = getBaseline(unitDefID, attribute)
-				local value = composeValue(unitID, unitDefID, teamID, attribute, baseline)
-				local previous = applied and applied[attribute]
-				if previous == nil then
-					previous = baseline
-				end
-				-- MoveCtrl prevents updating the unit's moveTypeData so keep the attribute dirty.
-				if value == previous or applyUnitAttribute[attribute](unitID, value) ~= false then
-					if value == baseline then
-						applied = setApplied(unitID, attribute, nil)
-					else
-						applied = setApplied(unitID, attribute, value)
+				if weaponAttributes[attribute] then
+					local baseVector = getBaselineVector(unitDefID, attribute)
+					local vector = composeWeaponVector(unitID, unitDefID, teamID, attribute, baseVector, weaponVector)
+					local previous = applied and applied[attribute] or baseVector
+					if sameArray(vector, previous) or applyUnitAttribute[attribute](unitID, vector) ~= false then
+						if sameArray(vector, baseVector) then
+							applied = setApplied(unitID, attribute, nil)
+						else
+							applied = setAppliedVector(unitID, attribute, vector)
+						end
+						attributes[attribute] = nil
 					end
-					attributes[attribute] = nil
+				else
+					local baseline = getBaseline(unitDefID, attribute)
+					local value = composeValue(unitID, unitDefID, teamID, attribute, baseline)
+					local previous = applied and applied[attribute]
+					if previous == nil then
+						previous = baseline
+					end
+					-- MoveCtrl prevents updating the unit's moveTypeData so keep the attribute dirty.
+					if value == previous or applyUnitAttribute[attribute](unitID, value) ~= false then
+						if value == baseline then
+							applied = setApplied(unitID, attribute, nil)
+						else
+							applied = setApplied(unitID, attribute, value)
+						end
+						attributes[attribute] = nil
+					end
 				end
 			end
 		else
@@ -1600,9 +1468,13 @@ local function clearAll()
 		local unitDefID = spGetUnitDefID(unitID)
 		if unitDefID then
 			for attribute in pairs(attributes) do
-				local baseline = getBaseline(unitDefID, attribute)
-				if baseline ~= nil then
-					applyUnitAttribute[attribute](unitID, baseline)
+				if weaponAttributes[attribute] then
+					applyUnitAttribute[attribute](unitID, getBaselineVector(unitDefID, attribute))
+				else
+					local baseline = getBaseline(unitDefID, attribute)
+					if baseline ~= nil then
+						applyUnitAttribute[attribute](unitID, baseline)
+					end
 				end
 			end
 		end
@@ -1614,7 +1486,10 @@ local function clearAll()
 	appliedValues = {}
 	dirty = {}
 
-	clearWeapons()
+	-- Consumers read this for live values:
+	for unitID in pairs(weaponDamageFactors) do
+		weaponDamageFactors[unitID] = nil
+	end
 end
 
 -- Module export ---------------------------------------------------------------
