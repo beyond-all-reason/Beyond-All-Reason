@@ -75,7 +75,7 @@ local unitFactors = {} ---@type table<UnitID, table<string, table<string, Attrib
 local appliedValues = {} ---@type table<UnitID, table<string, any>?>
 local dirty = {} ---@type table<UnitID, table<string, true?>?>
 local appliedWeapons = {} ---@type table<UnitID, table<string, number[]>?>
-local sequenceNum = -1e8
+local sequenceNum = math.int_min
 
 -- Module internals ------------------------------------------------------------
 
