@@ -1203,11 +1203,9 @@ local function clearWeapons()
 	unitdefWeaponFactors = {}
 	unitdefTeamWeaponFactors = {}
 	dirtyWeapons = {}
+	appliedWeapons = {}
 
-	-- Consumers read these for live values:
-	for unitID in pairs(appliedWeapons) do
-		appliedWeapons[unitID] = nil
-	end
+	-- Consumers read this for live values:
 	for unitID in pairs(weaponDamageFactors) do
 		weaponDamageFactors[unitID] = nil
 	end
@@ -1649,9 +1647,6 @@ return {
 	SetUnitWeaponModifier = setUnitWeaponModifier,
 	GetUnitWeaponAttributeValue = getUnitWeaponAttributeValue,
 
-	---Every composed weapon value, first by attribute, then by weapon slot.
-	---@type table<UnitID, table<string, number[]>?>
-	AppliedWeaponValues = appliedWeapons,
 	---Faster lookup for the composed damage value given only unitID, weaponDefID.
 	---@type table<UnitID, table<WeaponDefID, number>?>
 	WeaponDamageFactors = weaponDamageFactors,

@@ -41,7 +41,6 @@ GG.UnitAttributes = {
 	GetUnitAttributeValue = attributes.GetUnitAttributeValue,
 	GetUnitWeaponAttributeValue = attributes.GetUnitWeaponAttributeValue,
 
-	AppliedWeaponValues = attributes.AppliedWeaponValues,
 	WeaponDamageFactors = attributes.WeaponDamageFactors,
 }
 
