@@ -1673,9 +1673,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
-	unitDefID = unitDefID or spGetUnitDefID(unitID)
-	unitTeam = unitTeam or Spring.GetUnitTeam(unitID)
+function widget:VisibleUnitRemoved(unitID)
 	RemoveSelectedUnit(unitID, false)
 	builders[unitID] = nil
 end
