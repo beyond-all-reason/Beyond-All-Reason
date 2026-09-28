@@ -848,7 +848,7 @@ local function computeContent(uDefID, uID, shiftBool)
 			or armorTypes.vtol
 
 		local baseTargetDamage = damages[targetArmorIndex]
-		local damageFactor = 1.0 -- same factor across all armor types
+		local damageFactor = 1.0
 		if uID and weaponNumber > 0 and baseTargetDamage > 0 then
 			local current = spGetUnitWeaponDamages(uID, weaponNumber, targetArmorIndex)
 			damageFactor = current and current / baseTargetDamage or 1.0
