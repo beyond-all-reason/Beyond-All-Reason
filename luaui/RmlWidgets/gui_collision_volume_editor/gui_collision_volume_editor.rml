@@ -1,0 +1,105 @@
+<rml>
+<head>
+	<link type="text/rcss" href="../terraform_shared/styles.rcss" />
+	<link type="text/rcss" href="../terraform_shared/rml-utility-classes.rcss" />
+	<link type="text/rcss" href="../terraform_shared/palette-standard-global.rcss" />
+	<link type="text/rcss" href="gui_collision_volume_editor.rcss" />
+</head>
+<body data-model="collision_volume_editor_model">
+	<div id="cve-root" class="cve-root widget-shadow rounded-md bg-darkest p-2">
+		<div class="cve-header">
+			<div id="cve-drag-handle" class="cve-title text-2xl font-bold text-light text-outline-darker"><span>Collision Volume Editor</span></div>
+			<button class="cve-close" data-event-click="onClose()" title="Close editor">x</button>
+		</div>
+
+		<div class="cve-unit-card">
+			<div class="cve-unit-label">{{unitLabel}}</div>
+			<div class="cve-hint">The engine's /debugcolvol view is enabled while this editor is open.</div>
+		</div>
+
+		<div data-if="hasUnit">
+			<div class="cve-tabs">
+				<button class="cve-tab" data-class-active="!pieceMode" data-event-click="onSetScope('unit')">UNIT VOLUME</button>
+				<button class="cve-tab" data-class-active="pieceMode" data-class-disabled="!pieceSupported" data-event-click="onSetScope('piece')">PIECE VOLUMES</button>
+			</div>
+
+			<div class="cve-notice">{{pieceNotice}}</div>
+
+			<div class="cve-piece-picker" data-if="pieceMode">
+				<button class="cve-nav" data-event-click="onSelectPiece(-1)" title="Previous piece">&lt;</button>
+				<div class="cve-piece-name"><span>{{pieceLabel}}</span></div>
+				<button class="cve-nav" data-event-click="onSelectPiece(1)" title="Next piece">&gt;</button>
+			</div>
+
+			<div class="cve-section">
+				<div class="cve-section-title">SHAPE</div>
+				<div class="cve-button-grid">
+					<button class="cve-choice" data-class-active="volumeType == 3" data-event-click="onSetType(3)">SPHERE</button>
+					<button class="cve-choice" data-class-active="volumeType == 1" data-event-click="onSetType(1)">CYLINDER</button>
+					<button class="cve-choice" data-class-active="volumeType == 2" data-event-click="onSetType(2)">BOX</button>
+					<button class="cve-choice" data-class-active="volumeType == 0" data-event-click="onSetType(0)">ELLIPSOID</button>
+				</div>
+				<div class="cve-axis-row" data-if="volumeType == 1">
+					<div class="cve-axis-label">Cylinder axis</div>
+					<button class="cve-axis" data-class-active="axis == 0" data-event-click="onSetAxis(0)">X</button>
+					<button class="cve-axis" data-class-active="axis == 1" data-event-click="onSetAxis(1)">Y</button>
+					<button class="cve-axis" data-class-active="axis == 2" data-event-click="onSetAxis(2)">Z</button>
+				</div>
+				<div class="cve-shape-hint" data-if="volumeType == 3">Sphere size axes are linked to one diameter.</div>
+				<div class="cve-shape-hint" data-if="volumeType == 1">The two radial axes are linked; the selected axis controls cylinder length.</div>
+			</div>
+
+			<div class="cve-section">
+				<div class="cve-section-title">SIZE</div>
+				<div class="cve-slider-row">
+					<div class="cve-field-label">X</div><button class="cve-step" data-event-click="onStep('sx', -1)">-</button>
+					<input id="cve-slider-sx" class="cve-slider" type="range" min="1" max="512" step="0.5" value="1" data-event-change="onSliderChange('sx')" />
+					<button class="cve-step" data-event-click="onStep('sx', 1)">+</button><div class="cve-value">{{sxText}}</div>
+				</div>
+				<div class="cve-slider-row">
+					<div class="cve-field-label">Y</div><button class="cve-step" data-event-click="onStep('sy', -1)">-</button>
+					<input id="cve-slider-sy" class="cve-slider" type="range" min="1" max="512" step="0.5" value="1" data-event-change="onSliderChange('sy')" />
+					<button class="cve-step" data-event-click="onStep('sy', 1)">+</button><div class="cve-value">{{syText}}</div>
+				</div>
+				<div class="cve-slider-row">
+					<div class="cve-field-label">Z</div><button class="cve-step" data-event-click="onStep('sz', -1)">-</button>
+					<input id="cve-slider-sz" class="cve-slider" type="range" min="1" max="512" step="0.5" value="1" data-event-change="onSliderChange('sz')" />
+					<button class="cve-step" data-event-click="onStep('sz', 1)">+</button><div class="cve-value">{{szText}}</div>
+				</div>
+			</div>
+
+			<div class="cve-section">
+				<div class="cve-section-title">OFFSET</div>
+				<div class="cve-slider-row">
+					<div class="cve-field-label">X</div><button class="cve-step" data-event-click="onStep('ox', -1)">-</button>
+					<input id="cve-slider-ox" class="cve-slider" type="range" min="-256" max="256" step="0.5" value="0" data-event-change="onSliderChange('ox')" />
+					<button class="cve-step" data-event-click="onStep('ox', 1)">+</button><div class="cve-value">{{oxText}}</div>
+				</div>
+				<div class="cve-slider-row">
+					<div class="cve-field-label">Y</div><button class="cve-step" data-event-click="onStep('oy', -1)">-</button>
+					<input id="cve-slider-oy" class="cve-slider" type="range" min="-256" max="256" step="0.5" value="0" data-event-change="onSliderChange('oy')" />
+					<button class="cve-step" data-event-click="onStep('oy', 1)">+</button><div class="cve-value">{{oyText}}</div>
+				</div>
+				<div class="cve-slider-row">
+					<div class="cve-field-label">Z</div><button class="cve-step" data-event-click="onStep('oz', -1)">-</button>
+					<input id="cve-slider-oz" class="cve-slider" type="range" min="-256" max="256" step="0.5" value="0" data-event-change="onSliderChange('oz')" />
+					<button class="cve-step" data-event-click="onStep('oz', 1)">+</button><div class="cve-value">{{ozText}}</div>
+				</div>
+			</div>
+
+			<div class="cve-piece-actions" data-if="pieceMode">
+				<button class="cve-enable" data-class-active="pieceEnabled" data-event-click="onTogglePiece()">
+					<span data-if="pieceEnabled">PIECE ENABLED</span><span data-if="!pieceEnabled">ENABLE PIECE</span>
+				</button>
+			</div>
+
+			<div class="cve-actions">
+				<button class="cve-action cve-reset" data-event-click="onReset()">RESET INITIAL</button>
+				<button class="cve-action cve-export" data-event-click="onExport()">COPY LUA</button>
+			</div>
+		</div>
+
+		<div class="cve-status" data-class-error="statusError">{{status}}</div>
+	</div>
+</body>
+</rml>

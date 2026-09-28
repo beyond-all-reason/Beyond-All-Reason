@@ -1,0 +1,299 @@
+body {
+	pointer-events: none;
+}
+
+.cve-root {
+	pointer-events: auto;
+	position: absolute;
+	left: 2vw;
+	top: 12vh;
+	width: 340dp;
+	max-height: 84vh;
+	overflow-y: auto;
+	z-index: 930;
+	color: #d8dce4;
+}
+
+.cve-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 6dp;
+}
+
+.cve-title {
+	flex: 1;
+	padding: 3dp 0;
+	cursor: move;
+}
+
+.cve-close {
+	width: 24dp;
+	height: 24dp;
+	padding: 0;
+	font-size: 1.1rem;
+	color: #d1d5db;
+	background-color: transparent;
+	border: 1dp transparent;
+	border-radius: 4dp;
+	cursor: pointer;
+}
+
+.cve-close:hover {
+	color: #ffffff;
+	background-color: #4a2424;
+	border-color: #8e4545;
+}
+
+.cve-unit-card {
+	padding: 7dp;
+	margin-bottom: 6dp;
+	background-color: #181820;
+	border: 1dp #3d3d4880;
+	border-radius: 5dp;
+}
+
+.cve-unit-label {
+	font-size: 1.0rem;
+	color: #e5e7eb;
+	word-break: break-word;
+}
+
+.cve-hint,
+.cve-notice {
+	font-size: 0.78rem;
+	color: #8fa188;
+}
+
+.cve-hint {
+	margin-top: 2dp;
+}
+
+.cve-notice {
+	padding: 5dp 6dp;
+	margin-bottom: 6dp;
+	background-color: #172018;
+	border-left: 2dp #5c8255;
+}
+
+.cve-tabs,
+.cve-button-grid,
+.cve-axis-row,
+.cve-actions,
+.cve-piece-actions,
+.cve-piece-picker,
+.cve-slider-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.cve-tabs {
+	gap: 3dp;
+	margin-bottom: 5dp;
+}
+
+.cve-tab,
+.cve-choice,
+.cve-axis,
+.cve-nav,
+.cve-step,
+.cve-enable,
+.cve-action {
+	color: #cfd3dc;
+	background-color: #35353e;
+	border: 1dp #50505a80;
+	border-radius: 4dp;
+	cursor: pointer;
+	decorator: vertical-gradient(#474751 #292930);
+	box-shadow: 0dp 1dp 2dp 0dp #00000060, inset 0dp 1dp 0dp 0dp #ffffff12;
+}
+
+.cve-tab:hover,
+.cve-choice:hover,
+.cve-axis:hover,
+.cve-nav:hover,
+.cve-step:hover,
+.cve-enable:hover,
+.cve-action:hover {
+	color: #ffffff;
+	background-color: #50505c;
+	border-color: #7a7a8e;
+	decorator: vertical-gradient(#5b5b68 #383842);
+}
+
+.cve-tab.active,
+.cve-choice.active,
+.cve-axis.active,
+.cve-enable.active {
+	color: #ffd88f;
+	background-color: #2b2113;
+	border-color: #fdc04c;
+	decorator: vertical-gradient(#3c3018 #1a1208);
+}
+
+.cve-tab.disabled {
+	color: #686b73;
+	background-color: #25252b;
+	border-color: #34343b;
+	cursor: default;
+	decorator: none;
+}
+
+.cve-tab {
+	flex: 1;
+	height: 26dp;
+	font-size: 0.8rem;
+}
+
+.cve-piece-picker {
+	gap: 4dp;
+	margin-bottom: 6dp;
+}
+
+.cve-piece-name {
+	flex: 1;
+	height: 24dp;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #181820;
+	border: 1dp #3d3d48;
+	border-radius: 4dp;
+	font-size: 0.85rem;
+	color: #e2e5ec;
+}
+
+.cve-nav {
+	width: 27dp;
+	height: 26dp;
+	font-size: 1.0rem;
+}
+
+.cve-section {
+	padding: 6dp;
+	margin-bottom: 6dp;
+	background-color: #202028;
+	border: 1dp #41414b80;
+	border-radius: 5dp;
+}
+
+.cve-section-title {
+	margin-bottom: 5dp;
+	font-size: 0.76rem;
+	letter-spacing: 0.08rem;
+	color: #8fa188;
+}
+
+.cve-button-grid {
+	flex-wrap: wrap;
+	gap: 3dp;
+}
+
+.cve-choice {
+	width: 48%;
+	height: 25dp;
+	font-size: 0.78rem;
+}
+
+.cve-axis-row {
+	gap: 3dp;
+	margin-top: 5dp;
+}
+
+.cve-shape-hint {
+	margin-top: 5dp;
+	font-size: 0.75rem;
+	color: #9399a5;
+}
+
+.cve-axis-label {
+	flex: 1;
+	font-size: 0.8rem;
+	color: #aeb3bd;
+}
+
+.cve-axis {
+	width: 32dp;
+	height: 23dp;
+	font-size: 0.8rem;
+}
+
+.cve-slider-row {
+	gap: 3dp;
+	height: 27dp;
+}
+
+.cve-field-label {
+	width: 14dp;
+	font-size: 0.85rem;
+	color: #aeb3bd;
+	text-align: center;
+}
+
+.cve-slider {
+	flex: 1;
+	height: 18dp;
+}
+
+.cve-step {
+	width: 23dp;
+	height: 22dp;
+	padding: 0;
+	font-size: 0.95rem;
+}
+
+.cve-value {
+	width: 46dp;
+	font-size: 0.82rem;
+	color: #f0d89d;
+	text-align: right;
+}
+
+.cve-piece-actions {
+	margin-bottom: 6dp;
+}
+
+.cve-enable {
+	width: 100%;
+	height: 25dp;
+	font-size: 0.8rem;
+}
+
+.cve-actions {
+	gap: 5dp;
+	margin-top: 2dp;
+}
+
+.cve-action {
+	flex: 1;
+	height: 29dp;
+	font-size: 0.82rem;
+}
+
+.cve-reset {
+	color: #f0c4a0;
+	border-color: #80563e;
+}
+
+.cve-export {
+	color: #bde3c1;
+	border-color: #426c49;
+}
+
+.cve-status {
+	min-height: 18dp;
+	padding: 5dp 6dp;
+	margin-top: 6dp;
+	font-size: 0.78rem;
+	color: #a8c9a8;
+	background-color: #152019;
+	border: 1dp #33523a80;
+	border-radius: 4dp;
+}
+
+.cve-status.error {
+	color: #e5b2a8;
+	background-color: #261817;
+	border-color: #74423c80;
+}
