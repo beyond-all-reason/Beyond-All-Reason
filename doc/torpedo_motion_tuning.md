@@ -1,39 +1,37 @@
-# Torpedo motion constraints and tuning
+# Torpedo motion
 
-Torpedoes using `speceffect = "torpwaterpen"` retain the engine's native guidance. The weapon definition controls ordinary homing and accuracy through standard weapon-control values such as `turnrate`, velocity, acceleration, and firing tolerance. The torpedo section of `luarules/gadgets/unit_custom_weapons_behaviours.lua` is primarily a visual trajectory supplement: it shapes the vertical path by smoothing water entry, leveling into surface travel, anticipating terrain, and limiting breaches. Its pitch corrections preserve total projectile speed and, after entry, preserve the current horizontal heading so the engine remains responsible for ongoing horizontal turns.
+Torpedo motion is controlled via `speceffect` and a set of tuning factors. These are generally not configurable, but also lack derivation; they are loose facts. The motions they define are pure videogame logic with no physical reasoning. Projectiles do not truly accelerate, hold speeds, etc.; insistence they do is false.
+
+Instead, we program visual arcs that the projectiles are expected to follow through a set of numerical controls defined by their constraints. This file documents this alternative flight plan and how to keep it up to date with engine changes.
+
+Underwater mechanics are less visible just for being underwater. Submarines are often tightly associated with stealth, and a torpedo attack is often an ambush. The projectile is required (as possible) to remain near to the surface, on a relatively level path, and with smooth arcing motions with no jerk, and avoid breaching the surface once underwater. None of these requirements can be met with the engine's pursuit guidance approach to projectile tracking.
 
 ## Target depth and collision volumes
 
-The gadget currently treats a target aim position at or above **-10 elmos** as a surface target. This is an intentional heuristic rather than an engine-defined unit category: the check uses the engine-provided aim-point elevation, not local water depth or the unit's `minwaterdepth`. BAR's movement reference values provide useful separation around this cutoff, with 8 elmos as the usual minimum ship depth and 15 elmos as the minimum depth for submarine movement. The -10 cutoff therefore tolerates surface-unit aim points that sit slightly below the waterline without applying surface guidance to targets that are clearly submerged. Individual units and underwater structures can use different placement depths, so their actual aim position remains decisive.
+Movedefs and unitdefs define the first set of constraints by defining the waterlevel and min/max water depths of every unit. These constraints are prior to those here.
 
-A target below -10 is treated as submerged and keeps native underwater tracking, with only predictive terrain avoidance added. The **-12 elmo** value is not the surface/submerged divide: it is the entry-path target depth used when a surface target is far away. The entry target blends from -12 toward the normal **-2 elmo** running depth as the torpedo approaches, allowing a visible dive and rounded return instead of immediately sticking to the surface.
+The target's aim position is used to determine which type of guidance to choose. Either the torpedo is diving (avoid when we can) or it is remaining level, near-surface, etc.
 
-The target aim position decides which guidance path is selected, but the unit collision volume decides whether the projectile actually hits. `collisionvolumescales` defines the volume's dimensions and `collisionvolumeoffsets` moves it relative to the unit. Every surface unit intended to be hit by torpedoes should have a collision volume that extends down to at least the standard -2 elmo torpedo running depth.
+The target's collision volume must extend far enough into the water that breaching can be avoided when attempting to hit it.
 
-## Water entry and turning
+## Water entry
 
-Torpedoes fired by units configured with `hoverattack = true` may enter the water with a horizontal bearing inherited from the launcher's movement rather than a useful homing direction. The gadget records this eligibility when the projectile is created. On its first underwater update, it points the horizontal velocity toward the target while preserving horizontal speed and vertical velocity. The correction happens only once and does not add predictive horizontal lead or stronger continuous turning; subsequent horizontal homing remains engine-controlled.
+Torpedoes fired above the surface try not to run aground instantly after entering the water for ease of using the units.
 
-The correction is intentionally limited to hover-attack units. Their ability to fire without making an aligned attack run can produce entry headings that native underwater homing cannot repair smoothly. Torpedo bombers are expected to obtain their initial heading from their attack run, while ships and other non-hover launchers retain their launch heading. This avoids helping poorly aligned bomber drops reverse direction after passing a target. Projectiles without a valid unit owner also receive no heading correction.
+Units with `hoverattack=true` may fire torpedoes in a bearing inherited from the launcher's movement rather than a useful firing direction. These cannot receive too much horizontal correction at the entry point, even so. A minor adjustment is the best we can do here to avoid producing jerky, unpredictable, nonsmooth motions.
 
-Surface-target arrival uses the target's horizontal velocity to estimate when the torpedo will arrive. That estimate controls only how quickly the torpedo moves vertically toward its running depth. Submerged targets receive no surface pull. Their native tracking is retained while the gadget looks ahead along the current trajectory, begins terrain avoidance gradually, and fades it near the intended target so the torpedo can complete a downward strike if needed.
+## Shallow-water targets
 
-## Shallow-water limits
+Raised-launcher torpedoes need sufficient water depth to redirect before exploding on the ground. They enter the water with high vertical velocity components that are softened but not zeroed, only once the projectile enters the water.
 
-An air-launched torpedo needs enough water depth to redirect its downward velocity before reaching the seabed. The important value is its vertical entry speed at the waterline, which is produced by the weapon's launch direction, `startvelocity`, `weaponacceleration`, `weaponvelocity`, and any projectile gravity. A faster or steeper downward entry requires deeper water, while a slower or shallower entry can recover in less depth.
+## Deep-water targets
 
-The gadget cannot smooth an entry until the projectile is in the water. Its entry correction begins around -2 elmos and reaches full strength around -10, so very shallow water may place the seabed inside the correction window and cause an immediate terrain impact. This limit should normally be handled through the individual weapon's launch behavior or accepted as that weapon's minimum usable water depth rather than weakening the shared entry constraints for every torpedo.
+Submerged targets have a separate guidance path. The projectile may need to avoid grounding in shallows, still, if a deep target is far away; there is no relation to the target depth.
 
-## Deep-water ground targets
+A target may be deeper than a weapon's range, which is left up to the engine and any other game code post-entry. Not our problem.
 
-Manual seabed targets use the submerged-target path, so they receive no pull toward the surface. Native guidance remains responsible for reaching the selected point while the gadget looks four frames ahead for approaching terrain. Avoidance starts gradually within the configured clearance ramp, then fades near the intended impact point so the torpedo can strike the seabed instead of being forced to run parallel to it.
+## Maintaining this code
 
-The `/2` and `/3` behavior is represented by the 2:1 submerged-unit and 3:1 ground-target depth-lead ratios. The gadget multiplies the remaining vertical separation by the applicable ratio to produce a horizontal release distance, with a minimum of 36 elmos. For example, with 20 elmos of vertical separation remaining, terrain avoidance starts fading within 40 horizontal elmos of a submerged unit target and within 60 horizontal elmos of a ground target. The larger 3:1 ground ratio releases avoidance earlier and across a wider approach because a ground-targeted torpedo must be allowed to intersect the seabed. The 2:1 unit ratio retains more protection because a submerged unit can normally be hit without striking terrain.
+Weapondefs are the proper place for tuning. The torpedo motion code is shared by many weapons and must be left in stable condition outside bugfixes.
 
-There is no hardcoded maximum supported water depth in the gadget. Water deeper than approximately **400 elmos** should generally be avoided because it begins to exceed the practical model and placement constraints of sea labs as well as the expected operating envelope of underwater weapons. At depths beyond approximately **600 elmos**, the vertical distance alone exceeds the range of most torpedoes. Native firing eligibility, weapon range, travel time, or projectile lifetime may therefore prevent a shot or cause it to expire before arrival. The ground-target controls are primarily a visual fallback for unusual manual seabed shots; they are not intended to override those engine, weapon, and map-design limits.
-
-## Maintenance guidance
-
-Improve a specific weapon's general tracking accuracy in its weapon definition, normally by reviewing `turnrate` together with its speed, acceleration, and firing tolerance. The `tracking_turn_radius` custom parameter does not change engine turning strength; it changes the target-proximity range over which water-entry pitch correction becomes stronger.
-
-Treat the global values in the gadget as one coordinated motion-constraint set rather than independent per-weapon tuning controls. Entry depths and correction strengths shape the water-entry curve, arrival frames control the transition to surface travel, terrain values prevent premature seabed impacts, and breach values constrain shore-launched torpedoes after they enter the water. When changing the shared set, test air-, surface-, submerged-, and shore-launched torpedoes against moving surface units, submerged units, and manual seabed targets in shallow, normal, deep, flat, and sloped water.
+When changing common constraints anyway, test air-, surface-, submerged-, and shore-launched torpedoes against moving surface units, submerged units, and manual seabed targets in shallow, normal, deep, flat, and sloped water.
