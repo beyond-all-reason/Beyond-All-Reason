@@ -2,7 +2,8 @@
 #include "../recoil_common_includes.h"
 
 piece  lega2, lega3, lega5, lega6, legb2, legb3, legb5, legb6,
-       lega1, lega4, legb1, legb4, base;
+       lega1, lega4, legb1, legb4, base,
+       basefirepoint;
 
 static-var  isMoving;
 
@@ -160,7 +161,7 @@ FireWeapon1()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = basefirepoint;
 }
 
 AimFromWeapon1(pieceIndex)

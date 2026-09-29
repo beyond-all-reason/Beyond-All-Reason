@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, armbase, arm1, arm2, arm3, arm4, arm5, flare1, flare2, flare3, flare4, flare5, topflare;
+piece  base, armbase, arm1, arm2, arm3, arm4, arm5, flare1, flare2, flare3, flare4, flare5, topflare, basefirepoint;
 
 static-var  restore_delay, shootflare;
 // Signal definitions
@@ -240,7 +240,7 @@ AimWeapon3(heading, pitch) // meteor
 }
 QueryWeapon3(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = basefirepoint;
 }
 
 AimFromWeapon3(pieceIndex)

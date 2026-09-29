@@ -3,7 +3,7 @@
 
 
 
-piece  base, left, right;
+piece  base, left, right, basefirepoint;
 
 static-var  isMoving;
 
@@ -105,7 +105,7 @@ FireWeapon1()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = basefirepoint;
 }
 
 AimFromWeapon1(pieceIndex)
