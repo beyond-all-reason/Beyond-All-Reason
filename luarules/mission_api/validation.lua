@@ -81,6 +81,14 @@ local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local isDifficultiesTable = GG["MissionAPI"].Modules.Difficulty.IsDifficultiesTable
 local knownDifficulties = parameterTypeEnums[Types.Difficulty]
 
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+local unitAttributeDefinitions = attributeDefinitions.UnitAttributeDefinitions
+local weaponAttributeDefinitions = attributeDefinitions.WeaponAttributeDefinitions
+local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
+local canSetUnitAttribute = attributeRules.CanSetUnitAttribute
+local canSetUnitDefAttribute = attributeRules.CanSetUnitDefAttribute
+local affectsUnitDef = attributeRules.AffectsUnitDef
+
 local validators = {}
 
 --- Lua type validators:
@@ -584,6 +592,29 @@ validators[Types.Command] = function(command)
 		end
 	else
 		return { { message = "Unexpected parameter type, expected number or string, got " .. type(command) } }
+	end
+end
+
+local function attributeDefinition(attribute)
+	return unitAttributeDefinitions[attribute] or weaponAttributeDefinitions[attribute]
+end
+
+validators[Types.UnitAttribute] = function(attribute)
+	local luaTypeResult = validators[Types.String](attribute)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local ok, reason = canSetUnitAttribute(attributeDefinition(attribute))
+	if not ok then
+		return { { message = "Unit attribute '" .. attribute .. "' " .. reason } }
+	end
+end
+
+validators[Types.AttributeValue] = function(value)
+	local valueType = type(value)
+	if valueType ~= "number" and valueType ~= "string" and valueType ~= "boolean" then
+		return { { message = "Unexpected parameter type, expected number, string or boolean, got " .. valueType } }
 	end
 end
 
@@ -1740,6 +1771,51 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 	end
 end
 
+local function validateAttributeActions(actions)
+	local unitAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitAttribute)
+	local setActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeValue)
+	local unitScopeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
+
+	-- Every action taking an attribute is checked by parameter type rather than by action name.
+	for actionID, action in pairs(actions) do
+		local actionType = action.type
+		local parameters = action.parameters or {}
+		local attribute = parameters.attribute
+		local unitDefName = parameters.unitDefName
+		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+
+		-- Unknown attributes are logged already by the parameter validators.
+		if unitAttributeActions[actionType] and unitAttributeDefinitions[attribute] then
+			local entry = unitAttributeDefinitions[attribute]
+			local ok, reason, parameter = true, nil, nil
+			if setActions[actionType] then
+				local canSet = unitScopeActions[actionType] and canSetUnitAttribute or canSetUnitDefAttribute
+				ok, reason, parameter = canSet(entry, parameters.value)
+			end
+			if not ok then
+				logError(
+					"Unit attribute '"
+						.. attribute
+						.. "' "
+						.. reason
+						.. ". Action: "
+						.. actionID
+						.. ", Parameter: "
+						.. parameter
+				)
+			end
+
+			local affects, warning = true, nil
+			if unitDef then
+				affects, warning = affectsUnitDef(entry, unitDef)
+			end
+			if not affects then
+				logWarn("Unit attribute '" .. attribute .. "' " .. warning .. ". Action: " .. actionID)
+			end
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -1759,6 +1835,7 @@ local function validateReferences()
 	validateLineNameReferences(actionTypes, actions)
 	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
+	validateAttributeActions(actions)
 end
 
 return {
