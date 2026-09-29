@@ -44,7 +44,7 @@ local topic = {
 	SQUAD_PARAMS                     = 214,
 }
 
-local param = {
+local parameter = {
 	POSITION           = 1,
 	SQUAD_GATHER_RANGE = 2,
 	SQUAD_ATTACK_RANGE = 3,
@@ -117,7 +117,7 @@ MsgBuilder.__tostring = MsgBuilder.toString
 
 return {
 	Topic      = topic,
-	Param      = param,
+	Param      = parameter,
 	Task       = task,
 	MsgBuilder = MsgBuilder,
 }
