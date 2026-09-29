@@ -39,6 +39,15 @@ describe("SpecEnv", function()
 		assert.are.equal(Spring.Echo, probed.springEcho)
 	end)
 
+	it("gives each env a GG of its own", function()
+		local first = SpecEnv.new()
+		local second = SpecEnv.new()
+		first.GG.marker = "first"
+
+		assert.is_nil(second.GG.marker)
+		assert.is_nil(GG.marker)
+	end)
+
 	it("keeps a write to its engine table off the shared one", function()
 		local env = SpecEnv.new()
 		env.Spring.GetSomethingNobodyDefined = function() end

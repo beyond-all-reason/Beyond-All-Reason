@@ -40,12 +40,13 @@ end
 ---@param overrides table|nil  globals to place in the env, keyed by name. An
 ---`includes` key is not a global: it maps a path to what VFS.Include returns
 ---for it inside the env, either a value or a function called with the args,
----and VFS.FileExists reports that path as present.
+---and VFS.FileExists reports that path as present. GG starts empty unless given.
 ---@return table
 function SpecEnv.new(overrides)
 	overrides = overrides or {}
 
 	local env = setmetatable({}, { __index = _G })
+	env.GG = {}
 
 	for name, value in pairs(overrides) do
 		if name ~= "includes" then
