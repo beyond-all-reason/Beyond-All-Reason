@@ -122,7 +122,7 @@ return {
 				noselfdamage = true,
 				numbounce = 1,
 				customparams = {
-					torpedo_stay_underwater = true,
+					avoid_leaving_water = true,
 				},
 				range = 600,
 				reloadtime = 1.5,
