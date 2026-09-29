@@ -414,6 +414,7 @@ local state = {
 	footerH = 0,
 	layoutPending = false,
 	tooltipsRegistered = false,
+	scanKeys = {},
 	hidden = {},
 	labels = {},
 	changedKey = {},
@@ -867,40 +868,41 @@ local function rowChange(action)
 	return nil
 end
 
+-- SDL's key for the OS layout, which a press is matched by; KeyboardLayout only relabels keys.
+function state.scanToKey(scan)
+	local key = state.scanKeys[scan]
+	if key == nil then
+		key = Spring.GetKeyFromScanSymbol and Spring.GetKeyFromScanSymbol("sc_" .. scan) or ""
+		state.scanKeys[scan] = key
+	end
+
+	return key
+end
+
 -- Flagged when the engine tries it first, and when the game ships the two on one key - by
 -- design, so no clash of the player making. Hidden actions are left out: sharing a key with
 -- a listed one is how the catalog says they belong together.
 local function conflictsOf(action, raws)
-	local byKeyset = working.byKeyset
-	if not byKeyset then
+	local index = working.collisions
+	if not index then
 		return nil
 	end
 
 	local out, seen
 	for _, raw in ipairs(raws) do
 		-- Any holder at all: for a key being captured this action is not among them yet.
-		local list = byKeyset[keybindModel.canonicalKeyset(raw)]
-		if list then
-			local mine
-			for i = 1, #list do
-				if list[i] == action then
-					mine = i
-					break
-				end
-			end
-			for i = 1, #list do
-				local other = list[i]
-				if other ~= action and not state.hidden[other] and not (seen and seen[other]) then
-					seen = seen or {}
-					seen[other] = true
-					out = out or {}
-					local pair = (action < other) and (action .. "\n" .. other) or (other .. "\n" .. action)
-					out[#out + 1] = {
-						action = other,
-						before = mine ~= nil and i < mine,
-						shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
-					}
-				end
+		for _, other in ipairs(keybindModel.collidersOf(index, action, raw)) do
+			local name = other.action
+			if not state.hidden[name] and not (seen and seen[name]) then
+				seen = seen or {}
+				seen[name] = true
+				out = out or {}
+				local pair = (action < name) and (action .. "\n" .. name) or (name .. "\n" .. action)
+				out[#out + 1] = {
+					action = name,
+					before = other.first,
+					shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
+				}
 			end
 		end
 	end
@@ -942,26 +944,7 @@ local function rebuildRows()
 	local query = Search.query(searchBox and searchBox:getText())
 
 	-- Rebuilt with the rows, which every edit rebuilds.
-	local byKeyset = {}
-	for _, b in ipairs(working.binds) do
-		local c = keybindModel.canonicalKeyset(b.keyset)
-		local list = byKeyset[c]
-		if not list then
-			list = {}
-			byKeyset[c] = list
-		end
-		local listed = false
-		for i = 1, #list do
-			if list[i] == b.action then
-				listed = true
-				break
-			end
-		end
-		if not listed then
-			list[#list + 1] = b.action
-		end
-	end
-	working.byKeyset = byKeyset
+	working.collisions = keybindModel.collisionIndex(working.binds, state.scanToKey)
 
 	-- The column's Changed entry keeps only rows that differ from the base preset. How many
 	-- there are is counted whatever is shown, since its label says so.
@@ -1520,30 +1503,12 @@ function state.refreshBase()
 	if not state.shippedPairs then
 		local shipped = {}
 		for _, b in ipairs(profiles.builtins) do
-			local byKeyset = {}
-			for _, bind in ipairs(b.binds or {}) do
-				local c = keybindModel.canonicalKeyset(bind.keyset)
-				local list = byKeyset[c]
-				if not list then
-					list = {}
-					byKeyset[c] = list
-				end
-				local listed = false
-				for i = 1, #list do
-					if list[i] == bind.action then
-						listed = true
-					end
-				end
-				if not listed then
-					list[#list + 1] = bind.action
-				end
-			end
-			for _, list in pairs(byKeyset) do
-				for i = 1, #list do
-					for j = i + 1, #list do
-						local a, o = list[i], list[j]
-						shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
-					end
+			local binds = b.binds or {}
+			local index = keybindModel.collisionIndex(binds, state.scanToKey)
+			for _, bind in ipairs(binds) do
+				for _, other in ipairs(keybindModel.collidersOf(index, bind.action, bind.keyset)) do
+					local a, o = bind.action, other.action
+					shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
 				end
 			end
 		end
@@ -2266,6 +2231,7 @@ end
 -- Re-reads the engine and rebuilds everything shown from it.
 function view.refresh()
 	ensureControls()
+	state.scanKeys, state.shippedPairs = {}, nil
 	seedWorkingFromEngine()
 	resolvedCatalog = nil
 	-- Ahead of the picker, which labels its "new profile" entry from L.

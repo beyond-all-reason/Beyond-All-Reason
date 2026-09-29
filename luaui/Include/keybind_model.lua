@@ -156,6 +156,118 @@ local function canonicalKeyset(raw)
 	return table.concat(parts, ",")
 end
 
+-- The engine tries a press's exact keyset before its Any+ form, matching keycode and scancode binds alike.
+
+local function pressedElement(raw, scanToKey)
+	local canon = canonicalElement(raw)
+	if not scanToKey then
+		return canon
+	end
+
+	local at = canon:find("sc:", 1, true)
+	if not at then
+		return canon
+	end
+
+	local key = scanToKey(canon:sub(at + 3))
+	if not key or key == "" then
+		return canon
+	end
+
+	key = key:lower()
+
+	return canon:sub(1, at - 1) .. "kc:" .. (keyNameAlias[key] or key)
+end
+
+-- Joined on a byte no key is named, since a key can be named "," itself.
+local function pressedKeyset(raw, scanToKey)
+	local parts = splitChain(raw)
+	for i = 1, #parts do
+		parts[i] = pressedElement(parts[i], scanToKey)
+	end
+
+	return table.concat(parts, "\1")
+end
+
+local function reachOf(raw, scanToKey)
+	local parts = splitChain(raw)
+	local taps = {}
+	for i = 1, #parts - 1 do
+		taps[i] = pressedElement(parts[i], scanToKey)
+	end
+	local last = pressedElement(parts[#parts] or raw, scanToKey)
+	local at = last:find("[sk]c:") or 1
+	taps[#taps + 1] = last:sub(at)
+
+	return table.concat(taps, "\1"), last:sub(1, at - 1):find("any", 1, true) ~= nil
+end
+
+-- scanToKey names the key the OS layout puts on a scancode: "a" is "q" on AZERTY.
+local function collisionIndex(binds, scanToKey)
+	local exact, reach = {}, {}
+	for at, b in ipairs(binds) do
+		local on = pressedKeyset(b.keyset, scanToKey)
+		local to, any = reachOf(b.keyset, scanToKey)
+		local entry = { action = b.action, any = any, at = at }
+
+		exact[on] = exact[on] or {}
+		exact[on][#exact[on] + 1] = entry
+		reach[to] = reach[to] or {}
+		reach[to][#reach[to] + 1] = entry
+	end
+
+	return { exact = exact, reach = reach, scanToKey = scanToKey }
+end
+
+local function triedBefore(a, b)
+	if a.any ~= b.any then
+		return not a.any
+	end
+
+	return a.at < b.at
+end
+
+local function collidersOf(index, action, raw)
+	local on = pressedKeyset(raw, index.scanToKey)
+	local to, any = reachOf(raw, index.scanToKey)
+
+	local mine
+	for _, e in ipairs(index.exact[on] or {}) do
+		if e.action == action then
+			mine = e
+			break
+		end
+	end
+
+	local found, byAction = {}, {}
+	local function meet(e)
+		if e.action == action then
+			return
+		end
+
+		local first = mine ~= nil and triedBefore(e, mine)
+		local seen = byAction[e.action]
+		if seen then
+			seen.first = seen.first or first
+		else
+			seen = { action = e.action, first = first }
+			byAction[e.action] = seen
+			found[#found + 1] = seen
+		end
+	end
+
+	for _, e in ipairs(index.exact[on] or {}) do
+		meet(e)
+	end
+	for _, e in ipairs(index.reach[to] or {}) do
+		if any or e.any then
+			meet(e)
+		end
+	end
+
+	return found
+end
+
 -- What the keyboard page places a binding by, and what a filter on one key matches against.
 local function splitElement(canon)
 	local first = canon:match("^[^,]+") or canon
@@ -223,6 +335,9 @@ return {
 	displayWithoutShift = displayWithoutShift,
 	holdsKeys = holdsKeys,
 	canonicalKeyset = canonicalKeyset,
+	reachOf = reachOf,
+	collisionIndex = collisionIndex,
+	collidersOf = collidersOf,
 	splitElement = splitElement,
 	splitChain = splitChain,
 	chainSep = chainSep,
