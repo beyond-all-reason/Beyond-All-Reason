@@ -1317,11 +1317,11 @@ describe("mission_api.validation", function()
 				assert.is_true(hasError("Difficulties table is empty. Trigger: t, Parameter: seconds.difficulties"))
 			end)
 
-			it("logs an error for a nested difficulties table", function()
+			it("rejects a nested difficulties table through the value's own validator", function()
 				timedSecondsErrors({ difficulties = { Easy = { difficulties = { Easy = 1 } } } })
 				assert.is_true(
 					hasError(
-						"Difficulties values must not be difficulties tables themselves. Trigger: t, Parameter: seconds.difficulties.Easy"
+						"Unexpected parameter type, expected number, got table. Trigger: t, Parameter: seconds.difficulties.Easy"
 					)
 				)
 			end)
@@ -1366,20 +1366,25 @@ describe("mission_api.validation", function()
 				})
 			end
 
-			it("accepts a gate keyed by valid difficulty names", function()
-				settingsErrors({ Easy = true, Hard = true })
+			it("accepts an array of valid difficulty names", function()
+				settingsErrors({ "Easy", "Hard" })
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts an empty array, which enables the trigger on every difficulty", function()
+				settingsErrors({})
 				assert.are.same({}, logged)
 			end)
 
 			it("logs an error for an unknown difficulty name", function()
-				settingsErrors({ Bogus = true })
+				settingsErrors({ "Bogus" })
 				assert.is_true(hasError("Invalid difficulty in settings. Trigger: t, Difficulty: Bogus"))
 			end)
 
-			it("warns for an empty gate", function()
-				settingsErrors({})
+			it("logs an error for a non-array gate", function()
+				settingsErrors({ Easy = true })
 				assert.is_true(
-					hasError("Trigger difficulties setting is empty, so the trigger can never fire. Trigger: t")
+					hasError("Trigger difficulties setting must be an array of difficulty names. Trigger: t")
 				)
 			end)
 		end)

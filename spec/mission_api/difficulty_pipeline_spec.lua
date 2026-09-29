@@ -47,7 +47,7 @@ local triggerDefinitions = GG["MissionAPI"].TriggerDefinitions
 local triggerTypes = triggerDefinitions.Types
 local actionTypes = actionDefinitions.Types
 
--- Ranks from luarules/mission_api/difficulties.json.
+-- Difficulties from luarules/mission_api/difficulties.json.
 local EASY, MEDIUM, HARD = 2, 3, 4
 
 describe("mission_api difficulty pipeline", function()
@@ -67,9 +67,9 @@ describe("mission_api difficulty pipeline", function()
 	end)
 
 	-- Mirrors loadMission() in api_missions.lua up to (not including) parameter_processing.
-	local function loadMission(mission, difficultyRank)
+	local function loadMission(mission, currentDifficulty)
 		GG["MissionAPI"] = {
-			Difficulty = difficultyRank,
+			Difficulty = currentDifficulty,
 			Modules = GG["MissionAPI"].Modules,
 			ActionDefinitions = actionDefinitions,
 			TriggerDefinitions = triggerDefinitions,
@@ -131,8 +131,14 @@ describe("mission_api difficulty pipeline", function()
 				wave = {
 					type = triggerTypes.TimeElapsed,
 					parameters = { seconds = { difficulties = { Easy = 120, Hard = 60 } } },
-					settings = { difficulties = { Medium = true, Hard = true } },
+					settings = { difficulties = { "Medium", "Hard" } },
 					actions = { "spawnBots", "announce" },
+				},
+				anyDifficulty = {
+					type = triggerTypes.TimeElapsed,
+					parameters = { seconds = 5 },
+					settings = { difficulties = {} },
+					actions = { "announce" },
 				},
 			},
 			Actions = {
@@ -163,10 +169,11 @@ describe("mission_api difficulty pipeline", function()
 		assert.are.same({}, logged)
 	end)
 
-	it("resolves trigger parameters and rekeys the settings gate", function()
+	it("resolves trigger parameters and converts the settings gate to a set", function()
 		local missionApi = loadMission(wrappedMission(), HARD)
 		assert.are.equal(60, missionApi.Triggers.wave.parameters.seconds)
 		assert.are.same({ [MEDIUM] = true, [HARD] = true }, missionApi.Triggers.wave.settings.difficulties)
+		assert.is_nil(missionApi.Triggers.anyDifficulty.settings.difficulties)
 	end)
 
 	it("resolves action parameters, including a wrapped loadout", function()
@@ -182,6 +189,7 @@ describe("mission_api difficulty pipeline", function()
 		assert.are.equal(6, missionApi.Objectives.killBots.amount)
 		assert.are.equal("s2", missionApi.Objectives.killBots.nextStage)
 
+		---@type { settings: { repeating: boolean, maxRepeats: number }, parameters: { seconds: number } }
 		local synthesized = missionApi.Triggers.__objective_surviveTimer
 		assert.is_true(synthesized.settings.repeating)
 		assert.are.equal(3, synthesized.settings.maxRepeats)

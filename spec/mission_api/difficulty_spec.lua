@@ -1,18 +1,36 @@
 require("spec_helper")
 
+local RegisterMissionApiModules = require("mission_api.spec_helper")
+
+-- difficulty.lua reads the difficulties enum from Modules.ParameterTypes at include time.
+RegisterMissionApiModules()
 local difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 
--- Ranks from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
+-- Difficulties from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
 local STORY, EASY, MEDIUM, HARD = 1, 2, 3, 4
 
 describe("mission_api.difficulty", function()
-	local function withDifficulty(rank)
-		GG["MissionAPI"] = { Difficulty = rank }
+	local function withDifficulty(currentDifficulty)
+		GG["MissionAPI"] = {
+			Difficulty = currentDifficulty,
+			Modules = GG["MissionAPI"].Modules,
+			ObjectiveTriggers = {},
+			ManagedObjectives = {},
+			Triggers = {},
+		}
 	end
 
 	before_each(function()
 		withDifficulty(0)
 	end)
+
+	-- Runs one wrapped value through ResolveActions and returns what it resolved to.
+	local function resolveValue(wrapper, currentDifficulty)
+		withDifficulty(currentDifficulty)
+		local actions = { a = { parameters = { p = wrapper } } }
+		difficulty.ResolveActions(actions)
+		return actions.a.parameters.p
+	end
 
 	describe("IsDifficultiesTable", function()
 		it("detects a table with a non-nil difficulties key", function()
@@ -27,56 +45,45 @@ describe("mission_api.difficulty", function()
 		end)
 	end)
 
-	describe("Resolve", function()
-		it("returns non-wrapped values unchanged", function()
-			assert.are.equal(5, difficulty.Resolve(5))
-			assert.are.equal("bot", difficulty.Resolve("bot"))
-			assert.is_false(difficulty.Resolve(false))
+	describe("resolution", function()
+		it("leaves non-wrapped parameters unchanged", function()
+			withDifficulty(HARD)
 			local area = { x = 100, z = 200, radius = 50 }
-			assert.are.equal(area, difficulty.Resolve(area))
+			local actions = { a = { parameters = { n = 5, s = "bot", b = false, area = area } } }
+
+			difficulty.ResolveActions(actions)
+
+			local parameters = actions.a.parameters
+			assert.are.equal(5, parameters.n)
+			assert.are.equal("bot", parameters.s)
+			assert.is_false(parameters.b)
+			assert.are.equal(area, parameters.area)
 		end)
 
 		it("picks the exact difficulty when specified", function()
-			withDifficulty(MEDIUM)
-			assert.are.equal(20, difficulty.Resolve({ difficulties = { Easy = 10, Medium = 20, Hard = 30 } }))
+			assert.are.equal(20, resolveValue({ difficulties = { Easy = 10, Medium = 20, Hard = 30 } }, MEDIUM))
 		end)
 
-		it("falls back to the nearest specified difficulty below", function()
-			withDifficulty(HARD)
-			assert.are.equal(20, difficulty.Resolve({ difficulties = { Easy = 10, Medium = 20 } }))
-			withDifficulty(MEDIUM)
-			assert.are.equal(10, difficulty.Resolve({ difficulties = { Easy = 10, Hard = 30 } }))
+		it("falls back to the highest specified difficulty below the current one", function()
+			assert.are.equal(20, resolveValue({ difficulties = { Easy = 10, Medium = 20 } }, HARD))
+			assert.are.equal(10, resolveValue({ difficulties = { Easy = 10, Hard = 30 } }, MEDIUM))
 		end)
 
 		it("falls back to the lowest specified difficulty when playing below all of them", function()
-			withDifficulty(STORY)
-			assert.are.equal(10, difficulty.Resolve({ difficulties = { Easy = 10, Medium = 20 } }))
+			assert.are.equal(10, resolveValue({ difficulties = { Easy = 10, Medium = 20 } }, STORY))
 		end)
 
 		it("falls back to the lowest specified difficulty when no difficulty is set", function()
-			withDifficulty(0)
-			assert.are.equal(10, difficulty.Resolve({ difficulties = { Easy = 10, Medium = 20 } }))
-		end)
-
-		it("ignores unknown difficulty names", function()
-			withDifficulty(HARD)
-			assert.are.equal(10, difficulty.Resolve({ difficulties = { Easy = 10, Bogus = 99 } }))
-			assert.is_nil(difficulty.Resolve({ difficulties = { Bogus = 99 } }))
+			assert.are.equal(10, resolveValue({ difficulties = { Easy = 10, Medium = 20 } }, nil))
 		end)
 
 		it("preserves false values", function()
-			withDifficulty(EASY)
-			assert.is_false(difficulty.Resolve({ difficulties = { Easy = false, Hard = true } }))
+			assert.is_false(resolveValue({ difficulties = { Easy = false, Hard = true } }, EASY))
 		end)
 
 		it("returns table values by reference", function()
-			withDifficulty(EASY)
 			local easyArea = { x = 100, z = 200, radius = 50 }
-			assert.are.equal(easyArea, difficulty.Resolve({ difficulties = { Easy = easyArea } }))
-		end)
-
-		it("returns nil for a malformed wrapper instead of raising", function()
-			assert.is_nil(difficulty.Resolve({ difficulties = 5 }))
+			assert.are.equal(easyArea, resolveValue({ difficulties = { Easy = easyArea } }, EASY))
 		end)
 	end)
 
@@ -96,30 +103,30 @@ describe("mission_api.difficulty", function()
 			assert.are.equal(5, triggers.t.parameters.interval)
 		end)
 
-		it("rekeys the settings difficulties gate from names to ranks, keeping the values", function()
+		it("converts the settings difficulties array into a set keyed by difficulty", function()
 			local triggers = {
-				t = { settings = { difficulties = { Easy = true, Hard = false } } },
+				t = { settings = { difficulties = { "Easy", "Hard" } } },
 			}
 
 			difficulty.ResolveTriggers(triggers)
 
-			assert.are.same({ [EASY] = true, [HARD] = false }, triggers.t.settings.difficulties)
+			assert.are.same({ [EASY] = true, [HARD] = true }, triggers.t.settings.difficulties)
 		end)
 
-		it("drops unknown difficulty names from the settings gate", function()
+		it("turns an empty difficulties array into no gate at all", function()
 			local triggers = {
-				t = { settings = { difficulties = { Bogus = true, Easy = true } } },
+				t = { settings = { difficulties = {} } },
 			}
 
 			difficulty.ResolveTriggers(triggers)
 
-			assert.are.same({ [EASY] = true }, triggers.t.settings.difficulties)
+			assert.is_nil(triggers.t.settings.difficulties)
 		end)
 
-		it("tolerates triggers without parameters or settings", function()
-			local triggers = { t = {} }
+		it("tolerates triggers without parameters", function()
+			local triggers = { t = { settings = {} } }
 			difficulty.ResolveTriggers(triggers)
-			assert.are.same({ t = {} }, triggers)
+			assert.are.same({ t = { settings = {} } }, triggers)
 		end)
 	end)
 
@@ -160,6 +167,37 @@ describe("mission_api.difficulty", function()
 			difficulty.ResolveObjectives(objectives)
 
 			assert.are.equal(45, parameters.seconds)
+		end)
+
+		it("fills in the maxRepeats that the loader derived from a wrapped amount", function()
+			withDifficulty(HARD)
+			GG["MissionAPI"].ObjectiveTriggers.o = "__objective_o"
+			GG["MissionAPI"].Triggers.__objective_o = { settings = { repeating = true } }
+			local objectives = { o = { amount = { difficulties = { Easy = 2, Hard = 4 } } } }
+
+			difficulty.ResolveObjectives(objectives)
+
+			assert.are.equal(4, objectives.o.amount)
+			assert.are.equal(3, GG["MissionAPI"].Triggers.__objective_o.settings.maxRepeats)
+		end)
+
+		it("resolves wrapped amount and nextStage in managed objective metadata", function()
+			withDifficulty(HARD)
+			GG["MissionAPI"].ManagedObjectives = {
+				[7] = {
+					{
+						objectiveID = "kills",
+						amount = { difficulties = { Easy = 2, Hard = 5 } },
+						nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
+					},
+				},
+			}
+
+			difficulty.ResolveObjectives({})
+
+			local metadata = GG["MissionAPI"].ManagedObjectives[7][1]
+			assert.are.equal(5, metadata.amount)
+			assert.are.equal("s2", metadata.nextStage)
 		end)
 
 		it("leaves the trigger field itself untouched, even when wrapper-shaped", function()

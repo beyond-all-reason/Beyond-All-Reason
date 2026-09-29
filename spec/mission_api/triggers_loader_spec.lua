@@ -225,7 +225,7 @@ describe("mission_api.triggers_loader", function()
 		end)
 
 		it("preserves settings that are already specified", function()
-			local difficulties = { hard = true }
+			local difficulties = { "Hard" }
 			local triggers = triggersLoader.ProcessRawTriggers({
 				t = {
 					type = "Alpha",
@@ -244,7 +244,7 @@ describe("mission_api.triggers_loader", function()
 			assert.are.same({ "p1" }, settings.prerequisites)
 			assert.is_true(settings.repeating)
 			assert.are.equal(3, settings.maxRepeats)
-			assert.are.same({ hard = true }, settings.difficulties)
+			assert.are.same({ "Hard" }, settings.difficulties)
 			assert.is_true(settings.coop)
 			assert.are.same({ "stage1" }, settings.stages)
 		end)

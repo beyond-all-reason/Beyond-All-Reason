@@ -2,50 +2,44 @@
 --- Difficulty-dependent parameter values for Mission API triggers, actions, and objectives.
 ---
 --- Any parameter may be authored as { difficulties = { <difficultyName> = <value>, ... } }
---- instead of a plain value. Resolution replaces the wrapper with the value for the current
---- difficulty (GG['MissionAPI'].Difficulty, a rank from difficulties.json): an exact rank
---- match, else the highest-ranked entry below the current rank, else the lowest-ranked entry.
+--- instead of a plain value. Resolution replaces with the value for the current difficulty,
+--- else the highest-ranked entry below the current rank, else the lowest-ranked entry.
 ---
 
-local difficultyRanks = VFS.Include("luarules/mission_api/parameter_types.lua").Enums.Difficulty
+local difficulties = GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty
 
--- Deliberately not a plain type check: many parameter types are tables (Area, Orders, ...).
 local function isDifficultiesTable(value)
 	return type(value) == "table" and value.difficulties ~= nil
 end
 
---- Resolve a possibly difficulty-wrapped value; non-wrapped values pass through unchanged.
---- Entries with unknown difficulty names are ignored here; validation reports them.
+--- Only called on validated missions, so `value` is a wrapper and every name is a difficulty.
 local function resolve(value)
-	if not isDifficultiesTable(value) then
-		return value
-	end
-	if type(value.difficulties) ~= "table" then
-		return nil -- malformed wrapper; validation reports it
-	end
+	local currentDifficulty = GG["MissionAPI"].Difficulty or 0
+	local entries = value.difficulties
 
-	local currentRank = GG["MissionAPI"].Difficulty or 0
-	local best, bestRank, lowest, lowestRank
-	for difficultyName, difficultyValue in pairs(value.difficulties) do
-		local rank = difficultyRanks[difficultyName]
-		if rank then
-			if lowestRank == nil or rank < lowestRank then
-				lowest, lowestRank = difficultyValue, rank
-			end
-			if rank <= currentRank and (bestRank == nil or rank > bestRank) then
-				best, bestRank = difficultyValue, rank
-			end
+	local chosenName
+	for difficultyName in pairs(entries) do
+		if difficulties[difficultyName] == currentDifficulty then
+			return entries[difficultyName]
+		end
+		if chosenName == nil or difficulties[difficultyName] < difficulties[chosenName] then
+			chosenName = difficultyName
 		end
 	end
 
-	if bestRank ~= nil then
-		return best
+	-- No exact match: take the highest entry below the current difficulty, if any is below.
+	for difficultyName in pairs(entries) do
+		local difficulty = difficulties[difficultyName]
+		if difficulty <= currentDifficulty and difficulty > difficulties[chosenName] then
+			chosenName = difficultyName
+		end
 	end
-	return lowest
+
+	return entries[chosenName]
 end
 
 local function resolveParameters(parameters)
-	if type(parameters) ~= "table" then
+	if parameters == nil then -- e.g. Event triggers declare no parameters
 		return
 	end
 	for name, value in pairs(parameters) do
@@ -55,22 +49,21 @@ local function resolveParameters(parameters)
 	end
 end
 
---- Resolve trigger parameters, and rekey the settings.difficulties gate from names to ranks
---- so the runtime check in api_missions_triggers.lua can index it by the current rank.
+--- Resolve trigger parameters, and convert the settings.difficulties array of names into a
+--- set keyed by difficulty for the runtime check in api_missions_triggers.lua. An empty
+--- array enables the trigger on every difficulty, like omitting the setting.
 local function resolveTriggers(triggers)
 	for _, trigger in pairs(triggers) do
 		resolveParameters(trigger.parameters)
 
-		local difficulties = trigger.settings and trigger.settings.difficulties
-		if type(difficulties) == "table" then
-			local byRank = {}
-			for difficultyName, enabled in pairs(difficulties) do
-				local rank = difficultyRanks[difficultyName]
-				if rank then
-					byRank[rank] = enabled
-				end
+		local names = trigger.settings.difficulties
+		if names ~= nil then
+			local enabled = nil
+			for _, difficultyName in ipairs(names) do
+				enabled = enabled or {}
+				enabled[difficulties[difficultyName]] = true
 			end
-			trigger.settings.difficulties = byRank
+			trigger.settings.difficulties = enabled
 		end
 	end
 end
@@ -81,12 +74,14 @@ local function resolveActions(actions)
 	end
 end
 
---- Resolve objective fields and inline trigger parameters in place. The inline parameters
---- table is shared with ManagedObjectives metadata, which is thereby resolved too. The
+--- Resolve objective fields, inline trigger parameters, and managed objective metadata in
+--- place. objectives_loader ran before validation, so it could not consume a wrapped amount;
+--- the maxRepeats it derives from amount is filled in here for synthesized triggers. The
 --- 'trigger' field itself does not support difficulties (validation rejects a wrapper there).
 local function resolveObjectives(objectives)
-	for _, objective in pairs(objectives) do
+	for objectiveID, objective in pairs(objectives) do
 		if type(objective) == "table" then
+			local amountWasWrapped = isDifficultiesTable(objective.amount)
 			for fieldName, value in pairs(objective) do
 				if fieldName ~= "trigger" and isDifficultiesTable(value) then
 					objective[fieldName] = resolve(value)
@@ -95,13 +90,32 @@ local function resolveObjectives(objectives)
 			if type(objective.trigger) == "table" then
 				resolveParameters(objective.trigger.parameters)
 			end
+
+			if amountWasWrapped then
+				local triggerID = GG["MissionAPI"].ObjectiveTriggers[objectiveID]
+				local trigger = triggerID and GG["MissionAPI"].Triggers[triggerID]
+				if trigger then
+					local amount = objective.amount
+					trigger.settings.maxRepeats = type(amount) == "number" and amount > 1 and (amount - 1) or nil
+				end
+			end
+		end
+	end
+
+	for _, entries in pairs(GG["MissionAPI"].ManagedObjectives) do
+		for _, metadata in ipairs(entries) do
+			if isDifficultiesTable(metadata.amount) then
+				metadata.amount = resolve(metadata.amount)
+			end
+			if isDifficultiesTable(metadata.nextStage) then
+				metadata.nextStage = resolve(metadata.nextStage)
+			end
 		end
 	end
 end
 
 return {
 	IsDifficultiesTable = isDifficultiesTable,
-	Resolve = resolve,
 	ResolveTriggers = resolveTriggers,
 	ResolveActions = resolveActions,
 	ResolveObjectives = resolveObjectives,

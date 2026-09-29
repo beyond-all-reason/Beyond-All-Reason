@@ -79,20 +79,7 @@ local parameterTypeEnums = parameterTypes.Enums
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
 local isDifficultiesTable = VFS.Include("luarules/mission_api/difficulty.lua").IsDifficultiesTable
-local difficultyRanks = parameterTypeEnums[Types.Difficulty]
-
--- The ranks order difficulties for nearest-lower resolution, so they must be unique.
-do
-	local namesByRank = {}
-	for difficultyName, rank in pairs(difficultyRanks) do
-		if namesByRank[rank] then
-			logError(
-				"difficulties.json has duplicate rank " .. rank .. ": " .. namesByRank[rank] .. ", " .. difficultyName
-			)
-		end
-		namesByRank[rank] = difficultyName
-	end
-end
+local knownDifficulties = parameterTypeEnums[Types.Difficulty]
 
 local validators = {}
 
@@ -712,29 +699,22 @@ local function validateDifficultiesTable(wrapper, parameterType, actionOrTrigger
 
 	for difficultyName, value in pairs(difficulties) do
 		local suffix = ".difficulties." .. tostring(difficultyName)
-		if not difficultyRanks[difficultyName] then
+		if not knownDifficulties[difficultyName] then
 			result[#result + 1] =
 				{ message = "Invalid difficulty: " .. tostring(difficultyName), parameterNameSuffix = suffix }
 		end
-		if isDifficultiesTable(value) then
+		local valueResults = validators[parameterType](
+			value,
+			actionOrTrigger,
+			actionOrTriggerID,
+			(parameterName or "") .. suffix
+		) or {}
+		for _, valueResult in ipairs(valueResults) do
 			result[#result + 1] = {
-				message = "Difficulties values must not be difficulties tables themselves",
-				parameterNameSuffix = suffix,
+				message = valueResult.message,
+				severity = valueResult.severity,
+				parameterNameSuffix = suffix .. (valueResult.parameterNameSuffix or ""),
 			}
-		else
-			local valueResults = validators[parameterType](
-				value,
-				actionOrTrigger,
-				actionOrTriggerID,
-				(parameterName or "") .. suffix
-			) or {}
-			for _, valueResult in ipairs(valueResults) do
-				result[#result + 1] = {
-					message = valueResult.message,
-					severity = valueResult.severity,
-					parameterNameSuffix = suffix .. (valueResult.parameterNameSuffix or ""),
-				}
-			end
 		end
 	end
 
@@ -845,14 +825,13 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 		end
 	end
 
-	-- Validate the difficulties gate is keyed by known difficulty names:
-	local difficulties = trigger.settings.difficulties
-	if type(difficulties) == "table" then
-		if next(difficulties) == nil then
-			logWarn("Trigger difficulties setting is empty, so the trigger can never fire. Trigger: " .. triggerID)
-		end
-		for difficultyName in pairs(difficulties) do
-			if not difficultyRanks[difficultyName] then
+	-- Validate the difficulties gate is an array of known difficulty names:
+	local difficultiesSetting = trigger.settings.difficulties
+	if type(difficultiesSetting) == "table" then
+		for key, difficultyName in pairs(difficultiesSetting) do
+			if type(key) ~= "number" then
+				logError("Trigger difficulties setting must be an array of difficulty names. Trigger: " .. triggerID)
+			elseif not knownDifficulties[difficultyName] then
 				logError(
 					"Invalid difficulty in settings. Trigger: "
 						.. triggerID

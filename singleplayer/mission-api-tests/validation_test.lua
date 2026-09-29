@@ -147,7 +147,7 @@ local triggers = {
 	triggerWithInvalidDifficultyInGate = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
-			difficulties = { invalidDifficulty = true },  -- error: not a known difficulty
+			difficulties = { 'invalidDifficulty' },  -- error: not a known difficulty
 		},
 		parameters = {
 			seconds = 100000000,

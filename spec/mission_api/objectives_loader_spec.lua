@@ -15,10 +15,9 @@ describe("mission_api.objectives_loader", function()
 	describe("ProcessRawObjectives", function()
 		local ACTION_TYPES = { UpdateObjective = 1 }
 
-		local function process(rawObjectives, stages, difficultyRank)
+		local function process(rawObjectives, stages)
 			local missionApi = Builders.MissionApi
 				.new()
-				:WithDifficulty(difficultyRank or 0)
 				:WithActionDefinitions({ Types = ACTION_TYPES })
 				:WithTriggerDefinitions(triggerDefinitions)
 				:Install()
@@ -65,29 +64,6 @@ describe("mission_api.objectives_loader", function()
 			local _, rawTriggers, missionApi = process({ kills = kills })
 			assert.is_nil(rawTriggers.__objective_kills)
 			assert.is_nil(missionApi.ObjectiveTriggers.kills)
-		end)
-
-		-- Difficulty ranks from luarules/mission_api/difficulties.json: Hard = 4.
-
-		it("resolves a difficulty-wrapped amount for the synthesized trigger's repeats", function()
-			local objective = timed(1)
-			objective.amount = { difficulties = { Easy = 2, Hard = 4 } }
-			local _, rawTriggers = process({ timed = objective }, nil, 4)
-			assert.is_true(rawTriggers.__objective_timed.settings.repeating)
-			assert.are.equal(3, rawTriggers.__objective_timed.settings.maxRepeats)
-		end)
-
-		it("resolves difficulty-wrapped amount and nextStage in managed objective metadata", function()
-			local kills = {
-				textKey = "k",
-				amount = { difficulties = { Easy = 2, Hard = 5 } },
-				nextStage = { difficulties = { Easy = "s1", Hard = "s2" } },
-				trigger = { type = triggerDefinitions.Types.TotalUnitsKilled, parameters = { teamID = 0 } },
-			}
-			local _, _, missionApi = process({ kills = kills }, nil, 4)
-			local metadata = missionApi.ManagedObjectives[triggerDefinitions.Types.TotalUnitsKilled][1]
-			assert.are.equal(5, metadata.amount)
-			assert.are.equal("s2", metadata.nextStage)
 		end)
 	end)
 end)

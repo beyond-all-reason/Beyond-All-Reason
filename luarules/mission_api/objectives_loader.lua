@@ -1,6 +1,5 @@
 local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
-local difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 
 --[[
 	objectiveID = {
@@ -47,8 +46,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 		end
 
 		if type(objectiveID) == "string" and type(objective) == "table" and type(objective.trigger) == "table" then
-			-- Resolved on read: this runs before validation, and repeat counts derive from amount.
-			local amount = difficulty.Resolve(objective.amount)
+			local amount = objective.amount
 			local triggerType = objective.trigger.type
 			local triggerParameters = type(objective.trigger.parameters) == "table" and objective.trigger.parameters
 				or {}
@@ -59,7 +57,7 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 				table.insert(GG["MissionAPI"].ManagedObjectives[triggerType], {
 					objectiveID = objectiveID,
 					amount = amount,
-					nextStage = difficulty.Resolve(objective.nextStage),
+					nextStage = objective.nextStage,
 					stages = objectiveStages,
 					parameters = triggerParameters,
 				})

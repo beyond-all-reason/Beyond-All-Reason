@@ -52,7 +52,7 @@ local triggers = {
 	hardOnly = {
 		type = triggerTypes.TimeElapsed,
 		settings = {
-			difficulties = { Medium = true, Hard = true },
+			difficulties = { 'Medium', 'Hard' },
 		},
 		parameters = {
 			seconds = 5,
