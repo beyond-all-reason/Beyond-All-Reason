@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  lturret, rturret, llturret, rrturret, base, lprop, rprop, bprop;
+piece  lturret, rturret, llturret, rrturret, base, lprop, rprop, bprop, lturretfirepoint, rturretfirepoint, llturretfirepoint, rrturretfirepoint;
 
 static-var  turnClock, turnCounter, wheelSpeed, currentSpeed, moveSpeed, pivotAngle;
 
@@ -162,7 +162,7 @@ AimFromWeapon1(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = lturret;
+	piecenum = lturretfirepoint;
 }
 
 AimWeapon2(heading, pitch)
@@ -189,7 +189,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon3(piecenum)
 {
-	piecenum = llturret;
+	piecenum = llturretfirepoint;
 }
 
 AimWeapon3(heading, pitch)
@@ -216,7 +216,7 @@ AimFromWeapon3(piecenum)
 
 QueryWeapon4(piecenum)
 {
-	piecenum = rturret;
+	piecenum = rturretfirepoint;
 }
 
 AimWeapon4(heading, pitch)
@@ -243,7 +243,7 @@ AimFromWeapon4(piecenum)
 
 QueryWeapon5(piecenum)
 {
-	piecenum = rrturret;
+	piecenum = rrturretfirepoint;
 }
 
 AimWeapon5(heading, pitch)
