@@ -63,7 +63,8 @@ lArmFlare,
 rArmGun,
 rArmFlare,
 rArmRotationFlare,
-lArmRotationFlare;
+lArmRotationFlare,
+midtorsofirepoint;
 
 static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, isFiring3, isFiring4, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSsteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady; 			
 
@@ -1313,7 +1314,7 @@ RestoreRArmRay()
 
 QueryWeapon1(piecenum) //Hull Rotation
 {
-	piecenum = midTorso;
+	piecenum = midtorsofirepoint;
 }
 
 AimFromWeapon1(piecenum)
