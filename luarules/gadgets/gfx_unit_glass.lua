@@ -35,7 +35,8 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 
 	local pieceList
 	local function FillGlassUnitDefs(unitID, unitDefID)
-		if not glassUnitDefs[unitDefID] then
+		if glassUnitDefs[unitDefID] == nil then
+			glassUnitDefs[unitDefID] = false
 			pieceList = spGetUnitPieceList(unitID)
 			for pieceID, pieceName in ipairs(pieceList) do
 				if pieceName:find("_glass") then
