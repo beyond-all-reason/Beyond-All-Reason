@@ -300,7 +300,7 @@ widgetState = { -- forward-declared above playSound so mute check works
 	lightLibraryTab = "builtin", -- "builtin" or "user"
 	lightLibrarySelectedPreset = nil,
 	-- Start Positions tool section elements
-	startposActive = false,
+	regionsActive = false,
 	envFadeEnabled = true, -- whether skybox transitions use fade effect
 	tsSkyboxSync = true, -- TILESET tool: swap skybox to match the picked biome (BAR only)
 	skyboxLibraryRootEl = nil, -- floating skybox library window element
@@ -982,9 +982,9 @@ end
 -- =============================================================================
 widgetState.hintDots = {
 	{
-		dotId = "startpos-mode-notify-dot",
+		dotId = "regions-mode-notify-dot",
 		prefKey = "seenStartposShapeHint",
-		markOnClick = { "btn-sp-shape", "btn-sp-startbox" },
+		markOnClick = { "btn-rg-shape", "btn-rg-startbox" },
 	},
 	{ dotId = "metal-mode-notify-dot", prefKey = "seenMetalStampHint", markOnClick = { "btn-mb-stamp" } },
 	{
@@ -2002,9 +2002,9 @@ local function _deactivateAllTools()
 	if WG.LightPlacer then
 		WG.LightPlacer.deactivate()
 	end
-	widgetState.startposActive = false
-	if WG.StartPosTool then
-		WG.StartPosTool.deactivate()
+	widgetState.regionsActive = false
+	if WG.RegionsTool then
+		WG.RegionsTool.deactivate()
 	end
 	widgetState.cloneActive = false
 	if WG.CloneTool then
@@ -6037,7 +6037,7 @@ local initialModel = {
 	newMapArchetypeStr = "",
 	newMapGen = false, -- procedural terrain toggle; off (default) = dead-flat map
 	-- Active tool slot for panel-mode swap (data-if="activeTool == 'fp'" etc).
-	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, stp, cl, diff.
+	-- "" = terraform brush base panel (tf-terraform-controls); other values: fp, wb, sp, mb, gb, dc, env, lp, rg, cl, diff.
 	activeTool = "",
 	-- Master SHADER button highlight in the TILESET window (+ grays its PAINT
 	-- SURFACES neighbour via data-class-disabled); synced from WG.TilesetTerrain.
@@ -6177,8 +6177,33 @@ local initialModel = {
 	sfMeasureShowLength = false,
 	sfMeasureRulerMode = false,
 	sfMeasureStickyMode = false,
-	stpSubMode = "",
-	stpStartboxMode = "",
+	rgSubMode = "",
+	rgStartboxMode = "",
+	rgRegionType = "start",
+	rgCategory = "start",
+	rgGeometry = "point",
+	rgEditMode = "select",
+	rgGatheredSpots = "0",
+	rgSelectedHasBox = false,
+	rgStrategy = "express",
+	rgPlacing = "points",
+	rgPolygonMode = false,
+	rgShowShapeOptions = false,
+	rgHint = "points",
+	rgSelected = false,
+	rgSelectedTeam = "",
+	rgSelectedVertices = "0",
+	rgRegionError = "",
+	rgRegionNotice = "",
+	rgRegionListTitle = "STARTS",
+	rgDetailsTitle = "DETAILS",
+	rgDetailsMode = "prompt",
+	rgView = "list",
+	rgFormNew = false,
+	rgFormChanged = false,
+	rgNewLabel = "NEW START",
+	rgSubmitLabel = "CREATE",
+	rgClearLabel = "CLEAR ALL",
 	-- Diffuse painter (Phase A MVP)
 	dfpRadiusStr = "128",
 	dfpStrengthStr = "1.00",
@@ -6330,7 +6355,7 @@ local initialModel = {
 	dcDistribution = "random", -- decal distribution (random/regular/clustered)
 	wbSubMode = "scatter", -- weather brush sub-mode
 	wbDistMode = "random", -- weather distribution
-	stpShapeMode = "circle", -- startpos shape selection
+	rgShapeMode = "circle",
 	lpDistMode = "random", -- light placer distribution
 	guideMode = false, -- guide/help overlay
 	soundMuted = false, -- sound muted (data-class-muted on btn-sound)
@@ -6405,12 +6430,12 @@ local initialModel = {
 	clMeasureRulerMode = false,
 	clMeasureStickyMode = false,
 	-- Phase 2 step 4: startpos label interpolation strings
-	stpAllyTeamsStr = "2",
-	stpTeamsPerAllyStr = "1",
-	stpCountStr = "4",
-	stpSizeStr = "2000",
-	stpRotationStr = "0\194\176",
-	stpPlacementModeStr = "ROUND-ROBIN",
+	rgAllyTeamsStr = "2",
+	rgTeamsPerAllyStr = "1",
+	rgCountStr = "4",
+	rgSizeStr = "2000",
+	rgRotationStr = "0\194\176",
+	rgPlacementModeStr = "ROUND-ROBIN",
 	-- Phase 2 step 4: splat painter label interpolation strings
 	splatStrengthStr = "0.15",
 	splatIntensityStr = "1.0",
@@ -6854,9 +6879,9 @@ local initialModel = {
 			if WG.LightPlacer then
 				WG.LightPlacer.deactivate()
 			end
-			widgetState.startposActive = false
-			if WG.StartPosTool then
-				WG.StartPosTool.deactivate()
+			widgetState.regionsActive = false
+			if WG.RegionsTool then
+				WG.RegionsTool.deactivate()
 			end
 			widgetState.decalsActive = false
 			if WG.DecalPlacer then
@@ -7156,179 +7181,242 @@ local initialModel = {
 			WG.WeatherBrush.clearAllPersistent()
 		end
 	end,
-	-- Phase 2 step 6: tf_startpos model-king handlers — defined here (not in M.attach)
+	-- Phase 2 step 6: tf_regions model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/_noSliderVal upvalues.
 	-- Spring.GetMouseState/TraceScreenRay/Game accessed as globals (no upvalue cost).
-	onSpSetSubMode = function(_event, sm)
+	onRgSetSubMode = function(_event, sm)
 		playSound("modeSwitch")
-		if WG.StartPosTool then
-			WG.StartPosTool.setSubMode(sm)
+		if WG.RegionsTool then
+			WG.RegionsTool.setSubMode(sm)
 		end
 	end,
-	onSpSetShape = function(_event, sh)
+	onRgSetShape = function(_event, sh)
 		playSound("modeSwitch")
-		if WG.StartPosTool then
-			WG.StartPosTool.setShape(sh)
+		if WG.RegionsTool then
+			WG.RegionsTool.setShape(sh)
 		end
 	end,
-	onSpAllyTeamsChange = function(_event)
+	onRgAllyTeamsChange = function(_event)
 		if uiState.updatingFromCode then
 			return
 		end
-		local val = _noSliderVal("sp-allyteams", 2)
-		if WG.StartPosTool then
-			WG.StartPosTool.setNumAllyTeams(val)
+		local val = _noSliderVal("rg-allyteams", 2)
+		if WG.RegionsTool then
+			WG.RegionsTool.setNumAllyTeams(val)
 		end
 	end,
-	onSpTeamsDown = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setNumAllyTeams(s.numAllyTeams - 1)
+	onRgTeamsDown = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setNumAllyTeams(s.numAllyTeams - 1)
 		end
 	end,
-	onSpTeamsUp = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setNumAllyTeams(s.numAllyTeams + 1)
+	onRgTeamsUp = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setNumAllyTeams(s.numAllyTeams + 1)
 		end
 	end,
-	onSpTeamsPerAllyChange = function(_event)
+	onRgTeamsPerAllyChange = function(_event)
 		if uiState.updatingFromCode then
 			return
 		end
-		local val = _noSliderVal("sp-teams-per-ally", 1)
-		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
-			WG.StartPosTool.setNumTeamsPerAlly(val)
+		local val = _noSliderVal("rg-teams-per-ally", 1)
+		if WG.RegionsTool and WG.RegionsTool.setNumTeamsPerAlly then
+			WG.RegionsTool.setNumTeamsPerAlly(val)
 		end
 	end,
-	onSpTeamsPerAllyDown = function(_event)
-		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setNumTeamsPerAlly((s.numTeamsPerAlly or 1) - 1)
+	onRgTeamsPerAllyDown = function(_event)
+		if WG.RegionsTool and WG.RegionsTool.setNumTeamsPerAlly then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setNumTeamsPerAlly((s.numTeamsPerAlly or 1) - 1)
 		end
 	end,
-	onSpTeamsPerAllyUp = function(_event)
-		if WG.StartPosTool and WG.StartPosTool.setNumTeamsPerAlly then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setNumTeamsPerAlly((s.numTeamsPerAlly or 1) + 1)
+	onRgTeamsPerAllyUp = function(_event)
+		if WG.RegionsTool and WG.RegionsTool.setNumTeamsPerAlly then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setNumTeamsPerAlly((s.numTeamsPerAlly or 1) + 1)
 		end
 	end,
-	onSpTogglePlacement = function(_event)
+	onRgTogglePlacement = function(_event)
 		playSound("modeSwitch")
-		if WG.StartPosTool and WG.StartPosTool.togglePlacementMode then
-			WG.StartPosTool.togglePlacementMode()
+		if WG.RegionsTool and WG.RegionsTool.togglePlacementMode then
+			WG.RegionsTool.togglePlacementMode()
 		end
 	end,
-	onSpSetStartboxMode = function(_event, mode)
+	onRgSetStartboxMode = function(_event, mode)
 		playSound("modeSwitch")
-		if WG.StartPosTool and WG.StartPosTool.setStartboxMode then
-			WG.StartPosTool.setStartboxMode(mode)
+		if WG.RegionsTool and WG.RegionsTool.setStartboxMode then
+			WG.RegionsTool.setStartboxMode(mode)
 		end
 	end,
-	onSpCountChange = function(_event)
+	onRgSetRegionType = function(_event, typeKey)
+		playSound("modeSwitch")
+		if WG.RegionsTool and WG.RegionsTool.setRegionType then
+			WG.RegionsTool.setRegionType(typeKey)
+		end
+	end,
+	onRgSetEditMode = function(_event, mode)
+		playSound("modeSwitch")
+		if WG.RegionsTool and WG.RegionsTool.setEditMode then
+			WG.RegionsTool.setEditMode(mode)
+		end
+	end,
+	onRgSetGeometry = function(_event, g)
+		playSound("modeSwitch")
+		if WG.RegionsTool and WG.RegionsTool.setGeometry then
+			WG.RegionsTool.setGeometry(g)
+		end
+	end,
+	onRgRemoveArea = function(_event)
+		local st = WG.RegionsTool
+		if st and st.removeArea and st.removeArea() then
+			playSound("reset")
+		end
+	end,
+	onRgNew = function(_event)
+		local st = WG.RegionsTool
+		if st and st.openNew then
+			playSound("modeSwitch")
+			st.openNew()
+		end
+	end,
+	onRgSubmit = function(_event)
+		local st = WG.RegionsTool
+		if st and st.submitForm then
+			playSound(st.submitForm() and "apply" or "reset")
+		end
+	end,
+	onRgCancel = function(_event)
+		local st = WG.RegionsTool
+		if st and st.cancelForm then
+			st.cancelForm()
+		end
+	end,
+	onRgDelete = function(_event)
+		local st = WG.RegionsTool
+		if st and st.deleteForm and st.deleteForm() then
+			playSound("reset")
+		end
+	end,
+	onRgRegionCopy = function(_event)
+		if WG.RegionsTool and WG.RegionsTool.copyLayout and WG.RegionsTool.copyLayout() then
+			playSound("apply")
+		end
+	end,
+	onRgCountChange = function(_event)
 		if uiState.updatingFromCode then
 			return
 		end
-		local val = _noSliderVal("sp-count", 4)
-		if WG.StartPosTool then
-			WG.StartPosTool.setShapeCount(val)
+		local val = _noSliderVal("rg-count", 4)
+		if WG.RegionsTool then
+			WG.RegionsTool.setShapeCount(val)
 		end
 	end,
-	onSpCountDown = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setShapeCount(s.shapeCount - 1)
+	onRgCountDown = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setShapeCount(s.shapeCount - 1)
 		end
 	end,
-	onSpCountUp = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setShapeCount(s.shapeCount + 1)
+	onRgCountUp = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setShapeCount(s.shapeCount + 1)
 		end
 	end,
-	onSpSizeChange = function(_event)
+	onRgSizeChange = function(_event)
 		if uiState.updatingFromCode then
 			return
 		end
-		local val = _noSliderVal("sp-size", 2000)
-		if WG.StartPosTool then
-			WG.StartPosTool.setRadius(val)
+		local val = _noSliderVal("rg-size", 2000)
+		if WG.RegionsTool then
+			WG.RegionsTool.setRadius(val)
 		end
 	end,
-	onSpSizeDown = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setRadius(s.shapeRadius - 32)
+	onRgSizeDown = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setRadius(s.shapeRadius - 32)
 		end
 	end,
-	onSpSizeUp = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setRadius(s.shapeRadius + 32)
+	onRgSizeUp = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setRadius(s.shapeRadius + 32)
 		end
 	end,
-	onSpRotChange = function(_event)
+	onRgRotChange = function(_event)
 		if uiState.updatingFromCode then
 			return
 		end
-		local val = _noSliderVal("sp-rotation", 0)
-		if WG.StartPosTool then
-			WG.StartPosTool.setRotation(val)
+		local val = _noSliderVal("rg-rotation", 0)
+		if WG.RegionsTool then
+			WG.RegionsTool.setRotation(val)
 		end
 	end,
-	onSpRotCW = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setRotation(((s and s.shapeRotation or 0) + ROTATION_STEP) % 360)
+	onRgRotCW = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setRotation(((s and s.shapeRotation or 0) + ROTATION_STEP) % 360)
 		end
 	end,
-	onSpRotCCW = function(_event)
-		if WG.StartPosTool then
-			local s = WG.StartPosTool.getState()
-			WG.StartPosTool.setRotation(((s and s.shapeRotation or 0) - ROTATION_STEP) % 360)
+	onRgRotCCW = function(_event)
+		if WG.RegionsTool then
+			local s = WG.RegionsTool.getState()
+			WG.RegionsTool.setRotation(((s and s.shapeRotation or 0) - ROTATION_STEP) % 360)
 		end
 	end,
-	onSpRandom = function(_event)
+	onRgRandom = function(_event)
 		playSound("apply")
-		if WG.StartPosTool then
+		if WG.RegionsTool then
 			local mx, my = Spring.GetMouseState()
 			local _, pos = Spring.TraceScreenRay(mx, my, true)
 			if pos then
-				WG.StartPosTool.placeRandomPositions(pos[1], pos[3])
+				WG.RegionsTool.placeRandomPositions(pos[1], pos[3])
 			else
-				WG.StartPosTool.placeRandomPositions(Game.mapSizeX / 2, Game.mapSizeZ / 2)
+				WG.RegionsTool.placeRandomPositions(Game.mapSizeX / 2, Game.mapSizeZ / 2)
 			end
 		end
 	end,
-	onSpClear = function(_event)
+	onRgClear = function(_event)
 		playSound("apply")
-		if WG.StartPosTool then
-			WG.StartPosTool.clearAllPositions()
-			WG.StartPosTool.clearAllStartboxes()
+		if WG.RegionsTool then
+			local st = WG.RegionsTool.getState and WG.RegionsTool.getState()
+			if not st or st.regionType == "start" then
+				WG.RegionsTool.clearAllPositions()
+			end
+			WG.RegionsTool.clearAllStartboxes()
 		end
 	end,
-	onSpSave = function(_event)
+	onRgSave = function(_event)
 		playSound("apply")
-		if WG.StartPosTool then
-			WG.StartPosTool.saveStartPositions()
-			WG.StartPosTool.saveStartboxes()
+		local st = WG.RegionsTool
+		if not st then
+			return
+		end
+		st.saveRegions()
+	end,
+	onRgCopy = function(_event)
+		playSound("apply")
+		local st = WG.RegionsTool
+		if not st then
+			return
+		end
+		if st.getState().regionType == "start" then
+			st.copyStartboxOverride()
+		else
+			st.copyLayout()
 		end
 	end,
-	-- Copies the startbox override as a !bSet the user can paste into lobby chat. Startbox
-	-- only: start positions travel as a different modoption entirely.
-	onSpCopy = function(_event)
+	onRgLoad = function(_event)
 		playSound("apply")
-		if WG.StartPosTool then
-			WG.StartPosTool.copyStartboxOverride()
+		local st = WG.RegionsTool
+		if not st then
+			return
 		end
-	end,
-	onSpLoad = function(_event)
-		playSound("apply")
-		if WG.StartPosTool then
-			WG.StartPosTool.loadStartPositions()
-			WG.StartPosTool.loadStartboxes()
-		end
+		st.loadRegions()
 	end,
 	-- Phase 2 step 6: tf_splat model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
@@ -10830,7 +10918,7 @@ local initialModel = {
 			local mbSt = WG.MetalBrush and WG.MetalBrush.getState()
 			local gbSt = WG.GrassBrush and WG.GrassBrush.getState()
 			local lpSt = WG.LightPlacer and WG.LightPlacer.getState()
-			local stSt = WG.StartPosTool and WG.StartPosTool.getState()
+			local stSt = WG.RegionsTool and WG.RegionsTool.getState()
 			local clSt = WG.CloneTool and WG.CloneTool.getState()
 			---@type table?
 			local sfPtr = WG.SurfacePainter
@@ -10857,8 +10945,8 @@ local initialModel = {
 				saved = { tool = "environment" }
 			elseif widgetState.lightActive and lpSt and lpSt.active then
 				saved = { tool = "lights", mode = lpSt.mode }
-			elseif widgetState.startposActive and stSt and stSt.active then
-				saved = { tool = "startpos", mode = stSt.mode }
+			elseif widgetState.regionsActive and stSt and stSt.active then
+				saved = { tool = "regions", mode = stSt.mode }
 			elseif widgetState.cloneActive and clSt and clSt.active then
 				saved = { tool = "clone" }
 			end
@@ -10886,15 +10974,15 @@ local initialModel = {
 			if WG.LightPlacer then
 				WG.LightPlacer.deactivate()
 			end
-			if WG.StartPosTool then
-				WG.StartPosTool.deactivate()
+			if WG.RegionsTool then
+				WG.RegionsTool.deactivate()
 			end
 			if WG.CloneTool then
 				WG.CloneTool.deactivate()
 			end
 			widgetState.envActive = false
 			widgetState.lightActive = false
-			widgetState.startposActive = false
+			widgetState.regionsActive = false
 			widgetState.cloneActive = false
 			widgetState.surfHardActive = false
 			widgetState.surfPickerSlot = nil -- pausing the tool closes the variant picker
@@ -10948,9 +11036,9 @@ local initialModel = {
 				elseif s.tool == "lights" and WG.LightPlacer then
 					widgetState.lightActive = true
 					WG.LightPlacer.setMode(s.mode or "scatter")
-				elseif s.tool == "startpos" and WG.StartPosTool then
-					widgetState.startposActive = true
-					WG.StartPosTool.activate(s.mode or "express")
+				elseif s.tool == "regions" and WG.RegionsTool then
+					widgetState.regionsActive = true
+					WG.RegionsTool.activate(s.mode or "express")
 				elseif s.tool == "clone" and WG.CloneTool then
 					widgetState.cloneActive = true
 					WG.CloneTool.activate()
@@ -12417,9 +12505,9 @@ local initialModel = {
 		if WG.LightPlacer then
 			WG.LightPlacer.deactivate()
 		end
-		widgetState.startposActive = false
-		if WG.StartPosTool then
-			WG.StartPosTool.deactivate()
+		widgetState.regionsActive = false
+		if WG.RegionsTool then
+			WG.RegionsTool.deactivate()
 		end
 		widgetState.cloneActive = false
 		if WG.CloneTool then
@@ -13920,14 +14008,14 @@ local initialModel = {
 			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchLights: " .. tostring(err2))
 		end
 	end,
-	onTfSwitchStartpos = function(_event)
+	onTfSwitchRegions = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
 		local ok2, err2 = pcall(function()
-			if widgetState.startposActive then
-				widgetState.startposActive = false
-				if WG.StartPosTool then
-					WG.StartPosTool.deactivate()
+			if widgetState.regionsActive then
+				widgetState.regionsActive = false
+				if WG.RegionsTool then
+					WG.RegionsTool.deactivate()
 				end
 				widgetState.cloneActive = false
 				if WG.CloneTool then
@@ -13939,14 +14027,14 @@ local initialModel = {
 				end
 			else
 				_deactivateAllTools()
-				widgetState.startposActive = true
-				if WG.StartPosTool then
-					WG.StartPosTool.activate("express")
+				widgetState.regionsActive = true
+				if WG.RegionsTool then
+					WG.RegionsTool.activate("express")
 				end
 			end
 		end)
 		if not ok2 then
-			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchStartpos: " .. tostring(err2))
+			Spring.Echo("[Terraform Brush UI] ERROR in onTfSwitchRegions: " .. tostring(err2))
 		end
 	end,
 
@@ -15915,7 +16003,7 @@ local BADGE_ACTION_MAP = {
 	["btn-weather"] = "tool_weather",
 	["btn-environment"] = "tool_environment",
 	["btn-lights"] = "tool_lights",
-	["btn-startpos"] = "tool_startpos",
+	["btn-regions"] = "tool_regions",
 	["btn-clone"] = "tool_clone",
 }
 
@@ -15929,7 +16017,7 @@ local TOOL_BTN_MAP = {
 	tool_weather = "btn-weather",
 	tool_environment = "btn-environment",
 	tool_lights = "btn-lights",
-	tool_startpos = "btn-startpos",
+	tool_regions = "btn-regions",
 	tool_clone = "btn-clone",
 }
 
@@ -15963,7 +16051,7 @@ local KEYBIND_DISPLAY_ORDER = {
 	"tool_weather",
 	"tool_environment",
 	"tool_lights",
-	"tool_startpos",
+	"tool_regions",
 	"tool_clone",
 }
 
@@ -16465,7 +16553,7 @@ local function wireExportRangeInput(inputEl, commitFn)
 	end, false)
 end
 
--- attachStartPosListeners moved to tf_startpos.lua
+-- attachStartPosListeners moved to tf_regions.lua
 
 -- attachCloneToolListeners moved to tf_clone.lua
 
@@ -16481,8 +16569,8 @@ widgetState.regTransports = function(doc)
 		"slider-curve",
 		"slider-cap-max",
 		"slider-cap-min",
-		"slider-sp-allyteams",
-		"slider-sp-count",
+		"slider-rg-allyteams",
+		"slider-rg-count",
 		"slider-mb-size",
 		"slider-mb-rotation",
 		"slider-mb-length",
@@ -16664,8 +16752,8 @@ local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
 local tfLights = require("luaui/RmlWidgets/gui_terraform_brush/tf_lights")
 local tfMetal = require("luaui/RmlWidgets/gui_terraform_brush/tf_metal")
 local tfNoise = require("luaui/RmlWidgets/gui_terraform_brush/tf_noise")
+local tfRegions = require("luaui/RmlWidgets/gui_terraform_brush/tf_regions")
 local tfSplat = require("luaui/RmlWidgets/gui_terraform_brush/tf_splat")
-local tfStartPos = require("luaui/RmlWidgets/gui_terraform_brush/tf_startpos")
 local tfTileset = require("luaui/RmlWidgets/gui_terraform_brush/tf_tileset")
 local tfWeather = require("luaui/RmlWidgets/gui_terraform_brush/tf_weather")
 -- Guarded include: tf_surface.lua was added mid-development, and a file the
@@ -17900,7 +17988,7 @@ local function attachEventListeners()
 	tfNoise.attach(doc, ctx)
 
 	-- ============ Start Positions tool controls ============
-	tfStartPos.attach(doc, ctx)
+	tfRegions.attach(doc, ctx)
 
 	-- ============ Clone Tool controls ============
 	tfClone.attach(doc, ctx)
@@ -20006,8 +20094,8 @@ function widget:Update()
 		local envActive = widgetState.envActive
 		local lpState = WG.LightPlacer and WG.LightPlacer.getState()
 		local lpActive = widgetState.lightActive and lpState and lpState.active
-		local stpState = WG.StartPosTool and WG.StartPosTool.getState()
-		local stpActive = widgetState.startposActive and stpState and stpState.active
+		local rgState = WG.RegionsTool and WG.RegionsTool.getState()
+		local rgActive = widgetState.regionsActive and rgState and rgState.active
 		local clState = WG.CloneTool and WG.CloneTool.getState()
 		local clActive = widgetState.cloneActive and clState and clState.active
 		local decalsActive = widgetState.decalsActive and true or false
@@ -20023,7 +20111,7 @@ function widget:Update()
 				or mbActive
 				or gbActive
 				or lpActive
-				or stpActive
+				or rgActive
 				or clActive
 				or decalsActive
 				or dfpActive
@@ -20043,7 +20131,7 @@ function widget:Update()
 				or mbActive
 				or gbActive
 				or envActive
-				or stpActive
+				or rgActive
 				or clActive
 				or decalsActive
 				or dfpActive
@@ -20057,7 +20145,7 @@ function widget:Update()
 		end
 		-- Deactivate startpos mode when any other tool becomes active
 		if
-			stpActive
+			rgActive
 			and (
 				tfActive
 				or fpActive
@@ -20072,11 +20160,11 @@ function widget:Update()
 				or dfpActive
 			)
 		then
-			widgetState.startposActive = false
-			if WG.StartPosTool then
-				WG.StartPosTool.deactivate()
+			widgetState.regionsActive = false
+			if WG.RegionsTool then
+				WG.RegionsTool.deactivate()
 			end
-			stpActive = false
+			rgActive = false
 		end
 		-- Deactivate clone mode when any other tool becomes active
 		if
@@ -20090,7 +20178,7 @@ function widget:Update()
 				or gbActive
 				or envActive
 				or lpActive
-				or stpActive
+				or rgActive
 				or decalsActive
 				or dfpActive
 			)
@@ -20113,7 +20201,7 @@ function widget:Update()
 				or gbActive
 				or envActive
 				or lpActive
-				or stpActive
+				or rgActive
 				or clActive
 				or dfpActive
 				or widgetState.surfActive
@@ -20138,7 +20226,7 @@ function widget:Update()
 				or gbActive
 				or envActive
 				or lpActive
-				or stpActive
+				or rgActive
 				or clActive
 				or decalsActive
 				or dfpActive
@@ -20160,7 +20248,7 @@ function widget:Update()
 			or gbActive
 			or envActive
 			or lpActive
-			or stpActive
+			or rgActive
 			or clActive
 			or decalsActive
 			or dfpActive
@@ -20226,8 +20314,8 @@ function widget:Update()
 					tool = "env"
 				elseif lpActive then
 					tool = "lp"
-				elseif stpActive then
-					tool = "stp"
+				elseif rgActive then
+					tool = "rg"
 				elseif clActive then
 					tool = "cl"
 				elseif dfpActive then
@@ -20405,10 +20493,10 @@ function widget:Update()
 					-- and for SURFACE (v1 brush is circle-only)
 					local hideShape = envActive
 						or clActive
-						or stpActive
+						or rgActive
 						or wbActive
 						or widgetState.cloneActive
-						or widgetState.startposActive
+						or widgetState.regionsActive
 						or widgetState.envActive
 						or widgetState.surfActive
 						or widgetState.surfHardActive
@@ -20425,7 +20513,7 @@ function widget:Update()
 						or gbActive
 						or envActive
 						or lpActive
-						or stpActive
+						or rgActive
 						or clActive
 						or decalsActive
 						or widgetState.surfActive
@@ -20612,10 +20700,10 @@ function widget:Update()
 			do
 				local hideShape2 = envActive
 					or clActive
-					or stpActive
+					or rgActive
 					or wbActive
 					or widgetState.cloneActive
-					or widgetState.startposActive
+					or widgetState.regionsActive
 					or widgetState.envActive
 					or widgetState.surfActive
 					or widgetState.surfHardActive
@@ -20732,8 +20820,8 @@ function widget:Update()
 			tfEnvironment.sync(doc, ctx, setSummary)
 		elseif lpActive then
 			tfLights.sync(doc, ctx, lpState, setSummary)
-		elseif stpActive then
-			tfStartPos.sync(doc, ctx, stpState, setSummary)
+		elseif rgActive then
+			tfRegions.sync(doc, ctx, rgState, setSummary)
 		elseif clActive then
 			tfClone.sync(doc, ctx, clState, setSummary)
 		elseif decalsActive then
@@ -22580,9 +22668,9 @@ function widget:Shutdown()
 	widgetState.skyboxLibraryOpen = false
 	widgetState.lightControlsEl = nil
 	widgetState.lightActive = false
-	widgetState.startposActive = false
-	if WG.StartPosTool then
-		WG.StartPosTool.deactivate()
+	widgetState.regionsActive = false
+	if WG.RegionsTool then
+		WG.RegionsTool.deactivate()
 	end
 	widgetState.cloneActive = false
 	widgetState.cloneControlsEl = nil
