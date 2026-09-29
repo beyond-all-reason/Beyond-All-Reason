@@ -789,7 +789,7 @@ local function compactSequences()
 		end
 		return count
 	end
-	
+
 	local function bySequence(a, b)
 		return a.sequence < b.sequence
 	end
