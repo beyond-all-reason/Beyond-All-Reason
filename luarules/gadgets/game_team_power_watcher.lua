@@ -34,7 +34,11 @@ local humanTeams = {}
 local playerTeams = {}
 local teamPowers = {}
 local peakTeamPowers = {}
-local unitsWithPower = {}
+local unitsWithPower = {} -- unitID -> teamID
+local defPower = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	defPower[unitDefID] = unitDef.power
+end
 local playerAllies = {}
 local powerThresholds = {
 	{ techLevel = 0.5, threshold = 0 },
@@ -72,8 +76,8 @@ for i = 1, #teamList do
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	unitsWithPower[unitID] = { power = UnitDefs[unitDefID].power, team = unitTeam }
-	teamPowers[unitTeam] = teamPowers[unitTeam] + UnitDefs[unitDefID].power
+	unitsWithPower[unitID] = unitTeam
+	teamPowers[unitTeam] = teamPowers[unitTeam] + defPower[unitDefID]
 	if peakTeamPowers[unitTeam] < teamPowers[unitTeam] then
 		peakTeamPowers[unitTeam] = teamPowers[unitTeam]
 	end
@@ -81,21 +85,21 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	unitsWithPower[unitID] = nil
-	teamPowers[unitTeam] = mathMax(teamPowers[unitTeam] - UnitDefs[unitDefID].power, 0)
+	teamPowers[unitTeam] = mathMax(teamPowers[unitTeam] - defPower[unitDefID], 0)
 end
 
 --handles capture events on units already added to unitsWithPower by UnitFinished
 function gadget:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	if unitsWithPower[unitID] then
-		local oldTeam = unitsWithPower[unitID].team
+		local oldTeam = unitsWithPower[unitID]
 
-		unitsWithPower[unitID] = { power = UnitDefs[unitDefID].power, team = unitTeam }
-		teamPowers[unitTeam] = teamPowers[unitTeam] + UnitDefs[unitDefID].power
+		unitsWithPower[unitID] = unitTeam
+		teamPowers[unitTeam] = teamPowers[unitTeam] + defPower[unitDefID]
 
-		if teamPowers[oldTeam] <= UnitDefs[unitDefID].power then
+		if teamPowers[oldTeam] <= defPower[unitDefID] then
 			teamPowers[oldTeam] = 0
 		else
-			teamPowers[oldTeam] = teamPowers[unitTeam] - UnitDefs[unitDefID].power
+			teamPowers[oldTeam] = teamPowers[unitTeam] - defPower[unitDefID]
 		end
 
 		if teamPowers[unitTeam] and peakTeamPowers[unitTeam] < teamPowers[unitTeam] then

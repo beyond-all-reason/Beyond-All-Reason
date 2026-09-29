@@ -250,8 +250,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corr
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	local unitTeam = spGetUnitTeam(unitID)
+function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	if teamUnits[unitTeam] then
 		teamUnits[unitTeam][unitID] = nil
 	end
