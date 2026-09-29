@@ -5,7 +5,8 @@ local ModuleHandler = require("modules/module_handler")
 local TransferEnums = require("modules/transfer/enums")
 
 ---@class TransferModeDSL
----@field Mode fun(name: string): TransferModeChain Start a preset. The category is not a parameter: the grammar binds every chain from this module to "transfer" — the name only names it.
+---@field MexSplitting MexSplittingFields the keys .MexSplitting accepts
+---@field Mode fun(name: string): TransferModeChain Start a preset. The category is not a parameter: the grammar binds every chain from this module to "transfer" - the name is the only thing a preset says about itself.
 ---@field Transfer TransferGrant
 ---@field Construction TransferGrant
 ---@field Take TransferGrant
@@ -17,6 +18,7 @@ local M = {}
 for name, action in pairs(Actions) do
 	M[name] = action
 end
+M.MexSplitting = TransferEnums.MexSplitting
 -- Other modules on the axis bring their own nouns, and may decorate these
 for _, decorate in ipairs(ModuleHandler.ModeNouns(TransferEnums.ModeCategories.Transfer)) do
 	decorate(M)
@@ -180,6 +182,13 @@ local verbs = {
 			[Opt.TakeDelaySeconds] = { value = p.seconds, locked = lock.dial },
 			[Opt.TakeDelayCategory] = { value = p.category, locked = lock.noun },
 		}
+	end),
+
+	MexSplitting = rule(function(name, which)
+		ModeBuilder.OneOf(name, "MexSplitting", TransferEnums.MexSplitting, which)
+		return { which = which }
+	end, function(p, lock)
+		return { [TransferEnums.ModOptions.MexSplitting] = { value = p.which, locked = lock.noun, ui = p.ui } }
 	end),
 
 	-- Every other module's dials on this axis, open at their starting point: what a preset that lets the
