@@ -42,6 +42,12 @@ describe("mission_api.actions.set_attribute", function()
 			SetUnitAttribute = record("SetUnitAttribute"),
 			SetUnitDefModifier = record("SetUnitDefModifier"),
 			SetUnitModifier = record("SetUnitModifier"),
+			SetUnitDefWeaponAttribute = record("SetUnitDefWeaponAttribute"),
+			SetUnitWeaponAttribute = record("SetUnitWeaponAttribute"),
+			SetUnitDefWeaponModifier = record("SetUnitDefWeaponModifier"),
+			SetUnitWeaponModifier = record("SetUnitWeaponModifier"),
+			WEAPON_DEATH = -1,
+			WEAPON_SELFD = -2,
 		}
 		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
 	end)
@@ -196,6 +202,117 @@ describe("mission_api.actions.set_attribute", function()
 				{ "SetUnitModifier", 12, "speed", 1.5, "haste" },
 			}, calls)
 			assert.are.same({ { "bots" } }, queried)
+		end)
+	end)
+
+	describe("SetUnitDefWeaponAttribute", function()
+		local action = actionOfType("SetUnitDefWeaponAttribute")
+
+		it("declares its parameters", function()
+			assert.are.same({
+				type = "SetUnitDefWeaponAttribute",
+				unitDefName = "UnitDefName!",
+				teamID = "TeamID",
+				weapon = "UnitWeapon",
+				attribute = "WeaponAttribute!",
+				value = "AttributeValue",
+				source = "String",
+			}, summarizeSchema(action))
+		end)
+
+		it("sets one weapon of the def", function()
+			action.actionFunction("armpw", nil, 1, "maxWeaponRange", 600, nil)
+
+			assert.are.same({ { "SetUnitDefWeaponAttribute", 8, 1, "maxWeaponRange", 600, "mission", nil } }, calls)
+		end)
+
+		it("sets every weapon when none is named", function()
+			action.actionFunction("armpw", 0, nil, "reloadTime", 2, nil)
+
+			assert.are.same({ { "SetUnitDefWeaponAttribute", 8, nil, "reloadTime", 2, "mission", 0 } }, calls)
+		end)
+	end)
+
+	describe("SetUnitWeaponAttribute", function()
+		local action = actionOfType("SetUnitWeaponAttribute")
+
+		it("declares its parameters", function()
+			assert.are.same({
+				type = "SetUnitWeaponAttribute",
+				unitName = "UnitName",
+				unitDefName = "UnitDefName",
+				teamID = "TeamID",
+				weapon = "UnitWeapon",
+				attribute = "WeaponAttribute!",
+				value = "AttributeValue",
+				source = "String",
+				requiresOneOf = { "unitName", "unitDefName" },
+			}, summarizeSchema(action))
+		end)
+
+		it("sets the weapon on every unit the query matched", function()
+			queryResult = { 11, 12 }
+
+			action.actionFunction("bots", nil, nil, 2, "maxWeaponRange", 500, nil)
+
+			assert.are.same({
+				{ "SetUnitWeaponAttribute", 11, 2, "maxWeaponRange", 500, "mission" },
+				{ "SetUnitWeaponAttribute", 12, 2, "maxWeaponRange", 500, "mission" },
+			}, calls)
+		end)
+	end)
+
+	describe("SetUnitDefWeaponModifier", function()
+		local action = actionOfType("SetUnitDefWeaponModifier")
+
+		it("declares its parameters", function()
+			assert.are.same({
+				type = "SetUnitDefWeaponModifier",
+				unitDefName = "UnitDefName!",
+				teamID = "TeamID",
+				weapon = "UnitWeapon",
+				attribute = "WeaponAttribute!",
+				multiplier = "AttributeMultiplier",
+				source = "String",
+			}, summarizeSchema(action))
+		end)
+
+		it("names the death explosion as the engine does", function()
+			action.actionFunction("armpw", nil, "explode", "damage", 3, nil)
+
+			assert.are.same({ { "SetUnitDefWeaponModifier", 8, -1, "damage", 3, "mission", nil } }, calls)
+		end)
+
+		it("names the self-destruct explosion as the engine does", function()
+			action.actionFunction("armpw", nil, "selfDestruct", "cratering", 0.5, nil)
+
+			assert.are.same({ { "SetUnitDefWeaponModifier", 8, -2, "cratering", 0.5, "mission", nil } }, calls)
+		end)
+	end)
+
+	describe("SetUnitWeaponModifier", function()
+		local action = actionOfType("SetUnitWeaponModifier")
+
+		it("declares its parameters", function()
+			assert.are.same({
+				type = "SetUnitWeaponModifier",
+				unitName = "UnitName",
+				unitDefName = "UnitDefName",
+				teamID = "TeamID",
+				weapon = "UnitWeapon",
+				attribute = "WeaponAttribute!",
+				multiplier = "AttributeMultiplier",
+				source = "String",
+				requiresOneOf = { "unitName", "unitDefName" },
+			}, summarizeSchema(action))
+		end)
+
+		it("clears a named source on every unit the query matched", function()
+			queryResult = { 11 }
+
+			action.actionFunction("tank", nil, nil, nil, "damage", nil, "overcharge")
+
+			assert.are.same({ { "SetUnitWeaponModifier", 11, nil, "damage", nil, "overcharge" } }, calls)
 		end)
 	end)
 end)

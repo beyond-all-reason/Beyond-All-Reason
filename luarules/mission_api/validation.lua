@@ -88,6 +88,8 @@ local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local canSetUnitAttribute = attributeRules.CanSetUnitAttribute
 local canSetUnitDefAttribute = attributeRules.CanSetUnitDefAttribute
 local canSetUnitModifier = attributeRules.CanSetUnitModifier
+local canSetUnitWeaponAttribute = attributeRules.CanSetUnitWeaponAttribute
+local canSetUnitWeaponModifier = attributeRules.CanSetUnitWeaponModifier
 local affectsUnitDef = attributeRules.AffectsUnitDef
 
 local validators = {}
@@ -609,6 +611,26 @@ validators[Types.UnitAttribute] = function(attribute)
 	local ok, reason = canSetUnitAttribute(attributeDefinition(attribute))
 	if not ok then
 		return { { message = "Unit attribute '" .. attribute .. "' " .. reason } }
+	end
+end
+
+validators[Types.WeaponAttribute] = function(attribute)
+	local luaTypeResult = validators[Types.String](attribute)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local ok, reason = canSetUnitWeaponAttribute(attributeDefinition(attribute))
+	if not ok then
+		return { { message = "Weapon attribute '" .. attribute .. "' " .. reason } }
+	end
+end
+
+validators[Types.UnitWeapon] = function(weapon)
+	if weapon == "explode" or weapon == "selfDestruct" then
+		return
+	elseif type(weapon) ~= "number" or weapon <= 0 or weapon % 1 ~= 0 then
+		return { { message = "Expected a weapon number, 'explode' or 'selfDestruct', got " .. tostring(weapon) } }
 	end
 end
 
@@ -1776,6 +1798,7 @@ end
 
 local function validateAttributeActions(actions)
 	local unitAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitAttribute)
+	local weaponAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.WeaponAttribute)
 	local setActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeValue)
 	local modifierActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeMultiplier)
 	local unitScopeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
@@ -1817,6 +1840,27 @@ local function validateAttributeActions(actions)
 			end
 			if not affects then
 				logWarn("Unit attribute '" .. attribute .. "' " .. warning .. ". Action: " .. actionID)
+			end
+		elseif weaponAttributeActions[actionType] and weaponAttributeDefinitions[attribute] then
+			local entry = weaponAttributeDefinitions[attribute]
+			local ok, reason, parameter = true, nil, nil
+			if setActions[actionType] then
+				ok, reason, parameter = canSetUnitWeaponAttribute(entry, parameters.value, parameters.weapon, unitDef)
+			elseif modifierActions[actionType] then
+				ok, reason, parameter =
+					canSetUnitWeaponModifier(entry, parameters.multiplier, parameters.weapon, unitDef)
+			end
+			if not ok then
+				logError(
+					"Weapon attribute '"
+						.. attribute
+						.. "' "
+						.. reason
+						.. ". Action: "
+						.. actionID
+						.. ", Parameter: "
+						.. parameter
+				)
 			end
 		end
 	end
