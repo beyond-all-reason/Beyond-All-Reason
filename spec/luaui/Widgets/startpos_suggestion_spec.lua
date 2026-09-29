@@ -1,74 +1,19 @@
 ---@diagnostic disable: undefined-field, need-check-nil, call-non-callable
+-- A start position's role, set in the regions tool: held by regions on the position, and exported as the map's start
+-- position suggestions, which the suggestions widget reads back.
+local Regions = require("modules/regions/api")
+local Support = require("spec/luaui/Widgets/support/regions_tool")
 
 describe("role_cycle", function()
-	-- The role-cycle helper is embedded in the startpos tool widget. Load the
-	-- widget into a sandbox that provides the minimal globals it needs, then
-	-- exercise it through its normal Initialize / Shutdown lifecycle and the
-	-- public WG.StartPosTool API.
-	local env = setmetatable({
-		widget = {},
-		WG = {},
-		GL = {
-			LINE_LOOP = 1,
-			LINE_STRIP = 2,
-			LINES = 3,
-			TRIANGLE_FAN = 4,
-			TRIANGLE_STRIP = 5,
-			TRIANGLES = 6,
-			SRC_ALPHA = 7,
-			ONE = 8,
-			ONE_MINUS_SRC_ALPHA = 9,
-		},
-		gl = {
-			Color = function() end,
-			LineWidth = function() end,
-			DrawGroundCircle = function() end,
-			PushMatrix = function() end,
-			PopMatrix = function() end,
-			Translate = function() end,
-			Billboard = function() end,
-			Text = function() end,
-			BeginEnd = function() end,
-			Vertex = function() end,
-			Texture = function() end,
-			TexRect = function() end,
-			Blending = function() end,
-			DepthTest = function() end,
-			CreateList = function() end,
-			CallList = function() end,
-			DeleteList = function() end,
-			GetTextWidth = function() end,
-		},
-		Game = setmetatable({
-			mapSizeX = 10000,
-			mapSizeZ = 10000,
-		}, { __index = _G.Game }),
-		Spring = setmetatable({
-			GetModOptions = function()
-				return { startpos_max_slope = 1 }
-			end,
-			GetGroundNormal = function()
-				return 0, 1, 0, 0
-			end,
-			GetGroundHeight = function()
-				return 0
-			end,
-		}, { __index = _G.Spring }),
-	}, { __index = _G })
-
-	VFS.Include("luaui/Widgets/cmd_startpos_tool.lua", env)
-
 	local tool
 
 	before_each(function()
-		env.widget:Initialize()
-		tool = env.WG.StartPosTool
+		Regions.Clear()
+		local R
+		R, tool = Support.Tool()
+		R.setType("start")
 		tool.clearAllPositions()
-		tool.addPosition(100, 100, 1, 1)
-	end)
-
-	after_each(function()
-		env.widget:Shutdown()
+		tool.addPosition(100, 100, 0, 1)
 	end)
 
 	local presets = { "front", "air", "tech" }
@@ -81,7 +26,6 @@ describe("role_cycle", function()
 		assert.equals("front", tool.cyclePositionRole(1, 1, presets))
 		assert.equals("air", tool.cyclePositionRole(1, 1, presets))
 		assert.equals("tech", tool.cyclePositionRole(1, 1, presets))
-
 	end)
 
 	it("rolls over to nil after the last preset", function()
@@ -126,65 +70,21 @@ describe("role_cycle", function()
 	it("starts from the last preset when cycling backward with no role", function()
 		assert.equals("tech", tool.cyclePositionRole(1, -1, presets))
 	end)
+
+	it("is the start's: regions holds it on the position, and a position placed after keeps its own", function()
+		tool.cyclePositionRole(1, 1, presets)
+		tool.addPosition(300, 300, 0, 2)
+		local start = assert(Regions.All("start")[1]) --[[@as table]]
+		assert.are.same({ { x = 100, z = 100, role = "front" }, { x = 300, z = 300 } }, start.positions)
+	end)
 end)
 
 describe("startbox_encode", function()
 	it("encodes a simple box through the shared pipeline", function()
-		local env = setmetatable({
-			widget = {},
-			WG = {},
-			GL = {
-				LINE_LOOP = 1,
-				LINE_STRIP = 2,
-				LINES = 3,
-				TRIANGLE_FAN = 4,
-				TRIANGLE_STRIP = 5,
-				TRIANGLES = 6,
-				SRC_ALPHA = 7,
-				ONE = 8,
-				ONE_MINUS_SRC_ALPHA = 9,
-			},
-			gl = {
-				Color = function() end,
-				LineWidth = function() end,
-				DrawGroundCircle = function() end,
-				PushMatrix = function() end,
-				PopMatrix = function() end,
-				Translate = function() end,
-				Billboard = function() end,
-				Text = function() end,
-				BeginEnd = function() end,
-				Vertex = function() end,
-				Texture = function() end,
-				TexRect = function() end,
-				Blending = function() end,
-				DepthTest = function() end,
-				CreateList = function() end,
-				CallList = function() end,
-				DeleteList = function() end,
-				GetTextWidth = function() end,
-			},
-			Game = setmetatable({ mapSizeX = 10000, mapSizeZ = 10000 }, { __index = _G.Game }),
-			Spring = setmetatable({
-				GetModOptions = function()
-					return { startpos_max_slope = 1 }
-				end,
-				GetGroundNormal = function()
-					return 0, 1, 0, 0
-				end,
-				GetGroundHeight = function()
-					return 0
-				end,
-			}, { __index = _G.Spring }),
-		}, { __index = _G })
-		VFS.Include("luaui/Widgets/cmd_startpos_tool.lua", env)
-		env.widget:Initialize()
-		local tool = env.WG.StartPosTool
-		tool.clearAllStartboxes()
-		tool.addStartboxVertex(100, 100)
-		tool.addStartboxVertex(300, 100)
-		tool.addStartboxVertex(300, 300)
-		tool.finishStartbox()
+		Regions.Clear()
+		local R, tool = Support.Tool()
+		R.setType("start")
+		assert.is_true(Support.Create(R, Support.Square(100)))
 		local value, count = tool.encodeStartboxes()
 		assert.is_not_nil(value)
 		assert.equals(1, count)
@@ -196,73 +96,14 @@ describe("startpos_suggestions_roundtrip", function()
 	-- data survives the full round-trip through the suggestions widget's loader.
 	local presets = { "front", "air", "tech" }
 
-	-- Build a sandbox for the startpos tool, mirroring the role_cycle tests above.
-	local function makeToolEnv()
-		return setmetatable({
-			widget = {},
-			WG = {},
-			GL = {
-				LINE_LOOP = 1,
-				LINE_STRIP = 2,
-				LINES = 3,
-				TRIANGLE_FAN = 4,
-				TRIANGLE_STRIP = 5,
-				TRIANGLES = 6,
-				SRC_ALPHA = 7,
-				ONE = 8,
-				ONE_MINUS_SRC_ALPHA = 9,
-			},
-			gl = {
-				Color = function() end,
-				LineWidth = function() end,
-				DrawGroundCircle = function() end,
-				PushMatrix = function() end,
-				PopMatrix = function() end,
-				Translate = function() end,
-				Billboard = function() end,
-				Text = function() end,
-				BeginEnd = function() end,
-				Vertex = function() end,
-				Texture = function() end,
-				TexRect = function() end,
-				Blending = function() end,
-				DepthTest = function() end,
-				CreateList = function() end,
-				CallList = function() end,
-				DeleteList = function() end,
-				GetTextWidth = function() end,
-			},
-			Game = setmetatable({
-				mapSizeX = 10000,
-				mapSizeZ = 10000,
-			}, { __index = _G.Game }),
-			Spring = setmetatable({
-				GetModOptions = function()
-					return { startpos_max_slope = 1 }
-				end,
-				GetGroundNormal = function()
-					return 0, 1, 0, 0
-				end,
-				GetGroundHeight = function()
-					return 0
-				end,
-			}, { __index = _G.Spring }),
-		}, { __index = _G })
-	end
-
-	local toolEnv
 	local tool
 
 	before_each(function()
-		toolEnv = makeToolEnv()
-		VFS.Include("luaui/Widgets/cmd_startpos_tool.lua", toolEnv)
-		toolEnv.widget:Initialize()
-		tool = toolEnv.WG.StartPosTool
+		Regions.Clear()
+		local R
+		R, tool = Support.Tool()
+		R.setType("start")
 		tool.clearAllPositions()
-	end)
-
-	after_each(function()
-		toolEnv.widget:Shutdown()
 	end)
 
 	local function makeSuggestionsEnv(encoded)
@@ -347,16 +188,16 @@ describe("startpos_suggestions_roundtrip", function()
 	it("round-trips positions and roles through the suggestions data format", function()
 		-- Place 4 positions across 2 ally teams x 2 slots and assign roles via the
 		-- role-cycle helper, mirroring how a player would use the tool.
-		tool.addPosition(100, 100, 1, 1)
+		tool.addPosition(100, 100, 0, 1)
 		assert.equals("front", tool.cyclePositionRole(1, 1, presets))
-		tool.addPosition(300, 300, 1, 2)
+		tool.addPosition(300, 300, 0, 2)
 		assert.equals("front", tool.cyclePositionRole(2, 1, presets))
 		assert.equals("air", tool.cyclePositionRole(2, 1, presets))
-		tool.addPosition(500, 500, 2, 1)
+		tool.addPosition(500, 500, 1, 1)
 		assert.equals("front", tool.cyclePositionRole(3, 1, presets))
 		assert.equals("air", tool.cyclePositionRole(3, 1, presets))
 		assert.equals("tech", tool.cyclePositionRole(3, 1, presets))
-		tool.addPosition(700, 700, 2, 2)
+		tool.addPosition(700, 700, 1, 2)
 		-- position 4 is left without a role
 
 		local data = tool.buildSuggestionsData()
