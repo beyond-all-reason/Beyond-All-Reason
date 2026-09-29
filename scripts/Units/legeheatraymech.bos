@@ -66,7 +66,8 @@ lFootDust,
 lToroidFlare,
 rToroidFlare,
 torsoCalcFlare,
-hipCalcFlare;
+hipCalcFlare,
+torsoconnectorfirepoint;
 
 static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady, whichAAbarrel, turningBack, aimAdj; 			
 
@@ -964,7 +965,7 @@ RestoreRRay()
 
 QueryWeapon1(piecenum) //Hull Rotation
 {
-	piecenum = torsoConnector;
+	piecenum = torsoconnectorfirepoint;
 }
 
 AimFromWeapon1(piecenum)

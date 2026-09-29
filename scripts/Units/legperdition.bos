@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece   base, aimy1, aimx1, turret, sleeve, sleeve2, barrel, flare, fflap, lflap, rflap, lflaph, rflaph, dir;
+piece   base, aimy1, aimx1, turret, sleeve, sleeve2, barrel, flare, fflap, lflap, rflap, lflaph, rflaph, dir, firepoint;
 
 static-var  deployed, restore_delay, upright, cauface;
 
@@ -219,7 +219,7 @@ FirePrimary()
 
 QueryPrimary(piecenum)
 {
-	piecenum = barrel;
+	piecenum = firepoint;
 	return (0);
 }
 AimFromPrimary (piecenum)
