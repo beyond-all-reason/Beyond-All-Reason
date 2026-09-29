@@ -1,6 +1,6 @@
 #include "../recoil_common_includes.h"
 
-piece  base, nano1, nano2, wake1, drone1, drone2, drone3, drone4, turret, plunger, flare, aimy, aimfromy, bow;
+piece  base, nano1, nano2, wake1, drone1, drone2, drone3, drone4, turret, plunger, flare, aimy, aimfromy, bow, turretfirepoint;
 
 static-var  restore_delay, aimDir;
 static-var  Stunned;
@@ -119,7 +119,7 @@ AimFromWeapon2(piecenum)
 
 QueryWeapon2(piecenum)
 {
-	piecenum = turret;
+	piecenum = turretfirepoint;
 }
 
 //--------------------
