@@ -125,9 +125,10 @@ if gadgetHandler:IsSyncedCode() then
 				unitWeapons[unitDefID] = table.map(unitDef.weapons, function(weapon, index)
 					return getWeaponType(weapon, unitDef.canManualFire), index
 				end)
-				for _, weaponType in pairs(unitWeapons[unitDefID]) do
-					if weaponType == WATERWEAPON then
+				for index, weaponType in pairs(unitWeapons[unitDefID]) do
+					if weaponType == WATERWEAPON and WeaponDefs[unitDef.weapons[index].weaponDef].canAttackGround then
 						unitHasWaterWeapon[unitDefID] = true
+						break
 					end
 				end
 			end
