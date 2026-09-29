@@ -78,7 +78,7 @@ local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
 ---@class AttributeFactor
 ---@field kind AttributeFactorKind
 ---@field value number|boolean|string
----@field sequence integer tiebreaker, highest wins
+---@field sequence integer? tiebreaker the highest value `set` is applied
 
 ---@alias AttributeFactorKind "set"|"multiply"
 
@@ -770,9 +770,14 @@ local function record(factors, source, kind, value)
 		return factor ~= nil
 	end
 
-	sequenceNum = sequenceNum + 1
+	local sequence
+	if kind == "set" then
+		sequenceNum = sequenceNum + 1
+		sequence = sequenceNum
+	end
+
 	if not factor then
-		factors[source] = { kind = kind, value = value, sequence = sequenceNum }
+		factors[source] = { kind = kind, value = value, sequence = sequence }
 		return true
 	end
 
@@ -782,7 +787,7 @@ local function record(factors, source, kind, value)
 
 	factor.kind = kind
 	factor.value = value
-	factor.sequence = sequenceNum
+	factor.sequence = sequence
 	return not unchanged
 end
 
