@@ -67,6 +67,7 @@ function gadget:Initialize()
 	GG["MissionAPI"].trackedFeatureIDs = {}
 	GG["MissionAPI"].trackedFeatureNames = {}
 	GG["MissionAPI"].markerNames = {}
+	GG["MissionAPI"].lineNames = {}
 	GG["MissionAPI"].unitMarkers = {}
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}

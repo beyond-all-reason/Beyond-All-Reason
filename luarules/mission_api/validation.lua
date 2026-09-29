@@ -1487,6 +1487,36 @@ local function validateObjectiveEventReferences(objectives, triggers)
 	end
 end
 
+local function validateLineNameReferences(actionTypes, actions)
+	local drawnLineNames = {}
+	local referencedLineNames = {}
+	for actionID, action in pairs(actions) do
+		if action.type == actionTypes.DrawLines then
+			local lineName = action.parameters.lineName
+			if lineName then
+				drawnLineNames[lineName] = true
+			end
+		elseif action.type == actionTypes.RemoveLine then
+			local lineName = action.parameters.lineName
+			if lineName then
+				referencedLineNames[lineName] = referencedLineNames[lineName] or {}
+				referencedLineNames[lineName][#referencedLineNames[lineName] + 1] = actionID
+			end
+		end
+	end
+
+	for lineName, actionIDs in pairs(referencedLineNames) do
+		if not drawnLineNames[lineName] then
+			logWarn(
+				"Line name '"
+					.. lineName
+					.. "' is not drawn in any action. Referenced in: "
+					.. table.concat(actionIDs, ", ")
+			)
+		end
+	end
+end
+
 local function validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	local triggerTypesReferencingCountdownIDs = getTypesWithParameterType(triggersSchemaParameters, Types.CountdownID)
 	-- AddCountdown declares a CountdownID parameter too, but it creates the ID and is
@@ -1555,6 +1585,7 @@ local function validateReferences()
 	validateUnitNameReferences(actionTypes, objectives, triggers, actions, unitLoadout)
 	validateFeatureNameReferences(actionTypes, objectives, triggers, actions, featureLoadout)
 	validateMarkerNameReferences(actionTypes, actions)
+	validateLineNameReferences(actionTypes, actions)
 	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
