@@ -68,24 +68,12 @@ local numVisibleUnits = 0
 
 local unitDefIgnore = {}
 
-local factoryUnitDefIDs = {} -- key unitdefid, internalname
-
 local lastknownunitpos = {} -- table on unitID to {x,y,z}
 
 local gameFrame = spGetGameFrame()
 
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams and unitDef.customParams.nohealthbars then
-		--unitDefIgnore[unitDefID] = true
-	end --ignore debug units
-	if unitDef.isFactory then
-		factoryUnitDefIDs[unitDefID] = unitDef.name
-	end
-end
-
 --- GL4 STUFF ---
 
-local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
@@ -118,17 +106,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitLosState = Spring.GetUnitLosState
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitHealth = Spring.GetUnitHealth
-
--- scriptproxies:
---[[ NB: these are proxies, not the actual lua functions currently linked LuaUI-side,
-     so it is safe to cache them here even if the underlying func changes afterwards ]]
-local scriptLuauiVisibleUnitAdded
-local scriptLuauiVisibleUnitRemoved
-local scriptLuauiVisibleUnitsChanged
-
-local scriptLuauiAlliedUnitAdded
-local scriptLuauiAlliedUnitRemoved
-local scriptLuauiAlliedUnitsChanged
 
 local function Scream(reason, unitID) -- This will pause the game and play some sound to alert anyone in debug mode of issue
 	--Spring.Debug.TraceFullEcho(nil,nil,nil, reason)
@@ -223,13 +200,6 @@ local function alliedUnitsRemove(unitID, reason)
 			spEcho("alliedUnitsRemove", "tried to remove non-existing unitID", unitID, reason)
 		end
 	end
-end
-
-local function GetAlliedUnits()
-	if debuglevel >= 2 then
-		BAR.Debug.TraceEcho()
-	end
-	return alliedUnits, numAlliedUnits
 end
 
 local function visibleUnitsChanged()
@@ -332,13 +302,6 @@ local function visibleUnitsRemove(unitID, reason)
 			spEcho("visibleUnitsRemove", "tried to remove non-existing unitID", unitID, reason)
 		end
 	end
-end
-
-local function GetVisibleUnits()
-	if debuglevel >= 2 then
-		BAR.Debug.TraceEcho()
-	end
-	return visibleUnits, numVisibleUnits
 end
 
 local spec, fullview = spGetSpectatingState()
@@ -509,9 +472,6 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam) -- todo, this should probably add-remove a unit
 	widget:UnitDestroyed(unitID, unitDefID, unitTeam, nil, nil, nil, nil, "UnitFinished")
 	widget:UnitCreated(unitID, unitDefID, unitTeam, nil, "UnitFinished")
-	if unitTeam == myTeamID and factoryUnitDefIDs[unitDefID] then
-		widgetHandler:AddSpadsMessage("UnitFinished:" .. tostring(factoryUnitDefIDs[unitDefID]))
-	end
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam) --1.  this is only called when one if my units gets captured
@@ -860,73 +820,12 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:GameStart()
-	local function LobbyInfo()
-		local test = false
-		if not test then
-			if Spring.IsReplay() then
-				return
-			end
-			if BAR.Utilities.GetPlayerCount() < 2 then
-				return
-			end
-			if BAR.Utilities.Gametype.IsSinglePlayer == true then
-				return
-			end
-		end
-
-		local pnl = { a = "a" }
-		for ct, id in ipairs(Spring.GetPlayerList()) do
-			local playername, _, spec = Spring.GetPlayerInfo(id, false)
-			pnl[ct] = playername
-			if
-				not test
-				and spec
-				and (string.find(playername, "[teh]cluster", nil, true) or string.find(playername, "Host[", nil, true))
-			then
-				return
-			end
-		end
-
-		for j, script in ipairs({ "script.txt", "_script.txt" }) do
-			if VFS.FileExists(script) then
-				for i, line in ipairs(string.lines(VFS.LoadFile(script))) do
-					if string.find(string.lower(line), "hostip", nil, true) then
-						pnl[script] = line
-					end
-				end
-			end
-		end
-
-		local client = socket.tcp()
-		local res, err = client:connect("server4.beyondallreason.info", 8200)
-		if not res and err ~= "timeout" then
-			--spEcho("Failure",res,err)
-		else
-			local message = "c.telemetry.log_client_event lobby:info "
-				.. string.base64Encode(Json.encode(pnl))
-				.. " ZGVhZGJlZWZkZWFkYmVlZmRlYWRiZWVmZGVhZGJlZWY=\n"
-			client:send(message)
-		end
-		client:close()
-	end
-	--local success, res = pcall(LobbyInfo)
-end
-
 function widget:Initialize()
 	gameFrame = spGetGameFrame()
 	spec, fullview = spGetSpectatingState()
 	myTeamID = spGetMyTeamID()
 	myAllyTeamID = spGetMyAllyTeamID()
 	myPlayerID = Spring.GetLocalPlayerID()
-
-	scriptLuauiVisibleUnitAdded = Script.LuaUI.VisibleUnitAdded
-	scriptLuauiVisibleUnitRemoved = Script.LuaUI.VisibleUnitRemoved
-	scriptLuauiVisibleUnitsChanged = Script.LuaUI.VisibleUnitChanged
-
-	scriptLuauiAlliedUnitAdded = Script.LuaUI.AlliedUnitAdded
-	scriptLuauiAlliedUnitRemoved = Script.LuaUI.AlliedUnitRemoved
-	scriptLuauiAlliedUnitsChanged = Script.LuaUI.AlliedUnitChanged
 
 	if debugdrawvisible then
 		initGL4()

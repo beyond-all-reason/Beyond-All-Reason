@@ -135,6 +135,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 1200,
 				customparams = {
+					cruise_and_verticalize = true,
+					uptime_max = 7,
 					shield_aoe_penetration = true,
 					water_splash_ceg = "splash-gigantic", -- 1 bigger than it would get
 					stockpilelimit = 10,

@@ -65,9 +65,6 @@ local mathabs = math.abs
 local glColor = gl.Color
 local glRect = gl.Rect
 
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-
 local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
@@ -86,17 +83,23 @@ local knobDimensions = {}
 local barDimensions = {}
 
 local textColorWhite = { 1, 1, 1, 1 }
+-- the font object is shared, so pin the outline instead of taking whatever another widget last set
+local textOutlineColor = { 0.05, 0.05, 0.05, 0.95 }
 
 local knobVAO = nil
 local metricDisplayLists = {}
 
 local shader = nil
 
-local regenerateTextTextures = true
+-- text is rendered into these textures only when the stats change; a bad render stays until the next one
+local textTexturesDirty = true
 local titleTexture = nil
-local titleTextureDone = false
 local statsTexture = nil
 local updateNow = false
+
+local function requestTextTextureRefresh()
+	textTexturesDirty = true
+end
 
 local knobVertexShaderSource = [[
 #version 420
@@ -449,7 +452,7 @@ local function buildUnitCache()
 		update = function(unitID, value)
 			local reclaimMetal = 0
 			local reclaimEnergy = 0
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, _, energyMake, _ = Spring.GetUnitResources(unitID)
 			if metalMake then
 				if value[1] then
 					reclaimMetal = metalMake - value[1]
@@ -469,7 +472,7 @@ local function buildUnitCache()
 	unitCache.energyConverters = {
 		add = nil,
 		update = function(unitID, value)
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, _, _, _ = Spring.GetUnitResources(unitID)
 			if metalMake then
 				return metalMake
 			end
@@ -743,9 +746,15 @@ local function calculateWidgetDimensions()
 	widgetDimensions.left = viewScreenWidth - widgetDimensions.width
 
 	widgetDimensions.distanceFromTopBar = mathfloor(defaults.widgetDimensions.distanceFromTopBar * scaleMultiplier)
-	if WG.topbar and WG.topbar.getShowButtons() then
-		local topBarPosition = WG.topbar.GetPosition()
-		widgetDimensions.top = (topBarPosition[6] or topBarPosition[2]) -- widgetDimensions.distanceFromTopBar
+	-- Sit under whatever occupies the top right corner: the menu button strip (its own
+	-- widget owns that rect, with no height while auto-hidden), otherwise the top bar,
+	-- otherwise the screen edge.
+	local buttonsArea = WG.topbar and WG.topbar.GetButtonsPosition and WG.topbar.GetButtonsPosition()
+	local topBarPosition = WG.topbar and WG.topbar.GetPosition and WG.topbar.GetPosition()
+	if buttonsArea then
+		widgetDimensions.top = buttonsArea[2]
+	elseif topBarPosition then
+		widgetDimensions.top = topBarPosition[2]
 	else
 		widgetDimensions.top = viewScreenHeight
 	end
@@ -821,11 +830,13 @@ local function createTextures()
 	local titleTextureSizeX = titleDimensions.width
 	local titleTextureSizeY = widgetDimensions.height
 	titleTexture = gl.CreateTexture(titleTextureSizeX, titleTextureSizeY, textureProperties)
-	titleTextureDone = false
 
 	local knobTextureSizeX = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 	local knobTextureSizeY = widgetDimensions.height
 	statsTexture = gl.CreateTexture(knobTextureSizeX, knobTextureSizeY, textureProperties)
+
+	-- fresh textures are empty until the next DrawScreen renders into them
+	requestTextTextureRefresh()
 end
 
 local function deleteTextures()
@@ -1030,7 +1041,7 @@ local function updateStats()
 		end
 	end
 
-	regenerateTextTextures = true
+	requestTextTextureRefresh()
 end
 
 local colorKnobMiddleGrey = { 0.5, 0.5, 0.5, 1 }
@@ -1156,12 +1167,22 @@ local function drawText()
 	)
 end
 
+-- largest font size (counting down from fontSize) at which text fits into areaWidth
+local function fitFontSize(text, fontSize, areaWidth)
+	local textWidth = font:GetTextWidth(text)
+	while fontSize > 1 and textWidth * fontSize > areaWidth do
+		fontSize = fontSize - 1
+	end
+	return fontSize
+end
+
 local function doTitleTexture()
 	local function drawTitlesToTexture()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(2 / titleDimensions.width, 2 / widgetDimensions.height, 0)
 		font:Begin(true)
 		font:SetTextColor(textColorWhite)
+		font:SetOutlineColor(textOutlineColor)
 
 		for metricIndex, metric in ipairs(metricsEnabled) do
 			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
@@ -1179,16 +1200,64 @@ local function doTitleTexture()
 end
 
 local function updateStatsTexture()
-	local function drawStatsToTexture()
-		local function drawMetricKnobText(left, bottom, right, top, text)
-			local knobTextAreaWidth = right - left - 2 * knobDimensions.outline
-			local fontSizeSmaller = knobDimensions.fontSize
-			local textWidth = font:GetTextWidth(text)
-			while textWidth * fontSizeSmaller > knobTextAreaWidth do
-				fontSizeSmaller = fontSizeSmaller - 1
-			end
+	-- Build and measure all knob strings before the texture is cleared, so that glyph
+	-- loading and text fitting are done while the previous content is still shown and
+	-- only the printing itself happens inside the render-to-texture pass.
+	local knobTextAreaWidth = knobDimensions.width - 2 * knobDimensions.outline
+	local knobTexts = {}
 
-			font:Print(text, mathfloor((right + left) / 2), mathfloor((top + bottom) / 2), fontSizeSmaller, "cvO")
+	local indexLeft = teamOrder and teamOrder[1] or 1
+	local indexRight = teamOrder and teamOrder[2] or 2
+	for metricIndex, metric in ipairs(metricsEnabled) do
+		local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
+		local valueRight = teamStats[metricIndex].aggregates[indexRight]
+
+		local barLength = knobDimensions.rightKnobLeft - knobDimensions.leftKnobRight - knobDimensions.width
+		local leftBarWidth
+		if valueLeft > 0 or valueRight > 0 then
+			leftBarWidth = mathfloor(barLength * valueLeft / (valueLeft + valueRight))
+		else
+			leftBarWidth = mathfloor(barLength / 2)
+		end
+
+		local relativeLead = 0
+		local relativeLeadMax = 999
+		local relativeLeadString = nil
+		if valueLeft > valueRight then
+			if valueRight > 0 then
+				relativeLead = mathfloor(100 * mathabs(valueLeft - valueRight) / valueRight)
+			else
+				relativeLeadString = "∞"
+			end
+		elseif valueRight > valueLeft then
+			if valueLeft > 0 then
+				relativeLead = mathfloor(100 * mathabs(valueRight - valueLeft) / valueLeft)
+			else
+				relativeLeadString = "∞"
+			end
+		end
+		if relativeLead > relativeLeadMax then
+			relativeLeadString = string.format("%d+%%", relativeLeadMax)
+		elseif not relativeLeadString then
+			relativeLeadString = string.format("%d%%", relativeLead)
+		end
+
+		local textLeft = formatResources(valueLeft, true)
+		local textRight = formatResources(valueRight, true)
+		knobTexts[metricIndex] = {
+			textLeft = textLeft,
+			fontSizeLeft = fitFontSize(textLeft, knobDimensions.fontSize, knobTextAreaWidth),
+			textRight = textRight,
+			fontSizeRight = fitFontSize(textRight, knobDimensions.fontSize, knobTextAreaWidth),
+			textMiddle = relativeLeadString,
+			fontSizeMiddle = fitFontSize(relativeLeadString, knobDimensions.fontSize, knobTextAreaWidth),
+			middleKnobLeft = knobDimensions.width + leftBarWidth + 1,
+		}
+	end
+
+	local function drawStatsToTexture()
+		local function drawMetricKnobText(left, bottom, right, top, text, fontSize)
+			font:Print(text, mathfloor((right + left) / 2), mathfloor((top + bottom) / 2), fontSize, "cvO")
 		end
 
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
@@ -1198,18 +1267,14 @@ local function updateStatsTexture()
 		gl.Scale(2 / statsTextureWidth, 2 / statsTextureHeight, 0)
 		font:Begin(true)
 		font:SetTextColor(textColorWhite)
+		font:SetOutlineColor(textOutlineColor)
 
-		local indexLeft = teamOrder and teamOrder[1] or 1
-		local indexRight = teamOrder and teamOrder[2] or 2
-		for metricIndex, metric in ipairs(metricsEnabled) do
+		for metricIndex, knobText in ipairs(knobTexts) do
 			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
 			local top = bottom + metricDimensions.height
 
-			local valueLeft = teamStats[metricIndex].aggregates[indexLeft]
-			local valueRight = teamStats[metricIndex].aggregates[indexRight]
-
 			-- draw left knob text
-			drawMetricKnobText(0, bottom, knobDimensions.width, top, formatResources(valueLeft, true))
+			drawMetricKnobText(0, bottom, knobDimensions.width, top, knobText.textLeft, knobText.fontSizeLeft)
 
 			-- draw right knob text
 			drawMetricKnobText(
@@ -1217,57 +1282,31 @@ local function updateStatsTexture()
 				bottom,
 				knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft,
 				top,
-				formatResources(valueRight, true)
+				knobText.textRight,
+				knobText.fontSizeRight
 			)
 
 			-- draw middle knob text
-			local barLength = knobDimensions.rightKnobLeft - knobDimensions.leftKnobRight - knobDimensions.width
-			local leftBarWidth
-			if valueLeft > 0 or valueRight > 0 then
-				leftBarWidth = mathfloor(barLength * valueLeft / (valueLeft + valueRight))
-			else
-				leftBarWidth = mathfloor(barLength / 2)
-			end
-			local rightBarWidth = barLength - leftBarWidth -- TODO: remove unused variable
-
-			local relativeLead = 0
-			local relativeLeadMax = 999
-			local relativeLeadString = nil
-			if valueLeft > valueRight then
-				if valueRight > 0 then
-					relativeLead = mathfloor(100 * mathabs(valueLeft - valueRight) / valueRight)
-				else
-					relativeLeadString = "∞"
-				end
-			elseif valueRight > valueLeft then
-				if valueLeft > 0 then
-					relativeLead = mathfloor(100 * mathabs(valueRight - valueLeft) / valueLeft)
-				else
-					relativeLeadString = "∞"
-				end
-			end
-			if relativeLead > relativeLeadMax then
-				relativeLeadString = string.format("%d+%%", relativeLeadMax)
-			elseif not relativeLeadString then
-				relativeLeadString = string.format("%d%%", relativeLead)
-			end
-
-			local middleKnobLeft = knobDimensions.width + leftBarWidth + 1
-			drawMetricKnobText(middleKnobLeft, bottom, middleKnobLeft + knobDimensions.width, top, relativeLeadString)
+			drawMetricKnobText(
+				knobText.middleKnobLeft,
+				bottom,
+				knobText.middleKnobLeft + knobDimensions.width,
+				top,
+				knobText.textMiddle,
+				knobText.fontSizeMiddle
+			)
 		end
 		font:End()
 	end
 
-	gl.Blending(true)
 	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
 local function updateTextTextures()
-	if not titleTextureDone then
-		doTitleTexture()
-		titleTextureDone = true
-	end
+	-- the font handler deletes its fonts on view resize, so never keep one from an earlier refresh
+	font = WG.fonts.getFont()
 
+	doTitleTexture()
 	updateStatsTexture()
 end
 
@@ -2039,7 +2078,8 @@ function widget:Update(dt)
 			if WG.topbar.getShowButtons() ~= prevShowButtons then
 				topbarShowButtons = WG.topbar.getShowButtons()
 				if haveFullView then
-					init()
+					-- release the current textures, VAO and display lists before rebuilding
+					reInit()
 				else
 					deInit()
 				end
@@ -2055,27 +2095,20 @@ function widget:Update(dt)
 	end
 end
 
-function widget:DrawGenesis()
-	if not widgetEnabled or not haveFullView then
-		return
-	end
-
-	if regenerateTextTextures then
-		updateTextTextures()
-		regenerateTextTextures = false
-	end
+function widget:FontsChanged()
+	-- the engine rebuilt its glyph atlases (fallback font added, colour glyphs enabled, ...);
+	-- text cached in our textures has to be rendered again
+	requestTextTextureRefresh()
 end
 
-function widget:DrawScreen()
-	gl.Blending(true)
-	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+local function drawHud()
+	-- other widgets can leave state behind (blend equation, scissor, texture matrix, ...) that hides the text
+	gl.ResetState()
+	gl.ResetMatrices()
 
-	if not widgetEnabled or not haveFullView then
-		if WG.guishader and guishaderDlist then
-			WG.guishader.DeleteDlist("spechud")
-			guishaderDlist = nil
-		end
-		return
+	if textTexturesDirty then
+		updateTextTextures()
+		textTexturesDirty = false
 	end
 
 	if WG.guishader and (displayListsChanged or not guishaderDlist) then
@@ -2101,6 +2134,19 @@ function widget:DrawScreen()
 	end
 	drawBars()
 	drawText()
+end
+
+function widget:DrawScreen()
+	if not widgetEnabled or not haveFullView then
+		if WG.guishader and guishaderDlist then
+			WG.guishader.DeleteDlist("spechud")
+			guishaderDlist = nil
+		end
+		return
+	end
+
+	-- text only renders from texture unit 0, which gl.ResetState does not select
+	gl.ActiveTexture(0, drawHud)
 end
 
 function widget:GetConfigData()

@@ -57,12 +57,7 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spDiffTimers = Spring.DiffTimers
 local spGetTimer = Spring.GetTimer
 local spGetTimerMicros = Spring.GetTimerMicros
-local spGetDrawFrame = Spring.GetDrawFrame
-local spGetFPS = Spring.GetFPS
 local spGetConfigString = Spring.GetConfigString
-local spGetTeamInfo = Spring.GetTeamInfo
-local spGetAllyTeamList = Spring.GetAllyTeamList
-local spGetTeamList = Spring.GetTeamList
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -1447,7 +1442,6 @@ local function RemoveLight(lightshape, instanceID, unitID, noUpload)
 end
 
 function AddRandomLight(which)
-	local gf = gameFrame
 	local radius = mathRandom() * 150 + 50
 	local posx = Game.mapSizeX * mathRandom() * 1.0
 	local posz = Game.mapSizeZ * mathRandom() * 1.0
@@ -1557,33 +1551,53 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 300 > Spring.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
-		return
-	end
-	if explosionLights[weaponID] then
-		local lightParamTable = explosionLights[weaponID].lightParamTable
-		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px, pz) or 1
-			py = math_max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
-			lightParamTable[1] = px
-			lightParamTable[2] = py
-			lightParamTable[3] = pz
-			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+-- a sim frame's explosions (px, py, pz, weaponID, ownerID runs), appended and uploaded as one range
+function widget:VisibleExplosionBatch(explosions, count)
+	local vbo = pointLightVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = explosions[i], explosions[i + 1], explosions[i + 2], explosions[i + 3]
+		local light = explosionLights[weaponID]
+		-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+		if light and not (targetable[weaponID] and py - 300 > spGetGroundHeight(px, pz)) then
+			local lightParamTable = light.lightParamTable
+			if light.alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+				local groundHeight = spGetGroundHeight(px, pz) or 1
+				lightParamTable[1] = px
+				lightParamTable[2] = math_max(groundHeight + (light.yOffset or 0), py)
+				lightParamTable[3] = pz
+				AddLight(nil, nil, nil, vbo, lightParamTable, true)
+			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
-	if muzzleFlashLights[weaponID] then
-		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
-		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
-			lightParamTable[1] = px
-			lightParamTable[2] = py
-			lightParamTable[3] = pz
-			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+function widget:BarrelfireBatch(barrelfires, count)
+	local vbo = pointLightVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = barrelfires[i], barrelfires[i + 1], barrelfires[i + 2], barrelfires[i + 3]
+		local light = muzzleFlashLights[weaponID]
+		if light then
+			local lightParamTable = light.lightParamTable
+			if light.alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+				lightParamTable[1] = px
+				lightParamTable[2] = py
+				lightParamTable[3] = pz
+				AddLight(nil, nil, nil, vbo, lightParamTable, true)
+			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
@@ -1957,7 +1971,7 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weapon, _ = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	BAR.Debug.TraceFullEcho()
 end
@@ -2677,38 +2691,98 @@ function widget:Initialize()
 		AddLight(instanceID, nil, nil, predictivePointLightVBO, lightparams)
 		return true
 	end
-	WG.lightsgl4.EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
-		local f = frame or gameFrame
-		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
-		if not instanceIndex then
+	-- Batched form of EnvNanoBallisticLightSpawn: `batch` is a flat array of
+	-- `count` records, each carrying the same 19 leading arguments as the
+	-- single-light call. One cross-VM call and one contiguous VBO upload per
+	-- sim frame instead of one of each per light.
+	WG.lightsgl4.EnvNanoBallisticLightSpawnBatch = function(batch, count)
+		if type(batch) ~= "table" or not count or count < 1 then
 			return false
 		end
-		if instanceIndex then
-			instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
-			local instData = predictivePointLightVBO.instanceData
-			instData[instanceIndex + 1] = x
-			instData[instanceIndex + 2] = y
-			instData[instanceIndex + 3] = z
-			instData[instanceIndex + 5] = vx
-			instData[instanceIndex + 6] = vy
-			instData[instanceIndex + 7] = vz
-			instData[instanceIndex + 8] = 1.0
-			instData[instanceIndex + spawnFramePos] = f
-			predictivePointLightVBO.dirty = true
+		local vbo = predictivePointLightVBO
+		local wasDirty = vbo.dirty
+		local appendStart = vbo.usedElements
+		local o = 0
+		for _ = 1, count do
+			local instanceID = batch[o + 1]
+			local lifetime = batch[o + 13]
+			if instanceID and lifetime and lifetime >= 1 then
+				local r, g, b = batch[o + 9], batch[o + 10], batch[o + 11]
+				local lightparams = {
+					batch[o + 2],
+					batch[o + 3],
+					batch[o + 4],
+					batch[o + 8],
+					batch[o + 5],
+					batch[o + 6],
+					batch[o + 7],
+					1.0,
+					r,
+					g,
+					b,
+					batch[o + 12],
+					batch[o + 15] or 0.35,
+					batch[o + 16] or 0.15,
+					batch[o + 17] or 0.25,
+					batch[o + 18] or 0,
+					batch[o + 19] or gameFrame,
+					lifetime,
+					batch[o + 14] or lifetime,
+					0,
+					r,
+					g,
+					b,
+					0,
+					0,
+					0,
+					0,
+					0,
+					0,
+				}
+				AddLight(instanceID, nil, nil, vbo, lightparams, true)
+			end
+			o = o + 19
 		end
+		if vbo.usedElements > appendStart then
+			uploadElementRange(vbo, appendStart, vbo.usedElements)
+		end
+		-- The noUpload pushes flagged the table dirty; the range upload above
+		-- already covered them, so don't trigger a full re-upload in Update.
+		vbo.dirty = wasDirty
+		return true
+	end
+	WG.lightsgl4.EnvNanoBallisticLightCorrect = function(instanceID, x, y, z, vx, vy, vz, frame)
+		local f = frame or gameFrame
+		local elementIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not elementIndex then
+			return false
+		end
+		local instanceIndex = (elementIndex - 1) * predictivePointLightVBO.instanceStep
+		local instData = predictivePointLightVBO.instanceData
+		instData[instanceIndex + 1] = x
+		instData[instanceIndex + 2] = y
+		instData[instanceIndex + 3] = z
+		instData[instanceIndex + 5] = vx
+		instData[instanceIndex + 6] = vy
+		instData[instanceIndex + 7] = vz
+		instData[instanceIndex + 8] = 1.0
+		instData[instanceIndex + spawnFramePos] = f
+		-- Upload just this light. Flagging the table dirty instead would make
+		-- widget:Update re-upload every predictive light for each correction.
+		uploadElementRange(predictivePointLightVBO, elementIndex - 1, elementIndex)
 		return true
 	end
 	WG.lightsgl4.EnvNanoBallisticLightFade = function(instanceID, frame, fadeFrames)
 		local f = frame or gameFrame
-		local instanceIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
-		if not instanceIndex then
+		local elementIndex = predictivePointLightVBO.instanceIDtoIndex[instanceID]
+		if not elementIndex then
 			return false
 		end
 		local ff = mathFloor(fadeFrames or 1)
 		if ff < 1 then
 			ff = 1
 		end
-		instanceIndex = (instanceIndex - 1) * predictivePointLightVBO.instanceStep
+		local instanceIndex = (elementIndex - 1) * predictivePointLightVBO.instanceStep
 		local instData = predictivePointLightVBO.instanceData
 		instData[instanceIndex + spawnFramePos] = f
 		instData[instanceIndex + 18] = ff
@@ -2718,7 +2792,7 @@ function widget:Initialize()
 			lightRemoveQueue[deathtime] = {}
 		end
 		lightRemoveQueue[deathtime][instanceID] = predictivePointLightVBO
-		predictivePointLightVBO.dirty = true
+		uploadElementRange(predictivePointLightVBO, elementIndex - 1, elementIndex)
 		return true
 	end
 	WG.lightsgl4.EnvNanoBallisticLightRemove = function(instanceID)
@@ -2727,7 +2801,53 @@ function widget:Initialize()
 		end
 		return true
 	end
+	-- Batched forms of Correct and Remove: `batch` carries `count` records of
+	-- 8 values (same order as EnvNanoBallisticLightCorrect) or `count` ids.
+	WG.lightsgl4.EnvNanoBallisticLightCorrectBatch = function(batch, count)
+		if type(batch) ~= "table" or not count or count < 1 then
+			return false
+		end
+		local vbo = predictivePointLightVBO
+		local idToIndex = vbo.instanceIDtoIndex
+		local instData = vbo.instanceData
+		local step = vbo.instanceStep
+		local o = 0
+		for _ = 1, count do
+			local elementIndex = idToIndex[batch[o + 1]]
+			if elementIndex then
+				local base = (elementIndex - 1) * step
+				instData[base + 1] = batch[o + 2]
+				instData[base + 2] = batch[o + 3]
+				instData[base + 3] = batch[o + 4]
+				instData[base + 5] = batch[o + 5]
+				instData[base + 6] = batch[o + 6]
+				instData[base + 7] = batch[o + 7]
+				instData[base + 8] = 1.0
+				instData[base + spawnFramePos] = batch[o + 8] or gameFrame
+				uploadElementRange(vbo, elementIndex - 1, elementIndex)
+			end
+			o = o + 8
+		end
+		return true
+	end
+	WG.lightsgl4.EnvNanoBallisticLightRemoveBatch = function(ids, count)
+		if type(ids) ~= "table" or not count or count < 1 then
+			return false
+		end
+		local vbo = predictivePointLightVBO
+		local idToIndex = vbo.instanceIDtoIndex
+		for i = 1, count do
+			local id = ids[i]
+			if idToIndex[id] then
+				popElementInstance(vbo, id)
+			end
+		end
+		return true
+	end
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightSpawn", WG.lightsgl4.EnvNanoBallisticLightSpawn)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightSpawnBatch", WG.lightsgl4.EnvNanoBallisticLightSpawnBatch)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightCorrectBatch", WG.lightsgl4.EnvNanoBallisticLightCorrectBatch)
+	widgetHandler:RegisterGlobal("EnvNanoBallisticLightRemoveBatch", WG.lightsgl4.EnvNanoBallisticLightRemoveBatch)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightCorrect", WG.lightsgl4.EnvNanoBallisticLightCorrect)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightFade", WG.lightsgl4.EnvNanoBallisticLightFade)
 	widgetHandler:RegisterGlobal("EnvNanoBallisticLightRemove", WG.lightsgl4.EnvNanoBallisticLightRemove)

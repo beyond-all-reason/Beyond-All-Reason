@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Localized functions for performance
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 local mathFloor = math.floor
 local mathMax = math.max
@@ -72,7 +72,6 @@ local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 
 local buttonList, buttonHoverList
 local buttonText = ""
-local lockText = ""
 local locked = false
 local showLockButton = true
 local buttonDrawn = false
@@ -135,10 +134,7 @@ local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
-local uiLockRect = { 0, 0, 0, 0 }
 local buttonRect = { 0, 0, 0, 0 }
-local lockRect = { 0, 0, 0, 0 }
-local blinkButton = false
 
 -- DraftOrder mod start
 local draftMode = Spring.GetModOptions().draft_mode
@@ -971,7 +967,7 @@ end
 
 local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
-	local spec, fullview = Spring.GetSpectatingState()
+	local spec, _ = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
 	if

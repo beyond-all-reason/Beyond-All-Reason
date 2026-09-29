@@ -49,9 +49,6 @@ local glUniform = gl.Uniform
 local glUniformInt = gl.UniformInt
 local glUniformMatrix = gl.UniformMatrix
 
-local GL_DEPTH_COMPONENT = 0x1902
-local GL_DEPTH_COMPONENT16 = 0x81A5
-local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_DEPTH_COMPONENT32 = 0x81A7
 
 local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
@@ -393,7 +390,7 @@ end
 
 local function FilterCalculation()
 	local cpx, cpy, cpz = spGetCameraPosition()
-	local gmin, gmax = Spring.GetGroundExtremes()
+	local gmin, _ = Spring.GetGroundExtremes()
 	local effectiveHeight = cpy - math_max(0, gmin)
 	cpy = 3.5 * math_sqrt(effectiveHeight) * math_log(effectiveHeight)
 	glUniform(eyePosLoc, cpx, cpy, cpz)

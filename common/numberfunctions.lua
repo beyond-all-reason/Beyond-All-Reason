@@ -301,3 +301,19 @@ if not math.clampRadians then
 		return ret
 	end
 end
+
+if not math.quadraticRoots then
+	---@param a number
+	---@param b number
+	---@param c number
+	---@return number? root1 nil when the roots are complex
+	---@return number? root2
+	function math.quadraticRoots(a, b, c)
+		local discriminant = b * b - 4 * a * c
+		if discriminant < 0 then
+			return
+		end
+		discriminant = math.sqrt(discriminant)
+		return (-b + discriminant) / (2 * a), (-b - discriminant) / (2 * a)
+	end
+end

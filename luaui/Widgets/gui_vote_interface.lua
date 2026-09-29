@@ -9,12 +9,12 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -985000,
 		enabled = true,
+		modalExempt = true, -- a vote must not be missed because a window is open
 	}
 end
 
 -- Localized functions for performance
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetMouseState = Spring.GetMouseState
@@ -109,7 +109,7 @@ local function StartVote(name) -- when called without params its just to refresh
 		end
 
 		local color1, color2, w
-		local x, y, b = spGetMouseState()
+		local x, y, _ = spGetMouseState()
 
 		local width = mathFloor((vsy / 6) * ui_scale) * 2 -- *2 so it ensures number can be divided cleanly by 2
 		local height = mathFloor((vsy / 23) * ui_scale) * 2 -- *2 so it ensures number can be divided cleanly by 2
@@ -117,7 +117,17 @@ local function StartVote(name) -- when called without params its just to refresh
 		local progressbarHeight = math.ceil(height * 0.055)
 
 		local fontSize = height / 5 -- title only
+		local maxWidth = mathFloor(vsx * 0.5)
 		local minWidth = font:GetTextWidth("  " .. voteName .. "  ") * fontSize
+		if minWidth > maxWidth then
+			local ellipsis = "..."
+			local truncated = voteName
+			while #truncated > 1 and font:GetTextWidth("  " .. truncated .. ellipsis .. "  ") * fontSize > maxWidth do
+				truncated = truncated:sub(1, -2)
+			end
+			voteName = truncated .. ellipsis
+			minWidth = maxWidth
+		end
 		if width < minWidth then
 			width = minWidth
 		end
@@ -522,7 +532,7 @@ local function StartVote(name) -- when called without params its just to refresh
 		dlistGuishader = gl.CreateList(function()
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], elementCorner)
 		end)
-		WG.guishader.InsertDlist(dlistGuishader, "voteinterface")
+		WG.guishader.InsertDlist(dlistGuishader, "voteinterface", nil, widget)
 	end
 end
 
@@ -626,7 +636,7 @@ function widget:GameFrame(n)
 end
 
 local function colourNames(teamID)
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
 	--if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 	--	nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	--end
@@ -662,7 +672,16 @@ function widget:AddConsoleLine(lines, priority)
 					end
 					weAreVoteOwner = (ownerPlayername == myPlayerName)
 
-					local title = ssub(line, sfind(line, ' "') + 2, sfind(line, '" ', nil, true) - 1) .. "?"
+					-- Host may truncate very long vote commands, omitting the closing quote / [!vote ...] suffix
+					local titleStart = sfind(line, ' "')
+					local titleEnd = sfind(line, '" ', nil, true)
+					local title
+					if titleEnd then
+						title = ssub(line, titleStart + 2, titleEnd - 1)
+					else
+						title = ssub(line, titleStart + 2) .. "..."
+					end
+					title = title .. "?"
 					title = title:sub(1, 1):upper() .. title:sub(2)
 
 					if not isreplay then
@@ -695,7 +714,7 @@ function widget:AddConsoleLine(lines, priority)
 					if isResignVote or isResignVoteMyTeam then
 						local players = Spring.GetPlayerList()
 						for _, pID in ipairs(players) do
-							local name, _, spec, teamID, allyTeamID = Spring.GetPlayerInfo(pID, false)
+							local name, _, _, teamID, _ = Spring.GetPlayerInfo(pID, false)
 							name = (
 								(WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(pID)
 							) or name
@@ -846,7 +865,7 @@ function widget:DrawScreen()
 	if voteDlist then
 		if not WG.topbar or not WG.topbar.showingQuit() then
 			if eligibleToVote then
-				local x, y, b = spGetMouseState()
+				local x, y, _ = spGetMouseState()
 				if hovered then
 					StartVote() -- refresh
 				elseif

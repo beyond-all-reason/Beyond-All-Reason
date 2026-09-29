@@ -11,8 +11,6 @@ if success or mapinfo ~= nil then
 	voidWaterMap = mapinfo.voidwater
 end
 
-local gameSpeed = Game.gameSpeed
-
 local isLavaMap = false
 
 ----------------------------------------

@@ -184,7 +184,6 @@ function gadget:Initialize()
 		if allyID ~= gaiaAllyTeamID then
 			local teams = Spring.GetTeamList(allyID)
 			local aliveTeams = {}
-			local hasScavRaptor = false
 			for _, teamID in ipairs(teams) do
 				if teamID ~= gaiaTeamID then
 					local _, _, isDead = Spring.GetTeamInfo(teamID, false)

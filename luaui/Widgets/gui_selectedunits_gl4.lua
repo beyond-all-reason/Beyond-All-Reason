@@ -14,7 +14,6 @@ end
 
 -- Localized Spring API for performance
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spEcho = Spring.Echo
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -228,7 +227,6 @@ local function AddPrimitiveAtUnit(unitID, noUpload, waterLevel)
 		unitBufferUniformCache[1] = 1
 		spSetUnitBufferUniforms(unitID, unitBufferUniformCache, 6)
 	end
-	--spEcho(unitID,radius,radius, spGetUnitTeam(unitID), numvertices, 1, gf)
 	local targetVBO
 	if useUnfinishedRenderPath then
 		targetVBO = selectionVBOUnfinished
@@ -577,7 +575,6 @@ function widget:Update(dt)
 			end
 
 			local result, data = spTraceScreenRay(mx, my)
-			--spEcho(result, (type(data) == 'table') or data, lastMouseOverUnitID, lastMouseOverFeatureID)
 			if result == "unit" and not guiHidden then
 				local unitID = data
 				if lastMouseOverUnitID ~= unitID then
@@ -651,7 +648,6 @@ function widget:UnitTaken(unitID, unitDefID, oldTeamID, newTeamID)
 end
 
 function widget:UnitDestroyed(unitID)
-	--spEcho("UnitDestroyed(unitID)",unitID, selectedUnits[unitID])
 	if selUnits[unitID] then
 		RemovePrimitive(unitID)
 	end

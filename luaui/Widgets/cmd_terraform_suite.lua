@@ -36,6 +36,7 @@ local SUITE_WIDGETS = {
 	"Terraform Brush Capture",
 	"Weather Brush",
 	"Water Type Overlay GL4",
+	"Terraform Image Overlay",
 	"Terraformer Shared RmlUi Helpers",
 	"Terraform Brush UI",
 	"Decal Placer UI",

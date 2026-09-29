@@ -35,7 +35,6 @@ return {
 		sonarstealth = true,
 		stealth = true,
 		usebuildinggrounddecal = false,
-		yardmap = "f",
 		customparams = {
 			nohealthbars = true,
 			subfolder = "other",

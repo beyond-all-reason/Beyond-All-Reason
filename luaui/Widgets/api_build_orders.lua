@@ -1,8 +1,8 @@
 local widget = widget ---@type Widget
 
-local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
+local BpDefs = require("luaui/Include/blueprint_substitution/definitions")
 
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 local CMD_GUARD = CMD.GUARD
 

@@ -74,7 +74,6 @@ function M.attach(doc, ctx)
 		ctx.attachTBMirrorControls(doc, "lp")
 	end
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
@@ -287,6 +286,10 @@ function M.attach(doc, ctx)
 	local globeDragging = false
 	local orientPitchInput = doc:GetElementById("lp-orient-pitch-input")
 	local orientYawInput = doc:GetElementById("lp-orient-yaw-input")
+	-- Same keyboard capture the panel's other text fields get, or the game eats
+	-- every keystroke and these cannot be typed into (see widgetState.wireTextInput).
+	ctx.widgetState.wireTextInput(orientPitchInput)
+	ctx.widgetState.wireTextInput(orientYawInput)
 	local globeKeyReturn -- resolved lazily on first keydown
 
 	local function applyGlobeDirection()
@@ -412,8 +415,6 @@ function M.sync(doc, ctx, lpState, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- btn-lights active state driven by data-class-active="activeTool == 'lp'" in RML.
 
 	-- Light type/mode/dist buttons driven by dm.lpLightType/lpMode/lpDistMode (data-class-active).

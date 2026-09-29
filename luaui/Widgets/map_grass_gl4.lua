@@ -275,7 +275,6 @@ local grassVAO = nil
 local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
-local grassPatchCount = 0
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -459,7 +458,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		{ id = 6, name = "pieceindex", size = 1 },
 	} --khm, this should be unsigned int
 
-	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
+	local VBOData = require("luaui/Include/grassPatches")
 
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36
@@ -759,7 +758,6 @@ local function clearGeothermalGrass()
 	if WG.resource_spot_finder then
 		local spots = WG.resource_spot_finder.geoSpotsList
 		if spots then
-			local maxValue = 15
 			for i = 1, #spots do
 				local spot = spots[i]
 				adjustGrass(
@@ -1130,7 +1128,6 @@ local function buildGrassTiles(cols, rows, sampleFn, jitter)
 			tileCount[tile] = offset - tileOffset[tile]
 		end
 	end
-	grassPatchCount = offset
 end
 
 local function LoadGrassTGA(filename)

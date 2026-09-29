@@ -75,7 +75,7 @@ local aliveSpawners = {}
 local aliveSpawnersCount = 0
 local lastTransportSentFrame = 0
 local handledLootboxesList = {}
-local config = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
+local config = require("luarules/configs/scav_spawn_defs")
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if lootboxList[unitDefID] then
@@ -113,7 +113,6 @@ function gadget:GameFrame(frame)
 			end
 			if frame - math.ceil(18000 / aliveLootboxesCount) > lastTransportSentFrame then -- 10 minutes for 1 lootbox alive
 				local targetLootboxID = -1
-				local loopCount = 0
 				local success = false
 				for lootboxID, lootboxTier in pairs(aliveLootboxes) do
 					local lootboxPosX, lootboxPosY, lootboxPosZ = Spring.GetUnitPosition(lootboxID)

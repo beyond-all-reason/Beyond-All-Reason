@@ -79,15 +79,22 @@ if not table.sortStable then
 	---This method preserves elements' original order when possible, unlike `table.sort`.
 	---@generic T
 	---@param tbl T[]
-	---@param compare fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
+	---@param compare? fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
 	table.sortStable = function(tbl, compare)
 		if not compare then
 			compare = compareDefault
 		end
-		local index = table.getKeyOf -- local speedup
+
+		local originalIndex = {}
+		for index = 1, #tbl do
+			originalIndex[tbl[index]] = index
+		end
 		table.sort(tbl, function(a, b)
 			local comparison = compare(a, b)
-			return comparison or (comparison == nil and index(tbl, a) < index(tbl, b))
+			if comparison ~= nil then
+				return comparison
+			end
+			return originalIndex[a] < originalIndex[b]
 		end)
 	end
 end

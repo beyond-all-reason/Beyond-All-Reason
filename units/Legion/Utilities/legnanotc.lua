@@ -47,7 +47,7 @@ return {
 			unitgroup = "builder",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Utilities",
 		},
 		sounds = {
 			build = "nanlath2",

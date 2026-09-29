@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local i18nHelper = VFS.Include("luaui/i18nhelpers.lua")
+local i18nHelper = require("luaui/i18nhelpers")
 
 local customMessageProxies = {
 	["ui.chickens.queenResistant"] = function(data)

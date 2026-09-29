@@ -34,7 +34,6 @@ local glColor = gl.Color
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
 local glTranslate = gl.Translate
-local glScale = gl.Scale
 
 local font
 local vsx, vsy = spGetViewGeometry()

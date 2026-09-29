@@ -13,7 +13,6 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local builder = {}
 	local destroyQueue = {}
 	local numtodestroy = 0
 

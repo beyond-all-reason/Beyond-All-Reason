@@ -42,7 +42,6 @@ end
 local function SpawnUnitsFromQueue(n) -- Call this every frame in your gadget.
 	local QueuedSpawnsNumber = #QueuedSpawnList
 	if QueuedSpawnsNumber > 0 then
-		local removedCount = 0
 		for i = 1, QueuedSpawnsNumber do
 			local item = QueuedSpawnList[1]
 			if item and n >= item.frame then

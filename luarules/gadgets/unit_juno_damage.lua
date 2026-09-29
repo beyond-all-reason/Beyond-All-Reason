@@ -166,7 +166,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:GameFrame(frame)
 		--if frame == 10 then
 		--seems that SendToUnsynced has to happen after
-		--SendToUnsynced("RecieveConstants", width, radius, effectlength, fadetime)
+		--SendToUnsynced("ReceiveConstants", width, radius, effectlength, fadetime)
 		--end
 
 		if DEBUG_JUNO_IMPACT and frame % debugIntervalFrames == 0 then

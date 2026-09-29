@@ -66,7 +66,6 @@ local weaponCustomParamKeys = {} -- [effect] = { [key] = conversion function }
 local weaponDefEffect = {}
 
 local projectiles = {}
-local projectilesData = {}
 
 local gameFrame = 0
 
@@ -166,7 +165,7 @@ local function getTargetPositionWithError(projectileID)
 end
 
 ---Translates TargetType integers to the ProjectileTargetType byte-integers needed in SetProjectileTarget.
----@param projectileID integer
+---@param projectileID ProjectileID
 ---@param target UnitOrPosition?
 ---@param targetType TargetType
 local function setProjectileTarget(projectileID, target, targetType)
@@ -191,7 +190,7 @@ do
 		team = -1,
 	}
 
-	---@return integer weaponDefID
+	---@return WeaponDefID weaponDefID
 	---@return ProjectileParams projectileParams
 	---@return number parentSpeed
 	getProjectileArgs = function(params, projectileID)

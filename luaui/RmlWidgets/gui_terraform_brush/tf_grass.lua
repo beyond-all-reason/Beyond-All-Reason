@@ -3,13 +3,7 @@ local M = {}
 
 function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	local WG = ctx.WG
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local CURVE_STEP = ctx.CURVE_STEP
 
 	widgetState.gbSubmodesEl = doc:GetElementById("tf-grass-submodes")
 	widgetState.gbControlsEl = doc:GetElementById("tf-grass-controls")

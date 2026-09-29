@@ -21,12 +21,10 @@
 local M = {}
 
 local floor = math.floor
-local ceil = math.ceil
 local sqrt = math.sqrt
 local sin = math.sin
 local min = math.min
 local max = math.max
-local abs = math.abs
 
 -- ---------------------------------------------------------------------------
 -- Small helpers

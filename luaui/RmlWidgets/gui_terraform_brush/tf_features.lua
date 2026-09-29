@@ -3,13 +3,7 @@ local M = {}
 
 function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	local ROTATION_STEP = ctx.ROTATION_STEP
-	local RADIUS_STEP = ctx.RADIUS_STEP
-	local sliderToCadence = ctx.sliderToCadence
 
 	-- Cache section elements (used by M.sync)
 	widgetState.tfControlsEl = doc:GetElementById("tf-terraform-controls")

@@ -4,7 +4,7 @@
 
 piece  base, pad, exhaust1, exhaust2, nanofactory, buildlight, buildlight_emit, pivotfl, pivotfr, pivotbl, pivotbr, nanofl, nanofr, nanobl, nanobr, flare1, flare2, flare3, flare4;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -46,6 +46,7 @@ Create()
 	spray = 0;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script FloatMotion();
+	hasOpened = 0;
 }
 
 QueryNanoPiece(pieceIndex)
@@ -124,10 +125,9 @@ Activate()
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	
-	sleep 5000;
 
 	FACTORY_CLOSE_BUILD;
 }

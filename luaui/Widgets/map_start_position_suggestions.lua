@@ -30,7 +30,7 @@ local spGetTeamColor = Spring.GetTeamColor
 
 --todo: gl4 (also make circles more transparent as you zoom in)
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 -- config
 -- ======
@@ -256,9 +256,7 @@ local function invalidateCircleDisplayList()
 	end
 end
 
-local reusePositionTable = { 0, 0, 0 }
 local reuseColorTable = { 0, 0, 0, 0 }
-local reuseColorTable2 = { 0, 0, 0, 0 }
 local reuseColorsArray = {}
 local reuseGlowColorsArray = {}
 

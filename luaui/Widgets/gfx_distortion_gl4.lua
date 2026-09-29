@@ -19,7 +19,6 @@ local mathMax = math.max
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local stringFormat = string.format
-local stringFind = string.find
 local pairs = pairs
 local ipairs = ipairs
 local type = type
@@ -40,14 +39,11 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
 local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -64,7 +60,6 @@ local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glDeleteTexture = gl.DeleteTexture
 local glCreateTexture = gl.CreateTexture
-local glLoadFont = gl.LoadFont
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -96,7 +91,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -269,6 +263,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local uploadAllElements = InstanceVBOTable.uploadAllElements
+local uploadElementRange = InstanceVBOTable.uploadElementRange
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
@@ -782,7 +777,6 @@ local function LoadDistortionConfig()
 end
 
 local nightFactor = 1 --0.33
-local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {
 	"unitAmbientColor",
 	"unitDiffuseColor",
@@ -799,38 +793,58 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 7300 > Spring.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
-		return
-	end
-	if explosionDistortions[weaponID] then
-		for i, distortion in pairs(explosionDistortions[weaponID]) do
-			local distortionParamTable = distortion.distortionParamTable
-			if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px, pz) or 1
-				py = math_max(groundHeight + (distortion.yOffset or 0), py)
-				distortionParamTable[1] = px
-				distortionParamTable[2] = py
-				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+-- a sim frame's explosions (px, py, pz, weaponID, ownerID runs), appended and uploaded as one range
+function widget:VisibleExplosionBatch(explosions, count)
+	local vbo = pointDistortionVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = explosions[i], explosions[i + 1], explosions[i + 2], explosions[i + 3]
+		local distortions = explosionDistortions[weaponID]
+		-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+		if distortions and not (targetable[weaponID] and py - 7300 > spGetGroundHeight(px, pz)) then
+			for _, distortion in pairs(distortions) do
+				local distortionParamTable = distortion.distortionParamTable
+				if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
+					local groundHeight = spGetGroundHeight(px, pz) or 1
+					py = math_max(groundHeight + (distortion.yOffset or 0), py)
+					distortionParamTable[1] = px
+					distortionParamTable[2] = py
+					distortionParamTable[3] = pz
+					AddDistortion(nil, nil, nil, vbo, distortionParamTable, true)
+				end
 			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
-	if muzzleFlashDistortions[weaponID] then
-		for i, distortion in pairs(muzzleFlashDistortions[weaponID]) do
-			local distortionParamTable = distortion.distortionParamTable
-			if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px, pz) or 1
-				distortionParamTable[1] = px
-				distortionParamTable[2] = py
-				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+function widget:BarrelfireBatch(barrelfires, count)
+	local vbo = pointDistortionVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = barrelfires[i], barrelfires[i + 1], barrelfires[i + 2], barrelfires[i + 3]
+		local distortions = muzzleFlashDistortions[weaponID]
+		if distortions then
+			for _, distortion in pairs(distortions) do
+				local distortionParamTable = distortion.distortionParamTable
+				if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
+					distortionParamTable[1] = px
+					distortionParamTable[2] = py
+					distortionParamTable[3] = pz
+					AddDistortion(nil, nil, nil, vbo, distortionParamTable, true)
+				end
 			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
 local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
@@ -1143,7 +1157,7 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weapon, _ = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	BAR.Debug.TraceFullEcho()
 end

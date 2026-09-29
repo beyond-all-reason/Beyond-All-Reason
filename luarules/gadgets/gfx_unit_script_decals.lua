@@ -40,8 +40,6 @@ else -- UNSYNCED
 		end
 	end
 
-	local scriptUnitScriptDecal = Script.LuaUI.UnitScriptDecal
-
 	local function UnitScriptDecal(_, unitID, unitDefID, lightIndex, posx, posz, heading)
 		if not fullview and not spIsUnitInLos(unitID, myAllyTeamID) then
 			return

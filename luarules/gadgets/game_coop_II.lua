@@ -21,7 +21,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Synced Var
 	----------------------------------------------------------------
-	local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
+	local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 	local coopStartPoints = {} -- coopStartPoints[playerID] = {x,y,z}, also acts as is-player-a-coop-player
 	GG.coopStartPoints = coopStartPoints -- Share to other gadgets

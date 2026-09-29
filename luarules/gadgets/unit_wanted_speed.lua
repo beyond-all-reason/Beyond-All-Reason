@@ -45,7 +45,6 @@ end
 
 local units = {}
 local moveTypeByDefID = {}
-local moveType = 0
 do
 	--local moveData = {}
 	--local moveType = 0

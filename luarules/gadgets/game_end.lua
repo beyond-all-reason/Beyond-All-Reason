@@ -240,7 +240,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().deathmode == "neverend" then
+		-- editor_sandbox=1 is the map editor's start-script flag (New Map / Open
+		-- Project): the session must never end, whatever deathmode it inherited.
+		if
+			Spring.GetModOptions().deathmode == "neverend"
+			or tostring(Spring.GetModOptions().editor_sandbox or "") == "1"
+		then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
@@ -365,7 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 
-		-- all the allyteams alive are bidirectionally allied against eachother, they are all winners
+		-- all the allyteams alive are bidirectionally allied against each other, they are all winners
 		--local winnersCorrectFormat = {}
 		local winnersCorrectFormatCount = 0
 		for winner in pairs(sharedWinnerScratch) do

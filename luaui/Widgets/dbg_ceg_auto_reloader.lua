@@ -39,8 +39,6 @@ local mouseOffscreen = select(6, spGetMouseState())
 -- except:
 -- Print syntax error
 
-local cegLibrary = {} --maps cegname to cegdef
-local cegFileNames = {} -- maps cegname to filename
 local projectileTexures = {} -- maps texture name to filename
 
 local spawnerDefs = {
@@ -298,7 +296,7 @@ end
 
 local function isInteger(value)
 	-- seems like cegops are allowed here too!
-	local res, err = isFloat(value)
+	local res, _err = isFloat(value)
 	if res then
 		return true
 	end
@@ -997,7 +995,7 @@ local function ScanChanges()
 end
 
 local function LoadResources()
-	local resources = VFS.Include("gamedata/resources.lua")
+	local resources = require("gamedata/resources")
 	for k, v in pairs(resources.graphics.projectiletextures) do
 		--spEcho("projectileTexures", k,v)
 		projectileTexures[k] = v
@@ -1020,12 +1018,9 @@ function widget:Update()
 	end
 	lastUpdate = Spring.GetTimer()
 
-	local prevMouseOffscreen = mouseOffscreen
 	mouseOffscreen = select(6, spGetMouseState())
 
-	--if not mouseOffscreen and prevMouseOffscreen then
 	ScanChanges()
-	--end
 
 	if spamCeg then
 		Spring.SendCommands("luarules spawnceg " .. spamCeg .. " 0")

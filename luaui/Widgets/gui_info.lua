@@ -29,8 +29,8 @@ local activeCmdID
 local emptyInfo = false
 local showEngineTooltip = false -- straight up display old engine delivered text
 
-local iconTypes = VFS.Include("gamedata/icontypes.lua")
-local weaponInfo = VFS.Include("common/weapons.lua")
+local iconTypes = require("gamedata/icontypes")
+local weaponInfo = require("common/weapons")
 
 local vsx, vsy = Spring.GetViewGeometry()
 
@@ -1242,7 +1242,6 @@ local function drawSelection()
 	tracy.ZoneEnd()
 
 	-- draw selection totals
-	local numLines
 	--local stats = getSelectionTotals(selectionCells)
 	local fontSize = (height * vsy * 0.115) * (0.95 - ((1 - ui_scale) * 0.5))
 	local heightVar = 0
@@ -1684,8 +1683,6 @@ local function drawUnitInfo()
 		end
 	end
 	local descriptionColor = "\255\240\240\240"
-	local metalColor = "\255\245\245\245"
-	local energyColor = "\255\255\255\000"
 	local healthColor = "\255\100\255\100"
 
 	local labelColor = "\255\205\205\205"
@@ -1848,8 +1845,6 @@ local function drawUnitInfo()
 			end
 		end
 	else
-		--valueY1 = metalColor .. unitDefInfo[displayUnitDefID].metalCost
-		--valueY2 = energyColor .. unitDefInfo[displayUnitDefID].energyCost
 		valueY3 = healthColor .. unitDefInfo[displayUnitDefID].health
 	end
 	tracy.ZoneEnd()
@@ -2332,7 +2327,7 @@ local function drawEngineTooltip()
 		local fontSize = (height * vsy * 0.11) * (0.95 - ((1 - ui_scale) * 0.5))
 		if showEngineTooltip then
 			-- display default plaintext engine tooltip
-			local text, numLines = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
+			local text, _ = font:WrapText(currentTooltip, contentWidth * (loadedFontSize / fontSize))
 			font:Begin(true)
 			font:SetTextColor(1, 1, 1, 1)
 			font:SetOutlineColor(0.1, 0.1, 0.1, 1)
@@ -2598,7 +2593,7 @@ local function LeftMouseButton(unitDefID, unitTable)
 end
 
 local function MiddleMouseButton(unitDefID, unitTable)
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local _, ctrl, _, _ = spGetModKeyState()
 	if ctrl then
 		-- center the view on the entire selection
 		Spring.SendCommands(viewSelectionCmd)
@@ -2614,7 +2609,7 @@ local function MiddleMouseButton(unitDefID, unitTable)
 end
 
 local function RightMouseButton(unitDefID, unitTable)
-	local alt, ctrl, meta, shift = spGetModKeyState()
+	local _, ctrl, _, _ = spGetModKeyState()
 
 	-- remove selected units of icon type
 	-- Clear and reuse map table instead of creating new one
@@ -2999,7 +2994,7 @@ function widget:DrawScreen()
 				--local cells = cellHovered and { [cellHovered] = selectionCells[cellHovered] } or selectionCells
 				-- description
 				if cellHovered then
-					local text, numLines = font:WrapText(
+					local text, _ = font:WrapText(
 						unitDefInfo[selectionCells[cellHovered]].description,
 						(backgroundRect[3] - backgroundRect[1]) * (loadedFontSize / 16)
 					)

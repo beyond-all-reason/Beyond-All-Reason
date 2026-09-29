@@ -53,13 +53,15 @@ end
 
 math_random = math.random -- not a local cause the includes below use it
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
-local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
+local blueprintController = require("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
+local scavConfig = require("luarules/configs/scav_spawn_defs")
 
 -- spawnAmountBudget scales ruin amounts with map area.
 local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
 local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
+
+local lavaLevel = BAR.Lava.isLavaMap and BAR.Lava.level or -math.huge
 
 local unitHalfFootprint = {}
 local maxUnitHalfFootprint = 0
@@ -270,6 +272,9 @@ end
 
 -- CreateUnit does not snap; Pos2BuildPos uses even vs odd grid from footprint parity.
 local function createSnappedUnit(defID, x, y, z, facing, teamID)
+	if UnitDefs[defID].customParams.modoption_blocked then
+		return nil
+	end
 	x, y, z = Spring.Pos2BuildPos(defID, x, y, z, facing)
 	return Spring.CreateUnit(defID, x, y, z, facing, teamID)
 end
@@ -303,12 +308,12 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 
 			local name = UnitDefs[building.unitDefID].name
 			local nonscavname = string.gsub(name, "_scav", "")
+			local bx = posx + (xOffset * flipX * mirrorX)
+			local bz = posz + (zOffset * flipZ * mirrorZ)
+			local posy = Spring.GetGroundHeight(bx, bz)
 			local r = math.random(1, 100)
-			if r < 40 and UnitDefNames[nonscavname] then
+			if r < 40 and posy > lavaLevel and UnitDefNames[nonscavname] then
 				local facing = (building.direction + rotation + mirrorRotation) % 4
-				local bx = posx + (xOffset * flipX * mirrorX)
-				local bz = posz + (zOffset * flipZ * mirrorZ)
-				local posy = Spring.GetGroundHeight(bx, bz)
 				local unit = createSnappedUnit(UnitDefNames[nonscavname].id, bx, posy, bz, facing, GaiaTeamID)
 				if unit then
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
@@ -362,7 +367,8 @@ local function SpawnMexes(mexSpots)
 			end
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -420,7 +426,8 @@ local function SpawnGeos(geoSpots)
 			posx, posy, posz = Spring.Pos2BuildPos(defID, posx, posy, posz, facing)
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -473,7 +480,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -533,7 +541,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -591,7 +600,8 @@ local function SpawnRandomStructures()
 			end
 
 			local radius = 128
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,

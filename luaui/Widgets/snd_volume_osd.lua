@@ -21,9 +21,6 @@ function widget:GetInfo()
 	}
 end
 
--- Localized Spring API for performance
-local spEcho = Spring.Echo
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- SETTINGS, internal, don't edit
@@ -32,7 +29,6 @@ local volume
 local vsx, vsy = gl.GetViewSizes()
 local widgetPosX = vsx / 2.5
 local widgetPosY = vsy / 7.5
-local pressedToMove = false
 local dt = -1
 
 --------------------------------------------------------------------------------
@@ -46,9 +42,6 @@ local widgetWidth = vsx / 4.5 -- in pixels (changed from 400)
 local widgetHeight = vsy / 27 -- in pixels (changed from 40)
 local rectangles = 25 -- number of boxes in volume bar
 local boxspacing = 5 -- space between boxes
-local red = 0.1 -- volume bar colour, 0 to 1.
-local green = 0.7 -- volume bar colour, 0 to 1.
-local blue = 0 -- volume bar colour, 0 to 1.
 --------------------------------------------------------------------------------
 
 local glBlending = gl.Blending
@@ -68,7 +61,6 @@ local function sndVolumeIncreaseHandler(_, _, _, _, isRepeat)
 		volume = 200
 	end
 	Spring.SetConfigInt("snd_volmaster", volume)
-	--spEcho("Volume = " .. volume)
 	if not isRepeat then
 		Spring.PlaySoundFile(TEST_SOUND, 1.0, "ui")
 	end
@@ -86,7 +78,6 @@ local function sndVolumeDecreaseHandler(_, _, _, _, isRepeat)
 		volume = 200
 	end
 	Spring.SetConfigInt("snd_volmaster", volume)
-	--spEcho("Volume = " .. volume)
 	if not isRepeat then
 		Spring.PlaySoundFile(TEST_SOUND, 1.0, "ui")
 	end
@@ -107,7 +98,6 @@ function widget:DrawScreen()
 	local y1 = widgetPosY
 	local y2 = widgetPosY + widgetHeight
 	local x1 = widgetPosX
-	local x2 = widgetPosX + widgetWidth
 	local ostime = os.clock()
 	local t = ostime - dt
 	local boxwidth = widgetWidth / rectangles

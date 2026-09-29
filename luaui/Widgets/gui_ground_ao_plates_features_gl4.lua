@@ -21,7 +21,7 @@ local decalAlpha = 0.66
 
 --------------- Atlas textures ----------------
 
-local atlas = VFS.Include("unittextures/decals_features/featureaoplates_atlas.lua")
+local atlas = require("unittextures/decals_features/featureaoplates_atlas")
 local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
 local atlassedImages = {}
@@ -181,7 +181,6 @@ function widget:Initialize()
 	end
 	makeAtlas()
 	--if true then return end
-	local knownheaps3os = { arm3x3 = 1 }
 	for id, featureDefID in pairs(FeatureDefs) do
 		local FD = FeatureDefs[id]
 		if
@@ -258,8 +257,6 @@ local spec, fullview = spGetSpectatingState()
 local allyTeamID = Spring.GetLocalAllyTeamID()
 
 function widget:PlayerChanged()
-	local prevFullview = fullview
-	local myPrevAllyTeamID = allyTeamID
 	spec, fullview = spGetSpectatingState()
 	allyTeamID = Spring.GetLocalAllyTeamID()
 end
@@ -278,7 +275,7 @@ function givefeaturesCmd(_, line)
 		end
 	end
 	if #matches > 0 then
-		local mx, my, mb = Spring.GetMouseState()
+		local mx, my, _ = Spring.GetMouseState()
 		local _, coords = Spring.TraceScreenRay(mx, my, true)
 		local maxx = math.ceil(math.sqrt(#matches))
 		local size = 80

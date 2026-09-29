@@ -1,4 +1,3 @@
-local unitName = "Epic Decade"
 return {
 	armdecadet3 = {
 		maxacc = 0.03,

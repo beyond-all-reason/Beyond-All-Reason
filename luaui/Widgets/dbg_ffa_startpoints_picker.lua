@@ -27,7 +27,6 @@ end
 
 -- Localized functions for performance
 local tableInsert = table.insert
-local tableRemove = table.remove
 local tableRemoveFirst = table.removeFirst
 
 -- Localized Spring API for performance
@@ -52,7 +51,7 @@ local spGetUnitPosition = Spring.GetUnitPosition
 local StartPoint = {}
 StartPoint.__index = StartPoint
 
----@param unitID integer
+---@param unitID UnitID
 ---@return StartPoint
 function StartPoint:new(unitID)
 	self = setmetatable({}, self)
@@ -86,7 +85,7 @@ function StartPoints:getInstance()
 	self = setmetatable({}, StartPoints)
 	StartPoints.instance = self
 
-	---@param unitID integer
+	---@param unitID UnitID
 	---@return integer?, StartPoint? # index and start point if found, nil and nil otherwise
 	function StartPoints:get(unitID)
 		for index, startPoint in ipairs(self) do
@@ -97,7 +96,7 @@ function StartPoints:getInstance()
 		return nil, nil
 	end
 
-	---@param unitID integer
+	---@param unitID UnitID
 	---@return boolean # true if start point was added, false otherwise
 	function StartPoints:add(unitID)
 		local startPoint = StartPoint:new(unitID)
@@ -109,7 +108,7 @@ function StartPoints:getInstance()
 		return false
 	end
 
-	---@param unitID integer
+	---@param unitID UnitID
 	---@return boolean # true if start point was removed, false otherwise
 	function StartPoints:remove(unitID)
 		local startPoint = StartPoint:new(unitID)
@@ -133,7 +132,7 @@ startPoints = StartPoints:getInstance()
 local Layout = {}
 Layout.__index = Layout
 
----@param unitIDs integer[] sequence of unitID
+---@param unitIDs UnitID[]
 ---@return Layout
 function Layout:new(unitIDs)
 	self = setmetatable({}, Layout)

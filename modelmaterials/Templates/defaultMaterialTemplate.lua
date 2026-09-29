@@ -1598,8 +1598,6 @@ local defaultMaterialTemplate = {
 	usecamera = false, -- usecamera ? {gl_ModelViewMatrix, gl_NormalMatrix} = {modelViewMatrix, modelViewNormalMatrix} : {modelMatrix, modelNormalMatrix}
 }
 
-local shaderPlugins = {}
-
 --[[
 	#define OPTION_SHADOWMAPPING 0
 	#define OPTION_NORMALMAPPING 1
