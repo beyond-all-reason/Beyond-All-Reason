@@ -148,7 +148,7 @@ return {
 				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:genericshellexplosion-large",
 				firestarter = 70,
-				impulsefactor = 0.123,
+				impulsefactor = 1,
 				model = "corkbmissl1.s3o",
 				name = "Heavy g2g/g2a guided starburst missile launcher",
 				noselfdamage = true,
