@@ -51,4 +51,37 @@ describe("SpecEnv", function()
 
 		assert.are.equal("stubbed", SpecEnv.include(env, PROBE).marker)
 	end)
+
+	it("falls back on the VFS.Include it was given", function()
+		local env = SpecEnv.new({
+			VFS = {
+				Include = function()
+					return { marker = "given" }
+				end,
+			},
+		})
+
+		assert.are.equal("given", SpecEnv.include(env, PROBE).marker)
+	end)
+
+	it("leaves the tables it was given alone", function()
+		local vfs = {}
+		local first = SpecEnv.new({ VFS = vfs, marker = "first" })
+		SpecEnv.new({ VFS = vfs, marker = "second" })
+
+		assert.is_nil(next(vfs))
+		assert.is_nil(getmetatable(vfs))
+		assert.are.equal("first", SpecEnv.include(first, PROBE).marker)
+	end)
+
+	it("iterates the real engine table along with what it overrides", function()
+		local env = SpecEnv.new({ Spring = { marker = "mine" } })
+		local seen = {}
+		for key in pairs(env.Spring) do
+			seen[key] = true
+		end
+
+		assert.is_true(seen.marker)
+		assert.is_true(seen.Echo)
+	end)
 end)

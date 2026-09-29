@@ -14,6 +14,29 @@ local CHAINED = {
 
 local SpecEnv = {}
 
+-- spec_helper seals the shared engine tables behind empty proxies, which pairs sees as empty.
+local function behindSeal(value)
+	local mt = debug.getmetatable(value)
+	if mt and mt.__metatable == false and type(mt.__index) == "table" then
+		return mt.__index
+	end
+
+	return value
+end
+
+-- Copied rather than only chained, so pairs over it finds the real fields too.
+local function layered(real, overrides)
+	local layer = {}
+	for key, value in pairs(real) do
+		layer[key] = value
+	end
+	for key, value in pairs(overrides or {}) do
+		layer[key] = value
+	end
+
+	return setmetatable(layer, { __index = real })
+end
+
 ---@param overrides table|nil  globals to place in the env, keyed by name. An
 ---`includes` key is not a global: it maps a path to what VFS.Include returns
 ---for it inside the env, either a value or a function called with the args.
@@ -25,24 +48,20 @@ function SpecEnv.new(overrides)
 
 	for name, value in pairs(overrides) do
 		if name ~= "includes" then
-			if CHAINED[name] and type(value) == "table" and type(_G[name]) == "table" then
-				env[name] = setmetatable(value, { __index = _G[name] })
-			else
-				env[name] = value
-			end
+			env[name] = value
 		end
 	end
 
-	-- rawget, because reading env[name] would find the real global through the
-	-- __index above and leave the env writing straight to it.
 	for name in pairs(CHAINED) do
-		if rawget(env, name) == nil and type(_G[name]) == "table" then
-			env[name] = setmetatable({}, { __index = _G[name] })
+		local real = behindSeal(_G[name])
+		local value = overrides[name]
+		if type(real) == "table" and (value == nil or type(value) == "table") then
+			env[name] = layered(real, value)
 		end
 	end
 
 	local includes = overrides.includes or {}
-	local realInclude = VFS.Include
+	local include = env.VFS.Include
 
 	env.VFS.Include = function(path, childEnv, mode)
 		local override = includes[path]
@@ -54,7 +73,7 @@ function SpecEnv.new(overrides)
 			return override
 		end
 
-		return realInclude(path, childEnv or env, mode)
+		return include(path, childEnv or env, mode)
 	end
 
 	env._G = env
