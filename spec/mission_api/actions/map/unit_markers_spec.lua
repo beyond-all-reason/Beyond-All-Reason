@@ -1,5 +1,15 @@
 require("spec_helper")
 
+-- We need to capture these before unit_query loads so other specs can't smuggle their GetUnitDefID to here.
+local springAtLoad = _G.Spring
+local getUnitDefIDBefore, getUnitTeamBefore = springAtLoad.GetUnitDefID, springAtLoad.GetUnitTeam
+springAtLoad.GetUnitDefID = function(unitID)
+	return unitID == 11 and 7 or 8
+end
+springAtLoad.GetUnitTeam = function(unitID)
+	return unitID == 11 and 0 or 1
+end
+
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes and .UnitQuery at load time.
@@ -28,12 +38,6 @@ describe("mission_api.actions.unit_markers", function()
 			:Install()
 		_G.Spring = Builders.Spring.new():Build() ---@diagnostic disable-line: global-in-non-module
 		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
-		Spring.GetUnitDefID = function(unitID)
-			return unitID == 11 and 7 or 8
-		end
-		Spring.GetUnitTeam = function(unitID)
-			return unitID == 11 and 0 or 1
-		end
 		Spring.GetTeamUnitsByDefs = function(teamID, unitDefID)
 			if teamID == 0 and unitDefID == 7 then
 				return { 11 }
@@ -96,5 +100,9 @@ describe("mission_api.actions.unit_markers", function()
 			addAction.actionFunction("squad", "armpw", nil, "objective")
 			assert.are.same({}, added)
 		end)
+	end)
+
+	teardown(function()
+		springAtLoad.GetUnitDefID, springAtLoad.GetUnitTeam = getUnitDefIDBefore, getUnitTeamBefore
 	end)
 end)
