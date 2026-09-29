@@ -478,6 +478,7 @@ describe("Tech Core mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = { value = TransferEnums.MexSplitting.Shared, locked = true },
 			[TechEnums.ModOptions.TechBlocking] = { value = true, locked = true },
 			[TechEnums.ModOptions.T2TechThreshold] = { value = 1, locked = false },
 			[TechEnums.ModOptions.T3TechThreshold] = { value = 1.5, locked = false },

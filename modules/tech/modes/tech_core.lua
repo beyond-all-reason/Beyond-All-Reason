@@ -1,6 +1,6 @@
 local ModeDSL = require("modules/transfer/mode_dsl")
-local Mode, Transfer, Construction, Take, Tech =
-	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.Tech
+local Mode, Transfer, Construction, Take, Tech, MexSplitting =
+	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.Tech, ModeDSL.MexSplitting
 
 return Mode("Tech Core")
 	.Desc(
@@ -20,3 +20,4 @@ return Mode("Tech Core")
 	.Deny(Construction.Resurrect)
 	.Defer(Take)
 	.Delay(Take.Resource, 60)
+	.MexSplitting(MexSplitting.Shared)

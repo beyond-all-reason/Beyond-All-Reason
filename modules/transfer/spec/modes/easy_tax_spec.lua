@@ -155,6 +155,7 @@ describe("Easy Tax mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = { value = TransferEnums.MexSplitting.MapAssigned, locked = true },
 			[TransferEnums.ModOptions.UnitSharingMode] = {
 				value = ConstructionEnums.UnitFilterCategory.All,
 				locked = true,

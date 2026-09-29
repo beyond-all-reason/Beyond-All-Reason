@@ -12,6 +12,7 @@ describe("Customize mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = { value = TransferEnums.MexSplitting.None, locked = false },
 			[TechEnums.ModOptions.TechBlocking] = { value = false, locked = false },
 			[TechEnums.ModOptions.T2TechThreshold] = { value = 1, locked = false },
 			[TechEnums.ModOptions.T3TechThreshold] = { value = 1.5, locked = false },

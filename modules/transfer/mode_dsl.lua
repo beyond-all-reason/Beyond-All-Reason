@@ -5,6 +5,7 @@ local ModuleHandler = require("modules/module_handler")
 local TransferEnums = require("modules/transfer/enums")
 
 ---@class TransferModeDSL
+---@field MexSplitting MexSplittingFields the keys .MexSplitting accepts
 ---@field Mode fun(name: string): TransferModeChain Start a preset. The category is not a parameter: the grammar binds every chain from this module to "transfer" — the name only names it.
 ---@field Transfer TransferGrant
 ---@field Construction TransferGrant
@@ -17,6 +18,7 @@ local M = {}
 for name, action in pairs(Actions) do
 	M[name] = action
 end
+M.MexSplitting = TransferEnums.MexSplitting
 
 local Opt = TransferEnums.ModOptions
 local ConstructionOpt = ConstructionEnums.ModOptions
@@ -175,6 +177,13 @@ local verbs = {
 			[Opt.TakeDelaySeconds] = { value = p.seconds, locked = lock.dial },
 			[Opt.TakeDelayCategory] = { value = p.category, locked = lock.noun },
 		}
+	end),
+
+	MexSplitting = rule(function(name, which)
+		ModeBuilder.OneOf(name, "MexSplitting", TransferEnums.MexSplitting, which)
+		return { which = which }
+	end, function(p, lock)
+		return { [TransferEnums.ModOptions.MexSplitting] = { value = p.which, locked = lock.noun, ui = p.ui } }
 	end),
 }
 
