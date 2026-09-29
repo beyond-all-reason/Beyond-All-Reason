@@ -2,7 +2,7 @@ return {
 	legavroc = {
 		maxacc = 0.02489,
 		maxdec = 0.1,
-		energycost = 13000,
+		energycost = 10000,
 		metalcost = 920,
 		buildpic = "LEGAVROC.DDS",
 		buildtime = 21000,

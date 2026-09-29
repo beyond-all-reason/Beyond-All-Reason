@@ -7,7 +7,7 @@ return {
 		collisionvolumescales = "46 30 54",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
-		energycost = 15000,
+		energycost = 10000,
 		explodeas = "largeExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,
