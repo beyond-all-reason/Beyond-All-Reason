@@ -114,7 +114,7 @@ return {
 				firestarter = 100,
 				firesubmersed = true,
 				flighttime = 10,
-				impulsefactor = 0.123,
+				impulsefactor = 1,
 				metalpershot = 0,
 				model = "leglargerocket.s3o",
 				name = "Rocket",
