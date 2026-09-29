@@ -32,7 +32,7 @@ local SUITE_WIDGETS = {
 	"Light Placer",
 	"Metal Brush",
 	"Splat Painter",
-	"Start Positions Tool",
+	"Regions Tool",
 	"Terraform Brush Capture",
 	"Weather Brush",
 	"Water Type Overlay GL4",
