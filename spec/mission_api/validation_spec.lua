@@ -1387,6 +1387,44 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("WeaponAttribute", function()
+			it("rejects a unit attribute", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefWeaponAttribute,
+					parameters = { unitDefName = "armwar", attribute = "losRadius", value = 1 },
+				})
+				assert.is_true(
+					hasError("Weapon attribute 'losRadius' is not written per weapon. Action: a, Parameter: attribute")
+				)
+			end)
+		end)
+
+		describe("UnitWeapon", function()
+			it("rejects a name the engine does not use", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefWeaponModifier,
+					parameters = { unitDefName = "armwar", weapon = "death", attribute = "damage", multiplier = 2 },
+				})
+				assert.is_true(
+					hasError(
+						"Expected a weapon number, 'explode' or 'selfDestruct', got death. Action: a, Parameter: weapon"
+					)
+				)
+			end)
+
+			it("rejects a weapon number that is not a whole number above zero", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefWeaponModifier,
+					parameters = { unitDefName = "armwar", weapon = 0, attribute = "damage", multiplier = 2 },
+				})
+				assert.is_true(
+					hasError(
+						"Expected a weapon number, 'explode' or 'selfDestruct', got 0. Action: a, Parameter: weapon"
+					)
+				)
+			end)
+		end)
+
 		describe("AttributeValue", function()
 			it("rejects a table", function()
 				actionErrors({
@@ -1766,7 +1804,8 @@ describe("mission_api.validation", function()
 				validation.ValidateReferences()
 			end
 
-			local armwar = { id = 1, name = "armwar", isImmobile = false, isBuilder = false, weapons = {} }
+			local armwar =
+				{ id = 1, name = "armwar", isImmobile = false, isBuilder = false, weapons = { { weaponDef = 1 } } }
 
 			it("rejects a value whose type disagrees with the attribute", function()
 				referenceErrors({ armwar = armwar }, {
@@ -1902,6 +1941,68 @@ describe("mission_api.validation", function()
 					clearHaste = {
 						type = actionTypes.SetUnitModifier,
 						parameters = { unitDefName = "armwar", attribute = "speed", source = "haste" },
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects an explosion on an attribute not written per explosion", function()
+				referenceErrors({ armwar = armwar }, {
+					slowDeath = {
+						type = actionTypes.SetUnitDefWeaponModifier,
+						parameters = {
+							unitDefName = "armwar",
+							weapon = "explode",
+							attribute = "reloadTime",
+							multiplier = 2,
+						},
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Weapon attribute 'reloadTime' is not written per explosion. Action: slowDeath, Parameter: weapon"
+					)
+				)
+			end)
+
+			it("rejects a weapon the unit def does not have", function()
+				referenceErrors({ armwar = armwar }, {
+					farShot = {
+						type = actionTypes.SetUnitDefWeaponAttribute,
+						parameters = { unitDefName = "armwar", weapon = 2, attribute = "maxWeaponRange", value = 800 },
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Weapon attribute 'maxWeaponRange' names a weapon that unit def 'armwar' does not have. Action: farShot, Parameter: weapon"
+					)
+				)
+			end)
+
+			it("rejects setting a multiplication-only weapon attribute", function()
+				referenceErrors({ armwar = armwar }, {
+					fixedDamage = {
+						type = actionTypes.SetUnitDefWeaponAttribute,
+						parameters = { unitDefName = "armwar", attribute = "damage", value = 50 },
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Weapon attribute 'damage' is multiplication-only. Action: fixedDamage, Parameter: attribute"
+					)
+				)
+			end)
+
+			it("accepts scaling the death explosion's damage", function()
+				referenceErrors({ armwar = armwar }, {
+					biggerBoom = {
+						type = actionTypes.SetUnitDefWeaponModifier,
+						parameters = {
+							unitDefName = "armwar",
+							weapon = "explode",
+							attribute = "damage",
+							multiplier = 2,
+						},
 					},
 				})
 				assert.are.same({}, logged)

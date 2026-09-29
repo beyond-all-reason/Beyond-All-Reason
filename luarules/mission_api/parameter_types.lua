@@ -32,6 +32,7 @@ local types = {
 	SoundFile = "SoundFile",
 	Difficulty = "Difficulty",
 	UnitAttribute = "UnitAttribute",
+	WeaponAttribute = "WeaponAttribute",
 
 	-- Number Validators:
 	Number = "Number",
@@ -51,6 +52,7 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
+	UnitWeapon = "UnitWeapon",
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
