@@ -39,7 +39,8 @@ end
 
 ---@param overrides table|nil  globals to place in the env, keyed by name. An
 ---`includes` key is not a global: it maps a path to what VFS.Include returns
----for it inside the env, either a value or a function called with the args.
+---for it inside the env, either a value or a function called with the args,
+---and VFS.FileExists reports that path as present.
 ---@return table
 function SpecEnv.new(overrides)
 	overrides = overrides or {}
@@ -61,7 +62,7 @@ function SpecEnv.new(overrides)
 	end
 
 	local includes = overrides.includes or {}
-	local include = env.VFS.Include
+	local include, fileExists = env.VFS.Include, env.VFS.FileExists
 
 	env.VFS.Include = function(path, childEnv, mode)
 		local override = includes[path]
@@ -74,6 +75,11 @@ function SpecEnv.new(overrides)
 		end
 
 		return include(path, childEnv or env, mode)
+	end
+
+	-- spec_helper's require only goes through VFS.Include for a file that exists.
+	env.VFS.FileExists = function(path, ...)
+		return includes[path] ~= nil or fileExists(path, ...)
 	end
 
 	env._G = env

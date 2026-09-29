@@ -52,6 +52,12 @@ describe("SpecEnv", function()
 		assert.are.equal("stubbed", SpecEnv.include(env, PROBE).marker)
 	end)
 
+	it("serves a stubbed include to require when the file is not on disk", function()
+		local env = SpecEnv.new({ includes = { ["spec/fixtures/not_on_disk.lua"] = { marker = "stubbed" } } })
+
+		assert.are.equal("stubbed", SpecEnv.include(env, "spec/fixtures/env_probe_require.lua").marker)
+	end)
+
 	it("falls back on the VFS.Include it was given", function()
 		local env = SpecEnv.new({
 			VFS = {
