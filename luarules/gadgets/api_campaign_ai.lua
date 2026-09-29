@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		name = "Campaign AI API for Gadgets",
 		desc = "Allows gadgets to communicate with the campaign AI",
 		date = "2026",
-		layer = 1,  -- requires GG.MissionAPI, run after api_missions.lua
+		layer = 1, -- requires GG.MissionAPI, run after api_missions.lua
 		enabled = true,
 	}
 end
@@ -22,14 +22,16 @@ if not gadgetHandler:IsSyncedCode() then
 	end
 
 	BroadcastUnitDefsEnabled = function(_, unitDefIDs, isEnabled, teamID)
-		local msg = aiMsg.MsgBuilder.new()
+		local msg = aiMsg.MsgBuilder
+			.new()
 			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITDEFS or aiMsg.Topic.DISABLE_UNITDEFS, unitDefIDs)
 			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 
 	BroadcastUnitsCtrlEnabled = function(_, unitIDs, isEnabled, teamID)
-		local msg = aiMsg.MsgBuilder.new()
+		local msg = aiMsg.MsgBuilder
+			.new()
 			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITS_CONTROL or aiMsg.Topic.DISABLE_UNITS_CONTROL, unitIDs)
 			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
