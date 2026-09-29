@@ -101,7 +101,7 @@ return {
 				craterareaofeffect = 70,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.61,
+				edgeeffectiveness = 0.5,
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 99,
@@ -136,7 +136,7 @@ return {
 					overrange_distance = 1392,
 				},
 				damage = {
-					default = 800,
+					default = 850,
 				},
 			},
 		},
