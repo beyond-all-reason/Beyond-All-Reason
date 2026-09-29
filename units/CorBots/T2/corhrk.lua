@@ -105,7 +105,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 99,
-				impulsefactor = 0.8,
+				impulsefactor = 1,
 				metalpershot = 0,
 				model = "corkbmissl1.s3o",
 				name = "HeavyRockets",
