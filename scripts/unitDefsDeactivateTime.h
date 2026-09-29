@@ -5,7 +5,7 @@
 
 static-var deactivateTime;
 
-SetDeactivateTime(var1)
+SetDeactivateTime(deactivateTime)
 {
-	deactivateTime = var1 * MILLISECONDS_PER_FRAME;
+	deactivateTime = deactivateTime * MILLISECONDS_PER_FRAME;
 }
