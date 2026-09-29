@@ -1,6 +1,6 @@
 ---@diagnostic disable: undefined-field, undefined-global
 
-local Protocol = VFS.Include("common/selected_units_protocol.lua")
+local Protocol = require("common/selected_units_protocol")
 
 local function range(first, last)
 	local values = {}

@@ -58,7 +58,7 @@ local function colourNames(teamID)
 	if teamID < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
 	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 
@@ -438,12 +438,16 @@ function widget:MousePress(x, y, button)
 				and (y < widgetY + mathFloor((50 + 17 + 5) * widgetScale))
 			)
 		then
-			Spring.SendCommands("endgraph 2")
+			-- The team stats panel on its Graphs page, not the engine's end-game box:
+			-- everything that box showed is in there, drawn like the rest of the UI.
+			if WG.teamstats then
+				WG.teamstats.showGraphs(true)
 
-			if WG.guishader then
-				WG.guishader.RemoveRect("awards")
+				if WG.guishader then
+					WG.guishader.RemoveRect("awards")
+				end
+				drawAwards = false
 			end
-			drawAwards = false
 		end
 
 		-- Close button
@@ -569,7 +573,8 @@ function widget:LanguageChanged()
 end
 
 function widget:Initialize()
-	Spring.SendCommands("endgraph 2")
+	-- The engine's end-game box stays off: the stats panel is what the awards hand over to.
+	Spring.SendCommands("endgraph 0")
 
 	widget:ViewResize(viewScreenX, viewScreenY)
 
@@ -595,7 +600,7 @@ function widget:GadgetReceiveAwards(awards)
 end
 
 function widget:Shutdown()
-	Spring.SendCommands("endgraph 2")
+	Spring.SendCommands("endgraph 0")
 	if Background then
 		gl.DeleteList(Background)
 	end

@@ -14,8 +14,8 @@ local mathMax = math.max
 local mathClamp = math.clamp
 local spGetGroundHeight = Spring.GetGroundHeight
 
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-local PolygonLib = VFS.Include("common/lib_polygon.lua")
+local PolygonLib = require("common/lib_polygon")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
 
 -- The bounds handed to these functions are the polygon's bounding box, so a box that is not
 -- a rectangle needs the shape itself to decide what is inside it.

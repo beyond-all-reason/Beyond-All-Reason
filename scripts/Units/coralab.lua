@@ -21,6 +21,7 @@ local base, pad, head1, head2, nano1, nano2, nano3, nano4, center1, center2, sid
 	)
 
 local spray = 0
+local hasOpened = false
 
 local SIG_ACTIVATE = 2
 local SIG_OPENCLOSE = 4
@@ -35,11 +36,12 @@ function open()
 	UnitScript.SetSignalMask(SIG_OPENCLOSE)
 	--Activate
 	--UnitScript.Move(side1, z_axis, 0);
-	if not litelab then
+	if not litelab and not hasOpened then
 		UnitScript.Move(side1, z_axis, 24, 24)
 		Sleep(908)
 		UnitScript.Move(side2, z_axis, 10, 2.777771)
 		Sleep(828)
+		hasOpened = true
 		--Open yard
 	end
 	open_yard()
@@ -54,13 +56,6 @@ function close()
 	UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0)
 	--Close yard
 	close_yard()
-	--Deactivate
-	if not litelab then
-		UnitScript.Move(side1, z_axis, 0, 24)
-		Sleep(908)
-		UnitScript.Move(side2, z_axis, 0, 2.777771)
-		Sleep(828)
-	end
 end
 
 function script.Create()

@@ -213,6 +213,7 @@ local callInLists = {
 	"Update",
 	"TextCommand",
 	"CommandNotify",
+	"AllowQuit",
 	"AddConsoleLine",
 	"ViewResize",
 	"DrawScreen",
@@ -236,6 +237,7 @@ local callInLists = {
 	"CommandsChanged",
 	"LanguageChanged",
 	"UnitBlocked",
+	"BuildOptionsChanged",
 	"VisibleUnitAdded",
 	"VisibleUnitRemoved",
 	"VisibleUnitsChanged",
@@ -245,7 +247,9 @@ local callInLists = {
 	"UnitSale",
 	"UnitSold",
 	"VisibleExplosion",
+	"VisibleExplosionBatch",
 	"Barrelfire",
+	"BarrelfireBatch",
 	"CrashingAircraft",
 	"SendStats",
 	"SendStats_GameMode",
@@ -485,6 +489,15 @@ function widgetHandler:Initialize()
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
+	local ModuleHandler = require("modules/module_handler", nil, VFS.ZIP)
+	ModuleHandler.Register(VFS.ZIP)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -626,7 +639,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- opposed to not being able to access them at all from outside the widget). This is accomplished by loading the
 		-- widget with an additional code snippet to list all of the local variables, getting that result, and then
 		-- loading again with a code snippet that sets up external access to those variables.
-		localsAccess = localsAccess or VFS.Include("common/testing/locals_access.lua")
+		localsAccess = localsAccess or require("common/testing/locals_access")
 
 		local textWithLocalsDetector = text .. localsAccess.localsDetectorString
 
@@ -1921,6 +1934,20 @@ function widgetHandler:CommandNotify(id, params, options)
 	return false
 end
 
+-- Engine AllowQuit callin (Engine.FeatureSupport.allowQuitCallin): a window
+-- close request (the close button, Alt+F4) asks before the game quits. Every
+-- widget that answers must allow; a widget that returns false keeps the game
+-- open and is expected to quit it later itself (Spring.Quit never asks).
+-- Engines without the callin never call this.
+function widgetHandler:AllowQuit()
+	for _, w in ipairs(self.AllowQuitList) do
+		if w:AllowQuit() == false then
+			return false
+		end
+	end
+	return true
+end
+
 function widgetHandler:AddConsoleLine(msg, priority)
 	tracy.ZoneBeginN("W:AddConsoleLine")
 	for _, w in ipairs(self.AddConsoleLineList) do
@@ -2384,6 +2411,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
+			self.actionHandler:ClearPressedKey(scanCode)
 			tracy.ZoneEnd()
 			return true
 		end
@@ -2905,10 +2934,19 @@ function widgetHandler:LanguageChanged()
 	tracy.ZoneEnd()
 end
 
-function widgetHandler:UnitBlocked(unitDefID, reasons)
+function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	tracy.ZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
-		w:UnitBlocked(unitDefID, reasons)
+		w:UnitBlocked(unitDefID, reasons, builderUnitDefID)
+	end
+	tracy.ZoneEnd()
+end
+
+---A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
+function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+	tracy.ZoneBeginN("W:BuildOptionsChanged")
+	for _, w in ipairs(self.BuildOptionsChangedList) do
+		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 	end
 	tracy.ZoneEnd()
 end
@@ -3289,21 +3327,39 @@ end
 --
 
 function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	tracy.ZoneBeginN("W:VisibleExplosion")
-	for _, w in ipairs(self.VisibleExplosionList) do
-		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	end
-	tracy.ZoneEnd()
-	return
+	self:VisibleExplosionBatch({ px, py, pz, weaponID, ownerID }, 5)
 end
 
 function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
-	tracy.ZoneBeginN("W:Barrelfire")
-	for _, w in ipairs(self.BarrelfireList) do
-		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	self:BarrelfireBatch({ px, py, pz, weaponID, ownerID }, 5)
+end
+
+-- a sim frame's events as px, py, pz, weaponID, ownerID runs: batch widgets get the array,
+-- the others one call per event
+function widgetHandler:VisibleExplosionBatch(events, count)
+	tracy.ZoneBeginN("W:VisibleExplosionBatch")
+	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		w:VisibleExplosionBatch(events, count)
+	end
+	for _, w in ipairs(self.VisibleExplosionList) do
+		for i = 1, count, 5 do
+			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
+		end
 	end
 	tracy.ZoneEnd()
-	return
+end
+
+function widgetHandler:BarrelfireBatch(events, count)
+	tracy.ZoneBeginN("W:BarrelfireBatch")
+	for _, w in ipairs(self.BarrelfireBatchList) do
+		w:BarrelfireBatch(events, count)
+	end
+	for _, w in ipairs(self.BarrelfireList) do
+		for i = 1, count, 5 do
+			w:Barrelfire(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
+		end
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)

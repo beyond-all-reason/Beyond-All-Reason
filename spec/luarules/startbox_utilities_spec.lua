@@ -3,7 +3,7 @@
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 local MODULE_PATH = "luarules/gadgets/include/startbox_utilities.lua"
 local MAP_SIZE_X, MAP_SIZE_Z = 4096, 4096
@@ -54,7 +54,7 @@ local function makeEnv(numAllyTeams, modoptions)
 
 	return SpecEnv.new({
 		Game = { mapSizeX = MAP_SIZE_X, mapSizeZ = MAP_SIZE_Z },
-		Json = VFS.Include("common/luaUtilities/json.lua"),
+		Json = require("common/luaUtilities/json"),
 		Spring = {
 			GetAllyTeamList = function()
 				return allyTeamList

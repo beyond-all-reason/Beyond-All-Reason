@@ -765,7 +765,7 @@ describe("UnitDefs invariants", function()
 	end)
 
 	it("points i18nfromunit at a real translation key", function()
-		local json = VFS.Include("common/luaUtilities/json.lua")
+		local json = require("common/luaUtilities/json")
 		local path = "language/en/units.json"
 		local handle = assert(io.open(path, "r"), "could not open " .. path .. ", specs run from the repo root")
 		local contents = handle:read("*a")
@@ -787,7 +787,7 @@ describe("UnitDefs invariants", function()
 	-- so this only covers what a player can actually build, following i18nhelpers through
 	-- i18nfromunit the way the interface does.
 	it("names every unit a commander can reach through its build tree", function()
-		local json = VFS.Include("common/luaUtilities/json.lua")
+		local json = require("common/luaUtilities/json")
 		local path = "language/en/units.json"
 		local handle = assert(io.open(path, "r"), "could not open " .. path .. ", specs run from the repo root")
 		local contents = handle:read("*a")

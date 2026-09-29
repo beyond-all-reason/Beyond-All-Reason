@@ -1,5 +1,5 @@
-local SplineLib = VFS.Include("common/lib_spline.lua")
-local PolygonLib = VFS.Include("common/lib_polygon.lua")
+local PolygonLib = require("common/lib_polygon")
+local SplineLib = require("common/lib_spline")
 
 local function pointsApproxEqual(a, b, eps)
 	eps = eps or 1e-6

@@ -1,3 +1,17 @@
+-- Discover spec roots generically: the repo spec/ tree plus any module that
+-- ships its own spec/ dir (modules are self-contained; no per-module entries).
+local function specRoots()
+  local roots = { "spec/" }
+  local find = io.popen('find modules -mindepth 2 -maxdepth 2 -type d -name spec 2>/dev/null')
+  if find then
+    for dir in find:lines() do
+      roots[#roots + 1] = dir .. "/"
+    end
+    find:close()
+  end
+  return roots
+end
+
 return {
 
   default = {
@@ -19,7 +33,7 @@ return {
   verbose = true,
   output = "utfTerminal",
   pattern = "_spec",
-  ROOT = { "spec/" },
+  ROOT = specRoots(),
 
   -- Named tasks. _all is merged whichever one runs, so the file order lives there.
   _all = {
@@ -29,11 +43,11 @@ return {
     output = "utfTerminal",
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
-    ROOT = { "spec/" }
+    ROOT = specRoots()
   },
   unit = {
     verbose = true,
-    ROOT = { "spec/" }
+    ROOT = specRoots()
   },
   coverage = {
     verbose = true,
@@ -41,6 +55,6 @@ return {
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
     coverage = true,
-    ROOT = { "spec/" }
+    ROOT = specRoots()
   }
 }

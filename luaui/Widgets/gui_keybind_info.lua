@@ -18,7 +18,7 @@ local mathFloor = math.floor
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local keybindEditor = VFS.Include("luaui/Include/keybind_editor_view.lua")
+local keybindEditor = require("luaui/Include/keybind_editor_view")
 
 local doUpdate
 
@@ -187,7 +187,7 @@ function widget:DrawScreen()
 		end
 		showOnceMore = false
 
-		local x, y, pressed = Spring.GetMouseState()
+		local x, y, _ = Spring.GetMouseState()
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			Spring.SetMouseCursor("cursornormal")
 		end
@@ -383,6 +383,14 @@ function widget:Initialize()
 		doUpdate = true
 		return true
 	end, nil, "t")
+
+	-- "keybindprofile <name>" makes that profile live. One action per profile rather than a
+	-- cycle, so a key means the same profile whatever is active. The whole argument line is
+	-- the name: profile names hold spaces, and the engine hands back the args it was bound
+	-- with, so this matches the action ids the editor lists.
+	widgetHandler:AddAction("keybindprofile", function(_, line)
+		return keybindEditor.applyProfile(line)
+	end, nil, "tp")
 
 	-- Sent as commands because widgetHandler here is a per-widget proxy, which carries no
 	-- Enable/DisableWidget.

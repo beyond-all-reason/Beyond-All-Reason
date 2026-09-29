@@ -1,6 +1,6 @@
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 local modOptions = {}
 

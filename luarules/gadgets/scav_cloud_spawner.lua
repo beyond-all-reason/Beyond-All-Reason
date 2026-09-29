@@ -31,7 +31,7 @@ if gadgetHandler:IsSyncedCode() then -- Synced
 		[UnitDefNames.scavmistxxl_scav.id] = true,
 	}
 
-	VFS.Include("common/wav.lua")
+	require("common/wav")
 	local cooldown = 0 -- 1 minute cooldown at the start
 
 	local mRandom = math.random

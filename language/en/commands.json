@@ -152,13 +152,24 @@
 			"onoffOn": "Turn unit on",
 			"repeatOff": "Repeat off",
 			"repeatOn": "Repeat on",
-			"trajectory": "Trajectory %{n}",
+			"trajectoryLow": "Trajectory: Low",
+			"trajectoryHigh": "Trajectory: High",
+			"trajectoryAuto": "Trajectory: Auto",
 			"fireHold": "Fire state: Hold fire",
 			"fireReturn": "Fire state: Return fire",
 			"fireAtWill": "Fire state: Fire at will",
 			"moveHold": "Move state: Hold position",
 			"moveManeuver": "Move state: Maneuver",
-			"moveRoam": "Move state: Roam"
+			"moveRoam": "Move state: Roam",
+			"idleMode": "Toggle aircraft idle mode",
+			"idleModeFly": "Aircraft idle: Fly",
+			"idleModeLand": "Aircraft idle: Land",
+			"buildPriority": "Toggle builder priority",
+			"buildPriorityLow": "Builder priority: Low",
+			"buildPriorityHigh": "Builder priority: High",
+			"airPlantExit": "Toggle air plant exit mode",
+			"airPlantExitFly": "Air plant exit: Fly",
+			"airPlantExitLand": "Air plant exit: Land"
 		},
 		"controlGroups": {
 			"select": "Select control group %{n}",
@@ -185,7 +196,7 @@
 			"spacingDown": "Decrease build spacing"
 		},
 		"factory": {
-			"queueMode": "Toggle factory repeat mode",
+			"queueMode": "Toggle factory queue/quota mode",
 			"loadPreset": "Load factory preset %{n}",
 			"savePreset": "Save factory preset %{n}",
 			"showPresets": "Show factory presets",
@@ -215,6 +226,18 @@
 			"pipSwitch": "Swap camera with picture-in-picture",
 			"pipCopy": "Copy camera to picture-in-picture",
 			"pipTrack": "Track selection in picture-in-picture",
+			"pipReplay": "Picture-in-picture: instant replay of the last seconds",
+			"pipReplayDeath": "Picture-in-picture: replay your last unit loss",
+			"pipHistoryToggle": "Picture-in-picture: show or hide the rewind timeline",
+			"pipHistoryPlayPause": "Picture-in-picture: play or pause the rewind",
+			"pipHistoryBack": "Picture-in-picture: rewind a few seconds",
+			"pipHistoryForward": "Picture-in-picture: forward a few seconds",
+			"pipHistoryLive": "Picture-in-picture: back to live",
+			"pipHistoryFaster": "Picture-in-picture: faster rewind playback",
+			"pipHistorySlower": "Picture-in-picture: slower rewind playback",
+			"pipHistoryReverse": "Picture-in-picture: play the history backwards from live",
+			"pipHistoryPlay": "Picture-in-picture: play the history forwards",
+			"pipHistoryStats": "Picture-in-picture: print the history recorder's size and timings",
 			"fovIncrease": "Increase field of view",
 			"fovDecrease": "Decrease field of view",
 			"cycleSelectedNext": "Cycle camera to next selected unit",
@@ -230,6 +253,7 @@
 		"interfaceDisplay": {
 			"settings": "Settings",
 			"unitStats": "Unit stats",
+			"gameInfo": "Game info",
 			"saveGame": "Save game",
 			"screenshot": "Take screenshot",
 			"firingRange": "Display firing range",
@@ -255,6 +279,10 @@
 		},
 		"spectating": {
 			"spectate": "Spectate team %{n}"
+		},
+		"keybindProfiles": {
+			"activate": "Switch to %{n}",
+			"activateDescription": "Loads this keybind profile, replacing every key you have bound."
 		}
 	},
 	"categories": {
