@@ -1437,9 +1437,9 @@ function widgetHandler:DisableWidgetRaw(name)
 		end
 		Spring.Echo("Removed:  " .. ki.filename)
 		self:RemoveWidgetRaw(w) -- deactivate
-		self.orderList[name] = 0 -- disable
-		self:SaveConfigData()
 	end
+	self.orderList[name] = 0 -- disable
+	self:SaveConfigData()
 	return true
 end
 
