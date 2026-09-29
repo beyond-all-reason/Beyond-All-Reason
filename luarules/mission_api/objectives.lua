@@ -69,16 +69,26 @@ local function cancelObjective(objectiveID)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
--- Hidden is the author's override; presentation reads it and nothing here does.
+-- `hidden` is an override by the mission author for presentation state.
 local function hideObjective(objectiveID)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if objective.hidden then
+		return
+	end
+
 	objective.hidden = true
+	activateEventTrigger(objective.onHidden)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 
 local function showObjective(objectiveID)
 	local objective = GG["MissionAPI"].Objectives[objectiveID]
+	if not objective.hidden then
+		return
+	end
+
 	objective.hidden = false
+	activateEventTrigger(objective.onShown)
 	echoObjectiveUpdate(objectiveID, objective)
 end
 

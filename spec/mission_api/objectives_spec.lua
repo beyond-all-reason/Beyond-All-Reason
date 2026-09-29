@@ -1002,5 +1002,46 @@ describe("mission_api.objectives", function()
 			assert.is_false(missionApi.Objectives.obj1.hidden)
 			assert.is_false(missionApi.Objectives.obj1.active)
 		end)
+
+		it("activates onHidden when a shown objective is hidden", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, hidden = false, onHidden = "vanished" })
+					:WithTrigger("vanished", { type = T.Event })
+			)
+
+			Objectives.HideObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.vanished, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("activates onShown when a hidden objective is shown", function()
+			install(
+				mission()
+					:WithObjective("obj1", { active = false, completed = false, hidden = true, onShown = "revealed" })
+					:WithTrigger("revealed", { type = T.Event })
+			)
+
+			Objectives.ShowObjective("obj1")
+
+			assert.are.equal(1, #missionApi.calls.activateTrigger)
+			assert.are.equal(missionApi.Triggers.revealed, missionApi.calls.activateTrigger[1].trigger)
+		end)
+
+		it("fires nothing when hiding a hidden objective, showing a shown one", function()
+			install(
+				mission()
+					:WithObjective("hiddenOne", { hidden = true, onHidden = "vanished" })
+					:WithObjective("shownOne", { hidden = false, onShown = "revealed" })
+					:WithTrigger("vanished", { type = T.Event })
+					:WithTrigger("revealed", { type = T.Event })
+			)
+
+			Objectives.HideObjective("hiddenOne")
+			Objectives.ShowObjective("shownOne")
+
+			assert.are.equal(0, #missionApi.calls.activateTrigger)
+		end)
 	end)
 end)
