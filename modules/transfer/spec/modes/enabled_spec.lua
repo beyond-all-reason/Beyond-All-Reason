@@ -119,6 +119,11 @@ describe("Enabled mode policy bundle", function()
 
 	it("serializes to the exact modOptions the literal preset declared", function()
 		assert.same({
+			[TransferEnums.ModOptions.MexSplitting] = {
+				value = TransferEnums.MexSplitting.None,
+				locked = true,
+				ui = "hidden",
+			},
 			[TransferEnums.ModOptions.UnitSharingMode] = {
 				value = ConstructionEnums.UnitFilterCategory.All,
 				locked = true,
