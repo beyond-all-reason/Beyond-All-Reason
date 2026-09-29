@@ -831,6 +831,7 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		gadget._tracyUpdateName = "G:Update:" .. gi.name
 		gadget._tracyDrawWorldName = "G:DrawWorld:" .. gi.name
 		gadget._tracyDrawWorldPreUnitName = "G:DrawWorldPreUnit:" .. gi.name
+		gadget._tracyUnitFinishedName = "G:UnitFinished:" .. gi.name
 	end
 end
 
@@ -2136,7 +2137,9 @@ end
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
+		tracy.ZoneBeginN(g._tracyUnitFinishedName)
 		g:UnitFinished(unitID, unitDefID, unitTeam)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
