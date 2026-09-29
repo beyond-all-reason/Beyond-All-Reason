@@ -325,8 +325,7 @@ describe("inferring which shipped profile a keymap came from", function()
 end)
 
 describe("importing bind lines into the preset on screen", function()
-	-- Pasted onto a keymap, the lines are run against it the way the engine would run them against
-	-- a live one, so a paste of console binds lands as if it were typed at the console.
+	-- Pasted lines run against the preset the way the console runs them against a live keymap.
 	local function current()
 		return {
 			{ keyset = "sc_w", action = "resurrect" },

@@ -270,8 +270,8 @@ end
 -- Reads the bind lines back out of a keybind file. Needed for the player's own
 -- uikeys.txt at migration time: the live keymap is whichever preset they had selected,
 -- so it cannot stand in for what their own file holds.
--- With a seed the text is read on top of that keymap, as the engine would run the lines against
--- a live one: it refuses a bind it already holds, and the unbinds reach the seed's binds too.
+-- With a seed the text runs on top of it, the way the engine runs lines on a live keymap: it
+-- refuses a bind it already holds.
 local function readBindFile(text, depth, seed)
 	if not text then
 		return nil
@@ -1030,8 +1030,7 @@ function M.exportText(profile)
 	return toBindFile(profile)
 end
 
--- Console commands are shared with the slash they are typed with, which a bind file does not
--- take. A "//" comment is left alone.
+-- Console commands are shared with the slash they are typed with, which a bind file does not take.
 local function unslash(text)
 	return (text:gsub("[^\r\n]+", function(line)
 		return (line:gsub("^(%s*)/(%a)", "%1%2", 1))
@@ -1096,8 +1095,7 @@ function M.parseBindFile(text)
 	return binds, fakeMetaOf(text), generatedName(text)
 end
 
--- Bind-file text run against a keymap rather than read as one, the result handed back as a new
--- list: its binds go after the keymap's own, and its unbinds take from both.
+-- Run against a keymap rather than read as one; the list handed in is left as it was.
 function M.applyBindText(binds, text)
 	if type(text) ~= "string" then
 		return nil
@@ -1106,8 +1104,7 @@ function M.applyBindText(binds, text)
 	return readBindFile(unslash(text), nil, binds or {})
 end
 
--- Our own export is stamped with its name, and text that clears the keymap first means to be all
--- of one. Either is a preset to import as one, rather than a few binds to add to this one.
+-- Our export is stamped with its name, and text starting from unbindall means to be a whole keymap.
 function M.isWholeProfile(text)
 	if type(text) ~= "string" then
 		return false

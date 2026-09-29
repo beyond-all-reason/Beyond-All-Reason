@@ -1658,7 +1658,7 @@ local function discardStaged()
 	rebuildRows()
 end
 
--- Whether a bind list is the one already staged, bind for bind and in the same order.
+-- Order counts: two actions on one keyset are tried in bind order.
 function state.isStaged(binds)
 	if #binds ~= #working.binds then
 		return false
@@ -1674,10 +1674,9 @@ function state.isStaged(binds)
 	return true
 end
 
--- A whole bind list staged as one edit, Ctrl+Z taking all of it back.
+-- The list arrives in engine order already, so it replaces the staged one outright.
 function state.stageBinds(binds)
-	-- Every action keeps its entry, emptied or not: a row the catalog does not name is derived
-	-- from it, and would otherwise vanish with nothing left to click to bind it again.
+	-- Emptied entries stay: the rows the catalog does not name come from them.
 	local byAction = {}
 	for action in pairs(working.byAction) do
 		byAction[action] = {}
@@ -1964,13 +1963,11 @@ local function startClipboard(exporting)
 	end
 
 	-- With nothing readable the dialog still opens, so the player can see why, but cannot be
-	-- accepted. Run on top of a preset, an unbind alone is still an edit; a preset of its own
-	-- needs a bind.
+	-- accepted. An unbind alone still edits a preset; a new one needs a bind.
 	local lines, count, errors, directives = profiles.classifyBindFile(clip)
 	local binds, fakeMeta, stamped = profiles.parseBindFile(clip)
 	local from = profiles.activeName()
-	-- A preset's worth of text is one of its own. A few lines are run on top of the preset on
-	-- screen, or on top of a copy of it; a default takes no edits, so only a copy.
+	-- A default takes no edits, so loose lines can only go on a copy of it.
 	local whole = profiles.isWholeProfile(clip)
 	local own = activeIsOwn()
 	local d = {
@@ -2018,8 +2015,7 @@ local function startClipboard(exporting)
 
 	function d.accept(newName)
 		if d.choice.on and whole then
-			-- Named like a copy is, then made live: importing is switching to it, so staged edits
-			-- are asked about first.
+			-- Named like a copy is, then made live: importing is switching to it.
 			guardDirty(function()
 				selectProfile(profiles.create(newName, binds, fakeMeta), from)
 			end)
@@ -2041,7 +2037,7 @@ local function startClipboard(exporting)
 		end
 
 		if d.choice.on then
-			-- The copy takes the staged edits with it, so switching to it leaves nothing behind.
+			-- Staged edits come along in the copy, so there is nothing to ask about.
 			local base = profiles.baseOf(from)
 			selectProfile(profiles.create(newName, merged, activeFakeMeta(), base and base.name), from)
 		else
@@ -2311,8 +2307,6 @@ local function dialogGeometry()
 		box = { bx1 + pad, field[4] + floor(14 * scale), bx2 - pad, by2 - floor(66 * scale) }
 	end
 
-	-- A choice shares the field's row, its switch and caption ahead of the field, and takes a click
-	-- on either.
 	local choice
 	if dialog and dialog.choice then
 		local fh = field[4] - field[2]
@@ -2328,14 +2322,12 @@ local function dialogGeometry()
 			label = dialog.choice.label,
 			on = dialog.choice.on,
 			locked = dialog.choice.locked == true,
-			-- With no name to ask for, the field's place says where the keybinds go instead.
 			fieldless = dialog.nameless == true,
 			hint = dialog.nameless and dialog.hint or nil,
 		}
 		field[1] = labelX + labelW + pad
 	end
 
-	-- A line saying what the field wants, between the title and the field.
 	local note
 	if noteText then
 		local titleBottom = by2 - floor(26 * scale) - floor(rowHeight * 0.3)
@@ -3300,21 +3292,19 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
--- The category column starts below where the keybind rows do, so the title is not crowded. Off
--- the band's fixed top, not the rows' own: the Changed section lowers the rows for its comparison
--- picker, and the column beside them must not move with it.
+-- The category column starts below where the keybind rows do, so the title is not crowded.
 function state.sidebarCardTop()
+	-- Off the band's fixed top, not the rows' own: the Changed section lowers the rows for its
+	-- comparison picker, and the column beside them must not move with it.
 	return (metrics.listTopBase or listTop) - metrics.sidebarDrop
 end
 
--- Add Keybind heads the column, a button among entries that are all filters, sized like one.
 function state.addBindRect()
 	local top = state.sidebarCardTop()
 
 	return area.x1 + metrics.catInset, top - metrics.catRowHeight, area.x1 + sidebarW - metrics.catInset, top
 end
 
--- Where the category entries start, under Add Keybind.
 local function sidebarTop()
 	return state.sidebarCardTop() - metrics.catRowHeight - metrics.catInset * 2
 end
@@ -3468,7 +3458,6 @@ local function drawSidebar(hoverIdx)
 	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
 
-	-- Green like Save, the other button that adds to the preset.
 	local ax1, ay1, ax2, ay2 = state.addBindRect()
 	drawButtonFace({ ax1, ay1, ax2, ay2 }, hover.btn == "addBind" and confirmFillHover or confirmFill)
 	queueText(
@@ -4926,11 +4915,8 @@ function state.addBind()
 		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
 		maxChars = 96,
-		-- Binds are shared as console lines, so that is what a player will paste without being told.
 		note = L.addBindNote,
 		accept = function(typed)
-			-- Pasted anyway, a whole bind line already names its key, so it is taken as the import
-			-- would take it rather than asking for the key again.
 			if typed:match("^/?bind%s+%S+%s+%S") then
 				local merged = profiles.applyBindText(stagedBinds(), typed)
 				if not state.isStaged(merged) then
