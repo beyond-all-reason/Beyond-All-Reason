@@ -1,4 +1,6 @@
-local ModuleHandler = require("modules/module_handler")
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
+local ModuleHandler = SpecEnv.include(SpecEnv.new({ GG = {} }), "modules/module_handler.lua")
 
 describe("ModuleHandler", function()
 	describe("Register", function()

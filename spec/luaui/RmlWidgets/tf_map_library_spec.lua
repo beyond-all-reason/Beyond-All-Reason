@@ -1,4 +1,7 @@
-local LibraryUI = require("luaui/RmlWidgets/gui_terraform_brush/tf_map_library")
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
+local env = SpecEnv.new()
+local LibraryUI = SpecEnv.include(env, "luaui/RmlWidgets/gui_terraform_brush/tf_map_library.lua")
 
 -- The controller behind the Projects window: one browser over this disk and
 -- the team library, the Team Sync strip and start card, the stage tray, the
@@ -353,14 +356,11 @@ describe("Projects window controller", function()
 		f.model.libraryCardWrite()
 		assert(f.model.libraryCardWritten and f.model.libraryCardPath:find("helper.bat", 1, true))
 		local copied
-		local hadSpring = rawget(_G, "Spring")
-		_G.Spring = {
-			SetClipboard = function(text)
-				copied = text
-			end,
-		}
+		env.Spring.SetClipboard = function(text)
+			copied = text
+		end
 		f.model.libraryCardCopy()
-		_G.Spring = hadSpring
+		env.Spring.SetClipboard = nil
 		assert(copied == f.model.libraryCardPath and f.model.libraryCardCopied)
 		f.client.state.online = true
 		f.ui.sync()
