@@ -1,7 +1,7 @@
 -- Campaign AI messaging system.
 -- boolean is forbidden; accepted values: 1 as true, 0 as false.
 -- Message format:
--- "<version>|<cmd1>:<val1>;<val2>;<val3>|<cmd2>:<param1>=<val1.1>,<val1.2>,<val1.3>;<param2>=<val2>;<param3>=<val3>"
+-- "<version>|<cmd1>:<val1>;<val2>;<val3>|<cmd2>:<param1>=<val1>;<param2>=<val2>;<param3>=<val3.1>,<val3.2>,<val3.3>"
 
 local version = "1"
 
@@ -20,7 +20,7 @@ local topic = {
 	ENABLE_UNITS_CONTROL             =   4,  -- array of unitIDs
 	DISABLE_UNITS_CONTROL            =   5,  -- array of unitIDs
 
-	UNITDEF_RETREAT                  =  11,
+	SET_UNITDEF_RETREAT_HP           =  11,
 
 	REGION_AVOID                     =  12,
 
@@ -54,14 +54,14 @@ local param = {
 }
 
 local task = {
-	DEFEND  = 1,
-	SCOUT   = 2,
-	RAID    = 3,
-	ATTACK  = 4,
-	BOMB    = 5,
-	ARTY    = 6,
-	AA      = 7,
-	SUPPORT = 8,
+	DEFEND    = 1,
+	SCOUT     = 2,
+	RAID      = 3,
+	ATTACK    = 4,
+	BOMBER    = 5,
+	ARTILLERY = 6,
+	ANTI_AIR  = 7,
+	SUPPORT   = 8,
 }
 
 local MsgBuilder = {}
@@ -116,8 +116,8 @@ MsgBuilder.__index = MsgBuilder
 MsgBuilder.__tostring = MsgBuilder.toString
 
 return {
-	topic      = topic,
-	param      = param,
-	task       = task,
+	Topic      = topic,
+	Param      = param,
+	Task       = task,
 	MsgBuilder = MsgBuilder,
 }

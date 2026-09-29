@@ -5,84 +5,53 @@ function gadget:GetInfo()
 		name = "Campaign AI API for Gadgets",
 		desc = "Allows gadgets to communicate with the campaign AI",
 		date = "2026",
-		layer = 1,
+		layer = 1,  -- requires GG.MissionAPI, run after api_missions.lua
 		enabled = true,
 	}
 end
+
+local BroadcastUnitDefsEnabled
+local BroadcastUnitsCtrlEnabled
 
 if not gadgetHandler:IsSyncedCode() then
 	local aiMsg = VFS.Include("luarules/utilities/campaign_ai_msg.lua")
 
 	function gadget:Initialize()
-		gadgetHandler:AddSyncAction("GadgetEnableUnitDefs", BroadcastEnableUnitDefs)
-		gadgetHandler:AddSyncAction("GadgetDisableUnitDefs", BroadcastDisableUnitDefs)
-		gadgetHandler:AddSyncAction("GadgetEnableUnitsCtrl", BroadcastEnableUnitsCtrl)
-		gadgetHandler:AddSyncAction("GadgetDisableUnitsCtrl", BroadcastDisableUnitsCtrl)
+		gadgetHandler:AddSyncAction("SetUnitDefsEnabled", BroadcastUnitDefsEnabled)
+		gadgetHandler:AddSyncAction("SetUnitsCtrlEnabled", BroadcastUnitsCtrlEnabled)
 	end
 
-	function BroadcastEnableUnitDefs(_, teamID, unitDefIDs)
+	BroadcastUnitDefsEnabled = function(_, unitDefIDs, isEnabled, teamID)
 		local msg = aiMsg.MsgBuilder.new()
-			:cmdArray(aiMsg.topic.ENABLE_UNITDEFS, unitDefIDs)
+			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITDEFS or aiMsg.Topic.DISABLE_UNITDEFS, unitDefIDs)
 			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 
-	function BroadcastDisableUnitDefs(_, teamID, unitDefIDs)
+	BroadcastUnitsCtrlEnabled = function(_, unitIDs, isEnabled, teamID)
 		local msg = aiMsg.MsgBuilder.new()
-			:cmdArray(aiMsg.topic.DISABLE_UNITDEFS, unitDefIDs)
-			:toString()
-		Spring.SendSkirmishAIMessage(teamID, msg)
-	end
-
-	function BroadcastEnableUnitsCtrl(_, teamID, unitIDs)
-		local msg = aiMsg.MsgBuilder.new()
-			:cmdArray(aiMsg.topic.ENABLE_UNITS_CONTROL, unitIDs)
-			:toString()
-		Spring.SendSkirmishAIMessage(teamID, msg)
-	end
-
-	function BroadcastDisableUnitsCtrl(_, teamID, unitIDs)
-		local msg = aiMsg.MsgBuilder.new()
-			:cmdArray(aiMsg.topic.DISABLE_UNITS_CONTROL, unitIDs)
+			:cmdArray(isEnabled and aiMsg.Topic.ENABLE_UNITS_CONTROL or aiMsg.Topic.DISABLE_UNITS_CONTROL, unitIDs)
 			:toString()
 		Spring.SendSkirmishAIMessage(teamID, msg)
 	end
 end
 
-GG.campaign_ai = {}
+GG.CampaignAI = {}
 
----@param unitDefIDs array of UnitDefIDs to allow construction
-GG.campaign_ai.GadgetEnableUnitDefs = function(unitDefIDs)
+---@param unitDefIDs table of UnitDefID to allow construction
+GG.CampaignAI.SetUnitDefsEnabled = function(unitDefIDs, isEnabled, teamID)
 	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("GadgetEnableUnitDefs", unitDefIDs)
+		SendToUnsynced("SetUnitDefsEnabled", unitDefIDs, isEnabled, teamID)
 	else
-		BroadcastEnableUnitDefs("GadgetEnableUnitDefs", unitDefIDs)
+		BroadcastUnitDefsEnabled("SetUnitDefsEnabled", unitDefIDs, isEnabled, teamID)
 	end
 end
 
----@param unitDefIDs array of UnitDefIDs to forbid construction
-GG.campaign_ai.GadgetDisableUnitDefs = function(unitDefIDs)
+---@param unitIDs table of UnitID to enable control by AI
+GG.CampaignAI.SetUnitsCtrlEnabled = function(unitIDs, isEnabled, teamID)
 	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("GadgetDisableUnitDefs", unitDefIDs)
+		SendToUnsynced("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
 	else
-		BroadcastDisableUnitDefs("GadgetDisableUnitDefs", unitDefIDs)
-	end
-end
-
----@param unitIDs array of UnitIDs to enable control by AI
-GG.campaign_ai.GadgetEnableUnitsCtrl = function(unitIDs)
-	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("GadgetEnableUnitsCtrl", unitIDs)
-	else
-		BroadcastEnableUnitsCtrl("GadgetEnableUnitsCtrl", unitIDs)
-	end
-end
-
----@param unitIDs array of UnitIDs to disable control by AI
-GG.campaign_ai.GadgetDisableUnitsCtrl = function(unitIDs)
-	if gadgetHandler:IsSyncedCode() then
-		SendToUnsynced("GadgetDisableUnitsCtrl", unitIDs)
-	else
-		BroadcastDisableUnitsCtrl("GadgetDisableUnitsCtrl", unitIDs)
+		BroadcastUnitsCtrlEnabled("SetUnitsCtrlEnabled", unitIDs, isEnabled, teamID)
 	end
 end
