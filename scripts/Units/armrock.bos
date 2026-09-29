@@ -2,7 +2,8 @@
 #include "../recoil_common_includes.h"
 
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
-       rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint;
+       rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint,
+       firepoint;
 
 static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
@@ -322,7 +323,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = lbarrel;
+	pieceIndex = firepoint;
 }
 
 AimWeapon1(heading, pitch)
