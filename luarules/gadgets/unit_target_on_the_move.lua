@@ -82,6 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local validUnits = {}
 	local unitWeapons = {}
+	local unitHasWaterWeapon = {} -- places targets on sea floor even if it has other weapons
 	local unitAlwaysSeen = {}
 
 	local WATERWEAPON = 0
@@ -124,6 +125,11 @@ if gadgetHandler:IsSyncedCode() then
 				unitWeapons[unitDefID] = table.map(unitDef.weapons, function(weapon, index)
 					return getWeaponType(weapon, unitDef.canManualFire), index
 				end)
+				for _, weaponType in pairs(unitWeapons[unitDefID]) do
+					if weaponType == WATERWEAPON then
+						unitHasWaterWeapon[unitDefID] = true
+					end
+				end
 			end
 			unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
 		end
@@ -227,14 +233,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function testTargetPos(unitID, weaponList, x, y, z)
+		local yAboveWater = max(y, 0)
 		for weaponNum = 1, #weaponList do
-			if
-				weaponList[weaponNum]
-				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, y, z)
-				and spGetUnitWeaponTestRange(unitID, weaponNum, x, y, z)
-				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, y, z)
-			then
-				return weaponNum
+			local weaponType = weaponList[weaponNum]
+			if weaponType then
+				local weaponY = weaponType == WATERWEAPON and y or yAboveWater
+				if
+					spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponY, z)
+					and spGetUnitWeaponTestRange(unitID, weaponNum, x, weaponY, z)
+					and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, weaponY, z)
+				then
+					return weaponNum
+				end
 			end
 		end
 	end
@@ -669,17 +679,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function allowTargetPos(unitID, weaponList, xyz)
 		local x, y, z = xyz[1], xyz[2], xyz[3]
+		local yAboveWater = max(y, 0)
 		for weaponNum = 1, #weaponList do
 			local weaponType = weaponList[weaponNum]
 			-- Quirk: Targets are not adjusted engine-side for water level, unlike Attack commands and weapon aiming.
 			if
 				weaponType
-				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == WATERWEAPON and y or max(y, 1), z)
+				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == WATERWEAPON and y or yAboveWater, z)
 			then
-				-- We may or may not adjust this targetY depending on weapon order, which can tend to seem arbitrary.
-				if weaponType ~= WATERWEAPON then
-					xyz[2] = max(y, 1)
-				end
 				return true
 			end
 		end
@@ -786,8 +793,12 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				local target = cmdParams
-				if target[2] > spGetGroundHeight(target[1], target[3]) then
-					target[2] = spGetGroundHeight(target[1], target[3])
+				local elevation = spGetGroundHeight(target[1], target[3])
+				if target[2] > elevation then
+					target[2] = elevation
+				end
+				if not unitHasWaterWeapon[unitDefID] then
+					target[2] = max(target[2], 0)
 				end
 				if allowTargetPos(unitID, weaponList, target) then
 					addTargetList = {
