@@ -122,8 +122,8 @@ local resolvedCatalog
 local chipGroups = {}
 local catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
 local L = {}
--- Headers, notes, links, the way in to a custom binding and the bindable rows themselves,
--- which share no shape beyond the type naming which they are.
+-- Headers, notes, links and the bindable rows themselves, which share no shape beyond the type
+-- naming which they are.
 ---@type table[]
 local rows = {}
 -- Bumped by rebuildRows, so the baked panel knows the list behind it changed.
@@ -393,8 +393,18 @@ local headerButtons = {
 		tip = "editTooltip",
 		tipLocked = "editLockedTooltip",
 	},
-	{ id = "export", tooltipId = "keybind_export", tip = "exportTooltip" },
-	{ id = "import", tooltipId = "keybind_import", tip = "importTooltip" },
+	{
+		id = "export",
+		icon = "LuaUI/Images/keybinds/export.png",
+		tooltipId = "keybind_export",
+		tip = "exportTooltip",
+	},
+	{
+		id = "import",
+		icon = "LuaUI/Images/keybinds/import.png",
+		tooltipId = "keybind_import",
+		tip = "importTooltip",
+	},
 	{ id = "keyboard", tooltipId = "keybind_keyboard", tip = "keyboardTooltip", toggle = true, gap = 2 },
 }
 
@@ -739,6 +749,7 @@ local function buildResolvedCatalog()
 	L.other = BAR.I18N("categories.other")
 	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
 	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
+	L.addBindNote = BAR.I18N("ui.keybinds.editor.addBindNote")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -809,6 +820,8 @@ local function buildResolvedCatalog()
 	L.importTitle = BAR.I18N("ui.keybinds.editor.importTitle")
 	L.importEmpty = BAR.I18N("ui.keybinds.editor.importEmpty")
 	L.importNone = BAR.I18N("ui.keybinds.editor.importNone")
+	L.importAsNew = BAR.I18N("ui.keybinds.editor.importAsNew")
+	L.importAdd = BAR.I18N("ui.keybinds.editor.importAdd")
 	L.ok = BAR.I18N("ui.keybinds.editor.ok")
 	L.editTitle = BAR.I18N("ui.keybinds.editor.editTitle")
 	L.delete = BAR.I18N("ui.keybinds.editor.delete")
@@ -1022,7 +1035,7 @@ local function rebuildRows()
 	-- own, and only there. Gathered as they are met, so they keep the catalog's order.
 	local keyRows = {}
 	local catalogActions = {}
-	local otherHeaderRow, otherGroupEnd
+	local otherGroupEnd
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
 	-- Exact ids only (not prefixes), so a future action can't be hidden by coincidence.
@@ -1189,9 +1202,6 @@ local function rebuildRows()
 
 		if inCategory and #groupRows > 0 then
 			rows[#rows + 1] = { type = "header", text = group.title }
-			if group.title == L.other then
-				otherHeaderRow = rows[#rows]
-			end
 			if group.layout == "grid" then
 				-- Still driven by the rows a search matched, so hunting for one of them surfaces the way in.
 				rows[#rows + 1] = { type = "link", label = L.edit, category = group.category }
@@ -1236,29 +1246,19 @@ local function rebuildRows()
 		}
 	end
 
-	-- Not while searching or reading the changed list: neither is a list anything would be added
-	-- to.
-	local offerAdd = inOther and not changedOnly and query.empty
-	if (offerAdd or #others > 0) and inOther then
+	if #others > 0 and inOther then
 		table.sort(others)
 
 		-- A catalog category can be titled the same as this generated one; when it is,
 		-- the leftovers join it after its own items instead of repeating the header.
 		local tail = {}
-		local header = otherHeaderRow
 		if otherGroupEnd then
 			for i = otherGroupEnd + 1, #rows do
 				tail[#tail + 1] = rows[i]
 				rows[i] = nil
 			end
 		else
-			header = { type = "header", text = L.other }
-			rows[#rows + 1] = header
-		end
-		-- The way in rides on the heading rather than taking a row of its own, which read as
-		-- one more binding among the ones it is there to add to.
-		if offerAdd and header then
-			header.add = L.addBind
+			rows[#rows + 1] = { type = "header", text = L.other }
 		end
 
 		for _, action in ipairs(others) do
@@ -1658,6 +1658,40 @@ local function discardStaged()
 	rebuildRows()
 end
 
+-- Whether a bind list is the one already staged, bind for bind and in the same order.
+function state.isStaged(binds)
+	if #binds ~= #working.binds then
+		return false
+	end
+
+	for i, b in ipairs(binds) do
+		local w = working.binds[i]
+		if b.keyset ~= w.keyset or b.action ~= w.action then
+			return false
+		end
+	end
+
+	return true
+end
+
+-- A whole bind list staged as one edit, Ctrl+Z taking all of it back.
+function state.stageBinds(binds)
+	-- Every action keeps its entry, emptied or not: a row the catalog does not name is derived
+	-- from it, and would otherwise vanish with nothing left to click to bind it again.
+	local byAction = {}
+	for action in pairs(working.byAction) do
+		byAction[action] = {}
+	end
+	for _, b in ipairs(binds) do
+		local ks = byAction[b.action] or {}
+		byAction[b.action] = ks
+		ks[#ks + 1] = { raw = b.keyset, display = keybindModel.displayKeyset(b.keyset, working.layout) }
+	end
+
+	working.binds, working.byAction = binds, byAction
+	markStaged()
+end
+
 ----------------------------------------------------------------
 -- Dialogs
 ----------------------------------------------------------------
@@ -1715,6 +1749,9 @@ end
 local function dialogName()
 	if not dialog or dialog.message then
 		return "", false
+	end
+	if dialog.nameless then
+		return "", dialog.blocked == true
 	end
 
 	local name = nameBox:getText():gsub("^%s+", ""):gsub("%s+$", "")
@@ -1902,7 +1939,8 @@ local function startDuplicate()
 end
 
 -- Export copies the preset on screen, staged edits included, to the clipboard as the text the
--- engine loads; Import reads such text back as a new preset of the player's own.
+-- engine loads; Import reads such text back, as a new preset of the player's own or as edits to
+-- the one on screen.
 local function startClipboard(exporting)
 	if exporting then
 		local name = profiles.activeName()
@@ -1926,35 +1964,93 @@ local function startClipboard(exporting)
 	end
 
 	-- With nothing readable the dialog still opens, so the player can see why, but cannot be
-	-- accepted.
-	local lines, count, errors = profiles.classifyBindFile(clip)
+	-- accepted. Run on top of a preset, an unbind alone is still an edit; a preset of its own
+	-- needs a bind.
+	local lines, count, errors, directives = profiles.classifyBindFile(clip)
 	local binds, fakeMeta, stamped = profiles.parseBindFile(clip)
-	local summary = binds and (colorText .. BAR.I18N("ui.keybinds.editor.importSummary", { n = count }))
-		or (colorDanger .. L.importNone)
-	if errors > 0 then
-		summary = summary .. colorDim .. ", " .. colorHeader .. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
-	end
-	local function open()
-		openDialog({
-			title = L.importTitle,
-			initial = profiles.uniqueName(stamped or L.newProfile),
-			preview = { lines = lines, summary = summary, scroll = 0 },
-			blocked = binds == nil,
-			acceptLabel = L.import,
-			accept = function(newName)
-				-- Named like a copy is, then made live: importing is switching to it.
-				selectProfile(profiles.create(newName, binds, fakeMeta), profiles.activeName())
-			end,
-		})
+	local from = profiles.activeName()
+	-- A preset's worth of text is one of its own. A few lines are run on top of the preset on
+	-- screen, or on top of a copy of it; a default takes no edits, so only a copy.
+	local whole = profiles.isWholeProfile(clip)
+	local own = activeIsOwn()
+	local d = {
+		title = L.importTitle,
+		initial = profiles.uniqueName(stamped or L.newProfile),
+		preview = { lines = lines, scroll = 0, summary = "" },
+		choice = { label = L.importAsNew, on = whole or not own, locked = not own },
+		hint = BAR.I18N("ui.keybinds.editor.importAddHint", { name = from }),
+		nameless = false,
+		blocked = false,
+		acceptLabel = L.import,
+	}
+
+	local function summarize(readable)
+		local summary = readable and (colorText .. BAR.I18N("ui.keybinds.editor.importSummary", { n = count }))
+			or (colorDanger .. L.importNone)
+		if errors > 0 then
+			summary = summary
+				.. colorDim
+				.. ", "
+				.. colorHeader
+				.. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
+		end
+
+		return summary
 	end
 
-	-- Importing replaces what is on screen, so staged edits are asked about first - but not
-	-- over a preview that cannot be accepted anyway.
-	if binds then
-		guardDirty(open)
-	else
-		open()
+	function d.choice.set(on)
+		local readable = count + directives > 0
+		if on and whole then
+			readable = binds ~= nil
+		end
+
+		d.choice.on = on
+		d.nameless = not on
+		d.blocked = not readable
+		d.acceptLabel = on and L.import or L.importAdd
+		d.preview.summary = summarize(readable)
+		if on then
+			nameBox:focus()
+		else
+			nameBox:blur()
+		end
 	end
+
+	function d.accept(newName)
+		if d.choice.on and whole then
+			-- Named like a copy is, then made live: importing is switching to it, so staged edits
+			-- are asked about first.
+			guardDirty(function()
+				selectProfile(profiles.create(newName, binds, fakeMeta), from)
+			end)
+
+			return
+		end
+
+		local merged = profiles.applyBindText(stagedBinds(), clip)
+		if state.isStaged(merged) then
+			openDialog({
+				title = L.importTitle,
+				message = BAR.I18N("ui.keybinds.editor.importNothing", { name = from }),
+				info = true,
+				acceptLabel = L.ok,
+				accept = function() end,
+			})
+
+			return
+		end
+
+		if d.choice.on then
+			-- The copy takes the staged edits with it, so switching to it leaves nothing behind.
+			local base = profiles.baseOf(from)
+			selectProfile(profiles.create(newName, merged, activeFakeMeta(), base and base.name), from)
+		else
+			state.stageBinds(merged)
+		end
+	end
+
+	openDialog(d)
+	d.choice.set(d.choice.on)
 end
 
 -- Renaming and deleting share one dialog: the name field commits a rename, the
@@ -2092,10 +2188,11 @@ local function layoutHeader()
 	state.layoutPending = false
 
 	local gap = floor(8 * scale)
+	local buttonGap = floor(4 * scale)
 	local rowTop = area.y2 - floor(4 * scale)
 	local rowBottom = area.y2 - state.headerH + floor(4 * scale)
 	-- Room for the longest shipped name beside its Default tag.
-	local presetW = floor(280 * scale)
+	local presetW = floor(240 * scale)
 	local btnFs = floor((rowTop - rowBottom) * 0.5)
 	local bfs = floor(rowHeight * 0.55)
 
@@ -2115,7 +2212,7 @@ local function layoutHeader()
 			end
 		end
 		b.rect = { bx2 - w, rowBottom, bx2, rowTop }
-		bx2 = floor(bx2 - w - gap * (b.gap or 1))
+		bx2 = floor(bx2 - w - buttonGap * (b.gap or 1))
 	end
 	local pickerX1 = bx2 - presetW
 	metrics.presetLabelX = pickerX1 - gap - labelWidth(L.preset or "", btnFs, 0)
@@ -2178,6 +2275,10 @@ local function dialogGeometry()
 		messageLines = text.wrap(font, dialog.message, w - floor(32 * scale), floor(rowHeight * 0.5))
 		h = h + math.max(0, #messageLines - 1) * messageStep
 	end
+	local noteText = dialog and dialog.note
+	if noteText then
+		h = h + floor(22 * scale)
+	end
 	local cx = (area.x1 + area.x2) * 0.5
 	local cy = (area.y1 + area.y2) * 0.5
 	local bx1, bx2 = floor(cx - w * 0.5), floor(cx + w * 0.5)
@@ -2210,7 +2311,38 @@ local function dialogGeometry()
 		box = { bx1 + pad, field[4] + floor(14 * scale), bx2 - pad, by2 - floor(66 * scale) }
 	end
 
-	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box
+	-- A choice shares the field's row, its switch and caption ahead of the field, and takes a click
+	-- on either.
+	local choice
+	if dialog and dialog.choice then
+		local fh = field[4] - field[2]
+		local sh = floor(fh * 0.7)
+		local sy1 = field[2] + floor((fh - sh) * 0.5)
+		local sx2 = field[1] + floor(sh * 1.8)
+		local labelX = sx2 + floor(8 * scale)
+		local labelW = font and floor(font:GetTextWidth(dialog.choice.label) * floor(rowHeight * 0.5)) or 0
+		choice = {
+			switch = { field[1], sy1, sx2, sy1 + sh },
+			hit = { field[1], field[2], labelX + labelW, field[4] },
+			labelX = labelX,
+			label = dialog.choice.label,
+			on = dialog.choice.on,
+			locked = dialog.choice.locked == true,
+			-- With no name to ask for, the field's place says where the keybinds go instead.
+			fieldless = dialog.nameless == true,
+			hint = dialog.nameless and dialog.hint or nil,
+		}
+		field[1] = labelX + labelW + pad
+	end
+
+	-- A line saying what the field wants, between the title and the field.
+	local note
+	if noteText then
+		local titleBottom = by2 - floor(26 * scale) - floor(rowHeight * 0.3)
+		note = { text = noteText, y = floor((titleBottom + field[4]) * 0.5) }
+	end
+
+	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice, note
 end
 
 -- Capture-modal geometry, derived in one place so draw and mousePress agree.
@@ -3016,14 +3148,6 @@ local function rowLayout(row)
 	lay = { gen = layoutGen }
 	if row.type == "header" then
 		lay.text = colorHeader .. row.text
-		if row.add then
-			-- Against the right edge, measured so the click lands on the words and not on the
-			-- whole band, which is a heading and does nothing.
-			lay.addW = floor(font:GetTextWidth(row.add) * metrics.headerFs)
-			lay.addX = listRight - metrics.rowPad - lay.addW
-			lay.addText = colorAction .. row.add
-			lay.addTextHover = colorHeader .. row.add
-		end
 	elseif row.type == "note" then
 		lay.text = colorDim .. text.fit(font, row.text, listRight - listX1 - metrics.rowPad * 4, metrics.rowFs)
 
@@ -3176,11 +3300,23 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
--- The category column starts below where the keybind rows do, so the title is not crowded.
-local function sidebarTop()
-	-- Off the band's fixed top, not the rows' own: the Changed section lowers the rows for its
-	-- comparison picker, and the column beside them must not move with it.
+-- The category column starts below where the keybind rows do, so the title is not crowded. Off
+-- the band's fixed top, not the rows' own: the Changed section lowers the rows for its comparison
+-- picker, and the column beside them must not move with it.
+function state.sidebarCardTop()
 	return (metrics.listTopBase or listTop) - metrics.sidebarDrop
+end
+
+-- Add Keybind heads the column, a button among entries that are all filters, sized like one.
+function state.addBindRect()
+	local top = state.sidebarCardTop()
+
+	return area.x1 + metrics.catInset, top - metrics.catRowHeight, area.x1 + sidebarW - metrics.catInset, top
+end
+
+-- Where the category entries start, under Add Keybind.
+local function sidebarTop()
+	return state.sidebarCardTop() - metrics.catRowHeight - metrics.catInset * 2
 end
 
 -- `i` is the entry place in `categories`, not on screen: the two differ by however far the
@@ -3315,13 +3451,13 @@ end
 -- The category column: its own card under the title, then one entry per category, with
 -- hoverIdx the entry under the cursor.
 local function drawSidebar(hoverIdx)
-	-- Derived from the first category rather than measured from the panel top, so the card
-	-- keeps its lip above the entries wherever the column starts.
+	-- Derived from the column's top rather than measured from the panel top, so the card keeps
+	-- its lip above what it holds wherever the column starts.
 	RectRound(
 		area.x1,
 		area.y1,
 		area.x1 + sidebarW,
-		sidebarTop() + metrics.cardLip,
+		state.sidebarCardTop() + metrics.cardLip,
 		metrics.csPanel,
 		1,
 		1,
@@ -3331,6 +3467,17 @@ local function drawSidebar(hoverIdx)
 		look.sidebarFillTop
 	)
 	queueText(L.titleText, area.x1 + metrics.sidePad, area.y2 - metrics.titleY, metrics.titleFs, "ov")
+
+	-- Green like Save, the other button that adds to the preset.
+	local ax1, ay1, ax2, ay2 = state.addBindRect()
+	drawButtonFace({ ax1, ay1, ax2, ay2 }, hover.btn == "addBind" and confirmFillHover or confirmFill)
+	queueText(
+		colorText .. L.addBind,
+		floor((ax1 + ax2) * 0.5),
+		floor((ay1 + ay2) * 0.5),
+		floor(rowHeight * 0.55),
+		"cov"
+	)
 
 	-- A bar of its own, and a slim one: the column is narrow and this only shows up when
 	-- there are more categories than the card has room for.
@@ -3603,10 +3750,6 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
-		if lay.addText then
-			local over = zone == "addbind"
-			queueText(over and lay.addTextHover or lay.addText, lay.addX, cyc, metrics.headerFs, "ov")
-		end
 
 		return
 	end
@@ -3931,7 +4074,8 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 end
 
 local function drawProfileDialog(mx, my)
-	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box = dialogGeometry()
+	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice, note =
+		dialogGeometry()
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 	local tfs = floor(rowHeight * 0.6)
@@ -3981,6 +4125,17 @@ local function drawProfileDialog(mx, my)
 	-- Its own geometry and text, ahead of the dialog's own batch of text.
 	if box then
 		state.drawPreview(dialog.preview, box[1], box[2], box[3], box[4], mx, my)
+	end
+	if choice then
+		local sw, hit = choice.switch, choice.hit
+		WG.FlowUI.Draw.Toggle(
+			sw[1],
+			sw[2],
+			sw[3],
+			sw[4],
+			choice.on and 1 or 0,
+			not choice.locked and isInRect(mx, my, hit[1], hit[2], hit[3], hit[4])
+		)
 	end
 
 	font:Begin()
@@ -4041,7 +4196,21 @@ local function drawProfileDialog(mx, my)
 		sfs,
 		"cov"
 	)
+	if note then
+		font:Print(colorDim .. text.fit(font, note.text, bx2 - bx1 - floor(32 * scale), sfs), cx, note.y, sfs, "cov")
+	end
+	local fieldCy = floor((field[2] + field[4]) * 0.5)
+	if choice then
+		font:Print((choice.locked and colorDim or colorText) .. choice.label, choice.labelX, fieldCy, sfs, "ov")
+		if choice.hint then
+			font:Print(colorDim .. text.fit(font, choice.hint, field[3] - field[1], sfs), field[1], fieldCy, sfs, "ov")
+		end
+	end
 	font:End()
+
+	if choice and choice.fieldless then
+		return
+	end
 
 	if not dialog.message then
 		nameBox:setRect(field[1], field[2], field[3], field[4], sfs)
@@ -4151,11 +4320,6 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
-			elseif row.type == "header" and row.add then
-				local lay = rowLayout(row)
-				if mx >= lay.addX - metrics.rowPad then
-					h.zone = "addbind"
-				end
 			end
 		end
 	end
@@ -4167,6 +4331,9 @@ local function panelSignature(mx, my)
 				h.btn = b.id
 			end
 		end
+	end
+	if not keyboardPage and isInRect(mx, my, state.addBindRect()) then
+		h.btn = "addBind"
 	end
 
 	-- What the buttons read their enabled state from, alongside the hover and the list.
@@ -4729,6 +4896,11 @@ end
 -- Returns true when the click landed in the column, selected or not, so it never falls
 -- through to the list behind it.
 local function sidebarPress(x, y)
+	if isInRect(x, y, state.addBindRect()) then
+		state.addBind()
+
+		return true
+	end
 	if x < area.x1 or x > area.x1 + sidebarW or y < listBottom() or y > sidebarTop() then
 		return false
 	end
@@ -4754,7 +4926,20 @@ function state.addBind()
 		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
 		maxChars = 96,
+		-- Binds are shared as console lines, so that is what a player will paste without being told.
+		note = L.addBindNote,
 		accept = function(typed)
+			-- Pasted anyway, a whole bind line already names its key, so it is taken as the import
+			-- would take it rather than asking for the key again.
+			if typed:match("^/?bind%s+%S+%s+%S") then
+				local merged = profiles.applyBindText(stagedBinds(), typed)
+				if not state.isStaged(merged) then
+					state.stageBinds(merged)
+				end
+
+				return
+			end
+
 			-- The engine lower-cases the command as it parses the bind line, so a capitalised one would
 			-- read back as something else. Its arguments keep their case.
 			local command, rest = typed:match("^(%S+)(.*)$")
@@ -4797,7 +4982,7 @@ function view.mousePress(x, y, button)
 
 	if dialog then
 		if button == 1 then
-			local bx1, by1, bx2, by2, ok, cancel, field, discard, _, _, box = dialogGeometry()
+			local bx1, by1, bx2, by2, ok, cancel, _, discard, _, _, box, choice = dialogGeometry()
 			if isInRect(x, y, ok[1], ok[2], ok[3], ok[4]) then
 				acceptDialog()
 			elseif dialog.middle and isInRect(x, y, discard[1], discard[2], discard[3], discard[4]) then
@@ -4834,7 +5019,11 @@ function view.mousePress(x, y, button)
 						end
 					end
 				end
-			elseif not dialog.message then
+			elseif choice and isInRect(x, y, choice.hit[1], choice.hit[2], choice.hit[3], choice.hit[4]) then
+				if not choice.locked then
+					dialog.choice.set(not dialog.choice.on)
+				end
+			elseif not dialog.message and not dialog.nameless then
 				nameBox:mousePress(x, y)
 			end
 		end
@@ -4983,8 +5172,6 @@ function view.mousePress(x, y, button)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
 			end
-		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
-			state.addBind()
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
@@ -4998,7 +5185,7 @@ end
 
 function view.textInput(char)
 	if dialog then
-		return not dialog.message and nameBox:textInput(char)
+		return not dialog.message and not dialog.nameless and nameBox:textInput(char)
 	end
 	if searchBox and searchBox:isFocused() then
 		return searchBox:textInput(char)
@@ -5014,7 +5201,7 @@ function view.keyPress(key, scanCode)
 			cancelDialog()
 		elseif key == KEYSYMS.RETURN then
 			acceptDialog()
-		elseif not dialog.message then
+		elseif not dialog.message and not dialog.nameless then
 			-- Focus is dropped by the editbox on Escape/Return, which are handled above.
 			nameBox:keyPress(key)
 		end

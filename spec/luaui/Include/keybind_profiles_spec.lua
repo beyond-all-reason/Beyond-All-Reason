@@ -323,3 +323,86 @@ describe("inferring which shipped profile a keymap came from", function()
 		assert.are.equal("Grid", profiles.inferBase({ binds = capitalised }))
 	end)
 end)
+
+describe("importing bind lines into the preset on screen", function()
+	-- Pasted onto a keymap, the lines are run against it the way the engine would run them against
+	-- a live one, so a paste of console binds lands as if it were typed at the console.
+	local function current()
+		return {
+			{ keyset = "sc_w", action = "resurrect" },
+			{ keyset = "sc_y", action = "wait" },
+		}
+	end
+
+	it("adds its binds after the preset's own", function()
+		local binds = includeProfiles().applyBindText(current(), "bind sc_q probe_add\n")
+
+		assert.are.same({
+			{ keyset = "sc_w", action = "resurrect" },
+			{ keyset = "sc_y", action = "wait" },
+			{ keyset = "sc_q", action = "probe_add" },
+		}, binds)
+	end)
+
+	-- The engine refuses a bind it already holds, so a second copy would be a row doing nothing.
+	it("refuses a bind the preset already holds, however the keyset is spelled", function()
+		local binds = includeProfiles().applyBindText(current(), "bind SC_Y wait\n")
+
+		assert.are.same(current(), binds)
+	end)
+
+	it("takes an unbind from the preset's own binds", function()
+		local binds = includeProfiles().applyBindText(current(), "unbindkeyset sc_w\nbind sc_w wait\n")
+
+		assert.are.same({
+			{ keyset = "sc_y", action = "wait" },
+			{ keyset = "sc_w", action = "wait" },
+		}, binds)
+	end)
+
+	it("leaves the list it was given alone", function()
+		local given = current()
+		includeProfiles().applyBindText(given, "unbindall\n")
+
+		assert.are.same(current(), given)
+	end)
+end)
+
+describe("reading a bind copied from chat", function()
+	it("takes the slash it was typed with", function()
+		local binds = parse("/bind sc_q probe_slash\n")
+
+		assert.are.same({ "sc_q" }, keysetsFor(binds, "probe_slash"))
+	end)
+
+	it("shows the line as a bind in the preview", function()
+		local lines, binds, errors = includeProfiles().classifyBindFile("/bind sc_q probe_slash")
+
+		assert.are.equal("bind", lines[1].kind)
+		assert.are.equal(1, binds)
+		assert.are.equal(0, errors)
+	end)
+
+	it("leaves a // comment a comment", function()
+		local lines = includeProfiles().classifyBindFile("//bind sc_q probe_slash")
+
+		assert.are.equal("comment", lines[1].kind)
+	end)
+end)
+
+describe("telling a whole preset from a few binds", function()
+	it("reads our own export as a preset", function()
+		local profiles = includeProfiles()
+		local text = profiles.exportText({ name = "Mine", binds = { { keyset = "sc_q", action = "attack" } } })
+
+		assert.is_true(profiles.isWholeProfile(text))
+	end)
+
+	it("reads text that clears the keymap first as a preset", function()
+		assert.is_true(includeProfiles().isWholeProfile("unbindall\nbind sc_q attack\n"))
+	end)
+
+	it("reads loose bind lines as binds to add", function()
+		assert.is_false(includeProfiles().isWholeProfile("bind sc_q attack\n/bind sc_w wait\n"))
+	end)
+end)
