@@ -26,6 +26,37 @@ describe("the startbox arrangement export", function()
 	end)
 end)
 
+describe("the start position suggestions", function()
+	it("names each position a spawn point, and seats it under its team in order, with its role", function()
+		local out = assert(Export.Suggestions({
+			{ id = "b", type = "start", team = 1, vertices = {}, positions = { { x = 700.6, z = 800, role = "air" } } },
+			{ id = "c", type = "start", team = 2, vertices = square },
+			{
+				id = "a",
+				type = "start",
+				team = 0,
+				vertices = {},
+				positions = { { x = 10, z = 20, role = "front" }, { x = 30, z = 40 } },
+			},
+		}))
+		assert.are.same({ P1 = { x = 700, y = 800 }, P2 = { x = 10, y = 20 }, P3 = { x = 30, y = 40 } }, out.positions)
+		assert.are.same({
+			{
+				teamCount = 2,
+				playersPerTeam = 2,
+				sides = {
+					{ starts = { { spawnPoint = "P2", role = "front" }, { spawnPoint = "P3" } } },
+					{ starts = { { spawnPoint = "P1", role = "air" } } },
+				},
+			},
+		}, out.team)
+	end)
+
+	it("is nothing when no start has a position", function()
+		assert.is_nil(Export.Suggestions({ { id = "a", type = "start", team = 0, vertices = square } }))
+	end)
+end)
+
 describe("the start script", function()
 	it("gives each team its areas' bounding rect, one AI per team past the first, and the mod options", function()
 		local script = assert(Export.StartScript({
