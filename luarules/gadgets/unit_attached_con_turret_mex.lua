@@ -22,7 +22,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local SendToUnsynced = SendToUnsynced
 local resolveAttachPiece = require("luarules/gadgets/include/unit_attachments").ResolveAttachPiece
 
-local ATTRIBUTE_SOURCE = "invariant"
+local ATTRIBUTE_SOURCE = "con_turret_mex"
 
 -- customparams.attached_con_turret_mex (the extractor def) + attached_con_turret (the con def)
 -- mark builds that split into a mex plus an attached con turret; scav copies inherit the

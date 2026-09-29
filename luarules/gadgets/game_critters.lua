@@ -65,7 +65,7 @@ local CMD_PATROL = CMD.PATROL
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_ATTACK = CMD.ATTACK
 
-local ATTRIBUTE_SOURCE = "invariant" -- critters are not interactive
+local ATTRIBUTE_SOURCE = "critters"
 local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 

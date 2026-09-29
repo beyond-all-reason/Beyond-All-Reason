@@ -31,7 +31,7 @@ local CMD_MOVE = CMD.MOVE
 local CMD_RECLAIM = CMD.RECLAIM
 local CMD_REPAIR = CMD.REPAIR
 
-local ATTRIBUTE_SOURCE = "invariant" -- objects are not interactive
+local ATTRIBUTE_SOURCE = "objectify"
 local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
 
 local isBuilder = {}
