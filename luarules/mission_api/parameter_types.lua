@@ -31,6 +31,7 @@ local types = {
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	Difficulty = "Difficulty",
+	UnitAttribute = "UnitAttribute",
 
 	-- Number Validators:
 	Number = "Number",
@@ -49,6 +50,9 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
+
+	-- Number-or-String-or-Boolean Validators:
+	AttributeValue = "AttributeValue",
 
 }
 
