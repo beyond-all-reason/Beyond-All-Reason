@@ -40,6 +40,8 @@ describe("mission_api.actions.set_attribute", function()
 		_G.GG.UnitAttributes = { ---@diagnostic disable-line: global-in-non-module
 			SetUnitDefAttribute = record("SetUnitDefAttribute"),
 			SetUnitAttribute = record("SetUnitAttribute"),
+			SetUnitDefModifier = record("SetUnitDefModifier"),
+			SetUnitModifier = record("SetUnitModifier"),
 		}
 		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
 	end)
@@ -138,6 +140,62 @@ describe("mission_api.actions.set_attribute", function()
 			action.actionFunction(nil, "armwar", 0, "speed", nil, "boost")
 
 			assert.are.same({ { "SetUnitAttribute", 11, "speed", nil, "boost" } }, calls)
+		end)
+	end)
+
+	describe("SetUnitDefModifier", function()
+		local action = actionOfType("SetUnitDefModifier")
+
+		it("declares its parameters", function()
+			assert.are.same({
+				type = "SetUnitDefModifier",
+				unitDefName = "UnitDefName!",
+				teamID = "TeamID",
+				attribute = "UnitAttribute!",
+				multiplier = "AttributeMultiplier",
+				source = "String",
+			}, summarizeSchema(action))
+		end)
+
+		it("scales the def attribute under the mission's source, for one team", function()
+			action.actionFunction("armpw", 1, "losRadius", 0.5, nil)
+
+			assert.are.same({ { "SetUnitDefModifier", 8, "losRadius", 0.5, "mission", 1 } }, calls)
+		end)
+
+		it("clears the source when there is no multiplier", function()
+			action.actionFunction("armpw", nil, "losRadius", nil, "fog")
+
+			assert.are.same({ { "SetUnitDefModifier", 8, "losRadius", nil, "fog", nil } }, calls)
+		end)
+	end)
+
+	describe("SetUnitModifier", function()
+		local action = actionOfType("SetUnitModifier")
+
+		it("declares its parameters", function()
+			assert.are.same({
+				type = "SetUnitModifier",
+				unitName = "UnitName",
+				unitDefName = "UnitDefName",
+				teamID = "TeamID",
+				attribute = "UnitAttribute!",
+				multiplier = "AttributeMultiplier",
+				source = "String",
+				requiresOneOf = { "unitName", "unitDefName" },
+			}, summarizeSchema(action))
+		end)
+
+		it("scales every unit the query matched", function()
+			queryResult = { 11, 12 }
+
+			action.actionFunction("bots", nil, nil, "speed", 1.5, "haste")
+
+			assert.are.same({
+				{ "SetUnitModifier", 11, "speed", 1.5, "haste" },
+				{ "SetUnitModifier", 12, "speed", 1.5, "haste" },
+			}, calls)
+			assert.are.same({ { "bots" } }, queried)
 		end)
 	end)
 end)

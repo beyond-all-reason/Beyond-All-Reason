@@ -2,9 +2,10 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 local matchingUnits = GG['MissionAPI'].Modules.UnitQuery.MatchingUnits
 
 local SOURCE_DEFAULT = 'mission'
-
 local setUnitDefAttribute = GG.UnitAttributes.SetUnitDefAttribute
 local setUnitAttribute = GG.UnitAttributes.SetUnitAttribute
+local multiplyUnitDefAttribute = GG.UnitAttributes.SetUnitDefModifier
+local multiplyUnitAttribute = GG.UnitAttributes.SetUnitModifier
 
 local function setUnitDefAttribute(unitDefName, teamID, attribute, value, source)
 	local unitDef = UnitDefNames[unitDefName]
@@ -18,6 +19,21 @@ local function setUnitAttribute(unitName, unitDefName, teamID, attribute, value,
 	source = source or SOURCE_DEFAULT
 	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
 		setUnitAttribute(unitID, attribute, value, source)
+	end
+end
+
+local function setUnitDefModifier(unitDefName, teamID, attribute, multiplier, source)
+	local unitDef = UnitDefNames[unitDefName]
+	if not unitDef then
+		return
+	end
+	multiplyUnitDefAttribute(unitDef.id, attribute, multiplier, source or SOURCE_DEFAULT, teamID)
+end
+
+local function setUnitModifier(unitName, unitDefName, teamID, attribute, multiplier, source)
+	source = source or SOURCE_DEFAULT
+	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
+		multiplyUnitAttribute(unitID, attribute, multiplier, source)
 	end
 end
 
@@ -45,5 +61,29 @@ return {
 			requiresOneOf = { 'unitName', 'unitDefName' },
 		},
 		actionFunction = setUnitAttribute,
+	},
+	{
+		type = 'SetUnitDefModifier',
+		parameters = {
+			{ name = 'unitDefName', required = true,  type = ParameterTypes.UnitDefName },
+			{ name = 'teamID',      required = false, type = ParameterTypes.TeamID }, -- default := every team
+			{ name = 'attribute',   required = true,  type = ParameterTypes.UnitAttribute },
+			{ name = 'multiplier',  required = false, type = ParameterTypes.AttributeMultiplier },
+			{ name = 'source',      required = false, type = ParameterTypes.String }, -- default := 'mission'
+		},
+		actionFunction = setUnitDefModifier,
+	},
+	{
+		type = 'SetUnitModifier',
+		parameters = {
+			{ name = 'unitName',    required = false, type = ParameterTypes.UnitName },
+			{ name = 'unitDefName', required = false, type = ParameterTypes.UnitDefName },
+			{ name = 'teamID',      required = false, type = ParameterTypes.TeamID },
+			{ name = 'attribute',   required = true,  type = ParameterTypes.UnitAttribute },
+			{ name = 'multiplier',  required = false, type = ParameterTypes.AttributeMultiplier },
+			{ name = 'source',      required = false, type = ParameterTypes.String }, -- default := 'mission'
+			requiresOneOf = { 'unitName', 'unitDefName' },
+		},
+		actionFunction = setUnitModifier,
 	},
 }

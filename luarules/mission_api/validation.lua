@@ -87,6 +87,7 @@ local weaponAttributeDefinitions = attributeDefinitions.WeaponAttributeDefinitio
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local canSetUnitAttribute = attributeRules.CanSetUnitAttribute
 local canSetUnitDefAttribute = attributeRules.CanSetUnitDefAttribute
+local canSetUnitModifier = attributeRules.CanSetUnitModifier
 local affectsUnitDef = attributeRules.AffectsUnitDef
 
 local validators = {}
@@ -657,6 +658,8 @@ validators[Types.PositiveInteger] = function(value)
 		return { { message = "PositiveInteger must be a whole number > 0, got " .. value } }
 	end
 end
+
+validators[Types.AttributeMultiplier] = validators[Types.Number]
 
 validators[Types.Fraction] = function(fraction)
 	local luaTypeResult = validators[Types.Number](fraction)
@@ -1774,6 +1777,7 @@ end
 local function validateAttributeActions(actions)
 	local unitAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitAttribute)
 	local setActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeValue)
+	local modifierActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeMultiplier)
 	local unitScopeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
 
 	-- Every action taking an attribute is checked by parameter type rather than by action name.
@@ -1791,6 +1795,8 @@ local function validateAttributeActions(actions)
 			if setActions[actionType] then
 				local canSet = unitScopeActions[actionType] and canSetUnitAttribute or canSetUnitDefAttribute
 				ok, reason, parameter = canSet(entry, parameters.value)
+			elseif modifierActions[actionType] then
+				ok, reason, parameter = canSetUnitModifier(entry, parameters.multiplier)
 			end
 			if not ok then
 				logError(

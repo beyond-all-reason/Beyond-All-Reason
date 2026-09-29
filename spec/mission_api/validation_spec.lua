@@ -1866,6 +1866,47 @@ describe("mission_api.validation", function()
 				assert.are.same({}, logged)
 			end)
 
+			it("rejects a negative multiplier", function()
+				referenceErrors({ armwar = armwar }, {
+					shrink = {
+						type = actionTypes.SetUnitDefModifier,
+						parameters = { unitDefName = "armwar", attribute = "losRadius", multiplier = -2 },
+					},
+				})
+				assert.is_true(
+					hasError("Unit attribute 'losRadius' must be >= 0, got -2. Action: shrink, Parameter: multiplier")
+				)
+			end)
+
+			it("rejects multiplying a unit state or a boolean attribute", function()
+				referenceErrors({ armwar = armwar }, {
+					heal = {
+						type = actionTypes.SetUnitModifier,
+						parameters = { unitDefName = "armwar", attribute = "health", multiplier = 2 },
+					},
+					hide = {
+						type = actionTypes.SetUnitDefModifier,
+						parameters = { unitDefName = "armwar", attribute = "stealth", multiplier = 2 },
+					},
+				})
+				assert.is_true(
+					hasError("Unit attribute 'health' cannot be multiplied. Action: heal, Parameter: attribute")
+				)
+				assert.is_true(
+					hasError("Unit attribute 'stealth' cannot be multiplied. Action: hide, Parameter: attribute")
+				)
+			end)
+
+			it("accepts a modifier with no multiplier, which clears the source", function()
+				referenceErrors({ armwar = armwar }, {
+					clearHaste = {
+						type = actionTypes.SetUnitModifier,
+						parameters = { unitDefName = "armwar", attribute = "speed", source = "haste" },
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
 			it("finds the attribute actions through the schema, not by name", function()
 				local syntheticType = "syntheticAttributeAction"
 				actionDefinitions.Parameters[syntheticType] = {
