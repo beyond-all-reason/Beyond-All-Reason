@@ -94,7 +94,9 @@ local unitdefTeamFactors = {} ---@type table<UnitDefID, table<TeamID, table<stri
 local unitFactors = {} ---@type table<UnitID, table<string, AttributeFactors|WeaponFactors>?>
 local appliedValues = {} ---@type table<UnitID, table<string, any>?> NB: Weapon attributes store their composed vectors.
 local dirty = {} ---@type table<UnitID, table<string, true?>?>
-local sequenceNum = math.int_min
+
+local SEQUENCE_MIN, SEQUENCE_MAX = math.int_min, math.int_max
+local sequenceNum = SEQUENCE_MIN
 
 -- Module internals ------------------------------------------------------------
 
@@ -761,6 +763,61 @@ do
 	end
 end
 
+---Float32 counts exactly only to 2^24, so the live sets are renumbered, in order, before the sequence runs out.
+local function compactSequences()
+	local sequenced = {} ---@type AttributeFactor[]
+
+	local function addSequencedFactors(factors, count)
+		for _, factor in pairs(factors) do
+			if factor.kind == "set" then
+				count = count + 1
+				sequenced[count] = factor
+			end
+		end
+		return count
+	end
+
+	local function addSequencedAttributes(attributes, count)
+		for attribute, factors in pairs(attributes) do
+			if weaponAttributes[attribute] then
+				for _, weaponFactors in pairs(factors) do
+					count = addSequencedFactors(weaponFactors, count)
+				end
+			else
+				count = addSequencedFactors(factors, count)
+			end
+		end
+		return count
+	end
+	
+	local function bySequence(a, b)
+		return a.sequence < b.sequence
+	end
+
+	local count = 0
+	for _, attributes in pairs(unitdefFactors) do
+		count = addSequencedAttributes(attributes, count)
+	end
+	for _, teams in pairs(unitdefTeamFactors) do
+		for _, attributes in pairs(teams) do
+			count = addSequencedAttributes(attributes, count)
+		end
+	end
+	for _, attributes in pairs(unitFactors) do
+		count = addSequencedAttributes(attributes, count)
+	end
+
+	table.sort(sequenced, bySequence)
+
+	local sequence = SEQUENCE_MIN
+	for index = 1, count do
+		sequence = sequence + 1
+		sequenced[index].sequence = sequence
+		sequenced[index] = nil
+	end
+	sequenceNum = sequence
+end
+
 ---@param kind AttributeFactorKind
 ---@return boolean changed `false` only when the composed value _cannot_ have changed
 local function record(factors, source, kind, value)
@@ -772,6 +829,9 @@ local function record(factors, source, kind, value)
 
 	local sequence
 	if kind == "set" then
+		if sequenceNum == SEQUENCE_MAX then
+			compactSequences()
+		end
 		sequenceNum = sequenceNum + 1
 		sequence = sequenceNum
 	end
