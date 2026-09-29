@@ -105,15 +105,6 @@ local triggers = {
 		},
 		actions = { 'teleportTanksWithSetAngle8' },
 	},
-
-	-- [validation.lua] Error: [Mission API] Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both.. Action: rotateTanksWithBoth, Parameter: direction
-	-- rotateTanksWithBoth = {
-		-- type = triggerTypes.TimeElapsed,
-		-- parameters = {
-			-- seconds = 40,
-		-- },
-		-- actions = { 'rotateTanksWithBoth' },
-	-- },
 }
 
 local actions = {
@@ -287,24 +278,6 @@ local actions = {
 			},
 		},
     },
-
-	-- [validation.lua] Error: [Mission API] Direction: Invalid direction parameter, must be either angle { angle }, or direction { x, z, optional y }, not both.. Action: rotateTanksWithBoth, Parameter: direction
-	-- rotateTanksWithBoth = { -- This shouldn't work, but if it does, direction has priority.
-        -- type = actionTypes.RotateUnits,
-		-- parameters = {
-            -- unitName = "tanks",
-			-- position = {
-				-- x = 3000,
-				-- z = 3000,
-			-- },
-			-- direction = {
-				-- angle = -90,
-				-- x = 1000,
-				-- z = 1000,
-			-- },
-		-- },
-    -- },
-
 }
 
 return {
