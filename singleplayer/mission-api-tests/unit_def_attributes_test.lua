@@ -33,6 +33,22 @@ local triggers = {
 		},
 		actions = { 'clearLosRadius', 'messageClearLosRadius' },
 	},
+
+	halveLosRadius = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 26,
+		},
+		actions = { 'halveLosRadius', 'messageHalveLosRadius' },
+	},
+
+	clearHalving = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 32,
+		},
+		actions = { 'clearHalving', 'messageClearHalving' },
+	},
 }
 
 local actions = {
@@ -97,6 +113,39 @@ local actions = {
 		type = actionTypes.SendMessage,
 		parameters = {
 			message = 'The losRadius set was cleared, with no value. All three Pawns should be back to their default sight circle.',
+		},
+	},
+
+	halveLosRadius = {
+		type = actionTypes.SetUnitDefModifier,
+		parameters = {
+			unitDefName = 'armpw',
+			attribute = 'losRadius',
+			multiplier = 0.5,
+			source = 'fog',
+		},
+	},
+
+	messageHalveLosRadius = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = 'A modifier named fog halved the Pawn def losRadius. All three sight circles should shrink to half.',
+		},
+	},
+
+	clearHalving = {
+		type = actionTypes.SetUnitDefModifier,
+		parameters = {
+			unitDefName = 'armpw',
+			attribute = 'losRadius',
+			source = 'fog',
+		},
+	},
+
+	messageClearHalving = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			message = 'The fog modifier was cleared. The sight circles should be back to their default size.',
 		},
 	},
 }
