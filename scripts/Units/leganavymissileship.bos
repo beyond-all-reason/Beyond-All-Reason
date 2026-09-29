@@ -148,6 +148,18 @@ Create()
 {
     turn platformHinge1 to y-axis <4.35> now;
     turn platformHinge2 to y-axis <12.4> now;
+    turn platform1barrelextension1firepoint to x-axis <-90> now;
+    turn platform1barrelextension2firepoint to x-axis <-90> now;
+    turn platform1barrelextension3firepoint to x-axis <-90> now;
+    turn platform1barrelextension4firepoint to x-axis <-90> now;
+    turn platform1barrelextension5firepoint to x-axis <-90> now;
+    turn platform1barrelextension6firepoint to x-axis <-90> now;
+    turn platform2barrelextension1firepoint to x-axis <-90> now;
+    turn platform2barrelextension2firepoint to x-axis <-90> now;
+    turn platform2barrelextension3firepoint to x-axis <-90> now;
+    turn platform2barrelextension4firepoint to x-axis <-90> now;
+    turn platform2barrelextension5firepoint to x-axis <-90> now;
+    turn platform2barrelextension6firepoint to x-axis <-90> now;
 	whichPlatform = 0;
     whichBarrel = 0;
     isOpen = 0;
