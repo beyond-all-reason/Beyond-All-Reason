@@ -3,25 +3,45 @@ local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 local tracking = GG['MissionAPI'].Modules.Tracking
 local trackedUnitIDs = GG["MissionAPI"].trackedUnitIDs
 
-local function setUnitsControlEnabled(unitTrackName, isEnabled, teamID)
-	if tracking.IsUnitNameUntracked(unitTrackName) then return end
-
-	local unitIDs = {}
-	for id in pairs(trackedUnitIDs[unitTrackName]) do
-		table.insert(unitIDs, id)
+local function collectUnitIDs(unitName)
+	if tracking.IsUnitNameUntracked(unitName) then
+		return false
 	end
 
-	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, isEnabled, teamID)
+	local unitIDs = {}
+	for id in pairs(trackedUnitIDs[unitName]) do
+		table.insert(unitIDs, id)
+	end
+	return unitIDs
+end
+
+local function enableUnitsControl(unitName, teamID)
+	local unitIDs = collectUnitIDs(unitName)
+	if not unitIDs then return end
+	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, true, teamID)
+end
+
+local function disableUnitsControl(unitName, teamID)
+	local unitIDs = collectUnitIDs(unitName)
+	if not unitIDs then return end
+	GG["CampaignAI"].SetUnitsCtrlEnabled(unitIDs, false, teamID)
 end
 
 return {
 	{
-		type = 'SetUnitsControlEnabled',
+		type = 'EnableUnitsControl',
 		parameters = {
-			{ name = 'unitTrackName', required = true, type = ParameterTypes.UnitName },
-			{ name = 'isEnabled', required = true, type = ParameterTypes.Boolean },
+			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
 			{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
 		},
-		actionFunction = setUnitsControlEnabled,
+		actionFunction = enableUnitsControl,
+	},
+	{
+		type = 'DisableUnitsControl',
+		parameters = {
+			{ name = 'unitName', required = true, type = ParameterTypes.UnitName },
+			{ name = 'teamID', required = true, type = ParameterTypes.TeamID },
+		},
+		actionFunction = disableUnitsControl,
 	}
 }
