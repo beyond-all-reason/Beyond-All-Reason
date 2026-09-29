@@ -33,6 +33,7 @@
 - [Fixed]
   - Bomber settings applied at unit creation could lock them out of Fight, Patrol, and autotargeting.
   - Builder priority handling has been improved, and constructors now default to low priority (commanders remain high).
+  - Some units could not target the sea floor with Set Target. Water, non-water, and mixed weapon sets all can target ground together.
 
 # August
 - [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health
