@@ -1962,20 +1962,17 @@ end
 -- it opens itself once loaded, through the flag it reopens with after a reload it asked for. While it
 -- runs this does nothing, its own action answering instead; returns whether it did anything.
 function widgetHandler:RecoverWidgetSelector()
-	for name, ki in pairs(self.knownWidgets) do
-		if ki.basename == "widget_selector.lua" then
-			if ki.active then
-				return false
-			end
-			if type(self.configData[name]) ~= "table" then
-				self.configData[name] = {}
-			end
-			self.configData[name].reopen = true
-			self:EnableWidget(name)
-			return true
-		end
+	local name = "Widget Selector"
+	local ki = self.knownWidgets[name]
+	if not ki or ki.active then
+		return false
 	end
-	return false
+	if type(self.configData[name]) ~= "table" then
+		self.configData[name] = {}
+	end
+	self.configData[name].reopen = true
+	self:EnableWidget(name)
+	return true
 end
 
 function widgetHandler:ConfigureLayout(command)
