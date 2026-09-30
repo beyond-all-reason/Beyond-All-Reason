@@ -436,6 +436,8 @@ local state = {
 	page = "list",
 	keyboard = require("luaui/Include/keybind_keyboard").new(),
 	keyboardGen = -1,
+	selectCommand = require("luaui/Include/keybind_select"),
+	selectionBuilder = require("luaui/Include/keybind_select_builder").new(),
 }
 
 -- A copy of the staged keymap, for putting back. Binds and keysets are copied rather than
@@ -678,10 +680,12 @@ local function buildResolvedCatalog()
 					if item.alwaysModifier == "any" then
 						catalogAnyPrefixes[#catalogAnyPrefixes + 1] = item.prefix
 					end
+					g.selection = g.selection or item.selection == true
 					g.items[#g.items + 1] = {
 						prefix = item.prefix,
 						label = item.label,
 						unit = item.unit,
+						selection = item.selection,
 						members = item.members,
 						membersFrom = item.membersFrom,
 						description = describe(item),
@@ -751,6 +755,10 @@ local function buildResolvedCatalog()
 	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
 	L.editBindTitle = BAR.I18N("ui.keybinds.editor.editBindTitle")
 	L.addBindNote = BAR.I18N("ui.keybinds.editor.addBindNote")
+	L.addSelection = BAR.I18N("ui.keybinds.select.addLink")
+	L.selectionAdd = BAR.I18N("ui.keybinds.select.titleAdd")
+	L.selectionEdit = BAR.I18N("ui.keybinds.select.titleEdit")
+	L.selectionChooseKey = BAR.I18N("ui.keybinds.select.chooseKey")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -1123,6 +1131,11 @@ local function rebuildRows()
 					end
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
+					local selectSpec = item.selection and state.selectCommand.parse(action)
+					if selectSpec then
+						label = state.selectCommand.describe(selectSpec)
+					end
+					local buildable = selectSpec and state.selectCommand.editable(selectSpec)
 					state.labels[action] = label
 					local change = rowChange(action)
 					if change then
@@ -1142,6 +1155,8 @@ local function rebuildRows()
 							type = "editable",
 							action = action,
 							label = label,
+							editSelection = buildable or nil,
+							custom = item.selection and not buildable or nil,
 							description = item.description,
 							change = change,
 							queryAny = byKey == "any",
@@ -1202,7 +1217,11 @@ local function rebuildRows()
 		end
 
 		if inCategory and #groupRows > 0 then
-			rows[#rows + 1] = { type = "header", text = group.title }
+			rows[#rows + 1] = {
+				type = "header",
+				text = group.title,
+				add = group.selection and not changedOnly and query.empty and L.addSelection or nil,
+			}
 			if group.layout == "grid" then
 				-- Still driven by the rows a search matched, so hunting for one of them surfaces the way in.
 				rows[#rows + 1] = { type = "link", label = L.edit, category = group.category }
@@ -2470,6 +2489,17 @@ function view.setArea(x1, y1, x2, y2, s, wx1, wy1, wx2, wy2)
 		scale,
 		metrics.titleFs
 	)
+	state.selectionBuilder:setArea(
+		area.x1,
+		area.y1,
+		area.x2,
+		area.y2,
+		scale,
+		metrics.winX1,
+		metrics.winY1,
+		metrics.winX2,
+		metrics.winY2
+	)
 	state.applyListTop()
 	state.layoutCompare()
 
@@ -2490,6 +2520,7 @@ function view.blur()
 	end
 	state.tooltipsRegistered = false
 	state.tipKey = nil
+	state.selectionBuilder:close()
 	if state.panelList then
 		gl.DeleteList(state.panelList)
 		state.panelList = nil
@@ -3143,6 +3174,12 @@ local function rowLayout(row)
 	lay = { gen = layoutGen }
 	if row.type == "header" then
 		lay.text = colorHeader .. row.text
+		if row.add then
+			lay.addW = floor(font:GetTextWidth(row.add) * metrics.headerFs)
+			lay.addX = listRight - metrics.rowPad - lay.addW
+			lay.addText = colorAction .. row.add
+			lay.addTextHover = colorHeader .. row.add
+		end
 	elseif row.type == "note" then
 		lay.text = colorDim .. text.fit(font, row.text, listRight - listX1 - metrics.rowPad * 4, metrics.rowFs)
 
@@ -3162,7 +3199,7 @@ local function rowLayout(row)
 		local labelW = metrics.keyAreaX1 - lay.textX - metrics.rowPad
 		local fitted = text.fit(font, row.label, labelW, metrics.rowFs)
 		lay.text = colorAction .. fitted
-		lay.textHover = row.custom and colorHeader .. fitted or nil
+		lay.textHover = (row.editSelection or row.custom) and colorHeader .. fitted or nil
 
 		-- The key the base preset had, when the row's differs: a hollow chip after the row's
 		-- own, which the chips make room for. Paired halves read as one key, as the chips do.
@@ -3744,6 +3781,9 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 
 	if row.type == "header" then
 		drawHeaderBand(top, bottom, lay.text)
+		if lay.addText then
+			queueText(zone == "add" and lay.addTextHover or lay.addText, lay.addX, cyc, metrics.headerFs, "ov")
+		end
 
 		return
 	end
@@ -4314,9 +4354,11 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
-				if not zone and row.custom and mx < metrics.keyAreaX1 then
+				if not zone and (row.editSelection or row.custom) and mx < metrics.keyAreaX1 then
 					h.zone = "label"
 				end
+			elseif row.type == "header" and row.add and mx >= rowLayout(row).addX - metrics.rowPad then
+				h.zone = "add"
 			end
 		end
 	end
@@ -4542,7 +4584,7 @@ end
 -- what it was told this frame.
 function state.showTooltips(mx, my)
 	local tip = WG["tooltip"]
-	if not tip or dialog or capturing then
+	if not tip or dialog or capturing or state.selectionBuilder:isOpen() then
 		return
 	end
 
@@ -4686,6 +4728,12 @@ function shade.update()
 		shade.rect("dialog")
 	end
 
+	if state.selectionBuilder:isOpen() then
+		shade.rect("selection", state.selectionBuilder:rect())
+	else
+		shade.rect("selection")
+	end
+
 	-- The list the picker drops, which stands clear of the control and over the rows.
 	local opts = presetDropdown and presetDropdown:isOpen() and presetDropdown.optRects
 	if opts and opts[1] then
@@ -4732,7 +4780,13 @@ function view.draw()
 	-- Prevent the hover over preset options and modals from also being detected by the
 	-- regular rows, sidebar and buttons sitting underneath them.
 	local mx, my = rawMx, rawMy
-	if dialog or capturing or presetDropdown:isOpen() or state.compareDropdown:isOpen() then
+	if
+		dialog
+		or capturing
+		or presetDropdown:isOpen()
+		or state.compareDropdown:isOpen()
+		or state.selectionBuilder:isOpen()
+	then
 		mx, my = -1, -1
 	end
 
@@ -4801,6 +4855,14 @@ function view.draw()
 		shade.drop("dialog")
 	end
 
+	if state.selectionBuilder:isOpen() then
+		shade.float("selection", function()
+			state.selectionBuilder:draw(rawMx, rawMy)
+		end)
+	else
+		shade.drop("selection")
+	end
+
 	-- After they have laid themselves out, so the blur behind one is the right size on
 	-- the frame it appears rather than the one after.
 	shade.update()
@@ -4833,6 +4895,11 @@ end
 -- Scrolls the list; a modal swallows the wheel instead, the import preview scrolling its
 -- own lines with it.
 function view.mouseWheel(up, value)
+	if state.selectionBuilder:isOpen() then
+		state.selectionBuilder:mouseWheel(up)
+
+		return
+	end
 	if dialog then
 		local pv = dialog.preview
 		if pv then
@@ -4929,8 +4996,8 @@ function state.renameAction(from, to)
 end
 
 -- Only the command is asked for; the key comes from the same capture every row uses, and the
--- action lands under Other, where the list puts whatever it does not recognise. Given one of
--- those, it edits that command instead.
+-- action lands under Other, where the list puts whatever it does not recognise. Given one already
+-- bound, it edits that command instead.
 function state.addBind(editing)
 	openDialog({
 		title = editing and L.editBindTitle or L.addBindTitle,
@@ -4961,6 +5028,22 @@ function state.addBind(editing)
 				startCapture(action, action)
 			elseif action ~= editing then
 				state.renameAction(editing, action)
+			end
+		end,
+	})
+end
+
+function state.openSelectionBuilder(action)
+	local command = state.selectCommand
+	state.selectionBuilder:show(action and command.parse(action), {
+		title = action and L.selectionEdit or L.selectionAdd,
+		acceptLabel = action and L.save or L.selectionChooseKey,
+		cancelLabel = L.cancel,
+		onAccept = function(newAction, spec)
+			if not action then
+				startCapture(newAction, command.describe(spec))
+			elseif not command.sameSelection(newAction, action) then
+				state.renameAction(action, newAction)
 			end
 		end,
 	})
@@ -5039,6 +5122,14 @@ function view.mousePress(x, y, button)
 			elseif not dialog.message and not dialog.nameless then
 				nameBox:mousePress(x, y)
 			end
+		end
+
+		return true
+	end
+
+	if state.selectionBuilder:isOpen() then
+		if button == 1 then
+			state.selectionBuilder:mousePress(x, y)
 		end
 
 		return true
@@ -5184,9 +5275,13 @@ function view.mousePress(x, y, button)
 			local kind, raw = hitTestRow(row, x)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
+			elseif row.editSelection and x < metrics.keyAreaX1 then
+				state.openSelectionBuilder(row.action)
 			elseif row.custom and x < metrics.keyAreaX1 then
 				state.addBind(row.action)
 			end
+		elseif row and row.type == "header" and row.add and x >= rowLayout(row).addX - metrics.rowPad then
+			state.openSelectionBuilder()
 		elseif row and row.type == "link" then
 			selectedCategory = row.category
 			scroll = 0
@@ -5201,6 +5296,9 @@ end
 function view.textInput(char)
 	if dialog then
 		return not dialog.message and not dialog.nameless and nameBox:textInput(char)
+	end
+	if state.selectionBuilder:isOpen() then
+		return state.selectionBuilder:textInput(char)
 	end
 	if searchBox and searchBox:isFocused() then
 		return searchBox:textInput(char)
@@ -5222,6 +5320,10 @@ function view.keyPress(key, scanCode)
 		end
 
 		return true
+	end
+
+	if state.selectionBuilder:isOpen() then
+		return state.selectionBuilder:keyPress(key)
 	end
 
 	if capturing then
