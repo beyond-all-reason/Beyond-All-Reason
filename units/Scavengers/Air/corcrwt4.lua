@@ -126,7 +126,7 @@ return {
 				flighttime = 2.5,
 				impulsefactor = 0.123,
 				model = "cormissile3fast.s3o",
-				name = "Advanced antiair rapid missile launcher",
+				name = "Advanced Rapid-Fire Anti-Air Missile Launcher",
 				noselfdamage = true,
 				range = 840,
 				reloadtime = 0.4,

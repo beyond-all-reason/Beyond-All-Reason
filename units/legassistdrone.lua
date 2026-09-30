@@ -40,7 +40,6 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
-			"legmext15",
 			"legeconv",
 			"leglab",
 			"legvp",

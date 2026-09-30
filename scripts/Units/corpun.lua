@@ -21,12 +21,6 @@ function script.Create()
 	StartThread(dmgsmoke, dmgPieces)
 end
 
-local function RestoreAfterDelay(unitID)
-	Sleep(2500)
-	Turn(turret, x_axis, 0, math.rad(50))
-	Turn(sleeves, x_axis, 0, math.rad(50))
-end
-
 function script.QueryWeapon1()
 	if currBarrel == 1 then
 		return flare1

@@ -18,6 +18,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 
 local myvisibleUnits = {} -- table of unitID : unitDefID
 
+---@type InstanceVBOTable?
 local unitTrackerVBO = nil
 local unitTrackerShader = nil
 local luaShaderDir = "LuaUI/Include/"

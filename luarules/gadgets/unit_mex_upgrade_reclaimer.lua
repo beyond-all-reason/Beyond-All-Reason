@@ -89,7 +89,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	-- on completion open up yardmap to allow for another mex to built ontop
+	-- on completion open up yardmap to allow for another mex to built on top
 	if isMex[unitDefID] then
 		Spring.SetUnitCOBValue(unitID, COB.YARD_OPEN, 1)
 		-- if there's a mex below this one reclaim it, and donate this one to the owner of the previous mex

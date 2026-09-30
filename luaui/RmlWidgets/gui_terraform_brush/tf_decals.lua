@@ -46,8 +46,6 @@ function M.sync(doc, ctx, setSummary)
 	local uiState = ctx.uiState
 	local WG = ctx.WG
 	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- btn-decals active state driven by data-class-active="activeTool == 'dc'" in RML.
 
 	local dpState = WG.DecalPlacer and WG.DecalPlacer.getState()

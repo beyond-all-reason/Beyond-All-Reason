@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Don't target flyover nukes",
-		desc = "Antinukes can target flyover nukes, this gadget ensures that they dont.",
+		desc = "Antinukes can target flyover nukes, this gadget ensures that they don't.",
 		author = "Beherith",
 		date = "2023.11.09",
 		license = "GNU GPL, v2 or later",

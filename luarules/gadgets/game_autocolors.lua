@@ -23,6 +23,7 @@ local survivalColorNum = 1 -- Starting from color #1
 local survivalColorVariation = 0 -- Current color variation
 local allyTeamNum = 0
 local teamSizes = {}
+local dimmingCount = {}
 
 local myAllyTeamID, myTeamID
 if not gadgetHandler:IsSyncedCode() then
@@ -386,13 +387,28 @@ local teamColors = {
 	},
 }
 
-local r = math.random(1, 100000)
-math.randomseed(1) -- make sure the next sequence of randoms can be reproduced
+-- Per-team random offsets for the gradient color modes. Every client, and the synced copy of this
+-- gadget (which feeds the replay site), has to end up with exactly the same values, so this must not
+-- use math.random: in unsynced Lua that is the engine's unsynced RNG, whose stream is salted with a
+-- memory address (ASLR), so math.randomseed(1) gives a different sequence on every client. In synced
+-- Lua math.randomseed would reseed the game's RNG instead. A tiny fixed-seed generator avoids both.
 local teamRandoms = {}
-for i = 1, #teamList do
-	teamRandoms[teamList[i]] = { math.random(), math.random(), math.random() }
+do
+	local state = 65432 -- arbitrary fixed seed
+	-- Park-Miller minimal standard LCG; every intermediate stays below 2^53, so it is exact in doubles
+	local function nextRandom()
+		state = (state * 16807) % 2147483647
+		return state / 2147483647
+	end
+	for i = 1, #teamList do
+		teamRandoms[teamList[i]] = { nextRandom(), nextRandom(), nextRandom() }
+	end
 end
-math.randomseed(r)
+
+-- deterministic stand-in for math.random(-variation, variation), derived from the team's fixed randoms
+local function teamColorVariation(teamID, channel, variation)
+	return math.floor(teamRandoms[teamID][channel] * (variation * 2 + 1)) - variation
+end
 
 local iconDevModeColors = {
 	armblue = armBlueColor,
@@ -551,11 +567,11 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 	elseif isSurvival and survivalColors[(#Spring.GetTeamList()) - 2] then
 		teamColorsTable[teamID] = {
 			r = hex2RGB(survivalColors[survivalColorNum])[1]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
+				+ teamColorVariation(teamID, 1, survivalColorVariation),
 			g = hex2RGB(survivalColors[survivalColorNum])[2]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
+				+ teamColorVariation(teamID, 2, survivalColorVariation),
 			b = hex2RGB(survivalColors[survivalColorNum])[3]
-				+ math.random(-survivalColorVariation, survivalColorVariation),
+				+ teamColorVariation(teamID, 3, survivalColorVariation),
 		}
 		survivalColorNum = survivalColorNum + 1 -- Will start from the next color next time
 
@@ -652,11 +668,11 @@ local function setupTeamColor(teamID, allyTeamID, isAI, localRun)
 			-- Assigning R,G,B values with specified color variations
 			teamColorsTable[teamID] = {
 				r = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[1]
-					+ math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
+					+ teamColorVariation(teamID, 1, teamSizes[allyTeamID][3]),
 				g = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[2]
-					+ math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
+					+ teamColorVariation(teamID, 2, teamSizes[allyTeamID][3]),
 				b = hex2RGB(teamColors[allyTeamCount][teamSizes[allyTeamID][1]][teamSizes[allyTeamID][2]])[3]
-					+ math.random(-teamSizes[allyTeamID][3], teamSizes[allyTeamID][3]),
+					+ teamColorVariation(teamID, 3, teamSizes[allyTeamID][3]),
 			}
 			teamSizes[allyTeamID][2] = teamSizes[allyTeamID][2] + 1 -- Will start from the next color next time
 		else

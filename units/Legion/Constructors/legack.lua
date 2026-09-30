@@ -7,7 +7,7 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildpic = "LEGACK.DDS",
-		buildtime = 9300,
+		buildtime = 11500,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "26 40 34",
@@ -71,7 +71,7 @@ return {
 			area_mex_def = "legmoho",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "CorBots/T2",
+			subfolder = "Legion/Constructors",
 			techlevel = 2,
 		},
 		featuredefs = {

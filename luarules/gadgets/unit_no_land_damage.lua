@@ -21,13 +21,12 @@ end
 
 local GetUnitBasePosition = Spring.GetUnitBasePosition
 
-local weapons = { "armair_torpedo", "armseap_weapon" }
-local NO_LAND_DAMAGE = {}
-for wdid, wd in pairs(WeaponDefNames) do
-	for _, wname in pairs(weapons) do
-		if string.find(wd.name, wname) then
-			NO_LAND_DAMAGE[wdid] = true
-		end
+-- weapondef customparams.land_damage_mult scales damage against targets above water
+local LAND_DAMAGE_MULT = {}
+for weaponDefID, wd in pairs(WeaponDefs) do
+	local mult = wd.customParams and tonumber(wd.customParams.land_damage_mult)
+	if mult then
+		LAND_DAMAGE_MULT[weaponDefID] = mult
 	end
 end
 
@@ -43,15 +42,11 @@ function gadget:UnitPreDamaged(
 	attackerDefID,
 	attackerTeam
 )
-	if NO_LAND_DAMAGE[weaponID] then
-		if select(2, GetUnitBasePosition(unitID)) > 0 then
-			return (damage * 0.2), 1
-		else
-			return damage, 1
-		end
-	else
-		return damage, 1
+	local mult = LAND_DAMAGE_MULT[weaponID]
+	if mult and select(2, GetUnitBasePosition(unitID)) > 0 then
+		return (damage * mult), 1
 	end
+	return damage, 1
 end
 
 --------------------------------------------------------------------------------

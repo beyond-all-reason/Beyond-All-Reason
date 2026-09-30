@@ -387,8 +387,11 @@ local featureBars = {} -- we need this additional table of {[featureid] = {barhe
 --local empDecline = 1 / 40 --magic
 local minReloadTime = 4 -- weapons reloading slower than this willget bars
 
+---@type InstanceVBOTable?
 local featureHealthVBO
+---@type InstanceVBOTable?
 local featureResurrectVBO
+---@type InstanceVBOTable?
 local featureReclaimVBO
 
 local barScale = 1 -- Option 'healthbarsscale'
@@ -401,6 +404,7 @@ local variableBarSizes = true -- Option 'healthbarsvariable'
 
 --------------------------------------------------------------------------------
 -- GL4 Backend stuff:
+---@type InstanceVBOTable?
 local healthBarVBO = nil
 local healthBarShader = nil
 
@@ -555,6 +559,10 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one of the health bar instance buffers.
+---@param myName string Name used in log messages.
+---@param usesFeatures boolean? Bind the buffer to features rather than units.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function initializeInstanceVBOTable(myName, usesFeatures)
 	local newVBOTable
 	local layout
@@ -594,6 +602,8 @@ local function initializeInstanceVBOTable(myName, usesFeatures)
 		newVBOTable.VAO = newVAO
 	else
 		newVBOTable.VAO = InstanceVBOTable.makeVAOandAttach(unitQuadVBO, newVBOTable.instanceVBO)
+		-- so the resize can find the quad when it rebuilds the VAO
+		newVBOTable.vertexVBO = unitQuadVBO
 	end
 	if usesFeatures then
 		newVBOTable.featureIDs = true
@@ -832,8 +842,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 end
 
 local function removeBarsFromUnit(unitID, reason)
-	for barname, v in pairs(barTypeMap) do
-		removeBarFromUnit(unitID, barname, reason)
+	if unitBars[unitID] then -- bars can only exist for units addBarForUnit has counted
+		for barname, v in pairs(barTypeMap) do
+			removeBarFromUnit(unitID, barname, reason)
+		end
 	end
 	unitShieldWatch[unitID] = nil
 	unitReactiveArmorWatch[unitID] = nil
@@ -1252,7 +1264,7 @@ function widget:GameFrame(n)
 	-- check EMP'd units
 	if (n + 1) % 3 == 0 then
 		for unitID, oldempvalue in pairs(unitEmpDamagedWatch) do
-			local health, maxHealth, newparalyzeDamage, capture, build = spGetUnitHealth(unitID)
+			local _, maxHealth, newparalyzeDamage, _, _ = spGetUnitHealth(unitID)
 			if newparalyzeDamage and oldempvalue ~= newparalyzeDamage then
 				if newparalyzeDamage == 0 then
 					unitEmpDamagedWatch[unitID] = nil
@@ -1270,7 +1282,7 @@ function widget:GameFrame(n)
 	if (n + 2) % 3 == 0 then
 		for unitID, paralyzetime in pairs(unitParalyzedWatch) do
 			if Spring.GetUnitIsStunned(unitID) then
-				local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+				local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 				--uniformcache[1] = math.floor((paralyzeDamage - maxHealth)) / (maxHealth * empDecline))
 				if paralyzeDamage then
 					-- this returns something like 1.20 which somehow turns into seconds somewhere unsearchable, currently wrong display

@@ -121,7 +121,6 @@ local mouseDownPos
 
 local updateRate = 0.1
 local lastUpdateTime = 0
-local gameStarted
 
 local function maybeRemoveSelf()
 	if waterIsLava or voidWater or waterLevel < minHeight then
@@ -130,7 +129,6 @@ local function maybeRemoveSelf()
 end
 
 function widget:GameStart()
-	gameStarted = true
 	maybeRemoveSelf()
 end
 
@@ -215,7 +213,7 @@ function widget:DrawWorld()
 		return
 	end
 
-	local x, y, lmb, mmb, rmb = spGetMouseState()
+	local _, _, lmb, _, _ = spGetMouseState()
 
 	if mouseDownPos and lmb then
 		-- currently doing a build drag, don't swap buildings

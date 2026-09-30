@@ -3,70 +3,250 @@
 
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 Beherith (mysterme@gmail.com)
-// This shader is part of the Beyond All Reason repository.  
+// This shader is part of the Beyond All Reason repository.
+
+// Radar preview cube pass: one instance per grid cell, drawn as a small cube (or slab / flat tile).
+// Coverage comes from the smoothed engine-cell coverage texture (one texel per radar cell, see
+// sensor_ranges_radar_preview_coverage.frag.glsl / _smooth.frag.glsl), so per vertex this is a
+// few tiny texture reads plus cheap animation math.
 
 //__DEFINES__
 
-layout (location = 0) in vec2 xyworld_xyfract;
-uniform vec4 radarcenter_range;  // x y z range
-uniform float resolution;  // how many steps are done
+layout (location = 0) in vec4 cubeVertex; // unit cube corner: x,z in [-0.5, 0.5], y in [0, 1]
+
+uniform vec4 radarcenter_range; // cube grid center x, emitter height, cube grid center z, effective range (elmo)
+uniform vec4 gridParams;        // radar cell size (elmo), coverage texels per side, cube spacing (elmo), cubes per radar cell edge
+uniform vec4 lookupParams;      // emitter cell x, emitter cell y, radius in cells, allied coverage on (1) / off (0)
+uniform vec4 shapeParams;       // cube width, cube height (0 = flat tile), sink below ground, lift of the top above ground
+uniform vec4 animParams;        // time (s), seconds since the preview appeared, lod blend (0 = fine grid, 1 = double spacing), conform (1 = top follows terrain)
+uniform vec4 windowParams;      // first cube index x, first cube index z, cubes per row, index stride (1 or 2)
+uniform vec4 modeParams;        // x = 1: background pass (seamless flat sheet per cell + outline at uncovered borders), y = 1: sheet-only style (the fragment shader animates the sheet), z = 1: sweep and pulse animations on, w = 1: sweep on
 
 uniform sampler2D heightmapTex;
+uniform sampler2D coverageTex;
+uniform sampler2D radarInfoTex; // allied radar coverage map, R = 1 where any allied radar covers the radar cell (only read when lookupParams.w = 1)
 
 out DataVS {
-	vec4 worldPos; // pos and radius
-	vec4 centerposrange;
-	vec4 blendedcolor;
-	float worldscale_circumference;
+	vec3 localPos;       // position on the unit cube, for per-face shading and edge lines
+	vec4 fx;             // coverage, glow, beam, spawn
+	float previewWeight; // 1 = covered by the previewed radar, 0 = only by other allied radars
+	flat vec4 outlineSides; // background pass: 1 where this cell's -x, +x, -z, +z side is on the previewed radar's own coverage border
+	flat vec4 unionOutlineSides; // background pass: 1 where that side borders a radar cell not covered by anyone
+	vec2 worldXZ;        // world x/z of the vertex, for the sheet-only style's per-pixel rings and sweep
 };
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
-#line 11009
+#line 11000
 
-float heightAtWorldPos(vec2 w){
-	vec2 uvhm =   vec2(clamp(w.x,8.0,mapSize.x-8.0),clamp(w.y,8.0, mapSize.y-8.0))/ mapSize.xy;
+const float PI = 3.1415927;
+const float minCoverage = float(MIN_COVERAGE);
+const float sweepSpeed = float(SWEEP_SPEED);
+const float sweepTrail = max(float(SWEEP_TRAIL), 0.01); // degrees
+const float sweepBeam = max(float(SWEEP_BEAM), 0.01);   // degrees
+const float sweepStrength = float(SWEEP_STRENGTH);
+const float spawnSpeed = float(SPAWN_SPEED);
+const float spawnBump = float(SPAWN_BUMP);
+const float pulsePower = float(PULSE_POWER);
+const float pulseSymmetric = float(PULSE_SYMMETRIC); // ring profile: 1 = bell (fade in/out), 0 = sharp front, fade out
+const float pulseStrength = float(PULSE_STRENGTH);
+const float edgeStrength = float(EDGE_STRENGTH); // glow of cubes at the coverage boundary (0 = off)
+const float rimStrength = float(RIM_STRENGTH);   // glow of the outermost ring of cubes (0 = off)
+const float tileMaxTilt = tan(radians(float(TILE_MAX_TILT)));      // slope (rise/run) of the steepest tile tilt
+const float tileCliffStart = tan(radians(float(TILE_CLIFF_START))); // terrain slope where tiles start flattening
+const float tileCliffEnd = tan(radians(float(TILE_CLIFF_END)));     // terrain slope where tiles are flat again
+
+float heightAtWorldPos(vec2 w) {
+	vec2 uvhm = vec2(clamp(w.x, 8.0, mapSize.x - 8.0), clamp(w.y, 8.0, mapSize.y - 8.0)) / mapSize.xy;
 	return max(0.0, textureLod(heightmapTex, uvhm, 0.0).x);
 }
 
+// is the radar cell covered by the previewed radar (and, with includeAllied and allied coverage enabled, any allied radar)?
+float coveredAt(ivec2 radarCell, bool includeAllied) {
+	int radius = int(lookupParams.z);
+	ivec2 texel = radarCell - ivec2(lookupParams.xy) + ivec2(radius);
+	float c = 0.0;
+	if (all(greaterThanEqual(texel, ivec2(0))) && all(lessThan(texel, ivec2(int(gridParams.y))))) {
+		c = texelFetch(coverageTex, texel, 0).r;
+	}
+	if (includeAllied && lookupParams.w > 0.5 && all(greaterThanEqual(radarCell, ivec2(0))) && all(lessThan(radarCell, textureSize(radarInfoTex, 0)))) {
+		c = max(c, texelFetch(radarInfoTex, radarCell, 0).r);
+	}
+	return step(0.5, c);
+}
+
+// Every corner lands on the same clip-space point: zero area, nothing gets rasterized.
+void cullInstance() {
+	gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+	localPos = vec3(0.0);
+	fx = vec4(0.0);
+	previewWeight = 0.0;
+	outlineSides = vec4(0.0);
+	unionOutlineSides = vec4(0.0);
+	worldXZ = vec2(0.0);
+}
+
 void main() {
-	// transform the point to the center of the radarcenter_range
+	int stride = int(windowParams.w);
+	int rowLength = int(windowParams.z);
+	// absolute cube grid index: the spacing divides the radar cell size, so with center = (index + 0.5) * spacing
+	// every radar cell holds an NxN block of cubes centered inside it
+	ivec2 cell = ivec2(windowParams.xy) + ivec2(gl_InstanceID % rowLength, gl_InstanceID / rowLength) * stride;
 
-	vec4 pointWorldPos = vec4(0.0);
-
-	vec3 radarMidPos = radarcenter_range.xyz + vec3(16.0, 0.0, 16.0);
-	pointWorldPos.xz = (radarcenter_range.xz +  (xyworld_xyfract.xy * radarcenter_range.w)); // transform it out in XZ
-	pointWorldPos.y = heightAtWorldPos(pointWorldPos.xz); // get the world height at that point
-
-	vec3 toradarcenter = vec3(radarcenter_range.xyz - pointWorldPos.xyz);
-	float dist_to_center = length(toradarcenter.xyz);
-
-	// get closer to the center in N mip steps, and if that point is obscured at any time, remove it
-
-	vec3 smallstep =  toradarcenter / resolution;
-	float obscured = 0.0;
-
-	//for (float i = 0.0; i < mod(timeInfo.x/3,resolution); i += 1.0 ) {
-	for (float i = 0.0; i < resolution; i += 1.0 ) {
-		vec3 raypos = pointWorldPos.xyz + (smallstep) * i;
-		float heightatsample = heightAtWorldPos(raypos.xz);
-		obscured = max(obscured, heightatsample - raypos.y);
-		if (obscured >= 2.0)	break;
+	// optional far LOD: cells with an odd index shrink away, the remaining ones grow to keep the visual density
+	float lodBlend = animParams.z;
+	float isFine = float((cell.x | cell.y) & 1);
+	float lodScale = 1.0 - isFine * lodBlend;
+	bool background = modeParams.x > 0.5;
+	if (background) {
+		lodScale = 1.0; // the sheet just uses wider tiles at the coarse stride
 	}
 
-	worldscale_circumference = 1.0; //startposrad.w * circlepointposition.z * 5.2345;
-	worldPos = vec4(pointWorldPos);
-	blendedcolor = vec4(0.0);
-	blendedcolor.a = 0.5;
-	//if (dist_to_center > radarcenter_range.w) blendedcolor.a = 0.0;  // do this in fs instead
+	float range = radarcenter_range.w;
+	vec2 cellXZ = (vec2(cell) + 0.5) * gridParams.z;
+	vec2 fromCenter = cellXZ - radarcenter_range.xz;
+	float dist = length(fromCenter);
 
-	blendedcolor.g = 1.0-clamp(obscured*0.5,0.0,1.0);
+	// which radar cell is this cube in, relative to the emitter's cell
+	float radarCell = gridParams.x;
+	int radius = int(lookupParams.z);
+	ivec2 worldCell = ivec2(floor(cellXZ / radarCell));
+	ivec2 off = worldCell - ivec2(lookupParams.xy);
+	bool inPreviewDisc = all(lessThanEqual(abs(off), ivec2(radius)));
 
-	blendedcolor.a = min(blendedcolor.g,blendedcolor.a);
-	blendedcolor.g = 1.0;
+	// coverage of the previewed radar: R = smoothed coverage, G = boundary factor (covered cell next to an
+	// uncovered one); texel center = radar cell center, nearest or bilinear depending on the texture's filter
+	vec2 coverageState = vec2(0.0);
+	if (inPreviewDisc) {
+		vec2 coverageUV = (cellXZ / radarCell - lookupParams.xy + float(radius)) / gridParams.y;
+		coverageState = texture(coverageTex, coverageUV).rg;
+	}
+	float coverage = coverageState.r;
 
-	pointWorldPos.y += 0.1;
-	worldPos = pointWorldPos;
-	gl_Position = cameraViewProj * vec4(pointWorldPos.xyz, 1.0);
-	centerposrange = vec4(radarMidPos, radarcenter_range.w);
+	// with allied coverage enabled (lookupParams.w), cubes covered only by other allied radars are drawn too but
+	// stay static; the previewed radar's animation applies in proportion to its own coverage
+	float weight = 1.0;
+	if (lookupParams.w > 0.5) {
+		float allied = 0.0;
+		if (all(greaterThanEqual(worldCell, ivec2(0))) && all(lessThan(worldCell, textureSize(radarInfoTex, 0)))) {
+			allied = step(0.5, texelFetch(radarInfoTex, worldCell, 0).r);
+		}
+		weight = smoothstep(0.0, 0.5, coverage);
+		coverage = max(coverage, allied);
+	} else if (!inPreviewDisc) {
+		cullInstance();
+		return;
+	}
+
+	float distN = dist / range;
+	float time = animParams.x;
+
+	// spawn ripple: an expanding ring raises the cubes when the preview appears; they overshoot, then settle.
+	// Cubes of other allied radars simply fade in.
+	float front = animParams.y * spawnSpeed;
+	float spawn = mix(min(animParams.y * 4.0, 1.0), smoothstep(distN - 0.10, distN + 0.02, front), weight);
+	float bump = sin(clamp((front - distN) / spawnBump, 0.0, 1.0) * PI) * weight;
+
+	if (coverage < minCoverage || lodScale < 0.02 || spawn < 0.01) {
+		cullInstance();
+		return;
+	}
+
+	// background pass: which sides of this cell border an uncovered radar cell (only cells on their radar
+	// cell's border can, so the neighbour lookups are rare)
+	// outlineSides: the previewed radar's own coverage border (always drawn, even inside allied coverage);
+	// unionOutlineSides: the border of all coverage with uncovered cells
+	outlineSides = vec4(0.0);
+	unionOutlineSides = vec4(0.0);
+	if (background) {
+		int n = int(gridParams.w);
+		ivec2 sub = cell - worldCell * n;
+		float ownCovered = step(0.5, coverageState.r);
+		if (sub.x == 0) {
+			ivec2 rc = worldCell + ivec2(-1, 0);
+			outlineSides.x = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.x = 1.0 - coveredAt(rc, true);
+		}
+		if (sub.x >= n - stride) {
+			ivec2 rc = worldCell + ivec2(1, 0);
+			outlineSides.y = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.y = 1.0 - coveredAt(rc, true);
+		}
+		if (sub.y == 0) {
+			ivec2 rc = worldCell + ivec2(0, -1);
+			outlineSides.z = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.z = 1.0 - coveredAt(rc, true);
+		}
+		if (sub.y >= n - stride) {
+			ivec2 rc = worldCell + ivec2(0, 1);
+			outlineSides.w = ownCovered * (1.0 - coveredAt(rc, false));
+			unionOutlineSides.w = 1.0 - coveredAt(rc, true);
+		}
+	}
+
+	// rotating radar sweep: a bright leading edge SWEEP_BEAM degrees wide, with a trail fading out over
+	// SWEEP_TRAIL degrees behind it
+	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
+	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the leading edge
+	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
+	float animations = modeParams.z; // RadarPreviewAnimations setting
+	float sweepOn = animations * modeParams.w; // RadarPreviewSweep setting
+	float sweep = trail * trail * sweepStrength * weight * sweepOn;
+	float beam = (1.0 - smoothstep(0.0, sweepBeam, behind)) * sweepStrength * weight * sweepOn;
+
+	// the main animation: rings travelling outward from the radar
+	// PULSE_SYMMETRIC: smooth bell that fades in and out around the ring, or a sharp front fading out behind it
+	float ringPhase = fract((dist - time * float(PULSE_SPEED)) / float(PULSE_SPACING)); // 0 at a ring's center, 1 at the next
+	float ringShape = (pulseSymmetric > 0.5) ? pow(0.5 + 0.5 * cos(ringPhase * 2.0 * PI), pulsePower) : pow(1.0 - ringPhase, pulsePower);
+	float ring = ringShape * weight * animations;
+
+	// highlight cells at the coverage boundary (an uncovered radar cell next door) and the outer rim (EDGE_STRENGTH, RIM_STRENGTH)
+	float edge = coverageState.g;
+	float rim = smoothstep(range - 1.5 * radarCell, range - 0.25 * radarCell, dist) * weight;
+
+	float glow = clamp(sweep + beam + edge * edgeStrength + rim * rimStrength + ring * 0.6 * pulseStrength + bump * 0.7, 0.0, 1.5);
+
+	float height = shapeParams.y * (0.35 + 0.65 * coverage) * spawn
+		* (1.0 + 0.5 * sweep + pulseStrength * ring + 0.6 * bump);
+	float width = shapeParams.x * (0.85 + 0.15 * coverage) * (0.6 + 0.4 * spawn)
+		* (1.0 + 0.15 * pulseStrength * ring + 0.1 * bump);
+	float coarseGrow = lodBlend * (1.0 - isFine);
+	height *= lodScale * (1.0 + 0.5 * coarseGrow);
+	width *= lodScale * (1.0 + 0.9 * coarseGrow);
+	if (background) {
+		width = gridParams.z * float(stride); // exactly one cell (or LOD block): the tiles form a seamless sheet
+		height = 0.0;
+	}
+
+	// Cubes are rigid: every corner uses the cell center height, so slopes and cliffs never stretch or
+	// shear them (the uphill side sinks into the slope, the downhill side hovers a little; the bottom face
+	// covers that). Flat tiles (conform = 1) get a planar tilt from the terrain gradient around their
+	// center, capped at TILE_MAX_TILT degrees and fading back to flat on cliffs, where tilted tiles look odd.
+	float centerGround = heightAtWorldPos(cellXZ);
+
+	vec2 vertexXZ = cellXZ + cubeVertex.xz * width;
+	float tilt = 0.0;
+	if (animParams.w > 0.0 && !background) {
+		float halfW = 0.5 * width;
+		vec2 grad = vec2(
+			heightAtWorldPos(cellXZ + vec2(halfW, 0.0)) - heightAtWorldPos(cellXZ - vec2(halfW, 0.0)),
+			heightAtWorldPos(cellXZ + vec2(0.0, halfW)) - heightAtWorldPos(cellXZ - vec2(0.0, halfW))) / width;
+		float slope = length(grad);
+		float tiltScale = min(1.0, tileMaxTilt / max(slope, 1e-4)) * (1.0 - smoothstep(tileCliffStart, tileCliffEnd, slope));
+		tilt = dot(grad * tiltScale, cubeVertex.xz * width) * animParams.w;
+	}
+	float base = centerGround + tilt - shapeParams.z;
+	float top = centerGround + tilt + shapeParams.w + height;
+	if (background) {
+		// per-corner terrain height: neighbouring tiles share their corners, so the sheet has no seams
+		top = heightAtWorldPos(vertexXZ) + shapeParams.w;
+		base = top;
+	}
+	vec3 worldPos = vec3(vertexXZ.x, mix(base, top, cubeVertex.y), vertexXZ.y);
+
+	localPos = cubeVertex.xyz;
+	fx = vec4(coverage, glow, beam, spawn);
+	previewWeight = weight;
+	worldXZ = vertexXZ;
+	gl_Position = cameraViewProj * vec4(worldPos, 1.0);
 }

@@ -70,7 +70,6 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetMoveData = Spring.GetUnitMoveTypeData
 local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
 local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
-local spGetGroundHeight = Spring.GetGroundHeight
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spSpawnCEG = Spring.SpawnCEG
 local clamp = math.clamp
@@ -226,22 +225,32 @@ function gadget:Initialize()
 	minGroundHeight = select(3, spGetGroundExtremes())
 
 	GG.WaterTypeOverlay = {
+		---@return boolean active Whether a hazardous water overlay is currently applied.
 		isActive = function()
 			return active
 		end,
+		---@return "lava"|"acid"|nil typeName `nil` while the overlay is inactive.
 		getActiveType = function()
 			return activeType
 		end,
+		---@return number level Current absolute world height of the overlay surface.
 		getLevel = function()
 			return currentLevel
 		end,
+		---@return number level Offset from the base water plane the overlay eases toward.
 		getTargetLevel = function()
 			return targetLevel
 		end,
+		---Sets the height the overlay surface eases toward, relative to the base water plane.
+		---@param level number
 		setLevel = function(level)
 			targetLevel = level
 		end,
+		---Turns the overlay on and starts damaging units in it.
+		---@param typeName "lava"|"acid"
+		---@return boolean started `false` when `typeName` is not a supported overlay type.
 		activate = function(typeName)
+			---@diagnostic disable-next-line: unnecessary-if
 			if typeName ~= "lava" and typeName ~= "acid" then
 				return false
 			end
@@ -252,6 +261,7 @@ function gadget:Initialize()
 			activeType = typeName
 			return true
 		end,
+		---Turns the overlay off and restores any unit state it changed.
 		deactivate = function()
 			if active then
 				restoreAllUnits()
@@ -302,10 +312,21 @@ end
 ------------------------------------------------------------------------
 -- Message from widget
 ------------------------------------------------------------------------
--- Prefix embedded in messages when cheat was active at send time. During
--- replay the recorded prefix survives while live cheat is always false, so it
--- is the only trust signal available there.
+-- Prefix embedded in messages sent by an authorised editor session.
 local CHEAT_SIG = "$c$"
+
+-- Spring.IsReplay is a LuaUnsyncedRead call and is nil here, so the old
+-- "certified and Spring.IsReplay()" fallback raised a Lua error on any certified
+-- packet that arrived with live cheat off. Demos replay the /cheat chat command,
+-- so cheat state is reproduced during playback anyway; what the certification is
+-- really for is map-editor sessions, where /cheat is a toggle that competing
+-- widgets can flip off mid-stream. The mapeditor modoption is synced from the
+-- start script and cannot be forged by a client.
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
 
 function gadget:RecvLuaMsg(msg, playerID)
 	if type(msg) ~= "string" then
@@ -321,11 +342,11 @@ function gadget:RecvLuaMsg(msg, playerID)
 		return
 	end
 
-	-- Auth gate: require live cheat, or a $c$-certified message during replay
-	-- only. Without this any modified client could send this message in a live
-	-- no-cheat match and flip the map into lava/acid mode, applying map-wide
-	-- Gaia damage to every unit and feature.
-	if not (Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())) then
+	-- Auth gate: require live cheat, or a $c$-certified message inside a
+	-- map-editor session. Without this any modified client could send this
+	-- message in a live no-cheat match and flip the map into lava/acid mode,
+	-- applying map-wide Gaia damage to every unit and feature.
+	if not (Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)) then
 		return
 	end
 

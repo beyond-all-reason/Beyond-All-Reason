@@ -122,6 +122,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "armstone",
 			evolution_health_transfer = "percentage",
 			evolution_target = "armcomlvl10",
 			evolution_condition = "timer",

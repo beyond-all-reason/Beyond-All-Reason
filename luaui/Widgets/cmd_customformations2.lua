@@ -26,8 +26,8 @@ local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 -- To deselect non-default command and return to default command: right click and don't drag
 -- To deselect default command: left click
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
 local dotImage = "LuaUI/Images/formationDot.dds"
 
@@ -153,8 +153,6 @@ local glColor = gl.Color
 local glBeginEnd = gl.BeginEnd
 local glPushMatrix = gl.PushMatrix
 local glPopMatrix = gl.PopMatrix
-local glScale = gl.Scale
-local glTranslate = gl.Translate
 local glLoadIdentity = gl.LoadIdentity
 
 local spGetActiveCommand = Spring.GetActiveCommand
@@ -165,7 +163,6 @@ local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
 local spGiveOrder = Spring.GiveOrder
-local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -536,7 +533,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if pathCandidate then
 			-- For the first path command, use raw shift state to decide whether to clear queue
 			-- This ensures queue is cleared unless user explicitly holds shift
-			local alt, ctrl, meta, _ = GetModKeys()
+			local _, ctrl, meta, _ = GetModKeys()
 			local _, _, _, rawShift = spGetModKeyState()
 			if spGetInvertQueueKey() then
 				rawShift = not rawShift
@@ -567,7 +564,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
 				-- Only add command if it's not too close to any previous position
 				if not tooClose then
-					local alt, ctrl, meta, shift = GetModKeys()
+					local _, ctrl, meta, _ = GetModKeys()
 					local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB)
 
 					GiveNotifyingOrder(usingCmd, pos, cmdOpts)

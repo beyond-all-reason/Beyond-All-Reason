@@ -288,7 +288,6 @@ PiecesToLock = { -- what pieces should be excluded from animation when moving? (
 for pieceNum, v in pairs(keyFramesWalk) do
 	for Type, steps in pairs(v) do
 		for step, goal in pairs(steps) do
-			local timer = stepTimes[step]
 			if Type == "Turn" then
 				for i = 1, 3 do
 					goal[i] = math.rad(goal[i])
@@ -300,7 +299,6 @@ end
 for pieceNum, v in pairs(keyFramesWalk) do
 	for Type, steps in pairs(v) do
 		for step, goal in pairs(steps) do
-			local timer = stepTimes[step]
 			if keyFramesWalk[pieceNum][Type][step - 1] then
 				for i = 1, 3 do
 					keyFramesWalk[pieceNum][Type][step][i + 3] =

@@ -21,18 +21,9 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local spValidUnitID = Spring.ValidUnitID
-local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
-local spGetUnitTeam = Spring.GetUnitTeam
-local spSetUnitTarget = Spring.SetUnitTarget
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 
-local CMD_ATTACK = CMD.ATTACK
-local CMD_REMOVE = CMD.REMOVE
-local CMD_MOVE = CMD.MOVE
-local CMD_FIGHT = CMD.FIGHT
-local CMD_SET_WANTED_MAX_SPEED = CMD.SET_WANTED_MAX_SPEED
 local LOS_ACCESS = { inlos = true }
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -47,7 +38,7 @@ local function updateSlow(unitID, state)
 	--Spring.Echo("hornet upd slow unit id " .. unitID .. "  state.slowDamage " .. state.slowDamage)--  .. "  max slow factor " .. MAX_SLOW_FACTOR)
 
 	-- overslow seems to be a stacked slow aside from the existing, purpose unclear
-	local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
+	local health, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
 	if health then
 		local maxSlow = health * (MAX_SLOW_FACTOR + (state.extraSlowBound or 0))
 		if paralyzeDamage > maxSlow then

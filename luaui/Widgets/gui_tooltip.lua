@@ -9,6 +9,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -1200000,
 		enabled = true,
+		modalExempt = true, -- the windows show their own tooltips through this widget
 	}
 end
 
@@ -20,16 +21,10 @@ local mathMax = math.max
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
--- Localized gl functions for performance
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glCallList = gl.CallList
-local glTranslate = gl.Translate
-
 --[[
 
 -- Available API functions:
-WG['tooltip'].AddTooltip(name, area, value, delay, x, y, title)  -- area: {x1,y1,x2,y2}   value(optional): 'text'   delay(optional): #seconds   x/y(optional): display coordinates   title(optional): 'text'
+WG['tooltip'].AddTooltip(name, area, value, delay, title)  -- area: ScreenRect {left,bottom,right,top}   value(optional): 'text'   delay(optional): #seconds   title(optional): 'text'
 WG['tooltip'].RemoveTooltip(name)
 
 WG['tooltip'].ShowTooltip(name, value, x, y, title)    -- value(optional): 'text'   x/y (optional): display coordinates   title(optional): 'text'
@@ -66,7 +61,6 @@ local RectRound, UiElement, bgpadding
 
 -- Texture pool for reusing textures instead of recreating them
 local texturePool = {}
-local currentTooltipName = nil -- Track which tooltip is currently displayed
 
 -- Get or create a texture from the pool
 local function getPooledTexture(width, height, key)
@@ -138,6 +132,13 @@ function widget:Initialize()
 		WG.tooltip.getFontsize = function()
 			return usedFontSize
 		end
+		---Registers a hover tooltip over a screen rectangle. Calling again with the same
+		---name updates it; pass only `name` and `area` to move an existing tooltip.
+		---@param name string Caller-chosen key; pass the same one to `RemoveTooltip`.
+		---@param area ScreenRect
+		---@param value string|number|nil Tooltip body.
+		---@param delay number? Seconds of hover before it appears. Defaults to the widget's delay.
+		---@param title string|number|nil Tooltip heading.
 		WG.tooltip.AddTooltip = function(name, area, value, delay, title)
 			if
 				(
@@ -424,14 +425,16 @@ local function drawTooltip(name, x, y)
 			posY - maxHeight - paddingH,
 			posX + maxWidth + paddingW - bgpadding,
 			posY + paddingH,
-			"tooltip_" .. name
+			"tooltip_" .. name,
+			widget
 		)
 		WG.guishader.InsertScreenRect(
 			posX - paddingW,
 			posY - maxHeight - paddingH + bgpadding,
 			posX + maxWidth + paddingW,
 			posY + paddingH - bgpadding,
-			"2tooltip_" .. name
+			"2tooltip_" .. name,
+			widget
 		)
 	end
 
@@ -467,6 +470,10 @@ function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
+	-- Hover tooltips belong to elements that a modal window is hiding, so they must not
+	-- pop up over it. Tooltips shown outright (option descriptions and the like) stay.
+	local modalActive = widgetHandler:IsModalActive()
+
 	if WG.guishader then
 		for name, _ in pairs(cleanupGuishaderAreas) do
 			WG.guishader.RemoveScreenRect("tooltip_" .. name)
@@ -479,6 +486,7 @@ function widget:DrawScreen()
 			(tooltip.area == nil and not tooltip.disabled)
 			or (
 				tooltip.area
+				and not modalActive
 				and tooltip.area[4] ~= nil
 				and math_isInRect(x, y, tooltip.area[1], tooltip.area[2], tooltip.area[3], tooltip.area[4])
 			)

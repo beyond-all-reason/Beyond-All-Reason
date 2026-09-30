@@ -24,8 +24,6 @@ local params = { gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0, shade
 -- skip draw if this matches:
 local defaultParams = { gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0 }
 
-local luaShaderDir = "LuaUI/Include/"
-
 -----------------------------------------------------------------
 -- Shader Sources
 -----------------------------------------------------------------

@@ -37,6 +37,7 @@ return {
 		wingangle = 0.06222,
 		wingdrag = 0.18,
 		customparams = {
+			areaattack_unlimited = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorAircraft/T2",
@@ -99,6 +100,7 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
 				customparams = {
+					land_damage_mult = 0.2,
 					norangering = 1,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 400,

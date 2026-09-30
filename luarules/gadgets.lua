@@ -30,7 +30,9 @@ local SAFEWRAP = 0
 -- 2: always enabled
 
 local HANDLER_DIR = "LuaGadgets/"
-local GADGETS_DIR = Script.GetName():gsub("US$", "") .. "/Gadgets/"
+local HANDLER_BASE_NAME = Script.GetName():gsub("US$", "") -- "LuaRules" or "LuaGaia" (unused)
+local IS_LUARULES = HANDLER_BASE_NAME == "LuaRules"
+local GADGETS_DIR = HANDLER_BASE_NAME .. "/Gadgets/"
 local SCRIPT_DIR = Script.GetName() .. "/"
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
@@ -461,10 +463,23 @@ end
 --  Synthetic callins
 --
 --  The game injects some of its own callins into the engine-driven event system:
-local synthetic = VFS.Include(SCRIPT_DIR .. 'callins/synthetic_callins.lua', nil, VFSMODE) ---@type SyntheticCallinsAPI
+local synthetic = VFS.Include(SCRIPT_DIR .. "callins/synthetic_callins.lua", nil, VFSMODE) ---@type SyntheticCallinsAPI
 
-local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks('UnitBuildStep')
-local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks('FeatureBuildStep')
+-- stylua: ignore start
+local unitStepMarked,    unitStepList,    unitStepCount,    unitStepTotals,    unitStepActive    = synthetic.getMarks("UnitBuildStep")
+local featureStepMarked, featureStepList, featureStepCount, featureStepTotals, featureStepActive = synthetic.getMarks("FeatureBuildStep")
+local unitIdleMarked,    unitIdleList,    unitIdleCount                                          = synthetic.getMarks("UnitIdle")
+-- stylua: ignore end
+
+local function markIdle(unitID)
+	local idleCount = unitIdleCount[1]
+	if idleCount and not unitIdleMarked[unitID] then
+		unitIdleMarked[unitID] = true
+		idleCount = idleCount + 1
+		unitIdleCount[1] = idleCount
+		unitIdleList[idleCount] = unitID
+	end
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -514,6 +529,16 @@ function gadgetHandler:Initialize()
 	-- get the gadget names
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
+
+	if IS_LUARULES then
+		local ModuleHandler = require("modules/module_handler", nil, VFSMODE) ---@type ModuleHandler
+		ModuleHandler.Register(VFSMODE)
+		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
+			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
+				gadgetFiles[#gadgetFiles + 1] = gf
+			end
+		end
+	end
 
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
@@ -806,6 +831,7 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		gadget._tracyUpdateName = "G:Update:" .. gi.name
 		gadget._tracyDrawWorldName = "G:DrawWorld:" .. gi.name
 		gadget._tracyDrawWorldPreUnitName = "G:DrawWorldPreUnit:" .. gi.name
+		gadget._tracyUnitFinishedName = "G:UnitFinished:" .. gi.name
 	end
 end
 
@@ -1420,7 +1446,7 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	local arg1, arg2 = ...
+	local arg1, _ = ...
 	if arg1 == CHAT_ACTION_REQUEST then
 		BroadcastChatActionSnapshot("unsynced", self.actionHandler.textActions)
 		return true
@@ -1878,7 +1904,6 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, ca
 	return true
 end
 
-
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 
@@ -1935,7 +1960,6 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	end
 	return true
 end
-
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
@@ -2113,7 +2137,9 @@ end
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
+		tracy.ZoneBeginN(g._tracyUnitFinishedName)
 		g:UnitFinished(unitID, unitDefID, unitTeam)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
@@ -2147,10 +2173,10 @@ end
 function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	tracy.ZoneBeginN("G:UnitDestroyed")
 	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
 	for _, g in ipairs(self.UnitDestroyedList) do
 		g:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2176,6 +2202,7 @@ function gadgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitIdleList) do
 		g:UnitIdle(unitID, unitDefID, unitTeam)
 	end
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end
@@ -2267,10 +2294,10 @@ end
 
 function gadgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	self:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-
 	for _, g in ipairs(self.UnitTakenList) do
 		g:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
+	markIdle(unitID)
 	return
 end
 
@@ -2299,6 +2326,7 @@ function gadgetHandler:UnitCommand(
 	for _, g in ipairs(self.UnitCommandList) do
 		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
+	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
 end

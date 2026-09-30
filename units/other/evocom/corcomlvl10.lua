@@ -114,6 +114,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
+			tombstone = "corstone",
 			shield_color_mult = 0.8,
 			shield_power = 57000,
 			shield_radius = 100,

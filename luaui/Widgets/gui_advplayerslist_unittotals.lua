@@ -24,11 +24,8 @@ local displayFeatureCount = false
 local vsx, vsy = spGetViewGeometry()
 
 local widgetScale = 1
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
 
@@ -155,6 +152,8 @@ function widget:Initialize()
 	widget:ViewResize()
 	updatePosition()
 	WG.unittotals = {}
+	---Where the unit totals panel sits, so a neighbour can stack against it.
+	---@return DockedPanelPosition position
 	WG.unittotals.GetPosition = function()
 		return { top, left, bottom, right, widgetScale }
 	end

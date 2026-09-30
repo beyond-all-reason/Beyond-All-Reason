@@ -31,7 +31,8 @@ function widget:Initialize()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, arg1, arg2, arg3, arg4) -- cmdType can be 'erase', 'point', or 'line', arg1 is the text or line length(?)
-	if cmdType ~= "erase" then
+	-- ignored players' marks are never drawn, erasing there would only clear other marks nearby
+	if cmdType ~= "erase" and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		local f = frame + (eraseTime * 30)
 		local count = pointsToErase[f] and #pointsToErase[f] or 0
 		if count == 0 then

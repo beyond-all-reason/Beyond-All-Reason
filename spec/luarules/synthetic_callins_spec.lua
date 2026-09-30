@@ -58,11 +58,36 @@ for _, base in ipairs(BASES) do
 			function gh:UpdateCallIn(name) end
 			function gh:GameFramePost(frameNum) end
 
-			local env = setmetatable({
+			-- The synced setup includes unit_idle_states, which reads CMD at its own
+			-- load, so the include has to land in here. It is specced on its own in
+			-- unit_idle_states_spec; these views only need it to load without error.
+			local env
+			env = setmetatable({
 				gadgetHandler = gh,
-				Script = { GetSynced = function() return true end },
+				Script = {
+					GetSynced = function()
+						return true
+					end,
+				},
+				Spring = setmetatable({
+					IsDevLuaEnabled = function()
+						return false
+					end,
+				}, { __index = Spring }),
+				CMD = { MOVE = 10, REPAIR = 40, OPT_INTERNAL = 8 },
+				VFS = setmetatable({
+					Include = function(path)
+						local included = assert(loadfile(path))
+						setfenv(included, env)
+						return included()
+					end,
+				}, { __index = VFS }),
 				tracy = { ZoneBeginN = function() end, ZoneEnd = function() end },
-				table = setmetatable({ new = function() return {} end }, { __index = table }),
+				table = setmetatable({
+					new = function()
+						return {}
+					end,
+				}, { __index = table }),
 			}, { __index = _G })
 
 			local chunk = assert(loadfile(MODULE_PATH))
@@ -242,7 +267,11 @@ for _, base in ipairs(BASES) do
 			end)
 
 			it("leaves no marks behind a throwing subscriber", function()
-				local thrower = { [base .. "Post"] = function() error("boom") end }
+				local thrower = {
+					[base .. "Post"] = function()
+						error("boom")
+					end,
+				}
 				subscribe(thrower, "Post")
 				mark(101, 0.1)
 				postSeen, totalSeen = {}, {}

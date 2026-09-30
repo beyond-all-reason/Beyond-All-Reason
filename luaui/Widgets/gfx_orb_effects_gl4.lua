@@ -525,6 +525,7 @@ UnitEffects = nil
 -- Variables
 --------------------------------------------------------------------------------
 
+---@type InstanceVBOTable?
 local orbVBO = nil
 local orbShader = nil
 

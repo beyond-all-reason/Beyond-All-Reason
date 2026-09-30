@@ -94,6 +94,7 @@ end
 -- additional smartness for global stall/unstall
 
 -- GL4 Backend stuff:
+---@type InstanceVBOTable?
 local energyIconVBO = nil
 local energyIconShader = nil
 
@@ -249,8 +250,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corr
 	end
 end
 
-function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
-	local unitTeam = spGetUnitTeam(unitID)
+function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 	if teamUnits[unitTeam] then
 		teamUnits[unitTeam][unitID] = nil
 	end

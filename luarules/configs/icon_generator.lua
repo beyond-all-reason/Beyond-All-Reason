@@ -116,27 +116,6 @@ halo = IconConfig[selConfig].halo
 
 --// backgrounds
 background = true
-local water = "LuaRules/Images/bg_water.png"
-local builder = "LuaRules/Images/constructionunit.png"
-
-local function Greater30(a)
-	return a > 30
-end
-local function GreaterEq15(a)
-	return a >= 15
-end
-local function GreaterZero(a)
-	return a > 0
-end
-local function GreaterEqZero(a)
-	return a >= 0
-end
-local function GreaterFour(a)
-	return a > 4
-end
-local function LessEqZero(a)
-	return a <= 0
-end
 
 backgrounds = {
 	--{check={waterline=GreaterEq15,minWaterDepth=GreaterZero},texture=water},

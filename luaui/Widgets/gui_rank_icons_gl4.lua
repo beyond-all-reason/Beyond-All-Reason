@@ -50,6 +50,7 @@ local atlasID = nil
 local atlasSize = 2048
 --local atlassedImages = {}
 
+---@type InstanceVBOTable?
 local rankVBO = nil
 local rankShader = nil
 local luaShaderDir = "LuaUI/Include/"

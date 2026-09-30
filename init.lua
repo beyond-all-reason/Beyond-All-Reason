@@ -3,6 +3,35 @@
 -- Universal Lua functions applicable to any Lua code
 -- These add missing base lua functionality
 BAR = BAR or {} -- detached module namespace; must precede any BAR.X consumer
+
+-- Recoil shim: require("path/to/file") is VFS.Include("path/to/file.lua")
+-- Used instead of VFS.Include so EmmyLua can follow it and type the result without a decorator.
+local engineRequire = require ---@type (fun(name: string): any)|nil nil in every game state but LuaIntro
+---@param path string a repo path without its ".lua"
+---@param env table|nil the environment the file runs in; the caller's when absent
+---@param mode string|nil as VFS.Include takes it, e.g. VFS.ZIP
+---@return any what the file returns
+function require(path, env, mode)
+	if engineRequire and path:sub(-4) == ".lua" then
+		-- LuaIntro has an engine require, called with the ".lua" on; those calls go to it.
+		return engineRequire(path)
+	end
+	if env == nil then
+		-- the env of the caller is at level 3:
+		--    - level 1  pcall (the C function that invoked getfenv)
+		--    - level 2  require (our wrapper, which invoked pcall)
+		--    - level 3  the file that called require   <- the env we want
+		local ok, callerEnv = pcall(getfenv, 3)
+		if not ok then
+			-- the file runs in the caller's env, every call.
+			-- That env is read off the stack, so no `return require(...)` (a tail call has no frame).
+			error("require(" .. path .. "): called as a tail call; assign the result before returning it", 2)
+		end
+		env = callerEnv
+	end
+	return VFS.Include(path .. ".lua", env, mode)
+end
+
 VFS.Include("common/numberfunctions.lua")
 VFS.Include("common/stringFunctions.lua")
 VFS.Include("common/tablefunctions.lua")

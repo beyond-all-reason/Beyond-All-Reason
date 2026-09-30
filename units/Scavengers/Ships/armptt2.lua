@@ -1,4 +1,3 @@
-local unitName = "Epic Skeeter"
 return {
 	armptt2 = {
 		maxacc = 0.03,

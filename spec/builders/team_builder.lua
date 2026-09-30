@@ -276,7 +276,7 @@ function TeamBuilder:WithEnergyReceived(received)
 end
 
 ---@param self TeamBuilder
----@param playerId number
+---@param playerId PlayerID
 ---@param opts table|nil
 ---@return TeamBuilder
 function TeamBuilder:WithPlayer(playerId, opts)
@@ -304,7 +304,7 @@ function TeamBuilder:WithPlayer(playerId, opts)
 end
 
 ---@param self TeamBuilder
----@param playerId number
+---@param playerId PlayerID
 ---@return TeamBuilder
 function TeamBuilder:WithLeader(playerId)
 	self.leader = playerId

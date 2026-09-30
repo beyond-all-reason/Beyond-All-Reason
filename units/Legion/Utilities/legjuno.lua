@@ -135,6 +135,8 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					cruise_and_verticalize = true,
+					uptime_max = 9,
 					stockpilelimit = 20,
 					nofire = true,
 					water_splash = 0, -- juno can explode on water

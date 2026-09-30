@@ -22,24 +22,14 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
 local spValidUnitID = Spring.ValidUnitID
 local spGetGroundNormal = Spring.GetGroundNormal
-local stringFind = string.find
 
 local CMD_LOAD_UNITS = CMD.LOAD_UNITS
 local CMD_UNLOAD_UNITS = CMD.UNLOAD_UNITS
 
-local Nanos = {
-	[UnitDefNames.cornanotc.id] = true,
-	[UnitDefNames.armnanotc.id] = true,
-}
-if Spring.GetModOptions().experimentallegionfaction then
-	Nanos[UnitDefNames.legnanotc.id] = true
-end
+local Nanos = {}
 for udid, ud in pairs(UnitDefs) do
-	for id in pairs(Nanos) do
-		if stringFind(ud.name, UnitDefs[id].name, 1, true) then
-			Nanos[udid] = true
-			break
-		end
+	if ud.customParams.isnanoturret then
+		Nanos[udid] = true
 	end
 end
 

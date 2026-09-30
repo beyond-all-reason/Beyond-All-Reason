@@ -24,11 +24,6 @@ function M.sync(doc, ctx, stpState, setSummary)
 		ctx.syncTBMirrorControls(doc, "st")
 	end
 	local widgetState = ctx.widgetState
-	local uiState = ctx.uiState
-	local WG = ctx.WG
-	local syncAndFlash = ctx.syncAndFlash
-	local cadenceToSlider = ctx.cadenceToSlider
-	local shapeNames = ctx.shapeNames
 	-- btn-startpos active state driven by data-class-active="activeTool == 'stp'" in RML.
 
 	-- Sub-mode and shape buttons driven by dm fields via data-class-active
@@ -45,7 +40,6 @@ function M.sync(doc, ctx, stpState, setSummary)
 	-- Startbox placement-mode buttons (box / polygon / freedraw)
 	if doc then
 		local sbxMode = stpState.startboxMode or "polygon"
-		local inStartbox = stpState.subMode == "startbox"
 		-- Sync data-model flags driving data-if visibility
 		if widgetState.dmHandle then
 			local sm = stpState.subMode or ""
@@ -123,12 +117,18 @@ function M.sync(doc, ctx, stpState, setSummary)
 	-- P3.2 StartPos grayouts (per Phase 3 relevance matrix)
 	if doc and ctx.setDisabledIds then
 		local sm = stpState.subMode or "express"
-		-- Ally teams slider: manual startbox submode uses drag, not team count
+		-- Both counts drive start-position placement only. Startbox submode takes its ally team
+		-- count from the boxes drawn, and teams-per-ally has no bearing on a box, so leaving it
+		-- live invites changing a number that does nothing.
 		ctx.setDisabledIds(doc, {
 			"slider-sp-allyteams",
 			"slider-sp-allyteams-numbox",
 			"btn-sp-teams-up",
 			"btn-sp-teams-down",
+			"slider-sp-teams-per-ally",
+			"slider-sp-teams-per-ally-numbox",
+			"btn-sp-teams-per-ally-up",
+			"btn-sp-teams-per-ally-down",
 		}, sm == "startbox")
 		-- Rotation: shape-mode only AND non-circular shape type
 		local rotOff = (sm ~= "shape") or (stpState.shapeType == "circle")

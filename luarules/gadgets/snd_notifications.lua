@@ -60,8 +60,8 @@ if gadgetHandler:IsSyncedCode() then
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if
-			not string.find(unitDef.name, "critter")
-			and not string.find(unitDef.name, "raptor")
+			not unitDef.customParams.iscritter
+			and not unitDef.customParams.israptor
 			and (not unitDef.modCategories or not unitDef.modCategories.object)
 		then
 			if unitDef.extractsMetal >= 0.004 then
@@ -153,21 +153,15 @@ else
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		-- not critter/raptor/object
 		if
-			not string.find(unitDef.name, "critter")
-			and not string.find(unitDef.name, "raptor")
+			not unitDef.customParams.iscritter
+			and not unitDef.customParams.israptor
 			and (not unitDef.modCategories or not unitDef.modCategories.object)
 		then
 			isBuilding[unitDefID] = unitDef.isBuilding or unitDef.isFactory
 			if unitDef.customParams.iscommander or unitDef.customParams.isscavcommander then
 				isCommander[unitDefID] = true
 			end
-			if
-				string.find(unitDef.name, "corint")
-				or string.find(unitDef.name, "armbrtha")
-				or string.find(unitDef.name, "corbuzz")
-				or string.find(unitDef.name, "armvulc")
-				or string.find(unitDef.name, "legstarfall")
-			then
+			if unitDef.customParams.islrpc then
 				isLrpc[unitDefID] = true
 			end
 			if unitDef.isBuilding and unitDef.radarDistance > 1900 then

@@ -127,12 +127,6 @@ local function CreateLosTexture()
 	})
 end
 
-local function InitLosTexture(allyTeam)
-	gl.RenderToTexture(infoTextures[allyTeam], function()
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
-	end)
-end
-
 local function renderToTextureFunc() -- this draws the fogspheres onto the texture
 	--gl.DepthMask(false)
 	gl.Texture(0, "$info:los")

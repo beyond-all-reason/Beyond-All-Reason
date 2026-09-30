@@ -39,7 +39,6 @@ if gadgetHandler:IsSyncedCode() then
 	local players = {}
 	local absent = {}
 	local replaced = false
-	local gameStarted = false
 
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local SpGetPlayerList = Spring.GetPlayerList
@@ -174,7 +173,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
-		gameStarted = true
 		FindSubs(true)
 	end
 
@@ -253,7 +251,7 @@ else
 	local revealed = false
 
 	local function colourNames(teamID)
-		local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamID)
+		local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamID)
 		return ColorString(nameColourR, nameColourG, nameColourB)
 	end
 

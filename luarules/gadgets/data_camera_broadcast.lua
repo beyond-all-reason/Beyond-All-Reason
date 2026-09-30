@@ -22,7 +22,6 @@ local broadcastPeriodScalingEnd = 32 -- when reaches maxBroadcastPeriod
 local PACKET_HEADER = "="
 
 if gadgetHandler:IsSyncedCode() then
-	local strSub = string.sub
 
 	local validation = string.randomString(2)
 	_G.validationCam = validation

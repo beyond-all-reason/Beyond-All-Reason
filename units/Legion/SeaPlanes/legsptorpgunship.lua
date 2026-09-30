@@ -31,7 +31,7 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Seaplanes",
+			subfolder = "Legion/SeaPlanes",
 			unitgroup = "sub",
 		},
 		sfxtypes = {
@@ -106,6 +106,7 @@ return {
 					vtol = 15,
 				},
 				customparams = {
+					land_damage_mult = 0.2,
 					speceffect = "torpwaterpen",
 					tracking_turn_radius = 800,
 				},

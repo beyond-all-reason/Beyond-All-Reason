@@ -99,7 +99,7 @@ return {
 				impulsefactor = 0,
 				name = "Dual Rotary Microflak Cannons",
 				noselfdamage = true,
-				range = 800,
+				range = 875,
 				reloadtime = 0.166,
 				size = 0,
 				sizedecay = 0.08,

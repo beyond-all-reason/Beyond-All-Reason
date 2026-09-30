@@ -53,11 +53,27 @@ end
 
 math_random = math.random -- not a local cause the includes below use it
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
-local blueprintController = VFS.Include("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller.lua")
-local scavConfig = VFS.Include("LuaRules/Configs/scav_spawn_defs.lua")
+local blueprintController = require("luarules/gadgets/ruins/Blueprints/BYAR/blueprint_controller")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
+local scavConfig = require("luarules/configs/scav_spawn_defs")
 
-local spawnCutoffFrame = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
+-- spawnAmountBudget scales ruin amounts with map area.
+local spawnAmountBudget = (math.ceil(math.ceil(mapsizeX * mapsizeZ) / 1000000)) * 3
+local blueprintTicksTotal = math.floor((spawnAmountBudget + 5) / math.ceil(5 / ruinDensityMultiplier))
+
+local lavaLevel = BAR.Lava.isLavaMap and BAR.Lava.level or -math.huge
+
+local unitHalfFootprint = {}
+local maxUnitHalfFootprint = 0
+for unitDefID, unitDef in pairs(UnitDefs) do
+	-- xsize/zsize are footprint sizes in map squares
+	local halfFootprint = math.max(unitDef.xsize, unitDef.zsize) * Game.squareSize / 2
+	unitHalfFootprint[unitDefID] = halfFootprint
+
+	if halfFootprint > maxUnitHalfFootprint then
+		maxUnitHalfFootprint = halfFootprint
+	end
+end
 
 -- TODO: Add weights to this crap.
 local landMexesList = {
@@ -254,6 +270,15 @@ function getNearestBlocker(x, z)
 	return math.sqrt(lowestDist)
 end
 
+-- CreateUnit does not snap; Pos2BuildPos uses even vs odd grid from footprint parity.
+local function createSnappedUnit(defID, x, y, z, facing, teamID)
+	if UnitDefs[defID].customParams.modoption_blocked then
+		return nil
+	end
+	x, y, z = Spring.Pos2BuildPos(defID, x, y, z, facing)
+	return Spring.CreateUnit(defID, x, y, z, facing, teamID)
+end
+
 local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 	local swapXandY, flipX, flipZ, rotation = randomlyRotateBlueprint()
 	local mirrored, mirroredDirection, xOffset, zOffset
@@ -283,18 +308,13 @@ local function spawnRuin(ruin, posx, posy, posz, blueprintTierLevel)
 
 			local name = UnitDefs[building.unitDefID].name
 			local nonscavname = string.gsub(name, "_scav", "")
+			local bx = posx + (xOffset * flipX * mirrorX)
+			local bz = posz + (zOffset * flipZ * mirrorZ)
+			local posy = Spring.GetGroundHeight(bx, bz)
 			local r = math.random(1, 100)
-			if r < 40 and UnitDefNames[nonscavname] then
-				local posy =
-					Spring.GetGroundHeight(posx + (xOffset * flipX * mirrorX), posz + (zOffset * flipZ * mirrorZ))
-				local unit = Spring.CreateUnit(
-					UnitDefNames[nonscavname].id,
-					posx + (xOffset * flipX * mirrorX),
-					posy,
-					posz + (zOffset * flipZ * mirrorZ),
-					(building.direction + rotation + mirrorRotation) % 4,
-					GaiaTeamID
-				)
+			if r < 40 and posy > lavaLevel and UnitDefNames[nonscavname] then
+				local facing = (building.direction + rotation + mirrorRotation) % 4
+				local unit = createSnappedUnit(UnitDefNames[nonscavname].id, bx, posy, bz, facing, GaiaTeamID)
 				if unit then
 					local radarRange = UnitDefs[building.unitDefID].radarDistance
 					local canMove = UnitDefs[building.unitDefID].canMove
@@ -347,7 +367,8 @@ local function SpawnMexes(mexSpots)
 			end
 
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -371,7 +392,8 @@ local function SpawnMexes(mexSpots)
 
 			if canBuildHere then
 				local mex = mexesList[math.random(1, #mexesList)]
-				local unit = Spring.CreateUnit(UnitDefNames[mex].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local facing = math.random(0, 3)
+				local unit = createSnappedUnit(UnitDefNames[mex].id, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -398,8 +420,14 @@ local function SpawnGeos(geoSpots)
 				geosList = seaGeosList
 			end
 
+			local geo = geosList[math.random(1, #geosList)]
+			local defID = UnitDefNames[geo].id
+			local facing = math.random(0, 3)
+			posx, posy, posz = Spring.Pos2BuildPos(defID, posx, posy, posz, facing)
+
 			local radius = 32
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -422,8 +450,7 @@ local function SpawnGeos(geoSpots)
 			end
 
 			if canBuildHere then
-				local geo = geosList[math.random(1, #geosList)]
-				local unit = Spring.CreateUnit(UnitDefNames[geo].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local unit = createSnappedUnit(defID, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -453,7 +480,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -482,14 +510,9 @@ local function SpawnMexGeoRandomStructures()
 
 					if canBuildHere then
 						local defence = defencesList[math.random(1, #defencesList)]
-						local unit = Spring.CreateUnit(
-							UnitDefNames[defence].id,
-							posx2,
-							posy2,
-							posz2,
-							math.random(0, 3),
-							GaiaTeamID
-						)
+						local facing = math.random(0, 3)
+						local unit =
+							createSnappedUnit(UnitDefNames[defence].id, posx2, posy2, posz2, facing, GaiaTeamID)
 						if unit then
 							Spring.SetUnitNeutral(unit, true)
 							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -518,7 +541,8 @@ local function SpawnMexGeoRandomStructures()
 					end
 
 					local radius = 128
-					local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+					local canBuildHere = posy2 > lavaLevel
+						and positionCheckLibrary.VisibilityCheckEnemy(
 						posx2,
 						posy2,
 						posz2,
@@ -547,14 +571,9 @@ local function SpawnMexGeoRandomStructures()
 
 					if canBuildHere then
 						local defence = defencesList[math.random(1, #defencesList)]
-						local unit = Spring.CreateUnit(
-							UnitDefNames[defence].id,
-							posx2,
-							posy2,
-							posz2,
-							math.random(0, 3),
-							GaiaTeamID
-						)
+						local facing = math.random(0, 3)
+						local unit =
+							createSnappedUnit(UnitDefNames[defence].id, posx2, posy2, posz2, facing, GaiaTeamID)
 						if unit then
 							Spring.SetUnitNeutral(unit, true)
 							Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -568,7 +587,7 @@ local function SpawnMexGeoRandomStructures()
 end
 
 local function SpawnRandomStructures()
-	for i = 1, math.ceil(spawnCutoffFrame / 10) do
+	for i = 1, math.ceil(spawnAmountBudget / 10) do
 		for j = 1, math.ceil(10 * ruinDensityMultiplier) do
 			local posx = math.ceil(math.random(196, Game.mapSizeX - 196) / 16) * 16
 			local posz = math.ceil(math.random(196, Game.mapSizeZ - 196) / 16) * 16
@@ -581,7 +600,8 @@ local function SpawnRandomStructures()
 			end
 
 			local radius = 128
-			local canBuildHere = positionCheckLibrary.VisibilityCheckEnemy(
+			local canBuildHere = posy > lavaLevel
+				and positionCheckLibrary.VisibilityCheckEnemy(
 				posx,
 				posy,
 				posz,
@@ -609,8 +629,8 @@ local function SpawnRandomStructures()
 
 			if canBuildHere then
 				local defence = defencesList[math.random(1, #defencesList)]
-				local unit =
-					Spring.CreateUnit(UnitDefNames[defence].id, posx, posy, posz, math.random(0, 3), GaiaTeamID)
+				local facing = math.random(0, 3)
+				local unit = createSnappedUnit(UnitDefNames[defence].id, posx, posy, posz, facing, GaiaTeamID)
 				if unit then
 					Spring.SetUnitNeutral(unit, true)
 					Spring.GiveOrderToUnit(unit, CMD.FIRE_STATE, { 1 }, 0)
@@ -622,37 +642,7 @@ local function SpawnRandomStructures()
 	end
 end
 
-function gadget:GameFrame(n)
-	if n == math.ceil(spawnCutoffFrame * 0.5) then
-		local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
-		if mexSpots and #mexSpots > 5 then
-			SpawnMexes(mexSpots)
-		end
-	end
-
-	if n == 30 then
-		local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
-		if geoSpots and #geoSpots >= 1 then
-			SpawnGeos(geoSpots)
-		end
-	end
-
-	if n == spawnCutoffFrame + 30 then
-		SpawnMexGeoRandomStructures()
-	end
-
-	if n == spawnCutoffFrame + 60 then
-		SpawnRandomStructures()
-	end
-
-	if
-		n < (5 / ruinDensityMultiplier)
-		or n % math.ceil((5 / ruinDensityMultiplier)) ~= 0
-		or n > spawnCutoffFrame + 5
-	then
-		return
-	end
-
+local function SpawnBlueprintRuin()
 	local landRuin, seaRuin, posx, posy, posz, seaRuinChance, radius, canBuildHere, r, blueprintTierLevel
 	for i = 1, 100 do
 		local ruin
@@ -729,4 +719,63 @@ function gadget:GameFrame(n)
 			end
 		end
 	end
+end
+
+function gadget:GamePreload()
+	if Spring.GetGameRulesParam("loadedGame") == 1 or Spring.GetGameFrame() >= 1 then
+		return -- savegames and mid-game reloads already have their ruins
+	end
+
+	-- spawn order affects placement success rates near resource spots
+	local geoSpots = GG.resource_spot_finder and GG.resource_spot_finder.geoSpotsList or nil
+	if geoSpots and #geoSpots >= 1 then
+		SpawnGeos(geoSpots)
+	end
+
+	local firstHalfTicks = math.floor(blueprintTicksTotal * 0.5)
+	for _ = 1, firstHalfTicks do
+		SpawnBlueprintRuin()
+	end
+
+	local mexSpots = GG.resource_spot_finder and GG.resource_spot_finder.metalSpotsList or nil
+	if mexSpots and #mexSpots > 5 then
+		SpawnMexes(mexSpots)
+	end
+
+	for _ = 1, blueprintTicksTotal - firstHalfTicks do
+		SpawnBlueprintRuin()
+	end
+
+	SpawnMexGeoRandomStructures()
+	SpawnRandomStructures()
+end
+
+function gadget:GameFramePost(n)
+	if n == 0 then
+		-- commanders were placed in GameStart: clear each one's build range, the ring shown during start placement
+		for _, teamID in ipairs(Spring.GetTeamList()) do
+			if teamID ~= GaiaTeamID then
+				local teamUnits = Spring.GetTeamUnits(teamID)
+				for i = 1, #teamUnits do
+					local commanderID = teamUnits[i]
+					local commanderDef = UnitDefs[Spring.GetUnitDefID(commanderID)]
+					if commanderDef.customParams.iscommander then
+						local clearRadius = commanderDef.buildDistance
+						local x, _, z = Spring.GetUnitPosition(commanderID)
+						local nearbyRuins =
+							Spring.GetUnitsInCylinder(x, z, clearRadius + maxUnitHalfFootprint, GaiaTeamID)
+						for j = 1, #nearbyRuins do
+							local unitID = nearbyRuins[j]
+							local ux, _, uz = Spring.GetUnitPosition(unitID)
+							if math.distance2d(ux, uz, x, z) < clearRadius + unitHalfFootprint[Spring.GetUnitDefID(unitID)] then
+								Spring.DestroyUnit(unitID, false, true)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
+	gadgetHandler:RemoveGadget(self)
 end

@@ -23,7 +23,6 @@ local mathMax = math.max
 local mathClamp = math.clamp
 local mathSin = math.sin
 local mathIsInRect = math.isInRect
-local stringSub = string.sub
 local stringFormatSI = string.formatSI
 local pairs = pairs
 local ipairs = ipairs
@@ -36,7 +35,6 @@ local spGetGameFrame = Spring.GetGameFrame
 local spGetMyTeamID = Spring.GetLocalTeamID
 local spEcho = Spring.Echo
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetGameSeconds = Spring.GetGameSeconds
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetTeamUnitCount = Spring.GetTeamUnitCount
@@ -56,10 +54,8 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetTeamStartPosition = Spring.GetTeamStartPosition
 local spGetTeamUnitDefCount = Spring.GetTeamUnitDefCount
 local spGetUnitIsDead = Spring.GetUnitIsDead
-local spGetAllUnits = Spring.GetAllUnits
 local spGetTeamUnitsByDefs = Spring.GetTeamUnitsByDefs
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetMouseState = Spring.GetMouseState
 local spSetMouseCursor = Spring.SetMouseCursor
 local spGetConfigFloat = Spring.GetConfigFloat
@@ -68,15 +64,8 @@ local spGetConfigFloat = Spring.GetConfigFloat
 local glColor = gl.Color
 local glTexRect = gl.TexRect
 local glTexture = gl.Texture
-local glCallList = gl.CallList
-local glCreateList = gl.CreateList
-local glDeleteList = gl.DeleteList
 local glDeleteTexture = gl.DeleteTexture
-local glCreateTexture = gl.CreateTexture
 local glGetViewSizes = gl.GetViewSizes
-local glPolygonOffset = gl.PolygonOffset
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 
@@ -90,9 +79,9 @@ local allyData = {}
 local allyIDdata = {}
 local allyTeamRanking = nil
 local reclaimerUnits = {}
-local textLists = {}
 local avgData = {}
 local uiElementRects = {}
+local uiElementRectsCount = 0
 local tooltipAreas = {}
 local teamTooltipAreas = {}
 local guishaderRects = {}
@@ -324,6 +313,7 @@ end
 local function updateDrawPos()
 	local drawpos = 0
 	aliveAllyTeams = 0
+	local orderChanged = false
 	local currentMyAllyID = spGetMyAllyTeamID()
 	if allyTeamRanking then
 		for _, allyID in pairs(allyTeamRanking) do
@@ -332,7 +322,10 @@ local function updateDrawPos()
 				if isTeamReal(allyID) and (allyID == currentMyAllyID or inSpecMode) and allyData[dataID].isAlive then
 					aliveAllyTeams = aliveAllyTeams + 1
 					drawpos = drawpos + 1
-					allyData[dataID].drawpos = drawpos
+					if allyData[dataID].drawpos ~= drawpos then
+						allyData[dataID].drawpos = drawpos
+						orderChanged = true
+					end
 				end
 			end
 		end
@@ -343,8 +336,18 @@ local function updateDrawPos()
 				aliveAllyTeams = aliveAllyTeams + 1
 				drawpos = drawpos + 1
 			end
-			data.drawpos = drawpos
+			if data.drawpos ~= drawpos then
+				data.drawpos = drawpos
+				orderChanged = true
+			end
 		end
+	end
+	if orderChanged then
+		-- rows moved: the per-allyteam background rects (whose width depends on
+		-- each allyteam's player count) are baked into uiBgTex and the guishader
+		-- blur lists, so force those to be rebuilt from freshly computed positions
+		uiElementRectsCount = 0
+		refreshTeamCompositionList = true
 	end
 end
 
@@ -362,12 +365,19 @@ local function updateButtons()
 	end
 
 	if cfgSticktotopbar and WG.topbar ~= nil then
-		local topbarArea = WG.topbar.GetPosition()
-		if not topbarShowButtons then
-			topbarArea[2] = topbarArea[4]
+		-- Hang under the menu button strip, right-aligned with it. Its widget owns that
+		-- rect (no height while auto-hidden); without it fall back to the top bar, and to
+		-- the screen top without that.
+		local buttonsArea = WG.topbar.GetButtonsPosition and WG.topbar.GetButtonsPosition()
+		local topbarArea = WG.topbar.GetPosition and WG.topbar.GetPosition()
+		if buttonsArea then
+			widgetPosX = buttonsArea[3] - widgetWidth
+			widgetPosY = buttonsArea[2] - widgetHeight
+		elseif topbarArea then
+			-- no buttons in the way, so sit right under the bar itself
+			widgetPosX = topbarArea[3] - widgetWidth
+			widgetPosY = topbarArea[2] - widgetHeight
 		end
-		widgetPosX = topbarArea[3] - widgetWidth
-		widgetPosY = (topbarArea[6] or topbarArea[2]) - widgetHeight
 	end
 
 	if widgetPosX + widgetWidth / 2 > vsx / 2 then
@@ -736,7 +746,6 @@ end
 
 local areaRect = {}
 local prevAreaRect = {}
-local uiElementRectsCount = 0
 local function makeTeamCompositionList()
 	if not inSpecMode then
 		return

@@ -124,10 +124,6 @@ local function thumbCachePath(matKey)
 	return THUMB_CACHE_DIR .. "/" .. matKey .. "_" .. THUMB_SIZE .. ".png"
 end
 
-local function getDpRatio()
-	return (WG.TerraformerShared and WG.TerraformerShared.getDpRatio and WG.TerraformerShared.getDpRatio()) or 1.0
-end
-
 local function cleanupThumbs()
 	thumbTextures = {}
 	thumbImgEls = {}

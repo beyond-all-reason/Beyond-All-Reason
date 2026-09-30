@@ -20,7 +20,6 @@ local attackTurnRadius = 500
 
 local CMD_ATTACK = CMD.ATTACK
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
-local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 local spMoveCtrlEnable = Spring.MoveCtrl.Enable
 local spMoveCtrlIsEnabled = Spring.MoveCtrl.IsEnabled
 local spMoveCtrlDisable = Spring.MoveCtrl.Disable

@@ -21,7 +21,6 @@ end
 
 -- Localized functions for performance
 local mathFloor = math.floor
-local mathMax = math.max
 
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
@@ -344,7 +343,7 @@ function widget:DrawScreen()
 				RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], elementCorner, 1, 1, 0, 0)
 			end)
 			dlistcreated = true
-			WG.guishader.InsertDlist(backgroundGuishader, "missiontext")
+			WG.guishader.InsertDlist(backgroundGuishader, "missiontext", nil, widget)
 		end
 		showOnceMore = false
 
@@ -424,6 +423,12 @@ function mouseEvent(x, y, button, release)
 		return
 	end
 	if show then
+		-- A press on a top bar button is the top bar's to handle: it closes the open windows
+		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(x, y) then
+			return false
+		end
+
 		-- Inside main panel: consume the click
 		if math_isInRect(x, y, screenX, screenY - screenHeight, screenX + screenWidth, screenY) then
 			return true
@@ -462,6 +467,12 @@ function widget:Initialize()
 	end
 
 	totalTextLines = #textLines
+
+	-- lets the handler hide the rest of the interface while the panel is open.
+	-- Reads `show` alone: justClosedFromPress is a one-frame lie told to the top bar.
+	widgetHandler:RegisterModalWindow(function()
+		return show == true
+	end)
 
 	WG.missioninfo = {}
 	WG.missioninfo.toggle = function(state)

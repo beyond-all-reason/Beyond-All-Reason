@@ -44,6 +44,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 4,
 			subfolder = "ArmGantry",
 			techlevel = 3,
 			unitgroup = "emp",
@@ -191,6 +192,9 @@ return {
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
 				customparams = {
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 6,
 					shield_aoe_penetration = true,
 					stockpilelimit = 2,
 					weapons_group = 2,

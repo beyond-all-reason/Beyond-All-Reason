@@ -19,7 +19,7 @@ local spEcho = Spring.Echo
 local timeToLive = 330
 local lineWidth = 1.0
 
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
 
 ----------------------------------------------------------------
 --speedups
@@ -61,6 +61,7 @@ end
 -- and clamp the size of it to always be screensized
 -- GL4 Stuff --
 
+---@type InstanceVBOTable?
 local mapMarkInstanceVBO = nil
 local mapMarkShader = nil
 
@@ -354,6 +355,7 @@ function widget:MapDrawCmd(playerID, cmdType, px, py, pz, label)
 		label == "Start " .. playerTeam
 		or cmdType ~= "point"
 		or not (ArePlayersAllied(myPlayerID, playerID) or (spectator and fullView))
+		or (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID))
 	then
 		return
 	end

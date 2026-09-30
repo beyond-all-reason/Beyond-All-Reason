@@ -42,6 +42,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			paralyzetime_uncapped = true,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",
@@ -141,9 +142,9 @@ return {
 				texture3 = "null",
 				tolerance = 7000,
 				tracks = true,
-				turnrate = 10000,
-				weaponacceleration = 150,
-				weapontimer = 2,
+				turnrate = 12000,
+				weaponacceleration = 180,
+				weapontimer = 4,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 6000,
 				customparams = {

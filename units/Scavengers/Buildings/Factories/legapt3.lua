@@ -39,6 +39,7 @@ return {
 			"legfortt4",
 		},
 		customparams = {
+			airfactory = true,
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/corapt3_aoplane.dds",
 			buildinggrounddecalsizey = 15,

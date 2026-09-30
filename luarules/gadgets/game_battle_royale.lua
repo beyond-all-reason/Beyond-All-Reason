@@ -105,6 +105,7 @@ else
 
 	local circleSegments = 1024
 	local circleShader = nil
+	---@type InstanceVBOTable?
 	local circleInstanceVBO = nil
 
 	local minY, maxY

@@ -2,11 +2,32 @@ name: Type Check
 
 on:
   pull_request:
-    paths: ['**.lua']
+    paths:
+      - "**.lua"
+      # So that a change to the check runs the check.
+      - ".github/workflows/type_check.yml"
+      - ".github/scripts/**"
   workflow_dispatch:
 
 permissions:
   contents: read
+
+env:
+  EMMYLUA_VERSION: 0.24.0
+
+  # emmylua has nondeterministic warnings: EmmyLuaLs/emmylua-analyzer-rust#1091
+  # so we check our findings against a number of initial diagnostic runs' state
+  RUNS: 3
+
+  # Net new warnings on the lines the PR wrote, per thousand changed lines.
+  # Reduced by the warnings resolved in the same files as the changed hunk.
+  WARN_ADDED_PER_KLOC: 15
+
+  # Every warning left in the files touched, per thousand lines of those files.
+  WARN_TOTAL_PER_KLOC: 30
+
+  # The slice ci_results.yml allots one report. Keep the two in step.
+  REPORT_LIMIT: 6000
 
 jobs:
   emmylua_check:
@@ -14,16 +35,156 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # compare below: "Checkout base"
       - name: Checkout
         uses: actions/checkout@v5
         with:
+          path: head
           submodules: recursive
+          # Pull down only the Lua tree and the checker's own config files
+          filter: blob:none
+          # Cone mode cannot filter correctly for our repo, picks up asset files, etc.
+          sparse-checkout-cone-mode: false
+          # type_check.yml is pulled so the base cache key can hash it.
+          sparse-checkout: |
+            /.emmyrc.json
+            /.gitmodules
+            /.github/scripts
+            /.github/workflows/type_check.yml
+            /recoil-lua-library
+            *.lua
+
+      - name: Describe the change
+        id: describe
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # GitHub rebuilds refs/pull/N/merge against master as it stands now,
+          # while the event's base.sha is master as it stood then. Diffing one
+          # against the other hands this pull request every commit that landed
+          # in between and blames their lines on its author. Parent 1 of the
+          # merge commit is the base it was really built on.
+          #
+          # cat-file and not HEAD^1: the checkout is shallow, and the graft
+          # hides the parents from rev-parse, which fails outright.
+          parents=$(git -C head cat-file commit HEAD | awk '/^parent /{print $2}')
+          if [ "$(printf '%s\n' "$parents" | grep -c .)" -eq 2 ]; then
+            BASE_SHA=$(printf '%s\n' "$parents" | head -1)
+            echo "Base is $BASE_SHA, parent 1 of the merge commit."
+          else
+            echo "HEAD is not a merge commit, so the event's base sha stands."
+          fi
+          echo "base-sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+
+          git -C head fetch --no-tags --depth=1 origin "$BASE_SHA"
+
+          # Lua paths may contain spaces, so the list uses NUL separators.
+          git -C head diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.lua' > changed.txt
+          if [ ! -s changed.txt ]; then
+            echo "No Lua files changed."
+            echo "lua=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "lua=true" >> "$GITHUB_OUTPUT"
+
+          # The base findings get moved onto the head's previous paths, first.
+          # A rename would otherwise present every finding in the file as new.
+          # -z keeps the paths raw and NUL-separated: without it git quotes any
+          # path holding a tab or a newline, and the quoted form would no longer
+          # match the raw one in changed.txt. Records are status, old, new.
+          git -C head diff --name-status -z -M --diff-filter=R "$BASE_SHA" HEAD -- '*.lua' \
+          > renames.txt
+
+          # A hunk header carries both sides: @@ -old,removed +new,added @@, with
+          # a count of 1 where it is omitted. Rewriting 3 lines in place is 3
+          # changed lines and not 6, so a hunk counts for its wider side.
+          changed=$(git -C head diff --unified=0 "$BASE_SHA" HEAD -- '*.lua' \
+                    | awk '
+                        /^@@/ {
+                          split(substr($2, 2), old, ",")
+                          split(substr($3, 2), new, ",")
+                          removed = (old[2] == "" ? 1 : old[2] + 0)
+                          added   = (new[2] == "" ? 1 : new[2] + 0)
+                          total += (added > removed ? added : removed)
+                        }
+                        END { print total + 0 }')
+          echo "CHANGED_LINES=$changed" >> "$GITHUB_ENV"
+          echo "$changed changed line(s) across $(tr -cd '\0' < changed.txt | wc -c) file(s)."
+
+          # Warnings are ranked by nearness to the change scope: hunk > file > tree.
+          # A deletion has no head-side line so is matched against adjoining lines.
+          #
+          # Records are NUL-separated path, start, end. A contributor can add a
+          # file whose path holds a tab or a newline, so awk is given no path to
+          # print -- it emits the two numbers and the shell writes the path,
+          # which is the only part of this that can carry an arbitrary byte.
+          while IFS= read -r -d '' file; do
+            git -C head diff --unified=0 "$BASE_SHA" HEAD -- "$file" \
+            | awk '
+                /^@@/ {
+                  split(substr($3, 2), new, ",")
+                  start = new[1] + 0
+                  count = (new[2] == "" ? 1 : new[2] + 0)
+                  if (count == 0) print start, start + 1
+                  else            print start, start + count - 1
+                }' \
+            | while read -r start end; do
+                printf '%s\0%s\0%s\0' "$file" "$start" "$end"
+              done
+          done < changed.txt > hunks.txt
+          echo "$(tr -cd '\0' < hunks.txt | wc -c) hunk field(s) written."
+
+          # The total rule divides by the size of the file, not the diff.
+          # This has to check for files deleted by the change.
+          file_lines=0
+          while IFS= read -r -d '' file; do
+            if [ -f "head/$file" ]; then
+              file_lines=$((file_lines + $(wc -l < "head/$file")))
+            fi
+          done < changed.txt
+          echo "CHANGED_FILE_LINES=$file_lines" >> "$GITHUB_ENV"
+          echo "$file_lines line(s) in the changed files."
+
+          # How much a file grew or shrank, on net, and ignoring deleted files.
+          delta=$(git -C head diff --numstat --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.lua' \
+                  | awk '$1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ { add += $1; del += $2 }
+                         END { print add - del }')
+          echo "CHANGED_FILE_LINES_DELTA=$delta" >> "$GITHUB_ENV"
+          echo "$delta line(s) of net growth in the changed files."
+
+      # Either we need a new base checkout and analysis, or we restore from cache.
+      # Missing is preferable, since it only costs time, so only exact matches hit.
+      # Finally, reports use absolute paths, so require a constant GITHUB_WORKSPACE.
+      - name: Restore base diagnostics
+        id: base-cache
+        if: github.event_name == 'pull_request' && steps.describe.outputs.lua == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: base-reports
+          key: emmylua-base-${{ env.EMMYLUA_VERSION }}-${{ steps.describe.outputs.base-sha }}-${{ hashFiles('head/.github/workflows/type_check.yml') }}
+
+      - name: Checkout base
+        if: >-
+          github.event_name == 'pull_request'
+          && steps.describe.outputs.lua == 'true'
+          && steps.base-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v5
+        with:
+          # The exact SHA the diff was taken against.
+          ref: ${{ steps.describe.outputs.base-sha }}
+          path: base
+          submodules: recursive
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.emmyrc.json
+            /.gitmodules
+            /recoil-lua-library
+            *.lua
 
       - name: Install emmylua_check
-        env:
-          # This file owns the version. BAR-Devtools' dev image tracks it, so
-          # update it there too when you bump.
-          EMMYLUA_VERSION: 0.24.0
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         run: |
           set -euo pipefail
           ARCH=$(uname -m)
@@ -37,89 +198,121 @@ jobs:
           sudo chmod +x /usr/local/bin/emmylua_check
           /usr/local/bin/emmylua_check --version
 
-      - name: Run emmylua_check on changed files
-        if: github.event_name == 'pull_request'
+      # These runs are shared for both workspace and pull request scopes.
+      # We write the same basic report out since emmylua has no scoped mode.
+      - name: Run emmylua_check
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_CACHED: ${{ steps.base-cache.outputs.cache-hit }}
         run: |
-          # Fetch the base revision to diff against it.
-          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          # A manual run has nothing to compare against (yet) so it runs once.
+          sides="head"
+          runs=1
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            runs="$RUNS"
+            sides="base head"
 
-          # Lua paths may contain spaces, so the list uses NUL separators.
-          git diff --name-only -z --diff-filter=ACMR "$BASE_SHA" HEAD -- '*.lua' > changed.txt
-          if [ ! -s changed.txt ]; then
-            echo "No Lua files changed."
+            # A restored base was written by an earlier run of this same job.
+            if [ "$BASE_CACHED" = "true" ]; then
+              for run in $(seq 1 "$runs"); do
+                if [ ! -s "base-reports/$run.json" ] || ! jq -e . "base-reports/$run.json" > /dev/null 2>&1; then
+                  echo "::error title=Type check cache is broken::The restored base diagnostics are missing or unreadable at run $run. This is a CI defect, not a problem with this PR; bump the cache key in type_check.yml or drop the entry."
+                  exit 1
+                fi
+              done
+              echo "Base diagnostics restored from cache, skipping $runs base run(s)."
+              sides="head"
+            fi
+          fi
+
+          for side in $sides; do
+            mkdir -p "$side-reports"
+            for run in $(seq 1 "$runs"); do
+              # A nonzero exit only means findings exist, which is always true.
+              ( cd "$side" && emmylua_check -c .emmyrc.json -f json \
+                  --output "$GITHUB_WORKSPACE/$side-reports/$run.json" . ) \
+                > "$side-$run.log" 2>&1 || true
+
+              # Without its config emmylua analyses the tree unconfigured and
+              # every finding is garbage, so that is a defect and not a result.
+              if grep -Eq 'Failed to (read|parse) (lua )?config file' "$side-$run.log"; then
+                echo "::error title=Type check ran without its config::emmylua_check could not load $side/.emmyrc.json (missing or unparseable) and analyzed the tree unconfigured, so every finding is garbage. This is a CI defect, not a problem with this PR. Restore .emmyrc.json or fix type_check.yml."
+                exit 1
+              fi
+              if [ ! -s "$side-reports/$run.json" ] || ! jq -e . "$side-reports/$run.json" > /dev/null 2>&1; then
+                echo "::error title=Type check is broken::emmylua_check produced no readable report for $side run $run. This is a CI defect, not a problem with this PR; fix type_check.yml or its pinned emmylua_check."
+                cat "$side-$run.log"
+                exit 1
+              fi
+            done
+          done
+
+      - name: Save base diagnostics
+        if: >-
+          github.event_name == 'pull_request'
+          && steps.describe.outputs.lua == 'true'
+          && steps.base-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: base-reports
+          key: ${{ steps.base-cache.outputs.cache-primary-key }}
+
+      # Errors block outright.
+      # Warnings are compared against a budget.
+      # Info and hints are only ever reported.
+      # Manual runs always report green and are presumed informational/analytical.
+      - name: Compare against the base
+        if: github.event_name != 'pull_request' || steps.describe.outputs.lua == 'true'
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != "pull_request" ]; then
+            python3 head/.github/scripts/emmylua_compare.py \
+              --head head-reports/*.json \
+              --head-root "$GITHUB_WORKSPACE/head" \
+              --warn-added-per-kloc "$WARN_ADDED_PER_KLOC" \
+              --warn-total-per-kloc "$WARN_TOTAL_PER_KLOC" \
+              --summary "$GITHUB_STEP_SUMMARY" \
+              --ci-report ci-report.md
             exit 0
           fi
-          echo "Reporting on:"
-          tr '\0' '\n' < changed.txt
-          jq -R -s 'split("\u0000") | map(select(. != ""))' changed.txt > changed.json
 
-          # Take the workspace root and analyze the entire tree in the report.
-          # The report then has to be filtered to follow a CI rule on changes.
           set +e
-          emmylua_check -c .emmyrc.json -f json --output diagnostics.json . 2> emmylua.log
-          emmylua_status=$?
+          python3 head/.github/scripts/emmylua_compare.py \
+            --base base-reports/*.json \
+            --head head-reports/*.json \
+            --base-root "$GITHUB_WORKSPACE/base" \
+            --head-root "$GITHUB_WORKSPACE/head" \
+            --renames renames.txt \
+            --changed-files changed.txt \
+            --changed-hunks hunks.txt \
+            --changed-lines "${CHANGED_LINES:-0}" \
+            --changed-file-lines "${CHANGED_FILE_LINES:-0}" \
+            --changed-file-lines-delta "${CHANGED_FILE_LINES_DELTA:-0}" \
+            --warn-added-per-kloc "$WARN_ADDED_PER_KLOC" \
+            --warn-total-per-kloc "$WARN_TOTAL_PER_KLOC" \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            --ci-report ci-report.md
+          exit_code=$?
           set -e
-          cat emmylua.log >&2
 
-          # Error and exit on missing config. This action is obsolete or broken.
-          if grep -Eq 'Failed to (read|parse) (lua )?config file' emmylua.log; then
-            echo "::error title=Type check ran without its config::emmylua_check could not load .emmyrc.json (missing or unparseable) and analyzed the tree unconfigured, so every finding is garbage. This is a CI defect, not a problem with this PR. Restore .emmyrc.json or fix type_check.yml."
-            exit 1
+          # The compact report is bounded by construction. Over its slice anyway
+          # means the rendering regressed, and the comment would cut mid-table.
+          if [ -s ci-report.md ]; then
+            report_bytes=$(wc -c < ci-report.md)
+            if [ "$report_bytes" -gt "$REPORT_LIMIT" ]; then
+              echo "::error title=Type check report is oversized::The compact report is $report_bytes bytes, past the $REPORT_LIMIT the CI Results comment allots it, so it would be truncated mid-table. This is a CI defect, not a problem with this PR; fix the compact rendering in emmylua_compare.py."
+              exit 1
+            fi
+            echo "Compact report: $report_bytes bytes (limit $REPORT_LIMIT)."
           fi
 
-          # Error for nonreporting, not for nonzero exit codes, as the failure case.
-          # Emmylua exits nonzero for any type errors it finds, which is never none.
-          if [ ! -s diagnostics.json ] || ! jq -e . diagnostics.json > /dev/null; then
-            echo "emmylua_check produced no readable report (exit $emmylua_status)"
-            exit 1
-          fi
+          exit $exit_code
 
-          # The report filter works only on absolute paths under $PWD.
-          if ! jq -e --arg cwd "$PWD/" 'length == 0 or any(.[]; .file | startswith($cwd))' diagnostics.json > /dev/null; then
-            echo "::error title=Type check filter is broken::No path in diagnostics.json starts with $PWD, so the changed-file filter can never match and the check would pass while checking nothing. The emmylua report shape changed; update type_check.yml."
-            exit 1
-          fi
-
-          # Numeric severities (error 1, warning 2) and relative file paths.
-          jq --slurpfile changed changed.json --arg cwd "$PWD/" '
-            ($changed[0] | map({(.): true}) | add // {}) as $want
-            | [ .[]
-                | (.file | ltrimstr($cwd) | ltrimstr("./")) as $path
-                | select($want[$path])
-                | .diagnostics[]
-                | { path: $path,
-                    line: (.range.start.line + 1),
-                    col: (.range.start.character + 1),
-                    severity: (.severity // 1),
-                    code: ((.code // "unknown") | tostring),
-                    message: .message } ]
-          ' diagnostics.json > filtered.json
-
-          # Workflow commands are rendered as pull request annotations.
-          # We use these to display up to 10 rendered bubbles per type,
-          # then display the rest in the log (which keeps every line).
-          jq -r '
-            def esc: gsub("%"; "%25") | gsub("\r"; "%0D") | gsub("\n"; "%0A");
-            def prop: esc | gsub(","; "%2C") | gsub(":"; "%3A");
-            .[]
-            | (if .severity == 1 then "error"
-               elif .severity == 2 then "warning"
-               else "notice" end) as $kind
-            | "::\($kind) file=\(.path | prop),line=\(.line),col=\(.col),title=\(.code | prop)::\(.message | esc)"
-          ' filtered.json
-
-          # Warnings notify, errors fail.
-          # Only the touched files are in scope.
-          errors=$(jq '[ .[] | select(.severity == 1) ] | length' filtered.json)
-          echo "$(jq length filtered.json) finding(s) in changed files, $errors error(s)."
-          if [ "$errors" -ne 0 ]; then
-            exit 1
-          fi
-
-      # The workflow runner does not have a scoped check. It runs on all files.
-      # This is going to be a massive, noisy report. Only use it for analytics.
-      - name: Run emmylua_check on the whole tree
-        if: github.event_name == 'workflow_dispatch'
-        run: emmylua_check -c .emmyrc.json .
+      # Picked up by the CI Results comment. Named the same in every check, so
+      # that job can fetch it by name from whichever run it is looking at.
+      - name: Upload CI report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CI Report
+          path: ci-report.md
+          if-no-files-found: ignore

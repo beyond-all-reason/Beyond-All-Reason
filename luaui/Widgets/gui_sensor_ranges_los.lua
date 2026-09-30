@@ -64,6 +64,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 local losStencilShader = nil
 local losCircleShader = nil
+---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
 local losStencilTexture

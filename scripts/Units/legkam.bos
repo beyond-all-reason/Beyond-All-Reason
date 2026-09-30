@@ -5,7 +5,7 @@
 
 piece  base, thrust, firepoint;
 
-static-var  statechg_DesiredState, statechg_StateChanging;
+static-var  statechg_DesiredState, statechg_StateChanging, detonating;
 
 #define SIG_AIM				2
 
@@ -95,8 +95,8 @@ FireWeapon1()
 {
 	sleep 500;
 	emit-sfx 1024 + 1 from base;
+	detonating = TRUE; // Killed reads this rather than inferring the cause of death from severity
 	emit-sfx 4096 + 1 from base; //Weapon2 detonates the crawling bomb once weapon1 fires
-	//sleep 1000;
 	return (0);
 }
 
@@ -147,25 +147,17 @@ SweetSpot(piecenum)
 
 Killed(severity, corpsetype)
 {
-	//get PRINT(severity);
-	if( severity >= 500 )
+	// Drop the bomb when we detonated ourselves, or when a weak killing blow left the payload intact.
+	if( detonating || severity <= 25 )
 	{
+		// The bomb uses this unit's model, so hide the airframe before launching it.
+		hide base;
+		hide thrust;
+		hide firepoint;
 		emit-sfx 2048 + 2 from firepoint; //Triggers kamikaze weapon after unit kills itself
-	}
-	if( severity == 200 )
-	{
-		emit-sfx 2048 + 2 from firepoint; //Triggers kamikaze weapon after unit kills itself
-		corpsetype = 1 ;
-		//emit-sfx 1024 from base;
-		//explode base type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
-	}
-	if( severity <= 25 )
-	{
-		corpsetype = 1 ;
-		emit-sfx 1024 from base;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
+		// Stay in the unit table until the bomb has landed, so its damage is credited to our team.
+		sleep 3000;
+		return (0);
 	}
 	if( severity <= 50 )
 	{

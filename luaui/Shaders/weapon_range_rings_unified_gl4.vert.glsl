@@ -8,6 +8,10 @@
 
 //__DEFINES__
 
+#ifndef MASKPASS
+	#define MASKPASS 0 // 1: coverage mask pass, see gui_attackrange_gl4.lua
+#endif
+
 layout (location = 0) in vec4 circlepointposition; // x,y in range [-1,1], progress in range [0,1]
 layout (location = 1) in vec4 posscale; // abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
 layout (location = 2) in vec4 color1; // Base color for the circle
@@ -29,6 +33,9 @@ uniform float selBuilderCount = 1.0;
 uniform float drawAlpha = 1.0;
 uniform float drawMode = 0.0;
 uniform float staticUnits = 0.0; // 1 if static units, 0 if dynamic units
+#if (MASKPASS == 1)
+	uniform float maskDepthBase = 0.1; // depth band of the class being drawn into the coverage mask
+#endif
 
 uniform sampler2D heightmapTex;
 uniform sampler2D losTex; // hmm maybe?
@@ -450,6 +457,17 @@ void main() {
 		gl_Position = cameraViewProj * vec4(circleWorldPos.xyz, 1.0);
 		//pull 16 elmos forward in Z:
 		gl_Position.z = (gl_Position.z) - 128.0 / (gl_Position.w); // send 16 elmos forward in Z
+		#if (MASKPASS == 1)
+			// Coverage mask pass: with GL_LESS against a cleared depth buffer the first disc drawn
+			// wins per pixel. Instances are drawn in order, so giving later instances a larger depth
+			// leaves the depth test a clear margin and lets the hierarchical depth test reject
+			// covered tiles outright instead of testing every fragment. maskDepthBase separates
+			// classes that share a mask channel.
+			// maskDepth stays within [0, 1): valid with zero-to-one clip control (the engine's
+			// default) as well as with the classic [-1, 1] clip volume, and below the cleared 1.0.
+			float maskDepth = maskDepthBase + float(gl_InstanceID) * (1.0 / 4096.0);
+			gl_Position.z = maskDepth * gl_Position.w;
+		#endif
 	} else {
 		// Check if PIP mode (visible area not default)
 		bool isPip = (pipVisibleArea.x != 0.0 || pipVisibleArea.y != 1.0 || pipVisibleArea.z != 0.0 || pipVisibleArea.w != 1.0);

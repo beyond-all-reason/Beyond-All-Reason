@@ -7,8 +7,6 @@ if not Spring.GetModOptions().holiday_events then
 end
 
 local modOptions = Spring.GetModOptions()
-local currentDay = modOptions.date_day
-local currentMonth = modOptions.date_month
 local currentYear = modOptions.date_year
 
 -- Meeus's Julian algorithm Function to calculate Easter Sunday for a given year. Magic.

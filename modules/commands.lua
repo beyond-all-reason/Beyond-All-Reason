@@ -66,7 +66,7 @@ local function unpackInsertParams(cmdParams)
 end
 
 ---Efficiently repack a command's `cmdParams` table in-place to use with `CMD_INSERT`.
----@param unitID integer
+---@param unitID UnitID
 ---@param cmdID integer|CMD
 ---@param cmdParams number[]|CMD[]
 ---@param cmdOptions CommandOptions
@@ -78,7 +78,7 @@ local function giveInsertOrderToUnit(unitID, cmdID, cmdParams, cmdOptions, cmdTa
 end
 
 ---Resend a modified command, repacking its `cmdParams` table if it was an inserted command.
----@param unitID integer
+---@param unitID UnitID
 ---@param cmdID integer|CMD
 ---@param cmdParams number[]|CMD[]
 ---@param cmdOptions CommandOptions
@@ -120,7 +120,7 @@ local function isQueuingUnitCommand(unitID, cmdID)
 end
 
 ---Test a command for its anticipated position in the unit's command queue.
----@param unitID integer
+---@param unitID UnitID
 ---@param tagOrIndex integer
 ---@param options CommandOptions
 ---@param insertOptions CommandOptions?

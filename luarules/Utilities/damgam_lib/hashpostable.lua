@@ -57,7 +57,6 @@ local function MakeHashedPosTable(resolution)
 	-- returns the center of the Nth closest tile
 
 	HashPos.sortedPositions = {}
-	local sortedRegions = {}
 
 	function HashPos:SortNewRegion(hp)
 		local thispos = {}

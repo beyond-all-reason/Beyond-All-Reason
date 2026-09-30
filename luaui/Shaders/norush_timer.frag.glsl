@@ -1,4 +1,4 @@
-#version 420
+#version 430 core
 #extension GL_ARB_uniform_buffer_object : require
 #extension GL_ARB_shading_language_420pack: require
 
@@ -9,7 +9,6 @@
 
 #line 20000
 
-uniform vec4 startBoxes[NUM_BOXES]; // all in xyXY format
 uniform int noRushTimer;
 float noRushFramesLeft;
 
@@ -18,14 +17,11 @@ in DataVS {
 };
 
 uniform sampler2D mapDepths;
+// Baked by startpolygon_sdf_bake_gl4.frag.glsl: x = signed distance, y = team id of the
+// closest polygon. See luaui/Include/startpolygon_sdf_gl4.lua.
+uniform sampler2D startPolygonSDF;
 
 out vec4 fragColor;
-
-float distanceToBox(vec2 point, vec4 box_xyXY) {
-	vec2 closestPointInAABB = clamp(point, box_xyXY.xy, box_xyXY.zw);
-	vec2 distance = point - closestPointInAABB;
-	return length(distance);
-}
 
 #line 21000
 void main(void)
@@ -34,7 +30,7 @@ void main(void)
 	// Transform screen-space depth to world-space position
 	vec4 mapWorldPos =  vec4( vec3(v_position.xy, mapdepth),  1.0);
 	mapWorldPos = cameraViewProjInv * mapWorldPos;
-	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w; 
+	mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w;
 
 	// We are above or below the map by 4 or more elmost, discard
 	if (mapWorldPos.y > (MAXY + 4) || mapWorldPos.y < (MINY - 4)){
@@ -48,19 +44,27 @@ void main(void)
 		return;
 	}
 
-	float closestbox = 1e6;
-	float furthestbox = 0;
-	vec3 mycolor = vec3(1);
-	for (int i = 0; i < NUM_BOXES; i++) {
-		float dist = distanceToBox(mapWorldPos.xz, startBoxes[i]);
-		if (closestbox > dist){
-			closestbox = dist;
-			mycolor = teamColor[i].rgb;
-		}
-		furthestbox = max(furthestbox, dist);
-	}
-	// Note that now we have the distance to the closest box in closestbox
-	// and the distance to the most distant box in furthestbox
+	// One bilinear tap of the baked field replaces walking every polygon edge per pixel.
+	// The four texels are fetched by hand so the team colour blends with the same weights
+	// instead of switching per texel along the boundary between two zones.
+	ivec2 sdfSize = textureSize(startPolygonSDF, 0);
+	vec2 tc = clamp(mapWorldPos.xz / mapSize.xy * vec2(sdfSize) - 0.5, vec2(0.0), vec2(sdfSize - 1));
+	ivec2 i0 = ivec2(tc);
+	ivec2 i1 = min(i0 + 1, sdfSize - 1);
+	vec2 f = tc - vec2(i0);
+	vec2 t00 = texelFetch(startPolygonSDF, i0, 0).xy;
+	vec2 t10 = texelFetch(startPolygonSDF, ivec2(i1.x, i0.y), 0).xy;
+	vec2 t01 = texelFetch(startPolygonSDF, ivec2(i0.x, i1.y), 0).xy;
+	vec2 t11 = texelFetch(startPolygonSDF, i1, 0).xy;
+	vec4 w = vec4((1.0 - f.x) * (1.0 - f.y), f.x * (1.0 - f.y), (1.0 - f.x) * f.y, f.x * f.y);
+
+	// The field is signed, but everything below wants the outside distance and the inside
+	// case is flattened to zero alpha anyway.
+	float closestbox = max(dot(w, vec4(t00.x, t10.x, t01.x, t11.x)), 0.0);
+	vec3 mycolor = w.x * teamColor[int(t00.y + 0.5)].rgb
+	             + w.y * teamColor[int(t10.y + 0.5)].rgb
+	             + w.z * teamColor[int(t01.y + 0.5)].rgb
+	             + w.w * teamColor[int(t11.y + 0.5)].rgb;
 
 	// First we color based on their distance
 	noRushFramesLeft = (clamp((noRushTimer - timeInfo.x+30), 0, 300)/300);

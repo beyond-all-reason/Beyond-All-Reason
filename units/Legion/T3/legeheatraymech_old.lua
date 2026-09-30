@@ -40,6 +40,7 @@ return {
 			paralyzemultiplier = 0,
 			model_author = "Protar & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 1,
 			subfolder = "Legion/T3",
 			techlevel = 3,
 			unitgroup = "weapon",

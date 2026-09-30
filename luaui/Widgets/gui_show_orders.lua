@@ -84,6 +84,7 @@ local factoryUnitsDirty = true
 
 -- Allied units tracking (replaces spGetTeamUnits calls in DrawWorld)
 local alliedUnits = {}
+local alliedUnitsIndex = {} -- unitID -> position in alliedUnits
 
 -- Frame throttling for expensive updates
 local frameCounter = 0
@@ -172,8 +173,6 @@ local glTexture = gl.Texture
 local glTexRect = gl.TexRect
 local glRect = gl.Rect
 
-local max = math.max
-local min = math.min
 local sqrt = math.sqrt
 
 -----------------------------------------------------
@@ -291,6 +290,7 @@ function widget:Initialize()
 			local teamUnits = spGetTeamUnits(teamID)
 			for u = 1, #teamUnits do
 				alliedUnits[#alliedUnits + 1] = teamUnits[u]
+				alliedUnitsIndex[teamUnits[u]] = #alliedUnits
 			end
 		end
 	end
@@ -307,18 +307,22 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 		-- Add if it's our ally or we're in spec fullview
 		if fullView or unitAllyTeam == myAllyTeam then
 			alliedUnits[#alliedUnits + 1] = unitID
+			alliedUnitsIndex[unitID] = #alliedUnits
 		end
 	end
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	-- Remove from allied units list
-	for i = 1, #alliedUnits do
-		if alliedUnits[i] == unitID then
-			table.remove(alliedUnits, i)
-			break
-		end
+	local i = alliedUnitsIndex[unitID]
+	if not i then
+		return
 	end
+	local last = #alliedUnits
+	local lastID = alliedUnits[last]
+	alliedUnits[i] = lastID
+	alliedUnitsIndex[lastID] = i
+	alliedUnits[last] = nil
+	alliedUnitsIndex[unitID] = nil
 end
 
 function widget:PlayerChanged(playerID)
@@ -327,6 +331,7 @@ function widget:PlayerChanged(playerID)
 
 	-- Rebuild allied units list when teams change
 	for i = 1, #alliedUnits do
+		alliedUnitsIndex[alliedUnits[i]] = nil
 		alliedUnits[i] = nil
 	end
 	local alliedTeams = GetAlliedTeams()
@@ -336,6 +341,7 @@ function widget:PlayerChanged(playerID)
 			local teamUnits = spGetTeamUnits(teamID)
 			for u = 1, #teamUnits do
 				alliedUnits[#alliedUnits + 1] = teamUnits[u]
+				alliedUnitsIndex[teamUnits[u]] = #alliedUnits
 			end
 		end
 	end

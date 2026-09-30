@@ -1,8 +1,8 @@
 local widget = widget ---@type Widget
 
-local BpDefs = VFS.Include("luaui/Include/blueprint_substitution/definitions.lua")
+local BpDefs = require("luaui/Include/blueprint_substitution/definitions")
 
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 local CMD_GUARD = CMD.GUARD
 
@@ -17,17 +17,17 @@ function widget:GetInfo()
 end
 
 ---@class BuilderInfo
----@field unitID number
----@field unitDefID number
+---@field unitID UnitID
+---@field unitDefID UnitDefID
 ---@field side string
 ---@field buildSpeed number
 
 ---@class BuildingInfo
----@field unitDefID number
+---@field unitDefID UnitDefID
 ---@field position number[] { x, y, z }
 ---@field facing? number
 
----@param builderID number
+---@param builderID UnitID
 ---@return BuilderInfo
 local function getBuilderInfo(builderID)
 	local unitDefID = Spring.GetUnitDefID(builderID)
@@ -79,7 +79,7 @@ local function canBuild(builderGroup, building, side, allowSubstitution)
 	return false
 end
 
----@param builders number[]
+---@param builders UnitID[]
 ---@return table<number, BuilderInfo[]> -- Groups builders by their unitDefID
 local function groupBuilders(builders)
 	local builderGroups = {}

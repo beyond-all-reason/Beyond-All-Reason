@@ -31,6 +31,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	---Excludes the unit's next order from the team's APM count for one game frame.
+	---@param unitID UnitID
 	local function addSkipOrder(unitID)
 		ignoreUnits[unitID] = gameFrame + 1
 	end
@@ -95,17 +97,24 @@ if gadgetHandler:IsSyncedCode() then
 		totalTeamActions[teamID] = nil
 	end
 else -- unsynced
+	-- The last figure per team, kept for other unsynced gadgets: the team stats gadget
+	-- samples it into its history.
+	local teamAPM = {}
+
 	local function handleApmEvent(_, teamID, apm)
+		teamAPM[teamID] = apm
 		if Script.LuaUI("ApmEvent") then
 			Script.LuaUI.ApmEvent(teamID, apm)
 		end
 	end
 
 	function gadget:Initialize()
+		GG.teamAPM = teamAPM
 		gadgetHandler:AddSyncAction("apmBroadcast", handleApmEvent)
 	end
 
 	function gadget:Shutdown()
+		GG.teamAPM = nil
 		gadgetHandler:RemoveSyncAction("apmBroadcast")
 	end
 end

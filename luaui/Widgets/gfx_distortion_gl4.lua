@@ -19,7 +19,6 @@ local mathMax = math.max
 local mathFloor = math.floor
 local mathCeil = math.ceil
 local stringFormat = string.format
-local stringFind = string.find
 local pairs = pairs
 local ipairs = ipairs
 local type = type
@@ -40,14 +39,11 @@ local spGetUnitLosState = Spring.GetUnitLosState
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetProjectileName = Spring.GetProjectileName
-local spGetModKeyState = Spring.GetModKeyState
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
-local spGetTimerMicros = Spring.GetTimerMicros
 local spGetConfigString = Spring.GetConfigString
 local spGetAllFeatures = Spring.GetAllFeatures
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetVisibleProjectiles = Spring.GetVisibleProjectiles
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetCameraPosition = Spring.GetCameraPosition
@@ -64,7 +60,6 @@ local glCopyToTexture = gl.CopyToTexture
 local glRenderToTexture = gl.RenderToTexture
 local glDeleteTexture = gl.DeleteTexture
 local glCreateTexture = gl.CreateTexture
-local glLoadFont = gl.LoadFont
 
 -------------------------------- Notes, TODO ----------------------------------
 do
@@ -96,7 +91,6 @@ local spGetUnitIsDead = Spring.GetUnitIsDead
 local spValidUnitID = Spring.ValidUnitID
 
 -- Weak:
-local spIsGUIHidden = Spring.IsGUIHidden
 
 local math_max = mathMax
 local math_ceil = mathCeil
@@ -140,26 +134,41 @@ local noisetex3dcube = "LuaUI/images/noisetextures/noise64_cube_3.dds"
 ------------------------------ Data structures and management variables ------------
 
 -- These will contain 'global' type distortions, ones that dont get updated every frame
-local pointDistortionVBO = {} -- an instanceVBOTable
-local coneDistortionVBO = {} -- an instanceVBOTable
-local beamDistortionVBO = {} -- an instanceVBOTable
-local distortionVBOMap -- a table of the above 3, keyed by distortion type, {point = pointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local pointDistortionVBO
+---@type InstanceVBOTable?
+local coneDistortionVBO
+---@type InstanceVBOTable?
+local beamDistortionVBO
+---Table of the above 3, keyed by distortion shape, {point = pointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local distortionVBOMap
 
 -- These contain the unitdef defined, cob-instanced and unit event based distortions
-local unitPointDistortionVBO = {} -- an instanceVBOTable, with unit-attachment
-local unitConeDistortionVBO = {} -- an instanceVBOTable
-local unitBeamDistortionVBO = {} -- an instanceVBOTable
-local unitDistortionVBOMap -- a table of the above 3, keyed by distortion type,  {point = unitPointDistortionVBO, ...}
+---@type InstanceVBOTable?
+local unitPointDistortionVBO
+---@type InstanceVBOTable?
+local unitConeDistortionVBO
+---@type InstanceVBOTable?
+local unitBeamDistortionVBO
+---Table of the above 3, keyed by distortion shape,  {point = unitPointDistortionVBO, ...}
+---@type table<lightVBOType, InstanceVBOTable?>
+local unitDistortionVBOMap
 
 local unitAttachedDistortions = {} -- this is a table mapping unitID's to all their attached instanceIDs and vbos
 --{unitID = { instanceID = targetVBO, ... }}
 local visibleUnits = {} -- this is a proxy for the widget callins, used to ensure we dont add unitscriptdistortions to units that are not visible
 
 -- these will be separate, as they need per-frame updates!
-local projectilePointDistortionVBO = {} -- for plasma balls
-local projectileBeamDistortionVBO = {} -- for lasers
-local projectileConeDistortionVBO = {} -- for rockets
-local projectileDistortionVBOMap -- a table of the above 3, keyed by distortion type
+---@type InstanceVBOTable?
+local projectilePointDistortionVBO -- for plasma balls
+---@type InstanceVBOTable?
+local projectileBeamDistortionVBO -- for lasers
+---@type InstanceVBOTable?
+local projectileConeDistortionVBO -- for rockets
+---Keyed by distortion shape: `point`, `beam`, `cone`.
+---@type table<lightVBOType, InstanceVBOTable?>
+local projectileDistortionVBOMap
 
 local distortionRemoveQueue = {} -- stores distortions that have expired life {gameframe = {distortionIDs ... }}
 
@@ -254,6 +263,7 @@ local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
 local uploadAllElements = InstanceVBOTable.uploadAllElements
+local uploadElementRange = InstanceVBOTable.uploadElementRange
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
@@ -318,6 +328,8 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
+---Builds one distortion instance buffer and attaches its VAO.
+---@return InstanceVBOTable? instanceTable `nil` when the buffer could not be created.
 local function createDistortionInstanceVBO(vboLayout, vertexVBO, numVertices, indexVBO, VBOname, unitIDattribID)
 	local targetDistortionVBO = InstanceVBOTable.makeInstanceVBOTable(vboLayout, 16, VBOname, unitIDattribID)
 	if vertexVBO == nil or targetDistortionVBO == nil then
@@ -446,7 +458,7 @@ end
 ---InitializeDistortion(distortionTable, unitID)
 ---Takes a distortion definition table, and tries to check whether its already been initialized, if not, it inits it in-place
 ---@param distortionTable table
----@param unitID number
+---@param unitID UnitID
 local function InitializeDistortion(distortionTable, unitID)
 	if not distortionTable.initComplete then -- late init
 		-- do the table to flattable conversion, if it doesn't exist yet
@@ -581,37 +593,6 @@ local function AddDistortion(instanceID, unitID, pieceIndex, targetVBO, distorti
 	return instanceID
 end
 
----updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
----This function is for internal use only, to update the position of a distortion.
----Only use if you know the consequences of updating a VBO in-place!
-local function updateDistortionPosition(distortionVBO, instanceID, posx, posy, posz, radius, p2x, p2y, p2z, theta)
-	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
-	if instanceIndex == nil then
-		return nil
-	end
-	instanceIndex = (instanceIndex - 1) * distortionVBO.instanceStep
-	local instData = distortionVBO.instanceData
-	if posx then
-		instData[instanceIndex + 1] = posx
-		instData[instanceIndex + 2] = posy
-		instData[instanceIndex + 3] = posz
-	end
-	if radius then
-		instData[instanceIndex + 4] = radius
-	end
-
-	if p2x then
-		instData[instanceIndex + 5] = p2x
-		instData[instanceIndex + 6] = p2y
-		instData[instanceIndex + 7] = p2z
-	end
-	if theta then
-		instData[instanceIndex + 8] = theta
-	end
-	distortionVBO.dirty = true
-	return instanceIndex
-end
-
 -- Specialized fast path for projectile position updates: no nil-checks, always writes pos+dir
 local function updateProjectilePosition(distortionVBO, instanceID, posx, posy, posz, dx, dy, dz)
 	local instanceIndex = distortionVBO.instanceIDtoIndex[instanceID]
@@ -700,7 +681,7 @@ end
 ---Remove a distortion
 ---@param distortionshape string 'point'|'beam'|'cone'
 ---@param instanceID any the ID of the distortion to remove
----@param unitID number make this non-nil to remove it from a unit
+---@param unitID UnitID? make this non-nil to remove it from a unit
 ---@returns the same instanceID on success, nil if the distortion was not found
 local function RemoveDistortion(distortionshape, instanceID, unitID, noUpload)
 	if unitID then
@@ -796,7 +777,6 @@ local function LoadDistortionConfig()
 end
 
 local nightFactor = 1 --0.33
-local unitNightFactor = 1 -- applied above nightFactor default 1.2
 local adjustfornight = {
 	"unitAmbientColor",
 	"unitDiffuseColor",
@@ -813,38 +793,58 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 7300 > Spring.GetGroundHeight(px, pz) then -- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
-		return
-	end
-	if explosionDistortions[weaponID] then
-		for i, distortion in pairs(explosionDistortions[weaponID]) do
-			local distortionParamTable = distortion.distortionParamTable
-			if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px, pz) or 1
-				py = math_max(groundHeight + (distortion.yOffset or 0), py)
-				distortionParamTable[1] = px
-				distortionParamTable[2] = py
-				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+-- a sim frame's explosions (px, py, pz, weaponID, ownerID runs), appended and uploaded as one range
+function widget:VisibleExplosionBatch(explosions, count)
+	local vbo = pointDistortionVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = explosions[i], explosions[i + 1], explosions[i + 2], explosions[i + 3]
+		local distortions = explosionDistortions[weaponID]
+		-- dont add distortion to (likely) intercepted explosions (mainly to curb nuke flashes)
+		if distortions and not (targetable[weaponID] and py - 7300 > spGetGroundHeight(px, pz)) then
+			for _, distortion in pairs(distortions) do
+				local distortionParamTable = distortion.distortionParamTable
+				if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
+					local groundHeight = spGetGroundHeight(px, pz) or 1
+					py = math_max(groundHeight + (distortion.yOffset or 0), py)
+					distortionParamTable[1] = px
+					distortionParamTable[2] = py
+					distortionParamTable[3] = pz
+					AddDistortion(nil, nil, nil, vbo, distortionParamTable, true)
+				end
 			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
-	if muzzleFlashDistortions[weaponID] then
-		for i, distortion in pairs(muzzleFlashDistortions[weaponID]) do
-			local distortionParamTable = distortion.distortionParamTable
-			if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
-				local groundHeight = spGetGroundHeight(px, pz) or 1
-				distortionParamTable[1] = px
-				distortionParamTable[2] = py
-				distortionParamTable[3] = pz
-				AddDistortion(nil, nil, nil, pointDistortionVBO, distortionParamTable) --(instanceID, unitID, pieceIndex, targetVBO, distortionparams, noUpload)
+function widget:BarrelfireBatch(barrelfires, count)
+	local vbo = pointDistortionVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = barrelfires[i], barrelfires[i + 1], barrelfires[i + 2], barrelfires[i + 3]
+		local distortions = muzzleFlashDistortions[weaponID]
+		if distortions then
+			for _, distortion in pairs(distortions) do
+				local distortionParamTable = distortion.distortionParamTable
+				if distortion.alwaysVisible or spIsSphereInView(px, py, pz, distortionParamTable[4]) then
+					distortionParamTable[1] = px
+					distortionParamTable[2] = py
+					distortionParamTable[3] = pz
+					AddDistortion(nil, nil, nil, vbo, distortionParamTable, true)
+				end
 			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
 local function UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
@@ -1157,7 +1157,7 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weapon, _ = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	BAR.Debug.TraceFullEcho()
 end

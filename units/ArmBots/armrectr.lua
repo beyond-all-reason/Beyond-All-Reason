@@ -39,6 +39,7 @@ return {
 		upright = true,
 		workertime = 200,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmBots",

@@ -10,6 +10,7 @@ function widget:GetInfo()
 		layer = -95000,
 		enabled = true,
 		handler = true,
+		modalExempt = true, -- chat stays readable and usable while a window is open
 	}
 end
 
@@ -36,9 +37,9 @@ local LineTypes = {
 	System = 5,
 }
 
-local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
-local badWords = VFS.Include("luaui/configs/badwords.lua")
-local ChatEmoji = VFS.Include("luaui/Include/chat_emoji.lua")
+local ChatEmoji = require("luaui/Include/chat_emoji")
+local badWords = require("luaui/configs/badwords")
+local utf8 = require("common/luaUtilities/utf8")
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (BAR.Utilities.IsDevMode() and BAR.Utilities.Gametype.IsSinglePlayer())
@@ -204,7 +205,7 @@ local state = {
 	mapDrawLastLeftClickTime = 0,
 	inputTextInsertActive = false,
 	minimapViewportY = select(4, Spring.GetViewGeometry()),
-	minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld,
+	minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld,
 	inputHistory = {},
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
@@ -233,7 +234,6 @@ local inputMode, inputHistory, autocompleteWords, prevAutocompleteLetters = nil,
 local scrolling, playSound, sndChatFile, sndChatFileVolume =
 	false, config.playSound, config.sndChatFile, config.sndChatFileVolume
 local myName, mySpec = state.myName, state.mySpec
-local lastDrawUiUpdate = state.lastDrawUiUpdate
 local displayedChatLines = state.displayedChatLines
 local currentChatLine, currentConsoleLine = state.currentChatLine, state.currentConsoleLine
 local historyMode = state.historyMode
@@ -1187,7 +1187,7 @@ function state.updateChatInputGuishader(left, bottom, right, top)
 		RectRound(left, bottom, right, top, elementCorner)
 	end)
 	WG.guishader.RemoveDlist("chatinput")
-	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput")
+	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput", nil, widget)
 end
 
 function state.drawEmojiPickerButton(rect, iconSize)
@@ -1246,7 +1246,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	glColor(0, 0, 0, inputAlpha * 1.12)
 	RectRound(pickerLeft, pickerBottom, pickerRight, pickerTop, elementCorner * 0.7, 0, 0, 1, 1)
 	if WG.guishader then
-		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker")
+		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker", widget)
 	end
 	for i = 1, #emojiAutocompleteAliases do
 		local col = (i - 1) % pickerColumns
@@ -1729,7 +1729,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			end
 		end
 
-		line = colorConsoleStr .. lineColor .. line
+		if string.byte(line, 1) ~= 255 then
+			line = (lineColor ~= "" and lineColor or colorConsoleStr) .. line
+		end
 	end
 
 	if not bypassThisMessage then
@@ -1770,9 +1772,15 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	end
 end
 
-local function addLastUnitShareMessage()
+local function addLastUnitShareMessage(gameFrame)
 	if not lastUnitShare then
 		return
+	end
+	for _, unitShare in pairs(lastUnitShare) do
+		-- half a second: shares from one action can be spread over several sim frames by the network
+		if gameFrame - unitShare.frame < 15 then
+			return
+		end
 	end
 	for _, unitShare in pairs(lastUnitShare) do
 		local oldTeamName = teamNames[unitShare.oldTeamID]
@@ -1816,9 +1824,11 @@ function widget:UnitTaken(unitID, _, oldTeamID, newTeamID)
 			oldTeamID = oldTeamID,
 			newTeamID = newTeamID,
 			unitIDs = {},
+			frame = spGetGameFrame(),
 		}
 	end
 	lastUnitShare[key].unitIDs[#lastUnitShare[key].unitIDs + 1] = unitID
+	lastUnitShare[key].frame = spGetGameFrame()
 end
 
 drawGameTime = function(gameFrame)
@@ -2039,8 +2049,9 @@ local function processChatLineGL(i)
 end
 
 local uiSec = 0
-function widget:GameFrame()
+function widget:GameFrame(gameFrame)
 	state.gameFrameHappened = true
+	addLastUnitShareMessage(gameFrame)
 end
 
 function widget:Update(dt)
@@ -2059,8 +2070,6 @@ function widget:Update(dt)
 		Spring.SDLStartTextInput()
 		updateTextInputDlist = true
 	end
-
-	addLastUnitShareMessage()
 
 	cursorBlinkTimer = cursorBlinkTimer + dt
 	if cursorBlinkTimer > cursorBlinkDuration then
@@ -2088,14 +2097,12 @@ function widget:Update(dt)
 		--end
 
 		-- detect team colors changes
-		local changeDetected = false
 		local changedPlayers = {}
 		local teams = Spring.GetTeamList()
 		for i = 1, #teams do
 			local r, g, b = spGetTeamColor(teams[i])
 			if teamColorKeys[teams[i]] ~= r .. "_" .. g .. "_" .. b then
 				teamColorKeys[teams[i]] = r .. "_" .. g .. "_" .. b
-				changeDetected = true
 				for _, playerID in ipairs(Spring.GetPlayerList(teams[i])) do
 					local name = spGetPlayerInfo(playerID, false)
 					name = (
@@ -2315,7 +2322,6 @@ drawChatInput = function()
 			-- background
 			local r, g, b, a
 			local inputAlpha = mathMin(0.36, ui_opacity * 0.66)
-			local hintText = autocompleteText or ""
 			if showEmojiButton then
 				state.emojiButtonRect =
 					{ x2 - elementPadding - emojiButtonSize, emojiButtonY1, x2 - elementPadding, emojiButtonY2 }
@@ -2531,7 +2537,8 @@ drawChatInput = function()
 						yPos - height,
 						x2 - elementPadding,
 						yPos,
-						"chatinputautocomplete"
+						"chatinputautocomplete",
+						widget
 					)
 				end
 				local addHeight = floor((inputFontSize * scale) * 1.35) - autocLineHeight
@@ -2584,7 +2591,7 @@ drawChatInput = function()
 					"o"
 				)
 				if WG.guishader then
-					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo")
+					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo", widget)
 				end
 			else
 				if WG.guishader then
@@ -2851,7 +2858,7 @@ drawTextInput = function()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
-			local x, y, b = spGetMouseState()
+			local x, y, _ = spGetMouseState()
 			if state.hasActiveCommand() then
 				return
 			end
@@ -2982,7 +2989,8 @@ function widget:DrawScreen()
 					activationArea[2] + chatlogHeightDiff,
 					activationArea[3],
 					activationArea[4],
-					"chat"
+					"chat",
+					widget
 				)
 			end
 
@@ -3108,7 +3116,9 @@ function widget:DrawScreen()
 							),
 							translatedY + (lineHeight * checkedLines) + lineHeight,
 						}
-						if not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4]) then
+						if
+							not activeCmdID and math_isInRect(x, y, lineArea[1], lineArea[2], lineArea[3], lineArea[4])
+						then
 							UiSelectHighlight(
 								lineArea[1] - translatedX,
 								lineArea[2] - translatedY - (lineHeight * checkedLines),
@@ -3563,6 +3573,16 @@ function widget:TextInput(char) -- if it isn't working: chobby probably hijacked
 	end
 end
 
+function widget:cycleInputMode(reverse)
+	local inputModeOrder = mySpec and { "", "s:" } or { "", "s:", "a:" }
+	local modeIndex = table.getKeyOf(inputModeOrder, inputMode) or 1
+	local direction = reverse and -1 or 1
+
+	inputMode = inputModeOrder[(modeIndex - 1 + direction) % #inputModeOrder + 1]
+
+	updateTextInputDlist = true
+end
+
 function widget:KeyRelease(key, mods, label, unicode, scanCode)
 	-- Since we grab the keyboard, we need to specify a KeyRelease to make sure other release actions can be triggered
 	if
@@ -3641,6 +3661,8 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 								end
 							end
 						end
+						commitInputHistory(executedInput)
+						cancelChatInput()
 						Spring.SendCommands(command)
 					else
 						local badWord = findBadWords(inputText)
@@ -3662,12 +3684,13 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 							end
 						end
 						lastMessage = inputText
+						commitInputHistory(executedInput)
+						cancelChatInput()
 					end
-					commitInputHistory(executedInput)
 				else
 					ensureInputHistoryDraft()
+					cancelChatInput()
 				end
-				cancelChatInput()
 			end
 		else
 			cancelChatInput()
@@ -3926,7 +3949,9 @@ function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 			autocomplete(inputText, true)
 		elseif key == 9 and inputMode ~= "label" then -- TAB
 			inputSelectionStart = nil
-			if autocompleteText and autocompleteWords[1] then
+			if inputText == "" and not isRepeat then
+				self:cycleInputMode(shift)
+			elseif autocompleteText and autocompleteWords[1] then
 				inputText = utf8.sub(inputText, 1, inputTextPosition)
 					.. autocompleteText
 					.. utf8.sub(inputText, inputTextPosition + 1)
@@ -4050,14 +4075,7 @@ function widget:MousePress(x, y, button)
 			state.inputButtonRect[4]
 		)
 	then
-		if inputMode == "a:" then
-			inputMode = ""
-		elseif inputMode == "s:" then
-			inputMode = mySpec and "" or "a:"
-		else
-			inputMode = "s:"
-		end
-		updateTextInputDlist = true
+		self:cycleInputMode()
 		return true
 	end
 
@@ -4228,7 +4246,8 @@ function widget:WorldTooltip(ttType, data1, data2, data3)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	if cmdType == "point" then
+	-- an ignored player's point is dropped and prints no "added point" line to pair with
+	if cmdType == "point" and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		lastMapmarkCoords = { x, y, z }
 	end
 end

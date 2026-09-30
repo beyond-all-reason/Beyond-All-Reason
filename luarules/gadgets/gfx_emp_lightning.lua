@@ -96,10 +96,6 @@ local mathCos = math.cos
 local mathPi = math.pi
 local mathRandom = math.random
 
-local function clamp(v, lo, hi)
-	return v < lo and lo or (v > hi and hi or v)
-end
-
 --------------------------------------------------------------------------------
 -- State
 --------------------------------------------------------------------------------

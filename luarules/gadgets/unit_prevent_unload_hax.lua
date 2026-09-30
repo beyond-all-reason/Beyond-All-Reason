@@ -18,10 +18,11 @@ end
 
 local frameMargin = 10
 
-local isCommando = {}
+-- paradropped units (customparams.paratrooper) keep the transport's momentum on unload
+local isParatrooper = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, "cormando") then
-		isCommando[udid] = true
+	if ud.customParams.paratrooper then
+		isParatrooper[udid] = true
 	end
 end
 
@@ -39,8 +40,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if unitID == nil or unitDefID == nil or transportID == nil then
 		return
 	end
-	--FIXME: is this exception for commando this really necessary?
-	if isCommando[unitDefID] then
+	if isParatrooper[unitDefID] then
 		local x, y, z = SpGetUnitVelocity(transportID)
 		if x > 10 then
 			x = 10

@@ -56,6 +56,7 @@ local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 
+---@type InstanceVBOTable?
 local iconVBO = nil
 local energyIconShader = nil
 local luaShaderDir = "LuaUI/Include/"

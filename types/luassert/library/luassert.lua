@@ -3,28 +3,34 @@
 ---@class luassert.internal
 local internal = {}
 
+---`assert(value, message?)` is luassert's own assertion too: it fails with
+---the message and returns its arguments, as the standard assert does.
 ---@class luassert:luassert.internal
+---@overload fun(value: any, message?: any, ...: any): any, ...
 local luassert = {}
 
 --#region Assertions
 
 ---Assert that `value == true`.
 ---@param value any The value to confirm is `true`.
-function internal.True(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.True(value, message) end
 
 internal.is_true = internal.True
 internal.is_not_true = internal.True
 
 ---Assert that `value == false`.
 ---@param value any The value to confirm is `false`.
-function internal.False(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.False(value, message) end
 
 internal.is_false = internal.False
 internal.is_not_false = internal.False
 
 ---Assert that `type(value) == "boolean"`.
 ---@param value any The value to confirm is of type `boolean`.
-function internal.Boolean(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Boolean(value, message) end
 
 internal.boolean = internal.Boolean
 internal.is_boolean = internal.Boolean
@@ -32,7 +38,8 @@ internal.is_not_boolean = internal.Boolean
 
 ---Assert that `type(value) == "number"`.
 ---@param value any The value to confirm is of type `number`.
-function internal.Number(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Number(value, message) end
 
 internal.number = internal.Number
 internal.is_number = internal.Number
@@ -40,7 +47,8 @@ internal.is_not_number = internal.Number
 
 ---Assert that `type(value) == "string"`.
 ---@param value any The value to confirm is of type `string`.
-function internal.String(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.String(value, message) end
 
 internal.string = internal.String
 internal.is_string = internal.String
@@ -48,7 +56,8 @@ internal.is_not_string = internal.String
 
 ---Assert that `type(value) == "table"`.
 ---@param value any The value to confirm is of type `table`.
-function internal.Table(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Table(value, message) end
 
 internal.table = internal.Table
 internal.is_table = internal.Table
@@ -56,14 +65,16 @@ internal.is_not_table = internal.Table
 
 ---Assert that `type(value) == "nil"`.
 ---@param value any The value to confirm is of type `nil`.
-function internal.Nil(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Nil(value, message) end
 
 internal.is_nil = internal.Nil
 internal.is_not_nil = internal.Nil
 
 ---Assert that `type(value) == "userdata"`.
 ---@param value any The value to confirm is of type `userdata`.
-function internal.Userdata(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Userdata(value, message) end
 
 internal.userdata = internal.Userdata
 internal.is_userdata = internal.Userdata
@@ -71,14 +82,16 @@ internal.is_not_userdata = internal.Userdata
 
 ---Assert that `type(value) == "function"`.
 ---@param value any The value to confirm is of type `function`.
-function internal.Function(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Function(value, message) end
 
 internal.is_function = internal.Function
 internal.is_not_function = internal.Function
 
 ---Assert that `type(value) == "thread"`.
 ---@param value any The value to confirm is of type `thread`.
-function internal.Thread(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.Thread(value, message) end
 
 internal.thread = internal.Thread
 internal.is_thread = internal.Thread
@@ -86,7 +99,8 @@ internal.is_not_thread = internal.Thread
 
 ---Assert that a value is truthy.
 ---@param value any The value to confirm is truthy.
-function internal.truthy(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.truthy(value, message) end
 
 internal.Truthy = internal.truthy
 internal.is_truthy = internal.truthy
@@ -94,7 +108,8 @@ internal.is_not_truthy = internal.truthy
 
 ---Assert that a value is falsy.
 ---@param value any The value to confirm is falsy.
-function internal.falsy(value) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.falsy(value, message) end
 
 internal.Falsy = internal.falsy
 internal.is_falsy = internal.falsy
@@ -103,7 +118,8 @@ internal.is_not_falsy = internal.falsy
 ---Assert that a callback throws an error.
 ---@param callback function A callback function that should error
 ---@param error? string The specific error message that will be asserted
-function internal.error(callback, error) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.error(callback, error, message) end
 
 internal.Error = internal.error
 internal.has_error = internal.error
@@ -116,6 +132,7 @@ internal.has_no_error = internal.error
 ---@param actual string
 ---@param init? integer
 ---@param plain? boolean
+---@param message? any Failure message, shown when the assertion fails.
 ---## Example
 --[[
 ```lua
@@ -134,7 +151,7 @@ internal.has_no_error = internal.error
   end)
 ```
 ]]
-function internal.matches(pattern, actual, init, plain) end
+function internal.matches(pattern, actual, init, plain, message) end
 
 internal.is_matches = internal.matches
 internal.is_not_matches = internal.matches
@@ -163,7 +180,8 @@ internal.is_not_match = internal.matches
     end)
     ```
 ]]
-function internal.near(expected, actual, tolerance) end
+---@param message? any Failure message, shown when the assertion fails.
+function internal.near(expected, actual, tolerance, message) end
 
 internal.Near = internal.near
 internal.is_near = internal.near
@@ -173,8 +191,9 @@ internal.is_not_near = internal.near
 ---
 ---When comparing tables, a reference check will be used.
 ---@param expected any The expected value
----@param ... any Values to check the equality of
-function internal.equal(expected, ...) end
+---@param actual any The actual value
+---@param message? any Failure message, shown when the assertion fails.
+function internal.equal(expected, actual, message) end
 
 internal.Equal = internal.equal
 internal.are_equal = internal.equal
@@ -184,8 +203,9 @@ internal.are_not_equal = internal.equal
 ---
 ---When comparing tables, a deep compare will be performed.
 ---@param expected any The expected value
----@param ... any Values to check
-function internal.same(expected, ...) end
+---@param actual any The actual value
+---@param message? any Failure message, shown when the assertion fails.
+function internal.same(expected, actual, message) end
 
 internal.Same = internal.same
 internal.are_same = internal.same
@@ -203,6 +223,7 @@ internal.not_returned_arguments = internal.returned_arguments
 ---@param pattern string
 ---@param init? integer
 ---@param plain? boolean
+---@param message? any Failure message, shown when the assertion fails.
 ---##Example
 --[[
 ```lua
@@ -219,7 +240,7 @@ internal.not_returned_arguments = internal.returned_arguments
   end)
 ```
 ]]
-function internal.error_matches(func, pattern, init, plain) end
+function internal.error_matches(func, pattern, init, plain, message) end
 
 internal.no_error_matches = internal.error_matches
 
@@ -250,6 +271,8 @@ internal.are_not_all_near = internal.all_near
 
 --- array is uniqued
 ---@param arr any[]
+---@param deep? boolean Compare elements with a deep comparison.
+---@param message? any Failure message, shown when the assertion fails.
 ---## Example
 ---```lua
 ---it("Checks to see if table1 only contains unique elements", function()
@@ -261,7 +284,7 @@ internal.are_not_all_near = internal.all_near
 ---    assert.is_not.unique(tablenotunique)
 ---  end)
 ---```
-function internal.unique(arr) end
+function internal.unique(arr, deep, message) end
 
 internal.is_unique = internal.unique
 internal.is_not_unique = internal.unique

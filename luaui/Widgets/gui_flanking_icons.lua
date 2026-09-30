@@ -26,6 +26,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
+---@type InstanceVBOTable?
 local flankingVBO = nil
 local flankingShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -71,7 +72,7 @@ local function AddPrimitiveAtUnit(unitID, gameframe, noupload) -- since the icon
 	gameframe = gameframe or spGetGameFrame()
 
 	local radius = spGetUnitRadius(unitID) * 3 or 64
-	local mode, modilityAdd, minDamage, maxDamage, dirX, dirY, dirZ, bonusnumber = spGetUnitFlanking(unitID)
+	local _, _, _, _, dirX, _, dirZ, _ = spGetUnitFlanking(unitID)
 
 	local flankingangle = 0
 	if dirX then
@@ -157,7 +158,7 @@ function widget:Initialize()
 	shaderConfig.POST_SHADING = "fragColor.a = fragColor.a * g_color.a;" -- alpha blend
 	shaderConfig.ANIMATION = nil
 	shaderConfig.USE_CIRCLES = nil
-	shaderConfig.MAX_VERTICES = 4
+	shaderConfig.MAXVERTICES = 4
 	shaderConfig.USE_CORNERRECT = nil
 	flankingVBO, flankingShader = InitDrawPrimitiveAtUnit(shaderConfig, "FlankingIcons")
 	if flankingVBO == nil then

@@ -40,7 +40,7 @@ return {
 			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmVehicles/T2",
+			subfolder = "Legion/Vehicles/T2 Vehicles",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -138,7 +138,9 @@ return {
 					subs = 500,
 				},
 				customparams = {
-					projectile_destruction_method = "descend",
+					cruise_and_verticalize = true,
+					cruise_chase_factor = 0.5,
+					uptime_max = 7,
 					overrange_distance = 1495,
 				},
 			},
