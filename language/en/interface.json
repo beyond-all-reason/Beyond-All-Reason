@@ -249,7 +249,6 @@
 				"addBind": "Add Keybind",
 				"addBindTitle": "Bind command",
 				"editBindTitle": "Edit command",
-				"addBindNote": "Only the command, like: say gg. You press the key next, so leave out /bind and the key.",
 				"search": "Search actions or keys...",
 				"boundTo": "Bound to %{keys}",
 				"boundToAny": "Also fires on these keys with any modifier held",
