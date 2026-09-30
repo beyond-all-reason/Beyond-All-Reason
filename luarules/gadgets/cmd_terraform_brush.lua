@@ -1816,9 +1816,9 @@ local function buildPermTable(seed)
 		perm[i] = i
 	end
 	-- Fisher-Yates shuffle seeded
-	local s = seed
+	local s = seed % 65536 + 1
 	for i = 255, 1, -1 do
-		s = (s * 1103515245 + 12345) % 2147483648
+		s = (s * 75) % 65537 -- Lehmer LCG, exact in the engine's float32 numbers
 		local j = s % (i + 1)
 		perm[i], perm[j] = perm[j], perm[i]
 	end

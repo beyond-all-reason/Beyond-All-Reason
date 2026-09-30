@@ -1,3 +1,10 @@
+# October
+- [Legion changes]
+  - Helios 800 -> 1000 health, 160 -> 135 damage.
+  - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
+  - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
+  - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
+
 # September
 - [Laser weapons] given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
 - [Vertical launcher weapons] keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
@@ -34,6 +41,10 @@
   - Bomber settings applied at unit creation could lock them out of Fight, Patrol, and autotargeting.
   - Builder priority handling has been improved, and constructors now default to low priority (commanders remain high).
   - Some units could not target the sea floor with Set Target. Water, non-water, and mixed weapon sets all can target ground together.
+- [Custom]
+  - Jammers, Solars, etc. can use custom values for how long they spend disabled after taking damage. Defaults to 8 seconds.
+  - Units with sweepfire weapons can use custom values for their firing and reload times.
+  - Many more unit properties that constitute the bulk of BAR-trivia can use custom values, as well.
 
 # August
 - [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health

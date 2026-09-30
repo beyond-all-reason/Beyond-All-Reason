@@ -270,6 +270,11 @@
 				"label": "actions.unitStates.onoffOn"
 			},
 			{
+				"action": "repeat",
+				"label": "actions.unitStates.repeatToggle",
+				"description": "commands.repeat_tooltip"
+			},
+			{
 				"action": "repeat 0",
 				"label": "actions.unitStates.repeatOff",
 				"description": "commands.repeat_tooltip"
@@ -374,6 +379,36 @@
 				"action": "aplandat 1",
 				"label": "actions.unitStates.airPlantExitLand",
 				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "factoryqueuemode",
+				"label": "actions.factory.queueMode",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 0",
+				"label": "actions.unitStates.factoryModeQueue",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 1",
+				"label": "actions.unitStates.factoryModeQuota",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryguard",
+				"label": "actions.unitStates.factoryGuard",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 0",
+				"label": "actions.unitStates.factoryGuardOff",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 1",
+				"label": "actions.unitStates.factoryGuardOn",
+				"description": "commands.factoryguard_tooltip"
 			}
 		]
 	},
@@ -558,19 +593,6 @@
 				"action": "buildsplit",
 				"label": "actions.buildHotkeys.split",
 				"alwaysModifier": "any"
-			},
-			{
-				"action": "factoryqueuemode",
-				"label": "actions.factory.queueMode",
-				"description": "commands.factoryqueuemode_tooltip"
-			},
-			{
-				"prefix": "factoryguard ",
-				"label": "commands.factoryguard",
-				"members": [
-					"0",
-					"1"
-				]
 			}
 		]
 	},

@@ -33,6 +33,7 @@ return {
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecaltype = "decals/legtarg_aoplane.dds",
+			deactivate_time = 8,
 			model_author = "Protar & ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

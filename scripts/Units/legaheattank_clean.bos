@@ -6,6 +6,9 @@ piece base, turretBase, turretStrut, gun, flarer, flarel, smoke1, smoke2;
 
 static-var  statechg_DesiredState, statechg_StateChanging, whichGun, timeLeft, isfiring, gameframe, lastfired, fireTime, reloadTime, oldhead, aimAdj, oldsteerheading, cooldown, isFiring, restore_delay, gun_lasthead, gun_lastpitch;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -87,6 +90,8 @@ RestoreAfterDelayGun(addTime)
 
 Create()
 {
+	Weapon1TurretX = <50.000000>;
+	Weapon1TurretY = <65.000000>;
 	start-script Steering();
 	restore_delay = 500;
 	timeLeft = 0;
@@ -133,8 +138,8 @@ AimPrimary(heading, pitch)
 { 
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turretBase to y-axis heading - aimAdj speed <65.000000>;
-	turn turretStrut to x-axis <0.000000> - pitch speed <50.000000>;
+	turn turretBase to y-axis heading - aimAdj speed Weapon1TurretY;
+	turn turretStrut to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	start-script RestoreAfterDelay();
 	if (cooldown > fireTime)
 	{

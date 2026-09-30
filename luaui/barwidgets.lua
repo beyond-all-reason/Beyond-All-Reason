@@ -1806,15 +1806,77 @@ function widgetHandler:UpdateModalState(deltaTime)
 	modalActive = active
 end
 
+-- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
+-- Past the gradual limit a full cycle is stepped a bounded amount per update instead of one
+-- stalling collectgarbage("collect"); only past the emergency limit is it done at once.
 local gcCheckCounter = 0
+local gcGradualLimit = 1000000 -- kB
+local gcEmergencyLimit = 1300000 -- kB
+local gcStepKB = 1024 -- about 1 ms of collector stepping per update
+local gcStepping = false
+-- adaptive collector budget, see luarules/gadgets/api_garbage_collector.lua
+local gcCapMin, gcCapMax, gcCap = 1, 4, 1
+local gcTrendWindow = 1800 -- frames
+local gcGrowthStepKB = 20000
+local gcTrendFrame, gcTrendMem
+
+local function gcAdaptCap(count)
+	local n = Spring.GetGameFrame()
+	if not gcTrendFrame then
+		gcTrendFrame, gcTrendMem = n, count
+		return
+	end
+	if n - gcTrendFrame < gcTrendWindow then
+		return
+	end
+	local growth = count - gcTrendMem
+	gcTrendFrame, gcTrendMem = n, count
+	local newCap = gcCap
+	if growth > gcGrowthStepKB then
+		newCap = math.min(gcCapMax, gcCap + 1)
+	elseif growth < gcGrowthStepKB / 4 then
+		newCap = math.max(gcCapMin, gcCap - 1)
+	end
+	if newCap ~= gcCap then
+		gcCap = newCap
+		Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, gcCap)
+		Spring.Echo(
+			string.format(
+				"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
+				growth >= 0 and "grew" or "shrank",
+				math.floor(math.abs(growth) / 1000),
+				gcCap
+			)
+		)
+	end
+end
 
 function widgetHandler:Update()
-	gcCheckCounter = gcCheckCounter + 1
-	if gcCheckCounter >= 30 then
-		gcCheckCounter = 0
-		if collectgarbage("count") > 1200000 then
-			Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
-			collectgarbage("collect")
+	if gcStepping then
+		if collectgarbage("step", gcStepKB) then
+			gcStepping = false
+			gcTrendFrame, gcTrendMem = Spring.GetGameFrame(), collectgarbage("count")
+			Spring.Echo(
+				"Gradual garbage collection done, LuaUI now uses "
+					.. math.floor(collectgarbage("count") / 1000)
+					.. " MB"
+			)
+		end
+	else
+		gcCheckCounter = gcCheckCounter + 1
+		if gcCheckCounter >= 30 then
+			gcCheckCounter = 0
+			local count = collectgarbage("count")
+			gcAdaptCap(count)
+			if count > gcEmergencyLimit then
+				Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.3GB LuaRAM")
+				collectgarbage("collect")
+			elseif count > gcGradualLimit then
+				Spring.Echo(
+					"Warning: LuaUI uses " .. math.floor(count / 1000) .. " MB, starting a gradual garbage collection"
+				)
+				gcStepping = true
+			end
 		end
 	end
 
