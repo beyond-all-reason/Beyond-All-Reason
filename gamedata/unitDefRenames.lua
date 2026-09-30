@@ -165,6 +165,7 @@ unitDefRenames = {
 	armptt2 = "armada_epicskater",
 	armpw = "armada_pawn",
 	armpwt4 = "armada_epicpawn",
+	mygalomorph = "armada_mygalomorph",
 	armrad = "armada_radartower",
 	armrattet4 = "armada_ratte",
 	armraz = "armada_razorback",

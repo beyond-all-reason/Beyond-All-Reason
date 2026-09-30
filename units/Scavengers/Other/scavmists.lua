@@ -56,7 +56,7 @@ local lvlParams = {
 		workertime = 600,
 
 		--unitspawning
-		landunitspawns = "armmeatball armassimilator armpwt4 armraz corthermite corakt4 corkarg cordemon armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok",
+		landunitspawns = "armmeatball armassimilator mygalomorph armraz corthermite corakt4 corkarg cordemon armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok armmar armlun corshiva corsok",
 		landturretspawns = "armflak armminivulc corhllllt corflak legbombard legflak corminibuzz armlwall cormwall legrwall armlwall cormwall legrwall armlwall cormwall legrwall",
 		waterspawns = "armlun armlun armlship armlship armlship armbats armserp armcrus armcrus corshark corbats corfship corfship corfship corfship corssub corcrus corcrus corsok corsok ",
 		unitspawnrange = 300,

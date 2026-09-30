@@ -832,6 +832,10 @@ local icontypes = {
 		bitmap = "icons/bot_t1_raid_0.7.png",
 		size = 0.73499995,
 	},
+	mygalomorph = {
+		bitmap = "icons/mygalomorph.png",
+		size = 2.30999994,
+	},
 	squadarmpwt4 = {
 		bitmap = "icons/armpwt4.png",
 		size = 2.30999994,
