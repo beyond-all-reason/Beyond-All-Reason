@@ -13,7 +13,7 @@
 ---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
 ---@field perExplosion? boolean Composes for both weapons and the death and self-destruct explosions.
 
----@type table<string, UnitAttributeDefinition>
+---@type table<string, UnitAttributeDefinition?>
 local unitAttributes = {
 	losRadius = { type = "number" },
 	airLosRadius = { type = "number" },
@@ -42,7 +42,7 @@ local unitAttributes = {
 	shieldMaxPower = { type = "number" },
 }
 
----@type table<string, WeaponAttributeDefinition>
+---@type table<string, WeaponAttributeDefinition?>
 local weaponAttributes = {
 	maxWeaponRange = { type = "number" },
 	reloadTime = { type = "number" },

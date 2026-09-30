@@ -20,12 +20,12 @@
 -- own functions. Factors on specific weapon numbers are more specified than
 -- factors over all weapons within the same scope (unitdef, def-and-team, unit).
 
-local attributeDefinitions = VFS.Include("luarules/gadgets/include/unit_attributes.lua")
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local unitAttributes = attributeDefinitions.UnitAttributeDefinitions
 local weaponAttributes = attributeDefinitions.WeaponAttributeDefinitions
 
 -- Definition names are unique across unit and weapon attributes so can share one lookup table.
-local definitions = {} ---@type table<string, UnitAttributeDefinition|WeaponAttributeDefinition>
+local definitions = {}
 for attribute, entry in pairs(unitAttributes) do
 	definitions[attribute] = entry
 end
@@ -35,6 +35,8 @@ for attribute, entry in pairs(weaponAttributes) do
 	end
 	definitions[attribute] = entry
 end
+---`definitions[attribute]` may be nil. This is an unguarded error from consumer code.
+---@cast definitions table<string, UnitAttributeDefinition|WeaponAttributeDefinition>
 
 local math_max = math.max
 local math_round = math.round
@@ -72,7 +74,7 @@ local spCallCOBScript = Spring.CallCOBScript
 local unitScript = Spring.UnitScript or {}
 local spCallLuaScript = unitScript.CallAsUnit
 
-local gameSpeed = Game.gameSpeed
+local gameSpeed = Game.gameSpeed ---@as integer
 local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
 
 ---@class AttributeFactor
@@ -81,8 +83,6 @@ local armorTypeMin, armorTypeMax = 0, #Game.armorTypes
 ---@field sequence integer? tiebreaker the highest value `set` is applied
 
 ---@alias AttributeFactorKind "set"|"multiply"
-
-local SOURCE_DEFAULT = "default"
 
 ---@alias AttributeFactors table<string, AttributeFactor>
 ---@alias WeaponFactors table<integer, AttributeFactors?> Keyed by weapon key, then by source.
@@ -97,6 +97,8 @@ local dirty = {} ---@type table<UnitID, table<string, true?>?>
 
 local SEQUENCE_MIN, SEQUENCE_MAX = math.int_min, math.int_max
 local sequenceNum = SEQUENCE_MIN
+
+local SOURCE_DEFAULT = "default"
 
 -- Module internals ------------------------------------------------------------
 
@@ -265,7 +267,7 @@ local baseValues = {} ---@type table<UnitDefID, table<string, any>?>
 local baseWeapons = {} ---@type table<UnitDefID, WeaponBaseline[]?>
 local baseVectors = {} ---@type table<UnitDefID, table<string, number[]>?>
 local baseDamages = {} ---@type table<UnitDefID, table<integer, table<integer, number>>?>
-local baseExplosions = {} ---@type table<UnitDefID, table<integer, number>[]?>
+local baseExplosions = {} ---@type table<UnitDefID, table<integer, table<integer, number>>?>
 
 for unitDefID in ipairs(UnitDefs) do
 	baseValues[unitDefID] = {}
@@ -348,7 +350,7 @@ local function getDamagesFromList(weaponDefs)
 			end
 		end
 	end
-	return weapons
+	return weapons ---@as table<integer, table<integer, number>>
 end
 
 ---Gets the damage by armor class per weapon, excluding non-damaging fakes.
@@ -373,7 +375,7 @@ local WEAPON_SELFD = -2
 ---@class ExplosionKind
 ---@field key integer
 ---@field field string
----@field target string The explosion argument to `SetUnitWeaponDamages`.
+---@field target "explode"|"selfDestruct" # The explosion argument to `SetUnitWeaponDamages`.
 
 ---@type ExplosionKind[]
 local explosionKinds = {
@@ -455,7 +457,7 @@ local damagesArray = table.new(armorTypeMax, 1 - armorTypeMin) ---@as number[] r
 local weaponVector = {} ---@type number[] reusable scratch, one composed value per weapon
 
 local function setDamage(unitID, scales)
-	local unitDefID = spGetUnitDefID(unitID)
+	local unitDefID = spGetUnitDefID(unitID) ---@as UnitDefID
 
 	for weaponNum, damages in pairs(getWeaponDamages(unitDefID)) do
 		local scale = scales[weaponNum]
@@ -617,7 +619,7 @@ local function setBuildSpeed(unitID, value)
 		speeds.reclaim * scale,
 		speeds.resurrect * scale,
 		speeds.capture * scale,
-		speeds.terraform * scale
+		speeds.terraform * scale ---@diagnostic disable-line -- OK: there really are 7 params
 	)
 end
 
@@ -851,6 +853,7 @@ local function record(factors, source, kind, value)
 	return not unchanged
 end
 
+---@return number?, integer?
 local function resolveSet(factors)
 	local value, sequence
 	if factors then
@@ -1143,7 +1146,7 @@ end
 
 ---@param kind AttributeFactorKind
 local function checkWeaponAttribute(attribute, weaponKey, kind, value, unitDefID)
-	local entry = weaponAttributes[attribute]
+	local entry = weaponAttributes[attribute] ---@as WeaponAttributeDefinition # Ignore consumers passing bad data here.
 	if not checkFactor(entry, attribute, kind, value) then
 		return
 	elseif weaponKey < 0 and not entry.perExplosion then
@@ -1271,7 +1274,7 @@ end
 
 ---@param kind AttributeFactorKind
 local function recordUnitAttribute(unitID, attribute, value, source, kind)
-	local entry = unitAttributes[attribute]
+	local entry = unitAttributes[attribute] ---@as UnitAttributeDefinition # Ignore consumers passing bad data here.
 	if not checkUnitAttribute(entry, attribute, kind, value) then
 		return
 	end
