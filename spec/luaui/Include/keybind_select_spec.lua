@@ -4,9 +4,10 @@ Spring.GetTimer = Spring.GetTimer or function() end
 Spring.DiffTimers = Spring.DiffTimers or function()
 	return 0
 end
-math.isInRect = math.isInRect or function(x, y, x1, y1, x2, y2)
-	return x >= x1 and x <= x2 and y >= y1 and y <= y2
-end
+math.isInRect = math.isInRect
+	or function(x, y, x1, y1, x2, y2)
+		return x >= x1 and x <= x2 and y >= y1 and y <= y2
+	end
 _G.WG = _G.WG
 	or {
 		fonts = {

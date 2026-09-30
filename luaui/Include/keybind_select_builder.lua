@@ -593,7 +593,8 @@ function M:mousePress(x, y)
 	end
 
 	if
-		not isInRect(x, y, g.x1, g.y1, g.x2, g.y2) or isInRect(x, y, g.cancel[1], g.cancel[2], g.cancel[3], g.cancel[4])
+		not isInRect(x, y, g.x1, g.y1, g.x2, g.y2)
+		or isInRect(x, y, g.cancel[1], g.cancel[2], g.cancel[3], g.cancel[4])
 	then
 		self:cancel()
 
