@@ -12,8 +12,7 @@ local STORE = "LuaUI/Config/keybind_profiles.json"
 local KEYMAP = "uikeys.txt"
 
 -- Runs `body` with the module included against `files`, the engine stubbed, and every write
--- collected into `writes` by path. The stubs stay up for the whole body: emitting a profile
--- asks the engine to resolve its meta key, and adopting one reads the keymap back.
+-- collected into `writes` by path.
 local function run(files, writes, body)
 	local env = SpecEnv.new({
 		VFS = {

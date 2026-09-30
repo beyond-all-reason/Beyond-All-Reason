@@ -1,9 +1,5 @@
--- Runs gamedata/unitdefs.lua, the loader the engine itself uses, so specs can assert
--- against the real unit defs. Kept per set of modoptions, which the def files read as
--- they load.
---
--- The loader and the def files under units/ write globals as they go. Here that lands
--- in a private environment, not the globals the next spec file sees.
+-- The real unit defs, loaded through gamedata/unitdefs.lua as the engine does, in a private
+-- env because the loader and the def files write globals as they go.
 
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
@@ -66,8 +62,7 @@ local function getUnitDefRequireModoptionDefaults()
 	}
 end
 
--- The engine ships gamedata/system.lua; the repo does not. unitdefs.lua puts it behind
--- the environment every def file runs in, and unitdefs_post calls its lowerkeys.
+-- The engine ships gamedata/system.lua and the repo does not; every def file runs behind it.
 local function systemStub(env)
 	return {
 		lowerkeys = function(t)
@@ -199,8 +194,7 @@ local RealUnitDefs = {}
 
 local parsed = {}
 
----The real unit defs, name-keyed. gamedata never populates UnitDefNames, so the
----numeric IDs the engine would assign are not available here.
+---The real unit defs by name. gamedata never fills UnitDefNames, so there are no numeric IDs.
 ---@param modOptions table|nil  merged over the defaults the def files require
 ---@return table
 function RealUnitDefs.byName(modOptions)

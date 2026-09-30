@@ -1,7 +1,5 @@
 -- Per-prefix counters behind the builders' generated IDs.
---
--- The spec helper's VFS.Include re-runs this file on every include, so a spec file gets
--- its own counters rather than picking up where the file before it stopped.
+-- Re-run on every include, so no spec file picks up another file's counters.
 
 local M = {}
 

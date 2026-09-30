@@ -1,5 +1,4 @@
--- A minimal widget for spring_unsynced_builder_spec. Records the globals the env gave
--- it, and calls the Spring functions the builder's capture hooks replace.
+-- A minimal widget for spring_unsynced_builder_spec to load.
 
 ---@diagnostic disable: undefined-global
 

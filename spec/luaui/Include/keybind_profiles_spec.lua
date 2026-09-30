@@ -131,8 +131,6 @@ describe("migrating a keyload of a bind file the game no longer ships", function
 	end)
 end)
 
--- The module with its shipped profiles read in. Each call gets a store of its own, and only
--- the reader is stubbed: nothing here has a store on disk.
 local function includeProfiles()
 	local env = SpecEnv.new({
 		VFS = {
