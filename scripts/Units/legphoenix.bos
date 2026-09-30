@@ -36,7 +36,7 @@ static-var maxSpeed, currentSpeed, shotcount, timer, isfiring, fireTime;
 
 
 
-//move linefire into child obj / unify to reduce piece bloat
+//todo: move linefire into child obj / unify to reduce piece bloat
 
 
 FakeUprightInit() {
