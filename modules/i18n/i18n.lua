@@ -1,6 +1,7 @@
 local currentDirectory = "modules/i18n/"
 I18N_PATH = currentDirectory .. "i18nlib/i18n/" -- I18N_PATH is expected to be global inside the i18n module
 local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
+local WidgetLocalizations = VFS.Include("modules/i18n/widget_localizations.lua", nil, VFS.ZIP)
 
 local asianFont = "fallbacks/SourceHanSans-Regular.ttc"
 local translationDirs = VFS.SubDirs("language")
@@ -27,6 +28,21 @@ local function loadRmlTranslations(languageCode)
 	end
 end
 
+local WIDGET_KEY_ROOT = "widgets"
+
+local widgetLocalizations = {}
+
+local function loadWidgetLocalization(languageCode, id)
+	local strings = widgetLocalizations[id][languageCode]
+	if not strings then
+		return
+	end
+
+	local namespaced = { [WIDGET_KEY_ROOT] = { [id] = strings } }
+	loadTranslationTable(languageCode, nil, namespaced)
+	i18n.load({ [languageCode] = namespaced })
+end
+
 -- Construct a map of
 -- languageCode -> list of translation files associated with that language.
 local languageFiles = {}
@@ -48,6 +64,10 @@ local function loadLanguageFiles(languageCode)
 		local i18nLua = { [languageCode] = Json.decode(i18nJson) }
 		loadTranslationTable(languageCode, nil, i18nLua[languageCode])
 		i18n.load(i18nLua)
+	end
+
+	for id in pairs(widgetLocalizations) do
+		loadWidgetLocalization(languageCode, id)
 	end
 end
 
@@ -104,6 +124,39 @@ function i18n.setLanguage(language)
 		Spring.SetConfigString("bar_font", "Poppins-Regular.otf")
 		Spring.SetConfigString("bar_font2", "Exo2-SemiBold.otf")
 		Spring.SendCommands("luarules reloadluaui")
+	end
+end
+
+function i18n.loadWidgetLocalizations(widgets, vfsMode)
+	local discovered, warnings = WidgetLocalizations.Read(widgets, vfsMode)
+
+	for _, warning in ipairs(warnings) do
+		Spring.Log("i18n", LOG.WARNING, warning)
+	end
+
+	local added = {}
+	for id, byLanguage in pairs(discovered) do
+		if widgetLocalizations[id] then
+			Spring.Log("i18n", LOG.WARNING, string.format("Widget id %s already provided localizations; skipped", id))
+		else
+			widgetLocalizations[id] = byLanguage
+			added[#added + 1] = id
+		end
+	end
+
+	if #added == 0 then
+		return
+	end
+
+	for languageCode in pairs(languageTranslations) do
+		for _, id in ipairs(added) do
+			loadWidgetLocalization(languageCode, id)
+		end
+	end
+
+	local locale = i18n.getLocale()
+	if languageTranslations[locale] then
+		loadRmlTranslations(locale)
 	end
 end
 

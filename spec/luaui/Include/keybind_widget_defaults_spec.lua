@@ -14,8 +14,8 @@ local MANIFESTS = {
 			id = "gui_example",
 			display_name = "Example",
 			keybindings = {
-				{ action = "example_toggle", defaultKeysets = { "sc_f13" } },
-				{ action = "example_taken", defaultKeysets = { "esc" } },
+				{ action = "example_toggle", label = "actions.toggle", defaultKeysets = { "sc_f13" } },
+				{ action = "example_taken", label = "actions.toggle", defaultKeysets = { "esc" } },
 			},
 		},
 	},
@@ -27,7 +27,7 @@ local MANIFESTS = {
 			id = "gui_second",
 			display_name = "Second",
 			keybindings = {
-				{ action = "second_toggle", defaultKeysets = { "sc_f13" } },
+				{ action = "second_toggle", label = "actions.toggle", defaultKeysets = { "sc_f13" } },
 			},
 		},
 	},
