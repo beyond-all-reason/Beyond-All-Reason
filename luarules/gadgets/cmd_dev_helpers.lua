@@ -24,6 +24,8 @@ local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 local PH_B1 = string.byte(PACKET_HEADER, 1)
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
 end
@@ -1986,10 +1988,11 @@ else -- UNSYNCED
 			Spring.Echo("Starting Fightertest")
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Echo(scenariooptions)
-				scenariooptions = Json.decode(scenariooptions)
-				if scenariooptions and scenariooptions.benchmarkcommand then
+				local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+				if not scenariooptions then
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+				elseif scenariooptions.benchmarkcommand then
+					Spring.Echo(Json.encode(scenariooptions))
 					--This is where the magic happens!
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes
