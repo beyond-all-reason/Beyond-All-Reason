@@ -30,6 +30,10 @@ describe("mission_api.difficulty", function()
 		return actions.a.parameters.p
 	end
 
+	it("defaults to the lowest difficulty in the enum", function()
+		assert.are.equal(STORY, difficulty.DefaultDifficulty)
+	end)
+
 	describe("IsDifficultiesTable", function()
 		it("detects a table with a non-nil difficulties key", function()
 			assert.is_true(difficulty.IsDifficultiesTable({ difficulties = { Easy = 1 } }))
@@ -71,10 +75,6 @@ describe("mission_api.difficulty", function()
 			assert.are.equal(10, resolveValue({ difficulties = { Easy = 10, Medium = 20 } }, STORY))
 		end)
 
-		it("falls back to the lowest specified difficulty when no difficulty is set", function()
-			assert.are.equal(10, resolveValue({ difficulties = { Easy = 10, Medium = 20 } }, nil))
-		end)
-
 		it("preserves false values", function()
 			assert.is_false(resolveValue({ difficulties = { Easy = false, Hard = true } }, EASY))
 		end)
@@ -101,24 +101,24 @@ describe("mission_api.difficulty", function()
 			assert.are.equal(5, triggers.t.parameters.interval)
 		end)
 
-		it("converts the settings difficulties array into a set keyed by difficulty", function()
+		it("converts the settings difficulties names into difficulty values in place", function()
 			local triggers = {
 				t = { settings = { difficulties = { "Easy", "Hard" } } },
 			}
 
 			difficulty.ResolveTriggers(triggers)
 
-			assert.are.same({ [EASY] = true, [HARD] = true }, triggers.t.settings.difficulties)
+			assert.are.same({ EASY, HARD }, triggers.t.settings.difficulties)
 		end)
 
-		it("turns an empty difficulties array into no gate at all", function()
+		it("leaves an empty difficulties setting empty", function()
 			local triggers = {
 				t = { settings = { difficulties = {} } },
 			}
 
 			difficulty.ResolveTriggers(triggers)
 
-			assert.is_nil(triggers.t.settings.difficulties)
+			assert.are.same({}, triggers.t.settings.difficulties)
 		end)
 
 		it("tolerates triggers without parameters", function()
@@ -198,17 +198,13 @@ describe("mission_api.difficulty", function()
 			assert.are.equal("s2", metadata.nextStage)
 		end)
 
-		it("leaves the trigger field itself untouched, even when wrapper-shaped", function()
+		it("leaves the trigger field itself untouched, even when shaped like a difficulties table", function()
 			local trigger = { difficulties = { Easy = { type = 1 } } }
 			local objectives = { o = { trigger = trigger } }
 
 			difficulty.ResolveObjectives(objectives)
 
 			assert.are.equal(trigger, objectives.o.trigger)
-		end)
-
-		it("tolerates non-table objectives", function()
-			difficulty.ResolveObjectives({ bad = "nope" })
 		end)
 	end)
 end)

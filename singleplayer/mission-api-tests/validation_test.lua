@@ -15,7 +15,7 @@ local stages = {
 			'objectiveWithMissingTriggerType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
-			'objectiveWithWrappedTrigger',
+			'objectiveWithDifficultiesTrigger',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -73,8 +73,8 @@ local objectives = {
 		},
 	},
 
-	objectiveWithWrappedTrigger = {
-		textKey = "trigger_field_must_not_be_wrapped",
+	objectiveWithDifficultiesTrigger = {
+		textKey = "trigger_field_must_not_have_difficulties",
 		trigger = {
 			difficulties = { Easy = { type = triggerTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
 		},
@@ -131,7 +131,7 @@ local triggers = {
 	triggerWithExtraKeyBesideDifficulties = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: only 'difficulties' is allowed in the wrapper
+			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: no keys other than 'difficulties' allowed
 		},
 		actions = { 'actionMissingType' },
 	},

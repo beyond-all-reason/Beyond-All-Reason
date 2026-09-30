@@ -1,7 +1,8 @@
--- Difficulty-wrapped parameters: every wrapper resolves to the value for GG['MissionAPI'].Difficulty,
--- else the nearest specified difficulty below it, else the lowest specified one. While no difficulty
--- source is wired up (Difficulty stays 0), every wrapper resolves to its lowest specified value and
--- the gated trigger never fires.
+-- Difficulty-dependent parameters: every difficulties table resolves to the value for
+-- GG['MissionAPI'].Difficulty, else the nearest specified difficulty below it, else the lowest
+-- specified one. While no difficulty source is wired up, the default is the lowest difficulty
+-- (Story): Story entries win where authored, everything else resolves to its lowest specified
+-- value, and the Medium/Hard-gated trigger never fires.
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
 local actionTypes = GG['MissionAPI'].ActionDefinitions.Types

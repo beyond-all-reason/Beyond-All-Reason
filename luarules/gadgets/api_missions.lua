@@ -47,7 +47,7 @@ local function loadMission(scriptPath)
 		return
 	end
 
-	-- Wrapped parameters stay intact through validation so every difficulty's value is checked.
+	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
 	local difficulty = GG["MissionAPI"].Modules.Difficulty
 	difficulty.ResolveTriggers(GG["MissionAPI"].Triggers)
 	difficulty.ResolveActions(GG["MissionAPI"].Actions)
@@ -67,7 +67,6 @@ function gadget:Initialize()
 	end
 
 	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Difficulty = 0
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -83,6 +82,8 @@ function gadget:Initialize()
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	-- No difficulty source exists yet (e.g. a modoption); default to the lowest difficulty.
+	GG["MissionAPI"].Difficulty = GG["MissionAPI"].Modules.Difficulty.DefaultDifficulty
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")

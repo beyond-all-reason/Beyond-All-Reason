@@ -83,7 +83,11 @@ local function isTriggerValid(trigger)
 	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
 		return false
 	end
-	if settings.difficulties ~= nil and not settings.difficulties[GG["MissionAPI"].Difficulty] then
+	if
+		settings.difficulties ~= nil
+		and next(settings.difficulties)
+		and not table.contains(settings.difficulties, GG["MissionAPI"].Difficulty)
+	then
 		return false
 	end
 

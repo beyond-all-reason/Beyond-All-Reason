@@ -124,20 +124,22 @@ breaking change to both the function and every mission using it.
 
 - `difficulties.json` is the difficulty enum, shared with the client: name → difficulty (`Story = 1`, `Easy = 2`,
   `Medium = 3`, `Hard = 4`), higher is harder. `GG['MissionAPI'].Difficulty` holds the current difficulty, fixed
-  per playthrough — nothing re-resolves at runtime.
+  per playthrough — nothing re-resolves at runtime. Until a selection source exists it defaults to the lowest
+  difficulty in the enum (`Modules.Difficulty.DefaultDifficulty`).
 - Any trigger parameter, action parameter, or objective field may be authored per difficulty:
   `seconds = { difficulties = { Medium = 60, Hard = 30 } }`. Resolution picks the exact difficulty, else the
   highest specified one below it, else the lowest specified one. Detection is by a non-nil `difficulties` key, not
-  by Lua type, so table parameters (`Area`, `Orders`, …) wrap the same way. Structural fields (`type`, `settings`,
-  `actions`, an objective's `trigger`) and fields nested inside loadout entries or orders do not support it — wrap
-  the whole parameter instead.
-- Wrappers survive until after validation so that every difficulty's value is validated, including values under
-  invalid difficulty names; `loadMission` then resolves everything in place (`Modules.Difficulty`) before
-  `parameter_processing`. Code running **before** validation must not consume parameter values — `objectives_loader`
-  leaves a wrapped `amount` alone, and the resolve pass fills in the `maxRepeats` derived from it.
+  by Lua type, so table parameters (`Area`, `Orders`, …) work the same way. Structural fields (`type`, `settings`,
+  `actions`, an objective's `trigger`) and fields nested inside loadout entries or orders do not support it —
+  author the whole parameter per difficulty instead.
+- Difficulties tables survive until after validation so that every difficulty's value is validated, including
+  values under invalid difficulty names; `loadMission` then resolves everything in place (`Modules.Difficulty`)
+  before `parameter_processing`. Code running **before** validation must not consume parameter values —
+  `objectives_loader` leaves a difficulty-dependent `amount` alone, and the resolve pass fills in the `maxRepeats`
+  derived from it.
 - `settings.difficulties` (the per-trigger on/off gate) is an array of difficulty names with **no** inheritance
-  between difficulties; empty or omitted enables the trigger on every difficulty. After validation it is converted
-  to a set keyed by difficulty for the runtime check in `api_missions_triggers.lua`.
+  between difficulties; empty or omitted enables the trigger on every difficulty. After validation the names are
+  converted to difficulty values for the runtime check in `api_missions_triggers.lua`.
 
 ## Objectives and stages
 

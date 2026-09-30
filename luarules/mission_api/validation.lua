@@ -672,13 +672,13 @@ local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
---- Validates a { difficulties = { <difficultyName> = <value> } } parameter: the wrapper holds
---- only the 'difficulties' key, every key is a known difficulty, and every value satisfies the
+--- Validates a { difficulties = { <difficultyName> = <value> } } parameter: it holds only the
+--- 'difficulties' key, every key is a known difficulty, and every value satisfies the
 --- parameter's own validator, including values under invalid difficulty names.
-local function validateDifficultiesTable(wrapper, parameterType, actionOrTrigger, actionOrTriggerID, parameterName)
+local function validateDifficultiesTable(value, parameterType, actionOrTrigger, actionOrTriggerID, parameterName)
 	local result = {}
 
-	for key in pairs(wrapper) do
+	for key in pairs(value) do
 		if key ~= "difficulties" then
 			result[#result + 1] = {
 				message = "Difficulties parameter must have no keys other than 'difficulties', got: " .. tostring(key),
@@ -686,7 +686,7 @@ local function validateDifficultiesTable(wrapper, parameterType, actionOrTrigger
 		end
 	end
 
-	local difficulties = wrapper.difficulties
+	local difficulties = value.difficulties
 	local luaTypeResult = validateLuaType(difficulties, "table")
 	if luaTypeResult then
 		result[#result + 1] = { message = luaTypeResult, parameterNameSuffix = ".difficulties" }
@@ -697,14 +697,14 @@ local function validateDifficultiesTable(wrapper, parameterType, actionOrTrigger
 		return result
 	end
 
-	for difficultyName, value in pairs(difficulties) do
+	for difficultyName, difficultyValue in pairs(difficulties) do
 		local suffix = ".difficulties." .. tostring(difficultyName)
 		if not knownDifficulties[difficultyName] then
 			result[#result + 1] =
 				{ message = "Invalid difficulty: " .. tostring(difficultyName), parameterNameSuffix = suffix }
 		end
 		local valueResults = validators[parameterType](
-			value,
+			difficultyValue,
 			actionOrTrigger,
 			actionOrTriggerID,
 			(parameterName or "") .. suffix
@@ -1349,7 +1349,7 @@ local function validateLoadouts(unitLoadout, featureLoadout)
 	end
 end
 
---- A difficulty-wrapped parameter names every difficulty's value, so reference checks
+--- A difficulties-table parameter names every difficulty's value, so reference checks
 --- consider all of them; a plain value is returned as a single-element list.
 local function possibleValues(value)
 	if not isDifficultiesTable(value) then
