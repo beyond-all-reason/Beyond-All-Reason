@@ -43,7 +43,13 @@ end
 
 ---@type UnitScriptAttributeDefinition[]
 local unitAttributeDefinitions = {
-	--
+	{
+		method = "SetDeactivateTime",
+		params = "deactivate_time",
+		process = function(self, def)
+			return customTime(def, self.params) or 0
+		end,
+	},
 }
 
 ---@type UnitScriptAttributeDefinition[]

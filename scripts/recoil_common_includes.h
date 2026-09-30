@@ -8,6 +8,7 @@
 #define CONSTANTS_H_
 
 // Engine constants
+#define MILLISECONDS_PER_FRAME	33 // sleeps and other timers count in whole engine ticks
 #define GAME_SPEED      30    // The frames per second rate of the simulation.
 
 // Indices for emit-sfx
