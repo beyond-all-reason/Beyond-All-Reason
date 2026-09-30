@@ -13,6 +13,7 @@ local T = triggerDefinitions.Types
 local Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 
 describe("mission_api.objectives", function()
+	---@type table
 	local missionApi
 
 	-- A mission to build up with the mock's With* methods.
