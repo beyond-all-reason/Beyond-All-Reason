@@ -661,6 +661,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
+		self:ReleaseWidget(widget)
 		if not success then
 			return loadFailed(basename, err)
 		end
@@ -682,9 +683,11 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
+		self:ReleaseWidget(widget)
 		return loadFailed(basename, err)
 	end
 	if err == false then
+		self:ReleaseWidget(widget)
 		return nil -- widget asked for a silent death
 	end
 
@@ -697,6 +700,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	if zipOnly[name] and not fromZip then
 		Spring.Echo("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
+		self:ReleaseWidget(widget)
 		return nil
 	end
 
@@ -711,17 +715,20 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	err = self:ValidateWidget(widget)
 	if err then
+		self:ReleaseWidget(widget)
 		return loadFailed(basename, err)
 	end
 
 	if widget.GetInfo == nil then
 		-- Do not keep widgets known but unregistered (active, no order entry)
+		self:ReleaseWidget(widget)
 		return loadFailed(basename, "no GetInfo() call")
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
+			self:ReleaseWidget(widget)
 			return loadFailed(basename, "duplicate name")
 		end
 	else
@@ -773,6 +780,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	else
 		self.orderList[name] = 0
 		self.knownWidgets[name].active = false
+		self:ReleaseWidget(widget)
 		return nil
 	end
 
@@ -784,6 +792,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			widget.widgetHandler = self
 		else
 			self.knownWidgets[name].active = false
+			self:ReleaseWidget(widget)
 			return loadFailed(basename, "user widgets may not access widgetHandler")
 		end
 	end
@@ -821,6 +830,8 @@ local SandboxedWidgetMeta = {
 	__metatable = true,
 }
 
+local widgetProxies = setmetatable({}, { __mode = "k" }) -- widget -> the handle NewWidget gave it
+
 function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
@@ -844,6 +855,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
+	widgetProxies[widget] = wh
 	widget.canControlUnits = canControlUnits
 	widget.include = function(f)
 		return include(f, widget)
@@ -937,7 +949,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 		return self:SetWindowsHideInterface(enabled)
 	end
 	wh.HideInterface = function(_, reason, keep)
-		return self:HideInterface(reason, keep)
+		return self:HideInterface(reason, keep, widget)
 	end
 	wh.ShowInterface = function(_, reason)
 		return self:ShowInterface(reason)
@@ -1229,8 +1241,12 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
-	if self:FindWidget(widget.whInfo.name) then
+	local running = self:FindWidget(widget.whInfo.name)
+	if running then
 		Spring.Echo("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
+		if running ~= widget then
+			self:ReleaseWidget(widget)
+		end
 		return
 	end
 	if not Platform.check(widget.whInfo.depends) then
@@ -1240,6 +1256,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		end
 		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
 		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
+		self:ReleaseWidget(widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
@@ -1257,6 +1274,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 				true
 			)
 		end
+		self:ReleaseWidget(widget)
 		return
 	end
 
@@ -1289,6 +1307,9 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	if self.textOwner == widget then
 		self.textOwner = nil
 	end
+	if self.mouseOwner == widget then
+		self.mouseOwner = nil
+	end
 
 	-- A refused widget can have queued its own removal and would write over a running one.
 	if table.getKeyOf(self.widgets, widget) then
@@ -1303,12 +1324,45 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	end
 	ArrayRemove(self.widgets, widget)
 	self:ForgetModalWidget(widget)
+	self:ForgetHidingWidget(widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
+end
+
+---Drop a widget object refused before insertion, without calling its code: undo what it set up
+---through its handle while loading, and empty the handle so functions it stored cannot use it.
+function widgetHandler:ReleaseWidget(widget)
+	-- Its queued calls would otherwise add it to call-in lists nobody can see or clear.
+	for i = #reorderQueue, 1, -1 do
+		for _, arg in pairs(reorderQueue[i]) do
+			if arg == widget then
+				table.remove(reorderQueue, i)
+				break
+			end
+		end
+	end
+	if self.textOwner == widget then
+		self.textOwner = nil
+	end
+	if self.mouseOwner == widget then
+		self.mouseOwner = nil
+	end
+	self:ForgetModalWidget(widget)
+	self:ForgetHidingWidget(widget)
+	self:RemoveWidgetGlobals(widget)
+	self.actionHandler:RemoveWidgetActions(widget)
+
+	local wh = widgetProxies[widget]
+	if wh then
+		for key in pairs(wh) do
+			wh[key] = nil
+		end
+		rawset(widget, "widgetHandler", wh) -- takes back the real handler if LoadWidget granted it
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1694,6 +1748,7 @@ local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /se
 -- switch each other off, and each names the widgets it wants kept. Unlike the window
 -- case this ignores the springsetting: a caller that asks for it means it.
 local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
+local interfaceHiddenOwners = {} -- reason -> widget that asked through its own handle
 local interfaceHidden = false
 local interfaceAllowedNames = {} -- union of the names every active reason keeps
 -- what a caller gets when it names nothing: the menu buttons, so there is always a
@@ -1769,7 +1824,8 @@ end
 ---@param reason string caller-chosen key; pass the same one to ShowInterface
 ---@param keep string[]? widget names to keep drawing and clickable.
 ---Defaults to the menu buttons; pass {} to keep nothing at all.
-function widgetHandler:HideInterface(reason, keep)
+---@param owner table? the widget that asked; the reason is released when that widget goes
+function widgetHandler:HideInterface(reason, keep, owner)
 	if type(reason) ~= "string" then
 		Spring.Log("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
 		return false
@@ -1779,6 +1835,7 @@ function widgetHandler:HideInterface(reason, keep)
 		names[name] = true
 	end
 	interfaceHiddenReasons[reason] = names
+	interfaceHiddenOwners[reason] = owner
 	rebuildInterfaceAllowed()
 	return true
 end
@@ -1790,8 +1847,17 @@ function widgetHandler:ShowInterface(reason)
 		return false
 	end
 	interfaceHiddenReasons[reason] = nil
+	interfaceHiddenOwners[reason] = nil
 	rebuildInterfaceAllowed()
 	return true
+end
+
+function widgetHandler:ForgetHidingWidget(widget)
+	for reason, owner in pairs(interfaceHiddenOwners) do
+		if owner == widget then
+			self:ShowInterface(reason)
+		end
+	end
 end
 
 function widgetHandler:IsInterfaceHidden()
