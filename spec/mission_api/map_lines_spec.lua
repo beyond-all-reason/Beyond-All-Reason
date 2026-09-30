@@ -4,17 +4,15 @@ local Builders = VFS.Include("spec/builders/index.lua")
 
 Builders.MissionApi.new():Install()
 
-local mapLines = VFS.Include("luarules/mission_api/map_lines.lua")
-
 describe("mission_api.map_lines", function()
-	---@type table, table, table
-	local missionApi, addCalls, eraseCalls
+	local missionApi, addCalls, eraseCalls, mapLines ---@type table, table, table, table
 
 	before_each(function()
 		missionApi = Builders.MissionApi.new():Install()
 		_G.Spring = Builders.Spring.new():Build() ---@diagnostic disable-line: global-in-non-module
 		addCalls = Spring.calls.markerAddLine
 		eraseCalls = Spring.calls.markerErasePosition
+		mapLines = VFS.Include("luarules/mission_api/map_lines.lua")
 	end)
 
 	describe("DrawLine", function()
