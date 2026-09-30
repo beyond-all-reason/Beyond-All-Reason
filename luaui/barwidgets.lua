@@ -756,9 +756,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.active = true
 	knownInfo.localsAccess = enableLocalsAccess
 
-	-- Get widget information
-	local info = widget:GetInfo()
-
 	-- Enabling
 	local order = self.orderList[name]
 	if order then
@@ -766,7 +763,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
+		if widget.whInfo.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
@@ -782,7 +779,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	-- user widgets may not access widgetHandler
 	-- fixme: remove the or true part
 	-- Granted last, so a widget refused above never holds the real handler.
-	if info.handler then
+	if widget.whInfo.handler then
 		if fromZip or true then
 			widget.widgetHandler = self
 		else
@@ -970,6 +967,10 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
 		wi.modalExempt = info.modalExempt or false
+		wi.unsafe = info.unsafe or false
+		wi.depends = info.depends
+		wi.control = info.control or false
+		wi.handler = info.handler or false
 	end
 
 	widget.whInfo = {} --  a proxy table
@@ -1071,7 +1072,7 @@ local function SafeWrapWidget(widget)
 	if SAFEWRAP <= 0 then
 		return
 	elseif SAFEWRAP == 1 then
-		if widget.GetInfo and widget.GetInfo().unsafe then
+		if widget.whInfo.unsafe then
 			Spring.Echo("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
@@ -1232,7 +1233,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		Spring.Echo("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
 		return
 	end
-	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
+	if not Platform.check(widget.whInfo.depends) then
 		local name = widget.whInfo.name
 		if self.knownWidgets[name] then
 			self.knownWidgets[name].active = false
@@ -1242,7 +1243,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
-	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
+	if widget.whInfo.control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
 			if self.knownWidgets[name] then
