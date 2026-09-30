@@ -8,6 +8,9 @@ piece 	base, torso, lshoulder, rshoulder, lsleeve, rsleeve, lbarrel, heatraycoil
 
 static-var  isMoving, isAiming, restore_delay, gun_1, wpn1_lasthead, moveSpeed, explosions, shieldup, torsoHeading, shotcount;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // signal definitions
 #define SIGNAL_AIM1			2
 #define SIGNAL_MOVE			4
@@ -496,6 +499,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	Weapon1TurretX = <200.000000>;
+	Weapon1TurretY = <200.000000>;
 	// hide rflare; // dont hide this; used for lights
 	hide lflare1;
 	hide lflare2;
@@ -594,8 +599,8 @@ AimWeapon1(heading, pitch)
 	
 	torsoHeading = heading;
 	
-	turn torso to y-axis heading speed <200.000000>;
-	turn aimx to x-axis <0.000000> - pitch speed <200.000000>;
+	turn torso to y-axis heading speed Weapon1TurretY;
+	turn aimx to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
