@@ -305,7 +305,7 @@ local function createUnitIdleSweep()
 	local transitions, states = {}, {}
 
 	local VFSMODE = Spring.IsDevLuaEnabled() and VFS.RAW_FIRST or VFS.ZIP_ONLY
-	local isIdle = VFS.Include("modules/unit_idle_states.lua", nil, VFSMODE).IsIdle
+	local isIdle = require("modules/unit_idle_states", nil, VFSMODE).IsIdle
 
 	local spGetUnitDefID = Spring.GetUnitDefID
 	local spGetUnitIsDead = Spring.GetUnitIsDead

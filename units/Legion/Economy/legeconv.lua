@@ -37,7 +37,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "ArmBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 		},
 		sounds = {
 			activate = "arm-bld-mm-activate",

@@ -1,28 +1,18 @@
 -- The keyboard page of the keybind editor: a full-size keyboard drawn key by key, each cap
--- carrying the action it fires on the layer shown. A layer is a set of modifiers. Clicking
--- Shift, Ctrl, Alt or Meta on the drawn keyboard toggles that modifier into the layer, and
--- holding the real one shows it for as long as it is held, so the page reads like the
--- keyboard it stands for. Two views share the page: the main block, and the arrows,
--- navigation keys and number pad, with the modifiers beside them so the layers still work.
--- It is an overview rather than an editor: a click on a bound key hands that key to the
--- list page, which is where bindings are changed.
+-- carrying the action it fires on the layer shown. A layer is a set of modifiers. It is an
+-- overview rather than an editor; a click hands the key to the list page.
 --
--- Bindings come in as the editor's working keymap, so staged edits show here before they
--- are saved. Each is placed on the key that starts it (a chain lands on its first tap) under
--- the modifiers it names. Any+ bindings fire whatever is held, so they sit on every layer,
--- after the bindings that name that layer exactly - the order the engine tries them in.
+-- Any+ bindings fire whatever is held, so they sit on every layer, after the bindings naming
+-- that layer exactly - the order the engine tries them in.
 --
--- The face of a key shows one action, and it is the one a player thinks of the key as
--- doing: the first by catalog order, not by bind order. The engine walks a key's actions
--- in bind order until one takes it, and the presets lean on that to put a special case
--- ahead of the general one - the Grid preset binds "stopproduction" ahead of "stop" on G,
--- and the spectator's "specteam" ahead of "group select" on the digits. Catalog order puts
--- the general action first, which is what the key is for. The tooltip lists them all.
+-- The face shows the best action by catalog order, not the first by bind order: the presets
+-- lean on bind order to put a special case ahead of the general one (Grid binds
+-- "stopproduction" ahead of "stop" on G), and the general one is what the key is for.
 
-local keybindModel = VFS.Include("luaui/Include/keybind_model.lua")
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
-local Search = VFS.Include("luaui/Include/search.lua")
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local Search = require("luaui/Include/search")
+local keyConfig = require("luaui/configs/keyboard_layouts")
+local keybindModel = require("luaui/Include/keybind_model")
+local text = require("luaui/Include/keybind_text")
 
 local floor = math.floor
 local max = math.max
@@ -44,8 +34,6 @@ local glBlending = gl.Blending
 ---@field query table The search, from Search.query
 ---@field queryTokens string[]
 ---@field queryGen integer
----@field filter table? The key the list is filtered to: `id` and `layer`
----@field filterGen integer
 ---@field gen integer Bumped by every placement
 ---@field layoutGen integer Bumped by every resize
 ---@field unplaced integer Bindings on keys neither view draws
@@ -65,6 +53,7 @@ local glBlending = gl.Blending
 ---@field button table? The view toggle's rect
 ---@field cs number
 ---@field pad number
+---@field padY number
 ---@field nameFs number
 ---@field labelFs number
 ---@field moreFs number
@@ -79,22 +68,16 @@ M.__index = M
 -- The keyboard
 ----------------------------------------------------------------
 
--- Every key the page can draw, once, with where it sits in each view that shows it: `main`
--- and `numpad` give `x` from the view's left edge and `y` from the top in key units, `w`
--- and `h` in units when not one. A view is as many units wide as `viewCols` says, and the
--- page is `ROWS` tall: the caption row on top, then the keys spaced the way they are on the
--- keyboard itself - the function row under the caption, the main block half a unit lower.
+-- Every key the page can draw, with where it sits in each view: `main` and `numpad` give `x`
+-- and `y` in key units, `w` and `h` in units when not one.
 --
--- Named keys carry the engine's names for them: `scan` for the scancode names (sc_<name>)
--- and `code` for the keycode ones, every spelling the engine accepts. A character key
--- carries the qwerty character of its position instead. Its scancode name is that character
--- (or the engine's word for a punctuation key, `word`), and the player's keyboard layout
--- decides both the character printed on it and the keycode that lands there. `shifted` is
--- the symbol the US layout prints above a punctuation key, shown when the layout leaves
--- that key as it is. `mod` marks a modifier key, which toggles its layer when clicked; the
--- modifiers sit in both views, so a layer can be toggled from either.
+-- Named keys carry the engine names: `scan` for scancode names, `code` for keycode ones. A
+-- character key carries its qwerty character instead, and the layout decides both what is
+-- printed and which keycode lands there. `shifted` is the US symbol above a punctuation key.
 local ROWS = 7.5
 local viewCols = { main = 15, numpad = 10 }
+-- How large the text on the keys reads, over the base shares of the key set in setArea.
+local KEY_TEXT_SCALE = 1.2
 local viewOrder = { "main", "numpad" }
 
 local up, down, left, right = "\226\134\145", "\226\134\147", "\226\134\144", "\226\134\146"
@@ -222,27 +205,27 @@ local keyDefs = {
 	{ main = { x = 10, y = 6.5, w = 1.25 }, name = "Alt", mod = "alt", code = { "ralt" } },
 	{ main = { x = 13.75, y = 6.5, w = 1.25 }, name = "Ctrl", mod = "ctrl", code = { "rctrl" } },
 
-	-- The navigation keys, the arrows and the number pad, laid out as they sit to the right of
-	-- the main block, with the modifiers in a column to their left.
+	-- Laid out as they sit to the right of the main block, modifiers in a column to their left.
 	{
 		numpad = { x = 2.5, y = 1 },
 		name = "Print",
 		scan = { "printscreen", "print" },
 		code = { "printscreen", "print" },
 	},
-	{ numpad = { x = 3.5, y = 1 }, name = "Scroll Lock", code = { "scrollock" } },
+	-- Printed the way a keycap prints them, the full names being wider than a key.
+	{ numpad = { x = 3.5, y = 1 }, name = "ScrLk", code = { "scrollock" } },
 	{ numpad = { x = 2.5, y = 2.5 }, name = "Insert", scan = { "insert" }, code = { "insert" } },
 	{ numpad = { x = 3.5, y = 2.5 }, name = "Home", scan = { "home" }, code = { "home" } },
-	{ numpad = { x = 4.5, y = 2.5 }, name = "Page Up", scan = { "pageup" }, code = { "pageup" } },
+	{ numpad = { x = 4.5, y = 2.5 }, name = "PgUp", scan = { "pageup" }, code = { "pageup" } },
 	{ numpad = { x = 2.5, y = 3.5 }, name = "Delete", scan = { "delete" }, code = { "delete" } },
 	{ numpad = { x = 3.5, y = 3.5 }, name = "End", scan = { "end" }, code = { "end" } },
-	{ numpad = { x = 4.5, y = 3.5 }, name = "Page Down", scan = { "pagedown" }, code = { "pagedown" } },
+	{ numpad = { x = 4.5, y = 3.5 }, name = "PgDn", scan = { "pagedown" }, code = { "pagedown" } },
 	{ numpad = { x = 3.5, y = 5.5 }, name = up, scan = { "up" }, code = { "up" } },
 	{ numpad = { x = 2.5, y = 6.5 }, name = left, scan = { "left" }, code = { "left" } },
 	{ numpad = { x = 3.5, y = 6.5 }, name = down, scan = { "down" }, code = { "down" } },
 	{ numpad = { x = 4.5, y = 6.5 }, name = right, scan = { "right" }, code = { "right" } },
 
-	{ numpad = { x = 6, y = 2.5 }, name = "Num Lock", code = { "numlock" } },
+	{ numpad = { x = 6, y = 2.5 }, name = "NumLk", code = { "numlock" } },
 	{ numpad = { x = 7, y = 2.5 }, name = "/", scan = { "numpad/" }, code = { "numpad/" } },
 	{ numpad = { x = 8, y = 2.5 }, name = "*", scan = { "numpad*" }, code = { "numpad*" } },
 	{ numpad = { x = 9, y = 2.5 }, name = "-", scan = { "numpad-" }, code = { "numpad-" } },
@@ -261,8 +244,7 @@ local keyDefs = {
 	{ numpad = { x = 8, y = 6.5 }, name = ".", scan = { "numpad." }, code = { "numpad." } },
 }
 
--- Modifier names in the order the engine writes them, which is the order a layer's caption
--- and its key read them in.
+-- The order the engine writes them, which is the order a layer caption and its key read.
 local modifierNames = {}
 for i, name in ipairs(keyConfig.modifierOrder) do
 	modifierNames[i] = name:lower()
@@ -289,8 +271,7 @@ local colorDim = "\255\160\160\160"
 local colorKey = "\255\235\185\070"
 
 local look = {
-	-- Caps: a bound key, one with nothing on this layer, a modifier at rest, a modifier
-	-- whose layer is showing, and a key the search found or the list is filtered to.
+	-- Bound, nothing on this layer, modifier at rest, modifier showing, and found by search.
 	bound = { 0.22, 0.22, 0.22, 1 },
 	unbound = { 0.16, 0.16, 0.16, 1 },
 	modifier = { 0.28, 0.28, 0.28, 1 },
@@ -319,14 +300,11 @@ local look = {
 	buttonText = colorText,
 	buttonHoverOpacity = 0.25,
 	white = { 1, 1, 1 },
-	-- The outline every string here is drawn with, set on every batch: the font is shared with
-	-- every other widget, some of which set an outline of their own and leave it, and text
-	-- baked into a display list keeps whatever outline was set last. The editor's value.
+	-- The font is shared with every other widget, some of which set an outline of their own.
 	outline = { 0, 0, 0, 0.4 },
 }
 
--- FlowUI's Button gradients from a bottom stop to a top one; each fill becomes a darker
--- bottom and itself on top, the shape the editor's other buttons take. Derived once per fill.
+-- Each fill becomes a darker bottom and itself on top, the shape the other buttons take.
 look.gradients = setmetatable({}, {
 	__index = function(self, fill)
 		local pair = {
@@ -339,8 +317,7 @@ look.gradients = setmetatable({}, {
 	end,
 })
 
--- Label colours by catalog category, so a key's action reads as the kind of thing it is at a
--- glance: groups in blue, camera in gold, build in yellow. Anything unlisted prints plain.
+-- So a key action reads as the kind of thing it is at a glance.
 local categoryColors = {
 	["categories.selection"] = "\255\150\205\255",
 	["categories.orders"] = colorText,
@@ -387,8 +364,6 @@ function M.new()
 	self.query = Search.query(nil)
 	self.queryTokens = {}
 	self.queryGen = 0
-	self.filter = nil
-	self.filterGen = 0
 	self.gen = 0
 	self.layoutGen = 0
 	self.unplaced = 0
@@ -400,8 +375,7 @@ function M.new()
 	return self
 end
 
--- Picks up the font and the FlowUI entry points, which do not exist at include time. Called
--- again on a resize: the font handler hands out new objects then.
+-- The font and FlowUI entry points do not exist at include time. Called again on a resize.
 function M:init(font)
 	self.font = font
 	self.UiKey = WG.FlowUI.Draw.Key
@@ -410,8 +384,8 @@ function M:init(font)
 	self.layoutGen = self.layoutGen + 1
 end
 
--- Re-reads the page's own strings. Modifier and key names are read from the layout on the
--- next placement, since they change with the keyboard layout rather than the language.
+-- Modifier and key names are read on the next placement: they change with the layout rather
+-- than with the language.
 function M:refreshStrings()
 	local L = self.L
 	L.layerBase = BAR.I18N("ui.keybinds.keyboard.layerBase")
@@ -434,10 +408,7 @@ end
 -- Geometry
 ----------------------------------------------------------------
 
--- Lays both views out inside the rect: as large as the main view's fifteen units fit across
--- and seven and a half units fit down, each view centred in whatever is left over. The
--- caption row and the view toggle keep to the main view's frame, so they stay put when the
--- view changes. Every edge and size is a whole pixel.
+-- As large as the main view fifteen units across and seven and a half down will fit.
 function M:setArea(x1, y1, x2, y2, scale, titleFs)
 	local a = self.area
 	a.x1, a.y1, a.x2, a.y2 = x1, y1, x2, y2
@@ -446,8 +417,7 @@ function M:setArea(x1, y1, x2, y2, scale, titleFs)
 	local unit = floor(min((x2 - x1) / viewCols.main, (y2 - y1) / ROWS))
 	self.unit = unit
 	self.titleFs = max(titleFs or 0, floor(unit * 0.22))
-	-- Half the gap between two keys goes on each side of every key, so a wide key and two
-	-- narrow ones fill the same span.
+	-- Half the gap goes each side of every key, so a wide key and two narrow ones fill one span.
 	local half = max(1, floor(unit * 0.045))
 	local oy = floor(y2 - (y2 - y1 - unit * ROWS) * 0.5)
 	for _, view in ipairs(viewOrder) do
@@ -455,14 +425,14 @@ function M:setArea(x1, y1, x2, y2, scale, titleFs)
 	end
 	self.cs = max(2, floor(unit * 0.09))
 	self.pad = max(2, floor(unit * 0.07))
-	-- The key's name reads first, its action smaller under it: three short lines of it fit
-	-- a plain key, which is what most of the catalog's labels need.
-	self.nameFs = max(8, floor(unit * 0.14))
-	self.labelFs = max(7, floor(unit * 0.125))
-	self.moreFs = max(7, floor(unit * 0.11))
+	-- The face height is what three lines of a label under the key name have to share.
+	self.padY = max(2, floor(unit * 0.045))
+	-- Each a share of the key in whole pixels.
+	self.nameFs = max(9, floor(floor(unit * 0.14) * KEY_TEXT_SCALE + 0.5))
+	self.labelFs = max(8, floor(floor(unit * 0.125) * KEY_TEXT_SCALE + 0.5))
+	self.moreFs = max(8, floor(floor(unit * 0.11) * KEY_TEXT_SCALE + 0.5))
 	self.iconSize = floor(unit * 0.24)
-	-- The hint is a sentence read at a glance, so it prints larger than a key's label; two or
-	-- three lines of it fit the caption row.
+	-- The hint is read at a glance, so it prints larger than a key label.
 	self.hintFs = max(9, floor(unit * 0.17))
 	self.buttonFs = max(8, floor(unit * 0.15))
 
@@ -493,8 +463,7 @@ function M:setArea(x1, y1, x2, y2, scale, titleFs)
 	self.hintLines = nil
 end
 
--- Which keys the current view draws, and where. A key not in the view has no rect, so the
--- hit test and the drawing skip it.
+-- A key not in the view has no rect, so the hit test and the drawing skip it.
 function M:applyView()
 	self.shown = {}
 	for i, key in ipairs(self.keys) do
@@ -532,8 +501,7 @@ function M:applyLayout(layoutName)
 	self.tokenIndex = index
 
 	local function claim(token, i)
-		-- First come first served: a layout that puts one character on two keys is broken,
-		-- and the drawn keyboard can only show it once.
+		-- First come first served: a layout putting one character on two keys is broken.
 		if index[token] == nil then
 			index[token] = i
 		end
@@ -544,15 +512,13 @@ function M:applyLayout(layoutName)
 		if key.char then
 			local upper = key.char:upper()
 			local produced = positional[upper] or upper
-			-- The engine's scancode name for the position, and the keycode of whatever the
-			-- layout puts there. Punctuation carries the engine's word for it as well.
+			-- Punctuation carries the engine word for it as well.
 			tokens[#tokens + 1] = "sc:" .. key.char:lower()
 			if key.word then
 				tokens[#tokens + 1] = "sc:" .. key.word
 			end
 			tokens[#tokens + 1] = "kc:" .. produced:lower()
-			-- The engine's other spellings of a keycode only hold while the key still makes
-			-- the character they spell.
+			-- The engine other spellings of a keycode only hold while the key still makes that character.
 			if key.code and produced == upper then
 				for _, name in ipairs(key.code) do
 					tokens[#tokens + 1] = "kc:" .. name
@@ -584,9 +550,8 @@ function M:applyLayout(layoutName)
 	return index
 end
 
--- Places every binding on its key. `infoFor(action)` answers with the action's label,
--- description, icon, category and catalog rank; `hidden` names the actions the catalog
--- keeps off every surface; `shiftPair` the actions bound twice, bare and with Shift.
+-- `infoFor(action)` answers with its label, description, icon, category and catalog rank;
+-- `hidden` names the actions to leave off.
 function M:place(binds, hidden, layoutName, shiftPair, infoFor)
 	if not self.tokenIndex or layoutName ~= self.layoutName then
 		self:applyLayout(layoutName)
@@ -625,8 +590,7 @@ function M:place(binds, hidden, layoutName, shiftPair, infoFor)
 						key.layers[layer] = list
 					end
 				end
-				-- The same action on the same key and layer twice is one entry: a keymap can
-				-- say it twice, and the face has one slot.
+				-- A keymap can say the same thing twice, and the face has one slot.
 				local dup = idx .. "|" .. layer .. "|" .. b.action
 				if not seen[dup] then
 					seen[dup] = true
@@ -653,36 +617,30 @@ function M:infoOf(entry)
 	return entry.info
 end
 
--- What a key shows on a layer: the bindings naming exactly those modifiers, then the Any+
--- ones, each block in catalog order. Kept per layer until the bindings change.
+-- What one press can fire comes first, in the order the engine tries them, then the chains
+-- this key only begins, which a press alone never reaches.
 function M:entries(key, layer)
 	local show = key.show[layer]
 	if show and show.gen == self.gen then
 		return show.entries
 	end
 
-	local entries = {}
+	local presses, chains = {}, {}
 	local function take(list)
-		local sorted = {}
-		for i, e in ipairs(list) do
-			sorted[i] = e
-		end
-		table.sort(sorted, function(a, b)
-			local ra, rb = self:infoOf(a).rank or math.huge, self:infoOf(b).rank or math.huge
-			if ra ~= rb then
-				return ra < rb
-			end
-			return a.action < b.action
-		end)
-		for _, e in ipairs(sorted) do
-			entries[#entries + 1] = e
+		for _, e in ipairs(list or {}) do
+			local into = e.chain and chains or presses
+			into[#into + 1] = e
 		end
 	end
-	take(key.layers[layer] or {})
+	take(key.layers[layer])
 	take(key.any)
 
-	-- A paired order's Shift half does what the bare key does; on a layer holding Shift it is
-	-- marked, so the layer reads as what Shift adds rather than everything Shift keeps.
+	local entries = presses
+	for _, e in ipairs(chains) do
+		entries[#entries + 1] = e
+	end
+
+	-- On a layer holding Shift it is marked, so the layer reads as what Shift adds.
 	local bare
 	if layer:find("shift", 1, true) then
 		local without = layer:gsub("%+?shift", "")
@@ -732,9 +690,8 @@ function M:setHeld(alt, ctrl, meta, shift)
 	h.alt, h.ctrl, h.meta, h.shift = alt or nil, ctrl or nil, meta or nil, shift or nil
 end
 
--- The search box's text. A key is found by its own name, or by an action it shows on the
--- layer; the rest sink. Key names are whole words, as the list's key search takes them, so
--- "f1" does not light F11.
+-- A key is found by its own name or by an action it shows on the layer. Key names are whole
+-- words, as the list key filter matches them.
 function M:setQuery(str)
 	local query = Search.query(str)
 	if query.text == self.query.text then
@@ -746,13 +703,6 @@ function M:setQuery(str)
 		self.queryTokens[#self.queryTokens + 1] = token
 	end
 	self.queryGen = self.queryGen + 1
-end
-
--- The key the list is filtered to, lit here and nowhere else: `id` names the key and `layer`
--- the modifiers it was clicked under. Nil clears it.
-function M:setFilter(filter)
-	self.filter = filter
-	self.filterGen = self.filterGen + 1
 end
 
 function M:matches(key, entries)
@@ -805,11 +755,9 @@ function M:signature(hoverIdx)
 		.. "|"
 		.. self.view
 		.. "|"
-		.. self.filterGen
 end
 
--- A click: the toggle swaps the view; a modifier toggles its layer; a bound key is handed
--- back with the layer it was clicked under, for the list to filter to. Nothing else answers.
+-- A bound key is handed back with the layer it was clicked under.
 function M:mousePress(x, y, button)
 	if button ~= 1 then
 		return nil
@@ -874,8 +822,7 @@ function M:tooltip(idx)
 	return "kb|" .. idx .. "|" .. layer .. "|" .. self.gen, self:keysetName(key)
 end
 
--- The tooltip's lines: every action on the key for this layer, in the order the face ranks
--- them, each with what it does; then what a click here does.
+-- Every action on the key for this layer, what one press fires first and in engine order.
 function M:tooltipLines(idx)
 	local L = self.L
 	if idx == -1 then
@@ -922,14 +869,55 @@ end
 -- Drawing
 ----------------------------------------------------------------
 
--- The label a key wears on a layer, wrapped and fitted to its face, kept until the bindings
--- or the geometry change.
-function M:faceLines(key, layer, entries, faceW, maxLines)
+-- Smaller when the name is wider than the face. Measured once per name and size.
+function M:nameSize(key, room)
+	if key.nameFsGen == self.layoutGen and key.nameFsLabel == key.label and key.nameFsRoom == room then
+		return key.nameFsFit
+	end
+	local size = self.nameFs
+	local width = self.font:GetTextWidth(key.label) * size
+	if width > room and width > 0 then
+		size = max(floor(size * 0.6), floor(size * room / width))
+	end
+	key.nameFsFit, key.nameFsGen, key.nameFsLabel, key.nameFsRoom = size, self.layoutGen, key.label, room
+
+	return size
+end
+
+-- Not the first the engine would try: the presets lean on bind order to put a special case
+-- ahead of the general one.
+function M:faceEntry(key, layer)
+	local best, bestRank, bestChain
+	for _, e in ipairs(self:entries(key, layer)) do
+		local rank = self:infoOf(e).rank or math.huge
+		local chain = e.chain and true or false
+		local better
+		if not best then
+			better = true
+		elseif chain ~= bestChain then
+			-- The cap answers for what pressing the key does, not for what it begins.
+			better = not chain
+		elseif rank ~= bestRank then
+			better = rank < bestRank
+		else
+			better = e.action < best.action
+		end
+		if better then
+			best, bestRank, bestChain = e, rank, chain
+		end
+	end
+
+	return best
+end
+
+-- Kept until the bindings or the geometry change.
+function M:faceLines(key, layer, faceW, maxLines)
+	-- Asked for before the cache is read: a placement this is stale for rebuilds the show table.
+	local first = self:faceEntry(key, layer)
 	local show = key.show[layer]
 	if show.lines and show.linesGen == self.layoutGen and show.linesMax == maxLines then
 		return show.lines, show.first
 	end
-	local first = entries[1]
 	local lines = {}
 	if first then
 		local info = self:infoOf(first)
@@ -979,9 +967,7 @@ function M:hintFor(width)
 	return lines
 end
 
--- Paints the page: the caption row with the view toggle, then every key of the view with
--- its picture and words. Called inside the host's display list, so all of it bakes and
--- replays until the signature moves.
+-- Called inside the host display list, so all of it has to be geometry and text.
 function M:draw(hoverIdx)
 	local font = self.font
 	local UiKey = self.UiKey
@@ -991,9 +977,9 @@ function M:draw(hoverIdx)
 	local mods = self:activeMods()
 	local layer = layerKeyOf(mods)
 	local unit, pad, cs = self.unit, self.pad, self.cs
+	local padY = self.padY
 	local searching = not self.query.empty
-	local filter = self.filter
-	local nameLineH = floor(self.nameFs * 1.2)
+	local nameLineH = floor(self.nameFs * 1.12)
 	local lineH = floor(self.labelFs * 1.1)
 	local prints = {}
 	local function print(str, x, y, size, opts)
@@ -1006,8 +992,7 @@ function M:draw(hoverIdx)
 		local key = self.keys[i] --[[@as table]]
 		local entries = self:entries(key, layer)
 		local active = key.mod and mods[key.mod]
-		local filtered = filter and filter.id == key.id and filter.layer == layer
-		local hit = (searching and self:matches(key, entries)) or filtered
+		local hit = searching and self:matches(key, entries)
 		local fill = (active and look.modifierActive)
 			or (hit and look.hit)
 			or (key.mod and look.modifier)
@@ -1017,35 +1002,34 @@ function M:draw(hoverIdx)
 		local fx1, fy1, fx2, fy2 = UiKey(key.x1, key.y1, key.x2, key.y2, cs, fill, active, hoverIdx == i, opacity)
 		local light = active
 		local faceW = fx2 - fx1 - pad * 2
-		-- Text on a dark cap carries the panel's dark outline; dark text on a light cap does
-		-- not, an outline there being a dark ring round dark letters.
+		-- Dark text on a light cap takes none, an outline there being a dark ring round dark letters.
 		local oLeft, oCentre, oRight = "o", "co", "ro"
 		if light then
 			oLeft, oCentre, oRight = "", "c", "r"
 		end
 
-		-- The key's own name, top left; the symbol Shift makes of it beside, dimmer.
-		local nameTop = fy2 - pad
-		local nameY = text.baseline(font, nameTop - nameLineH, nameTop, self.nameFs)
-		print((light and look.nameOnLight or look.name) .. key.label, fx1 + pad, nameY, self.nameFs, oLeft)
+		-- The symbol Shift makes of it sits beside, dimmer.
+		local nameFs = self:nameSize(key, faceW)
+		local nameTop = fy2 - padY
+		local nameY = text.baseline(font, nameTop - nameLineH, nameTop, nameFs)
+		print((light and look.nameOnLight or look.name) .. key.label, fx1 + pad, nameY, nameFs, oLeft)
 		if key.shiftedLabel then
-			local nameW = floor(font:GetTextWidth(key.label) * self.nameFs)
+			local nameW = floor(font:GetTextWidth(key.label) * nameFs)
 			print(
 				(light and look.shiftedOnLight or look.shifted) .. key.shiftedLabel,
 				fx1 + pad + nameW + floor(pad * 0.8),
 				nameY,
-				self.nameFs,
+				nameFs,
 				oLeft
 			)
 		end
 
-		-- The room under the name: the first action's words, as many lines as fit, centred.
-		local bandTop = nameTop - nameLineH - floor(pad * 0.4)
-		local bandBottom = fy1 + pad
+		-- The last line may reach into the bottom padding; a label seldom has a descender there.
+		local bandTop = nameTop - nameLineH
+		local bandBottom = fy1 + floor(padY * 0.5)
 		local maxLines = min(3, max(1, floor((bandTop - bandBottom) / lineH)))
-		local lines, first = self:faceLines(key, layer, entries, faceW, maxLines)
-		-- The top right corner: the action's picture, and how many more actions the tooltip
-		-- lists, which sits left of the picture when there is one.
+		local lines, first = self:faceLines(key, layer, faceW, maxLines)
+		-- The count of further actions sits left of the picture when there is one.
 		local cornerX = fx2 - pad
 		if first then
 			local info = self:infoOf(first)
@@ -1058,12 +1042,13 @@ function M:draw(hoverIdx)
 			local cx = floor((fx1 + fx2) * 0.5)
 			for li = 1, n do
 				local top = blockTop - (li - 1) * lineH
-				print(color .. lines[li], cx, text.baseline(font, top - lineH, top, self.labelFs), self.labelFs, oCentre)
+				local ly = text.baseline(font, top - lineH, top, self.labelFs)
+				print(color .. lines[li], cx, ly, self.labelFs, oCentre)
 			end
 
 			if info.icon and self.iconSize > 0 then
 				local s = self.iconSize
-				local iy2 = fy2 - pad
+				local iy2 = fy2 - padY
 				glColor(1, 1, 1, (first.paired and look.pairedIconAlpha or look.iconAlpha) * opacity)
 				glTexture(info.icon)
 				glTexRect(cornerX - s, iy2 - s, cornerX, iy2)
@@ -1073,12 +1058,12 @@ function M:draw(hoverIdx)
 			end
 		end
 		if #entries > 1 then
-			print((light and look.nameOnLight or look.more) .. "+" .. (#entries - 1), cornerX, nameY, self.moreFs, oRight)
+			local count = (light and look.nameOnLight or look.more) .. "+" .. (#entries - 1)
+			print(count, cornerX, nameY, self.moreFs, oRight)
 		end
 	end
 
-	-- The caption row: which layer this is, centred over the keyboard; how to work the page,
-	-- in the room to the left of it; and the view toggle at its right.
+	-- Which layer this is, how to work the page, and the view toggle.
 	local frame = self.frames.main
 	local rowTop, rowBottom = frame.oy, frame.oy - unit
 	local caption

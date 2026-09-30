@@ -4,7 +4,7 @@
 -- rejects used to fail the whole decode rather than the one string. Long strings below
 -- keep backslashes literal, so the JSON really does carry escapes.
 
-local Json = VFS.Include("common/luaUtilities/json.lua")
+local Json = require("common/luaUtilities/json")
 
 local function value(text)
 	return Json.decode(text).a

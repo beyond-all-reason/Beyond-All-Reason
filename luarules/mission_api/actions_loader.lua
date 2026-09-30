@@ -1,4 +1,4 @@
-local schema = VFS.Include("luarules/mission_api/actions_schema.lua")
+local schema = require("luarules/mission_api/actions_schema")
 local parameters = schema.Parameters
 
 --[[

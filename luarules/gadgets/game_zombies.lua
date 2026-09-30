@@ -30,12 +30,10 @@ end
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
-local ZOMBIE_UNIT_CAP_FLOOR = 2000
 local ZOMBIE_REZ_FRAME_PARAM = "zombie_rez_frame"
 local WAS_ZOMBIE_PARAM = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS = { public = true }
 local WAS_ZOMBIE_TIMEOUT_FRAMES = Game.gameSpeed * 3
-local MIN_CAPTURE_DISTANCE_BOOST = 300
 local MIN_ZOMBIE_XP = 0.25
 local ZOMBIE_MAX_XP = 1.5
 
@@ -149,6 +147,7 @@ local pendingUnitXp = {}
 local pendingZombieCaptures = {}
 local heapingZombies = {}
 local zombieHeapDefs = {}
+local captureSwapOverride = {}
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local featureDefNames = FeatureDefNames
@@ -164,6 +163,11 @@ local spawnEffects = {
 }
 
 for unitDefID, unitDef in pairs(unitDefs) do
+	local captureOverride = unitDef.customParams.scav_swap_override_captured
+	if captureOverride == "delete" or unitDefNames[captureOverride] then
+		captureSwapOverride[unitDefID] = captureOverride
+	end
+
 	local corpseDefName = unitDef.corpse
 	if featureDefNames[corpseDefName] then
 		local corpseDefID = featureDefNames[corpseDefName].id
@@ -363,26 +367,6 @@ local function initializeZombieAI(unitID, unitDefID)
 	end
 end
 
-local function applyZombieBuildRangeBonus(unitID, unitDefID)
-	local unitDef = unitDefs[unitDefID]
-	local originalBuildDistance = unitDef and unitDef.buildDistance
-	if not originalBuildDistance or originalBuildDistance <= 0 then
-		return
-	end
-	local losRadius = unitDef.losRadius or unitDef.sightDistance or 0
-	local boostedBuildDistance = math.max(originalBuildDistance, MIN_CAPTURE_DISTANCE_BOOST)
-	spring.SetUnitBuildParams(unitID, "buildDistance", boostedBuildDistance)
-end
-
-local function restoreOriginalBuildRange(unitID, unitDefID)
-	local unitDef = unitDefs[unitDefID]
-	local originalBuildDistance = unitDef and unitDef.buildDistance
-	if not originalBuildDistance or originalBuildDistance <= 0 then
-		return
-	end
-	spring.SetUnitBuildParams(unitID, "buildDistance", originalBuildDistance)
-end
-
 local function rollSpawnCount()
 	return random(currentZombieConfig.countMin, currentZombieConfig.countMax)
 end
@@ -471,7 +455,6 @@ local function spawnZombies(featureID, unitDefID, healthReductionRatio, x, y, z,
 				spring.TransferUnit(unitID, scavTeamID)
 			else
 				initializeZombieAI(unitID, unitDefToCreate)
-				applyZombieBuildRangeBonus(unitID, unitDefToCreate)
 			end
 		end
 	end
@@ -509,9 +492,6 @@ local function setZombie(unitID)
 
 	spring.SetUnitRulesParam(unitID, "zombie", 1)
 	initializeZombieAI(unitID, unitDefID)
-	if spring.GetUnitTeam(unitID) == gaiaTeamID then
-		applyZombieBuildRangeBonus(unitID, unitDefID)
-	end
 end
 
 function gadget:FeatureBuildStepPost(featureID)
@@ -712,9 +692,6 @@ function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, 
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if oldTeam == gaiaTeamID and newTeam ~= gaiaTeamID and isZombie(unitID) then
-		restoreOriginalBuildRange(unitID, unitDefID)
-	end
 	if pendingZombieCaptures[unitID] then
 		pendingZombieCaptures[unitID] = nil
 		if not isZombie(unitID) then
@@ -726,8 +703,13 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 				healthReductionRatio = health / maxHealth
 			end
 			spring.DestroyUnit(unitID, false, true)
-			if unitX then
-				spawnZombies(nil, unitDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
+			local spawnDefID = unitDefID
+			local swapOverride = captureSwapOverride[unitDefID]
+			if swapOverride then
+				spawnDefID = swapOverride ~= "delete" and unitDefNames[swapOverride].id or nil
+			end
+			if unitX and spawnDefID then
+				spawnZombies(nil, spawnDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
 			end
 		end
 	end
@@ -1230,12 +1212,6 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction("zombiekillall")
 	gadgetHandler:RemoveChatAction("zombieclearallorders")
 	gadgetHandler:RemoveChatAction("zombiemode")
-end
-
-function gadget:GamePreload()
-	local currentUnitCap = spring.GetTeamMaxUnits(gaiaTeamID)
-	local newUnitCap = math.max(ZOMBIE_UNIT_CAP_FLOOR, currentUnitCap)
-	spring.SetTeamMaxUnits(gaiaTeamID, newUnitCap)
 end
 
 function gadget:GameStart()

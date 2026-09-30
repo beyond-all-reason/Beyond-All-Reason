@@ -336,7 +336,7 @@ local function initUnitList()
 		legrhapsis = { weapons = { "air" } }, --T1.5 AA
 		legflak = { weapons = { "air" } }, --T2 AA FLAK
 		leglraa = { weapons = { "air" } }, --T2 LR-AA
-		legperdition = { weapons = { "cannon" } }, --T2 LR-AA
+		legperdition = { weapons = { "ground" } }, --T2 napalm missile launcher
 		legapopupdef = { weapons = { "ground" } }, --popup riot/minigun turret
 		leganavaltorpturret = { weapons = { "ground" } }, --torpedo launcher
 		leganavalaaturret = { weapons = { "air" } }, --Fulmen
@@ -353,7 +353,7 @@ local function initUnitList()
 		legavantinuke = { weapons = { "nuke" } },
 		armantiship = { weapons = { "nuke" } },
 		corantiship = { weapons = { "nuke" } },
-		leganavyantinukecarrier = { weapons = { "nuke" } }, -- NOTE: drone weapon shown in attack ranges
+		leganavyantinukecarrier = { weapons = { [2] = "nuke" } }, -- weapon 1 is the drone controller
 
 		-- SCAVENGERS
 		scavbeacon_t1_scav = { weapons = { "ground" } },
@@ -563,7 +563,7 @@ local shaderSourceCache = {
 -- the overlap; the outer rings read that mask instead of the stencil buffer. The 8-bit red
 -- channel holds one bit per class (the stencilMask values of colorConfig), with one mask per
 -- ally/enemy group. The stencil path remains as the fallback.
-local RangeCoverageMask = VFS.Include("luaui/Include/range_coverage_mask_gl4.lua")
+local RangeCoverageMask = require("luaui/Include/range_coverage_mask_gl4")
 local maskShader = nil
 local maskFBO, maskTex -- the shared targets, fetched each draw
 local maskAcquired = false
@@ -718,7 +718,7 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 
 	--local weapons = unitWeapons[unitDefID]
 	local alliedUnit = (Spring.GetUnitAllyTeam(unitID) == myAllyTeam)
-	local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
+	local x, _, z, _, _, _, _, _, _ = spGetUnitPosition(unitID, true, true)
 
 	--for weaponNum = 1, #weapons do
 	local addedrings = 0
@@ -733,8 +733,8 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 			local weaponID = i
 			local ringParams = unitDefRings[unitDefID].rings[i]
 			if ringParams then
-				local x, y, z, mpx, mpy, mpz, apx, apy, apz = spGetUnitPosition(unitID, true, true)
-				local wpx, wpy, wpz, wdx, wdy, wdz = Spring.GetUnitWeaponVectors(unitID, weaponID)
+				local _, y, _, mpx, mpy, mpz, _, _, _ = spGetUnitPosition(unitID, true, true)
+				local _, wpy, _, _, _, _ = Spring.GetUnitWeaponVectors(unitID, weaponID)
 				--spEcho("Defranges: unitID", unitID,x,y,z,"weaponID", weaponID, "y", y, "mpy",  mpy,"wpy", wpy)
 
 				-- Now this is a truly terrible hack, we cache each unitDefID's max weapon turret height at position 18 in the table
@@ -888,7 +888,7 @@ function widget:PlayerChanged(playerID)
 	--spEcho("GetMyTeamID", GetMyTeamID)
 	]]
 	--
-	local nowspec, nowfullview = spGetSpectatingState()
+	local nowspec, _ = spGetSpectatingState()
 	local nowmyAllyTeam = Spring.GetLocalAllyTeamID()
 	-- When we start, check if there are >2 allyteams
 	local reinit = false
@@ -1014,7 +1014,7 @@ function widget:Update(dt)
 		local rings = unitDefRings[buildUnitDefID]
 		if rings then
 			-- find out which VBO to remove from:
-			for i, weaponType in ipairs(rings.weapons) do
+			for i, weaponType in pairs(rings.weapons) do
 				buildDrawOverride[weaponType] = false
 				for j, allyenemy in ipairs(allyenemypairs) do -- remove from all
 					local vaokey = allyenemy .. weaponType
@@ -1036,7 +1036,7 @@ function widget:Update(dt)
 			-- Ergo we should rather gate addition on buttonConfig in visibleUnitCreated
 			-- instead of during the draw pass
 
-			local mx, my, lp, mp, rp, offscreen = Spring.GetMouseState()
+			local mx, my, _, _, _, _ = Spring.GetMouseState()
 			local _, coords = Spring.TraceScreenRay(mx, my, true)
 			--spEcho(cmdID, "Attempting to draw rings at")
 			--spEcho(mx, my, coords[1], coords[2], coords[3])

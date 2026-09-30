@@ -36,7 +36,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Other",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -96,9 +96,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
-				customparams = {
-					noattackrangearc = 1,
-				},
 				damage = {
 					commanders = 8,
 					default = 24,

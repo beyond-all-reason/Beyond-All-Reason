@@ -31,8 +31,8 @@ local HOLD_FIRE = 0
 local RETURN_FIRE = 1
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_USER_FIRESTATE = GameCMD.USER_FIRESTATE
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-local UserFirestateCommands = VFS.Include("luaui/Include/user_firestate_commands.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+local UserFirestateCommands = require("luaui/Include/user_firestate_commands")
 
 -- Textures to display (replace with dedicated icons if available)
 local holdFireTexture = "LuaUI/Images/holdfire.png"

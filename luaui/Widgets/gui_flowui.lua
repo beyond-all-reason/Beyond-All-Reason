@@ -3497,11 +3497,14 @@ WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy, cs, opacity, color)
 
 	-- highlight
 	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+	-- Held inside the body's corners: a strip with corners of its own sticks out past a
+	-- large chamfer and, drawn additively, lights it up.
+	local stripInset = mathMax(0, cs - edgeWidth)
 	-- top
 	WG.FlowUI.Draw.RectRound(
-		px,
+		px + stripInset,
 		sy - (edgeWidth * 3),
-		sx,
+		sx - stripInset,
 		sy,
 		edgeWidth,
 		1,
@@ -3513,9 +3516,9 @@ WG.FlowUI.Draw.SelectHighlight = function(px, py, sx, sy, cs, opacity, color)
 	)
 	-- bottom
 	WG.FlowUI.Draw.RectRound(
-		px,
+		px + stripInset,
 		py,
-		sx,
+		sx - stripInset,
 		py + (edgeWidth * 3),
 		edgeWidth,
 		1,

@@ -63,10 +63,10 @@ local math_sqrt = math.sqrt
 local math_huge = math.huge
 local mapdiagonal = math_ceil(math_sqrt(mapsizeX * mapsizeX + mapsizeZ * mapsizeZ))
 
-local MakeHashedPosTable = VFS.Include("luarules/utilities/damgam_lib/hashpostable.lua")
+local MakeHashedPosTable = require("luarules/Utilities/damgam_lib/hashpostable")
 local HashPosTable = MakeHashedPosTable()
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
 
 -- manually appoint units to avoid making
 -- (note that transports, stockpilers and objects/walls are auto skipped)

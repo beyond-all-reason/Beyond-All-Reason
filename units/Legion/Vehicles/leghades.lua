@@ -7,8 +7,8 @@ return {
 		buildpic = "LEGHADES.DDS",
 		buildtime = 1650,
 		canmove = true,
-		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "16 10 23",
+		collisionvolumeoffsets = "0 1 0",
+		collisionvolumescales = "16 15 23",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
@@ -43,7 +43,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,
-			subfolder = "ArmVehicles",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -107,6 +107,8 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				projectiles = 5,
+				numbounce = 1,
+				groundbounce = true,
 				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,

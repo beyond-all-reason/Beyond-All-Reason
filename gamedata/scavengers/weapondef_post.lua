@@ -78,6 +78,9 @@ local function scavWeaponDefPost(name, wDef)
 				wDef.customparams.spawns_name = wDef.customparams.spawns_name .. spawnName .. "_scav" .. " "
 			end
 		end
+		if wDef.customparams.spawns_debris and (not string.find(wDef.customparams.spawns_debris, "_scav")) then
+			wDef.customparams.spawns_debris = wDef.customparams.spawns_debris .. "_scav"
+		end
 	end
 	return wDef
 end

@@ -31,7 +31,7 @@ return {
 		customparams = {
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "Legion/Seaplanes",
+			subfolder = "Legion/SeaPlanes",
 			unitgroup = "sub",
 		},
 		sfxtypes = {
