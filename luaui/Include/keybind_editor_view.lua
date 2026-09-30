@@ -4936,10 +4936,8 @@ function state.addBind(editing)
 		title = editing and L.editBindTitle or L.addBindTitle,
 		initial = editing,
 		freeText = true,
-		-- The field neither scrolls nor clips. The longest the game itself binds is
-		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
-		maxChars = 96,
+		maxChars = 255,
 		note = L.addBindNote,
 		accept = function(typed)
 			if not editing and typed:match("^/?bind%s+%S+%s+%S") then
