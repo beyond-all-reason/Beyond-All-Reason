@@ -97,6 +97,7 @@ widgetHandler = {
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
+	gameFiles = {}, -- widget name -> the file in the game archive that declares it
 
 	WG = {}, -- shared table for widgets
 
@@ -565,10 +566,11 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not ki or not VFS.FileExists(ki.filename, VFS.ZIP) then
+	local filename = self.gameFiles[name]
+	if not ki or not filename then
 		return
 	end
-	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
+	local w = widgetHandler:LoadWidget(filename, true, ki.localsAccess, true)
 	if w then
 		widgetHandler:InsertWidgetRaw(w)
 		Spring.Echo("Reloaded from game: " .. name .. "  (user 'unit control' widgets disabled for this game)")
@@ -697,6 +699,10 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
+
+	if fromZip then
+		self.gameFiles[name] = filename
+	end
 
 	if zipOnly[name] and not fromZip then
 		Spring.Echo("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
