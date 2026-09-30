@@ -128,7 +128,7 @@ if gadgetHandler:IsSyncedCode() then
 			local fdef = featureList[Spring.GetFeatureDefID(featureID)]
 			if fdef and fdef.minx then
 				local x, y, z = fx, fy, fz
-				local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+				local rm, mm, re, me, _ = Spring.GetFeatureResources(featureID)
 				if me ~= nil and me > 0 then
 					local numFx = math.max(math.floor(me / 250), 15)
 					local posMultiplier = 0.5

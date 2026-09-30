@@ -4,7 +4,7 @@
 
 piece  flare1, flare2, flare3, flare4, pad, base, arml, nanol, armr, nanor, exhaust, forge, ventsmoke, cagelight1, cagelight1_emit, cagelight2, cagelight2_emit;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_BUILD 2
@@ -23,6 +23,7 @@ Create()
 	hide cagelight1_emit;
 	hide cagelight2_emit;
 	spray = 0;
+	hasOpened = 0;
 }
 
 #define BASEPIECE base
@@ -41,34 +42,27 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	FACTORY_OPEN_BUILD;
-	
-	move arml to y-axis [10] speed [10];
-	move armr to y-axis [10] speed [10];
-	move exhaust to z-axis [-8] speed [8];
-	show forge;
+	if( !hasOpened )
+	{
+
+		move arml to y-axis [10] speed [10];
+		move armr to y-axis [10] speed [10];
+		move exhaust to z-axis [-8] speed [8];
+		show forge;
+		hasOpened = 1;
+	}
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	turn arml to z-axis 0 speed <30>;
-	turn armr to z-axis 0 speed <30>;
-	turn nanol to y-axis 0 speed <30>;
-	turn nanor to y-axis 0 speed <30>;
-	wait-for-turn nanol around y-axis;
-	
-	move arml to y-axis [0] speed [10];
-	move armr to y-axis [0] speed [10];
-	move exhaust to z-axis [0] speed [8];
-	hide forge;
-	wait-for-move arml along y-axis;
-	
+
 	FACTORY_CLOSE_BUILD;
 }
 

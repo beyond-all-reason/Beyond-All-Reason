@@ -43,7 +43,8 @@ return {
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,
-			subfolder = "legion/Defenses",
+			subfolder = "Legion/Defenses",
+			unitgroup = "util",
 			techlevel = 2,
 		},
 		featuredefs = {

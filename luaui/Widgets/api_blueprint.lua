@@ -1,6 +1,6 @@
 local widget = widget ---@type Widget
 
-local SubLogic = VFS.Include("luaui/Include/blueprint_substitution/logic.lua")
+local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 local ENABLE_REPORTS = BAR.Utilities.IsDevMode()
 
@@ -444,7 +444,7 @@ local function getBuildPositionsGrid(blueprint, startPos, endPos, spacing)
 	startPos = snapBlueprint(blueprint, startPos, blueprint.facing)
 	endPos = snapBlueprint(blueprint, endPos, blueprint.facing)
 
-	local xStep, zStep, xNum, zNum, delta = calculateSteps(blueprint, startPos, endPos, spacing)
+	local xStep, zStep, xNum, zNum, _ = calculateSteps(blueprint, startPos, endPos, spacing)
 
 	local result = {}
 	local z = startPos[3]
@@ -471,7 +471,7 @@ local function getBuildPositionsBox(blueprint, startPos, endPos, spacing)
 	startPos = snapBlueprint(blueprint, startPos, blueprint.facing)
 	endPos = snapBlueprint(blueprint, endPos, blueprint.facing)
 
-	local xStep, zStep, xNum, zNum, delta = calculateSteps(blueprint, startPos, endPos, spacing)
+	local xStep, zStep, xNum, zNum, _ = calculateSteps(blueprint, startPos, endPos, spacing)
 
 	local result = {}
 

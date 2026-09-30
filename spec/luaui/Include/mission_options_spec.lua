@@ -1,6 +1,6 @@
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
-local missionOptions = VFS.Include("luaui/Include/mission_options.lua")
+local missionOptions = require("luaui/Include/mission_options")
 
 local modOptions = {}
 local previousGetModOptions

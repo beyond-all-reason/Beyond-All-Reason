@@ -405,11 +405,10 @@ local function scavUnitDef_Post(name, uDef)
 	]]
 
 	-- Legion T1 Land Constructors
-	--[[
 	if name == "legca_scav" or name == "legck_scav" or name == "legcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions + 1] = "legmext15_scav" -- T1.5 Metal Extractor
 	end
-	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then

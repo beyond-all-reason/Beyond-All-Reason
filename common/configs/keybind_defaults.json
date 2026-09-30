@@ -912,6 +912,10 @@
 					"action": "unit_stats"
 				},
 				{
+					"keyset": "Ctrl+sc_i",
+					"action": "customgameinfo"
+				},
+				{
 					"keyset": "sc_j",
 					"action": "loadunits"
 				},
@@ -2161,6 +2165,10 @@
 				{
 					"keyset": "sc_i",
 					"action": "unit_stats"
+				},
+				{
+					"keyset": "Ctrl+sc_i",
+					"action": "customgameinfo"
 				},
 				{
 					"keyset": "sc_j",
@@ -4310,6 +4318,10 @@
 					"action": "unit_stats"
 				},
 				{
+					"keyset": "sc_i",
+					"action": "customgameinfo"
+				},
+				{
 					"keyset": "Ctrl+Shift+sc_o",
 					"action": "cameraflip"
 				},
@@ -5995,6 +6007,10 @@
 				{
 					"keyset": "Any+space",
 					"action": "unit_stats"
+				},
+				{
+					"keyset": "sc_i",
+					"action": "customgameinfo"
 				},
 				{
 					"keyset": "Ctrl+Shift+sc_o",

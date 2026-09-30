@@ -237,7 +237,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	VFS.Include("common/lib_startpoint_guesser.lua")
+	require("common/lib_startpoint_guesser")
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)

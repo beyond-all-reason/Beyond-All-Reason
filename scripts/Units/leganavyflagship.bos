@@ -401,7 +401,7 @@ AimWeapon1(heading, pitch)
 FireWeapon1()
 {
 	isfiring = 1;
-	return (0);
+	return (1);
 }
 
 

@@ -61,9 +61,11 @@
 					"additionalProperties": false,
 					"properties": {
 						"prefix": { "type": "string", "description": "Action id prefix." },
+						"description": { "type": "string", "description": "i18n key for a sentence saying what the actions in this family do, for a tooltip. Shared by every row the prefix matches, so it says what the family does rather than any one member. Optional, and falls back the same way an action entry's does." },
 						"label": { "type": "string", "description": "i18n key for the display label, interpolated per matched action." },
 						"unit": { "type": "boolean", "description": "When true, the arg after the prefix is a unit codename resolved to its translated human name." },
 						"members": { "type": "array", "items": { "type": "string" }, "description": "The args this family covers, appended to the prefix to form each action. Listing them makes the rows exist whether or not anything is bound, so unbinding one leaves it there to bind again. Omit for families that cannot be enumerated (buildunit_ is per unit) and they are discovered from what is bound." },
+						"membersFrom": { "type": "string", "enum": ["profiles"], "description": "Members this file cannot list because they are per player, named by where a surface reads them from instead. \"profiles\" is the name of every selectable keybind profile, shipped and the player's own, other than the active one, which a key could only switch to from itself. Use in place of members, not alongside it." },
 						"icon": { "type": "string", "description": "VFS path of a picture shared by every action in the family, drawn on its key in the keyboard overview. Optional." },
 						"alwaysModifier": { "type": "string", "enum": ["any"], "description": "Modifier this action always tolerates, so a surface neither shows it nor lets the player pick it. \"any\" binds with the engine's Any+ qualifier and fires whatever is held. Fixed per action rather than chosen." }
 					}
