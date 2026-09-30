@@ -153,21 +153,21 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Order the bots yourself: each order you give shows a message.",
+			messageKey = "Order the bots yourself: each order you give shows a message.",
 		},
 	},
 
 	messageBotsOrdered = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bots received your order!",
+			messageKey = "Bots received your order!",
 		},
 	},
 
 	messageBotsMoved = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bots received a move order!",
+			messageKey = "Bots received a move order!",
 		},
 	},
 
@@ -184,21 +184,21 @@ local actions = {
 	messageMissionMovesBots = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Mission moves the bots. The move message shows; the your-order message stays quiet.",
+			messageKey = "Mission moves the bots. The move message shows; the your-order message stays quiet.",
 		},
 	},
 
 	messageConBuildOrdered = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Constructor received a build order!",
+			messageKey = "Constructor received a build order!",
 		},
 	},
 
 	messageConSolarOrdered = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A solar, specifically!",
+			messageKey = "A solar, specifically!",
 		},
 	},
 
@@ -215,21 +215,21 @@ local actions = {
 	messageMissionOrdersSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Mission orders a solar built. Both build messages show.",
+			messageKey = "Mission orders a solar built. Both build messages show.",
 		},
 	},
 
 	messageLabRallied = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Factory received a rally order!",
+			messageKey = "Factory received a rally order!",
 		},
 	},
 
 	messageLabExecuted = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Factory executed a direct command!",
+			messageKey = "Factory executed a direct command!",
 		},
 	},
 
@@ -246,7 +246,7 @@ local actions = {
 	messageMissionRalliesLab = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Mission rallies the lab. Rally message only; try setting a rally yourself, too.",
+			messageKey = "Mission rallies the lab. Rally message only; try setting a rally yourself, too.",
 		},
 	},
 
@@ -263,7 +263,7 @@ local actions = {
 	messageMissionTogglesLab = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Mission sets the lab's move state. Direct-command message only; no rally message.",
+			messageKey = "Mission sets the lab's move state. Direct-command message only; no rally message.",
 		},
 	},
 
@@ -280,7 +280,7 @@ local actions = {
 	messageMissionQueuesPawn = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Mission queues a Pawn at the lab. Nothing fires: factory production needs ProductionOrdered.",
+			messageKey = "Mission queues a Pawn at the lab. Nothing fires: factory production needs ProductionOrdered.",
 		},
 	},
 }

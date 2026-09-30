@@ -171,56 +171,56 @@ local actions = {
 	messageGiftReceived = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The mission gave the player a wind generator!",
+			messageKey = "The mission gave the player a wind generator!",
 		},
 	},
 
 	messageGiftReceivedByDefault = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: a mission transfer fired with ignoreMissionActions unset!",
+			messageKey = "BUG: a mission transfer fired with ignoreMissionActions unset!",
 		},
 	},
 
 	messageGiftCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: a mission gift counted as a capture!",
+			messageKey = "BUG: a mission gift counted as a capture!",
 		},
 	},
 
 	messageSpoilsCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The mission had the player capture a wind generator!",
+			messageKey = "The mission had the player capture a wind generator!",
 		},
 	},
 
 	messageSpoilsReceived = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: a mission capture counted as a received unit!",
+			messageKey = "BUG: a mission capture counted as a received unit!",
 		},
 	},
 
 	messagePrizeCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The decoy captured the prize!",
+			messageKey = "The decoy captured the prize!",
 		},
 	},
 
 	messagePrizeReceived = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: a capture counted as a received unit!",
+			messageKey = "BUG: a capture counted as a received unit!",
 		},
 	},
 
 	messageWindShared = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A wind generator was shared to the player!",
+			messageKey = "A wind generator was shared to the player!",
 		},
 	},
 

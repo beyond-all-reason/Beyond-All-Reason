@@ -116,21 +116,21 @@ local actions = {
 	messageTargetAttacked = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The target was attacked!",
+			messageKey = "The target was attacked!",
 		},
 	},
 
 	messageTankHit = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A tank on team 0 took a hit!",
+			messageKey = "A tank on team 0 took a hit!",
 		},
 	},
 
 	messageWrongTeam = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: an attack on team 0 counted for team 1!",
+			messageKey = "BUG: an attack on team 0 counted for team 1!",
 		},
 	},
 

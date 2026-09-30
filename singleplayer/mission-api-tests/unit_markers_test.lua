@@ -68,7 +68,7 @@ local actions = {
 	messageMarkScout = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'One line above the scout.',
+			messageKey = 'One line above the scout.',
 		},
 	},
 
@@ -83,7 +83,7 @@ local actions = {
 	messageMarkTwice = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The scout now carries two markers, drawn as two lines stacked above it.',
+			messageKey = 'The scout now carries two markers, drawn as two lines stacked above it.',
 		},
 	},
 
@@ -99,7 +99,7 @@ local actions = {
 	messageMarkTeam = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The brawler is marked by team and definition; the scout is not.',
+			messageKey = 'The brawler is marked by team and definition; the scout is not.',
 		},
 	},
 
@@ -114,7 +114,7 @@ local actions = {
 	messageRemoveOneType = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The scout's objective marker is gone and its alert marker stays.",
+			messageKey = "The scout's objective marker is gone and its alert marker stays.",
 		},
 	},
 
@@ -128,7 +128,7 @@ local actions = {
 	messageRemoveAll = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The scout carries nothing now.',
+			messageKey = 'The scout carries nothing now.',
 		},
 	},
 
@@ -150,7 +150,7 @@ local actions = {
 	messageKillBrawler = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The brawler dies, which takes its markers with it.',
+			messageKey = 'The brawler dies, which takes its markers with it.',
 		},
 	},
 }

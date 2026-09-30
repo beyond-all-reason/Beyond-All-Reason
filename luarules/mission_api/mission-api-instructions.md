@@ -9,7 +9,8 @@ file in the same pull request.
 
 A data-driven mission runtime. A mission is a plain Lua table of **stages**, **objectives**, **triggers**, and
 **actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced;
-the one thing synced code cannot do, pausing, goes through `GG.ScriptedPause` (see Runtime surfaces).
+what synced code cannot do, pausing and showing translated text, goes through `GG.ScriptedPause` and the battle
+log (see Runtime surfaces).
 
 ## Load order
 
@@ -136,7 +137,14 @@ breaking change to both the function and every mission using it.
 ## Runtime surfaces
 
 - `GG['MissionAPI']` — definitions, the normalised mission, mutable tracking tables (`trackedUnitNames`,
-  `markerNames`, `soundQueue`, …), and `Modules`. Cleared on `Shutdown`.
+  `markerNames`, `soundQueue`, `BattleLogRaw`, …), and `Modules`. Cleared on `Shutdown`.
+- Text for the player goes through `Modules.BattleLog.AddMessage(messageType, messageKey, messageData)`, with
+  `messageType` one of `Modules.BattleLog.MessageTypes` and `messageKey` an I18N key. Synced code cannot translate,
+  so each entry is appended to `BattleLogRaw` and published as a game rules param (`missionBattleLog_<n>` as JSON,
+  plus `missionBattleLogCount`); `luaui/Widgets/api_mission_battle_log.lua` reads those back (also after a
+  `/luaui reload`), keeps the translated log, rebuilds it on `LanguageChanged`, and serves it oldest-first through
+  `WG.missionBattleLog.GetMessages()`. The `Spring.Echo` in `AddMessage` is a placeholder until a widget displays
+  the log.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.

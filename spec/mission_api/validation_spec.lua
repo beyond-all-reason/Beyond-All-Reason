@@ -100,7 +100,7 @@ describe("mission_api.validation", function()
 
 		before_each(function()
 			rawActions = {
-				ok = { type = actionTypes.SendMessage, parameters = { message = "ok" } },
+				ok = { type = actionTypes.SendMessage, parameters = { messageKey = "ok" } },
 			}
 		end)
 
@@ -173,7 +173,7 @@ describe("mission_api.validation", function()
 			}
 
 			validation.ValidateActions({
-				ok = { type = actionTypes.SendMessage, parameters = { message = "ok" } },
+				ok = { type = actionTypes.SendMessage, parameters = { messageKey = "ok" } },
 			})
 
 			assert.are.same({}, logged)
@@ -189,10 +189,10 @@ describe("mission_api.validation", function()
 			}
 
 			validation.ValidateActions({
-				ok = { type = actionTypes.SendMessage, parameters = { message = "ok" } },
+				ok = { type = actionTypes.SendMessage, parameters = { messageKey = "ok" } },
 				noType = {},
 				missingParam = { type = actionTypes.EnableTrigger, parameters = {} },
-				unused = { type = actionTypes.SendMessage, parameters = { message = "unused" } },
+				unused = { type = actionTypes.SendMessage, parameters = { messageKey = "unused" } },
 			})
 
 			assert.is_true(hasError("Action missing type. Action: noType"))
@@ -210,9 +210,9 @@ describe("mission_api.validation", function()
 			}
 
 			validation.ValidateActions({
-				ok = { type = actionTypes.SendMessage, parameters = { message = "ok" } },
-				zzz = { type = actionTypes.SendMessage, parameters = { message = "zzz" } },
-				aaa = { type = actionTypes.SendMessage, parameters = { message = "aaa" } },
+				ok = { type = actionTypes.SendMessage, parameters = { messageKey = "ok" } },
+				zzz = { type = actionTypes.SendMessage, parameters = { messageKey = "zzz" } },
+				aaa = { type = actionTypes.SendMessage, parameters = { messageKey = "aaa" } },
 			})
 
 			assert.is_true(hasError("Actions not referenced by any trigger: aaa, zzz"))
@@ -503,15 +503,15 @@ describe("mission_api.validation", function()
 		local function triggerErrors(trigger)
 			validation.ValidateTriggers(
 				{ t = normalizeTrigger(trigger) },
-				{ ok = { type = actionTypes.SendMessage, parameters = { message = "ok" } } }
+				{ ok = { type = actionTypes.SendMessage, parameters = { messageKey = "ok" } } }
 			)
 		end
 
 		describe("String", function()
 			it("rejects wrong type", function()
-				actionErrors({ type = actionTypes.SendMessage, parameters = { message = 123 } })
+				actionErrors({ type = actionTypes.SendMessage, parameters = { messageKey = 123 } })
 				assert.is_true(
-					hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: message")
+					hasError("Unexpected parameter type, expected string, got number. Action: a, Parameter: messageKey")
 				)
 			end)
 		end)

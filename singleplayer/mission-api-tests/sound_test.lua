@@ -79,7 +79,7 @@ local actions = {
 	messageSoundPosition = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Play sound at (1800, 1600)",
+			messageKey = "Play sound at (1800, 1600)",
 		},
 	},
 
@@ -110,7 +110,7 @@ local actions = {
 	messageSoundsQueued = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Two voice sounds in succession",
+			messageKey = "Two voice sounds in succession",
 		},
 	},
 
@@ -126,14 +126,14 @@ local actions = {
 	messageSoundNotification = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Nuke spotted, after the other two voices.",
+			messageKey = "Nuke spotted, after the other two voices.",
 		},
 	},
 
 	messageMusicNotification = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Playing Trigger Music Track.",
+			messageKey = "Playing Trigger Music Track.",
 		},
 	},
 }
