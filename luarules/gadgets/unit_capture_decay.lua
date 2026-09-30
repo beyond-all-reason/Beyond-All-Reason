@@ -16,7 +16,26 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local GAME_SPEED_FPS = Game.gameSpeed
+local SLOWUPDATE_RATE = GAME_SPEED_FPS / 2 
+local CAPTURE_DECAY_DELAY_SECONDS = 10
+local CAPTURE_DECAY_PER_SECOND = 0.02
+
+---@type table<UnitID, { lastCaptureFrame: number, previousCaptureProgress: number }>
 local unitsWithCaptureProgress = {}
+
+local function ensureTracked(unitID, frame)
+	local data = unitsWithCaptureProgress[unitID]
+	if data then
+		return data
+	end
+	data = {
+		lastCaptureFrame = frame,
+		previousCaptureProgress = select(4, Spring.GetUnitHealth(unitID)) or 0,
+	}
+	unitsWithCaptureProgress[unitID] = data
+	return data
+end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	unitsWithCaptureProgress[unitID] = nil
@@ -24,41 +43,37 @@ end
 
 function gadget:GameFrame(frame)
 	for unitID, data in pairs(unitsWithCaptureProgress) do
-		if unitID % 30 == frame % 30 then
+		if unitID % SLOWUPDATE_RATE == frame % SLOWUPDATE_RATE then
 			local captureLevel = select(4, Spring.GetUnitHealth(unitID))
-			if captureLevel and captureLevel > 0 then
-				if captureLevel <= data.previousCaptureProgress then
-					unitsWithCaptureProgress[unitID].ticksFromLastCapture = unitsWithCaptureProgress[unitID].ticksFromLastCapture
-						+ 1
-				else
-					unitsWithCaptureProgress[unitID].ticksFromLastCapture = 0
-					SendToUnsynced("unitCaptureFrame", unitID, math.max(captureLevel, 0))
-				end
-				if unitsWithCaptureProgress[unitID].ticksFromLastCapture >= 10 then -- with how things are set up, that will be about 10 seconds
-					captureLevel = math.max(
-						captureLevel - ((unitsWithCaptureProgress[unitID].ticksFromLastCapture - 10) * 0.001),
-						0
-					)
-					Spring.SetUnitHealth(unitID, {
-						capture = captureLevel,
-					})
-				end
-				unitsWithCaptureProgress[unitID].previousCaptureProgress = captureLevel
-				if captureLevel <= 0 then
-					unitsWithCaptureProgress[unitID] = nil
-				end
-			else
+			if not captureLevel or captureLevel <= 0 then
 				unitsWithCaptureProgress[unitID] = nil
+			else
+				-- Some PvE capture sources set capture directly so we need to update the last capture frame manually.
+				if captureLevel > data.previousCaptureProgress then
+					data.lastCaptureFrame = frame
+					SendToUnsynced("unitCaptureFrame", unitID, captureLevel)
+				end
+				data.previousCaptureProgress = captureLevel
+
+				local idleFrames = frame - data.lastCaptureFrame
+				if idleFrames >= CAPTURE_DECAY_DELAY_SECONDS * GAME_SPEED_FPS then
+					local decayPerSlowUpdate = CAPTURE_DECAY_PER_SECOND * (SLOWUPDATE_RATE_FPS / GAME_SPEED_FPS)
+					captureLevel = math.max(captureLevel - decayPerSlowUpdate, 0)
+					Spring.SetUnitHealth(unitID, { capture = captureLevel })
+					data.previousCaptureProgress = captureLevel
+					if captureLevel <= 0 then
+						unitsWithCaptureProgress[unitID] = nil
+					end
+				end
 			end
 		end
 	end
 end
 
 function gadget:AllowUnitCaptureStep(builderID, builderTeam, unitID, unitDefID, part)
-	if not unitsWithCaptureProgress[unitID] then
-		unitsWithCaptureProgress[unitID] = { previousCaptureProgress = 0, ticksFromLastCapture = 999 }
-	else
-		unitsWithCaptureProgress[unitID].ticksFromLastCapture = 0
+	if builderID then
+		local frame = Spring.GetGameFrame()
+		ensureTracked(unitID, frame).lastCaptureFrame = frame
 	end
 	return true
 end
@@ -67,9 +82,7 @@ end
 ---Does nothing if the unit is already tracked.
 ---@param unitID UnitID
 function addUnitToCaptureDecay(unitID)
-	if not unitsWithCaptureProgress[unitID] then
-		unitsWithCaptureProgress[unitID] = { previousCaptureProgress = 0, ticksFromLastCapture = 999 }
-	end
+	ensureTracked(unitID, Spring.GetGameFrame())
 end
 
 GG.addUnitToCaptureDecay = addUnitToCaptureDecay
