@@ -565,7 +565,7 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not VFS.FileExists(ki.filename, VFS.ZIP) then
+	if not ki or not VFS.FileExists(ki.filename, VFS.ZIP) then
 		return
 	end
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
