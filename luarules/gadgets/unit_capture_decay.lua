@@ -21,7 +21,7 @@ local SLOWUPDATE_RATE = GAME_SPEED_FPS / 2
 local CAPTURE_DECAY_DELAY_SECONDS = 10
 local CAPTURE_DECAY_ACCEL = 0.001
 
----@type table<UnitID, { lastCaptureFrame: number, previousCaptureProgress: number }>
+---@type table<UnitID, { lastCaptureFrame: number, previousCaptureProgress: number }?>
 local unitsWithCaptureProgress = {}
 
 local function ensureTracked(unitID, frame)
