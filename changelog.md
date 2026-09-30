@@ -1,3 +1,10 @@
+# October
+- [Legion changes]
+  - Helios 800 -> 1000 health, 160 -> 135 damage.
+  - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
+  - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
+  - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
+
 # September
 - [Scavenger Zombies]
   - After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
