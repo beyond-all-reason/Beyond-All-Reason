@@ -416,10 +416,13 @@ local function Yield()
 end
 
 local zipOnly = {
-	["Widget Selector"] = true,
-	["Widget Profiler"] = true,
+	["Widget Selector"] = "LuaUI/Widgets/widget_selector.lua",
+	["Widget Profiler"] = "LuaUI/Widgets/dbg_widget_profiler.lua",
 }
-local zipWasRaw = {}
+local zipOnlyFiles = {}
+for name, filename in pairs(zipOnly) do
+	zipOnlyFiles[filename:lower()] = name
+end
 
 local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
@@ -430,29 +433,18 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 
 	for _, file in ipairs(widgetFiles) do
-		local widget = widgetHandler:LoadWidget(file, fromZip) ---@type table?
+		local gameName = not fromZip and zipOnlyFiles[(file:lower():gsub("\\", "/"))]
 
-		if widget and zipOnly[widget.whInfo.name] then
-			local name = widget.whInfo.name
-			if not fromZip then
-				-- Drop what the user registered so the game's copy is not refused as a duplicate.
-				Spring.Echo("Ignoring user copy: " .. file .. "  (the game provides " .. name .. ")")
-				widgetHandler:ForgetWidget(name)
-				zipWasRaw[name] = true
-				widget = nil
-			elseif zipWasRaw[name] then
-				-- LoadWidget reads raw-first, so the user's copy may have been read here instead.
-				widgetHandler:ForgetWidget(name)
-				widget = widgetHandler:LoadWidget(file, true, nil, true) -- reload reads the zip
-				if not widget then
-					Spring.Echo("Missing widget: " .. name .. "  (failed in replacing user copy)")
-				end
+		if gameName then
+			-- Not loaded at all, since loading runs its code before its name can be checked.
+			Spring.Echo("Ignoring user copy: " .. file .. "  (the game provides " .. gameName .. ")")
+		else
+			local widget = widgetHandler:LoadWidget(file, fromZip)
+
+			if widget then
+				table.insert(unsortedWidgets, widget)
+				Yield()
 			end
-		end
-
-		if widget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
 		end
 	end
 end
@@ -491,14 +483,12 @@ function widgetHandler:Initialize()
 	Spring.CreateDir(LUAUI_DIRNAME .. "Config")
 
 	unsortedWidgets = {}
-	zipWasRaw = {}
 
 	if self.allowUserWidgets and allowuserwidgets then
 		if not allowunitcontrolwidgets then
 			CreateSandboxedSystem()
 		end
 
-		-- The RAW passes populate seen zipOnly files.
 		Spring.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
 		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
@@ -648,7 +638,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(
 		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
+		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
 	)
 	if text == nil then
 		return loadFailed(basename, "missing file: " .. filename)
@@ -702,23 +692,18 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
-	-- user widgets may not access widgetHandler
-	-- fixme: remove the or true part
-	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip or true then
-			widget.widgetHandler = self
-		else
-			return loadFailed(basename, "user widgets may not access widgetHandler")
-		end
-	end
-
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
+
+	if zipOnly[name] and not fromZip then
+		Spring.Echo("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
+		return nil
+	end
 
 	-- Only the game gets to hide a widget: a hidden one always loads and cannot be disabled.
 	local hidden = fromZip and widget.whInfo.hidden or false
 
-	if basename == SELECTOR_BASENAME then
+	if fromZip and basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1 -- always load the widget selector
 	elseif hidden then
 		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
@@ -793,6 +778,19 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		self.knownWidgets[name].active = false
 		return nil
 	end
+
+	-- user widgets may not access widgetHandler
+	-- fixme: remove the or true part
+	-- Granted last, so a widget refused above never holds the real handler.
+	if info.handler then
+		if fromZip or true then
+			widget.widgetHandler = self
+		else
+			self.knownWidgets[name].active = false
+			return loadFailed(basename, "user widgets may not access widgetHandler")
+		end
+	end
+
 	if not fromZip then
 		local md5 = VFS.CalculateHash(text, 0)
 		if widgetHandler.widgetHashes[md5] == nil then
@@ -1230,6 +1228,10 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
+	if self:FindWidget(widget.whInfo.name) then
+		Spring.Echo("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
+		return
+	end
 	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
 		local name = widget.whInfo.name
 		if self.knownWidgets[name] then
@@ -1287,13 +1289,16 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		self.textOwner = nil
 	end
 
-	local name = widget.whInfo.name
-	if widget.GetConfigData then
-		self.configData[name] = widget:GetConfigData()
-	end
-	self.knownWidgets[name].active = false
-	if widget.Shutdown then
-		widget:Shutdown()
+	-- A refused widget can have queued its own removal and would write over a running one.
+	if table.getKeyOf(self.widgets, widget) then
+		local name = widget.whInfo.name
+		if widget.GetConfigData then
+			self.configData[name] = widget:GetConfigData()
+		end
+		self.knownWidgets[name].active = false
+		if widget.Shutdown then
+			widget:Shutdown()
+		end
 	end
 	ArrayRemove(self.widgets, widget)
 	self:ForgetModalWidget(widget)
@@ -1437,6 +1442,8 @@ function widgetHandler:DisableWidgetRaw(name)
 		end
 		Spring.Echo("Removed:  " .. ki.filename)
 		self:RemoveWidgetRaw(w) -- deactivate
+	elseif (self.orderList[name] or 0) <= 0 then
+		return true
 	end
 	self.orderList[name] = 0 -- disable
 	self:SaveConfigData()
@@ -1449,16 +1456,10 @@ function widgetHandler:ToggleWidgetRaw(name)
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
-	if ki.active then
+	if ki.active or self.orderList[name] > 0 then
 		return self:DisableWidgetRaw(name)
-	elseif self.orderList[name] <= 0 then
-		return self:EnableWidgetRaw(name)
-	else
-		-- the widget is not active, but enabled; disable it
-		self.orderList[name] = 0
-		self:SaveConfigData()
 	end
-	return true
+	return self:EnableWidgetRaw(name)
 end
 
 --------------------------------------------------------------------------------
