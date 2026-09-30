@@ -588,11 +588,11 @@ end
 -- running, and `stopped` holds it until the widget next loads. The handler's `errorCount`
 -- counts every error of every widget, repeats included, so a panel can tell a new one has
 -- arrived with one comparison instead of reading anybody's log.
-function widgetHandler:RecordError(basename, callin, message, stops)
-	local log = self.errorLog[basename]
+function widgetHandler:RecordError(filename, callin, message, stops)
+	local log = self.errorLog[filename]
 	if not log then
 		log = { entries = {} }
-		self.errorLog[basename] = log
+		self.errorLog[filename] = log
 	end
 
 	local entries = log.entries
@@ -627,11 +627,11 @@ end
 --
 -- These used to be echoed and forgotten, which left the widget selector able to say a
 -- widget was asked for and is not running, but not why - and the reason was sitting in
--- infolog.txt the whole time. Keyed by basename because most of the ways loading can fail
+-- infolog.txt the whole time. Keyed by file because most of the ways loading can fail
 -- happen before the widget has told anyone its name.
-local function loadFailed(basename, reason)
-	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
-	widgetHandler:RecordError(basename, nil, reason, true)
+local function loadFailed(filename, reason)
+	Spring.Echo("Failed to load: " .. Basename(filename) .. "  (" .. reason .. ")")
+	widgetHandler:RecordError(filename, nil, reason, true)
 
 	return nil
 end
@@ -643,7 +643,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
 	)
 	if text == nil then
-		return loadFailed(basename, "missing file: " .. filename)
+		return loadFailed(filename, "missing file: " .. filename)
 	end
 
 	if enableLocalsAccess then
@@ -657,7 +657,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 		local chunk, err = loadstring(textWithLocalsDetector, filename)
 		if chunk == nil then
-			return loadFailed(basename, err)
+			return loadFailed(filename, err)
 		end
 
 		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
@@ -665,7 +665,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		local success, err = pcall(chunk)
 		self:ReleaseWidget(widget)
 		if not success then
-			return loadFailed(basename, err)
+			return loadFailed(filename, err)
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
@@ -678,7 +678,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		return loadFailed(basename, err)
+		return loadFailed(filename, err)
 	end
 
 	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
@@ -686,7 +686,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local success, err = pcall(chunk)
 	if not success then
 		self:ReleaseWidget(widget)
-		return loadFailed(basename, err)
+		return loadFailed(filename, err)
 	end
 	if err == false then
 		self:ReleaseWidget(widget)
@@ -722,20 +722,24 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	err = self:ValidateWidget(widget)
 	if err then
 		self:ReleaseWidget(widget)
-		return loadFailed(basename, err)
+		return loadFailed(filename, err)
 	end
 
 	if widget.GetInfo == nil then
 		-- Do not keep widgets known but unregistered (active, no order entry)
 		self:ReleaseWidget(widget)
-		return loadFailed(basename, "no GetInfo() call")
+		return loadFailed(filename, "no GetInfo() call")
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
 			self:ReleaseWidget(widget)
-			return loadFailed(basename, "duplicate name")
+			if fromZip and not knownInfo.fromZip then
+				Spring.Echo("Ignoring game copy: " .. filename .. "  (a user widget provides " .. name .. ")")
+				return nil
+			end
+			return loadFailed(filename, "duplicate name")
 		end
 	else
 		-- create a knownInfo table
@@ -799,7 +803,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		else
 			self.knownWidgets[name].active = false
 			self:ReleaseWidget(widget)
-			return loadFailed(basename, "user widgets may not access widgetHandler")
+			return loadFailed(filename, "user widgets may not access widgetHandler")
 		end
 	end
 
@@ -818,7 +822,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	-- It loaded, so whatever stopped it last time no longer is. What it raised stays in the
 	-- log: a widget that crashed and came back is still worth being able to look into.
-	local log = self.errorLog[basename]
+	local log = self.errorLog[filename]
 	if log then
 		log.stopped = nil
 	end
@@ -1033,7 +1037,7 @@ local function widgetFailure(w, funcName, errorMsg)
 	-- Kept against the widget as well as said, and before anything below can reload it: the
 	-- log is how the widget selector shows what went wrong once the line has scrolled out of
 	-- the console. Shutdown is the one callin whose failure does not take the widget down.
-	widgetHandler:RecordError(w.whInfo.basename, funcName, tostring(errorMsg), funcName ~= "Shutdown")
+	widgetHandler:RecordError(w.whInfo.filename, funcName, tostring(errorMsg), funcName ~= "Shutdown")
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
@@ -1261,7 +1265,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 			self.knownWidgets[name].active = false
 		end
 		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
-		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
+		self:RecordError(widget.whInfo.filename, nil, "missing capabilities", true)
 		self:ReleaseWidget(widget)
 		return
 	end
@@ -1274,7 +1278,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 			end
 			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 			self:RecordError(
-				widget.whInfo.basename,
+				widget.whInfo.filename,
 				nil,
 				"user 'unit control' widgets are disabled for this game",
 				true

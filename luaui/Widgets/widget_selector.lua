@@ -860,7 +860,7 @@ end
 -- file, since most of the ways loading can fail happen before a widget has a name.
 function sweep.errors(data)
 	local logs = widgetHandler.errorLog
-	local log = logs and data.basename and logs[data.basename]
+	local log = logs and data.filename and logs[data.filename]
 
 	return (log and log.entries[1]) and log or nil
 end
