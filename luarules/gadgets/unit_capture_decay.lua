@@ -17,9 +17,9 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local GAME_SPEED_FPS = Game.gameSpeed
-local SLOWUPDATE_RATE = GAME_SPEED_FPS / 2 
+local SLOWUPDATE_RATE = GAME_SPEED_FPS / 2
 local CAPTURE_DECAY_DELAY_SECONDS = 10
-local CAPTURE_DECAY_PER_SECOND = 0.02
+local CAPTURE_DECAY_ACCEL = 0.001
 
 ---@type table<UnitID, { lastCaptureFrame: number, previousCaptureProgress: number }>
 local unitsWithCaptureProgress = {}
@@ -55,10 +55,11 @@ function gadget:GameFrame(frame)
 				end
 				data.previousCaptureProgress = captureLevel
 
-				local idleFrames = frame - data.lastCaptureFrame
-				if idleFrames >= CAPTURE_DECAY_DELAY_SECONDS * GAME_SPEED_FPS then
-					local decayPerSlowUpdate = CAPTURE_DECAY_PER_SECOND * (SLOWUPDATE_RATE_FPS / GAME_SPEED_FPS)
-					captureLevel = math.max(captureLevel - decayPerSlowUpdate, 0)
+				local secondsPastGrace = (frame - data.lastCaptureFrame) / GAME_SPEED_FPS - CAPTURE_DECAY_DELAY_SECONDS
+				if secondsPastGrace >= 0 then
+					local dtSeconds = SLOWUPDATE_RATE / GAME_SPEED_FPS
+					local decayAtSlowUpdate = secondsPastGrace * CAPTURE_DECAY_ACCEL * dtSeconds
+					captureLevel = math.max(captureLevel - decayAtSlowUpdate, 0)
 					Spring.SetUnitHealth(unitID, { capture = captureLevel })
 					data.previousCaptureProgress = captureLevel
 					if captureLevel <= 0 then
