@@ -332,7 +332,9 @@ Lights()
 AimReadyAfterDelay(aimDelay)
 {
 	set-signal-mask SIGNAL_AIM_TRACKER;
-	sleep aimDelay;
+	
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
 
 	deploy_state = DEPLOYED;
 	aimReady = TRUE;
