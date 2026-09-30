@@ -4775,10 +4775,8 @@ function state.addBind(editing)
 		title = editing and L.editBindTitle or L.addBindTitle,
 		initial = editing,
 		freeText = true,
-		-- The field neither scrolls nor clips. The longest the game itself binds is
-		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
-		maxChars = 96,
+		maxChars = 255,
 		accept = function(typed)
 			-- The engine lower-cases the command as it parses the bind line, so a capitalised one would
 			-- read back as something else. Its arguments keep their case.
