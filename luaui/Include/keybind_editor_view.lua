@@ -749,7 +749,6 @@ local function buildResolvedCatalog()
 	L.other = BAR.I18N("categories.other")
 	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
 	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
-	L.addBindNote = BAR.I18N("ui.keybinds.editor.addBindNote")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -2271,10 +2270,6 @@ local function dialogGeometry()
 		messageLines = text.wrap(font, dialog.message, w - floor(32 * scale), floor(rowHeight * 0.5))
 		h = h + math.max(0, #messageLines - 1) * messageStep
 	end
-	local noteText = dialog and dialog.note
-	if noteText then
-		h = h + floor(22 * scale)
-	end
 	local cx = (area.x1 + area.x2) * 0.5
 	local cy = (area.y1 + area.y2) * 0.5
 	local bx1, bx2 = floor(cx - w * 0.5), floor(cx + w * 0.5)
@@ -2328,13 +2323,7 @@ local function dialogGeometry()
 		field[1] = labelX + labelW + pad
 	end
 
-	local note
-	if noteText then
-		local titleBottom = by2 - floor(26 * scale) - floor(rowHeight * 0.3)
-		note = { text = noteText, y = floor((titleBottom + field[4]) * 0.5) }
-	end
-
-	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice, note
+	return bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice
 end
 
 -- Capture-modal geometry, derived in one place so draw and mousePress agree.
@@ -4063,8 +4052,7 @@ function state.drawPreview(pv, x1, y1, x2, y2, mx, my)
 end
 
 local function drawProfileDialog(mx, my)
-	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice, note =
-		dialogGeometry()
+	local bx1, by1, bx2, by2, ok, cancel, field, discard, messageLines, messageStep, box, choice = dialogGeometry()
 	local cs = metrics.csButton
 	local cx = floor((bx1 + bx2) * 0.5)
 	local tfs = floor(rowHeight * 0.6)
@@ -4185,9 +4173,6 @@ local function drawProfileDialog(mx, my)
 		sfs,
 		"cov"
 	)
-	if note then
-		font:Print(colorDim .. text.fit(font, note.text, bx2 - bx1 - floor(32 * scale), sfs), cx, note.y, sfs, "cov")
-	end
 	local fieldCy = floor((field[2] + field[4]) * 0.5)
 	if choice then
 		font:Print((choice.locked and colorDim or colorText) .. choice.label, choice.labelX, fieldCy, sfs, "ov")
@@ -4915,7 +4900,6 @@ function state.addBind()
 		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
 		maxChars = 96,
-		note = L.addBindNote,
 		accept = function(typed)
 			if typed:match("^/?bind%s+%S+%s+%S") then
 				local merged = profiles.applyBindText(stagedBinds(), typed)
