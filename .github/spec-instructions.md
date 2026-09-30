@@ -64,7 +64,8 @@ Anything the module or its own includes read or write lands in that env, so ther
 `after_each` to forget. `env.Spring.GetFoo = ...` inside a `before_each` is fine: that table is yours.
 
 Do not depend on the order spec files run in. Files run alphabetically, but that order is nobody's contract and a
-renamed file moves it. Run your spec on its own to check it stands up without whatever ran before it.
+renamed file moves it. CI runs the suite a second time in reverse order, which `SPEC_ORDER=reverse` does locally. Run
+your spec on its own to check it stands up without whatever ran before it.
 
 Do not re-implement production logic inside the test harness. A builder that mirrors a production module is a second
 copy that drifts, and every spec that trusts it inherits the drift. Call the production module instead. A comment of

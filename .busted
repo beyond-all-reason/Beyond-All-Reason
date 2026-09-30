@@ -12,6 +12,23 @@ local function specRoots()
   return roots
 end
 
+-- busted has no reverse order, so SPEC_ORDER=reverse builds the file list for it.
+local reverse = os.getenv("SPEC_ORDER") == "reverse"
+
+local function reversedSpecFiles()
+  local files = {}
+  for _, root in ipairs(specRoots()) do
+    for _, file in ipairs(require("pl.dir").getallfiles(root, "*_spec.lua")) do
+      files[#files + 1] = file
+    end
+  end
+  table.sort(files, function(a, b)
+    return a > b
+  end)
+
+  return files
+end
+
 return {
 
   default = {
@@ -35,17 +52,17 @@ return {
   pattern = "_spec",
   ROOT = specRoots(),
 
-  -- Named tasks. _all is merged whichever one runs, so the file order lives there.
+  -- busted merges _all into whichever task runs, so the file order lives here.
   _all = {
     -- Alphabetical, not the directory walk, which differs between machines.
-    ["sort-files"] = true,
+    ["sort-files"] = not reverse,
     -- spec_helper leaves top-level globals to busted's own restore between files.
     ["auto-insulate"] = true,
     verbose = true,
     output = "utfTerminal",
     pattern = "_spec",
     helper = "spec/spec_helper.lua",
-    ROOT = specRoots()
+    ROOT = reverse and reversedSpecFiles() or specRoots()
   },
   unit = {
     verbose = true,
