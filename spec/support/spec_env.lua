@@ -1,35 +1,45 @@
--- Builds the globals a module under test runs with, so a spec can stub Spring or VFS
--- without touching the real ones. Nested VFS.Include calls inherit the same env, so the
--- module's own dependencies load into it too.
+-- The globals a module under test runs with, so a spec can stub Spring or VFS without
+-- touching the real ones. The module's own includes load into the same env.
 
 local CHAINED = {
-	Spring = true,
+	CMD = true,
 	Game = true,
+	GameCMD = true,
+	Json = true,
+	LOG = true,
+	Spring = true,
 	VFS = true,
 	io = true,
 	math = true,
+	os = true,
 	string = true,
 	table = true,
 }
 
 local SpecEnv = {}
 
--- spec_helper seals the shared engine tables behind empty proxies, which pairs sees as empty.
+-- spec_helper seals the shared tables behind proxies that hold nothing to copy.
 local function behindSeal(value)
 	local mt = debug.getmetatable(value)
-	if mt and mt.__metatable == false and type(mt.__index) == "table" then
-		return mt.__index
+	if mt and mt.__metatable == "sealed" then
+		return mt.backing(value)
 	end
 
 	return value
 end
 
--- Copied rather than only chained, so pairs over it finds the real fields too.
-local function layered(real, overrides)
-	local layer = {}
+-- Copied, not chained, so pairs sees every field; deep, so nested writes stay in the env.
+local function copied(real)
+	local copy = {}
 	for key, value in pairs(real) do
-		layer[key] = value
+		copy[key] = type(value) == "table" and copied(value) or value
 	end
+
+	return copy
+end
+
+local function layered(real, overrides)
+	local layer = copied(real)
 	for key, value in pairs(overrides or {}) do
 		layer[key] = value
 	end

@@ -46,10 +46,12 @@ imply contradictory rules mean at least one of them is wrong.
 
 ## What a spec must not do
 
-Do not write the engine globals. `Spring`, `VFS`, `Game`, `GG` and `io` are one set of tables shared by every spec
-file, so `Spring.GetFoo = ...` changes them for every file that runs after yours, in whatever order those happen to
-run. They are sealed, so trying it is an error naming the line that did it. Build your own surface instead and hand
-it to the code under test:
+Do not write the shared globals. `Spring`, `VFS`, `Game`, `io`, `CMD`, `GameCMD`, `LOG`, `Json`, `string`, `table`,
+`math` and `os` are one set of tables shared by every spec file, so `Spring.GetFoo = ...` changes them for every file
+that runs after yours, in whatever order those happen to run. They are sealed, tables inside them included, so trying
+it is an error naming the line that did it, and so is enumerating one with `pairs`, `next` or `ipairs`. `GG` is the
+exception: every file gets a fresh one it can write. Build your own surface instead and hand it to the code under
+test:
 
 ```lua
 local SpecEnv = VFS.Include("spec/support/spec_env.lua")

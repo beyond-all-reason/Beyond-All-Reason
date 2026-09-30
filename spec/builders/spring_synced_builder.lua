@@ -2,8 +2,6 @@
 local ResourceTypes = require("gamedata/resource_types")
 
 VFS.Include("spec/builders/team_builder.lua")
-require("common/stringFunctions")
-VFS.Include("common.tablefunctions.lua")
 
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 
@@ -31,7 +29,6 @@ local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")
 local SB = {}
 SB.__index = SB
 
----Get comprehensive default mod options required for unitdefs and alldefs_post.lua loading
 local function normalizeUnitDef(unitDef)
 	if not unitDef then
 		return
@@ -654,9 +651,8 @@ function SB:WithUnitDef(defID, def)
 	return self
 end
 
----Load real BAR UnitDefs from gamedata into the registry, honoring whatever
----modoptions have been set so far, then fold them into the polyglot index that
----downstream code (GetUnitDefs, BuildSpring team-resolution) reads.
+---Load the real unit defs into the registry and the index GetUnitDefs reads, with
+---whatever modoptions are set so far.
 ---@param self SpringSyncedBuilder
 ---@return SpringSyncedBuilder
 function SB:WithRealUnitDefs()

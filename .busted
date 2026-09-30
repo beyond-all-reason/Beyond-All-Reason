@@ -39,6 +39,8 @@ return {
   _all = {
     -- Alphabetical, not the directory walk, which differs between machines.
     ["sort-files"] = true,
+    -- spec_helper leaves top-level globals to busted's own restore between files.
+    ["auto-insulate"] = true,
     verbose = true,
     output = "utfTerminal",
     pattern = "_spec",

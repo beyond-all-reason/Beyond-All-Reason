@@ -94,9 +94,7 @@ _G.unpack = _G.unpack
 		return t[i], _G.unpack(t, i + 1, j)
 	end
 
--- Not fields on VFS, because the sealing at the end of this file would reject the
--- writes. Neither depends on which spec file is running: one is the repo's file list,
--- the other the text of each file read so far.
+-- Shared by every spec file, which is safe: neither depends on which file is running.
 local fileCache
 local sources = {}
 
@@ -222,6 +220,8 @@ end
 -- we have to do this after VFS.Include is declared
 -- if we used `require("common/tablefunction")` above here, it could potentially cause "The same file is required with different names." linter errors when `require("common/tablefunctions")` is called
 require("common/tablefunctions")
+require("common/numberfunctions")
+require("common/stringFunctions")
 
 _G.VFS.SubDirs = function(path)
 	-- Check case-insensitive cache for correct directory path
@@ -359,70 +359,105 @@ _G.VFS.LoadFile = function(path)
 	return contents
 end
 
--- These tables are shared by every spec file, so a write to one reaches every file
--- that runs after it. Sealing turns that into an error where it happens.
---
--- The proxies hold nothing themselves: __newindex only fires for a key the table
--- does not already have, so a metatable on the real Spring would not catch an
--- assignment to Spring.Log.
-local function sealed(name, backing)
-	return setmetatable({}, {
-		__index = backing,
-		__newindex = function(_, key)
-			error(
-				("spec: %s.%s is shared by every spec file and cannot be assigned. Build an env instead: SpecEnv.new({ %s = { %s = ... } })"):format(
-					name,
-					tostring(key),
-					name,
-					tostring(key)
-				),
-				2
-			)
-		end,
-		__metatable = false,
-	})
+-- Every spec file shares these tables, so a write to one would reach every file after it.
+-- Proxies stay empty because __newindex never fires for a key the table already has.
+local seals = {}
+
+local SEAL = { __metatable = "sealed" }
+
+function SEAL.__index(proxy, key)
+	local sealed = seals[proxy]
+	local nested = sealed.nested[key]
+	if nested ~= nil then
+		return nested
+	end
+
+	return sealed.backing[key]
 end
 
--- The names have to be absent from _G itself for __newindex below to see a write
--- to one, so they are reached through __index instead.
-local shared = {}
-for _, name in ipairs({ "Spring", "VFS", "Game", "GG", "io" }) do
-	shared[name] = sealed(name, _G[name])
-	rawset(_G, name, nil)
+-- common/tablefunctions.lua assigns table.pack to itself on every include.
+function SEAL.__newindex(proxy, key, value)
+	local sealed = seals[proxy]
+	if rawequal(sealed.backing[key], value) or rawequal(sealed.nested[key], value) then
+		return
+	end
+
+	error(
+		("spec: %s.%s is shared by every spec file and cannot be assigned. Build an env with SpecEnv.new and write to its copy instead."):format(
+			sealed.name,
+			tostring(key)
+		),
+		2
+	)
 end
 
-local protected = {
-	BAR = true,
-	CMD = true,
-	DEFS = true,
-	FeatureDefs = true,
-	GG = true,
-	Game = true,
-	GameCMD = true,
-	Json = true,
-	LOG = true,
-	Shared = true,
-	Spring = true,
-	UnitDefNames = true,
-	UnitDefs = true,
-	VFS = true,
-	WeaponDefNames = true,
-	io = true,
-}
+function SEAL.backing(proxy)
+	return seals[proxy].backing
+end
 
-setmetatable(_G, {
-	__index = shared,
-	__newindex = function(globals, key, value)
-		if protected[key] then
-			error(
-				("spec: %s is shared by every spec file and cannot be assigned. Build an env instead: SpecEnv.new({ %s = ... })"):format(
-					tostring(key),
-					tostring(key)
-				),
-				2
-			)
+local function seal(name, backing)
+	local nested = {}
+	for key, value in pairs(backing) do
+		if type(value) == "table" then
+			nested[key] = seal(name .. "." .. tostring(key), value)
 		end
+	end
 
-		rawset(globals, key, value)
-	end,
-})
+	local proxy = setmetatable({}, SEAL)
+	seals[proxy] = { name = name, backing = backing, nested = nested }
+
+	return proxy
+end
+
+local SHARED = { "Spring", "VFS", "Game", "io", "CMD", "GameCMD", "LOG", "Json", "string", "table", "math", "os" }
+
+for _, name in ipairs(SHARED) do
+	_G[name] = seal(name, _G[name])
+end
+
+-- Lua 5.1 has no __pairs, so enumerating a proxy would quietly find nothing.
+local realPairs, realNext, realIpairs = pairs, next, ipairs
+
+local function refuseSealed(value)
+	local sealed = seals[value]
+	if sealed then
+		error(
+			("spec: %s is sealed and cannot be enumerated. Load the code under test through SpecEnv, which hands it real tables."):format(
+				sealed.name
+			),
+			3
+		)
+	end
+end
+
+_G.pairs = function(t)
+	refuseSealed(t)
+
+	return realPairs(t)
+end
+
+_G.next = function(t, key)
+	refuseSealed(t)
+
+	return realNext(t, key)
+end
+
+_G.ipairs = function(t)
+	refuseSealed(t)
+
+	return realIpairs(t)
+end
+
+-- busted passes itself to the function a helper returns.
+return function(busted)
+	-- Game code writes GG and def loading draws on math.random, so each file starts over.
+	busted.subscribe({ "file", "start" }, function()
+		_G.GG = {}
+		math.randomseed(12345)
+
+		-- Without true as the second return value, busted skips every subscriber after this one.
+		return nil, true
+	end)
+
+	return true
+end

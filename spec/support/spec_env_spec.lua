@@ -48,6 +48,22 @@ describe("SpecEnv", function()
 		assert.is_nil(GG.marker)
 	end)
 
+	it("gives the code under test a copy of every shared table", function()
+		local env = SpecEnv.new()
+		for name, value in next, _G do
+			if getmetatable(value) == "sealed" then
+				assert.are_not.equal("sealed", getmetatable(env[name]), name .. " reaches the env sealed")
+			end
+		end
+	end)
+
+	it("copies the tables inside a shared one too", function()
+		local env = SpecEnv.new()
+		env.Game.envDamageTypes.SpecProbe = -99
+
+		assert.is_nil(Game.envDamageTypes.SpecProbe)
+	end)
+
 	it("keeps a write to its engine table off the shared one", function()
 		local env = SpecEnv.new()
 		env.Spring.GetSomethingNobodyDefined = function() end
