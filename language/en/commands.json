@@ -150,6 +150,7 @@
 			"onoffToggle": "Toggle unit on/off",
 			"onoffOff": "Turn unit off",
 			"onoffOn": "Turn unit on",
+			"repeatToggle": "Toggle repeat",
 			"repeatOff": "Repeat off",
 			"repeatOn": "Repeat on",
 			"trajectoryLow": "Trajectory: Low",
@@ -169,7 +170,12 @@
 			"buildPriorityHigh": "Builder priority: High",
 			"airPlantExit": "Toggle air plant exit mode",
 			"airPlantExitFly": "Air plant exit: Fly",
-			"airPlantExitLand": "Air plant exit: Land"
+			"airPlantExitLand": "Air plant exit: Land",
+			"factoryModeQueue": "Factory mode: Queue",
+			"factoryModeQuota": "Factory mode: Quota",
+			"factoryGuard": "Toggle factory guard",
+			"factoryGuardOff": "Factory guard off",
+			"factoryGuardOn": "Factory guard on"
 		},
 		"controlGroups": {
 			"select": "Select control group %{n}",
