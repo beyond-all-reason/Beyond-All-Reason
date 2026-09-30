@@ -2,9 +2,7 @@ require("spec_helper")
 
 local RegisterMissionApiModules = require("mission_api.spec_helper")
 
--- difficulty.lua reads the difficulties enum from Modules.ParameterTypes at include time.
-RegisterMissionApiModules()
-local difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+local difficulty = RegisterMissionApiModules().Difficulty
 
 -- Difficulties from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
 local STORY, EASY, MEDIUM, HARD = 1, 2, 3, 4

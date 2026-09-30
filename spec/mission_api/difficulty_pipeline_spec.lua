@@ -40,7 +40,7 @@ local stagesController = VFS.Include("luarules/mission_api/stages_loader.lua")
 local objectivesController = VFS.Include("luarules/mission_api/objectives_loader.lua")
 local triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 local actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
-local difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+local difficulty = GG["MissionAPI"].Modules.Difficulty
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local triggerDefinitions = GG["MissionAPI"].TriggerDefinitions

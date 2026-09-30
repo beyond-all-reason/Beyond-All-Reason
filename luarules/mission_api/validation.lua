@@ -78,7 +78,7 @@ local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
-local isDifficultiesTable = VFS.Include("luarules/mission_api/difficulty.lua").IsDifficultiesTable
+local isDifficultiesTable = GG["MissionAPI"].Modules.Difficulty.IsDifficultiesTable
 local knownDifficulties = parameterTypeEnums[Types.Difficulty]
 
 local validators = {}

@@ -132,7 +132,7 @@ breaking change to both the function and every mission using it.
   `actions`, an objective's `trigger`) and fields nested inside loadout entries or orders do not support it — wrap
   the whole parameter instead.
 - Wrappers survive until after validation so that every difficulty's value is validated, including values under
-  invalid difficulty names; `loadMission` then resolves everything in place (`difficulty.lua`) before
+  invalid difficulty names; `loadMission` then resolves everything in place (`Modules.Difficulty`) before
   `parameter_processing`. Code running **before** validation must not consume parameter values — `objectives_loader`
   leaves a wrapped `amount` alone, and the resolve pass fills in the `maxRepeats` derived from it.
 - `settings.difficulties` (the per-trigger on/off gate) is an array of difficulty names with **no** inheritance
