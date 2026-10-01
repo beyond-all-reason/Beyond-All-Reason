@@ -10,8 +10,9 @@
 
 ---@class WeaponAttributeDefinition
 ---@field type "number"
----@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
+---@field perWeapon true
 ---@field perExplosion? boolean Composes for both weapons and the death and self-destruct explosions.
+---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
 
 ---@type table<string, UnitAttributeDefinition?>
 local unitAttributes = {
@@ -44,12 +45,12 @@ local unitAttributes = {
 
 ---@type table<string, WeaponAttributeDefinition?>
 local weaponAttributes = {
-	maxWeaponRange = { type = "number" },
-	reloadTime = { type = "number" },
-	damage = { type = "number", multiplyOnly = true, perExplosion = true },
+	maxWeaponRange = { type = "number", perWeapon = true },
+	reloadTime = { type = "number", perWeapon = true },
+	damage = { type = "number", perWeapon = true, multiplyOnly = true, perExplosion = true },
 	-- The engine applies these as magnitudes relative to damage, so `damage` scales them, also.
-	impulse = { type = "number", multiplyOnly = true, perExplosion = true },
-	cratering = { type = "number", multiplyOnly = true, perExplosion = true },
+	impulse = { type = "number", perWeapon = true, multiplyOnly = true, perExplosion = true },
+	cratering = { type = "number", perWeapon = true, multiplyOnly = true, perExplosion = true },
 }
 
 return {
