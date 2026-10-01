@@ -41,13 +41,24 @@ local function getObjectCentroid(objects, getPosition)
 	return sumX / count, sumZ / count
 end
 
-local function sortIndexByProjection(objects, count, getPosition, originX, originZ, axisX, axisZ)
+---@return integer[] index
+---@return number[] value projection(s) across the lanes
+---@return number depthSq the spread of the objects in total, as average squared projection
+local function getFromProjection(objects, count, getPosition, originX, originZ, axisX, axisZ)
 	local index, value = table_new(count, 0), table_new(count, 0)
+	local depthSq = 0.0
 	for i = 1, count do
 		local x, _, z = getPosition(objects[i])
+		local rx, rz = x - originX, z - originZ
+		local depth = rx * axisZ - rz * axisX
 		index[i] = i
-		value[i] = (x - originX) * axisX + (z - originZ) * axisZ
+		value[i] = rx * axisX + rz * axisZ
+		depthSq = depthSq + depth * depth
 	end
+	return index, value, depthSq / count
+end
+
+local function sortIndexByValue(index, value)
 	table_sort(index, function(a, b)
 		return value[a] < value[b]
 	end)
@@ -148,8 +159,16 @@ local function splitRivers(units, targets, unitPosition)
 
 	-- Lanes run along an axis from the unit-group center to the target-group center.
 	local axisX, axisZ = -dz / length, dx / length
-	local unitIndex = sortIndexByProjection(units, countUnits, unitPosition, unitsX, unitsZ, axisX, axisZ)
-	local targetIndex = sortIndexByProjection(targets, countTargets, objectPosition, unitsX, unitsZ, axisX, axisZ)
+	local targetIndex, targetValue, targetDepthSq =
+		getFromProjection(targets, countTargets, objectPosition, unitsX, unitsZ, axisX, axisZ)
+	-- Abort when the unit-group starts inside the target-group.
+	if 2 * length * length < targetDepthSq then
+		return splitRoundRobin(units, targets)
+	end
+
+	local unitIndex, unitValue = getFromProjection(units, countUnits, unitPosition, unitsX, unitsZ, axisX, axisZ)
+	sortIndexByValue(unitIndex, unitValue)
+	sortIndexByValue(targetIndex, targetValue)
 
 	local orderedUnits = table_new(countUnits, 0)
 	for i = 1, countUnits do
