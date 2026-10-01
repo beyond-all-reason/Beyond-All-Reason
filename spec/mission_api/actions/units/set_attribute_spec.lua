@@ -14,6 +14,26 @@ local unitQuery = {
 -- Action files read GG['MissionAPI'].Modules.ParameterTypes and .UnitQuery at load time.
 Builders.MissionApi.new():WithModule("UnitQuery", unitQuery):Install()
 
+-- Action files capture the attributes API when they load, so the recorder goes in first.
+local calls = {}
+local function record(name)
+	return function(...)
+		calls[#calls + 1] = { name, ... }
+	end
+end
+_G.GG.UnitAttributes = { ---@diagnostic disable-line: global-in-non-module
+	SetUnitDefAttribute = record("SetUnitDefAttribute"),
+	SetUnitAttribute = record("SetUnitAttribute"),
+	SetUnitDefModifier = record("SetUnitDefModifier"),
+	SetUnitModifier = record("SetUnitModifier"),
+	SetUnitDefWeaponAttribute = record("SetUnitDefWeaponAttribute"),
+	SetUnitWeaponAttribute = record("SetUnitWeaponAttribute"),
+	SetUnitDefWeaponModifier = record("SetUnitDefWeaponModifier"),
+	SetUnitWeaponModifier = record("SetUnitWeaponModifier"),
+	WEAPON_DEATH = -1,
+	WEAPON_SELFD = -2,
+}
+
 local actions = VFS.Include("luarules/mission_api/actions/units/set_attribute.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
@@ -26,34 +46,10 @@ local function actionOfType(actionType)
 end
 
 describe("mission_api.actions.set_attribute", function()
-	local calls
-
-	local function record(name)
-		return function(...)
-			calls[#calls + 1] = { name, ... }
-		end
-	end
-
 	before_each(function()
 		calls, queried, queryResult = {}, {}, {}
 		Builders.MissionApi.new():WithModule("UnitQuery", unitQuery):Install()
-		_G.GG.UnitAttributes = { ---@diagnostic disable-line: global-in-non-module
-			SetUnitDefAttribute = record("SetUnitDefAttribute"),
-			SetUnitAttribute = record("SetUnitAttribute"),
-			SetUnitDefModifier = record("SetUnitDefModifier"),
-			SetUnitModifier = record("SetUnitModifier"),
-			SetUnitDefWeaponAttribute = record("SetUnitDefWeaponAttribute"),
-			SetUnitWeaponAttribute = record("SetUnitWeaponAttribute"),
-			SetUnitDefWeaponModifier = record("SetUnitDefWeaponModifier"),
-			SetUnitWeaponModifier = record("SetUnitWeaponModifier"),
-			WEAPON_DEATH = -1,
-			WEAPON_SELFD = -2,
-		}
 		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
-	end)
-
-	after_each(function()
-		_G.GG.UnitAttributes = nil ---@diagnostic disable-line: global-in-non-module
 	end)
 
 	describe("SetUnitDefAttribute", function()

@@ -1371,9 +1371,7 @@ describe("mission_api.validation", function()
 					type = actionTypes.SetUnitDefAttribute,
 					parameters = { unitDefName = "armwar", attribute = "noSuchAttribute", value = 1 },
 				})
-				assert.is_true(
-					hasError("Unit attribute 'noSuchAttribute' is not defined. Action: a, Parameter: attribute")
-				)
+				assert.is_true(hasError("Unit attribute 'noSuchAttribute' not found. Action: a, Parameter: attribute"))
 			end)
 
 			it("rejects a weapon attribute", function()
@@ -1842,7 +1840,7 @@ describe("mission_api.validation", function()
 				})
 				assert.is_true(
 					hasError(
-						"Unit attribute 'experience' cannot be set on a unit def. Action: setExperience, Parameter: attribute"
+						"Unit attribute 'experience' cannot be set on unitdefs. Action: setExperience, Parameter: attribute"
 					)
 				)
 			end)
@@ -1874,9 +1872,7 @@ describe("mission_api.validation", function()
 						parameters = { unitDefName = "armllt", attribute = "speed", value = 50 },
 					},
 				})
-				assert.is_true(
-					hasError("Unit attribute 'speed' has no effect on immobile unit def 'armllt'. Action: setSpeed")
-				)
+				assert.is_true(hasError("Unit attribute 'speed' has an inappropriate def (armllt). Action: setSpeed"))
 				assert.is_falsy(GG["MissionAPI"].HasValidationErrors)
 			end)
 
@@ -1888,9 +1884,7 @@ describe("mission_api.validation", function()
 					},
 				})
 				assert.is_true(
-					hasError(
-						"Unit attribute 'buildSpeed' has no effect on non-builder unit def 'armpw'. Action: setBuildSpeed"
-					)
+					hasError("Unit attribute 'buildSpeed' has an inappropriate def (armpw). Action: setBuildSpeed")
 				)
 				assert.is_falsy(GG["MissionAPI"].HasValidationErrors)
 			end)
@@ -1974,7 +1968,7 @@ describe("mission_api.validation", function()
 				})
 				assert.is_true(
 					hasError(
-						"Weapon attribute 'maxWeaponRange' names a weapon that unit def 'armwar' does not have. Action: farShot, Parameter: weapon"
+						"Weapon attribute 'maxWeaponRange' names a weapon the unitdef does not have. Action: farShot, Parameter: weapon"
 					)
 				)
 			end)
