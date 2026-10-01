@@ -1170,19 +1170,19 @@ FireWeapon1()
 
 Shot1(heading, pitch) {
     if (whichBarrel == 0){
-        emit-sfx 1024 + 0 from rightTopBarrel;
+        emit-sfx 1024 + 0 from righttopbarrelfirepoint;
         whichBarrel = 1;
     }
     if (whichBarrel == 1){
-        emit-sfx 1024 + 0 from leftTopBarrel;
+        emit-sfx 1024 + 0 from lefttopbarrelfirepoint;
         whichBarrel = 2;
     }
     if (whichBarrel == 2){
-        emit-sfx 1024 + 0 from leftBottomBarrel;
+        emit-sfx 1024 + 0 from leftbottombarrelfirepoint;
         whichBarrel = 3;
     }
     if (whichBarrel == 3){
-        emit-sfx 1024 + 0 from rightBottomBarrel;
+        emit-sfx 1024 + 0 from rightbottombarrelfirepoint;
         whichBarrel = 0;
     }
     if (whichBarrel >= 4) whichBarrel = 0;
