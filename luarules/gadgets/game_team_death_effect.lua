@@ -19,10 +19,24 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local wavePeriod = 550
-GG.wipeoutWithWreckage = false -- FFA can enable this
+
+local math_floor = math.floor
+local math_min = math.min
+local math_max = math.max
+local math_random = math.random
+local distance2DSquared = math.distance2dSquared
+
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitDefID = Spring.GetUnitDefID
+local spDestroyUnit = Spring.DestroyUnit
+
+local DISTANCE_LIMIT = math_max(Game.mapSizeX, Game.mapSizeZ) * math_max(Game.mapSizeX, Game.mapSizeZ)
+GG.wipeoutWithWreckage = GG.wipeoutWithWreckage or false -- FFA can enable this
 
 local isCommander = {}
 local unitDecoration = {}
+local weaponCount = {}
 for udefID, def in ipairs(UnitDefs) do
 	if def.customParams.iscommander then
 		isCommander[udefID] = true
@@ -30,88 +44,77 @@ for udefID, def in ipairs(UnitDefs) do
 	if def.customParams.decoration then
 		unitDecoration[udefID] = true
 	end
+	weaponCount[udefID] = #def.weapons
 end
 
-local spDestroyUnit = Spring.DestroyUnit
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitDefID = Spring.GetUnitDefID
-local DISTANCE_LIMIT = math.max(Game.mapSizeX, Game.mapSizeZ) * math.max(Game.mapSizeX, Game.mapSizeZ)
 local destroyUnitQueue = {}
 local wipedoutTeams = {}
-
-local ATTRIBUTE_SOURCE = "team_death"
-local SENSOR_ATTRIBUTES = { "losRadius", "airLosRadius", "radarRadius", "sonarRadius" }
-
-local function getSqrDistance(x1, z1, x2, z2)
-	local dx, dz = x1 - x2, z1 - z2
-	return (dx * dx) + (dz * dz)
-end
-
-local function hideFromSensors(unitID)
-	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
-	for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
-		setUnitModifier(unitID, attribute, 0, ATTRIBUTE_SOURCE)
-	end
-end
 
 ---Neutralizes a team's units and queues them to explode
 ---@param teamID TeamID
 ---@param originX number? Wave epicentre; when omitted the death frames are randomized.
 ---@param originZ number? Wave epicentre; when omitted the death frames are randomized.
 ---@param attackerUnitID UnitID? Credited as the killer of the destroyed units.
----@param periodMult number? Scales how long the wave takes. Defaults to `1`.
+---@param periodMult number? Scales how long the wave takes. Defaults to `1.0`.
 local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult) -- only teamID is required
-	wipedoutTeams[teamID] = Spring.GetGameFrame()
+	local setUnitNeutral, setUnitSensorRadius = Spring.SetUnitNeutral, Spring.SetUnitSensorRadius
+	local setUnitTarget, setUnitWeaponHoldFire = Spring.SetUnitTarget, Spring.UnitWeaponHoldFire
 	periodMult = periodMult or 1
-	local gf = Spring.GetGameFrame()
+	local gameFrame = Spring.GetGameFrame()
 	local maxDeathFrame = 0
 	local teamUnits = Spring.GetTeamUnits(teamID)
+	local armed, armedCount = {}, 0
 	for i = 1, #teamUnits do
 		local unitID = teamUnits[i]
-		if not unitDecoration[spGetUnitDefID(unitID)] then
+		local unitDefID = spGetUnitDefID(unitID)
+		if not unitDecoration[unitDefID] then
 			local x, _, z = spGetUnitPosition(unitID)
 			local deathFrame
 			if originX and originZ then
 				deathFrame = 6
-					+ math.floor(
+					+ math_floor(
 						(
-							math.min(
-								((getSqrDistance(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod * 0.6),
+							math_min(
+								((distance2DSquared(x, z, originX, originZ) / DISTANCE_LIMIT) * wavePeriod * 0.6),
 								wavePeriod
-							) + math.random(0, wavePeriod / 2.5)
+							) + math_random(0, wavePeriod / 2.5)
 						) * periodMult
 					)
 			else
 				deathFrame = 6
-					+ math.floor((math.random(1, wavePeriod * 0.3) + math.random(0, wavePeriod / 2.5)) * periodMult)
+					+ math_floor((math_random(1, wavePeriod * 0.3) + math_random(0, wavePeriod / 2.5)) * periodMult)
 			end
-			maxDeathFrame = math.max(maxDeathFrame, deathFrame)
+			maxDeathFrame = math_max(maxDeathFrame, deathFrame)
 			if destroyUnitQueue[unitID] == nil then
 				destroyUnitQueue[unitID] = {
-					frame = gf + deathFrame,
+					frame = gameFrame + deathFrame,
 					attackerUnitID = attackerUnitID,
 				}
 			end
 
-			-- neutralize units
-			Spring.SetUnitNeutral(unitID, true)
-			hideFromSensors(unitID)
-			local i = 0
-			for weaponID, _ in pairs(UnitDefs[spGetUnitDefID(unitID)].weapons) do
-				Spring.UnitWeaponHoldFire(unitID, weaponID)
-				i = i + 1
-			end
-			if i > 0 then
-				Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
-				Spring.SetUnitTarget(unitID, nil)
-				if GameCMD and GameCMD.UNIT_CANCEL_TARGET then -- remove any settarget cmd
-					Spring.GiveOrderToUnit(unitID, GameCMD.UNIT_CANCEL_TARGET, {}, {})
+			-- units are in a terminal state so we can skip the controller and set their attributes directly
+			setUnitNeutral(unitID, true)
+			setUnitSensorRadius(unitID, "los", 0)
+			setUnitSensorRadius(unitID, "airLos", 0)
+			setUnitSensorRadius(unitID, "radar", 0)
+			setUnitSensorRadius(unitID, "sonar", 0)
+			local weapons = weaponCount[unitDefID]
+			if weapons > 0 then
+				for weaponNum = 1, weapons do
+					setUnitWeaponHoldFire(unitID, weaponNum)
 				end
+				setUnitTarget(unitID, nil)
+				armedCount = armedCount + 1
+				armed[armedCount] = unitID
 			end
-			--Spring.SetUnitNoMinimap(unitID, true)
 		end
 	end
-	GG.maxDeathFrame = GG.maxDeathFrame and math.max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame -- storing frame of total unit wipeout
+	if armedCount > 0 then
+		Spring.GiveOrderToUnitArray(armed, CMD.FIRE_STATE, 0)
+		Spring.GiveOrderToUnitArray(armed, GameCMD.UNIT_CANCEL_TARGET)
+	end
+	wipedoutTeams[teamID] = math_max(wipedoutTeams[teamID] or 0, gameFrame + math_max(maxDeathFrame, 300))
+	GG.maxDeathFrame = GG.maxDeathFrame and math_max(GG.maxDeathFrame, maxDeathFrame) or maxDeathFrame -- storing frame of total unit wipeout
 end
 
 ---Wipes out every team in an allyteam, shortening the wave when few units remain.
@@ -119,7 +122,7 @@ end
 ---@param attackerUnitID UnitID? Credited as the killer of the destroyed units.
 ---@param originX number? Wave epicentre; when omitted the death frames are randomized.
 ---@param originZ number? Wave epicentre; when omitted the death frames are randomized.
----@param periodMult number? Scales how long the wave takes. Defaults to `1`.
+---@param periodMult number? Scales how long the wave takes. Defaults to `1.0`.
 local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, periodMult) -- only allyTeamID is required
 	-- xmas gadget uses this (to prevent creating xmasballs)
 	if not _G.destroyingTeam then
@@ -130,10 +133,9 @@ local function wipeoutAllyTeam(allyTeamID, attackerUnitID, originX, originZ, per
 	-- define smaller destruction period when few units
 	local totalUnits = 0
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
-		local units = Spring.GetTeamUnits(teamID)
-		totalUnits = totalUnits + #units
+		totalUnits = totalUnits + Spring.GetTeamUnitCount(teamID)
 	end
-	periodMult = (periodMult or 1) * math.clamp(totalUnits / 300, 0.33, 1) -- make low unitcount blow up faster
+	periodMult = (periodMult or 1.0) * math.clamp(totalUnits / 300, 0.33, 1.0) -- make low unitcount blow up faster
 
 	-- destroy all teams
 	for _, teamID in ipairs(Spring.GetTeamList(allyTeamID)) do
@@ -183,9 +185,19 @@ function gadget:GameFrame(gf)
 	end
 end
 
--- i've seen a resurrected unit being left-over so lets remove units being created after a team wipeout was initiated
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam] + 300 > Spring.GetGameFrame() then
-		Spring.DestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
+local function denyAndDestroyUnit(_, unitID, _, unitTeam)
+	if wipedoutTeams[unitTeam] and wipedoutTeams[unitTeam] >= spGetGameFrame() then
+		spDestroyUnit(unitID, not GG.wipeoutWithWreckage, false)
 	end
+end
+gadget.UnitCreated = denyAndDestroyUnit
+gadget.UnitFinished = denyAndDestroyUnit
+
+function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing)
+	---@diagnostic disable-next-line -- OK: leaving second return `nil` is better
+	return not wipedoutTeams[builderTeam] or wipedoutTeams[builderTeam] < spGetGameFrame()
+end
+
+function gadget:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, capture)
+	return not wipedoutTeams[newTeam] or wipedoutTeams[newTeam] < spGetGameFrame() -- exit-only
 end
