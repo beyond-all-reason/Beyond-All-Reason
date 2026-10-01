@@ -158,7 +158,7 @@ describe("mission_api difficulty pipeline", function()
 				},
 				announce = {
 					type = actionTypes.SendMessage,
-					parameters = { message = { difficulties = { Easy = "incoming", Hard = "INCOMING" } } },
+					parameters = { messageKey = { difficulties = { Easy = "incoming", Hard = "INCOMING" } } },
 				},
 			},
 		}
@@ -178,7 +178,7 @@ describe("mission_api difficulty pipeline", function()
 
 	it("resolves action parameters, including a wrapped loadout", function()
 		local missionApi = loadMission(wrappedMission(), HARD)
-		assert.are.equal("INCOMING", missionApi.Actions.announce.parameters.message)
+		assert.are.equal("INCOMING", missionApi.Actions.announce.parameters.messageKey)
 		assert.are.equal(2, #missionApi.Actions.spawnBots.parameters.unitLoadout)
 	end)
 
@@ -236,7 +236,7 @@ describe("mission_api difficulty pipeline", function()
 			Actions = {
 				announce = {
 					type = actionTypes.SendMessage,
-					parameters = { message = "incoming" },
+					parameters = { messageKey = "incoming" },
 				},
 			},
 		}, EASY)
