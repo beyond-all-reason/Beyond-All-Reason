@@ -18,7 +18,7 @@ end
 
 local function kindReason(entry, perWeapon)
 	if entry == nil then
-		return "is not defined", "attribute"
+		return "not found", "attribute"
 	elseif perWeapon and not entry.perWeapon then
 		return "is not written per weapon", "attribute"
 	elseif not perWeapon and entry.perWeapon then
@@ -60,7 +60,7 @@ local function weaponReason(entry, weapon, unitDef)
 			return "is not written per explosion", "weapon"
 		end
 	elseif unitDef and not unitDef.weapons[weapon] then
-		return "names a weapon that unit def '" .. unitDef.name .. "' does not have", "weapon"
+		return "names a weapon the unitdef does not have", "weapon"
 	end
 end
 
@@ -87,7 +87,7 @@ end
 local function canSetUnitDefAttribute(entry, value)
 	local reason, parameter = kindReason(entry, false)
 	if not reason and entry.isUnitState then
-		reason, parameter = "cannot be set on a unit def", "attribute"
+		reason, parameter = "cannot be set on unitdefs", "attribute"
 	elseif not reason then
 		reason, parameter = valueReason(entry, value)
 	end
@@ -154,10 +154,8 @@ end
 ---@return boolean ok
 ---@return string? reason
 local function affectsUnitDef(entry, unitDef)
-	if entry.mobileOnly and unitDef.isImmobile then
-		return false, "has no effect on immobile unit def '" .. unitDef.name .. "'"
-	elseif entry.builderOnly and not unitDef.isBuilder then
-		return false, "has no effect on non-builder unit def '" .. unitDef.name .. "'"
+	if (entry.mobileOnly and unitDef.isImmobile) or (entry.builderOnly and not unitDef.isBuilder) then
+		return false, "has an inappropriate def (" .. unitDef.name .. ")"
 	end
 	return true
 end
