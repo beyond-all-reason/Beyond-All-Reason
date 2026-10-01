@@ -26,7 +26,6 @@ local math_cos = math.cos
 local math_sin = math.sin
 local math_pi = math.pi
 local math_tau = math.tau
-local math_diag = math.diag
 local distance3dSquared = math.distance3dSquared
 
 local CallAsTeam = CallAsTeam
@@ -67,6 +66,7 @@ local weaponDefEffect = {}
 
 local projectiles = {}
 
+---@type number
 local gameFrame = 0
 
 --------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ end
 
 local function isProjectileInWater(projectileID)
 	local _, positionY = spGetProjectilePosition(projectileID)
-	return positionY <= 0
+	return positionY ~= nil and positionY <= 0
 end
 
 local function equalTargets(target1, target2)
@@ -153,8 +153,10 @@ end
 ---@return number? targetX xyz coords
 ---@return number? targetY
 ---@return number? targetZ
-local function getTargetPositionWithError(projectileID)
-	local targetType, target = spGetProjectileTarget(projectileID)
+local function getTargetPositionWithError(projectileID, targetType, target)
+	if targetType == nil then
+		targetType, target = spGetProjectileTarget(projectileID)
+	end
 	if targetType == targetedUnit then
 		local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
 		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
@@ -606,61 +608,6 @@ specialEffectFunction.cannonwaterpen = function(params, projectileID)
 	end
 end
 
--- Water penetration (torpedo)
--- Torpedoes are usually tracking with either very high or very low turn rates, both of which work out poorly.
--- This reduces vertical dive speed, with stronger correction allowed for closer targets, emphasizing horizontal motion.
--- It still has an issue with a projectile with low turn rate dropped vertically above a tiny target underneath.
-
-local waterDepthSubs = -20
-local waterDepthDeep = -80
-
-weaponCustomParamKeys.torpwaterpen = {
-	tracking_turn_radius = tonumber, -- turn radius of a tracking projectile, larger gives stronger correction
-}
-
-local function torpedoWaterPen(params, projectileID)
-	local positionX, positionY, positionZ = spGetProjectilePosition(projectileID)
-	local targetX, targetY, targetZ = getTargetPositionWithError(projectileID)
-	if not (positionX and targetX) then
-		return true
-	end
-
-	local velocityX, velocityY, velocityZ, speed = spGetProjectileVelocity(projectileID)
-	if -velocityY <= speed * 0.1 then
-		spSetProjectileVelocity(projectileID, velocityX, 0, velocityZ)
-		return true
-	end
-
-	-- Allow some non-physical reasoning so we can hit very-close and very-shallow targets.
-	local distance = math_diag(positionX - targetX, positionY - targetY, positionZ - targetZ)
-	local waterDepth = spGetGroundHeight(positionX, positionZ)
-
-	local closeness = math_clamp(1.2 - distance / params.tracking_turn_radius, 0.25, 1.0)
-	local shallowness = math_clamp(1 - waterDepth / waterDepthDeep, 0.75, 1.0) -- keep gameplay on the "surface"
-	local surfaceness = math_clamp(1 - targetY / waterDepthSubs, 0.0, 1.0)
-
-	local shallowTerm = 1.0 - shallowness * surfaceness
-	local distanceTerm = 1.0 - closeness * surfaceness
-	local diveSpeedWanted = -speed * shallowTerm * distanceTerm
-	velocityY = (velocityY + diveSpeedWanted * 2) / 3
-
-	-- Apply terrain avoidance proportionate to the shallowness of the water depth.
-	local normalX, normalY, normalZ = spGetGroundNormal(positionX, positionZ, true)
-	local avoidanceY = velocityY
-		- normalY
-			* (velocityX * (normalX + 0) * 0.5 + velocityY * (normalY + 1) * 0.5 + velocityZ * (normalZ + 0) * 0.5)
-	velocityY = velocityY + (avoidanceY - velocityY) * (shallowness * 0.5 + 0.5)
-
-	spSetProjectileVelocity(projectileID, velocityX, velocityY, velocityZ)
-end
-
-specialEffectFunction.torpwaterpen = function(params, projectileID)
-	if isProjectileInWater(projectileID) then
-		torpedoWaterPen(params, projectileID)
-		return true
-	end
-end
-
 --------------------------------------------------------------------------------
 -- Engine call-ins -------------------------------------------------------------
 
@@ -677,7 +624,9 @@ function gadget:Initialize()
 	local cruiseEngagedMetatable = { __call = cruiseEngaged }
 
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
-		if weaponDef.customParams.speceffect then
+		-- Torpedo selectors are handled by unit_torpedo_guidance.lua.
+		local configuredEffect = weaponDef.customParams.speceffect
+		if configuredEffect and configuredEffect ~= "torpwaterpen" and configuredEffect ~= "torpsurfacetrack" then
 			local effectName, effectParams = parseCustomParams(weaponDef)
 
 			if effectName then
