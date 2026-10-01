@@ -16,7 +16,7 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Max non-bomber units allowed to use an area-form CMD_ATTACK.
+-- Max non-exempted units allowed to share an area-form CMD_ATTACK.
 -- Commands expand into units x targets. Consider about 1000 targets.
 local AREA_LIMIT = 30
 -- Max targeted attack orders issued per area-form CMD_ATTACK.
@@ -43,22 +43,11 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local splitRivers = require("modules/split_targets").Rivers
 
-local isBombWeapon = {}
-for weaponDefID, weaponDef in pairs(WeaponDefs) do
-	if weaponDef.type == "AircraftBomb" then
-		isBombWeapon[weaponDefID] = true
-	end
-end
-
--- customparams.areaattack_unlimited: must classify identically in
--- cmd_exclude_walls_area_attacks.lua and cmd_bomber_attack_building_ground.lua
-local isBomberUnitDef = {}
+-- customparams.areaattack_unlimited: must classify identically in cmd_exclude_walls_area_attacks.lua
+local isUnlimitedUnitDef = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if
-		(unitDef.weapons and unitDef.weapons[1] and isBombWeapon[unitDef.weapons[1].weaponDef])
-		or unitDef.customParams.areaattack_unlimited
-	then
-		isBomberUnitDef[unitDefID] = true
+	if unitDef.customParams.areaattack_unlimited then
+		isUnlimitedUnitDef[unitDefID] = true
 	end
 end
 
@@ -118,13 +107,13 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 	local selUnits = spGetSelectedUnits()
 
-	-- Only non-bombers are counted against AREA_LIMIT.
-	local attackers, bombers = {}, {} ---@type UnitID[], UnitID[]
+	-- Only non-exempted units are counted against the AREA_LIMIT:
+	local attackers, unlimited = {}, {} ---@type UnitID[], UnitID[]
 	for i = 1, #selUnits do
 		local unitID = selUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID and isBomberUnitDef[unitDefID] then
-			bombers[#bombers + 1] = unitID
+		if unitDefID and isUnlimitedUnitDef[unitDefID] then
+			unlimited[#unlimited + 1] = unitID
 		else
 			attackers[#attackers + 1] = unitID
 		end
@@ -160,8 +149,8 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 
 		handled = true -- We go back through the normal input pipeline.
 
-		if bombers[1] ~= nil then
-			Spring.SelectUnitArray(bombers)
+		if unlimited[1] ~= nil then
+			Spring.SelectUnitArray(unlimited)
 			if not cmdOpts.shift then
 				Spring.GiveOrder(CMD_STOP, {}, 0)
 			end
