@@ -70,13 +70,13 @@ StopMoving()
 
 FireWeapon1()
 {
-	emit-sfx 1024 + 2 from lturret;
+	emit-sfx 1024 + 2 from lturretfirepoint;
 	sleep 200;
 }
 
 FireWeapon2()
 {
-	emit-sfx 1024 + 2 from rturret;
+	emit-sfx 1024 + 2 from rturretfirepoint;
 	sleep 200;
 }
 
