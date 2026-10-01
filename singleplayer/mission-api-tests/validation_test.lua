@@ -326,6 +326,7 @@ local actions = {
 	actionWithJustOneInvalidPosition = {
 		type = actionTypes.DrawLines,
 		parameters = {
+			lineName = 'invalidLine',
 			positions = {
 				{ x = 1800, invalidField = 2100 }
 			},

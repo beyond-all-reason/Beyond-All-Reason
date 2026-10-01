@@ -908,6 +908,14 @@ describe("mission_api.validation", function()
 				)
 			end)
 
+			it("rejects a missing line name", function()
+				actionErrors({
+					type = actionTypes.DrawLines,
+					parameters = { positions = { { x = 0, z = 0 }, { x = 1, z = 1 } } },
+				})
+				assert.is_true(hasError("Action missing required parameter. Action: a, Parameter: lineName"))
+			end)
+
 			it("rejects fewer than two positions", function()
 				actionErrors({ type = actionTypes.DrawLines, parameters = { positions = { { x = 0, z = 0 } } } })
 				assert.is_true(
@@ -1349,6 +1357,21 @@ describe("mission_api.validation", function()
 			assert.is_true(
 				hasError("Marker name 'noSuchBeacon' is not created in any action. Referenced in: removeUnknown")
 			)
+		end)
+
+		it("logs an error for erasing a line that no action draws", function()
+			GG["MissionAPI"].Actions = {
+				drawWall = {
+					type = actionTypes.DrawLines,
+					parameters = { lineName = "wall", positions = { { x = 0, z = 0 }, { x = 1, z = 1 } } },
+				},
+				removeUnknown = { type = actionTypes.RemoveLine, parameters = { lineName = "noSuchLine" } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Line name 'noSuchLine' is not drawn in any action. Referenced in: removeUnknown"))
+			assert.is_false(hasError("Line name 'wall'"))
 		end)
 
 		it("passes countdown ID references that are added, and countdowns left to run out", function()
