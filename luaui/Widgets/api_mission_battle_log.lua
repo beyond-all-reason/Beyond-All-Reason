@@ -18,7 +18,7 @@ local COUNT_PARAM = "missionBattleLogCount"
 local ENTRY_PARAM_PREFIX = "missionBattleLog_"
 
 ---@class MissionBattleLogMessage
----@field messageType string
+---@field messageType integer
 ---@field message string as displayed to the player
 
 ---@type MissionBattleLogEntry[]
@@ -40,22 +40,15 @@ local function readNewEntries()
 	end
 end
 
----Oldest first; display it in reverse to show the newest message on top.
-local function getMessages()
-	return battleLog
-end
-
 function widget:Initialize()
-	WG.missionBattleLog = { GetMessages = getMessages }
+	table.ensureTable(WG, "MissionAPI").BattleLog = battleLog
+	widgetHandler:RegisterGlobal("MissionBattleLogChanged", readNewEntries)
 	readNewEntries()
 end
 
 function widget:Shutdown()
-	WG.missionBattleLog = nil
-end
-
-function widget:GameFrame()
-	readNewEntries()
+	WG.MissionAPI.BattleLog = nil
+	widgetHandler:DeregisterGlobal("MissionBattleLogChanged")
 end
 
 function widget:LanguageChanged()

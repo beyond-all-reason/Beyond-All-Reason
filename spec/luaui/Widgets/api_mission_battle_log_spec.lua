@@ -1,6 +1,7 @@
 require("spec_helper")
 
 local SpringUnsyncedBuilder = VFS.Include("spec/builders/spring_unsynced_builder.lua")
+local MessageTypes = VFS.Include("luarules/mission_api/parameter_types.lua").Enums.MessageType
 
 local WIDGET_PATH = "luaui/Widgets/api_mission_battle_log.lua"
 
@@ -42,52 +43,50 @@ describe("luaui.Widgets.api_mission_battle_log", function()
 
 	it("keeps an empty log outside a mission", function()
 		local loaded = loadWidget()
-		loaded.env.widget:GameFrame(1)
 
-		assert.are.same({}, loaded.WG.missionBattleLog.GetMessages())
+		assert.are.same({}, loaded.WG.MissionAPI.BattleLog)
 	end)
 
 	it("translates the log published so far, oldest first", function()
-		publish(1, "Message", "mission.intro", { name = "Cmdr" })
-		publish(2, "Objective", "mission.escort")
+		publish(1, MessageTypes.Message, "mission.intro", { name = "Cmdr" })
+		publish(2, MessageTypes.Objective, "mission.escort")
 
 		local loaded = loadWidget()
 
 		assert.are.same({
-			{ messageType = "Message", message = "en: mission.intro" },
-			{ messageType = "Objective", message = "en: mission.escort" },
-		}, loaded.WG.missionBattleLog.GetMessages())
+			{ messageType = MessageTypes.Message, message = "en: mission.intro" },
+			{ messageType = MessageTypes.Objective, message = "en: mission.escort" },
+		}, loaded.WG.MissionAPI.BattleLog)
 		assert.are.same({
 			{ key = "mission.intro", data = { name = "Cmdr" } },
 			{ key = "mission.escort" },
 		}, i18nCalls)
 	end)
 
-	it("adds the messages published since, on game frame", function()
+	it("adds a message when told the log changed", function()
 		local loaded = loadWidget()
-		publish(1, "Message", "mission.intro")
-		loaded.env.widget:GameFrame(1)
-		publish(2, "Objective", "mission.escort")
-		loaded.env.widget:GameFrame(2)
-		loaded.env.widget:GameFrame(3)
+		publish(1, MessageTypes.Message, "mission.intro")
+		loaded.env.MissionBattleLogChanged()
+		publish(2, MessageTypes.Objective, "mission.escort")
+		loaded.env.MissionBattleLogChanged()
 
 		assert.are.same({
-			{ messageType = "Message", message = "en: mission.intro" },
-			{ messageType = "Objective", message = "en: mission.escort" },
-		}, loaded.WG.missionBattleLog.GetMessages())
+			{ messageType = MessageTypes.Message, message = "en: mission.intro" },
+			{ messageType = MessageTypes.Objective, message = "en: mission.escort" },
+		}, loaded.WG.MissionAPI.BattleLog)
 		assert.are.equal(2, #i18nCalls)
 	end)
 
 	it("rebuilds the text in the new language", function()
-		publish(1, "Message", "mission.intro", { name = "Cmdr" })
+		publish(1, MessageTypes.Message, "mission.intro", { name = "Cmdr" })
 		local loaded = loadWidget()
 
 		language = "fr"
 		loaded.env.widget:LanguageChanged()
 
 		assert.are.same(
-			{ { messageType = "Message", message = "fr: mission.intro" } },
-			loaded.WG.missionBattleLog.GetMessages()
+			{ { messageType = MessageTypes.Message, message = "fr: mission.intro" } },
+			loaded.WG.MissionAPI.BattleLog
 		)
 		assert.are.same({
 			{ key = "mission.intro", data = { name = "Cmdr" } },

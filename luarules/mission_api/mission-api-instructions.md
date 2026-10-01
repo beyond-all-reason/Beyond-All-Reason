@@ -139,12 +139,13 @@ breaking change to both the function and every mission using it.
 - `GG['MissionAPI']` — definitions, the normalised mission, mutable tracking tables (`trackedUnitNames`,
   `markerNames`, `soundQueue`, `BattleLogRaw`, …), and `Modules`. Cleared on `Shutdown`.
 - Text for the player goes through `Modules.BattleLog.AddMessage(messageType, messageKey, messageData)`, with
-  `messageType` one of `Modules.BattleLog.MessageTypes` and `messageKey` an I18N key. Synced code cannot translate,
-  so each entry is appended to `BattleLogRaw` and published as a game rules param (`missionBattleLog_<n>` as JSON,
-  plus `missionBattleLogCount`); `luaui/Widgets/api_mission_battle_log.lua` reads those back (also after a
-  `/luaui reload`), keeps the translated log, rebuilds it on `LanguageChanged`, and serves it oldest-first through
-  `WG.missionBattleLog.GetMessages()`. The `Spring.Echo` in `AddMessage` is a placeholder until a widget displays
-  the log.
+  `messageType` from the `MessageType` enum in `parameter_types.lua` and `messageKey` an I18N key. Synced code
+  cannot translate, so each entry is appended to `BattleLogRaw`, published as a game rules param
+  (`missionBattleLog_<n>` as JSON, plus `missionBattleLogCount`), and announced through `api_mission_battle_log.lua`
+  (unsynced gadget) as `Script.LuaUI.MissionBattleLogChanged`. `luaui/Widgets/api_mission_battle_log.lua` reads the
+  params on that call and at start (so also after a `/luaui reload`), rebuilds the text on `LanguageChanged`, and
+  holds the translated log oldest-first in `WG.MissionAPI.BattleLog`. The `Spring.Echo` in `AddMessage` is a
+  placeholder until a widget displays the log.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.

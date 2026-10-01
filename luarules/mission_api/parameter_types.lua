@@ -39,6 +39,7 @@ local types = {
 	Fraction = "Fraction",
 	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
+	MessageType = "MessageType",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",
@@ -72,6 +73,14 @@ local enums = {
 	},
 
 	[types.Difficulty] = difficulties,
+
+	[types.MessageType] = {
+		Briefing = 1,
+		Message = 2,
+		Objective = 3,
+		Notification = 4,
+		Dialogue = 5,
+	},
 }
 
 local enumSets = {

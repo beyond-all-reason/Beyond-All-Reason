@@ -1,8 +1,8 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
+local MessageTypes = GG['MissionAPI'].Modules.ParameterTypes.Enums[ParameterTypes.MessageType]
 
 local function sendMessage(messageKey, messageData)
-	local battleLog = GG['MissionAPI'].Modules.BattleLog
-	battleLog.AddMessage(battleLog.MessageTypes.Message, messageKey, messageData)
+	GG['MissionAPI'].Modules.BattleLog.AddMessage(MessageTypes.Message, messageKey, messageData)
 end
 
 return {

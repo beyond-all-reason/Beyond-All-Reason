@@ -25,6 +25,7 @@ function widget:Initialize()
         end,
         getUnitDefID = function(id) return Spring.GetUnitDefID(id) end,
     }
+    widgetHandler:RegisterGlobal("TmpUnsyncedGlobal", function() return "called" end)
 end
 
 return GetInfo
@@ -154,6 +155,11 @@ describe("SpringUnsyncedBuilder", function()
 
 		local result = widget.env.VFS.Include("any/fake/path.lua")
 		assert.is_true(result.sentinel)
+	end)
+
+	it("puts globals registered through widgetHandler in the env", function()
+		local widget = Builders.SpringUnsynced.new():LoadWidget(TMP_WIDGET_PATH)
+		assert.are.equal("called", widget.env.TmpUnsyncedGlobal())
 	end)
 
 	it("each LoadWidget call yields an isolated env", function()
