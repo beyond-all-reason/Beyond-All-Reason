@@ -1337,7 +1337,7 @@ describe("mission_api.validation", function()
 			it("accepts a wrapped action parameter", function()
 				actionErrors({
 					type = actionTypes.SendMessage,
-					parameters = { message = { difficulties = { Easy = "hi", Hard = "gl" } } },
+					parameters = { messageKey = { difficulties = { Easy = "hi", Hard = "gl" } } },
 				})
 				assert.are.same({}, logged)
 			end)

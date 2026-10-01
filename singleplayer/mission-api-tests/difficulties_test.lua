@@ -76,7 +76,7 @@ local actions = {
 	announceDifficulty = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = {
+			messageKey = {
 				difficulties = {
 					Story = 'Resolved the Story message.',
 					Easy = 'Resolved the Easy message.',
@@ -106,7 +106,7 @@ local actions = {
 	announceWave = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = {
+			messageKey = {
 				difficulties = {
 					Easy = 'Wave spawned: 2 Pawns (Easy).',
 					Hard = 'Wave spawned: 8 Pawns (Hard).',
@@ -118,7 +118,7 @@ local actions = {
 	announceHardOnly = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'This trigger is gated to Medium and Hard.',
+			messageKey = 'This trigger is gated to Medium and Hard.',
 		},
 	},
 
