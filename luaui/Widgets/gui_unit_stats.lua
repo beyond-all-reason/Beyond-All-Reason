@@ -842,52 +842,54 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local burst, dpsCycle = weaponInfo.GetFiringCycle(uWep, reload)
 
+		local custom = uWep.customParams
 		local damages = uWep.damages
+
 		local defaultArmorIndex = armorTypes.default
 		local targetArmorIndex = damages[defaultArmorIndex] >= damages[armorTypes.vtol] and defaultArmorIndex
 			or armorTypes.vtol
-
-		local baseTargetDamage = damages[targetArmorIndex]
-		local damageFactor = 1.0
-		if uID and weaponNumber > 0 and baseTargetDamage > 0 then
-			local current = spGetUnitWeaponDamages(uID, weaponNumber, targetArmorIndex)
-			damageFactor = current and current / baseTargetDamage or 1.0
-		end
-
-		local defaultArmorDamage = damages[defaultArmorIndex] * damageFactor
-		local targetArmorDamage = baseTargetDamage * damageFactor
-
-		local custom = uWep.customParams
 
 		if uWep.type == "BeamLaser" and custom.sweepfire_reloadtime then
 			reload = tonumber(custom.sweepfire_reloadtime)
 		end
 
+		local baseTargetDamage = damages[targetArmorIndex]
 		if custom.spark_forkdamage then
 			-- Sparks are hardcoded to target the default armor type.
-			local spDamage = damages[defaultArmorIndex] -- Does not use attribute factors -- FIXME
+			local spDamage = damages[defaultArmorIndex]
 			local spForkDamage = tonumber(custom.spark_forkdamage) or 0
 			local spCount = tonumber(custom.spark_maxunits) or 0
-			targetArmorDamage = targetArmorDamage + spDamage * spForkDamage * spCount
 			baseTargetDamage = baseTargetDamage + spDamage * spForkDamage * spCount
 		elseif custom.speceffect == "split" then
 			burst = burst * (custom.number or 1)
 			uWep = WeaponDefNames[custom.speceffect_def] or uWep
-			targetArmorDamage = defaultArmorDamage
-			baseTargetDamage = damages[defaultArmorIndex] -- Does not use attribute factors -- FIXME
+			baseTargetDamage = damages[defaultArmorIndex]
 		elseif custom.cluster then
 			local munition = uDef.name .. "_" .. custom.cluster_def
 			local cmNumber = custom.cluster_number
-			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex] -- Does not use attribute factors -- FIXME
-			targetArmorDamage = targetArmorDamage + cmDamage * cmNumber
+			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
 			baseTargetDamage = baseTargetDamage + cmDamage * cmNumber
 		end
 
+		local damageFactor = 1.0
+		local damagesKey = weaponNumber > 0 and weaponNumber
+			or (i == deathWeaponIndex and "explode")
+			or (i == selfDWeaponIndex and "selfDestruct")
+		local parentDamage = damages[targetArmorIndex]
+		if uID and damagesKey and parentDamage > 0 then
+			local current = spGetUnitWeaponDamages(uID, damagesKey, targetArmorIndex)
+			damageFactor = current and current / parentDamage or 1.0
+		end
+
+		local defaultArmorDamage = damages[defaultArmorIndex] * damageFactor
+		local targetArmorDamage = baseTargetDamage * damageFactor
+
 		if range > 0 then
-			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
-			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
-				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or
-				       spGetUnitWeaponState(uID, weaponNumber, "reloadTime")   or oRld
+			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime / 30 or uWep.reload)
+			if uID and useExp and not (uWep.stockpile and uWep.stockpileTime) then
+				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP")
+					or spGetUnitWeaponState(uID, weaponNumber, "reloadTime")
+					or oRld
 			end
 
 			local wpnName = uWep.description
@@ -1005,12 +1007,21 @@ local function computeContent(uDefID, uID, shiftBool)
 						local duration = custom.area_onhit_time
 						dps = max(dps + areaDps, areaDps * duration / dpsCycle)
 					end
-					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					damageString = texts.dps
+						.. " = "
+						.. (format(yellow .. "%d", dps))
+						.. white
+						.. "; "
+						.. texts.burst
+						.. " = "
+						.. (format(yellow .. "%d", burstDamage))
+						.. white
+						.. (wepCount > 1 and (" (" .. texts.each .. ").") or ".")
 					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
 					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
 					if not (hasSmartPriority and isWeaponBackup[wDefId]) then
-						totaldps = totaldps + wepCount*dps
-						totalbDamages = totalbDamages + wepCount* burstDamage
+						totaldps = totaldps + wepCount * dps
+						totalbDamages = totalbDamages + wepCount * burstDamage
 					end
 				end
 				DrawText(texts.dmg .. ":", damageString)

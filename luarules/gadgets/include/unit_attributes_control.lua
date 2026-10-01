@@ -167,9 +167,7 @@ end) ---@as table<UnitDefID, false|fun(unitID: UnitID, key: any, value: any): in
 local hasCustomEngageRange = table.map(UnitDefs, function(unitDef, unitDefID)
 	---@cast unitDef table
 	local engageRange = tonumber(unitDef.customParams.maxrange) or 0
-	return (engageRange ~= 0 and engageRange < (unitDef.maxWeaponRange or 0))
-		or unitDef.customParams.rangexpscale ~= nil,
-		unitDefID
+	return engageRange ~= 0 and engageRange < (unitDef.maxWeaponRange or 0), unitDefID
 end) ---@as table<UnitDefID, boolean?>
 
 local function setMoveTypeValue(unitID, key, value)
