@@ -329,7 +329,7 @@ Lights()
 	}
 }
 
-AimReadyAfterDelay(aimDelay)
+AimReadyAfterDelay()
 {
 	set-signal-mask SIGNAL_AIM_TRACKER;
 	
@@ -442,9 +442,6 @@ AimWeapon1(heading, pitch)
 	var headingDelta;
 	var pitchDelta;
 	var worldHeadingDelta;
-	var yawDelay;
-	var pitchDelay;
-	var aimDelay;
 
 	// customparams.reaimtime = 2 requires this call-in to return immediately.
 	// Cancel the old restore timer, but do not block on any piece animation.
@@ -501,20 +498,8 @@ AimWeapon1(heading, pitch)
 	{
 		aimReady = FALSE;
 
-		// Convert COB angular units into milliseconds at the commanded speeds.
-		// 300 degrees/sec is about 54613 units/sec; 225 degrees/sec is 40960.
-		yawDelay = (headingDelta * 1000) / 54613;
-		pitchDelay = (pitchDelta * 1000) / 40960;
-		aimDelay = get MAX(yawDelay, pitchDelay);
-
-		// Raising 5.5 units at 20 units/sec takes 275 milliseconds.
-		if (deploy_state == DEPLOYING)
-		{
-			aimDelay = get MAX(aimDelay, 275);
-		}
-
 		signal SIGNAL_AIM_TRACKER;
-		start-script AimReadyAfterDelay(aimDelay);
+		start-script AimReadyAfterDelay();
 	}
 
 	lastHeading = turretHeading;
