@@ -23,6 +23,7 @@ local AREA_LIMIT = 30
 local COMMAND_LIMIT = 500
 
 local CMD_ATTACK = CMD.ATTACK
+local CMD_REMOVE = CMD.REMOVE
 local CMD_STOP = CMD.STOP
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local ENEMY_UNITS = Spring.ENEMY_UNITS
@@ -33,10 +34,12 @@ local math_min = math.min
 local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGetUnitCommands = Spring.GetUnitCommands
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local splitRivers = require("modules/split_targets").Rivers
 
@@ -61,8 +64,34 @@ end
 
 local isReissuing = false
 
-local function sortClosestFirst(unitID, targets)
-	local unitX, _, unitZ = spGetUnitPosition(unitID)
+local queueEnd = {} -- queued area attacks start after the last-queued command position
+
+local function unitPositionAtQueueEnd(unitID)
+	local position = queueEnd[unitID]
+	if position then
+		return position[1], position[2], position[3]
+	end
+	return spGetUnitPosition(unitID)
+end
+
+local function readQueue(unitID)
+	local queue = spGetUnitCommands(unitID, -1)
+	local queuedAttacks = {}
+	local endPosition
+	for i = #queue, 1, -1 do
+		local command = queue[i]
+		local params = command.params
+		if command.id == CMD_ATTACK and #params == 1 then
+			queuedAttacks[params[1]] = command.tag
+		end
+		if not endPosition and #params >= 3 then
+			endPosition = params
+		end
+	end
+	return queuedAttacks, endPosition
+end
+
+local function sortClosestFirst(unitX, unitZ, targets)
 	local distances = {}
 	for i = 1, #targets do
 		local targetID = targets[i]
@@ -141,21 +170,66 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			Spring.SelectUnitArray(selUnits)
 		end
 
+		-- Ctrl copies the engine for now and removes targets in the area.
+		-- TODO: Remove this behavior. This modifier is badly overloaded with area commands and causes the current stupid modifier combinations.
+		if cmdOpts.ctrl then
+			local inArea = {}
+			for i = 1, #targets do
+				inArea[targets[i]] = true
+			end
+			for i = 1, #attackers do
+				local unitID = attackers[i]
+				local tags = {}
+				for targetID, tag in pairs(readQueue(unitID)) do
+					if inArea[targetID] then
+						tags[#tags + 1] = tag
+					end
+				end
+				if tags[1] then
+					spGiveOrderToUnit(unitID, CMD_REMOVE, tags, 0)
+				end
+			end
+			return
+		end
+
+		local queuedAttacks
+		queueEnd = {}
+		if cmdOpts.shift then
+			-- A target already queued is not queued again to prevent canceling the duplicate command.
+			queuedAttacks = {}
+			for i = 1, #attackers do
+				local unitID = attackers[i]
+				queuedAttacks[unitID], queueEnd[unitID] = readQueue(unitID)
+			end
+		end
+
 		local maxTargetsPerUnit = math_max(math_floor(COMMAND_LIMIT / #attackers), 1)
-		local targetsPerUnit = splitRivers(attackers, targets)
+		local targetsPerUnit = splitRivers(attackers, targets, unitPositionAtQueueEnd)
 		for i = 1, #attackers do
 			local unitID = attackers[i]
 			local unitTargets = targetsPerUnit[unitID]
-			sortClosestFirst(unitID, unitTargets)
+			local unitX, _, unitZ = unitPositionAtQueueEnd(unitID)
+			sortClosestFirst(unitX, unitZ, unitTargets)
 
 			local orders = {}
 			if not cmdOpts.shift then
 				orders[1] = { CMD_STOP, {}, 0 }
 			end
-			for j = 1, math_min(#unitTargets, maxTargetsPerUnit) do
-				orders[#orders + 1] = { CMD_ATTACK, { unitTargets[j] }, opts + CMD_OPT_SHIFT }
+			local alreadyQueued = queuedAttacks and queuedAttacks[unitID]
+			local count = 0
+			for j = 1, #unitTargets do
+				if count == maxTargetsPerUnit then
+					break
+				end
+				local targetID = unitTargets[j]
+				if not (alreadyQueued and alreadyQueued[targetID]) then
+					count = count + 1
+					orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
+				end
 			end
-			spGiveOrderArrayToUnit(unitID, orders)
+			if orders[1] then
+				spGiveOrderArrayToUnit(unitID, orders)
+			end
 		end
 	end)
 	isReissuing = false

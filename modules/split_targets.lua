@@ -13,7 +13,6 @@ local math_sqrt = math.sqrt
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
-local spGetUnitArrayCentroid = Spring.GetUnitArrayCentroid
 
 local UNIT_ID_MAX = Game.maxUnits
 local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID ---@as boolean
@@ -32,11 +31,11 @@ local function objectPosition(objectID)
 	return getFeaturePosition(objectID)
 end
 
-local function getTargetCentroid(targets)
+local function getObjectCentroid(objects, getPosition)
 	local sumX, sumZ = 0.0, 0.0
-	local count = #targets
+	local count = #objects
 	for i = 1, count do
-		local x, _, z = objectPosition(targets[i])
+		local x, _, z = getPosition(objects[i])
 		sumX, sumZ = sumX + x, sumZ + z ---@diagnostic disable-line -- OK
 	end
 	return sumX / count, sumZ / count
@@ -127,16 +126,20 @@ end
 ---Resorts to the round-robin split when the groups do not have clear separation. -- Can improve
 ---@param units UnitID[]
 ---@param targets ObjectID[] Unit IDs, feature IDs, or both; features carry the Game.maxUnits offset when the engine expects it.
+---@param unitPosition? fun(unitID: UnitID): number, number, number # Where each unit starts from; queued orders use the last order position
 ---@return table<UnitID, ObjectID[]?> unitTargets
-local function splitRivers(units, targets)
+local function splitRivers(units, targets, unitPosition)
 	local countUnits = #units
 	local countTargets = #targets
 	if countUnits == 0 or countTargets == 0 then
 		return splitRoundRobin(units, targets)
 	end
+	if unitPosition == nil then
+		unitPosition = spGetUnitPosition
+	end
 
-	local unitsX, _, unitsZ = spGetUnitArrayCentroid(units)
-	local targetsX, targetsZ = getTargetCentroid(targets)
+	local unitsX, unitsZ = getObjectCentroid(units, unitPosition)
+	local targetsX, targetsZ = getObjectCentroid(targets, objectPosition)
 	local dx, dz = targetsX - unitsX, targetsZ - unitsZ
 	local length = math_sqrt(dx * dx + dz * dz)
 	if length < minimumRiverLength then
@@ -145,7 +148,7 @@ local function splitRivers(units, targets)
 
 	-- Lanes run along an axis from the unit-group center to the target-group center.
 	local axisX, axisZ = -dz / length, dx / length
-	local unitIndex = sortIndexByProjection(units, countUnits, spGetUnitPosition, unitsX, unitsZ, axisX, axisZ)
+	local unitIndex = sortIndexByProjection(units, countUnits, unitPosition, unitsX, unitsZ, axisX, axisZ)
 	local targetIndex = sortIndexByProjection(targets, countTargets, objectPosition, unitsX, unitsZ, axisX, axisZ)
 
 	local orderedUnits = table_new(countUnits, 0)
