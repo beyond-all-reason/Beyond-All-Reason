@@ -147,37 +147,30 @@ GG.wipeoutTeam = wipeoutTeam
 GG.wipeoutAllyTeam = wipeoutAllyTeam
 
 local destroyThisFrame = {}
-local destroyThisFrameCount = 0
 
-function gadget:GameFrame(gf)
+function gadget:GameFrame(frame)
 	if next(destroyUnitQueue) then
 		-- Collect units to destroy first, since spDestroyUnit triggers synchronous
 		-- callins (UnitDestroyed -> TeamDied -> wipeoutAllyTeam) that can insert
 		-- new entries into destroyUnitQueue, causing "invalid key to 'next'"
-		destroyThisFrameCount = 0
 		for unitID, defs in pairs(destroyUnitQueue) do
-			if gf > defs.frame then
-				destroyThisFrameCount = destroyThisFrameCount + 1
-				destroyThisFrame[destroyThisFrameCount] = unitID
+			if frame > defs.frame then
+				destroyUnitQueue[unitID] = nil
+				destroyThisFrame[unitID] = defs
 			end
 		end
 
-		if destroyThisFrameCount > 0 then
+		if next(destroyThisFrame) then
 			local selfD = not GG.wipeoutWithWreckage
-			for i = 1, destroyThisFrameCount do
-				local unitID = destroyThisFrame[i]
-				local defs = destroyUnitQueue[unitID]
-				destroyUnitQueue[unitID] = nil
-				destroyThisFrame[i] = nil
-				if defs then
-					if defs.attackerUnitID then
-						spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
+			for unitID, defs in pairs(destroyThisFrame) do
+				destroyThisFrame[unitID] = nil
+				if defs.attackerUnitID then
+					spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
+				else
+					if selfD and isCommander[spGetUnitDefID(unitID)] then
+						spDestroyUnit(unitID, false, false) -- always leave commander wreckage (ffa reclaims all on early dropped players now)
 					else
-						if selfD and isCommander[spGetUnitDefID(unitID)] then
-							spDestroyUnit(unitID, false, false) -- always leave commander wreckage (ffa reclaims all on early dropped players now)
-						else
-							spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
-						end
+						spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
 					end
 				end
 			end
