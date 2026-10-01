@@ -8,8 +8,13 @@
 ---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
 ---@field isUnitState? boolean Has no baseline value. Drops any `multiply` and any unitdef scope.
 
----@type table<string, UnitAttributeDefinition>
-local definitions = {
+---@class WeaponAttributeDefinition
+---@field type "number"
+---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
+---@field perExplosion? boolean Composes for both weapons and the death and self-destruct explosions.
+
+---@type table<string, UnitAttributeDefinition?>
+local unitAttributes = {
 	losRadius = { type = "number" },
 	airLosRadius = { type = "number" },
 	radarRadius = { type = "number" },
@@ -32,14 +37,22 @@ local definitions = {
 	stealth = { type = "boolean" },
 	sonarStealth = { type = "boolean" },
 	seismicSignature = { type = "number" },
-	maxWeaponRange = { type = "number" },
-	reloadTime = { type = "number" },
 	experience = { type = "number", isUnitState = true },
 	cloaked = { type = "boolean", isUnitState = true },
 	shieldMaxPower = { type = "number" },
-	damage = { type = "number", multiplyOnly = true },
+}
+
+---@type table<string, WeaponAttributeDefinition?>
+local weaponAttributes = {
+	maxWeaponRange = { type = "number" },
+	reloadTime = { type = "number" },
+	damage = { type = "number", multiplyOnly = true, perExplosion = true },
+	-- The engine applies these as magnitudes relative to damage, so `damage` scales them, also.
+	impulse = { type = "number", multiplyOnly = true, perExplosion = true },
+	cratering = { type = "number", multiplyOnly = true, perExplosion = true },
 }
 
 return {
-	Definitions = definitions,
+	UnitAttributeDefinitions = unitAttributes,
+	WeaponAttributeDefinitions = weaponAttributes,
 }

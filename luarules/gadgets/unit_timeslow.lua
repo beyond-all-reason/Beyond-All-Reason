@@ -49,6 +49,7 @@ end
 
 local function applySlow(unitID, percent)
 	local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+	local setUnitWeaponModifier = GG.UnitAttributes.SetUnitWeaponModifier
 
 	if percent <= 0.0 then
 		setUnitModifier(unitID, "speed", nil, SOURCE)
@@ -56,7 +57,7 @@ local function applySlow(unitID, percent)
 		setUnitModifier(unitID, "maxAcc", nil, SOURCE)
 		setUnitModifier(unitID, "maxDec", nil, SOURCE)
 		setUnitModifier(unitID, "buildSpeed", nil, SOURCE)
-		setUnitModifier(unitID, "reloadTime", nil, SOURCE)
+		setUnitWeaponModifier(unitID, nil, "reloadTime", nil, SOURCE)
 		return
 	end
 
@@ -68,7 +69,7 @@ local function applySlow(unitID, percent)
 	setUnitModifier(unitID, "buildSpeed", moveFactor, SOURCE)
 
 	local reloadTime = 1 / math_max(1.0 - percent * 2.0, SLOW_RELOAD_RATE_MIN)
-	setUnitModifier(unitID, "reloadTime", reloadTime, SOURCE)
+	setUnitWeaponModifier(unitID, nil, "reloadTime", reloadTime, SOURCE)
 end
 
 local function updateSlow(unitID)
