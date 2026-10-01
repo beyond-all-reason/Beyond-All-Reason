@@ -47,8 +47,9 @@ for udefID, def in ipairs(UnitDefs) do
 	weaponCount[udefID] = #def.weapons
 end
 
-local destroyUnitQueue = {}
 local wipedoutTeams = {}
+local destroyUnitQueue = {} ---@type table<UnitID, UnitID|false> unitID : attackerID|false
+local destroyByFrame = {} ---@type table<integer, UnitID[]?>
 
 ---Neutralizes a team's units and queues them to explode
 ---@param teamID TeamID
@@ -86,10 +87,14 @@ local function wipeoutTeam(teamID, originX, originZ, attackerUnitID, periodMult)
 			end
 			maxDeathFrame = math_max(maxDeathFrame, deathFrame)
 			if destroyUnitQueue[unitID] == nil then
-				destroyUnitQueue[unitID] = {
-					frame = gameFrame + deathFrame,
-					attackerUnitID = attackerUnitID,
-				}
+				destroyUnitQueue[unitID] = attackerUnitID or false
+				local destroyFrame = gameFrame + deathFrame + 1
+				local units = destroyByFrame[destroyFrame]
+				if not units then
+					units = {}
+					destroyByFrame[destroyFrame] = units
+				end
+				units[#units + 1] = unitID
 			end
 
 			-- units are in a terminal state so we can skip the controller and set their attributes directly
@@ -146,33 +151,25 @@ end
 GG.wipeoutTeam = wipeoutTeam
 GG.wipeoutAllyTeam = wipeoutAllyTeam
 
-local destroyThisFrame = {}
-
 function gadget:GameFrame(frame)
-	if next(destroyUnitQueue) then
-		-- Collect units to destroy first, since spDestroyUnit triggers synchronous
-		-- callins (UnitDestroyed -> TeamDied -> wipeoutAllyTeam) that can insert
-		-- new entries into destroyUnitQueue, causing "invalid key to 'next'"
-		for unitID, defs in pairs(destroyUnitQueue) do
-			if frame > defs.frame then
-				destroyUnitQueue[unitID] = nil
-				destroyThisFrame[unitID] = defs
-			end
-		end
+	local units = destroyByFrame[frame]
+	if not units then
+		return
+	end
+	destroyByFrame[frame] = nil
 
-		if next(destroyThisFrame) then
-			local selfD = not GG.wipeoutWithWreckage
-			for unitID, defs in pairs(destroyThisFrame) do
-				destroyThisFrame[unitID] = nil
-				if defs.attackerUnitID then
-					spDestroyUnit(unitID, selfD, false, defs.attackerUnitID)
-				else
-					if selfD and isCommander[spGetUnitDefID(unitID)] then
-						spDestroyUnit(unitID, false, false) -- always leave commander wreckage (ffa reclaims all on early dropped players now)
-					else
-						spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
-					end
-				end
+	local selfD = not GG.wipeoutWithWreckage
+	for i = 1, #units do
+		local unitID = units[i]
+		local attackerUnitID = destroyUnitQueue[unitID]
+		destroyUnitQueue[unitID] = nil
+		if attackerUnitID then
+			spDestroyUnit(unitID, selfD, false, attackerUnitID)
+		else
+			if selfD and isCommander[spGetUnitDefID(unitID)] then
+				spDestroyUnit(unitID, false, false) -- always leave commander wreckage (ffa reclaims all on early dropped players now)
+			else
+				spDestroyUnit(unitID, selfD, false) -- if 4th arg is given, it cannot be nil (or engine complains)
 			end
 		end
 	end
