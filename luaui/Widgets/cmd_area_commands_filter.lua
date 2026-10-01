@@ -49,6 +49,11 @@ local FEATURE = "feature"
 local UNIT = "unit"
 
 local commandLimit = 2000
+local riversSelectionLimit = 80 -- use rivers slightly above its usefulness to be more consistent
+
+local SplitTargets = require("modules/split_targets")
+local splitRoundRobin = SplitTargets.RoundRobin
+local splitRivers = SplitTargets.Rivers
 
 local myAllyTeamID
 
@@ -327,28 +332,13 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 	end
 end
 
-local function splitTargets(selectedUnits, filteredTargets)
-	local unitTargetsMap = {}
-	for unitIdx, selectedUnitId in ipairs(selectedUnits) do
-		unitTargetsMap[selectedUnitId] = {}
-		for targetIdx, targetUnitId in ipairs(filteredTargets) do
-			if
-				targetIdx % #filteredTargets == unitIdx % #filteredTargets
-				or unitIdx % #selectedUnits == targetIdx % #selectedUnits
-			then
-				tableInsert(unitTargetsMap[selectedUnitId], targetUnitId)
-			end
-		end
-	end
-	return unitTargetsMap
-end
-
 --- Each unit gets a chunk of the queue
-local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
+local function splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
+	local split = splitStrategy or (selectedUnitsLen <= riversSelectionLimit and splitRivers) or splitRoundRobin
+	local unitTargetsMap = split(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		local selectedUnitTable = { selectedUnitId }
 		sortTargetsByDistance(selectedUnitTable, targets, true)
@@ -357,9 +347,9 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options)
 end
 
 --- All units share the same order queue. Queue can be distributed with shift+meta
-local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
+local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	if options.shift and options.meta then
-		splitOrders(cmdId, selectedUnits, filteredTargets, options)
+		splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	else
 		-- when meta is held it puts orders at the front of the queue so it reverses their order.
 		-- sorting has to be reversed to fix that
@@ -392,8 +382,9 @@ end
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+---@field splitStrategy function? Pins the split strategy instead of choosing it by selection size.
 
-local function commandConfig(targetTypes, targetAllegiance, handler)
+local function commandConfig(targetTypes, targetAllegiance, handler, splitStrategy)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -402,6 +393,7 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	config.handle = handler or defaultHandler
 	config.allowedTargetTypes = allowedTargetTypes
 	config.targetAllegiance = targetAllegiance
+	config.splitStrategy = splitStrategy
 	return config
 end
 
@@ -409,8 +401,9 @@ end
 local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
+	-- Set Target does not move the unit, so its split has no distance to shorten:
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
@@ -550,7 +543,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
+	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options, currentCommand.splitStrategy)
 	return true
 end
 

@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Area Attack Limiter",
-		desc = "Converts excess area-form attack commands to fight commands to reduce lag from large (air) engagements",
+		desc = "Splits large area-form attack commands into targeted attacks to reduce lag from large (air) engagements",
 		author = "Floris",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -16,12 +16,29 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
+-- Max non-bomber units allowed to use an area-form CMD_ATTACK.
+-- Commands expand into units x targets. Consider about 1000 targets.
+local AREA_LIMIT = 30
+-- Max targeted attack orders issued per area-form CMD_ATTACK.
+local COMMAND_LIMIT = 500
+
 local CMD_ATTACK = CMD.ATTACK
-local CMD_FIGHT = CMD.FIGHT
 local CMD_STOP = CMD.STOP
+local CMD_OPT_SHIFT = CMD.OPT_SHIFT
+local ENEMY_UNITS = Spring.ENEMY_UNITS
+
+local math_floor = math.floor
+local math_max = math.max
+local math_min = math.min
+local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
+local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
+
+local splitRivers = require("modules/split_targets").Rivers
 
 local isBombWeapon = {}
 for weaponDefID, weaponDef in pairs(WeaponDefs) do
@@ -42,16 +59,24 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
--- Max non-bomber units allowed to use an area-form CMD_ATTACK.
--- Excess units receive a FIGHT command to the area center instead,
--- which makes them converge and auto-engage without expanding the
--- command into too many target-specific attack orders.
-local BATCH_LIMIT = 30
-
 local isReissuing = false
 
+local function sortClosestFirst(unitID, targets)
+	local unitX, _, unitZ = spGetUnitPosition(unitID)
+	local distances = {}
+	for i = 1, #targets do
+		local targetID = targets[i]
+		local targetX, _, targetZ = spGetUnitPosition(targetID)
+		local dx, dz = targetX - unitX, targetZ - unitZ
+		distances[targetID] = dx * dx + dz * dz
+	end
+	table_sort(targets, function(a, b)
+		return distances[a] < distances[b]
+	end)
+end
+
 function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	-- Guard against re-entrancy: GiveOrderArrayToUnitArray can trigger CommandNotify again
+	-- Guard against re-entrancy: reissued orders can trigger CommandNotify again
 	if isReissuing then
 		return
 	end
@@ -63,7 +88,21 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local selUnits = spGetSelectedUnits()
-	local count = #selUnits
+
+	-- Only non-bombers are counted against AREA_LIMIT.
+	local attackers, bombers = {}, {} ---@type UnitID[], UnitID[]
+	for i = 1, #selUnits do
+		local unitID = selUnits[i]
+		local unitDefID = spGetUnitDefID(unitID)
+		if unitDefID and isBomberUnitDef[unitDefID] then
+			bombers[#bombers + 1] = unitID
+		else
+			attackers[#attackers + 1] = unitID
+		end
+	end
+	if #attackers <= AREA_LIMIT then
+		return
+	end
 
 	-- Preserve command options
 	local opts = 0
@@ -80,57 +119,46 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		opts = opts + CMD.OPT_RIGHT
 	end
 
-	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
+	local x, z, radius = cmdParams[1], cmdParams[3], cmdParams[4]
+	local handled = false
 
-	-- Split: bombers are always exempt from the batch limit.
-	-- Only non-bombers are counted against BATCH_LIMIT.
-	local attackUnits = {}
-	local fightUnits = {}
-	local nonBomberCount = 0
-	for i = 1, count do
-		local unitID = selUnits[i]
-		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID and isBomberUnitDef[unitDefID] then
-			attackUnits[#attackUnits + 1] = unitID
-		else
-			nonBomberCount = nonBomberCount + 1
-			if nonBomberCount <= BATCH_LIMIT then
-				attackUnits[#attackUnits + 1] = unitID
-			else
-				fightUnits[#fightUnits + 1] = unitID
-			end
-		end
-	end
-
-	-- If no non-bomber exceeded the limit, keep engine default behavior.
-	if #fightUnits == 0 then
-		return
-	end
-
-	-- Use SelectUnitArray + GiveOrder to go through the normal player input
-	-- pipeline. GiveOrderArrayToUnitArray doesn't reliably deliver area attack
-	-- commands (4-param CMD_ATTACK) to the engine.
 	isReissuing = true
 	CallAsTeam(Spring.GetLocalTeamID(), function()
-		Spring.SelectUnitArray(attackUnits)
-		if cmdOpts.shift then
-			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
-		else
-			Spring.GiveOrder(CMD_STOP, {}, 0)
-			Spring.GiveOrder(cmdID, cmdParams, opts + CMD.OPT_SHIFT)
+		local targets = spGetUnitsInCylinder(x, z, radius, ENEMY_UNITS)
+		if not targets[1] then
+			return
 		end
 
-		Spring.SelectUnitArray(fightUnits)
-		if cmdOpts.shift then
-			Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
-		else
-			Spring.GiveOrder(CMD_STOP, {}, 0)
-			Spring.GiveOrder(CMD_FIGHT, { x, y, z }, opts + CMD.OPT_SHIFT)
+		handled = true -- We go back through the normal input pipeline.
+
+		if bombers[1] ~= nil then
+			Spring.SelectUnitArray(bombers)
+			if not cmdOpts.shift then
+				Spring.GiveOrder(CMD_STOP, {}, 0)
+			end
+			-- FIXME: GiveOrderArrayToUnitArray doesn't reliably deliver area attack commands (4-param CMD_ATTACK).
+			Spring.GiveOrder(cmdID, cmdParams, opts + CMD_OPT_SHIFT)
+			Spring.SelectUnitArray(selUnits)
 		end
 
-		Spring.SelectUnitArray(selUnits)
+		local maxTargetsPerUnit = math_max(math_floor(COMMAND_LIMIT / #attackers), 1)
+		local targetsPerUnit = splitRivers(attackers, targets)
+		for i = 1, #attackers do
+			local unitID = attackers[i]
+			local unitTargets = targetsPerUnit[unitID]
+			sortClosestFirst(unitID, unitTargets)
+
+			local orders = {}
+			if not cmdOpts.shift then
+				orders[1] = { CMD_STOP, {}, 0 }
+			end
+			for j = 1, math_min(#unitTargets, maxTargetsPerUnit) do
+				orders[#orders + 1] = { CMD_ATTACK, { unitTargets[j] }, opts + CMD_OPT_SHIFT }
+			end
+			spGiveOrderArrayToUnit(unitID, orders)
+		end
 	end)
 	isReissuing = false
 
-	return true
+	return handled
 end
