@@ -217,10 +217,22 @@ local reloadScaleByDef = table.map(UnitDefs, function(unitDef, unitDefID)
 	return unitDef.weapons[1] ~= nil and 1.0 or false, unitDefID
 end) ---@as table<UnitDefID, 1|false>
 
+local shieldPowerByDef = table.map(UnitDefs, function(unitDef, unitDefID)
+	---@cast unitDef table
+	for _, weapon in ipairs(unitDef.weapons) do
+		local weaponDef = WeaponDefs[weapon.weaponDef] ---@as table?
+		if weaponDef and (weaponDef.shieldPower or 0) > 0 then
+			return weaponDef.shieldPower, unitDefID
+		end
+	end
+	return false, unitDefID
+end) ---@as table<UnitDefID, number|false>
+
 ---Computed at load for unit attributes that have no unitDef property.
 ---@type table<string, table<UnitDefID, (false|number)?>?>
 local derivedBaseByAttribute = {
 	reloadTime = reloadScaleByDef,
+	shieldMaxPower = shieldPowerByDef,
 }
 
 local baseValues = {} ---@type table<UnitDefID, table<string, any>?>
@@ -453,6 +465,9 @@ local applyUnitAttribute = {
 	end,
 	cloaked = spSetUnitCloak,
 
+	shieldMaxPower = function(unitID, value)
+		GG.Shields.SetUnitShieldMaxPower(unitID, value)
+	end,
 }
 
 local getUnitDefFactors, getUnitFactors ---@type function, function
