@@ -130,7 +130,7 @@ return {
 				texture2 = "smoketrailbar",
 				texture3 = "null",
 				tolerance = 4000,
-				turnrate = 5500,
+				turnrate = 12000,
 				weaponacceleration = 75,
 				weapontimer = 4,
 				weapontype = "StarburstLauncher",
