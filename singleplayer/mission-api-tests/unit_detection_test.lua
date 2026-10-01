@@ -452,127 +452,127 @@ local actions = {
 
 	messageAnyDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by any sensor: radar target made first contact." },
+		parameters = { messageKey = "Detected by any sensor: radar target made first contact." },
 	},
 
 	messageAnyUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected by any sensor: radar target contact lost entirely." },
+		parameters = { messageKey = "Undetected by any sensor: radar target contact lost entirely." },
 	},
 
 	messageRadarDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by radar." },
+		parameters = { messageKey = "Detected by radar." },
 	},
 
 	messageRadarUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected by radar: left radar range." },
+		parameters = { messageKey = "Undetected by radar: left radar range." },
 	},
 
 	messageVisionDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by vision." },
+		parameters = { messageKey = "Detected by vision." },
 	},
 
 	messageVisionUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected by vision: dropped to radar, still on sensors." },
+		parameters = { messageKey = "Undetected by vision: dropped to radar, still on sensors." },
 	},
 
 	messageSeismicDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by seismic: cloaked spy heard while moving." },
+		parameters = { messageKey = "Detected by seismic: cloaked spy heard while moving." },
 	},
 
 	messageSeismicUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected by seismic: spy left the ring and fell off." },
+		parameters = { messageKey = "Undetected by seismic: spy left the ring and fell off." },
 	},
 
 	messageRadarOrVisionDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by radar or vision: entered the mask at radar." },
+		parameters = { messageKey = "Detected by radar or vision: entered the mask at radar." },
 	},
 
 	messageRadarOrVisionUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected by radar or vision: left both, not merely one." },
+		parameters = { messageKey = "Undetected by radar or vision: left both, not merely one." },
 	},
 
 	messageSeismicOrVisionDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by seismic or vision: a mask with radar missing from the middle." },
+		parameters = { messageKey = "Detected by seismic or vision: a mask with radar missing from the middle." },
 	},
 
 	messageSeismicOrVisionUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected by seismic or vision: dropped into the unwatched radar level." },
+		parameters = { messageKey = "Undetected by seismic or vision: dropped into the unwatched radar level." },
 	},
 
 	messageAnyLevelDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected watching every level: first contact at radar." },
+		parameters = { messageKey = "Detected watching every level: first contact at radar." },
 	},
 
 	messageAnyLevelUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected watching every level: only after leaving all of them." },
+		parameters = { messageKey = "Undetected watching every level: only after leaving all of them." },
 	},
 
 	messageDeathDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected the target that will be destroyed while detected." },
+		parameters = { messageKey = "Detected the target that will be destroyed while detected." },
 	},
 
 	messageDeathUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "BUG: destroying a detected unit reported a loss of detection." },
+		parameters = { messageKey = "BUG: destroying a detected unit reported a loss of detection." },
 	},
 
 	messageUnscopedDetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected without a sensorAllyTeam: seen by a non-owning allyTeam." },
+		parameters = { messageKey = "Detected without a sensorAllyTeam: seen by a non-owning allyTeam." },
 	},
 
 	messageUnscopedUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected without a sensorAllyTeam." },
+		parameters = { messageKey = "Undetected without a sensorAllyTeam." },
 	},
 
 	messageOwningTeamMatches = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "owningTeamID matched the target's team." },
+		parameters = { messageKey = "owningTeamID matched the target's team." },
 	},
 
 	messageOwningTeamUndetected = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Undetected with an owningTeamID filter." },
+		parameters = { messageKey = "Undetected with an owningTeamID filter." },
 	},
 
 	messageOwningTeamExcludes = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "BUG: owningTeamID filter let through a unit of another team." },
+		parameters = { messageKey = "BUG: owningTeamID filter let through a unit of another team." },
 	},
 
 	messageBothNameFilters = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected with unitName and unitDefName both filtering." },
+		parameters = { messageKey = "Detected with unitName and unitDefName both filtering." },
 	},
 
 	messageUnitDefNameOnly = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "Detected by unitDefName alone, without a unitName." },
+		parameters = { messageKey = "Detected by unitDefName alone, without a unitName." },
 	},
 
 	messageUnitDefNameExcludes = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "BUG: unitDefName filter matched a unit def that was never spawned." },
+		parameters = { messageKey = "BUG: unitDefName filter matched a unit def that was never spawned." },
 	},
 
 	messageWrongSensorExcludes = {
 		type = actionTypes.SendMessage,
-		parameters = { message = "BUG: a seismic-only trigger reported a unit held on radar." },
+		parameters = { messageKey = "BUG: a seismic-only trigger reported a unit held on radar." },
 	},
 }
 

@@ -68,7 +68,7 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Build options test: select the construction bot and the bot lab; their menus change every 5 s.",
+			messageKey = "Build options test: select the construction bot and the bot lab; their menus change every 5 s.",
 		},
 	},
 
@@ -92,7 +92,7 @@ local actions = {
 	messageDisableSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Solar collector disabled for the whole team: greyed out for every builder.",
+			messageKey = "Solar collector disabled for the whole team: greyed out for every builder.",
 		},
 	},
 
@@ -118,7 +118,7 @@ local actions = {
 	messageDisableWindForBot = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Solar re-enabled. Wind turbine disabled for the construction bot only: the commander can still build it.",
+			messageKey = "Solar re-enabled. Wind turbine disabled for the construction bot only: the commander can still build it.",
 		},
 	},
 
@@ -141,7 +141,7 @@ local actions = {
 	messageRemoveOptions = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Wind re-enabled. Metal extractor removed from the construction bot, Pawn removed from the bot lab: gone from their menus.",
+			messageKey = "Wind re-enabled. Metal extractor removed from the construction bot, Pawn removed from the bot lab: gone from their menus.",
 		},
 	},
 
@@ -166,7 +166,7 @@ local actions = {
 	messageAddOptions = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Metal extractor back on the construction bot; the bot lab can now build the Rover. New units of both types get the same options.",
+			messageKey = "Metal extractor back on the construction bot; the bot lab can now build the Rover. New units of both types get the same options.",
 		},
 	},
 }

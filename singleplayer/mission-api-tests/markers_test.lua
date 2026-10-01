@@ -65,7 +65,7 @@ local actions = {
 	messageAddMarkers = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Two markers: a labelled one to remove by name, a bare one to leave until the end.',
+			messageKey = 'Two markers: a labelled one to remove by name, a bare one to leave until the end.',
 		},
 	},
 
@@ -99,7 +99,7 @@ local actions = {
 	messageDrawLines = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's draw a box and a triangle.",
+			messageKey = "Let's draw a box and a triangle.",
 		},
 	},
 
@@ -113,14 +113,14 @@ local actions = {
 	messageRemoveMarker = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's remove one marker by name.",
+			messageKey = "Let's remove one marker by name.",
 		},
 	},
 
 	messageRemoveLine = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's remove the box by name, leaving the triangle.",
+			messageKey = "Let's remove the box by name, leaving the triangle.",
 		},
 	},
 
@@ -142,7 +142,7 @@ local actions = {
 	messageRemoveAll = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's remove every marker and line, including the triangle.",
+			messageKey = "Let's remove every marker and line, including the triangle.",
 		},
 	},
 }

@@ -105,28 +105,28 @@ local actions = {
 	messagePassengerLoaded = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The passenger boarded a transport!",
+			messageKey = "The passenger boarded a transport!",
 		},
 	},
 
 	messagePawnLoadedByAtlas = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A pawn boarded an Atlas!",
+			messageKey = "A pawn boarded an Atlas!",
 		},
 	},
 
 	messagePassengerUnloaded = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The dropship unloaded the passenger!",
+			messageKey = "The dropship unloaded the passenger!",
 		},
 	},
 
 	messageTurretAttached = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: an attached turret counted as loaded into a transport!",
+			messageKey = "BUG: an attached turret counted as loaded into a transport!",
 		},
 	},
 

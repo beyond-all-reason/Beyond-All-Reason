@@ -172,42 +172,42 @@ local actions = {
 	messageRocksCreated = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Feature Test] Rocks were created in the area.",
+			messageKey = "[Feature Test] Rocks were created in the area.",
 		},
 	},
 
 	messageRockReclaimed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Feature Test] Named rock was reclaimed.",
+			messageKey = "[Feature Test] Named rock was reclaimed.",
 		},
 	},
 
 	messageRockDestroyed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Feature Test] Named rock was destroyed.",
+			messageKey = "[Feature Test] Named rock was destroyed.",
 		},
 	},
 
 	messageWreckResurrected = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Feature Test] Named wreck was resurrected.",
+			messageKey = "[Feature Test] Named wreck was resurrected.",
 		},
 	},
 
 	messageWreckDestroyed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Feature Test] Named wreck was destroyed.",
+			messageKey = "[Feature Test] Named wreck was destroyed.",
 		},
 	},
 
 	messageWreckDestroyedInZone = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Feature Test] An armllt wreck was destroyed inside the zone.",
+			messageKey = "[Feature Test] An armllt wreck was destroyed inside the zone.",
 		},
 	},
 }

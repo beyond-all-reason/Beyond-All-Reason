@@ -64,7 +64,7 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Pause test: the mission pauses at 5 s and again at 10 s. Order the flea to unpause.",
+			messageKey = "Pause test: the mission pauses at 5 s and again at 10 s. Order the flea to unpause.",
 		},
 	},
 
@@ -79,21 +79,21 @@ local actions = {
 	messagePaused = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Paused by the mission: no pause screen, and your pause key must not unpause it. Order the flea to continue.",
+			messageKey = "Paused by the mission: no pause screen, and your pause key must not unpause it. Order the flea to continue.",
 		},
 	},
 
 	messagePausedAgain = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Paused by the mission again. Order the flea to continue.",
+			messageKey = "Paused by the mission again. Order the flea to continue.",
 		},
 	},
 
 	messageUnpaused = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Unpaused by the mission.",
+			messageKey = "Unpaused by the mission.",
 		},
 	},
 }

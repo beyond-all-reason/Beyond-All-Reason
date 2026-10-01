@@ -90,7 +90,7 @@ local actions = {
 	messageAttackGround  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Some bots attacking ground.",
+			messageKey = "Some bots attacking ground.",
 		},
 	},
 
@@ -153,7 +153,7 @@ local actions = {
 	messageAttackNamedUnits  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Attacking targets by name, one by one.",
+			messageKey = "Attacking targets by name, one by one.",
 		},
 	},
 
@@ -197,7 +197,7 @@ local actions = {
 	messageReclaimWrecks  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Reclaiming the wrecks by name, one by one.",
+			messageKey = "Reclaiming the wrecks by name, one by one.",
 		},
 	},
 
@@ -232,7 +232,7 @@ local actions = {
 	messageFight = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Attacking using fight command.",
+			messageKey = "Attacking using fight command.",
 		},
 	},
 
@@ -258,7 +258,7 @@ local actions = {
 	messageArtilleryAreaAttack  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Attacking area.",
+			messageKey = "Attacking area.",
 		},
 	},
 
@@ -285,7 +285,7 @@ local actions = {
 	messageGuardEnergyGrid  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "They'll guard the fusions, one by one.",
+			messageKey = "They'll guard the fusions, one by one.",
 		},
 	},
 
@@ -304,7 +304,7 @@ local actions = {
 	messageReclaimEnergyGrid  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Move, then reclaim the fusions, one by one, and then move again.",
+			messageKey = "Move, then reclaim the fusions, one by one, and then move again.",
 		},
 	},
 
@@ -321,7 +321,7 @@ local actions = {
 	messageStop  = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Stop all that.",
+			messageKey = "Stop all that.",
 		},
 	},
 }

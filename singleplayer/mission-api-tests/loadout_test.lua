@@ -61,7 +61,7 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Loadout test: pre-spawned units and features are live. ' ..
+			messageKey = 'Loadout test: pre-spawned units and features are live. ' ..
 			          'Player con has an initial patrol order from loadout. ' ..
 			          'The wreck (featureName="the-wreck") will be destroyed.',
 		},
@@ -87,7 +87,7 @@ local actions = {
 	messageWreckDestroyed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Wreck destroyed via featureName tracking.',
+			messageKey = 'Wreck destroyed via featureName tracking.',
 		},
 	},
 
@@ -117,7 +117,7 @@ local actions = {
 	messageReinforcementsArrived = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck".',
+			messageKey = 'Reinforcements spawned via SpawnUnits + CreateFeatures. Con tracked as "reinforcement-con", wreck as "reinforcement-wreck".',
 		},
 	},
 
@@ -141,14 +141,14 @@ local actions = {
 	messageReinforcementsActedOn = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Reinforcement con moved and wreck destroyed via names registered by SpawnUnits + CreateFeatures.',
+			messageKey = 'Reinforcement con moved and wreck destroyed via names registered by SpawnUnits + CreateFeatures.',
 		},
 	},
 
 	messageEnd = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Loadout test complete.',
+			messageKey = 'Loadout test complete.',
 		},
 	},
 

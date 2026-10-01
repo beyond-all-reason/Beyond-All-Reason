@@ -271,31 +271,31 @@ local actions = {
 
 	reportQuickActivated = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: quick activated' },
+		parameters = { messageKey = 'MissionTest: quick activated' },
 	},
 	reportDoomedFailed = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: doomed failed' },
+		parameters = { messageKey = 'MissionTest: doomed failed' },
 	},
 	reportFlakyCanceled = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: flaky canceled' },
+		parameters = { messageKey = 'MissionTest: flaky canceled' },
 	},
 	reportLingeringCanceled = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: lingering canceled on exit' },
+		parameters = { messageKey = 'MissionTest: lingering canceled on exit' },
 	},
 	reportCountActivated = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: count activated' },
+		parameters = { messageKey = 'MissionTest: count activated' },
 	},
 	reportCountProgressed = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: count progressed' },
+		parameters = { messageKey = 'MissionTest: count progressed' },
 	},
 	reportComplete = {
 		type = actionTypes.SendMessage,
-		parameters = { message = 'MissionTest: complete' },
+		parameters = { messageKey = 'MissionTest: complete' },
 	},
 	victory = {
 		type = actionTypes.Victory,
