@@ -25482,7 +25482,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if paralyzer then
 		damage = damage * 0.1
 	end -- paralyzer visually counts for 1/10th
-	local maxHP = UnitDefs[unitDefID] and UnitDefs[unitDefID].health or 1
+	local maxHP = cache.unitMaxHealth[unitDefID] or 1
 	local intensity = math.min(1.0, damage / maxHP * 3) -- scale up so small hits are visible too
 	local existing = damageFlash[unitID]
 	if existing and (gameTime - existing.time) < DAMAGE_FLASH_DURATION then
