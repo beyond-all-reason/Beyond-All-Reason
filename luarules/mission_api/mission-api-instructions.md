@@ -124,8 +124,8 @@ breaking change to both the function and every mission using it.
 
 - `difficulties.json` is the difficulty enum, shared with the client: name → difficulty (`Story = 1`, `Easy = 2`,
   `Medium = 3`, `Hard = 4`), higher is harder. `GG['MissionAPI'].Difficulty` holds the current difficulty, fixed
-  per playthrough — nothing re-resolves at runtime. Until a selection source exists it defaults to the lowest
-  difficulty in the enum (`Modules.Difficulty.DefaultDifficulty`).
+  per playthrough — nothing re-resolves at runtime. Until a selection source exists, `api_missions.lua`
+  `Initialize()` defaults it to the lowest difficulty in the enum.
 - Any trigger parameter, action parameter, or objective field may be authored per difficulty:
   `seconds = { difficulties = { Medium = 60, Hard = 30 } }`. Resolution picks the exact difficulty, else the
   highest specified one below it, else the lowest specified one. Detection is by a non-nil `difficulties` key, not

@@ -8,12 +8,6 @@
 
 local difficulties = GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty
 
--- The default while no difficulty source exists: the lowest difficulty in the enum.
-local defaultDifficulty = math.huge
-for _, difficultyValue in pairs(difficulties) do
-	defaultDifficulty = math.min(defaultDifficulty, difficultyValue)
-end
-
 local function isDifficultiesTable(value)
 	return type(value) == "table" and value.difficulties ~= nil
 end
@@ -111,7 +105,6 @@ local function resolveObjectives(objectives)
 end
 
 return {
-	DefaultDifficulty = defaultDifficulty,
 	IsDifficultiesTable = isDifficultiesTable,
 	ResolveTriggers = resolveTriggers,
 	ResolveActions = resolveActions,

@@ -30,10 +30,6 @@ describe("mission_api.difficulty", function()
 		return actions.a.parameters.p
 	end
 
-	it("defaults to the lowest difficulty in the enum", function()
-		assert.are.equal(STORY, difficulty.DefaultDifficulty)
-	end)
-
 	describe("IsDifficultiesTable", function()
 		it("detects a table with a non-nil difficulties key", function()
 			assert.is_true(difficulty.IsDifficultiesTable({ difficulties = { Easy = 1 } }))

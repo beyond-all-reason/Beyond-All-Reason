@@ -48,10 +48,10 @@ local function loadMission(scriptPath)
 	end
 
 	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
-	local difficulty = GG["MissionAPI"].Modules.Difficulty
-	difficulty.ResolveTriggers(GG["MissionAPI"].Triggers)
-	difficulty.ResolveActions(GG["MissionAPI"].Actions)
-	difficulty.ResolveObjectives(GG["MissionAPI"].Objectives)
+	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
+	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
+	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
 
 	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
@@ -81,9 +81,15 @@ function gadget:Initialize()
 	GG["MissionAPI"].Countdowns = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	-- No difficulty source exists yet (e.g. a modoption); default to the lowest difficulty.
-	GG["MissionAPI"].Difficulty = GG["MissionAPI"].Modules.Difficulty.DefaultDifficulty
+	GG["MissionAPI"].Difficulty = table.reduce(
+		GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty,
+		function(lowest, difficulty)
+			return math.min(lowest, difficulty)
+		end,
+		math.huge
+	)
+	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
