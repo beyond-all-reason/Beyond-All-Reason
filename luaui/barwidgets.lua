@@ -25,6 +25,7 @@ do
 end
 
 local gl = gl
+local widgetManifestVerifier = VFS.Include(LUAUI_DIRNAME .. "Include/widget_manifest_verifier.lua", nil, VFS.ZIP)
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -48,8 +49,11 @@ Spring.SendCommands({
 	"echo LuaUI: bound F11 to the widget selector",
 })
 
-local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+local allowuserwidgets = true
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
+local onlyVerifiedUserWidgets = Spring.GetModOptions().userwidgetmode == "verified"
+-- Set in anonymous mode, where of the verified widgets only those the manifest marks anonymous_safe may load
+local onlyAnonymousSafeUserWidgets = false
 local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
@@ -57,7 +61,12 @@ local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
-	allowuserwidgets = false
+	-- Nothing checks an unverified widget hides players, so only reviewed ones get through
+	if onlyVerifiedUserWidgets then
+		onlyAnonymousSafeUserWidgets = true
+	else
+		allowuserwidgets = false
+	end
 
 	-- disabling individual Spring functions isn't really good enough
 	-- disabling user widget draw access would probably do the job but that wouldn't be easy to do
@@ -73,6 +82,8 @@ end
 if Spring.IsReplay() or Spring.GetSpectatingState() then
 	allowuserwidgets = true
 	allowunitcontrolwidgets = true
+	onlyVerifiedUserWidgets = false
+	onlyAnonymousSafeUserWidgets = false
 end
 
 widgetHandler = {
@@ -439,6 +450,35 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 end
 
+-- User files that passed manifest verification, the only ones LoadWidget reads raw in verified mode.
+local verifiedUserWidgetFiles = {}
+
+local function loadVerifiedUserWidgetFiles(widgetDirectory)
+	local widgetFiles, errors, notAnonymousSafe = widgetManifestVerifier.GetVerifiedWidgetFiles(
+		widgetDirectory,
+		{ requireAnonymousSafe = onlyAnonymousSafeUserWidgets }
+	)
+	for _, err in ipairs(errors) do
+		Spring.Echo("LuaUI: User widget verification failed: " .. err .. " (" .. widgetDirectory .. ")")
+	end
+	for _, widgetId in ipairs(notAnonymousSafe or {}) do
+		Spring.Echo("LuaUI: User widget not loaded in anonymous mode: " .. widgetId .. " (" .. widgetDirectory .. ")")
+	end
+	if not widgetFiles then
+		return
+	end
+
+	for _, file in ipairs(widgetFiles) do
+		verifiedUserWidgetFiles[file] = true
+		local widget = widgetHandler:LoadWidget(file, false)
+		local excludeWidget = widget and zipOnly[widget.whInfo.name]
+		if widget and not excludeWidget then
+			table.insert(unsortedWidgets, widget)
+			Yield()
+		end
+	end
+end
+
 local function CreateSandboxedSystem()
 	local function disabledOrder()
 		error(SANDBOXED_ERROR_MSG, 2)
@@ -479,9 +519,18 @@ function widgetHandler:Initialize()
 			CreateSandboxedSystem()
 		end
 
-		Spring.Echo("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
-		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
+		if onlyVerifiedUserWidgets then
+			Spring.Echo(
+				"LuaUI: Allowing Verified User Widgets"
+					.. (onlyAnonymousSafeUserWidgets and " (anonymous-safe only)" or "")
+			)
+			loadVerifiedUserWidgetFiles(WIDGET_DIRNAME)
+			loadVerifiedUserWidgetFiles(RML_WIDGET_DIRNAME)
+		else
+			Spring.Echo("LuaUI: Allowing User Widgets")
+			loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
+			loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
+		end
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
@@ -626,10 +675,16 @@ end
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(
-		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
-	)
+	local vfsMode = VFS.ZIP
+	if self.allowUserWidgets and allowuserwidgets and not reload then
+		if not onlyVerifiedUserWidgets then
+			vfsMode = VFS.RAW_FIRST
+		elseif verifiedUserWidgetFiles[filename] then
+			-- Game widgets stay on VFS.ZIP, so a raw file cannot shadow one under its path
+			vfsMode = VFS.RAW
+		end
+	end
+	local text = VFS.LoadFile(filename, vfsMode)
 	if text == nil then
 		return loadFailed(basename, "missing file: " .. filename)
 	end

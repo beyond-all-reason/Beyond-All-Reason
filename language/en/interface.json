@@ -3147,9 +3147,9 @@
 			"name": "Ranked Game",
 			"desc": "Should game results affect OpenSkill. Note that games with AI or games that are not balanced are always unranked."
 		},
-		"allowuserwidgets": {
-			"name": "Allow Custom Widgets",
-			"desc": "Allow custom user widgets or disallow them"
+		"userwidgetmode": {
+			"name": "Custom Widget Mode",
+			"desc": "Which custom user widgets may load"
 		},
 		"allowunitcontrolwidgets": {
 			"name": "Allow Custom 'Unit Control' Widgets",
