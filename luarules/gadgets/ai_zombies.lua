@@ -891,12 +891,16 @@ local function updateOrders(unitID, unitDefID)
 			zombieData.combatTargetID = nil
 		end
 		local retargetsEveryTick = capturingUnits[unitDefID] and not unitDefWeaponRanges[unitDefID]
-		if retargetsEveryTick or (not zombieData.combatTargetID and (capturingUnits[unitDefID] or unitDefWeaponRanges[unitDefID])) then
+		if
+			retargetsEveryTick
+			or (not zombieData.combatTargetID and (capturingUnits[unitDefID] or unitDefWeaponRanges[unitDefID]))
+		then
 			local closestKnownEnemy, nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange =
 				getNearestCombatTarget(unitID, unitDefID)
 			if nearestX then
 				zombieData.combatTargetID = closestKnownEnemy
-				targetX, targetZ, shouldCapture, weaponRange = nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange
+				targetX, targetZ, shouldCapture, weaponRange =
+					nearestX, nearestZ, nearestShouldCapture, nearestWeaponRange
 				rememberEnemyDirection(unitID, zombieData, targetX, targetZ)
 			end
 		end
