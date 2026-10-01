@@ -15,6 +15,7 @@ local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
 ---@field trackedFeatureIDs table<string, table<number, boolean>>
 ---@field trackedFeatureNames table<number, table<string, boolean>>
 ---@field markerNames table
+---@field lineNames table<string, table[]>
 ---@field soundFiles table<string, number>
 ---@field soundQueue table
 ---@field ManagedObjectives table
@@ -103,6 +104,7 @@ function MB.new()
 		trackedUnits = {}, -- array of { name, id }
 		trackedFeatures = {}, -- array of { name, id }
 		markerNames = {},
+		lineNames = {},
 		soundFiles = {},
 		soundQueue = {},
 		managedObjectives = {},
@@ -151,6 +153,14 @@ end
 ---@return MissionApiBuilder
 function MB:WithMarker(name, position)
 	self.markerNames[name] = position or true
+	return self
+end
+
+---@param name string
+---@param starts table[] start position of each drawn segment
+---@return MissionApiBuilder
+function MB:WithLine(name, starts)
+	self.lineNames[name] = starts
 	return self
 end
 
@@ -505,6 +515,7 @@ function MB:Build(installed)
 		trackedFeatureIDs = trackedFeatureIDs,
 		trackedFeatureNames = trackedFeatureNames,
 		markerNames = self.markerNames,
+		lineNames = self.lineNames,
 		soundFiles = self.soundFiles,
 		soundQueue = self.soundQueue,
 		ManagedObjectives = self.managedObjectives,
