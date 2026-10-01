@@ -810,6 +810,8 @@ local objectiveEventFields = {
 	"onProgress",
 	"onCompleted",
 	"onFailed",
+	"onHidden",
+	"onShown",
 }
 
 -- The TriggerID validator has already reported a trigger that does not exist.
