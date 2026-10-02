@@ -11,10 +11,10 @@
 -- (the ally teams read into the table, the gadget's last hand-over, the switches, the
 -- group picked in the sidebar). See gui_teamstats.lua for the fields.
 
-local Graph = VFS.Include("luaui/Include/graph.lua")
-local Custom = VFS.Include("luaui/Include/teamstats_custom.lua")
-local Editbox = VFS.Include("luaui/Include/keybind_editbox.lua")
-local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
+local Custom = require("luaui/Include/teamstats_custom")
+local Editbox = require("luaui/Include/keybind_editbox")
+local Graph = require("luaui/Include/graph")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
 
 local mathFloor = math.floor
 local mathMax = math.max
@@ -149,7 +149,7 @@ local MARKS = {
 }
 -- The charts that have no time, or no team, to mark.
 ---@type table<string, boolean?>
-local UNMARKED = { profile = true, wind = true, unitReport = true }
+local UNMARKED = { profile = true, wind = true, lavaLevel = true, unitReport = true }
 -- What kind of event a milestone is, as a badge on its picture - the picture is the unit, the
 -- frame the team's colour, the badge the kind - named once in the chart's title row: the first
 -- of something built, a tech level reached, an attack made, a loss taken. A team out of the
@@ -300,7 +300,7 @@ local PAGES = {
 }
 -- How many charts of a grid, or columns of the table's trend lines, are worked out again
 -- in a frame when the histories grow.
-local CATCH_UP_PER_FRAME = 2
+local CATCH_UP_PER_FRAME = 1
 -- A trend line has at most this many points: a cell is a few dozen pixels wide.
 local TREND_POINTS = 40
 
@@ -323,6 +323,7 @@ local CAUSE_COLORS = {
 	{ 0.55, 0.55, 0.55 },
 }
 local WIND_COLOR = { 0.6, 0.82, 1 }
+local LAVA_COLOR = { 1, 0.45, 0.12 }
 -- What dealt a loss or a kill, as the gadget tells them apart: the forces on the ground,
 -- aircraft, long-range artillery and nukes - earth, sky, fire and the flash.
 local DEALT_BY = { "ground", "air", "artillery", "nuke" }
@@ -429,6 +430,7 @@ local GADGET_CHARTS = {
 	ranking = true,
 	composition = true,
 	wind = true,
+	lavaLevel = true,
 	losses = true,
 	incomeMetal = true,
 	incomeEnergy = true,
@@ -439,9 +441,25 @@ local GADGET_CHARTS = {
 	unitReport = true,
 }
 
--- Whether the map has any wind to chart.
+-- Whether the map's wind changes at all: wind that always blows the same would chart as a
+-- flat line, and a map without any as a line along the floor.
 local function windy()
-	return (Game and Game.windMax or 0) > 0
+	return Game ~= nil and (Game.windMax or 0) > (Game.windMin or 0)
+end
+
+-- Whether the map's lava rises or falls at all, by the tides the map sets it: lava that stays
+-- where it starts would chart as a flat line.
+local function lavaMoves()
+	local lava = BAR and BAR.Lava
+	if not (lava and lava.isLavaMap) then
+		return false
+	end
+	for _, tide in ipairs(lava.tideRhythm or {}) do
+		if math.abs((tide[1] or lava.level) - lava.level) > 1 then
+			return true
+		end
+	end
+	return false
 end
 
 -- The team profile's axes, in the order they go round the wheel from the top.
@@ -513,21 +531,20 @@ local M = {}
 function M.new(ctx)
 	---@type table<string, any>
 	local page = {
+		-- Whether the page is up: the panel's pick is a category of graphs, not a table.
 		open = true,
 		stat = "damageDealt",
 		-- Units right-clicked off the chart, by key.
 		---@type table<string, boolean>
 		hidden = {},
 		-- The players picked in the legend bar, by "team<id>" key, however it groups them;
-		-- none is every team alike. They stand out on the chart, or with Remove unselected on
-		-- they are all it shows. Starts on the viewer's own team, when they have one and
-		-- Remove unselected is off.
+		-- none is every team alike, which is how it starts. They stand out on the chart,
+		-- or with Remove unselected on they are all it shows.
 		---@type table<string, boolean>
 		selected = {},
-		selectionSet = false,
-		-- The viewer's team as the last build saw it: a spectator can switch it.
-		---@type table?
-		viewer = nil,
+		-- The None button's pick: nothing selected, and not every team alike - all faded, or with
+		-- Remove unselected on nothing drawn - until a team is picked or All is pressed.
+		none = false,
 		-- Whether the units not picked are left off the charts rather than faded behind.
 		hideUnselected = false,
 		-- The axes of the profile wheel, as the last build read them.
@@ -563,7 +580,10 @@ function M.new(ctx)
 		typeStats = {},
 		---@type integer?
 		typesAsked = nil,
-		lastPeriod = -1,
+		-- [teamID] = the sample period its history was last asked for in. Per team, so a team
+		-- that comes into view - the other side at game over - is asked for at once.
+		---@type table<integer, integer>
+		askedPeriod = {},
 		-- Bumped when either history grows: what was worked out from it is worked out again.
 		version = 0,
 		-- Whether any team has a sample at all: tells a chart that waits for the first
@@ -630,12 +650,14 @@ function M.new(ctx)
 	-- The player's own categories, kept at the front of the panel's groups.
 	page.custom = Custom.new(ctx)
 
+	-- Its hits are only used until the next one: the cursor's, a frame at a time.
 	local chart = Graph.new({
 		kind = "line",
 		legend = false,
 		xUnit = "frames",
 		lineWidth = 2,
 		includeZero = true,
+		reuseHits = true,
 		look = { plotFill = { 0, 0, 0, 0.16 } },
 	})
 	page.chart = chart
@@ -655,7 +677,7 @@ function M.new(ctx)
 		if graph then
 			on = graph.grouped
 		end
-		return on and not ctx.soloTeams
+		return on and not ctx.ungrouped
 	end
 
 	-- The stat a chart shows, whatever its entry is called.
@@ -704,8 +726,24 @@ function M.new(ctx)
 	-- so a graph drawn per player keeps a pick of one player through a page grouped by
 	-- ally team, and back. A whole ally team's key is still read: "ally<id>" is all of its
 	-- players.
+	-- The keys made once a team, not every time a pick is looked up; nothing picked or hidden -
+	-- mostly the case - needs no key at all.
+	---@type table<integer, string>, table<integer, string>
+	local teamKeys, allyKeys = {}, {}
 	local function teamIn(set, team)
-		return set["team" .. team.id] == true or set["ally" .. team.allyID] == true
+		if next(set) == nil then
+			return false
+		end
+		local tk, ak = teamKeys[team.id], allyKeys[team.allyID]
+		if not tk then
+			tk = "team" .. team.id
+			teamKeys[team.id] = tk
+		end
+		if not ak then
+			ak = "ally" .. team.allyID
+			allyKeys[team.allyID] = ak
+		end
+		return set[tk] == true or set[ak] == true
 	end
 
 	-- Whether a unit is picked or hidden, whichever way it is grouped: a player goes with
@@ -758,7 +796,7 @@ function M.new(ctx)
 
 	-- The units a chart of these settings is drawn with: ally teams or players.
 	local function unitsFor(settings)
-		local list = (settings.grouped and not ctx.soloTeams) and page.allyUnits or page.playerUnits
+		local list = (settings.grouped and not ctx.ungrouped) and page.allyUnits or page.playerUnits
 		return list or page.units
 	end
 
@@ -847,7 +885,8 @@ function M.new(ctx)
 	end
 
 	function page.rebuildStatList()
-		local group = ctx.groupByKey[ctx.selectedGroup()] or ctx.GROUPS[1]
+		-- A table picked keeps the category the page last showed.
+		local group = ctx.groupByKey[ctx.selectedGroup()] or ctx.groupByKey[page.group or ""] or ctx.GROUPS[1]
 		if page.group ~= group.key then
 			-- A group of its own charts: the page shows them rather than staying on the one
 			-- that was open in the group before.
@@ -865,11 +904,12 @@ function M.new(ctx)
 			for _, graph in ipairs(group.graphs) do
 				local column = ctx.COLUMNS[graph.stat]
 				local needsGadget = column and (column.gadget or column.liveOnly) or GADGET_CHARTS[graph.stat]
-				-- The wind on a map without any would be a line along the floor, a count of the
+				-- The wind on a map where it never changes would be a flat line, a count of the
 				-- map's spots on one without them nothing.
 				if
 					(ctx.gadgetOn() or not needsGadget)
 					and (graph.stat ~= "wind" or windy())
+					and (graph.stat ~= "lavaLevel" or lavaMoves())
 					and (graph.stat ~= "ranking" or ctx.ranked())
 					and (not column or ctx.columnShown(column))
 				then
@@ -905,13 +945,16 @@ function M.new(ctx)
 				end
 			end
 			-- Charts that are no one column's: where the income comes from, what the combat's
-			-- losses were lost to, and the map's wind, on a map that has any.
+			-- losses were lost to, and the map's wind, on a map where it changes.
 			if group.key == "live" and ctx.gadgetOn() then
 				list[#list + 1] = { key = "incomeMetal", label = ctx.i18n("ui.teamStats.graph.incomeMetal") }
 				list[#list + 1] = { key = "incomeEnergy", label = ctx.i18n("ui.teamStats.graph.incomeEnergy") }
 			end
 			if group.key == "map" and ctx.gadgetOn() and windy() then
 				list[#list + 1] = { key = "wind", label = ctx.i18n("ui.teamStats.graph.wind") }
+			end
+			if group.key == "map" and ctx.gadgetOn() and lavaMoves() then
+				list[#list + 1] = { key = "lavaLevel", label = ctx.i18n("ui.teamStats.graph.lavaLevel") }
 			end
 			if group.key == "combat" and ctx.gadgetOn() then
 				list[#list + 1] = { key = "losses", label = ctx.i18n("ui.teamStats.graph.losses") }
@@ -955,7 +998,8 @@ function M.new(ctx)
 	-- The room the panel hands over, bottom-left to top-right, and the scale: the stat
 	-- list down the left, the legend bar along the top, the chart in the rest. The list's
 	-- card spans listY1..listY2 when given, so it lines up with the sidebar's beside it;
-	-- the bar runs to barX2 when given, past the charts' right edge.
+	-- the bar runs to barX2 when given, past the charts' right edge or short of the panel's
+	-- grouping switch. The bar is as tall as the strip the panel has along its top.
 	function page.setLayout(x1, y1, x2, y2, s, listY1, listY2, barX2)
 		page.scale = s
 		-- Kept so the page can lay itself out again when the list comes or goes without the
@@ -964,7 +1008,7 @@ function M.new(ctx)
 		page.listWas = page.listShown()
 		local gap = mathFloor(12 * s)
 		local listW = page.listShown() and mathFloor(200 * s) or -gap
-		local barH = ctx.metrics.rowHeight + mathFloor(8 * s)
+		local barH = ctx.metrics.barH
 		page.rects = {
 			list = { x1, listY1 or y1, x1 + mathMax(0, listW), listY2 or y2 },
 			-- The bar keeps its place whether the stat list shows or not: the list's card
@@ -1002,10 +1046,13 @@ function M.new(ctx)
 	end
 
 	-- Whether the charts are the picked units alone right now: the switch is on, it means
-	-- something in this game, and something is picked.
+	-- something in this game, and something is picked - or None was, which leaves nothing.
 	local function filtering()
 		if not (page.hideUnselected and page.filterOffered()) then
 			return false
+		end
+		if page.none then
+			return true
 		end
 		for _, u in ipairs(page.units) do
 			if isPicked(u) and not isHidden(u) then
@@ -1025,32 +1072,53 @@ function M.new(ctx)
 		return filterToggleRect()
 	end
 
-	-- The room the switch and its caption take at the end of the bar, which the team
-	-- blocks leave free.
-	local function filterReserve()
-		if not page.filterOffered() then
-			return 0
+	-- The switch's room and rect, and the Add to... button's, worked out once a layout (the
+	-- cursor asks for them every frame): kept with the rects they were worked out for, which
+	-- a layout - a new size, font or language - makes anew.
+	---@type { rects: table?, reserve: number, toggle: [number, number, number, number]?, addTo: [number, number, number, number]?, addToLabel: string? }
+	local laidOut = { rects = nil, reserve = 0, toggle = nil, addTo = nil, addToLabel = nil }
+	local function layoutParts()
+		local r = page.rects
+		if laidOut.rects == r then
+			return laidOut
 		end
+		laidOut.rects = r
 		local font = ctx.font()
 		local label = ctx.i18n("ui.teamStats.graph.hideUnselected")
 		local labelW = font and mathFloor(font:GetTextWidth(label) * ctx.metrics.catFs) or mathFloor(90 * page.scale)
-		return labelW + mathFloor(38 * page.scale) + ctx.metrics.sidePad + ctx.metrics.rowPad * 2
-	end
-
-	function filterToggleRect()
-		local r = page.rects
-		if not r or not page.filterOffered() then
-			return nil
-		end
+		laidOut.reserve = labelW + mathFloor(38 * page.scale) + ctx.metrics.sidePad + ctx.metrics.rowPad * 2
 		local togW = mathFloor(38 * page.scale)
 		local togH = mathFloor(ctx.metrics.rowHeight * 0.52)
 		local cy = mathFloor((r.bar[2] + r.bar[4]) * 0.5)
 		local x2 = r.bar[3]
-		return { x2 - togW, cy - mathFloor(togH * 0.5), x2, cy - mathFloor(togH * 0.5) + togH }
+		laidOut.toggle = { x2 - togW, cy - mathFloor(togH * 0.5), x2, cy - mathFloor(togH * 0.5) + togH }
+		local fs = ctx.metrics.catFs
+		local addLabel = ctx.i18n("ui.teamStats.custom.addTo")
+		local w = (font and mathFloor(font:GetTextWidth(addLabel) * fs) or #addLabel * fs * 0.55)
+			+ ctx.metrics.sidePad * 2
+		local h = mathFloor(ctx.metrics.rowHeight * 0.8)
+		laidOut.addTo, laidOut.addToLabel = { r.chart[3] - w, r.chart[4] - h, r.chart[3], r.chart[4] }, addLabel
+		return laidOut
 	end
 
-	function page.setFont(font, fontSize)
-		chart:configure({ font = font, fontSize = fontSize })
+	-- The room the switch and its caption take at the end of the bar, which the team
+	-- blocks leave free.
+	local function filterReserve()
+		if not page.rects or not page.filterOffered() then
+			return 0
+		end
+		return layoutParts().reserve
+	end
+
+	function filterToggleRect()
+		if not page.rects or not page.filterOffered() then
+			return nil
+		end
+		return layoutParts().toggle
+	end
+
+	function page.setFont(font, fontSize, nameFont)
+		chart:configure({ font = font, fontSize = fontSize, nameFont = nameFont or font })
 		page.dirty = true
 	end
 
@@ -1072,9 +1140,6 @@ function M.new(ctx)
 		local frame = ctx.frame()
 		local hub = ctx.hub()
 		local period = mathFloor(frame / 450)
-		local ask = hub ~= nil and period ~= page.lastPeriod
-		-- The period counts as asked for only once the hub took every request.
-		local sent = ask
 		-- The engine goes on counting after game over; the charts stop where the game did.
 		local over = ctx.overFrame()
 		for _, ally in ipairs(ctx.allies()) do
@@ -1103,16 +1168,14 @@ function M.new(ctx)
 						grew = true
 					end
 				end
-				if ask then
+				-- Asked for once a period, and counted as asked only once the hub took it.
+				if hub and page.askedPeriod[teamID] ~= period then
 					local g = page.gadget[teamID]
-					if not hub.requestHistory(teamID, (g and #g.frames or 0) + 1) then
-						sent = false
+					if hub.requestHistory(teamID, (g and #g.frames or 0) + 1) then
+						page.askedPeriod[teamID] = period
 					end
 				end
 			end
-		end
-		if sent then
-			page.lastPeriod = period
 		end
 		if grew then
 			page.version = page.version + 1
@@ -1175,9 +1238,15 @@ function M.new(ctx)
 
 	-- The gadget started over - a reload it could not pick up from: the samples and records held
 	-- here are its old run's, so they go, and are asked for again from the first.
+	-- Everything asked for again at the next refresh: the panel opened, or the game ended - its
+	-- last sample taken and the other side's numbers open to everyone.
+	function page.askAgain()
+		page.askedPeriod, page.typesAsked = {}, nil
+	end
+
 	function page.gadgetRestarted()
 		page.gadget, page.typeStats = {}, {}
-		page.lastPeriod, page.typesAsked = -1, nil
+		page.askAgain()
 		page.version = page.version + 1
 		page.dirty = true
 	end
@@ -1185,6 +1254,12 @@ function M.new(ctx)
 	-- The gadget's answer, through the panel's subscription.
 	function page.receiveHistory(teamID, h)
 		if not h or not h.frames or #h.frames == 0 then
+			return
+		end
+		-- Flat, as the gadget hands it over: its keys come with it from the layout. Without
+		-- them it cannot be read; the page asks again next period.
+		local flat, keys = rawget(h, "flat"), rawget(h, "keys")
+		if flat and not keys then
 			return
 		end
 		local g = page.gadget[teamID]
@@ -1195,17 +1270,34 @@ function M.new(ctx)
 			-- Out of step with what is held: start over from what came.
 			return
 		end
-		for i = 1, #h.frames do
+		local n = #h.frames
+		for i = 1, n do
 			g.frames[#g.frames + 1] = h.frames[i]
 		end
-		for key, run in pairs(h.values) do
-			local held = g.values[key]
-			if not held then
-				held = {}
-				g.values[key] = held
+		if flat then
+			-- Key k's values are the k-th run of n.
+			for k = 1, #keys do
+				local key = keys[k]
+				local held = g.values[key]
+				if not held then
+					held = {}
+					g.values[key] = held
+				end
+				local base, size = (k - 1) * n, #held
+				for i = 1, n do
+					held[size + i] = flat[base + i]
+				end
 			end
-			for i = 1, #run do
-				held[#held + 1] = run[i]
+		else
+			for key, run in pairs(h.values) do
+				local held = g.values[key]
+				if not held then
+					held = {}
+					g.values[key] = held
+				end
+				for i = 1, #run do
+					held[#held + 1] = run[i]
+				end
 			end
 		end
 		page.version = page.version + 1
@@ -1227,10 +1319,14 @@ function M.new(ctx)
 		return false
 	end
 
-	-- What was worked out from the histories, until they grow: runs and points by unit,
-	-- key and way.
-	---@type { version: integer, runs: table<string, table?>, points: table<string, table[]?> }
-	local worked = { version = -1, runs = {}, points = {} }
+	-- What was worked out from the histories: runs by unit, key and way, with their points.
+	-- Carried over as the histories grow - a new sample is added to a run rather than every
+	-- sample added up again - and dropped once nothing asked for them over a whole version.
+	---@type { version: integer, runs: table<string, table?> }
+	local worked = { version = -1, runs = {} }
+	-- A unit's members as part of a run's name, made once for a list of them.
+	---@type table<table, string>
+	local namesOfMembers = setmetatable({}, { __mode = "k" })
 
 	-- Where a team's history of a key is: the engine's entries hold its counters, the
 	-- gadget's samples the rest. The frames, and the entries or the runs by key.
@@ -1246,72 +1342,39 @@ function M.new(ctx)
 		return nil, nil, nil
 	end
 
-	-- The members' histories of `key` added up sample by sample and derived:
-	-- { xs = frames, ys = values, raws = values before a clamp or nil }, in frame order.
-	-- Only what the value is made of is added up - the key itself, or what derive() makes
-	-- it from. Every team is sampled at the same frames, so the members' samples are
-	-- added by place; members that are not (one out of the game early) by frame. Per
-	-- minute turns a running total into the rate between two samples. A clamp bounds the
-	-- value for the plot, keeping what it really was for the tooltip. Kept until the
-	-- histories grow: every chart and trend line of a unit and stat is worked out once.
-	local function runOf(members, key, perMinute, clamp)
-		if worked.version ~= page.version then
-			worked.version, worked.runs, worked.points = page.version, {}, {}
+	-- Adds to a run its members' samples it has not had yet: the inputs added up by place
+	-- when the members share their frames, else by frame, then derived, bounded and turned
+	-- into a rate as the run is asked for. `run.had[m]` is how many of member m's samples it
+	-- has, `run.last` the frame it got to.
+	local function accumulate(run)
+		local spec = run.spec
+		local fs, es, gs, had, n = run.fs, run.es, run.gs, run.had, run.n
+		if n == 0 then
+			return
 		end
-		local id = tableConcat(members, ",")
-			.. "|"
-			.. key
-			.. (perMinute and "|m" or "")
-			.. (clamp and ("|" .. clamp[1] .. ":" .. clamp[2]) or "")
-		local held = worked.runs[id]
-		if held then
-			return held, id
-		end
-		local inputs = ctx.derivedInputs[key]
-		local derived = inputs ~= nil
-		inputs = inputs or { key }
-		local first = inputs[1]
-		local column = ctx.COLUMNS[key]
-		local once = column ~= nil and column.ally == true
-
-		-- The members' histories, and whether they all run over the same frames.
-		---@type number[][], (table[]|false)[], (table<string, number[]>|false)[], integer
-		local fs, es, gs, n = {}, {}, {}, 0
-		---@type number[]?
-		local frames = nil
-		local aligned = true
-		for _, teamID in ipairs(members) do
-			local f, entries, values = sourceOf(teamID, first)
-			if f and #f > 0 then
-				n = n + 1
-				fs[n], es[n], gs[n] = f, entries or false, values or false
-				if not frames then
-					frames = f
-				elseif #f ~= #frames or f[1] ~= frames[1] or f[#f] ~= frames[#frames] then
-					aligned = false
-				end
-			end
-		end
-		local run = { xs = {}, ys = {}, raws = nil }
-		worked.runs[id] = run
-		if not frames then
-			return run, id
-		end
-
-		-- Added up by place, or by frame onto the frames they have between them.
+		local inputs, key, once = spec.inputs, spec.key, spec.once
+		-- The frames to add. By place: the first member's past what the run had. By frame:
+		-- every member's past it, in order, each once.
 		---@type number[]
-		local at = frames
+		local at
 		---@type table<number, integer>?
 		local place = nil
-		if not aligned then
+		if run.aligned then
+			at = {}
+			local f = fs[1]
+			for i = had[1] + 1, #f do
+				at[#at + 1] = f[i]
+			end
+		else
 			local seen = {}
 			at = {}
 			for m = 1, n do
 				local f = fs[m]
-				for i = 1, #f do
-					if not seen[f[i]] then
-						seen[f[i]] = true
-						at[#at + 1] = f[i]
+				for i = had[m] + 1, #f do
+					local frame = f[i]
+					if not seen[frame] then
+						seen[frame] = true
+						at[#at + 1] = frame
 					end
 				end
 			end
@@ -1321,6 +1384,9 @@ function M.new(ctx)
 				place[at[i]] = i
 			end
 		end
+		if #at == 0 then
+			return
+		end
 		---@type table<string, number[]>
 		local sums = {}
 		for j = 1, #inputs do
@@ -1329,7 +1395,8 @@ function M.new(ctx)
 			for m = 1, n do
 				local f, entries, values = fs[m], es[m], gs[m]
 				local vs = values and values[k]
-				for i = 1, #f do
+				local from = had[m]
+				for i = from + 1, #f do
 					local v
 					if entries then
 						local entry = entries[i]
@@ -1338,7 +1405,7 @@ function M.new(ctx)
 						v = vs[i]
 					end
 					if v then
-						local slot = place and place[f[i]] or i
+						local slot = place and place[f[i]] or i - from
 						if once then
 							acc[slot] = acc[slot] or v
 						else
@@ -1349,18 +1416,21 @@ function M.new(ctx)
 			end
 			sums[k] = acc
 		end
+		for m = 1, n do
+			had[m] = #fs[m]
+		end
+		run.last = at[#at]
 
-		-- One sample's sums at a time, for derive() to read.
+		-- One sample's sums at a time, for derive() to read. The run keeps the range of the
+		-- values it holds as they come.
 		local scratch = {}
 		local xs, ys = run.xs, run.ys
-		---@type number[]?
-		local raws = nil
-		---@type number?, number
-		local previous, previousFrame = nil, 0
+		local clamp, perMinute = spec.clamp, spec.perMinute
+		local low, high = run.low, run.high
 		for i = 1, #at do
 			local frame = at[i]
 			local v
-			if derived then
+			if spec.derived then
 				local complete = true
 				for j = 1, #inputs do
 					local k = inputs[j]
@@ -1385,40 +1455,182 @@ function M.new(ctx)
 				end
 				if v ~= mathHuge and v ~= -mathHuge then
 					if perMinute then
+						local previous = run.previous
 						if previous then
-							local minutes = (frame - previousFrame) / 1800
+							local minutes = (frame - run.previousFrame) / 1800
+							local rate = minutes > 0 and (v - previous) / minutes or 0
 							xs[#xs + 1] = frame
-							ys[#ys + 1] = minutes > 0 and (v - previous) / minutes or 0
+							ys[#ys + 1] = rate
+							low, high = mathMin(low, rate), mathMax(high, rate)
 						end
-						previous, previousFrame = v, frame
+						run.previous, run.previousFrame = v, frame
 					else
 						xs[#xs + 1] = frame
 						ys[#ys + 1] = v
+						low, high = mathMin(low, v), mathMax(high, v)
 						if raw ~= v then
-							raws = raws or {}
-							raws[#xs] = raw
+							run.raws = run.raws or {}
+							run.raws[#xs] = raw
 						end
 					end
 				end
 			end
 		end
-		run.raws = raws
+		run.low, run.high = low, high
+	end
+
+	-- A run's members with a history of what it is made of, read afresh: which of them have
+	-- one, their frames and entries or runs, and whether they all run over the same frames.
+	local function sourcesOf(members, first)
+		---@type number[][], (table[]|false)[], (table<string, number[]>|false)[], integer
+		local fs, es, gs, n = {}, {}, {}, 0
+		local aligned = true
+		---@type number[]?
+		local frames = nil
+		for _, teamID in ipairs(members) do
+			local f, entries, values = sourceOf(teamID, first)
+			if f and #f > 0 then
+				n = n + 1
+				fs[n], es[n], gs[n] = f, entries or false, values or false
+				if not frames then
+					frames = f
+				elseif #f ~= #frames or f[1] ~= frames[1] or f[#f] ~= frames[#frames] then
+					aligned = false
+				end
+			end
+		end
+		return fs, es, gs, n, aligned
+	end
+
+	-- The runs of a gadget history a run adds up, by input: another in their place is another
+	-- history, however alike.
+	local function arraysOf(values, inputs)
+		local list = {}
+		for j = 1, #inputs do
+			list[j] = values[inputs[j]] or false
+		end
+		return list
+	end
+
+	-- Whether a run can take its members' new samples as they are: the same histories it
+	-- read, grown only at their ends, past the frame it got to; and still sharing their
+	-- frames when it added them up by place.
+	local function growsOn(run, fs, es, gs, n, aligned)
+		if n ~= run.n or aligned ~= run.aligned then
+			return false
+		end
+		local inputs = run.spec.inputs
+		for m = 1, n do
+			local f = fs[m]
+			if f ~= run.fs[m] or es[m] ~= run.es[m] or gs[m] ~= run.gs[m] then
+				return false
+			end
+			local values = gs[m]
+			if values then
+				local arrays = run.arrays[m]
+				for j = 1, #inputs do
+					if (values[inputs[j]] or false) ~= arrays[j] then
+						return false
+					end
+				end
+			end
+			local had = run.had[m]
+			if #f < had or (#f > had and run.last and f[had + 1] <= run.last) then
+				return false
+			end
+		end
+		return true
+	end
+
+	-- The members' histories of `key` added up sample by sample and derived:
+	-- { xs = frames, ys = values, raws = values before a clamp or nil }, in frame order.
+	-- Only what the value is made of is added up - the key itself, or what derive() makes
+	-- it from. Every team is sampled at the same frames, so the members' samples are
+	-- added by place; members that are not (one out of the game early) by frame. Per
+	-- minute turns a running total into the rate between two samples. A clamp bounds the
+	-- value for the plot, keeping what it really was for the tooltip. Worked out once for
+	-- every chart and trend line of a unit and stat, and as the histories grow, the new
+	-- samples added to it; from scratch again when a history was replaced or a member
+	-- came to have one.
+	local function runOf(members, key, perMinute, clamp)
+		if worked.version ~= page.version then
+			-- What nothing asked for over the last version goes.
+			local kept = worked.version
+			for id, run in pairs(worked.runs) do
+				if run.asked < kept then
+					worked.runs[id] = nil
+				end
+			end
+			worked.version = page.version
+		end
+		local names = namesOfMembers[members]
+		if not names then
+			names = tableConcat(members, ",")
+			namesOfMembers[members] = names
+		end
+		local id = names
+			.. "|"
+			.. key
+			.. (perMinute and "|m" or "")
+			.. (clamp and ("|" .. clamp[1] .. ":" .. clamp[2]) or "")
+		local run = worked.runs[id]
+		if run and run.version == page.version then
+			run.asked = page.version
+			return run, id
+		end
+		local inputs = ctx.derivedInputs[key]
+		local fs, es, gs, n, aligned = sourcesOf(members, (inputs or { key })[1])
+		if not (run and growsOn(run, fs, es, gs, n, aligned)) then
+			local column = ctx.COLUMNS[key]
+			run = {
+				xs = {},
+				ys = {},
+				raws = nil,
+				spec = {
+					key = key,
+					inputs = inputs or { key },
+					derived = inputs ~= nil,
+					once = column ~= nil and column.ally == true,
+					perMinute = perMinute,
+					clamp = clamp,
+				},
+				fs = fs,
+				es = es,
+				gs = gs,
+				n = n,
+				aligned = aligned,
+				had = {},
+				last = nil,
+				low = mathHuge,
+				high = -mathHuge,
+			}
+			run.arrays = {}
+			for m = 1, n do
+				run.had[m] = 0
+				if gs[m] then
+					run.arrays[m] = arraysOf(gs[m], run.spec.inputs)
+				end
+			end
+			worked.runs[id] = run
+		end
+		accumulate(run)
+		run.version, run.asked = page.version, page.version
 		return run, id
 	end
 
-	-- The same as points for a chart: { { frame, value, raw }, ... }.
+	-- The same as points for a chart: { { frame, value, raw }, ... }, kept with the run and
+	-- grown with it.
 	local function pointsOf(members, key, perMinute, clamp)
-		local run, id = runOf(members, key, perMinute, clamp)
-		local points = worked.points[id]
-		if points then
-			return points
+		local run = runOf(members, key, perMinute, clamp)
+		local points = run.points
+		if not points then
+			points = {}
+			run.points = points
 		end
-		points = {}
 		local xs, ys, raws = run.xs, run.ys, run.raws
-		for i = 1, #xs do
+		for i = #points + 1, #xs do
 			points[i] = { xs[i], ys[i], raws and raws[i] or nil }
 		end
-		worked.points[id] = points
 		return points
 	end
 
@@ -1434,6 +1646,28 @@ function M.new(ctx)
 	-- shown meanwhile, and the list the lines are baked in is made again once all have.
 	---@type { sig: string, rows: table[], lines: table<string, table>, gen: integer, caught: integer, list: integer?, listFor: string? }
 	local trend = { sig = "", rows = {}, lines = {}, gen = 0, caught = -1, list = nil, listFor = nil }
+	-- That list is made again at every hand-over as well - the numbers beside the lines change
+	-- their width, rows move - so each row's lines are baked into a list of their own where
+	-- the table put them, and the trend list calls the rows' lists: a row's own list is made
+	-- again only when its lines, their places or its colour changed. Its lines are drawn point
+	-- by point in it, which the engine replays at little cost (each line a list of its own,
+	-- placed by a matrix, was tried: it cost several times as much a frame). [rowKey] = { list,
+	-- n, cells = { x, y, w, h, ... }, lines = { line, ... }, r, g, b, a, width }
+	---@type table<string, table>
+	local trendRowLists = {}
+	-- The row being handed over cell by cell, and the rows' lists the trend list calls.
+	---@type { rowKey: string?, n: integer, cells: number[], lines: table[], r: number, g: number, b: number, a: number, width: number }
+	local gather = { rowKey = nil, n = 0, cells = {}, lines = {}, r = 0, g = 0, b = 0, a = 0, width = 1 }
+	---@type integer[]
+	local shownRows = {}
+
+	-- Every row's own list, deleted: the rows changed, the layout did, or the page goes.
+	local function dropRowLists()
+		for _, row in pairs(trendRowLists) do
+			gl.DeleteList(row.list)
+		end
+		trendRowLists = {}
+	end
 
 	function page.setTrendRows(list)
 		-- Which rows there are, not the order they are sorted in: a table sorted by a number
@@ -1446,6 +1680,7 @@ function M.new(ctx)
 		local sig = tableConcat(parts, "|")
 		trend.rows = list
 		if sig ~= trend.sig then
+			dropRowLists()
 			trend.sig, trend.lines = sig, {}
 			trend.gen = trend.gen + 1
 		end
@@ -1462,13 +1697,11 @@ function M.new(ctx)
 		local yMin, yMax = mathHuge, -mathHuge
 		for _, row in ipairs(trend.rows) do
 			local run = runOf(row.members, key, perMinute, column and column.clamp)
-			local xs, ys = run.xs, run.ys
+			local xs = run.xs
 			if #xs > 1 then
 				runs[row.key] = run
 				xMin, xMax = mathMin(xMin, xs[1]), mathMax(xMax, xs[#xs])
-				for i = 1, #ys do
-					yMin, yMax = mathMin(yMin, ys[i]), mathMax(yMax, ys[i])
-				end
+				yMin, yMax = mathMin(yMin, run.low), mathMax(yMax, run.high)
 			end
 		end
 		local lines = {}
@@ -1481,11 +1714,15 @@ function M.new(ctx)
 				local xs, ys = run.xs, run.ys
 				local n = #xs
 				local stride = mathMax(1, math.ceil(n / TREND_POINTS))
-				for i = 1, n do
-					if (i - 1) % stride == 0 or i == n then
-						line[#line + 1] = (xs[i] - xMin) / (xMax - xMin)
-						line[#line + 1] = span > 0 and (ys[i] - lo) / span or 0.5
-					end
+				local width = xMax - xMin
+				-- Every stride-th sample from the first, and the last.
+				for i = 1, n, stride do
+					line[#line + 1] = (xs[i] - xMin) / width
+					line[#line + 1] = span > 0 and (ys[i] - lo) / span or 0.5
+				end
+				if (n - 1) % stride ~= 0 then
+					line[#line + 1] = (xs[n] - xMin) / width
+					line[#line + 1] = span > 0 and (ys[n] - lo) / span or 0.5
 				end
 				lines[rowKey] = line
 			end
@@ -1524,9 +1761,8 @@ function M.new(ctx)
 		end
 	end
 
-	-- One cell's line, drawn into the rect the table gives it, while the trend list is
-	-- made. The vertices come from one function with the line in upvalues, not a closure
-	-- a cell.
+	-- One cell's line, drawn into its rect while its row's list is made. The vertices come
+	-- from one function with the line in upvalues, not a closure a cell.
 	---@type number[], number, number, number, number
 	local cellLine, cellX, cellY, cellW, cellH = {}, 0, 0, 0, 0
 	local function cellVertices()
@@ -1535,7 +1771,72 @@ function M.new(ctx)
 		end
 	end
 
-	function page.drawTrend(rowKey, key, perMinute, x1, y1, x2, y2, color, width)
+	-- A row's lines, into its own list: its width and colour once, a strip a cell.
+	local function drawRow(row)
+		gl.LineWidth(row.width)
+		gl.Color(row.r, row.g, row.b, row.a)
+		local cells, lines = row.cells, row.lines
+		for i = 1, row.n do
+			local at = i * 4
+			cellLine, cellX, cellY, cellW, cellH = lines[i], cells[at - 3], cells[at - 2], cells[at - 1], cells[at]
+			gl.BeginEnd(GL.LINE_STRIP, cellVertices)
+		end
+	end
+
+	-- The row handed over: its list kept when nothing about it changed, else made again.
+	local function flushRow()
+		local rowKey, n = gather.rowKey, gather.n
+		gather.rowKey, gather.n = nil, 0
+		if not rowKey or n == 0 then
+			return
+		end
+		---@type table?
+		local row = trendRowLists[rowKey]
+		local same = row ~= nil
+			and row.n == n
+			and row.width == gather.width
+			and row.r == gather.r
+			and row.g == gather.g
+			and row.b == gather.b
+			and row.a == gather.a
+		if same then
+			---@cast row -?
+			local had, now = row.cells, gather.cells
+			for i = 1, n * 4 do
+				if had[i] ~= now[i] then
+					same = false
+					break
+				end
+			end
+			local hadLines, nowLines = row.lines, gather.lines
+			for i = 1, same and n or 0 do
+				if hadLines[i] ~= nowLines[i] then
+					same = false
+					break
+				end
+			end
+		end
+		if not same then
+			if row then
+				gl.DeleteList(row.list)
+			else
+				row = { cells = {}, lines = {} }
+				trendRowLists[rowKey] = row
+			end
+			-- The cells handed over become the row's; its old arrays take the next row's.
+			row.cells, gather.cells = gather.cells, row.cells
+			row.lines, gather.lines = gather.lines, row.lines
+			row.n, row.width = n, gather.width
+			row.r, row.g, row.b, row.a = gather.r, gather.g, gather.b, gather.a
+			row.list = gl.CreateList(drawRow, row)
+		end
+		---@cast row -?
+		shownRows[#shownRows + 1] = row.list
+	end
+
+	-- One cell's line and the rect the table gives it, handed over by `ctx.trendRows` row by
+	-- row - a row's cells in its one colour.
+	function page.trendCell(rowKey, key, perMinute, x1, y1, x2, y2, color, width)
 		local line = trendLines(key, perMinute)[rowKey]
 		if not line or #line < 4 then
 			return false
@@ -1544,16 +1845,24 @@ function M.new(ctx)
 		if w <= 2 or h <= 2 then
 			return false
 		end
-		gl.LineWidth(width or 1)
-		gl.Color(color[1], color[2], color[3], color[4] or 0.5)
-		cellLine, cellX, cellY, cellW, cellH = line, x1, y1, w, h
-		gl.BeginEnd(GL.LINE_STRIP, cellVertices)
+		if gather.rowKey ~= rowKey then
+			flushRow()
+			gather.rowKey = rowKey
+			gather.r, gather.g, gather.b, gather.a = color[1], color[2], color[3], color[4] or 0.5
+			gather.width = width or 1
+		end
+		local n = gather.n + 1
+		gather.n = n
+		local cells, at = gather.cells, n * 4
+		cells[at - 3], cells[at - 2], cells[at - 1], cells[at] = x1, y1, w, h
+		gather.lines[n] = line
 		return true
 	end
 
-	-- The table's trend lines, from a list of their own made by `ctx.trendRows`: the table
-	-- is baked again whenever the cursor moves onto another row, and would draw every line
-	-- again with it. Made again when the rows, the scroll, the layout or the lines change.
+	-- The table's trend lines, from a list of their own: the table is baked again whenever
+	-- the cursor moves onto another row, and would draw every line again with it. Made again
+	-- when the rows, the scroll, the layout or the lines change - the rows' own lists first,
+	-- where they changed, as a list is not made while another one is.
 	function page.drawTrendList(rowsGen, scroll, layoutGen)
 		trendCatchUp()
 		local sig = rowsGen .. "|" .. scroll .. "|" .. layoutGen .. "|" .. trend.gen
@@ -1561,11 +1870,18 @@ function M.new(ctx)
 			if trend.list then
 				gl.DeleteList(trend.list)
 			end
+			for i = #shownRows, 1, -1 do
+				shownRows[i] = nil
+			end
+			ctx.trendRows()
+			flushRow()
 			trend.list = gl.CreateList(function()
 				if gl.Smoothing then
 					gl.Smoothing(false, true, false)
 				end
-				ctx.trendRows()
+				for i = 1, #shownRows do
+					gl.CallList(shownRows[i])
+				end
 				gl.LineWidth(1)
 				if gl.Smoothing then
 					gl.Smoothing(false, false, false)
@@ -1582,6 +1898,7 @@ function M.new(ctx)
 			gl.DeleteList(trend.list)
 			trend.list, trend.listFor = nil, nil
 		end
+		dropRowLists()
 	end
 
 	----------------------------------------------------------------
@@ -1622,7 +1939,10 @@ function M.new(ctx)
 			local unit = {
 				key = "ally" .. ally.id,
 				allyID = ally.id,
-				name = ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
+				-- A side of one player goes by that player's name: its number would say
+				-- nothing beside it.
+				name = (#ally.teams == 1 and ally.teams[1].name)
+					or ctx.i18n("ui.teamStats.team", { number = ally.id + 1 }),
 				color = first and { first.accent[1], first.accent[2], first.accent[3] } or { 0.8, 0.8, 0.8 },
 				members = members,
 				teams = ally.teams,
@@ -1666,63 +1986,6 @@ function M.new(ctx)
 		end
 		page.selected = perPlayer(page.selected)
 		page.hidden = perPlayer(page.hidden)
-		-- A spectator switching the team they watch: a selection that was that team alone,
-		-- or its whole ally team, goes with them as the first selection did; one they picked
-		-- themselves stays.
-		---@type table?
-		local viewer = nil
-		for _, ally in ipairs(allies) do
-			for _, team in ipairs(ally.teams) do
-				if team.isLocal then
-					viewer = team
-				end
-			end
-		end
-		local was = page.viewer
-		if was and viewer and was.id ~= viewer.id then
-			local function teamsOf(allyID)
-				local keys = {}
-				local unit = byKey["ally" .. allyID]
-				for _, team in ipairs(unit and unit.teams or {}) do
-					keys["team" .. team.id] = true
-				end
-				return keys
-			end
-			---@return boolean
-			local function exactly(keys)
-				local n, want = 0, 0
-				for key in pairs(page.selected) do
-					if not keys[key] then
-						return false
-					end
-					n = n + 1
-				end
-				for _ in pairs(keys) do
-					want = want + 1
-				end
-				return n > 0 and n == want
-			end
-			local wasTeam = exactly({ ["team" .. was.id] = true })
-			local wasAlly = exactly(teamsOf(was.allyID))
-			if wasAlly and (grouped() or not wasTeam) then
-				page.selected = teamsOf(viewer.allyID)
-			elseif wasTeam then
-				page.selected = { ["team" .. viewer.id] = true }
-			end
-		end
-		page.viewer = viewer and { id = viewer.id, allyID = viewer.allyID } or nil
-		-- The first selection is the viewer's own unit - unless Remove unselected is on, when
-		-- every chart would open on them alone in every game; a cleared one stays cleared.
-		if not page.selectionSet then
-			page.selectionSet = true
-			if not page.hideUnselected then
-				for _, unit in ipairs(units) do
-					if unit.isLocal then
-						setTeams(page.selected, unit, true)
-					end
-				end
-			end
-		end
 		layoutBar()
 	end
 
@@ -1739,25 +2002,33 @@ function M.new(ctx)
 		local pad = ctx.metrics.sidePad
 		local fs = ctx.metrics.catFs
 		local font = ctx.font()
-		local function widthOf(label)
-			return font and mathFloor(font:GetTextWidth(label) * fs) or #label * fs * 0.55
+		-- A block standing for a team or a player is captioned with its name, in the face
+		-- the interface names players in, so its room is measured in that face too.
+		local nameFont = ctx.nameFont()
+		local function widthOf(label, isName)
+			local face = isName and nameFont or font
+			return face and mathFloor(face:GetTextWidth(label) * fs) or #label * fs * 0.55
 		end
 		local all = { all = true, label = ctx.i18n("ui.teamStats.graph.all"), members = {} }
 		all.labelW = widthOf(all.label)
+		local none = { none = true, label = ctx.i18n("ui.teamStats.graph.none"), members = {} }
+		none.labelW = widthOf(none.label)
 		-- One unit on the bar - the viewer alone, the other side not to be seen yet - leaves
-		-- nothing to pick between: no All, no You.
+		-- nothing to pick between: no All, no None, no You.
 		local single = #page.units <= 1
 		---@type table[]
 		local blocks = {}
 		if not single then
-			blocks[1] = all
+			blocks[1], blocks[2] = all, none
 		end
-		-- Whoever is playing gets their own team a press away, beside All - unless every
-		-- side is one player, when their own block already carries their name.
+		-- Whoever plays, or played before they were out, gets themselves a press away, beside
+		-- All, while the bar is of players - grouped, their team's own block is the same pick -
+		-- and unless every side is one player, when their own block already carries their name.
+		-- A spectator who never played has no team of their own: no You.
 		---@type table?
 		local mine = nil
 		for _, unit in ipairs(page.units) do
-			if unit.isLocal and not ctx.soloTeams then
+			if unit.isLocal and not ctx.soloTeams and not grouped() then
 				mine = unit
 			end
 		end
@@ -1772,11 +2043,16 @@ function M.new(ctx)
 			for _, team in ipairs(unit.teams) do
 				local block = seen[team.allyID]
 				if not block then
-					-- A side of one is named after its player, and the viewer's own - playing
-					-- or watching it - is "You".
+					-- A side of one is named after its player, and the viewer's own - the one
+					-- they play or played - is "You" where every side is one player, since
+					-- nothing else on the bar is theirs. In a game of teams the viewer has a
+					-- block of their own beside All, so a side of one keeps its player's name.
+					local allyUnit = page.unitByKey and page.unitByKey["ally" .. team.allyID]
 					local label = ctx.i18n("ui.teamStats.team", { number = team.allyID + 1 })
 					if ctx.soloTeams then
 						label = team.isLocal and youLabel or team.name
+					elseif allyUnit and #allyUnit.teams == 1 then
+						label = team.name
 					end
 					block = {
 						ally = team.allyID,
@@ -1801,9 +2077,10 @@ function M.new(ctx)
 		local teamBlocks = 0
 		for i = 1, #blocks do
 			local b = blocks[i]
-			if not b.all and not b.me then
+			if b.ally then
 				count = count + #b.members
-				b.labelW = widthOf(b.label)
+				b.named = true
+				b.labelW = widthOf(b.label, true)
 				labelW = labelW + b.labelW + pad
 				if b.short then
 					b.shortW = widthOf(b.short)
@@ -1812,9 +2089,15 @@ function M.new(ctx)
 				teamBlocks = teamBlocks + 1
 			end
 		end
-		-- The All button always keeps its caption; the team blocks share what is left once
-		-- the switch at the end of the bar has its room.
-		local fixed = all.labelW + pad * 3 + (blocks[2] and blocks[2].me and blocks[2].labelW + r.square + pad * 3 or 0)
+		-- All, None and You always keep their captions; the team blocks share what is left once
+		-- the switches at the end of the bar have their room.
+		---@type number
+		local fixed = 0
+		for _, b in ipairs(blocks) do
+			if not b.ally then
+				fixed = fixed + b.labelW + pad * 3 + (b.me and r.square or 0)
+			end
+		end
 		local avail = r.bar[3] - r.bar[1] - pad * 2 - fixed - filterReserve()
 		local square = r.square
 		-- What a crowded bar gives up, in turn: first the room between the teams, then the
@@ -1851,7 +2134,7 @@ function M.new(ctx)
 		-- A team's plate reaches a little past its squares, and stops short of the next.
 		local margin = mathMax(1, mathMin(half, mathFloor(sep * 0.5) - 1))
 		for _, b in ipairs(blocks) do
-			local fixedBlock = b.all or b.me
+			local fixedBlock = not b.ally
 			local air = fixedBlock and half or margin
 			b.x1 = x - air
 			if fixedBlock then
@@ -2734,7 +3017,8 @@ function M.new(ctx)
 		local units = unitsFor(settings)
 		local shown = shownUnits(units)
 		local picked = pickedUnits(units)
-		local anyPicked = #picked > 0
+		-- None is a pick of nothing: every line faded, no milestones.
+		local anyPicked = #picked > 0 or page.none
 		-- Remove unselected leaves the rest off; otherwise the pick only stands out.
 		---@type table[]
 		local plotted = filtering() and picked or shown
@@ -2863,7 +3147,7 @@ function M.new(ctx)
 				indexByKey[u.key] = #series
 				lifted[#series] = isPicked(u)
 			end
-			lifts = #pickedA > 0 and #pickedA < #plottedA
+			lifts = (#pickedA > 0 or page.none) and #pickedA < #plottedA
 			target.cfg.yMin, target.cfg.yMax, target.cfg.gridLines = 0, places + 1, places + 1
 			yFormat = function(v)
 				local at = mathFloor(v + 0.5)
@@ -3002,6 +3286,27 @@ function M.new(ctx)
 			-- scrolls the grid, counts the rest.
 			target.cfg.bars.scroll = not small
 			target.cfg.bars.key = key
+		elseif statKey == "lavaLevel" then
+			-- The lava's height, which every team's sample carries: one line off the first team
+			-- with samples, as the wind's.
+			local points = {}
+			for _, ally in ipairs(ctx.allies()) do
+				for _, team in ipairs(ally.teams) do
+					local g = page.gadget[team.id]
+					local level = g and g.values.lavaLevel
+					if #points == 0 and level then
+						for i, frame in ipairs(g.frames) do
+							if level[i] then
+								points[#points + 1] = { frame, level[i] }
+							end
+						end
+					end
+				end
+			end
+			series =
+				{ { name = ctx.i18n("ui.teamStats.graph.lavaLevel"), color = LAVA_COLOR, points = points, width = 2 } }
+			lifts = false
+			title = ctx.i18n("ui.teamStats.graph.lavaLevel")
 		elseif statKey == "wind" then
 			-- The wind, which every team's sample carries: one line off the first team with
 			-- samples, over a faint band of the range the map's wind keeps to. The sample at
@@ -3197,7 +3502,7 @@ function M.new(ctx)
 		fillChart(chartOf, mini.key, true)
 		-- A column's chart says itself whether its % of total is on it; the others take
 		-- their short name from the list.
-		local setup = { font = ctx.font(), fontSize = mini.fs }
+		local setup = { font = ctx.font(), fontSize = mini.fs, nameFont = ctx.nameFont() }
 		if not ctx.COLUMNS[statOf(mini.key)] then
 			setup.title = mini.label
 		end
@@ -3237,6 +3542,7 @@ function M.new(ctx)
 					xUnit = "frames",
 					lineWidth = 2,
 					includeZero = true,
+					reuseHits = true,
 					look = { plotFill = { 0, 0, 0, 0.16 } },
 				})
 				pool[slot] = chartOf
@@ -3333,9 +3639,11 @@ function M.new(ctx)
 
 	-- Whether a block of the bar is lit: All while nothing is selected; an ally team's
 	-- while it is selected, or every one of its players is.
+	-- All and None are actions, not states: never lit. With nothing picked - and None not
+	-- pressed since - every team counts as picked, so every block not hidden is lit.
 	local function blockLit(b)
-		if b.all then
-			return #pickedUnits() == 0
+		if b.all or b.none then
+			return false
 		end
 		if b.me then
 			local picked = pickedUnits()
@@ -3344,8 +3652,9 @@ function M.new(ctx)
 		if #b.members == 0 then
 			return false
 		end
+		local every = next(page.selected) == nil and not page.none
 		for _, m in ipairs(b.members) do
-			if not teamIn(page.selected, m.team) or teamIn(page.hidden, m.team) then
+			if not (every or teamIn(page.selected, m.team)) or teamIn(page.hidden, m.team) then
 				return false
 			end
 		end
@@ -3418,7 +3727,7 @@ function M.new(ctx)
 		-- full strength inside a warm frame (neighbours share one), the others fade while
 		-- anything is selected, and a hidden one is only an outline.
 		local isGrouped = grouped()
-		local anyPicked = #pickedUnits() > 0
+		local anyPicked = #pickedUnits() > 0 or page.none
 		local dropping = filtering()
 		local cy = mathFloor((r.bar[2] + r.bar[4]) * 0.5)
 		local py1, py2 = r.bar[2] + r.inset, r.bar[4] - r.inset
@@ -3433,11 +3742,18 @@ function M.new(ctx)
 			end
 			-- Without the grouping a square is its player, so the plate lights only for its
 			-- caption, which stands for the whole ally team. A lit plate lights further.
-			if i == page.hover.block and (isGrouped or b.all or page.hover.legend == 0) then
+			if i == page.hover.block and (isGrouped or not b.ally or page.hover.legend == 0) then
 				Highlight(b.x1, py1, b.x2, py2, cs, look.barHoverOpacity, look.white)
 			end
 			if b.labelX then
-				ctx.queueText((lit and colors.selected or colors.dim) .. (b.caption or b.label), b.labelX, cy, fs, "ov")
+				ctx.queueText(
+					(lit and colors.selected or colors.dim) .. (b.caption or b.label),
+					b.labelX,
+					cy,
+					fs,
+					"ov",
+					b.named and not b.caption and "name" or nil
+				)
 			end
 			if b.swatch and b.unit then
 				local c = b.unit.color
@@ -3676,16 +3992,11 @@ function M.new(ctx)
 
 	-- Add to...: in the open graph's top right corner, level with its title.
 	function page.addToRect()
-		local r = page.rects
-		if not r or not page.zoom then
+		if not page.rects or not page.zoom then
 			return nil
 		end
-		local fs = ctx.metrics.catFs
-		local font = ctx.font()
-		local label = ctx.i18n("ui.teamStats.custom.addTo")
-		local w = (font and mathFloor(font:GetTextWidth(label) * fs) or #label * fs * 0.55) + ctx.metrics.sidePad * 2
-		local h = mathFloor(ctx.metrics.rowHeight * 0.8)
-		return { r.chart[3] - w, r.chart[4] - h, r.chart[3], r.chart[4] }, label
+		local parts = layoutParts()
+		return parts.addTo, parts.addToLabel
 	end
 
 	function page.drawAddTo()
@@ -3720,10 +4031,13 @@ function M.new(ctx)
 		end
 	end
 
+	-- `from` says what opened it, which decides where it hangs: see drawMenu. The panel's tables
+	-- open theirs through here too.
 	local function openMenu(rows, anchor, title, from)
 		page.menu = { rows = rows, anchor = anchor, title = title, from = from, rects = {} }
 		page.gen = page.gen + 1
 	end
+	page.openMenu = openMenu
 
 	-- Right-click on one of the player's categories in the sidebar: named, moved, deleted -
 	-- the overview put back as it shipped instead.
@@ -3895,9 +4209,9 @@ function M.new(ctx)
 	end
 
 	-- The card: beside what opened it - under the Add to... button, flush with its right
-	-- edge - on the screen, drawn over everything. A row under the cursor lights up; a
-	-- greyed one does nothing; one that asks to be sure says so on the first press and acts
-	-- on the second.
+	-- edge, and under a table's caption, flush with its left - on the screen, drawn over
+	-- everything. A row under the cursor lights up; a greyed one does nothing; one that asks
+	-- to be sure says so on the first press and acts on the second.
 	function page.drawMenu(mx, my)
 		local menu = page.menu
 		if not menu then
@@ -3924,6 +4238,8 @@ function M.new(ctx)
 		local x1, y2
 		if menu.from == "addTo" then
 			x1, y2 = mathMax(0, a[3] - w), a[2] - gap
+		elseif menu.from == "column" then
+			x1, y2 = mathMax(0, mathMin(a[1], vsx - w)), a[2] - gap
 		else
 			x1, y2 = a[3] + gap, a[4]
 			if x1 + w > vsx then
@@ -4005,15 +4321,18 @@ function M.new(ctx)
 
 	-- Naming a category: a field over its sidebar entry, the name so far picked so typing
 	-- replaces it. Enter keeps what was typed, Escape the name it had.
-	function page.startNaming(key)
-		local category = page.custom.byKey(key)
-		if not category then
+	-- A category of the player's own by its key, or anything else the panel names in its sidebar
+	-- - a table - given its name as it stands and what to do with the new one.
+	function page.startNaming(key, label, commit)
+		local category = not label and page.custom.byKey(key)
+		label = label or (category and category.label)
+		if not label then
 			return
 		end
-		local box = Editbox.new({ text = category.label, maxChars = 32, outline = ctx.look.outline })
+		local box = Editbox.new({ text = label, maxChars = 32, outline = ctx.look.outline })
 		box:focus()
 		box.selAnchor = 0
-		page.naming = { key = key, box = box, was = category.label }
+		page.naming = { key = key, box = box, was = label, commit = commit }
 		ctx.textInput(true)
 		page.gen = page.gen + 1
 	end
@@ -4028,7 +4347,11 @@ function M.new(ctx)
 		page.naming = nil
 		local text = naming.box:getText()
 		if keep and text ~= naming.was then
-			page.custom.rename(naming.key, text)
+			if naming.commit then
+				naming.commit(text)
+			else
+				page.custom.rename(naming.key, text)
+			end
 		end
 		ctx.textInput(false)
 		ctx.categoriesChanged()
@@ -4248,6 +4571,85 @@ function M.new(ctx)
 	-- The charts, after the panel's list: the grid of the page, or the one chart a pick or
 	-- a zoom opened, each with its own hover overlay. The chart under the cursor is framed
 	-- and answers the tooltip.
+	-- The grid's charts are drawn into a texture of their own, and the texture onto the screen
+	-- every frame: a dozen charts' lists called every frame cost the engine several times the
+	-- one textured rect. Drawn into it again when a chart is to be made again, when other
+	-- charts or lists fill the grid, or when its room moved or changed size. `drawn` holds each
+	-- chart and its list as they were drawn into it.
+	---@type { tex: integer?, x: number, y: number, w: number, h: number, valid: boolean, drawn: table }
+	local gridTex = { tex = nil, x = 0, y = 0, w = 0, h = 0, valid = false, drawn = {} }
+
+	function page.dropGridTexture()
+		if gridTex.tex then
+			gl.DeleteTexture(gridTex.tex)
+		end
+		gridTex.tex, gridTex.valid = nil, false
+	end
+
+	-- Whether the texture still shows what the charts would draw.
+	local function gridCurrent(minis, x, y, w, h)
+		if not gridTex.valid or gridTex.x ~= x or gridTex.y ~= y or gridTex.w ~= w or gridTex.h ~= h then
+			return false
+		end
+		local drawn = gridTex.drawn
+		if #drawn ~= #minis * 2 then
+			return false
+		end
+		for i = 1, #minis do
+			local c = minis[i].chart
+			if c.dirty or not c.list or drawn[i * 2 - 1] ~= c or drawn[i * 2] ~= c.list then
+				return false
+			end
+		end
+		return true
+	end
+
+	local function drawMinis(minis)
+		for i = 1, #minis do
+			minis[i].chart:draw()
+		end
+	end
+
+	-- The grid's charts, without their hover: from the texture, drawn into first when it no
+	-- longer shows them - or straight, where there is no texture to draw into.
+	local function drawGrid(minis)
+		local r = page.rects and page.rects.chart
+		local helper = gl.R2tHelper
+		if not r or not helper then
+			drawMinis(minis)
+			return
+		end
+		local x, y = mathFloor(r[1]), mathFloor(r[2])
+		local w, h = math.ceil(r[3]) - x, math.ceil(r[4]) - y
+		if w <= 0 or h <= 0 then
+			drawMinis(minis)
+			return
+		end
+		if not gridCurrent(minis, x, y, w, h) then
+			if not gridTex.tex or gridTex.w ~= w or gridTex.h ~= h then
+				page.dropGridTexture()
+				gridTex.tex = gl.CreateTexture(w, h, { target = GL.TEXTURE_2D, format = GL.RGBA, fbo = true })
+				if not gridTex.tex then
+					drawMinis(minis)
+					return
+				end
+			end
+			helper.RenderInRect(gridTex.tex, x, y, x + w, y + h, function()
+				drawMinis(minis)
+			end, true)
+			local drawn = gridTex.drawn
+			for k = #drawn, 1, -1 do
+				drawn[k] = nil
+			end
+			for i = 1, #minis do
+				local c = minis[i].chart
+				drawn[i * 2 - 1], drawn[i * 2] = c, c.list
+			end
+			gridTex.x, gridTex.y, gridTex.w, gridTex.h, gridTex.valid = x, y, w, h, true
+		end
+		helper.BlendTexRect(gridTex.tex, x, y, x + w, y + h, true)
+	end
+
 	function page.drawChart(mx, my)
 		if page.dirty then
 			page.build()
@@ -4262,7 +4664,8 @@ function M.new(ctx)
 		end
 		if page.gridded() then
 			page.chartHit, page.miniHit = nil, nil
-			for _, mini in ipairs(page.miniCharts or {}) do
+			local minis = page.miniCharts or {}
+			for _, mini in ipairs(minis) do
 				local over = inside
 					and mx >= mini.rect[1]
 					and mx <= mini.rect[3]
@@ -4276,14 +4679,14 @@ function M.new(ctx)
 				-- Drawn without its hover: the one under the cursor gets it last, over the
 				-- charts beside it and over the light that marks it.
 				mini.chart:setHover(nil)
-				mini.chart:draw()
-				mini.chart:setHover(hit)
 			end
+			drawGrid(minis)
 			-- The one under the cursor is marked, so it is clear what a press would open: a
 			-- rounded outline that fades inwards rather than a hard box.
 			---@type table?
 			local mini = page.miniHit
 			if mini then
+				mini.chart:setHover(page.chartHit)
 				ctx.draw.Highlight(
 					mini.rect[1],
 					mini.rect[2],
@@ -4387,8 +4790,11 @@ function M.new(ctx)
 		if add and mx >= add[1] and mx <= add[3] and my >= add[2] and my <= add[4] then
 			page.hover.addTo = 1
 		end
+		-- The switch answers over its caption and the bar's whole height, as the grouping one
+		-- beside it does.
 		local tog = filterToggleRect()
-		if tog and mx >= tog[3] - filterReserve() and mx <= tog[3] and my >= tog[2] and my <= tog[4] then
+		local bar = page.rects and page.rects.bar
+		if tog and bar and mx >= tog[3] - filterReserve() and mx <= tog[3] and my >= bar[2] and my <= bar[4] then
 			page.hover.filter = 1
 		end
 		for i, row in ipairs(page.kindRects) do
@@ -4449,7 +4855,7 @@ function M.new(ctx)
 			---@cast b -?
 			if b.unit then
 				return { b.unit }
-			elseif not b.all and not b.me then
+			elseif b.ally then
 				local list = {}
 				for _, m in ipairs(b.members) do
 					list[#list + 1] = m.unit
@@ -4550,33 +4956,55 @@ function M.new(ctx)
 		local block = page.hover.block > 0 and page.barBlocks[page.hover.block] or nil
 		if block and block.me and button ~= 3 then
 			-- Your own team alone, whatever was picked before.
-			page.selected = {}
+			page.selected, page.none = {}, false
 			setTeams(page.selected, block.unit, true)
 			setTeams(page.hidden, block.unit, false)
 			changed()
 			return true
 		end
 		if block and block.all then
-			if button ~= 3 and (next(page.selected) or next(page.hidden)) then
-				page.selected, page.hidden = {}, {}
+			if button ~= 3 and (next(page.selected) or next(page.hidden) or page.none) then
+				page.selected, page.hidden, page.none = {}, {}, false
+				changed()
+			end
+			return true
+		end
+		-- None: nothing picked, every team faded, to pick the ones to show one by one.
+		if block and block.none then
+			if button ~= 3 and (next(page.selected) or not page.none) then
+				page.selected, page.none = {}, true
 				changed()
 			end
 			return true
 		end
 		local targets = unitsUnderCursor()
 		if targets then
+			local _, ctrl = Spring.GetModKeyState()
+			-- Nothing picked is every team picked: a click takes out the one it is on and leaves
+			-- the rest, as it would with every team picked one by one.
+			if button ~= 3 and not ctrl and next(page.selected) == nil and not page.none then
+				for _, u in ipairs(page.units) do
+					if not isHidden(u) then
+						setTeams(page.selected, u, true)
+					end
+				end
+			end
 			local allHidden, allSelected = true, true
 			for _, u in ipairs(targets) do
 				allHidden = allHidden and isHidden(u)
 				allSelected = allSelected and allPicked(u) and not isHidden(u)
 			end
-			local _, ctrl = Spring.GetModKeyState()
 			if button == 3 then
+				local had = next(page.selected) ~= nil
 				for _, u in ipairs(targets) do
 					setTeams(page.hidden, u, not allHidden)
 					if not allHidden then
 						setTeams(page.selected, u, false)
 					end
+				end
+				-- Hiding the last one picked leaves nothing picked: None, as a click would.
+				if had and next(page.selected) == nil then
+					page.none = true
 				end
 			else
 				if ctrl then
@@ -4589,6 +5017,16 @@ function M.new(ctx)
 						setTeams(page.hidden, u, false)
 					end
 				end
+				-- Every team picked again is every team, which takes in those that come into view
+				-- later; the last one taken out leaves nothing picked: None.
+				local every = true
+				for _, u in ipairs(page.units) do
+					every = every and (isHidden(u) or allPicked(u))
+				end
+				if every then
+					page.selected = {}
+				end
+				page.none = not every and next(page.selected) == nil
 			end
 			changed()
 			return true
@@ -4623,8 +5061,7 @@ function M.new(ctx)
 
 	-- What the units under the cursor are to the chart right now, and what the mouse does
 	-- to them: a line on their state (selected, not, hidden, and what that means with
-	-- the switches as they are), one on their milestones when those are on the chart,
-	-- then the controls.
+	-- the switches as they are), then the controls.
 	local function barHint(targets)
 		local L = "ui.teamStats.graph."
 		local allHidden, allSelected, someSelected = true, true, false
@@ -4636,7 +5073,7 @@ function M.new(ctx)
 			someSelected = someSelected or (isPicked(u) and shownU)
 		end
 		local composition = statOf(page.stat) == "composition"
-		local anyPicked = #pickedUnits() > 0
+		local anyPicked = #pickedUnits() > 0 or page.none
 		local dropping = filtering()
 		local state
 		if allHidden then
@@ -4652,15 +5089,36 @@ function M.new(ctx)
 		end
 		local group = #targets > 1
 		local lines = { ctx.colors.title .. ctx.i18n(L .. "state." .. state) }
-		if settingsOf(page.zoom or page.stat).milestones and not allHidden and (allSelected or not anyPicked) then
-			local key = group and "milestonesGroup" or "milestones"
-			lines[#lines + 1] = ctx.colors.title .. ctx.i18n(L .. "state." .. key)
+		-- Grouped, a team is one line on the bar: its players are picked apart only with the
+		-- grouping off.
+		local several = false
+		for _, u in ipairs(targets) do
+			several = several or #u.members > 1
+		end
+		if grouped() and several then
+			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "state.grouped")
 		end
 		local suffix = group and "Group" or ""
 		for _, control in ipairs({ "click", "ctrlClick", "rightClick" }) do
 			lines[#lines + 1] = ctx.colors.dim .. ctx.i18n(L .. "control." .. control .. suffix)
 		end
 		return table.concat(lines, "\n")
+	end
+
+	-- What a stat's chart shows, in words: its column's description where it is a column's -
+	-- the chart's own wording where the table's speaks of this moment - else the chart's.
+	-- Nothing for one whose description is left empty.
+	local function describeStat(stat)
+		local desc
+		if ctx.COLUMNS[stat] then
+			desc = ctx.L.graphDesc[stat] or ctx.L.desc[stat]
+		else
+			desc = ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
+		end
+		if not desc or not desc:find("%S") then
+			return nil
+		end
+		return desc
 	end
 
 	-- The tooltip for the cursor: the chart's description, a stat's explanation, or the
@@ -4674,15 +5132,23 @@ function M.new(ctx)
 			end
 			return markName(kindRow.key), hint
 		end
-		if page.chartHit then
+		if page.chartHit or page.miniHit then
 			local hovered = page.miniHit and page.miniHit.chart or chart
-			local desc = hovered:describe(page.chartHit)
+			local desc = page.chartHit and hovered:describe(page.chartHit) or nil
 			-- Its % of total faded in the title: why it keeps its line.
 			local key = page.miniHit and page.miniHit.key or page.zoom or page.stat
 			local column = ctx.COLUMNS[statOf(key)]
 			local idle = settingsOf(key).share and column and column.fmt == "si" and hovered.cfg.kind ~= "stacked"
-			if idle and page.chartHit.kind ~= "marker" then
+			if page.chartHit and idle and page.chartHit.kind ~= "marker" then
 				desc = (desc or "") .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.graph.shareOne")
+			end
+			-- A chart of a grid says what it shows, as its name in the list does, over what is
+			-- under the cursor: small, its title alone may not.
+			if page.miniHit then
+				local about = describeStat(statOf(key))
+				if about then
+					desc = desc and (about .. "\n\n" .. desc) or about
+				end
 			end
 			return hovered.cfg.title, desc
 		end
@@ -4694,12 +5160,11 @@ function M.new(ctx)
 			end
 			-- Explained by what it shows: a custom category's graph is keyed as itself, and
 			-- says it can be moved or removed.
-			local stat = entry.stat or entry.key
-			local desc = entry.column and ctx.L.desc[stat] or ctx.i18n("ui.teamStats.graph." .. stat .. "Desc")
+			local desc = describeStat(entry.stat or entry.key)
 			if entry.graph then
-				desc = desc .. "\n" .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
+				desc = (desc and desc .. "\n" or "") .. ctx.colors.dim .. ctx.i18n("ui.teamStats.custom.graphHint")
 			end
-			return entry.label, desc
+			return entry.label, desc or ""
 		end
 		if page.hover.filter == 1 then
 			return ctx.i18n("ui.teamStats.graph.hideUnselected"), ctx.i18n("ui.teamStats.graph.hideUnselectedDesc")
@@ -4720,14 +5185,13 @@ function M.new(ctx)
 			local b = page.barBlocks[page.hover.block]
 			---@cast b -?
 			if b.me then
-				return b.label, ctx.i18n("ui.teamStats.graph.youHint")
+				return b.label, ""
 			end
 			if b.all then
-				local tip = ctx.i18n("ui.teamStats.graph.allHint")
-				if settingsOf(page.zoom or page.stat).milestones then
-					tip = tip .. "\n" .. ctx.i18n("ui.teamStats.graph.allMilestones")
-				end
-				return b.label, tip
+				return b.label, ctx.i18n("ui.teamStats.graph.allHint")
+			end
+			if b.none then
+				return b.label, ctx.i18n("ui.teamStats.graph.noneHint")
 			end
 			local targets = unitsUnderCursor()
 			---@cast targets -?
@@ -4757,7 +5221,6 @@ function M.new(ctx)
 		end
 		return {
 			graphStat = page.stat,
-			graphsOpen = page.open,
 			graphGroupByTeam = page.grouped,
 			graphPerPage = page.perPage,
 			graphMarksOff = off,
@@ -4783,9 +5246,6 @@ function M.new(ctx)
 				end
 			end
 		end
-		if data.graphsOpen ~= nil then
-			page.open = data.graphsOpen == true
-		end
 		if data.graphGroupByTeam ~= nil then
 			page.grouped = data.graphGroupByTeam == true
 		end
@@ -4810,6 +5270,7 @@ function M.new(ctx)
 			chartOf:destroy()
 		end
 		page.dropTrendList()
+		page.dropGridTexture()
 	end
 
 	return page

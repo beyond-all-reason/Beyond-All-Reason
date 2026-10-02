@@ -18,7 +18,8 @@
 --  * Automatic wreckage effect: when a unit that leaves a corpse dies, a
 --    short fire + longer smoke emitter is spawned at the wreckage position.
 --
--- Modeled on gfx_flamethrower_gl4.lua (Floris) for the GL4 instancing pipeline.
+-- Modeled on gfx_flamethrower_gl4.lua (Floris) for the GL4 instancing pipeline,
+-- but particles live in a ring buffer (see 'Particle pool' below).
 --------------------------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then
@@ -80,8 +81,6 @@ local reclaimedWeaponDefID = Game and Game.envDamageTypes and Game.envDamageType
 local selfdWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTypes.SelfD
 
 local LuaShader = gl.LuaShader
-local pushElementInstance = gl.InstanceVBOTable.pushElementInstance
-local popElementInstance = gl.InstanceVBOTable.popElementInstance
 
 local function isFinite(v)
 	return v and v == v and v > -mathHuge and v < mathHuge
@@ -437,10 +436,7 @@ local smokeTexture = "bitmaps/projectiletextures/smoke-beh-anim.tga"
 ---@type InstanceVBOTable?
 local particleVBO = nil
 local particleShader = nil
-local nextParticleID = 0
-
-local particleRemoveQueue = {} -- [deathFrame] = { n = count, id, id, ... }
-local lastRemovedFrame = 0
+local hasLightBridge = false -- LuaUI point-light bridge present, refreshed each fire frame
 
 local cachedGameFrame = 0
 local cachedAllyTeamID = spGetMyAllyTeamID()
@@ -448,6 +444,154 @@ local cachedFullView = select(2, spGetSpectatingState()) or false
 local windX, windZ = 0.0, 0.0
 
 local MAX_PARTICLES = CONFIG.maxParticles
+
+--------------------------------------------------------------------------------
+-- Particle pool
+--------------------------------------------------------------------------------
+-- The VBO is one ring buffer. Slots are written in ring order and never
+-- compacted: the vertex shader hides a particle once its lifetime is over, so a
+-- dead slot just waits to be overwritten. Spawns skip slots that are still alive,
+-- and a frame's writes reach the GPU as a few range uploads instead of one upload
+-- per spawn plus one per expiry.
+local PARTICLE_STRIDE = 16
+local SPLIT_RUN = 4 -- skipping more live slots than this starts a new upload range
+
+local particleData -- particleVBO.instanceData, PARTICLE_STRIDE floats per slot
+local slotDeath = {} -- [slot] = frame the particle is gone
+local deathTally = {} -- [frame] = number of particles gone that frame
+local liveCount = 0
+local sweptFrame = 0
+local ringPos = 1 -- next slot to try
+local ringHigh = 0 -- highest slot written since the pool was last empty
+local scanLeft = 0 -- slots the spawn scan may still visit this frame
+local ringFull = false
+local rangeStart, rangeEnd -- pending upload range in slots
+
+local function initParticlePool()
+	particleData = particleVBO.instanceData
+	for i = 1, MAX_PARTICLES do
+		particleData[(i - 1) * PARTICLE_STRIDE + 4] = -1e6 -- birth frame far in the past: hidden until written
+		slotDeath[i] = 0
+	end
+	particleVBO.instanceVBO:Upload(particleData)
+	sweptFrame = Spring.GetGameFrame()
+end
+
+local function flushRange()
+	if not rangeStart then
+		return
+	end
+	local lo = rangeStart - 1
+	particleVBO.instanceVBO:Upload(particleData, nil, lo, lo * PARTICLE_STRIDE + 1, rangeEnd * PARTICLE_STRIDE)
+	rangeStart = nil
+end
+
+-- Retire particles whose lifetime ended and reset the per-frame scan budget.
+local function beginPoolFrame(n)
+	local live = liveCount
+	for f = sweptFrame + 1, n do
+		local d = deathTally[f]
+		if d then
+			live = live - d
+			deathTally[f] = nil
+		end
+	end
+	sweptFrame = n
+	liveCount = live
+	if live == 0 then
+		ringPos = 1
+		ringHigh = 0
+	end
+	ringFull = live >= MAX_PARTICLES
+	scanLeft = MAX_PARTICLES
+end
+
+-- Finds the next dead slot at or after the ring pointer. Returns the slot and the
+-- number of live slots skipped, or nil once the frame's scan budget (one lap) is spent.
+local function claimSlot(now)
+	local slot = ringPos
+	local budget = scanLeft
+	local stop = slot + budget - 1
+	if stop > MAX_PARTICLES then
+		stop = MAX_PARTICLES
+	end
+	for s = slot, stop do
+		if slotDeath[s] <= now then
+			scanLeft = budget - (s - slot + 1)
+			return s, s - slot
+		end
+	end
+	budget = budget - (stop - slot + 1)
+	if stop == MAX_PARTICLES and budget > 0 then
+		flushRange()
+		local skippedTail = MAX_PARTICLES - slot + 1
+		for s = 1, budget do
+			if slotDeath[s] <= now then
+				scanLeft = budget - s
+				return s, skippedTail + s - 1
+			end
+		end
+		ringPos = budget + 1
+	else
+		ringPos = (stop < MAX_PARTICLES) and (stop + 1) or 1
+	end
+	scanLeft = 0
+	ringFull = true
+	return nil
+end
+
+-- Returns false once the pool has no free slot left this frame.
+local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b, alpha)
+	if ringFull then
+		return false
+	end
+	local now = cachedGameFrame
+	local slot, skipped = claimSlot(now)
+	if not slot then
+		return false
+	end
+	if skipped > SPLIT_RUN then
+		flushRange()
+	end
+
+	local o = (slot - 1) * PARTICLE_STRIDE
+	local d = particleData
+	d[o + 1] = px
+	d[o + 2] = py
+	d[o + 3] = pz
+	d[o + 4] = now
+	d[o + 5] = vx
+	d[o + 6] = vy
+	d[o + 7] = vz
+	d[o + 8] = life
+	d[o + 9] = size
+	d[o + 10] = ptype
+	d[o + 11] = mathRandom()
+	d[o + 12] = (mathRandom() * 2 - 1) * mathPi
+	d[o + 13] = r
+	d[o + 14] = g
+	d[o + 15] = b
+	d[o + 16] = alpha
+
+	local deathFrame = now + mathCeil(life) + 2
+	slotDeath[slot] = deathFrame
+	deathTally[deathFrame] = (deathTally[deathFrame] or 0) + 1
+	liveCount = liveCount + 1
+	if not rangeStart then
+		rangeStart = slot
+	end
+	rangeEnd = slot
+	if slot > ringHigh then
+		ringHigh = slot
+	end
+	if slot < MAX_PARTICLES then
+		ringPos = slot + 1
+	else
+		ringPos = 1
+		flushRange()
+	end
+	return true
+end
 
 --------------------------------------------------------------------------------
 -- Init / cleanup
@@ -512,6 +656,7 @@ local function initGL4()
 	particleVBO.VAO:AttachIndexBuffer(indexVBO)
 	particleVBO.indexVBO = indexVBO
 
+	initParticlePool()
 	return true
 end
 
@@ -520,88 +665,6 @@ local function cleanupGL4()
 		particleVBO:Delete()
 		particleVBO = nil
 	end
-end
-
---------------------------------------------------------------------------------
--- Particle spawn / expiry
---------------------------------------------------------------------------------
-local particleData = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 }
-
-local function spawnParticle(px, py, pz, vx, vy, vz, size, ptype, life, r, g, b, alpha)
-	if particleVBO.usedElements >= MAX_PARTICLES then
-		return nil
-	end
-	local deathFrame = cachedGameFrame + mathCeil(life) + 2
-
-	particleData[1] = px
-	particleData[2] = py
-	particleData[3] = pz
-	particleData[4] = cachedGameFrame
-	particleData[5] = vx
-	particleData[6] = vy
-	particleData[7] = vz
-	particleData[8] = life
-	particleData[9] = size
-	particleData[10] = ptype
-	particleData[11] = mathRandom()
-	particleData[12] = (mathRandom() * 2 - 1) * mathPi
-	particleData[13] = r
-	particleData[14] = g
-	particleData[15] = b
-	particleData[16] = alpha
-
-	-- Wrap nextParticleID well below the float32 precision ceiling (2^23) and
-	-- skip any still-live IDs (see gfx_flamethrower_gl4.lua for the rationale).
-	local nid = nextParticleID + 1
-	if nid >= 8388608 then
-		nid = 1
-	end
-	local idToIndex = particleVBO.instanceIDtoIndex
-	while idToIndex[nid] do
-		nid = nid + 1
-		if nid >= 8388608 then
-			nid = 1
-		end
-	end
-	nextParticleID = nid
-	local id = nid
-	pushElementInstance(particleVBO, particleData, id, true)
-
-	local q = particleRemoveQueue[deathFrame]
-	if not q then
-		q = { n = 0 }
-		particleRemoveQueue[deathFrame] = q
-	end
-	local qn = q.n + 1
-	q[qn] = id
-	q.n = qn
-	return id
-end
-
-local function removeExpiredParticles(gameFrame)
-	local startFrame = lastRemovedFrame + 1
-	if gameFrame - startFrame > 600 then
-		for f = startFrame, gameFrame - 601 do
-			particleRemoveQueue[f] = nil
-		end
-		startFrame = gameFrame - 600
-	end
-	for f = startFrame, gameFrame do
-		local q = particleRemoveQueue[f]
-		if q then
-			local idToIndex = particleVBO.instanceIDtoIndex
-			local qn = q.n
-			for i = 1, qn do
-				local id = q[i]
-				if idToIndex[id] then
-					popElementInstance(particleVBO, id)
-				end
-				q[i] = nil
-			end
-			particleRemoveQueue[f] = nil
-		end
-	end
-	lastRemovedFrame = gameFrame
 end
 
 --------------------------------------------------------------------------------
@@ -751,7 +814,7 @@ local function emitTreeFire(e, n)
 	local inten = e.intensity
 
 	-- FIRE -- denser and larger toward the center of the tree's length, tapering at both ends.
-	if n <= e.fireEnd then
+	if n <= e.fireEnd and not ringFull then
 		local cnt = rateCount(e.fireRate * inten * fadeMult)
 		for _ = 1, cnt do
 			local hf
@@ -790,7 +853,7 @@ local function emitTreeFire(e, n)
 			local life = (FIRE_LIFE_MIN + mathRandom() * FIRE_LIFE_SPAN) * lifeScale
 			local vy = (0.4 + mathRandom() * 0.8) * scale
 			local r, g, b = fireColor()
-			spawnParticle(
+			local spawned = spawnParticle(
 				cx + mathCos(a2) * rr,
 				cy + mathRandom() * rad * 0.3,
 				cz + mathSin(a2) * rr,
@@ -805,11 +868,14 @@ local function emitTreeFire(e, n)
 				b,
 				FIRE_ALPHA * (0.82 + 0.18 * mathRandom())
 			)
+			if not spawned then
+				break
+			end
 		end
 	end
 
 	-- EMBERS
-	if n <= e.emberEnd then
+	if n <= e.emberEnd and not ringFull then
 		local cnt = rateCount(e.emberRate * inten * fadeMult * emberLifeMult)
 		for _ = 1, cnt do
 			local hf = cf + (mathRandom() - mathRandom()) * 0.5
@@ -829,7 +895,7 @@ local function emitTreeFire(e, n)
 			local life = (EMBER_LIFE_MIN + mathRandom() * EMBER_LIFE_SPAN) * lifeScale
 			local vy = EMBER_VY_MIN + mathRandom() * EMBER_VY_SPAN
 			local r, g, b = emberColor()
-			spawnParticle(
+			local spawned = spawnParticle(
 				cx + mathCos(a2) * rr,
 				cy,
 				cz + mathSin(a2) * rr,
@@ -844,11 +910,14 @@ local function emitTreeFire(e, n)
 				b,
 				EMBER_ALPHA
 			)
+			if not spawned then
+				break
+			end
 		end
 	end
 
 	-- SMOKE -- rises mainly from the canopy; decays after the fire stops.
-	if n <= e.smokeEnd then
+	if n <= e.smokeEnd and not ringFull then
 		local smokeDecayMult = 1.0
 		if e.smokeDecayStart and n > e.smokeDecayStart then
 			local span = e.smokeEnd - e.smokeDecayStart
@@ -879,7 +948,7 @@ local function emitTreeFire(e, n)
 			local life = (SMOKE_LIFE_MIN + mathRandom() * SMOKE_LIFE_SPAN) * lifeScale
 			local svy = SMOKE_UPVEL_MIN + mathRandom() * SMOKE_UPVEL_SPAN
 			local sv = 0.25 + mathRandom() * 1.10
-			spawnParticle(
+			local spawned = spawnParticle(
 				cx + mathCos(a2) * rr,
 				cy + rad * 0.4,
 				cz + mathSin(a2) * rr,
@@ -894,55 +963,84 @@ local function emitTreeFire(e, n)
 				SMOKE_TB * sv,
 				SMOKE_ALPHA * TREE_SMOKE_ALPHA_MULT * smokeDecayMult
 			)
+			if not spawned then
+				break
+			end
 		end
 	end
 
 	-- Deferred light pulses for burning trees (through LuaUI light bridge).
 	-- Keep this emitter-level and throttled; never tie this to per-particle work.
-	if n <= e.fireEnd then
+	if n <= e.fireEnd and hasLightBridge then
 		if not e.nextLightFrame or n >= e.nextLightFrame then
-			if ScriptLuaUI and ScriptLuaUI("EnvLightningPointLight") then
-				local lcfg = CONFIG.treeFire.light
-				e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
+			local lcfg = CONFIG.treeFire.light
+			e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
 
-				local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
-				if life < 1 then
-					life = 1
-				end
-				local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
+			local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
+			if life < 1 then
+				life = 1
+			end
+			local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
 
-				local scaleNorm = (e.scale - 0.16) / 0.84
-				if scaleNorm < 0 then
-					scaleNorm = 0
-				elseif scaleNorm > 1 then
-					scaleNorm = 1
-				end
-				local burnLifeMult = smokeFireDiminishMult
-				local flicker = 0.72 + mathRandom() * 0.56
-				local brightness = lcfg.brightnessBase * e.intensity * burnLifeMult * flicker * (0.7 + 0.5 * scaleNorm)
+			local scaleNorm = (e.scale - 0.16) / 0.84
+			if scaleNorm < 0 then
+				scaleNorm = 0
+			elseif scaleNorm > 1 then
+				scaleNorm = 1
+			end
+			local burnLifeMult = smokeFireDiminishMult
+			local flicker = 0.72 + mathRandom() * 0.56
+			local brightness = lcfg.brightnessBase * e.intensity * burnLifeMult * flicker * (0.7 + 0.5 * scaleNorm)
 
-				local radius = (e.canopyR * lcfg.radiusCanopyMult + curH * lcfg.radiusHeightMult)
-					* (0.72 + 0.55 * burnLifeMult)
-				radius = radius * (0.9 + 0.3 * mathRandom())
+			local radius = (e.canopyR * lcfg.radiusCanopyMult + curH * lcfg.radiusHeightMult)
+				* (0.72 + 0.55 * burnLifeMult)
+			radius = radius * (0.9 + 0.3 * mathRandom())
 
-				if brightness > 0.001 and radius > 1 then
-					local trunkA = 0.34 + 0.20 * mathRandom()
-					local trunkAlong = curH * trunkA
-					local lx = e.x + dirx * trunkAlong * axisH
-					local ly = e.y + lcfg.heightOffset + trunkAlong * axisUp
-					local lz = e.z + dirz * trunkAlong * axisH
+			if brightness > 0.001 and radius > 1 then
+				local trunkA = 0.34 + 0.20 * mathRandom()
+				local trunkAlong = curH * trunkA
+				local lx = e.x + dirx * trunkAlong * axisH
+				local ly = e.y + lcfg.heightOffset + trunkAlong * axisUp
+				local lz = e.z + dirz * trunkAlong * axisH
 
-					local warm = 0.84 + 0.14 * mathRandom()
-					local lg = 0.36 + 0.22 * mathRandom()
+				local warm = 0.84 + 0.14 * mathRandom()
+				local lg = 0.36 + 0.22 * mathRandom()
+				ScriptLuaUI.EnvLightningPointLight(
+					lx,
+					ly,
+					lz,
+					radius,
+					warm,
+					lg,
+					0.10,
+					brightness,
+					life,
+					sustain,
+					lcfg.modelFactor,
+					lcfg.specular,
+					lcfg.scattering,
+					lcfg.lensflare,
+					n
+				)
+
+				-- Secondary dimmer pulse near canopy / leading fire front.
+				if curH > 10 and burnLifeMult > 0.22 then
+					local canopyA = 0.68 + 0.18 * mathRandom()
+					local canopyAlong = curH * canopyA
+					local cx = e.x + dirx * canopyAlong * axisH
+					local cy = e.y + canopyAlong * axisUp
+					local cz = e.z + dirz * canopyAlong * axisH
+					local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.3 * mathRandom())
+					local cRadius = radius * (0.74 + 0.22 * mathRandom())
 					ScriptLuaUI.EnvLightningPointLight(
-						lx,
-						ly,
-						lz,
-						radius,
-						warm,
-						lg,
-						0.10,
-						brightness,
+						cx,
+						cy,
+						cz,
+						cRadius,
+						1.0,
+						0.46,
+						0.12,
+						cBright,
 						life,
 						sustain,
 						lcfg.modelFactor,
@@ -951,34 +1049,6 @@ local function emitTreeFire(e, n)
 						lcfg.lensflare,
 						n
 					)
-
-					-- Secondary dimmer pulse near canopy / leading fire front.
-					if curH > 10 and burnLifeMult > 0.22 then
-						local canopyA = 0.68 + 0.18 * mathRandom()
-						local canopyAlong = curH * canopyA
-						local cx = e.x + dirx * canopyAlong * axisH
-						local cy = e.y + canopyAlong * axisUp
-						local cz = e.z + dirz * canopyAlong * axisH
-						local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.3 * mathRandom())
-						local cRadius = radius * (0.74 + 0.22 * mathRandom())
-						ScriptLuaUI.EnvLightningPointLight(
-							cx,
-							cy,
-							cz,
-							cRadius,
-							1.0,
-							0.46,
-							0.12,
-							cBright,
-							life,
-							sustain,
-							lcfg.modelFactor,
-							lcfg.specular,
-							lcfg.scattering,
-							lcfg.lensflare,
-							n
-						)
-					end
 				end
 			end
 		end
@@ -1011,7 +1081,7 @@ local function emitFromEmitter(e, n)
 	local emitterFadeVisual = emitterFadeMult * emitterFadeMult
 
 	-- Fire -- with optional gradual decay for wreckage emitters.
-	if n <= e.fireEnd then
+	if n <= e.fireEnd and not ringFull then
 		local fireDecayMult = 1.0
 		local fireSizeDecayMult = 1.0
 		local fireRadiusDecayMult = 1.0
@@ -1077,7 +1147,7 @@ local function emitFromEmitter(e, n)
 				* (0.08 + 0.92 * emitterFadeVisual) -- lower rise as the wreck fire collapses
 			local vz = (mathRandom() - 0.5) * 0.4
 			local r, g, b = fireColor(scavenger)
-			spawnParticle(
+			local spawned = spawnParticle(
 				sx + ox,
 				y + oy,
 				sz + oz,
@@ -1092,11 +1162,14 @@ local function emitFromEmitter(e, n)
 				b,
 				FIRE_ALPHA * fireAlphaMult * fireAlphaDecayMult * emitterFadeVisual * (0.82 + 0.18 * mathRandom())
 			)
+			if not spawned then
+				break
+			end
 		end
 	end
 
 	-- Embers -- with optional gradual decay for wreckage emitters.
-	if n <= e.emberEnd then
+	if n <= e.emberEnd and not ringFull then
 		local emberDecayMult = 1.0
 		local emberRateDecayMult = 1.0
 		local emberAlphaDecayMult = 1.0
@@ -1144,7 +1217,7 @@ local function emitFromEmitter(e, n)
 			local vy = EMBER_VY_MIN + mathRandom() * EMBER_VY_SPAN
 			local vz = (mathRandom() - 0.5) * 0.5
 			local r, g, b = emberColor(scavenger)
-			spawnParticle(
+			local spawned = spawnParticle(
 				sx + ox,
 				y + oy,
 				sz + oz,
@@ -1159,11 +1232,14 @@ local function emitFromEmitter(e, n)
 				b,
 				EMBER_ALPHA * emberAlphaMult * emberAlphaDecayMult * emitterFadeVisual
 			)
+			if not spawned then
+				break
+			end
 		end
 	end
 
 	-- Smoke -- with optional gradual decay of rate + alpha for wreckage emitters.
-	if n <= e.smokeEnd then
+	if n <= e.smokeEnd and not ringFull then
 		-- Compute a 0..1 decay factor over the smoke-only window (after fire ends).
 		local smokeDecayMult = 1.0
 		if e.smokeDecayStart and n > e.smokeDecayStart then
@@ -1194,7 +1270,7 @@ local function emitFromEmitter(e, n)
 			local svy = SMOKE_UPVEL_MIN + mathRandom() * SMOKE_UPVEL_SPAN
 			-- Per-particle brightness: dark sooty cores (~0.25) to lighter billows (~1.35)
 			local sv = 0.25 + mathRandom() * 1.10
-			spawnParticle(
+			local spawned = spawnParticle(
 				sx + ox,
 				y + oy,
 				sz + oz,
@@ -1209,76 +1285,101 @@ local function emitFromEmitter(e, n)
 				SMOKE_B * sv,
 				SMOKE_ALPHA * smokeDecayMult
 			)
+			if not spawned then
+				break
+			end
 		end
 	end
 
 	-- Deferred light pulses for non-tree fires. Kept emitter-level and throttled.
-	if n <= e.fireEnd and e.fireRate > 0 and not e.disableLight then
+	if n <= e.fireEnd and e.fireRate > 0 and not e.disableLight and hasLightBridge then
 		if not e.nextLightFrame or n >= e.nextLightFrame then
-			if ScriptLuaUI and ScriptLuaUI("EnvLightningPointLight") then
-				local lcfg = CONFIG.fireLight
-				e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
+			local lcfg = CONFIG.fireLight
+			e.nextLightFrame = n + lcfg.intervalMin + mathFloor(mathRandom() * (lcfg.intervalJitter + 1))
 
-				local lightLifeMult = emitterFadeVisual
-				if e.fireDecayStart and n > e.fireDecayStart then
-					local decayEnd = e.fireDecayEnd or e.fireEnd
-					local decaySpan = decayEnd - e.fireDecayStart
-					if decaySpan > 0 then
-						local decayMult = 1.0 - (n - e.fireDecayStart) / decaySpan
-						if decayMult < 0 then
-							decayMult = 0
-						end
-						if e.fireDecayPower and e.fireDecayPower ~= 1.0 then
-							decayMult = decayMult ^ e.fireDecayPower
-						end
-						local rateMult = decayMult
-						if e.fireRateDecayPower and e.fireRateDecayPower ~= 1.0 then
-							rateMult = rateMult ^ e.fireRateDecayPower
-						end
-						lightLifeMult = lightLifeMult * rateMult
+			local lightLifeMult = emitterFadeVisual
+			if e.fireDecayStart and n > e.fireDecayStart then
+				local decayEnd = e.fireDecayEnd or e.fireEnd
+				local decaySpan = decayEnd - e.fireDecayStart
+				if decaySpan > 0 then
+					local decayMult = 1.0 - (n - e.fireDecayStart) / decaySpan
+					if decayMult < 0 then
+						decayMult = 0
 					end
+					if e.fireDecayPower and e.fireDecayPower ~= 1.0 then
+						decayMult = decayMult ^ e.fireDecayPower
+					end
+					local rateMult = decayMult
+					if e.fireRateDecayPower and e.fireRateDecayPower ~= 1.0 then
+						rateMult = rateMult ^ e.fireRateDecayPower
+					end
+					lightLifeMult = lightLifeMult * rateMult
 				end
+			end
 
-				if lightLifeMult > 0.02 then
-					local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
-					if life < 1 then
-						life = 1
-					end
-					local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
+			if lightLifeMult > 0.02 then
+				local life = lcfg.lifeFrames + mathFloor(mathRandom() * (lcfg.lifeJitter + 1))
+				if life < 1 then
+					life = 1
+				end
+				local sustain = mathMax(1, mathFloor(life * lcfg.sustainFrac))
 
-					local scaleNorm = (e.scale - 0.55) / 1.85
-					if scaleNorm < 0 then
-						scaleNorm = 0
-					elseif scaleNorm > 1 then
-						scaleNorm = 1
-					end
-					local flicker = 0.72 + mathRandom() * 0.56
-					local radius = (e.radius * lcfg.radiusMult + e.scale * lcfg.radiusScaleMult)
-					radius = radius
-						* (e.lightRadiusMult or 1.0)
-						* (0.70 + 0.55 * lightLifeMult)
-						* (0.88 + 0.26 * mathRandom())
-					local brightness = lcfg.brightnessBase
-						* (e.lightIntensity or 1.0)
-						* e.intensity
-						* lightLifeMult
-						* flicker
-						* (0.75 + 0.50 * scaleNorm)
+				local scaleNorm = (e.scale - 0.55) / 1.85
+				if scaleNorm < 0 then
+					scaleNorm = 0
+				elseif scaleNorm > 1 then
+					scaleNorm = 1
+				end
+				local flicker = 0.72 + mathRandom() * 0.56
+				local radius = (e.radius * lcfg.radiusMult + e.scale * lcfg.radiusScaleMult)
+				radius = radius
+					* (e.lightRadiusMult or 1.0)
+					* (0.70 + 0.55 * lightLifeMult)
+					* (0.88 + 0.26 * mathRandom())
+				local brightness = lcfg.brightnessBase
+					* (e.lightIntensity or 1.0)
+					* e.intensity
+					* lightLifeMult
+					* flicker
+					* (0.75 + 0.50 * scaleNorm)
 
-					if brightness > 0.001 and radius > 2 then
-						local lx = x + (mathRandom() - 0.5) * radius * 0.22
-						local lz = z + (mathRandom() - 0.5) * radius * 0.22
-						local ly = y + lcfg.heightOffset + radius * 0.15
-						local lg = 0.35 + 0.20 * mathRandom()
+				if brightness > 0.001 and radius > 2 then
+					local lx = x + (mathRandom() - 0.5) * radius * 0.22
+					local lz = z + (mathRandom() - 0.5) * radius * 0.22
+					local ly = y + lcfg.heightOffset + radius * 0.15
+					local lg = 0.35 + 0.20 * mathRandom()
+					ScriptLuaUI.EnvLightningPointLight(
+						lx,
+						ly,
+						lz,
+						radius,
+						1.0,
+						lg,
+						0.10,
+						brightness,
+						life,
+						sustain,
+						lcfg.modelFactor,
+						lcfg.specular,
+						lcfg.scattering,
+						lcfg.lensflare,
+						n
+					)
+
+					if radius > 12 and lightLifeMult > 0.35 then
+						local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.30 * mathRandom())
+						local cRadius = radius * (0.66 + 0.28 * mathRandom())
+						local cx = x + (mathRandom() - 0.5) * cRadius * 0.38
+						local cz = z + (mathRandom() - 0.5) * cRadius * 0.38
 						ScriptLuaUI.EnvLightningPointLight(
-							lx,
+							cx,
 							ly,
-							lz,
-							radius,
+							cz,
+							cRadius,
 							1.0,
-							lg,
-							0.10,
-							brightness,
+							0.45,
+							0.12,
+							cBright,
 							life,
 							sustain,
 							lcfg.modelFactor,
@@ -1287,30 +1388,6 @@ local function emitFromEmitter(e, n)
 							lcfg.lensflare,
 							n
 						)
-
-						if radius > 12 and lightLifeMult > 0.35 then
-							local cBright = brightness * lcfg.secondaryBrightnessMult * (0.85 + 0.30 * mathRandom())
-							local cRadius = radius * (0.66 + 0.28 * mathRandom())
-							local cx = x + (mathRandom() - 0.5) * cRadius * 0.38
-							local cz = z + (mathRandom() - 0.5) * cRadius * 0.38
-							ScriptLuaUI.EnvLightningPointLight(
-								cx,
-								ly,
-								cz,
-								cRadius,
-								1.0,
-								0.45,
-								0.12,
-								cBright,
-								life,
-								sustain,
-								lcfg.modelFactor,
-								lcfg.specular,
-								lcfg.scattering,
-								lcfg.lensflare,
-								n
-							)
-						end
 					end
 				end
 			end
@@ -1952,12 +2029,14 @@ end
 -- Draw
 --------------------------------------------------------------------------------
 local function drawParticles()
-	if not particleVBO or particleVBO.usedElements == 0 then
+	if not particleVBO or not particleShader then
 		return
 	end
-	if not particleShader then
+	if liveCount == 0 then
 		return
 	end
+	-- Draw up to the highest written slot; dead slots exit the vertex shader early.
+	particleVBO.usedElements = ringHigh
 
 	glDepthTest(true)
 	glDepthMask(false)
@@ -2045,7 +2124,7 @@ function gadget:Initialize()
 		end,
 		---@return integer count Particles currently alive.
 		GetParticleCount = function()
-			return particleVBO and particleVBO.usedElements or 0
+			return liveCount
 		end,
 		---@return integer count Particle budget for the whole system.
 		GetMaxParticles = function()
@@ -2084,7 +2163,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
 	if damage and damage < 1 then
 		return
 	end
-	local ux, uy, uz = spGetUnitPosition(unitID)
+	local ux, uy, _ = spGetUnitPosition(unitID)
 	if not ux or uy < 0 then
 		return
 	end -- underwater: no fire
@@ -2294,15 +2373,22 @@ local lastFpsCheckFrame = 0
 local lastFireUpdateFrame = -1
 local nextWindUpdateFrame = 0
 local nextEmitterUpdateFrame = 0
+-- The fire frame for sim frame N is deferred to a spare draw frame (or run from
+-- the next Update when none arrives) so it does not stack on the sim frame's cost.
+local fireDrawFrame = 0
+local pendingFireFrame = nil
+local pendingFireDrawFrame = 0
 
 local function runFireFrame(n)
 	cachedGameFrame = n
-	removeExpiredParticles(n)
+	hasLightBridge = (ScriptLuaUI and ScriptLuaUI("EnvLightningPointLight")) and true or false
+	beginPoolFrame(n)
 	updatePendingWreckFire(n)
 
 	if n >= nextEmitterUpdateFrame then
 		nextEmitterUpdateFrame = n + fpsUpdateInterval
 		updateEmitters(n)
+		flushRange()
 	end
 end
 
@@ -2337,31 +2423,24 @@ function gadget:Update()
 		end
 	end
 
-	do
-		local pendingFrame = particleRemoveQueue.__pendingFireFrame
-		if pendingFrame and pendingFrame < n then
-			-- No spare draw frame arrived before the next simframe. Catch up here;
-			-- this is the low-FPS/catchup case where deferring is not achievable.
-			particleRemoveQueue.__pendingFireFrame = nil
-			runFireFrame(pendingFrame)
-			cachedGameFrame = n
-		end
-		particleRemoveQueue.__pendingFireFrame = n
-		particleRemoveQueue.__pendingFireDrawFrame = particleRemoveQueue.__fireDrawFrame or 0
+	if pendingFireFrame and pendingFireFrame < n then
+		-- No spare draw frame arrived before the next simframe. Catch up here;
+		-- this is the low-FPS/catchup case where deferring is not achievable.
+		local frame = pendingFireFrame
+		pendingFireFrame = nil
+		runFireFrame(frame)
+		cachedGameFrame = n
 	end
+	pendingFireFrame = n
+	pendingFireDrawFrame = fireDrawFrame
 end
 
 function gadget:DrawWorld()
-	particleRemoveQueue.__fireDrawFrame = (particleRemoveQueue.__fireDrawFrame or 0) + 1
-	do
-		local pendingFrame = particleRemoveQueue.__pendingFireFrame
-		if pendingFrame then
-			local queuedAt = particleRemoveQueue.__pendingFireDrawFrame or 0
-			if particleRemoveQueue.__fireDrawFrame > queuedAt + 1 then
-				particleRemoveQueue.__pendingFireFrame = nil
-				runFireFrame(pendingFrame)
-			end
-		end
+	fireDrawFrame = fireDrawFrame + 1
+	if pendingFireFrame and fireDrawFrame > pendingFireDrawFrame + 1 then
+		local frame = pendingFireFrame
+		pendingFireFrame = nil
+		runFireFrame(frame)
 	end
 	drawParticles()
 end

@@ -19,6 +19,8 @@ local mathFloor = math.floor
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 local factions = {}
 
 local doUpdate
@@ -168,7 +170,7 @@ local function drawFactionpicker()
 			local text = BAR.I18N("ui.factionPicker.factions." .. factions[i].faction)
 			local tooltip = ""
 			local maxWidth = WG.tooltip.getFontsize() * 80
-			local textLines, numLines = font2:WrapText(text, maxWidth)
+			local textLines, _ = font2:WrapText(text, maxWidth)
 			tooltip = tooltip .. string.gsub(textLines, "[\n]", "\n") .. "\n"
 			WG.tooltip.AddTooltip(
 				"factionpicker_" .. i,
@@ -267,15 +269,16 @@ function widget:Initialize()
 	end
 
 	if Spring.GetModOptions().scenariooptions then
-		local scenarioopts = string.base64Decode(Spring.GetModOptions().scenariooptions)
-		scenarioopts = Json.decode(scenarioopts)
-		if scenarioopts and scenarioopts.disablefactionpicker == true then
+		local scenarioopts = decodeModoption(Spring.GetModOptions().scenariooptions)
+		if not scenarioopts then
+			Spring.Log(widget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+		elseif scenarioopts.disablefactionpicker == true then
 			widgetHandler:RemoveWidget()
 			return
 		end
 	end
 
-	if VFS.Include("luaui/Include/mission_options.lua").IsFactionPickerDisabled() then
+	if require("luaui/Include/mission_options").IsFactionPickerDisabled() then
 		widgetHandler:RemoveWidget()
 		return
 	end

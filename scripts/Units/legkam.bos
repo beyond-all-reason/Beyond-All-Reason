@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, thrust, firepoint;
+piece  base, thrust, firepoint, bomb;
 
 static-var  statechg_DesiredState, statechg_StateChanging, detonating;
 
@@ -154,6 +154,7 @@ Killed(severity, corpsetype)
 		hide base;
 		hide thrust;
 		hide firepoint;
+		hide bomb;
 		emit-sfx 2048 + 2 from firepoint; //Triggers kamikaze weapon after unit kills itself
 		// Stay in the unit table until the bomb has landed, so its damage is credited to our team.
 		sleep 3000;

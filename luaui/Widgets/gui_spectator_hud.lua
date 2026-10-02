@@ -65,9 +65,6 @@ local mathabs = math.abs
 local glColor = gl.Color
 local glRect = gl.Rect
 
-local GL_SRC_ALPHA = GL.SRC_ALPHA
-local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
-
 local gaiaID = Spring.GetGaiaTeamID()
 local gaiaAllyID = select(6, Spring.GetTeamInfo(gaiaID, false))
 
@@ -86,25 +83,22 @@ local knobDimensions = {}
 local barDimensions = {}
 
 local textColorWhite = { 1, 1, 1, 1 }
+-- the font object is shared, so pin the outline instead of taking whatever another widget last set
+local textOutlineColor = { 0.05, 0.05, 0.05, 0.95 }
 
 local knobVAO = nil
 local metricDisplayLists = {}
 
 local shader = nil
 
--- Text is rendered into textures that are only refreshed on stats updates, so a single
--- bad render (e.g. GL state left behind by another widget in the same DrawGenesis pass,
--- or a glyph atlas being rebuilt that frame) would otherwise stay on screen for a whole
--- update interval (up to a second in the basic config). Every refresh request therefore
--- re-renders on this many consecutive draw frames, which bounds such a glitch to one frame.
-local textTextureRefreshFrames = 2
-local textTextureFramesPending = textTextureRefreshFrames
+-- text is rendered into these textures only when the stats change; a bad render stays until the next one
+local textTexturesDirty = true
 local titleTexture = nil
 local statsTexture = nil
 local updateNow = false
 
 local function requestTextTextureRefresh()
-	textTextureFramesPending = textTextureRefreshFrames
+	textTexturesDirty = true
 end
 
 local knobVertexShaderSource = [[
@@ -458,7 +452,7 @@ local function buildUnitCache()
 		update = function(unitID, value)
 			local reclaimMetal = 0
 			local reclaimEnergy = 0
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, _, energyMake, _ = Spring.GetUnitResources(unitID)
 			if metalMake then
 				if value[1] then
 					reclaimMetal = metalMake - value[1]
@@ -478,7 +472,7 @@ local function buildUnitCache()
 	unitCache.energyConverters = {
 		add = nil,
 		update = function(unitID, value)
-			local metalMake, metalUse, energyMake, energyUse = Spring.GetUnitResources(unitID)
+			local metalMake, _, _, _ = Spring.GetUnitResources(unitID)
 			if metalMake then
 				return metalMake
 			end
@@ -841,7 +835,7 @@ local function createTextures()
 	local knobTextureSizeY = widgetDimensions.height
 	statsTexture = gl.CreateTexture(knobTextureSizeX, knobTextureSizeY, textureProperties)
 
-	-- fresh textures are empty until the next DrawGenesis renders into them
+	-- fresh textures are empty until the next DrawScreen renders into them
 	requestTextTextureRefresh()
 end
 
@@ -1173,21 +1167,6 @@ local function drawText()
 	)
 end
 
--- Widgets drawing earlier in the same DrawGenesis pass can leave GL state behind that the
--- engine font renderer does not reset itself (face culling, colour/stencil masks, polygon
--- mode). Text drawn into a freshly cleared texture would then be lost until the next
--- refresh, so make that state explicit before printing. Blending is set up by R2tHelper.
-local function resetTextRenderState()
-	gl.Culling(false)
-	gl.DepthTest(false)
-	gl.DepthMask(false)
-	gl.StencilTest(false)
-	gl.StencilMask(255)
-	gl.ColorMask(true, true, true, true)
-	gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-	gl.Texture(false)
-end
-
 -- largest font size (counting down from fontSize) at which text fits into areaWidth
 local function fitFontSize(text, fontSize, areaWidth)
 	local textWidth = font:GetTextWidth(text)
@@ -1199,11 +1178,11 @@ end
 
 local function doTitleTexture()
 	local function drawTitlesToTexture()
-		resetTextRenderState()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(2 / titleDimensions.width, 2 / widgetDimensions.height, 0)
 		font:Begin(true)
 		font:SetTextColor(textColorWhite)
+		font:SetOutlineColor(textOutlineColor)
 
 		for metricIndex, metric in ipairs(metricsEnabled) do
 			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
@@ -1284,11 +1263,11 @@ local function updateStatsTexture()
 		local statsTextureWidth = knobDimensions.rightKnobRight - knobDimensions.leftKnobLeft
 		local statsTextureHeight = widgetDimensions.height
 
-		resetTextRenderState()
 		gl.Translate(-1, -1, 0)
 		gl.Scale(2 / statsTextureWidth, 2 / statsTextureHeight, 0)
 		font:Begin(true)
 		font:SetTextColor(textColorWhite)
+		font:SetOutlineColor(textOutlineColor)
 
 		for metricIndex, knobText in ipairs(knobTexts) do
 			local bottom = widgetDimensions.height - metricIndex * metricDimensions.height
@@ -1320,17 +1299,13 @@ local function updateStatsTexture()
 		font:End()
 	end
 
-	gl.Blending(true)
 	gl.R2tHelper.RenderToTexture(statsTexture, drawStatsToTexture, true)
 end
 
 local function updateTextTextures()
-	-- Always use the font handler's current font: it replaces its fonts on view resize and
-	-- deletes the old ones, so a handle cached at init could point at a deleted font.
+	-- the font handler deletes its fonts on view resize, so never keep one from an earlier refresh
 	font = WG.fonts.getFont()
 
-	-- Both textures are re-rendered together; the title texture is tiny and this keeps a
-	-- bad title render from persisting until the next re-init.
 	doTitleTexture()
 	updateStatsTexture()
 end
@@ -2126,31 +2101,14 @@ function widget:FontsChanged()
 	requestTextTextureRefresh()
 end
 
-function widget:DrawGenesis()
-	if not widgetEnabled or not haveFullView then
-		return
-	end
+local function drawHud()
+	-- other widgets can leave state behind (blend equation, scissor, texture matrix, ...) that hides the text
+	gl.ResetState()
+	gl.ResetMatrices()
 
-	if textTextureFramesPending > 0 then
+	if textTexturesDirty then
 		updateTextTextures()
-		textTextureFramesPending = textTextureFramesPending - 1
-	end
-end
-
-function widget:DrawScreen()
-	-- state that other widgets drawing before us in DrawScreen may have left behind
-	gl.Blending(true)
-	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	gl.Culling(false)
-	gl.DepthTest(false)
-	gl.ColorMask(true, true, true, true)
-
-	if not widgetEnabled or not haveFullView then
-		if WG.guishader and guishaderDlist then
-			WG.guishader.DeleteDlist("spechud")
-			guishaderDlist = nil
-		end
-		return
+		textTexturesDirty = false
 	end
 
 	if WG.guishader and (displayListsChanged or not guishaderDlist) then
@@ -2176,6 +2134,19 @@ function widget:DrawScreen()
 	end
 	drawBars()
 	drawText()
+end
+
+function widget:DrawScreen()
+	if not widgetEnabled or not haveFullView then
+		if WG.guishader and guishaderDlist then
+			WG.guishader.DeleteDlist("spechud")
+			guishaderDlist = nil
+		end
+		return
+	end
+
+	-- text only renders from texture unit 0, which gl.ResetState does not select
+	gl.ActiveTexture(0, drawHud)
 end
 
 function widget:GetConfigData()

@@ -36,7 +36,7 @@ local sin = math.sin
 local pi = math.pi
 local random = math.random
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 local WG = WG
 
@@ -1283,7 +1283,7 @@ function widget:MouseWheel(up, value)
 		return false
 	end
 
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
+	local alt, ctrl, _, _ = Spring.GetModKeyState()
 
 	if ctrl and alt then
 		local delta = up and 0.1 or -0.1

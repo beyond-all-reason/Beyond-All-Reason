@@ -340,6 +340,10 @@ local SAMPLED = {
 	"energyReclaimed",
 	-- The wind is everyone's; every team's sample carries it, so a chart reads it off any.
 	"windSpeed",
+	-- So is the lava's height, on a lava map.
+	"lavaLevel",
+	-- The damage lava did to the team's units.
+	"lavaDamage",
 }
 -- What the team's losses were lost to, as value, adding up to lostValue: enemies, its own
 -- side's fire, lava or deep water, self-destruction, reclaim or a cancelled build, and the
@@ -442,6 +446,7 @@ local TALLIED = {
 	"teamKillValue",
 	"comKills",
 	"comLost",
+	"lavaDamage",
 }
 for i = 1, #BUCKETS do
 	TALLIED[#TALLIED + 1] = countKey[BUCKETS[i]]
@@ -483,6 +488,16 @@ for name, key in pairs({
 end
 -- What the engine names when a gadget destroyed the unit, whatever it did that for.
 local KILLED_BY_LUA = Game.envDamageTypes and Game.envDamageTypes.KilledByLua
+-- The map's own hazards: lava burns what stands in it through the engine's water damage, and
+-- on a map of void water a unit that ends up below the ground line is taken away by a gadget
+-- (map_voidground). Both are losses to the map, as deep water is.
+local WATER_DAMAGE = Game.envDamageTypes and Game.envDamageTypes.Water
+local LAVA_MAP = BAR ~= nil and BAR.Lava ~= nil and BAR.Lava.isLavaMap == true
+local VOID_MAP
+do
+	local ok, mapinfo = pcall(VFS.Include, "mapinfo.lua")
+	VOID_MAP = ok and type(mapinfo) == "table" and mapinfo.voidwater == true
+end
 
 ----------------------------------------------------------------
 -- Unit defs
@@ -514,6 +529,9 @@ local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 		return Spring.GetFactoryCommands(unitID, 0)
 	end
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGameSpeed = Spring.GetGameSpeed
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
 
 ---@type table<integer, number>
 local defCost = {}
@@ -579,8 +597,10 @@ local killedAs = {
 
 local ARMED_GROUPS =
 	{ weapon = true, aa = true, sub = true, emp = true, explo = true, weaponaa = true, weaponsub = true }
----@type table<string, boolean?>
-local SEA_CLASSES = { BOAT = true, UBOAT = true, EPICSHIP = true }
+-- What the engine calls a ship: the class it gives every move definition whose name says
+-- boat or ship, and the one a definition can set outright (the T4 ships and submarines do).
+-- The name itself is no test - the engine lowercases it, and it is the game's to change.
+local SHIP_CLASS = Game.speedModClasses.Ship
 
 local function bucketOf(ud)
 	local cp = ud.customParams
@@ -607,8 +627,7 @@ local function bucketOf(ud)
 	if ud.canFly then
 		return "air"
 	end
-	local moveClass = ud.moveDef and ud.moveDef.name or ""
-	if SEA_CLASSES[moveClass:match("^%u+") or ""] then
+	if ud.moveDef and ud.moveDef.smClass == SHIP_CLASS then
 		return "sea"
 	end
 	return armed and "army" or "utility"
@@ -703,6 +722,9 @@ local allyOf = {}
 -- in here and counts for nothing until it is done.
 ---@type table<integer, integer?>
 local finished = {}
+-- [unitID] = the type it was counted as, so what was added is what is taken off again.
+---@type table<integer, integer?>
+local countedAs = {}
 -- [teamID][unitID] = build speed, for every finished builder and factory.
 ---@type table<integer, table<integer, number?>>
 local builders = {}
@@ -762,12 +784,13 @@ local comValue = {}
 -- milestones it made so far.
 ---@type table<integer, table?>
 local strikes = {}
--- [teamID] = how many times the team's milestones changed, and the count a receiver that
--- keeps them was last handed: a team's go over only when they changed.
----@type table<integer, integer>
-local mileVersion = {}
+-- For a receiver that keeps the milestones: [teamID] = the first of the team's that was added
+-- or changed since it was last handed them - only those from there on go over - and whether
+-- it was handed the team's at all yet (all of them go over the first time).
 ---@type table<integer, integer?>
-local sentVersion = {}
+local mileFrom = {}
+---@type table<integer, boolean?>
+local mileSent = {}
 
 -- The metal and geothermal spots: the metal ones as the resource spot finder left them in
 -- the game rules (none on a metal map), the geothermal ones off the map's vents. Read the
@@ -814,6 +837,21 @@ end
 local army = newRoster()
 local producers = newRoster()
 local workers = newRoster()
+-- Build power in use: a slice of the builders is read every frame, every one of them once in
+-- BUILD_FRAMES, and each team's total kept up to date from each builder's last reading - a
+-- live read or a sample takes it as it is, rather than asking the engine about every builder
+-- of every team at once.
+local BUILD_FRAMES = 60
+local buildRoster = newRoster()
+local buildAt = 1
+-- [unitID] = its last reading: build speed times the share of it in use.
+---@type table<integer, number?>
+local buildActive = {}
+-- [teamID] = its builders' readings added up.
+---@type table<integer, number>
+local teamActive = {}
+-- The wind, read once a frame for every team rather than once a team.
+local windFrame, windNow = -1, 0
 -- [teamID] = where its first commander appeared: its start, for a team the game gave none
 -- (an AI's can stay unset).
 ---@type table<integer, number[]?>
@@ -866,10 +904,16 @@ local function loadSpots()
 		end
 	end
 	local features = spGetAllFeatures()
+	local seen = {}
 	for i = 1, #features do
 		if vents[spGetFeatureDefID(features[i])] then
 			local x, _, z = spGetFeaturePosition(features[i])
-			found.geo[#found.geo + 1] = { x = x, z = z }
+			-- some maps place each vent twice (SMF and LuaGaia featureplacer)
+			local key = x * 65536 + z
+			if not seen[key] then
+				seen[key] = true
+				found.geo[#found.geo + 1] = { x = x, z = z }
+			end
 		end
 	end
 	spots = found
@@ -953,6 +997,7 @@ local function addUnit(unitID, unitDefID, teamID)
 		return
 	end
 	finished[unitID] = teamID
+	countedAs[unitID] = unitDefID
 	local cost = defCost[unitDefID]
 	t.unitCount = t.unitCount + 1
 	t.unitValue = t.unitValue + cost
@@ -987,14 +1032,24 @@ local function addUnit(unitID, unitDefID, teamID)
 	if buildSpeed then
 		builders[teamID][unitID] = buildSpeed
 		t.buildPower = t.buildPower + buildSpeed
+		enlist(buildRoster, unitID, teamID)
 	end
 end
 
-local function removeUnit(unitID, unitDefID)
+-- What a unit added to its team's tally is taken off it again. The type is the one it was
+-- counted under rather than the one the call-in gives: the two are the same unit's today, but
+-- a tally that trusts the call-in cannot be made whole again if they ever differ - it would
+-- leave a team a few metal short or over for good, and a team that lost everything showing a
+-- unit value below nothing.
+local function removeUnit(unitID)
 	local teamID = finished[unitID]
 	if not teamID then
 		return
 	end
+	-- Set beside `finished`, so a unit that is counted always has the type it counted as.
+	local unitDefID = countedAs[unitID]
+	---@cast unitDefID -?
+	countedAs[unitID] = nil
 	local site = defSite[unitDefID]
 	if site then
 		releaseSpot(unitID, site, teamID)
@@ -1020,6 +1075,36 @@ local function removeUnit(unitID, unitDefID)
 	if buildSpeed then
 		builders[teamID][unitID] = nil
 		t.buildPower = t.buildPower - buildSpeed
+		delist(buildRoster, unitID)
+		local was = buildActive[unitID]
+		if was then
+			buildActive[unitID] = nil
+			teamActive[teamID] = (teamActive[teamID] or 0) - was
+		end
+	end
+end
+
+-- This frame's slice of the builders: what each has in use now, into its team's total.
+local function readBuilders()
+	local list = buildRoster.list
+	local n = #list
+	if n == 0 then
+		return
+	end
+	for _ = 1, math.ceil(n / BUILD_FRAMES) do
+		if buildAt > n then
+			buildAt = 1
+		end
+		local unitID = list[buildAt]
+		buildAt = buildAt + 1
+		---@type integer?
+		local teamID = buildRoster.what[unitID]
+		local speed = teamID and builders[teamID][unitID]
+		if speed then
+			local now = speed * (spGetUnitCurrentBuildPower(unitID) or 0)
+			teamActive[teamID] = (teamActive[teamID] or 0) + now - (buildActive[unitID] or 0)
+			buildActive[unitID] = now
+		end
 	end
 end
 
@@ -1029,18 +1114,24 @@ for i = 1, #MILESTONES do
 	MILESTONE_BY_KEY[MILESTONES[i].key] = MILESTONES[i]
 end
 
--- A team's milestones changed: a receiver that keeps them is handed them again.
-local function touched(teamID)
-	mileVersion[teamID] = (mileVersion[teamID] or 0) + 1
+-- A team's milestone was added or changed: a receiver that keeps them is handed the team's
+-- from that one on (`at`, its place in the list; one without is handed all of them).
+local function touched(teamID, mark)
+	local at = mark.at or 1
+	local from = mileFrom[teamID]
+	if not from or at < from then
+		mileFrom[teamID] = at
+	end
 end
 
 -- Adds a milestone, at a frame of its own when given one, and answers it - a strike goes on
 -- filling it in.
 local function addMilestone(teamID, key, frame, unitDefID, unitID)
 	local list = milestones[teamID]
-	local mark = { key = key, frame = frame or spGetGameFrame(), unitDefID = unitDefID, unitID = unitID }
-	list[#list + 1] = mark
-	touched(teamID)
+	local n = #list + 1
+	local mark = { key = key, frame = frame or spGetGameFrame(), unitDefID = unitDefID, unitID = unitID, at = n }
+	list[n] = mark
+	touched(teamID, mark)
 	return mark
 end
 
@@ -1137,6 +1228,7 @@ local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
 		if mark then
 			mark.value, mark.share, mark.cause, mark.side = lost, share, cause, which
 			mark.count, mark.unitDefID = s.units[which], s.top[which].def
+			touched(teamID, mark)
 			changed = true
 			if share >= severest then
 				dearest, severest = which, share
@@ -1144,7 +1236,6 @@ local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
 		end
 	end
 	if changed then
-		touched(teamID)
 		-- The strike as the team that dealt most of it has it.
 		local striker = largest(s.killers)
 		if striker and teams[striker] then
@@ -1159,7 +1250,7 @@ local function strikeLoss(teamID, unitDefID, value, attackerTeam, attackerDefID)
 			raid.value, raid.share, raid.cause, raid.side = s.killers[s.striker] or 0, severest, cause, which
 			raid.count = s.killed[s.striker] or 0
 			raid.victim, raid.unitDefID = teamID, s.top[which] and s.top[which].def
-			touched(s.striker)
+			touched(s.striker, raid)
 		end
 	end
 end
@@ -1173,7 +1264,7 @@ local function nukeLoss(teamID, value)
 	mark.value = (mark.value or 0) + value
 	mark.count = (mark.count or 0) + 1
 	mark.share = math.min(1, mark.value / math.max(1, mark.base or 0))
-	touched(teamID)
+	touched(teamID, mark)
 end
 
 ----------------------------------------------------------------
@@ -1505,7 +1596,7 @@ end
 
 -- Fills `out` with every SAMPLED key for the team, as things stand right now: the
 -- counters from the tally, the economy and the conversion from the engine, and the
--- build power in use from every builder's nano activity.
+-- build power in use from the builders' rolling reading.
 local function readLive(teamID, out)
 	local t = teams[teamID]
 	---@cast t -?
@@ -1526,7 +1617,14 @@ local function readLive(teamID, out)
 	out.actionsPerMinute = apm and apm[teamID] or 0
 	out.metalReclaimed = spGetTeamRulesParam(teamID, "teamStatsReclaimedMetal") or 0
 	out.energyReclaimed = spGetTeamRulesParam(teamID, "teamStatsReclaimedEnergy") or 0
-	out.windSpeed = select(4, spGetWind()) or 0
+	local frame = spGetGameFrame()
+	if windFrame ~= frame then
+		windFrame, windNow = frame, select(4, spGetWind()) or 0
+	end
+	out.windSpeed = windNow
+	-- The lava gadget sets it as the lava moves, to a far-off height before it has.
+	local lava = LAVA_MAP and spGetGameRulesParam("lavaLevel") or nil
+	out.lavaLevel = (lava and lava > -9999) and lava or 0
 	local ally = allyOf[teamID]
 	local ranking = GG.AllyTeamRanking
 	out.allyRank = ranking and ranking.GetPlace(ally) or 0
@@ -1547,12 +1645,8 @@ local function readLive(teamID, out)
 			out[key] = src and src[key] or 0
 		end
 	end
-	---@type number
-	local active = 0
-	for unitID, buildSpeed in pairs(builders[teamID]) do
-		active = active + buildSpeed * (spGetUnitCurrentBuildPower(unitID) or 0)
-	end
-	out.buildPowerActive = active
+	-- Kept up to date by the builders' rolling reading; a sum of differences never below none.
+	out.buildPowerActive = math.max(0, teamActive[teamID] or 0)
 	for i = 1, #TALLIED do
 		local key = TALLIED[i]
 		out[key] = t[key]
@@ -1591,6 +1685,12 @@ end
 ----------------------------------------------------------------
 
 local function unitCreated(unitID, unitDefID, unitTeam)
+	-- The engine gives a unit id out again once the unit that had it is gone. One still
+	-- counted here means its end was never seen: it is taken off the tally now, so what it
+	-- left behind does not stay in the team's totals for the rest of the game.
+	if finished[unitID] then
+		removeUnit(unitID)
+	end
 	if not spGetUnitIsBeingBuilt(unitID) then
 		addUnit(unitID, unitDefID, unitTeam)
 	end
@@ -1625,7 +1725,7 @@ end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if finished[unitID] then
-		removeUnit(unitID, unitDefID)
+		removeUnit(unitID)
 		addUnit(unitID, unitDefID, newTeam)
 	end
 end
@@ -1666,6 +1766,12 @@ function gadget:UnitDamaged(
 	if defCanFly[unitDefID] and attackerTeam and damage > 0 and not paralyzer then
 		lastHitBy[unitID] = attackerTeam
 		lastHitDef[unitID] = attackerDefID
+	end
+	if LAVA_MAP and weaponDefID == WATER_DAMAGE and damage > 0 then
+		local victim = teams[unitTeam]
+		if victim then
+			victim.lavaDamage = victim.lavaDamage + damage
+		end
 	end
 	-- The damage an enemy took, on the type of unit that dealt it.
 	if attackerTeam and attackerDefID and damage > 0 and not paralyzer and allyOf[attackerTeam] ~= allyOf[unitTeam] then
@@ -1720,7 +1826,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		local _, progress = spGetUnitIsBeingBuilt(unitID)
 		value = value * (progress or 0)
 	end
-	removeUnit(unitID, unitDefID)
+	removeUnit(unitID)
 
 	local victim = teams[unitTeam]
 	if victim then
@@ -1737,6 +1843,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 			-- upgrade, or for some other reason of its own.
 			if (spGetUnitSelfDTime(unitID) or 0) > 0 then
 				cause = "lostSelfD"
+			elseif VOID_MAP and (select(2, spGetUnitPosition(unitID)) or 1) < 0 then
+				cause = "lostWater"
 			elseif replacedInPlace(unitID, unitDefID) then
 				cause = "lostReclaimed"
 			else
@@ -1843,12 +1951,14 @@ local function visible(teamID)
 	return allyOf[teamID] == spGetMyAllyTeamID()
 end
 
-local function copyMilestones(teamID)
+-- The team's milestones from `from` (1 by default) on, copied.
+local function copyMilestones(teamID, from)
 	local out = {}
 	local list = milestones[teamID]
-	for i = 1, #list do
+	from = from or 1
+	for i = from, #list do
 		local m = list[i]
-		out[i] = {
+		out[i - from + 1] = {
 			key = m.key,
 			frame = m.frame,
 			unitDefID = m.unitDefID,
@@ -1911,6 +2021,32 @@ local function GetTeamStatsHistory(teamID, from)
 		out.values[key] = run
 	end
 	return out
+end
+
+-- The same samples for LuaUI, flat: the frames, and every sampled key's run one after another
+-- in the order of the info's `keys` - `flat[(k - 1) * #frames + i]` is key k at the i-th frame.
+-- One table where the other shape has one a key: the engine copies every table into LuaUI on
+-- its own, and a period's new sample of every team came to thousands of them in one frame.
+local function historyForLuaUI(teamID, from)
+	if not visible(teamID) then
+		return nil
+	end
+	from = math.max(1, from or 1)
+	local h = history[teamID]
+	local count = #h.frames
+	local frames, flat = {}, {}
+	for n = from, count do
+		frames[n - from + 1] = h.frames[n]
+	end
+	local at = 0
+	for i = 1, #SAMPLED do
+		local src = h.values[SAMPLED[i]]
+		for n = from, count do
+			at = at + 1
+			flat[at] = src[n]
+		end
+	end
+	return { period = SAMPLE_PERIOD, from = from, frames = frames, flat = flat }
 end
 
 -- The team's units by type: for each type the team had, how many it built and their value,
@@ -1992,30 +2128,44 @@ local Script = Script
 -- Which run of the gadget LuaUI's copies come from, handed over with the live values: a new one
 -- when it starts over, the old one when it picked up after a reload where it left off.
 local session = math.random(1, 1000000000)
+-- Each team's table of live values for LuaUI, filled again every hand-over.
+---@type table<integer, table>
+local liveOut = {}
 
 -- LuaUI takes part by registering globals (luaui/Widgets/api_teamstats.lua holds them
 -- for every widget): `TeamStatsLive(all, frame)` is handed the live values of every
 -- team the viewer may see, keyed by team, every LIVE_PERIOD frames for as long as it is
 -- registered; `TeamStatsInfo(info)` is handed the layout while it is registered;
 -- `TeamStatsHistoryRequest()` returning { [teamID] = fromIndex } is answered through
--- `TeamStatsHistory(teamID, history)` with the samples from that index on (see
--- GetTeamStatsHistory for the shape), so a caller holding the first n samples asks for
--- what came after them.
+-- `TeamStatsHistory(teamID, history)` with the samples from that index on (flat: see
+-- historyForLuaUI), so a caller holding the first n samples asks for what came after them.
 -- The live values for LuaUI. A receiver that keeps the milestones - it registers
 -- `TeamStatsMilestoneRequest()`, answering true when it wants all of them again - is handed a
--- team's only when they changed since; any other, every team's every time.
+-- team's only when they changed since, and then only from the first that changed on:
+-- `milestonesFrom` says where they go in the list it keeps, 1 for all of them. A team's
+-- milestones grow with every strike of a long game, and a strike still going changes one
+-- of the last every time it takes a unit. Any other receiver is handed every team's all of
+-- them every time.
 local function liveForLuaUI(keeps)
 	local out = {}
 	for id in pairs(teams) do
 		if visible(id) then
-			local live = readLive(id, {})
+			-- Each team's table used again: the engine copies it into LuaUI, and every key but
+			-- the milestones is written anew.
+			local live = liveOut[id]
+			if not live then
+				live = {}
+				liveOut[id] = live
+			end
+			readLive(id, live)
+			live.milestones, live.milestonesFrom = nil, nil
 			live.dead = dead[id] or false
-			local version = mileVersion[id] or 0
-			if not keeps or sentVersion[id] ~= version then
+			if not keeps then
 				live.milestones = copyMilestones(id)
-				if keeps then
-					sentVersion[id] = version
-				end
+			elseif mileFrom[id] or not mileSent[id] then
+				local from = mileSent[id] and mileFrom[id] or 1
+				live.milestones, live.milestonesFrom = copyMilestones(id, from), from
+				mileFrom[id], mileSent[id] = nil, true
 			end
 			out[id] = live
 		end
@@ -2027,7 +2177,7 @@ local function serveLuaUI(frame)
 	if Script.LuaUI("TeamStatsLive") then
 		local keeps = Script.LuaUI("TeamStatsMilestoneRequest")
 		if keeps and Script.LuaUI.TeamStatsMilestoneRequest() then
-			sentVersion = {}
+			mileSent = {}
 		end
 		Script.LuaUI.TeamStatsLive(liveForLuaUI(keeps), frame, session)
 	end
@@ -2051,7 +2201,7 @@ local function serveLuaUI(frame)
 		local wanted = Script.LuaUI.TeamStatsHistoryRequest()
 		if type(wanted) == "table" then
 			for teamID, from in pairs(wanted) do
-				local h = GetTeamStatsHistory(teamID, from)
+				local h = historyForLuaUI(teamID, from)
 				if h then
 					Script.LuaUI.TeamStatsHistory(teamID, h)
 				end
@@ -2078,6 +2228,7 @@ local STASH_GAP = SAMPLE_PERIOD
 -- The counters that add up what happened rather than what stands.
 local RUNNING = {
 	"buildPowerIdle",
+	"lavaDamage",
 	"killedValue",
 	"killedArmyValue",
 	"killedEcoValue",
@@ -2287,11 +2438,12 @@ local function restore(data)
 		local got = {}
 		for i = 1, #s.marks do
 			got[s.marks[i].key] = true
+			s.marks[i].at = i
 		end
 		reached[teamID] = got
 		unitStats[teamID] = s.units
 		lastSample[teamID] = (s.lastSample and dead[teamID]) and true or nil
-		mileVersion[teamID] = (mileVersion[teamID] or 0) + 1
+		mileSent[teamID] = nil
 	end
 	gameOver = sound.gameOver
 	session = sound.session or session
@@ -2301,6 +2453,7 @@ end
 function gadget:GameFrame(frame)
 	if frame > 0 then
 		scanStep(frame)
+		readBuilders()
 	end
 	if frame % SAMPLE_PERIOD == 0 and not gameOver then
 		sample(frame)
@@ -2308,6 +2461,32 @@ function gadget:GameFrame(frame)
 	if frame % LIVE_PERIOD == 0 then
 		serveLuaUI(frame)
 	end
+end
+
+-- The game paused, no frame is stepped and nothing above runs: a panel opened while the game
+-- stands still would be handed nothing until it moved again - no live numbers, and no answer
+-- to what its charts ask for. So the hand-over is served from the clock on the wall instead
+-- while the game is paused, as often as a running game serves it. Only the hand-over: what it
+-- reads cannot change while the simulation is still, so there is nothing to scan or sample.
+
+-- When it was last served that way.
+---@type integer?
+local pausedAt
+
+---@diagnostic disable-next-line: undefined-field
+function gadget:Update()
+	local _, _, paused = spGetGameSpeed()
+	if not paused then
+		pausedAt = nil
+		return
+	end
+	local now = spGetTimer()
+	-- The first Update of a pause serves at once: what asks is waiting on it.
+	if pausedAt and spDiffTimers(now, pausedAt) < LIVE_PERIOD / Game.gameSpeed then
+		return
+	end
+	pausedAt = now
+	serveLuaUI(spGetGameFrame())
 end
 
 function gadget:Initialize()

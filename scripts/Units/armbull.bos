@@ -5,6 +5,9 @@ piece  lflare, rflare, turret, base, rsleeve, lsleeve, rbarrel, lbarrel, rwheel,
 
 static-var  restore_delay, gun_1, timeLeft;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
@@ -34,6 +37,8 @@ static-var  restore_delay, gun_1, timeLeft;
 
 Create()
 {
+	Weapon1TurretX = <65.0>;
+	Weapon1TurretY = <105.0>;
 	hide smoke1;
 	hide rflare;
 	hide lflare;
@@ -97,9 +102,9 @@ AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	turn turret to y-axis heading speed <105.0>;
-	turn rsleeve to x-axis <0.0> - pitch speed <65.0>;
-	turn lsleeve to x-axis <0.0> - pitch speed <65.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn rsleeve to x-axis <0.0> - pitch speed Weapon1TurretX;
+	turn lsleeve to x-axis <0.0> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn rsleeve around x-axis;
 	start-script RestoreAfterDelay();
@@ -143,9 +148,9 @@ AimWeapon1(heading, pitch)
     signal SIGNAL_AIM1;
     set-signal-mask SIGNAL_AIM1;
 
-	turn turret to y-axis heading speed <105.0>;
-	turn rsleeve to x-axis <0.0> - pitch speed <65.0>;
-	turn lsleeve to x-axis <0.0> - pitch speed <65.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn rsleeve to x-axis <0.0> - pitch speed Weapon1TurretX;
+	turn lsleeve to x-axis <0.0> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn rsleeve around x-axis;
 

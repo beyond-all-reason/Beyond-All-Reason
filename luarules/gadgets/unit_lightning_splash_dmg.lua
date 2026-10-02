@@ -49,10 +49,9 @@ local function GetProjTable()
 			weaponDefID = 0,
 			proOwnerID = 0,
 			spark_ceg = 0,
-			spark_basedamage = 0,
-			spark_forkdamage = 0,
 			spark_range = 0,
 			spark_maxunits = 0,
+			damage = 0,
 			x = 0,
 			y = 0,
 			z = 0,
@@ -87,6 +86,8 @@ for wdid, wd in pairs(WeaponDefNames) do
 	end
 end
 
+local weaponDamageFactors
+
 -- look at this later, currently this makes these units completely immune to spark damage, friend or foe
 local immuneToSplash = {}
 local unitRadius = {}
@@ -118,7 +119,7 @@ function gadget:GameFrame(frame)
 end
 
 -- this is a table that can be reused for each spawnprojectile
-local projectileCacheTable = { pos = { 0, 0, 0 }, ["end"] = { 0, 0, 0 }, ttl = 2, owner = -1 }
+local projectileCacheTable = { pos = { 0.0, 0.0, 0.0 }, ["end"] = { 0.0, 0.0, 0.0 }, ttl = 2, owner = -1 }
 
 -- this part handles the actual spark and chaining effect and applies damage
 -- for a typical lighting bolt ttl = 1, main bolt strikes frame 1, spark bolts strike frame 2
@@ -143,9 +144,8 @@ function gadget:ProjectileDestroyed(proID)
 						local bx, by, bz, mx, my, mz, ex, ey, ez = spGetUnitPosition(nearUnit, true, true) -- gets aimpoint of unit
 						if my + unitRadius[nearUnitDefID] > -10 then -- check if unit is above water (not underwater)
 							spSpawnCEG(terminal_spark_effect, ex, ey, ez, 0, 0, 0) -- spawns "electric aura" at spark target
-							local spark_damage = lightning.spark_basedamage * lightning.spark_forkdamage -- figure out damage to apply to spark target
 							-- NB: weaponDefID -1 is debris damage which gets removed by engine_hotfixes.lua, use -7 (crush damage) arbitrarily instead
-							spAddUnitDamage(nearUnit, spark_damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
+							spAddUnitDamage(nearUnit, lightning.damage, 0, lightning.proOwnerID, -7) -- apply damage to spark target
 							-- create visual lighting arc from main bolt termination point to spark target
 							-- set owner = -1 as a "spark bolt" identifier
 							-- lightning.weaponDefID
@@ -157,12 +157,7 @@ function gadget:ProjectileDestroyed(proID)
 							projectileCacheTable["end"][3] = ez
 
 							-- NB: Lightning sparks have no team/owner. So are not subject to LOS (natural force). But they give no credit for damage (stats, xp, etc).
-							spSpawnProjectile(lightning.weaponDefID, {
-								pos = { lightning.x, lightning.y, lightning.z },
-								["end"] = { ex, ey, ez },
-								ttl = 2,
-								owner = -1,
-							})
+							spSpawnProjectile(lightning.weaponDefID, projectileCacheTable)
 							count = count - 1 -- spark target count accounting
 						end
 					end
@@ -216,34 +211,21 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 			local xp, yp, zp = spGetProjectilePosition(proID) -- get bolt start point
 			local xv, yv, zv = spGetProjectileVelocity(proID) -- get bolt length
 
-			-- fill table, to be used in ProjectileDestroyed
-
+			local spark = sparkWeapons[weaponDefID]
 			local projTable = GetProjTable()
 			projTable.weaponDefID = weaponDefID
 			projTable.proOwnerID = proOwnerID
-			projTable.spark_ceg = sparkWeapons[weaponDefID].ceg
-			projTable.spark_basedamage = sparkWeapons[weaponDefID].basedamage
-			projTable.spark_forkdamage = sparkWeapons[weaponDefID].forkdamage
-			projTable.spark_range = sparkWeapons[weaponDefID].range
-			projTable.spark_maxunits = sparkWeapons[weaponDefID].maxunits
+			projTable.spark_ceg = spark.ceg
+			projTable.spark_range = spark.range
+			projTable.spark_maxunits = spark.maxunits
 			projTable.x = xp + xv
 			projTable.y = yp + yv
 			projTable.z = zp + zv
 
-			--[[lightningProjectiles[proID] = {
-				weaponDefID = weaponDefID,
-				proOwnerID = proOwnerID,
-				spark_ceg = sparkWeapons[weaponDefID].ceg,
-				spark_basedamage = sparkWeapons[weaponDefID].basedamage,
-				spark_forkdamage = sparkWeapons[weaponDefID].forkdamage,
-				spark_range = sparkWeapons[weaponDefID].range,
-				spark_maxunits = sparkWeapons[weaponDefID].maxunits,
-				-- main bolt termination point
-				x = xp+xv,
-				y = yp+yv,
-				z = zp+zv,
-			}]]
-			--
+			local factors = weaponDamageFactors[proOwnerID]
+			local damageFactor = factors and factors[weaponDefID] or 1.0
+			projTable.damage = spark.basedamage * spark.forkdamage * damageFactor
+
 			lightningProjectiles[proID] = projTable
 		end
 	end
@@ -270,4 +252,8 @@ function gadget:UnitPreDamaged(
 		lightning_shooter_ttl[attackerID] = 3
 	end
 	return damage, 1
+end
+
+function gadget:Initialize()
+	weaponDamageFactors = GG.UnitAttributes.WeaponDamageFactors
 end
