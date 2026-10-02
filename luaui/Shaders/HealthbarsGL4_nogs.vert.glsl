@@ -56,6 +56,7 @@ out DataVS {
     float g_showIcon;
     float g_showText;
     float g_bartype;
+    float g_limit;
 };
 
 #define UNITUNIFORMS uni[instData.y]
@@ -138,7 +139,8 @@ void main()
             return;
         }
 
-        if ((BARTYPE & BITPERCENTAGE) > 0u) {
+        // A full ammunition gauge hides like a finished reload bar.
+        if ((BARTYPE & (BITPERCENTAGE | BITAMMO)) > 0u) {
             if (value > 0.999) {
                 gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
                 g_color = vec4(0.0);
@@ -215,4 +217,5 @@ void main()
     g_showIcon = (((BARTYPE & BITSHOWGLYPH) > 0u) && (skipGlyphsNumbers < 0.5)) ? 1.0 : 0.0;
     g_showText = (skipGlyphsNumbers < 1.5) ? 1.0 : 0.0;
     g_bartype = float(BARTYPE);
+    g_limit = height_timers.z;
 }
