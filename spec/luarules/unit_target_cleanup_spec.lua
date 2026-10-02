@@ -6,6 +6,7 @@ local function loadTargetGadget()
 	local checks = {}
 	local deadTargets = {}
 	local crashingTargets = {}
+	local losStates = {}
 	local canTarget = function(_targetID)
 		return true
 	end
@@ -68,8 +69,8 @@ local function loadTargetGadget()
 			GetUnitIsDead = function(unitID)
 				return deadTargets[unitID] or false
 			end,
-			GetUnitLosState = function()
-				return 3
+			GetUnitLosState = function(unitID)
+				return losStates[unitID] or 3
 			end,
 			GetUnitMoveTypeData = function()
 				error("target selection must not allocate movement data")
@@ -135,6 +136,7 @@ local function loadTargetGadget()
 		checks = checks,
 		deadTargets = deadTargets,
 		crashingTargets = crashingTargets,
+		losStates = losStates,
 		canTarget = function(fn)
 			canTarget = fn
 		end,
@@ -209,6 +211,128 @@ describe("Set Target invalid-target cleanup", function()
 		g.update(1)
 		assert.is_nil(g.target())
 		assert.is_nil(g.env.GG.GetUnitTargetList(1))
+	end)
+end)
+
+local function loadTargetDrawing(synced, fullview)
+	local actions, icons = {}, {}
+	local function noop() end
+	local env = setmetatable({
+		gadget = {},
+		GG = {},
+		GameCMD = synced.env.GameCMD,
+		CMD = synced.env.CMD,
+		GL = { LINE_BITS = 1, LINE_STRIP = 2, LINES = 3 },
+		gl = setmetatable({
+			BeginEnd = function(_, fn, ...)
+				fn(...)
+			end,
+		}, {
+			__index = function()
+				return noop
+			end,
+		}),
+		gadgetHandler = {
+			IsSyncedCode = function()
+				return false
+			end,
+			AddChatAction = noop,
+			AddSyncAction = function(_, name, fn)
+				actions[name] = fn
+			end,
+		},
+		Spring = setmetatable({
+			GetLocalAllyTeamID = function()
+				return 1
+			end,
+			GetLocalTeamID = function()
+				return 1
+			end,
+			GetSpectatingState = function()
+				return fullview, fullview
+			end,
+			GetUnitAllyTeam = function()
+				return 1
+			end,
+			GetUnitTeam = function()
+				return 1
+			end,
+			IsUnitSelected = function()
+				return true
+			end,
+			ValidUnitID = function()
+				return true
+			end,
+			GetUnitPosition = function(id)
+				return id, 0, 0, id, 0, 0
+			end,
+			GetUnitWeaponTarget = function()
+				return 1, true, 10
+			end,
+			AddWorldIcon = function(_, x)
+				icons[x] = true
+			end,
+		}, {
+			__index = function()
+				return noop
+			end,
+		}),
+		CallAsTeam = function(_, fn, ...)
+			return fn(...)
+		end,
+	}, { __index = _G })
+	local chunk = assert(loadfile("luarules/gadgets/unit_target_on_the_move.lua"))
+	setfenv(chunk, env)
+	chunk()
+	env.gadget:Initialize()
+	local nextEvent = 1
+	return function()
+		for i = nextEvent, #synced.events do
+			local event = synced.events[i]
+			if actions[event[1]] then
+				actions[event[1]](unpack(event))
+			end
+		end
+		nextEvent = #synced.events + 1
+		icons = {}
+		env.gadget:DrawWorld()
+		return icons
+	end
+end
+
+describe("Set Target drawing while shared-list removal is pending", function()
+	for _, fullview in ipairs({ false, true }) do
+		for _, kind in ipairs({ "dead", "crashing" }) do
+			it("hides a " .. kind .. " queued target with fullview=" .. tostring(fullview), function()
+				local g = loadTargetGadget()
+				local draw = loadTargetDrawing(g, fullview)
+				g.set(10)
+				g.set(20, true)
+				g.update(1)
+				assert.is_true(draw()[20])
+				g[kind == "dead" and "deadTargets" or "crashingTargets"][20] = true
+				g.update(2)
+				-- Selection stops at 10, so 20 is still physically present until the slow sweep.
+				assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+				local icons = draw()
+				assert.is_true(icons[10])
+				assert.is_nil(icons[20])
+			end)
+		end
+	end
+
+	it("keeps unseen live targets visible to fullview, then hides them when they crash", function()
+		local g = loadTargetGadget()
+		local playerDraw, spectatorDraw = loadTargetDrawing(g, false), loadTargetDrawing(g, true)
+		g.set(10)
+		g.set(20, true)
+		g.losStates[20] = 0
+		g.update(1)
+		assert.is_nil(playerDraw()[20])
+		assert.is_true(spectatorDraw()[20])
+		g.crashingTargets[20] = true
+		g.update(2)
+		assert.is_nil(spectatorDraw()[20])
 	end)
 end)
 

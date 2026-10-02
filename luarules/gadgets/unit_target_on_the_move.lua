@@ -870,32 +870,28 @@ if gadgetHandler:IsSyncedCode() then
 		pendingTargetIndices[unitID] = { unitData.currentIndex, unitData.activeTarget ~= nil }
 	end
 
-	local function removeTarget(unitID, unitData, index)
+	local function removeTarget(unitID, unitData, index, selecting)
 		local removed = unitData.targets[index]
 		if removed then
-			local entries = {}
-			for oldIndex = 1, #unitData.targets do
-				if oldIndex ~= index then
-					entries[#entries + 1] = unitData.targets[oldIndex]
-				end
-			end
-			if not entries[1] then
+			local replacement = targetListStore:getSharedTargetListWithout(unitData.targetList, index)
+			if not replacement then
 				removeUnit(unitID)
 				return
 			end
-			assignTargetList(
-				unitData,
-				targetListStore:getOrCreateSharedTargetList(entries, unitData.teamID, unitData.allyTeam)
-			)
+			-- Replay A/B parity needs each unit to switch during its own update,
+			-- but the reduced list value is shared rather than copied per unit.
+			assignTargetList(unitData, replacement)
 			if index == unitData.currentIndex then
-				setTargetPassive(unitID, unitData)
+				if not selecting then
+					setTargetPassive(unitID, unitData)
+				end
 			elseif index < unitData.currentIndex then
 				unitData.currentIndex = unitData.currentIndex - 1
 			end
 			if index < unitData.scanIndex then
 				unitData.scanIndex = unitData.scanIndex - 1
 			end
-			unitData.scanIndex = min(unitData.scanIndex, #entries)
+			unitData.scanIndex = min(unitData.scanIndex, #replacement.entries)
 			refreshSendData(unitID, unitData, index)
 		end
 	end
@@ -1385,7 +1381,7 @@ if gadgetHandler:IsSyncedCode() then
 						end
 					end
 				end
-				if not unitData.targets[1] then
+				if unitData.targets and not unitData.targets[1] then
 					removeUnit(unitID)
 				end
 			end
@@ -1668,68 +1664,45 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local checks = 0
-		-- Never wrap around and test the same entry twice in one update.
 		local maxChecks = min(targetChecksPerUnitUpdate, checkBudget, #unitData.targets)
-		---@type integer?
-		local candidateIndex
-		local activeIndex = unitData.activeTarget and unitData.currentIndex or nil
-		local activeWasChecked = false
-		local activeIsAttackable = false
 		local index = unitData.scanIndex or 1
-
-		while checks < maxChecks and unitData.targets[1] do
-			local targets = unitData.targets
-			local targetCount = #targets
-			if index > targetCount then
-				index = 1
-			end
-
-			local targetData = targets[index]
-			local target = targetData.target
+		local activeIndex = unitData.activeTarget and unitData.currentIndex
+		local activeIsAttackable = false
+		-- Keep an active target refreshed while a long list is searched over several updates.
+		if activeIndex and (activeIndex < index or activeIndex >= index + maxChecks) then
 			checks = checks + 1
+			local target = unitData.activeTarget
+			activeIsAttackable = checkTarget(unitData.teamID, target)
+				and testTarget(unitID, unitData.teamID, unitData.weapons, target)
+		end
 
-			if unitData.targetList.unavailable[target] then
-				-- Outside sensors: the engine would reject it, so treat it like a failed test.
-				if activeIndex == index then
-					activeWasChecked = true
-					activeIsAttackable = false
+		while checks < maxChecks and unitData.targets and index <= #unitData.targets do
+			local target = unitData.targets[index].target
+			checks = checks + 1
+			if not checkTarget(unitData.teamID, target) then
+				removeTarget(unitID, unitData, index, true)
+				activeIndex = unitData.activeTarget and unitData.currentIndex
+			elseif testTarget(unitID, unitData.teamID, unitData.weapons, target) then
+				if not activeIsAttackable or not activeIndex or index <= activeIndex then
+					setTargetActive(unitID, unitData, index)
+				else
+					setTargetActive(unitID, unitData, activeIndex)
 				end
-				index = index + 1
+				unitData.scanIndex = 1
+				return checks
 			else
-				local attackable = testTarget(unitID, unitData.teamID, unitData.weapons, target)
-				if activeIndex == index then
-					activeWasChecked = true
-					---@diagnostic disable-next-line: assign-type-mismatch -- nil is the function's false result.
-					activeIsAttackable = attackable
-				end
-				---@diagnostic disable: unnecessary-if -- testTarget returns true or nil.
-				if attackable and (not candidateIndex or index < candidateIndex) then
-					candidateIndex = index
-				end
-				---@diagnostic enable: unnecessary-if
 				index = index + 1
 			end
 		end
 
-		if not setTargetData[unitID] then
-			return checks
-		end
-		if unitData.targets[1] then
+		if unitData.targets then
 			unitData.scanIndex = index > #unitData.targets and 1 or index
+			if activeIsAttackable and activeIndex then
+				setTargetActive(unitID, unitData, activeIndex)
+			else
+				setTargetPassive(unitID, unitData)
+			end
 		end
-
-		-- Keep a fallback even when it follows the active target in the list.
-		-- If the active target becomes unattackable, switch without a targetless update.
-		if
-			candidateIndex
-			and (not activeIndex or candidateIndex <= activeIndex or (activeWasChecked and not activeIsAttackable))
-		then
-			-- The engine can replace an unchanged target between updates; re-apply it too.
-			setTargetActive(unitID, unitData, candidateIndex)
-		elseif (activeWasChecked and not activeIsAttackable) then
-			setTargetPassive(unitID, unitData)
-		end
-
 		return checks
 	end
 

@@ -1,4 +1,5 @@
-local function loadTargetGadget()
+local function loadTargetGadget(sourceCount)
+	sourceCount = sourceCount or 1
 	local currentCommand
 	local target
 	local rules = {}
@@ -56,10 +57,10 @@ local function loadTargetGadget()
 				return 1
 			end,
 			GetUnitTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitID <= sourceCount and 1 or 2
 			end,
 			GetUnitAllyTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitID <= sourceCount and 1 or 2
 			end,
 			AreTeamsAllied = function(a, b)
 				return a == b
@@ -154,9 +155,9 @@ local function loadTargetGadget()
 		target = function()
 			return target
 		end,
-		set = function(targetID, append, shared)
+		set = function(targetID, append, shared, sourceID)
 			env.gadget:AllowCommand(
-				1,
+				sourceID or 1,
 				1,
 				1,
 				shared and env.GameCMD.UNIT_SET_TARGETS or env.GameCMD.UNIT_SET_TARGET,
@@ -217,6 +218,23 @@ describe("Set Target precedence after shared-list updates", function()
 end)
 
 describe("Set Target scan budgets", function()
+	it("does not exhaust the frame budget on already acquired first targets", function()
+		local g = loadTargetGadget(400)
+		local targets = {}
+		for i = 1, 128 do
+			targets[i] = 1000 + i
+		end
+		for sourceID = 1, 400 do
+			g.set(targets, false, true, sourceID)
+		end
+		g.update(1)
+		assert.is_true(#g.checks > 64, "the old 128-entry sweeps stop after 64 units")
+		assert.is_true(#g.checks <= 80)
+		for _, targetID in ipairs(g.checks) do
+			assert.are.equal(1001, targetID)
+		end
+	end)
+
 	it("switches to the next attackable target in the same update", function()
 		local g = loadTargetGadget()
 		g.set({ 10, 20, 30 }, false, true)
@@ -226,7 +244,7 @@ describe("Set Target scan budgets", function()
 		end)
 		g.update(1)
 		assert.are.equal(20, g.target())
-		assert.same({ 10, 20, 30 }, g.checks)
+		assert.same({ 10, 20 }, g.checks)
 	end)
 
 	it("restores an unchanged Set Target after the engine replaces its weapon target", function()
@@ -259,11 +277,11 @@ describe("Set Target scan budgets", function()
 			return targetID == 20
 		end)
 		g.update(2)
-		assert.same({ 10, 20, 30 }, g.checks)
+		assert.same({ 10, 20 }, g.checks)
 		assert.are.equal(20, g.target())
 	end)
 
-	it("retains an unchecked active target instead of replacing it with a lower-priority scan result", function()
+	it("stops at the first attackable target even in a long list", function()
 		local g = loadTargetGadget()
 		local targets = {}
 		for i = 1, 300 do
@@ -273,9 +291,33 @@ describe("Set Target scan budgets", function()
 		g.update(1)
 		assert.are.equal(1001, g.target())
 		g.update(2)
-		assert.are.equal(128, #g.checks)
-		assert.are.equal(1129, g.checks[1])
+		assert.same({ 1001 }, g.checks)
 		assert.are.equal(1001, g.target())
+	end)
+
+	it("shares selection removals without advancing owners outside the current update chunk", function()
+		local g = loadTargetGadget(80)
+		for unitID = 1, 80 do
+			g.set({ 1000, 1001 }, false, true, unitID)
+		end
+		local originalID = g.env.GG.GetUnitTargetListID(80)
+		g.deadTargets[1000] = true
+		g.update(1)
+		local reducedID = g.env.GG.GetUnitTargetListID(1)
+		assert.are_not.equal(originalID, reducedID)
+		for unitID = 1, 32 do
+			assert.are.equal(reducedID, g.env.GG.GetUnitTargetListID(unitID))
+			assert.are.equal(1001, g.env.GG.GetUnitTargetList(unitID)[1].target)
+		end
+		for unitID = 33, 80 do
+			assert.are.equal(originalID, g.env.GG.GetUnitTargetListID(unitID))
+			assert.are.equal(1000, g.env.GG.GetUnitTargetList(unitID)[1].target)
+		end
+		g.update(2)
+		g.update(3)
+		for unitID = 1, 80 do
+			assert.are.equal(reducedID, g.env.GG.GetUnitTargetListID(unitID))
+		end
 	end)
 
 	it("continues a long scan across updates and eventually reacquires a higher-priority target", function()
@@ -290,7 +332,7 @@ describe("Set Target scan budgets", function()
 		g.set(targets, false, true)
 		for frame = 1, 3 do
 			g.update(frame)
-			assert.are.equal(128, #g.checks)
+			assert.are.equal(frame < 3 and 128 or 44, #g.checks)
 			local seen = {}
 			for _, targetID in ipairs(g.checks) do
 				assert.is_nil(seen[targetID])
@@ -360,8 +402,8 @@ describe("Independent Attack and Set Target lists", function()
 		g.env.GG.SetUnitAttackTargetList(1, 1, { 10, 20 }, {})
 		g.deadTargets[10] = true
 		g.update(1)
-		-- Dead targets leave the lists on the 15-frame slow update, like per-unit lists.
-		assert.are.equal(10, g.env.GG.GetUnitTargetList(1)[1].target)
+		-- Set Target drops dead entries during selection; queued Attacks prune separately.
+		assert.are.equal(11, g.env.GG.GetUnitTargetList(1)[1].target)
 		g.update(15)
 		assert.are.equal(11, g.env.GG.GetUnitTargetList(1)[1].target)
 		assert.are.equal(20, g.env.GG.GetUnitAttackTargetList(1)[1].target)
