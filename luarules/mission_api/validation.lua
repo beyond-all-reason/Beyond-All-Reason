@@ -672,6 +672,30 @@ local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
+-- Names keep only identifier characters. Older replay parsers fail on quotes, backslashes, and brackets.
+local function validateStartScriptNames(namesByID, kind)
+	local idsByName = {}
+	for id, name in pairs(namesByID) do
+		if not name:match("^[%w_]+$") then
+			logError(kind .. " name '" .. name .. "' may only contain letters, digits and underscores.")
+		end
+		table.insert(table.ensureTable(idsByName, name), id)
+	end
+
+	for name, ids in pairs(idsByName) do
+		if #ids > 1 then
+			table.sort(ids)
+			local message = "%s name '%s' is used by more than one %s: %s"
+			logError(message:format(kind, name, kind:lower(), table.concat(ids, ", ")))
+		end
+	end
+end
+
+local function validateStartScript(startScript)
+	validateStartScriptNames(startScript.teamNames, "Team")
+	validateStartScriptNames(startScript.allyTeamNames, "AllyTeam")
+end
+
 --- Validates a { difficulties = { <difficultyName> = <value> } } parameter: it holds only the
 --- 'difficulties' key, every key is a known difficulty, and every value satisfies the
 --- parameter's own validator, including values under invalid difficulty names.
@@ -1762,6 +1786,7 @@ local function validateReferences()
 end
 
 return {
+	ValidateStartScript = validateStartScript,
 	ValidateStages = validateStages,
 	ValidateObjectives = validateObjectives,
 	ValidateInitialStage = validateInitialStage,

@@ -93,6 +93,42 @@ describe("mission_api.validation", function()
 		GG["MissionAPI"] = nil
 	end)
 
+	-- ── ValidateStartScript ───────────────────────────────────────────────────
+
+	describe("ValidateStartScript", function()
+		it("passes for unique names made of letters, digits and underscores", function()
+			validation.ValidateStartScript({
+				teamNames = { [0] = "player", [1] = "ally_2" },
+				allyTeamNames = { [0] = "goodies", [1] = "Enemies1" },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error for a team name with other characters", function()
+			validation.ValidateStartScript({
+				teamNames = { [0] = "Reds [A]" },
+				allyTeamNames = {},
+			})
+			assert.is_true(hasError("Team name 'Reds [A]' may only contain letters, digits and underscores."))
+		end)
+
+		it("logs an error for a team name used by more than one team", function()
+			validation.ValidateStartScript({
+				teamNames = { [0] = "player", [3] = "player", [1] = "enemy" },
+				allyTeamNames = {},
+			})
+			assert.is_true(hasError("Team name 'player' is used by more than one team: 0, 3"))
+		end)
+
+		it("logs an error for an allyteam name used by more than one allyteam", function()
+			validation.ValidateStartScript({
+				teamNames = {},
+				allyTeamNames = { [0] = "goodies", [1] = "goodies" },
+			})
+			assert.is_true(hasError("AllyTeam name 'goodies' is used by more than one allyteam: 0, 1"))
+		end)
+	end)
+
 	-- ── ValidateTriggers ──────────────────────────────────────────────────────
 
 	describe("ValidateTriggers", function()
