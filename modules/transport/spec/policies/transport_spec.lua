@@ -68,6 +68,27 @@ describe("a transport picking a unit up, setting it down, and flying loaded", fu
 		end)
 	end)
 
+	describe("flies at its own speed, dragged by a commander aboard when the lobby says so", function()
+		it("is the carrier's own unless a commander drags it and the rule is on", function()
+			assert.is.near(
+				9,
+				decide(
+					Contract.LoadedSpeed,
+					{ carriesCommander = true, transportSpeed = 270, dragEnabled = false, framesPerSecond = 30 }
+				),
+				1e-9
+			)
+			assert.is.near(
+				4,
+				decide(
+					Contract.LoadedSpeed,
+					{ carriesCommander = true, transportSpeed = 270, dragEnabled = true, framesPerSecond = 30 }
+				),
+				1e-9
+			)
+		end)
+	end)
+
 	it("publishes every step name, keyed as its policies are, for the owner and for whoever contributes", function()
 		for _, steps in pairs(Contract) do
 			local identity = Policy.IdentityOf(steps)
