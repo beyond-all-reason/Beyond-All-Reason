@@ -39,8 +39,9 @@ Note: these tests are run as part of GitHub Actions on every PR.
 
 ## Attack and Set Target regressions
 
-The normal CI suite includes the twelve tests in `luaui/Tests/target_lists`.
+The normal CI suite includes the thirteen tests in `luaui/Tests/target_lists`.
 They exercise target order and Stop, append/prepend, ground-attack boundaries,
+state commands and Wait/resume, exhausted controllers ahead of a trailing Move,
 queue skipping, the Stop the Command Queue Manager issues when the last listed
 target is skipped, independent Attack and Set Target state, pending Attack
 weapon behavior, and command packet boundaries. Team 0 is the issuing team and team 1

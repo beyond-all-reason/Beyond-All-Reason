@@ -82,6 +82,21 @@ function test()
 		return queueMatches(sourceID, targetA, controllerReference, moveX)
 	end, 120)
 
+	for _, mode in ipairs({ CMD.REPEAT, CMD.IDLEMODE, CMD.AUTOREPAIRLEVEL }) do
+		Spring.GiveOrderToUnit(sourceID, mode, { 1 }, 0)
+		Test.waitFrames(2)
+		Spring.GiveOrderToUnit(sourceID, mode, { 0 }, 0)
+	end
+	Spring.GiveOrderToUnit(sourceID, CMD.WAIT, {}, 0)
+	Test.waitUntil(function()
+		return Spring.GetUnitCommands(sourceID, 1)[1].id == CMD.WAIT
+	end, 120)
+	Test.waitFrames(2)
+	Spring.GiveOrderToUnit(sourceID, CMD.WAIT, {}, 0)
+	Test.waitUntil(function()
+		return queueMatches(sourceID, targetA, controllerReference, moveX)
+	end, 120)
+
 	local commandQueueManager = Test.prepareWidget("Command Queue Manager")
 	assert(commandQueueManager, "Command Queue Manager should load")
 	queuePrepared = true

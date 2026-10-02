@@ -13,16 +13,15 @@ function gadget:GetInfo()
 end
 
 local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
-local nonInterruptingCommands = {
-	[CMD.FIRE_STATE] = true,
-	[CMD.MOVE_STATE] = true,
-}
 
 if gadgetHandler:IsSyncedCode() then
 	local spGiveOrderToUnit = Spring.GiveOrderToUnit
 	local spGetUnitCommands = Spring.GetUnitCommands
 	local targetListStates = {}
 	local pendingPrepends = {}
+	local pendingQueueChecks = {}
+	local tailGroups = {}
+	local groupsByTail = {}
 	-- Set while the controller inserts its own Attack so the command callins can
 	-- tell it apart from a player's prepended Attack.
 	local issuingControllerAttack = false
@@ -66,13 +65,56 @@ if gadgetHandler:IsSyncedCode() then
 		return 0
 	end
 
+	local function unwatchTail(unitID, state)
+		local group = state.tailGroup
+		if not group then
+			return
+		end
+		group.units[unitID] = nil
+		state.tailGroup = nil
+		if next(group.units) == nil then
+			tailGroups[group.id] = nil
+			if group.targetID then
+				local groups = groupsByTail[group.targetID]
+				groups[group.id] = nil
+				if next(groups) == nil then
+					groupsByTail[group.targetID] = nil
+				end
+			end
+		end
+	end
+
+	local function watchTail(unitID, state)
+		local listID = GG.GetUnitAttackTargetListID(unitID)
+		if state.tailGroup and state.tailGroup.id == listID then
+			return state.tailGroup
+		end
+		unwatchTail(unitID, state)
+		local group = tailGroups[listID]
+		if not group then
+			local lastIndex = lastAttackableIndex(state.targets)
+			local targetID = lastIndex > 0 and state.targets[lastIndex].target or nil
+			group = { id = listID, targets = state.targets, lastIndex = lastIndex, targetID = targetID, units = {} }
+			tailGroups[listID] = group
+			if targetID then
+				groupsByTail[targetID] = groupsByTail[targetID] or {}
+				groupsByTail[targetID][listID] = group
+			end
+		end
+		group.units[unitID] = state
+		state.tailGroup = group
+		return group
+	end
+
 	local function clearState(unitID)
 		pendingPrepends[unitID] = nil
+		pendingQueueChecks[unitID] = nil
 		rewritingQueue[unitID] = nil
 		local state = targetListStates[unitID]
 		if not state then
 			return
 		end
+		unwatchTail(unitID, state)
 		if GG.ClearUnitAttackTargetList then
 			GG.ClearUnitAttackTargetList(unitID, state)
 		end
@@ -132,6 +174,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not state.targets then
 			return false
 		end
+		watchTail(unitID, state)
 		if restartFromFront then
 			local commands = getControllerAttackCommands(unitID, state)
 			if not commands then
@@ -164,6 +207,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		state.listID = listID
 		state.targets = GG.GetUnitAttackTargetList(unitID)
+		if state.targets then
+			watchTail(unitID, state)
+		end
 		return state.targets ~= nil
 	end
 
@@ -482,9 +528,8 @@ if gadgetHandler:IsSyncedCode() then
 			and cmdID ~= CMD_ATTACK_TARGETS
 			and cmdID ~= CMD.INSERT
 			and cmdID ~= CMD.REMOVE
-			and not nonInterruptingCommands[cmdID]
 		then
-			clearState(unitID)
+			pendingQueueChecks[unitID] = true
 		end
 	end
 
@@ -493,33 +538,42 @@ if gadgetHandler:IsSyncedCode() then
 			prependToActiveController(unitID, unitDefID)
 			pendingPrepends[unitID] = nil
 		end
+		for unitID in pairs(pendingQueueChecks) do
+			local state = targetListStates[unitID]
+			local retained = false
+			if state then
+				for _, command in ipairs(spGetUnitCommands(unitID, -1) or {}) do
+					if isControllerReference(command, state) then
+						retained = true
+						break
+					end
+				end
+			end
+			if not retained then
+				clearState(unitID)
+			end
+			pendingQueueChecks[unitID] = nil
+		end
 	end
 
-	-- A queued native Attack disappears with its target. Drop controllers whose
-	-- remaining list just lost its last attackable target, so their queue length
-	-- matches the native queue that the movement code inspects.
+	-- Only lists whose last live target died can become exhausted in this callin.
 	local function dropExhaustedControllers(destroyedID)
-		local lastIndexByList = {}
-		for unitID, state in pairs(targetListStates) do
-			local targets = state.targets
-			if targets then
-				local lastIndex = lastIndexByList[targets]
-				if lastIndex == nil then
-					lastIndex = false
-					for index = 1, #targets do
-						if targets[index].target == destroyedID then
-							lastIndex = lastAttackableIndex(targets)
-							break
-						end
-					end
-					lastIndexByList[targets] = lastIndex
-				end
-				if lastIndex and state.nextTargetIndex > lastIndex then
-					local commands = getControllerAttackCommands(unitID, state)
-					if commands then
-						spGiveOrderToUnit(unitID, CMD.REMOVE, { commands[#commands].tag }, CMD.OPT_INTERNAL)
-						clearState(unitID)
-					end
+		local groups = groupsByTail[destroyedID]
+		if not groups then
+			return
+		end
+		groupsByTail[destroyedID] = nil
+		for listID, group in pairs(groups) do
+			group.lastIndex = lastAttackableIndex(group.targets)
+			group.targetID = group.lastIndex > 0 and group.targets[group.lastIndex].target or nil
+			if group.targetID then
+				groupsByTail[group.targetID] = groupsByTail[group.targetID] or {}
+				groupsByTail[group.targetID][listID] = group
+			end
+			for unitID, state in pairs(group.units) do
+				if state.nextTargetIndex > group.lastIndex then
+					spGiveOrderToUnit(unitID, CMD.REMOVE, { state.cmdTag }, CMD.OPT_INTERNAL)
+					clearState(unitID)
 				end
 			end
 		end
