@@ -8,7 +8,7 @@ describe("MissionApiBuilder", function()
 		it("creates the canonical GG['MissionAPI'] shape", function()
 			local api = Builders.MissionApi.new():Build()
 
-			assert.are.equal(0, api.Difficulty)
+			assert.are.equal(1, api.Difficulty)
 			assert.are.same({}, api.trackedUnitIDs)
 			assert.are.same({}, api.trackedUnitNames)
 			assert.are.same({}, api.trackedFeatureIDs)
