@@ -3380,6 +3380,10 @@
 			"name": "Disable Endgame Artillery (LRPC)",
 			"desc": "Disable Endgame Long Range Plasma Artillery (LRPC) structures (AKA lolcannons)"
 		},
+		"disable_building_aoe_explosions": {
+			"name": "Disable Building AoE Explosions",
+			"desc": "Buildings do not deal area damage when destroyed or self-destructed"
+		},
 		"options": {
 			"name": "Other",
 			"desc": "Options"
