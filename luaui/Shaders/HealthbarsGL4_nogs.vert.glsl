@@ -68,6 +68,7 @@ out DataVS {
 #define BITGETPROGRESS 32u
 #define BITFLASHBAR 64u
 #define BITCOLORCORRECT 128u
+#define BITAMMO 256u
 #define BITUSEOVERLAY 1u
 #define BITSHOWGLYPH 2u
 
@@ -122,7 +123,8 @@ void main()
     }
 
     #ifndef DEBUGSHOW
-        if (value < 0.00001) {
+        // Check for an empty ammunition gauge.
+        if (value < 0.00001 && (BARTYPE & BITAMMO) == 0u) {
             gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
             g_color = vec4(0.0);
             g_uv = vec2(0.0);

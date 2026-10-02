@@ -211,6 +211,7 @@ local bitIntegerNumber = 16
 local bitGetProgress = 32
 local bitFlashBar = 64
 local bitColorCorrect = 128
+local bitAmmo = 256
 
 -- unit uniform index map:
 -- 0: building
@@ -261,6 +262,14 @@ local barTypeMap = { -- WHERE SHOULD WE STORE THE FUCKING COLORS?
 		hidethreshold = 1.99,
 		uniformindex = 2, -- if its >20, then its health/maxhealth
 		uvoffset = 0.4375, -- the X offset of the icon for this bar
+	},
+	ammo = {
+		mincolor = { 0.1, 0.1, 0.1, 1.0 },
+		maxcolor = { 0.1, 0.1, 0.1, 1.0 },
+		bartype = bitShowGlyph + bitUseOverlay + bitAmmo,
+		hidethreshold = 0.99,
+		uniformindex = 2,
+		uvoffset = 0.4375,
 	},
 	emp_damage = {
 		mincolor = { 0.4, 0.4, 0.8, 1.0 },
@@ -368,6 +377,7 @@ local unitDefIgnore = {} -- commanders!
 local unitDefhasShield = {} -- value is shield max power
 local unitDefReactiveArmor = {} -- value is armor health
 local unitDefCanStockpile = {} -- 0/1?
+local unitDefAmmoLimit = {} -- small fast stockpiles are really "ammo"
 local unitDefHeights = {} -- maps unitDefs to height
 local unitDefHideDamage = {}
 local unitDefPrimaryWeapon = {} -- the index for reloadable weapon on unitdef weapons
@@ -379,6 +389,7 @@ local unitReactiveArmorWatch = {}
 local unitEmpDamagedWatch = {}
 local unitParalyzedWatch = {}
 local unitStockPileWatch = {}
+local unitAmmoLimit = {}
 local unitReloadWatch = {}
 
 local featureDefHeights = {} -- maps FeatureDefs to height
@@ -531,6 +542,15 @@ for udefID, unitDef in pairs(UnitDefs) do
 	) + mathMin(0.6, unitDef.health / 22000)
 	if unitDef.canStockpile then
 		unitDefCanStockpile[udefID] = unitDef.canStockpile
+		for i = 1, #weapons do
+			local WeaponDef = WeaponDefs[weapons[i].weaponDef]
+			if WeaponDef and WeaponDef.stockpile and WeaponDef.stockpileTime < 30 * Game.gameSpeed then
+				local ammunition = math.ceil(tonumber(WeaponDef.customParams.stockpilelimit) or 99)
+				if ammunition < 10 then
+					unitDefAmmoLimit[udefID] = ammunition
+				end
+			end
+		end
 	end
 	if reloadTime and reloadTime > minReloadTime then
 		if debugmode then
@@ -708,6 +728,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 
 	healthBarTableCache[1] = unitDefHeights[unitDefID] + additionalheightaboveunit * effectiveScale -- height
 	healthBarTableCache[2] = effectiveScale
+	healthBarTableCache[3] = unitDefAmmoLimit[unitDefID] or 0
 	healthBarTableCache[6] = unitBars[unitID] - 1 -- bar index (how manyeth per unit)
 
 	return pushElementInstance(
@@ -808,8 +829,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 		end
 
 		if unitDefCanStockpile[unitDefID] and ((unitAllyTeam == myAllyTeamID) or fullview) then
-			unitStockPileWatch[unitID] = 0.0
-			addBarForUnit(unitID, unitDefID, "stockpile", reason)
+			unitStockPileWatch[unitID] = -1
+			local ammoLimit = unitDefAmmoLimit[unitDefID] -- Make sure an empty gauge is uploaded too.
+			unitAmmoLimit[unitID] = ammoLimit
+			addBarForUnit(unitID, unitDefID, ammoLimit and "ammo" or "stockpile", reason)
 		end
 		if capture > 0 then
 			addBarForUnit(unitID, unitDefID, "capture", reason)
@@ -853,6 +876,7 @@ local function removeBarsFromUnit(unitID, reason)
 	unitEmpDamagedWatch[unitID] = nil
 	unitParalyzedWatch[unitID] = nil
 	unitStockPileWatch[unitID] = nil
+	unitAmmoLimit[unitID] = nil
 	unitReloadWatch[unitID] = nil
 	unitBars[unitID] = nil
 end
@@ -1323,7 +1347,12 @@ function widget:GameFrame(n)
 		for unitID, stockpileValue in pairs(unitStockPileWatch) do
 			local numStockpiled, numStockpileQueued, stockpileBuild = Spring.GetUnitStockpile(unitID)
 			if numStockpiled then
-				local value = numStockpiled + (numStockpileQueued > 0 and stockpileBuild or 0)
+				local value
+				if unitAmmoLimit[unitID] then
+					value = numStockpiled / unitAmmoLimit[unitID]
+				else
+					value = numStockpiled + (numStockpileQueued > 0 and stockpileBuild or 0)
+				end
 				if value ~= stockpileValue then
 					uniformcache[1] = value
 					unitStockPileWatch[unitID] = value
