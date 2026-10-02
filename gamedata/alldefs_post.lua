@@ -389,7 +389,10 @@ local function unitDef_Post(name, uDef)
 
 	if modOptions.unit_restrictions_nonukes then
 		for _, weapon in pairs(weapondefs) do
-			if weapon.targetable and weapon.targetable == 1 then
+			if
+				(weapon.targetable and weapon.targetable == 1)
+				or (weapon.customparams and tonumber(weapon.customparams.nuclear) == 1)
+			then
 				customparams.modoption_blocked = true
 				break
 			end

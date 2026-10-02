@@ -1162,6 +1162,42 @@ local AirUnitsList = {
 		},
 	},
 }
+
+if Spring.GetModOptions().unit_restrictions_nonukes then
+	local nuclearAirUnitNames = {}
+
+	for _, surfaceUnits in pairs(AirUnitsList) do
+		for _, tierUnits in pairs(surfaceUnits) do
+			for unitName in pairs(tierUnits) do
+				if nuclearAirUnitNames[unitName] == nil then
+					local hasNuclearWeapon = false
+					local unitDef = UnitDefNames[unitName]
+					if unitDef and unitDef.weapons then
+						for i = 1, #unitDef.weapons do
+							local wDef = WeaponDefs[unitDef.weapons[i].weaponDef]
+							if
+								wDef
+								and (
+									(wDef.targetable and wDef.targetable == 1)
+									or tonumber(wDef.customParams and wDef.customParams.nuclear) == 1
+								)
+							then
+								hasNuclearWeapon = true
+								break
+							end
+						end
+					end
+					nuclearAirUnitNames[unitName] = hasNuclearWeapon
+				end
+
+				if nuclearAirUnitNames[unitName] then
+					tierUnits[unitName] = nil
+				end
+			end
+		end
+	end
+end
+
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------
