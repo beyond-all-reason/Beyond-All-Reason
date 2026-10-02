@@ -4,7 +4,6 @@
 ---@field Desc fun(desc: string): GameModeChain The sentence the lobby shows under the mode's name.
 ---@field Ranked fun(enabled: boolean?): GameModeChain Whether the mode may count for rating. Ranked() allows it; Ranked(false), or never saying Ranked, pins ranked_game off, lockable like any claim.
 ---@field Bot fun(aiName: string): GameModeChain An AI the lobby fields for this mode, by short name; repeat for more.
----@field Uses fun(contract: table): GameModeChain A module whose fact providers this preset makes live, besides the module that ships the preset; named by its contract.lua, never a string. The mode decides who answers a slot; two live providers for one slot is a load error.
 ---@field RetainValues fun(): GameModeChain A non-sticky preset (Customize): picking it exposes and unlocks its claims but keeps the current values instead of resetting the category to defaults.
 ---@field Hidden fun(): GameModeChain The last claim stays out of the lobby UI; its pin still applies.
 ---@field Unlocked fun(): GameModeChain The last claim is fully editable, noun and dials.
@@ -23,7 +22,6 @@
 ---@field MapDeformation fun(enabled: boolean): GameModeChain Whether weapons reshape terrain. Stated in the player's terms; writes disablemapdamage inverted.
 ---@field FogOfWar fun(enabled: boolean): GameModeChain Whether the map has fog of war. Stated in the player's terms; writes disable_fogofwar inverted.
 ---@field NoRush fun(minutes: number, middleFree: boolean?): GameModeChain Minutes players must stay in their start boxes, 0 for none: writes norushtimer and norushmiddlefree, both dials.
----@field SlowComTransport fun(enabled: boolean): GameModeChain Whether carrying your own commander slows a transport: writes comm_trans_slow.
 ---@field UnitRestrictions fun(): GameModeChain Claims every unit_restrictions_* toggle at off, so the panel shows them as dials the host may flip. Sealed() pins them all off; Locked() does not, they are dials.
 
 ---@param name string

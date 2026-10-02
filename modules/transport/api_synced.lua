@@ -7,6 +7,7 @@ local Game = Game
 local Spring = Spring
 local UnitDefs = UnitDefs
 
+local Api = require("modules/transport/api")
 local ModuleHandler = require("modules/module_handler")
 local Modules = require("modules/enums").Modules
 local Rules = require("modules/transport/lib/rules")
@@ -200,8 +201,8 @@ function Synced.MayUnload(carrierID, carrierDefID, passengerID, goalX, goalY, go
 	return allowed
 end
 
--- A passenger came aboard: a stealthy carrier hides the passenger, and a passenger that leaves a ghost leaves none
--- while carried.
+-- A passenger came aboard: a flying carrier's loaded speed is recorded, a stealthy carrier hides the passenger, and a
+-- passenger that leaves a ghost leaves none while carried.
 ---@param unitID integer the passenger
 ---@param unitDefID integer
 ---@param transportID integer the carrier
@@ -211,6 +212,12 @@ function Synced.Loaded(unitID, unitDefID, transportID)
 		return
 	end
 	local passenger = Traits.Of(unitDefID)
+	if carrier.canFly then
+		local speed = Api.LoadedSpeed(transportID)
+		if speed ~= nil then
+			state.loadedSpeed[transportID] = speed
+		end
+	end
 	if carrier.stealthsPassengers and not passenger.isStealthy then
 		GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", true, STEALTH_SOURCE)
 	end
@@ -219,8 +226,9 @@ function Synced.Loaded(unitID, unitDefID, transportID)
 	end
 end
 
--- A passenger was set down: it is seen and ghosts again, an immobile one wakes the nano turrets it landed on, a
--- paratrooper keeps a clamped fall, and anything else is pinned where it landed for a few frames so it does not slide.
+-- A passenger was set down: the carrier's speed is what it still carries, the passenger is seen and ghosts again, an
+-- immobile one wakes the nano turrets it landed on, a paratrooper keeps a clamped fall, and anything else is pinned
+-- where it landed for a few frames so it does not slide.
 ---@param unitID integer the passenger
 ---@param unitDefID integer
 ---@param transportID integer the carrier
@@ -230,6 +238,9 @@ function Synced.Unloaded(unitID, unitDefID, transportID)
 		return
 	end
 	local passenger = Traits.Of(unitDefID)
+	if carrier.canFly then
+		state.loadedSpeed[transportID] = Api.LoadedSpeed(transportID) or nil
+	end
 	if carrier.stealthsPassengers and not passenger.isStealthy then
 		GG.UnitAttributes.SetUnitAttribute(unitID, "stealth", nil, STEALTH_SOURCE)
 	end
