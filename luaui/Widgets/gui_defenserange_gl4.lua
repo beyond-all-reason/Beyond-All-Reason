@@ -110,7 +110,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 	},
 	nuke = {
 		color = { 1.05, 1.0, 0.2, 0.72 },
-		fadeparams = { 6000, 3000, 0.6, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 5400, 1800, 0.6, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		externallinethickness = 5.0,
 		internallinethickness = 2.0,
 		stenciled = true,
