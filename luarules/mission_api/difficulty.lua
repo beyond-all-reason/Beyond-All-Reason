@@ -104,7 +104,23 @@ local function resolveObjectives(objectives)
 	end
 end
 
+---@param name string?
+---@return integer
+local function fromName(name)
+	if name ~= nil and difficulties[name] ~= nil then
+		return difficulties[name]
+	end
+	if name ~= nil then
+		Spring.Log("difficulty.lua", LOG.ERROR, "[Mission API] Unknown difficulty: " .. tostring(name))
+	end
+
+	return table.reduce(difficulties, function(lowest, difficulty)
+		return math.min(lowest, difficulty)
+	end, math.huge)
+end
+
 return {
+	FromName = fromName,
 	IsDifficultiesTable = isDifficultiesTable,
 	ResolveTriggers = resolveTriggers,
 	ResolveActions = resolveActions,

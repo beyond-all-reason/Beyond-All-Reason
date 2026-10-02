@@ -63,6 +63,7 @@ end
 
 ---@class MissionStartScript
 ---@field entryPoint string
+---@field difficulty string?
 ---@field options table
 ---@field variables table
 ---@field persistentVariables string[]
@@ -87,6 +88,7 @@ local function read()
 
 	return {
 		entryPoint = missionOptions.entryPoint,
+		difficulty = missionOptions.difficulty,
 		options = missionOptions.options or {},
 		variables = variables,
 		persistentVariables = persistentVariables,

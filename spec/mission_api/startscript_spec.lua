@@ -79,6 +79,18 @@ describe("mission_api.startscript", function()
 			assert.are.same({ "foundPortal", "totalKills" }, startScript.persistentVariables)
 		end)
 
+		it("reads the difficulty name from missionoptions", function()
+			withStartScript({
+				modOptions = {
+					missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua","difficulty":"Hard"}]]),
+				},
+				teams = { [0] = { allyTeam = 0, keys = { name = "player" } } },
+				allyTeams = { [0] = { keys = { name = "goodies" } } },
+			})
+
+			assert.are.equal("Hard", startscript.Read().difficulty)
+		end)
+
 		it("gives empty options and variables when missionoptions has none", function()
 			withStartScript({
 				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
