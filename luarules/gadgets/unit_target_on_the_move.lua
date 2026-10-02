@@ -1434,7 +1434,9 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function processSlowListUpdates()
 		for unitID, unitData in pairsNext, setTargetData do
-			if not unitData.targets[1] then
+			local pendingEmptyList = unitData.pendingEmptyList
+			unitData.pendingEmptyList = nil
+			if pendingEmptyList == unitData.targetList or not unitData.targets[1] then
 				removeUnit(unitID)
 			elseif not unitData.targetingEnabled then
 				-- Controller-only lists are displayed and validated but never select weapons.
@@ -1453,7 +1455,8 @@ if gadgetHandler:IsSyncedCode() then
 	---@param oldList SharedTargetList
 	---@param retainedEntries table[]
 	---@param oldToNewIndex table<integer, integer?>
-	local function replaceSharedTargetList(oldList, retainedEntries, oldToNewIndex)
+	---@param deferRemoval boolean?
+	local function replaceSharedTargetList(oldList, retainedEntries, oldToNewIndex, deferRemoval)
 		local owners = {}
 		for _, data in pairsNext, oldList.units do
 			owners[#owners + 1] = data
@@ -1463,6 +1466,9 @@ if gadgetHandler:IsSyncedCode() then
 			for _, data in ipairs(owners) do
 				if data.renderAsAttack then
 					GG.ClearUnitAttackTargetList(data.unitID)
+				elseif deferRemoval then
+					-- Preserve scan-queue order only for strict replay A/B parity; direct removal is otherwise valid.
+					data.pendingEmptyList = oldList
 				else
 					removeUnit(data.unitID)
 				end
@@ -1623,7 +1629,7 @@ if gadgetHandler:IsSyncedCode() then
 					oldToNewIndex[oldIndex] = newIndex
 				end
 			end
-			replaceSharedTargetList(list, retainedEntries, oldToNewIndex)
+			replaceSharedTargetList(list, retainedEntries, oldToNewIndex, slowUpdate)
 		end
 		return checks
 	end

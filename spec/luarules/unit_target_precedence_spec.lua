@@ -5,6 +5,7 @@ local function loadTargetGadget(sourceCount)
 	local rules = {}
 	local events = {}
 	local checks = {}
+	local released = {}
 	local deadTargets = {}
 	local canTarget = function(_targetID)
 		return true
@@ -93,8 +94,11 @@ local function loadTargetGadget(sourceCount)
 			GetUnitStates = function()
 				return 2
 			end,
-			SetUnitTarget = function(_, newTarget)
+			SetUnitTarget = function(unitID, newTarget)
 				target = newTarget
+				if newTarget == nil then
+					released[#released + 1] = unitID
+				end
 			end,
 			SetUnitRulesParam = function(_, key, value)
 				rules[key] = value
@@ -137,6 +141,7 @@ local function loadTargetGadget(sourceCount)
 	return {
 		env = env,
 		checks = checks,
+		released = released,
 		deadTargets = deadTargets,
 		canTarget = function(fn)
 			canTarget = fn
@@ -218,6 +223,21 @@ describe("Set Target precedence after shared-list updates", function()
 end)
 
 describe("Set Target scan budgets", function()
+	it("retires empty lists in unit order rather than list creation order", function()
+		local g = loadTargetGadget(4)
+		for sourceID = 4, 1, -1 do
+			g.set(1000 + sourceID, false, true, sourceID)
+		end
+		for targetID = 1001, 1004 do
+			g.deadTargets[targetID] = true
+		end
+		g.update(15)
+		assert.same({ 1, 2, 3, 4 }, g.released)
+		for sourceID = 1, 4 do
+			assert.is_nil(g.env.GG.GetUnitTargetList(sourceID))
+		end
+	end)
+
 	it("does not exhaust the frame budget on already acquired first targets", function()
 		local g = loadTargetGadget(400)
 		local targets = {}
