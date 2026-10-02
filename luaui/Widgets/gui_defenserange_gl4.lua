@@ -436,9 +436,10 @@ local defenses = {} -- table of unitID keys to info tables:
 --	vaokeys = {key1 = targetvao1, ... }
 --}
 local enemydefenses = {} -- a minor optimization to prevent iterating over our own on removal search
+---@type table<integer, table<integer, table>>
+local defensesByViews = {} -- for enemy defense recall per allyteam
 
 local mobileAntiUnits = {}
-local defensesByViews = {} -- enemy defenses known to an allyteam, parked while viewing another
 
 --------------------------------------------------------------------------------
 
@@ -786,7 +787,7 @@ end
 -- A parked defense is out of sight, so its rings come back from its stored position and
 -- its unitdef instead of the engine.
 local function restoreDefense(unitID, defense)
-	local rings = unitDefRings[defense.unitDefID].rings
+	local rings = unitDefRings[defense.unitDefID].rings ---@type table<integer, number[]>
 	for instanceID, vaokey in pairs(defense.vaokeys) do
 		local ringParams = rings[floor(instanceID / 1000000)]
 		cacheTable[1] = defense.posx
@@ -821,7 +822,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	-- Enemy defenses that left line of sight keep their rings. The same view keeps them in
 	-- place; leaving an allyteam's view parks them for its next view. Fullview sees
 	-- everything, so nothing is parked from it or restored into it.
-	local viewedLast
+	local viewedLast ---@type table<integer, table>?
 	if not fullviewLast then
 		if sameView then
 			for unitID, defense in pairs(defenses) do
@@ -871,7 +872,7 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 			defensePosHash[hashPos(defense.posx, defense.posz)] = unitID
 		end
 	elseif not fullview and not sameView then
-		local parked = defensesByViews[asAllyTeam]
+		local parked = defensesByViews[asAllyTeam] ---@type table<integer, table>?
 		if parked then
 			defensesByViews[asAllyTeam] = nil
 			for unitID, defense in pairs(parked) do
