@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "2026",
 		license = "GNU GPL, v2 or later",
 		layer = -999999,
-		enabled = false,
+		enabled = true,
 	}
 end
 
@@ -56,9 +56,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	-- Only intercept area-form CMD_ATTACK commands (4 params: x, y, z, radius).
+	-- Limit raw circular and rectangular Attack orders; compact target lists bypass this gate.
 	-- Engine-native CMD_AREA_ATTACK remains compact and is intentionally not limited.
-	if cmdID ~= CMD_ATTACK or #cmdParams ~= 4 or cmdParams[4] <= 0 then
+	if cmdID ~= CMD_ATTACK or (#cmdParams ~= 4 and #cmdParams ~= 6) or (#cmdParams == 4 and cmdParams[4] <= 0) then
 		return
 	end
 
@@ -81,6 +81,9 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local x, y, z = cmdParams[1], cmdParams[2], cmdParams[3]
+	if #cmdParams == 6 then
+		x, y, z = (x + cmdParams[4]) / 2, (y + cmdParams[5]) / 2, (z + cmdParams[6]) / 2
+	end
 
 	-- Split: bombers are always exempt from the batch limit.
 	-- Only non-bombers are counted against BATCH_LIMIT.
