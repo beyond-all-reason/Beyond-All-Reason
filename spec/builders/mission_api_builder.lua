@@ -3,6 +3,12 @@
 
 local PARAMETER_TYPES_PATH = "luarules/mission_api/parameter_types.lua"
 local UNIT_QUERY_PATH = "luarules/mission_api/unit_query.lua"
+local DIFFICULTIES_PATH = "luarules/mission_api/difficulties.json"
+
+-- The loader's default when missionoptions names no difficulty.
+local LOWEST_DIFFICULTY = table.reduce(Json.decode(VFS.LoadFile(DIFFICULTIES_PATH)), function(lowest, difficulty)
+	return math.min(lowest, difficulty)
+end, math.huge)
 
 --- Only a name for readers: .emmyrc.json keeps spec/builders out of the
 --- workspace, so emmylua cannot resolve this class from a spec. A spec that
@@ -100,7 +106,7 @@ end
 ---@return MissionApiBuilder
 function MB.new()
 	return setmetatable({
-		difficulty = 0,
+		difficulty = LOWEST_DIFFICULTY,
 		trackedUnits = {}, -- array of { name, id }
 		trackedFeatures = {}, -- array of { name, id }
 		markerNames = {},
