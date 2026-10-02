@@ -88,6 +88,11 @@ local enums = {
 		Notification = 4,
 		Dialogue = 5,
 	},
+
+	[types.UnitWeapon] = {
+		explode = true,
+		selfDestruct = true,
+	},
 }
 
 local enumSets = {

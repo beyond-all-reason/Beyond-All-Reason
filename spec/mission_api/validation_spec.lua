@@ -1973,6 +1973,21 @@ describe("mission_api.validation", function()
 				)
 			end)
 
+			it("leaves a malformed weapon to its parameter validator", function()
+				referenceErrors({ armwar = armwar }, {
+					deathShot = {
+						type = actionTypes.SetUnitDefWeaponAttribute,
+						parameters = {
+							unitDefName = "armwar",
+							weapon = "death",
+							attribute = "maxWeaponRange",
+							value = 800,
+						},
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
 			it("rejects setting a multiplication-only weapon attribute", function()
 				referenceErrors({ armwar = armwar }, {
 					fixedDamage = {

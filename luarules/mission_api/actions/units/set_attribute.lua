@@ -17,9 +17,7 @@ local function setUnitDefAttribute(unitDefName, teamID, attribute, value, source
 end
 
 local function setUnitAttribute(unitName, unitDefName, teamID, attribute, value, source)
-	if source == nil then
-		source = SOURCE_DEFAULT
-	end
+	source = source or SOURCE_DEFAULT
 	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
 		setUnitAttributeValue(unitID, attribute, value, source)
 	end
@@ -34,9 +32,7 @@ local function multiplyUnitDefAttribute(unitDefName, teamID, attribute, multipli
 end
 
 local function multiplyUnitAttribute(unitName, unitDefName, teamID, attribute, multiplier, source)
-	if source == nil then
-		source = SOURCE_DEFAULT
-	end
+	source = source or SOURCE_DEFAULT
 	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
 		setUnitAttributeMultiplier(unitID, attribute, multiplier, source)
 	end
@@ -61,12 +57,10 @@ local function setUnitDefWeaponAttribute(unitDefName, teamID, weapon, attribute,
 end
 
 local function setUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, value, source)
-	local weaponKey = EXPLOSIONS[weapon] or weapon
-	if source == nil then
-		source = SOURCE_DEFAULT
-	end
+	weapon = EXPLOSIONS[weapon] or weapon
+	source = source or SOURCE_DEFAULT
 	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
-		setUnitWeaponValue(unitID, weaponKey, attribute, value, source)
+		setUnitWeaponValue(unitID, weapon, attribute, value, source)
 	end
 end
 
@@ -79,12 +73,10 @@ local function multiplyUnitDefWeaponAttribute(unitDefName, teamID, weapon, attri
 end
 
 local function multiplyUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, multiplier, source)
-	local weaponKey = EXPLOSIONS[weapon] or weapon
-	if source == nil then
-		source = SOURCE_DEFAULT
-	end
+	weapon = EXPLOSIONS[weapon] or weapon
+	source = source or SOURCE_DEFAULT
 	for _, unitID in ipairs(matchingUnits(unitName, unitDefName, teamID)) do
-		setUnitWeaponMultiplier(unitID, weaponKey, attribute, multiplier, source)
+		setUnitWeaponMultiplier(unitID, weapon, attribute, multiplier, source)
 	end
 end
 
