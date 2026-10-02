@@ -20,7 +20,9 @@ end
 -- Commands expand into units x targets. Consider about 1000 targets.
 local AREA_LIMIT = 30
 -- Max targeted attack orders issued per area-form CMD_ATTACK.
-local COMMAND_LIMIT = 500
+local COMMAND_LIMIT = 2000
+-- River splits form a lane about this wide. Just a gravity value.
+local LANE_WIDTH = 250
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_REMOVE = CMD.REMOVE
@@ -28,7 +30,7 @@ local CMD_STOP = CMD.STOP
 local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local ENEMY_UNITS = Spring.ENEMY_UNITS
 
-local math_floor = math.floor
+local math_ceil = math.ceil
 local math_max = math.max
 local math_min = math.min
 local table_sort = table.sort
@@ -192,8 +194,8 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 			end
 		end
 
-		local maxTargetsPerUnit = math_max(math_floor(COMMAND_LIMIT / #attackers), 1)
-		local targetsPerUnit = splitRivers(attackers, targets, unitPositionAtQueueEnd)
+		local maxTargetsPerUnit = math_max(math_ceil(COMMAND_LIMIT / #attackers), 1)
+		local targetsPerUnit = splitRivers(attackers, targets, unitPositionAtQueueEnd, COMMAND_LIMIT, LANE_WIDTH)
 		for i = 1, #attackers do
 			local unitID = attackers[i]
 			local unitTargets = targetsPerUnit[unitID]
