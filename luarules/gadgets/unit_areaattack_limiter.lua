@@ -22,7 +22,7 @@ local AREA_LIMIT = 30
 -- Max targeted attack orders issued per area-form CMD_ATTACK.
 local COMMAND_LIMIT = 2000
 -- River splits form a lane about this wide. Just a gravity value.
-local LANE_WIDTH = 250
+local LANE_WIDTH = 360
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_REMOVE = CMD.REMOVE

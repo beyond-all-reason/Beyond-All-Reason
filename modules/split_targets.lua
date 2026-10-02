@@ -3,7 +3,7 @@
 -- its own share of the targets instead of every unit getting every target.
 -- Every unit receives at least one target when any exist, and never receives itself.
 
-local minimumRiverLength = 24
+local minimumRiverLength = 100
 
 local table_new = table.new
 local table_sort = table.sort
