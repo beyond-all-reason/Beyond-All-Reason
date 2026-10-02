@@ -3380,6 +3380,10 @@
 			"name": "Disable Endgame Artillery (LRPC)",
 			"desc": "Disable Endgame Long Range Plasma Artillery (LRPC) structures (AKA lolcannons)"
 		},
+		"disable_air_crash_damage": {
+			"name": "Disable Air Unit Crash Damage",
+			"desc": "Crashing aircraft do not deal area damage to nearby units when they hit the ground"
+		},
 		"options": {
 			"name": "Other",
 			"desc": "Options"

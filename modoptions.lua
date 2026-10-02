@@ -390,6 +390,16 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "disable_air_crash_damage",
+		name = "Disable Air Unit Crash Damage",
+		desc = "Crashing aircraft do not deal area damage to nearby units when they hit the ground",
+		type = "bool",
+		section = "options_main",
+		def = false,
+	},
+
 	{
 		key = "sub_header",
 		section = "options_main",
