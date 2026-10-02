@@ -627,7 +627,7 @@ validators[Types.WeaponAttribute] = function(attribute)
 end
 
 validators[Types.UnitWeapon] = function(weapon)
-	if weapon == "explode" or weapon == "selfDestruct" then
+	if parameterTypeEnums[Types.UnitWeapon][weapon] then
 		return
 	elseif type(weapon) ~= "number" or weapon <= 0 or weapon % 1 ~= 0 then
 		return { { message = "Expected a weapon number, 'explode' or 'selfDestruct', got " .. tostring(weapon) } }
@@ -1803,7 +1803,6 @@ local function validateAttributeActions(actions)
 	local modifierActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeMultiplier)
 	local unitScopeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
 
-	-- Every action taking an attribute is checked by parameter type rather than by action name.
 	for actionID, action in pairs(actions) do
 		local actionType = action.type
 		local parameters = action.parameters or {}
@@ -1812,55 +1811,47 @@ local function validateAttributeActions(actions)
 		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
 
 		-- Unknown attributes are logged already by the parameter validators.
-		if unitAttributeActions[actionType] and unitAttributeDefinitions[attribute] then
-			local entry = unitAttributeDefinitions[attribute]
-			local ok, reason, parameter = true, nil, nil
+		local unitEntry = unitAttributeActions[actionType] and unitAttributeDefinitions[attribute]
+		local weaponEntry = weaponAttributeActions[actionType] and weaponAttributeDefinitions[attribute]
+		local ok, reason, parameter = true, nil, nil
+		if unitEntry then
 			if setActions[actionType] then
 				local canSet = unitScopeActions[actionType] and canSetUnitAttribute or canSetUnitDefAttribute
-				ok, reason, parameter = canSet(entry, parameters.value)
+				ok, reason, parameter = canSet(unitEntry, parameters.value)
 			elseif modifierActions[actionType] then
-				ok, reason, parameter = canSetUnitModifier(entry, parameters.multiplier)
+				ok, reason, parameter = canSetUnitModifier(unitEntry, parameters.multiplier)
 			end
-			if not ok then
-				logError(
-					"Unit attribute '"
-						.. attribute
-						.. "' "
-						.. reason
-						.. ". Action: "
-						.. actionID
-						.. ", Parameter: "
-						.. parameter
-				)
+		elseif weaponEntry then
+			-- A malformed weapon is logged already by its parameter validator.
+			local weapon = parameters.weapon
+			if weapon ~= nil and validators[Types.UnitWeapon](weapon) then
+				weapon = nil
 			end
+			if setActions[actionType] then
+				ok, reason, parameter = canSetUnitWeaponAttribute(weaponEntry, parameters.value, weapon, unitDef)
+			elseif modifierActions[actionType] then
+				ok, reason, parameter = canSetUnitWeaponModifier(weaponEntry, parameters.multiplier, weapon, unitDef)
+			end
+		end
+		if not ok then
+			local kind = unitEntry and "Unit" or "Weapon"
+			logError(
+				kind
+					.. " attribute '"
+					.. attribute
+					.. "' "
+					.. reason
+					.. ". Action: "
+					.. actionID
+					.. ", Parameter: "
+					.. parameter
+			)
+		end
 
-			local affects, warning = true, nil
-			if unitDef then
-				affects, warning = affectsUnitDef(entry, unitDef)
-			end
+		if unitEntry and unitDef then
+			local affects, warning = affectsUnitDef(unitEntry, unitDef)
 			if not affects then
 				logWarn("Unit attribute '" .. attribute .. "' " .. warning .. ". Action: " .. actionID)
-			end
-		elseif weaponAttributeActions[actionType] and weaponAttributeDefinitions[attribute] then
-			local entry = weaponAttributeDefinitions[attribute]
-			local ok, reason, parameter = true, nil, nil
-			if setActions[actionType] then
-				ok, reason, parameter = canSetUnitWeaponAttribute(entry, parameters.value, parameters.weapon, unitDef)
-			elseif modifierActions[actionType] then
-				ok, reason, parameter =
-					canSetUnitWeaponModifier(entry, parameters.multiplier, parameters.weapon, unitDef)
-			end
-			if not ok then
-				logError(
-					"Weapon attribute '"
-						.. attribute
-						.. "' "
-						.. reason
-						.. ". Action: "
-						.. actionID
-						.. ", Parameter: "
-						.. parameter
-				)
 			end
 		end
 	end

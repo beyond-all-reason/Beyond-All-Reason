@@ -1,4 +1,5 @@
 require("spec_helper")
+require("mission_api.spec_helper")
 
 local Builders = VFS.Include("spec/builders/index.lua")
 
@@ -11,28 +12,23 @@ local unitQuery = {
 	end,
 }
 
--- Action files read GG['MissionAPI'].Modules.ParameterTypes and .UnitQuery at load time.
 Builders.MissionApi.new():WithModule("UnitQuery", unitQuery):Install()
 
--- Action files capture the attributes API when they load, so the recorder goes in first.
 local calls = {}
 local function record(name)
 	return function(...)
 		calls[#calls + 1] = { name, ... }
 	end
 end
-_G.GG.UnitAttributes = { ---@diagnostic disable-line: global-in-non-module
-	SetUnitDefAttribute = record("SetUnitDefAttribute"),
-	SetUnitAttribute = record("SetUnitAttribute"),
-	SetUnitDefModifier = record("SetUnitDefModifier"),
-	SetUnitModifier = record("SetUnitModifier"),
-	SetUnitDefWeaponAttribute = record("SetUnitDefWeaponAttribute"),
-	SetUnitWeaponAttribute = record("SetUnitWeaponAttribute"),
-	SetUnitDefWeaponModifier = record("SetUnitDefWeaponModifier"),
-	SetUnitWeaponModifier = record("SetUnitWeaponModifier"),
-	WEAPON_DEATH = -1,
-	WEAPON_SELFD = -2,
-}
+local unitAttributes = GG.UnitAttributes
+unitAttributes.SetUnitDefAttribute = record("SetUnitDefAttribute")
+unitAttributes.SetUnitAttribute = record("SetUnitAttribute")
+unitAttributes.SetUnitDefModifier = record("SetUnitDefModifier")
+unitAttributes.SetUnitModifier = record("SetUnitModifier")
+unitAttributes.SetUnitDefWeaponAttribute = record("SetUnitDefWeaponAttribute")
+unitAttributes.SetUnitWeaponAttribute = record("SetUnitWeaponAttribute")
+unitAttributes.SetUnitDefWeaponModifier = record("SetUnitDefWeaponModifier")
+unitAttributes.SetUnitWeaponModifier = record("SetUnitWeaponModifier")
 
 local actions = VFS.Include("luarules/mission_api/actions/units/set_attribute.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
@@ -48,7 +44,6 @@ end
 describe("mission_api.actions.set_attribute", function()
 	before_each(function()
 		calls, queried, queryResult = {}, {}, {}
-		Builders.MissionApi.new():WithModule("UnitQuery", unitQuery):Install()
 		_G.UnitDefNames = { armwar = { id = 7 }, armpw = { id = 8 } } ---@diagnostic disable-line: global-in-non-module
 	end)
 
@@ -273,16 +268,22 @@ describe("mission_api.actions.set_attribute", function()
 			}, summarizeSchema(action))
 		end)
 
-		it("names the death explosion as the engine does", function()
+		it("passes the death explosion as the controller's key", function()
 			action.actionFunction("armpw", nil, "explode", "damage", 3, nil)
 
-			assert.are.same({ { "SetUnitDefWeaponModifier", 8, -1, "damage", 3, "mission", nil } }, calls)
+			assert.are.same(
+				{ { "SetUnitDefWeaponModifier", 8, unitAttributes.WEAPON_DEATH, "damage", 3, "mission", nil } },
+				calls
+			)
 		end)
 
-		it("names the self-destruct explosion as the engine does", function()
+		it("passes the self-destruct explosion as the controller's key", function()
 			action.actionFunction("armpw", nil, "selfDestruct", "cratering", 0.5, nil)
 
-			assert.are.same({ { "SetUnitDefWeaponModifier", 8, -2, "cratering", 0.5, "mission", nil } }, calls)
+			assert.are.same(
+				{ { "SetUnitDefWeaponModifier", 8, unitAttributes.WEAPON_SELFD, "cratering", 0.5, "mission", nil } },
+				calls
+			)
 		end)
 	end)
 
