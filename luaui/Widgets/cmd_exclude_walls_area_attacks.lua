@@ -60,7 +60,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local selectedUnits = spGetSelectedUnits()
 		local limitedCount = 0
 		for i = 1, #selectedUnits do
-			if isUnlimitedUnitDef[spGetUnitDefID(selectedUnits[i])] ~= nil then
+			if isUnlimitedUnitDef[spGetUnitDefID(selectedUnits[i])] == nil then
 				limitedCount = limitedCount + 1
 				if limitedCount > AREA_LIMIT then
 					return false
