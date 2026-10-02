@@ -322,6 +322,7 @@ config = {
 	historySelections = true, -- Log every player's selection (the tracked player's shows in the rewind)
 	historySelectionCap = 200, -- Units kept per selection record
 	historyCursors = true, -- Log player cursors (the tracked player's shows in the rewind)
+	historyResources = true, -- Log team resources (the tracked player's resource bars show them in the rewind)
 }
 
 -- State variables
@@ -465,6 +466,8 @@ local pipR2T = {
 	resbarTextLastUpdate = 0,
 	resbarTextUpdateRate = 0.5, -- Update resource text at 2 FPS
 	resbarTextLastPlayerID = nil,
+	resbarTextLastMode = nil, -- rewinding when the text was made
+	resbarTextLastFrame = nil, -- viewed rewind frame when the text was made
 	playerNameDlist = nil,
 	playerNameLastPlayerID = nil,
 	playerNameLastName = nil,
@@ -13898,12 +13901,12 @@ end
 -- Lua's 200-local limit)
 ----------------------------------------------------------------------------------------------------
 
--- Park-Miller generator: playback effects re-roll identically when a frame is scrubbed again
+-- Lehmer generator: playback effects re-roll identically when a frame is scrubbed again
 function miscState.hist.Rand(seed)
-	seed = (math.floor(seed) % 2147483646) + 1
+	seed = (math.floor(seed) % 65536) + 1
 	return function()
-		seed = (seed * 16807) % 2147483647
-		return seed / 2147483647
+		seed = (seed * 75) % 65537
+		return seed / 65537
 	end
 end
 
@@ -13928,6 +13931,7 @@ function miscState.hist.StoreOptions()
 		playerSelections = miscState.hist.PlayerSelections,
 		logCursors = config.historyCursors,
 		playerCursors = miscState.hist.PlayerCursors,
+		logResources = config.historyResources,
 		scanSpread = math.max(1, math.floor(config.historyScanSpread)),
 		spillBytes = math.max(0.01, config.historySpillMB) * 1024 * 1024,
 		basicLevel = math.max(0, math.floor(config.historyBasicLevel)),
@@ -14329,6 +14333,16 @@ function miscState.hist.TrackedCamera(playerID)
 	return st
 end
 
+-- the team's recorded resources at the viewed frame (see View:ResourcesAt), nil when the log has none
+function miscState.hist.TeamResources(teamID)
+	local hist = miscState.hist
+	if not hist.view then
+		return nil
+	end
+	hist.resOut = hist.resOut or {}
+	return hist.view:ResourcesAt(teamID, hist.viewFrame, hist.resOut)
+end
+
 -- hits arrive by the thousand in a big fight: no engine calls, no UnitDefs proxy reads here
 function miscState.hist.LogDamage(unitID, unitDefID, damage, paralyzer)
 	local hist = miscState.hist
@@ -14428,14 +14442,33 @@ function miscState.hist.Init()
 	if config.historyEnabled then
 		hist.RemoveStaleSegmentFiles()
 	end
-	hist.cmdColor = {
-		cmdColors[CMD.MOVE],
-		cmdColors[CMD.FIGHT],
-		cmdColors[CMD.ATTACK],
-		cmdColors[CMD.PATROL],
-		cmdColors.unknown,
-		cmdColors.unknown,
+	-- logged order kinds (1-6 keep their meaning in older logs; 5 = build, 6 = unknown)
+	local kinds = {
+		CMD.MOVE,
+		CMD.FIGHT,
+		CMD.ATTACK,
+		CMD.PATROL,
+		false,
+		false,
+		CMD.GUARD,
+		CMD.CAPTURE,
+		CMD.REPAIR,
+		CMD.RECLAIM,
+		CMD.RESTORE,
+		CMD.RESURRECT,
+		CMD.LOAD_UNITS,
+		CMD.UNLOAD_UNIT,
+		CMD.UNLOAD_UNITS,
+		GameCMD.UNIT_SET_TARGET_NO_GROUND,
 	}
+	hist.cmdKind, hist.cmdColor = {}, {}
+	for kind = 1, #kinds do
+		local cmdID = kinds[kind]
+		if cmdID then
+			hist.cmdKind[cmdID] = kind
+		end
+		hist.cmdColor[kind] = cmdID and cmdColors[cmdID] or cmdColors.unknown
+	end
 	hist.outIndex = {}
 	hist.explosionByKey = {}
 	hist.shatterByKey = {}
@@ -14515,27 +14548,26 @@ function miscState.hist.LogCommand(unitID, unitTeam, cmdID, cmdParams, cmdOpts)
 	if config.commandFXIgnoreNewUnits and finishTime and (wallClockTime - finishTime) < 0.3 then
 		return
 	end
-	local kind
-	if cmdID == CMD.MOVE then
-		kind = 1
-	elseif cmdID == CMD.FIGHT then
-		kind = 2
-	elseif cmdID == CMD.ATTACK then
-		kind = 3
-	elseif cmdID == CMD.PATROL then
-		kind = 4
-	elseif cmdID < 0 then
-		kind = 5
-	else
+	-- every order the live FX draws
+	local kind = miscState.hist.cmdKind[cmdID] or (cmdID < 0 and 5)
+	if not kind then
 		return
 	end
 	local n = cmdParams and #cmdParams or 0
-	local x, z, target = 0, 0, 0
+	local x, z, target, _
 	if n >= 3 then
 		x, z = cmdParams[1], cmdParams[3]
-	elseif n == 1 and kind == 3 and cmdParams[1] < (Game.maxUnits or 32000) then
-		target = cmdParams[1]
-	else
+	elseif n == 1 then
+		-- playback follows a unit target; its position here is the fallback
+		local id, maxUnits = cmdParams[1], Game.maxUnits or 32000
+		if id >= maxUnits then
+			x, _, z = spFunc.GetFeaturePosition((id - maxUnits) --[[@as integer]])
+		else
+			x, _, z = spFunc.GetUnitPosition(id)
+			target = id
+		end
+	end
+	if not x then
 		return
 	end
 	store:OnCommand(unitID, kind, x, z, target, cmdOpts and cmdOpts.shift, miscState.hist.frame or Spring.GetGameFrame())
@@ -15019,9 +15051,12 @@ function miscState.hist.SyncFrame()
 	-- explosions live at most ~2.1 s (see ExpireExplosions); deaths shatter for ~1.5 s
 	-- a hit flashes for 0.4 s of real time whatever the playback speed
 	local flashSpan = math.ceil(store.opts.flashFrames * (hist.speed or 1))
-	local window =
-		math.max(120, math.ceil(config.commandFXDuration * 30), math.ceil(config.mapDrawingDuration * 30), flashSpan)
-	view:CollectEvents(frame, window, flashSpan)
+	-- order lines fade over the live FX duration of real time too (up to 15 s of game time);
+	-- 5 more frames so an order chained from one just older still finds it
+	local fxSpan = math.max(1, math.min(450, config.commandFXDuration * 30 * (hist.speed or 1)))
+	hist.commandFXSpan = fxSpan
+	local window = math.max(120, math.ceil(fxSpan) + 5, math.ceil(config.mapDrawingDuration * 30), flashSpan)
+	view:CollectEvents(frame, window, flashSpan, fxSpan + 5)
 
 	local byKey = hist.explosionByKey
 	local list = hist.explosions
@@ -15556,9 +15591,11 @@ function miscState.hist.DrawEffects()
 	end
 
 	local frame = hist.viewFrame
-	local outIndex, outX, outZ = hist.outIndex, view.outX, view.outZ
+	local outIndex, outX, outZ, outTeam = hist.outIndex, view.outX, view.outZ, view.outTeam
 	local colors = hist.cmdColor
-	local fxFrames = math.max(1, config.commandFXDuration * 30)
+	-- like the live FX: order colours when tracking a player or playing, team colours otherwise
+	local byTeam = cameraState.mySpecState and not interactionState.trackingPlayerID
+	local fxFrames = hist.commandFXSpan or math.max(1, config.commandFXDuration * 30)
 	-- like the live FX, an order that follows another for the same unit within 0.15 s chains
 	-- from the previous target instead of the unit
 	local chainF, chainX, chainZ = hist.chainF, hist.chainX, hist.chainZ
@@ -15578,8 +15615,8 @@ function miscState.hist.DrawEffects()
 				local ti = outIndex[c.targetID]
 				if ti then
 					tx, tz = outX[ti], outZ[ti]
-				else
-					tx = nil
+				elseif tx == 0 and tz == 0 then
+					tx = nil -- older logs kept no target position
 				end
 			end
 			if tx then
@@ -15594,7 +15631,7 @@ function miscState.hist.DrawEffects()
 				local age = frame - c.frame
 				local alpha = config.commandFXOpacity * (1 - age / fxFrames)
 				if alpha > 0 and (math.abs(sx - tx) >= 1 or math.abs(sz - tz) >= 1) then
-					local col = colors[c.kind] or colors[6]
+					local col = (byTeam and teamColors[outTeam[src]]) or colors[c.kind] or colors[6]
 					local r, g, b = col[1], col[2], col[3]
 					GL4AddNormLine(sx, sz, tx, tz, r, g, b, alpha, r, g, b, alpha)
 				end
@@ -19712,21 +19749,34 @@ local function DrawTrackedPlayerResourceBars()
 		return
 	end
 
-	-- Get team resources - this works for spectators viewing any team
-	-- Returns: current, storage, pull, income, expense, share
-	local metalCur, metalMax, metalPull, metalIncome, metalExpense, metalShare =
-		Spring.GetTeamResources(teamID, "metal")
-	local energyCur, energyMax, energyPull, energyIncome, energyExpense, energyShare =
-		Spring.GetTeamResources(teamID, "energy")
+	local hist = miscState.hist ---@type PipHistState
+	local metalCur, metalMax, metalPull, metalIncome, metalShare
+	local energyCur, energyMax, energyPull, energyIncome, energyShare, mmLevel
+	if hist.mode then
+		-- Rewinding: the resources recorded at the viewed frame (no bars when the log has none)
+		local r = hist.TeamResources(teamID)
+		if not r then
+			return
+		end
+		metalCur, metalMax, metalPull, metalIncome, metalShare = r[1], r[2], r[3], r[4], r[5]
+		energyCur, energyMax, energyPull, energyIncome, energyShare = r[6], r[7], r[8], r[9], r[10]
+		mmLevel = r[11]
+	else
+		-- Get team resources - this works for spectators viewing any team
+		-- Returns: current, storage, pull, income, expense, share
+		local _
+		metalCur, metalMax, metalPull, metalIncome, _, metalShare = Spring.GetTeamResources(teamID, "metal")
+		energyCur, energyMax, energyPull, energyIncome, _, energyShare = Spring.GetTeamResources(teamID, "energy")
 
-	if not (metalCur and energyCur) then
-		return
-	end
+		if not (metalCur and energyCur) then
+			return
+		end
 
-	-- Get energy conversion level (mmLevel)
-	local mmLevel = Spring.GetTeamRulesParam(teamID, "mmLevel")
-	if mmLevel == nil then
-		mmLevel = 1
+		-- Get energy conversion level (mmLevel)
+		mmLevel = Spring.GetTeamRulesParam(teamID, "mmLevel")
+		if mmLevel == nil then
+			mmLevel = 1
+		end
 	end
 
 	-- Check if player has teammates (for share slider)
@@ -19875,10 +19925,12 @@ local function DrawTrackedPlayerResourceBars()
 		end
 	end
 
-	-- Text rendering - use cached display list, update at ~2 FPS
+	-- Text rendering - use cached display list, update at ~2 FPS and on each frame a paused or dragged rewind lands on
 	local currentTime = os.clock()
 	local needsTextUpdate = pipR2T.resbarTextDlist == nil
 		or pipR2T.resbarTextLastPlayerID ~= interactionState.trackingPlayerID
+		or pipR2T.resbarTextLastMode ~= hist.mode
+		or (hist.mode and (not hist.playing or hist.dragging) and pipR2T.resbarTextLastFrame ~= hist.viewFrame)
 		or (currentTime - pipR2T.resbarTextLastUpdate) >= pipR2T.resbarTextUpdateRate
 
 	if needsTextUpdate then
@@ -19924,6 +19976,8 @@ local function DrawTrackedPlayerResourceBars()
 
 		pipR2T.resbarTextLastUpdate = currentTime
 		pipR2T.resbarTextLastPlayerID = interactionState.trackingPlayerID
+		pipR2T.resbarTextLastMode = hist.mode
+		pipR2T.resbarTextLastFrame = hist.viewFrame
 	end
 
 	-- Draw the cached text display list
@@ -21282,30 +21336,31 @@ DestroyGL4Decals = function()
 end
 
 -- Rebuild VBO instance data from decal VBO tables (only when decals added/removed)
--- Uses sequential index iteration (1..usedElements) instead of pairs() for speed.
+-- Uses sequential index iteration instead of pairs() for speed.
 -- The VBO uses swap-with-last compaction so indices are always contiguous.
-local function RebuildDecalVBO(vboTables)
+local function RebuildDecalVBO(vboTables, frame)
 	local data = decalGL4.instanceData
 	local step = decalGL4.INSTANCE_STEP
 	local count = 0
 	local maxInst = decalGL4.MAX_INSTANCES
 
-	for vi = 1, #vboTables do
+	-- biggest decals first, then the newest: a full buffer keeps what shows most (GL_MIN ignores order)
+	for vi = #vboTables, 1, -1 do
 		local vbo = vboTables[vi]
 		if vbo and vbo.usedElements > 0 then
 			local srcStep = vbo.instanceStep
 			local srcData = vbo.instanceData
 			local used = vbo.usedElements
 			-- Sequential iteration: ~3x faster than pairs() over sparse hash table
-			for idx = 1, used do
+			for idx = used, 1, -1 do
 				if count >= maxInst then
 					break
 				end
 				local ofs = (idx - 1) * srcStep
 				local p = srcData[ofs + 5]
 				local s = srcData[ofs + 7]
-				-- Only include textured decals (skip untextured color-only)
-				if p and s then
+				-- Only include textured decals (skip untextured color-only) the shader would still draw
+				if p and s and srcData[ofs + 9] - (frame - srcData[ofs + 16]) * srcData[ofs + 10] >= 0.01 then
 					local o = count * step
 					-- posRot: worldX, worldZ, rotation, maxalpha
 					data[o + 1] = srcData[ofs + 13] -- posx
@@ -21419,7 +21474,7 @@ local function UpdateDecalTexture()
 	tracy.ZoneBeginN("W:PIP:Decals:UpdateTexture")
 	if not decalVersion or decalVersion ~= decalGL4.version then
 		tracy.ZoneBeginN("W:PIP:Decals:RebuildVBO")
-		RebuildDecalVBO(vboTables)
+		RebuildDecalVBO(vboTables, frame)
 		if decalVersion then
 			decalGL4.version = decalVersion
 		end
@@ -23737,6 +23792,16 @@ function widget:Update(dt)
 	-- Run optional API debug sequence regardless of minimization state.
 	UpdateDebugCameraSequenceApi(os.clock())
 
+	-- Update wall-clock time (always advances, even when paused — used for blink/pulse animations)
+	-- Both clocks run while minimized too: a minimized instance can be the history recorder
+	wallClockTime = wallClockTime + dt
+
+	-- Update game time (only when game is not paused)
+	local _, _, isPaused = Spring.GetGameSpeed()
+	if not isPaused then
+		gameTime = gameTime + dt
+	end
+
 	-- Skip ALL heavy processing when minimized and not animating.
 	-- DrawScreen/DrawWorld already return early when minimized, so ghost cleanup,
 	-- TV camera, zoom interpolation, hover detection, etc. are pure waste.
@@ -24192,15 +24257,6 @@ function widget:Update(dt)
 		and not middleButton
 	then
 		interactionState.arePanning = false
-	end
-
-	-- Update wall-clock time (always advances, even when paused — used for blink/pulse animations)
-	wallClockTime = wallClockTime + dt
-
-	-- Update game time (only when game is not paused)
-	local _, _, isPaused = Spring.GetGameSpeed()
-	if not isPaused then
-		gameTime = gameTime + dt
 	end
 
 	-- Handle minimize/maximize animation

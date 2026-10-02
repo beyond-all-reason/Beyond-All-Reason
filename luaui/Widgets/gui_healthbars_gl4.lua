@@ -842,8 +842,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 end
 
 local function removeBarsFromUnit(unitID, reason)
-	for barname, v in pairs(barTypeMap) do
-		removeBarFromUnit(unitID, barname, reason)
+	if unitBars[unitID] then -- bars can only exist for units addBarForUnit has counted
+		for barname, v in pairs(barTypeMap) do
+			removeBarFromUnit(unitID, barname, reason)
+		end
 	end
 	unitShieldWatch[unitID] = nil
 	unitReactiveArmorWatch[unitID] = nil

@@ -904,10 +904,16 @@ local function loadSpots()
 		end
 	end
 	local features = spGetAllFeatures()
+	local seen = {}
 	for i = 1, #features do
 		if vents[spGetFeatureDefID(features[i])] then
 			local x, _, z = spGetFeaturePosition(features[i])
-			found.geo[#found.geo + 1] = { x = x, z = z }
+			-- some maps place each vent twice (SMF and LuaGaia featureplacer)
+			local key = x * 65536 + z
+			if not seen[key] then
+				seen[key] = true
+				found.geo[#found.geo + 1] = { x = x, z = z }
+			end
 		end
 	end
 	spots = found

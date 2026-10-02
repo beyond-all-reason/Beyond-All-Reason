@@ -9,10 +9,10 @@
 -- Both views observe the same underlying defs.
 
 ---@class UnitDefsBuilder
----@field _byID table<number, table>
+---@field _byID table<integer, table>
 ---@field _byName table<string, table>
----@field _names table<string, { id: number }>
----@field _instances table<number, number>
+---@field _names table<string, { id: integer }|nil>
+---@field _instances table<integer, integer>
 ---@field _realLoaded boolean
 local UDFB = {}
 UDFB.__index = UDFB
@@ -40,7 +40,7 @@ function UDFB:WithUnitDef(defID, def)
 		resolvedID = udb:GetDefID()
 		resolvedDef = udb:GetDef()
 	else
-		---@cast defID number
+		---@cast defID integer
 		resolvedID = defID
 		resolvedDef = def
 	end
@@ -105,7 +105,9 @@ function UDFB:WithRealUnitDefs(loadHarness)
 
 		local success, defs = pcall(require, "gamedata.unitdefs")
 		if not success or type(defs) ~= "table" then
+			---@diagnostic disable-next-line: global-in-non-module
 			_G.UnitDefs = prevDefs
+			---@diagnostic disable-next-line: global-in-non-module
 			_G.UnitDefNames = prevNames
 			return
 		end
@@ -115,8 +117,8 @@ function UDFB:WithRealUnitDefs(loadHarness)
 		-- again here appends the generated category tokens a second time.
 		_G.UnitDefs = defs
 
-		local loaded = _G.UnitDefs
-		local names = _G.UnitDefNames
+		local loaded = _G.UnitDefs ---@type table<string, table>?
+		local names = _G.UnitDefNames ---@type table<string, {id: integer}>?
 		if type(loaded) == "table" then
 			for _, def in pairs(loaded) do
 				if def.builder ~= nil and def.isBuilder == nil then
@@ -161,7 +163,7 @@ function UDFB:GetUnitDefsByName()
 	return self._byName
 end
 
----@return table<string, { id: number }>
+---@return table<string, { id: integer }|nil>
 function UDFB:GetUnitDefNames()
 	return self._names
 end

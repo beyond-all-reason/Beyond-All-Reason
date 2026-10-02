@@ -254,7 +254,7 @@ local DEFAULTS = {
 		crosshair = { 1, 1, 1, 0.22 },
 		hoverDot = { 1, 1, 1, 0.9 },
 		-- The other series step back to this share of their colour when one is highlighted.
-		dimAlpha = 0.22,
+		dimAlpha = 0.31,
 		areaAlpha = 0.6,
 		fillAlpha = 0.16,
 		markerFrame = { 1, 1, 1, 0.35 },

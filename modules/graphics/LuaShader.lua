@@ -13,8 +13,8 @@ local glUniformArray = gl.UniformArray
 
 local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 
--- OpenGL 3.2 took the geometry shader stage into the standard, and came with this shading language
--- version. Drivers newer than that mostly no longer name the extensions the stage arrived through.
+-- OpenGL 3.2 took the geometry shader step into the standard, and came with this shading language
+-- version. Drivers newer than that mostly no longer name the extensions the step arrived through.
 local GLSL_VERSION_WITH_GEOMETRY_SHADERS = 150
 
 -- [Some] Mesa versions prior to this stalled for several seconds the first time a geometry shader
@@ -49,7 +49,7 @@ local function HasGeometryShaderStage()
 		or gl.HasExtension("GL_EXT_geometry_shader4")
 		or gl.HasExtension("GL_OES_geometry_shader")
 
-	-- an engine that can build a shader with a geometry stage lets a widget set that stage up
+	-- an engine that can build a shader with a geometry step lets a widget set that step up
 	return hasStage and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
 end
 
@@ -67,7 +67,7 @@ local function MesaVersion()
 end
 
 --- Whether to take a geometry shader where there is a path with one and a path without.
---- Older Mesa is left out although it has the stage, since it incurs long delays for
+--- Older Mesa is left out although it has the step, since it incurs long delays for
 --- shader compilation.
 local function IsGeometryShaderSupported()
 	local mesaVersion = MesaVersion()
@@ -604,47 +604,47 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				local glslvariable = line:match(printfpattern)
 				if glslvariable then
 					-- shaderconfig.stripPrintf is convenience for reused megashaders (e.g. CUS_GL4) to only printf from one draw pass or bin
-					if shadersourcecache.shaderConfig.stripPrintf then 
+					if shadersourcecache.shaderConfig.stripPrintf then
 						Spring.Echo("Stripping printf from fragment shader line", i)
 						fsSrcNewLines[i] = ""
 					else
-					--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
-					-- init our printf table
+						--Spring.Echo("printf in fragment shader",i,  glslvariable, line)
+						-- init our printf table
 
-					-- Replace uncommented printf's with the function stub to set the SSBO data for that field
+						-- Replace uncommented printf's with the function stub to set the SSBO data for that field
 
-					-- Figure out whether the glsl variable is a float, vec2-4
-					local glslvarcount = 1 -- default is 1
-					local dotposition = string.find(glslvariable, "%.")
-					local swizzle = "x"
-					if dotposition then
-						swizzle = string.sub(glslvariable, dotposition + 1)
-						glslvarcount = string.len(swizzle)
-					end
-					if glslvarcount > 4 then
-						glslvarcount = 4
-					end
-					if not printf then
-						printf = {}
-					end
-					printf.vars = printf.vars or {}
-					local vardata = {
-						name = glslvariable,
-						count = glslvarcount,
-						line = i,
-						index = #printf.vars,
-						swizzle = swizzle,
-						shaderstage = "f",
-					}
-					table.insert(printf.vars, vardata)
-					local replacementstring = string.format(
-						"if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;",
-						vardata.index,
-						string.sub("xyzw", 1, vardata.count),
-						vardata.name
-					)
-					Spring.Echo(string.format("Replacing f:%d %s", i, line))
-					fsSrcNewLines[i] = replacementstring
+						-- Figure out whether the glsl variable is a float, vec2-4
+						local glslvarcount = 1 -- default is 1
+						local dotposition = string.find(glslvariable, "%.")
+						local swizzle = "x"
+						if dotposition then
+							swizzle = string.sub(glslvariable, dotposition + 1)
+							glslvarcount = string.len(swizzle)
+						end
+						if glslvarcount > 4 then
+							glslvarcount = 4
+						end
+						if not printf then
+							printf = {}
+						end
+						printf.vars = printf.vars or {}
+						local vardata = {
+							name = glslvariable,
+							count = glslvarcount,
+							line = i,
+							index = #printf.vars,
+							swizzle = swizzle,
+							shaderstage = "f",
+						}
+						table.insert(printf.vars, vardata)
+						local replacementstring = string.format(
+							"if (all(lessThan(abs(mouseScreenPos.xy- (gl_FragCoord.xy + vec2(0.5, -1.5))),vec2(0.25) ))) {	printfData[%i].%s = %s;}	//printfData[INDEX] = vertexPos.xyzw;",
+							vardata.index,
+							string.sub("xyzw", 1, vardata.count),
+							vardata.name
+						)
+						Spring.Echo(string.format("Replacing f:%d %s", i, line))
+						fsSrcNewLines[i] = replacementstring
 					end
 				end
 			end
@@ -706,7 +706,9 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 				--Spring.Echo(fsSrcNew)
 			end
 
-			if shadersourcecache.shaderConfig.stripPrintf then fsSrcNew = table.concat(fsSrcNewLines, "\n") end
+			if shadersourcecache.shaderConfig.stripPrintf then
+				fsSrcNew = table.concat(fsSrcNewLines, "\n")
+			end
 
 			if vsSrcNew then
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)

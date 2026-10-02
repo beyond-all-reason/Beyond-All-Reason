@@ -26,6 +26,8 @@ local mathFloor = math.floor
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetGameSpeed = Spring.GetGameSpeed
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 local vsx, vsy = spGetViewGeometry()
 
 local show = true -- shown by default on first open
@@ -66,19 +68,8 @@ local RectRound, UiElement, UiScroller, elementCorner
 local scenarioData = nil
 
 local function getScenarioid()
-	local raw = _modOpts.scenariooptions
-	if not raw then
-		return nil
-	end
-	local ok, decoded = pcall(string.base64Decode, raw)
-	if not ok or not decoded then
-		return nil
-	end
-	local ok2, opts = pcall(Json.decode, decoded)
-	if not ok2 or type(opts) ~= "table" then
-		return nil
-	end
-	return opts.scenarioid
+	local opts = decodeModoption(_modOpts.scenariooptions)
+	return opts and opts.scenarioid or nil
 end
 
 local function findScenarioData(targetid)

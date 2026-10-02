@@ -38,6 +38,8 @@ if gadgetHandler:IsSyncedCode() then
 	local mathBitAnd = math.bit_and
 	local tableContains = table.contains
 
+	local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
@@ -586,7 +588,10 @@ if gadgetHandler:IsSyncedCode() then
 		scenarioSpawnsUnits = false
 
 		if Spring.GetModOptions().scenariooptions then
-			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
+			local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+			if not scenariooptions then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+			end
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 				scenarioSpawnsUnits = true

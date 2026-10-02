@@ -395,10 +395,10 @@ local teamColors = {
 local teamRandoms = {}
 do
 	local state = 65432 -- arbitrary fixed seed
-	-- Park-Miller minimal standard LCG; every intermediate stays below 2^53, so it is exact in doubles
+	-- Lehmer LCG; every intermediate stays below 2^24, so it is exact in the engine's float32 numbers
 	local function nextRandom()
-		state = (state * 16807) % 2147483647
-		return state / 2147483647
+		state = (state * 75) % 65537
+		return state / 65537
 	end
 	for i = 1, #teamList do
 		teamRandoms[teamList[i]] = { nextRandom(), nextRandom(), nextRandom() }

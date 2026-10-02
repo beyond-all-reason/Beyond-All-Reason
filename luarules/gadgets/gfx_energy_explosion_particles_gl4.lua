@@ -219,12 +219,11 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_FILL = GL.FILL
 local GL_LEQUAL = GL.LEQUAL
+local GL_POINTS = GL.POINTS
+local GL_TRIANGLES = GL.TRIANGLES
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
-local pushElementInstance = InstanceVBOTable.pushElementInstance
-local popElementInstance = InstanceVBOTable.popElementInstance
-local uploadElementRange = InstanceVBOTable.uploadElementRange
 
 local mathRandom = math.random
 local mathSqrt = math.sqrt
@@ -234,7 +233,6 @@ local mathSin = math.sin
 local mathCos = math.cos
 local mathMax = math.max
 local mathMin = math.min
-local mathHuge = math.huge
 local stringFind = string.find
 
 -- Cube/GS path -- no texture sampled.
@@ -242,17 +240,20 @@ local stringFind = string.find
 -- VBO ceiling (instance slots allocated once at Init).
 local MAX_PARTICLES_VBO = CONFIG.maxLiveParticles
 local liveCount = 0
-local nextID = 1
 
--- Per-instance scratch buffer (4 vec4 = 16 floats), reused per spawn.
-local instanceScratch = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
-
--- death-frame buckets for cheap O(1) cull
-local deathBuckets = {}
+-- The instance VBO is a ring: a particle keeps its slot until it dies (the vertex shader hides it
+-- from its death frame on), spawns take the next dead slot, and writes go up as range uploads.
+local slotDeath = {} -- [slot + 1] = death frame of the particle in that slot
+local ringHead = 0 -- next slot to try, 0-based
+local drawLow, drawHigh = MAX_PARTICLES_VBO, 0 -- slots [drawLow, drawHigh) hold every live particle
+local deathTally = {} -- frame -> particles dying on it
+local runStart, runEnd = -1, -1 -- slots written since the last upload, 0-based inclusive
+local UPLOAD_GAP = 32 -- live slots a run may re-upload rather than split
 
 ---@type InstanceVBOTable?
 local particleVBO
 local particleShader
+local nogsIndexCount = 0
 
 -- When NanoParticleMode == 0 the engine renders its own nano spray and the
 -- GL4 nano gadget is inactive; energy explosion particles would look out of
@@ -280,9 +281,6 @@ local killedByLuaWeaponDefID = Game and Game.envDamageTypes and Game.envDamageTy
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
 
--- Dirty range for batched per-frame upload (updated inline in processBurst).
-local dirtyMin, dirtyMax = mathHuge, -1
-
 --------------------------------------------------------------------------------
 -- Shaders
 --------------------------------------------------------------------------------
@@ -291,7 +289,7 @@ local vsSrc = [[
 #version 430 core
 #line 10000
 
-layout(location = 0) in vec4 vertexPosUV;
+// One point per particle (the particle VBO is the vertex buffer); the GS builds chunk and halo.
 layout(location = 1) in vec4 spawnPosAndSize;   // xyz=spawnPos, w=packed(sizeMult,fadeFrames)
 layout(location = 2) in vec4 velAndSpawnFrame;  // xyz=velocity (elmos/frame), w=spawnFrame
 layout(location = 3) in vec4 instColor;         // rgb + alpha
@@ -423,7 +421,7 @@ void main() {
 local gsSrc = [[
 #version 430 core
 
-layout(triangles) in;
+layout(points) in;
 layout(triangle_strip, max_vertices = 28) out;
 
 //__ENGINEUNIFORMBUFFERDEFS__
@@ -432,6 +430,14 @@ uniform float drawRadius;
 uniform int   u_shape;
 uniform float glowScale;
 uniform float glowIntensity;
+uniform float glowFalloff;
+uniform float coreBoost;
+uniform float hueJitter;
+uniform float cubeNoiseScale;
+uniform float glowBreath;
+uniform float glowBreathFreq;
+uniform float glowBreathVar;
+uniform float glowBreathFreqVar;
 
 in vec3  v_worldPos[];
 in vec4  v_color[];
@@ -441,15 +447,14 @@ in vec3  v_phaseSeed[];
 in float v_sizeMult[];
 in float v_breathScale[];
 
-out vec4 g_color;
-out vec3 g_normal;
-out vec3 g_worldPos;
-out vec3 g_localPos;
-out vec3 g_noiseSeed;
-out vec2 g_glowUV;
-out float g_isGlow;
-out float g_seed;
-out float g_breathScale;
+flat out vec4 g_color; // shape: rgb * hue tint * coreBoost, alpha; halo: premultiplied centre colour
+out vec3 g_normal;     // shape: face normal; halo: (uv, 2.0)
+out vec3 g_worldPos;   // shape only
+out vec3 g_noisePos;   // shape only: localPos * cubeNoiseScale + per-particle seed
+
+// Halo contributions under this round away in the RGBA8 framebuffer (sources clamp to [0, 1]),
+// so each halo quad is cut to the radius where its falloff drops below it.
+const float GLOW_CUTOFF = 0.25 / 255.0;
 
 float hash11(float x) { return fract(sin(x) * 43758.5453); }
 
@@ -463,40 +468,54 @@ mat3 rotXYZ(vec3 a) {
 	return Rz * Ry * Rx;
 }
 
-void emitFace(vec3 c0, vec3 c1, vec3 c2, vec3 c3, vec3 n, vec3 center, vec4 col, vec3 noiseSeed, float seed) {
-	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed; g_breathScale = 0.0;
-	g_localPos = c0; g_worldPos = center + c0; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c1; g_worldPos = center + c1; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c2; g_worldPos = center + c2; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c3; g_worldPos = center + c3; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
+// Per-particle state for the emit helpers. Clip position is linear in world position, so each
+// corner's clip position is the centre's plus signed clip-space axis vectors.
+vec3 center, axisX, axisY, axisZ, noiseSeed;
+vec4 shapeColor, clipC, clipX, clipY, clipZ;
+
+// true when the clip-space box c +- a +- b +- d lies wholly outside one side plane of the view
+bool outsideView(vec4 c, vec4 a, vec4 b, vec4 d) {
+	vec4 f = vec4(c.x - c.w, -c.x - c.w, c.y - c.w, -c.y - c.w)
+	       - abs(vec4(a.x - a.w, -a.x - a.w, a.y - a.w, -a.y - a.w))
+	       - abs(vec4(b.x - b.w, -b.x - b.w, b.y - b.w, -b.y - b.w))
+	       - abs(vec4(d.x - d.w, -d.x - d.w, d.y - d.w, -d.y - d.w));
+	return any(greaterThan(f, vec4(0.0)));
+}
+
+void emitCorner(vec3 s, vec3 n) {
+	vec3 lp = s.x * axisX + s.y * axisY + s.z * axisZ;
+	g_color = shapeColor;
+	g_normal = n;
+	g_worldPos = center + lp;
+	g_noisePos = lp * cubeNoiseScale + noiseSeed;
+	gl_Position = clipC + s.x * clipX + s.y * clipY + s.z * clipZ;
+	EmitVertex();
+}
+
+void emitFace(vec3 s0, vec3 s1, vec3 s2, vec3 s3, vec3 n) {
+	emitCorner(s0, n); emitCorner(s1, n); emitCorner(s2, n); emitCorner(s3, n);
 	EndPrimitive();
 }
 
-void emitTri(vec3 c0, vec3 c1, vec3 c2, vec3 n, vec3 center, vec4 col, vec3 noiseSeed, float seed) {
-	g_color = col; g_normal = n; g_noiseSeed = noiseSeed; g_isGlow = 0.0; g_glowUV = vec2(0.0); g_seed = seed; g_breathScale = 0.0;
-	g_localPos = c0; g_worldPos = center + c0; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c1; g_worldPos = center + c1; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_localPos = c2; g_worldPos = center + c2; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
+void emitTri(vec3 s0, vec3 s1, vec3 s2, vec3 n) {
+	emitCorner(s0, n); emitCorner(s1, n); emitCorner(s2, n);
 	EndPrimitive();
 }
 
-void emitGlow(vec3 center, vec4 col, float halfSize, float seed) {
-	vec3 right = cameraViewInv[0].xyz * halfSize;
-	vec3 up    = cameraViewInv[1].xyz * halfSize;
-	g_color = col; g_normal = vec3(0.0, 1.0, 0.0); g_noiseSeed = vec3(0.0);
-	g_localPos = vec3(0.0); g_isGlow = 1.0; g_seed = seed; g_breathScale = v_breathScale[0];
-	g_glowUV = vec2(-1.0, -1.0); g_worldPos = center - right - up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_glowUV = vec2( 1.0, -1.0); g_worldPos = center + right - up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_glowUV = vec2(-1.0,  1.0); g_worldPos = center - right + up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	g_glowUV = vec2( 1.0,  1.0); g_worldPos = center + right + up; gl_Position = cameraViewProj * vec4(g_worldPos, 1.0); EmitVertex();
-	EndPrimitive();
+void emitGlowCorner(vec4 col, vec2 uv, vec4 offset) {
+	g_color = col;
+	g_normal = vec3(uv, 2.0);
+	g_worldPos = center;
+	g_noisePos = vec3(0.0);
+	gl_Position = clipC + offset;
+	EmitVertex();
 }
 
 void main() {
 	if (v_dead[0] > 0.5) return;
-	vec3 center = v_worldPos[0];
+	center = v_worldPos[0];
 	float size  = drawRadius * v_sizeMult[0];
-	vec3 noiseSeed = v_phaseSeed[0] * 137.0 + vec3(11.0, 47.0, 83.0);
+	noiseSeed = v_phaseSeed[0] * 137.0 + vec3(11.0, 47.0, 83.0);
 	float h  = dot(v_phaseSeed[0], vec3(0.123, 0.456, 0.789));
 	vec3 phase = vec3(hash11(h), hash11(h+1.7), hash11(h+3.3)) * 6.2831853;
 	float r = radians(v_rotVal[0]);
@@ -505,44 +524,81 @@ void main() {
 	vec4 col = v_color[0];
 	float seed = radians(v_phaseSeed[0].x);
 
-	if (u_shape == 1) {
-		vec3 X = R * vec3(size, 0, 0); vec3 nX = -X;
-		vec3 Y = R * vec3(0, size, 0); vec3 nY = -Y;
-		vec3 Z = R * vec3(0, 0, size); vec3 nZ = -Z;
-		float k = 0.57735027;
-		vec3 nPPP = R * vec3( k,  k,  k);
-		vec3 nNPP = R * vec3(-k,  k,  k);
-		vec3 nNPN = R * vec3(-k,  k, -k);
-		vec3 nPPN = R * vec3( k,  k, -k);
-		vec3 nPNP = R * vec3( k, -k,  k);
-		vec3 nNNP = R * vec3(-k, -k,  k);
-		vec3 nNNN = R * vec3(-k, -k, -k);
-		vec3 nPNN = R * vec3( k, -k, -k);
-		emitTri(Y,  Z,  X,  nPPP, center, col, noiseSeed, seed);
-		emitTri(Y, nX,  Z,  nNPP, center, col, noiseSeed, seed);
-		emitTri(Y, nZ, nX,  nNPN, center, col, noiseSeed, seed);
-		emitTri(Y,  X, nZ,  nPPN, center, col, noiseSeed, seed);
-		emitTri(nY,  X,  Z,  nPNP, center, col, noiseSeed, seed);
-		emitTri(nY,  Z, nX,  nNNP, center, col, noiseSeed, seed);
-		emitTri(nY, nX, nZ,  nNNN, center, col, noiseSeed, seed);
-		emitTri(nY, nZ,  X,  nPNN, center, col, noiseSeed, seed);
-	} else {
-		vec3 X = R * vec3(size, 0, 0);
-		vec3 Y = R * vec3(0, size, 0);
-		vec3 Z = R * vec3(0, 0, size);
-		vec3 nXp =  R[0]; vec3 nXm = -R[0];
-		vec3 nYp =  R[1]; vec3 nYm = -R[1];
-		vec3 nZp =  R[2]; vec3 nZm = -R[2];
-		emitFace( X-Y-Z,  X+Y-Z,  X-Y+Z,  X+Y+Z, nXp, center, col, noiseSeed, seed);
-		emitFace(-X-Y-Z, -X-Y+Z, -X+Y-Z, -X+Y+Z, nXm, center, col, noiseSeed, seed);
-		emitFace(-X+Y-Z, -X+Y+Z,  X+Y-Z,  X+Y+Z, nYp, center, col, noiseSeed, seed);
-		emitFace(-X-Y-Z,  X-Y-Z, -X-Y+Z,  X-Y+Z, nYm, center, col, noiseSeed, seed);
-		emitFace(-X-Y+Z,  X-Y+Z, -X+Y+Z,  X+Y+Z, nZp, center, col, noiseSeed, seed);
-		emitFace(-X-Y-Z, -X+Y-Z,  X-Y-Z,  X+Y-Z, nZm, center, col, noiseSeed, seed);
+	vec3 tint = vec3(1.0);
+	if (hueJitter > 0.0001) {
+		tint = vec3(1.0) + hueJitter * vec3(
+			sin(seed),
+			sin(seed + 2.094),
+			sin(seed + 4.188));
+	}
+
+	axisX = R * vec3(size, 0, 0);
+	axisY = R * vec3(0, size, 0);
+	axisZ = R * vec3(0, 0, size);
+	clipC = cameraViewProj * vec4(center, 1.0);
+	clipX = cameraViewProj * vec4(axisX, 0.0);
+	clipY = cameraViewProj * vec4(axisY, 0.0);
+	clipZ = cameraViewProj * vec4(axisZ, 0.0);
+
+	if (!outsideView(clipC, clipX, clipY, clipZ)) {
+		shapeColor = vec4(col.rgb * tint * coreBoost, col.a);
+		if (u_shape == 1) {
+			float k = 0.57735027;
+			emitTri(vec3(0, 1, 0), vec3(0, 0, 1), vec3(1, 0, 0),   R * vec3( k,  k,  k));
+			emitTri(vec3(0, 1, 0), vec3(-1, 0, 0), vec3(0, 0, 1),  R * vec3(-k,  k,  k));
+			emitTri(vec3(0, 1, 0), vec3(0, 0, -1), vec3(-1, 0, 0), R * vec3(-k,  k, -k));
+			emitTri(vec3(0, 1, 0), vec3(1, 0, 0), vec3(0, 0, -1),  R * vec3( k,  k, -k));
+			emitTri(vec3(0, -1, 0), vec3(1, 0, 0), vec3(0, 0, 1),   R * vec3( k, -k,  k));
+			emitTri(vec3(0, -1, 0), vec3(0, 0, 1), vec3(-1, 0, 0),  R * vec3(-k, -k,  k));
+			emitTri(vec3(0, -1, 0), vec3(-1, 0, 0), vec3(0, 0, -1), R * vec3(-k, -k, -k));
+			emitTri(vec3(0, -1, 0), vec3(0, 0, -1), vec3(1, 0, 0),  R * vec3( k, -k, -k));
+		} else {
+			emitFace(vec3( 1,-1,-1), vec3( 1, 1,-1), vec3( 1,-1, 1), vec3( 1, 1, 1),  R[0]);
+			emitFace(vec3(-1,-1,-1), vec3(-1,-1, 1), vec3(-1, 1,-1), vec3(-1, 1, 1), -R[0]);
+			emitFace(vec3(-1, 1,-1), vec3(-1, 1, 1), vec3( 1, 1,-1), vec3( 1, 1, 1),  R[1]);
+			emitFace(vec3(-1,-1,-1), vec3( 1,-1,-1), vec3(-1,-1, 1), vec3( 1,-1, 1), -R[1]);
+			emitFace(vec3(-1,-1, 1), vec3( 1,-1, 1), vec3(-1, 1, 1), vec3( 1, 1, 1),  R[2]);
+			emitFace(vec3(-1,-1,-1), vec3(-1, 1,-1), vec3( 1,-1,-1), vec3( 1, 1,-1), -R[2]);
+		}
 	}
 
 	if (glowIntensity > 0.0 && glowScale > 1.001) {
-		emitGlow(center, col, size * glowScale, seed);
+		// Everything but the radial falloff is constant per particle, so it is worked out here
+		// once and the fragment shader only scales this colour by (1 - rd)^falloff.
+		float gI = glowIntensity;
+		if (glowBreath > 0.0001) {
+			float hAmp  = fract(sin(seed * 91.7253 + 17.31) * 43758.5453);
+			float hFreq = fract(sin(seed * 33.1117 + 43.93) * 27183.4500);
+			float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
+			float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
+			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + seed;
+			// Floored at 0.35: glowBreath 4 swings the raw factor down to -3, and a small burst whose
+			// phases all start in that band would light up late. v_breathScale settles the halo
+			// over the second half of the particle's life.
+			gI *= max(1.0 + glowBreath * v_breathScale[0] * ampScale * sin(ph), 0.35);
+		}
+		vec3  glowTint = col.rgb / max(max(col.r, max(col.g, col.b)), 0.001);
+		float gLuma    = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
+		const float GLOW_LUMA_TARGET = 0.55;
+		const float GLOW_BOOST_MAX   = 5.0;
+		float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
+		// Premultiplied: the per-particle fade in col.a dims the halo, not just its blend weight.
+		// Particles with negative alpha get an all-negative colour, which clamps to nothing.
+		vec4 glowCol = vec4(glowTint * tint * (gI * glowBoost * col.a), gI * col.a);
+		float peak = max(max(glowCol.r, glowCol.g), max(glowCol.b, glowCol.a));
+		if (peak > GLOW_CUTOFF) {
+			float extent = min(1.0 - pow(GLOW_CUTOFF / peak, 1.0 / max(glowFalloff, 0.01)), 1.0);
+			float halfSize = size * glowScale * extent;
+			vec4 clipR = cameraViewProj * vec4(cameraViewInv[0].xyz * halfSize, 0.0);
+			vec4 clipU = cameraViewProj * vec4(cameraViewInv[1].xyz * halfSize, 0.0);
+			if (!outsideView(clipC, clipR, clipU, vec4(0.0))) {
+				emitGlowCorner(glowCol, vec2(-extent, -extent), -clipR - clipU);
+				emitGlowCorner(glowCol, vec2( extent, -extent),  clipR - clipU);
+				emitGlowCorner(glowCol, vec2(-extent,  extent), -clipR + clipU);
+				emitGlowCorner(glowCol, vec2( extent,  extent),  clipR + clipU);
+				EndPrimitive();
+			}
+		}
 	}
 }
 ]]
@@ -555,27 +611,14 @@ local fsSrc = [[
 uniform float cubeShowInside;
 uniform float cubeNoise;
 uniform float cubeNoiseSpeed;
-uniform float cubeNoiseScale;
-uniform float glowIntensity;
 uniform float glowFalloff;
-uniform float coreBoost;
-uniform float hueJitter;
-uniform float glowBreath;
-uniform float glowBreathFreq;
-uniform float glowBreathVar;
-uniform float glowBreathFreqVar;
 uniform float whiteHotspot;
 uniform float whiteHotspotThreshold;
 
-in vec4 g_color;
+flat in vec4 g_color;
 in vec3 g_normal;
 in vec3 g_worldPos;
-in vec3 g_localPos;
-in vec3 g_noiseSeed;
-in vec2 g_glowUV;
-in float g_isGlow;
-in float g_seed;
-in float g_breathScale;
+in vec3 g_noisePos;
 out vec4 fragColor;
 
 float hash13(vec3 p) {
@@ -601,47 +644,11 @@ float valueNoise3(vec3 p) {
 }
 
 void main() {
-	vec3 tint = vec3(1.0);
-	if (hueJitter > 0.0001) {
-		tint = vec3(1.0) + hueJitter * vec3(
-			sin(g_seed),
-			sin(g_seed + 2.094),
-			sin(g_seed + 4.188));
-	}
-
-	if (g_isGlow > 0.5) {
-		float rd = length(g_glowUV);
+	if (g_normal.z > 1.5) {
+		// halo: tint, breath, intensity and fade are already in g_color (see the GS)
+		float rd = length(g_normal.xy);
 		if (rd > 1.0) discard;
-		float tg = 1.0 - rd;
-		float gI = glowIntensity;
-		if (glowBreath > 0.0001) {
-			float hAmp  = fract(sin(g_seed * 91.7253 + 17.31) * 43758.5453);
-			float hFreq = fract(sin(g_seed * 33.1117 + 43.93) * 27183.4500);
-			float ampScale  = max(0.0, 1.0 + glowBreathVar     * (2.0 * hAmp  - 1.0));
-			float freqScale = max(0.0, 1.0 + glowBreathFreqVar * (2.0 * hFreq - 1.0));
-			float ph = (timeInfo.x + timeInfo.w) * glowBreathFreq * freqScale * (6.2831853 / 30.0) + g_seed;
-			// Floor the breath multiplier at 0.35: with glowBreath=4 the raw
-			// 1+breath*sin(ph) swings to -3, meaning the halo VANISHES for big
-			// portions of each cycle. For small bursts (few particles) all the
-			// per-particle phases can happen to land in the negative band at
-			// spawn, producing a burst that "lights up late" once phases
-			// drift positive. Large bursts average out and didn't show it.
-			// g_breathScale ramps the breath amplitude from 1.0 to 0.0 across
-			// the second half of the particle's lifetime so lingering particles
-			// settle into a steady halo instead of pulsing all the way to death.
-			gI *= max(1.0 + glowBreath * g_breathScale * ampScale * sin(ph), 0.35);
-		}
-		float glow = pow(clamp(tg, 0.0, 1.0), max(glowFalloff, 0.01)) * gI;
-		vec3  glowTint = g_color.rgb / max(max(g_color.r, max(g_color.g, g_color.b)), 0.001);
-		float gLuma    = dot(glowTint, vec3(0.2126, 0.7152, 0.0722));
-		const float GLOW_LUMA_TARGET = 0.55;
-		const float GLOW_BOOST_MAX   = 5.0;
-		float glowBoost = min(GLOW_LUMA_TARGET / max(gLuma, 0.001), GLOW_BOOST_MAX);
-		// Premultiplied output: rgb scaled by alpha so the per-particle fade
-		// (already baked into g_color.a) actually dims the halo instead of
-		// just lowering destination weight under ONE/1-SRC_ALPHA blend.
-		float glowA = g_color.a * glow;
-		fragColor = vec4(glowTint * tint * (glow * glowBoost) * g_color.a, glowA);
+		fragColor = g_color * pow(1.0 - rd, max(glowFalloff, 0.01));
 		return;
 	}
 
@@ -669,14 +676,14 @@ void main() {
 	float noiseVal = 0.5;
 	if (cubeNoise > 0.001 || whiteHotspot > 0.001) {
 		float tt = (timeInfo.x + timeInfo.w) * cubeNoiseSpeed * (1.0 / 30.0);
-		vec3 samp = g_localPos * cubeNoiseScale + g_noiseSeed + vec3(tt, tt * 0.7, tt * 1.3);
-		noiseVal = valueNoise3(samp);
+		noiseVal = valueNoise3(g_noisePos + vec3(tt, tt * 0.7, tt * 1.3));
 		if (cubeNoise > 0.001) {
 			shade *= 1.0 + cubeNoise * (noiseVal * 2.0 - 1.0);
 		}
 	}
 
-	vec3 baseRgb = g_color.rgb * tint * shade * coreBoost;
+	// g_color.rgb already carries the hue tint and coreBoost
+	vec3 baseRgb = g_color.rgb * shade;
 
 	if (whiteHotspot > 0.0001) {
 		float hotspot = smoothstep(whiteHotspotThreshold, 1.0, noiseVal) * whiteHotspot;
@@ -798,30 +805,28 @@ local function initGL4()
 		return false
 	end
 
-	if useGeometryShader then
-		local quadVBO, numVertices = InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "eepQuadVBO")
-		-- Shape GS only needs ONE triangle per instance; use a 3-index VBO so the
-		-- GS doesn't get invoked twice per particle.
-		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-		indexVBO:Define(3)
-		indexVBO:Upload({ 0, 1, 2 })
+	local layout = {
+		{ id = 1, name = "spawnPosAndSize", size = 4 },
+		{ id = 2, name = "velAndSpawnFrame", size = 4 },
+		{ id = 3, name = "instColor", size = 4 },
+		{ id = 4, name = "rotData", size = 4 },
+	}
+	particleVBO = InstanceVBOTable.makeInstanceVBOTable(
+		layout,
+		MAX_PARTICLES_VBO,
+		useGeometryShader and "eepParticleVBO" or "eepParticleVBO_NoGS"
+	)
+	if not particleVBO then
+		goodbye("Failed to create instance VBO")
+		return false
+	end
+	for i = 1, MAX_PARTICLES_VBO do
+		slotDeath[i] = 0
+	end
 
-		local layout = {
-			{ id = 1, name = "spawnPosAndSize", size = 4 },
-			{ id = 2, name = "velAndSpawnFrame", size = 4 },
-			{ id = 3, name = "instColor", size = 4 },
-			{ id = 4, name = "rotData", size = 4 },
-		}
-		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO")
-		if not particleVBO then
-			goodbye("Failed to create instance VBO")
-			return false
-		end
-		particleVBO.numVertices = numVertices
-		particleVBO.vertexVBO = quadVBO
-		particleVBO.indexVBO = indexVBO
-		particleVBO.VAO = particleVBO:makeVAOandAttach(quadVBO, particleVBO.instanceVBO, indexVBO)
-		particleVBO.primitiveType = GL.TRIANGLES
+	if useGeometryShader then
+		-- The particle VBO is the vertex buffer: one point per particle, which the GS expands.
+		particleVBO.VAO = particleVBO:makeVAOandAttach(nil, particleVBO.instanceVBO)
 	else
 		-- No-GS fallback: build a template indexed mesh with one vertex per
 		-- geometry-shader emitted vertex.  Default cube: 6 quads * 4 verts = 24 verts.
@@ -841,9 +846,9 @@ local function initGL4()
 		end
 		templateVBO:Upload(vertexData)
 
-		-- Build indices matching the order the no-GS VS emits the template:
-		-- cube quads are split into two triangles (0,1,2 and 0,2,3);
-		-- octahedron triangles are a single tri (0,1,2); glow quad likewise.
+		-- Build indices matching the order the no-GS VS emits the template: cube faces
+		-- and the glow quad are 4-vertex strips like the GS emits (triangles 0,1,2 and
+		-- 2,1,3); octahedron triangles are a single tri (0,1,2).
 		local indexData = {}
 		if isOcta then
 			for shapeTri = 0, NUM_SHAPE_VERTS / 3 - 1 do
@@ -858,8 +863,8 @@ local function initGL4()
 				indexData[#indexData + 1] = base + 0
 				indexData[#indexData + 1] = base + 1
 				indexData[#indexData + 1] = base + 2
-				indexData[#indexData + 1] = base + 0
 				indexData[#indexData + 1] = base + 2
+				indexData[#indexData + 1] = base + 1
 				indexData[#indexData + 1] = base + 3
 			end
 		end
@@ -867,25 +872,13 @@ local function initGL4()
 		indexData[#indexData + 1] = glowBase + 0
 		indexData[#indexData + 1] = glowBase + 1
 		indexData[#indexData + 1] = glowBase + 2
-		indexData[#indexData + 1] = glowBase + 0
 		indexData[#indexData + 1] = glowBase + 2
+		indexData[#indexData + 1] = glowBase + 1
 		indexData[#indexData + 1] = glowBase + 3
 
 		local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
 		indexVBO:Define(#indexData)
 		indexVBO:Upload(indexData)
-
-		local layout = {
-			{ id = 1, name = "spawnPosAndSize", size = 4 },
-			{ id = 2, name = "velAndSpawnFrame", size = 4 },
-			{ id = 3, name = "instColor", size = 4 },
-			{ id = 4, name = "rotData", size = 4 },
-		}
-		particleVBO = InstanceVBOTable.makeInstanceVBOTable(layout, MAX_PARTICLES_VBO, "eepParticleVBO_NoGS")
-		if not particleVBO then
-			goodbye("Failed to create instance VBO")
-			return false
-		end
 
 		local realVAO = particleVBO:makeVAOandAttach(templateVBO, particleVBO.instanceVBO, indexVBO)
 		if not realVAO then
@@ -897,26 +890,7 @@ local function initGL4()
 		-- the VAO is alive (same GC fix as DrawPrimitiveAtUnit, commit 2b51f6e863).
 		particleVBO.nogsTemplateVBO = templateVBO
 		particleVBO.nogsIndexVBO = indexVBO
-
-		local indexCount = #indexData
-		particleVBO.VAO = {
-			realVAO = realVAO,
-			indexCount = indexCount,
-			DrawArrays = function(self, _primitiveType, instanceCount)
-				if instanceCount and instanceCount > 0 then
-					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
-				end
-			end,
-			DrawElements = function(self, _primitiveType, _numVertices, _startIndex, instanceCount, _drawIndex)
-				if instanceCount and instanceCount > 0 then
-					self.realVAO:DrawElements(GL.TRIANGLES, self.indexCount, 0, instanceCount)
-				end
-			end,
-			Delete = function(self)
-				self.realVAO:Delete()
-			end,
-		}
-		particleVBO.primitiveType = GL.TRIANGLES
+		nogsIndexCount = #indexData
 	end
 	return true
 end
@@ -1084,6 +1058,11 @@ local function paramOr(ov, key)
 	return CONFIG[key]
 end
 
+-- Uploads mirror slots [first, last] (0-based) to the particle VBO.
+local function uploadRun(vbo, first, last)
+	vbo.instanceVBO:Upload(vbo.instanceData, nil, first, first * 16 + 1, last * 16 + 16)
+end
+
 local function processBurst(px, py, pz, teamID, meta, frame)
 	local count = meta.count
 	local jitterRadius = meta.jitterRadius
@@ -1121,8 +1100,7 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 	if not _pVBO then
 		return
 	end
-	local _liveCount = liveCount
-	local budget = MAX_PARTICLES_VBO - _liveCount
+	local budget = MAX_PARTICLES_VBO - liveCount
 	if budget <= 0 then
 		return
 	end
@@ -1133,11 +1111,14 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 	-- Hoist frequently-mutated upvalues into locals so the tight per-particle
 	-- loop avoids repeated upvalue indirection (each upvalue access requires an
 	-- extra pointer dereference vs a plain local stack slot).
-	local _nextID = nextID
-	local _dirtyMin = dirtyMin
-	local _dirtyMax = dirtyMax
-	local _scratch = instanceScratch
-	local _buckets = deathBuckets
+	local data = _pVBO.instanceData
+	local death = slotDeath
+	local tally = deathTally
+	local cap = MAX_PARTICLES_VBO
+	local head = ringHead
+	local low, high = drawLow, drawHigh
+	local rs, re = runStart, runEnd
+	local spawned = 0
 
 	-- Pre-compute per-burst invariants so they aren't recomputed each iteration.
 	local speedRange = maxS - minS
@@ -1149,6 +1130,22 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 	local hasAlphaVar = ALPHA_VAR > 0
 
 	for _ = 1, count do
+		-- Next slot whose particle is dead; the budget above leaves one within a lap.
+		local skipped = 0
+		while death[head + 1] > frame do
+			skipped = skipped + 1
+			if skipped > cap then
+				break
+			end
+			head = head + 1
+			if head == cap then
+				head = 0
+			end
+		end
+		if skipped > cap then
+			break
+		end
+
 		-- Rejection-sampled offset inside unit sphere; Y compressed by jyFrac.
 		local jx, jy, jz
 		repeat
@@ -1179,7 +1176,8 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		local vx, vy, vz = dx * speed, cosT * speed, dz * speed
 
 		local sizeMult = szMin + szRange * mathRandom()
-		local lifetime = lifeMin + mathFloor(lifeRange * mathRandom() + 0.5)
+		-- whole frames, so the death tally below is always reached
+		local lifetime = mathFloor(lifeMin + lifeRange * mathRandom() + 0.5)
 
 		-- Fade window scales linearly with the particle's own lifetime so
 		-- short-lived particles don't get a disproportionately long tail.
@@ -1190,63 +1188,59 @@ local function processBurst(px, py, pz, teamID, meta, frame)
 		-- configured `alpha`; ALPHA_VAR is a fractional swing (2.5 -> ±250%).
 		local pa = hasAlphaVar and (alpha * (1.0 + ALPHA_VAR * (mathRandom() * 2 - 1))) or alpha
 
-		-- Inlined spawnParticle: pack size+fade, randomise rotation, push VBO slot.
-		local death = frame + lifetime
-		local packed = mathFloor(sizeMult * 256 + 0.5) + (fadeFrames or 0) * 1024
+		-- Inlined spawnParticle: pack size+fade, randomise rotation, write the VBO slot.
+		local deathFrame = frame + lifetime
+		local packed = mathFloor(sizeMult * 256 + 0.5) + fadeFrames * 1024
 		local rotVal = ROT_VAL_BASE + ROT_VAL_RANGE * (mathRandom() * 2 - 1)
 		local rotVel = ROT_VEL_BASE + ROT_VEL_RANGE * (mathRandom() * 2 - 1)
 		local rotAcc = ROT_ACC_BASE + ROT_ACC_RANGE * (mathRandom() * 2 - 1)
 
-		local id = _nextID
-		_nextID = _nextID + 1
+		local o = head * 16
+		data[o + 1] = sx
+		data[o + 2] = sy
+		data[o + 3] = sz
+		data[o + 4] = packed
+		data[o + 5] = vx
+		data[o + 6] = vy
+		data[o + 7] = vz
+		data[o + 8] = frame
+		data[o + 9] = r
+		data[o + 10] = g
+		data[o + 11] = b
+		data[o + 12] = pa
+		data[o + 13] = rotVal
+		data[o + 14] = rotVel
+		data[o + 15] = rotAcc
+		data[o + 16] = deathFrame
+		death[head + 1] = deathFrame
+		tally[deathFrame] = (tally[deathFrame] or 0) + 1
+		spawned = spawned + 1
 
-		_scratch[1] = sx
-		_scratch[2] = sy
-		_scratch[3] = sz
-		_scratch[4] = packed
-		_scratch[5] = vx
-		_scratch[6] = vy
-		_scratch[7] = vz
-		_scratch[8] = frame
-		_scratch[9] = r
-		_scratch[10] = g
-		_scratch[11] = b
-		_scratch[12] = pa
-		_scratch[13] = rotVal
-		_scratch[14] = rotVel
-		_scratch[15] = rotAcc
-		_scratch[16] = death
-
-		-- noUpload=true: we batch the GPU upload at end of GameFrame.
-		-- pushElementInstance returns the instanceID (not the slot index!), so we
-		-- read the actual 1-based slot from usedElements right after the push.
-		-- Pop-swaps in earlier frames mean instanceID != slot index for any burst
-		-- after the first, and uploadElementRange wants 0-based slot offsets, so
-		-- we must convert via (usedElements - 1) here.
-		local ok = pushElementInstance(_pVBO, _scratch, id, false, true, nil)
-		if ok then
-			local bucket = _buckets[death]
-			if bucket then
-				bucket[#bucket + 1] = id
-			else
-				_buckets[death] = { id }
-			end
-			_liveCount = _liveCount + 1
-			local slot = _pVBO.usedElements - 1
-			if slot < _dirtyMin then
-				_dirtyMin = slot
-			end
-			if slot > _dirtyMax then
-				_dirtyMax = slot
-			end
+		if head < low then
+			low = head
+		end
+		if head >= high then
+			high = head + 1
+		end
+		if rs < 0 then
+			rs, re = head, head
+		elseif head > re and head - re <= UPLOAD_GAP then
+			re = head
+		else
+			uploadRun(_pVBO, rs, re)
+			rs, re = head, head
+		end
+		head = head + 1
+		if head == cap then
+			head = 0
 		end
 	end
 
 	-- Write back the upvalues that changed inside the loop.
-	liveCount = _liveCount
-	nextID = _nextID
-	dirtyMin = _dirtyMin
-	dirtyMax = _dirtyMax
+	liveCount = liveCount + spawned
+	ringHead = head
+	drawLow, drawHigh = low, high
+	runStart, runEnd = rs, re
 
 	if CONFIG.debug then
 		spEcho(
@@ -1267,26 +1261,29 @@ end
 -- Per-frame cull
 --------------------------------------------------------------------------------
 
+-- Dead particles keep their slots (the vertex shader already hides them), so expiry only
+-- moves the live count and the draw window.
 local function cullDead(frame)
-	local bucket = deathBuckets[frame]
-	if not bucket then
+	local dying = deathTally[frame]
+	if not dying then
 		return
 	end
-	local nb = #bucket
-	local _pVBO = particleVBO
-	if not _pVBO then
-		liveCount = liveCount - nb
-		deathBuckets[frame] = nil
+	deathTally[frame] = nil
+	liveCount = liveCount - dying
+	if liveCount <= 0 then
+		liveCount = 0
+		ringHead, drawLow, drawHigh = 0, MAX_PARTICLES_VBO, 0
 		return
 	end
-	-- popElementInstance swaps the tail in. Each swap touches the destination
-	-- slot; rely on its internal per-element upload so cull doesn't need batching.
-	local pop = popElementInstance
-	for i = 1, nb do
-		pop(_pVBO, bucket[i], false)
+	local death = slotDeath
+	local low, high = drawLow, drawHigh
+	while low < high and death[low + 1] <= frame do
+		low = low + 1
 	end
-	liveCount = liveCount - nb
-	deathBuckets[frame] = nil
+	while high > low and death[high] <= frame do
+		high = high - 1
+	end
+	drawLow, drawHigh = low, high
 end
 
 --------------------------------------------------------------------------------
@@ -1328,16 +1325,15 @@ function gadget:UnitFinished(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, _attackerDefID, _attackerTeam, weaponDefID)
+	-- Only finished qualifying units are tracked, so every other death ends here.
+	if not finishedUnits[unitID] then
+		return
+	end
+	finishedUnits[unitID] = nil
 	if nanoParticleMode == 0 then
 		return
 	end
 	if Spring.GetUnitRulesParam(unitID, "remove_decorations") == 1 then
-		return
-	end
-	-- Skip units that were still under construction when they died.
-	local wasFinished = finishedUnits[unitID]
-	finishedUnits[unitID] = nil
-	if not wasFinished then
 		return
 	end
 	if weaponDefID == reclaimedWeaponDefID then
@@ -1386,6 +1382,8 @@ function gadget:GameFrame(n)
 		teamColorCache = {}
 	end
 
+	cullDead(n)
+
 	-- Engine-spray mode: GL4 nano particles are off, so skip our burst too.
 	if nanoParticleMode == 0 then
 		return
@@ -1408,21 +1406,20 @@ function gadget:GameFrame(n)
 		burstHead, burstTail = 1, 0
 	end
 
-	cullDead(n)
-
-	-- Flush spawn uploads in one range.
-	if particleVBO and dirtyMax >= dirtyMin then
-		uploadElementRange(particleVBO, dirtyMin, dirtyMax)
-		dirtyMin, dirtyMax = mathHuge, -1
+	-- Flush the spawns' last upload run.
+	local vbo = particleVBO
+	if runStart >= 0 and vbo then
+		uploadRun(vbo, runStart, runEnd)
+		runStart = -1
 	end
 end
 
 function gadget:DrawWorld()
-	if nanoParticleMode == 0 then
+	if nanoParticleMode == 0 or drawHigh <= drawLow then
 		return
 	end
-	local _pVBO = particleVBO
-	if not _pVBO or _pVBO.usedElements == 0 then
+	local vao = particleVBO and particleVBO.VAO
+	if not vao then
 		return
 	end
 
@@ -1441,7 +1438,11 @@ function gadget:DrawWorld()
 	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
 
 	particleShader:Activate()
-	_pVBO:Draw()
+	if useGeometryShader then
+		vao:DrawArrays(GL_POINTS, drawHigh - drawLow, drawLow)
+	else
+		vao:DrawElements(GL_TRIANGLES, nogsIndexCount, 0, drawHigh - drawLow, 0, drawLow)
+	end
 	particleShader:Deactivate()
 
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)

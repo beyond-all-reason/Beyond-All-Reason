@@ -16,78 +16,87 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- Only apply these when resource multipliers are active, to save performance
-local energyMultActive = false
-if Spring.GetModOptions().multiplier_energyproduction * Spring.GetModOptions().multiplier_resourceincome ~= 1 then
-	energyMultActive = true
-end
-
-local windDefs = {}
-local unitEnergyMultiplier = {}
-for udid, ud in pairs(UnitDefs) do
-	if ud.windGenerator > 0 then
-		if energyMultActive then
-			windDefs[udid] = true
-		end
-		if ud.customParams.energymultiplier then
-			unitEnergyMultiplier[udid] = tonumber(ud.customParams.energymultiplier)
-			windDefs[udid] = true
-		end
+-- Energy paid per wind strength on top of the engine's own; AddUnitResource ignores negative amounts
+local windBonus = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	local multiplier = unitDef.windGenerator > 0 and tonumber(unitDef.customParams.energymultiplier)
+	if multiplier and multiplier > 1 then
+		windBonus[unitDefID] = multiplier - 1
 	end
 end
 
-local windmills = {}
+if not next(windBonus) then
+	return false
+end
 
-local GetCOBScriptID = Spring.GetCOBScriptID
 local AddUnitResource = Spring.AddUnitResource
 local GetUnitIsStunned = Spring.GetUnitIsStunned
---local CallCOBScript = Spring.CallCOBScript
---local GetHeadingFromVector = Spring.GetHeadingFromVector
+local GetWind = Spring.GetWind
 
-function gadget:GameFrame(n)
-	if (n + 15) % 30 < 0.1 then
-		local _, _, _, strength, x, _, z = Spring.GetWind()
-		for unitID, scriptIDs in pairs(windmills) do
-			if not GetUnitIsStunned(unitID) then
-				AddUnitResource(unitID, "e", strength * (scriptIDs.mult - 1))
-			end
-			--CallCOBScript(unitID, scriptIDs.speed, 0, strength * scriptIDs.mult * COBSCALE * 0.010)
-			--CallCOBScript(unitID, scriptIDs.dir,   0, GetHeadingFromVector(-x, -z))
-		end
+-- Each windmill is paid once per second, on the frame picked by its unitID
+local PAY_INTERVAL = Game.gameSpeed
+local windmills = {} -- [frame % PAY_INTERVAL][unitID] = bonus
+for phase = 0, PAY_INTERVAL - 1 do
+	windmills[phase] = {}
+end
+local windmillCount = 0
+
+local function addWindmill(unitID, unitDefID)
+	local bucket = windmills[unitID % PAY_INTERVAL]
+	if bucket[unitID] then
+		return
+	end
+	bucket[unitID] = windBonus[unitDefID]
+	windmillCount = windmillCount + 1
+	if windmillCount == 1 then
+		gadgetHandler:UpdateCallIn("GameFrame")
 	end
 end
 
-local function SetupUnit(unitID, unitDefID)
-	windmills[unitID] = {
-		speed = GetCOBScriptID(unitID, "LuaSetSpeed"),
-		dir = GetCOBScriptID(unitID, "LuaSetDirection"),
-		mult = unitEnergyMultiplier[unitDefID] or 1,
-	}
+local function removeWindmill(unitID)
+	local bucket = windmills[unitID % PAY_INTERVAL]
+	if not bucket[unitID] then
+		return
+	end
+	bucket[unitID] = nil
+	windmillCount = windmillCount - 1
+	if windmillCount == 0 then
+		gadgetHandler:RemoveCallIn("GameFrame")
+	end
+end
+
+function gadget:GameFrame(n)
+	local bucket = windmills[n % PAY_INTERVAL]
+	if next(bucket) then
+		local _, _, _, strength = GetWind()
+		for unitID, bonus in pairs(bucket) do
+			if not GetUnitIsStunned(unitID) then
+				AddUnitResource(unitID, "e", strength * bonus)
+			end
+		end
+	end
 end
 
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		if windDefs[unitDefID] then
-			SetupUnit(unitID, unitDefID)
+		if windBonus[unitDefID] then
+			addWindmill(unitID, unitDefID)
 		end
 	end
-end
-
-function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-	if windDefs[unitDefID] then
-		SetupUnit(unitID, unitDefID)
+	if windmillCount == 0 then
+		gadgetHandler:RemoveCallIn("GameFrame")
 	end
 end
 
-function gadget:UnitTaken(unitID, unitDefID, unitTeam)
-	if windDefs[unitDefID] then
-		SetupUnit(unitID, unitDefID)
+function gadget:UnitFinished(unitID, unitDefID)
+	if windBonus[unitDefID] then
+		addWindmill(unitID, unitDefID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
-	if windDefs[unitDefID] then
-		windmills[unitID] = nil
+function gadget:UnitDestroyed(unitID, unitDefID)
+	if windBonus[unitDefID] then
+		removeWindmill(unitID)
 	end
 end
