@@ -770,12 +770,14 @@ UnitSpeed(){
 	// order the command AI stops as soon as that weapon reports "in range", the sea laser then never
 	// aims and the land laser never gets the missing distance. Take the sea laser's range away on
 	// land so only weapons that can actually fire decide where the commander stops.
+	// Restore it only once the head is 5 elmo under water: the walk animation bobs the head, and if
+	// it surfaced again after the commander stopped to fire, nothing would make it walk on.
 	if (get PIECE_Y(head) > 0) {
 		if (seaLaserDisabled != 1) {
 			get WEAPON_RANGE(-2, 0);
 			seaLaserDisabled = 1;
 		}
-	} else {
+	} else if (get PIECE_Y(head) < -327680) { // -5 elmo
 		if (seaLaserDisabled != 0) {
 			get WEAPON_RANGE(-2, seaLaserRange);
 			seaLaserDisabled = 0;
