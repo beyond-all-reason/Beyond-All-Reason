@@ -49,7 +49,6 @@ local FEATURE = "feature"
 local UNIT = "unit"
 
 local commandLimit = 2000
-local riversSelectionLimit = 80 -- use rivers slightly above its usefulness to be more consistent
 
 local SplitTargets = require("modules/split_targets")
 local splitRoundRobin = SplitTargets.RoundRobin
@@ -337,7 +336,7 @@ local function splitOrders(cmdId, selectedUnits, filteredTargets, options, split
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
-	local split = splitStrategy or (selectedUnitsLen <= riversSelectionLimit and splitRivers) or splitRoundRobin
+	local split = splitStrategy or splitRivers
 	local unitTargetsMap = split(selectedUnits, filteredTargets)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
 		local selectedUnitTable = { selectedUnitId }

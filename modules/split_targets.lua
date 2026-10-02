@@ -9,7 +9,11 @@ local table_new = table.new
 local table_sort = table.sort
 local math_ceil = math.ceil
 local math_floor = math.floor
+local math_max = math.max
+local math_min = math.min
 local math_sqrt = math.sqrt
+local math_atan2 = math.atan2
+local math_pi = math.pi
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetFeaturePosition = Spring.GetFeaturePosition
@@ -58,11 +62,124 @@ local function getFromProjection(objects, count, getPosition, originX, originZ, 
 	return index, value, depthSq / count
 end
 
+---@return integer[] index
+---@return number[] value bearing(s) around the origin, measured from `startAngle`
+---@return number radius average distance from the origin
+local function getFromBearing(objects, count, getPosition, originX, originZ, startAngle)
+	local index, value = table_new(count, 0), table_new(count, 0)
+	local radius = 0.0
+	for i = 1, count do
+		local x, _, z = getPosition(objects[i])
+		local rx, rz = x - originX, z - originZ
+		index[i] = i
+		value[i] = (math_atan2(rz, rx) - startAngle) % (2 * math_pi)
+		radius = radius + math_sqrt(rx * rx + rz * rz)
+	end
+	return index, value, radius / count
+end
+
+---Pie slices start after the widest empty arc so no slices wrap back around behind the units.
+local function getStartAngle(targets, count, originX, originZ)
+	local angles = table_new(count, 0)
+	for i = 1, count do
+		local x, _, z = objectPosition(targets[i])
+		angles[i] = math_atan2(z - originZ, x - originX)
+	end
+	table_sort(angles)
+	local startAngle, widestGap = angles[1], angles[1] + 2 * math_pi - angles[count]
+	for i = 2, count do
+		local gap = angles[i] - angles[i - 1]
+		if gap > widestGap then
+			startAngle, widestGap = angles[i], gap
+		end
+	end
+	return startAngle
+end
+
 local function sortIndexByValue(index, value)
 	table_sort(index, function(a, b)
 		return value[a] < value[b]
 	end)
 	return index
+end
+
+local function getValueSpan(value, count)
+	local low, high = value[1], value[1]
+	for i = 2, count do
+		low, high = math_min(low, value[i]), math_max(high, value[i])
+	end
+	return high - low
+end
+
+---Units that share a lane form a "squad" and attack the lane's targets together.
+local function getLaneCount(countUnits, countTargets, span, maxOrders, laneWidth)
+	local lanes = math_min(countUnits, countTargets)
+	if maxOrders or laneWidth then
+		local lanesForBudget = maxOrders and math_ceil(countUnits * countTargets / maxOrders) or 1
+		local lanesForWidth = laneWidth and math_ceil(span / laneWidth) or 1
+		lanes = math_max(1, math_min(lanes, math_max(lanesForBudget, lanesForWidth)))
+	end
+	return lanes
+end
+
+local function assignLanes(units, unitIndex, targets, targetIndex, lanes)
+	local countUnits, countTargets = #units, #targets
+	local laneUnits, laneTargets = table_new(lanes, 0), table_new(lanes, 0)
+	for lane = 1, lanes do
+		laneUnits[lane], laneTargets[lane] = {}, {}
+	end
+	for i = 1, countUnits do
+		local squad = laneUnits[math_ceil(i * lanes / countUnits)]
+		squad[#squad + 1] = units[unitIndex[i]]
+	end
+	local finish = 0
+	for lane = 1, lanes do
+		local band = laneTargets[lane]
+		local start = finish + 1
+		finish = math_floor(lane * countTargets / lanes)
+		for j = start, finish do
+			band[j - start + 1] = targets[targetIndex[j]]
+		end
+	end
+
+	if lanes > 1 then
+		for lane = 1, lanes do
+			local squad, band = laneUnits[lane], laneTargets[lane]
+			if #squad == 1 then
+				for j = 1, #band do
+					if band[j] == squad[1] then
+						local neighbor = laneTargets[lane < lanes and lane + 1 or lane - 1]
+						band[j], neighbor[1] = neighbor[1], band[j]
+						break
+					end
+				end
+			end
+		end
+	end
+
+	local result = table_new(0, countUnits)
+	for lane = 1, lanes do
+		local squad = laneUnits[lane]
+		for s = 1, #squad do
+			local unitID = squad[s]
+			local list, band = {}, laneTargets[lane]
+			for j = 1, #band do
+				if band[j] ~= unitID then
+					list[#list + 1] = band[j]
+				end
+			end
+			if not list[1] and lanes > 1 then
+				band = laneTargets[lane < lanes and lane + 1 or lane - 1]
+				for j = 1, #band do
+					if band[j] ~= unitID then
+						list[#list + 1] = band[j]
+					end
+				end
+			end
+			result[unitID] = list
+		end
+	end
+	return result
 end
 
 ---The lists are disjoint, so swapping the first target between neighbors cannot cause self-targeting.
@@ -132,14 +249,16 @@ local function splitRoundRobin(units, targets)
 	return result
 end
 
----Groups targets into "rivers" that run from the unit-group to target-group center.
----Nearby units take neighboring lanes so travel distances are short (without pathing checks).
----Resorts to the round-robin split when the groups do not have clear separation. -- Can improve
+---Groups targets into "lanes" or "slices" from the unit-group center and outward.
+---Units take neighboring paths so travel distances are short (without pathing checks).
+---When the groups mostly overlap, the lanes become slices around the unit-group center.
 ---@param units UnitID[]
 ---@param targets ObjectID[] Unit IDs, feature IDs, or both; features carry the Game.maxUnits offset when the engine expects it.
 ---@param unitPosition? fun(unitID: UnitID): number, number, number # Where each unit starts from; queued orders use the last order position
+---@param maxOrders? integer Squads share their lane's targets so that units x targets per lane totals about this many.
+---@param laneWidth? number Squads are formed so no lane is much wider than this, in elmos or arc length.
 ---@return table<UnitID, ObjectID[]?> unitTargets
-local function splitRivers(units, targets, unitPosition)
+local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
 	local countUnits = #units
 	local countTargets = #targets
 	if countUnits == 0 or countTargets == 0 then
@@ -153,58 +272,33 @@ local function splitRivers(units, targets, unitPosition)
 	local targetsX, targetsZ = getObjectCentroid(targets, objectPosition)
 	local dx, dz = targetsX - unitsX, targetsZ - unitsZ
 	local length = math_sqrt(dx * dx + dz * dz)
-	if length < minimumRiverLength then
-		return splitRoundRobin(units, targets)
+
+	if length >= minimumRiverLength then
+		-- Lanes run along an axis from the unit-group center to the target-group center.
+		local axisX, axisZ = -dz / length, dx / length
+		local targetIndex, targetValue, targetDepthSq =
+			getFromProjection(targets, countTargets, objectPosition, unitsX, unitsZ, axisX, axisZ)
+		-- Slice instead when the unit-group starts inside the target-group.
+		if 2 * length * length >= targetDepthSq then
+			local unitIndex, unitValue =
+				getFromProjection(units, countUnits, unitPosition, unitsX, unitsZ, axisX, axisZ)
+			local lanes =
+				getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets), maxOrders, laneWidth)
+			sortIndexByValue(unitIndex, unitValue)
+			sortIndexByValue(targetIndex, targetValue)
+			return assignLanes(units, unitIndex, targets, targetIndex, lanes)
+		end
 	end
 
-	-- Lanes run along an axis from the unit-group center to the target-group center.
-	local axisX, axisZ = -dz / length, dx / length
-	local targetIndex, targetValue, targetDepthSq =
-		getFromProjection(targets, countTargets, objectPosition, unitsX, unitsZ, axisX, axisZ)
-	-- Abort when the unit-group starts inside the target-group.
-	if 2 * length * length < targetDepthSq then
-		return splitRoundRobin(units, targets)
-	end
-
-	local unitIndex, unitValue = getFromProjection(units, countUnits, unitPosition, unitsX, unitsZ, axisX, axisZ)
+	local startAngle = getStartAngle(targets, countTargets, unitsX, unitsZ)
+	local targetIndex, targetValue, radius =
+		getFromBearing(targets, countTargets, objectPosition, unitsX, unitsZ, startAngle)
+	local unitIndex, unitValue = getFromBearing(units, countUnits, unitPosition, unitsX, unitsZ, startAngle)
+	local lanes =
+		getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets) * radius, maxOrders, laneWidth)
 	sortIndexByValue(unitIndex, unitValue)
 	sortIndexByValue(targetIndex, targetValue)
-
-	local orderedUnits = table_new(countUnits, 0)
-	for i = 1, countUnits do
-		orderedUnits[i] = units[unitIndex[i]]
-	end
-
-	local result = table_new(0, countUnits)
-
-	if countTargets < countUnits then
-		for i = 1, countUnits do
-			local unitID = orderedUnits[i]
-			local lane = math_ceil(i * countTargets / countUnits)
-			local targetID = targets[targetIndex[lane]]
-			if targetID == unitID then
-				-- The neighboring lane is the nearest substitute (when there is one).
-				lane = lane < countTargets and lane + 1 or lane - 1
-				targetID = targets[targetIndex[lane]]
-			end
-			result[unitID] = { targetID }
-		end
-		return result
-	end
-
-	local finish = 0
-	for i = 1, countUnits do
-		local start = finish + 1
-		finish = math_floor(i * countTargets / countUnits)
-		local list = table_new(finish - start + 1, 0)
-		for j = start, finish do
-			list[j - start + 1] = targets[targetIndex[j]]
-		end
-		result[orderedUnits[i]] = list
-	end
-
-	repairSelfTargets(orderedUnits, result)
-	return result
+	return assignLanes(units, unitIndex, targets, targetIndex, lanes)
 end
 
 return {
