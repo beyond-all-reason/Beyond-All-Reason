@@ -164,7 +164,6 @@ return {
 				weaponvelocity = 800,
 				customparams = {
 					launchrail_length = 24,
-					launchrail_pieces = "rocketflare1 rocketflare2",
 					overrange_distance = 920,
 					projectile_destruction_method = "descend",
 				},

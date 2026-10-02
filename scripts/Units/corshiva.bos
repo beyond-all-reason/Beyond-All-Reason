@@ -623,6 +623,8 @@ FireWeapon2()
 	sleep 150;
 	turn rhatch to z-axis <-115> speed <15>;
 	turn lhatch to z-axis <115> speed <15>;
+	// the engine re-queries the muzzle piece while the rocket still rides the launch rail
+	sleep 850;
 	rocketswitch = !rocketswitch;
 }
 
