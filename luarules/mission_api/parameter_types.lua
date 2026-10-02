@@ -31,6 +31,8 @@ local types = {
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	Difficulty = "Difficulty",
+	UnitAttribute = "UnitAttribute",
+	WeaponAttribute = "WeaponAttribute",
 
 	-- Number Validators:
 	Number = "Number",
@@ -40,6 +42,7 @@ local types = {
 	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
 	MessageType = "MessageType",
+	AttributeMultiplier = "AttributeMultiplier",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",
@@ -49,6 +52,10 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
+	UnitWeapon = "UnitWeapon",
+
+	-- Number-or-String-or-Boolean Validators:
+	AttributeValue = "AttributeValue",
 
 }
 
@@ -80,6 +87,11 @@ local enums = {
 		Objective = 3,
 		Notification = 4,
 		Dialogue = 5,
+	},
+
+	[types.UnitWeapon] = {
+		explode = true,
+		selfDestruct = true,
 	},
 }
 

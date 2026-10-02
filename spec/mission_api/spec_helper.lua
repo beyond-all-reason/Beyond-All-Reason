@@ -63,6 +63,20 @@ _G.Spring.GetTeamAllyTeamID = _G.Spring.GetTeamAllyTeamID or function(teamID)
 	return teamID
 end
 
+local function ignoreWrite() end
+_G.GG.UnitAttributes = {
+	SetUnitDefAttribute = ignoreWrite,
+	SetUnitAttribute = ignoreWrite,
+	SetUnitDefModifier = ignoreWrite,
+	SetUnitModifier = ignoreWrite,
+	SetUnitDefWeaponAttribute = ignoreWrite,
+	SetUnitWeaponAttribute = ignoreWrite,
+	SetUnitDefWeaponModifier = ignoreWrite,
+	SetUnitWeaponModifier = ignoreWrite,
+	WEAPON_DEATH = -1,
+	WEAPON_SELFD = -2,
+}
+
 -- Build the modules and shims and shams for the Mission API. These have a specific load order.
 local function registerMissionApiModules()
 	_G.GG["MissionAPI"] = _G.GG["MissionAPI"] or {}
