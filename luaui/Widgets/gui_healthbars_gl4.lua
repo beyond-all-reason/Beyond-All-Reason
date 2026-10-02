@@ -1320,19 +1320,15 @@ function widget:GameFrame(n)
 
 	-- check stockpile progress
 	if (n % 5) == 2 then
-		for unitID, stockpilebuild in pairs(unitStockPileWatch) do
-			local numStockpiled, numStockpileQued, stockpileBuild = Spring.GetUnitStockpile(unitID)
-			if stockpileBuild and stockpileBuild ~= stockpilebuild then
-				-- we somehow need to forward 3 vars, all 3 of the above. packed into a float, this is nasty
-				--spEcho("Stockpiling", numStockpiled, numStockpileQued, stockpileBuild)
-				if numStockpiled == nil then
-					BAR.Debug.TraceFullEcho(nil, nil, nil, "nostockpile", unitID, spGetUnitPosition(unitID))
+		for unitID, stockpileValue in pairs(unitStockPileWatch) do
+			local numStockpiled, numStockpileQueued, stockpileBuild = Spring.GetUnitStockpile(unitID)
+			if numStockpiled then
+				local value = numStockpiled + (numStockpileQueued > 0 and stockpileBuild or 0)
+				if value ~= stockpileValue then
+					uniformcache[1] = value
+					unitStockPileWatch[unitID] = value
+					gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 				end
-
-				uniformcache[1] = numStockpiled + stockpileBuild -- less hacky
-				--uniformcache[1] =  128*numStockpileQued + numStockpiled + stockpileBuild -- the worlds nastiest hack
-				unitStockPileWatch[unitID] = stockpileBuild
-				gl.SetUnitBufferUniforms(unitID, uniformcache, 2)
 			end
 		end
 	end

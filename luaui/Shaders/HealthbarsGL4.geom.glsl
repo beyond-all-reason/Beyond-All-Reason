@@ -36,6 +36,7 @@ vec4 centerpos;
 vec4 uvoffsets;
 float zoffset;
 float depthbuffermod;
+float glyphalpha;
 float sizemultiplier = dataIn[0].v_sizemodifiers.x;
 #define HALFPIXEL 0.0019765625
 
@@ -94,7 +95,7 @@ void emitVertexGlyph(in vec2 pos, in vec2 uv){
 	gl_Position = cameraViewProj * vec4(centerpos.xyz + rotY * ( primitiveCoords ), 1.0);
 	g_uv.z = 1.0; // this tells us to use texture
 	g_color = vec4(1.0);
-	g_color.a *= dataIn[0].v_parameters.z; // blend with text/icon fade alpha
+	g_color.a *= glyphalpha;
 	EmitVertex();
 }
 
@@ -225,7 +226,10 @@ void main(){
 
 	// try to emit text?
 
-	if (GLYPHALPHA < MINALPHA) return; // dont display glyphs below 50% transparency
+	// Stockpile bars should display their stockpile counts primarily, not a progress primarily.
+	// So the glyph showing the count has to fade with the progress bar to display further away.
+	glyphalpha = ((BARTYPE & BITINTEGERNUMBER) > 0u) ? BARALPHA : GLYPHALPHA;
+	if (glyphalpha < MINALPHA) return;
 
 	if (skipGlyphsNumbers > 1.5) return;
 
