@@ -24,8 +24,8 @@ static-var last_primary_heading,last_primary_pitch;
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
 static-var animFramesPerKeyframe;
-// sea laser (weapon 2) range bookkeeping, see UnitSpeed()
-static-var seaLaserRange, seaLaserDisabled;
+// sea laser (weapon 2) and dgun (weapon 3) range bookkeeping, see UnitSpeed()
+static-var seaLaserRange, seaLaserDisabled, dgunRange, dgunDisabled;
 
 
 Walk() {//Created by https://github.com/Beherith/Skeletor_S3O from N:\animations\corcom_anim_walk_stance_v7.blend 
@@ -771,9 +771,31 @@ UnitSpeed(){
 	// aims and the land laser never gets the missing distance. Take the sea laser's range away on
 	// land so only weapons that can actually fire decide where the commander stops.
 	if (get PIECE_Y(head) > 0) {
-		if (seaLaserDisabled != 1) { get WEAPON_RANGE(-2, 0); seaLaserDisabled = 1; }
+		if (seaLaserDisabled != 1) {
+			get WEAPON_RANGE(-2, 0);
+			seaLaserDisabled = 1;
+		}
 	} else {
-		if (seaLaserDisabled != 0) { get WEAPON_RANGE(-2, seaLaserRange); seaLaserDisabled = 0; }
+		if (seaLaserDisabled != 0) {
+			get WEAPON_RANGE(-2, seaLaserRange);
+			seaLaserDisabled = 0;
+		}
+	}
+	// The engine never fires the dgun (fireSubmersed = false) while its aim piece (torso) is under
+	// water, but still lets it report "in range", so a dgun order stops the commander under water
+	// and it never fires. Take the dgun's range away while submerged so it keeps walking out.
+	// Restore it only once the piece is 16 elmo above water: the walk animation moves it, and if it
+	// dipped back under after the commander stopped to fire, nothing would make it walk on.
+	if (get PIECE_Y(torso) <= 0) {
+		if (dgunDisabled != 1) {
+			get WEAPON_RANGE(-3, 0);
+			dgunDisabled = 1;
+		}
+	} else if (get PIECE_Y(torso) > 1048576) { // 16 elmo
+		if (dgunDisabled != 0) {
+			get WEAPON_RANGE(-3, dgunRange);
+			dgunDisabled = 0;
+		}
 	}
 	if ((bMoving) OR (bAiming) OR (bIsBuilding)) {
 		if (bDancing) {
@@ -831,6 +853,8 @@ Create()
 	//call-script TeleportControl();
 	seaLaserRange = get WEAPON_RANGE(2);
 	seaLaserDisabled = -1;
+	dgunRange = get WEAPON_RANGE(3);
+	dgunDisabled = -1;
 	start-script UnitSpeed();
 }
 
