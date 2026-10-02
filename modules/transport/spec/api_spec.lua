@@ -35,6 +35,9 @@ describe("transport api asks", function()
 			GetUnitIsTransporting = function(id)
 				return units[id].cargo
 			end,
+			GetModOptions = function()
+				return { comm_trans_slow = true }
+			end,
 			GetGroundNormal = function()
 				return 0, 1, 0
 			end,
@@ -76,5 +79,19 @@ describe("transport api asks", function()
 		local alliedNano = unit(22, { defID = nano, team = 2, y = 10 })
 		assert.is_true(Transport.MayOrderLoad(carrierUnit, carrier, 0, ownNano))
 		assert.is_false(Transport.MayOrderLoad(carrierUnit, carrier, 0, alliedNano))
+	end)
+
+	it("LoadedSpeed is the carrier's speed, dragged to 120 with a commander aboard", function()
+		local carrier = def(1, { isTransport = true, canFly = true, speed = 300 })
+		local commander = def(4, { customParams = { iscommander = "1" } })
+		local tank = def(2, {})
+		local com = unit(30, { defID = commander })
+		local grunt = unit(31, { defID = tank })
+		local withCom = unit(40, { defID = carrier, cargo = { com } })
+		local withTank = unit(41, { defID = carrier, cargo = { grunt } })
+		local empty = unit(42, { defID = carrier })
+		assert.is.near(120 / Game.gameSpeed, Transport.LoadedSpeed(withCom), 1e-9)
+		assert.is.near(300 / Game.gameSpeed, Transport.LoadedSpeed(withTank), 1e-9)
+		assert.is_nil(Transport.LoadedSpeed(empty))
 	end)
 end)

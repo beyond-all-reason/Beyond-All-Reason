@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Transport Rules",
-		desc = "One owner for what a carrier may load, where it may set down, and what becomes of cargo",
+		desc = "One owner for what a carrier may load, where it may set down, how fast it flies loaded, and what becomes of cargo",
 		author = "Doo, Bluestone, raaar, Hornet, knorke, icexuick, beherith, Niobium, Chronographer, Beyond All Reason",
 		date = "August 2026",
 		license = "GNU GPL, v2 or later",
@@ -89,6 +89,13 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transportID)
 end
 
 function gadget:GameFrame(frame)
+	for transportID, allowed in pairs(state.loadedSpeed) do
+		local vx, vy, vz, vw = Spring.GetUnitVelocity(transportID)
+		if vw and vw > allowed then
+			local factor = allowed / vw
+			Spring.SetUnitVelocity(transportID, vx * factor, vy * factor, vz * factor)
+		end
+	end
 	for unitID, unitDefID in pairs(state.unstacking) do
 		if not Spring.ValidUnitID(unitID) or Unstack.Step(unitID, unitDefID) then
 			state.unstacking[unitID] = nil
@@ -125,6 +132,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID)
+	state.loadedSpeed[unitID] = nil
 	state.settling[unitID] = nil
 	state.unstacking[unitID] = nil
 end
@@ -137,7 +145,7 @@ function gadget:Initialize()
 		if Transport.DefTraits(unitDefID).isNano then
 			state.unstacking[unitID] = unitDefID
 		end
-		-- a passenger already aboard when the gadget (re)loads is treated as just loaded: stealth, ghost
+		-- a passenger already aboard when the gadget (re)loads is treated as just loaded: stealth, ghost, loaded speed
 		local transportID = Spring.GetUnitTransporter(unitID)
 		if transportID then
 			TransportSynced.Loaded(unitID, unitDefID, transportID)
