@@ -16,8 +16,8 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+local function loadMission(startScript)
+	local mission = VFS.Include(startScript.entryPoint)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -34,6 +34,7 @@ local function loadMission(scriptPath)
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
 
 	local validation = VFS.Include("luarules/mission_api/validation.lua")
+	validation.ValidateStartScript(startScript)
 	validation.ValidateStages(GG["MissionAPI"].Stages)
 	validation.ValidateObjectives(GG["MissionAPI"].Objectives)
 	validation.ValidateInitialStage(initialStage)
@@ -60,13 +61,19 @@ local function loadMission(scriptPath)
 end
 
 function gadget:Initialize()
-	local scriptPath = nil -- relative to `singleplayer`, e.g.: 'mission-api-tests/filename.lua'.
-	if not scriptPath then
+	local startScript = VFS.Include("luarules/mission_api/startscript.lua").Read()
+	if not startScript then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	GG["MissionAPI"] = {}
+	GG["MissionAPI"].Options = startScript.options
+	GG["MissionAPI"].Variables = startScript.variables
+	GG["MissionAPI"].PersistentVariables = startScript.persistentVariables
+	GG["MissionAPI"].Teams = startScript.teams
+	GG["MissionAPI"].AllyTeams = startScript.allyTeams
+	GG["MissionAPI"].DummyTeams = startScript.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -113,7 +120,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(scriptPath)
+	loadMission(startScript)
 end
 
 function gadget:GamePreload()
