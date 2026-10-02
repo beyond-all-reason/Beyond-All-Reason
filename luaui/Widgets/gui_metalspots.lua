@@ -144,7 +144,7 @@ local shaderSourceCache = {
 
 local MetalSpotTextAtlas
 local AtlasTextureID
-local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
+local MakeAtlasOnDemand = require("luaui/Include/AtlasOnDemand")
 local valueToUVs = {} -- key value string to uvCoords object from atlas in xXyYwh array
 
 local function goodbye(reason)
@@ -486,7 +486,7 @@ local function InitializeSpots(mSpots)
 				spotsCount = spotsCount + 1
 				mySpots[spotsCount] = mySpot
 
-				local ally, enemy, changed = IsSpotOccupied(mySpot)
+				local ally, enemy, _ = IsSpotOccupied(mySpot)
 				local occupied = ally or enemy
 
 				local uvcoords = valueToUVs[value]
@@ -528,7 +528,7 @@ local function UpdateSpotValues() -- This will only get called on playerchanged
 		spot.value = value
 
 		if spot.scale < maxScale and valueNumber > 0.001 and valueNumber < maxValue then
-			local ally, enemy, changed = IsSpotOccupied(spot)
+			local ally, enemy, _ = IsSpotOccupied(spot)
 			local occupied = ally or enemy
 			local uvcoords = valueToUVs[spot.value]
 			if uvcoords then

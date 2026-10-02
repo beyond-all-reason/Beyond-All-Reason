@@ -180,7 +180,7 @@ if customparamDefsDetected then
 					else
 						-- round to 5dp, convert to string, then remove trailing 0s after decimal point
 						v = string.format("%.5f", v)
-						local a, b = string.find(v, ".")
+						local a, _ = string.find(v, ".")
 						if a ~= nil then
 							v = string.reverse(v)
 							while string.sub(v, 1, 1) == "0" do

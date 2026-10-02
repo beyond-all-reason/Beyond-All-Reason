@@ -33,11 +33,25 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Prefix embedded in messages when cheat was active at send time.
--- During replay, recorded messages retain this prefix, bypassing the
--- live cheat check (which is always false in replay mode).
+-- Prefix embedded in messages sent by an authorised editor session.
 local CHEAT_SIG = "$c$"
 local CHEAT_SIG_LEN = #CHEAT_SIG
+
+-- Spring.IsReplay lives in LuaUnsyncedRead and is nil in synced gadget code, so
+-- the old "certified and Spring.IsReplay()" fallback raised a Lua error on every
+-- certified packet that arrived while live cheat happened to be off. It was also
+-- resting on a false premise: demos replay the /cheat chat command, so cheat
+-- state is reproduced during playback and needs no special case.
+--
+-- Map-editor sessions are what actually need the certification. /cheat is a
+-- toggle that several widgets nudge independently, so two of them observing
+-- "off" in the same moment flip it back off mid-import. The mapeditor modoption
+-- comes from the start script, is synced, and cannot be forged by a client.
+local MAP_EDITOR_SESSION = false
+do
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	MAP_EDITOR_SESSION = mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end
 
 local mapDamageEnabled = Game.mapDamage ~= false
 
@@ -87,12 +101,10 @@ local function isTerraformAllowed(certified, playerID)
 		return false
 	end
 	-- The $c$ certification is self-asserted by the sender, so honor it only
-	-- during replay (where live cheat is always false but the recorded prefix
-	-- is trustworthy). Outside replay, require live cheat — otherwise any
-	-- modified client could prefix $c$ and deform terrain in a no-cheat match.
-	-- The New Map flow re-enables cheat locally before importing, so it passes
-	-- the live-cheat branch and does not depend on this certification.
-	local allowed = Spring.IsCheatingEnabled() or (certified and Spring.IsReplay())
+	-- inside a map-editor session. In a normal match require live cheat —
+	-- otherwise any modified client could prefix $c$ and deform terrain in a
+	-- no-cheat game.
+	local allowed = Spring.IsCheatingEnabled() or (certified and MAP_EDITOR_SESSION)
 	if allowed then
 		ensureEditorLos(playerID)
 	end
@@ -1804,9 +1816,9 @@ local function buildPermTable(seed)
 		perm[i] = i
 	end
 	-- Fisher-Yates shuffle seeded
-	local s = seed
+	local s = seed % 65536 + 1
 	for i = 255, 1, -1 do
-		s = (s * 1103515245 + 12345) % 2147483648
+		s = (s * 75) % 65537 -- Lehmer LCG, exact in the engine's float32 numbers
 		local j = s % (i + 1)
 		perm[i], perm[j] = perm[j], perm[i]
 	end
@@ -2231,7 +2243,7 @@ end
 -- This side feeds it the real heightmap and routes the result through the
 -- standard apply + undo-snapshot epilogue.
 -- ─────────────────────────────────────────────────────────────────────────────
-local AutorampProfile = VFS.Include("common/autoramp_profile.lua")
+local AutorampProfile = require("common/autoramp_profile")
 
 local function applyAutoramp(
 	centerX,

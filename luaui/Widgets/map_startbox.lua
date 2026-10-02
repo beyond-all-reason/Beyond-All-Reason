@@ -42,10 +42,10 @@ local GL_TRIANGLES = GL.TRIANGLES
 
 local noRushTime = 0 -- was a bare read that always resolved nil; 0 matches runtime behavior
 
-local StartboxLib = VFS.Include("luarules/gadgets/include/startbox_utilities.lua")
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
-local StartPolygonSDF = VFS.Include("luaui/Include/startpolygon_sdf_gl4.lua")
+local StartboxLib = require("luarules/gadgets/include/startbox_utilities")
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
+local StartPolygonSDF = require("luaui/Include/startpolygon_sdf_gl4")
 
 if Game.startPosType ~= 2 then
 	return false
@@ -141,7 +141,7 @@ local CONE_CLICK_RADIUS = 75
 local LEFT_BUTTON = 1
 local RIGHT_BUTTON = 3
 
-VFS.Include("common/lib_startpoint_guesser.lua")
+require("common/lib_startpoint_guesser")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

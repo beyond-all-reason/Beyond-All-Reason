@@ -1,9 +1,9 @@
 -- The team stats panel's custom categories: the player's own lists of graphs, each graph with
--- the settings it is drawn with, shown above the built-in categories in the sidebar. The
--- table takes a custom category's graphs as its columns. One ships with the game - the
--- overview - editable like any other and put back as it came by a reset.
+-- the settings it is drawn with, shown above the built-in categories in the sidebar. One
+-- ships with the game - the overview - editable like any other and put back as it came by a
+-- reset.
 --
---   local custom = VFS.Include("luaui/Include/teamstats_custom.lua").new(ctx)
+--   local custom = require("luaui/Include/teamstats_custom").new(ctx)
 --   custom.setConfig(saved)                     -- or nothing, for the shipped overview alone
 --   custom.add("overview", "metalProduced", settings)
 --   saved = custom.getConfig()
@@ -18,19 +18,21 @@ local SHIPPED_KEY = "overview"
 
 -- What it holds - one page of twelve: every team's shape and when things happened to them;
 -- the economy each built (metal, energy, build power) and what it has on the field; what
--- it produced and fought with; the value it traded, which weighs a kill by what it cost
--- where unit counts and damage do not; and how fast it played.
+-- it produced and fought with; where its metal comes from; how well it traded, which weighs
+-- a kill by what it cost where unit counts and damage do not; and how fast it played. A
+-- ranked game adds the standing, second: it is left out where there is none.
 local SHIPPED_STATS = {
 	"profile",
+	"ranking",
 	"timeline",
 	"metalProduced",
 	"energyProduced",
 	"buildPower",
 	"unitValue",
-	"unitsProduced",
+	"frontLine",
 	"damageDealt",
-	"killedValue",
-	"lostValue",
+	"incomeMetal",
+	"composition",
 	"valueEfficiency",
 	"actionsPerMinute",
 }
@@ -38,6 +40,7 @@ local SHIPPED_STATS = {
 -- The charts that are not one column's: listed by the page, never a table column.
 ---@type table<string, boolean>
 local CHART_ONLY = {
+	ranking = true,
 	incomeMetal = true,
 	incomeEnergy = true,
 	tech = true,
@@ -46,6 +49,10 @@ local CHART_ONLY = {
 	composition = true,
 	wind = true,
 	losses = true,
+	built = true,
+	lostTo = true,
+	killedWith = true,
+	unitReport = true,
 }
 
 -- The first field of a category written out as text: what it is, and in which version.
@@ -115,8 +122,7 @@ function M.new(ctx)
 		return ctx.i18n("ui.teamStats.custom.defaultName", { number = category.number or 1 })
 	end
 
-	-- The categories put where the panel reads its groups: at the front of GROUPS, each
-	-- with the columns its graphs give the table.
+	-- The categories put where the panel reads its groups: at the front of GROUPS.
 	function custom.apply()
 		local groups, byKey = ctx.GROUPS, ctx.groupByKey
 		for i = #groups, 1, -1 do
@@ -126,15 +132,6 @@ function M.new(ctx)
 			end
 		end
 		for i, category in ipairs(custom.list) do
-			local columns = {}
-			local seen = {}
-			for _, graph in ipairs(category.graphs) do
-				if not CHART_ONLY[graph.stat] and ctx.COLUMNS[graph.stat] and not seen[graph.stat] then
-					columns[#columns + 1] = graph.stat
-					seen[graph.stat] = true
-				end
-			end
-			category.columns = columns
 			category.custom = true
 			category.label = custom.label(category)
 			table.insert(groups, i, category)

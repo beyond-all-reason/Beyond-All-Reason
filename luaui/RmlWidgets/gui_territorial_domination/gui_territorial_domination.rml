@@ -4,67 +4,236 @@
 		<title>Territorial Domination Score</title>
 		<link type="text/rcss" href="gui_territorial_domination.rcss" />
 	</head>
-	<body>
-		<div id="td-root" class="scorepanel-root" data-model="territorial_score_model">
-			<div id="td-gradient-overlay" class="scorepanel-gradient-overlay"></div>
-			<div id="header-info" class="scorepanel-header-info">
-				<div id="top-header-row" class="scorepanel-top-header-row">
-					<div id="rank-display" class="scorepanel-rank-display">{{rankDisplayText}}</div>
-					<div id="current-score" class="scorepanel-current-score">{{combinedScore}}pts</div>
-				</div>
-				<div id="header-divider" class="scorepanel-header-divider"></div>
-				<div id="bottom-header-row" class="scorepanel-bottom-header-row">
-					<div id="round-display" class="scorepanel-round-display">{{roundDisplayText}}</div>
-					<div id="time-display" class="scorepanel-time-display">{{timeRemaining}}</div>
-				</div>
+	<body data-model="territorial_score_model">
+		<div
+			class="td-dock-ghost"
+			data-if="showDockGhost"
+			data-class-expanded="isExpanded"
+			data-style-left="dockGhostLeft"
+			data-style-top="dockGhostTop"
+		></div>
+		<div
+			class="td-panel-outer-halo"
+			data-if="isVisible"
+			data-class-expanded="isExpanded"
+			data-class-dragging="isDragging"
+			data-class-origin="showOriginHalo"
+			data-class-first-place="showFirstPlaceHalo"
+			data-class-danger="showDangerHalo"
+			data-style-left="panelLeft"
+			data-style-top="panelTop"
+		></div>
+		<div
+			id="td-root"
+			class="td-panel"
+			data-if="isVisible"
+			data-class-expanded="isExpanded"
+			data-class-dragging="isDragging"
+			data-style-left="panelLeft"
+			data-style-top="panelTop"
+			data-event-mousedown="beginPanelDrag()"
+		>
+			<div class="td-panel-texture"></div>
+			<div class="td-panel-gradient"></div>
+			<div class="td-panel-shine"></div>
+			<div class="td-panel-gloss"></div>
+			<div class="td-panel-top-edge"></div>
+			<div
+				class="td-panel-halo"
+				data-class-origin="showOriginHalo"
+				data-class-first-place="showFirstPlaceHalo"
+				data-class-danger="showDangerHalo"
+			></div>
+
+			<div
+				class="td-distribution"
+				data-if="!isExpanded"
+				data-style-height="distributionHeight"
+				data-event-mousedown="blockPanelDrag()"
+				data-event-click="toggleExpanded()"
+				data-event-mouseover="showDistributionTooltip()"
+				data-event-mousemove="showDistributionTooltip()"
+				data-event-mouseout="hideTooltip()"
+			>
+				<div id="td-distribution-fill" class="td-distribution-fill" data-rml="distributionFillRml" data-style-height="distributionHeight"></div>
+				<div class="td-bar-gloss" data-style-height="distributionHeight"></div>
 			</div>
-			<div id="territory-info" class="scorepanel-territory-info">
-				<div id="leaderboard-button" class="scorepanel-leaderboard-icon">
-					<img class="scorepanel-leaderboard-icon-image" src="/luaui/images/leaderboard.png" />
-				</div>
-				<div id="territory-info-row" class="scorepanel-territory-info-row">
-					<div id="territory-icon" class="scorepanel-territory-icon">
-						<div class="scorepanel-territory-icon-square scorepanel-territory-icon-square-tl"></div>
-						<div class="scorepanel-territory-icon-square scorepanel-territory-icon-square-br"></div>
+
+			<div
+				class="td-horizontal-score"
+				data-if="!isExpanded"
+				data-event-mousedown="beginPanelDrag()"
+				data-event-mouseover="showScoreTooltip(selectedAllyTeamID)"
+				data-event-mouseout="hideTooltip()"
+			>
+				<div
+					class="td-horizontal-projected"
+					data-style-width="selectedProjectedWidth"
+					data-style-background-color="selectedDarkColor"
+				></div>
+				<div
+					class="td-horizontal-actual"
+					data-style-width="selectedActualWidth"
+					data-style-background-color="selectedColor"
+				></div>
+				<div class="td-bar-gloss"></div>
+				<div
+					class="td-danger-overlay"
+					data-if="showDangerMark"
+					data-style-left="selectedProjectedWidth"
+					data-style-width="dangerOverlayWidth"
+					data-event-mouseover="showDangerMarkTooltip()"
+					data-event-mouseout="hideDangerMarkTooltip()"
+				></div>
+				<div
+					class="td-deadline-excess-backfill"
+					data-if="showDeadlineExcessBackfill"
+					data-style-width="deadlineExcessBackfillWidth"
+				></div>
+			</div>
+			<div class="td-horizontal-danger-outline" data-if="showHorizontalDangerOutline"></div>
+
+			<div class="td-expanded-chart" data-if="isExpanded">
+				<div class="td-deadline-marker" data-if="hasDeadline" data-style-bottom="deadlineLineBottom">
+					<div
+						class="td-deadline-label"
+						data-style-bottom="deadlineLabelBottom"
+						data-event-mouseover="showSimpleTooltip('deadline')"
+						data-event-mouseout="hideTooltip()"
+					>{{deadlineLabel}}</div>
+					<div
+						class="td-deadline-hotspot"
+						data-event-mouseover="showSimpleTooltip('deadline')"
+						data-event-mouseout="hideTooltip()"
+					>
+						<div class="td-deadline-line"></div>
 					</div>
-					<div id="territory-count" class="scorepanel-territory-count">{{territoryCount}}</div>
 				</div>
-				<div id="territory-points" class="scorepanel-territory-points">+{{territoryPoints}}pts</div>
+				<div
+					id="td-vertical-scroll"
+					class="td-vertical-scroll"
+					data-class-overflowing="verticalBarsOverflow"
+				>
+					<div class="td-vertical-content" data-style-width="verticalContentWidth">
+						<div
+							data-for="score : verticalBars"
+							class="td-vertical-slot"
+							data-class-eliminated="!score.isAlive"
+							data-style-left="score.slotLeft"
+						>
+							<div class="td-vertical-rank">{{score.rank}}</div>
+							<div
+								class="td-vertical-track"
+								data-class-local="score.isLocalPlayer"
+								data-event-mousedown="blockPanelDrag()"
+								data-event-click="selectExpandedScore(score.allyTeamID)"
+									data-event-mouseover="showScoreTooltip(score.allyTeamID, 'select')"
+								data-event-mouseout="hideTooltip()"
+							>
+								<div
+									class="td-vertical-projected"
+									data-style-height="score.projectedHeight"
+									data-style-background-color="score.darkColor"
+								></div>
+								<div
+									class="td-vertical-actual"
+									data-style-height="score.actualHeight"
+									data-style-background-color="score.color"
+								></div>
+								<div class="td-vertical-gloss"></div>
+								<div
+									class="td-vertical-danger-overlay"
+									data-if="score.showDangerOverlay"
+									data-style-bottom="score.dangerOverlayBottom"
+									data-style-height="score.dangerOverlayHeight"
+								></div>
+							</div>
+							<div
+								class="td-vertical-local-outline"
+								data-if="score.isLocalPlayer"
+								data-style-border-color="score.color"
+							></div>
+							<div
+								class="td-vertical-danger-outline"
+								data-if="score.showDangerOverlay"
+							></div>
+						</div>
+					</div>
+				</div>
 			</div>
-			<div id="bottom-section" class="scorepanel-bottom-section">
-				<div id="elimination-warning" class="scorepanel-elimination-warning">{{eliminationText}}</div>
+
+			<div class="td-footer">
+				<div
+					class="td-footer-score"
+					data-event-mouseover="showSimpleTooltip('currentScore')"
+					data-event-mouseout="hideTooltip()"
+				>
+					<span class="td-allyteam-color" data-style-background-color="selectedColor"></span>
+					<span>{{footerScore}}</span>
+				</div>
+				<div
+					class="td-footer-countdown"
+					data-class-warning="countdownWarning"
+					data-style-color="countdownPulseColor"
+					data-style-transform="countdownPulseTransform"
+					data-event-mouseover="showSimpleTooltip('countdown')"
+					data-event-mouseout="hideTooltip()"
+				>{{footerCountdown}}</div>
+				<div
+					class="td-footer-target"
+					data-class-deadline="isBelowDeadline"
+					data-event-mouseover="showTargetTooltip()"
+					data-event-mouseout="hideTooltip()"
+				>
+					<span class="td-footer-icon" data-style-color="footerTargetIconColor">{{footerTargetIcon}}</span>
+					<span>{{footerTargetValue}}</span>
+				</div>
 			</div>
 		</div>
-		<div id="round-end-popup" class="popup-round-end" data-model="territorial_score_model">
-			<div class="popup-content">
-				<div id="popup-text" class="popup-text"></div>
-				<div id="popup-territory-info" class="popup-territory-info"></div>
-				<div id="popup-elimination-info" class="popup-elimination-info"></div>
+
+		<div
+			id="td-tooltip"
+			class="td-tooltip"
+			data-if="tooltipVisible"
+			data-style-left="tooltipLeft"
+			data-style-top="tooltipTop"
+			data-style-width="tooltipWidth"
+		>
+			<div class="td-tooltip-texture"></div>
+			<div class="td-tooltip-gradient"></div>
+			<div class="td-tooltip-content">
+				<div class="td-tooltip-header" data-if="tooltipHeader != ''">{{tooltipHeader}}</div>
+				<div class="td-tooltip-row td-tooltip-team-row" data-if="tooltipShowTeam">
+					<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
+					<span class="td-allyteam-color" data-style-background-color="tooltipTeamColor"></span>
+				</div>
+				<div id="td-tooltip-players" class="td-tooltip-players" data-if="!tooltipIsSimple" data-rml="tooltipPlayersRml"></div>
+				<div class="td-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
+				<div class="td-tooltip-score" data-if="tooltipIsScore">
+					<div class="td-tooltip-row">{{tooltipTerritories}}</div>
+					<div class="td-tooltip-row">{{tooltipGainRate}}</div>
+					<div class="td-tooltip-row">{{tooltipCurrentScore}}</div>
+					<div class="td-tooltip-row">{{tooltipProjectedScore}}</div>
+					<div class="td-tooltip-row" data-if="tooltipShowDeadline">{{tooltipDeadlineDifference}}</div>
+					<div class="td-tooltip-row td-tooltip-leader-row" data-if="tooltipShowLeader">
+						<span>{{tooltipLeaderDifference}}</span>
+						<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
+						<span class="td-allyteam-color" data-style-background-color="tooltipLeaderColor"></span>
+					</div>
+				</div>
+				<div data-if="tooltipIsSimple">
+					<div class="td-tooltip-simple">{{tooltipText}}</div>
+					<div class="td-tooltip-simple" data-if="tooltipSecondaryText != ''">{{tooltipSecondaryText}}</div>
+				</div>
 			</div>
 		</div>
-		<div id="leaderboard-panel" class="scoreboard-panel hidden" data-model="territorial_score_model">
-			<div id="leaderboard-overlay" class="scoreboard-overlay"></div>
-			<div id="leaderboard-content" class="scoreboard-content">
-				<div id="leaderboard-gradient-overlay" class="scoreboard-gradient-overlay"></div>
-				<div id="leaderboard-header" class="scoreboard-header">!!ui.territorialDomination.scoreboard.title</div>
-				<div id="leaderboard-table-wrapper" class="scoreboard-table-wrapper">
-					<div id="leaderboard-column-headers" class="scoreboard-column-headers">
-						<div class="scoreboard-header-rank"></div>
-						<div class="scoreboard-header-name">!!ui.territorialDomination.scoreboard.headerTeam</div>
-						<div class="scoreboard-header-score">!!ui.territorialDomination.scoreboard.headerScore</div>
-						<div class="scoreboard-header-territories">!!ui.territorialDomination.scoreboard.headerTerritories</div>
-					</div>
-					<div id="leaderboard-teams" class="scoreboard-teams"></div>
-					<div id="elimination-separator" class="scoreboard-elimination-separator hidden">
-						<div class="scoreboard-elimination-empty-cell"></div>
-						<div id="elimination-separator-text" class="scoreboard-elimination-separator-text">!!ui.territorialDomination.scoreboard.eliminationThreshold</div>
-						<div class="scoreboard-elimination-empty-cell"></div>
-						<div class="scoreboard-elimination-empty-cell"></div>
-					</div>
-					<div id="leaderboard-eliminated" class="scoreboard-eliminated"></div>
-				</div>
+
+		<div class="td-popup" data-if="popupVisible">
+			<div class="td-popup-content">
+				<div class="td-popup-title">{{popupTitle}}</div>
+				<div class="td-popup-rate" data-if="popupRateText != ''">{{popupRateText}}</div>
+				<div class="td-popup-deadline" data-if="popupDeadlineText != ''">{{popupDeadlineText}}</div>
 			</div>
 		</div>
 	</body>
 </rml>
-

@@ -219,7 +219,7 @@ if gadgetHandler:IsSyncedCode() then
 		local previousPresent = playerInfoTableEntry.present
 		playerInfoTableEntry.present = afk == 0
 		playerInfoTable[playerID] = playerInfoTableEntry
-		local name, active, spectator, teamID, allyTeamID, ping = GetPlayerInfo(playerID, false)
+		local name, _, spectator, _, allyTeamID, _ = GetPlayerInfo(playerID, false)
 		if not spectator and name ~= nil then
 			if currentGameFrame > minTimeToTake * gameSpeed then
 				if previousPresent and not playerInfoTableEntry.present then

@@ -10,8 +10,8 @@
 -- arrangement shape == maps-metadata `startboxesInfo`:
 --   https://github.com/beyond-all-reason/maps-metadata schemas/map_list.yaml
 
-local SplineLib = VFS.Include("common/lib_spline.lua")
-local ModoptionPayload = VFS.Include("common/luaUtilities/modoption_payload.lua")
+local ModoptionPayload = require("common/luaUtilities/modoption_payload")
+local SplineLib = require("common/lib_spline")
 
 local function GetStartboxName(midX, midZ)
 	if midX < 0.33 then
@@ -354,7 +354,7 @@ end
 -- correct in both phases and on both sides of the sync boundary.
 --------------------------------------------------------------------------------
 
-local PolygonLib = VFS.Include("common/lib_polygon.lua")
+local PolygonLib = require("common/lib_polygon")
 
 local cachedConfig, cachedSource, cachedExplicit
 local haveParsed = false

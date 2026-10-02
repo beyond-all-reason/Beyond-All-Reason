@@ -35,6 +35,7 @@ return {
 		turnrate = 350,
 		waterline = 0,
 		customparams = {
+			deactivate_time = 8,
 			model_author = "Beherith",
 			normaltex = "unittextures/leg_normal.dds",
 			off_on_stun = "true",

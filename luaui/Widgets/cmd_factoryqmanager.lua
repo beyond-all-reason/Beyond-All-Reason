@@ -875,7 +875,7 @@ function DrawBoxes()
 	end
 	local heightAll = boxHeightTitle + itemCount * (boxHeight + boxOuterMargin)
 
-	local x, y, z = CalcDrawCoords(selUnit, heightAll)
+	local x, y, _ = CalcDrawCoords(selUnit, heightAll)
 
 	local coordsChanged = false
 	if x ~= lastBoxX or y ~= lastBoxY then

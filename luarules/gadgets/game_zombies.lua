@@ -30,7 +30,6 @@ end
 
 local WARNING_TIME = Game.gameSpeed * 15 -- Frames to start warning before reanimation
 local TIMER_NEAR_MAX_THRESHOLD = Game.gameSpeed * 5 -- skip the tamper sparkle if the spawn timer is still near its maximum
-local ZOMBIE_UNIT_CAP_FLOOR = 2000
 local ZOMBIE_REZ_FRAME_PARAM = "zombie_rez_frame"
 local WAS_ZOMBIE_PARAM = "wasZombie"
 local PUBLIC_RULES_PARAM_ACCESS = { public = true }
@@ -148,6 +147,7 @@ local pendingUnitXp = {}
 local pendingZombieCaptures = {}
 local heapingZombies = {}
 local zombieHeapDefs = {}
+local captureSwapOverride = {}
 local unitDefs = UnitDefs
 local unitDefNames = UnitDefNames
 local featureDefNames = FeatureDefNames
@@ -163,6 +163,11 @@ local spawnEffects = {
 }
 
 for unitDefID, unitDef in pairs(unitDefs) do
+	local captureOverride = unitDef.customParams.scav_swap_override_captured
+	if captureOverride == "delete" or unitDefNames[captureOverride] then
+		captureSwapOverride[unitDefID] = captureOverride
+	end
+
 	local corpseDefName = unitDef.corpse
 	if featureDefNames[corpseDefName] then
 		local corpseDefID = featureDefNames[corpseDefName].id
@@ -698,8 +703,13 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 				healthReductionRatio = health / maxHealth
 			end
 			spring.DestroyUnit(unitID, false, true)
-			if unitX then
-				spawnZombies(nil, unitDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
+			local spawnDefID = unitDefID
+			local swapOverride = captureSwapOverride[unitDefID]
+			if swapOverride then
+				spawnDefID = swapOverride ~= "delete" and unitDefNames[swapOverride].id or nil
+			end
+			if unitX and spawnDefID then
+				spawnZombies(nil, spawnDefID, healthReductionRatio, unitX, unitY, unitZ, false, pastXp)
 			end
 		end
 	end
@@ -1202,12 +1212,6 @@ function gadget:Shutdown()
 	gadgetHandler:RemoveChatAction("zombiekillall")
 	gadgetHandler:RemoveChatAction("zombieclearallorders")
 	gadgetHandler:RemoveChatAction("zombiemode")
-end
-
-function gadget:GamePreload()
-	local currentUnitCap = spring.GetTeamMaxUnits(gaiaTeamID)
-	local newUnitCap = math.max(ZOMBIE_UNIT_CAP_FLOOR, currentUnitCap)
-	spring.SetTeamMaxUnits(gaiaTeamID, newUnitCap)
 end
 
 function gadget:GameStart()

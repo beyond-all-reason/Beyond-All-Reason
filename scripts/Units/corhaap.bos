@@ -4,7 +4,7 @@
 
 piece  base, pad, beam1, beam2, beam3, beam4, nano1, nano2, nano3, nano4, cagelight1, cagelight_emit1, cagelight2, cagelight_emit2;
 
-static-var  spray;
+static-var  spray, hasOpened;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -36,6 +36,7 @@ Create()
 	start-script Deactivate();
 	spray = nano1;
 	SLEEP_UNTIL_UNITFINISHED;
+	hasOpened = 0;
 }
 
 QueryNanoPiece(pieceIndex)
@@ -47,26 +48,27 @@ QueryNanoPiece(pieceIndex)
 
 Activate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	
-	wait-for-move base along y-axis;
-	
-	set ARMORED to 0;
-	set INBUILDSTANCE to 1;
-	
+	if( !hasOpened )
+	{
+		wait-for-move base along y-axis;
+
+		set ARMORED to 0;
+		set INBUILDSTANCE to 1;
+		hasOpened = 1;
+	}
 	FACTORY_OPEN_BUILD;
 }
 
 Deactivate()
 {
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	sleep 5000;
-	
-	set ARMORED to 1;
-	set INBUILDSTANCE to 0;
-	
+
 	FACTORY_CLOSE_BUILD;
 }
 

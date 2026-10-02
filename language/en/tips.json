@@ -253,7 +253,8 @@
 			"territorialDomination/EnemyTeamEliminated": "Enemy Eliminated",
 			"territorialDomination/YourTeamEliminated": "You Have Been Eliminated",
 			"territorialDomination/GainedLead": "You Are In The Lead",
-			"territorialDomination/LostLead": "You Lost The Lead"
+			"territorialDomination/LostLead": "You Lost The Lead",
+			"territorialDomination/EliminationDanger": "You're in danger of being eliminated!"
 		},
 		"deathMessages": {
 			"team": {
