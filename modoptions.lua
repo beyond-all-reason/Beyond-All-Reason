@@ -390,6 +390,16 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "disable_building_aoe_explosions",
+		name = "Disable Building AoE Explosions",
+		desc = "Buildings do not deal area damage when destroyed or self-destructed",
+		type = "bool",
+		section = "options_main",
+		def = false,
+	},
+
 	{
 		key = "sub_header",
 		section = "options_main",

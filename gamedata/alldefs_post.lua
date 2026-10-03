@@ -669,6 +669,13 @@ local function unitDef_Post(name, uDef)
 		uDef = techsplit_balanceTweaks(name, uDef)
 	end
 
+	if modOptions.disable_building_aoe_explosions and (uDef.isBuilding or uDef.yardmap) and not uDef.canfly then
+		uDef.explodeas = "blank"
+		if uDef.selfdestructas then
+			uDef.selfdestructas = "blank"
+		end
+	end
+
 	-- Multipliers Modoptions
 
 	-- Max Speed
