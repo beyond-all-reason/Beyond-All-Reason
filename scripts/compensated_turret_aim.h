@@ -32,13 +32,13 @@
 		#define COMPAIM1_REST_PITCH <0>
 	#endif
 	#ifndef COMPAIM1_RESTORE_PITCH_SPEED
-		#define COMPAIM1_RESTORE_PITCH_SPEED COMPAIM1_PITCH_SPEED*2
+		#define COMPAIM1_RESTORE_PITCH_SPEED COMPAIM1_PITCH_SPEED/2
 	#endif
 #endif
 
 // Yaw speed when returning to rest
 #ifndef COMPAIM1_RESTORE_SPEED
-	#define COMPAIM1_RESTORE_SPEED COMPAIM1_YAW_SPEED*5
+	#define COMPAIM1_RESTORE_SPEED COMPAIM1_YAW_SPEED/2
 #endif
 
 // Yaw piece angle when not aiming
@@ -81,6 +81,14 @@
 	#ifndef COMPAIM1_FIRE_ANGLE_PITCH
 		#define COMPAIM1_FIRE_ANGLE_PITCH COMPAIM1_PITCH_SPEED/25
 	#endif
+#endif
+
+// Hull turns stop being cancelled after COMPAIM1_RELEASE_FRAMES without an aim call, unless COMPAIM1_HOLD_AIM is 1
+#ifndef COMPAIM1_HOLD_AIM
+	#define COMPAIM1_HOLD_AIM 0
+#endif
+#ifndef COMPAIM1_RELEASE_FRAMES
+	#define COMPAIM1_RELEASE_FRAMES 30
 #endif
 
 // Aim calls at most this many frames apart set the rate that carries the goal between calls
@@ -126,6 +134,12 @@ COMPAIM1_Controller()
 					COMPAIM1pitchRate = 0;
 				#endif
 			}
+			#if COMPAIM1_HOLD_AIM == 0
+				if (((get GAME_FRAME) - COMPAIM1lastAimFrame) > COMPAIM1_RELEASE_FRAMES)
+				{
+					hullDelta = 0;
+				}
+			#endif
 			if (COMPAIM1active)
 			{
 				COMPAIM1goalHeading = WRAPDELTA(COMPAIM1goalHeading - hullDelta + COMPAIM1goalRate);
