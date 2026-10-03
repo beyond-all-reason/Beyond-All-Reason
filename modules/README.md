@@ -8,9 +8,11 @@ The loader reads the module's manifest.lua to decide whether to load it or not. 
 
 An example of a manifest.lua:
 ```lua
-return { name = "transport", 
-		 description = "Code governing transports, such as loading rules or passenger state", 
-		 requires = { "defs" } } -- The loader won't load this module, and logs an error, if its requirements aren't loaded.
+return {
+	name = "transport", 
+	description = "Code governing transports, such as loading rules or passenger state", 
+	requires = { "defs" } -- The loader won't load this module, and logs an error, if its requirements aren't loaded.
+}
 ```
 
 `name` is a required field, and must match the name of the module directory.
@@ -21,12 +23,34 @@ The loader expects code in the following subdirectories:
 `gadgets/`, 
 `widgets/`, 
 `rml_widgets/`, 
-`scripts/`
+`scripts/`,
+`policies/`,
+`modes/`,
+
+And the following files:
+`api.lua`,
+`api_unsynced.lua`,
+`api_synced.lua`,
+`enums.lua`,
+`mode_verbs.lua`,
+`modoptions.lua`,
 
 It'll load the stuff in `<module>/gadgets/` as a gadget, `widgets/` as a widget, and so on.
 It will only load unit scripts from `scripts/`. .cob files won't be loaded.
 
 If you make a `modoptions.lua`, the loader will add its contents to the base modoptions.
+
+**`modules/enums.lua`**
+
+This file defines the enums for all the modules. You'll want to add an entry for yours here. The module handler uses the enum to refer to the module, and you need to provide the mapping from that to the directory name.
+
+```lua
+local Modules = {
+	Defs = "defs",
+	Game = "game",
+	MyModule = "my_module",
+}
+```
 
 **`<module>/state.lua`**
 
@@ -52,15 +76,40 @@ state.MyField = state.MyField or {}
 return state
 ```
 
-**`modules/enums.lua`**
+**Note** Synced and unsynced get separate copies of state, so it's important that code producing this state is [idempotent](https://en.wikipedia.org/wiki/Idempotence).
 
-This file defines the enums for all the modules. You'll want to add an entry for yours here. The module handler uses the enum to refer to the module, and you need to provide the mapping from that to the directory name.
+**`<module>/api.lua`**
+**`<module>/api_synced.lua`**
+**`<module>/api_unsynced.lua`**
 
+These files define the module's api. Together they act as a [service](https://en.wikipedia.org/wiki/Service_layer_pattern) for the module. Each function in this file is the only function to handle a given thing. One canonical answer per game behavior.
+
+Each file in the module speaks to an specific engine Lua environment handle, or none at all in the case of api.lua.
+* **api_unsynced** - what a widget asks that touches the unsynced engine
+* **api_synced** - what a gadget asks that touches the synced engine
+* **api** - neutral: it runs in any Lua state (a synced gadget, a widget, the lobby), so it calls nothing that `Spring.*` offers in one handle only.
+
+Here is `modules/construction/api.lua`, trimmed:
 ```lua
-local Modules = {
-	Defs = "defs",
-	Game = "game",
-	MyModule = "MyModule",
+local Placement = require("modules/construction/lib/placement")
+
+---@class ConstructionApi
+return {
+	---@param unitDefID integer
+	---@return boolean
+	IsExtractor = function(unitDefID)
+		return Placement.IsExtractor(unitDefID)
+	end,
+
+	---@return integer[] the unit def ids that extract metal
+	Mexes = function()
+		return Placement.ExtractorDefIDs("mex")
+	end,
+
+	---@return integer[] the unit def ids that extract energy from the ground
+	Geos = function()
+		return Placement.ExtractorDefIDs("geo")
+	end,
 }
 ```
 
@@ -124,6 +173,7 @@ So this policy reads top to bottom:
 10. `return Contract` - hand the loader the contract for evaluation later.
 
 Consumer example from `modules/construction/gadgets/game_allied_assist_mode.lua`:
+
 ```lua
 ---@param unitTeam integer the builder's team
 ---@param targetID integer|nil
@@ -158,6 +208,7 @@ See the `policies_getting_started` for more information.
 A mode is a UI preset: a named bundle of claims on modoptions, written in a small grammar. Picking a mode in the lobby writes the modoptions it claims and locks the ones it says it owns. By the time the match starts the mode is gone; only the modoptions are left, and policies read those. Nothing in a gadget or a policy ever sees a mode.
 
 Here is `modules/game/modes/standard.lua`, trimmed:
+
 ```lua
 local ModeDSL = require("modules/game/mode_dsl")
 local Mode = ModeDSL.Mode
