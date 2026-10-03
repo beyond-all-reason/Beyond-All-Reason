@@ -27,6 +27,104 @@ describe("ModuleHandler", function()
 		end)
 	end)
 
+	describe("LiveModulesFor", function()
+		-- Two modules on a fake VFS, so the spec stands on its own at every point in the stack: fixture has a
+		-- modoptions file with a <category>_mode option and two presets, one of which writes dials' option;
+		-- dials owns that option and ships a preset of its own on fixture's axis, so it is not always live.
+		local FILES = {
+			["modules/fixture/manifest.lua"] = function()
+				return { name = "fixture" }
+			end,
+			["modules/fixture/modoptions.lua"] = function()
+				return { { key = "fixture_mode", type = "list", def = "on" } }
+			end,
+			["modules/fixture/modes/on.lua"] = function()
+				return { key = "on", category = "fixture", modOptions = { dials_depth = { value = 2 } } }
+			end,
+			["modules/fixture/modes/off.lua"] = function()
+				return { key = "off", category = "fixture" }
+			end,
+			["modules/dials/manifest.lua"] = function()
+				return { name = "dials" }
+			end,
+			["modules/dials/modoptions.lua"] = function()
+				return { { key = "dials_depth", type = "number", def = 1 } }
+			end,
+			["modules/dials/modes/deep.lua"] = function()
+				return { key = "deep", category = "fixture" }
+			end,
+		}
+		local real = {}
+		local includes
+
+		setup(function()
+			for _, fn in ipairs({ "SubDirs", "DirList", "FileExists", "Include" }) do
+				real[fn] = VFS[fn]
+			end
+			VFS.SubDirs = function()
+				return { "modules/fixture/", "modules/dials/" }
+			end
+			VFS.DirList = function(dir)
+				local found = {}
+				for path in pairs(FILES) do
+					if path:sub(1, #dir) == dir and not path:sub(#dir + 1):find("/") then
+						found[#found + 1] = path
+					end
+				end
+				table.sort(found)
+				return found
+			end
+			VFS.FileExists = function(path)
+				return FILES[path] ~= nil
+			end
+			VFS.Include = function(path, ...)
+				if FILES[path] then
+					if path:match("/modoptions%.lua$") then
+						includes = includes + 1
+					end
+					return FILES[path]()
+				end
+				return real.Include(path, ...)
+			end
+		end)
+
+		teardown(function()
+			for fn, original in pairs(real) do
+				VFS[fn] = original
+			end
+			ModuleHandler.ResetCaches()
+		end)
+
+		before_each(function()
+			includes = 0
+			ModuleHandler.ResetCaches()
+		end)
+
+		it("reads the modoptions files once", function()
+			local first = ModuleHandler.LiveModulesFor({})
+			local afterFirst = includes
+			local second = ModuleHandler.LiveModulesFor({})
+			local third = ModuleHandler.LiveModulesFor({ fixture_mode = "off" })
+			assert.is_true(afterFirst > 0, "the first ask reads the modoptions files")
+			assert.are.equal(afterFirst, includes, "later asks read nothing")
+			assert.is_true(rawequal(first, second))
+			assert.is_false(rawequal(first, third), "a different selection is its own live set")
+			assert.are.same({ fixture = true, dials = true }, first)
+		end)
+
+		it("makes live the module whose options the picked preset writes, as well as the preset's own", function()
+			assert.are.same({ fixture = true, dials = true }, ModuleHandler.LiveModulesFor({ fixture_mode = "on" }))
+			assert.are.same({ fixture = true }, ModuleHandler.LiveModulesFor({ fixture_mode = "off" }))
+			assert.are.same({ dials = true }, ModuleHandler.LiveModulesFor({ fixture_mode = "deep" }))
+		end)
+
+		it("forgets both on ResetCaches", function()
+			local before = ModuleHandler.LiveModulesFor({})
+			ModuleHandler.ResetCaches()
+			assert.is_false(rawequal(before, ModuleHandler.LiveModulesFor({})))
+		end)
+	end)
+
 	describe("Resolve", function()
 		describe("a missing requirement", function()
 			local function manifest(name, requires)
@@ -60,6 +158,158 @@ describe("ModuleHandler", function()
 				assert.is_nil(loadable.bystander)
 				assert.are.equal(3, #failures)
 			end)
+		end)
+	end)
+
+	describe("a module's contract", function()
+		local Policy = require("modules/policy")
+		-- Three modules on a fake VFS. owner declares its Check policy in the policy file that
+		-- builds it in one policy file and declares its facts in another; friend contributes a step to owner's Check
+		-- through Policies.Contract; loner's two policy files each claim the same category.
+		---@type table<string, fun(env: table): any> the fake VFS: a path to what including it returns
+		local FILES = {}
+		local real = {}
+
+		---@param path string
+		---@param env table|nil
+		local function include(path, env)
+			return FILES[path](env or {})
+		end
+
+		setup(function()
+			for _, fn in ipairs({ "SubDirs", "DirList", "FileExists", "Include" }) do
+				real[fn] = VFS[fn]
+			end
+			VFS.SubDirs = function()
+				return { "modules/owner/", "modules/friend/", "modules/loner/" }
+			end
+			VFS.DirList = function(dir)
+				local found = {}
+				for path in pairs(FILES) do
+					if path:sub(1, #dir) == dir and not path:sub(#dir + 1):find("/") then
+						found[#found + 1] = path
+					end
+				end
+				table.sort(found)
+				return found
+			end
+			VFS.FileExists = function(path)
+				return FILES[path] ~= nil
+			end
+			VFS.Include = function(path, env, ...)
+				if FILES[path] then
+					return include(path, env)
+				end
+				return real.Include(path, env, ...)
+			end
+		end)
+
+		teardown(function()
+			for fn, original in pairs(real) do
+				VFS[fn] = original
+			end
+			ModuleHandler.ResetCaches()
+		end)
+
+		before_each(function()
+			ModuleHandler.ResetCaches()
+			FILES = {
+				["modules/owner/manifest.lua"] = function()
+					return { name = "owner" }
+				end,
+				["modules/friend/manifest.lua"] = function()
+					return { name = "friend" }
+				end,
+				["modules/loner/manifest.lua"] = function()
+					return { name = "loner" }
+				end,
+				["modules/owner/policies/terms.lua"] = function()
+					return { Terms = Policy.Facts({ Rate = "rate" }) }
+				end,
+				["modules/owner/policies/check.lua"] = function(env)
+					local Check = Policy.Fold({ Shape = "Shape" })
+					env.Policies.On(Check).Apply(Check.Shape, function(ctx)
+						ctx.seen[#ctx.seen + 1] = "owner"
+					end)
+					return { Check = Check }
+				end,
+				["modules/friend/policies/owner.lua"] = function(env)
+					local Owner = env.Policies.Contract("owner")
+					local Extra = Policy.Contributes(Owner.Check, { Friendly = "Friendly", Shy = "Shy" })
+					env.Policies
+						.On(Extra)
+						.Apply(Extra.Friendly, function(ctx)
+							ctx.seen[#ctx.seen + 1] = "friend"
+						end)
+						.Apply(Extra.Shy, function(ctx)
+							ctx.seen[#ctx.seen + 1] = "shy"
+						end)
+						.When(function(ctx)
+							return ctx.brave == true
+						end)
+					return { Extra = Extra }
+				end,
+			}
+		end)
+
+		it("is what its policy files return, stamped by the loader", function()
+			local owner = ModuleHandler.Contract("owner")
+			assert.are.same({ owner = "owner", category = "check", result = "fold" }, Policy.IdentityOf(owner.Check))
+			assert.are.same({ owner = "owner", category = "terms", facts = true }, Policy.IdentityOf(owner.Terms))
+			assert.is_true(rawequal(owner, ModuleHandler.Contract("owner")))
+		end)
+
+		it("takes a contribution declared in the file that builds it, opened on the contributor's own steps", function()
+			local ctx = { seen = {} }
+			ModuleHandler.Evaluate(ModuleHandler.LoadPolicies("owner").check, ctx)
+			assert.are.same(
+				{ "owner", "friend" },
+				ctx.seen,
+				"a step When'd on a condition that does not hold does nothing"
+			)
+			local brave = { seen = {}, brave = true }
+			ModuleHandler.Evaluate(ModuleHandler.LoadPolicies("owner").check, brave)
+			assert.are.same({ "owner", "friend", "shy" }, brave.seen)
+			local friend = ModuleHandler.Contract("friend")
+			assert.are.same({ "check", "owner" }, {
+				Policy.IdentityOf(friend.Extra).contributes.category,
+				Policy.IdentityOf(friend.Extra).contributes.owner,
+			})
+		end)
+
+		it("refuses a category declared twice, and a policy file returning anything but its steps", function()
+			FILES["modules/loner/policies/a.lua"] = function(env)
+				local Check = Policy.Fold({ A = "A" })
+				env.Policies.On(Check).Apply(Check.A, function() end)
+				return { Check = Check }
+			end
+			FILES["modules/loner/policies/b.lua"] = function(env)
+				local Check = Policy.Fold({ B = "B" })
+				env.Policies.On(Check).Apply(Check.B, function() end)
+				return { Check = Check }
+			end
+			assert.has_error(function()
+				ModuleHandler.Contract("loner")
+			end, "modules/loner/policies/b.lua: loner already declares Check")
+			ModuleHandler.ResetCaches()
+			FILES["modules/loner/policies/b.lua"] = function()
+				return { Check = { B = "B" } }
+			end
+			assert.has_error(
+				function()
+					ModuleHandler.Contract("loner")
+				end,
+				"modules/loner/policies/b.lua: Check must declare itself: Single(...), Product(...), Fold(...), Contributes(...) or Facts(...)"
+			)
+		end)
+
+		it("refuses two modules whose contracts need each other, naming both", function()
+			FILES["modules/owner/policies/friendly.lua"] = function(env)
+				env.Policies.Contract("friend")
+			end
+			assert.has_error(function()
+				ModuleHandler.Contract("owner")
+			end, "friend -> owner -> friend: contracts that need each other")
 		end)
 	end)
 end)

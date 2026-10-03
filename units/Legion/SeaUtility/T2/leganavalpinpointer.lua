@@ -30,6 +30,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			deactivate_time = 8,
 			model_author = "Protar, ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,

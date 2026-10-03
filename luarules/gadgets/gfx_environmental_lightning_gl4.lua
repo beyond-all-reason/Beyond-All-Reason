@@ -421,6 +421,7 @@ local glCulling = gl.Culling
 local GL_ONE = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_TRIANGLES = GL.TRIANGLES
 
 local mathMin = math.min
 local mathMax = math.max
@@ -494,6 +495,11 @@ local GLOW_MIN_PIXEL_WIDTH = 0.005
 
 local INSTANCE_STRIDE = 24 -- 6 vec4 attributes
 
+-- Per-burst segment count range, as a multiple of cfg.segments (by complexity)
+local SEGMENTS_SCALE_MIN = 0.35
+local SEGMENTS_SCALE_MAX = 1.35
+local SEGMENTS_MAX = 2 -- quads in the segment strip, raised to fit every config below
+
 --------------------------------------------------------------------------------
 -- Precompute derived per-config fields (core color fallback, length falloff).
 --------------------------------------------------------------------------------
@@ -521,6 +527,7 @@ for _, cfg in pairs(lightningConfigs) do
 	cfg.restrikeChance = clamp(cfg.restrikeChance or 1.0, 0.0, 1.0)
 	cfg.strikeFullDist = cfg.strikeFullDist or 2200 -- within this dist: full strikes
 	cfg.strikeCullDist = cfg.strikeCullDist or 5000 -- beyond this dist: single strike
+	SEGMENTS_MAX = mathMax(SEGMENTS_MAX, mathFloor(cfg.segments * SEGMENTS_SCALE_MAX + 0.5))
 end
 
 --------------------------------------------------------------------------------
@@ -535,14 +542,15 @@ local boltVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-// Quad vertex: xy = corner (-1..1), zw = UV
-layout (location = 0) in vec4 position_xy_uv;
+// Strip vertex: xy = quad corner (-1..1), z = segment index
+layout (location = 0) in vec4 cornerAndSeg;
 
+// Per-instance (one per arm)
 layout (location = 1) in vec4 startPosAndWidth;   // xyz = arm start, w = base width
 layout (location = 2) in vec4 endPosAndTip;       // xyz = current (grown) tip, w = tip taper
 layout (location = 3) in vec4 coreColor;          // rgb = core color, a = alphaMul
 layout (location = 4) in vec4 edgeColor;          // rgb = edge color, a = root taper
-layout (location = 5) in vec4 boltParams;         // x = seed, y = segIndex, z = segCount, w = jitterAmp
+layout (location = 5) in vec4 boltParams;         // x = seed, y = unused, z = segCount, w = jitterAmp
 layout (location = 6) in vec4 extraParams;        // x = widthMul, y = widthScale, z = glowMult, w = feather
 
 out DataVS {
@@ -560,6 +568,10 @@ void cullVertex() { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); }
 
 void main()
 {
+	float segIndex = cornerAndSeg.z;
+	float segCount = boltParams.z;
+	if (segIndex >= segCount) { cullVertex(); return; }
+
 	vec3 startPos   = startPosAndWidth.xyz;
 	float baseWidth = startPosAndWidth.w * extraParams.y * extraParams.x;
 	vec3 endPos     = endPosAndTip.xyz;
@@ -567,8 +579,6 @@ void main()
 	float rootTaper = edgeColor.a;
 
 	float seed     = boltParams.x;
-	float segIndex = boltParams.y;
-	float segCount = boltParams.z;
 	float jitterAmp= boltParams.w;
 
 	vec3 boltDir = endPos - startPos;
@@ -583,7 +593,7 @@ void main()
 	float frameTick = ENV_LIGHTNING_ANIMATE > 0.5 ? floor(timeInfo.z * ANIMATE_RATE) : 0.0;
 
 	// Per-segment t with deterministic per-boundary length jitter (endpoints fixed)
-	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+	float yNorm = cornerAndSeg.y * 0.5 + 0.5;
 	float invSeg = 1.0 / segCount;
 	float lenVarAmp = SEGMENT_LENGTH_VAR * invSeg * 0.5;
 	float b0 = segIndex;
@@ -649,12 +659,12 @@ void main()
 	float coverageVal = clamp(width / max(minWidth, 0.001), 0.0, 1.0);
 	width = max(width, minWidth);
 
-	vec3 vertexWorld = posHere + right * position_xy_uv.x * width;
+	vec3 vertexWorld = posHere + right * cornerAndSeg.x * width;
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
 	vCoreColor = coreColor.rgb;
 	vEdgeColor = edgeColor.rgb;
-	widthPos = position_xy_uv.x;
+	widthPos = cornerAndSeg.x;
 	coverage = coverageVal;
 	feather  = extraParams.w;
 
@@ -717,7 +727,7 @@ local glowVsSrc = [[
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
-layout (location = 0) in vec4 position_xy_uv;
+layout (location = 0) in vec4 cornerAndSeg;
 layout (location = 1) in vec4 startPosAndWidth;
 layout (location = 2) in vec4 endPosAndTip;
 layout (location = 3) in vec4 coreColor;
@@ -743,18 +753,16 @@ void main()
 	vec3 endPos     = endPosAndTip.xyz;
 
 	float seed     = boltParams.x;
-	float segIndex = boltParams.y;
 	float segCount = boltParams.z;
 	float jitterAmp= boltParams.w;
 
 	vec3 boltDir = endPos - startPos;
 	float boltLen = length(boltDir);
 	if (boltLen < 0.01 || segCount < 1.0) { gl_Position = vec4(2.0,2.0,2.0,1.0); return; }
-	// One glow quad per arm: cull every segment except the first.
-	if (segIndex > 0.5) { gl_Position = vec4(2.0,2.0,2.0,1.0); return; }
+	// One glow quad per arm: drawAll only draws the first quad of the strip.
 	vec3 forward = boltDir / boltLen;
 
-	float yNorm = position_xy_uv.y * 0.5 + 0.5;
+	float yNorm = cornerAndSeg.y * 0.5 + 0.5;
 	float tHere = yNorm;
 	vec3 posOnAxis = mix(startPos, endPos, tHere);
 
@@ -788,10 +796,10 @@ void main()
 	float coverageVal = clamp(glowWidth / max(minWidth, 0.001), 0.0, 1.0);
 	glowWidth = max(glowWidth, minWidth);
 
-	vec3 vertexWorld = posOnAxis + right * position_xy_uv.x * glowWidth;
+	vec3 vertexWorld = posOnAxis + right * cornerAndSeg.x * glowWidth;
 	gl_Position = cameraViewProj * vec4(vertexWorld, 1.0);
 
-	widthPos = position_xy_uv.x;
+	widthPos = cornerAndSeg.x;
 	lengthT  = tHere;
 	glowColor = edgeColor.rgb;
 	alpha = coreColor.a * flicker * coverageVal * (1.0 - LENGTH_FALLOFF * tHere) * mix(0.72, 1.0, alignment);
@@ -894,6 +902,34 @@ local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
 end
 
+-- One quad per segment, 4 vertices of (corner x, corner y, segIndex, 0) each.
+local function makeSegmentStrip(numQuads)
+	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if not vertexVBO or not indexVBO then
+		return nil
+	end
+	local corners = { -1, -1, -1, 1, 1, 1, 1, -1 }
+	local vertices, indices = {}, {}
+	for q = 0, numQuads - 1 do
+		for c = 0, 3 do
+			local v = (q * 4 + c) * 4
+			vertices[v + 1] = corners[c * 2 + 1]
+			vertices[v + 2] = corners[c * 2 + 2]
+			vertices[v + 3] = q
+			vertices[v + 4] = 0
+		end
+		local b, i = q * 4, q * 6
+		indices[i + 1], indices[i + 2], indices[i + 3] = b, b + 1, b + 2
+		indices[i + 4], indices[i + 5], indices[i + 6] = b + 2, b + 3, b
+	end
+	vertexVBO:Define(numQuads * 4, { { id = 0, name = "cornerAndSeg", size = 4 } })
+	vertexVBO:Upload(vertices)
+	indexVBO:Define(numQuads * 6)
+	indexVBO:Upload(indices)
+	return vertexVBO, indexVBO
+end
+
 local function initGL4()
 	ensureFloatDefines(boltShaderConfig)
 	ensureFloatDefines(glowShaderConfig)
@@ -924,8 +960,11 @@ local function initGL4()
 		return false
 	end
 
-	local quadVBO, numVertices = gl.InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "envLightningQuadVBO")
-	local indexVBO = gl.InstanceVBOTable.makeRectIndexVBO("envLightningIndexVBO")
+	local stripVBO, indexVBO = makeSegmentStrip(SEGMENTS_MAX)
+	if not stripVBO then
+		goodbye("Failed to create segment strip")
+		return false
+	end
 
 	local boltLayout = {
 		{ id = 1, name = "startPosAndWidth", size = 4 },
@@ -940,12 +979,7 @@ local function initGL4()
 		goodbye("Failed to create bolt VBO")
 		return false
 	end
-	boltVBO.numVertices = numVertices
-	boltVBO.vertexVBO = quadVBO
-	boltVBO.VAO = boltVBO:makeVAOandAttach(quadVBO, boltVBO.instanceVBO)
-	boltVBO.primitiveType = GL.TRIANGLES
-	boltVBO.VAO:AttachIndexBuffer(indexVBO)
-	boltVBO.indexVBO = indexVBO
+	boltVBO.VAO = boltVBO:makeVAOandAttach(stripVBO, boltVBO.instanceVBO, indexVBO)
 	return true
 end
 
@@ -965,8 +999,7 @@ local function resizeBoltVBO(needed)
 		data[i] = 0
 	end
 	boltVBO.VAO:Delete()
-	boltVBO.VAO = boltVBO:makeVAOandAttach(boltVBO.vertexVBO, boltVBO.instanceVBO)
-	boltVBO.VAO:AttachIndexBuffer(boltVBO.indexVBO)
+	boltVBO.VAO = boltVBO:makeVAOandAttach(boltVBO.vertexVBO, boltVBO.instanceVBO, boltVBO.indexVBO)
 end
 
 local function cleanupGL4()
@@ -1229,7 +1262,8 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 	end
 	maxDepth = clamp(maxDepth, 0, cfg.maxDepth + 1)
 	local minSegments = (burstSizeScale < 0.5) and 1 or 2
-	local segments = mathMax(minSegments, mathFloor(cfg.segments * lerp(0.35, 1.35, complexity01) + 0.5))
+	local segments =
+		mathMax(minSegments, mathFloor(cfg.segments * lerp(SEGMENTS_SCALE_MIN, SEGMENTS_SCALE_MAX, complexity01) + 0.5))
 	local growFrac = clamp(cfg.growFrac * lerp(0.85, 1.15, complexity01), 0.18, 0.95)
 
 	local intensityJitter = 1.0 + ((mathRandom() * 2.0 - 1.0) * cfg.intensityVar)
@@ -1303,7 +1337,10 @@ local function spawnBurst(configName, x, y, z, sizeScale, intensityScale, widthS
 		birthFrame = spGetGameFrame(),
 		lifeFrames = burstLifeFrames,
 		intensity = cfg.intensity * burstIntensity,
-		intensityScale = burstIntensity,
+		-- Keep intensity-driven size/glow bounded so one very bright burst does not
+		-- over-bloom nearby lightning effects.
+		widthMul = clamp(burstIntensity, 0.70, 1.25),
+		glowMult = cfg.glowBrightness * clamp(burstIntensity, 0.70, 1.20),
 		widthScale = widthScale,
 		segments = segments,
 		baseWidth = cfg.baseWidth * burstSizeScale,
@@ -1436,7 +1473,6 @@ end
 --------------------------------------------------------------------------------
 local function pushArm(beamData, offset, burst, br, life, alphaMul, seedJitter)
 	local cfg = burst.cfg
-	local segs = burst.segments
 
 	-- current grown length of this arm
 	local local01 = (life - br.startFrac) / br.growFrac
@@ -1459,7 +1495,6 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul, seedJitter)
 	elseif appear < 0 then
 		appear = 0
 	end
-	local armAlpha = alphaMul * appear
 
 	local ox, oy, oz = burst.x, burst.y, burst.z
 	local baseSx = ox + br.sx
@@ -1481,53 +1516,32 @@ local function pushArm(beamData, offset, burst, br, life, alphaMul, seedJitter)
 	local ey = baseSy + br.dy * grown
 	local ez = baseSz + br.dz * grown
 
-	local widthScale = br.widthScale * (burst.widthScale or 1.0)
-	local feather = cfg.feather
-	-- Keep intensity-driven size/glow bounded so one very bright burst does not
-	-- over-bloom nearby lightning effects.
-	local widthIntensityScale = clamp(burst.intensityScale, 0.70, 1.25)
-	local glowIntensityScale = clamp(burst.intensityScale, 0.70, 1.20)
-	local glowMult = cfg.glowBrightness * glowIntensityScale
-	local tipTaper = cfg.tipTaper
-	local rootTaper = cfg.rootTaper
-	local jitterAmp = burst.jitterAmp
-	local baseWidth = burst.baseWidth
-	local intensityW = widthIntensityScale
-
-	local cr, cg, cb = cfg.coreR, cfg.coreG, cfg.coreB
-	local er, eg, eb = cfg.r, cfg.g, cfg.b
+	beamData[offset + 1] = sx
+	beamData[offset + 2] = sy
+	beamData[offset + 3] = sz
+	beamData[offset + 4] = burst.baseWidth
+	beamData[offset + 5] = ex
+	beamData[offset + 6] = ey
+	beamData[offset + 7] = ez
+	beamData[offset + 8] = cfg.tipTaper
+	beamData[offset + 9] = cfg.coreR
+	beamData[offset + 10] = cfg.coreG
+	beamData[offset + 11] = cfg.coreB
+	beamData[offset + 12] = alphaMul * appear
+	beamData[offset + 13] = cfg.r
+	beamData[offset + 14] = cfg.g
+	beamData[offset + 15] = cfg.b
+	beamData[offset + 16] = cfg.rootTaper
 	-- Same arm, different jitter per restrike: offset the shader seed only.
-	local seed = br.seed + (seedJitter or 0.0)
-	local count = 0
-	for s = 0, segs - 1 do
-		beamData[offset + 1] = sx
-		beamData[offset + 2] = sy
-		beamData[offset + 3] = sz
-		beamData[offset + 4] = baseWidth
-		beamData[offset + 5] = ex
-		beamData[offset + 6] = ey
-		beamData[offset + 7] = ez
-		beamData[offset + 8] = tipTaper
-		beamData[offset + 9] = cr
-		beamData[offset + 10] = cg
-		beamData[offset + 11] = cb
-		beamData[offset + 12] = armAlpha
-		beamData[offset + 13] = er
-		beamData[offset + 14] = eg
-		beamData[offset + 15] = eb
-		beamData[offset + 16] = rootTaper
-		beamData[offset + 17] = seed
-		beamData[offset + 18] = s
-		beamData[offset + 19] = segs
-		beamData[offset + 20] = jitterAmp
-		beamData[offset + 21] = intensityW -- widthMul (brightness/size intensity)
-		beamData[offset + 22] = widthScale
-		beamData[offset + 23] = glowMult
-		beamData[offset + 24] = feather
-		offset = offset + INSTANCE_STRIDE
-		count = count + 1
-	end
-	return offset, count
+	beamData[offset + 17] = br.seed + (seedJitter or 0.0)
+	beamData[offset + 18] = 0.0 -- unused
+	beamData[offset + 19] = burst.segments
+	beamData[offset + 20] = burst.jitterAmp
+	beamData[offset + 21] = burst.widthMul -- brightness/size intensity
+	beamData[offset + 22] = br.widthScale * burst.widthScale
+	beamData[offset + 23] = burst.glowMult
+	beamData[offset + 24] = cfg.feather
+	return offset + INSTANCE_STRIDE, 1
 end
 
 local function updateBolts()
@@ -1576,7 +1590,7 @@ local function updateBolts()
 				then
 					-- Capacity: at most two strikes overlap at a time, but reserve for
 					-- all of them at once to stay safe regardless of overlap setting.
-					local need = beamCount + burst.nStrikes * burst.nBranches * burst.segments
+					local need = beamCount + burst.nStrikes * burst.nBranches
 					if need > boltVBO.maxElements then
 						resizeBoltVBO(need + 128)
 						beamData = boltVBO.instanceData
@@ -1650,8 +1664,9 @@ local function drawAll()
 	glCulling(false)
 	glBlending(GL_ONE, GL_ONE)
 
+	-- One glow quad per arm: the first quad of the strip
 	glowShader:Activate()
-	boltVBO:Draw()
+	boltVBO.VAO:DrawElements(GL_TRIANGLES, 6, 0, boltVBO.usedElements)
 	glowShader:Deactivate()
 
 	boltShader:Activate()

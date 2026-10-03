@@ -11,6 +11,9 @@ piece  torso, rflare, lflare, pelvis,
 static-var  bMoving, bAiming, ReadyToAim, restore_delay, gun_1, wpn1_lasthead, statechg_DesiredState,
 			statechg_StateChanging, WALK_PERIOD, moveSpeed, tdamage, shieldup;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_WALK			4
@@ -381,6 +384,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	Weapon1TurretX = <200.000000>;
+	Weapon1TurretY = <200.000000>;
 	hide rflare;
 	hide lflare;
 	hide aimx1;
@@ -498,8 +503,8 @@ AimPrimary(heading, pitch)
 	{
 		return(0);
 	}
-	turn aimy1 to y-axis heading speed <200.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <200.000000>;
+	turn aimy1 to y-axis heading speed Weapon1TurretY;
+	turn aimx1 to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;

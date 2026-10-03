@@ -96,22 +96,28 @@ local function GetSpotsGeo()
 		end
 	end
 	local spots = {}
+	local seen = {}
 	local features = Spring.GetAllFeatures()
 	local spotCount = 0
 	for i = 1, #features do
 		if geoFeatureDefs[Spring.GetFeatureDefID(features[i])] then
 			local x, y, z = Spring.GetFeaturePosition(features[i])
-			spotCount = spotCount + 1
-			spots[spotCount] = {
-				isGeo = true,
-				x = GetFootprintPos(x),
-				y = y,
-				z = GetFootprintPos(z),
-				minX = GetFootprintPos(x) - (precision / 2),
-				maxX = GetFootprintPos(x) + (precision / 2),
-				minZ = GetFootprintPos(z) - (precision / 2),
-				maxZ = GetFootprintPos(z) + (precision / 2),
-			}
+			-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
+			local key = GetFootprintPos(x) * 65536 + GetFootprintPos(z)
+			if not seen[key] then
+				seen[key] = true
+				spotCount = spotCount + 1
+				spots[spotCount] = {
+					isGeo = true,
+					x = GetFootprintPos(x),
+					y = y,
+					z = GetFootprintPos(z),
+					minX = GetFootprintPos(x) - (precision / 2),
+					maxX = GetFootprintPos(x) + (precision / 2),
+					minZ = GetFootprintPos(z) - (precision / 2),
+					maxZ = GetFootprintPos(z) + (precision / 2),
+				}
+			end
 		end
 	end
 	return spots

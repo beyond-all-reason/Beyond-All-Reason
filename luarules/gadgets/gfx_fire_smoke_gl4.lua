@@ -493,8 +493,12 @@ local particleRemoveQueue = {}
 --------------------------------------------------------------------------------
 local RING_MAX_SKIPS = 64 -- alive slots skipped per spawn before giving up
 local ring = {
+	minWindow = 4096, -- smallest ring window (slots in rotation, also the draw count)
 	data = nil, -- particleVBO.instanceData, 16 floats per slot
 	capacity = 0,
+	window = 0, -- slots in rotation; grows with load so the draw count follows the live count
+	shrinkWait = 0, -- frames the window has been oversized
+	drops = 0, -- spawns given up this frame (skip limit hit)
 	head = 0, -- next slot to try (0-based)
 	death = nil, -- [slot + 1] = death frame of the occupant, 0 when never used
 	live = 0, -- particles whose death frame has not been processed yet
@@ -786,7 +790,7 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 
 	-- Walk the ring past slots whose occupant is still alive
 	local death = ring.death
-	local capacity = ring.capacity
+	local window = ring.window
 	local slot = ring.head
 	local oldDeath = death[slot + 1]
 	if oldDeath > cachedGameFrame then
@@ -795,16 +799,17 @@ local function spawnParticle(px, py, pz, vx, vy, vz, size, cmapVariant, lifetime
 			skips = skips + 1
 			if skips > RING_MAX_SKIPS then
 				ring.head = slot
+				ring.drops = ring.drops + 1
 				return
 			end
 			slot = slot + 1
-			if slot >= capacity then
+			if slot >= window then
 				slot = 0
 			end
 			oldDeath = death[slot + 1]
 		until oldDeath <= cachedGameFrame
 	end
-	ring.head = (slot + 1 < capacity) and slot + 1 or 0
+	ring.head = (slot + 1 < window) and slot + 1 or 0
 	death[slot + 1] = deathFrame
 	-- The occupant expired but its removal queue has not run yet: uncount it now,
 	-- the queued entry no longer matches this slot's death frame.
@@ -903,6 +908,9 @@ local function initGL4()
 
 	ring.data = particleVBO.instanceData
 	ring.capacity = MAX_PARTICLES
+	ring.window = mathMin(MAX_PARTICLES, ring.minWindow)
+	ring.shrinkWait = 0
+	ring.drops = 0
 	ring.head = 0
 	ring.live = 0
 	ring.runStart = -1
@@ -1007,6 +1015,41 @@ local function removeExpiredParticles(gameFrame)
 	end
 	ring.live = live
 	lastRemovedFrame = gameFrame
+end
+
+-- Grows the ring window when it fills up, shrinks it (halving) once the upper half has
+-- been idle for a while, so the draw count tracks the load instead of the VBO size.
+function ring.updateWindow()
+	local window = ring.window
+	local live = ring.live
+	if (live * 2 > window or ring.drops > 0) and window < ring.capacity then
+		ring.window = mathMin(ring.capacity, window * 2)
+		ring.shrinkWait = 0
+	elseif live * 8 < window and window > ring.minWindow then
+		local wait = ring.shrinkWait + 1
+		ring.shrinkWait = wait
+		if wait >= 300 then
+			ring.shrinkWait = 0
+			local half = window / 2
+			local death = ring.death
+			local frame = cachedGameFrame
+			for i = half + 1, window do
+				if death[i] > frame then
+					return
+				end
+			end
+			ring.window = half
+			if ring.head >= half then
+				ring.head = 0
+			end
+			if particleVBO.usedElements > half then
+				particleVBO.usedElements = half
+			end
+		end
+	else
+		ring.shrinkWait = 0
+	end
+	ring.drops = 0
 end
 
 --------------------------------------------------------------------------------
@@ -2042,6 +2085,7 @@ local function runFireSmokeFrame(n)
 
 	-- Remove expired particles
 	removeExpiredParticles(n)
+	ring.updateWindow()
 
 	if debugEcho then
 		t1 = spGetTimer()
