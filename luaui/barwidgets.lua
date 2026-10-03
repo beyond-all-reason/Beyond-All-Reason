@@ -79,7 +79,8 @@ if anonymousMode ~= "disabled" then
 	end
 end
 
-if Spring.IsReplay() or Spring.GetSpectatingState() then
+-- Widget restrictions only matter against other players, so skirmish, challenges and scenarios are exempt
+if Spring.IsReplay() or Spring.GetSpectatingState() or BAR.Utilities.Gametype.IsSinglePlayer() then
 	allowuserwidgets = true
 	allowunitcontrolwidgets = true
 	onlyVerifiedUserWidgets = false
