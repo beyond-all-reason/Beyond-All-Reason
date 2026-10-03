@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <rml>
 	<head id="head">
-		<title>Territorial Domination Score</title>
-		<link type="text/rcss" href="gui_territorial_domination.rcss" />
+		<title>Dominion Score</title>
+		<link type="text/rcss" href="gui_dominion.rcss" />
 	</head>
-	<body data-model="territorial_score_model">
+	<body data-model="dominion_score_model">
 		<div
-			class="td-dock-ghost"
+			class="dominion-dock-ghost"
 			data-if="showDockGhost"
 			data-class-expanded="isExpanded"
 			data-style-left="dockGhostLeft"
 			data-style-top="dockGhostTop"
 		></div>
 		<div
-			class="td-panel-outer-halo"
+			class="dominion-panel-outer-halo"
 			data-if="isVisible"
 			data-class-expanded="isExpanded"
 			data-class-dragging="isDragging"
@@ -24,8 +24,8 @@
 			data-style-top="panelTop"
 		></div>
 		<div
-			id="td-root"
-			class="td-panel"
+			id="dominion-root"
+			class="dominion-panel"
 			data-if="isVisible"
 			data-class-expanded="isExpanded"
 			data-class-dragging="isDragging"
@@ -33,20 +33,20 @@
 			data-style-top="panelTop"
 			data-event-mousedown="beginPanelDrag()"
 		>
-			<div class="td-panel-texture"></div>
-			<div class="td-panel-gradient"></div>
-			<div class="td-panel-shine"></div>
-			<div class="td-panel-gloss"></div>
-			<div class="td-panel-top-edge"></div>
+			<div class="dominion-panel-texture"></div>
+			<div class="dominion-panel-gradient"></div>
+			<div class="dominion-panel-shine"></div>
+			<div class="dominion-panel-gloss"></div>
+			<div class="dominion-panel-top-edge"></div>
 			<div
-				class="td-panel-halo"
+				class="dominion-panel-halo"
 				data-class-origin="showOriginHalo"
 				data-class-first-place="showFirstPlaceHalo"
 				data-class-danger="showDangerHalo"
 			></div>
 
 			<div
-				class="td-distribution"
+				class="dominion-distribution"
 				data-if="!isExpanded"
 				data-style-height="distributionHeight"
 				data-event-mousedown="blockPanelDrag()"
@@ -55,30 +55,30 @@
 				data-event-mousemove="showDistributionTooltip()"
 				data-event-mouseout="hideTooltip()"
 			>
-				<div id="td-distribution-fill" class="td-distribution-fill" data-rml="distributionFillRml" data-style-height="distributionHeight"></div>
-				<div class="td-bar-gloss" data-style-height="distributionHeight"></div>
+				<div id="dominion-distribution-fill" class="dominion-distribution-fill" data-rml="distributionFillRml" data-style-height="distributionHeight"></div>
+				<div class="dominion-bar-gloss" data-style-height="distributionHeight"></div>
 			</div>
 
 			<div
-				class="td-horizontal-score"
+				class="dominion-horizontal-score"
 				data-if="!isExpanded"
 				data-event-mousedown="beginPanelDrag()"
 				data-event-mouseover="showScoreTooltip(selectedAllyTeamID)"
 				data-event-mouseout="hideTooltip()"
 			>
 				<div
-					class="td-horizontal-projected"
+					class="dominion-horizontal-projected"
 					data-style-width="selectedProjectedWidth"
 					data-style-background-color="selectedDarkColor"
 				></div>
 				<div
-					class="td-horizontal-actual"
+					class="dominion-horizontal-actual"
 					data-style-width="selectedActualWidth"
 					data-style-background-color="selectedColor"
 				></div>
-				<div class="td-bar-gloss"></div>
+				<div class="dominion-bar-gloss"></div>
 				<div
-					class="td-danger-overlay"
+					class="dominion-danger-overlay"
 					data-if="showDangerMark"
 					data-style-left="selectedProjectedWidth"
 					data-style-width="dangerOverlayWidth"
@@ -86,44 +86,44 @@
 					data-event-mouseout="hideDangerMarkTooltip()"
 				></div>
 				<div
-					class="td-deadline-excess-backfill"
+					class="dominion-deadline-excess-backfill"
 					data-if="showDeadlineExcessBackfill"
 					data-style-width="deadlineExcessBackfillWidth"
 				></div>
 			</div>
-			<div class="td-horizontal-danger-outline" data-if="showHorizontalDangerOutline"></div>
+			<div class="dominion-horizontal-danger-outline" data-if="showHorizontalDangerOutline"></div>
 
-			<div class="td-expanded-chart" data-if="isExpanded">
-				<div class="td-deadline-marker" data-if="hasDeadline" data-style-bottom="deadlineLineBottom">
+			<div class="dominion-expanded-chart" data-if="isExpanded">
+				<div class="dominion-deadline-marker" data-if="hasDeadline" data-style-bottom="deadlineLineBottom">
 					<div
-						class="td-deadline-label"
+						class="dominion-deadline-label"
 						data-style-bottom="deadlineLabelBottom"
 						data-event-mouseover="showSimpleTooltip('deadline')"
 						data-event-mouseout="hideTooltip()"
 					>{{deadlineLabel}}</div>
 					<div
-						class="td-deadline-hotspot"
+						class="dominion-deadline-hotspot"
 						data-event-mouseover="showSimpleTooltip('deadline')"
 						data-event-mouseout="hideTooltip()"
 					>
-						<div class="td-deadline-line"></div>
+						<div class="dominion-deadline-line"></div>
 					</div>
 				</div>
 				<div
-					id="td-vertical-scroll"
-					class="td-vertical-scroll"
+					id="dominion-vertical-scroll"
+					class="dominion-vertical-scroll"
 					data-class-overflowing="verticalBarsOverflow"
 				>
-					<div class="td-vertical-content" data-style-width="verticalContentWidth">
+					<div class="dominion-vertical-content" data-style-width="verticalContentWidth">
 						<div
 							data-for="score : verticalBars"
-							class="td-vertical-slot"
+							class="dominion-vertical-slot"
 							data-class-eliminated="!score.isAlive"
 							data-style-left="score.slotLeft"
 						>
-							<div class="td-vertical-rank">{{score.rank}}</div>
+							<div class="dominion-vertical-rank">{{score.rank}}</div>
 							<div
-								class="td-vertical-track"
+								class="dominion-vertical-track"
 								data-class-local="score.isLocalPlayer"
 								data-event-mousedown="blockPanelDrag()"
 								data-event-click="selectExpandedScore(score.allyTeamID)"
@@ -131,30 +131,30 @@
 								data-event-mouseout="hideTooltip()"
 							>
 								<div
-									class="td-vertical-projected"
+									class="dominion-vertical-projected"
 									data-style-height="score.projectedHeight"
 									data-style-background-color="score.darkColor"
 								></div>
 								<div
-									class="td-vertical-actual"
+									class="dominion-vertical-actual"
 									data-style-height="score.actualHeight"
 									data-style-background-color="score.color"
 								></div>
-								<div class="td-vertical-gloss"></div>
+								<div class="dominion-vertical-gloss"></div>
 								<div
-									class="td-vertical-danger-overlay"
+									class="dominion-vertical-danger-overlay"
 									data-if="score.showDangerOverlay"
 									data-style-bottom="score.dangerOverlayBottom"
 									data-style-height="score.dangerOverlayHeight"
 								></div>
 							</div>
 							<div
-								class="td-vertical-local-outline"
+								class="dominion-vertical-local-outline"
 								data-if="score.isLocalPlayer"
 								data-style-border-color="score.color"
 							></div>
 							<div
-								class="td-vertical-danger-outline"
+								class="dominion-vertical-danger-outline"
 								data-if="score.showDangerOverlay"
 							></div>
 						</div>
@@ -162,17 +162,17 @@
 				</div>
 			</div>
 
-			<div class="td-footer">
+			<div class="dominion-footer">
 				<div
-					class="td-footer-score"
+					class="dominion-footer-score"
 					data-event-mouseover="showSimpleTooltip('currentScore')"
 					data-event-mouseout="hideTooltip()"
 				>
-					<span class="td-allyteam-color" data-style-background-color="selectedColor"></span>
+					<span class="dominion-allyteam-color" data-style-background-color="selectedColor"></span>
 					<span>{{footerScore}}</span>
 				</div>
 				<div
-					class="td-footer-countdown"
+					class="dominion-footer-countdown"
 					data-class-warning="countdownWarning"
 					data-style-color="countdownPulseColor"
 					data-style-transform="countdownPulseTransform"
@@ -180,59 +180,59 @@
 					data-event-mouseout="hideTooltip()"
 				>{{footerCountdown}}</div>
 				<div
-					class="td-footer-target"
+					class="dominion-footer-target"
 					data-class-deadline="isBelowDeadline"
 					data-event-mouseover="showTargetTooltip()"
 					data-event-mouseout="hideTooltip()"
 				>
-					<span class="td-footer-icon" data-style-color="footerTargetIconColor">{{footerTargetIcon}}</span>
+					<span class="dominion-footer-icon" data-style-color="footerTargetIconColor">{{footerTargetIcon}}</span>
 					<span>{{footerTargetValue}}</span>
 				</div>
 			</div>
 		</div>
 
 		<div
-			id="td-tooltip"
-			class="td-tooltip"
+			id="dominion-tooltip"
+			class="dominion-tooltip"
 			data-if="tooltipVisible"
 			data-style-left="tooltipLeft"
 			data-style-top="tooltipTop"
 			data-style-width="tooltipWidth"
 		>
-			<div class="td-tooltip-texture"></div>
-			<div class="td-tooltip-gradient"></div>
-			<div class="td-tooltip-content">
-				<div class="td-tooltip-header" data-if="tooltipHeader != ''">{{tooltipHeader}}</div>
-				<div class="td-tooltip-row td-tooltip-team-row" data-if="tooltipShowTeam">
-					<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
-					<span class="td-allyteam-color" data-style-background-color="tooltipTeamColor"></span>
+			<div class="dominion-tooltip-texture"></div>
+			<div class="dominion-tooltip-gradient"></div>
+			<div class="dominion-tooltip-content">
+				<div class="dominion-tooltip-header" data-if="tooltipHeader != ''">{{tooltipHeader}}</div>
+				<div class="dominion-tooltip-row dominion-tooltip-team-row" data-if="tooltipShowTeam">
+					<span class="dominion-tooltip-team-label">{{tooltipTeamLabel}}</span>
+					<span class="dominion-allyteam-color" data-style-background-color="tooltipTeamColor"></span>
 				</div>
-				<div id="td-tooltip-players" class="td-tooltip-players" data-if="!tooltipIsSimple" data-rml="tooltipPlayersRml"></div>
-				<div class="td-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
-				<div class="td-tooltip-score" data-if="tooltipIsScore">
-					<div class="td-tooltip-row">{{tooltipTerritories}}</div>
-					<div class="td-tooltip-row">{{tooltipGainRate}}</div>
-					<div class="td-tooltip-row">{{tooltipCurrentScore}}</div>
-					<div class="td-tooltip-row">{{tooltipProjectedScore}}</div>
-					<div class="td-tooltip-row" data-if="tooltipShowDeadline">{{tooltipDeadlineDifference}}</div>
-					<div class="td-tooltip-row td-tooltip-leader-row" data-if="tooltipShowLeader">
+				<div id="dominion-tooltip-players" class="dominion-tooltip-players" data-if="!tooltipIsSimple" data-rml="tooltipPlayersRml"></div>
+				<div class="dominion-tooltip-title" data-if="tooltipTitle != ''">{{tooltipTitle}}</div>
+				<div class="dominion-tooltip-score" data-if="tooltipIsScore">
+					<div class="dominion-tooltip-row">{{tooltipTerritories}}</div>
+					<div class="dominion-tooltip-row">{{tooltipGainRate}}</div>
+					<div class="dominion-tooltip-row">{{tooltipCurrentScore}}</div>
+					<div class="dominion-tooltip-row">{{tooltipProjectedScore}}</div>
+					<div class="dominion-tooltip-row" data-if="tooltipShowDeadline">{{tooltipDeadlineDifference}}</div>
+					<div class="dominion-tooltip-row dominion-tooltip-leader-row" data-if="tooltipShowLeader">
 						<span>{{tooltipLeaderDifference}}</span>
-						<span class="td-tooltip-team-label">{{tooltipTeamLabel}}</span>
-						<span class="td-allyteam-color" data-style-background-color="tooltipLeaderColor"></span>
+						<span class="dominion-tooltip-team-label">{{tooltipTeamLabel}}</span>
+						<span class="dominion-allyteam-color" data-style-background-color="tooltipLeaderColor"></span>
 					</div>
 				</div>
 				<div data-if="tooltipIsSimple">
-					<div class="td-tooltip-simple">{{tooltipText}}</div>
-					<div class="td-tooltip-simple" data-if="tooltipSecondaryText != ''">{{tooltipSecondaryText}}</div>
+					<div class="dominion-tooltip-simple">{{tooltipText}}</div>
+					<div class="dominion-tooltip-simple" data-if="tooltipSecondaryText != ''">{{tooltipSecondaryText}}</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="td-popup" data-if="popupVisible">
-			<div class="td-popup-content">
-				<div class="td-popup-title">{{popupTitle}}</div>
-				<div class="td-popup-rate" data-if="popupRateText != ''">{{popupRateText}}</div>
-				<div class="td-popup-deadline" data-if="popupDeadlineText != ''">{{popupDeadlineText}}</div>
+		<div class="dominion-popup" data-if="popupVisible">
+			<div class="dominion-popup-content">
+				<div class="dominion-popup-title">{{popupTitle}}</div>
+				<div class="dominion-popup-rate" data-if="popupRateText != ''">{{popupRateText}}</div>
+				<div class="dominion-popup-deadline" data-if="popupDeadlineText != ''">{{popupDeadlineText}}</div>
 			</div>
 		</div>
 	</body>

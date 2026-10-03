@@ -45,9 +45,9 @@ local function getModeFlags(modOptions)
 	end
 
 	local quickStartMode = modOptions.quick_start
-	local territorialDominationEnabled = modOptions.temp_enable_territorial_domination
-		or modOptions.deathmode == "territorial_domination"
-	local defaultModeEnabled = quickStartMode == "default" and territorialDominationEnabled
+	local dominionEnabled = modOptions.temp_enable_dominion
+		or modOptions.deathmode == "dominion"
+	local defaultModeEnabled = quickStartMode == "default" and dominionEnabled
 	local shouldRunGadget = quickStartMode == "enabled"
 		or quickStartMode == "factory_discount"
 		or quickStartMode == "factory_discount_only"
