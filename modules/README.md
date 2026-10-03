@@ -82,9 +82,9 @@ return state
 **`<module>/api_synced.lua`**
 **`<module>/api_unsynced.lua`**
 
-These files define the module's api. Together they act as a [service](https://en.wikipedia.org/wiki/Service_layer_pattern) for the module. Each function in this file is the only function to handle a given thing. One canonical answer per game behavior.
+These files define the module's api. Together they act as a [service](https://en.wikipedia.org/wiki/Service_layer_pattern) for the module. Each function in this file is the only function that answers a given question. One canonical answer per game behavior.
 
-Each file in the module speaks to an specific engine Lua environment handle, or none at all in the case of api.lua.
+Each file in a module speaks to one engine Lua handle (the engine's word for its Lua states: LuaRules synced, LuaRules unsynced, LuaUI), or to any of them in the case of `api.lua`, which runs in all.
 * **api_unsynced** - what a widget asks that touches the unsynced engine
 * **api_synced** - what a gadget asks that touches the synced engine
 * **api** - neutral: it runs in any Lua state (a synced gadget, a widget, the lobby), so it calls nothing that `Spring.*` offers in one handle only.
@@ -115,10 +115,12 @@ return {
 
 Consumers require it as `local Construction = require("modules/construction/api")` and call `Construction.Mexes()`.
 
-The `spec/modules/handles_spec.lua` holds every module to it: `api.lua`, `policies/` and `lib/` require nothing bound to a handle. Synced and unsynced call nothing the engine offers in one handle only.
+`spec/modules/handles_spec.lua` holds every module to it. `api.lua`, `policies/` and `lib/` may not `require` a file bound to one handle (`api_synced.lua`, `synced.lua`, anything under `widgets/`) and call nothing the engine offers in one handle only. The named files are one half only: `api_synced.lua` and any `synced.lua` call nothing offered only in the unsynced handle, `api_unsynced.lua` and anything under `widgets/` the reverse. For example `Spring.SetUnitPosition` exists only in the synced handle and `Spring.GetSelectedUnits` only in the unsynced one: `api.lua` may call neither, `api_synced.lua` the first and not the second.
+
+A gadget is the one file that runs in both handles, a half for each chosen by `gadgetHandler:IsSyncedCode()`; the rule leaves gadgets alone. The two handles never call each other; they pass messages (`SendToUnsynced`, `SendLuaRulesMsg`).
 
 **`<module>/policies/<name>.lua`**
-Policies are stateless game rules.
+Policies are a typed function from a context to a result, cut into named steps, assembled by the loader from every module that contributes one, and evaluated with no state but the context it's handed.
 
 Here is a policy from `modules/construction/policies/assist.lua`, annotated with numeric comments correlating to the descriptions lines below:
 ```lua
