@@ -132,7 +132,8 @@ if anonymousMode ~= "disabled" then
 	end
 end
 
-if spIsReplay() or spGetSpectatingState() then
+-- Widget restrictions only matter against other players, so skirmish, challenges and scenarios are exempt
+if spIsReplay() or spGetSpectatingState() or isSinglePlayer() then
 	allowuserwidgets = true
 	allowunitcontrolwidgets = true
 	onlyVerifiedUserWidgets = false
