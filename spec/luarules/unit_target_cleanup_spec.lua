@@ -1,4 +1,4 @@
-local function loadTargetGadget()
+local function loadTargetGadget(unitTeams)
 	local currentCommand
 	local target
 	local rules = {}
@@ -58,10 +58,10 @@ local function loadTargetGadget()
 				return 1
 			end,
 			GetUnitTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitTeams and unitTeams[unitID] or (unitID == 1 and 1 or 2)
 			end,
 			GetUnitAllyTeam = function(unitID)
-				return unitID == 1 and 1 or 2
+				return unitTeams and unitTeams[unitID] or (unitID == 1 and 1 or 2)
 			end,
 			AreTeamsAllied = function(a, b)
 				return a == b
@@ -203,6 +203,55 @@ describe("Set Target invalid-target cleanup", function()
 			assert.is_nil(g.rules.hasPriorityTarget)
 		end)
 	end
+
+	it("keeps an unseen target's expiry when other entries die during selection", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		g.set(20, true)
+		g.set(30, true)
+		g.set(40, true)
+		g.losStates[20] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 20
+		end)
+		g.update(15)
+		g.deadTargets[10] = true
+		g.update(16)
+		g.update(30)
+		g.deadTargets[30] = true
+		g.update(31)
+		g.update(45)
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+		g.update(60)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(40, g.env.GG.GetUnitTargetList(1)[1].target)
+		g.losStates[20] = 3
+		g.canTarget(function()
+			return true
+		end)
+		g.update(61)
+		assert.are.equal(40, g.target())
+	end)
+
+	it("does not shorten grace while both the source and reduced lists remain active", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(unitID, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, { 10, 20, 30 }, { coded = 0 }, 1, 1)
+		end
+		g.losStates[20] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 20
+		end)
+		g.update(15)
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_CANCEL_TARGET, { 10 }, { coded = 0 }, 1, 1)
+		g.update(30)
+		g.update(45)
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(3, #g.env.GG.GetUnitTargetList(2))
+		g.update(60)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(2))
+	end)
 
 	it("clears the assignment when its last target starts crashing", function()
 		local g = loadTargetGadget()

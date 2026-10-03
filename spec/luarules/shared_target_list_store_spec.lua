@@ -79,15 +79,41 @@ describe("shared target-list store", function()
 		local source = store:getOrCreateSharedTargetList({ entry(10), entry(20), entry(30) }, 1, 2)
 		local reduced = store:getSharedTargetListWithout(source, 1)
 		reduced.unavailable[20] = 2
-		reduced.unseenPasses[20] = 2
+		reduced.unseenUntil[20] = 60
 		reduced.validationIndex = 2
 		store:removeSharedTargetList(reduced)
 		local recreated = store:getSharedTargetListWithout(source, 1)
 		assert.are_not.equal(reduced.id, recreated.id)
 		assert.is_true(rawequal(reduced.entries, recreated.entries))
 		assert.same({}, recreated.unavailable)
-		assert.same({}, recreated.unseenPasses)
+		assert.are.equal(60, recreated.unseenUntil[20])
+		assert.is_true(rawequal(source.unseenUntil, recreated.unseenUntil))
 		assert.are.equal(1, recreated.validationIndex)
+	end)
+
+	it("inherits deadlines without copying them for each removal owner", function()
+		local store = SharedTargetListStore.new()
+		local source = store:getOrCreateSharedTargetList({ entry(10), entry(20), entry(30) }, 1, 2)
+		source.unseenUntil[20] = 60
+		for _ = 1, 600 do
+			local reduced = store:getSharedTargetListWithout(source, 1)
+			assert.is_true(rawequal(source.unseenUntil, reduced.unseenUntil))
+			assert.are.equal(60, reduced.unseenUntil[20])
+			store:removeSharedTargetList(reduced)
+		end
+	end)
+
+	it("isolates deadlines before a private edit reintroduces a removed target", function()
+		local store = SharedTargetListStore.new()
+		local source = store:getOrCreateSharedTargetList({ entry(10), entry(20), entry(30) }, 1, 2)
+		source.unseenUntil[10] = 45
+		source.unseenUntil[20] = 60
+		local reduced = store:getSharedTargetListWithout(source, 1)
+		store:makeTargetListPrivate(reduced)
+		assert.is_nil(reduced.unseenUntil[10])
+		assert.are.equal(60, reduced.unseenUntil[20])
+		reduced.unseenUntil[20] = nil
+		assert.are.equal(60, source.unseenUntil[20])
 	end)
 
 	it("invalidates removals before a source list is extended in place", function()

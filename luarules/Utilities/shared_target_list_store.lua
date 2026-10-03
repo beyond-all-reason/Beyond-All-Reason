@@ -14,7 +14,8 @@ local SharedTargetListStore = {}
 ---@field lookup table<number, integer>
 ---@field units table<integer, table> Assignment owners, including both command kinds.
 ---@field unavailable table<any, integer?> Tracking-state reason; nil means available.
----@field unseenPasses table<any, integer?> Remaining slow-update passes before an unseen target is dropped
+---@field unseenUntil table<any, integer?> Slow-update frame at which an unseen target expires
+---@field unseenUntilShared boolean? Expiry storage also belongs to a related reduced list
 ---@field validationIndex integer
 ---@field refCount integer
 
@@ -83,7 +84,7 @@ function Store:createTargetList(entries, teamID, allyTeam, key, lookup)
 		lookup = lookup,
 		units = {},
 		unavailable = {},
-		unseenPasses = {},
+		unseenUntil = {},
 		validationIndex = 1,
 		refCount = 0,
 	}
@@ -111,7 +112,8 @@ function Store:getOrCreateSharedTargetList(entries, teamID, allyTeam)
 end
 
 ---Shares the result of removing an entry, without copying and hashing it per owner.
----Only the value is cached: released lists must still get fresh lifecycle state.
+---Only the value is cached: released lists get fresh validation/transport state.
+---Retained targets keep the source expiry deadlines; removals do not renew them.
 ---@param source SharedTargetList
 ---@param index integer
 ---@return SharedTargetList? list Nil when the last entry is removed.
@@ -137,6 +139,11 @@ function Store:getSharedTargetListWithout(source, index)
 	if not list then
 		list = self:createTargetList(value.entries, source.teamID, source.allyTeam, value.key, value.lookup)
 		self.sharedListsByKey[value.key] = list
+		-- Deadlines are idempotent when related lists validate in the same frame.
+		-- Share them in O(1), including recreated intermediate removal results.
+		list.unseenUntil = source.unseenUntil
+		list.unseenUntilShared = true
+		source.unseenUntilShared = true
 	end
 	value.lookup = list.lookup
 	-- Keep subsequent removals with the value too. Intermediate lists can lose
@@ -161,6 +168,16 @@ end
 ---Detaches an exclusively owned list before an in-place mutation.
 ---@param list SharedTargetList
 function Store:makeTargetListPrivate(list)
+	if list.unseenUntilShared then
+		-- A later append may reintroduce a removed target with a fresh lifetime.
+		-- Detach once for that private edit, copying only currently retained targets.
+		local deadlines = {}
+		for _, entry in ipairs(list.entries) do
+			deadlines[entry.target] = list.unseenUntil[entry.target]
+		end
+		list.unseenUntil = deadlines
+		list.unseenUntilShared = nil
+	end
 	-- Cached values can share this list's entries, as a source or a result.
 	-- Invalidate them before the caller appends to the entries in place.
 	self.removalsByList = {}

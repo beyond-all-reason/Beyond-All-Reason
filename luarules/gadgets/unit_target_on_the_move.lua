@@ -285,7 +285,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local unseenGracePasses = math.floor(unseenGraceTime / 0.5)
+	local unseenGraceFrames = math.floor(unseenGraceTime / 0.5) * 15
 
 	--------------------------------------------------------------------------------
 	-- Commands
@@ -1482,7 +1482,7 @@ if gadgetHandler:IsSyncedCode() then
 			local target = oldList.entries[oldIndex].target
 			local wasUnavailable = newList.unavailable[target]
 			newList.unavailable[target] = oldList.unavailable[target]
-			newList.unseenPasses[target] = oldList.unseenPasses[target]
+			newList.unseenUntil[target] = oldList.unseenUntil[target]
 			if wasUnavailable ~= newList.unavailable[target] and sentSharedTargetLists[newList.id] then
 				sendSharedTargetEntryToUnsynced(newList, newIndex)
 			end
@@ -1599,11 +1599,17 @@ if gadgetHandler:IsSyncedCode() then
 				sendSharedTargetEntryToUnsynced(list, index)
 			end
 			if slowUpdate then
-				local unseen = list.unseenPasses[target] or unseenGracePasses
-				if targetState == TARGET_AVAILABLE then
-					list.unseenPasses[target] = nil
-				elseif targetState == TARGET_UNSEEN and (keepUnseen or unseen > 0) then
-					list.unseenPasses[target] = keepUnseen and nil or unseen - 1
+				if targetState == TARGET_AVAILABLE or (targetState == TARGET_UNSEEN and keepUnseen) then
+					list.unseenUntil[target] = nil
+				elseif targetState == TARGET_UNSEEN then
+					-- Start on the first slow update, preserving the legacy expiry frame.
+					-- Reduced lists share deadlines, so validating both cannot tick twice.
+					local expires = list.unseenUntil[target]
+					if not expires then
+						list.unseenUntil[target] = frame + unseenGraceFrames
+					elseif frame >= expires then
+						removeTargetFromList = true
+					end
 				else
 					removeTargetFromList = true
 				end
@@ -1638,7 +1644,7 @@ if gadgetHandler:IsSyncedCode() then
 		local slowUpdate = frame % 15 == 0
 		if slowUpdate then
 			-- Full sweeps preserve legacy pruning frames for replay A/B parity.
-			-- unseenPasses counts slow updates, so budgeting this pass also requires time-based expiry.
+			-- Deadlines preserve lifetime across list reductions; the sweep retains the exact pruning frame.
 			local lists = {}
 			for index = 1, validationWorkQueueLength do
 				lists[index] = validationWorkQueue[index]
