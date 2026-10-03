@@ -370,6 +370,7 @@ if gadgetHandler:IsSyncedCode() then
 		pastFirstBoss = true
 		nSpawnedBosses = 0
 		nKilledBosses = 0
+		nTotalBosses = nTotalBosses + 1
 		bossResistance = {}
 		aliveBossesMaxHealth = 0
 		bosses.resistances = bossResistance

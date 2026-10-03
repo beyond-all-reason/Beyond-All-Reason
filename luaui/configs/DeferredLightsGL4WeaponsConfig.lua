@@ -2359,8 +2359,42 @@ explosionLightsNames.corcat_exp_heavyrocket = GetLightClass("Explosion", nil, "M
 -- 	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
 -- 											sustain = 10, lifetime = 400,
 --     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
+--scavbossv5 eater beam: a modest light instead of the auto-sized one
+projectileDefLightsNames.scavbossv5_eaterbeam = GetLightClass("LaserProjectile", nil, "Small", {
+	r = 1.0,
+	g = 0.65,
+	b = 0.1,
+	a = 0.18,
+	color2r = 0.15,
+	color2g = 0.04,
+	color2b = 0.015,
+	colortime = 0.03,
+	modelfactor = 0.5,
+	specular = -0.1,
+	scattering = 2.9,
+	lensflare = 0,
+	lifetime = 3,
+	sustain = 2,
+})
+projectileDefLightsNames.scavbossv5_scav_eaterbeam = GetLightClass("LaserProjectile", nil, "Small", {
+	r = 0.6,
+	g = 0.2,
+	b = 1.0,
+	a = 0.18,
+	color2r = 0.08,
+	color2g = 0.02,
+	color2b = 0.15,
+	colortime = 0.03,
+	modelfactor = 0.5,
+	specular = -0.1,
+	scattering = 2.9,
+	lensflare = 0,
+	lifetime = 3,
+	sustain = 2,
+})
+
 --scavengerbossv4
-explosionLightsNames.scavengerbossv4_normal_turbo_napalm = GetLightClass("Explosion", "Fire", "SmallMedium", {
+explosionLightsNames.scavengerbossv4_turbo_napalm = GetLightClass("Explosion", "Fire", "SmallMedium", {
 	r = 0.54,
 	g = 0.45,
 	b = 0.12,
@@ -2377,23 +2411,7 @@ explosionLightsNames.scavengerbossv4_normal_turbo_napalm = GetLightClass("Explos
 	lensflare = 0,
 })
 
---duplicate lights from scavengerbossv4_normal_turbo_napalm for all scavengerbossv4 variants, including _scav
-local scavengerBossV4Table = {
-	"scavengerbossv4_veryeasy_turbo_napalm",
-	"scavengerbossv4_easy_turbo_napalm",
-	"scavengerbossv4_hard_turbo_napalm",
-	"scavengerbossv4_veryhard_turbo_napalm",
-	"scavengerbossv4_epic_turbo_napalm",
-	"scavengerbossv4_veryeasy_scav_turbo_napalm",
-	"scavengerbossv4_easy_scav_turbo_napalm",
-	"scavengerbossv4_normal_scav_turbo_napalm",
-	"scavengerbossv4_hard_scav_turbo_napalm",
-	"scavengerbossv4_veryhard_scav_turbo_napalm",
-	"scavengerbossv4_epic_scav_turbo_napalm",
-}
-for _, name in pairs(scavengerBossV4Table) do
-	explosionLightsNames[name] = table.copy(explosionLightsNames.scavengerbossv4_normal_turbo_napalm)
-end
+explosionLightsNames.scavengerbossv4_scav_turbo_napalm = table.copy(explosionLightsNames.scavengerbossv4_turbo_napalm)
 
 -- --armannit3
 -- projectileDefLightsNames["armannit3_ata"] =

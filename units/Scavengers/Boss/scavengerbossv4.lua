@@ -29,8 +29,6 @@ local baseValues = { --format: {value, multiplier}
 	turboShotgunArmBurst = { 2, 1.15 },
 }
 
-local difficultyParams = {}
-local difficultyLevels = { "veryeasy", "easy", "normal", "hard", "veryhard", "epic" }
 local levelMultipliers = { -- this defines the ^power for the multiplier values
 	veryeasy = -2,
 	easy = -1,
@@ -39,18 +37,17 @@ local levelMultipliers = { -- this defines the ^power for the multiplier values
 	veryhard = 2,
 	epic = 3,
 }
+local level = BAR.Utilities.Gametype.IsScavengers() and levelMultipliers[Spring.GetModOptions().scav_difficulty] or 0
 
-for _, level in pairs(difficultyLevels) do
-	difficultyParams[level] = {}
-	for key, pair in pairs(baseValues) do
-		local base, individualMultiplier = pair[1], pair[2]
-		difficultyParams[level][key] = math.floor(base * individualMultiplier ^ (levelMultipliers[level] or 0) + 0.5)
-	end
+local stats = {}
+for key, pair in pairs(baseValues) do
+	local base, individualMultiplier = pair[1], pair[2]
+	stats[key] = math.floor(base * individualMultiplier ^ level + 0.5)
 end
 
 local unitsTable = {}
-for difficulty, stats in pairs(difficultyParams) do
-	unitsTable["scavengerbossv4_" .. difficulty] = {
+do
+	unitsTable.scavengerbossv4 = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
 		autoheal = 0,
