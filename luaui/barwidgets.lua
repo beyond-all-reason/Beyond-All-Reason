@@ -30,7 +30,7 @@ local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lu
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
 
-local SELECTOR_BASENAME = "selector.lua"
+local SELECTOR_BASENAME = "widget_selector.lua"
 
 local SAFEWRAP = 1
 -- 0: disabled
@@ -97,6 +97,7 @@ widgetHandler = {
 
 	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
+	gameFiles = {}, -- widget name -> the file in the game archive that declares it
 
 	WG = {}, -- shared table for widgets
 
@@ -416,9 +417,13 @@ local function Yield()
 end
 
 local zipOnly = {
-	["Widget Selector"] = true,
-	["Widget Profiler"] = true,
+	["Widget Selector"] = "LuaUI/Widgets/widget_selector.lua",
+	["Widget Profiler"] = "LuaUI/Widgets/dbg_widget_profiler.lua",
 }
+local zipOnlyFiles = {}
+for name, filename in pairs(zipOnly) do
+	zipOnlyFiles[filename:lower()] = name
+end
 
 local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
@@ -429,12 +434,18 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 
 	for _, file in ipairs(widgetFiles) do
-		local widget = widgetHandler:LoadWidget(file, fromZip)
-		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+		local gameName = not fromZip and zipOnlyFiles[(file:lower():gsub("\\", "/"))]
 
-		if widget and not excludeWidget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
+		if gameName then
+			-- Not loaded at all, since loading runs its code before its name can be checked.
+			Spring.Echo("Ignoring user copy: " .. file .. "  (the game provides " .. gameName .. ")")
+		else
+			local widget = widgetHandler:LoadWidget(file, fromZip)
+
+			if widget then
+				table.insert(unsortedWidgets, widget)
+				Yield()
+			end
 		end
 	end
 end
@@ -555,10 +566,11 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not VFS.FileExists(ki.filename, VFS.ZIP) then
+	local filename = self.gameFiles[name]
+	if not ki or not filename then
 		return
 	end
-	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
+	local w = widgetHandler:LoadWidget(filename, true, ki.localsAccess, true)
 	if w then
 		widgetHandler:InsertWidgetRaw(w)
 		Spring.Echo("Reloaded from game: " .. name .. "  (user 'unit control' widgets disabled for this game)")
@@ -576,11 +588,11 @@ end
 -- running, and `stopped` holds it until the widget next loads. The handler's `errorCount`
 -- counts every error of every widget, repeats included, so a panel can tell a new one has
 -- arrived with one comparison instead of reading anybody's log.
-function widgetHandler:RecordError(basename, callin, message, stops)
-	local log = self.errorLog[basename]
+function widgetHandler:RecordError(filename, callin, message, stops)
+	local log = self.errorLog[filename]
 	if not log then
 		log = { entries = {} }
-		self.errorLog[basename] = log
+		self.errorLog[filename] = log
 	end
 
 	local entries = log.entries
@@ -615,11 +627,11 @@ end
 --
 -- These used to be echoed and forgotten, which left the widget selector able to say a
 -- widget was asked for and is not running, but not why - and the reason was sitting in
--- infolog.txt the whole time. Keyed by basename because most of the ways loading can fail
+-- infolog.txt the whole time. Keyed by file because most of the ways loading can fail
 -- happen before the widget has told anyone its name.
-local function loadFailed(basename, reason)
-	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
-	widgetHandler:RecordError(basename, nil, reason, true)
+local function loadFailed(filename, reason)
+	Spring.Echo("Failed to load: " .. Basename(filename) .. "  (" .. reason .. ")")
+	widgetHandler:RecordError(filename, nil, reason, true)
 
 	return nil
 end
@@ -628,10 +640,10 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = VFS.LoadFile(
 		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
+		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
 	)
 	if text == nil then
-		return loadFailed(basename, "missing file: " .. filename)
+		return loadFailed(filename, "missing file: " .. filename)
 	end
 
 	if enableLocalsAccess then
@@ -645,14 +657,15 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 		local chunk, err = loadstring(textWithLocalsDetector, filename)
 		if chunk == nil then
-			return loadFailed(basename, err)
+			return loadFailed(filename, err)
 		end
 
 		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
+		self:ReleaseWidget(widget)
 		if not success then
-			return loadFailed(basename, err)
+			return loadFailed(filename, err)
 		end
 		if err == false then
 			return nil -- widget asked for a silent death
@@ -665,16 +678,18 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	local chunk, err = loadstring(text, filename)
 	if chunk == nil then
-		return loadFailed(basename, err)
+		return loadFailed(filename, err)
 	end
 
 	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
-		return loadFailed(basename, err)
+		self:ReleaseWidget(widget)
+		return loadFailed(filename, err)
 	end
 	if err == false then
+		self:ReleaseWidget(widget)
 		return nil -- widget asked for a silent death
 	end
 
@@ -682,33 +697,49 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
-	-- user widgets may not access widgetHandler
-	-- fixme: remove the or true part
-	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip or true then
-			widget.widgetHandler = self
-		else
-			return loadFailed(basename, "user widgets may not access widgetHandler")
-		end
-	end
-
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
-	if basename == SELECTOR_BASENAME then
+
+	if fromZip then
+		self.gameFiles[name] = filename
+	end
+
+	if zipOnly[name] and not fromZip then
+		Spring.Echo("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
+		self:ReleaseWidget(widget)
+		return nil
+	end
+
+	-- Only the game gets to hide a widget: a hidden one always loads and cannot be disabled.
+	local hidden = fromZip and widget.whInfo.hidden or false
+
+	if fromZip and basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1 -- always load the widget selector
-	elseif widget.whInfo.hidden then
+	elseif hidden then
 		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
 	end
 
 	err = self:ValidateWidget(widget)
 	if err then
-		return loadFailed(basename, err)
+		self:ReleaseWidget(widget)
+		return loadFailed(filename, err)
+	end
+
+	if widget.GetInfo == nil then
+		-- Do not keep widgets known but unregistered (active, no order entry)
+		self:ReleaseWidget(widget)
+		return loadFailed(filename, "no GetInfo() call")
 	end
 
 	local knownInfo = self.knownWidgets[name]
 	if knownInfo and not reload then
 		if knownInfo.active then
-			return loadFailed(basename, "duplicate name")
+			self:ReleaseWidget(widget)
+			if fromZip and not knownInfo.fromZip then
+				Spring.Echo("Ignoring game copy: " .. filename .. "  (a user widget provides " .. name .. ")")
+				return nil
+			end
+			return loadFailed(filename, "duplicate name")
 		end
 	else
 		-- create a knownInfo table
@@ -718,7 +749,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
-		knownInfo.hidden = widget.whInfo.hidden
+		knownInfo.hidden = hidden
 		-- Whether the widget ships switched on. Kept here because this is the only place it is
 		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
 		-- a widget that is off has no instance.
@@ -742,13 +773,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.active = true
 	knownInfo.localsAccess = enableLocalsAccess
 
-	if widget.GetInfo == nil then
-		return loadFailed(basename, "no GetInfo() call")
-	end
-
-	-- Get widget information
-	local info = widget:GetInfo()
-
 	-- Enabling
 	local order = self.orderList[name]
 	if order then
@@ -756,7 +780,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
+		if widget.whInfo.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
@@ -766,8 +790,23 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	else
 		self.orderList[name] = 0
 		self.knownWidgets[name].active = false
+		self:ReleaseWidget(widget)
 		return nil
 	end
+
+	-- user widgets may not access widgetHandler
+	-- fixme: remove the or true part
+	-- Granted last, so a widget refused above never holds the real handler.
+	if widget.whInfo.handler then
+		if fromZip or true then
+			widget.widgetHandler = self
+		else
+			self.knownWidgets[name].active = false
+			self:ReleaseWidget(widget)
+			return loadFailed(filename, "user widgets may not access widgetHandler")
+		end
+	end
+
 	if not fromZip then
 		local md5 = VFS.CalculateHash(text, 0)
 		if widgetHandler.widgetHashes[md5] == nil then
@@ -783,7 +822,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	-- It loaded, so whatever stopped it last time no longer is. What it raised stays in the
 	-- log: a widget that crashed and came back is still worth being able to look into.
-	local log = self.errorLog[basename]
+	local log = self.errorLog[filename]
 	if log then
 		log.stopped = nil
 	end
@@ -800,6 +839,8 @@ local SandboxedWidgetMeta = {
 	__index = SandboxedSystem,
 	__metatable = true,
 }
+
+local widgetProxies = setmetatable({}, { __mode = "k" }) -- widget -> the handle NewWidget gave it
 
 function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
@@ -824,6 +865,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	-- wrapped calls (closures)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
+	widgetProxies[widget] = wh
 	widget.canControlUnits = canControlUnits
 	widget.include = function(f)
 		return include(f, widget)
@@ -917,7 +959,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 		return self:SetWindowsHideInterface(enabled)
 	end
 	wh.HideInterface = function(_, reason, keep)
-		return self:HideInterface(reason, keep)
+		return self:HideInterface(reason, keep, widget)
 	end
 	wh.ShowInterface = function(_, reason)
 		return self:ShowInterface(reason)
@@ -947,6 +989,10 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
 		wi.modalExempt = info.modalExempt or false
+		wi.unsafe = info.unsafe or false
+		wi.depends = info.depends
+		wi.control = info.control or false
+		wi.handler = info.handler or false
 	end
 
 	widget.whInfo = {} --  a proxy table
@@ -991,7 +1037,7 @@ local function widgetFailure(w, funcName, errorMsg)
 	-- Kept against the widget as well as said, and before anything below can reload it: the
 	-- log is how the widget selector shows what went wrong once the line has scrolled out of
 	-- the console. Shutdown is the one callin whose failure does not take the widget down.
-	widgetHandler:RecordError(w.whInfo.basename, funcName, tostring(errorMsg), funcName ~= "Shutdown")
+	widgetHandler:RecordError(w.whInfo.filename, funcName, tostring(errorMsg), funcName ~= "Shutdown")
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
@@ -1048,7 +1094,7 @@ local function SafeWrapWidget(widget)
 	if SAFEWRAP <= 0 then
 		return
 	elseif SAFEWRAP == 1 then
-		if widget.GetInfo and widget.GetInfo().unsafe then
+		if widget.whInfo.unsafe then
 			Spring.Echo("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
@@ -1205,27 +1251,40 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
-	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
+	local running = self:FindWidget(widget.whInfo.name)
+	if running then
+		Spring.Echo("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
+		if running ~= widget then
+			self:ReleaseWidget(widget)
+		end
+		return
+	end
+	if not Platform.check(widget.whInfo.depends) then
 		local name = widget.whInfo.name
 		if self.knownWidgets[name] then
 			self.knownWidgets[name].active = false
 		end
 		Spring.Echo("Missing capabilities:  " .. name .. ". Disabling.")
-		self:RecordError(widget.whInfo.basename, nil, "missing capabilities", true)
+		self:RecordError(widget.whInfo.filename, nil, "missing capabilities", true)
+		self:ReleaseWidget(widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
-	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
+	if widget.whInfo.control and not widget.canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
+			if self.knownWidgets[name] then
+				self.knownWidgets[name].active = false
+			end
 			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 			self:RecordError(
-				widget.whInfo.basename,
+				widget.whInfo.filename,
 				nil,
 				"user 'unit control' widgets are disabled for this game",
 				true
 			)
 		end
+		self:ReleaseWidget(widget)
 		return
 	end
 
@@ -1258,23 +1317,62 @@ function widgetHandler:RemoveWidgetRaw(widget)
 	if self.textOwner == widget then
 		self.textOwner = nil
 	end
-
-	local name = widget.whInfo.name
-	if widget.GetConfigData then
-		self.configData[name] = widget:GetConfigData()
+	if self.mouseOwner == widget then
+		self.mouseOwner = nil
 	end
-	self.knownWidgets[name].active = false
-	if widget.Shutdown then
-		widget:Shutdown()
+
+	-- A refused widget can have queued its own removal and would write over a running one.
+	if table.getKeyOf(self.widgets, widget) then
+		local name = widget.whInfo.name
+		if widget.GetConfigData then
+			self.configData[name] = widget:GetConfigData()
+		end
+		self.knownWidgets[name].active = false
+		if widget.Shutdown then
+			widget:Shutdown()
+		end
 	end
 	ArrayRemove(self.widgets, widget)
 	self:ForgetModalWidget(widget)
+	self:ForgetHidingWidget(widget)
 	self:RemoveWidgetGlobals(widget)
 	self.actionHandler:RemoveWidgetActions(widget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
+end
+
+---Drop a widget object refused before insertion, without calling its code: undo what it set up
+---through its handle while loading, and empty the handle so functions it stored cannot use it.
+function widgetHandler:ReleaseWidget(widget)
+	-- Its queued calls would otherwise add it to call-in lists nobody can see or clear.
+	for i = #reorderQueue, 1, -1 do
+		for _, arg in pairs(reorderQueue[i]) do
+			if arg == widget then
+				table.remove(reorderQueue, i)
+				break
+			end
+		end
+	end
+	if self.textOwner == widget then
+		self.textOwner = nil
+	end
+	if self.mouseOwner == widget then
+		self.mouseOwner = nil
+	end
+	self:ForgetModalWidget(widget)
+	self:ForgetHidingWidget(widget)
+	self:RemoveWidgetGlobals(widget)
+	self.actionHandler:RemoveWidgetActions(widget)
+
+	local wh = widgetProxies[widget]
+	if wh then
+		for key in pairs(wh) do
+			wh[key] = nil
+		end
+		rawset(widget, "widgetHandler", wh) -- takes back the real handler if LoadWidget granted it
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1357,6 +1455,20 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
+function widgetHandler:ForgetWidget(name)
+	if not self:IsWidgetKnown(name) then
+		return
+	end
+	local ki = self.knownWidgets[name]
+	local md5 = ki and table.getKeyOf(self.widgetHashes, ki.filename)
+	if md5 ~= nil then
+		self.widgetHashes[md5] = nil
+	end
+	self.knownWidgets[name] = nil
+	self.knownCount = self.knownCount - 1
+	self.knownChanged = true
+end
+
 function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
@@ -1395,9 +1507,11 @@ function widgetHandler:DisableWidgetRaw(name)
 		end
 		Spring.Echo("Removed:  " .. ki.filename)
 		self:RemoveWidgetRaw(w) -- deactivate
-		self.orderList[name] = 0 -- disable
-		self:SaveConfigData()
+	elseif (self.orderList[name] or 0) <= 0 then
+		return true
 	end
+	self.orderList[name] = 0 -- disable
+	self:SaveConfigData()
 	return true
 end
 
@@ -1407,16 +1521,10 @@ function widgetHandler:ToggleWidgetRaw(name)
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
-	if ki.active then
+	if ki.active or self.orderList[name] > 0 then
 		return self:DisableWidgetRaw(name)
-	elseif self.orderList[name] <= 0 then
-		return self:EnableWidgetRaw(name)
-	else
-		-- the widget is not active, but enabled; disable it
-		self.orderList[name] = 0
-		self:SaveConfigData()
 	end
-	return true
+	return self:EnableWidgetRaw(name)
 end
 
 --------------------------------------------------------------------------------
@@ -1650,6 +1758,7 @@ local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /se
 -- switch each other off, and each names the widgets it wants kept. Unlike the window
 -- case this ignores the springsetting: a caller that asks for it means it.
 local interfaceHiddenReasons = {} -- reason -> set of widget names to keep
+local interfaceHiddenOwners = {} -- reason -> widget that asked through its own handle
 local interfaceHidden = false
 local interfaceAllowedNames = {} -- union of the names every active reason keeps
 -- what a caller gets when it names nothing: the menu buttons, so there is always a
@@ -1725,7 +1834,8 @@ end
 ---@param reason string caller-chosen key; pass the same one to ShowInterface
 ---@param keep string[]? widget names to keep drawing and clickable.
 ---Defaults to the menu buttons; pass {} to keep nothing at all.
-function widgetHandler:HideInterface(reason, keep)
+---@param owner table? the widget that asked; the reason is released when that widget goes
+function widgetHandler:HideInterface(reason, keep, owner)
 	if type(reason) ~= "string" then
 		Spring.Log("barwidgets.lua", LOG.ERROR, "HideInterface: expected a reason name")
 		return false
@@ -1735,6 +1845,7 @@ function widgetHandler:HideInterface(reason, keep)
 		names[name] = true
 	end
 	interfaceHiddenReasons[reason] = names
+	interfaceHiddenOwners[reason] = owner
 	rebuildInterfaceAllowed()
 	return true
 end
@@ -1746,8 +1857,17 @@ function widgetHandler:ShowInterface(reason)
 		return false
 	end
 	interfaceHiddenReasons[reason] = nil
+	interfaceHiddenOwners[reason] = nil
 	rebuildInterfaceAllowed()
 	return true
+end
+
+function widgetHandler:ForgetHidingWidget(widget)
+	for reason, owner in pairs(interfaceHiddenOwners) do
+		if owner == widget then
+			self:ShowInterface(reason)
+		end
+	end
 end
 
 function widgetHandler:IsInterfaceHidden()
@@ -1904,20 +2024,17 @@ end
 -- it opens itself once loaded, through the flag it reopens with after a reload it asked for. While it
 -- runs this does nothing, its own action answering instead; returns whether it did anything.
 function widgetHandler:RecoverWidgetSelector()
-	for name, ki in pairs(self.knownWidgets) do
-		if ki.basename == "widget_selector.lua" then
-			if ki.active then
-				return false
-			end
-			if type(self.configData[name]) ~= "table" then
-				self.configData[name] = {}
-			end
-			self.configData[name].reopen = true
-			self:EnableWidget(name)
-			return true
-		end
+	local name = "Widget Selector"
+	local ki = self.knownWidgets[name]
+	if not ki or ki.active then
+		return false
 	end
-	return false
+	if type(self.configData[name]) ~= "table" then
+		self.configData[name] = {}
+	end
+	self.configData[name].reopen = true
+	self:EnableWidget(name)
+	return true
 end
 
 function widgetHandler:ConfigureLayout(command)
