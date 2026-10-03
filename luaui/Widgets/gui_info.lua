@@ -96,19 +96,13 @@ local anonymousName = "?????"
 local dlistGuishader, bgpadding, ViewResizeUpdate, texOffset, displayMode
 local loadedFontSize, font, font2, font2, cfgDisplayUnitID, cfgDisplayUnitDefID, rankTextures
 local cellRect, cellPadding, cornerSize, cellsize, cellHovered
-local gridHeight, selUnitsSorted, selUnitsCounts, selectionCells, customInfoArea, contentPadding
+local gridHeight, selUnitsSorted, selectionCells, customInfoArea, contentPadding
 local displayUnitID, displayUnitDefID, doUpdateClock
 local contentWidth, bfcolormap, selUnitTypes
 
 local RectRound, UiElement, UiUnit, elementCorner
 
 local spGetCurrentTooltip = Spring.GetCurrentTooltip
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
-local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local SelectedUnitsCount = Spring.GetSelectedUnitsCount()
-local selectedUnits = Spring.GetSelectedUnits()
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -146,6 +140,13 @@ local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
 local hideBuildlist
+
+local selUnitsCounts = {} -- per-def counts, filled alongside selUnitsSorted
+local selectedUnitsCount = 0
+local getSelectedUnits = Spring.GetSelectedUnits -- replaced in init via api_unit_selection
+local getSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local getSelectedUnitsByDefID = function() end
+local invalidateSelection = function() end
 
 -- Reverse armor type table
 local armorIndex = {}
@@ -851,6 +852,12 @@ function widget:Initialize()
 	tracy.ZoneBeginN("W:Info:Initialize")
 	isPregame = Spring.GetGameFrame() < 1
 
+	local api = WG.UnitSelection
+	getSelectedUnits = api and api.GetUnits or Spring.GetSelectedUnits
+	getSelectedUnitsCount = api and api.GetCount or Spring.GetSelectedUnitsCount
+	getSelectedUnitsByDefID = api and api.GetUnitsByDefID or Spring.GetSelectedUnitsSorted
+	invalidateSelection = api and api.Invalidate or function() end
+
 	tracy.ZoneBeginN("W:Info:Initialize:RefreshUnitInfo")
 	refreshUnitInfo()
 	tracy.ZoneEnd()
@@ -976,7 +983,7 @@ function widget:Update(dt)
 
 	-- Early exit for common case
 	if not alwaysShow and ((cameraPanMode and not doUpdate) or mouseOffScreen) and not isPregame then
-		if SelectedUnitsCount == 0 then
+		if selectedUnitsCount == 0 then
 			if dlistGuishader then
 				WG.guishader.DeleteDlist("info")
 				dlistGuishader = nil
@@ -1051,7 +1058,7 @@ function widget:Update(dt)
 		displayUnitDefID = nil
 	end
 
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame then
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) and selectedUnitsCount == 0 and not isPregame then
 		tracy.ZoneEnd()
 		return
 	end
@@ -1217,8 +1224,7 @@ end
 local function drawSelection()
 	tracy.ZoneBeginN("W:Info:DrawSelection")
 	tracy.ZoneBeginN("W:Info:DrawSelection:Query")
-	selUnitsCounts = spGetSelectedUnitsCounts()
-	selUnitsSorted = spGetSelectedUnitsSorted()
+	selUnitsSorted = getSelectedUnitsByDefID()
 	selUnitTypes = 0
 
 	-- Reuse existing table instead of creating new one
@@ -1231,12 +1237,18 @@ local function drawSelection()
 		end
 	end
 
+	-- Counts for every selected def, so the panel may not have a cell for each.
+	for uDefID in pairs(selUnitsCounts) do
+		selUnitsCounts[uDefID] = nil
+	end
+	for uDefID, unitsForDef in pairs(selUnitsSorted) do
+		selUnitsCounts[uDefID] = #unitsForDef
+	end
+
 	for k, uDefID in pairs(unitOrder) do
 		if selUnitsSorted[uDefID] then
-			if type(selUnitsSorted[uDefID]) == "table" then
-				selUnitTypes = selUnitTypes + 1
-				selectionCells[selUnitTypes] = uDefID
-			end
+			selUnitTypes = selUnitTypes + 1
+			selectionCells[selUnitTypes] = uDefID
 		end
 	end
 	tracy.ZoneEnd()
@@ -1250,7 +1262,7 @@ local function drawSelection()
 	font2:SetOutlineColor(0, 0, 0, 1)
 	font2:Print(
 		tooltipTextColor
-			.. #selectedUnits
+			.. selectedUnitsCount
 			.. tooltipLabelTextColor
 			.. "  "
 			.. getCachedTranslation("ui.info.unitsselected"),
@@ -1291,7 +1303,7 @@ local function drawSelection()
 	-- Limit to first 50 units to avoid frame drops during large selections
 	local totalMetalMake, totalMetalUse, totalEnergyMake, totalEnergyUse = 0, 0, 0, 0
 	local totalKills = 0
-	local unitsToCheck = cellHovered and selUnitsSorted[selectionCells[cellHovered]] or selectedUnits
+	local unitsToCheck = cellHovered and selUnitsSorted[selectionCells[cellHovered]] or getSelectedUnits()
 	local maxUnitsToCheck = math.min(50, #unitsToCheck)
 	tracy.ZoneBeginN("W:Info:DrawSelection:ResourceTotals")
 	for i = 1, maxUnitsToCheck do
@@ -1667,7 +1679,7 @@ local function drawUnitInfo()
 	tracy.ZoneBeginN("W:Info:DrawUnitInfo:Header")
 
 	local unitNameColor = tooltipTitleColor
-	if SelectedUnitsCount > 0 then
+	if selectedUnitsCount > 0 then
 		if
 			displayMode ~= "unitdef"
 			or (
@@ -2517,7 +2529,7 @@ local function drawEngineTooltip()
 			end
 		end
 	else
-		if cameraPanMode and #selectedUnits > 0 then
+		if cameraPanMode and selectedUnitsCount > 0 then
 			checkChanges()
 		else
 			emptyInfo = true
@@ -2585,8 +2597,8 @@ local function LeftMouseButton(unitDefID, unitTable)
 			spSelectUnitArray(units, shift)
 		end
 	end
-	selectedUnits = spGetSelectedUnits()
-	SelectedUnitsCount = spGetSelectedUnitsCount()
+	invalidateSelection()
+	selectedUnitsCount = getSelectedUnitsCount()
 	if acted then
 		Spring.PlaySoundFile(sound_button, 0.5, "ui")
 	end
@@ -2599,12 +2611,13 @@ local function MiddleMouseButton(unitDefID, unitTable)
 		Spring.SendCommands(viewSelectionCmd)
 	else
 		-- center the view on this type on unit
+		local previousSelection = getSelectedUnits()
 		spSelectUnitArray(unitTable)
 		Spring.SendCommands(viewSelectionCmd)
-		spSelectUnitArray(selectedUnits)
+		spSelectUnitArray(previousSelection)
 	end
-	selectedUnits = spGetSelectedUnits()
-	SelectedUnitsCount = spGetSelectedUnitsCount()
+	invalidateSelection()
+	selectedUnitsCount = getSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button, 0.5, "ui")
 end
 
@@ -2616,6 +2629,7 @@ local function RightMouseButton(unitDefID, unitTable)
 	for k in pairs(rightMouseButtonMap) do
 		rightMouseButtonMap[k] = nil
 	end
+	local selectedUnits = getSelectedUnits()
 	for i = 1, #selectedUnits do
 		rightMouseButtonMap[selectedUnits[i]] = true
 	end
@@ -2626,8 +2640,8 @@ local function RightMouseButton(unitDefID, unitTable)
 		end
 	end
 	spSelectUnitMap(rightMouseButtonMap)
-	selectedUnits = spGetSelectedUnits()
-	SelectedUnitsCount = spGetSelectedUnitsCount()
+	invalidateSelection()
+	selectedUnitsCount = getSelectedUnitsCount()
 	Spring.PlaySoundFile(sound_button2, 0.5, "ui")
 end
 
@@ -2796,7 +2810,7 @@ function widget:DrawScreen()
 	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	local x, y, b, b2, b3, mouseOffScreen, cameraPanMode = spGetMouseState()
 
-	if not alwaysShow and (cameraPanMode or mouseOffScreen) and SelectedUnitsCount == 0 and not isPregame then
+	if not alwaysShow and (cameraPanMode or mouseOffScreen) and selectedUnitsCount == 0 and not isPregame then
 		if dlistGuishader then
 			WG.guishader.DeleteDlist("info")
 			dlistGuishader = nil
@@ -3179,10 +3193,10 @@ function checkChanges()
 		displayMode = "unit"
 		displayUnitID = hoverData
 		displayUnitDefID = spGetUnitDefID(displayUnitID)
-		if not displayUnitDefID and SelectedUnitsCount >= 1 then
-			if SelectedUnitsCount == 1 then
-				displayUnitID = selectedUnits[1]
-				displayUnitDefID = spGetUnitDefID(selectedUnits[1])
+		if not displayUnitDefID and selectedUnitsCount >= 1 then
+			if selectedUnitsCount == 1 then
+				displayUnitID = getSelectedUnits()[1]
+				displayUnitDefID = spGetUnitDefID(displayUnitID)
 			else
 				displayMode = "selection"
 			end
@@ -3232,9 +3246,9 @@ function checkChanges()
 		end
 
 		-- selected unit
-	elseif SelectedUnitsCount == 1 then
+	elseif selectedUnitsCount == 1 then
 		displayMode = "unit"
-		displayUnitID = selectedUnits[1]
+		displayUnitID = getSelectedUnits()[1]
 		if displayUnitID then
 			displayUnitDefID = spGetUnitDefID(displayUnitID)
 			if lastUpdateClock + 0.4 < os_clock() then
@@ -3243,7 +3257,7 @@ function checkChanges()
 			end
 		end
 		-- selection
-	elseif SelectedUnitsCount > 1 then
+	elseif selectedUnitsCount > 1 then
 		displayMode = "selection"
 
 		-- tooltip text
@@ -3279,19 +3293,14 @@ end
 
 function widget:SelectionChanged(sel)
 	tracy.ZoneBeginN("W:Info:SelectionChanged")
-	local newSelectedUnitsCount = spGetSelectedUnitsCount()
-	if SelectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
+	local newSelectedUnitsCount = #sel
+	if selectedUnitsCount ~= 0 and newSelectedUnitsCount == 0 then
 		doUpdate = true
-		SelectedUnitsCount = 0
-		-- Clear existing table instead of creating new one
-		for i = #selectedUnits, 1, -1 do
-			selectedUnits[i] = nil
-		end
+		selectedUnitsCount = 0
 		clearSelectionUnitpicWarmQueue()
 	end
 	if newSelectedUnitsCount > 0 then
-		SelectedUnitsCount = newSelectedUnitsCount
-		selectedUnits = sel
+		selectedUnitsCount = newSelectedUnitsCount
 		queueSelectionUnitpicWarmFromSelection(sel)
 		-- Adaptive throttling: increase delay based on selection size
 		local throttleDelay = 0.01

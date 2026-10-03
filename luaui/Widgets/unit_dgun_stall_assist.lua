@@ -14,6 +14,7 @@ end
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
+local getSelectedUnitsByDefID = Spring.GetSelectedUnitsSorted -- replaced in init
 
 local watchForTime = 3 --How long to monitor the energy level after the dgun command is given
 
@@ -25,6 +26,27 @@ local targetEnergy = 0
 local waitedUnits = nil -- nil / waitedUnits[1..n] = uID
 local shouldWait = {}
 local isFactory = {}
+
+-- The energy a def's manual fire costs, with a margin.
+local manualFireEnergy = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canManualFire then
+		for _, weaponDef in pairs(unitDef.wDefs) do
+			if weaponDef.manualFire and weaponDef.energyCost and weaponDef.energyCost > 0 then
+				manualFireEnergy[unitDefID] = weaponDef.energyCost * 1.2
+				break
+			end
+		end
+	end
+end
+
+local function selectedManualFireEnergy()
+	for unitDefID in pairs(getSelectedUnitsByDefID()) do
+		if manualFireEnergy[unitDefID] then
+			return manualFireEnergy[unitDefID]
+		end
+	end
+end
 
 local gameStarted
 
@@ -67,6 +89,8 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	getSelectedUnitsByDefID = WG.UnitSelection and WG.UnitSelection.GetUnitsByDefID or Spring.GetSelectedUnitsSorted
+
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
@@ -84,24 +108,9 @@ end
 function widget:Update(dt)
 	local _, activeCmdID = spGetActiveCommand()
 	if activeCmdID == CMD_DGUN then
-		local selection = Spring.GetSelectedUnitsCounts()
-		local stallUnitSelected = false
-
-		for uDefID, _ in next, selection do
-			local uDef = UnitDefs[uDefID]
-			if uDef and uDef.canManualFire then
-				--Look for the weapondef with manual fire and energy cost
-				for _, wDef in next, uDef.wDefs do
-					if wDef.manualFire and wDef.energyCost and wDef.energyCost > 0 then
-						stallUnitSelected = true
-						targetEnergy = wDef.energyCost * 1.2 --Add some margin above the energy cost
-						break
-					end
-				end
-			end
-		end
-
-		if stallUnitSelected then
+		local energy = selectedManualFireEnergy()
+		if energy then
+			targetEnergy = energy
 			watchTime = watchForTime
 		end
 	else
