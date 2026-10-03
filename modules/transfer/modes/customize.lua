@@ -1,6 +1,6 @@
 local ModeDSL = require("modules/transfer/mode_dsl")
-local Mode, Transfer, Construction, Take =
-	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take
+local Mode, Transfer, Construction, Take, Tech =
+	ModeDSL.Mode, ModeDSL.Transfer, ModeDSL.Construction, ModeDSL.Take, ModeDSL.Tech
 
 return Mode("Customize")
 	.Desc(
@@ -8,6 +8,8 @@ return Mode("Customize")
 	)
 	.Ranked()
 	.RetainValues()
+	.Open(Tech, 1, 1.5)
+	.Unlocked()
 	.Allow(Transfer.Units)
 	.Unlocked()
 	.Deny(Transfer.Units.AtT2)
