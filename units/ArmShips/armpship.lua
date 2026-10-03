@@ -94,7 +94,7 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
+			ellysaw_plasma_cannon = {
 				areaofeffect = 36,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -104,7 +104,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Light long-range plasma cannon",
+				name = "Light Cannons",
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 470,
@@ -129,12 +129,12 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
-				def = "PLASMA",
+				def = "ellysaw_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "LIGHTAIRSCOUT UNDERWATER",
-				def = "PLASMA",
+				def = "ellysaw_plasma_cannon",
 				maindir = "0 0 1",
 				maxangledif = 290,
 				onlytargetcategory = "NOTSUB",

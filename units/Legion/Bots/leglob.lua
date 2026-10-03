@@ -97,7 +97,7 @@ return {
 			},
 		},
 		weapondefs = {
-			close_plasma = {
+			lobber_plasma_cannon = {
 				areaofeffect = 24,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -109,7 +109,7 @@ return {
 				heightmod = 0.5,
 				impulsefactor = 0.123,
 				mygravity = 0.1,
-				name = "Forwards Plasma Cannon",
+				name = "Light Cannon",
 				noselfdamage = true,
 				predictboost = 0.6,
 				range = 400,
@@ -158,7 +158,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "CLOSE_PLASMA",
+				def = "lobber_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

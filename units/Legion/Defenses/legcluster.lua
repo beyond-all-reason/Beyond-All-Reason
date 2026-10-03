@@ -97,7 +97,7 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
+			amputator_plasma_cannon = {
 				accuracy = 75,
 				areaofeffect = 120,
 				avoidfeature = false,
@@ -109,7 +109,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Long-Range g2g Cluster Plasma Cannon",
+				name = "Standard Blast Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 6.0,
@@ -157,7 +157,7 @@ return {
 					vtol = 25,
 				},
 			},
-			plasma_high = {
+			amputator_vertical_plasma_cannon = {
 				accuracy = 75,
 				areaofeffect = 120,
 				avoidfeature = false,
@@ -169,7 +169,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Long-Range g2g Cluster Plasma Cannon",
+				name = "Standard Blast Vertical Artillery Cluster Cannon",
 				noselfdamage = true,
 				range = 1000,
 				hightrajectory = 1,
@@ -204,7 +204,7 @@ return {
 				explosiongenerator = "custom:ministarfire-explosion",
 				gravityaffected = "true",
 				impulsefactor = 0.5,
-				name = "Long-Range g2g Cluster Plasma Cannon",
+				name = "Trajectory System",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 4.0,
@@ -228,13 +228,13 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "PLASMA",
+				def = "amputator_plasma_cannon",
 				maindir = "0 1 0",
 				maxangledif = 230,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "PLASMA_HIGH",
+				def = "amputator_vertical_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[3] = {
