@@ -100,6 +100,18 @@ for defId, def in pairs(UnitDefs) do
 	cantBeTransported[defId] = def.cantBeTransported
 end
 
+local canAttack, canCapture, canReclaim = {}, {}, {}
+local canGuard, canRepair, canResurrect = {}, {}, {}
+
+for unitDefID, unitDef in pairs(UnitDefs) do
+	canAttack[unitDefID] = unitDef.canAttack and unitDef.maxWeaponRange > 0 or nil
+	canCapture[unitDefID] = unitDef.canCapture or nil
+	canGuard[unitDefID] = unitDef.canGuard or nil
+	canRepair[unitDefID] = unitDef.canRepair or unitDef.canAssist or nil -- assist without repair is nanoframes only, decided per target
+	canReclaim[unitDefID] = unitDef.canReclaim or nil
+	canResurrect[unitDefID] = unitDef.canResurrect or nil
+end
+
 --- @return table<number,table<number>> Map of transportId -> array of passengerIds
 local function distributeTargetsToTransports(transports, targets)
 	---@type table<number,TransportData>
@@ -369,19 +381,9 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
---- Each transport picks one target
+--- Each transport picks one target. Every selected unit is a transport by this point.
 local function loadUnitsHandler(cmdId, selectedUnits, filteredTargets, options)
-	local transports = {}
-	for _, unitId in ipairs(selectedUnits) do
-		local unitDefId = spGetUnitDefID(unitId)
-		if unitDefId and transportDefs[unitDefId] then
-			transports[#transports + 1] = unitId
-		end
-	end
-	if #transports == 0 then
-		return
-	end
-	local passengerAssignments = distributeTargetsToTransports(transports, filteredTargets)
+	local passengerAssignments = distributeTargetsToTransports(selectedUnits, filteredTargets)
 	-- distributeTargetsToTransports already sorted the targets so no sortTargetsByDistance call here
 	for transportId, targetIds in pairs(passengerAssignments) do
 		giveOrders(cmdId, { transportId }, targetIds, options)
@@ -392,8 +394,9 @@ end
 ---@field handle function
 ---@field allowedTargetTypes table
 ---@field targetAllegiance number AllUnits = -1, MyUnits = -2, AllyUnits = -3, EnemyUnits = -4
+---@field capableDefs table<number, true>
 
-local function commandConfig(targetTypes, targetAllegiance, handler)
+local function commandConfig(targetTypes, targetAllegiance, capableDefs, handler)
 	local allowedTargetTypes = {}
 	for _, targetType in ipairs(targetTypes) do
 		allowedTargetTypes[targetType] = true
@@ -402,21 +405,49 @@ local function commandConfig(targetTypes, targetAllegiance, handler)
 	config.handle = handler or defaultHandler
 	config.allowedTargetTypes = allowedTargetTypes
 	config.targetAllegiance = targetAllegiance
+	config.capableDefs = capableDefs
 	return config
 end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS),
-	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
-	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
-	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
-	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, loadUnitsHandler),
-	[CMD.RESURRECT] = commandConfig({ FEATURE }),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
+	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS, canCapture),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, canAttack),
+	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS, canGuard),
+	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS, canRepair),
+	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS, canReclaim),
+	[CMD.LOAD_UNITS] = commandConfig({ UNIT }, ALL_UNITS, transportDefs, loadUnitsHandler),
+	[CMD.RESURRECT] = commandConfig({ FEATURE }, nil, canResurrect),
 }
+
+local function getCapableUnits(selectedUnits, capableDefs)
+	local firstDrop
+	for index = 1, #selectedUnits do
+		if not capableDefs[spGetUnitDefID(selectedUnits[index])] then
+			firstDrop = index
+			break
+		end
+	end
+
+	if not firstDrop then
+		return selectedUnits[1] and selectedUnits or nil
+	end
+
+	local keep, count = {}, firstDrop - 1
+	for index = 1, count do
+		keep[index] = selectedUnits[index]
+	end
+	for index = firstDrop + 1, #selectedUnits do
+		local unitID = selectedUnits[index]
+		if capableDefs[spGetUnitDefID(unitID)] then
+			count = count + 1
+			keep[count] = unitID
+		end
+	end
+	return count > 0 and keep or nil
+end
 
 local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegiance)
 	local ctrl = options.ctrl
@@ -520,8 +551,8 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	local selectedUnits = spGetSelectedUnits()
-	if #selectedUnits == 0 then
+	local capableUnits = getCapableUnits(spGetSelectedUnits(), currentCommand.capableDefs)
+	if not capableUnits then
 		return false
 	end
 
@@ -550,7 +581,7 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
-	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options)
+	currentCommand.handle(cmdId, capableUnits, filteredTargets, options)
 	return true
 end
 
