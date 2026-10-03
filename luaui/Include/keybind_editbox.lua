@@ -75,6 +75,7 @@ function Editbox.new(opts)
 	self.rect = { 0, 0, 0, 0 }
 	self.fontSize = 14
 	self.pad = 6
+	self.scrollPx = 0
 
 	return self
 end
@@ -194,7 +195,7 @@ end
 
 function Editbox:indexFromX(x)
 	local font = getFont()
-	local relX = x - (self.rect[1] + self.pad)
+	local relX = x - (self.rect[1] + self.pad) + self.scrollPx
 
 	if relX <= 0 then
 		return 0
@@ -370,6 +371,31 @@ local function caretOffset(self, font)
 	return self.caretPx
 end
 
+-- Text wider than the field slides left to keep the caret in view, rather than running past the
+-- edge; a field not being typed in shows where its text starts.
+local function scrollTo(self, font)
+	local room = self.rect[3] - self.rect[1] - self.pad * 2
+	if self.clearable then
+		room = room - (self.rect[4] - self.rect[2])
+	end
+	if not self.focused then
+		self.scrollPx = 0
+
+		return room
+	end
+
+	local caret = caretOffset(self, font)
+	local full = font:GetTextWidth(self.text) * self.fontSize
+	self.scrollPx = math.max(0, math.min(self.scrollPx, full - room))
+	if caret - self.scrollPx > room then
+		self.scrollPx = caret - room
+	elseif caret < self.scrollPx then
+		self.scrollPx = caret
+	end
+
+	return room
+end
+
 -- Held rather than built per draw: a colour table a frame is an allocation a frame.
 local fieldFill = { 0, 0, 0, 0.35 }
 local clearFill = { 1, 1, 1, 0.04 }
@@ -404,7 +430,8 @@ function Editbox:draw()
 	-- Whole pixels: an edge on a fraction is blended across two and reads as a blur.
 	local cs = floor(WG.FlowUI.elementCorner * 0.66)
 	local inset = floor((y2 - y1) * 0.18)
-	local tx = x1 + self.pad
+	local room = scrollTo(self, font)
+	local tx = x1 + self.pad - self.scrollPx
 	-- The caret and selection want the box; the text baseline wants the font.
 	local cy = floor((y1 + y2) * 0.5)
 	local ty = text.baseline(font, y1, y2, self.fontSize)
@@ -416,6 +443,7 @@ function Editbox:draw()
 		WG.FlowUI.Draw.SelectHighlight(x1, y1, x2, y2, cs, hoverOpacity, white)
 	end
 
+	gl.Scissor(floor(x1 + self.pad), floor(y1), floor(math.max(0, room)), floor(y2 - y1))
 	if self:hasSelection() then
 		local a, b = self:selRange()
 		local sa = floor(font:GetTextWidth(utf8.sub(self.text, 1, a)) * self.fontSize)
@@ -447,6 +475,7 @@ function Editbox:draw()
 	end
 	font:Print(shown, tx, ty, self.fontSize, "o")
 	font:End()
+	gl.Scissor(false)
 
 	if self.clearable and self.text ~= "" then
 		drawClear(self, overClear(self, mx, my), cs)
