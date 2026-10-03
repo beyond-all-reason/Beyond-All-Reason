@@ -887,7 +887,7 @@
 			"commandersSurviveDgun": "Commanders survive D-Guns and commander explosions",
 			"victoryCondition": "Victory condition",
 			"owncomends": "Losing your commander = losing control of your units / resigning",
-			"territorialDomination": "Territorial Domination,\nsurvive and gain the most points to win"
+			"dominion": "Dominion,\nsurvive and gain the most points to win"
 		},
 		"startSpot": {
 			"startbox": "Pick a starting location within the green area then click Ready",
@@ -1078,7 +1078,7 @@
 				"endless": "Endless"
 			}
 		},
-		"territorialDomination": {
+		"dominion": {
 			"deadlinePopup": {
 				"gameOver": "Game Over",
 				"victory": "Victory",
@@ -1619,8 +1619,8 @@
 				"losopacity": "opacity",
 				"fogdiaglines": "diagonal lines",
 				"fogdiaglines_blur": "diagonal lines blur",
-				"territorial_domination_height_opacity": "Territorial Domination Grid Fade In Height",
-				"territorial_domination_height_opacity_descr": "Adjusts when territorial domination overlays fade in by camera height. Lower shows opacity sooner; higher requires zooming out more. Center is default.",
+				"dominion_height_opacity": "Dominion Grid Fade In Height",
+				"dominion_height_opacity_descr": "Adjusts when dominion overlays fade in by camera height. Lower shows opacity sooner; higher requires zooming out more. Center is default.",
 				"water": "Water quality",
 				"decals": "Unit tracks",
 				"decals_descr": "0 = Off\nNOTE: Changes might require a restart (if you turn it On/Off)",
@@ -3175,8 +3175,8 @@
 					"name": "Kill all enemy Commanders",
 					"desc": "When a team has no Commanders left, it loses"
 				},
-				"territorial_domination": {
-					"name": "Territorial Domination",
+				"dominion": {
+					"name": "Dominion",
 					"desc": "Teams earn points by capturing territory to stay in the game. At the end of the final Deadline, the team with the most points wins."
 				},
 				"builders": {
@@ -3193,8 +3193,8 @@
 				}
 			}
 		},
-		"territorial_domination_config": {
-			"name": "Territorial Domination Length",
+		"dominion_config": {
+			"name": "Dominion Length",
 			"desc": "Configures the number of six-minute Deadlines and the total time before final score resolution.",
 			"items": {
 				"18_minutes": {
@@ -3219,7 +3219,7 @@
 				}
 			}
 		},
-		"territorial_domination_elimination_threshold_multiplier": {
+		"dominion_elimination_threshold_multiplier": {
 			"name": "Deadline Multiplier",
 			"desc": "Teams below the Deadline value are eliminated when a Deadline ends. The next Deadline value is the leader's score multiplied by this value. Lower values are more lenient."
 		},

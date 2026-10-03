@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Territorial Domination",
-		desc = "Implements territorial domination victory condition",
+		name = "Dominion",
+		desc = "Implements dominion victory condition",
 		author = "SethDGamre",
 		date = "2025.02.08",
 		license = "GNU GPL, v2",
@@ -15,12 +15,12 @@ end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or not isSynced then
+if modOptions.deathmode ~= "dominion" or not isSynced then
 	return false
 end
 
 local MINUTES_PER_DEADLINE = 6
-local TERRITORIAL_DOMINATION_CONFIG = {
+local DOMINION_CONFIG = {
 	["18_minutes"] = {
 		maxDeadlines = 3,
 		minutesPerDeadline = MINUTES_PER_DEADLINE,
@@ -43,11 +43,11 @@ local TERRITORIAL_DOMINATION_CONFIG = {
 	},
 }
 
-local SELECTED_CONFIG = TERRITORIAL_DOMINATION_CONFIG[modOptions.territorial_domination_config]
-	or TERRITORIAL_DOMINATION_CONFIG["30_minutes"]
+local SELECTED_CONFIG = DOMINION_CONFIG[modOptions.dominion_config]
+	or DOMINION_CONFIG["30_minutes"]
 local MAX_DEADLINES = SELECTED_CONFIG.maxDeadlines
 local DEADLINE_SECONDS = 60 * SELECTED_CONFIG.minutesPerDeadline
-local DEADLINE_SCORE_MULTIPLIER = modOptions.territorial_domination_elimination_threshold_multiplier or 1.25
+local DEADLINE_SCORE_MULTIPLIER = modOptions.dominion_elimination_threshold_multiplier or 1.25
 local DEBUG_MODE = false
 
 local GRID_SIZE = 1024
@@ -119,7 +119,7 @@ local topLivingRank = 1
 ---@type table<integer, table<integer, boolean>>
 local allyTeamsWatch = {}
 local unitWatchDefs = {}
----@class TerritorialDominationGridSquare
+---@class DominionGridSquare
 ---@field mapOriginX number
 ---@field mapOriginZ number
 ---@field gridX integer
@@ -134,7 +134,7 @@ local unitWatchDefs = {}
 ---@field neighborAllyTeamCounts table<integer, integer>
 ---@field totalNeighborCount integer
 ---@field corners { x: number, z: number }[]
----@type table<integer, TerritorialDominationGridSquare>
+---@type table<integer, DominionGridSquare>
 local captureGrid = {}
 local livingCommanders = {}
 local killQueue = {}
@@ -355,7 +355,7 @@ local function setAllyTeamRanks()
 					topLivingRank = currentRank
 				end
 			end
-			Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", currentRank)
+			Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_rank", currentRank)
 		end
 	else
 		topLivingRank = currentRank
@@ -415,7 +415,7 @@ local function createGridSquareData(x, z)
 end
 
 local function generateCaptureGrid()
-	---@type table<integer, TerritorialDominationGridSquare>
+	---@type table<integer, DominionGridSquare>
 	local gridData = {}
 
 	for x = 0, numberOfSquaresX - 1 do
@@ -452,15 +452,15 @@ local function defeatAlly(allyID)
 			local allPlayers = Spring.GetPlayerList() or {}
 			for _, playerID in ipairs(allPlayers) do
 				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
-				local notificationEvent = (playerAllyID == allyID) and "TerritorialDomination/YourTeamEliminated"
-					or "TerritorialDomination/EnemyTeamEliminated"
+				local notificationEvent = (playerAllyID == allyID) and "Dominion/YourTeamEliminated"
+					or "Dominion/EnemyTeamEliminated"
 				sendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
 			end
 		end
 	end
 
 	allyData[allyID].projectedScore = allyData[allyID].score
-	Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedScore", allyData[allyID].score)
+	Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_projectedScore", allyData[allyID].score)
 end
 
 local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
@@ -706,15 +706,15 @@ local function processDeadlineBoundary()
 end
 
 local function publishDominationState()
-	Spring.SetGameRulesParam("territorialDominationDeadlineEndTimestamp", deadlineEndTimestamp)
-	Spring.SetGameRulesParam("territorialDominationCurrentDeadline", currentDeadline)
-	Spring.SetGameRulesParam("territorialDominationMaxDeadlines", MAX_DEADLINES)
-	Spring.SetGameRulesParam("territorialDominationDeadlineScore", deadlineScore)
+	Spring.SetGameRulesParam("dominionDeadlineEndTimestamp", deadlineEndTimestamp)
+	Spring.SetGameRulesParam("dominionCurrentDeadline", currentDeadline)
+	Spring.SetGameRulesParam("dominionMaxDeadlines", MAX_DEADLINES)
+	Spring.SetGameRulesParam("dominionDeadlineScore", deadlineScore)
 
 	for allyID, scoreData in pairs(allyData) do
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_score", scoreData.score)
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_projectedScore", scoreData.projectedScore)
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_territoryCount", scoreData.territoryCount)
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_score", scoreData.score)
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_projectedScore", scoreData.projectedScore)
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_territoryCount", scoreData.territoryCount)
 	end
 end
 
@@ -779,7 +779,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:Initialize()
-	Spring.SetGameRulesParam("territorialDominationTerritoryPointsPerDeadline", TERRITORY_POINTS_PER_DEADLINE)
+	Spring.SetGameRulesParam("dominionTerritoryPointsPerDeadline", TERRITORY_POINTS_PER_DEADLINE)
 	numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
 	numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
 	sendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
@@ -815,9 +815,9 @@ function gadget:Initialize()
 	setAllyTeamRanks()
 
 	for allyID in pairs(allyTeamsWatch) do
-		Spring.SetGameRulesParam("territorialDomination_ally_" .. allyID .. "_rank", 1)
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_rank", 1)
 	end
-	Spring.SetGameRulesParam("territorialDominationTotalTerritories", numberOfSquaresX * numberOfSquaresZ)
+	Spring.SetGameRulesParam("dominionTotalTerritories", numberOfSquaresX * numberOfSquaresZ)
 	publishDominationState()
 end
 
