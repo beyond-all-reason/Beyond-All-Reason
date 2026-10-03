@@ -1650,6 +1650,7 @@ end
 
 function roleConfig.saveSuggestionsBSet(name, explicitPath)
 	local data, err = roleConfig.buildSuggestionsData()
+	local b64 = VFS.Include("common/luaUtilities/base64.lua")
 	if not data then
 		Echo("[StartPos Tool] Cannot export bSet: " .. (err or "unknown error"))
 		return false
@@ -1668,8 +1669,7 @@ function roleConfig.saveSuggestionsBSet(name, explicitPath)
 		Echo("[StartPos Tool] Failed to compress bSet payload.")
 		return false
 	end
-	roleConfig.b64 = roleConfig.b64 or VFS.Include("common/luaUtilities/base64.lua")
-	local value = (roleConfig.b64.Encode(packed):gsub("=+$", ""))
+	local value = (b64.Encode(packed):gsub("=+$", ""))
 	Spring.CreateDir(roleConfig.saveDir)
 	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_bset.txt")
 	local file = io.open(filename, "w")
