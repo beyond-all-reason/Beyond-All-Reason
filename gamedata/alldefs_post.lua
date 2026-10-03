@@ -669,6 +669,17 @@ local function unitDef_Post(name, uDef)
 		uDef = techsplit_balanceTweaks(name, uDef)
 	end
 
+	if
+		modOptions.disable_air_crash_damage
+		and uDef.canfly
+		and (not customparams.crashable or customparams.crashable ~= "0")
+	then
+		uDef.explodeas = "blank"
+		if uDef.selfdestructas then
+			uDef.selfdestructas = "blank"
+		end
+	end
+
 	-- Multipliers Modoptions
 
 	-- Max Speed
