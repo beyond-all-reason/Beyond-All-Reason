@@ -1,0 +1,42 @@
+[GAME]
+{
+	MapName=Supreme Isthmus v2.1;
+	GameType=Beyond All Reason $VERSION;
+	GameStartDelay=0;
+	StartPosType=0;
+	RecordDemo=0;
+	MyPlayerName=TestRunner;
+	IsHost=1;
+	
+	FixedRNGSeed = 1;
+	[MODOPTIONS]
+	{
+		debugcommands=1:cheat|2:godmode|30:runtestsheadless mex_splitting;
+		deathmode=neverend;
+		mex_splitting=map_assigned;
+		mex_regions_layout=eNp10d8KgyAUBvB3OdddmE6P9ipjDCsbY01Ha1CE777aiOyPN8L3gf7OqQEac7s7-4ZsgKfprv8I2XmA1ugnZCSBl6v7X9P_YjeePgmSmCMlkYL4SwK3xn1ekEFVa_uABO7lGHiBglaIlFGE6dZfTY_U9LR2x9c3zr6Z7sRsIlNeaMV5rllgH24s1vQyCkYKsXYbZ9vZzWUujcwZ0VTEd07ZRp6LhQqX3P2BmM4FQTJ-cmp4qNO1jht8t-Z-mmDgwC6MbU0z45KVSqFR6oQa_MX7Lz-pr-I;
+	}
+	[ALLYTEAM0]
+	{
+	}
+	[TEAM0]
+	{
+		allyteam=0;
+		teamleader=0;
+	}
+	[TEAM1]
+	{
+		allyteam=0;
+		teamleader=0;
+	}
+	[PLAYER0]
+	{
+		team=0;
+	}
+	[AI0]
+	{
+		team=1;
+		shortname=NullAI;
+		host=0;
+	}
+}
