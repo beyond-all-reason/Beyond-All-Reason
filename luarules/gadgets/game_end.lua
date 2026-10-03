@@ -240,7 +240,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if Spring.GetModOptions().deathmode == "neverend" then
+		-- editor_sandbox=1 is the map editor's start-script flag (New Map / Open
+		-- Project): the session must never end, whatever deathmode it inherited.
+		if
+			Spring.GetModOptions().deathmode == "neverend"
+			or tostring(Spring.GetModOptions().editor_sandbox or "") == "1"
+		then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end

@@ -42,7 +42,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
 			reaimtime = 4,
-			subfolder = "Legion/T2",
+			subfolder = "Legion/Bots/T2 Bots",
 			techlevel = 2,
 			unitgroup = "weaponsub",
 			speedfactorinwater = 1.3,

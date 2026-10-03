@@ -10,6 +10,7 @@ function widget:GetInfo()
 		layer = -95000,
 		enabled = true,
 		handler = true,
+		modalExempt = true, -- chat stays readable and usable while a window is open
 	}
 end
 
@@ -36,9 +37,9 @@ local LineTypes = {
 	System = 5,
 }
 
-local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
-local badWords = VFS.Include("luaui/configs/badwords.lua")
-local ChatEmoji = VFS.Include("luaui/Include/chat_emoji.lua")
+local ChatEmoji = require("luaui/Include/chat_emoji")
+local badWords = require("luaui/configs/badwords")
+local utf8 = require("common/luaUtilities/utf8")
 
 local L_DEPRECATED = LOG.DEPRECATED
 local isDevSingle = (BAR.Utilities.IsDevMode() and BAR.Utilities.Gametype.IsSinglePlayer())
@@ -204,7 +205,7 @@ local state = {
 	mapDrawLastLeftClickTime = 0,
 	inputTextInsertActive = false,
 	minimapViewportY = select(4, Spring.GetViewGeometry()),
-	minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld,
+	minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld,
 	inputHistory = {},
 	inputHistoryCurrent = 0,
 	inputButtonRect = nil,
@@ -1186,7 +1187,7 @@ function state.updateChatInputGuishader(left, bottom, right, top)
 		RectRound(left, bottom, right, top, elementCorner)
 	end)
 	WG.guishader.RemoveDlist("chatinput")
-	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput")
+	WG.guishader.InsertDlist(state.chatInputGuishaderDlist, "chatinput", nil, widget)
 end
 
 function state.drawEmojiPickerButton(rect, iconSize)
@@ -1245,7 +1246,7 @@ function state.drawEmojiPickerGrid(inputAlpha, inputFontSize)
 	glColor(0, 0, 0, inputAlpha * 1.12)
 	RectRound(pickerLeft, pickerBottom, pickerRight, pickerTop, elementCorner * 0.7, 0, 0, 1, 1)
 	if WG.guishader then
-		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker")
+		WG.guishader.InsertRect(pickerLeft, pickerBottom, pickerRight, pickerTop, "chatinputemojipicker", widget)
 	end
 	for i = 1, #emojiAutocompleteAliases do
 		local col = (i - 1) % pickerColumns
@@ -1728,7 +1729,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			end
 		end
 
-		line = colorConsoleStr .. lineColor .. line
+		if string.byte(line, 1) ~= 255 then
+			line = (lineColor ~= "" and lineColor or colorConsoleStr) .. line
+		end
 	end
 
 	if not bypassThisMessage then
@@ -2534,7 +2537,8 @@ drawChatInput = function()
 						yPos - height,
 						x2 - elementPadding,
 						yPos,
-						"chatinputautocomplete"
+						"chatinputautocomplete",
+						widget
 					)
 				end
 				local addHeight = floor((inputFontSize * scale) * 1.35) - autocLineHeight
@@ -2587,7 +2591,7 @@ drawChatInput = function()
 					"o"
 				)
 				if WG.guishader then
-					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo")
+					WG.guishader.InsertRect(infoLeft, infoBottom, infoRight, infoTop, "chatinputinfo", widget)
 				end
 			else
 				if WG.guishader then
@@ -2854,7 +2858,7 @@ drawTextInput = function()
 			glCallList(textInputDlist)
 			drawChatInputCursor()
 			-- button hover
-			local x, y, b = spGetMouseState()
+			local x, y, _ = spGetMouseState()
 			if state.hasActiveCommand() then
 				return
 			end
@@ -2985,7 +2989,8 @@ function widget:DrawScreen()
 					activationArea[2] + chatlogHeightDiff,
 					activationArea[3],
 					activationArea[4],
-					"chat"
+					"chat",
+					widget
 				)
 			end
 
@@ -4241,7 +4246,8 @@ function widget:WorldTooltip(ttType, data1, data2, data3)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
-	if cmdType == "point" then
+	-- an ignored player's point is dropped and prints no "added point" line to pair with
+	if cmdType == "point" and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		lastMapmarkCoords = { x, y, z }
 	end
 end

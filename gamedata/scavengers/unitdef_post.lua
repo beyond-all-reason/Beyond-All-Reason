@@ -405,11 +405,10 @@ local function scavUnitDef_Post(name, uDef)
 	]]
 
 	-- Legion T1 Land Constructors
-	--[[
 	if name == "legca_scav" or name == "legck_scav" or name == "legcv_scav" then
 		local numBuildoptions = #uDef.buildoptions
+		uDef.buildoptions[numBuildoptions + 1] = "legmext15_scav" -- T1.5 Metal Extractor
 	end
-	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca_scav" or name == "legack_scav" or name == "legacv_scav" then
@@ -514,7 +513,7 @@ local function scavUnitDef_Post(name, uDef)
 	if name == "coraca_scav" or name == "corack_scav" or name == "coracv_scav" then
 		local numBuildoptions = #uDef.buildoptions
 		uDef.buildoptions[numBuildoptions + 1] = "corapt3_scav" -- T3 Aircraft Gantry
-		uDef.buildoptions[numBuildoptions + 2] = "corminibuzz_scav" -- Mini Calamity
+		uDef.buildoptions[numBuildoptions + 2] = "corobligator_scav" -- Obligator
 		uDef.buildoptions[numBuildoptions + 3] = "corhllllt_scav" -- Quad Guard - Quad Light Laser Turret
 		uDef.buildoptions[numBuildoptions + 4] = "cordoomt3_scav" -- Epic Bulwark
 		uDef.buildoptions[numBuildoptions + 5] = "corafust3_scav" -- Epic Fusion Reactor

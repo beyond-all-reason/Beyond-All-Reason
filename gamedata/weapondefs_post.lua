@@ -9,8 +9,8 @@
 
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local alldefs = VFS.Include("gamedata/alldefs_post.lua")
-local savedefs = VFS.Include("gamedata/post_save_to_customparams.lua")
+local alldefs = require("gamedata/alldefs_post")
+local savedefs = require("gamedata/post_save_to_customparams")
 
 local weaponDefPost = alldefs.WeaponDef_Post
 local modOptionsPost = alldefs.ModOptions_Post

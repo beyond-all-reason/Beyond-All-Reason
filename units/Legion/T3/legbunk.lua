@@ -39,7 +39,7 @@ return {
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 3,
-			subfolder = "leggantry",
+			subfolder = "Legion/T3",
 			techlevel = 3,
 		},
 		featuredefs = {

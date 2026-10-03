@@ -16,20 +16,13 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
--- Pre-compute which unitDefs have which build options for fast lookup
-local canBuildDef = {} -- [builderDefID][buildDefID] = true
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.buildOptions then
-		for _, optDefID in ipairs(unitDef.buildOptions) do
-			if not canBuildDef[unitDefID] then
-				canBuildDef[unitDefID] = {}
-			end
-			canBuildDef[unitDefID][optDefID] = true
-		end
-	end
-end
+---@type fun(builtUnitDefID: UnitDefID, builderUnitDefID: UnitDefID): boolean
+local hasBuildOption
 
 function gadget:Initialize()
+	-- api_dynamic_build_options.lua has a lower layer, so it is initialized first.
+	hasBuildOption = GG.DynamicBuildOptions.HasBuildOption
+
 	gadgetHandler:RegisterAllowCommand(CMD.INSERT)
 	gadgetHandler:RegisterAllowCommand(CMD.REMOVE)
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
@@ -56,11 +49,11 @@ function gadget:AllowCommand(
 	-- doesn't have this in its buildOptions. Prevents immobile assist turrets
 	-- (nanotc) from getting stuck with an unexecutable build command at the
 	-- front of their queue, permanently blocking fight/patrol behind it.
+	-- Build options can change at runtime, so ask api_dynamic_build_options.lua.
 	if cmdID < 0 and fromInsert then
 		local buildDefID = -cmdID
-		if not canBuildDef[unitDefID] or not canBuildDef[unitDefID][buildDefID] then
-			return false
-		end
+		---@cast buildDefID UnitDefID
+		return hasBuildOption(buildDefID, unitDefID)
 	end
 
 	return true

@@ -3,7 +3,7 @@ return {
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 3400,
 		canmove = true,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "34 18 40",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

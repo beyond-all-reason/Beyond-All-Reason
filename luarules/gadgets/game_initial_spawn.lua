@@ -38,6 +38,8 @@ if gadgetHandler:IsSyncedCode() then
 	local mathBitAnd = math.bit_and
 	local tableContains = table.contains
 
+	local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 	----------------------------------------------------------------
 	-- Config
 	----------------------------------------------------------------
@@ -237,7 +239,7 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 	-- Start Point Guesser
 	----------------------------------------------------------------
-	VFS.Include("common/lib_startpoint_guesser.lua")
+	require("common/lib_startpoint_guesser")
 
 	----------------------------------------------------------------
 	-- FFA start points (provided by `game_ffa_start_setup`)
@@ -451,12 +453,12 @@ if gadgetHandler:IsSyncedCode() then
 
 		if type == 2 then
 			return not (
-				Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
-				and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
-			) or hasBlockingFeature(x, z, unitDefID)
+					Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, 1, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, -1, 0, 0, true, false)
+					and Spring.TestMoveOrder(unitDefID, x, y, z, 0, 0, -1, true, false)
+				) or hasBlockingFeature(x, z, unitDefID)
 		end
 
 		return Spring.TestBuildOrder(unitDefID, x, y, z, "s") == 0
@@ -586,11 +588,22 @@ if gadgetHandler:IsSyncedCode() then
 		scenarioSpawnsUnits = false
 
 		if Spring.GetModOptions().scenariooptions then
-			local scenariooptions = Json.decode(string.base64Decode(Spring.GetModOptions().scenariooptions))
+			local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+			if not scenariooptions then
+				Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+			end
 			if scenariooptions and scenariooptions.unitloadout and next(scenariooptions.unitloadout) then
 				Spring.Echo("Scenario: Spawning loadout instead of regular commanders")
 				scenarioSpawnsUnits = true
 			end
+		end
+
+		-- Map editor sessions (New Map / Open Project) start with editor_sandbox=1
+		-- in the start script: the map maker edits an empty canvas or a project's
+		-- own unit loadout, so no team gets a commander. Reuses the scenario
+		-- path so the spawn effects and warp-in skip as well.
+		if not scenarioSpawnsUnits and tostring(Spring.GetModOptions().editor_sandbox or "") == "1" then
+			scenarioSpawnsUnits = true
 		end
 
 		if not scenarioSpawnsUnits then

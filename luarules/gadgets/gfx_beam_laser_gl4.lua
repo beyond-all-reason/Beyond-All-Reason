@@ -34,7 +34,6 @@ local spIsPosInAirLos = Spring.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetGameFrame = Spring.GetGameFrame
-local spGetGameSpeed = Spring.GetGameSpeed
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView = Spring.IsAABBInView
@@ -65,7 +64,6 @@ local uploadAllElements = gl.InstanceVBOTable.uploadAllElements
 
 -- Limits
 local INITIAL_VBO_SIZE = 64 -- starting VBO capacity (doubles automatically when exceeded)
-local IDLE_SKIP_FRAMES = 3 -- draw-frames to skip polling when no beams active
 
 -- Per-weapon ghost frames: scaled by beam thickness so small lasers fade fast
 local GHOST_FRAMES_MIN = 3 -- ghost frames for thinnest beams
@@ -223,9 +221,9 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 				range = range,
 				beamttl = beamttl,
 				beamtime = beamtime,
-				emitterMatchDistSq = hasRepeatedMounts and HARDPOINT_MATCH_DISTANCE_SQ or math.huge,
-				claimedMatchDistSq = hasRepeatedMounts and HARDPOINT_DEDUPE_DISTANCE_SQ or math.huge,
-				isParalyzer = isParalyzer,
+				repeatedMount = hasRepeatedMounts or false,
+				singleMountKey = -1 - weaponID, -- record key when the weapon has one emitter per unit
+				paraFlag = isParalyzer and 1.0 or 0.0, -- flareData.y for the pulse shader
 				-- Per-weapon ghost config
 				ghostFrames = ghostFrames,
 				flareGhostFrames = flareGhostFrames,
@@ -233,7 +231,6 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 				-- Pre-computed for hot loop
 				beamWidth = thickness * BEAM_WIDTH_MULT,
 				invRangeSq = 1.0 / mathMax(range * range, 1),
-				aabbPad = thickness * BEAM_WIDTH_MULT * GLOW_WIDTH_MULT, -- padding for AABB view check (covers glow quad)
 				flareColorR = coreR * FLARE_COLOR_MULT,
 				flareColorG = coreG * FLARE_COLOR_MULT,
 				flareColorB = coreB * FLARE_COLOR_MULT,
@@ -263,34 +260,52 @@ end
 -- Beam tracking
 -- Tracked per unit+weapon (not per projectile) so a moving unit only ever
 -- has ONE ghost beam per weapon, at its most recent position.
--- Key = unitID * 65536 + weaponDefID  (fast integer key, no string alloc)
 --------------------------------------------------------------------------------
 -- weaponBeams is keyed two levels deep to avoid per-frame string-concat allocations:
 --   weaponBeams[ownerID][innerKey] = rec
--- innerKey packs (wDefID, bx, by, bz) into a single number (see BEAM_INNER_KEY_*).
--- Each rec carries .liveStamp and .liveSlot so we don't need parallel liveKeys /
--- liveBeamSlot / liveKeysList dicts (each of which cost a string concat per beam
--- per frame). "Live this call" test is simply rec.liveStamp == callStamp; the
--- dedupe slot is rec.liveSlot, only meaningful when liveStamp matches.
+-- innerKey packs (wDefID, bx, by, bz) into a single number (see BEAM_KEY_*), or is
+-- cfg.singleMountKey for weapons mounted once per unit.
+-- A scan copies each emitter's live beam into its rec and stamps rec.liveStamp;
+-- the build turns every live or fading rec in trackedList into one instance.
+---@type table<number, table?>
 local weaponBeams = {} -- [ownerID] = { [innerKey] = rec }
+---@type table<integer, table>
+local trackedList = {}
+local trackedCount = 0
 local beamCleanupFrame = 0
-local hasGhosts = false -- true when weaponBeams has any entries (skip ghost loop when empty)
-local removeOwnerList = {} -- reused across cleanup cycles
-local removeKeyList = {} -- parallel to removeOwnerList
-local removeCount = 0
 
 -- Object pools: avoid allocating fresh tracked records / ownerBeams sub-tables
 -- every time a hardpoint resumes firing after a pause (or a unit fires for the
 -- first time). Reused entries are reset on acquire; on release we strip cfg
 -- (the only field that might pin a stale reference).
+---@type table<integer, table>
 local trackedPool = {}
 local trackedPoolN = 0
+---@type table<integer, table>
 local ownerBeamsPool = {}
 local ownerBeamsPoolN = 0
 
+local function acquireTrackedBeam(cfg, ownerBeams, ownerID, innerKey)
+	local rec
+	if trackedPoolN > 0 then
+		rec = trackedPool[trackedPoolN]
+		trackedPool[trackedPoolN] = nil
+		trackedPoolN = trackedPoolN - 1
+		rec.liveStamp = 0
+	else
+		rec = {}
+	end
+	rec.cfg = cfg
+	rec.ownerID = ownerID
+	rec.innerKey = innerKey
+	ownerBeams[innerKey] = rec
+	trackedCount = trackedCount + 1
+	trackedList[trackedCount] = rec
+	return rec
+end
+
 local function releaseTrackedBeam(rec)
 	rec.cfg = nil
-	rec.simStamp = nil
 	trackedPoolN = trackedPoolN + 1
 	trackedPool[trackedPoolN] = rec
 end
@@ -334,18 +349,7 @@ local function getBeamInnerKey(ownerID, wDefID, px, py, pz)
 	return innerKey, px, py, pz
 end
 
-local function resolveBeamEmitter(
-	ownerBeams,
-	ownerID,
-	wDefID,
-	px,
-	py,
-	pz,
-	stamp,
-	stampField,
-	matchMaxDistSq,
-	claimedMaxDistSq
-)
+local function resolveBeamEmitter(ownerBeams, ownerID, wDefID, px, py, pz, stamp)
 	local innerKey, emitterX, emitterY, emitterZ = getBeamInnerKey(ownerID, wDefID, px, py, pz)
 	local direct = ownerBeams[innerKey]
 	if direct and direct.wDefID == wDefID then
@@ -353,7 +357,7 @@ local function resolveBeamEmitter(
 		local dy = emitterY - direct.emitterY
 		local dz = emitterZ - direct.emitterZ
 		local distSq = dx * dx + dy * dy + dz * dz
-		local maxDistSq = direct[stampField] == stamp and claimedMaxDistSq or matchMaxDistSq
+		local maxDistSq = direct.liveStamp == stamp and HARDPOINT_DEDUPE_DISTANCE_SQ or HARDPOINT_MATCH_DISTANCE_SQ
 		if distSq <= maxDistSq then
 			return innerKey, direct, emitterX, emitterY, emitterZ
 		end
@@ -366,7 +370,8 @@ local function resolveBeamEmitter(
 			local dy = emitterY - candidate.emitterY
 			local dz = emitterZ - candidate.emitterZ
 			local distSq = dx * dx + dy * dy + dz * dz
-			local maxDistSq = candidate[stampField] == stamp and claimedMaxDistSq or matchMaxDistSq
+			local maxDistSq = candidate.liveStamp == stamp and HARDPOINT_DEDUPE_DISTANCE_SQ
+				or HARDPOINT_MATCH_DISTANCE_SQ
 			if distSq <= maxDistSq and (not nearestDistSq or distSq < nearestDistSq) then
 				nearestKey = candidateKey
 				nearest = candidate
@@ -1025,83 +1030,31 @@ local flareShader
 local glowShader
 local pulseShader
 
--- Idle skip
-local idleSkipCounter = 0
+-- Monotonically incrementing stamp, bumped once per scanBeams() call. Used as
+-- tracked.liveStamp: a record is live when the latest scan saw its emitter fire.
+local scanStamp = 0
 
--- Monotonically incrementing stamp, bumped once per updateBeams() call. Used
--- as tracked.liveStamp so the same-emitter dedupe path triggers only for
--- multiple projectiles seen WITHIN ONE updateBeams pass, not across separate
--- DrawWorld calls within the same sim frame (DrawWorld runs at the display
--- rate, gameFrame only ticks at 30Hz, so using gameFrame here would dedupe
--- every render after the first within a sim frame and zero out beamCount).
-local updateBeamsStamp = 0
+-- Set by a scan, cleared when the next draw builds the instance buffer from it
+local buildPending = false
 
--- Last sim frame in which DrawWorld ran. Used to skip the GameFrame scan when
--- the renderer is keeping up (avoids redundant work at normal/high FPS).
-local lastDrawWorldSimFrame = -1
-
--- When paused, projectile state doesn't change between frames, but the camera
--- can still pan/zoom -- so we must re-run view culling. To avoid the large
--- per-frame spGetProjectilesInRectangle allocation (which returns every weapon
--- projectile, including flamethrowers etc.), we cache just the beam-laser
--- projectile IDs on the first paused frame and iterate that small cache on
--- subsequent paused frames.
-local lastUpdateWasPaused = false
-local pausedBeamCache = {} -- list of proIDs (beam-laser only)
-local pausedBeamCacheCount = 0
-
--- Paused-state camera tracking: while paused, only rebuild when camera moves
--- (projectile state is frozen, so unchanged camera == unchanged output).
--- These are kept inside pausedShouldSkipRebuild() so updateBeams() doesn't
--- carry them as upvalues (it is already at Lua's 60-upvalue limit).
-local pausedCamX, pausedCamY, pausedCamZ = 0, 0, 0
-local pausedCamDX, pausedCamDY, pausedCamDZ = 0, 0, 0
-local pausedLastRebuildTimer = nil
-
--- Returns true if the per-frame rebuild in updateBeams() can be skipped while
--- paused (camera unchanged, or wall-clock throttle still active). Maintains
--- the camera cache + timer internally so the calling function avoids the
--- associated upvalues.
-local function pausedShouldSkipRebuild(usePausedCache, isPaused)
-	if usePausedCache then
-		local cx, cy, cz = Spring.GetCameraPosition()
-		local dx, dy, dz = Spring.GetCameraDirection()
-		if
-			cx == pausedCamX
-			and cy == pausedCamY
-			and cz == pausedCamZ
-			and dx == pausedCamDX
-			and dy == pausedCamDY
-			and dz == pausedCamDZ
-		then
-			return true
-		end
-		-- Camera moved while paused: cap rebuild rate to ~20Hz wall-clock
-		-- (FPS-independent, stays cheap at uncapped paused FPS during pans).
-		local now = Spring.GetTimer()
-		if pausedLastRebuildTimer and Spring.DiffTimers(now, pausedLastRebuildTimer) < 0.05 then
-			return true
-		end
-		pausedLastRebuildTimer = now
-		pausedCamX, pausedCamY, pausedCamZ = cx, cy, cz
-		pausedCamDX, pausedCamDY, pausedCamDZ = dx, dy, dz
-	elseif isPaused then
-		-- First paused frame: prime camera cache so we can early-out next frame.
-		pausedCamX, pausedCamY, pausedCamZ = Spring.GetCameraPosition()
-		pausedCamDX, pausedCamDY, pausedCamDZ = Spring.GetCameraDirection()
-		pausedLastRebuildTimer = nil
-	end
-	return false
-end
+-- The scan runs once per sim frame; this asks the next draw for an extra scan
+local needsRebuild = true
 
 -- Subscription handle for the shared projectile dispatcher (set in Initialize).
 -- When non-nil, GetMatches already returns the pre-filtered + per-frame-cached
--- list of beam-laser proIDs, which also makes the pausedBeamCache redundant.
+-- list of beam-laser proIDs.
 local dispatchHandle = nil
 
 -- Cached ally team
 local cachedAllyTeamID = spGetMyAllyTeamID()
 local cachedSpecFullView = false
+
+local function updateLosView()
+	local _, specFullView = spGetSpectatingState()
+	cachedSpecFullView = specFullView
+	cachedAllyTeamID = specFullView and -1 or spGetMyAllyTeamID()
+	needsRebuild = true
+end
 
 local function goodbye(reason)
 	gadgetHandler:RemoveGadget()
@@ -1295,6 +1248,31 @@ local ONE_MINUS_FADE_OUT = 1.0 - FADE_OUT_START_CACHED
 
 local LIVE_LIFEFRAC = BEAM_SUSTAIN_LIFEFRAC
 
+-- The buffer holds every beam in LOS, so builds and draws are skipped while all of it is
+-- off-screen. pendingBounds spans every record (recomputed by the cleanup) and grows with
+-- each scanned beam, so it covers anything the next build can draw; drawBounds is its
+-- copy at the last build. The pad covers the widest glow or flare plus the
+-- minimum-pixel-width inflation of distant beams.
+local drawBounds = { math.huge, math.huge, math.huge, -math.huge, -math.huge, -math.huge }
+local pendingBounds = { math.huge, math.huge, math.huge, -math.huge, -math.huge, -math.huge }
+local viewPad = 0
+for _, cfg in pairs(weaponConfigs) do
+	viewPad = mathMax(viewPad, cfg.beamWidth * GLOW_WIDTH_MULT * 1.1, cfg.liveFlareSize)
+end
+viewPad = viewPad + 32
+
+local function boundsInView(b)
+	return b[1] <= b[4]
+		and spIsAABBInView(
+			b[1] - viewPad,
+			b[2] - viewPad,
+			b[3] - viewPad,
+			b[4] + viewPad,
+			b[5] + viewPad,
+			b[6] + viewPad
+		)
+end
+
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
 
@@ -1317,388 +1295,288 @@ local function findLosBoundary(sx, sz, ex, ez, allyTeam, startInLos)
 	return (lo + hi) * 0.5
 end
 
-local function updateBeams()
-	-- Pause handling: the camera can still move while paused, so we must keep
-	-- doing view culling -- but projectile state is frozen, so we don't need
-	-- to re-poll every weapon projectile on the map each frame. On the first
-	-- paused frame we build a small cache of just the beam-laser projectile
-	-- IDs; subsequent paused frames iterate that cache instead of calling
-	-- spGetProjectilesInRectangle (which allocates a fresh table containing
-	-- every weapon projectile, e.g. flamethrowers, even with no beam lasers).
-	local _, _, isPaused = spGetGameSpeed()
-	local usePausedCache = isPaused and lastUpdateWasPaused
-	lastUpdateWasPaused = isPaused
-
-	-- While paused, projectile state is frozen, so the only thing that can
-	-- change the rendered output is the camera moving. The helper below short-
-	-- circuits the entire per-beam scan + AABB cull + VBO upload when camera is
-	-- unchanged (or throttle-gated during a pan); the existing VBO contents are
-	-- replayed by drawAll(). Kept as a separate function so this function stays
-	-- under Lua's 60-upvalue limit.
-	if pausedShouldSkipRebuild(usePausedCache, isPaused) then
-		return
-	end
-
-	-- Idle skip: throttle when no beams or ghosts active. Disabled while paused
-	-- so camera pans always re-cull. (When using the paused cache the cost is
-	-- minimal: a per-beam AABB-in-view check, no projectile-list allocation.)
-	if not isPaused and idleSkipCounter > 0 then
-		idleSkipCounter = idleSkipCounter - 1
-		return
-	end
-
-	beamVBO.usedElements = 0
-
-	updateBeamsStamp = updateBeamsStamp + 1
-	local callStamp = updateBeamsStamp
+local function scanBeams()
+	scanStamp = scanStamp + 1
+	local stamp = scanStamp
 
 	local gameFrame = spGetGameFrame()
-
-	-- No per-frame clear needed: rec.liveStamp is stamped to callStamp on every
-	-- live sighting and compared back here, so stale .liveSlot values from prior
-	-- calls are naturally ignored by the "rec.liveStamp == callStamp" guard.
 
 	-- Scan ALL weapon projectiles map-wide (not just camera-visible ones).
 	-- GetVisibleProjectiles culls by projectile origin, which misses beams
 	-- whose start is off-screen but whose middle or end is on-screen.
-	-- Prefer the shared dispatcher: it caches the map-wide scan once per tick
-	-- (sim frame, or per render frame while paused) and pre-filters by
-	-- weaponDefID so we don't iterate flamethrower/etc. projectiles here.
+	-- Prefer the shared dispatcher: it caches the map-wide scan once per sim
+	-- frame and pre-filters by weaponDefID so we don't iterate flamethrower/etc.
+	-- projectiles here.
 	local projectiles, matchDefIDs, projectileCount
 	local PS = GG.ProjectileScan
 	local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
 	if dispatcherFiltered then
 		projectiles, matchDefIDs, projectileCount = PS.GetMatchesWithDefIDs(dispatchHandle)
-	elseif usePausedCache then
-		projectiles = pausedBeamCache
-		projectileCount = pausedBeamCacheCount
 	else
 		projectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
 		projectileCount = projectiles and #projectiles or 0
-		if isPaused then
-			-- Reset cache; it will be filled below as we discover beam projectiles.
-			pausedBeamCacheCount = 0
-		end
 	end
+	local myAllyTeam = cachedAllyTeamID
+	local needLosCheck = not cachedSpecFullView
+	local bounds = pendingBounds
+	local minX, minY, minZ, maxX, maxY, maxZ = bounds[1], bounds[2], bounds[3], bounds[4], bounds[5], bounds[6]
+
+	for i = 1, projectileCount do
+		local proID = projectiles[i]
+		local wDefID, cfg
+		if dispatcherFiltered then
+			wDefID = matchDefIDs[i]
+			cfg = weaponConfigs[wDefID]
+		else
+			wDefID = spGetProjectileDefID(proID)
+			cfg = wDefID and weaponConfigs[wDefID]
+		end
+		if cfg then
+			local px, py, pz = spGetProjectilePosition(proID)
+			if px then
+				---@cast py number
+				---@cast pz number
+				local vx, vy, vz = spGetProjectileVelocity(proID)
+				if vx then
+					local endX = px + vx
+					local endY = py + vy
+					local endZ = pz + vz
+
+					-- LOS check: beam is visible if start OR end is in LOS
+					local visible = true
+					local startInLos = true
+					local endInLos = true
+					local proAlly
+					if needLosCheck then
+						local proTeam = spGetProjectileTeamID(proID)
+						proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
+						if proAlly ~= myAllyTeam then
+							startInLos = spLosCheck(px, 0, pz, myAllyTeam)
+							endInLos = spLosCheck(endX, 0, endZ, myAllyTeam)
+							visible = startInLos or endInLos
+						end
+					end
+					if visible then
+						-- Save original (unclipped) positions for ghost beam tracking
+						local origPx, origPy, origPz = px, py, pz
+						local origEndX, origEndY, origEndZ = endX, endY, endZ
+
+						-- Clip beam to LOS boundary when only one end is visible
+						local clipStart = false
+						if CLIP_BEAM_TO_LOS and needLosCheck and startInLos ~= endInLos then
+							local t = findLosBoundary(px, pz, endX, endZ, myAllyTeam, startInLos)
+							-- Extend visible portion by bonus range (ground LOS only)
+							if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
+								local beamLen = mathSqrt(vx * vx + vy * vy + vz * vz)
+								local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
+								if startInLos then
+									t = mathMin(1, t + bonusFrac)
+								else
+									t = mathMax(0, t - bonusFrac)
+								end
+							end
+							if startInLos then
+								-- Clip the end (keep start)
+								endX = px + vx * t
+								endY = py + vy * t
+								endZ = pz + vz * t
+							else
+								-- Clip the start (keep end)
+								px = px + vx * t
+								py = py + vy * t
+								pz = pz + vz * t
+								clipStart = true
+							end
+						end
+
+						local ownerID = spGetProjectileOwnerID(proID) or 0
+						local ownerBeams = weaponBeams[ownerID]
+						if not ownerBeams then
+							if ownerBeamsPoolN > 0 then
+								ownerBeams = ownerBeamsPool[ownerBeamsPoolN]
+								ownerBeamsPool[ownerBeamsPoolN] = nil
+								ownerBeamsPoolN = ownerBeamsPoolN - 1
+							else
+								ownerBeams = {}
+							end
+							weaponBeams[ownerID] = ownerBeams
+						end
+						-- Single-mount definitions always reuse one record. Repeated mounts
+						-- follow nearest model-space emitters, with tighter same-scan matching.
+						local innerKey, tracked, emitterX, emitterY, emitterZ
+						if cfg.repeatedMount or ownerID == 0 then
+							innerKey, tracked, emitterX, emitterY, emitterZ =
+								resolveBeamEmitter(ownerBeams, ownerID, wDefID, origPx, origPy, origPz, stamp)
+						else
+							innerKey = cfg.singleMountKey
+							tracked = ownerBeams[innerKey]
+						end
+						if not tracked then
+							tracked = acquireTrackedBeam(cfg, ownerBeams, ownerID, innerKey)
+						end
+
+						-- Several projectiles of one emitter in a scan (overlapping beamttl,
+						-- target switches) render as one beam: the last one seen wins.
+						tracked.liveStamp = stamp
+						tracked.wDefID = wDefID
+						tracked.emitterX = emitterX
+						tracked.emitterY = emitterY
+						tracked.emitterZ = emitterZ
+						tracked.px = origPx
+						tracked.py = origPy
+						tracked.pz = origPz
+						tracked.endX = origEndX
+						tracked.endY = origEndY
+						tracked.endZ = origEndZ
+						tracked.lastSeenFrame = gameFrame
+						tracked.ownerAllyTeam = proAlly
+						tracked.liveX = px
+						tracked.liveY = py
+						tracked.liveZ = pz
+						tracked.liveEndX = endX
+						tracked.liveEndY = endY
+						tracked.liveEndZ = endZ
+						tracked.liveClipStart = clipStart
+						-- Range falloff: use squared length (avoid sqrt)
+						local beamLenSq = vx * vx + vy * vy + vz * vz
+						tracked.liveFalloff = BEAM_RANGE_FALLOFF_BASE
+							+ BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
+						minX = mathMin(minX, origPx, origEndX)
+						minY = mathMin(minY, origPy, origEndY)
+						minZ = mathMin(minZ, origPz, origEndZ)
+						maxX = mathMax(maxX, origPx, origEndX)
+						maxY = mathMax(maxY, origPy, origEndY)
+						maxZ = mathMax(maxZ, origPz, origEndZ)
+					end -- visible
+				end -- vx
+			end -- px
+		end -- cfg
+	end
+	bounds[1], bounds[2], bounds[3], bounds[4], bounds[5], bounds[6] = minX, minY, minZ, maxX, maxY, maxZ
+	buildPending = true
+end
+
+-- One instance per record: live beams from the latest scan, then the fading
+-- ghosts of emitters that stopped firing.
+local function buildBeams()
+	buildPending = false
+	local stamp = scanStamp
+	local gameFrame = spGetGameFrame()
 	local beamData = beamVBO.instanceData
 	local beamCount = 0
 	local offset = 0
 	local myAllyTeam = cachedAllyTeamID
 	local needLosCheck = not cachedSpecFullView
 
-	if projectiles then
-		for i = 1, projectileCount do
-			local proID = projectiles[i]
-			local wDefID, cfg
-			if dispatcherFiltered then
-				wDefID = matchDefIDs[i]
-				cfg = weaponConfigs[wDefID]
+	for i = 1, trackedCount do
+		local tracked = trackedList[i]
+		local cfg = tracked.cfg
+		local sx, sy, sz, ex, ey, ez, lifeFrac, intensityFalloff, flareSize, flareG, flareB
+		if tracked.liveStamp == stamp then
+			sx, sy, sz = tracked.liveX, tracked.liveY, tracked.liveZ
+			ex, ey, ez = tracked.liveEndX, tracked.liveEndY, tracked.liveEndZ
+			lifeFrac = LIVE_LIFEFRAC
+			intensityFalloff = tracked.liveFalloff
+			-- Suppress flare when beam start is clipped to LOS boundary
+			if tracked.liveClipStart then
+				flareSize, flareG, flareB = 0, 0, 0
 			else
-				wDefID = spGetProjectileDefID(proID)
-				cfg = wDefID and weaponConfigs[wDefID]
+				flareSize, flareG, flareB = cfg.liveFlareSize, cfg.liveFlareG, cfg.liveFlareB
 			end
-			if cfg then
-				-- On the first paused frame, record beam projectiles so subsequent
-				-- paused frames can iterate this small cache instead of re-polling.
-				-- (Only meaningful in the fallback path; the dispatcher already
-				-- caches its scan per render frame while paused.)
-				if (not dispatcherFiltered) and isPaused and not usePausedCache then
-					pausedBeamCacheCount = pausedBeamCacheCount + 1
-					pausedBeamCache[pausedBeamCacheCount] = proID
-				end
-				local px, py, pz = spGetProjectilePosition(proID)
-				if px then
-					local vx, vy, vz = spGetProjectileVelocity(proID)
-					if vx then
-						local endX = px + vx
-						local endY = py + vy
-						local endZ = pz + vz
+		else
+			local ghostAge = gameFrame - tracked.lastSeenFrame
+			if ghostAge >= 1 and ghostAge <= cfg.ghostFrames then
+				local gpx, gpy, gpz = tracked.px, tracked.py, tracked.pz
+				local gex, gey, gez = tracked.endX, tracked.endY, tracked.endZ
 
-						-- LOS check: beam is visible if start OR end is in LOS
-						local visible = true
-						local startInLos = true
-						local endInLos = true
-						local proAlly
-						if needLosCheck then
-							local proTeam = spGetProjectileTeamID(proID)
-							proAlly = proTeam and spGetTeamAllyTeamID(proTeam)
-							if proAlly ~= myAllyTeam then
-								startInLos = spLosCheck(px, 0, pz, myAllyTeam)
-								endInLos = spLosCheck(endX, 0, endZ, myAllyTeam)
-								visible = startInLos or endInLos
+				-- LOS check for ghost beams (skip for own allyteam)
+				local ghostVisible = true
+				local ghostClipStart = false
+				if needLosCheck and tracked.ownerAllyTeam ~= myAllyTeam then
+					local startInLos = spLosCheck(gpx, 0, gpz, myAllyTeam)
+					local endInLos = spLosCheck(gex, 0, gez, myAllyTeam)
+					ghostVisible = startInLos or endInLos
+					if ghostVisible and CLIP_BEAM_TO_LOS and startInLos ~= endInLos then
+						local dvx = gex - gpx
+						local dvy = gey - gpy
+						local dvz = gez - gpz
+						local t = findLosBoundary(gpx, gpz, gex, gez, myAllyTeam, startInLos)
+						-- Extend visible portion by bonus range (ground LOS only)
+						if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
+							local beamLen = mathSqrt(dvx * dvx + dvy * dvy + dvz * dvz)
+							local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
+							if startInLos then
+								t = mathMin(1, t + bonusFrac)
+							else
+								t = mathMax(0, t - bonusFrac)
 							end
 						end
-						if visible then
-							-- Save original (unclipped) positions for ghost beam tracking
-							local origPx, origPy, origPz = px, py, pz
-							local origEndX, origEndY, origEndZ = endX, endY, endZ
-
-							-- Clip beam to LOS boundary when only one end is visible
-							local clipStart = false
-							if CLIP_BEAM_TO_LOS and needLosCheck and startInLos ~= endInLos then
-								local t = findLosBoundary(px, pz, endX, endZ, myAllyTeam, startInLos)
-								-- Extend visible portion by bonus range (ground LOS only)
-								if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
-									local beamLen = mathSqrt(vx * vx + vy * vy + vz * vz)
-									local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
-									if startInLos then
-										t = mathMin(1, t + bonusFrac)
-									else
-										t = mathMax(0, t - bonusFrac)
-									end
-								end
-								if startInLos then
-									-- Clip the end (keep start)
-									endX = px + vx * t
-									endY = py + vy * t
-									endZ = pz + vz * t
-								else
-									-- Clip the start (keep end)
-									px = px + vx * t
-									py = py + vy * t
-									pz = pz + vz * t
-									clipStart = true
-								end
-							end
-
-							-- Check if any part of the beam is in the camera view (padded for glow quad)
-							local pad = cfg.aabbPad
-							if
-								spIsAABBInView(
-									mathMin(px, endX) - pad,
-									mathMin(py, endY) - pad,
-									mathMin(pz, endZ) - pad,
-									mathMax(px, endX) + pad,
-									mathMax(py, endY) + pad,
-									mathMax(pz, endZ) + pad
-								)
-							then
-								local ownerID = spGetProjectileOwnerID(proID) or 0
-								local ownerBeams = weaponBeams[ownerID]
-								if not ownerBeams then
-									if ownerBeamsPoolN > 0 then
-										ownerBeams = ownerBeamsPool[ownerBeamsPoolN]
-										ownerBeamsPool[ownerBeamsPoolN] = nil
-										ownerBeamsPoolN = ownerBeamsPoolN - 1
-									else
-										ownerBeams = {}
-									end
-									weaponBeams[ownerID] = ownerBeams
-								end
-								-- Single-mount definitions always reuse one record. Repeated mounts
-								-- follow nearest model-space emitters, with tighter same-scan matching.
-								local innerKey, tracked, emitterX, emitterY, emitterZ = resolveBeamEmitter(
-									ownerBeams,
-									ownerID,
-									wDefID,
-									origPx,
-									origPy,
-									origPz,
-									callStamp,
-									"liveStamp",
-									ownerID ~= 0 and cfg.emitterMatchDistSq or HARDPOINT_MATCH_DISTANCE_SQ,
-									ownerID ~= 0 and cfg.claimedMatchDistSq or HARDPOINT_DEDUPE_DISTANCE_SQ
-								)
-								if not tracked then
-									if trackedPoolN > 0 then
-										tracked = trackedPool[trackedPoolN]
-										trackedPool[trackedPoolN] = nil
-										trackedPoolN = trackedPoolN - 1
-										tracked.cfg = cfg
-										tracked.liveStamp = 0
-									else
-										tracked = { cfg = cfg }
-									end
-									ownerBeams[innerKey] = tracked
-									hasGhosts = true
-								end
-
-								tracked.wDefID = wDefID
-								tracked.emitterX = emitterX
-								tracked.emitterY = emitterY
-								tracked.emitterZ = emitterZ
-								tracked.px = origPx
-								tracked.py = origPy
-								tracked.pz = origPz
-								tracked.endX = origEndX
-								tracked.endY = origEndY
-								tracked.endZ = origEndZ
-								tracked.lastSeenFrame = gameFrame
-								tracked.ownerAllyTeam = proAlly
-
-								-- Range falloff: use squared length (avoid sqrt)
-								local beamLenSq = vx * vx + vy * vy + vz * vz
-								local rangeFracSq = beamLenSq * cfg.invRangeSq
-								local intensityFalloff = BEAM_RANGE_FALLOFF_BASE
-									+ BEAM_RANGE_FALLOFF_MULT * mathMin(rangeFracSq, 1.0)
-
-								-- Dedupe: if this emitter already wrote a beam this frame
-								-- (target-switch creates overlapping projectiles), reuse its
-								-- slot so the newest projectile overwrites the previous one
-								-- instead of rendering as a parallel beam.
-								local savedOffset
-								if tracked.liveStamp == callStamp then
-									savedOffset = offset
-									offset = tracked.liveSlot
-								else
-									tracked.liveStamp = callStamp
-									tracked.liveSlot = offset
-									beamCount = beamCount + 1
-								end
-								beamData[offset + 1] = px
-								beamData[offset + 2] = py
-								beamData[offset + 3] = pz
-								beamData[offset + 4] = cfg.beamWidth
-								beamData[offset + 5] = endX
-								beamData[offset + 6] = endY
-								beamData[offset + 7] = endZ
-								beamData[offset + 8] = LIVE_LIFEFRAC
-								beamData[offset + 9] = cfg.coreR
-								beamData[offset + 10] = cfg.coreG
-								beamData[offset + 11] = cfg.coreB
-								beamData[offset + 12] = 1.0
-								beamData[offset + 13] = cfg.colorR
-								beamData[offset + 14] = cfg.colorG
-								beamData[offset + 15] = cfg.colorB
-								beamData[offset + 16] = intensityFalloff
-								-- Suppress flare when beam start is clipped to LOS boundary
-								if clipStart then
-									beamData[offset + 17] = 0
-									beamData[offset + 18] = 0
-									beamData[offset + 19] = 0
-									beamData[offset + 20] = 0
-								else
-									beamData[offset + 17] = cfg.liveFlareSize
-									beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0 -- flareData.y: paralyzer flag for pulse shader
-									beamData[offset + 19] = cfg.liveFlareG
-									beamData[offset + 20] = cfg.liveFlareB
-								end
-								if savedOffset then
-									offset = savedOffset
-								else
-									offset = offset + 20
-								end
-							end -- spIsAABBInView
-						end -- visible
-					end -- vx
-				end -- px
-			end -- cfg
-		end
-	end
-
-	-- Ghost beams: skip entire loop when no tracked beams exist
-	if hasGhosts then
-		for _, ownerBeams in pairs(weaponBeams) do
-			for _, tracked in pairs(ownerBeams) do
-				if tracked.liveStamp ~= callStamp and tracked.px then
-					local cfg = tracked.cfg
-					local ghostAge = gameFrame - tracked.lastSeenFrame
-					if ghostAge >= 1 and ghostAge <= cfg.ghostFrames then
-						local gpx, gpy, gpz = tracked.px, tracked.py, tracked.pz
-						local gex, gey, gez = tracked.endX, tracked.endY, tracked.endZ
-
-						-- LOS check for ghost beams (skip for own allyteam)
-						local ghostVisible = true
-						local ghostClipStart = false
-						if needLosCheck and tracked.ownerAllyTeam ~= myAllyTeam then
-							local startInLos = spLosCheck(gpx, 0, gpz, myAllyTeam)
-							local endInLos = spLosCheck(gex, 0, gez, myAllyTeam)
-							ghostVisible = startInLos or endInLos
-							if ghostVisible and CLIP_BEAM_TO_LOS and startInLos ~= endInLos then
-								local dvx = gex - gpx
-								local dvy = gey - gpy
-								local dvz = gez - gpz
-								local t = findLosBoundary(gpx, gpz, gex, gez, myAllyTeam, startInLos)
-								-- Extend visible portion by bonus range (ground LOS only)
-								if not USE_AIR_LOS and LOS_BONUS_RANGE > 0 then
-									local beamLen = mathSqrt(dvx * dvx + dvy * dvy + dvz * dvz)
-									local bonusFrac = LOS_BONUS_RANGE / mathMax(beamLen, 1)
-									if startInLos then
-										t = mathMin(1, t + bonusFrac)
-									else
-										t = mathMax(0, t - bonusFrac)
-									end
-								end
-								if startInLos then
-									gex = gpx + dvx * t
-									gey = gpy + dvy * t
-									gez = gpz + dvz * t
-								else
-									gpx = gpx + dvx * t
-									gpy = gpy + dvy * t
-									gpz = gpz + dvz * t
-									ghostClipStart = true
-								end
-							end
+						if startInLos then
+							gex = gpx + dvx * t
+							gey = gpy + dvy * t
+							gez = gpz + dvz * t
+						else
+							gpx = gpx + dvx * t
+							gpy = gpy + dvy * t
+							gpz = gpz + dvz * t
+							ghostClipStart = true
 						end
-
-						if ghostVisible then
-							-- Check if any part of the ghost beam is in the camera view (padded for glow quad)
-							local pad = cfg.aabbPad
-							if
-								spIsAABBInView(
-									mathMin(gpx, gex) - pad,
-									mathMin(gpy, gey) - pad,
-									mathMin(gpz, gez) - pad,
-									mathMax(gpx, gex) + pad,
-									mathMax(gpy, gey) + pad,
-									mathMax(gpz, gez) + pad
-								)
-							then
-								local lifeFrac = FADE_OUT_START_CACHED
-									+ (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
-
-								local vx = gex - gpx
-								local vy = gey - gpy
-								local vz = gez - gpz
-								local beamLenSq = vx * vx + vy * vy + vz * vz
-								local intensityFalloff = BEAM_RANGE_FALLOFF_BASE
-									+ BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
-								local flareVisible = ghostAge <= cfg.flareGhostFrames
-								local flarePulse = (flareVisible and not ghostClipStart)
-										and (1.0 - lifeFrac * FLARE_LIFE_DIM)
-									or 0
-
-								beamCount = beamCount + 1
-								beamData[offset + 1] = gpx
-								beamData[offset + 2] = gpy
-								beamData[offset + 3] = gpz
-								beamData[offset + 4] = cfg.beamWidth
-								beamData[offset + 5] = gex
-								beamData[offset + 6] = gey
-								beamData[offset + 7] = gez
-								beamData[offset + 8] = lifeFrac
-								beamData[offset + 9] = cfg.coreR
-								beamData[offset + 10] = cfg.coreG
-								beamData[offset + 11] = cfg.coreB
-								beamData[offset + 12] = 1.0
-								beamData[offset + 13] = cfg.colorR
-								beamData[offset + 14] = cfg.colorG
-								beamData[offset + 15] = cfg.colorB
-								beamData[offset + 16] = intensityFalloff
-								beamData[offset + 17] = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
-								beamData[offset + 18] = cfg.isParalyzer and 1.0 or 0.0 -- flareData.y: paralyzer flag for pulse shader
-								beamData[offset + 19] = cfg.flareColorG * flarePulse
-								beamData[offset + 20] = cfg.flareColorB * flarePulse
-								offset = offset + 20
-							end
-						end -- ghostVisible
 					end
 				end
-			end -- inner for over ownerBeams
+
+				if ghostVisible then
+					sx, sy, sz, ex, ey, ez = gpx, gpy, gpz, gex, gey, gez
+					lifeFrac = FADE_OUT_START_CACHED + (ghostAge * cfg.invGhostFrames) * ONE_MINUS_FADE_OUT
+					local vx = gex - gpx
+					local vy = gey - gpy
+					local vz = gez - gpz
+					local beamLenSq = vx * vx + vy * vy + vz * vz
+					intensityFalloff = BEAM_RANGE_FALLOFF_BASE
+						+ BEAM_RANGE_FALLOFF_MULT * mathMin(beamLenSq * cfg.invRangeSq, 1.0)
+					local flareVisible = ghostAge <= cfg.flareGhostFrames
+					local flarePulse = (flareVisible and not ghostClipStart) and (1.0 - lifeFrac * FLARE_LIFE_DIM) or 0
+					flareSize = cfg.flareSize * flarePulse * FLARE_SIZE_MULT
+					flareG = cfg.flareColorG * flarePulse
+					flareB = cfg.flareColorB * flarePulse
+				end
+			end
 		end
+
+		if sx then
+			beamCount = beamCount + 1
+			beamData[offset + 1] = sx
+			beamData[offset + 2] = sy
+			beamData[offset + 3] = sz
+			beamData[offset + 4] = cfg.beamWidth
+			beamData[offset + 5] = ex
+			beamData[offset + 6] = ey
+			beamData[offset + 7] = ez
+			beamData[offset + 8] = lifeFrac
+			beamData[offset + 9] = cfg.coreR
+			beamData[offset + 10] = cfg.coreG
+			beamData[offset + 11] = cfg.coreB
+			beamData[offset + 12] = 1.0
+			beamData[offset + 13] = cfg.colorR
+			beamData[offset + 14] = cfg.colorG
+			beamData[offset + 15] = cfg.colorB
+			beamData[offset + 16] = intensityFalloff
+			beamData[offset + 17] = flareSize
+			beamData[offset + 18] = cfg.paraFlag -- flareData.y: paralyzer flag for pulse shader
+			beamData[offset + 19] = flareG
+			beamData[offset + 20] = flareB
+			offset = offset + 20
+		end
+	end
+	for k = 1, 6 do
+		drawBounds[k] = pendingBounds[k]
 	end
 
 	beamVBO.usedElements = beamCount
 	if beamCount > 0 then
-		idleSkipCounter = 0
 		if beamCount > beamVBO.maxElements then
 			resizeBeamVBO(beamCount)
-			beamData = beamVBO.instanceData
 		end
 		uploadAllElements(beamVBO)
-	else
-		idleSkipCounter = IDLE_SKIP_FRAMES
 	end
 end
 
@@ -1709,10 +1587,6 @@ end
 function gadget:Initialize()
 	if not initGL4() then
 		return
-	end
-	local n = 0
-	for _ in pairs(weaponConfigs) do
-		n = n + 1
 	end
 
 	-- Subscribe to the shared projectile dispatcher (map-wide weapon scan).
@@ -1727,159 +1601,59 @@ function gadget:Initialize()
 		end
 		dispatchHandle = PS.Subscribe("beam_laser", defIDSet, PS.SCAN_MAP_WEAPONS)
 	end
+	updateLosView()
 end
 
 function gadget:GameFrame(n)
-	-- Scan beam projectiles at simulation rate so short-lived beams (beamttl=1) are
-	-- always tracked even at low render FPS, where DrawWorld may not run often enough
-	-- to catch projectiles that fire and expire between two render frames.
-	-- Skip when DrawWorld ran during the previous sim frame or later — the renderer is
-	-- keeping up and already handles tracking, so this scan would be redundant.
-	if lastDrawWorldSimFrame >= n - 1 then
-		-- fall through to cleanup only
-	else
-		local simProjectiles, simMatchDefIDs, simCount
-		local PS = GG.ProjectileScan
-		local dispatcherFiltered = (PS ~= nil and dispatchHandle ~= nil)
-		if dispatcherFiltered then
-			simProjectiles, simMatchDefIDs, simCount = PS.GetMatchesWithDefIDs(dispatchHandle)
-		else
-			simProjectiles = spGetProjectilesInRectangle(0, 0, mapSizeX, mapSizeZ, false, true)
-			simCount = simProjectiles and #simProjectiles or 0
-		end
-		if simProjectiles then
-			for i = 1, simCount do
-				local proID = simProjectiles[i]
-				local wDefID, cfg
-				if dispatcherFiltered then
-					wDefID = simMatchDefIDs[i]
-					cfg = weaponConfigs[wDefID]
-				else
-					wDefID = spGetProjectileDefID(proID)
-					cfg = wDefID and weaponConfigs[wDefID]
-				end
-				if cfg then
-					local px, py, pz = spGetProjectilePosition(proID)
-					if px then
-						local vx, vy, vz = spGetProjectileVelocity(proID)
-						if vx then
-							local ownerID = spGetProjectileOwnerID(proID) or 0
-							local ownerBeams = weaponBeams[ownerID]
-							if not ownerBeams then
-								if ownerBeamsPoolN > 0 then
-									ownerBeams = ownerBeamsPool[ownerBeamsPoolN]
-									ownerBeamsPool[ownerBeamsPoolN] = nil
-									ownerBeamsPoolN = ownerBeamsPoolN - 1
-								else
-									ownerBeams = {}
-								end
-								weaponBeams[ownerID] = ownerBeams
-							end
-							local innerKey, tracked, emitterX, emitterY, emitterZ = resolveBeamEmitter(
-								ownerBeams,
-								ownerID,
-								wDefID,
-								px,
-								py,
-								pz,
-								n,
-								"simStamp",
-								ownerID ~= 0 and cfg.emitterMatchDistSq or HARDPOINT_MATCH_DISTANCE_SQ,
-								ownerID ~= 0 and cfg.claimedMatchDistSq or HARDPOINT_DEDUPE_DISTANCE_SQ
-							)
-							if not tracked then
-								if trackedPoolN > 0 then
-									tracked = trackedPool[trackedPoolN]
-									trackedPool[trackedPoolN] = nil
-									trackedPoolN = trackedPoolN - 1
-									tracked.cfg = cfg
-									tracked.liveStamp = 0
-								else
-									tracked = { cfg = cfg }
-								end
-								ownerBeams[innerKey] = tracked
-								hasGhosts = true
-							end
-							tracked.wDefID = wDefID
-							tracked.emitterX = emitterX
-							tracked.emitterY = emitterY
-							tracked.emitterZ = emitterZ
-							tracked.simStamp = n
-							tracked.px = px
-							tracked.py = py
-							tracked.pz = pz
-							tracked.endX = px + vx
-							tracked.endY = py + vy
-							tracked.endZ = pz + vz
-							tracked.lastSeenFrame = n
-							local proTeam = spGetProjectileTeamID(proID)
-							tracked.ownerAllyTeam = proTeam and spGetTeamAllyTeamID(proTeam)
-							-- Wake DrawWorld so the idle-skip doesn't suppress ghost rendering
-							idleSkipCounter = 0
-						end
-					end
-				end
-			end
-		end
-	end -- low-FPS scan
-
-	-- Periodic cleanup of stale weapon beam entries (expired ghosts).
-	-- Two-level walk; also drops empty ownerBeams sub-tables so they don't
-	-- accumulate for units that have stopped firing entirely.
+	-- Periodic cleanup of stale records (expired ghosts); also drops empty
+	-- ownerBeams sub-tables so they don't accumulate for units that stopped firing.
 	if n > beamCleanupFrame then
 		beamCleanupFrame = n + 30
-		removeCount = 0
-		local anyRemain = false
 		local staleThreshold = GHOST_FRAMES_MAX + 2
-		for ownerID, ownerBeams in pairs(weaponBeams) do
-			local ownerEmpty = true
-			for innerKey, tracked in pairs(ownerBeams) do
-				if n - (tracked.lastSeenFrame or 0) > staleThreshold then
-					removeCount = removeCount + 1
-					removeOwnerList[removeCount] = ownerID
-					removeKeyList[removeCount] = innerKey
-				else
-					ownerEmpty = false
-					anyRemain = true
-				end
-			end
-			if ownerEmpty then
-				-- Defer the actual nil-out to the removal pass below so we don't
-				-- mutate weaponBeams during iteration. Marking the owner with a
-				-- sentinel key signals "remove this whole sub-table".
-				removeCount = removeCount + 1
-				removeOwnerList[removeCount] = ownerID
-				removeKeyList[removeCount] = false
-			end
-		end
-		for i = 1, removeCount do
-			local ownerID = removeOwnerList[i]
-			local innerKey = removeKeyList[i]
-			if innerKey == false then
-				local ownerBeams = weaponBeams[ownerID]
-				weaponBeams[ownerID] = nil
-				if ownerBeams then
-					releaseOwnerBeams(ownerBeams)
-				end
-			else
-				local ownerBeams = weaponBeams[ownerID]
-				if ownerBeams then
-					local rec = ownerBeams[innerKey]
-					ownerBeams[innerKey] = nil
-					if rec then
-						releaseTrackedBeam(rec)
+		local kept = 0
+		local bounds = pendingBounds
+		bounds[1], bounds[2], bounds[3] = math.huge, math.huge, math.huge
+		bounds[4], bounds[5], bounds[6] = -math.huge, -math.huge, -math.huge
+		for i = 1, trackedCount do
+			local rec = trackedList[i]
+			if n - rec.lastSeenFrame > staleThreshold then
+				-- a hardpoint bucket collision can have replaced this record in its table
+				local ownerBeams = weaponBeams[rec.ownerID]
+				if ownerBeams and ownerBeams[rec.innerKey] == rec then
+					ownerBeams[rec.innerKey] = nil
+					if next(ownerBeams) == nil then
+						weaponBeams[rec.ownerID] = nil
+						releaseOwnerBeams(ownerBeams)
 					end
 				end
+				releaseTrackedBeam(rec)
+			else
+				kept = kept + 1
+				trackedList[kept] = rec
+				bounds[1] = mathMin(bounds[1], rec.px, rec.endX)
+				bounds[2] = mathMin(bounds[2], rec.py, rec.endY)
+				bounds[3] = mathMin(bounds[3], rec.pz, rec.endZ)
+				bounds[4] = mathMax(bounds[4], rec.px, rec.endX)
+				bounds[5] = mathMax(bounds[5], rec.py, rec.endY)
+				bounds[6] = mathMax(bounds[6], rec.pz, rec.endZ)
 			end
 		end
-		hasGhosts = anyRemain
+		for i = kept + 1, trackedCount do
+			trackedList[i] = nil
+		end
+		trackedCount = kept
 	end
 end
 
+-- Beams are fired and expire during the sim frame, so scan once it is done: every
+-- sim frame is seen once whatever the render rate, and draw frames replay the buffer.
+function gadget:GameFramePost()
+	needsRebuild = false
+	scanBeams()
+end
+
 function gadget:PlayerChanged(playerID)
-	local _, specFullView = spGetSpectatingState()
-	cachedSpecFullView = specFullView
-	cachedAllyTeamID = specFullView and -1 or spGetMyAllyTeamID()
+	updateLosView()
 end
 
 function gadget:Shutdown()
@@ -1887,7 +1661,14 @@ function gadget:Shutdown()
 end
 
 function gadget:DrawWorld()
-	lastDrawWorldSimFrame = spGetGameFrame()
-	updateBeams()
-	drawAll()
+	if needsRebuild then
+		needsRebuild = false
+		scanBeams()
+	end
+	if buildPending and boundsInView(pendingBounds) then
+		buildBeams()
+	end
+	if not buildPending and beamVBO.usedElements > 0 and boundsInView(drawBounds) then
+		drawAll()
+	end
 end
