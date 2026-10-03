@@ -110,7 +110,7 @@ local colorConfig = { --An array of R, G, B, Alpha
 	},
 	nuke = {
 		color = { 1.05, 1.0, 0.2, 0.72 },
-		fadeparams = { 6000, 3000, 0.6, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
+		fadeparams = { 5400, 1800, 0.6, 0.0 }, -- FadeStart, FadeEnd, StartAlpha, EndAlpha
 		externallinethickness = 5.0,
 		internallinethickness = 2.0,
 		stenciled = true,
@@ -428,6 +428,7 @@ end
 local spGetSpectatingState = Spring.GetSpectatingState
 local spec, fullview = spGetSpectatingState()
 local myAllyTeam = Spring.GetLocalAllyTeamID()
+local fullviewLast = fullview
 local numallyteams = 2
 
 local defenses = {} -- table of unitID keys to info tables:
@@ -435,6 +436,8 @@ local defenses = {} -- table of unitID keys to info tables:
 --	vaokeys = {key1 = targetvao1, ... }
 --}
 local enemydefenses = {} -- a minor optimization to prevent iterating over our own on removal search
+---@type table<integer, table<integer, table>>
+local defensesByViews = {} -- for enemy defense recall per allyteam
 
 local mobileAntiUnits = {}
 
@@ -505,6 +508,7 @@ for allyenemy, ringclasses in pairs(buttonConfig) do
 end
 --local defenseRangeClasses = {'enemyair','enemyground','enemynuke','allyair','allyground','allynuke', 'enemycannon', 'allycannon'}
 local defenseRangeVAOs = {}
+local keptRebuildInstances = {} -- per ring class when changing between views
 
 local circleInstanceVBOLayout = {
 	{ id = 1, name = "posscale", size = 4 }, -- abs pos for static units, offset for dynamic units, scale is actual range, Y is turretheight
@@ -521,6 +525,7 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
 local getElementInstanceData = InstanceVBOTable.getElementInstanceData
+local compactInstanceVBO = InstanceVBOTable.compactInstanceVBO
 
 local defenseRangeShader = nil
 
@@ -623,6 +628,7 @@ local function initGL4()
 	smallCircleVBO = InstanceVBOTable.makeCircleVBO(smallCircleSegments)
 	largeCircleVBO = InstanceVBOTable.makeCircleVBO(largeCircleSegments)
 	for i, defRangeClass in ipairs(defenseRangeClasses) do
+		keptRebuildInstances[defRangeClass] = {}
 		defenseRangeVAOs[defRangeClass] =
 			InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 16, defRangeClass .. "_defenserange_gl4")
 		if defRangeClass:find("nuke", nil, true) or defRangeClass:find("lrpc", nil, true) then --defRangeClass:find("cannon", nil, true) or
@@ -778,6 +784,25 @@ local function UnitDetected(unitID, unitDefID, unitTeam, noUpload)
 	end
 end
 
+-- A parked defense is out of sight, so its rings come back from its stored position and
+-- its unitdef instead of the engine.
+local function restoreDefense(unitID, defense)
+	local rings = unitDefRings[defense.unitDefID].rings ---@type table<integer, number[]>
+	for instanceID, vaokey in pairs(defense.vaokeys) do
+		local ringParams = rings[floor(instanceID / 1000000)]
+		cacheTable[1] = defense.posx
+		cacheTable[2] = ringParams[18] or 0
+		cacheTable[3] = defense.posz
+		for j = 1, 13 do
+			cacheTable[j + 3] = ringParams[j]
+		end
+		pushElementInstance(defenseRangeVAOs[vaokey], cacheTable, instanceID, true, true)
+	end
+	defenses[unitID] = defense
+	enemydefenses[unitID] = true
+	defensePosHash[hashPos(defense.posx, defense.posz)] = unitID
+end
+
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	UnitDetected(unitID, unitDefID, unitTeam)
 end
@@ -786,21 +811,76 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	-- the set of visible units changed. Now is a good time to reevalueate our life choices
 	-- This happens when we move from team to team, or when we move from spec to other
 	-- my
-	spec, fullview = Spring.GetSpectatingState()
+	spec, fullview = spGetSpectatingState()
 	if (not enabledAsSpec) and spec then
 		spEcho("Defense Range GL4 disabled in spectating state")
 		widget:RemoveWidget()
 		return
 	end
+	local asAllyTeam = Spring.GetLocalAllyTeamID()
+	local sameView = asAllyTeam == myAllyTeam and fullview == fullviewLast
+	-- Enemy defenses that left line of sight keep their rings. The same view keeps them in
+	-- place; leaving an allyteam's view parks them for its next view. Fullview sees
+	-- everything, so nothing is parked from it or restored into it.
+	local viewedLast ---@type table<integer, table>?
+	if not fullviewLast then
+		if sameView then
+			for unitID, defense in pairs(defenses) do
+				if not defense.allied and not mobileAntiUnits[unitID] and extVisibleUnits[unitID] == nil then
+					viewedLast = viewedLast or {}
+					viewedLast[unitID] = defense
+					for instanceID, vaokey in pairs(defense.vaokeys) do
+						keptRebuildInstances[vaokey][instanceID] = true
+					end
+				end
+			end
+		else
+			local parked
+			for unitID, defense in pairs(defenses) do
+				if not defense.allied and not mobileAntiUnits[unitID] then
+					parked = parked or {}
+					parked[unitID] = defense
+				end
+			end
+			defensesByViews[myAllyTeam] = parked
+		end
+	end
+	myAllyTeam = asAllyTeam
+	fullviewLast = fullview
 	defenses = {}
 	enemydefenses = {}
 	defensePosHash = {}
 	mobileAntiUnits = {}
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
-		InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
+		local kept = keptRebuildInstances[vaokey]
+		if next(kept) then
+			compactInstanceVBO(instanceTable, nil, kept)
+			for instanceID in pairs(kept) do
+				kept[instanceID] = nil
+			end
+		else
+			InstanceVBOTable.clearInstanceTable(instanceTable) -- clear all instances
+		end
 	end
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		UnitDetected(unitID, unitDefID, spGetUnitTeam(unitID), true) -- add them with noUpload = true
+	end
+	if viewedLast then
+		for unitID, defense in pairs(viewedLast) do
+			defenses[unitID] = defense
+			enemydefenses[unitID] = true
+			defensePosHash[hashPos(defense.posx, defense.posz)] = unitID
+		end
+	elseif not fullview and not sameView then
+		local parked = defensesByViews[asAllyTeam] ---@type table<integer, table>?
+		if parked then
+			defensesByViews[asAllyTeam] = nil
+			for unitID, defense in pairs(parked) do
+				if defenses[unitID] == nil then
+					restoreDefense(unitID, defense)
+				end
+			end
+		end
 	end
 	for vaokey, instanceTable in pairs(defenseRangeVAOs) do
 		InstanceVBOTable.uploadAllElements(instanceTable) -- clear all instances
