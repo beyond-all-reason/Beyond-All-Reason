@@ -168,12 +168,6 @@ local function updateUnit(unitID, noUpload)
 		return
 	end
 
-	local iconData = spGetUnitIconData(unitID, true)
-	if not iconData then
-		removeOutline(unitID, noUpload)
-		return
-	end
-
 	local x, y, z, midX, midY, midZ = spGetUnitPosition(unitID, true)
 	if not midX then
 		removeOutline(unitID, noUpload)
@@ -188,6 +182,12 @@ local function updateUnit(unitID, noUpload)
 		and math_abs(offsetY - outlineOffsetY[unitID]) < 0.5
 		and math_abs(offsetZ - outlineOffsetZ[unitID]) < 0.5
 	then
+		return
+	end
+
+	local iconData = spGetUnitIconData(unitID, true)
+	if not iconData then
+		removeOutline(unitID, noUpload)
 		return
 	end
 
