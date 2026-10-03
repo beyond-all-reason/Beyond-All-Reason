@@ -338,6 +338,12 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if newTeam == Spring.GetLocalTeamID() then
+		widget:UnitFinished(unitID, unitDefID, newTeam)
+	end
+end
+
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
