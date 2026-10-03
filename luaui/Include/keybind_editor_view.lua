@@ -256,6 +256,12 @@ local sheenTop = { 1, 1, 1, 0.05 }
 -- Fills and captions the list is painted with, in one table for the same reason as
 -- metrics above.
 local look = {
+	conflictIndent = "    ",
+	-- In the order the column and the rows list them; the leftovers under Other close the first.
+	sections = {
+		{ key = "game", inAll = true, withOther = true },
+		{ key = "widgets", heading = "widgets", inAll = false },
+	},
 	chipFill = { 0, 0, 0, 0.35 },
 	chipFillHover = { 0, 0, 0, 0.45 },
 	-- A chip that answered a search by key, warmed in the gold its key is printed in, so it stands
@@ -414,9 +420,13 @@ local state = {
 	footerH = 0,
 	layoutPending = false,
 	tooltipsRegistered = false,
+	scanKeys = {},
+	clashing = {},
 	hidden = {},
 	labels = {},
 	changedKey = {},
+	sources = {},
+	widgetActions = require("luaui/Include/keybind_widget_actions"),
 	changedCount = -1,
 	refit = false,
 	undo = {},
@@ -617,7 +627,9 @@ local function buildResolvedCatalog()
 	labelPlacesArg = {}
 	resolvedCatalog = {}
 	catalogAny, catalogAnyPrefixes, catalogShiftPair = {}, {}, {}
-	state.hidden, state.labels = {}, {}
+	state.hidden, state.labels, state.sources = {}, {}, {}
+	local widgets, manifestChanges = state.widgetActions.manifests()
+	state.manifestsVersion = manifestChanges
 
 	-- Asked for with an empty default, so a missing key is silent and reads as none.
 	local function describe(item)
@@ -648,17 +660,31 @@ local function buildResolvedCatalog()
 		return nil
 	end
 
+	local allGroups = {}
 	for _, group in ipairs(catalog) do
+		allGroups[#allGroups + 1] = group
+	end
+	for _, group in ipairs(state.widgetActions.groups(widgets)) do
+		allGroups[#allGroups + 1] = group
+	end
+	-- A widget that is off would otherwise leave its actions under Other as raw ids.
+	local hidden = state.widgetActions.hiddenActions(widgets)
+	if #hidden > 0 then
+		allGroups[#allGroups + 1] = { hidden = hidden }
+	end
+
+	for _, group in ipairs(allGroups) do
 		if group.hidden then
 			resolvedCatalog[#resolvedCatalog + 1] = { hidden = group.hidden, title = "", titleLower = "", items = {} }
 			for _, h in ipairs(group.hidden) do
 				state.hidden[h] = true
 			end
 		else
-			local title = BAR.I18N(group.category)
+			local title = group.title or BAR.I18N(group.category)
 			local g = {
 				category = group.category,
 				layout = group.layout,
+				section = group.section,
 				title = title,
 				titleLower = title:lower(),
 				items = {},
@@ -685,7 +711,7 @@ local function buildResolvedCatalog()
 							catalogShiftPair[item.action] = true
 						end
 					end
-					local label = BAR.I18N(item.label)
+					local label = item.label and BAR.I18N(item.label) or item.action
 					local stem = item.action and look.cursors[item.action:match("^%S+")]
 					local cursor = stem and look.cursorTextures[stem] or nil
 					g.items[#g.items + 1] = {
@@ -701,6 +727,7 @@ local function buildResolvedCatalog()
 					}
 					if item.action then
 						state.labels[item.action] = label
+						state.sources[item.action] = title
 					end
 					-- One picture in a group gives every row in it the column, so the names line up.
 					g.hasCursors = g.hasCursors or cursor ~= nil
@@ -737,6 +764,7 @@ local function buildResolvedCatalog()
 	end
 
 	L.other = BAR.I18N("categories.other")
+	L.widgets = BAR.I18N("ui.keybinds.editor.widgets")
 	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
 	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
 	L.otherLower = L.other:lower()
@@ -751,21 +779,27 @@ local function buildResolvedCatalog()
 	categories = { { label = L.allCategories } }
 	otherCategoryKey = generatedOtherKey
 	local seen = {}
-	for _, g in ipairs(resolvedCatalog) do
-		-- Keyed like the row filter below, not by title: two categories that translate to
-		-- the same words are still separate, and one has to not vanish from the column.
-		if not g.hidden and not seen[g.category] then
-			seen[g.category] = true
-			categories[#categories + 1] = { label = g.title, key = g.category }
-			-- A catalog category of the same name takes the leftovers, matching the row
-			-- order below, rather than a second column entry appearing beside it.
-			if g.title == L.other then
-				otherCategoryKey = g.category
+	for _, section in ipairs(look.sections) do
+		local first = #categories + 1
+		for _, g in ipairs(resolvedCatalog) do
+			-- Keyed like the row filter below, not by title: two categories that translate to
+			-- the same words are still separate, and one has to not vanish from the column.
+			if not g.hidden and not seen[g.category] and state.sectionOf(g) == section then
+				seen[g.category] = true
+				categories[#categories + 1] = { label = g.title, key = g.category }
+				-- A catalog category of the same name takes the leftovers, matching the row
+				-- order below, rather than a second column entry appearing beside it.
+				if section.withOther and g.title == L.other then
+					otherCategoryKey = g.category
+				end
 			end
 		end
-	end
-	if otherCategoryKey == generatedOtherKey then
-		categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
+		if section.withOther and otherCategoryKey == generatedOtherKey then
+			categories[#categories + 1] = { label = L.other, key = otherCategoryKey }
+		end
+		if section.heading and #categories >= first then
+			table.insert(categories, first, { label = L[section.heading], header = true })
+		end
 	end
 	-- Every keyreload comes through here, so without this the entry went missing until a preset
 	-- switch happened to move the count.
@@ -867,45 +901,184 @@ local function rowChange(action)
 	return nil
 end
 
--- Flagged when the engine tries it first, and when the game ships the two on one key - by
--- design, so no clash of the player making. Hidden actions are left out: sharing a key with
--- a listed one is how the catalog says they belong together.
+-- SDL's key for the OS layout, which a press is matched by; KeyboardLayout only relabels keys.
+function state.scanToKey(scan)
+	local key = state.scanKeys[scan]
+	if key == nil then
+		key = Spring.GetKeyFromScanSymbol and Spring.GetKeyFromScanSymbol("sc_" .. scan) or ""
+		state.scanKeys[scan] = key
+	end
+
+	return key
+end
+
+-- Flagged when the game ships the two on one key - by design, so no clash of the player
+-- making. Hidden actions are left out: sharing a key with a listed one is how the catalog says
+-- they belong together.
 local function conflictsOf(action, raws)
-	local byKeyset = working.byKeyset
-	if not byKeyset then
+	local index = working.collisions
+	if not index then
 		return nil
 	end
 
 	local out, seen
 	for _, raw in ipairs(raws) do
 		-- Any holder at all: for a key being captured this action is not among them yet.
-		local list = byKeyset[keybindModel.canonicalKeyset(raw)]
-		if list then
-			local mine
-			for i = 1, #list do
-				if list[i] == action then
-					mine = i
-					break
-				end
-			end
-			for i = 1, #list do
-				local other = list[i]
-				if other ~= action and not state.hidden[other] and not (seen and seen[other]) then
-					seen = seen or {}
-					seen[other] = true
-					out = out or {}
-					local pair = (action < other) and (action .. "\n" .. other) or (other .. "\n" .. action)
-					out[#out + 1] = {
-						action = other,
-						before = mine ~= nil and i < mine,
-						shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
-					}
-				end
+		for _, other in ipairs(keybindModel.collidersOf(index, action, raw)) do
+			local name = other.action
+			if not state.hidden[name] and not (seen and seen[name]) then
+				seen = seen or {}
+				seen[name] = true
+				out = out or {}
+				local pair = (action < name) and (action .. "\n" .. name) or (name .. "\n" .. action)
+				out[#out + 1] = {
+					action = name,
+					shipped = state.shippedPairs ~= nil and state.shippedPairs[pair] == true,
+				}
 			end
 		end
 	end
 
 	return out
+end
+
+-- A prefix entry's declared members, then bound actions under the prefix that nothing earlier claimed.
+function state.prefixActions(item, claimed)
+	-- Read here rather than with the rest of the catalog, so a profile made a moment ago gets its
+	-- row without waiting for a refresh.
+	local members = item.members
+	if item.membersFrom == "profiles" then
+		-- Switching to the one already on can only do nothing. One already bound is still found from
+		-- the keymap below, which is what leaves a stale self-binding somewhere to remove it.
+		local active = profiles.activeName()
+		members = {}
+		for _, builtin in ipairs(profiles.builtins) do
+			if builtin.name ~= active then
+				members[#members + 1] = builtin.name
+			end
+		end
+		for _, own in ipairs(profiles.list()) do
+			if own ~= active then
+				members[#members + 1] = own
+			end
+		end
+	end
+
+	-- A declared member is a row whether or not it is bound. Families the catalog cannot
+	-- enumerate (buildunit_ is per unit) list none and are discovered from what is bound.
+	local matched = {}
+	for _, member in ipairs(members or {}) do
+		local action = item.prefix .. member
+		if not claimed[action] then
+			claimed[action] = true
+			matched[#matched + 1] = action
+		end
+	end
+
+	local found = {}
+	for action in pairs(working.byAction) do
+		if not claimed[action] and action:sub(1, #item.prefix) == item.prefix then
+			claimed[action] = true
+			found[#found + 1] = action
+		end
+	end
+	table.sort(found)
+	for i = 1, #found do
+		matched[#matched + 1] = found[i]
+	end
+
+	return matched
+end
+
+function state.sectionOf(group)
+	for _, section in ipairs(look.sections) do
+		if section.key == (group.section or "game") then
+			return section
+		end
+	end
+
+	return look.sections[1]
+end
+
+-- Per category, the actions whose chips redden, claimed the way the rows claim them.
+function state.countClashes()
+	state.clashing = {}
+	local function clashes(action)
+		local raws = {}
+		for i, k in ipairs(working.byAction[action] or look.noRaws) do
+			raws[i] = k.raw
+		end
+		for _, o in ipairs(conflictsOf(action, raws) or look.noRaws) do
+			if not o.shipped then
+				state.clashing[action] = true
+
+				return true
+			end
+		end
+
+		return false
+	end
+
+	local counts, claimed = {}, {}
+	for _, group in ipairs(resolvedCatalog) do
+		if group.hidden then
+			for _, h in ipairs(group.hidden) do
+				claimed[h] = true
+			end
+		end
+	end
+	for _, group in ipairs(resolvedCatalog) do
+		if not group.hidden then
+			local n = counts[group.category] or 0
+			for _, item in ipairs(group.items) do
+				if item.prefix and item.prefix ~= "" then
+					for _, action in ipairs(state.prefixActions(item, claimed)) do
+						if clashes(action) then
+							n = n + 1
+						end
+					end
+				elseif item.action and not claimed[item.action] then
+					claimed[item.action] = true
+					if clashes(item.action) then
+						n = n + 1
+					end
+				end
+			end
+			counts[group.category] = n
+		end
+	end
+	local other = counts[otherCategoryKey] or 0
+	for action in pairs(working.byAction) do
+		if not claimed[action] and clashes(action) then
+			other = other + 1
+		end
+	end
+	counts[otherCategoryKey] = other
+
+	local total, counted = 0, {}
+	for _, group in ipairs(resolvedCatalog) do
+		if not group.hidden and state.sectionOf(group).inAll then
+			counted[group.category] = true
+			total = total + (counts[group.category] or 0)
+		end
+	end
+	if not counted[otherCategoryKey] then
+		total = total + (counts[otherCategoryKey] or 0)
+	end
+	for _, c in ipairs(categories) do
+		local n
+		if c.header or c.key == state.changedKey then
+			n = nil
+		elseif c.key == nil then
+			n = total
+		else
+			n = counts[c.key] or 0
+		end
+		if (c.count or 0) ~= (n or 0) then
+			c.count = n
+			state.refit = true
+		end
+	end
 end
 
 -- Rebuilds the display list from the catalog and the staged binds, honouring both the
@@ -934,34 +1107,16 @@ local function rebuildRows()
 			end
 		end
 	end
+	-- Rebuilt with the rows, which every edit rebuilds; ahead of the grid, whose entries count too.
+	working.collisions = keybindModel.collisionIndex(working.binds, state.scanToKey)
+	state.countClashes()
+
 	if gridGroup then
 		clampScroll()
 
 		return
 	end
 	local query = Search.query(searchBox and searchBox:getText())
-
-	-- Rebuilt with the rows, which every edit rebuilds.
-	local byKeyset = {}
-	for _, b in ipairs(working.binds) do
-		local c = keybindModel.canonicalKeyset(b.keyset)
-		local list = byKeyset[c]
-		if not list then
-			list = {}
-			byKeyset[c] = list
-		end
-		local listed = false
-		for i = 1, #list do
-			if list[i] == b.action then
-				listed = true
-				break
-			end
-		end
-		if not listed then
-			list[#list + 1] = b.action
-		end
-	end
-	working.byKeyset = byKeyset
 
 	-- The column's Changed entry keeps only rows that differ from the base preset. How many
 	-- there are is counted whatever is shown, since its label says so.
@@ -1022,6 +1177,7 @@ local function rebuildRows()
 	-- own, and only there. Gathered as they are met, so they keep the catalog's order.
 	local keyRows = {}
 	local catalogActions = {}
+	local sectionRows = {}
 	local otherHeaderRow, otherGroupEnd
 
 	-- Claim hidden actions up front so they never surface, as a row or under Other.
@@ -1037,7 +1193,10 @@ local function rebuildRows()
 	for _, group in ipairs(resolvedCatalog) do
 		-- Non-selected groups are still walked: they have to claim their actions or the
 		-- leftovers below would sweep them all into Other.
-		local inCategory = not selectedCategory or changedOnly or group.category == selectedCategory
+		-- A search still reaches the sections All leaves out, so a clash with one can be found.
+		local inCategory = group.category == selectedCategory
+			or changedOnly
+			or (not selectedCategory and (state.sectionOf(group).inAll or not query.empty))
 		-- A group whose own title matches keeps every row under it, so searching for a
 		-- category's name shows the category rather than emptying it.
 		local categoryMatch = Search.claims(query, group.titleLower)
@@ -1046,50 +1205,7 @@ local function rebuildRows()
 		for _, item in ipairs(group.items) do
 			-- An empty prefix would claim every bound action, so treat it as no prefix.
 			if item.prefix and item.prefix ~= "" then
-				-- Read here rather than with the rest of the catalog, so a profile made a moment ago gets its
-				-- row without waiting for a refresh.
-				local members = item.members
-				if item.membersFrom == "profiles" then
-					-- Switching to the one already on can only do nothing. One already bound is still found from
-					-- the keymap below, which is what leaves a stale self-binding somewhere to remove it.
-					local active = profiles.activeName()
-					members = {}
-					for _, builtin in ipairs(profiles.builtins) do
-						if builtin.name ~= active then
-							members[#members + 1] = builtin.name
-						end
-					end
-					for _, own in ipairs(profiles.list()) do
-						if own ~= active then
-							members[#members + 1] = own
-						end
-					end
-				end
-
-				-- A declared member is a row whether or not it is bound. Families the catalog cannot
-				-- enumerate (buildunit_ is per unit) list none and are discovered from what is bound.
-				local matched = {}
-				for _, member in ipairs(members or {}) do
-					local action = item.prefix .. member
-					-- Skipped when an explicit entry already covers it, or a family whose
-					-- members are also listed individually renders each of them twice.
-					if not catalogActions[action] then
-						catalogActions[action] = true
-						matched[#matched + 1] = action
-					end
-				end
-
-				local found = {}
-				for action in pairs(working.byAction) do
-					if not catalogActions[action] and action:sub(1, #item.prefix) == item.prefix then
-						catalogActions[action] = true
-						found[#found + 1] = action
-					end
-				end
-				table.sort(found)
-				for i = 1, #found do
-					matched[#matched + 1] = found[i]
-				end
+				local matched = state.prefixActions(item, catalogActions)
 				for i = 1, #matched do
 					local action = matched[i]
 					local arg = action:sub(#item.prefix + 1)
@@ -1110,6 +1226,7 @@ local function rebuildRows()
 					local row, col = arg:match("^%s*(%S+)%s+(%S+)")
 					local label = item.label and prefixRowLabel(item.label, arg, row, col) or action
 					state.labels[action] = label
+					state.sources[action] = group.title
 					local change = rowChange(action)
 					if change then
 						changedCount = changedCount + 1
@@ -1188,19 +1305,25 @@ local function rebuildRows()
 		end
 
 		if inCategory and #groupRows > 0 then
-			rows[#rows + 1] = { type = "header", text = group.title }
-			if group.title == L.other then
+			local section = state.sectionOf(group)
+			local into = rows
+			if not section.withOther then
+				sectionRows[section] = sectionRows[section] or {}
+				into = sectionRows[section]
+			end
+			into[#into + 1] = { type = "header", text = group.title }
+			if section.withOther and group.title == L.other then
 				otherHeaderRow = rows[#rows]
 			end
 			if group.layout == "grid" then
 				-- Still driven by the rows a search matched, so hunting for one of them surfaces the way in.
-				rows[#rows + 1] = { type = "link", label = L.edit, category = group.category }
+				into[#into + 1] = { type = "link", label = L.edit, category = group.category }
 			else
 				for i = 1, #groupRows do
-					rows[#rows + 1] = groupRows[i]
+					into[#into + 1] = groupRows[i]
 				end
 			end
-			if group.title == L.other then
+			if section.withOther and group.title == L.other then
 				otherGroupEnd = #rows
 			end
 		end
@@ -1266,6 +1389,12 @@ local function rebuildRows()
 		end
 		for i = 1, #tail do
 			rows[#rows + 1] = tail[i]
+		end
+	end
+
+	for _, section in ipairs(look.sections) do
+		for _, row in ipairs(sectionRows[section] or look.noRaws) do
+			rows[#rows + 1] = row
 		end
 	end
 
@@ -1520,30 +1649,12 @@ function state.refreshBase()
 	if not state.shippedPairs then
 		local shipped = {}
 		for _, b in ipairs(profiles.builtins) do
-			local byKeyset = {}
-			for _, bind in ipairs(b.binds or {}) do
-				local c = keybindModel.canonicalKeyset(bind.keyset)
-				local list = byKeyset[c]
-				if not list then
-					list = {}
-					byKeyset[c] = list
-				end
-				local listed = false
-				for i = 1, #list do
-					if list[i] == bind.action then
-						listed = true
-					end
-				end
-				if not listed then
-					list[#list + 1] = bind.action
-				end
-			end
-			for _, list in pairs(byKeyset) do
-				for i = 1, #list do
-					for j = i + 1, #list do
-						local a, o = list[i], list[j]
-						shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
-					end
+			local binds = b.binds or {}
+			local index = keybindModel.collisionIndex(binds, state.scanToKey)
+			for _, bind in ipairs(binds) do
+				for _, other in ipairs(keybindModel.collidersOf(index, bind.action, bind.keyset)) do
+					local a, o = bind.action, other.action
+					shipped[(a < o) and (a .. "\n" .. o) or (o .. "\n" .. a)] = true
 				end
 			end
 		end
@@ -1552,10 +1663,11 @@ function state.refreshBase()
 
 	local base = profiles.baseOf(profiles.activeName())
 	local wanted = base and base.name or nil
-	if (state.base and state.base.name) ~= wanted then
+	local _, manifestChanges = state.widgetActions.manifests()
+	if (state.base and state.base.name) ~= wanted or (state.base and state.base.manifests ~= manifestChanges) then
 		if base then
 			local byAction = {}
-			for _, b in ipairs(base.binds or {}) do
+			for _, b in ipairs(profiles.effectiveBinds(base)) do
 				local entry = byAction[b.action]
 				if not entry then
 					entry = { set = {}, n = 0, raws = {} }
@@ -1568,7 +1680,7 @@ function state.refreshBase()
 					entry.raws[#entry.raws + 1] = b.keyset
 				end
 			end
-			state.base = { name = wanted, byAction = byAction }
+			state.base = { name = wanted, byAction = byAction, manifests = manifestChanges }
 		else
 			state.base = nil
 		end
@@ -1920,7 +2032,13 @@ local function startClipboard(exporting)
 
 	local clip = Spring.GetClipboard()
 	if type(clip) ~= "string" or clip:match("^%s*$") then
-		openDialog({ title = L.import, message = L.importEmpty, info = true, acceptLabel = L.ok, accept = function() end })
+		openDialog({
+			title = L.import,
+			message = L.importEmpty,
+			info = true,
+			acceptLabel = L.ok,
+			accept = function() end,
+		})
 
 		return
 	end
@@ -1932,7 +2050,11 @@ local function startClipboard(exporting)
 	local summary = binds and (colorText .. BAR.I18N("ui.keybinds.editor.importSummary", { n = count }))
 		or (colorDanger .. L.importNone)
 	if errors > 0 then
-		summary = summary .. colorDim .. ", " .. colorHeader .. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
+		summary = summary
+			.. colorDim
+			.. ", "
+			.. colorHeader
+			.. BAR.I18N("ui.keybinds.editor.importErrors", { n = errors })
 	end
 	local function open()
 		openDialog({
@@ -2236,19 +2358,46 @@ local function fitCategories()
 		return
 	end
 
-	local labelW = sidebarW - metrics.sidePad * 2
+	local labelW = (state.columnW or sidebarW) - metrics.sidePad * 2
 	-- Fitted at the size they are actually drawn at, so a label is not shortened for a
 	-- size the column never uses.
 	for _, c in ipairs(categories) do
-		local fitted = text.fit(font, c.label, labelW, metrics.catFs)
+		local count = c.count and c.count > 0 and tostring(c.count) or nil
+		local reserve = count and (floor(font:GetTextWidth(count) * metrics.catFs) + metrics.sidePad) or 0
+		local fitted = text.fit(font, c.label, labelW - reserve, metrics.catFs)
 		c.textSel = colorAction .. fitted
 		c.textDim = colorDim .. fitted
+		c.textHeader = colorHeader .. fitted
+		c.textCount = count and (colorDanger .. count) or nil
 	end
 end
 
 ----------------------------------------------------------------
 -- Panel lifecycle
 ----------------------------------------------------------------
+
+function state.dropVanishedCategory()
+	if selectedCategory == nil or selectedCategory == state.changedKey then
+		return
+	end
+
+	for _, c in ipairs(categories) do
+		if c.key == selectedCategory then
+			return
+		end
+	end
+
+	selectedCategory = nil
+	scroll = 0
+end
+
+-- The staged keymap is the player's edits, so only the catalog is rebuilt.
+function state.reloadCatalog()
+	buildResolvedCatalog()
+	fitCategories()
+	state.dropVanishedCategory()
+	rebuildRows()
+end
 
 -- Picks up the font and the FlowUI entry points, which do not exist at include time.
 function view.init()
@@ -2266,11 +2415,15 @@ end
 -- Re-reads the engine and rebuilds everything shown from it.
 function view.refresh()
 	ensureControls()
+	-- The hotkeys widget writes the profile store from a copy of its own.
+	profiles.invalidate()
+	state.scanKeys, state.shippedPairs = {}, nil
 	seedWorkingFromEngine()
 	resolvedCatalog = nil
 	-- Ahead of the picker, which labels its "new profile" entry from L.
 	buildResolvedCatalog()
 	fitCategories()
+	state.dropVanishedCategory()
 	refreshPicker()
 	layoutHeader()
 	rebuildRows()
@@ -2400,6 +2553,10 @@ end
 -- with staged edits and the close should not happen yet.
 function view.confirmClose(proceed)
 	return guardDirty(proceed)
+end
+
+function view.hasStagedEdits()
+	return dirty
 end
 
 -- The host widget, handed over so guishader can drop this panel's blur rects with it when
@@ -3193,6 +3350,10 @@ local function categoryRect(i)
 	if #categories > math.max(1, floor((sidebarTop() - listBottom()) / metrics.catRowHeight)) then
 		right = right - metrics.catInset - metrics.catBarW - metrics.catInset
 	end
+	if right - area.x1 ~= state.columnW then
+		state.columnW = right - area.x1
+		state.refit = true
+	end
 
 	return area.x1, top - metrics.catRowHeight, right, top
 end
@@ -3357,37 +3518,65 @@ local function drawSidebar(hoverIdx)
 	end
 
 	local lb = listBottom()
-	for i = hover.cat + 1, #categories do
-		local c = categories[i]
+	for i, c in ipairs(categories) do
 		local x1, y1, x2, y2 = categoryRect(i)
-		if y1 >= lb then
-			local selected = selectedCategory == c.key
-			if selected then
-				local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
-				RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
-			elseif i == hoverIdx then
-				Highlight(
+		if i > hover.cat and y1 >= lb then
+			local ty = floor((y1 + y2) * 0.5)
+			if c.header then
+				RectRound(
 					x1 + metrics.catInset,
 					y1,
 					x2 - metrics.catInset,
-					y2,
-					metrics.csSmall,
-					look.rowHoverOpacity,
-					look.white
+					y1 + metrics.underlineH,
+					0,
+					0,
+					0,
+					0,
+					0,
+					look.headerLine,
+					look.headerLineFade
 				)
+				queueText(c.textHeader or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
+			else
+				local selected = selectedCategory == c.key
+				if selected then
+					local sx1, sx2 = x1 + metrics.catInset, x2 - metrics.catInset
+					RectRound(sx1, y1, sx2, y2, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+				elseif i == hoverIdx then
+					Highlight(
+						x1 + metrics.catInset,
+						y1,
+						x2 - metrics.catInset,
+						y2,
+						metrics.csSmall,
+						look.rowHoverOpacity,
+						look.white
+					)
+				end
+				queueText(
+					(selected and c.textSel or c.textDim) or c.label,
+					x1 + metrics.sidePad,
+					ty,
+					metrics.catFs,
+					"ov"
+				)
+				if c.textCount then
+					queueText(c.textCount, x2 - metrics.sidePad, ty, metrics.catFs, "rov")
+				end
 			end
-			local ty = floor((y1 + y2) * 0.5)
-			queueText((selected and c.textSel or c.textDim) or c.label, x1 + metrics.sidePad, ty, metrics.catFs, "ov")
 		end
 	end
 end
 
 -- Label left, key right, sized like a category button. Used for every pill in this view.
-local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, hovered, dim)
+local function drawGridPill(x1, y1, x2, y2, label, key, fs, pad, hovered, dim, clash)
 	-- The cells above carry a unit tile frame, so these need the raised button face to not read
 	-- as more of the same.
 	local pair = look.gradients[pillFill]
 	UiButton(x1, y1, x2, y2, 1, 1, 1, 1, 1, 1, 1, 1, nil, pair[1], pair[2])
+	if clash then
+		RectRound(x1, y1, x2, y2, metrics.csButton, 1, 1, 1, 1, look.chipFillConflict, look.chipFillConflict)
+	end
 	if hovered and not dim then
 		Highlight(x1, y1, x2, y2, metrics.csButton, hoverOpacity, look.white)
 	end
@@ -3499,6 +3688,10 @@ local function drawGridMenu(zone, zoneA, zoneB)
 				-- Only the first grid carries the build keys; the second is the category view,
 				-- whose cells hold the same bindings and would just repeat them.
 				if pass == 1 then
+					if state.clashing[gridKeyActions[row][col]] then
+						local red = look.chipFillConflict
+						RectRound(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, 1, 1, 1, 1, red, red)
+					end
 					-- Under the frame, so the hover lifts the tile without softening its edge.
 					if zone == "cell" and zoneA == row and zoneB == col then
 						Highlight(cx1 + pad, cy1 + pad, cx2 - pad, cy2 - pad, frameCs, look.rowHoverOpacity, look.white)
@@ -3530,7 +3723,9 @@ local function drawGridMenu(zone, zoneA, zoneB)
 			gridKeyText(gridCategoryActions[c]),
 			stripFs,
 			pad,
-			zone == "category" and zoneA == c
+			zone == "category" and zoneA == c,
+			false,
+			state.clashing[gridCategoryActions[c]]
 		)
 	end
 
@@ -3558,7 +3753,9 @@ local function drawGridMenu(zone, zoneA, zoneB)
 		gridKeyText("gridmenu_next_page"),
 		stripFs,
 		pad,
-		zone == "next"
+		zone == "next",
+		false,
+		state.clashing.gridmenu_next_page
 	)
 
 	local ccx1, ccx2 = gridCycleRect(x1, strip)
@@ -3571,7 +3768,9 @@ local function drawGridMenu(zone, zoneA, zoneB)
 		gridKeyText("gridmenu_cycle_builder"),
 		stripFs,
 		pad,
-		zone == "cycle"
+		zone == "cycle",
+		false,
+		state.clashing.gridmenu_cycle_builder
 	)
 end
 
@@ -3667,7 +3866,18 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 	-- The base preset's key, as a hollow chip: a border with the row's own dark inside it.
 	if lay.ghostW then
 		local gx, over = lay.ghostX, zone == "revert"
-		RectRound(gx, c1, gx + lay.ghostW, c2, metrics.csSmall, 1, 1, 1, 1, over and look.ghostBorderHover or look.ghostBorder)
+		RectRound(
+			gx,
+			c1,
+			gx + lay.ghostW,
+			c2,
+			metrics.csSmall,
+			1,
+			1,
+			1,
+			1,
+			over and look.ghostBorderHover or look.ghostBorder
+		)
 		RectRound(gx + 1, c1 + 1, gx + lay.ghostW - 1, c2 - 1, metrics.csSmall, 1, 1, 1, 1, look.ghostInner)
 		queueText(over and lay.ghostTextHover or lay.ghostText, gx + metrics.rowPad, cyc, lay.ghostFs, "ov")
 	end
@@ -4443,7 +4653,7 @@ function state.showTooltips(mx, my)
 				lines = {}
 				-- Leading with the row, which describes something the click does not do, buries the one line
 				-- that belongs to what is under the cursor.
-				if hover.zone == "revert" and row.change and state.base then
+				if hover.zone == "revert" and row.change then
 					title = nil
 					lines[1] = colorText .. BAR.I18N("ui.keybinds.editor.revertTooltip", { keys = lay.ghostKeysFull })
 				else
@@ -4452,18 +4662,16 @@ function state.showTooltips(mx, my)
 					end
 					local m = hover.idx > 0 and lay.mets[hover.idx]
 					if m and m.others then
-						local names = {}
-						for i, o in ipairs(m.others) do
-							local name = state.labels[o.action] or o.action
-							names[i] = o.before and BAR.I18N("ui.keybinds.editor.conflictFirst", { action = name })
-								or name
-						end
 						-- A warning when the sharing is the player's; a note when the game ships it so.
-						lines[#lines + 1] = (m.clash and colorDanger or colorDim)
-							.. BAR.I18N(
-								"ui.keybinds.editor.conflict",
-								{ keys = m.group.display, actions = table.concat(names, ", ") }
-							)
+						local tone = m.clash and colorDanger or colorDim
+						lines[#lines + 1] = tone .. BAR.I18N("ui.keybinds.editor.conflict", { keys = m.group.display })
+						for _, o in ipairs(m.others) do
+							lines[#lines + 1] = tone
+								.. look.conflictIndent
+								.. (state.sources[o.action] or L.other)
+								.. ": "
+								.. (state.labels[o.action] or o.action)
+						end
 						lines[#lines + 1] = colorDim .. (m.clash and L.conflictOrder or L.conflictShipped)
 					end
 					if row.change and state.base then
@@ -4544,6 +4752,9 @@ function view.draw()
 	end
 	if not working then
 		view.refresh()
+	end
+	if select(2, state.widgetActions.manifests()) ~= state.manifestsVersion then
+		state.reloadCatalog()
 	end
 	if state.layoutPending then
 		layoutHeader()
@@ -4735,7 +4946,7 @@ local function sidebarPress(x, y)
 
 	local i = sidebarIndexAt(x, y)
 	local c = i and categories[i]
-	if c and selectedCategory ~= c.key then
+	if c and not c.header and selectedCategory ~= c.key then
 		selectedCategory = c.key
 		scroll = 0
 		rebuildRows()
