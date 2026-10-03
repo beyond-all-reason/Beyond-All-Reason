@@ -2413,13 +2413,13 @@ function widget:MousePress(mx, my, button)
 		if button == 1 then
 			local nearIdx = findNearestPosition(wx, wz)
 			if nearIdx then
-				local newRole = roleConfig.cyclePositionRole(nearIdx)
+				roleConfig.cyclePositionRole(nearIdx)
 			end
 			return true
 		elseif button == 3 then
 			local nearIdx = findNearestPosition(wx, wz)
 			if nearIdx then
-				local newRole = roleConfig.cyclePositionRole(nearIdx, -1)
+				roleConfig.cyclePositionRole(nearIdx, -1)
 			end
 			return true
 		end
