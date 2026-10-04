@@ -2187,7 +2187,7 @@ function script.FireWeapon(num)
 end
 
 local FEED_GRACE = 3 -- seconds of warning before the face opens
-local FEED_DURATION = 20 -- seconds the face stays open
+local FEED_DURATION = 25 -- seconds the face stays open
 local FEED_GOAL = 100000 -- metal pulled in that triggers the blast
 local EAT_RANGE = 650 -- keep under builddistance
 local BLAST_RADIUS, BLAST_DAMAGE, EVAPORATE_HEALTH = 2800, 136000, 0.35
@@ -2360,6 +2360,7 @@ local RAISE = {
 	duration = 25, -- seconds it keeps raising
 	perWreck = 20, -- seconds before it gives up on one wreck
 	poseSpeed = math.rad(20), -- how fast it bends into and out of the raise pose
+	energy = 1000000, -- energy an AI-owned boss's team is kept at while it raises, since resurrecting costs energy
 }
 local RAISE_POSE = { -- piece, axis, raise angle, stance angle
 	{ P.larm, x_axis, 0.327201, 0.000000 },
@@ -2474,11 +2475,9 @@ end
 local function PickWreck()
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	local best, bestDist = nil, math.huge
-	local gaia = Spring.GetGaiaTeamID()
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
 		local rezName = Spring.GetFeatureResurrect(featureID)
-		local team = Spring.GetFeatureTeam(featureID)
-		if rezName and rezName ~= "" and team and team ~= gaia and not Spring.AreTeamsAllied(team, myTeam) then
+		if rezName and rezName ~= "" then
 			local fx, _, fz = Spring.GetFeaturePosition(featureID)
 			local dist = (fx - x) ^ 2 + (fz - z) ^ 2
 			if dist < bestDist then
@@ -2487,6 +2486,20 @@ local function PickWreck()
 		end
 	end
 	return best
+end
+
+RAISE.Fuel = function()
+	local team = Spring.GetUnitTeam(unitID)
+	if (Spring.GetTeamLuaAI(team) or "") == "" then
+		return
+	end
+	local energy, storage = Spring.GetTeamResources(team, "energy")
+	if energy and energy < RAISE.energy then
+		if storage < RAISE.energy then
+			Spring.SetTeamResource(team, "es", RAISE.energy)
+		end
+		Spring.SetTeamResource(team, "e", RAISE.energy)
+	end
 end
 
 local function Raise()
@@ -2514,6 +2527,7 @@ local function Raise()
 				and Spring.GetGameFrame() < math.min(deadline, giveUp)
 				and not Spring.GetUnitIsStunned(unitID)
 			do
+				RAISE.Fuel()
 				Sleep(250)
 			end
 		else
@@ -2532,11 +2546,9 @@ end
 TURBO.Food = function()
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	local wrecks, metal = 0, 0
-	local gaia = Spring.GetGaiaTeamID()
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
 		local rezName = Spring.GetFeatureResurrect(featureID)
-		local team = Spring.GetFeatureTeam(featureID)
-		if rezName and rezName ~= "" and team and team ~= gaia and not Spring.AreTeamsAllied(team, myTeam) then
+		if rezName and rezName ~= "" then
 			wrecks = wrecks + 1
 		end
 		if FeatureDefs[Spring.GetFeatureDefID(featureID)].reclaimable then
