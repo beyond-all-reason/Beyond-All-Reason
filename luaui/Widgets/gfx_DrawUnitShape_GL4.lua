@@ -382,7 +382,16 @@ local function DrawUnitShapeGL4(
 		BAR.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
 		return nil
 	end
-	uniqueIDtoUnitShapeVBOTable[uniqueID] = DrawUnitShapeVBOTable
+	-- An update only rewrites instance data, the drawn model is fixed when first submitted
+	local previousVBOTable = uniqueIDtoUnitShapeVBOTable[updateID] ---@type table?
+	if previousVBOTable then
+		local previousIndex = previousVBOTable.instanceIDtoIndex[updateID]
+		if previousIndex and previousVBOTable.indextoUnitID[previousIndex] ~= unitDefID then
+			---@diagnostic disable-next-line: call-non-callable
+			popElementInstance(previousVBOTable, updateID)
+		end
+	end
+	uniqueIDtoUnitShapeVBOTable[updateID] = DrawUnitShapeVBOTable
 	--spEcho("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
 
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
@@ -470,6 +479,7 @@ local function StopDrawAll(ownerID)
 						"that we expected it to be in"
 					)
 				end
+				uniqueIDtoUnitShapeVBOTable[uniqueID] = nil
 			end
 
 			owners[uniqueID] = nil
