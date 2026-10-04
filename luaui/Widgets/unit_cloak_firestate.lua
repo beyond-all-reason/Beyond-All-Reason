@@ -114,6 +114,7 @@ local function maybeRemoveSelf()
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD_WANT_CLOAK)
 	myTeam = spGetMyTeamID()
 	maybeRemoveSelf()
 	local priorUserFirestateFunction = WG.firestate.userFirestateChanged
