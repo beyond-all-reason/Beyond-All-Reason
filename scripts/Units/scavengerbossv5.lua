@@ -2241,6 +2241,7 @@ local function PickMeal()
 	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE, myTeam)) do
 		local def = UnitDefs[Spring.GetUnitDefID(otherID)]
 		local edible = otherID ~= unitID and def.canMove and not def.canFly and def.reclaimable
+		edible = edible and not Spring.GetUnitIsDead(otherID)
 		if edible and not def.customParams.eaterboss and def.metalCost > bestMetal then
 			best, bestMetal = otherID, def.metalCost
 		end
@@ -2451,6 +2452,7 @@ local function Feed()
 				blast = true
 				break
 			end
+			Sleep(FRAME_MS)
 		else
 			Sleep(1000)
 		end
