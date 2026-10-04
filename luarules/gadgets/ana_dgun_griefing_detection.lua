@@ -161,10 +161,6 @@ local function GetAllyTeamID(teamID)
 	return allyTeamID
 end
 
-local function GetPlayerName(playerID)
-	return playerID and spGetPlayerInfo(playerID, false) or "unknown player"
-end
-
 local function GetUnitDisplayName(unitDefID)
 	return unitDefID and unitDisplayName[unitDefID] or "unknown_unit"
 end
@@ -653,9 +649,7 @@ local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
 	if not risksAllies and not allyThreatInfo then
 		ForwardAnalyticsEvent("dgun_nominal", {
 			position = { targetX, targetY, targetZ },
-			time = spGetGameFrame(),
 			gameID = GetGameID(),
-			player = GetPlayerName(myPlayerID),
 			reason = "No allies threatened",
 		})
 		return
@@ -665,9 +659,7 @@ local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
 	if enemiesNearby then
 		ForwardAnalyticsEvent("dgun_grief_negative", {
 			position = { targetX, targetY, targetZ },
-			time = spGetGameFrame(),
 			gameID = GetGameID(),
-			player = GetPlayerName(myPlayerID),
 			reason = explanation,
 		})
 		return
@@ -677,9 +669,7 @@ local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
 	if not risksAllies and allyThreatInfo then
 		ForwardAnalyticsEvent("dgun_grief_negative", {
 			position = { targetX, targetY, targetZ },
-			time = spGetGameFrame(),
 			gameID = GetGameID(),
-			player = GetPlayerName(myPlayerID),
 			reason = allyThreatInfo,
 		})
 		return
@@ -688,9 +678,7 @@ local function ProcessDGunCommand(unitID, unitDefID, cmdParams)
 	-- Otherwise it's classified as griefing
 	ForwardAnalyticsEvent("dgun_grief_positive", {
 		position = { targetX, targetY, targetZ },
-		time = spGetGameFrame(),
 		gameID = GetGameID(),
-		player = GetPlayerName(myPlayerID),
 		reason = allyThreatInfo,
 	})
 end

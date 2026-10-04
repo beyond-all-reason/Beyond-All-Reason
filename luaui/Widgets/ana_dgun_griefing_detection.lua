@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local USE_WG_ANALYTICS = false -- set false to echo events locally while debugging
+local USE_WG_ANALYTICS = true -- set false to echo events locally while debugging
 local cachedEvents = {}
 
 local function DGunGriefingDetection(eventType, eventData)
