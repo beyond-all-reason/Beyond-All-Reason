@@ -1110,6 +1110,7 @@ local boss = units.scavengerbossv5
 local difficultyScale = DIFFICULTY_STEP ^ level
 local statScale = playerCountScale * difficultyScale
 boss.health = math.floor(boss.health * statScale + 0.5)
+boss.resurrectspeed = boss.resurrectspeed * difficultyScale
 for name, weaponDef in pairs(boss.weapondefs) do
 	if weaponDef.damage and not unscaledDamage[name] then
 		for armorType, damage in pairs(weaponDef.damage) do

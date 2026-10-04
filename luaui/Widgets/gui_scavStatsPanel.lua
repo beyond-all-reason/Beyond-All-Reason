@@ -89,6 +89,7 @@ local rules = {
 	"scavTechAnger",
 	"scavGracePeriod",
 	"scavBossHealth",
+	"scavBossHunger",
 	"lagging",
 	"scavDifficulty",
 	"scavCount",
@@ -237,6 +238,20 @@ local function CreatePanelDisplayList()
 						.. BAR.I18N("ui.scavs.bossesKilled", { nKilled = gameInfo.scavBossesKilled, nTotal = nBosses }),
 					panelMarginX,
 					PanelRow(4),
+					panelFontSize,
+					""
+				)
+			end
+			local hunger = Spring.GetGameRulesParam("scavBossHunger")
+			if hunger and hunger >= 0 then
+				local row = Spring.GetGameRulesParam("scavBossStaggerActive") == false and 3 or 4
+				if nBosses > 1 then
+					row = 5
+				end
+				font:Print(
+					textColor .. BAR.I18N("ui.scavs.bossHunger", { value = hunger }),
+					panelMarginX,
+					PanelRow(row),
 					panelFontSize,
 					""
 				)

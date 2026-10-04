@@ -27,6 +27,8 @@ if not next(eaters) then
 	return false
 end
 
+local bosses = {}
+
 local function FlagAllBosses(param)
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if eaters[Spring.GetUnitDefID(unitID)] then
@@ -87,7 +89,31 @@ local function SetShield(unitID, on)
 	Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { on and 1 or 0 }, 0)
 end
 
+function gadget:UnitCreated(unitID, unitDefID)
+	if eaters[unitDefID] then
+		bosses[unitID] = true
+	end
+end
+
+function gadget:UnitDestroyed(unitID)
+	bosses[unitID] = nil
+end
+
+function gadget:GameFrame(frame)
+	if frame % 30 ~= 0 then
+		return
+	end
+	local hunger = -1
+	for unitID in pairs(bosses) do
+		hunger = math.max(hunger, Spring.GetUnitRulesParam(unitID, "scavboss_hunger") or 0)
+	end
+	Spring.SetGameRulesParam("scavBossHunger", hunger)
+end
+
 function gadget:Initialize()
+	for _, unitID in ipairs(Spring.GetAllUnits()) do
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+	end
 	GG.ScavBossFeedingEffect = FeedingEffect
 	GG.ScavBossShield = SetShield
 	gadgetHandler:AddChatAction("scavbosseat", StartFeeding, "Makes every scav boss start its feeding sequence")

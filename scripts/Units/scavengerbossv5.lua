@@ -1480,8 +1480,6 @@ local TURBO = {
 	volleyHealth = 0.75, -- the close turbo (back-to-back volleys) only below this health
 	raiseHealth = 0.6, -- Raise only below this health
 	raiseWrecks = 3, -- player wrecks in reach that Raise needs
-	devourHealth = 0.5, -- Devour only below this health
-	devourMetal = 15000, -- metal in reach that Devour needs
 	abilityChance = 0.5, -- chance that a turbo becomes an ability when one is possible
 	hold = { close = "arms", far = "rapid", swarm = "pods", air = "aa", beam = "beam" },
 	signal = { far = true, close = true }, -- turbos that show a warning before they start
@@ -1500,6 +1498,16 @@ TURBO.Boost = function(num, mult, impulse)
 	end
 	Spring.SetUnitWeaponDamages(unitID, num, set)
 end
+
+local HUNGER = {
+	health = 0.5, -- hunger only grows below this health
+	fillSeconds = 60, -- seconds from empty to full
+	min = 80, -- Devour starts somewhere between these two hunger values, picked anew each time
+	max = 100,
+	metal = 15000, -- metal in reach that Devour needs; a hungry boss waits until it is there
+	value = 0,
+	trigger = 90,
+}
 
 local TURRET_SPEED = math.rad(180)
 local TURRET_ARC = math.rad(90) -- how far a turret may swing from its rest facing
@@ -1607,7 +1615,7 @@ local function RailController()
 end
 
 local function AimRail(num, heading, pitch)
-	if num == RAIL.rapid and ACT.current == "rail" then
+	if num == RAIL.rapid and ACT.current == "rail" and WeaponAllowed(RAIL.heavy) then
 		return false
 	end
 	rail.goal = WrapAngle(Spring.GetUnitHeading(unitID) * math.pi / 32768 + heading)
@@ -2317,62 +2325,6 @@ local function Detonate()
 	Spring.PlaySoundFile("disigun1", 1, x, y, z)
 end
 
-local function Feed()
-	Spring.SetUnitRulesParam(unitID, "scavboss_feed", 0)
-	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 1)
-	Sleep(FEED_GRACE * 1000)
-	eating = true
-	fedMetal = 0
-	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
-	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 2)
-	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
-	Signal(SIG_ALL_AIM)
-	SetFace(true)
-	if GG.ScavBossFeedingEffect then
-		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
-	end
-	local deadline = Spring.GetGameFrame() + FEED_DURATION * Game.gameSpeed
-	local blast = false
-	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
-		local target, isFeature, startMetal = PickMeal()
-		if target then
-			Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { isFeature and (Game.maxUnits + target) or target }, 0)
-			local before = fedMetal
-			while
-				not MealGone(target, isFeature)
-				and not MealEscaped(target, isFeature)
-				and Spring.GetGameFrame() < deadline
-				and not Spring.GetUnitIsStunned(unitID)
-			do
-				Sleep(500)
-				if isFeature then
-					fedMetal = before + startMetal - (Spring.GetFeatureResources(target) or 0)
-					Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", fedMetal)
-				end
-			end
-			if MealGone(target, isFeature) then
-				fedMetal = before + startMetal
-			end
-			Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", fedMetal)
-			Spring.Echo("scav boss fed " .. math.floor(fedMetal) .. " / " .. FEED_GOAL .. " metal")
-			if fedMetal >= FEED_GOAL then
-				blast = true
-				break
-			end
-		else
-			Sleep(1000)
-		end
-	end
-	if blast then
-		Detonate()
-	end
-	eating = false
-	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 0)
-	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 0)
-	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
-	SetFace(false)
-end
-
 local RAISE = {
 	grace = 2, -- seconds of warning before it starts raising
 	duration = 25, -- seconds it keeps raising
@@ -2416,6 +2368,68 @@ local function SetRaisePose(on)
 	for _, p in ipairs(RAISE_POSE) do
 		Turn(p[1], p[2], on and p[3] or p[4], RAISE.poseSpeed)
 	end
+end
+
+local function Feed()
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed", 0)
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 1)
+	Sleep(FEED_GRACE * 1000)
+	eating, posed, isAiming = true, true, true
+	fedMetal = 0
+	HUNGER.value, HUNGER.trigger = 0, math.random(HUNGER.min, HUNGER.max)
+	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 2)
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
+	Signal(SIG_ALL_AIM)
+	Signal(SIG_RESTORE)
+	SetFace(true)
+	SetRaisePose(true)
+	if GG.ScavBossFeedingEffect then
+		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
+	end
+	local deadline = Spring.GetGameFrame() + FEED_DURATION * Game.gameSpeed
+	local blast = false
+	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
+		local target, isFeature, startMetal = PickMeal()
+		if target then
+			Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { isFeature and (Game.maxUnits + target) or target }, 0)
+			local before = fedMetal
+			while
+				not MealGone(target, isFeature)
+				and not MealEscaped(target, isFeature)
+				and Spring.GetGameFrame() < deadline
+				and not Spring.GetUnitIsStunned(unitID)
+			do
+				Sleep(500)
+				if isFeature then
+					fedMetal = before + startMetal - (Spring.GetFeatureResources(target) or 0)
+					Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", fedMetal)
+				end
+			end
+			if MealGone(target, isFeature) then
+				fedMetal = before + startMetal
+			end
+			Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", fedMetal)
+			Spring.Echo("scav boss fed " .. math.floor(fedMetal) .. " / " .. FEED_GOAL .. " metal")
+			if fedMetal >= FEED_GOAL then
+				blast = true
+				break
+			end
+		else
+			Sleep(1000)
+		end
+	end
+	posed = false
+	SetRaisePose(false)
+	if blast then
+		Detonate()
+	end
+	eating = false
+	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 0)
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 0)
+	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
+	SetFace(false)
+	StartThread(RestoreAfterDelay)
 end
 
 local function PickWreck()
@@ -2476,8 +2490,30 @@ local function Raise()
 	StartThread(RestoreAfterDelay)
 end
 
-TURBO.Pick = function(health)
+TURBO.Food = function()
 	local x, y, z = Spring.GetUnitPosition(unitID)
+	local wrecks, metal = 0, 0
+	local gaia = Spring.GetGaiaTeamID()
+	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
+		local rezName = Spring.GetFeatureResurrect(featureID)
+		local team = Spring.GetFeatureTeam(featureID)
+		if rezName and rezName ~= "" and team and team ~= gaia and not Spring.AreTeamsAllied(team, myTeam) then
+			wrecks = wrecks + 1
+		end
+		if FeatureDefs[Spring.GetFeatureDefID(featureID)].reclaimable then
+			metal = metal + (Spring.GetFeatureResources(featureID) or 0)
+		end
+	end
+	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE)) do
+		if IsPrey(otherID) then
+			metal = metal + UnitDefs[Spring.GetUnitDefID(otherID)].metalCost
+		end
+	end
+	return wrecks, metal
+end
+
+TURBO.Pick = function(health)
+	local x, _, z = Spring.GetUnitPosition(unitID)
 	local score = { air = 0, close = 0, far = 0, swarm = 0, beam = 0 }
 	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, TURBO.range)) do
 		local team = Spring.GetUnitTeam(otherID)
@@ -2498,34 +2534,8 @@ TURBO.Pick = function(health)
 	if health > TURBO.volleyHealth then
 		score.close = 0
 	end
-	local abilities = {}
-	if health <= TURBO.raiseHealth or health <= TURBO.devourHealth then
-		local wrecks, metal = 0, 0
-		local gaia = Spring.GetGaiaTeamID()
-		for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
-			local rezName = Spring.GetFeatureResurrect(featureID)
-			local team = Spring.GetFeatureTeam(featureID)
-			if rezName and rezName ~= "" and team and team ~= gaia and not Spring.AreTeamsAllied(team, myTeam) then
-				wrecks = wrecks + 1
-			end
-			if FeatureDefs[Spring.GetFeatureDefID(featureID)].reclaimable then
-				metal = metal + (Spring.GetFeatureResources(featureID) or 0)
-			end
-		end
-		for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE)) do
-			if IsPrey(otherID) then
-				metal = metal + UnitDefs[Spring.GetUnitDefID(otherID)].metalCost
-			end
-		end
-		if health <= TURBO.raiseHealth and wrecks >= TURBO.raiseWrecks then
-			abilities[#abilities + 1] = "raise"
-		end
-		if health <= TURBO.devourHealth and metal >= TURBO.devourMetal then
-			abilities[#abilities + 1] = "devour"
-		end
-	end
-	if #abilities > 0 and math.random() < TURBO.abilityChance then
-		return abilities[math.random(#abilities)]
+	if health <= TURBO.raiseHealth and TURBO.Food() >= TURBO.raiseWrecks and math.random() < TURBO.abilityChance then
+		return "raise"
 	end
 	local best, bestScore = nil, 0
 	for _, kind in ipairs(TURBO.kinds) do
@@ -2709,6 +2719,22 @@ end
 local function FeedWatch()
 	while true do
 		Sleep(500)
+		local health, maxHealth = Spring.GetUnitHealth(unitID)
+		if
+			not eating
+			and (health or 1) / (maxHealth or 1) <= HUNGER.health
+			and not Spring.GetUnitIsStunned(unitID)
+			and Spring.GetUnitRulesParam(unitID, "scavboss_turbo") ~= "off"
+		then
+			HUNGER.value = math.min(100, HUNGER.value + 50 / HUNGER.fillSeconds)
+			if HUNGER.value >= HUNGER.trigger then
+				local _, metal = TURBO.Food()
+				if metal >= HUNGER.metal then
+					Feed()
+				end
+			end
+		end
+		Spring.SetUnitRulesParam(unitID, "scavboss_hunger", math.floor(HUNGER.value))
 		if Spring.GetUnitRulesParam(unitID, "scavboss_feed") == 1 and not eating then
 			Feed()
 		end
