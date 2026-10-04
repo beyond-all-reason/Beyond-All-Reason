@@ -73,6 +73,7 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "",
+			tombstone = "corstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {
@@ -245,10 +246,8 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2s",
-				soundhitvolume = 36,
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
-				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 10000,
 				turret = true,

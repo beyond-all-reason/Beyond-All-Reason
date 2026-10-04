@@ -9,7 +9,7 @@ return {
 		canrepeat = false,
 		corpse = "DEAD",
 		damagemodifier = 0.25,
-		decoyfor = "scavdrag",
+		decoyfor = "corscavdrag",
 		energystorage = 15,
 		explodeas = "flamethrower",
 		footprintx = 2,
@@ -37,7 +37,7 @@ return {
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			decoyfor = "corscavdrag",
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
@@ -79,8 +79,7 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {
-			},
+			explosiongenerators = {},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -133,8 +132,6 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
-				soundhitvolume = 7.5,
-				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,

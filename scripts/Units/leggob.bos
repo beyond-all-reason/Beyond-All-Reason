@@ -3,7 +3,7 @@
 
 piece  torso, flare, sleeve, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, aimx1, aimy1, lbarrel;
 
-static-var  isMoving, isAiming, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading;
+static-var  isMoving, wpnheading, animSpeed, maxSpeed, animFramesPerKeyframe, StompXZ, StompHeading, aimBelief, lastAimFrame;
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -14,6 +14,8 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 #define SIGNAL_AIM1 256
 #define SIGNAL_SHOOT1 16
 #define SIGNAL_MOVE 1
+
+#define AIM_SPEED_YAW <300>
 Walk() {// For C:\Users\logst\Downloads\BAR\leggob anim.blend Created by https://github.com/Beherith/Skeletor_S3O V((0, 4, 2)) 
 	set-signal-mask SIGNAL_MOVE;
 		if (isMoving) { //Frame:0
@@ -197,8 +199,9 @@ Create()
 	hide aimx1;
 	hide aimy1;
 	isMoving = FALSE;
-	isAiming = 0;
 	wpnheading = 0;
+	aimBelief = 0;
+	lastAimFrame = 0;
 	animSpeed = 4;
 }
 
@@ -218,10 +221,11 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-    turn aimy1 to y-axis <0.0> speed <90>;
+    // home at the aim turn rate and restart the frame clock so the belief model stays true
+    lastAimFrame = get GAME_FRAME;
+    turn aimy1 to y-axis <0.0> speed AIM_SPEED_YAW;
     turn aimx1 to x-axis <15.0> speed <45>;
     wpnheading = 0;
-    isAiming = 0;
 
 }
 
@@ -246,20 +250,36 @@ AimWeapon1(heading, pitch)
 {
 	//get PRINT ( heading,isAiming,wpnheading,RAND(1,256) ) ;
 	signal SIGNAL_AIM1;
-	
-	if (isAiming == 1) return;
-	turn aimy1 to y-axis heading speed <200>;
-	turn aimx1 to x-axis <0.0> - pitch speed <100>;
-	
-	//needed for luarules\gadgets\unit_continuous_aim.lua
-	if ((get ABS(wpnheading - heading)) > 500){
-		isAiming = 1;
-		wait-for-turn aimy1 around y-axis;
-		wait-for-turn aimx1 around x-axis;
-		isAiming = 0;
+	set-signal-mask SIGNAL_AIM1;
+
+	// advance the believed torso heading toward the previous goal at the physical turn rate
+	var frame;
+	var step;
+	var delta;
+	frame = get GAME_FRAME;
+	step = (frame - lastAimFrame) * (AIM_SPEED_YAW / 30);
+	lastAimFrame = frame;
+	delta = WRAPDELTA(wpnheading - aimBelief);
+	if ((get ABS(delta)) > step)
+	{
+		aimBelief = WRAPDELTA(aimBelief + SIGN(delta) * step);
 	}
+	else
+	{
+		aimBelief = wpnheading;
+	}
+
+	turn aimy1 to y-axis heading speed AIM_SPEED_YAW;
+	turn aimx1 to x-axis <0.0> - pitch speed <100>;
 	wpnheading = heading;
 	start-script RestoreAfterDelay();
+
+	// hold fire while the torso is still far from the current goal
+	delta = WRAPDELTA(heading - aimBelief);
+	if ((get ABS(delta)) > <25>)
+	{
+		return (0);
+	}
 	return (1);
 }
 

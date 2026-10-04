@@ -11,15 +11,17 @@ local candyCane = {
 	metal = 0,
 	reclaimable = 0,
 	customparams = {
-		i18nfrom = 'candycane'
-	}
+		i18nfrom = "candycane",
+	},
 }
 
 local candyCaneDefs = {}
 for i = 1, 7 do
-	local name = 'candycane' .. i
-	local object = 'candycane' .. i .. '.s3o'
-	if object == 'candycane1.s3o' then object = 'candycane.s3o' end
+	local name = "candycane" .. i
+	local object = "candycane" .. i .. ".s3o"
+	if object == "candycane1.s3o" then
+		object = "candycane.s3o"
+	end
 
 	local def = table.copy(candyCane)
 	def.name = name

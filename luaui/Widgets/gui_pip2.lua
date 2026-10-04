@@ -8,15 +8,15 @@ VFS.Include("LuaUI/Widgets/gui_pip.lua")
 -- Override GetInfo to change the name and layer
 widget.GetInfo = function()
 	return {
-		name      = "Picture-in-Picture "..pipNumber,
-		desc      = "Second PiP window instance",
-		author    = "Floris",
-		version   = "1.0",
-		date      = "November 2025",
-		license   = "GNU GPL, v2 or later",
-		layer     = (99020-pipNumber),
-		enabled   = false,
-		handler   = true,
+		name = "Picture-in-Picture " .. pipNumber,
+		desc = "Second PiP window instance",
+		author = "Floris",
+		version = "1.0",
+		date = "November 2025",
+		license = "GNU GPL, v2 or later",
+		layer = (99020 - pipNumber),
+		enabled = false,
+		handler = true,
 	}
 end
 

@@ -1,11 +1,11 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "Deferred shading test",
-      layer     = 0,
-      enabled   = false,
-   }
+	return {
+		name = "Deferred shading test",
+		layer = 0,
+		enabled = false,
+	}
 end
 
 local vsx, vsy
@@ -14,11 +14,9 @@ function widget:Initialize()
 	vsx, vsy = widgetHandler:GetViewSizes()
 end
 
-function widget:Shutdown()
-end
+function widget:Shutdown() end
 
-function widget:DrawGenesis()
-end
+function widget:DrawGenesis() end
 
 --local texName = "$model_gbuffer_normtex"
 --local texName = "$model_gbuffer_difftex"

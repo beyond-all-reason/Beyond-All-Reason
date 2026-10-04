@@ -68,6 +68,7 @@ return {
 		},
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			normaltex = "unittextures/chicken_l_normals.png",
 		},
 		sfxtypes = {
@@ -168,7 +169,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

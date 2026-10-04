@@ -1,6 +1,5 @@
 return {
 	legcib = {
-		acceleration = 0.2,
 		blocking = false,
 		maxdec = 0.055,
 		energycost = 3500,
@@ -18,7 +17,7 @@ return {
 		maxacc = 0.1825,
 		maxaileron = 0.0144,
 		maxbank = 0.8,
-		health = 890,
+		health = 600,
 		maxelevator = 0.01065,
 		maxpitch = 0.625,
 		maxrudder = 0.00615,
@@ -39,7 +38,7 @@ return {
 		wingangle = 0.06296,
 		wingdrag = 0.08,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorAircraft",
@@ -68,12 +67,12 @@ return {
 		weapondefs = {
 			juno_pulse_mini = {
 				accuracy = 500,
-				areaofeffect = 700,
+				areaofeffect = 500,
 				avoidfeature = false,
 				cegtag = "missiletrail-juno",
 				collidefriendly = false,
 				commandfire = false,
-				craterareaofeffect = 600,
+				craterareaofeffect = 400,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 1,
@@ -81,7 +80,7 @@ return {
 				impulsefactor = 0,
 				model = "epulse_mini.s3o",
 				model = "legmediumrocket.s3o",
-        		mygravity = 0.2,
+				mygravity = 0.2,
 				name = "Anti radar/minefield/jammer magnetic impulse bomb",
 				range = 450,
 				reloadtime = 10,

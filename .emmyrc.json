@@ -8,6 +8,13 @@
       "duplicate-set-field"
     ],
     "globals": [
+      "BAR",
+      "Utilities",
+      "Debug",
+      "Lava",
+      "GetModOptionsCopy",
+      "I18N",
+      "I18N_PATH",
       "Turn",
       "Move",
       "Spin",
@@ -33,11 +40,14 @@
       "SIG_WALK",
       "UNITSCRIPT_DIR",
       "widgetHandler",
+      "actionHandler",
       "gadgetHandler",
+      "CALLIN_MAP",
       "fontHandler",
       "LUAUI_DIRNAME",
       "socket",
       "pairsByKeys",
+      "ipairs_reverse",
       "SendToUnsynced",
       "CallAsTeam",
       "handler",
@@ -61,7 +71,11 @@
       "CMD_WANTED_SPEED",
       "GadgetCrashingAircraft",
       "ExplosionDefs",
-      "GL_TEXTURE_2D"
+      "GL_TEXTURE_2D",
+      "SFX",
+      "unitID",
+      "MultiMove",
+      "MultiTurn"
     ]
   },
   "runtime": {
@@ -77,11 +91,15 @@
   },
   "workspace": {
     "ignoreDir": [
+      "modules/i18n/i18nlib/spec",
+      "mapgenerator",
       ".vscode",
       ".lux"
     ],
     "ignoreGlobs": [
-      "**/.lux/**"
+      "**/.lux/**",
+      "spec/spec_helper.lua",
+      "spec/builders/**"
     ],
     "library": [
       ".lux/5.1/test_dependencies/5.1/01a3c364614bddff7370223a5a9c4580f8e62d144384148444c518ec5367a59b-mediator_lua@1.1.2-0/src",

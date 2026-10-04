@@ -1,6 +1,6 @@
 // damagedsmoke.h
 // Author Beherith mysterme@gmail.com. License: GNU GPL v2.
-// This header is a very simple thing that should be start-scripted in Create after unit is finshed building. 
+// This header is a very simple thing that should be start-scripted in Create after unit is finished building. 
 // Emits more frequently as unit becomes more damaged
 #ifndef SMOKE_PIECE
     #define SMOKE_PIECE base

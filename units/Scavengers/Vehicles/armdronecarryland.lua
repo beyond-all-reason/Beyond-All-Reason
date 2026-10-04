@@ -115,7 +115,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "",--"custom:genericshellexplosion-medium",
+				explosiongenerator = "", --"custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				hightrajectory = 1,
 				impulsefactor = 0.123,
@@ -126,9 +126,9 @@ return {
 				range = 1200,
 				reloadtime = 2.5,
 				size = 0,
-				soundhit = "",--"xplomed2",
-				soundhitwet = "",--"splssml",
-				soundstart = "",--"cannhvy1",
+				soundhit = "", --"xplomed2",
+				soundhitwet = "", --"splssml",
+				soundstart = "", --"cannhvy1",
 				stockpile = true,
 				stockpiletime = 4,
 				turret = true,
@@ -138,27 +138,27 @@ return {
 					default = 0,
 				},
 				customparams = {
-					carried_unit = "armdrone",     --Name of the unit spawned by this carrier unit.
+					carried_unit = "armdrone", --Name of the unit spawned by this carrier unit.
 					-- carried_unit2... 			Currently not implemented, but planned.
 					engagementrange = 1250,
 					--spawns_surface = "SEA",    -- "LAND" or "SEA". The SEA option has not been tested currently.
-					spawnrate = 7, 				--Spawnrate roughly in seconds.
-					maxunits = 16,				--Will spawn units until this amount has been reached.
+					spawnrate = 7, --Spawnrate roughly in seconds.
+					maxunits = 16, --Will spawn units until this amount has been reached.
 					startingdronecount = 8,
-					energycost = 750,--650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					metalcost = 30,--29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
-					controlradius = 1100,			--The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
+					energycost = 750, --650,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					metalcost = 30, --29,			--Custom spawn cost. Remove this or set = nil to inherit the cost from the carried_unit unitDef. Cost inheritance is currently not working.
+					controlradius = 1100, --The spawned units should stay within this radius. Unfinished behavior may cause exceptions. Planned: radius = 0 to disable radius limit.
 					decayrate = 6,
-					attackformationspread = 120,	--Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
-					attackformationoffset = 30,	--Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
+					attackformationspread = 120, --Used to spread out the drones when attacking from a docked state. Distance between each drone when spreading out.
+					attackformationoffset = 30, --Used to spread out the drones when attacking from a docked state. Distance from the carrier when they start moving directly to the target. Given as a percentage of the distance to the target.
 					carrierdeaththroe = "release",
 					dockingarmor = 0.2,
 					dockinghealrate = 24,
 					docktohealthreshold = 50,
-					enabledocking = true,		--If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
+					enabledocking = true, --If enabled, docking behavior is used. Currently docking while moving or stopping, and undocking while attacking. Unfinished behavior may cause exceptions.
 					dockingHelperSpeed = 5,
 					dockingpieces = "11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27",
-					dockingradius = 300,			--The range at which the units snap to the carrier unit when docking.
+					dockingradius = 300, --The range at which the units snap to the carrier unit when docking.
 					stockpilelimit = 16,
 					stockpilemetal = 30,
 					stockpileenergy = 750,
@@ -166,7 +166,7 @@ return {
 					dronedocktime = 2,
 					droneairtime = 60,
 					droneammo = 9,
-				}
+				},
 			},
 		},
 		weapons = {

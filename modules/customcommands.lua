@@ -29,6 +29,7 @@ local gameCommands = {
 
 	CARRIER_SPAWN_ONOFF = 31200,
 	MORPH = 31210,
+	USER_FIRESTATE = 31300,
 	MANUAL_LAUNCH = 32102,
 	UNIT_SET_TARGET_NO_GROUND = 34922, -- unit_target_on_the_move
 	UNIT_SET_TARGET = 34923,
@@ -49,24 +50,24 @@ local globalCmdDeprecatedShown = false
 
 local importCommandsToObject = function(object)
 	if not globalCmdDeprecatedShown and not object.gadgetHandler then
-		local msg = 'Should not use customcmds.h.lua or importCommandsToObject. Use the CMD table directly, or read modules/customcommands.lua for more information.'
-		Spring.Log('CMD', LOG.DEPRECATED, msg)
+		local msg =
+			"Should not use customcmds.h.lua or importCommandsToObject. Use the CMD table directly, or read modules/customcommands.lua for more information."
+		Spring.Log("CMD", LOG.DEPRECATED, msg)
 		globalCmdDeprecatedShown = true
 	end
 	for code, cmdID in pairs(gameCommands) do
-		if type(code) == 'string' then
-			object['CMD_' .. code] = cmdID
+		if type(code) == "string" then
+			object["CMD_" .. code] = cmdID
 		end
 	end
-
 end
 
 for code, cmdID in pairs(gameCommands) do
 	if CMD[cmdID] then
-		Spring.Log('CMD', LOG.ERROR, 'Duplicate command id: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+		Spring.Log("CMD", LOG.ERROR, "Duplicate command id: " .. code .. " " .. tostring(cmdID) .. "!")
 	end
 	if CMD[code] then
-		Spring.Log('CMD', LOG.ERROR, 'Duplicate command code: ' .. code .. ' ' .. tostring(cmdID) .. '!')
+		Spring.Log("CMD", LOG.ERROR, "Duplicate command code: " .. code .. " " .. tostring(cmdID) .. "!")
 	end
 	gameCommands[cmdID] = code
 end
@@ -79,4 +80,4 @@ return {
 	GameCMD = gameCommands,
 	ImportCommandsToObject = importCommandsToObject,
 	GetCommandCode = getCommandCode,
- }
+}

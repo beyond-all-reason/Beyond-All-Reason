@@ -40,6 +40,7 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 1,
 			subfolder = "CorGantry",
 			techlevel = 3,
 			unitgroup = "weapon",
@@ -167,6 +168,9 @@ return {
 					default = 5500,
 					vtol = 2750,
 				},
+				customparams = {
+					sound_volume_multiplier = 2.5,
+				},
 			},
 			corkorg_rocket = {
 				areaofeffect = 200,
@@ -233,7 +237,6 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					bogus = 1,

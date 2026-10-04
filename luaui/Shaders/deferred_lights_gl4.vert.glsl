@@ -254,10 +254,10 @@ void main()
 			lightVertexPosition += lightWorldMovement;
 		}  
        
-        // tranform the vertices to world-space
+        // transform the vertices to world-space
         lightVertexPosition = (placeInWorldMatrix * vec4(lightVertexPosition, 1.0)).xyz;
        
-        // tranform the center to world-space
+        // transform the center to world-space
         lightCenterPosition = (placeInWorldMatrix * vec4(lightCenterPosition, 1.0)).xyz;
        
        
@@ -293,11 +293,11 @@ void main()
 		v_worldPosRad.xyz = lightCenterPosition;
 		v_depths_center_map_model_min = depthAtWorldPos(vec4(lightCenterPosition,1.0)); // 
 		v_position = vec4( lightVertexPosition, 1.0);
-		//v_position = vec4(ApplyTransform(tx, lightVertexPosition),1.0); // Doesnt work
+		//v_position = vec4(ApplyTransform(tx, lightVertexPosition),1.0); // Doesn't work
 	}
     #line 12000
     else if (pointbeamcone < 1.5){ // beam
-        // we will tranform along this vector, where Y shall be the upvector
+        // we will transform along this vector, where Y shall be the upvector
         // our null vector is +X
         vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
         float halfbeamlength = length(centertoend);

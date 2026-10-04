@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "Aug 31, 2009",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true
+		enabled = true,
 	}
 end
 
@@ -35,7 +35,19 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua, fromInsert)
+function gadget:AllowCommand(
+	unitID,
+	unitDefID,
+	teamID,
+	cmdID,
+	cmdParams,
+	cmdOptions,
+	cmdTag,
+	playerID,
+	fromSynced,
+	fromLua,
+	fromInsert
+)
 	if cmdID == CMD.INSERT or cmdID == CMD.REMOVE then
 		return fromInsert == nil
 	end

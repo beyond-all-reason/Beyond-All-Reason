@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 1500,
+		health = 1400,
 		leavetracks = true,
 		maxacc = 0.01654,
 		maxdec = 0.1,
@@ -33,7 +33,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.94149,
-		turnrate = 292.80002,
+		turnrate = 292,
 		usepiececollisionvolumes = 0,
 		customparams = {
 			basename = "base",
@@ -43,8 +43,6 @@ return {
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 20,
-			weapon1turrety = 170,
 		},
 		featuredefs = {
 			dead = {
@@ -127,14 +125,16 @@ return {
 				separation = 2,
 				sizedecay = 0.08,
 				soundhit = "corlevlrhit",
-				soundhitvolume = 11.5,
 				soundhitwet = "splsmed",
 				soundstart = "corlevlr",
-				soundstartvolume = 13,
 				stages = 12,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 540,
+				customparams = {
+					turretspeedx = 20,
+					turretspeedy = 170,
+				},
 				damage = {
 					default = 190,
 					subs = 70,

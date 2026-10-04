@@ -2,19 +2,17 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name		= "Feature ETA Widget Forwarding",
-		desc		= "Notifies widgets that a feature reclaim or resurrect action has begun",
-		author		= "Saul Goodman, copied from Beherith", -- ty Sprung
-		date		= "March 2026",
-		license	 	= "GNU GPL, v2 or later",
-		layer		= -1,
-		enabled		= true
+		name = "Feature ETA Widget Forwarding",
+		desc = "Notifies widgets that a feature reclaim or resurrect action has begun",
+		author = "Saul Goodman, copied from Beherith", -- ty Sprung
+		date = "March 2026",
+		license = "GNU GPL, v2 or later",
+		layer = -1,
+		enabled = true,
 	}
 end
 
-
 if gadgetHandler:IsSyncedCode() then
-
 	local SendToUnsynced = SendToUnsynced
 	local spGetGameFrame = Spring.GetGameFrame
 	local fps = Game.gameSpeed
@@ -22,33 +20,32 @@ if gadgetHandler:IsSyncedCode() then
 	local noProgressTimeout = 5 * fps -- ETAs will disappear after this many frames without progress
 	-- Cached teamID to its allyTeamID
 	local teamToAllyTeam = {}
-	
+
 	-- Map of featureID to map of allyTeamID to frame of last build step
 	local forwardedFeatures = {} -- so we only forward the start event once
 	-- Map of featureID to most recent build step frame for any ally team
 	local featureLastStepTime = {} -- used to remove ETA's for ally teams that are no longer working on a feature
-	
+
 	function gadget:AllowFeatureBuildStep(builderID, builderTeamID, featureID, featureDefID, step)
-		
 		local currentDayFrames, days = spGetGameFrame()
 		local currentFrame = currentDayFrames + (days * dayFrames)
 		local builderAllyTeamID = teamToAllyTeam[builderTeamID]
-		
+
 		local lastStepFrames = forwardedFeatures[featureID]
 		if lastStepFrames == nil then
 			lastStepFrames = {}
 			forwardedFeatures[featureID] = lastStepFrames
 		end
-		
+
 		if lastStepFrames[builderAllyTeamID] == nil then
 			SendToUnsynced("etaFeatureReclaimStartFrame", featureID, builderAllyTeamID, step)
 		end
 		lastStepFrames[builderAllyTeamID] = currentFrame
 		featureLastStepTime[featureID] = currentFrame
-		
+
 		return true
 	end
-	
+
 	local updateInterval = 6
 	local updateCounter = updateInterval
 	function gadget:GameFrame(frame)
@@ -57,7 +54,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		updateCounter = updateInterval
-		
+
 		--Check if there are any ally teams that are no longer reclaiming or resurrecting a feature and
 		--send a stop signal
 		--There may be two ally teams reclaiming the same feature and we want to remove the ETA when an
@@ -72,7 +69,6 @@ if gadgetHandler:IsSyncedCode() then
 				end
 			end
 		end
-		
 	end
 
 	function gadget:FeatureDestroyed(featureID, allyTeamID)
@@ -86,28 +82,78 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
-
 else
-	
-	local myPlayerID = Spring.GetMyPlayerID()
-	local myAllyTeamID = Spring.GetMyAllyTeamID()
-	local _, fullview = Spring.GetSpectatingState()
-	
+	local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+	local spGetSpectatingState = Spring.GetSpectatingState
+
+	local myPlayerID = Spring.GetLocalPlayerID()
+	local myAllyTeamID = spGetMyAllyTeamID()
+	local _, fullview = spGetSpectatingState()
+
 	--Map of allyTeamID to set of featureIDs. Used to resend ETAs when player changes ally team
 	local featureETATeamCache = {}
 
+	local function getFeatureEtaLuaUI()
+		local luaUI = Script.LuaUI
+		if luaUI("FeatureReclaimStartedETA") then
+			return luaUI.FeatureReclaimStartedETA
+		end
+	end
+
+	local function resendAllFeatureETAs()
+		local featureReclaimStartedETA = getFeatureEtaLuaUI()
+		if not featureReclaimStartedETA then
+			return
+		end
+
+		local myAllyTeamCache = featureETATeamCache[myAllyTeamID]
+		for _, featureIDs in pairs(featureETATeamCache) do
+			for featureID, _ in pairs(featureIDs) do
+				local step = (fullview or (myAllyTeamCache and myAllyTeamCache[featureID])) and 0.001 or 0
+				featureReclaimStartedETA(featureID, step)
+			end
+		end
+	end
+
+	local function resendChangedAllyTeamFeatureETAs(prevAllyTeamID)
+		local featureReclaimStartedETA = getFeatureEtaLuaUI()
+		if not featureReclaimStartedETA then
+			return
+		end
+
+		local prevAllyTeamCache = featureETATeamCache[prevAllyTeamID]
+		local myAllyTeamCache = featureETATeamCache[myAllyTeamID]
+		if prevAllyTeamCache then
+			for featureID, _ in pairs(prevAllyTeamCache) do
+				if not (myAllyTeamCache and myAllyTeamCache[featureID]) then
+					featureReclaimStartedETA(featureID, 0)
+				end
+			end
+		end
+		if myAllyTeamCache then
+			for featureID, _ in pairs(myAllyTeamCache) do
+				if not (prevAllyTeamCache and prevAllyTeamCache[featureID]) then
+					featureReclaimStartedETA(featureID, 0.001)
+				end
+			end
+		end
+	end
+
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myAllyTeamID = Spring.GetMyAllyTeamID()
-			_, fullview = Spring.GetSpectatingState()
-			
-			--Resend feature ETAs when team changes so that we can see active ETAs of new team and stop seeing ETAs of old team
-			local myAllyTeamCache = featureETATeamCache[myAllyTeamID]
-			for _, featureIDs in pairs(featureETATeamCache) do
-				for featureID, _ in pairs(featureIDs) do
-					local step = (fullview or myAllyTeamCache[featureID]) and 0.001 or 0
-					Script.LuaUI.FeatureReclaimStartedETA(featureID, step)
-				end
+			local prevAllyTeamID = myAllyTeamID
+			local prevFullview = fullview
+			myAllyTeamID = spGetMyAllyTeamID()
+			_, fullview = spGetSpectatingState()
+
+			if prevFullview == fullview and (fullview or prevAllyTeamID == myAllyTeamID) then
+				return
+			end
+
+			if prevFullview ~= fullview then
+				resendAllFeatureETAs()
+			else
+				resendChangedAllyTeamFeatureETAs(prevAllyTeamID)
 			end
 		end
 	end

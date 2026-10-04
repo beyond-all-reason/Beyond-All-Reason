@@ -40,10 +40,9 @@ return {
 			kickback = "-2",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 6,
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
-			weapon1turretx = 240,
-			weapon1turrety = 240,
 		},
 		featuredefs = {
 			dead = {
@@ -132,6 +131,10 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
+				customparams = {
+					turretspeedx = 240,
+					turretspeedy = 240,
+				},
 				damage = {
 					default = 9,
 					vtol = 2,

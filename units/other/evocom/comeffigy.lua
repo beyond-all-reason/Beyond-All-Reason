@@ -1,41 +1,41 @@
 local lvlParams = {
 	["1"] = {
 		health = 4000,
-        energycost = 4000,
-        metalcost = 1000,
-        heapmetal = 1000,
+		energycost = 4000,
+		metalcost = 1000,
+		heapmetal = 1000,
 	},
 	["2"] = {
 		health = 6000,
-        energycost = 6000,
-        metalcost = 1500,
-        heapmetal = 1500,
+		energycost = 6000,
+		metalcost = 1500,
+		heapmetal = 1500,
 	},
 	["3"] = {
 		health = 8000,
-        energycost = 9000,
-        metalcost = 2250,
-        heapmetal = 2250,
+		energycost = 9000,
+		metalcost = 2250,
+		heapmetal = 2250,
 	},
-    ["4"] = {
+	["4"] = {
 		health = 10000,
-        energycost = 13500,
-        metalcost = 3375,
-        heapmetal = 3375,
+		energycost = 13500,
+		metalcost = 3375,
+		heapmetal = 3375,
 	},
-    ["5"] = {
+	["5"] = {
 		health = 12000,
-        energycost = 20000,
-        metalcost = 5000,
-        heapmetal = 5000,
+		energycost = 20000,
+		metalcost = 5000,
+		heapmetal = 5000,
 	},
 }
 local unitsTable = {}
 for lvl, stats in pairs(lvlParams) do
 	unitsTable["comeffigylvl" .. lvl] = {
-        maxacc = 0.0,
+		maxacc = 0.0,
 		activatewhenbuilt = true,
-		autoheal = math.ceil(stats.health/100),
+		autoheal = math.ceil(stats.health / 100),
 		maxdec = 0,
 		energycost = stats.energycost,
 		metalcost = stats.metalcost,
@@ -57,7 +57,7 @@ for lvl, stats in pairs(lvlParams) do
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
-    	holdsteady = true,
+		holdsteady = true,
 		initcloaked = true,
 		sightemitheight = 40,
 		mass = 4900,
@@ -71,7 +71,7 @@ for lvl, stats in pairs(lvlParams) do
 		nochasecategory = "ALL",
 		objectname = "Units/COMEFFIGY.s3o",
 		reclaimable = false,
-		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/COMEFFIGY.cob",
 		seismicsignature = 0,
 		selfdestructas = "decoycommander",
@@ -84,7 +84,7 @@ for lvl, stats in pairs(lvlParams) do
 		turnrate = 0,
 		upright = true,
 		customparams = {
-			unitgroup = 'util',
+			unitgroup = "util",
 			iseffigy = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
@@ -98,7 +98,7 @@ for lvl, stats in pairs(lvlParams) do
 				category = "heaps",
 				collisionvolumescales = "35 12 54",
 				collisionvolumetype = "cylY",
-				damage = stats.health*2,
+				damage = stats.health * 2,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
@@ -147,11 +147,8 @@ for lvl, stats in pairs(lvlParams) do
 				[1] = "corcomsel",
 			},
 		},
-		weapondefs = {
-		},
-		weapons = {
-
-		},
+		weapondefs = {},
+		weapons = {},
 	}
 end
 return unitsTable

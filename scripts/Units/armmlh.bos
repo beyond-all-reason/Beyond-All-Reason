@@ -36,7 +36,39 @@ Create()
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script HoverCraftMotion();
 }
+/*
+StartBuilding(heading, pitch)
+{
+	show rflare;
+	show lflare;
+	signal SIGNAL_BUILD;
+	turn turret to y-axis heading speed <60.0>;
+	turn lnano to y-axis heading speed <160>;  //nanos pointing in wrong direction in the end => probably sth to do with aiming in combination with turret
+	turn rnano to y-axis heading speed <160>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn lnano around y-axis;
+	wait-for-turn rnano around y-axis;
+	set INBUILDSTANCE to 1;
+}
 
+StopBuilding()
+{
+	hide rflare;
+	hide lflare;
+	signal SIGNAL_BUILD;	
+	set-signal-mask SIGNAL_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIGNAL_BUILD;	
+	set INBUILDSTANCE to 0;
+	turn lnano to y-axis <0.0> speed <160.0>;
+	turn rnano to y-axis <0.0> speed <160.0>;
+	turn turret to y-axis <0.0> speed <60.0>;
+	wait-for-turn lnano around y-axis;  //how to turn wheels in right direction?
+	wait-for-turn lnano around y-axis;  //how to turn wheels in right direction?
+	wait-for-turn turret around y-axis;
+}
+*/
 StartDoorOpen()
 {
 	signal 4;
@@ -54,7 +86,6 @@ StartDoorOpen()
 	wait-for-turn doorr around z-axis;
 
 }
-
 
 TransportPickup(unitid)
 {

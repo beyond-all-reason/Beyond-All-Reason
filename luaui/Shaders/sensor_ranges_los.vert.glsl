@@ -74,7 +74,7 @@ void main() {
 	sizeFactor = clamp(sizeFactor / 15.0, 0.0, 1.0); // clamp to [0,1] range
 	float circleRadius = radius_params.x * sizeFactor;
 
-	// Early bails if the circle is outside of the screen frustrum
+	// Early bails if the circle is outside of the screen frustum
 	#ifdef VISIBILITYCULLING
 		if (SphereInViewSignedDistance(circleCenterWorldPos.xyz, circleRadius) > 0.0){
 			gl_Position = vec4(2.0, 0.0, 0.0, 1.0);
@@ -95,7 +95,7 @@ void main() {
 		// the circlepointposition is zero at the center vertex of the circle, and we will be using the these varyings as a distance from the center
 		// for the fragment shader 
 		// hack in the additional 16 radius 
-		// TODO: why isnt this added BEFORE?
+		// TODO: why isn't this added BEFORE?
 
 
 	    circleRadius += 16.0;		

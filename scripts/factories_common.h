@@ -1,6 +1,6 @@
 // This is for easy common stuff like opening the yards , bugger off and setting build stance
 
-// Note: the order of ops in FACTORY_CLOSE_BUILD is quite debateable
+// Note: the order of ops in FACTORY_CLOSE_BUILD is quite debatable
 
 /*
 Activate()

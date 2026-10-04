@@ -60,7 +60,7 @@ i18n('combined', {name='john', 'age'=10}) -- Combined: john 10 12k
 Pluralization
 =============
 
-This lib implements the [unicode.org plural rules](http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html). Just set the locale you want to use and it will deduce the appropiate pluralization rules:
+This lib implements the [unicode.org plural rules](http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html). Just set the locale you want to use and it will deduce the appropriate pluralization rules:
 
 ``` lua
 i18n = WG.i18n
@@ -87,7 +87,7 @@ i18n.setLocale('ru')
 i18n('msg', {count = 5}) -- 5 сообщений
 ```
 
-The appropiate rule is chosen by finding the 'root' of the locale used: for example if the current locale is 'fr-CA', the 'fr' rules will be applied.
+The appropriate rule is chosen by finding the 'root' of the locale used: for example if the current locale is 'fr-CA', the 'fr' rules will be applied.
 
 If the provided functions are not enough (i.e. invented languages) it's possible to specify a custom pluralization function in the second parameter of setLocale. This function must return 'one', 'few', 'other', etc given a number.
 

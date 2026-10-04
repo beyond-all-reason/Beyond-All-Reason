@@ -34,6 +34,7 @@ return {
 		turninplacespeedlimit = 0.99,
 		turnrate = 670.45001,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots/T2",

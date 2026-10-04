@@ -8,7 +8,7 @@ function widget:GetInfo()
 		date = "Aug 24, 2024",
 		license = "Public Domain",
 		layer = 1,
-		enabled = false
+		enabled = false,
 	}
 end
 
@@ -26,5 +26,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG['keyselect'] = nil
+	WG.keyselect = nil
 end

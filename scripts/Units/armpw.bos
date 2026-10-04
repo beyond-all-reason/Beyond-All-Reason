@@ -6,10 +6,7 @@ static-var  isMoving, isAiming, gun_1, restore_delay, moveSpeed, currentSpeed, b
 
 static-var curHead1, curPitch1;
 
-// Note, removed old deprecated unitDefsTurretSpeeds.h 
-#define Weapon1TurretX <300>
-#define Weapon1TurretY <300>
-//#include "../weapon1control.h"
+#include "../unitDefsTurretSpeeds.h";
 
 // Signal definitions
 #define SIGNAL_AIM1 256
@@ -362,21 +359,45 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	
-	//get PRINT(get GAME_FRAME, 90000, curHead1);
-	turn aimy1 to y-axis <0> speed <300.0>;
-	turn aimx1 to x-axis <0> speed <300.0>;
+
+	// clear before the interruptible restore so a resumed aim redraws the weapon
+	weaponReady = FALSE;
+
 	turn ruparm to x-axis <0> speed <300.0>;
-	turn ruparm to x-axis <0> speed <300.0>;
+	turn luparm to x-axis <0> speed <300.0>;
+	turn ruparm to z-axis <12.799999> speed <300.0>;
+	turn luparm to z-axis <-12.099999> speed <300.0>;
 	turn lloarm to x-axis <90> speed <300.0>;
 	turn rloarm to x-axis <90> speed <300.0>;
 
-	curPitch1 = 0;
-	curHead1 = 0;
-
-	weaponReady = FALSE;
+	// walk believed angles back in sync with the pieces (instant reset desyncs mid-restore aim)
+	set-signal-mask SIGNAL_AIM1;
+	var done;
+	var delta;
+	while (!done){
+		done = TRUE;
+		delta = WRAPDELTA(0 - curHead1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
+			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			done = FALSE;
+		}else{
+			curHead1 = 0;
+		}
+		delta = WRAPDELTA(0 - curPitch1);
+		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
+			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			done = FALSE;
+		}else{
+			curPitch1 = 0;
+		}
+		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
+		if (!done) {
+			sleep 32;
+		}
+	}
 	isAiming = FALSE;
-	
+
 }
 
 static-var bAnimate;
@@ -1130,7 +1151,7 @@ DrawWeapon1()
 AimWeapon1(heading, pitch)
 {
 
-	signal SIGNAL_AIM1; // Teminates other aim threads, but not ready threads
+	signal SIGNAL_AIM1; // Terminates other aim threads, but not ready threads
 
 	if (bAnimate) { // Stop doing pushups
 		call-script StopAnimation();
@@ -1148,31 +1169,37 @@ AimWeapon1(heading, pitch)
 
 	var canShoot;
 	var delta;
-	
+	var nextHead;
+	var nextPitch;
+
 	while (!canShoot){
 		canShoot = TRUE;
 		delta = WRAPDELTA(heading - curHead1);
 		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretY / 30))) {
-			curHead1 = curHead1 + SIGN(delta) * (Weapon1TurretY / 30);
+			nextHead = WRAPDELTA(curHead1 + SIGN(delta) * (Weapon1TurretY / 30));
 			canShoot = FALSE;
 		}else{
-			curHead1 = heading;
+			nextHead = heading;
 		}
 		delta = WRAPDELTA(pitch - curPitch1);
 		if (ABSOLUTE_GREATER_THAN(delta,(Weapon1TurretX / 30))) {
-			curPitch1 = curPitch1 + SIGN(delta) * (Weapon1TurretX / 30);
+			nextPitch = WRAPDELTA(curPitch1 + SIGN(delta) * (Weapon1TurretX / 30));
 			canShoot = FALSE;
 		}else{
-			curPitch1 = pitch;
+			nextPitch = pitch;
 		}
-		 
+
 		// Fun note, NOW does not override preexisting turn with other speed
-		turn aimy1 to y-axis curHead1 speed Weapon1TurretY;
-		turn aimx1 to x-axis <0> - curPitch1 speed Weapon1TurretX;
-		
+		turn aimy1 to y-axis nextHead speed Weapon1TurretY;
+		turn aimx1 to x-axis <0> - nextPitch speed Weapon1TurretX;
+
+		// turn > sleep > commit: a preempting re-aim kills the thread at its sleep,
+		// cancelling the uncommitted step, so belief cannot outrun the pieces
 		if (!canShoot) {
 			sleep 32;
 		}
+		curHead1 = nextHead;
+		curPitch1 = nextPitch;
 	}
 	
 	start-script RestoreAfterDelay();

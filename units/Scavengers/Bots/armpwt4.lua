@@ -32,13 +32,12 @@ return {
 		turnrate = 1200.44,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 2,
 			subfolder = "other/scavengers",
 			techlevel = 3,
-			weapon1turretx = 300,
-			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -111,6 +110,10 @@ return {
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 800,
+				customparams = {
+					turretspeedx = 300,
+					turretspeedy = 300,
+				},
 				damage = {
 					commanders = 50,
 					default = 200,

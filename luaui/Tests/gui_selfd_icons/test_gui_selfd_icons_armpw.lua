@@ -1,21 +1,21 @@
 local widgetName = "Self-Destruct Icons"
 
-function skip()
+local function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-function setup()
+local function setup()
 	Test.clearMap()
 
 	Test.prepareWidget(widgetName)
 	Test.expectCallin("UnitCommand")
 end
 
-function cleanup()
+local function cleanup()
 	Test.clearMap()
 end
 
-function test()
+local function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -23,11 +23,7 @@ function test()
 	local y = Spring.GetGroundHeight(x, z)
 
 	unitID = SyncedRun(function(locals)
-		return Spring.CreateUnit(
-			"armpw",
-			locals.x, locals.y, locals.z,
-			0, 0
-		)
+		return Spring.CreateUnit("armpw", locals.x, locals.y, locals.z, 0, 0)
 	end)
 
 	assert(table.count(widget.activeSelfD) == 0)
@@ -55,7 +51,8 @@ function test()
 	-- remove move order
 	Spring.GiveOrderToUnit(unitID, CMD.REMOVE, { CMD.MOVE }, { "alt" })
 	Test.waitUntil(function()
-		return table.count(widget.activeSelfD) == 1
-			and table.count(widget.queuedSelfD) == 0
+		return table.count(widget.activeSelfD) == 1 and table.count(widget.queuedSelfD) == 0
 	end, 10)
 end
+
+return { skip = skip, setup = setup, test = test, cleanup = cleanup }

@@ -12,12 +12,11 @@ function widget:GetInfo()
 	}
 end
 
-
 -- Localized functions for performance
 local mathAtan2 = math.atan2
 
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetMyTeamID
+local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 
 local cursorSize = 11
@@ -25,7 +24,7 @@ local drawNamesCursorSize = 8.5
 
 local rotY = 0
 
-local dlistAmount = 5        -- number of dlists generated for each player (# available opacity levels)
+local dlistAmount = 5 -- number of dlists generated for each player (# available opacity levels)
 
 local packetInterval = 0.12 -- fallback for first packet; runtime interval adapts to observed packet cadence
 local numMousePos = 1 --//num mouse pos in 1 packet
@@ -43,13 +42,13 @@ local fontOpacitySpec = 0.5
 
 local NameFadeStartDistance = 4000
 local NameFadeEndDistance = 6500
-local idleCursorTime = 25        -- fade time cursor (specs only)
+local idleCursorTime = 25 -- fade time cursor (specs only)
 
 local addLights = true
 local lightRadiusMult = 0.5
 local lightStrengthMult = 0.85
 local lightSelfShadowing = false
-local showOwnCursor = false	-- for debugging purposes
+local showOwnCursor = false -- for debugging purposes
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -88,6 +87,7 @@ local min = math.min
 local max = math.max
 local diag = math.diag
 local clock = os.clock
+local next = next
 local TIMESTAMP_IDX = (numMousePos + 1) * 2 + 1
 local CLICK_IDX = (numMousePos + 1) * 2 + 2
 local TEAMID_IDX = (numMousePos + 1) * 2 + 3
@@ -98,11 +98,11 @@ local INACTIVE_CURSOR_POS = -1
 
 local alliedCursorsPos = {}
 local prevCursorPos = {}
-local alliedCursorsTime = {}        -- for API purpose
+local alliedCursorsTime = {} -- for API purpose
 local usedCursorSize = cursorSize
 local allycursorDrawList = {}
 local playerTeamIDs = {}
-local myPlayerID = Spring.GetMyPlayerID()
+local myPlayerID = Spring.GetLocalPlayerID()
 local _, fullview = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
 local isReplay = Spring.IsReplay()
@@ -114,15 +114,17 @@ local specList = {}
 local notIdle = {}
 
 local teamColorKeys = {}
-local teams = Spring.GetTeamList()
-for i = 1, #teams do
-	local r, g, b = spGetTeamColor(teams[i])
-	teamColorKeys[teams[i]] = r..'_'..g..'_'..b
+local teamList = Spring.GetTeamList()
+for i = 1, #teamList do
+	local r, g, b = spGetTeamColor(teamList[i])
+	teamColorKeys[teamList[i]] = { r, g, b }
 end
-teams = nil
 
 local font, functionID
 local lastCursorPos = {}
+local visibleCursor = {} -- playerID -> whether the current viewer may see that cursor
+local viewerSpectating = false
+local guiHidden = false
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -147,12 +149,6 @@ local function updateSpecList(init)
 	end
 end
 
-local function CubicInterpolate2(x0, x1, mix)
-	local mix2 = mix * mix
-	local mix3 = mix2 * mix
-	return x0 * (2 * mix3 - 3 * mix2 + 1) + x1 * (3 * mix2 - 2 * mix3)
-end
-
 local function sanitizeCoord(value, fallback)
 	if type(value) == "number" then
 		return value
@@ -163,17 +159,9 @@ local function sanitizeCoord(value, fallback)
 	return nil
 end
 
-local function isValidCursorPos(pos)
-	return pos and pos[1] >= 0 and pos[2] >= 0
-end
-
 local function GetViewerState()
 	local spectating, currentFullview = spGetSpectatingState()
-	spectating = (spectating == true)
-	currentFullview = (currentFullview == true)
-	fullview = currentFullview
-	myTeamID = spGetMyTeamID()
-	return spectating, currentFullview, myTeamID
+	return spectating == true, currentFullview == true, spGetMyTeamID()
 end
 
 local function IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID)
@@ -188,6 +176,19 @@ local function IsCursorVisibleToViewer(playerID, spectating, currentFullview, vi
 		return teamID == viewedTeamID or spAreTeamsAllied(viewedTeamID, teamID)
 	end
 	return spAreTeamsAllied(viewedTeamID, teamID)
+end
+
+-- caches per-player visibility so the draw pass doesn't need Spring.AreTeamsAllied every frame
+local function RebuildVisibility()
+	local spectating, currentFullview, viewedTeamID = GetViewerState()
+	viewerSpectating = spectating
+	fullview = currentFullview
+	myTeamID = viewedTeamID
+	local vis = {}
+	for playerID in pairs(playerTeamIDs) do
+		vis[playerID] = IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID)
+	end
+	visibleCursor = vis
 end
 
 local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
@@ -239,7 +240,7 @@ local function MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 
 	local prev = prevCursorPos[playerID]
 	if not prev or acp[1] ~= prev[1] or acp[2] ~= prev[2] then
-		alliedCursorsTime[playerID] = clock()
+		alliedCursorsTime[playerID] = now
 		if not prev then
 			prev = {}
 			prevCursorPos[playerID] = prev
@@ -278,9 +279,8 @@ local function SetTeamColor(teamID, playerID, a)
 	glColor(color)
 end
 
-
 function widget:ViewResize()
-	font = WG['fonts'].getFont(1, 1.5)
+	font = WG.fonts.getFont(1, 1.5)
 	deleteDlists()
 end
 
@@ -295,59 +295,60 @@ function widget:Initialize()
 		usedCursorSize = drawNamesCursorSize
 	end
 	updateSpecList(true)
+	RebuildVisibility()
 
-	WG['allycursors'] = {}
-	WG['allycursors'].setLights = function(value)
+	WG.allycursors = {}
+	WG.allycursors.setLights = function(value)
 		addLights = value
 		deleteDlists()
 	end
-	WG['allycursors'].getLights = function()
+	WG.allycursors.getLights = function()
 		return addLights
 	end
-	WG['allycursors'].setLightStrength = function(value)
+	WG.allycursors.setLightStrength = function(value)
 		lightStrengthMult = value
 	end
-	WG['allycursors'].getLightStrength = function()
+	WG.allycursors.getLightStrength = function()
 		return lightStrengthMult
 	end
-	WG['allycursors'].setLightRadius = function(value)
+	WG.allycursors.setLightRadius = function(value)
 		lightRadiusMult = value
 	end
-	WG['allycursors'].setLightSelfShadowing = function(value)
+	WG.allycursors.setLightSelfShadowing = function(value)
 		lightSelfShadowing = value
 	end
-	WG['allycursors'].getLightRadius = function()
+	WG.allycursors.getLightRadius = function()
 		return lightRadiusMult
 	end
 
-	WG['allycursors'].getLightSelfShadowing = function()
+	WG.allycursors.getLightSelfShadowing = function()
 		return lightSelfShadowing
 	end
-	WG['allycursors'].setCursorDot = function(value)
+	WG.allycursors.setCursorDot = function(value)
 		showCursorDot = value
 		deleteDlists()
 	end
-	WG['allycursors'].getCursorDot = function()
+	WG.allycursors.getCursorDot = function()
 		return showCursorDot
 	end
-	WG['allycursors'].setPlayerNames = function(value)
+	WG.allycursors.setPlayerNames = function(value)
 		showPlayerName = value
 		deleteDlists()
 	end
-	WG['allycursors'].getPlayerNames = function()
+	WG.allycursors.getPlayerNames = function()
 		return showPlayerName
 	end
-	WG['allycursors'].setSpectatorNames = function(value)
+	WG.allycursors.setSpectatorNames = function(value)
 		showSpectatorName = value
 		deleteDlists()
 	end
-	WG['allycursors'].getSpectatorNames = function()
+	WG.allycursors.getSpectatorNames = function()
 		return showSpectatorName
 	end
-	WG['allycursors'].getCursors = function()
+	WG.allycursors.getCursors = function()
 		return cursors, notIdle
 	end
-	WG['allycursors'].getCursor = function(playerID)
+	WG.allycursors.getCursor = function(playerID)
 		if not playerID then
 			return nil
 		end
@@ -357,7 +358,7 @@ function widget:Initialize()
 		end
 		return cursors[playerID], notIdle[playerID]
 	end
-	WG['allycursors'].isCursorVisible = function(playerID)
+	WG.allycursors.isCursorVisible = function(playerID)
 		if not playerID then
 			return false
 		end
@@ -374,12 +375,10 @@ end
 
 function widget:Shutdown()
 	deleteDlists()
-	WG['allycursors'] = nil
+	WG.allycursors = nil
 end
 
 function widget:PlayerChanged(playerID)
-	myTeamID = spGetMyTeamID()
-	fullview = select(2, spGetSpectatingState())
 	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	specList[playerID] = isSpec
 	playerTeamIDs[playerID] = teamID
@@ -403,8 +402,9 @@ function widget:PlayerChanged(playerID)
 	end
 	-- update speclist when player becomes spectator
 	--if isSpec and not specList[playerID] then
-		updateSpecList()
+	updateSpecList()
 	--end
+	RebuildVisibility()
 end
 
 function widget:PlayerAdded(playerID)
@@ -426,6 +426,7 @@ function widget:PlayerRemoved(playerID)
 		allycursorDrawList[playerID] = nil
 	end
 	updateSpecList()
+	RebuildVisibility()
 end
 
 local function createCursorDrawList(playerID, opacityMultiplier)
@@ -441,14 +442,13 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 	SetTeamColor(teamID, playerID, 1)
 
 	-- draw player cursor
-	if not spec and showCursorDot and (not addLights or not WG['lightsgl4']) then
+	if not spec and showCursorDot and (not addLights or not WG.lightsgl4) then
 		glTexture(allyCursor)
 		glBeginEnd(GL.QUADS, DrawGroundquad, wx, wy, wz, quadSize)
 		glTexture(false)
 	end
 
 	if spec or showPlayerName then
-
 		-- draw nickname
 		if not spec or showSpectatorName then
 			glPushMatrix()
@@ -464,8 +464,20 @@ local function createCursorDrawList(playerID, opacityMultiplier)
 				local horizontalOffset = usedCursorSize + 1
 				-- text shadow
 				font:SetTextColor(0, 0, 0, fontOpacityPlayer * 0.62 * opacityMultiplier)
-				font:Print(name, horizontalOffset - (fontSizePlayer / 50), verticalOffset - (fontSizePlayer / 42), fontSizePlayer, "n")
-				font:Print(name, horizontalOffset + (fontSizePlayer / 50), verticalOffset - (fontSizePlayer / 42), fontSizePlayer, "n")
+				font:Print(
+					name,
+					horizontalOffset - (fontSizePlayer / 50),
+					verticalOffset - (fontSizePlayer / 42),
+					fontSizePlayer,
+					"n"
+				)
+				font:Print(
+					name,
+					horizontalOffset + (fontSizePlayer / 50),
+					verticalOffset - (fontSizePlayer / 42),
+					fontSizePlayer,
+					"n"
+				)
 				-- text
 				font:SetTextColor(r, g, b, fontOpacityPlayer * opacityMultiplier)
 				font:Print(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
@@ -481,16 +493,9 @@ local function getCameraRotationY()
 	return math_deg(mathAtan2(x, -z))
 end
 
-local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
-	if not spIsSphereInView(wx, wy, wz, usedCursorSize) then
-		return
-	end
-
-	--calc scale
+local function GetCursorOpacityMultiplier(wx, wy, wz, camX, camY, camZ, opacity)
 	local camDistance = diag(camX - wx, camY - wy, camZ - wz)
-	local drawScale = 0.83 + camDistance / 5000
 
-	-- calc opacity
 	local opacityMultiplier = 1
 	if drawNamesFade and camDistance > NameFadeStartDistance then
 		opacityMultiplier = (1 - (camDistance - NameFadeStartDistance) / (NameFadeEndDistance - NameFadeStartDistance))
@@ -505,45 +510,70 @@ local function DrawCursor(playerID, wx, wy, wz, camX, camY, camZ, opacity)
 		-- if (spec and) fading out due to idling
 		opacityMultiplier = floor(opacityMultiplier * (opacity * dlistAmount)) / dlistAmount
 	end
+	return opacityMultiplier, 0.83 + camDistance / 5000
+end
 
-	if opacityMultiplier > 0.11 then
-		if allycursorDrawList[playerID] == nil then
-			allycursorDrawList[playerID] = {}
-		end
-		if allycursorDrawList[playerID][opacityMultiplier] == nil then
-			allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
-		end
+local function PrepareCursorDrawList(playerID, cursor)
+	local wx, wy, wz = cursor[1], cursor[2], cursor[3]
+	if not spIsSphereInView(wx, wy, wz, usedCursorSize) then
+		cursor[9] = false
+		return
+	end
 
-		glPushMatrix()
-		glTranslate(wx, wy, wz)
-		glRotate(-rotY, 0, 1, 0)
-		if drawNamesScaling then
-			glScale(drawScale, 0, drawScale)
-		end
-		glCallList(allycursorDrawList[playerID][opacityMultiplier])
-		if drawNamesScaling then
-			glScale(-drawScale, 0, -drawScale)
-		end
-		glPopMatrix()
+	local opacityMultiplier, drawScale =
+		GetCursorOpacityMultiplier(wx, wy, wz, cursor[4], cursor[5], cursor[6], cursor[7])
+	cursor[9] = opacityMultiplier > 0.11
+	cursor[10] = opacityMultiplier
+	cursor[11] = drawScale
+	if not cursor[9] then
+		return
+	end
+
+	if allycursorDrawList[playerID] == nil then
+		allycursorDrawList[playerID] = {}
+	end
+	if allycursorDrawList[playerID][opacityMultiplier] == nil then
+		allycursorDrawList[playerID][opacityMultiplier] =
+			glCreateList(createCursorDrawList, playerID, opacityMultiplier)
 	end
 end
 
+local function DrawCursor(playerID, cursor)
+	local dlists = allycursorDrawList[playerID]
+	local drawList = dlists and dlists[cursor[10]]
+	if not drawList then
+		return
+	end
+
+	glPushMatrix()
+	glTranslate(cursor[1], cursor[2], cursor[3])
+	glRotate(-rotY, 0, 1, 0)
+	if drawNamesScaling then
+		glScale(cursor[11], 0, cursor[11])
+	end
+	glCallList(drawList)
+	glPopMatrix()
+end
 
 local sec = 0
 function widget:Update(dt)
-	if spIsGUIHidden() then return end
+	guiHidden = spIsGUIHidden()
+	if guiHidden then
+		return
+	end
 
 	sec = sec + dt
 	if sec > 1.5 then
 		sec = 0
 
 		-- check if team colors have changed
-		local teams = Spring.GetTeamList()
-		for i = 1, #teams do
-			local r, g, b = spGetTeamColor(teams[i])
-			if teamColorKeys[teams[i]] ~= r..'_'..g..'_'..b then
-				teamColorKeys[teams[i]] = r..'_'..g..'_'..b
-				local players = Spring.GetPlayerList(teams[i])
+		for i = 1, #teamList do
+			local teamID = teamList[i]
+			local r, g, b = spGetTeamColor(teamID)
+			local key = teamColorKeys[teamID]
+			if key[1] ~= r or key[2] ~= g or key[3] ~= b then
+				key[1], key[2], key[3] = r, g, b
+				local players = Spring.GetPlayerList(teamID)
 				for _, playerID in ipairs(players) do
 					widget:PlayerChanged(playerID)
 				end
@@ -551,104 +581,117 @@ function widget:Update(dt)
 		end
 	end
 
+	if next(alliedCursorsPos) == nil then
+		return
+	end
+
+	local spectating, currentFullview, viewedTeamID = GetViewerState()
+	if spectating ~= viewerSpectating or currentFullview ~= fullview or viewedTeamID ~= myTeamID then
+		RebuildVisibility()
+	end
+
 	local now = clock()
 	local camX, camY, camZ = spGetCameraPosition()
 	rotY = getCameraRotationY()
 	for playerID, data in pairs(alliedCursorsPos) do
-		local wx, wz = data[1], data[2]
-		local lastUpdatedDiff = now - data[TIMESTAMP_IDX]
-		local interpInterval = data[PACKET_INTERVAL_IDX] or packetInterval
-		if numMousePos <= 1 then
-			if lastUpdatedDiff < interpInterval and type(data[1]) == "number" and type(data[2]) == "number" and type(data[PREV_X_KEY]) == "number" and type(data[PREV_Z_KEY]) == "number" then
-				local blendWindow = max(interpInterval, 0.08)
-				local mix = min(max((lastUpdatedDiff + 0.02) / blendWindow, 0), 1)
-				wx = CubicInterpolate2(data[PREV_X_KEY], data[1], mix)
-				wz = CubicInterpolate2(data[PREV_Z_KEY], data[2], mix)
-			end
-		elseif lastUpdatedDiff < interpInterval then
-			lastUpdatedDiff = lastUpdatedDiff + 0.025
-			local scale = (1 - (lastUpdatedDiff / interpInterval)) * numMousePos
-			local iscale = min(floor(scale), numMousePos - 1)
-			local fscale = scale - iscale
-			local x0 = data[iscale * 2 + 1]
-			local x1 = data[(iscale + 1) * 2 + 1]
-			local z0 = data[iscale * 2 + 2]
-			local z1 = data[(iscale + 1) * 2 + 2]
-			if type(x0) == "number" and type(x1) == "number" and type(z0) == "number" and type(z1) == "number" then
-				wx = CubicInterpolate2(x0, x1, fscale)
-				wz = CubicInterpolate2(z0, z1, fscale)
-			end
-		end
-
-		if notIdle[playerID] then
-			local opacity = 1
-			if specList[playerID] and showSpectatorName then
-				opacity = 1 - ((now - alliedCursorsTime[playerID]) / idleCursorTime)
-				if opacity > 1 then
-					opacity = 1
-				end
-			end
-			if specList[playerID] and not showSpectatorName then
-				opacity = 0	-- doing this cause somehow setting cursors[playerID][8]=true doesnt remove the light but setting cursors[playerID]=nil does
-			end
-			if opacity > 0.1 then
-				if not cursors[playerID] then
-					cursors[playerID] = { wx, spGetGroundHeight(wx, wz), wz, camX, camY, camZ, opacity, specList[playerID]}
-				else
-					cursors[playerID][1] = wx
-					cursors[playerID][2] = spGetGroundHeight(wx, wz)
-					cursors[playerID][3] = wz
-					cursors[playerID][4] = camX
-					cursors[playerID][5] = camY
-					cursors[playerID][6] = camZ
-					cursors[playerID][7] = opacity
-					cursors[playerID][8] = specList[playerID]
-				end
-			else
+		local isSpec = specList[playerID]
+		if isSpec and not showSpectatorName then
+			-- never drawn: skip interpolation/idle tracking entirely
+			if cursors[playerID] then
 				notIdle[playerID] = nil
 				cursors[playerID] = nil
 			end
 		else
-			-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-			local prevPos = lastCursorPos[playerID]
-			if wx and wz and isValidCursorPos(prevPos) and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
-				-- abs is needed because of floating point used in interpolation
-				notIdle[playerID] = true
-				prevPos[1] = INACTIVE_CURSOR_POS
-				prevPos[2] = INACTIVE_CURSOR_POS
-			else
-				if wx and wz then
-					if not prevPos then
-						prevPos = {}
-						lastCursorPos[playerID] = prevPos
+			-- coords in data are guaranteed numeric by MouseCursorEvent's sanitizing
+			local wx, wz = data[1], data[2]
+			local lastUpdatedDiff = now - data[TIMESTAMP_IDX]
+			local interpInterval = data[PACKET_INTERVAL_IDX]
+			if lastUpdatedDiff < interpInterval then
+				local blendWindow = interpInterval
+				if blendWindow < 0.08 then
+					blendWindow = 0.08
+				end
+				local mix = (lastUpdatedDiff + 0.02) / blendWindow
+				if mix > 1 then
+					mix = 1
+				end
+				local mix2 = mix * mix
+				local w0 = 2 * mix2 * mix - 3 * mix2 + 1 -- smoothstep weight; the pair sums to 1
+				local w1 = 1 - w0
+				wx = data[PREV_X_KEY] * w0 + wx * w1
+				wz = data[PREV_Z_KEY] * w0 + wz * w1
+			end
+
+			if notIdle[playerID] then
+				local opacity = 1
+				if isSpec then
+					opacity = 1 - ((now - alliedCursorsTime[playerID]) / idleCursorTime)
+					if opacity > 1 then
+						opacity = 1
 					end
+				end
+				if opacity > 0.1 then
+					local cursor = cursors[playerID]
+					if not cursor then
+						cursor = { wx, spGetGroundHeight(wx, wz), wz, camX, camY, camZ, opacity, isSpec }
+						cursor[12] = wx
+						cursor[13] = wz
+						cursors[playerID] = cursor
+					else
+						if wx ~= cursor[12] or wz ~= cursor[13] then
+							cursor[2] = spGetGroundHeight(wx, wz)
+							cursor[12] = wx
+							cursor[13] = wz
+						end
+						cursor[1] = wx
+						cursor[3] = wz
+						cursor[4] = camX
+						cursor[5] = camY
+						cursor[6] = camZ
+						cursor[7] = opacity
+						cursor[8] = isSpec
+					end
+					if visibleCursor[playerID] then
+						PrepareCursorDrawList(playerID, cursor)
+					else
+						cursor[9] = false
+					end
+				else
+					notIdle[playerID] = nil
+					cursors[playerID] = nil
+				end
+			else
+				-- mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
+				local prevPos = lastCursorPos[playerID]
+				if prevPos and prevPos[1] >= 0 and (abs(prevPos[1] - wx) >= 0.25 or abs(prevPos[2] - wz) >= 0.25) then
+					-- abs is needed because of floating point used in interpolation
+					notIdle[playerID] = true
+					prevPos[1] = INACTIVE_CURSOR_POS
+					prevPos[2] = INACTIVE_CURSOR_POS
+				elseif prevPos then
 					prevPos[1] = wx
 					prevPos[2] = wz
+				else
+					lastCursorPos[playerID] = { wx, wz }
 				end
-			end
-			if specList[playerID] and not showSpectatorName then
-				cursors[playerID] = nil
 			end
 		end
 	end
 end
 
 function widget:DrawWorldPreUnit()
-	if spIsGUIHidden() then
+	-- visibility was already filtered into cursor[9] during Update (via visibleCursor + in-view check)
+	if guiHidden or next(cursors) == nil then
 		return
 	end
-
-	local spectating, currentFullview, viewedTeamID = GetViewerState()
 
 	glDepthTest(GL.ALWAYS)
 	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	glPolygonOffset(-7, -10)
 
 	for playerID, cursor in pairs(cursors) do
-		if notIdle[playerID] then
-			if IsCursorVisibleToViewer(playerID, spectating, currentFullview, viewedTeamID) then
-				DrawCursor(playerID, cursor[1], cursor[2], cursor[3], cursor[4], cursor[5], cursor[6], cursor[7])
-			end
+		if cursor[9] then
+			DrawCursor(playerID, cursor)
 		end
 	end
 

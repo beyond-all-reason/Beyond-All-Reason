@@ -1,16 +1,20 @@
-local utilitiesDirectory = 'common/springUtilities/'
+local utilitiesDirectory = "common/springUtilities/"
 
-local tga = VFS.Include(utilitiesDirectory .. 'image_tga.lua')
-local team = VFS.Include(utilitiesDirectory .. 'teamFunctions.lua')
-local syncFunctions = VFS.Include(utilitiesDirectory .. 'synced.lua')
-local tableFunctions = VFS.Include(utilitiesDirectory .. 'tableFunctions.lua')
-local colorFunctions = VFS.Include(utilitiesDirectory .. 'color.lua')
-local safeLuaTableParser = VFS.Include(utilitiesDirectory .. 'safeluaparser.lua')
-local facingFunctions = VFS.Include(utilitiesDirectory .. 'facingFunctions.lua')
+local tga = VFS.Include(utilitiesDirectory .. "image_tga.lua")
+local team = VFS.Include(utilitiesDirectory .. "teamFunctions.lua")
+local syncFunctions = VFS.Include(utilitiesDirectory .. "synced.lua")
+local tableFunctions = VFS.Include(utilitiesDirectory .. "tableFunctions.lua")
+local colorFunctions = VFS.Include(utilitiesDirectory .. "color.lua")
+local safeLuaTableParser = VFS.Include(utilitiesDirectory .. "safeluaparser.lua")
+local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
 
-local utilities = {
+-- forward-declare: IsDevModeCached (upstream #6918) references `utilities`
+-- inside its own constructor, where the local is not yet in scope — that
+-- resolved as a GLOBAL (nil at call time). Declare first, then assign.
+local utilities
+utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
 	NewTGA = tga.NewTGA,
@@ -27,12 +31,12 @@ local utilities = {
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
 
 	IsDevMode = function()
-		local devMode = Spring.GetGameRulesParam('isDevMode')
+		local devMode = Spring.GetGameRulesParam("isDevMode")
 		return (devMode and devMode > 0) and true or false
 	end,
 
-	ShowDevUI = function ()
-		local devUI = Spring.GetConfigInt('DevUI', 0)
+	ShowDevUI = function()
+		local devUI = Spring.GetConfigInt("DevUI", 0)
 		return (devUI > 0) and true or false
 	end,
 
@@ -43,7 +47,7 @@ local utilities = {
 	IsDevModeCached = function()
 		local frame = Spring.GetGameFrame()
 		if frame ~= utilities._devModeCacheFrame then
-			local devMode = Spring.GetGameRulesParam('isDevMode')
+			local devMode = Spring.GetGameRulesParam("isDevMode")
 			utilities._devModeCache = (devMode and devMode > 0) and true or false
 			utilities._devModeCacheFrame = frame
 		end
@@ -74,7 +78,7 @@ local utilities = {
 	end,
 }
 
-local debugUtilities = VFS.Include(utilitiesDirectory .. 'debug.lua')
+local debugUtilities = VFS.Include(utilitiesDirectory .. "debug.lua")
 
 local debugFuncs = {
 	ParamsEcho = debugUtilities.ParamsEcho,

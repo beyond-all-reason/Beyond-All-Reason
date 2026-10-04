@@ -2,13 +2,13 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name    = 'Restrict Unit Sharing',
-		desc    = 'Stun/debuff economy and builder units when transferred to ally when modoption enabled.',
-		author  = 'RebelNode',
-		date    = 'January 2026',
-		license = 'GNU GPL, v2 or later',
-		layer   = -2, -- before unit_healthbars_widget_forwarding so that AllowFeatureBuildStep will prevent reclaim bar from showing
-		enabled = true
+		name = "Restrict Unit Sharing",
+		desc = "Stun/debuff economy and builder units when transferred to ally when modoption enabled.",
+		author = "RebelNode",
+		date = "January 2026",
+		license = "GNU GPL, v2 or later",
+		layer = -2, -- before unit_healthbars_widget_forwarding so that AllowFeatureBuildStep will prevent reclaim bar from showing
+		enabled = true,
 	}
 end
 
@@ -44,7 +44,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, capture)
-	if (capture) and (not Spring.AreTeamsAllied(fromTeamID, toTeamID)) or fromTeamID == Spring.GetGaiaTeamID() or toTeamID == Spring.GetGaiaTeamID() then
+	if
+		capture and (not Spring.AreTeamsAllied(fromTeamID, toTeamID))
+		or fromTeamID == Spring.GetGaiaTeamID()
+		or toTeamID == Spring.GetGaiaTeamID()
+	then
 		return true
 	end
 	beingBuilt, buildProgress = spGetUnitIsBeingBuilt(unitID)
@@ -52,11 +56,10 @@ function gadget:AllowUnitTransfer(unitID, unitDefID, fromTeamID, toTeamID, captu
 		return false -- Sharing partly built nanoframes is not allowed because letting it decay bypasses taxation and letting it build runs out the debuff early. Also if you can't assist ally build the unit could get stuck in factory.
 	end
 	if builderUnits[unitDefID] then
-		local unitDef = UnitDefs[unitDefID]
 		local startFrame = Spring.GetGameFrame()
 		local expireFrame = startFrame + DEBUFF_FRAMES
 		debuffedUnits[unitID] = {
-			expireFrame  = expireFrame,
+			expireFrame = expireFrame,
 		}
 		SendToUnsynced("unitBuildspeedDebuff", unitID, startFrame, expireFrame)
 	elseif ecoUnits[unitDefID] then

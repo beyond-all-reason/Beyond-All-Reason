@@ -36,6 +36,7 @@ return {
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1201.75,
 		customparams = {
+			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			off_on_stun = "true",

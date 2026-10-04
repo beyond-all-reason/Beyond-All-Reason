@@ -10,7 +10,7 @@ static-var  restore_delay;
 
 
 #define WATER_ROCK_UNITSIZE 5
-// Otherwise it wont move up!
+// Otherwise it won't move up!
 //#define WATER_ROCK_FREQ_Y 0
 #include "../floatmotion.h"
 

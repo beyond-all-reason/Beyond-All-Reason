@@ -3,7 +3,6 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
-
 local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
 local unitGroup = {} ---@type table<number, number>
@@ -16,7 +15,6 @@ local isMex = {} ---@type table<number, true>
 local unitMaxWeaponRange = {} ---@type table<number, number>
 
 for unitDefID, unitDef in pairs(UnitDefs) do
-
 	unitGroup[unitDefID] = unitDef.customParams.unitgroup
 
 	if unitDef.maxWeaponRange > 16 then
@@ -39,8 +37,6 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		isMex[unitDefID] = true
 	end
 end
-
-
 
 ------------------------------------
 -- UNIT ORDER ----------------------
@@ -82,12 +78,11 @@ table.sort(unitOrder, function(aID, bID)
 	local aOrder = unitOrderManualOverrideTable[aID] or maxOrder
 	local bOrder = unitOrderManualOverrideTable[bID] or maxOrder
 
-	if (aOrder == bOrder) then
+	if aOrder == bOrder then
 		return aID < bID
 	end
 	return aOrder < bOrder
 end)
-
 
 local units = {
 	unitEnergyCost = unitEnergyCost,

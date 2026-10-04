@@ -1,17 +1,16 @@
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
-   return {
-      name      = "Sepia Tone",
-      desc      = "Gives that warm, urine like color we all love from 2000s era games.",
-      author    = "Beherith",
-      date      = "2023.01.05",
-      license   = "GNU GPL, v2 or later",
-      layer     = 200000,
-      enabled   = false
-   }
+	return {
+		name = "Sepia Tone",
+		desc = "Gives that warm, urine like color we all love from 2000s era games.",
+		author = "Beherith",
+		date = "2023.01.05",
+		license = "GNU GPL, v2 or later",
+		layer = 200000,
+		enabled = false,
+	}
 end
-
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
@@ -20,12 +19,10 @@ local spEcho = Spring.Echo
 
 local GL_RGBA8 = 0x8058
 
-local params = {gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0, shadeUI = false}
+local params = { gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0, shadeUI = false }
 
 -- skip draw if this matches:
-local defaultParams = {gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0}
-
-local luaShaderDir = "LuaUI/Include/"
+local defaultParams = { gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0 }
 
 -----------------------------------------------------------------
 -- Shader Sources
@@ -74,18 +71,18 @@ mat4 contrastMatrix( float contrast )
 mat4 saturationMatrix( float saturation )
 {
     vec3 luminance = vec3( 0.3086, 0.6094, 0.0820 );
-    
+
     float oneMinusSat = 1.0 - saturation;
-    
+
     vec3 red = vec3( luminance.x * oneMinusSat );
     red+= vec3( saturation, 0, 0 );
-    
+
     vec3 green = vec3( luminance.y * oneMinusSat );
     green += vec3( 0, saturation, 0 );
-    
+
     vec3 blue = vec3( luminance.z * oneMinusSat );
     blue += vec3( 0, 0, saturation );
-    
+
     return mat4( red,     0,
                  green,   0,
                  blue,    0,
@@ -104,15 +101,14 @@ void main()
 {
     vec4 color = texelFetch(screenCopyTex,ivec2(gl_FragCoord.xy + viewPos),0);
 	fragColor.rgb = pow(color.rgb, vec3(params.x + 0.5));
-    
-	fragColor =	contrastMatrix( params.z + 0.5 ) * 
+
+	fragColor =	contrastMatrix( params.z + 0.5 ) *
         		saturationMatrix( params.y + 0.5 ) *
         		fragColor;
 	fragColor.rgb = mix(fragColor.rgb, (sepiaMatrix() * fragColor).rgb, params.w);
 	fragColor.a = 1.0;
 }
 ]]
-
 
 -----------------------------------------------------------------
 -- Global Variables
@@ -134,6 +130,8 @@ local function UpdateShader()
 end
 
 function widget:Initialize()
+	widgetHandler:AddAction("sepiatone", sepiatoneCmd, nil, "t")
+
 	if gl.CreateShader == nil then
 		spEcho("Sepia: createshader not supported, removing")
 		widgetHandler:RemoveWidget()
@@ -164,15 +162,15 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPosX = vpx,
 			viewPosY = vpy,
-			params = { params.gamma, params.saturation, params.contrast, params.sepia} --{gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0}
-			}
+			params = { params.gamma, params.saturation, params.contrast, params.sepia }, --{gamma = 0.5, saturation = 0.5, contrast = 0.5, sepia = 0.0}
+		},
 	}, ": Sepia")
 
 	local shaderCompiled = sepiaShader:Initialize()
 	if not shaderCompiled then
-			spEcho("Failed to compile Sepia shader, removing widget")
-			widgetHandler:RemoveWidget()
-			return
+		spEcho("Failed to compile Sepia shader, removing widget")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	UpdateShader()
@@ -219,10 +217,10 @@ function widget:Initialize()
 	WG.sepia.getShadeUI = function()
 		return params.shadeUI
 	end
-
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("sepiatone", "t")
 	gl.DeleteTexture(screenCopyTex)
 	screenCopyTex = nil
 	if sepiaShader then
@@ -240,15 +238,19 @@ end
 
 local function DoSepia()
 	local alldefault = true
-	for k,v in pairs(defaultParams) do 
-		if math.abs(params[k] - v) > 0.001 then 
+	for k, v in pairs(defaultParams) do
+		if math.abs(params[k] - v) > 0.001 then
 			alldefault = false
 		end
 	end
-	if alldefault then return end
-	
+	if alldefault then
+		return
+	end
+
 	gl.CopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
-	if screenCopyTex == nil then return end
+	if screenCopyTex == nil then
+		return
+	end
 	gl.Texture(0, screenCopyTex)
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	sepiaShader:Activate()
@@ -259,28 +261,30 @@ local function DoSepia()
 	gl.Texture(0, false)
 end
 
-
 function widget:DrawScreenEffects()
-	if params.shadeUI == false then DoSepia() end 
+	if params.shadeUI == false then
+		DoSepia()
+	end
 end
 
 function widget:DrawScreenPost()
-	if params.shadeUI == true then DoSepia() end 
+	if params.shadeUI == true then
+		DoSepia()
+	end
 end
 
-function widget:TextCommand(command)
-	if string.find(command,"sepiatone", nil, true ) == 1 then
-		local s = string.split(command, ' ') 
-		spEcho("/luaui sepiatone gamma saturation contrast sepia shadeUI")
-		spEcho(command) 
-		params.gamma = tonumber(s[2]) or params.gamma
-		params.saturation = tonumber(s[3]) or params.saturation
-		params.contrast = tonumber(s[4]) or params.contrast
-		params.sepia = tonumber(s[5]) or params.sepia
-		if s[6] ~= nil then 
-			params.shadeUI = s[6]  == 'true'
-		end
+function sepiatoneCmd(_, line)
+	local s = string.split(line or "", " ")
+	spEcho("/luaui sepiatone gamma saturation contrast sepia shadeUI")
+	spEcho("sepiatone " .. (line or ""))
+	params.gamma = tonumber(s[1]) or params.gamma
+	params.saturation = tonumber(s[2]) or params.saturation
+	params.contrast = tonumber(s[3]) or params.contrast
+	params.sepia = tonumber(s[4]) or params.sepia
+	if s[5] ~= nil then
+		params.shadeUI = s[5] == "true"
 	end
+	return true
 end
 
 function widget:GetConfigData()
@@ -288,7 +292,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	for k,v in pairs(data) do
+	for k, v in pairs(data) do
 		params[k] = data[k] or v
 	end
 end
