@@ -120,7 +120,6 @@ return {
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
 				soundstart = "minigun3",
-				soundstartvolume = 3,
 				sprayangle = 1000,
 				thickness = 0.6,
 				tolerance = 6000,

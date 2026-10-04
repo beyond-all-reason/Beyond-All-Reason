@@ -7,17 +7,12 @@ local function enum(...)
 	return result
 end
 
-local TEST_RESULT = enum(
-	"PASS",
-	"FAIL",
-	"SKIP",
-	"ERROR"
-)
+local TEST_RESULT = enum("PASS", "FAIL", "SKIP", "ERROR")
 
 local function clamp(min, max, num)
-	if (num < min) then
+	if num < min then
 		return min
-	elseif (num > max) then
+	elseif num > max then
 		return max
 	end
 	return num

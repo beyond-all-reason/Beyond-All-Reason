@@ -3,7 +3,7 @@
 local unitBlocking = {}
 
 --- Gets blocked unit definitions from TeamRulesParams
----@param unitDefIDs? number[] Optional array of specific UnitDefIDs to check. If nil, checks all blocked units for the current team.
+---@param unitDefIDs? UnitDefID[] If `nil`, checks all blocked units for the current team.
 ---@return table<number, table<string, boolean>> blockedUnits Table where keys are UnitDefIDs and values are tables of blocking reasons (reason -> true)
 ---@usage
 ---   -- Get all blocked units
@@ -11,8 +11,10 @@ local unitBlocking = {}
 ---   -- Get specific units' blocking status
 ---   local specificBlocked = unitBlocking.getBlockedUnitDefs({123, 456})
 function unitBlocking.getBlockedUnitDefs(unitDefIDs)
-	local myTeamID = Spring.GetMyTeamID()
-	if not myTeamID then return {} end
+	local myTeamID = Spring.GetLocalTeamID()
+	if not myTeamID then
+		return {}
+	end
 
 	local teamRules = Spring.GetTeamRulesParams(myTeamID) or {}
 	local blockedUnits = {}
@@ -20,11 +22,25 @@ function unitBlocking.getBlockedUnitDefs(unitDefIDs)
 	if unitDefIDs then
 		for i, unitDefID in ipairs(unitDefIDs) do
 			if type(unitDefID) ~= "number" then
-				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID at index " .. i .. " is not a number (got " .. type(unitDefID) .. ": " .. tostring(unitDefID) .. ")")
+				Spring.Log(
+					"unitBlocking",
+					LOG.ERROR,
+					"getBlockedUnitDefs: unitDefID at index "
+						.. i
+						.. " is not a number (got "
+						.. type(unitDefID)
+						.. ": "
+						.. tostring(unitDefID)
+						.. ")"
+				)
 				return {}
 			end
 			if not UnitDefs[unitDefID] then
-				Spring.Log("unitBlocking", LOG.ERROR, "getBlockedUnitDefs: unitDefID " .. unitDefID .. " does not exist in UnitDefs")
+				Spring.Log(
+					"unitBlocking",
+					LOG.ERROR,
+					"getBlockedUnitDefs: unitDefID " .. unitDefID .. " does not exist in UnitDefs"
+				)
 				return {}
 			end
 		end

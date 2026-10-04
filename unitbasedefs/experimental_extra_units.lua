@@ -2,9 +2,11 @@ local function experimentalExtraUnits(name, unitDef)
 	local buildoptions = unitDef.buildoptions
 
 	-- Armada T1 Land Constructors
+	--[[
 	if name == "armca" or name == "armck" or name == "armcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Armada T1 Sea Constructors
 	if name == "armcs" or name == "armcsa" then
@@ -64,9 +66,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Cortex T1 Land Constructors
+	--[[
 	if name == "corca" or name == "corck" or name == "corcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T1 Sea Constructors
 	if name == "corcs" or name == "corcsa" then
@@ -76,9 +80,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Cortex T1 Bots Factory
+	--[[
 	if name == "corlab" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T2 Land Constructors
 	if name == "coraca" or name == "corack" or name == "coracv" then
@@ -105,7 +111,7 @@ local function experimentalExtraUnits(name, unitDef)
 	-- Cortex T2 Vehicle Factory
 	if name == "coravp" then
 		local numBuildoptions = #buildoptions
-		buildoptions[numBuildoptions + 1] = "corvac"   -- Printer - Armored Field Engineer
+		buildoptions[numBuildoptions + 1] = "corvac" -- Printer - Armored Field Engineer
 		buildoptions[numBuildoptions + 2] = "corphantom" -- Phantom - Amphibious Stealth Scout
 		buildoptions[numBuildoptions + 3] = "corsiegebreaker" -- Siegebreaker - Heavy Long Range Destroyer
 		buildoptions[numBuildoptions + 4] = "corforge" -- Forge - Flamethrower Combat Engineer
@@ -113,9 +119,11 @@ local function experimentalExtraUnits(name, unitDef)
 	end
 
 	-- Cortex T2 Aircraft Plant
+	--[[
 	if name == "coraap" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Cortex T2 Shipyard
 	if name == "corasy" then
@@ -129,19 +137,21 @@ local function experimentalExtraUnits(name, unitDef)
 	-- Cortex T3 Gantry
 	if name == "corgant" then
 		local numBuildoptions = #buildoptions
-		buildoptions[numBuildoptions + 1] = "corves"  -- Vesuvius
+		buildoptions[numBuildoptions + 1] = "corves" -- Vesuvius
 	end
 
 	-- Cortex T3 Underwater Gantry
 	if name == "corgantuw" then
 		local numBuildoptions = #buildoptions
-		buildoptions[numBuildoptions + 1] = "corves"  -- Vesuvius
+		buildoptions[numBuildoptions + 1] = "corves" -- Vesuvius
 	end
 
 	-- Legion T1 Land Constructors
+	--[[
 	if name == "legca" or name == "legck" or name == "legcv" then
 		local numBuildoptions = #buildoptions
 	end
+	]]
 
 	-- Legion T2 Land Constructors
 	if name == "legaca" or name == "legack" or name == "legacv" then
@@ -163,6 +173,7 @@ local function experimentalExtraUnits(name, unitDef)
 	if name == "leggant" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "legbunk" -- Pilum - Fast Assault Mech
+		buildoptions[numBuildoptions + 2] = "legapollyon" -- Apollyon - Heavy Gatling Tank
 	end
 end
 

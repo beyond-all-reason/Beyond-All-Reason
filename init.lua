@@ -2,57 +2,58 @@
 
 -- Universal Lua functions applicable to any Lua code
 -- These add missing base lua functionality
-VFS.Include('common/numberfunctions.lua')
-VFS.Include('common/stringFunctions.lua')
-VFS.Include('common/tablefunctions.lua')
-Json = Json or VFS.Include('common/luaUtilities/json.lua')
+BAR = BAR or {} -- detached module namespace; must precede any BAR.X consumer
+VFS.Include("common/numberfunctions.lua")
+VFS.Include("common/stringFunctions.lua")
+VFS.Include("common/tablefunctions.lua")
+Json = Json or VFS.Include("common/luaUtilities/json.lua")
 
-VFS.Include('common/springOverrides.lua')
+VFS.Include("common/springOverrides.lua")
 
 local environment = Script.GetName and Script.GetName() or "LuaParser"
 
 local commonFunctions = {
 	spring = {
-		LuaMenu   = true,
-		LuaIntro  = true,
+		LuaMenu = true,
+		LuaIntro = true,
 		LuaParser = true,
-		LuaRules  = true,
-		LuaGaia   = true,
-		LuaUI     = true,
+		LuaRules = true,
+		LuaGaia = true,
+		LuaUI = true,
 	},
 
 	i18n = {
-		LuaMenu   = true,
-		LuaIntro  = true,
-		LuaUI     = true,
+		LuaMenu = true,
+		LuaIntro = true,
+		LuaUI = true,
 	},
 
 	cmd = {
-		LuaRules  = true,
-		LuaUI     = true,
+		LuaRules = true,
+		LuaUI = true,
 	},
 
 	map = {
-		LuaRules  = true,
-		LuaUI     = true,
+		LuaRules = true,
+		LuaUI = true,
 	},
 
 	graphics = {
-		LuaRules  = true,
-		LuaUI     = true,
+		LuaRules = true,
+		LuaUI = true,
 	},
 }
 
 if commonFunctions.spring[environment] then
-	local springFunctions = VFS.Include('common/springFunctions.lua')
-	Spring.Utilities = Spring.Utilities or springFunctions.Utilities
-	Spring.Debug = Spring.Debug or springFunctions.Debug
-	VFS.Include('common/platformFunctions.lua')
-	VFS.Include('common/constants.lua')
+	local springFunctions = VFS.Include("common/springFunctions.lua")
+	BAR.Utilities = BAR.Utilities or springFunctions.Utilities
+	BAR.Debug = BAR.Debug or springFunctions.Debug
+	VFS.Include("common/platformFunctions.lua")
+	VFS.Include("common/constants.lua")
 end
 
 if commonFunctions.i18n[environment] then
-	Spring.I18N = Spring.I18N or VFS.Include("modules/i18n/i18n.lua")
+	BAR.I18N = BAR.I18N or VFS.Include("modules/i18n/i18n.lua")
 end
 
 if commonFunctions.cmd[environment] then
@@ -61,7 +62,7 @@ if commonFunctions.cmd[environment] then
 end
 
 if commonFunctions.map[environment] then
-	Spring.Lava = VFS.Include("modules/lava.lua")
+	BAR.Lava = VFS.Include("modules/lava.lua")
 end
 
 if commonFunctions.graphics[environment] then

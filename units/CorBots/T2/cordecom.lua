@@ -72,6 +72,7 @@ return {
 			[16] = "corfmkr",
 		},
 		customparams = {
+			canwearcosmetics = true,
 			decoyfor = "corcom",
 			mine_resistant = true,
 			firestateoncloak = 0,
@@ -79,6 +80,7 @@ return {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0,
+			reaimtime = 5,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",

@@ -2,10 +2,10 @@ local function customKeyToUsefulTable(dataRaw)
 	if not dataRaw then
 		return
 	end
-	if not type(dataRaw) == 'string' then
+	if not type(dataRaw) == "string" then
 		Spring.Echo("Customkey data error! type == " .. type(dataRaw))
 	else
-		dataRaw = string.gsub(dataRaw, '_', '=')
+		dataRaw = string.gsub(dataRaw, "_", "=")
 		dataRaw = string.base64Decode(dataRaw)
 		local dataFunc, err = loadstring("return " .. dataRaw)
 		if dataFunc then

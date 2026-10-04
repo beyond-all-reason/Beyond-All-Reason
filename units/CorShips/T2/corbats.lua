@@ -34,6 +34,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
+			reaimtime = 5,
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

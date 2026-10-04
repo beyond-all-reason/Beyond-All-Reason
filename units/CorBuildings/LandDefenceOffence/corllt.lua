@@ -136,6 +136,7 @@ return {
 		},
 		weapons = {
 			[1] = {
+				badtargetcategory = "VTOL",
 				def = "COR_LIGHTLASER",
 				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",

@@ -99,7 +99,7 @@ return {
 					vtol = 2,
 				},
 				customparams = {
-					noattackrangearc= 1,
+					noattackrangearc = 1,
 				},
 			},
 		},

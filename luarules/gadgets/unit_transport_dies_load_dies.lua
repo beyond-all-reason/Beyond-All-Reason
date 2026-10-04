@@ -9,19 +9,21 @@
 --when trans is self d'ed, on the frame it dies it has both Spring.GetUnitHealth(ID)>0 and Spring.UnitSelfDTime(ID)=0
 --when trans is crashing it isn't dead
 
-if not gadgetHandler:IsSyncedCode() then return end
+if not gadgetHandler:IsSyncedCode() then
+	return
+end
 
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name      = "transport_dies_load_dies",
-		desc      = "kills units in transports when transports dies (except commandos, lootboxes, scavengerbeacons and hats)",
-		author    = "knorke, bluestone, icexuick, beherith",
-		date      = "Dec 2012",
-		license   = "GNU GPL, v2 or later, horses",
-		layer     = 0,
-		enabled   = true
+		name = "transport_dies_load_dies",
+		desc = "kills units in transports when transports dies (except commandos, lootboxes, scavengerbeacons and hats)",
+		author = "knorke, bluestone, icexuick, beherith",
+		date = "Dec 2012",
+		license = "GNU GPL, v2 or later, horses",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -36,8 +38,7 @@ end
 local maybeDead = {}
 
 local function isDeadOrCrashing(unitID)
-	return Spring.GetUnitIsDead(unitID) ~= false
-		or Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing"
+	return Spring.GetUnitIsDead(unitID) ~= false or Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing"
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)

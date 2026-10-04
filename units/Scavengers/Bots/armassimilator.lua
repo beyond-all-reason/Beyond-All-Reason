@@ -33,13 +33,11 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmGantry",
 			techlevel = 3,
-			weapon1turretx = 200,
-			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -170,14 +168,14 @@ return {
 				turret = true,
 				weaponvelocity = 1000,
 				customparams = {
-					--isupgraded = isupgraded,
-					--damagetype = "ehbotkarganneth",
+					turretspeedx = 200,
+					turretspeedy = 200,
 				},
 				damage = {
 					default = 33,
 					vtol = 100,
 				},
-			}
+			},
 		},
 		weapons = {
 			[1] = {

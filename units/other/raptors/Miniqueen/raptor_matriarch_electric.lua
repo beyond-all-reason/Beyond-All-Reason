@@ -57,6 +57,7 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			normaltex = "unittextures/chicken_l_normals.png",
 			paralyzemultiplier = 0,
 		},
@@ -145,7 +146,6 @@ return {
 				reloadtime = 15,
 				rgbcolor = "0.5 0.5 1",
 				soundstart = "alien_electric_xl",
-				soundstartvolume = 65,
 				soundtrigger = true,
 				targetmoveerror = 0.15,
 				thickness = 1.5,

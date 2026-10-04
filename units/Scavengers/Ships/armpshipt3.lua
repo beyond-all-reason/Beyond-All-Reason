@@ -1,4 +1,3 @@
-local unitName = "Epic Ellysaw"
 return {
 	armpshipt3 = {
 		maxacc = 0.04771,
@@ -33,7 +32,7 @@ return {
 		turnrate = 270,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips",
 			techlevel = 3,

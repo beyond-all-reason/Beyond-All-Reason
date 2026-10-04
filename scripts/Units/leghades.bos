@@ -117,8 +117,8 @@ AimPrimary(heading, pitch)
 	signal SIGNAL_AIM;
 	set-signal-mask SIGNAL_AIM;
 	
-	turn aimy1 to y-axis heading speed <250>;
-	turn aimx1 to x-axis 0 - pitch speed <240>;
+	turn aimy1 to y-axis heading speed <300>;
+	turn aimx1 to x-axis 0 - pitch speed <300>;
 	if (get ABS(last_primary_heading - heading)> <20>)
 	{
 		// seems to take 3 frames for wait-for-turn to process

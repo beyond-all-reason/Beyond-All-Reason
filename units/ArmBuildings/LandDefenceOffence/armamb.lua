@@ -37,6 +37,7 @@ return {
 			buildinggrounddecaltype = "decals/armamb_aoplane.dds",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,
@@ -130,7 +131,6 @@ return {
 					exclude_preaim = true,
 					norangering = 1,
 					smart_priority = true,
-					weapons_group = 1,
 				},
 				damage = {
 					default = 350,
@@ -164,7 +164,6 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
-					weapons_group = 2,
 				},
 				damage = {
 					default = 350,

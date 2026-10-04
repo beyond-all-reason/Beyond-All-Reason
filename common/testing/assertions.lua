@@ -39,7 +39,13 @@ local function assertTablesEqual(table1, table2, margin, visited, path)
 	for key, value2 in pairs(table2) do
 		local value1 = table1[key]
 		if value1 == nil then
-			assert(false, "Tables are not equal, extra key '" .. tostring(key) .. "' in second table at path: " .. buildPathString())
+			assert(
+				false,
+				"Tables are not equal, extra key '"
+					.. tostring(key)
+					.. "' in second table at path: "
+					.. buildPathString()
+			)
 		end
 	end
 end
@@ -51,8 +57,8 @@ local depth = 0
 -- fn will be called every 'frames' game frames.
 -- errorMsg can be set to customize the error message preface.
 local function assertSuccessBefore(seconds, frames, fn, errorMsg, depthOffset)
-	local iters = math.ceil((seconds*30)/frames)
-	for i=1, iters do
+	local iters = math.ceil((seconds * 30) / frames)
+	for i = 1, iters do
 		-- dangerous to set depth here since fn() can fail.
 		-- no pcall since SyncedProxy and SyncedRun wouldn't work.
 		local res = fn()
@@ -65,7 +71,6 @@ local function assertSuccessBefore(seconds, frames, fn, errorMsg, depthOffset)
 	-- Error instead of assert to get a proper error line position
 	error(errorMsg or "assertSuccessBefore: didn't succeed before " .. tostring(seconds) .. " seconds", depthOffset)
 end
-
 
 -- Assert the given function throws an exception
 --
@@ -81,7 +86,6 @@ local function assertThrows(fn, errorMsg, depthOffset)
 		error(errorMsg or "assertThrows", depthOffset)
 	end
 end
-
 
 -- Assert the given function throws an exception with a specific error message
 --
@@ -101,12 +105,15 @@ local function assertThrowsMessage(fn, testMsg, errorMsg, depthOffset)
 	-- split "standard" error format
 	-- it's in the form: [string "LuaUI/tests/selftests/test_assertions.lua"]:17: error2
 	local match = result
-	local errorIndex = result:match'^%[string "[%p%a%s]*%"]:[%d]+:().*'
+	local errorIndex = result:match('^%[string "[%p%a%s]*%"]:[%d]+:().*')
 	if errorIndex and errorIndex > 0 then
 		match = result:sub(errorIndex + 1)
 	end
 	if match ~= testMsg then
-		error(errorMsg or "assertThrowsMessage: error was not '" .. tostring(testMsg) .. "': '" .. tostring(match) .. "'", depthOffset)
+		error(
+			errorMsg or "assertThrowsMessage: error was not '" .. tostring(testMsg) .. "': '" .. tostring(match) .. "'",
+			depthOffset
+		)
 	end
 end
 
@@ -120,8 +127,10 @@ end
 local function assertEqual(actual, expected, errorMsg)
 	if actual ~= expected then
 		local msg = (errorMsg or "assertEqual failed")
-			.. ": expected " .. formatValueForAssert(expected)
-			.. ", actual " .. formatValueForAssert(actual)
+			.. ": expected "
+			.. formatValueForAssert(expected)
+			.. ", actual "
+			.. formatValueForAssert(actual)
 		local depthOffset = 2
 		error(msg, depthOffset)
 	end

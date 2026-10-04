@@ -16,7 +16,7 @@ Found a joystick: XiaoMi Bluetooth Wireless GameController , with 8 axes and 21 
 
 5. Disable the CameraFlip widget (F11 ingame) to prevent flipbacks when turning cam around
 
-6. Launch your game, enable the widget in F11 mode, and make sure to change camera mode to **rotateable overhead camera (CTRL+F4)** and fly around!
+6. Launch your game, enable the widget in F11 mode, and make sure to change camera mode to **rotatable overhead camera (CTRL+F4)** and fly around!
 
 
 - Left stick move camera 
@@ -37,4 +37,4 @@ https://docs.google.com/presentation/d/1kYI-feiey2BVcSzO1CoZt2x4zrlW7oKdTA4sG3d6
 Notes:
 
 Your game needs Spring.Utilities.json.decode(str) widget-side for this to work.
-Also for BAR replays, this wont work on replays older than 2021 apr 7
+Also for BAR replays, this won't work on replays older than 2021 apr 7

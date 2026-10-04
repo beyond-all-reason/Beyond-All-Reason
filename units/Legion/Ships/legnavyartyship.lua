@@ -33,7 +33,7 @@ return {
 		turnrate = 150,
 		waterline = 0,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Johnathan Crimson (Concept Art/Model), ZephyrSkies (Model)",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Ships",
@@ -42,8 +42,8 @@ return {
 			dead = {
 				blocking = false,
 				category = "corpses",
-                collisionvolumeoffsets = "0 0 0",
-                collisionvolumescales = "35 30 102",
+				collisionvolumeoffsets = "0 0 0",
+				collisionvolumescales = "35 30 102",
 				collisionvolumetype = "Box",
 				damage = 3360,
 				featuredead = "HEAP",
@@ -120,7 +120,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 380,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 5,
 				},
 				damage = {
@@ -152,7 +152,7 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 380,
 				customparams = {
-					cluster_def = 'cluster_munition',
+					cluster_def = "cluster_munition",
 					cluster_number = 5,
 				},
 				damage = {
@@ -160,7 +160,7 @@ return {
 					subs = 50,
 					vtol = 50,
 				},
-			}, 
+			},
 			cluster_munition = {
 				areaofeffect = 115,
 				avoidfeature = false,
@@ -202,7 +202,6 @@ return {
 				-- maxangledif = 310,
 				onlytargetcategory = "SURFACE",
 			},
-	
 		},
 	},
 }

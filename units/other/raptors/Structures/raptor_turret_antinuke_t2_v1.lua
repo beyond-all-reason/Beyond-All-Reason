@@ -51,6 +51,7 @@ return {
 		yardmap = "oo oo",
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
@@ -101,7 +102,6 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
-				soundstartvolume = 9,
 				stockpile = true,
 				stockpiletime = 80,
 				startvelocity = 1000,

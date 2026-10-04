@@ -1,4 +1,3 @@
-local unitName = "Epic Serpent"
 return {
 	armserpt3 = {
 		maxacc = 0.02,
@@ -34,7 +33,7 @@ return {
 		upright = true,
 		waterline = 80, --45,
 		customparams = {
-			unitgroup = 'sub',
+			unitgroup = "sub",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmShips/T2",

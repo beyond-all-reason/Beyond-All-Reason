@@ -8,7 +8,7 @@ return {
 		buildtime = 188000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "80 50 98",--40 26 48
+		collisionvolumescales = "80 50 98", --40 26 48
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		explodeas = "mediumexplosiongeneric",
@@ -33,7 +33,7 @@ return {
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1214.40002,
 		customparams = {
-			unitgroup = 'weapon',
+			unitgroup = "weapon",
 			model_author = "Beherith, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.125,
@@ -124,7 +124,6 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "heatray1s",
-				soundstartvolume = 70,
 				soundtrigger = 1,
 				thickness = 6,
 				tolerance = 10000,
@@ -164,7 +163,7 @@ return {
 				noselfdamage = true,
 				predictboost = 1,
 				range = 350,
-				reloadtime = 0.39996,--3 0.09999,--burst 12 0.39996,
+				reloadtime = 0.39996, --3 0.09999,--burst 12 0.39996,
 				sizegrowth = 3,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
@@ -178,9 +177,8 @@ return {
 				damage = {
 					default = 30,
 					subs = 10,
-				}
+				},
 			},
-
 		},
 		weapons = {
 			[1] = {

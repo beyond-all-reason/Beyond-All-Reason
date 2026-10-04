@@ -90,7 +90,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
-			i18nFromUnit = 'lootboxnano_t1',
+			i18nFromUnit = "lootboxnano_t1",
 			explodeas = "lootboxExplosion1",
 		},
 
@@ -102,7 +102,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
-			i18nFromUnit = 'lootboxnano_t2',
+			i18nFromUnit = "lootboxnano_t2",
 			explodeas = "lootboxExplosion2",
 		},
 
@@ -114,7 +114,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
-			i18nFromUnit = 'lootboxnano_t3',
+			i18nFromUnit = "lootboxnano_t3",
 			explodeas = "lootboxExplosion3",
 		},
 
@@ -126,7 +126,7 @@ local generateParameters = function(tier)
 			buildList = buildList,
 			objectName = objectName,
 			script = script,
-			i18nFromUnit = 'lootboxnano_t4',
+			i18nFromUnit = "lootboxnano_t4",
 			explodeas = "lootboxExplosion4",
 		},
 	}
@@ -163,7 +163,7 @@ local createNanoUnitDef = function(tier)
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = parameters.collisionVolumeScales,
 		collisionvolumetype = "CylY",
-		energyupkeep= 0,
+		energyupkeep = 0,
 		explodeas = parameters.explodeas,
 		footprintx = parameters.footprintx,
 		footprintz = parameters.footprintz,
@@ -224,7 +224,7 @@ local createNanoUnitDef = function(tier)
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landutil",
 			i18nfromunit = parameters.i18nFromUnit,
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			paratrooper = true,
 		},
 	}

@@ -335,7 +335,7 @@ AimFromPrimary(piecenum)
 	piecenum = trackingTurret;
 }
 
-FirePrimary()														//Sets target to 1 and just as the laser shot ends sets it to 0, so the next shot sets it to 1 the next milisecond, so its 1 whenever the laser is firing and 0 when it isn't
+FirePrimary()														//Sets target to 1 and just as the laser shot ends sets it to 0, so the next shot sets it to 1 the next millisecond, so its 1 whenever the laser is firing and 0 when it isn't
 {
 	target = 1;
 	sleep 99;

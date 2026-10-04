@@ -158,7 +158,6 @@ return {
 				rgbcolor = "1 0.8 0.17",
 				size = 6.5,
 				soundhit = "xplomed2",
-				soundhitvolume = 32,
 				soundhitwet = "sizzlexs",
 				soundstart = "krogun1",
 				soundtrigger = true,
@@ -223,7 +222,6 @@ return {
 				soundhitdry = "korgstep",
 				soundhitdryvolume = 18,
 				soundhitwet = "splssml",
-				soundhitwetvolume = 16,
 				weapontype = "Cannon",
 				customparams = {
 					bogus = 1,

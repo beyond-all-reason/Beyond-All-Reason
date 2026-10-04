@@ -29,7 +29,7 @@
 		"caretaker": 3
 	},
 	"legalab": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 		"require_energy": false,	
 		"income_tier": [55, 75, 100, 125, 150],
 //Metal Cost		   410			310			750		  	165			99			75			360			600			550			300				900			450			2300		60				755			330			650
@@ -61,7 +61,7 @@
 		"caretaker": 4
 	},
 	"legavp": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 		"require_energy": false,
 		"income_tier": [55, 75, 100, 125, 150],
 //Metal Cost		   	530			200			125			105			250			450					920			1500		400				460				1700		1250			470			1250
@@ -108,7 +108,7 @@
 //#######################################################################################################################
 
 	"legap": {
-		"importance": [1.0, 0.0],
+		"importance": [0.1, 0.0],
 		"require_energy": false,	
 		"income_tier": [10, 25, 35],
 //Metal Cost		   	105			40			110			100			65			68			150
@@ -135,7 +135,7 @@
 		"caretaker": 2
 	},
 	"legaap": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 2.0],
 		"require_energy": false,	
 		"income_tier": [70],
 //Metal Cost		   	105			40			110			100			65			68			150
@@ -156,7 +156,7 @@
 		"caretaker": 3
 	},
 	"legsplab": {
-		"importance": [0.0, 0.0],
+		"importance": [0.0, 0.5],
 		"require_energy": false,	
 		"income_tier": [20],
 		"unit":      ["legspcon", 	"legspradarsonarplane", "legspsurfacegunship", "legspbomber", 	"legspcarrier", "legspfighter", "legsptorpgunship"],
@@ -188,7 +188,7 @@
 		"caretaker": 6
 	},
 	"legadvshipyard": {
-		"importance": [0.0, 1.0],
+		"importance": [0.0, 3.0],
 		"require_energy": false,
 		"income_tier": [80, 300],
 		//Metal Cost  700				200					500					 900				2000					2900					13000				16000				1000			  1400						 450					1100					1900	
@@ -227,7 +227,7 @@
 		"caretaker": 2
 	},	
 	"legfhp": {			// Disabled for now
-		"importance": [0.0, 0.0],
+		"importance": [1.0, 0.0],
 		"require_energy": false,	
 		"income_tier": [20, 30, 40],	
 		"unit":      ["legch", "legsh", "legner", "legmh", "legah", "legcar"],	
@@ -253,7 +253,7 @@
 		"caretaker": 2
 	},
 	"legamphlab": {			// Disabled for now
-		"importance": [0.0, 0.0],
+		"importance": [0.0, 0.5],
 		"require_energy": true,		
 		"income_tier": [30],	
 		"unit":      ["legotter", "legdecom", "legamphtank", "legamph", "legfloat", "legaabot", "legadvaabot"],

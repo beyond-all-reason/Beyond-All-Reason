@@ -2,13 +2,13 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name      = "Nano range on transport",
-		desc      = "Draw a circle around a transport carrying a nano when its about to unload",
-		author    = "Cheva",
-		date      = "December 2024",
-		license   = "GNU GPL, v2 or later",
-		layer     = 0,
-		enabled   = true
+		name = "Nano range on transport",
+		desc = "Draw a circle around a transport carrying a nano when its about to unload",
+		author = "Cheva",
+		date = "December 2024",
+		license = "GNU GPL, v2 or later",
+		layer = 0,
+		enabled = true,
 	}
 end
 
@@ -60,7 +60,7 @@ local function DrawNanoRange(x, y, z, range)
 	glLineWidth(1)
 	glColor(color[1], color[2], color[3], color[4])
 	glDrawGroundCircle(x, y, z, range, circleDivisions)
-	glColor(1,1,1,1)
+	glColor(1, 1, 1, 1)
 	glLineWidth(1)
 end
 
@@ -89,24 +89,31 @@ function widget:DrawWorldPreUnit()
 	for _, unitIds in pairs(sel) do
 		for _, unitId in pairs(unitIds) do
 			if transportWithBuilding[unitId] then
-				table.insert(ranges,
-				{
+				table.insert(ranges, {
 					unitDefID = transportWithBuilding[unitId],
-					range = turretRange[transportWithBuilding[unitId]]
+					range = turretRange[transportWithBuilding[unitId]],
 				})
 			end
 		end
 	end
-	if #ranges == 0 then return end
-	table.sort(ranges, function(a, b) return a.range < b.range end)
+	if #ranges == 0 then
+		return
+	end
+	table.sort(ranges, function(a, b)
+		return a.range < b.range
+	end)
 	range = ranges[1].range
-	if range == nil then return end
+	if range == nil then
+		return
+	end
 	local turret = isTurret[ranges[1].unitDefID]
 	color = turret and colors.turret or colors.tower
 	--Spring.Echo(transportWithBuilding[unitId])
 	local mouseX, mouseY = Spring.GetMouseState()
 	local desc, args = Spring.TraceScreenRay(mouseX, mouseY, true)
-	if desc == nil then return end
+	if desc == nil then
+		return
+	end
 	local x, y, z = args[1], args[2], args[3]
 	DrawNanoRange(x, y, z, range)
 end

@@ -36,6 +36,7 @@ return {
 		customparams = {
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -121,8 +122,6 @@ return {
 				soundhit = "corlevlrhit",
 				soundhitwet = "splsmed",
 				soundstart = "largegun",
-				soundhitvolume = 12.0,
-				soundstartvolume = 14.0,
 				separation = 2.0,
 				nogap = false,
 				size = 4,
@@ -139,7 +138,7 @@ return {
 				},
 				customparams = {
 					--exclude_preaim = true
-				}
+				},
 			},
 			light_antiair_missile = {
 				areaofeffect = 16,

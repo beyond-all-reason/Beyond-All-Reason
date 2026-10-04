@@ -38,7 +38,7 @@ return {
 		wingangle = 0.06241,
 		wingdrag = 0.11,
 		customparams = {
-			unitgroup = 'util',
+			unitgroup = "util",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			selectable_as_combat_unit = true,
@@ -48,7 +48,8 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},		},
+			},
+		},
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",

@@ -1,5 +1,5 @@
-local triggerTypes = GG['MissionAPI'].TriggerTypes
-local actionTypes = GG['MissionAPI'].ActionTypes
+local triggerTypes = GG.MissionAPI.TriggerTypes
+local actionTypes = GG.MissionAPI.ActionTypes
 
 local triggers = {
 	testTime = {
@@ -11,7 +11,7 @@ local triggers = {
 			gameFrame = 150,
 			interval = 60,
 		},
-		actions = { 'helloWorld' },
+		actions = { "helloWorld" },
 	},
 
 	spawnHero = {
@@ -23,7 +23,7 @@ local triggers = {
 			gameFrame = 1,
 			interval = 180,
 		},
-		actions = { 'spawnHero' },
+		actions = { "spawnHero" },
 	},
 
 	despawnHero = {
@@ -35,7 +35,7 @@ local triggers = {
 			gameFrame = 90,
 			interval = 180,
 		},
-		actions = { 'despawnHero' },
+		actions = { "despawnHero" },
 	},
 }
 
@@ -50,8 +50,8 @@ local actions = {
 	spawnHero = {
 		type = actionTypes.SpawnUnits,
 		parameters = {
-			name = 'hero',
-			unitDefName = 'corkorg',
+			name = "hero",
+			unitDefName = "corkorg",
 			x = 100,
 			z = 100,
 		},
@@ -60,7 +60,7 @@ local actions = {
 	despawnHero = {
 		type = actionTypes.DespawnUnits,
 		parameters = {
-			name = 'hero',
+			name = "hero",
 		},
 	},
 }

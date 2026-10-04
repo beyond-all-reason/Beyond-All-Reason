@@ -1,25 +1,25 @@
 local scanToCode = { qwerty = {}, azerty = {}, qwertz = {} }
 
 for c in string.gmatch("QWERTYUIOPASDFGHJKLZXCVBNM[];',./`-=\\", ".") do
-	scanToCode["qwerty"][c] = c
-	scanToCode["qwertz"][c] = c
-	scanToCode["azerty"][c] = c
+	scanToCode.qwerty[c] = c
+	scanToCode.qwertz[c] = c
+	scanToCode.azerty[c] = c
 end
 
-scanToCode["qwertz"]["Y"] = "Z"
-scanToCode["qwertz"]["Z"] = "Y"
-	-- NEEDS CORRECTION BELOW
-scanToCode["qwertz"][";"] = ";"
-scanToCode["qwertz"]["'"] = "'"
-scanToCode["qwertz"][","] = ","
-scanToCode["qwertz"]["."] = "."
-scanToCode["qwertz"]["/"] = "/"
-scanToCode["qwertz"]["`"] = "`"
-scanToCode["qwertz"]["-"] = "-"
-scanToCode["qwertz"]["="] = "="
-scanToCode["qwertz"]["\\"] = "\\"
-	-- NEEDS CORRECTION ABOVE
-scanToCode["azerty"] = {
+scanToCode.qwertz.Y = "Z"
+scanToCode.qwertz.Z = "Y"
+-- NEEDS CORRECTION BELOW
+scanToCode.qwertz[";"] = ";"
+scanToCode.qwertz["'"] = "'"
+scanToCode.qwertz[","] = ","
+scanToCode.qwertz["."] = "."
+scanToCode.qwertz["/"] = "/"
+scanToCode.qwertz["`"] = "`"
+scanToCode.qwertz["-"] = "-"
+scanToCode.qwertz["="] = "="
+scanToCode.qwertz["\\"] = "\\"
+-- NEEDS CORRECTION ABOVE
+scanToCode.azerty = {
 	Q = "A",
 	W = "Z",
 	Z = "W",
@@ -38,7 +38,7 @@ scanToCode["azerty"] = {
 	["\\"] = "*",
 }
 
-scanToCode["colemak"] = {
+scanToCode.colemak = {
 	Q = "Q",
 	W = "W",
 	E = "F",
@@ -114,8 +114,7 @@ scanToCode["colemak-dh"] = {
 	["\\"] = "\\",
 }
 
-
-scanToCode["canary"] = {
+scanToCode.canary = {
 	Q = "W",
 	W = "L",
 	E = "Y",
@@ -152,7 +151,6 @@ scanToCode["canary"] = {
 	["="] = "=",
 	["\\"] = "\\",
 }
-
 
 scanToCode["canary-ortho"] = {
 	Q = "W",
@@ -192,8 +190,7 @@ scanToCode["canary-ortho"] = {
 	["\\"] = "\\",
 }
 
-
-scanToCode["dvorak"] = {
+scanToCode.dvorak = {
 	Q = "'",
 	W = ",",
 	E = ".",
@@ -277,7 +274,7 @@ scanToCode["de-neo"] = {
 	-- NEEDS CORRECTION ABOVE
 }
 
-scanToCode["workman"] = {
+scanToCode.workman = {
 	Q = "Q",
 	W = "D",
 	E = "R",
@@ -315,18 +312,17 @@ scanToCode["workman"] = {
 	["\\"] = "\\",
 }
 
-
 local layouts = {
-	'qwerty',
-	'qwertz',
-	'azerty',
-	'colemak',
-	'colemak-dh',
-	'canary',
-	'canary-ortho',
-	'dvorak',
-	'de-neo',
-	'workman',
+	"qwerty",
+	"qwertz",
+	"azerty",
+	"colemak",
+	"colemak-dh",
+	"canary",
+	"canary-ortho",
+	"dvorak",
+	"de-neo",
+	"workman",
 }
 
 local function sanitizeKey(key, layout)
@@ -336,7 +332,7 @@ local function sanitizeKey(key, layout)
 
 	layout = layout or Spring.GetConfigString("KeyboardLayout", "qwerty")
 
-	key = key:upper():gsub("ANY%+", '')
+	key = key:upper():gsub("ANY%+", "")
 	key = key:gsub("SC_(.)", function(c)
 		return scanToCode[layout][c] or c
 	end)
@@ -345,19 +341,19 @@ local function sanitizeKey(key, layout)
 end
 
 local keybindingLayouts = {
-	'Grid', -- the first element will be the default value if a fallback is ever needed
-	'Grid (60% Keyboard)',
-	'Legacy',
-	'Legacy (60% Keyboard)',
-	'Custom'
+	"Grid", -- the first element will be the default value if a fallback is ever needed
+	"Grid (60% Keyboard)",
+	"Legacy",
+	"Legacy (60% Keyboard)",
+	"Custom",
 }
 
 local keybindingPresets = {
-	[keybindingLayouts[1]] = 'luaui/configs/hotkeys/grid_keys.txt', -- the first element will be the default value if a fallback is ever needed
-	[keybindingLayouts[2]] = 'luaui/configs/hotkeys/grid_keys_60pct.txt',
-	[keybindingLayouts[3]] = 'luaui/configs/hotkeys/legacy_keys.txt',
-	[keybindingLayouts[4]] = 'luaui/configs/hotkeys/legacy_keys_60pct.txt',
-	[keybindingLayouts[5]] = 'uikeys.txt',
+	[keybindingLayouts[1]] = "luaui/configs/hotkeys/grid_keys.txt", -- the first element will be the default value if a fallback is ever needed
+	[keybindingLayouts[2]] = "luaui/configs/hotkeys/grid_keys_60pct.txt",
+	[keybindingLayouts[3]] = "luaui/configs/hotkeys/legacy_keys.txt",
+	[keybindingLayouts[4]] = "luaui/configs/hotkeys/legacy_keys_60pct.txt",
+	[keybindingLayouts[5]] = "uikeys.txt",
 }
 
 local keybindingLayoutFiles = {}

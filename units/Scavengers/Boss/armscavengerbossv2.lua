@@ -1,5 +1,5 @@
 local difficultyParams = {
-	["veryeasy"] = {
+	veryeasy = {
 		health = 400000,
 		autoHeal = 0,
 		dgunStockpile = 60,
@@ -7,7 +7,7 @@ local difficultyParams = {
 		minigunDamage = 100,
 		topTurretsDamage = 3300,
 	},
-	["easy"] = {
+	easy = {
 		health = 600000,
 		autoHeal = 5,
 		dgunStockpile = 50,
@@ -15,7 +15,7 @@ local difficultyParams = {
 		minigunDamage = 150,
 		topTurretsDamage = 4400,
 	},
-	["normal"] = {
+	normal = {
 		health = 800000,
 		autoHeal = 10,
 		dgunStockpile = 40,
@@ -23,7 +23,7 @@ local difficultyParams = {
 		minigunDamage = 200,
 		topTurretsDamage = 5500,
 	},
-	["hard"] = {
+	hard = {
 		health = 1000000,
 		autoHeal = 15,
 		dgunStockpile = 30,
@@ -31,7 +31,7 @@ local difficultyParams = {
 		minigunDamage = 250,
 		topTurretsDamage = 6600,
 	},
-	["veryhard"] = {
+	veryhard = {
 		health = 1500000,
 		autoHeal = 20,
 		dgunStockpile = 20,
@@ -39,7 +39,7 @@ local difficultyParams = {
 		minigunDamage = 350,
 		topTurretsDamage = 8000,
 	},
-	["epic"] = {
+	epic = {
 		health = 2000000,
 		autoHeal = 25,
 		dgunStockpile = 10,
@@ -53,7 +53,7 @@ for difficulty, stats in pairs(difficultyParams) do
 	unitsTable["armscavengerbossv2_" .. difficulty] = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
-		autoheal = stats.autoHeal,--10,
+		autoheal = stats.autoHeal, --10,
 		maxdec = 0.01,
 		energycost = 5000000,
 		metalcost = 500000,
@@ -92,7 +92,7 @@ for difficulty, stats in pairs(difficultyParams) do
 		radardistance = 500,
 		radaremitheight = 54,
 		reclaimable = false,
-		releaseheld  = true,
+		releaseheld = true,
 		script = "Units/scavboss/armscavengerbossv2.cob",
 		seismicsignature = 0,
 		selfdestructas = "commanderexplosion",
@@ -105,14 +105,14 @@ for difficulty, stats in pairs(difficultyParams) do
 		turninplacespeedlimit = 0.825,
 		turnrate = 300,
 		upright = true,
-		workertime = 1500,--400,
+		workertime = 1500, --400,
 		customparams = {
-			unitgroup = 'builder',
+			unitgroup = "builder",
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
-			i18nfromunit = 'armscavengerbossv2'
+			i18nfromunit = "armscavengerbossv2",
 		},
 		featuredefs = {
 			dead = {
@@ -186,42 +186,42 @@ for difficulty, stats in pairs(difficultyParams) do
 		},
 		weapondefs = {
 			machinegun = {
-				accuracy				 = 1024,
-				AreaOfEffect             = 64,
-				avoidFriendly            = false,
-				avoidFeature             = false,
-				collideFriendly          = false,
-				collideFeature           = true,
-				beamTime                 = 0.09,
-				coreThickness            = 0.5,
-				duration                 = 0.09,
-				explosionGenerator       = "custom:genericshellexplosion-tiny-aa",
-				energypershot            = 0,
-				fallOffRate              = 0,
-				fireStarter              = 50,
-				interceptedByShieldType  = 4,
-				minintensity             = "1",
-				name                     = "Scav Rapid Fire Plasma Gun",
-				range                    = 1200,
-				reloadtime               = 0.1,
-				WeaponType               = "LaserCannon",
-				rgbColor                 = {0.95, 0.32, 1},
-				rgbColor2                = {1, 0.8, 1},
-				soundTrigger             = true,
-				soundstart               = "tgunshipfire",
-				texture1                 = "shot",
-				texture2                 = "empty",
-				thickness                = 20,
-				tolerance                = 1000,
-				turret                   = true,
-				weaponVelocity           = 1000,
-				customparams             = {
+				accuracy = 1024,
+				AreaOfEffect = 64,
+				avoidFriendly = false,
+				avoidFeature = false,
+				collideFriendly = false,
+				collideFeature = true,
+				beamTime = 0.09,
+				coreThickness = 0.5,
+				duration = 0.09,
+				explosionGenerator = "custom:genericshellexplosion-tiny-aa",
+				energypershot = 0,
+				fallOffRate = 0,
+				fireStarter = 50,
+				interceptedByShieldType = 4,
+				minintensity = "1",
+				name = "Scav Rapid Fire Plasma Gun",
+				range = 1200,
+				reloadtime = 0.1,
+				WeaponType = "LaserCannon",
+				rgbColor = { 0.95, 0.32, 1 },
+				rgbColor2 = { 1, 0.8, 1 },
+				soundTrigger = true,
+				soundstart = "tgunshipfire",
+				texture1 = "shot",
+				texture2 = "empty",
+				thickness = 20,
+				tolerance = 1000,
+				turret = true,
+				weaponVelocity = 1000,
+				customparams = {
 					--isupgraded			 = isUpgraded,
 					--damagetype		     = "ehbotkarganneth",
 				},
-				damage                   = {
-					default              = stats.minigunDamage,
-					vtol				 = stats.minigunDamage*3,
+				damage = {
+					default = stats.minigunDamage,
+					vtol = stats.minigunDamage * 3,
 				},
 			},
 			torpedo = {
@@ -353,7 +353,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			[2] = {
 				badtargetcategory = "VTOL",
 				def = "TORPEDO",
-				onlytargetcategory = "NOTAIR"
+				onlytargetcategory = "NOTAIR",
 			},
 			[3] = {
 				badtargetcategory = "VTOL",

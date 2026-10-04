@@ -51,7 +51,7 @@ return {
 		reclaimable = false,
 		customparams = {
 			fall_damage_multiplier = 0,
-			unitgroup = 'energy',
+			unitgroup = "energy",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/lootboxes",
 			paratrooper = true,
