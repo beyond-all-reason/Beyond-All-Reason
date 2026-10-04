@@ -208,7 +208,7 @@ local units = {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				damage = {
-					default = 330,
+					default = 500,
 				},
 			},
 			devourdgun = {

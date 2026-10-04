@@ -1271,9 +1271,24 @@ local ARM = {
 	rest = { 0.349066, 0.349066 }, -- stance pitch of the left and right cannon
 	gap = 2.5 * Game.gameSpeed, -- frames between two volleys of the same arm
 	twinWindow = 30, -- frames within which the second laser ray may follow the first
+	offset = 75, -- sideways distance of each arm from the torso axis; the arms turn inward by this much to meet at the target
+	convergeSign = 1, -- flip if the arms swing outward instead of toward a near target
 	toeIn = math.rad(16), -- how far an arm may swing sideways from the torso heading toward its own target
 	yawSign = 1, -- flip if the arms swing away from their targets
 }
+ARM.Yaw = function(num, arm, offset)
+	local targetType, _, target = Spring.GetUnitWeaponTarget(unitID, num)
+	local distance
+	if targetType == 1 then
+		distance = Spring.GetUnitSeparation(unitID, target, true)
+	elseif targetType == 2 then
+		local x, _, z = Spring.GetUnitPosition(unitID)
+		distance = math.sqrt((target[1] - x) ^ 2 + (target[3] - z) ^ 2)
+	end
+	local converge = distance and math.atan2(ARM.offset, distance) * (arm == 1 and -1 or 1) * ARM.convergeSign or 0
+	return ARM.yawSign * math.max(-ARM.toeIn, math.min(ARM.toeIn, offset + converge))
+end
+
 local armData = {
 	side = {
 		1,
@@ -1835,7 +1850,7 @@ function script.AimFromWeapon(num)
 	if turrets[num] then
 		return turrets[num].pitch
 	end
-	return armData.cannon[armData.side[num]] or podPiece[podSide[num]] or P.torso
+	return P.spine2
 end
 
 function script.QueryWeapon(num)
@@ -1959,12 +1974,11 @@ local function AimVolley(num, heading, pitch)
 	isAiming = true
 	if holding and math.abs(offset) <= ARM.toeIn then
 		torsoOwnerFrame = frame
-		Turn(armData.yaw[side], y_axis, ARM.yawSign * offset, ARM.speed)
+		Turn(armData.yaw[side], y_axis, ARM.Yaw(num, side, offset), ARM.speed)
 	else
 		torsoOwner, torsoOwnerFrame, torsoHeading = VOLLEY.owner, frame, heading
 		Turn(P.torsobase, y_axis, heading, TORSO_SPEED)
-		Turn(armData.yaw[1], y_axis, 0, ARM.speed)
-		Turn(armData.yaw[2], y_axis, 0, ARM.speed)
+		Turn(armData.yaw[side], y_axis, ARM.Yaw(num, side, 0), ARM.speed)
 	end
 	for arm = 1, 2 do
 		PitchArm(arm, "volley", pitch)
@@ -2081,7 +2095,7 @@ function script.AimWeapon(num, heading, pitch)
 		if math.abs(offset) > ARM.toeIn then
 			return false
 		end
-		Turn(armData.yaw[arm], y_axis, ARM.yawSign * offset, ARM.speed)
+		Turn(armData.yaw[arm], y_axis, ARM.Yaw(num, arm, offset), ARM.speed)
 		PitchArm(arm, armData.kind[num], pitch)
 		WaitForTurn(armData.yaw[arm], y_axis)
 		WaitForTurn(armData.cannon[arm], x_axis)
@@ -2091,7 +2105,7 @@ function script.AimWeapon(num, heading, pitch)
 	Signal(SIG_RESTORE)
 	isAiming = true
 	Turn(P.torsobase, y_axis, heading, TORSO_SPEED)
-	Turn(armData.yaw[arm], y_axis, 0, ARM.speed)
+	Turn(armData.yaw[arm], y_axis, ARM.Yaw(num, arm, 0), ARM.speed)
 	PitchArm(arm, armData.kind[num], pitch)
 	WaitForTurn(P.torsobase, y_axis)
 	WaitForTurn(armData.cannon[arm], x_axis)
