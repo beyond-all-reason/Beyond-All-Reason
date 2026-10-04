@@ -130,7 +130,7 @@ local function CreatePanelDisplayList()
 		hungerRow = 5
 	end
 	if hunger >= 0 then
-		local left, right, bottom = w * 0.5, w - panelMarginX, PanelRow(hungerRow) - 2
+		local left, right, bottom = w * 0.45, w - panelMarginX * 3, PanelRow(hungerRow) - 2
 		gl.Texture(false)
 		gl.Color(0, 0, 0, 0.6)
 		gl.Rect(left, bottom, right, bottom + panelFontSize)

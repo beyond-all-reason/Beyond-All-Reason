@@ -37,6 +37,7 @@ local units = {
 		movementclass = "SCAVCOMMANDERBOT",
 		onoffable = true,
 		reclaimable = false,
+		reclaimspeed = 60000,
 		nochasecategory = "ALL",
 		objectname = "Units/scavboss/scavengerbossv5.s3o",
 		script = "Units/scavengerbossv5.lua",

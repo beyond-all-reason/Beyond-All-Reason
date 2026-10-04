@@ -2188,7 +2188,7 @@ end
 
 local FEED_GRACE = 3 -- seconds of warning before the face opens
 local FEED_DURATION = 20 -- seconds the face stays open
-local FEED_GOAL = 30000 -- metal pulled in that triggers the blast
+local FEED_GOAL = 100000 -- metal pulled in that triggers the blast
 local EAT_RANGE = 650 -- keep under builddistance
 local BLAST_RADIUS, BLAST_DAMAGE, EVAPORATE_HEALTH = 2800, 136000, 0.35
 local BLAST_WAVE_FRAMES = 8 -- frames the damage takes to reach the edge of the blast
