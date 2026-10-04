@@ -1482,7 +1482,7 @@ local TURBO = {
 	range = 1200, -- how far the scan looks
 	nearRange = 600, -- ground units inside this count as close
 	heavyCost = 1500, -- far ground units costing this much metal count for the rail, cheaper ones for the pods
-	luck = 3, -- random points added to every group that has targets
+	luck = 15, -- each group's target count, capped at this, is averaged with a random number up to this; the last turbo counts as empty
 	stale = 5, -- seconds without a target after which a turbo ends early
 	railDamage = 40, -- far turbo: the rapid rail fires without pause and each shot does this many times its normal damage
 	rainRockets = 2, -- swarm turbo: rain salvos have this many times the rockets
@@ -1516,7 +1516,7 @@ end
 local HUNGER = {
 	health = 1, -- hunger only grows below this health; 1 = always
 	fillSeconds = 600, -- seconds from empty to full when the boss kills nothing big
-	minSeconds = 240, -- the fastest it can fill
+	minSeconds = 420, -- the fastest it can fill
 	killsForMin = 55, -- T3 units the boss must kill since its last meal to reach the fastest fill
 	min = 80, -- Devour starts somewhere between these two hunger values, picked anew each time
 	max = 100,
@@ -2611,11 +2611,13 @@ TURBO.Pick = function(health)
 	end
 	local best, bestScore = nil, 0
 	for _, kind in ipairs(TURBO.kinds) do
-		local points = score[kind] > 0 and score[kind] + math.random(0, TURBO.luck) or 0
+		local seen = kind == TURBO.last and 0 or math.min(score[kind], TURBO.luck)
+		local points = score[kind] > 0 and (seen + math.random(1, TURBO.luck)) / 2 or 0
 		if points > bestScore then
 			best, bestScore = kind, points
 		end
 	end
+	TURBO.last = best
 	return best
 end
 
