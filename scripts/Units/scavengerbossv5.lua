@@ -2067,7 +2067,7 @@ function script.AimWeapon(num, heading, pitch)
 	if armData.kind[num] == "volley" then
 		return AimVolley(num, heading, pitch)
 	end
-	if not armData.side[num] then
+	if not armData.side[num] or TURBO.kind == "close" then
 		return false
 	end
 	if
@@ -2559,6 +2559,9 @@ TURBO.Set = function(kind, on)
 	elseif kind == "beam" then
 		TURBO.Boost(BEAM.weapon, on and TURBO.beamDamage or 1)
 	elseif kind == "swarm" then
+		if on and podMode == POD_BARRAGE then
+			StartThread(NextPodMode)
+		end
 		for num = 8, 9 do
 			local def = WeaponDefs[UnitDefs[unitDefID].weapons[num].weaponDef]
 			Spring.SetUnitWeaponState(unitID, num, "burst", def.salvoSize * (on and TURBO.rainRockets or 1))
@@ -2667,8 +2670,7 @@ local function Director()
 		local frame = Spring.GetGameFrame()
 		local fresh = ACT.idle * Game.gameSpeed
 		local held = TURBO.hold[TURBO.kind or ""]
-		local forced = ACT.of[Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or ""]
-			or (ACT.time[held or ""] and held)
+		local forced = ACT.of[Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or ""] or (held ~= "aa" and held)
 		if Spring.GetUnitRulesParam(unitID, "scavboss_rail") == 1 then
 			Spring.SetUnitRulesParam(unitID, "scavboss_rail", 0)
 			ACT.done = true
@@ -2679,7 +2681,7 @@ local function Director()
 			end
 		elseif not eating then
 			local idle = frame - (ACT.want[ACT.current] or -1000) > fresh
-			if ACT.done or idle or frame - ACT.started > ACT.time[ACT.current] * Game.gameSpeed then
+			if ACT.done or idle or frame - ACT.started > (ACT.time[ACT.current] or 0) * Game.gameSpeed then
 				local nextAct
 				if BEAM.due and ACT.current ~= "beam" and frame - (ACT.want.beam or -1000) <= fresh then
 					nextAct = "beam"
