@@ -2358,10 +2358,9 @@ end
 
 local RAISE = {
 	grace = 2, -- seconds of warning before it starts raising
-	duration = 25, -- seconds it spends raising, not counting the walk to a wreck
+	duration = { 15, 30 }, -- a Raise lasts a random time between these, seconds, walking included
 	perWreck = 20, -- seconds before it gives up on one wreck
 	search = 2000, -- how far it looks for wrecks and walks to them
-	walkTime = 20, -- seconds of walking after which it gives up
 	lateMinute = 15, -- from this minute of the game the raise speed grows with missing health
 	lateBoost = 6.5, -- raise speed multiplier at zero health after that minute
 	poseSpeed = math.rad(20), -- how fast it bends into and out of the raise pose
@@ -2528,8 +2527,8 @@ local function Raise()
 	end
 	local def = UnitDefs[unitDefID]
 	Spring.SetUnitBuildSpeed(unitID, def.buildSpeed, nil, nil, def.resurrectSpeed * boost)
-	local worked, walked = 0, 0
-	while worked < RAISE.duration and walked < RAISE.walkTime and not Spring.GetUnitIsStunned(unitID) do
+	local deadline = Spring.GetGameFrame() + math.random(RAISE.duration[1], RAISE.duration[2]) * Game.gameSpeed
+	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
 		local wreck = PickWreck()
 		if not wreck then
 			break
@@ -2539,8 +2538,7 @@ local function Raise()
 		while
 			Spring.ValidFeatureID(wreck)
 			and onWreck < RAISE.perWreck
-			and worked < RAISE.duration
-			and walked < RAISE.walkTime
+			and Spring.GetGameFrame() < deadline
 			and not Spring.GetUnitIsStunned(unitID)
 		do
 			local fx, _, fz = Spring.GetFeaturePosition(wreck)
@@ -2551,9 +2549,7 @@ local function Raise()
 				SetRaisePose(near)
 			end
 			if near then
-				worked, onWreck = worked + 0.25, onWreck + 0.25
-			else
-				walked = walked + 0.25
+				onWreck = onWreck + 0.25
 			end
 			RAISE.Fuel()
 			Sleep(250)
