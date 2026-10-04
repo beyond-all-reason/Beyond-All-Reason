@@ -1273,6 +1273,8 @@ local ARM = {
 	twinWindow = 30, -- frames within which the second laser ray may follow the first
 	offset = 75, -- sideways distance of each arm from the torso axis; the arms turn inward by this much to meet at the target
 	convergeSign = 1, -- flip if the arms swing outward instead of toward a near target
+	laserInside = math.rad(70), -- an arm laser stops its burst when the target is further than this across the body from the torso's facing
+	laserOutside = math.rad(30), -- or further than this toward the arm's own side
 	toeIn = math.rad(16), -- how far an arm may swing sideways from the torso heading toward its own target
 	yawSign = 1, -- flip if the arms swing away from their targets
 }
@@ -1362,6 +1364,18 @@ local torsoOwner, torsoOwnerFrame, torsoHeading = 0, -1000, 0
 
 local function WrapAngle(a)
 	return (a + math.pi) % (2 * math.pi) - math.pi
+end
+
+ARM.LaserArc = function(num, heading)
+	local arm = armData.side[num]
+	if Spring.GetGameFrame() >= armData.busyUntil[arm] then
+		return
+	end
+	local _, torsoYaw = Spring.UnitScript.GetPieceRotation(P.torsobase)
+	local outward = WrapAngle(heading - torsoYaw) * (arm == 1 and 1 or -1) * ARM.convergeSign
+	if outward > ARM.laserOutside or outward < -ARM.laserInside then
+		Spring.SetUnitWeaponState(unitID, num, "salvoLeft", 0)
+	end
 end
 
 local function RestoreAfterDelay()
@@ -1506,6 +1520,7 @@ local HUNGER = {
 	killsForMin = 55, -- T3 units the boss must kill since its last meal to reach the fastest fill
 	min = 80, -- Devour starts somewhere between these two hunger values, picked anew each time
 	max = 100,
+	missDrop = 0.25, -- a meal without a blast lowers hunger by the share of the blast amount it ate, and by at least this much
 	value = 0,
 	trigger = 90,
 	killsAtMeal = 0,
@@ -2039,6 +2054,9 @@ local function ArmOwnerKind(arm)
 end
 
 function script.AimWeapon(num, heading, pitch)
+	if armData.kind[num] == "laser" then
+		ARM.LaserArc(num, heading)
+	end
 	if eating or not WeaponAllowed(num) then
 		return false
 	end
@@ -2227,7 +2245,7 @@ local function PickMeal()
 			best, bestMetal = otherID, def.metalCost
 		end
 	end
-	return best, false, 0
+	return best, false, 0, bestMetal
 end
 
 local function MealGone(target, isFeature)
@@ -2389,8 +2407,6 @@ local function Feed()
 	Sleep(FEED_GRACE * 1000)
 	eating, posed, isAiming = true, true, true
 	fedMetal = 0
-	HUNGER.value, HUNGER.trigger = 0, math.random(HUNGER.min, HUNGER.max)
-	HUNGER.killsAtMeal = Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 2)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
@@ -2402,9 +2418,9 @@ local function Feed()
 		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
 	end
 	local deadline = Spring.GetGameFrame() + FEED_DURATION * Game.gameSpeed
-	local blast = false
+	local blast, ownEaten = false, 0
 	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
-		local target, isFeature, startMetal = PickMeal()
+		local target, isFeature, startMetal, ownMetal = PickMeal()
 		if target then
 			Spring.GiveOrderToUnit(unitID, CMD.RECLAIM, { isFeature and (Game.maxUnits + target) or target }, 0)
 			local before = fedMetal
@@ -2422,6 +2438,7 @@ local function Feed()
 			end
 			if MealGone(target, isFeature) then
 				fedMetal = before + startMetal
+				ownEaten = ownEaten + (ownMetal or 0)
 			end
 			Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", fedMetal)
 			Spring.Echo("scav boss fed " .. math.floor(fedMetal) .. " / " .. FEED_GOAL .. " metal")
@@ -2433,6 +2450,14 @@ local function Feed()
 			Sleep(1000)
 		end
 	end
+	if blast then
+		HUNGER.value = 0
+		HUNGER.killsAtMeal = Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0
+	else
+		local share = math.min(1, (fedMetal + ownEaten) / FEED_GOAL)
+		HUNGER.value = HUNGER.value * (1 - math.max(share, HUNGER.missDrop))
+	end
+	HUNGER.trigger = math.random(HUNGER.min, HUNGER.max)
 	posed = false
 	SetRaisePose(false)
 	if blast then
