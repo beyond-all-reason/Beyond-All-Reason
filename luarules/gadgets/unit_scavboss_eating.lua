@@ -113,7 +113,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:GameFrame(frame)
-	if frame % 30 ~= 0 then
+	if frame % Game.gameSpeed ~= 0 then
 		return
 	end
 	local hunger, meal = -1, -1
@@ -182,7 +182,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
 	return true
 end
 
-local RAISE_COUNT = 1 -- units that rise from each wreck the boss resurrects
+local RAISE_COUNT = 1
 local raised = {}
 
 local function SizeName(unitDef)

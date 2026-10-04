@@ -45,9 +45,8 @@ for key, pair in pairs(baseValues) do
 	stats[key] = math.floor(base * individualMultiplier ^ level + 0.5)
 end
 
-local unitsTable = {}
-do
-	unitsTable.scavengerbossv4 = {
+local unitsTable = {
+	scavengerbossv4 = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
 		autoheal = 0,
@@ -952,6 +951,6 @@ do
 				def = "setting_turbo_delay",
 			},
 		},
-	}
-end
+	},
+}
 return unitsTable

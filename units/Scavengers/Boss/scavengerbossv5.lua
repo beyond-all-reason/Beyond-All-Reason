@@ -1,12 +1,11 @@
 local playerCountScale = 1
 local level = 0
 if BAR.Utilities.Gametype.IsScavengers() then
-	playerCountScale = math.min(1, (#Spring.GetTeamList() - 2) / 8) -- -2 because scavs and gaia shouldn't count, 8 players are the baseline
+	playerCountScale = math.min(1, (#Spring.GetTeamList() - 2) / 8)
 	level = ({ veryeasy = -2, easy = -1, normal = 0, hard = 1, veryhard = 2, epic = 3 })[Spring.GetModOptions().scav_difficulty]
 		or 0
 end
 
--- the values in this table are for normal difficulty with 8 players, the scaling below the table adjusts them
 local units = {
 	scavengerbossv5 = {
 		buildpic = "scavengerbossv5.dds",

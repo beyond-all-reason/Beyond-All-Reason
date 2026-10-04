@@ -371,6 +371,7 @@ if gadgetHandler:IsSyncedCode() then
 		nSpawnedBosses = 0
 		nKilledBosses = 0
 		nTotalBosses = nTotalBosses + 1
+		SetGameRulesParam("scavBossesTotal", nTotalBosses)
 		bossResistance = {}
 		aliveBossesMaxHealth = 0
 		bosses.resistances = bossResistance

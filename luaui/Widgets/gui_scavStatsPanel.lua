@@ -86,6 +86,7 @@ local rules = {
 	"scavBossTime",
 	"scavBossAnger",
 	"scavBossesKilled",
+	"scavBossesTotal",
 	"scavTechAnger",
 	"scavGracePeriod",
 	"scavBossHealth",
@@ -433,6 +434,9 @@ local function UpdateRules()
 
 	for _, rule in ipairs(rules) do
 		gameInfo[rule] = Spring.GetGameRulesParam(rule) or 0
+	end
+	if gameInfo.scavBossesTotal > 0 then
+		nBosses = gameInfo.scavBossesTotal
 	end
 	gameInfo.scavCounts = getScavCounts("Count")
 	gameInfo.scavKills = getScavCounts("Kills")
