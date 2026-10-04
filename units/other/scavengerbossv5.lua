@@ -10,7 +10,7 @@ end
 local units = {
 	scavengerbossv5 = {
 		buildpic = "scavengerbossv5.dds",
-		builddistance = 500,
+		builddistance = 700,
 		builder = true,
 		buildtime = 100000,
 		canassist = false,

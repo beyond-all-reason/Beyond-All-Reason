@@ -116,11 +116,17 @@ function gadget:GameFrame(frame)
 	if frame % 30 ~= 0 then
 		return
 	end
-	local hunger = -1
+	local hunger, meal = -1, -1
 	for unitID in pairs(bosses) do
 		hunger = math.max(hunger, Spring.GetUnitRulesParam(unitID, "scavboss_hunger") or 0)
+		if (Spring.GetUnitRulesParam(unitID, "scavboss_feed_state") or 0) > 0 then
+			local eaten = Spring.GetUnitRulesParam(unitID, "scavboss_feed_metal") or 0
+			local goal = Spring.GetUnitRulesParam(unitID, "scavboss_feed_goal") or 1
+			meal = math.max(meal, math.min(100, math.floor(100 * eaten / goal)))
+		end
 	end
 	Spring.SetGameRulesParam("scavBossHunger", hunger)
+	Spring.SetGameRulesParam("scavBossMeal", meal)
 end
 
 function gadget:Initialize()

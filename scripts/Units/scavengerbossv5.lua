@@ -1503,7 +1503,7 @@ local HUNGER = {
 	health = 1, -- hunger only grows below this health; 1 = always
 	fillSeconds = 600, -- seconds from empty to full when the boss kills nothing big
 	minSeconds = 240, -- the fastest it can fill
-	killSeconds = 30, -- every T3 unit the boss kills since its last meal shortens the fill by this many seconds
+	killsForMin = 55, -- T3 units the boss must kill since its last meal to reach the fastest fill
 	min = 80, -- Devour starts somewhere between these two hunger values, picked anew each time
 	max = 100,
 	value = 0,
@@ -2171,7 +2171,7 @@ end
 local FEED_GRACE = 3 -- seconds of warning before the face opens
 local FEED_DURATION = 20 -- seconds the face stays open
 local FEED_GOAL = 30000 -- metal pulled in that triggers the blast
-local EAT_RANGE = 450 -- keep under builddistance
+local EAT_RANGE = 650 -- keep under builddistance
 local BLAST_RADIUS, BLAST_DAMAGE, EVAPORATE_HEALTH = 2800, 160000, 0.35
 local BLAST_WAVE_FRAMES = 8 -- frames the damage takes to reach the edge of the blast
 local SHIELD_WEAPON = 5
@@ -2217,7 +2217,17 @@ local function PickMeal()
 			best, bestMetal = featureID, metal
 		end
 	end
-	return best, true, bestMetal
+	if best then
+		return best, true, bestMetal
+	end
+	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE, myTeam)) do
+		local def = UnitDefs[Spring.GetUnitDefID(otherID)]
+		local edible = otherID ~= unitID and def.canMove and not def.canFly and def.reclaimable
+		if edible and not def.customParams.eaterboss and def.metalCost > bestMetal then
+			best, bestMetal = otherID, def.metalCost
+		end
+	end
+	return best, false, 0
 end
 
 local function MealGone(target, isFeature)
@@ -2375,6 +2385,7 @@ end
 local function Feed()
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed", 0)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 1)
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
 	Sleep(FEED_GRACE * 1000)
 	eating, posed, isAiming = true, true, true
 	fedMetal = 0
@@ -2723,6 +2734,9 @@ local function FeedWatch()
 	while true do
 		Sleep(500)
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
+		if Spring.GetUnitIsStunned(unitID) then
+			HUNGER.value = 0
+		end
 		if
 			not eating
 			and (health or 1) / (maxHealth or 1) <= HUNGER.health
@@ -2730,7 +2744,8 @@ local function FeedWatch()
 			and Spring.GetUnitRulesParam(unitID, "scavboss_turbo") ~= "off"
 		then
 			local kills = (Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0) - HUNGER.killsAtMeal
-			local fill = math.max(HUNGER.minSeconds, HUNGER.fillSeconds - kills * HUNGER.killSeconds)
+			local fill = HUNGER.fillSeconds
+				- (HUNGER.fillSeconds - HUNGER.minSeconds) * math.min(1, kills / HUNGER.killsForMin)
 			HUNGER.value = math.min(100, HUNGER.value + 50 / fill)
 			if HUNGER.value >= HUNGER.trigger then
 				Feed()
@@ -2803,6 +2818,7 @@ end
 
 function script.Create()
 	StartThread(StopWalking)
+	Spring.SetUnitRulesParam(unitID, "scavboss_feed_goal", FEED_GOAL)
 	StartThread(FeedWatch)
 	StartThread(BeamLoop)
 	StartThread(Director)

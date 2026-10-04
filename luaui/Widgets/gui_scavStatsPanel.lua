@@ -90,6 +90,7 @@ local rules = {
 	"scavGracePeriod",
 	"scavBossHealth",
 	"scavBossHunger",
+	"scavBossMeal",
 	"lagging",
 	"scavDifficulty",
 	"scavCount",
@@ -123,6 +124,7 @@ local function CreatePanelDisplayList()
 	gl.Scale(widgetScale, widgetScale, 1)
 	gl.CallList(displayList)
 	local hunger = gameInfo.scavBossAnger >= 100 and Spring.GetGameRulesParam("scavBossHunger") or -1
+	local meal = Spring.GetGameRulesParam("scavBossMeal") or -1
 	local hungerRow = Spring.GetGameRulesParam("scavBossStaggerActive") == false and 3 or 4
 	if nBosses > 1 then
 		hungerRow = 5
@@ -132,12 +134,15 @@ local function CreatePanelDisplayList()
 		gl.Texture(false)
 		gl.Color(0, 0, 0, 0.6)
 		gl.Rect(left, bottom, right, bottom + panelFontSize)
-		if hunger >= 80 then
+		local fill = meal >= 0 and meal or hunger
+		if meal >= 0 then
+			gl.Color(1, 0.6, 0.1, 0.9)
+		elseif hunger >= 80 then
 			gl.Color(1, 0.25, 0.2, 0.9)
 		else
 			gl.Color(0.6, 0.3, 0.9, 0.9)
 		end
-		gl.Rect(left + 1, bottom + 1, left + 1 + (right - left - 2) * hunger / 100, bottom + panelFontSize - 1)
+		gl.Rect(left + 1, bottom + 1, left + 1 + (right - left - 2) * fill / 100, bottom + panelFontSize - 1)
 		gl.Color(1, 1, 1, 1)
 	end
 	font:Begin()
@@ -262,7 +267,7 @@ local function CreatePanelDisplayList()
 			end
 			if hunger >= 0 then
 				font:Print(
-					textColor .. BAR.I18N("ui.scavs.bossHunger"),
+					textColor .. BAR.I18N(meal >= 0 and "ui.scavs.bossFeeding" or "ui.scavs.bossHunger"),
 					panelMarginX,
 					PanelRow(hungerRow),
 					panelFontSize,
