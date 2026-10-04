@@ -108,7 +108,6 @@ end
 -- Launching -------------------------------------------------------------------
 
 ---@class StarburstParams : ProjectileParams
----@field cegtag number
 ---@field maxRange number
 ---@field tracking number
 ---@field upTime number
@@ -133,7 +132,6 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	spawnParams.team = Spring.GetProjectileTeamID(projectileID)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
 	spawnParams.gravity = weapon.gravity
-	spawnParams.cegtag = weapon.cegTag -- note: is lower case
 	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
 	spawnParams.tracking = weapon.tracking
 	spawnParams.upTime = upTimeFrames
