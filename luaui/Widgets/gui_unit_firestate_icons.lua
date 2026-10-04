@@ -425,6 +425,8 @@ end
 -- Widget callbacks
 --------------------------------------------------------------------------------
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD_FIRE_STATE)
+	widgetHandler:RegisterUnitCommand(CMD_USER_FIRESTATE)
 	if not gl.CreateShader then -- headless / no shader support
 		widgetHandler:RemoveWidget()
 		return

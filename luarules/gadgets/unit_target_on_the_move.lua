@@ -635,6 +635,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterUnitCommand(CMD_STOP)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
