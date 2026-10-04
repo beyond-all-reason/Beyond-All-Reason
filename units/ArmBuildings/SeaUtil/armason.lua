@@ -30,7 +30,6 @@ return {
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecaltype = "decals/armason_aoplane.dds",
-			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

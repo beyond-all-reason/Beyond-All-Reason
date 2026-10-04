@@ -36,7 +36,6 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 3,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",

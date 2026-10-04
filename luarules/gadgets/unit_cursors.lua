@@ -6,22 +6,20 @@ function gadget:GetInfo()
 		desc = "Assigns some UI related mouse cursors",
 		author = "Floris",
 		date = "August 2021",
-		license = "GNU GPL, v2 or later",
+		license   = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = true
 	}
 end
 
-if not gadgetHandler:IsSyncedCode() then
-	return
-end
+if not gadgetHandler:IsSyncedCode() then return end
 
 local cursors = {
-	"uiresizev",
-	"uiresizeh",
-	"uiresized1",
-	"uiresized2",
-	"uimove",
+	'uiresizev',
+	'uiresizeh',
+	'uiresized1',
+	'uiresized2',
+	'uimove',
 }
 
 function gadget:Initialize()
@@ -29,3 +27,4 @@ function gadget:Initialize()
 		Spring.AssignMouseCursor(cursor, cursor, false)
 	end
 end
+

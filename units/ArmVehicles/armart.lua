@@ -44,6 +44,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles",
 			unitgroup = "weapon",
+			weapon1turretx = 40,
+			weapon1turrety = 110,
 		},
 		featuredefs = {
 			dead = {
@@ -126,10 +128,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 600,
-				customparams = {
-					turretspeedx = 40,
-					turretspeedy = 110,
-				},
 				damage = {
 					default = 182,
 					subs = 61,

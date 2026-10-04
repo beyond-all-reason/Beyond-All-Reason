@@ -33,7 +33,6 @@ return {
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			reaimtime = 5,
 			subfolder = "CorAircraft",
 			drone = 1,
 			nohealthbars = 1,
@@ -100,7 +99,7 @@ return {
 					vtol = 2,
 				},
 				customparams = {
-					noattackrangearc = 1,
+					noattackrangearc= 1,
 				},
 			},
 		},

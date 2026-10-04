@@ -44,7 +44,6 @@ return {
 			[10] = "armstil",
 		},
 		customparams = {
-			airfactory = true,
 			buildinggrounddecaldecayspeed = 30,
 			buildinggrounddecalsizex = 16,
 			buildinggrounddecalsizey = 16,

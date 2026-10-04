@@ -34,7 +34,6 @@ return {
 			buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
 			cvbuildable = true,
 			geothermal = 1,
-			standardextractor = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

@@ -1,21 +1,22 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-	return {
-		name = "Unit kill count",
-		desc = "",
-		author = "Floris",
-		date = "February 2022",
-		license = "GNU GPL, v2 or later",
-		layer = 5,
-		enabled = true,
-	}
+    return {
+        name      = "Unit kill count",
+        desc      = "",
+        author    = "Floris",
+        date      = "February 2022",
+        license   = "GNU GPL, v2 or later",
+        layer     = 5,
+        enabled   = true
+    }
 end
 
 if gadgetHandler:IsSyncedCode() then
+
 	local GetUnitRulesParam = Spring.GetUnitRulesParam
 	local SetUnitRulesParam = Spring.SetUnitRulesParam
-
+	
 	local teamAllyteam = {}
 	local teamList = Spring.GetTeamList()
 	for i = 1, #teamList do
@@ -29,4 +30,5 @@ if gadgetHandler:IsSyncedCode() then
 			SetUnitRulesParam(attackerID, "kills", kills + 1)
 		end
 	end
+
 end

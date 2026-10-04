@@ -8,6 +8,7 @@ return {
 		impulsefactor = 0,
 		name = "TreesFire",
 		soundhitdry = "fireburnshort",
+		soundhitvolume = 2.1,
 		damage = {
 			commanders = 3,
 			crawlingbombs = 3,
@@ -23,6 +24,7 @@ return {
 		impulsefactor = 0,
 		name = "TreesFire",
 		soundhitdry = "fireburnshort",
+		soundhitvolume = 2.2,
 		damage = {
 			commanders = 3,
 			crawlingbombs = 3,
@@ -39,6 +41,7 @@ return {
 		name = "TreesFire",
 
 		soundhitdry = "fireburnshort",
+		soundhitvolume = 2.3,
 		damage = {
 			commanders = 4,
 			crawlingbombs = 4,
@@ -54,6 +57,7 @@ return {
 		impulsefactor = 0,
 		name = "TreesFire",
 		soundhitdry = "fireburnshort",
+		soundhitvolume = 2.4,
 		damage = {
 			commanders = 4,
 			crawlingbombs = 4,

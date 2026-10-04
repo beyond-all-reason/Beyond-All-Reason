@@ -64,18 +64,6 @@ return {
 				object = "Units/corhasy_dead.s3o",
 				reclaimable = true,
 			},
-			heap = {
-				blocking = false,
-				category = "heaps",
-				damage = 17800,
-				footprintx = 9,
-				footprintz = 9,
-				height = 4,
-				metal = 1250,
-				object = "Units/cor7X7A.s3o",
-				reclaimable = true,
-				resurrectable = 0,
-			},
 		},
 		sfxtypes = {
 			explosiongenerators = {

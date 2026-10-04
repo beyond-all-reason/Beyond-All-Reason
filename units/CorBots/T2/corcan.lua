@@ -1,7 +1,7 @@
 return {
 	corcan = {
 		buildpic = "CORCAN.DDS",
-		buildtime = 12000,
+		buildtime = 15000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "32 34 30",
@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 6000,
+		health = 5940,
 		maxacc = 0.138,
 		maxdec = 0.6486,
 		maxslope = 14,
@@ -24,7 +24,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 380,
-		speed = 38,
+		speed = 37.5,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.825,
@@ -33,7 +33,6 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 2,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -110,7 +109,7 @@ return {
 			cor_canlaser = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				beamtime = 0.3,
+				beamtime = 0.16,
 				beamttl = 2.4,
 				corethickness = 0.21,
 				craterareaofeffect = 0,
@@ -140,7 +139,7 @@ return {
 				weaponvelocity = 700,
 				damage = {
 					default = 275,
-					vtol = 55,
+					vtol = 25,
 				},
 			},
 		},

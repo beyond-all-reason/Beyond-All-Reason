@@ -39,7 +39,6 @@ return {
 		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
 		customparams = {
-			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles/T2",

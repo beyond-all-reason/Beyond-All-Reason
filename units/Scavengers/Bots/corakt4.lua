@@ -11,7 +11,7 @@ return {
 		collisionvolumescales = "49 56 49",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		explodeas = "bantha",
+		explodeas = "explosiont3",
 		footprintx = 4,
 		footprintz = 4,
 		mass = 1000000,
@@ -24,7 +24,7 @@ return {
 		objectname = "Units/scavboss/CORAKT4.s3o",
 		script = "Units/scavboss/CORAKT4.cob",
 		seismicsignature = 0,
-		selfdestructas = "banthaSelfd",
+		selfdestructas = "explosiont3xl",
 		sightdistance = 600,
 		turninplace = true,
 		turninplaceanglelimit = 90,
@@ -32,11 +32,12 @@ return {
 		turnrate = 1391.5,
 		upright = true,
 		customparams = {
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 2,
 			subfolder = "CorBots",
+			weapon1turretx = 300,
+			weapon1turrety = 300,
 		},
 		featuredefs = {
 			dead = {
@@ -121,10 +122,6 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
-				customparams = {
-					turretspeedx = 300,
-					turretspeedy = 300,
-				},
 				damage = {
 					default = 100,
 					vtol = 20,

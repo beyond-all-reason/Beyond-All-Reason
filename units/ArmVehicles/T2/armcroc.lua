@@ -46,6 +46,8 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			weapon1turretx = 45,
+			weapon1turrety = 75,
 		},
 		featuredefs = {
 			dead = {
@@ -115,10 +117,10 @@ return {
 				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
-				impulsefactor = 1.1,
+				impulsefactor = 0.123,
 				name = "Medium g2g gauss-cannon",
 				noselfdamage = true,
-				predictboost = 0.6,
+				predictboost = 1,
 				range = 480,
 				reloadtime = 1.6,
 				soundhit = "xplomed4",
@@ -126,11 +128,7 @@ return {
 				soundstart = "cannon2",
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 600,
-				customparams = {
-					turretspeedx = 45,
-					turretspeedy = 75,
-				},
+				weaponvelocity = 450,
 				damage = {
 					default = 225,
 					subs = 100,

@@ -44,7 +44,6 @@ return {
 			buildinggrounddecaltype = "decals/corhp_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			quickstart_discountable = true,
 			subfolder = "CorBuildings/LandFactories",
 			unitgroup = "builder",
 			usebuildinggrounddecal = true,

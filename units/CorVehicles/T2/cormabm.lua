@@ -42,7 +42,6 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzetime_uncapped = true,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "antinuke",

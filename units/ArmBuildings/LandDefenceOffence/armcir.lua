@@ -1,6 +1,6 @@
 return {
 	armcir = {
-		airsightdistance = 1200,
+		airsightdistance = 1060,
 		buildangle = 65536,
 		buildpic = "ARMCIR.DDS",
 		buildtime = 12000,
@@ -114,7 +114,7 @@ return {
 				noselfdamage = true,
 				projectiles = 1,
 				proximitypriority = -0.5,
-				range = 1200,
+				range = 1125,
 				reloadtime = 1.6,
 				smokecolor = 0.95,
 				smokeperiod = 8,

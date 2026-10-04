@@ -55,7 +55,6 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
-			iscritter = true,
 			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",

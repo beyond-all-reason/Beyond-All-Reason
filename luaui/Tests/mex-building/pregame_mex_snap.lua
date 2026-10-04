@@ -1,8 +1,8 @@
-local function skip()
+function skip()
 	return Spring.GetGameFrame() > 0
 end
 
-local function setup()
+function setup()
 	Test.clearMap()
 
 	widget_cmd_extractor_snap = widgetHandler:FindWidget("Extractor Snap (mex/geo)")
@@ -11,7 +11,7 @@ local function setup()
 	widget_gui_pregame_build = widgetHandler:FindWidget("Pregame Queue")
 	assert(widget_gui_pregame_build)
 
-	WG["pregame-build"].setBuildQueue({})
+	WG['pregame-build'].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
 	initialCameraState = Spring.GetCameraState()
@@ -24,18 +24,18 @@ local function setup()
 	Test.waitTime(10)
 end
 
-local function cleanup()
+function cleanup()
 	Test.clearMap()
 
-	WG["pregame-build"].setBuildQueue({})
+	WG['pregame-build'].setBuildQueue({})
 	WG["pregame-build"].setPreGamestartDefID(nil)
 
 	Spring.SetCameraState(initialCameraState)
 end
 
-local function test()
-	mexUnitDefId = UnitDefNames.armmex.id
-	metalSpots = WG.resource_spot_finder.metalSpotsList
+function test()
+	mexUnitDefId = UnitDefNames["armmex"].id
+	metalSpots = WG['resource_spot_finder'].metalSpotsList
 
 	midX, midZ = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	targetMex = nil
@@ -60,7 +60,12 @@ local function test()
 	assert(WG.ExtractorSnap.position ~= nil)
 
 	-- did it snap to the closest mex?
-	assert(math.distance2d(WG.ExtractorSnap.position.x, WG.ExtractorSnap.position.z, targetMex.x, targetMex.z) < 100)
+	assert(math.distance2d(
+		WG.ExtractorSnap.position.x,
+		WG.ExtractorSnap.position.z,
+		targetMex.x,
+		targetMex.z
+	) < 100)
 
 	snappedPosition = table.copy(WG.ExtractorSnap.position)
 
@@ -71,15 +76,13 @@ local function test()
 	Test.waitTime(10)
 
 	-- did the mex get placed in the right spot?
-	buildQueue = WG["pregame-build"].getBuildQueue()
+	buildQueue = WG['pregame-build'].getBuildQueue()
 	assertEqual(#buildQueue, 1)
 	assertTablesEqual(buildQueue[1], {
 		mexUnitDefId,
 		snappedPosition.x,
 		snappedPosition.y,
 		snappedPosition.z,
-		0,
+		0
 	}, 0.1)
 end
-
-return { skip = skip, setup = setup, test = test, cleanup = cleanup }

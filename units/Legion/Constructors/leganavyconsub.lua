@@ -3,7 +3,7 @@ return {
 		builddistance = 180,
 		builder = true,
 		buildpic = "leganavyconsub.DDS",
-		buildtime = 23000,
+		buildtime = 18000,
 		canmove = true,
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "30 30 71",

@@ -185,6 +185,7 @@ return {
 				customparams = {
 					cegtag = "missiletrailcorroyspecial",
 					model = "airbomb",
+					noattackrangearc = 1,
 					number = "8",
 					speceffect = "split",
 					speceffect_def = "cormship_rocket_split",

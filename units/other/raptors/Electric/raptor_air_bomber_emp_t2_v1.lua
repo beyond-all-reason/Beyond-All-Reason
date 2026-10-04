@@ -1,5 +1,6 @@
 return {
 	raptor_air_bomber_emp_t2_v1 = {
+		acceleration = 1,
 		airhoverfactor = 0,
 		attackrunlength = 32,
 		maxdec = 0.1,
@@ -61,7 +62,6 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
-			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",

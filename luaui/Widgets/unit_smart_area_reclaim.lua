@@ -15,15 +15,16 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "Smart Area Reclaim",
-		desc = "Area reclaims only metal or energy depending on the center feature",
-		author = "aegis",
-		date = "Jun 25, 2010",
-		license = "Public Domain",
-		layer = 0,
-		enabled = true,
+		name      = "Smart Area Reclaim",
+		desc      = "Area reclaims only metal or energy depending on the center feature",
+		author    = "aegis",
+		date      = "Jun 25, 2010",
+		license   = "Public Domain",
+		layer     = 0,
+		enabled   = true
 	}
 end
+
 
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
@@ -47,9 +48,7 @@ local sort = table.sort
 
 local RECLAIM = CMD.RECLAIM
 local MOVE = CMD.MOVE
-local INSERT = CMD.INSERT
 local OPT_SHIFT = CMD.OPT_SHIFT
-local OPT_ALT = CMD.OPT_ALT
 
 local abs = math.abs
 local sqrt = math.sqrt
@@ -71,44 +70,47 @@ for udefID, def in ipairs(UnitDefs) do
 	end
 end
 
+
 local function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
-		widgetHandler:RemoveWidget()
-	end
+    if Spring.GetSpectatingState() and (spGetGameFrame() > 0 or gameStarted) then
+        widgetHandler:RemoveWidget()
+    end
 end
+
 
 function widget:GameStart()
-	gameStarted = true
-	maybeRemoveSelf()
+    gameStarted = true
+    maybeRemoveSelf()
 end
+
 
 function widget:PlayerChanged()
-	maybeRemoveSelf()
+    maybeRemoveSelf()
 end
 
+
 function widget:Initialize()
-	if Spring.IsReplay() or spGetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
+    if Spring.IsReplay() or spGetGameFrame() > 0 then
+        maybeRemoveSelf()
+    end
 end
+
 
 local function tsp(rList, tList, dx, dz)
 	dx = dx or 0
 	dz = dz or 0
 	tList = tList or {}
 
-	if rList == nil then
-		return
-	end
+	if rList == nil then return end
 
 	local closestDist
 	local closestItem
 	local closestIndex
 
-	for i = 1, #rList do
+	for i=1, #rList do
 		local item = rList[i]
 		if item ~= nil and item ~= 0 then
-			local distx, distz = item[1] - dx, item[2] - dz
+			local distx, distz = item[1]-dx, item[2]-dz
 			local dist = abs(distx) + abs(distz)
 			if closestDist == nil or dist < closestDist then
 				closestDist = dist
@@ -118,14 +120,13 @@ local function tsp(rList, tList, dx, dz)
 		end
 	end
 
-	if closestItem == nil then
-		return tList
-	end
+	if closestItem == nil then return tList end
 
-	tList[#tList + 1] = closestItem
+	tList[#tList+1] = closestItem
 	rList[closestIndex] = 0
 	return tsp(rList, tList, closestItem[1], closestItem[2])
 end
+
 
 local function stationary(rList)
 	local sList = {}
@@ -133,7 +134,7 @@ local function stationary(rList)
 	local sKeysCount = 0
 	local lastKey, lastItem
 	local lastItemCount = 0
-	for i = 1, #rList do
+	for i=1, #rList do
 		local item = rList[i]
 		local dx, dz = item[1], item[2]
 
@@ -141,7 +142,7 @@ local function stationary(rList)
 		if lastKey ~= theta then
 			sKeysCount = sKeysCount + 1
 			sKeys[sKeysCount] = theta
-			lastItem = { item }
+			lastItem = {item}
 			lastItemCount = 1
 			sList[theta] = lastItem
 		else
@@ -154,10 +155,10 @@ local function stationary(rList)
 	local oList = {}
 	local oListCount = 0
 	sort(sKeys)
-	for i = 1, #sKeys do
+	for i=1, #sKeys do
 		local theta = sKeys[i]
 		local values = sList[theta]
-		for j = 1, #values do
+		for j=1, #values do
 			oListCount = oListCount + 1
 			oList[oListCount] = values[j]
 		end
@@ -165,30 +166,24 @@ local function stationary(rList)
 	return oList
 end
 
-local function issue(rList, shift, meta)
-	local opts = {}
-	local insertPos = {}
 
-	for i = 1, #rList do
+local function issue(rList, shift)
+	local opts = {}
+
+	for i=1, #rList do
 		local item = rList[i]
 		local uid, fid = item[3], item[4]
 
-		if meta then
-			-- insert at the front of the queue, keeping the order computed above
-			local pos = insertPos[uid] or 0
-			GiveOrderToUnit(uid, INSERT, { pos, RECLAIM, 0, fid + maxUnits }, OPT_ALT)
-			insertPos[uid] = pos + 1
-		else
-			local opt = {}
-			if opts[uid] ~= nil or shift then
-				opt = OPT_SHIFT
-			end
-
-			GiveOrderToUnit(uid, RECLAIM, { fid + maxUnits }, opt)
-			opts[uid] = 1
+		local opt = {}
+		if opts[uid] ~= nil or shift then
+			opt = OPT_SHIFT
 		end
+
+		GiveOrderToUnit(uid, RECLAIM, {fid+maxUnits}, opt)
+		opts[uid] = 1
 	end
 end
+
 
 -- we use the previous unit loop iterating on cmds to store reclaim orders
 -- and return cmds for its original usage
@@ -199,17 +194,18 @@ local function storeReclaimOrders(uid)
 	local reclaimOrdersCount = 0
 
 	for _, order in pairs(cmds) do
-		if order.id == RECLAIM then
+		if order["id"] == RECLAIM then
 			reclaimOrdersCount = reclaimOrdersCount + 1
-			reclaimOrders[uid][reclaimOrdersCount] = order.params[1]
+			reclaimOrders[uid][reclaimOrdersCount] = order["params"][1]
 		end
 	end
 
 	return cmds
 end
 
+
 local function checkNoDuplicateOrder(uid, fid)
-	local orderParam = fid + maxUnits
+	local orderParam = fid+maxUnits
 
 	for _, reclaimParam in pairs(reclaimOrders[uid] or {}) do
 		if reclaimParam == orderParam then
@@ -220,14 +216,11 @@ local function checkNoDuplicateOrder(uid, fid)
 	return true
 end
 
+
 function widget:CommandNotify(id, params, options)
 	-- early exit if criteria does not match
-	if id ~= RECLAIM then
-		return false
-	end
-	if not params[4] then
-		return false
-	end
+	if id ~= RECLAIM then return false end
+	if not params[4] then return false end
 
 	local x, y, z, r = params[1], params[2], params[3], params[4]
 
@@ -239,9 +232,7 @@ function widget:CommandNotify(id, params, options)
 	local mx, my = WorldToScreenCoords(x, y, z)
 	local type, originFeatureId = TraceScreenRay(mx, my)
 
-	if type ~= "feature" then
-		return false
-	end
+	if type ~= "feature" then return false end
 
 	local commandHeight = Spring.GetGroundHeight(x, z)
 
@@ -255,7 +246,7 @@ function widget:CommandNotify(id, params, options)
 	-- clear reclaim orders cache
 	reclaimOrders = {}
 
-	for i = 1, #sUnits do
+	for i=1, #sUnits do
 		local uid = sUnits[i]
 		local udid = GetUnitDefID(uid)
 		if unitCanReclaim[udid] then
@@ -268,22 +259,18 @@ function widget:CommandNotify(id, params, options)
 			end
 
 			local ux, _, uz = GetUnitPosition(uid)
-			if options.shift or options.meta then
+			if options.shift then
 				local cmds = storeReclaimOrders(uid)
-				-- appended orders start where the queue ends; inserted ones run
-				-- first, so those keep the unit's current position
-				if options.shift and not options.meta then
-					for ci = #cmds, 1, -1 do
-						local cmd = cmds[ci]
-						if cmd.id == MOVE then
-							ux, uz = cmd.params[1], cmd.params[3]
-							break
-						end
+				for ci=#cmds, 1, -1 do
+					local cmd = cmds[ci]
+					if cmd.id == MOVE then
+						ux, uz = cmd.params[1], cmd.params[3]
+						break
 					end
 				end
 			end
 			rUnitsCount = rUnitsCount + 1
-			rUnits[rUnitsCount] = { uid = uid, ux = ux, uz = uz }
+			rUnits[rUnitsCount] = {uid=uid, ux=ux, uz=uz}
 		end
 	end
 
@@ -292,7 +279,7 @@ function widget:CommandNotify(id, params, options)
 
 		-- Sort features by above water, below water, metal value, energy value
 		local features = Spring.GetFeaturesInCylinder(x, z, r)
-		for i = 1, #features, 1 do
+		for i=1, #features, 1 do
 			local featureID = features[i]
 			local _, featY, _ = GetFeaturePosition(featureID)
 			local featM, _, featE = GetFeatureResources(featureID)
@@ -328,36 +315,29 @@ function widget:CommandNotify(id, params, options)
 			filteredFeatures = retw
 		end
 
-		for i = 1, #filteredFeatures do
+		for i=1,#filteredFeatures do
 			local fid = filteredFeatures[i]
 			if fid ~= nil then
 				local fx, _, fz = GetFeaturePosition(fid)
-				for ui = 1, #rUnits do
+				for ui=1,#rUnits do
 					local unit = rUnits[ui]
 					local uid, ux, uz = unit.uid, unit.ux, unit.uz
-					local dx, dz = ux - fx, uz - fz
-					local item = { dx, dz, uid, fid }
+					local dx, dz = ux-fx, uz-fz
+					local item = {dx, dz, uid, fid}
 					if mobiles[uid] ~= nil then
-						if not (options.shift or options.meta) or checkNoDuplicateOrder(uid, fid) then
+						if not options.shift or checkNoDuplicateOrder(uid, fid) then
 							mListCount = mListCount + 1
 							mList[mListCount] = item
 						end
 					elseif stationaries[uid] ~= nil then
-						if
-							sqrt((dx * dx) + (dz * dz)) <= stationaries[uid]
-							and (not (options.shift or options.meta) or checkNoDuplicateOrder(uid, fid))
-						then
+						if sqrt((dx*dx)+(dz*dz)) <= stationaries[uid] and (not options.shift or checkNoDuplicateOrder(uid, fid)) then
 							sListCount = sListCount + 1
 							sList[sListCount] = item
 						end
 					end
 				end
 				if mListCount > maxReclaimOrders then
-					Spring.Log(
-						widget:GetInfo().name,
-						LOG.WARNING,
-						"Command count exceeded, feature selection may be incomplete"
-					)
+					Spring.Log(widget:GetInfo().name, LOG.WARNING, "Command count exceeded, feature selection may be incomplete")
 					break
 				end
 			end
@@ -366,13 +346,13 @@ function widget:CommandNotify(id, params, options)
 		local issued = false
 		if mobileb then
 			mList = tsp(mList)
-			issue(mList, options.shift, options.meta)
+			issue(mList, options.shift)
 			issued = true
 		end
 
 		if stationaryb then
 			sList = stationary(sList)
-			issue(sList, options.shift, options.meta)
+			issue(sList, options.shift)
 			issued = true
 		end
 

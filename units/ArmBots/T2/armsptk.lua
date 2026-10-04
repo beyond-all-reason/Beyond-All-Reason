@@ -33,7 +33,6 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.2,
-			reaimtime = 5,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",

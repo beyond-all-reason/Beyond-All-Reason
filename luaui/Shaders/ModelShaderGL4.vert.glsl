@@ -115,7 +115,7 @@ out Data {
 	// shadowPosition
 	vec4 shadowVertexPos;
 
-	// auxiliary varyings
+	// auxilary varyings
 	float aoTerm;
 	float selfIllumMod;
 	float fogFactor;
@@ -191,7 +191,7 @@ float simFrame = (timeInfo.x + timeInfo.w);
 #line 120000
 
 /***********************************************************************/
-	// Auxiliary functions
+	// Auxilary functions
 
 	vec2 GetWind(float period) {
 		vec2 wind;

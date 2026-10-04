@@ -1,6 +1,7 @@
 return {
 	legamph = {
 		activatewhenbuilt = true,
+		brakerate = 0.5,
 		buildpic = "LEGAMPH.DDS",
 		buildtime = 16980,
 		canmove = true,
@@ -41,7 +42,6 @@ return {
 			model_author = "Johanthan Crimson, Tuerk",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.2,
-			reaimtime = 4,
 			subfolder = "Legion/T2",
 			techlevel = 2,
 			unitgroup = "weaponsub",
@@ -137,6 +137,7 @@ return {
 				soundhitdry = "flamhit1",
 				soundhitwet = "sizzle",
 				soundstart = "heatray3burn",
+				soundstartvolume = 11,
 				soundtrigger = 1,
 				tolerance = 5000,
 				thickness = 4.0,
@@ -144,8 +145,7 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				customparams = {
-					sweepfire_firetime = 1.0,
-					sweepfire_reloadtime = 3.0,
+					sweepfire = 4.5,
 				},
 				damage = {
 					default = 33,
@@ -180,7 +180,9 @@ return {
 				range = 600,
 				reloadtime = 3,
 				soundhit = "xplodep2",
+				soundhitvolume = 3,
 				soundhitwet = "splsmed",
+				soundhitwetvolume = 12,
 				soundstart = "torpedo1",
 				startvelocity = 190,
 				tracks = true,
@@ -206,7 +208,7 @@ return {
 				fastautoretargeting = true,
 				burstControlWhenOutOfArc = 2,
 				maxangledif = 180,
-				maindir = "0 0 1",
+				maindir = "0 0 1"
 			},
 			[2] = {
 				def = "COAX_DEPTHCHARGE",

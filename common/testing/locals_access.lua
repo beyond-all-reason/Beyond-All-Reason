@@ -4,8 +4,7 @@ usage:
 * load the file again, with generateLocalsAccessStr(localsNames)) appended.
 * setmetatable on the new environment to generateLocalsAccessMetatable(<old_metatable>)
 Through the metatable, local variables within the loaded file will now be accessible as if they were globals
-]]
---
+]]--
 
 local localsDetectorString = [[
 
@@ -43,7 +42,7 @@ local function generateLocalsAccessStr(localsNames)
 
 	content = content .. "\tgetAllLocals = function() return {\n"
 	for _, name in ipairs(localsNames) do
-		content = content .. '\t\t"' .. name .. '",\n'
+		content = content .. "\t\t\"" .. name .. "\",\n"
 	end
 	content = content .. "\t} end,\n"
 

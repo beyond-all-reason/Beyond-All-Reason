@@ -32,8 +32,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			islrpc = true,
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			restrictions_inclusion = "_nolrpc_noendgamelrpc_",
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
@@ -134,6 +133,7 @@ return {
 				soundhit = "rflrpcexplo",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
+				soundhitvolume = 36,
 				turret = true,
 				weapontimer = 14,
 				weapontype = "Cannon",
@@ -169,6 +169,7 @@ return {
 				soundhit = "starfallchargup",
 				soundhitwet = "starfallchargup",
 				soundstart = "starfallchargup",
+				soundstartvolume = 124,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1000,
@@ -188,12 +189,12 @@ return {
 				--engine bug?
 				burstControlWhenOutOfArc = 1,
 				maindir = "0 0 1",
-				--maxangledif = 10,
+               --maxangledif = 10,
 			},
 			[2] = {
 				def = "energycharger",
 				onlytargetcategory = "SURFACE",
-			},
+			}
 		},
 	},
 }

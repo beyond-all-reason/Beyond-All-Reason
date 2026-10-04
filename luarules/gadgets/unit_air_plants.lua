@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date = "15 Dec 2008",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
-		enabled = true,
+		enabled = true
 	}
 end
 
@@ -24,15 +24,37 @@ local SetUnitNeutral = Spring.SetUnitNeutral
 local CMD_IDLEMODE = CMD.IDLEMODE
 local CMD_LAND_AT = GameCMD.LAND_AT
 
+local isAirplantNames = {
+	corap = true,
+	coraap = true,
+	corplat = true,
+	corapt3 = true,
+
+	armap = true,
+	armaap = true,
+	armplat = true,
+	armapt3 = true,
+
+	legap = true,
+	legaap = true,
+	legapt3 = true,
+	legsplab = true,
+}
+local isAirplantNamesCopy = table.copy(isAirplantNames)
+for name,v in pairs(isAirplantNamesCopy) do
+	isAirplantNames[name..'_scav'] = true
+end
+-- convert unitname -> unitDefID
 local isAirplant = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.airfactory then
-		isAirplant[unitDefID] = true
+for unitName, params in pairs(isAirplantNames) do
+	if UnitDefNames[unitName] then
+		isAirplant[UnitDefNames[unitName].id] = params
 	end
 end
 
 local plantList = {}
 local buildingUnits = {}
+local unitsToDeneutralize = {}
 
 local landCmd = {
 	id = CMD_LAND_AT,
@@ -40,7 +62,7 @@ local landCmd = {
 	action = "aplandat",
 	type = CMDTYPE.ICON_MODE,
 	tooltip = "setting for Aircraft leaving the plant",
-	params = { "1", " Fly ", "Land" },
+	params = { '1', ' Fly ', 'Land' }
 }
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
@@ -58,11 +80,23 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	plantList[unitID] = nil
 	buildingUnits[unitID] = nil
+	unitsToDeneutralize[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if buildingUnits[unitID] then
-		SetUnitNeutral(unitID, false)
+		-- Delaying SetUnitNeutral to GameFrame to avoid /nocost race conditions
+		unitsToDeneutralize[unitID] = true
+		buildingUnits[unitID] = nil
+	end
+end
+
+function gadget:GameFrame(frame)
+	if next(unitsToDeneutralize) then
+		for unitID in pairs(unitsToDeneutralize) do
+			SetUnitNeutral(unitID, false)
+		end
+		unitsToDeneutralize = {}
 	end
 end
 
@@ -70,18 +104,7 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_LAND_AT)
 end
 
-function gadget:AllowCommand(
-	unitID,
-	unitDefID,
-	teamID,
-	cmdID,
-	cmdParams,
-	cmdOptions,
-	cmdTag,
-	playerID,
-	fromSynced,
-	fromLua
-)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if isAirplant[unitDefID] and plantList[unitID] then
 		local cmdDescID = FindUnitCmdDesc(unitID, CMD_LAND_AT)
 		landCmd.params[1] = cmdParams[1]

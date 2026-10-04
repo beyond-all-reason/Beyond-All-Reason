@@ -1,12 +1,19 @@
-local flare = piece("flare")
+local flare = piece "flare"
 
-function walk() end
 
-function stopwalk() end
+function walk()
+end
 
-function script.StartMoving() end
+function stopwalk()
+end
 
-function script.StopMoving() end
+function script.StartMoving()
+end
+	
+function script.StopMoving()
+end
+
+
 
 function script.AimFromWeapon1()
 	return flare
@@ -23,7 +30,9 @@ function script.FireWeapon1()
 	return true
 end
 
-function script.Shot1() end
+function script.Shot1()
+end
+
 
 --[[
 function script.Killed(recentDamage, maxHealth)
@@ -38,5 +47,5 @@ function script.Killed(recentDamage, maxHealth)
 	end
 	PlaySoundFile(snd,volume,x,y,z,0,0,0,'battle')
 end
-]]
---
+]]--
+

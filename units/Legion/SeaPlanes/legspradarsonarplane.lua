@@ -46,8 +46,7 @@ return {
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:radarpulse_t2",
-			},
-		},
+			},		},
 		sounds = {
 			build = "nanlath1",
 			canceldestruct = "cancel2",

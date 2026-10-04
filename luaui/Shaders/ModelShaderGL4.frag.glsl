@@ -59,7 +59,7 @@ in Data {
 	// shadowPosition
 	vec4 shadowVertexPos;
 
-	// auxiliary varyings
+	// auxilary varyings
 	float aoTerm;
 	float selfIllumMod;
 	float fogFactor;

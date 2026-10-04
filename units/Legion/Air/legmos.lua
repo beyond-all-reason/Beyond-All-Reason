@@ -28,10 +28,9 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 1400,
 		customparams = {
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			reaimtime = 5,
 			subfolder = "ArmAircraft",
 		},
 		sounds = {

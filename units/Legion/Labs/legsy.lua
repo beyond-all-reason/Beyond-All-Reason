@@ -37,12 +37,11 @@ return {
 			[5] = "legnavyfrigate",
 			[6] = "legnavydestro",
 			[7] = "legnavysub",
-			[8] = "legnavyartyship",
+            [8] = "legnavyartyship",
 		},
 		customparams = {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			quickstart_discountable = true,
 			subfolder = "Legion/Labs",
 			unitgroup = "builder",
 		},

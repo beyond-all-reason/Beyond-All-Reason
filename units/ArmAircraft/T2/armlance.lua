@@ -36,7 +36,6 @@ return {
 		wingangle = 0.06259,
 		wingdrag = 0.185,
 		customparams = {
-			areaattack_unlimited = true,
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmAircraft/T2",
@@ -88,7 +87,9 @@ return {
 				range = 400,
 				reloadtime = 6,
 				soundhit = "xplodep3",
+				soundhitvolume = 3.5,
 				soundhitwet = "splsmed",
+				soundhitwetvolume = 14,
 				soundstart = "bombrel",
 				startvelocity = 35,
 				tolerance = 2000,
@@ -101,10 +102,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					land_damage_mult = 0.2,
 					norangering = 1,
 					speceffect = "torpwaterpen",
-					tracking_turn_radius = 500,
 				},
 				damage = {
 					default = 375,

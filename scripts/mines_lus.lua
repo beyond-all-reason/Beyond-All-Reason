@@ -1,34 +1,31 @@
+
 local base = piece("base")
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams.detonaterange) or 64
-local spGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
-local stop_detect = 1
-local currentFireState = 2 -- default to fire at will, UnitCommand will change it
-local isBuilt = false -- default to false, LUS will update it when the unit is built
-local notStunned = true -- default to not stunned, unit_stun_script.lua will change it
 
--- Author: Doo update jan 2026
+local math_sqrt = math.sqrt
 
-local function CheckIfCanDetectAndStartThread()
-	-- I don't expect stun/unstun and firestates changes spams to happen
-	-- if it happens, maybe gate this branch with an "isActive" bool instead
-	-- would avoid starting multiple threads (even though they're always killed immediately)
-	if currentFireState == 2 and notStunned and isBuilt then -- isBuilt last, because mostly true
-		Signal(stop_detect) -- in case was active, else no-op
-		StartThread(EnemyDetect)
+-- Author: Doo
+-- Requires customParams.detonaterange in unitDefs or 64 elmos range will be used
+-- Possible enhancements: Use GetUnitsInCylinder(or sphere) of detonaterange and check for any restriction on target units
+
+function GetClosestEnemyDistance()
+	targetID = Spring.GetUnitNearestEnemy(unitID, triggerRange)
+	if targetID then
+		local tx,ty,tz = Spring.GetUnitPosition(targetID)
+		local dis = distance(ux,uy,uz,tx,ty,tz)
+		return dis
 	else
-		Signal(stop_detect) -- in case was active, else no-op
+		return math.huge
 	end
 end
 
-function FireStateChange(toFireState)
-	currentFireState = toFireState -- update fireState on cmds
-	CheckIfCanDetectAndStartThread()
-end
-
-function SetStunned(isStunned) -- called by unit_stun_script.lua
-	notStunned = not isStunned
-	CheckIfCanDetectAndStartThread()
+function distance(x1,y1,z1,x2,y2,z2)
+	local x = (x1-x2)
+	local y = (y1-y2)
+	local z = (z1-z2)
+	local dist = math_sqrt(x*x + y*y + z*z)
+	return dist
 end
 
 function script.AimWeapon()
@@ -43,24 +40,21 @@ function script.AimFromWeapon()
 	return base
 end
 
-function script.FireWeapon() end
+function script.FireWeapon()
+end
 
 function script.Create()
-	-- this seems to be loaded after the first UnitCommand() CMD.FIRE_STATE is fired, see cmd_mines_firestate.lua comments
-	currentFireState = Spring.GetUnitStates(unitID).firestate
-	isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
-	while not isBuilt do
-		isBuilt = Spring.GetUnitIsBeingBuilt(unitID) == false
-		Sleep(500)
-	end
-	CheckIfCanDetectAndStartThread()
+	ux,uy,uz = Spring.GetUnitPosition(unitID)
+	StartThread(EnemyDetect)
 end
 
 function EnemyDetect()
-	SetSignalMask(stop_detect)
 	while true do
-		if spGetUnitNearestEnemy(unitID, triggerRange, false, true) ~= nil then -- useLOS = false, sphereSearch = true
-			StartThread(Detonate) -- Makes sure detonation is not cancellable
+		local inProgress = Spring.GetUnitIsBeingBuilt(unitID)
+		local firestate = Spring.GetUnitStates(unitID, false)
+		local stunned = Spring.GetUnitIsStunned (unitID) 
+		if not inProgress and firestate and firestate > 0 and GetClosestEnemyDistance() <= triggerRange and not stunned then
+			StartThread(Detonate)
 			break
 		else
 			Sleep(1)

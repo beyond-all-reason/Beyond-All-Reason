@@ -1,10 +1,10 @@
 local widgetName = "Battle Resource Tracker"
 
-local function skip()
+function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-local function setup()
+function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -12,11 +12,11 @@ local function setup()
 	Test.prepareWidget(widgetName)
 end
 
-local function cleanup()
+function cleanup()
 	Test.clearMap()
 end
 
-local function test()
+function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -41,7 +41,7 @@ local function test()
 
 	Test.clearMap()
 
-	assert(#combineEventsSpy.calls == n - 1, #combineEventsSpy.calls)
+	assert(#(combineEventsSpy.calls) == n - 1, #(combineEventsSpy.calls))
 
 	events = widget.spatialHash:allEvents()
 	assert(#events == 1)
@@ -60,5 +60,3 @@ local function test()
 	end
 	assert(totalE == n * unitE)
 end
-
-return { skip = skip, setup = setup, test = test, cleanup = cleanup }

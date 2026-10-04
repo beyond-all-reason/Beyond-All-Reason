@@ -73,6 +73,7 @@ return {
 				burst = 3,
 				burstrate = 0.2333,
 				collidefriendly = false,
+				commandfire = true,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.25,

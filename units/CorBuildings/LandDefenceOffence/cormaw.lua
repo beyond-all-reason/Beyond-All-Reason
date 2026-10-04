@@ -80,7 +80,8 @@ return {
 			},
 		},
 		sfxtypes = {
-			explosiongenerators = {},
+			explosiongenerators = {
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -131,8 +132,10 @@ return {
 				rgbcolor2 = "0.9 0.84 0.8",
 				sizegrowth = 0.75,
 				soundhitdry = "flamhit1",
+				soundhitvolume = 7.5,
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
+				soundstartvolume = 5.3,
 				soundtrigger = false,
 				sprayangle = 100,
 				targetmoveerror = 0.001,

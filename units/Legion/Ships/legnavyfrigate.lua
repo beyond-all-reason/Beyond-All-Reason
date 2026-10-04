@@ -34,7 +34,7 @@ return {
 		turnrate = 300,
 		waterline = 0,
 		customparams = {
-			unitgroup = "weaponsub",
+			unitgroup = 'weaponsub',
 			model_author = "EnderRobo (Model), Phill-Arts (Concept Art)",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.5,
@@ -123,6 +123,8 @@ return {
 				soundhit = "splsmed",
 				soundhitwet = "xplodep1",
 				soundstart = "torpedo1",
+				soundhitvolume = 1.5,
+				soundhitwetvolume = 3,
 				startvelocity = 200,
 				tolerance = 12000,
 				tracks = true,
@@ -135,7 +137,6 @@ return {
 				weaponvelocity = 250,
 				customparams = {
 					speceffect = "torpwaterpen",
-					tracking_turn_radius = 2000,
 					weapons_group = 1,
 				},
 				damage = {
@@ -168,6 +169,8 @@ return {
 				soundhit = "xplodep1",
 				soundhitwet = "xplodep1",
 				soundstart = "torpedo1",
+				soundhitvolume = 1.5,
+				soundhitwetvolume = 3,
 				startvelocity = 150,
 				tolerance = 12000,
 				tracks = true,
@@ -179,8 +182,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					speceffect = "torpwaterpen",
-					tracking_turn_radius = 2000,
 					weapons_group = 2,
 				},
 				damage = {

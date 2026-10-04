@@ -150,6 +150,7 @@ return {
 				weaponvelocity = 700,
 				damage = {
 					default = 360,
+					ship = 200,
 					subs = 150,
 				},
 			},

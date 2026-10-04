@@ -1,3 +1,4 @@
+local unitName = "Epic Decade"
 return {
 	armdecadet3 = {
 		maxacc = 0.03,
@@ -31,7 +32,7 @@ return {
 		turnrate = 180,
 		waterline = 0,
 		customparams = {
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			techlevel = 3,

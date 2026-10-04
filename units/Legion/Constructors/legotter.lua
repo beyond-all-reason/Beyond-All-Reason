@@ -46,6 +46,7 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
+			"legmext15",
 			"legeconv",
 			"leglab",
 			"legvp",
@@ -85,7 +86,7 @@ return {
 			"legfhive",
 		},
 		customparams = {
-			unitgroup = "builder",
+			unitgroup = 'builder',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorVehicles",

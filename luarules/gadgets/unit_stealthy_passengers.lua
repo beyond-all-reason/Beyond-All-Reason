@@ -1,14 +1,15 @@
+
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Stealthy Passengers",
-		desc = "Makes passengers of stealthy transports stealthy themselves",
-		author = "Niobium",
-		date = "Jul 24, 2007",
-		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true,
+		name      = "Stealthy Passengers",
+		desc      = "Makes passengers of stealthy transports stealthy themselves",
+		author    = "Niobium",
+		date      = "Jul 24, 2007",
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 
@@ -18,12 +19,17 @@ end
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitStealth = Spring.SetUnitStealth
+local stringFind = string.find
 
 local stealthyUnits = {}
-local stealthyTransports = {}
+local stealthyTransports = {
+	[UnitDefNames.armdfly.id] = true,
+}
 for udid, ud in pairs(UnitDefs) do
-	if ud.customParams.stealths_passengers then
-		stealthyTransports[udid] = true
+	for id, v in pairs(stealthyTransports) do
+		if stringFind(ud.name, UnitDefs[id].name, 1, true) then
+			stealthyTransports[udid] = v
+		end
 	end
 	if ud.stealth then
 		stealthyUnits[udid] = true

@@ -35,7 +35,6 @@ return {
 			buildinggrounddecalsizex = 4,
 			buildinggrounddecalsizey = 4,
 			buildinggrounddecaltype = "decals/corarad_aoplane.dds",
-			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

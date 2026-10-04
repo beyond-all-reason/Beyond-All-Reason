@@ -29,7 +29,6 @@ return {
 		customparams = {
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 5,
 			removewait = true,
 			subfolder = "CorBuildings/SeaDefence",
 			unitgroup = "weapon",

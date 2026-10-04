@@ -33,7 +33,6 @@ return {
 			buildinggrounddecaltype = "decals/corpun_aoplane.dds",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 5,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",
 			usebuildinggrounddecal = true,
@@ -123,6 +122,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 350,
@@ -157,6 +157,7 @@ return {
 				customparams = {
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 350,

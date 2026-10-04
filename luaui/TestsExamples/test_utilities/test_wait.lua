@@ -1,13 +1,13 @@
-local function setup()
+function setup()
 	Test.clearMap()
 	Test.expectCallin("UnitCreated")
 end
 
-local function cleanup()
+function cleanup()
 	Test.clearMap()
 end
 
-local function test()
+function test()
 	Spring.Echo("[test_wait] waiting 5 frames")
 	Test.waitFrames(5)
 
@@ -34,5 +34,3 @@ local function test()
 	Spring.Echo("[test_wait] waiting 1000 ms")
 	Test.waitTime(1000)
 end
-
-return { setup = setup, test = test, cleanup = cleanup }

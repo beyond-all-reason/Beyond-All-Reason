@@ -12,6 +12,7 @@ function widget:GetInfo()
 	}
 end
 
+
 -- Localized Spring API for performance
 local spGetSpectatingState = Spring.GetSpectatingState
 
@@ -32,7 +33,7 @@ local minGroupID = 0
 
 local InstanceVBOTable = gl.InstanceVBOTable
 
-local popElementInstance = InstanceVBOTable.popElementInstance
+local popElementInstance  = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
 -- Configurables:
@@ -41,14 +42,13 @@ local groupNumberHeight = 0
 local healthbartexture = "LuaUI/Images/healtbars_exo4.tga"
 local debugmode = false
 
--- Management:
+-- Managment:
 local unitIDtoGroup = {} -- keys unitID's to group numbers
 local grouptounitID = {}
 for i = minGroupID, maxNumGroups do
 	grouptounitID[i] = {}
 end
 
----@type InstanceVBOTable?
 local unitGroupVBO = nil
 local unitGroupShader = nil
 local luaShaderDir = "LuaUI/Include/"
@@ -245,7 +245,7 @@ function widget:DrawScreenEffects()
 	end
 
 	if unitGroupVBO.usedElements > 0 then
-		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesn't update :/
+		-- note that unitGroupVBO.VAO:DrawArrays can be display-list wrapped, but then the #usedElements doesnt update :/
 		gl.Texture(0, healthbartexture)
 		unitGroupShader:Activate()
 		unitGroupVBO.VAO:DrawArrays(GL.POINTS, unitGroupVBO.usedElements)

@@ -37,7 +37,6 @@ return {
 		wingangle = 0.06222,
 		wingdrag = 0.18,
 		customparams = {
-			areaattack_unlimited = true,
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "Legion/Air/T2 Air",
@@ -89,7 +88,9 @@ return {
 				range = 400,
 				reloadtime = 7,
 				soundhit = "xplodep2",
+				soundhitvolume = 3.5,
 				soundhitwet = "splsmed",
+				soundhitwetvolume = 14,
 				soundstart = "bombrel",
 				startvelocity = 35,
 				tolerance = 2000,
@@ -102,10 +103,8 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
 				customparams = {
-					land_damage_mult = 0.2,
 					speceffect = "torpwaterpen",
 					norangering = 1,
-					tracking_turn_radius = 400,
 				},
 				damage = {
 					default = 750,

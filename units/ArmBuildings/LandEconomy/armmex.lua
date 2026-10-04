@@ -37,7 +37,6 @@ return {
 			buildinggrounddecaltype = "decals/armmex_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 1,
-			standardextractor = true,
 			model_author = "Cremuss",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

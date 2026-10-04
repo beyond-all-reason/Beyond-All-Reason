@@ -1093,13 +1093,12 @@ AimPrimary(heading, pitch)
 
 	//get PRINT ( heading,bAiming,wpnheading,RAND(1,256) ) ;
 	signal SIG_AIM;
-	if (!bMoving)
-	{
-		call-script StopAnimation();
-	}
+	start-script Weapon1Control();
+	
+	call-script StopAnimation();
 	call-script Weapon1Drawn();
-
-	call-script Weapon1SetWtdAim(pitch, heading);
+	
+	start-script Weapon1SetWtdAim(heading, pitch);
 
 	start-script RestoreAfterDelay();
 	return (aim1);

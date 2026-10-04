@@ -15,7 +15,7 @@ function widget:GetInfo()
 		date = "9 January 2009",
 		license = "GNU LGPL, v2.1 or later",
 		layer = 1010,
-		enabled = true,
+		enabled = true
 	}
 end
 
@@ -35,6 +35,7 @@ local GetMapDrawMode = Spring.GetMapDrawMode
 local glColor = gl.Color
 local glRect = gl.Rect
 local glPolygonMode = gl.PolygonMode
+
 
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_FILL = GL.FILL
@@ -92,7 +93,7 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 	end
 
 	font:Begin()
-	font:SetOutlineColor(0, 0, 0, 0.5)
+	font:SetOutlineColor(0,0,0, 0.5)
 	font:SetTextColor(1, 1, 1, 0.85)
 	font:Print(text, x + 4, y, size, opt)
 	font:End()
@@ -101,10 +102,10 @@ end
 local function SetupMexDefInfos()
 	local minExtractsMetal
 
-	local armMexDef = UnitDefNames.armmex
+	local armMexDef = UnitDefNames["armmex"]
 
 	if armMexDef and armMexDef.extractsMetal > 0 then
-		defaultDefID = UnitDefNames.armmex.id
+		defaultDefID = UnitDefNames["armmex"].id
 		minExtractsMetal = 0
 	end
 
@@ -127,6 +128,7 @@ local function SetupMexDefInfos()
 			end
 		end
 	end
+
 end
 
 local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
@@ -168,7 +170,7 @@ local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 
 			if dist < MEX_RADIUS then
 				local _, metal, metal2 = GetGroundInfo(cx, cz)
-				if type(metal) == "string" then
+				if type(metal) == 'string' then
 					-- Spring > v104
 					metal = metal2
 				end
@@ -187,8 +189,9 @@ end
 function widget:Initialize()
 	SetupMexDefInfos()
 	once = true
-	metalMap = WG.resource_spot_finder.isMetalMap
+	metalMap = WG["resource_spot_finder"].isMetalMap
 end
+
 
 function widget:DrawScreen()
 	if once then
@@ -228,24 +231,16 @@ function widget:DrawScreen()
 		return
 	end
 	if not metalMap then
-		local pos = WG.resource_spot_finder.GetClosestMexSpot(coords[1], coords[3])
-		if not pos then
-			return
-		end
+		local pos = WG["resource_spot_finder"].GetClosestMexSpot(coords[1], coords[3])
+		if not pos then return end
 		coords[1] = pos.x
 		coords[3] = pos.z
 	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground(
-		BAR.I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }),
-		mx,
-		my,
-		textSize,
-		"do"
-	)
+	DrawTextWithBackground(Spring.I18N('ui.prospector.metalExtraction', { amount = strFormat("%.2f", extraction) }), mx, my, textSize, "do")
 	glColor(1, 1, 1, 1)
 end
 
 function widget:ViewResize()
-	font = WG.fonts.getFont(1, 1.5)
+	font = WG['fonts'].getFont(1, 1.5)
 end

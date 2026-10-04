@@ -1,8 +1,8 @@
 return {
 	armexcalibur = {
 		activatewhenbuilt = false,
-		energycost = 16000,
-		metalcost = 900,
+		buildcostenergy = 16000,
+		buildcostmetal = 900,
 		buildpic = "armexcalibur.DDS",
 		buildtime = 18000,
 		canmove = true,

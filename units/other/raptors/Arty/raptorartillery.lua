@@ -53,7 +53,6 @@ return {
 		waterline = 10,
 		customparams = {
 			subfolder = "other/raptors",
-			israptor = true,
 			model_author = "Rubus",
 			normalmaps = "yes",
 			normaltex = "unittextures/raptorArtillery_n.png",

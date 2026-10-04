@@ -2,12 +2,12 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Corpse link",
-		desc = "Links corpses to their previous owner",
-		author = "SethDGamre",
-		date = "4 November 2025",
+		name    = "Corpse link",
+		desc    = "Links corpses to their previous owner",
+		author  = "SethDGamre",
+		date    = "4 November 2025",
 		license = "GNU GPL, v2 or later",
-		layer = 0,
+		layer   = 0,
 		handler = true,
 		enabled = not Engine.FeatureSupport.FeatureCreatedPassesSourceUnitID,
 	}
@@ -20,9 +20,11 @@ end
 local CORPSE_LINK_TIMEOUT = Game.gameSpeed * 3 -- should be longer than the longest death animation
 local UPDATE_INTERVAL = Game.gameSpeed
 
--- unitDefID -> { [unitID] = { x, y, z, timeout } }
 local corpseRegistryByDefID = {}
-local distance3dSquared = math.distance3dSquared
+
+local function getPositionHash(x, z)
+	return string.format("%f:%f", math.floor(x), math.floor(z))
+end
 
 local function GetFeatureResurrectDefID(featureID)
 	local resurrectUnitName = Spring.GetFeatureResurrect(featureID)
@@ -38,10 +40,6 @@ local function GetFeatureResurrectDefID(featureID)
 	return unitDef.id
 end
 
----Returns the unitID the corpse feature was created from, consuming the link so
----each corpse resolves at most once.
----@param featureID FeatureID
----@return UnitID? unitID `nil` when no unit is linked to this corpse.
 local function GetCorpsePriorUnitID(featureID)
 	-- Technically features can rez into something else than they died as,
 	-- or even be rezzable without ever dying, but let's assume they don't
@@ -53,37 +51,14 @@ local function GetCorpsePriorUnitID(featureID)
 	end
 
 	local x, y, z = Spring.GetFeaturePosition(featureID)
-	if not x then
+	local positionHash = getPositionHash(x, z)
+	local corpseLink = unitDefLink[positionHash]
+	if not corpseLink then
 		return
 	end
 
-	-- Snap to the closest pending death of this unitDef. Exact-position matching
-	-- breaks when death animations carry the wreck away from UnitDestroyed coords.
-	local bestUnitID
-	local bestDistSq
-	for unitID, corpseLink in pairs(unitDefLink) do
-		local distSq = distance3dSquared(corpseLink.x, corpseLink.y, corpseLink.z, x, y, z)
-		if bestDistSq == nil or distSq < bestDistSq then
-			bestDistSq = distSq
-			bestUnitID = unitID
-		end
-	end
-
-	if not bestUnitID then
-		return
-	end
-
-	unitDefLink[bestUnitID] = nil
-	return bestUnitID
-end
-
-local function ConsumeCorpseLink(unitID)
-	for _, unitDefLink in pairs(corpseRegistryByDefID) do
-		if unitDefLink[unitID] then
-			unitDefLink[unitID] = nil
-			return
-		end
-	end
+	corpseLink[positionHash] = nil
+	return corpseLink.unitID
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID)
@@ -97,11 +72,10 @@ function gadget:UnitDestroyed(unitID, unitDefID)
 		return
 	end
 
-	unitDefLink[unitID] = {
-		x = x,
-		y = y,
-		z = z,
-		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT,
+	local positionHash = getPositionHash(x, z)
+	unitDefLink[positionHash] = {
+		unitID = unitID,
+		timeout = Spring.GetGameFrame() + CORPSE_LINK_TIMEOUT
 	}
 end
 
@@ -111,10 +85,10 @@ function gadget:GameFrame(frame)
 	end
 
 	-- FIXME: could be sorted by timeout, so that we wouldn't have to iterate them all
-	for _, unitDefLink in pairs(corpseRegistryByDefID) do
-		for unitID, corpseLink in pairs(unitDefLink) do
+	for unitDefID, unitDefLink in pairs(corpseRegistryByDefID) do
+		for positionHash, corpseLink in pairs(unitDefLink) do
 			if corpseLink.timeout < frame then
-				unitDefLink[unitID] = nil
+				unitDefLink[positionHash] = nil
 			end
 		end
 	end
@@ -128,13 +102,7 @@ function gadget:Initialize()
 
 	originalFeatureCreated = gadgetHandler.FeatureCreated
 	gadgetHandler.FeatureCreated = function(self, featureID, allyTeam, sourceID)
-		if sourceID then
-			-- Engine already linked this wreck; drop our fallback entry so it
-			-- cannot be snapped to by a later feature.
-			ConsumeCorpseLink(sourceID)
-		else
-			sourceID = GG.GetCorpsePriorUnitID(featureID)
-		end
+		sourceID = sourceID or GG.GetCorpsePriorUnitID(featureID)
 		originalFeatureCreated(self, featureID, allyTeam, sourceID)
 	end
 end

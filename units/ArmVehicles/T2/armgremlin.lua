@@ -50,6 +50,8 @@ return {
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			weapon1turretx = 200,
+			weapon1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
@@ -129,10 +131,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 450,
-				customparams = {
-					turretspeedx = 200,
-					turretspeedy = 200,
-				},
 				damage = {
 					default = 262.5,
 					vtol = 24,

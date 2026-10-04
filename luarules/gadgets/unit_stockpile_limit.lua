@@ -1,19 +1,21 @@
 local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
-	return {
-		name = "Stockpile control",
-		desc = "Limits Stockpile to set amount",
-		author = "Bluestone, Damgam",
-		version = "v1.0",
-		date = "23/04/2013",
-		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true,
-	}
+    return {
+        name      = 'Stockpile control',
+        desc      = 'Limits Stockpile to set amount',
+        author    = 'Bluestone, Damgam',
+        version   = 'v1.0',
+        date      = '23/04/2013',
+		license   = "GNU GPL, v2 or later",
+        layer     = 0,
+        enabled   = true
+    }
 end
 
+
 if gadgetHandler:IsSyncedCode() then
+
 	local defaultStockpileLimit = 99
 
 	local CMD_STOCKPILE = CMD.STOCKPILE
@@ -21,8 +23,8 @@ if gadgetHandler:IsSyncedCode() then
 	local StockpileDesiredTarget = {}
 	local unitStockpileLimit = {}
 
-	local GetUnitStockpile = Spring.GetUnitStockpile
-	local GiveOrderToUnit = Spring.GiveOrderToUnit
+	local GetUnitStockpile	= Spring.GetUnitStockpile
+	local GiveOrderToUnit	= Spring.GiveOrderToUnit
 	local mathClamp = math.clamp
 
 	for udid, ud in pairs(UnitDefs) do
@@ -45,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		local MaxStockpile = mathClamp(unitStockpileLimit[unitDefID], 0, StockpileDesiredTarget[unitID])
 
-		local stock, queued = GetUnitStockpile(unitID)
+		local stock,queued = GetUnitStockpile(unitID)
 		if queued and stock then
 			local count = stock + queued - MaxStockpile
 			while count < 0 do
@@ -81,18 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(
-		unitID,
-		unitDefID,
-		teamID,
-		cmdID,
-		cmdParams,
-		cmdOptions,
-		cmdTag,
-		playerID,
-		fromSynced,
-		fromLua
-	) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 		-- accepts CMD_STOCKPILE
 		if unitID then
 			local stock, _ = GetUnitStockpile(unitID)
@@ -112,12 +103,11 @@ if gadgetHandler:IsSyncedCode() then
 			if cmdOptions.right then
 				addQ = -addQ
 			end
-			if fromLua == true and fromSynced == true then -- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
+			if fromLua == true and fromSynced == true then 	-- fromLua is *true* if command is sent from a gadget and *false* if it's sent by a player.
 				return true
 			else
 				if StockpileDesiredTarget[unitID] and unitStockpileLimit[unitDefID] then
-					StockpileDesiredTarget[unitID] =
-						mathClamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
+					StockpileDesiredTarget[unitID] = mathClamp(StockpileDesiredTarget[unitID] + addQ, 0, unitStockpileLimit[unitDefID])
 					UpdateStockpile(unitID, unitDefID)
 				end
 				return false
@@ -151,3 +141,4 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 end
+

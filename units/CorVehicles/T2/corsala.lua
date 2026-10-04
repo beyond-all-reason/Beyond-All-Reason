@@ -44,10 +44,11 @@ return {
 			model_author = "Itanthias, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.2,
-			reaimtime = 6,
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
+			weapon1turretx = 45,
+			weapon1turrety = 75,
 		},
 		featuredefs = {
 			dead = {
@@ -141,10 +142,6 @@ return {
 				tolerance = 4400,
 				turret = true,
 				weapontype = "BeamLaser",
-				customparams = {
-					turretspeedx = 45,
-					turretspeedy = 75,
-				},
 				damage = {
 					default = 18,
 				},

@@ -1,7 +1,7 @@
 return {
 	leglupara = {
 		maxacc = 0,
-		airsightdistance = 1200,
+		airsightdistance = 1000,
 		maxdec = 0,
 		buildangle = 65536,
 		energycost = 8200,
@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 5,
 			buildinggrounddecalsizex = 5,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = "aa",
+			unitgroup = 'aa',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
@@ -127,6 +127,8 @@ return {
 				soundhit = "flakhit2",
 				soundhitwet = "splslrg",
 				soundstart = "flakfire",
+				soundhitvolume = 7.5,
+				soundstartvolume = 9,
 				stages = 0,
 				turret = true,
 				weapontimer = 1,
@@ -151,3 +153,4 @@ return {
 		},
 	},
 }
+

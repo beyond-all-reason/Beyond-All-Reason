@@ -1,5 +1,6 @@
 return {
 	raptor_air_fighter_basic_t4_v1 = {
+		acceleration = 2,
 		airsightdistance = 1500,
 		amphibious = true,
 		autoheal = 10,
@@ -64,7 +65,6 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
-			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_m_normals.png",
@@ -112,6 +112,7 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
+				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

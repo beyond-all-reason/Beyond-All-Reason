@@ -32,7 +32,7 @@ return {
 			buildinggrounddecalsizey = 8,
 			buildinggrounddecalsizex = 8,
 			buildinggrounddecaldecayspeed = 30,
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorBuildings/LandDefenceOffence",
@@ -121,10 +121,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					cluster_def = "cluster_munition",
+					cluster_def = 'cluster_munition',
 					cluster_number = 5,
 					exclude_preaim = true,
 					smart_priority = true,
+					weapons_group = 1,
 				},
 				damage = {
 					default = 300,
@@ -182,10 +183,11 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 450,
 				customparams = {
-					cluster_def = "cluster_munition",
+					cluster_def = 'cluster_munition',
 					cluster_number = 5,
 					exclude_preaim = true,
 					smart_backup = true,
+					weapons_group = 2,
 				},
 				damage = {
 					default = 300,

@@ -12,6 +12,7 @@ function widget:GetInfo()
 	}
 end
 
+
 -- Localized functions for performance
 local mathPi = math.pi
 

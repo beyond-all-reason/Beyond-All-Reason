@@ -1,3 +1,4 @@
+
 -- Hold 'tab' button for Overview camera
 -- Release 'tab' to go back to original view instead zooming into cursor
 -- Short 'tab' are ignored
@@ -12,14 +13,16 @@ function widget:GetInfo()
 		date = "May 8, 2023",
 		license = "GNU GPL, v2 or later",
 		layer = -9999999,
-		enabled = true,
+		enabled = true
 	}
 end
+
 
 local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
 local camKeys = {} -- list of buttons that switch to Overview
 local isLongPress = false -- enabled when user presses tab for longer
 local prevCamState = nil
+
 
 local function setActionHotkeys(action)
 	camKeys = {}

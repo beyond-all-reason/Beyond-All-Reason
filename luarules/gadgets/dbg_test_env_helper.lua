@@ -11,66 +11,58 @@ function gadget:GetInfo()
 	}
 end
 
-local ENABLED_RULES_PARAM = "isTestEnvironmentHelperEnabled"
+local ENABLED_RULES_PARAM = 'isTestEnvironmentHelperEnabled'
 
-if not BAR.Utilities.IsDevMode() or not BAR.Utilities.Gametype.IsSinglePlayer() then
+if not Spring.Utilities.IsDevMode() or not Spring.Utilities.Gametype.IsSinglePlayer() then
 	return
 end
 
 if gadgetHandler:IsSyncedCode() then
-	local removeGadgets = { "Team Com Ends", "Game End" }
+
+	local removeGadgets = {'Team Com Ends', 'Game End'}
 
 	Spring.SetGameRulesParam(ENABLED_RULES_PARAM, true)
 
-	local function WithTemporaryCheats(func)
-		local wasCheatingEnabled = Spring.IsCheatingEnabled()
-		if not wasCheatingEnabled then
-			Spring.SetCheatingEnabled(true)
-		end
-		func()
-		if not wasCheatingEnabled then
-			Spring.SetCheatingEnabled(false)
-		end
-	end
-
 	local function SetTestEndConditionsCmd(cmd, line, words, playerID)
-		WithTemporaryCheats(function()
-			for _, gadgetName in pairs(removeGadgets) do
-				local g = gadgetHandler:FindGadget(gadgetName)
-				gadgetHandler:RemoveGadget(g)
-			end
+		if not Spring.IsCheatingEnabled() then
+			return
+		end
+		for _, gadgetName in pairs(removeGadgets) do
+			local g = gadgetHandler:FindGadget(gadgetName)
+			gadgetHandler:RemoveGadget(g)
+		end
 
-			Spring.SetGameRulesParam("testEndConditionsOverride", true)
-		end)
+		Spring.SetGameRulesParam("testEndConditionsOverride", true)
 	end
 
 	local function SetTestReadyPlayersCmd(cmd, line, words, playerID)
-		WithTemporaryCheats(function()
-			local playerList = Spring.GetPlayerList()
-			for _, playerID in pairs(playerList) do
-				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
-			end
-		end)
+		if not Spring.IsCheatingEnabled() then
+			return
+		end
+		local playerList = Spring.GetPlayerList()
+		for _, playerID in pairs(playerList) do
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState", 1)
+		end
 	end
 
 	function gadget:Initialize()
-		gadgetHandler.actionHandler.AddChatAction(gadget, "setTestEndConditions", SetTestEndConditionsCmd)
-		gadgetHandler.actionHandler.AddChatAction(gadget, "setTestReadyPlayers", SetTestReadyPlayersCmd)
+		gadgetHandler.actionHandler.AddChatAction(gadget, 'setTestEndConditions', SetTestEndConditionsCmd)
+		gadgetHandler.actionHandler.AddChatAction(gadget, 'setTestReadyPlayers', SetTestReadyPlayersCmd)
 		if Spring.GetGameRulesParam("testEndConditionsOverride") then
 			SetTestEndConditionsCmd()
 		end
 	end
 
 	function gadget:Shutdown()
-		gadgetHandler.actionHandler.RemoveChatAction(gadget, "setTestEndConditions")
-		gadgetHandler.actionHandler.RemoveChatAction(gadget, "setTestReadyPlayers")
+		gadgetHandler.actionHandler.RemoveChatAction(gadget, 'setTestEndConditions')
+		gadgetHandler.actionHandler.RemoveChatAction(gadget, 'setTestReadyPlayers')
 		Spring.SetGameRulesParam(ENABLED_RULES_PARAM, false)
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg == "testEnvironmentStarting" then
-			Spring.SetGameRulesParam("testEnvironmentStarting", true)
-			gadgetHandler:RemoveGadgetCallIn("RecvLuaMsg", self)
+		if msg == 'testEnvironmentStarting' then
+			Spring.SetGameRulesParam('testEnvironmentStarting', true)
+			gadgetHandler:RemoveGadgetCallIn('RecvLuaMsg', self)
 		end
 	end
 else
@@ -80,7 +72,7 @@ else
 
 	function gadget:Update(n)
 		if (Spring.GetPlayerTraffic(SYSTEM_ID, NETMSG_STARTPLAYING) or 0) > 0 then
-			Spring.SendLuaRulesMsg("testEnvironmentStarting")
+			Spring.SendLuaRulesMsg('testEnvironmentStarting')
 			gadgetHandler:RemoveGadget(self)
 		end
 	end

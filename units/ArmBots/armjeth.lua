@@ -34,7 +34,6 @@ return {
 		customparams = {
 			model_author = "Kaiser, PtaQ",
 			normaltex = "unittextures/Arm_normal.dds",
-			reaimtime = 2,
 			subfolder = "ArmBots",
 			unitgroup = "aa",
 		},

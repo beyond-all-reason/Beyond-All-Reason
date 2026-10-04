@@ -36,7 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			maxrange = "450",
-			unitgroup = "aa",
+			unitgroup = 'aa',
 			model_author = "Mr Bob, Hornet",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "other/scavengers",
@@ -97,6 +97,9 @@ return {
 				soundhitwet = "sizzle",
 				soundstart = "Flamhvy1",
 				soundtrigger = true,
+				soundstartvolume = 25,
+				soundhitvolume = 25,
+				soundhitwetvolume = 34,
 				tolerance = 20000,
 				turret = true,
 				waterweapon = false,
@@ -108,7 +111,7 @@ return {
 				damage = {
 					default = 40,
 					subs = 10,
-				},
+				}
 			},
 
 			edragon_missile = {
@@ -126,7 +129,7 @@ return {
 				flighttime = 2.5,
 				impulsefactor = 0.123,
 				model = "cormissile3fast.s3o",
-				name = "Advanced Rapid-Fire Anti-Air Missile Launcher",
+				name = "Advanced antiair rapid missile launcher",
 				noselfdamage = true,
 				range = 840,
 				reloadtime = 0.4,
@@ -153,6 +156,8 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1250,
 				damage = {
+					bombers = 400,
+					fighters = 400,
 					vtol = 400,
 				},
 			},
@@ -223,6 +228,7 @@ return {
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundstart = "lasrhvy3",
+				soundstartvolume = 35,
 				soundtrigger = 1,
 				thickness = 6.7,
 				tolerance = 10000,
@@ -245,7 +251,7 @@ return {
 				def = "kmaw",
 				onlytargetcategory = "SURFACE",
 				maindir = "0 -1 1",
-				maxangledif = 180,
+                maxangledif = 180,
 			},
 			[2] = {
 				def = "edragon_missile",
@@ -257,25 +263,25 @@ return {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 -1 0",
-				maxangledif = 180,
+                maxangledif = 180,
 			},
 			[4] = {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "1 -1 0",
-				maxangledif = 180,
+                maxangledif = 180,
 			},
 			[5] = {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 -1 0",
-				maxangledif = 180,
+                maxangledif = 180,
 			},
 			[6] = {
 				def = "KROWBOSSLASER",
 				onlytargetcategory = "SURFACE",
 				maindir = "-1 -1 0",
-				maxangledif = 180,
+                maxangledif = 180,
 			},
 		},
 	},

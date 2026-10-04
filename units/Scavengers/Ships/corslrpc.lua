@@ -1,3 +1,4 @@
+local unitName = "Intimidator Ship"
 return {
 	corslrpc = {
 		maxacc = 0.005,
@@ -33,7 +34,7 @@ return {
 		turnrate = 60,
 		waterline = 0,
 		customparams = {
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorShips",
@@ -120,6 +121,7 @@ return {
 				soundhit = "xplonuk1xs",
 				soundhitwet = "splshbig",
 				soundstart = "lrpcshot",
+				soundstartvolume = 42,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,

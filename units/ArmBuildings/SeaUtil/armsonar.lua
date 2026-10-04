@@ -29,7 +29,6 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
-			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,

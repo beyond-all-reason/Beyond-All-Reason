@@ -53,9 +53,6 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/raptors",
-			israptor = true,
-			juno_deny = true,
-			juno_kill = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_s_normals.png",
@@ -92,7 +89,7 @@ return {
 				range = 200,
 				reloadtime = 1,
 				soundstart = "smallraptorattack",
-
+				
 				tolerance = 5000,
 				turret = true,
 				waterweapon = true,

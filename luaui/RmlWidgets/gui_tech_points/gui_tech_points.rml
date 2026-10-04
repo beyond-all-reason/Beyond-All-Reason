@@ -1,0 +1,20 @@
+<rml>
+<head>
+    <link type="text/rcss" href="gui_tech_points.rcss" />
+</head>
+<body data-model="tech_points_model">
+    <div id="tech-points-root" class="tech-points-root">
+        <div class="tech-points-container">
+            <!-- Square progress bar with tech level overlay -->
+            <div class="tech-points-progress">
+                <div id="tech-points-fill" class="tech-points-fill"></div>
+                <div class="tech-text-container">
+                    <div id="tech-level-header" class="tech-level-header"></div>
+                    <div id="tech-level-number" class="tech-level-number">{{techLevel}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="tech-level-popup" class="tech-level-popup"></div>
+</body>
+</rml>

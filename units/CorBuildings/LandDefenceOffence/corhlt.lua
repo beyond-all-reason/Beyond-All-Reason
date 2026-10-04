@@ -34,7 +34,6 @@ return {
 			legacyname = "Gaat Gun",
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 5,
 			removewait = true,
 			subfolder = "CorBuildings/LandDefenceOffence",
 			unitgroup = "weapon",

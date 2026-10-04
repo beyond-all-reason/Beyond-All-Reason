@@ -34,7 +34,6 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 5,
 			subfolder = "CorBots",
 			unitgroup = "aa",
 		},

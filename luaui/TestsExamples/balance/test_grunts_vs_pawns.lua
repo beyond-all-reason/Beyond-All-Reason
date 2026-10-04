@@ -1,21 +1,21 @@
-local function skip()
+function skip()
 	return Spring.GetGameFrame() <= 0
 end
 
-local function setup()
+function setup()
 	Test.clearMap()
 end
 
-local function cleanup()
+function cleanup()
 	Test.clearMap()
 
 	Spring.SendCommands("setspeed " .. 1)
 end
 
-local function test()
+function test()
 	local units = {
 		[0] = "armpw",
-		[1] = "corak",
+		[1] = "corak"
 	}
 	local n = 20
 
@@ -42,6 +42,7 @@ local function test()
 				local y = Spring.GetGroundHeight(x, z)
 				Spring.CreateUnit(locals.units[1], x, y, z + locals.zStep * i, "west", 1)
 			end
+
 		end
 	end)
 
@@ -82,5 +83,3 @@ local function test()
 	-- pawns should win
 	assert(winner == 0)
 end
-
-return { skip = skip, setup = setup, test = test, cleanup = cleanup }

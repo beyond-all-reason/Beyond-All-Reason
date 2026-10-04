@@ -35,7 +35,6 @@ return {
 		customparams = {
 			model_author = "Kaiser",
 			normaltex = "unittextures/Arm_normal.dds",
-			reaimtime = 2,
 			subfolder = "ArmBots/T2",
 			techlevel = 2,
 			unitgroup = "weapon",
@@ -160,8 +159,10 @@ return {
 				rgbcolor = "1 1 0",
 				size = 0.1,
 				soundhit = "sniperhit",
+				soundhitvolume = 10,
 				soundhitwet = "sizzle",
 				soundstart = "sniper3",
+				soundstartvolume = 20,
 				thickness = 0.5,
 				turret = true,
 				weapontype = "Cannon",

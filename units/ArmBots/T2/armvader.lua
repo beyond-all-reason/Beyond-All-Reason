@@ -7,7 +7,7 @@ return {
 		collisionvolumeoffsets = "0 2 0",
 		collisionvolumescales = "17 13 17",
 		collisionvolumetype = "box",
-		corpse = "DEAD",
+		corpse = "CORPSE",
 		energycost = 5800,
 		explodeas = "crawl_blastsml",
 		firestate = 0,
@@ -42,7 +42,7 @@ return {
 			unitgroup = "explo",
 		},
 		featuredefs = {
-			dead = {
+			corpse = {
 				blocking = true,
 				category = "corpses",
 				damage = 300,

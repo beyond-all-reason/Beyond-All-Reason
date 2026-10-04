@@ -14,6 +14,7 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
+
 	function gadget:GameFrame(gf)
 		local geoFeatureDefs = {}
 		for defID, def in pairs(FeatureDefs) do
@@ -30,4 +31,5 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		gadgetHandler:RemoveGadget(self)
 	end
+
 end

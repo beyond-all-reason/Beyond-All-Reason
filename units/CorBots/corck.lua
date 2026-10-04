@@ -68,7 +68,6 @@ return {
 			[30] = "corsy",
 		},
 		customparams = {
-			hasdeathanimation = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorBots",

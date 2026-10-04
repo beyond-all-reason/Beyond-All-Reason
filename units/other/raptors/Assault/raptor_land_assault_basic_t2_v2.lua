@@ -54,7 +54,6 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/raptors",
-			israptor = true,
 			model_author = "KDR_11k, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",
@@ -102,6 +101,7 @@ return {
 				smokecolor = 1.0,
 				soundhit = "spore_explo",
 				soundstart = "spore_xl",
+				soundstartvolume = 9,
 				startvelocity = 1000,
 				texture1 = "orangenovaexplo",
 				texture2 = "sporetrail_xl",

@@ -1,5 +1,6 @@
 return {
 	cords = {
+		acceleration = 0.05,
 		blocking = false,
 		maxdec = 0.055,
 		energycost = 14600,
@@ -37,7 +38,7 @@ return {
 		wingangle = 0.16296,
 		wingdrag = 0.145,
 		customparams = {
-			unitgroup = "weapon",
+			unitgroup = 'weapon',
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "Scavengers",

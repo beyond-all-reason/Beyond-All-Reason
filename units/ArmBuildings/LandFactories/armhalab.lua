@@ -8,7 +8,7 @@ return {
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "180 120 166",
 		collisionvolumetype = "Box",
-		corpse = "DEAD",
+		corpse = "ARMSHLT_DEAD",
 		energycost = 58000,
 		energystorage = 1400,
 		explodeas = "hugeBuildingexplosiongeneric",
@@ -54,14 +54,14 @@ return {
 			usebuildinggrounddecal = true,
 		},
 		featuredefs = {
-			dead = {
+			armshlt_dead = {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
 				collisionvolumescales = "125 75 145",
 				collisionvolumetype = "Box",
 				damage = 8640,
-				featuredead = "HEAP",
+				featuredead = "ARMSHLT_HEAP",
 				footprintx = 9,
 				footprintz = 9,
 				height = 20,
@@ -69,7 +69,7 @@ return {
 				object = "Units/armshltx_dead.s3o",
 				reclaimable = true,
 			},
-			heap = {
+			armshlt_heap = {
 				blocking = false,
 				category = "heaps",
 				damage = 4320,

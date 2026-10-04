@@ -17,17 +17,17 @@ function widget:GetInfo()
 end
 
 ---@class BuilderInfo
----@field unitID UnitID
----@field unitDefID UnitDefID
+---@field unitID number
+---@field unitDefID number
 ---@field side string
 ---@field buildSpeed number
 
 ---@class BuildingInfo
----@field unitDefID UnitDefID
+---@field unitDefID number
 ---@field position number[] { x, y, z }
 ---@field facing? number
 
----@param builderID UnitID
+---@param builderID number
 ---@return BuilderInfo
 local function getBuilderInfo(builderID)
 	local unitDefID = Spring.GetUnitDefID(builderID)
@@ -79,7 +79,7 @@ local function canBuild(builderGroup, building, side, allowSubstitution)
 	return false
 end
 
----@param builders UnitID[]
+---@param builders number[]
 ---@return table<number, BuilderInfo[]> -- Groups builders by their unitDefID
 local function groupBuilders(builders)
 	local builderGroups = {}
@@ -184,11 +184,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 				local costAfterAdding = accumulatedCost + currentBuilding.cost
 
 				-- Stop if adding the next building makes the chunk's cost further from the target
-				if
-					accumulatedCost > 0
-					and math.abs(costAfterAdding - targetCostForGroup)
-						> math.abs(accumulatedCost - targetCostForGroup)
-				then
+				if accumulatedCost > 0 and math.abs(costAfterAdding - targetCostForGroup) > math.abs(accumulatedCost - targetCostForGroup) then
 					break
 				end
 
@@ -277,11 +273,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 			for _, building in ipairs(buildings) do
 				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupData.side)
 				if substitutedUnitDefID then
-					table.insert(orders, {
-						-substitutedUnitDefID,
-						{ building.position[1], building.position[2], building.position[3], building.facing },
-						queuedOpts,
-					})
+					table.insert(orders, { -substitutedUnitDefID, { building.position[1], building.position[2], building.position[3], building.facing }, queuedOpts })
 				end
 			end
 			if #orders > 0 then
@@ -345,7 +337,7 @@ local function splitBuildOrders(builders, buildings, cmdOpts)
 end
 
 function widget:Initialize()
-	WG.api_build_orders = {
+	WG["api_build_orders"] = {
 		getBuilderInfo = getBuilderInfo,
 		groupBuilders = groupBuilders,
 		forkBuilders = forkBuilders,
@@ -356,5 +348,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	WG.api_build_orders = nil
+	WG["api_build_orders"] = nil
 end

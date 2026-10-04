@@ -1,11 +1,11 @@
 // StateChg.h -- Generic State Change support for units that activate and deactivate or whatever
 
-// Due to limitations of the scripting language, this file must be included twice.  The
+// Due to limitiations of the scripting language, this file must be included twice.  The
 // first time must be where the static variables are declared.  The second time must be
 // where the functions are defined (and of course before they are called.)
 
 // The Following macros must be defined:  ACTIVATECMD and DEACTIVATECMD.  They are the commands
-// to run when the units is activated or deactivated.
+// to run when the units is actiavted or deactivated.
 
 #ifndef STATECHG_1_
 #define STATECHG_1_
@@ -73,7 +73,7 @@ RequestState( requestedstate )
 			}
 		}
 
-	// Okay, we are finished
+	// Okay, we are finshed
 	statechg_StateChanging = FALSE;
 	}
 

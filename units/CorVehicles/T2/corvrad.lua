@@ -39,7 +39,6 @@ return {
 		turninplacespeedlimit = 0.825,
 		turnrate = 315,
 		customparams = {
-			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",

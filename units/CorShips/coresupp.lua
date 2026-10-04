@@ -33,7 +33,6 @@ return {
 		customparams = {
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
-			reaimtime = 6,
 			subfolder = "CorShips",
 			unitgroup = "weapon",
 		},

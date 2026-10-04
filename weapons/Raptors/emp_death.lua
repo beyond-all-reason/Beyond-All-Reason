@@ -1,5 +1,6 @@
+
 unitDeaths = {
-	raptor_empdeath_small = { -- for armamex
+    raptor_empdeath_small = {    -- for armamex
 		areaofeffect = 150,
 		commandfire = 1,
 		craterboost = 0,
@@ -17,10 +18,10 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		},
+		}
 	},
 
-	raptor_empdeath_big = { -- for armamex
+    raptor_empdeath_big = {    -- for armamex
 		areaofeffect = 300,
 		commandfire = 1,
 		craterboost = 0,
@@ -38,7 +39,7 @@ unitDeaths = {
 		},
 		customparams = {
 			unitexplosion = 1,
-		},
+		}
 	},
 }
 

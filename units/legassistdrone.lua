@@ -31,7 +31,7 @@ return {
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
 		turnrate = 740,
-		workertime = 100 * Spring.GetModOptions().assistdronesbuildpowermultiplier,
+		workertime = 100*Spring.GetModOptions().assistdronesbuildpowermultiplier,
 		buildoptions = {
 			"legsolar",
 			"legadvsol",
@@ -40,6 +40,7 @@ return {
 			"legmstor",
 			"legestor",
 			"legmex",
+			"legmext15",
 			"legeconv",
 			"leglab",
 			"legvp",
@@ -64,7 +65,7 @@ return {
 			"legfhp",
 		},
 		customparams = {
-			unitgroup = "builder",
+			unitgroup = 'builder',
 			model_author = "ZephyrSkies",
 			normaltex = "unittextures/leg_normal.dds",
 			subfolder = "CorAircraft",

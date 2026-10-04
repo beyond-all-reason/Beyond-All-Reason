@@ -1,15 +1,16 @@
+
 local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "Show Orders",
-		desc = "Hold shift+meta to show allied units orders",
-		author = "Niobium",
-		date = "date",
-		version = 1.2,
-		license = "GNU GPL, v2 or later",
-		layer = 0,
-		enabled = true,
+		name      = "Show Orders",
+		desc      = "Hold shift+meta to show allied units orders",
+		author    = "Niobium",
+		date      = "date",
+		version   = 1.2,
+		license   = "GNU GPL, v2 or later",
+		layer     = 0,
+		enabled   = true
 	}
 end
 
@@ -29,10 +30,11 @@ end
 -- 12. Allied units tracking via callins (eliminates per-frame spGetTeamUnits calls)
 -----------------------------------------------------
 
+
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local vsx, vsy = spGetViewGeometry()
+local vsx,vsy = spGetViewGeometry()
 local widgetScale = vsy / 2000
 
 -----------------------------------------------------
@@ -42,7 +44,6 @@ local borderWidth = 2
 local iconSize = 190
 local maxColumns = 4
 local maxRows = 2
-local maxCells = maxColumns * maxRows
 local fontSize = 66
 
 -- Performance tuning: Update expensive data (factory commands) every N frames
@@ -52,19 +53,17 @@ local updateInterval = 10
 
 -- Distance-based scaling configuration
 local enableDistanceScaling = true -- Set to false to disable distance scaling for better performance
-local minScaleDistance = 500 -- Distance at which icons start scaling down
-local maxScaleDistance = 3000 -- Distance at which icons are at minimum scale
-local minScaleDistanceSq = minScaleDistance * minScaleDistance
-local maxScaleDistanceSq = maxScaleDistance * maxScaleDistance
-local minScale = 0.3 -- Minimum scale factor (0.3 = 30% of original size)
-local maxScale = 1.0 -- Maximum scale factor (1.0 = 100% of original size)
+local minScaleDistance = 500    -- Distance at which icons start scaling down
+local maxScaleDistance = 3000   -- Distance at which icons are at minimum scale
+local minScale = 0.3            -- Minimum scale factor (0.3 = 30% of original size)
+local maxScale = 1.0            -- Maximum scale factor (1.0 = 100% of original size)
 -- Note: Distance scaling is calculated every frame for responsive zoom, but it's relatively cheap
 
 -----------------------------------------------------
 -- Globals
 -----------------------------------------------------
 local isFactory = {}
-local GaiaTeamID = Spring.GetGaiaTeamID() -- set to -1 to include Gaia units
+local GaiaTeamID  = Spring.GetGaiaTeamID() 		-- set to -1 to include Gaia units
 
 local font, chobbyInterface
 
@@ -72,6 +71,7 @@ local font, chobbyInterface
 local cellsPool = {}
 local cellPool = {}
 local cellPoolIndex = 0
+local maxCellPoolSize = 100
 
 -- Cached values
 local alliedTeamsCache = {}
@@ -94,9 +94,7 @@ local textDrawQueueSize = 0
 
 -- Cached render data to avoid recalculating every frame
 local cachedRenderData = {}
-local renderDataPool = {}
 local renderDataDirty = true
-local unitTextureCache = {}
 
 -- String caching to avoid concatenation
 local percentStrings = {}
@@ -120,15 +118,6 @@ local function getCell()
 	return cellPool[cellPoolIndex]
 end
 
-local function getUnitTexture(unitDefID)
-	local texture = unitTextureCache[unitDefID]
-	if not texture then
-		texture = "#" .. unitDefID
-		unitTextureCache[unitDefID] = texture
-	end
-	return texture
-end
-
 -- Helper function to get a reused cells array
 local function getCellsArray()
 	local cells = table.remove(cellsPool)
@@ -143,7 +132,9 @@ local function recycleCellsArray(cells)
 	for i = 1, #cells do
 		cells[i] = nil
 	end
-	cellsPool[#cellsPool + 1] = cells
+	if #cellsPool < maxCellPoolSize then
+		cellsPool[#cellsPool + 1] = cells
+	end
 end
 
 -----------------------------------------------------
@@ -153,25 +144,26 @@ local floor = math.floor
 
 local spGetModKeyState = Spring.GetModKeyState
 local spDrawUnitCommands = Spring.DrawUnitCommands
-local spGetFactoryCounts = Spring.GetFactoryCounts
-local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
+local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetSpecState = Spring.GetSpectatingState
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
-local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
+local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
-local spWorldToScreenCoords = Spring.WorldToScreenCoords
+local spWorldToScreenCoords	= Spring.WorldToScreenCoords
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitStates = Spring.GetUnitStates
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetTeamInfo = Spring.GetTeamInfo
 
-local glColor = gl.Color
-local glTexture = gl.Texture
-local glTexRect = gl.TexRect
-local glRect = gl.Rect
+local glColor			= gl.Color
+local glTexture			= gl.Texture
+local glTexRect			= gl.TexRect
+local glRect			= gl.Rect
 
+local max = math.max
+local min = math.min
 local sqrt = math.sqrt
 
 -----------------------------------------------------
@@ -179,34 +171,32 @@ local sqrt = math.sqrt
 -----------------------------------------------------
 
 -- Calculate distance-based scale factor for icons
-local function GetDistanceScale(unitX, unitY, unitZ, camX, camY, camZ)
-	if not camX then
-		return maxScale
-	end
+local function GetDistanceScale(unitX, unitY, unitZ)
+	local camX, camY, camZ = spGetCameraPosition()
+	if not camX then return maxScale end
 
 	-- Calculate 3D distance from camera to unit
 	local dx = unitX - camX
 	local dy = unitY - camY
 	local dz = unitZ - camZ
-	local distanceSq = dx * dx + dy * dy + dz * dz
+	local distance = sqrt(dx*dx + dy*dy + dz*dz)
 
 	-- Scale linearly between min and max distances
-	if distanceSq <= minScaleDistanceSq then
+	if distance <= minScaleDistance then
 		return maxScale
-	elseif distanceSq >= maxScaleDistanceSq then
+	elseif distance >= maxScaleDistance then
 		return minScale
 	else
 		-- Linear interpolation
-		local distance = sqrt(distanceSq)
 		local t = (distance - minScaleDistance) / (maxScaleDistance - minScaleDistance)
 		return maxScale - (t * (maxScale - minScale))
 	end
 end
 
 function widget:ViewResize()
-	vsx, vsy = spGetViewGeometry()
+	vsx,vsy = spGetViewGeometry()
 	widgetScale = vsy / 2000
-	font = WG.fonts.getFont(2)
+	font = WG['fonts'].getFont(2)
 
 	-- Pre-calculate scaled values
 	cachedScaledValues.iconSize = iconSize * widgetScale
@@ -246,9 +236,7 @@ local function InvalidateFactoryCache()
 end
 
 local function UpdateFactoryCache()
-	if not factoryUnitsDirty then
-		return
-	end
+	if not factoryUnitsDirty then return end
 
 	-- Clear old cache
 	for i = 1, #factoryUnits do
@@ -363,22 +351,18 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
+	if chobbyInterface then return end
 
 	local _, _, meta, shift = spGetModKeyState()
-	if not (shift and meta) then
-		return
-	end
+	if not (shift and meta) then return end
 
 	-- Draw commands for all tracked allied units
 	spDrawUnitCommands(alliedUnits)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if msg:sub(1, 18) == "LobbyOverlayActive" then
-		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
 
@@ -387,19 +371,13 @@ local function UpdateRenderData()
 	-- Update factory cache if needed
 	UpdateFactoryCache()
 
-	-- Recycle cell arrays before replacing the render cache.
-	for i = 1, #cachedRenderData do
-		local renderData = cachedRenderData[i]
-		recycleCellsArray(renderData.cells)
-		renderData.unitID = nil
-		renderData.cells = nil
-		renderData.isRepeat = nil
-		renderDataPool[#renderDataPool + 1] = renderData
-		cachedRenderData[i] = nil
-	end
-
 	-- Reset cell pool index for reuse
 	cellPoolIndex = 0
+
+	-- Clear old render data
+	for i = 1, #cachedRenderData do
+		cachedRenderData[i] = nil
+	end
 
 	-- Build render data for all factories
 	for f = 1, #factoryUnits do
@@ -409,53 +387,65 @@ local function UpdateRenderData()
 		local uDefID = spGetUnitDefID(uID)
 		if uDefID then
 			local isBuilding, progress = spGetUnitIsBeingBuilt(uID)
-			local factoryCounts = spGetFactoryCounts(uID, maxCells)
-			local factoryCount = spGetFactoryCommandCount(uID) or 0
-			local factoryEntryCount = factoryCounts and factoryCounts.n or 0
-			local hasFactoryCommands = factoryCount > 0
+			local uCmds = spGetFactoryCommands(uID,-1)
 
 			local cells = getCellsArray()
 
-			if isBuilding then
+			if (isBuilding) then
 				local cell = getCell()
-				cell.texture = getUnitTexture(uDefID)
+				cell.texture = "#" .. uDefID
 				cell.text = percentStrings[floor(progress * 100)] or (floor(progress * 100) .. "%")
 				cells[1] = cell
 			else
-				if not hasFactoryCommands then
+				if (#uCmds == 0) then
 					local cell = getCell()
-					cell.texture = getUnitTexture(uDefID)
+					cell.texture = "#" .. uDefID
 					cell.text = idleString
 					cells[1] = cell
 				end
 			end
 
-			if factoryCounts then
-				for c = 1, factoryEntryCount do
-					if #cells >= maxCells then
-						break
-					end
-					local factoryEntry = factoryCounts[c]
-					if factoryEntry then
-						local cDefID, count = next(factoryEntry)
-						if cDefID and count then
+			if (#uCmds > 0) then
+				local uCount = 0
+				local prevID = -1000
+
+				for c = 1, #uCmds do
+					local cDefID = -uCmds[c].id
+
+					if (cDefID == prevID) then
+						uCount = uCount + 1
+					else
+						if (prevID > 0) then
 							local cell = getCell()
-							cell.texture = getUnitTexture(cDefID)
-							cell.text = numberStrings[count] or tostring(count)
+							cell.texture = "#" .. prevID
+							local count = uCount + 1
+							cell.text = numberStrings[count] or count
 							cells[#cells + 1] = cell
 						end
+						uCount = 0
 					end
+
+					prevID = cDefID
+				end
+
+				if (prevID > 0) then
+					local cell = getCell()
+					cell.texture = "#" .. prevID
+					local count = uCount + 1
+					cell.text = numberStrings[count] or count
+					cells[#cells + 1] = cell
 				end
 			end
 
 			-- Cache repeat state
-			local isRepeat = select(4, spGetUnitStates(uID, false, true))
+			local isRepeat = select(4,spGetUnitStates(uID,false,true))
 
 			-- Store render data (scale will be calculated per-frame for smooth zoom response)
-			local renderData = table.remove(renderDataPool) or {}
-			renderData.unitID = uID
-			renderData.cells = cells
-			renderData.isRepeat = isRepeat
+			local renderData = {
+				unitID = uID,
+				cells = cells,
+				isRepeat = isRepeat
+			}
 			cachedRenderData[#cachedRenderData + 1] = renderData
 		end
 	end
@@ -464,14 +454,10 @@ local function UpdateRenderData()
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then
-		return
-	end
+	if chobbyInterface then return end
 
 	local _, _, meta, shift = spGetModKeyState()
-	if not (shift and meta) then
-		return
-	end
+	if not (shift and meta) then return end
 
 	-- Frame throttling - only update data every N frames, but always render
 	frameCounter = frameCounter + 1
@@ -489,10 +475,6 @@ function widget:DrawScreen()
 	local baseFontSize = cachedScaledValues.fontSize
 	local baseIconPlusBorder = cachedScaledValues.iconPlusBorder
 	local baseBorder2x = cachedScaledValues.border2x
-	local camX, camY, camZ
-	if enableDistanceScaling then
-		camX, camY, camZ = spGetCameraPosition()
-	end
 
 	-- Render from cached data (this runs every frame for smooth display)
 	for i = 1, #cachedRenderData do
@@ -511,7 +493,7 @@ function widget:DrawScreen()
 				-- Calculate distance scale every frame for responsive zoom
 				local distScale = maxScale
 				if enableDistanceScaling then
-					distScale = GetDistanceScale(ux, uy, uz, camX, camY, camZ)
+					distScale = GetDistanceScale(ux, uy, uz)
 				end
 
 				-- Apply distance scale
@@ -531,14 +513,13 @@ function widget:DrawScreen()
 				for r = 0, maxRows - 1 do
 					for c = 1, maxColumns do
 						local cell = cells[maxColumns * r + c]
-						if not cell then
-							break
-						end
+						if not cell then break end
 
 						local cx = sx + (c - 1) * scaledIconPlusBorder
 						local cy = sy - r * scaledIconPlusBorder
 
-						glRect(cx, cy, cx + scaledIconSize + scaledBorder2x, cy - scaledIconSize - scaledBorder2x)
+						glRect(cx, cy, cx + scaledIconSize + scaledBorder2x,
+							cy - scaledIconSize - scaledBorder2x)
 					end
 				end
 
@@ -549,22 +530,16 @@ function widget:DrawScreen()
 				for r = 0, maxRows - 1 do
 					for c = 1, maxColumns do
 						local cell = cells[maxColumns * r + c]
-						if not cell then
-							break
-						end
+						if not cell then break end
 
 						local cx = sx + (c - 1) * scaledIconPlusBorder
 						local cy = sy - r * scaledIconPlusBorder
 
 						glTexture(cell.texture)
-						glTexRect(
-							cx + scaledBorderWidth,
-							cy - scaledIconSize - scaledBorderWidth,
-							cx + scaledIconSize + scaledBorderWidth,
-							cy - scaledBorderWidth
-						)
+						glTexRect(cx + scaledBorderWidth, cy - scaledIconSize - scaledBorderWidth,
+							cx + scaledIconSize + scaledBorderWidth, cy - scaledBorderWidth)
 
-						if cell.text then
+						if (cell.text) then
 							-- Queue text for batched rendering
 							textDrawQueueSize = textDrawQueueSize + 1
 							local textEntry = textDrawQueue[textDrawQueueSize]
@@ -589,10 +564,10 @@ function widget:DrawScreen()
 	if textDrawQueueSize > 0 then
 		font:Begin()
 		font:SetOutlineColor(0, 0, 0, 1)
-		font:SetTextColor(0.9, 0.9, 0.9, 1)
+		font:SetTextColor(0.9,0.9,0.9, 1)
 		for i = 1, textDrawQueueSize do
 			local entry = textDrawQueue[i]
-			font:Print(entry.text, entry.x, entry.y, entry.size, "ob")
+			font:Print(entry.text, entry.x, entry.y, entry.size, 'ob')
 		end
 		font:End()
 	end

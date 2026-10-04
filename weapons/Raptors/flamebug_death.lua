@@ -7,6 +7,7 @@ return {
 		impulsefactor = 0.4,
 		soundhit = "bigraptordead",
 		soundstart = "bigbugdie",
+		soundhitvolume = 9.5,
 		turret = 1,
 		weaponvelocity = 250,
 		damage = {

@@ -74,7 +74,6 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			subfolder = "",
-			tombstone = "armstone",
 			unitgroup = "builder",
 		},
 		featuredefs = {
@@ -246,8 +245,10 @@ return {
 				range = 250,
 				reloadtime = 0.9,
 				soundhit = "xplomas2",
+				soundhitvolume = 36,
 				soundhitwet = "sizzle",
 				soundstart = "disigun1",
+				soundstartvolume = 96,
 				soundtrigger = true,
 				tolerance = 20000,
 				turret = true,

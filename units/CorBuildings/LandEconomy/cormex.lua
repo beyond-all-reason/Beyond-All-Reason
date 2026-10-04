@@ -37,7 +37,6 @@ return {
 			buildinggrounddecaltype = "decals/cormex_aoplane.dds",
 			cvbuildable = true,
 			metal_extractor = 1,
-			standardextractor = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

@@ -3,14 +3,14 @@
 --
 --  Icon Generator Config File
 --
--- info/scheme/faction are injected into this include's fenv by the caller
----@diagnostic disable: undefined-global
+
+
 
 --// Info
 if info then
 	local ratios = { [""] = (1 / 1) } -- {["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
-	local resolutions = { { 256, 256 }, { 400, 400 } } -- {{128,128},{64,64}}	-- NOTE: setting too high will crash spring
-	local schemes = { "" } --, "cor"}
+	local resolutions = { { 256, 256 }, {400, 400} } -- {{128,128},{64,64}}	-- NOTE: setting too high will crash spring
+	local schemes = { "" }  --, "cor"}
 
 	return schemes, resolutions, ratios
 end
@@ -19,7 +19,7 @@ end
 -----------------------------------------------------------------------
 
 --// filename ext
-imageExt = ".png" -- unfortunately .dds won't be with mipmaps
+imageExt = ".png"   -- unfortumnately .dds wont be with mipmaps
 
 --// render into a fbo in 4x size
 renderScale = 4
@@ -36,17 +36,18 @@ factionTeams = {
 
 -- Gets scheme from gadget when this is included
 factionColors = function(faction)
+
 	color = {
 		arm = { 0.08, 0.17, 1.0 }, --// armada
 		cor = { 1.0, 0.03, 0.0 }, --// cortex
 		raptor = { 0.8, 0.53, 0.07 }, --// raptor
 		scav = { 0.38, 0, 0.38 }, --// scavengers
-		legion = { 0, 1, 0 }, --// legion
+		legion = {0, 1, 0}, --// legion
 		unknown = { 0.03, 1, 0.03 }, --// unknown
 		Blue = { 0, 0, 0 },
-		Red = { 1, 1, 1 },
+		Red = { 1, 1, 1 }
 	}
-	Spring.Echo("Queried faction: " .. faction .. ", scheme: " .. scheme)
+	Spring.Echo('Queried faction: ' .. faction .. ', scheme: ' .. scheme)
 
 	if color[faction] then
 		return color[faction]
@@ -54,9 +55,10 @@ factionColors = function(faction)
 		if color[scheme] then
 			return color[scheme]
 		else
-			return color.unknown
+			return color['unknown']
 		end
 	end
+
 end
 
 -----------------------------------------------------------------------
@@ -95,6 +97,7 @@ local IconConfig = {
 		olTolerance = 0,
 
 		halo = false,
+
 	},
 }
 
@@ -111,11 +114,33 @@ olContrast = IconConfig[selConfig].olContrast
 olTolerance = IconConfig[selConfig].olTolerance
 halo = IconConfig[selConfig].halo
 
+
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 --// backgrounds
 background = true
+local water = "LuaRules/Images/bg_water.png"
+local builder = "LuaRules/Images/constructionunit.png"
+
+local function Greater30(a)
+	return a > 30;
+end
+local function GreaterEq15(a)
+	return a >= 15;
+end
+local function GreaterZero(a)
+	return a > 0;
+end
+local function GreaterEqZero(a)
+	return a >= 0;
+end
+local function GreaterFour(a)
+	return a > 4;
+end
+local function LessEqZero(a)
+	return a <= 0;
+end
 
 backgrounds = {
 	--{check={waterline=GreaterEq15,minWaterDepth=GreaterZero},texture=water},
@@ -124,8 +149,10 @@ backgrounds = {
 	--{check={isBuilder=true,canMove = true},texture=builder},
 }
 
+
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
+
 
 local Default = {
 	--  default settings for rendering
@@ -161,15 +188,18 @@ local Default = {
 	[2] = {},
 	[3] = {},
 	[4] = {},
+
 }
 
 defaults = Default[1]
+
 
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 --// per unitdef settings
 unitConfigs = {
+
 
 	[UnitDefNames.cormex.id] = {
 		clamp = 0,
@@ -240,6 +270,7 @@ unitConfigs = {
 	[UnitDefNames.armplat.id] = {
 		wait = 65,
 	},
+
 }
 
 for i = 1, #UnitDefs do

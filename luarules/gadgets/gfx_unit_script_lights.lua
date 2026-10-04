@@ -12,6 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
+
 if gadgetHandler:IsSyncedCode() then
 	local SendToUnsynced = SendToUnsynced
 
@@ -19,7 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 		--Spring.Echo("Synced Gadget UnitScriptLight", unitID, unitDefID, lightIndex, param)
 		SendToUnsynced("cob_UnitScriptLight", unitID, unitDefID, lightIndex, param)
 	end
-
+	
 	local function UnitScriptDistortion(unitID, unitDefID, _, lightIndex, param)
 		--Spring.Echo("Synced Gadget UnitScriptDistortion", unitID, unitDefID, lightIndex, param)
 		SendToUnsynced("cob_UnitScriptDistortion", unitID, unitDefID, lightIndex, param)
@@ -34,39 +35,46 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:DeregisterGlobal("UnitScriptLight")
 		gadgetHandler:DeregisterGlobal("UnitScriptDistortion")
 	end
-else -- UNSYNCED
-	local myAllyTeamID = Spring.GetLocalAllyTeamID()
-	local myPlayerID = Spring.GetLocalPlayerID()
+
+	
+
+else	-- UNSYNCED
+	local myAllyTeamID = Spring.GetMyAllyTeamID()
+	local myPlayerID = Spring.GetMyPlayerID()
 	local mySpec, fullview = Spring.GetSpectatingState()
 	local spIsUnitInLos = Spring.IsUnitInLos
 
 	function gadget:PlayerChanged(playerID)
 		if playerID == myPlayerID then
-			myAllyTeamID = Spring.GetLocalAllyTeamID()
+			myAllyTeamID = Spring.GetMyAllyTeamID()
 			mySpec, fullview = Spring.GetSpectatingState()
 		end
 	end
-
+	
+	local scriptUnitScriptLight = Script.LuaUI.UnitScriptLight
+	
 	local function UnitScriptLight(_, unitID, unitDefID, lightIndex, param)
 		if not fullview and not spIsUnitInLos(unitID, myAllyTeamID) then
 			return
 		end
 		--Spring.Echo("Unsynced UnitScriptLight", unitID, unitDefID, lightIndex, param)
-		if Script.LuaUI("UnitScriptLight") then
+		if Script.LuaUI('UnitScriptLight') then 
 			Script.LuaUI.UnitScriptLight(unitID, unitDefID, lightIndex, param)
 		end
 	end
 
+	local scriptUnitScriptDistortion = Script.LuaUI.UnitScriptDistortion
+	
 	local function UnitScriptDistortion(_, unitID, unitDefID, lightIndex, param)
 		if not fullview and not spIsUnitInLos(unitID, myAllyTeamID) then
 			return
 		end
 		--Spring.Echo("Unsynced UnitScriptDistortion", unitID, unitDefID, lightIndex, param)
-		if Script.LuaUI("UnitScriptDistortion") then
+		if Script.LuaUI('UnitScriptDistortion') then 
 			Script.LuaUI.UnitScriptDistortion(unitID, unitDefID, lightIndex, param)
 		end
 	end
-
+	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("cob_UnitScriptLight", UnitScriptLight)
 		gadgetHandler:AddSyncAction("cob_UnitScriptDistortion", UnitScriptDistortion)
@@ -76,4 +84,5 @@ else -- UNSYNCED
 		gadgetHandler:RemoveSyncAction("cob_UnitScriptLight")
 		gadgetHandler:RemoveSyncAction("cob_UnitScriptDistortion")
 	end
+
 end

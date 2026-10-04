@@ -29,7 +29,6 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
-			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

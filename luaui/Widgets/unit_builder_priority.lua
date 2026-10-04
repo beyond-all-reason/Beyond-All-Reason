@@ -10,12 +10,13 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		version = 8,
-		enabled = true,
+		enabled = true
 	}
 end
 
+
 -- Localized Spring API for performance
-local spGetMyTeamID = Spring.GetLocalTeamID
+local spGetMyTeamID = Spring.GetMyTeamID
 local spEcho = Spring.Echo
 
 local CMD_PRIORITY = GameCMD.PRIORITY

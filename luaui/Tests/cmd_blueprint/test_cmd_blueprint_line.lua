@@ -1,10 +1,10 @@
 local widgetName = "Blueprint"
 
-local function skip()
+function skip()
 	return not Platform.gl
 end
 
-local function setup()
+function setup()
 	assert(widgetHandler.knownWidgets[widgetName] ~= nil)
 
 	Test.clearMap()
@@ -21,14 +21,14 @@ local function setup()
 	})
 end
 
-local function cleanup()
+function cleanup()
 	Test.clearMap()
 
 	Spring.SetCameraState(initialCameraState)
 end
 
 local delay = 5
-local function test()
+function test()
 	widget = widgetHandler:FindWidget(widgetName)
 	assert(widget)
 
@@ -40,11 +40,11 @@ local function test()
 
 	local blueprintUnitDefID = UnitDefNames[blueprintUnitDefName].id
 
-	local myTeamID = Spring.GetLocalTeamID()
+	local myTeamID = Spring.GetMyTeamID()
 	local x, z = Game.mapSizeX / 2, Game.mapSizeZ / 2
 	local y = Spring.GetGroundHeight(x, z)
 	local facing = 1
-	local bpW, bpH = WG.api_blueprint.getBuildingDimensions(blueprintUnitDefID, facing)
+	local bpW, bpH = WG["api_blueprint"].getBuildingDimensions(blueprintUnitDefID, facing)
 
 	local bpCount = 5
 
@@ -65,7 +65,7 @@ local function test()
 
 	widget:CommandNotify(GameCMD.BLUEPRINT_CREATE, {}, {})
 
-	assert(#widget.blueprints == 1)
+	assert(#(widget.blueprints) == 1)
 
 	Test.clearMap()
 
@@ -84,7 +84,16 @@ local function test()
 
 	Test.waitFrames(delay)
 
-	Spring.SetActiveCommand(Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE), 1, true, false, false, false, false, false)
+	Spring.SetActiveCommand(
+		Spring.GetCmdDescIndex(GameCMD.BLUEPRINT_PLACE),
+		1,
+		true,
+		false,
+		false,
+		false,
+		false,
+		false
+	)
 
 	Test.waitFrames(delay)
 
@@ -119,5 +128,3 @@ local function test()
 	assert(#builderQueue == bpCount, #builderQueue)
 	assertEqual(builderQueue[1].id, -blueprintUnitDefID)
 end
-
-return { skip = skip, setup = setup, test = test, cleanup = cleanup }
