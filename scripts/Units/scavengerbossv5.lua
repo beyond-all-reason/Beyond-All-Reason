@@ -2357,8 +2357,12 @@ end
 
 local RAISE = {
 	grace = 2, -- seconds of warning before it starts raising
-	duration = 25, -- seconds it keeps raising
+	duration = 25, -- seconds it spends raising, not counting the walk to a wreck
 	perWreck = 20, -- seconds before it gives up on one wreck
+	search = 2000, -- how far it looks for wrecks and walks to them
+	walkTime = 20, -- seconds of walking after which it gives up
+	lateMinute = 15, -- from this minute of the game the raise speed grows with missing health
+	lateBoost = 6.5, -- raise speed multiplier at zero health after that minute
 	poseSpeed = math.rad(20), -- how fast it bends into and out of the raise pose
 	energy = 1000000, -- energy an AI-owned boss's team is kept at while it raises, since resurrecting costs energy
 }
@@ -2475,7 +2479,7 @@ end
 local function PickWreck()
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	local best, bestDist = nil, math.huge
-	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
+	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, RAISE.search)) do
 		local rezName = Spring.GetFeatureResurrect(featureID)
 		if rezName and rezName ~= "" then
 			local fx, _, fz = Spring.GetFeaturePosition(featureID)
@@ -2506,32 +2510,51 @@ local function Raise()
 	Spring.SetUnitRulesParam(unitID, "scavboss_raise", 0)
 	Spring.SetUnitRulesParam(unitID, "scavboss_raise_state", 1)
 	Sleep(RAISE.grace * 1000)
-	eating, posed, isAiming = true, true, true
+	eating, isAiming = true, true
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
 	Spring.SetUnitRulesParam(unitID, "scavboss_raise_state", 2)
 	Signal(SIG_ALL_AIM)
 	Signal(SIG_RESTORE)
 	SetFace(true)
-	SetRaisePose(true)
 	if GG.ScavBossFeedingEffect then
 		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
 	end
-	local deadline = Spring.GetGameFrame() + RAISE.duration * Game.gameSpeed
-	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
+	local boost = 1
+	if Spring.GetGameSeconds() >= RAISE.lateMinute * 60 then
+		local health, maxHealth = Spring.GetUnitHealth(unitID)
+		boost = 1 + (RAISE.lateBoost - 1) * (1 - (health or 1) / (maxHealth or 1))
+	end
+	local def = UnitDefs[unitDefID]
+	Spring.SetUnitBuildSpeed(unitID, def.buildSpeed, nil, nil, def.resurrectSpeed * boost)
+	local worked, walked = 0, 0
+	while worked < RAISE.duration and walked < RAISE.walkTime and not Spring.GetUnitIsStunned(unitID) do
 		local wreck = PickWreck()
-		if wreck then
-			Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, { Game.maxUnits + wreck }, 0)
-			local giveUp = Spring.GetGameFrame() + RAISE.perWreck * Game.gameSpeed
-			while
-				Spring.ValidFeatureID(wreck)
-				and Spring.GetGameFrame() < math.min(deadline, giveUp)
-				and not Spring.GetUnitIsStunned(unitID)
-			do
-				RAISE.Fuel()
-				Sleep(250)
+		if not wreck then
+			break
+		end
+		Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, { Game.maxUnits + wreck }, 0)
+		local onWreck = 0
+		while
+			Spring.ValidFeatureID(wreck)
+			and onWreck < RAISE.perWreck
+			and worked < RAISE.duration
+			and walked < RAISE.walkTime
+			and not Spring.GetUnitIsStunned(unitID)
+		do
+			local fx, _, fz = Spring.GetFeaturePosition(wreck)
+			local x, _, z = Spring.GetUnitPosition(unitID)
+			local near = (fx - x) ^ 2 + (fz - z) ^ 2 <= EAT_RANGE ^ 2
+			if near ~= posed then
+				posed = near
+				SetRaisePose(near)
 			end
-		else
-			Sleep(1000)
+			if near then
+				worked, onWreck = worked + 0.25, onWreck + 0.25
+			else
+				walked = walked + 0.25
+			end
+			RAISE.Fuel()
+			Sleep(250)
 		end
 	end
 	eating, posed = false, false
@@ -2546,7 +2569,7 @@ end
 TURBO.Food = function()
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	local wrecks, metal = 0, 0
-	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
+	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, RAISE.search)) do
 		local rezName = Spring.GetFeatureResurrect(featureID)
 		if rezName and rezName ~= "" then
 			wrecks = wrecks + 1
