@@ -17,9 +17,13 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local eaters = {}
+local bigUnits = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.eaterboss then
 		eaters[unitDefID] = true
+	end
+	if (tonumber(unitDef.customParams.techlevel) or 1) >= 3 then
+		bigUnits[unitDefID] = true
 	end
 end
 
@@ -95,8 +99,17 @@ function gadget:UnitCreated(unitID, unitDefID)
 	end
 end
 
-function gadget:UnitDestroyed(unitID)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	bosses[unitID] = nil
+	if
+		attackerID
+		and bosses[attackerID]
+		and bigUnits[unitDefID]
+		and not Spring.AreTeamsAllied(unitTeam, attackerTeam)
+	then
+		local kills = Spring.GetUnitRulesParam(attackerID, "scavboss_bigkills") or 0
+		Spring.SetUnitRulesParam(attackerID, "scavboss_bigkills", kills + 1)
+	end
 end
 
 function gadget:GameFrame(frame)

@@ -1500,13 +1500,15 @@ TURBO.Boost = function(num, mult, impulse)
 end
 
 local HUNGER = {
-	health = 0.5, -- hunger only grows below this health
-	fillSeconds = 60, -- seconds from empty to full
+	health = 1, -- hunger only grows below this health; 1 = always
+	fillSeconds = 600, -- seconds from empty to full when the boss kills nothing big
+	minSeconds = 240, -- the fastest it can fill
+	killSeconds = 30, -- every T3 unit the boss kills since its last meal shortens the fill by this many seconds
 	min = 80, -- Devour starts somewhere between these two hunger values, picked anew each time
 	max = 100,
-	metal = 15000, -- metal in reach that Devour needs; a hungry boss waits until it is there
 	value = 0,
 	trigger = 90,
+	killsAtMeal = 0,
 }
 
 local TURRET_SPEED = math.rad(180)
@@ -2377,6 +2379,7 @@ local function Feed()
 	eating, posed, isAiming = true, true, true
 	fedMetal = 0
 	HUNGER.value, HUNGER.trigger = 0, math.random(HUNGER.min, HUNGER.max)
+	HUNGER.killsAtMeal = Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 2)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
@@ -2726,12 +2729,11 @@ local function FeedWatch()
 			and not Spring.GetUnitIsStunned(unitID)
 			and Spring.GetUnitRulesParam(unitID, "scavboss_turbo") ~= "off"
 		then
-			HUNGER.value = math.min(100, HUNGER.value + 50 / HUNGER.fillSeconds)
+			local kills = (Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0) - HUNGER.killsAtMeal
+			local fill = math.max(HUNGER.minSeconds, HUNGER.fillSeconds - kills * HUNGER.killSeconds)
+			HUNGER.value = math.min(100, HUNGER.value + 50 / fill)
 			if HUNGER.value >= HUNGER.trigger then
-				local _, metal = TURBO.Food()
-				if metal >= HUNGER.metal then
-					Feed()
-				end
+				Feed()
 			end
 		end
 		Spring.SetUnitRulesParam(unitID, "scavboss_hunger", math.floor(HUNGER.value))
