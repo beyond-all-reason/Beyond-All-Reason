@@ -40,7 +40,7 @@ local spGetCameraPosition = Spring.GetCameraPosition
 local spGetCameraDirection = Spring.GetCameraDirection
 local spTraceScreenRay = Spring.TraceScreenRay
 
-local LuaShader = gl.LuaShader
+local LuaShader = gl.LuaShader ---@as BarLuaShaderModule
 local InstanceVBOTable = gl.InstanceVBOTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
@@ -101,13 +101,14 @@ local fallbackShaderSource = {
 
 -- Local state
 
-local outlineVBO ---@type InstanceVBOTable?
-local outlineShader
+local outlineVBO ---@type InstanceVBOTable
+local outlineVAO ---@type VAO
+local outlineShader ---@type LuaShader
 local shaderSource
 local useGeometryShader = LuaShader.isGeometryShaderSupported ---@as boolean
 
-local visibleUnits = {} -- array of unitIDs, only those with an armor def
-local visibleIndex = {} -- unitID to its index in visibleUnits
+local visibleUnits = {} ---@type integer[] array of unitIDs, only those with an armor def
+local visibleIndex = {} ---@type table<integer, integer?> unitID to its index in visibleUnits
 local visibleDefID = {}
 local visibleCount = 0
 local pollCursor = 0
@@ -125,10 +126,10 @@ local planeHeight = 0.0
 local minSizeMult = 1.0
 local iconZoomDist = 0.0
 local iconsVisible = false
-local configAge = 0
+local configAge = 0.0
 local uniformsDirty = true
 
-local instanceCache = {}
+local instanceCache = {} ---@type number[]
 for i = 1, 16 do
 	instanceCache[i] = 0
 end
@@ -169,7 +170,7 @@ local function updateUnit(unitID, noUpload)
 	end
 
 	local x, y, z, midX, midY, midZ = spGetUnitPosition(unitID, true)
-	if not midX then
+	if not x or not midX then
 		removeOutline(unitID, noUpload)
 		return
 	end
@@ -197,7 +198,7 @@ local function updateUnit(unitID, noUpload)
 	instanceCache[2] = texCoords.y0
 	instanceCache[3] = texCoords.x1
 	instanceCache[4] = texCoords.y1
-	instanceCache[5] = iconData.size * 0.75 + 0.25
+	instanceCache[5] = iconData.size --[[@as number]] * 0.75 + 0.25
 	instanceCache[6] = state
 	instanceCache[7] = texCoords.atlasIndex
 	instanceCache[9] = offsetX
@@ -287,29 +288,37 @@ local function initGL4()
 		return false
 	end
 
-	outlineVBO = InstanceVBOTable.makeInstanceVBOTable({
+	local vboTable = InstanceVBOTable.makeInstanceVBOTable({
 		{ id = layoutOffset, name = "uvrect", size = 4 },
 		{ id = layoutOffset + 1, name = "params", size = 4 },
 		{ id = layoutOffset + 2, name = "midoffset", size = 4 },
 		{ id = layoutOffset + 3, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
 	}, 64, "unitArmorIconsVBO", layoutOffset + 3)
 
-	if not outlineVBO then
+	if not vboTable then
 		return false
 	end
+	outlineVBO = vboTable
 
+	local vao
 	if useGeometryShader then
-		outlineVBO.VAO = InstanceVBOTable.makeVAOandAttach(nil, outlineVBO.instanceVBO)
+		vao = InstanceVBOTable.makeVAOandAttach(nil, outlineVBO.instanceVBO)
 	else
 		local quadVBO = InstanceVBOTable.makeRectVBO(-1, -1, 1, 1, 0, 0, 1, 1, "unitArmorIconsQuad")
 		if not quadVBO then
 			return false
 		end
-		outlineVBO.VAO = InstanceVBOTable.makeVAOandAttach(quadVBO, outlineVBO.instanceVBO)
+		vao = InstanceVBOTable.makeVAOandAttach(quadVBO, outlineVBO.instanceVBO)
 		outlineVBO.vertexVBO = quadVBO
 	end
 
-	return outlineVBO.VAO ~= nil
+	if not vao then
+		return false
+	end
+	outlineVBO.VAO = vao
+	outlineVAO = vao
+
+	return true
 end
 
 ---The smallest size multiplier of any unit icon, which is the last icon to vanish while zooming in.
@@ -430,9 +439,9 @@ function widget:DrawScreenEffects()
 	end
 	outlineShader:SetUniform("iconZoomDist", iconZoomDist)
 	if useGeometryShader then
-		outlineVBO.VAO:DrawArrays(GL.POINTS, outlineVBO.usedElements)
+		outlineVAO:DrawArrays(GL.POINTS, outlineVBO.usedElements)
 	else
-		outlineVBO.VAO:DrawArrays(GL.TRIANGLES, 6, 0, outlineVBO.usedElements)
+		outlineVAO:DrawArrays(GL.TRIANGLES, 6, 0, outlineVBO.usedElements)
 	end
 	outlineShader:Deactivate()
 
@@ -466,8 +475,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if outlineVBO and outlineVBO.VAO then
-		outlineVBO.VAO:Delete()
+	if outlineVAO then
+		outlineVAO:Delete()
 	end
 	if outlineShader then
 		outlineShader:Finalize()
