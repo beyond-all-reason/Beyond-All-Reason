@@ -3272,7 +3272,7 @@ local unitDistortions = {
 		-- },
 	},
 
-	scavbossv5 = {
+	scavengerbossv5 = {
 		chestshimmer = {
 			distortionType = "point",
 			pieceName = "eaterbeam",
@@ -4380,12 +4380,12 @@ local unitEventDistortionsNames = {
 	--corint disabled for now since it has static positioning - now only 'working' when shooting to east:
 
 	UnitScriptDistortions = {
-		scavbossv5 = {
+		scavengerbossv5 = {
 			[1] = {
 				-- feeding aura
 				alwaysVisible = true,
 				distortionType = "point",
-				distortionName = "scavbossv5feeding",
+				distortionName = "scavengerbossv5feeding",
 				pieceName = "eaterbeam",
 				distortionConfig = {
 					posx = 0,
@@ -4407,7 +4407,7 @@ local unitEventDistortionsNames = {
 				-- shield charge
 				alwaysVisible = true,
 				distortionType = "point",
-				distortionName = "scavbossv5shieldcharge",
+				distortionName = "scavengerbossv5shieldcharge",
 				pieceName = "base",
 				distortionConfig = {
 					posx = 0,
@@ -4428,7 +4428,7 @@ local unitEventDistortionsNames = {
 				-- shield pop
 				alwaysVisible = true,
 				distortionType = "point",
-				distortionName = "scavbossv5shieldpop",
+				distortionName = "scavengerbossv5shieldpop",
 				pieceName = "base",
 				distortionConfig = {
 					posx = 0,
@@ -4449,7 +4449,7 @@ local unitEventDistortionsNames = {
 				-- close turbo, left front hinge
 				alwaysVisible = true,
 				distortionType = "point",
-				distortionName = "scavbossv5turboleft",
+				distortionName = "scavengerbossv5turboleft",
 				pieceName = "flhinge",
 				distortionConfig = {
 					posx = 0,
@@ -4471,7 +4471,7 @@ local unitEventDistortionsNames = {
 				-- close turbo, right front hinge
 				alwaysVisible = true,
 				distortionType = "point",
-				distortionName = "scavbossv5turboright",
+				distortionName = "scavengerbossv5turboright",
 				pieceName = "frhinge",
 				distortionConfig = {
 					posx = 0,

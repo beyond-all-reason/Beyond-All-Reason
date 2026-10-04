@@ -42441,7 +42441,7 @@ local unitLights = {
 		},
 	},
 
-	scavbossv5 = {
+	scavengerbossv5 = {
 		eaterglow = {
 			lightType = "point",
 			pieceName = "eaterbeam",

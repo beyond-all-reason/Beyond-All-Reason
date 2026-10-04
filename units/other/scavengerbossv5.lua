@@ -8,8 +8,8 @@ end
 
 -- the values in this table are for normal difficulty with 8 players, the scaling below the table adjusts them
 local units = {
-	scavbossv5 = {
-		buildpic = "scavbossv5.dds",
+	scavengerbossv5 = {
+		buildpic = "scavengerbossv5.dds",
 		builddistance = 500,
 		builder = true,
 		buildtime = 100000,
@@ -25,7 +25,7 @@ local units = {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damageModifier = 0.5,
-		energycost = 100000,
+		energycost = 41000000,
 		explodeas = "ScavComBossExplo",
 		footprintx = 2,
 		footprintz = 2,
@@ -33,13 +33,13 @@ local units = {
 		hidedamage = true,
 		mass = 9999999,
 		maxslope = 20,
-		metalcost = 10000,
+		metalcost = 4100000,
 		movementclass = "SCAVCOMMANDERBOT",
 		onoffable = true,
 		reclaimable = false,
 		nochasecategory = "ALL",
-		objectname = "Units/scavboss/scavbossv5.s3o",
-		script = "Units/scavbossv5.lua",
+		objectname = "Units/scavboss/scavengerbossv5.s3o",
+		script = "Units/scavengerbossv5.lua",
 		seismicsignature = 0,
 		showplayername = true,
 		selfdestructas = "commanderexplosion",
@@ -87,7 +87,7 @@ local units = {
 				footprintz = 6,
 				height = 20,
 				metal = 3500,
-				object = "Units/scavboss/scavbossv5_dead.s3o",
+				object = "Units/scavboss/scavengerbossv5_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -1106,7 +1106,7 @@ local DIFFICULTY_STEP = 1.15
 local unscaledDamage = { eaterbeam = true, eaterblast = true, devourdgun = true }
 local scaledProjectiles = { "shotgunarm", "gaussvolley", "gaussvolley_turbo", "gaussfinale" }
 
-local boss = units.scavbossv5
+local boss = units.scavengerbossv5
 local difficultyScale = DIFFICULTY_STEP ^ level
 local statScale = playerCountScale * difficultyScale
 boss.health = math.floor(boss.health * statScale + 0.5)

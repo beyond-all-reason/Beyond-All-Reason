@@ -54,7 +54,7 @@ local armorDefs = {
 		"armcomboss",
 		"corcomboss",
 		"scavengerbossv4",
-		"scavbossv5",
+		"scavengerbossv5",
 	},
 	indestructable = {
 		"xmasball1_1",

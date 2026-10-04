@@ -2359,8 +2359,8 @@ explosionLightsNames.corcat_exp_heavyrocket = GetLightClass("Explosion", nil, "M
 -- 	 										color2r = 0.36, color2g = 0.12, color2b = 0.48, colortime = 75,
 -- 											sustain = 10, lifetime = 400,
 --     										modelfactor = 0.1, specular = 0.2, scattering = 0.3, lensflare = 6})
---scavbossv5 eater beam: a modest light instead of the auto-sized one
-projectileDefLightsNames.scavbossv5_eaterbeam = GetLightClass("LaserProjectile", nil, "Small", {
+--scavengerbossv5 eater beam: a modest light instead of the auto-sized one
+projectileDefLightsNames.scavengerbossv5_eaterbeam = GetLightClass("LaserProjectile", nil, "Small", {
 	r = 1.0,
 	g = 0.65,
 	b = 0.1,
@@ -2376,7 +2376,7 @@ projectileDefLightsNames.scavbossv5_eaterbeam = GetLightClass("LaserProjectile",
 	lifetime = 3,
 	sustain = 2,
 })
-projectileDefLightsNames.scavbossv5_scav_eaterbeam = GetLightClass("LaserProjectile", nil, "Small", {
+projectileDefLightsNames.scavengerbossv5_scav_eaterbeam = GetLightClass("LaserProjectile", nil, "Small", {
 	r = 0.6,
 	g = 0.2,
 	b = 1.0,

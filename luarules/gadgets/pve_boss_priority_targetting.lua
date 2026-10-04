@@ -32,7 +32,7 @@ local queenUnitDefs = {
 	raptor_matriarch_fire = true,
 
 	scavengerbossv4_scav = true,
-	scavbossv5_scav = true,
+	scavengerbossv5_scav = true,
 }
 
 local queenUnits = {}

@@ -928,8 +928,8 @@ local icontypes = {
 		bitmap = "icons/armcomboss.png",
 		size = 4.19999981,
 	},
-	scavbossv5 = {
-		bitmap = "icons/armcomboss.png",
+	scavengerbossv5 = {
+		bitmap = "icons/scavengerbossv5.png",
 		size = 4.19999981,
 	},
 	armsd = {
