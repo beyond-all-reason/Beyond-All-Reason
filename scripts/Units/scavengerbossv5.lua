@@ -1494,7 +1494,7 @@ local TURBO = {
 	volleyHealth = 0.75, -- the close turbo (back-to-back volleys) only below this health
 	raiseHealth = 0.6, -- Raise only below this health
 	raiseWrecks = 3, -- player wrecks in reach that Raise needs
-	abilityChance = 0.5, -- chance that a turbo becomes an ability when one is possible
+	abilityChance = 0.15, -- chance that a turbo becomes an ability when one is possible
 	hold = { close = "arms", far = "rapid", swarm = "pods", air = "aa", beam = "beam" },
 	signal = { far = true, close = true }, -- turbos that show a warning before they start
 	hinges = { P.flhinge, P.frhinge }, -- the close turbo plays its lightning and shimmer on these
