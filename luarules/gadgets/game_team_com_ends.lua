@@ -149,9 +149,14 @@ function gadget:Initialize()
 	if
 		deathmode ~= "com"
 		and deathmode ~= "own_com"
-		and deathmode ~= "territorial_domination"
+		and deathmode ~= "dominion"
 		and deathmode ~= "builders"
 	then
+		gadgetHandler:RemoveGadget(self)
+	end
+	-- Map editor sessions (editor_sandbox=1 in the start script) have no
+	-- commanders at all; commander counting has nothing to end.
+	if tostring(Spring.GetModOptions().editor_sandbox or "") == "1" then
 		gadgetHandler:RemoveGadget(self)
 	end
 

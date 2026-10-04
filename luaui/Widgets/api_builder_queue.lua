@@ -56,6 +56,7 @@ local unitBuildCommands = {}
 local commandIdToCreatedUnitIdMap = {}
 local createdUnitIdToCommandIdMap = {}
 local unitsAwaitingCommandProcessing = {}
+local pendingTeamChanges = {}
 local buildersList = {}
 local lastQueueDepth = {}
 local commandLookup = {}
@@ -64,6 +65,7 @@ local commandLookup = {}
 local Event = {
 	onBuildCommandAdded = "onBuildCommandAdded",
 	onBuildCommandRemoved = "onBuildCommandRemoved",
+	onBuildCommandTeamChanged = "onBuildCommandTeamChanged",
 	onUnitCreated = "onUnitCreated",
 	onUnitFinished = "onUnitFinished",
 	onBuilderDestroyed = "onBuilderDestroyed",
@@ -72,6 +74,7 @@ local Event = {
 local eventCallbacks = {
 	[Event.onBuildCommandAdded] = {},
 	[Event.onBuildCommandRemoved] = {},
+	[Event.onBuildCommandTeamChanged] = {},
 	[Event.onUnitCreated] = {},
 	[Event.onUnitFinished] = {},
 	[Event.onBuilderDestroyed] = {},
@@ -450,12 +453,38 @@ local function periodicBuilderCheck()
 	end
 end
 
+local function hasBuilderInTeam(buildCommand, teamId)
+	for builderId in pairs(buildCommand.builderIds) do
+		if spGetUnitTeam(builderId) == teamId then
+			return true
+		end
+	end
+	return false
+end
+
+-- Deferred to Update: a take transfers a whole team at once, so each command is checked once
+local function applyPendingTeamChanges()
+	for commandId, newTeamId in pairs(pendingTeamChanges) do
+		pendingTeamChanges[commandId] = nil
+		local buildCommand = buildCommands[commandId]
+		if
+			buildCommand
+			and buildCommand.teamId ~= newTeamId
+			and not hasBuilderInTeam(buildCommand, buildCommand.teamId)
+		then
+			buildCommand.teamId = newTeamId
+			notifyEvent(Event.onBuildCommandTeamChanged, commandId, buildCommand)
+		end
+	end
+end
+
 local function resetStateAndReinitialize()
 	buildCommands = {}
 	unitBuildCommands = {}
 	commandIdToCreatedUnitIdMap = {}
 	createdUnitIdToCommandIdMap = {}
 	unitsAwaitingCommandProcessing = {}
+	pendingTeamChanges = {}
 	lastQueueDepth = {}
 	commandLookup = {}
 	tablePool = {}
@@ -495,6 +524,9 @@ end
 BuilderQueueApi.OnBuildCommandRemoved = function(callback)
 	return registerCallback(Event.onBuildCommandRemoved, callback)
 end
+BuilderQueueApi.OnBuildCommandTeamChanged = function(callback)
+	return registerCallback(Event.onBuildCommandTeamChanged, callback)
+end
 BuilderQueueApi.OnUnitCreated = function(callback)
 	return registerCallback(Event.onUnitCreated, callback)
 end
@@ -519,6 +551,7 @@ function widget:Update(dt)
 	elapsedSeconds = elapsedSeconds + dt
 
 	processNewBuildCommands()
+	applyPendingTeamChanges()
 
 	if elapsedSeconds > nextUpdateTime then
 		nextUpdateTime = elapsedSeconds + PERIODIC_UPDATE_INTERVAL
@@ -574,6 +607,16 @@ end
 
 function widget:UnitFinished(unitId)
 	clearUnit(unitId)
+end
+
+-- Allied transfers keep the command queue, so the queued builds now belong to the new team
+function widget:UnitGiven(unitId, unitDefId, newTeam)
+	local commands = unitBuildCommands[unitId]
+	if commands then
+		for commandId in pairs(commands) do
+			pendingTeamChanges[commandId] = newTeam
+		end
+	end
 end
 
 function widget:UnitDestroyed(unitId, unitDefId)

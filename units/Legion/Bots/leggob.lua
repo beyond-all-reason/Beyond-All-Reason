@@ -36,7 +36,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 2,
 			stompable = true,
-			subfolder = "CorBots",
+			subfolder = "Legion/Bots",
 		},
 		featuredefs = {
 			dead = {

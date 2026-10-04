@@ -64,12 +64,18 @@ function widget:PlayerChanged()
 end
 
 function widget:UnitEnteredRadar(unitID, unitTeam)
+	if specFullView then
+		return
+	end
 	if dots[unitID] then
 		dots[unitID][3] = true -- radar
 	end
 end
 
 function widget:UnitLeftRadar(unitID, unitTeam)
+	if specFullView then
+		return
+	end
 	if dots[unitID] then
 		dots[unitID][3] = false -- radar
 		--if not dots[unitID][4] then -- not in LOS - forget unit type
@@ -80,6 +86,9 @@ function widget:UnitLeftRadar(unitID, unitTeam)
 end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
+	if specFullView then
+		return
+	end
 	local unitDefID = spGetUnitDefID(unitID)
 	if unitDefID and includedUnitDefIDs[unitDefID] and unitTeam ~= gaiaTeamID then -- update unitID info, ID could have been reused already!
 		dots[unitID] = {
@@ -95,6 +104,9 @@ function widget:UnitEnteredLos(unitID, unitTeam)
 end
 
 function widget:UnitLeftLos(unitID, unitTeam)
+	if specFullView then
+		return
+	end
 	if dots[unitID] then
 		dots[unitID][4] = false
 		if not dots[unitID][3] then -- not on radar - forget unit type

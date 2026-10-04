@@ -132,7 +132,7 @@ local sounds = {
 	facing = "LuaUI/Sounds/buildbar_hover.wav",
 }
 
-local keyConfig = VFS.Include("luaui/configs/keyboard_layouts.lua")
+local keyConfig = require("luaui/configs/keyboard_layouts")
 local currentLayout
 local actionHotkeys
 
@@ -719,7 +719,7 @@ local drawCursorText = setmetatable({}, {
 
 local function reloadBindings()
 	currentLayout = Spring.GetConfigString("KeyboardLayout", "qwerty")
-	actionHotkeys = VFS.Include("luaui/Include/action_hotkeys.lua")
+	actionHotkeys = require("luaui/Include/action_hotkeys")
 	drawCursorText.invalidate()
 end
 
@@ -965,7 +965,7 @@ function widget:MouseWheel(up, value)
 		return
 	end
 
-	local alt, ctrl, meta, shift = unpack(state.modKeys or {})
+	local alt, _, _, _ = unpack(state.modKeys or {})
 
 	if not alt then
 		return

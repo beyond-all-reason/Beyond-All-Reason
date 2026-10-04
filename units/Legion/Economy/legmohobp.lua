@@ -6,7 +6,7 @@ return {
 		buildangle = 2048,
 		energycost = 8100,
 		metalcost = 640,
-		buildpic = "LEGMOHOBP.DDS",
+		buildpic = "LEGMOHOCON.DDS",
 		buildtime = 14100,
 		builder = true,
 		canrepeat = false,
@@ -33,6 +33,7 @@ return {
 		yardmap = "h cbbbbbbc bssssssb bsssossb bsobbssb bssbbosb bssosssb bssssssb cbbbbbbc",
 		customparams = {
 			attached_con_turret = "legmohobpct",
+			attached_con_turret_piece = "rotor",
 			usebuildinggrounddecal = true,
 			buildinggrounddecaltype = "decals/legmohobp_aoplane.dds",
 			buildinggrounddecalsizey = 8,
@@ -45,7 +46,7 @@ return {
 			normaltex = "unittextures/leg_normal.dds",
 			removestop = true,
 			removewait = true,
-			subfolder = "CorBuildings/LandEconomy",
+			subfolder = "Legion/Economy",
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -182,7 +182,7 @@ local allWatchedProjectileIDs = {}
 local waterIsLava = Spring.GetModOptions().map_waterislava
 
 function gadget:Initialize()
-	local minheight, maxheight = Spring.GetGroundExtremes()
+	local minheight, _ = Spring.GetGroundExtremes()
 	if minheight > 100 then
 		mapHasWater = false
 	end
@@ -244,6 +244,10 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 		local groundHeight = mathMax(GetGroundHeight(x, z), 0)
 		local gf = GetGameFrame()
 		local wData = starburstWeapons[weaponDefID]
+		local respawnUpTime = GG.VerticalizeUptimeFrames
+		if respawnUpTime ~= nil then
+			gf = gf + respawnUpTime - WeaponDefs[weaponDefID].uptime * Game.gameSpeed
+		end
 		starbursts[proID] = {
 			groundHeight + wData[1],
 			wData[2],

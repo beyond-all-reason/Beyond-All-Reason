@@ -44,15 +44,15 @@ function gadget:Initialize()
 	GG.MissionAPI = {}
 	GG.MissionAPI.Difficulty = Spring.GetModOptions().mission_difficulty --TODO: add mission difficulty modoption
 
-	local triggersSchema = VFS.Include("luarules/mission_api/triggers_schema.lua")
-	local actionsSchema = VFS.Include("luarules/mission_api/actions_schema.lua")
+	local triggersSchema = require("luarules/mission_api/triggers_schema")
+	local actionsSchema = require("luarules/mission_api/actions_schema")
 	GG.MissionAPI.TriggerTypes = triggersSchema.Types
 	GG.MissionAPI.ActionTypes = actionsSchema.Types
 
 	GG.MissionAPI.TrackedUnits = {}
 
-	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
-	actionsController = VFS.Include("luarules/mission_api/actions_loader.lua")
+	triggersController = require("luarules/mission_api/triggers_loader")
+	actionsController = require("luarules/mission_api/actions_loader")
 
 	loadMission()
 end

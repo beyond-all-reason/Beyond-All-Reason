@@ -36,7 +36,7 @@ return {
 		customparams = {
 			model_author = "Model by Tharsis, Concept by Chris/Airnac",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "legion/Navy/T2",
+			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "sub",
 		},

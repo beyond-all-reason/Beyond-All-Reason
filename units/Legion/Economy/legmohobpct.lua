@@ -4,7 +4,7 @@ return {
 		maxdec = 4.5,
 		energycost = 1,
 		metalcost = 1,
-		buildpic = "LEGMOHOBP.DDS",
+		buildpic = "LEGMOHOCON.DDS",
 		buildtime = 10,
 		builddistance = 800,
 		builder = true,
@@ -36,7 +36,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			paralyzemultiplier = 0.1,
-			subfolder = "CorBuildings/LandUtil",
+			subfolder = "Legion/Economy",
 		},
 		sounds = {
 			canceldestruct = "cancel2",

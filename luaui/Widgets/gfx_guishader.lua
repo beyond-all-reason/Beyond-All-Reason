@@ -13,6 +13,7 @@ function widget:GetInfo()
 		license = "GNU GPL, v2 or later",
 		layer = -990000, -- other widgets can be run earlier (lower layer) and thus guishader blur are will lag behind a frame, (like tooltip screenblur)
 		enabled = true,
+		modalExempt = true, -- the blur behind an open window is this widget's work
 	}
 end
 
@@ -69,6 +70,16 @@ local guishaderScreenRects = {}
 local guishaderScreenDlists = {}
 local updateStencilTexture = false
 local updateStencilTextureScreen = false
+
+-- Which widget registered each region, when it said so (name -> widget). Used only while
+-- a modal window hides the interface: a hidden widget's region would otherwise stay on
+-- screen as a blurred patch of map. A region with no owner is treated as hidden then.
+local rectOwners = {}
+local dlistOwners = {}
+local screenRectOwners = {}
+local screenDlistOwners = {}
+local lastModalActive = false
+local lastModalRevision = -1
 
 local oldvs = 0
 local vsx, vsy, vpx, vpy = spGetViewGeometry()
@@ -152,22 +163,30 @@ local function DrawStencilTexture(world, fullscreen)
 		glTranslate(-1, -1, 0)
 		glScale(2 / vsx, 2 / vsy, 0)
 		if world then
-			for _, rect in pairs(guishaderRects) do
-				glRect(rect[1], rect[2], rect[3], rect[4])
+			for name, rect in pairs(guishaderRects) do
+				if widgetHandler:ModalAllows(rectOwners[name]) then
+					glRect(rect[1], rect[2], rect[3], rect[4])
+				end
 			end
-			for _, dlist in pairs(guishaderDlists) do
-				glColor(1, 1, 1, 1)
-				glCallList(dlist)
+			for name, dlist in pairs(guishaderDlists) do
+				if widgetHandler:ModalAllows(dlistOwners[name]) then
+					glColor(1, 1, 1, 1)
+					glCallList(dlist)
+				end
 			end
 		elseif fullscreen then
 			glRect(0, 0, vsx, vsy)
 		else
-			for _, rect in pairs(guishaderScreenRects) do
-				glRect(rect[1], rect[2], rect[3], rect[4])
+			for name, rect in pairs(guishaderScreenRects) do
+				if widgetHandler:ModalAllows(screenRectOwners[name]) then
+					glRect(rect[1], rect[2], rect[3], rect[4])
+				end
 			end
-			for _, dlist in pairs(guishaderScreenDlists) do
-				glColor(1, 1, 1, 1)
-				glCallList(dlist)
+			for name, dlist in pairs(guishaderScreenDlists) do
+				if widgetHandler:ModalAllows(screenDlistOwners[name]) then
+					glColor(1, 1, 1, 1)
+					glCallList(dlist)
+				end
 			end
 		end
 		glPopMatrix()
@@ -370,6 +389,18 @@ function widget:Shutdown()
 end
 
 function widget:DrawScreenEffects() -- This blurs the world underneath UI elements
+	-- Before the early returns on purpose: when a modal window starts or stops hiding the
+	-- interface, which regions belong in the stencil changes even though no widget
+	-- registered or removed one, and the quit dialog's fullscreen blur skips the rest.
+	local modalActive = widgetHandler:IsModalActive()
+	local modalRevision = widgetHandler:GetModalRevision()
+	if modalActive ~= lastModalActive or modalRevision ~= lastModalRevision then
+		lastModalActive = modalActive
+		lastModalRevision = modalRevision
+		updateStencilTexture = true
+		updateStencilTextureScreen = true
+	end
+
 	if spIsGUIHidden() or uiOpacity > 0.99 then
 		return
 	end
@@ -509,9 +540,14 @@ function widget:Initialize()
 	self:UpdateCallIns()
 
 	WG.guishader = {}
-	WG.guishader.InsertDlist = function(dlist, name, force)
-		if force or guishaderDlists[name] ~= dlist then
+	-- The trailing `owner` argument of the Insert functions is optional and only matters
+	-- when a modal window hides the interface: pass the registering `widget` and the
+	-- region follows that widget's visibility, otherwise it is dropped while a window is
+	-- open. See the "Modal windows" block in barwidgets.lua.
+	WG.guishader.InsertDlist = function(dlist, name, force, owner)
+		if force or guishaderDlists[name] ~= dlist or dlistOwners[name] ~= owner then
 			guishaderDlists[name] = dlist
+			dlistOwners[name] = owner
 			updateStencilTexture = true
 		end
 	end
@@ -519,6 +555,7 @@ function widget:Initialize()
 		local found = guishaderDlists[name] ~= nil
 		if found then
 			guishaderDlists[name] = nil
+			dlistOwners[name] = nil
 			updateStencilTexture = true
 		end
 		return found
@@ -528,30 +565,35 @@ function widget:Initialize()
 		if found then
 			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderDlists[name]
 			guishaderDlists[name] = nil
+			dlistOwners[name] = nil
 			updateStencilTexture = true
 		end
 		return found
 	end
-	WG.guishader.InsertRect = function(left, top, right, bottom, name)
+	WG.guishader.InsertRect = function(left, top, right, bottom, name, owner)
 		guishaderRects[name] = { left, top, right, bottom }
+		rectOwners[name] = owner
 		updateStencilTexture = true
 	end
 	WG.guishader.RemoveRect = function(name)
 		local found = guishaderRects[name] ~= nil
 		if found then
 			guishaderRects[name] = nil
+			rectOwners[name] = nil
 			updateStencilTexture = true
 		end
 		return found
 	end
-	WG.guishader.InsertScreenDlist = function(dlist, name)
+	WG.guishader.InsertScreenDlist = function(dlist, name, owner)
 		guishaderScreenDlists[name] = dlist
+		screenDlistOwners[name] = owner
 		updateStencilTextureScreen = true
 	end
 	WG.guishader.RemoveScreenDlist = function(name)
 		local found = guishaderScreenDlists[name] ~= nil
 		if found then
 			guishaderScreenDlists[name] = nil
+			screenDlistOwners[name] = nil
 			updateStencilTextureScreen = true
 		end
 		return found
@@ -561,17 +603,20 @@ function widget:Initialize()
 		if found then
 			deleteDlistQueue[#deleteDlistQueue + 1] = guishaderScreenDlists[name]
 			guishaderScreenDlists[name] = nil
+			screenDlistOwners[name] = nil
 		end
 		return found
 	end
-	WG.guishader.InsertScreenRect = function(left, top, right, bottom, name)
+	WG.guishader.InsertScreenRect = function(left, top, right, bottom, name, owner)
 		guishaderScreenRects[name] = { left, top, right, bottom }
+		screenRectOwners[name] = owner
 		updateStencilTextureScreen = true
 	end
 	WG.guishader.RemoveScreenRect = function(name)
 		local found = guishaderScreenRects[name] ~= nil
 		if found then
 			guishaderScreenRects[name] = nil
+			screenRectOwners[name] = nil
 			updateStencilTextureScreen = true
 		end
 		return found

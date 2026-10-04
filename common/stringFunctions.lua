@@ -1,4 +1,4 @@
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 if not string.split then
 	-- Split a string into a table of substrings, based on a delimiter.

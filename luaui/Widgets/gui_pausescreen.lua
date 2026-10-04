@@ -12,6 +12,7 @@ function widget:GetInfo()
 		version = "1.34",
 		layer = 999999,
 		enabled = true,
+		modalExempt = true, -- some windows pause the game, so this has to stay visible
 	}
 end
 

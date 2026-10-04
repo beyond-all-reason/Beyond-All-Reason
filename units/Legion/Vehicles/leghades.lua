@@ -7,8 +7,8 @@ return {
 		buildpic = "LEGHADES.DDS",
 		buildtime = 1650,
 		canmove = true,
-		collisionvolumeoffsets = "0 -1 0",
-		collisionvolumescales = "16 10 23",
+		collisionvolumeoffsets = "0 1 0",
+		collisionvolumescales = "16 15 23",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		explodeas = "smallExplosionGeneric",
@@ -43,7 +43,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,
-			subfolder = "ArmVehicles",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -107,6 +107,8 @@ return {
 				areaofeffect = 16,
 				avoidfeature = false,
 				projectiles = 5,
+				numbounce = 1,
+				groundbounce = true,
 				burnblow = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -125,7 +127,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 1,
 				range = 211,
-				reloadtime = 2.1,
+				reloadtime = 1.2,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
@@ -140,8 +142,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 700,
 				damage = {
-					default = 15,
-					vtol = 6,
+					default = 10,
+					vtol = 4,
 				},
 			},
 			gauss = {

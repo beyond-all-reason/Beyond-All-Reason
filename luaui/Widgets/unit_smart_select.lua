@@ -18,8 +18,8 @@ local spGetMyTeamID = Spring.GetLocalTeamID
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
-local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
-local selectApi = VFS.Include("luaui/Include/select_api.lua")
+local minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld
+local selectApi = require("luaui/Include/select_api")
 
 local skipSel
 local inSelection = false

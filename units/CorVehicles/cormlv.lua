@@ -10,7 +10,7 @@ return {
 		canreclaim = false,
 		canrepair = true,
 		canrestore = false,
-		collisionvolumeoffsets = "0 0 0",
+		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "30 17 45",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",

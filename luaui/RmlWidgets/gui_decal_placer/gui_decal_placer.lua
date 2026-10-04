@@ -267,7 +267,7 @@ end
 -- shot shader into RGBA PNGs cached on disk, then <img> renders the cached
 -- PNG normally. See dp_preview_bake.lua for the full API + design notes.
 ----------------------------------------------------------------
-local Bake = VFS.Include("luaui/RmlWidgets/gui_decal_placer/dp_preview_bake.lua")
+local Bake = require("luaui/RmlWidgets/gui_decal_placer/dp_preview_bake")
 local PREVIEW_CACHE_DIR = "Terraform Brush/DecalPreviews/"
 
 ----------------------------------------------------------------
