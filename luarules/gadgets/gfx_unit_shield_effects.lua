@@ -356,7 +356,7 @@ end
 local function ApplyTeamPalette(unitData, teamID)
 	local info = unitData.shieldInfo
 	local config = shieldUnitDefs[unitData.unitDefID].config
-	if scavengerTeams[teamID] or config.scavPalette then
+	if scavengerTeams[teamID] then
 		info.scavenger = true
 		info.colormap1 = config.scavColormap1
 		info.colormap2 = config.scavColormap2
@@ -781,7 +781,6 @@ local function LoadShieldConfig()
 			local c2 = myShield.colormap2
 			myShield.scavColormap1 = { { 0.80, 0.40, 1.00, c1[1][4] }, { c1[2][1], c1[2][2], c1[2][3], c1[2][4] } }
 			myShield.scavColormap2 = { { 0.60, 0.30, 0.80, c2[1][4] }, { c2[2][1], c2[2][2], c2[2][3], c2[2][4] } }
-			myShield.scavPalette = ud.customParams.shield_scav_palette ~= nil
 
 			-- Effects bitmask is static per unitdef; precompute both outline variants
 			myShield.effectsOutline = EncodeEffects(myShield, true)

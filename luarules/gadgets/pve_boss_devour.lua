@@ -2,8 +2,8 @@ local gadget = gadget ---@type Gadget
 
 function gadget:GetInfo()
 	return {
-		name = "Scav boss eating",
-		desc = "Starts the boss feeding sequence on request and keeps it on its reclaim order while it eats",
+		name = "PvE Boss Devour",
+		desc = "Devour and Raise support for PvE bosses: holds their orders while they eat, turns raised wrecks into their units, reports hunger",
 		author = "Mat_Ba",
 		date = "2026",
 		license = "GNU GPL, v2 or later",

@@ -509,7 +509,7 @@ for udefID, unitDef in pairs(UnitDefs) do
 
 	local shieldDefID = unitDef.shieldWeaponDef
 	local shieldPower = (shieldDefID and WeaponDefs[shieldDefID].shieldPower) or -1
-	if shieldPower > 1 and not unitDef.customParams.noshieldbar then
+	if shieldPower > 1 then
 		unitDefhasShield[udefID] = shieldPower
 		--spEcho("HAS SHIELD")
 	end
