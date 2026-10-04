@@ -131,6 +131,16 @@ _G.VFS._sources = _G.VFS._sources or {}
 
 -- require -> VFS.Include stub for Lua files.
 local realRequire = require
+local loadedModuleEnv = nil ---@type ModuleEnv|false|nil
+---@return ModuleEnv|nil nil while modules/module_env.lua itself is loading
+local function moduleEnv()
+	if loadedModuleEnv == nil then
+		loadedModuleEnv = false -- the files module_env requires run plainly
+		_G.BAR = _G.BAR or {} -- module_env keeps its one instance per state on BAR, as in the game
+		loadedModuleEnv = _G.VFS.Include("modules/module_env.lua")
+	end
+	return loadedModuleEnv or nil
+end
 _G.require = function(path, env, mode)
 	if type(path) == "string" then
 		local ok, callerEnv = pcall(getfenv, 3) -- pcall, this function, the caller
@@ -142,9 +152,30 @@ _G.require = function(path, env, mode)
 		end
 		-- env stays as given: the stub runs the file in _G unless a spec hands it a sandbox. Busted's own env
 		-- carries luassert's assert, whose errors carry a position, and included game code must not see it
+		local ModuleEnv = moduleEnv()
+		if ModuleEnv ~= nil then
+			callerEnv = ModuleEnv.RootOf(callerEnv) -- a module file's env is sealed; read VFS off the handle's
+		end
 		local vfs = callerEnv.VFS or _G.VFS
 		local file = path:find("%.lua$") and path or (path .. ".lua")
 		if (vfs.FileExists or _G.VFS.FileExists)(file) then
+			-- a module file runs in an environment of its own here as in the game (modules/module_env.lua), over the
+			-- env given or _G; so `local Spring = Spring` in a module file holds the proxy that reads the live
+			-- _G.Spring, and a spec that swaps _G.Spring is still seen
+			if ModuleEnv ~= nil then
+				if ModuleEnv.Owns(file, mode) then
+					-- over the caller's environment, as in the game, so a module required from a widget's sandbox sees
+					-- that sandbox's Spring; a spec file's own env is busted's (its assert carries a position), so _G
+					local outer = env or callerEnv
+					if outer.describe ~= nil and outer.it ~= nil then
+						outer = _G
+					end
+					return ModuleEnv.Include(file, outer, mode)
+				end
+				if env ~= nil then
+					env = ModuleEnv.RootOf(env) -- a file required from inside a module file runs under it, not in it
+				end
+			end
 			return (vfs.Include or _G.VFS.Include)(file, env, mode)
 		end
 	end

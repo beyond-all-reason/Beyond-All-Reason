@@ -7,6 +7,7 @@ BAR = BAR or {} -- detached module namespace; must precede any BAR.X consumer
 -- Recoil shim: require("path/to/file") is VFS.Include("path/to/file.lua")
 -- Used instead of VFS.Include so EmmyLua can follow it and type the result without a decorator.
 local engineRequire = require ---@type (fun(name: string): any)|nil nil in every game state but LuaIntro
+local ModuleEnv ---@type ModuleEnv|nil set once the shim below can load it; until then module files run plainly
 ---@param path string a repo path without its ".lua"
 ---@param env table|nil the environment the file runs in; the caller's when absent
 ---@param mode string|nil as VFS.Include takes it, e.g. VFS.ZIP
@@ -29,8 +30,17 @@ function require(path, env, mode)
 		end
 		env = callerEnv
 	end
+	if ModuleEnv ~= nil then
+		-- a module file runs in an environment of its own (modules/module_env.lua); any other file required from
+		-- inside one runs in the handle's environment, not the module file's
+		if ModuleEnv.Owns(path .. ".lua", mode) then
+			return ModuleEnv.Include(path .. ".lua", env, mode)
+		end
+		env = ModuleEnv.RootOf(env)
+	end
 	return VFS.Include(path .. ".lua", env, mode)
 end
+ModuleEnv = require("modules/module_env")
 
 VFS.Include("common/numberfunctions.lua")
 VFS.Include("common/stringFunctions.lua")
