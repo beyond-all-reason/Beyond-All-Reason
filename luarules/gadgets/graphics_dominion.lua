@@ -1,11 +1,11 @@
 function gadget:GetInfo()
 	return {
-		name = "Territorial Domination Graphics",
-		desc = "Renders territorial domination grid overlay",
+		name = "Dominion Graphics",
+		desc = "Renders dominion grid overlay",
 		author = "SethDGamre",
 		date = "2025.02.08",
 		license = "GNU GPL, v2",
-		layer = 1, --after game_territorial_domination.lua
+		layer = 1, --after game_dominion.lua
 		enabled = true,
 		depends = { "gl4" },
 	}
@@ -13,7 +13,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or isSynced then
+if modOptions.deathmode ~= "dominion" or isSynced then
 	return false
 end
 
@@ -33,7 +33,7 @@ local getMiniMapFlipped = require("luaui/Include/minimap_utils").getMiniMapFlipp
 
 local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
-local HEIGHT_OPACITY_CONFIG_KEY = "territorial_domination_height_opacity"
+local HEIGHT_OPACITY_CONFIG_KEY = "dominion_height_opacity"
 local DEFAULT_CAMERA_HEIGHT_MULTIPLIER = 1.0
 local SQUARE_HEIGHT = 10
 local MAX_CAPTURE_CHANGE = 0.12
