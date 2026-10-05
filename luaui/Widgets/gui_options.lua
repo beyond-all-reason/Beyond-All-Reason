@@ -4102,18 +4102,18 @@ function init()
 		},
 
 		{
-			id = "territorial_domination_height_opacity",
+			id = "dominion_height_opacity",
 			group = "gfx",
 			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.territorial_domination_height_opacity"),
+			name = BAR.I18N("ui.settings.option.dominion_height_opacity"),
 			type = "slider",
 			min = 0.5,
 			max = 2.0,
 			step = 0.05,
-			value = Spring.GetConfigFloat("territorial_domination_height_opacity", 1.0),
-			description = BAR.I18N("ui.settings.option.territorial_domination_height_opacity_descr"),
+			value = Spring.GetConfigFloat("dominion_height_opacity", 1.0),
+			description = BAR.I18N("ui.settings.option.dominion_height_opacity_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("territorial_domination_height_opacity", value)
+				Spring.SetConfigFloat("dominion_height_opacity", value)
 			end,
 		},
 

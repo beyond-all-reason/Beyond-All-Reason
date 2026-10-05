@@ -6,8 +6,8 @@ local widget = widget ---@type Widget
 
 function widget:GetInfo()
 	return {
-		name = "Territorial Domination Score Display",
-		desc = "Displays Territorial Domination scores and Deadlines",
+		name = "Dominion Score Display",
+		desc = "Displays Dominion scores and Deadlines",
 		author = "SethDGamre",
 		date = "2026-09",
 		license = "GNU GPL, v2 or later",
@@ -18,7 +18,7 @@ end
 
 local MOD_OPTIONS = Spring.GetModOptions() or {}
 
-if MOD_OPTIONS.deathmode ~= "territorial_domination" then
+if MOD_OPTIONS.deathmode ~= "dominion" then
 	return false
 end
 
@@ -26,15 +26,15 @@ if BAR.Utilities.Gametype.IsRaptors() or BAR.Utilities.Gametype.IsScavengers() t
 	return false
 end
 
-local DATA_MODEL_NAME = "territorial_score_model"
-local RML_PATH = "luaui/RmlWidgets/gui_territorial_domination/gui_territorial_domination.rml"
+local DATA_MODEL_NAME = "dominion_score_model"
+local RML_PATH = "luaui/RmlWidgets/gui_dominion/gui_dominion.rml"
 local EMOJI_FONT_PATH = "fonts/fallbacks/NotoEmoji-VariableFont_wght.ttf"
 local I18N = BAR.I18N
 
 local PANEL = {
-	POSITION_X_KEY = "td_posX",
-	POSITION_Y_KEY = "td_posY",
-	DOCKED_KEY = "td_docked",
+	POSITION_X_KEY = "dominion_posX",
+	POSITION_Y_KEY = "dominion_posY",
+	DOCKED_KEY = "dominion_docked",
 	DOCKED_VALUE = 1,
 	UNDOCKED_VALUE = 0,
 	WIDTH_DP = 240,
@@ -133,8 +133,8 @@ local DEADLINES_BY_CONFIG = {
 	["42_minutes"] = 7,
 	["60_minutes"] = 10,
 }
-local DEFAULT_MAX_DEADLINES = DEADLINES_BY_CONFIG[MOD_OPTIONS.territorial_domination_config] or 5
-local DEADLINE_SCORE_MULTIPLIER = tonumber(MOD_OPTIONS.territorial_domination_elimination_threshold_multiplier) or 1.25
+local DEFAULT_MAX_DEADLINES = DEADLINES_BY_CONFIG[MOD_OPTIONS.dominion_config] or 5
+local DEADLINE_SCORE_MULTIPLIER = tonumber(MOD_OPTIONS.dominion_elimination_threshold_multiplier) or 1.25
 local DEADLINE_SCORE_PERCENT_LABEL = string.format("%d", math.round(DEADLINE_SCORE_MULTIPLIER * 100, 0))
 
 local widgetState = {
@@ -241,7 +241,7 @@ end
 
 local function formatCountdown(deadlineEndTimestamp, currentDeadline, maxDeadlines)
 	if currentDeadline > maxDeadlines then
-		return I18N("ui.territorialDomination.deadline.end"), 0
+		return I18N("ui.dominion.deadline.end"), 0
 	end
 
 	if deadlineEndTimestamp <= 0 then
@@ -257,7 +257,7 @@ end
 
 local function getCountdownTooltip(currentDeadline, maxDeadlines)
 	local safeMaxDeadlines = math.max(1, math.floor(tonumber(maxDeadlines) or DEFAULT_MAX_DEADLINES))
-	return I18N("ui.territorialDomination.tooltip.countdownUntilDeadlineEnds", {
+	return I18N("ui.dominion.tooltip.countdownUntilDeadlineEnds", {
 		currentDeadline = math.max(1, math.min(math.floor(tonumber(currentDeadline) or 1), safeMaxDeadlines)),
 		maxDeadlines = safeMaxDeadlines,
 	})
@@ -365,7 +365,7 @@ local function getAllyTeamPlayers(allyTeamID, teamList, fallbackColor)
 
 	if #players == 0 then
 		players[1] = {
-			name = I18N("ui.territorialDomination.team.ally", { allyNumber = allyTeamID + 1 }),
+			name = I18N("ui.dominion.team.ally", { allyNumber = allyTeamID + 1 }),
 			color = fallbackColor,
 		}
 	end
@@ -384,7 +384,7 @@ local function buildTooltipPlayersRml(players)
 		for playerIndex = 1, #players do
 			local player = players[playerIndex]
 			playerMarkupParts[#playerMarkupParts + 1] = string.format(
-				'<div class="td-tooltip-player" style="color: %s;">%s</div>',
+				'<div class="dominion-tooltip-player" style="color: %s;">%s</div>',
 				player.color or fallbackColor,
 				escapeRmlText(player.name)
 			)
@@ -464,7 +464,7 @@ local function collectAllyTeamData()
 		if allyTeamID ~= gaiaAllyTeamID then
 			local roster = getAllyTeamRoster(allyTeamID)
 			if roster then
-				local allyTeamRulesPrefix = "territorialDomination_ally_" .. allyTeamID .. "_"
+				local allyTeamRulesPrefix = "dominion_ally_" .. allyTeamID .. "_"
 				local score = tonumber(Spring.GetGameRulesParam(allyTeamRulesPrefix .. "score")) or 0
 				local projectedScore = tonumber(Spring.GetGameRulesParam(allyTeamRulesPrefix .. "projectedScore"))
 					or score
@@ -586,7 +586,7 @@ local function buildDistributionData(allyTeams)
 			width = math.max(0, 100 - startPercentage)
 		end
 		segmentMarkupParts[#segmentMarkupParts + 1] = string.format(
-			'<div class="td-distribution-segment" style="flex: %.6f; width: %.3f%%; height: %s; background-color: %s; box-shadow: inset 0px 0px 0px 1px %s;"></div>',
+			'<div class="dominion-distribution-segment" style="flex: %.6f; width: %.3f%%; height: %s; background-color: %s; box-shadow: inset 0px 0px 0px 1px %s;"></div>',
 			flexGrow,
 			width,
 			DISTRIBUTION.HEIGHT,
@@ -921,7 +921,7 @@ local function positionTooltip()
 	local viewSizeX, viewSizeY = Spring.GetViewGeometry()
 	local dpRatio = getDpRatio()
 	if not widgetState.tooltipElement and widgetState.document then
-		widgetState.tooltipElement = widgetState.document:GetElementById("td-tooltip")
+		widgetState.tooltipElement = widgetState.document:GetElementById("dominion-tooltip")
 	end
 	local tooltipWidth = widgetState.tooltipWidthDp * dpRatio
 	local tooltipHeight = widgetState.tooltipElement and widgetState.tooltipElement.offset_height or 0.0
@@ -971,28 +971,28 @@ local function updateScoreTooltipContent(allyTeamID)
 	dataModel.tooltipIsScore = true
 	dataModel.tooltipPlayersRml = buildTooltipPlayersRml(allyTeam.players)
 	dataModel.tooltipTerritories =
-		I18N("ui.territorialDomination.tooltip.territories", { count = allyTeam.territoryCount })
+		I18N("ui.dominion.tooltip.territories", { count = allyTeam.territoryCount })
 	dataModel.tooltipGainRate =
-		I18N("ui.territorialDomination.tooltip.gainRate", { points = formatScore(getAllyTeamGainRate(allyTeam)) })
+		I18N("ui.dominion.tooltip.gainRate", { points = formatScore(getAllyTeamGainRate(allyTeam)) })
 	dataModel.tooltipCurrentScore =
-		I18N("ui.territorialDomination.tooltip.currentPoints", { points = formatScore(allyTeam.score) })
+		I18N("ui.dominion.tooltip.currentPoints", { points = formatScore(allyTeam.score) })
 	dataModel.tooltipProjectedScore =
-		I18N("ui.territorialDomination.tooltip.projectedPoints", { points = formatScore(allyTeam.projectedScore) })
+		I18N("ui.dominion.tooltip.projectedPoints", { points = formatScore(allyTeam.projectedScore) })
 	dataModel.tooltipShowDeadline = showDeadline
 	dataModel.tooltipDeadlineDifference =
-		I18N("ui.territorialDomination.tooltip.belowDeadline", { points = formatScore(pointsBelowDeadline) })
+		I18N("ui.dominion.tooltip.belowDeadline", { points = formatScore(pointsBelowDeadline) })
 	dataModel.tooltipShowLeader = showLeader
 	dataModel.tooltipShowTeam = true
-	dataModel.tooltipTeamLabel = I18N("ui.territorialDomination.tooltip.team")
+	dataModel.tooltipTeamLabel = I18N("ui.dominion.tooltip.team")
 	dataModel.tooltipTeamColor = allyTeam.color
 	dataModel.tooltipLeaderDifference =
-		I18N("ui.territorialDomination.tooltip.belowLeader", { points = formatScore(pointsBelowLeader) })
+		I18N("ui.dominion.tooltip.belowLeader", { points = formatScore(pointsBelowLeader) })
 	dataModel.tooltipLeaderColor = leader.color
 	dataModel.tooltipTitle = ""
 	if widgetState.tooltipHeaderSource == TOOLTIP.HEADER_EXPAND then
-		dataModel.tooltipHeader = I18N("ui.territorialDomination.tooltip.clickToExpand")
+		dataModel.tooltipHeader = I18N("ui.dominion.tooltip.clickToExpand")
 	elseif widgetState.tooltipHeaderSource == TOOLTIP.HEADER_SELECT then
-		dataModel.tooltipHeader = I18N("ui.territorialDomination.tooltip.clickToSelect")
+		dataModel.tooltipHeader = I18N("ui.dominion.tooltip.clickToSelect")
 	else
 		dataModel.tooltipHeader = ""
 	end
@@ -1082,12 +1082,12 @@ local function updateProjectedLeaderTooltipContent()
 	dataModel.tooltipIsSimple = false
 	dataModel.tooltipIsScore = false
 	dataModel.tooltipTitle = isSelectedProjectedLeader
-			and I18N("ui.territorialDomination.tooltip.highestProjectedScoreYou")
-		or I18N("ui.territorialDomination.tooltip.highestProjectedScore")
+			and I18N("ui.dominion.tooltip.highestProjectedScoreYou")
+		or I18N("ui.dominion.tooltip.highestProjectedScore")
 	dataModel.tooltipHeader = ""
 	dataModel.tooltipShowTeam = true
 	dataModel.tooltipShowLeader = false
-	dataModel.tooltipTeamLabel = I18N("ui.territorialDomination.tooltip.team")
+	dataModel.tooltipTeamLabel = I18N("ui.dominion.tooltip.team")
 	dataModel.tooltipTeamColor = projectedLeader.color
 	dataModel.tooltipLeaderColor = projectedLeader.color
 	dataModel.tooltipPlayersRml = buildTooltipPlayersRml(projectedLeader.players)
@@ -1271,7 +1271,7 @@ local function applyExpandedScroll()
 	end
 
 	if not widgetState.verticalScrollElement then
-		widgetState.verticalScrollElement = widgetState.document:GetElementById("td-vertical-scroll")
+		widgetState.verticalScrollElement = widgetState.document:GetElementById("dominion-vertical-scroll")
 	end
 	local scrollElement = widgetState.verticalScrollElement
 	if not scrollElement then
@@ -1373,7 +1373,7 @@ local function selectExpandedScore(event, allyTeamID)
 	stopEventPropagation(event)
 end
 
----@class TerritorialDominationModel
+---@class DominionModel
 ---@field isVisible boolean
 ---@field isExpanded boolean
 ---@field isDragging boolean
@@ -1456,7 +1456,7 @@ end
 ---@field showTargetTooltip fun(event: any)
 ---@field showDangerMarkTooltip fun(event: any)
 ---@field hideDangerMarkTooltip fun(event: any)
----@return TerritorialDominationModel
+---@return DominionModel
 local function initializeModel()
 	return {
 		isVisible = false,
@@ -1521,11 +1521,11 @@ local function initializeModel()
 		tooltipTeamColor = makeColorString(DEFAULT_COLOR),
 		tooltipLeaderDifference = "",
 		tooltipLeaderColor = makeColorString(DEFAULT_COLOR),
-		footerScoreTooltip = I18N("ui.territorialDomination.tooltip.currentScore"),
+		footerScoreTooltip = I18N("ui.dominion.tooltip.currentScore"),
 		footerCountdownTooltip = getCountdownTooltip(1, DEFAULT_MAX_DEADLINES),
-		dangerMarkTooltip = I18N("ui.territorialDomination.tooltip.eliminationDanger"),
-		deadlineLineTooltip = I18N("ui.territorialDomination.tooltip.deadlineScore"),
-		deadlineLineSecondaryTooltip = I18N("ui.territorialDomination.tooltip.deadlineScoreRule", {
+		dangerMarkTooltip = I18N("ui.dominion.tooltip.eliminationDanger"),
+		deadlineLineTooltip = I18N("ui.dominion.tooltip.deadlineScore"),
+		deadlineLineSecondaryTooltip = I18N("ui.dominion.tooltip.deadlineScoreRule", {
 			percentage = DEADLINE_SCORE_PERCENT_LABEL,
 		}),
 		popupVisible = false,
@@ -1598,19 +1598,19 @@ local function getFinalPopupTitle(allyTeams, livingLeader)
 		end
 	end
 	if livingLeaderCount > 1 then
-		return I18N("ui.territorialDomination.deadline.end")
+		return I18N("ui.dominion.deadline.end")
 	end
 
 	local isSpectating = Spring.GetSpectatingState()
 	if isSpectating then
-		return I18N("ui.territorialDomination.deadlinePopup.gameOver")
+		return I18N("ui.dominion.deadlinePopup.gameOver")
 	end
 
 	local localAllyTeamID = Spring.GetLocalAllyTeamID()
 	if livingLeader and livingLeader.allyTeamID == localAllyTeamID then
-		return I18N("ui.territorialDomination.deadlinePopup.victory")
+		return I18N("ui.dominion.deadlinePopup.victory")
 	end
-	return I18N("ui.territorialDomination.deadlinePopup.defeat")
+	return I18N("ui.dominion.deadlinePopup.defeat")
 end
 
 local function showPopup(title, rateText, deadlineText)
@@ -1642,17 +1642,17 @@ local function showDeadlinePopup(currentDeadline, maxDeadlines, deadlineScore, a
 		title = getFinalPopupTitle(allyTeams, livingLeader)
 	else
 		if currentDeadline == maxDeadlines then
-			title = I18N("ui.territorialDomination.deadlinePopup.finalDeadline")
+			title = I18N("ui.dominion.deadlinePopup.finalDeadline")
 		else
-			title = I18N("ui.territorialDomination.deadlinePopup.deadline", { deadlineNumber = currentDeadline })
+			title = I18N("ui.dominion.deadlinePopup.deadline", { deadlineNumber = currentDeadline })
 		end
 		rateText = I18N(
-			"ui.territorialDomination.deadlinePopup.territoryRate",
+			"ui.dominion.deadlinePopup.territoryRate",
 			{ points = formatScore(currentDeadline * widgetState.territoryPointsPerDeadline) }
 		)
 		if deadlineScore > 0 and currentDeadline < maxDeadlines then
 			deadlineText = I18N(
-				"ui.territorialDomination.deadlinePopup.eliminationBelow",
+				"ui.dominion.deadlinePopup.eliminationBelow",
 				{ threshold = formatScore(deadlineScore) }
 			)
 		end
@@ -1703,9 +1703,9 @@ local function updateLeadNotification(livingLeader)
 	if isInLead ~= widgetState.wasLocalAllyTeamLeading then
 		if WG.notifications and WG.notifications.addEvent then
 			if isInLead then
-				WG.notifications.addEvent("TerritorialDomination/GainedLead", false)
+				WG.notifications.addEvent("Dominion/GainedLead", false)
 			else
-				WG.notifications.addEvent("TerritorialDomination/LostLead", false)
+				WG.notifications.addEvent("Dominion/LostLead", false)
 			end
 		end
 		widgetState.wasLocalAllyTeamLeading = isInLead
@@ -1737,17 +1737,17 @@ local function updateDangerPopup(hasDeadline, deadlineScore, currentDeadline, ma
 			or (gameSeconds - lastDangerGameSeconds) >= DANGER_POPUP_COOLDOWN_SECONDS
 		if cooldownElapsed then
 			if WG.notifications and WG.notifications.addEvent then
-				WG.notifications.addEvent("TerritorialDomination/EliminationDanger", false)
+				WG.notifications.addEvent("Dominion/EliminationDanger", false)
 			end
 			if not widgetState.popupActive then
 				local deadlineText = ""
 				if hasDeadline then
 					deadlineText = I18N(
-						"ui.territorialDomination.deadlinePopup.eliminationBelow",
+						"ui.dominion.deadlinePopup.eliminationBelow",
 						{ threshold = formatScore(deadlineScore) }
 					)
 				end
-				showPopup(I18N("ui.territorialDomination.deadlinePopup.eliminationDanger"), "", deadlineText)
+				showPopup(I18N("ui.dominion.deadlinePopup.eliminationDanger"), "", deadlineText)
 			end
 		end
 	end
@@ -1760,14 +1760,14 @@ end
 
 local function readDominationRules()
 	return {
-		currentDeadline = tonumber(Spring.GetGameRulesParam("territorialDominationCurrentDeadline"))
+		currentDeadline = tonumber(Spring.GetGameRulesParam("dominionCurrentDeadline"))
 			or widgetState.currentDeadline,
-		maxDeadlines = tonumber(Spring.GetGameRulesParam("territorialDominationMaxDeadlines")) or DEFAULT_MAX_DEADLINES,
-		deadlineEndTimestamp = tonumber(Spring.GetGameRulesParam("territorialDominationDeadlineEndTimestamp")) or 0,
-		deadlineScore = tonumber(Spring.GetGameRulesParam("territorialDominationDeadlineScore")) or 0,
-		totalTerritories = tonumber(Spring.GetGameRulesParam("territorialDominationTotalTerritories")) or 0,
+		maxDeadlines = tonumber(Spring.GetGameRulesParam("dominionMaxDeadlines")) or DEFAULT_MAX_DEADLINES,
+		deadlineEndTimestamp = tonumber(Spring.GetGameRulesParam("dominionDeadlineEndTimestamp")) or 0,
+		deadlineScore = tonumber(Spring.GetGameRulesParam("dominionDeadlineScore")) or 0,
+		totalTerritories = tonumber(Spring.GetGameRulesParam("dominionTotalTerritories")) or 0,
 		territoryPointsPerDeadline = tonumber(
-			Spring.GetGameRulesParam("territorialDominationTerritoryPointsPerDeadline")
+			Spring.GetGameRulesParam("dominionTerritoryPointsPerDeadline")
 		) or TERRITORY_POINTS_PER_DEADLINE,
 	}
 end
@@ -1955,7 +1955,7 @@ function widget:Initialize()
 	end
 
 	RmlUi.LoadFontFace(EMOJI_FONT_PATH, true)
-	widgetState.dataModel = widgetState.rmlContext:OpenDataModel(DATA_MODEL_NAME, initializeModel(), self) ---@as TerritorialDominationModel?
+	widgetState.dataModel = widgetState.rmlContext:OpenDataModel(DATA_MODEL_NAME, initializeModel(), self) ---@as DominionModel?
 	if not widgetState.dataModel then
 		widgetState.rmlContext = nil
 		return false

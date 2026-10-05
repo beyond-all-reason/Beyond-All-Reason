@@ -879,6 +879,9 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	wh.RemoveCallIn = function(_, name)
 		self:RemoveWidgetCallIn(name, widget)
 	end
+	wh.RegisterUnitCommand = function(_, cmdID)
+		self:RegisterUnitCommand(widget, cmdID)
+	end
 
 	wh.AddAction = function(_, cmd, func, data, types)
 		return self.actionHandler:AddAction(widget, cmd, func, data, types)
@@ -3133,6 +3136,15 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
+local CMD_BUILD = CMD.BUILD
+
+-- Limits widget:UnitCommand to the registered commands (CMD.BUILD: all build commands).
+-- Widgets that never register get every command.
+function widgetHandler:RegisterUnitCommand(widget, cmdID)
+	widget._unitCommandIDs = widget._unitCommandIDs or {}
+	widget._unitCommandIDs[cmdID] = true
+end
+
 function widgetHandler:UnitCommand(
 	unitID,
 	unitDefID,
@@ -3146,8 +3158,13 @@ function widgetHandler:UnitCommand(
 	fromLua
 )
 	tracy.ZoneBeginN("W:UnitCommand")
-	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	local list = self.UnitCommandList
+	for i = 1, #list do
+		local w = list[i]
+		local cmdIDs = w._unitCommandIDs
+		if not cmdIDs or cmdIDs[cmdId] or (cmdId < 0 and cmdIDs[CMD_BUILD]) then
+			w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		end
 	end
 	tracy.ZoneEnd()
 	return

@@ -108,7 +108,6 @@ end
 -- Launching -------------------------------------------------------------------
 
 ---@class StarburstParams : ProjectileParams
----@field cegtag number
 ---@field maxRange number
 ---@field tracking number
 ---@field upTime number
@@ -133,7 +132,6 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	spawnParams.team = Spring.GetProjectileTeamID(projectileID)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
 	spawnParams.gravity = weapon.gravity
-	spawnParams.cegtag = weapon.cegTag -- note: is lower case
 	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
 	spawnParams.tracking = weapon.tracking
 	spawnParams.upTime = upTimeFrames
@@ -148,7 +146,9 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	Spring.DeleteProjectile(projectileID)
 
 	inSpawnProjectile = true
+	GG.VerticalizeUptimeFrames = upTimeFrames
 	local respawnID = Spring.SpawnProjectile(weaponDefID, spawnParams)
+	GG.VerticalizeUptimeFrames = nil
 	inSpawnProjectile = false
 
 	if not respawnID then
@@ -278,6 +278,8 @@ function gadget:Initialize()
 		gadgetHandler:RemoveGadget()
 		return
 	end
+
+	GG.VerticalizeUptimeFrames = nil
 
 	for unitDefID, unitDef in ipairs(UnitDefs) do
 		for weaponNum, weapon in ipairs(unitDef.weapons) do

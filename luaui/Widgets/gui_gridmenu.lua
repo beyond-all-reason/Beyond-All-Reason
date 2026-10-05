@@ -1410,6 +1410,9 @@ local function cycleBuilder()
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(widget, CMD.INSERT)
+	widgetHandler:RegisterUnitCommand(widget, GameCMD.STOP_PRODUCTION)
 	refreshUnitDefs()
 	units.loadBlocked()
 
