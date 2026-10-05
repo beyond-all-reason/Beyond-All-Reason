@@ -149,6 +149,7 @@ return {
 					cruise_chase_factor = 0.5,
 					uptime_max = 7,
 					overrange_distance = 805,
+					soundstart_volume_multiplier = 0.7,
 				},
 			},
 		},
