@@ -1,13 +1,17 @@
 -- unit_attributes_rules.lua ---------------------------------------------------
--- Whether GG.UnitAttributes would accept a write, for checking writes ahead of
--- time. The controller does not call these. It is for consumer code and tests.
+-- The rules for a valid write to GG.UnitAttributes, for checking writes ahead
+-- of time. The controller does not call these and enforces only some of them.
+-- This is for capability tests and load-time sanity checks for consumer code.
 --
 -- The functions below require the `entry` to be passed. The rules don't get to
 -- know anything about the definitions so can formulate zero special exceptions.
 --------------------------------------------------------------------------------
 
--- The explosion keys used in `Spring.SetUnitWeaponDamages`.
-local EXPLOSIONS = { explode = true, selfDestruct = true }
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+local WEAPON_ALL = attributeDefinitions.WEAPON_ALL
+local WEAPON_DEATH = attributeDefinitions.WEAPON_DEATH
+local WEAPON_SELFD = attributeDefinitions.WEAPON_SELFD
+local EXPLOSIONS = { [WEAPON_DEATH] = true, [WEAPON_SELFD] = true }
 
 local function wasAllowed(reason, parameter)
 	if reason then
@@ -40,8 +44,16 @@ local function valueReason(entry, value)
 	end
 end
 
+local function unitDefReason(entry)
+	if entry.isUnitState then
+		return "cannot be set on unitdefs", "attribute"
+	end
+end
+
 local function multiplierReason(entry, multiplier)
-	if multiplier == nil then
+	if entry.isUnitState or entry.type ~= "number" then
+		return "cannot be multiplied", "attribute"
+	elseif multiplier == nil then
 		return
 	end
 	local multiplierType = type(multiplier)
@@ -53,15 +65,38 @@ local function multiplierReason(entry, multiplier)
 end
 
 local function weaponReason(entry, weapon, unitDef)
-	if weapon == nil then
+	if weapon == nil or weapon == WEAPON_ALL then
 		return
-	elseif EXPLOSIONS[weapon] then
+	end
+	local weaponType = type(weapon)
+	if weaponType ~= "number" then
+		return "takes a weapon number, got " .. weaponType, "weapon"
+	elseif weapon < 0 then
 		if not entry.perExplosion then
 			return "is not written per explosion", "weapon"
+		elseif not EXPLOSIONS[weapon] then
+			return "names an explosion that does not exist", "weapon"
 		end
 	elseif unitDef and not unitDef.weapons[weapon] then
 		return "names a weapon the unitdef does not have", "weapon"
 	end
+end
+
+---Whether `SetUnitDefAttribute` would accept this value.
+---@param entry UnitAttributeDefinition?
+---@param value any `nil` clears
+---@return boolean ok
+---@return string? reason
+---@return "attribute"|"value"? parameter
+local function canSetUnitDefAttribute(entry, value)
+	local reason, parameter = kindReason(entry, false)
+	if not reason then
+		reason, parameter = unitDefReason(entry)
+	end
+	if not reason then
+		reason, parameter = valueReason(entry, value)
+	end
+	return wasAllowed(reason, parameter)
 end
 
 ---Whether `SetUnitAttribute` would accept this value.
@@ -78,23 +113,24 @@ local function canSetUnitAttribute(entry, value)
 	return wasAllowed(reason, parameter)
 end
 
----Whether `SetUnitDefAttribute` would accept this value.
+---Whether `SetUnitDefModifier` would accept this multiplier.
 ---@param entry UnitAttributeDefinition?
----@param value any `nil` clears
+---@param multiplier any `nil` clears
 ---@return boolean ok
 ---@return string? reason
----@return "attribute"|"value"? parameter
-local function canSetUnitDefAttribute(entry, value)
+---@return "attribute"|"multiplier"? parameter
+local function canSetUnitDefModifier(entry, multiplier)
 	local reason, parameter = kindReason(entry, false)
-	if not reason and entry.isUnitState then
-		reason, parameter = "cannot be set on unitdefs", "attribute"
-	elseif not reason then
-		reason, parameter = valueReason(entry, value)
+	if not reason then
+		reason, parameter = unitDefReason(entry)
+	end
+	if not reason then
+		reason, parameter = multiplierReason(entry, multiplier)
 	end
 	return wasAllowed(reason, parameter)
 end
 
----Whether `SetUnitModifier` or `SetUnitDefModifier` would accept this multiplier.
+---Whether `SetUnitModifier` would accept this multiplier.
 ---@param entry UnitAttributeDefinition?
 ---@param multiplier any `nil` clears
 ---@return boolean ok
@@ -102,9 +138,7 @@ end
 ---@return "attribute"|"multiplier"? parameter
 local function canSetUnitModifier(entry, multiplier)
 	local reason, parameter = kindReason(entry, false)
-	if not reason and (entry.isUnitState or entry.type ~= "number") then
-		reason, parameter = "cannot be multiplied", "attribute"
-	elseif not reason then
+	if not reason then
 		reason, parameter = multiplierReason(entry, multiplier)
 	end
 	return wasAllowed(reason, parameter)
@@ -113,7 +147,7 @@ end
 ---Whether `SetUnitWeaponAttribute` or `SetUnitDefWeaponAttribute` would accept this value.
 ---@param entry WeaponAttributeDefinition?
 ---@param value any `nil` clears
----@param weapon integer|"explode"|"selfDestruct"|nil `nil` is every weapon
+---@param weapon integer? Can be the weaponNum, WEAPON_DEATH, WEAPON_SELFD, or WEAPON_ALL/nil.
 ---@param unitDef table? checks that the weapon exists when given
 ---@return boolean ok
 ---@return string? reason
@@ -132,7 +166,7 @@ end
 ---Whether `SetUnitWeaponModifier` or `SetUnitDefWeaponModifier` would accept this multiplier.
 ---@param entry WeaponAttributeDefinition?
 ---@param multiplier any `nil` clears
----@param weapon integer|"explode"|"selfDestruct"|nil `nil` is every weapon
+---@param weapon integer? Can be the weaponNum, WEAPON_DEATH, WEAPON_SELFD, or WEAPON_ALL/nil.
 ---@param unitDef table? checks that the weapon exists when given
 ---@return boolean ok
 ---@return string? reason
@@ -161,13 +195,13 @@ local function affectsUnitDef(entry, unitDef)
 end
 
 return {
-	CanSetUnitAttribute = canSetUnitAttribute,
 	CanSetUnitDefAttribute = canSetUnitDefAttribute,
+	CanSetUnitAttribute = canSetUnitAttribute,
+	CanSetUnitDefModifier = canSetUnitDefModifier,
 	CanSetUnitModifier = canSetUnitModifier,
-	CanSetUnitDefModifier = canSetUnitModifier,
-	CanSetUnitWeaponAttribute = canSetUnitWeaponAttribute,
 	CanSetUnitDefWeaponAttribute = canSetUnitWeaponAttribute,
-	CanSetUnitWeaponModifier = canSetUnitWeaponModifier,
+	CanSetUnitWeaponAttribute = canSetUnitWeaponAttribute,
 	CanSetUnitDefWeaponModifier = canSetUnitWeaponModifier,
+	CanSetUnitWeaponModifier = canSetUnitWeaponModifier,
 	AffectsUnitDef = affectsUnitDef,
 }

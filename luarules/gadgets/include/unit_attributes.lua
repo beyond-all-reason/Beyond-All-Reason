@@ -10,7 +10,7 @@
 
 ---@class WeaponAttributeDefinition
 ---@field type "number"
----@field perWeapon true
+---@field perWeapon? true
 ---@field perExplosion? boolean Composes for both weapons and the death and self-destruct explosions.
 ---@field multiplyOnly? boolean Its baseline value is always 1.0. Will drop any `set` operations.
 
@@ -45,15 +45,37 @@ local unitAttributes = {
 
 ---@type table<string, WeaponAttributeDefinition?>
 local weaponAttributes = {
-	maxWeaponRange = { type = "number", perWeapon = true },
-	reloadTime = { type = "number", perWeapon = true },
-	damage = { type = "number", perWeapon = true, multiplyOnly = true, perExplosion = true },
+	maxWeaponRange = { type = "number" },
+	reloadTime = { type = "number" },
+	damage = { type = "number", multiplyOnly = true, perExplosion = true },
 	-- The engine applies these as magnitudes relative to damage, so `damage` scales them, also.
-	impulse = { type = "number", perWeapon = true, multiplyOnly = true, perExplosion = true },
-	cratering = { type = "number", perWeapon = true, multiplyOnly = true, perExplosion = true },
+	impulse = { type = "number", multiplyOnly = true, perExplosion = true },
+	cratering = { type = "number", multiplyOnly = true, perExplosion = true },
 }
+
+-- Definition names are unique across unit and weapon attributes so can share one lookup table.
+local definitions = {} ---@type table<string, UnitAttributeDefinition|WeaponAttributeDefinition|nil>
+for attribute, entry in pairs(unitAttributes) do
+	definitions[attribute] = entry
+end
+for attribute, entry in pairs(weaponAttributes) do
+	if definitions[attribute] then
+		error("Attribute is defined for both units and weapons: " .. attribute)
+	end
+	entry.perWeapon = true
+	definitions[attribute] = entry
+end
+
+local WEAPON_ALL = 0 -- Packing index for non-specific weapon attributes scopes.
+local WEAPON_DEATH = -1
+local WEAPON_SELFD = -2
 
 return {
 	UnitAttributeDefinitions = unitAttributes,
 	WeaponAttributeDefinitions = weaponAttributes,
+	AttributeDefinitions = definitions,
+
+	WEAPON_ALL = WEAPON_ALL,
+	WEAPON_DEATH = WEAPON_DEATH,
+	WEAPON_SELFD = WEAPON_SELFD,
 }
