@@ -10,7 +10,7 @@
 
 layout (location = 0) in vec4 position_xy_uv;
 layout (location = 1) in vec4 uvrect; // x0, y0, x1, y1 in the icon atlas
-layout (location = 2) in vec4 params; // icon size multiplier, state, atlas page
+layout (location = 2) in vec4 params; // icon size multiplier, state, atlas page, draw order
 layout (location = 3) in vec4 midoffset; // from the unit's draw position to its mid position
 layout (location = 4) in uvec4 instData;
 
@@ -47,6 +47,7 @@ uniform float iconZoomDist;
 uniform vec2 iconFade; // start, vanish
 uniform vec4 armoredColor;
 uniform vec4 brokenColor;
+uniform float iconsSortedByDepth;
 
 // Named and laid out as the geometry shader's output, so both paths share one fragment shader.
 out DataGS {
@@ -54,6 +55,7 @@ out DataGS {
 	flat vec4 g_rect; // min.xy, max.xy of the icon in the atlas
 	flat vec4 g_line; // one screen pixel in atlas coordinates, line width in pixels, atlas page
 	flat vec4 g_color;
+	flat vec2 g_depth; // layer depth of the icon, and of its outline
 };
 
 void main() {
@@ -78,8 +80,17 @@ void main() {
 		g_rect = vec4(0.0);
 		g_line = vec4(0.0);
 		g_color = vec4(0.0);
+		g_depth = vec2(0.0);
 		return;
 	}
+
+	// The engine sorts icons by draw order, then draws the nearest last, so outlines stack the same way.
+	float cameraDist = distance(cameraViewInv[3].xyz, midPos);
+	float layer = 15.0 - clamp(floor(params.w + 0.5), 0.0, 15.0);
+	float layerDist = cameraDist / (cameraDist + 8192.0);
+
+	// Without the distance sort the sequence is unknown, so icons cover the outlines in their draw order.
+	vec2 layerDepth = vec2(layer + layerDist * iconsSortedByDepth, layer + layerDist) / 16.0;
 
 	bool broken = params.y > 1.5;
 	float width = broken ? outlineWidth.y : outlineWidth.x;
@@ -93,6 +104,7 @@ void main() {
 	g_line = vec4(abs(uvrect.zw - uvrect.xy) / (2.0 * halfSize), width, params.z);
 	g_color = broken ? brokenColor : armoredColor;
 	g_color.a *= alpha;
+	g_depth = layerDepth;
 
 	gl_Position = vec4(clipPos.xy / clipPos.w + offset * padded * 2.0 / viewGeometry.xy, 0.0, 1.0);
 }

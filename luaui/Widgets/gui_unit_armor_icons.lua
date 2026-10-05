@@ -78,6 +78,7 @@ local uniformFloat = {
 	iconFade = { 3000, 1000 },
 	armoredColor = armoredColor,
 	brokenColor = brokenColor,
+	iconsSortedByDepth = 0,
 }
 
 local geometryShaderSource = {
@@ -104,6 +105,7 @@ local fallbackShaderSource = {
 local outlineVBO ---@type InstanceVBOTable
 local outlineVAO ---@type VAO
 local outlineShader ---@type LuaShader
+local outlineLayer ---@type string? a screen-sized texture with a depth buffer
 local shaderSource
 local useGeometryShader = LuaShader.isGeometryShaderSupported ---@as boolean
 
@@ -126,6 +128,8 @@ local planeHeight = 0.0
 local minSizeMult = 1.0
 local iconZoomDist = 0.0
 local iconsVisible = false
+local engineSortsIcons = false
+local iconsSortedByDepth = false
 local configAge = 0.0
 local uniformsDirty = true
 
@@ -138,6 +142,7 @@ local function updateIconConfig()
 	iconSizeBase = math_max(1, math_max(vsx, vsy) * engineIconSizeMult * Spring.GetConfigFloat("UnitIconScaleUI", 1.0))
 	iconFadeStart = Spring.GetConfigFloat("UnitIconFadeStart", 3000.0)
 	iconFadeVanish = Spring.GetConfigFloat("UnitIconFadeVanish", 1000.0)
+	iconsSortedByDepth = engineSortsIcons and Spring.GetConfigInt("UnitIconsSortedByDepth", 0) == 1
 	configAge = 0
 	uniformsDirty = true
 end
@@ -201,6 +206,7 @@ local function updateUnit(unitID, noUpload)
 	instanceCache[5] = iconData.size --[[@as number]] * 0.75 + 0.25
 	instanceCache[6] = state
 	instanceCache[7] = texCoords.atlasIndex
+	instanceCache[8] = iconData.drawOrder or 0
 	instanceCache[9] = offsetX
 	instanceCache[10] = offsetY
 	instanceCache[11] = offsetZ
@@ -321,6 +327,44 @@ local function initGL4()
 	return true
 end
 
+local function createOutlineLayer()
+	if outlineLayer then
+		gl.DeleteTexture(outlineLayer)
+	end
+	outlineLayer = gl.CreateTexture(vsx, vsy, {
+		fbo = true,
+		fboDepth = true,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.NEAREST,
+		wrap_s = GL.CLAMP_TO_EDGE,
+		wrap_t = GL.CLAMP_TO_EDGE,
+	})
+	return outlineLayer ~= nil
+end
+
+local function drawOutlineLayer()
+	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	gl.Clear(GL.DEPTH_BUFFER_BIT, 1)
+
+	outlineShader:Activate()
+	if uniformsDirty then
+		uniformsDirty = false
+		local widthScale = math_max(1, vsy / 1080)
+		outlineShader:SetUniform("iconSizeBase", iconSizeBase)
+		outlineShader:SetUniform("outlineWidth", armoredWidth * widthScale, brokenWidth * widthScale)
+		outlineShader:SetUniform("borderWidth", borderWidth * widthScale)
+		outlineShader:SetUniform("iconFade", iconFadeStart, iconFadeVanish)
+		outlineShader:SetUniform("iconsSortedByDepth", iconsSortedByDepth and 1 or 0)
+	end
+	outlineShader:SetUniform("iconZoomDist", iconZoomDist)
+	if useGeometryShader then
+		outlineVAO:DrawArrays(GL.POINTS, outlineVBO.usedElements)
+	else
+		outlineVAO:DrawArrays(GL.TRIANGLES, 6, 0, outlineVBO.usedElements)
+	end
+	outlineShader:Deactivate()
+end
+
 ---The smallest size multiplier of any unit icon, which is the last icon to vanish while zooming in.
 local function getMinSizeMult()
 	local sizeByIcon = {}
@@ -344,6 +388,9 @@ function widget:ViewResize()
 	vsx, vsy = Spring.GetViewGeometry()
 	lastCamX = nil
 	updateIconConfig()
+	if outlineLayer then
+		createOutlineLayer()
+	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
@@ -418,35 +465,30 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreenEffects()
-	if not iconsVisible or outlineVBO.usedElements == 0 or Spring.IsGUIHidden() then
+	if not iconsVisible or outlineVBO.usedElements == 0 or not outlineLayer or Spring.IsGUIHidden() then
 		return
 	end
 
-	gl.DepthTest(false)
+	-- The engine has already drawn every icon, so outlines drawn straight to the screen would all lie on top.
+	-- A depth-tested layer lets each icon cover the outlines of the icons beneath it.
 	gl.Culling(false)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Blending(false)
+	gl.DepthMask(true)
+	gl.DepthTest(GL.LESS)
 	gl.Texture(0, "$icons0")
 	gl.Texture(1, "$icons1")
-
-	outlineShader:Activate()
-	if uniformsDirty then
-		uniformsDirty = false
-		local widthScale = math_max(1, vsy / 1080)
-		outlineShader:SetUniform("iconSizeBase", iconSizeBase)
-		outlineShader:SetUniform("outlineWidth", armoredWidth * widthScale, brokenWidth * widthScale)
-		outlineShader:SetUniform("borderWidth", borderWidth * widthScale)
-		outlineShader:SetUniform("iconFade", iconFadeStart, iconFadeVanish)
-	end
-	outlineShader:SetUniform("iconZoomDist", iconZoomDist)
-	if useGeometryShader then
-		outlineVAO:DrawArrays(GL.POINTS, outlineVBO.usedElements)
-	else
-		outlineVAO:DrawArrays(GL.TRIANGLES, 6, 0, outlineVBO.usedElements)
-	end
-	outlineShader:Deactivate()
-
-	gl.Texture(0, false)
+	gl.RenderToTexture(outlineLayer, drawOutlineLayer)
 	gl.Texture(1, false)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthTest(false)
+	gl.DepthMask(false)
+
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Color(1, 1, 1, 1)
+	gl.Texture(0, outlineLayer)
+	gl.TexRect(0, 0, vsx, vsy, 0, 0, 1, 1)
+	gl.Texture(0, false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 -- Lifecycle
@@ -457,7 +499,7 @@ function widget:Initialize()
 		return
 	end
 
-	if not initGL4() then
+	if not initGL4() or not createOutlineLayer() then
 		Spring.Echo("Unit Armor Icons: could not create the outline shader or buffers")
 		widgetHandler:RemoveWidget()
 		return
@@ -467,6 +509,8 @@ function widget:Initialize()
 	planeHeight = (minHeight + maxHeight) * 0.5
 
 	minSizeMult = getMinSizeMult()
+	local defaultIcon = spGetIconData("default", true)
+	engineSortsIcons = defaultIcon ~= nil and defaultIcon.drawOrder ~= nil
 	updateIconConfig()
 
 	if WG["unittrackerapi"] and WG["unittrackerapi"].visibleUnits then
@@ -480,5 +524,8 @@ function widget:Shutdown()
 	end
 	if outlineShader then
 		outlineShader:Finalize()
+	end
+	if outlineLayer then
+		gl.DeleteTexture(outlineLayer)
 	end
 end

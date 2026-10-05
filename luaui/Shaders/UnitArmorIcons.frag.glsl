@@ -17,6 +17,7 @@ in DataGS {
 	flat vec4 g_rect; // min.xy, max.xy of the icon in the atlas
 	flat vec4 g_line; // one screen pixel in atlas coordinates, line width in pixels, atlas page
 	flat vec4 g_color;
+	flat vec2 g_depth; // layer depth of the icon, and of its outline
 };
 
 out vec4 fragColor;
@@ -41,10 +42,12 @@ void main() {
 	uvdx = dFdx(g_uv);
 	uvdy = dFdy(g_uv);
 
-	// Most of the quad is the opaque inside of the icon, where nothing is drawn.
+	// To cover the outlines under it, the icon writes depth with no color to its inner opaque area.
 	float alpha = iconAlpha(g_uv);
 	if (alpha > 0.99) {
-		discard;
+		fragColor = vec4(0.0);
+		gl_FragDepth = g_depth.x;
+		return;
 	}
 
 	float dilated = 0.0;
@@ -67,5 +70,7 @@ void main() {
 		discard;
 	}
 
-	fragColor = vec4(g_color.rgb * line / outline, g_color.a * outline);
+	// Premultiplied, because the layer is composited onto the screen afterwards.
+	fragColor = vec4(g_color.rgb * line, outline) * g_color.a;
+	gl_FragDepth = (inside > 0.5) ? g_depth.x : g_depth.y;
 }

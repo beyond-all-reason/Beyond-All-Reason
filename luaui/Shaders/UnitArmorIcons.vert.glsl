@@ -8,7 +8,7 @@
 #line 5000
 
 layout (location = 0) in vec4 uvrect; // x0, y0, x1, y1 in the icon atlas
-layout (location = 1) in vec4 params; // icon size multiplier, state, atlas page
+layout (location = 1) in vec4 params; // icon size multiplier, state, atlas page, draw order
 layout (location = 2) in vec4 midoffset; // from the unit's draw position to its mid position
 layout (location = 3) in uvec4 instData;
 
@@ -44,11 +44,13 @@ uniform float iconZoomDist;
 uniform vec2 iconFade; // start, vanish
 uniform vec4 armoredColor;
 uniform vec4 brokenColor;
+uniform float iconsSortedByDepth;
 
 out DataVS {
 	vec4 v_uvrect;
 	vec4 v_color;
 	vec4 v_sizes; // icon half size in pixels, line width in pixels, atlas page, visible
+	vec2 v_depth; // layer depth of the icon, and of its outline
 };
 
 void main() {
@@ -67,6 +69,14 @@ void main() {
 		alpha = (64.0 + 191.0 * (zoom - iconFade.y) / (iconFade.x - iconFade.y)) / 255.0;
 	}
 
+	// The engine sorts icons by draw order, then draws the nearest last, so outlines stack the same way.
+	float cameraDist = distance(cameraViewInv[3].xyz, midPos);
+	float layer = 15.0 - clamp(floor(params.w + 0.5), 0.0, 15.0);
+	float layerDist = cameraDist / (cameraDist + 8192.0);
+
+	// Without the distance sort the sequence is unknown, so icons cover the outlines in their draw order.
+	vec2 layerDepth = vec2(layer + layerDist * iconsSortedByDepth, layer + layerDist) / 16.0;
+
 	bool visible = alpha > 0.0 && clipPos.w > 0.0 && abs(clipPos.z) <= clipPos.w;
 	bool broken = params.y > 1.5;
 
@@ -79,6 +89,7 @@ void main() {
 		params.z,
 		visible ? 1.0 : 0.0
 	);
+	v_depth = layerDepth;
 
 	gl_Position = vec4(clipPos.xy / max(clipPos.w, 0.0001), 0.0, 1.0);
 }
