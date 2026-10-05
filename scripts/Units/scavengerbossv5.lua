@@ -61,7 +61,7 @@ local P = {
 	torso = piece("torso"),
 	torsobase = piece("torsobase"),
 }
-local pieceMap = Spring.GetUnitPieceMap(unitID)
+local pieceMap = Spring.GetUnitPieceMap(unitID) or {}
 P.lflare2 = pieceMap.lflare2 and piece("lflare2") or P.lflare1
 P.rflare2 = pieceMap.rflare2 and piece("rflare2") or P.rflare1
 
@@ -80,6 +80,7 @@ local frameDebt = 0.0
 local TURN_AMP = 0.5
 local TURN_RATE = 1.0
 local GetUnitVelocity, GetUnitHeading, GetGameFrame = Spring.GetUnitVelocity, Spring.GetUnitHeading, Spring.GetGameFrame
+---@type number, number
 local lastHeading, lastFrame = 0, 0
 local amp = 1.0
 
@@ -90,6 +91,7 @@ end
 local function GetSpeedParams()
 	local _, _, _, speed = GetUnitVelocity(unitID)
 	local heading, frame = GetUnitHeading(unitID), GetGameFrame()
+	---@type number
 	local turn = 0
 	if frame > lastFrame then
 		local delta = (heading - lastHeading) % 65536
@@ -100,6 +102,7 @@ local function GetSpeedParams()
 	end
 	lastHeading, lastFrame = heading, frame
 	local rate = speed * Game.gameSpeed * CYCLE_SECONDS / STRIDE
+	---@type number
 	local ampTarget = 1
 	if rate < 0.5 and turn > 0.003 then
 		rate, ampTarget = math.max(rate, TURN_RATE), TURN_AMP
@@ -1260,6 +1263,14 @@ local TORSO_SPEED, RESTORE_SPEED = math.rad(150), math.rad(45)
 local RESTORE_DELAY = 3000
 local eating = false
 local myTeam = Spring.GetUnitTeam(unitID)
+local GetPieceRotation = Spring.UnitScript.GetPieceRotation
+
+local function Here()
+	local x, y, z = Spring.GetUnitPosition(unitID)
+	return x or 0, y or 0, z or 0
+end
+
+---@type table<string, any>
 local ARM = {
 	speed = math.rad(200),
 	recoil = 24,
@@ -1281,16 +1292,20 @@ local ARM = {
 ARM.Yaw = function(num, arm, offset)
 	local targetType, _, target = Spring.GetUnitWeaponTarget(unitID, num)
 	local distance
-	if targetType == 1 then
+	if targetType == 1 and type(target) == "number" then
 		distance = Spring.GetUnitSeparation(unitID, target, true)
-	elseif targetType == 2 then
-		local x, _, z = Spring.GetUnitPosition(unitID)
+	elseif targetType == 2 and type(target) == "table" then
+		local x, _, z = Here()
 		distance = math.sqrt((target[1] - x) ^ 2 + (target[3] - z) ^ 2)
 	end
-	local converge = distance and math.atan2(ARM.offset, distance) * (arm == 1 and -1 or 1) * ARM.convergeSign or 0
+	local converge = 0.0
+	if distance then
+		converge = math.atan2(ARM.offset, distance) * (arm == 1 and -1 or 1) * ARM.convergeSign
+	end
 	return ARM.yawSign * math.max(-ARM.toeIn, math.min(ARM.toeIn, offset + converge))
 end
 
+---@type table<string, any>
 local armData = {
 	side = {
 		1,
@@ -1354,13 +1369,9 @@ local armData = {
 	lastKind = { "", "" },
 	busyUntil = { 0, 0 },
 }
-do
-	local laserDef = WeaponDefs[UnitDefs[unitDefID].weapons[12].weaponDef]
-	ARM.laserFrames = math.ceil(math.max(laserDef.beamtime, laserDef.salvoSize * laserDef.salvoDelay) * Game.gameSpeed)
-end
 local OWNER_HOLD = 1.5 * Game.gameSpeed
 local FOLLOW_ANGLE = math.rad(12)
-local torsoOwner, torsoOwnerFrame, torsoHeading = 0, -1000, 0
+local torsoOwner, torsoOwnerFrame, torsoHeading = 0, -1000, 0.0
 
 local function WrapAngle(a)
 	return (a + math.pi) % (2 * math.pi) - math.pi
@@ -1371,7 +1382,7 @@ ARM.LaserArc = function(num, heading)
 	if Spring.GetGameFrame() >= armData.busyUntil[arm] then
 		return
 	end
-	local _, torsoYaw = Spring.UnitScript.GetPieceRotation(P.torsobase)
+	local _, torsoYaw = GetPieceRotation(P.torsobase)
 	local outward = WrapAngle(heading - torsoYaw) * (arm == 1 and 1 or -1) * ARM.convergeSign
 	if outward > ARM.laserOutside or outward < -ARM.laserInside then
 		Spring.SetUnitWeaponState(unitID, num, "salvoLeft", 0)
@@ -1396,70 +1407,37 @@ local function RestoreAfterDelay()
 	armData.upper[1], armData.upper[2] = 0, 0
 end
 
-local GROUP = {
-	[1] = "gauss",
-	[2] = "gauss",
-	[3] = "napalm",
-	[4] = "napalm",
-	[6] = "barrage",
-	[7] = "barrage",
-	[8] = "rain",
-	[9] = "rain",
-	[10] = "stream",
-	[11] = "stream",
-	[12] = "laser",
-	[13] = "laser",
-	[14] = "laser",
-	[15] = "laser",
-	[16] = "turrets",
-	[17] = "turrets",
-	[18] = "turrets",
-	[19] = "turrets",
-	[20] = "railheavy",
-	[25] = "railrapid",
-	[26] = "beam",
-	[27] = "aa",
-	[28] = "aa",
-	[29] = "volley",
-	[30] = "volley",
-	[31] = "stream",
-	[32] = "stream",
-	[21] = "volley",
-	[22] = "volley",
-	[23] = "volley",
-	[24] = "volley",
-	arms = { gauss = true, napalm = true, laser = true, volley = true },
-	rail = { railheavy = true, railrapid = true },
-	pods = { barrage = true, rain = true, stream = true },
-}
-
-local function WeaponAllowed(num)
-	local only = Spring.GetUnitRulesParam(unitID, "scavboss_weapons")
-	if not only or only == "all" then
-		return true
-	end
-	local group = GROUP[num]
-	return only == group or (GROUP[only] ~= nil and GROUP[only][group] == true)
-end
-
+---@type table<string, any>
 local ACT = {
 	order = { "arms", "pods", "arms", "rail" },
 	time = { arms = 12, pods = 30, rail = 25, beam = 20 },
 	idle = 2,
 	gap = 1,
 	of = {
-		gauss = "arms",
-		napalm = "arms",
-		laser = "arms",
-		volley = "arms",
-		arms = "arms",
-		barrage = "pods",
-		rain = "pods",
-		stream = "pods",
-		pods = "pods",
-		railheavy = "rail",
-		rail = "rail",
-		beam = "beam",
+		[1] = "arms",
+		[2] = "arms",
+		[3] = "arms",
+		[4] = "arms",
+		[12] = "arms",
+		[13] = "arms",
+		[14] = "arms",
+		[15] = "arms",
+		[21] = "arms",
+		[22] = "arms",
+		[23] = "arms",
+		[24] = "arms",
+		[29] = "arms",
+		[30] = "arms",
+		[6] = "pods",
+		[7] = "pods",
+		[8] = "pods",
+		[9] = "pods",
+		[10] = "pods",
+		[11] = "pods",
+		[31] = "pods",
+		[32] = "pods",
+		[20] = "rail",
+		[26] = "beam",
 	},
 	current = "arms",
 	index = 1,
@@ -1468,12 +1446,14 @@ local ACT = {
 	want = {},
 }
 
+---@type table<string, any>
 local AA = {
 	weapon = 27,
 	turbo = 28,
 	side = 1,
 }
 
+---@type table<string, any>
 local TURBO = {
 	waitBase = 10,
 	waitPerHealth = 0.2,
@@ -1499,51 +1479,63 @@ local TURBO = {
 	signal = { far = true, close = true },
 	hinges = { P.flhinge, P.frhinge },
 	kinds = { "air", "close", "far", "swarm", "beam" },
-	kind = false,
+	kind = "",
 }
 
+---@type table<string, any>
 local DEFS = { unit = {}, feature = {}, weapon = {} }
 
 DEFS.Unit = function(otherDefID)
 	local info = DEFS.unit[otherDefID]
-	local def = not info and UnitDefs[otherDefID]
-	if def then
-		info = {
-			metalCost = def.metalCost,
-			canFly = def.canFly,
-			canMove = def.canMove,
-			reclaimable = def.reclaimable,
-			isBoss = def.customParams.eaterboss ~= nil,
-		}
-		DEFS.unit[otherDefID] = info
+	if info then
+		return info
 	end
+	local def = UnitDefs[otherDefID]
+	if not def then
+		return nil
+	end
+	info = {
+		metalCost = def.metalCost,
+		canFly = def.canFly,
+		canMove = def.canMove,
+		reclaimable = def.reclaimable,
+		isBoss = def.customParams["eaterboss"] ~= nil,
+	}
+	DEFS.unit[otherDefID] = info
 	return info
 end
 
 DEFS.Reclaimable = function(featureDefID)
 	if DEFS.feature[featureDefID] == nil then
-		DEFS.feature[featureDefID] = FeatureDefs[featureDefID].reclaimable
+		local def = FeatureDefs[featureDefID]
+		DEFS.feature[featureDefID] = def ~= nil and def.reclaimable
 	end
 	return DEFS.feature[featureDefID]
 end
 
 DEFS.Weapon = function(num)
 	local info = DEFS.weapon[num]
-	if not info then
-		local def = WeaponDefs[UnitDefs[unitDefID].weapons[num].weaponDef]
-		info = {
-			damages = def.damages,
-			salvoSize = def.salvoSize,
-			salvoDelay = def.salvoDelay,
-			reload = def.reload,
-		}
-		DEFS.weapon[num] = info
+	if info then
+		return info
 	end
+	local def = WeaponDefs[UnitDefs[unitDefID].weapons[num].weaponDef]
+	if not def then
+		return {}
+	end
+	info = {
+		damages = def.damages,
+		salvoSize = def.salvoSize,
+		salvoDelay = def.salvoDelay,
+		reload = def.reload,
+		beamtime = def.beamtime,
+	}
+	DEFS.weapon[num] = info
 	return info
 end
 
 TURBO.Boost = function(num, mult, impulse)
 	local damages = DEFS.Weapon(num).damages
+	---@type any
 	local set = { impulseFactor = impulse or damages.impulseFactor }
 	for armor = 0, #Game.armorTypes do
 		if damages[armor] then
@@ -1553,6 +1545,7 @@ TURBO.Boost = function(num, mult, impulse)
 	Spring.SetUnitWeaponDamages(unitID, num, set)
 end
 
+---@type table<string, any>
 local HUNGER = {
 	health = 1,
 	fillSeconds = 600,
@@ -1570,6 +1563,7 @@ local TURRET_SPEED = math.rad(180)
 local TURRET_ARC = math.rad(90)
 local SIDE_HEADING = math.rad(90)
 local SHOULDER_PITCH_SIGN = 1
+---@type table<integer, any>
 local turrets = {
 	[16] = { yaw = P.fturret, pitch = P.fbarrel, flare = P.fflare, rest = 0, axis = x_axis, sign = -1 },
 	[17] = { yaw = P.bturret, pitch = P.bbarrel, flare = P.bflare, rest = math.pi, axis = x_axis, sign = 1 },
@@ -1600,8 +1594,8 @@ end
 
 local function AimTurret(num, heading, pitch)
 	local t = turrets[num]
-	local _, torsobaseYaw = Spring.UnitScript.GetPieceRotation(P.torsobase)
-	local _, torsoOwnYaw = Spring.UnitScript.GetPieceRotation(P.torso)
+	local _, torsobaseYaw = GetPieceRotation(P.torsobase)
+	local _, torsoOwnYaw = GetPieceRotation(P.torso)
 	local torsoYaw = torsobaseYaw + torsoOwnYaw
 	local swing = WrapAngle(heading - torsoYaw - t.rest)
 	if math.abs(swing) > TURRET_ARC then
@@ -1617,6 +1611,7 @@ local function AimTurret(num, heading, pitch)
 	return true
 end
 
+---@type table<string, any>
 local RAIL = {
 	heavy = 20,
 	rapid = 25,
@@ -1630,6 +1625,7 @@ local RAIL = {
 	maxDown = math.rad(30),
 	restoreFrames = 90,
 }
+---@type table<string, any>
 local rail = { count = 0, rapidUntil = 0, goal = 0, belief = 0, aimFrame = -1000 }
 
 local function RailSpark()
@@ -1649,9 +1645,9 @@ local function RailLoop()
 end
 
 local function ParentYaw()
-	local _, baseYaw = Spring.UnitScript.GetPieceRotation(P.base)
-	local _, torsobaseYaw = Spring.UnitScript.GetPieceRotation(P.torsobase)
-	local _, torsoYaw = Spring.UnitScript.GetPieceRotation(P.torso)
+	local _, baseYaw = GetPieceRotation(P.base)
+	local _, torsobaseYaw = GetPieceRotation(P.torsobase)
+	local _, torsoYaw = GetPieceRotation(P.torso)
 	return Spring.GetUnitHeading(unitID) * math.pi / 32768 + baseYaw + torsobaseYaw + torsoYaw
 end
 
@@ -1672,7 +1668,7 @@ local function RailController()
 end
 
 local function AimRail(num, heading, pitch)
-	if num == RAIL.rapid and ACT.current == "rail" and WeaponAllowed(RAIL.heavy) then
+	if num == RAIL.rapid and ACT.current == "rail" then
 		return false
 	end
 	rail.goal = WrapAngle(Spring.GetUnitHeading(unitID) * math.pi / 32768 + heading)
@@ -1694,6 +1690,7 @@ local function FireRail(num)
 	end
 end
 
+---@type table<string, any>
 local BEAM = {
 	weapon = 26,
 	every = 70,
@@ -1716,7 +1713,7 @@ local function AimBeam(num, heading)
 	Signal(SIG_RESTORE)
 	isAiming = true
 	Turn(P.torsobase, y_axis, heading, BEAM.turnSpeed)
-	local _, yaw = Spring.UnitScript.GetPieceRotation(P.torsobase)
+	local _, yaw = GetPieceRotation(P.torsobase)
 	if math.abs(WrapAngle(heading - yaw)) > BEAM.fireAngle then
 		WaitForTurn(P.torsobase, y_axis)
 	end
@@ -1725,7 +1722,9 @@ local function AimBeam(num, heading)
 end
 
 local POD_BARRAGE, POD_RAIN, POD_STREAM = 1, 2, 3
+---@type table<integer, any>
 local podSide = { [6] = 1, [7] = 2, [8] = 1, [9] = 2, [10] = 1, [11] = 2, [31] = 1, [32] = 2 }
+---@type table<integer, any>
 local podModeOf = {
 	[6] = POD_BARRAGE,
 	[7] = POD_BARRAGE,
@@ -1736,14 +1735,18 @@ local podModeOf = {
 	[31] = POD_STREAM,
 	[32] = POD_STREAM,
 }
+---@type table<integer, any>
 local podPiece = { P.lrocketpod, P.rrocketpod }
+---@type table<integer, any>
 local podFlare = { P.lpodflare, P.rpodflare }
 local POD_SPEED, POD_PITCH_SIGN = math.rad(120), -1
 local POD_FORWARD = math.rad(90)
 local RAIN_PITCH = 0
 local RAIN_SPREAD = 300
 local RAIN_WEAPON = WeaponDefNames[UnitDefs[unitDefID].name .. "_pod_rain"].id
+---@type table, table
 local rainCenter, rainAssigned = {}, {}
+---@type table<number, any>
 local MODE_ORDER = { POD_BARRAGE, POD_RAIN, POD_STREAM }
 local MODE_GAP = 3
 local MODE_TIMEOUT = 40
@@ -1751,18 +1754,15 @@ local STREAM_DURATION = 17
 local STREAM_GAP = 0.2 * Game.gameSpeed
 local POD_OWNER = 3
 local podMode = POD_BARRAGE
+---@type number
 local podModeIndex = 1
 local podModeSerial = 0
 local podVolleys = 0
 local podStreamStart = -1
+---@type table<integer, any>
 local podLastFire = { -1000, -1000 }
 
-local podModeByName = { barrage = POD_BARRAGE, rain = POD_RAIN, stream = POD_STREAM }
-
 local function NextPodMode()
-	if podModeByName[Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or ""] then
-		return
-	end
 	local swarm = TURBO.kind == "swarm"
 	ACT.done = true
 	Turn(podPiece[1], x_axis, 0, POD_SPEED)
@@ -1796,10 +1796,6 @@ end
 
 local function AimPod(num, heading, pitch)
 	local side, frame = podSide[num], Spring.GetGameFrame()
-	local forced = podModeByName[Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or ""]
-	if forced and podMode ~= forced then
-		podMode, podModeSerial, podVolleys, podStreamStart = forced, podModeSerial + 1, 0, -1
-	end
 	if podModeOf[num] ~= podMode then
 		return false
 	end
@@ -1858,6 +1854,9 @@ local function RetargetRainRocket(side)
 		return
 	end
 	local fx, _, fz = Spring.GetUnitPiecePosDir(unitID, podFlare[side])
+	if not fx or not fz then
+		return
+	end
 	for _, proID in ipairs(Spring.GetProjectilesInRectangle(fx - 80, fz - 80, fx + 80, fz + 80)) do
 		if
 			not rainAssigned[proID]
@@ -1886,7 +1885,7 @@ function script.Shot(num)
 	local side = podSide[num]
 	if not rainCenter[side] then
 		local targetType, _, target = Spring.GetUnitWeaponTarget(unitID, num)
-		if targetType == 1 then
+		if targetType == 1 and type(target) == "number" then
 			rainCenter[side] = { Spring.GetUnitPosition(target) }
 		elseif targetType == 2 and type(target) == "table" then
 			rainCenter[side] = target
@@ -1934,6 +1933,7 @@ function script.QueryWeapon(num)
 	return armData.flare[num] or podFlare[podSide[num]] or P.torso
 end
 
+---@type table<string, any>
 local VOLLEY = {
 	shots = 8,
 	interval = 0.4,
@@ -1949,6 +1949,7 @@ local VOLLEY = {
 	turboRight = 30,
 	owner = 5,
 }
+---@type table<string, any>
 local volley = { phase = "cooldown", shots = 0, finale = 0, turn = 21, left = 21, right = 22, lastShot = 0 }
 
 local function PitchArm(arm, kind, pitch)
@@ -1983,11 +1984,7 @@ local function VolleyCooldown()
 	while true do
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		local need = VOLLEY.cooldownLow + (VOLLEY.cooldownFull - VOLLEY.cooldownLow) * (health or 1) / (maxHealth or 1)
-		if
-			waited >= need
-			or Spring.GetUnitRulesParam(unitID, "scavboss_weapons") == "volley"
-			or TURBO.kind == "close"
-		then
+		if waited >= need or TURBO.kind == "close" then
 			break
 		end
 		Sleep(1000)
@@ -2086,7 +2083,7 @@ local function ArmOwnerKind(arm)
 	local bestKind, bestReady = nil, math.huge
 	for _, w in ipairs(armData.weapons[arm]) do
 		local ready = Spring.GetUnitWeaponState(unitID, w, "reloadFrame") or 0
-		if ready < bestReady and WeaponAllowed(w) then
+		if ready < bestReady then
 			bestKind, bestReady = armData.kind[w], ready
 		end
 	end
@@ -2097,18 +2094,18 @@ function script.AimWeapon(num, heading, pitch)
 	if armData.kind[num] == "laser" then
 		ARM.LaserArc(num, heading)
 	end
-	if eating or not WeaponAllowed(num) then
+	if eating then
 		return false
 	end
 	if num == AA.weapon or num == AA.turbo then
 		ACT.want.aa = Spring.GetGameFrame()
 		return (num == AA.turbo) == (TURBO.kind == "air")
 	end
-	local act = ACT.of[GROUP[num] or ""]
+	local act = ACT.of[num]
 	if act == "rail" and TURBO.kind == "far" then
 		return false
 	end
-	if GROUP[num] == "stream" and (num > 11) ~= (TURBO.kind == "swarm") then
+	if podModeOf[num] == POD_STREAM and (num > 11) ~= (TURBO.kind == "swarm") then
 		return false
 	end
 	if num == RAIL.rapid then
@@ -2139,12 +2136,9 @@ function script.AimWeapon(num, heading, pitch)
 		return false
 	end
 	if
-		WeaponAllowed(VOLLEY.left)
-		and (
-			volley.phase == "firing"
-			or volley.phase == "finale"
-			or (volley.phase == "armed" and armData.kind[num] == "gauss")
-		)
+		volley.phase == "firing"
+		or volley.phase == "finale"
+		or (volley.phase == "armed" and armData.kind[num] == "gauss")
 	then
 		return false
 	end
@@ -2205,7 +2199,9 @@ function script.FireWeapon(num)
 	armData.lastFire[arm] = Spring.GetGameFrame()
 	armData.lastKind[arm] = armData.kind[num]
 	if armData.kind[num] == "laser" then
-		armData.busyUntil[arm] = armData.lastFire[arm] + ARM.laserFrames
+		local def = DEFS.Weapon(num)
+		local burstFrames = math.ceil(math.max(def.beamtime, def.salvoSize * def.salvoDelay) * Game.gameSpeed)
+		armData.busyUntil[arm] = armData.lastFire[arm] + burstFrames
 		return
 	end
 	EmitSfx(armData.flare[num], SFX.CEG)
@@ -2214,7 +2210,7 @@ function script.FireWeapon(num)
 	Turn(armData.yaw[arm], x_axis, armData.upper[arm] + ARM.shoulderSign * ARM.shoulderKick)
 	local now = Spring.GetGameFrame()
 	if now > armData.jerkUntil[arm] then
-		armData.jerkBase[arm] = Spring.UnitScript.GetPieceRotation(armData.shoulder[arm])
+		armData.jerkBase[arm] = GetPieceRotation(armData.shoulder[arm])
 	end
 	armData.jerkUntil[arm] = now + math.ceil(Game.gameSpeed / 3) + 1
 	local shoulderPitch = armData.jerkBase[arm]
@@ -2238,6 +2234,7 @@ local SHIELD_ON_LAG, SHIELD_RAMP = 1, 0
 local SHIELD_ON_PARAM = 531313
 local SHIELD_POWER = WeaponDefs[UnitDefs[unitDefID].weapons[SHIELD_WEAPON].weaponDef].shieldPower
 local FACE_OPEN, FACE_SPEED = math.rad(30), math.rad(60)
+---@type table<string, any>
 local DGUN = {
 	count = 5,
 	delay = 0.3,
@@ -2248,11 +2245,18 @@ do
 	local def = WeaponDefNames[UnitDefs[unitDefID].name .. "_devourdgun"]
 	DGUN.id, DGUN.speed, DGUN.range = def.id, def.projectilespeed, def.range
 end
+---@type number
 local fedMetal = 0
 
 local function IsPrey(otherID)
 	local team = Spring.GetUnitTeam(otherID)
-	if not team or team == myTeam or Spring.AreTeamsAllied(team, myTeam) or Spring.GetUnitIsDead(otherID) then
+	if
+		not team
+		or not myTeam
+		or team == myTeam
+		or Spring.AreTeamsAllied(team, myTeam)
+		or Spring.GetUnitIsDead(otherID)
+	then
 		return false
 	end
 	local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
@@ -2260,37 +2264,45 @@ local function IsPrey(otherID)
 end
 
 local function PickMeal()
-	local x, y, z = Spring.GetUnitPosition(unitID)
-	local best, bestMetal = nil, 0
+	local x, y, z = Here()
+	---@type integer?
+	local prey
+	local preyCost = 0.0
 	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE)) do
 		if IsPrey(otherID) then
 			local cost = DEFS.Unit(Spring.GetUnitDefID(otherID)).metalCost
-			if cost > bestMetal then
-				best, bestMetal = otherID, cost
+			if cost > preyCost then
+				prey, preyCost = otherID, cost
 			end
 		end
 	end
-	if best then
-		return best, false, bestMetal
+	if prey then
+		return prey, false, preyCost
 	end
+	---@type integer?
+	local wreck
+	local wreckMetal = 0.0
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, EAT_RANGE)) do
 		local metal = Spring.GetFeatureResources(featureID)
-		if metal and metal > bestMetal and DEFS.Reclaimable(Spring.GetFeatureDefID(featureID)) then
-			best, bestMetal = featureID, metal
+		if metal and metal > wreckMetal and DEFS.Reclaimable(Spring.GetFeatureDefID(featureID)) then
+			wreck, wreckMetal = featureID, metal
 		end
 	end
-	if best then
-		return best, true, bestMetal
+	if wreck then
+		return wreck, true, wreckMetal
 	end
-	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE, myTeam)) do
+	---@type integer?
+	local own
+	local ownCost = 0.0
+	for _, otherID in ipairs(Spring.GetUnitsInSphere(x, y, z, EAT_RANGE)) do
 		local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
 		local edible = otherID ~= unitID and def.canMove and not def.canFly and def.reclaimable
-		edible = edible and not Spring.GetUnitIsDead(otherID)
-		if edible and not def.isBoss and def.metalCost > bestMetal then
-			best, bestMetal = otherID, def.metalCost
+		edible = edible and Spring.GetUnitTeam(otherID) == myTeam and not Spring.GetUnitIsDead(otherID)
+		if edible and not def.isBoss and def.metalCost > ownCost then
+			own, ownCost = otherID, def.metalCost
 		end
 	end
-	return best, false, 0, bestMetal
+	return own, false, 0, ownCost
 end
 
 local function MealGone(target, isFeature)
@@ -2310,7 +2322,7 @@ local function SetFace(open)
 end
 
 local function Blast()
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = Here()
 	Spring.SpawnExplosion(x, y + 40, z, 0, 1, 0, {
 		weaponDef = BLAST_WEAPON,
 		owner = unitID,
@@ -2384,7 +2396,7 @@ local function Detonate()
 	Sleep(T_BLAST * 1000)
 	Blast()
 	Sleep(DGUN.delay * 1000)
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = Here()
 	local first = math.random() * 2 * math.pi
 	for i = 1, DGUN.count do
 		local angle = first + i * 2 * math.pi / DGUN.count
@@ -2399,6 +2411,7 @@ local function Detonate()
 	Spring.PlaySoundFile("disigun1", 1, x, y, z)
 end
 
+---@type table<string, any>
 local RAISE = {
 	grace = 2,
 	duration = { 15, 30 },
@@ -2407,8 +2420,10 @@ local RAISE = {
 	lateMinute = 15,
 	lateBoost = 6.5,
 	poseSpeed = math.rad(20),
+	wanted = false,
 	energy = 1000000,
 }
+---@type table<integer, any>
 local RAISE_POSE = {
 	{ P.larm, x_axis, 0.327201, 0.000000 },
 	{ P.larm, z_axis, 0.369536, 0.261799 },
@@ -2449,7 +2464,6 @@ local function SetRaisePose(on)
 end
 
 local function Feed()
-	Spring.SetUnitRulesParam(unitID, "scavboss_feed", 0)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 1)
 	Spring.SetUnitRulesParam(unitID, "scavboss_feed_metal", 0)
 	Sleep(FEED_GRACE * 1000)
@@ -2466,7 +2480,7 @@ local function Feed()
 		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
 	end
 	local deadline = Spring.GetGameFrame() + FEED_DURATION * Game.gameSpeed
-	local blast, ownEaten = false, 0
+	local blast, ownEaten = false, 0.0
 	while Spring.GetGameFrame() < deadline and not Spring.GetUnitIsStunned(unitID) do
 		local target, isFeature, startMetal, ownMetal = PickMeal()
 		if target then
@@ -2525,13 +2539,13 @@ do
 end
 
 local function PickWreck()
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = Here()
 	local best, bestDist = nil, math.huge
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, RAISE.search)) do
 		local rezName = Spring.GetFeatureResurrect(featureID)
 		if rezName and rezName ~= "" then
 			local fx, _, fz = Spring.GetFeaturePosition(featureID)
-			local dist = (fx - x) ^ 2 + (fz - z) ^ 2
+			local dist = fx and fz and (fx - x) ^ 2 + (fz - z) ^ 2 or math.huge
 			if dist < bestDist then
 				best, bestDist = featureID, dist
 			end
@@ -2542,7 +2556,7 @@ end
 
 RAISE.Fuel = function()
 	local team = Spring.GetUnitTeam(unitID)
-	if (Spring.GetTeamLuaAI(team) or "") == "" then
+	if not team or (Spring.GetTeamLuaAI(team) or "") == "" then
 		return
 	end
 	local energy, storage = Spring.GetTeamResources(team, "energy")
@@ -2555,19 +2569,17 @@ RAISE.Fuel = function()
 end
 
 local function Raise()
-	Spring.SetUnitRulesParam(unitID, "scavboss_raise", 0)
-	Spring.SetUnitRulesParam(unitID, "scavboss_raise_state", 1)
+	RAISE.wanted = false
 	Sleep(RAISE.grace * 1000)
 	eating, isAiming = true, true
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
-	Spring.SetUnitRulesParam(unitID, "scavboss_raise_state", 2)
 	Signal(SIG_ALL_AIM)
 	Signal(SIG_RESTORE)
 	SetFace(true)
 	if GG.ScavBossFeedingEffect then
 		GG.ScavBossFeedingEffect(unitID, unitDefID, 1)
 	end
-	local boost = 1
+	local boost = 1.0
 	if Spring.GetGameSeconds() >= RAISE.lateMinute * 60 then
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		boost = 1 + (RAISE.lateBoost - 1) * (1 - (health or 1) / (maxHealth or 1))
@@ -2580,6 +2592,7 @@ local function Raise()
 			break
 		end
 		Spring.GiveOrderToUnit(unitID, CMD.RESURRECT, { Game.maxUnits + wreck }, 0)
+		---@type number
 		local onWreck = 0
 		while
 			Spring.ValidFeatureID(wreck)
@@ -2588,8 +2601,8 @@ local function Raise()
 			and not Spring.GetUnitIsStunned(unitID)
 		do
 			local fx, _, fz = Spring.GetFeaturePosition(wreck)
-			local x, _, z = Spring.GetUnitPosition(unitID)
-			local near = (fx - x) ^ 2 + (fz - z) ^ 2 <= EAT_RANGE ^ 2
+			local x, _, z = Here()
+			local near = fx ~= nil and fz ~= nil and (fx - x) ^ 2 + (fz - z) ^ 2 <= EAT_RANGE ^ 2
 			if near ~= posed then
 				posed = near
 				SetRaisePose(near)
@@ -2603,7 +2616,6 @@ local function Raise()
 	end
 	eating, posed = false, false
 	Spring.SetUnitRulesParam(unitID, "scavboss_eating", 0)
-	Spring.SetUnitRulesParam(unitID, "scavboss_raise_state", 0)
 	Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	SetFace(false)
 	SetRaisePose(false)
@@ -2611,7 +2623,8 @@ local function Raise()
 end
 
 TURBO.Food = function()
-	local x, y, z = Spring.GetUnitPosition(unitID)
+	local x, y, z = Here()
+	---@type number, number
 	local wrecks, metal = 0, 0
 	for _, featureID in ipairs(Spring.GetFeaturesInSphere(x, y, z, RAISE.search)) do
 		local rezName = Spring.GetFeatureResurrect(featureID)
@@ -2631,11 +2644,12 @@ TURBO.Food = function()
 end
 
 TURBO.Pick = function(health)
-	local x, _, z = Spring.GetUnitPosition(unitID)
+	local x, _, z = Here()
+	---@type table<string, any>
 	local score = { air = 0, close = 0, far = 0, swarm = 0, beam = 0 }
 	for _, otherID in ipairs(Spring.GetUnitsInCylinder(x, z, TURBO.range)) do
 		local team = Spring.GetUnitTeam(otherID)
-		if team and team ~= myTeam and not Spring.AreTeamsAllied(team, myTeam) then
+		if team and myTeam and team ~= myTeam and not Spring.AreTeamsAllied(team, myTeam) then
 			local def = DEFS.Unit(Spring.GetUnitDefID(otherID))
 			local kind = "swarm"
 			if def.canFly then
@@ -2655,7 +2669,9 @@ TURBO.Pick = function(health)
 	if health <= TURBO.raiseHealth and TURBO.Food() >= TURBO.raiseWrecks and math.random() < TURBO.abilityChance then
 		return "raise"
 	end
-	local best, bestScore = nil, 0
+	---@type string?
+	local best
+	local bestScore = 0.0
 	for _, kind in ipairs(TURBO.kinds) do
 		local seen = kind == TURBO.last and 0 or math.min(score[kind], TURBO.luck)
 		local points = score[kind] > 0 and (seen + math.random(1, TURBO.luck)) / 2 or 0
@@ -2705,14 +2721,8 @@ local function TurboLoop()
 		Sleep(1000)
 		local health, maxHealth = Spring.GetUnitHealth(unitID)
 		health = (health or 1) / (maxHealth or 1)
-		local order = Spring.GetUnitRulesParam(unitID, "scavboss_turbo") or "auto"
-		local only = Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or "all"
 		local kind
-		local now = Spring.GetUnitRulesParam(unitID, "scavboss_turbo_now") or ""
-		if now ~= "" then
-			kind = now
-			Spring.SetUnitRulesParam(unitID, "scavboss_turbo_now", "")
-		elseif order == "auto" and only == "all" and not eating and not Spring.GetUnitIsStunned(unitID) then
+		if not eating and not Spring.GetUnitIsStunned(unitID) then
 			waited = waited + 1
 			if waited >= TURBO.waitBase + TURBO.waitPerHealth * health * 100 then
 				kind = TURBO.Pick(health)
@@ -2721,8 +2731,8 @@ local function TurboLoop()
 		end
 		if kind then
 			waited = 0
-			if kind == "devour" or kind == "raise" then
-				Spring.SetUnitRulesParam(unitID, kind == "devour" and "scavboss_feed" or "scavboss_raise", 1)
+			if kind == "raise" then
+				RAISE.wanted = true
 				Sleep(5000)
 				while eating do
 					Sleep(500)
@@ -2753,7 +2763,7 @@ local function TurboLoop()
 					Sleep(500)
 				end
 				TURBO.Set(kind, false)
-				TURBO.kind = false
+				TURBO.kind = ""
 				ACT.done = true
 			end
 		end
@@ -2766,6 +2776,7 @@ local function SetBeamReady(ready)
 end
 
 local function BeamLoop()
+	---@type number, boolean
 	local waited, faceOpen = 0, false
 	SetBeamReady(false)
 	while true do
@@ -2798,12 +2809,8 @@ local function Director()
 		Sleep(500)
 		local frame = Spring.GetGameFrame()
 		local fresh = ACT.idle * Game.gameSpeed
-		local held = TURBO.hold[TURBO.kind or ""]
-		local forced = ACT.of[Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or ""] or (held ~= "aa" and held)
-		if Spring.GetUnitRulesParam(unitID, "scavboss_rail") == 1 then
-			Spring.SetUnitRulesParam(unitID, "scavboss_rail", 0)
-			ACT.done = true
-		end
+		local held = TURBO.hold[TURBO.kind]
+		local forced = held ~= "aa" and held
 		if forced then
 			if ACT.current ~= forced then
 				ACT.current, ACT.started, ACT.done = forced, frame, false
@@ -2842,12 +2849,7 @@ local function FeedWatch()
 		if Spring.GetUnitIsStunned(unitID) then
 			HUNGER.value = 0
 		end
-		if
-			not eating
-			and (health or 1) / (maxHealth or 1) <= HUNGER.health
-			and not Spring.GetUnitIsStunned(unitID)
-			and Spring.GetUnitRulesParam(unitID, "scavboss_turbo") ~= "off"
-		then
+		if not eating and (health or 1) / (maxHealth or 1) <= HUNGER.health and not Spring.GetUnitIsStunned(unitID) then
 			local kills = (Spring.GetUnitRulesParam(unitID, "scavboss_bigkills") or 0) - HUNGER.killsAtMeal
 			local fill = HUNGER.fillSeconds
 				- (HUNGER.fillSeconds - HUNGER.minSeconds) * math.min(1, kills / HUNGER.killsForMin)
@@ -2857,30 +2859,8 @@ local function FeedWatch()
 			end
 		end
 		Spring.SetUnitRulesParam(unitID, "scavboss_hunger", math.floor(HUNGER.value))
-		if Spring.GetUnitRulesParam(unitID, "scavboss_feed") == 1 and not eating then
-			Feed()
-		end
-		if Spring.GetUnitRulesParam(unitID, "scavboss_raise") == 1 and not eating then
+		if RAISE.wanted and not eating then
 			Raise()
-		end
-		if Spring.GetUnitRulesParam(unitID, "scavboss_blast") == 1 and not eating then
-			Spring.SetUnitRulesParam(unitID, "scavboss_blast", 0)
-			eating = true
-			Spring.SetUnitRulesParam(unitID, "scavboss_eating", 1)
-			Signal(SIG_ALL_AIM)
-			SetFace(true)
-			Detonate()
-			eating = false
-			Spring.SetUnitRulesParam(unitID, "scavboss_eating", 0)
-			Spring.SetUnitRulesParam(unitID, "scavboss_feed_state", 0)
-			SetFace(false)
-		end
-		if Spring.GetUnitRulesParam(unitID, "scavboss_shield") == 1 then
-			Spring.SetUnitRulesParam(unitID, "scavboss_shield", 0)
-			At(T_AURA - T_SHIELD_ON, ChargeAura)
-			At(T_SHIELD_OFF - T_SHIELD_ON, ShieldOff)
-			At(T_AURA_OFF - T_SHIELD_ON, PopAura)
-			ShieldOn()
 		end
 	end
 end
@@ -2897,11 +2877,11 @@ function script.StartBuilding(heading)
 	SetFace(true)
 	Turn(P.torsobase, y_axis, heading, TORSO_SPEED)
 	WaitForTurn(P.torsobase, y_axis)
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, true)
+	SetUnitValue(COB.INBUILDSTANCE, true)
 end
 
 function script.StopBuilding()
-	Spring.UnitScript.SetUnitValue(COB.INBUILDSTANCE, false)
+	SetUnitValue(COB.INBUILDSTANCE, false)
 	if not eating and not BEAM.active then
 		SetFace(false)
 	end

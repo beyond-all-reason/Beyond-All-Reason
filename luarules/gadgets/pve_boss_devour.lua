@@ -33,56 +33,6 @@ end
 
 local bosses = {}
 
-local function FlagAllBosses(param)
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		if eaters[Spring.GetUnitDefID(unitID)] then
-			Spring.SetUnitRulesParam(unitID, param, 1)
-		end
-	end
-	return true
-end
-
-local function StartFeeding()
-	return FlagAllBosses("scavboss_feed")
-end
-
-local function TestBlast()
-	return FlagAllBosses("scavboss_blast")
-end
-
-local function TestShield()
-	return FlagAllBosses("scavboss_shield")
-end
-
-local function TestRaise()
-	return FlagAllBosses("scavboss_raise")
-end
-
-local function TestRail()
-	return FlagAllBosses("scavboss_rail")
-end
-
-local function SelectWeapons(cmd, line, words)
-	local group = words[1] or "all"
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		if eaters[Spring.GetUnitDefID(unitID)] then
-			Spring.SetUnitRulesParam(unitID, "scavboss_weapons", group)
-		end
-	end
-	return true
-end
-
-local function SelectTurbo(cmd, line, words)
-	local kind = words[1] or "auto"
-	local param = (kind == "auto" or kind == "off") and "scavboss_turbo" or "scavboss_turbo_now"
-	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		if eaters[Spring.GetUnitDefID(unitID)] then
-			Spring.SetUnitRulesParam(unitID, param, kind)
-		end
-	end
-	return true
-end
-
 local feedCount = 0
 local function FeedingEffect(unitID, unitDefID, index)
 	feedCount = feedCount + 1
@@ -106,6 +56,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		attackerID
 		and bosses[attackerID]
 		and bigUnits[unitDefID]
+		and attackerTeam
 		and not Spring.AreTeamsAllied(unitTeam, attackerTeam)
 	then
 		local kills = Spring.GetUnitRulesParam(attackerID, "scavboss_bigkills") or 0
@@ -117,9 +68,10 @@ function gadget:GameFrame(frame)
 	if frame % Game.gameSpeed ~= 0 then
 		return
 	end
+	---@type number, number
 	local hunger, meal = -1, -1
 	for unitID in pairs(bosses) do
-		hunger = math.max(hunger, Spring.GetUnitRulesParam(unitID, "scavboss_hunger") or 0)
+		hunger = math.max(hunger, tonumber(Spring.GetUnitRulesParam(unitID, "scavboss_hunger")) or 0)
 		if (Spring.GetUnitRulesParam(unitID, "scavboss_feed_state") or 0) > 0 then
 			local eaten = Spring.GetUnitRulesParam(unitID, "scavboss_feed_metal") or 0
 			local goal = Spring.GetUnitRulesParam(unitID, "scavboss_feed_goal") or 1
@@ -132,42 +84,18 @@ end
 
 function gadget:Initialize()
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		if eaters[Spring.GetUnitDefID(unitID)] then
+			bosses[unitID] = true
+		end
 	end
 	GG.ScavBossFeedingEffect = FeedingEffect
 	GG.ScavBossShield = SetShield
-	gadgetHandler:AddChatAction("scavbosseat", StartFeeding, "Makes every scav boss start its feeding sequence")
-	gadgetHandler:AddChatAction("scavbossblast", TestBlast, "Fires the scav boss blast for tuning")
-	gadgetHandler:AddChatAction("scavbossshield", TestShield, "Plays the scav boss shield charge for tuning")
-	gadgetHandler:AddChatAction(
-		"scavbossrail",
-		TestRail,
-		"Ends the scav boss's current weapon turn so the next group starts"
-	)
-	gadgetHandler:AddChatAction("scavbossraise", TestRaise, "Makes every scav boss start raising wrecks")
-	gadgetHandler:AddChatAction(
-		"scavbossweapon",
-		SelectWeapons,
-		"Lets only one scav boss weapon group aim: gauss napalm laser volley arms barrage rain stream pods turrets railheavy railrapid rail beam aa all"
-	)
-	gadgetHandler:AddChatAction(
-		"scavbossturbo",
-		SelectTurbo,
-		"Starts a scav boss turbo at once: air close far swarm beam devour raise; off stops turbos, auto resumes them"
-	)
 	gadgetHandler:RegisterAllowCommand(CMD.ANY)
 end
 
 function gadget:Shutdown()
 	GG.ScavBossFeedingEffect = nil
 	GG.ScavBossShield = nil
-	gadgetHandler:RemoveChatAction("scavbosseat")
-	gadgetHandler:RemoveChatAction("scavbossblast")
-	gadgetHandler:RemoveChatAction("scavbossshield")
-	gadgetHandler:RemoveChatAction("scavbossrail")
-	gadgetHandler:RemoveChatAction("scavbossraise")
-	gadgetHandler:RemoveChatAction("scavbossweapon")
-	gadgetHandler:RemoveChatAction("scavbossturbo")
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID)
@@ -215,12 +143,12 @@ function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, feature
 	local rezName = Spring.GetFeatureResurrect(featureID)
 	local unitDef = rezName and UnitDefNames[rezName]
 	local x, _, z = Spring.GetFeaturePosition(featureID)
-	if not unitDef or not x then
+	if not unitDef or not x or not z then
 		return true
 	end
 	raised[featureID] = true
 	local spawnDef = UnitDefNames[rezName .. "_scav"] or unitDef
-	local spread = unitDef.xsize * RAISE_COUNT
+	local spread = math.floor(unitDef.xsize * RAISE_COUNT)
 	local effect = "scav-spawnexplo-" .. SizeName(unitDef)
 	Spring.DestroyFeature(featureID)
 	for _ = 1, RAISE_COUNT do

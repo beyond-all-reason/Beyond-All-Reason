@@ -9,13 +9,14 @@ local function scaleValue(value, factor)
 	end
 	if type(value) == "string" and value:match("^[%d%.%sr%-]+$") then
 		return (value:gsub("%d+%.?%d*", function(n)
-			return tostring(tonumber(n) * factor)
+			return tostring((tonumber(n) or 0) * factor)
 		end))
 	end
 	return value
 end
 
 local function scaled(def, factor)
+	---@type table
 	local copy = table.copy(def)
 	for _, emitter in pairs(copy) do
 		local props = type(emitter) == "table" and emitter.properties
@@ -37,6 +38,7 @@ local BLAST_SCALE = 2
 local BLAST_KEYS = { "particlesize", "particlespeed", "particlespeedspread", "size", "sizegrowth" }
 
 local function scaledBlast(def, factor)
+	---@type table
 	local copy = table.copy(def)
 	for _, emitter in pairs(copy) do
 		local props = type(emitter) == "table" and emitter.properties
