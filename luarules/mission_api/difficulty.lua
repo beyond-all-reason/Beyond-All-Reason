@@ -69,6 +69,12 @@ local function resolveActions(actions)
 	end
 end
 
+local function resolveCutscenes(cutscenes)
+	for _, cutscene in pairs(cutscenes) do
+		resolveParameters(cutscene)
+	end
+end
+
 --- Resolve objective fields, inline trigger parameters, and managed objective metadata in
 --- place. objectives_loader ran before validation, when amount was not resolvable yet, so
 --- the maxRepeats it derives from amount is filled in here for synthesized triggers.
@@ -125,4 +131,5 @@ return {
 	ResolveTriggers = resolveTriggers,
 	ResolveActions = resolveActions,
 	ResolveObjectives = resolveObjectives,
+	ResolveCutscenes = resolveCutscenes,
 }
