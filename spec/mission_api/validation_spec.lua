@@ -814,19 +814,6 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
-		describe("CutsceneID", function()
-			it("rejects unknown cutscene ID", function()
-				actionErrors({ type = actionTypes.StartCutscene, parameters = { cutsceneID = "noSuch" } })
-				assert.is_true(hasError("Invalid cutsceneID: noSuch. Action: a, Parameter: cutsceneID"))
-			end)
-
-			it("accepts a defined cutscene ID", function()
-				GG["MissionAPI"].Cutscenes = { intro = { script = "landingParty" } }
-				actionErrors({ type = actionTypes.StartCutscene, parameters = { cutsceneID = "intro" } })
-				assert.are.same({}, logged)
-			end)
-		end)
-
 		describe("TriggerID", function()
 			it("rejects wrong type", function()
 				actionErrors({ type = actionTypes.EnableTrigger, parameters = { triggerID = 123 } })
@@ -1720,6 +1707,58 @@ describe("mission_api.validation", function()
 
 			assert.is_true(hasError("Line name 'noSuchLine' is not drawn in any action. Referenced in: removeUnknown"))
 			assert.is_false(hasError("Line name 'wall'"))
+		end)
+
+		it("passes cutscene IDs that are defined and started", function()
+			GG["MissionAPI"].Cutscenes = {
+				intro = { videoFile = "videos/intro.mp4" },
+				outro = { script = "farewell" },
+			}
+			GG["MissionAPI"].Actions = {
+				playIntro = { type = actionTypes.StartCutscene, parameters = { cutsceneID = "intro" } },
+				playOutro = {
+					type = actionTypes.StartCutscene,
+					parameters = { cutsceneID = { difficulties = { Easy = "outro", Hard = "intro" } } },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error for a cutscene ID that is not defined", function()
+			GG["MissionAPI"].Actions = {
+				playGhost = { type = actionTypes.StartCutscene, parameters = { cutsceneID = "ghost" } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Cutscene 'ghost' is not defined in Cutscenes. Referenced in: action playGhost"))
+			assert.is_true(GG["MissionAPI"].HasValidationErrors)
+		end)
+
+		it("checks every difficulty's cutscene ID", function()
+			GG["MissionAPI"].Cutscenes = { intro = { script = "landingParty" } }
+			GG["MissionAPI"].Actions = {
+				play = {
+					type = actionTypes.StartCutscene,
+					parameters = { cutsceneID = { difficulties = { Easy = "intro", Hard = "ghost" } } },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Cutscene 'ghost' is not defined in Cutscenes. Referenced in: action play"))
+		end)
+
+		it("warns about a cutscene that nothing starts", function()
+			GG["MissionAPI"].Cutscenes = { unused = { script = "landingParty" } }
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Cutscene 'unused' defined, but not referenced by any trigger or action."))
+			assert.is_nil(GG["MissionAPI"].HasValidationErrors)
 		end)
 
 		it("passes countdown ID references that are added, and countdowns left to run out", function()

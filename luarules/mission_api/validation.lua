@@ -480,17 +480,6 @@ validators[Types.StageID] = function(stageID)
 	end
 end
 
-validators[Types.CutsceneID] = function(cutsceneID)
-	local luaTypeResult = validators[Types.String](cutsceneID)
-	if luaTypeResult then
-		return luaTypeResult
-	end
-
-	if not GG["MissionAPI"].Cutscenes[cutsceneID] then
-		return { { message = "Invalid cutsceneID: " .. cutsceneID } }
-	end
-end
-
 validators[Types.ObjectiveID] = function(objectiveID)
 	local luaTypeResult = validators[Types.String](objectiveID)
 	if luaTypeResult then
@@ -519,6 +508,8 @@ validators[Types.UnitName] = validators[Types.String]
 validators[Types.FeatureName] = validators[Types.String]
 validators[Types.CountdownID] = validators[Types.String]
 
+-- Checked in validateReferences.
+validators[Types.CutsceneID] = validators[Types.String]
 -- TODO: A cutscene-type script has no definition yet.
 validators[Types.ScriptID] = validators[Types.String]
 
@@ -1836,6 +1827,60 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 	end
 end
 
+local function addCutsceneReferences(referencedCutsceneIDs, parameters, label)
+	for _, cutsceneID in ipairs(possibleValues(parameters and parameters.cutsceneID)) do
+		if type(cutsceneID) == "string" then
+			local references = table.ensureTable(referencedCutsceneIDs, cutsceneID)
+			references[#references + 1] = label
+		end
+	end
+end
+
+local function validateCutsceneReferences(objectives, triggers, actions, cutscenes)
+	if type(cutscenes) ~= "table" then
+		return -- ValidateCutscenes reports it
+	end
+
+	local referencingActionTypes = getTypesWithParameterType(actionsSchemaParameters, Types.CutsceneID)
+	local referencingTriggerTypes = getTypesWithParameterType(triggersSchemaParameters, Types.CutsceneID)
+	local referencedCutsceneIDs = {}
+
+	for actionID, action in pairs(actions) do
+		if referencingActionTypes[action.type] then
+			addCutsceneReferences(referencedCutsceneIDs, action.parameters, "action " .. actionID)
+		end
+	end
+	for triggerID, trigger in pairs(triggers) do
+		if referencingTriggerTypes[trigger.type] then
+			addCutsceneReferences(referencedCutsceneIDs, trigger.parameters, "trigger " .. triggerID)
+		end
+	end
+	for objectiveID, objective in pairs(objectives) do
+		local trigger = type(objective) == "table" and objective.trigger
+		if type(trigger) == "table" and referencingTriggerTypes[trigger.type] then
+			local label = "objective " .. objectiveID .. " (trigger)"
+			addCutsceneReferences(referencedCutsceneIDs, trigger.parameters, label)
+		end
+	end
+
+	for cutsceneID, labels in pairs(referencedCutsceneIDs) do
+		if cutscenes[cutsceneID] == nil then
+			logError(
+				"Cutscene '"
+					.. cutsceneID
+					.. "' is not defined in Cutscenes. Referenced in: "
+					.. table.concat(labels, ", ")
+			)
+		end
+	end
+
+	for cutsceneID in pairs(cutscenes) do
+		if referencedCutsceneIDs[cutsceneID] == nil then
+			logWarn("Cutscene '" .. tostring(cutsceneID) .. "' defined, but not referenced by any trigger or action.")
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -1845,6 +1890,7 @@ local function validateReferences()
 	local actions = GG["MissionAPI"].Actions
 	local unitLoadout = GG["MissionAPI"].UnitLoadout
 	local featureLoadout = GG["MissionAPI"].FeatureLoadout
+	local cutscenes = GG["MissionAPI"].Cutscenes
 
 	validateStagesReferences(stages, objectives)
 	validateObjectiveNextStageReferences(objectives)
@@ -1854,6 +1900,7 @@ local function validateReferences()
 	validateMarkerNameReferences(actionTypes, actions)
 	validateLineNameReferences(actionTypes, actions)
 	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
+	validateCutsceneReferences(objectives, triggers, actions, cutscenes)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
