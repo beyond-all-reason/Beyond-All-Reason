@@ -419,6 +419,10 @@ if gadgetHandler:IsSyncedCode() then
 		selfdCmdUnits[unitID] = nil
 	end
 
+	function gadget:Initialize()
+		gadgetHandler:RegisterUnitCommand(CMD.ANY)
+	end
+
 	-- log selfd commands
 	function gadget:UnitCommand(
 		unitID,

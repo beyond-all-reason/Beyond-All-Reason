@@ -358,6 +358,10 @@ function gadget:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	areaCommandCooldown[unitID] = nil
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD.ANY)
+end
+
 function gadget:UnitCommand(
 	unitID,
 	unitDefID,

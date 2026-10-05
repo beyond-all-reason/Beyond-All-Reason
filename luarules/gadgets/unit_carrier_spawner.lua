@@ -2062,6 +2062,7 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
+	gadgetHandler:RegisterUnitCommand(CMD.ANY)
 	local allUnits = Spring.GetAllUnits()
 	local unitCount = #allUnits
 	for i = 1, unitCount do
