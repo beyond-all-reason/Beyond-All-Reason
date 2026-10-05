@@ -480,6 +480,17 @@ validators[Types.StageID] = function(stageID)
 	end
 end
 
+validators[Types.CutsceneID] = function(cutsceneID)
+	local luaTypeResult = validators[Types.String](cutsceneID)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	if not GG["MissionAPI"].Cutscenes[cutsceneID] then
+		return { { message = "Invalid cutsceneID: " .. cutsceneID } }
+	end
+end
+
 validators[Types.ObjectiveID] = function(objectiveID)
 	local luaTypeResult = validators[Types.String](objectiveID)
 	if luaTypeResult then
@@ -507,6 +518,9 @@ end
 validators[Types.UnitName] = validators[Types.String]
 validators[Types.FeatureName] = validators[Types.String]
 validators[Types.CountdownID] = validators[Types.String]
+
+-- TODO: A cutscene-type script has no definition yet.
+validators[Types.ScriptID] = validators[Types.String]
 
 validators[Types.UnitDefName] = function(unitDefName)
 	local luaTypeResult = validators[Types.String](unitDefName)
@@ -603,6 +617,27 @@ validators[Types.SoundFile] = function(soundfile)
 	end
 end
 
+-- TODO: Whatever our file extensions are:
+local videoFileExtensions = { "mp4", "webm" }
+
+validators[Types.VideoFile] = function(videoFile)
+	local luaTypeResult = validators[Types.String](videoFile)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local extension = videoFile:match("%.([^%./]+)$")
+	if not extension or not table.contains(videoFileExtensions, extension:lower()) then
+		local expected = table.concat(videoFileExtensions, ", ")
+		return { { message = "Invalid videoFile: " .. videoFile .. ". Expected a file of type: " .. expected } }
+	end
+
+	-- TODO: Read the video file as well.
+	if not VFS.FileExists(videoFile) then
+		return { { message = "Invalid videoFile: " .. videoFile .. ". File does not exist" } }
+	end
+end
+
 --- Number Validators:
 
 validators[Types.Quantity] = function(quantity)
@@ -670,6 +705,7 @@ local triggersSchemaParameters = triggerDefinitions.Parameters
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
+local cutscenesSchemaSettings = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
 --- Validates a { difficulties = { <difficultyName> = <value> } } parameter: it holds only the
@@ -997,6 +1033,66 @@ end
 local function validateObjectives(objectives)
 	for objectiveID, objective in pairs(objectives) do
 		validateObjective(objectiveID, objective)
+	end
+end
+
+local function validateCutsceneSchemaFields(cutscene, cutsceneIDText)
+	for fieldName, fieldType in pairs(cutscenesSchemaSettings) do
+		local value = cutscene[fieldName]
+		if value ~= nil then
+			local results
+			if isDifficultiesTable(value) then
+				results = validateDifficultiesTable(value, fieldType, "Cutscene", cutsceneIDText, fieldName)
+			else
+				results = validators[fieldType](value) or {}
+			end
+			for _, result in ipairs(results) do
+				local log = result.severity == "warning" and logWarn or logError
+				log(
+					result.message
+						.. ". Cutscene: "
+						.. cutsceneIDText
+						.. ", Field: "
+						.. fieldName
+						.. (result.parameterNameSuffix or "")
+				)
+			end
+		end
+	end
+end
+
+local function validateCutscene(cutsceneID, cutscene)
+	local cutsceneIDText = tostring(cutsceneID)
+	if type(cutsceneID) ~= "string" then
+		logError("Cutscene ID must be a string, got " .. type(cutsceneID))
+	end
+
+	if type(cutscene) ~= "table" then
+		logError("Cutscene data must be a table, got " .. type(cutscene) .. ". Cutscene: " .. cutsceneIDText)
+		return
+	end
+
+	if (cutscene.videoFile == nil) == (cutscene.script == nil) then
+		logError("Cutscene must have either a videoFile or a script and not both. Cutscene: " .. cutsceneIDText)
+	end
+
+	for fieldName in pairs(cutscene) do
+		if cutscenesSchemaSettings[fieldName] == nil then
+			logWarn("Cutscene has unknown field '" .. tostring(fieldName) .. "'. Cutscene: " .. cutsceneIDText)
+		end
+	end
+
+	validateCutsceneSchemaFields(cutscene, cutsceneIDText)
+end
+
+local function validateCutscenes(cutscenes)
+	if type(cutscenes) ~= "table" then
+		logError("Cutscenes must be a table, got " .. type(cutscenes))
+		return
+	end
+
+	for cutsceneID, cutscene in pairs(cutscenes) do
+		validateCutscene(cutsceneID, cutscene)
 	end
 end
 
@@ -1768,4 +1864,5 @@ return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,
+	ValidateCutscenes = validateCutscenes,
 }
