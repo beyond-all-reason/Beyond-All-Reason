@@ -896,32 +896,39 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 	end
 end
 
+local function validateSchemaField(value, fieldType, recordKind, recordIDText, fieldName)
+	local results
+	if isDifficultiesTable(value) then
+		results = validateDifficultiesTable(value, fieldType, recordKind, recordIDText, fieldName)
+	else
+		results = validators[fieldType](value) or {}
+	end
+	for _, result in ipairs(results) do
+		local log = result.severity == "warning" and logWarn or logError
+		log(
+			result.message
+				.. ". "
+				.. recordKind
+				.. ": "
+				.. recordIDText
+				.. ", Field: "
+				.. fieldName
+				.. (result.parameterNameSuffix or "")
+		)
+	end
+end
+
 local function validateObjectiveSchemaFields(objective, objectiveIDText)
 	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
 		local value = objective[fieldName]
-		if fieldName ~= "nextStage" and value ~= nil then
-			local results = {}
-			if isDifficultiesTable(value) then
-				if fieldName == "trigger" then
-					results = { { message = "Objective 'trigger' field does not support difficulties" } }
-				else
-					results = validateDifficultiesTable(value, fieldType, "Objective", objectiveIDText, fieldName)
-				end
-			else
-				results = validators[fieldType](value) or {}
-			end
-			---@cast results -?
-			for _, result in ipairs(results) do
-				local log = result.severity == "warning" and logWarn or logError
-				log(
-					result.message
-						.. ". Objective: "
-						.. objectiveIDText
-						.. ", Field: "
-						.. fieldName
-						.. (result.parameterNameSuffix or "")
-				)
-			end
+		if fieldName == "trigger" and isDifficultiesTable(value) then
+			logError(
+				"Objective 'trigger' field does not support difficulties. Objective: "
+					.. objectiveIDText
+					.. ", Field: trigger"
+			)
+		elseif fieldName ~= "nextStage" and value ~= nil then
+			validateSchemaField(value, fieldType, "Objective", objectiveIDText, fieldName)
 		end
 	end
 end
@@ -1031,23 +1038,7 @@ local function validateCutsceneSchemaFields(cutscene, cutsceneIDText)
 	for fieldName, fieldType in pairs(cutscenesSchemaSettings) do
 		local value = cutscene[fieldName]
 		if value ~= nil then
-			local results
-			if isDifficultiesTable(value) then
-				results = validateDifficultiesTable(value, fieldType, "Cutscene", cutsceneIDText, fieldName)
-			else
-				results = validators[fieldType](value) or {}
-			end
-			for _, result in ipairs(results) do
-				local log = result.severity == "warning" and logWarn or logError
-				log(
-					result.message
-						.. ". Cutscene: "
-						.. cutsceneIDText
-						.. ", Field: "
-						.. fieldName
-						.. (result.parameterNameSuffix or "")
-				)
-			end
+			validateSchemaField(value, fieldType, "Cutscene", cutsceneIDText, fieldName)
 		end
 	end
 end
