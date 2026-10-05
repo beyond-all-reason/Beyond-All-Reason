@@ -144,6 +144,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
 				def = "ARMFLAK_GUN",
+				fastautoretargeting = true,
 				onlytargetcategory = "VTOL",
 			},
 		},
