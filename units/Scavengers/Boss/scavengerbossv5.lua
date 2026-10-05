@@ -169,8 +169,8 @@ local units = {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 37,
-					vtol = 18,
+					default = 160,
+					vtol = 78,
 				},
 				customparams = {
 					sound_volume_multiplier = 2.5,
@@ -206,7 +206,7 @@ local units = {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				damage = {
-					default = 500,
+					default = 1600,
 				},
 			},
 			devourdgun = {
@@ -493,8 +493,8 @@ local units = {
 					water_splash = 0,
 				},
 				damage = {
-					default = 200,
-					subs = 150,
+					default = 594,
+					subs = 446,
 				},
 			},
 			pod_barrage = {
@@ -542,8 +542,8 @@ local units = {
 				},
 				sprayangle = 5000,
 				damage = {
-					default = 1000,
-					subs = 500,
+					default = 1729,
+					subs = 864,
 				},
 			},
 			pod_rain = {
@@ -589,8 +589,8 @@ local units = {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 1700,
-					subs = 600,
+					default = 4750,
+					subs = 1676,
 				},
 			},
 			pod_stream = {
@@ -635,7 +635,7 @@ local units = {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 180,
+					default = 2100,
 				},
 			},
 			pod_stream_turbo = {
@@ -680,7 +680,7 @@ local units = {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 540,
+					default = 3900,
 				},
 			},
 			railgun = {
@@ -717,8 +717,8 @@ local units = {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 2000,
-					default = 12000,
+					commanders = 22500,
+					default = 135000,
 				},
 			},
 			railrapid = {
@@ -761,8 +761,8 @@ local units = {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 50,
-					default = 300,
+					commanders = 217,
+					default = 1300,
 				},
 			},
 			shotgunarm = {
@@ -797,8 +797,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 600,
-					subs = 150,
+					default = 2900,
+					subs = 725,
 				},
 			},
 			gaussvolley = {
@@ -833,8 +833,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 600,
-					subs = 150,
+					default = 814,
+					subs = 204,
 				},
 			},
 			gaussvolley_turbo = {
@@ -907,8 +907,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 600,
-					subs = 150,
+					default = 814,
+					subs = 204,
 				},
 			},
 		},
