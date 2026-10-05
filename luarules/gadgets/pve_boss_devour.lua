@@ -74,9 +74,10 @@ end
 
 local function SelectTurbo(cmd, line, words)
 	local kind = words[1] or "auto"
+	local param = (kind == "auto" or kind == "off") and "scavboss_turbo" or "scavboss_turbo_now"
 	for _, unitID in ipairs(Spring.GetAllUnits()) do
 		if eaters[Spring.GetUnitDefID(unitID)] then
-			Spring.SetUnitRulesParam(unitID, "scavboss_turbo", kind)
+			Spring.SetUnitRulesParam(unitID, param, kind)
 		end
 	end
 	return true

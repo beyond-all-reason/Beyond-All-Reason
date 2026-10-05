@@ -2708,9 +2708,10 @@ local function TurboLoop()
 		local order = Spring.GetUnitRulesParam(unitID, "scavboss_turbo") or "auto"
 		local only = Spring.GetUnitRulesParam(unitID, "scavboss_weapons") or "all"
 		local kind
-		if order ~= "auto" and order ~= "off" then
-			kind = order
-			Spring.SetUnitRulesParam(unitID, "scavboss_turbo", "auto")
+		local now = Spring.GetUnitRulesParam(unitID, "scavboss_turbo_now") or ""
+		if now ~= "" then
+			kind = now
+			Spring.SetUnitRulesParam(unitID, "scavboss_turbo_now", "")
 		elseif order == "auto" and only == "all" and not eating and not Spring.GetUnitIsStunned(unitID) then
 			waited = waited + 1
 			if waited >= TURBO.waitBase + TURBO.waitPerHealth * health * 100 then
