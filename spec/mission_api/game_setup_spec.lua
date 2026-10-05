@@ -1,8 +1,11 @@
 require("spec_helper")
 require("mission_api.spec_helper")
 
-local gameSetupModule = VFS.Include("luarules/mission_api/game_setup.lua")
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
+
+local function readGameSetup()
+	return VFS.Include("luarules/mission_api/game_setup.lua")
+end
 
 -- The client writes missionoptions as JSON, compressed with zlib, then base64url encoded.
 local function encodeMissionOptions(json)
@@ -60,7 +63,7 @@ describe("mission_api.game_setup", function()
 	end)
 
 	describe("Read", function()
-		it("reads the entry point, options and variables from missionoptions", function()
+		it("reads the entry point, options and persistent variables from missionoptions", function()
 			withGameSetup({
 				modOptions = {
 					missionoptions = encodeMissionOptions(
@@ -71,11 +74,12 @@ describe("mission_api.game_setup", function()
 				allyTeams = { [0] = { keys = { name = "goodies" } } },
 			})
 
-			local gameSetup = gameSetupModule.Read()
+			local gameSetup = readGameSetup()
 
 			assert.are.equal("missions/landfall/mission.lua", gameSetup.entryPoint)
 			assert.are.same({ fogOfWar = true }, gameSetup.options)
 			assert.are.same({ totalKills = 123, foundPortal = true }, gameSetup.variables)
+			assert.are.same({ totalKills = true, foundPortal = true }, gameSetup.persistentVariables)
 		end)
 
 		it("gives empty options and variables when missionoptions has none", function()
@@ -85,10 +89,11 @@ describe("mission_api.game_setup", function()
 				allyTeams = { [0] = { keys = { name = "goodies" } } },
 			})
 
-			local gameSetup = gameSetupModule.Read()
+			local gameSetup = readGameSetup()
 
 			assert.are.same({}, gameSetup.options)
 			assert.are.same({}, gameSetup.variables)
+			assert.are.same({}, gameSetup.persistentVariables)
 		end)
 
 		it("maps team and allyteam names to IDs and back, skipping sections without a name", function()
@@ -107,7 +112,7 @@ describe("mission_api.game_setup", function()
 				},
 			})
 
-			local gameSetup = gameSetupModule.Read()
+			local gameSetup = readGameSetup()
 
 			assert.are.same({
 				[0] = "player",
@@ -135,7 +140,7 @@ describe("mission_api.game_setup", function()
 				},
 			})
 
-			local gameSetup = gameSetupModule.Read()
+			local gameSetup = readGameSetup()
 
 			assert.are.same({ [0] = 1, [1] = 3 }, gameSetup.dummyTeams)
 			assert.are.same({ [0] = "player", [2] = "mainEnemy", player = 0, mainEnemy = 2 }, gameSetup.teams)
@@ -148,7 +153,7 @@ describe("mission_api.game_setup", function()
 				allyTeams = { [0] = { keys = {} } },
 			})
 
-			assert.is_nil(gameSetupModule.Read())
+			assert.is_nil(readGameSetup())
 			assert.are.same({}, logged)
 		end)
 
@@ -159,7 +164,7 @@ describe("mission_api.game_setup", function()
 				allyTeams = { [0] = { keys = {} } },
 			})
 
-			assert.is_nil(gameSetupModule.Read())
+			assert.is_nil(readGameSetup())
 		end)
 
 		it("logs an error and returns nil when missionoptions does not decode", function()
@@ -169,7 +174,7 @@ describe("mission_api.game_setup", function()
 				allyTeams = { [0] = { keys = {} } },
 			})
 
-			assert.is_nil(gameSetupModule.Read())
+			assert.is_nil(readGameSetup())
 			assert.is_true(table.any(logged, function(entry)
 				return entry.level == LOG.ERROR and entry.message == "[Mission API] Could not decode missionoptions"
 			end))

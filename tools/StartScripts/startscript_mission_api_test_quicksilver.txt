@@ -10,8 +10,8 @@
 
 	[modoptions]
 	{
-		// base64url(zlib(json)) of: {"entryPoint":"singleplayer/mission-api-tests/test_mission.lua","options":{"fogOfWar":true},"variables":{"totalKills":0}}
-		missionoptions = eJwticEKwkAMBf_lnVvreX_Bg948SoS0BOJmSVKhlP13q3gZmJkdXNO3m0lNFITURbkpbezTSyLE6khNxuTImL58_PNJV8IAa3lIoOyYbbnOd3KU9JX7gDe50FP5d9OS9CKqh517_wDhVCzx;
+		// base64url(zlib(json)) of: {"entryPoint":"singleplayer/mission-api-tests/options_test.lua","options":{"reinforcements":true},"variables":{"totalKills":0}}
+		missionoptions = eJwtzEsKg1AMheG9ZOxr7BY66Q4kLbEEYnJJYkHk7t1b6fD_OJwTSNOPp7EmzBCsH6EieJCPG0ewaY-F-6TIGK1kg1h-NciO0MGfYD7BiXU1f9PWPpuk71Q7-KIzvoTuTVqiPFik1VTrBRTWL8Q=;
 	}
 
 	[player0]

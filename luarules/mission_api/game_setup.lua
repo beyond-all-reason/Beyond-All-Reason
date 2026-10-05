@@ -56,6 +56,12 @@ local function toReversibleMap(namesByID)
 	return table.merge(namesByID, table.invert(namesByID))
 end
 
+local function toKeySet(tbl)
+	return table.map(tbl, function()
+		return true
+	end)
+end
+
 ----------------------------------------------------------------
 --- Module exports ---------------------------------------------
 
@@ -63,30 +69,26 @@ end
 ---@field entryPoint string
 ---@field options table
 ---@field variables table
+---@field persistentVariables table<string, true> the keys of the variables that came from the save
 ---@field teams table<integer|string, string|integer> team ID to name, and name to team ID
 ---@field allyTeams table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
 
----@return MissionGameSetup?
-local function read()
-	local missionOptions = readMissionOptions()
-	if missionOptions == nil or missionOptions.entryPoint == nil then
-		return nil
-	end
-
-	local teamNames, dummyTeams = readTeams()
-	local allyTeamNames = readAllyTeamNames()
-
-	return {
-		entryPoint = missionOptions.entryPoint,
-		options = missionOptions.options or {},
-		variables = missionOptions.variables or {},
-		teams = toReversibleMap(teamNames),
-		allyTeams = toReversibleMap(allyTeamNames),
-		dummyTeams = dummyTeams,
-	}
+local missionOptions = readMissionOptions()
+if missionOptions == nil or missionOptions.entryPoint == nil then
+	return
 end
 
+local teamNames, dummyTeams = readTeams()
+local allyTeamNames = readAllyTeamNames()
+local variables = missionOptions.variables or {}
+
 return {
-	Read = read,
+	entryPoint = missionOptions.entryPoint,
+	options = missionOptions.options or {},
+	variables = variables,
+	persistentVariables = toKeySet(variables),
+	teams = toReversibleMap(teamNames),
+	allyTeams = toReversibleMap(allyTeamNames),
+	dummyTeams = dummyTeams,
 }

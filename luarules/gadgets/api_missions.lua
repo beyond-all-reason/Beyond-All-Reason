@@ -60,7 +60,7 @@ local function loadMission(gameSetup)
 end
 
 function gadget:Initialize()
-	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua").Read()
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
 	if not gameSetup then
 		gadgetHandler:RemoveGadget()
 		return
@@ -69,6 +69,7 @@ function gadget:Initialize()
 	GG["MissionAPI"] = {}
 	GG["MissionAPI"].Options = gameSetup.options
 	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
 	GG["MissionAPI"].Teams = gameSetup.teams
 	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
 	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
@@ -97,6 +98,7 @@ function gadget:Initialize()
 		math.huge
 	)
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
@@ -131,6 +133,10 @@ end
 
 function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
+end
+
+function gadget:GameOver()
+	SendToUnsynced("MissionPersistentVariables", GG["MissionAPI"].Modules.PersistentVariables.Encode())
 end
 
 function gadget:Shutdown()
