@@ -144,7 +144,12 @@ local soundData = {
 			},
 		},
 		dopplerscale = 1.0,
-		rolloff = 1.4,
+		rolloff = {
+			default = 1.4,
+			custom = {
+				["^rockhvy1$"] = 0.8, -- vertical missile launchers
+			},
+		},
 	},
 
 	-- WEAPON SOUNDS MULTI (more concurrent)

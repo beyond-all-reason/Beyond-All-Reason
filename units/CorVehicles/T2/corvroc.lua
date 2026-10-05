@@ -136,6 +136,7 @@ return {
 					cruise_chase_factor = 1,
 					uptime_max = 7,
 					overrange_distance = 1507,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					commanders = 850,

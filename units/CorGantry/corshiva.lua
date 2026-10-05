@@ -166,6 +166,7 @@ return {
 					cruise_chase_factor = 0.7,
 					uptime_max = 5,
 					overrange_distance = 920,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					default = 750,

@@ -263,6 +263,7 @@ return {
 					projectile_destruction_method = "descend",
 					stockpilelimit = 5,
 					weapons_group = 1,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					default = 2300,
