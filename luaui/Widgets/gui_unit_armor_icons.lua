@@ -103,7 +103,6 @@ local fallbackShaderSource = {
 -- Local state
 
 local outlineVBO ---@type InstanceVBOTable
-local outlineVAO ---@type VAO
 local outlineShader ---@type LuaShader
 local outlineLayer ---@type string? a screen-sized texture with a depth buffer
 local shaderSource
@@ -322,7 +321,6 @@ local function initGL4()
 		return false
 	end
 	outlineVBO.VAO = vao
-	outlineVAO = vao
 
 	return true
 end
@@ -358,9 +356,9 @@ local function drawOutlineLayer()
 	end
 	outlineShader:SetUniform("iconZoomDist", iconZoomDist)
 	if useGeometryShader then
-		outlineVAO:DrawArrays(GL.POINTS, outlineVBO.usedElements)
+		outlineVBO.VAO:DrawArrays(GL.POINTS, outlineVBO.usedElements)
 	else
-		outlineVAO:DrawArrays(GL.TRIANGLES, 6, 0, outlineVBO.usedElements)
+		outlineVBO.VAO:DrawArrays(GL.TRIANGLES, 6, 0, outlineVBO.usedElements)
 	end
 	outlineShader:Deactivate()
 end
@@ -519,8 +517,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if outlineVAO then
-		outlineVAO:Delete()
+	if outlineVBO and outlineVBO.VAO then
+		outlineVBO.VAO:Delete()
 	end
 	if outlineShader then
 		outlineShader:Finalize()
