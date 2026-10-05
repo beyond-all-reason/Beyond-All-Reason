@@ -723,7 +723,9 @@ local function addChatLine(
 	ignore,
 	chatLineID,
 	noProcessors,
-	channelScope
+	channelScope,
+	nameTag,
+	formerTeamSquare
 )
 	chatLineID = chatLineID and chatLineID or #chatLines + 1
 
@@ -822,6 +824,8 @@ local function addChatLine(
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
+			playerNameTag = nameTag,
+			playerFormerTeamSquare = formerTeamSquare,
 			channelTag = i == 1 and channelTag or nil,
 			textOutline = (
 				lineType ~= LineTypes.Spectator
@@ -1448,9 +1452,9 @@ local function getColoredPlayerName(name, gameFrame, isSpectator)
 					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
 				end
 			end
-			return teamColor .. "■ " .. colorSpecStr .. getChannelScopeLabel("SPEC") .. " " .. displayName
+			return colorSpecStr .. displayName, getChannelScopeLabel("SPEC"), teamColor .. "■"
 		end
-		return colorSpecStr .. getChannelScopeLabel("SPEC") .. " " .. displayName
+		return colorSpecStr .. displayName, getChannelScopeLabel("SPEC")
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
 end
@@ -1468,6 +1472,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	local orgLine = line
 	local name = ""
 	local nameText = ""
+	local nameTag, formerTeamSquare
 	local text = ""
 	local lineType = 0
 	local bypassThisMessage = false
@@ -1529,7 +1534,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 		c = (channel ~= "all") and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
 
-		nameText = getColoredPlayerName(name, gameFrame, true)
+		nameText, nameTag, formerTeamSquare = getColoredPlayerName(name, gameFrame, true)
 		line = c .. text
 
 	-- point
@@ -1551,7 +1556,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			textcolor = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
 		end
 
-		nameText = getColoredPlayerName(name, gameFrame, spectator)
+		nameText, nameTag, formerTeamSquare = getColoredPlayerName(name, gameFrame, spectator)
 		line = textcolor .. text
 
 	-- battleroom message
@@ -1768,7 +1773,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 					skipThisMessage,
 					reprocessID,
 					nil,
-					channelScope
+					channelScope,
+					nameTag,
+					formerTeamSquare
 				)
 			end
 		end
@@ -1967,6 +1974,26 @@ drawChatLine = function(i)
 				"oc"
 			)
 			font:End()
+		end
+		if chatLines[i].playerNameTag then
+			local nameFontSize = usedFontSize * 1.03
+			local tagFontSize = usedFontSize * channelTagSize
+			local spaceWidth = font2:GetTextWidth(" ") * nameFontSize
+			local posX = maxPlayernameWidth
+				- font2:GetTextWidth(chatLines[i].playerNameText) * nameFontSize
+				- spaceWidth
+			font3:Begin(true)
+			font3:SetOutlineColor(0, 0, 0, 1)
+			font3:SetTextColor(colorSpec[1], colorSpec[2], colorSpec[3], 0.92)
+			font3:Print(chatLines[i].playerNameTag, posX, fontHeightOffset * 1.2, tagFontSize, "or")
+			font3:End()
+			if chatLines[i].playerFormerTeamSquare then
+				posX = posX - font3:GetTextWidth(chatLines[i].playerNameTag) * tagFontSize - spaceWidth
+				font2:Begin(true)
+				font2:SetOutlineColor(0, 0, 0, 1)
+				font2:Print(chatLines[i].playerFormerTeamSquare, posX, fontHeightOffset * 1.06, nameFontSize, "or")
+				font2:End()
+			end
 		end
 	end
 	if chatLines[i].channelTag then
@@ -4282,12 +4309,15 @@ function widget:ViewResize()
 		return
 	end
 	local nameFontSize = usedFontSize * 1.03
-	local namePrefixWidth = font2:GetTextWidth("■ " .. getChannelScopeLabel("SPEC") .. " ")
-	maxPlayernameWidth = namePrefixWidth * nameFontSize
+	local nameSpaceWidth = font2:GetTextWidth(" ") * nameFontSize
+	local formerTeamSquareWidth = font2:GetTextWidth("■") * nameFontSize
+	local nameTagWidth = font3:GetTextWidth(getChannelScopeLabel("SPEC")) * usedFontSize * channelTagSize
+	local namePrefixWidth = formerTeamSquareWidth + nameSpaceWidth + nameTagWidth + nameSpaceWidth
+	maxPlayernameWidth = namePrefixWidth
 	for _, playerID in ipairs(playersList) do
 		local name = spGetPlayerInfo(playerID, false)
 		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		local nameWidth = (namePrefixWidth + font2:GetTextWidth(name)) * nameFontSize
+		local nameWidth = namePrefixWidth + font2:GetTextWidth(name) * nameFontSize
 		if nameWidth > maxPlayernameWidth then
 			maxPlayernameWidth = nameWidth
 		end
