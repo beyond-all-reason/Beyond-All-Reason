@@ -869,8 +869,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 1200,
-					subs = 300,
+					default = 1628,
+					subs = 408,
 				},
 			},
 			gaussfinale = {
