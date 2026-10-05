@@ -13,6 +13,7 @@ end
 
 -- provides GG.VideoPlayback.Play(videoFile, onFinished)
 -- onFinished runs once per Play: when the video ends, or when another Play replaces it.
+-- LuaUI: register VideoPlayback(playbackID, videoFile); send "VideoPlaybackFinished:<playbackID>" when done.
 -- TODO: Playback is a stub. There is no player yet.
 
 local SYNC_ACTION = "VideoPlayback"
@@ -64,7 +65,12 @@ else
 	local spGetMyPlayerID = Spring.GetMyPlayerID
 
 	local function play(_, playbackID, videoFile)
-		Spring.Log("Video playback", LOG.WARNING, "Video playback is not implemented, skipping: " .. videoFile)
+		if Script.LuaUI(SYNC_ACTION) then
+			Script.LuaUI[SYNC_ACTION](playbackID, videoFile)
+			return
+		end
+
+		Spring.Log("Video playback", LOG.WARNING, "No widget plays videos, skipping: " .. videoFile)
 		if getPauseControllerID() == spGetMyPlayerID() and not Spring.IsReplay() then
 			spSendLuaRulesMsg(MESSAGE_FINISHED .. playbackID)
 		end
