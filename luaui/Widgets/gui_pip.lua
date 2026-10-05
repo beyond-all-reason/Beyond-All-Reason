@@ -3072,19 +3072,20 @@ local shaders = {
 			infoTexMul = 0.0,
 		},
 	},
-	-- GL4 instanced decal overlay: GPU computes alpha fade, single draw call
-	-- Vertex reads per-instance decal data, geometry shader expands to rotated textured quad
-	-- Fragment converts atlas alpha to darkening value matching world shader appearance
-	-- Used with GL_MIN blending to avoid overlap edge artifacts
+	-- GL4 decal overlay, drawn from the Decals GL4 widget's instance VBOs (see decalGL4): GPU computes alpha
+	-- fade, fragment converts atlas alpha to a darkening value matching the world shader appearance.
+	-- Used with GL_MIN blending to avoid overlap edge artifacts.
+	-- decalCode: points + geometry shader (attributes from 0); decalCodeNoGS: instanced quads (from 1)
 	decal = nil,
+	decalGS = nil,
 	decalCode = {
 		vertex = [[
 #version 330
-// Per-instance decal data (one point = one decal)
-layout(location = 0) in vec4 posRot;        // worldX, worldZ, rotation (rad), maxalpha
-layout(location = 1) in vec4 sizeAlpha;     // halfLengthX, halfWidthZ, alphastart, alphadecay
-layout(location = 2) in vec4 uvCoords;      // p, q, s, t (atlas UV rect)
-layout(location = 3) in vec4 spawnParams;   // spawnframe, 0, 0, 0
+// Decals widget instance data (one point = one decal)
+layout(location = 0) in vec4 lengthwidthrotation; // length, width, rotation (rad), maxalpha
+layout(location = 1) in vec4 uv_atlaspos;         // p, q, s, t (atlas UV rect)
+layout(location = 2) in vec4 alphaParams;         // alphastart, alphadecay, heatstart, heatdecay
+layout(location = 3) in vec4 worldPos;            // x, y, z, spawnframe
 
 uniform float gameFrame;
 uniform vec2 invMapSize;  // 2/mapSizeX, 2/mapSizeZ (factor of 2 because NDC spans -1..1)
@@ -3097,9 +3098,9 @@ out float v_sinR;
 
 void main() {
 	// Compute current alpha on GPU (same formula as decals widget)
-	float lifetonow = gameFrame - spawnParams.x;
-	float currentAlpha = sizeAlpha.z - lifetonow * sizeAlpha.w;
-	currentAlpha = clamp(currentAlpha, 0.0, posRot.w);
+	float lifetonow = gameFrame - worldPos.w;
+	float currentAlpha = alphaParams.x - lifetonow * alphaParams.y;
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 
 	// Skip expired/invisible decals
 	if (currentAlpha < 0.01) {
@@ -3109,17 +3110,17 @@ void main() {
 	}
 
 	v_alpha = currentAlpha;
-	v_uv = uvCoords;
+	v_uv = uv_atlaspos;
 
 	// World position to NDC (-1..1)
-	vec2 ndc = posRot.xy * invMapSize - 1.0;
+	vec2 ndc = worldPos.xz * invMapSize - 1.0;
 	gl_Position = vec4(ndc, 0.0, 1.0);
 
 	// Pass world-space half-sizes; geometry shader rotates THEN converts to NDC
-	v_halfWorld = sizeAlpha.xy;
+	v_halfWorld = lengthwidthrotation.xy * 0.5;
 
-	v_cosR = cos(posRot.z);
-	v_sinR = sin(posRot.z);
+	v_cosR = cos(lengthwidthrotation.z);
+	v_sinR = sin(lengthwidthrotation.z);
 }
 		]],
 		geometry = [[
@@ -3201,10 +3202,10 @@ void main() {
 		vertex = [[
 #version 330
 layout(location = 0) in vec2 quadPos;
-layout(location = 1) in vec4 posRot;        // worldX, worldZ, rotation (rad), maxalpha
-layout(location = 2) in vec4 sizeAlpha;     // halfLengthX, halfWidthZ, alphastart, alphadecay
-layout(location = 3) in vec4 uvCoords;      // p, q, s, t
-layout(location = 4) in vec4 spawnParams;   // spawnframe, 0, 0, 0
+layout(location = 1) in vec4 lengthwidthrotation; // length, width, rotation (rad), maxalpha
+layout(location = 2) in vec4 uv_atlaspos;         // p, q, s, t
+layout(location = 3) in vec4 alphaParams;         // alphastart, alphadecay, heatstart, heatdecay
+layout(location = 4) in vec4 worldPos;            // x, y, z, spawnframe
 
 uniform float gameFrame;
 uniform vec2 invMapSize;
@@ -3213,9 +3214,9 @@ out vec2 f_texCoord;
 out float f_alpha;
 
 void main() {
-	float lifetonow = gameFrame - spawnParams.x;
-	float currentAlpha = sizeAlpha.z - lifetonow * sizeAlpha.w;
-	currentAlpha = clamp(currentAlpha, 0.0, posRot.w);
+	float lifetonow = gameFrame - worldPos.w;
+	float currentAlpha = alphaParams.x - lifetonow * alphaParams.y;
+	currentAlpha = clamp(currentAlpha, 0.0, lengthwidthrotation.w);
 	if (currentAlpha < 0.01) {
 		f_alpha = 0.0;
 		gl_Position = vec4(2.0, 2.0, 0.0, 1.0);
@@ -3223,17 +3224,17 @@ void main() {
 	}
 
 	f_alpha = currentAlpha;
-	vec2 centerNDC = posRot.xy * invMapSize - 1.0;
+	vec2 centerNDC = worldPos.xz * invMapSize - 1.0;
 
-	float ca = cos(posRot.z);
-	float sa = sin(posRot.z);
-	vec2 local = quadPos * sizeAlpha.xy;
+	float ca = cos(lengthwidthrotation.z);
+	float sa = sin(lengthwidthrotation.z);
+	vec2 local = quadPos * (lengthwidthrotation.xy * 0.5);
 	vec2 rotatedWorld = vec2(local.x * ca - local.y * sa, local.x * sa + local.y * ca);
 	vec2 ndcOff = rotatedWorld * invMapSize;
 	gl_Position = vec4(centerNDC + ndcOff, 0.0, 1.0);
 
 	vec2 t = quadPos * 0.5 + 0.5;
-	f_texCoord = vec2(mix(uvCoords.x, uvCoords.y, t.x), mix(uvCoords.z, uvCoords.w, t.y));
+	f_texCoord = vec2(mix(uv_atlaspos.x, uv_atlaspos.y, t.x), mix(uv_atlaspos.z, uv_atlaspos.w, t.y));
 }
 		]],
 		fragment = [[
@@ -9338,18 +9339,15 @@ function widget:Initialize()
 		shaders.losShowRadarLoc = gl.GetUniformLocation(shaders.los, "showRadar")
 	end
 
-	-- Initialize decal overlay shader + GL4 VBO/VAO
+	-- Initialize decal overlay shaders + GL4 quad VBO
 	if pipUseGeometryShader then
-		shaders.decal = gl.CreateShader(shaders.decalCode)
-		decalGL4.useGeometryShader = (shaders.decal ~= nil)
-		if not shaders.decal then
-			shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
-			decalGL4.useGeometryShader = false
+		shaders.decalGS = gl.CreateShader(shaders.decalCode)
+		if not shaders.decalGS then
+			Spring.Echo("PIP: Failed to compile decal geometry shader")
+			Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
 		end
-	else
-		decalGL4.useGeometryShader = false
-		shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
 	end
+	shaders.decal = gl.CreateShader(shaders.decalCodeNoGS)
 	if not shaders.decal then
 		Spring.Echo("PIP: Failed to compile decal shader")
 		Spring.Echo("PIP: Shader log: " .. (gl.GetShaderLog() or "no log"))
@@ -10636,6 +10634,10 @@ function widget:Shutdown()
 		if shaders.decal then
 			gl.DeleteShader(shaders.decal)
 			shaders.decal = nil
+		end
+		if shaders.decalGS then
+			gl.DeleteShader(shaders.decalGS)
+			shaders.decalGS = nil
 		end
 
 		if shaders.decalBlit then
@@ -21211,23 +21213,28 @@ local function UpdateR2TCheapLayers(currentTime, pipUpdateInterval, pipWidth, pi
 	tracy.ZoneEnd()
 end
 
--- GL4 instanced decal rendering: GPU computes alpha fade, single draw call
--- VBO holds per-instance decal data, geometry shader expands points to rotated textured quads
--- Instance data only uploaded when decals are added/removed (not every frame)
+-- GL4 decal rendering: draws the Decals GL4 widget's own instance VBOs through VAOs of ours, so
+-- nothing is copied or uploaded. Its small-decal VBO starts at attribute 0 when that widget uses
+-- a geometry shader (drawn as points here too); its other VBOs start at 1 (instanced quads).
+---@class PipDecalSource
+---@field vbo VBO the decals widget's instance VBO this entry follows
+---@field vao VAO?
+---@field points boolean
+---@field shader integer?
+---@field count integer
+
+---@class PipDecalGL4
+---@field sources table<integer, PipDecalSource> one per decals widget VBO table
+---@field locs table<integer, table<string, integer>> uniform locations per shader
+---@field [string] any
+---@type PipDecalGL4
 decalGL4 = {
 	atlasPath = "luaui/images/decals_gl4/decalsgl4_atlas_diffuse.dds",
-	INSTANCE_STEP = 16, -- floats per instance (4 x vec4)
-	MAX_INSTANCES = 4096,
-	vbo = nil,
-	vao = nil,
-	instanceData = nil, -- pre-allocated flat float array
-	instanceCount = 0, -- current number of valid instances
-	version = -1, -- last usedElements sum (dirty check)
-	logCount = 0,
-	uniformLocs = nil, -- cached uniform locations
+	sources = {},
+	instanceCount = 0, -- decals drawn by the last render
 	renderFrame = 0, -- game frame for GPU alpha computation (set before R2T draw)
-	useGeometryShader = true,
 	quadVBO = nil,
+	locs = {},
 }
 
 -- Initialize GL4 decal resources (called during R2T setup)
@@ -21238,162 +21245,92 @@ InitGL4Decals = function()
 	if not shaders.decal then
 		return
 	end
-	local useGS = decalGL4.useGeometryShader
-
-	local vbo = gl.GetVBO(GL.ARRAY_BUFFER, true)
-	if not vbo then
-		Spring.Echo("[PIP] GL4 decals: Failed to create VBO")
+	local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not quadVBO then
+		Spring.Echo("[PIP] GL4 decals: Failed to create quad VBO")
 		return
 	end
-	if useGS then
-		vbo:Define(decalGL4.MAX_INSTANCES, {
-			{ id = 0, name = "posRot", size = 4 },
-			{ id = 1, name = "sizeAlpha", size = 4 },
-			{ id = 2, name = "uvCoords", size = 4 },
-			{ id = 3, name = "spawnParams", size = 4 },
-		})
-	else
-		vbo:Define(decalGL4.MAX_INSTANCES, {
-			{ id = 1, name = "posRot", size = 4 },
-			{ id = 2, name = "sizeAlpha", size = 4 },
-			{ id = 3, name = "uvCoords", size = 4 },
-			{ id = 4, name = "spawnParams", size = 4 },
-		})
-		local quadVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-		if not quadVBO then
-			Spring.Echo("[PIP] GL4 decals: Failed to create NoGS quad VBO")
-			vbo:Delete()
-			return
-		end
-		quadVBO:Define(4, { { id = 0, name = "quadPos", size = 2 } })
-		quadVBO:Upload({
-			-1.0,
-			-1.0,
-			1.0,
-			-1.0,
-			-1.0,
-			1.0,
-			1.0,
-			1.0,
-		})
-		decalGL4.quadVBO = quadVBO
+	quadVBO:Define(4, { { id = 0, name = "quadPos", size = 2 } })
+	quadVBO:Upload({
+		-1.0,
+		-1.0,
+		1.0,
+		-1.0,
+		-1.0,
+		1.0,
+		1.0,
+		1.0,
+	})
+	decalGL4.quadVBO = quadVBO
+	for _, shader in pairs({ shaders.decal, shaders.decalGS }) do
+		decalGL4.locs[shader] = {
+			gameFrame = gl.GetUniformLocation(shader, "gameFrame"),
+			invMapSize = gl.GetUniformLocation(shader, "invMapSize"),
+		}
 	end
-
-	local vao = gl.GetVAO()
-	if not vao then
-		Spring.Echo("[PIP] GL4 decals: Failed to create VAO")
-		vbo:Delete()
-		if decalGL4.quadVBO then
-			decalGL4.quadVBO:Delete()
-			decalGL4.quadVBO = nil
-		end
-		return
-	end
-	if useGS then
-		vao:AttachVertexBuffer(vbo)
-	else
-		vao:AttachVertexBuffer(decalGL4.quadVBO)
-		vao:AttachInstanceBuffer(vbo)
-	end
-
-	-- Pre-allocate instance data array
-	local instanceData = {}
-	for i = 1, decalGL4.MAX_INSTANCES * decalGL4.INSTANCE_STEP do
-		instanceData[i] = 0
-	end
-
-	decalGL4.vbo = vbo
-	decalGL4.vao = vao
-	decalGL4.instanceData = instanceData
-
-	-- Cache uniform locations
-	decalGL4.uniformLocs = {
-		gameFrame = gl.GetUniformLocation(shaders.decal, "gameFrame"),
-		invMapSize = gl.GetUniformLocation(shaders.decal, "invMapSize"),
-	}
 
 	Spring.Echo("[PIP] GL4 instanced decal rendering enabled")
 end
 
+-- Releases our VAOs (the VBOs belong to the decals widget)
+function decalGL4.ReleaseSources()
+	local sources = decalGL4.sources
+	for i = #sources, 1, -1 do
+		if sources[i].vao then
+			sources[i].vao:Delete()
+		end
+		sources[i] = nil
+	end
+	decalGL4.instanceCount = 0
+end
+
+-- Points one VAO per decals widget VBO table at the table's current instance VBO. That widget
+-- replaces a VBO (deleting the old one) whenever it grows, and drawing a VAO that holds a deleted
+-- VBO crashes the engine, so this runs right before every render.
+function decalGL4.SyncSources(vboTables)
+	local sources = decalGL4.sources
+	local total = 0
+	for i = 1, #vboTables do
+		local t = vboTables[i]
+		local src = sources[i]
+		if not src then
+			src = { count = 0 }
+			sources[i] = src
+		end
+		if not rawequal(src.vbo, t.instanceVBO) then
+			if src.vao then
+				src.vao:Delete()
+				src.vao = nil
+			end
+			src.vbo = t.instanceVBO
+			local base = t.layout[1].id
+			src.points = base == 0
+			src.shader = src.points and shaders.decalGS or (base == 1 and shaders.decal or nil)
+			local vao = src.shader and gl.GetVAO()
+			if vao then
+				if src.points then
+					vao:AttachVertexBuffer(src.vbo)
+				else
+					vao:AttachVertexBuffer(decalGL4.quadVBO)
+					vao:AttachInstanceBuffer(src.vbo)
+				end
+				src.vao = vao
+			end
+		end
+		src.count = src.vao and t.usedElements or 0
+		total = total + src.count
+	end
+	decalGL4.instanceCount = total
+end
+
 -- Destroy GL4 decal resources
 DestroyGL4Decals = function()
-	if decalGL4.vao then
-		decalGL4.vao:Delete()
-		decalGL4.vao = nil
-	end
-	if decalGL4.vbo then
-		decalGL4.vbo:Delete()
-		decalGL4.vbo = nil
-	end
+	decalGL4.ReleaseSources()
 	if decalGL4.quadVBO then
 		decalGL4.quadVBO:Delete()
 		decalGL4.quadVBO = nil
 	end
-	decalGL4.instanceData = nil
-	decalGL4.instanceCount = 0
-	decalGL4.version = -1
-	decalGL4.uniformLocs = nil
-end
-
--- Rebuild VBO instance data from decal VBO tables (only when decals added/removed)
--- Uses sequential index iteration instead of pairs() for speed.
--- The VBO uses swap-with-last compaction so indices are always contiguous.
-local function RebuildDecalVBO(vboTables, frame)
-	local data = decalGL4.instanceData
-	local step = decalGL4.INSTANCE_STEP
-	local count = 0
-	local maxInst = decalGL4.MAX_INSTANCES
-
-	-- biggest decals first, then the newest: a full buffer keeps what shows most (GL_MIN ignores order)
-	for vi = #vboTables, 1, -1 do
-		local vbo = vboTables[vi]
-		if vbo and vbo.usedElements > 0 then
-			local srcStep = vbo.instanceStep
-			local srcData = vbo.instanceData
-			local used = vbo.usedElements
-			-- Sequential iteration: ~3x faster than pairs() over sparse hash table
-			for idx = used, 1, -1 do
-				if count >= maxInst then
-					break
-				end
-				local ofs = (idx - 1) * srcStep
-				local p = srcData[ofs + 5]
-				local s = srcData[ofs + 7]
-				-- Only include textured decals (skip untextured color-only) the shader would still draw
-				if p and s and srcData[ofs + 9] - (frame - srcData[ofs + 16]) * srcData[ofs + 10] >= 0.01 then
-					local o = count * step
-					-- posRot: worldX, worldZ, rotation, maxalpha
-					data[o + 1] = srcData[ofs + 13] -- posx
-					data[o + 2] = srcData[ofs + 15] -- posz
-					data[o + 3] = srcData[ofs + 3] -- rotation
-					data[o + 4] = srcData[ofs + 4] -- maxalpha
-					-- sizeAlpha: halfLengthX, halfWidthZ, alphastart, alphadecay
-					data[o + 5] = srcData[ofs + 1] * 0.5 -- half length
-					data[o + 6] = srcData[ofs + 2] * 0.5 -- half width
-					data[o + 7] = srcData[ofs + 9] -- alphastart
-					data[o + 8] = srcData[ofs + 10] -- alphadecay
-					-- uvCoords: p, q, s, t
-					data[o + 9] = p
-					data[o + 10] = srcData[ofs + 6] -- q
-					data[o + 11] = s
-					data[o + 12] = srcData[ofs + 8] -- t
-					-- spawnParams: spawnframe, 0, 0, 0
-					data[o + 13] = srcData[ofs + 16] -- spawnframe
-					data[o + 14] = 0
-					data[o + 15] = 0
-					data[o + 16] = 0
-					count = count + 1
-				end
-			end
-		end
-	end
-
-	decalGL4.instanceCount = count
-
-	-- Upload to GPU
-	if count > 0 then
-		decalGL4.vbo:Upload(data, nil, 0, 1, count * step)
-	end
+	decalGL4.locs = {}
 end
 
 -- Pre-created closure for R2T clear quad (no per-call allocation)
@@ -21419,14 +21356,20 @@ local function decalR2TDraw()
 
 		local atlasOK = glFunc.Texture(decalGL4.atlasPath)
 		if atlasOK then
-			gl.UseShader(shaders.decal)
-			local ul = decalGL4.uniformLocs
-			gl.UniformFloat(ul.gameFrame, decalGL4.renderFrame)
-			gl.UniformFloat(ul.invMapSize, 2.0 / mapInfo.mapSizeX, 2.0 / mapInfo.mapSizeZ)
-			if decalGL4.useGeometryShader then
-				decalGL4.vao:DrawArrays(GL.POINTS, decalGL4.instanceCount)
-			else
-				decalGL4.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, decalGL4.instanceCount)
+			local sources = decalGL4.sources
+			for i = 1, #sources do
+				local src = sources[i]
+				if src.count > 0 then
+					local locs = decalGL4.locs[src.shader]
+					gl.UseShader(src.shader)
+					gl.UniformFloat(locs.gameFrame, decalGL4.renderFrame)
+					gl.UniformFloat(locs.invMapSize, 2.0 / mapInfo.mapSizeX, 2.0 / mapInfo.mapSizeZ)
+					if src.points then
+						src.vao:DrawArrays(GL.POINTS, src.count)
+					else
+						src.vao:DrawArrays(GL.TRIANGLE_STRIP, 4, 0, src.count)
+					end
+				end
 			end
 			gl.UseShader(0)
 			glFunc.Texture(false)
@@ -21445,7 +21388,7 @@ local function UpdateDecalTexture()
 	if not pipR2T.decalTex then
 		return
 	end
-	if not decalGL4.vao then
+	if not decalGL4.quadVBO then
 		return
 	end
 
@@ -21457,36 +21400,21 @@ local function UpdateDecalTexture()
 	pipR2T.decalLastCheckFrame = frame
 
 	local decalsAPI = WG.decalsgl4
-	if not decalsAPI then
-		return
-	end
-	local getVBO = decalsAPI.GetVBOData
-	if not getVBO then
-		return
-	end
-	local vboTables = getVBO()
+	local vboTables = decalsAPI and decalsAPI.GetVBOData and decalsAPI.GetVBOData()
 	if not vboTables then
+		decalGL4.ReleaseSources()
 		return
 	end
-	local getVersion = decalsAPI.GetVersion
-	local decalVersion = getVersion and getVersion() or nil
 
 	tracy.ZoneBeginN("W:PIP:Decals:UpdateTexture")
-	if not decalVersion or decalVersion ~= decalGL4.version then
-		tracy.ZoneBeginN("W:PIP:Decals:RebuildVBO")
-		RebuildDecalVBO(vboTables, frame)
-		if decalVersion then
-			decalGL4.version = decalVersion
-		end
-		tracy.ZoneEnd()
-	end
+	decalGL4.SyncSources(vboTables)
 
 	if decalGL4.instanceCount == 0 then
 		tracy.ZoneEnd()
 		return
 	end
 
-	-- Render into R2T texture: single instanced draw call, GPU computes alpha fade
+	-- Render into R2T texture: one draw call per decals widget VBO, GPU computes alpha fade
 	decalGL4.renderFrame = frame
 	tracy.ZoneBeginN("W:PIP:Decals:RenderTexture")
 	gl.R2tHelper.RenderToTexture(pipR2T.decalTex, decalR2TDraw)
@@ -25305,7 +25233,11 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	end
 
 	-- Only show commands for the ally team we're "viewing as"
-	local _, _, _, _, _, unitAllyTeam = spFunc.GetTeamInfo(unitTeam, false)
+	local unitAllyTeam = teamAllyTeamCache[unitTeam]
+	if not unitAllyTeam then
+		unitAllyTeam = spFunc.GetTeamAllyTeamID(unitTeam)
+		teamAllyTeamCache[unitTeam] = unitAllyTeam
+	end
 	if cameraState.mySpecState then
 		-- Spectator: determine which ally team is relevant
 		local viewAllyTeam = nil -- nil = show all (fullview spectator, no tracking)
@@ -25398,15 +25330,17 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 		startX, startZ = ux, uz
 	end
 
-	-- Don't add if start and target are at same spot
-	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
-		-- Still update last target for further chaining
+	-- Update last target for this unit (for chaining subsequent commands)
+	if lastTarget then
+		lastTarget.x, lastTarget.z, lastTarget.time = targetX, targetZ, wallClockTime
+	else
 		commandFX.lastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
-		return
 	end
 
-	-- Update last target for this unit (for chaining subsequent commands)
-	commandFX.lastTarget[unitID] = { x = targetX, z = targetZ, time = wallClockTime }
+	-- Don't add if start and target are at same spot
+	if math.abs(startX - targetX) < 1 and math.abs(startZ - targetZ) < 1 then
+		return
+	end
 
 	-- Add to FX list (cap at max entries)
 	if commandFX.count < commandFX.MAX then
@@ -25482,7 +25416,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	if paralyzer then
 		damage = damage * 0.1
 	end -- paralyzer visually counts for 1/10th
-	local maxHP = UnitDefs[unitDefID] and UnitDefs[unitDefID].health or 1
+	local maxHP = cache.unitMaxHealth[unitDefID] or 1
 	local intensity = math.min(1.0, damage / maxHP * 3) -- scale up so small hits are visible too
 	local existing = damageFlash[unitID]
 	if existing and (gameTime - existing.time) < DAMAGE_FLASH_DURATION then

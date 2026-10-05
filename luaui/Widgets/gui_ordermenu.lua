@@ -461,6 +461,7 @@ local function refreshCommands()
 		if type(command) == "table" and not disabledCommand[command.name] then
 			if command.type == CMDTYPE_ICON_MODE then
 				isStateCommand[command.id] = true
+				widgetHandler:RegisterUnitCommand(command.id)
 			end
 			if
 				not hiddenCommands[command.id]
@@ -712,6 +713,7 @@ local function reloadBindings()
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD.WAIT)
 	OrderMenuFirestate.init({
 		onOrderGiven = function()
 			doUpdate = true

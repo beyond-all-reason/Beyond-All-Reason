@@ -195,6 +195,7 @@ return {
 					noattackrangearc = 1,
 					projectile_destruction_method = "descend",
 					overrange_distance = 3000,
+					soundstart_volume_multiplier = 0.7,
 				},
 				damage = {
 					commanders = 300,

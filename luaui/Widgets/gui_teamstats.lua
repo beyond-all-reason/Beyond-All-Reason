@@ -674,6 +674,8 @@ local SUMMED = {
 	"comLost",
 	"metalReclaimed",
 	"energyReclaimed",
+	"lavaDamage",
+	"lostWater",
 }
 -- The composition buckets the gadget counts, each with a count and a value.
 for _, bucket in ipairs({ "Army", "Air", "Sea", "Defense", "Strategic", "Factories", "Builders", "Economy", "Utility" }) do
@@ -1104,6 +1106,8 @@ local gameover = false
 -- No side with more than one player - a 1v1, or a free-for-all of players on their own -
 -- so there is nothing to group by team and no team to take a share of.
 local soloTeams = not BAR.Utilities.Gametype.IsTeams()
+-- Nor is there when the players are one side against nothing but raptors or scavengers.
+local ungrouped = soloTeams or (BAR.Utilities.Gametype.IsPvE() and BAR.Utilities.GetAllyTeamCount() <= 1)
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {
 	Spring.GetConfigInt("anonymousColorR", 255) / 255,
@@ -1450,7 +1454,7 @@ end
 
 -- Whether the table has ally teams to show: the grouping switch, in a game with teams.
 local function grouped()
-	return filters.groupByTeam and not soloTeams
+	return filters.groupByTeam and not ungrouped
 end
 
 -- Whether amounts are shown as the share of the total of every team listed.
@@ -2276,7 +2280,7 @@ local function setLayout()
 	local barX2 = area.x2 - metrics.edgeInset
 	for i = 1, #switches do
 		local sw = switches[i]
-		if sw.top and not soloTeams then
+		if sw.top and not ungrouped then
 			local togH = mathFloor(metrics.rowHeight * 0.52)
 			local cy = metrics.barTop - mathFloor(metrics.barH * 0.5)
 			local labelW = mathFloor(font:GetTextWidth(sw.label or "") * metrics.catFs)
@@ -4547,6 +4551,7 @@ graphs = require("luaui/Include/teamstats_graphs").new({
 	end,
 	filters = filters,
 	soloTeams = soloTeams,
+	ungrouped = ungrouped,
 	selectedGroup = function()
 		return selectedGroup
 	end,

@@ -158,6 +158,7 @@ local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitExperience = Spring.GetUnitExperience
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitWeaponState = Spring.GetUnitWeaponState
+local spGetUnitWeaponDamages = Spring.GetUnitWeaponDamages
 
 local uDefs = UnitDefs
 local wDefs = WeaponDefs
@@ -823,7 +824,7 @@ local function computeContent(uDefID, uID, shiftBool)
 	for i = 1, #wepsCompact do
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
-		local weaponNumber = weaponDefToNum[wDefId] or -1 -- No weaponNum for detonation weapons.
+		local weaponNumber = weaponDefToNum[wDefId] or -1 ---@as integer No weaponNum for detonation weapons.
 
 		-- Handle projectiles that spawn additional projectiles.
 		-- Many properties (might) have nothing to do with the spawned projectile:
@@ -841,40 +842,54 @@ local function computeContent(uDefID, uID, shiftBool)
 
 		local burst, dpsCycle = weaponInfo.GetFiringCycle(uWep, reload)
 
-		local damages = uWep.damages
-		local defaultArmorIndex = armorTypes.default
-		local defaultArmorDamage = damages[defaultArmorIndex]
-		local baseArmorIndex = defaultArmorDamage >= damages[armorTypes.vtol] and defaultArmorIndex or armorTypes.vtol
-		local baseArmorDamage = damages[baseArmorIndex]
-
 		local custom = uWep.customParams
+		local damages = uWep.damages
+
+		local defaultArmorIndex = armorTypes.default
+		local targetArmorIndex = damages[defaultArmorIndex] >= damages[armorTypes.vtol] and defaultArmorIndex
+			or armorTypes.vtol
 
 		if uWep.type == "BeamLaser" and custom.sweepfire_reloadtime then
 			reload = tonumber(custom.sweepfire_reloadtime)
 		end
 
+		local baseTargetDamage = damages[targetArmorIndex]
 		if custom.spark_forkdamage then
-			-- Sparks are hardcoded to target the default armor type:
-			local spDamage = defaultArmorDamage
+			-- Sparks are hardcoded to target the default armor type.
+			local spDamage = damages[defaultArmorIndex]
 			local spForkDamage = tonumber(custom.spark_forkdamage) or 0
 			local spCount = tonumber(custom.spark_maxunits) or 0
-			baseArmorDamage = baseArmorDamage + spDamage * spForkDamage * spCount
+			baseTargetDamage = baseTargetDamage + spDamage * spForkDamage * spCount
 		elseif custom.speceffect == "split" then
 			burst = burst * (custom.number or 1)
 			uWep = WeaponDefNames[custom.speceffect_def] or uWep
-			baseArmorDamage = damages[defaultArmorIndex]
+			baseTargetDamage = damages[defaultArmorIndex]
 		elseif custom.cluster then
 			local munition = uDef.name .. "_" .. custom.cluster_def
 			local cmNumber = custom.cluster_number
 			local cmDamage = WeaponDefNames[munition].damages[defaultArmorIndex]
-			baseArmorDamage = baseArmorDamage + cmDamage * cmNumber
+			baseTargetDamage = baseTargetDamage + cmDamage * cmNumber
 		end
 
+		local damageFactor = 1.0
+		local damagesKey = weaponNumber > 0 and weaponNumber
+			or (i == deathWeaponIndex and "explode")
+			or (i == selfDWeaponIndex and "selfDestruct")
+		local parentDamage = damages[targetArmorIndex]
+		if uID and damagesKey and parentDamage > 0 then
+			local current = spGetUnitWeaponDamages(uID, damagesKey, targetArmorIndex)
+			damageFactor = current and current / parentDamage or 1.0
+		end
+
+		local defaultArmorDamage = damages[defaultArmorIndex] * damageFactor
+		local targetArmorDamage = baseTargetDamage * damageFactor
+
 		if range > 0 then
-			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
-			if uID and useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
-				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP") or
-				       spGetUnitWeaponState(uID, weaponNumber, "reloadTime")   or oRld
+			local oRld = max(0.00000000001, uWep.stockpile == true and uWep.stockpileTime / 30 or uWep.reload)
+			if uID and useExp and not (uWep.stockpile and uWep.stockpileTime) then
+				oRld = spGetUnitWeaponState(uID, weaponNumber, "reloadTimeXP")
+					or spGetUnitWeaponState(uID, weaponNumber, "reloadTime")
+					or oRld
 			end
 
 			local wpnName = uWep.description
@@ -980,9 +995,9 @@ local function computeContent(uDefID, uID, shiftBool)
 					end
 				end
 				DrawText(texts.intercepts .. ":", table.concat(intercepts, "; ") .. white .. ".")
-			elseif baseArmorDamage > 0 then
+			elseif targetArmorDamage > 0 then
 				local damageString = ""
-				local burstDamage = baseArmorDamage * burst
+				local burstDamage = targetArmorDamage * burst
 				if wpnName == texts.deathexplosion or wpnName == texts.selfdestruct then
 					damageString = texts.burst .. " = " .. (format(yellow .. "%d", burstDamage)) .. white .. "."
 				else
@@ -992,17 +1007,27 @@ local function computeContent(uDefID, uID, shiftBool)
 						local duration = custom.area_onhit_time
 						dps = max(dps + areaDps, areaDps * duration / dpsCycle)
 					end
-					damageString = texts.dps.." = "..(format(yellow .. "%d", dps))..white.."; "..texts.burst.." = "..(format(yellow .. "%d", burstDamage)) .. white .. (wepCount > 1 and (" ("..texts.each..").") or ("."))
+					damageString = texts.dps
+						.. " = "
+						.. (format(yellow .. "%d", dps))
+						.. white
+						.. "; "
+						.. texts.burst
+						.. " = "
+						.. (format(yellow .. "%d", burstDamage))
+						.. white
+						.. (wepCount > 1 and (" (" .. texts.each .. ").") or ".")
 					-- Smart priority weapons should use the same weapon group number. But they should not add up their combined damages/DPS.
 					-- This is lazy for not verifying that the display group numbers are matching; assume the weapon set is set up correctly.
 					if not (hasSmartPriority and isWeaponBackup[wDefId]) then
-						totaldps = totaldps + wepCount*dps
-						totalbDamages = totalbDamages + wepCount* burstDamage
+						totaldps = totaldps + wepCount * dps
+						totalbDamages = totalbDamages + wepCount * burstDamage
 					end
 				end
 				DrawText(texts.dmg .. ":", damageString)
 
-				local modifiers = { [defaultArmorDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
+				local baseDefaultDamage = damages[defaultArmorIndex]
+				local modifiers = { [baseDefaultDamage] = { armorTypes[defaultArmorIndex] } } -- [damage] = { armorClass1, armorClass2, ... }
 
 				local indestructibleArmorIndex = armorTypes.indestructable
 				local shieldsArmorIndex = shieldsRework and armorTypes.shields -- TODO: shield damage display is bugged since incorporating the shieldsrework
@@ -1013,7 +1038,7 @@ local function computeContent(uDefID, uID, shiftBool)
 						local armorDamage = damages[index]
 						if not modifiers[armorDamage] then
 							modifiers[armorDamage] = { armorName }
-						elseif armorDamage ~= defaultArmorDamage then
+						elseif armorDamage ~= baseDefaultDamage then
 							tableInsert(modifiers[armorDamage], armorName)
 						end
 					end
@@ -1021,21 +1046,21 @@ local function computeContent(uDefID, uID, shiftBool)
 
 				local sorted = {}
 				for k in pairs(modifiers) do
-					if k ~= defaultArmorDamage then
+					if k ~= baseDefaultDamage then
 						tableInsert(sorted, k)
 					end
 				end
 				tableSort(sorted, descending)
 
 				local modifierText =
-					{ ("default = %s%d%%"):format(yellow, floor(100 * damages[defaultArmorIndex] / baseArmorDamage)) }
-				for _, armorDamage in ipairs(sorted) do
+					{ ("default = %s%d%%"):format(yellow, floor(100 * baseDefaultDamage / baseTargetDamage)) }
+				for _, baseArmorDamage in ipairs(sorted) do
 					tableInsert(
 						modifierText,
 						("%s = %s%d%%"):format(
-							table.concat(modifiers[armorDamage], ", "),
+							table.concat(modifiers[baseArmorDamage], ", "),
 							yellow,
-							floor(100 * armorDamage / baseArmorDamage)
+							floor(100 * baseArmorDamage / baseTargetDamage)
 						)
 					)
 				end

@@ -32,6 +32,7 @@ local getAimHeight = Verticalize.getAimHeight
 local updateFlightPhase = Verticalize.updateFlightPhase
 local verticalize = Verticalize.verticalize
 
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spSetProjectilePosition = Spring.SetProjectilePosition
@@ -43,6 +44,7 @@ local targetedUnit = string.byte("u")
 -- Initialization --------------------------------------------------------------
 
 local weapons = {} ---@type table<integer, table?>
+local weaponNumbers = {} ---@type table<UnitDefID, table<WeaponDefID, integer>?> first instance of each weapondef
 local projectiles = {} ---@type table<integer, table?>
 local moveControl = {} ---@type table<integer, table?>
 local scheduled = {} ---@type table<integer, integer[]?>
@@ -106,7 +108,6 @@ end
 -- Launching -------------------------------------------------------------------
 
 ---@class StarburstParams : ProjectileParams
----@field cegtag number
 ---@field maxRange number
 ---@field tracking number
 ---@field upTime number
@@ -126,10 +127,11 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	local weaponDefID = assert(Spring.GetProjectileDefID(projectileID))
 	local spawnParams = projectileParams
 	spawnParams.owner = Spring.GetProjectileOwnerID(projectileID) or -1
+	local weaponNumber = weaponNumbers[spGetUnitDefID(spawnParams.owner)]
+	spawnParams.weapon = weaponNumber and weaponNumber[weaponDefID] -- keep weapon attribute factors
 	spawnParams.team = Spring.GetProjectileTeamID(projectileID)
 	spawnParams.ttl = Spring.GetProjectileTimeToLive(projectileID) or 1e6
 	spawnParams.gravity = weapon.gravity
-	spawnParams.cegtag = weapon.cegTag -- note: is lower case
 	spawnParams.maxRange = weapon.rangeMaximum -- zero disables StarburstProjectile turn/tracking
 	spawnParams.tracking = weapon.tracking
 	spawnParams.upTime = upTimeFrames
@@ -144,7 +146,9 @@ local function respawn(weapon, projectileID, projectile, upTimeFrames)
 	Spring.DeleteProjectile(projectileID)
 
 	inSpawnProjectile = true
+	GG.VerticalizeUptimeFrames = upTimeFrames
 	local respawnID = Spring.SpawnProjectile(weaponDefID, spawnParams)
+	GG.VerticalizeUptimeFrames = nil
 	inSpawnProjectile = false
 
 	if not respawnID then
@@ -273,5 +277,21 @@ function gadget:Initialize()
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "No weapons found.")
 		gadgetHandler:RemoveGadget()
 		return
+	end
+
+	GG.VerticalizeUptimeFrames = nil
+
+	for unitDefID, unitDef in ipairs(UnitDefs) do
+		for weaponNum, weapon in ipairs(unitDef.weapons) do
+			local weaponDefID = weapon.weaponDef
+			if weapons[weaponDefID] then
+				local numbersByDef = weaponNumbers[unitDefID]
+				if not numbersByDef then
+					numbersByDef = {}
+					weaponNumbers[unitDefID] = numbersByDef
+				end
+				numbersByDef[weaponDefID] = numbersByDef[weaponDefID] or weaponNum
+			end
+		end
 	end
 end

@@ -1,19 +1,9 @@
 # October
-- [Legion changes]
-  - Helios 800 -> 1000 health, 160 -> 135 damage.
-  - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
-  - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
-  - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
-- [Fixed]
-  - Autotargeting with dozens of weapons (and most Raptors units) now reads the weapon's direction correctly.
-
-# September
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
-  - Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
-  - Acceleration and other flight characteristics finetuned, resulting in a slightly (~10%) faster time to hit a target at max range.
+  - Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
@@ -21,8 +11,20 @@
     - Titan Missile: EE 0.15 -> 0.5, Impulse added, Reloadtime 6.8 -> 7
     - Ambassador / Boreas: 6300 -> 10000 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 1900 -> 2000, AoE 150 -> 160
     - Negotiator: 6700 -> 9000 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Reloadtime 16 -> 15
-    - Arbiter: 5800 -> 6500 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1
+    - Arbiter: 5800 -> 6500 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
     - Shiva: 1600m -> 1700 metalcost, Cannon: AoE 176 -> 160, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
+- [Legion changes]
+  - Helios 800 -> 1000 health, 160 -> 135 damage.
+  - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
+  - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
+  - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
+- [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Dominion] The game mode Territorial Domination has been renamed to Dominion.
+- [Fixed]
+  - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
+
+# September
+- [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
 - [Laser weapons] Given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
 - [T1 Air Constructors] -10 buildpower
 - [Grunt, Pawn, Goblin] Script improvements. No longer fire sideways when switching targets mid-shot or going in and out of range

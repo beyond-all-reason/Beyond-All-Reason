@@ -109,6 +109,15 @@ local function onBuildCommandRemoved(commandId)
 	removeUnitShape(commandId)
 end
 
+--- @param buildCommand BuildCommandEntry
+local function onBuildCommandTeamChanged(id, buildCommand)
+	if unitShapes[id] then
+		removeUnitShape(id)
+		removedUnitShapes[id] = nil
+		onBuildCommandAdded(id, buildCommand)
+	end
+end
+
 local function onUnitCreated(_, _, commandId)
 	removeUnitShape(commandId)
 end
@@ -135,6 +144,7 @@ function widget:Initialize()
 	-- Register event callbacks
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandAdded(onBuildCommandAdded))
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandRemoved(onBuildCommandRemoved))
+	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnBuildCommandTeamChanged(onBuildCommandTeamChanged))
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitCreated(onUnitCreated))
 	tableInsert(builderQueueApiCallbacks, builderQueueAPI.OnUnitFinished(onUnitFinished))
 

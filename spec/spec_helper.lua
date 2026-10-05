@@ -145,7 +145,8 @@ _G.require = function(path, env, mode)
 			return (vfs.Include or _G.VFS.Include)(file, env, mode)
 		end
 	end
-	return realRequire(path)
+	local module = realRequire(path)
+	return module -- `require` cannot be a tail call
 end
 
 _G.VFS.Include = function(path, env, mode)
