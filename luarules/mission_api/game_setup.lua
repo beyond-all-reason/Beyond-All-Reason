@@ -1,8 +1,6 @@
 ---
---- Mission data from the start script. Takes the `missionoptions` modoption
---- and the `name` and `dummy` keys the client writes on team and allyteams.
----
---- requires: common/luaUtilities/modoption_payload.lua
+--- Mission data from the game setup: the `missionoptions` modoption and the
+--- `name` and `dummy` custom keys the client writes on teams and allyteams.
 ---
 
 local ModoptionPayload = VFS.Include("common/luaUtilities/modoption_payload.lua")
@@ -23,7 +21,7 @@ local function readMissionOptions()
 
 	local missionOptions = ModoptionPayload.Decode(raw)
 	if missionOptions == nil then
-		Spring.Log("startscript.lua", LOG.ERROR, "[Mission API] Could not decode missionoptions")
+		Spring.Log("game_setup.lua", LOG.ERROR, "[Mission API] Could not decode missionoptions")
 	end
 	return missionOptions
 end
@@ -61,18 +59,15 @@ end
 ----------------------------------------------------------------
 --- Module exports ---------------------------------------------
 
----@class MissionStartScript
+---@class MissionGameSetup
 ---@field entryPoint string
 ---@field options table
 ---@field variables table
----@field persistentVariables string[]
----@field teamNames table<integer, string> team ID to name
----@field allyTeamNames table<integer, string> allyteam ID to name
 ---@field teams table<integer|string, string|integer> team ID to name, and name to team ID
 ---@field allyTeams table<integer|string, string|integer> allyteam ID to name, and name to allyteam ID
 ---@field dummyTeams table<integer, integer> allyteam ID to its dummy team ID
 
----@return MissionStartScript?
+---@return MissionGameSetup?
 local function read()
 	local missionOptions = readMissionOptions()
 	if missionOptions == nil or missionOptions.entryPoint == nil then
@@ -81,17 +76,11 @@ local function read()
 
 	local teamNames, dummyTeams = readTeams()
 	local allyTeamNames = readAllyTeamNames()
-	local variables = missionOptions.variables or {}
-	local persistentVariables = table.keys(variables)
-	table.sort(persistentVariables)
 
 	return {
 		entryPoint = missionOptions.entryPoint,
 		options = missionOptions.options or {},
-		variables = variables,
-		persistentVariables = persistentVariables,
-		teamNames = teamNames,
-		allyTeamNames = allyTeamNames,
+		variables = missionOptions.variables or {},
 		teams = toReversibleMap(teamNames),
 		allyTeams = toReversibleMap(allyTeamNames),
 		dummyTeams = dummyTeams,

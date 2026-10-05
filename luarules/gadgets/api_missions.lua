@@ -16,8 +16,8 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
-local function loadMission(startScript)
-	local mission = VFS.Include(startScript.entryPoint)
+local function loadMission(gameSetup)
+	local mission = VFS.Include(gameSetup.entryPoint)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -34,7 +34,6 @@ local function loadMission(startScript)
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
 
 	local validation = VFS.Include("luarules/mission_api/validation.lua")
-	validation.ValidateStartScript(startScript)
 	validation.ValidateStages(GG["MissionAPI"].Stages)
 	validation.ValidateObjectives(GG["MissionAPI"].Objectives)
 	validation.ValidateInitialStage(initialStage)
@@ -61,19 +60,18 @@ local function loadMission(startScript)
 end
 
 function gadget:Initialize()
-	local startScript = VFS.Include("luarules/mission_api/startscript.lua").Read()
-	if not startScript then
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua").Read()
+	if not gameSetup then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Options = startScript.options
-	GG["MissionAPI"].Variables = startScript.variables
-	GG["MissionAPI"].PersistentVariables = startScript.persistentVariables
-	GG["MissionAPI"].Teams = startScript.teams
-	GG["MissionAPI"].AllyTeams = startScript.allyTeams
-	GG["MissionAPI"].DummyTeams = startScript.dummyTeams
+	GG["MissionAPI"].Options = gameSetup.options
+	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].Teams = gameSetup.teams
+	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
+	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -120,7 +118,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(startScript)
+	loadMission(gameSetup)
 end
 
 function gadget:GamePreload()
