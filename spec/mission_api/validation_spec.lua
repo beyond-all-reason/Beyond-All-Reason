@@ -568,14 +568,14 @@ describe("mission_api.validation", function()
 		local savedFileExists
 
 		before_each(function()
-			savedFileExists = VFS.FileExists
-			VFS.FileExists = function(path)
+			savedFileExists = env.VFS.FileExists
+			env.VFS.FileExists = function(path)
 				return path:find("^videos/") ~= nil
 			end
 		end)
 
 		after_each(function()
-			VFS.FileExists = savedFileExists
+			env.VFS.FileExists = savedFileExists
 		end)
 
 		it("passes for a video cutscene and a scripted cutscene", function()

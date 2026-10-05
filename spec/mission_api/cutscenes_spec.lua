@@ -1,11 +1,12 @@
-require("spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 describe("mission_api.cutscenes", function()
-	local cutscenes, calls, onVideoFinished, savedLog
+	local env, cutscenes, calls, onVideoFinished
 
 	before_each(function()
 		-- Included per test: the module counts the videos playing.
-		cutscenes = VFS.Include("luarules/mission_api/cutscenes.lua")
+		env = MissionSpecEnv.new()
+		cutscenes = MissionSpecEnv.include(env, "luarules/mission_api/cutscenes.lua")
 		calls = {}
 		onVideoFinished = nil
 		GG.GamePause = {
@@ -27,8 +28,7 @@ describe("mission_api.cutscenes", function()
 				end
 			end,
 		}
-		savedLog = Spring.Log
-		Spring.Log = function(_, level, message)
+		env.Spring.Log = function(_, level, message)
 			calls[#calls + 1] = { level = level, message = message }
 		end
 		GG["MissionAPI"] = {
@@ -44,7 +44,6 @@ describe("mission_api.cutscenes", function()
 		GG.GamePause = nil
 		GG.VideoPlayback = nil
 		GG["MissionAPI"] = nil
-		Spring.Log = savedLog
 	end)
 
 	describe("StartCutscene", function()
