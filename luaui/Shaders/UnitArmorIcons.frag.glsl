@@ -4,13 +4,17 @@
 
 // Unit armor icon outlines: a thin line that follows the silhouette of the unit's icon in the engine icon atlas.
 
+//__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
 #line 30000
 
 uniform sampler2D iconAtlas0;
 uniform sampler2D iconAtlas1;
+uniform sampler2D layerColor;
+uniform sampler2D layerOwner;
 uniform float borderWidth;
+uniform float compositePass;
 
 in DataGS {
 	vec2 g_uv;
@@ -18,9 +22,12 @@ in DataGS {
 	flat vec4 g_line; // one screen pixel in atlas coordinates, line width in pixels, atlas page
 	flat vec4 g_color;
 	flat vec2 g_depth; // layer depth of the icon, and of its outline
+	flat float g_outlined;
+	flat float g_owner; // marks the layer pixels this icon wrote
 };
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+layout(location = 1) out float fragOwner;
 
 vec2 uvdx;
 vec2 uvdy;
@@ -39,15 +46,31 @@ const vec2 taps[8] = vec2[8](
 );
 
 void main() {
+	fragOwner = g_owner;
+
+	// Outline quads overlap, so each layer pixel is composited only by the quad that wrote it.
+	if (compositePass > 0.5) {
+		ivec2 pixel = ivec2(gl_FragCoord.xy - viewGeometry.zw);
+		if (texelFetch(layerOwner, pixel, 0).r != g_owner) {
+			discard;
+		}
+		fragColor = texelFetch(layerColor, pixel, 0);
+		gl_FragDepth = 0.0;
+		return;
+	}
+
 	uvdx = dFdx(g_uv);
 	uvdy = dFdy(g_uv);
 
 	// To cover the outlines under it, the icon writes depth with no color to its inner opaque area.
 	float alpha = iconAlpha(g_uv);
-	if (alpha > 0.99) {
+	if (alpha > 0.99 || (g_outlined < 0.5 && alpha > 0.5)) {
 		fragColor = vec4(0.0);
 		gl_FragDepth = g_depth.x;
 		return;
+	}
+	if (g_outlined < 0.5) {
+		discard;
 	}
 
 	float dilated = 0.0;

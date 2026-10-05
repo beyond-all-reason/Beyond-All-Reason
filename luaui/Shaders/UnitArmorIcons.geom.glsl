@@ -19,6 +19,8 @@ in DataVS {
 	vec4 v_color;
 	vec4 v_sizes; // icon half size in pixels, line width in pixels, atlas page, visible
 	vec2 v_depth; // layer depth of the icon, of its outline
+	float v_outlined;
+	float v_owner; // marks the layer pixels this icon wrote
 } dataIn[];
 
 out DataGS {
@@ -27,6 +29,8 @@ out DataGS {
 	flat vec4 g_line; // one screen pixel in atlas coordinates, line width in pixels, atlas page
 	flat vec4 g_color;
 	flat vec2 g_depth; // layer depth of the icon, of its outline
+	flat float g_outlined;
+	flat float g_owner; // marks the layer pixels this icon wrote
 };
 
 void corner(vec2 offset) {
@@ -41,6 +45,8 @@ void corner(vec2 offset) {
 	g_line = vec4(abs(uvrect.zw - uvrect.xy) / (2.0 * halfSize), width, dataIn[0].v_sizes.z);
 	g_color = dataIn[0].v_color;
 	g_depth = dataIn[0].v_depth;
+	g_outlined = dataIn[0].v_outlined;
+	g_owner = dataIn[0].v_owner;
 
 	gl_Position = vec4(gl_in[0].gl_Position.xy + offset * padded * 2.0 / viewGeometry.xy, 0.0, 1.0);
 	EmitVertex();

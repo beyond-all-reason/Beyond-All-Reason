@@ -10,7 +10,7 @@
 
 layout (location = 0) in vec4 position_xy_uv;
 layout (location = 1) in vec4 uvrect; // x0, y0, x1, y1 in the icon atlas
-layout (location = 2) in vec4 params; // icon size multiplier, state, atlas page, draw order
+layout (location = 2) in vec4 params; // icon size multiplier, state (0 icon only), atlas page, draw order
 layout (location = 3) in vec4 midoffset; // from the unit's draw position to its mid position
 layout (location = 4) in uvec4 instData;
 
@@ -48,6 +48,7 @@ uniform vec2 iconFade; // start, vanish
 uniform vec4 armoredColor;
 uniform vec4 brokenColor;
 uniform float iconsSortedByDepth;
+uniform float compositePass;
 
 // Named and laid out as the geometry shader's output, so both paths share one fragment shader.
 out DataGS {
@@ -56,6 +57,8 @@ out DataGS {
 	flat vec4 g_line; // one screen pixel in atlas coordinates, line width in pixels, atlas page
 	flat vec4 g_color;
 	flat vec2 g_depth; // layer depth of the icon, and of its outline
+	flat float g_outlined;
+	flat float g_owner; // marks the layer pixels this icon wrote
 };
 
 void main() {
@@ -74,13 +77,18 @@ void main() {
 		alpha = (64.0 + 191.0 * (zoom - iconFade.y) / (iconFade.x - iconFade.y)) / 255.0;
 	}
 
-	if (alpha <= 0.0 || clipPos.w <= 0.0 || abs(clipPos.z) > clipPos.w) {
+	bool outlined = params.y > 0.5;
+
+	// Icons without an outline only cover the outlines under them, so they have nothing to composite.
+	if (alpha <= 0.0 || clipPos.w <= 0.0 || abs(clipPos.z) > clipPos.w || (!outlined && compositePass > 0.5)) {
 		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
 		g_uv = vec2(0.0);
 		g_rect = vec4(0.0);
 		g_line = vec4(0.0);
 		g_color = vec4(0.0);
 		g_depth = vec2(0.0);
+		g_outlined = 0.0;
+		g_owner = 0.0;
 		return;
 	}
 
@@ -93,7 +101,7 @@ void main() {
 	vec2 layerDepth = vec2(layer + layerDist * iconsSortedByDepth, layer + layerDist) / 16.0;
 
 	bool broken = params.y > 1.5;
-	float width = broken ? outlineWidth.y : outlineWidth.x;
+	float width = outlined ? (broken ? outlineWidth.y : outlineWidth.x) : 0.0;
 	float halfSize = iconSizeBase * 0.5 * sizeMult;
 	float padded = halfSize + width + borderWidth + 1.0;
 	vec2 offset = position_xy_uv.xy;
@@ -105,6 +113,8 @@ void main() {
 	g_color = broken ? brokenColor : armoredColor;
 	g_color.a *= alpha;
 	g_depth = layerDepth;
+	g_outlined = outlined ? 1.0 : 0.0;
+	g_owner = float(instData.y) + 1.0;
 
 	gl_Position = vec4(clipPos.xy / clipPos.w + offset * padded * 2.0 / viewGeometry.xy, 0.0, 1.0);
 }

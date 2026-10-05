@@ -8,7 +8,7 @@
 #line 5000
 
 layout (location = 0) in vec4 uvrect; // x0, y0, x1, y1 in the icon atlas
-layout (location = 1) in vec4 params; // icon size multiplier, state, atlas page, draw order
+layout (location = 1) in vec4 params; // icon size multiplier, state (0 icon only), atlas page, draw order
 layout (location = 2) in vec4 midoffset; // from the unit's draw position to its mid position
 layout (location = 3) in uvec4 instData;
 
@@ -45,12 +45,15 @@ uniform vec2 iconFade; // start, vanish
 uniform vec4 armoredColor;
 uniform vec4 brokenColor;
 uniform float iconsSortedByDepth;
+uniform float compositePass;
 
 out DataVS {
 	vec4 v_uvrect;
 	vec4 v_color;
 	vec4 v_sizes; // icon half size in pixels, line width in pixels, atlas page, visible
 	vec2 v_depth; // layer depth of the icon, and of its outline
+	float v_outlined;
+	float v_owner; // marks the layer pixels this icon wrote
 };
 
 void main() {
@@ -77,19 +80,23 @@ void main() {
 	// Without the distance sort the sequence is unknown, so icons cover the outlines in their draw order.
 	vec2 layerDepth = vec2(layer + layerDist * iconsSortedByDepth, layer + layerDist) / 16.0;
 
-	bool visible = alpha > 0.0 && clipPos.w > 0.0 && abs(clipPos.z) <= clipPos.w;
+	bool outlined = params.y > 0.5;
 	bool broken = params.y > 1.5;
+	// Icons without an outline only cover the outlines under them, so they have nothing to composite.
+	bool visible = alpha > 0.0 && clipPos.w > 0.0 && abs(clipPos.z) <= clipPos.w && (outlined || compositePass < 0.5);
 
 	v_uvrect = uvrect;
 	v_color = broken ? brokenColor : armoredColor;
 	v_color.a *= alpha;
 	v_sizes = vec4(
 		iconSizeBase * 0.5 * sizeMult,
-		broken ? outlineWidth.y : outlineWidth.x,
+		outlined ? (broken ? outlineWidth.y : outlineWidth.x) : 0.0,
 		params.z,
 		visible ? 1.0 : 0.0
 	);
 	v_depth = layerDepth;
+	v_outlined = outlined ? 1.0 : 0.0;
+	v_owner = float(instData.y) + 1.0;
 
 	gl_Position = vec4(clipPos.xy / max(clipPos.w, 0.0001), 0.0, 1.0);
 }
