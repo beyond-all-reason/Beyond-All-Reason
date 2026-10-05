@@ -2054,6 +2054,16 @@ local options = {
 		def = false,
 	},
 
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "terminal_interceptors",
+		name = "Terminal-Phase Interceptors",
+		desc = "Antinukes have to wait to intercept until the nuke dives toward its target.",
+		type = "bool",
+		section = "options_experimental",
+		def = false,
+	},
+
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 	-- Unused Options
