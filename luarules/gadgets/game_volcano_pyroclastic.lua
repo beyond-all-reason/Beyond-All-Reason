@@ -132,6 +132,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		if volcanoFireballWeaponDefID then
 			Script.SetWatchProjectile(volcanoFireballWeaponDefID, true)
+		else
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
+			gadgetHandler:RemoveCallIn("ProjectileDestroyed")
 		end
 
 		volcanoActive = IsVolcanoEnabled()

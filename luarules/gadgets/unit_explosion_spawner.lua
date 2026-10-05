@@ -289,6 +289,9 @@ function gadget:Initialize()
 	for i = 1, #wantedList do
 		Script.SetWatchExplosion(wantedList[i], true)
 	end
+	if #wantedList == 0 then
+		gadgetHandler:RemoveCallIn("Explosion")
+	end
 end
 
 local function getProjectileTeam(projectileID, ownerID)

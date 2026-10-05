@@ -256,4 +256,9 @@ end
 
 function gadget:Initialize()
 	weaponDamageFactors = GG.UnitAttributes.WeaponDamageFactors
+
+	if not next(sparkWeapons) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
 end

@@ -222,6 +222,11 @@ function gadget:Initialize()
 		Script.SetWatchProjectile(wDID, true)
 		allWatchedWeaponDefIDs[wDID] = "starburst"
 	end
+
+	if not next(allWatchedWeaponDefIDs) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us

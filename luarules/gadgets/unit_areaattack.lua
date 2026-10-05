@@ -192,6 +192,9 @@ if gadgetHandler:IsSyncedCode() then
 		for weaponDefID in pairs(areaAttackWeaponDefs) do
 			Script.SetWatchProjectile(weaponDefID, true)
 		end
+		if not next(areaAttackWeaponDefs) then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
+		end
 	end
 else -- UNSYNCED
 	function gadget:Initialize()

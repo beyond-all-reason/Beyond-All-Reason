@@ -77,6 +77,10 @@ if gadgetHandler:IsSyncedCode() then
 				Script.SetWatchProjectile(watchweaponID, true)
 			end
 		end
+
+		if not next(weapondefsreload) then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
+		end
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponID) -- needs: Script.SetWatchProjectile(weaponDefID, true)

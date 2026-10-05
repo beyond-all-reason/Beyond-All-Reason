@@ -86,6 +86,9 @@ if gadgetHandler:IsSyncedCode() then
 		for k, v in pairs(nukeWeapons) do
 			Script.SetWatchProjectile(k, true)
 		end
+		if not next(nukeWeapons) then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
+		end
 	end
 
 	-- UNITS RECEIVED send to all in team

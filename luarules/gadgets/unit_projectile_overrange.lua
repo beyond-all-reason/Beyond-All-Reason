@@ -178,6 +178,13 @@ local function setFlightTimeFrame(proID, newFlightTime)
 	flightTimeWatch[triggerFrame][#flightTimeWatch[triggerFrame] + 1] = proID
 end
 
+function gadget:Initialize()
+	if not next(defWatchTable) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
+end
+
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	local defData = defWatchTable[weaponDefID]
 	if not defData then

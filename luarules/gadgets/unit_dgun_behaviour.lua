@@ -232,6 +232,11 @@ local shieldPreDamaged = function(
 end
 
 function gadget:Initialize()
+	if not next(dgunDef) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
+
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (dgun)")
 		return
