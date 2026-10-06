@@ -15,7 +15,11 @@ podFlare2,
 pod3,
 podFlare3,
 pod4,
-podFlare4;
+podFlare4,
+pod1firepoint,
+pod2firepoint,
+pod3firepoint,
+pod4firepoint;
 
 
 static-var restore_delay, wpn1_lasthead, whichPod;
@@ -135,16 +139,16 @@ AimFromPrimary(piecenum)
 QueryPrimary(piecenum)
 {
 	if(whichPod == 0){
-        piecenum = pod1;
+        piecenum = pod1firepoint;
     }
 	else if(whichPod == 1){
-        piecenum = pod2;
+        piecenum = pod2firepoint;
     }
 	else if(whichPod == 2){
-        piecenum = pod3;
+        piecenum = pod3firepoint;
     }
 	else if(whichPod == 3){
-        piecenum = pod4;
+        piecenum = pod4firepoint;
     }
 }
 

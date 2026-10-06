@@ -25,7 +25,7 @@ end
 ---@type table<integer, UnitDef>
 local UnitDefs = UnitDefs
 
-local quickStart = VFS.Include("common/quick_start_shared.lua")
+local quickStart = require("common/quick_start_shared")
 local startingMetal = modOptions.startmetal or 1000
 local _, shouldRunWidget, shouldApplyFactoryDiscount = quickStart.getModeFlags(modOptions)
 
@@ -74,9 +74,9 @@ local SAFETY_COUNT = quickStart.SAFETY_COUNT
 local UNOCCUPIED = quickStart.UNOCCUPIED
 local SQUARE_SIZE = 8
 
-local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
-local overlapLines = VFS.Include("common/overlap_lines.lua")
-local windFunctions = VFS.Include("common/wind_functions.lua")
+local overlapLines = require("common/overlap_lines")
+local traversabilityGrid = require("common/traversability_grid")
+local windFunctions = require("common/wind_functions")
 local calculateBudgetCost = quickStart.calculateBudgetCost
 local lastCommanderX = nil
 local lastCommanderZ = nil

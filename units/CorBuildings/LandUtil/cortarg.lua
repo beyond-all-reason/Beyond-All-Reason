@@ -30,6 +30,7 @@ return {
 			buildinggrounddecalsizex = 6,
 			buildinggrounddecalsizey = 6,
 			buildinggrounddecaltype = "decals/cortarg_aoplane.dds",
+			deactivate_time = 8,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",
 			removestop = true,

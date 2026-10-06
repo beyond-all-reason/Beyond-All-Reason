@@ -3,7 +3,7 @@
 -- Json.decode raises on bad input, so an unguarded decode at include time takes the widget
 -- down. Callers do their own shape checks; this only guarantees a table or nil.
 
-local Json = Json or VFS.Include("common/luaUtilities/json.lua")
+local Json = Json or require("common/luaUtilities/json")
 
 local M = {}
 

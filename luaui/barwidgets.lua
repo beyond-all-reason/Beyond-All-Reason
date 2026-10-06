@@ -213,6 +213,7 @@ local callInLists = {
 	"Update",
 	"TextCommand",
 	"CommandNotify",
+	"AllowQuit",
 	"AddConsoleLine",
 	"ViewResize",
 	"DrawScreen",
@@ -246,7 +247,9 @@ local callInLists = {
 	"UnitSale",
 	"UnitSold",
 	"VisibleExplosion",
+	"VisibleExplosionBatch",
 	"Barrelfire",
+	"BarrelfireBatch",
 	"CrashingAircraft",
 	"SendStats",
 	"SendStats_GameMode",
@@ -486,6 +489,15 @@ function widgetHandler:Initialize()
 	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
 	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
 
+	local ModuleHandler = require("modules/module_handler", nil, VFS.ZIP)
+	ModuleHandler.Register(VFS.ZIP)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
+		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	end
+
 	table.sort(unsortedWidgets, function(w1, w2)
 		local l1 = w1.whInfo.layer
 		local l2 = w2.whInfo.layer
@@ -627,7 +639,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- opposed to not being able to access them at all from outside the widget). This is accomplished by loading the
 		-- widget with an additional code snippet to list all of the local variables, getting that result, and then
 		-- loading again with a code snippet that sets up external access to those variables.
-		localsAccess = localsAccess or VFS.Include("common/testing/locals_access.lua")
+		localsAccess = localsAccess or require("common/testing/locals_access")
 
 		local textWithLocalsDetector = text .. localsAccess.localsDetectorString
 
@@ -866,6 +878,9 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	end
 	wh.RemoveCallIn = function(_, name)
 		self:RemoveWidgetCallIn(name, widget)
+	end
+	wh.RegisterUnitCommand = function(_, cmdID)
+		self:RegisterUnitCommand(widget, cmdID)
 	end
 
 	wh.AddAction = function(_, cmd, func, data, types)
@@ -1794,15 +1809,77 @@ function widgetHandler:UpdateModalState(deltaTime)
 	modalActive = active
 end
 
+-- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
+-- Past the gradual limit a full cycle is stepped a bounded amount per update instead of one
+-- stalling collectgarbage("collect"); only past the emergency limit is it done at once.
 local gcCheckCounter = 0
+local gcGradualLimit = 1000000 -- kB
+local gcEmergencyLimit = 1300000 -- kB
+local gcStepKB = 1024 -- about 1 ms of collector stepping per update
+local gcStepping = false
+-- adaptive collector budget, see luarules/gadgets/api_garbage_collector.lua
+local gcCapMin, gcCapMax, gcCap = 1, 4, 1
+local gcTrendWindow = 1800 -- frames
+local gcGrowthStepKB = 20000
+local gcTrendFrame, gcTrendMem
+
+local function gcAdaptCap(count)
+	local n = Spring.GetGameFrame()
+	if not gcTrendFrame then
+		gcTrendFrame, gcTrendMem = n, count
+		return
+	end
+	if n - gcTrendFrame < gcTrendWindow then
+		return
+	end
+	local growth = count - gcTrendMem
+	gcTrendFrame, gcTrendMem = n, count
+	local newCap = gcCap
+	if growth > gcGrowthStepKB then
+		newCap = math.min(gcCapMax, gcCap + 1)
+	elseif growth < gcGrowthStepKB / 4 then
+		newCap = math.max(gcCapMin, gcCap - 1)
+	end
+	if newCap ~= gcCap then
+		gcCap = newCap
+		Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, gcCap)
+		Spring.Echo(
+			string.format(
+				"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
+				growth >= 0 and "grew" or "shrank",
+				math.floor(math.abs(growth) / 1000),
+				gcCap
+			)
+		)
+	end
+end
 
 function widgetHandler:Update()
-	gcCheckCounter = gcCheckCounter + 1
-	if gcCheckCounter >= 30 then
-		gcCheckCounter = 0
-		if collectgarbage("count") > 1200000 then
-			Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
-			collectgarbage("collect")
+	if gcStepping then
+		if collectgarbage("step", gcStepKB) then
+			gcStepping = false
+			gcTrendFrame, gcTrendMem = Spring.GetGameFrame(), collectgarbage("count")
+			Spring.Echo(
+				"Gradual garbage collection done, LuaUI now uses "
+					.. math.floor(collectgarbage("count") / 1000)
+					.. " MB"
+			)
+		end
+	else
+		gcCheckCounter = gcCheckCounter + 1
+		if gcCheckCounter >= 30 then
+			gcCheckCounter = 0
+			local count = collectgarbage("count")
+			gcAdaptCap(count)
+			if count > gcEmergencyLimit then
+				Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.3GB LuaRAM")
+				collectgarbage("collect")
+			elseif count > gcGradualLimit then
+				Spring.Echo(
+					"Warning: LuaUI uses " .. math.floor(count / 1000) .. " MB, starting a gradual garbage collection"
+				)
+				gcStepping = true
+			end
 		end
 	end
 
@@ -1920,6 +1997,20 @@ function widgetHandler:CommandNotify(id, params, options)
 	end
 	tracy.ZoneEnd()
 	return false
+end
+
+-- Engine AllowQuit callin (Engine.FeatureSupport.allowQuitCallin): a window
+-- close request (the close button, Alt+F4) asks before the game quits. Every
+-- widget that answers must allow; a widget that returns false keeps the game
+-- open and is expected to quit it later itself (Spring.Quit never asks).
+-- Engines without the callin never call this.
+function widgetHandler:AllowQuit()
+	for _, w in ipairs(self.AllowQuitList) do
+		if w:AllowQuit() == false then
+			return false
+		end
+	end
+	return true
 end
 
 function widgetHandler:AddConsoleLine(msg, priority)
@@ -2385,6 +2476,8 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
+			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
+			self.actionHandler:ClearPressedKey(scanCode)
 			tracy.ZoneEnd()
 			return true
 		end
@@ -3043,6 +3136,15 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
+local CMD_BUILD = CMD.BUILD
+
+-- Limits widget:UnitCommand to the registered commands (CMD.BUILD: all build commands).
+-- Widgets that never register get every command.
+function widgetHandler:RegisterUnitCommand(widget, cmdID)
+	widget._unitCommandIDs = widget._unitCommandIDs or {}
+	widget._unitCommandIDs[cmdID] = true
+end
+
 function widgetHandler:UnitCommand(
 	unitID,
 	unitDefID,
@@ -3056,8 +3158,13 @@ function widgetHandler:UnitCommand(
 	fromLua
 )
 	tracy.ZoneBeginN("W:UnitCommand")
-	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	local list = self.UnitCommandList
+	for i = 1, #list do
+		local w = list[i]
+		local cmdIDs = w._unitCommandIDs
+		if not cmdIDs or cmdIDs[cmdId] or (cmdId < 0 and cmdIDs[CMD_BUILD]) then
+			w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -3299,21 +3406,39 @@ end
 --
 
 function widgetHandler:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	tracy.ZoneBeginN("W:VisibleExplosion")
-	for _, w in ipairs(self.VisibleExplosionList) do
-		w:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	end
-	tracy.ZoneEnd()
-	return
+	self:VisibleExplosionBatch({ px, py, pz, weaponID, ownerID }, 5)
 end
 
 function widgetHandler:Barrelfire(px, py, pz, weaponID, ownerID)
-	tracy.ZoneBeginN("W:Barrelfire")
-	for _, w in ipairs(self.BarrelfireList) do
-		w:Barrelfire(px, py, pz, weaponID, ownerID)
+	self:BarrelfireBatch({ px, py, pz, weaponID, ownerID }, 5)
+end
+
+-- a sim frame's events as px, py, pz, weaponID, ownerID runs: batch widgets get the array,
+-- the others one call per event
+function widgetHandler:VisibleExplosionBatch(events, count)
+	tracy.ZoneBeginN("W:VisibleExplosionBatch")
+	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		w:VisibleExplosionBatch(events, count)
+	end
+	for _, w in ipairs(self.VisibleExplosionList) do
+		for i = 1, count, 5 do
+			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
+		end
 	end
 	tracy.ZoneEnd()
-	return
+end
+
+function widgetHandler:BarrelfireBatch(events, count)
+	tracy.ZoneBeginN("W:BarrelfireBatch")
+	for _, w in ipairs(self.BarrelfireBatchList) do
+		w:BarrelfireBatch(events, count)
+	end
+	for _, w in ipairs(self.BarrelfireList) do
+		for i = 1, count, 5 do
+			w:Barrelfire(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
+		end
+	end
+	tracy.ZoneEnd()
 end
 
 function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)

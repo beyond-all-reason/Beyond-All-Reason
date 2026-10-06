@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, emit, launcher, arm;
+piece  base, emit, launcher, arm, firepoint;
 
 
 Create()
@@ -45,7 +45,7 @@ QueryNanoPiece(piecenum)
 
 QueryWeapon1(piecenum)
 {
-	piecenum = base;
+	piecenum = firepoint;
 }
 
 AimFromWeapon1(piecenum)

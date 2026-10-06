@@ -100,6 +100,7 @@ local armorShields = Game.armorTypes.shields
 
 local addShieldDamage, getUnitShieldState, damageToShields -- see unit_shield_behaviour
 local setVelocityControl -- see unit_collision_damage_behaviour
+local weaponDamageFactors -- see api_unit_attributes
 
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
@@ -236,9 +237,11 @@ end
 local function addPenetratorProjectile(projectileID, ownerID, params)
 	local dx, dy, dz = spGetProjectileDirection(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
+	local factors = weaponDamageFactors[ownerID]
 	projectiles[projectileID] = {
 		collisions = {},
-		damageLeft = 1,
+		damageLeft = 1.0,
+		damageFactor = factors and factors[params.weaponID] or 1.0,
 		ownerID = ownerID,
 		params = params,
 		posX = px,
@@ -368,7 +371,7 @@ end
 local function hitUnit(weapon, penetrator, damageLeft, collision, targetID)
 	-- Damage from the engine includes bonuses (flanking) and penalties (edge, intensity)
 	-- but has not accounted for the damage falloff from the overpenetration effect, yet.
-	local damageEngine, damageArmor = collision.damage, weapon[collision.armorType]
+	local damageEngine, damageArmor = collision.damage, weapon[collision.armorType] * penetrator.damageFactor
 	local damageDealt, damageBase = damageEngine * damageLeft, min(damageEngine, damageArmor) * damageLeft
 	local impulse = damageBase * weapon.impulse * falloffRatio(damageLeft, 1) -- inverse ratio
 
@@ -412,7 +415,7 @@ local function hitFeature(weapon, penetrator, damageLeft, collision, targetID)
 end
 
 local function hitShield(weapon, penetrator, damageLeft, collision, targetID)
-	local damageArmor = weapon[collision.armorType]
+	local damageArmor = weapon[collision.armorType] * penetrator.damageFactor
 	local damageDealt = damageArmor * damageLeft
 
 	local exhausted, damageDone = addShieldDamage(targetID, damageDealt)
@@ -648,6 +651,7 @@ function gadget:Initialize()
 	end
 
 	setVelocityControl = GG.SetVelocityControl
+	weaponDamageFactors = GG.UnitAttributes.WeaponDamageFactors
 
 	if not GG.Shields then
 		Spring.Log("ScriptedWeapons", LOG.ERROR, "Shields API unavailable (overpen)")

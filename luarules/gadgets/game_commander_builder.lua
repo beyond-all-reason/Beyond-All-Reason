@@ -43,7 +43,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local positionCheckLibrary = VFS.Include("luarules/utilities/damgam_lib/position_checks.lua")
+local positionCheckLibrary = require("luarules/Utilities/damgam_lib/position_checks")
 
 local spawnFrame = Game.spawnWarpInFrame + Game.gameSpeed * 2 -- add time to deconflict initial build orders
 

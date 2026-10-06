@@ -85,7 +85,7 @@ local defaultJetType = 0 -- atlas column (0..7)
 local defaultXZVelSizeMult = 0.0 -- XZ velocity -> jet length multiplier (0 = off, keeps old look)
 local defaultYVelSizeMult = 1.0 -- Y  velocity -> jet length multiplier (1 = current behaviour)
 
-local effectDefs = VFS.Include("luaui/configs/airjet_effects.lua")
+local effectDefs = require("luaui/configs/airjet_effects")
 
 local function deepcopy(orig)
 	local orig_type = type(orig)

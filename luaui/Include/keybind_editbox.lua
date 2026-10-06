@@ -1,10 +1,10 @@
 -- Single-line text input for the keybind editor search field, shared with the game info
 -- panel. Active only while focused, so it is safe to host alongside game input.
 
-local utf8 = VFS.Include("common/luaUtilities/utf8.lua")
+local utf8 = require("common/luaUtilities/utf8")
 
-local KEYSYMS = VFS.Include("luaui/Include/keybind_keysyms.lua")
-local text = VFS.Include("luaui/Include/keybind_text.lua")
+local KEYSYMS = require("luaui/Include/keybind_keysyms")
+local text = require("luaui/Include/keybind_text")
 
 -- Declared rather than inferred: the fields live on the instance new() builds, which is not
 -- something the type checker can follow back from a method's self.

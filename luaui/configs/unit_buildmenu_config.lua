@@ -3,7 +3,7 @@
 --- DateTime: 4/26/2023 8:48 PM
 ---
 
-local unitBlocking = VFS.Include("common/unitBlocking.lua")
+local unitBlocking = require("common/unitBlocking")
 
 local unitEnergyCost = {} ---@type table<number, number>
 local unitMetalCost = {} ---@type table<number, number>
@@ -51,7 +51,7 @@ end
 ---@type number[]
 local unitOrder = {}
 
-local unitOrderManualOverrideTable = VFS.Include("luaui/configs/buildmenu_sorting.lua")
+local unitOrderManualOverrideTable = require("luaui/configs/buildmenu_sorting")
 
 -- Populate unitOrder with unit IDs.
 local count = 1

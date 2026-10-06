@@ -2,7 +2,7 @@
 -- baked into a display list and only the hover overlay is drawn each frame, so a chart
 -- costs a list call while nothing changes.
 --
---   local Graph = VFS.Include("luaui/Include/graph.lua")
+--   local Graph = require("luaui/Include/graph")
 --   local chart = Graph.new({
 --       kind = "line",                         -- "line" | "stacked" | "radar" | "bars"
 --       x = 100, y = 100, width = 600, height = 300,   -- bottom-left corner, screen pixels
@@ -254,7 +254,7 @@ local DEFAULTS = {
 		crosshair = { 1, 1, 1, 0.22 },
 		hoverDot = { 1, 1, 1, 0.9 },
 		-- The other series step back to this share of their colour when one is highlighted.
-		dimAlpha = 0.22,
+		dimAlpha = 0.31,
 		areaAlpha = 0.6,
 		fillAlpha = 0.16,
 		markerFrame = { 1, 1, 1, 0.35 },

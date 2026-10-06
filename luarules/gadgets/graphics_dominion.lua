@@ -1,11 +1,11 @@
 function gadget:GetInfo()
 	return {
-		name = "Territorial Domination Graphics",
-		desc = "Renders territorial domination grid overlay",
+		name = "Dominion Graphics",
+		desc = "Renders dominion grid overlay",
 		author = "SethDGamre",
 		date = "2025.02.08",
 		license = "GNU GPL, v2",
-		layer = 1, --after game_territorial_domination.lua
+		layer = 1, --after game_dominion.lua
 		enabled = true,
 		depends = { "gl4" },
 	}
@@ -13,7 +13,7 @@ end
 
 local modOptions = Spring.GetModOptions()
 local isSynced = gadgetHandler:IsSyncedCode()
-if modOptions.deathmode ~= "territorial_domination" or isSynced then
+if modOptions.deathmode ~= "dominion" or isSynced then
 	return false
 end
 
@@ -29,11 +29,11 @@ local makeVAOandAttach = InstanceVBOTable.makeVAOandAttach
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local uploadAllElements = InstanceVBOTable.uploadAllElements
 
-local getMiniMapFlipped = VFS.Include("luaui/Include/minimap_utils.lua").getMiniMapFlipped
+local getMiniMapFlipped = require("luaui/Include/minimap_utils").getMiniMapFlipped
 
 local SQUARE_SIZE = 1024
 local SQUARE_ALPHA = 0.2
-local HEIGHT_OPACITY_CONFIG_KEY = "territorial_domination_height_opacity"
+local HEIGHT_OPACITY_CONFIG_KEY = "dominion_height_opacity"
 local DEFAULT_CAMERA_HEIGHT_MULTIPLIER = 1.0
 local SQUARE_HEIGHT = 10
 local MAX_CAPTURE_CHANGE = 0.12
@@ -285,7 +285,7 @@ local function initializeAllyColors()
 		local allyID = select(6, Spring.GetTeamInfo(teamID))
 		if allyID and not allyColors[allyID] then
 			if allyID ~= gaiaAllyTeamID then
-				local r, g, b, a = Spring.GetTeamColor(teamID)
+				local r, g, b, _ = Spring.GetTeamColor(teamID)
 				allyColors[allyID] = { r, g, b, SQUARE_ALPHA }
 			else
 				allyColors[allyID] = blankColor

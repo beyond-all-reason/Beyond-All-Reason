@@ -1,7 +1,7 @@
 -- What the store does when handed something it cannot use: a keymap it is about to overwrite,
 -- a profiles file it cannot read, and a store claiming a name the game ships.
 
-local Json = VFS.Include("common/luaUtilities/json.lua")
+local Json = require("common/luaUtilities/json")
 
 local STORE = "LuaUI/Config/keybind_profiles.json"
 local KEYMAP = "uikeys.txt"
@@ -63,7 +63,8 @@ local function run(files, writes, body)
 
 	local ok, result = pcall(function()
 		return body(function()
-			return VFS.Include("luaui/Include/keybind_profiles.lua")
+			local required = require("luaui/Include/keybind_profiles")
+			return required
 		end)
 	end)
 

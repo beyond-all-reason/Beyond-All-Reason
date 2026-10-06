@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  flarea1, flarea2, flareb, base, turret, sleeves, wake, bow, barrel1, barrel2;
+piece  flarea1, flarea2, flareb, base, turret, sleeves, wake, bow, barrel1, barrel2, basefirepoint;
 
 static-var  gun_1, restore_delay, aimDir1, aimDir2;
 
@@ -116,7 +116,7 @@ FireWeapon1()
 
 FireWeapon2()
 {
-	emit-sfx 1024 + 0 from flareb;
+	emit-sfx 1024 + 0 from basefirepoint;
 	sleep 100;
 	RB_RECOILBOAT(aimDir2, RB_RECOIL_ENERGY_2);
 }
@@ -138,7 +138,8 @@ AimFromWeapon2(pieceIndex)
 
 QueryWeapon2(pieceIndex)
 {
-	pieceIndex = base;
+	// flareb was the intended muzzle piece, depth charges moved to midpoint temp for balance
+	pieceIndex = basefirepoint;
 }
 
 

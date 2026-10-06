@@ -16,7 +16,7 @@ local modOptions = Spring.GetModOptions()
 if not isSynced then
 	return false
 end
-local quickStart = VFS.Include("common/quick_start_shared.lua")
+local quickStart = require("common/quick_start_shared")
 local shouldRunGadget, _, shouldApplyFactoryDiscount = quickStart.getModeFlags(modOptions)
 if not shouldRunGadget then
 	return false
@@ -47,9 +47,9 @@ local INSTANT_BUILD_RANGE = overrideQuickStartRange or selectedConfig.range
 local BASE_GENERATION_RANGE = selectedConfig.baseGenerationRange
 local TRAVERSABILITY_GRID_GENERATION_RANGE = selectedConfig.traversabilityGridRange
 
-local aestheticCustomCostRound = VFS.Include("common/aestheticCustomCostRound.lua")
+local aestheticCustomCostRound = require("common/aestheticCustomCostRound")
 local customRound = aestheticCustomCostRound.customRound
-local windFunctions = VFS.Include("common/wind_functions.lua")
+local windFunctions = require("common/wind_functions")
 
 -------------------------------------------------------------------------
 
@@ -83,8 +83,8 @@ local max = math.max
 local min = math.min
 
 local config = quickStart.config
-local traversabilityGrid = VFS.Include("common/traversability_grid.lua")
-local overlapLines = VFS.Include("common/overlap_lines.lua")
+local overlapLines = require("common/overlap_lines")
+local traversabilityGrid = require("common/traversability_grid")
 local commanderNonLabOptions = config.commanderNonLabOptions
 ---@type table<integer, UnitDef>
 local unitDefs = UnitDefs

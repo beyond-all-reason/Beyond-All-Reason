@@ -28,7 +28,7 @@ if gadgetHandler:IsSyncedCode() then
 	local CMDTYPE_ICON = CMDTYPE.ICON
 	local CMDTYPE_ICON_BUILDING = CMDTYPE.ICON_BUILDING
 
-	local buildOptionChanges = VFS.Include("common/dynamicBuildOptions.lua")
+	local buildOptionChanges = require("common/dynamicBuildOptions")
 
 	local teamsList = Spring.GetTeamList()
 	---@cast teamsList -?

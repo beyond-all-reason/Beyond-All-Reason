@@ -731,7 +731,7 @@ end
 
 local itsXmas = false
 local function initMaterials()
-	defaultMaterialTemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
+	defaultMaterialTemplate = require("modelmaterials_gl4/templates/defaultMaterialTemplate")
 	if itsXmas then
 		Spring.Echo("CUS GL4 enabled XMAS mode")
 	end
@@ -1133,7 +1133,7 @@ end
 -- The problem here being hat tex1 and tex2 dont participate in texture key hashing.
 -- so e.g. raptors may have been drawn with incorrect textures all along, due to them being keyed
 
-local knowntrees = VFS.Include("modelmaterials_gl4/known_feature_trees.lua")
+local knowntrees = require("modelmaterials_gl4/known_feature_trees")
 local function initBinsAndTextures()
 	-- init features first, to gain access to stored wreck textures!
 	Spring.Echo("[CUS GL4] Init Feature bins")
@@ -3017,7 +3017,7 @@ function gadget:DrawWorldPreUnit()
 				-- Check for fs and vs src identity
 				autoReload.lastUpdate = Spring.GetTimer()
 
-				local defaulttemplate = VFS.Include("modelmaterials_gl4/templates/defaultMaterialTemplate.lua")
+				local defaulttemplate = require("modelmaterials_gl4/templates/defaultMaterialTemplate")
 				if
 					(defaulttemplate.shader.vertex ~= defaultMaterialTemplate.shader.vertex)
 					or (defaulttemplate.shader.fragment ~= defaultMaterialTemplate.shader.fragment)

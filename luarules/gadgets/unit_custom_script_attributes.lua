@@ -20,7 +20,7 @@ end
 local debug = false ---@type boolean
 
 local spCallCobScript = Spring.CallCOBScript
-local UnitScriptAttributes = VFS.Include("common/unit_script_attributes.lua")
+local UnitScriptAttributes = require("common/unit_script_attributes")
 
 -- Engine callins
 

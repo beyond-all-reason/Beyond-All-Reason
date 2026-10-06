@@ -5,6 +5,9 @@ piece  base, rdrbar, rdrdish, steer, turret, fwheel, bwheel, gun, flare;
 
 static-var  restore_delay, moveSpeed, wheelSpeed, gun_2,	oldHeading, dishturn, wpn1_lasthead;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -45,6 +48,8 @@ Steering(heading, steery, currentSpeed)
 
 Create()
 {
+	Weapon1TurretX = <300.0>;
+	Weapon1TurretY = <300.0>;
 	hide flare;
 	dishturn = 1;
 	oldheading = get HEADING;
@@ -118,8 +123,8 @@ RestoreAfterDelay()
 AimWeapon1(heading, pitch)
 {
 	signal SIGNAL_AIM1;
-	turn turret to y-axis heading speed <300.0>;
-	turn gun to x-axis <0.0> - pitch speed <300.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn gun to x-axis <0.0> - pitch speed Weapon1TurretX;
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{
 		wpn1_lasthead = 0xbadface;
