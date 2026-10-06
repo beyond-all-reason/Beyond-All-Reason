@@ -585,6 +585,7 @@ function widget:LanguageChanged()
 		channelScopeAll = BAR.I18N("ui.chat.channelScopeAll"),
 		channelScopeTeam = BAR.I18N("ui.chat.channelScopeTeam"),
 		channelScopeSpec = BAR.I18N("ui.chat.channelScopeSpec"),
+		channelScopePrivate = BAR.I18N("ui.chat.channelScopePrivate"),
 		energy = BAR.I18N("ui.topbar.resources.energy"):lower(),
 		metal = BAR.I18N("ui.topbar.resources.metal"):lower(),
 		everyone = BAR.I18N("ui.chat.everyone"),
@@ -798,8 +799,13 @@ local function addChatLine(
 	end
 
 	local channelTag, channelTagWidth
-	if channelScope == "ALL" and (lineType == LineTypes.Player or lineType == LineTypes.Spectator) then
-		channelTag = "[" .. i18nStrings.channelScopeAll .. "]"
+	if
+		(channelScope == "ALL" or channelScope == "PRIVATE")
+		and (lineType == LineTypes.Player or lineType == LineTypes.Spectator)
+	then
+		channelTag = "["
+			.. (channelScope == "ALL" and i18nStrings.channelScopeAll or i18nStrings.channelScopePrivate)
+			.. "]"
 		channelTagWidth = floor(font3:GetTextWidth(channelTag .. " ") * usedFontSize * channelTagSize)
 	end
 
@@ -1409,6 +1415,8 @@ local function extractChannelPrefix(text)
 		return ssub(text, 9), "allies"
 	elseif sfind(text, "Spectators: ", nil, true) == 1 then
 		return ssub(text, 13), "spectators"
+	elseif sfind(text, "Private: ", nil, true) == 1 then
+		return ssub(text, 10), "private"
 	end
 	return text, "all"
 end
@@ -1495,6 +1503,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			channelScope = "TEAM"
 		elseif channel == "spectators" then
 			channelScope = "SPEC"
+		elseif channel == "private" then
+			channelScope = "PRIVATE"
 		end
 
 		if channel == "allies" then
@@ -1531,8 +1541,11 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			channelScope = "ALL"
 		elseif channel == "spectators" then
 			channelScope = "SPEC"
+		elseif channel == "private" then
+			channelScope = "PRIVATE"
 		end
-		c = (channel ~= "all") and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
+		c = (channel == "all" or channel == "private") and ColorString(colorOther[1], colorOther[2], colorOther[3])
+			or colorSpecStr
 
 		nameText, nameTag, formerTeamSquare = getColoredPlayerName(name, gameFrame, true)
 		line = c .. text

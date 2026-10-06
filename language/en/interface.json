@@ -360,6 +360,7 @@
 			"channelScopeAll": "ALL",
 			"channelScopeTeam": "TEAM",
 			"channelScopeSpec": "SPEC",
+			"channelScopePrivate": "PRIVATE",
 			"everyone": "everyone",
 			"allies": "allies",
 			"label": "label",
