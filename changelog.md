@@ -5,6 +5,7 @@
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
   - Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.
+  - Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
