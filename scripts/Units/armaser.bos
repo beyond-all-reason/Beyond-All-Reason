@@ -6,7 +6,7 @@
 piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye, aimy1, jam;
 
 static-var  isMoving, keepspinning, animSpeed, maxSpeed, animFramesPerKeyframe;
-static-var recently_damaged;
+static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -16,11 +16,12 @@ static-var recently_damaged;
 static-var  Stunned;
 SetStunned(State)
 {
-	Stunned = State;
+    Stunned = State;
 	if (Stunned) {
-		keepspinning = 0;
-	} else if ((get ACTIVATION) AND (!recently_damaged)) {
-		start-script Activate();
+	    keepspinning = 0;
+	} else {
+	    keepspinning = desired_activation;
+		set ACTIVATION to desired_activation;
 	}
 }
 
@@ -240,6 +241,7 @@ Create()
 	animSpeed = 4;
 	start-script spinarms();
 	recently_damaged = 0;
+	desired_activation = 1;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
@@ -248,10 +250,15 @@ Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	// stays closed while stunned or after a hit, SetStunned and OffOnHit open it again
-	if (Stunned OR recently_damaged)
+	desired_activation = 1;
+	// if we are in this function, the unit is already on
+	// implied set ACTIVATION to 1;
+	// turn off if unit is in the recently_damaged state
+	// this turn off action calls the Deactivate function
+	if( recently_damaged == 1)
 	{
-		return (0);
+		set ACTIVATION to 0;
+		return(0);
 	}
 	show jam;
 	call-script open();
@@ -260,6 +267,21 @@ Activate()
 
 Deactivate()
 {
+	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
+	// no easy way to tell if an on-off action is 
+	// script/gadget controlled or user controlled
+	// assume a deactivate command is a user command 
+	// if the unit has not been recently damaged
+	// However, we need to wait a few frames, 
+	// unit_paralyze_on_off deactivates this unit before it is 
+	// stunned, so it is actually turned off, but we need to wait to see if the
+	// unit is "damaged" by stun.
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		//set desired state if deactivated and not recently damaged
+		desired_activation = 0;
+	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	call-script close();
@@ -268,20 +290,17 @@ Deactivate()
 }
 
 
-// Closes up for deactivate_time after a hit. unit_sensor_suspend pauses the jamming meanwhile,
-// the on/off state stays as the player set it.
 OffOnHit()
 {
 	signal SIGNAL_OFF;
 	set-signal-mask SIGNAL_OFF;
+
+	hide jam;
 	recently_damaged = 1;
-	start-script Deactivate();
+	set ACTIVATION to 0; // turn off unit
 	sleep deactivateTime;
 	recently_damaged = 0;
-	if ((get ACTIVATION) AND (!Stunned))
-	{
-		start-script Activate();
-	}
+	set ACTIVATION to desired_activation;
 }
 
 // this is what a pure hitbyweapon can look like, without any of the motion garbage

@@ -5,7 +5,7 @@
 piece  base, armor, dishbase, blob, dish1, dish2, dish3, dish4, thighfl, legfl, footfl, thighbl, legbl, footbl, thighfr, legfr, footfr, thighbr, legbr, footbr;
 
 static-var animSpeed, maxSpeed, animFramesPerKeyframe, isMoving, Stunned;
-static-var recently_damaged;
+static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIGNAL_OFF 	    8
@@ -401,6 +401,7 @@ Create()
 	start-script StopSpin();
 
 	recently_damaged = 0;
+	desired_activation = 1;
 
 	isMoving = FALSE;
 	animSpeed = 4;
@@ -414,10 +415,12 @@ Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	// stays closed while stunned or after a hit, SetStunned and OffOnHit open it again
-	if (Stunned OR recently_damaged)
+
+	desired_activation = 1;
+	if (recently_damaged == 1)
 	{
-		return (0);
+		set ACTIVATION to 0;
+		return(0);
 	}
 
 	start-script StartSpin();
@@ -427,6 +430,14 @@ Activate()
 
 Deactivate()
 {
+	// Wait since unit_paralyze_on_off deactivates the unit before it is actually turned off
+	// so we need to delay the check for whether the unit is "damaged" by a paralyzer weapon
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		desired_activation = 0;
+	}
+
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 	start-script StopSpin();	
@@ -435,29 +446,22 @@ Deactivate()
 
 SetStunned(State)
 {
-	Stunned = State;
+    Stunned = State;
 	if (Stunned) {
 		stop-spin dishbase around y-axis decelerate <5.0>;
 		hide blob;
-	} else if ((get ACTIVATION) AND (!recently_damaged)) {
-		start-script Activate();
 	}
 }
 
-// Closes up for deactivate_time after a hit. unit_sensor_suspend pauses the jamming meanwhile,
-// the on/off state stays as the player set it.
 OffOnHit()
 {
 	signal SIGNAL_OFF;
 	set-signal-mask SIGNAL_OFF;
 	recently_damaged = 1;
-	start-script Deactivate();
+	set ACTIVATION to 0; // turn off unit
 	sleep deactivateTime;
 	recently_damaged = 0;
-	if ((get ACTIVATION) AND (!Stunned))
-	{
-		start-script Activate();
-	}
+	set ACTIVATION to desired_activation;
 }
 HitByWeapon(anglex, anglez)
 {

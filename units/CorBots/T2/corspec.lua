@@ -42,6 +42,7 @@ return {
 			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
+			off_on_stun = "true",
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "util",
