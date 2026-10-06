@@ -1,4 +1,7 @@
 # October
+- [AA missiles] Missiles will switch targets when the current target becomes invalid, making them waste fewer shots against swarms of air units
+- [T2 flak trucks] Added Fastautoretarget so they will swap between targets without a 15 frame delay 
+- [Archangel] Startvelocity increased for its short-range aa missiles 100 -> 300 , maxvelocity increased 800 -> 900
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
@@ -14,6 +17,7 @@
     - Arbiter: 5800 -> 6500 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
     - Shiva: 1600m -> 1700 metalcost, Cannon: AoE 176 -> 160, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
 - [Legion changes]
+  - T1 Drones no longer crash on death.  Drones will be weaker against AA because the AA won't overkill them and will swap targets faster.  
   - Helios 800 -> 1000 health, 160 -> 135 damage.
   - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
   - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
