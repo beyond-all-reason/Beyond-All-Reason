@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 
 -- Springsettings
--- JammerPreviewAlwaysShow (0/1, default off): always draw the coverage of all allied jammers, not only while placing or selecting one
+-- JammerPreviewAlwaysShow (0/1, default on): always draw the coverage of all allied jammers, not only while placing or selecting one
 -- JammerPreviewAlliedCoverage (0/1, default on): while previewing a jammer, also draw the coverage of all allied jammers
 -- JammerPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
 
@@ -27,6 +27,8 @@ end
 --  3. Sheet pass: projects the coverage onto the terrain. Drawn over the coverage's screen area, every pixel
 --     rebuilds its world position from the map g-buffer depth and takes the coverage of its radar cell.
 --  4. Minimap pass (JammerPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
+-- A selected jammer that does not jam right now (switched off, stunned, paused, unpaid or unfinished) still shows
+-- its range, faintly.
 -- The pass vertex, smoothing and minimap shaders are shared with gui_sensor_ranges_radar_preview.lua.
 ------------------------------------------------------------------------------------------------
 
@@ -56,6 +58,7 @@ local SQUARE_SIZE = 8
 local RADAR_CELL = SQUARE_SIZE * 2 ^ RADAR_MIP_LEVEL -- elmos per radar cell
 local MAP_CELLS_X = math.floor(Game.mapSizeX / RADAR_CELL) -- radar cells of the whole map
 local MAP_CELLS_Z = math.floor(Game.mapSizeZ / RADAR_CELL)
+local engineRequiresUpkeep = Game.sensorsRequireUpkeep == true -- sensors.requireUpkeep: unpaid units lose their sensors
 
 local shaderConfig = {
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
@@ -65,14 +68,19 @@ local shaderConfig = {
 	SHEET_COLOR = "vec3(0.90, 0.22, 0.20)", -- color of the previewed jammer's coverage, on the sheet and the minimap
 	ALLIED_COLOR = "vec3(0.62, 0.35, 0.33)", -- cells covered only by other allied jammers
 	ALLIED_ALPHA = 0.85, -- their opacity relative to the previewed jammer's cells
-	OUTLINE_COLOR = "vec3(1.00, 0.45, 0.42)", -- outline along the border with uncovered radar cells
-	SHEET_ALPHA = 0.16, -- opacity of the sheet
-	SHEET_OUTLINE_ALPHA = 0.33, -- opacity of the OUTLINE_COLOR border of the sheet
-	OUTLINE_WIDTH = 2, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution
+	OUTLINE_COLOR = "vec3(1.00, 0.32, 0.22)", -- stippled outline along the border with uncovered radar cells
+	SHEET_ALPHA = 0.17, -- opacity of the sheet
+	SHEET_OUTLINE_ALPHA = 0.85, -- opacity of the dashes of the OUTLINE_COLOR border of the sheet
+	OUTLINE_GAP_ALPHA = 0.3, -- opacity of that border between its dashes, relative to the dashes
+	OUTLINE_WIDTH = 3, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution
+	OUTLINE_WORLD_WIDTH = 2, -- elmos added to the outline width, so it gets a little thicker when zoomed in
+	OUTLINE_DASH = 12, -- pixels per dash and gap at 1080p: the dashes per cell side double as the view zooms in
 	MINIMAP_ALPHA = 0.33, -- opacity of the coverage fill on the minimap, SHEET_COLOR / ALLIED_COLOR
 	MINIMAP_OUTLINE_ALPHA = 0.4, -- opacity of the OUTLINE_COLOR border on the minimap around the previewed jammer's coverage
 	MINIMAP_ALLIED_OUTLINE_ALPHA = 0.25, -- opacity of that border around cells covered only by other allied jammers
 	MINIMAP_OUTLINE_WIDTH = 2, -- minimap outline width in pixels at 1080p, scaled with the screen's vertical resolution
+	INACTIVE_ALPHA = 0.5, -- fill opacity of a selected jammer that does not jam (off, stunned, paused or unpaid), relative to a jamming one's
+	INACTIVE_OUTLINE_ALPHA = 0.4, -- opacity of its outline, relative to a jamming one's
 	MIN_COVERAGE = 0.04, -- cells fainter than this are not drawn
 	SPAWN_SPEED = 18.0, -- jammer ranges per second the spawn ripple travels outward
 }
@@ -108,6 +116,7 @@ local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetUnitIsUpkeepPaid = Spring.GetUnitIsUpkeepPaid
 local spIsUnitSelected = Spring.IsUnitSelected
 local spPos2BuildPos = Spring.Pos2BuildPos
 local spGetBuildFacing = Spring.GetBuildFacing
@@ -184,12 +193,14 @@ local preview = {
 	z = 0,
 	spawnStart = 0,
 	movedAt = -mathHuge, -- last time the emitter moved to another radar cell
+	inactive = 0.0, -- 0 while the previewed jammer jams, 1 while it does not, eased in between
 }
 
 -- what DrawWorld drew, for DrawInMiniMap
 local minimapFrame = -10
 local minimapSet ---@type table?
 local minimapAllied = false
+local minimapInactive = 0.0
 
 local passVsPath = "LuaUI/Shaders/sensor_ranges_radar_preview_pass.vert.glsl"
 
@@ -230,6 +241,7 @@ local sheetShaderCache = {
 	},
 	uniformFloat = {
 		previewParams = { 0, 0, -1, 0 },
+		previewInactive = 0,
 		emitterXZ = { 0, 0 },
 		alliedParams = { 0, 0 },
 		passRect = { -1, -1, 1, 1 },
@@ -248,6 +260,7 @@ local minimapShaderCache = {
 	},
 	uniformFloat = {
 		discParams = { 0, 0, -1, 0 },
+		inactiveParams = { 0, 1, 1 },
 		mapParams = { MAP_CELLS_X, MAP_CELLS_Z, 0, 0 },
 	},
 	shaderConfig = shaderConfig,
@@ -401,6 +414,14 @@ function widget:PlayerChanged()
 	scanAlliedUnits()
 end
 
+-- Whether the engine lets the unit's jammer work: on, not stunned and, with the sensors.requireUpkeep modrule,
+-- its upkeep paid (on engines without it unit_sensor_suspend zeroes the radius instead)
+local function isJamming(unitID)
+	return spGetUnitIsActive(unitID)
+		and not spGetUnitIsStunned(unitID)
+		and (not engineRequiresUpkeep or spGetUnitIsUpkeepPaid(unitID))
+end
+
 -- Allied jammers the engine gives coverage (ILosType::UpdateUnit: finished, activated, not stunned): emitter cell
 -- and radius in cells of each, appended to the flat list `out`. Returns their count.
 local function collectAlliedJammers(out)
@@ -409,7 +430,7 @@ local function collectAlliedJammers(out)
 	for unitID in pairs(jammerUnits) do
 		if spGetUnitAllyTeam(unitID) ~= myAllyTeamID then -- gone, or given away
 			jammerUnits[unitID] = nil
-		elseif spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) then
+		elseif isJamming(unitID) then
 			local radiusCells = radiusToCells(spGetUnitSensorRadius(unitID, "radarJammer") or 0)
 			if radiusCells >= 1 then
 				local _, _, _, mx, _, mz = spGetUnitPosition(unitID, true)
@@ -545,7 +566,8 @@ local function placedMidPos(def, x, z, facing)
 	return x - def.midX, z + def.midZ
 end
 
--- The previewed jammer's radius in cells and the world x, z of its emitter (the unit's mid position), or nil
+-- The previewed jammer's radius in cells, the world x, z of its emitter (the unit's mid position) and 1 when it
+-- does not jam right now (0 when it does or is being placed), or nil
 local function getPreview()
 	local def, unitID = previewSource()
 	if not def then
@@ -553,11 +575,18 @@ local function getPreview()
 	end
 	if unitID then
 		local _, _, _, mx, _, mz = spGetUnitPosition(unitID, true)
-		local radiusCells = radiusToCells(spGetUnitSensorRadius(unitID, "radarJammer") or 0)
-		if not mx or radiusCells < 1 then
+		if not mx then
 			return nil
 		end
-		return radiusCells, mx, mz
+		local radiusCells = radiusToCells(spGetUnitSensorRadius(unitID, "radarJammer") or 0)
+		local jamming = radiusCells >= 1 and isJamming(unitID)
+		if radiusCells < 1 then
+			radiusCells = def.radiusCells -- unit_sensor_suspend zeroes the radius of a paused or unpaid jammer
+		end
+		if radiusCells < 1 then
+			return nil
+		end
+		return radiusCells, mx, mz, jamming and 0 or 1
 	end
 
 	local x, y, z = cursorWorldPos()
@@ -581,7 +610,7 @@ local function drawClearedPass()
 end
 
 -- Disc and smoothing passes of the previewed jammer. Returns its texture set, nil if it could not be created.
-local function preparePreview(radius, emitterX, emitterZ, now, drawFrame)
+local function preparePreview(radius, emitterX, emitterZ, inactive, now, drawFrame)
 	local set = getSet(radius)
 	if not set then
 		return nil
@@ -592,9 +621,11 @@ local function preparePreview(radius, emitterX, emitterZ, now, drawFrame)
 	local dt = fresh and 0 or mathMin(now - preview.time, 0.1)
 	if fresh then
 		preview.spawnStart = now
+		preview.inactive = inactive
 	end
 	preview.frame, preview.time, preview.radius = drawFrame, now, radius
 	preview.x, preview.z = emitterX, emitterZ
+	preview.inactive = preview.inactive + (inactive - preview.inactive) * (1 - mathExp(-dt * SMOOTH_RATE))
 
 	local bx, bz = worldToCell(emitterX), worldToCell(emitterZ)
 	-- cells the emitter moved since the last frame
@@ -699,6 +730,7 @@ local function drawSheet(set, showAllied, now)
 	else
 		sheetShader:SetUniform("previewParams", 0, 0, -1, 0)
 	end
+	sheetShader:SetUniform("previewInactive", set and preview.inactive or 0)
 	sheetShader:SetUniform("emitterXZ", preview.x, preview.z)
 	-- the allied coverage fades in with the preview, unless it is always shown
 	local alliedOpacity = settings.alwaysShow and 1 or mathMin((now - preview.spawnStart) * 4, 1)
@@ -715,7 +747,7 @@ function widget:DrawWorld()
 	if Spring.IsGUIHidden() or (WG.topbar and WG.topbar.showingQuit()) then
 		return
 	end
-	local radius, emitterX, emitterZ = getPreview()
+	local radius, emitterX, emitterZ, inactive = getPreview()
 	local showAllied = settings.alwaysShow or (radius ~= nil and settings.alliedCoverage)
 	if not (radius or showAllied) then
 		return
@@ -726,7 +758,7 @@ function widget:DrawWorld()
 	gl.DepthTest(false)
 	gl.Culling(false)
 	gl.Blending(false)
-	local set = radius and preparePreview(radius, emitterX, emitterZ, now, drawFrame) or nil
+	local set = radius and preparePreview(radius, emitterX, emitterZ, inactive or 0, now, drawFrame) or nil
 	if showAllied then
 		-- check right away when the allied coverage (re)appears, it may be stale
 		updateAllied(now, drawFrame - allied.shownFrame > 1)
@@ -735,7 +767,7 @@ function widget:DrawWorld()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	drawSheet(set, showAllied, now)
-	minimapFrame, minimapSet, minimapAllied = drawFrame, set, showAllied
+	minimapFrame, minimapSet, minimapAllied, minimapInactive = drawFrame, set, showAllied, preview.inactive
 end
 
 -- Flat fill of the previewed (and allied) jammer coverage on the minimap, outlined at uncovered cells. Also
@@ -772,6 +804,12 @@ function widget:DrawInMiniMap()
 	else
 		minimapShader:SetUniform("discParams", 0, 0, -1, 1)
 	end
+	minimapShader:SetUniform(
+		"inactiveParams",
+		set and minimapInactive or 0,
+		shaderConfig.INACTIVE_ALPHA,
+		shaderConfig.INACTIVE_OUTLINE_ALPHA
+	)
 	local _, vsy = spGetViewGeometry()
 	minimapShader:SetUniform(
 		"mapParams",

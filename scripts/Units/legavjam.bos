@@ -4,7 +4,7 @@
 
 piece 	chassis, dishBase, lTrack, rTrack, trackGuards, dishA, dishB, dishC, dishD, cloaklight, pointlight1, pointlight2;
 
-static-var recently_damaged, desired_activation;
+static-var recently_damaged, Stunned;
 
 #define SIGNAL_MOVE 1
 #define SIGNAL_TURNON 4
@@ -41,7 +41,6 @@ Create()
     move dishD to z-axis [-1] now; 
     
 	recently_damaged = 0;
-	desired_activation = 1;
 	call-script TB_Init();
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
@@ -80,15 +79,10 @@ Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	desired_activation = 1;
-	// if we are in this function, the unit is already on
-	// implied set ACTIVATION to 1;
-	// turn off if unit is in the recently_damaged state
-	// this turn off action calls the Deactivate function
-	if( recently_damaged == 1)
+	// stays closed while stunned or after a hit, SetStunned and OffOnHit open it again
+	if (Stunned OR recently_damaged)
 	{
-		set ACTIVATION to 0;
-		return(0);
+		return (0);
 	}
     spin dishBase around y-axis speed <75> accelerate <1>;
     show cloaklight;
@@ -99,21 +93,6 @@ Activate()
 
 Deactivate()
 {
-    // get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
-	// no easy way to tell if an on-off action is 
-	// script/gadget controlled or user controlled
-	// assume a deactivate command is a user command 
-	// if the unit has not been recently damaged
-	// However, we need to wait a few frames, 
-	// unit_paralyze_on_off deactivates this unit before it is 
-	// stunned, so it is actually turned off, but we need to wait to see if the
-	// unit is "damaged" by stun.
-	sleep 100;
-	if (recently_damaged == 0)
-	{
-		//set desired state if deactivated and not recently damaged
-		desired_activation = 0;
-	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
     hide cloaklight;
@@ -123,26 +102,30 @@ Deactivate()
 	return (0);
 }
 
-static-var  Stunned;
 SetStunned(State)
 {
-    Stunned = State;
+	Stunned = State;
 	if (Stunned) {
-	    start-script Deactivate();
-	} else {
-	    set ACTIVATION to desired_activation;
+		start-script Deactivate();
+	} else if ((get ACTIVATION) AND (!recently_damaged)) {
+		start-script Activate();
 	}
 }
 
+// Closes up for deactivate_time after a hit. unit_sensor_suspend pauses the jamming meanwhile,
+// the on/off state stays as the player set it.
 OffOnHit()
 {
 	signal SIGNAL_OFF;
 	set-signal-mask SIGNAL_OFF;
 	recently_damaged = 1;
-	set ACTIVATION to 0; // turn off unit
+	start-script Deactivate();
 	sleep deactivateTime;
 	recently_damaged = 0;
-	set ACTIVATION to desired_activation;
+	if ((get ACTIVATION) AND (!Stunned))
+	{
+		start-script Activate();
+	}
 }
 HitByWeapon(anglex, anglez)
 {

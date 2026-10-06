@@ -38,7 +38,6 @@ return {
 			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			off_on_stun = "true",
 			subfolder = "CorShips/T2",
 			techlevel = 2,
 			unitgroup = "util",
