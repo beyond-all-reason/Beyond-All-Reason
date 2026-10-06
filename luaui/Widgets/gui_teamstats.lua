@@ -1661,6 +1661,8 @@ local function refreshStats()
 		live = nil
 	end
 	allies = {}
+	-- The teams read and as what: a player is shown the other side only at game over.
+	local read = {}
 	for _, allyID in ipairs(spGetAllyTeamList()) do
 		---@cast allyID integer
 		local ally = { id = allyID, teams = {}, total = {}, leads = {} }
@@ -1670,6 +1672,7 @@ local function refreshStats()
 			if teamID ~= gaia then
 				local team = readTeam(teamID, allyID, frame, live and live[teamID])
 				if team then
+					read[#read + 1] = teamID .. (team.dead and "d" or "") .. (team.gone and "g" or "") .. team.name
 					team.ally = ally
 					ally.teams[#ally.teams + 1] = team
 					if team.isLocal then
@@ -1698,6 +1701,12 @@ local function refreshStats()
 			allies[#allies + 1] = ally
 		end
 	end
+	-- The page is made again when they change: refilling its charts keeps the teams it had.
+	local key = table.concat(read, "|")
+	if graphs and key ~= handover.teamsRead then
+		graphs.invalidate()
+	end
+	handover.teamsRead = key
 	-- The rows are the table's: while the Graphs page is on, they wait for the table.
 	if graphs and graphs.open then
 		rowMetrics.stale = true
