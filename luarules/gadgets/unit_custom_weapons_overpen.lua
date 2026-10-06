@@ -71,6 +71,7 @@ local max = math.max
 local min = math.min
 local sqrt = math.sqrt
 
+local spGetFeatureBlocking = Spring.GetFeatureBlocking
 local spGetFeatureHealth = Spring.GetFeatureHealth
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureRadius = Spring.GetFeatureRadius
@@ -79,6 +80,8 @@ local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spTraceRayBetweenPositions = Spring.TraceRayBetweenPositions
+local spGetUnitBlocking = Spring.GetUnitBlocking
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -272,6 +275,48 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 	}
 end
 
+local function addSkippedCollisions(projectileID, penetrator)
+	local collisions = penetrator.collisions
+	local n = #collisions
+	local traceType
+	for i = 1, n do
+		local collision = collisions[i]
+		if collision.targetID and not collision.shieldID then
+			local hitType = collision.isUnit and "unit" or "feature"
+			traceType = (traceType and traceType ~= hitType) and "both" or hitType
+		end
+	end
+
+	local endX, endY, endZ = spGetProjectilePosition(projectileID)
+	if not traceType or not endX or not spTraceRayBetweenPositions then
+		return
+	end
+	local vx, vy, vz = spGetProjectileVelocity(projectileID)
+	local hits = spTraceRayBetweenPositions(endX - vx, endY - vy, endZ - vz, endX, endY, endZ, traceType)
+
+	local weapon = penetrator.params
+	for hitIndex = 1, #hits do
+		local hit = hits[hitIndex]
+		local hitID, isUnit = hit[2], hit[3] == "unit"
+		local skip = isUnit and hitID == penetrator.ownerID
+		for i = 1, n do
+			local collision = collisions[i]
+			if collision.targetID == hitID and collision.isUnit == isUnit and not collision.shieldID then
+				skip = true
+				break
+			end
+		end
+		if not skip then
+			local _, _, collidable = (isUnit and spGetUnitBlocking or spGetFeatureBlocking)(hitID)
+			if collidable then
+				local armorType = isUnit and unitArmorType[spGetUnitDefID(hitID)] or armorDefault
+				local damage = weapon[armorType] * penetrator.damageFactor
+				addPenetratorCollision(hitID, isUnit, armorType, damage, projectileID, penetrator)
+			end
+		end
+	end
+end
+
 local sortPenetratorCollisions
 do
 	local table_sort = table.sort
@@ -454,6 +499,8 @@ local function stopMomentum(projectileID, collision)
 end
 
 local function executeCollisions(projectileID, penetrator)
+	addSkippedCollisions(projectileID, penetrator)
+
 	local collisions = penetrator.collisions
 	local n = #collisions
 
