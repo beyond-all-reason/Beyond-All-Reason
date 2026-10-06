@@ -120,6 +120,7 @@ local droneMetaList = {}
 local droneCarrierIdList = {}
 
 local carrierUpdateList = {} -- scratch list of the carriers whose turn it is this frame
+local deferredDroneReleases = {}
 local inUnitDestroyed = false
 
 local gaiaTeam
@@ -464,6 +465,15 @@ end
 
 local RemoveDrone
 
+local function releaseDrone(carrierID, subUnitID)
+	spUnitDetach(subUnitID)
+	mcDisable(subUnitID)
+	local vx, vy, vz = spGetUnitVelocity(carrierID)
+	if vx then
+		spSetUnitVelocity(subUnitID, vx, vy, vz)
+	end
+end
+
 local function undockUnit(unitID, subUnitID)
 	local validDrone = validCarrierAndDrone(unitID, subUnitID)
 	if not validDrone then
@@ -478,8 +488,12 @@ local function undockUnit(unitID, subUnitID)
 			and dronetype ~= "infantry"
 		then
 			spSetUnitCOBValue(subUnitID, COB.ACTIVATION, 1)
-			spUnitDetach(subUnitID)
-			mcDisable(subUnitID)
+			-- defer until the carrier moves this frame
+			if inUnitDestroyed then
+				releaseDrone(unitID, subUnitID)
+			else
+				deferredDroneReleases[subUnitID] = unitID
+			end
 			if not carrierMetaList[unitID].manualDrones then
 				setDroneNoSelect(subUnitID, true)
 			end
@@ -1178,7 +1192,15 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 		totalDroneCount = totalDroneCount - 1
 	end
 
+	deferredDroneReleases[unitID] = nil
 	if carrierMetaList[unitID] then
+		for subUnitID, carrierID in pairsNext, deferredDroneReleases do
+			if carrierID == unitID then
+				deferredDroneReleases[subUnitID] = nil
+				releaseDrone(unitID, subUnitID)
+			end
+		end
+
 		local evolvedCarrierID = spGetUnitRulesParam(unitID, "unit_evolved")
 
 		if carrierMetaList[unitID].subUnitsList then
@@ -2089,6 +2111,17 @@ function gadget:GameFrame(f)
 			carrierQueuedDockingCount = 0
 			dockUnits(carrierDockingList, dockingQueueOffset + 1, queueEnd)
 			dockingQueueOffset = 0
+		end
+	end
+end
+
+function gadget:GameFramePost(f)
+	for subUnitID, carrierID in pairsNext, deferredDroneReleases do
+		deferredDroneReleases[subUnitID] = nil
+		local carrierData = carrierMetaList[carrierID]
+		local droneData = carrierData and carrierData.subUnitsList[subUnitID]
+		if not (droneData and droneData.docked) then
+			releaseDrone(carrierID, subUnitID)
 		end
 	end
 end
