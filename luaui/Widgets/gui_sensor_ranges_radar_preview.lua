@@ -27,30 +27,26 @@ end
 --  2. Smoothing pass (every frame, a few thousand texels): a ping-ponged state texture eases towards
 --     the coverage, so the sheet fades smoothly instead of popping while dragging.
 --  3. Minimap pass (DrawInMiniMap, RadarPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
---  4. Sheet pass: one instanced draw of a flat quad per radar cell. The vertex shader looks up the cell's coverage
---     and puts the quad's corners on the terrain, so neighbouring cells form a seamless sheet; the fragment shader
---     draws the outline at uncovered cells, the rings and the sweep. Only cells under the screen's ground footprint
---     are drawn.
+--  4. Sheet pass: projects the coverage onto the terrain. Drawn over the coverage's screen area, every pixel
+--     rebuilds its world position from the map g-buffer depth and takes the coverage of its radar cell, with the
+--     outline at uncovered cells, the rings and the sweep.
+-- The pass vertex, smoothing and minimap shaders are shared with gui_sensor_ranges_jammer_preview.lua.
 ------------------------------------------------------------------------------------------------
 
 -- Tunables
-local LIFT_PER_DISTANCE = 0.001 -- extra lift per elmo of camera distance, keeps the sheet above the terrain LOD mesh
 local ALLIED_COVERAGE_POLL_SECONDS = 2 -- how often the RadarPreview* settings are re-read
-local SHEET_LIFT = 2.0 -- elmos the sheet floats above the terrain
 local COVERAGE_REFRESH_SECONDS = 1.0 -- periodic heightmap/coverage rebuild so terraforming shows up
 local SMOOTH_RATE = 14 -- 1/s, how fast the sheet follows coverage changes (higher = snappier)
 local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged across radar cells, so the sheet keeps up with the cursor
-local FOOTPRINT_MARGIN = 48 -- elmos of slack around the screen's ground footprint
 local MAX_RADIUS_CELLS = 256 -- sanity limit of the radar radius in cells (coverage texture and ray table size)
 local RAY_SSBO_BINDING = 5 -- shader storage binding of the per-radius ray table (4, 6, 7 are used elsewhere in BAR)
 
--- With deferred map/model rendering the sheet is occluded via the g-buffer depths (terrain and units)
--- instead of the depth buffer, so grass and other widget geometry drawn with depth writes can't hide it.
+-- The sheet is projected through the map g-buffer depth; units and features are left out via the model g-buffer
+-- depth. BAR turns both on (luaintro/springconfig.lua).
 local hasMapDepth = Spring.GetConfigString("AllowDeferredMapRendering") == "1"
 local hasModelDepth = hasMapDepth and Spring.GetConfigString("AllowDeferredModelRendering") == "1"
 
 local shaderConfig = {
-	TERRAIN_DEPTH_TEST = hasMapDepth and 1 or 0,
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
 	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cells covered only by other allied radars
 	ALLIED_ALPHA = 0.55, -- their opacity relative to the previewed radar's cells
@@ -93,14 +89,13 @@ local HEIGHT_BUCKET = 2 ^ (RADAR_MIP_LEVEL + 2) -- emitter heights are quantized
 
 local MAP_CELLS_X = math.floor(Game.mapSizeX / RADAR_CELL) -- radar cells of the whole map
 local MAP_CELLS_Z = math.floor(Game.mapSizeZ / RADAR_CELL)
+shaderConfig.RADAR_CELL_SIZE = RADAR_CELL
 
 -- Localized functions for performance
 local mathFloor = math.floor
-local mathCeil = math.ceil
 local mathMin = math.min
 local mathMax = math.max
 local mathExp = math.exp
-local mathSqrt = math.sqrt
 local mathHuge = math.huge
 local osClock = os.clock
 
@@ -110,10 +105,11 @@ local spEcho = Spring.Echo
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-local spGetPixelDir = Spring.GetPixelDir
+local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetCameraPosition = Spring.GetCameraPosition
+local spGetCameraDirection = Spring.GetCameraDirection
 local spGetGroundExtremes = Spring.GetGroundExtremes
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetDrawFrame = Spring.GetDrawFrame
@@ -155,14 +151,12 @@ do
 	end
 end
 
-local mipShader = nil
-local coverageShader = nil
-local smoothShader = nil
-local sheetShader = nil
-local minimapShader = nil
-local passVAO = nil
-local cellVAO = nil
-local CELL_INDEX_COUNT = 6
+local mipShader ---@type LuaShader
+local coverageShader ---@type LuaShader
+local smoothShader ---@type LuaShader
+local sheetShader ---@type LuaShader
+local minimapShader ---@type LuaShader
+local passVAO ---@type VAO
 
 local mipTex = nil -- radar-cell heightmap of the whole map
 local mipUpdatedAt = -mathHuge
@@ -234,22 +228,20 @@ local smoothShaderCache = {
 }
 
 local sheetShaderCache = {
-	vssrcpath = "LuaUI/Shaders/sensor_ranges_radar_preview.vert.glsl",
+	vssrcpath = passVsPath,
 	fssrcpath = "LuaUI/Shaders/sensor_ranges_radar_preview.frag.glsl",
 	shaderName = "radarPreviewSheet GL4",
 	uniformInt = {
-		heightmapTex = 0,
-		coverageTex = 1,
-		mapDepths = hasMapDepth and 2 or nil,
-		modelDepths = hasModelDepth and 3 or nil,
-		radarInfoTex = 4,
+		mapDepths = 0,
+		modelDepths = hasModelDepth and 1 or nil,
+		coverageTex = 2,
+		radarInfoTex = 3,
 	},
 	uniformFloat = {
 		radarcenter_range = { 0, 0, 0, 2000 },
 		lookupParams = { 0, 0, 1, 0 },
 		animParams = { 0, 0, 0, 0 },
-		windowParams = { 0, 0, 1, RADAR_CELL },
-		sheetLift = { SHEET_LIFT },
+		passRect = { -1, -1, 1, 1 },
 	},
 	shaderConfig = shaderConfig,
 }
@@ -273,27 +265,6 @@ local minimapShaderCache = {
 local function goodbye(reason)
 	spEcho("Sensor Ranges Radar Preview widget exiting with reason: " .. reason)
 	widgetHandler:RemoveWidget()
-end
-
--- One radar cell of the sheet: a unit quad, x and z in [-0.5, 0.5]
-local function makeCellVAO()
-	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
-	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
-	if not (vertexVBO and indexVBO) then
-		return nil
-	end
-	vertexVBO:Define(4, { { id = 0, name = "cellVertex", size = 2 } })
-	vertexVBO:Upload({ -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5 }) -- x, z of corners 0..3
-	indexVBO:Define(CELL_INDEX_COUNT)
-	indexVBO:Upload({ 0, 3, 2, 0, 2, 1 }) -- counter-clockwise seen from above (front faces for GL.BACK culling)
-
-	local vao = gl.GetVAO()
-	if not vao then
-		return nil
-	end
-	vao:AttachVertexBuffer(vertexVBO)
-	vao:AttachIndexBuffer(indexVBO)
-	return vao
 end
 
 local function makeDataTexture(sizeX, sizeY, format, filter)
@@ -495,6 +466,10 @@ local function getSet(radiusCells)
 end
 
 local function initgl4()
+	if not hasMapDepth then
+		goodbye("AllowDeferredMapRendering is off, the sheet is projected through the map depth buffer")
+		return false
+	end
 	-- Files added to the game archive while a game is running are invisible to the VFS (the .sdd file
 	-- list is indexed at game start), and CheckShaderUpdates silently returns nil for missing sources.
 	local caches = { mipShaderCache, coverageShaderCache, smoothShaderCache, sheetShaderCache, minimapShaderCache }
@@ -533,12 +508,12 @@ local function initgl4()
 		return false
 	end
 
-	passVAO = InstanceVBOTable.MakeTexRectVAO()
-	cellVAO = makeCellVAO()
-	if not (passVAO and cellVAO) then
-		goodbye("Failed to create the radar preview VAOs")
+	local vao = InstanceVBOTable.MakeTexRectVAO()
+	if not vao then
+		goodbye("Failed to create the radar preview VAO")
 		return false
 	end
+	passVAO = vao
 
 	mipTex = makeDataTexture(
 		mathFloor(Game.mapSizeX / RADAR_CELL),
@@ -616,56 +591,39 @@ local function drawPass()
 	passVAO:DrawArrays(GL.TRIANGLES)
 end
 
--- Conservative world-space bounding rectangle of the ground the screen can see: the view frustum
--- clipped against the horizontal plane at the map's lowest height (bounding box of the camera and
--- the four corner rays' intersections with that plane). Terrain hits are deliberately not used, as
--- a corner ray stopping on a hill would exclude ground visible further along that screen edge.
--- Returns nil when a corner looks at or above the horizon (then everything gets drawn).
-local function getScreenFootprint(camX, camY, camZ)
-	if not spGetPixelDir then
-		return nil
-	end
-	local vsx, vsy, vpx = spGetViewGeometry()
-	local minHeight = spGetGroundExtremes()
-	local planeY = mathMax(minHeight or 0, 0) -- the sheet never goes below water level
-	local minX, maxX, minZ, maxZ = camX, camX, camZ, camZ
-	for corner = 0, 3 do
-		-- CalcPixelDir wants window x (including the view offset) and top-left-origin y
-		local sx = (vpx or 0) + ((corner % 2 == 1) and vsx or 0)
-		local sy = (corner >= 2) and vsy or 0
-		local dx, dy, dz = spGetPixelDir(sx, sy)
-		if not dy or dy > -0.001 then
-			return nil
+-- Clip-space rectangle of the screen area that can show a rectangle of radar cells: the screen bounds of its box from
+-- the lowest to the highest ground, clipped to the screen. The whole screen when the box reaches behind the camera.
+local function getScreenRect(x0, z0, x1, z1)
+	local minY, maxY = spGetGroundExtremes()
+	minY, maxY = mathMax(minY or 0, 0), mathMax(maxY or 0, 0) -- below 0 the sheet lies on the water surface
+	local camX, camY, camZ = spGetCameraPosition()
+	local dirX, dirY, dirZ = spGetCameraDirection()
+	local vsx, vsy = spGetViewGeometry()
+	local left, bottom, right, top = mathHuge, mathHuge, -mathHuge, -mathHuge
+	for corner = 0, 7 do
+		local x, y, z = x0, minY, z0
+		if corner % 2 == 1 then
+			x = x1 + 1
 		end
-		local t = (planeY - camY) / dy
-		if t < 0 then
-			return nil
+		if corner % 4 >= 2 then
+			z = z1 + 1
 		end
-		local px, pz = camX + dx * t, camZ + dz * t
-		minX, maxX = mathMin(minX, px), mathMax(maxX, px)
-		minZ, maxZ = mathMin(minZ, pz), mathMax(maxZ, pz)
+		if corner >= 4 then
+			y = maxY
+		end
+		x, z = x * RADAR_CELL, z * RADAR_CELL
+		if (x - camX) * dirX + (y - camY) * dirY + (z - camZ) * dirZ < 1 then
+			return -1, -1, 1, 1
+		end
+		local sx, sy = spWorldToScreenCoords(x, y, z)
+		left, right = mathMin(left, sx), mathMax(right, sx)
+		bottom, top = mathMin(bottom, sy), mathMax(top, sy)
 	end
-	return minX, maxX, minZ, maxZ
-end
-
--- Which radar cells to draw this frame: the radar disc's cells clipped to the screen footprint.
--- Returns x0, z0, cellsX, cellsZ (a count <= 0 when nothing is on screen).
-local function getCellWindow(set, bx, bz, camX, camY, camZ)
-	local radius = set.radius
-	local x0, x1 = bx - radius, bx + radius
-	local z0, z1 = bz - radius, bz + radius
-	if settings.allied then -- allied coverage can be anywhere on the map; uncovered cells exit the vertex shader early
-		x0, x1, z0, z1 = 0, MAP_CELLS_X - 1, 0, MAP_CELLS_Z - 1
-	end
-	local minX, maxX, minZ, maxZ = getScreenFootprint(camX, camY, camZ)
-	if minX then
-		local margin = mathCeil(FOOTPRINT_MARGIN / RADAR_CELL)
-		x0 = mathMax(x0, mathFloor(minX / RADAR_CELL) - margin)
-		x1 = mathMin(x1, mathFloor(maxX / RADAR_CELL) + margin)
-		z0 = mathMax(z0, mathFloor(minZ / RADAR_CELL) - margin)
-		z1 = mathMin(z1, mathFloor(maxZ / RADAR_CELL) + margin)
-	end
-	return x0, z0, x1 - x0 + 1, z1 - z0 + 1
+	-- a pixel of slack for the outline's anti-aliasing
+	return mathMax((left - 1) / vsx * 2 - 1, -1),
+		mathMax((bottom - 1) / vsy * 2 - 1, -1),
+		mathMin((right + 1) / vsx * 2 - 1, 1),
+		mathMin((top + 1) / vsy * 2 - 1, 1)
 end
 
 -- Allied radar units the engine would give radar coverage (ILosType::UpdateUnit: finished, activated,
@@ -774,6 +732,48 @@ local function previewedRadarDef()
 		return nil
 	end
 	return def, cmdID
+end
+
+-- The sheet: one pass over the screen area of the coverage (the radar's disc, or the whole map with allied
+-- coverage on) that projects it onto the terrain. manualAllied: our own union of the allied radars instead of
+-- the engine's radar map.
+local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied)
+	local x0, z0, x1, z1 = set.bx - set.radius, set.bz - set.radius, set.bx + set.radius, set.bz + set.radius
+	if settings.allied then -- allied coverage can be anywhere on the map
+		x0, z0, x1, z1 = 0, 0, MAP_CELLS_X - 1, MAP_CELLS_Z - 1
+	end
+	x0, z0 = mathMax(x0, 0), mathMax(z0, 0)
+	x1, z1 = mathMin(x1, MAP_CELLS_X - 1), mathMin(z1, MAP_CELLS_Z - 1)
+	if x1 < x0 or z1 < z0 then
+		return
+	end
+	local left, bottom, right, top = getScreenRect(x0, z0, x1, z1)
+	if right <= left or top <= bottom then
+		return -- off screen
+	end
+
+	gl.Texture(0, "$map_gbuffer_zvaltex")
+	if hasModelDepth then
+		gl.Texture(1, "$model_gbuffer_zvaltex")
+	end
+	gl.Texture(2, set.state[set.cur])
+	if settings.allied then
+		-- the engine's radar map of our ally team (one texel per radar cell), or our own union of the
+		-- allied radars when the engine map is all-covering (global LOS / spectator full view)
+		gl.Texture(3, manualAllied and alliedTex or "$info:radar")
+	end
+	sheetShader:Activate()
+	sheetShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
+	sheetShader:SetUniform("lookupParams", set.bx, set.bz, set.radius, settings.allied and 1 or 0)
+	local animations = settings.animations and 1 or 0
+	local sweep = settings.sweep and 1 or 0
+	sheetShader:SetUniform("animParams", now, now - spawnStart, animations, sweep)
+	sheetShader:SetUniform("passRect", left, bottom, right, top)
+	passVAO:DrawArrays(GL.TRIANGLES)
+	sheetShader:Deactivate()
+	for unit = 0, 3 do
+		gl.Texture(unit, false)
+	end
 end
 
 function widget:DrawWorld()
@@ -925,48 +925,9 @@ function widget:DrawWorld()
 	set.minimapAlliedTex = settings.allied and (manualAllied and alliedTex or "$info:radar") or nil
 
 	-- 3. the sheet
-	local camX, camY, camZ = spGetCameraPosition()
-	local dx, dy, dz = camX - cx, camY - midY, camZ - cz
-	local camDist = mathSqrt(dx * dx + dy * dy + dz * dz)
-	local x0, z0, cellsX, cellsZ = getCellWindow(set, bx, bz, camX, camY, camZ)
-	if cellsX > 0 and cellsZ > 0 then
-		gl.Texture(0, "$heightmap")
-		gl.Texture(1, nextTex)
-		if settings.allied then
-			-- the engine's radar map of our ally team (one texel per radar cell), or our own union of the
-			-- allied radars when the engine map is all-covering (global LOS / spectator full view)
-			gl.Texture(4, manualAllied and alliedTex or "$info:radar")
-		end
-		if hasMapDepth then
-			gl.Texture(2, "$map_gbuffer_zvaltex")
-			if hasModelDepth then
-				gl.Texture(3, "$model_gbuffer_zvaltex")
-			end
-			gl.DepthTest(false) -- occlusion is done in the fragment shader against the g-buffer depths
-		else
-			gl.DepthTest(GL.LEQUAL)
-		end
-		gl.DepthMask(false)
-		gl.Culling(GL.BACK)
-		sheetShader:Activate()
-		sheetShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
-		sheetShader:SetUniform("lookupParams", bx, bz, radius, settings.allied and 1 or 0)
-		local animations = settings.animations and 1 or 0
-		local sweep = settings.sweep and 1 or 0
-		sheetShader:SetUniform("animParams", now, now - spawnStart, animations, sweep)
-		sheetShader:SetUniform("windowParams", x0, z0, cellsX, RADAR_CELL)
-		sheetShader:SetUniform("sheetLift", SHEET_LIFT + camDist * LIFT_PER_DISTANCE)
-		cellVAO:DrawElements(GL.TRIANGLES, CELL_INDEX_COUNT, 0, cellsX * cellsZ, 0)
-		sheetShader:Deactivate()
-		gl.Culling(false)
-		gl.DepthTest(false)
-		gl.Texture(2, false)
-		gl.Texture(3, false)
-		gl.Texture(4, false)
-	end
-
 	gl.Texture(0, false)
 	gl.Texture(1, false)
+	drawSheet(set, cx, cz, losHeight, range, now, manualAllied)
 end
 
 -- Flat fill of the previewed (and allied) radar coverage on the minimap, outlined at uncovered cells. Also
