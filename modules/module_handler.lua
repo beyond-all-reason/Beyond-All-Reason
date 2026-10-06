@@ -7,12 +7,22 @@ local LOG_TAG = "module_handler.lua"
 
 local MODULES_DIR = "modules/"
 
+-- A module's api.lua runs in any Lua handle, so it calls nothing the engine offers in one handle only, and the same is
+-- true of policies/, lib/ and every other file not named here. api_synced.lua is the module's api in the synced
+-- handle, with any file named synced.lua behind it; api_unsynced.lua is its api in the unsynced one,
+-- with widgets/, rml_widgets/ and any file named unsynced.lua. A gadget runs in both, and says itself which half is
+-- which. Code that runs in any handle requires nothing bound to one, and code bound to a handle requires nothing
+-- bound to the other. The loader does not enforce
+-- that at run time, since it cannot see a require; spec/modules/handles_spec.lua holds the stack to it.
 local LAYOUT = {
 	manifest = "manifest.lua",
 	widgets = "widgets/",
 	rmlWidgets = "rml_widgets/",
 	gadgets = "gadgets/",
 	scripts = "scripts/",
+	units = "units/",
+	language = "language/",
+	tests = "tests/",
 	modOptions = "modoptions.lua",
 }
 
@@ -177,6 +187,24 @@ end
 ---@return string[]
 function ModuleHandler.ScriptDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.scripts, vfsMode)
+end
+
+---@param vfsMode string?
+---@return string[] the modules' unit def directories, read after units/
+function ModuleHandler.UnitDefDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.units, vfsMode)
+end
+
+---@param vfsMode string?
+---@return string[] the modules' language directories, each holding a directory per language code as language/ does
+function ModuleHandler.LanguageDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.language, vfsMode)
+end
+
+---@param vfsMode string?
+---@return string[] the modules' headless test directories
+function ModuleHandler.TestDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.tests, vfsMode)
 end
 
 ---@param vfsMode string?

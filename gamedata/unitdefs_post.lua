@@ -1,5 +1,6 @@
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
+local ModuleHandler = require("modules/module_handler")
 local alldefs = require("gamedata/alldefs_post")
 local savedefs = require("gamedata/post_save_to_customparams")
 
@@ -63,13 +64,21 @@ end
 local function bakeUnitDefs()
 	for name, unitDef in pairs(regularUnitDefs) do
 		-- usable when baking ... keeping subfolder structure
-		local filepath = getFilePath(name .. ".lua", "units/")
+		local root = "units/"
+		local filepath = getFilePath(name .. ".lua", root)
+		if not filepath then
+			for _, dir in ipairs(ModuleHandler.UnitDefDirs()) do
+				filepath = getFilePath(name .. ".lua", dir)
+				if filepath then
+					root = dir
+					break
+				end
+			end
+		end
 		if filepath then
-			if
-				not unitDef.customparams.subfolder
-				or string.sub(filepath, 7, #filepath - 1) ~= string.lower(unitDef.customparams.subfolder)
-			then
-				unitDef.customparams.subfolder = string.sub(filepath, 7, #filepath - 1) -- not that this always gets to be lowercase despite whatever it is in the repo
+			local subfolder = string.sub(filepath, #root + 1, #filepath - 1)
+			if not unitDef.customparams.subfolder or subfolder ~= string.lower(unitDef.customparams.subfolder) then
+				unitDef.customparams.subfolder = subfolder -- not that this always gets to be lowercase despite whatever it is in the repo
 			end
 		end
 		saveDefToCustomParams("UnitDefs", name, unitDef)
