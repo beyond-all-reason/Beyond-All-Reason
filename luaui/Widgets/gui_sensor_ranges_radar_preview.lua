@@ -121,6 +121,8 @@ local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
+local spGetUnitIsUpkeepPaid = Spring.GetUnitIsUpkeepPaid
+local engineRequiresUpkeep = Game.sensorsRequireUpkeep == true -- sensors.requireUpkeep: unpaid units lose their sensors
 local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
 
 local LuaShader = gl.LuaShader
@@ -636,7 +638,13 @@ local function collectAlliedRadars()
 		for u = 1, #units do
 			local unitID = units[u]
 			local radarRadius = spGetUnitSensorRadius(unitID, "radar")
-			if radarRadius and radarRadius > 0 and spGetUnitIsActive(unitID) and not spGetUnitIsStunned(unitID) then
+			if
+				radarRadius
+				and radarRadius > 0
+				and spGetUnitIsActive(unitID)
+				and not spGetUnitIsStunned(unitID)
+				and (not engineRequiresUpkeep or spGetUnitIsUpkeepPaid(unitID))
+			then
 				local radiusCells = mathFloor(mathFloor(radarRadius / SQUARE_SIZE) / 2 ^ RADAR_MIP_LEVEL)
 				if radiusCells >= 1 and radiusCells <= MAX_RADIUS_CELLS then
 					local _, _, _, mx, my, mz = spGetUnitPosition(unitID, true)

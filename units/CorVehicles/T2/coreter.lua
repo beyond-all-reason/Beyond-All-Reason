@@ -44,7 +44,6 @@ return {
 			juno_kill = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",
-			off_on_stun = "true",
 			subfolder = "CorVehicles/T2",
 			techlevel = 2,
 			trackwidth = 27,

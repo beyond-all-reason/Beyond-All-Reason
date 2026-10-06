@@ -54,6 +54,7 @@ local modrules = {
 		requireSonarUnderWater = true, -- If true then when underwater, units only get LOS if they also have sonar.
 		alwaysVisibleOverridesCloaked = false, -- If true then units will be visible even when cloaked (probably?).
 		decloakRequiresLineOfSight = false, -- default: false
+		requireUpkeep = true, -- Radar, sonar, seismic and jammer coverage pause while the upkeep goes unpaid (older engines: unit_sensor_suspend.lua)
 
 		los = {
 			losMipLevel = 3, -- Controls the resolution of the LOS calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the LOS map in both x and y direction. Must be between 0 and 6 inclusive.

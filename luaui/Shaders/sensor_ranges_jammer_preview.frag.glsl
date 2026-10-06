@@ -16,6 +16,7 @@ uniform sampler2D coverageTex; // smoothed coverage of the previewed jammer, one
 uniform sampler2D alliedTex;   // R = 1 where an allied jammer covers the radar cell, one texel per radar cell of the map
 
 uniform vec4 previewParams; // previewed jammer's emitter cell x, cell z, radius in cells (-1: nothing previewed), seconds since the preview appeared
+uniform float previewInactive; // 0 while the previewed jammer jams, 1 while it does not (off, stunned, paused or unpaid), eased in between
 uniform vec2 emitterXZ;     // world x, z of the previewed jammer's emitter, where the spawn ripple starts
 uniform vec2 alliedParams;  // allied coverage on (1) / off (0), its opacity
 
@@ -31,8 +32,13 @@ const vec3 alliedColor = ALLIED_COLOR;
 const vec3 outlineColor = OUTLINE_COLOR;
 const float sheetAlpha = float(SHEET_ALPHA);
 const float sheetOutlineAlpha = float(SHEET_OUTLINE_ALPHA);
+const float outlineGapAlpha = float(OUTLINE_GAP_ALPHA);
 const float outlineWidth = float(OUTLINE_WIDTH); // pixels at 1080p, scaled with the vertical resolution
+const float outlineWorldWidth = float(OUTLINE_WORLD_WIDTH); // elmos
+const float outlineDash = float(OUTLINE_DASH); // pixels per dash and gap at 1080p
 const float alliedAlpha = float(ALLIED_ALPHA);
+const float inactiveAlpha = float(INACTIVE_ALPHA);
+const float inactiveOutlineAlpha = float(INACTIVE_OUTLINE_ALPHA);
 const float minCoverage = float(MIN_COVERAGE);
 const float spawnSpeed = float(SPAWN_SPEED);
 
@@ -54,6 +60,24 @@ float alliedAt(ivec2 cell) {
 	return step(0.5, texelFetch(alliedTex, cell, 0).r);
 }
 
+// n dashes per cell side along a border at `coord` (radar cells), `rate` cells per pixel along it: 1 on the dashes,
+// 0 between them, the dashes centred on the cell corners so the steps of the border stay readable. Anti-aliased,
+// and blurred into 0.5 once they shrink below a few pixels.
+float dashLevel(float coord, float n, float rate) {
+	float periodsPerPixel = max(rate * n, 1e-4);
+	float pattern = smoothstep(0.5 - periodsPerPixel, 0.5 + periodsPerPixel, abs(fract(coord * n) - 0.5) * 2.0);
+	return mix(pattern, 0.5, smoothstep(0.25, 0.5, periodsPerPixel));
+}
+
+// Opacity of a border's stipple: the dashes per cell side double as the view zooms in, so they keep about the same
+// length on screen and show more detail up close; the next level fades in between the current dashes.
+float stipple(float coord, float rate) {
+	float level = max(log2(1.0 / (max(rate, 1e-5) * outlineDash * viewGeometry.y / 1080.0)), 0.0);
+	float n = exp2(floor(level));
+	float dashes = mix(dashLevel(coord, n, rate), dashLevel(coord, 2.0 * n, rate), fract(level));
+	return mix(outlineGapAlpha, 1.0, dashes);
+}
+
 void main() {
 	vec2 screenUV = (gl_FragCoord.xy - viewGeometry.zw) / viewGeometry.xy;
 	float mapDepth = texture(mapDepths, screenUV).x;
@@ -66,6 +90,11 @@ void main() {
 	}
 	vec2 cellCoord = worldPos.xz / cellSize; // position in radar cells
 	vec2 cellPixels = fwidth(cellCoord); // radar cells per pixel, taken before any discard
+	// radar cells per pixel across x and across z: the width of the borders running along z and x, and the stipple rate
+	// of the ones running along x and z
+	vec2 xGrad = vec2(dFdx(cellCoord.x), dFdy(cellCoord.x));
+	vec2 zGrad = vec2(dFdx(cellCoord.y), dFdy(cellCoord.y));
+	vec2 pixelCells = max(vec2(length(xGrad), length(zGrad)), vec2(1e-5));
 
 	if (mapDepth >= 0.999999) {
 		discard; // sky
@@ -79,20 +108,25 @@ void main() {
 	ivec2 cell = ivec2(floor(cellCoord));
 	float own = previewCoverageAt(cell);
 	float allied = alliedAt(cell);
+	float inactive = previewInactive;
 
 	// spawn ripple: the previewed jammer's coverage spreads outward from its emitter when the preview appears
 	float distN = length((vec2(cell) + 0.5) * cellSize - emitterXZ) / (max(previewParams.z, 1.0) * cellSize);
 	float spawn = smoothstep(distN - 0.10, distN + 0.02, previewParams.w * spawnSpeed);
 
-	// the previewed jammer's cells blend in over the muted allied coverage
+	// the previewed jammer's cells blend in over the muted allied coverage. An inactive one jams nothing: it is a
+	// faint hint where no allied jammer covers the cell, allied cells show as they are.
 	float weight = smoothstep(0.0, 0.5, own) * spawn;
-	float fade = mix(allied * alliedParams.y * alliedAlpha, 1.0, weight);
-	if (fade < minCoverage) {
+	float alliedFade = allied * alliedParams.y * alliedAlpha;
+	float fillFade = mix(mix(alliedFade, 1.0, weight), max(alliedFade, weight * inactiveAlpha), inactive);
+	float jammedFade = max(alliedFade, weight * (1.0 - inactive)); // how strongly a jammer covers the cell
+	float ownLineFade = weight * mix(1.0, inactiveOutlineAlpha, inactive);
+	if (max(fillFade, ownLineFade) < minCoverage) {
 		discard;
 	}
 
-	// outline on the nearer x and z side of the cell when it borders a cell the previewed jammer does not cover
-	// (its own border, drawn even inside allied coverage) or that no jammer covers
+	// stippled outline on the nearer x and z side of the cell when it borders a cell the previewed jammer does not
+	// cover (its own border, drawn even inside allied coverage and faint while inactive) or that no jammer covers
 	vec2 inCell = fract(cellCoord);
 	vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
 	vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
@@ -100,12 +134,23 @@ void main() {
 	ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
 	vec2 ownNeighbours = step(vec2(0.5), vec2(previewCoverageAt(nx), previewCoverageAt(nz)));
 	vec2 alliedNeighbours = vec2(alliedAt(nx), alliedAt(nz));
-	vec2 side = max(step(0.5, min(own, spawn)) * (1.0 - ownNeighbours), 1.0 - max(ownNeighbours, alliedNeighbours));
-	vec2 px = max(cellPixels, vec2(1e-5)) * outlineWidth * viewGeometry.y / 1080.0;
-	vec2 lineAmount = side * (1.0 - smoothstep(vec2(0.0), px, edgeDist));
+	vec2 ownSide = step(0.5, min(own, spawn)) * (1.0 - ownNeighbours);
+	vec2 coveredSide = 1.0 - max(ownNeighbours * (1.0 - inactive), alliedNeighbours);
+	// OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos, so it gets a little thicker when zoomed in; crisp, with a
+	// pixel of anti-aliasing on its inner edge
+	vec2 width = pixelCells * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth / cellSize;
+	vec2 edge = 1.0 - smoothstep(width - pixelCells, width, edgeDist);
+	// the x sides run along z and the z sides along x
+	edge *= vec2(stipple(cellCoord.y, pixelCells.y), stipple(cellCoord.x, pixelCells.x));
 	// no outline where the position jumps between pixels (terrain silhouettes) or cells shrink below a pixel
-	float outline = (max(cellPixels.x, cellPixels.y) < 1.0) ? max(lineAmount.x, lineAmount.y) : 0.0;
+	float outlineOn = (max(cellPixels.x, cellPixels.y) < 1.0) ? sheetOutlineAlpha : 0.0;
+	float ownLine = max(ownSide.x * edge.x, ownSide.y * edge.y) * ownLineFade;
+	float coveredLine = max(coveredSide.x * edge.x, coveredSide.y * edge.y) * jammedFade;
+	float lineAlpha = max(ownLine, coveredLine) * outlineOn;
 
-	vec3 fillColor = mix(alliedColor, sheetColor, weight);
-	fragColor = vec4(mix(fillColor, outlineColor, outline), mix(sheetAlpha, sheetOutlineAlpha, outline) * fade);
+	// the outline over the fill
+	vec3 fillColor = mix(alliedColor, sheetColor, weight * (1.0 - inactive * allied));
+	float fillAlpha = sheetAlpha * fillFade * (1.0 - lineAlpha);
+	float alpha = lineAlpha + fillAlpha;
+	fragColor = vec4((outlineColor * lineAlpha + fillColor * fillAlpha) / max(alpha, 1e-4), alpha);
 }

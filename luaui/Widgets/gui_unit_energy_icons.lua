@@ -29,12 +29,12 @@ local teamList = {} -- {team1, team2, team3....}
 
 local chobbyInterface
 
-local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool buildingNeedingUpkeep}
+local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool needsUpkeep}
 local maxStall = 0 --Currently not used, was used to skip checking energy level when maxenergy > maxStall issue was energy symbols were not removed then
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6 * (xsize * xsize + zsize * zsize) ^ 0.5
-	local buildingNeedingUpkeep = false
+	local needsUpkeep = false
 	local neededEnergy = 0
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
@@ -49,17 +49,12 @@ for udid, unitDef in pairs(UnitDefs) do
 				end
 			end
 		end
-	elseif
-		unitDef.isBuilding
-		and unitDef.energyUpkeep
-		and unitDef.energyUpkeep > 0
-		and unitDef.energyUpkeep > unitDef.energyMake
-	then
+	elseif unitDef.energyUpkeep and unitDef.energyUpkeep > 0 and unitDef.energyUpkeep > unitDef.energyMake then
 		neededEnergy = unitDef.energyUpkeep
-		buildingNeedingUpkeep = true
+		needsUpkeep = true
 	end
 	if neededEnergy > 0 then
-		unitConf[udid] = { 7.5 + (scale / 2.2), unitDef.height, neededEnergy, buildingNeedingUpkeep }
+		unitConf[udid] = { 7.5 + (scale / 2.2), unitDef.height, neededEnergy, needsUpkeep }
 	end
 	maxStall = math.max(maxStall, neededEnergy)
 end
