@@ -38,6 +38,8 @@ local ALLIED_POLL_SECONDS = 0.2 -- how often the allied jammers are checked for 
 local SMOOTH_RATE = 14 -- 1/s, how fast the sheet follows coverage changes (higher = snappier)
 local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged across radar cells, so the sheet keeps up with the cursor
 local MAX_RADIUS_CELLS = 256 -- sanity limit of the jammer radius in cells
+local OUTLINE_DASHES = 4 -- stipple density of the outline: dashes per radar cell side, centred on the cell corners
+local OUTLINE_DASH_SPEED = 6 -- elmos per second the stipple travels clockwise around the coverage, 0 = still
 
 -- The sheet is projected through the map g-buffer depth; units and features are left out via the model g-buffer
 -- depth. BAR turns both on (luaintro/springconfig.lua).
@@ -70,11 +72,11 @@ local shaderConfig = {
 	ALLIED_ALPHA = 0.85, -- their opacity relative to the previewed jammer's cells
 	OUTLINE_COLOR = "vec3(1.00, 0.32, 0.22)", -- stippled outline along the border with uncovered radar cells
 	SHEET_ALPHA = 0.17, -- opacity of the sheet
-	SHEET_OUTLINE_ALPHA = 0.85, -- opacity of the dashes of the OUTLINE_COLOR border of the sheet
+	SHEET_OUTLINE_ALPHA = 0.66, -- opacity of the dashes of the OUTLINE_COLOR border of the sheet
 	OUTLINE_GAP_ALPHA = 0.3, -- opacity of that border between its dashes, relative to the dashes
-	OUTLINE_WIDTH = 3, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution
-	OUTLINE_WORLD_WIDTH = 2, -- elmos added to the outline width, so it gets a little thicker when zoomed in
-	OUTLINE_DASH = 12, -- pixels per dash and gap at 1080p: the dashes per cell side double as the view zooms in
+	OUTLINE_WIDTH = 1.2, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution
+	OUTLINE_WORLD_WIDTH = 0.89, -- elmos added to the outline width, so it gets a little thicker when zoomed in
+	OUTLINE_DASHES = OUTLINE_DASHES,
 	MINIMAP_ALPHA = 0.33, -- opacity of the coverage fill on the minimap, SHEET_COLOR / ALLIED_COLOR
 	MINIMAP_OUTLINE_ALPHA = 0.4, -- opacity of the OUTLINE_COLOR border on the minimap around the previewed jammer's coverage
 	MINIMAP_ALLIED_OUTLINE_ALPHA = 0.25, -- opacity of that border around cells covered only by other allied jammers
@@ -191,7 +193,7 @@ local preview = {
 	radius = nil,
 	x = 0, -- emitter world position
 	z = 0,
-	spawnStart = 0,
+	spawnStart = 0.0,
 	movedAt = -mathHuge, -- last time the emitter moved to another radar cell
 	inactive = 0.0, -- 0 while the previewed jammer jams, 1 while it does not, eased in between
 }
@@ -238,10 +240,12 @@ local sheetShaderCache = {
 		modelDepths = hasModelDepth and 1 or nil,
 		coverageTex = 2,
 		alliedTex = 3,
+		targetTex = 4,
 	},
 	uniformFloat = {
 		previewParams = { 0, 0, -1, 0 },
 		previewInactive = 0,
+		stippleOffset = 0,
 		emitterXZ = { 0, 0 },
 		alliedParams = { 0, 0 },
 		passRect = { -1, -1, 1, 1 },
@@ -610,7 +614,7 @@ local function drawClearedPass()
 end
 
 -- Disc and smoothing passes of the previewed jammer. Returns its texture set, nil if it could not be created.
-local function preparePreview(radius, emitterX, emitterZ, inactive, now, drawFrame)
+local function preparePreview(radius, emitterX, emitterZ, inactive, alreadyShown, now, drawFrame)
 	local set = getSet(radius)
 	if not set then
 		return nil
@@ -620,7 +624,7 @@ local function preparePreview(radius, emitterX, emitterZ, inactive, now, drawFra
 	local fresh = (drawFrame - preview.frame > 1) or (preview.radius ~= radius)
 	local dt = fresh and 0 or mathMin(now - preview.time, 0.1)
 	if fresh then
-		preview.spawnStart = now
+		preview.spawnStart = now - (alreadyShown and 60 or 0) -- coverage already on screen doesn't spread out again
 		preview.inactive = inactive
 	end
 	preview.frame, preview.time, preview.radius = drawFrame, now, radius
@@ -636,6 +640,9 @@ local function preparePreview(radius, emitterX, emitterZ, inactive, now, drawFra
 		preview.movedAt = now
 	end
 	if fresh or set.bx ~= bx or set.bz ~= bz then
+		if selectedJammerUnitID then
+			allied.checkedAt = -mathHuge -- a selected jammer's allied coverage moves along with it, in the same frame
+		end
 		discShader:Activate()
 		discShader:SetUniform("discParams", bx, bz, radius, 0)
 		gl.RenderToTexture(set.target, drawClearedPass)
@@ -720,6 +727,7 @@ local function drawSheet(set, showAllied, now)
 	end
 	if set then
 		gl.Texture(2, set.state[set.cur])
+		gl.Texture(4, set.target) -- exact coverage: the outline follows it without the smoothing's delay
 	end
 	if showAllied then
 		gl.Texture(3, alliedTex)
@@ -735,10 +743,11 @@ local function drawSheet(set, showAllied, now)
 	-- the allied coverage fades in with the preview, unless it is always shown
 	local alliedOpacity = settings.alwaysShow and 1 or mathMin((now - preview.spawnStart) * 4, 1)
 	sheetShader:SetUniform("alliedParams", showAllied and 1 or 0, alliedOpacity)
+	sheetShader:SetUniform("stippleOffset", (now * OUTLINE_DASH_SPEED / RADAR_CELL) % 1)
 	sheetShader:SetUniform("passRect", left, bottom, right, top)
 	passVAO:DrawArrays(GL.TRIANGLES)
 	sheetShader:Deactivate()
-	for unit = 0, 3 do
+	for unit = 0, 4 do
 		gl.Texture(unit, false)
 	end
 end
@@ -758,7 +767,12 @@ function widget:DrawWorld()
 	gl.DepthTest(false)
 	gl.Culling(false)
 	gl.Blending(false)
-	local set = radius and preparePreview(radius, emitterX, emitterZ, inactive or 0, now, drawFrame) or nil
+	local set
+	if radius then
+		-- a selected allied jammer that jams was already drawn with the always shown allied coverage
+		local alreadyShown = settings.alwaysShow and inactive == 0 and jammerUnits[selectedJammerUnitID] == true
+		set = preparePreview(radius, emitterX, emitterZ, inactive or 0, alreadyShown, now, drawFrame)
+	end
 	if showAllied then
 		-- check right away when the allied coverage (re)appears, it may be stale
 		updateAllied(now, drawFrame - allied.shownFrame > 1)
