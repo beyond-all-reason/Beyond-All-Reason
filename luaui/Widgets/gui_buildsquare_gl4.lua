@@ -57,7 +57,9 @@ local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -212,9 +214,35 @@ local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
 local pregameStatuses = {}
 local snapStatuses = {}
-local queuedBuildFootprints = {}
-local queuedBuildFootprintCount = 0
-local queuedBuildFootprintsGameFrame = -1
+-- Queued build footprints of the selected units, hashed into map buckets so every preview tests only the
+-- footprints near it. Per-unit queues are re-read only when their command count changes, a build command
+-- arrives, the selection changes, or the periodic full refresh is due.
+-- Grouped in one table: the chunk is close to Lua's 200 locals limit.
+local QUEUED_BUCKET_SIZE = 64
+local QUEUED_BUCKET_STRIDE = 1024
+local QUEUED_FULL_REFRESH_FRAMES = 30
+local queuedBuilds = {
+	minX = {},
+	maxX = {},
+	minZ = {},
+	maxZ = {},
+	count = 0,
+	buckets = {},
+	revision = 0,
+	gameFrame = -1,
+	drawFrame = -1,
+	lastFullRefresh = -1,
+	unitQueues = {},
+	dirtyUnits = {},
+	selectedUnits = {},
+	selectionDirty = true,
+	-- extractor snap placement, resolved once per draw frame
+	snapDrawFrame = -1,
+	snapUnitDefID = nil,
+	snapFacing = nil,
+	snapX = nil,
+	snapZ = nil,
+}
 
 local MAX_CELLS = 4096
 
