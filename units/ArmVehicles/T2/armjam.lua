@@ -46,6 +46,7 @@ return {
 			juno_kill = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
+			off_on_stun = "true",
 			subfolder = "ArmVehicles/T2",
 			techlevel = 2,
 			unitgroup = "util",

@@ -415,7 +415,7 @@ function widget:PlayerChanged()
 end
 
 -- Whether the engine lets the unit's jammer work: on, not stunned and, with the sensors.requireUpkeep modrule,
--- its upkeep paid (on engines without it unit_sensor_suspend zeroes the radius instead)
+-- its upkeep paid (a game-side pause zeroes the radius instead)
 local function isJamming(unitID)
 	return spGetUnitIsActive(unitID)
 		and not spGetUnitIsStunned(unitID)
@@ -581,7 +581,7 @@ local function getPreview()
 		local radiusCells = radiusToCells(spGetUnitSensorRadius(unitID, "radarJammer") or 0)
 		local jamming = radiusCells >= 1 and isJamming(unitID)
 		if radiusCells < 1 then
-			radiusCells = def.radiusCells -- unit_sensor_suspend zeroes the radius of a paused or unpaid jammer
+			radiusCells = def.radiusCells -- a game-side pause zeroes the radius
 		end
 		if radiusCells < 1 then
 			return nil

@@ -6,7 +6,7 @@ piece  pelvis, lleg, lfoot, rleg, rfoot, rthigh, lthigh, head, dish, rotator, ja
 
 static-var  isMoving;
 
-static-var recently_damaged, Stunned;
+static-var recently_damaged, desired_activation;
 
 // Signal definitions
 #define SIGNAL_TURNON 4
@@ -262,6 +262,7 @@ Create()
 	isMoving = FALSE;
 	animSpeed = 5;
 	recently_damaged = 0;
+	desired_activation = 1;
 	SLEEP_UNTIL_UNITFINISHED;
 	start-script DamagedSmoke();
 }
@@ -270,12 +271,17 @@ Activate()
 {
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
-	// stays closed while stunned or after a hit, SetStunned and OffOnHit open it again
-	if (Stunned OR recently_damaged)
-	{
-		return (0);
-	}
+	desired_activation = 1;
 	show jam;
+	// if we are in this function, the unit is already on
+	// implied set ACTIVATION to 1;
+	// turn off if unit is in the recently_damaged state
+	// this turn off action calls the Deactivate function
+	if( recently_damaged == 1)
+	{
+		set ACTIVATION to 0;
+		return(0);
+	}
 
 	call-script open();
 	spin dish around x-axis speed <100.021978> accelerate <1>;
@@ -284,6 +290,21 @@ Activate()
 
 Deactivate()
 {
+	// get PRINT(0, desired_activation,desired_activation,get GAME_FRAME);
+	// no easy way to tell if an on-off action is 
+	// script/gadget controlled or user controlled
+	// assume a deactivate command is a user command 
+	// if the unit has not been recently damaged
+	// However, we need to wait a few frames, 
+	// unit_paralyze_on_off deactivates this unit before it is 
+	// stunned, so it is actually turned off, but we need to wait to see if the
+	// unit is "damaged" by stun.
+	sleep 100;
+	if (recently_damaged == 0)
+	{
+		//set desired state if deactivated and not recently damaged
+		desired_activation = 0;
+	}
 	signal SIGNAL_TURNON;
 	set-signal-mask SIGNAL_TURNON;
 
@@ -294,20 +315,15 @@ Deactivate()
 	return (0);
 }
 
-// Closes up for deactivate_time after a hit. unit_sensor_suspend pauses the jamming meanwhile,
-// the on/off state stays as the player set it.
 OffOnHit()
 {
-	signal SIGNAL_OFF;
-	set-signal-mask SIGNAL_OFF;
-	recently_damaged = 1;
-	start-script Deactivate();
-	sleep deactivateTime;
-	recently_damaged = 0;
-	if ((get ACTIVATION) AND (!Stunned))
-	{
-		start-script Activate();
-	}
+signal SIGNAL_OFF;
+set-signal-mask SIGNAL_OFF;
+recently_damaged = 1;
+set ACTIVATION to 0; // turn off unit
+sleep deactivateTime;
+recently_damaged = 0;
+set ACTIVATION to desired_activation;
 }
 
 HitByWeapon(anglex, anglez)
@@ -317,13 +333,14 @@ HitByWeapon(anglex, anglez)
 }
 
 
+static-var  Stunned;
 SetStunned(State)
 {
-	Stunned = State;
+    Stunned = State;
 	if (Stunned) {
-		start-script Deactivate();
-	} else if ((get ACTIVATION) AND (!recently_damaged)) {
-		start-script Activate();
+	    start-script Deactivate();
+	} else {
+	    set ACTIVATION to desired_activation;
 	}
 }
 
