@@ -142,13 +142,18 @@ void main() {
 	vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
 	ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
 	ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
-	vec2 ownNeighbours = step(vec2(0.5), vec2(previewCoverageAt(nx), previewCoverageAt(nz)));
-	vec2 anyNeighbours = max(ownNeighbours, vec2(alliedAt(nx), alliedAt(nz)));
-	vec2 side = max(step(0.5, ownCoverage) * (1.0 - ownNeighbours), 1.0 - anyNeighbours);
+	ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
+	vec3 ownNeighbours = step(vec3(0.5), vec3(previewCoverageAt(nx), previewCoverageAt(nz), previewCoverageAt(nd)));
+	vec3 anyNeighbours = max(ownNeighbours, vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd)));
+	vec3 side = max(step(0.5, ownCoverage) * (1.0 - ownNeighbours), 1.0 - anyNeighbours); // x side, z side, diagonal
 	vec2 px = max(cellPixels, vec2(1e-5)) * outlineWidth * viewGeometry.y / 1080.0;
-	vec2 lineAmount = side * (1.0 - smoothstep(vec2(0.0), px, edgeDist));
+	vec2 edge = 1.0 - smoothstep(vec2(0.0), px, edgeDist);
+	// at a concave corner only the diagonal cell is outside and neither side's line reaches the corner: this cell's
+	// corner square closes the outline there
+	float corner = (1.0 - side.x) * (1.0 - side.y) * side.z * min(edge.x, edge.y);
+	float line = max(max(side.x * edge.x, side.y * edge.y), corner);
 	// no outline where the position jumps between pixels (terrain silhouettes) or cells shrink below a pixel
-	float outline = (max(cellPixels.x, cellPixels.y) < 1.0) ? max(lineAmount.x, lineAmount.y) : 0.0;
+	float outline = (max(cellPixels.x, cellPixels.y) < 1.0) ? line : 0.0;
 
 	// only the previewed radar's own coverage animates (weight), cells of other allied radars stay still
 	float glow = sheetGlow(worldPos.xz - radarcenter_range.xz, animParams.x) * weight * animParams.z;

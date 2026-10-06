@@ -95,18 +95,19 @@ void main() {
 	vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
 	ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
 	ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
-	float ownNx = ownAt(nx);
-	float ownNz = ownAt(nz);
+	ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
+	vec3 ownN = vec3(ownAt(nx), ownAt(nz), ownAt(nd));
+	vec3 alliedN = vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd));
 	float covered = 1.0 - inactive * (1.0 - allied);
-	vec2 side = vec2(
-		max(own * (1.0 - ownNx), covered * (1.0 - max(ownNx * (1.0 - inactive), alliedAt(nx)))),
-		max(own * (1.0 - ownNz), covered * (1.0 - max(ownNz * (1.0 - inactive), alliedAt(nz)))));
+	vec3 side = max(own * (1.0 - ownN), covered * (1.0 - max(ownN * (1.0 - inactive), alliedN))); // x side, z side, diagonal
 	vec2 px = max(fwidth(cellPos), vec2(1e-5)) * mapParams.w;
-	vec2 lineAmount = side * (1.0 - smoothstep(vec2(0.0), px, edgeDist));
+	vec2 edge = 1.0 - smoothstep(vec2(0.0), px, edgeDist);
+	// at a concave corner only the diagonal cell is outside: this cell's corner square closes the outline there
+	float corner = (1.0 - side.x) * (1.0 - side.y) * side.z * min(edge.x, edge.y);
 	// only covered cells are outlined; a cell the previewed radar just started covering fades its outline in
 	// with its fill. Allied-only cells use their own outline opacity.
 	float previewWeight = own * smoothstep(0.0, 0.5, smoothed);
-	float outline = max(lineAmount.x, lineAmount.y) * max(previewWeight, allied);
+	float outline = max(max(side.x * edge.x, side.y * edge.y), corner) * max(previewWeight, allied);
 	float outlineA = mix(alliedOutlineAlpha, outlineAlpha * mix(1.0, inactiveParams.z, inactive), previewWeight);
 
 	float alpha = mix(fill * fillAlpha, outlineA, outline);
