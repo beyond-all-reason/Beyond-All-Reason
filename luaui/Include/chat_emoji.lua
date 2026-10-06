@@ -269,10 +269,11 @@ end
 function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	for _, line in ipairs(textLines) do
 		local linebuffer = ""
 		for _, word in ipairs(colorSafeWords(line)) do
-			local lineWidth = (lineCount == 0 and firstLineIndent) and (maxWidth - firstLineIndent) or maxWidth
+			local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
 			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
@@ -460,6 +461,7 @@ end
 function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	local spaceWidth = usedFont:GetTextWidth(" ") * fontSize
 	for _, line in ipairs(text) do
 		local linebuffer = ""
@@ -468,7 +470,7 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont, firstLin
 
 		if not lineHasEmoji then
 			for _, word in ipairs(colorSafeWords(line)) do
-				local lineWidth = (lineCount == 0 and firstLineIndent) and (maxWidth - firstLineIndent) or maxWidth
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
 				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
@@ -483,7 +485,7 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont, firstLin
 		else
 			for _, word in ipairs(colorSafeWords(line)) do
 				local wordWidth = emojiTextWidth(word, fontSize, usedFont)
-				local lineWidth = (lineCount == 0 and firstLineIndent) and (maxWidth - firstLineIndent) or maxWidth
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
 				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
