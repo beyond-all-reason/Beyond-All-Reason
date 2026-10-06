@@ -478,12 +478,12 @@ local function dockUnitQueue(unitID, subUnitID)
 	carrierMetaList[unitID].subUnitsList[subUnitID].activeDocking = true
 end
 
-local RemoveDrone
+local RemoveDrone ---@type function
 
 local function releaseDrone(carrierID, subUnitID)
 	spUnitDetach(subUnitID)
 	mcDisable(subUnitID)
-	local vx, vy, vz = spGetUnitVelocity(carrierID)
+	local vx, vy, vz = spGetUnitVelocity(carrierID) ---@as number?
 	if vx then
 		spSetUnitVelocity(subUnitID, vx, vy, vz)
 	end
@@ -1085,6 +1085,8 @@ if hasBomberDrones then
 end
 
 if hasAmmoDrones or hasBomberDrones then
+	local mcSetAirMoveTypeData = Spring.MoveCtrl.SetAirMoveTypeData
+
 	function gadget:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 		if not proOwnerID then
 			return
@@ -1158,9 +1160,9 @@ end
 
 function RemoveDrone(carrierUnitID, unitID)
 	if carrierMetaList[carrierUnitID].subUnitsList[unitID] then
-		local droneMetaData = carrierMetaList[carrierUnitID].subUnitsList[unitID]
-		local dronetypeIndex = droneMetaData.dronetypeIndex
-		local dockingPieceIndex = droneMetaData.dockingPieceIndex
+		local droneMetaData = carrierMetaList[carrierUnitID].subUnitsList[unitID] ---@as table
+		local dronetypeIndex = droneMetaData.dronetypeIndex ---@as integer?
+		local dockingPieceIndex = droneMetaData.dockingPieceIndex ---@as integer?
 		if dronetypeIndex then
 			if dockingPieceIndex then
 				carrierMetaList[carrierUnitID].availableSections[dronetypeIndex].availablePieces[dockingPieceIndex].dockingPieceAvailable =
@@ -1203,7 +1205,7 @@ function gadget:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	local wantedHeight = stunnedDroneHeights[unitID]
 	if stunned then
 		if not wantedHeight and not spGetUnitTransporter(unitID) then
-			stunnedDroneHeights[unitID] = spGetUnitMoveTypeData(unitID).wantedHeight
+			stunnedDroneHeights[unitID] = (spGetUnitMoveTypeData(unitID)--[[@as table]]).wantedHeight
 			mcSetGunshipMoveTypeData(unitID, { wantedHeight = 0, altitudeRate = STUNNED_HOVER_DESCEND_SPEED }) -- maybe check waterlevel?
 		end
 	elseif wantedHeight then
