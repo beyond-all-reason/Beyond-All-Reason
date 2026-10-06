@@ -129,6 +129,7 @@ local colorSpecStr, colorAllyStr, colorOtherAllyStr, colorGameStr, colorConsoleS
 
 -- Layout (keep local for performance)
 local maxPlayernameWidth, lineSpaceWidth, backgroundPadding = 50, 24 * config.widgetScale, usedFontSize
+local channelTagSize = 0.72
 
 -- State tables to reduce local variable count
 local state = {
@@ -584,6 +585,7 @@ function widget:LanguageChanged()
 		channelScopeAll = BAR.I18N("ui.chat.channelScopeAll"),
 		channelScopeTeam = BAR.I18N("ui.chat.channelScopeTeam"),
 		channelScopeSpec = BAR.I18N("ui.chat.channelScopeSpec"),
+		channelScopePrivate = BAR.I18N("ui.chat.channelScopePrivate"),
 		energy = BAR.I18N("ui.topbar.resources.energy"):lower(),
 		metal = BAR.I18N("ui.topbar.resources.metal"):lower(),
 		everyone = BAR.I18N("ui.chat.everyone"),
@@ -722,7 +724,9 @@ local function addChatLine(
 	ignore,
 	chatLineID,
 	noProcessors,
-	channelScope
+	channelScope,
+	nameTag,
+	formerTeamSquare
 )
 	chatLineID = chatLineID and chatLineID or #chatLines + 1
 
@@ -794,6 +798,17 @@ local function addChatLine(
 		text = msgColor .. text
 	end
 
+	local channelTag, channelTagWidth
+	if
+		(channelScope == "ALL" or channelScope == "PRIVATE")
+		and (lineType == LineTypes.Player or lineType == LineTypes.Spectator)
+	then
+		channelTag = "["
+			.. (channelScope == "ALL" and i18nStrings.channelScopeAll or i18nStrings.channelScopePrivate)
+			.. "]"
+		channelTagWidth = floor(font3:GetTextWidth(channelTag .. " ") * usedFontSize * channelTagSize)
+	end
+
 	-- convert /n into lines
 	local textLines = string_lines(text)
 	local hasEmoji = (lineType == LineTypes.Player or lineType == LineTypes.Spectator)
@@ -802,9 +817,9 @@ local function addChatLine(
 	-- word wrap text into lines
 	local wordwrappedText
 	if hasEmoji then
-		wordwrappedText = ChatEmoji.WordWrapRichText(textLines, lineMaxWidth, usedFontSize, font)
+		wordwrappedText = ChatEmoji.WordWrapRichText(textLines, lineMaxWidth, usedFontSize, font, channelTagWidth)
 	else
-		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize)
+		wordwrappedText = ChatEmoji.WordWrapPlain(textLines, lineMaxWidth, font, usedFontSize, channelTagWidth)
 	end
 
 	local lineColor = #wordwrappedText > 1 and ChatEmoji.GetLeadingColorPrefix(wordwrappedText[1]) or ""
@@ -815,7 +830,9 @@ local function addChatLine(
 			lineType = lineType,
 			playerName = name,
 			playerNameText = nameText,
-			channelScope = channelScope,
+			playerNameTag = nameTag,
+			playerFormerTeamSquare = formerTeamSquare,
+			channelTag = i == 1 and channelTag or nil,
 			textOutline = (
 				lineType ~= LineTypes.Spectator
 				and playernames[name]
@@ -1398,6 +1415,8 @@ local function extractChannelPrefix(text)
 		return ssub(text, 9), "allies"
 	elseif sfind(text, "Spectators: ", nil, true) == 1 then
 		return ssub(text, 13), "spectators"
+	elseif sfind(text, "Private: ", nil, true) == 1 then
+		return ssub(text, 10), "private"
 	end
 	return text, "all"
 end
@@ -1441,9 +1460,9 @@ local function getColoredPlayerName(name, gameFrame, isSpectator)
 					teamColor = ColorString(formerTeamColor[1], formerTeamColor[2], formerTeamColor[3]) or colorSpecStr
 				end
 			end
-			return teamColor .. "■ " .. colorSpecStr .. getChannelScopeLabel("SPEC") .. " " .. displayName
+			return colorSpecStr .. displayName, getChannelScopeLabel("SPEC"), teamColor .. "■"
 		end
-		return colorSpecStr .. getChannelScopeLabel("SPEC") .. " " .. displayName
+		return colorSpecStr .. displayName, getChannelScopeLabel("SPEC")
 	end
 	return getPlayerColorString(name, gameFrame) .. displayName
 end
@@ -1461,6 +1480,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 	local orgLine = line
 	local name = ""
 	local nameText = ""
+	local nameTag, formerTeamSquare
 	local text = ""
 	local lineType = 0
 	local bypassThisMessage = false
@@ -1483,6 +1503,8 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			channelScope = "TEAM"
 		elseif channel == "spectators" then
 			channelScope = "SPEC"
+		elseif channel == "private" then
+			channelScope = "PRIVATE"
 		end
 
 		if channel == "allies" then
@@ -1494,10 +1516,6 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 		end
 
 		nameText = getColoredPlayerName(name, gameFrame, false)
-		if channelScope == "ALL" or channelScope == "TEAM" then
-			local scopeColor = channelScope == "TEAM" and colorAllyStr or (ColorString(0.78, 0.78, 0.78) or "")
-			nameText = scopeColor .. " " .. nameText
-		end
 		line = c .. text
 
 	-- spectator message
@@ -1523,10 +1541,13 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			channelScope = "ALL"
 		elseif channel == "spectators" then
 			channelScope = "SPEC"
+		elseif channel == "private" then
+			channelScope = "PRIVATE"
 		end
-		c = (channel ~= "all") and colorSpecStr or ColorString(colorOther[1], colorOther[2], colorOther[3])
+		c = (channel == "all" or channel == "private") and ColorString(colorOther[1], colorOther[2], colorOther[3])
+			or colorSpecStr
 
-		nameText = getColoredPlayerName(name, gameFrame, true)
+		nameText, nameTag, formerTeamSquare = getColoredPlayerName(name, gameFrame, true)
 		line = c .. text
 
 	-- point
@@ -1548,7 +1569,7 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 			textcolor = playernames[name][1] == myAllyTeamID and colorAllyStr or colorOtherAllyStr
 		end
 
-		nameText = getColoredPlayerName(name, gameFrame, spectator)
+		nameText, nameTag, formerTeamSquare = getColoredPlayerName(name, gameFrame, spectator)
 		line = textcolor .. text
 
 	-- battleroom message
@@ -1765,7 +1786,9 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 					skipThisMessage,
 					reprocessID,
 					nil,
-					channelScope
+					channelScope,
+					nameTag,
+					formerTeamSquare
 				)
 			end
 		end
@@ -1965,24 +1988,35 @@ drawChatLine = function(i)
 			)
 			font:End()
 		end
-	end
-	if chatLines[i].channelScope and chatLines[i].lineType ~= LineTypes.System then
-		local localizedScope = chatLines[i].channelScope
-		if chatLines[i].channelScope == "ALL" and i18nStrings.channelScopeAll and i18nStrings.channelScopeAll ~= "" then
-			localizedScope = i18nStrings.channelScopeAll
+		if chatLines[i].playerNameTag then
+			local nameFontSize = usedFontSize * 1.03
+			local tagFontSize = usedFontSize * channelTagSize
+			local spaceWidth = font2:GetTextWidth(" ") * nameFontSize
+			local posX = maxPlayernameWidth
+				- font2:GetTextWidth(chatLines[i].playerNameText) * nameFontSize
+				- spaceWidth
+			font3:Begin(true)
+			font3:SetOutlineColor(0, 0, 0, 1)
+			font3:SetTextColor(colorSpec[1], colorSpec[2], colorSpec[3], 0.92)
+			font3:Print(chatLines[i].playerNameTag, posX, fontHeightOffset * 1.63, tagFontSize, "or")
+			font3:End()
+			if chatLines[i].playerFormerTeamSquare then
+				posX = posX - font3:GetTextWidth(chatLines[i].playerNameTag) * tagFontSize - spaceWidth
+				font2:Begin(true)
+				font2:SetOutlineColor(0, 0, 0, 1)
+				font2:Print(chatLines[i].playerFormerTeamSquare, posX, fontHeightOffset * 1.06, nameFontSize, "or")
+				font2:End()
+			end
 		end
-		local scopeLabel = "[" .. localizedScope .. "]"
-		local scopeFontSize = usedFontSize * 0.72
+	end
+	if chatLines[i].channelTag then
+		local channelTagFontSize = usedFontSize * channelTagSize
 		font3:Begin(true)
 		font3:SetOutlineColor(0, 0, 0, 1)
-		if chatLines[i].channelScope == "SPEC" then
-			font3:SetTextColor(0.84, 0.82, 0.63, 0.92)
-		else
-			font3:SetTextColor(0.78, 0.78, 0.78, 0.92)
-		end
-		font3:Print(scopeLabel, textPosX, fontHeightOffset * 1.2, scopeFontSize, "o")
+		font3:SetTextColor(0.78, 0.78, 0.78, 0.92)
+		font3:Print(chatLines[i].channelTag, textPosX, fontHeightOffset * 1.63, channelTagFontSize, "o")
 		font3:End()
-		textPosX = textPosX + floor(font3:GetTextWidth(scopeLabel .. " ") * scopeFontSize)
+		textPosX = textPosX + floor(font3:GetTextWidth(chatLines[i].channelTag .. " ") * channelTagFontSize)
 	end
 	if chatLines[i].lineType == LineTypes.System then -- sharing resources, taken player
 		if chatLines[i].richText then
@@ -4287,16 +4321,16 @@ function widget:ViewResize()
 	if not font then
 		return
 	end
-	local namePrefixWidth = math.max(
-		font:GetTextWidth(getChannelScopeLabel("ALL") .. " "),
-		font:GetTextWidth(getChannelScopeLabel("TEAM") .. " "),
-		font:GetTextWidth(getChannelScopeLabel("SPEC") .. " ")
-	)
-	maxPlayernameWidth = namePrefixWidth * usedFontSize
+	local nameFontSize = usedFontSize * 1.03
+	local nameSpaceWidth = font2:GetTextWidth(" ") * nameFontSize
+	local formerTeamSquareWidth = font2:GetTextWidth("■") * nameFontSize
+	local nameTagWidth = font3:GetTextWidth(getChannelScopeLabel("SPEC")) * usedFontSize * channelTagSize
+	local namePrefixWidth = formerTeamSquareWidth + nameSpaceWidth + nameTagWidth + nameSpaceWidth
+	maxPlayernameWidth = namePrefixWidth
 	for _, playerID in ipairs(playersList) do
 		local name = spGetPlayerInfo(playerID, false)
 		name = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID)) or name
-		local nameWidth = (namePrefixWidth + font:GetTextWidth(name)) * usedFontSize
+		local nameWidth = namePrefixWidth + font2:GetTextWidth(name) * nameFontSize
 		if nameWidth > maxPlayernameWidth then
 			maxPlayernameWidth = nameWidth
 		end
