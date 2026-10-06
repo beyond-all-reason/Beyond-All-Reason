@@ -328,6 +328,7 @@ unitDefRenames = {
 	corfship = "cortex_brimstone",
 	corftiger = "cortex_heattiger",
 	corfus = "cortex_fusionreactor",
+	corhltfus = "cortex_overlord",
 	corgant = "cortex_experimentalgantry",
 	corgantuw = "cortex_underwaterexperimentalgantry",
 	corgarp = "cortex_garpike",

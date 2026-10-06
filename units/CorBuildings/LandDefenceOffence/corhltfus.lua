@@ -1,5 +1,5 @@
 return {
-	corfus = {
+	corhltfus = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildpic = "CORFUS.DDS",
