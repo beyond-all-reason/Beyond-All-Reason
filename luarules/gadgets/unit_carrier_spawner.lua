@@ -62,10 +62,13 @@ local spSetUnitCOBValue = Spring.SetUnitCOBValue
 local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
 local spGetUnitPiecePosition = Spring.GetUnitPiecePosition
 local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitTransporter = Spring.GetUnitTransporter
+local spGetUnitMoveTypeData = Spring.GetUnitMoveTypeData
 
 local mcEnable = Spring.MoveCtrl.Enable
 local mcDisable = Spring.MoveCtrl.Disable
 local mcSetPosition = Spring.MoveCtrl.SetPosition
+local mcSetGunshipMoveTypeData = Spring.MoveCtrl.SetGunshipMoveTypeData
 
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
@@ -121,6 +124,7 @@ local droneCarrierIdList = {}
 
 local carrierUpdateList = {} -- scratch list of the carriers whose turn it is this frame
 local deferredDroneReleases = {}
+local stunnedDroneHeights = {} -- wanted height from before the stun
 local inUnitDestroyed = false
 
 local gaiaTeam
@@ -143,6 +147,7 @@ local CARRIER_UPDATE_PERIOD = GAME_SPEED -- Frames between two updates (spawn ch
 local CMD_QUEUE_SCAN_DEPTH = 4 -- How many queued commands of a drone are inspected to see whether it is busy fighting or repairing.
 local DOCK_ORDER_REFRESH_DISTANCE = 32 -- A drone flying back to dock gets a fresh move order once its docking piece moved this far from where it was sent.
 local DOCK_APPROACH_MAX_SKIP_FRAMES = 10 -- Longest a docking drone that is still far from its dock waits between checks.
+local STUNNED_HOVER_DESCEND_SPEED = 0.5 -- elmos per frame, maybe: could be a %
 
 -- These values can be tuned in the unitdef file. Add the section below to a weaponDef list in the unitdef file.
 --customparams = {
@@ -286,6 +291,16 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		if spawnDef and spawnDef.radius then
 			carrierDefs[unitDefID] = { weaponIndex = i, weaponDefID = weaponDefID }
 			break
+		end
+	end
+end
+
+local hoveringDroneAltitudeRate = {}
+for _, spawnDef in pairsNext, spawnDefs do
+	for _, name in pairsNext, spawnDef.name do
+		local unitDef = UnitDefNames[name]
+		if unitDef and unitDef.isHoveringAirUnit then
+			hoveringDroneAltitudeRate[unitDef.id] = math.max(unitDef.verticalSpeed, 0.01)
 		end
 	end
 end
@@ -1177,6 +1192,26 @@ function RemoveDrone(carrierUnitID, unitID)
 	end
 end
 
+function gadget:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	local altitudeRate = hoveringDroneAltitudeRate[unitDefID]
+	if not altitudeRate then
+		return
+	end
+
+	-- Gunships specifically hover at level unless we drop them after an EMP.
+	-- TODO: Probably should be a more general fix. Appropriate for drones though.
+	local wantedHeight = stunnedDroneHeights[unitID]
+	if stunned then
+		if not wantedHeight and not spGetUnitTransporter(unitID) then
+			stunnedDroneHeights[unitID] = spGetUnitMoveTypeData(unitID).wantedHeight
+			mcSetGunshipMoveTypeData(unitID, { wantedHeight = 0, altitudeRate = STUNNED_HOVER_DESCEND_SPEED }) -- maybe check waterlevel?
+		end
+	elseif wantedHeight then
+		stunnedDroneHeights[unitID] = nil
+		mcSetGunshipMoveTypeData(unitID, { wantedHeight = wantedHeight, altitudeRate = altitudeRate })
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	inUnitDestroyed = true
 	local carrierUnitID = droneCarrierIdList[unitID]
@@ -1191,6 +1226,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	end
 
 	deferredDroneReleases[unitID] = nil
+	stunnedDroneHeights[unitID] = nil
 	if carrierMetaList[unitID] then
 		for subUnitID, carrierID in pairsNext, deferredDroneReleases do
 			if carrierID == unitID then
