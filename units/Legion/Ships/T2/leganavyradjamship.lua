@@ -38,7 +38,6 @@ return {
 			deactivate_time = 8,
 			model_author = "Beherith",
 			normaltex = "unittextures/leg_normal.dds",
-			off_on_stun = "true",
 			subfolder = "Legion/Ships/T2",
 			techlevel = 2,
 			unitgroup = "util",
