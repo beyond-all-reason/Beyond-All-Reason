@@ -118,6 +118,7 @@ local tipKeys = {
 	"autogroups",
 	"buildingHotkeys",
 	"completelyDisappear",
+	"comWarning",
 	"destroyFighters",
 	"dGun",
 	"dGunAssassin",
