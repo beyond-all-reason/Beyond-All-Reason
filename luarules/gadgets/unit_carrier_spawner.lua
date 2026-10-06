@@ -21,6 +21,7 @@ local spDestroyUnit = Spring.DestroyUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitVelocity = Spring.GetUnitVelocity
 local SetUnitNoSelect = Spring.SetUnitNoSelect
 local SendToUnsynced = SendToUnsynced
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
@@ -81,6 +82,7 @@ local tonumber = tonumber
 local pairsNext = next
 local PI = math.pi
 local GAME_SPEED = Game.gameSpeed
+local CARRIER_STOPPED_SPEED = 1 / GAME_SPEED -- cutoff used in engine Guard commands
 local PRIVATE = { private = true }
 local CMD_CARRIER_SPAWN_ONOFF = GameCMD.CARRIER_SPAWN_ONOFF
 local CMD_ATTACK = CMD.ATTACK
@@ -297,7 +299,25 @@ local function safe(tbl)
 	return copy
 end
 
-local function randomPointInUnitCircle(offset)
+local function findFreeBearing(carrierData, dronetypeIndex, count)
+	local taken = {}
+	for _, droneData in pairsNext, carrierData.subUnitsList do
+		if droneData.dronetypeIndex == dronetypeIndex and droneData.bearing then
+			taken[droneData.bearing] = true
+		end
+	end
+	local spacing = 2 * PI / count
+	local bearing = 0
+	for i = 1, count - 1 do
+		if not taken[bearing] then
+			break
+		end
+		bearing = i * spacing
+	end
+	return bearing, spacing * 0.25
+end
+
+local function getBearingPoint(droneData, offset)
 	local startpointoffset = 0
 	if offset then
 		startpointoffset = offset
@@ -307,7 +327,12 @@ local function randomPointInUnitCircle(offset)
 	elseif startpointoffset < 0 then
 		startpointoffset = 0
 	end
-	local angle = random(0, 2 * PI)
+	local angle
+	if droneData.bearing then
+		angle = droneData.bearing + (random() * 2 - 1) * droneData.bearingJitter
+	else
+		angle = random() * 2 * PI
+	end
 	--local distance = power(random((startpointoffset/100), 1), 0.5)
 	local distance = (random(startpointoffset, 100) / 100) ^ 0.5
 	return cos(angle) * distance, sin(angle) * distance
@@ -719,6 +744,8 @@ local function spawnUnit(spawnData)
 								maxAmmo = carrierData.droneAmmo[dronetypeIndex],
 								approachSpeed = droneApproachSpeed(subUnitDef),
 							}
+							droneData.bearing, droneData.bearingJitter =
+								findFreeBearing(carrierData, dronetypeIndex, carrierData.maxunits[dronetypeIndex])
 							carrierData.subUnitsList[subUnitID] = droneData
 							droneCarrierIdList[subUnitID] = ownerID
 							totalDroneCount = totalDroneCount + 1
@@ -1271,7 +1298,7 @@ local function updateStandaloneDrones(frame)
 				if not engaged and ((DEFAULT_UPDATE_ORDER_FREQUENCY + droneData.lastOrderUpdate) < frame) then
 					local idleRadius = droneData.idleRadius * 0.2
 					droneData.lastOrderUpdate = frame
-					local rx, rz = randomPointInUnitCircle(5)
+					local rx, rz = getBearingPoint(droneData, 5)
 					spGiveOrderToUnit(
 						unitID,
 						CMD.MOVE,
@@ -1291,6 +1318,8 @@ end
 
 local function updateCarrier(carrierID, carrierMetaData, frame)
 	local carrierx, carriery, carrierz = spGetUnitPosition(carrierID)
+	local _, _, _, carrierSpeed = spGetUnitVelocity(carrierID)
+	local carrierMoving = carrierSpeed and carrierSpeed >= CARRIER_STOPPED_SPEED
 	if not carrierx then
 		if not inUnitDestroyed then
 			gadget:UnitDestroyed(carrierID)
@@ -1482,7 +1511,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 						or (droneDistance > carrierMetaData.controlRadius) and not (droneType == "bomber")
 					then
 						-- move drones to carrier when out of range
-						rx, rz = randomPointInUnitCircle(5)
+						rx, rz = getBearingPoint(droneData, 5)
 						--if carrierMetaData.docking and idleRadius == 0 then
 						--	dockUnitQueue(carrierID, subUnitID)
 						--else
@@ -1492,7 +1521,9 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 							{ carrierx + rx * idleRadius, carriery, carrierz + rz * idleRadius },
 							0
 						)
-						spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+						if carrierMoving then
+							spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+						end
 						--end
 					elseif carrierMetaData.manualDrones or (droneData.maxAmmo > 0 and droneData.remainingAmmo <= 0) then
 						return
@@ -1548,7 +1579,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 										dockUnitQueue(carrierID, subUnitID)
 									end
 								elseif bomberStage == 4 + carrierMetaData.dronebombingruns then
-									rx, rz = randomPointInUnitCircle(5)
+									rx, rz = getBearingPoint(droneData, 5)
 									spGiveOrderToUnit(
 										subUnitID,
 										CMD.MOVE,
@@ -1573,7 +1604,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 
 									if fightOrder then
 										local figthRadius = carrierMetaData.radius * 0.2
-										rx, rz = randomPointInUnitCircle(5)
+										rx, rz = getBearingPoint(droneData, 5)
 										spGiveOrderToUnit(
 											subUnitID,
 											CMD.FIGHT,
@@ -1618,7 +1649,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 											end
 										else
 											local figthRadius = carrierMetaData.radius * 0.2
-											rx, rz = randomPointInUnitCircle(5)
+											rx, rz = getBearingPoint(droneData, 5)
 											spGiveOrderToUnit(
 												subUnitID,
 												CMD.FIGHT,
@@ -1654,7 +1685,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 								dockUnitQueue(carrierID, subUnitID)
 							else
 								undockSequence(carrierID, subUnitID)
-								rx, rz = randomPointInUnitCircle(5)
+								rx, rz = getBearingPoint(droneData, 5)
 								if droneType == "bomber" then
 									spGiveOrderToUnit(
 										subUnitID,
@@ -1709,7 +1740,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 							if carrierMetaData.docking and idleRadius == 0 then
 								dockUnitQueue(carrierID, subUnitID)
 							else
-								rx, rz = randomPointInUnitCircle(5)
+								rx, rz = getBearingPoint(droneData, 5)
 								undockSequence(carrierID, subUnitID)
 								if droneType == "nano" then
 									spGiveOrderToUnit(
@@ -1746,7 +1777,9 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 												{ carrierx + rx * idleRadius, carriery, carrierz + rz * idleRadius },
 												0
 											)
-											spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+											if carrierMoving then
+												spGiveOrderToUnit(subUnitID, CMD.GUARD, carrierID, CMD.OPT_SHIFT)
+											end
 										end
 									end
 								end
