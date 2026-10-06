@@ -4,6 +4,13 @@ local i18n = VFS.Include(I18N_PATH .. "init.lua", nil, VFS.ZIP)
 
 local asianFont = "fallbacks/SourceHanSans-Regular.ttc"
 local translationDirs = VFS.SubDirs("language")
+-- a module's strings come with it, from modules/<name>/language/<code>/, found through the VFS alone so the lobby
+-- needs no module loader
+for _, moduleDir in ipairs(VFS.SubDirs("modules")) do
+	for _, languageDir in ipairs(VFS.SubDirs(moduleDir .. "language")) do
+		translationDirs[#translationDirs + 1] = languageDir
+	end
+end
 
 -- map of languageCode -> map of translation key -> translation string
 local languageTranslations = {}
@@ -31,9 +38,12 @@ end
 -- languageCode -> list of translation files associated with that language.
 local languageFiles = {}
 for _, languageDir in ipairs(translationDirs) do
-	local translationFiles = VFS.DirList(languageDir, "*.json")
 	local languageCode = table.remove(string.split(languageDir, "/"))
-	languageFiles[languageCode] = translationFiles
+	local files = languageFiles[languageCode] or {}
+	languageFiles[languageCode] = files
+	for _, file in ipairs(VFS.DirList(languageDir, "*.json")) do
+		files[#files + 1] = file
+	end
 end
 
 -- Loads all language translation files associated with languageCode.
