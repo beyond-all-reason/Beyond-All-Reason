@@ -57,7 +57,9 @@ local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
+local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetMyPlayerID = Spring.GetLocalPlayerID
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -212,9 +214,35 @@ local statusCheckTargetPhase = 0
 local orderedPreviewCaches = {}
 local pregameStatuses = {}
 local snapStatuses = {}
-local queuedBuildFootprints = {}
-local queuedBuildFootprintCount = 0
-local queuedBuildFootprintsGameFrame = -1
+-- Queued build footprints of the selected units, hashed into map buckets so a preview only tests the footprints
+-- near it. Per-unit queues are re-read when their command count changes, a build command arrives, the selection
+-- changes or the periodic full refresh is due. Grouped in one table: the chunk is close to the 200 locals limit.
+local QUEUED_BUCKET_SIZE = 64
+local QUEUED_BUCKET_STRIDE = 1024
+local QUEUED_FULL_REFRESH_FRAMES = 30
+---@type { minX: table<integer, number>, maxX: table<integer, number>, minZ: table<integer, number>, maxZ: table<integer, number>, count: integer, buckets: table<integer, table<integer, integer>?>, revision: integer, gameFrame: integer, drawFrame: integer, lastFullRefresh: integer, unitQueues: table<number, table?>, dirtyUnits: table<number, boolean?>, selectedUnits: table<integer, UnitID>, selectionDirty: boolean, snapDrawFrame: integer, snapUnitDefID: integer?, snapFacing: integer?, snapX: number?, snapZ: number? }
+local queuedBuilds = {
+	minX = {},
+	maxX = {},
+	minZ = {},
+	maxZ = {},
+	count = 0,
+	buckets = {},
+	revision = 0,
+	gameFrame = -1,
+	drawFrame = -1,
+	lastFullRefresh = -1,
+	unitQueues = {},
+	dirtyUnits = {},
+	selectedUnits = {},
+	selectionDirty = true,
+	-- extractor snap placement, resolved once per draw frame
+	snapDrawFrame = -1,
+	snapUnitDefID = nil,
+	snapFacing = nil,
+	snapX = nil,
+	snapZ = nil,
+}
 
 local MAX_CELLS = 4096
 
@@ -324,27 +352,101 @@ local function getFootprintData(unitDefID, facing)
 end
 
 local function addQueuedBuildFootprint(unitDefID, x, z, facing)
-	local queuedFootprint = getFootprintData(unitDefID, facing or 0)
-	if not queuedFootprint then
+	local footprint = getFootprintData(unitDefID, facing)
+	if not footprint then
 		return
 	end
-	queuedBuildFootprintCount = queuedBuildFootprintCount + 1
-	local queuedBuildFootprint = queuedBuildFootprints[queuedBuildFootprintCount] or {}
-	queuedBuildFootprints[queuedBuildFootprintCount] = queuedBuildFootprint
-	queuedBuildFootprint.minX = x - queuedFootprint.halfXsize * SQUARE_SIZE
-	queuedBuildFootprint.maxX = queuedBuildFootprint.minX + queuedFootprint.xsize * SQUARE_SIZE
-	queuedBuildFootprint.minZ = z - queuedFootprint.halfZsize * SQUARE_SIZE
-	queuedBuildFootprint.maxZ = queuedBuildFootprint.minZ + queuedFootprint.zsize * SQUARE_SIZE
+	local minX = x - footprint.halfXsize * SQUARE_SIZE
+	local maxX = minX + footprint.xsize * SQUARE_SIZE
+	local minZ = z - footprint.halfZsize * SQUARE_SIZE
+	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
+	local bucketMinX = math.max(0, math.floor(minX / QUEUED_BUCKET_SIZE))
+	local bucketMaxX = math.max(0, math.floor((maxX - 1) / QUEUED_BUCKET_SIZE))
+	local bucketMinZ = math.max(0, math.floor(minZ / QUEUED_BUCKET_SIZE))
+	local bucketMaxZ = math.max(0, math.floor((maxZ - 1) / QUEUED_BUCKET_SIZE))
+	local buckets = queuedBuilds.buckets
+	local minXs = queuedBuilds.minX
+	local maxXs = queuedBuilds.maxX
+	local minZs = queuedBuilds.minZ
+	local maxZs = queuedBuilds.maxZ
+
+	-- Builders sharing a queue would add the same footprint once per builder.
+	local firstBucket = buckets[bucketMinX + bucketMinZ * QUEUED_BUCKET_STRIDE]
+	if firstBucket then
+		for bucketIndex = 1, #firstBucket do
+			local other = firstBucket[bucketIndex]
+			if minXs[other] == minX and minZs[other] == minZ and maxXs[other] == maxX and maxZs[other] == maxZ then
+				return
+			end
+		end
+	end
+
+	local index = queuedBuilds.count + 1
+	queuedBuilds.count = index
+	minXs[index] = minX
+	maxXs[index] = maxX
+	minZs[index] = minZ
+	maxZs[index] = maxZ
+	for bucketZ = bucketMinZ, bucketMaxZ do
+		for bucketX = bucketMinX, bucketMaxX do
+			local key = bucketX + bucketZ * QUEUED_BUCKET_STRIDE
+			local bucket = buckets[key]
+			if bucket then
+				bucket[#bucket + 1] = index
+			else
+				buckets[key] = { index }
+			end
+		end
+	end
+end
+
+-- Reads the build commands of one unit into its flat (unitDefID, x, z, facing) list. Returns true when it changed.
+local function readUnitBuildQueue(unitID, commandCount, unitQueue)
+	local length = 0
+	local changed = false
+	for commandIndex = 1, commandCount do
+		local cmdID, _, _, x, _, z, facing = spGetUnitCurrentCommand(unitID, commandIndex)
+		if cmdID and cmdID < 0 and x and z then
+			facing = facing or 0
+			if
+				unitQueue[length + 1] ~= -cmdID
+				or unitQueue[length + 2] ~= x
+				or unitQueue[length + 3] ~= z
+				or unitQueue[length + 4] ~= facing
+			then
+				changed = true
+				unitQueue[length + 1] = -cmdID
+				unitQueue[length + 2] = x
+				unitQueue[length + 3] = z
+				unitQueue[length + 4] = facing
+			end
+			length = length + 4
+		end
+	end
+	if unitQueue.length ~= length then
+		changed = true
+		for index = length + 1, unitQueue.length do
+			unitQueue[index] = nil
+		end
+		unitQueue.length = length
+	end
+	return changed
+end
+
+local function rebuildQueuedBuildFootprints()
+	queuedBuilds.count = 0
+	queuedBuilds.buckets = {}
+	queuedBuilds.revision = queuedBuilds.revision + 1
 end
 
 local function updateQueuedBuildFootprints(gameFrame)
-	if gameFrame > 0 and queuedBuildFootprintsGameFrame == gameFrame then
-		return
-	end
-	queuedBuildFootprintsGameFrame = gameFrame
-	queuedBuildFootprintCount = 0
-
 	if gameFrame <= 0 then
+		-- Pregame: the queue lives in the pregame build widget and is small, re-read it every draw frame.
+		if queuedBuilds.drawFrame == extendedCellsDrawFrame then
+			return
+		end
+		queuedBuilds.drawFrame = extendedCellsDrawFrame
+		rebuildQueuedBuildFootprints()
 		local pregameBuild = WG["pregame-build"]
 		local getBuildQueue = pregameBuild and pregameBuild.getBuildQueue
 		local buildQueue = getBuildQueue and getBuildQueue()
@@ -352,45 +454,102 @@ local function updateQueuedBuildFootprints(gameFrame)
 			for queueIndex = 1, #buildQueue do
 				local buildData = buildQueue[queueIndex]
 				if buildData[1] and buildData[2] and buildData[4] then
-					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5])
+					addQueuedBuildFootprint(buildData[1], buildData[2], buildData[4], buildData[5] or 0)
 				end
 			end
 		end
 		return
 	end
 
-	local selectedUnits = spGetSelectedUnits()
+	if queuedBuilds.gameFrame == gameFrame then
+		return
+	end
+	queuedBuilds.gameFrame = gameFrame
+
+	local changed = false
+	local selectedUnits = queuedBuilds.selectedUnits
+	if queuedBuilds.selectionDirty or spGetSelectedUnitsCount() ~= #selectedUnits then
+		selectedUnits = spGetSelectedUnits()
+		queuedBuilds.selectedUnits = selectedUnits
+		queuedBuilds.selectionDirty = false
+		changed = true
+	end
+	local fullRefresh = gameFrame - queuedBuilds.lastFullRefresh >= QUEUED_FULL_REFRESH_FRAMES
+	if fullRefresh then
+		queuedBuilds.lastFullRefresh = gameFrame
+	end
+	local unitQueues = queuedBuilds.unitQueues
+	local dirtyUnits = queuedBuilds.dirtyUnits
 	for selectedIndex = 1, #selectedUnits do
-		local commands = spGetUnitCommands(selectedUnits[selectedIndex], -1)
-		if commands then
-			for commandIndex = 1, #commands do
-				local command = commands[commandIndex]
-				local commandID = command.id
-				local params = command.params
-				if commandID < 0 and params and params[1] and params[3] then
-					addQueuedBuildFootprint(-commandID, params[1], params[3], params[4])
-				end
+		local unitID = selectedUnits[selectedIndex]
+		local commandCount = spGetUnitCommandCount(unitID) or 0
+		local unitQueue = unitQueues[unitID]
+		if not unitQueue then
+			unitQueue = { length = 0, commandCount = -1 }
+			unitQueues[unitID] = unitQueue
+		end
+		if fullRefresh or dirtyUnits[unitID] or commandCount ~= unitQueue.commandCount then
+			unitQueue.commandCount = commandCount
+			if readUnitBuildQueue(unitID, commandCount, unitQueue) then
+				changed = true
+			end
+		end
+		unitQueue.gameFrame = gameFrame
+	end
+	for unitID in pairs(dirtyUnits) do
+		dirtyUnits[unitID] = nil
+	end
+	if not changed then
+		return
+	end
+
+	for unitID, unitQueue in pairs(unitQueues) do
+		if unitQueue.gameFrame ~= gameFrame then
+			unitQueues[unitID] = nil
+		end
+	end
+	rebuildQueuedBuildFootprints()
+	for selectedIndex = 1, #selectedUnits do
+		local unitQueue = unitQueues[selectedUnits[selectedIndex]]
+		if unitQueue then
+			for index = 1, unitQueue.length, 4 do
+				addQueuedBuildFootprint(
+					unitQueue[index],
+					unitQueue[index + 1],
+					unitQueue[index + 2],
+					unitQueue[index + 3]
+				)
 			end
 		end
 	end
 end
 
-local function hasQueuedBuildFootprintOverlap(unitDefID, x, z, facing, gameFrame)
-	updateQueuedBuildFootprints(gameFrame)
-	local footprint = getFootprintData(unitDefID, facing)
+local function hasQueuedBuildFootprintOverlap(footprint, x, z)
+	if queuedBuilds.count == 0 then
+		return false
+	end
 	local minX = x - footprint.halfXsize * SQUARE_SIZE
 	local maxX = minX + footprint.xsize * SQUARE_SIZE
 	local minZ = z - footprint.halfZsize * SQUARE_SIZE
 	local maxZ = minZ + footprint.zsize * SQUARE_SIZE
-	for index = 1, queuedBuildFootprintCount do
-		local queuedFootprint = queuedBuildFootprints[index]
-		if
-			minX < queuedFootprint.maxX
-			and maxX > queuedFootprint.minX
-			and minZ < queuedFootprint.maxZ
-			and maxZ > queuedFootprint.minZ
-		then
-			return true
+	local buckets = queuedBuilds.buckets
+	local minXs = queuedBuilds.minX
+	local maxXs = queuedBuilds.maxX
+	local minZs = queuedBuilds.minZ
+	local maxZs = queuedBuilds.maxZ
+	local bucketMinX = math.max(0, math.floor(minX / QUEUED_BUCKET_SIZE))
+	local bucketMaxX = math.max(0, math.floor((maxX - 1) / QUEUED_BUCKET_SIZE))
+	for bucketZ = math.max(0, math.floor(minZ / QUEUED_BUCKET_SIZE)), math.max(0, math.floor((maxZ - 1) / QUEUED_BUCKET_SIZE)) do
+		for bucketX = bucketMinX, bucketMaxX do
+			local bucket = buckets[bucketX + bucketZ * QUEUED_BUCKET_STRIDE]
+			if bucket then
+				for bucketIndex = 1, #bucket do
+					local index = bucket[bucketIndex]
+					if minX < maxXs[index] and maxX > minXs[index] and minZ < maxZs[index] and maxZ > minZs[index] then
+						return true
+					end
+				end
+			end
 		end
 	end
 	return false
@@ -1117,6 +1276,15 @@ local function resetPreviewState()
 	drawSquareCount = 0
 	drawSquareCellCount = 0
 	buildSquareGameFrame = -1
+	queuedBuilds.unitQueues = {}
+	queuedBuilds.dirtyUnits = {}
+	queuedBuilds.selectedUnits = {}
+	queuedBuilds.selectionDirty = true
+	queuedBuilds.gameFrame = -1
+	queuedBuilds.drawFrame = -1
+	queuedBuilds.lastFullRefresh = -1
+	queuedBuilds.snapDrawFrame = -1
+	rebuildQueuedBuildFootprints()
 end
 
 --------------------------------------------------------------------------------
@@ -1135,6 +1303,16 @@ function widget:Initialize()
 
 	WG["buildsquare-gl4"] = true
 	spSetEngineBuildSquareRendering(false)
+	widgetHandler:RegisterUnitCommand(CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(CMD.INSERT)
+end
+
+function widget:SelectionChanged()
+	queuedBuilds.selectionDirty = true
+end
+
+function widget:UnitCommand(unitID)
+	queuedBuilds.dirtyUnits[unitID] = true
 end
 
 function widget:PlayerChanged(playerID)
@@ -1464,6 +1642,19 @@ local function getExtractorSnapPlacement(unitDefID, facing, footprint)
 	if not snapPosition then
 		return nil
 	end
+	-- Resolved once per draw frame: every preview of a drag line asks with the same arguments.
+	if
+		queuedBuilds.snapDrawFrame == extendedCellsDrawFrame
+		and queuedBuilds.snapUnitDefID == unitDefID
+		and queuedBuilds.snapFacing == facing
+	then
+		return queuedBuilds.snapX, queuedBuilds.snapZ, snapStatuses
+	end
+	queuedBuilds.snapDrawFrame = extendedCellsDrawFrame
+	queuedBuilds.snapUnitDefID = unitDefID
+	queuedBuilds.snapFacing = facing
+	queuedBuilds.snapX = nil
+	queuedBuilds.snapZ = nil
 	if spGetGameFrame() > 0 then
 		local _, activeCmdID = spGetActiveCommand()
 		if not activeCmdID or -activeCmdID ~= unitDefID then
@@ -1480,6 +1671,8 @@ local function getExtractorSnapPlacement(unitDefID, facing, footprint)
 	end
 	local placementValid = spTestBuildOrder(unitDefID, x, buildHeight, z, facing) ~= 0
 	fillPredictedStatuses(snapStatuses, unitDef, x, buildHeight, z, footprint, placementValid)
+	queuedBuilds.snapX = x
+	queuedBuilds.snapZ = z
 	return x, z, snapStatuses
 end
 
@@ -1506,7 +1699,25 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	local centerGridZ = math.floor(z / SQUARE_SIZE)
 	local placementX = centerGridX * SQUARE_SIZE
 	local placementZ = centerGridZ * SQUARE_SIZE
-	local queuedFootprintConflict = hasQueuedBuildFootprintOverlap(unitDefID, placementX, placementZ, facing, gameFrame)
+	updateQueuedBuildFootprints(gameFrame)
+	local renderCache = orderedPreviewCaches[sequenceIndex]
+	local renderCacheMatches = renderCache ~= nil
+		and renderCache.unitDefID == unitDefID
+		and renderCache.facing == facing
+		and renderCache.inputX == x
+		and renderCache.inputZ == z
+	-- The queued-footprint test is only repeated when the queues changed.
+	local queuedBuildRevision = queuedBuilds.revision
+	local queuedFootprintConflict
+	if renderCacheMatches and renderCache.conflictRevision == queuedBuildRevision then
+		queuedFootprintConflict = renderCache.conflictValue
+	else
+		queuedFootprintConflict = hasQueuedBuildFootprintOverlap(footprint, placementX, placementZ)
+		if renderCacheMatches then
+			renderCache.conflictRevision = queuedBuildRevision
+			renderCache.conflictValue = queuedFootprintConflict
+		end
+	end
 	if ONLY_WHEN_BLOCKED and footprintIsValid and not queuedFootprintConflict then
 		extendedCells = 0
 	end
@@ -1521,14 +1732,9 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	-- Avoid a one-frame VBO overflow before the next frame enables global simplification.
 	simplified = simplified or drawSquareCellCount + sourceCellCount > SIMPLIFIED_CELL_THRESHOLD
 	local merged = COMBINE_VALID_FOOTPRINT_CELLS and not simplified and footprintIsValid and extendedCells == 0
-	local renderCache = orderedPreviewCaches[sequenceIndex]
 	if
 		extendedCells == 0
-		and renderCache
-		and renderCache.unitDefID == unitDefID
-		and renderCache.facing == facing
-		and renderCache.inputX == x
-		and renderCache.inputZ == z
+		and renderCacheMatches
 		and renderCache.colorValid
 		and renderCache.extendedStatusCount == 0
 		and renderCache.simplifiedMode == simplified
@@ -1567,6 +1773,8 @@ function widget:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	renderCache = getPreviewRenderCache(unitDefID, placementX, placementZ, facing, sequenceIndex)
 	renderCache.inputX = x
 	renderCache.inputZ = z
+	renderCache.conflictRevision = queuedBuildRevision
+	renderCache.conflictValue = queuedFootprintConflict
 	local previewWasDrawnLastFrame = renderCache.lastDrawFrame == extendedCellsDrawFrame - 1
 	renderCache.lastDrawFrame = extendedCellsDrawFrame
 	local statusCheckDue = not previewWasDrawnLastFrame
