@@ -3495,10 +3495,13 @@ local function syncGadgetState(frame)
 	if WG.teamStats then
 		-- The API widget listens for every widget, so it knows first.
 		on = WG.teamStats.isAvailable()
-	elseif handover.frame then
-		on = frame - handover.frame <= handover.stale
 	else
-		on = handover.opened == nil or frame - handover.opened <= handover.stale
+		-- Opening the panel gives the gadget that long again, as the API widget does.
+		local last = handover.frame
+		if handover.opened and (not last or handover.opened > last) then
+			last = handover.opened
+		end
+		on = last == nil or frame - last <= handover.stale
 	end
 	if on == handover.on then
 		return
@@ -4238,7 +4241,12 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:GameFrame(n)
-	if gameover or not show or n % UPDATE_FRAMES ~= 0 then
+	if not show or n % UPDATE_FRAMES ~= 0 then
+		return
+	end
+	-- The numbers stay as the game left them, but a gadget gone since takes its columns along.
+	if gameover then
+		syncGadgetState(n)
 		return
 	end
 	-- The gadget's hand-over read the numbers this second already.
