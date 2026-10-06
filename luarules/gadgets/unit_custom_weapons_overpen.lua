@@ -500,6 +500,7 @@ end
 
 local function executeCollisions(projectileID, penetrator)
 	addSkippedCollisions(projectileID, penetrator)
+	projectileHits[projectileID] = nil
 
 	local collisions = penetrator.collisions
 	local n = #collisions
