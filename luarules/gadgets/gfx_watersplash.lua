@@ -122,7 +122,7 @@ end
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
 	if Spring.GetGroundHeight(px, pz) < 0 then
 		local aoe = weaponAoe[weaponID]
-		if not weaponNoSplash[weaponID] and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
+		if abs(py) <= aoe and (not GetGroundBlocked(px, pz)) then
 			local splashCEG = weaponSplashCEG[weaponID]
 			if splashCEG then
 				Spring.SpawnCEG(splashCEG, px, 0, pz)
@@ -137,7 +137,6 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 end
 
 function gadget:Initialize()
-	gadgetHandler:RegisterExplosion(Game.anyID)
 	local minHeight, _ = Spring.GetGroundExtremes()
 	if minHeight < 100 then
 		for wDefID, wDef in pairs(WeaponDefs) do

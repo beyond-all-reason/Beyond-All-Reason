@@ -638,9 +638,9 @@ function gadget:Initialize()
 
 	for weaponDefID in pairs(timedDamageWeapons) do
 		gadgetHandler:RegisterExplosion(weaponDefID)
-	end
-	if lavaWater then
-		gadgetHandler:RegisterProjectile(Game.anyID)
+		if lavaWater then
+			gadgetHandler:RegisterProjectile(weaponDefID)
+		end
 	end
 
 	unitDamageImmunity = {}
@@ -821,9 +821,7 @@ if lavaWater then
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-		if timedDamageWeapons[weaponDefID] then
-			projectiles[projectileID] = true
-		end
+		projectiles[projectileID] = true
 	end
 
 	function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)
