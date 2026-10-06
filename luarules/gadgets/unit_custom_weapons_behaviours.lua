@@ -66,7 +66,6 @@ local weaponDefEffect = {}
 
 local projectiles = {}
 
----@type number
 local gameFrame = 0
 
 --------------------------------------------------------------------------------
@@ -153,10 +152,8 @@ end
 ---@return number? targetX xyz coords
 ---@return number? targetY
 ---@return number? targetZ
-local function getTargetPositionWithError(projectileID, targetType, target)
-	if targetType == nil then
-		targetType, target = spGetProjectileTarget(projectileID)
-	end
+local function getTargetPositionWithError(projectileID)
+	local targetType, target = spGetProjectileTarget(projectileID)
 	if targetType == targetedUnit then
 		local teamID = spGetProjectileTeamID(projectileID) or spGetUnitTeam(spGetProjectileOwnerID(projectileID) or -1)
 		local _, _, _, targetX, targetY, targetZ = readAsTeam(teamID, spGetUnitPosition, target, false, true)
