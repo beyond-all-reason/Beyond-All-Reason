@@ -1990,7 +1990,10 @@ end
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
-		if w:CommandNotify(id, params, options) then
+		tracy.ZoneBeginN("W:CommandNotify:" .. w.whInfo.name)
+		local consumed = w:CommandNotify(id, params, options)
+		tracy.ZoneEnd()
+		if consumed then
 			tracy.ZoneEnd()
 			return true
 		end
