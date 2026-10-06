@@ -1985,7 +1985,7 @@ drawChatLine = function(i)
 			font3:Begin(true)
 			font3:SetOutlineColor(0, 0, 0, 1)
 			font3:SetTextColor(colorSpec[1], colorSpec[2], colorSpec[3], 0.92)
-			font3:Print(chatLines[i].playerNameTag, posX, fontHeightOffset * 1.2, tagFontSize, "or")
+			font3:Print(chatLines[i].playerNameTag, posX, fontHeightOffset * 1.63, tagFontSize, "or")
 			font3:End()
 			if chatLines[i].playerFormerTeamSquare then
 				posX = posX - font3:GetTextWidth(chatLines[i].playerNameTag) * tagFontSize - spaceWidth
@@ -2001,7 +2001,7 @@ drawChatLine = function(i)
 		font3:Begin(true)
 		font3:SetOutlineColor(0, 0, 0, 1)
 		font3:SetTextColor(0.78, 0.78, 0.78, 0.92)
-		font3:Print(chatLines[i].channelTag, textPosX, fontHeightOffset * 1.2, channelTagFontSize, "o")
+		font3:Print(chatLines[i].channelTag, textPosX, fontHeightOffset * 1.63, channelTagFontSize, "o")
 		font3:End()
 		textPosX = textPosX + floor(font3:GetTextWidth(chatLines[i].channelTag .. " ") * channelTagFontSize)
 	end
