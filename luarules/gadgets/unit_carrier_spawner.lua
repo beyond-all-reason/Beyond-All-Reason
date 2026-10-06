@@ -472,6 +472,11 @@ local function releaseDrone(carrierID, subUnitID)
 	if vx then
 		spSetUnitVelocity(subUnitID, vx, vy, vz)
 	end
+	local carrierData = carrierMetaList[carrierID]
+	local droneData = carrierData and carrierData.subUnitsList[subUnitID]
+	if droneData then
+		spCallCOBScript(subUnitID, "Undocked", 0, carrierData.cobundockparam, droneData.dockingPiece)
+	end
 end
 
 local function undockUnit(unitID, subUnitID)
@@ -505,13 +510,6 @@ local function undockUnit(unitID, subUnitID)
 			local frame = spGetGameFrame()
 			droneMetaData.lastLiftOff = frame
 
-			spCallCOBScript(
-				subUnitID,
-				"Undocked",
-				0,
-				carrierMetaList[unitID].cobundockparam,
-				droneMetaData.dockingPiece
-			)
 			if carrierMetaList[unitID].dockArmor then
 				spSetUnitArmored(subUnitID, false, 1)
 			end
