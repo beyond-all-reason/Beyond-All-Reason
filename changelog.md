@@ -23,6 +23,7 @@
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
+- sensor units (radar/jammer/seismic/sonar) with energy upkeep will lose their sensor abilities when underpowered
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
