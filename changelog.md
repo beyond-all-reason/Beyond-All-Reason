@@ -23,6 +23,15 @@
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
+- [Legion changes]
+  - Unit damage is much more visible. Wrecks show less team color and are darker.
+  - Argonaut can aim downward again
+  - Pilum 1850m -> 1500m, 42000e -> 65000e, 46430 -> 66430 buildtime
+    - Railgun works like other railguns, no longer deals area damage
+    - Piledriver is a weak disintegrator: same effective DPS, edgeeffectiveness 0.8 -> 0.15
+  - Railguns never skip a collision, before they sometimes could.
+  - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
+  - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
