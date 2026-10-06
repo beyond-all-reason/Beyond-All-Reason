@@ -234,16 +234,12 @@ end
 -- Callins
 --------------------------------------------------------------------------------
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
-	local info = empWeapons[weaponDefID]
-	if not info then
-		return
-	end
-
 	local spawn = GG.SpawnEnvironmentalLightning
 	if not spawn then
 		return
 	end
 
+	local info = empWeapons[weaponDefID]
 	local aoe = info.aoe
 	local tier, tierIndex, dn = resolveTier(aoe, info.damage)
 

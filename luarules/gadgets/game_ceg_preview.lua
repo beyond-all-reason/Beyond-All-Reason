@@ -607,9 +607,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if not dummyWeaponDefID or weaponDefID ~= dummyWeaponDefID then
-			return
-		end
 		local shot = table.remove(pendingShots, 1)
 		if not shot then
 			return

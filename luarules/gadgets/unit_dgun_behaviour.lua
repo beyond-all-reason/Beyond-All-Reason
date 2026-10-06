@@ -95,11 +95,9 @@ local flyingDGuns = {}
 local groundedDGuns = {}
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if dgunDef[weaponDefID] then
-		dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
-		flyingDGuns[proID] = true
-		dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
-	end
+	dgunData[proID] = { proOwnerID = proOwnerID, weaponDefID = weaponDefID }
+	flyingDGuns[proID] = true
+	dgunTimeouts[proID] = spGetGameFrame() + dgunDef[weaponDefID].ttl(proOwnerID, proID)
 end
 
 function gadget:ProjectileDestroyed(proID)

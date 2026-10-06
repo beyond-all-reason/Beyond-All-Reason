@@ -712,9 +712,7 @@ function gadget:Initialize()
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)
-	if timedDamageWeapons[weaponDefID] then
-		addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
-	end
+	addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectileID)
 end
 
 function gadget:GameFrame(frame)

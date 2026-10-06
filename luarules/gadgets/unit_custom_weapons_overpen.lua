@@ -523,10 +523,7 @@ function gadget:GameFramePost(frame)
 end
 
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-	local params = weaponParams[weaponDefID]
-	if params then
-		addPenetratorProjectile(projectileID, ownerID, params)
-	end
+	addPenetratorProjectile(projectileID, ownerID, weaponParams[weaponDefID])
 end
 
 function gadget:Explosion(weaponDefID, px, py, pz, attackerID, projectileID)

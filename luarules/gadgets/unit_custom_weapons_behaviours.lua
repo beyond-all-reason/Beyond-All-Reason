@@ -719,9 +719,7 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(projectileID, proOwnerID, weaponDefID)
-	if weaponDefEffect[weaponDefID] then
-		projectiles[projectileID] = weaponDefEffect[weaponDefID]
-	end
+	projectiles[projectileID] = weaponDefEffect[weaponDefID]
 end
 
 function gadget:ProjectileDestroyed(projectileID)

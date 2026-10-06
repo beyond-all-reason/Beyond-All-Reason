@@ -518,10 +518,7 @@ end
 -- Gadget callins --------------------------------------------------------------
 
 function gadget:Explosion(weaponDefID, x, y, z, attackerID, projectileID)
-	local weaponData = clusterWeaponDefs[weaponDefID]
-	if weaponData then
-		spawnClusterProjectiles(weaponData, x, y, z, attackerID, projectileID)
-	end
+	spawnClusterProjectiles(clusterWeaponDefs[weaponDefID], x, y, z, attackerID, projectileID)
 end
 
 function gadget:GameFramePost(frame)

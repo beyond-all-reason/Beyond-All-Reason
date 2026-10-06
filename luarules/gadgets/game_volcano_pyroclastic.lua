@@ -403,9 +403,7 @@ if gadgetHandler:IsSyncedCode() then
 	local activeFireballs = {}
 
 	function gadget:ProjectileCreated(id, ownerID, weaponDefID)
-		if weaponDefID == volcanoFireballWeaponDefID then
-			activeFireballs[id] = true
-		end
+		activeFireballs[id] = true
 	end
 
 	function gadget:ProjectileDestroyed(id)

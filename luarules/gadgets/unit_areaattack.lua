@@ -35,14 +35,12 @@ if gadgetHandler:IsSyncedCode() then
 
 	local canAreaAttack = {}
 	local areaAttackWeaponDefs = {}
-	local areaAttackWeaponDefByUnitDef = {}
 	for unitDefID, unitDef in pairs(UnitDefs) do
 		if #unitDef.weapons > 0 and unitDef.customParams.canareaattack then
 			local weaponDefID = unitDef.weapons[1].weaponDef
 			local weaponDef = WeaponDefs[weaponDefID]
 			canAreaAttack[unitDefID] = weaponDef.range
 			areaAttackWeaponDefs[weaponDefID] = true
-			areaAttackWeaponDefByUnitDef[unitDefID] = weaponDefID
 		end
 	end
 	local range = canAreaAttack -- range per unitDefID, same data
@@ -152,12 +150,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-		if not areaAttackWeaponDefs[weaponDefID] or activeAttacks[ownerID] then
-			return
-		end
-
-		local unitDefID = Spring.GetUnitDefID(ownerID)
-		if areaAttackWeaponDefByUnitDef[unitDefID] ~= weaponDefID then
+		if activeAttacks[ownerID] then
 			return
 		end
 

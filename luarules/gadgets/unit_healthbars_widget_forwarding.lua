@@ -83,12 +83,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
-		local weaponIndex = weapondefsreload[weaponID]
-		if weaponIndex then
-			if unitreloadframe[ownerID] == nil or unitreloadframe[ownerID] <= spGetGameFrame() then
-				SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
-				unitreloadframe[ownerID] = spGetUnitWeaponState(ownerID, weaponIndex, "reloadFrame")
-			end
+		if (unitreloadframe[ownerID] or -1) <= spGetGameFrame() then
+			SendToUnsynced("projetileCreatedReload", projectileID, ownerID, weaponID)
+			unitreloadframe[ownerID] = spGetUnitWeaponState(ownerID, weapondefsreload[weaponID], "reloadFrame")
 		end
 	end
 else

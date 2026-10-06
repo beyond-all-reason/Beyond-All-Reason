@@ -186,13 +186,6 @@ function gadget:Initialize()
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	local defData = defWatchTable[weaponDefID]
-	if not defData then
-		return
-	end
-
-	setFlightTimeFrame(proID, defData.flightTimeFrames)
-
 	local originX, _, originZ = spGetUnitPosition(proOwnerID)
 	if not originX then
 		originX, _, originZ = spGetProjectilePosition(proID)
@@ -201,10 +194,11 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		return
 	end
 
-	proWeaponDefID[proID] = weaponDefID
-	proOwnerByID[proID] = proOwnerID
 	proOriginX[proID] = originX
 	proOriginZ[proID] = originZ
+	proWeaponDefID[proID] = weaponDefID
+	proOwnerByID[proID] = proOwnerID
+	setFlightTimeFrame(proID, defWatchTable[weaponDefID].flightTimeFrames)
 end
 
 function gadget:ProjectileDestroyed(proID)

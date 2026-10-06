@@ -232,9 +232,6 @@ end
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
 	--Spring.Echo("gadget:ProjectileCreated",proID, proOwnerID, weaponDefID)
 	local watchedWeaponType = allWatchedWeaponDefIDs[weaponDefID]
-	if watchedWeaponType == nil then
-		return
-	end
 	allWatchedProjectileIDs[proID] = watchedWeaponType
 	if mapHasWater and watchedWeaponType == "depthCharge" then
 		local _, y, _ = GetProjectilePosition(proID)

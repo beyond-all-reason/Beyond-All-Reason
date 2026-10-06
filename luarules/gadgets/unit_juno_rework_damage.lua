@@ -148,13 +148,11 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Explosion(weaponID, px, py, pz, ownerID)
-		if junoWeapons[weaponID] then
-			local curtime = SpGetGameSeconds()
-			local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
-			centers[counter] = junoExpl
-			--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
-			counter = counter + 1
-		end
+		local curtime = SpGetGameSeconds()
+		local junoExpl = { x = px, y = py, z = pz, t = curtime, o = ownerID }
+		centers[counter] = junoExpl
+		--SendToUnsynced("AddToCenters", counter, px, py, pz, curtime)
+		counter = counter + 1
 	end
 
 	local lastupdate = -1

@@ -249,9 +249,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:ProjectileCreated(projectileID, ownerID, weaponDefID)
-	if weapons[weaponDefID] then
-		register(projectileID, weaponDefID)
-	end
+	register(projectileID, weaponDefID)
 end
 
 function gadget:ProjectileDestroyed(projectileID, ownerID, weaponDefID)

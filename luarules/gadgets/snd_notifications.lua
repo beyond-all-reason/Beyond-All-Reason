@@ -109,25 +109,23 @@ if gadgetHandler:IsSyncedCode() then
 
 	-- NUKE LAUNCH
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if nukeWeapons[Spring.GetProjectileDefID(proID)] then
-			local ownerTeamID = Spring.GetUnitTeam(proOwnerID)
-			if not ownerTeamID then
-				return
-			end
-			local ownerAllyTeamID = GetAllyTeamID(ownerTeamID)
+		local ownerTeamID = Spring.GetUnitTeam(proOwnerID)
+		if not ownerTeamID then
+			return
+		end
+		local ownerAllyTeamID = GetAllyTeamID(ownerTeamID)
 
-			local players = AllButAllyTeamID(ownerAllyTeamID)
-			for ct, player in pairs(players) do
-				if tostring(player) then
-					GG.notifications.queueNotification("NukeLaunched", "playerID", tostring(player))
-				end
+		local players = AllButAllyTeamID(ownerAllyTeamID)
+		for ct, player in pairs(players) do
+			if tostring(player) then
+				GG.notifications.queueNotification("NukeLaunched", "playerID", tostring(player))
 			end
+		end
 
-			local players = AlliedPlayersExceptTeamID(ownerAllyTeamID, ownerTeamID)
-			for ct, player in pairs(players) do
-				if tostring(player) then
-					GG.notifications.queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
-				end
+		local players = AlliedPlayersExceptTeamID(ownerAllyTeamID, ownerTeamID)
+		for ct, player in pairs(players) do
+			if tostring(player) then
+				GG.notifications.queueNotification("AlliedNukeLaunched", "playerID", tostring(player))
 			end
 		end
 	end
