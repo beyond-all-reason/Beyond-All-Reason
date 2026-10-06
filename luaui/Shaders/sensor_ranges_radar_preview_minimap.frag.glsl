@@ -6,8 +6,8 @@
 // This shader is part of the Beyond All Reason repository.
 
 // Radar preview minimap pass: a flat fill of the radar coverage on the minimap (RadarPreviewMinimap setting),
-// outlined along the border with uncovered radar cells like the background sheet in the world.
-// The fill fades with the same smoothed per-radar-cell coverage the cubes use (_smooth.frag.glsl); the outline
+// outlined along the border with uncovered radar cells like the sheet in the world.
+// The fill fades with the same smoothed per-radar-cell coverage the sheet uses (_smooth.frag.glsl); the outline
 // is taken from the exact engine coverage (_coverage.frag.glsl) instead, so it is the same at any instant.
 // This matters for the engine minimap, whose texture is refreshed from Game::Update at 15-60 Hz and would
 // otherwise freeze the smoothing pass mid-way, with cells easing in or out showing up as stray outlines.
@@ -24,7 +24,7 @@ in vec2 minimapUV;
 
 out vec4 fragColor;
 
-const vec3 baseColor = BASE_COLOR;
+const vec3 sheetColor = SHEET_COLOR;
 const vec3 alliedColor = ALLIED_COLOR;
 const vec3 outlineColor = OUTLINE_COLOR;
 const float alliedAlpha = float(ALLIED_ALPHA);
@@ -109,6 +109,6 @@ void main() {
 	if (alpha < 0.002) {
 		discard;
 	}
-	vec3 color = mix(alliedColor, baseColor, smoothed);
+	vec3 color = mix(alliedColor, sheetColor, smoothed);
 	fragColor = vec4(mix(color, outlineColor, outline), alpha);
 }
