@@ -287,7 +287,7 @@ end
 
 function gadget:Initialize()
 	for i = 1, #wantedList do
-		Script.SetWatchExplosion(wantedList[i], true)
+		gadgetHandler:RegisterExplosion(wantedList[i])
 	end
 	if #wantedList == 0 then
 		gadgetHandler:RemoveCallIn("Explosion")

@@ -137,11 +137,12 @@ function gadget:Explosion(weaponID, px, py, pz, ownerID)
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterExplosion(Game.anyID)
 	local minHeight, _ = Spring.GetGroundExtremes()
 	if minHeight < 100 then
 		for wDefID, wDef in pairs(WeaponDefs) do
 			if wDef.damageAreaOfEffect ~= nil and wDef.damageAreaOfEffect > 8 and not weaponNoSplash[wDefID] then
-				Script.SetWatchExplosion(wDef.id, true)
+				gadgetHandler:RegisterExplosion(wDef.id)
 			end
 		end
 	else

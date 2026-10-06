@@ -491,6 +491,9 @@ local registered = VFS.Include(SCRIPT_DIR .. "callins/registered_callins.lua", n
 
 local allowCommandLists = registered.getLists("AllowCommand")
 local unitCommandLists = registered.getLists("UnitCommand")
+local projectileCreatedLists = registered.getLists("ProjectileCreated")
+local projectileDestroyedLists = registered.getLists("ProjectileDestroyed")
+local explosionLists = registered.getLists("Explosion")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -788,6 +791,18 @@ function gadgetHandler:NewGadget()
 	end
 	gh.DeregisterUnitCommand = function(_, cmdID)
 		return self:DeregisterUnitCommand(gadget, cmdID)
+	end
+	gh.RegisterProjectile = function(_, weaponDefID)
+		return self:RegisterProjectile(gadget, weaponDefID)
+	end
+	gh.DeregisterProjectile = function(_, weaponDefID)
+		return self:DeregisterProjectile(gadget, weaponDefID)
+	end
+	gh.RegisterExplosion = function(_, weaponDefID)
+		return self:RegisterExplosion(gadget, weaponDefID)
+	end
+	gh.DeregisterExplosion = function(_, weaponDefID)
+		return self:DeregisterExplosion(gadget, weaponDefID)
 	end
 
 	if not IsSyncedCode() then
@@ -2487,8 +2502,9 @@ end
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	tracy.ZoneBeginN("G:ProjectileCreated")
-	for _, g in ipairs(self.ProjectileCreatedList) do
-		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
+	local list = projectileCreatedLists[proWeaponDefID]
+	for i = 1, #list do
+		list[i]:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2496,8 +2512,9 @@ end
 
 function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	tracy.ZoneBeginN("G:ProjectileDestroyed")
-	for _, g in ipairs(self.ProjectileDestroyedList) do
-		g:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
+	local list = projectileDestroyedLists[proWeaponDefID]
+	for i = 1, #list do
+		list[i]:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2556,7 +2573,7 @@ end
 
 function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
 	-- "noGfx = noGfx or ..." short-circuits, so equivalent to this
-	local list = self.ExplosionList
+	local list = explosionLists[weaponID]
 	for i = #list, 1, -1 do
 		local g = list[i]
 		if g:Explosion(weaponID, px, py, pz, ownerID, projectileID) then

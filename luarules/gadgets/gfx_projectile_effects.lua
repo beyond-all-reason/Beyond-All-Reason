@@ -207,19 +207,19 @@ function gadget:Initialize()
 			end
 		end
 		for wDID, _ in pairs(depthChargeWeapons) do
-			Script.SetWatchProjectile(wDID, true)
+			gadgetHandler:RegisterProjectile(wDID)
 			allWatchedWeaponDefIDs[wDID] = "depthCharge"
 		end
 	end
 
 	for wDID, _ in pairs(missileWeapons) do
-		Script.SetWatchProjectile(wDID, true)
+		gadgetHandler:RegisterProjectile(wDID)
 		allWatchedWeaponDefIDs[wDID] = "missile"
 		--Spring.Echo("Watching for missile",WeaponDefs[wDID].name, wDID)
 	end
 
 	for wDID, _ in pairs(starburstWeapons) do
-		Script.SetWatchProjectile(wDID, true)
+		gadgetHandler:RegisterProjectile(wDID)
 		allWatchedWeaponDefIDs[wDID] = "starburst"
 	end
 

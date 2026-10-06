@@ -269,7 +269,7 @@ function gadget:Initialize()
 				Spring.Log(gadget:GetInfo().name, LOG.NOTICE, message)
 			end
 			weapons[weaponDefID] = weapon
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 	end
 

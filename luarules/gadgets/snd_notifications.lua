@@ -84,7 +84,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:Initialize()
 		for k, v in pairs(nukeWeapons) do
-			Script.SetWatchProjectile(k, true)
+			gadgetHandler:RegisterProjectile(k)
 		end
 		if not next(nukeWeapons) then
 			gadgetHandler:RemoveCallIn("ProjectileCreated")

@@ -131,7 +131,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		if volcanoFireballWeaponDefID then
-			Script.SetWatchProjectile(volcanoFireballWeaponDefID, true)
+			gadgetHandler:RegisterProjectile(volcanoFireballWeaponDefID)
 		else
 			gadgetHandler:RemoveCallIn("ProjectileCreated")
 			gadgetHandler:RemoveCallIn("ProjectileDestroyed")
@@ -163,9 +163,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Shutdown()
-		if volcanoFireballWeaponDefID then
-			Script.SetWatchProjectile(volcanoFireballWeaponDefID, false)
-		end
 		gadgetHandler:RemoveChatAction("volcano")
 	end
 

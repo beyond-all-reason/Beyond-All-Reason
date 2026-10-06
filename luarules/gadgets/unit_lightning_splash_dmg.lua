@@ -74,7 +74,7 @@ local sparkWeapons = {}
 for wdid, wd in pairs(WeaponDefNames) do
 	if wd.customParams ~= nil then
 		if wd.customParams.spark_forkdamage ~= nil then
-			Script.SetWatchProjectile(wd.id, true) -- watch so ProjectileCreated works
+			gadgetHandler:RegisterProjectile(wd.id)
 			sparkWeapons[wd.id] = {
 				ceg = wd.customParams.spark_ceg, -- currently overridden by above "global" options
 				basedamage = tonumber(wd.damages[0]), --spark damage is assumed to be based on default damage

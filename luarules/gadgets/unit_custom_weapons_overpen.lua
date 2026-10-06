@@ -643,7 +643,8 @@ function gadget:Initialize()
 	end
 
 	for weaponDefID, params in pairs(weaponParams) do
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
+		gadgetHandler:RegisterExplosion(weaponDefID)
 	end
 
 	for unitDefID, unitDef in ipairs(UnitDefs) do

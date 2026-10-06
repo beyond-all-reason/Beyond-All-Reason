@@ -190,7 +190,7 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RegisterCMDID(CMD_AREA_ATTACK_GROUND)
 		gadgetHandler:RegisterAllowCommand(CMD_AREA_ATTACK_GROUND)
 		for weaponDefID in pairs(areaAttackWeaponDefs) do
-			Script.SetWatchProjectile(weaponDefID, true)
+			gadgetHandler:RegisterProjectile(weaponDefID)
 		end
 		if not next(areaAttackWeaponDefs) then
 			gadgetHandler:RemoveCallIn("ProjectileCreated")

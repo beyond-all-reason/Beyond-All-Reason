@@ -26,6 +26,7 @@ if gadgetHandler:IsSyncedCode() then
 	local numcegtospawn = #cegtospawn
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterProjectile(Game.anyID)
 		Script.SetWatchExplosion(-1, true) -- well that doesn't register anything!
 	end
 

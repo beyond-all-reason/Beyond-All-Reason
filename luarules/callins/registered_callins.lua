@@ -6,6 +6,7 @@
 --
 --  Gadgets register their wanted ID lists and receive filtered callin events
 --  that contain only those IDs. Callins with no registered IDs get a warning.
+--  Replaces the local Script.SetWatch* calls in each gadget via registration.
 
 local ANY = Game.anyID
 local isSynced = Script.GetSynced()
@@ -21,7 +22,10 @@ local math_floor = math.floor
 ---@field sentinelIDs table<string, true>? excluding ANY which always counts
 ---@field negativeIDs (integer|string)?
 ---@field minimumID integer?
+---@field maximumID integer?
 ---@field syncedOnly boolean?
+---@field watcher fun(defID: integer, watch: boolean)?
+---@field watched table<integer, true?>?
 
 ---@type table<string, CallinRegistration>
 local registrations = {
@@ -39,6 +43,26 @@ local registrations = {
 		sentinelIDs = { [CMD.BUILD] = true },
 		negativeIDs = CMD.BUILD,
 	},
+	Projectile = {
+		idSetName = "_projectileIDs",
+		callins = { "ProjectileCreated", "ProjectileDestroyed" },
+		filtersOn = "weapons",
+		minimumID = -1, -- for piece projectiles
+		maximumID = #WeaponDefs,
+		syncedOnly = true,
+		watcher = Script.SetWatchProjectile,
+		watched = {},
+	},
+	Explosion = {
+		idSetName = "_explosionIDs",
+		callins = { "Explosion" },
+		filtersOn = "weapons",
+		minimumID = 0,
+		maximumID = #WeaponDefs,
+		syncedOnly = true,
+		watcher = Script.SetWatchExplosion,
+		watched = {},
+	},
 }
 
 --------------------------------------------------------------------------------
@@ -52,12 +76,26 @@ local callinGadgets = {} ---@type table<string, table[]>
 local callinSubscribed = {} ---@type table<string, table<table, true?>>
 local insertedGadgets = {} ---@type table[]
 
+---@param registration CallinRegistration
+local function fillUnregisteredIDs(registration, lists)
+	local minimumID, maximumID = registration.minimumID, registration.maximumID
+	if minimumID and maximumID then
+		local anyList = lists[ANY]
+		for id = minimumID, maximumID do
+			if lists[id] == nil then
+				lists[id] = anyList
+			end
+		end
+	end
+end
+
 for _, registration in pairs(registrations) do
 	for _, callin in ipairs(registration.callins) do
 		callinRegistration[callin] = registration
 		callinLists[callin] = { [ANY] = {} }
 		callinGadgets[callin] = {}
 		callinSubscribed[callin] = {}
+		fillUnregisteredIDs(registration, callinLists[callin])
 	end
 end
 
@@ -80,10 +118,37 @@ local function rebuildIDList(callin, registration, id)
 		end
 	end
 
+	local lists = callinLists[callin]
 	if registered or id == ANY or id == negativeIDs then
-		callinLists[callin][id] = list
+		lists[id] = list
+	elseif registration.maximumID then
+		lists[id] = lists[ANY]
 	else
-		callinLists[callin][id] = nil
+		lists[id] = nil
+	end
+end
+
+---@param registration CallinRegistration
+local function updateWatchedID(registration, id)
+	local watcher, watched = registration.watcher, registration.watched
+	if not watcher or not watched or id == ANY then
+		return
+	end
+
+	local wanted = false
+	for _, callin in ipairs(registration.callins) do
+		local lists = callinLists[callin]
+		if lists[id] ~= nil and lists[id] ~= lists[ANY] then
+			wanted = true
+		end
+	end
+
+	if wanted and not watched[id] then
+		watched[id] = true
+		watcher(id, true)
+	elseif not wanted and watched[id] then
+		watched[id] = nil
+		watcher(id, false)
 	end
 end
 
@@ -95,6 +160,11 @@ local function rebuildCallinLists(callin, registration)
 
 	if registration.negativeIDs then
 		ids[registration.negativeIDs] = true
+	end
+	if registration.watched then
+		for id in pairs(registration.watched) do
+			ids[id] = true
+		end
 	end
 	for _, g in ipairs(callinGadgets[callin]) do
 		local registered = g[idSetName]
@@ -108,8 +178,15 @@ local function rebuildCallinLists(callin, registration)
 	for key in pairs(lists) do
 		lists[key] = nil
 	end
+	rebuildIDList(callin, registration, ANY)
 	for id in pairs(ids) do
-		rebuildIDList(callin, registration, id)
+		if id ~= ANY then
+			rebuildIDList(callin, registration, id)
+		end
+	end
+	fillUnregisteredIDs(registration, lists)
+	for id in pairs(ids) do
+		updateWatchedID(registration, id)
 	end
 end
 
@@ -188,15 +265,20 @@ local function rebuildRegisteredID(registration, gadget, id)
 				rebuildIDList(callin, registration, id)
 			end
 		end
+		updateWatchedID(registration, id)
 	end
 end
 
 ---@param registration CallinRegistration
 local function isRegistrableID(registration, id)
-	if type(id) == "number" then
-		return id == math_floor(id) and id >= (registration.minimumID or id)
+	if type(id) ~= "number" then
+		local sentinelIDs = registration.sentinelIDs
+		return id == ANY or (sentinelIDs ~= nil and sentinelIDs[id] == true)
+	elseif id ~= math_floor(id) then
+		return false
 	end
-	return id == ANY or (registration.sentinelIDs ~= nil and registration.sentinelIDs[id] == true)
+	local minimumID, maximumID = registration.minimumID, registration.maximumID
+	return (minimumID == nil or id >= minimumID) and (maximumID == nil or id <= maximumID)
 end
 
 local function getGadgetName(gadget)
@@ -253,7 +335,11 @@ local function registerInsertedGadgets()
 					if callinSubscribed[callin][gadget] then
 						local filtersOn = registration.filtersOn
 						local message = callin .. " defined but didn't register any " .. filtersOn
-						message = message .. ". Autoregistering for all " .. filtersOn .. "!"
+						if registration.watched then
+							message = message .. ". Autoregistering for the " .. filtersOn .. " other gadgets register!"
+						else
+							message = message .. ". Autoregistering for all " .. filtersOn .. "!"
+						end
 						Spring.Log(callin, LOG.WARNING, "<" .. gadget.ghInfo.basename .. "> " .. message)
 						registerGadgetID(registration, gadget, ANY)
 						break
@@ -282,7 +368,7 @@ end
 
 ---Limits gadget:UnitCommand to only registered commands.
 ---@param gadget table
----@param cmdID integer|string A commandID or one of CMD.ANY, CMD.BUILD
+---@param cmdID integer|string A commandID or one of CMD.ANY, CMD.BUILD, CMD.NIL
 local function registerUnitCommand(_, gadget, cmdID)
 	registerGadgetID(registrations.UnitCommand, gadget, cmdID)
 end
@@ -291,6 +377,34 @@ end
 ---@param cmdID integer|string
 local function deregisterUnitCommand(_, gadget, cmdID)
 	deregisterGadgetID(registrations.UnitCommand, gadget, cmdID)
+end
+
+---Limits gadget:ProjectileCreated and gadget:ProjectileDestroyed to the registered weapons.
+---Piece projectiles are weapon -1. Game.anyID receives the weapons other gadgets register.
+---@param gadget table
+---@param weaponDefID integer|string
+local function registerProjectile(_, gadget, weaponDefID)
+	registerGadgetID(registrations.Projectile, gadget, weaponDefID)
+end
+
+---@param gadget table
+---@param weaponDefID integer|string
+local function deregisterProjectile(_, gadget, weaponDefID)
+	deregisterGadgetID(registrations.Projectile, gadget, weaponDefID)
+end
+
+---Limits gadget:Explosion to the registered weapons.
+---Game.anyID receives the weapons other gadgets register.
+---@param gadget table
+---@param weaponDefID integer|string
+local function registerExplosion(_, gadget, weaponDefID)
+	registerGadgetID(registrations.Explosion, gadget, weaponDefID)
+end
+
+---@param gadget table
+---@param weaponDefID integer|string
+local function deregisterExplosion(_, gadget, weaponDefID)
+	deregisterGadgetID(registrations.Explosion, gadget, weaponDefID)
 end
 
 ---@param callin string
@@ -307,6 +421,10 @@ local function install(handler)
 	handler.DeregisterAllowCommand = deregisterAllowCommand
 	handler.RegisterUnitCommand = registerUnitCommand
 	handler.DeregisterUnitCommand = deregisterUnitCommand
+	handler.RegisterProjectile = registerProjectile
+	handler.DeregisterProjectile = deregisterProjectile
+	handler.RegisterExplosion = registerExplosion
+	handler.DeregisterExplosion = deregisterExplosion
 
 	-- Once installed, wraps the UpdateCallIn method.
 	local updateCallIn = handler.UpdateCallIn

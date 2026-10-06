@@ -98,7 +98,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		Spring.SetGameRulesParam("juno_mini_area_denial_radius", radius)
 		if WeaponDefNames.legcib_juno_pulse_mini then
-			Script.SetWatchExplosion(WeaponDefNames.legcib_juno_pulse_mini.id, true)
+			gadgetHandler:RegisterExplosion(WeaponDefNames.legcib_juno_pulse_mini.id)
 		else
 			gadgetHandler:RemoveCallIn("Explosion")
 		end

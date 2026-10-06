@@ -637,7 +637,10 @@ function gadget:Initialize()
 	end
 
 	for weaponDefID in pairs(timedDamageWeapons) do
-		Script.SetWatchExplosion(weaponDefID, true)
+		gadgetHandler:RegisterExplosion(weaponDefID)
+	end
+	if lavaWater then
+		gadgetHandler:RegisterProjectile(Game.anyID)
 	end
 
 	unitDamageImmunity = {}

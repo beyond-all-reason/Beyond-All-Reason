@@ -596,7 +596,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if dummyWeaponDefID and Script and Script.SetWatchWeapon then
+		if not dummyWeaponDefID then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
+			return
+		end
+		gadgetHandler:RegisterProjectile(dummyWeaponDefID)
+		if Script and Script.SetWatchWeapon then
 			Script.SetWatchWeapon(dummyWeaponDefID, true)
 		end
 	end
