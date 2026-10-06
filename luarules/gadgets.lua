@@ -494,6 +494,8 @@ local unitCommandLists = registered.getLists("UnitCommand")
 local projectileCreatedLists = registered.getLists("ProjectileCreated")
 local projectileDestroyedLists = registered.getLists("ProjectileDestroyed")
 local explosionLists = registered.getLists("Explosion")
+local weaponTargetCheckLists = registered.getLists("AllowWeaponTargetCheck")
+local weaponTargetLists = registered.getLists("AllowWeaponTarget")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -803,6 +805,12 @@ function gadgetHandler:NewGadget()
 	end
 	gh.DeregisterExplosion = function(_, weaponDefID)
 		return self:DeregisterExplosion(gadget, weaponDefID)
+	end
+	gh.RegisterWeaponTarget = function(_, weaponDefID)
+		return self:RegisterWeaponTarget(gadget, weaponDefID)
+	end
+	gh.DeregisterWeaponTarget = function(_, weaponDefID)
+		return self:DeregisterWeaponTarget(gadget, weaponDefID)
 	end
 
 	if not IsSyncedCode() then
@@ -2023,16 +2031,15 @@ end
 
 function gadgetHandler:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
 	local ignore = true
-	for _, g in ipairs(self.AllowWeaponTargetCheckList) do
+	for _, g in ipairs(weaponTargetCheckLists[attackerWeaponDefID]) do
 		local allowCheck, ignoreCheck = g:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
 		if not ignoreCheck then
-			ignore = false
 			if not allowCheck then
 				return 0
 			end
+			ignore = false
 		end
 	end
-
 	return ((ignore and -1) or 1)
 end
 
@@ -2049,7 +2056,7 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 		allowed, result = defPriority > 0, defPriority
 	else
 		-- The actual callin. BAR uses `AllowWeaponTarget` for both allow/disallow and target priority, now.
-		for _, g in ipairs(self.AllowWeaponTargetList) do
+		for _, g in ipairs(weaponTargetLists[attackerWeaponDefID]) do
 			local allow, priority =
 				g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
 			if not allow then

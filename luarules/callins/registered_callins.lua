@@ -26,6 +26,7 @@ local math_floor = math.floor
 ---@field syncedOnly boolean?
 ---@field watcher fun(defID: integer, watch: boolean)?
 ---@field watched table<integer, true?>?
+---@field virtualIDs table<string, integer>? some callins force watching a proxy ID
 
 ---@type table<string, CallinRegistration>
 local registrations = {
@@ -63,6 +64,17 @@ local registrations = {
 		watcher = Script.SetWatchExplosion,
 		watched = {},
 	},
+	WeaponTarget = {
+		idSetName = "_weaponTargetIDs",
+		callins = { "AllowWeaponTargetCheck", "AllowWeaponTarget", "AllowWeaponInterceptTarget" },
+		filtersOn = "weapons",
+		minimumID = 0,
+		maximumID = #WeaponDefs,
+		syncedOnly = true,
+		watcher = Script.SetWatchAllowTarget,
+		watched = {},
+		virtualIDs = { UnitAutoTargetRange = 0 }, -- the engine asks for auto-target ranges as weapon 0
+	},
 }
 
 --------------------------------------------------------------------------------
@@ -74,6 +86,8 @@ local callinRegistration = {} ---@type table<string, CallinRegistration?>
 local callinLists = {} ---@type table<string, CallinListsByID>
 local callinGadgets = {} ---@type table<string, table[]>
 local callinSubscribed = {} ---@type table<string, table<table, true?>>
+local virtualRegistration = {} ---@type table<string, CallinRegistration?>
+local virtualCallins = {} ---@type table<string, true?>
 local insertedGadgets = {} ---@type table[]
 
 ---@param registration CallinRegistration
@@ -96,6 +110,11 @@ for _, registration in pairs(registrations) do
 		callinGadgets[callin] = {}
 		callinSubscribed[callin] = {}
 		fillUnregisteredIDs(registration, callinLists[callin])
+	end
+	if registration.watcher and registration.virtualIDs then
+		for callin in pairs(registration.virtualIDs) do
+			virtualRegistration[callin] = registration
+		end
 	end
 end
 
@@ -136,6 +155,14 @@ local function updateWatchedID(registration, id)
 	end
 
 	local wanted = false
+	local virtualIDs = registration.virtualIDs
+	if virtualIDs then
+		for callin, virtualID in pairs(virtualIDs) do
+			if virtualID == id and virtualCallins[callin] then
+				wanted = true
+			end
+		end
+	end
 	for _, callin in ipairs(registration.callins) do
 		local lists = callinLists[callin]
 		if lists[id] ~= nil and lists[id] ~= lists[ANY] then
@@ -458,6 +485,21 @@ local function deregisterExplosion(_, gadget, weaponDefID)
 	deregisterGadgetID(registrations.Explosion, gadget, weaponDefID)
 end
 
+---Limits gadget:AllowWeaponTargetCheck and gadget:AllowWeaponTarget to the registered weapons.
+---gadget:AllowWeaponInterceptTarget receives no weaponDefID, so it is called for every registered weapon.
+---Game.anyID receives the weapons other gadgets register.
+---@param gadget table
+---@param weaponDefID integer|string
+local function registerWeaponTarget(_, gadget, weaponDefID)
+	registerGadgetID(registrations.WeaponTarget, gadget, weaponDefID)
+end
+
+---@param gadget table
+---@param weaponDefID integer|string
+local function deregisterWeaponTarget(_, gadget, weaponDefID)
+	deregisterGadgetID(registrations.WeaponTarget, gadget, weaponDefID)
+end
+
 ---@param callin string
 ---@return CallinListsByID
 local function getLists(callin)
@@ -476,6 +518,8 @@ local function install(handler)
 	handler.DeregisterProjectile = deregisterProjectile
 	handler.RegisterExplosion = registerExplosion
 	handler.DeregisterExplosion = deregisterExplosion
+	handler.RegisterWeaponTarget = registerWeaponTarget
+	handler.DeregisterWeaponTarget = deregisterWeaponTarget
 
 	-- Once installed, wraps the UpdateCallIn method.
 	local updateCallIn = handler.UpdateCallIn
@@ -483,6 +527,15 @@ local function install(handler)
 		local registration = callinRegistration[name]
 		if registration then
 			refreshCallinGadgets(self, name, registration)
+		end
+		registration = virtualRegistration[name]
+		if registration then
+			local virtual = #self[name .. "List"] > 0 or nil
+			if virtualCallins[name] ~= virtual then
+				virtualCallins[name] = virtual
+				---@cast registration.virtualIDs -nil
+				updateWatchedID(registration, registration.virtualIDs[name])
+			end
 		end
 		return updateCallIn(self, name)
 	end
