@@ -66,8 +66,7 @@ local weaponDefEffect = {}
 
 local projectiles = {}
 
----@type number
-local gameFrame = 0
+local gameFrame = 0.0
 
 --------------------------------------------------------------------------------
 -- Local functions -------------------------------------------------------------
