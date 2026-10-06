@@ -465,6 +465,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+	self:InitWindowPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -918,6 +919,9 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	end
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
+	end
+	wh.SetWindowsPauseGame = function(_, enabled)
+		return self:SetWindowsPauseGame(enabled)
 	end
 	wh.HideInterface = function(_, reason, keep)
 		return self:HideInterface(reason, keep)
@@ -1591,6 +1595,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
+	self:SaveWindowPause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -1611,6 +1616,10 @@ end
 --  Optional behaviour (springsetting "WindowsHideInterface", default off): while one
 --  of the big central windows is open, the rest of the screen interface is neither
 --  drawn nor clickable, so the window is the only thing the player can interact with.
+--
+--  In singleplayer and replays an open window (or the lobby overlay) also pauses the
+--  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
+--  pause the player made or lifted themselves in the meantime is left alone.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
@@ -1647,6 +1656,12 @@ local modalRevision = 0
 local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
+
+-- pausing while a window is open, see UpdateWindowPause
+local windowPauseEnabled = true
+local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
+local windowPauseHeld = false -- the open windows have paused the game, or found it paused
+local windowPauseOwned = false -- they paused it, so closing them resumes it
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -1779,34 +1794,94 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 	self:UpdateModalState()
 end
 
+function widgetHandler:SetWindowsPauseGame(enabled)
+	windowPauseEnabled = enabled and true or false
+	modalConfigTimer = 0
+end
+
+local function anyWindowOpen()
+	for w, isOpen in pairs(modalWindows) do
+		local ok, open = pcall(isOpen)
+		if not ok then
+			Spring.Log(
+				"barwidgets.lua",
+				LOG.ERROR,
+				"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
+			)
+			modalWindows[w] = nil -- removing the current key mid-traversal is allowed
+			ModalAllowWidget(w, modalExempt[w] == true)
+		elseif open then
+			return true
+		end
+	end
+	return false
+end
+
 function widgetHandler:UpdateModalState(deltaTime)
 	if deltaTime then
 		modalConfigTimer = modalConfigTimer + deltaTime
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
-	local active = false
-	if modalEnabled then
-		for w, isOpen in pairs(modalWindows) do
-			local ok, open = pcall(isOpen)
-			if not ok then
-				Spring.Log(
-					"barwidgets.lua",
-					LOG.ERROR,
-					"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
-				)
-				modalWindows[w] = nil -- removing the current key mid-traversal is allowed
-				ModalAllowWidget(w, modalExempt[w] == true)
-			elseif open then
-				active = true
-				break
-			end
-		end
+	modalActive = modalEnabled and anyWindowOpen()
+end
+
+local function isClientPaused()
+	local _, _, paused = Spring.GetGameState()
+	return paused
+end
+
+-- Once per frame, after the widgets' Update: a window closing as another opens, or one
+-- reopening itself after a reload, never lets the game run in between.
+function widgetHandler:UpdateWindowPause()
+	if not windowPauseAllowed then
+		return
 	end
-	modalActive = active
+	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted == windowPauseHeld then
+		if windowPauseOwned and not isClientPaused() then
+			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
+		end
+		return
+	end
+	if wanted then
+		if Spring.GetGameFrame() == 0 then
+			return -- the engine refuses to pause before the game has started
+		end
+		windowPauseHeld = true
+		windowPauseOwned = not isClientPaused()
+		if windowPauseOwned then
+			Spring.SendCommands("pause 1")
+		end
+	else
+		windowPauseHeld = false
+		if windowPauseOwned and isClientPaused() then
+			Spring.SendCommands("pause 0")
+		end
+		windowPauseOwned = false
+	end
+end
+
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
+-- that reopens after the reload keeps it and closing that window still resumes the game.
+function widgetHandler:SaveWindowPause()
+	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+end
+
+function widgetHandler:InitWindowPause()
+	-- headless, nobody would ever close a window that opened by itself
+	windowPauseAllowed = not isHeadless and (Spring.IsReplay() or BAR.Utilities.Gametype.IsSinglePlayer())
+	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+	local frame = Spring.GetGameFrame()
+	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
+		windowPauseHeld = true
+		windowPauseOwned = true
+	end
+	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
 end
 
 -- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
@@ -1898,6 +1973,8 @@ function widgetHandler:Update()
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
+
+	self:UpdateWindowPause()
 	return
 end
 
