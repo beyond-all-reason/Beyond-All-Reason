@@ -2037,12 +2037,6 @@ function gadgetHandler:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, att
 end
 
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-	-- Calls with no input priority are pure pass/fail tests.
-	-- These are common, and BAR never disallows any of them.
-	-- if not defPriority then
-	-- 	return true -- The second return value is never used.
-	-- end
-
 	local allowed = true
 	local result = 1.0
 
@@ -2052,14 +2046,20 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 		for _, g in ipairs(self.UnitAutoTargetRangeList) do
 			defPriority = g:UnitAutoTargetRange(attackerID, defPriority)
 		end
-
 		allowed, result = defPriority > 0, defPriority
 	else
-		-- The actual callin. BAR only uses AllowWeaponTarget for the target priority.
+		-- The actual callin. BAR uses `AllowWeaponTarget` for both allow/disallow and target priority, now.
 		for _, g in ipairs(self.AllowWeaponTargetList) do
-			allowed, result =
+			local allow, priority =
 				g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+			if not allow then
+				return false, defPriority
+			end
+			if priority ~= nil then
+				defPriority = priority
+			end
 		end
+		result = defPriority
 	end
 	return allowed, result
 end
