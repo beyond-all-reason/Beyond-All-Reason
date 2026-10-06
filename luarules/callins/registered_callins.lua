@@ -202,6 +202,57 @@ local function collectListedGadgets(registration, gadgets)
 	return listed
 end
 
+---Callin lists rebuild extremely slowly unless we collect on IDs first when a gadget deregisters a callin.
+---Currently very slow still for range-based registrations like ANY and negative IDs for build orders.
+---@param registration CallinRegistration
+local function collectRelistedIDs(registration, before, after)
+	local wasListed, isListed = {}, {}
+	for _, g in ipairs(before) do
+		wasListed[g] = true
+	end
+	for _, g in ipairs(after) do
+		isListed[g] = true
+	end
+
+	-- Keep the order of other gadgets when ID lists change.
+	local i, j = 1, 1
+	repeat
+		while before[i] and not isListed[before[i]] do
+			i = i + 1
+		end
+		while after[j] and not wasListed[after[j]] do
+			j = j + 1
+		end
+		if before[i] ~= after[j] then
+			return
+		end
+		i, j = i + 1, j + 1
+	until before[i - 1] == nil
+
+	local relistedGadgets = {}
+	for _, g in ipairs(before) do
+		if not isListed[g] then
+			relistedGadgets[#relistedGadgets + 1] = g
+		end
+	end
+	for _, g in ipairs(after) do
+		if not wasListed[g] then
+			relistedGadgets[#relistedGadgets + 1] = g
+		end
+	end
+
+	local idSetName, negativeIDs, relisted = registration.idSetName, registration.negativeIDs, {}
+	for _, g in ipairs(relistedGadgets) do
+		for id in pairs(g[idSetName]) do
+			if id == ANY or id == negativeIDs then
+				return -- every list needs rebuilding
+			end
+			relisted[id] = true
+		end
+	end
+	return relisted
+end
+
 ---@param registration CallinRegistration
 local function refreshCallinGadgets(handler, callin, registration)
 	local current, previous = handler[callin .. "List"], callinGadgets[callin]
@@ -229,14 +280,14 @@ local function refreshCallinGadgets(handler, callin, registration)
 
 	-- Gadgets with no registered IDs are in no list, so only the order of the others matters.
 	local before, after = collectListedGadgets(registration, previous), collectListedGadgets(registration, gadgets)
-	local relisted = #before ~= #after
-	local i = 1
-	while not relisted and i <= #after do
-		relisted = before[i] ~= after[i]
-		i = i + 1
-	end
-	if relisted then
+	local relisted = collectRelistedIDs(registration, before, after)
+	if relisted == nil then
 		rebuildCallinLists(callin, registration)
+	else
+		for id in pairs(relisted) do
+			rebuildIDList(callin, registration, id)
+			updateWatchedID(registration, id)
+		end
 	end
 end
 
