@@ -16,8 +16,8 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+local function loadMission(startScript)
+	local mission = VFS.Include(startScript.entryPoint)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -34,6 +34,7 @@ local function loadMission(scriptPath)
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
 
 	local validation = VFS.Include("luarules/mission_api/validation.lua")
+	validation.ValidateStartScript(startScript)
 	validation.ValidateStages(GG["MissionAPI"].Stages)
 	validation.ValidateObjectives(GG["MissionAPI"].Objectives)
 	validation.ValidateInitialStage(initialStage)
@@ -49,6 +50,7 @@ local function loadMission(scriptPath)
 
 	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
 	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	GG["MissionAPI"].Difficulty = difficultyController.FromName(startScript.difficulty)
 	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
 	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
 	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
@@ -60,13 +62,19 @@ local function loadMission(scriptPath)
 end
 
 function gadget:Initialize()
-	local scriptPath = nil -- relative to `singleplayer`, e.g.: 'mission-api-tests/filename.lua'.
-	if not scriptPath then
+	local startScript = VFS.Include("luarules/mission_api/startscript.lua").Read()
+	if not startScript then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	GG["MissionAPI"] = {}
+	GG["MissionAPI"].Options = startScript.options
+	GG["MissionAPI"].Variables = startScript.variables
+	GG["MissionAPI"].PersistentVariables = startScript.persistentVariables
+	GG["MissionAPI"].Teams = startScript.teams
+	GG["MissionAPI"].AllyTeams = startScript.allyTeams
+	GG["MissionAPI"].DummyTeams = startScript.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -83,14 +91,6 @@ function gadget:Initialize()
 	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-	-- No difficulty source exists yet (e.g. a modoption); default to the lowest difficulty.
-	GG["MissionAPI"].Difficulty = table.reduce(
-		GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty,
-		function(lowest, difficulty)
-			return math.min(lowest, difficulty)
-		end,
-		math.huge
-	)
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
@@ -113,7 +113,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(scriptPath)
+	loadMission(startScript)
 end
 
 function gadget:GamePreload()
