@@ -58,7 +58,7 @@ uniform vec3 samplingKernel[kernelSize];
 
 // Returns 0 in alpha if its a null-normal (invalid)
 vec4 GetModelNormalCameraSpace(vec2 uv){
-	vec4 modelNormal = texture(modelNormalTex, uv);
+	vec4 modelNormal = textureLod(modelNormalTex, uv, 0.0);
 	modelNormal.a = step(0.1, dot(modelNormal,modelNormal));
 	modelNormal.xyz = normalize(NORM2SNORM(modelNormal.xyz));
 	modelNormal.xyz = vec3(cameraView * vec4(modelNormal.xyz, 0.0));
@@ -67,8 +67,8 @@ vec4 GetModelNormalCameraSpace(vec2 uv){
 
 // Returns 0 in alpha if 
 vec4 GetViewPos(vec2 texCoord) {
-	float mapDepth = texture(mapDepthTex, texCoord).r;
-	float modelDepth =  texture(modelDepthTex, texCoord).r;
+	float mapDepth = textureLod(mapDepthTex, texCoord, 0.0).r;
+	float modelDepth = textureLod(modelDepthTex, texCoord, 0.0).r;
 
 	float modelOccludesMap = float(modelDepth < mapDepth);
 	float depth = min(mapDepth, modelDepth);
@@ -89,6 +89,22 @@ vec4 GetViewPos(vec2 texCoord) {
 	return viewPosition;
 }
 
+// View-space depth only, for the kernel samples: the two gbuffer depth reads are the cost
+// here, and the inverse projection is reduced to the z and w rows it needs.
+float GetViewPosZ(vec2 texCoord) {
+	float depth = min(textureLod(mapDepthTex, texCoord, 0.0).r, textureLod(modelDepthTex, texCoord, 0.0).r);
+
+	#if (DEPTH_CLIP01 == 1)
+		vec4 projPosition = vec4(NORM2SNORM(texCoord), depth, 1.0);
+	#else
+		vec4 projPosition = vec4(NORM2SNORM(vec3(texCoord, depth)), 1.0);
+	#endif
+
+	float z = dot(vec4(cameraProjInv[0][2], cameraProjInv[1][2], cameraProjInv[2][2], cameraProjInv[3][2]), projPosition);
+	float w = dot(vec4(cameraProjInv[0][3], cameraProjInv[1][3], cameraProjInv[2][3], cameraProjInv[3][3]), projPosition);
+	return z / w;
+}
+
 // generally follow https://github.com/McNopper/OpenGL/blob/master/Example28/shader/ssao.frag.glsl
 void main() {
 
@@ -96,7 +112,7 @@ void main() {
 	vec2 uv = gl_FragCoord.xy * DOWNSAMPLE / vec2(VSX,VSY);
 
 	#if USE_STENCIL == 1 
-		if (texture(unitStencilTex, uv).r < 0.1) { fragColor = vec4(1,0,1,1) ; return;}
+		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) { fragColor = vec4(1,0,1,1) ; return;}
 	#endif
 
 	#if NOFUSE == 1 
@@ -108,7 +124,7 @@ void main() {
 		validFragment *= viewPosition.w;
 
 	#else
-		vec4 viewPosition = vec4( texture(viewPosTex, uv).xyz, 1.0 );
+		vec4 viewPosition = vec4( textureLod(viewPosTex, uv, 0.0).xyz, 1.0 );
 		vec4 viewNormalSample = GetModelNormalCameraSpace(uv);
 		vec3 viewNormal = viewNormalSample.xyz;
 		float validFragment = viewNormalSample.a * step(viewPosition.z,0.0);
@@ -167,7 +183,7 @@ void main() {
 						#if NOFUSE == 1 
 							viewPosition = GetViewPos(uv) ;
 						#else
-							viewPosition = vec4( texture(viewPosTex, newUV).xyz, 1.0 );
+							viewPosition = vec4( textureLod(viewPosTex, newUV, 0.0).xyz, 1.0 );
 						#endif
 						viewTangent = normalize(randomVector - dot(randomVector, viewNormal) * viewNormal);
 						viewBitangent = cross(viewNormal, viewTangent);
@@ -195,9 +211,9 @@ void main() {
 			// Get sample viewPos from the viewPosTex texture
 			float viewPositionSampledZ;
 			#if NOFUSE == 1 
-				viewPositionSampledZ = GetViewPos(texSampingPoint).z;
+				viewPositionSampledZ = GetViewPosZ(texSampingPoint);
 			#else
-				viewPositionSampledZ = -1 * abs(texture(viewPosTex, texSampingPoint).z);
+				viewPositionSampledZ = -1 * abs(textureLod(viewPosTex, texSampingPoint, 0.0).z);
 			#endif
 			// Delta is how much deeper our ray is compared to sample, in elmos
 			// negative numbers mean ray is in front of sample, no occulsion
