@@ -111,6 +111,7 @@ else
 	local spSendCommands = Spring.SendCommands
 
 	local gadgetPaused = false
+	local gadgetResumePending = false -- unpaused by gadgets, but the game has not resumed yet
 
 	local function setGamePaused(paused)
 		if getPauseControllerID() ~= spGetMyPlayerID() then
@@ -128,13 +129,30 @@ else
 
 	local function onGamePause(_, paused)
 		gadgetPaused = paused
+		gadgetResumePending = not paused
 		setGamePaused(paused)
 	end
 
 	function gadget:GamePaused(playerID, isPaused)
+		gadgetResumePending = false
 		if gadgetPaused and not isPaused then
 			setGamePaused(true)
 		end
+	end
+
+	local function onPlayersChanged()
+		-- The next pause controller takes over pending requests.
+		if gadgetPaused or gadgetResumePending then
+			setGamePaused(gadgetPaused)
+		end
+	end
+
+	function gadget:PlayerChanged()
+		onPlayersChanged()
+	end
+
+	function gadget:PlayerRemoved()
+		onPlayersChanged()
 	end
 
 	function gadget:Initialize()
