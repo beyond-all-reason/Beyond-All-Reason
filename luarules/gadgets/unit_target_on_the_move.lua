@@ -648,6 +648,21 @@ if gadgetHandler:IsSyncedCode() then
 		pendingTargetPauses[unitID] = false
 	end
 
+	local function assignAppendedTargetList(unitData, list)
+		local previous = unitData.targetList
+		if previous and previous ~= list then
+			-- Appending changes the list value, not the remaining lifetime of its
+			-- existing targets. Only carry deadlines for entries actually retained.
+			for _, entry in ipairs(previous.entries) do
+				local target = entry.target
+				if type(target) == "number" and list.lookup[target] then
+					list.unseenUntil[target] = previous.unseenUntil[target]
+				end
+			end
+		end
+		assignTargetList(unitData, list)
+	end
+
 	---@param unitID UnitID
 	---@param unitDefID UnitDefID
 	---@param targetList table
@@ -715,7 +730,10 @@ if gadgetHandler:IsSyncedCode() then
 						entries[index] = list.entries[index]
 					end
 					entries[#entries + 1] = targetData
-					assignTargetList(data, targetListStore:createTargetList(entries, data.teamID, data.allyTeam))
+					assignAppendedTargetList(
+						data,
+						targetListStore:createTargetList(entries, data.teamID, data.allyTeam)
+					)
 					list = data.targetList
 				end
 
@@ -791,7 +809,11 @@ if gadgetHandler:IsSyncedCode() then
 		if not append and not prepend then
 			targetList.sharedList = sharedList
 		end
-		assignTargetList(data, sharedList)
+		if append then
+			assignAppendedTargetList(data, sharedList)
+		else
+			assignTargetList(data, sharedList)
+		end
 		data.scanIndex = min(data.scanIndex or 1, targetCount)
 
 		setTargetData[unitID] = data
