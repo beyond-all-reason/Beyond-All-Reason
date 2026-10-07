@@ -92,10 +92,7 @@ local canSetUnitWeaponAttribute = attributeRules.CanSetUnitWeaponAttribute
 local canSetUnitWeaponModifier = attributeRules.CanSetUnitWeaponModifier
 local affectsUnitDef = attributeRules.AffectsUnitDef
 
-local EXPLOSIONS = {
-	explode = attributeDefinitions.WEAPON_DEATH,
-	selfDestruct = attributeDefinitions.WEAPON_SELFD,
-}
+local EXPLOSIONS = parameterTypeEnums[Types.UnitWeapon]
 
 local validators = {}
 

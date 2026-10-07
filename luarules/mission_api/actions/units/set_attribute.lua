@@ -43,10 +43,7 @@ local setUnitWeaponValue = GG.UnitAttributes.SetUnitWeaponAttribute
 local setUnitDefWeaponMultiplier = GG.UnitAttributes.SetUnitDefWeaponModifier
 local setUnitWeaponMultiplier = GG.UnitAttributes.SetUnitWeaponModifier
 
-local EXPLOSIONS = {
-	explode = GG.UnitAttributes.WEAPON_DEATH,
-	selfDestruct = GG.UnitAttributes.WEAPON_SELFD,
-}
+local EXPLOSIONS = GG["MissionAPI"].Modules.ParameterTypes.Enums[ParameterTypes.UnitWeapon]
 
 local function setUnitDefWeaponAttribute(unitDefName, teamID, weapon, attribute, value, source)
 	local unitDef = UnitDefNames[unitDefName]

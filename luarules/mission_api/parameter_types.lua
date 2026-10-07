@@ -63,6 +63,8 @@ local types = {
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
 
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+
 local enums = {
 	[types.Facing] = {
 		[0] = true,
@@ -90,8 +92,8 @@ local enums = {
 	},
 
 	[types.UnitWeapon] = {
-		explode = true,
-		selfDestruct = true,
+		explode = attributeDefinitions.WEAPON_DEATH,
+		selfDestruct = attributeDefinitions.WEAPON_SELFD,
 	},
 }
 
