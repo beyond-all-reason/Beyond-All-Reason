@@ -20,7 +20,6 @@ in DataVS { // I recall the sane limit for cache coherence is like 48 floats per
 	vec4 v_mincolor;
 	vec4 v_maxcolor;
 	vec4 v_centerpos;
-	vec4 v_uvoffsets;
 	vec4 v_parameters;
 	vec2 v_sizemodifiers;
 	uvec4 v_bartype_index_ssboloc;
@@ -33,7 +32,6 @@ out DataGS {
 
 mat3 rotY;
 vec4 centerpos;
-vec4 uvoffsets;
 float zoffset;
 float depthbuffermod;
 float sizemultiplier = dataIn[0].v_sizemodifiers.x;
@@ -123,7 +121,6 @@ void main(){
 
 	g_color = vec4(1.0, 0.0, 1.0, 1.0); // a very noticeable default color
 
-	uvoffsets = dataIn[0].v_uvoffsets; // if an atlas is used, then use this, otherwise dont
 
 	float health = dataIn[0].v_parameters.x;
 	if (BARALPHA < MINALPHA) return; // Dont draw below 50% transparency

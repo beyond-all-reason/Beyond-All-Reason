@@ -17,8 +17,10 @@ local enabled = true
 
 local opacityMult = 1
 
-local noiseTex = ":l:LuaUI/Images/rgbnoise.png"
---local noiseTex = "LuaUI/Images/noisetextures/uniformnoise_128_rgba_1pixoffset.tga"
+-- Raymarch samples per pixel through the cloud volume (the pass already renders at a quarter of the
+-- screen size). 10 is the original look; fewer steps make thin cloud layers band.
+local cloudRaymarchSteps = 10
+
 local noiseTex3D = "LuaUI/Images/noisetextures/worley_rgbnorm_01_asum_128_v1.dds"
 
 --------------------------------------------------------------------------------
@@ -235,11 +237,9 @@ const float sunPenetrationDepth = float(%f);
 
 const float shadowOpacity = 0.6;
 const float sunDiffuseStrength = float(6.0);
-const float noiseTexSizeInv = 1.0 / 256.0;
-const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
-
 #define DEPTH_CLIP01 ###DEPTH_CLIP01###
 #define CLAMP_TO_MAP ###CLAMP_TO_MAP###
+#define RAYMARCH_STEPS ###RAYMARCH_STEPS###
 
 #if CLAMP_TO_MAP
 	const vec3 vAA = vec3(  1.,fogBottom,  1.);
@@ -250,7 +250,6 @@ const float noiseCloudness = float(0.7) * 0.5; // TODO: configurable
 #endif
 
 uniform sampler2D tex0;
-uniform sampler2D tex1;
 uniform sampler3D tex2;
 
 uniform vec3 eyePos;
@@ -279,27 +278,6 @@ in AABB aabbCamera;
 //float sunSpecularColor = suncolor; //FIXME
 const float sunSpecularExponent = float(100.0);
 
-float noise_old(in vec3 x)
-{
-	vec3 p = floor(x);
-	vec3 f = fract(x);
-	f = f*f*(3.0-2.0*f);
-	vec2 uv = (p.xz + vec2(37.0,17.0)*p.y) + f.xz;
-	vec2 rg = texture2D( tex1, (uv + 0.5) * noiseTexSizeInv).yx;
-	return smoothstep(0.5 - noiseCloudness, 0.5 + noiseCloudness, mix( rg.x, rg.y, f.y ));
-}
-
-/*
-float noise(in vec3 x)
-{
-	vec3 p = floor(x);
-	vec3 f = fract(x);
-	f = f*f*(3.0-2.0*f);
-	vec2 uv = (p.xz + vec2(37.0,17.0)*p.y) + f.xz;
-	vec2 rg = texture2D( tex1, (uv + 0.5) * noiseTexSizeInv).yx;
-	return smoothstep(0.5 - noiseCloudness, 0.5 + noiseCloudness, mix( rg.x, rg.y, f.y ));
-}
-*/
 
 float noise(in vec3 x)
 {
@@ -351,7 +329,7 @@ float MapClouds(in vec3 p)
 vec4 RaymarchClouds(in vec3 start, in vec3 end, float op)
 {
 	float l = length(end - start);
-	const float numsteps = 10.0;
+	const float numsteps = float(RAYMARCH_STEPS);
 	const float tstep = 1. / numsteps;
 	float depth = min(l * fogThicknessInv, 1.5);
 
@@ -434,40 +412,6 @@ void main()
 
 	gl_FragColor = vec4(0.0);
 
-	#if 0
-	{
-		if (z != 1.0) {
-			//vec4 sunPos = vec4(sundir * fogHeight / dot(sundir, vec3(0, 1, 0)), 1.0);
-			vec3 sunPos = sundir * 50000.0;
-
-			// clamp ray in boundary box
-			Ray r;
-			r.Origin = worldPos;
-			r.Dir = sunPos - worldPos;
-			AABB box;
-
-			box = aabbCamera;
-
-			box.Min = max(box.Min, vAA);
-			box.Max = min(box.Max, vBB);
-
-			float t1, t2;
-
-			// TODO: find a way to do this when eye is inside volume
-			if (IntersectBox(r, box, t1, t2)) {
-				t1 = clamp(t1, 0.0, 1.0);
-				t2 = clamp(t2, 0.0, 1.0);
-				vec3 startPos = r.Dir * t1 + r.Origin;
-				vec3 endPos   = r.Dir * t2 + r.Origin;
-
-				// finally raymarch the volume
-				vec4 rmColor = RaymarchClouds(startPos, endPos, shadowOpacity);
-				gl_FragColor.a = pow(1.5 * rmColor.a, 3.0);
-			}
-		}
-	}
-	#endif
-	#if 1
 	{
 		// clamp ray in boundary box
 		Ray r;
@@ -499,7 +443,6 @@ void main()
 			#endif
 		}
 	}
-	#endif
 }
 
 ]]
@@ -538,6 +481,7 @@ local function init()
 
 	fragSrc = fragSrc:gsub("###DEPTH_CLIP01###", tostring((Platform.glSupportClipSpaceControl and 1) or 0))
 	fragSrc = fragSrc:gsub("###CLAMP_TO_MAP###", tostring((cloudsClamp and 1) or 0))
+	fragSrc = fragSrc:gsub("###RAYMARCH_STEPS###", tostring(math.max(2, math.floor(cloudRaymarchSteps))))
 
 	if enabled then
 		depthShader = LuaShader({
@@ -545,7 +489,6 @@ local function init()
 			fragment = fragSrc,
 			uniformInt = {
 				tex0 = 0,
-				tex1 = 1,
 				tex2 = 2,
 			},
 			uniformFloat = {
@@ -599,7 +542,6 @@ function widget:Shutdown()
 	if depthShader then
 		depthShader:Finalize()
 	end
-	glDeleteTexture(noiseTex)
 	glDeleteTexture(noiseTex3D)
 end
 
@@ -607,8 +549,6 @@ local function renderToTextureFunc()
 	-- render a full screen quad
 	glTexture(0, depthTexture)
 	glTexture(0, false)
-	glTexture(1, noiseTex)
-	glTexture(1, false)
 	glTexture(2, noiseTex3D)
 	glTexture(2, false)
 

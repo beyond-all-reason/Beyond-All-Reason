@@ -34,7 +34,7 @@ void main(void)
 
 
 	#if USE_STENCIL == 1 
-		if (texture(unitStencilTex, uv).r < 0.1) {
+		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) {
 			fragColor = vec4(0.0,0.0, 0.0, 1.0);	return;
 		}
 	#endif
@@ -48,7 +48,7 @@ void main(void)
 		// implement outlier detection too 
 		// MORE GROUND EFFECT! USE UNIFORM KERNEL FOR GROUND!
 
-		vec4 texSample = texture( tex, uv );
+		vec4 texSample = textureLod( tex, uv, 0.0 );
 		vec3 myNormal = NORM2SNORM(texSample.rgb);
 		myNormal.z = texSample.z;
 
@@ -79,7 +79,7 @@ void main(void)
 			}
 
 
-			vec4 leftSample = texture( tex, uvP );
+			vec4 leftSample = textureLod( tex, uvP, 0.0 );
 			float zclosel = step(abs(myDistance - leftSample.z), ZTHRESHOLD);
 			float dotclosel = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(leftSample.xy)));
 			dotclosel = max(dotclosel, imground);
@@ -88,10 +88,10 @@ void main(void)
 			howLit += leftWeight * leftSample.a;
 			unWeighted += weightP * leftSample.a;
 
-			vec4 rightSample = texture( tex, uvN );
+			vec4 rightSample = textureLod( tex, uvN, 0.0 );
 			float zcloser = step(abs(myDistance - rightSample.z), ZTHRESHOLD);
 			float dotcloser = smoothstep(MINCOSANGLE, 1.0, dot(myNormal.xy, NORM2SNORM(rightSample.xy)));
-			dotcloser = max(dotclosel, imground);
+			dotcloser = max(dotcloser, imground);
 			float rightWeight = weightN * dotcloser * zcloser;
 			weightSum += rightWeight;
 			howLit += rightWeight * rightSample.a;

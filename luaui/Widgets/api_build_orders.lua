@@ -6,6 +6,19 @@ local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 local CMD_GUARD = CMD.GUARD
 
+-- Every order costs the sim a synced callin per gadget, and split mode used to
+-- give every builder every building (builders x buildings orders). The peer
+-- followups now share a fixed budget on top of the one order per building.
+local MAX_TOTAL_ORDERS = 2000
+
+-- The engine discards NETMSG_AICOMMANDS packets above 8192 bytes, so order
+-- arrays are sent in chunks that stay under it (sizes from SendCommandsToUnits).
+local MAX_PACKET_BYTES = 7600
+local PACKET_HEADER_BYTES = 17
+local PACKET_UNIT_BYTES = 2
+local PACKET_ORDER_BYTES = 7 -- id, options, param count
+local PACKET_PARAM_BYTES = 4
+
 function widget:GetInfo()
 	return {
 		name = "Build Orders API",
@@ -26,6 +39,38 @@ end
 ---@field unitDefID UnitDefID
 ---@field position number[] { x, y, z }
 ---@field facing? number
+
+-- UnitDefs[id].buildOptions builds a new table on every access.
+local buildOptionSets = {} -- builder unitDefID -> { [buildee unitDefID] = true }
+
+local function getBuildOptionSet(unitDefID)
+	local set = buildOptionSets[unitDefID]
+	if not set then
+		set = {}
+		for _, buildeeDefID in ipairs(UnitDefs[unitDefID].buildOptions) do
+			set[buildeeDefID] = true
+		end
+		buildOptionSets[unitDefID] = set
+	end
+	return set
+end
+
+local equivalentUnitDefIDs = {} -- side -> unitDefID -> substituted unitDefID, false when none
+
+local function getEquivalentUnitDefID(unitDefID, side)
+	local sideKey = side or false
+	local bySide = equivalentUnitDefIDs[sideKey]
+	if not bySide then
+		bySide = {}
+		equivalentUnitDefIDs[sideKey] = bySide
+	end
+	local result = bySide[unitDefID]
+	if result == nil then
+		result = SubLogic.getEquivalentUnitDefID(unitDefID, side) or false
+		bySide[unitDefID] = result
+	end
+	return result or nil
+end
 
 ---@param builderID UnitID
 ---@return BuilderInfo
@@ -58,10 +103,7 @@ end
 local function canBuild(builderGroup, building, side, allowSubstitution)
 	allowSubstitution = allowSubstitution ~= false -- Defaults to true
 
-	local builderUnitDefID = builderGroup[1].unitDefID
-	local builderUnitDef = UnitDefs[builderUnitDefID]
-
-	local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, side)
+	local substitutedUnitDefID = getEquivalentUnitDefID(building.unitDefID, side)
 	if not substitutedUnitDefID then
 		return false
 	end
@@ -70,13 +112,7 @@ local function canBuild(builderGroup, building, side, allowSubstitution)
 		return false
 	end
 
-	for _, buildOption in ipairs(builderUnitDef.buildOptions) do
-		if buildOption == substitutedUnitDefID then
-			return true
-		end
-	end
-
-	return false
+	return getBuildOptionSet(builderGroup[1].unitDefID)[substitutedUnitDefID] == true
 end
 
 ---@param builders UnitID[]
@@ -106,13 +142,33 @@ local function forkBuilders(builders)
 	return forkGroups
 end
 
+---Sends orders in packets the engine accepts.
+---@param unitIDs UnitID[]
+---@param orders table[] { cmdID, params, options } entries
+local function giveOrders(unitIDs, orders)
+	local headerBytes = PACKET_HEADER_BYTES + PACKET_UNIT_BYTES * #unitIDs
+	local chunk, chunkBytes = {}, headerBytes
+	for _, order in ipairs(orders) do
+		local orderBytes = PACKET_ORDER_BYTES + PACKET_PARAM_BYTES * #order[2]
+		if #chunk > 0 and chunkBytes + orderBytes > MAX_PACKET_BYTES then
+			Spring.GiveOrderArrayToUnitArray(unitIDs, chunk, false)
+			chunk, chunkBytes = {}, headerBytes
+		end
+		chunk[#chunk + 1] = order
+		chunkBytes = chunkBytes + orderBytes
+	end
+	if #chunk > 0 then
+		Spring.GiveOrderArrayToUnitArray(unitIDs, chunk, false)
+	end
+end
+
 --- Distributes a blueprint's buildings across builder groups, proportional to
 --- each group's build power, with capability-aware leftover redistribution. The
 --- first order issued to each group honors the user's shift state (replacing the
 --- queue when shift wasn't held); the rest are queued.
 ---
---- When peerFollowups is true (split mode), each group also receives every other
---- building it is capable of constructing as lower-priority followups, so a
+--- When peerFollowups is true (split mode), each group also receives other
+--- buildings it is capable of constructing as lower-priority followups, so a
 --- builder finishes its own fork and then helps with whatever remains. When
 --- builders outnumber buildings, the extras have empty own-chunks and simply
 --- start helping (double-up). The engine skips orders whose positions are already
@@ -165,7 +221,9 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 
 	-- 2. Partition the blueprint into cost-based linear chunks
 	local chunks = {}
+	local followupStarts = {} -- groupKey -> index in allBuildings the followups continue from
 	local buildingIndex = 1
+	local groupCount = #allBuilderGroups
 	for i, groupData in ipairs(allBuilderGroups) do
 		local proportion = groupData.power / totalBuildPower
 		local targetCostForGroup = totalBuildCost * proportion
@@ -173,11 +231,12 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 		local buildingsForGroup = {}
 		local accumulatedCost = 0
 
-		if i == #allBuilderGroups then
+		if i == groupCount then
 			-- Last group takes all remaining buildings
 			for j = buildingIndex, #allBuildingsWithCost do
 				table.insert(buildingsForGroup, allBuildingsWithCost[j].building)
 			end
+			buildingIndex = #allBuildingsWithCost + 1
 		else
 			while buildingIndex <= #allBuildingsWithCost do
 				local currentBuilding = allBuildingsWithCost[buildingIndex]
@@ -196,6 +255,13 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 				accumulatedCost = costAfterAdding
 				buildingIndex = buildingIndex + 1
 			end
+		end
+
+		if #buildingsForGroup > 0 then
+			followupStarts[groupData.key] = buildingIndex - 1
+		else
+			-- extra builders without a chunk start spread over the list
+			followupStarts[groupData.key] = math.floor((i - 1) * #allBuildingsWithCost / groupCount)
 		end
 
 		table.insert(chunks, { groupData = groupData, buildings = buildingsForGroup })
@@ -252,17 +318,31 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 		end
 	end
 
-	-- 5. Split only: after its own chunk, give each group every other building it
-	-- can build as a followup, so each builder helps peers once its fork is done.
+	-- 5. Split only: after its own chunk, each group gets the buildings it can
+	-- build as followups, so a builder helps peers once its fork is done. They
+	-- continue from where the own chunk ends (the chunks are linear, so that is
+	-- the neighbouring work) and wrap around, within the shared order budget.
 	if peerFollowups then
-		for _, groupData in ipairs(allBuilderGroups) do
-			local own = {}
-			for _, building in ipairs(assignedBuildings[groupData.key]) do
-				own[building] = true
-			end
-			for _, building in ipairs(allBuildings) do
-				if not own[building] and canBuild(groupData.group, building, groupData.side, true) then
-					table.insert(assignedBuildings[groupData.key], building)
+		local buildingCount = #allBuildings
+		local followupBudget = math.floor((MAX_TOTAL_ORDERS - buildingCount) / groupCount)
+		if followupBudget > 0 then
+			for _, groupData in ipairs(allBuilderGroups) do
+				local assigned = assignedBuildings[groupData.key]
+				local own = {}
+				for _, building in ipairs(assigned) do
+					own[building] = true
+				end
+				local start = followupStarts[groupData.key]
+				local added = 0
+				for offset = 0, buildingCount - 1 do
+					if added >= followupBudget then
+						break
+					end
+					local building = allBuildings[(start + offset) % buildingCount + 1]
+					if not own[building] and canBuild(groupData.group, building, groupData.side, true) then
+						table.insert(assigned, building)
+						added = added + 1
+					end
 				end
 			end
 		end
@@ -275,7 +355,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 		if #buildings > 0 then
 			local orders = {}
 			for _, building in ipairs(buildings) do
-				local substitutedUnitDefID = SubLogic.getEquivalentUnitDefID(building.unitDefID, groupData.side)
+				local substitutedUnitDefID = getEquivalentUnitDefID(building.unitDefID, groupData.side)
 				if substitutedUnitDefID then
 					table.insert(orders, {
 						-substitutedUnitDefID,
@@ -289,7 +369,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 				local groupBuilderIDs = table.map(groupData.group, function(b)
 					return b.unitID
 				end)
-				Spring.GiveOrderArrayToUnitArray(groupBuilderIDs, orders, false)
+				giveOrders(groupBuilderIDs, orders)
 			end
 		end
 	end

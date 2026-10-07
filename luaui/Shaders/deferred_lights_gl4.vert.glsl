@@ -21,8 +21,6 @@ layout (location = 8) in vec4 color2; //
 layout (location = 9) in uint pieceIndex; // for piece type lights
 layout (location = 10) in uvec4 instData; // matoffset, uniformoffset, teamIndex, drawFlags {id = 5, name = 'instData', size = 4, type = GL.UNSIGNED_INT},
 
-
-           
 //__ENGINEUNIFORMBUFFERDEFS__
 //__DEFINES__
 
@@ -61,15 +59,10 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 };
 #define UNITID (uni[instData.y].composite >> 16)
 
-
-
 #line 10000
 
 
 uniform float pointbeamcone = 0;// = 0; // 0 = point, 1 = beam, 2 = cone
-
-
-
 
 // this uniform needs some extra. If it is 1, then the primitives should point in the -Z direction, and be moved and rotated with the unit itself
 // If the unit is not being drawn, it must be switched off
@@ -95,7 +88,6 @@ out DataVS {
     flat vec4 v_modelfactor_specular_scattering_lensflare;
     vec4 v_depths_center_map_model_min;
     vec4 v_otherparams;
-    vec4 v_lightcenter_gradient_height;
     vec4 v_position;
     vec4 v_noiseoffset;
     noperspective vec2 v_screenUV;
@@ -104,19 +96,9 @@ out DataVS {
 
 uniform sampler2D mapDepths;
 uniform sampler2D modelDepths;
-uniform sampler2D heightmapTex;
-uniform sampler2D mapnormalsTex;
 
 
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
-
-
-
-
-float rand(vec2 co){ // a pretty crappy random function
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
 
 vec4 depthAtWorldPos(vec4 worldPosition){
     // takes a point, transforms it to worldspace, and checks for occlusion against map, model buffer, and returns all the depths
@@ -302,9 +284,7 @@ void main()
         vec3 centertoend = lightCenterPosition - worldposrad2.xyz;
         float halfbeamlength = length(centertoend);
         // Scale the box to correct size (along beam is Y dir)
-        //if (attachedtounitID > 0){
-            worldPos.xyz = position.xyz * vec3( lightRadius , step(position.y, 0) *halfbeamlength + lightRadius, lightRadius );
-            //}
+        worldPos.xyz = position.xyz * vec3( lightRadius ,  step(position.y, 0) * halfbeamlength + lightRadius, lightRadius );
         //else{
             worldPos.xyz = position.xyz * vec3( lightRadius ,  step(position.y, 0) * halfbeamlength + lightRadius, lightRadius );
             //worldPos.xyz = position.xyz * vec3( lightRadius , halfbeamlength + lightRadius, lightRadius );
@@ -426,8 +406,6 @@ void main()
         // rotate the cone, and place it into local space
         worldPos.xyz = rotmat * worldPos.xyz + lightCenterPosition;
 
-
-       
         // move the cone into piece or world space:
         worldPos.xyz = (placeInWorldMatrix * vec4(worldPos.xyz, 1.0)).xyz;
        
@@ -444,14 +422,6 @@ void main()
         v_position =  worldPos;
     }
     #line 14000
-    // Get the heightmap and the normal map at the center position of the light in v_worldPosRad.xyz
-   
-    vec2 uvhm = heightmapUVatWorldPos(v_worldPosRad.xz);
-    v_lightcenter_gradient_height.w = textureLod(heightmapTex, uvhm, 0.0).x;
-   
-    vec4 mapnormals = textureLod(mapnormalsTex, uvhm, 0.0);
-    mapnormals.g = sqrt( 1.0 - mapnormals.r * mapnormals.r - mapnormals.a * mapnormals.a);
-    v_lightcenter_gradient_height.xyz = mapnormals.rga;
    
     //  vec4 windInfo; // windx, windy, windz, windStrength
     v_noiseoffset = vec4(windX, 0, windZ,0) * (-0.0156);
@@ -464,8 +434,6 @@ void main()
    
     // pass everything on to fragment shader:
 
-
-   
 }
 
 

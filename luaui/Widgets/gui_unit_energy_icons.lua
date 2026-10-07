@@ -21,6 +21,7 @@ local weaponEnergyCostFloor = 6
 
 local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitResources = Spring.GetUnitResources
+local spGetGameRulesParam = Spring.GetGameRulesParam
 local spGetUnitTeam = spGetUnitTeam
 
 local teamEnergy = {} -- table of teamid to current energy amount
@@ -29,12 +30,13 @@ local teamList = {} -- {team1, team2, team3....}
 
 local chobbyInterface
 
-local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool buildingNeedingUpkeep}
+local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool needsUpkeep, bool sensorUpkeep}
 local maxStall = 0 --Currently not used, was used to skip checking energy level when maxenergy > maxStall issue was energy symbols were not removed then
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6 * (xsize * xsize + zsize * zsize) ^ 0.5
-	local buildingNeedingUpkeep = false
+	local needsUpkeep = false
+	local sensorUpkeep = false
 	local neededEnergy = 0
 	local weapons = unitDef.weapons
 	if #weapons > 0 then
@@ -49,17 +51,18 @@ for udid, unitDef in pairs(UnitDefs) do
 				end
 			end
 		end
-	elseif
-		unitDef.isBuilding
-		and unitDef.energyUpkeep
-		and unitDef.energyUpkeep > 0
-		and unitDef.energyUpkeep > unitDef.energyMake
-	then
+	elseif unitDef.energyUpkeep and unitDef.energyUpkeep > 0 and unitDef.energyUpkeep > unitDef.energyMake then
 		neededEnergy = unitDef.energyUpkeep
-		buildingNeedingUpkeep = true
+		needsUpkeep = true
+		-- jammers and other sensors: they keep working unpaid unless sensors require their upkeep
+		sensorUpkeep = unitDef.radarDistance > 0
+			or unitDef.sonarDistance > 0
+			or unitDef.seismicDistance > 0
+			or unitDef.radarDistanceJam > 0
+			or unitDef.sonarDistanceJam > 0
 	end
 	if neededEnergy > 0 then
-		unitConf[udid] = { 7.5 + (scale / 2.2), unitDef.height, neededEnergy, buildingNeedingUpkeep }
+		unitConf[udid] = { 7.5 + (scale / 2.2), unitDef.height, neededEnergy, needsUpkeep, sensorUpkeep }
 	end
 	maxStall = math.max(maxStall, neededEnergy)
 end
@@ -178,6 +181,8 @@ end
 local function updateStalling()
 	UpdateTeamEnergy()
 	local gf = spGetGameFrame()
+	-- the engine's sensors.requireUpkeep modrule, or a game-side rule announcing itself with this rules param
+	local sensorsRequireUpkeep = Game.sensorsRequireUpkeep == true or spGetGameRulesParam("sensorsRequireUpkeep") == 1
 	for teamID, units in pairs(teamUnits) do
 		--Spring.Echo('teamID',teamID)
 		if teamEnergy[teamID] then
@@ -188,6 +193,7 @@ local function updateStalling()
 				if
 					teamEnergy[teamID]
 					and unitConf[unitDefID][3] > teamEnergy[teamID] -- more neededEnergy than we have
+					and (sensorsRequireUpkeep or not unitConf[unitDefID][5])
 					and (
 						not unitConf[unitDefID][4]
 						or ((unitConf[unitDefID][4] and (unitEnergy or 999999)) < unitConf[unitDefID][3])

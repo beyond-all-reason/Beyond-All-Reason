@@ -87,7 +87,6 @@ local devUI = BAR.Utilities.ShowDevUI()
 
 local advSettings = false
 local initialized = false
-local pauseGameWhenSingleplayer = true
 
 local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
@@ -127,8 +126,6 @@ local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 
-local pauseGameWhenSingleplayerExecuted = false
-
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
 
@@ -146,7 +143,6 @@ local changesRequireRestart = false
 local useNetworkSmoothing = false
 
 local show = false
-local prevShow = show
 local manualChange = true
 
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -175,9 +171,6 @@ local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButt
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
-
-local skipUnpauseOnHide = false
-local skipUnpauseOnLobbyHide = false
 
 local desiredWaterValue = 4
 local waterDetected = false
@@ -1653,85 +1646,13 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == "LobbyOverlayActive" then
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 		updateGrabinput()
-		if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			local _, _, isClientPaused, _ = Spring.GetGameState()
-			if chobbyInterface and isClientPaused then
-				skipUnpauseOnLobbyHide = true
-			end
-			if not skipUnpauseOnLobbyHide then
-				Spring.SendCommands("pause " .. (chobbyInterface and "1" or "0"))
-				pauseGameWhenSingleplayerExecuted = chobbyInterface
-			end
-			if not chobbyInterface then
-				Spring.SetConfigInt(
-					"VSync",
-					Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
-				)
-			end
+		if (isSinglePlayer or isReplay) and not chobbyInterface then
+			Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 		end
 	end
-end
-
-local showToggledOff = false
-local function checkPause()
-	-- pause/unpause when the options/quitscreen interface shows
-	_, _, isClientPaused, _ = Spring.GetGameState()
-	if not isClientPaused then
-		skipUnpauseOnHide = false
-		skipUnpauseOnLobbyHide = false
-	end
-	showToggledOff = false
-	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevShow ~= show then
-		if show and isClientPaused then
-			skipUnpauseOnHide = true
-		end
-		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (show and "1" or "0")) -- cause several widgets are still using old colors
-			showToggledOff = not show
-			pauseGameWhenSingleplayerExecuted = show
-		end
-	end
-end
-
-local quitscreen = false
-local prevQuitscreen = false
-local pauseCheckTimer = 0
-local lastPauseCheckClock = os_clock()
-local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
-local isClientPaused = false
-local function checkQuitscreen()
-	if not canPauseGame then
-		return
-	end
-	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
-	if prevQuitscreen ~= quitscreen then
-		if quitscreen and isClientPaused and not showToggledOff then
-			skipUnpauseOnHide = true
-		end
-		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (quitscreen and "1" or "0")) -- cause several widgets are still using old colors
-			pauseGameWhenSingleplayerExecuted = quitscreen
-		end
-	end
-	prevQuitscreen = quitscreen
 end
 
 function widget:DrawScreen()
-	-- pause/quit checks only needed for singleplayer/replay
-	if canPauseGame then
-		if prevShow ~= show then
-			checkPause()
-		end
-		-- throttle quitscreen polling to ~4x/sec
-		local clockNow = os_clock()
-		pauseCheckTimer = pauseCheckTimer + (clockNow - lastPauseCheckClock)
-		lastPauseCheckClock = clockNow
-		if pauseCheckTimer > 0.25 then
-			pauseCheckTimer = 0
-			checkQuitscreen()
-		end
-	end
-
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
 		init()
@@ -2280,8 +2201,6 @@ function widget:DrawScreen()
 			loadAllWidgetData()
 		end
 	end
-
-	prevShow = show
 end
 
 function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue, widgetApiFunctionParam)
@@ -8801,19 +8720,12 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.singleplayerpause"),
 			type = "bool",
-			value = pauseGameWhenSingleplayer,
+			value = Spring.GetConfigInt("WindowsPauseGame", 1) == 1,
 			description = BAR.I18N("ui.settings.option.singleplayerpause_descr"),
 			onchange = function(i, value)
-				pauseGameWhenSingleplayer = value
-				if (isSinglePlayer or isReplay) and show then
-					if pauseGameWhenSingleplayer then
-						Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and "1" or "0"))
-						pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
-					elseif pauseGameWhenSingleplayerExecuted then
-						Spring.SendCommands("pause 0")
-						pauseGameWhenSingleplayerExecuted = false
-					end
-				end
+				Spring.SetConfigInt("WindowsPauseGame", (value and 1 or 0))
+				-- pushed through as well so it takes effect now instead of at the next poll
+				widgetHandler:SetWindowsPauseGame(value)
 			end,
 		},
 
@@ -12510,8 +12422,6 @@ function widget:Initialize()
 	updateGrabinput()
 	widget:ViewResize()
 
-	prevShow = show
-
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SendCommands("set CamFrameTimeCorrection 1")
 	--	Spring.SendCommands("set SmoothTimeOffset 2")
@@ -12762,8 +12672,6 @@ function widget:GetConfigData()
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue, -- configint water can't be used since we will set water 0 when no water is present
-		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
-		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
 		-- options widget settings
 		firsttimesetupDone = firstlaunchsetupDone,
@@ -12831,12 +12739,6 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
-		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
-	end
-	if data.pauseGameWhenSingleplayer ~= nil then
-		pauseGameWhenSingleplayer = data.pauseGameWhenSingleplayer
-	end
 	if data.advSettings ~= nil then
 		advSettings = data.advSettings
 	end
@@ -12865,6 +12767,10 @@ function widget:SetConfigData(data)
 	end
 	if data.customOptions then
 		--customOptions = data.customOptions
+	end
+	-- this setting moved to the springsetting WindowsPauseGame; carry a switched off one over
+	if data.pauseGameWhenSingleplayer == false then
+		Spring.SetConfigInt("WindowsPauseGame", 0)
 	end
 end
 

@@ -59,7 +59,7 @@ QueryWeapon1(pieceIndex)
 
 AimFromWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = firepoint;
 }
 
 AimWeapon1(heading, pitch)
