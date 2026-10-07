@@ -38,6 +38,8 @@ end
 
 --------------------------------------------------------------------------------
 
+local widgetHandler -- barwidgets keeps the handler out of the globals
+
 -- No longer used for UI, but necessary for custom commands to function properly
 local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 	widgetHandler.commands = commands
@@ -79,7 +81,8 @@ local function DummyLayoutHandler(xIcons, yIcons, cmdCount, commands)
 	return "", xIcons, yIcons, {}, customCmds, {}, {}, {}, {}, reParamsCmds, { [1337] = 9001 }
 end
 
-function ConfigLayoutHandler(data)
+function ConfigLayoutHandler(data, handler)
+	widgetHandler = handler
 	if type(data) == "function" then
 		LayoutButtons = data
 	elseif data == nil then
@@ -88,7 +91,6 @@ function ConfigLayoutHandler(data)
 		LayoutButtons = DummyLayoutHandler
 	end
 end
-LayoutButtons = DummyLayoutHandler
 
 -- refresh, this prevents default engine buildmenu still showing up after a luaui reload
 Spring.ForceLayoutUpdate()

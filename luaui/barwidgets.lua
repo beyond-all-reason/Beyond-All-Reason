@@ -32,8 +32,14 @@ local vfsFileExists = VFS.FileExists
 local vfsDirList = VFS.DirList
 local vfsSubDirs = VFS.SubDirs
 local loadstring = loadstring
+local getfenv = getfenv
 local setfenv = setfenv
 local pcall = pcall
+local ioOpen = io.open
+local stringByte = string.byte
+local debugTraceback = debug.traceback
+local debugGetinfo = debug.getinfo
+local debugGetlocal = debug.getlocal
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -84,7 +90,7 @@ if Spring.IsReplay() or Spring.GetSpectatingState() then
 	allowunitcontrolwidgets = true
 end
 
-widgetHandler = {
+local widgetHandler = {
 	widgets = {},
 
 	configData = {},
@@ -645,6 +651,49 @@ end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
+
+-- The handler determines what a widget is able to access, including the global env and other widget envs.
+local globalEnv = getfenv(0)
+local widgetEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+
+local function isForeignEnv(widget, env)
+	return env == globalEnv or (widgetEnvs[env] and env ~= widget)
+end
+
+local function ownEnv(widget, env)
+	return isForeignEnv(widget, env) and widget or env
+end
+
+local function callerFrame(f)
+	if f == nil then
+		return 2
+	elseif type(f) == "number" and f > 0 then
+		return f + 1
+	end
+	return f
+end
+
+local function getLocalName(level, index)
+	local name = debugGetlocal(level + 1, index)
+	return name
+end
+
+local function loadChunk(text, chunkname, env)
+	if type(text) == "string" and stringByte(text, 1) == 27 then
+		return nil, "binary chunks are not allowed"
+	end
+	return loadstring(text, chunkname, env)
+end
+
+local function loadFile(filename, env)
+	local file, err = ioOpen(filename, "rb")
+	if not file then
+		return nil, err
+	end
+	local text = file:read("*a")
+	file:close()
+	return loadChunk(text, "@" .. filename, env)
+end
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 
@@ -673,6 +722,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		end
 
 		local widget = newWidget(widgetHandler, enableLocalsAccess, fromZip)
+		if not fromZip then
+			widget.debug.getlocal = getLocalName -- the detector needs getlocal
+		end
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -791,10 +843,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	end
 
 	-- user widgets may not access widgetHandler
-	-- fixme: remove the or true part
 	-- Granted last, so a widget refused above never holds the real handler.
 	if widget.whInfo.handler then
-		if fromZip or true then
+		if fromZip then
 			widget.widgetHandler = self
 		else
 			self.knownWidgets[name].active = false
@@ -864,6 +915,38 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	widget.include = function(f)
 		return include(f, widget)
 	end
+
+	widgetEnvs[widget] = true
+	widget.getfenv = function(f)
+		return ownEnv(widget, getfenv(callerFrame(f)))
+	end
+	widget.setfenv = function(f, env)
+		local frame = callerFrame(f)
+		if isForeignEnv(widget, getfenv(frame)) then
+			error("setfenv: cannot change this environment", 2)
+		end
+		return setfenv(frame, env)
+	end
+	widget.loadstring = function(text, chunkname, env)
+		if type(env) ~= "table" then
+			env = ownEnv(widget, getfenv(2))
+		end
+		return loadChunk(text, chunkname, env)
+	end
+	widget.loadfile = function(filename)
+		return loadFile(filename, ownEnv(widget, getfenv(2)))
+	end
+	widget.dofile = function(filename)
+		local chunk, err = loadFile(filename, ownEnv(widget, getfenv(2)))
+		if not chunk then
+			error(err, 0)
+		end
+		return chunk()
+	end
+	if not fromZip then
+		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+	end
+
 	wh.RaiseWidget = function(_)
 		self:RaiseWidget(widget)
 	end
@@ -1641,7 +1724,7 @@ function widgetHandler:GetViewSizes()
 end
 
 function widgetHandler:ConfigLayoutHandler(data)
-	ConfigLayoutHandler(data)
+	ConfigLayoutHandler(data, self)
 end
 
 --------------------------------------------------------------------------------
@@ -3953,4 +4036,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+widgetHandler:ConfigLayoutHandler(true)
 widgetHandler:Initialize()
+
+return widgetHandler
