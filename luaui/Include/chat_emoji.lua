@@ -266,13 +266,15 @@ local function colorSafeWords(line)
 	return words
 end
 
-function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize)
+function ChatEmoji.WordWrapPlain(textLines, maxWidth, usedFont, fontSize, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	for _, line in ipairs(textLines) do
 		local linebuffer = ""
 		for _, word in ipairs(colorSafeWords(line)) do
-			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
+			local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+			if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 				lineCount = lineCount + 1
 				lines[lineCount] = linebuffer
 				linebuffer = ""
@@ -456,9 +458,10 @@ function ChatEmoji.GetLeadingColorPrefix(text)
 	return text and string.byte(text, 1) == 255 and #text >= 4 and ssub(text, 1, 4) or ""
 end
 
-function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
+function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont, firstLineIndent)
 	local lines = {}
 	local lineCount = 0
+	local firstLineWidth = maxWidth - (firstLineIndent or 0)
 	local spaceWidth = usedFont:GetTextWidth(" ") * fontSize
 	for _, line in ipairs(text) do
 		local linebuffer = ""
@@ -467,7 +470,8 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 
 		if not lineHasEmoji then
 			for _, word in ipairs(colorSafeWords(line)) do
-				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > maxWidth then
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+				if linebuffer ~= "" and (usedFont:GetTextWidth(linebuffer .. " " .. word) * fontSize) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = ""
@@ -481,7 +485,8 @@ function ChatEmoji.WordWrapRichText(text, maxWidth, fontSize, usedFont)
 		else
 			for _, word in ipairs(colorSafeWords(line)) do
 				local wordWidth = emojiTextWidth(word, fontSize, usedFont)
-				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > maxWidth then
+				local lineWidth = lineCount == 0 and firstLineWidth or maxWidth
+				if linebuffer ~= "" and (linebufferWidth + spaceWidth + wordWidth) > lineWidth then
 					lineCount = lineCount + 1
 					lines[lineCount] = linebuffer
 					linebuffer = word

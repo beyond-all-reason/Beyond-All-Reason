@@ -24,6 +24,8 @@ local PACKET_HEADER = "$dev$"
 local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 local PH_B1 = string.byte(PACKET_HEADER, 1)
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 if gadgetHandler:IsSyncedCode() then
 	startPlayers = {}
 end
@@ -825,6 +827,31 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local hideFromSensors, restoreSensors ---@type function, function
+	do
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		local SENSOR_SOURCE = "setsensors"
+		local SENSOR_ATTRIBUTES = {
+			"losRadius",
+			"airLosRadius",
+			"radarRadius",
+			"sonarRadius",
+			"seismicRadius",
+			"jammerRadius",
+			"sonarJamRadius",
+		}
+		hideFromSensors = function(unitID)
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, 0, SENSOR_SOURCE)
+			end
+		end
+		restoreSensors = function(unitID)
+			for _, attribute in ipairs(SENSOR_ATTRIBUTES) do
+				setUnitModifier(unitID, attribute, nil, SENSOR_SOURCE)
+			end
+		end
+	end
+
 	function ExecuteSelUnits(words, playerID, action, params)
 		if #words < 2 then
 			return
@@ -865,25 +892,9 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				elseif action == "setsensors" then
 					if params == "0" then
-						Spring.SetUnitSensorRadius(unitID, "los", 0)
-						Spring.SetUnitSensorRadius(unitID, "airLos", 0)
-						Spring.SetUnitSensorRadius(unitID, "radar", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonar", 0)
-						Spring.SetUnitSensorRadius(unitID, "seismic", 0)
-						Spring.SetUnitSensorRadius(unitID, "radarJammer", 0)
-						Spring.SetUnitSensorRadius(unitID, "sonarJammer", 0)
+						hideFromSensors(unitID)
 					else
-						local unitDefID = Spring.GetUnitDefID(unitID)
-						local ud = unitDefID and UnitDefs[unitDefID]
-						if ud then
-							Spring.SetUnitSensorRadius(unitID, "los", ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "airLos", ud.airLosRadius or ud.losRadius or 0)
-							Spring.SetUnitSensorRadius(unitID, "radar", ud.radarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonar", ud.sonarDistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "seismic", ud.seismicDistance or ud.seismicdistance or 0)
-							Spring.SetUnitSensorRadius(unitID, "radarJammer", ud.radarDistanceJam or 0)
-							Spring.SetUnitSensorRadius(unitID, "sonarJammer", ud.sonarDistanceJam or 0)
-						end
+						restoreSensors(unitID)
 					end
 				elseif action == "setblocking" then
 					Spring.SetUnitBlocking(unitID, params ~= "0")
@@ -1986,10 +1997,11 @@ else -- UNSYNCED
 			Spring.Echo("Starting Fightertest")
 			if Spring.GetModOptions().scenariooptions then
 				--Spring.Echo("Scenario: Spawning on frame", Spring.GetGameFrame())
-				local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-				Spring.Echo(scenariooptions)
-				scenariooptions = Json.decode(scenariooptions)
-				if scenariooptions and scenariooptions.benchmarkcommand then
+				local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+				if not scenariooptions then
+					Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+				elseif scenariooptions.benchmarkcommand then
+					Spring.Echo(Json.encode(scenariooptions))
 					--This is where the magic happens!
 					isBenchMark = scenariooptions.benchmarkcommand
 					benchMarkFrames = scenariooptions.benchmarkframes

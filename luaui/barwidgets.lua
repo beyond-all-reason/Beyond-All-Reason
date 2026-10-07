@@ -483,6 +483,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+	self:InitWindowPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -914,6 +915,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.RemoveCallIn = function(_, name)
 		self:RemoveWidgetCallIn(name, widget)
 	end
+	wh.RegisterUnitCommand = function(_, cmdID)
+		self:RegisterUnitCommand(widget, cmdID)
+	end
 
 	wh.AddAction = function(_, cmd, func, data, types)
 		return self.actionHandler:AddAction(widget, cmd, func, data, types)
@@ -950,6 +954,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
+	end
+	wh.SetWindowsPauseGame = function(_, enabled)
+		return self:SetWindowsPauseGame(enabled)
 	end
 	wh.HideInterface = function(_, reason, keep)
 		return self:HideInterface(reason, keep)
@@ -1652,6 +1659,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
+	self:SaveWindowPause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -1672,6 +1680,10 @@ end
 --  Optional behaviour (springsetting "WindowsHideInterface", default off): while one
 --  of the big central windows is open, the rest of the screen interface is neither
 --  drawn nor clickable, so the window is the only thing the player can interact with.
+--
+--  In singleplayer and replays an open window (or the lobby overlay) also pauses the
+--  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
+--  pause the player made or lifted themselves in the meantime is left alone.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
@@ -1708,6 +1720,12 @@ local modalRevision = 0
 local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
+
+-- pausing while a window is open, see UpdateWindowPause
+local windowPauseEnabled = true
+local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
+local windowPauseHeld = false -- the open windows have paused the game, or found it paused
+local windowPauseOwned = false -- they paused it, so closing them resumes it
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -1840,45 +1858,167 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 	self:UpdateModalState()
 end
 
+function widgetHandler:SetWindowsPauseGame(enabled)
+	windowPauseEnabled = enabled and true or false
+	modalConfigTimer = 0
+end
+
+local function anyWindowOpen()
+	for w, isOpen in pairs(modalWindows) do
+		local ok, open = pcall(isOpen)
+		if not ok then
+			Spring.Log(
+				"barwidgets.lua",
+				LOG.ERROR,
+				"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
+			)
+			modalWindows[w] = nil -- removing the current key mid-traversal is allowed
+			ModalAllowWidget(w, modalExempt[w] == true)
+		elseif open then
+			return true
+		end
+	end
+	return false
+end
+
 function widgetHandler:UpdateModalState(deltaTime)
 	if deltaTime then
 		modalConfigTimer = modalConfigTimer + deltaTime
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
-	local active = false
-	if modalEnabled then
-		for w, isOpen in pairs(modalWindows) do
-			local ok, open = pcall(isOpen)
-			if not ok then
-				Spring.Log(
-					"barwidgets.lua",
-					LOG.ERROR,
-					"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
-				)
-				modalWindows[w] = nil -- removing the current key mid-traversal is allowed
-				ModalAllowWidget(w, modalExempt[w] == true)
-			elseif open then
-				active = true
-				break
-			end
-		end
-	end
-	modalActive = active
+	modalActive = modalEnabled and anyWindowOpen()
 end
 
+local function isClientPaused()
+	local _, _, paused = Spring.GetGameState()
+	return paused
+end
+
+-- Once per frame, after the widgets' Update: a window closing as another opens, or one
+-- reopening itself after a reload, never lets the game run in between.
+function widgetHandler:UpdateWindowPause()
+	if not windowPauseAllowed then
+		return
+	end
+	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted == windowPauseHeld then
+		if windowPauseOwned and not isClientPaused() then
+			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
+		end
+		return
+	end
+	if wanted then
+		if Spring.GetGameFrame() == 0 then
+			return -- the engine refuses to pause before the game has started
+		end
+		windowPauseHeld = true
+		windowPauseOwned = not isClientPaused()
+		if windowPauseOwned then
+			Spring.SendCommands("pause 1")
+		end
+	else
+		windowPauseHeld = false
+		if windowPauseOwned and isClientPaused() then
+			Spring.SendCommands("pause 0")
+		end
+		windowPauseOwned = false
+	end
+end
+
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
+-- that reopens after the reload keeps it and closing that window still resumes the game.
+function widgetHandler:SaveWindowPause()
+	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+end
+
+function widgetHandler:InitWindowPause()
+	-- headless, nobody would ever close a window that opened by itself
+	windowPauseAllowed = not isHeadless and (Spring.IsReplay() or BAR.Utilities.Gametype.IsSinglePlayer())
+	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+	local frame = Spring.GetGameFrame()
+	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
+		windowPauseHeld = true
+		windowPauseOwned = true
+	end
+	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
+end
+
+-- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
+-- Past the gradual limit a full cycle is stepped a bounded amount per update instead of one
+-- stalling collectgarbage("collect"); only past the emergency limit is it done at once.
 local gcCheckCounter = 0
+local gcGradualLimit = 1000000 -- kB
+local gcEmergencyLimit = 1300000 -- kB
+local gcStepKB = 1024 -- about 1 ms of collector stepping per update
+local gcStepping = false
+-- adaptive collector budget, see luarules/gadgets/api_garbage_collector.lua
+local gcCapMin, gcCapMax, gcCap = 1, 4, 1
+local gcTrendWindow = 1800 -- frames
+local gcGrowthStepKB = 20000
+local gcTrendFrame, gcTrendMem
+
+local function gcAdaptCap(count)
+	local n = Spring.GetGameFrame()
+	if not gcTrendFrame then
+		gcTrendFrame, gcTrendMem = n, count
+		return
+	end
+	if n - gcTrendFrame < gcTrendWindow then
+		return
+	end
+	local growth = count - gcTrendMem
+	gcTrendFrame, gcTrendMem = n, count
+	local newCap = gcCap
+	if growth > gcGrowthStepKB then
+		newCap = math.min(gcCapMax, gcCap + 1)
+	elseif growth < gcGrowthStepKB / 4 then
+		newCap = math.max(gcCapMin, gcCap - 1)
+	end
+	if newCap ~= gcCap then
+		gcCap = newCap
+		Spring.GarbageCollectCtrl(nil, nil, nil, nil, nil, nil, gcCap)
+		Spring.Echo(
+			string.format(
+				"LuaUI memory %s %d MB in the last minute, garbage collector budget set to %d ms",
+				growth >= 0 and "grew" or "shrank",
+				math.floor(math.abs(growth) / 1000),
+				gcCap
+			)
+		)
+	end
+end
 
 function widgetHandler:Update()
-	gcCheckCounter = gcCheckCounter + 1
-	if gcCheckCounter >= 30 then
-		gcCheckCounter = 0
-		if collectgarbage("count") > 1200000 then
-			Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.2GB LuaRAM")
-			collectgarbage("collect")
+	if gcStepping then
+		if collectgarbage("step", gcStepKB) then
+			gcStepping = false
+			gcTrendFrame, gcTrendMem = Spring.GetGameFrame(), collectgarbage("count")
+			Spring.Echo(
+				"Gradual garbage collection done, LuaUI now uses "
+					.. math.floor(collectgarbage("count") / 1000)
+					.. " MB"
+			)
+		end
+	else
+		gcCheckCounter = gcCheckCounter + 1
+		if gcCheckCounter >= 30 then
+			gcCheckCounter = 0
+			local count = collectgarbage("count")
+			gcAdaptCap(count)
+			if count > gcEmergencyLimit then
+				Spring.Echo("Warning: Emergency garbage collection due to exceeding 1.3GB LuaRAM")
+				collectgarbage("collect")
+			elseif count > gcGradualLimit then
+				Spring.Echo(
+					"Warning: LuaUI uses " .. math.floor(count / 1000) .. " MB, starting a gradual garbage collection"
+				)
+				gcStepping = true
+			end
 		end
 	end
 
@@ -1897,6 +2037,8 @@ function widgetHandler:Update()
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
+
+	self:UpdateWindowPause()
 	return
 end
 
@@ -1989,7 +2131,10 @@ end
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
-		if w:CommandNotify(id, params, options) then
+		tracy.ZoneBeginN("W:CommandNotify:" .. w.whInfo.name)
+		local consumed = w:CommandNotify(id, params, options)
+		tracy.ZoneEnd()
+		if consumed then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -3135,6 +3280,15 @@ function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
 	return
 end
 
+local CMD_BUILD = CMD.BUILD
+
+-- Limits widget:UnitCommand to the registered commands (CMD.BUILD: all build commands).
+-- Widgets that never register get every command.
+function widgetHandler:RegisterUnitCommand(widget, cmdID)
+	widget._unitCommandIDs = widget._unitCommandIDs or {}
+	widget._unitCommandIDs[cmdID] = true
+end
+
 function widgetHandler:UnitCommand(
 	unitID,
 	unitDefID,
@@ -3148,8 +3302,13 @@ function widgetHandler:UnitCommand(
 	fromLua
 )
 	tracy.ZoneBeginN("W:UnitCommand")
-	for _, w in ipairs(self.UnitCommandList) do
-		w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	local list = self.UnitCommandList
+	for i = 1, #list do
+		local w = list[i]
+		local cmdIDs = w._unitCommandIDs
+		if not cmdIDs or cmdIDs[cmdId] or (cmdId < 0 and cmdIDs[CMD_BUILD]) then
+			w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		end
 	end
 	tracy.ZoneEnd()
 	return

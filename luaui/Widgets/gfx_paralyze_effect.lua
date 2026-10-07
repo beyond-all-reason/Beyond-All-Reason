@@ -26,6 +26,10 @@ local InstanceVBOTable = gl.InstanceVBOIdTable
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
 
+-- Octaves of 4D simplex noise per fragment of a paralyzed unit. 4 is the original look; 3 drops a
+-- quarter of the fragment cost and loses the finest flicker detail.
+local paralyzeNoiseOctaves = 4
+
 -- for testing: /luarules benchmark corak armpw 100 10 3000
 
 local paralyzedUnitShader, unitShapeShader
@@ -293,10 +297,9 @@ void main() {
 
 	vec4 noiseposition = noisescale * vec4(v_modelPosOrig, (timeInfo.x + timeInfo.w) * lightning_speed);
 	float noise4 = 0;
-	noise4 += pow(persistence, 1.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 1.0));
-	noise4 += pow(persistence, 2.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 2.0));
-	noise4 += pow(persistence, 3.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 3.0));
-	noise4 += pow(persistence, 4.0) * snoise(noiseposition * 0.025 * pow(lacunarity, 4.0));
+	for (int i = 1; i <= PARALYZE_NOISE_OCTAVES; ++i) {
+		noise4 += pow(persistence, float(i)) * snoise(noiseposition * 0.025 * pow(lacunarity, float(i)));
+	}
 	noise4 = (1.0 * noise4 + 0.5);
 	float electricity = clamp(1.0 - abs(noise4 - 0.5) * lighting_width, 0.0, 1.0);
 	electricity = clamp(pow(electricity, lighting_sharpness), 0.0, 1.0);
@@ -329,6 +332,7 @@ local paralyzeSourceShaderCache = {
 	uniformFloat = {},
 	shaderConfig = {
 		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
+		PARALYZE_NOISE_OCTAVES = tostring(math.max(1, math.floor(paralyzeNoiseOctaves))),
 	},
 	forceupdate = true, -- otherwise file-less defines are not updated
 }

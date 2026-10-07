@@ -150,6 +150,7 @@
 			"onoffToggle": "Toggle unit on/off",
 			"onoffOff": "Turn unit off",
 			"onoffOn": "Turn unit on",
+			"repeatToggle": "Toggle repeat",
 			"repeatOff": "Repeat off",
 			"repeatOn": "Repeat on",
 			"trajectoryLow": "Trajectory: Low",
@@ -169,7 +170,12 @@
 			"buildPriorityHigh": "Builder priority: High",
 			"airPlantExit": "Toggle air plant exit mode",
 			"airPlantExitFly": "Air plant exit: Fly",
-			"airPlantExitLand": "Air plant exit: Land"
+			"airPlantExitLand": "Air plant exit: Land",
+			"factoryModeQueue": "Factory mode: Queue",
+			"factoryModeQuota": "Factory mode: Quota",
+			"factoryGuard": "Toggle factory guard",
+			"factoryGuardOff": "Factory guard off",
+			"factoryGuardOn": "Factory guard on"
 		},
 		"controlGroups": {
 			"select": "Select control group %{n}",
@@ -182,6 +188,25 @@
 			"addAuto": "Add unit type to auto-group %{n}",
 			"removeOne": "Remove closest unit from its group",
 			"preset": "Load auto-group preset %{n}"
+		},
+		"squads": {
+			"select": "Select nearest squad",
+			"append": "Add nearest unselected squad",
+			"selectFiltered": "Select nearest squad's units of the closest unit's type",
+			"appendFiltered": "Add squad units of the selected types",
+			"selectOne": "Select closest squad unit",
+			"appendOne": "Add closest unselected unit of nearest squad",
+			"selectOneFiltered": "Select closest squad unit of the selected types",
+			"appendOneFiltered": "Add closest unselected squad unit of the selected types",
+			"create": "Create a squad from the selected units",
+			"lock": "Lock/unlock the selected units (or select the nearest locked squad if nothing is selected)",
+			"appendLocked": "Add nearest locked squad",
+			"limitFlip": "Invert selection within a squad",
+			"expand": "Expand selection to the whole squads it touches",
+			"cycleRecent": "Cycle through recently used squads",
+			"cycleIdle": "Cycle through idle squads",
+			"group": "Select nearest squad in control group %{n}",
+			"groupAppend": "Add nearest unselected squad in control group %{n}"
 		},
 		"buildHotkeys": {
 			"unit": "Build %{n}",
@@ -291,6 +316,7 @@
 		"queues": "Order modifiers",
 		"unitStates": "Unit states",
 		"controlGroups": "Control groups",
+		"squads": "Squads",
 		"buildHotkeys": "Build",
 		"gridMenu": "Grid menu",
 		"blueprints": "Blueprints",

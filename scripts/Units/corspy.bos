@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  head, rthigh, lthigh, rfoot, lleg, lfoot, rleg, pelvis ;
+piece  head, rthigh, lthigh, rfoot, lleg, lfoot, rleg, pelvis , firepoint;
 
 static-var  isMoving, buildTimer;
 // Generated for D:\spring\animation\corspy_anim_walk.blend
@@ -358,7 +358,7 @@ FireWeapon1()
 
 QueryWeapon1(piecenum)
 {
-	piecenum = head;
+	piecenum = firepoint;
 }
 
 AimFromWeapon1(piecenum)

@@ -2,7 +2,8 @@
 #include "../recoil_common_includes.h"
 
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
-       rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint;
+       rthigh, lleg, rleg, flare, exhaust,aimx1, aimy1, aimpoint,
+       firepoint;
 
 static-var  isMoving, isAiming, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
@@ -275,6 +276,7 @@ Create()
 	hide flare;
 	hide exhaust;
 	hide aimy1;
+	turn firepoint to x-axis <90> now;
 	isMoving = FALSE;
 	isAiming = FALSE;
 	restore_delay = 3000;
@@ -322,7 +324,7 @@ AimFromWeapon1(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = lbarrel;
+	pieceIndex = firepoint;
 }
 
 AimWeapon1(heading, pitch)
@@ -331,7 +333,7 @@ AimWeapon1(heading, pitch)
 	isAiming = TRUE;
 
 	turn aimy1 to y-axis heading speed <130.027473>;
-	turn aimx1 to x-axis <-90> - pitch speed <180.021978>;
+	turn aimx1 to x-axis <-90> - pitch speed <180.021978>; // FIXME: model pieces along correct axis so code querying them works
 
 	if ((wpn1_lasthead == 0xbadface) OR ABSOLUTE_GREATER_THAN(WRAPDELTA(heading - wpn1_lasthead), <7>))
 	{

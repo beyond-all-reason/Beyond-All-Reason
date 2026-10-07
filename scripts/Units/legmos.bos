@@ -145,12 +145,12 @@ Create()
 	gun_1=0;
 	speedwings=200;
 	bMoving = 0;
+	call-script InitState();
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 400;
 	}
 	start-script IdleHover();
-	call-script activatescr();
 }
 
 Activate()

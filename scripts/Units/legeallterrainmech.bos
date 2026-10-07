@@ -47,7 +47,8 @@ piece
     barrelSpinPivot,
     rocketFlare1,
     rocketFlare2,
-    rocketFlare3;
+    rocketFlare3,
+    turretfirepoint;
 
 static-var  bMoving, oldHeading, bSteering, wpn1_lasthead, last_primary_heading, last_primary_pitch, speedmult, whichBarrel, whichMissile;
 
@@ -1252,7 +1253,12 @@ FireSecondary()
 
 QueryTertiary(piecenum)
 {
-	piecenum = turret;
+	piecenum = turretfirepoint;
+}
+
+AimFromWeapon3(piecenum)
+{
+	piecenum = chassis;
 }
 
 AimTertiary(piecenum)
@@ -1277,7 +1283,7 @@ AimFromWeapon5(pieceIndex)
 
 QueryWeapon5(pieceIndex)
 {
-	pieceIndex = turret;
+	pieceIndex = turretfirepoint;
 }
 
 AimWeapon4(heading, pitch){

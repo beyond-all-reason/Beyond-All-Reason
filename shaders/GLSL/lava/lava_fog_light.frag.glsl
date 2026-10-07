@@ -44,8 +44,8 @@ void main() {
 	vec2 screenUV = clamp(v_screenUV, 1.0/(viewGeometry.xy), 1.0 - 1.0/ (viewGeometry.xy));
 
 	// Sample the depth buffers, and choose whichever is closer to the screen
-	float mapdepth = texture(mapDepths, screenUV).x;
-	float modeldepth = texture(modelDepths, screenUV).x;
+	float mapdepth = textureLod(mapDepths, screenUV, 0.0).x;
+	float modeldepth = textureLod(modelDepths, screenUV, 0.0).x;
 	mapdepth = min(mapdepth, modeldepth);
 
 	// the W weight factor here is incorrect, as it comes from the depth buffers, and not the fragments own depth.

@@ -270,6 +270,11 @@
 				"label": "actions.unitStates.onoffOn"
 			},
 			{
+				"action": "repeat",
+				"label": "actions.unitStates.repeatToggle",
+				"description": "commands.repeat_tooltip"
+			},
+			{
 				"action": "repeat 0",
 				"label": "actions.unitStates.repeatOff",
 				"description": "commands.repeat_tooltip"
@@ -374,6 +379,36 @@
 				"action": "aplandat 1",
 				"label": "actions.unitStates.airPlantExitLand",
 				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "factoryqueuemode",
+				"label": "actions.factory.queueMode",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 0",
+				"label": "actions.unitStates.factoryModeQueue",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 1",
+				"label": "actions.unitStates.factoryModeQuota",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryguard",
+				"label": "actions.unitStates.factoryGuard",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 0",
+				"label": "actions.unitStates.factoryGuardOff",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 1",
+				"label": "actions.unitStates.factoryGuardOn",
+				"description": "commands.factoryguard_tooltip"
 			}
 		]
 	},
@@ -523,6 +558,103 @@
 		]
 	},
 	{
+		"category": "categories.squads",
+		"items": [
+			{
+				"action": "squad_select",
+				"label": "actions.squads.select"
+			},
+			{
+				"action": "squad_select append_domain",
+				"label": "actions.squads.append"
+			},
+			{
+				"action": "squad_select_filtered retarget",
+				"label": "actions.squads.selectFiltered"
+			},
+			{
+				"action": "squad_select_filtered append distance_850",
+				"label": "actions.squads.appendFiltered"
+			},
+			{
+				"action": "squad_select_portion 0",
+				"label": "actions.squads.selectOne"
+			},
+			{
+				"action": "squad_select_portion 0 append_domain",
+				"label": "actions.squads.appendOne"
+			},
+			{
+				"action": "squad_select_portion_filtered 0",
+				"label": "actions.squads.selectOneFiltered"
+			},
+			{
+				"action": "squad_select_portion_filtered 0 append",
+				"label": "actions.squads.appendOneFiltered"
+			},
+			{
+				"action": "squad_select append locked",
+				"label": "actions.squads.appendLocked"
+			},
+			{
+				"action": "squad_create",
+				"label": "actions.squads.create"
+			},
+			{
+				"action": "squad_lock",
+				"label": "actions.squads.lock"
+			},
+			{
+				"action": "squad_limit_flip",
+				"label": "actions.squads.limitFlip"
+			},
+			{
+				"action": "squad_expand",
+				"label": "actions.squads.expand"
+			},
+			{
+				"action": "squad_cycle_recent",
+				"label": "actions.squads.cycleRecent"
+			},
+			{
+				"action": "squad_cycle_idle",
+				"label": "actions.squads.cycleIdle"
+			},
+			{
+				"prefix": "squad_select_group append_domain ",
+				"label": "actions.squads.groupAppend",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "squad_select_group ",
+				"label": "actions.squads.group",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			}
+		]
+	},
+	{
 		"category": "categories.buildHotkeys",
 		"items": [
 			{
@@ -558,19 +690,6 @@
 				"action": "buildsplit",
 				"label": "actions.buildHotkeys.split",
 				"alwaysModifier": "any"
-			},
-			{
-				"action": "factoryqueuemode",
-				"label": "actions.factory.queueMode",
-				"description": "commands.factoryqueuemode_tooltip"
-			},
-			{
-				"prefix": "factoryguard ",
-				"label": "commands.factoryguard",
-				"members": [
-					"0",
-					"1"
-				]
 			}
 		]
 	},
@@ -970,7 +1089,8 @@
 			},
 			{
 				"action": "factory_preset_toggle",
-				"label": "actions.factory.togglePresets"
+				"label": "actions.factory.togglePresets",
+				"alwaysModifier": "any"
 			},
 			{
 				"action": "fov_inc 5",
