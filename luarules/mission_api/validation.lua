@@ -87,6 +87,7 @@ local weaponAttributeDefinitions = attributeDefinitions.WeaponAttributeDefinitio
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 local canSetUnitAttribute = attributeRules.CanSetUnitAttribute
 local canSetUnitDefAttribute = attributeRules.CanSetUnitDefAttribute
+local canSetUnitDefModifier = attributeRules.CanSetUnitDefModifier
 local canSetUnitModifier = attributeRules.CanSetUnitModifier
 local canSetUnitWeaponAttribute = attributeRules.CanSetUnitWeaponAttribute
 local canSetUnitWeaponModifier = attributeRules.CanSetUnitWeaponModifier
@@ -1821,7 +1822,8 @@ local function validateAttributeActions(actions)
 				local canSet = unitScopeActions[actionType] and canSetUnitAttribute or canSetUnitDefAttribute
 				ok, reason, parameter = canSet(unitEntry, parameters.value)
 			elseif modifierActions[actionType] then
-				ok, reason, parameter = canSetUnitModifier(unitEntry, parameters.multiplier)
+				local canSet = unitScopeActions[actionType] and canSetUnitModifier or canSetUnitDefModifier
+				ok, reason, parameter = canSet(unitEntry, parameters.multiplier)
 			end
 		elseif weaponEntry then
 			-- A malformed weapon is logged already by its parameter validator.
