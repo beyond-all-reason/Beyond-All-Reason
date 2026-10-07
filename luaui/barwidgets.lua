@@ -1008,6 +1008,20 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.RemoveAction = function(_, cmd, types)
 		return self.actionHandler:RemoveAction(widget, cmd, types)
 	end
+	wh.actionHandler = {
+		AddAction = function(_, _, cmd, func, data, types)
+			return self.actionHandler:AddAction(widget, cmd, func, data, types)
+		end,
+		RemoveAction = function(_, _, cmd, types)
+			return self.actionHandler:RemoveAction(widget, cmd, types)
+		end,
+		AddSyncAction = function(_, _, cmd, func, data)
+			return self.actionHandler:AddSyncAction(widget, cmd, func, data)
+		end,
+		RemoveSyncAction = function(_, _, cmd)
+			return self.actionHandler:RemoveSyncAction(widget, cmd)
+		end,
+	}
 
 	wh.RegisterGlobal = function(_, name, value)
 		return self:RegisterGlobal(widget, name, value)
