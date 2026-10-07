@@ -26,6 +26,15 @@ end
 
 local gl = gl
 
+-- Widgets share these tables and can replace their functions for everyone.
+local vfsLoadFile = VFS.LoadFile
+local vfsFileExists = VFS.FileExists
+local vfsDirList = VFS.DirList
+local vfsSubDirs = VFS.SubDirs
+local loadstring = loadstring
+local setfenv = setfenv
+local pcall = pcall
+
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
@@ -426,10 +435,10 @@ end
 
 local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
-	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
+	local widgetFiles = vfsDirList(folder, "*.lua", vfsMode)
 
-	for _, subDirectory in ipairs(VFS.SubDirs(folder)) do
-		table.append(widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode))
+	for _, subDirectory in ipairs(vfsSubDirs(folder)) do
+		table.append(widgetFiles, vfsDirList(subDirectory, "*.lua", vfsMode))
 	end
 
 	for _, file in ipairs(widgetFiles) do
@@ -565,7 +574,7 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not ki or not VFS.FileExists(ki.filename, VFS.ZIP) then
+	if not ki or not vfsFileExists(ki.filename, VFS.ZIP) then
 		return
 	end
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
@@ -636,7 +645,7 @@ end
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(
+	local text = vfsLoadFile(
 		filename,
 		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
 	)
@@ -746,7 +755,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- And what it shares with other widgets through WG. The source is in hand here, and a source
 		-- the reading trips over must not stop the widget from loading.
 		if widgetDependencies then
-			local ok, deps = pcall(widgetDependencies.scan, text, VFS.LoadFile)
+			local ok, deps = pcall(widgetDependencies.scan, text, vfsLoadFile)
 			knownInfo.deps = ok and deps or nil
 		end
 		self.knownWidgets[name] = knownInfo
