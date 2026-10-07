@@ -7,7 +7,9 @@ return function(selectedUnits, targetIDs, options, giveOrderArrayToUnitArray)
 		return false
 	end
 	local prepend = options.meta and not options.shift
-	local baseOptions = options.ctrl and CMD.OPT_CTRL or 0
+	local baseOptions = (options.ctrl and CMD.OPT_CTRL or 0)
+		+ (options.alt and CMD.OPT_ALT or 0)
+		+ (options.right and CMD.OPT_RIGHT or 0)
 	local shiftedOptions = baseOptions + CMD.OPT_SHIFT
 	-- IDs and parameter counts are shared by all commands. Replacing a queue
 	-- mixes options (first Attack vs shifted tail), costing one byte per command.

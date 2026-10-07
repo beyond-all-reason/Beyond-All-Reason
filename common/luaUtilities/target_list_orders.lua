@@ -26,6 +26,12 @@ local function giveTargetList(listCommandID, selectedUnits, targetIDs, options, 
 	if options.ctrl then
 		baseCommandOptions = baseCommandOptions + CMD.OPT_CTRL
 	end
+	if options.alt then
+		baseCommandOptions = baseCommandOptions + CMD.OPT_ALT
+	end
+	if options.right then
+		baseCommandOptions = baseCommandOptions + CMD.OPT_RIGHT
+	end
 	if options.meta and listCommandID == CMD_UNIT_SET_TARGETS then
 		baseCommandOptions = baseCommandOptions + CMD.OPT_META
 	end
