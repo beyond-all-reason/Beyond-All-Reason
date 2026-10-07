@@ -3,16 +3,15 @@ require("mission_api.spec_helper")
 
 local Builders = VFS.Include("spec/builders/index.lua")
 
--- The unit query is stubbed, so these check what the actions ask of it, not how it matches.
 local queried, queryResult
-local unitQuery = {
+local unitQuerySpy = {
 	MatchingUnits = function(unitName, unitDefName, teamID)
 		queried[#queried + 1] = { unitName, unitDefName, teamID }
 		return queryResult
 	end,
 }
 
-Builders.MissionApi.new():WithModule("UnitQuery", unitQuery):Install()
+Builders.MissionApi.new():WithModule("UnitQuery", unitQuerySpy):Install()
 
 local calls = {}
 local function record(name)
