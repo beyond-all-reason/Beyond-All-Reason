@@ -1,3 +1,8 @@
+# October
+- [Fixed]
+  - User widgets can no longer be hidden and cannot pass themselves off as game widgets.
+  - Protected against widgets changing their own permissions or loading through injection.
+
 # September
 - [Laser weapons] given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
 - [Vertical launcher weapons] keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
