@@ -92,6 +92,11 @@ local canSetUnitWeaponAttribute = attributeRules.CanSetUnitWeaponAttribute
 local canSetUnitWeaponModifier = attributeRules.CanSetUnitWeaponModifier
 local affectsUnitDef = attributeRules.AffectsUnitDef
 
+local EXPLOSIONS = {
+	explode = attributeDefinitions.WEAPON_DEATH,
+	selfDestruct = attributeDefinitions.WEAPON_SELFD,
+}
+
 local validators = {}
 
 --- Lua type validators:
@@ -1827,6 +1832,7 @@ local function validateAttributeActions(actions)
 			if weapon ~= nil and validators[Types.UnitWeapon](weapon) then
 				weapon = nil
 			end
+			weapon = EXPLOSIONS[weapon] or weapon
 			if setActions[actionType] then
 				ok, reason, parameter = canSetUnitWeaponAttribute(weaponEntry, parameters.value, weapon, unitDef)
 			elseif modifierActions[actionType] then
