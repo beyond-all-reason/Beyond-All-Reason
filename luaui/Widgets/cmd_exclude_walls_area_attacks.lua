@@ -24,6 +24,8 @@ local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 
+local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
+
 local sendAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
 
 for id, unitDef in pairs(UnitDefs) do
@@ -74,7 +76,22 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 	if #targetIDs > 0 and somethingWasExcluded then
-		sendAttackOrders(spGetSelectedUnits(), targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
+		local selectedUnits = spGetSelectedUnits()
+		if cmdOpts.shift and cmdOpts.meta then
+			local assignments = splitTargets(selectedUnits, targetIDs)
+			for _, unitID in ipairs(selectedUnits) do
+				local targets = assignments[unitID]
+				local x, _, z = Spring.GetUnitPosition(unitID)
+				table.sort(targets, function(a, b)
+					local ax, _, az = Spring.GetUnitPosition(a)
+					local bx, _, bz = Spring.GetUnitPosition(b)
+					return (ax - x) ^ 2 + (az - z) ^ 2 < (bx - x) ^ 2 + (bz - z) ^ 2
+				end)
+				sendAttackOrders({ unitID }, targets, cmdOpts, spGiveOrderArrayToUnitArray)
+			end
+		else
+			sendAttackOrders(selectedUnits, targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
+		end
 		return true
 	end
 	if #newCmds > 0 and somethingWasExcluded then

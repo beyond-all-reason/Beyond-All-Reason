@@ -1,6 +1,6 @@
 local function loadSender()
 	local env = setmetatable({
-		CMD = { ATTACK = 20, INSERT = 1, OPT_SHIFT = 32, OPT_CTRL = 64, OPT_ALT = 128 },
+		CMD = { ATTACK = 20, INSERT = 1, OPT_SHIFT = 32, OPT_CTRL = 64, OPT_ALT = 128, OPT_RIGHT = 16 },
 	}, { __index = _G })
 	local chunk = assert(loadfile("common/luaUtilities/native_attack_orders.lua"))
 	setfenv(chunk, env)
@@ -40,6 +40,7 @@ end
 local function verify(send, env, sources, targets, options)
 	local deliveries, packets = {}, 0
 	local prepend = options.meta and not options.shift
+	local baseOptions = (options.ctrl and 64 or 0) + (options.alt and 128 or 0) + (options.right and 16 or 0)
 	local function emit(units, commands, pairwise)
 		packets = packets + 1
 		assert.is_false(pairwise)
@@ -53,14 +54,14 @@ local function verify(send, env, sources, targets, options)
 				elseif prepend then
 					assert.same({
 						env.CMD.INSERT,
-						{ 0, env.CMD.ATTACK, options.ctrl and 64 or 0, targets[#targets - count + 1] },
+						{ 0, env.CMD.ATTACK, baseOptions, targets[#targets - count + 1] },
 						128,
 					}, cmd)
 				else
 					assert.same({
 						env.CMD.ATTACK,
 						{ targets[count] },
-						(options.ctrl and 64 or 0) + ((options.shift or count > 1) and 32 or 0),
+						baseOptions + ((options.shift or count > 1) and 32 or 0),
 					}, cmd)
 				end
 			end
@@ -76,14 +77,11 @@ local function verify(send, env, sources, targets, options)
 end
 
 describe("native Attack packet batching", function()
-	for _, options in ipairs({
-		{},
-		{ shift = true },
-		{ meta = true },
-		{ ctrl = true },
-		{ shift = true, meta = true },
-		{ meta = true, ctrl = true },
-	}) do
+	for mask = 0, 31 do
+		local function has(flag)
+			return math.floor(mask / flag) % 2 == 1
+		end
+		local options = { shift = has(1), meta = has(2), ctrl = has(4), alt = has(8), right = has(16) }
 		it("preserves target order and modifiers across both source and command splits", function()
 			local send, env = loadSender()
 			assert.is_true(verify(send, env, sequence(300), sequence(4000, 10000), options) > 2)
