@@ -67,9 +67,9 @@ end
 local commandLimit = 2000
 
 local SplitTargets = require("modules/split_targets")
-local splitRoundRobin = SplitTargets.RoundRobin
 local splitRivers = SplitTargets.Rivers
 local sendTargetList = VFS.Include("common/luaUtilities/target_list_orders.lua")
+local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
 
 local myAllyTeamID
 
@@ -406,7 +406,7 @@ end
 
 local function attackOrdersHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
-		local unitTargetsMap = splitRivers(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup, #selectedUnits)
+		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
 			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
 			giveTargetList(CMD.ATTACK, { selectedUnitID }, targetIDs, options)
@@ -419,7 +419,7 @@ end
 
 local function setTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
-		local unitTargetsMap = splitRoundRobin(selectedUnits, filteredTargets)
+		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
 			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
 			giveTargetList(CMD_UNIT_SET_TARGETS, { selectedUnitID }, targetIDs, options)
@@ -472,9 +472,8 @@ end
 local allowedCommands = {
 	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackOrdersHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
-	-- Set Target does not move the unit, so its split has no distance to shorten:
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler, splitRoundRobin),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
@@ -522,8 +521,7 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegian
 	return filteredTargets
 end
 
-local function getPlainAttackTargets(cmdX, cmdZ, radius)
-	local targets = spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_UNITS)
+local function excludeNeutralWalls(targets)
 	if not targets or not targets[1] then
 		return
 	end
@@ -537,6 +535,10 @@ local function getPlainAttackTargets(cmdX, cmdZ, radius)
 		end
 	end
 	return targetsWithoutNeutralWalls[1] and targetsWithoutNeutralWalls or targets
+end
+
+local function getPlainAttackTargets(cmdX, cmdZ, radius)
+	return excludeNeutralWalls(spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_UNITS))
 end
 
 local function getPlainSetTargetTargets(cmdX, cmdZ, radius)
@@ -646,13 +648,10 @@ function widget:CommandNotify(cmdId, params, options)
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
 	if not (options.alt or options.ctrl) then
-		local listCommandID
 		local targets
 		if cmdId == CMD.ATTACK then
-			listCommandID = CMD.ATTACK
 			targets = getPlainAttackTargets(cmdX, cmdZ, radius)
 		elseif cmdId == GameCMD.UNIT_SET_TARGET or cmdId == GameCMD.UNIT_SET_TARGET_NO_GROUND then
-			listCommandID = CMD_UNIT_SET_TARGETS
 			targets = getPlainSetTargetTargets(cmdX, cmdZ, radius)
 		else
 			return false
@@ -661,8 +660,8 @@ function widget:CommandNotify(cmdId, params, options)
 			-- Preserve ground/empty-area behavior for the original command.
 			return false
 		end
-		sortTargetsByDistance(selectedUnits, targets, true)
-		return giveTargetList(listCommandID, selectedUnits, targets, options)
+		currentCommand.handle(cmdId, selectedUnits, targets, options)
+		return true
 	end
 	local targetType, targetId
 	if start and start.commandID == cmdId and start.button == (options.right and 3 or 1) then
@@ -695,6 +694,9 @@ function widget:CommandNotify(cmdId, params, options)
 		return false
 	end
 
+	if cmdId == CMD.ATTACK then
+		filteredTargets = excludeNeutralWalls(filteredTargets)
+	end
 	currentCommand.handle(cmdId, selectedUnits, filteredTargets, options, currentCommand.splitStrategy)
 	return true
 end

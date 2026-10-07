@@ -84,6 +84,23 @@ describe("target-list packet delivery", function()
 		end
 	end
 
+	it("preserves Alt and Meta inside every prepend packet", function()
+		local env, send = loadCommands()
+		local orders, emit = collector()
+		assert.is_true(send(env.GameCMD.UNIT_SET_TARGETS, sequence(300), sequence(1913, 10000), {
+			alt = true,
+			meta = true,
+		}, emit))
+		assert.are.equal(4, #orders)
+		for _, order in ipairs(orders) do
+			assert.are.equal(env.CMD.INSERT, order.id)
+			assert.are.equal(env.CMD.OPT_ALT, order.options)
+			assert.are.equal(0, order.params[1])
+			assert.are.equal(env.GameCMD.UNIT_SET_TARGETS, order.params[2])
+			assert.are.equal(env.CMD.OPT_ALT + env.CMD.OPT_META, order.params[3])
+		end
+	end)
+
 	it("leaves empty target selections to the caller", function()
 		local env, send = loadCommands()
 		local orders, emit = collector()
