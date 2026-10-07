@@ -16,8 +16,8 @@ end
 
 local objectivesController, stagesController, triggersController, actionsController
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+local function loadMission(gameSetup)
+	local mission = VFS.Include(gameSetup.entryPoint)
 	local initialStage = mission.InitialStage
 	local stages = mission.Stages or {}
 	local rawObjectives = mission.Objectives or {}
@@ -60,13 +60,19 @@ local function loadMission(scriptPath)
 end
 
 function gadget:Initialize()
-	local scriptPath = nil -- relative to `singleplayer`, e.g.: 'mission-api-tests/filename.lua'.
-	if not scriptPath then
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
+	if not gameSetup then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	GG["MissionAPI"] = {}
+	GG["MissionAPI"].Options = gameSetup.options
+	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].Teams = gameSetup.teams
+	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
+	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
@@ -92,6 +98,7 @@ function gadget:Initialize()
 		math.huge
 	)
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
 	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
@@ -113,7 +120,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(scriptPath)
+	loadMission(gameSetup)
 end
 
 function gadget:GamePreload()
@@ -126,6 +133,10 @@ end
 
 function gadget:GameFrame(frameNumber)
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
+end
+
+function gadget:GameOver()
+	SendToUnsynced("MissionPersistentVariables", GG["MissionAPI"].Modules.PersistentVariables.Encode())
 end
 
 function gadget:Shutdown()
