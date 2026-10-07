@@ -947,6 +947,68 @@ function widget:Update(dt)
 	end
 end
 
+-- Use the same spot radius as Quick Build (mex/geo), which needs live builders.
+local QUICK_MEX_RADIUS_SQUARED = 2000
+
+local function getQuickMexBuild(mx, my)
+	if not preGamestartPlayer or spGetGameFrame() > 0 or selBuildQueueDefID or Spring.IsGUIHidden() then
+		return
+	end
+	if WG.topbar and WG.topbar.showingQuit() then
+		return
+	end
+	local finder, builder = WG.resource_spot_finder, WG.resource_spot_builder
+	if not finder or finder.isMetalMap or not builder then
+		return
+	end
+	local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
+	if not pos then
+		return
+	end
+	local spot = finder.GetClosestMexSpot(pos[1], pos[3])
+	if not spot or (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 >= QUICK_MEX_RADIUS_SQUARED then
+		return
+	end
+	if builder.SpotHasExtractorQueued(spot) then
+		return
+	end
+
+	-- Read the current start unit so a faction change takes effect immediately.
+	local startID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local startDef = startID and UnitDefs[startID]
+	if not startDef then
+		return
+	end
+	local buildData
+	local bestExtraction = 0
+	for _, defID in ipairs(startDef.buildOptions) do
+		local def = UnitDefs[defID]
+		if def.extractsMetal and def.extractsMetal > bestExtraction then
+			local candidate = builder.PreviewExtractorCommand({ spot.x, spot.y, spot.z }, defID, spot)
+			if candidate and spTestBuildOrder(defID, candidate[2], candidate[3], candidate[4], candidate[5]) ~= 0 then
+				buildData = candidate
+				bestExtraction = def.extractsMetal
+			end
+		end
+	end
+	if not buildData then
+		return
+	end
+	local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
+	if cx and cx >= 0 then
+		local bx, by, bz = Spring.Pos2BuildPos(startID, cx, cy, cz)
+		if DoBuildingsClash(buildData, { startID, bx, by, bz, 1 }) then
+			return
+		end
+	end
+	for _, queued in ipairs(buildQueue) do
+		if queued[1] > 0 and DoBuildingsClash(buildData, queued) then
+			return
+		end
+	end
+	return buildData
+end
+
 function widget:MousePress(mx, my, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -966,6 +1028,17 @@ function widget:MousePress(mx, my, button)
 		buildModeState.startPosition = nil
 		buildModeState.buildPositions = {}
 		return true
+	end
+
+	if button == 3 then
+		local buildData = getQuickMexBuild(mx, my)
+		if buildData then
+			if not (shift or meta or insertModifiers.prepend_between or insertModifiers.prepend_queue) then
+				buildQueue = {}
+			end
+			queueBuild(buildData, shift, meta)
+			return true
+		end
 	end
 
 	if button == 3 and shift then
@@ -1616,6 +1689,13 @@ function widget:DrawWorld()
 				or BORDER_COLOR_INVALID
 			DrawBuilding(selBuildData, color, true, selectedAlpha, drawSelectedOutline)
 		end
+	end
+
+	local mx, my = spGetMouseState()
+	local quickMex = getQuickMexBuild(mx, my)
+	if quickMex then
+		Spring.SetMouseCursor("upgmex")
+		DrawBuilding(quickMex, BORDER_COLOR_VALID, true, ALPHA_DEFAULT, true)
 	end
 
 	-- Reset gl
