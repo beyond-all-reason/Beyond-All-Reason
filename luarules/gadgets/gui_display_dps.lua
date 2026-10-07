@@ -342,6 +342,10 @@ end
 local LOA_B1 = string.byte("L") -- 76, first byte of 'LobbyOverlayActive'
 
 function gadget:RecvLuaMsg(msg, playerID)
+	-- FIXME: We cannot distinguish LuaMenu from an actual player 0.
+	if playerID ~= 0 then
+		return
+	end
 	if #msg < 18 or string.byte(msg, 1) ~= LOA_B1 or msg:sub(1, 18) ~= "LobbyOverlayActive" then
 		return
 	end
