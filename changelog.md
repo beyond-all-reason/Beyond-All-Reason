@@ -31,6 +31,7 @@
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
+  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
