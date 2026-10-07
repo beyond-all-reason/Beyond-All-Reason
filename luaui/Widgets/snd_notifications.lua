@@ -1055,21 +1055,21 @@ function widget:GameOver(winningAllyTeams)
 	--widgetHandler:RemoveWidget()
 end
 
--- A pause started by a script (api_scripted_pause.lua, e.g. a mission cutscene)
+-- A pause a gadget holds (api_game_pause.lua)
 -- is not announced, nor is the resume that ends it.
-local scriptedPause = false
+local gadgetPaused = false
 
 function widget:GamePaused(playerID, isGamePaused)
 	if gameover then
 		return
 	end
 	if isGamePaused then
-		scriptedPause = Spring.GetGameRulesParam("scriptedPause") == 1
-		if not scriptedPause then
+		gadgetPaused = Spring.GetGameRulesParam("gamePaused") == 1
+		if not gadgetPaused then
 			queueNotification("GamePaused", true)
 		end
-	elseif scriptedPause then
-		scriptedPause = false
+	elseif gadgetPaused then
+		gadgetPaused = false
 	else
 		queueNotification("GameUnpaused", true)
 	end

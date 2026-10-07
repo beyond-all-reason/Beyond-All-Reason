@@ -101,6 +101,7 @@ local grassConfig = {
 		FADEEND = 8000, --distance at which grass completely fades out
 		SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
 		HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
+		SHADOWTAPS = 4, -- shadow map taps per grass vertex: 1 (hardware filtered) or 4 (the original cross pattern, softer shadow edge on the blades, 3 more fetches per vertex)
 		GRASSBRIGHTNESS = 1.0, -- this is for future dark mode
 		COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
 		UNITBENDENABLED = 1, -- 1 to enable grass bending away from units, 0 to disable

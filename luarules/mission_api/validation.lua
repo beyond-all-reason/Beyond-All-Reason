@@ -508,6 +508,11 @@ validators[Types.UnitName] = validators[Types.String]
 validators[Types.FeatureName] = validators[Types.String]
 validators[Types.CountdownID] = validators[Types.String]
 
+-- Checked in validateReferences.
+validators[Types.CutsceneID] = validators[Types.String]
+-- TODO: A cutscene-type script has no definition yet.
+validators[Types.ScriptID] = validators[Types.String]
+
 validators[Types.UnitDefName] = function(unitDefName)
 	local luaTypeResult = validators[Types.String](unitDefName)
 	if luaTypeResult then
@@ -603,6 +608,27 @@ validators[Types.SoundFile] = function(soundfile)
 	end
 end
 
+-- TODO: Whatever our file extensions are:
+local videoFileExtensions = { "mp4", "webm" }
+
+validators[Types.VideoFile] = function(videoFile)
+	local luaTypeResult = validators[Types.String](videoFile)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local extension = videoFile:match("%.([^%./]+)$")
+	if not extension or not table.contains(videoFileExtensions, extension:lower()) then
+		local expected = table.concat(videoFileExtensions, ", ")
+		return { { message = "Invalid videoFile: " .. videoFile .. ". Expected a file of type: " .. expected } }
+	end
+
+	-- TODO: Read the video file as well.
+	if not VFS.FileExists(videoFile) then
+		return { { message = "Invalid videoFile: " .. videoFile .. ". File does not exist" } }
+	end
+end
+
 --- Number Validators:
 
 validators[Types.Quantity] = function(quantity)
@@ -670,6 +696,7 @@ local triggersSchemaParameters = triggerDefinitions.Parameters
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
+local cutscenesSchemaSettings = VFS.Include("luarules/mission_api/cutscenes_schema.lua").Settings
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
 --- Validates a { difficulties = { <difficultyName> = <value> } } parameter: it holds only the
@@ -869,32 +896,39 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 	end
 end
 
+local function validateSchemaField(value, fieldType, recordKind, recordIDText, fieldName)
+	local results
+	if isDifficultiesTable(value) then
+		results = validateDifficultiesTable(value, fieldType, recordKind, recordIDText, fieldName)
+	else
+		results = validators[fieldType](value) or {}
+	end
+	for _, result in ipairs(results) do
+		local log = result.severity == "warning" and logWarn or logError
+		log(
+			result.message
+				.. ". "
+				.. recordKind
+				.. ": "
+				.. recordIDText
+				.. ", Field: "
+				.. fieldName
+				.. (result.parameterNameSuffix or "")
+		)
+	end
+end
+
 local function validateObjectiveSchemaFields(objective, objectiveIDText)
 	for fieldName, fieldType in pairs(objectivesSchemaSettings) do
 		local value = objective[fieldName]
-		if fieldName ~= "nextStage" and value ~= nil then
-			local results = {}
-			if isDifficultiesTable(value) then
-				if fieldName == "trigger" then
-					results = { { message = "Objective 'trigger' field does not support difficulties" } }
-				else
-					results = validateDifficultiesTable(value, fieldType, "Objective", objectiveIDText, fieldName)
-				end
-			else
-				results = validators[fieldType](value) or {}
-			end
-			---@cast results -?
-			for _, result in ipairs(results) do
-				local log = result.severity == "warning" and logWarn or logError
-				log(
-					result.message
-						.. ". Objective: "
-						.. objectiveIDText
-						.. ", Field: "
-						.. fieldName
-						.. (result.parameterNameSuffix or "")
-				)
-			end
+		if fieldName == "trigger" and isDifficultiesTable(value) then
+			logError(
+				"Objective 'trigger' field does not support difficulties. Objective: "
+					.. objectiveIDText
+					.. ", Field: trigger"
+			)
+		elseif fieldName ~= "nextStage" and value ~= nil then
+			validateSchemaField(value, fieldType, "Objective", objectiveIDText, fieldName)
 		end
 	end
 end
@@ -997,6 +1031,50 @@ end
 local function validateObjectives(objectives)
 	for objectiveID, objective in pairs(objectives) do
 		validateObjective(objectiveID, objective)
+	end
+end
+
+local function validateCutsceneSchemaFields(cutscene, cutsceneIDText)
+	for fieldName, fieldType in pairs(cutscenesSchemaSettings) do
+		local value = cutscene[fieldName]
+		if value ~= nil then
+			validateSchemaField(value, fieldType, "Cutscene", cutsceneIDText, fieldName)
+		end
+	end
+end
+
+local function validateCutscene(cutsceneID, cutscene)
+	local cutsceneIDText = tostring(cutsceneID)
+	if type(cutsceneID) ~= "string" then
+		logError("Cutscene ID must be a string, got " .. type(cutsceneID))
+	end
+
+	if type(cutscene) ~= "table" then
+		logError("Cutscene data must be a table, got " .. type(cutscene) .. ". Cutscene: " .. cutsceneIDText)
+		return
+	end
+
+	if (cutscene.videoFile == nil) == (cutscene.script == nil) then
+		logError("Cutscene must have either a videoFile or a script and not both. Cutscene: " .. cutsceneIDText)
+	end
+
+	for fieldName in pairs(cutscene) do
+		if cutscenesSchemaSettings[fieldName] == nil then
+			logWarn("Cutscene has unknown field '" .. tostring(fieldName) .. "'. Cutscene: " .. cutsceneIDText)
+		end
+	end
+
+	validateCutsceneSchemaFields(cutscene, cutsceneIDText)
+end
+
+local function validateCutscenes(cutscenes)
+	if type(cutscenes) ~= "table" then
+		logError("Cutscenes must be a table, got " .. type(cutscenes))
+		return
+	end
+
+	for cutsceneID, cutscene in pairs(cutscenes) do
+		validateCutscene(cutsceneID, cutscene)
 	end
 end
 
@@ -1740,6 +1818,60 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 	end
 end
 
+local function addCutsceneReferences(referencedCutsceneIDs, parameters, label)
+	for _, cutsceneID in ipairs(possibleValues(parameters and parameters.cutsceneID)) do
+		if type(cutsceneID) == "string" then
+			local references = table.ensureTable(referencedCutsceneIDs, cutsceneID)
+			references[#references + 1] = label
+		end
+	end
+end
+
+local function validateCutsceneReferences(objectives, triggers, actions, cutscenes)
+	if type(cutscenes) ~= "table" then
+		return -- ValidateCutscenes reports it
+	end
+
+	local referencingActionTypes = getTypesWithParameterType(actionsSchemaParameters, Types.CutsceneID)
+	local referencingTriggerTypes = getTypesWithParameterType(triggersSchemaParameters, Types.CutsceneID)
+	local referencedCutsceneIDs = {}
+
+	for actionID, action in pairs(actions) do
+		if referencingActionTypes[action.type] then
+			addCutsceneReferences(referencedCutsceneIDs, action.parameters, "action " .. actionID)
+		end
+	end
+	for triggerID, trigger in pairs(triggers) do
+		if referencingTriggerTypes[trigger.type] then
+			addCutsceneReferences(referencedCutsceneIDs, trigger.parameters, "trigger " .. triggerID)
+		end
+	end
+	for objectiveID, objective in pairs(objectives) do
+		local trigger = type(objective) == "table" and objective.trigger
+		if type(trigger) == "table" and referencingTriggerTypes[trigger.type] then
+			local label = "objective " .. objectiveID .. " (trigger)"
+			addCutsceneReferences(referencedCutsceneIDs, trigger.parameters, label)
+		end
+	end
+
+	for cutsceneID, labels in pairs(referencedCutsceneIDs) do
+		if cutscenes[cutsceneID] == nil then
+			logError(
+				"Cutscene '"
+					.. cutsceneID
+					.. "' is not defined in Cutscenes. Referenced in: "
+					.. table.concat(labels, ", ")
+			)
+		end
+	end
+
+	for cutsceneID in pairs(cutscenes) do
+		if referencedCutsceneIDs[cutsceneID] == nil then
+			logWarn("Cutscene '" .. tostring(cutsceneID) .. "' defined, but not referenced by any trigger or action.")
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -1749,6 +1881,7 @@ local function validateReferences()
 	local actions = GG["MissionAPI"].Actions
 	local unitLoadout = GG["MissionAPI"].UnitLoadout
 	local featureLoadout = GG["MissionAPI"].FeatureLoadout
+	local cutscenes = GG["MissionAPI"].Cutscenes
 
 	validateStagesReferences(stages, objectives)
 	validateObjectiveNextStageReferences(objectives)
@@ -1758,6 +1891,7 @@ local function validateReferences()
 	validateMarkerNameReferences(actionTypes, actions)
 	validateLineNameReferences(actionTypes, actions)
 	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
+	validateCutsceneReferences(objectives, triggers, actions, cutscenes)
 	validateLoadouts(unitLoadout, featureLoadout)
 end
 
@@ -1768,4 +1902,5 @@ return {
 	ValidateTriggers = validateTriggers,
 	ValidateActions = validateActions,
 	ValidateReferences = validateReferences,
+	ValidateCutscenes = validateCutscenes,
 }

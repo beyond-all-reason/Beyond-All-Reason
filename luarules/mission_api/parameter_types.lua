@@ -23,6 +23,8 @@ local types = {
 	ObjectiveID = "ObjectiveID",
 	CountdownID = "CountdownID",
 	TriggerID = "TriggerID",
+	CutsceneID = "CutsceneID",
+	ScriptID = "ScriptID",
 	UnitName = "UnitName",
 	FeatureName = "FeatureName",
 	UnitDefName = "UnitDefName",
@@ -30,6 +32,7 @@ local types = {
 	WeaponDefName = "WeaponDefName",
 	Facing = "Facing",
 	SoundFile = "SoundFile",
+	VideoFile = "VideoFile",
 	Difficulty = "Difficulty",
 
 	-- Number Validators:

@@ -86,9 +86,11 @@ describe("mission_api difficulty pipeline", function()
 			objectivesController.ProcessRawObjectives(mission.Objectives or {}, rawTriggers, rawActions, mission.Stages)
 		GG["MissionAPI"].Triggers = triggersController.ProcessRawTriggers(rawTriggers)
 		GG["MissionAPI"].Actions = actionsController.ProcessRawActions(rawActions)
+		GG["MissionAPI"].Cutscenes = mission.Cutscenes or {}
 
 		validation.ValidateStages(GG["MissionAPI"].Stages)
 		validation.ValidateObjectives(GG["MissionAPI"].Objectives)
+		validation.ValidateCutscenes(GG["MissionAPI"].Cutscenes)
 		validation.ValidateInitialStage(mission.InitialStage)
 		validation.ValidateTriggers(GG["MissionAPI"].Triggers, rawActions)
 		validation.ValidateActions(GG["MissionAPI"].Actions)
@@ -97,6 +99,7 @@ describe("mission_api difficulty pipeline", function()
 		difficulty.ResolveTriggers(GG["MissionAPI"].Triggers)
 		difficulty.ResolveActions(GG["MissionAPI"].Actions)
 		difficulty.ResolveObjectives(GG["MissionAPI"].Objectives)
+		difficulty.ResolveCutscenes(GG["MissionAPI"].Cutscenes)
 
 		return GG["MissionAPI"]
 	end

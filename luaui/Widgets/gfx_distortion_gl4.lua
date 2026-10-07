@@ -117,11 +117,29 @@ local gibDistortion -- one distortion for all pieceprojectiles
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 
+-- Render the distortion offsets at 1/N of the screen resolution. The distortion volumes run a
+-- heavy per-pixel shader and only produce low-frequency UV offsets, so 2 costs a quarter of the
+-- fragment work for the same look; set to 1 for the full-resolution original. The combine pass
+-- samples the offsets bilinearly, so edges of the effect bleed by up to N-1 screen pixels.
+local distortionResolutionDivider = 2
+
+-- Skip the screen copy and the full-screen combine pass on frames where no distortion volume
+-- produced a fragment: an occlusion query over the volume pass, read one frame later without
+-- waiting (needs the engine's non-blocking gl.GetQuery, older engines keep the unconditional
+-- passes). A game with one unit that owns a permanent effect otherwise pays both passes every
+-- frame. false restores the unconditional passes.
+local skipCombineWhenEmpty = true
+
+-- Heat distortion (effect type 0) was tuned while its distance falloff was applied twice.
+-- false switches the shader to the single, documented falloff (noticeably weaker heat).
+local heatLegacyDoubleFalloff = true
+
 local shaderConfig = {
 	VOIDWATER = gl.GetMapRendering("voidWater") and 1 or 0,
 	CHROMATIC_ABERRATION = 1.02, -- How much chromatic aberration to apply to the distortion, set to nil to disable
 	DEBUGCOMBINER = autoupdate and 1 or 0, -- 1 is debug mode, 0 is normal mode
 	UNIFORMSBUFFERCOPY = nil, -- enable this for experimental unit uniforms buffer copy
+	HEAT_LEGACY_DOUBLE_FALLOFF = heatLegacyDoubleFalloff and 1 or 0,
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
@@ -301,6 +319,9 @@ local spec = spGetSpectatingState()
 local vsx, vsy, vpx, vpy
 local invVsx, invVsy = 0, 0
 local DistortionTexture -- RGBA 8bit
+-- Two occlusion queries over the volume pass, alternating per frame; see skipCombineWhenEmpty.
+local distortionSampleQueries, distortionQueryIndex = nil, 1
+local distortionHadSamples = true
 local ScreenCopy -- RGBA 8bit
 
 local screenDistortionShader = nil
@@ -363,11 +384,13 @@ function widget:ViewResize()
 	if DistortionTexture then
 		glDeleteTexture(DistortionTexture)
 	end
-	DistortionTexture = glCreateTexture(vsx, vsy, {
+	local distW = math.max(1, math.floor(vsx / distortionResolutionDivider))
+	local distH = math.max(1, math.floor(vsy / distortionResolutionDivider))
+	DistortionTexture = glCreateTexture(distW, distH, {
 		border = false,
 		format = GL_RGBA16F_ARB,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
+		min_filter = GL.LINEAR,
+		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP,
 		wrap_t = GL.CLAMP,
 		fbo = true,
@@ -951,6 +974,11 @@ function widget:Shutdown()
 	glDeleteTexture(ScreenCopy)
 	glDeleteTexture(DistortionTexture)
 	ScreenCopy, DistortionTexture = nil, nil
+	if distortionSampleQueries then
+		gl.DeleteQuery(distortionSampleQueries[1])
+		gl.DeleteQuery(distortionSampleQueries[2])
+		distortionSampleQueries = nil
+	end
 
 	--collectgarbage("collect")
 	--collectgarbage("collect")
@@ -1590,13 +1618,36 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		return
 	end
 
+	if skipCombineWhenEmpty and gl.CreateQuery and gl.QueryCounter then -- gl.QueryCounter marks the engine with non-blocking gl.GetQuery
+		if not distortionSampleQueries then
+			local q1, q2 = gl.CreateQuery(), gl.CreateQuery() -- GL_SAMPLES_PASSED, available on every engine
+			distortionSampleQueries = (q1 and q2) and { q1, q2 } or false
+		end
+	end
+
+	if distortionSampleQueries then
+		-- last frame's query, read without waiting; while it is still pending keep the previous decision
+		local samples = gl.GetQuery(distortionSampleQueries[3 - distortionQueryIndex], false)
+		if samples ~= nil then
+			distortionHadSamples = samples > 0
+		end
+		gl.RunQuery(distortionSampleQueries[distortionQueryIndex], glRenderToTexture, DistortionTexture, DrawDistortionFunction2, spGetGameFrame())
+		distortionQueryIndex = 3 - distortionQueryIndex
+	else
+		glRenderToTexture(DistortionTexture, DrawDistortionFunction2, spGetGameFrame())
+	end
+
+	if not distortionHadSamples then
+		-- nothing was drawn into the distortion texture last frame: no screen copy, no combine
+		glDepthTest(true)
+		return
+	end
+
 	tracy.ZoneBeginN("CopyToTexture")
 	-- Blend the distortion:
 	glCopyToTexture(ScreenCopy, 0, 0, vpx, vpy, vsx, vsy)
 	tracy.ZoneEnd()
 
-	glRenderToTexture(DistortionTexture, DrawDistortionFunction2, spGetGameFrame())
-	--tracy.ZoneEnd()
 	tracy.ZoneBeginN("CombineDistortion")
 	-- Combine the distortion with the scene:
 	if autoupdate then

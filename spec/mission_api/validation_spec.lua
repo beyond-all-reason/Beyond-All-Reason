@@ -84,6 +84,7 @@ describe("mission_api.validation", function()
 			ActionDefinitions = actionDefinitions,
 			Objectives = {},
 			Stages = {},
+			Cutscenes = {},
 			Triggers = {},
 			Actions = {},
 		}
@@ -555,6 +556,132 @@ describe("mission_api.validation", function()
 				empty = { objectives = {} },
 			})
 			assert.is_true(hasError("Stage has empty 'objectives' table. Stage: empty"))
+		end)
+	end)
+
+	-- ── ValidateCutscenes ─────────────────────────────────────────────────────
+
+	describe("ValidateCutscenes", function()
+		local savedFileExists
+
+		before_each(function()
+			savedFileExists = VFS.FileExists
+			VFS.FileExists = function(path)
+				return path:find("^videos/") ~= nil
+			end
+		end)
+
+		after_each(function()
+			VFS.FileExists = savedFileExists
+		end)
+
+		it("passes for a video cutscene and a scripted cutscene", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = "videos/intro.mp4" },
+				landing = { script = "landingParty" },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error when cutscene ID is not a string", function()
+			validation.ValidateCutscenes({
+				[1] = { script = "landingParty" },
+			})
+			assert.is_true(hasError("Cutscene ID must be a string, got number"))
+		end)
+
+		it("logs an error when cutscene data is not a table", function()
+			validation.ValidateCutscenes({
+				intro = "videos/intro.mp4",
+			})
+			assert.is_true(hasError("Cutscene data must be a table, got string. Cutscene: intro"))
+		end)
+
+		it("logs an error when a cutscene has neither a videoFile nor a script", function()
+			validation.ValidateCutscenes({
+				intro = {},
+			})
+			assert.is_true(hasError("Cutscene must have either a videoFile or a script and not both. Cutscene: intro"))
+		end)
+
+		it("logs an error when a cutscene has both a videoFile and a script", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = "videos/intro.mp4", script = "landingParty" },
+			})
+			assert.is_true(hasError("Cutscene must have either a videoFile or a script and not both. Cutscene: intro"))
+		end)
+
+		it("logs an error when Cutscenes is not a table", function()
+			validation.ValidateCutscenes("videos/intro.mp4")
+			assert.is_true(hasError("Cutscenes must be a table, got string"))
+		end)
+
+		it("warns about a field it does not know", function()
+			validation.ValidateCutscenes({
+				landing = { script = "landingParty", vidoeFile = "videos/landing.mp4" },
+			})
+			assert.are.equal(1, #logged)
+			assert.is_true(hasError("Cutscene has unknown field 'vidoeFile'. Cutscene: landing"))
+			assert.is_nil(GG["MissionAPI"].HasValidationErrors)
+		end)
+
+		it("logs an error when the script is not a string", function()
+			validation.ValidateCutscenes({
+				landing = { script = 7 },
+			})
+			assert.is_true(
+				hasError("Unexpected parameter type, expected string, got number. Cutscene: landing, Field: script")
+			)
+		end)
+
+		it("accepts video file types in any case", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = "videos/intro.WebM" },
+			})
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error when the video file type is not supported", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = "videos/intro.mov" },
+			})
+			assert.is_true(
+				hasError(
+					"Invalid videoFile: videos/intro.mov. Expected a file of type: mp4, webm. Cutscene: intro, Field: videoFile"
+				)
+			)
+		end)
+
+		it("logs an error when the video file has no type", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = "videos.mp4/intro" },
+			})
+			assert.is_true(
+				hasError(
+					"Invalid videoFile: videos.mp4/intro. Expected a file of type: mp4, webm. Cutscene: intro, Field: videoFile"
+				)
+			)
+		end)
+
+		it("logs an error when the video file does not exist", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = "missing/intro.mp4" },
+			})
+			assert.is_true(
+				hasError("Invalid videoFile: missing/intro.mp4. File does not exist. Cutscene: intro, Field: videoFile")
+			)
+		end)
+
+		it("validates the video file for every difficulty", function()
+			validation.ValidateCutscenes({
+				intro = { videoFile = { difficulties = { Easy = "videos/easy.mp4", Hard = "missing/hard.mp4" } } },
+			})
+			assert.are.equal(1, #logged)
+			assert.is_true(
+				hasError(
+					"Invalid videoFile: missing/hard.mp4. File does not exist. Cutscene: intro, Field: videoFile.difficulties.Hard"
+				)
+			)
 		end)
 	end)
 
@@ -1580,6 +1707,58 @@ describe("mission_api.validation", function()
 
 			assert.is_true(hasError("Line name 'noSuchLine' is not drawn in any action. Referenced in: removeUnknown"))
 			assert.is_false(hasError("Line name 'wall'"))
+		end)
+
+		it("passes cutscene IDs that are defined and started", function()
+			GG["MissionAPI"].Cutscenes = {
+				intro = { videoFile = "videos/intro.mp4" },
+				outro = { script = "farewell" },
+			}
+			GG["MissionAPI"].Actions = {
+				playIntro = { type = actionTypes.StartCutscene, parameters = { cutsceneID = "intro" } },
+				playOutro = {
+					type = actionTypes.StartCutscene,
+					parameters = { cutsceneID = { difficulties = { Easy = "outro", Hard = "intro" } } },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an error for a cutscene ID that is not defined", function()
+			GG["MissionAPI"].Actions = {
+				playGhost = { type = actionTypes.StartCutscene, parameters = { cutsceneID = "ghost" } },
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Cutscene 'ghost' is not defined in Cutscenes. Referenced in: action playGhost"))
+			assert.is_true(GG["MissionAPI"].HasValidationErrors)
+		end)
+
+		it("checks every difficulty's cutscene ID", function()
+			GG["MissionAPI"].Cutscenes = { intro = { script = "landingParty" } }
+			GG["MissionAPI"].Actions = {
+				play = {
+					type = actionTypes.StartCutscene,
+					parameters = { cutsceneID = { difficulties = { Easy = "intro", Hard = "ghost" } } },
+				},
+			}
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Cutscene 'ghost' is not defined in Cutscenes. Referenced in: action play"))
+		end)
+
+		it("warns about a cutscene that nothing starts", function()
+			GG["MissionAPI"].Cutscenes = { unused = { script = "landingParty" } }
+
+			validation.ValidateReferences()
+
+			assert.is_true(hasError("Cutscene 'unused' defined, but not referenced by any trigger or action."))
+			assert.is_nil(GG["MissionAPI"].HasValidationErrors)
 		end)
 
 		it("passes countdown ID references that are added, and countdowns left to run out", function()

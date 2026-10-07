@@ -84,10 +84,10 @@ local noNewGameframes = false
 local cachedPauseText = nil
 local spIsGUIHidden = Spring.IsGUIHidden
 
--- A pause started by a script (api_scripted_pause.lua, e.g. a mission cutscene)
+-- A pause a gadget holds (api_game_pause.lua)
 -- is not a player pause: no overlay and no "paused" text for it.
-local function isScriptedPause()
-	return (spGetGameRulesParam("scriptedPause") or 0) == 1
+local function isGadgetPaused()
+	return (spGetGameRulesParam("gamePaused") or 0) == 1
 end
 
 -- Pre-allocated color tables
@@ -163,9 +163,9 @@ function widget:Update(dt)
 
 	lastPause = paused
 
-	local scriptedPause = isScriptedPause()
+	local gadgetPaused = isGadgetPaused()
 	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if ((not gameover and gameSpeed == 0) or isPaused) and not scriptedPause then
+	if ((not gameover and gameSpeed == 0) or isPaused) and not gadgetPaused then
 		-- when host (admin) paused its just gamespeed 0
 		paused = true
 	else
@@ -174,7 +174,7 @@ function widget:Update(dt)
 
 	-- admin pause / game freeze
 	if not paused and gameFrame > 0 and not gameover then
-		if lastGameFrame == gameFrame and not scriptedPause then
+		if lastGameFrame == gameFrame and not gadgetPaused then
 			if now - lastGameFrameTime > 1 then
 				if not noNewGameframes then
 					pauseTimestamp = now - (slideTime + autoFadeTime)
@@ -254,7 +254,7 @@ function widget:Initialize()
 	widget:ViewResize(vsx, vsy)
 
 	local _, gameSpeed, isPaused = spGetGameSpeed()
-	if (gameSpeed == 0 or isPaused) and not isScriptedPause() then
+	if (gameSpeed == 0 or isPaused) and not isGadgetPaused() then
 		-- when host admin paused its just gamespeed 0
 		paused = true
 	end
@@ -275,7 +275,7 @@ function widget:Initialize()
 end
 
 function widget:GamePaused(playerID, isGamePaused)
-	paused = isGamePaused and not isScriptedPause()
+	paused = isGamePaused and not isGadgetPaused()
 end
 
 function widget:DrawScreen()

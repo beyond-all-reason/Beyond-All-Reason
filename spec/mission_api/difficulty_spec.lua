@@ -202,5 +202,22 @@ describe("mission_api.difficulty", function()
 
 			assert.are.equal(trigger, objectives.o.trigger)
 		end)
+
+		describe("ResolveCutscenes", function()
+			it("resolves wrapped cutscene fields in place and leaves plain ones alone", function()
+				withDifficulty(HARD)
+				local cutscenes = {
+					intro = { videoFile = { difficulties = { Easy = "videos/easy.mp4", Hard = "videos/hard.mp4" } } },
+					landing = { script = "landingParty" },
+				}
+
+				difficulty.ResolveCutscenes(cutscenes)
+
+				assert.are.same({
+					intro = { videoFile = "videos/hard.mp4" },
+					landing = { script = "landingParty" },
+				}, cutscenes)
+			end)
+		end)
 	end)
 end)

@@ -45,15 +45,21 @@ float valueNoise(vec2 p) {
 void main(void) {
     // Reconstruct world position from depth. This gives us a way to look up
     // the LOS/radar coverage at the point in the world the screen pixel hits.
-    float mapdepth = texture(mapDepths, texCoord.xy).x;
-
-    // Skip pixels where the map gbuffer holds the far plane — that means no
-    // map geometry was rendered there (skybox / above-horizon area).
-    if (mapdepth >= 0.999999) discard;
+    float mapdepth = textureLod(mapDepths, texCoord.xy, 0.0).x;
 
     vec4 worldPos = vec4(vec3(texCoord.xy * 2.0 - 1.0, mapdepth), 1.0);
     worldPos = cameraViewProjInv * worldPos;
     worldPos.xyz /= worldPos.w;
+
+    // Pattern phase and its screen derivative, taken before any discard: derivatives are
+    // undefined once a neighbouring pixel of the quad has been discarded.
+    const vec2 lineDir = vec2(0.80901699, 0.58778525); // 36 degrees
+    float scrolled = dot(worldPos.xz, lineDir) / lineFreq - timeInfo.x * scrollSpeed;
+    float pixelWidth = fwidth(scrolled) * 2.0;
+
+    // Skip pixels where the map gbuffer holds the far plane — that means no
+    // map geometry was rendered there (skybox / above-horizon area).
+    if (mapdepth >= 0.999999) discard;
 
     // Skip the map-edge extension: it lies outside the actual playable map.
     if (worldPos.x < 0.0 || worldPos.z < 0.0 ||
@@ -63,7 +69,7 @@ void main(void) {
     // updated incrementally each gameframe to avoid hard cell-grid jumps as
     // units move). Air-LOS is intentionally excluded.
     vec2 infoUV = clamp(worldPos.xz / mapSize.xy, 0.0, 1.0);
-    float coverage = texture(coverageTex, infoUV).r;
+    float coverage = textureLod(coverageTex, infoUV, 0.0).r;
 
     float fogMask = 1.0 - smoothstep(0.0, 1.0, coverage);
     if (fogMask <= 0.001) discard;
@@ -77,14 +83,10 @@ void main(void) {
     // which sets the line angle: (cos a, sin a) for an angle a measured from the
     // X axis. 36 degrees -> (0.809, 0.588). Keep it normalised so lineFreq stays
     // an honest world-space spacing regardless of angle.
-    const vec2 lineDir = vec2(0.80901699, 0.58778525); // 36 degrees
-    float scrolled = dot(worldPos.xz, lineDir) / lineFreq - timeInfo.x * scrollSpeed;
     float tri = abs(fract(scrolled) * 2.0 - 1.0); // 0 at line center, 1 at gap center
 
-    // Anti-alias against actual screen-space derivative of the pattern phase.
-    // fwidth tells us how many pattern cycles fit in one pixel; we widen the
-    // smoothstep band by that to avoid moiré when zoomed out.
-    float pixelWidth = fwidth(scrolled) * 2.0;
+    // Anti-alias against the screen-space derivative of the pattern phase (pixelWidth,
+    // how many pattern cycles fit in one pixel) to avoid moiré when zoomed out.
     float aa = max(lineSharpness, pixelWidth);
     float threshold = clamp(lineWidth, 0.0, 1.0);
     float line = 1.0 - smoothstep(threshold - aa, threshold + aa, tri);

@@ -496,6 +496,12 @@ local largeCircleSegments = 1024
 local smallCircleVBO = nil
 local smallCircleSegments = 128
 
+-- Heightmap fetches per ring vertex while fitting rings to the terrain (shader HEIGHTMAP_SAMPLE_STEPS):
+-- cannon rings do a binary search of this many steps, so the radius is exact to range / 2^steps; sphere rings
+-- iterate half as many times. The original 16 steps were precise to centimetres, far below the 8 elmo heightmap
+-- grid, and the search runs for every vertex of every pass. Raise back to 16 to compare.
+local rangeHeightmapSampleSteps = 8
+
 local allyenemypairs = { "ally", "enemy" }
 local defenseRangeClasses = {}
 for allyenemy, ringclasses in pairs(buttonConfig) do
@@ -533,11 +539,10 @@ local shaderSourceCache = {
 		DEBUG = autoReload and 1 or 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
 		MASKPASS = 0,
+		HEIGHTMAP_SAMPLE_STEPS = rangeHeightmapSampleSteps,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losTex = 1,
-		mapNormalTex = 2,
 		maskTex = 3,
 	},
 	uniformFloat = {
@@ -577,11 +582,10 @@ local maskShaderSourceCache = {
 		DEBUG = 0,
 		MOUSEOVERALPHAMULTIPLIER = 5.0,
 		MASKPASS = 1,
+		HEIGHTMAP_SAMPLE_STEPS = rangeHeightmapSampleSteps,
 	},
 	uniformInt = {
 		heightmapTex = 0,
-		losTex = 1,
-		mapNormalTex = 2,
 	},
 	uniformFloat = {
 		lineAlphaUniform = 1,
