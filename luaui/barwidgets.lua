@@ -643,6 +643,9 @@ local function loadFailed(basename, reason)
 	return nil
 end
 
+-- Not a handler method. `fromZip` grants full System to anything with handler access.
+local newWidget ---@type function
+
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = vfsLoadFile(
@@ -667,7 +670,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			return loadFailed(basename, err)
 		end
 
-		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
+		local widget = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -687,7 +690,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		return loadFailed(basename, err)
 	end
 
-	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
+	local widget = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -830,7 +833,7 @@ local SandboxedWidgetMeta = {
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
+newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
 	local canControlUnits = fromZip or allowunitcontrolwidgets
