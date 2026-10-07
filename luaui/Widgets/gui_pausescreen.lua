@@ -28,6 +28,7 @@ local TINT = { 1, 1, 1 } ---@type number[]
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetGameSpeed = Spring.GetGameSpeed
 local spGetGameFrame = Spring.GetGameFrame
+local spGetGameRulesParam = Spring.GetGameRulesParam
 local spIsGUIHidden = Spring.IsGUIHidden
 
 local glColor = gl.Color
@@ -202,6 +203,12 @@ local function updateAnimation(now)
 	end
 end
 
+-- A pause a gadget holds (api_game_pause.lua)
+-- is not a player pause: no overlay and no "paused" text for it.
+local function isGadgetPaused()
+	return (spGetGameRulesParam("gamePaused") or 0) == 1
+end
+
 local function setPaused(state, now)
 	if state == paused then
 		return
@@ -247,7 +254,7 @@ local function pollPauseState(now)
 			state = true
 		end
 	end
-	setPaused(state, now)
+	setPaused(state and not isGadgetPaused(), now)
 end
 
 function widget:GameOver()
@@ -255,7 +262,7 @@ function widget:GameOver()
 end
 
 function widget:GamePaused(playerID, isGamePaused)
-	setPaused(isGamePaused, osClock())
+	setPaused(isGamePaused and not isGadgetPaused(), osClock())
 end
 
 function widget:Update(dt)
@@ -383,7 +390,7 @@ function widget:Initialize()
 
 	local _, gameSpeed, isPaused = spGetGameSpeed()
 	-- when host admin paused its just gamespeed 0
-	setPaused(gameSpeed == 0 or isPaused, osClock())
+	setPaused((gameSpeed == 0 or isPaused) and not isGadgetPaused(), osClock())
 	setEffectsCallIn(visible and shaderProgram ~= nil)
 end
 
