@@ -1607,6 +1607,11 @@ end
 
 function widget:RecvLuaMsg(msg, playerID)
 	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
+	if playerID ~= Spring.GetMyPlayerID() then
+		if msg:sub(1, 4) == "rws:" then
+			return true
+		end
+	end
 	if msg == "rws:begin" then
 		rwsBuffer = {}
 		return true
