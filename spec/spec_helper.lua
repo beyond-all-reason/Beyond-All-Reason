@@ -37,6 +37,9 @@ _G.Spring = _G.Spring
 				print(string.format("[%s] %s: %s", tag, level, message))
 			end
 		end,
+		GetGameFrame = function()
+			return 0
+		end,
 	}
 
 -- Game code echoes while it runs, which would bury the spec output, so an echo counts as
@@ -52,6 +55,10 @@ _G.Game = _G.Game or {}
 -- alldefs_post divides by this to work out the collision speed threshold, so leaving it
 -- nil takes down the whole def post pass and every def arrives raw.
 _G.Game.gameSpeed = _G.Game.gameSpeed or 30
+
+-- the map has a size: a module that keeps a unit on the map reads it when it loads
+_G.Game.mapSizeX = _G.Game.mapSizeX or 4096
+_G.Game.mapSizeZ = _G.Game.mapSizeZ or 4096
 
 _G.Game.envDamageTypes = _G.Game.envDamageTypes
 	or {
@@ -257,7 +264,7 @@ _G.VFS.SubDirs = function(path)
 	end
 
 	local dirs = {}
-	local handle = io.popen(string.format("find %s -maxdepth 1 -type d", searchPath))
+	local handle = io.popen(string.format("find %s -maxdepth 1 -type d 2>/dev/null", searchPath))
 	if handle then
 		for line in handle:lines() do
 			if line ~= searchPath then
@@ -316,10 +323,10 @@ _G.VFS.DirList = function(directory, pattern, mode, recursive)
 	return files
 end
 
-_G.VFS.MAP = 1
-_G.VFS.MOD = 2
-_G.VFS.BASE = 4
-_G.VFS_MODES = _G.VFS.MAP + _G.VFS.MOD + _G.VFS.BASE
+_G.VFS.MAP = "m"
+_G.VFS.MOD = "M"
+_G.VFS.BASE = "b"
+_G.VFS_MODES = _G.VFS.MAP .. _G.VFS.MOD .. _G.VFS.BASE
 
 -- The engine sets Json up globally in init.lua, so game code uses it without including it.
 _G.Json = _G.Json or require("common/luaUtilities/json")
