@@ -169,8 +169,8 @@ local units = {
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
 				damage = {
-					default = 160,
-					vtol = 78,
+					default = 61,
+					vtol = 30,
 				},
 				customparams = {
 					sound_volume_multiplier = 2.5,
@@ -206,7 +206,7 @@ local units = {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				damage = {
-					default = 1600,
+					default = 608,
 				},
 			},
 			devourdgun = {
@@ -283,8 +283,8 @@ local units = {
 					noexplosionlight = 1,
 				},
 				damage = {
-					commanders = 420,
-					default = 4200,
+					commanders = 160,
+					default = 1596,
 				},
 			},
 			podaa = {
@@ -333,9 +333,9 @@ local units = {
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = 583,
-					subs = 875,
-					vtol = 3500,
+					default = 222,
+					subs = 332,
+					vtol = 1330,
 				},
 			},
 			podaa_turbo = {
@@ -383,8 +383,8 @@ local units = {
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = 583,
-					vtol = 7000,
+					default = 222,
+					vtol = 2660,
 				},
 			},
 			eaterblast = {
@@ -405,7 +405,7 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 100,
 				damage = {
-					default = 12000,
+					default = 4560,
 				},
 			},
 			feedshield = {
@@ -493,8 +493,8 @@ local units = {
 					water_splash = 0,
 				},
 				damage = {
-					default = 594,
-					subs = 446,
+					default = 226,
+					subs = 169,
 				},
 			},
 			pod_barrage = {
@@ -542,8 +542,8 @@ local units = {
 				},
 				sprayangle = 5000,
 				damage = {
-					default = 1729,
-					subs = 864,
+					default = 657,
+					subs = 328,
 				},
 			},
 			pod_rain = {
@@ -589,8 +589,8 @@ local units = {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 4750,
-					subs = 1676,
+					default = 1805,
+					subs = 637,
 				},
 			},
 			pod_stream = {
@@ -635,7 +635,7 @@ local units = {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 2100,
+					default = 798,
 				},
 			},
 			pod_stream_turbo = {
@@ -680,7 +680,7 @@ local units = {
 					projectile_destruction_method = "descend",
 				},
 				damage = {
-					default = 3900,
+					default = 1482,
 				},
 			},
 			railgun = {
@@ -717,8 +717,8 @@ local units = {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 22500,
-					default = 135000,
+					commanders = 8550,
+					default = 51300,
 				},
 			},
 			railrapid = {
@@ -761,8 +761,8 @@ local units = {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3180,
 				damage = {
-					commanders = 217,
-					default = 1300,
+					commanders = 82,
+					default = 494,
 				},
 			},
 			shotgunarm = {
@@ -797,8 +797,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 2900,
-					subs = 725,
+					default = 1102,
+					subs = 276,
 				},
 			},
 			gaussvolley = {
@@ -833,8 +833,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 814,
-					subs = 204,
+					default = 309,
+					subs = 78,
 				},
 			},
 			gaussvolley_turbo = {
@@ -869,8 +869,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 1628,
-					subs = 408,
+					default = 619,
+					subs = 155,
 				},
 			},
 			gaussfinale = {
@@ -907,8 +907,8 @@ local units = {
 				weapontype = "Cannon",
 				weaponvelocity = 1200,
 				damage = {
-					default = 814,
-					subs = 204,
+					default = 309,
+					subs = 78,
 				},
 			},
 		},
