@@ -695,7 +695,7 @@ if gadgetHandler:IsSyncedCode() then
 		local teamID = data.teamID
 		-- Old single/area commands occur in recorded replays. Preserve their
 		-- original cap; the new compact command carries unrestricted target lists.
-		local targetLimit = useSharedAppend and math.huge or 128
+		local targetLimit = useSharedAppend == false and 128 or math.huge
 		local entries = {}
 		local providedSharedList = not append and not prepend and targetList.sharedList
 		if

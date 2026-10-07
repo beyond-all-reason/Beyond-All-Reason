@@ -51,6 +51,7 @@ local function loadTargetGadget(unitTeams, areaTargets)
 		},
 		WeaponDefs = { { type = "Cannon", range = 1000, customParams = {} } },
 		Spring = {
+			InsertUnitCmdDesc = function() end,
 			GetUnitsInCylinder = function()
 				return areaTargets or {}
 			end,
@@ -210,6 +211,17 @@ describe("Set Target invalid-target cleanup", function()
 		assert.are.equal(128, #targets)
 		assert.are.equal(10, targets[1].target)
 		assert.are.equal(146, targets[128].target)
+	end)
+
+	it("inherits a builder's entire compact target list", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		local targets = {}
+		for targetID = 10, 149 do
+			targets[#targets + 1] = targetID
+		end
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, targets, { coded = 0 }, 1, 1)
+		g.env.gadget:UnitCreated(2, 1, 1, 1)
+		assert.are.equal(140, #g.env.GG.GetUnitTargetList(2))
 	end)
 
 	it("preserves unseen expiry when an area command appends several targets", function()
