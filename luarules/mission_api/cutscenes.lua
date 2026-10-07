@@ -33,7 +33,7 @@ local function onVideoFinished()
 	end
 end
 
-local function startCutscene(cutsceneID)
+local function startCutscene(cutsceneID, skippable)
 	local cutscene = GG["MissionAPI"].Cutscenes[cutsceneID]
 	if cutscene.videoFile ~= nil then
 		if not GG.VideoPlayback then
@@ -44,7 +44,7 @@ local function startCutscene(cutsceneID)
 		end
 
 		playingVideoCount = playingVideoCount + 1
-		GG.GamePause.Pause("cutscene")
+		GG.GamePause.Pause("cutscene", skippable)
 		GG.VideoPlayback.Play(cutscene.videoFile, onVideoFinished)
 	else
 		startScriptedControl(cutscene.script)
