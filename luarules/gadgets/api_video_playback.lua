@@ -63,6 +63,16 @@ if gadgetHandler:IsSyncedCode() then
 else
 	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
 	local spGetMyPlayerID = Spring.GetMyPlayerID
+	local spIsReplay = Spring.IsReplay
+
+	local finishedPlaybackID -- finished on this client
+
+	local function reportPlaybackFinished()
+		if finishedPlaybackID ~= nil and getPauseControllerID() == spGetMyPlayerID() and not spIsReplay() then
+			spSendLuaRulesMsg(MESSAGE_FINISHED .. finishedPlaybackID)
+			finishedPlaybackID = nil
+		end
+	end
 
 	local function play(_, playbackID, videoFile)
 		if Script.LuaUI(SYNC_ACTION) then
@@ -71,9 +81,15 @@ else
 		end
 
 		Spring.Log("Video playback", LOG.WARNING, "No widget plays videos, skipping: " .. videoFile)
-		if getPauseControllerID() == spGetMyPlayerID() and not Spring.IsReplay() then
-			spSendLuaRulesMsg(MESSAGE_FINISHED .. playbackID)
-		end
+		finishedPlaybackID = playbackID
+		reportPlaybackFinished()
+	end
+
+	function gadget:PlayerChanged()
+		reportPlaybackFinished()
+	end
+	function gadget:PlayerRemoved()
+		reportPlaybackFinished()
 	end
 
 	function gadget:Initialize()
