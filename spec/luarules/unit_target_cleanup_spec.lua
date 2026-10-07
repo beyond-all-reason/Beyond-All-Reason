@@ -1,4 +1,4 @@
-local function loadTargetGadget(unitTeams)
+local function loadTargetGadget(unitTeams, areaTargets)
 	local currentCommand
 	local target
 	local rules = {}
@@ -51,6 +51,9 @@ local function loadTargetGadget(unitTeams)
 		},
 		WeaponDefs = { { type = "Cannon", range = 1000, customParams = {} } },
 		Spring = {
+			GetUnitsInCylinder = function()
+				return areaTargets or {}
+			end,
 			ValidUnitID = function()
 				return true
 			end,
@@ -118,6 +121,10 @@ local function loadTargetGadget(unitTeams)
 		end,
 	}, { __index = math })
 	env.table = setmetatable({
+		ensureTable = function(parent, key)
+			parent[key] = parent[key] or {}
+			return parent[key]
+		end,
 		map = function(values, fn)
 			local result = {}
 			for k, v in pairs(values) do
@@ -170,6 +177,81 @@ local function loadTargetGadget(unitTeams)
 end
 
 describe("Set Target invalid-target cleanup", function()
+	it("preserves the legacy limit when replay commands append individual targets", function()
+		local g = loadTargetGadget()
+		for targetID = 10, 149 do
+			g.set(targetID, true)
+		end
+		local targets = g.env.GG.GetUnitTargetList(1)
+		assert.are.equal(128, #targets)
+		assert.are.equal(10, targets[1].target)
+		assert.are.equal(137, targets[128].target)
+	end)
+
+	it("allows compact Set Target commands to exceed the legacy limit", function()
+		local g = loadTargetGadget()
+		local targets = {}
+		for targetID = 10, 149 do
+			targets[#targets + 1] = targetID
+		end
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, targets, { coded = 0 }, 1, 1)
+		assert.are.equal(140, #g.env.GG.GetUnitTargetList(1))
+	end)
+
+	it("preserves the legacy limit for shifted area commands", function()
+		local areaTargets = {}
+		for targetID = 20, 149 do
+			areaTargets[#areaTargets + 1] = targetID
+		end
+		local g = loadTargetGadget(nil, areaTargets)
+		g.set(10)
+		g.set({ 100, 0, 100, 100 }, true)
+		local targets = g.env.GG.GetUnitTargetList(1)
+		assert.are.equal(128, #targets)
+		assert.are.equal(10, targets[1].target)
+		assert.are.equal(146, targets[128].target)
+	end)
+
+	it("preserves unseen expiry when an area command appends several targets", function()
+		local g = loadTargetGadget(nil, { 30, 40 })
+		g.set(10)
+		g.set(20, true)
+		g.losStates[10] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 10
+		end)
+		g.update(15)
+		g.set({ 100, 0, 100, 100 }, true)
+		g.update(30)
+		g.update(45)
+		assert.are.equal(4, #g.env.GG.GetUnitTargetList(1))
+		g.update(60)
+		local targets = g.env.GG.GetUnitTargetList(1)
+		assert.are.equal(3, #targets)
+		assert.are.equal(20, targets[1].target)
+	end)
+
+	it("preserves unseen expiry when a single append detaches a shared list", function()
+		local g = loadTargetGadget({ [2] = 1 })
+		for unitID = 1, 2 do
+			g.env.gadget:AllowCommand(unitID, 1, 1, g.env.GameCMD.UNIT_SET_TARGETS, { 10, 20 }, { coded = 0 }, 1, 1)
+		end
+		assert.are.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitTargetListID(2))
+		g.losStates[10] = 0
+		g.canTarget(function(targetID)
+			return targetID ~= 10
+		end)
+		g.update(15)
+		g.set(30, true)
+		g.update(30)
+		g.update(45)
+		g.update(60)
+		assert.are.equal(2, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(20, g.env.GG.GetUnitTargetList(1)[1].target)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(2))
+		assert.are.equal(20, g.env.GG.GetUnitTargetList(2)[1].target)
+	end)
+
 	for _, kind in ipairs({ "dead", "crashing" }) do
 		it("skips a " .. kind .. " active target on the next selection update", function()
 			local g = loadTargetGadget()
