@@ -426,7 +426,6 @@ end
 
 local zipOnly = {
 	["Widget Selector"] = "LuaUI/Widgets/widget_selector.lua",
-	["Widget Profiler"] = "LuaUI/Widgets/dbg_widget_profiler.lua",
 }
 local zipOnlyFiles = {}
 for name, filename in pairs(zipOnly) do
