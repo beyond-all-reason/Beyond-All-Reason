@@ -3,6 +3,7 @@
 -- Space-prepend keep the same target order.
 
 local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 
 -- Spring.GiveOrderToUnitArray uses NETMSG_AICOMMANDS. Its current wire format
 -- has 17 bytes of fixed data, two bytes per source unit ID, and four bytes per
@@ -58,7 +59,7 @@ local function giveTargetList(listCommandID, selectedUnits, targetIDs, options, 
 
 	local function giveTargetChunk(targetChunk, chunkIndex)
 		local commandOptions = baseCommandOptions
-		if chunkIndex > 1 and not options.shift and not prepend then
+		if chunkIndex > 1 and not options.shift and (not prepend or listCommandID == CMD_ATTACK_TARGETS) then
 			commandOptions = commandOptions + CMD.OPT_SHIFT
 		end
 
@@ -94,7 +95,8 @@ local function giveTargetList(listCommandID, selectedUnits, targetIDs, options, 
 	if prepend then
 		-- Every insert is placed at queue position zero. Send chunks backwards so
 		-- they end up in their original order. Set Target consumes each inserted
-		-- command immediately and prepends it.
+		-- command immediately and prepends it; Attack keeps shifted later chunks
+		-- adjacent so its controller can combine them.
 		for chunkIndex = #targetChunks, 1, -1 do
 			giveTargetChunk(targetChunks[chunkIndex], chunkIndex)
 		end
