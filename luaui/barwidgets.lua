@@ -932,6 +932,15 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	wh.IsInterfaceHidden = function(_)
 		return self:IsInterfaceHidden()
 	end
+
+	-- see widgetHandler:Pause
+	wh.Pause = function(_, source)
+		return self:Pause(source)
+	end
+	wh.Unpause = function(_, source)
+		return self:Unpause(source)
+	end
+
 	tracy.ZoneEnd()
 	return widget
 end
@@ -1621,6 +1630,12 @@ end
 --  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
 --  pause the player made or lifted themselves in the meantime is left alone.
 --
+--  Widgets pause the game under a source, as gadgets do (api_game_pause.lua), and the
+--  game resumes once the last source on either side unpauses:
+--      widgetHandler:Pause("windows")
+--      widgetHandler:Unpause("windows")
+--  Unpause also takes a gadget's source, when that gadget exposed it to widgets.
+--
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
 --  (widgets with handler = true get the real handler, so they pass themselves first:
@@ -1657,11 +1672,16 @@ local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
 
+-- pausing under a source, see widgetHandler:Pause
+local PAUSESOURCE_WINDOWS = "windows"
+local RULESPARAM_GADGET_PAUSE = "gamePaused"
+local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublish"
+local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
+local pauseSources = {}
+local widgetPaused = false
 -- pausing while a window is open, see UpdateWindowPause
 local windowPauseEnabled = true
 local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
-local windowPauseHeld = false -- the open windows have paused the game, or found it paused
-local windowPauseOwned = false -- they paused it, so closing them resumes it
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -1835,41 +1855,91 @@ local function isClientPaused()
 	return paused
 end
 
+local function inGadgetPause()
+	return (Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE) or 0) == 1
+end
+
+local function canReleaseGadgetPause(source)
+	local publishedRule = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_PUBLISH) or "[]"
+	if publishedRule == "[]" then
+		return false
+	end
+	local exposed = Json.decode(publishedRule)
+	return type(exposed) == "table" and table.contains(exposed, source)
+end
+
+---Pause and resume the game using basic claims and releases on claims.
+---@param source string key set by caller; pass the same key to Unpause
+function widgetHandler:Pause(source)
+	if type(source) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "Pause: expected a source name")
+		return false
+	end
+	if Spring.GetGameFrame() == 0 then
+		return false -- cannot pause until the game starts
+	end
+	if next(pauseSources) == nil then
+		widgetPaused = not isClientPaused()
+		if widgetPaused then
+			Spring.SendCommands("pause 1")
+		end
+	end
+	pauseSources[source] = true
+	return true
+end
+
+---Unpause one source. The game resumes once no source on either side is left.
+---@param source string a widget's source, or a gadget's source it exposed to widgets
+function widgetHandler:Unpause(source)
+	if pauseSources[source] then
+		pauseSources[source] = nil
+		if next(pauseSources) == nil then
+			if widgetPaused and isClientPaused() and not inGadgetPause() then
+				Spring.SendCommands("pause 0")
+			end
+			widgetPaused = false
+		end
+		return true
+	end
+	if canReleaseGadgetPause(source) then
+		Spring.SendLuaRulesMsg(MESSAGE_GADGET_UNPAUSE .. source)
+		return true
+	end
+	return false
+end
+
+local function gameUnpausing()
+	if next(pauseSources) == nil then
+		return false
+	end
+	widgetPaused = true
+	return true
+end
+
 -- Once per frame, after the widgets' Update: a window closing as another opens, or one
 -- reopening itself after a reload, never lets the game run in between.
 function widgetHandler:UpdateWindowPause()
+	if widgetPaused and not isClientPaused() then
+		widgetPaused = false -- unpaused by the player while widgets held it: theirs from here
+	end
 	if not windowPauseAllowed then
 		return
 	end
 	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
-	if wanted == windowPauseHeld then
-		if windowPauseOwned and not isClientPaused() then
-			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
+	if wanted ~= (pauseSources[PAUSESOURCE_WINDOWS] == true) then
+		if wanted then
+			self:Pause(PAUSESOURCE_WINDOWS)
+		else
+			self:Unpause(PAUSESOURCE_WINDOWS)
 		end
-		return
-	end
-	if wanted then
-		if Spring.GetGameFrame() == 0 then
-			return -- the engine refuses to pause before the game has started
-		end
-		windowPauseHeld = true
-		windowPauseOwned = not isClientPaused()
-		if windowPauseOwned then
-			Spring.SendCommands("pause 1")
-		end
-	else
-		windowPauseHeld = false
-		if windowPauseOwned and isClientPaused() then
-			Spring.SendCommands("pause 0")
-		end
-		windowPauseOwned = false
 	end
 end
 
 -- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
 -- that reopens after the reload keeps it and closing that window still resumes the game.
 function widgetHandler:SaveWindowPause()
-	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+	local windowPaused = widgetPaused and pauseSources[PAUSESOURCE_WINDOWS]
+	Spring.SetConfigInt("WindowsPausedAtFrame", windowPaused and Spring.GetGameFrame() or 0, true)
 end
 
 function widgetHandler:InitWindowPause()
@@ -1878,10 +1948,11 @@ function widgetHandler:InitWindowPause()
 	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 	local frame = Spring.GetGameFrame()
 	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
-		windowPauseHeld = true
-		windowPauseOwned = true
+		pauseSources[PAUSESOURCE_WINDOWS] = true
+		widgetPaused = true
 	end
 	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
+	self:RegisterGlobal(self, "GameUnpausing", gameUnpausing)
 end
 
 -- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
