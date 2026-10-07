@@ -32,7 +32,7 @@ local function fixture()
 		},
 		Spring = {
 			GetGameFrame = function()
-				return 0
+				return f.frame or 0
 			end,
 			GetLocalTeamID = function()
 				return 0
@@ -41,7 +41,7 @@ local function fixture()
 				return false
 			end,
 			GetTeamRulesParam = function()
-				return 1
+				return f.startDef or 1
 			end,
 			GetTeamStartPosition = function()
 				return unpack(f.start)
@@ -107,6 +107,28 @@ local function fixture()
 		for i, x in ipairs(xs) do
 			assert(queue[i][2] == x, "unexpected position at queue index " .. i .. ": " .. queue[i][2])
 		end
+	end
+	function f:quickMex()
+		self.api.setPreGamestartDefID(nil)
+		env.WG.resource_spot_finder.isMetalMap = false
+		self.spot = { x = 200, y = 0, z = 0 }
+		env.WG.resource_spot_finder.GetClosestMexSpot = function()
+			return self.spot
+		end
+		env.WG.resource_spot_builder = {
+			SpotHasExtractorQueued = function()
+				return self.occupied
+			end,
+			PreviewExtractorCommand = function(_, def, spot)
+				if self.noPlacement or self.unbuildable == def then
+					return
+				end
+				return { def, spot.x, spot.y, spot.z, 0 }
+			end,
+		}
+		env.UnitDefs[4] = { buildOptions = { 5 }, xsize = 2, zsize = 2 }
+		env.UnitDefs[5] = { extractsMetal = 1, xsize = 2, zsize = 2, modCategories = {} }
+		self.env = env
 	end
 	return f
 end
@@ -207,5 +229,110 @@ describe("pregame command insertion", function()
 		f:modifier()
 		f:click(200)
 		f:expect({ 100, 300, 200 })
+	end)
+end)
+
+describe("pregame right-click mex", function()
+	it("builds without selecting a blueprint and replaces the queue without Shift", function()
+		local f = fixture()
+		f:quickMex()
+		f.shift = false
+		assert(f.widget:MousePress(0, 0, 3))
+		f:expect({ 200 })
+		assert(f.api.getBuildQueue()[1][1] == 3)
+		assert(f.api.getPreGameDefID() == nil)
+	end)
+	it("appends with Shift and supports command insertion", function()
+		local f = fixture()
+		f:quickMex()
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300, 200 })
+		assert(f.api.getBuildQueue()[3][1] == 3)
+		f.api.setBuildQueue({ { 2, 100, 0, 0, 0 }, { 2, 300, 0, 0, 0 } })
+		f:modifier()
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 200, 300 })
+		assert(f.api.getBuildQueue()[2][1] == 3)
+	end)
+	it("uses the current faction even before the next draw", function()
+		local f = fixture()
+		f:quickMex()
+		f.startDef = 4
+		f.widget:MousePress(0, 0, 3)
+		assert(f.api.getBuildQueue()[3][1] == 5)
+	end)
+	it("cancels an active blueprint instead of building a mex", function()
+		local f = fixture()
+		f:quickMex()
+		f.api.setPreGamestartDefID(2)
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300 })
+		assert(f.api.getPreGameDefID() == nil)
+	end)
+	it("keeps Shift-right-click movement away from spots", function()
+		local f = fixture()
+		f:quickMex()
+		f.position = { 500, 0, 0 }
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300, 500 })
+		assert(f.api.getBuildQueue()[3][1] == -10)
+	end)
+	it("does not replace existing builds at a blocked or already queued spot", function()
+		for _, reason in ipairs({ "blocked", "occupied", "noPlacement", "overlap", "spawn" }) do
+			local f = fixture()
+			f:quickMex()
+			f.shift = false
+			f[reason] = true
+			if reason == "overlap" then
+				f.spot.x = 100
+				f.position[1] = 100
+			end
+			if reason == "spawn" then
+				f.start = { 200, 0, 0 }
+			end
+			f.widget:MousePress(0, 0, 3)
+			f:expect({ 100, 300 })
+		end
+	end)
+	it("does not build on metal maps or without a buildable mex", function()
+		local f = fixture()
+		f:quickMex()
+		f.shift = false
+		f.env.WG.resource_spot_finder.isMetalMap = true
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300 })
+		f.env.WG.resource_spot_finder.isMetalMap = false
+		f.env.UnitDefs[1].buildOptions = { 2 }
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300 })
+	end)
+	it("chooses a buildable water mex when the land mex cannot be placed", function()
+		local f = fixture()
+		f:quickMex()
+		f.env.UnitDefs[1].buildOptions = { 3, 5 }
+		f.unbuildable = 3
+		f.widget:MousePress(0, 0, 3)
+		assert(f.api.getBuildQueue()[3][1] == 5)
+	end)
+	it("does not quick-build after game start or without a start unit", function()
+		local f = fixture()
+		f:quickMex()
+		f.shift = false
+		f.frame = 1
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300 })
+		f.frame = 0
+		f.startDef = 999
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 100, 300 })
+	end)
+	it("prepends a right-click mex with the insert modifier without Shift", function()
+		local f = fixture()
+		f:quickMex()
+		f.shift = false
+		f:modifier()
+		f.widget:MousePress(0, 0, 3)
+		f:expect({ 200, 100, 300 })
+		assert(f.api.getBuildQueue()[1][1] == 3)
 	end)
 end)
