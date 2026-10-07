@@ -3,7 +3,7 @@
 
 piece body, aimy1, turret, aimx1, sleeve, flare, ringinner, ringouter, blfoot, blhinge, bltoes, brfoot, brhinge, brtoes, flfoot, flhinge, fltoes, frfoot, frhinge, frtoes;
 
-static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, aimAdj, oldsteerheading;
+static-var  restore_delay, animSpeed, maxSpeed, animFramesPerKeyframe, Stunned, isMoving, oldhead, isfiring, aimAdj, oldsteerheading, oldpitch;
 
 
 #define BASEPIECE body
@@ -614,9 +614,19 @@ SetStunned(State)
 
 AimWeapon1(heading, pitch)
 {
+	var pitchSpeed, deltaHeading;
 	signal SIGNAL_AIM1;
+	// Turn the pitch and heading together
+	pitchSpeed = <15>;
+	deltaHeading = get ABS(oldhead - heading);
+	if ((isfiring == 1) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = <30> * (get ABS(oldpitch - pitch)) / deltaHeading;
+		if (pitchSpeed > <15>) pitchSpeed = <15>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 	turn aimy1 to y-axis heading - aimAdj speed <30>;
-	turn aimx1 to x-axis -1*pitch speed <15>;
+	turn aimx1 to x-axis -1*pitch speed pitchSpeed;
 	if (isfiring == 0 AND (((get ABS(oldhead - heading)) > 65536) OR ((get ABS(oldhead - heading) > <1>) AND ((get ABS(oldhead - heading)) < 65536 - <1>))))
 	{
 		oldhead = 1000000;
@@ -624,6 +634,7 @@ AimWeapon1(heading, pitch)
 		wait-for-turn aimx1 around x-axis;
 	}
 	oldhead = heading;
+	oldpitch = pitch;
 	isfiring = 1;
 	start-script RestoreAfterDelay();
 	return (1);
