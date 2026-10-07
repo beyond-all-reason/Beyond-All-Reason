@@ -3,6 +3,7 @@ local function loadCommands()
 	local env = setmetatable({
 		CMD = { ATTACK = 20, INSERT = 1, STOP = 0, OPT_SHIFT = 32, OPT_CTRL = 64, OPT_META = 4, OPT_ALT = 128 },
 		GameCMD = {
+			ATTACK_TARGETS = 34927,
 			UNIT_SET_TARGETS = 34926,
 			UNIT_SET_TARGET = 34923,
 			UNIT_CANCEL_TARGET = 34924,
@@ -67,7 +68,7 @@ local function assertDelivery(orders, sources, targets, commandID, options, cmd)
 end
 
 describe("target-list packet delivery", function()
-	for _, commandName in ipairs({ "UNIT_SET_TARGETS" }) do
+	for _, commandName in ipairs({ "ATTACK_TARGETS", "UNIT_SET_TARGETS" }) do
 		for _, operation in ipairs({ "replace", "append", "prepend" }) do
 			it(
 				"preserves " .. commandName .. " order during " .. operation .. " across source and target batches",
@@ -87,7 +88,41 @@ describe("target-list packet delivery", function()
 	it("leaves empty target selections to the caller", function()
 		local env, send = loadCommands()
 		local orders, emit = collector()
-		assert.is_false(send(env.GameCMD.UNIT_SET_TARGETS, { 1 }, {}, {}, emit))
+		assert.is_false(send(env.GameCMD.ATTACK_TARGETS, { 1 }, {}, {}, emit))
 		assert.are.equal(0, #orders)
 	end)
+end)
+
+describe("wall-filter target-list delivery", function()
+	for _, operation in ipairs({ "replace", "append", "prepend" }) do
+		it("splits the 1200-attacker wall-filter order during " .. operation, function()
+			local env = loadCommands()
+			local sources, targets = sequence(1200), sequence(1600, 10000)
+			local area = sequence(1600, 10000)
+			area[#area + 1] = 20000
+			local orders, emit = collector()
+			env.widget = {}
+			env.UnitDefs = { { customParams = {} }, { customParams = { objectify = true } } }
+			env.Spring = {
+				GetUnitDefID = function(id)
+					return id == 20000 and 2 or 1
+				end,
+				GetUnitNeutral = function(id)
+					return id == 20000
+				end,
+				GetSelectedUnits = function()
+					return sources
+				end,
+				GetUnitsInCylinder = function()
+					return area
+				end,
+				GiveOrderToUnitArray = emit,
+			}
+			env.VFS.Include("luaui/Widgets/cmd_exclude_walls_area_attacks.lua")
+			local options = { shift = operation == "append", meta = operation == "prepend", coded = 0 }
+			assert.is_true(env.widget:CommandNotify(env.CMD.ATTACK, { 0, 0, 0, 1000 }, options))
+			assert.is_true(#orders > 1)
+			assertDelivery(orders, sources, targets, env.GameCMD.ATTACK_TARGETS, options, env.CMD)
+		end)
+	end
 end)

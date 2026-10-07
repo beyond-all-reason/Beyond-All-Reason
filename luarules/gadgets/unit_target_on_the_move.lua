@@ -75,6 +75,7 @@ if gadgetHandler:IsSyncedCode() then
 	local pairsNext = next
 	local type = type
 
+	local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 	local CMD_FIGHT = CMD.FIGHT
 	local CMD_GUARD = CMD.GUARD
 	local CMD_MANUALFIRE = CMD.MANUALFIRE
@@ -89,6 +90,7 @@ if gadgetHandler:IsSyncedCode() then
 		[CMD_MANUALFIRE] = true,
 		[CMD.AREA_ATTACK] = true,
 		[CMD_AREA_ATTACK_GROUND] = true,
+		[CMD_ATTACK_TARGETS] = true,
 	}
 
 	local issuesAttack = {
@@ -154,6 +156,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local setTargetData = {} -- explicit Set Target state
+	local attackTargetData = {} -- command-controller state, independent of Set Target
 	local activeTargets = {}
 	local pausedTargets = {}
 
@@ -174,6 +177,7 @@ if gadgetHandler:IsSyncedCode() then
 	local removeTransferredTargetFromLists
 	local pendingTargetListUpdates = {}
 	local pendingTargetListReferences = {}
+	local pendingAttackListReferences = {}
 	local pendingTargetListReleases = {}
 	local pendingTargetIndices = {}
 	local pendingTargetPauses = {}
@@ -213,7 +217,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not list then
 			return
 		end
-		list.units[unitData.unitID] = nil
+		list.units[2 * unitData.unitID + (unitData.renderAsAttack and 1 or 0)] = nil
 		list.refCount = list.refCount - 1
 		if list.refCount == 0 then
 			removeListFromValidationQueue(list)
@@ -239,7 +243,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			list.refCount = list.refCount + 1
 			-- Numeric owner keys keep synced iteration independent of table addresses.
-			list.units[unitData.unitID] = unitData
+			list.units[2 * unitData.unitID + (unitData.renderAsAttack and 1 or 0)] = unitData
 		end
 	end
 
@@ -402,6 +406,8 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		elseif inCommand == nil or isAttackCommand[inCommand] == nil then
 			return true
+		elseif inCommand == CMD_ATTACK_TARGETS then
+			return true
 		elseif inCommand ~= CMD_ATTACK then
 			return false
 		elseif param1 == nil then
@@ -551,7 +557,7 @@ if gadgetHandler:IsSyncedCode() then
 				pendingTargetListUpdates[list.id] = { list = list, firstIndex = firstIndex, nextIndex = firstIndex }
 			end
 		end
-		local references = pendingTargetListReferences
+		local references = unitData.renderAsAttack and pendingAttackListReferences or pendingTargetListReferences
 		references[unitID] = true
 	end
 
@@ -591,10 +597,18 @@ if gadgetHandler:IsSyncedCode() then
 		for unitID in pairsNext, pendingTargetListReferences do
 			local unitData = setTargetData[unitID]
 			if unitData and unitData.targetList and sentSharedTargetLists[unitData.targetList.id] then
-				SendToUnsynced("targetListReference", unitID, unitData.targetList.id)
+				SendToUnsynced("targetListReference", unitID, unitData.targetList.id, unitData.renderAsAttack)
 				pendingTargetListReferences[unitID] = nil
 			elseif not unitData or not unitData.targetList then
 				pendingTargetListReferences[unitID] = nil
+			end
+		end
+
+		for unitID in pairsNext, pendingAttackListReferences do
+			local unitData = attackTargetData[unitID]
+			if unitData and sentSharedTargetLists[unitData.targetList.id] then
+				SendToUnsynced("targetListReference", unitID, unitData.targetList.id, true)
+				pendingAttackListReferences[unitID] = nil
 			end
 		end
 
@@ -667,9 +681,20 @@ if gadgetHandler:IsSyncedCode() then
 	---@param unitDefID UnitDefID
 	---@param targetList table
 	---@param append boolean?
+	---@param renderAsAttack boolean?
 	---@param prepend boolean?
 	---@param useSharedAppend boolean?
-	local function addUnitTargets(unitID, unitDefID, targetList, append, prepend, useSharedAppend)
+	---@param targetingEnabled boolean?
+	local function addUnitTargets(
+		unitID,
+		unitDefID,
+		targetList,
+		append,
+		renderAsAttack,
+		prepend,
+		useSharedAppend,
+		targetingEnabled
+	)
 		if not spValidUnitID(unitID) then
 			return
 		end
@@ -691,6 +716,16 @@ if gadgetHandler:IsSyncedCode() then
 			data.currentIndex = 1
 			data.scanIndex = 1
 		end
+		if targetingEnabled == nil then
+			targetingEnabled = true
+		end
+		data.targetingEnabled = targetingEnabled
+		if not targetingEnabled and not append then
+			-- A controller-only list must not retain an explicit weapon target from
+			-- the previously assigned target list.
+			spSetUnitTarget(unitID, nil)
+			spSetUnitRulesParam(unitID, "unitTargetID", nil)
+		end
 
 		local teamID = data.teamID
 		-- Old single/area commands occur in recorded replays. Preserve their
@@ -703,6 +738,11 @@ if gadgetHandler:IsSyncedCode() then
 			and (providedSharedList.teamID ~= data.teamID or providedSharedList.allyTeam ~= data.allyTeam)
 		then
 			providedSharedList = nil
+		end
+		if renderAsAttack ~= nil then
+			data.renderAsAttack = renderAsAttack
+		elseif not append then
+			data.renderAsAttack = false
 		end
 
 		-- The legacy area Set Target path calls this function once per shifted
@@ -743,12 +783,20 @@ if gadgetHandler:IsSyncedCode() then
 				data.scanIndex = min(data.scanIndex or 1, #entries)
 				setTargetData[unitID] = data
 				spSetUnitRulesParam(unitID, "hasPriorityTarget", 1)
-				activeTargets[unitID] = data
+				activeTargets[unitID] = targetingEnabled and data or nil
 				pausedTargets[unitID] = nil
-				addToQueue(unitID)
-				if not hasTargetPrecedence(unitID, data) then
+				if targetingEnabled then
+					addToQueue(unitID)
+				else
+					removeFromQueue(unitID)
+				end
+				if targetingEnabled and not hasTargetPrecedence(unitID, data) then
 					pauseTargeting(unitID, data)
-				elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, entries[1].target) then
+				elseif
+					targetingEnabled
+					and not data.activeTarget
+					and testTarget(unitID, data.teamID, data.weapons, entries[1].target)
+				then
 					setTargetActive(unitID, data, 1)
 				end
 				queueTargetsToUnsynced(unitID, #entries)
@@ -824,13 +872,21 @@ if gadgetHandler:IsSyncedCode() then
 
 		setTargetData[unitID] = data
 		spSetUnitRulesParam(unitID, "hasPriorityTarget", 1)
-		activeTargets[unitID] = data
+		activeTargets[unitID] = targetingEnabled and data or nil
 		pausedTargets[unitID] = nil
-		addToQueue(unitID)
+		if targetingEnabled then
+			addToQueue(unitID)
+		else
+			removeFromQueue(unitID)
+		end
 
-		if not hasTargetPrecedence(unitID, data) then
+		if targetingEnabled and not hasTargetPrecedence(unitID, data) then
 			pauseTargeting(unitID, data)
-		elseif not data.activeTarget and testTarget(unitID, data.teamID, data.weapons, entries[1].target) then
+		elseif
+			targetingEnabled
+			and not data.activeTarget
+			and testTarget(unitID, data.teamID, data.weapons, entries[1].target)
+		then
 			setTargetActive(unitID, data, 1)
 		end
 		queueTargetsToUnsynced(unitID)
@@ -995,15 +1051,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
+		GG.ClearUnitAttackTargetList(unitID)
 		removeUnit(unitID)
 		removeTransferredTargetFromLists(unitID, unitTeam)
 	end
 
 	function gadget:UnitTaken(unitID, unitDefID, unitTeam)
+		GG.ClearUnitAttackTargetList(unitID)
 		removeUnit(unitID)
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		GG.ClearUnitAttackTargetList(unitID)
 		removeUnit(unitID)
 	end
 
@@ -1042,8 +1101,15 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	local function getExplicitTargetList(unitID, unitDefID, unitTeam, targetIDs, ignoreStop, userTarget)
-		local cacheKey = table.concat({ unitTeam, unitDefID, ignoreStop and 1 or 0, userTarget and 1 or 0 }, ":")
+	-- weaponTest: Set Target lists keep the legacy weapon test (which also needs
+	-- the target inside sensors). Attack lists skip it: the engine accepts a
+	-- native Attack on any enemy, and the materialized Attack goes through the
+	-- same AllowCommand checks a native one does.
+	local function getExplicitTargetList(unitID, unitDefID, unitTeam, targetIDs, ignoreStop, userTarget, weaponTest)
+		local cacheKey = table.concat(
+			{ unitTeam, unitDefID, ignoreStop and 1 or 0, userTarget and 1 or 0, weaponTest and 1 or 0 },
+			":"
+		)
 		local cached = explicitTargetListCache[cacheKey]
 		if cached and #cached.targetIDs == #targetIDs then
 			local matches = true
@@ -1065,7 +1131,7 @@ if gadgetHandler:IsSyncedCode() then
 			if
 				spValidUnitID(targetID)
 				and not spAreTeamsAllied(unitTeam, spGetUnitTeam(targetID))
-				and allowTargetUnit(unitID, weaponList, targetID)
+				and (not weaponTest or allowTargetUnit(unitID, weaponList, targetID))
 			then
 				entries[#entries + 1] = {
 					alwaysSeen = unitAlwaysSeen[spGetUnitDefID(targetID)],
@@ -1092,6 +1158,70 @@ if gadgetHandler:IsSyncedCode() then
 			targetList = targetList,
 		}
 		return targetList
+	end
+
+	---Attack commands own a separate assignment even when the immutable value is
+	---also used by Set Target. Clearing either assignment releases only its reference.
+	function GG.ClearUnitAttackTargetList(unitID, sourceKey)
+		local data = attackTargetData[unitID]
+		if data and (sourceKey == nil or data.sourceKey == sourceKey) then
+			assignTargetList(data, nil)
+			attackTargetData[unitID] = nil
+			pendingAttackListReferences[unitID] = nil
+			SendToUnsynced("targetListReference", unitID, 0, true)
+		end
+	end
+
+	function GG.GetUnitAttackTargetList(unitID)
+		local data = attackTargetData[unitID]
+		return data and data.targets
+	end
+
+	function GG.GetUnitAttackTargetListID(unitID)
+		local data = attackTargetData[unitID]
+		return data and data.targetList.id
+	end
+
+	function GG.SetUnitAttackTargetList(unitID, unitDefID, targetIDs, sourceKey)
+		if not validUnits[unitDefID] or not spValidUnitID(unitID) then
+			return
+		end
+		local teamID = spGetUnitTeam(unitID)
+		local targets = getExplicitTargetList(unitID, unitDefID, teamID, targetIDs, false, true, false)
+		if not targets then
+			return
+		end
+		local data = attackTargetData[unitID]
+			or {
+				unitID = unitID,
+				teamID = teamID,
+				allyTeam = spGetUnitAllyTeam(unitID),
+				renderAsAttack = true,
+			}
+		data.sourceKey = sourceKey
+		attackTargetData[unitID] = data
+		assignTargetList(data, targets.sharedList)
+		queueTargetsToUnsynced(unitID, nil, data)
+		return data.targetList.id
+	end
+
+	function GG.AppendUnitAttackTargetList(unitID, unitDefID, targetIDs, sourceKey)
+		local data = attackTargetData[unitID]
+		if not data or data.sourceKey ~= sourceKey then
+			return
+		end
+		local combined, seen = {}, {}
+		for _, entry in ipairs(data.targets) do
+			combined[#combined + 1] = entry.target
+			seen[entry.target] = true
+		end
+		for _, targetID in ipairs(targetIDs) do
+			if not seen[targetID] then
+				combined[#combined + 1] = targetID
+				seen[targetID] = true
+			end
+		end
+		return GG.SetUnitAttackTargetList(unitID, unitDefID, combined, sourceKey)
 	end
 
 	local function inCancelDistance(posA, posB)
@@ -1124,7 +1254,8 @@ if gadgetHandler:IsSyncedCode() then
 			local ignoreStop = cmdOptions.ctrl
 
 			if cmdID == CMD_UNIT_SET_TARGETS then
-				addTargetList = getExplicitTargetList(unitID, unitDefID, unitTeam, cmdParams, ignoreStop, userTarget)
+				addTargetList =
+					getExplicitTargetList(unitID, unitDefID, unitTeam, cmdParams, ignoreStop, userTarget, true)
 			elseif nParams > 3 then
 				if not cmdOptions.internal then
 					SendToUnsynced("settarget_line_sound", unitTeam, -1, unitID, cmdID)
@@ -1247,7 +1378,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 
 			if addTargetList then
-				addUnitTargets(unitID, unitDefID, addTargetList, append, prepend, cmdID == CMD_UNIT_SET_TARGETS)
+				addUnitTargets(unitID, unitDefID, addTargetList, append, nil, prepend, cmdID == CMD_UNIT_SET_TARGETS)
 			elseif unitData and not append and not prepend then
 				removeUnit(unitID)
 			end
@@ -1336,6 +1467,8 @@ if gadgetHandler:IsSyncedCode() then
 			unitData.pendingEmptyList = nil
 			if pendingEmptyList == unitData.targetList or not unitData.targets[1] then
 				removeUnit(unitID)
+			elseif not unitData.targetingEnabled then
+				-- Controller-only lists are displayed and validated but never select weapons.
 			elseif activeTargets[unitID] then
 				if not hasTargetPrecedence(unitID, unitData) then
 					pauseTargeting(unitID, unitData)
@@ -1360,7 +1493,9 @@ if gadgetHandler:IsSyncedCode() then
 
 		if not retainedEntries[1] then
 			for _, data in ipairs(owners) do
-				if deferRemoval then
+				if data.renderAsAttack then
+					GG.ClearUnitAttackTargetList(data.unitID)
+				elseif deferRemoval then
 					-- Preserve scan-queue order only for strict replay A/B parity; direct removal is otherwise valid.
 					data.pendingEmptyList = oldList
 				else
@@ -1393,7 +1528,10 @@ if gadgetHandler:IsSyncedCode() then
 
 		for _, unitData in ipairs(owners) do
 			local unitID = unitData.unitID
-			if unitData.targetList == oldList then
+			if unitData.renderAsAttack then
+				assignTargetList(unitData, newList)
+				queueTargetsToUnsynced(unitID, nil, unitData)
+			elseif unitData.targetList == oldList then
 				local newCurrentIndex = oldToNewIndex[unitData.currentIndex]
 				local newScanIndex = nextRetainedIndex(unitData.scanIndex or 1)
 				if not newCurrentIndex then
@@ -1444,10 +1582,24 @@ if gadgetHandler:IsSyncedCode() then
 		for index = 1, #unitIDs do
 			removeUnit(unitIDs[index])
 		end
+		for unitID, data in pairsNext, attackTargetData do
+			if data.teamID == teamA or data.teamID == teamB then
+				GG.ClearUnitAttackTargetList(unitID)
+			end
+		end
 	end
 
 	local function updateSharedTargetList(list, frame, checkBudget, slowUpdate)
 		local checks = 0
+		-- A native Attack queue keeps its targets while they are out of sensors;
+		-- only Set Target lists drop them after the grace period.
+		local keepUnseen = false
+		for _, owner in pairsNext, list.units do
+			if owner.renderAsAttack then
+				keepUnseen = true
+				break
+			end
+		end
 		local maxChecks = min(listValidityChecksPerUpdate, checkBudget, #list.entries)
 		local index = list.validationIndex or 1
 		if slowUpdate then
@@ -1476,7 +1628,7 @@ if gadgetHandler:IsSyncedCode() then
 				sendSharedTargetEntryToUnsynced(list, index)
 			end
 			if slowUpdate then
-				if targetState == TARGET_AVAILABLE then
+				if targetState == TARGET_AVAILABLE or (targetState == TARGET_UNSEEN and keepUnseen) then
 					list.unseenUntil[target] = nil
 				elseif targetState == TARGET_UNSEEN then
 					-- Start on the first slow update, preserving the legacy expiry frame.
@@ -1675,10 +1827,13 @@ else -- UNSYNCED
 	local lineWidth = 1.4
 	local queueColour = { 1, 0.75, 0, 0.3 }
 	local commandColour = { 1, 0.5, 0, 0.62 }
+	local attackQueueColour = { 1, 0.2, 0.2, 0.4 }
+	local attackCommandColour = { 1, 0, 0, 0.7 }
 
 	local drawAllTargets = {}
 	local drawTarget = {}
 	local targetList = {}
+	local attackTargetList = {}
 	local sharedTargetLists = {}
 
 	function gadget:Initialize()
@@ -1825,8 +1980,8 @@ else -- UNSYNCED
 		}
 	end
 
-	function handleTargetListReferenceEvent(_, unitID, listID)
-		local lists = targetList
+	function handleTargetListReferenceEvent(_, unitID, listID, renderAsAttack)
+		local lists = renderAsAttack and attackTargetList or targetList
 		if listID == 0 then
 			lists[unitID] = nil
 			return
@@ -1845,6 +2000,7 @@ else -- UNSYNCED
 		end
 		unitData.listID = listID
 		unitData.targets = targets
+		unitData.renderAsAttack = renderAsAttack
 		if unitData.targetIndex > #targets then
 			unitData.targetIndex = 1
 			unitData.targetActive = false
@@ -1903,11 +2059,11 @@ else -- UNSYNCED
 			)
 	end
 
-	local function drawTargetCommand(targetData)
+	local function drawTargetCommand(targetData, renderAsAttack)
 		if targetData and targetData.userTarget and isValidTargetData(targetData) then
 			local target = targetData.target
 			local isUnitTarget = type(target) == "number"
-			local commandID = CMD_UNIT_SET_TARGET
+			local commandID = renderAsAttack and CMD_ATTACK or CMD_UNIT_SET_TARGET
 
 			if isUnitTarget then
 				local _, _, _, x2, y2, z2 = spGetUnitPosition(target, false, true)
@@ -1983,17 +2139,17 @@ else -- UNSYNCED
 		glVertex(x1, y1, z1)
 
 		if targetActive then
-			glColor(commandColour)
-			drawTargetCommand(targetData)
-			glColor(queueColour)
+			glColor(unitData.renderAsAttack and attackCommandColour or commandColour)
+			drawTargetCommand(targetData, unitData.renderAsAttack)
+			glColor(unitData.renderAsAttack and attackQueueColour or queueColour)
 		else
-			drawTargetCommand(targetData)
+			drawTargetCommand(targetData, unitData.renderAsAttack)
 		end
 	end
 
 	local function drawTargetQueue(unitData)
 		for _, targetData in ipairs(unitData.targets) do
-			drawTargetCommand(targetData)
+			drawTargetCommand(targetData, unitData.renderAsAttack)
 		end
 	end
 
@@ -2020,8 +2176,7 @@ else -- UNSYNCED
 		local init = false
 		local skipChunkSize, skipChunkLeft = 8, unitsFullDrawCount
 		local skipSize, skipLeft = 0, 0
-		do
-			local lists = targetList
+		for _, lists in ipairs({ targetList, attackTargetList }) do
 			for unitID, unitData in pairsNext, lists do
 				if fullview or spGetUnitAllyTeam(unitID) == myAllyTeam then
 					if shouldDrawDecorations(unitID) then
@@ -2030,11 +2185,12 @@ else -- UNSYNCED
 								init = initDrawing()
 							end
 
-							glColor(queueColour)
+							glColor(unitData.renderAsAttack and attackQueueColour or queueColour)
 							if not unitData.paused then
 								glBeginEnd(GL_LINES, drawCurrentTarget, unitID, unitData)
 							end
-							local queueKey = unitData.listID or unitID
+							local queueKey = (unitData.renderAsAttack and "attack:" or "settarget:")
+								.. (unitData.listID or unitID)
 							if not sharedQueuesDrawn[queueKey] then
 								sharedQueuesDrawn[queueKey] = true
 								glBeginEnd(GL_LINE_STRIP, drawTargetQueue, unitData)

@@ -35,6 +35,7 @@ local function loadTargetGadget(sourceCount)
 			UNIT_CANCEL_TARGET = 1003,
 			UNIT_SET_TARGET_RECTANGLE = 1004,
 			UNIT_SET_TARGETS = 1005,
+			ATTACK_TARGETS = 1006,
 			AREA_ATTACK_GROUND = 1007,
 		},
 		CMDTYPE = { ICON = 0, ICON_UNIT_OR_AREA = 1 },
@@ -367,4 +368,91 @@ describe("Set Target scan budgets", function()
 		end
 		assert.are.equal(1001, g.target())
 	end)
+end)
+
+describe("Independent Attack and Set Target lists", function()
+	it("retains Set Target when an Attack list starts and finishes", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		local owner = {}
+		g.env.GG.SetUnitAttackTargetList(1, 1, { 20, 30 }, owner)
+		assert.are.equal(10, g.env.GG.GetUnitTargetList(1)[1].target)
+		assert.are.equal(20, g.env.GG.GetUnitAttackTargetList(1)[1].target)
+		g.command(g.env.CMD.ATTACK, 20)
+		g.update(15)
+		g.env.GG.ClearUnitAttackTargetList(1, owner)
+		g.command(nil)
+		g.update(30)
+		g.update(31)
+		assert.are.equal(10, g.target())
+		assert.is_nil(g.env.GG.GetUnitAttackTargetList(1))
+	end)
+
+	it("edits and cancels Set Target without changing Attack", function()
+		local g = loadTargetGadget()
+		local owner = {}
+		g.env.GG.SetUnitAttackTargetList(1, 1, { 20, 30 }, owner)
+		g.set(10)
+		g.set(11, true)
+		g.env.gadget:AllowCommand(1, 1, 1, g.env.GameCMD.UNIT_CANCEL_TARGET, {}, { coded = 0 }, 1, 1)
+		assert.is_nil(g.env.GG.GetUnitTargetList(1))
+		local targets = g.env.GG.GetUnitAttackTargetList(1)
+		assert.are.equal(2, #targets)
+		assert.are.equal(20, targets[1].target)
+		assert.are.equal(30, targets[2].target)
+	end)
+
+	it("releases one assignment without releasing an identical list owned by the other", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		local owner = {}
+		g.env.GG.SetUnitAttackTargetList(1, 1, { 10 }, owner)
+		assert.are.equal(g.env.GG.GetUnitTargetListID(1), g.env.GG.GetUnitAttackTargetListID(1))
+		g.env.GG.ClearUnitAttackTargetList(1, owner)
+		g.update(1)
+		assert.are.equal(10, g.target())
+		g.env.GG.SetUnitAttackTargetList(1, 1, { 10 }, owner)
+		g.env.GG.AppendUnitAttackTargetList(1, 1, { 20 }, owner)
+		assert.are.equal(1, #g.env.GG.GetUnitTargetList(1))
+		assert.are.equal(2, #g.env.GG.GetUnitAttackTargetList(1))
+	end)
+	it("prunes a shared target from both assignments without crossing their remaining targets", function()
+		local g = loadTargetGadget()
+		g.set({ 10, 11 }, false, true)
+		g.env.GG.SetUnitAttackTargetList(1, 1, { 10, 20 }, {})
+		g.deadTargets[10] = true
+		g.update(1)
+		-- Set Target drops dead entries during selection; queued Attacks prune separately.
+		assert.are.equal(11, g.env.GG.GetUnitTargetList(1)[1].target)
+		g.update(15)
+		assert.are.equal(11, g.env.GG.GetUnitTargetList(1)[1].target)
+		assert.are.equal(20, g.env.GG.GetUnitAttackTargetList(1)[1].target)
+		g.deadTargets[20] = true
+		g.update(30)
+		assert.is_nil(g.env.GG.GetUnitAttackTargetList(1))
+		assert.are.equal(11, g.env.GG.GetUnitTargetList(1)[1].target)
+	end)
+
+	it("sends independent drawing references and clears both assignments on unit destruction", function()
+		local g = loadTargetGadget()
+		g.set(10)
+		g.env.GG.SetUnitAttackTargetList(1, 1, { 20 }, {})
+		g.update(1)
+		local setReference, attackReference
+		for _, event in ipairs(g.events) do
+			if event[1] == "targetListReference" then
+				if event[4] then
+					attackReference = event[3]
+				else
+					setReference = event[3]
+				end
+			end
+		end
+		assert.are.equal(g.env.GG.GetUnitTargetListID(1), setReference)
+		assert.are.equal(g.env.GG.GetUnitAttackTargetListID(1), attackReference)
+		g.env.gadget:UnitDestroyed(1)
+		assert.is_nil(g.env.GG.GetUnitTargetList(1))
+		assert.is_nil(g.env.GG.GetUnitAttackTargetList(1))
+	end)
+
 end)

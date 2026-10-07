@@ -25,7 +25,6 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -50,7 +49,7 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
-local giveNativeAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 local objectifiedUnitDefs = {}
@@ -342,9 +341,6 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 end
 
 local function giveTargetList(listCommandID, selectedUnits, targetIDs, options)
-	if listCommandID == CMD.ATTACK then
-		return giveNativeAttackOrders(selectedUnits, targetIDs, options, spGiveOrderArrayToUnitArray)
-	end
 	return sendTargetList(listCommandID, selectedUnits, targetIDs, options, spGiveOrderToUnitArray)
 end
 
@@ -376,16 +372,16 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 	end
 end
 
-local function attackOrdersHandler(cmdId, selectedUnits, filteredTargets, options)
+local function attackTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
 	if options.shift and options.meta then
 		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
 			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
-			giveTargetList(CMD.ATTACK, { selectedUnitID }, targetIDs, options)
+			giveTargetList(CMD_ATTACK_TARGETS, { selectedUnitID }, targetIDs, options)
 		end
 	else
 		sortTargetsByDistance(selectedUnits, filteredTargets, true)
-		giveTargetList(CMD.ATTACK, selectedUnits, filteredTargets, options)
+		giveTargetList(CMD_ATTACK_TARGETS, selectedUnits, filteredTargets, options)
 	end
 end
 
@@ -440,7 +436,7 @@ end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackOrdersHandler),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackTargetListHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
 	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler),
