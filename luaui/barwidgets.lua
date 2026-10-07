@@ -645,6 +645,8 @@ end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
+-- Prevent widgets rewriting their own fields, namely unit control flags.
+local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
@@ -690,7 +692,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		return loadFailed(basename, err)
 	end
 
-	local widget = newWidget(widgetHandler, enableLocalsAccess, fromZip)
+	local widget, canControlUnits = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -819,6 +821,8 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	if log then
 		log.stopped = nil
 	end
+
+	loadedWidgets[widget] = canControlUnits and true or false
 
 	return widget
 end
@@ -958,7 +962,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return self:IsInterfaceHidden()
 	end
 	tracy.ZoneEnd()
-	return widget
+	return widget, canControlUnits
 end
 
 function widgetHandler:FinalizeWidget(widget, filename, basename)
@@ -1031,7 +1035,7 @@ local function widgetFailure(w, funcName, errorMsg)
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
-		if not w.canControlUnits and errorMsg:find(SANDBOXED_ERROR_MSG) then
+		if not loadedWidgets[w] and errorMsg:find(SANDBOXED_ERROR_MSG) then
 			errorBase = "Sandbox error"
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
@@ -1241,6 +1245,11 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
+	local canControlUnits = loadedWidgets[widget]
+	if canControlUnits == nil then
+		Spring.Echo("Blocked loading: a widget that was not loaded from a file")
+		return
+	end
 	if self:FindWidget(widget.whInfo.name) then
 		Spring.Echo("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
 		return
@@ -1255,7 +1264,7 @@ function widgetHandler:InsertWidgetRaw(widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
-	if widget.whInfo.control and not widget.canControlUnits then
+	if widget.whInfo.control and not canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
 			if self.knownWidgets[name] then
