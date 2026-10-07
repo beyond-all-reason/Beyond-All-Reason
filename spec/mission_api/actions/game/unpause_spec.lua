@@ -10,18 +10,20 @@ describe("mission_api.actions.unpause", function()
 
 	before_each(function()
 		calls = { pause = 0, unpause = 0 }
-		GG["ScriptedPause"] = {
-			Pause = function()
+		GG["GamePause"] = {
+			Pause = function(source)
 				calls.pause = calls.pause + 1
+				calls.source = source
 			end,
-			Unpause = function()
+			Unpause = function(source)
 				calls.unpause = calls.unpause + 1
+				calls.source = source
 			end,
 		}
 	end)
 
 	after_each(function()
-		GG["ScriptedPause"] = nil
+		GG["GamePause"] = nil
 	end)
 
 	it("declares its type and no parameters", function()
@@ -31,10 +33,11 @@ describe("mission_api.actions.unpause", function()
 	end)
 
 	describe("actionFunction", function()
-		it("calls GG.ScriptedPause.Unpause", function()
+		it("calls GG.GamePause.Unpause", function()
 			action.actionFunction()
 			assert.are.equal(0, calls.pause)
 			assert.are.equal(1, calls.unpause)
+			assert.are.equal("mission", calls.source)
 		end)
 	end)
 
