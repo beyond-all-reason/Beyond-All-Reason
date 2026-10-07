@@ -66,6 +66,10 @@ local sortedList = {}
 local totalMs = 0
 local listDirty = true
 
+-- [callin] = smoothed GPU ms per frame spent by all widgets in that callin
+local callinMs = {}
+local callinCur = {}
+
 local oldInsertWidget, oldUpdateWidgetCallIn
 local drawCallins -- the handler's callins whose name starts with Draw
 
@@ -199,6 +203,9 @@ local function collect(readSet)
 		stat.cur = 0
 		stat.peakMs = 0
 	end
+	for callin in pairs(callinCur) do
+		callinCur[callin] = 0
+	end
 
 	local complete = true
 	for i = 1, #slotList do
@@ -219,6 +226,7 @@ local function collect(readSet)
 			local ms = sum * 1e-6
 			local stat = stats[slot.name]
 			stat.cur = stat.cur + ms
+			callinCur[slot.callin] = (callinCur[slot.callin] or 0) + ms
 			if ms > stat.peakMs then
 				stat.peakMs = ms
 				stat.peakCallin = slot.callin
@@ -236,6 +244,9 @@ local function collect(readSet)
 	for _, stat in pairs(stats) do
 		stat.ms = stat.ms * (1 - SMOOTHING) + stat.cur * SMOOTHING
 		totalMs = totalMs + stat.ms
+	end
+	for callin, cur in pairs(callinCur) do
+		callinMs[callin] = (callinMs[callin] or 0) * (1 - SMOOTHING) + cur * SMOOTHING
 	end
 	listDirty = true
 end
@@ -362,6 +373,10 @@ function widget:Initialize()
 		end,
 		getDropped = function()
 			return framesDropped, framesSampled
+		end,
+		-- smoothed GPU ms per frame of all widgets per draw callin, for tools that time the engine passes between callins
+		getCallinMs = function()
+			return callinMs
 		end,
 	}
 end
