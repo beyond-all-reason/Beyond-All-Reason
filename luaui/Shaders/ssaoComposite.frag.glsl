@@ -33,7 +33,7 @@ void main(void)
 
 #if (DOWNSAMPLE > 1) && (NOFUSE == 0)
 	// ---- Joint bilateral upsample path (half-res -> full-res) ----
-	float refZ = texture(viewPosTex, uv).z;
+	float refZ = textureLod(viewPosTex, uv, 0.0).z;
 
 	vec2 halfTexel = 0.5 / vec2(HSX, HSY);
 	const vec2 OFFS[4] = vec2[4](
@@ -57,15 +57,15 @@ void main(void)
 	float wSum = 0.0;
 	for (int i = 0; i < 4; i++) {
 		vec2 sUV = uv + OFFS[i] * halfTexel;
-		float sZ = texture(viewPosTex, sUV).z;
+		float sZ = textureLod(viewPosTex, sUV, 0.0).z;
 		float w = bw[i] * exp(-abs(sZ - refZ) * zScale);
-		acc  += w * texture(tex, sUV);
+		acc  += w * textureLod(tex, sUV, 0.0);
 		wSum += w;
 	}
-	fragColor = (wSum < 1e-4) ? texture(tex, uv) : (acc / wSum);
+	fragColor = (wSum < 1e-4) ? textureLod(tex, uv, 0.0) : (acc / wSum);
 #else
 	// ---- Single tap (full-res, or no fuse texture available) ----
-	fragColor = texture(tex, uv);
+	fragColor = textureLod(tex, uv, 0.0);
 #endif
 
 	// Depth-rejection mask via gl_FragDepth + LEQUAL test.
@@ -73,8 +73,8 @@ void main(void)
 	// computed against) and write it as our fragment depth. With LEQUAL,
 	// any grass/foliage/particle drawn in front (smaller FB depth) will
 	// cause the test to fail and the SSAO contribution to be discarded.
-	float dM = texture(modelDepthTex, uv).r;
-	float dG = texture(mapDepthTex,   uv).r;
+	float dM = textureLod(modelDepthTex, uv, 0.0).r;
+	float dG = textureLod(mapDepthTex, uv, 0.0).r;
 	float gbufDepth = min(dM, dG);
 
 	// Tiny bias compensates for any FP imprecision between the gbuffer
