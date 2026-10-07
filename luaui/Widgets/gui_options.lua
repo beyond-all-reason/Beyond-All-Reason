@@ -2724,8 +2724,6 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 			end
 		else
 			if widgetHandler.orderList[options[i].widget] > 0 then
-				widgetHandler:ToggleWidget(options[i].widget)
-			else
 				widgetHandler:DisableWidget(options[i].widget)
 			end
 		end
