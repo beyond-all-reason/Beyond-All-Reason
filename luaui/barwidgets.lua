@@ -1675,7 +1675,7 @@ local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /se
 -- pausing under a source, see widgetHandler:Pause
 local PAUSESOURCE_WINDOWS = "windows"
 local RULESPARAM_GADGET_PAUSE = "gamePaused"
-local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublish"
+local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
 local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
 local pauseSources = {}
 local widgetPaused = false
