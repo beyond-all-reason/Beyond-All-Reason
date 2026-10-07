@@ -844,13 +844,8 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 
 	-- user widgets may not access widgetHandler
 	-- Granted last, so a widget refused above never holds the real handler.
-	if widget.whInfo.handler then
-		if fromZip then
-			widget.widgetHandler = self
-		else
-			self.knownWidgets[name].active = false
-			return loadFailed(basename, "user widgets may not access widgetHandler")
-		end
+	if widget.whInfo.handler and fromZip then
+		widget.widgetHandler = self
 	end
 
 	if not fromZip then
