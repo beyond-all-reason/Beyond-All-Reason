@@ -142,6 +142,7 @@ local state = {
 	consoleActivationArea = { 0, 0, 0, 0 },
 	currentChatLine = 0,
 	currentConsoleLine = 0,
+	gadgetPaused = false,
 	historyMode = false,
 	prevCurrentConsoleLine = -1,
 	prevCurrentChatLine = -1,
@@ -1673,13 +1674,24 @@ local function processAddConsoleLine(gameFrame, line, orgLineID, reprocessID)
 					line = ssub(line, 1, n - 3)
 				end
 			elseif sfind(line, " paused the game", nil, true) then
-				lineColor = "\255\225\225\255"
-				local playername = ssub(line, 1, sfind(line, " paused the game", nil, true) - 1)
-				line = formatSystemMessage("ui.chat.pausedthegame", playername, gameFrame, lineColor)
+				if not orgLineID then -- a reprocessed line was shown
+					state.gadgetPaused = (Spring.GetGameRulesParam("gamePaused") or 0) == 1
+					bypassThisMessage = state.gadgetPaused
+				end
+				if not bypassThisMessage then
+					lineColor = "\255\225\225\255"
+					local playername = ssub(line, 1, sfind(line, " paused the game", nil, true) - 1)
+					line = formatSystemMessage("ui.chat.pausedthegame", playername, gameFrame, lineColor)
+				end
 			elseif sfind(line, " unpaused the game", nil, true) then
-				lineColor = "\255\225\255\225"
-				local playername = ssub(line, 1, sfind(line, " unpaused the game", nil, true) - 1)
-				line = formatSystemMessage("ui.chat.unpausedthegame", playername, gameFrame, lineColor)
+				if state.gadgetPaused and not orgLineID then
+					state.gadgetPaused = false
+					bypassThisMessage = true
+				else
+					lineColor = "\255\225\255\225"
+					local playername = ssub(line, 1, sfind(line, " unpaused the game", nil, true) - 1)
+					line = formatSystemMessage("ui.chat.unpausedthegame", playername, gameFrame, lineColor)
+				end
 			elseif sfind(line, "Sync error for", nil, true) then
 				local playername = ssub(line, 16, sfind(line, " in frame", nil, true) - 1)
 				lineColor = (playernames[playername] and not playernames[playername][2]) and "\255\255\133\133"
