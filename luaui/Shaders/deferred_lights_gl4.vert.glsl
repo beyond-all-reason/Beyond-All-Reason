@@ -91,6 +91,7 @@ out DataVS {
     vec4 v_position;
     vec4 v_noiseoffset;
     noperspective vec2 v_screenUV;
+    flat float v_sourceVisibility; // how much of a cone light's source is unoccluded, drives its lens flare
 };
 
 
@@ -116,6 +117,25 @@ vec4 depthAtWorldPos(vec4 worldPosition){
     depths.z = modeldepth;
     depths.w = min(mapdepth, modeldepth);
     return depths;
+}
+
+// Soft visibility of a world position against the scene depth, in [0, 1]. A bilinear 2x2 depth comparison with a
+// smooth band in view depth, so it changes continuously with sub-pixel camera motion instead of flipping.
+float softVisibilityAtWorldPos(vec3 worldPos){
+    vec4 clipPos = cameraViewProj * vec4(worldPos, 1.0);
+    if (clipPos.w <= 0.0) return 0.0; // behind the camera
+    vec2 uv = clamp(SNORM2NORM(clipPos.xy / clipPos.w), 0.0, 1.0);
+    vec2 subTexel = fract(uv * vec2(textureSize(mapDepths, 0)) - 0.5);
+    vec4 sceneDepths = min(textureGather(mapDepths, uv, 0), textureGather(modelDepths, uv, 0));
+    #if (DEPTH_CLIP01 == 0)
+        sceneDepths = sceneDepths * 2.0 - 1.0;
+    #endif
+    // to view depth: for a perspective projection the inverse's z and w rows do not depend on x and y
+    sceneDepths = abs((cameraProjInv[2][2] * sceneDepths + cameraProjInv[3][2]) / (cameraProjInv[2][3] * sceneDepths + cameraProjInv[3][3]));
+    float band = max(1.0, clipPos.w * 0.003); // elmos, widening with distance as depth precision drops
+    vec4 visible = smoothstep(vec4(-band), vec4(band), sceneDepths - clipPos.w + band);
+    // textureGather order is (0,1) (1,1) (1,0) (0,0)
+    return mix(mix(visible.w, visible.z, subTexel.x), mix(visible.x, visible.y, subTexel.x), subTexel.y);
 }
 
 
@@ -199,6 +219,7 @@ void main()
 
     v_modelfactor_specular_scattering_lensflare = modelfactor_specular_scattering_lensflare;
     v_depths_center_map_model_min = vec4(1.0); // just a sanity init
+    v_sourceVisibility = 1.0;
     v_otherparams = otherparams;
    
     vec4 worldPos = vec4(1.0);
@@ -418,6 +439,17 @@ void main()
        
         // Clear out the translation from the cone direction, and turn the cone according to the piece matrix
         v_worldPosRad2.xyz = mat3(placeInWorldMatrix) * v_worldPosRad2.xyz;
+
+        // Lens flare visibility. The apex usually sits on or inside the emitting piece, so also probe the first
+        // stretch of the beam and take the most visible point. Seen from behind, the beam probes would show the
+        // flare through the unit, so they fade out as the camera moves behind the source.
+        if (modelfactor_specular_scattering_lensflare.w > 0.0) {
+            vec3 conedir = normalize(v_worldPosRad2.xyz);
+            vec3 probestep = conedir * min(lightRadius * 0.25, 16.0) * 0.5;
+            float beamweight = smoothstep(-0.2, 0.2, dot(conedir, normalize(cameraViewInv[3].xyz - v_worldPosRad.xyz)));
+            float beamvisible = max(softVisibilityAtWorldPos(v_worldPosRad.xyz + probestep), softVisibilityAtWorldPos(v_worldPosRad.xyz + probestep * 2.0));
+            v_sourceVisibility = max(softVisibilityAtWorldPos(v_worldPosRad.xyz), beamvisible * beamweight);
+        }
        
         v_position =  worldPos;
     }
