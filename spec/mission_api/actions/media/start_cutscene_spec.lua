@@ -10,13 +10,13 @@ local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.start_cutscene", function()
 
-	local startedCutsceneIDs
+	local startedCutscenes
 
 	before_each(function()
-		startedCutsceneIDs = {}
+		startedCutscenes = {}
 		GG["MissionAPI"].Modules.Cutscenes = {
-			StartCutscene = function(cutsceneID)
-				startedCutsceneIDs[#startedCutsceneIDs + 1] = cutsceneID
+			StartCutscene = function(cutsceneID, skippable)
+				startedCutscenes[#startedCutscenes + 1] = { cutsceneID, skippable }
 			end,
 		}
 	end)
@@ -29,13 +29,14 @@ describe("mission_api.actions.start_cutscene", function()
 		assert.are.same({
 			type = "StartCutscene",
 			cutsceneID = "CutsceneID!",
+			skippable = "Boolean",
 		}, summarizeSchema(action))
 	end)
 
 	describe("actionFunction", function()
-		it("calls Cutscenes.StartCutscene with the given cutsceneID", function()
-			action.actionFunction("intro")
-			assert.are.same({ "intro" }, startedCutsceneIDs)
+		it("calls Cutscenes.StartCutscene with the given cutsceneID and skippable", function()
+			action.actionFunction("intro", true)
+			assert.are.same({ { "intro", true } }, startedCutscenes)
 		end)
 	end)
 

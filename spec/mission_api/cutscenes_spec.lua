@@ -9,8 +9,8 @@ describe("mission_api.cutscenes", function()
 		calls = {}
 		onVideoFinished = nil
 		GG.GamePause = {
-			Pause = function(source)
-				calls[#calls + 1] = "Pause " .. source
+			Pause = function(source, publish)
+				calls[#calls + 1] = "Pause " .. source .. (publish and " published" or "")
 			end,
 			Unpause = function(source)
 				calls[#calls + 1] = "Unpause " .. source
@@ -69,6 +69,11 @@ describe("mission_api.cutscenes", function()
 
 			onVideoFinished()
 			assert.are.equal("Unpause cutscene", calls[#calls])
+		end)
+
+		it("publishes the pause for a skippable cutscene", function()
+			cutscenes.StartCutscene("intro", true)
+			assert.are.same({ "Pause cutscene published", "Play videos/intro.webm" }, calls)
 		end)
 
 		it("raises before pausing when video playback is unavailable", function()
