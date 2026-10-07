@@ -30,6 +30,7 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
+local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -37,6 +38,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
+local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetFeatureDefID = Spring.GetFeatureDefID
 local spGetFeaturesInCylinder = Spring.GetFeaturesInCylinder
 local spGetSpectatingState = Spring.GetSpectatingState
@@ -52,12 +54,22 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
+local giveNativeAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
+local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
+
+local objectifiedUnitDefs = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.objectify then
+		objectifiedUnitDefs[unitDefID] = true
+	end
+end
 
 local commandLimit = 2000
 
 local SplitTargets = require("modules/split_targets")
 local splitRoundRobin = SplitTargets.RoundRobin
 local splitRivers = SplitTargets.Rivers
+local sendTargetList = VFS.Include("common/luaUtilities/target_list_orders.lua")
 
 local myAllyTeamID
 
@@ -359,6 +371,13 @@ local function sortClosestToGroup(units, targets)
 	sortTargetsByDistance(units, targets, true)
 end
 
+local function giveTargetList(listCommandID, selectedUnits, targetIDs, options)
+	if listCommandID == CMD.ATTACK then
+		return giveNativeAttackOrders(selectedUnits, targetIDs, options, spGiveOrderArrayToUnitArray)
+	end
+	return sendTargetList(listCommandID, selectedUnits, targetIDs, options, spGiveOrderToUnitArray)
+end
+
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	local selectedUnitsLen = #selectedUnits
@@ -382,6 +401,32 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options, sp
 		local closestFirst = not options.meta
 		sortTargetsByDistance(selectedUnits, filteredTargets, closestFirst)
 		giveOrders(cmdId, selectedUnits, filteredTargets, options)
+	end
+end
+
+local function attackOrdersHandler(cmdId, selectedUnits, filteredTargets, options)
+	if options.shift and options.meta then
+		local unitTargetsMap = splitRivers(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup, #selectedUnits)
+		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
+			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
+			giveTargetList(CMD.ATTACK, { selectedUnitID }, targetIDs, options)
+		end
+	else
+		sortTargetsByDistance(selectedUnits, filteredTargets, true)
+		giveTargetList(CMD.ATTACK, selectedUnits, filteredTargets, options)
+	end
+end
+
+local function setTargetListHandler(cmdId, selectedUnits, filteredTargets, options)
+	if options.shift and options.meta then
+		local unitTargetsMap = splitRoundRobin(selectedUnits, filteredTargets)
+		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do
+			sortTargetsByDistance({ selectedUnitID }, targetIDs, true)
+			giveTargetList(CMD_UNIT_SET_TARGETS, { selectedUnitID }, targetIDs, options)
+		end
+	else
+		sortTargetsByDistance(selectedUnits, filteredTargets, true)
+		giveTargetList(CMD_UNIT_SET_TARGETS, selectedUnits, filteredTargets, options)
 	end
 end
 
@@ -425,11 +470,11 @@ end
 
 ---@type table<number, CommandConfig>
 local allowedCommands = {
-	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS),
+	[CMD.ATTACK] = commandConfig({ UNIT }, ENEMY_UNITS, attackOrdersHandler),
 	[CMD.CAPTURE] = commandConfig({ UNIT }, ENEMY_UNITS),
 	-- Set Target does not move the unit, so its split has no distance to shorten:
-	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
-	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, nil, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler, splitRoundRobin),
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = commandConfig({ UNIT }, ENEMY_UNITS, setTargetListHandler, splitRoundRobin),
 	[CMD.GUARD] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.REPAIR] = commandConfig({ UNIT }, ALLY_UNITS),
 	[CMD.RECLAIM] = commandConfig({ UNIT, FEATURE }, ALL_UNITS),
@@ -477,6 +522,28 @@ local function filterUnits(targetId, cmdX, cmdZ, radius, options, targetAllegian
 	return filteredTargets
 end
 
+local function getPlainAttackTargets(cmdX, cmdZ, radius)
+	local targets = spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_UNITS)
+	if not targets or not targets[1] then
+		return
+	end
+
+	local targetsWithoutNeutralWalls = {}
+	for index = 1, #targets do
+		local targetID = targets[index]
+		---@cast targetID integer
+		if not objectifiedUnitDefs[spGetUnitDefID(targetID)] or not spGetUnitNeutral(targetID) then
+			targetsWithoutNeutralWalls[#targetsWithoutNeutralWalls + 1] = targetID
+		end
+	end
+	return targetsWithoutNeutralWalls[1] and targetsWithoutNeutralWalls or targets
+end
+
+local function getPlainSetTargetTargets(cmdX, cmdZ, radius)
+	local targets = spGetUnitsInCylinder(cmdX, cmdZ, radius, ENEMY_UNITS)
+	return targets and targets[1] and targets or nil
+end
+
 local function getTechLevel(unitDefName)
 	local unitDef = UnitDefNames[unitDefName]
 	return unitDef and unitDef.customParams.techlevel
@@ -503,6 +570,7 @@ local function filterFeatures(targetId, cmdX, cmdZ, radius, options, targetUnitD
 
 	for i = 1, #featuresInArea do
 		local featureId = featuresInArea[i]
+		---@cast featureId integer
 		local shouldInsert = alt and spGetFeatureDefID(featureId) == featureDefId
 		if ctrl then
 			local unitDefName = spGetFeatureResurrect(featureId)
@@ -558,9 +626,6 @@ end
 function widget:CommandNotify(cmdId, params, options)
 	local start = areaStart
 	areaStart = nil
-	if not (options.alt or options.ctrl) then
-		return false
-	end
 
 	if #params ~= 4 then
 		return false
@@ -580,6 +645,25 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	local cmdX, cmdY, cmdZ, radius = params[1], params[2], params[3], params[4]
+	if not (options.alt or options.ctrl) then
+		local listCommandID
+		local targets
+		if cmdId == CMD.ATTACK then
+			listCommandID = CMD.ATTACK
+			targets = getPlainAttackTargets(cmdX, cmdZ, radius)
+		elseif cmdId == GameCMD.UNIT_SET_TARGET or cmdId == GameCMD.UNIT_SET_TARGET_NO_GROUND then
+			listCommandID = CMD_UNIT_SET_TARGETS
+			targets = getPlainSetTargetTargets(cmdX, cmdZ, radius)
+		else
+			return false
+		end
+		if not targets then
+			-- Preserve ground/empty-area behavior for the original command.
+			return false
+		end
+		sortTargetsByDistance(selectedUnits, targets, true)
+		return giveTargetList(listCommandID, selectedUnits, targets, options)
+	end
 	local targetType, targetId
 	if start and start.commandID == cmdId and start.button == (options.right and 3 or 1) then
 		targetType, targetId = start.targetType, start.targetID
@@ -595,8 +679,10 @@ function widget:CommandNotify(cmdId, params, options)
 	local filteredTargets
 
 	if targetType == UNIT then
+		---@cast targetId integer
 		filteredTargets = filterUnits(targetId, cmdX, cmdZ, radius, options, currentCommand.targetAllegiance)
 	elseif targetType == FEATURE then
+		---@cast targetId integer
 		local unitDefName = spGetFeatureResurrect(targetId)
 		-- filter only wrecks which can be resurrected
 		if unitDefName == nil or unitDefName == "" then

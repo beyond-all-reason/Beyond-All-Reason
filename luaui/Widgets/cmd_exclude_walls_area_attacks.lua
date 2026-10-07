@@ -22,9 +22,9 @@ local excludedUnitsDefID = {}
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetSelectedUnits = Spring.GetSelectedUnits
+local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 
--- Keep in sync with unit_areaattack_limiter.lua
-local COMMAND_LIMIT = 2000
+local sendAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
 		excludedUnitsDefID[id] = true
@@ -61,30 +61,31 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	if cmdID == CMD_UNIT_SET_TARGET and cmdOpts.ctrl then
 		reissueOpts = reissueOpts + CMD.OPT_CTRL
 	end
-
 	local cmdX, _, cmdZ, cmdRadius = unpack(cmdParams)
 	local areaUnits = Spring.GetUnitsInCylinder(cmdX, cmdZ, cmdRadius, Spring.ENEMY_UNITS)
 
 	local newCmds = {}
+	local targetIDs = {}
 	local somethingWasExcluded = false
 	for i = 1, #areaUnits do
 		local unitID = areaUnits[i]
 		local unitDefID = spGetUnitDefID(unitID)
 
-		if not excludedUnitsDefID[unitDefID] then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
-		elseif not spGetUnitNeutral(unitID) then
-			addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
+		if not excludedUnitsDefID[unitDefID] or not spGetUnitNeutral(unitID) then
+			if cmdID == CMD_ATTACK then
+				targetIDs[#targetIDs + 1] = unitID
+			else
+				addNewCommand(newCmds, unitID, cmdOpts, cmdID, reissueOpts)
+			end
 		else
 			somethingWasExcluded = true
 		end
 	end
+	if #targetIDs > 0 and somethingWasExcluded then
+		sendAttackOrders(selected, targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
+		return true
+	end
 	if #newCmds > 0 and somethingWasExcluded then
-		-- The command limiter excludes walls already so we can skip sending new commands.
-		local targetCount = cmdOpts.shift and #newCmds or (#newCmds - 1) -- ignore the leading STOP
-		if cmdID == CMD_ATTACK and #selected * targetCount > COMMAND_LIMIT then
-			return false
-		end
 		Spring.GiveOrderArrayToUnitArray(selected, newCmds)
 		return true
 	end
