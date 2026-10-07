@@ -9,7 +9,7 @@ file in the same pull request.
 
 A data-driven mission runtime. A mission is a plain Lua table of **stages**, **objectives**, **triggers**, and
 **actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced;
-what synced code cannot do, pausing and showing translated text, goes through `GG.ScriptedPause` and the battle
+what synced code cannot do, pausing and showing translated text, goes through `GG.GamePause` and the battle
 log (see Runtime surfaces).
 
 ## Load order
