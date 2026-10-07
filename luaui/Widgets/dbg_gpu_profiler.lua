@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "GPU Profiler",
-		desc = "GPU time per widget and draw callin, measured with GL timer queries",
+		desc = "GPU time per widget, gadget and draw callin, measured with GL timer queries",
 		author = "Beherith, Claude",
 		date = "2026",
 		license = "GNU GPL, v2 or later",
@@ -22,29 +22,41 @@ end
 -- (ARB_timer_query); the delta is taken in C++ because the raw 64-bit timestamps do not fit
 -- Lua's single precision numbers.
 --
+-- Gadgets are measured the same way by the gadget of the same name (luarules/gadgets/
+-- dbg_gpu_profiler.lua), which this widget switches on while it runs; their rows are marked (g).
+--
 -- Read the numbers with this in mind: a timestamp difference is GPU wall time, so when the
 -- GPU is starved by the CPU (CPU-bound frames) the gaps the GPU spends idle between a
 -- widget's draw calls are counted too. Compare widgets in GPU-bound scenes, or compare the
 -- same widget before and after a change in the same scene.
 
+-- The Lua timer-query API (gl.CreateQuery targets, gl.QueryCounter, gl.GetQueryDelta) is newer than the
+-- generated type stubs, so these locals carry its signatures.
+---@type fun(target: integer): integer?
 local glCreateQuery = gl.CreateQuery
 local glDeleteQuery = gl.DeleteQuery
+---@type fun(query: integer)
 local glQueryCounter = gl.QueryCounter
+---@type fun(queryBegin: integer, queryEnd: integer, wait: boolean): number?
 local glGetQueryDelta = gl.GetQueryDelta
+---@type integer
+---@diagnostic disable-next-line: undefined-field
 local GL_TIMESTAMP = GL.TIMESTAMP
 
 local glColor = gl.Color
 local glRect = gl.Rect
 local glText = gl.Text
+local glBeginText = gl.BeginText
+local glEndText = gl.EndText
 local glGetViewSizes = gl.GetViewSizes
 local spEcho = Spring.Echo
 local tableSort = table.sort
 local mathMax = math.max
 local mathFloor = math.floor
 local stringFormat = string.format
-local pairs, type = pairs, type
+local pairs, ipairs, type = pairs, ipairs, type
 
-local MAX_INVOCATIONS = 8 -- timed calls of one callin per frame (DrawWorldPreParticles runs several times)
+local MAX_INVOCATIONS = 8 ---@type integer timed calls of one callin per frame (DrawWorldPreParticles runs several times)
 local NSETS = 4 -- query sets in flight; a set is read NSETS - 1 frames after it was written
 local SMOOTHING = 0.05 -- per-sample exponential average factor
 local MIN_SHOW_MS = 0.005
@@ -54,23 +66,38 @@ local frame = 0
 local parity = 1 -- the query set this frame writes into, 1 .. NSETS
 local framesSampled, framesDropped = 0, 0
 
--- [widgetName][callin] = slot: { q = { {pairs...} x NSETS }, used = { n x NSETS } }
-local slots = {}
-local slotList = {}
+---@class GpuProfilerWidgetSlot
+---@field name string widget name
+---@field callin string
+---@field q table<integer, table<integer, [integer, integer]|false>> per query set: query pairs, false where creation failed
+---@field used integer[] per query set: pairs written this frame
+
+-- [widgetName][callin] = slot
+local slots = {} ---@type table<string, table<string, GpuProfilerWidgetSlot>>
+local slotList = {} ---@type GpuProfilerWidgetSlot[]
 local hookedFuncs = setmetatable({}, { __mode = "k" })
 local wrappedWidgets = setmetatable({}, { __mode = "k" }) -- [widget] = { [callin] = original }
 
 -- [widgetName] = { ms = smoothed GPU ms per frame, cur = this frame's sum, peakCallin, peakMs }
 local stats = {}
-local sortedList = {}
-local totalMs = 0
+local sortedList = {} ---@type { name: string, ms: number, peak: string, gadget: boolean? }[]
+local totalMs = 0.0
 local listDirty = true
 
 -- [callin] = smoothed GPU ms per frame spent by all widgets in that callin
 local callinMs = {}
 local callinCur = {}
 
-local oldInsertWidget, oldUpdateWidgetCallIn
+-- the gadget side's numbers, replaced on every hand-over: [gadgetName] = { ms, peakCallin }
+local gadgetStats = {}
+local gadgetCallinMs = {}
+local gadgetTotalMs = 0
+local gadgetDropped, gadgetSampled = 0, 0
+
+-- the handler methods replaced while running
+local oldInsertWidget ---@type function?
+local oldUpdateWidgetCallIn ---@type function?
+local oldQueuedUpdateWidgetCallIn ---@type function?
 local drawCallins -- the handler's callins whose name starts with Draw
 
 ----------------------------------------------------------------
@@ -104,6 +131,7 @@ local function getSlot(widgetName, callin)
 	end
 	local slot = byWidget[callin]
 	if not slot then
+		---@type GpuProfilerWidgetSlot
 		slot = { name = widgetName, callin = callin, q = {}, used = {} }
 		for i = 1, NSETS do
 			slot.q[i] = {}
@@ -213,9 +241,10 @@ local function collect(readSet)
 		local used = slot.used[readSet]
 		if used > 0 then
 			local set = slot.q[readSet]
-			local sum = 0
+			local sum = 0.0
 			for k = 1, used do
-				local delta = glGetQueryDelta(set[k][1], set[k][2], false)
+				local pair = set[k]
+				local delta = pair and glGetQueryDelta(pair[1], pair[2], false)
 				if delta then
 					sum = sum + delta
 				else
@@ -251,6 +280,21 @@ local function collect(readSet)
 	listDirty = true
 end
 
+-- called from LuaRules (Script.LuaUI.GpuProfilerGadgets) a few times a second
+local function receiveGadgetStats(names, ms, peaks, total, dropped, sampled, callinNames, callinValues)
+	gadgetStats = {}
+	for i = 1, #names do
+		gadgetStats[names[i]] = { ms = ms[i] or 0, peakCallin = peaks[i] or "" }
+	end
+	gadgetCallinMs = {}
+	for i = 1, #callinNames do
+		gadgetCallinMs[callinNames[i]] = callinValues[i]
+	end
+	gadgetTotalMs = total or 0
+	gadgetDropped, gadgetSampled = dropped or 0, sampled or 0
+	listDirty = true
+end
+
 function widget:DrawGenesis()
 	if not active then
 		return
@@ -271,6 +315,12 @@ local function rebuildList()
 		if stat.ms >= MIN_SHOW_MS then
 			n = n + 1
 			sortedList[n] = { name = name, ms = stat.ms, peak = stat.peakCallin }
+		end
+	end
+	for name, stat in pairs(gadgetStats) do
+		if stat.ms >= MIN_SHOW_MS then
+			n = n + 1
+			sortedList[n] = { name = name, ms = stat.ms, peak = stat.peakCallin, gadget = true }
 		end
 	end
 	tableSort(sortedList, function(a, b)
@@ -302,15 +352,27 @@ function widget:DrawScreen()
 
 	glColor(1, 1, 1, 1)
 	local pending = (framesSampled > 0) and (100 * framesDropped / framesSampled) or 0
-	glText(stringFormat("\255\160\255\160GPU ms per frame by widget   total %.2f   (%.0f%% of frames pending)", totalMs, pending), x, y, fontSize, "o")
+	glBeginText() -- one draw call for the whole panel; a draw per string cost 0.8 ms of CPU per frame
+	glText(
+		stringFormat(
+			"\255\160\255\160GPU ms per frame   widgets %.2f   gadgets %.2f   (%.0f%% of frames pending)",
+			totalMs,
+			gadgetTotalMs,
+			pending
+		),
+		x,
+		y,
+		fontSize,
+		"o"
+	)
 	y = y - lineSpace
-	for i = 1, rows do
-		local e = sortedList[i]
-		glText(e.name, x, y, fontSize, "o")
+	for _, e in ipairs(sortedList) do
+		glText(e.gadget and ("\255\255\200\140" .. e.name .. "  (g)") or e.name, x, y, fontSize, "o")
 		glText(stringFormat("%.3f", e.ms), x + width - fontSize * 11.5, y, fontSize, "or")
 		glText("\255\160\160\160" .. e.peak, x + width - fontSize * 10.8, y, fontSize * 0.85, "o")
 		y = y - lineSpace
 	end
+	glEndText()
 end
 
 ----------------------------------------------------------------
@@ -319,7 +381,9 @@ end
 
 function widget:Initialize()
 	if not (glCreateQuery and glQueryCounter and glGetQueryDelta and GL_TIMESTAMP) then
-		spEcho("GPU Profiler: this engine cannot time GPU work from Lua (needs gl.QueryCounter and gl.GetQueryDelta, Recoil with the Lua timer query API), widget disabled")
+		spEcho(
+			"GPU Profiler: this engine cannot time GPU work from Lua (needs gl.QueryCounter and gl.GetQueryDelta, Recoil with the Lua timer query API), widget disabled"
+		)
 		widgetHandler:RemoveWidget()
 		return
 	end
@@ -331,7 +395,7 @@ function widget:Initialize()
 	end
 	glDeleteQuery(probe)
 
-	local wh = widgetHandler
+	local wh = widgetHandler ---@type table methods are replaced below
 	drawCallins = {}
 	for name, list in pairs(wh) do
 		if type(list) == "table" and type(name) == "string" and name:sub(1, 4) == "Draw" and name:sub(-4) == "List" then
@@ -353,23 +417,50 @@ function widget:Initialize()
 		oldInsertWidget(self, w)
 		hookWidget(w)
 	end
-	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
-	wh.UpdateWidgetCallInRaw = function(self, name, w)
+	local function hookCallin(name, w)
 		for i = 1, #drawCallins do
 			if drawCallins[i] == name and type(w[name]) == "function" and not hookedFuncs[w[name]] then
 				w[name] = hook(w, name)
 			end
 		end
+	end
+	oldUpdateWidgetCallIn = wh.UpdateWidgetCallInRaw
+	wh.UpdateWidgetCallInRaw = function(self, name, w)
+		hookCallin(name, w)
 		return oldUpdateWidgetCallIn(self, name, w)
+	end
+	-- the queued UpdateWidgetCallIn runs the Raw method captured at handler start, so wrap it at enqueue time
+	oldQueuedUpdateWidgetCallIn = wh.UpdateWidgetCallIn
+	wh.UpdateWidgetCallIn = function(self, name, w, ...)
+		if w then
+			hookCallin(name, w)
+		end
+		return oldQueuedUpdateWidgetCallIn(self, name, w, ...)
 	end
 
 	active = true
+
+	widgetHandler:RegisterGlobal(widget, "GpuProfilerGadgets", receiveGadgetStats)
+	Spring.SendCommands("luarules gpuprofile on")
 
 	-- for other tooling: stats[widgetName].ms is the smoothed GPU ms per frame
 	WG.gpuProfiler = {
 		stats = stats,
 		getTotal = function()
 			return totalMs
+		end,
+		-- the gadgets' numbers, as last handed over by the gadget side: [gadgetName] = { ms, peakCallin }
+		getGadgetStats = function()
+			return gadgetStats
+		end,
+		getGadgetTotal = function()
+			return gadgetTotalMs
+		end,
+		getGadgetCallinMs = function()
+			return gadgetCallinMs
+		end,
+		getGadgetDropped = function()
+			return gadgetDropped, gadgetSampled
 		end,
 		getDropped = function()
 			return framesDropped, framesSampled
@@ -382,14 +473,21 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	if active then
+		Spring.SendCommands("luarules gpuprofile off")
+		widgetHandler:DeregisterGlobal(widget, "GpuProfilerGadgets")
+	end
 	active = false
 	WG.gpuProfiler = nil
-	local wh = widgetHandler
+	local wh = widgetHandler ---@type table
 	if oldInsertWidget then
 		wh.InsertWidgetRaw = oldInsertWidget
 	end
 	if oldUpdateWidgetCallIn then
 		wh.UpdateWidgetCallInRaw = oldUpdateWidgetCallIn
+	end
+	if oldQueuedUpdateWidgetCallIn then
+		wh.UpdateWidgetCallIn = oldQueuedUpdateWidgetCallIn
 	end
 	unhookAll()
 	deleteQueries()
