@@ -108,42 +108,4 @@ describe("native Attack packet batching", function()
 		assert.is_false(send({}, { 1 }, {}, emit))
 		assert.is_false(send({ 1 }, {}, {}, emit))
 	end)
-	it("uses the batched native sender for wall-filtered area Attacks", function()
-		local _, env = loadSender()
-		env.GameCMD = { UNIT_CANCEL_TARGET = 34924, UNIT_SET_TARGET = 34923 }
-		env.UnitDefs = { { customParams = {} }, { customParams = { objectify = true } } }
-		env.widget = {}
-		local sources, targets = sequence(300), sequence(2000, 10000)
-		local area = sequence(2000, 10000)
-		area[#area + 1] = 30000
-		env.VFS = {
-			Include = function(path)
-				local chunk = assert(loadfile(path))
-				setfenv(chunk, env)
-				return chunk()
-			end,
-		}
-		env.Spring = {
-			GetUnitDefID = function(id)
-				return id == 30000 and 2 or 1
-			end,
-			GetUnitNeutral = function(id)
-				return id == 30000
-			end,
-			GetSelectedUnits = function()
-				return sources
-			end,
-			GetUnitsInCylinder = function()
-				return area
-			end,
-		}
-		env.VFS.Include("luaui/Widgets/cmd_exclude_walls_area_attacks.lua")
-		-- The widget caches its emitter during loading.
-		local function viaWidget(_, _, options, emit)
-			env.Spring.GiveOrderArrayToUnitArray = emit
-			env.VFS.Include("luaui/Widgets/cmd_exclude_walls_area_attacks.lua")
-			return env.widget:CommandNotify(20, { 0, 0, 0, 1000 }, options)
-		end
-		verify(viaWidget, env, sources, targets, { meta = true })
-	end)
 end)

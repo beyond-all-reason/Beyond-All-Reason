@@ -15,6 +15,7 @@ end
 local CMD_UNIT_CANCEL_TARGET = GameCMD.UNIT_CANCEL_TARGET
 local CMD_UNIT_SET_TARGET = GameCMD.UNIT_SET_TARGET
 local CMD_ATTACK = CMD.ATTACK
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 local CMD_STOP = CMD.STOP
 
 local excludedUnitsDefID = {}
@@ -22,11 +23,11 @@ local excludedUnitsDefID = {}
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitNeutral = Spring.GetUnitNeutral
 local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
+local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 
 local splitTargets = VFS.Include("common/luaUtilities/split_area_targets.lua")
 
-local sendAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
+local sendTargetList = VFS.Include("common/luaUtilities/target_list_orders.lua")
 
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
@@ -87,10 +88,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 					local bx, _, bz = Spring.GetUnitPosition(b)
 					return (ax - x) ^ 2 + (az - z) ^ 2 < (bx - x) ^ 2 + (bz - z) ^ 2
 				end)
-				sendAttackOrders({ unitID }, targets, cmdOpts, spGiveOrderArrayToUnitArray)
+				sendTargetList(CMD_ATTACK_TARGETS, { unitID }, targets, cmdOpts, spGiveOrderToUnitArray)
 			end
 		else
-			sendAttackOrders(selectedUnits, targetIDs, cmdOpts, spGiveOrderArrayToUnitArray)
+			sendTargetList(CMD_ATTACK_TARGETS, selectedUnits, targetIDs, cmdOpts, spGiveOrderToUnitArray)
 		end
 		return true
 	end

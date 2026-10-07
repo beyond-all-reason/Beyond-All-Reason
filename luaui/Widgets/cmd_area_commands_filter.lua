@@ -25,7 +25,6 @@ local mathFloor = math.floor
 local mathMax = math.max
 
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
@@ -49,7 +48,7 @@ local ALLY_UNITS = Spring.ALLY_UNITS
 local ALL_UNITS = Spring.ALL_UNITS
 local FEATURE = "feature"
 local UNIT = "unit"
-local giveNativeAttackOrders = VFS.Include("common/luaUtilities/native_attack_orders.lua")
+local CMD_ATTACK_TARGETS = GameCMD.ATTACK_TARGETS
 local CMD_UNIT_SET_TARGETS = GameCMD.UNIT_SET_TARGETS
 
 local objectifiedUnitDefs = {}
@@ -341,9 +340,6 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 end
 
 local function giveTargetList(listCommandID, selectedUnits, targetIDs, options)
-	if listCommandID == CMD.ATTACK then
-		return giveNativeAttackOrders(selectedUnits, targetIDs, options, spGiveOrderArrayToUnitArray)
-	end
 	return sendTargetList(listCommandID, selectedUnits, targetIDs, options, spGiveOrderToUnitArray)
 end
 
@@ -376,7 +372,7 @@ local function defaultHandler(cmdId, selectedUnits, filteredTargets, options)
 end
 
 local function targetListHandler(cmdId, selectedUnits, filteredTargets, options)
-	local listCommandID = cmdId == CMD.ATTACK and CMD.ATTACK or CMD_UNIT_SET_TARGETS
+	local listCommandID = cmdId == CMD.ATTACK and CMD_ATTACK_TARGETS or CMD_UNIT_SET_TARGETS
 	if options.shift and options.meta then
 		local unitTargetsMap = splitTargets(selectedUnits, filteredTargets)
 		for selectedUnitID, targetIDs in pairs(unitTargetsMap) do

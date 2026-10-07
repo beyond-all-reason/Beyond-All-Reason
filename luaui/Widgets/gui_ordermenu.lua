@@ -242,6 +242,7 @@ local hiddenCommands = {
 	[GameCMD.RAW_MOVE] = true, -- raw move
 	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true, -- set unit target (no ground)
 	[GameCMD.UNIT_SET_TARGETS] = true, -- set unit targets
+	[GameCMD.ATTACK_TARGETS] = true, -- attack targets
 }
 
 local hiddenCommandTypes = {
