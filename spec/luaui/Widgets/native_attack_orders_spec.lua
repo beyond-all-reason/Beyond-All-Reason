@@ -51,23 +51,17 @@ local function verify(send, env, sources, targets, options)
 				if unitIndex > 1 then
 					-- All sources receive this same array; validate its contents once.
 				elseif prepend then
-					assert.same(
-						{
-							env.CMD.INSERT,
-							{ 0, env.CMD.ATTACK, options.ctrl and 64 or 0, targets[#targets - count + 1] },
-							128,
-						},
-						cmd
-					)
+					assert.same({
+						env.CMD.INSERT,
+						{ 0, env.CMD.ATTACK, options.ctrl and 64 or 0, targets[#targets - count + 1] },
+						128,
+					}, cmd)
 				else
-					assert.same(
-						{
-							env.CMD.ATTACK,
-							{ targets[count] },
-							(options.ctrl and 64 or 0) + ((options.shift or count > 1) and 32 or 0),
-						},
-						cmd
-					)
+					assert.same({
+						env.CMD.ATTACK,
+						{ targets[count] },
+						(options.ctrl and 64 or 0) + ((options.shift or count > 1) and 32 or 0),
+					}, cmd)
 				end
 			end
 			deliveries[unit] = count
