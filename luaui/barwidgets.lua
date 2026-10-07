@@ -465,7 +465,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-	self:InitWindowPause()
+	self:InitPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -1604,7 +1604,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
-	self:SaveWindowPause()
+	self:SavePause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -1632,8 +1632,8 @@ end
 --
 --  Widgets pause the game under a source, as gadgets do (api_game_pause.lua), and the
 --  game resumes once the last source on either side unpauses:
---      widgetHandler:Pause("windows")
---      widgetHandler:Unpause("windows")
+--      widgetHandler:Pause("modals")
+--      widgetHandler:Unpause("modals")
 --  Unpause also takes a gadget's source, when that gadget publishes it to widgets.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
@@ -1673,15 +1673,15 @@ local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
 
 -- pausing under a source, see widgetHandler:Pause
-local PAUSESOURCE_WINDOWS = "windows"
+local PAUSESOURCE_MODALS = "modals"
 local RULESPARAM_GADGET_PAUSE = "gamePaused"
 local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
 local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
 local pauseSources = {}
 local widgetPaused = false
--- pausing while a window is open, see UpdateWindowPause
-local windowPauseEnabled = true
-local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
+-- pausing while a modal window is open, see UpdatePause
+local modalPauseEnabled = true
+local modalPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -1815,7 +1815,7 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 end
 
 function widgetHandler:SetWindowsPauseGame(enabled)
-	windowPauseEnabled = enabled and true or false
+	modalPauseEnabled = enabled and true or false
 	modalConfigTimer = 0
 end
 
@@ -1843,7 +1843,7 @@ function widgetHandler:UpdateModalState(deltaTime)
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+			modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
@@ -1878,7 +1878,7 @@ function widgetHandler:Pause(source)
 	if Spring.GetGameFrame() == 0 then
 		return false -- cannot pause until the game starts
 	end
-	if next(pauseSources) == nil then
+	if next(pauseSources) == nil and not widgetPaused then
 		widgetPaused = not isClientPaused()
 		if widgetPaused then
 			Spring.SendCommands("pause 1")
@@ -1916,42 +1916,35 @@ local function gameUnpausing()
 	return true
 end
 
--- Once per frame, after the widgets' Update: a window closing as another opens, or one
+-- Once per frame, after the widgets' Update: a modal closing as another opens, or one
 -- reopening itself after a reload, never lets the game run in between.
-function widgetHandler:UpdateWindowPause()
+function widgetHandler:UpdatePause()
 	if widgetPaused and not isClientPaused() then
 		widgetPaused = false -- unpaused by the player while widgets held it: theirs from here
 	end
-	if not windowPauseAllowed then
-		return
-	end
-	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
-	if wanted ~= (pauseSources[PAUSESOURCE_WINDOWS] == true) then
+	local wanted = modalPauseAllowed and modalPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted ~= (pauseSources[PAUSESOURCE_MODALS] == true) then
 		if wanted then
-			self:Pause(PAUSESOURCE_WINDOWS)
+			self:Pause(PAUSESOURCE_MODALS)
 		else
-			self:Unpause(PAUSESOURCE_WINDOWS)
+			self:Unpause(PAUSESOURCE_MODALS)
 		end
 	end
 end
 
--- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
--- that reopens after the reload keeps it and closing that window still resumes the game.
-function widgetHandler:SaveWindowPause()
-	local windowPaused = widgetPaused and pauseSources[PAUSESOURCE_WINDOWS]
-	Spring.SetConfigInt("WindowsPausedAtFrame", windowPaused and Spring.GetGameFrame() or 0, true)
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so widgets
+-- that pause again after the reload, like a modal reopening, still resume the game.
+function widgetHandler:SavePause()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", widgetPaused and Spring.GetGameFrame() or 0, true)
 end
 
-function widgetHandler:InitWindowPause()
-	-- headless, nobody would ever close a window that opened by itself
-	windowPauseAllowed = not isHeadless and (Spring.IsReplay() or BAR.Utilities.Gametype.IsSinglePlayer())
-	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+function widgetHandler:InitPause()
+	-- headless, nobody would ever close a modal that opened by itself
+	modalPauseAllowed = not isHeadless and (Spring.IsReplay() or BAR.Utilities.Gametype.IsSinglePlayer())
+	modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 	local frame = Spring.GetGameFrame()
-	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
-		pauseSources[PAUSESOURCE_WINDOWS] = true
-		widgetPaused = true
-	end
-	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
+	widgetPaused = frame > 0 and Spring.GetConfigInt("WidgetsPausedAtFrame", 0) == frame and isClientPaused()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", 0, true)
 	self:RegisterGlobal(self, "GameUnpausing", gameUnpausing)
 end
 
@@ -2045,7 +2038,7 @@ function widgetHandler:Update()
 	end
 	tracy.ZoneEnd()
 
-	self:UpdateWindowPause()
+	self:UpdatePause()
 	return
 end
 
