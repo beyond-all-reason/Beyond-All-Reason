@@ -2452,7 +2452,7 @@ end
 --  game resumes once the last source on either side unpauses:
 --      widgetHandler:Pause("windows")
 --      widgetHandler:Unpause("windows")
---  Unpause also takes a gadget's source, when that gadget exposed it to widgets.
+--  Unpause also takes a gadget's source, when that gadget publishes it to widgets.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
@@ -2682,8 +2682,8 @@ local function canReleaseGadgetPause(source)
 	if publishedRule == "[]" then
 		return false
 	end
-	local exposed = Json.decode(publishedRule)
-	return type(exposed) == "table" and table.contains(exposed, source)
+	local published = Json.decode(publishedRule)
+	return type(published) == "table" and table.contains(published, source)
 end
 
 ---Pause and resume the game using basic claims and releases on claims.
@@ -2707,7 +2707,7 @@ function widgetHandler:Pause(source)
 end
 
 ---Unpause one source. The game resumes once no source on either side is left.
----@param source string a widget's source, or a gadget's source it exposed to widgets
+---@param source string # a widget's source, or a gadget's published source
 function widgetHandler:Unpause(source)
 	if pauseSources[source] then
 		pauseSources[source] = nil
