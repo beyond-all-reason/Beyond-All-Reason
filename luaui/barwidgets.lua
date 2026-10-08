@@ -72,7 +72,7 @@ local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
-local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot enable, disable, toggle widgets"
+local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -468,22 +468,23 @@ local function loadWidgetFiles(folder, vfsMode)
 end
 
 -- Catches absolutely any attempt at running or binding the command.
-local function isWidgetManagementCommand(command)
+local function isPrivilegedCommand(command)
 	command = stringLower(command)
 	return stringFind(command, "enablewidget", 1, true) ~= nil
 		or stringFind(command, "disablewidget", 1, true) ~= nil
 		or stringFind(command, "togglewidget", 1, true) ~= nil
+		or stringFind(command, "execute", 1, true) ~= nil
 end
 
 local function CreateSandboxedSystem()
 	local function disabledOrder()
 		error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
 	end
-	-- The console's widget commands call the real handler.
+	-- The engine passes unhandled actions to LuaUI, where game widgets run them with full access.
 	local function sendCommands(...)
 		local commands = type((...)) == "table" and (...) or { ... }
 		for _, command in pairs(commands) do
-			if type(command) == "string" and isWidgetManagementCommand(command) then
+			if type(command) == "string" and isPrivilegedCommand(command) then
 				error(SANDBOXED_ERROR_USER_WIDGETS, 2)
 			end
 		end
