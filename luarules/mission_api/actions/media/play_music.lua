@@ -1,3 +1,6 @@
+---@class PlayMusicAction Play a music track.
+---@field name string Path to the music file.
+
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
 local function playMusic(soundfile)

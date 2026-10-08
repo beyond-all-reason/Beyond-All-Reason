@@ -1,0 +1,153 @@
+{
+  "modules": [
+    {
+      "name": "play_music",
+      "description": null,
+      "visibility": null,
+      "deprecated": false,
+      "deprecation_reason": null,
+      "tag_content": null,
+      "file": "C:/Games/Beyond-All-Reason/data/games/bar.sdd/luarules/mission_api/actions/media/play_music.lua",
+      "typ": "(table)",
+      "members": [],
+      "namespace": null,
+      "using": []
+    }
+  ],
+  "types": [
+    {
+      "type": "class",
+      "name": "PlayMusicAction",
+      "description": "Play a music track.",
+      "visibility": null,
+      "deprecated": false,
+      "deprecation_reason": null,
+      "tag_content": null,
+      "loc": [
+        {
+          "file": "C:/Games/Beyond-All-Reason/data/games/bar.sdd/luarules/mission_api/actions/media/play_music.lua",
+          "line": 1
+        }
+      ],
+      "bases": [],
+      "generics": [],
+      "members": [
+        {
+          "type": "field",
+          "name": "name",
+          "description": "Path to the music file.",
+          "visibility": null,
+          "deprecated": false,
+          "deprecation_reason": null,
+          "tag_content": null,
+          "loc": {
+            "file": "C:/Games/Beyond-All-Reason/data/games/bar.sdd/luarules/mission_api/actions/media/play_music.lua",
+            "line": 2
+          },
+          "typ": "string",
+          "literal": null
+        }
+      ]
+    }
+  ],
+  "globals": [],
+  "config": {
+    "completion": {
+      "enable": true,
+      "autoRequire": true,
+      "autoRequireFunction": "require",
+      "autoRequireNamingConvention": "keep",
+      "autoRequireSeparator": ".",
+      "callSnippet": false,
+      "postfix": "@",
+      "baseFunctionIncludesName": true
+    },
+    "diagnostics": {
+      "disable": [],
+      "enable": true,
+      "globals": [],
+      "globalsRegex": [],
+      "severity": {},
+      "enables": [],
+      "diagnosticInterval": 500
+    },
+    "signature": {
+      "detailSignatureHelper": true
+    },
+    "hint": {
+      "enable": true,
+      "paramHint": true,
+      "indexHint": true,
+      "localHint": true,
+      "overrideHint": true,
+      "metaCallHint": true,
+      "enumParamHint": false
+    },
+    "runtime": {
+      "version": "LuaLatest",
+      "requireLikeFunction": [],
+      "frameworkVersions": [],
+      "extensions": [],
+      "requirePattern": [],
+      "nonstandardSymbol": [],
+      "special": {}
+    },
+    "workspace": {
+      "ignoreDir": [],
+      "ignoreGlobs": [],
+      "library": [],
+      "packages": [],
+      "workspaceRoots": [],
+      "preloadFileSize": 0,
+      "encoding": "utf-8",
+      "moduleMap": [],
+      "reindexDuration": 5000,
+      "enableReindex": false
+    },
+    "resource": {
+      "paths": []
+    },
+    "codeLens": {
+      "enable": true
+    },
+    "strict": {
+      "requirePath": false,
+      "typeCall": false,
+      "arrayIndex": true,
+      "metaOverrideFileDefine": true,
+      "docBaseConstMatchBaseType": true
+    },
+    "semanticTokens": {
+      "enable": true,
+      "renderDocumentationMarkup": true
+    },
+    "references": {
+      "enable": true,
+      "fuzzySearch": true,
+      "shortStringSearch": false
+    },
+    "hover": {
+      "enable": true,
+      "customDetail": null
+    },
+    "documentColor": {
+      "enable": true
+    },
+    "codeAction": {
+      "insertSpace": null
+    },
+    "inlineValues": {
+      "enable": true
+    },
+    "doc": {
+      "privateName": [],
+      "knownTags": [],
+      "syntax": "md"
+    },
+    "format": {
+      "externalTool": null,
+      "externalToolRangeFormat": null,
+      "useDiff": false
+    }
+  }
+}
