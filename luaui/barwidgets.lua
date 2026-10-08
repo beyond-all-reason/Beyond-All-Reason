@@ -512,6 +512,7 @@ local function isPrivilegedCommand(command)
 end
 
 local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
+local userReadableFolder = "luaui/"
 local userReadonlyFiles = {
 	[stringLower(CONFIG_FILENAME)] = "is the widget handler config",
 	["luaui/widgets/uikeys.txt"] = "is run as console commands by the game",
@@ -521,7 +522,7 @@ local userReadonlyFiles = {
 -- FIXME: Other OS handling would need to be added here. Preferably engine would provide a method.
 ---@return string? path nil when blocked
 ---@return string? reason for blocking
-local function checkUserWritePath(path)
+local function normalizeUserPath(path)
 	if type(path) ~= "string" then
 		return nil, "is not a path"
 	end
@@ -549,18 +550,51 @@ local function checkUserWritePath(path)
 			parts[#parts + 1] = part
 		end
 	end
-	path = tableConcat(parts, "/")
-	local lowerPath = stringLower(path)
+	return tableConcat(parts, "/")
+end
+
+---@return string? path nil when blocked
+---@return string? reason for blocking
+local function checkUserWritePath(path)
+	local target, reason = normalizeUserPath(path)
+	if not target then
+		return nil, reason
+	end
+	local lowerPath = stringLower(target)
 	local readonly = userReadonlyFiles[lowerPath]
 	if readonly then
 		return nil, readonly
 	end
 	for _, folder in ipairs(userWritableFolders) do
 		if stringSub(lowerPath .. "/", 1, #folder) == folder then
-			return path
+			return target
 		end
 	end
 	return nil, "is outside the write paths for user widgets"
+end
+
+---@return string? path nil when blocked
+---@return string? reason for blocking
+local function checkUserReadPath(path)
+	local target, reason = normalizeUserPath(path)
+	if not target then
+		return nil, reason
+	end
+	if stringSub(stringLower(target) .. "/", 1, #userReadableFolder) == userReadableFolder then
+		return target
+	end
+	return nil, "is outside the read paths for user widgets"
+end
+
+-- User widgets can only read from LuaUI/ and archives.
+local function getUserReadMode(path, mode)
+	if type(mode) ~= "string" then
+		mode = vfsRawFirst
+	end
+	if checkUserReadPath(path) then
+		return mode
+	end
+	return (stringGsub(mode, "[rp]", ""))
 end
 
 local warnOnceMessages = {}
@@ -574,7 +608,7 @@ local function warnOnce(message)
 	Spring.Log("barwidgets.lua", LOG.WARNING, message)
 end
 
-local function refuseUserWrite(path, reason)
+local function refuseUserPath(path, reason)
 	local message = tostring(path) .. ": " .. reason
 	Spring.Log("barwidgets.lua", LOG.ERROR, message)
 	return message
@@ -597,15 +631,37 @@ local function CreateSandboxedSystem()
 
 	local sandboxedIo = copyTable(io)
 	local ioOutput = io.output
+	local ioInput = io.input
+	local ioLines = io.lines
 	sandboxedIo.open = function(path, mode)
-		if not stringFind(mode or "r", "[wa+]") then
-			return ioOpen(path, mode)
-		end
-		local target, reason = checkUserWritePath(path)
+		local checkUserPath = stringFind(mode or "r", "[wa+]") and checkUserWritePath or checkUserReadPath
+		local target, reason = checkUserPath(path)
 		if not target then
-			return nil, refuseUserWrite(path, reason)
+			return nil, refuseUserPath(path, reason)
 		end
 		return ioOpen(target, mode)
+	end
+	sandboxedIo.input = function(file)
+		if type(file) ~= "string" then
+			return ioInput(file)
+		end
+		local target, reason = checkUserReadPath(file)
+		if not target then
+			refuseUserPath(file, reason)
+			return nil
+		end
+		return ioInput(target)
+	end
+	sandboxedIo.lines = function(filename)
+		if filename == nil then
+			return ioLines()
+		end
+		local target, reason = checkUserReadPath(filename)
+		if not target then
+			refuseUserPath(filename, reason)
+			return unavailableFunction
+		end
+		return ioLines(target)
 	end
 	sandboxedIo.output = function(file)
 		if type(file) ~= "string" then
@@ -613,7 +669,7 @@ local function CreateSandboxedSystem()
 		end
 		local target, reason = checkUserWritePath(file)
 		if not target then
-			refuseUserWrite(file, reason)
+			refuseUserPath(file, reason)
 			return nil
 		end
 		return ioOutput(target)
@@ -625,18 +681,18 @@ local function CreateSandboxedSystem()
 	sandboxedOs.remove = function(path)
 		local target, reason = checkUserWritePath(path)
 		if not target then
-			return nil, refuseUserWrite(path, reason)
+			return nil, refuseUserPath(path, reason)
 		end
 		return osRemove(target)
 	end
 	sandboxedOs.rename = function(from, to)
 		local fromTarget, fromReason = checkUserWritePath(from)
 		if not fromTarget then
-			return nil, refuseUserWrite(from, fromReason)
+			return nil, refuseUserPath(from, fromReason)
 		end
 		local toTarget, toReason = checkUserWritePath(to)
 		if not toTarget then
-			return nil, refuseUserWrite(to, toReason)
+			return nil, refuseUserPath(to, toReason)
 		end
 		return osRename(fromTarget, toTarget)
 	end
@@ -646,7 +702,7 @@ local function CreateSandboxedSystem()
 	sandboxedTable.save = function(t, filename, header)
 		local target, reason = checkUserWritePath(filename)
 		if not target then
-			refuseUserWrite(filename, reason)
+			refuseUserPath(filename, reason)
 			return
 		end
 		return tableSave(t, target, header)
@@ -657,10 +713,29 @@ local function CreateSandboxedSystem()
 	sandboxedVfs.CompressFolder = function(folder, archiveType, archivePath, ...)
 		local target, reason = checkUserWritePath(archivePath)
 		if not target then
-			refuseUserWrite(archivePath, reason)
+			refuseUserPath(archivePath, reason)
 			return
 		end
 		return vfsCompressFolder(folder, archiveType, target, ...)
+	end
+	sandboxedVfs.LoadFile = function(path, mode)
+		return vfsLoadFile(path, getUserReadMode(path, mode))
+	end
+	sandboxedVfs.FileExists = function(path, mode)
+		return vfsFileExists(path, getUserReadMode(path, mode))
+	end
+	sandboxedVfs.DirList = function(path, pattern, mode, recursive)
+		return vfsDirList(path, pattern, getUserReadMode(path, mode), recursive)
+	end
+	sandboxedVfs.SubDirs = function(path, pattern, mode)
+		return vfsSubDirs(path, pattern, getUserReadMode(path, mode))
+	end
+	-- This is the nilling trick again. A widget that sets its VFS nil can reach this function.
+	sandboxedVfs.Include = function(path, env, mode)
+		if type(env) ~= "table" then
+			env = {} -- So replace nil env with empty env.
+		end
+		return vfsInclude(path, env, getUserReadMode(path, mode))
 	end
 
 	local sandboxedGl = copyTable(gl)
@@ -669,7 +744,7 @@ local function CreateSandboxedSystem()
 	sandboxedGl.SaveImage = function(x, y, width, height, filename, options)
 		local target, reason = checkUserWritePath(filename)
 		if not target then
-			refuseUserWrite(filename, reason)
+			refuseUserPath(filename, reason)
 			return false
 		end
 		return glSaveImage(x, y, width, height, target, options)
@@ -749,7 +824,7 @@ local function CreateSandboxedSystem()
 	local function createDir(path)
 		local target, reason = checkUserWritePath(path)
 		if not target then
-			refuseUserWrite(path, reason)
+			refuseUserPath(path, reason)
 			return nil
 		end
 		return spCreateDir(target)
@@ -783,7 +858,7 @@ local function CreateSandboxedSystem()
 	local function extractModArchiveFile(path)
 		local target, reason = checkUserWritePath(path)
 		if not target then
-			refuseUserWrite(path, reason)
+			refuseUserPath(path, reason)
 			return false
 		end
 		return spExtractModArchiveFile(target)
@@ -1286,7 +1361,11 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	widget.canControlUnits = canControlUnits
 	local includeMode = fromZip and vfsZip or vfsRawFirst
 	widget.include = function(f)
-		return include(f, widget, includeMode)
+		local mode = includeMode
+		if not fromZip then
+			mode = getUserReadMode(LUAUI_DIRNAME .. tostring(f), includeMode)
+		end
+		return include(f, widget, mode)
 	end
 
 	widgetEnvs[widget] = true
@@ -1308,9 +1387,23 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return loadSourceChunk(text, chunkname, env)
 	end
 	widget.loadfile = function(filename)
+		if not fromZip then
+			local target, reason = checkUserReadPath(filename)
+			if not target then
+				return nil, refuseUserPath(filename, reason)
+			end
+			filename = target
+		end
 		return loadSourceFile(filename, ownEnv(widget, getfenv(2)))
 	end
 	widget.dofile = function(filename)
+		if not fromZip then
+			local target, reason = checkUserReadPath(filename)
+			if not target then
+				error(refuseUserPath(filename, reason), 2)
+			end
+			filename = target
+		end
 		local chunk, err = loadSourceFile(filename, ownEnv(widget, getfenv(2)))
 		if not chunk then
 			error(err, 0)
@@ -1333,13 +1426,13 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			if type(env) ~= "table" then
 				env = callerEnv()
 			end
-			return vfsInclude(path, env, mode or vfsRawFirst)
+			return vfsInclude(path, env, getUserReadMode(path, mode))
 		end
 		widget.require = function(path, env, mode)
 			if type(env) ~= "table" then
 				env = callerEnv()
 			end
-			return require(path, env, mode or vfsRawFirst)
+			return require(path, env, getUserReadMode(type(path) == "string" and path .. ".lua", mode))
 		end
 	end
 
