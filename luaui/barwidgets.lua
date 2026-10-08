@@ -769,6 +769,18 @@ local function CreateSandboxedSystem()
 	for k, v in pairs(System) do
 		SandboxedSystem[k] = sandboxedLibraries[k] or v
 	end
+
+	-- Without this, a user widget that does `getfenv = nil` can then call `getfenv(0)` again.
+	local function refuseSharedEnvFunction()
+		Spring.Log("barwidgets.lua", LOG.ERROR, "User widgets can only use their own environment functions")
+	end
+	SandboxedSystem.getfenv = refuseSharedEnvFunction
+	SandboxedSystem.setfenv = refuseSharedEnvFunction
+	SandboxedSystem.loadstring = refuseSharedEnvFunction
+	SandboxedSystem.loadfile = refuseSharedEnvFunction
+	SandboxedSystem.dofile = refuseSharedEnvFunction
+	SandboxedSystem.require = refuseSharedEnvFunction
+	SandboxedSystem.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
 end
 
 function widgetHandler:Initialize()
