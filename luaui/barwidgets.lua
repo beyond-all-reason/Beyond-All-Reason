@@ -921,16 +921,16 @@ local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<tab
 -- TODO: Remove once community widgets call keypress actions on WG, e.g. WG.cmd_blueprint.
 local bridgedKeyActions = { blueprint_next = true, blueprint_prev = true, buildfacing = true }
 
-local function hasPrivilegedCommand(list)
+local function findPrivilegedCommand(list)
 	if type(list) ~= "table" then
-		return false
+		return nil
 	end
 	for _, value in pairs(list) do
 		if type(value) == "string" and isPrivilegedCommand(value) then
-			return true
+			return value
 		end
 	end
-	return false
+	return nil
 end
 
 -- A command button runs its action when clicked. Copied first, so the widget cannot change it once checked.
@@ -947,14 +947,13 @@ local function moveUserCustomCommands(source, target)
 				end
 				copy[k] = type(v) == "table" and copyTable(v) or v
 			end
+			local privilegedCommand = findPrivilegedCommand({ copy.action })
+				or findPrivilegedCommand(copy.actions)
+				or findPrivilegedCommand(copy.params)
 			if duplicateKey then
 				warnOnce("User widget command description has a duplicate key: " .. duplicateKey)
-			elseif
-				(type(copy.action) == "string" and isPrivilegedCommand(copy.action))
-				or hasPrivilegedCommand(copy.actions)
-				or hasPrivilegedCommand(copy.params)
-			then
-				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. tostring(copy.action))
+			elseif privilegedCommand then
+				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. privilegedCommand)
 			else
 				target[#target + 1] = copy
 			end
