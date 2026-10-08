@@ -912,6 +912,8 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.require = refuseSharedEnvFunction
 	SandboxedSystem.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
 	SandboxedSystem.socket = nil
+	-- TODO: restore once rmlui security assessment finishes
+	SandboxedSystem.RmlUi = nil
 end
 
 function widgetHandler:Initialize()
