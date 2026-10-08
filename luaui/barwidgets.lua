@@ -363,7 +363,7 @@ end
 
 local function loadChunk(text, chunkname, env)
 	if type(text) == "string" and stringByte(text, 1) == 27 then
-		return nil, "binary chunks are not allowed"
+		return nil, "bytecode unsupported"
 	end
 	return loadstring(text, chunkname, env)
 end
