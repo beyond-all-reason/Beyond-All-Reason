@@ -596,14 +596,20 @@ local function CreateSandboxedSystem()
 		return spCreateDir(path)
 	end
 	-- The engine passes unhandled actions to LuaUI, where game widgets run them with full access.
+	-- Dropped rather than raised, so widgets that still send them keep loading.
 	local function sendCommands(...)
 		local commands = type((...)) == "table" and (...) or { ... }
-		for _, command in pairs(commands) do
+		local allowed = {}
+		for _, command in ipairs(commands) do
 			if type(command) == "string" and isPrivilegedCommand(command) then
-				error(SANDBOXED_ERROR_USER_WIDGETS, 2)
+				Spring.Log("barwidgets.lua", LOG.WARNING, SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
+			else
+				allowed[#allowed + 1] = command
 			end
 		end
-		return spSendCommands(...)
+		if allowed[1] ~= nil then
+			spSendCommands(allowed)
+		end
 	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
@@ -822,6 +828,43 @@ end
 
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+-- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
+local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+
+local function hasPrivilegedCommand(list)
+	if type(list) ~= "table" then
+		return false
+	end
+	for _, value in pairs(list) do
+		if type(value) == "string" and isPrivilegedCommand(value) then
+			return true
+		end
+	end
+	return false
+end
+
+-- A command button runs its action when clicked. Copied first, so the widget cannot change it once checked.
+local function moveUserCustomCommands(source, target)
+	for i = 1, #source do
+		local desc = source[i]
+		source[i] = nil
+		if type(desc) == "table" then
+			local copy = {}
+			for k, v in pairs(desc) do
+				copy[k] = type(v) == "table" and copyTable(v) or v
+			end
+			if
+				(type(copy.action) == "string" and isPrivilegedCommand(copy.action))
+				or hasPrivilegedCommand(copy.actions)
+				or hasPrivilegedCommand(copy.params)
+			then
+				Spring.Log("barwidgets.lua", LOG.WARNING, SANDBOXED_ERROR_USER_WIDGETS .. ": " .. tostring(copy.action))
+			else
+				target[#target + 1] = copy
+			end
+		end
+	end
+end
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
@@ -1067,6 +1110,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	if not fromZip then
 		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+		local customCommands = {}
+		userCustomCommands[widget] = customCommands
+		wh.customCommands = customCommands
 		-- User widgets keep reading raw files first. Called through pcall or as a tail call, the caller's
 		-- env is pcall's or unknown, and the widget's own table stands in for it.
 		local function callerEnv()
@@ -2424,6 +2470,10 @@ function widgetHandler:CommandsChanged()
 	self.customCommands = {}
 	for _, w in ipairs(self.CommandsChangedList) do
 		w:CommandsChanged()
+		local customCommands = userCustomCommands[w]
+		if customCommands then
+			moveUserCustomCommands(customCommands, self.customCommands)
+		end
 	end
 	self.inCommandsChanged = false
 	tracy.ZoneEnd()
