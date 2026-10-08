@@ -3062,7 +3062,7 @@ widgetState.buildEnvConfigContent = function(opts)
 	end
 	local outLines = {
 		"-- Environment config exported from BAR Terraform Brush",
-		"-- Map: " .. (Game.mapName or "unknown"),
+		"-- Map: " .. string.gsub(Game.mapName or "unknown", "[\r\n]", " "),
 	}
 	if not (opts and opts.nodate) then
 		outLines[#outLines + 1] = "-- Date: " .. os.date("%Y-%m-%d %H:%M:%S")
@@ -3070,7 +3070,7 @@ widgetState.buildEnvConfigContent = function(opts)
 	local body = {
 		"return {",
 		"\tversion = 1,",
-		'\tmapName = "' .. (Game.mapName or "unknown") .. '",',
+		string.format("\tmapName = %q,", Game.mapName or "unknown"),
 		"",
 		"\t-- Sun direction",
 		sunDirLine,
