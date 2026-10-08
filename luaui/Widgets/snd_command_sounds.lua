@@ -246,6 +246,12 @@ function widget:UnitDestroyed(unitID)
 	unitsAllyTeam[unitID] = nil
 end
 
+function widget:WantsUnitCommandBatch()
+	return not enabled or CurrentGameFrame == UsedFrame or commandSoundCount <= 1
+end
+
+function widget:UnitCommandBatch() end
+
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if not enabled then
 		return

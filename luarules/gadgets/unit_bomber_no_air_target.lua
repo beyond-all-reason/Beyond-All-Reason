@@ -36,6 +36,10 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 end
 
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return not isBomber[unitDefID]
+end
+
 function gadget:AllowCommand(
 	unitID,
 	unitDefID,

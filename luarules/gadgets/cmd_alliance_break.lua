@@ -109,6 +109,25 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local batchTeams = {}
+	for _, allyTeam in ipairs(allyTeamList) do
+		for _, team in ipairs(GetTeamList(allyTeam)) do
+			batchTeams[#batchTeams + 1] = { team, allyTeam }
+		end
+	end
+
+	function gadget:WantsUnitCommandBatch(unitID, unitDefID, attackerTeam)
+		local attackerAllyTeam = GetUnitAllyTeam(unitID)
+		for _, team in ipairs(batchTeams) do
+			if team[2] ~= attackerAllyTeam and AreTeamsAllied(attackerTeam, team[1]) then
+				return false -- preserve immediate backstab handling for dynamic allies
+			end
+		end
+		return true
+	end
+
+	function gadget:UnitCommandBatch() end
+
 	function gadget:UnitCommand(
 		unitID,
 		unitDefID,

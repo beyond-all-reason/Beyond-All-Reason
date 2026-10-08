@@ -1916,3 +1916,6 @@ function widget:SetConfigData(data)
 		disabledCommand = data.disabledCmd
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

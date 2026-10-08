@@ -213,6 +213,12 @@ function gadget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExper
 	end
 end
 
+function gadget:WantsUnitCommandBatch()
+	return enabledcallins.UnitCommand == nil
+end
+
+function gadget:UnitCommandBatch() end
+
 function gadget:UnitCommand(
 	unitID,
 	unitDefID,
