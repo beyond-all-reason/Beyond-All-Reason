@@ -70,7 +70,7 @@ describe("a policy's identity", function()
 	it("requires every category to declare itself", function()
 		assert.has_error(function()
 			declared("transport", { Load = { Submerged = "Submerged" } })
-		end, "spec: Load must declare itself: Single(...), Product(...), Fold(...) or Contributes(...)")
+		end, "spec: Load must declare itself: Single(...), Product(...), Fold(...), Contributes(...) or Facts(...)")
 	end)
 
 	it("serializes a declaration's name to the key the runtime uses", function()
@@ -187,6 +187,49 @@ describe("one chain for owners and contributors", function()
 		)
 		assert.is_false(run(steps, {}))
 		assert.is_true(run(steps, { reachable = true }))
+	end)
+end)
+
+describe("facts", function()
+	it("carries identity, and provisions are named or refused", function()
+		local Contract = declared("transfer", {
+			TeamPairing = Policy.Facts({ TechBlocking = "techBlocking" }),
+		})
+		assert.are.same(
+			{ owner = "transfer", category = "team_pairing", facts = true },
+			Policy.IdentityOf(Contract.TeamPairing)
+		)
+		local ops = Policy.Enrichment(Contract.TeamPairing)
+			.Provide(Contract.TeamPairing.TechBlocking, function(ctx)
+				return { level = 2 }
+			end)
+			.Build()
+		assert.are.same({ "techBlocking" }, ops[1].names)
+	end)
+
+	it("a provider may add a fact the contract did not declare, and never removes one", function()
+		local Contract = declared("transfer", {
+			TeamPairing = Policy.Facts({ TaxRate = "taxRate" }),
+		})
+		local ops = Policy.Enrichment(Contract.TeamPairing)
+			.Provide("stunSeconds", function()
+				return 30
+			end)
+			.Build()
+		assert.are.same({ "stunSeconds" }, ops[1].names)
+		assert.are.equal("taxRate", Contract.TeamPairing.TaxRate)
+	end)
+
+	it("one producer can fill several provisions, in order", function()
+		local ops = Policy.Enrichment()
+			.Provide("a", "b", function()
+				return 1, 2
+			end)
+			.Build()
+		assert.are.same({ "a", "b" }, ops[1].names)
+		assert.has_error(function()
+			Policy.Enrichment().Provide("a")
+		end)
 	end)
 end)
 
@@ -392,6 +435,7 @@ describe("a declared contribution", function()
 	local function target()
 		return declared("transport", {
 			Load = Policy.Single({ Submerged = "Submerged", Allowed = "Allowed" }),
+			Facts = Policy.Facts({ Reach = "reach" }),
 		})
 	end
 
@@ -411,6 +455,9 @@ describe("a declared contribution", function()
 		local Contract = target()
 		assert.has_error(function()
 			Policy.Contributes({}, { A = "A" })
+		end, "Policy.Contributes(target, names): target must be a policy's steps")
+		assert.has_error(function()
+			Policy.Contributes(Contract.Facts, { A = "A" })
 		end, "Policy.Contributes(target, names): target must be a policy's steps")
 	end)
 

@@ -65,9 +65,9 @@ describe("ModuleHandler", function()
 
 	describe("a module's contract", function()
 		local Policy = require("modules/policy")
-		-- Three modules on a fake VFS. owner declares its Check policy in the policy file that builds it; friend
-		-- contributes a step to owner's Check through Policies.Contract; loner's two policy files each claim the
-		-- same category.
+		-- Three modules on a fake VFS. owner declares its Check policy in the policy file that
+		-- builds it in one policy file and declares its facts in another; friend contributes a step to owner's Check
+		-- through Policies.Contract; loner's two policy files each claim the same category.
 		---@type table<string, fun(env: table): any> the fake VFS: a path to what including it returns
 		local FILES = {}
 		local real = {}
@@ -125,6 +125,9 @@ describe("ModuleHandler", function()
 				["modules/loner/manifest.lua"] = function()
 					return { name = "loner" }
 				end,
+				["modules/owner/policies/terms.lua"] = function()
+					return { Terms = Policy.Facts({ Rate = "rate" }) }
+				end,
 				["modules/owner/policies/check.lua"] = function(env)
 					local Check = Policy.Fold({ Shape = "Shape" })
 					env.Policies.On(Check).Apply(Check.Shape, function(ctx)
@@ -154,6 +157,7 @@ describe("ModuleHandler", function()
 		it("is what its policy files return, stamped by the loader", function()
 			local owner = ModuleHandler.Contract("owner")
 			assert.are.same({ owner = "owner", category = "check", result = "fold" }, Policy.IdentityOf(owner.Check))
+			assert.are.same({ owner = "owner", category = "terms", facts = true }, Policy.IdentityOf(owner.Terms))
 			assert.is_true(rawequal(owner, ModuleHandler.Contract("owner")))
 		end)
 
@@ -197,7 +201,7 @@ describe("ModuleHandler", function()
 				function()
 					ModuleHandler.Contract("loner")
 				end,
-				"modules/loner/policies/b.lua: Check must declare itself: Single(...), Product(...), Fold(...) or Contributes(...)"
+				"modules/loner/policies/b.lua: Check must declare itself: Single(...), Product(...), Fold(...), Contributes(...) or Facts(...)"
 			)
 		end)
 
@@ -213,6 +217,32 @@ describe("ModuleHandler", function()
 			assert.has_error(function()
 				ModuleHandler.LoadPolicies("owner")
 			end, "modules/friend/policies/owner.lua: only owner may shape the refusal of owner.check")
+		end)
+
+		it("opens steps with On and facts with For, and refuses either the other way", function()
+			FILES["modules/owner/policies/wrong_door.lua"] = function(env)
+				local Terms = Policy.Facts({ Rate = "rate" })
+				env.Policies.On(Terms)
+				return { WrongDoor = Terms }
+			end
+			assert.has_error(
+				function()
+					ModuleHandler.Contract("owner")
+				end,
+				"modules/owner/policies/wrong_door.lua: Policies.On opens a policy's steps; facts are opened with Policies.For"
+			)
+			ModuleHandler.ResetCaches()
+			FILES["modules/owner/policies/wrong_door.lua"] = function(env)
+				local Gate = Policy.Fold({ Open = "Open" })
+				env.Policies.For(Gate)
+				return { WrongDoor = Gate }
+			end
+			assert.has_error(
+				function()
+					ModuleHandler.Contract("owner")
+				end,
+				"modules/owner/policies/wrong_door.lua: Policies.For opens a contract's facts; a policy's steps are opened with Policies.On"
+			)
 		end)
 
 		it("refuses two modules whose contracts need each other, naming both", function()

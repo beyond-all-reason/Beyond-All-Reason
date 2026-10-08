@@ -13,9 +13,14 @@
 Policies = {}
 
 ---@generic C, T
----@param steps PolicySteps<C, T>
+---@param steps PolicySteps<C, T> a policy's steps, this file's or another module's through Policies.Contract
 ---@return PolicyChain<C, T>
 function Policies.On(steps) end
+
+---@generic C
+---@param facts PolicyFacts<C> a contract's facts, to Provide for or Default
+---@return PolicyEnrichment<C>
+function Policies.For(facts) end
 
 ---@param moduleName string a Modules entry
 ---@return table that module's contract: what its policy files return; annotate with the module's contract class
