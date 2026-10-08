@@ -1,6 +1,6 @@
 return {
-	mygalomorph = {
-		buildpic = "mygalomorph.DDS",
+	armmygalomorph = {
+		buildpic = "armmygalomorph.DDS",
 		buildtime = 150000,
 		canmove = true,
 		collisionvolumeoffsets = "0 -1.4 -5.6",
@@ -22,8 +22,8 @@ return {
 		separationDistance = 8,
 		movestate = 0,
 		nochasecategory = "VTOL",
-		objectname = "Units/mygalomorph.s3o",
-		script = "Units/mygalomorph.lua",
+		objectname = "Units/armmygalomorph.s3o",
+		script = "Units/armmygalomorph.lua",
 		seismicsignature = 0,
 		selfdestructas = "banthaSelfd",
 		sightdistance = 500,
@@ -54,7 +54,7 @@ return {
 				footprintz = 4,
 				height = 36,
 				metal = 4000,
-				object = "Units/mygalomorph_dead.s3o",
+				object = "Units/armmygalomorph_dead.s3o",
 				reclaimable = true,
 			},
 		},

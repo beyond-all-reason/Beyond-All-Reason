@@ -94296,7 +94296,7 @@ local unitLights = {
 			},
 		},
 	},
-	mygalomorph = {
+	armmygalomorph = {
 		eyes = {
 			lightType = "beam",
 			pieceName = "eyecenter",

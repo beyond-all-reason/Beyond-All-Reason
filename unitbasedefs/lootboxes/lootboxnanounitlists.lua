@@ -228,7 +228,7 @@ return {
 		"leegmech",
 
 		-- Superboss
-		"mygalomorph",
+		"armmygalomorph",
 		"armrattet4",
 		"armvadert4",
 		"armfepocht4",
