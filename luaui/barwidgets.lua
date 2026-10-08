@@ -37,6 +37,9 @@ local setfenv = setfenv
 local pcall = pcall
 local ioOpen = io.open
 local stringByte = string.byte
+local stringFind = string.find
+local stringLower = string.lower
+local spSendCommands = Spring.SendCommands
 local debugTraceback = debug.traceback
 local debugGetinfo = debug.getinfo
 local debugGetlocal = debug.getlocal
@@ -68,7 +71,8 @@ local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
-local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
+local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
+local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot enable, disable, toggle widgets"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -463,14 +467,34 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 end
 
+-- Catches absolutely any attempt at running or binding the command.
+local function isWidgetManagementCommand(command)
+	command = stringLower(command)
+	return stringFind(command, "enablewidget", 1, true) ~= nil
+		or stringFind(command, "disablewidget", 1, true) ~= nil
+		or stringFind(command, "togglewidget", 1, true) ~= nil
+end
+
 local function CreateSandboxedSystem()
 	local function disabledOrder()
-		error(SANDBOXED_ERROR_MSG, 2)
+		error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
+	end
+	-- The console's widget commands call the real handler.
+	local function sendCommands(...)
+		local commands = type((...)) == "table" and (...) or { ... }
+		for _, command in pairs(commands) do
+			if type(command) == "string" and isWidgetManagementCommand(command) then
+				error(SANDBOXED_ERROR_USER_WIDGETS, 2)
+			end
+		end
+		return spSendCommands(...)
 	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
-		if string.find(k, "^GiveOrder") then
+		if string.find(k, "^GiveOrder") and not allowunitcontrolwidgets then
 			SandboxedSpring[k] = disabledOrder
+		elseif k == "SendCommands" then
+			SandboxedSpring[k] = sendCommands
 		else
 			SandboxedSpring[k] = v
 		end
@@ -498,12 +522,9 @@ function widgetHandler:Initialize()
 	Spring.CreateDir(LUAUI_DIRNAME .. "Config")
 
 	unsortedWidgets = {}
+	CreateSandboxedSystem()
 
 	if self.allowUserWidgets and allowuserwidgets then
-		if not allowunitcontrolwidgets then
-			CreateSandboxedSystem()
-		end
-
 		Spring.Echo("LuaUI: Allowing User Widgets")
 		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
 		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
@@ -889,13 +910,13 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	local canControlUnits = fromZip or allowunitcontrolwidgets
 
 	if enableLocalsAccess then
-		local systemRef = canControlUnits and System or SandboxedSystem
+		local systemRef = fromZip and System or SandboxedSystem
 		-- copy the system calls into the widget table
 		for k, v in pairs(systemRef) do
 			widget[k] = v
 		end
 	else
-		local metaRef = canControlUnits and WidgetMeta or SandboxedWidgetMeta
+		local metaRef = fromZip and WidgetMeta or SandboxedWidgetMeta
 		-- use metatable redirection
 		setmetatable(widget, metaRef)
 	end
@@ -1133,7 +1154,7 @@ local function widgetFailure(w, funcName, errorMsg)
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
-		if not loadedWidgets[w] and errorMsg:find(SANDBOXED_ERROR_MSG) then
+		if not loadedWidgets[w] and errorMsg:find(SANDBOXED_ERROR_UNIT_CONTROL) then
 			errorBase = "Sandbox error"
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
