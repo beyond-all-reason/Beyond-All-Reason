@@ -658,6 +658,18 @@ local function CreateSandboxedSystem()
 		return vfsCompressFolder(folder, archiveType, target, ...)
 	end
 
+	local sandboxedGl = copyTable(gl)
+	local glSaveImage = gl.SaveImage
+	-- Saving deletes any existing file at the path first.
+	sandboxedGl.SaveImage = function(x, y, width, height, filename, options)
+		local target, reason = checkUserWritePath(filename)
+		if not target then
+			refuseUserWrite(filename, reason)
+			return false
+		end
+		return glSaveImage(x, y, width, height, target, options)
+	end
+
 	local scriptLuaUI = Script.LuaUI
 	local sandboxedScript = copyTable(Script)
 	sandboxedScript.LuaUI = setmetatable({}, {
@@ -727,12 +739,13 @@ local function CreateSandboxedSystem()
 		end
 	end
 	local sandboxedLibraries = {
-		Spring = SandboxedSpring,
-		Script = sandboxedScript,
+		table = sandboxedTable,
 		io = sandboxedIo,
 		os = sandboxedOs,
-		table = sandboxedTable,
 		VFS = sandboxedVfs,
+		Spring = SandboxedSpring,
+		Script = sandboxedScript,
+		gl = sandboxedGl,
 	}
 	for k, v in pairs(System) do
 		SandboxedSystem[k] = sandboxedLibraries[k] or v
