@@ -39,6 +39,8 @@ local ioOpen = io.open
 local stringByte = string.byte
 local stringFind = string.find
 local stringLower = string.lower
+local stringGsub = string.gsub
+local stringSub = string.sub
 local spSendCommands = Spring.SendCommands
 local debugTraceback = debug.traceback
 local debugGetinfo = debug.getinfo
@@ -73,6 +75,7 @@ local isHeadless = (Platform and Platform.isHeadless) or false
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
 local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
+local SANDBOXED_ERROR_USER_FILES = "User widgets can only write files in LuaUI/Config and LuaUI/Widgets"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -494,11 +497,104 @@ local function isPrivilegedCommand(command)
 		or stringFind(command, "execute", 1, true) ~= nil
 end
 
+local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
+local handlerConfigPath = stringLower(CONFIG_FILENAME)
+
+-- Game code runs files from the write dir: its own saves, and through raw-first includes, its own modules.
+local function isUserWritablePath(path)
+	if type(path) ~= "string" then
+		return false
+	end
+	path = stringLower((stringGsub(path, "\\", "/")))
+	-- Windows drops trailing dots and spaces, and a colon names a drive or a stream.
+	if
+		stringFind(path, "..", 1, true)
+		or stringFind(path, ":", 1, true)
+		or stringFind(path, "[%. ]/")
+		or stringFind(path, "[%. ]$")
+	then
+		return false
+	end
+	if path == handlerConfigPath then
+		return false
+	end
+	for _, folder in ipairs(userWritableFolders) do
+		if stringSub(path .. "/", 1, #folder) == folder then
+			return true
+		end
+	end
+	return false
+end
+
+local function copyTable(source)
+	local copy = {}
+	for k, v in pairs(source) do
+		copy[k] = v
+	end
+	return copy
+end
+
 local function CreateSandboxedSystem()
 	local function disabledOrder()
 		error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
 	end
 
+	local sandboxedIo = copyTable(io)
+	local ioOutput = io.output
+	sandboxedIo.open = function(path, mode)
+		if stringFind(mode or "r", "[wa+]") and not isUserWritablePath(path) then
+			return nil, tostring(path) .. ": " .. SANDBOXED_ERROR_USER_FILES
+		end
+		return ioOpen(path, mode)
+	end
+	sandboxedIo.output = function(file)
+		if type(file) == "string" and not isUserWritablePath(file) then
+			error(SANDBOXED_ERROR_USER_FILES, 2)
+		end
+		return ioOutput(file)
+	end
+
+	local sandboxedOs = copyTable(os)
+	local osRemove = os.remove
+	local osRename = os.rename
+	sandboxedOs.remove = function(path)
+		if not isUserWritablePath(path) then
+			return nil, tostring(path) .. ": " .. SANDBOXED_ERROR_USER_FILES
+		end
+		return osRemove(path)
+	end
+	sandboxedOs.rename = function(from, to)
+		if not isUserWritablePath(from) or not isUserWritablePath(to) then
+			return nil, tostring(from) .. ": " .. SANDBOXED_ERROR_USER_FILES
+		end
+		return osRename(from, to)
+	end
+
+	local sandboxedTable = copyTable(table)
+	local tableSave = table.save
+	sandboxedTable.save = function(t, filename, header)
+		if not isUserWritablePath(filename) then
+			error(SANDBOXED_ERROR_USER_FILES, 2)
+		end
+		return tableSave(t, filename, header)
+	end
+
+	local sandboxedVfs = copyTable(VFS)
+	local vfsCompressFolder = VFS.CompressFolder
+	sandboxedVfs.CompressFolder = function(folder, archiveType, archivePath, ...)
+		if not isUserWritablePath(archivePath) then
+			error(SANDBOXED_ERROR_USER_FILES, 2)
+		end
+		return vfsCompressFolder(folder, archiveType, archivePath, ...)
+	end
+
+	local spCreateDir = Spring.CreateDir
+	local function createDir(path)
+		if not isUserWritablePath(path) then
+			error(SANDBOXED_ERROR_USER_FILES, 2)
+		end
+		return spCreateDir(path)
+	end
 	-- The engine passes unhandled actions to LuaUI, where game widgets run them with full access.
 	local function sendCommands(...)
 		local commands = type((...)) == "table" and (...) or { ... }
@@ -515,16 +611,21 @@ local function CreateSandboxedSystem()
 			SandboxedSpring[k] = disabledOrder
 		elseif k == "SendCommands" then
 			SandboxedSpring[k] = sendCommands
+		elseif k == "CreateDir" then
+			SandboxedSpring[k] = createDir
 		else
 			SandboxedSpring[k] = v
 		end
 	end
+	local sandboxedLibraries = {
+		Spring = SandboxedSpring,
+		io = sandboxedIo,
+		os = sandboxedOs,
+		table = sandboxedTable,
+		VFS = sandboxedVfs,
+	}
 	for k, v in pairs(System) do
-		if k == "Spring" then
-			SandboxedSystem[k] = SandboxedSpring
-		else
-			SandboxedSystem[k] = v
-		end
+		SandboxedSystem[k] = sandboxedLibraries[k] or v
 	end
 end
 
