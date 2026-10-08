@@ -545,6 +545,12 @@ local function checkUserWritePath(path)
 	return nil, "is outside the write paths for user widgets"
 end
 
+local function refuseUserWrite(path, reason)
+	local message = tostring(path) .. ": " .. reason
+	Spring.Log("barwidgets.lua", LOG.ERROR, message)
+	return message
+end
+
 local function copyTable(source)
 	local copy = {}
 	for k, v in pairs(source) do
@@ -566,7 +572,7 @@ local function CreateSandboxedSystem()
 		end
 		local target, reason = checkUserWritePath(path)
 		if not target then
-			return nil, tostring(path) .. ": " .. reason
+			return nil, refuseUserWrite(path, reason)
 		end
 		return ioOpen(target, mode)
 	end
@@ -576,7 +582,8 @@ local function CreateSandboxedSystem()
 		end
 		local target, reason = checkUserWritePath(file)
 		if not target then
-			error(file .. ": " .. reason, 2)
+			refuseUserWrite(file, reason)
+			return
 		end
 		return ioOutput(target)
 	end
@@ -587,18 +594,18 @@ local function CreateSandboxedSystem()
 	sandboxedOs.remove = function(path)
 		local target, reason = checkUserWritePath(path)
 		if not target then
-			return nil, tostring(path) .. ": " .. reason
+			return nil, refuseUserWrite(path, reason)
 		end
 		return osRemove(target)
 	end
 	sandboxedOs.rename = function(from, to)
 		local fromTarget, fromReason = checkUserWritePath(from)
 		if not fromTarget then
-			return nil, tostring(from) .. ": " .. fromReason
+			return nil, refuseUserWrite(from, fromReason)
 		end
 		local toTarget, toReason = checkUserWritePath(to)
 		if not toTarget then
-			return nil, tostring(to) .. ": " .. toReason
+			return nil, refuseUserWrite(to, toReason)
 		end
 		return osRename(fromTarget, toTarget)
 	end
@@ -608,7 +615,8 @@ local function CreateSandboxedSystem()
 	sandboxedTable.save = function(t, filename, header)
 		local target, reason = checkUserWritePath(filename)
 		if not target then
-			error(tostring(filename) .. ": " .. reason, 2)
+			refuseUserWrite(filename, reason)
+			return
 		end
 		return tableSave(t, target, header)
 	end
@@ -618,7 +626,8 @@ local function CreateSandboxedSystem()
 	sandboxedVfs.CompressFolder = function(folder, archiveType, archivePath, ...)
 		local target, reason = checkUserWritePath(archivePath)
 		if not target then
-			error(tostring(archivePath) .. ": " .. reason, 2)
+			refuseUserWrite(archivePath, reason)
+			return
 		end
 		return vfsCompressFolder(folder, archiveType, target, ...)
 	end
@@ -627,7 +636,8 @@ local function CreateSandboxedSystem()
 	local function createDir(path)
 		local target, reason = checkUserWritePath(path)
 		if not target then
-			error(tostring(path) .. ": " .. reason, 2)
+			refuseUserWrite(path, reason)
+			return
 		end
 		return spCreateDir(target)
 	end
@@ -829,8 +839,6 @@ end
 local function loadFailed(basename, reason)
 	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
 	widgetHandler:RecordError(basename, nil, reason, true)
-
-	return nil
 end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
@@ -856,6 +864,8 @@ local function callerFrame(f)
 	end
 	return f
 end
+
+local function callSandboxedFunc() end
 
 local function getLocalName(level, index)
 	local name = debugGetlocal(level + 1, index)
@@ -1124,7 +1134,8 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	widget.setfenv = function(f, env)
 		local frame = callerFrame(f)
 		if isForeignEnv(widget, getfenv(frame)) then
-			error("setfenv: cannot change this environment", 2)
+			Spring.Log("barwidgets.lua", LOG.ERROR, "setfenv: cannot change this environment")
+			return type(f) == "function" and f or nil
 		end
 		return setfenv(frame, env)
 	end
@@ -1286,6 +1297,50 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	wh.IsInterfaceHidden = function(_)
 		return self:IsInterfaceHidden()
+	end
+	if not fromZip then
+		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
+		local warned = {}
+		-- TODO: Remove friendly-sandboxing eventually. Code should error or crash on invalid accesses.
+		local function unavailable(name, value)
+			if value == nil then
+				return nil
+			end
+			if not warned[name] then
+				warned[name] = true
+				local info = rawget(widget, "whInfo")
+				Spring.Log(
+					"barwidgets.lua",
+					LOG.WARNING,
+					tostring(info and info.name or "A user widget")
+						.. ": "
+						.. name
+						.. " is not available to user widgets"
+				)
+			end
+			if type(value) == "function" then
+				return callSandboxedFunc
+			elseif type(value) == "table" then
+				return {}
+			end
+		end
+
+		-- Sandboxed members are handled via metatable, not collected individually:
+		setmetatable(wh, {
+			__index = function(_, key)
+				return unavailable("widgetHandler." .. tostring(key), self[key])
+			end,
+		})
+		setmetatable(wh.actionHandler, {
+			__index = function(_, key)
+				return unavailable("widgetHandler.actionHandler." .. tostring(key), self.actionHandler[key])
+			end,
+		})
+		setmetatable(widget.debug, {
+			__index = function(_, key)
+				return unavailable("debug." .. tostring(key), debug[key])
+			end,
+		})
 	end
 	tracy.ZoneEnd()
 	return widget, canControlUnits
