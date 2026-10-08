@@ -362,26 +362,26 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function loadChunk(text, chunkname, env)
+local function loadSourceChunk(text, chunkname, env)
 	if type(text) == "string" and stringByte(text, 1) == 27 then
 		return nil, "bytecode unsupported"
 	end
 	return loadstring(text, chunkname, env)
 end
 
-local function loadFile(filename, env)
+local function loadSourceFile(filename, env)
 	local file, err = ioOpen(filename, "rb")
 	if not file then
 		return nil, err
 	end
 	local text = file:read("*a")
 	file:close()
-	return loadChunk(text, "@" .. filename, env)
+	return loadSourceChunk(text, "@" .. filename, env)
 end
 
 function widgetHandler:LoadConfigData()
 	-- Config must be data. Loaded code cannot access any globals. It gets an empty env.
-	local chunk, err = loadFile(CONFIG_FILENAME, {})
+	local chunk, err = loadSourceFile(CONFIG_FILENAME, {})
 	if chunk == nil then
 		if err then
 			Spring.Log("barwidgets.lua", LOG.INFO, err)
@@ -881,7 +881,7 @@ local function callerFrame(f)
 	return f
 end
 
-local function callSandboxedFunc() end
+local function unavailableFunction() end
 
 local function getLocalName(level, index)
 	local name = debugGetlocal(level + 1, index)
@@ -1161,13 +1161,13 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		if type(env) ~= "table" then
 			env = ownEnv(widget, getfenv(2))
 		end
-		return loadChunk(text, chunkname, env)
+		return loadSourceChunk(text, chunkname, env)
 	end
 	widget.loadfile = function(filename)
-		return loadFile(filename, ownEnv(widget, getfenv(2)))
+		return loadSourceFile(filename, ownEnv(widget, getfenv(2)))
 	end
 	widget.dofile = function(filename)
-		local chunk, err = loadFile(filename, ownEnv(widget, getfenv(2)))
+		local chunk, err = loadSourceFile(filename, ownEnv(widget, getfenv(2)))
 		if not chunk then
 			error(err, 0)
 		end
@@ -1273,7 +1273,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		RemoveSyncAction = function(_, _, cmd)
 			return self.actionHandler:RemoveSyncAction(widget, cmd)
 		end,
-		-- TODO: This is in a migration period. See code below. Key actions must work through WG later.
+		-- TODO: Key actions must work through WG later. `bridgedKeyActions` is an allow-list for just a few.
 		KeyAction = function(_, press, key, mods, isRepeat, _, actions)
 			local bridged = {}
 			if type(actions) == "table" then
@@ -1340,7 +1340,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
 		local warned = {}
 		-- TODO: Remove friendly-sandboxing eventually. Code should error or crash on invalid accesses.
-		local function unavailable(name, value)
+		local function substituteUnavailable(name, value)
 			if value == nil then
 				return nil
 			end
@@ -1357,7 +1357,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 				)
 			end
 			if type(value) == "function" then
-				return callSandboxedFunc
+				return unavailableFunction
 			elseif type(value) == "table" then
 				return {}
 			end
@@ -1366,17 +1366,17 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		-- Sandboxed members are handled via metatable, not collected individually:
 		setmetatable(wh, {
 			__index = function(_, key)
-				return unavailable("widgetHandler." .. tostring(key), self[key])
+				return substituteUnavailable("widgetHandler." .. tostring(key), self[key])
 			end,
 		})
 		setmetatable(wh.actionHandler, {
 			__index = function(_, key)
-				return unavailable("widgetHandler.actionHandler." .. tostring(key), self.actionHandler[key])
+				return substituteUnavailable("widgetHandler.actionHandler." .. tostring(key), self.actionHandler[key])
 			end,
 		})
 		setmetatable(widget.debug, {
 			__index = function(_, key)
-				return unavailable("debug." .. tostring(key), debug[key])
+				return substituteUnavailable("debug." .. tostring(key), debug[key])
 			end,
 		})
 	end

@@ -32,10 +32,9 @@ function require(path, env, mode)
 	return VFS.Include(path .. ".lua", env, mode)
 end
 
--- ! FIXME !
--- Unsynced Lua reads raw-first, so any file in the write dir would replace the game's files.
+-- FIXME: Unsynced Lua reads raw-first, so a file in the write dir would replace the game's. Fix in the engine.
 if Script.GetName then
-	-- Protect global members used in loading code always
+	-- Local copies, so nothing loaded later can swap what the wrapper calls.
 	local vfsInclude = VFS.Include
 	local zip = VFS.ZIP
 	---@param path string

@@ -13425,7 +13425,8 @@ function widget:Initialize()
 	WG.options.addOptions = function(newOptions)
 		for _, option in ipairs(newOptions) do
 			option.group = "custom"
-			option.widget = nil -- FIXME: only prevent user widgets disabling game widgets; applying an option with a widget enables or disables that widget
+			-- FIXME: Applying an option with a widget enables or disables that widget. Remove from user widgets.
+			option.widget = nil
 			customOptions[#customOptions + 1] = option
 		end
 
