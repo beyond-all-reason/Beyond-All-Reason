@@ -195,7 +195,21 @@ describe("ModuleHandler", function()
 			end
 			assert.has_error(function()
 				ModuleHandler.Contract("loner")
-			end, "modules/loner/policies/b.lua: Check must declare itself: Fold(...) or Contributes(...)")
+			end, "modules/loner/policies/b.lua: Check must declare itself: Single(...), Fold(...) or Contributes(...)")
+		end)
+
+		it("refuses a contributor's Refusal: the owner alone shapes it", function()
+			FILES["modules/friend/policies/owner.lua"] = function(env)
+				local Owner = env.Policies.Contract("owner")
+				local Extra = Policy.Contributes(Owner.Check, { Friendly = "Friendly" })
+				env.Policies.On(Extra).Apply(Extra.Friendly, function() end).Refusal(function()
+					return "mine"
+				end)
+				return { Extra = Extra }
+			end
+			assert.has_error(function()
+				ModuleHandler.LoadPolicies("owner")
+			end, "modules/friend/policies/owner.lua: only owner may shape the refusal of owner.check")
 		end)
 
 		it("refuses two modules whose contracts need each other, naming both", function()

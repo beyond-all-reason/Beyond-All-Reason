@@ -541,7 +541,16 @@ function ModuleHandler.LoadPolicies(name, vfsMode)
 						)
 				)
 			end
-			Policy.Assemble(policy, chain.ops, chain.file)
+			if chain.module ~= name then
+				for _, op in ipairs(chain.ops) do
+					if op.op == "refusal" then
+						error(
+							chain.file .. ": only " .. name .. " may shape the refusal of " .. name .. "." .. category
+						)
+					end
+				end
+			end
+			Policy.Assemble(policy, chain.ops, chain.file, chain.module ~= name)
 		end
 		for _, step in ipairs(policy) do
 			step.category = category
@@ -617,10 +626,29 @@ function ModuleHandler.Evaluate(policies, ctx)
 	if Policy.IdentityOf(policies) ~= nil then
 		policies = ModuleHandler.Steps(policies)
 	end
-	for _, policy in ipairs(policies) do
-		policy.evaluate(ctx)
+	if policies.result == "fold" then
+		for _, policy in ipairs(policies) do
+			policy.evaluate(ctx)
+		end
+		return ctx
 	end
-	return ctx
+	for _, policy in ipairs(policies) do
+		if policy.kind == "unless" then
+			if policy.evaluate(ctx) then
+				return policies.refusal ~= nil and policies.refusal(ctx) or false
+			end
+		elseif policy.kind == "if" then
+			if not policy.evaluate(ctx) then
+				return policies.refusal ~= nil and policies.refusal(ctx) or false
+			end
+		else
+			local result = policy.evaluate(ctx)
+			if result ~= nil then
+				return result
+			end
+		end
+	end
+	return policies.refusal ~= nil and policies.refusal(ctx) or false
 end
 
 ---@param vfsMode string?
