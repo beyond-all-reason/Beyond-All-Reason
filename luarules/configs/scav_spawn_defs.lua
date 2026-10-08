@@ -308,6 +308,7 @@ local LandUnitsList = {
 		},
 		[6] = {
 			--Armada
+			armpwt4_scav = 3,
 			armmar_scav = 4,
 			--Cortex
 			corakt4_scav = 3,
