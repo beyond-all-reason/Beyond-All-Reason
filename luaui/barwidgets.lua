@@ -583,7 +583,7 @@ local function CreateSandboxedSystem()
 		local target, reason = checkUserWritePath(file)
 		if not target then
 			refuseUserWrite(file, reason)
-			return
+			return nil
 		end
 		return ioOutput(target)
 	end
@@ -637,7 +637,7 @@ local function CreateSandboxedSystem()
 		local target, reason = checkUserWritePath(path)
 		if not target then
 			refuseUserWrite(path, reason)
-			return
+			return nil
 		end
 		return spCreateDir(target)
 	end
