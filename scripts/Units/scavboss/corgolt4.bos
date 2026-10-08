@@ -7,6 +7,9 @@ piece  base, flare, turret, sleeve, barrel, smoke1, smoke2, lflare, rflare, lbal
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, restore_delay, last_lball_heading, last_rball_heading, willlaughing, islaughing, waslaughing, lastfired, healthperc;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_MOVE				4
@@ -174,6 +177,8 @@ reset_waslaughing(){
 
 Create()
 {
+	Weapon1TurretX = <45.000000>;
+	Weapon1TurretY = <40.000000>;
 	hide flare;
 	hide smoke1;
 	hide smoke2;
@@ -265,8 +270,8 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <40.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn sleeve to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();

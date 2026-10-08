@@ -2,7 +2,8 @@
 #include "../recoil_common_includes.h"
 
 piece  ground, base, radar, nano1, nano2, wake1, wake2, blink, drone1, drone2, drone3, drone4, drone5, drone6, drone7, drone8, drone9, drone10,
-		turret, launcher, flare1, flare2, flare3;
+		turret, launcher, flare1, flare2, flare3,
+		radarfirepoint;
 
 static-var  oldHead, gun_1;
 static-var  Stunned;
@@ -143,7 +144,7 @@ FireWeapon1()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = radar;
+	pieceIndex = radarfirepoint;
 	return (0);
 }
 

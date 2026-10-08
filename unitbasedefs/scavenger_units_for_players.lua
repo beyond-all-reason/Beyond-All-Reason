@@ -80,7 +80,7 @@ local function scavengerUnitsForPlayers(name, unitDef)
 	if name == "coraca" or name == "corack" or name == "coracv" then
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corapt3" -- T3 Aircraft Gantry
-		buildoptions[numBuildoptions + 2] = "corminibuzz" -- Mini Calamity
+		buildoptions[numBuildoptions + 2] = "corobligator" -- Obligator
 		buildoptions[numBuildoptions + 3] = "corhllllt" -- Quad Guard - Quad Light Laser Turret
 		buildoptions[numBuildoptions + 4] = "cordoomt3" -- Epic Bulwark
 		buildoptions[numBuildoptions + 5] = "corafust3" -- Epic Fusion Reactor
@@ -128,7 +128,6 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
 		buildoptions[numBuildoptions + 2] = "corakt4" -- Epic Grunt
 		buildoptions[numBuildoptions + 3] = "corthermite" -- Thermite/Epic Termite
-		buildoptions[numBuildoptions + 4] = "cormandot4" -- Epic Commando
 	end
 
 	-- Cortex T3 Underwater Gantry
@@ -136,7 +135,6 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
 		buildoptions[numBuildoptions + 2] = "corakt4" -- Epic Grunt
-		buildoptions[numBuildoptions + 3] = "cormandot4" -- Epic Commando
 	end
 
 	-- Legion T1 Land Constructors

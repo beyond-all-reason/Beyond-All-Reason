@@ -43,14 +43,14 @@ void main() {
 	//vec2 uv = gl_TexCoord[0].xy * vec2(2,-2) + vec2(0,2.0);
 	//fragColor = vec4(uv.xy, 0.0, 1.0); return;
 	#if USE_STENCIL == 1 
-		if (texture(unitStencilTex, uv).r < 0.1) {
+		if (textureLod(unitStencilTex, uv, 0.0).r < 0.1) {
 			fragColor = vec4(0,0,0,0) ; 
 			return;
 		}
 	#endif
 
-	float modelDepth = texture(modelDepthTex, uv).r;
-	float mapDepth = texture(mapDepthTex, uv).r;
+	float modelDepth = textureLod(modelDepthTex, uv, 0.0).r;
+	float mapDepth = textureLod(mapDepthTex, uv, 0.0).r;
 
 	float modelOccludesMap = float(modelDepth < mapDepth);
 	float depth = mix(mapDepth, modelDepth, modelOccludesMap);

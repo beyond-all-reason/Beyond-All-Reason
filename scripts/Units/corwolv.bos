@@ -6,6 +6,9 @@ piece  base, sleeve, barrel, gun, flare, turret;
 static-var  restore_delay;
 static-var  out_of_arc_count;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -28,6 +31,8 @@ static-var  out_of_arc_count;
 
 Create()
 {
+	Weapon1TurretX = <90.0>;
+	Weapon1TurretY = <110.0>;
 	hide flare;
 	hide flare;
 	turn flare to z-axis <-45.0> now;
@@ -102,8 +107,8 @@ AimWeapon1(heading, pitch)
 	}
 	out_of_arc_count = 0;
 
-	turn turret to y-axis heading speed <110.0>;
-	turn gun to x-axis <45.0> - pitch speed <90.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn gun to x-axis <45.0> - pitch speed Weapon1TurretX;
 	wait-for-turn turret around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();

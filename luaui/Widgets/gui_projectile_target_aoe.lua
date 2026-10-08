@@ -182,11 +182,10 @@ local function BuildWeaponCache()
 					tracks = wd.tracks,
 				}
 				if starburstWeapons[wdid].initialTimeToLive == 0 then
-					starburstWeapons[wdid].initialTimeToLive = starburstWeapons[wdid].uptime * gameSpeed
-						+ wd.range / starburstWeapons[wdid].projectileSpeed
-						+ 100
+					local uptimeFrames = floor(starburstWeapons[wdid].uptime * gameSpeed)
+					starburstWeapons[wdid].initialTimeToLive =
+						floor(min(3000, uptimeFrames + wd.range / starburstWeapons[wdid].projectileSpeed + 100))
 				end
-				--Spring.Echo(wdid, wd.name, aoe, wd.range, isNuke, isParalyzer)
 			end
 		end
 	end

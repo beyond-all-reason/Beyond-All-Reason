@@ -6,8 +6,8 @@
 // This shader is part of the Beyond All Reason repository.
 
 // Radar preview minimap pass: a flat fill of the radar coverage on the minimap (RadarPreviewMinimap setting),
-// outlined along the border with uncovered radar cells like the background sheet in the world.
-// The fill fades with the same smoothed per-radar-cell coverage the cubes use (_smooth.frag.glsl); the outline
+// outlined along the border with uncovered radar cells like the sheet in the world.
+// The fill fades with the same smoothed per-radar-cell coverage the sheet uses (_smooth.frag.glsl); the outline
 // is taken from the exact engine coverage (_coverage.frag.glsl) instead, so it is the same at any instant.
 // This matters for the engine minimap, whose texture is refreshed from Game::Update at 15-60 Hz and would
 // otherwise freeze the smoothing pass mid-way, with cells easing in or out showing up as stray outlines.
@@ -18,13 +18,14 @@ uniform sampler2D coverageTex;  // smoothed coverage of the previewed radar, R =
 uniform sampler2D radarInfoTex; // allied radar coverage map, R = 1 where any allied radar covers the radar cell (only read when discParams.w = 1)
 uniform sampler2D targetTex;    // exact engine coverage of the previewed radar (0/1), same layout as coverageTex
 uniform vec4 discParams;        // emitter cell x, emitter cell y, radius in cells, allied coverage on (1) / off (0)
+uniform vec3 inactiveParams;    // 0 while the previewed emitter works, 1 while it does not (eased in between); its fill and outline opacity then, relative to a working one's. Unset it always works.
 uniform vec4 mapParams;         // map width in radar cells, map height in radar cells, minimap rotation (0..3 quarter turns clockwise), outline width in pixels
 
 in vec2 minimapUV;
 
 out vec4 fragColor;
 
-const vec3 baseColor = BASE_COLOR;
+const vec3 sheetColor = SHEET_COLOR;
 const vec3 alliedColor = ALLIED_COLOR;
 const vec3 outlineColor = OUTLINE_COLOR;
 const float alliedAlpha = float(ALLIED_ALPHA);
@@ -82,7 +83,9 @@ void main() {
 	float smoothed = smoothedAt(cell);
 	float own = ownAt(cell);
 	float allied = alliedAt(cell);
-	float fill = max(smoothed, allied * alliedAlpha);
+	// an inactive preview covers nothing: it is drawn fainter, and allied cells under it show as they are
+	float inactive = inactiveParams.x;
+	float fill = max(smoothed * mix(1.0, inactiveParams.y, inactive), allied * alliedAlpha);
 
 	// outline: the sides of this cell that border a cell the previewed radar does not cover (its own coverage
 	// border, drawn even inside allied coverage) or that nobody covers. fwidth gives the cell size in pixels
@@ -92,23 +95,25 @@ void main() {
 	vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
 	ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
 	ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
-	float ownNx = ownAt(nx);
-	float ownNz = ownAt(nz);
-	vec2 side = vec2(
-		max(own * (1.0 - ownNx), 1.0 - max(ownNx, alliedAt(nx))),
-		max(own * (1.0 - ownNz), 1.0 - max(ownNz, alliedAt(nz))));
+	ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
+	vec3 ownN = vec3(ownAt(nx), ownAt(nz), ownAt(nd));
+	vec3 alliedN = vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd));
+	float covered = 1.0 - inactive * (1.0 - allied);
+	vec3 side = max(own * (1.0 - ownN), covered * (1.0 - max(ownN * (1.0 - inactive), alliedN))); // x side, z side, diagonal
 	vec2 px = max(fwidth(cellPos), vec2(1e-5)) * mapParams.w;
-	vec2 lineAmount = side * (1.0 - smoothstep(vec2(0.0), px, edgeDist));
+	vec2 edge = 1.0 - smoothstep(vec2(0.0), px, edgeDist);
+	// at a concave corner only the diagonal cell is outside: this cell's corner square closes the outline there
+	float corner = (1.0 - side.x) * (1.0 - side.y) * side.z * min(edge.x, edge.y);
 	// only covered cells are outlined; a cell the previewed radar just started covering fades its outline in
 	// with its fill. Allied-only cells use their own outline opacity.
 	float previewWeight = own * smoothstep(0.0, 0.5, smoothed);
-	float outline = max(lineAmount.x, lineAmount.y) * max(previewWeight, allied);
-	float outlineA = mix(alliedOutlineAlpha, outlineAlpha, previewWeight);
+	float outline = max(max(side.x * edge.x, side.y * edge.y), corner) * max(previewWeight, allied);
+	float outlineA = mix(alliedOutlineAlpha, outlineAlpha * mix(1.0, inactiveParams.z, inactive), previewWeight);
 
 	float alpha = mix(fill * fillAlpha, outlineA, outline);
 	if (alpha < 0.002) {
 		discard;
 	}
-	vec3 color = mix(alliedColor, baseColor, smoothed);
+	vec3 color = mix(alliedColor, sheetColor, smoothed * (1.0 - inactive * allied));
 	fragColor = vec4(mix(color, outlineColor, outline), alpha);
 }

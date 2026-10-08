@@ -87,7 +87,6 @@ local devUI = BAR.Utilities.ShowDevUI()
 
 local advSettings = false
 local initialized = false
-local pauseGameWhenSingleplayer = true
 
 local cameraTransitionTime = 0.18
 local cameraPanTransitionTime = 0.03
@@ -127,8 +126,6 @@ local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 
-local pauseGameWhenSingleplayerExecuted = false
-
 local backwardTex = ":l:LuaUI/Images/backward.dds"
 local forwardTex = ":l:LuaUI/Images/forward.dds"
 
@@ -146,7 +143,6 @@ local changesRequireRestart = false
 local useNetworkSmoothing = false
 
 local show = false
-local prevShow = show
 local manualChange = true
 
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -175,9 +171,6 @@ local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButt
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
-
-local skipUnpauseOnHide = false
-local skipUnpauseOnLobbyHide = false
 
 local desiredWaterValue = 4
 local waterDetected = false
@@ -1653,85 +1646,13 @@ function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1, 18) == "LobbyOverlayActive" then
 		chobbyInterface = (msg:sub(1, 19) == "LobbyOverlayActive1")
 		updateGrabinput()
-		if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and not skipUnpauseOnHide then
-			local _, _, isClientPaused, _ = Spring.GetGameState()
-			if chobbyInterface and isClientPaused then
-				skipUnpauseOnLobbyHide = true
-			end
-			if not skipUnpauseOnLobbyHide then
-				Spring.SendCommands("pause " .. (chobbyInterface and "1" or "0"))
-				pauseGameWhenSingleplayerExecuted = chobbyInterface
-			end
-			if not chobbyInterface then
-				Spring.SetConfigInt(
-					"VSync",
-					Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1)
-				)
-			end
+		if (isSinglePlayer or isReplay) and not chobbyInterface then
+			Spring.SetConfigInt("VSync", Spring.GetConfigInt("VSyncGame", -1) * Spring.GetConfigInt("VSyncFraction", 1))
 		end
 	end
-end
-
-local showToggledOff = false
-local function checkPause()
-	-- pause/unpause when the options/quitscreen interface shows
-	_, _, isClientPaused, _ = Spring.GetGameState()
-	if not isClientPaused then
-		skipUnpauseOnHide = false
-		skipUnpauseOnLobbyHide = false
-	end
-	showToggledOff = false
-	if (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer and prevShow ~= show then
-		if show and isClientPaused then
-			skipUnpauseOnHide = true
-		end
-		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (show and "1" or "0")) -- cause several widgets are still using old colors
-			showToggledOff = not show
-			pauseGameWhenSingleplayerExecuted = show
-		end
-	end
-end
-
-local quitscreen = false
-local prevQuitscreen = false
-local pauseCheckTimer = 0
-local lastPauseCheckClock = os_clock()
-local canPauseGame = (isSinglePlayer or isReplay) and pauseGameWhenSingleplayer
-local isClientPaused = false
-local function checkQuitscreen()
-	if not canPauseGame then
-		return
-	end
-	quitscreen = (WG.topbar and WG.topbar.showingQuit() or false)
-	if prevQuitscreen ~= quitscreen then
-		if quitscreen and isClientPaused and not showToggledOff then
-			skipUnpauseOnHide = true
-		end
-		if not skipUnpauseOnHide then
-			Spring.SendCommands("pause " .. (quitscreen and "1" or "0")) -- cause several widgets are still using old colors
-			pauseGameWhenSingleplayerExecuted = quitscreen
-		end
-	end
-	prevQuitscreen = quitscreen
 end
 
 function widget:DrawScreen()
-	-- pause/quit checks only needed for singleplayer/replay
-	if canPauseGame then
-		if prevShow ~= show then
-			checkPause()
-		end
-		-- throttle quitscreen polling to ~4x/sec
-		local clockNow = os_clock()
-		pauseCheckTimer = pauseCheckTimer + (clockNow - lastPauseCheckClock)
-		lastPauseCheckClock = clockNow
-		if pauseCheckTimer > 0.25 then
-			pauseCheckTimer = 0
-			checkQuitscreen()
-		end
-	end
-
 	-- doing it here so other widgets having higher layer number value are also loaded
 	if not initialized then
 		init()
@@ -2280,8 +2201,6 @@ function widget:DrawScreen()
 			loadAllWidgetData()
 		end
 	end
-
-	prevShow = show
 end
 
 function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue, widgetApiFunctionParam)
@@ -2805,8 +2724,6 @@ function applyOptionValue(i, newValue, skipRedrawWindow, force)
 			end
 		else
 			if widgetHandler.orderList[options[i].widget] > 0 then
-				widgetHandler:ToggleWidget(options[i].widget)
-			else
 				widgetHandler:DisableWidget(options[i].widget)
 			end
 		end
@@ -2968,6 +2885,121 @@ function applyFilter()
 		gl.DeleteList(windowList)
 	end
 	windowList = gl.CreateList(DrawWindow)
+end
+
+-------------------------------------------------------------------------------
+-- Squad selection presets
+--
+-- The Squad Selection widget supports several playstyles, and each one wants a different set of its switches. Rather than show every switch to everyone, the panel offers a playstyle preset: picking one writes the settings that preset owns and hides their rows. Custom owns nothing and shows the full list.
+
+squadPreset = {
+	-- The playstyle definitions, shared with the widget.
+	definitions = VFS.Include("luaui/Include/squad_selection_presets.lua"),
+
+	-- Rows for settings a preset owns; hidden unless the preset is Custom.
+	ownedOptions = {
+		"squad_cyclingToNextSquad",
+		"squad_leftClickAlternativeSelection",
+		"squad_squadCreateMethod",
+		"squad_rightClickMoveControlsReserves",
+		"squad_mergeIntoReserves",
+	},
+
+	allOptions = {
+		"squad_cyclingToNextSquad",
+		"squad_leftClickSelectsSquad",
+		"squad_leftClickAlternativeSelection",
+		"squad_squadCreateMethod",
+		"squad_rightClickMovesSquad",
+		"squad_rightClickMoveControlsReserves",
+		"squad_mergeIntoReserves",
+		"squad_mruSize",
+		"squad_excludeConstructors",
+		"squad_excludeResurrectionUnits",
+		"squad_excludeCombatEngineers",
+		"label_squad_hulls",
+		"label_squad_hulls_spacer",
+		"squad_hullDisplayMode",
+		"squad_convexHullPadding",
+		"squad_convexHullArcResolution",
+		"squad_convexHullFillOpacity",
+		"squad_convexHullBorderOpacity",
+		"squad_convexHullBorderThickness",
+		"squad_convexHullColorMode",
+		"squad_convexHullCustomColorR",
+		"squad_convexHullCustomColorG",
+		"squad_convexHullCustomColorB",
+	},
+
+	-- Rows that only make sense while the hull widget itself is running.
+	hullOptions = {
+		"squad_convexHullPadding",
+		"squad_convexHullArcResolution",
+		"squad_convexHullFillOpacity",
+		"squad_convexHullBorderOpacity",
+		"squad_convexHullBorderThickness",
+		"squad_convexHullColorMode",
+		"squad_convexHullCustomColorR",
+		"squad_convexHullCustomColorG",
+		"squad_convexHullCustomColorB",
+	},
+}
+-- Index-aligned with the squad_preset select's option labels. 'off' is not a preset but the widget being disabled, so it leads the shared list.
+squadPreset.names = { "off" }
+for _, name in ipairs(squadPreset.definitions.names) do
+	squadPreset.names[#squadPreset.names + 1] = name
+end
+squadPreset.index = table.invert(squadPreset.names)
+
+-- The widget is unloaded while the preset is Off
+function squadPreset.get()
+	if not GetWidgetToggleValue("Squad Selection") then
+		return "off"
+	end
+	if WG["squadselection"] ~= nil and WG["squadselection"].getPreset ~= nil then
+		return WG["squadselection"].getPreset()
+	end
+	local data = widgetHandler.configData["Squad Selection"]
+	return (data and data.preset) or "custom"
+end
+
+function squadPreset.apply(name)
+	if name == "off" then
+		if GetWidgetToggleValue("Squad Selection Hull") then
+			widgetHandler:DisableWidget("Squad Selection Hull")
+		end
+		if GetWidgetToggleValue("Squad Selection") then
+			widgetHandler:DisableWidget("Squad Selection")
+		end
+		scheduleInit = true
+		return
+	end
+
+	-- The two widgets are a pair: the hull widget only draws state the main one owns, so a preset enables and disables both.
+	if not GetWidgetToggleValue("Squad Selection") then
+		widgetHandler:EnableWidget("Squad Selection")
+	end
+	if not GetWidgetToggleValue("Squad Selection Hull") then
+		widgetHandler:EnableWidget("Squad Selection Hull")
+	end
+
+	for key, value in pairs(squadPreset.definitions.values[name] or {}) do
+		saveOptionValue(
+			"Squad Selection",
+			"squadselection",
+			"set" .. key:sub(1, 1):upper() .. key:sub(2),
+			{ key },
+			value
+		)
+	end
+	saveOptionValue("Squad Selection", nil, nil, { "preset" }, name)
+
+	local api = WG["squadselection"]
+	if api ~= nil and api.applyPreset ~= nil then
+		api.applyPreset(name)
+	end
+
+	scheduleInit = true
 end
 
 function init()
@@ -4102,18 +4134,18 @@ function init()
 		},
 
 		{
-			id = "territorial_domination_height_opacity",
+			id = "dominion_height_opacity",
 			group = "gfx",
 			category = types.advanced,
-			name = BAR.I18N("ui.settings.option.territorial_domination_height_opacity"),
+			name = BAR.I18N("ui.settings.option.dominion_height_opacity"),
 			type = "slider",
 			min = 0.5,
 			max = 2.0,
 			step = 0.05,
-			value = Spring.GetConfigFloat("territorial_domination_height_opacity", 1.0),
-			description = BAR.I18N("ui.settings.option.territorial_domination_height_opacity_descr"),
+			value = Spring.GetConfigFloat("dominion_height_opacity", 1.0),
+			description = BAR.I18N("ui.settings.option.dominion_height_opacity_descr"),
 			onchange = function(i, value)
-				Spring.SetConfigFloat("territorial_domination_height_opacity", value)
+				Spring.SetConfigFloat("dominion_height_opacity", value)
 			end,
 		},
 
@@ -8729,6 +8761,346 @@ function init()
 			end,
 		},
 
+		-- SQUAD HULLS (widget: "Squad Selection", WG['squadselection']).
+		{
+			id = "label_squad_hulls",
+			group = "ui",
+			name = BAR.I18N("ui.settings.option.squadSelection_header_hulls"),
+			category = types.basic,
+		},
+		{ id = "label_squad_hulls_spacer", group = "ui", category = types.basic },
+		{
+			id = "squad_hullDisplayMode",
+			group = "ui",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt3"),
+			},
+			-- Derive the index from WG now (at init), so the cached draw list shows the
+			-- right option immediately. onload re-derives the same value on panel open.
+			value = (WG["squadselection"] == nil and 1)
+				or (WG["squadselection"].getVisualizationMode() ~= "convexHull" and 1)
+				or (WG["squadselection"].getShowReserveSquads() and 2)
+				or 3,
+			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
+			onload = function(i)
+				local v = 1
+				if WG["squadselection"] ~= nil then
+					if WG["squadselection"].getVisualizationMode() ~= "convexHull" then
+						v = 1
+					elseif WG["squadselection"].getShowReserveSquads() then
+						v = 2
+					else
+						v = 3
+					end
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setVisualizationMode",
+					{ "visualizationMode" },
+					value == 1 and "none" or "convexHull"
+				)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setShowReserveSquads",
+					{ "showReserveSquads" },
+					value == 2
+				)
+				if widgetHandler:IsWidgetKnown("Squad Selection Hull") then
+					if value == 1 then
+						widgetHandler:DisableWidget("Squad Selection Hull")
+					else
+						widgetHandler:EnableWidget("Squad Selection Hull")
+					end
+				end
+				scheduleInit = true
+			end,
+		},
+
+		{
+			id = "squad_convexHullPadding",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_Padding"),
+			type = "slider",
+			min = 0,
+			max = 200,
+			step = 5,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullPadding ~= nil
+				and WG["squadselectionhull"].getConvexHullPadding()
+			) or 60,
+			description = BAR.I18N("ui.settings.option.squadSelectionHull_Padding_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullPadding", { "convexHullPadding" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullPadding",
+					{ "convexHullPadding" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullArcResolution",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_ArcResolution"),
+			type = "slider",
+			min = 0.05,
+			max = 1.0,
+			step = 0.05,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullArcResolution ~= nil
+				and WG["squadselectionhull"].getConvexHullArcResolution()
+			) or 0.4,
+			description = BAR.I18N("ui.settings.option.squadSelectionHull_ArcResolution_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullArcResolution", { "convexHullArcResolution" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullArcResolution",
+					{ "convexHullArcResolution" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullFillOpacity",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_FillOpacity"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullFillOpacity ~= nil
+				and WG["squadselectionhull"].getConvexHullFillOpacity()
+			) or 0.25,
+			description = BAR.I18N("ui.settings.option.squadSelectionHull_FillOpacity_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullFillOpacity", { "convexHullFillOpacity" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullFillOpacity",
+					{ "convexHullFillOpacity" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullBorderOpacity",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_BorderOpacity"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderOpacity ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderOpacity()
+			) or 0.3,
+			onload = function(i)
+				loadWidgetData("Squad Selection Hull", "squad_convexHullBorderOpacity", { "convexHullBorderOpacity" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullBorderOpacity",
+					{ "convexHullBorderOpacity" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullBorderThickness",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelectionHull_BorderThickness"),
+			type = "slider",
+			min = 0.5,
+			max = 5,
+			step = 0.5,
+			value = (
+				WG["squadselectionhull"] ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderThickness ~= nil
+				and WG["squadselectionhull"].getConvexHullBorderThickness()
+			) or 2,
+			onload = function(i)
+				loadWidgetData(
+					"Squad Selection Hull",
+					"squad_convexHullBorderThickness",
+					{ "convexHullBorderThickness" }
+				)
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection Hull",
+					"squadselectionhull",
+					"setConvexHullBorderThickness",
+					{ "convexHullBorderThickness" },
+					value
+				)
+			end,
+		},
+		{
+			id = "squad_convexHullColorMode",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadColorMode"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt3"),
+			},
+			value = (WG["squadselection"] == nil and 1)
+				or (WG["squadselection"].getSquadColorMode() == "custom" and 2)
+				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
+				or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
+			onload = function(i)
+				local raw = (
+					WG["squadselection"] ~= nil
+					and WG["squadselection"].getSquadColorMode ~= nil
+					and WG["squadselection"].getSquadColorMode()
+				) or "player"
+				local modes = { "player", "custom", "squad" }
+				for idx, v in ipairs(modes) do
+					if v == raw then
+						options[i].value = idx
+						break
+					end
+				end
+			end,
+			onchange = function(_, value)
+				local modes = { "player", "custom", "squad" }
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadColorMode",
+					{ "squadColorMode" },
+					modes[value] or "player"
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullCustomColorR",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadCustomColorR ~= nil
+				and WG["squadselection"].getSquadCustomColorR()
+			) or 0,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorR_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorR", { "squadCustomColorR" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadCustomColorR",
+					{ "squadCustomColorR" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullCustomColorG",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadCustomColorG ~= nil
+				and WG["squadselection"].getSquadCustomColorG()
+			) or 0.3,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorG_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorG", { "squadCustomColorG" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadCustomColorG",
+					{ "squadCustomColorG" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_convexHullCustomColorB",
+			group = "ui",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB"),
+			type = "slider",
+			min = 0,
+			max = 1,
+			step = 0.05,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadCustomColorB ~= nil
+				and WG["squadselection"].getSquadCustomColorB()
+			) or 0.7,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCustomColorB_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_convexHullCustomColorB", { "squadCustomColorB" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setSquadCustomColorB",
+					{ "squadCustomColorB" },
+					value
+				)
+			end,
+		},
+
 		{
 			id = "label_ui_developer",
 			group = "ui",
@@ -8801,19 +9173,12 @@ function init()
 			category = types.advanced,
 			name = BAR.I18N("ui.settings.option.singleplayerpause"),
 			type = "bool",
-			value = pauseGameWhenSingleplayer,
+			value = Spring.GetConfigInt("WindowsPauseGame", 1) == 1,
 			description = BAR.I18N("ui.settings.option.singleplayerpause_descr"),
 			onchange = function(i, value)
-				pauseGameWhenSingleplayer = value
-				if (isSinglePlayer or isReplay) and show then
-					if pauseGameWhenSingleplayer then
-						Spring.SendCommands("pause " .. (pauseGameWhenSingleplayer and "1" or "0"))
-						pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayer
-					elseif pauseGameWhenSingleplayerExecuted then
-						Spring.SendCommands("pause 0")
-						pauseGameWhenSingleplayerExecuted = false
-					end
-				end
+				Spring.SetConfigInt("WindowsPauseGame", (value and 1 or 0))
+				-- pushed through as well so it takes effect now instead of at the next poll
+				widgetHandler:SetWindowsPauseGame(value)
 			end,
 		},
 
@@ -9269,6 +9634,385 @@ function init()
 			name = BAR.I18N("ui.settings.option.autocloak"),
 			type = "bool",
 			value = GetWidgetToggleValue("Auto Cloak Units"),
+		},
+
+		-- SQUAD SELECTION (widget: "Squad Selection", WG['squadselection'])
+		{
+			id = "label_squad",
+			group = "game",
+			name = BAR.I18N("ui.settings.option.squadSelection_header"),
+			category = types.basic,
+		},
+		{ id = "label_squad_spacer", group = "game", category = types.basic },
+
+		-- Playstyle preset. Off disables the widgets entirely (the default), every other value enables them and writes the settings it owns.
+		{
+			id = "squad_preset",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_preset"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt3"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt4"),
+				BAR.I18N("ui.settings.option.squadSelection_preset_opt5"),
+			},
+			value = squadPreset.index[squadPreset.get()] or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_preset_descr"),
+			onload = function(i)
+				options[i].value = squadPreset.index[squadPreset.get()] or 1
+			end,
+			onchange = function(_, value)
+				-- Toggles widgets, so it schedules the rebuild for next frame rather than rebuilding here. See squadPreset.apply().
+				squadPreset.apply(squadPreset.names[value] or "off")
+			end,
+		},
+
+		{
+			id = "squad_cyclingToNextSquad",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_cyclingToNextSquad"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getCyclingToNextSquad ~= nil
+				and WG["squadselection"].getCyclingToNextSquad()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_cyclingToNextSquad_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_cyclingToNextSquad", { "cyclingToNextSquad" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setCyclingToNextSquad",
+					{ "cyclingToNextSquad" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_leftClickSelectsSquad",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_leftClickSelectsSquad"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getLeftClickSelectsSquad ~= nil
+				and WG["squadselection"].getLeftClickSelectsSquad()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_leftClickSelectsSquad_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_leftClickSelectsSquad", { "leftClickSelectsSquad" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setLeftClickSelectsSquad",
+					{ "leftClickSelectsSquad" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_leftClickAlternativeSelection",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N(
+				"ui.settings.option.squadSelection_leftClickAlternativeSelection"
+			),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getLeftClickAlternativeSelection ~= nil
+				and WG["squadselection"].getLeftClickAlternativeSelection()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_leftClickAlternativeSelection_descr"),
+			onload = function(i)
+				loadWidgetData(
+					"Squad Selection",
+					"squad_leftClickAlternativeSelection",
+					{ "leftClickAlternativeSelection" }
+				)
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setLeftClickAlternativeSelection",
+					{ "leftClickAlternativeSelection" },
+					value
+				)
+			end,
+		},
+
+		-- Synthetic select owning the three mutually-exclusive rightClick* booleans.
+		{
+			id = "squad_squadCreateMethod",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod"),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt2"),
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt3"),
+				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt4"),
+			},
+			value = (WG["squadselection"] == nil and 1)
+				or (WG["squadselection"].getRightClickSquadCreate() and 2)
+				or (WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
+				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
+				or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
+			onload = function(i)
+				local v = 1
+				if WG["squadselection"] ~= nil then
+					if WG["squadselection"].getRightClickSquadCreate() then
+						v = 2
+					elseif WG["squadselection"].getCtrlRightClickCreatesSquad() then
+						v = 3
+					elseif WG["squadselection"].getCtrlRightClickDragCreatesSquad() then
+						v = 4
+					end
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setRightClickSquadCreate",
+					{ "rightClickSquadCreate" },
+					value == 2
+				)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setCtrlRightClickCreatesSquad",
+					{ "ctrlRightClickCreatesSquad" },
+					value == 3
+				)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setCtrlRightClickDragCreatesSquad",
+					{ "ctrlRightClickDragCreatesSquad" },
+					value == 4
+				)
+			end,
+		},
+
+		{
+			id = "squad_rightClickMovesSquad",
+			group = "game",
+			category = types.basic,
+			name = BAR.I18N("ui.settings.option.squadSelection_rightClickMovesSquad"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getRightClickMovesSquad ~= nil
+				and WG["squadselection"].getRightClickMovesSquad()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMovesSquad_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_rightClickMovesSquad", { "rightClickMovesSquad" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setRightClickMovesSquad",
+					{ "rightClickMovesSquad" },
+					value
+				)
+			end,
+		},
+
+		-- Synthetic select owning the rightClickMoveControlsReserves boolean.
+		{
+			id = "squad_rightClickMoveControlsReserves",
+			group = "game",
+			category = types.advanced,
+			name = widgetOptionColor .. "   " .. BAR.I18N(
+				"ui.settings.option.squadSelection_rightClickMoveControlsReserves"
+			),
+			type = "select",
+			options = {
+				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt1"),
+				BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_opt2"),
+			},
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
+				and WG["squadselection"].getRightClickMoveControlsReserves()
+				and 2
+			) or 1,
+			description = BAR.I18N("ui.settings.option.squadSelection_rightClickMoveControlsReserves_descr"),
+			onload = function(i)
+				local v = 1
+				if
+					WG["squadselection"] ~= nil
+					and WG["squadselection"].getRightClickMoveControlsReserves ~= nil
+					and WG["squadselection"].getRightClickMoveControlsReserves()
+				then
+					v = 2
+				end
+				options[i].value = v
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setRightClickMoveControlsReserves",
+					{ "rightClickMoveControlsReserves" },
+					value == 2
+				)
+			end,
+		},
+
+		{
+			id = "squad_mergeIntoReserves",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_mergeIntoReserves"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getMergeIntoReserves ~= nil
+				and WG["squadselection"].getMergeIntoReserves()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_mergeIntoReserves_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_mergeIntoReserves", { "mergeIntoReserves" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setMergeIntoReserves",
+					{ "mergeIntoReserves" },
+					value
+				)
+			end,
+		},
+
+		{
+			id = "squad_mruSize",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_mruSize"),
+			type = "slider",
+			min = 1,
+			max = 9,
+			step = 1,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getMruSize ~= nil
+				and WG["squadselection"].getMruSize()
+			) or 3,
+			description = BAR.I18N("ui.settings.option.squadSelection_mruSize_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_mruSize", { "mruSize" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue("Squad Selection", "squadselection", "setMruSize", { "mruSize" }, value)
+			end,
+		},
+
+		{
+			id = "squad_excludeConstructors",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getExcludeConstructors ~= nil
+				and WG["squadselection"].getExcludeConstructors()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_excludeConstructors_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_excludeConstructors", { "excludeConstructors" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setExcludeConstructors",
+					{ "excludeConstructors" },
+					value
+				)
+				if WG["squadselection"] ~= nil and WG["squadselection"].rebuildTracking ~= nil then
+					WG["squadselection"].rebuildTracking()
+				end
+			end,
+		},
+
+		{
+			id = "squad_excludeResurrectionUnits",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getExcludeResurrectionUnits ~= nil
+				and WG["squadselection"].getExcludeResurrectionUnits()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_excludeResurrectionUnits_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_excludeResurrectionUnits", { "excludeResurrectionUnits" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setExcludeResurrectionUnits",
+					{ "excludeResurrectionUnits" },
+					value
+				)
+				if WG["squadselection"] ~= nil and WG["squadselection"].rebuildTracking ~= nil then
+					WG["squadselection"].rebuildTracking()
+				end
+			end,
+		},
+
+		{
+			id = "squad_excludeCombatEngineers",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers"),
+			type = "bool",
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getExcludeCombatEngineers ~= nil
+				and WG["squadselection"].getExcludeCombatEngineers()
+			),
+			description = BAR.I18N("ui.settings.option.squadSelection_excludeCombatEngineers_descr"),
+			onload = function(i)
+				loadWidgetData("Squad Selection", "squad_excludeCombatEngineers", { "excludeCombatEngineers" })
+			end,
+			onchange = function(_, value)
+				saveOptionValue(
+					"Squad Selection",
+					"squadselection",
+					"setExcludeCombatEngineers",
+					{ "excludeCombatEngineers" },
+					value
+				)
+				if WG["squadselection"] ~= nil and WG["squadselection"].rebuildTracking ~= nil then
+					WG["squadselection"].rebuildTracking()
+				end
+			end,
 		},
 
 		-- ACCESSIBILITY
@@ -11637,6 +12381,33 @@ function init()
 		options[getOptionByID("gridmenu_shiftkeymodifier")] = nil
 	end
 
+	local function removeOptions(ids)
+		for _, id in ipairs(ids) do
+			local i = getOptionByID(id)
+			if i then
+				options[i] = nil
+			end
+		end
+	end
+
+	-- Squad selection: the playstyle preset decides how much of the section is drawn. Off leaves just the preset select, Custom shows everything, and any other preset hides the rows it owns because it writes them itself.
+	if not widgetHandler.knownWidgets["Squad Selection"] then
+		removeOptions(squadPreset.allOptions)
+		removeOptions({ "squad_preset", "label_squad", "label_squad_spacer" })
+	else
+		local activePreset = squadPreset.get()
+		if activePreset == "off" then
+			removeOptions(squadPreset.allOptions)
+		else
+			if activePreset ~= "custom" then
+				removeOptions(squadPreset.ownedOptions)
+			end
+			if not GetWidgetToggleValue("Squad Selection Hull") then
+				removeOptions(squadPreset.hullOptions)
+			end
+		end
+	end
+
 	if
 		spectatorHUDConfigOptions[options[getOptionByID("spectator_hud_config")].value]
 		~= BAR.I18N("ui.settings.option.spectator_hud_config_custom")
@@ -12510,8 +13281,6 @@ function widget:Initialize()
 	updateGrabinput()
 	widget:ViewResize()
 
-	prevShow = show
-
 	--if tonumber(Spring.GetConfigInt("CameraSmoothing", 0)) == 1 then
 	--	Spring.SendCommands("set CamFrameTimeCorrection 1")
 	--	Spring.SendCommands("set SmoothTimeOffset 2")
@@ -12762,8 +13531,6 @@ function widget:GetConfigData()
 		cameraPanTransitionTime = cameraPanTransitionTime,
 		useNetworkSmoothing = useNetworkSmoothing,
 		desiredWaterValue = desiredWaterValue, -- configint water can't be used since we will set water 0 when no water is present
-		pauseGameWhenSingleplayerExecuted = pauseGameWhenSingleplayerExecuted,
-		pauseGameWhenSingleplayer = pauseGameWhenSingleplayer,
 
 		-- options widget settings
 		firsttimesetupDone = firstlaunchsetupDone,
@@ -12831,12 +13598,6 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	if data.pauseGameWhenSingleplayerExecuted ~= nil and Spring.GetGameFrame() > 0 then
-		pauseGameWhenSingleplayerExecuted = data.pauseGameWhenSingleplayerExecuted
-	end
-	if data.pauseGameWhenSingleplayer ~= nil then
-		pauseGameWhenSingleplayer = data.pauseGameWhenSingleplayer
-	end
 	if data.advSettings ~= nil then
 		advSettings = data.advSettings
 	end
@@ -12865,6 +13626,10 @@ function widget:SetConfigData(data)
 	end
 	if data.customOptions then
 		--customOptions = data.customOptions
+	end
+	-- this setting moved to the springsetting WindowsPauseGame; carry a switched off one over
+	if data.pauseGameWhenSingleplayer == false then
+		Spring.SetConfigInt("WindowsPauseGame", 0)
 	end
 end
 

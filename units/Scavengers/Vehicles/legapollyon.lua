@@ -270,6 +270,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "explode",
 					overrange_distance = 1250,
+					soundstart_volume_multiplier = 0.7,
 				},
 			},
 		},

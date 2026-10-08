@@ -431,8 +431,9 @@ local debugmode = false
 local barHeight = 0.9
 local shaderConfig = { -- these are our shader defines
 	HEIGHTOFFSET = 3, -- Additional height added to everything
-	CLIPTOLERANCE = 1.1, -- At 1.0 it won't draw at units just outside of view (may pop in), 1.1 is a good safe amount
-	MAXVERTICES = 64, -- The max number of vertices we can emit, make sure this is consistent with what you are trying to draw (tris 3, quads 4, corneredrect 8, circle 64
+	-- The most vertices one bar emits: three 8-vertex strips plus up to four 4-vertex glyphs (icon, two
+	-- digits, percent/seconds sign). The geometry shader's output buffer is sized by this, so keep it tight.
+	MAXVERTICES = 40,
 	CLIPTOLERANCE = 1.2,
 	BARWIDTH = 2.56,
 	BARHEIGHT = barHeight,
@@ -842,8 +843,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 end
 
 local function removeBarsFromUnit(unitID, reason)
-	for barname, v in pairs(barTypeMap) do
-		removeBarFromUnit(unitID, barname, reason)
+	if unitBars[unitID] then -- bars can only exist for units addBarForUnit has counted
+		for barname, v in pairs(barTypeMap) do
+			removeBarFromUnit(unitID, barname, reason)
+		end
 	end
 	unitShieldWatch[unitID] = nil
 	unitReactiveArmorWatch[unitID] = nil

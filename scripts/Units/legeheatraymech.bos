@@ -66,9 +66,10 @@ lFootDust,
 lToroidFlare,
 rToroidFlare,
 torsoCalcFlare,
-hipCalcFlare;
+hipCalcFlare,
+torsoconnectorfirepoint;
 
-static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady, whichAAbarrel, turningBack, aimAdj; 			
+static-var  InMotion, restoreDelay, aimingPose, wpn1_lasthead, isFiring1, isFiring2, oldHeading1, oldHeading2, oldHeading3, oldHeading4, oldSteerHeading, torsoAim, isTurning, isSmoking2, heatrayReady, whichAAbarrel, turningBack, aimAdj, oldPitch1, oldPitch2; 			
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
 {
@@ -964,7 +965,7 @@ RestoreRRay()
 
 QueryWeapon1(piecenum) //Hull Rotation
 {
-	piecenum = torsoConnector;
+	piecenum = torsoconnectorfirepoint;
 }
 
 AimFromWeapon1(piecenum)
@@ -1045,8 +1046,20 @@ FireWeapon1()
 
 AimWeapon2(heading, pitch)
 {
+	var headingSpeed, pitchSpeed, deltaHeading;
 	start-script Open();
 	signal SIG_AIM_2;
+	headingSpeed = <35>;
+	if (isTurning == 1) headingSpeed = <90>;
+	// Turn the pitch and heading together
+	pitchSpeed = <35>;
+	deltaHeading = get ABS(oldHeading1 - heading);
+	if ((isfiring1 != 0) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = headingSpeed * (get ABS(oldPitch1 - pitch)) / deltaHeading;
+		if (pitchSpeed > <35>) pitchSpeed = <35>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 	if (isTurning == 1)
 	{
 		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
@@ -1060,7 +1073,7 @@ AimWeapon2(heading, pitch)
 			turn lHeatrayHeadingPivot to y-axis (heading-torsoAim-1*aimAdj) speed <35>;
 		//}
 	}
-	turn lHeatrayPitchPivot to x-axis (-1*pitch) speed <35>;
+	turn lHeatrayPitchPivot to x-axis (-1*pitch) speed pitchSpeed;
 	
 	if (isfiring1 == 0 AND (((get ABS(oldHeading1 - heading)) > 65536) OR ((get ABS(oldHeading1 - heading) > <1>) AND ((get ABS(oldHeading1 - heading)) < 65536 - <1>))))
 	{
@@ -1069,6 +1082,7 @@ AimWeapon2(heading, pitch)
 		wait-for-turn lHeatrayHeadingPivot around x-axis;
 	}
 	oldHeading1 = heading;
+	oldPitch1 = pitch;
 	start-script RestoreLRay();
 	start-script RestoreRRay();
 	isfiring1 = 1;
@@ -1093,8 +1107,20 @@ QueryWeapon2(pieceIndex)
 
 AimWeapon3(heading, pitch)
 {
+	var headingSpeed, pitchSpeed, deltaHeading;
 	start-script Open();
 	signal SIG_AIM_3;
+	headingSpeed = <35>;
+	if (isTurning == 1) headingSpeed = <90>;
+	// Turn the pitch and heading together
+	pitchSpeed = <35>;
+	deltaHeading = get ABS(oldHeading2 - heading);
+	if ((isfiring2 != 0) AND (deltaHeading > <1>) AND (deltaHeading < <180>))
+	{
+		pitchSpeed = headingSpeed * (get ABS(oldPitch2 - pitch)) / deltaHeading;
+		if (pitchSpeed > <35>) pitchSpeed = <35>;
+		if (pitchSpeed < <1>) pitchSpeed = <1>;
+	}
 	if (isTurning == 1)
 	{
 		//if (((heading - torsoAim)<<50> AND (heading - torsoAim)><-50>) OR (get ABS(heading - torsoAim)>58000)){
@@ -1108,7 +1134,7 @@ AimWeapon3(heading, pitch)
 			turn rHeatrayHeadingPivot to y-axis (heading-torsoAim-1*aimAdj) speed <35>;
 		//}
 	}
-	turn rHeatrayPitchPivot to x-axis (-1*pitch) speed <35>;
+	turn rHeatrayPitchPivot to x-axis (-1*pitch) speed pitchSpeed;
 	
 	if (isfiring2 == 0 AND (((get ABS(oldHeading2 - heading)) > 65536) OR ((get ABS(oldHeading2 - heading) > <1>) AND ((get ABS(oldHeading2 - heading)) < 65536 - <1>))))
 	{
@@ -1117,6 +1143,7 @@ AimWeapon3(heading, pitch)
 		wait-for-turn rHeatrayHeadingPivot around x-axis;
 	}
 	oldHeading2 = heading;
+	oldPitch2 = pitch;
 	start-script RestoreLRay();
 	start-script RestoreRRay();
 	isfiring2 = 2;

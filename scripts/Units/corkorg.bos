@@ -3,7 +3,9 @@
 
 piece  head, torso, hips, rgunflare, lgunflare, eyeflare, rmispoint,
        lmispoint, rleg, rthigh, lthigh, lleg, ltoes, lheel, rtoes,
-       rheel, lshoulder, rshoulder, luparm, ruparm, rarm, larm, rmissle2, lmissle2, rfoot, lfoot, aimy1, aimx1, aimy2, lfootstep, rfootstep;
+       rheel, lshoulder, rshoulder, luparm, ruparm, rarm, larm, rmissle2, lmissle2, rfoot, lfoot, aimy1, aimx1, aimy2, lfootstep, rfootstep,
+       ltoesfirepoint,
+       rtoesfirepoint;
 
 static-var  ShootingArm, WhichShoulderRocket, isMoving, InMotion, Aim_while_moving, WhichFootStompsBool, NotReadytoStomp, StompXZ, StompHeading,
             restore_delay, HandsUp, wpn1_lasthead, wpn2_lasthead;
@@ -771,7 +773,7 @@ AimFromWeapon4(pieceIndex)
 
 QueryWeapon4(pieceIndex)
 {
-	pieceIndex = ltoes;
+	pieceIndex = ltoesfirepoint;
 }
 
 AimWeapon5(heading, pitch)
@@ -789,7 +791,7 @@ AimFromWeapon5(pieceIndex)
 
 QueryWeapon5(pieceIndex)
 {
-	pieceIndex = rtoes;
+	pieceIndex = rtoesfirepoint;
 }
 
 

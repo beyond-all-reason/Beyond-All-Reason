@@ -7,7 +7,8 @@ local KEYSYMS = KEYSYMS
 
 if not KEYSYMS then
 	local env = {}
-	VFS.Include("luaui/Headers/keysym.h.lua", env)
+	-- the engine installs its own LuaUI/Headers loose, and the default mode reads raw files first
+	VFS.Include("luaui/Headers/keysym.h.lua", env, VFS.ZIP)
 	KEYSYMS = env.KEYSYMS
 end
 
