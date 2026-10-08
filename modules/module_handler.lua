@@ -237,6 +237,8 @@ end
 local policiesCache = {}
 ---@class PolicyLoad every module's policies, read once
 ---@field chains table<string, table<string, LoadedChain[]>> by the target's owner and category
+---@field enrichments table<string, table<string, LoadedEnrichment[]>> by the facts' owner and category
+---@field facts table<string, table<string, string[]>> facts[owner][category] = declared names
 ---@field contributions table<string, table<string, { module: string, names: string[] }[]>> by the TARGET's owner and category
 ---@field contracts table<string, table|nil> each module's contract: what its policy files return, one table
 ---@field manifests table<string, ModuleManifest>
@@ -258,9 +260,10 @@ local function bucket(map, owner, category)
 end
 
 ---@param name string module name
----@param contract table what a policy file returned: the policies it declares
+---@param contract table what a policy file returned: the policies and facts it declares
+---@param facts table<string, table<string, string[]>> facts[owner][category] = declared names
 ---@param contributions table<string, table<string, { module: string, names: string[] }[]>> keyed by the TARGET's owner and category
-local function indexContract(name, contract, contributions)
+local function indexContract(name, contract, facts, contributions)
 	for _, declared in pairs(contract) do
 		local identity = Policy.IdentityOf(declared)
 		if identity then
@@ -268,7 +271,10 @@ local function indexContract(name, contract, contributions)
 			for _, field in pairs(declared) do
 				names[#names + 1] = field
 			end
-			if identity.contributes then
+			if identity.facts then
+				facts[identity.owner] = facts[identity.owner] or {}
+				facts[identity.owner][identity.category] = names
+			elseif identity.contributes then
 				local target = identity.contributes
 				local list = bucket(contributions, target.owner, target.category)
 				list[#list + 1] = { module = name, names = names }
@@ -284,6 +290,12 @@ end
 ---@field ops PolicyOp[]
 ---@field file string
 
+---@class LoadedEnrichment
+---@field module string
+---@field identity PolicyIdentity the facts it provides for
+---@field ops PolicyProvision[]
+---@field file string
+
 local loadModulePolicies ---@type fun(load: PolicyLoad, name: string): table
 
 ---@param load PolicyLoad
@@ -291,14 +303,27 @@ local loadModulePolicies ---@type fun(load: PolicyLoad, name: string): table
 ---@param source string the file, for messages
 ---@param run fun(facade: table): any hands the registrar to the source
 ---@param onReturned fun(returned: table)|nil what to do with a table the source returns; without it a returned value is an error
----@return LoadedChain[] chains
+---@return LoadedChain[] chains, LoadedEnrichment[] enrichments
 local function collectPolicies(load, name, source, run, onReturned)
 	local filePath = source
-	local built = {} ---@type PolicyChain<any, any>[]
+	local built = {} ---@type { kind: "policy"|"enrichment", chain: table }[]
 	local facade = {
 		On = function(target)
+			if Policy.IsFacts(target) then
+				error(filePath .. ": Policies.On opens a policy's steps; facts are opened with Policies.For")
+			end
 			local chain = Policy.Chain(target)
-			built[#built + 1] = chain
+			built[#built + 1] = { kind = "policy", chain = chain }
+			return chain
+		end,
+		For = function(facts)
+			if not Policy.IsFacts(facts) then
+				error(
+					filePath .. ": Policies.For opens a contract's facts; a policy's steps are opened with Policies.On"
+				)
+			end
+			local chain = Policy.Enrichment(facts)
+			built[#built + 1] = { kind = "enrichment", chain = chain }
 			return chain
 		end,
 		Contract = function(moduleName)
@@ -318,35 +343,60 @@ local function collectPolicies(load, name, source, run, onReturned)
 		onReturned(returned)
 	end
 	if #built == 0 and returned == nil then
-		error(filePath .. ": builds no policy")
+		error(filePath .. ": builds no policy and no enrichment")
 	end
-	local chains = {}
-	for _, chain in ipairs(built) do
-		local identity = Policy.IdentityOf(chain.steps)
-		if identity and identity.contributes then
-			identity = identity.contributes
+	local chains, enrichments = {}, {}
+	for _, entry in ipairs(built) do
+		local chain = entry.chain
+		if entry.kind == "policy" then
+			local identity = Policy.IdentityOf(chain.steps)
+			if identity and identity.contributes then
+				identity = identity.contributes
+			end
+			if identity == nil then
+				error(
+					filePath
+						.. ": Policies.On needs a policy's steps or a contract's facts: declared by this file and returned, or another module's through Policies.Contract"
+				)
+			end
+			if identity.facts then
+				error(filePath .. ": " .. identity.category .. " is facts, not a policy")
+			end
+			local ops = chain.Build()
+			if #ops == 0 then
+				error(filePath .. ": an empty chain")
+			end
+			chains[#chains + 1] =
+				{ module = name, identity = identity, steps = chain.steps, ops = ops, file = filePath }
+		else
+			local identity = Policy.IdentityOf(chain.facts)
+			if identity == nil or not identity.facts then
+				error(
+					filePath
+						.. ": Policies.On needs a policy's steps or a contract's facts: declared by this file and returned, or another module's through Policies.Contract"
+				)
+			end
+			local ops = chain.Build()
+			if #ops == 0 then
+				error(filePath .. ": an empty enrichment")
+			end
+			enrichments[#enrichments + 1] = { module = name, identity = identity, ops = ops, file = filePath }
 		end
-		if identity == nil then
-			error(
-				filePath
-					.. ": Policies.On needs a policy's steps: declared by this file and returned, or another module's through Policies.Contract"
-			)
-		end
-		local ops = chain.Build()
-		if #ops == 0 then
-			error(filePath .. ": an empty chain")
-		end
-		chains[#chains + 1] = { module = name, identity = identity, steps = chain.steps, ops = ops, file = filePath }
 	end
-	return chains
+	return chains, enrichments
 end
 
 ---@param load PolicyLoad
 ---@param chains LoadedChain[]
-local function keepPolicies(load, chains)
+---@param enrichments LoadedEnrichment[]
+local function keepPolicies(load, chains, enrichments)
 	for _, chain in ipairs(chains) do
 		local list = bucket(load.chains, chain.identity.owner, chain.identity.category)
 		list[#list + 1] = chain
+	end
+	for _, enrichment in ipairs(enrichments) do
+		local list = bucket(load.enrichments, enrichment.identity.owner, enrichment.identity.category)
+		list[#list + 1] = enrichment
 	end
 end
 
@@ -382,19 +432,19 @@ function loadModulePolicies(load, name)
 			end
 			contract[member] = declared
 		end
-		indexContract(name, members, load.contributions)
+		indexContract(name, members, load.facts, load.contributions)
 	end
 
 	local files = VFS.DirList(manifest.dir .. LAYOUT.policies, "*.lua", vfsMode)
 	table.sort(files)
 	for _, filePath in ipairs(files) do
-		local chains = collectPolicies(load, name, filePath, function(facade)
+		local chains, enrichments = collectPolicies(load, name, filePath, function(facade)
 			return includeRegistrationFile(filePath, { Policies = facade }, vfsMode)
 		end, function(returned)
 			Policy.Declare(name, returned, filePath)
 			declare(returned, filePath)
 		end)
-		keepPolicies(load, chains)
+		keepPolicies(load, chains, enrichments)
 	end
 	load.stack[#load.stack] = nil
 	load.contracts[name] = contract
@@ -418,6 +468,8 @@ local function loadPolicyFiles(vfsMode)
 	table.sort(names)
 	local load = {
 		chains = {},
+		enrichments = {},
+		facts = {},
 		contributions = {},
 		contracts = {},
 		manifests = manifests,
@@ -610,7 +662,7 @@ end
 ---@return AssembledPolicy<C, T>
 function ModuleHandler.Steps(steps, vfsMode)
 	local identity = Policy.IdentityOf(steps)
-	assert(identity, "ModuleHandler.Steps(steps): expects a policy's steps, from a contract")
+	assert(identity and not identity.facts, "ModuleHandler.Steps(steps): expects a policy's steps, from a contract")
 	local policy = ModuleHandler.LoadPolicies(identity.owner, vfsMode)[identity.category]
 	if policy == nil then
 		error(identity.owner .. " builds no " .. identity.category .. " policy")
