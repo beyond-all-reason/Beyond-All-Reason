@@ -76,7 +76,12 @@ function test()
 				assertEqual(order.commandID, CMD.INSERT, case.label .. " should prepend with INSERT")
 				assertEqual(order.params[1], 0, case.label .. " insert position")
 				assertEqual(order.params[2], case.listCommandID, case.label .. " inserted command")
-				assertEqual(order.params[3], CMD.OPT_META, case.label .. " inserted Set Target should retain Meta")
+				assertEqual(
+					order.params[3],
+					CMD.OPT_ALT + CMD.OPT_META,
+					case.label .. " inserted Set Target should retain Alt and Meta"
+				)
+				assertEqual(order.options, CMD.OPT_ALT, case.label .. " INSERT should use positional addressing")
 				paramOffset = 3
 			else
 				assertEqual(order.commandID, case.listCommandID, case.label .. " compact command")
