@@ -31,8 +31,9 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if isFactory[unitDefID] then
+-- a factory arriving on my team, built or given
+function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if unitTeam == Spring.GetLocalTeamID() and isFactory[unitDefID] then
 		Spring.GiveOrderToUnit(unitID, CMD_FACTORY_GUARD, { 1 }, 0)
 	end
 end
