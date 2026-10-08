@@ -2277,8 +2277,8 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
-	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
-	widgetHandler:RegisterUnitCommand(widget, CMD_STOP_PRODUCTION)
+	widgetHandler:RegisterUnitCommand(CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(CMD_STOP_PRODUCTION)
 	refreshUnitDefs()
 	units.loadBlocked()
 
