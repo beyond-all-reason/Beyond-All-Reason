@@ -887,6 +887,8 @@ end
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- TODO: Remove once community widgets call keypress actions on WG, e.g. WG.cmd_blueprint.
+local bridgedKeyActions = { blueprint_next = true, blueprint_prev = true, buildfacing = true }
 
 local function hasPrivilegedCommand(list)
 	if type(list) ~= "table" then
@@ -1265,6 +1267,26 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		end,
 		RemoveSyncAction = function(_, _, cmd)
 			return self.actionHandler:RemoveSyncAction(widget, cmd)
+		end,
+		-- TODO: This is in a migration period. See code below. Key actions must work through WG later.
+		KeyAction = function(_, press, key, mods, isRepeat, _, actions)
+			local bridged = {}
+			if type(actions) == "table" then
+				for _, action in ipairs(actions) do
+					local command = type(action) == "table" and action.command
+					if bridgedKeyActions[command] then
+						local extra = type(action.extra) == "string" and action.extra or ""
+						bridged[#bridged + 1] = { command = command, extra = extra }
+					else
+						warnOnce("User widgets can only fire the blueprint keypress actions: " .. tostring(command))
+					end
+				end
+			end
+			if bridged[1] == nil then
+				return false
+			end
+			-- Do not pass a scan code, so keypress handling does not wait for a release.
+			return self.actionHandler:KeyAction(press, key, mods, isRepeat, nil, bridged)
 		end,
 	}
 
