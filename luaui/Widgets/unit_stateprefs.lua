@@ -317,7 +317,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+local function applyPrefs(unitID, unitDefID, unitTeam)
 	local cmdOpts = GetCmdOpts(false, false, false, true, false)
 
 	local name = unitName[unitDefID]
@@ -338,12 +338,24 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	applyPrefs(unitID, unitDefID, unitTeam)
+end
+
+-- a finished unit given to me takes my prefs now; one still being built takes them at UnitFinished, as its new owner.
+-- UnitGiven, not MetaUnitAdded: that also fires from UnitCreated, so a unit created finished would get the stockpile delta twice
+function widget:UnitGiven(unitID, unitDefID, unitTeam)
+	if unitTeam == Spring.GetLocalTeamID() and not Spring.GetUnitIsBeingBuilt(unitID) then
+		applyPrefs(unitID, unitDefID, unitTeam)
+	end
+end
+
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
 	if units then
 		for i = 1, #units do
-			widget:UnitFinished(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
+			applyPrefs(units[i], Spring.GetUnitDefID(units[i]), teamID or Spring.GetUnitTeam(units[i]))
 		end
 	end
 end
