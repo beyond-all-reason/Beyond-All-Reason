@@ -31,6 +31,10 @@ local vfsLoadFile = VFS.LoadFile
 local vfsFileExists = VFS.FileExists
 local vfsDirList = VFS.DirList
 local vfsSubDirs = VFS.SubDirs
+local vfsInclude = VFS.Include
+local vfsZip = VFS.ZIP
+local vfsRaw = VFS.RAW
+local vfsRawFirst = VFS.RAW_FIRST
 local loadstring = loadstring
 local getfenv = getfenv
 local setfenv = setfenv
@@ -118,7 +122,7 @@ local widgetHandler = {
 
 	allowUserWidgets = true,
 
-	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
+	actionHandler = vfsInclude(LUAUI_DIRNAME .. "actions.lua", nil, vfsZip),
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
@@ -465,7 +469,7 @@ for name, filename in pairs(zipOnly) do
 end
 
 local function loadWidgetFiles(folder, vfsMode)
-	local fromZip = vfsMode ~= VFS.RAW
+	local fromZip = vfsMode ~= vfsRaw
 	local widgetFiles = vfsDirList(folder, "*.lua", vfsMode)
 
 	for _, subDirectory in ipairs(vfsSubDirs(folder)) do
@@ -575,6 +579,8 @@ local function copyTable(source)
 	return copy
 end
 
+local function unavailableFunction() end
+
 local function CreateSandboxedSystem()
 	local function disabledOrder()
 		error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
@@ -648,6 +654,27 @@ local function CreateSandboxedSystem()
 		return vfsCompressFolder(folder, archiveType, target, ...)
 	end
 
+	local scriptLuaUI = Script.LuaUI
+	local sandboxedScript = copyTable(Script)
+	sandboxedScript.LuaUI = setmetatable({}, {
+		__index = function(_, name)
+			if widgetHandler.globals[name] then
+				return scriptLuaUI[name]
+			end
+			if _G[name] ~= nil then
+				warnOnce("Script.LuaUI." .. tostring(name) .. " is not available to user widgets")
+			end
+			return unavailableFunction
+		end,
+		__call = function(_, name)
+			if name == nil then
+				return scriptLuaUI()
+			end
+			return widgetHandler.globals[name] ~= nil and scriptLuaUI(name)
+		end,
+		__metatable = true,
+	})
+
 	local spCreateDir = Spring.CreateDir
 	local function createDir(path)
 		local target, reason = checkUserWritePath(path)
@@ -687,6 +714,7 @@ local function CreateSandboxedSystem()
 	end
 	local sandboxedLibraries = {
 		Spring = SandboxedSpring,
+		Script = sandboxedScript,
 		io = sandboxedIo,
 		os = sandboxedOs,
 		table = sandboxedTable,
@@ -715,22 +743,22 @@ function widgetHandler:Initialize()
 
 	if self.allowUserWidgets and allowuserwidgets then
 		Spring.Echo("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
-		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, vfsRaw)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
-	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(WIDGET_DIRNAME, vfsZip)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, vfsZip)
 
-	local ModuleHandler = require("modules/module_handler", nil, VFS.ZIP)
-	ModuleHandler.Register(VFS.ZIP)
-	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
-		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	local ModuleHandler = require("modules/module_handler", nil, vfsZip)
+	ModuleHandler.Register(vfsZip)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(vfsZip)) do
+		loadWidgetFiles(moduleWidgetDir, vfsZip)
 	end
-	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
-		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(vfsZip)) do
+		loadWidgetFiles(moduleWidgetDir, vfsZip)
 	end
 
 	table.sort(unsortedWidgets, function(w1, w2)
@@ -790,7 +818,7 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not ki or not vfsFileExists(ki.filename, VFS.ZIP) then
+	if not ki or not vfsFileExists(ki.filename, vfsZip) then
 		return
 	end
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
@@ -881,8 +909,6 @@ local function callerFrame(f)
 	return f
 end
 
-local function unavailableFunction() end
-
 local function getLocalName(level, index)
 	local name = debugGetlocal(level + 1, index)
 	return name
@@ -934,7 +960,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = vfsLoadFile(
 		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
+		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and vfsZip or vfsRawFirst
 	)
 	if text == nil then
 		return loadFailed(basename, "missing file: " .. filename)
@@ -1140,7 +1166,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
 	widget.canControlUnits = canControlUnits
-	local includeMode = fromZip and VFS.ZIP or VFS.RAW_FIRST
+	local includeMode = fromZip and vfsZip or vfsRawFirst
 	widget.include = function(f)
 		return include(f, widget, includeMode)
 	end
@@ -1189,13 +1215,13 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			if type(env) ~= "table" then
 				env = callerEnv()
 			end
-			return VFS.Include(path, env, mode or VFS.RAW_FIRST)
+			return vfsInclude(path, env, mode or vfsRawFirst)
 		end
 		widget.require = function(path, env, mode)
 			if type(env) ~= "table" then
 				env = callerEnv()
 			end
-			return require(path, env, mode or VFS.RAW_FIRST)
+			return require(path, env, mode or vfsRawFirst)
 		end
 	end
 
