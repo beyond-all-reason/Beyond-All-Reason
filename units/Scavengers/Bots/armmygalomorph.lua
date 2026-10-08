@@ -39,7 +39,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			reaimtime = 2,
 			scavminiboss = true,
-			scavminiboss_damagemult = 0.4,
+			scavminiboss_damagemult = 0.67,
 			subfolder = "other/scavengers",
 			techlevel = 3,
 			unitgroup = "weapon",
