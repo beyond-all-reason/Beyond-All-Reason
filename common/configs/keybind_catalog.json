@@ -577,6 +577,22 @@
 				"label": "actions.squads.appendFiltered"
 			},
 			{
+				"action": "squad_select_portion 0.5 append_domain",
+				"label": "actions.squads.selectHalfAppend"
+			},
+			{
+				"action": "squad_select_portion 0.5",
+				"label": "actions.squads.selectHalf"
+			},
+			{
+				"action": "squad_select_portion_filtered 0.5 append_domain",
+				"label": "actions.squads.selectHalfFilteredAppend"
+			},
+			{
+				"action": "squad_select_portion_filtered 0.5",
+				"label": "actions.squads.selectHalfFiltered"
+			},
+			{
 				"action": "squad_select_portion 0",
 				"label": "actions.squads.selectOne"
 			},

@@ -1348,12 +1348,28 @@
 					"action": "squad_select"
 				},
 				{
-					"keyset": "Ctrl+Shift+sc_0x064",
+					"keyset": "Alt+Shift+sc_0x064",
 					"action": "squad_select_filtered append distance_850"
 				},
 				{
-					"keyset": "Ctrl+sc_0x064",
+					"keyset": "Alt+sc_0x064",
 					"action": "squad_select_filtered retarget"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_0x064",
+					"action": "squad_select_portion 0.5 append_domain"
+				},
+				{
+					"keyset": "Ctrl+sc_0x064",
+					"action": "squad_select_portion 0.5"
+				},
+				{
+					"keyset": "Ctrl+Alt+Shift+sc_0x064",
+					"action": "squad_select_portion_filtered 0.5 append_domain"
+				},
+				{
+					"keyset": "Ctrl+Alt+sc_0x064",
+					"action": "squad_select_portion_filtered 0.5"
 				},
 				{
 					"keyset": "Shift+sc_mouse5",
@@ -1364,11 +1380,11 @@
 					"action": "squad_select_portion 0"
 				},
 				{
-					"keyset": "Ctrl+Shift+sc_mouse5",
+					"keyset": "Alt+Shift+sc_mouse5",
 					"action": "squad_select_portion_filtered 0 append"
 				},
 				{
-					"keyset": "Ctrl+sc_mouse5",
+					"keyset": "Alt+sc_mouse5",
 					"action": "squad_select_portion_filtered 0"
 				},
 				{
