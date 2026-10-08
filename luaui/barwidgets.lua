@@ -675,6 +675,55 @@ local function CreateSandboxedSystem()
 		return glSaveImage(x, y, width, height, target, options)
 	end
 
+	local sandboxedRmlUi -- rmlui elements have event handlers that run in the document's env, etc.
+	if RmlUi then
+		local rmlUi = RmlUi
+		local USER_CONTEXT_PREFIX = "user:"
+		local function isUserContext(context)
+			return context ~= nil and stringSub(context.name, 1, #USER_CONTEXT_PREFIX) == USER_CONTEXT_PREFIX
+		end
+		local function getUserContextName(context)
+			if type(context) == "string" then
+				return USER_CONTEXT_PREFIX .. context
+			end
+			return isUserContext(context) and context.name or nil
+		end
+		-- TODO: Needs exploration for escapes by other means
+		sandboxedRmlUi = setmetatable({
+			CreateContext = function(name)
+				return rmlUi.CreateContext(USER_CONTEXT_PREFIX .. name)
+			end,
+			GetContext = function(name)
+				return rmlUi.GetContext(USER_CONTEXT_PREFIX .. name)
+			end,
+			RemoveContext = function(context)
+				local name = getUserContextName(context)
+				if name then
+					return rmlUi.RemoveContext(name)
+				end
+			end,
+			SetDebugContext = function(context)
+				local name = getUserContextName(context)
+				if name then
+					return rmlUi.SetDebugContext(name)
+				end
+			end,
+		}, {
+			__index = function(_, key)
+				if key == "contexts" then
+					local contexts = {}
+					for _, context in ipairs(rmlUi.contexts) do
+						if isUserContext(context) then
+							contexts[#contexts + 1] = context
+						end
+					end
+					return contexts
+				end
+				return rmlUi[key]
+			end,
+		})
+	end
+
 	local scriptLuaUI = Script.LuaUI
 	local sandboxedScript = copyTable(Script)
 	sandboxedScript.LuaUI = setmetatable({}, {
@@ -770,6 +819,7 @@ local function CreateSandboxedSystem()
 		Spring = SandboxedSpring,
 		Script = sandboxedScript,
 		gl = sandboxedGl,
+		RmlUi = sandboxedRmlUi,
 	}
 	for k, v in pairs(System) do
 		SandboxedSystem[k] = sandboxedLibraries[k] or v
