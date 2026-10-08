@@ -545,6 +545,19 @@ local function checkUserWritePath(path)
 	return nil, "is outside the write paths for user widgets"
 end
 
+-- Capped, because a widget can make every refused command text different.
+local warnedMessages = {}
+local warnedMessageCount = 0
+
+local function warnOnce(message)
+	if warnedMessages[message] or warnedMessageCount >= 256 then
+		return
+	end
+	warnedMessages[message] = true
+	warnedMessageCount = warnedMessageCount + 1
+	Spring.Log("barwidgets.lua", LOG.WARNING, message)
+end
+
 local function refuseUserWrite(path, reason)
 	local message = tostring(path) .. ": " .. reason
 	Spring.Log("barwidgets.lua", LOG.ERROR, message)
@@ -648,7 +661,7 @@ local function CreateSandboxedSystem()
 		local allowed = {}
 		for _, command in ipairs(commands) do
 			if type(command) == "string" and isPrivilegedCommand(command) then
-				Spring.Log("barwidgets.lua", LOG.WARNING, SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
+				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
 			else
 				allowed[#allowed + 1] = command
 			end
@@ -904,7 +917,7 @@ local function moveUserCustomCommands(source, target)
 				or hasPrivilegedCommand(copy.actions)
 				or hasPrivilegedCommand(copy.params)
 			then
-				Spring.Log("barwidgets.lua", LOG.WARNING, SANDBOXED_ERROR_USER_WIDGETS .. ": " .. tostring(copy.action))
+				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. tostring(copy.action))
 			else
 				target[#target + 1] = copy
 			end
