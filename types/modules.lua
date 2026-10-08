@@ -8,3 +8,21 @@
 
 ---@class ModuleManifest : ModuleManifestFile
 ---@field dir string Module directory with trailing slash (loader-stamped)
+
+---@class PoliciesRegistrar
+Policies = {}
+
+---@generic C, T
+---@param steps PolicySteps<C, T>
+---@return PolicyChain<C, T>
+function Policies.On(steps) end
+
+---@param moduleName string a Modules entry
+---@return table that module's contract: what its policy files return; annotate with the module's contract class
+function Policies.Contract(moduleName) end
+
+---@class PolicyStep
+---@field name string
+---@field kind "apply"
+---@field category string|nil Loader-stamped from the policy's identity
+---@field evaluate function fun(...): result|nil
