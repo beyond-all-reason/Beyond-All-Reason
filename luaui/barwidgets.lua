@@ -500,6 +500,10 @@ local function isPrivilegedCommand(command)
 		or stringFind(command, "disablewidget", 1, true) ~= nil
 		or stringFind(command, "togglewidget", 1, true) ~= nil
 		or stringFind(command, "execute", 1, true) ~= nil
+		or stringFind(command, "keyload", 1, true) ~= nil
+		or stringFind(command, "keyreload", 1, true) ~= nil
+		or stringFind(command, "keysave", 1, true) ~= nil
+		or stringFind(command, "keybindingfile", 1, true) ~= nil
 end
 
 local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
@@ -700,6 +704,14 @@ local function CreateSandboxedSystem()
 			spSendCommands(allowed)
 		end
 	end
+	local spSetConfigString = Spring.SetConfigString
+	local function setConfigString(key, value, useOverlay)
+		if type(key) == "string" and stringLower(key) == "keybindingfile" then
+			warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": SetConfigString " .. key)
+			return
+		end
+		return spSetConfigString(key, value, useOverlay)
+	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
 		if string.find(k, "^GiveOrder") and not allowunitcontrolwidgets then
@@ -708,6 +720,8 @@ local function CreateSandboxedSystem()
 			SandboxedSpring[k] = sendCommands
 		elseif k == "CreateDir" then
 			SandboxedSpring[k] = createDir
+		elseif k == "SetConfigString" then
+			SandboxedSpring[k] = setConfigString
 		else
 			SandboxedSpring[k] = v
 		end
