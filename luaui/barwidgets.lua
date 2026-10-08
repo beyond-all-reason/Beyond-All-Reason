@@ -940,10 +940,16 @@ local function moveUserCustomCommands(source, target)
 		source[i] = nil
 		if type(desc) == "table" then
 			local copy = {}
+			local duplicateKey
 			for k, v in pairs(desc) do
+				if type(k) == "string" and copy[stringLower(k)] ~= nil then
+					duplicateKey = stringLower(k) -- the engine forces keys to lowercase before comparing
+				end
 				copy[k] = type(v) == "table" and copyTable(v) or v
 			end
-			if
+			if duplicateKey then
+				warnOnce("User widget command description has a duplicate key: " .. duplicateKey)
+			elseif
 				(type(copy.action) == "string" and isPrivilegedCommand(copy.action))
 				or hasPrivilegedCommand(copy.actions)
 				or hasPrivilegedCommand(copy.params)
