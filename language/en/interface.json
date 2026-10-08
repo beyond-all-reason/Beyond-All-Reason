@@ -2126,6 +2126,8 @@
 				"jammerrange": "Jammer range",
 				"jammerrange_descr": "Displays the range of radar jammer coverage with an orange circle",
 				"jammerrangeopacity": "opacity",
+				"sensorpreviewcircles": "Radar/jammer preview circles",
+				"sensorpreviewcircles_descr": "Shows the radar and jammer coverage previews (when placing or selecting them) as smooth circles at their range, instead of the blocky coverage cells",
 				"losrange": "Line of Sight range",
 				"losrange_descr": "Displays the sight range with a (white or team colored) line",
 				"losrangeopacity": "opacity",

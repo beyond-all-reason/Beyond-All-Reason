@@ -7974,6 +7974,20 @@ function init()
 		},
 		{ id = "label_ui_ranges_spacer", group = "ui", category = types.basic },
 
+		-- read by the radar and jammer preview widgets
+		{
+			id = "sensorpreviewcircles",
+			group = "ui",
+			category = types.dev,
+			name = BAR.I18N("ui.settings.option.sensorpreviewcircles"),
+			type = "bool",
+			value = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0,
+			description = BAR.I18N("ui.settings.option.sensorpreviewcircles_descr"),
+			onchange = function(_, value)
+				Spring.SetConfigInt("SensorPreviewCircles", value and 1 or 0)
+			end,
+		},
+
 		-- Radar range rings:
 		{
 			id = "radarrange",

@@ -75,7 +75,6 @@ local config = {
 	widgetScale = 1,
 	maxLinesScroll = 16, -- maxLinesScrollFull
 	hide = false,
-	refreshUi = true,
 	fontsizeMult = 1,
 	scrollingPosY = 0.66,
 	consolePosY = 0.9,
@@ -150,7 +149,13 @@ local state = {
 	lastMapmarkCoords = nil,
 	lastUnitShare = nil,
 	lastLineUnitShare = nil,
-	lastDrawUiUpdate = os.clock(),
+	-- chat/console lines are drawn into a texture (uiTex) and only redrawn when what they show changes
+	uiDirty = true, ---@type boolean
+	uiShown = false, ---@type boolean
+	uiExpiry = math.huge,
+	uiBuildTime = 0.0,
+	uiTextLeft = math.huge,
+	uiTextRight = 0.0,
 	gameFrameHappened = false,
 	deferredDrawWork = false,
 	skipOptionalDrawWork = false,
@@ -613,6 +618,7 @@ function widget:LanguageChanged()
 		colorGameStr = ""
 		colorConsoleStr = ""
 	end
+	state.uiDirty = true
 end
 widget:LanguageChanged()
 
@@ -664,8 +670,6 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 			text = (i > 1 and lineColor or "") .. line,
 			richText = false,
 			orgLineID = orgLineID,
-			--lineDisplayList = glCreateList(function() end),
-			--timeDisplayList = glCreateList(function() end),
 		}
 		consoleLineID = consoleLineID + 1
 	end
@@ -673,6 +677,7 @@ local function addConsoleLine(gameFrame, lineType, text, orgLineID, consoleLineI
 	if historyMode ~= "console" then
 		currentConsoleLine = consoleLineID
 	end
+	state.uiDirty = true
 end
 
 local function getPlayerColorString(playername, gameFrame)
@@ -844,8 +849,6 @@ local function addChatLine(
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
-			--lineDisplayList = glCreateList(function() end),
-			--timeDisplayList = glCreateList(function() end),
 		}
 		if lineType == LineTypes.Mapmark and lastMapmarkCoords then
 			chatLines[chatLineID].coords = lastMapmarkCoords
@@ -864,6 +867,7 @@ local function addChatLine(
 	if historyMode ~= "chat" and not ignore then
 		setCurrentChatLine(#chatLines)
 	end
+	state.uiDirty = true
 
 	-- play sound for new player/spectator chat
 	if
@@ -923,7 +927,7 @@ local function cancelChatInput()
 	end
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil -- non handler = true: widgetHandler:DisownText()
-	updateDrawUi = true
+	state.uiDirty = true
 end
 
 state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitForTriggerRelease)
@@ -955,7 +959,7 @@ state.startMapmarkInput = function(x, y, z, triggerKey, triggerScanCode, waitFor
 		Spring.SDLStartTextInput()
 	end
 	updateTextInputDlist = true
-	updateDrawUi = true
+	state.uiDirty = true
 	return true
 end
 
@@ -1368,27 +1372,6 @@ local function commonUnitName(unitIDs)
 		commonUnitDefID = unitDefID
 	end
 	return unitTranslatedHumanName[commonUnitDefID]
-end
-
--- Helper to delete display lists from a line object
-local function clearLineDisplayLists(line)
-	if line.lineDisplayList then
-		glDeleteList(line.lineDisplayList)
-		line.lineDisplayList = nil
-	end
-	if line.timeDisplayList then
-		glDeleteList(line.timeDisplayList)
-		line.timeDisplayList = nil
-	end
-end
-
-local function clearDisplayLists()
-	for i = 1, #chatLines do
-		clearLineDisplayLists(chatLines[i])
-	end
-	for i = 1, #consoleLines do
-		clearLineDisplayLists(consoleLines[i])
-	end
 end
 
 -- Helper function to clean user text input
@@ -1878,6 +1861,14 @@ drawGameTime = function(gameFrame)
 	font3:End()
 end
 
+-- right edge of text printed at x, to spot lines wider than the chat texture
+function state.textRight(usedFont, text, x, fontSize, richText)
+	if richText then
+		return x + ChatEmoji.GetRichTextWidth(text, fontSize, usedFont)
+	end
+	return x + usedFont:GetTextWidth(text) * fontSize
+end
+
 drawConsoleLine = function(i)
 	if consoleLines[i].richText then
 		ChatEmoji.DrawRichText(
@@ -1895,32 +1886,14 @@ drawConsoleLine = function(i)
 		font:Print(consoleLines[i].text, 0, usedFontSize * 0.3, usedConsoleFontSize, "o")
 		font:End()
 	end
+	return state.textRight(font, consoleLines[i].text, 0, usedConsoleFontSize, consoleLines[i].richText)
 end
 
-local function processConsoleLineGL(i)
-	if not state.skipOptionalDrawWork and consoleLines[i] and not consoleLines[i].lineDisplayList then
-		glDeleteList(consoleLines[i].lineDisplayList)
-		consoleLines[i].lineDisplayList = glCreateList(function()
-			drawConsoleLine(i)
-		end)
-	end
-	-- game time (for when viewing history)
-	if
-		not state.skipOptionalDrawWork
-		and consoleLines[i]
-		and not consoleLines[i].timeDisplayList
-		and consoleLines[i].gameFrame
-	then
-		glDeleteList(consoleLines[i].timeDisplayList)
-		consoleLines[i].timeDisplayList = glCreateList(function()
-			drawGameTime(consoleLines[i].gameFrame)
-		end)
-	end
-end
-
+-- returns the right and left edge of what it drew
 drawChatLine = function(i)
 	local fontHeightOffset = usedFontSize * 0.3
 	local textPosX = maxPlayernameWidth + lineSpaceWidth
+	local left = 0.0
 	if chatLines[i].gameFrame then
 		if chatLines[i].lineType == LineTypes.Mapmark then
 			font2:Begin(true)
@@ -1988,6 +1961,12 @@ drawChatLine = function(i)
 			)
 			font:End()
 		end
+		-- names right-align on maxPlayernameWidth, which only covers the players present at load
+		if chatLines[i].lineType == LineTypes.System then
+			left = maxPlayernameWidth - font3:GetTextWidth(chatLines[i].playerNameText) * usedFontSize * 0.9
+		else
+			left = maxPlayernameWidth - font2:GetTextWidth(chatLines[i].playerNameText) * usedFontSize * 1.03
+		end
 		if chatLines[i].playerNameTag then
 			local nameFontSize = usedFontSize * 1.03
 			local tagFontSize = usedFontSize * channelTagSize
@@ -2000,12 +1979,14 @@ drawChatLine = function(i)
 			font3:SetTextColor(colorSpec[1], colorSpec[2], colorSpec[3], 0.92)
 			font3:Print(chatLines[i].playerNameTag, posX, fontHeightOffset * 1.63, tagFontSize, "or")
 			font3:End()
+			left = posX - font3:GetTextWidth(chatLines[i].playerNameTag) * tagFontSize
 			if chatLines[i].playerFormerTeamSquare then
 				posX = posX - font3:GetTextWidth(chatLines[i].playerNameTag) * tagFontSize - spaceWidth
 				font2:Begin(true)
 				font2:SetOutlineColor(0, 0, 0, 1)
 				font2:Print(chatLines[i].playerFormerTeamSquare, posX, fontHeightOffset * 1.06, nameFontSize, "or")
 				font2:End()
+				left = posX - font2:GetTextWidth(chatLines[i].playerFormerTeamSquare) * nameFontSize
 			end
 		end
 	end
@@ -2041,6 +2022,14 @@ drawChatLine = function(i)
 			)
 			font3:End()
 		end
+		local right = state.textRight(
+			font3,
+			chatLines[i].text,
+			maxPlayernameWidth + lineSpaceWidth - (usedFontSize * 0.5),
+			usedFontSize * 0.88,
+			chatLines[i].richText
+		)
+		return right, left
 	else
 		if chatLines[i].richText then
 			ChatEmoji.DrawRichText(
@@ -2058,27 +2047,7 @@ drawChatLine = function(i)
 			font:Print(chatLines[i].text, textPosX, fontHeightOffset, usedFontSize, "o")
 			font:End()
 		end
-	end
-end
-
-local function processChatLineGL(i)
-	if not state.skipOptionalDrawWork and chatLines[i] and not chatLines[i].lineDisplayList then
-		glDeleteList(chatLines[i].lineDisplayList)
-		chatLines[i].lineDisplayList = glCreateList(function()
-			drawChatLine(i)
-		end)
-	end
-	-- game time (for when viewing history)
-	if
-		not state.skipOptionalDrawWork
-		and chatLines[i]
-		and not chatLines[i].timeDisplayList
-		and chatLines[i].gameFrame
-	then
-		glDeleteList(chatLines[i].timeDisplayList)
-		chatLines[i].timeDisplayList = glCreateList(function()
-			drawGameTime(chatLines[i].gameFrame)
-		end)
+		return state.textRight(font, chatLines[i].text, textPosX, usedFontSize, chatLines[i].richText), left
 	end
 end
 
@@ -2153,7 +2122,7 @@ function widget:Update(dt)
 					for i = 1, #chatLines do
 						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = nil
-							updateDrawUi = true
+							state.uiDirty = true
 						end
 					end
 				end
@@ -2164,7 +2133,7 @@ function widget:Update(dt)
 					for i = 1, #chatLines do
 						if chatLines[i].playerName == accountID_or_name then
 							chatLines[i].ignore = true
-							updateDrawUi = true
+							state.uiDirty = true
 						end
 					end
 				end
@@ -2210,6 +2179,7 @@ function widget:Update(dt)
 					end
 				end
 			end
+			state.uiDirty = true
 		end
 	end
 
@@ -2639,13 +2609,15 @@ drawChatInput = function()
 end
 
 function widget:FontsChanged()
-	clearDisplayLists()
 	textInputDlist = glDeleteList(textInputDlist)
-	refreshUi = true
+	updateTextInputDlist = true
+	state.uiDirty = true
 end
 
-drawUi = function()
-	local now = clock()
+-- draws into uiTex (see state.updateUiCache), noting when the next shown line expires and how far the text reaches
+drawUi = function(now)
+	local expiry = math.huge
+	local textLeft, textRight = math.huge, 0.0
 	if not historyMode then
 		-- draw background
 		if backgroundOpacity > 0 and displayedChatLines > 0 then
@@ -2689,17 +2661,14 @@ drawUi = function()
 		-- draw console lines
 		if consoleLines[1] then
 			glPushMatrix()
-			glTranslate((vsx * posX) + backgroundPadding, (consolePosY * vsy) + (usedConsoleFontSize * 0.24), 0)
+			local consoleX = (vsx * posX) + backgroundPadding
+			glTranslate(consoleX, (consolePosY * vsy) + (usedConsoleFontSize * 0.24), 0)
 			local checkedLines = 0
 			local i = #consoleLines
 			while i > 0 do
 				if now - consoleLines[i].startTime < lineTTL then
-					processConsoleLineGL(i)
-					if consoleLines[i].lineDisplayList then
-						glCallList(consoleLines[i].lineDisplayList)
-					else
-						drawConsoleLine(i)
-					end
+					textRight = math.max(textRight, consoleX + drawConsoleLine(i))
+					expiry = mathMin(expiry, consoleLines[i].startTime + lineTTL)
 				else
 					break
 				end
@@ -2736,9 +2705,6 @@ drawUi = function()
 			font:End()
 		end
 		local checkedLines = 0
-		if not historyMode then
-			displayedChatLines = 0
-		end
 		glPushMatrix()
 		local translatedX = (vsx * posX) + backgroundPadding
 		local translatedY = vsy * (historyMode and scrollingPosY or posY) + backgroundPadding
@@ -2781,56 +2747,28 @@ drawUi = function()
 					end
 					if historyMode then
 						if historyMode == "console" then
-							if consoleLines[i] then
-								processConsoleLineGL(i)
-								if consoleLines[i].gameFrame then
-									if consoleLines[i].timeDisplayList then
-										glCallList(consoleLines[i].timeDisplayList)
-									else
-										drawGameTime(consoleLines[i].gameFrame)
-									end
-								end
+							if consoleLines[i] and consoleLines[i].gameFrame then
+								drawGameTime(consoleLines[i].gameFrame)
 							end
-						else
-							if historyMode and chatLines[i] then
-								processChatLineGL(i)
-								if chatLines[i].gameFrame then
-									if chatLines[i].timeDisplayList then
-										glCallList(chatLines[i].timeDisplayList)
-									else
-										drawGameTime(chatLines[i].gameFrame)
-									end
-								end
-							end
+						elseif chatLines[i] and chatLines[i].gameFrame then
+							drawGameTime(chatLines[i].gameFrame)
 						end
-						if historyMode then
-							glTranslate(width, 0, 0)
-						end
+						glTranslate(width, 0, 0)
+					else
+						expiry = mathMin(expiry, chatLines[i].startTime + lineTTL)
 					end
+					local lineX = translatedX + (historyMode and width or 0)
 					if historyMode == "console" then
 						if consoleLines[i] then
-							processConsoleLineGL(i)
-							if consoleLines[i].lineDisplayList then
-								glCallList(consoleLines[i].lineDisplayList)
-							else
-								drawConsoleLine(i)
-							end
+							textRight = math.max(textRight, lineX + drawConsoleLine(i))
 						end
-					else
-						if chatLines[i] then
-							processChatLineGL(i)
-							if chatLines[i].lineDisplayList then
-								glCallList(chatLines[i].lineDisplayList)
-							else
-								drawChatLine(i)
-							end
-						end
+					elseif chatLines[i] then
+						local right, left = drawChatLine(i)
+						textLeft = mathMin(textLeft, lineX + left)
+						textRight = math.max(textRight, lineX + right)
 					end
 					if historyMode then
 						glTranslate(-width, 0, 0)
-					end
-					if not historyMode then
-						displayedChatLines = displayedChatLines + 1
 					end
 				else
 					break
@@ -2863,16 +2801,228 @@ drawUi = function()
 				then
 					glPushMatrix()
 					glTranslate(vsx * posX, vsy * (scrollingPosY - 0.02) - backgroundPadding, 0)
-					processChatLineGL(lastUnignoredChatLineID)
-					if chatLines[lastUnignoredChatLineID].lineDisplayList then
-						glCallList(chatLines[lastUnignoredChatLineID].lineDisplayList)
-					else
-						drawChatLine(lastUnignoredChatLineID)
-					end
+					local right, left = drawChatLine(lastUnignoredChatLineID)
+					textLeft = mathMin(textLeft, vsx * posX + left)
+					textRight = math.max(textRight, vsx * posX + right)
+					expiry = mathMin(expiry, chatLines[lastUnignoredChatLineID].startTime + lineTTL)
 					glPopMatrix()
 				end
 			end
 		end
+	end
+	state.uiExpiry = expiry
+	state.uiTextLeft, state.uiTextRight = textLeft, textRight
+end
+
+-- history view panel behind the lines: background element, player name column and scrollbar
+function state.drawHistoryPanel(chatlogHeightDiff)
+	UiElement(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4])
+
+	-- player name background
+	if historyMode == "chat" then
+		local gametimeEnd = floor(backgroundPadding + maxTimeWidth + (backgroundPadding * 0.75))
+		local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth / 1.8)
+		glColor(1, 1, 1, 0.045)
+		RectRound(
+			activationArea[1] + gametimeEnd,
+			activationArea[2] + elementPadding + chatlogHeightDiff,
+			activationArea[1] + playernameEnd,
+			activationArea[4] - elementPadding,
+			elementCorner * 0.66,
+			0,
+			0,
+			0,
+			0
+		)
+		-- vertical line at start and end
+		glColor(1, 1, 1, 0.045)
+		RectRound(
+			activationArea[1] + playernameEnd - 1,
+			activationArea[2] + elementPadding + chatlogHeightDiff,
+			activationArea[1] + playernameEnd,
+			activationArea[4] - elementPadding,
+			0,
+			0,
+			0,
+			0,
+			0
+		)
+		RectRound(
+			activationArea[1] + gametimeEnd,
+			activationArea[2] + elementPadding + chatlogHeightDiff,
+			activationArea[1] + gametimeEnd + 1,
+			activationArea[4] - elementPadding,
+			0,
+			0,
+			0,
+			0,
+			0
+		)
+	end
+
+	local totalUnignoredChatLines = 0
+	for i = 1, #chatLines do
+		if not chatLines[i].ignore then
+			totalUnignoredChatLines = totalUnignoredChatLines + 1
+		end
+	end
+
+	local scrollbarMargin = floor(16 * widgetScale)
+	local scrollbarWidth = floor(11 * widgetScale)
+	UiScroller(
+		floor(activationArea[3] - scrollbarMargin - scrollbarWidth),
+		floor(activationArea[2] + chatlogHeightDiff + scrollbarMargin),
+		floor(activationArea[3] - scrollbarMargin),
+		floor(activationArea[4] - scrollbarMargin),
+		historyMode == "console" and #consoleLines * lineHeight or totalUnignoredChatLines * lineHeight,
+		historyMode == "console" and (currentConsoleLine - maxLinesScroll) * lineHeight
+			or (currentChatLine - maxLinesScroll) * lineHeight
+	)
+end
+
+-- draws rows bottom..top of the texture covering area, which holds premultiplied alpha
+function state.blitUi(tex, area, bottom, top)
+	local height = area[4] - area[2]
+	gl.Blending(GL.ONE, GL.ONE_MINUS_SRC_ALPHA)
+	glColor(1, 1, 1, 1)
+	gl.Texture(tex)
+	gl.TexRect(area[1], bottom, area[3], top, 0, (bottom - area[2]) / height, 1, (top - area[2]) / height)
+	gl.Texture(false)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+end
+
+-- Redraws the lines into uiTex only when what they show changes: new or ignored lines, a line expiring,
+-- scrolling, switching view or hovering (the shortcut hint). Every other frame just blits the texture.
+function state.updateUiCache(now, chatlogHeightDiff)
+	-- new lines also move the current line; only scrolling through history counts as a view change
+	local viewChanged = historyMode ~= prevHistoryMode
+		or (historyMode and (currentChatLine ~= prevCurrentChatLine or currentConsoleLine ~= prevCurrentConsoleLine))
+		or hovering ~= state.uiHovering
+		or maxLinesScroll ~= state.uiMaxLinesScroll
+		or scrollingPosY ~= state.uiScrollingPosY
+	if not viewChanged and not state.uiDirty and now < state.uiExpiry and currentChatLine == prevCurrentChatLine then
+		return
+	end
+	-- content changes can wait for a draw-only frame, and bursts of new lines (console spam) are gathered
+	if not viewChanged and (state.skipOptionalDrawWork or now - state.uiBuildTime < 0.05) then
+		return
+	end
+	prevHistoryMode, prevCurrentChatLine, prevCurrentConsoleLine = historyMode, currentChatLine, currentConsoleLine
+	state.uiHovering, state.uiMaxLinesScroll, state.uiScrollingPosY = hovering, maxLinesScroll, scrollingPosY
+	state.uiDirty = false
+	state.uiBuildTime = now
+
+	local consoleShown = false
+	if historyMode then
+		glDeleteList(state.uiHistoryList)
+		state.uiHistoryList = glCreateList(state.drawHistoryPanel, chatlogHeightDiff)
+	else
+		-- the background is sized by the number of chat lines shown, so count them before drawing
+		displayedChatLines = 0
+		local i = currentChatLine
+		while i > 0 and displayedChatLines < maxLines do
+			if chatLines[i] and not chatLines[i].ignore then
+				if now - chatLines[i].startTime >= lineTTL then
+					break
+				end
+				displayedChatLines = displayedChatLines + 1
+			end
+			i = i - 1
+		end
+		local lastConsoleLine = consoleLines[#consoleLines]
+		consoleShown = lastConsoleLine and now - lastConsoleLine.startTime < lineTTL or false
+		if displayedChatLines == 0 and not consoleShown then
+			state.uiExpiry = math.huge
+			state.uiShown = false
+			return
+		end
+	end
+
+	-- one texture covers both views: from below the history list (and its newest line notice) to above the console lines
+	local historyBottomY = scrollingPosY
+	if topbarArea then
+		historyBottomY = floor(
+			topbarArea[2] - elementMargin - backgroundPadding - backgroundPadding - (lineHeight * maxLinesScrollFull)
+		) / vsy
+	end
+	local bottom = math.max(
+		0,
+		activationArea[2] + floor(vsy * (historyBottomY - posY)) - floor(0.02 * vsy) - backgroundPadding - lineHeight
+	)
+	local top = mathMin(vsy, activationArea[4] + 2)
+	local outlineMargin = usedFontSize * 0.25
+	local left, right
+	for _ = 1, 2 do
+		-- reach past the panel only for text that does (a long word, a name longer than any at load), and back once it is gone
+		left = math.max(0, mathMin(activationArea[1] - 2, floor(state.uiTextLeft - outlineMargin)))
+		right = math.max(activationArea[3] + 2, mathMin(vsx, math.ceil(state.uiTextRight + outlineMargin)))
+		local area = state.uiArea
+		if not area or area[1] ~= left or area[2] ~= bottom or area[3] ~= right or area[4] ~= top then
+			if state.uiTex then
+				gl.DeleteTexture(state.uiTex)
+			end
+			state.uiTex = gl.CreateTexture(floor(right - left), floor(top - bottom), {
+				target = GL.TEXTURE_2D,
+				fbo = true,
+			})
+			state.uiArea = { left, bottom, right, top }
+		end
+		if not state.uiTex then
+			state.uiShown = false
+			return
+		end
+		gl.R2tHelper.RenderInRect(state.uiTex, left, bottom, right, top, function()
+			drawUi(now)
+		end, true)
+		if
+			(left <= 0 or state.uiTextLeft - outlineMargin >= left)
+			and (right >= vsx or state.uiTextRight + outlineMargin <= right)
+		then
+			break
+		end
+	end
+
+	-- blit only the rows in use: the chat background and/or the console lines
+	local blitBottom, blitTop = bottom, top
+	if not historyMode then
+		if displayedChatLines == 0 then
+			blitBottom = math.max(bottom, floor(consolePosY * vsy - usedConsoleFontSize))
+		else
+			blitBottom = math.max(bottom, activationArea[2] - 2)
+		end
+		if not consoleShown then
+			blitTop = mathMin(top, activationArea[2] + 2 + ((displayedChatLines + 1) * lineHeight) + elementPadding)
+		end
+	end
+	glDeleteList(state.uiBlitList)
+	state.uiBlitList = glCreateList(state.blitUi, state.uiTex, state.uiArea, blitBottom, blitTop)
+	state.uiShown = true
+end
+
+-- the guishader blur behind the history view, re-registered only when its area changes
+function state.setChatBlurArea(left, bottom, right, top)
+	local area = state.chatBlurArea
+	local guishader = WG.guishader
+	if left then
+		if
+			guishader
+			and (
+				not area
+				or area[1] ~= left
+				or area[2] ~= bottom
+				or area[3] ~= right
+				or area[4] ~= top
+				or area[5] ~= guishader
+			)
+		then
+			guishader.InsertRect(left, bottom, right, top, "chat", widget)
+			state.chatBlurArea = { left, bottom, right, top, guishader }
+		end
+	elseif area then
+		if guishader then
+			guishader.RemoveRect("chat")
+		end
+		state.chatBlurArea = nil
 	end
 end
 
@@ -2954,7 +3104,8 @@ drawTextInput = function()
 					1
 				)
 			end
-		else
+		elseif textInputDlist then
+			-- input just closed: drop its list and blur regions once
 			state.clearChatInputGuishader()
 			if WG.guishader then
 				WG.guishader.RemoveRect("chatinputautocomplete")
@@ -2983,11 +3134,9 @@ function widget:DrawScreen()
 	local _, ctrl, _, _ = Spring.GetModKeyState()
 	local x, y, b = spGetMouseState()
 	local chatlogHeightDiff = historyMode and floor(vsy * (scrollingPosY - posY)) or 0
-	if hovering and WG.guishader then
-		WG.guishader.RemoveRect("chat")
-	end
 
 	if hide and not historyMode then
+		state.setChatBlurArea(nil)
 		drawTextInput()
 		return
 	end
@@ -3015,80 +3164,6 @@ function widget:DrawScreen()
 		)
 	then
 		hovering = true
-		if historyMode then
-			UiElement(activationArea[1], activationArea[2] + chatlogHeightDiff, activationArea[3], activationArea[4])
-			if WG.guishader then
-				WG.guishader.InsertRect(
-					activationArea[1],
-					activationArea[2] + chatlogHeightDiff,
-					activationArea[3],
-					activationArea[4],
-					"chat",
-					widget
-				)
-			end
-
-			-- player name background
-			if historyMode == "chat" then
-				local gametimeEnd = floor(backgroundPadding + maxTimeWidth + (backgroundPadding * 0.75))
-				local playernameEnd = gametimeEnd + maxPlayernameWidth + (lineSpaceWidth / 1.8)
-				glColor(1, 1, 1, 0.045)
-				RectRound(
-					activationArea[1] + gametimeEnd,
-					activationArea[2] + elementPadding + chatlogHeightDiff,
-					activationArea[1] + playernameEnd,
-					activationArea[4] - elementPadding,
-					elementCorner * 0.66,
-					0,
-					0,
-					0,
-					0
-				)
-				-- vertical line at start and end
-				glColor(1, 1, 1, 0.045)
-				RectRound(
-					activationArea[1] + playernameEnd - 1,
-					activationArea[2] + elementPadding + chatlogHeightDiff,
-					activationArea[1] + playernameEnd,
-					activationArea[4] - elementPadding,
-					0,
-					0,
-					0,
-					0,
-					0
-				)
-				RectRound(
-					activationArea[1] + gametimeEnd,
-					activationArea[2] + elementPadding + chatlogHeightDiff,
-					activationArea[1] + gametimeEnd + 1,
-					activationArea[4] - elementPadding,
-					0,
-					0,
-					0,
-					0,
-					0
-				)
-			end
-
-			local totalUnignoredChatLines = 0
-			for i = 1, #chatLines do
-				if not chatLines[i].ignore then
-					totalUnignoredChatLines = totalUnignoredChatLines + 1
-				end
-			end
-
-			local scrollbarMargin = floor(16 * widgetScale)
-			local scrollbarWidth = floor(11 * widgetScale)
-			UiScroller(
-				floor(activationArea[3] - scrollbarMargin - scrollbarWidth),
-				floor(activationArea[2] + chatlogHeightDiff + scrollbarMargin),
-				floor(activationArea[3] - scrollbarMargin),
-				floor(activationArea[4] - scrollbarMargin),
-				historyMode == "console" and #consoleLines * lineHeight or totalUnignoredChatLines * lineHeight,
-				historyMode == "console" and (currentConsoleLine - maxLinesScroll) * lineHeight
-					or (currentChatLine - maxLinesScroll) * lineHeight
-			)
-		end
 	else
 		if not showHistoryWhenChatInput or not showTextInput then
 			hovering = false
@@ -3097,15 +3172,24 @@ function widget:DrawScreen()
 		end
 	end
 
-	if
-		currentChatLine ~= prevCurrentChatLine
-		or currentConsoleLine ~= prevCurrentConsoleLine
-		or historyMode ~= prevHistoryMode
-	then -- or showTextInput ~= prevShowTextInput or displayedChatLines ~= prevDisplayedChatLines
-		updateDrawUi = true
+	state.updateUiCache(now, chatlogHeightDiff)
+
+	if historyMode then
+		glCallList(state.uiHistoryList)
+		state.setChatBlurArea(
+			activationArea[1],
+			activationArea[2] + chatlogHeightDiff,
+			activationArea[3],
+			activationArea[4]
+		)
+	elseif state.chatBlurArea then
+		state.setChatBlurArea(nil)
 	end
 
-	local _, activeCmdID = spGetActiveCommand()
+	local activeCmdID
+	if ctrl or historyMode == "chat" then
+		activeCmdID = select(2, spGetActiveCommand())
+	end
 	local ctrlHover = enableShortcutClick
 		and ctrl
 		and not activeCmdID
@@ -3118,8 +3202,6 @@ function widget:DrawScreen()
 			activationArea[4]
 		)
 	if ctrlHover or (historyMode and historyMode == "chat") then
-		--updateDrawUi = true
-
 		glPushMatrix()
 		local translatedX = (vsx * posX) + backgroundPadding
 		local translatedY = vsy * (historyMode and scrollingPosY or posY) + backgroundPadding
@@ -3192,22 +3274,9 @@ function widget:DrawScreen()
 		glPopMatrix()
 	end
 
-	prevCurrentConsoleLine = currentConsoleLine
-	prevCurrentChatLine = currentChatLine
-	prevHistoryMode = historyMode
-	--prevShowTextInput = showTextInput
-	--prevDisplayedChatLines = displayedChatLines
-
-	if refreshUi then
-		refreshUi = false
-		updateDrawUi = true
-		if uiTex then
-			gl.DeleteTexture(uiTex)
-			uiTex = nil
-		end
+	if state.uiShown then
+		glCallList(state.uiBlitList)
 	end
-
-	drawUi()
 	drawTextInput()
 end
 
@@ -4373,8 +4442,8 @@ function widget:ViewResize()
 		floor(math.max(120, chatPanelWidth - chatTextStartOffset - chatTextEndMargin - (backgroundPadding * 2)))
 	consoleLineMaxWidth = floor((activationArea[3] - activationArea[1]) * 0.88)
 
-	clearDisplayLists()
-	refreshUi = true
+	state.uiTextLeft, state.uiTextRight = math.huge, 0
+	state.uiDirty = true
 end
 
 function widget:PlayerChanged(playerID)
@@ -4439,8 +4508,7 @@ local function clearconsoleCmd(_, _, params)
 	currentChatLine = 0
 	currentConsoleLine = 0
 
-	clearDisplayLists()
-	updateDrawUi = true
+	state.uiDirty = true
 end
 
 local function hidespecchatCmd(_, _, params)
@@ -4579,6 +4647,7 @@ function widget:Initialize()
 	end
 	WG.chat.setBackgroundOpacity = function(value)
 		backgroundOpacity = value
+		state.uiDirty = true
 	end
 	WG.chat.getMaxLines = function()
 		return maxLines
@@ -4663,8 +4732,9 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	clearDisplayLists() -- console/chat displaylists
 	glDeleteList(textInputDlist)
+	glDeleteList(state.uiBlitList)
+	glDeleteList(state.uiHistoryList)
 	WG.chat = nil
 	state.clearChatInputGuishader()
 	if WG.guishader then
@@ -4672,9 +4742,9 @@ function widget:Shutdown()
 		WG.guishader.RemoveRect("chatinputautocomplete")
 		WG.guishader.RemoveRect("chatinputinfo")
 	end
-	if uiTex then
-		gl.DeleteTexture(uiTex)
-		uiTex = nil
+	if state.uiTex then
+		gl.DeleteTexture(state.uiTex)
+		state.uiTex = nil
 	end
 
 	widgetHandler.actionHandler:RemoveAction(self, "drawlabel", "p")

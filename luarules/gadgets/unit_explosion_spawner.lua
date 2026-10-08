@@ -35,6 +35,7 @@ local spGetUnitShieldState = Spring.GetUnitShieldState
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spSetFeatureDirection = Spring.SetFeatureDirection
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
+local spSetUnitNoSelect = Spring.SetUnitNoSelect
 local spSpawnCEG = Spring.SpawnCEG
 local spGetUnitHealth = Spring.GetUnitHealth
 local spSetUnitHealth = Spring.SetUnitHealth
@@ -98,6 +99,13 @@ for weaponDefID = 0, #WeaponDefs do
 			shieldCollide[weaponDefID] = WeaponDefs[weaponDefID].damages[Game.armorTypes.shield]
 		end
 		wantedList[#wantedList + 1] = weaponDefID
+	end
+end
+
+local droneUnitNames = {}
+for _, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.drone then
+		droneUnitNames[unitDef.name] = true
 	end
 end
 
@@ -238,6 +246,11 @@ local function SpawnUnit(spawnData)
 			if unitDetonates then
 				spDestroyUnit(unitID, false, false) -- e.g. mines use explodeas
 				return
+			end
+
+			if droneUnitNames[spawnUnitName] then
+				spSetUnitNoSelect(unitID, true)
+				SendToUnsynced("setUnitNoGroup", unitID, true)
 			end
 
 			if spawnDef.expire then
