@@ -911,6 +911,7 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.dofile = refuseSharedEnvFunction
 	SandboxedSystem.require = refuseSharedEnvFunction
 	SandboxedSystem.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+	SandboxedSystem.socket = nil
 end
 
 function widgetHandler:Initialize()
