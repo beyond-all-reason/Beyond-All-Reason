@@ -499,7 +499,11 @@ local function isPrivilegedCommand(command)
 end
 
 local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
-local handlerConfigPath = stringLower(CONFIG_FILENAME)
+local userReadonlyFiles = {
+	[stringLower(CONFIG_FILENAME)] = "is the widget handler config",
+	["luaui/widgets/uikeys.txt"] = "is run as console commands by the game",
+	["luaui/config/keybind_profiles.json"] = "is applied as key binds by the game",
+}
 
 -- FIXME: Other OS handling would need to be added here. Preferably engine would provide a method.
 ---@return string? path nil when blocked
@@ -534,8 +538,9 @@ local function checkUserWritePath(path)
 	end
 	path = tableConcat(parts, "/")
 	local lowerPath = stringLower(path)
-	if lowerPath == handlerConfigPath then
-		return nil, "is the widget handler config"
+	local readonly = userReadonlyFiles[lowerPath]
+	if readonly then
+		return nil, readonly
 	end
 	for _, folder in ipairs(userWritableFolders) do
 		if stringSub(lowerPath .. "/", 1, #folder) == folder then
