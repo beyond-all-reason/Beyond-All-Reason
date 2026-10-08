@@ -506,10 +506,14 @@ local function isUserWritablePath(path)
 		return false
 	end
 	path = stringLower((stringGsub(path, "\\", "/")))
-	-- Windows drops trailing dots and spaces, and a colon names a drive or a stream.
+	-- Windows drops trailing dots and spaces, changes "//" to "/", and uses ":" for drives and steams.
+	-- The engine then opens the path as a C string which is NUL-terminated.
+	-- FIXME: Other OS handling would need to be added here. Preferably engine would provide a method.
 	if
 		stringFind(path, "..", 1, true)
 		or stringFind(path, ":", 1, true)
+		or stringFind(path, "//", 1, true)
+		or stringFind(path, "\0", 1, true)
 		or stringFind(path, "[%. ]/")
 		or stringFind(path, "[%. ]$")
 	then
