@@ -632,6 +632,25 @@ function ModuleHandler.Evaluate(policies, ctx)
 		end
 		return ctx
 	end
+	if policies.result == "product" then
+		local product = nil
+		for _, policy in ipairs(policies) do
+			local factor = policy.evaluate(ctx)
+			if factor ~= nil then
+				product = (product or 1) * factor
+			end
+		end
+		if product == nil then
+			local last = policies[#policies]
+			error(
+				(last and last.category or "?")
+					.. ": no step gave a factor; the owner's "
+					.. (last and last.name or "?")
+					.. " must"
+			)
+		end
+		return product
+	end
 	for _, policy in ipairs(policies) do
 		if policy.kind == "unless" then
 			if policy.evaluate(ctx) then

@@ -8,6 +8,10 @@ local Policy = require("modules/policy")
 ---@field scripted string|nil
 ---@field reachable boolean|nil
 
+---@class SpecProductCtx
+---@field carriesCommander boolean|nil
+---@field inMud boolean|nil
+
 local function owner()
 	---@type AssembledPolicy<SpecCtx, boolean|string|table>
 	local steps = { result = "single" }
@@ -49,10 +53,24 @@ local function declared(owner, members)
 end
 
 describe("a policy's identity", function()
+	it("carries owner, category and the declared result", function()
+		local Contract = declared("transport", {
+			Load = Policy.Single({ Submerged = "Submerged" }),
+			LoadedSpeed = Policy.Product({ CommanderDrag = "CommanderDrag" }),
+		})
+		assert.are.same({ owner = "transport", category = "load", result = "single" }, Policy.IdentityOf(Contract.Load))
+		assert.are.same(
+			{ owner = "transport", category = "loaded_speed", result = "product" },
+			Policy.IdentityOf(Contract.LoadedSpeed)
+		)
+		assert.is_nil(Policy.IdentityOf({}))
+		assert.are.equal(Contract.Load, Policy.Chain(Contract.Load).steps)
+	end)
+
 	it("requires every category to declare itself", function()
 		assert.has_error(function()
 			declared("transport", { Load = { Submerged = "Submerged" } })
-		end, "spec: Load must declare itself: Single(...), Fold(...) or Contributes(...)")
+		end, "spec: Load must declare itself: Single(...), Product(...), Fold(...) or Contributes(...)")
 	end)
 
 	it("serializes a declaration's name to the key the runtime uses", function()
@@ -210,6 +228,23 @@ describe("the refusal", function()
 		assert.are.same({ allowed = false, reason = "nobody said yes" }, run(steps, {}))
 	end)
 
+	it("a Product with no factor is a broken owner, and says so", function()
+		local steps = { result = "product" }
+		Policy.Assemble(
+			steps,
+			Policy.Chain()
+				.Factor("Base", function(ctx)
+					return ctx.speed
+				end)
+				.Build(),
+			"owner"
+		)
+		assert.are.equal(3, run(steps, { speed = 3 }))
+		assert.has_error(function()
+			run(steps, {})
+		end)
+	end)
+
 	it("is false unless the policy declares its shape", function()
 		local steps = owner()
 		assert.is_false(run(steps, { submerged = true }))
@@ -271,6 +306,38 @@ describe("the declared result", function()
 		assert.are.equal("override", run(steps, { scripted = "override", submerged = true }))
 		assert.is_false(run(steps, { submerged = true }))
 		assert.is_true(run(steps, {}))
+	end)
+
+	it("product: factors from every module multiply into one answer", function()
+		---@type AssembledPolicy<SpecProductCtx, number>
+		local policy = { result = "product" }
+		Policy.Assemble(
+			policy,
+			Policy.Chain()
+				.Factor("CommanderDrag", function(ctx)
+					return ctx.carriesCommander and 0.5 or nil
+				end)
+				.Factor("MudCrawl", function(ctx)
+					return ctx.inMud and 0.25 or nil
+				end)
+				.Build(),
+			"owner"
+		)
+		assert.are.equal(0.125, run(policy, { carriesCommander = true, inMud = true }))
+		assert.are.equal(0.25, run(policy, { inMud = true }))
+		assert.has_error(function()
+			run(policy, {})
+		end)
+	end)
+
+	it("product: every step is a Factor", function()
+		local steps = {}
+		Policy.Assemble(steps, Policy.Chain().Factor("CommanderDrag", function() end).Build(), "owner")
+		Policy.Validate(steps, "product", "transport.loaded_speed")
+		assert.has_error(function()
+			Policy.Assemble(steps, Policy.Chain().Unless("NoMud", function() end).Build(), "mod")
+			Policy.Validate(steps, "product", "transport.loaded_speed")
+		end, "transport.loaded_speed: a product policy multiplies Factor results; NoMud is a guard")
 	end)
 end)
 
