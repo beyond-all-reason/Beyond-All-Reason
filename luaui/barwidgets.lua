@@ -41,6 +41,8 @@ local stringFind = string.find
 local stringLower = string.lower
 local stringGsub = string.gsub
 local stringSub = string.sub
+local stringGmatch = string.gmatch
+local tableConcat = table.concat
 local spSendCommands = Spring.SendCommands
 local debugTraceback = debug.traceback
 local debugGetinfo = debug.getinfo
@@ -75,7 +77,6 @@ local isHeadless = (Platform and Platform.isHeadless) or false
 local SandboxedSystem = {}
 local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
 local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
-local SANDBOXED_ERROR_USER_FILES = "User widgets can only write files in LuaUI/Config and LuaUI/Widgets"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -500,34 +501,48 @@ end
 local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
 local handlerConfigPath = stringLower(CONFIG_FILENAME)
 
--- Game code runs files from the write dir: its own saves, and through raw-first includes, its own modules.
-local function isUserWritablePath(path)
+-- FIXME: Other OS handling would need to be added here. Preferably engine would provide a method.
+---@return string? path nil when blocked
+---@return string? reason for blocking
+local function checkUserWritePath(path)
 	if type(path) ~= "string" then
-		return false
+		return nil, "is not a path"
 	end
-	path = stringLower((stringGsub(path, "\\", "/")))
-	-- Windows drops trailing dots and spaces, changes "//" to "/", and uses ":" for drives and steams.
-	-- The engine then opens the path as a C string which is NUL-terminated.
-	-- FIXME: Other OS handling would need to be added here. Preferably engine would provide a method.
-	if
-		stringFind(path, "..", 1, true)
-		or stringFind(path, ":", 1, true)
-		or stringFind(path, "//", 1, true)
-		or stringFind(path, "\0", 1, true)
-		or stringFind(path, "[%. ]/")
-		or stringFind(path, "[%. ]$")
-	then
-		return false
+	if stringFind(path, "\0", 1, true) then
+		return nil, "contains a NUL character" -- engine opens the path as a C string
 	end
-	if path == handlerConfigPath then
-		return false
+	if stringFind(path, ":", 1, true) then
+		return nil, "may be a drive or a stream"
 	end
-	for _, folder in ipairs(userWritableFolders) do
-		if stringSub(path .. "/", 1, #folder) == folder then
-			return true
+	if stringFind(path, "~", 1, true) then
+		return nil, "may be a Windows shortname"
+	end
+	path = stringGsub(path, "\\", "/")
+	if stringSub(path, 1, 1) == "/" then
+		return nil, "is an absolute path"
+	end
+	local parts = {}
+	for part in stringGmatch(path, "[^/]+") do
+		if part == ".." then
+			return nil, "tries to climb dirs"
+		elseif part ~= "." then
+			if stringFind(part, "[%. ]$") then
+				return nil, "has a name that Windows will modify on open"
+			end
+			parts[#parts + 1] = part
 		end
 	end
-	return false
+	path = tableConcat(parts, "/")
+	local lowerPath = stringLower(path)
+	if lowerPath == handlerConfigPath then
+		return nil, "is the widget handler config"
+	end
+	for _, folder in ipairs(userWritableFolders) do
+		if stringSub(lowerPath .. "/", 1, #folder) == folder then
+			return path
+		end
+	end
+	return nil, "is outside the write paths for user widgets"
 end
 
 local function copyTable(source)
@@ -546,58 +561,75 @@ local function CreateSandboxedSystem()
 	local sandboxedIo = copyTable(io)
 	local ioOutput = io.output
 	sandboxedIo.open = function(path, mode)
-		if stringFind(mode or "r", "[wa+]") and not isUserWritablePath(path) then
-			return nil, tostring(path) .. ": " .. SANDBOXED_ERROR_USER_FILES
+		if not stringFind(mode or "r", "[wa+]") then
+			return ioOpen(path, mode)
 		end
-		return ioOpen(path, mode)
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			return nil, tostring(path) .. ": " .. reason
+		end
+		return ioOpen(target, mode)
 	end
 	sandboxedIo.output = function(file)
-		if type(file) == "string" and not isUserWritablePath(file) then
-			error(SANDBOXED_ERROR_USER_FILES, 2)
+		if type(file) ~= "string" then
+			return ioOutput(file)
 		end
-		return ioOutput(file)
+		local target, reason = checkUserWritePath(file)
+		if not target then
+			error(file .. ": " .. reason, 2)
+		end
+		return ioOutput(target)
 	end
 
 	local sandboxedOs = copyTable(os)
 	local osRemove = os.remove
 	local osRename = os.rename
 	sandboxedOs.remove = function(path)
-		if not isUserWritablePath(path) then
-			return nil, tostring(path) .. ": " .. SANDBOXED_ERROR_USER_FILES
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			return nil, tostring(path) .. ": " .. reason
 		end
-		return osRemove(path)
+		return osRemove(target)
 	end
 	sandboxedOs.rename = function(from, to)
-		if not isUserWritablePath(from) or not isUserWritablePath(to) then
-			return nil, tostring(from) .. ": " .. SANDBOXED_ERROR_USER_FILES
+		local fromTarget, fromReason = checkUserWritePath(from)
+		if not fromTarget then
+			return nil, tostring(from) .. ": " .. fromReason
 		end
-		return osRename(from, to)
+		local toTarget, toReason = checkUserWritePath(to)
+		if not toTarget then
+			return nil, tostring(to) .. ": " .. toReason
+		end
+		return osRename(fromTarget, toTarget)
 	end
 
 	local sandboxedTable = copyTable(table)
 	local tableSave = table.save
 	sandboxedTable.save = function(t, filename, header)
-		if not isUserWritablePath(filename) then
-			error(SANDBOXED_ERROR_USER_FILES, 2)
+		local target, reason = checkUserWritePath(filename)
+		if not target then
+			error(tostring(filename) .. ": " .. reason, 2)
 		end
-		return tableSave(t, filename, header)
+		return tableSave(t, target, header)
 	end
 
 	local sandboxedVfs = copyTable(VFS)
 	local vfsCompressFolder = VFS.CompressFolder
 	sandboxedVfs.CompressFolder = function(folder, archiveType, archivePath, ...)
-		if not isUserWritablePath(archivePath) then
-			error(SANDBOXED_ERROR_USER_FILES, 2)
+		local target, reason = checkUserWritePath(archivePath)
+		if not target then
+			error(tostring(archivePath) .. ": " .. reason, 2)
 		end
-		return vfsCompressFolder(folder, archiveType, archivePath, ...)
+		return vfsCompressFolder(folder, archiveType, target, ...)
 	end
 
 	local spCreateDir = Spring.CreateDir
 	local function createDir(path)
-		if not isUserWritablePath(path) then
-			error(SANDBOXED_ERROR_USER_FILES, 2)
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			error(tostring(path) .. ": " .. reason, 2)
 		end
-		return spCreateDir(path)
+		return spCreateDir(target)
 	end
 	-- The engine passes unhandled actions to LuaUI, where game widgets run them with full access.
 	-- Dropped rather than raised, so widgets that still send them keep loading.
