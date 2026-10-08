@@ -17,6 +17,8 @@ end
 -- RadarPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
 -- RadarPreviewAnimations (0/1, default on): enable/disable animations
 -- RadarPreviewSweep (0/1, default off): draw the rotating sweep (only when animations are on)
+-- SensorPreviewCircles (0/1, default on, shared with the jammer preview): end the previewed radar's coverage at a
+--   circle at its range instead of the engine's staircase of radar cells (inside, the terrain still shows per cell)
 
 ------------------------------------------------------------------------------------------------
 -- How it works
@@ -145,6 +147,7 @@ do
 				radiusCells = MAX_RADIUS_CELLS
 			end
 			radarDefs[-unitDefID] = {
+				range = unitDef.radarDistance,
 				radiusCells = radiusCells,
 				emitHeight = unitDef.radarEmitHeight or 0,
 				midY = (dims and dims.midy) or 0, -- unit->midPos.y - unit->pos.y
@@ -172,6 +175,7 @@ local settings = {
 	minimap = true, -- RadarPreviewMinimap
 	animations = true, -- RadarPreviewAnimations: sweep and pulse rings
 	sweep = true, -- RadarPreviewSweep: the rotating sweep (only when animations are on)
+	circles = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0, -- SensorPreviewCircles
 }
 local alliedConfigCheckedAt = -mathHuge
 local sets = {} -- radius in cells -> coverage/state textures and ray table
@@ -243,6 +247,7 @@ local sheetShaderCache = {
 		radarcenter_range = { 0, 0, 0, 2000 },
 		lookupParams = { 0, 0, 1, 0 },
 		animParams = { 0, 0, 0, 0 },
+		circleParams = { 0, 0, 0, 0 },
 		passRect = { -1, -1, 1, 1 },
 	},
 	shaderConfig = shaderConfig,
@@ -551,6 +556,7 @@ local function readConfig()
 	settings.minimap = Spring.GetConfigInt("RadarPreviewMinimap", 1) ~= 0
 	settings.animations = Spring.GetConfigInt("RadarPreviewAnimations", 1) ~= 0
 	settings.sweep = Spring.GetConfigInt("RadarPreviewSweep", 0) ~= 0
+	settings.circles = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0
 end
 
 function widget:Update()
@@ -744,9 +750,12 @@ end
 
 -- The sheet: one pass over the screen area of the coverage (the radar's disc, or the whole map with allied
 -- coverage on) that projects it onto the terrain. manualAllied: our own union of the allied radars instead of
--- the engine's radar map.
-local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied)
+-- the engine's radar map. circleRange: the radar's range (elmos), where its coverage ends in circle mode.
+local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied, circleRange)
 	local x0, z0, x1, z1 = set.bx - set.radius, set.bz - set.radius, set.bx + set.radius, set.bz + set.radius
+	if settings.circles then -- the circle, around the radar anywhere in its cell, can reach two cells past the disc
+		x0, z0, x1, z1 = x0 - 2, z0 - 2, x1 + 2, z1 + 2
+	end
 	if settings.allied then -- allied coverage can be anywhere on the map
 		x0, z0, x1, z1 = 0, 0, MAP_CELLS_X - 1, MAP_CELLS_Z - 1
 	end
@@ -776,6 +785,8 @@ local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied)
 	local animations = settings.animations and 1 or 0
 	local sweep = settings.sweep and 1 or 0
 	sheetShader:SetUniform("animParams", now, now - spawnStart, animations, sweep)
+	-- a selected radar is in the allied radar map itself, with its cells reaching past its circle
+	sheetShader:SetUniform("circleParams", settings.circles and 1 or 0, circleRange, selectedRadarUnitID and 1 or 0, 0)
 	sheetShader:SetUniform("passRect", left, bottom, right, top)
 	passVAO:DrawArrays(GL.TRIANGLES)
 	sheetShader:Deactivate()
@@ -935,7 +946,7 @@ function widget:DrawWorld()
 	-- 3. the sheet
 	gl.Texture(0, false)
 	gl.Texture(1, false)
-	drawSheet(set, cx, cz, losHeight, range, now, manualAllied)
+	drawSheet(set, cx, cz, losHeight, range, now, manualAllied, def.range)
 end
 
 -- Flat fill of the previewed (and allied) radar coverage on the minimap, outlined at uncovered cells. Also
