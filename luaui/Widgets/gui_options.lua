@@ -13425,6 +13425,7 @@ function widget:Initialize()
 	WG.options.addOptions = function(newOptions)
 		for _, option in ipairs(newOptions) do
 			option.group = "custom"
+			option.widget = nil -- FIXME: only prevent user widgets disabling game widgets; applying an option with a widget enables or disables that widget
 			customOptions[#customOptions + 1] = option
 		end
 
@@ -13452,6 +13453,10 @@ function widget:Initialize()
 		local optionID = getOptionByID(option)
 		if not optionID then
 			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			return
+		end
+		if options[optionID].widget then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' denied by sandboxing")
 			return
 		end
 		applyOptionValue(optionID, tonumber(value))
