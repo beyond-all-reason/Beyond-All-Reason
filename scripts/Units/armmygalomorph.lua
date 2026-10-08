@@ -45,14 +45,14 @@ local YAW_SPEED = math.rad(240)
 local PITCH_SPEED = math.rad(160)
 local RESTORE_SPEED = YAW_SPEED * 2
 local RESTORE_PITCH_SPEED = PITCH_SPEED * 2
-local TOE_MAX = math.rad(20)
-local PITCH_SPLIT = math.rad(25)
+local TOE_MAX = math.rad(5)
+local PITCH_SPLIT = math.rad(80)
 local HAND_PITCH_SIGN = 1 -- flip if the guns dip instead of rising past the split
 -- measured in game: the hand's y axis is nearly horizontal across the barrel, its x axis nearly vertical
 local HAND_AXIS_X, HAND_AXIS_Y = -0.27, 0.96
 local FIRE_ANGLE = math.rad(16)
 local FIRE_ANGLE_PITCH = math.rad(6)
-local RATE_FRAMES = 6
+local SMALL_GUN_FIRE_ANGLE_PITCH = math.rad(15)
 local STALL_FRAMES = 6
 local RESTORE_FRAMES = 90
 local RECOIL = 2
@@ -75,9 +75,6 @@ local GetGameFrame = Spring.GetGameFrame
 ---@field mirror number
 ---@field goalPitch number
 ---@field pitchBelief number
----@field pitchRate number
----@field lastAimPitch number
----@field lastAimFrame integer
 ---@field shots integer
 
 ---@return Arm
@@ -88,9 +85,6 @@ local function NewArm(aimxPiece, handPiece, mirror)
 		mirror = mirror,
 		goalPitch = 0.0,
 		pitchBelief = 0.0,
-		pitchRate = 0.0,
-		lastAimPitch = 0.0,
-		lastAimFrame = -1000,
 		shots = 0,
 	}
 end
@@ -102,6 +96,9 @@ local weaponFlare = { lflare1, lflare2, rflare1, rflare2 }
 local weaponBarrel = { lbarrel1, lbarrel2, rbarrel1, rbarrel2 }
 local weaponIsHeavy = { true, false, true, false }
 local LIGHTNING = 5
+local LEAD_GUN = { [1] = true, [3] = true }
+local YAW_GUN = 1
+local HOLD_DIST = 75
 local tubes = { flarel3, flarer3 }
 local tubeSide = 1
 local nextArm = leftArm
@@ -109,7 +106,7 @@ local armShotFrame = -1000
 local lastArmFrame = -1000
 local HAND_GAP = math.floor(WeaponDefs[UnitDefs[unitDefID].weapons[1].weaponDef].reload * Game.gameSpeed / 2)
 
-local goalYaw, beliefYaw, goalRate, lastAimHeading, lastAimFrame = 0.0, 0.0, 0.0, 0.0, -1000
+local goalYaw, beliefYaw, lastAimFrame = 0.0, 0.0, -1000
 local HAND_POSE_X, HAND_POSE_Y = 0.253073, -0.031416
 local pivotZ = 0.0
 
@@ -136,6 +133,24 @@ local function ToeIn(num, arm)
 	local px, pz = ux + pivotZ * math.sin(hull), uz + pivotZ * math.cos(hull)
 	local toe = wrap(math.atan2(tx - sx, tz - sz) - math.atan2(tx - px, tz - pz))
 	return math.max(-TOE_MAX, math.min(TOE_MAX, toe))
+end
+
+local function TargetDistance(num)
+	local targetType, _, target = GetUnitWeaponTarget(unitID, num)
+	local tx, tz
+	if targetType == 1 then
+		---@cast target UnitID
+		local _, _, _, _, _, _, ax, _, az = GetUnitPosition(target, true, true)
+		tx, tz = ax, az
+	elseif targetType == 2 then
+		---@cast target float3
+		tx, tz = target[1], target[3]
+	end
+	local ox, _, oz = GetUnitPiecePosDir(unitID, torso)
+	if not (tx and tz and ox and oz) then
+		return math.huge
+	end
+	return math.sqrt((tx - ox) ^ 2 + (tz - oz) ^ 2)
 end
 
 local function stepToward(belief, goal, step)
@@ -839,16 +854,12 @@ local function AimController()
 		local hullDelta = wrap(hull - lastHull)
 		lastHull = hull
 		if not GetUnitIsStunned(unitID) then
-			if frame - lastAimFrame > RATE_FRAMES then
-				goalRate = 0
-			end
 			if isAiming and frame - lastAimFrame > RESTORE_FRAMES then
 				isAiming = false
 				RestArms()
 			end
 			if isAiming then
-				goalYaw = wrap(goalYaw - hullDelta + goalRate)
-				lastAimHeading = wrap(lastAimHeading - hullDelta)
+				goalYaw = wrap(goalYaw - hullDelta)
 				beliefYaw = stepToward(wrap(beliefYaw - hullDelta), goalYaw, YAW_SPEED / Game.gameSpeed)
 			else
 				goalYaw = 0
@@ -861,11 +872,7 @@ local function AimController()
 				lastArmFrame = frame
 			end
 			for _, arm in ipairs(arms) do
-				if frame - arm.lastAimFrame > RATE_FRAMES then
-					arm.pitchRate = 0
-				end
 				if isAiming then
-					arm.goalPitch = arm.goalPitch + arm.pitchRate
 					arm.pitchBelief = stepToward(arm.pitchBelief, arm.goalPitch, PITCH_SPEED / Game.gameSpeed)
 				else
 					arm.goalPitch = 0
@@ -925,41 +932,27 @@ function script.AimWeapon(num, heading, pitch)
 	local arm = weaponArm[num]
 	---@cast arm Arm
 	local frame = GetGameFrame()
-	local frames = frame - lastAimFrame
-	if frames > 0 then
-		goalRate = 0
-		if frames <= RATE_FRAMES then
-			goalRate = wrap(heading - lastAimHeading) / frames
-			if math.abs(goalRate) > YAW_SPEED / Game.gameSpeed then
-				goalRate = 0
-			end
-		end
-		lastAimHeading = heading
-		lastAimFrame = frame
-	end
-	frames = frame - arm.lastAimFrame
-	if frames > 0 then
-		arm.pitchRate = 0
-		if frames <= RATE_FRAMES then
-			arm.pitchRate = (pitch - arm.lastAimPitch) / frames
-			if math.abs(arm.pitchRate) > PITCH_SPEED / Game.gameSpeed then
-				arm.pitchRate = 0
-			end
-		end
-		arm.lastAimPitch = pitch
-		arm.lastAimFrame = frame
-	end
+	local holding = TargetDistance(num) < HOLD_DIST
+	lastAimFrame = frame
 	if not isAiming then
 		isAiming = true
 		PoseArms()
 	end
-	goalYaw = heading
-	arm.goalPitch = pitch
+	if num == YAW_GUN and not holding then
+		goalYaw = heading
+	end
+	if LEAD_GUN[num] and not holding then
+		arm.goalPitch = pitch
+	end
 	Turn(arm.aimx, y_axis, ToeIn(num, arm), YAW_SPEED)
 	if arm ~= nextArm or frame - lastArmFrame < HAND_GAP then
 		return false
 	end
-	return math.abs(wrap(heading - beliefYaw)) <= FIRE_ANGLE and math.abs(pitch - arm.pitchBelief) <= FIRE_ANGLE_PITCH
+	if holding then
+		return true
+	end
+	local pitchTolerance = LEAD_GUN[num] and FIRE_ANGLE_PITCH or SMALL_GUN_FIRE_ANGLE_PITCH
+	return math.abs(wrap(heading - beliefYaw)) <= FIRE_ANGLE and math.abs(pitch - arm.pitchBelief) <= pitchTolerance
 end
 
 function script.FireWeapon(num)
