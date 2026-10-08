@@ -103,6 +103,10 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	end
 end
 
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return not place_target_on_ground[unitDefID]
+end
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
 	-- Final fallback if an attack or set-target command with a untiID parameter is otherwise given unexpectedly
 	-- usually from user side DefaultCommand widget function

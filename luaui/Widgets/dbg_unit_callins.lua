@@ -226,6 +226,12 @@ function widget:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExper
 	end
 end
 
+function widget:WantsUnitCommandBatch()
+	return enabledcallins.UnitCommand == nil
+end
+
+function widget:UnitCommandBatch() end
+
 function widget:UnitCommand(
 	unitID,
 	unitDefID,

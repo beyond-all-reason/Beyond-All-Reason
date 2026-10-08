@@ -296,3 +296,9 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	activeSelfD[unitID] = nil
 	queuedSelfD[unitID] = nil
 end
+
+function widget:WantsUnitCommandBatch(unitID)
+	return not queuedSelfD[unitID]
+end
+
+function widget:UnitCommandBatch() end

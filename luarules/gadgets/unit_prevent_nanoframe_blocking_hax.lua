@@ -124,6 +124,10 @@ function gadget:GameFrame(n)
 end
 
 -- make it not manually or accidentally targetable
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return next(newNanoFrameNeutralState) == nil
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 	-- accepts: CMD.ATTACK
 	if not cmdParams[2] and newNanoFrameNeutralState[cmdParams[1]] ~= nil then

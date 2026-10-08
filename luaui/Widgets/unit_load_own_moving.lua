@@ -127,3 +127,9 @@ function widget:Initialize()
 		maybeRemoveSelf()
 	end
 end
+
+function widget:WantsUnitCommandBatch(unitID, unitDefID)
+	return not isTransport[unitDefID]
+end
+
+function widget:UnitCommandBatch() end

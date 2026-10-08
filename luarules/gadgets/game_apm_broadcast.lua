@@ -49,6 +49,15 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- be aware that these aren't exclusively user actioned commands
+	function gadget:AllowCommandBatch()
+		return true
+	end
+
+	function gadget:AllowCommandBatchCommit(unitID, unitDefID, teamID)
+		-- Repeated ATTACKs in this frame only refresh the same ignore deadline.
+		self:AllowCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+	end
+
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, fromSynced, fromLua)
 		-- limit to 1 action per gameframe
 		if not teamAddedActionFrame[teamID] and totalTeamActions[teamID] and not ignoreUnitDefs[unitDefID] then

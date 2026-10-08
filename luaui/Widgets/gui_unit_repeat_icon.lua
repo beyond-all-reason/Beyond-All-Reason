@@ -252,3 +252,6 @@ function widget:DrawScreenEffects()
 	gl.DepthTest(false)
 	gl.DepthMask(true)
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

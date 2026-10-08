@@ -1124,3 +1124,11 @@ function widget:SetConfigData(data)
 		duration = data.duration
 	end
 end
+
+function widget:UnitCommandBatch(unitID, unitDefID, teamID, commands, playerID, fromSynced, fromLua, ranges)
+	self:UnitCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+	-- The old loop records the first command, then marks the final one deferred.
+	if #ranges > 2 or ranges[2] > 1 then
+		self:UnitCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+	end
+end

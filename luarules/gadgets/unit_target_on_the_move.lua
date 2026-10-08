@@ -1289,6 +1289,8 @@ if gadgetHandler:IsSyncedCode() then
 		--tracy.ZoneEnd()
 	end
 
+	function gadget:UnitCommandBatch() end
+
 	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag)
 		if cmdID == CMD_STOP and setTargetData[unitID] then
 			removeWithStop(unitID)

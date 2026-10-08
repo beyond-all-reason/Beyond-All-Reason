@@ -668,3 +668,6 @@ function widget:SetConfigData(data)
 		showAllHoldFireIcons = data.showAllHoldFireIcons and true or false
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

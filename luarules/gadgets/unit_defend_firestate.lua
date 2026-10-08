@@ -146,6 +146,8 @@ local function createUnitMeta(unitDefID)
 	return meta
 end
 
+function gadget:UnitCommandBatch() end
+
 function gadget:UnitCommand(
 	unitID,
 	unitDefID,

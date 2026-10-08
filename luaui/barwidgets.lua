@@ -1070,6 +1070,19 @@ local function SafeWrapWidget(widget)
 	if widget.Initialize then
 		widget.Initialize = SafeWrapFunc(widget.Initialize, "Initialize")
 	end
+	-- Optional batch methods share the usual receiver error handling, but are
+	-- dispatched by UnitCommand/AllowCommand rather than separate engine lists.
+	for _, name in ipairs({
+		"WantsUnitCommandBatch",
+		"UnitCommandBatch",
+		"AllowCommandBatch",
+		"AllowCommandBatchCommit",
+	}) do
+		if widget[name] then
+			widget[name] = SafeWrapFunc(widget[name], name)
+		end
+	end
+
 end
 
 --------------------------------------------------------------------------------
@@ -3888,5 +3901,13 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+if Script.CommandBatchCallbacks then
+	local batch = VFS.Include("common/command_batch.lua")
+	Script.GetCommandBatchStats = batch.GetStats
+	WantsUnitCommandBatch, UnitCommandBatch = batch.NotificationDispatcher(function()
+		return widgetHandler.UnitCommandList
+	end)
+end
 
 widgetHandler:Initialize()
