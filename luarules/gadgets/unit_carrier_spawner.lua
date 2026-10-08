@@ -3,6 +3,7 @@ if not gadgetHandler:IsSyncedCode() then
 end
 
 local gadget = gadget ---@type Gadget
+local Transport = require("modules/transport/api")
 
 function gadget:GetInfo()
 	return {
@@ -1718,7 +1719,7 @@ local function updateCarrier(carrierID, carrierMetaData, frame)
 										end
 									else
 										if droneType == "abductor" then
-											local transportedUnit = Spring.GetUnitIsTransporting(subUnitID)
+											local transportedUnit = Transport.Cargo(subUnitID)
 											if transportedUnit[1] then
 												dockUnitQueue(carrierID, subUnitID)
 											else
@@ -2001,7 +2002,7 @@ local function landLoop(unitID, subUnitID, droneMetaData)
 			spCallCOBScript(subUnitID, "Docked", 0, carrierMetaData.cobdockparam, pieceNumber, pieceAngleResult)
 
 			if dronetype == "abductor" then
-				local transportedUnit = Spring.GetUnitIsTransporting(subUnitID)
+				local transportedUnit = Transport.Cargo(subUnitID)
 				if transportedUnit[1] then
 					local transportedUnitDefID = Spring.GetUnitDefID(transportedUnit[1])
 					if transportedUnitDefID then
