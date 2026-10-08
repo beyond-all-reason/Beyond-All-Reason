@@ -22,7 +22,8 @@ function Policies.On(steps) end
 function Policies.Contract(moduleName) end
 
 ---@class PolicyStep
+---@field file string|nil the file whose chain added it, for messages
 ---@field name string
----@field kind "apply"
+---@field kind "if"|"unless"|"answer"|"apply"
 ---@field category string|nil Loader-stamped from the policy's identity
 ---@field evaluate function fun(...): result|nil
