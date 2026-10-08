@@ -8983,10 +8983,7 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt3"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getSquadColorMode() == "custom" and 2)
-				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
-				or 1,
+			value = 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
 			onload = function(i)
 				local raw = (
