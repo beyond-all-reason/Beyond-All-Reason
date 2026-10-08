@@ -116,6 +116,7 @@ local function fixture()
 			return self.spot
 		end
 		env.WG.resource_spot_builder = {
+			QUICK_MEX_RADIUS_SQUARED = 2000,
 			SpotHasExtractorQueued = function()
 				return self.occupied
 			end,

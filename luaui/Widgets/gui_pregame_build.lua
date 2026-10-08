@@ -947,9 +947,6 @@ function widget:Update(dt)
 	end
 end
 
--- Use the same spot radius as Quick Build (mex/geo), which needs live builders.
-local QUICK_MEX_RADIUS_SQUARED = 2000
-
 local function getQuickMexBuild(mx, my)
 	if not preGamestartPlayer or spGetGameFrame() > 0 or selBuildQueueDefID or Spring.IsGUIHidden() then
 		return
@@ -966,7 +963,7 @@ local function getQuickMexBuild(mx, my)
 		return
 	end
 	local spot = finder.GetClosestMexSpot(pos[1], pos[3])
-	if not spot or (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 >= QUICK_MEX_RADIUS_SQUARED then
+	if not spot or (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 >= builder.QUICK_MEX_RADIUS_SQUARED then
 		return
 	end
 	if builder.SpotHasExtractorQueued(spot) then
