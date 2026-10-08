@@ -1,6 +1,7 @@
 local widget = widget ---@type Widget
 
 -- Include the substitution logic directly with a shorter alias
+local Insert = require("luaui/Include/command_insert")
 local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 function widget:GetInfo()
@@ -151,48 +152,55 @@ local function commandInsertRelease(_, _, args)
 	end
 end
 
-local function queueBuild(buildData, shift, meta)
+local function getInsertMode(shift, meta)
+	return Insert.GetMode(insertModifiers, shift, meta)
+end
+
+local function queueBuildBatch(commands, shift, meta)
+	local mode = getInsertMode(shift, meta)
 	local position = #buildQueue + 1
-	if insertModifiers.prepend_between or insertModifiers.prepend_queue then
-		if not shift then
-			position = 1
-		elseif insertModifiers.prepend_queue then
-			position = math.min(prependPosition, #buildQueue + 1)
-			prependPosition = position + 1
-		else
-			local px, py, pz = Spring.GetTeamStartPosition(myTeamID)
-			if px and px >= 0 then
-				local cx, cy, cz = buildData[2], buildData[3], buildData[4]
-				local function distance(x, y, z, x2, y2, z2)
-					return math.sqrt((x - x2) ^ 2 + (y - y2) ^ 2 + (z - z2) ^ 2)
-				end
-				local shortestDetour = math.huge
-				-- Match CommandInsert's shortest extra walk, starting at the commander spawn.
-				for i, queued in ipairs(buildQueue) do
-					local qx, qy, qz = queued[2], queued[3], queued[4]
-					local detour = distance(px, py, pz, cx, cy, cz)
-						+ distance(cx, cy, cz, qx, qy, qz)
-						- distance(px, py, pz, qx, qy, qz)
-					if detour < shortestDetour then
-						shortestDetour = detour
-						position = i
-					end
-					px, py, pz = qx, qy, qz
-				end
-				if distance(px, py, pz, cx, cy, cz) < shortestDetour then
-					position = #buildQueue + 1
-				end
-			end
-		end
-	elseif meta then
+	if mode == "front" then
 		position = 1
+	elseif mode == "prepend" then
+		position = math.min(prependPosition, #buildQueue + 1)
+		prependPosition = position + #commands
+	elseif mode == "between" then
+		local positions = {}
+		for i, queued in ipairs(buildQueue) do
+			positions[i] = { queued[2], queued[3], queued[4] }
+		end
+		local first, last = commands[1], commands[#commands]
+		position = Insert.FindPosition(
+			{ Spring.GetTeamStartPosition(myTeamID) },
+			positions,
+			{ first[2], first[3], first[4] },
+			{ last[2], last[3], last[4] }
+		)
 	end
-	tableInsert(buildQueue, position, buildData)
+	for i, command in ipairs(commands) do
+		tableInsert(buildQueue, position + i - 1, command)
+	end
 	forceRefreshCache = true
+end
+
+local function queueBuild(buildData, shift, meta)
+	queueBuildBatch({ buildData }, shift, meta)
+end
+
+local queueBuildCommands
+local function getStartBuildOptions()
+	if not preGamestartPlayer or spGetGameFrame() > 0 then
+		return
+	end
+	local defID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	return defID and UnitDefs[defID] and UnitDefs[defID].buildOptions
 end
 
 local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
+	if uDefID and select(2, Spring.GetActiveCommand()) == GameCMD.AREA_MEX then
+		Spring.SetActiveCommand(0)
+	end
 	selBuildQueueDefID = uDefID
 
 	if preGamestartPlayer then
@@ -365,7 +373,20 @@ function widget:Initialize()
 
 	isMetalMap = WG.resource_spot_finder.isMetalMap
 
-	WG["pregame-build"] = {}
+	WG["pregame-build"] = {
+		getStartBuildOptions = getStartBuildOptions,
+		getInsertMode = getInsertMode,
+		queueBuildCommands = function(...)
+			return queueBuildCommands(...)
+		end,
+		getBuildOrigin = function(useQueueEnd)
+			if useQueueEnd and #buildQueue > 0 then
+				local last = buildQueue[#buildQueue]
+				return last[2], last[3], last[4]
+			end
+			return Spring.GetTeamStartPosition(myTeamID)
+		end,
+	}
 	WG["pregame-build"].getPreGameDefID = function()
 		return selBuildQueueDefID
 	end
@@ -733,6 +754,59 @@ local function DoBuildingsClash(buildingData1, buildingData2)
 	return xDistance < halfBuilding1Width + halfBuilding2Width and zDistance < halfBuilding1Height + halfBuilding2Height
 end
 
+-- Resource widgets submit a whole route through here. Validate before replacing
+-- the queue, and skip overlaps instead of cancelling existing player orders.
+queueBuildCommands = function(commands, shift, meta)
+	local buildOptions = getStartBuildOptions()
+	if not buildOptions then
+		return false
+	end
+	if meta == nil then
+		meta = select(3, Spring.GetModKeyState())
+	end
+	local keepQueue = shift or getInsertMode(shift, meta)
+	local existing = keepQueue and buildQueue or {}
+	local valid, allowed = {}, {}
+	for _, id in ipairs(buildOptions) do
+		allowed[id] = true
+	end
+	local startID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local x, y, z = Spring.GetTeamStartPosition(myTeamID)
+	local startBuild
+	if x and x >= 0 then
+		x, y, z = Spring.Pos2BuildPos(startID, x, y, z)
+		startBuild = { startID, x, y, z, 1 }
+	end
+	for _, command in ipairs(commands) do
+		local build = { command[1], command[2], command[3], command[4], command[5] or 0 }
+		local usable = allowed[build[1]] and spTestBuildOrder(unpack(build)) ~= 0
+		if usable and startBuild and DoBuildingsClash(build, startBuild) then
+			usable = false
+		end
+		for _, queued in ipairs(existing) do
+			if usable and queued[1] > 0 and DoBuildingsClash(build, queued) then
+				usable = false
+			end
+		end
+		for _, queued in ipairs(valid) do
+			if usable and DoBuildingsClash(build, queued) then
+				usable = false
+			end
+		end
+		if usable then
+			valid[#valid + 1] = build
+		end
+	end
+	if #valid == 0 then
+		return false
+	end
+	if not keepQueue then
+		buildQueue = {}
+	end
+	queueBuildBatch(valid, shift, meta)
+	return true
+end
+
 local function removeUnitShape(id)
 	if unitshapes[id] then
 		WG.StopDrawUnitShapeGL4(unitshapes[id])
@@ -1017,6 +1091,9 @@ function widget:MousePress(mx, my, button)
 
 	if not preGamestartPlayer then
 		return
+	end
+	if select(2, Spring.GetActiveCommand()) == GameCMD.AREA_MEX then
+		return false
 	end
 	local _, _, meta, shift = Spring.GetModKeyState()
 

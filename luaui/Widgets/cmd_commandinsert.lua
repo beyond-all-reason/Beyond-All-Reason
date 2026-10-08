@@ -2,6 +2,7 @@
 -------------------------------------------------------------------------------------
 
 local widget = widget ---@type Widget
+local Insert = require("luaui/Include/command_insert")
 
 function widget:GetInfo()
 	return {
@@ -24,15 +25,13 @@ local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 
 local MAX_QUEUE_WALK = 100
 
-local math_sqrt = math.sqrt
-
 local modifiers = {
 	prepend_between = false,
 	prepend_queue = false,
 }
 
 -- Current position in prepend queue for prepend_queue mode
-local prependPos = 0
+local prependPositions = {}
 
 function widget:GameStart()
 	widget:PlayerChanged()
@@ -56,7 +55,7 @@ local function pressHandler(_, _, args)
 	modifiers[args[1]] = true
 
 	if args[1] == "prepend_queue" then
-		prependPos = 0
+		prependPositions = {}
 	end
 end
 
@@ -72,11 +71,37 @@ local function releaseHandler(_, _, args)
 	modifiers[args[1]] = false
 end
 
+local insertCommands
+local function hasOption(options, flag)
+	if options[flag] then
+		return true
+	end
+	for _, value in ipairs(options) do
+		if value == flag then
+			return true
+		end
+	end
+	return false
+end
+
+local function getInsertMode(options)
+	return Insert.GetMode(modifiers, hasOption(options, "shift"), hasOption(options, "meta"))
+end
+
 function widget:Initialize()
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		widget:PlayerChanged()
+		if Spring.GetSpectatingState() then
+			return
+		end
 	end
 
+	WG.commandInsert = {
+		GetInsertMode = getInsertMode,
+		InsertCommands = function(...)
+			return insertCommands(...)
+		end,
+	}
 	widgetHandler:AddAction("commandinsert", pressHandler, nil, "p")
 	widgetHandler:AddAction("commandinsert", releaseHandler, nil, "r")
 end
@@ -107,87 +132,80 @@ local function GetCommandPos(id, p1, p2, p3) --- get the command position
 			return GetUnitOrFeaturePosition(p1)
 		end
 	end
-	return -10, -10, -10
+	return nil
+end
+
+-- Commands use the engine order-array format: { id, params, options }.
+-- Returns true when insertion handles the batch; false leaves normal issuing
+-- to the caller. An explicit mode captures the action state before dispatch.
+-- Resolve the entire batch before sending it: engine queues do not reflect
+-- newly sent orders until the simulation receives them.
+insertCommands = function(units, commands, options, mode)
+	mode = mode or getInsertMode(options)
+	if not mode or spGetGameFrame() == 0 or #commands == 0 then
+		return false
+	end
+	local first = { GetCommandPos(commands[1][1], unpack(commands[1][2])) }
+	local last = { GetCommandPos(commands[#commands][1], unpack(commands[#commands][2])) }
+	if mode == "between" and (not first[1] or not last[1]) then
+		return false
+	end
+	for _, unitID in ipairs(units) do
+		local count = spGetUnitCommandCount(unitID)
+		local x, y, z = spGetUnitPosition(unitID)
+		if count and x then
+			local position = 0
+			if mode == "prepend" then
+				position = prependPositions[unitID] or 0
+				prependPositions[unitID] = position + #commands
+			elseif mode == "between" then
+				local queue = {}
+				for j = 1, math.min(count, MAX_QUEUE_WALK) do
+					local id, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unitID, j)
+					queue[j] = id and { GetCommandPos(id, p1, p2, p3) } or {}
+				end
+				local index = Insert.FindPosition({ x, y, z }, queue, first, last)
+				position = index > #queue and count or index - 1
+			end
+			for i, command in ipairs(commands) do
+				local opts = command[3] or options
+				local mask = 0
+				for _, flag in ipairs({ "alt", "ctrl", "right", "shift" }) do
+					if hasOption(opts, flag) then
+						mask = mask + CMD["OPT_" .. flag:upper()]
+					end
+				end
+				spGiveOrderToUnit(
+					unitID,
+					CMD.INSERT,
+					{ position + i - 1, command[1], mask, unpack(command[2]) },
+					{ "alt" }
+				)
+			end
+		end
+	end
+	return true
 end
 
 function widget:CommandNotify(id, params, options)
+	-- Widget-generated area commands must be expanded before inserting the
+	-- resulting build orders. Pregame owns a Lua queue and has no live builders.
+	if spGetGameFrame() == 0 or id == GameCMD.AREA_MEX then
+		return false
+	end
 	if not (modifiers.prepend_between or modifiers.prepend_queue) then
 		return false
 	end
-
-	local opt = 0
-	if options.alt then
-		opt = opt + CMD.OPT_ALT
-	end
-	if options.ctrl then
-		opt = opt + CMD.OPT_CTRL
-	end
-	if options.right then
-		opt = opt + CMD.OPT_RIGHT
-	end
-	-- options.meta not forwarded since we're doing insert with it
-	-- and don't want to alias with engine at the same time.
-	if options.shift then
-		opt = opt + CMD.OPT_SHIFT
-
-		if modifiers.prepend_queue then
-			Spring.GiveOrder(CMD.INSERT, { prependPos, id, opt, unpack(params) }, { "alt" })
-
-			prependPos = prependPos + 1
-
-			return true
-		end
-	else
-		Spring.GiveOrder(CMD.INSERT, { 0, id, opt, unpack(params) }, { "alt" })
-
-		return true
-	end
-
-	-- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
-	local cx, cy, cz = GetCommandPos(id, params[1], params[2], params[3])
-	if cx < -1 then
+	if not insertCommands(Spring.GetSelectedUnits(), { { id, params } }, options) then
 		return false
 	end
-
-	local units = Spring.GetSelectedUnits()
-	for i = 1, #units do
-		local unit_id = units[i]
-		local commandCount = math.min(spGetUnitCommandCount(unit_id) or 0, MAX_QUEUE_WALK)
-		local px, py, pz = spGetUnitPosition(unit_id)
-		local min_dlen = 1000000
-		local insert_pos = 0
-		for j = 1, commandCount do
-			local cmdID, _, _, p1, p2, p3 = spGetUnitCurrentCommand(unit_id, j)
-			local px2, py2, pz2 = GetCommandPos(cmdID, p1, p2, p3)
-			if px2 and px2 > -1 then
-				local dlen = math_sqrt(
-					((px2 - cx) * (px2 - cx)) + ((py2 - cy) * (py2 - cy)) + ((pz2 - cz) * (pz2 - cz))
-				) + math_sqrt(((px - cx) * (px - cx)) + ((py - cy) * (py - cy)) + ((pz - cz) * (pz - cz))) - math_sqrt(
-					(((px2 - px) * (px2 - px)) + ((py2 - py) * (py2 - py)) + ((pz2 - pz) * (pz2 - pz)))
-				)
-				if dlen < min_dlen then
-					min_dlen = dlen
-					insert_pos = j
-				end
-				px, py, pz = px2, py2, pz2
-			end
-		end
-		-- check for insert at end of queue if its shortest walk.
-		local dlen = math_sqrt(((px - cx) * (px - cx)) + ((py - cy) * (py - cy)) + ((pz - cz) * (pz - cz)))
-		if dlen < min_dlen then
-			--options.meta=nil
-			--options.shift=true
-			--spGiveOrderToUnit(unit_id,id,params,options)
-			spGiveOrderToUnit(unit_id, id, params, { "shift" })
-		else
-			spGiveOrderToUnit(unit_id, CMD.INSERT, { insert_pos - 1, id, opt, unpack(params) }, { "alt" })
-		end
-	end
-
-	-- When we are editing the build order we want to keep same active command after unset by engine
 	if id < 0 then
 		Spring.SetActiveCommand(Spring.GetCmdDescIndex(id), 1, true, false, options.alt, options.ctrl, false, false)
 	end
-
 	return true
+end
+
+function widget:Shutdown()
+	WG.commandInsert = nil
+	widgetHandler:RemoveAction("commandinsert")
 end

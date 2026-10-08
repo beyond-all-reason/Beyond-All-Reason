@@ -76,9 +76,10 @@ end
 ---@param builderIDs UnitID[]
 ---@param buildings BuildingInfo[]
 ---@param cmdOpts table
-local function splitBuildings(builderIDs, buildings, cmdOpts)
+---@param issueOrders? fun(unitIDs: UnitID[], orders: table[]): boolean
+local function splitBuildings(builderIDs, buildings, cmdOpts, issueOrders)
 	local builders = getBuilderInfos(builderIDs)
-	WG.api_build_orders.splitBuildOrders(builders, buildings, cmdOpts or { "shift" })
+	WG.api_build_orders.splitBuildOrders(builders, buildings, cmdOpts or { "shift" }, issueOrders)
 end
 
 function widget:Initialize()

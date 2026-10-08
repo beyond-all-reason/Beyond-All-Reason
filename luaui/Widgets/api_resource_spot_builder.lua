@@ -162,7 +162,8 @@ local function spotHasExtractorQueued(spot, builders)
 	end
 
 	if isPregame then
-		local queue = WG["pregame-build"].getBuildQueue()
+		local pregame = WG["pregame-build"]
+		local queue = pregame and pregame.getBuildQueue() or {}
 		return checkQueue(queue)
 	else
 		for i = 1, #builders do
@@ -304,7 +305,7 @@ end
 ---@param buildingId table
 ---@param shift table
 ---@return table main builders, the ones that can make the selected building
-local function sortBuilders(units, constructorIds, buildingId, shift)
+local function sortBuilders(units, constructorIds, buildingId, shift, options, insertMode)
 	-- Add highest producing constructors to mainBuilders table + give guard orders to "inferior" constructors
 	local mainBuilders = {}
 	local secondaryBuilders = {}
@@ -352,18 +353,19 @@ local function sortBuilders(units, constructorIds, buildingId, shift)
 	end
 	-----------------------------------
 
+	if #mainBuilders == 0 then
+		return
+	end
+
 	-- order secondary builders to guard main builders, equally dispersed
 	local index = 1
 	for i, uid in pairs(secondaryBuilders) do
 		local mainBuilderId = mainBuilders[index]
-		if not shift then
-			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, {})
-			index = index + 1
-		end
-		-- if we give a guard order on a unit already guarded with shift, it will get cancelled
-		-- so do some queue analysis and avoid duplicate commands
-		if shift and not hasExistingGuardOrder(uid) then
-			spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, { "shift" })
+		if not shift or not hasExistingGuardOrder(uid) then
+			local commands = { { CMD_GUARD, { mainBuilderId } } }
+			if not (insertMode and WG.commandInsert.InsertCommands({ uid }, commands, options, insertMode)) then
+				spGiveOrderToUnit(uid, CMD_GUARD, { mainBuilderId }, shift and { "shift" } or {})
+			end
 			index = index + 1
 		end
 
@@ -431,23 +433,43 @@ local function PreviewExtractorCommand(params, extractor, spot, metalMap)
 	return finalCommand
 end
 
-local function ApplyPreviewCmds(cmds, constructorIds, shift)
+local function ApplyPreviewCmds(cmds, constructorIds, shift, options)
 	if not cmds or #cmds <= 0 then
+		return
+	end
+	if isPregame then
+		local pregame = WG["pregame-build"]
+		if pregame and pregame.queueBuildCommands then
+			pregame.queueBuildCommands(cmds, shift, options and options.meta)
+		end
 		return
 	end
 	local units = selectedUnits
 	local buildingId = cmds[1][1] -- assume they are all the same building id
-	local mainBuilders = sortBuilders(units, constructorIds, buildingId, shift)
+	local alt, ctrl, meta = Spring.GetModKeyState()
+	options = options or { alt = alt, ctrl = ctrl, meta = meta, shift = shift }
+	meta = options.meta
+	local insertMode = WG.commandInsert and WG.commandInsert.GetInsertMode(options)
+	local mainBuilders =
+		sortBuilders(units, constructorIds, buildingId, shift or meta or insertMode, options, insertMode)
 
 	if not mainBuilders or #mainBuilders <= 0 then
 		return
 	end
 
-	local _, _, meta, _ = Spring.GetModKeyState()
-
 	local unitArray = {} -- make unit array to avoid extra work
 	for i = 1, #mainBuilders do
 		unitArray[#unitArray + 1] = mainBuilders[i]
+	end
+
+	if insertMode then
+		local orders = {}
+		for _, cmd in ipairs(cmds) do
+			orders[#orders + 1] = { -cmd[1], { cmd[2], cmd[3], cmd[4], cmd[5] } }
+		end
+		if WG.commandInsert.InsertCommands(unitArray, orders, options, insertMode) then
+			return
+		end
 	end
 
 	for i = 1, #cmds do
