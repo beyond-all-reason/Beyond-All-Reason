@@ -260,6 +260,7 @@ if gadgetHandler:IsSyncedCode() then
 				Spring.Echo("[Restart With State] Failed to parse state: " .. tostring(err))
 				return true
 			end
+			setfenv(fn, {})
 			local ok, data = pcall(fn)
 			if not ok or type(data) ~= "table" or type(data.units) ~= "table" then
 				Spring.Echo("[Restart With State] State data invalid; ignoring.")
