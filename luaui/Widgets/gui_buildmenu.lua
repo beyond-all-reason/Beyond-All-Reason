@@ -1961,7 +1961,19 @@ function widget:GameFrame(n)
 	end
 end
 
-local function setPreGamestartDefID(uDefID)
+local function setPreGamestartDefID(uDefID, allowAreaMex)
+	if
+		allowAreaMex
+		and uDefID
+		and unitMetal_extractor[uDefID]
+		and WG["pregame-build"]
+		and WG["pregame-build"].getPreGameDefID() == uDefID
+		and WG.areamex
+		and WG.areamex.activatePregame(uDefID)
+	then
+		selBuildQueueDefID = nil
+		return
+	end
 	selBuildQueueDefID = uDefID
 	if WG["pregame-build"] then
 		WG["pregame-build"].setPreGamestartDefID(uDefID)
@@ -2075,7 +2087,7 @@ function widget:MousePress(x, y, button)
 								changeQuotas(-uDefID, 1)
 							else
 								if preGamestartPlayer then
-									setPreGamestartDefID(-uDefID)
+									setPreGamestartDefID(-uDefID, true)
 								elseif spGetCmdDescIndex(uDefID) then
 									local isRepeatMex = unitMetal_extractor[-uDefID] and unitName[-uDefID] == activeCmd
 									local cmd = isRepeatMex and "areamex" or spGetCmdDescIndex(uDefID)

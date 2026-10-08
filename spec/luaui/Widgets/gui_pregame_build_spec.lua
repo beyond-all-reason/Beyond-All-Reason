@@ -10,6 +10,7 @@ local function fixture()
 		}, { __index = math }),
 		WG = { resource_spot_finder = { isMetalMap = true } },
 		Game = {},
+		GameCMD = { AREA_MEX = 30100 },
 		CMD = { MOVE = 10 },
 		LOG = { INFO = 1 },
 		UnitDefs = {
@@ -17,7 +18,11 @@ local function fixture()
 			[2] = { extractsMetal = 0, xsize = 2, zsize = 2, modCategories = {} },
 			[3] = { extractsMetal = 1, xsize = 2, zsize = 2, modCategories = {} },
 		},
-		require = function()
+		require = function(path)
+			if path == "luaui/Include/command_insert" then
+				local result = require(path)
+				return result
+			end
 			return {
 				IsStartUnitSpawnDisabled = function()
 					return false
@@ -31,6 +36,9 @@ local function fixture()
 			RegisterGlobal = noop,
 		},
 		Spring = {
+			GetActiveCommand = function()
+				return nil
+			end,
 			GetGameFrame = function()
 				return f.frame or 0
 			end,

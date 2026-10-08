@@ -1194,6 +1194,18 @@ local function setPregameBlueprint(uDefID)
 		return
 	end
 
+	if
+		uDefID
+		and unitMetal_extractor[uDefID]
+		and WG["pregame-build"]
+		and WG["pregame-build"].getPreGameDefID() == uDefID
+		and WG.areamex
+		and WG.areamex.activatePregame(uDefID)
+	then
+		activeCmd = GameCMD.AREA_MEX
+		updateSelectedCell()
+		return
+	end
 	activeCmd = uDefID and -uDefID
 	if WG["pregame-build"] and WG["pregame-build"].setPreGamestartDefID then
 		WG["pregame-build"].setPreGamestartDefID(uDefID)

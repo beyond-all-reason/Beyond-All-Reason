@@ -145,7 +145,11 @@ end
 ---Sends orders in packets the engine accepts.
 ---@param unitIDs UnitID[]
 ---@param orders table[] { cmdID, params, options } entries
-local function giveOrders(unitIDs, orders)
+---@param issueOrders? fun(unitIDs: UnitID[], orders: table[]): boolean Optional sender; true consumes the batch.
+local function giveOrders(unitIDs, orders, issueOrders)
+	if issueOrders and issueOrders(unitIDs, orders) then
+		return
+	end
 	local headerBytes = PACKET_HEADER_BYTES + PACKET_UNIT_BYTES * #unitIDs
 	local chunk, chunkBytes = {}, headerBytes
 	for _, order in ipairs(orders) do
@@ -178,7 +182,8 @@ end
 ---@param allBuildings BuildingInfo[] The buildings to place, with positions.
 ---@param cmdOpts table Command options.
 ---@param peerFollowups boolean|nil If true, append peers' buildings as followups.
-local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerFollowups)
+---@param issueOrders? fun(unitIDs: UnitID[], orders: table[]): boolean
+local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerFollowups, issueOrders)
 	-- A blueprint is many build orders, so every order after the first must queue
 	-- (shift) or it would overwrite the previous one.
 	local queuedOpts = table.copy(cmdOpts)
@@ -369,7 +374,7 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 				local groupBuilderIDs = table.map(groupData.group, function(b)
 					return b.unitID
 				end)
-				giveOrders(groupBuilderIDs, orders)
+				giveOrders(groupBuilderIDs, orders, issueOrders)
 			end
 		end
 	end
@@ -401,7 +406,12 @@ local function distributeBuildOrders(builderGroups, allBuildings, cmdOpts, peerF
 
 				if not canBuildAny then
 					for _, builder in ipairs(groupData.group) do
-						Spring.GiveOrderToUnit(builder.unitID, CMD_GUARD, { workingBuilderIDs[guardIndex] }, cmdOpts)
+						local params = { workingBuilderIDs[guardIndex] }
+						if
+							not (issueOrders and issueOrders({ builder.unitID }, { { CMD_GUARD, params, cmdOpts } }))
+						then
+							Spring.GiveOrderToUnit(builder.unitID, CMD_GUARD, params, cmdOpts)
+						end
 						guardIndex = guardIndex % #workingBuilderIDs + 1
 					end
 				end
@@ -416,12 +426,13 @@ end
 ---@param builders BuilderInfo[] A list of builder info objects.
 ---@param buildings BuildingInfo[] A list of building objects.
 ---@param cmdOpts table Command options.
-local function splitBuildOrders(builders, buildings, cmdOpts)
+---@param issueOrders? fun(unitIDs: UnitID[], orders: table[]): boolean
+local function splitBuildOrders(builders, buildings, cmdOpts, issueOrders)
 	if #builders == 0 or #buildings == 0 then
 		return
 	end
 
-	distributeBuildOrders(forkBuilders(builders), buildings, cmdOpts, true)
+	distributeBuildOrders(forkBuilders(builders), buildings, cmdOpts, true, issueOrders)
 end
 
 function widget:Initialize()
