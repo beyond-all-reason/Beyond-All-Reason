@@ -1258,7 +1258,7 @@ QueryTertiary(piecenum)
 
 AimFromWeapon3(piecenum)
 {
-	piecenum = turret;
+	piecenum = chassis;
 }
 
 AimTertiary(piecenum)

@@ -351,7 +351,7 @@ local function addTimedExplosion(weaponDefID, px, py, pz, attackerID, projectile
 
 		local minY = elevation - areaRange
 		if minY < waterPlaneLevel then
-			minY = minY * (1 - dy * 0.5) -- avoid damage to submerged targets
+			minY = waterPlaneLevel + (minY - waterPlaneLevel) * (1 - dy * 0.5) -- avoid damage to submerged targets
 		end
 
 		-- Shields and area damages express slightly different types of containment of units,
@@ -780,7 +780,7 @@ if lavaWater then
 
 		local minY = elevation - areaRange
 		if minY < lavaLevel then
-			minY = minY * (1 - dy * 0.5)
+			minY = lavaLevel + (minY - lavaLevel) * (1 - dy * 0.5)
 		end
 
 		area.y = elevation

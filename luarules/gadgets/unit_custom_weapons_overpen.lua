@@ -71,6 +71,7 @@ local max = math.max
 local min = math.min
 local sqrt = math.sqrt
 
+local spGetFeatureBlocking = Spring.GetFeatureBlocking
 local spGetFeatureHealth = Spring.GetFeatureHealth
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spGetFeatureRadius = Spring.GetFeatureRadius
@@ -79,6 +80,8 @@ local spGetProjectileDirection = Spring.GetProjectileDirection
 local spGetProjectilePosition = Spring.GetProjectilePosition
 local spGetProjectileVelocity = Spring.GetProjectileVelocity
 local spTraceRayBetweenPositions = Spring.TraceRayBetweenPositions
+local spGetUnitBlocking = Spring.GetUnitBlocking
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -98,9 +101,9 @@ local spValidUnitID = Spring.ValidUnitID
 local armorDefault = Game.armorTypes.default
 local armorShields = Game.armorTypes.shields
 
-local addShieldDamage, getUnitShieldState, damageToShields -- see unit_shield_behaviour
-local setVelocityControl -- see unit_collision_damage_behaviour
-local weaponDamageFactors -- see api_unit_attributes
+local addShieldDamage, getUnitShieldState, damageToShields ---@type function, function, table -- see unit_shield_behaviour
+local setVelocityControl ---@type function -- see unit_collision_damage_behaviour
+local weaponDamageFactors ---@type table -- see api_unit_attributes
 
 --------------------------------------------------------------------------------
 -- Setup -----------------------------------------------------------------------
@@ -196,6 +199,7 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 	if not mx then
 		return px, py, pz -- invalid target
 	end
+	---@diagnostic disable: need-check-nil
 
 	local radiusSq = radius * radius
 	local travel = -1e3 - radius
@@ -232,6 +236,7 @@ local function getCollisionPosition(projectileID, targetID, isUnit)
 			my - ay - dy * separation,
 			mz - az - dz * separation
 	end
+	---@diagnostic enable: need-check-nil
 end
 
 local function addPenetratorProjectile(projectileID, ownerID, params)
@@ -272,6 +277,50 @@ local function addPenetratorCollision(targetID, isUnit, armorType, damage, proje
 	}
 end
 
+local function addSkippedCollisions(projectileID, penetrator)
+	local collisions = penetrator.collisions
+	local traceType
+	for i = 1, #collisions do
+		local collision = collisions[i]
+		if collision.targetID and not collision.shieldID then
+			local hitType = collision.isUnit and "unit" or "feature"
+			traceType = (traceType and traceType ~= hitType) and "both" or hitType
+		end
+	end
+	if not traceType then
+		return
+	end
+
+	local vx, vy, vz = spGetProjectileVelocity(projectileID)
+	if not vx then
+		return
+	end
+	local endX, endY, endZ = spGetProjectilePosition(projectileID)
+	local hits = spTraceRayBetweenPositions(endX - vx, endY - vy, endZ - vz, endX, endY, endZ, traceType) ---@diagnostic disable-line
+
+	local weapon = penetrator.params
+	for hitIndex = 1, #hits do
+		local hit = hits[hitIndex]
+		local hitID, isUnit = hit[2], hit[3] == "unit"
+		local skip = isUnit and hitID == penetrator.ownerID
+		for i = 1, #collisions do
+			local collision = collisions[i]
+			if collision.targetID == hitID and collision.isUnit == isUnit and not collision.shieldID then
+				skip = true
+				break
+			end
+		end
+		if not skip then
+			local _, _, collidable = (isUnit and spGetUnitBlocking or spGetFeatureBlocking)(hitID)
+			if collidable then
+				local armorType = isUnit and unitArmorType[spGetUnitDefID(hitID)] or armorDefault
+				local damage = weapon[armorType] * penetrator.damageFactor
+				addPenetratorCollision(hitID, isUnit, armorType, damage, projectileID, penetrator)
+			end
+		end
+	end
+end
+
 local sortPenetratorCollisions
 do
 	local table_sort = table.sort
@@ -282,13 +331,9 @@ do
 	end
 
 	local function getTraceCollisionDistances(collisions, projectileID, penetrator)
-		if not spTraceRayBetweenPositions then
-			return
-		end
-
 		local startX, startY, startZ = penetrator.posX, penetrator.posY, penetrator.posZ
 		local endX, endY, endZ = spGetProjectilePosition(projectileID)
-		if not startX or not startY or not startZ or not endX or not endY or not endZ then
+		if not startX or not endX then
 			return
 		end
 
@@ -385,9 +430,7 @@ local function hitUnit(weapon, penetrator, damageLeft, collision, targetID)
 		penetrator.dirY * impulse,
 		penetrator.dirZ * impulse
 	)
-	if setVelocityControl then
-		setVelocityControl(targetID, true)
-	end
+	setVelocityControl(targetID, true)
 
 	damageLeft = damageLeft - weapon.penalty - (weapon.falloff and collision.health / damageBase or 0)
 
@@ -432,7 +475,7 @@ end
 local function loseMomentum(projectileID, before, after)
 	local speedRatio = falloffRatio(before, after)
 	local vx, vy, vz = spGetProjectileVelocity(projectileID)
-	spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio)
+	spSetProjectileVelocity(projectileID, vx * speedRatio, vy * speedRatio, vz * speedRatio) ---@diagnostic disable-line: need-check-nil
 end
 
 local function stopMomentum(projectileID, collision)
@@ -454,6 +497,9 @@ local function stopMomentum(projectileID, collision)
 end
 
 local function executeCollisions(projectileID, penetrator)
+	addSkippedCollisions(projectileID, penetrator)
+	projectileHits[projectileID] = nil
+
 	local collisions = penetrator.collisions
 	local n = #collisions
 

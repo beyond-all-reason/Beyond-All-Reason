@@ -140,9 +140,14 @@ AimWeapon1(heading, pitch)
 	return (1);
 }
 
-QueryWeapon2(pieceIndex)
+QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = base;
 }
 
 Killed(severity, corpsetype)

@@ -26,10 +26,23 @@ for udid, ud in pairs(UnitDefs) do
 	end
 end
 
+-- carriers release their own drones
+local isCarrierDrone = {}
+for _, wd in pairs(WeaponDefs) do
+	if wd.customParams.carried_unit then
+		for name in wd.customParams.carried_unit:gmatch("%S+") do
+			if UnitDefNames[name] then
+				isCarrierDrone[UnitDefNames[name].id] = true
+			end
+		end
+	end
+end
+
 local SpSetUnitVelocity = Spring.SetUnitVelocity
 local SpGetUnitVelocity = Spring.GetUnitVelocity
 local SpGetGroundHeight = Spring.GetGroundHeight
 local SpGetUnitPosition = Spring.GetUnitPosition
+local SpGetUnitDirection = Spring.GetUnitDirection
 local SpGetGameFrame = Spring.GetGameFrame
 local SpSetUnitPhysics = Spring.SetUnitPhysics
 local SpSetUnitDirection = Spring.SetUnitDirection
@@ -37,7 +50,7 @@ local SpSetUnitDirection = Spring.SetUnitDirection
 local unloadedUnits = {}
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
-	if unitID == nil or unitDefID == nil or transportID == nil then
+	if unitID == nil or unitDefID == nil or transportID == nil or isCarrierDrone[unitDefID] then
 		return
 	end
 	if isParatrooper[unitDefID] then
@@ -61,9 +74,8 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		SpSetUnitVelocity(unitID, x, y, z)
 	else
 		-- prevent unloaded units from sliding across the map
-		local px, py, pz = Spring.GetUnitPosition(unitID)
-		local dx, dy, dz, rx, ry, rz = Spring.GetUnitDirection(unitID)
-		local frame = SpGetGameFrame() + frameMargin
+		local px, py, pz = SpGetUnitPosition(unitID)
+		local dx, dy, dz, rx, ry, rz = SpGetUnitDirection(unitID)
 		unloadedUnits[unitID] = {
 			px = px,
 			py = py,
@@ -74,7 +86,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 			rx = rx,
 			ry = ry,
 			rz = rz,
-			frame = frame,
+			frame = SpGetGameFrame() + frameMargin,
 		}
 
 		SpSetUnitVelocity(unitID, 0, 0, 0)
@@ -88,12 +100,10 @@ end
 function gadget:GameFrame(frame)
 	-- prevent unloaded units from sliding across the map
 	for unitID, data in pairs(unloadedUnits) do
-		if data.frame == frame then
-			-- reset position
+		if data.frame <= frame then
 			SpSetUnitPhysics(unitID, data.px, data.py, data.pz, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 			SpSetUnitDirection(unitID, data.dx, data.dy, data.dz, data.rx, data.ry, data.rz)
-			--Spring.GiveOrderToUnit(unitID,CMD.MOVE,{data.px+10*data.dx,data.py,data.pz+10*data.dz},CMD.OPT_SHIFT)
-			data = nil
+			unloadedUnits[unitID] = nil
 		end
 	end
 end
