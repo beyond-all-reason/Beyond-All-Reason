@@ -724,6 +724,21 @@ local function CreateSandboxedSystem()
 		end
 		return spSetConfigString(key, value, useOverlay)
 	end
+	local spExtractModArchiveFile = Spring.ExtractModArchiveFile
+	-- Would replace the archive on the next launch.
+	local function extractModArchiveFile(path)
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			refuseUserWrite(path, reason)
+			return false
+		end
+		return spExtractModArchiveFile(target)
+	end
+	-- Would replace the start script on the next launch.
+	local function refuseEngineRestart()
+		Spring.Log("barwidgets.lua", LOG.ERROR, "User widgets cannot start, restart or reload the engine")
+		return false
+	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
 		if string.find(k, "^GiveOrder") and not allowunitcontrolwidgets then
@@ -734,6 +749,10 @@ local function CreateSandboxedSystem()
 			SandboxedSpring[k] = createDir
 		elseif k == "SetConfigString" then
 			SandboxedSpring[k] = setConfigString
+		elseif k == "ExtractModArchiveFile" then
+			SandboxedSpring[k] = extractModArchiveFile
+		elseif k == "Start" or k == "Restart" or k == "Reload" then
+			SandboxedSpring[k] = refuseEngineRestart
 		else
 			SandboxedSpring[k] = v
 		end
