@@ -490,6 +490,10 @@ local function releaseDrone(carrierID, subUnitID)
 	local carrierData = carrierMetaList[carrierID]
 	local droneData = carrierData and carrierData.subUnitsList[subUnitID]
 	if droneData then
+		-- detaching resets noSelect
+		if not carrierData.manualDrones then
+			setDroneNoSelect(subUnitID, true)
+		end
 		spCallCOBScript(subUnitID, "Undocked", 0, carrierData.cobundockparam, droneData.dockingPiece)
 	end
 end
@@ -513,9 +517,6 @@ local function undockUnit(unitID, subUnitID)
 				releaseDrone(unitID, subUnitID)
 			else
 				deferredDroneReleases[subUnitID] = unitID
-			end
-			if not carrierMetaList[unitID].manualDrones then
-				setDroneNoSelect(subUnitID, true)
 			end
 			spSetUnitUseAirLos(subUnitID, droneMetaData.isAirUnit)
 			droneMetaData.docked = false
