@@ -143,7 +143,7 @@ local keyDefs = {
 		code = { "backslash" },
 	},
 
-	{ main = { x = 0, y = 4.5, w = 1.75 }, name = "Caps Lock", code = { "capslock" } },
+	{ main = { x = 0, y = 4.5, w = 1.75 }, name = "Caps Lock", scan = { "0x039" }, code = { "capslock" } },
 	{ main = { x = 1.75, y = 4.5 }, char = "A" },
 	{ main = { x = 2.75, y = 4.5 }, char = "S" },
 	{ main = { x = 3.75, y = 4.5 }, char = "D" },
@@ -213,7 +213,7 @@ local keyDefs = {
 		code = { "printscreen", "print" },
 	},
 	-- Printed the way a keycap prints them, the full names being wider than a key.
-	{ numpad = { x = 3.5, y = 1 }, name = "ScrLk", code = { "scrollock" } },
+	{ numpad = { x = 3.5, y = 1 }, name = "ScrLk", scan = { "0x047" }, code = { "scrollock" } },
 	{ numpad = { x = 2.5, y = 2.5 }, name = "Insert", scan = { "insert" }, code = { "insert" } },
 	{ numpad = { x = 3.5, y = 2.5 }, name = "Home", scan = { "home" }, code = { "home" } },
 	{ numpad = { x = 4.5, y = 2.5 }, name = "PgUp", scan = { "pageup" }, code = { "pageup" } },
@@ -225,7 +225,7 @@ local keyDefs = {
 	{ numpad = { x = 3.5, y = 6.5 }, name = down, scan = { "down" }, code = { "down" } },
 	{ numpad = { x = 4.5, y = 6.5 }, name = right, scan = { "right" }, code = { "right" } },
 
-	{ numpad = { x = 6, y = 2.5 }, name = "NumLk", code = { "numlock" } },
+	{ numpad = { x = 6, y = 2.5 }, name = "NumLk", scan = { "0x053" }, code = { "numlock" } },
 	{ numpad = { x = 7, y = 2.5 }, name = "/", scan = { "numpad/" }, code = { "numpad/" } },
 	{ numpad = { x = 8, y = 2.5 }, name = "*", scan = { "numpad*" }, code = { "numpad*" } },
 	{ numpad = { x = 9, y = 2.5 }, name = "-", scan = { "numpad-" }, code = { "numpad-" } },
