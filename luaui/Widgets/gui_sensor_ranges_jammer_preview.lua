@@ -16,6 +16,8 @@ end
 -- JammerPreviewAlwaysShow (0/1, default on): always draw the coverage of all allied jammers, not only while placing or selecting one
 -- JammerPreviewAlliedCoverage (0/1, default on): while previewing a jammer, also draw the coverage of all allied jammers
 -- JammerPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
+-- SensorPreviewCircles (0/1, default on, shared with the radar preview): draw the coverage as circles at the jammers'
+--   ranges instead of the engine's radar cells (CIRCLE_* tunables below); the minimap keeps the cells
 
 ------------------------------------------------------------------------------------------------
 -- Jammer coverage ignores the terrain: the engine jams a disc of radar cells (radarMipLevel from modrules,
@@ -29,6 +31,8 @@ end
 --  4. Minimap pass (JammerPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
 -- A selected jammer that does not jam right now (switched off, stunned, paused, unpaid or unfinished) still shows
 -- its range, faintly.
+-- Circle mode (SensorPreviewCircles) draws circles at the jammers' ranges instead, shrunk to lie (nearly) all in
+-- jammed cells: the previewed one per pixel, the allied ones from a distance field the disc pass renders.
 -- The pass vertex, smoothing and minimap shaders are shared with gui_sensor_ranges_radar_preview.lua.
 ------------------------------------------------------------------------------------------------
 
@@ -40,6 +44,15 @@ local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged 
 local MAX_RADIUS_CELLS = 256 -- sanity limit of the jammer radius in cells
 local OUTLINE_DASHES = 4 -- stipple density of the outline: dashes per radar cell side, centred on the cell corners
 local OUTLINE_DASH_SPEED = 6 -- elmos per second the stipple travels clockwise around the coverage, 0 = still
+-- circle mode (SensorPreviewCircles): how far a jammer's circle shrinks from its nominal range (0) towards the largest
+-- circle that lies in jammed radar cells everywhere (1); in between, a unit inside the circle is jammed nearly always
+local CIRCLE_SAFETY = 0.75
+-- circle mode: mobile jammers' circles jump along with the engine's radar cell like the real coverage (true), or
+-- follow the unit smoothly (false)
+local CIRCLE_SNAP = false ---@type boolean
+-- circle mode: up to this many allied circles get exact edges and a stipple; beyond, their edges come from a distance
+-- field one texel per radar cell (slightly polygonal up close) and their outline is solid
+local MAX_ALLIED_CIRCLES = 64
 
 -- The sheet is projected through the map g-buffer depth; units and features are left out via the model g-buffer
 -- depth. BAR turns both on (luaintro/springconfig.lua).
@@ -85,6 +98,8 @@ local shaderConfig = {
 	INACTIVE_OUTLINE_ALPHA = 0.4, -- opacity of its outline, relative to a jamming one's
 	MIN_COVERAGE = 0.04, -- cells fainter than this are not drawn
 	SPAWN_SPEED = 18.0, -- jammer ranges per second the spawn ripple travels outward
+	MAX_ALLIED_CIRCLES = MAX_ALLIED_CIRCLES,
+	CIRCLE_SDF_RANGE = 128, -- circle mode: elmos either side of the allied circles' edge their distance field covers
 }
 
 -- Localized functions for performance
@@ -140,6 +155,57 @@ local function worldToCell(v)
 	return cell >= 0 and mathFloor(cell) or mathCeil(cell)
 end
 
+-- Circle mode: radius in cells -> elmos from the emitter to the nearest radar cell its disc leaves unjammed, measured
+-- from the center of the emitter's cell when circles snap to it, else from anywhere in that cell (a unit moves around
+-- in it). The nearest unjammed cells are the first ones past each row MidpointCircleAlgoPerLine fills, as in
+-- sensor_ranges_jammer_preview_disc.frag.glsl.
+local safeRadii = {} ---@type table<integer, number|nil>
+local function safeCircleRadius(radiusCells)
+	local safe = safeRadii[radiusCells]
+	if safe then
+		return safe
+	end
+	local widths = {}
+	local x, y, decisionOver2 = radiusCells, 0, 1 - radiusCells
+	while x >= y do
+		widths[y] = mathMax(widths[y] or -1, x)
+		if decisionOver2 <= 0 then
+			y = y + 1
+			decisionOver2 = decisionOver2 + 2 * y + 1
+		else
+			if x ~= y then
+				widths[x] = mathMax(widths[x] or -1, y)
+			end
+			y = y + 1
+			x = x - 1
+			decisionOver2 = decisionOver2 + 2 * (y - x) + 1
+		end
+	end
+	local inset = CIRCLE_SNAP and 0.5 or 1.0
+	local nearest = mathHuge
+	for row = 0, radiusCells + 1 do
+		local column = (row <= radiusCells) and ((widths[row] or -1) + 1) or 0
+		local dx, dz = mathMax(column - inset, 0.0), mathMax(row - inset, 0.0)
+		nearest = mathMin(nearest, (dx * dx + dz * dz) ^ 0.5)
+	end
+	safe = nearest * RADAR_CELL
+	safeRadii[radiusCells] = safe
+	return safe
+end
+
+-- circle mode: a jammer's circle radius for its range in elmos and in cells
+local function circleRadius(range, radiusCells)
+	return range - CIRCLE_SAFETY * mathMax(range - safeCircleRadius(radiusCells), 0)
+end
+
+-- circle mode: a jammer's circle center for its emitter (mid) position
+local function circleCenter(x, z)
+	if CIRCLE_SNAP then
+		return (worldToCell(x) + 0.5) * RADAR_CELL, (worldToCell(z) + 0.5) * RADAR_CELL
+	end
+	return x, z
+end
+
 -- unitDefID -> jammer parameters of every unit type with a radar jammer
 local jammerDefs = {} ---@type table<number, table>
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -147,6 +213,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 		local dims = Spring.GetUnitDefDimensions(unitDefID)
 		jammerDefs[unitDefID] = {
 			unitDefID = unitDefID,
+			range = unitDef.radarDistanceJam,
 			radiusCells = radiusToCells(unitDef.radarDistanceJam),
 			midX = (dims and dims.midx) or 0, -- model mid position offset, the jammer emits from the unit's mid position
 			midZ = (dims and dims.midz) or 0,
@@ -161,6 +228,7 @@ local minimapShader ---@type LuaShader
 local passVAO ---@type VAO
 
 local alliedTex ---@type string -- union of the allied jammers' coverage, one texel per radar cell of the map
+local alliedSdfTex ---@type string? -- circle mode: distance field of the allied jammers' circles, same layout
 local sets = {} ---@type table<number, table|false> -- radius in cells -> textures of the previewed disc
 local jammerUnits = {} ---@type table<UnitID, boolean> -- units with a radar jammer, filtered to the local ally team when collected
 local selectedJammerUnitID = false ---@type UnitID|false
@@ -170,14 +238,19 @@ local settings = {
 	alwaysShow = true, -- JammerPreviewAlwaysShow
 	alliedCoverage = true, -- JammerPreviewAlliedCoverage
 	minimap = true, -- JammerPreviewMinimap
+	circles = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0, -- SensorPreviewCircles
 }
 local settingsCheckedAt = -mathHuge
 
--- the allied jammers' coverage, as last rendered into alliedTex
+-- the allied jammers' coverage, as last rendered into alliedTex (and alliedSdfTex in circle mode)
 local allied = {
 	count = -1, -- covering jammers; -1 until the first check, so the texture gets cleared
 	cells = {}, -- emitter cell x, cell z, radius in cells per covering jammer
 	scratch = {},
+	circles = {}, -- circle mode: circle center x, z and radius (elmos) per covering jammer
+	circleScratch = {},
+	circlesValid = false, -- alliedSdfTex holds `circles`
+	circleData = {}, -- `circles` for the sheet's exact edges and stipple, empty past MAX_ALLIED_CIRCLES
 	x0 = mathHuge, -- bounding rectangle of the union in radar cells
 	z0 = mathHuge,
 	x1 = -mathHuge,
@@ -196,6 +269,10 @@ local preview = {
 	spawnStart = 0.0,
 	movedAt = -mathHuge, -- last time the emitter moved to another radar cell
 	inactive = 0.0, -- 0 while the previewed jammer jams, 1 while it does not, eased in between
+	circleX = 0.0, -- circle mode: its circle's center and radius (elmos)
+	circleZ = 0.0,
+	circleRadius = 0.0,
+	appearedAt = 0.0, -- circle mode: when it appeared, for its fade-in
 }
 
 -- what DrawWorld drew, for DrawInMiniMap
@@ -241,11 +318,15 @@ local sheetShaderCache = {
 		coverageTex = 2,
 		alliedTex = 3,
 		targetTex = 4,
+		alliedSdfTex = 5,
 	},
 	uniformFloat = {
 		previewParams = { 0, 0, -1, 0 },
 		previewInactive = 0,
 		stippleOffset = 0,
+		circleMode = 0,
+		circleParams = { 0, 0, 0, 1 },
+		alliedCircleCount = 0,
 		emitterXZ = { 0, 0 },
 		alliedParams = { 0, 0 },
 		passRect = { -1, -1, 1, 1 },
@@ -275,12 +356,12 @@ local function goodbye(reason)
 	widgetHandler:RemoveWidget()
 end
 
-local function makeDataTexture(sizeX, sizeY, format)
+local function makeDataTexture(sizeX, sizeY, format, filter)
 	return gl.CreateTexture(sizeX, sizeY, {
 		format = format,
 		fbo = true,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
+		min_filter = filter or GL.NEAREST,
+		mag_filter = filter or GL.NEAREST,
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
@@ -326,6 +407,10 @@ local function deleteTextures()
 		gl.DeleteTexture(alliedTex)
 		alliedTex = nil
 	end
+	if alliedSdfTex then
+		gl.DeleteTexture(alliedSdfTex)
+		alliedSdfTex = nil
+	end
 end
 
 local function initgl4()
@@ -364,11 +449,13 @@ local function initgl4()
 	passVAO = vao
 
 	local tex = makeDataTexture(MAP_CELLS_X, MAP_CELLS_Z, GL_R8)
-	if not tex then
-		goodbye("Failed to create the allied jammer coverage texture")
+	local sdfTex = makeDataTexture(MAP_CELLS_X, MAP_CELLS_Z, GL_R16F, GL.LINEAR)
+	if not (tex and sdfTex) then
+		goodbye("Failed to create the allied jammer coverage textures")
 		return false
 	end
 	alliedTex = tex
+	alliedSdfTex = sdfTex
 	return true
 end
 
@@ -376,6 +463,12 @@ local function readConfig()
 	settings.alwaysShow = Spring.GetConfigInt("JammerPreviewAlwaysShow", 1) ~= 0
 	settings.alliedCoverage = Spring.GetConfigInt("JammerPreviewAlliedCoverage", 1) ~= 0
 	settings.minimap = Spring.GetConfigInt("JammerPreviewMinimap", 1) ~= 0
+	local circles = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0
+	if circles ~= settings.circles then
+		settings.circles = circles
+		allied.circlesValid = false
+		allied.checkedAt = -mathHuge
+	end
 end
 
 function widget:Update()
@@ -427,19 +520,25 @@ local function isJamming(unitID)
 end
 
 -- Allied jammers the engine gives coverage (ILosType::UpdateUnit: finished, activated, not stunned): emitter cell
--- and radius in cells of each, appended to the flat list `out`. Returns their count.
-local function collectAlliedJammers(out)
+-- and radius in cells of each, appended to the flat list `out`, and in circle mode their circle's center x, z and
+-- radius to `circles`. Returns their count.
+local function collectAlliedJammers(out, circles)
 	local myAllyTeamID = spGetMyAllyTeamID()
 	local n = 0
 	for unitID in pairs(jammerUnits) do
 		if spGetUnitAllyTeam(unitID) ~= myAllyTeamID then -- gone, or given away
 			jammerUnits[unitID] = nil
 		elseif isJamming(unitID) then
-			local radiusCells = radiusToCells(spGetUnitSensorRadius(unitID, "radarJammer") or 0)
+			local range = spGetUnitSensorRadius(unitID, "radarJammer") or 0
+			local radiusCells = radiusToCells(range)
 			if radiusCells >= 1 then
 				local _, _, _, mx, _, mz = spGetUnitPosition(unitID, true)
 				if mx then
 					out[n + 1], out[n + 2], out[n + 3] = worldToCell(mx), worldToCell(mz), radiusCells
+					if circles then
+						circles[n + 1], circles[n + 2] = circleCenter(mx, mz)
+						circles[n + 3] = circleRadius(range, radiusCells)
+					end
 					n = n + 3
 				end
 			end
@@ -470,14 +569,44 @@ local function drawAlliedUnion()
 	discShader:Deactivate()
 end
 
--- Re-renders the allied coverage when a jammer turned on or off, moved to another cell or changed its range
+-- Circle mode: renders the allied jammers' circles into alliedSdfTex, each over the rectangle its distance field
+-- reaches, MAX-blended into their union
+local function drawAlliedCircles()
+	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	gl.Blending(GL.ONE, GL.ONE)
+	gl.BlendEquation(GL.MAX)
+	local circles = allied.circles ---@type table<integer, number>
+	local sx, sz = 2 / Game.mapSizeX, 2 / Game.mapSizeZ
+	discShader:Activate()
+	for i = 1, allied.count * 3, 3 do
+		local x, z, radius = circles[i], circles[i + 1], circles[i + 2]
+		local reach = radius + shaderConfig.CIRCLE_SDF_RANGE + RADAR_CELL
+		discShader:SetUniform("discParams", x, z, radius, 2)
+		discShader:SetUniform(
+			"passRect",
+			(x - reach) * sx - 1,
+			(z - reach) * sz - 1,
+			(x + reach) * sx - 1,
+			(z + reach) * sz - 1
+		)
+		passVAO:DrawArrays(GL.TRIANGLES)
+	end
+	discShader:SetUniform("passRect", -1, -1, 1, 1)
+	discShader:Deactivate()
+	gl.BlendEquation(GL.FUNC_ADD)
+	gl.Blending(false)
+end
+
+-- Re-renders the allied coverage when a jammer turned on or off, moved to another cell or changed its range, and in
+-- circle mode when a circle moved
 local function updateAllied(now, force)
 	if not force and now - allied.checkedAt < ALLIED_POLL_SECONDS then
 		return
 	end
 	allied.checkedAt = now
 	local cells, previous = allied.scratch, allied.cells
-	local count = collectAlliedJammers(cells)
+	local circles, previousCircles = allied.circleScratch, allied.circles
+	local count = collectAlliedJammers(cells, settings.circles and circles or nil)
 	local changed = count ~= allied.count
 	if not changed then
 		for i = 1, count * 3 do
@@ -487,19 +616,38 @@ local function updateAllied(now, force)
 			end
 		end
 	end
-	if not changed then
-		return
+	local circlesChanged = settings.circles and (changed or not allied.circlesValid)
+	if settings.circles and not circlesChanged then
+		for i = 1, count * 3 do
+			if circles[i] ~= previousCircles[i] then
+				circlesChanged = true
+				break
+			end
+		end
 	end
 
-	allied.cells, allied.scratch, allied.count = cells, previous, count
-	local x0, z0, x1, z1 = mathHuge, mathHuge, -mathHuge, -mathHuge
-	for i = 1, count * 3, 3 do
-		local radius = cells[i + 2]
-		x0, x1 = mathMin(x0, cells[i] - radius), mathMax(x1, cells[i] + radius)
-		z0, z1 = mathMin(z0, cells[i + 1] - radius), mathMax(z1, cells[i + 1] + radius)
+	if changed then
+		allied.cells, allied.scratch, allied.count = cells, previous, count
+		local x0, z0, x1, z1 = mathHuge, mathHuge, -mathHuge, -mathHuge
+		for i = 1, count * 3, 3 do
+			local radius = cells[i + 2]
+			x0, x1 = mathMin(x0, cells[i] - radius), mathMax(x1, cells[i] + radius)
+			z0, z1 = mathMin(z0, cells[i + 1] - radius), mathMax(z1, cells[i + 1] + radius)
+		end
+		allied.x0, allied.z0, allied.x1, allied.z1 = x0, z0, x1, z1
+		gl.RenderToTexture(alliedTex, drawAlliedUnion)
 	end
-	allied.x0, allied.z0, allied.x1, allied.z1 = x0, z0, x1, z1
-	gl.RenderToTexture(alliedTex, drawAlliedUnion)
+	if circlesChanged and alliedSdfTex then
+		allied.circles, allied.circleScratch, allied.circlesValid = circles, previousCircles, true
+		local data, n = allied.circleData, (count <= MAX_ALLIED_CIRCLES) and count * 3 or 0
+		for i = 1, n do
+			data[i] = circles[i]
+		end
+		for i = n + 1, #data do
+			data[i] = nil
+		end
+		gl.RenderToTexture(alliedSdfTex, drawAlliedCircles)
+	end
 end
 
 -- The jammer being previewed right now: its jammerDefs entry and the selected unit (nil while placing one), or nil.
@@ -570,8 +718,8 @@ local function placedMidPos(def, x, z, facing)
 	return x - def.midX, z + def.midZ
 end
 
--- The previewed jammer's radius in cells, the world x, z of its emitter (the unit's mid position) and 1 when it
--- does not jam right now (0 when it does or is being placed), or nil
+-- The previewed jammer's radius in cells, the world x, z of its emitter (the unit's mid position), 1 when it does not
+-- jam right now (0 when it does or is being placed) and its range in elmos, or nil
 local function getPreview()
 	local def, unitID = previewSource()
 	if not def then
@@ -582,15 +730,16 @@ local function getPreview()
 		if not mx then
 			return nil
 		end
-		local radiusCells = radiusToCells(spGetUnitSensorRadius(unitID, "radarJammer") or 0)
+		local range = spGetUnitSensorRadius(unitID, "radarJammer") or 0
+		local radiusCells = radiusToCells(range)
 		local jamming = radiusCells >= 1 and isJamming(unitID)
 		if radiusCells < 1 then
-			radiusCells = def.radiusCells -- a game-side pause zeroes the radius
+			range, radiusCells = def.range, def.radiusCells -- a game-side pause zeroes the radius
 		end
 		if radiusCells < 1 then
 			return nil
 		end
-		return radiusCells, mx, mz, jamming and 0 or 1
+		return radiusCells, mx, mz, jamming and 0 or 1, range
 	end
 
 	local x, y, z = cursorWorldPos()
@@ -601,7 +750,8 @@ local function getPreview()
 	-- is computed for the spot the jammer will actually stand on, not the raw cursor position
 	local facing = spGetBuildFacing()
 	local buildX, _, buildZ = spPos2BuildPos(def.unitDefID, x, y, z, facing)
-	return def.radiusCells, placedMidPos(def, buildX, buildZ, facing)
+	local midX, midZ = placedMidPos(def, buildX, buildZ, facing)
+	return def.radiusCells, midX, midZ, 0, def.range
 end
 
 local function drawPass()
@@ -614,7 +764,7 @@ local function drawClearedPass()
 end
 
 -- Disc and smoothing passes of the previewed jammer. Returns its texture set, nil if it could not be created.
-local function preparePreview(radius, emitterX, emitterZ, inactive, alreadyShown, now, drawFrame)
+local function preparePreview(radius, range, emitterX, emitterZ, inactive, alreadyShown, now, drawFrame)
 	local set = getSet(radius)
 	if not set then
 		return nil
@@ -626,10 +776,13 @@ local function preparePreview(radius, emitterX, emitterZ, inactive, alreadyShown
 	if fresh then
 		preview.spawnStart = now - (alreadyShown and 60 or 0) -- coverage already on screen doesn't spread out again
 		preview.inactive = inactive
+		preview.appearedAt = now
 	end
 	preview.frame, preview.time, preview.radius = drawFrame, now, radius
 	preview.x, preview.z = emitterX, emitterZ
 	preview.inactive = preview.inactive + (inactive - preview.inactive) * (1 - mathExp(-dt * SMOOTH_RATE))
+	preview.circleX, preview.circleZ = circleCenter(emitterX, emitterZ)
+	preview.circleRadius = circleRadius(range, radius)
 
 	local bx, bz = worldToCell(emitterX), worldToCell(emitterZ)
 	-- cells the emitter moved since the last frame
@@ -711,6 +864,9 @@ local function drawSheet(set, showAllied, now)
 		x0, z0 = mathMin(x0, allied.x0), mathMin(z0, allied.z0)
 		x1, z1 = mathMax(x1, allied.x1), mathMax(z1, allied.z1)
 	end
+	if settings.circles then -- a circle reaches up to two cells past its disc
+		x0, z0, x1, z1 = x0 - 2, z0 - 2, x1 + 2, z1 + 2
+	end
 	x0, z0 = mathMax(x0, 0), mathMax(z0, 0)
 	x1, z1 = mathMin(x1, MAP_CELLS_X - 1), mathMin(z1, MAP_CELLS_Z - 1)
 	if x1 < x0 or z1 < z0 then
@@ -731,8 +887,27 @@ local function drawSheet(set, showAllied, now)
 	end
 	if showAllied then
 		gl.Texture(3, alliedTex)
+		if settings.circles and alliedSdfTex then
+			gl.Texture(5, alliedSdfTex)
+		end
 	end
 	sheetShader:Activate()
+	sheetShader:SetUniform("circleMode", settings.circles and 1 or 0)
+	if settings.circles then
+		local fadeIn = 1 - mathExp(-(now - preview.appearedAt) * SMOOTH_RATE)
+		sheetShader:SetUniform(
+			"circleParams",
+			preview.circleX,
+			preview.circleZ,
+			set and preview.circleRadius or 0,
+			fadeIn
+		)
+		local circleValues = #allied.circleData
+		if circleValues > 0 then
+			sheetShader:SetUniformFloatArray("alliedCircles", allied.circleData)
+		end
+		sheetShader:SetUniform("alliedCircleCount", circleValues / 3)
+	end
 	if set then
 		sheetShader:SetUniform("previewParams", set.bx, set.bz, set.radius, now - preview.spawnStart)
 	else
@@ -747,7 +922,7 @@ local function drawSheet(set, showAllied, now)
 	sheetShader:SetUniform("passRect", left, bottom, right, top)
 	passVAO:DrawArrays(GL.TRIANGLES)
 	sheetShader:Deactivate()
-	for unit = 0, 4 do
+	for unit = 0, 5 do
 		gl.Texture(unit, false)
 	end
 end
@@ -756,7 +931,7 @@ function widget:DrawWorld()
 	if Spring.IsGUIHidden() or (WG.topbar and WG.topbar.showingQuit()) then
 		return
 	end
-	local radius, emitterX, emitterZ, inactive = getPreview()
+	local radius, emitterX, emitterZ, inactive, range = getPreview()
 	local showAllied = settings.alwaysShow or (radius ~= nil and settings.alliedCoverage)
 	if not (radius or showAllied) then
 		return
@@ -771,11 +946,11 @@ function widget:DrawWorld()
 	if radius then
 		-- a selected allied jammer that jams was already drawn with the always shown allied coverage
 		local alreadyShown = settings.alwaysShow and inactive == 0 and jammerUnits[selectedJammerUnitID] == true
-		set = preparePreview(radius, emitterX, emitterZ, inactive or 0, alreadyShown, now, drawFrame)
+		set = preparePreview(radius, range or 0, emitterX, emitterZ, inactive or 0, alreadyShown, now, drawFrame)
 	end
 	if showAllied then
-		-- check right away when the allied coverage (re)appears, it may be stale
-		updateAllied(now, drawFrame - allied.shownFrame > 1)
+		-- check right away when the allied coverage (re)appears, it may be stale; smoothly moving circles every frame
+		updateAllied(now, drawFrame - allied.shownFrame > 1 or (settings.circles and not CIRCLE_SNAP))
 		allied.shownFrame = drawFrame
 	end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
