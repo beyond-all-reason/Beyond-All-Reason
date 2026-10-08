@@ -2103,7 +2103,7 @@ function widgetHandler:RegisterGlobal(owner, name, value)
 end
 
 function widgetHandler:DeregisterGlobal(owner, name)
-	if name == nil then
+	if name == nil or self.globals[name] ~= owner then
 		return false
 	end
 	_G[name] = nil
