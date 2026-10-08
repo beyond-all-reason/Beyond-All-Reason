@@ -939,6 +939,7 @@ local function load(filename)
 		Echo("[LightPlacer] Error loading " .. filename .. ": " .. tostring(err))
 		return false
 	end
+	setfenv(chunk, {})
 	local data = chunk()
 	if not data or not data.lights then
 		Echo("[LightPlacer] Invalid light file format: " .. filename)
@@ -1111,6 +1112,7 @@ local function loadPresetFile(filename)
 		Echo("[LightPlacer] Error loading preset: " .. tostring(err))
 		return nil
 	end
+	setfenv(chunk, {})
 	return chunk()
 end
 

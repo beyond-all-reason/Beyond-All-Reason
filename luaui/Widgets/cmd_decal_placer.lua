@@ -877,6 +877,7 @@ local function decalLoad(filename)
 			return
 		end
 	end
+	setfenv(fn, {})
 	local ok, data = pcall(fn)
 	if not ok or type(data) ~= "table" then
 		Echo("[Decal Placer] Invalid file: " .. tostring(data))

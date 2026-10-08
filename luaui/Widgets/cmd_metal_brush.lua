@@ -444,6 +444,7 @@ local function loadMetalMap()
 		return
 	end
 
+	setfenv(chunk, {})
 	local ok, data = pcall(chunk)
 	if not ok or type(data) ~= "table" or not data.spots then
 		Echo("[Metal Brush] ERROR: Invalid metal map file: " .. filename)

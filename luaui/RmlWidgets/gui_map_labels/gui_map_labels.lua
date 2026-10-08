@@ -164,7 +164,7 @@ local function parseLabelsFile(path)
 		return nil, "empty"
 	end
 	local ok, data = pcall(function()
-		return loadstring(raw)()
+		return loadstring(raw, nil, {})()
 	end)
 	if not ok or type(data) ~= "table" or type(data.labels) ~= "table" then
 		return nil, "parse failed"

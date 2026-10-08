@@ -358,22 +358,40 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function loadChunk(text, chunkname, env)
+	if type(text) == "string" and stringByte(text, 1) == 27 then
+		return nil, "binary chunks are not allowed"
+	end
+	return loadstring(text, chunkname, env)
+end
+
+local function loadFile(filename, env)
+	local file, err = ioOpen(filename, "rb")
+	if not file then
+		return nil, err
+	end
+	local text = file:read("*a")
+	file:close()
+	return loadChunk(text, "@" .. filename, env)
+end
+
 function widgetHandler:LoadConfigData()
-	local chunk, err = loadfile(CONFIG_FILENAME)
-	if chunk == nil or err then
+	-- Config must be data. Loaded code cannot access any globals. It gets an empty env.
+	local chunk, err = loadFile(CONFIG_FILENAME, {})
+	if chunk == nil then
 		if err then
 			Spring.Log("barwidgets.lua", LOG.INFO, err)
 		end
 		return {}
-	elseif chunk() == nil then
+	end
+	local config = chunk()
+	if config == nil then
 		Spring.Log("barwidgets.lua", LOG.ERROR, "Luaui config file was blank")
 		return {}
 	end
-	local tmp = {}
-	setfenv(chunk, tmp)
-	self.orderList = chunk().order
-	self.configData = chunk().data
-	self.allowUserWidgets = chunk().allowUserWidgets
+	self.orderList = config.order
+	self.configData = config.data
+	self.allowUserWidgets = config.allowUserWidgets
 	if not self.orderList then
 		self.orderList = {} -- safety
 	end
@@ -480,6 +498,7 @@ local function CreateSandboxedSystem()
 	local function disabledOrder()
 		error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
 	end
+
 	-- The engine passes unhandled actions to LuaUI, where game widgets run them with full access.
 	local function sendCommands(...)
 		local commands = type((...)) == "table" and (...) or { ... }
@@ -700,22 +719,6 @@ local function getLocalName(level, index)
 	return name
 end
 
-local function loadChunk(text, chunkname, env)
-	if type(text) == "string" and stringByte(text, 1) == 27 then
-		return nil, "binary chunks are not allowed"
-	end
-	return loadstring(text, chunkname, env)
-end
-
-local function loadFile(filename, env)
-	local file, err = ioOpen(filename, "rb")
-	if not file then
-		return nil, err
-	end
-	local text = file:read("*a")
-	file:close()
-	return loadChunk(text, "@" .. filename, env)
-end
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 
