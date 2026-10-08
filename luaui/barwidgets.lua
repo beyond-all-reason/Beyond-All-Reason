@@ -1033,8 +1033,9 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
 	widget.canControlUnits = canControlUnits
+	local includeMode = fromZip and VFS.ZIP or VFS.RAW_FIRST
 	widget.include = function(f)
-		return include(f, widget)
+		return include(f, widget, includeMode)
 	end
 
 	widgetEnvs[widget] = true
@@ -1066,6 +1067,25 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	if not fromZip then
 		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+		-- User widgets keep reading raw files first. Called through pcall or as a tail call, the caller's
+		-- env is pcall's or unknown, and the widget's own table stands in for it.
+		local function callerEnv()
+			local ok, env = pcall(getfenv, 4)
+			return ok and ownEnv(widget, env) or widget
+		end
+		widget.VFS = copyTable(SandboxedSystem.VFS)
+		widget.VFS.Include = function(path, env, mode)
+			if type(env) ~= "table" then
+				env = callerEnv()
+			end
+			return VFS.Include(path, env, mode or VFS.RAW_FIRST)
+		end
+		widget.require = function(path, env, mode)
+			if type(env) ~= "table" then
+				env = callerEnv()
+			end
+			return require(path, env, mode or VFS.RAW_FIRST)
+		end
 	end
 
 	wh.RaiseWidget = function(_)
