@@ -504,6 +504,9 @@ local function isPrivilegedCommand(command)
 		or stringFind(command, "keyreload", 1, true) ~= nil
 		or stringFind(command, "keysave", 1, true) ~= nil
 		or stringFind(command, "keybindingfile", 1, true) ~= nil
+		or stringFind(command, "factoryreset", 1, true) ~= nil
+		or stringFind(command, "userwidgets", 1, true) ~= nil
+		or stringFind(command, "%f[%w_]option%f[^%w_]") ~= nil -- not "options", which only opens the panel
 end
 
 local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
