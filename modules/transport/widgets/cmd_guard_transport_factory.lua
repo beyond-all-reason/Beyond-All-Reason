@@ -1,5 +1,7 @@
 local widget = widget ---@type Widget
 
+local Transport = require("modules/transport/api")
+
 function widget:GetInfo()
 	return {
 		name = "Transport Factory Guard",
@@ -55,27 +57,11 @@ local transportToFactory = {}
 local activeTransportToUnit = {}
 local transportState = {}
 local unitToDestination = {}
-local cachedUnitDefs = {}
 
 local pendingGuardTransports = {} -- transportID -> factoryID (queued but not yet active)
 
 local orderedUnitsBlacklist = {}
 local blacklistOrderedUnits = false
-
-for id, def in pairs(UnitDefs) do
-	cachedUnitDefs[id] = {
-		translatedHumanName = def.translatedHumanName,
-		isTransport = def.isTransport,
-		isFactory = def.isFactory,
-		mass = def.mass,
-		transportMass = def.transportMass,
-		speed = def.speed,
-		transportCapacity = def.transportCapacity,
-		cantBeTransported = def.cantBeTransported,
-		transportSize = def.transportSize,
-		xsize = def.xsize,
-	}
-end
 
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
 local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
@@ -84,11 +70,7 @@ local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local CMD_REMOVE = CMD.REMOVE
 
 local function getCachedUnitDef(unitID)
-	local unitDefID = spGetUnitDefID(unitID)
-	if not unitDefID then
-		return nil
-	end
-	return cachedUnitDefs[unitDefID]
+	return Transport.UnitTraits(unitID)
 end
 
 local function isFactory(unitID)
@@ -320,36 +302,11 @@ local function canTransport(transportID, unitID)
 		return false
 	end
 
-	local uDefObj = cachedUnitDefs[udef]
-	local tDefObj = cachedUnitDefs[tdef]
-
-	if uDefObj.xsize > tDefObj.transportSize * Game.footprintScale then
+	if not Transport.CanLoad(transportID, unitID) then
 		return false
 	end
 
-	local trans = Spring.GetUnitIsTransporting(transportID) -- capacity check
-	if tDefObj.transportCapacity <= #trans then
-		return false
-	end
-
-	if uDefObj.cantBeTransported then
-		return false
-	end
-
-	local mass = 0 -- mass check
-	for _, a in ipairs(trans) do
-		local aDefID = Spring.GetUnitDefID(a)
-		if aDefID then
-			mass = mass + cachedUnitDefs[aDefID].mass
-		end
-	end
-	mass = mass + uDefObj.mass
-
-	if mass > tDefObj.transportMass then
-		return false
-	end
-
-	return true
+	return Transport.MayCarry(tdef, unitID, udef)
 end
 
 local function removePreDestinationMoveCommands(unitID, destination)
@@ -405,11 +362,8 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 
 			local bestTransportID = -1
 			local bestTransportTime = math.huge
-			local unitDefID_created = Spring.GetUnitDefID(createdUnitID)
-			local createdSpeed = unitDefID_created
-					and cachedUnitDefs[unitDefID_created]
-					and cachedUnitDefs[unitDefID_created].speed
-				or 0
+			local createdTraits = Transport.UnitTraits(createdUnitID)
+			local createdSpeed = createdTraits and createdTraits.speed or 0
 
 			for transportID, _ in pairs(factoryToGuardingTransports[factID]) do
 				if
@@ -418,8 +372,8 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 					local unitLocation = { Spring.GetUnitPosition(unitID) }
 					local transportLocation = { Spring.GetUnitPosition(transportID) }
 
-					local tDefID = Spring.GetUnitDefID(transportID)
-					local tSpeed = tDefID and cachedUnitDefs[tDefID] and cachedUnitDefs[tDefID].speed or 0
+					local tTraits = Transport.UnitTraits(transportID)
+					local tSpeed = tTraits and tTraits.speed or 0
 					local pickupTime = timeToTarget(transportLocation, unitLocation, tSpeed)
 					local transportTime = timeToTarget(unitLocation, destination, tSpeed)
 					local walkingTime = timeToTarget(unitLocation, destination, createdSpeed)
