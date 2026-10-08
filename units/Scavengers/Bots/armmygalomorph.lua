@@ -38,6 +38,8 @@ return {
 			model_author = "Mat_Ba",
 			normaltex = "unittextures/Arm_normal.dds",
 			reaimtime = 2,
+			scavminiboss = true,
+			scavminiboss_damagemult = 0.4,
 			subfolder = "other/scavengers",
 			techlevel = 3,
 			unitgroup = "weapon",
