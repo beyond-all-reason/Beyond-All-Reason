@@ -1607,6 +1607,10 @@ end
 
 function widget:RecvLuaMsg(msg, playerID)
 	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
+	-- Every player's widgets receive these, and the gadget only sends them in single player.
+	if msg:sub(1, 4) == "rws:" and (not isSinglePlayer or playerID ~= Spring.GetMyPlayerID()) then
+		return true -- Fake and maybe malicious
+	end
 	if msg == "rws:begin" then
 		rwsBuffer = {}
 		return true
