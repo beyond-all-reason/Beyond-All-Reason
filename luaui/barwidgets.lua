@@ -545,16 +545,14 @@ local function checkUserWritePath(path)
 	return nil, "is outside the write paths for user widgets"
 end
 
--- Capped, because a widget can make every refused command text different.
-local warnedMessages = {}
-local warnedMessageCount = 0
-
+local warnOnceMessages = {}
+local warnOnceCount = 0 -- a widget can send different command text over & over
 local function warnOnce(message)
-	if warnedMessages[message] or warnedMessageCount >= 256 then
+	if warnOnceMessages[message] or warnOnceCount > 256 then -- count is shared
 		return
 	end
-	warnedMessages[message] = true
-	warnedMessageCount = warnedMessageCount + 1
+	warnOnceMessages[message] = true
+	warnOnceCount = warnOnceCount + 1
 	Spring.Log("barwidgets.lua", LOG.WARNING, message)
 end
 
