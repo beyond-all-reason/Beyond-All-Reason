@@ -15,11 +15,14 @@ end
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
+local spGetViewGeometry = Spring.GetViewGeometry
+local spGetFeatureDefID = Spring.GetFeatureDefID
 
 -- Key Idea: make a 1/2 or 1/4 sized texture 'stencil buffer' that can be used for units and features.
--- Draw features first at 0.5, then units at 1.0, clear if no draw happened
+-- Draw features first at 0.5, then units at 1.0
 -- Make this shared the same way screencopy texture is shared, via an api
 -- bind and sample this texture if needed for any other method :)
+-- It is drawn at the start of the frame when requested the frame before, so its users get this frame's camera and units.
 
 ---@type InstanceVBOTable?
 local unitStencilVBO = nil
@@ -27,10 +30,12 @@ local unitStencilVBO = nil
 local featureStencilVBO = nil -- TODO
 local unitStencilShader = nil
 
-local unitFeatureStencilTex = nil
+local unitFeatureStencilTex ---@type string?
 
-local unitDimensionsXYZ = {} -- table of unitDefID to max x,y,z dims
-local featureDimensionsXYZ = {} -- table of unitDefID to max x,y,z dims
+local stencilRequested = false
+
+local unitInstanceData = {} -- unitDefID to the instance template: model mins, maxs and the instData padding
+local featureInstanceData = {} -- featureDefID to the instance template, false for features without a usable model
 -----------------------------------------------------------------
 -- Configuration Constants
 -----------------------------------------------------------------
@@ -303,7 +308,7 @@ local resolution = 4
 local vsx, vsy
 function widget:ViewResize()
 	local GL_R8 = 0x8229
-	vsx, vsy = Spring.GetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	if unitFeatureStencilTex then
 		gl.DeleteTexture(unitFeatureStencilTex)
 	end
@@ -461,47 +466,54 @@ local function InitDrawPrimitiveAtUnit(modifiedShaderConf, DPATname)
 	return DrawPrimitiveAtUnitShader
 end
 
-function widget:VisibleUnitAdded(unitID, unitDefID)
-	if unitDimensionsXYZ[unitDefID] == nil then
-		local unitDef = UnitDefs[unitDefID]
-		unitDimensionsXYZ[unitDefID] = {
-			unitDef.model.minx,
-			math.min(0, unitDef.model.miny),
-			unitDef.model.minz,
-			unitDef.model.maxx,
-			unitDef.model.maxy,
-			unitDef.model.maxz,
-		}
+-- The 12 values of an instance: model mins, maxs, and the instData the engine fills in from the unit/featureID.
+-- pushElementInstance copies them, so one template per def serves every push.
+local function UnitInstanceData(unitDefID)
+	local data = unitInstanceData[unitDefID]
+	if data == nil then
+		local model = UnitDefs[unitDefID].model
+		data = { model.minx, math.min(0, model.miny), model.minz, 0, model.maxx, model.maxy, model.maxz, 0, 0, 0, 0, 0 }
+		unitInstanceData[unitDefID] = data
 	end
-	local dimsXYZ = unitDimensionsXYZ[unitDefID]
-
-	pushElementInstance(
-		unitStencilVBO, -- push into this Instance VBO Table
-		{
-			dimsXYZ[1],
-			dimsXYZ[2],
-			dimsXYZ[3],
-			0,
-			dimsXYZ[4],
-			dimsXYZ[5],
-			dimsXYZ[6],
-			0,
-			0,
-			0,
-			0,
-			0, -- these are just padding zeros, that will get filled in
-		},
-		unitID, -- this is the key inside the VBO TAble,
-		true, -- update existing element
-		nil, -- noupload, dont use unless you know what you are doing
-		unitID -- last one should be UNITID?
-	)
+	return data
 end
+
+local function FeatureInstanceData(featureDefID)
+	local data = featureInstanceData[featureDefID]
+	if data == nil then
+		data = false
+		local model = FeatureDefs[featureDefID].model
+		if model and (model.maxx - model.minx) >= 1 then -- goddamned geovents
+			data = { model.minx, model.miny, model.minz, 0, model.maxx, model.maxy, model.maxz, 0, 0, 0, 0, 0 }
+		end
+		featureInstanceData[featureDefID] = data
+	end
+	return data
+end
+
+-- noUpload batches pushes: the caller uploads the whole table once afterwards
+local function AddUnit(unitID, unitDefID, noUpload)
+	pushElementInstance(unitStencilVBO, UnitInstanceData(unitDefID), unitID, true, noUpload, unitID)
+end
+
+local function AddFeature(featureID, noUpload)
+	local featureDefID = spGetFeatureDefID(featureID)
+	local data = featureDefID and FeatureInstanceData(featureDefID)
+	if data then
+		pushElementInstance(featureStencilVBO, data, featureID, true, noUpload, featureID)
+	end
+end
+
+function widget:VisibleUnitAdded(unitID, unitDefID)
+	AddUnit(unitID, unitDefID)
+end
+
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(unitStencilVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID)
+		AddUnit(unitID, unitDefID, true)
 	end
+	InstanceVBOTable.uploadAllElements(unitStencilVBO)
 end
 
 function widget:VisibleUnitRemoved(unitID)
@@ -511,54 +523,7 @@ function widget:VisibleUnitRemoved(unitID)
 end
 
 function widget:FeatureCreated(featureID, allyTeam)
-	local featureDefID = Spring.GetFeatureDefID(featureID)
-	--spEcho(featureDefID, featureID)
-
-	if featureDimensionsXYZ[featureDefID] == nil then
-		local featureDef = FeatureDefs[featureDefID]
-		if featureDef.model then
-			local dimsXYZ = {
-				featureDef.model.minx,
-				featureDef.model.miny,
-				featureDef.model.minz,
-				featureDef.model.maxx,
-				featureDef.model.maxy,
-				featureDef.model.maxz,
-			}
-			if (dimsXYZ[4] - dimsXYZ[1]) < 1 then
-				return
-			end -- goddamned geovents
-			featureDimensionsXYZ[featureDefID] = dimsXYZ
-			--spEcho(dimsXYZ[1], dimsXYZ[2], dimsXYZ[3], dimsXYZ[4], dimsXYZ[5], dimsXYZ[6])
-		else
-			return
-		end
-	end
-	local dimsXYZ = featureDimensionsXYZ[featureDefID]
-	if dimsXYZ == nil then
-		return
-	end
-	pushElementInstance(
-		featureStencilVBO, -- push into this Instance VBO Table
-		{
-			dimsXYZ[1],
-			dimsXYZ[2],
-			dimsXYZ[3],
-			0,
-			dimsXYZ[4],
-			dimsXYZ[5],
-			dimsXYZ[6],
-			0,
-			0,
-			0,
-			0,
-			0, -- these are just padding zeros, that will get filled in
-		},
-		featureID, -- this is the key inside the VBO TAble,
-		true, -- update existing element
-		nil, -- noupload, dont use unless you know what you are doing
-		featureID -- last one should be UNITID?
-	)
+	AddFeature(featureID)
 end
 
 function widget:FeatureDestroyed(featureID)
@@ -568,32 +533,30 @@ function widget:FeatureDestroyed(featureID)
 end
 
 local function DrawMe() -- about 0.025 ms
-	if unitStencilVBO.usedElements > 0 or featureStencilVBO.usedElements > 0 then
-		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	-- cleared every time, an empty scene must not keep the last stencil
+	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	local numFeatures, numUnits = featureStencilVBO.usedElements, unitStencilVBO.usedElements
+	if numFeatures > 0 or numUnits > 0 then
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Culling(false)
 		unitStencilShader:Activate()
-		unitStencilShader:SetUniform("addRadius", addRadius)
-		if featureStencilVBO.usedElements > 0 then
+		if numFeatures > 0 then
 			unitStencilShader:SetUniform("stencilColor", 0.5)
-			featureStencilVBO.VAO:DrawArrays(GL.POINTS, featureStencilVBO.usedElements)
+			featureStencilVBO.VAO:DrawArrays(GL.POINTS, numFeatures)
 		end
-		if unitStencilVBO.usedElements > 0 then
+		if numUnits > 0 then
 			unitStencilShader:SetUniform("stencilColor", 1.0)
-			unitStencilVBO.VAO:DrawArrays(GL.POINTS, unitStencilVBO.usedElements)
+			unitStencilVBO.VAO:DrawArrays(GL.POINTS, numUnits)
 		end
 		unitStencilShader:Deactivate()
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	end
 end
 
-function widget:DrawWorldPreUnit()
-	--DrawMe()
-end
-
-local stencilRequested = false
-
-function widget:DrawWorld()
+-- The camera and the unit draw positions are already this frame's here, so the users (SSAO in
+-- DrawWorldPreParticles) sample this frame's stencil; it used to be drawn in DrawWorld, after them.
+-- Not DrawWorldPreUnit: leaving the main framebuffer mid world pass costs ~10 us CPU and ~6 us GPU more.
+function widget:DrawGenesis()
 	if stencilRequested then
 		gl.RenderToTexture(unitFeatureStencilTex, DrawMe)
 		stencilRequested = false
@@ -611,6 +574,7 @@ end
 ]]
 --
 
+-- The stencil drawn at the start of the next frame, so call this every frame the texture is used
 local function GetUnitStencilTexture()
 	stencilRequested = true
 	return unitFeatureStencilTex
@@ -618,10 +582,18 @@ end
 
 function widget:Initialize()
 	unitStencilShader = InitDrawPrimitiveAtUnit(nil, "unitStencils")
+	if not unitStencilShader then
+		widgetHandler:RemoveWidget()
+		return
+	end
+	unitStencilShader:ActivateWith(function()
+		unitStencilShader:SetUniformFloatAlways("addRadius", addRadius)
+	end)
 	widget:ViewResize()
 
 	WG.unitstencilapi = {}
 	WG.unitstencilapi.GetUnitStencilTexture = GetUnitStencilTexture
+	WG.unitstencilapi.resolution = resolution -- screen pixels per stencil texel
 	WG.unitstencilapi.members = {
 		ok = "yes",
 		vsSrc = vsSrc,
@@ -633,14 +605,15 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal("GetUnitStencilTexture", WG.unitstencilapi.GetUnitStencilTexture)
 
 	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
-		local visibleUnits = WG.unittrackerapi.visibleUnits
-		for unitID, unitDefID in pairs(visibleUnits) do
-			widget:VisibleUnitAdded(unitID, unitDefID)
+		for unitID, unitDefID in pairs(WG.unittrackerapi.visibleUnits) do
+			AddUnit(unitID, unitDefID, true)
 		end
-		for _, featureID in ipairs(Spring.GetAllFeatures()) do
-			widget:FeatureCreated(featureID)
-		end
+		InstanceVBOTable.uploadAllElements(unitStencilVBO)
 	end
+	for _, featureID in ipairs(Spring.GetAllFeatures()) do
+		AddFeature(featureID, true)
+	end
+	InstanceVBOTable.uploadAllElements(featureStencilVBO)
 end
 
 function widget:Shutdown()
