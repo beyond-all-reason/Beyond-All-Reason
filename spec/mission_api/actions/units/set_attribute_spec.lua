@@ -55,7 +55,7 @@ describe("mission_api.actions.set_attribute", function()
 				unitDefName = "UnitDefName!",
 				teamID = "TeamID",
 				attribute = "UnitAttribute!",
-				value = "AttributeValue",
+				value = "AttributeValue!",
 				source = "String",
 			}, summarizeSchema(action))
 		end)
@@ -78,12 +78,6 @@ describe("mission_api.actions.set_attribute", function()
 			assert.are.same({ { "SetUnitDefAttribute", 8, "losRadius", 1200, "scouting", nil } }, calls)
 		end)
 
-		it("clears the source when there is no value", function()
-			action.actionFunction("armpw", nil, "losRadius", nil, "scouting")
-
-			assert.are.same({ { "SetUnitDefAttribute", 8, "losRadius", nil, "scouting", nil } }, calls)
-		end)
-
 		it("does nothing for a unitDefName that does not exist", function()
 			action.actionFunction("noSuchDef", nil, "losRadius", 1200, nil)
 
@@ -101,7 +95,7 @@ describe("mission_api.actions.set_attribute", function()
 				unitDefName = "UnitDefName",
 				teamID = "TeamID",
 				attribute = "UnitAttribute!",
-				value = "AttributeValue",
+				value = "AttributeValue!",
 				source = "String",
 				requiresOneOf = { "unitName", "unitDefName" },
 			}, summarizeSchema(action))
@@ -129,14 +123,6 @@ describe("mission_api.actions.set_attribute", function()
 
 			assert.are.same({}, calls)
 		end)
-
-		it("clears a named source when there is no value", function()
-			queryResult = { 11 }
-
-			action.actionFunction(nil, "armwar", 0, "speed", nil, "boost")
-
-			assert.are.same({ { "SetUnitAttribute", 11, "speed", nil, "boost" } }, calls)
-		end)
 	end)
 
 	describe("SetUnitDefModifier", function()
@@ -148,7 +134,7 @@ describe("mission_api.actions.set_attribute", function()
 				unitDefName = "UnitDefName!",
 				teamID = "TeamID",
 				attribute = "UnitAttribute!",
-				multiplier = "Number",
+				multiplier = "Number!",
 				source = "String",
 			}, summarizeSchema(action))
 		end)
@@ -157,12 +143,6 @@ describe("mission_api.actions.set_attribute", function()
 			action.actionFunction("armpw", 1, "losRadius", 0.5, nil)
 
 			assert.are.same({ { "SetUnitDefModifier", 8, "losRadius", 0.5, "mission", 1 } }, calls)
-		end)
-
-		it("clears the source when there is no multiplier", function()
-			action.actionFunction("armpw", nil, "losRadius", nil, "fog")
-
-			assert.are.same({ { "SetUnitDefModifier", 8, "losRadius", nil, "fog", nil } }, calls)
 		end)
 	end)
 
@@ -176,7 +156,7 @@ describe("mission_api.actions.set_attribute", function()
 				unitDefName = "UnitDefName",
 				teamID = "TeamID",
 				attribute = "UnitAttribute!",
-				multiplier = "Number",
+				multiplier = "Number!",
 				source = "String",
 				requiresOneOf = { "unitName", "unitDefName" },
 			}, summarizeSchema(action))
@@ -205,7 +185,7 @@ describe("mission_api.actions.set_attribute", function()
 				teamID = "TeamID",
 				weapon = "UnitWeapon",
 				attribute = "WeaponAttribute!",
-				value = "AttributeValue",
+				value = "AttributeValue!",
 				source = "String",
 			}, summarizeSchema(action))
 		end)
@@ -234,7 +214,7 @@ describe("mission_api.actions.set_attribute", function()
 				teamID = "TeamID",
 				weapon = "UnitWeapon",
 				attribute = "WeaponAttribute!",
-				value = "AttributeValue",
+				value = "AttributeValue!",
 				source = "String",
 				requiresOneOf = { "unitName", "unitDefName" },
 			}, summarizeSchema(action))
@@ -262,7 +242,7 @@ describe("mission_api.actions.set_attribute", function()
 				teamID = "TeamID",
 				weapon = "UnitWeapon",
 				attribute = "WeaponAttribute!",
-				multiplier = "Number",
+				multiplier = "Number!",
 				source = "String",
 			}, summarizeSchema(action))
 		end)
@@ -297,16 +277,51 @@ describe("mission_api.actions.set_attribute", function()
 				teamID = "TeamID",
 				weapon = "UnitWeapon",
 				attribute = "WeaponAttribute!",
-				multiplier = "Number",
+				multiplier = "Number!",
 				source = "String",
 				requiresOneOf = { "unitName", "unitDefName" },
 			}, summarizeSchema(action))
 		end)
+	end)
+	describe("ClearUnitDefAttribute", function()
+		local action = actionOfType("ClearUnitDefAttribute")
+
+		it("clears the def attribute's source", function()
+			action.actionFunction("armpw", nil, "losRadius", "scouting")
+
+			assert.are.same({ { "SetUnitDefAttribute", 8, "losRadius", nil, "scouting", nil } }, calls)
+		end)
+	end)
+
+	describe("ClearUnitAttribute", function()
+		local action = actionOfType("ClearUnitAttribute")
 
 		it("clears a named source on every unit the query matched", function()
 			queryResult = { 11 }
 
-			action.actionFunction("tank", nil, nil, nil, "damage", nil, "overcharge")
+			action.actionFunction(nil, "armwar", 0, "speed", "boost")
+
+			assert.are.same({ { "SetUnitAttribute", 11, "speed", nil, "boost" } }, calls)
+		end)
+	end)
+
+	describe("ClearUnitDefModifier", function()
+		local action = actionOfType("ClearUnitDefModifier")
+
+		it("clears the def modifier's source", function()
+			action.actionFunction("armpw", nil, "losRadius", "fog")
+
+			assert.are.same({ { "SetUnitDefModifier", 8, "losRadius", nil, "fog", nil } }, calls)
+		end)
+	end)
+
+	describe("ClearUnitWeaponModifier", function()
+		local action = actionOfType("ClearUnitWeaponModifier")
+
+		it("clears a named source on every unit the query matched", function()
+			queryResult = { 11 }
+
+			action.actionFunction("tank", nil, nil, nil, "damage", "overcharge")
 
 			assert.are.same({ { "SetUnitWeaponModifier", 11, nil, "damage", nil, "overcharge" } }, calls)
 		end)

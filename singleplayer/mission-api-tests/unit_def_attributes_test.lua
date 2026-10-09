@@ -102,7 +102,7 @@ local actions = {
 	},
 
 	clearLosRadius = {
-		type = actionTypes.SetUnitDefAttribute,
+		type = actionTypes.ClearUnitDefAttribute,
 		parameters = {
 			unitDefName = 'armpw',
 			attribute = 'losRadius',
@@ -112,7 +112,7 @@ local actions = {
 	messageClearLosRadius = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The losRadius set was cleared, with no value. All three Pawns should be back to their default sight circle.',
+			message = 'The losRadius set was cleared. All three Pawns should be back to their default sight circle.',
 		},
 	},
 
@@ -134,7 +134,7 @@ local actions = {
 	},
 
 	clearHalving = {
-		type = actionTypes.SetUnitDefModifier,
+		type = actionTypes.ClearUnitDefModifier,
 		parameters = {
 			unitDefName = 'armpw',
 			attribute = 'losRadius',

@@ -104,7 +104,7 @@ local actions = {
 	},
 
 	clearTankStealth = {
-		type = actionTypes.SetUnitAttribute,
+		type = actionTypes.ClearUnitAttribute,
 		parameters = {
 			unitName = 'tank',
 			attribute = 'stealth',
@@ -114,7 +114,7 @@ local actions = {
 	messageClearStealth = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The stealth set was cleared, with no value. Enemy radar shows the tank again.',
+			message = 'The stealth set was cleared. Enemy radar shows the tank again.',
 		},
 	},
 }

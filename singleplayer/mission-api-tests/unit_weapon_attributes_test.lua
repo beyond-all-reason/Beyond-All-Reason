@@ -129,7 +129,7 @@ local actions = {
 	},
 
 	clearTankDamage = {
-		type = actionTypes.SetUnitWeaponModifier,
+		type = actionTypes.ClearUnitWeaponModifier,
 		parameters = {
 			unitName = 'tank',
 			weapon = 1,

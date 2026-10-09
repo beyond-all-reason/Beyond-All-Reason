@@ -77,6 +77,38 @@ local function multiplyUnitWeaponAttribute(unitName, unitDefName, teamID, weapon
 	end
 end
 
+local function clearUnitDefAttribute(unitDefName, teamID, attribute, source)
+	setUnitDefAttribute(unitDefName, teamID, attribute, nil, source)
+end
+
+local function clearUnitAttribute(unitName, unitDefName, teamID, attribute, source)
+	setUnitAttribute(unitName, unitDefName, teamID, attribute, nil, source)
+end
+
+local function clearUnitDefModifier(unitDefName, teamID, attribute, source)
+	multiplyUnitDefAttribute(unitDefName, teamID, attribute, nil, source)
+end
+
+local function clearUnitModifier(unitName, unitDefName, teamID, attribute, source)
+	multiplyUnitAttribute(unitName, unitDefName, teamID, attribute, nil, source)
+end
+
+local function clearUnitDefWeaponAttribute(unitDefName, teamID, weapon, attribute, source)
+	setUnitDefWeaponAttribute(unitDefName, teamID, weapon, attribute, nil, source)
+end
+
+local function clearUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, source)
+	setUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, nil, source)
+end
+
+local function clearUnitDefWeaponModifier(unitDefName, teamID, weapon, attribute, source)
+	multiplyUnitDefWeaponAttribute(unitDefName, teamID, weapon, attribute, nil, source)
+end
+
+local function clearUnitWeaponModifier(unitName, unitDefName, teamID, weapon, attribute, source)
+	multiplyUnitWeaponAttribute(unitName, unitDefName, teamID, weapon, attribute, nil, source)
+end
+
 return {
 	{
 		type = "SetUnitDefAttribute",
@@ -84,7 +116,7 @@ return {
 			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
 			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
-			{ name = "value",       required = false, type = ParameterTypes.AttributeValue },
+			{ name = "value",       required = true,  type = ParameterTypes.AttributeValue },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 		},
 		actionFunction = setUnitDefAttribute,
@@ -96,7 +128,7 @@ return {
 			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
 			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
-			{ name = "value",       required = false, type = ParameterTypes.AttributeValue },
+			{ name = "value",       required = true,  type = ParameterTypes.AttributeValue },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 			requiresOneOf = { "unitName", "unitDefName" },
 		},
@@ -108,7 +140,7 @@ return {
 			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
 			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
-			{ name = "multiplier",  required = false, type = ParameterTypes.Number },
+			{ name = "multiplier",  required = true,  type = ParameterTypes.Number },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 		},
 		actionFunction = multiplyUnitDefAttribute,
@@ -120,7 +152,7 @@ return {
 			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
 			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
-			{ name = "multiplier",  required = false, type = ParameterTypes.Number },
+			{ name = "multiplier",  required = true,  type = ParameterTypes.Number },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 			requiresOneOf = { "unitName", "unitDefName" },
 		},
@@ -133,7 +165,7 @@ return {
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
 			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
-			{ name = "value",       required = false, type = ParameterTypes.AttributeValue },
+			{ name = "value",       required = true,  type = ParameterTypes.AttributeValue },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 		},
 		actionFunction = setUnitDefWeaponAttribute,
@@ -146,7 +178,7 @@ return {
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
 			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
-			{ name = "value",       required = false, type = ParameterTypes.AttributeValue },
+			{ name = "value",       required = true,  type = ParameterTypes.AttributeValue },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 			requiresOneOf = { "unitName", "unitDefName" },
 		},
@@ -159,7 +191,7 @@ return {
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
 			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
-			{ name = "multiplier",  required = false, type = ParameterTypes.Number },
+			{ name = "multiplier",  required = true,  type = ParameterTypes.Number },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 		},
 		actionFunction = multiplyUnitDefWeaponAttribute,
@@ -172,10 +204,102 @@ return {
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
 			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
-			{ name = "multiplier",  required = false, type = ParameterTypes.Number },
+			{ name = "multiplier",  required = true,  type = ParameterTypes.Number },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 			requiresOneOf = { "unitName", "unitDefName" },
 		},
 		actionFunction = multiplyUnitWeaponAttribute,
+	},
+	{
+		type = "ClearUnitDefAttribute",
+		parameters = {
+			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
+			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+		},
+		actionFunction = clearUnitDefAttribute,
+	},
+	{
+		type = "ClearUnitAttribute",
+		parameters = {
+			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
+			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
+			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+			requiresOneOf = { "unitName", "unitDefName" },
+		},
+		actionFunction = clearUnitAttribute,
+	},
+	{
+		type = "ClearUnitDefModifier",
+		parameters = {
+			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
+			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+		},
+		actionFunction = clearUnitDefModifier,
+	},
+	{
+		type = "ClearUnitModifier",
+		parameters = {
+			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
+			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
+			{ name = "attribute",   required = true,  type = ParameterTypes.UnitAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+			requiresOneOf = { "unitName", "unitDefName" },
+		},
+		actionFunction = clearUnitModifier,
+	},
+	{
+		type = "ClearUnitDefWeaponAttribute",
+		parameters = {
+			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
+			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+		},
+		actionFunction = clearUnitDefWeaponAttribute,
+	},
+	{
+		type = "ClearUnitWeaponAttribute",
+		parameters = {
+			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
+			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
+			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+			requiresOneOf = { "unitName", "unitDefName" },
+		},
+		actionFunction = clearUnitWeaponAttribute,
+	},
+	{
+		type = "ClearUnitDefWeaponModifier",
+		parameters = {
+			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
+			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+		},
+		actionFunction = clearUnitDefWeaponModifier,
+	},
+	{
+		type = "ClearUnitWeaponModifier",
+		parameters = {
+			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
+			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
+			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
+			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
+			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
+			requiresOneOf = { "unitName", "unitDefName" },
+		},
+		actionFunction = clearUnitWeaponModifier,
 	},
 }

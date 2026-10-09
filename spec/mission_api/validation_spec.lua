@@ -1855,10 +1855,10 @@ describe("mission_api.validation", function()
 				assert.are.same({}, logged)
 			end)
 
-			it("accepts a set with no value, which clears the source", function()
+			it("accepts clearing a source", function()
 				referenceErrors({ armwar = armwar }, {
 					clearLosRadius = {
-						type = actionTypes.SetUnitDefAttribute,
+						type = actionTypes.ClearUnitDefAttribute,
 						parameters = { unitDefName = "armwar", attribute = "losRadius", source = "scouting" },
 					},
 				})
@@ -1930,10 +1930,10 @@ describe("mission_api.validation", function()
 				)
 			end)
 
-			it("accepts a modifier with no multiplier, which clears the source", function()
+			it("accepts clearing a modifier's source", function()
 				referenceErrors({ armwar = armwar }, {
 					clearHaste = {
-						type = actionTypes.SetUnitModifier,
+						type = actionTypes.ClearUnitModifier,
 						parameters = { unitDefName = "armwar", attribute = "speed", source = "haste" },
 					},
 				})
