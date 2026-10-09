@@ -71,8 +71,11 @@ local function initGL4()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if unitConf[unitDefID] == nil then
+		return
+	end
 	local rezRulesParam = Spring.GetUnitRulesParam(unitID, "resurrected")
-	if unitConf[unitDefID] == nil or not rezRulesParam or rezRulesParam == 0 then
+	if not rezRulesParam or rezRulesParam == 0 then
 		return
 	end
 
@@ -109,7 +112,7 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(resurrectionHalosVBO)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		widget:VisibleUnitAdded(unitID, unitDefID, Spring.GetUnitTeam(unitID))
+		widget:VisibleUnitAdded(unitID, unitDefID)
 	end
 end
 

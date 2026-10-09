@@ -1154,8 +1154,10 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.uploadAllElements(orbVBO)
 end
 
-function widget:VisibleUnitRemoved(unitID)
-	shieldFinishFrames[unitID] = spGetGameFrame()
+function widget:VisibleUnitRemoved(unitID, unitDefID)
+	if orbUnitDefs[unitDefID] then -- the only units VisibleUnitAdded reads this for
+		shieldFinishFrames[unitID] = spGetGameFrame()
+	end
 	if orbVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(orbVBO, unitID)
 	end
