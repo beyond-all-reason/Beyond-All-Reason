@@ -25359,6 +25359,32 @@ function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOp
 	end
 end
 
+-- Keep history entries and live waypoint chaining in admission order. The input
+-- list is shared across units, so decode it once instead of allocating command
+-- parameter/option tables for every unit-target pair. Only admitted ranges are
+-- delivered (rejected targets can leave gaps).
+local pipAttackBatches = setmetatable({}, { __mode = "k" })
+function widget:UnitCommandBatch(unitID, unitDefID, unitTeam, commands, playerID, fromSynced, fromLua, ranges)
+	local decoded = pipAttackBatches[commands]
+	if not decoded then
+		decoded = {}
+		pipAttackBatches[commands] = decoded
+	end
+	for r = 1, #ranges, 2 do
+		for i = ranges[r], ranges[r] + ranges[r + 1] - 1 do
+			local command = decoded[i]
+			if not command then
+				-- LogCommand only reads shift; live command FX do not read options.
+				command = { params = { commands:GetTarget(i) }, options = {
+					shift = math.floor(commands:GetOptions(i) / CMD.OPT_SHIFT) % 2 == 1,
+				} }
+				decoded[i] = command
+			end
+			self:UnitCommand(unitID, unitDefID, unitTeam, CMD.ATTACK, command.params, command.options)
+		end
+	end
+end
+
 -- Track newly finished units to suppress their initial rally point command FX
 function widget:FeatureCreated(featureID, allyTeam)
 	miscState.hist.LogFeature(true, featureID)
