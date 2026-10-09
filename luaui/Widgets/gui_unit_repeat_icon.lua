@@ -146,9 +146,9 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		visibleUnits[unitID] = unitDefID
 		if not crashingUnits[unitID] then
-			local states = spGetUnitStates(unitID)
-			if states then
-				local rep = states["repeat"]
+			-- the 4th value is the repeat state (no table built), all nil for units that are not ours to read
+			local fireState, _, _, rep = spGetUnitStates(unitID, false, true)
+			if fireState then
 				unitRepeat[unitID] = rep
 				if rep then
 					pushToVBO(unitID, unitDefID, gf)
@@ -166,11 +166,10 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if crashingUnits[unitID] then
 		return
 	end
-	local states = spGetUnitStates(unitID)
-	if not states then
+	local fireState, _, _, rep = spGetUnitStates(unitID, false, true)
+	if not fireState then
 		return
 	end
-	local rep = states["repeat"]
 	unitRepeat[unitID] = rep
 	if rep then
 		pushToVBO(unitID, unitDefID, spGetGameFrame())
@@ -251,4 +250,11 @@ function widget:DrawScreenEffects()
 	gl.Texture(false)
 	gl.DepthTest(false)
 	gl.DepthMask(true)
+end
+
+function widget:Shutdown()
+	if type(repeatShader) == "table" then
+		repeatShader:Finalize()
+		repeatShader = nil
+	end
 end

@@ -19,6 +19,8 @@ local mathMax = math.max
 
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
+local spGetGameFrame = Spring.GetGameFrame
+local spGetLocalAllyTeamID = Spring.GetLocalAllyTeamID
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -37,7 +39,8 @@ local spEcho = Spring.Echo
 -- fragColor.b = 0.2 + 0.8 * clamp(0.75 * radarJammer.r - 0.5 * (radarJammer.g - 0.5),0,1);
 -- >0.2 = radar coverage
 -- <0.5 = jammer
--- It runs every gameFrame
+-- It runs every 2nd gameFrame, starting with the first GetInfoLOSTexture call: until a widget asks for a texture
+-- nothing is drawn or allocated. Ask in Initialize, so the texture is filled before your first draw.
 
 -- TODO: 2022.12.12
 -- [x] make it work?
@@ -70,7 +73,6 @@ local shaderConfig = {
 }
 ---------------------------------------------------------------------------
 
-local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors() --unused
 local outputAlpha = 0.07
 local numFastUpdates = 10 -- how many quick updates to do on large-scale changes
 local updateRate = 2 -- on each Nth frame
@@ -78,10 +80,12 @@ local updateInfoLOSTexture = 0 -- how many updates to do on next draw
 local delay = 1
 
 local infoShader
-local infoTextures = {} -- A table of allyteam/texture mappings
+local infoTextures = {} -- A table of allyteam/texture mappings, created on first use (false if that failed)
+local newTextures = {} -- allyteams whose texture gets cleared before its first update
+local isAllyTeam = {}
 local currentAllyTeam = nil
+local updating = false -- GameFrame and DrawGenesis are only registered from the first texture request on
 
-local texX, texY
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
 
@@ -112,55 +116,85 @@ local shaderSourceCache = {
 	shaderConfig = shaderConfig,
 }
 
-local function GetInfoLOSTexture(allyTeam)
-	return infoTextures[allyTeam or currentAllyTeam]
-end
-
-local function CreateLosTexture()
-	return gl.CreateTexture(shaderConfig.TEXX, shaderConfig.TEXY, {
+local function CreateLosTexture(allyTeam)
+	local texture = gl.CreateTexture(shaderConfig.TEXX, shaderConfig.TEXY, {
 		min_filter = GL.LINEAR,
 		mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 		fbo = true,
 		format = GL.RGBA8, -- more than enough
-	})
+	}) or false
+	infoTextures[allyTeam] = texture
+	newTextures[allyTeam] = texture and true or nil
+	return texture
 end
 
-local function renderToTextureFunc() -- this draws the fogspheres onto the texture
-	--gl.DepthMask(false)
-	gl.Texture(0, "$info:los")
-	gl.Texture(1, "$info:airlos")
-	gl.Texture(2, "$info:radar") --$info:los
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+local function StartUpdates()
+	updating = true
+	if spGetGameFrame() > 0 then -- first asked mid-game: catch up like after an allyteam change
+		updateInfoLOSTexture = numFastUpdates
+		delay = 0
+	end
+	widgetHandler:UpdateCallIn("GameFrame")
+	widgetHandler:UpdateCallIn("DrawGenesis")
+end
 
-	fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
-	--gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
-	gl.Texture(0, false)
-	gl.Texture(1, false)
-	gl.Texture(2, false)
-	gl.Texture(3, false)
+local function GetInfoLOSTexture(allyTeam)
+	if not updating then
+		if not infoShader then -- shut down
+			return nil
+		end
+		StartUpdates()
+	end
+	allyTeam = allyTeam or currentAllyTeam
+	local texture = infoTextures[allyTeam]
+	if texture == nil and isAllyTeam[allyTeam] then
+		texture = CreateLosTexture(allyTeam)
+	end
+	return texture
+end
+
+local function drawPasses(count, clear)
+	if clear then
+		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	end
+	for i = 1, count do
+		if shaderConfig.EXACT == 0 then -- only the sampled path reads time
+			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + (i == count and 0 or math.random())) / 1000)
+		end
+		fullScreenQuadVAO:DrawArrays(GL.TRIANGLES)
+	end
 end
 
 local function UpdateInfoLOSTexture(count)
+	local texture = infoTextures[currentAllyTeam]
+	if texture == nil then
+		texture = CreateLosTexture(currentAllyTeam)
+	end
+	if not texture then
+		return
+	end
+	local clear = newTextures[currentAllyTeam]
+	newTextures[currentAllyTeam] = nil
+
 	gl.DepthMask(false) -- dont write to depth buffer
 	gl.Culling(false) -- cause our tris are reversed in plane vbo
+	gl.Texture(0, "$info:los")
+	gl.Texture(1, "$info:airlos")
+	gl.Texture(2, "$info:radar")
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	infoShader:Activate()
-	infoShader:SetUniformFloat("outputAlpha", outputAlpha)
-	for i = 1, count do
-		if i == count then
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + 0) / 1000)
-		else
-			infoShader:SetUniformFloat("time", (Spring.GetDrawFrame() + math.random()) / 1000)
-		end
-		gl.RenderToTexture(infoTextures[currentAllyTeam], renderToTextureFunc)
-	end
+	-- all passes in one target bind, each one blends onto the one before
+	gl.RenderToTexture(texture, drawPasses, count, clear)
 	infoShader:Deactivate()
-	gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+	gl.Texture(2, false)
 end
 
 function widget:PlayerChanged(playerID)
-	local newAllyTeam = Spring.GetLocalAllyTeamID()
+	local newAllyTeam = spGetLocalAllyTeamID()
 	if currentAllyTeam ~= newAllyTeam then -- do a few quick renders
 		currentAllyTeam = newAllyTeam
 		updateInfoLOSTexture = numFastUpdates
@@ -176,28 +210,30 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	--local alwaysColor, losColor, radarColor, jamColor, radarColor2 = Spring.GetLosViewColors()
-	texX = (Game.mapSizeX / 8) / shaderConfig.RESOLUTION
-	texY = (Game.mapSizeZ / 8) / shaderConfig.RESOLUTION
 
 	for name, tex in pairs({ LOS = "$info:los", AIRLOS = "$info:airlos", RADAR = "$info:radar" }) do
 		local texInfo = gl.TextureInfo(tex)
 		shaderConfig[name .. "XSIZE"] = texInfo.xsize
 		shaderConfig[name .. "YSIZE"] = texInfo.ysize
 	end
-	currentAllyTeam = Spring.GetLocalAllyTeamID()
+	currentAllyTeam = spGetLocalAllyTeamID()
 
-	for _, a in ipairs(Spring.GetAllyTeamList()) do
-		infoTextures[a] = CreateLosTexture()
+	for _, allyTeam in ipairs(Spring.GetAllyTeamList()) do
+		isAllyTeam[allyTeam] = true
 	end
 
-	infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
-	shaderCompiled = infoShader:Initialize()
-	if not shaderCompiled then
+	infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache) -- this compiles it
+	if not infoShader then
 		spEcho("Failed to compile InfoLOS GL4")
+		widgetHandler:RemoveWidget()
+		return
 	end
 
 	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO() --  -1, -1, 1, 0,   0,0,1, 0.5
+
+	-- idle until the first texture request
+	widgetHandler:RemoveCallIn("GameFrame")
+	widgetHandler:RemoveCallIn("DrawGenesis")
 
 	WG.infolosapi = {}
 	WG.infolosapi.GetInfoLOSTexture = GetInfoLOSTexture
@@ -206,9 +242,17 @@ end
 
 function widget:Shutdown()
 	for _, tex in pairs(infoTextures) do
-		gl.DeleteTexture(tex)
+		if tex then
+			gl.DeleteTexture(tex)
+		end
 	end
 	infoTextures = {}
+	newTextures = {}
+	isAllyTeam = {}
+	if infoShader then
+		infoShader:Finalize()
+		infoShader = nil
+	end
 	WG.infolosapi = nil
 	widgetHandler:DeregisterGlobal("GetInfoLOSTexture")
 end
@@ -219,40 +263,32 @@ function widget:GameFrame(n)
 	end
 end
 
-function widget:Update() end
-
---local lastUpdate = Spring.GetTimer()
-
 function widget:DrawGenesis()
-	-- local nowtime = Spring.GetTimer()
-	-- local deltat = Spring.DiffTimers(nowtime, lastUpdate)
 	-- keeping outputAlpha identical is a very important trick for never-before-seen areas!
-	-- outputAlpha = math.min(1.0, mathMax(0.07,deltat))
-	-- spEcho(deltat,outputAlpha)
-
 	if updateInfoLOSTexture > 0 then
 		if delay > 0 then
 			delay = delay - 1
 		else
 			UpdateInfoLOSTexture(updateInfoLOSTexture)
 			updateInfoLOSTexture = 0
-			delay = 0
 		end
 	end
 end
 
-function widget:DrawScreen() -- the debug display output
-	if autoreload then
+if autoreload then
+	function widget:DrawScreen() -- the debug display output
 		infoShader = LuaShader.CheckShaderUpdates(shaderSourceCache) or infoShader
+		local texture = infoTextures[currentAllyTeam]
+		if not texture then
+			return
+		end
 		gl.Color(1, 1, 1, 1) -- use this to show individual channels of the texture!
-		gl.Texture(0, infoTextures[currentAllyTeam])
+		gl.Texture(0, texture)
 		gl.Blending(GL.ONE, GL.ZERO)
 		gl.Culling(false)
 		gl.TexRect(0, 0, shaderConfig.TEXX, shaderConfig.TEXY, 0, 0, 1, 1) -- REMEMBER THAT THIS UPSIDE DOWN!
 
 		gl.Text(tostring(currentAllyTeam), shaderConfig.TEXX, shaderConfig.TEXY, 16)
-		gl.Texture(0, "$info:los")
-		--gl.TexRect(texX, 0, texX + shaderConfig['LOSXSIZE'], shaderConfig['LOSYSIZE'], 0, 1, 1, 0)
 		gl.Texture(0, false)
 
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

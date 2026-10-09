@@ -2477,3 +2477,14 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 		}
 	end
 end
+
+function widget:Shutdown()
+	if type(decalShader) == "table" then
+		decalShader:Finalize()
+		decalShader = nil
+	end
+	if type(decalLargeShader) == "table" then
+		decalLargeShader:Finalize()
+		decalLargeShader = nil
+	end
+end

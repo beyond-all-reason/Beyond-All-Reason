@@ -26,11 +26,20 @@ end
 
 local gl = gl
 
+-- Widgets share these tables and can replace their functions for everyone.
+local vfsLoadFile = VFS.LoadFile
+local vfsFileExists = VFS.FileExists
+local vfsDirList = VFS.DirList
+local vfsSubDirs = VFS.SubDirs
+local loadstring = loadstring
+local setfenv = setfenv
+local pcall = pcall
+
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
 
-local SELECTOR_BASENAME = "selector.lua"
+local SELECTOR_BASENAME = "widget_selector.lua"
 
 local SAFEWRAP = 1
 -- 0: disabled
@@ -416,25 +425,34 @@ local function Yield()
 end
 
 local zipOnly = {
-	["Widget Selector"] = true,
-	["Widget Profiler"] = true,
+	["Widget Selector"] = "LuaUI/Widgets/widget_selector.lua",
 }
+local zipOnlyFiles = {}
+for name, filename in pairs(zipOnly) do
+	zipOnlyFiles[filename:lower()] = name
+end
 
 local function loadWidgetFiles(folder, vfsMode)
 	local fromZip = vfsMode ~= VFS.RAW
-	local widgetFiles = VFS.DirList(folder, "*.lua", vfsMode)
+	local widgetFiles = vfsDirList(folder, "*.lua", vfsMode)
 
-	for _, subDirectory in ipairs(VFS.SubDirs(folder)) do
-		table.append(widgetFiles, VFS.DirList(subDirectory, "*.lua", vfsMode))
+	for _, subDirectory in ipairs(vfsSubDirs(folder)) do
+		table.append(widgetFiles, vfsDirList(subDirectory, "*.lua", vfsMode))
 	end
 
 	for _, file in ipairs(widgetFiles) do
-		local widget = widgetHandler:LoadWidget(file, fromZip)
-		local excludeWidget = widget and not fromZip and zipOnly[widget.whInfo.name]
+		local gameName = not fromZip and zipOnlyFiles[(file:lower():gsub("\\", "/"))]
 
-		if widget and not excludeWidget then
-			table.insert(unsortedWidgets, widget)
-			Yield()
+		if gameName then
+			-- Not loaded at all, since loading runs its code before its name can be checked.
+			Spring.Echo("Ignoring user copy: " .. file .. "  (the game provides " .. gameName .. ")")
+		else
+			local widget = widgetHandler:LoadWidget(file, fromZip)
+
+			if widget then
+				table.insert(unsortedWidgets, widget)
+				Yield()
+			end
 		end
 	end
 end
@@ -465,6 +483,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+	self:InitWindowPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -555,7 +574,7 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not VFS.FileExists(ki.filename, VFS.ZIP) then
+	if not ki or not vfsFileExists(ki.filename, VFS.ZIP) then
 		return
 	end
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
@@ -624,11 +643,16 @@ local function loadFailed(basename, reason)
 	return nil
 end
 
+-- Not a handler method. `fromZip` grants full System to anything with handler access.
+local newWidget ---@type function
+-- Prevent widgets rewriting their own fields, namely unit control flags.
+local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
-	local text = VFS.LoadFile(
+	local text = vfsLoadFile(
 		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not reload) and VFS.ZIP or VFS.RAW_FIRST
+		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
 	)
 	if text == nil then
 		return loadFailed(basename, "missing file: " .. filename)
@@ -648,7 +672,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			return loadFailed(basename, err)
 		end
 
-		local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
+		local widget = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -668,7 +692,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		return loadFailed(basename, err)
 	end
 
-	local widget = widgetHandler:NewWidget(enableLocalsAccess, fromZip)
+	local widget, canControlUnits = newWidget(widgetHandler, enableLocalsAccess, fromZip)
 	setfenv(chunk, widget)
 	local success, err = pcall(chunk)
 	if not success then
@@ -682,27 +706,31 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		setmetatable(widget, localsAccess.generateLocalsAccessMetatable(getmetatable(widget)))
 	end
 
-	-- user widgets may not access widgetHandler
-	-- fixme: remove the or true part
-	if widget.GetInfo and widget:GetInfo().handler then
-		if fromZip or true then
-			widget.widgetHandler = self
-		else
-			return loadFailed(basename, "user widgets may not access widgetHandler")
-		end
-	end
-
 	self:FinalizeWidget(widget, filename, basename)
 	local name = widget.whInfo.name
-	if basename == SELECTOR_BASENAME then
+
+	if zipOnly[name] and not fromZip then
+		Spring.Echo("Ignoring user copy: " .. filename .. "  (the game provides " .. name .. ")")
+		return nil
+	end
+
+	-- Only the game gets to hide a widget: a hidden one always loads and cannot be disabled.
+	local hidden = fromZip and widget.whInfo.hidden or false
+
+	if fromZip and basename == SELECTOR_BASENAME then
 		self.orderList[name] = 1 -- always load the widget selector
-	elseif widget.whInfo.hidden then
+	elseif hidden then
 		self.orderList[name] = 1 -- hidden widgets back other widgets, so they always load
 	end
 
 	err = self:ValidateWidget(widget)
 	if err then
 		return loadFailed(basename, err)
+	end
+
+	if widget.GetInfo == nil then
+		-- Do not keep widgets known but unregistered (active, no order entry)
+		return loadFailed(basename, "no GetInfo() call")
 	end
 
 	local knownInfo = self.knownWidgets[name]
@@ -718,7 +746,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		knownInfo.basename = widget.whInfo.basename
 		knownInfo.filename = widget.whInfo.filename
 		knownInfo.fromZip = fromZip
-		knownInfo.hidden = widget.whInfo.hidden
+		knownInfo.hidden = hidden
 		-- Whether the widget ships switched on. Kept here because this is the only place it is
 		-- seen for a widget that ends up not being loaded: whInfo belongs to the instance, and
 		-- a widget that is off has no instance.
@@ -732,7 +760,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- And what it shares with other widgets through WG. The source is in hand here, and a source
 		-- the reading trips over must not stop the widget from loading.
 		if widgetDependencies then
-			local ok, deps = pcall(widgetDependencies.scan, text, VFS.LoadFile)
+			local ok, deps = pcall(widgetDependencies.scan, text, vfsLoadFile)
 			knownInfo.deps = ok and deps or nil
 		end
 		self.knownWidgets[name] = knownInfo
@@ -742,13 +770,6 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	knownInfo.active = true
 	knownInfo.localsAccess = enableLocalsAccess
 
-	if widget.GetInfo == nil then
-		return loadFailed(basename, "no GetInfo() call")
-	end
-
-	-- Get widget information
-	local info = widget:GetInfo()
-
 	-- Enabling
 	local order = self.orderList[name]
 	if order then
@@ -756,7 +777,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 			order = nil
 		end
 	else
-		if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
+		if widget.whInfo.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
 			order = 12345
 		end
 	end
@@ -768,6 +789,19 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		self.knownWidgets[name].active = false
 		return nil
 	end
+
+	-- user widgets may not access widgetHandler
+	-- fixme: remove the or true part
+	-- Granted last, so a widget refused above never holds the real handler.
+	if widget.whInfo.handler then
+		if fromZip or true then
+			widget.widgetHandler = self
+		else
+			self.knownWidgets[name].active = false
+			return loadFailed(basename, "user widgets may not access widgetHandler")
+		end
+	end
+
 	if not fromZip then
 		local md5 = VFS.CalculateHash(text, 0)
 		if widgetHandler.widgetHashes[md5] == nil then
@@ -788,6 +822,8 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		log.stopped = nil
 	end
 
+	loadedWidgets[widget] = canControlUnits and true or false
+
 	return widget
 end
 
@@ -801,7 +837,7 @@ local SandboxedWidgetMeta = {
 	__metatable = true,
 }
 
-function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
+newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	tracy.ZoneBeginN("W:NewWidget")
 	local widget = {}
 	local canControlUnits = fromZip or allowunitcontrolwidgets
@@ -919,6 +955,9 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
 	end
+	wh.SetWindowsPauseGame = function(_, enabled)
+		return self:SetWindowsPauseGame(enabled)
+	end
 	wh.HideInterface = function(_, reason, keep)
 		return self:HideInterface(reason, keep)
 	end
@@ -929,7 +968,7 @@ function widgetHandler:NewWidget(enableLocalsAccess, fromZip, filename)
 		return self:IsInterfaceHidden()
 	end
 	tracy.ZoneEnd()
-	return widget
+	return widget, canControlUnits
 end
 
 function widgetHandler:FinalizeWidget(widget, filename, basename)
@@ -950,6 +989,10 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		wi.enabled = info.enabled or false
 		wi.hidden = info.hidden or false
 		wi.modalExempt = info.modalExempt or false
+		wi.unsafe = info.unsafe or false
+		wi.depends = info.depends
+		wi.control = info.control or false
+		wi.handler = info.handler or false
 	end
 
 	widget.whInfo = {} --  a proxy table
@@ -976,6 +1019,8 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
 		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
 		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
+		widget._tracyCommandNotifyName = "W:CommandNotify:" .. wi.name
+		widget._tracyRecvLuaMsgName = "W:RecvLuaMsg:" .. wi.name
 	end
 end
 
@@ -998,7 +1043,7 @@ local function widgetFailure(w, funcName, errorMsg)
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
-		if not w.canControlUnits and errorMsg:find(SANDBOXED_ERROR_MSG) then
+		if not loadedWidgets[w] and errorMsg:find(SANDBOXED_ERROR_MSG) then
 			errorBase = "Sandbox error"
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
@@ -1051,7 +1096,7 @@ local function SafeWrapWidget(widget)
 	if SAFEWRAP <= 0 then
 		return
 	elseif SAFEWRAP == 1 then
-		if widget.GetInfo and widget.GetInfo().unsafe then
+		if widget.whInfo.unsafe then
 			Spring.Echo("LuaUI: loaded unsafe widget: " .. widget.whInfo.name)
 			return
 		end
@@ -1208,7 +1253,16 @@ function widgetHandler:InsertWidgetRaw(widget)
 	if widget == nil then
 		return
 	end
-	if widget.GetInfo and not Platform.check(widget:GetInfo().depends) then
+	local canControlUnits = loadedWidgets[widget]
+	if canControlUnits == nil then
+		Spring.Echo("Blocked loading: a widget that was not loaded from a file")
+		return
+	end
+	if self:FindWidget(widget.whInfo.name) then
+		Spring.Echo("Blocked loading: " .. widget.whInfo.name .. "  (already running)")
+		return
+	end
+	if not Platform.check(widget.whInfo.depends) then
 		local name = widget.whInfo.name
 		if self.knownWidgets[name] then
 			self.knownWidgets[name].active = false
@@ -1218,9 +1272,12 @@ function widgetHandler:InsertWidgetRaw(widget)
 		return
 	end
 	-- Gracefully ignore/reload good control widgets advertising themselves as such, if user 'unit control' widgets disabled.
-	if widget.GetInfo and widget:GetInfo().control and not widget.canControlUnits then
+	if widget.whInfo.control and not canControlUnits then
 		local name = widget.whInfo.name
 		if not self:ReloadUserWidgetFromGameRaw(name) then
+			if self.knownWidgets[name] then
+				self.knownWidgets[name].active = false
+			end
 			Spring.Echo("Blocked loading: " .. name .. "  (user 'unit control' widgets disabled for this game)")
 			self:RecordError(
 				widget.whInfo.basename,
@@ -1262,13 +1319,16 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		self.textOwner = nil
 	end
 
-	local name = widget.whInfo.name
-	if widget.GetConfigData then
-		self.configData[name] = widget:GetConfigData()
-	end
-	self.knownWidgets[name].active = false
-	if widget.Shutdown then
-		widget:Shutdown()
+	-- A refused widget can have queued its own removal and would write over a running one.
+	if table.getKeyOf(self.widgets, widget) then
+		local name = widget.whInfo.name
+		if widget.GetConfigData then
+			self.configData[name] = widget:GetConfigData()
+		end
+		self.knownWidgets[name].active = false
+		if widget.Shutdown then
+			widget:Shutdown()
+		end
 	end
 	ArrayRemove(self.widgets, widget)
 	self:ForgetModalWidget(widget)
@@ -1360,6 +1420,20 @@ function widgetHandler:IsWidgetKnown(name)
 	return self.knownWidgets[name] and true or false
 end
 
+function widgetHandler:ForgetWidget(name)
+	if not self:IsWidgetKnown(name) then
+		return
+	end
+	local ki = self.knownWidgets[name]
+	local md5 = ki and table.getKeyOf(self.widgetHashes, ki.filename)
+	if md5 ~= nil then
+		self.widgetHashes[md5] = nil
+	end
+	self.knownWidgets[name] = nil
+	self.knownCount = self.knownCount - 1
+	self.knownChanged = true
+end
+
 function widgetHandler:EnableWidgetRaw(name, enableLocalsAccess)
 	local ki = self.knownWidgets[name]
 	if not ki then
@@ -1398,9 +1472,11 @@ function widgetHandler:DisableWidgetRaw(name)
 		end
 		Spring.Echo("Removed:  " .. ki.filename)
 		self:RemoveWidgetRaw(w) -- deactivate
-		self.orderList[name] = 0 -- disable
-		self:SaveConfigData()
+	elseif (self.orderList[name] or 0) <= 0 then
+		return true
 	end
+	self.orderList[name] = 0 -- disable
+	self:SaveConfigData()
 	return true
 end
 
@@ -1410,16 +1486,10 @@ function widgetHandler:ToggleWidgetRaw(name)
 		Spring.Echo("ToggleWidget(), could not find widget: " .. tostring(name))
 		return
 	end
-	if ki.active then
+	if ki.active or self.orderList[name] > 0 then
 		return self:DisableWidgetRaw(name)
-	elseif self.orderList[name] <= 0 then
-		return self:EnableWidgetRaw(name)
-	else
-		-- the widget is not active, but enabled; disable it
-		self.orderList[name] = 0
-		self:SaveConfigData()
 	end
-	return true
+	return self:EnableWidgetRaw(name)
 end
 
 --------------------------------------------------------------------------------
@@ -1591,6 +1661,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
+	self:SaveWindowPause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -1611,6 +1682,10 @@ end
 --  Optional behaviour (springsetting "WindowsHideInterface", default off): while one
 --  of the big central windows is open, the rest of the screen interface is neither
 --  drawn nor clickable, so the window is the only thing the player can interact with.
+--
+--  In singleplayer and replays an open window (or the lobby overlay) also pauses the
+--  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
+--  pause the player made or lifted themselves in the meantime is left alone.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
@@ -1647,6 +1722,12 @@ local modalRevision = 0
 local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
+
+-- pausing while a window is open, see UpdateWindowPause
+local windowPauseEnabled = true
+local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
+local windowPauseHeld = false -- the open windows have paused the game, or found it paused
+local windowPauseOwned = false -- they paused it, so closing them resumes it
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -1779,34 +1860,94 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 	self:UpdateModalState()
 end
 
+function widgetHandler:SetWindowsPauseGame(enabled)
+	windowPauseEnabled = enabled and true or false
+	modalConfigTimer = 0
+end
+
+local function anyWindowOpen()
+	for w, isOpen in pairs(modalWindows) do
+		local ok, open = pcall(isOpen)
+		if not ok then
+			Spring.Log(
+				"barwidgets.lua",
+				LOG.ERROR,
+				"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
+			)
+			modalWindows[w] = nil -- removing the current key mid-traversal is allowed
+			ModalAllowWidget(w, modalExempt[w] == true)
+		elseif open then
+			return true
+		end
+	end
+	return false
+end
+
 function widgetHandler:UpdateModalState(deltaTime)
 	if deltaTime then
 		modalConfigTimer = modalConfigTimer + deltaTime
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
+			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
-	local active = false
-	if modalEnabled then
-		for w, isOpen in pairs(modalWindows) do
-			local ok, open = pcall(isOpen)
-			if not ok then
-				Spring.Log(
-					"barwidgets.lua",
-					LOG.ERROR,
-					"modal window check failed for " .. tostring(w.whInfo and w.whInfo.name) .. ": " .. tostring(open)
-				)
-				modalWindows[w] = nil -- removing the current key mid-traversal is allowed
-				ModalAllowWidget(w, modalExempt[w] == true)
-			elseif open then
-				active = true
-				break
-			end
-		end
+	modalActive = modalEnabled and anyWindowOpen()
+end
+
+local function isClientPaused()
+	local _, _, paused = Spring.GetGameState()
+	return paused
+end
+
+-- Once per frame, after the widgets' Update: a window closing as another opens, or one
+-- reopening itself after a reload, never lets the game run in between.
+function widgetHandler:UpdateWindowPause()
+	if not windowPauseAllowed then
+		return
 	end
-	modalActive = active
+	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted == windowPauseHeld then
+		if windowPauseOwned and not isClientPaused() then
+			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
+		end
+		return
+	end
+	if wanted then
+		if Spring.GetGameFrame() == 0 then
+			return -- the engine refuses to pause before the game has started
+		end
+		windowPauseHeld = true
+		windowPauseOwned = not isClientPaused()
+		if windowPauseOwned then
+			Spring.SendCommands("pause 1")
+		end
+	else
+		windowPauseHeld = false
+		if windowPauseOwned and isClientPaused() then
+			Spring.SendCommands("pause 0")
+		end
+		windowPauseOwned = false
+	end
+end
+
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
+-- that reopens after the reload keeps it and closing that window still resumes the game.
+function widgetHandler:SaveWindowPause()
+	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+end
+
+function widgetHandler:InitWindowPause()
+	-- headless, nobody would ever close a window that opened by itself
+	windowPauseAllowed = not isHeadless and (Spring.IsReplay() or BAR.Utilities.Gametype.IsSinglePlayer())
+	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+	local frame = Spring.GetGameFrame()
+	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
+		windowPauseHeld = true
+		windowPauseOwned = true
+	end
+	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
 end
 
 -- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
@@ -1893,11 +2034,13 @@ function widgetHandler:Update()
 
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyUpdateName)
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
+
+	self:UpdateWindowPause()
 	return
 end
 
@@ -1990,7 +2133,10 @@ end
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
-		if w:CommandNotify(id, params, options) then
+		tracy.ZoneBeginN(w._tracyCommandNotifyName)
+		local consumed = w:CommandNotify(id, params, options)
+		tracy.ZoneEnd()
+		if consumed then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -3327,11 +3473,17 @@ function widgetHandler:RecvLuaMsg(msg, playerID)
 	tracy.ZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
 	local retval = false
 	if msg:find("LobbyOverlayActive", 1, true) == 1 then
+		-- LuaMenu delivers these as player 0. From any other player they are spoofed.
+		-- ! FIXME: We cannot distinguish LuaMenu from an actual player 0.
+		if playerID ~= 0 then
+			tracy.ZoneEnd()
+			return true
+		end
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
-		tracy.ZoneBeginN("W:RecvLuaMsg:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyRecvLuaMsgName)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end

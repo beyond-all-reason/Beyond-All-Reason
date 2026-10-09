@@ -58,17 +58,20 @@ local InstanceVBOTable = gl.InstanceVBOIdTable
 
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 local popElementInstance = InstanceVBOTable.popElementInstance
+local pushDefElement = InstanceVBOTable.pushDefElement
+local popDefElement = InstanceVBOTable.popDefElement
+local flushDefElements = InstanceVBOTable.flushDefElements
 
 local unitShader, unitShapeShader
 
 local unitShaderConfig = {
-	STATICMODEL = 0.0, -- do not touch!
+	STATICMODEL = 0, -- do not touch!
 	TRANSPARENCY = 0.5, -- transparency of the stuff drawn
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
 
 local unitShapeShaderConfig = {
-	STATICMODEL = 1.0, -- do not touch!
+	STATICMODEL = 1, -- do not touch!
 	TRANSPARENCY = 0.5,
 	USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 }
@@ -96,7 +99,9 @@ layout (location = 7) in vec4 parameters; // x = alpha, y = isstatic, z = global
 layout (location = 8) in uvec2 overrideteam; // x = override teamcolor if < 256
 layout (location = 9) in uvec4 instData;
 
-uniform float iconDistance;
+#if STATICMODEL == 0
+	uniform float iconDistance;
+#endif
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -106,9 +111,6 @@ uniform float iconDistance;
 	layout(std140, binding=0) buffer MatrixBuffer {
 		mat4 mat[];
 	};
-	mat4 GetPieceMatrix(bool staticModel) {
-    	return mat[instData.x + pieceIndex + uint(!staticModel)];
-	}
 #else
 	//__QUATERNIONDEFS__
 #endif
@@ -130,25 +132,34 @@ uniform float iconDistance;
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 out vec2 v_uv;
-out vec4 v_parameters;
+out vec2 v_parameters; // parameters.zw
 out vec4 myTeamColor;
-out vec3 worldPos;
+out float worldPosY;
 
 void main() {
 	uint baseIndex = instData.x;
-	// parameters.y is always 1 (as we only use this lib for static models)
 
-	// dynamic models have one extra matrix, as their first matrix is their world pos/offset
-	uint isDynamic = 1u; //default dynamic model
-	if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
-
-	#if USEQUATERNIONS == 0
-		mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
-
-		vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+	#if STATICMODEL == 1
+		// unit shapes are always static models
+		#if USEQUATERNIONS == 0
+			vec4 localModelPos = mat[baseIndex + pieceIndex] * vec4(pos, 1.0);
+		#else
+			Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex);
+			vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
+		#endif
 	#else
-		Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex );
-		vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
+		// dynamic models have one extra matrix, as their first matrix is their world pos/offset
+		uint isDynamic = 1u; //default dynamic model
+		if (parameters.y > 0.5) isDynamic = 0u;  //if paramy == 1 then the unit is static
+
+		#if USEQUATERNIONS == 0
+			mat4 pieceMatrix = mat[baseIndex + pieceIndex + isDynamic];
+
+			vec4 localModelPos = pieceMatrix * vec4(pos, 1.0);
+		#else
+			Transform tx = GetStaticPieceModelTransform(baseIndex, pieceIndex );
+			vec4 localModelPos = ApplyTransform(tx, vec4(pos, 1.0));
+		#endif
 	#endif
 
 	// Make the rotation matrix around Y and rotate the model
@@ -157,7 +168,7 @@ void main() {
 
 	vec4 worldModelPos = localModelPos;
 	// Dynamic model:
-	#if USEQUATERNIONS == 0
+	#if USEQUATERNIONS == 0 && STATICMODEL == 0
 		if (parameters.y < 0.5) {
 			mat4 modelMatrix = mat[baseIndex];
 			worldModelPos = modelMatrix*localModelPos;
@@ -166,21 +177,22 @@ void main() {
 	worldModelPos.xyz += worldposrot.xyz; //Place it in the world
 
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	uint drawFlags = (instData.z & 0x0000FF00u) >> 8 ; // hopefully this works
 	if (overrideteam.x < 255u) teamIndex = overrideteam.x;
 
 	myTeamColor = vec4(teamColor[teamIndex].rgb, parameters.x); // pass alpha through
 
-	vec3 modelBaseToCamera = cameraViewInv[3].xyz - (worldposrot.xyz);
-	if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
-		if (isDynamic == 1u) { // Only hide dynamic units when zoomed out
-			myTeamColor.a = 0.0; // do something if we are far out?
+	#if STATICMODEL == 0
+		vec3 modelBaseToCamera = cameraViewInv[3].xyz - (worldposrot.xyz);
+		if ( dot (modelBaseToCamera, modelBaseToCamera) >  (iconDistance * iconDistance)) {
+			if (isDynamic == 1u) { // Only hide dynamic units when zoomed out
+				myTeamColor.a = 0.0; // do something if we are far out?
+			}
 		}
-	}
+	#endif
 
-	v_parameters = parameters;
+	v_parameters = parameters.zw;
 	v_uv = uv.xy;
-	worldPos = worldModelPos.xyz;
+	worldPosY = worldModelPos.y;
 	gl_Position = cameraViewProj * worldModelPos;
 }
 ]]
@@ -198,9 +210,9 @@ uniform sampler2D tex2;
 //__DEFINES__
 
 in vec2 v_uv;
-in vec4 v_parameters;
+in vec2 v_parameters; // x = globalteamcoloramount, y = selectionanimation
 in vec4 myTeamColor;
-in vec3 worldPos;
+in float worldPosY;
 
 out vec4 fragColor;
 #line 25000
@@ -212,9 +224,9 @@ void main() {
 	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, modelColor.a); // apply teamcolor
 
 	modelColor.a *= myTeamColor.a; // shader define transparency
-	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, v_parameters.z); //globalteamcoloramount override
-	if (v_parameters.w > 0){
-		modelColor.rgb = mix(modelColor.rgb, vec3(1.0), v_parameters.w*fract(worldPos.y*0.03 + (timeInfo.x + timeInfo.w)*0.05));
+	modelColor.rgb = mix(modelColor.rgb, myTeamColor.rgb, v_parameters.x); //globalteamcoloramount override
+	if (v_parameters.y > 0){
+		modelColor.rgb = mix(modelColor.rgb, vec3(1.0), v_parameters.y*fract(worldPosY*0.03 + (timeInfo.x + timeInfo.w)*0.05));
 	}
 
 	fragColor = vec4(modelColor.rgb, myTeamColor.a);
@@ -242,6 +254,7 @@ local tex1ToVBO =
 	{ ["arm_color.dds"] = true, ["cor_color.dds"] = true, ["leg_color.dds"] = true, ["legmech_color.dds"] = true } -- Keys texture1 to which VBO is used, small intermediate table, not really used
 local unitDeftoUnitShapeVBOTable = {} --  The important one, which keys the unitDefID to the actual vbo table to be used
 local uniqueIDtoUnitShapeVBOTable = {}
+local unitShapeVBOTables = {} ---@type table<integer, table> the tex1ToVBO tables in draw order
 
 local owners = {} -- maps uniqueIDs to their optional owners
 
@@ -382,24 +395,18 @@ local function DrawUnitShapeGL4(
 		BAR.Debug.TraceFullEcho(nil, nil, nil, "DrawUnitGL4")
 		return nil
 	end
-	-- An update only rewrites instance data, the drawn model is fixed when first submitted
+	-- An update to a unitDef in another texture bucket moves the instance
 	local previousVBOTable = uniqueIDtoUnitShapeVBOTable[updateID] ---@type table?
-	if previousVBOTable then
-		local previousIndex = previousVBOTable.instanceIDtoIndex[updateID]
-		if previousIndex and previousVBOTable.indextoUnitID[previousIndex] ~= unitDefID then
-			---@diagnostic disable-next-line: call-non-callable
-			popElementInstance(previousVBOTable, updateID)
-		end
+	if previousVBOTable and previousVBOTable ~= DrawUnitShapeVBOTable then
+		popDefElement(previousVBOTable, updateID)
 	end
 	uniqueIDtoUnitShapeVBOTable[updateID] = DrawUnitShapeVBOTable
-	--spEcho("DrawUnitShapeGL4", "unitDefID", unitDefID, UnitDefs[unitDefID].name, "to unitDefID", uniqueID,"elemID", elementID)
 
 	instanceCache[1], instanceCache[2], instanceCache[3], instanceCache[4] = px, py, pz, rotationY
 	instanceCache[5], instanceCache[6], instanceCache[7], instanceCache[8] = alpha, 1, teamcoloroverride, highlight
 	instanceCache[9] = teamID
 
-	local elementID =
-		pushElementInstance(DrawUnitShapeVBOTable, instanceCache, updateID, true, nil, unitDefID, "unitDefID")
+	pushDefElement(DrawUnitShapeVBOTable, instanceCache, updateID, unitDefID)
 	return updateID
 end
 
@@ -424,16 +431,16 @@ end
 ---@param uniqueID integer the unique id of whatever you want to stop drawing
 ---@return the ownerID the uniqueID was associated to
 local function StopDrawUnitShapeGL4(uniqueID)
-	if uniqueIDtoUnitShapeVBOTable[uniqueID] then
-		local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
+	local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
+	if DrawUnitShapeVBOTable then
 		if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
-			popElementInstance(DrawUnitShapeVBOTable, uniqueID)
+			popDefElement(DrawUnitShapeVBOTable, uniqueID)
 		else
 			spEcho(
 				"DrawUnitShapeGL4: the given uniqueID",
 				uniqueID,
 				" is not present in the DrawUnitShapeVBOTable",
-				DrawUnitShapeVBOTable.vboname,
+				DrawUnitShapeVBOTable.myName,
 				"that we expected it to be in"
 			)
 		end
@@ -466,16 +473,16 @@ local function StopDrawAll(ownerID)
 					break
 				end
 			end
-			if uniqueIDtoUnitShapeVBOTable[uniqueID] then
-				local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
+			local DrawUnitShapeVBOTable = uniqueIDtoUnitShapeVBOTable[uniqueID]
+			if DrawUnitShapeVBOTable then
 				if DrawUnitShapeVBOTable.instanceIDtoIndex[uniqueID] then
-					popElementInstance(DrawUnitShapeVBOTable, uniqueID)
+					popDefElement(DrawUnitShapeVBOTable, uniqueID)
 				else
 					spEcho(
 						"DrawUnitShapeGL4 StopDrawAll: the given uniqueID",
 						uniqueID,
 						" is not present in the DrawUnitShapeVBOTable",
-						DrawUnitShapeVBOTable.vboname,
+						DrawUnitShapeVBOTable.myName,
 						"that we expected it to be in"
 					)
 				end
@@ -574,6 +581,7 @@ function widget:Initialize()
 		vboTable.indexVBO = indexVBO
 		vboTable.vertexVBO = vertexVBO
 		tex1ToVBO[tex1] = vboTable
+		unitShapeVBOTables[#unitShapeVBOTables + 1] = vboTable
 	end
 
 	for unitDefID, tex1 in pairs(unitDefIDtoTex1) do
@@ -610,9 +618,6 @@ function widget:Initialize()
 			tex1 = 0,
 			tex2 = 1,
 		},
-		uniformFloat = {
-			iconDistance = 1,
-		},
 	}, "UnitShapeGL4 API")
 
 	local unitshaderCompiled = unitShader:Initialize()
@@ -648,13 +653,9 @@ function widget:Shutdown()
 		end
 	end
 
-	for tex1, VBOTable in ipairs(tex1ToVBO) do
-		if VBOTable.VAO then
-			if BAR.Utilities.IsDevMode() then
-				InstanceVBOTable.dumpAndCompareInstanceData(VBOTable)
-			end
-			VBOTable.VAO:Delete()
-		end
+	for _, VBOTable in ipairs(unitShapeVBOTables) do
+		VBOTable.VAO:Delete()
+		VBOTable.instanceVBO:Delete()
 	end
 
 	if unitShader then
@@ -684,7 +685,12 @@ local GHOST_STENCIL_BIT = 0x40
 function widget:DrawWorldPreUnit() -- this is for UnitDef
 	local active = false
 
-	for tex1, unitShapeVBOTable in pairs(tex1ToVBO) do
+	for i = 1, #unitShapeVBOTables do
+		flushDefElements(unitShapeVBOTables[i])
+	end
+
+	for i = 1, #unitShapeVBOTables do
+		local unitShapeVBOTable = unitShapeVBOTables[i]
 		if unitShapeVBOTable.usedElements > 0 then
 			if not active then
 				-- Full depth write so multi-piece ghost models self-occlude
@@ -728,7 +734,6 @@ function widget:DrawWorldPreUnit() -- this is for UnitDef
 				gl.StencilOp(GL.KEEP, GL.KEEP, GL.REPLACE)
 
 				unitShapeShader:Activate()
-				unitShapeShader:SetUniform("iconDistance", 27 * Spring.GetConfigInt("UnitIconDist", 200))
 				active = true
 			end
 

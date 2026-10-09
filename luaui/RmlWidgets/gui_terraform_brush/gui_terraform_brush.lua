@@ -130,6 +130,11 @@ local WG = WG
 -- the CI analyzer counts every bare engine global as an undefined-global
 -- finding. Same table objects, so Spring.X = ... still reaches every widget.
 local Spring = Spring
+-- RmlUi too: keydown and focus listeners are dispatched through RmlUi's own Lua
+-- plugin, and a listener invoked that way does not see this widget's globals. A
+-- bare `RmlUi` inside one of them reads nil, which is how Enter died silently in
+-- every text field (the pcall around the lookup swallowed it).
+local RmlUi = RmlUi
 local VFS = VFS
 local gl = gl
 local GetViewGeometry = Spring.GetViewGeometry
@@ -330,7 +335,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	envDefaults = nil,
 	-- Slider wheel-lock state
 	lockedSliders = {}, -- {[sliderId] = element}
-	sliderLastClickTime = {}, -- {[sliderId] = timerObj}
 	sliderPulsePhase = false,
 	sliderPulseTimer = 0,
 	-- Slider keybind-scroll flash state
@@ -1498,6 +1502,124 @@ function widgetState.measureFileMenuBox()
 		widgetState.fmBoxH = h
 	end
 end
+-- Every floating window that can cover a GL tile grid, in the order RmlUi
+-- PAINTS them: z-index first (the rcss gives most of them 900, the light
+-- library 910, the settings / project / capture / new-map dialogs 920), then
+-- document order for the ones sharing a z, because nothing here raises a window
+-- on click. The main panel is first, so every window is above it.
+--
+-- The tile passes run in DrawScreenPost, after RmlUi has rendered, so a grid is
+-- painted on top of whatever is already there: it has to skip tiles that fall
+-- under any window painted ABOVE the one it lives in. That is the same defect
+-- the FILE menu box below fixes, reported again by Moose for the BIOME LIBRARY
+-- tiles showing through DIMENSIONS.
+--
+-- Only the relative order of the windows that actually HOST a grid has to be
+-- right (the panel, TILESET and the skybox library); the rest merely have to
+-- sort after those. A new floating window belongs in this list.
+widgetState.overlayWindows = {
+	"tf-root",
+	"tf-env-tileset-root",
+	"tf-imgov-root",
+	"tf-skybox-library-root",
+	"tf-env-sun-root",
+	"tf-env-fog-root",
+	"tf-env-ground-lighting-root",
+	"tf-env-unit-lighting-root",
+	"tf-env-map-root",
+	"tf-env-water-root",
+	"tf-env-dimensions-root",
+	"tf-splattex-root",
+	"tf-grasscfg-root",
+	"tf-noise-root",
+	"tf-light-library-root",
+	"tf-settings-root",
+	"tf-project-root",
+	"tf-project-open-root",
+	"tf-capture-root",
+	"tf-newmap-root",
+}
+-- The data-model flag that says a window is up. Gated on these and never on the
+-- element box, for the reason measureFileMenuBox gives: an element that is not
+-- laid out still reports a stale non-zero box. The panel has no entry because
+-- nothing is painted below it, so it is never an occluder.
+widgetState.overlayFlags = {
+	["tf-env-tileset-root"] = "envTilesetVisible",
+	["tf-imgov-root"] = "imgOvVisible",
+	["tf-skybox-library-root"] = "skyboxLibraryVisible",
+	["tf-env-sun-root"] = "envSunVisible",
+	["tf-env-fog-root"] = "envFogVisible",
+	["tf-env-ground-lighting-root"] = "envGroundLightingVisible",
+	["tf-env-unit-lighting-root"] = "envUnitLightingVisible",
+	["tf-env-map-root"] = "envMapVisible",
+	["tf-env-water-root"] = "envWaterVisible",
+	["tf-env-dimensions-root"] = "envDimensionsVisible",
+	["tf-splattex-root"] = "splatTexVisible",
+	["tf-grasscfg-root"] = "grassCfgVisible",
+	["tf-noise-root"] = "noiseWindowVisible",
+	["tf-light-library-root"] = "lpLibraryOpen",
+	["tf-settings-root"] = "settingsOpen",
+	["tf-project-root"] = "projectSaveOpen",
+	["tf-project-open-root"] = "projectOpenOpen",
+	["tf-capture-root"] = "captureVisible",
+	["tf-newmap-root"] = "newMapOpen",
+}
+
+-- Boxes of the windows that are up, measured once per frame beside the file
+-- menu's. Each entry is { rank, x, y, w, h } in element coords, y down.
+function widgetState.measureOverlayBoxes()
+	local boxes = widgetState.ovBoxes
+	if not boxes then
+		boxes = {}
+		widgetState.ovBoxes = boxes
+		local rank = {}
+		for index, id in ipairs(widgetState.overlayWindows) do
+			rank[id] = index
+		end
+		widgetState.overlayRank = rank
+	end
+	for index = #boxes, 1, -1 do
+		boxes[index] = nil
+	end
+	local doc = widgetState.document
+	local dm = widgetState.dmHandle
+	if not (doc and dm) then
+		return
+	end
+	for index, id in ipairs(widgetState.overlayWindows) do
+		local flag = widgetState.overlayFlags[id]
+		if flag and dm[flag] then
+			local el = doc:GetElementById(id)
+			local w = el and el.offset_width or 0
+			local h = el and el.offset_height or 0
+			if w > 0 and h > 0 then
+				boxes[#boxes + 1] = { index, el.absolute_left, el.absolute_top, w, h }
+			end
+		end
+	end
+end
+
+-- True where a tile of a grid living in `ownerId` is covered by the file menu
+-- or by a window painted above it. An unknown owner ranks 0, i.e. everything
+-- covers it, which is the safe way round for a caller that forgets to say.
+function widgetState.underOverlay(x, y, w, h, ownerId)
+	if widgetState.underFileMenu(x, y, w, h) then
+		return true
+	end
+	local boxes = widgetState.ovBoxes
+	if not boxes then
+		return false
+	end
+	local rank = (widgetState.overlayRank or {})[ownerId] or 0
+	for index = 1, #boxes do
+		local box = boxes[index]
+		if box[1] > rank and x < box[2] + box[4] and x + w > box[2] and y < box[3] + box[5] and y + h > box[3] then
+			return true
+		end
+	end
+	return false
+end
+
 function widgetState.underFileMenu(x, y, w, h)
 	local bx = widgetState.fmBoxX
 	if not bx then
@@ -2653,7 +2775,19 @@ widgetState.applyEnvConfig = function(d)
 		local sdx, sdy, sdz = d.sunDir[1] or 0, d.sunDir[2] or 0, d.sunDir[3] or 0
 		-- A config saved while gl.GetSun returned nothing carries {0,0,0}: applying
 		-- it would black out the map, so a degenerate direction is ignored.
-		if sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
+		--
+		-- (0, 0.4472, 0.8944) is ignored for a different reason: it is the ENGINE
+		-- default (MapInfo.cpp normalizes sunDir (0,1,2)), so a config carrying it
+		-- recorded the absence of a sun rather than a chosen one. Projects saved
+		-- from a canvas that never had one are full of it; applying it would put
+		-- the flat southern light back every time they are opened. Leaving it
+		-- alone keeps whatever the canvas already applied.
+		local isEngineDefault = math.abs(sdx) < 0.002
+			and math.abs(sdy - 0.4472136) < 0.002
+			and math.abs(sdz - 0.8944272) < 0.002
+		if isEngineDefault then
+			Spring.Echo("[Terraform Brush] environment carries the engine default sun; keeping the current one")
+		elseif sdx * sdx + sdy * sdy + sdz * sdz > 1e-6 then
 			-- A config without an intensity (the harvested map moods have none)
 			-- keeps the session's; only an explicit value changes it.
 			local intensity = d.sunIntensity or widgetState.envSunIntensity or 1.0
@@ -4210,13 +4344,37 @@ widgetState.projectShowDetails = function(p, save)
 	end
 end
 
--- Enter in a dialog text field. RmlUi.key_identifier is a readonly_property
--- that hands out a fresh table per access, so the id is resolved once and kept.
+-- Enter in any text field, for every field in the brush.
+--
+-- `RmlUi.key_identifier` is a FUNCTION in this engine build (the binding is a
+-- sol readonly_property returning a fresh table, which surfaces in Lua as
+-- something you call). Reading it as a table throws; the pcall swallows that,
+-- the id stays nil, the comparison below is never true, and Enter does nothing
+-- at all with nothing in the log. Older builds handed out a plain table, so try
+-- the call first and the property second, and say so rather than leaving the
+-- key quietly dead if neither shape works.
+--
+-- Resolved ONCE (the call builds a fresh table each time) and reached through
+-- upvalues only: `RmlUi` is captured at the top of this file because a listener
+-- dispatched by RmlUi has no globals, and the tool modules call this through
+-- widgetState for the same reason. false, not nil, marks a failed resolve so it
+-- is attempted once and not on every keystroke.
 widgetState.isReturnEvent = function(event)
-	if not widgetState.keyReturnId then
-		pcall(function()
-			widgetState.keyReturnId = RmlUi.key_identifier.RETURN
+	if widgetState.keyReturnId == nil then
+		local ok, ids = pcall(function()
+			local k = RmlUi and RmlUi.key_identifier
+			if type(k) == "function" then
+				return k()
+			end
+			return k
 		end)
+		widgetState.keyReturnId = (ok and type(ids) == "table" and ids.RETURN) or false
+		if not widgetState.keyReturnId then
+			Spring.Echo(
+				"[Terraform Brush] WARNING: RmlUi.key_identifier resolved to neither a call nor a table, "
+					.. "so Enter will not commit a text field (click away instead)"
+			)
+		end
 	end
 	local p = event and event.parameters
 	return (p and widgetState.keyReturnId and p.key_identifier == widgetState.keyReturnId) == true
@@ -6482,8 +6640,6 @@ local initialModel = {
 	clRotationStr = "0\194\176",
 	clHeightStr = "0",
 	-- Phase 2 step 4: environment dimensions label interpolation strings
-	envMapXStr = "--",
-	envMapZStr = "--",
 	envInitMinStr = "--",
 	envInitMaxStr = "--",
 	envCurrMinStr = "--",
@@ -6491,6 +6647,27 @@ local initialModel = {
 	envWaterPlaneStr = "--",
 	envWaterTargetStr = "Drag to move the shoreline.",
 	envDimRangeMode = "scale",
+	-- MAP TRANSFORM. The spec itself lives on widgetState (xformRot /
+	-- xformMirrorX / xformMirrorZ / xformW / xformH / xformFit / xformAnchor*);
+	-- these are what the panel shows, refreshed by envRefreshXform.
+	envXformMode = "transform",
+	envXformDir = "right",
+	envXformFill = "copy",
+	envXformCopy = "mirror",
+	envXformAnchorRow = false,
+	envXformWStr = "--",
+	envXformHStr = "--",
+	envXformCurrentStr = "--",
+	envXformCurrentElmoStr = "",
+	envXformIdle = true,
+	envXformFit = "stretch",
+	envXformAnchor = "0,0",
+	envXformFlipH = false,
+	envXformFlipV = false,
+	envXformSizeStr = "",
+	envXformAnchorStr = "",
+	envXformSummaryStr = "",
+	envXformApplyStr = "APPLY",
 	envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off.",
 	-- Phase 2 step 4: tf shared (ring/restore) label interpolation strings
 	tfRingWidthStr = "40%",
@@ -6635,6 +6812,7 @@ local initialModel = {
 	clLayerMetal = true,
 	clLayerFeatures = true,
 	clLayerSplats = true,
+	clLayerSurface = true,
 	clLayerGrass = true,
 	clLayerDecals = false,
 	clLayerWeather = false,
@@ -12217,6 +12395,192 @@ local initialModel = {
 			dm.envDimRangeDescStr = "Stretches the terrain onto the new range. Relief is kept, nothing is cut off."
 		end
 	end,
+	-- ---- MAP TRANSFORM (Dimensions window) ----
+	-- TURN & SIZE moves the map you have; EXPAND doubles the canvas one way and
+	-- either leaves the new half empty or fills it with a copy. Both end up in
+	-- the same machinery (a list of placements of one source), so the preview,
+	-- the summary and APPLY are shared.
+	onXformMode = function(_event, mode)
+		if widgetState.xformMode == mode then
+			return
+		end
+		widgetState.xformMode = mode
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformDir = function(_event, dir)
+		if widgetState.xformDir == dir then
+			return
+		end
+		widgetState.xformDir = dir
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformFill = function(_event, fill)
+		if widgetState.xformFill == fill then
+			return
+		end
+		widgetState.xformFill = fill
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformCopy = function(_event, copy)
+		if widgetState.xformCopy == copy then
+			return
+		end
+		widgetState.xformCopy = copy
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	-- The buttons speak screen space: ROTATE RIGHT turns the preview right
+	-- whatever else is already set, FLIP flips what you see. The spec
+	-- underneath composes mirror THEN rotate, so a screen-space flip is not
+	-- always the mirror of the same name (map_transform.flipScreen converts).
+	onXformRotate = function(_event, dir)
+		local step = (dir == "ccw") and -90 or 90
+		widgetState.xformRot = ((widgetState.xformRot or 0) + step) % 360
+		-- A quarter turn swaps the footprint, so swap the target canvas with
+		-- it: the map keeps its shape unless the user asks for another size.
+		local w, h = widgetState.xformW, widgetState.xformH
+		widgetState.xformW, widgetState.xformH = h, w
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformFlip = function(_event, axis)
+		---@type table?
+		local mt = WG.MapTransform
+		if not (mt and mt.math) then
+			return
+		end
+		local flipped = mt.math.flipScreen({
+			rot = widgetState.xformRot or 0,
+			mirrorX = widgetState.xformMirrorX,
+			mirrorZ = widgetState.xformMirrorZ,
+		}, axis)
+		-- Two mirrors are a half turn, which flipScreen folds into rot; the
+		-- footprint parity is unchanged by that, so the size stays as it is.
+		widgetState.xformRot = flipped.rot
+		widgetState.xformMirrorX = flipped.mirrorX
+		widgetState.xformMirrorZ = flipped.mirrorZ
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	-- Map units are the blank-map generator's own unit (512 elmos) and must be
+	-- even, so the steppers move in twos.
+	onXformSize = function(_event, which)
+		local axis = which:sub(1, 1)
+		local delta = (which:sub(2, 2) == "-") and -2 or 2
+		local key = (axis == "x") and "xformW" or "xformH"
+		local v = (widgetState[key] or 12) + delta
+		if v < 4 then
+			v = 4
+		elseif v > 32 then
+			v = 32
+		end
+		if widgetState[key] == v then
+			return
+		end
+		widgetState[key] = v
+		widgetState.xformArmedUntil = nil
+		playSound("tick")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformFit = function(_event, mode)
+		if widgetState.xformFit == mode then
+			return
+		end
+		widgetState.xformFit = mode
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformAnchor = function(_event, key)
+		local ax, az = key:match("^(-?%d+),(-?%d+)$")
+		if not (ax and az) then
+			return
+		end
+		widgetState.xformAnchorX = tonumber(ax)
+		widgetState.xformAnchorZ = tonumber(az)
+		widgetState.xformArmedUntil = nil
+		playSound("click")
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
+	onXformReset = function(_event)
+		playSound("click")
+		if widgetState.envResetXform then
+			widgetState.envResetXform()
+		end
+	end,
+	-- Two clicks: the first arms the button, the second starts a transform that
+	-- restarts the session. Same shape as the Save As overwrite guard, and
+	-- cheaper than a modal for something that is reversible by not saving.
+	onXformApply = function(_event)
+		---@type table?
+		local mt = WG.MapTransform
+		if not (mt and mt.apply) then
+			Spring.Echo("[Terraform Brush] The map transform widget is not loaded.")
+			return
+		end
+		local ok, why = mt.can()
+		if not ok then
+			Spring.Echo("[Terraform Brush] Cannot transform right now: " .. tostring(why))
+			return
+		end
+		local now = os.clock()
+		if not widgetState.xformArmedUntil or now > widgetState.xformArmedUntil then
+			widgetState.xformArmedUntil = now + 6
+			playSound("click")
+			if widgetState.envRefreshXform then
+				widgetState.envRefreshXform()
+			end
+			return
+		end
+		widgetState.xformArmedUntil = nil
+		playSound("save")
+		if widgetState.xformMode == "expand" then
+			local copy = nil
+			if widgetState.xformFill ~= "empty" then
+				copy = widgetState.xformCopy or "mirror"
+			end
+			mt.expand(widgetState.xformDir or "right", copy)
+		else
+			mt.apply({
+				rot = widgetState.xformRot or 0,
+				mirrorX = widgetState.xformMirrorX,
+				mirrorZ = widgetState.xformMirrorZ,
+				fit = widgetState.xformFit or "stretch",
+				anchorX = widgetState.xformAnchorX or 0,
+				anchorZ = widgetState.xformAnchorZ or 0,
+			}, widgetState.xformW or 12, widgetState.xformH or 12)
+		end
+		if widgetState.envRefreshXform then
+			widgetState.envRefreshXform()
+		end
+	end,
 	-- Applies the slider min/max to the whole map. RESCALE remaps the live
 	-- extremes onto the range (the thing the old clamp-only buttons could never
 	-- do: lowering the max used to just shear the mountain tops off); CLAMP is
@@ -15311,11 +15675,29 @@ local function getEffectiveMaxIntensity()
 	return DEFAULT_MAX_INTENSITY
 end
 
+-- RmlUi mouse button indices.
+local MOUSE_MIDDLE = 2
+
 local function trackSliderDrag(element, id)
 	element:AddEventListener("mousedown", function(event)
 		local ls = widgetState.lockedSliders
-		local lt = widgetState.sliderLastClickTime
-		local now = Spring.GetTimer()
+
+		-- MIDDLE CLICK toggles the wheel lock. It used to be a double LEFT
+		-- click, which fired by accident all the time: two ordinary clicks on
+		-- the same slider inside a third of a second is something you do while
+		-- adjusting a value, not a deliberate gesture (PtaQ, 2026-09-22).
+		if event.parameters.button == MOUSE_MIDDLE then
+			if ls[id] then
+				ls[id] = nil
+				element:SetClass("slider-locked", false)
+				element:SetClass("slider-pulse", false)
+			else
+				ls[id] = element
+				element:SetClass("slider-locked", true)
+				playSound("sliderLock")
+			end
+			return
+		end
 
 		-- Click-to-jump: clicking on the track (not the thumb) jumps to mouse position
 		-- and then follows the mouse until mouseup (synthetic drag).
@@ -15363,29 +15745,16 @@ local function trackSliderDrag(element, id)
 			end
 		end
 
-		-- If already locked, single click unlocks
+		-- A plain click on a locked slider still releases it: the lock steals
+		-- the wheel, so there has to be an escape that needs no second thought.
 		if ls[id] then
 			ls[id] = nil
 			element:SetClass("slider-locked", false)
 			element:SetClass("slider-pulse", false)
-			lt[id] = nil
 			uiState.draggingSlider = id
 			uiState.draggingSliderEl = element
 			return
 		end
-
-		-- Double-click detection: lock the slider
-		if lt[id] then
-			local dt = Spring.DiffTimers(now, lt[id])
-			if dt < 0.35 then
-				ls[id] = element
-				element:SetClass("slider-locked", true)
-				lt[id] = nil
-				playSound("sliderLock")
-				return
-			end
-		end
-		lt[id] = now
 
 		-- Normal drag behavior
 		uiState.draggingSlider = id
@@ -16146,6 +16515,8 @@ populateKeybindList = function(doc)
 	parts[#parts + 1] = '<div class="tf-keybind-separator"><div class="tf-keybind-sep-line"></div>'
 		.. '<div class="tf-keybind-sep-label">System Keys</div>'
 		.. '<div class="tf-keybind-sep-line"></div></div>'
+	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Lock a slider to the mouse wheel</div>'
+		.. '<div class="tf-keybind-key-fixed">MMB</div></div>'
 	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Clear locked sliders</div>'
 		.. '<div class="tf-keybind-key-fixed">ESC</div></div>'
 
@@ -16342,9 +16713,8 @@ end
 -- The numbox shows the raw slider value; typing a number and pressing Enter or
 -- clicking away updates the slider (and triggers its existing change handlers).
 
--- Resolve the RETURN key identifier lazily (RmlUi.key_identifier is a
--- readonly_property that creates a fresh table each access).
-local KEY_RETURN -- resolved on first keydown event
+-- The RETURN id is resolved once by widgetState.isReturnEvent (see there for
+-- why it must be called and why it may not be reached as a global here).
 
 -- Wire a single slider+numbox pair by slider element and its numbox element.
 local function wireSliderNumbox(slider, numbox)
@@ -16397,13 +16767,7 @@ local function wireSliderNumbox(slider, numbox)
 
 	-- Apply on Enter key
 	numbox:AddEventListener("keydown", function(event)
-		if not KEY_RETURN then
-			pcall(function()
-				KEY_RETURN = RmlUi.key_identifier.RETURN
-			end)
-		end
-		local p = event.parameters
-		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
+		if widgetState.isReturnEvent(event) then
 			applyNumboxValue()
 			numbox:Blur()
 		end
@@ -16452,13 +16816,7 @@ local function wireExportRangeInput(inputEl, commitFn)
 		event:StopPropagation()
 	end, false)
 	inputEl:AddEventListener("keydown", function(event)
-		if not KEY_RETURN then
-			pcall(function()
-				KEY_RETURN = RmlUi.key_identifier.RETURN
-			end)
-		end
-		local p = event.parameters
-		if p and KEY_RETURN and p.key_identifier == KEY_RETURN then
+		if widgetState.isReturnEvent(event) then
 			commitFn()
 			inputEl:Blur()
 		end
@@ -17954,6 +18312,10 @@ local function attachEventListeners()
 				end
 				local mx, my = GetMouseState()
 				local vsx, vsy = GetViewGeometry()
+				-- Clamp to the WINDOW, not the world view, like the shared helper: in
+				-- dual-screen mode the window is two monitors wide and a view-width
+				-- clamp snaps the panel off the free screen and refuses the way back.
+				local winX = Spring.GetWindowGeometry()
 				ds.active = true
 				ds.rootEl = rootEl
 				ds.rootId = rootId
@@ -17961,7 +18323,7 @@ local function attachEventListeners()
 				ds.offsetY = (vsx > 0 and vsy > 0) and ((vsy - my) - rootEl.offset_top) or 0
 				ds.ew = rootEl.offset_width
 				ds.eh = rootEl.offset_height
-				ds.vsx = vsx
+				ds.vsx = (winX and winX > vsx) and winX or vsx
 				ds.vsy = vsy
 				ds.lastX = -1
 				ds.lastY = -1
@@ -17999,6 +18361,7 @@ local function attachEventListeners()
 		-- End drag on any mouseup in the document
 		doc:AddEventListener("mouseup", function(event)
 			if ds.active then
+				local moved = ds.rootEl
 				widgetState.saveWindowPosition(ds.rootId, ds.rootEl, ds.vsx, ds.vsy)
 				if ds.rootEl == widgetState.rootElement then
 					local vsx, vsy = ds.vsx, ds.vsy
@@ -18013,6 +18376,10 @@ local function attachEventListeners()
 				ds.snapRects = nil
 				-- The window moved, so the room left below it changed.
 				widgetState.refreshPanelBodies()
+				-- Dual-screen: a drop on the other screen takes that screen's scale.
+				if WG.TerraformerShared and WG.TerraformerShared.applyScreenScale then
+					WG.TerraformerShared.applyScreenScale(moved)
+				end
 			end
 		end, false)
 
@@ -18310,6 +18677,37 @@ function widget:Initialize()
 						Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
 					end
 				end
+			end
+		end
+	end
+
+	-- Every OTHER way onto a blank canvas - the Chobby launcher, a map transform
+	-- restart, a /luaui reload, a project whose environment section carries no
+	-- sun - used to leave the ENGINE default lighting. rts/Map/MapInfo.cpp
+	-- defaults sunDir to (0,1,2), which normalizes to (0, 0.4472, 0.8944): a
+	-- flat light from due south that reads as "the sun reset itself", and which
+	-- the first FILE > Save then records into the project for good. Twelve of
+	-- the projects on this disk carry exactly that vector. Only New Map applied
+	-- the canonical sun, and only when it had written a pending preset, so the
+	-- launcher path never got one.
+	--
+	-- The engine default means "this map declares no sun", never a choice
+	-- somebody made, so a canvas still sitting on it gets the editor sun on the
+	-- same countdown a mood would use. A project load applies its own
+	-- environment later and wins.
+	if not widgetState._pendingEnvApply and _isGeneratedBlankMap() then
+		local sunX, sunY, sunZ = gl.GetSun("pos")
+		if
+			sunX
+			and math.abs(sunX) < 0.002
+			and math.abs((sunY or 0) - 0.4472136) < 0.002
+			and math.abs((sunZ or 0) - 0.8944272) < 0.002
+		then
+			local envDef = widgetState.newMapDefaultEnv()
+			if envDef then
+				widgetState._pendingEnvApply = envDef
+				widgetState._pendingEnvCountdown = 15
+				Spring.Echo("[Terraform Brush] canvas had the engine default sun; applying the editor sun")
 			end
 		end
 	end
@@ -18684,7 +19082,7 @@ local function drawSkyboxThumbnailPreviews()
 				local y = el.absolute_top
 				local w = el.offset_width
 				local h = el.offset_height
-				if w > 4 and h > 4 and not widgetState.underFileMenu(x, y, w, h) then
+				if w > 4 and h > 4 and not widgetState.underOverlay(x, y, w, h, "tf-skybox-library-root") then
 					local glY1 = vsy - y - h
 					local glY2 = vsy - y
 					-- gl.Texture returns true on success; cubemap DDS loads as TEXTURE_CUBE_MAP
@@ -18769,7 +19167,7 @@ local function drawSurfPaletteThumbs()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					-- centered crop: a full 4K tile at 52dp reads as noise, so a
 					-- quarter-window shows the material's actual character.
 					-- Entries may widen it (the picker's hover preview is big
@@ -18834,7 +19232,7 @@ widgetState.drawTs4PaletteThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					-- centered quarter-window crop, like the surf tiles: a full
 					-- 4K tile at 52dp reads as noise
 					gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -18887,7 +19285,7 @@ widgetState.drawTsBiomeThumbs = function()
 			if w > 0 and h > 0 then
 				local x = div.absolute_left
 				local y = div.absolute_top
-				if not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex) then
+				if not widgetState.underOverlay(x, y, w, h, "tf-env-tileset-root") and gl.Texture(0, tex) then
 					if els[i].crop then
 						-- a 4K albedo at 60dp reads as noise: centered quarter crop
 						gl.TexRect(x, vsy - y - h, x + w, vsy - y, 0.25, 0.25, 0.75, 0.75)
@@ -19003,6 +19401,7 @@ function widget:DrawScreenPost()
 
 	-- FILE dropdown box, read once for every pass below to skip tiles under it.
 	widgetState.measureFileMenuBox()
+	widgetState.measureOverlayBoxes()
 
 	-- GL-rendered cubemap previews for skybox tiles without a separate preview image.
 	drawSkyboxThumbnailPreviews()
@@ -19483,7 +19882,7 @@ function widget:DrawScreenPost()
 					gl.UniformInt(widgetState.spPreviewShaderChannelLoc, i - 1)
 				end
 
-				local bound = not widgetState.underFileMenu(x, y, w, h) and gl.Texture(0, tex)
+				local bound = not widgetState.underOverlay(x, y, w, h, "tf-root") and gl.Texture(0, tex)
 
 				if logDraw then
 					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
@@ -20192,7 +20591,6 @@ function widget:Update()
 					element:SetClass("slider-pulse", false)
 				end
 				widgetState.lockedSliders = {}
-				widgetState.sliderLastClickTime = {}
 			end
 			-- Clear flash state and prev-sync tracking
 			for id, flash in pairs(widgetState.sliderFlashes) do
@@ -20354,6 +20752,12 @@ function widget:Update()
 						if widgetState.envFillDimRangeInputs then
 							widgetState.envFillDimRangeInputs()
 						end
+						-- MAP TRANSFORM starts from the map you have: no turn, no
+						-- flip, the current size. Anything else would be a transform
+						-- nobody asked for sitting armed in the panel.
+						if widgetState.envResetXform then
+							widgetState.envResetXform()
+						end
 					elseif not widgetState.envDimensionsOpen then
 						widgetState.envDimWasOpen = false
 					end
@@ -20376,6 +20780,12 @@ function widget:Update()
 						if widgetState.envDimTick >= 10 and widgetState.envRefreshDimExtremes then
 							widgetState.envDimTick = 0
 							widgetState.envRefreshDimExtremes()
+							-- Same tick drives the MAP TRANSFORM button: the armed
+							-- state times out and a running transform reports its
+							-- step there.
+							if widgetState.envDimensionsOpen and widgetState.envRefreshXform then
+								widgetState.envRefreshXform()
+							end
 						end
 						-- Reseed after an apply, once the sim has moved the terrain the
 						-- slider's bounds were measured against.
@@ -22312,6 +22722,13 @@ function widget:AllowQuit()
 	return true
 end
 
+-- RmlUi gets first refusal on every key: GameInputReceiver::KeyPressed returns
+-- as soon as RmlGui::ProcessKeyPressed consumes one, before LuaUI is asked at
+-- all. So a focused text field swallows its keys and this call-in never sees
+-- them: Enter inside a field CANNOT be handled here, it needs an RmlUi keydown
+-- listener (widgetState.isReturnEvent). The call-in still fires with a field
+-- focused, just not for the keys that field took, which is why the
+-- focusedRmlInput guards below are about ownership rather than delivery.
 function widget:KeyPress(key, mods, isRepeat)
 	-- QUIT GUARD popup: Esc cancels, Enter saves first; nothing else gets
 	-- through while it is up.
@@ -22458,7 +22875,6 @@ function widget:KeyPress(key, mods, isRepeat)
 				element:SetClass("slider-pulse", false)
 			end
 			widgetState.lockedSliders = {}
-			widgetState.sliderLastClickTime = {}
 			return true
 		end
 	end

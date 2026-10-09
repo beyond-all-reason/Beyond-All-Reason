@@ -310,8 +310,8 @@ local function makeSpotVBO()
 	return spotVBO, n / 4
 end
 
-local function cleanupGL4()
-	if spotShader then
+local function cleanupGL4(keepShader)
+	if spotShader and not keepShader then
 		spotShader:Finalize()
 		spotShader = nil
 	end
@@ -331,17 +331,18 @@ local function cleanupGL4()
 end
 
 local function initGL4()
-	cleanupGL4()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	spotShader = LuaShader({
-		vertex = vsSrc,
-		fragment = fsSrc,
-	}, "geoSpotShader GL4")
-	shaderCompiled = spotShader:Initialize()
-	if not shaderCompiled then
-		goodbye("Failed to compile spotShader GL4 ")
+	cleanupGL4(true) -- a spot rebuild only needs new buffers, the shader does not depend on the spots
+	if not spotShader then
+		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		spotShader = LuaShader({
+			vertex = vsSrc,
+			fragment = fsSrc,
+		}, "geoSpotShader GL4")
+		if not spotShader:Initialize() then
+			goodbye("Failed to compile spotShader GL4 ")
+		end
 	end
 	local spotVBO, numVertices = makeSpotVBO()
 	local spotInstanceVBOLayout = {

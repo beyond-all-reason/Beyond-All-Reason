@@ -45,7 +45,7 @@ return {
 				footprintz = 3,
 				height = 40,
 				metal = 240,
-				object = "Units/corfrt_dead.s3o",
+				object = "Units/corfrock_dead.s3o",
 				reclaimable = true,
 			},
 		},

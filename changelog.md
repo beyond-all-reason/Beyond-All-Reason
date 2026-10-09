@@ -4,6 +4,7 @@
 - [Cortex Gantry] 8400m -> 8000m cost
 - [Vertical launcher weapons]
   - Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.
+  - Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.
   - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
   - Individual unit changes:
     - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
@@ -18,10 +19,20 @@
   - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
   - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
   - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
+  - Pilum 1850m -> 1500m, 42000e -> 65000e, 46430 -> 66430 buildtime
+    - Railgun works like other railguns, no longer deals area damage
+    - Piledriver is a weak disintegrator: same effective DPS, edgeeffectiveness 0.8 -> 0.15
+  - Unit damage is much more visible. Wrecks show less team color and are darker.
+  - Argonaut can aim downward again
+  - Railguns never skip a collision, before they sometimes could.
+  - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
+  - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
 - [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
 - [Dominion] The game mode Territorial Domination has been renamed to Dominion.
 - [Fixed]
+  - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
+  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

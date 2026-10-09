@@ -759,6 +759,18 @@ function widget:Shutdown()
 		Spring.LoadCmdColorsConfig("unitBox  0 1 0 1")
 	end
 	WG.selectedunits = nil
+	if type(selectShader) == "table" then
+		selectShader:Finalize()
+		selectShader = nil
+	end
+	if type(unbuiltShader) == "table" then
+		unbuiltShader:Finalize()
+		unbuiltShader = nil
+	end
+	if type(waterShader) == "table" then
+		waterShader:Finalize()
+		waterShader = nil
+	end
 end
 
 function widget:GetConfigData(data)
