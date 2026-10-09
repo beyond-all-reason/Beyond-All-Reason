@@ -65,9 +65,14 @@ local glRawBindFBO = gl.RawBindFBO
 -- Configuration Constants
 -----------------------------------------------------------------
 
+-- With the unit stencil, draw the passes only on the screen tiles it covers (same output, false = full-screen quads)
+local stencilTileCulling = true
+local TILE_PX = 32 -- the tile size in screen pixels
+
 local shaderConfig = {
 	DEPTH_CLIP01 = tostring((Platform.glSupportClipSpaceControl and 1) or 0), -- no idea
 	MERGE_MISC = 0, -- for future material indices based SSAO evaluation, completely disabled now
+	BLUR_COMPOSITE = 0, -- 1 only in the vertical blur variant that draws onto the screen at DOWNSAMPLE 1
 }
 
 local definesSlidersParamsList = {
@@ -382,11 +387,18 @@ local gaussianBlurShaderCache
 local texrectShader = nil
 local ssaoCompositeShader = nil -- final composite (depth-rejects grass/decals via gl_FragDepth + LEQUAL)
 local ssaoCompositeShaderCache
+-- DOWNSAMPLE 1: vertical blur + composite in one pass
+local blurCompositeShader = nil ---@type table?
+local blurCompositeShaderCache
 local texrectFullVAO = nil
 local texrectPaddedVAO = nil
+local texrectGLObjects = {} -- the quad VAOs and their buffers, deleted together
 
 local unitStencilTexture
 local getStencilTexture
+local tiledPasses = false -- the SSAO and blur passes too, not only the composite (at DOWNSAMPLE 1)
+local tileVAO ---@type VAO?
+local numTiles = 0
 
 -----------------------------------------------------------------
 -- Local Functions
@@ -517,6 +529,75 @@ local function GetSamplingVectorArray(kernelSize)
 	end
 end
 
+-- A full-screen quad; with index and instance buffers attached too, engines without the LuaVAO
+-- keep-partial fix (RecoilEngine #3446) keep the VAO instead of rebuilding it every draw
+local function MakeQuadVAO(maxU, maxV)
+	local vao = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0, 0, maxU, maxV)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	local instanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if vao and indexVBO and instanceVBO then
+		indexVBO:Define(3)
+		indexVBO:Upload({ 0, 1, 2 })
+		instanceVBO:Define(1, { { id = 1, name = "unused", size = 1 } })
+		instanceVBO:Upload({ 0 })
+		vao:AttachIndexBuffer(indexVBO)
+		vao:AttachInstanceBuffer(instanceVBO)
+		texrectGLObjects[#texrectGLObjects + 1] = indexVBO
+		texrectGLObjects[#texrectGLObjects + 1] = instanceVBO
+	end
+	texrectGLObjects[#texrectGLObjects + 1] = vao
+	return vao
+end
+
+-- A unit quad drawn once per screen tile, the tile as instance data; the vertex shader collapses uncovered tiles
+---@param tilesX integer
+---@param tilesY integer
+local function MakeTileVAO(tilesX, tilesY)
+	local cornerVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	local tileVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	local vao = gl.GetVAO()
+	if not (cornerVBO and tileVBO and indexVBO and vao) then
+		return nil, 0
+	end
+	local tiles = {}
+	for y = 0, tilesY - 1 do
+		for x = 0, tilesX - 1 do
+			tiles[#tiles + 1] = x
+			tiles[#tiles + 1] = y
+		end
+	end
+	cornerVBO:Define(4, { { id = 0, name = "corner", size = 2 } })
+	cornerVBO:Upload({ 0, 0, 1, 0, 0, 1, 1, 1 })
+	tileVBO:Define(tilesX * tilesY, { { id = 1, name = "tile", size = 2 } })
+	tileVBO:Upload(tiles)
+	indexVBO:Define(6)
+	indexVBO:Upload({ 0, 1, 2, 2, 1, 3 })
+	vao:AttachVertexBuffer(cornerVBO)
+	vao:AttachInstanceBuffer(tileVBO)
+	vao:AttachIndexBuffer(indexVBO)
+	for _, object in ipairs({ cornerVBO, tileVBO, indexVBO, vao }) do
+		texrectGLObjects[#texrectGLObjects + 1] = object
+	end
+	return vao, tilesX * tilesY
+end
+
+-- A pass on the covered stencil tiles, or as the full-screen quad it would use otherwise
+local function DrawPass(quadVAO, tiled)
+	if tiled and tileVAO then
+		tileVAO:DrawElements(GL_TRIANGLES, 6, 0, numTiles)
+	else
+		quadVAO:DrawArrays(GL_TRIANGLES)
+	end
+end
+
+-- shared by the blur programs (the separate passes and the DOWNSAMPLE 1 composite)
+local function SetBlurUniforms(shader, weights, offsets, strength)
+	shader:SetUniformFloatArrayAlways("weights", weights)
+	shader:SetUniformFloatArrayAlways("offsets", offsets)
+	shader:SetUniformFloatAlways("strengthMult", strength)
+end
+
 -----------------------------------------------------------------
 -- Widget Functions
 -----------------------------------------------------------------
@@ -618,6 +699,29 @@ local function InitGL()
 		shaderConfig.USE_STENCIL = unitStencilTexture and 1 or 0
 	end
 
+	-- Outside the stencil the passes discard and the composite skips no-ops, so they can be drawn on the screen tiles
+	-- the stencil covers only; not with the debug outputs, nor with the fuse pass (it writes outside the stencil)
+	local tiles = stencilTileCulling
+		and shaderConfig.USE_STENCIL == 1
+		and shaderConfig.NOFUSE == 1
+		and shaderConfig.DEBUG_SSAO == 0
+		and shaderConfig.DEBUG_BLUR == 0
+	-- The passes into the DOWNSAMPLE targets only at full res: at half res they cost little outside the stencil,
+	-- less than the extra work along the diagonals of the small tiles
+	tiledPasses = tiles and shaderConfig.DOWNSAMPLE == 1
+	local stencilApi = WG.unitstencilapi
+	shaderConfig.TILE_PX = TILE_PX
+	shaderConfig.TILE_TEXELS = mathCeil(TILE_PX / (stencilApi and stencilApi.resolution or 4))
+	shaderConfig.TILE_CULL = tiledPasses and 1 or nil
+	local compositeConfig = shaderConfig
+	if tiles and not tiledPasses then
+		compositeConfig = {} ---@type table<string, any>
+		for k, v in pairs(shaderConfig) do
+			compositeConfig[k] = v
+		end
+		compositeConfig.TILE_CULL = 1
+	end
+
 	gbuffFuseShaderCache = {
 		vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
 		fssrcpath = shadersDir .. "gbuffFuse.frag.glsl",
@@ -691,11 +795,36 @@ local function InitGL()
 
 	strengthMultCached = shaderConfig.SSAO_ALPHA_POW / 7.0
 
-	gaussianBlurShader:ActivateWith(function()
-		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
-		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
-		gaussianBlurShader:SetUniformFloatAlways("strengthMult", strengthMultCached)
-	end)
+	gaussianBlurShader:ActivateWith(SetBlurUniforms, gaussianBlurShader, gaussWeights, gaussOffsets, strengthMultCached)
+
+	-- At full resolution the vertical blur draws straight onto the screen, which saves a pass
+	if shaderConfig.DOWNSAMPLE == 1 then
+		local blurCompositeConfig = {} ---@type table<string, any>
+		for k, v in pairs(shaderConfig) do
+			blurCompositeConfig[k] = v
+		end
+		blurCompositeConfig.BLUR_COMPOSITE = 1
+		blurCompositeShaderCache = {
+			vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
+			fssrcpath = shadersDir .. "gaussianBlur.frag.glsl",
+			uniformInt = {
+				tex = 0,
+				modelDepthTex = 1,
+				mapDepthTex = 4,
+				unitStencilTex = 7,
+			},
+			uniformFloat = {
+				dir = { 0, 1 }, -- vertical, never changes
+				strengthMult = 1,
+			},
+			silent = true, -- suppress compilation messages
+			shaderConfig = blurCompositeConfig,
+			shaderName = widgetName .. ": blur composite",
+		}
+		local shader = LuaShader.CheckShaderUpdates(blurCompositeShaderCache)
+		shader:ActivateWith(SetBlurUniforms, shader, gaussWeights, gaussOffsets, strengthMultCached)
+		blurCompositeShader = shader
+	end
 
 	texrectShader = LuaShader.CheckShaderUpdates({
 		vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
@@ -724,24 +853,24 @@ local function InitGL()
 			modelDepthTex = 1,
 			mapDepthTex = 4,
 			viewPosTex = 5,
+			unitStencilTex = 7,
 		},
 		uniformFloat = {},
 		silent = true,
-		shaderConfig = shaderConfig,
+		shaderConfig = compositeConfig,
 		shaderName = widgetName .. ": SSAO composite",
 	}
 	ssaoCompositeShader = LuaShader.CheckShaderUpdates(ssaoCompositeShaderCache)
 
-	texrectFullVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0, 0, 1, 1)
+	tileVAO, numTiles = nil, 0
+	if tiles then
+		tileVAO, numTiles = MakeTileVAO(mathCeil(vsx / TILE_PX), mathCeil(vsy / TILE_PX))
+	end
+
+	texrectFullVAO = MakeQuadVAO(1, 1)
 
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-	texrectPaddedVAO = InstanceVBOTable.MakeTexRectVAO(
-		-1,
-		-1,
-		1,
-		1,
-		0.0,
-		0.0,
+	texrectPaddedVAO = MakeQuadVAO(
 		1.0 - shaderConfig.TEXPADDINGX / shaderConfig.VSX,
 		1.0 - shaderConfig.TEXPADDINGY / shaderConfig.VSY
 	)
@@ -768,9 +897,22 @@ local function CleanGL()
 		ssaoCompositeShader:Finalize()
 		ssaoCompositeShader = nil
 	end
+	if blurCompositeShader then
+		blurCompositeShader:Finalize()
+		blurCompositeShader = nil
+	end
+
+	for i = 1, #texrectGLObjects do
+		texrectGLObjects[i]:Delete()
+	end
+	texrectGLObjects = {}
 end
 
 function widget:ViewResize()
+	local sizeX, sizeY = spGetViewGeometry()
+	if sizeX == vsx and sizeY == vsy then
+		return -- the handler's first ViewResize after load repeats the size InitGL built for
+	end
 	CleanGL()
 	InitGL()
 end
@@ -850,6 +992,8 @@ local function DoDrawSSAO()
 		unitStencilTexture = getStencilTexture()
 		glTexture(7, unitStencilTexture)
 	end
+	-- the passes discard pixels outside the stencil, so their targets are cleared to what those would output
+	local clearTargets = shaderConfig.USE_STENCIL == 1 ---@type boolean
 
 	local noFuse = shaderConfig.NOFUSE
 	local prevFBO
@@ -871,7 +1015,9 @@ local function DoDrawSSAO()
 	end
 
 	-- SSAO sampling pass (now in ssaoFBO)
-	glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	if clearTargets then
+		glClear(GL_COLOR_BUFFER_BIT, 1, 0, 1, 1)
+	end
 	ssaoShader:Activate()
 	if noFuse > 0 then
 		glTexture(1, "$model_gbuffer_zvaltex")
@@ -880,7 +1026,7 @@ local function DoDrawSSAO()
 		glTexture(5, gbuffFuseViewPosTex)
 	end
 	glTexture(0, "$model_gbuffer_normtex")
-	texrectFullVAO:DrawArrays(GL_TRIANGLES)
+	DrawPass(texrectFullVAO, tiledPasses)
 	ssaoShader:Deactivate()
 
 	-- Only unbind texture slots that were actually bound
@@ -891,20 +1037,31 @@ local function DoDrawSSAO()
 		glTexture(5, false)
 	end
 
+	-- At DOWNSAMPLE 1 the vertical blur is the composite pass
+	local compositeShader = ssaoCompositeShader
 	if shaderConfig.DEBUG_SSAO == 0 then
 		-- Blur passes: chain FBOs (ssaoFBO -> ssaoBlurFBO -> ssaoFBO -> screen)
 		glTexture(0, ssaoTex) -- swap slot 0 from normtex to SSAO result
 		gaussianBlurShader:Activate()
 		gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
 		glRawBindFBO(ssaoBlurFBO) -- chain from ssaoFBO (reads ssaoTex, safe: ssaoFBO not bound)
-		texrectFullVAO:DrawArrays(GL_TRIANGLES)
+		if clearTargets then
+			glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 1)
+		end
+		DrawPass(texrectFullVAO, tiledPasses)
 
 		glTexture(0, ssaoBlurTex)
-		gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
-		glRawBindFBO(ssaoFBO) -- chain from ssaoBlurFBO (reads ssaoBlurTex, safe: ssaoBlurFBO not bound)
-		texrectFullVAO:DrawArrays(GL_TRIANGLES)
-
-		glTexture(0, ssaoTex)
+		if blurCompositeShader then
+			compositeShader = blurCompositeShader
+		else
+			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
+			glRawBindFBO(ssaoFBO) -- chain from ssaoBlurFBO (reads ssaoBlurTex, safe: ssaoBlurFBO not bound)
+			if clearTargets then
+				glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 1)
+			end
+			DrawPass(texrectFullVAO, tiledPasses)
+			glTexture(0, ssaoTex)
+		end
 		gaussianBlurShader:Deactivate()
 
 		if shaderConfig.DEBUG_BLUR == 1 then
@@ -942,9 +1099,9 @@ local function DoDrawSSAO()
 	glDepthTest(GL.LEQUAL)
 	glDepthMask(false)
 
-	ssaoCompositeShader:Activate()
-	texrectPaddedVAO:DrawArrays(GL_TRIANGLES)
-	ssaoCompositeShader:Deactivate()
+	compositeShader:Activate()
+	DrawPass(texrectPaddedVAO, true)
+	compositeShader:Deactivate()
 
 	-- Restore default depth function but keep depth writes OFF: the upcoming
 	-- DrawWorldParticles pass renders translucent geometry that must not

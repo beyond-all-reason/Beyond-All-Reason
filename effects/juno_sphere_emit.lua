@@ -15,7 +15,7 @@ return {
 				emitVector = [[0, 1, 0]],
 				gravity = [[0,0.1,0]],
 				colorMap = [[0.1 0.1 0.1 0.0001   0.4 0.4 0.4 0.4   0.4 0.2 0.2 0.5	  0.4 0.0 0.0 0.4 	0.0 0.0 0.0 0.001]],
-				texture = [[nanobeam-resurrect]],
+				texture = [[glow]],
 				particleLife = 30,
 				particleLifeSpread = 20,
 				numParticles = 1,

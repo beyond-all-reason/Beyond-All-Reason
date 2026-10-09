@@ -700,6 +700,14 @@ function widget:Shutdown()
 	for unitID, drawn in pairs(selectedUnits) do
 		removeUnit(unitID)
 	end
+	if type(selectShader) == "table" then
+		selectShader:Finalize()
+		selectShader = nil
+	end
+	if type(waterShader) == "table" then
+		waterShader:Finalize()
+		waterShader = nil
+	end
 end
 
 local drawFrame = 0

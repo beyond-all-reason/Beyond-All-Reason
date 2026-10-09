@@ -1,6 +1,9 @@
--- Intel GPU compatibility: Use a simplified shader path
--- The complex derivative-based quad message passing doesn't work reliably on Intel GPUs
+-- Intel GPUs: their plain dFdx/dFdy are coarse (seen on Arc 140V), which breaks the quad message passing
 local isIntelGPU = Platform ~= nil and Platform.gpuVendor == "Intel"
+-- Intel: use the main 4-tap blur with fine derivatives (needs GL_ARB_derivative_control), else a 9-tap one
+local intelQuadBlur = true ---@type boolean
+-- Intel 9-tap blur: divide by its weight sum (16), 17 leaves each pass ~5.5% darker and slightly see-through
+local intelNormalizedBlur = true ---@type boolean
 
 local widget = widget ---@type Widget
 
@@ -171,7 +174,7 @@ vec2 quadGetQuadVector(vec2 screenCoords){
 void main(void)
 {
 #ifdef INTEL_GPU
-	// Intel GPUs: simple box blur with weighted distribution, avoids the derivative functions (dFdx/dFdy)
+	// Intel without fine derivatives: a 9-tap weighted blur that needs no dFdx/dFdy
 	float stencil = texture(tex2, texCoord).a;
 	if (stencil < 0.01)
 	{
@@ -201,7 +204,11 @@ void main(void)
 	sum += texture(tex0, texCoord + vec2(offset.x, -offset.y));
 	sum += texture(tex0, texCoord + vec2(-offset.x, offset.y));
 
+#ifdef INTEL_NORMALIZED
+	vec4 blurred = sum / 16.0;
+#else
 	vec4 blurred = sum / 17.0;
+#endif
 #else
 	// pixel quad message passing: 4 lookups per pixel and the quad shares them through the derivatives,
 	// so every pixel of a quad samples before the region test
@@ -544,10 +551,10 @@ local function CheckHardware()
 	return true
 end
 
-local function CreateShaders()
+local function CreateBlurShader(header)
 	local shader = LuaShader({
 		vertex = tileVertexShader,
-		fragment = "#version 330\n" .. (isIntelGPU and "#define INTEL_GPU\n" or "") .. blurFragmentShader,
+		fragment = header .. blurFragmentShader,
 
 		uniformInt = {
 			tex0 = 0,
@@ -562,8 +569,24 @@ local function CreateShaders()
 			tileSize = TILE_SIZE,
 		},
 	}, "guishader blurShader")
+	return shader:Initialize() and shader or nil
+end
 
-	if not shader:Initialize() then
+local function CreateShaders()
+	local shader
+	if isIntelGPU and intelQuadBlur and gl.HasExtension("GL_ARB_derivative_control") then
+		-- coarse derivatives give a quad's second row the first row's differences
+		local fineDerivatives = "#define dFdx dFdxFine\n#define dFdy dFdyFine\n"
+		shader = CreateBlurShader("#version 400\n#extension GL_ARB_derivative_control : require\n" .. fineDerivatives)
+	end
+	if not shader then
+		local header = "#version 330\n"
+		if isIntelGPU then
+			header = header .. "#define INTEL_GPU\n" .. (intelNormalizedBlur and "#define INTEL_NORMALIZED\n" or "")
+		end
+		shader = CreateBlurShader(header)
+	end
+	if not shader then
 		Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: " .. gl.GetShaderLog())
 		widgetHandler:RemoveWidget()
 		return false

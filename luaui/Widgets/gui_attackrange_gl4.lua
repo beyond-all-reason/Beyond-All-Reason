@@ -1223,6 +1223,10 @@ function widget:Shutdown()
 		compositeShader:Finalize()
 		compositeShader = nil
 	end
+	if type(attackRangeShader) == "table" then
+		attackRangeShader:Finalize()
+		attackRangeShader = nil
+	end
 end
 
 local gameFrame = 0

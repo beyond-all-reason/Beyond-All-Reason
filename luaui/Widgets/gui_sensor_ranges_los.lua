@@ -96,6 +96,7 @@ local circleShaderSourceCache = {
 
 local stencilShaderSourceCache = table.copy(circleShaderSourceCache) -- copy the circle shader source cache, and modify it for stencil pass
 stencilShaderSourceCache.shaderConfig.STENCILPASS = 1 -- this is a stencil pass
+stencilShaderSourceCache.shaderName = "LOS Ranges Stencil GL4"
 
 local function goodbye(reason)
 	spEcho("Sensor Ranges LOS widget exiting with reason: " .. reason)
@@ -103,8 +104,19 @@ local function goodbye(reason)
 	return false
 end
 
+local builtVsx, builtVsy = -1, -1 -- view size the stencil shaders (VSX/VSY defines) and texture were made for
+
+local function finalizeShader(shader)
+	if shader then
+		shader:Finalize()
+	end
+end
+
 local function CreateStencilShaderAndTexture()
 	vsx, vsy = spGetViewGeometry()
+	if vsx == builtVsx and vsy == builtVsy then
+		return -- e.g. the handler's first ViewResize after load, at the size Initialize built for
+	end
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -112,6 +124,7 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
+	local oldStencilShader, oldCircleShader = losStencilShader, losCircleShader
 	losStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0)
 
 	if not losStencilShader then
@@ -121,6 +134,8 @@ local function CreateStencilShaderAndTexture()
 	if not losCircleShader then
 		return goodbye("Failed to compile losrange shader GL4 ")
 	end
+	finalizeShader(oldStencilShader)
+	finalizeShader(oldCircleShader)
 
 	local GL_R8 = 0x8229
 	vsx, vsy = spGetViewGeometry()
@@ -137,6 +152,7 @@ local function CreateStencilShaderAndTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
+	builtVsx, builtVsy = vsx, vsy
 end
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
@@ -279,6 +295,8 @@ function widget:Shutdown()
 	if losStencilTexture then
 		gl.DeleteTexture(losStencilTexture)
 	end
+	finalizeShader(losStencilShader)
+	finalizeShader(losCircleShader)
 	WG.losrange = nil
 end
 

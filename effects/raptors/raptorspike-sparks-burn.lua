@@ -205,7 +205,7 @@ return {
 				size = 1.5,
 				sizegrowth = 6.5,
 				speed = [[0, 0, 0]],
-				texture = [[flare-raptors]],
+				texture = [[flare]],
 			},
 		},
 		centerflare2 = {

@@ -2242,6 +2242,10 @@ function widget:RecvLuaMsg(msg, playerID)
 			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 		end
 	elseif sfind(msg, "gui_chat:chataction:", 1, true) == 1 then
+		-- Every client's handler broadcasts the same list, so only our own copy is used.
+		if playerID ~= Spring.GetMyPlayerID() then
+			return
+		end
 		local source, mode, cmd = ssub(msg, 21):match("^([^:]+):([^:]+):?(.*)$")
 		if source and mode then
 			if mode == "snapshot" then

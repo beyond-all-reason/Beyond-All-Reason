@@ -47,6 +47,16 @@ local function makeInstanceVBOTable(layout, maxElements, myName, objectTypeAttri
 		instanceTable.indextoObjectType = {} -- ["unitID"|"unitDefID"|"featureID"|"featureDefID"]
 		instanceTable.objectTypeAttribID = objectTypeAttribID
 		instanceTable.objecttype = objecttype
+		if objecttype == "unitDefID" or objecttype == "featureDefID" then
+			-- state of the deferred def table functions (pushDefElement and friends)
+			instanceTable.submittedElements = 0 -- elements 1..n are in the VAO submission
+			instanceTable.pendingDefs = {} -- defIDs of elements submittedElements+1..usedElements
+			instanceTable.dirtyElements = {}
+			instanceTable.dirtyMarks = {}
+			instanceTable.numDirty = 0
+			instanceTable.dirtyLo = math.huge
+			instanceTable.dirtyHi = 0
+		end
 	end
 	--Spring.Echo(myName,": VBO upload of #elements:",#instanceData)
 	newInstanceVBO:Upload(instanceData)
@@ -82,6 +92,15 @@ local function clearInstanceTable(iT)
 	end
 	if iT.VAO then
 		iT.VAO:ClearSubmission()
+	end
+	if iT.pendingDefs then
+		iT.submittedElements = 0
+		iT.pendingDefs = {}
+		iT.dirtyElements = {}
+		iT.dirtyMarks = {}
+		iT.numDirty = 0
+		iT.dirtyLo = math.huge
+		iT.dirtyHi = 0
 	end
 end
 
@@ -650,6 +669,207 @@ local function uploadAllElements(iT)
 	end
 end
 
+--------------- DEFERRED DEF TABLES --------------------------
+-- For unitDefID/featureDefID tables: pushDefElement/popDefElement only edit the Lua mirror and keep the VAO
+-- submission in step, flushDefElements uploads what changed. Call it before drawing the table each frame.
+
+local function markDefElementDirty(iT, index)
+	local marks = iT.dirtyMarks
+	if not marks[index] then
+		marks[index] = true
+		local n = iT.numDirty + 1
+		iT.numDirty = n
+		iT.dirtyElements[n] = index
+		if index < iT.dirtyLo then
+			iT.dirtyLo = index
+		end
+		if index > iT.dirtyHi then
+			iT.dirtyHi = index
+		end
+	end
+end
+
+local function clearDefDirty(iT)
+	local dirtyElements, marks = iT.dirtyElements, iT.dirtyMarks
+	for i = 1, iT.numDirty do
+		marks[dirtyElements[i]] = nil
+		dirtyElements[i] = nil
+	end
+	iT.numDirty = 0
+	iT.dirtyLo = math.huge
+	iT.dirtyHi = 0
+end
+
+local function submitPendingDefs(iT)
+	local pending = iT.pendingDefs
+	local n = #pending
+	if n > 0 then
+		if iT.objecttype == "featureDefID" then
+			iT.VAO:AddFeatureDefsToSubmission(pending)
+		else
+			iT.VAO:AddUnitDefsToSubmission(pending)
+		end
+		for i = 1, n do
+			pending[i] = nil
+		end
+		iT.submittedElements = iT.submittedElements + n
+	end
+end
+
+local function instanceDataFromDefs(iT, defIDs, elemOffset)
+	if iT.objecttype == "featureDefID" then
+		iT.instanceVBO:InstanceDataFromFeatureDefIDs(defIDs, iT.objectTypeAttribID, nil, elemOffset)
+	else
+		iT.instanceVBO:InstanceDataFromUnitDefIDs(defIDs, iT.objectTypeAttribID, nil, elemOffset)
+	end
+end
+
+local function growDefTable(iT)
+	local used = iT.usedElements
+	iT.maxElements = iT.maxElements * 2
+	local newInstanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, true) --[[@as VBO]]
+	newInstanceVBO:Define(iT.maxElements, iT.layout)
+	iT.instanceVBO:Delete()
+	iT.VAO:Delete()
+	iT.instanceVBO = newInstanceVBO
+	iT.VAO = makeVAOandAttach(iT.vertexVBO, newInstanceVBO, iT.indexVBO)
+
+	-- the next flushDefElements submits and uploads everything again
+	local pending, defIDs = iT.pendingDefs, iT.indextoUnitID
+	for i = 1, used do
+		pending[i] = defIDs[i]
+		markDefElementDirty(iT, i)
+	end
+	iT.submittedElements = 0
+end
+
+---Removes an instance from a deferred def table, moving the last one into its place.
+---@param iT table instance table made with a "unitDefID" or "featureDefID" objecttype
+---@param instanceID any
+---@return integer? index the index the instance had, nil if it was not in the table
+local function popDefElement(iT, instanceID)
+	local index = iT.instanceIDtoIndex[instanceID]
+	if index == nil then
+		return nil
+	end
+	local last = iT.usedElements
+	local submitted = iT.submittedElements
+	local indextoInstanceID, indextoUnitID = iT.indextoInstanceID, iT.indextoUnitID
+	iT.instanceIDtoIndex[instanceID] = nil
+	if index < last then
+		local lastInstanceID = indextoInstanceID[last]
+		iT.instanceIDtoIndex[lastInstanceID] = index
+		indextoInstanceID[index] = lastInstanceID
+		indextoUnitID[index] = indextoUnitID[last]
+		local step, instanceData = iT.instanceStep, iT.instanceData
+		local dst, src = (index - 1) * step, (last - 1) * step
+		for i = 1, step do
+			instanceData[dst + i] = instanceData[src + i]
+		end
+		markDefElementDirty(iT, index)
+	end
+
+	-- the same swap-remove on the submission, or on its not yet submitted tail
+	if index > submitted then
+		local pending = iT.pendingDefs
+		local n = #pending
+		pending[index - submitted] = pending[n]
+		pending[n] = nil
+	else
+		if last > submitted then
+			submitPendingDefs(iT)
+		end
+		iT.VAO:RemoveFromSubmission(index - 1)
+		iT.submittedElements = iT.submittedElements - 1
+	end
+
+	indextoInstanceID[last] = nil
+	indextoUnitID[last] = nil
+	iT.indextoObjectType[last] = nil
+	iT.usedElements = last - 1
+	return index
+end
+
+---Adds or updates an instance of a deferred def table, uploaded by the next flushDefElements.
+---@param iT table instance table made with a "unitDefID" or "featureDefID" objecttype
+---@param thisInstance number[] instanceStep values
+---@param instanceID any key for later updates and popDefElement
+---@param defID integer the unitDefID or featureDefID to draw
+---@return any instanceID
+local function pushDefElement(iT, thisInstance, instanceID, defID)
+	local index = iT.instanceIDtoIndex[instanceID]
+	if index and iT.indextoUnitID[index] ~= defID then
+		-- the model of a submitted instance cannot change
+		popDefElement(iT, instanceID)
+		index = nil
+	end
+	if index == nil then
+		index = iT.usedElements + 1
+		if index > iT.maxElements then
+			growDefTable(iT)
+		end
+		iT.usedElements = index
+		iT.instanceIDtoIndex[instanceID] = index
+		iT.indextoInstanceID[index] = instanceID
+		iT.indextoUnitID[index] = defID
+		iT.indextoObjectType[index] = iT.objecttype
+		local pending = iT.pendingDefs
+		pending[#pending + 1] = defID
+	end
+	local step, instanceData = iT.instanceStep, iT.instanceData
+	local offset = (index - 1) * step
+	for i = 1, step do
+		instanceData[offset + i] = thisInstance[i]
+	end
+	markDefElementDirty(iT, index)
+	return instanceID
+end
+
+local defIDSlice = {}
+local defIDSliceLength = 0 ---@type number
+
+---Submits new instances and uploads the changed ones of a deferred def table.
+---@param iT table instance table made with a "unitDefID" or "featureDefID" objecttype
+local function flushDefElements(iT)
+	submitPendingDefs(iT)
+	local numDirty = iT.numDirty
+	if numDirty == 0 then
+		return
+	end
+	local used = iT.usedElements
+	local lo, hi = iT.dirtyLo, math.min(iT.dirtyHi, used)
+	if lo <= hi then
+		local vbo, instanceData, defIDs, step = iT.instanceVBO, iT.instanceData, iT.indextoUnitID, iT.instanceStep
+		-- a full-element Upload clears the instData attribute, so it is always filled in again after it
+		if numDirty > 1 and hi - lo < 4 * numDirty then
+			vbo:Upload(instanceData, nil, lo - 1, (lo - 1) * step + 1, hi * step)
+			local slice = defIDs
+			if lo > 1 or hi < used then
+				local count = hi - lo + 1
+				for i = 1, count do
+					defIDSlice[i] = defIDs[lo + i - 1]
+				end
+				for i = count + 1, defIDSliceLength do
+					defIDSlice[i] = nil
+				end
+				defIDSliceLength = count
+				slice = defIDSlice
+			end
+			instanceDataFromDefs(iT, slice, lo - 1)
+		else
+			local dirtyElements = iT.dirtyElements
+			for i = 1, numDirty do
+				local index = dirtyElements[i]
+				if index <= used then
+					vbo:Upload(instanceData, nil, index - 1, (index - 1) * step + 1, index * step)
+					instanceDataFromDefs(iT, defIDs[index], index - 1)
+				end
+			end
+		end
+	end
+	clearDefDirty(iT)
+end
+
 local function validateInstanceVBOIDTable(iT, calledfrom)
 	-- Check each instance, and see if it has a valid unitID associated with it
 	-- Report with this key: "Error: validateInstanceVBOIDTable: error(2) = [string "LuaUI/Widgets
@@ -755,6 +975,9 @@ return {
 	getElementInstanceData = getElementInstanceData,
 	dumpAndCompareInstanceData = dumpAndCompareInstanceData,
 	uploadAllElements = uploadAllElements,
+	pushDefElement = pushDefElement,
+	popDefElement = popDefElement,
+	flushDefElements = flushDefElements,
 	validateInstanceVBOIDTable = validateInstanceVBOIDTable,
 	---@diagnostic disable-next-line: undefined-global
 	uploadElementRange = uploadElementRange,
