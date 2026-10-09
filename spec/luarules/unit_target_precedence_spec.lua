@@ -211,6 +211,45 @@ describe("Set Target precedence after shared-list updates", function()
 		end)
 	end
 
+	for _, shared in ipairs({ false, true }) do
+		it("gives a pending controller Attack the same precedence as a native Attack", function()
+			local g = loadTargetGadget()
+			g.env.GG.GetPendingAttackTarget = function(unitID, reference)
+				assert.are.equal(1, unitID)
+				assert.are.equal(-7, reference)
+				return 30
+			end
+			g.set(10, false, shared)
+			g.command(g.env.GameCMD.ATTACK_TARGETS, -7)
+			g.set(11, true, shared)
+			assert.are.equal(30, g.target())
+			assert.is_nil(g.env.GG.GetUnitTargetIndex(1))
+		end)
+	end
+
+	it("allows Set Target when the pending Attack cannot target its unit", function()
+		local g = loadTargetGadget()
+		g.env.GG.GetPendingAttackTarget = function()
+			return 30
+		end
+		g.canTarget(function(id)
+			return id ~= 30
+		end)
+		g.command(g.env.GameCMD.ATTACK_TARGETS, -7)
+		g.set(10)
+		assert.are.equal(10, g.target())
+	end)
+
+	it("does not restore a stale controller reference as a unit target", function()
+		local g = loadTargetGadget()
+		g.env.GG.GetPendingAttackTarget = function()
+			return nil
+		end
+		g.command(g.env.GameCMD.ATTACK_TARGETS, -7)
+		g.set(10)
+		assert.are.equal(10, g.target())
+	end)
+
 	it("keeps Cancel Target available while paused and clears it on cancellation", function()
 		local g = loadTargetGadget()
 		g.command(g.env.CMD.WAIT)

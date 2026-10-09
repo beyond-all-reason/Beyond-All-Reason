@@ -400,8 +400,21 @@ if gadgetHandler:IsSyncedCode() then
 		return bit_and(cmdOptions, OPT_INTERNAL) ~= 0
 	end
 
+	local function getEffectiveAttackCommand(unitID)
+		local cmdID, options, tag, p1, p2, p3 = spGetUnitCurrentCommand(unitID)
+		if cmdID == CMD_ATTACK_TARGETS and GG.GetPendingAttackTarget then
+			local targetID = GG.GetPendingAttackTarget(unitID, p1)
+			if targetID then
+				-- The reference is INTERNAL, but its materialized Attack is a
+				-- player's command and therefore must retain manual precedence.
+				return CMD_ATTACK, 0, tag, targetID
+			end
+		end
+		return cmdID, options, tag, p1, p2, p3
+	end
+
 	local function hasTargetPrecedence(unitID, unitData)
-		local inCommand, options, _, param1, param2 = spGetUnitCurrentCommand(unitID)
+		local inCommand, options, _, param1, param2 = getEffectiveAttackCommand(unitID)
 		if inCommand == CMD_WAIT then
 			return false
 		elseif inCommand == nil or isAttackCommand[inCommand] == nil then
@@ -469,7 +482,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function restoreCommandTarget(unitID)
-		local inCommand, options, _, param1, param2, param3 = spGetUnitCurrentCommand(unitID)
+		local inCommand, options, _, param1, param2, param3 = getEffectiveAttackCommand(unitID)
 		if not inCommand or not isAttackCommand[inCommand] then
 			return false
 		end

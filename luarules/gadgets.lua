@@ -268,6 +268,7 @@ local callInLists = {
 	"UnitReverseBuilt",
 	"UnitFromFactory",
 	"UnitDestroyed",
+	"UnitDeleted",
 	"RenderUnitDestroyed",
 	"UnitExperience",
 	"UnitIdle",
@@ -2182,6 +2183,12 @@ function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	markIdle(unitID)
 	tracy.ZoneEnd()
 	return
+end
+
+function gadgetHandler:UnitDeleted(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.UnitDeletedList) do
+		g:UnitDeleted(unitID, unitDefID, unitTeam)
+	end
 end
 
 function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
