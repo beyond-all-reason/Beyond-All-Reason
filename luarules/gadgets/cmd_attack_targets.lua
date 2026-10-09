@@ -21,7 +21,10 @@ if gadgetHandler:IsSyncedCode() then
 	local pendingPrepends = {}
 	local pendingQueueChecks = {}
 	local tailGroups = {}
+	local nextTailGroupID = 0
 	local groupsByTail = {}
+	local pendingTargetUnits = {}
+	local hasUnitDeleted = Script.GetCallInList().UnitDeleted ~= nil
 	-- Set while the controller inserts its own Attack so the command callins can
 	-- tell it apart from a player's prepended Attack.
 	local issuingControllerAttack = false
@@ -46,6 +49,28 @@ if gadgetHandler:IsSyncedCode() then
 		queueing = true,
 	}
 
+	local executionSnapshots = setmetatable({}, { __mode = "k" })
+	local entriesByTarget = {}
+	local function executionSnapshot(targets)
+		local snapshot = executionSnapshots[targets]
+		if snapshot then
+			return snapshot
+		end
+		snapshot = {}
+		for _, target in ipairs(targets) do
+			local entry = { target = target.target }
+			snapshot[#snapshot + 1] = entry
+			local entries = entriesByTarget[entry.target]
+			if not entries then
+				entries = setmetatable({}, { __mode = "k" })
+				entriesByTarget[entry.target] = entries
+			end
+			entries[entry] = true
+		end
+		executionSnapshots[targets] = snapshot
+		return snapshot
+	end
+
 	-- Deleted and crashing units cannot supply the next Attack target.
 	-- Crashing-target rejection follows RecoilEngine #3348; native 2026.07.04 queues still differ.
 	local function isAttackableTarget(targetID)
@@ -58,7 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function lastAttackableIndex(targets)
 		for index = #targets, 1, -1 do
-			if isAttackableTarget(targets[index].target) then
+			if not targets[index].deleted and isAttackableTarget(targets[index].target) then
 				return index
 			end
 		end
@@ -73,7 +98,7 @@ if gadgetHandler:IsSyncedCode() then
 		group.units[unitID] = nil
 		state.tailGroup = nil
 		if next(group.units) == nil then
-			tailGroups[group.id] = nil
+			tailGroups[group.targets] = nil
 			if group.targetID then
 				local groups = groupsByTail[group.targetID]
 				groups[group.id] = nil
@@ -85,25 +110,53 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function watchTail(unitID, state)
-		local listID = GG.GetUnitAttackTargetListID(unitID)
-		if state.tailGroup and state.tailGroup.id == listID then
+		local targets = state.targets
+		if state.tailGroup and state.tailGroup.targets == targets then
 			return state.tailGroup
 		end
 		unwatchTail(unitID, state)
-		local group = tailGroups[listID]
+		local group = tailGroups[targets]
 		if not group then
 			local lastIndex = lastAttackableIndex(state.targets)
 			local targetID = lastIndex > 0 and state.targets[lastIndex].target or nil
-			group = { id = listID, targets = state.targets, lastIndex = lastIndex, targetID = targetID, units = {} }
-			tailGroups[listID] = group
+			nextTailGroupID = nextTailGroupID + 1
+			group = { id = nextTailGroupID, targets = targets, lastIndex = lastIndex, targetID = targetID, units = {} }
+			tailGroups[targets] = group
 			if targetID then
 				groupsByTail[targetID] = groupsByTail[targetID] or {}
-				groupsByTail[targetID][listID] = group
+				groupsByTail[targetID][group.id] = group
 			end
 		end
 		group.units[unitID] = state
 		state.tailGroup = group
 		return group
+	end
+
+	local function unwatchPendingTarget(unitID, state)
+		local targetID = state.pendingTargetID
+		local units = targetID and pendingTargetUnits[targetID]
+		if units then
+			units[unitID] = nil
+			if next(units) == nil then
+				pendingTargetUnits[targetID] = nil
+			end
+		end
+		state.pendingTargetID = nil
+	end
+
+	local function watchPendingTarget(unitID, state)
+		unwatchPendingTarget(unitID, state)
+		for index = state.nextTargetIndex, #state.targets do
+			local targetID = state.targets[index].target
+			-- Native queues keep crashing/dead-but-not-yet-deleted targets.
+			if not state.targets[index].deleted and Spring.ValidUnitID(targetID) then
+				state.pendingTargetID = targetID
+				local units = pendingTargetUnits[targetID] or {}
+				pendingTargetUnits[targetID] = units
+				units[unitID] = state
+				return
+			end
+		end
 	end
 
 	local function clearState(unitID)
@@ -115,6 +168,7 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		unwatchTail(unitID, state)
+		unwatchPendingTarget(unitID, state)
 		if GG.ClearUnitAttackTargetList then
 			GG.ClearUnitAttackTargetList(unitID, state)
 		end
@@ -126,6 +180,22 @@ if gadgetHandler:IsSyncedCode() then
 			and command.id == CMD_ATTACK_TARGETS
 			and #command.params == 1
 			and command.params[1] == -state.referenceID
+	end
+
+	-- Expose the pending native-equivalent queue head without advancing it.
+	-- The reference check prevents a removed/replaced controller from supplying
+	-- a target before its deferred queue cleanup has run.
+	local function getPendingAttackTarget(unitID, reference)
+		local state = targetListStates[unitID]
+		if not state or not state.referenceID or reference ~= -state.referenceID then
+			return
+		end
+		for index = state.nextTargetIndex, #state.targets do
+			local targetID = state.targets[index].target
+			if not state.targets[index].deleted and Spring.ValidUnitID(targetID) then
+				return targetID
+			end
+		end
 	end
 
 	local function getControllerAttackCommands(unitID, state)
@@ -151,29 +221,19 @@ if gadgetHandler:IsSyncedCode() then
 		return commands
 	end
 
-	-- The list is authoritative; the ordinary Attack commands ahead of the
-	-- controller are only its materialized execution state. Refresh that state
+	-- Explicit list changes update the execution snapshot; the Attack commands ahead of the
+	-- controller are its materialized execution state. Refresh the watchers
 	-- after every explicit list change, and restart it when a prepend changes
 	-- which target belongs at the front.
 	local function recheckController(unitID, state, restartFromFront)
 		local targets = GG.GetUnitAttackTargetList and GG.GetUnitAttackTargetList(unitID)
-		if targets and state.targets and targets ~= state.targets and not restartFromFront then
-			local remaining = {}
-			for index = state.nextTargetIndex, #state.targets do
-				remaining[state.targets[index].target] = true
-			end
-			state.nextTargetIndex = #targets + 1
-			for index, entry in ipairs(targets) do
-				if remaining[entry.target] then
-					state.nextTargetIndex = index
-					break
-				end
-			end
-		end
-		state.targets = targets
-		if not state.targets then
+		if not targets then
 			return false
 		end
+		-- Rendering/Set Target prunes crashing entries before the engine deletes
+		-- them. Keep the execution snapshot: those entries still occupy native
+		-- queue positions and can trigger death-dependent advancement.
+		state.targets = state.targets or executionSnapshot(targets)
 		watchTail(unitID, state)
 		if restartFromFront then
 			local commands = getControllerAttackCommands(unitID, state)
@@ -185,6 +245,7 @@ if gadgetHandler:IsSyncedCode() then
 				spGiveOrderToUnit(unitID, CMD.REMOVE, { commands[index].tag }, CMD.OPT_INTERNAL)
 			end
 		end
+		watchPendingTarget(unitID, state)
 		return true
 	end
 
@@ -206,9 +267,27 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 		state.listID = listID
-		state.targets = GG.GetUnitAttackTargetList(unitID)
+		local updated = GG.GetUnitAttackTargetList(unitID)
+		local executionTargets, seen, requested = {}, {}, {}
+		for _, targetID in ipairs(cmdParams) do
+			requested[targetID] = true
+		end
+		for _, entry in ipairs(state.targets) do
+			executionTargets[#executionTargets + 1] = entry
+			if not entry.deleted then
+				seen[entry.target] = true
+			end
+		end
+		for _, entry in ipairs(executionSnapshot(updated or {})) do
+			if requested[entry.target] and not seen[entry.target] then
+				executionTargets[#executionTargets + 1] = entry
+				seen[entry.target] = true
+			end
+		end
+		state.targets = executionTargets
 		if state.targets then
 			watchTail(unitID, state)
+			watchPendingTarget(unitID, state)
 		end
 		return state.targets ~= nil
 	end
@@ -234,7 +313,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		for index = state.nextTargetIndex, #state.targets do
 			local queuedTargetID = state.targets[index].target
-			if type(queuedTargetID) == "number" and not seenTargets[queuedTargetID] then
+			if
+				not state.targets[index].deleted
+				and type(queuedTargetID) == "number"
+				and not seenTargets[queuedTargetID]
+			then
 				seenTargets[queuedTargetID] = true
 				targetIDs[#targetIDs + 1] = queuedTargetID
 			end
@@ -245,6 +328,11 @@ if gadgetHandler:IsSyncedCode() then
 			return false
 		end
 		state.listID = listID
+		state.targets = {}
+		for _, targetID in ipairs(targetIDs) do
+			state.targets[#state.targets + 1] = { target = targetID }
+		end
+		state.targets = executionSnapshot(state.targets)
 		return recheckController(unitID, state, true)
 	end
 
@@ -321,9 +409,11 @@ if gadgetHandler:IsSyncedCode() then
 	-- command is queued.
 	local function issueNextTarget(unitID, state, referenceTag)
 		while state.nextTargetIndex <= #state.targets do
-			local targetID = state.targets[state.nextTargetIndex].target
+			local entry = state.targets[state.nextTargetIndex]
+			local targetID = entry.target
 			state.nextTargetIndex = state.nextTargetIndex + 1
-			if isAttackableTarget(targetID) then
+			watchPendingTarget(unitID, state)
+			if not entry.deleted and isAttackableTarget(targetID) then
 				-- The controller remains queued directly behind this attack. The engine
 				-- chooses movement and weapon targets; the stored list only supplies
 				-- the next Attack when this one finishes. The Attack carries no
@@ -356,7 +446,7 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	-- Engines without command registration need native Attacks for movement lookahead.
+	-- Engines without registration or deletion notifications use native Attacks.
 	-- A unit under construction runs no command SlowUpdate, so a target list given
 	-- to it would only be converted after roll-out. Native queued Attacks on such a
 	-- unit carry death dependences and advance the queue the moment a target is
@@ -402,7 +492,7 @@ if gadgetHandler:IsSyncedCode() then
 			not isReference
 			and not cmdOptions.internal
 			and canAttack[unitDefID]
-			and (not Spring.RegisterCommand or Spring.GetUnitIsBeingBuilt(unitID))
+			and (not Spring.RegisterCommand or not hasUnitDeleted or Spring.GetUnitIsBeingBuilt(unitID))
 		then
 			giveNativeAttacks(unitID, cmdParams, cmdOptions)
 			return false
@@ -582,7 +672,45 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitDestroyed(unitID)
 		clearState(unitID)
-		dropExhaustedControllers(unitID)
+	end
+
+	function gadget:UnitDeleted(targetID)
+		-- A recycled engine ID must not revive an old queued target. Mark the
+		-- shared execution entries before advancing any controller.
+		local entries = entriesByTarget[targetID]
+		if entries then
+			for entry in pairs(entries) do
+				entry.deleted = true
+			end
+			entriesByTarget[targetID] = nil
+		end
+		executionSnapshots = setmetatable({}, { __mode = "k" })
+		local units = pendingTargetUnits[targetID]
+		if units then
+			-- Issuing an Attack can reenter the controller and mutate this index.
+			local unitIDs = {}
+			for unitID in pairs(units) do
+				unitIDs[#unitIDs + 1] = unitID
+			end
+			table.sort(unitIDs)
+			for _, unitID in ipairs(unitIDs) do
+				local state = units[unitID]
+				if state and targetListStates[unitID] == state then
+					watchPendingTarget(unitID, state)
+					local front = (spGetUnitCommands(unitID, 1) or {})[1]
+					if isControllerReference(front, state) and not Spring.GetUnitIsStunned(unitID) then
+						if
+							not recheckController(unitID, state, false)
+							or not issueNextTarget(unitID, state, front.tag)
+						then
+							spGiveOrderToUnit(unitID, CMD.REMOVE, { front.tag }, CMD.OPT_INTERNAL)
+							clearState(unitID)
+						end
+					end
+				end
+			end
+		end
+		dropExhaustedControllers(targetID)
 	end
 
 	function gadget:UnitGiven(unitID)
@@ -600,12 +728,16 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		GG.GetPendingAttackTarget = getPendingAttackTarget
 		gadgetHandler:RegisterCMDID(CMD_ATTACK_TARGETS)
 		if Spring.RegisterCommand then
-			Spring.RegisterCommand(CMD_ATTACK_TARGETS, { movement = true })
+			Spring.RegisterCommand(CMD_ATTACK_TARGETS, { movement = true, attack = true })
 		end
 		gadgetHandler:RegisterAllowCommand(CMD.ATTACK)
 		gadgetHandler:RegisterAllowCommand(CMD_ATTACK_TARGETS)
+	end
+	function gadget:Shutdown()
+		GG.GetPendingAttackTarget = nil
 	end
 else
 	function gadget:Initialize()
