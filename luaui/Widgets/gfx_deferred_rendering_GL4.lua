@@ -1346,6 +1346,10 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
+-- A unit's lights come and go together, so they are pushed or popped without uploads and what changed is
+-- uploaded afterwards: a range per light VBO instead of two uploads per light
+local batchUsed, batchBuffer, batchDirty = {}, {}, {}
+
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
 		if spGetUnitIsBeingBuilt(unitID) then
@@ -1360,23 +1364,91 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 			end
 			unitDefLight.initComplete = true
 		end
+		-- an invalid unit keeps the per light path, whose pushes skip the upload
+		local batch = not noUpload and spValidUnitID(unitID)
+		if batch then
+			for _, vbo in pairs(unitLightVBOMap) do
+				batchUsed[vbo], batchBuffer[vbo], batchDirty[vbo] = vbo.usedElements, vbo.instanceVBO, vbo.dirty
+			end
+		end
+		local unitIDString = tostring(unitID)
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= "initComplete" then
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
+				---@cast targetVBO -?
 
 				if (not spec) and lightParams.alliedOnly == true and spIsUnitAllied(unitID) == false then
-					return
+					break
 				end
+				local instanceID = unitIDString .. lightname
 				AddLight(
-					tostring(unitID) .. lightname,
+					instanceID,
 					unitID,
 					lightParams.pieceIndex,
 					targetVBO,
 					lightParams.lightParamTable,
-					noUpload
+					-- a light that is already there is updated in place and uploaded as before
+					noUpload or (batch and targetVBO.instanceIDtoIndex[instanceID] == nil)
 				)
 			end
 		end
+		if batch then
+			for _, vbo in pairs(unitLightVBOMap) do
+				if vbo.instanceVBO ~= batchBuffer[vbo] then -- grown meanwhile, which can also move elements
+					uploadAllElements(vbo)
+				elseif vbo.usedElements > batchUsed[vbo] then
+					uploadElementRange(vbo, batchUsed[vbo], vbo.usedElements)
+				end
+				vbo.dirty = batchDirty[vbo]
+			end
+		end
+	end
+end
+
+local refilledSlots = {} -- light VBO to the slots that popped lights left and the last light moved into
+local refilledDirty = {} -- light VBO to its dirty flag before those pops
+
+local function uploadRefilledSlots()
+	for vbo, wasDirty in pairs(refilledDirty) do
+		local slots = refilledSlots[vbo] --[[@as table<integer, integer>]]
+		local n = #slots
+		if n > 0 then
+			table.sort(slots)
+			local used, step, unitIDs = vbo.usedElements, vbo.instanceStep, vbo.indextoUnitID
+			local i = 1
+			while i <= n and slots[i] <= used do
+				-- a run of neighbouring slots, a slot can be refilled twice
+				local first, last = slots[i], slots[i]
+				i = i + 1
+				while i <= n and slots[i] <= last + 1 and slots[i] <= used do
+					last = slots[i]
+					i = i + 1
+				end
+				local allValid = true
+				if unitIDs then
+					for s = first, last do
+						if not spValidUnitID(unitIDs[s]) then
+							allValid = false
+						end
+					end
+				end
+				if allValid then
+					uploadElementRange(vbo, first - 1, last)
+				else -- as the pops would have: data always, the unit binding only for valid units
+					for s = first, last do
+						vbo.instanceVBO:Upload(vbo.instanceData, nil, s - 1, (s - 1) * step + 1, s * step)
+						if spValidUnitID(unitIDs[s]) then
+							vbo.instanceVBO:InstanceDataFromUnitIDs(unitIDs[s], vbo.unitIDattribID, s - 1)
+						end
+					end
+				end
+			end
+			for k = n, 1, -1 do
+				slots[k] = nil
+			end
+		end
+		vbo.dirty = wasDirty
+		refilledDirty[vbo] = nil
 	end
 end
 
@@ -1396,11 +1468,24 @@ local function RemoveUnitAttachedLights(unitID, instanceID)
 			for instanceID, targetVBO in pairs(unitAttachedLights[unitID]) do
 				if targetVBO.instanceIDtoIndex[instanceID] then
 					numremoved = numremoved + 1
-					popElementInstance(targetVBO, instanceID)
+					local slots = refilledSlots[targetVBO]
+					if not slots then
+						slots = {}
+						refilledSlots[targetVBO] = slots
+					end
+					if refilledDirty[targetVBO] == nil then
+						refilledDirty[targetVBO] = targetVBO.dirty
+					end
+					local last = targetVBO.usedElements
+					local index = popElementInstance(targetVBO, instanceID, true)
+					if index and index < last then
+						slots[#slots + 1] = index
+					end
 				else
 					--spEcho("Light attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
 			end
+			uploadRefilledSlots()
 			--spEcho("Removed lights from unitID", unitID, numremoved, successes)
 			unitAttachedLights[unitID] = nil
 		end
