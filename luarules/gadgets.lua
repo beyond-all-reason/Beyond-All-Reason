@@ -269,6 +269,7 @@ local callInLists = {
 	"UnitFromFactory",
 	"UnitDestroyed",
 	"UnitDeleted",
+	"UnitAttackTargetRemoved",
 	"RenderUnitDestroyed",
 	"UnitExperience",
 	"UnitIdle",
@@ -2189,6 +2190,20 @@ function gadgetHandler:UnitDeleted(unitID, unitDefID, unitTeam)
 	for _, g in ipairs(self.UnitDeletedList) do
 		g:UnitDeleted(unitID, unitDefID, unitTeam)
 	end
+end
+
+function gadgetHandler:UnitAttackTargetRemoved(unitID, unitDefID, unitTeam, targetID)
+	local tags
+	for _, g in ipairs(self.UnitAttackTargetRemovedList) do
+		local removed = g:UnitAttackTargetRemoved(unitID, unitDefID, unitTeam, targetID)
+		if type(removed) == "table" then
+			tags = tags or {}
+			for _, tag in ipairs(removed) do
+				tags[#tags + 1] = tag
+			end
+		end
+	end
+	return tags
 end
 
 function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)

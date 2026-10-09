@@ -1,9 +1,10 @@
-local function loadController(hasUnitDeleted)
+local function loadController(hasUnitDeleted, hasTargetRemoved)
 	if hasUnitDeleted == nil then
 		hasUnitDeleted = true
 	end
 	local queue, targets, dead, deleted, crashing = {}, {}, {}, {}, {}
 	local nextTag, listID, stunned = 0, 1, false
+	local stops = {}
 	local env = {
 		gadget = {},
 		GG = {},
@@ -22,7 +23,9 @@ local function loadController(hasUnitDeleted)
 		UnitDefs = { { canAttack = true } },
 		Script = {
 			GetCallInList = function()
-				return hasUnitDeleted and { UnitDeleted = {} } or {}
+				return hasUnitDeleted
+						and { UnitDeleted = {}, UnitAttackTargetRemoved = hasTargetRemoved ~= false and {} or nil }
+					or {}
 			end,
 		},
 		gadgetHandler = {
@@ -44,6 +47,9 @@ local function loadController(hasUnitDeleted)
 	local function insert(id, params, position)
 		nextTag = nextTag + 1
 		table.insert(queue, position or #queue + 1, { id = id, params = params, tag = nextTag })
+	end
+	env.Spring.ClearUnitGoal = function(unitID, stop)
+		stops[#stops + 1] = { unitID, stop }
 	end
 	env.Spring.GetUnitCommands = function(_, count)
 		local copy = {}
@@ -128,6 +134,7 @@ local function loadController(hasUnitDeleted)
 	assert.are.equal(10, queue[1].params[1])
 	return {
 		env = env,
+		stops = stops,
 		queue = queue,
 		dead = dead,
 		crashing = crashing,
@@ -276,5 +283,99 @@ describe("pending Attack controller targets", function()
 		g.delete(20)
 		assert.are.equal(34927, g.queue[1].id)
 		assert.is_nil(g.env.GG.GetPendingAttackTarget(1, -1))
+	end)
+end)
+
+describe("controller completion and neutralized targets", function()
+	it("stops movement when the last virtual attacks become unattackable", function()
+		local g = loadController()
+		g.eraseActive()
+		g.crashing[20], g.crashing[30], g.crashing[40] = true, true, true
+		local c = g.queue[1]
+		local handled, remove = g.env.gadget:CommandFallback(1, 1, 0, c.id, c.params, 0, c.tag)
+		assert.is_true(handled)
+		assert.is_true(remove)
+		assert.same({ { 1, false } }, g.stops)
+	end)
+	it("retains crashing pending orders until execution or deletion", function()
+		local g = loadController()
+		g.eraseActive()
+		g.crashing[20], g.crashing[30] = true, true
+		g.delete(40)
+		assert.are.equal(34927, g.queue[1].id)
+		assert.same({}, g.stops)
+		g.delete(20)
+		assert.same({}, g.queue)
+		assert.same({ { 1, false } }, g.stops)
+	end)
+	it("keeps the active Attack and its crashing suffix until the native removal phase", function()
+		local g = loadController()
+		g.crashing[20], g.crashing[30] = true, true
+		g.delete(40)
+		assert.are.equal(10, g.queue[1].params[1])
+		assert.are.equal(2, #g.queue)
+		assert.same({}, g.stops)
+	end)
+	it("removes neutralized pending targets only for the notified unit", function()
+		local g = loadController()
+		g.env.gadget:UnitAttackTargetRemoved(2, 1, 0, 20)
+		assert.are.equal(20, g.env.GG.GetPendingAttackTarget(1, -1))
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		assert.are.equal(30, g.env.GG.GetPendingAttackTarget(1, -1))
+		assert.are.equal(10, g.queue[1].params[1])
+		assert.same({}, g.stops)
+		g.eraseActive()
+		local c = g.queue[1]
+		g.env.gadget:CommandFallback(1, 1, 0, c.id, c.params, 0, c.tag)
+		assert.are.equal(30, g.queue[1].params[1])
+	end)
+	it("does not advance or stop at neutralization of the pending head", function()
+		local g = loadController()
+		g.eraseActive()
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		assert.are.equal(34927, g.queue[1].id)
+		assert.are.equal(30, g.env.GG.GetPendingAttackTarget(1, -1))
+		assert.same({}, g.stops)
+	end)
+	it("can explicitly append a target removed by neutralization", function()
+		local g = loadController()
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		g.env.gadget:AllowCommand(1, 1, 0, 20, { 20 }, { shift = true, coded = 32 })
+		g.delete(30)
+		g.delete(40)
+		assert.are.equal(20, g.env.GG.GetPendingAttackTarget(1, -1))
+	end)
+end)
+
+describe("neutralized controller reference cleanup", function()
+	it("returns the exhausted reference tag without finishing or stopping it in Lua", function()
+		local g = loadController()
+		g.eraseActive()
+		local tag = g.queue[1].tag
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 20)
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 30)
+		assert.same({ tag }, g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 40))
+		assert.are.equal(tag, g.queue[1].tag)
+		assert.same({}, g.stops)
+		assert.is_nil(g.env.GG.GetPendingAttackTarget(1, -1))
+	end)
+	it("removes the reference behind the final retained Attack", function()
+		local g = loadController()
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 30)
+		g.env.gadget:UnitAttackTargetRemoved(1, 1, 0, 40)
+		g.eraseActive()
+		local c = g.queue[1]
+		g.env.gadget:CommandFallback(1, 1, 0, c.id, c.params, 0, c.tag)
+		assert.are.equal(1, #g.queue)
+		assert.are.equal(20, g.queue[1].params[1])
+		assert.same({}, g.stops)
+	end)
+	it("uses native orders if only UnitDeleted is available", function()
+		local g = loadController(true, false)
+		local before = #g.queue
+		assert.is_false(g.env.gadget:AllowCommand(2, 1, 0, 34927, { 50, 60 }, { coded = 0 }))
+		assert.are.equal(before + 2, #g.queue)
+		assert.are.equal(20, g.queue[#g.queue].id)
+		assert.are.equal(60, g.queue[#g.queue].params[1])
 	end)
 end)
