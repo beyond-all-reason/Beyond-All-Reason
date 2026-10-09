@@ -1,6 +1,7 @@
 local widget = widget ---@type Widget
 
 -- Include the substitution logic directly with a shorter alias
+local Insert = require("luaui/Include/command_insert")
 local SubLogic = require("luaui/Include/blueprint_substitution/logic")
 
 function widget:GetInfo()
@@ -132,8 +133,74 @@ local function handleBuildMenu(shift)
 	end
 end
 
+local insertModifiers = { prepend_between = false, prepend_queue = false }
+local prependPosition = 1
+
+local function commandInsertPress(_, _, args)
+	if not preGamestartPlayer or not args or insertModifiers[args[1]] == nil then
+		return
+	end
+	insertModifiers[args[1]] = true
+	if args[1] == "prepend_queue" then
+		prependPosition = 1
+	end
+end
+
+local function commandInsertRelease(_, _, args)
+	if args and insertModifiers[args[1]] ~= nil then
+		insertModifiers[args[1]] = false
+	end
+end
+
+local function getInsertMode(shift, meta)
+	return Insert.GetMode(insertModifiers, shift, meta)
+end
+
+local function queueBuildBatch(commands, shift, meta)
+	local mode = getInsertMode(shift, meta)
+	local position = #buildQueue + 1
+	if mode == "front" then
+		position = 1
+	elseif mode == "prepend" then
+		position = math.min(prependPosition, #buildQueue + 1)
+		prependPosition = position + #commands
+	elseif mode == "between" then
+		local positions = {}
+		for i, queued in ipairs(buildQueue) do
+			positions[i] = { queued[2], queued[3], queued[4] }
+		end
+		local first, last = commands[1], commands[#commands]
+		position = Insert.FindPosition(
+			{ Spring.GetTeamStartPosition(myTeamID) },
+			positions,
+			{ first[2], first[3], first[4] },
+			{ last[2], last[3], last[4] }
+		)
+	end
+	for i, command in ipairs(commands) do
+		tableInsert(buildQueue, position + i - 1, command)
+	end
+	forceRefreshCache = true
+end
+
+local function queueBuild(buildData, shift, meta)
+	queueBuildBatch({ buildData }, shift, meta)
+end
+
+local queueBuildCommands
+local function getStartBuildOptions()
+	if not preGamestartPlayer or spGetGameFrame() > 0 then
+		return
+	end
+	local defID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	return defID and UnitDefs[defID] and UnitDefs[defID].buildOptions
+end
+
 local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
+	if uDefID and select(2, Spring.GetActiveCommand()) == GameCMD.AREA_MEX then
+		Spring.SetActiveCommand(0)
+	end
 	selBuildQueueDefID = uDefID
 
 	if preGamestartPlayer then
@@ -288,6 +355,8 @@ function widget:Initialize()
 		return
 	end
 
+	widgetHandler:AddAction("commandinsert", commandInsertPress, nil, "p")
+	widgetHandler:AddAction("commandinsert", commandInsertRelease, nil, "r")
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
@@ -304,7 +373,20 @@ function widget:Initialize()
 
 	isMetalMap = WG.resource_spot_finder.isMetalMap
 
-	WG["pregame-build"] = {}
+	WG["pregame-build"] = {
+		getStartBuildOptions = getStartBuildOptions,
+		getInsertMode = getInsertMode,
+		queueBuildCommands = function(...)
+			return queueBuildCommands(...)
+		end,
+		getBuildOrigin = function(useQueueEnd)
+			if useQueueEnd and #buildQueue > 0 then
+				local last = buildQueue[#buildQueue]
+				return last[2], last[3], last[4]
+			end
+			return Spring.GetTeamStartPosition(myTeamID)
+		end,
+	}
 	WG["pregame-build"].getPreGameDefID = function()
 		return selBuildQueueDefID
 	end
@@ -672,6 +754,59 @@ local function DoBuildingsClash(buildingData1, buildingData2)
 	return xDistance < halfBuilding1Width + halfBuilding2Width and zDistance < halfBuilding1Height + halfBuilding2Height
 end
 
+-- Resource widgets submit a whole route through here. Validate before replacing
+-- the queue, and skip overlaps instead of cancelling existing player orders.
+queueBuildCommands = function(commands, shift, meta)
+	local buildOptions = getStartBuildOptions()
+	if not buildOptions then
+		return false
+	end
+	if meta == nil then
+		meta = select(3, Spring.GetModKeyState())
+	end
+	local keepQueue = shift or getInsertMode(shift, meta)
+	local existing = keepQueue and buildQueue or {}
+	local valid, allowed = {}, {}
+	for _, id in ipairs(buildOptions) do
+		allowed[id] = true
+	end
+	local startID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local x, y, z = Spring.GetTeamStartPosition(myTeamID)
+	local startBuild
+	if x and x >= 0 then
+		x, y, z = Spring.Pos2BuildPos(startID, x, y, z)
+		startBuild = { startID, x, y, z, 1 }
+	end
+	for _, command in ipairs(commands) do
+		local build = { command[1], command[2], command[3], command[4], command[5] or 0 }
+		local usable = allowed[build[1]] and spTestBuildOrder(unpack(build)) ~= 0
+		if usable and startBuild and DoBuildingsClash(build, startBuild) then
+			usable = false
+		end
+		for _, queued in ipairs(existing) do
+			if usable and queued[1] > 0 and DoBuildingsClash(build, queued) then
+				usable = false
+			end
+		end
+		for _, queued in ipairs(valid) do
+			if usable and DoBuildingsClash(build, queued) then
+				usable = false
+			end
+		end
+		if usable then
+			valid[#valid + 1] = build
+		end
+	end
+	if #valid == 0 then
+		return false
+	end
+	if not keepQueue then
+		buildQueue = {}
+	end
+	queueBuildBatch(valid, shift, meta)
+	return true
+end
+
 local function removeUnitShape(id)
 	if unitshapes[id] then
 		WG.StopDrawUnitShapeGL4(unitshapes[id])
@@ -833,7 +968,7 @@ function widget:Update(dt)
 			end
 			if #newBuildQueue > 0 then
 				for _, buildDataPos in ipairs(newBuildQueue) do
-					buildQueue[#buildQueue + 1] = buildDataPos
+					queueBuild(buildDataPos, true)
 				end
 			end
 		end
@@ -886,6 +1021,65 @@ function widget:Update(dt)
 	end
 end
 
+local function getQuickMexBuild(mx, my)
+	if not preGamestartPlayer or spGetGameFrame() > 0 or selBuildQueueDefID or Spring.IsGUIHidden() then
+		return
+	end
+	if WG.topbar and WG.topbar.showingQuit() then
+		return
+	end
+	local finder, builder = WG.resource_spot_finder, WG.resource_spot_builder
+	if not finder or finder.isMetalMap or not builder then
+		return
+	end
+	local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
+	if not pos then
+		return
+	end
+	local spot = finder.GetClosestMexSpot(pos[1], pos[3])
+	if not spot or (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 >= builder.QUICK_MEX_RADIUS_SQUARED then
+		return
+	end
+	if builder.SpotHasExtractorQueued(spot) then
+		return
+	end
+
+	-- Read the current start unit so a faction change takes effect immediately.
+	local startID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local startDef = startID and UnitDefs[startID]
+	if not startDef then
+		return
+	end
+	local buildData
+	local bestExtraction = 0
+	for _, defID in ipairs(startDef.buildOptions) do
+		local def = UnitDefs[defID]
+		if def.extractsMetal and def.extractsMetal > bestExtraction then
+			local candidate = builder.PreviewExtractorCommand({ spot.x, spot.y, spot.z }, defID, spot)
+			if candidate and spTestBuildOrder(defID, candidate[2], candidate[3], candidate[4], candidate[5]) ~= 0 then
+				buildData = candidate
+				bestExtraction = def.extractsMetal
+			end
+		end
+	end
+	if not buildData then
+		return
+	end
+	local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
+	if cx and cx >= 0 then
+		local bx, by, bz = Spring.Pos2BuildPos(startID, cx, cy, cz)
+		if DoBuildingsClash(buildData, { startID, bx, by, bz, 1 }) then
+			return
+		end
+	end
+	for _, queued in ipairs(buildQueue) do
+		if queued[1] > 0 and DoBuildingsClash(buildData, queued) then
+			return
+		end
+	end
+	return buildData
+end
+
 function widget:MousePress(mx, my, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -898,6 +1092,9 @@ function widget:MousePress(mx, my, button)
 	if not preGamestartPlayer then
 		return
 	end
+	if select(2, Spring.GetActiveCommand()) == GameCMD.AREA_MEX then
+		return false
+	end
 	local _, _, meta, shift = Spring.GetModKeyState()
 
 	if button == 3 and selBuildQueueDefID then
@@ -907,13 +1104,24 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
+	if button == 3 then
+		local buildData = getQuickMexBuild(mx, my)
+		if buildData then
+			if not (shift or meta or insertModifiers.prepend_between or insertModifiers.prepend_queue) then
+				buildQueue = {}
+			end
+			queueBuild(buildData, shift, meta)
+			return true
+		end
+	end
+
 	if button == 3 and shift then
 		local x, y, _ = spGetMouseState()
 		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
 		if pos and pos[1] then
 			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
 
-			buildQueue[#buildQueue + 1] = buildData
+			queueBuild(buildData, shift, meta)
 		end
 		return true
 	end
@@ -1013,7 +1221,7 @@ function widget:MousePress(mx, my, button)
 
 				if #newBuildQueue > 0 then
 					for _, buildDataPos in ipairs(newBuildQueue) do
-						buildQueue[#buildQueue + 1] = buildDataPos
+						queueBuild(buildDataPos, true)
 					end
 				end
 
@@ -1091,10 +1299,10 @@ function widget:MousePress(mx, my, button)
 			end
 
 			if not hasConflicts then
-				if meta then
-					tableInsert(buildQueue, 1, buildData)
+				if meta or insertModifiers.prepend_between or insertModifiers.prepend_queue then
+					queueBuild(buildData, shift, meta)
 				elseif shift then
-					buildQueue[#buildQueue + 1] = buildData
+					queueBuild(buildData, shift, meta)
 					handleBuildMenu(shift)
 				else
 					if isMex then
@@ -1557,6 +1765,13 @@ function widget:DrawWorld()
 		end
 	end
 
+	local mx, my = spGetMouseState()
+	local quickMex = getQuickMexBuild(mx, my)
+	if quickMex then
+		Spring.SetMouseCursor("upgmex")
+		DrawBuilding(quickMex, BORDER_COLOR_VALID, true, ALPHA_DEFAULT, true)
+	end
+
 	-- Reset gl
 	gl.Color(1, 1, 1, 1)
 	gl.LineWidth(1.0)
@@ -1658,6 +1873,7 @@ function widget:GameStart()
 	end
 
 	-- Detach pregame action handlers
+	widgetHandler:RemoveAction("commandinsert")
 	widgetHandler:RemoveAction("stop")
 	widgetHandler:RemoveAction("buildfacing")
 	widgetHandler:RemoveAction("buildspacing")
