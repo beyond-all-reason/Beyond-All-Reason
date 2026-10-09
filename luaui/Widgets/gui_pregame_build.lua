@@ -132,6 +132,65 @@ local function handleBuildMenu(shift)
 	end
 end
 
+local insertModifiers = { prepend_between = false, prepend_queue = false }
+local prependPosition = 1
+
+local function commandInsertPress(_, _, args)
+	if not preGamestartPlayer or not args or insertModifiers[args[1]] == nil then
+		return
+	end
+	insertModifiers[args[1]] = true
+	if args[1] == "prepend_queue" then
+		prependPosition = 1
+	end
+end
+
+local function commandInsertRelease(_, _, args)
+	if args and insertModifiers[args[1]] ~= nil then
+		insertModifiers[args[1]] = false
+	end
+end
+
+local function queueBuild(buildData, shift, meta)
+	local position = #buildQueue + 1
+	if insertModifiers.prepend_between or insertModifiers.prepend_queue then
+		if not shift then
+			position = 1
+		elseif insertModifiers.prepend_queue then
+			position = math.min(prependPosition, #buildQueue + 1)
+			prependPosition = position + 1
+		else
+			local px, py, pz = Spring.GetTeamStartPosition(myTeamID)
+			if px and px >= 0 then
+				local cx, cy, cz = buildData[2], buildData[3], buildData[4]
+				local function distance(x, y, z, x2, y2, z2)
+					return math.sqrt((x - x2) ^ 2 + (y - y2) ^ 2 + (z - z2) ^ 2)
+				end
+				local shortestDetour = math.huge
+				-- Match CommandInsert's shortest extra walk, starting at the commander spawn.
+				for i, queued in ipairs(buildQueue) do
+					local qx, qy, qz = queued[2], queued[3], queued[4]
+					local detour = distance(px, py, pz, cx, cy, cz)
+						+ distance(cx, cy, cz, qx, qy, qz)
+						- distance(px, py, pz, qx, qy, qz)
+					if detour < shortestDetour then
+						shortestDetour = detour
+						position = i
+					end
+					px, py, pz = qx, qy, qz
+				end
+				if distance(px, py, pz, cx, cy, cz) < shortestDetour then
+					position = #buildQueue + 1
+				end
+			end
+		end
+	elseif meta then
+		position = 1
+	end
+	tableInsert(buildQueue, position, buildData)
+	forceRefreshCache = true
+end
+
 local FORCE_SHOW_REASON = "gui_pregame_build"
 local function setPreGamestartDefID(uDefID)
 	selBuildQueueDefID = uDefID
@@ -288,6 +347,8 @@ function widget:Initialize()
 		return
 	end
 
+	widgetHandler:AddAction("commandinsert", commandInsertPress, nil, "p")
+	widgetHandler:AddAction("commandinsert", commandInsertRelease, nil, "r")
 	widgetHandler:AddAction("stop", clearPregameBuildQueue, nil, "p")
 	widgetHandler:AddAction("buildfacing", buildFacingHandler, nil, "p")
 	widgetHandler:AddAction("buildspacing", buildSpacingHandler, nil, "p")
@@ -833,7 +894,7 @@ function widget:Update(dt)
 			end
 			if #newBuildQueue > 0 then
 				for _, buildDataPos in ipairs(newBuildQueue) do
-					buildQueue[#buildQueue + 1] = buildDataPos
+					queueBuild(buildDataPos, true)
 				end
 			end
 		end
@@ -886,6 +947,65 @@ function widget:Update(dt)
 	end
 end
 
+local function getQuickMexBuild(mx, my)
+	if not preGamestartPlayer or spGetGameFrame() > 0 or selBuildQueueDefID or Spring.IsGUIHidden() then
+		return
+	end
+	if WG.topbar and WG.topbar.showingQuit() then
+		return
+	end
+	local finder, builder = WG.resource_spot_finder, WG.resource_spot_builder
+	if not finder or finder.isMetalMap or not builder then
+		return
+	end
+	local _, pos = spTraceScreenRay(mx, my, true, false, false, true)
+	if not pos then
+		return
+	end
+	local spot = finder.GetClosestMexSpot(pos[1], pos[3])
+	if not spot or (spot.x - pos[1]) ^ 2 + (spot.z - pos[3]) ^ 2 >= builder.QUICK_MEX_RADIUS_SQUARED then
+		return
+	end
+	if builder.SpotHasExtractorQueued(spot) then
+		return
+	end
+
+	-- Read the current start unit so a faction change takes effect immediately.
+	local startID = Spring.GetTeamRulesParam(myTeamID, "startUnit")
+	local startDef = startID and UnitDefs[startID]
+	if not startDef then
+		return
+	end
+	local buildData
+	local bestExtraction = 0
+	for _, defID in ipairs(startDef.buildOptions) do
+		local def = UnitDefs[defID]
+		if def.extractsMetal and def.extractsMetal > bestExtraction then
+			local candidate = builder.PreviewExtractorCommand({ spot.x, spot.y, spot.z }, defID, spot)
+			if candidate and spTestBuildOrder(defID, candidate[2], candidate[3], candidate[4], candidate[5]) ~= 0 then
+				buildData = candidate
+				bestExtraction = def.extractsMetal
+			end
+		end
+	end
+	if not buildData then
+		return
+	end
+	local cx, cy, cz = Spring.GetTeamStartPosition(myTeamID)
+	if cx and cx >= 0 then
+		local bx, by, bz = Spring.Pos2BuildPos(startID, cx, cy, cz)
+		if DoBuildingsClash(buildData, { startID, bx, by, bz, 1 }) then
+			return
+		end
+	end
+	for _, queued in ipairs(buildQueue) do
+		if queued[1] > 0 and DoBuildingsClash(buildData, queued) then
+			return
+		end
+	end
+	return buildData
+end
+
 function widget:MousePress(mx, my, button)
 	if Spring.IsGUIHidden() then
 		return
@@ -907,13 +1027,24 @@ function widget:MousePress(mx, my, button)
 		return true
 	end
 
+	if button == 3 then
+		local buildData = getQuickMexBuild(mx, my)
+		if buildData then
+			if not (shift or meta or insertModifiers.prepend_between or insertModifiers.prepend_queue) then
+				buildQueue = {}
+			end
+			queueBuild(buildData, shift, meta)
+			return true
+		end
+	end
+
 	if button == 3 and shift then
 		local x, y, _ = spGetMouseState()
 		local _, pos = spTraceScreenRay(x, y, true, false, false, true)
 		if pos and pos[1] then
 			local buildData = { -CMD.MOVE, pos[1], pos[2], pos[3], nil }
 
-			buildQueue[#buildQueue + 1] = buildData
+			queueBuild(buildData, shift, meta)
 		end
 		return true
 	end
@@ -1013,7 +1144,7 @@ function widget:MousePress(mx, my, button)
 
 				if #newBuildQueue > 0 then
 					for _, buildDataPos in ipairs(newBuildQueue) do
-						buildQueue[#buildQueue + 1] = buildDataPos
+						queueBuild(buildDataPos, true)
 					end
 				end
 
@@ -1091,10 +1222,10 @@ function widget:MousePress(mx, my, button)
 			end
 
 			if not hasConflicts then
-				if meta then
-					tableInsert(buildQueue, 1, buildData)
+				if meta or insertModifiers.prepend_between or insertModifiers.prepend_queue then
+					queueBuild(buildData, shift, meta)
 				elseif shift then
-					buildQueue[#buildQueue + 1] = buildData
+					queueBuild(buildData, shift, meta)
 					handleBuildMenu(shift)
 				else
 					if isMex then
@@ -1557,6 +1688,13 @@ function widget:DrawWorld()
 		end
 	end
 
+	local mx, my = spGetMouseState()
+	local quickMex = getQuickMexBuild(mx, my)
+	if quickMex then
+		Spring.SetMouseCursor("upgmex")
+		DrawBuilding(quickMex, BORDER_COLOR_VALID, true, ALPHA_DEFAULT, true)
+	end
+
 	-- Reset gl
 	gl.Color(1, 1, 1, 1)
 	gl.LineWidth(1.0)
@@ -1658,6 +1796,7 @@ function widget:GameStart()
 	end
 
 	-- Detach pregame action handlers
+	widgetHandler:RemoveAction("commandinsert")
 	widgetHandler:RemoveAction("stop")
 	widgetHandler:RemoveAction("buildfacing")
 	widgetHandler:RemoveAction("buildspacing")
