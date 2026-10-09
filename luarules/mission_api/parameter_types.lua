@@ -42,7 +42,6 @@ local types = {
 	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
 	MessageType = "MessageType",
-	AttributeMultiplier = "AttributeMultiplier",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",

@@ -78,6 +78,7 @@ local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
+local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
 local isDifficultiesTable = GG["MissionAPI"].Modules.Difficulty.IsDifficultiesTable
 local knownDifficulties = parameterTypeEnums[Types.Difficulty]
 
@@ -683,8 +684,6 @@ validators[Types.PositiveInteger] = function(value)
 		return { { message = "PositiveInteger must be a whole number > 0, got " .. value } }
 	end
 end
-
-validators[Types.AttributeMultiplier] = validators[Types.Number]
 
 validators[Types.Fraction] = function(fraction)
 	local luaTypeResult = validators[Types.Number](fraction)
@@ -1802,8 +1801,8 @@ end
 local function validateAttributeActions(actions)
 	local unitAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitAttribute)
 	local weaponAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.WeaponAttribute)
-	local setActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeValue)
-	local modifierActions = getTypesWithParameterType(actionsSchemaParameters, Types.AttributeMultiplier)
+	local setActions = getTypesWithParameterName(actionsSchemaParameters, "value")
+	local modifierActions = getTypesWithParameterName(actionsSchemaParameters, "multiplier")
 	local unitScopeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
 
 	for actionID, action in pairs(actions) do

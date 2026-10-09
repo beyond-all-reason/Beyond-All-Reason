@@ -148,7 +148,7 @@ describe("mission_api.actions.set_attribute", function()
 				unitDefName = "UnitDefName!",
 				teamID = "TeamID",
 				attribute = "UnitAttribute!",
-				multiplier = "AttributeMultiplier",
+				multiplier = "Number",
 				source = "String",
 			}, summarizeSchema(action))
 		end)
@@ -176,7 +176,7 @@ describe("mission_api.actions.set_attribute", function()
 				unitDefName = "UnitDefName",
 				teamID = "TeamID",
 				attribute = "UnitAttribute!",
-				multiplier = "AttributeMultiplier",
+				multiplier = "Number",
 				source = "String",
 				requiresOneOf = { "unitName", "unitDefName" },
 			}, summarizeSchema(action))
@@ -262,7 +262,7 @@ describe("mission_api.actions.set_attribute", function()
 				teamID = "TeamID",
 				weapon = "UnitWeapon",
 				attribute = "WeaponAttribute!",
-				multiplier = "AttributeMultiplier",
+				multiplier = "Number",
 				source = "String",
 			}, summarizeSchema(action))
 		end)
@@ -297,7 +297,7 @@ describe("mission_api.actions.set_attribute", function()
 				teamID = "TeamID",
 				weapon = "UnitWeapon",
 				attribute = "WeaponAttribute!",
-				multiplier = "AttributeMultiplier",
+				multiplier = "Number",
 				source = "String",
 				requiresOneOf = { "unitName", "unitDefName" },
 			}, summarizeSchema(action))
