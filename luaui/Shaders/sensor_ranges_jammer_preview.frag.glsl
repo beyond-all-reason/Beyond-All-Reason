@@ -198,8 +198,10 @@ void main() {
 			ownSdf = circleParams.z - ownDist;
 		}
 		alliedSdf = alliedCircleSdf(w);
-		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && abs(alliedSdf) < bandWidth + 2.0 * px + 4.0) {
-			alliedSdf = alliedExactSdf(w, alliedOwner); // near an edge
+		// exact near an edge: filtering bends the distance field by up to cellSize / sqrt(2), most where circles cross
+		float nearEdge = bandWidth + 2.0 * px + 4.0 + 0.75 * cellSize;
+		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && abs(alliedSdf) < nearEdge) {
+			alliedSdf = alliedExactSdf(w, alliedOwner);
 		}
 		float distN = ownDist / max(circleParams.z, 1.0);
 		float spawn = smoothstep(distN - 0.10, distN + 0.02, previewParams.w * spawnSpeed);
