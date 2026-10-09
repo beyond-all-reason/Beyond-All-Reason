@@ -420,6 +420,12 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- log selfd commands
+	function gadget:WantsUnitCommandBatch(unitID)
+		return not selfdCmdUnits[unitID]
+	end
+
+	function gadget:UnitCommandBatch() end
+
 	function gadget:UnitCommand(
 		unitID,
 		unitDefID,

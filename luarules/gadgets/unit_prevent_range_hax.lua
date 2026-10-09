@@ -24,6 +24,10 @@ function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_ATTACK)
 end
 
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return true
+end
+
 function gadget:AllowCommand(
 	unitID,
 	unitDefID,

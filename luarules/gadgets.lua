@@ -886,6 +886,19 @@ local function SafeWrapGadget(gadget)
 			gadget.Initialize = SafeWrap(gadget.Initialize, "Initialize")
 		end
 	end
+	-- Optional batch methods share the usual receiver error handling, but are
+	-- dispatched by UnitCommand/AllowCommand rather than separate engine lists.
+	for _, name in ipairs({
+		"WantsUnitCommandBatch",
+		"UnitCommandBatch",
+		"AllowCommandBatch",
+		"AllowCommandBatchCommit",
+	}) do
+		if gadget[name] then
+			gadget[name] = SafeWrap(gadget[name], name)
+		end
+	end
+
 end
 
 --------------------------------------------------------------------------------
@@ -2988,6 +3001,27 @@ end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+if Script.CommandBatchCallbacks then
+	local batch = VFS.Include("common/command_batch.lua")
+	Script.GetCommandBatchStats = batch.GetStats
+	local canNotify
+	WantsUnitCommandBatch, UnitCommandBatch, canNotify = batch.NotificationDispatcher(function()
+		local receivers = {}
+		for _, receiver in ipairs(gadgetHandler.UnitCommandList) do
+			local commandIDs = receiver._unitCommandIDs
+			if not commandIDs or commandIDs[CMD.ATTACK] then
+				receivers[#receivers + 1] = receiver
+			end
+		end
+		return receivers
+	end, markIdle)
+	if IsSyncedCode() then
+		AllowCommandBatch = batch.AllowDispatcher(function()
+			return allowCommandList[CMD.ATTACK] or allowCommandList[CMD_ANY]
+		end, canNotify)
+	end
+end
 
 synthetic.install(gadgetHandler)
 

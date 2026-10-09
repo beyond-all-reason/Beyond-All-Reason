@@ -2547,3 +2547,6 @@ function widget:SetConfigData(data)
 		maxPosY = data.maxPosY
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

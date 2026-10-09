@@ -1,5 +1,7 @@
 local gadget = gadget ---@type Gadget
 
+local batchAttackProofs = setmetatable({}, { __mode = "k" })
+
 function gadget:GetInfo()
 	return {
 		name = "gaia critter units",
@@ -437,6 +439,7 @@ function gadget:GameFrame(gameFrame)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	batchAttackProofs = setmetatable({}, { __mode = "k" })
 	if isCommander[unitDefID] then
 		commanders[unitID] = true
 	elseif isCritter[unitDefID] then
@@ -460,6 +463,7 @@ function gadget:UnitIdle(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID)
+	batchAttackProofs = setmetatable({}, { __mode = "k" })
 	mapCritters[unitID] = nil
 	local data = companionData[unitID]
 	if data then
@@ -489,6 +493,30 @@ function gadget:UnitDestroyed(unitID)
 	end
 end
 
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID, commands)
+	local proof = batchAttackProofs[commands]
+	if proof ~= nil then
+		return proof
+	end
+	for i = 1, commands:GetCount() do
+		local target = commands:GetTarget(i)
+		if mapCritters[target] or companionData[target] then
+			batchAttackProofs[commands] = false
+			return false
+		end
+	end
+	batchAttackProofs[commands] = true
+	return true
+end
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
 	return #cmdParams ~= 1 or not (mapCritters[cmdParams[1]] or companionData[cmdParams[1]])
+end
+
+function gadget:UnitGiven()
+	batchAttackProofs = setmetatable({}, { __mode = "k" })
+end
+
+function gadget:UnitTaken()
+	batchAttackProofs = setmetatable({}, { __mode = "k" })
 end

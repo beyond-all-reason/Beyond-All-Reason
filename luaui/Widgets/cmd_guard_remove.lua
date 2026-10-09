@@ -116,3 +116,9 @@ function widget:Update(dt)
 		clearRecentUnits()
 	end
 end
+
+function widget:WantsUnitCommandBatch(unitID, unitDefID)
+	return not validUnit[unitDefID]
+end
+
+function widget:UnitCommandBatch() end

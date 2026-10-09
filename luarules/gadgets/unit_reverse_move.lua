@@ -56,6 +56,10 @@ function gadget:Initialize()
 	end
 end
 
+function gadget:UnitCommandBatch(unitID, unitDefID, teamID)
+	self:UnitCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+end
+
 function gadget:UnitCommand(
 	unitID,
 	unitDefID,

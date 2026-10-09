@@ -88,6 +88,10 @@ function gadget:GameFrame(n)
 	end
 end
 
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return not Bombers[unitID]
+end
+
 function gadget:AllowCommand(
 	unitID,
 	unitDefID,

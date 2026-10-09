@@ -1856,6 +1856,12 @@ end
 
 local inUnitCommand = false
 
+function gadget:WantsUnitCommandBatch(unitID)
+	return not carrierMetaList[unitID]
+end
+
+function gadget:UnitCommandBatch() end
+
 function gadget:UnitCommand(
 	unitID,
 	unitDefID,

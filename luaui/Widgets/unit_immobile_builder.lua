@@ -124,3 +124,9 @@ function widget:UnitCommand(unitID, unitDefID, _, cmdID, _, cmdOpts)
 		end
 	end
 end
+
+function widget:WantsUnitCommandBatch(unitID, unitDefID)
+	return not isImmobileBuilder[unitDefID]
+end
+
+function widget:UnitCommandBatch() end

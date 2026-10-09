@@ -1726,3 +1726,6 @@ function widget:SetConfigData(data)
 		selectionDisableThresholdMult = data.selectionDisableThresholdMult
 	end
 end
+
+-- Shared batches contain only single-target ATTACK commands.
+function widget:UnitCommandBatch() end

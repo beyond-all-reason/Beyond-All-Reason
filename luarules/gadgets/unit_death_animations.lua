@@ -50,6 +50,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 end
 
 -- do not allow dying units to be moved
+function gadget:AllowCommandBatch(unitID, unitDefID, teamID)
+	return self:AllowCommand(unitID, unitDefID, teamID)
+end
+
 function gadget:AllowCommand(
 	unitID,
 	unitDefID,

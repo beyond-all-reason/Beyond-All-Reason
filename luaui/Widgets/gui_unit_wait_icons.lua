@@ -262,3 +262,7 @@ function widget:DrawScreenEffects()
 		gl.DepthMask(true)
 	end
 end
+
+function widget:UnitCommandBatch(unitID, unitDefID, teamID)
+	self:UnitCommand(unitID, unitDefID, teamID, CMD.ATTACK)
+end
