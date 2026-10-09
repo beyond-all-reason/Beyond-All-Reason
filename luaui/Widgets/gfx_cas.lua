@@ -134,10 +134,34 @@ local casShader
 local useRcas, preserveEdges = false, false
 
 local fullTexQuad
+local fullTexQuadBuffers = {}
 
 -----------------------------------------------------------------
 -- Widget Functions
 -----------------------------------------------------------------
+
+-- the triangle comes from gl_VertexID; the unused buffers are attached because engines without the
+-- LuaVAO keep-partial fix (RecoilEngine #3446) rebuild a VAO every draw unless it has all three kinds
+local function CreateTriangleVAO()
+	local vao = gl.GetVAO()
+	local vertexVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	local instanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if not (vao and vertexVBO and indexVBO and instanceVBO) then
+		return nil
+	end
+	vertexVBO:Define(3, { { id = 0, name = "unused", size = 1 } })
+	vertexVBO:Upload({ 0, 0, 0 })
+	indexVBO:Define(3)
+	indexVBO:Upload({ 0, 1, 2 })
+	instanceVBO:Define(1, { { id = 1, name = "unusedInstance", size = 1 } })
+	instanceVBO:Upload({ 0 })
+	vao:AttachVertexBuffer(vertexVBO)
+	vao:AttachIndexBuffer(indexVBO)
+	vao:AttachInstanceBuffer(instanceVBO)
+	fullTexQuadBuffers = { vertexVBO, indexVBO, instanceVBO }
+	return vao
+end
 
 local function UpdateShader()
 	casShader:ActivateWith(function()
@@ -182,7 +206,7 @@ function widget:Initialize()
 
 	UpdateShader()
 
-	fullTexQuad = gl.GetVAO()
+	fullTexQuad = CreateTriangleVAO()
 	if fullTexQuad == nil then
 		widgetHandler:RemoveWidget() --no fallback for potatoes
 		return
@@ -204,6 +228,9 @@ function widget:Shutdown()
 	end
 	if fullTexQuad then
 		fullTexQuad:Delete()
+	end
+	for _, vbo in ipairs(fullTexQuadBuffers) do
+		vbo:Delete()
 	end
 end
 

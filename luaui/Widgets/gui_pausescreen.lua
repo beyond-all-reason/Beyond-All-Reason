@@ -32,7 +32,6 @@ local glTexRect = gl.TexRect
 local glDeleteFont = gl.DeleteFont
 local glRect = gl.Rect
 local glUseShader = gl.UseShader
-local glCopyToTexture = gl.CopyToTexture
 local glUniform = gl.Uniform
 local glGetUniformLocation = gl.GetUniformLocation
 
@@ -43,7 +42,7 @@ local osClock = os.clock
 -- CONFIGURATION
 
 local fontfile = "fonts/unlisted/Xolonium.otf"
-local vsx, vsy, vpx, vpy = spGetViewGeometry()
+local vsx, vsy = spGetViewGeometry()
 local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 35
 local fontfileOutlineSize = 6
@@ -76,7 +75,7 @@ local lastGameFrame = spGetGameFrame()
 local lastGameFrameTime = osClock() + 10
 
 local shaderAlpha = 0
-local screencopy, shaderProgram
+local shaderProgram
 local alphaLoc, showPauseScreen, nonShaderAlpha
 local gameover = false
 local noNewGameframes = false
@@ -292,7 +291,7 @@ local function updateWindowCoords()
 end
 
 function widget:ViewResize()
-	vsx, vsy, vpx, vpy = spGetViewGeometry()
+	vsx, vsy = spGetViewGeometry()
 	usedSizeMultiplier = (0.5 + ((vsx * vsy) / 5500000)) * sizeMultiplier
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
@@ -307,32 +306,26 @@ function widget:ViewResize()
 	end
 
 	updateWindowCoords()
-
-	screencopy = gl.CreateTexture(vsx, vsy, {
-		border = false,
-		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
-	})
 end
 
 function widget:DrawScreenEffects()
-	if spIsGUIHidden() then
+	if not (showPauseScreen and shaderProgram and WG.screencopymanager) or spIsGUIHidden() then
 		return
 	end
-	if shaderProgram and showPauseScreen and WG.screencopymanager and WG.screencopymanager.GetScreenCopy then
-		glCopyToTexture(screencopy, 0, 0, vpx, vpy, vsx, vsy)
-		--screencopy = WG['screencopymanager'].GetScreenCopy()	-- can't get this method to work
+	local screencopy = WG.screencopymanager.GetScreenCopy()
+	if screencopy then
 		glTexture(0, screencopy)
 		glUseShader(shaderProgram)
 		glUniform(alphaLoc, shaderAlpha)
 		glTexRect(0, vsy, vsx, 0)
 		glTexture(0, false)
 		glUseShader(0)
+		-- CAS runs after this and rewrites the screen from the shared copy, which has to include this overlay
+		WG.screencopymanager.InvalidateScreenCopy()
 	end
 end
 
 function widget:Shutdown()
-	gl.DeleteTexture(screencopy)
 	glDeleteFont(font)
 	if shaderProgram then
 		gl.DeleteShader(shaderProgram)
