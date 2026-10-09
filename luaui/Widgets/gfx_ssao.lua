@@ -68,6 +68,7 @@ local glRawBindFBO = gl.RawBindFBO
 local shaderConfig = {
 	DEPTH_CLIP01 = tostring((Platform.glSupportClipSpaceControl and 1) or 0), -- no idea
 	MERGE_MISC = 0, -- for future material indices based SSAO evaluation, completely disabled now
+	BLUR_COMPOSITE = 0, -- 1 only in the vertical blur variant that draws onto the screen at DOWNSAMPLE 1
 }
 
 local definesSlidersParamsList = {
@@ -382,8 +383,12 @@ local gaussianBlurShaderCache
 local texrectShader = nil
 local ssaoCompositeShader = nil -- final composite (depth-rejects grass/decals via gl_FragDepth + LEQUAL)
 local ssaoCompositeShaderCache
+-- DOWNSAMPLE 1: vertical blur + composite in one pass
+local blurCompositeShader = nil ---@type table?
+local blurCompositeShaderCache
 local texrectFullVAO = nil
 local texrectPaddedVAO = nil
+local texrectGLObjects = {} -- the quad VAOs and their buffers, deleted together
 
 local unitStencilTexture
 local getStencilTexture
@@ -515,6 +520,33 @@ local function GetSamplingVectorArray(kernelSize)
 		end
 		return result
 	end
+end
+
+-- A full-screen quad; with index and instance buffers attached too, engines without the LuaVAO
+-- keep-partial fix (RecoilEngine #3446) keep the VAO instead of rebuilding it every draw
+local function MakeQuadVAO(maxU, maxV)
+	local vao = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0, 0, maxU, maxV)
+	local indexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	local instanceVBO = gl.GetVBO(GL.ARRAY_BUFFER, false)
+	if vao and indexVBO and instanceVBO then
+		indexVBO:Define(3)
+		indexVBO:Upload({ 0, 1, 2 })
+		instanceVBO:Define(1, { { id = 1, name = "unused", size = 1 } })
+		instanceVBO:Upload({ 0 })
+		vao:AttachIndexBuffer(indexVBO)
+		vao:AttachInstanceBuffer(instanceVBO)
+		texrectGLObjects[#texrectGLObjects + 1] = indexVBO
+		texrectGLObjects[#texrectGLObjects + 1] = instanceVBO
+	end
+	texrectGLObjects[#texrectGLObjects + 1] = vao
+	return vao
+end
+
+-- shared by the blur programs (the separate passes and the DOWNSAMPLE 1 composite)
+local function SetBlurUniforms(shader, weights, offsets, strength)
+	shader:SetUniformFloatArrayAlways("weights", weights)
+	shader:SetUniformFloatArrayAlways("offsets", offsets)
+	shader:SetUniformFloatAlways("strengthMult", strength)
 end
 
 -----------------------------------------------------------------
@@ -691,11 +723,36 @@ local function InitGL()
 
 	strengthMultCached = shaderConfig.SSAO_ALPHA_POW / 7.0
 
-	gaussianBlurShader:ActivateWith(function()
-		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
-		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
-		gaussianBlurShader:SetUniformFloatAlways("strengthMult", strengthMultCached)
-	end)
+	gaussianBlurShader:ActivateWith(SetBlurUniforms, gaussianBlurShader, gaussWeights, gaussOffsets, strengthMultCached)
+
+	-- At full resolution the vertical blur draws straight onto the screen, which saves a pass
+	if shaderConfig.DOWNSAMPLE == 1 then
+		local blurCompositeConfig = {} ---@type table<string, any>
+		for k, v in pairs(shaderConfig) do
+			blurCompositeConfig[k] = v
+		end
+		blurCompositeConfig.BLUR_COMPOSITE = 1
+		blurCompositeShaderCache = {
+			vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
+			fssrcpath = shadersDir .. "gaussianBlur.frag.glsl",
+			uniformInt = {
+				tex = 0,
+				modelDepthTex = 1,
+				mapDepthTex = 4,
+				unitStencilTex = 7,
+			},
+			uniformFloat = {
+				dir = { 0, 1 }, -- vertical, never changes
+				strengthMult = 1,
+			},
+			silent = true, -- suppress compilation messages
+			shaderConfig = blurCompositeConfig,
+			shaderName = widgetName .. ": blur composite",
+		}
+		local shader = LuaShader.CheckShaderUpdates(blurCompositeShaderCache)
+		shader:ActivateWith(SetBlurUniforms, shader, gaussWeights, gaussOffsets, strengthMultCached)
+		blurCompositeShader = shader
+	end
 
 	texrectShader = LuaShader.CheckShaderUpdates({
 		vssrcpath = shadersDir .. "texrect_screen.vert.glsl",
@@ -732,16 +789,10 @@ local function InitGL()
 	}
 	ssaoCompositeShader = LuaShader.CheckShaderUpdates(ssaoCompositeShaderCache)
 
-	texrectFullVAO = InstanceVBOTable.MakeTexRectVAO(-1, -1, 1, 1, 0, 0, 1, 1)
+	texrectFullVAO = MakeQuadVAO(1, 1)
 
 	-- These are now offset by the half pixel that is needed here due to ceil(vsx/rez)
-	texrectPaddedVAO = InstanceVBOTable.MakeTexRectVAO(
-		-1,
-		-1,
-		1,
-		1,
-		0.0,
-		0.0,
+	texrectPaddedVAO = MakeQuadVAO(
 		1.0 - shaderConfig.TEXPADDINGX / shaderConfig.VSX,
 		1.0 - shaderConfig.TEXPADDINGY / shaderConfig.VSY
 	)
@@ -768,6 +819,15 @@ local function CleanGL()
 		ssaoCompositeShader:Finalize()
 		ssaoCompositeShader = nil
 	end
+	if blurCompositeShader then
+		blurCompositeShader:Finalize()
+		blurCompositeShader = nil
+	end
+
+	for i = 1, #texrectGLObjects do
+		texrectGLObjects[i]:Delete()
+	end
+	texrectGLObjects = {}
 end
 
 function widget:ViewResize()
@@ -850,6 +910,8 @@ local function DoDrawSSAO()
 		unitStencilTexture = getStencilTexture()
 		glTexture(7, unitStencilTexture)
 	end
+	-- the passes discard pixels outside the stencil, so their targets are cleared to what those would output
+	local clearTargets = shaderConfig.USE_STENCIL == 1 ---@type boolean
 
 	local noFuse = shaderConfig.NOFUSE
 	local prevFBO
@@ -871,7 +933,9 @@ local function DoDrawSSAO()
 	end
 
 	-- SSAO sampling pass (now in ssaoFBO)
-	glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 0)
+	if clearTargets then
+		glClear(GL_COLOR_BUFFER_BIT, 1, 0, 1, 1)
+	end
 	ssaoShader:Activate()
 	if noFuse > 0 then
 		glTexture(1, "$model_gbuffer_zvaltex")
@@ -891,20 +955,31 @@ local function DoDrawSSAO()
 		glTexture(5, false)
 	end
 
+	-- At DOWNSAMPLE 1 the vertical blur is the composite pass
+	local compositeShader = ssaoCompositeShader
 	if shaderConfig.DEBUG_SSAO == 0 then
 		-- Blur passes: chain FBOs (ssaoFBO -> ssaoBlurFBO -> ssaoFBO -> screen)
 		glTexture(0, ssaoTex) -- swap slot 0 from normtex to SSAO result
 		gaussianBlurShader:Activate()
 		gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
 		glRawBindFBO(ssaoBlurFBO) -- chain from ssaoFBO (reads ssaoTex, safe: ssaoFBO not bound)
+		if clearTargets then
+			glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 1)
+		end
 		texrectFullVAO:DrawArrays(GL_TRIANGLES)
 
 		glTexture(0, ssaoBlurTex)
-		gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
-		glRawBindFBO(ssaoFBO) -- chain from ssaoBlurFBO (reads ssaoBlurTex, safe: ssaoBlurFBO not bound)
-		texrectFullVAO:DrawArrays(GL_TRIANGLES)
-
-		glTexture(0, ssaoTex)
+		if blurCompositeShader then
+			compositeShader = blurCompositeShader
+		else
+			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
+			glRawBindFBO(ssaoFBO) -- chain from ssaoBlurFBO (reads ssaoBlurTex, safe: ssaoBlurFBO not bound)
+			if clearTargets then
+				glClear(GL_COLOR_BUFFER_BIT, 0, 0, 0, 1)
+			end
+			texrectFullVAO:DrawArrays(GL_TRIANGLES)
+			glTexture(0, ssaoTex)
+		end
 		gaussianBlurShader:Deactivate()
 
 		if shaderConfig.DEBUG_BLUR == 1 then
@@ -942,9 +1017,9 @@ local function DoDrawSSAO()
 	glDepthTest(GL.LEQUAL)
 	glDepthMask(false)
 
-	ssaoCompositeShader:Activate()
+	compositeShader:Activate()
 	texrectPaddedVAO:DrawArrays(GL_TRIANGLES)
-	ssaoCompositeShader:Deactivate()
+	compositeShader:Deactivate()
 
 	-- Restore default depth function but keep depth writes OFF: the upcoming
 	-- DrawWorldParticles pass renders translucent geometry that must not
