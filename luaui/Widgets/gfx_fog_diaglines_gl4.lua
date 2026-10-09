@@ -115,15 +115,15 @@ function widget:Initialize()
 		return
 	end
 
-	diagShader = LuaShader.CheckShaderUpdates(diagShaderSourceCache)
-	if not diagShader or not diagShader:Initialize() then
+	diagShader = LuaShader.CheckShaderUpdates(diagShaderSourceCache) -- this compiles it, nil on failure
+	if not diagShader then
 		spEcho("Fog Diagonal Lines GL4: failed to compile/initialize main shader")
 		widgetHandler:RemoveWidget()
 		return
 	end
 
 	accumShader = LuaShader.CheckShaderUpdates(accumShaderSourceCache)
-	if not accumShader or not accumShader:Initialize() then
+	if not accumShader then
 		spEcho("Fog Diagonal Lines GL4: failed to compile/initialize accumulator shader")
 		widgetHandler:RemoveWidget()
 		return

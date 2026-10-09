@@ -74,6 +74,8 @@ local upsampleShader = nil
 local upsampleFinalShader = nil -- last upsample step + temporal blend fused into one pass
 local combineShader = nil
 local historyMixOn = false -- whether upsampleFinalShader's historyMix is temporalBlend (else 0)
+local brightShaderAmplifier = 0.0 -- glowAmplifier value brightShader currently uses
+local glowAmplifierLoc = -1 -- brightShader's fragGlowAmplifier location
 
 local bloomMips = {} -- array of { tex, fbo, w, h, ix, iy }
 local historyTargets = {} ---@type table<integer, table> ping-pong pair (mip[1] resolution) holding the final bloom, used for temporal smoothing
@@ -593,7 +595,7 @@ local function MakeBloomShaders()
 			modelDepthTex = 2,
 			mapDepthTex = 3,
 		},
-		-- these only change when the shaders are rebuilt, so bake them in here
+		-- these only change on a rebuild (fragGlowAmplifier also via setBrightness), so bake them in here
 		-- instead of re-uploading them every frame
 		uniformFloat = {
 			illuminationThreshold = illumThreshold,
@@ -608,6 +610,8 @@ local function MakeBloomShaders()
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed")
 		return
 	end
+	glowAmplifierLoc = brightShader:GetUniformLocation("fragGlowAmplifier")
+	brightShaderAmplifier = glowAmplifier
 end
 
 -- a full-screen quad; with index and instance buffers attached too, engines without the LuaVAO
@@ -630,7 +634,11 @@ local function CreateRectVAO()
 	return true
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize()
+	local sizeX, sizeY, posX, posY = Spring.GetViewGeometry()
+	if sizeX == viewSizeX and sizeY == viewSizeY and posX == viewPosX and posY == viewPosY then
+		return -- the handler's first ViewResize after load repeats the geometry Initialize built for
+	end
 	MakeBloomShaders()
 end
 
@@ -654,8 +662,8 @@ function widget:Initialize()
 		return glowAmplifier
 	end
 	WG.bloomdeferred.setBrightness = function(value)
-		glowAmplifier = value
-		MakeBloomShaders()
+		glowAmplifier = value -- a uniform, uploaded by Bloom: no rebuild per slider step
+		historyValid = false -- switch at once, as the rebuild did
 	end
 	WG.bloomdeferred.getPreset = function()
 		return preset
@@ -716,6 +724,10 @@ local function Bloom()
 	glBlending(false)
 	local prevFBO = BindTarget(bloomMips[1])
 	brightShader:Activate()
+	if brightShaderAmplifier ~= glowAmplifier then
+		gl.Uniform(glowAmplifierLoc, glowAmplifier * glowAmplifierMult)
+		brightShaderAmplifier = glowAmplifier
+	end
 
 	glTexture(0, "$model_gbuffer_difftex")
 	glTexture(1, "$model_gbuffer_emittex")
