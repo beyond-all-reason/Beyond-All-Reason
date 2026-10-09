@@ -1019,6 +1019,8 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
 		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
 		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
+		widget._tracyCommandNotifyName = "W:CommandNotify:" .. wi.name
+		widget._tracyRecvLuaMsgName = "W:RecvLuaMsg:" .. wi.name
 	end
 end
 
@@ -2032,7 +2034,7 @@ function widgetHandler:Update()
 
 	tracy.ZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN("W:Update:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyUpdateName)
 		w:Update(deltaTime)
 		tracy.ZoneEnd()
 	end
@@ -2131,7 +2133,7 @@ end
 function widgetHandler:CommandNotify(id, params, options)
 	tracy.ZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
-		tracy.ZoneBeginN("W:CommandNotify:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyCommandNotifyName)
 		local consumed = w:CommandNotify(id, params, options)
 		tracy.ZoneEnd()
 		if consumed then
@@ -3475,7 +3477,7 @@ function widgetHandler:RecvLuaMsg(msg, playerID)
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
-		tracy.ZoneBeginN("W:RecvLuaMsg:" .. w.whInfo.name)
+		tracy.ZoneBeginN(w._tracyRecvLuaMsgName)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
