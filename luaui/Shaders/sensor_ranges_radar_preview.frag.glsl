@@ -66,12 +66,12 @@ float previewCoverageAt(ivec2 radarCell) {
 	return texelFetch(coverageTex, texel, 0).r;
 }
 
-// Circle mode: the previewed radar's coverage at a radar cell, with the cells past its disc (between the engine's
-// staircase and the range circle) taking the coverage of the cell further in on the line from the emitter, so terrain
-// shadows carry on to the circle. The coverage is 0 both off the disc and in shadow, so every empty cell farther out
-// than the disc's radius counts as off it; shadowed cells there take their inner neighbour's shadow anyway.
-float circleCoverageAt(ivec2 radarCell) {
-	float coverage = previewCoverageAt(radarCell);
+// Circle mode: the previewed radar's coverage at a radar cell from the cell's own `coverage` (previewCoverageAt), with
+// the cells past its disc (between the engine's staircase and the range circle) taking the coverage of the cell further
+// in on the line from the emitter, so terrain shadows carry on to the circle. The coverage is 0 both off the disc and in
+// shadow, so every empty cell farther out than the disc's radius counts as off it; shadowed cells there take their
+// inner neighbour's shadow anyway.
+float circleCoverage(ivec2 radarCell, float coverage) {
 	vec2 offset = vec2(radarCell - ivec2(lookupParams.xy));
 	float dist = length(offset);
 	if (coverage <= 0.0 && dist > lookupParams.z) {
@@ -79,6 +79,10 @@ float circleCoverageAt(ivec2 radarCell) {
 		coverage = previewCoverageAt(inner);
 	}
 	return max(coverage, 0.0);
+}
+
+float circleCoverageAt(ivec2 radarCell) {
+	return circleCoverage(radarCell, previewCoverageAt(radarCell));
 }
 
 // 1 where another allied radar covers the radar cell, 0 with allied coverage off
@@ -104,11 +108,14 @@ float sheetGlow(vec2 fromCenter, float time) {
 	float phase = fract((dist - time * pulseSpeed) / pulseSpacing); // 0 at a ring's center, 1 at the next ring
 	// PULSE_SYMMETRIC: smooth bell that fades in and out around the ring, or a sharp front fading out behind it
 	float ring = (pulseSymmetric > 0.5) ? pow(0.5 + 0.5 * cos(phase * 2.0 * PI), pulsePower) : pow(1.0 - phase, pulsePower);
-	float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
-	float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the sweep's leading edge
-	float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
-	float sweep = (trail * trail + (1.0 - smoothstep(0.0, sweepBeam, behind))) * sweepStrength * animParams.w; // RadarPreviewSweep
-	return clamp(ring * sheetRingStrength + sweep, 0.0, 1.0);
+	float glow = ring * sheetRingStrength;
+	if (animParams.w > 0.5) { // RadarPreviewSweep
+		float angle = atan(fromCenter.y, fromCenter.x) / (2.0 * PI) + 0.5;
+		float behind = (1.0 - fract(angle - time * sweepSpeed)) * 360.0; // degrees behind the sweep's leading edge
+		float trail = clamp(1.0 - behind / sweepTrail, 0.0, 1.0);
+		glow += (trail * trail + (1.0 - smoothstep(0.0, sweepBeam, behind))) * sweepStrength;
+	}
+	return clamp(glow, 0.0, 1.0);
 }
 
 void main() {
@@ -127,11 +134,6 @@ void main() {
 	if (mapDepth >= 0.999999) {
 		discard; // sky
 	}
-#if MODEL_DEPTH_TEST
-	if (texture(modelDepths, screenUV).x < mapDepth) {
-		discard; // a unit or feature in front of the terrain
-	}
-#endif
 
 	ivec2 cell = ivec2(floor(cellCoord));
 	// circle mode: the previewed radar's coverage ends at a circle at its range around it
@@ -139,7 +141,9 @@ void main() {
 	float pixelElmos = max(cellPixels.x, cellPixels.y) * cellSize;
 	float circleSdf = circleParams.y - distance(worldPos.xz, radarcenter_range.xz);
 	float inCircle = clamp(circleSdf / pixelElmos + 0.5, 0.0, 1.0);
-	float ownCoverage = circles ? circleCoverageAt(cell) * inCircle : previewCoverageAt(cell);
+	float cellCoverage = previewCoverageAt(cell);
+	float circleCellCoverage = circles ? circleCoverage(cell, cellCoverage) : 0.0;
+	float ownCoverage = circles ? circleCellCoverage * inCircle : cellCoverage;
 	bool inPreviewDisc = circles ? (circleSdf > -pixelElmos) : (ownCoverage >= 0.0);
 	ownCoverage = max(ownCoverage, 0.0);
 	float coverage = ownCoverage;
@@ -150,7 +154,7 @@ void main() {
 	if (lookupParams.w > 0.5) {
 		weight = smoothstep(0.0, 0.5, coverage);
 		float allied = alliedAt(cell);
-		if (circles && circleParams.z > 0.5 && previewCoverageAt(cell) >= 0.5) {
+		if (circles && circleParams.z > 0.5 && cellCoverage >= 0.5) {
 			// past the circle, without the selected radar's own staircase of cells
 			allied = mix(otherAlliedAt(cell), allied, inCircle);
 		}
@@ -169,37 +173,49 @@ void main() {
 	if (coverage < minCoverage || spawn < 0.01) {
 		discard;
 	}
+#if MODEL_DEPTH_TEST
+	if (texture(modelDepths, screenUV).x < mapDepth) {
+		discard; // a unit or feature in front of the terrain
+	}
+#endif
 	float fade = spawn * smoothstep(0.0, 0.5, coverage) * mix(alliedAlpha, 1.0, weight);
 
 	// outline on the nearer x and z side of the cell when it borders a cell the previewed radar does not cover
-	// (its own coverage border, drawn even inside allied coverage) or that no radar covers
+	// (its own coverage border, drawn even inside allied coverage) or that no radar covers. None where the position
+	// jumps between pixels (terrain silhouettes) or cells shrink below a pixel; the neighbours are only looked up where
+	// the line can be.
+	float outline = 0.0;
 	vec2 inCell = fract(cellCoord);
-	vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
 	vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
-	ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
-	ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
-	ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
-	vec3 ownNeighbours = circles
-		? step(vec3(0.5), vec3(circleCoverageAt(nx), circleCoverageAt(nz), circleCoverageAt(nd)))
-		: step(vec3(0.5), vec3(previewCoverageAt(nx), previewCoverageAt(nz), previewCoverageAt(nd)));
-	vec3 anyNeighbours = max(ownNeighbours, vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd)));
-	vec3 side = max(step(0.5, ownCoverage) * (1.0 - ownNeighbours), 1.0 - anyNeighbours); // x side, z side, diagonal
 	vec2 px = max(cellPixels, vec2(1e-5)) * outlineWidth * viewGeometry.y / 1080.0;
-	vec2 edge = 1.0 - smoothstep(vec2(0.0), px, edgeDist);
-	// at a concave corner only the diagonal cell is outside and neither side's line reaches the corner: this cell's
-	// corner square closes the outline there
-	float corner = (1.0 - side.x) * (1.0 - side.y) * side.z * min(edge.x, edge.y);
-	float line = max(max(side.x * edge.x, side.y * edge.y), corner);
-	// no outline where the position jumps between pixels (terrain silhouettes) or cells shrink below a pixel
-	float outline = (max(cellPixels.x, cellPixels.y) < 1.0) ? line : 0.0;
+	if (max(cellPixels.x, cellPixels.y) < 1.0 && any(lessThan(edgeDist, px))) {
+		vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
+		ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
+		ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
+		ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
+		// circle mode: none past the circle, where circleCoverageAt still carries the disc's edge on outward
+		vec3 ownNeighbours = circles
+			? step(vec3(0.5), vec3(circleCoverageAt(nx), circleCoverageAt(nz), circleCoverageAt(nd))) * inCircle
+			: step(vec3(0.5), vec3(previewCoverageAt(nx), previewCoverageAt(nz), previewCoverageAt(nd)));
+		vec3 anyNeighbours = max(ownNeighbours, vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd)));
+		vec3 side = max(step(0.5, ownCoverage) * (1.0 - ownNeighbours), 1.0 - anyNeighbours); // x side, z side, diagonal
+		vec2 edge = 1.0 - smoothstep(vec2(0.0), px, edgeDist);
+		// at a concave corner only the diagonal cell is outside and neither side's line reaches the corner: this
+		// cell's corner square closes the outline there
+		float corner = (1.0 - side.x) * (1.0 - side.y) * side.z * min(edge.x, edge.y);
+		outline = max(max(side.x * edge.x, side.y * edge.y), corner);
+	}
 	if (circles && max(cellPixels.x, cellPixels.y) < 4.0) {
 		// the range circle, where the previewed radar's coverage reaches it
 		float rimWidth = pixelElmos * outlineWidth * viewGeometry.y / 1080.0;
-		outline = max(outline, (1.0 - smoothstep(0.0, rimWidth, circleSdf)) * step(0.5, circleCoverageAt(cell)));
+		outline = max(outline, (1.0 - smoothstep(0.0, rimWidth, circleSdf)) * inCircle * step(0.5, circleCellCoverage));
 	}
 
 	// only the previewed radar's own coverage animates (weight), cells of other allied radars stay still
-	float glow = sheetGlow(worldPos.xz - radarcenter_range.xz, animParams.x) * weight * animParams.z;
+	float glow = 0.0;
+	if (weight > 0.0 && animParams.z > 0.5) {
+		glow = sheetGlow(worldPos.xz - radarcenter_range.xz, animParams.x) * weight;
+	}
 	// allied-only cells muted, the rings blend it all the way to the pulse color
 	vec3 tint = mix(alliedColor, sheetColor, weight);
 	vec3 fillColor = mix(tint, sheetPulseColor, glow);
