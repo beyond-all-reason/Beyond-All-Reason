@@ -2315,6 +2315,10 @@ end
 
 function widget:Shutdown()
 	DeleteDisplayLists()
+	if type(napalmShader) == "table" then
+		napalmShader:Finalize()
+		napalmShader = nil
+	end
 end
 
 local function DrawUnitAoe(

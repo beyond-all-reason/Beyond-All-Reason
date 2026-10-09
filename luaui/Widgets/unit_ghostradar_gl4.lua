@@ -20,19 +20,26 @@ local addHeight = 8 -- compensate for unit wobbling underground
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
-local spIsUnitInView = Spring.IsUnitInView
+local spGetGameFrame = Spring.GetGameFrame
 
 local unitshapes = {}
+local shapePositions = {} -- unitID -> { x, y, z } the shape was last drawn at
+local lastUpdateFrame
 local dots = {}
 local spec, specFullView = spGetSpectatingState()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
+-- the textures DrawUnitShape GL4 has shape buckets for
+---@type table<string, boolean?>
+local shapeTextures =
+	{ ["arm_color.dds"] = true, ["cor_color.dds"] = true, ["leg_color.dds"] = true, ["legmech_color.dds"] = true }
+
 local includedUnitDefIDs = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.isBuilding == false and unitDef.isFactory == false then
-		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "arm_color.dds" then
-			includedUnitDefIDs[unitDefID] = true
-		elseif unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "cor_color.dds" then
+		local model = unitDef.model -- a new table on every access
+		local tex1 = model and model.textures and model.textures.tex1
+		if tex1 and shapeTextures[tex1:lower()] then
 			includedUnitDefIDs[unitDefID] = true
 		end
 	end
@@ -42,6 +49,7 @@ local function removeUnitShape(unitID)
 	if unitshapes[unitID] then
 		WG.StopDrawUnitShapeGL4(unitshapes[unitID])
 		unitshapes[unitID] = nil
+		shapePositions[unitID] = nil
 	end
 end
 
@@ -51,6 +59,7 @@ local function addUnitShape(unitID, unitDefID, px, py, pz, rotationY, teamID)
 	end
 	unitshapes[unitID] =
 		WG.DrawUnitShapeGL4(unitDefID, px, py + addHeight, pz, rotationY, shapeOpacity, teamID, nil, nil)
+	shapePositions[unitID] = { px, py, pz }
 	return unitshapes[unitID]
 end
 
@@ -157,18 +166,30 @@ end
 function widget:Update(dt)
 	if not WG.DrawUnitShapeGL4 then
 		widgetHandler:RemoveWidget()
+		return
 	end
 	if spec then
 		_, specFullView, _ = spGetSpectatingState()
 	end
 	if not specFullView then
+		-- blip positions only change on sim frames
+		local gameFrame = spGetGameFrame()
+		if gameFrame == lastUpdateFrame then
+			return
+		end
+		lastUpdateFrame = gameFrame
 		for unitID, shape in pairs(unitshapes) do
 			local x, y, z = spGetUnitPosition(unitID)
-			if not x then
+			local dot = dots[unitID]
+			if not x or not dot then
 				dots[unitID] = nil
 				removeUnitShape(unitID) -- needs to be done cause we dont know if unit has died
-			elseif spIsUnitInView(unitID) then
-				addUnitShape(unitID, dots[unitID][1], x, y, z, 0, dots[unitID][2]) -- update because unit position does change
+			else
+				local pos = shapePositions[unitID]
+				if x ~= pos[1] or y ~= pos[2] or z ~= pos[3] then
+					WG.DrawUnitShapeGL4(dot[1], x, y + addHeight, z, 0, shapeOpacity, dot[2], 0, 0, shape)
+					pos[1], pos[2], pos[3] = x, y, z
+				end
 			end
 		end
 	else

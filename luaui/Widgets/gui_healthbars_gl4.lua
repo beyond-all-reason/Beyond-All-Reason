@@ -17,11 +17,11 @@ local mathMin = math.min
 
 -- Localized Spring API for performance
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitHealth = Spring.GetUnitHealth
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetGameFrame = Spring.GetGameFrame
 local spEcho = Spring.Echo
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetFeaturePosition = Spring.GetFeaturePosition
 local spIsPosInLos = Spring.IsPosInLos
@@ -355,6 +355,16 @@ for barname, bt in pairs(barTypeMap) do
 	bt.cache = cache
 end
 
+-- A unit's bar is keyed unitID * 16 + the bar's index here, so adding or removing one builds no string
+local unitBarNames = {}
+local unitBarIndex = {}
+for barname in pairs(barTypeMap) do
+	if not barname:find("^feature") then
+		unitBarNames[#unitBarNames + 1] = barname
+		unitBarIndex[barname] = #unitBarNames
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -656,6 +666,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local deferUploads = false -- set while rebuilding all bars, which are then uploaded in one go
+
 local function addBarForUnit(unitID, unitDefID, barname, reason)
 	--Spring.Debug.TraceFullEcho()
 	if debugmode then
@@ -674,7 +686,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 	local bt = barTypeMap[barname]
 	--if cnt == 1 then bt = barTypeMap.building end
 	--if cnt == 2 then bt = barTypeMap.reload end
-	local instanceID = unitID .. "_" .. barname
+	local instanceID = unitID * 16 + unitBarIndex[barname]
 	--spEcho(instanceID, barname, unitBars[unitID])
 	if healthBarVBO.instanceIDtoIndex[instanceID] then
 		if debugmode then
@@ -683,7 +695,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		return
 	end -- we already have this bar !
 
-	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then -- dead or invalid
+	if spGetUnitIsDead(unitID) ~= false then -- dead, or nil for invalid
 		if debugmode then
 			BAR.Debug.TraceEcho("Tried to add a bar to dead/invalid/nounitdef unit", unitID, unitDefID, barname)
 		end
@@ -716,7 +728,7 @@ local function addBarForUnit(unitID, unitDefID, barname, reason)
 		healthBarTableCache,
 		instanceID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
-		nil, -- noupload, dont use unless you know what you want to batch push/pop
+		deferUploads, -- noupload, dont use unless you know what you want to batch push/pop
 		unitID
 	) -- last one should be featureID!
 	-- we are returning here, to sign successful adds
@@ -746,7 +758,7 @@ local function updateReloadBar(unitID, unitDefID, reason)
 end
 
 local function removeBarFromUnit(unitID, barname, reason) -- this will bite me in the ass later, im sure, yes it did, we need to just update them :P
-	local instanceKey = unitID .. "_" .. barname
+	local instanceKey = unitID * 16 + unitBarIndex[barname]
 	if healthBarVBO.instanceIDtoIndex[instanceKey] then
 		if debugmode then
 			BAR.Debug.TraceEcho(reason)
@@ -757,7 +769,7 @@ local function removeBarFromUnit(unitID, barname, reason) -- this will bite me i
 end
 
 local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason) -- TODO, actually, we need to check for all of these for stuff entering LOS
-	if unitDefID == nil or Spring.ValidUnitID(unitID) == false or Spring.GetUnitIsDead(unitID) == true then
+	if unitDefID == nil or spGetUnitIsDead(unitID) ~= false then -- dead, or nil for invalid
 		if debugmode then
 			spEcho("Tried to add a bar to a dead or invalid unit", unitID, "at", spGetUnitPosition(unitID), reason)
 		end
@@ -768,7 +780,10 @@ local function addBarsForUnit(unitID, unitDefID, unitTeam, unitAllyTeam, reason)
 
 	-- This is optionally passed, and it only important in one edge case:
 	-- If a unit is captured and thus immediately become outside of LOS, then the getunitallyteam is still the old ally team according to getUnitAllyTEam, and not the new allyteam.
-	unitAllyTeam = unitAllyTeam or Spring.GetUnitAllyTeam(unitID)
+	-- Only read below for units that hide damage or stockpile, and never in fullview
+	if unitAllyTeam == nil and not fullview and (unitDefHideDamage[unitDefID] or unitDefCanStockpile[unitDefID]) then
+		unitAllyTeam = Spring.GetUnitAllyTeam(unitID)
+	end
 	local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
 	if
 		(fullview or (unitAllyTeam == myAllyTeamID) or (unitDefHideDamage[unitDefID] == nil))
@@ -844,8 +859,8 @@ end
 
 local function removeBarsFromUnit(unitID, reason)
 	if unitBars[unitID] then -- bars can only exist for units addBarForUnit has counted
-		for barname, v in pairs(barTypeMap) do
-			removeBarFromUnit(unitID, barname, reason)
+		for i = 1, #unitBarNames do
+			removeBarFromUnit(unitID, unitBarNames[i], reason)
 		end
 	end
 	unitShieldWatch[unitID] = nil
@@ -882,32 +897,14 @@ local function addBarToFeature(featureID, barname)
 	end
 	featureBars[featureID] = featureBars[featureID] + 1
 
+	local featureBarTableCache = bt.cache
+	featureBarTableCache[1] = featureDefHeights[featureDefID] + additionalheightaboveunit -- height
+	featureBarTableCache[2] = 1.0 * barScale -- size mult
+	featureBarTableCache[6] = featureBars[featureID] - 1 -- bar index (how manyeth per unit)
+
 	pushElementInstance(
 		targetVBO, -- push into this Instance VBO Table
-		{
-			featureDefHeights[featureDefID] + additionalheightaboveunit, -- height
-			1.0 * barScale, -- size mult
-			0, -- timer end
-			bt.uvoffset, -- unused float
-
-			bt.bartype, -- bartype int
-			featureBars[featureID] - 1, -- bar index (how manyeth per unit)
-			bt.uniformindex, -- ssbo location offset (> 20 for health)
-			0, -- unused int
-
-			bt.mincolor[1],
-			bt.mincolor[2],
-			bt.mincolor[3],
-			bt.mincolor[4],
-			bt.maxcolor[1],
-			bt.maxcolor[2],
-			bt.maxcolor[3],
-			bt.maxcolor[4],
-			0,
-			0,
-			0,
-			0,
-		}, -- these are just padding zeros for instData, that will get filled in
+		featureBarTableCache,
 		featureID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		nil, -- noupload, dont use unless you know what you want to batch push/pop
@@ -952,21 +949,24 @@ local function init()
 	unitStockPileWatch = {}
 	unitReloadWatch = {}
 	unitBars = {}
+	deferUploads = true
 	for i, unitID in ipairs(Spring.GetAllUnits()) do -- gets radar blips too!
 		-- probably shouldn't be adding non-visible units
 
 		if fullview then
-			addBarsForUnit(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initfullview")
+			addBarsForUnit(unitID, spGetUnitDefID(unitID), nil, nil, "initfullview")
 		else
 			local losstate = Spring.GetUnitLosState(unitID, myAllyTeamID)
 			if losstate.los then
-				addBarsForUnit(unitID, spGetUnitDefID(unitID), spGetUnitTeam(unitID), nil, "initlos")
+				addBarsForUnit(unitID, spGetUnitDefID(unitID), nil, nil, "initlos")
 				--spEcho(unitID, "IS in los")
 			else
 				--spEcho(unitID, "is not in los for ", myAllyTeamID)
 			end
 		end
 	end
+	deferUploads = false
+	InstanceVBOTable.uploadAllElements(healthBarVBO)
 end
 
 local function initfeaturebars()
@@ -1122,6 +1122,10 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("debughealthbars", "t")
 	spEcho("Healthbars GL4 unloaded hooks")
+	if type(healthBarShader) == "table" then
+		healthBarShader:Finalize()
+		healthBarShader = nil
+	end
 end
 
 function widget:FeatureReclaimStartedHealthbars(featureID, step)
@@ -1171,10 +1175,12 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 	InstanceVBOTable.clearInstanceTable(healthBarVBO) -- clear all instances
+	deferUploads = true
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		addBarsForUnit(unitID, unitDefID, spGetUnitTeam(unitID), nil, "VisibleUnitsChanged") -- TODO: add them with noUpload = true
+		addBarsForUnit(unitID, unitDefID, nil, nil, "VisibleUnitsChanged")
 	end
-	--uploadAllElements(healthBarVBO) -- upload them all
+	deferUploads = false
+	InstanceVBOTable.uploadAllElements(healthBarVBO) -- upload them all
 end
 
 function widget:PlayerChanged(playerID)

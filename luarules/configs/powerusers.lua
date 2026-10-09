@@ -54,16 +54,7 @@ local singleplayer = { -- note: these permissions override others when singlepla
 	volcano = true,
 }
 
--- Trusted playernames as fallback when accountID is unavailable (-1) This occurs when joining an already running game.
--- Only applied when no accountID-based entry already exists for the player.
-local trustedNames = {
-	["[teh]Flow"] = everything,
-	Floris = everything,
-	PtaQ = everything,
-}
-
 return {
-	trustedNames = trustedNames,
 	[-1] = singleplayer, -- SPECIAL NAME/ADDITION: dont change it
 
 	-- admins

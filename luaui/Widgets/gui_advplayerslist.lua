@@ -97,8 +97,6 @@ local curFrame = spGetGameFrame()
 
 local font, font2
 
-local AdvPlayersListAtlas
-
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -1885,9 +1883,6 @@ function widget:DrawScreen()
 	end
 	drawState.sawSpareDrawFrame = renderOnlyFrame
 	drawState.lastDrawGameFrame = drawGameFrame
-
-	AdvPlayersListAtlas:RenderTasks()
-	--AdvPlayersListAtlas:DrawToScreen()
 
 	-- draw the background element
 	if mainListBgTex then
@@ -5001,26 +4996,6 @@ function widget:ViewResize()
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2, 1.5, 0.13, 20)
 
-	local MakeAtlasOnDemand = require("luaui/Include/AtlasOnDemand")
-	if AdvPlayersListAtlas then
-		--AdvPlayersListAtlas:Delete()
-	end
-
-	local cellheight = mathMax(32, mathCeil(mathMax(font.size, font2.size) + 4))
-	local cellwidth = mathCeil(cellheight * 1.25)
-	local cellcount = mathCeil(math.sqrt(32 + 32 + 200))
-	local atlasconfig = {
-		sizex = cellheight * cellcount,
-		sizey = cellwidth * cellcount,
-		xresolution = cellheight,
-		yresolution = cellwidth,
-		name = "AdvPlayersListAtlas",
-		defaultfont = { font = font, options = "o" },
-	}
-	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
-	for i = 0, 99 do
-		AdvPlayersListAtlas:AddText(string.format("%02d", i))
-	end
 	forceMainListRefresh = true
 end
 

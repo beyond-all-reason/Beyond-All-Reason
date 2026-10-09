@@ -33,8 +33,8 @@ out vec4 fragColor;
 #if BLUR_COMPOSITE == 1
 // As in ssaoComposite: the closest gbuffer depth, so the LEQUAL test rejects grass/decals drawn over it
 float GbufferDepth() {
-	vec2 uv = vs_position_texcoords.zw;
-	return min(textureLod(modelDepthTex, uv, 0.0).r, textureLod(mapDepthTex, uv, 0.0).r) - 1e-5;
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+	return min(texelFetch(modelDepthTex, pixel, 0).r, texelFetch(mapDepthTex, pixel, 0).r) - 1e-5;
 }
 #endif
 

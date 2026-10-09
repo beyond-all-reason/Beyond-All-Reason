@@ -49,6 +49,13 @@ local function fixture()
 		widgetHandler = { AddAction = noop, RegisterGlobal = noop, RemoveAction = noop, DeregisterGlobal = noop },
 		VFS = {
 			Include = function(path)
+				-- The tileset section round-trips the WORLD PATTERN FRAME through the
+				-- shared transform math. That module is pure and has no engine calls,
+				-- so the real one is loaded rather than stubbed: a stub here could
+				-- disagree with the transform about what "no frame at all" means.
+				if path == "luaui/Include/map_transform.lua" then
+					return _G.VFS.Include(path)
+				end
 				if path == "luaui/Include/map_library.lua" then
 					return {
 						new = function()
@@ -299,5 +306,57 @@ describe("map project autosave", function()
 		local again, why = f.project.autosaveNow(true)
 		assert(again == false, "a second snapshot in the same minute must be refused")
 		assert(why == "a snapshot for this minute exists", tostring(why))
+	end)
+end)
+
+-- The pointer is how a MAP TRANSFORM restart tells the next session to replay
+-- the recorded sections onto the new canvas. The heightmap is its only
+-- consumer and the only layer not already rewritten on disk, so if the
+-- transform goes missing here the masks still turn and the terrain is quietly
+-- stretched corner to corner instead, with nothing logged. That is exactly
+-- what a dropped `%s` in the format string did (string.format ignores an
+-- argument with no specifier), so the block is asserted rather than trusted.
+describe("map transform pointer", function()
+	local function writePointerOf(f)
+		local openProject = upvalue(f.project.openStaged, "openProject")
+		return upvalue(openProject, "writePointer")
+	end
+
+	it("carries the transform block through to the pointer file", function()
+		local f = fixture()
+		local ok = writePointerOf(f)({
+			path = "MapProjects/_transform/staged/",
+			size_x = 10,
+			size_z = 8,
+			phase = 0,
+			phases = 0,
+			transform = {
+				src_x = 8,
+				src_z = 10,
+				fill_height = 120.5,
+				placements = {
+					{ rot = 90, mirrorX = false, mirrorZ = false, fit = "stretch", anchorX = 0, anchorZ = 0 },
+				},
+			},
+		})
+		assert(ok, "the pointer was not written")
+		local text = f.files["Terraform Brush/pending_project.lua"]
+		assert(text, "no pointer file")
+		local pointer = assert(loadstring(text))()
+		assert.is_not_nil(pointer.transform)
+		assert.are.equal(8, pointer.transform.src_x)
+		assert.are.equal(10, pointer.transform.src_z)
+		assert.are.equal(1, #pointer.transform.placements)
+		assert.are.equal(90, pointer.transform.placements[1].rot)
+		assert.are.equal("stretch", pointer.transform.placements[1].fit)
+		assert.are.equal(120.5, pointer.transform.fill_height)
+	end)
+
+	it("writes no transform key for an ordinary load", function()
+		local f = fixture()
+		writePointerOf(f)({ path = "MapProjects/arena/", size_x = 12, size_z = 12, phase = 0, phases = 0 })
+		local pointer = assert(loadstring(f.files["Terraform Brush/pending_project.lua"]))()
+		assert.is_nil(pointer.transform)
+		assert.are.equal("MapProjects/arena/", pointer.path)
 	end)
 end)

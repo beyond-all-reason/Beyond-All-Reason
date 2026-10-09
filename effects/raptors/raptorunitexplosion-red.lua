@@ -20,7 +20,7 @@ return {
 				size = 0.1,
 				sizegrowth = 1,
 				speed = [[0, 1 0, 0]],
-				texture = [[flare-raptors]],
+				texture = [[flare]],
 			},
 		},
 

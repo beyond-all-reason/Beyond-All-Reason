@@ -51,6 +51,7 @@ const float inactiveOutlineAlpha = float(INACTIVE_OUTLINE_ALPHA);
 const float minCoverage = float(MIN_COVERAGE);
 const float spawnSpeed = float(SPAWN_SPEED);
 const float sdfRange = float(CIRCLE_SDF_RANGE);
+const float sdfSlack = float(CIRCLE_SDF_SLACK); // elmos a mobile jammer's circle moves before the field is re-rendered
 const float PI = 3.14159265;
 
 // texel of the previewed jammer's disc textures for a radar cell, (-1, -1) outside its disc
@@ -111,12 +112,14 @@ float borderLine(vec2 sides, float diagonalOut, vec2 edge, vec2 stipples, float 
 	return mix(line, cornerStipple, corner);
 }
 
-// circle mode: elmos inside (+) or outside (-) the allied circles' union, clamped to CIRCLE_SDF_RANGE
+// circle mode: elmos inside (+) or outside (-) the allied circles' union, clamped to CIRCLE_SDF_RANGE. Off the map
+// less the distance to it, or its edge texels would smear outward (the circle list is exact there)
 float alliedCircleSdf(vec2 w) {
 	if (alliedParams.x < 0.5) {
 		return -sdfRange;
 	}
-	return (texture(alliedSdfTex, w / mapSize.xy).r - 0.5) * 2.0 * sdfRange; // mapSize.xy: the map in elmos
+	float offMap = distance(w, clamp(w, vec2(0.0), mapSize.xy)); // mapSize.xy: the map in elmos
+	return (texture(alliedSdfTex, w / mapSize.xy).r - 0.5) * 2.0 * sdfRange - offMap;
 }
 
 // circle mode: the stipple along a circle (center x, z, radius), travelled `offset` cells clockwise. A whole number of
@@ -171,11 +174,6 @@ void main() {
 	if (mapDepth >= 0.999999) {
 		discard; // sky
 	}
-#if MODEL_DEPTH_TEST
-	if (texture(modelDepths, screenUV).x < mapDepth) {
-		discard; // a unit or feature in front of the terrain
-	}
-#endif
 
 	ivec2 cell = ivec2(floor(cellCoord));
 	float inactive = previewInactive;
@@ -198,8 +196,12 @@ void main() {
 			ownSdf = circleParams.z - ownDist;
 		}
 		alliedSdf = alliedCircleSdf(w);
-		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && abs(alliedSdf) < bandWidth + 2.0 * px + 4.0) {
-			alliedSdf = alliedExactSdf(w, alliedOwner); // near an edge
+		// exact near an edge (filtering bends the distance field by up to cellSize / sqrt(2), most where circles cross,
+		// and it lags moving circles by up to sdfSlack) and off the map, where the field has no texels
+		float nearEdge = bandWidth + 2.0 * px + 4.0 + 0.75 * cellSize + sdfSlack;
+		bool offMap = any(notEqual(w, clamp(w, vec2(0.0), mapSize.xy)));
+		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && (abs(alliedSdf) < nearEdge || offMap)) {
+			alliedSdf = alliedExactSdf(w, alliedOwner);
 		}
 		float distN = ownDist / max(circleParams.z, 1.0);
 		float spawn = smoothstep(distN - 0.10, distN + 0.02, previewParams.w * spawnSpeed);
@@ -224,48 +226,61 @@ void main() {
 	if (max(fillFade, max(jammedFade, ownLineFade)) < minCoverage) {
 		discard;
 	}
+#if MODEL_DEPTH_TEST
+	if (texture(modelDepths, screenUV).x < mapDepth) {
+		discard; // a unit or feature in front of the terrain
+	}
+#endif
 
 	// Stippled outline of the previewed jammer's coverage (drawn even inside allied coverage, faint and standing still
 	// while inactive) and of everything jammed. None where the position jumps between pixels (terrain silhouettes).
-	float ownLine, coveredLine, outlineOn;
+	// The stipples and neighbour lookups only run where a line can be.
+	float ownLine = 0.0;
+	float coveredLine = 0.0;
+	float outlineOn;
 	if (circles) {
+		outlineOn = (max(cellPixels.x, cellPixels.y) < 4.0) ? sheetOutlineAlpha : 0.0;
 		float rate = px / cellSize;
-		ownLine = edgeBand(ownSdf, bandWidth, px) * arcStipple(w, circleParams.xyz, stippleOffset * (1.0 - inactive), rate);
+		ownLine = edgeBand(ownSdf, bandWidth, px);
+		if (ownLine > 0.0 && outlineOn > 0.0) {
+			ownLine *= arcStipple(w, circleParams.xyz, stippleOffset * (1.0 - inactive), rate);
+		}
 		float ownJamSdf = (inactive < 0.5) ? ownSdf : -sdfRange;
 		coveredLine = edgeBand(max(ownJamSdf, alliedSdf), bandWidth, px);
-		if (coveredLine > 0.0) {
+		if (coveredLine > 0.0 && outlineOn > 0.0) {
 			// a solid line where the allied circle isn't known (more of them than MAX_ALLIED_CIRCLES)
 			vec3 owner = (ownJamSdf >= alliedSdf) ? circleParams.xyz : alliedOwner;
 			coveredLine *= (owner.z > 0.0) ? arcStipple(w, owner, stippleOffset, rate) : 1.0;
 		}
-		outlineOn = (max(cellPixels.x, cellPixels.y) < 4.0) ? sheetOutlineAlpha : 0.0;
 	} else {
-		// on the nearer x and z side of the cell when it borders a cell the previewed jammer does not cover, or that
-		// no jammer covers
+		// nor once cells shrink below a pixel
+		outlineOn = (max(cellPixels.x, cellPixels.y) < 1.0) ? sheetOutlineAlpha : 0.0;
 		vec2 inCell = fract(cellCoord);
-		vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
 		vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
-		ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
-		ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
-		ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
-		vec3 ownNeighbours = vec3(previewTargetAt(nx), previewTargetAt(nz), previewTargetAt(nd));
-		vec3 alliedNeighbours = vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd));
-		// x side, z side and diagonal facing outside the previewed jammer's coverage, and outside all jammed cells
-		vec3 ownOut = ownIn * (1.0 - ownNeighbours);
-		vec3 coveredOut = 1.0 - max(ownNeighbours * (1.0 - inactive), alliedNeighbours);
 		// OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos, so it gets a little thicker when zoomed in; crisp, with
 		// a pixel of anti-aliasing on its inner edge
 		vec2 width = pixelCells * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth / cellSize;
-		vec2 edge = 1.0 - smoothstep(width - pixelCells, width, edgeDist);
-		// corners sit in the middle of a dash; an inactive jammer's border stands still
-		vec2 stipples, ownStipples;
-		float cornerStipple, ownCornerStipple;
-		stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset, stipples, cornerStipple);
-		stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset * (1.0 - inactive), ownStipples, ownCornerStipple);
-		ownLine = borderLine(ownOut.xy, ownOut.z, edge, ownStipples, ownCornerStipple);
-		coveredLine = borderLine(coveredOut.xy, coveredOut.z, edge, stipples, cornerStipple);
-		// nor once cells shrink below a pixel
-		outlineOn = (max(cellPixels.x, cellPixels.y) < 1.0) ? sheetOutlineAlpha : 0.0;
+		if (outlineOn > 0.0 && any(lessThan(edgeDist, width))) {
+			// on the nearer x and z side of the cell when it borders a cell the previewed jammer does not cover, or
+			// that no jammer covers
+			vec2 nearSide = step(vec2(0.5), inCell); // 0 = the -x/-z side is nearer, 1 = the +x/+z side
+			ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
+			ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
+			ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
+			vec3 ownNeighbours = vec3(previewTargetAt(nx), previewTargetAt(nz), previewTargetAt(nd));
+			vec3 alliedNeighbours = vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd));
+			// x side, z side and diagonal facing outside the previewed jammer's coverage, and outside all jammed cells
+			vec3 ownOut = ownIn * (1.0 - ownNeighbours);
+			vec3 coveredOut = 1.0 - max(ownNeighbours * (1.0 - inactive), alliedNeighbours);
+			vec2 edge = 1.0 - smoothstep(width - pixelCells, width, edgeDist);
+			// corners sit in the middle of a dash; an inactive jammer's border stands still
+			vec2 stipples, ownStipples;
+			float cornerStipple, ownCornerStipple;
+			stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset, stipples, cornerStipple);
+			stipplesAt(cellCoord, nearSide, pixelCells, stippleOffset * (1.0 - inactive), ownStipples, ownCornerStipple);
+			ownLine = borderLine(ownOut.xy, ownOut.z, edge, ownStipples, ownCornerStipple);
+			coveredLine = borderLine(coveredOut.xy, coveredOut.z, edge, stipples, cornerStipple);
+		}
 	}
 	float lineAlpha = max(ownLine * ownLineFade, coveredLine * jammedFade) * outlineOn;
 

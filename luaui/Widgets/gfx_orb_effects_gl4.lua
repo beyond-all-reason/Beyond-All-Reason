@@ -1042,7 +1042,7 @@ local function initGL4()
 			reflectionPass = 0.0,
 		},
 	}, "orbShader GL4")
-	shaderCompiled = orbShader:Initialize()
+	local shaderCompiled = orbShader:Initialize()
 	if not shaderCompiled then
 		goodbye("Failed to compile orbShader GL4 ")
 	end
@@ -1154,13 +1154,18 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.uploadAllElements(orbVBO)
 end
 
-function widget:VisibleUnitRemoved(unitID)
-	shieldFinishFrames[unitID] = spGetGameFrame()
+function widget:VisibleUnitRemoved(unitID, unitDefID)
+	if orbUnitDefs[unitDefID] then -- the only units VisibleUnitAdded reads this for
+		shieldFinishFrames[unitID] = spGetGameFrame()
+	end
 	if orbVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(orbVBO, unitID)
 	end
 end
 
 function widget:Shutdown()
-	-- FIXME: clean up after thyself!
+	if type(orbShader) == "table" then
+		orbShader:Finalize()
+		orbShader = nil
+	end
 end
