@@ -4,7 +4,7 @@ function gadget:GetInfo()
 	return {
 		name = "Reset Palette On Load",
 		desc = "Restores unit and feature team colors after loading a saved game",
-		author = "dimitrije-r",
+		author = "sprunk, dimitrije-r",
 		date = "October 2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
