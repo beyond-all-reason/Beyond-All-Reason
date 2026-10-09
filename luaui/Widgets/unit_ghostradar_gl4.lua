@@ -29,12 +29,17 @@ local dots = {}
 local spec, specFullView = spGetSpectatingState()
 local gaiaTeamID = Spring.GetGaiaTeamID()
 
+-- the textures DrawUnitShape GL4 has shape buckets for
+---@type table<string, boolean?>
+local shapeTextures =
+	{ ["arm_color.dds"] = true, ["cor_color.dds"] = true, ["leg_color.dds"] = true, ["legmech_color.dds"] = true }
+
 local includedUnitDefIDs = {}
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.isBuilding == false and unitDef.isFactory == false then
-		if unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "arm_color.dds" then
-			includedUnitDefIDs[unitDefID] = true
-		elseif unitDef.model and unitDef.model.textures and unitDef.model.textures.tex1:lower() == "cor_color.dds" then
+		local model = unitDef.model -- a new table on every access
+		local tex1 = model and model.textures and model.textures.tex1
+		if tex1 and shapeTextures[tex1:lower()] then
 			includedUnitDefIDs[unitDefID] = true
 		end
 	end
