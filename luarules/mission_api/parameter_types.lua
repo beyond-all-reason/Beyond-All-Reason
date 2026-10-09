@@ -90,10 +90,7 @@ local enums = {
 		Dialogue = 5,
 	},
 
-	[types.UnitWeapon] = {
-		explode = attributeDefinitions.WEAPON_DEATH,
-		selfDestruct = attributeDefinitions.WEAPON_SELFD,
-	},
+	[types.UnitWeapon] = attributeDefinitions.EXPLOSIONS,
 }
 
 local enumSets = {
