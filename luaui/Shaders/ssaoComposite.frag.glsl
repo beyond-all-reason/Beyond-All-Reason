@@ -29,7 +29,8 @@ out vec4 fragColor;
 
 void main(void)
 {
-	vec2 uv = vs_position_texcoords.zw;
+	// From the pixel rather than the interpolated quad uv, so drawing tiles instead of a full-screen quad changes nothing
+	vec2 uv = gl_FragCoord.xy * (1.0 - vec2(TEXPADDINGX, TEXPADDINGY) / vec2(VSX, VSY)) / vec2(VSX, VSY);
 
 #if (DOWNSAMPLE > 1) && (NOFUSE == 0)
 	// ---- Joint bilateral upsample path (half-res -> full-res) ----
@@ -82,8 +83,11 @@ void main(void)
 	// computed against) and write it as our fragment depth. With LEQUAL,
 	// any grass/foliage/particle drawn in front (smaller FB depth) will
 	// cause the test to fail and the SSAO contribution to be discarded.
-	float dM = textureLod(modelDepthTex, uv, 0.0).r;
-	float dG = textureLod(mapDepthTex, uv, 0.0).r;
+	// This pixel's texels exactly: a filtered read at a slightly off uv
+	// blends in a neighbour, which moves the depth at silhouettes.
+	ivec2 pixel = ivec2(gl_FragCoord.xy);
+	float dM = texelFetch(modelDepthTex, pixel, 0).r;
+	float dG = texelFetch(mapDepthTex, pixel, 0).r;
 	float gbufDepth = min(dM, dG);
 
 	// Tiny bias compensates for any FP imprecision between the gbuffer
