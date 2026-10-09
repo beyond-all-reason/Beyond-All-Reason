@@ -610,7 +610,7 @@ local function MakeBloomShaders()
 		RemoveMe("[BloomShader::Initialize] brightShader compilation failed")
 		return
 	end
-	glowAmplifierLoc = brightShader:GetUniformLocation("fragGlowAmplifier")
+	glowAmplifierLoc = brightShader.uniformLocations.fragGlowAmplifier or -1 -- GetUniformLocation needs it active
 	brightShaderAmplifier = glowAmplifier
 end
 

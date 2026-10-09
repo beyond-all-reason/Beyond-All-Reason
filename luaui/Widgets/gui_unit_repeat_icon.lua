@@ -251,3 +251,10 @@ function widget:DrawScreenEffects()
 	gl.DepthTest(false)
 	gl.DepthMask(true)
 end
+
+function widget:Shutdown()
+	if type(repeatShader) == "table" then
+		repeatShader:Finalize()
+		repeatShader = nil
+	end
+end

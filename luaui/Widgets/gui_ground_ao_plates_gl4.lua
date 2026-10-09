@@ -184,3 +184,10 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 		popElementInstance(groundPlateVBO, unitID)
 	end
 end
+
+function widget:Shutdown()
+	if type(groundPlateShader) == "table" then
+		groundPlateShader:Finalize()
+		groundPlateShader = nil
+	end
+end

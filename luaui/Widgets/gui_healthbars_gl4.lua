@@ -1122,6 +1122,10 @@ end
 function widget:Shutdown()
 	widgetHandler:RemoveAction("debughealthbars", "t")
 	spEcho("Healthbars GL4 unloaded hooks")
+	if type(healthBarShader) == "table" then
+		healthBarShader:Finalize()
+		healthBarShader = nil
+	end
 end
 
 function widget:FeatureReclaimStartedHealthbars(featureID, step)

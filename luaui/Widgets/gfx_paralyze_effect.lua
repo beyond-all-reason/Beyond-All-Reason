@@ -521,6 +521,10 @@ end
 function widget:Shutdown()
 	WG.DrawParalyzedUnitGL4 = nil
 	WG.StopDrawParalyzedUnitGL4 = nil
+	if type(paralyzedUnitShader) == "table" then
+		paralyzedUnitShader:Finalize()
+		paralyzedUnitShader = nil
+	end
 end
 
 function widget:DrawWorld()
