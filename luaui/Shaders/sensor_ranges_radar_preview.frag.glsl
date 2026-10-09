@@ -89,6 +89,14 @@ float alliedAt(ivec2 radarCell) {
 	return step(0.5, texelFetch(radarInfoTex, radarCell, 0).r);
 }
 
+// Circle mode, selected radar: the allied radar map includes its own cells, so the other radars' coverage at a cell of
+// its disc comes from the cell just past the disc on the line from the emitter (disc cell centers reach radius + 0.5)
+float otherAlliedAt(ivec2 radarCell) {
+	vec2 offset = vec2(radarCell - ivec2(lookupParams.xy));
+	float reach = (lookupParams.z + 1.25) / max(length(offset), 1.0);
+	return alliedAt(ivec2(lookupParams.xy) + ivec2(floor(offset * reach + 0.5)));
+}
+
 // rings travelling outward from the radar (a bright leading edge with a tail fading inward) plus the rotating
 // sweep, evaluated per pixel so the sheet shows them as continuous gradients rather than per-cell steps
 float sheetGlow(vec2 fromCenter, float time) {
@@ -142,9 +150,9 @@ void main() {
 	if (lookupParams.w > 0.5) {
 		weight = smoothstep(0.0, 0.5, coverage);
 		float allied = alliedAt(cell);
-		if (circles && circleParams.z > 0.5) {
-			// past the circle, the allied radar map shows the selected radar's own staircase of cells
-			allied *= 1.0 - step(0.5, previewCoverageAt(cell)) * (1.0 - inCircle);
+		if (circles && circleParams.z > 0.5 && previewCoverageAt(cell) >= 0.5) {
+			// past the circle, without the selected radar's own staircase of cells
+			allied = mix(otherAlliedAt(cell), allied, inCircle);
 		}
 		coverage = max(coverage, allied);
 	} else if (!inPreviewDisc) {
