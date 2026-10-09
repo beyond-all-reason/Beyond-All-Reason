@@ -78,8 +78,23 @@ local Types = parameterTypes.Types
 local parameterTypeEnums = parameterTypes.Enums
 local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
 local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
+local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
 local isDifficultiesTable = GG["MissionAPI"].Modules.Difficulty.IsDifficultiesTable
 local knownDifficulties = parameterTypeEnums[Types.Difficulty]
+
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+local unitAttributeDefinitions = attributeDefinitions.UnitAttributeDefinitions
+local weaponAttributeDefinitions = attributeDefinitions.WeaponAttributeDefinitions
+local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
+local canSetUnitAttribute = attributeRules.CanSetUnitAttribute
+local canSetUnitDefAttribute = attributeRules.CanSetUnitDefAttribute
+local canSetUnitDefModifier = attributeRules.CanSetUnitDefModifier
+local canSetUnitModifier = attributeRules.CanSetUnitModifier
+local canSetUnitWeaponAttribute = attributeRules.CanSetUnitWeaponAttribute
+local canSetUnitWeaponModifier = attributeRules.CanSetUnitWeaponModifier
+local affectsUnitDef = attributeRules.AffectsUnitDef
+
+local EXPLOSIONS = parameterTypeEnums[Types.UnitWeapon]
 
 local validators = {}
 
@@ -584,6 +599,49 @@ validators[Types.Command] = function(command)
 		end
 	else
 		return { { message = "Unexpected parameter type, expected number or string, got " .. type(command) } }
+	end
+end
+
+local function attributeDefinition(attribute)
+	return unitAttributeDefinitions[attribute] or weaponAttributeDefinitions[attribute]
+end
+
+validators[Types.UnitAttribute] = function(attribute)
+	local luaTypeResult = validators[Types.String](attribute)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local ok, reason = canSetUnitAttribute(attributeDefinition(attribute))
+	if not ok then
+		return { { message = "Unit attribute '" .. attribute .. "' " .. reason } }
+	end
+end
+
+validators[Types.WeaponAttribute] = function(attribute)
+	local luaTypeResult = validators[Types.String](attribute)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local ok, reason = canSetUnitWeaponAttribute(attributeDefinition(attribute))
+	if not ok then
+		return { { message = "Weapon attribute '" .. attribute .. "' " .. reason } }
+	end
+end
+
+validators[Types.UnitWeapon] = function(weapon)
+	if parameterTypeEnums[Types.UnitWeapon][weapon] then
+		return
+	elseif type(weapon) ~= "number" or weapon <= 0 or weapon % 1 ~= 0 then
+		return { { message = "Expected a weapon number, 'explode' or 'selfDestruct', got " .. tostring(weapon) } }
+	end
+end
+
+validators[Types.AttributeValue] = function(value)
+	local valueType = type(value)
+	if valueType ~= "number" and valueType ~= "string" and valueType ~= "boolean" then
+		return { { message = "Unexpected parameter type, expected number, string or boolean, got " .. valueType } }
 	end
 end
 
@@ -1740,6 +1798,69 @@ local function validateCountdownIDReferences(actionTypes, objectives, triggers, 
 	end
 end
 
+local function validateAttributeActions(actions)
+	local unitAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitAttribute)
+	local weaponAttributeActions = getTypesWithParameterType(actionsSchemaParameters, Types.WeaponAttribute)
+	local setActions = getTypesWithParameterName(actionsSchemaParameters, "value")
+	local modifierActions = getTypesWithParameterName(actionsSchemaParameters, "multiplier")
+	local unitScopeActions = getTypesWithParameterType(actionsSchemaParameters, Types.UnitName)
+
+	for actionID, action in pairs(actions) do
+		local actionType = action.type
+		local parameters = action.parameters or {}
+		local attribute = parameters.attribute
+		local unitDefName = parameters.unitDefName
+		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+
+		-- Unknown attributes are logged already by the parameter validators.
+		local unitEntry = unitAttributeActions[actionType] and unitAttributeDefinitions[attribute]
+		local weaponEntry = weaponAttributeActions[actionType] and weaponAttributeDefinitions[attribute]
+		local ok, reason, parameter = true, nil, nil
+		if unitEntry then
+			if setActions[actionType] then
+				local canSet = unitScopeActions[actionType] and canSetUnitAttribute or canSetUnitDefAttribute
+				ok, reason, parameter = canSet(unitEntry, parameters.value)
+			elseif modifierActions[actionType] then
+				local canSet = unitScopeActions[actionType] and canSetUnitModifier or canSetUnitDefModifier
+				ok, reason, parameter = canSet(unitEntry, parameters.multiplier)
+			end
+		elseif weaponEntry then
+			-- A malformed weapon is logged already by its parameter validator.
+			local weapon = parameters.weapon
+			if weapon ~= nil and validators[Types.UnitWeapon](weapon) then
+				weapon = nil
+			end
+			weapon = EXPLOSIONS[weapon] or weapon
+			if setActions[actionType] then
+				ok, reason, parameter = canSetUnitWeaponAttribute(weaponEntry, parameters.value, weapon, unitDef)
+			elseif modifierActions[actionType] then
+				ok, reason, parameter = canSetUnitWeaponModifier(weaponEntry, parameters.multiplier, weapon, unitDef)
+			end
+		end
+		if not ok then
+			local kind = unitEntry and "Unit" or "Weapon"
+			logError(
+				kind
+					.. " attribute '"
+					.. attribute
+					.. "' "
+					.. reason
+					.. ". Action: "
+					.. actionID
+					.. ", Parameter: "
+					.. parameter
+			)
+		end
+
+		if unitEntry and unitDef then
+			local affects, warning = affectsUnitDef(unitEntry, unitDef)
+			if not affects then
+				logWarn("Unit attribute '" .. attribute .. "' " .. warning .. ". Action: " .. actionID)
+			end
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -1759,6 +1880,7 @@ local function validateReferences()
 	validateLineNameReferences(actionTypes, actions)
 	validateCountdownIDReferences(actionTypes, objectives, triggers, actions)
 	validateLoadouts(unitLoadout, featureLoadout)
+	validateAttributeActions(actions)
 end
 
 return {

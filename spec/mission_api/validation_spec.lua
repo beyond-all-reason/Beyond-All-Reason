@@ -39,6 +39,7 @@ local triggerDefinitions = GG["MissionAPI"].TriggerDefinitions
 
 local triggerTypes = triggerDefinitions.Types
 local actionTypes = actionDefinitions.Types
+local parameterTypes = GG["MissionAPI"].Modules.ParameterTypes.Types
 
 -- Mirrors the normalisation done by triggers_loader before calling ValidateTriggers.
 local function normalizeTrigger(raw)
@@ -1364,6 +1365,78 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("UnitAttribute", function()
+			it("rejects an unknown attribute", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefAttribute,
+					parameters = { unitDefName = "armwar", attribute = "noSuchAttribute", value = 1 },
+				})
+				assert.is_true(hasError("Unit attribute 'noSuchAttribute' not found. Action: a, Parameter: attribute"))
+			end)
+
+			it("rejects a weapon attribute", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefAttribute,
+					parameters = { unitDefName = "armwar", attribute = "damage", value = 1 },
+				})
+				assert.is_true(
+					hasError("Unit attribute 'damage' is written per weapon. Action: a, Parameter: attribute")
+				)
+			end)
+		end)
+
+		describe("WeaponAttribute", function()
+			it("rejects a unit attribute", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefWeaponAttribute,
+					parameters = { unitDefName = "armwar", attribute = "losRadius", value = 1 },
+				})
+				assert.is_true(
+					hasError("Weapon attribute 'losRadius' is not written per weapon. Action: a, Parameter: attribute")
+				)
+			end)
+		end)
+
+		describe("UnitWeapon", function()
+			it("rejects a name the engine does not use", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefWeaponModifier,
+					parameters = { unitDefName = "armwar", weapon = "death", attribute = "damage", multiplier = 2 },
+				})
+				assert.is_true(
+					hasError(
+						"Expected a weapon number, 'explode' or 'selfDestruct', got death. Action: a, Parameter: weapon"
+					)
+				)
+			end)
+
+			it("rejects a weapon number that is not a whole number above zero", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefWeaponModifier,
+					parameters = { unitDefName = "armwar", weapon = 0, attribute = "damage", multiplier = 2 },
+				})
+				assert.is_true(
+					hasError(
+						"Expected a weapon number, 'explode' or 'selfDestruct', got 0. Action: a, Parameter: weapon"
+					)
+				)
+			end)
+		end)
+
+		describe("AttributeValue", function()
+			it("rejects a table", function()
+				actionErrors({
+					type = actionTypes.SetUnitDefAttribute,
+					parameters = { unitDefName = "armwar", attribute = "losRadius", value = {} },
+				})
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected number, string or boolean, got table. Action: a, Parameter: value"
+					)
+				)
+			end)
+		end)
+
 		describe("difficulties setting", function()
 			local function settingsErrors(difficulties)
 				triggerErrors({
@@ -1720,6 +1793,248 @@ describe("mission_api.validation", function()
 			}
 			validation.ValidateReferences()
 			assert.is_false(hasError("Stage refers to non-existent objective. Stage: badStage, Objective: 123"))
+		end)
+
+		describe("attribute actions", function()
+			local function referenceErrors(unitDefs, actions)
+				_G.UnitDefNames = unitDefs
+				GG["MissionAPI"].Actions = actions
+				validation.ValidateReferences()
+			end
+
+			local armwar =
+				{ id = 1, name = "armwar", isImmobile = false, isBuilder = false, weapons = { { weaponDef = 1 } } }
+
+			it("rejects a value whose type disagrees with the attribute", function()
+				referenceErrors({ armwar = armwar }, {
+					setStealth = {
+						type = actionTypes.SetUnitDefAttribute,
+						parameters = { unitDefName = "armwar", attribute = "stealth", value = 1 },
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Unit attribute 'stealth' takes a boolean, got number. Action: setStealth, Parameter: value"
+					)
+				)
+			end)
+
+			it("rejects a negative value", function()
+				referenceErrors({ armwar = armwar }, {
+					setLosRadius = {
+						type = actionTypes.SetUnitDefAttribute,
+						parameters = { unitDefName = "armwar", attribute = "losRadius", value = -1 },
+					},
+				})
+				assert.is_true(
+					hasError("Unit attribute 'losRadius' must be >= 0, got -1. Action: setLosRadius, Parameter: value")
+				)
+			end)
+
+			it("rejects a unit state attribute on a unit def", function()
+				referenceErrors({ armwar = armwar }, {
+					setExperience = {
+						type = actionTypes.SetUnitDefAttribute,
+						parameters = { unitDefName = "armwar", attribute = "experience", value = 1 },
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Unit attribute 'experience' cannot be set on unitdefs. Action: setExperience, Parameter: attribute"
+					)
+				)
+			end)
+
+			it("accepts a unit state attribute on units", function()
+				referenceErrors({ armwar = armwar }, {
+					setExperience = {
+						type = actionTypes.SetUnitAttribute,
+						parameters = { unitDefName = "armwar", attribute = "experience", value = 1 },
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("accepts clearing a source", function()
+				referenceErrors({ armwar = armwar }, {
+					clearLosRadius = {
+						type = actionTypes.ClearUnitDefAttribute,
+						parameters = { unitDefName = "armwar", attribute = "losRadius", source = "scouting" },
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("warns when a movement attribute targets an immobile def", function()
+				referenceErrors({ armllt = { id = 2, name = "armllt", isImmobile = true, isBuilder = false } }, {
+					setSpeed = {
+						type = actionTypes.SetUnitDefAttribute,
+						parameters = { unitDefName = "armllt", attribute = "speed", value = 50 },
+					},
+				})
+				assert.is_true(hasError("Unit attribute 'speed' has an inappropriate def (armllt). Action: setSpeed"))
+				assert.is_falsy(GG["MissionAPI"].HasValidationErrors)
+			end)
+
+			it("warns when buildSpeed targets a def that cannot build", function()
+				referenceErrors({ armpw = { id = 3, name = "armpw", isImmobile = false, isBuilder = false } }, {
+					setBuildSpeed = {
+						type = actionTypes.SetUnitDefAttribute,
+						parameters = { unitDefName = "armpw", attribute = "buildSpeed", value = 100 },
+					},
+				})
+				assert.is_true(
+					hasError("Unit attribute 'buildSpeed' has an inappropriate def (armpw). Action: setBuildSpeed")
+				)
+				assert.is_falsy(GG["MissionAPI"].HasValidationErrors)
+			end)
+
+			it("accepts a matching attribute and value without logging", function()
+				referenceErrors({ armwar = armwar }, {
+					setLosRadius = {
+						type = actionTypes.SetUnitDefAttribute,
+						parameters = { unitDefName = "armwar", attribute = "losRadius", value = 600 },
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects a negative multiplier", function()
+				referenceErrors({ armwar = armwar }, {
+					shrink = {
+						type = actionTypes.SetUnitDefModifier,
+						parameters = { unitDefName = "armwar", attribute = "losRadius", multiplier = -2 },
+					},
+				})
+				assert.is_true(
+					hasError("Unit attribute 'losRadius' must be >= 0, got -2. Action: shrink, Parameter: multiplier")
+				)
+			end)
+
+			it("rejects multiplying a unit state or a boolean attribute", function()
+				referenceErrors({ armwar = armwar }, {
+					heal = {
+						type = actionTypes.SetUnitModifier,
+						parameters = { unitDefName = "armwar", attribute = "health", multiplier = 2 },
+					},
+					hide = {
+						type = actionTypes.SetUnitDefModifier,
+						parameters = { unitDefName = "armwar", attribute = "stealth", multiplier = 2 },
+					},
+				})
+				assert.is_true(
+					hasError("Unit attribute 'health' cannot be multiplied. Action: heal, Parameter: attribute")
+				)
+				assert.is_true(
+					hasError("Unit attribute 'stealth' cannot be multiplied. Action: hide, Parameter: attribute")
+				)
+			end)
+
+			it("accepts clearing a modifier's source", function()
+				referenceErrors({ armwar = armwar }, {
+					clearHaste = {
+						type = actionTypes.ClearUnitModifier,
+						parameters = { unitDefName = "armwar", attribute = "speed", source = "haste" },
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects an explosion on an attribute not written per explosion", function()
+				referenceErrors({ armwar = armwar }, {
+					slowDeath = {
+						type = actionTypes.SetUnitDefWeaponModifier,
+						parameters = {
+							unitDefName = "armwar",
+							weapon = "explode",
+							attribute = "reloadTime",
+							multiplier = 2,
+						},
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Weapon attribute 'reloadTime' is not written per explosion. Action: slowDeath, Parameter: weapon"
+					)
+				)
+			end)
+
+			it("rejects a weapon the unit def does not have", function()
+				referenceErrors({ armwar = armwar }, {
+					farShot = {
+						type = actionTypes.SetUnitDefWeaponAttribute,
+						parameters = { unitDefName = "armwar", weapon = 2, attribute = "maxWeaponRange", value = 800 },
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Weapon attribute 'maxWeaponRange' names a weapon the unitdef does not have. Action: farShot, Parameter: weapon"
+					)
+				)
+			end)
+
+			it("leaves a malformed weapon to its parameter validator", function()
+				referenceErrors({ armwar = armwar }, {
+					deathShot = {
+						type = actionTypes.SetUnitDefWeaponAttribute,
+						parameters = {
+							unitDefName = "armwar",
+							weapon = "death",
+							attribute = "maxWeaponRange",
+							value = 800,
+						},
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects setting a multiplication-only weapon attribute", function()
+				referenceErrors({ armwar = armwar }, {
+					fixedDamage = {
+						type = actionTypes.SetUnitDefWeaponAttribute,
+						parameters = { unitDefName = "armwar", attribute = "damage", value = 50 },
+					},
+				})
+				assert.is_true(
+					hasError(
+						"Weapon attribute 'damage' is multiplication-only. Action: fixedDamage, Parameter: attribute"
+					)
+				)
+			end)
+
+			it("accepts scaling the death explosion's damage", function()
+				referenceErrors({ armwar = armwar }, {
+					biggerBoom = {
+						type = actionTypes.SetUnitDefWeaponModifier,
+						parameters = {
+							unitDefName = "armwar",
+							weapon = "explode",
+							attribute = "damage",
+							multiplier = 2,
+						},
+					},
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("finds the attribute actions through the schema, not by name", function()
+				local syntheticType = "syntheticAttributeAction"
+				actionDefinitions.Parameters[syntheticType] = {
+					{ name = "attribute", required = true, type = parameterTypes.UnitAttribute },
+					{ name = "value", required = true, type = parameterTypes.AttributeValue },
+				}
+
+				referenceErrors({ armwar = armwar }, {
+					synthetic = { type = syntheticType, parameters = { attribute = "stealth", value = 1 } },
+				})
+				actionDefinitions.Parameters[syntheticType] = nil
+
+				assert.is_true(
+					hasError(
+						"Unit attribute 'stealth' takes a boolean, got number. Action: synthetic, Parameter: value"
+					)
+				)
+			end)
 		end)
 	end)
 end)
