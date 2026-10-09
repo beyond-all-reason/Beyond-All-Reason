@@ -1537,12 +1537,9 @@ local function DrawDistortionFunction2() -- For render-to-texture
 	-- Set is as black with zero alpha
 	glClear(GL.COLOR_BUFFER_BIT, 0.0, 0.0, 0.0, 0.0)
 
-	-- only the samplers the distortion shaders read
-	glTexture(0, "$map_gbuffer_zvaltex")
-	glTexture(1, "$model_gbuffer_zvaltex")
-	glTexture(2, noisetex3dcube)
 	if shaderConfig.UNIFORMSBUFFERCOPY then
-		local UniformsBufferCopy = WG.api_unitbufferuniform_copy.GetUnitUniformBufferCopy()
+		local copyApi = WG.api_unitbufferuniform_copy
+		local UniformsBufferCopy = copyApi and copyApi.GetUnitUniformBufferCopy()
 		if not UniformsBufferCopy then
 			spEcho("DistortionGL4: UniformsBufferCopy not found")
 			return
@@ -1550,6 +1547,11 @@ local function DrawDistortionFunction2() -- For render-to-texture
 
 		UniformsBufferCopy:BindBufferRange(4)
 	end
+
+	-- only the samplers the distortion shaders read
+	glTexture(0, "$map_gbuffer_zvaltex")
+	glTexture(1, "$model_gbuffer_zvaltex")
+	glTexture(2, noisetex3dcube)
 
 	deferredDistortionShader:Activate()
 	deferredDistortionShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
