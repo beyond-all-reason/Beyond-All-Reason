@@ -83,8 +83,19 @@ local function goodbye(reason)
 	return false
 end
 
+local builtVsx, builtVsy = -1, -1 -- view size the stencil shaders (VSX/VSY defines) and texture were made for
+
+local function finalizeShader(shader)
+	if shader then
+		shader:Finalize()
+	end
+end
+
 local function CreateStencilShaderAndTexture()
 	vsx, vsy = spGetViewGeometry()
+	if vsx == builtVsx and vsy == builtVsy then
+		return -- e.g. the handler's first ViewResize after load, at the size Initialize built for
+	end
 	circleShaderSourceCache.shaderConfig.VSX = vsx
 	circleShaderSourceCache.shaderConfig.VSY = vsy
 	circleShaderSourceCache.forceupdate = true
@@ -92,6 +103,7 @@ local function CreateStencilShaderAndTexture()
 	stencilShaderSourceCache.shaderConfig.VSY = vsy
 	stencilShaderSourceCache.forceupdate = true
 
+	local oldStencilShader, oldCircleShader = sonarStencilShader, sonarCircleShader
 	sonarStencilShader = LuaShader.CheckShaderUpdates(stencilShaderSourceCache, 0)
 
 	if not sonarStencilShader then
@@ -101,6 +113,8 @@ local function CreateStencilShaderAndTexture()
 	if not sonarCircleShader then
 		return goodbye("Failed to compile sonarrange shader GL4 ")
 	end
+	finalizeShader(oldStencilShader)
+	finalizeShader(oldCircleShader)
 
 	local GL_R8 = 0x8229
 	vsx, vsy = spGetViewGeometry()
@@ -117,6 +131,7 @@ local function CreateStencilShaderAndTexture()
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
+	builtVsx, builtVsy = vsx, vsy
 end
 local function initgl4()
 	-- Due to the view size being part of the shader config, we need to initialize the shaders after the view size is known.
@@ -264,6 +279,8 @@ function widget:Shutdown()
 	if sonarStencilTexture then
 		gl.DeleteTexture(sonarStencilTexture)
 	end
+	finalizeShader(sonarStencilShader)
+	finalizeShader(sonarCircleShader)
 	WG.sonarrange = nil
 end
 

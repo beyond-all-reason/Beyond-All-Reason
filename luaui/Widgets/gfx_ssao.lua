@@ -909,6 +909,10 @@ local function CleanGL()
 end
 
 function widget:ViewResize()
+	local sizeX, sizeY = spGetViewGeometry()
+	if sizeX == vsx and sizeY == vsy then
+		return -- the handler's first ViewResize after load repeats the size InitGL built for
+	end
 	CleanGL()
 	InitGL()
 end
