@@ -735,7 +735,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 				) -- TODO TODO
 			end
 
-			if iT.debugZombies then
+			-- Only zombies left from earlier pops need the frame; a new one checks it itself below
+			if iT.debugZombies and iT.numZombies and iT.numZombies > 0 then
 				local gf = Spring.GetGameFrame()
 				--Spring.Echo("Popping", instanceID)
 				if iT.lastpopgameframe == nil then

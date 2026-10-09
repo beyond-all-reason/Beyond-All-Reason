@@ -302,7 +302,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if unitTeam ~= GaiaTeamID then
 		local _, fullView, _ = spGetSpecState()
 		local myAllyTeam = spGetMyAllyTeamID()
-		local unitAllyTeam = select(6, spGetTeamInfo(unitTeam))
+		local unitAllyTeam = select(6, spGetTeamInfo(unitTeam, false))
 
 		-- Add if it's our ally or we're in spec fullview
 		if fullView or unitAllyTeam == myAllyTeam then
