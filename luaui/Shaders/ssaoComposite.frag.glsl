@@ -68,6 +68,15 @@ void main(void)
 	fragColor = textureLod(tex, uv, 0.0);
 #endif
 
+#if (DEBUG_SSAO == 0) && (DEBUG_BLUR == 0)
+	// Skip no-op blends (no occlusion, no brighten), and with them the depth fetches and test
+	#if BRIGHTEN != 0
+		if (fragColor == vec4(0.0, 0.0, 0.0, 1.0)) discard;
+	#else
+		if (fragColor.a == 1.0) discard;
+	#endif
+#endif
+
 	// Depth-rejection mask via gl_FragDepth + LEQUAL test.
 	// Take the closest of model/map gbuffer depths (the surface SSAO was
 	// computed against) and write it as our fragment depth. With LEQUAL,
