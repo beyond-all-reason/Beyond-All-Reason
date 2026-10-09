@@ -33,6 +33,7 @@ return {
 		turnrate = 400,
 		upright = false,
 		customparams = {
+			maxrange = 600,
 			hasdeathanimation = true,
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",

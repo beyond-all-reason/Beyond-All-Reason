@@ -36,6 +36,7 @@ return {
 		turnrate = 440,
 		usepiececollisionvolumes = 1,
 		customparams = {
+			maxrange = 300,
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "ArmVehicles/T2",
