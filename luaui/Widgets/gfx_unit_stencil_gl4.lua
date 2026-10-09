@@ -621,4 +621,8 @@ function widget:Shutdown()
 	unitFeatureStencilTex = nil
 	WG.unitstencilapi = nil
 	widgetHandler:DeregisterGlobal("GetUnitStencilTexture")
+	if type(unitStencilShader) == "table" then
+		unitStencilShader:Finalize()
+		unitStencilShader = nil
+	end
 end

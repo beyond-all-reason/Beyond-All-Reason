@@ -946,6 +946,10 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("RemoveDistortion")
 
 	deferredDistortionShader:Delete()
+	if type(screenDistortionShader) == "table" then
+		screenDistortionShader:Finalize()
+		screenDistortionShader = nil
+	end
 	local ram = 0
 	for distortiontype, vbo in pairs(unitDistortionVBOMap) do
 		ram = ram + vbo:Delete()

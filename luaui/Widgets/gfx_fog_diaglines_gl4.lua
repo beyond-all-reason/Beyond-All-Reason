@@ -186,8 +186,14 @@ function widget:Shutdown()
 		gl.DeleteTexture(coverageTex)
 	end
 	coverageTex = nil
-	diagShader = nil
-	accumShader = nil
+	if type(diagShader) == "table" then
+		diagShader:Finalize()
+		diagShader = nil
+	end
+	if type(accumShader) == "table" then
+		accumShader:Finalize()
+		accumShader = nil
+	end
 	fullScreenQuadVAO = nil
 end
 

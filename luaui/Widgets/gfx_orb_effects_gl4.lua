@@ -1042,7 +1042,7 @@ local function initGL4()
 			reflectionPass = 0.0,
 		},
 	}, "orbShader GL4")
-	shaderCompiled = orbShader:Initialize()
+	local shaderCompiled = orbShader:Initialize()
 	if not shaderCompiled then
 		goodbye("Failed to compile orbShader GL4 ")
 	end
@@ -1164,5 +1164,8 @@ function widget:VisibleUnitRemoved(unitID, unitDefID)
 end
 
 function widget:Shutdown()
-	-- FIXME: clean up after thyself!
+	if type(orbShader) == "table" then
+		orbShader:Finalize()
+		orbShader = nil
+	end
 end

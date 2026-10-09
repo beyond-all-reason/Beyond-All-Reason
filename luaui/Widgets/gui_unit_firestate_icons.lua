@@ -668,3 +668,10 @@ function widget:SetConfigData(data)
 		showAllHoldFireIcons = data.showAllHoldFireIcons and true or false
 	end
 end
+
+function widget:Shutdown()
+	if type(fireIconShader) == "table" then
+		fireIconShader:Finalize()
+		fireIconShader = nil
+	end
+end

@@ -166,3 +166,10 @@ function widget:Initialize()
 		end
 	end
 end
+
+function widget:Shutdown()
+	if type(resurrectionHalosShader) == "table" then
+		resurrectionHalosShader:Finalize()
+		resurrectionHalosShader = nil
+	end
+end
