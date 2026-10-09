@@ -40,6 +40,7 @@ local ALLIED_COVERAGE_POLL_SECONDS = 2 -- how often the RadarPreview* settings a
 local COVERAGE_REFRESH_SECONDS = 1.0 -- periodic heightmap/coverage rebuild so terraforming shows up
 local SMOOTH_RATE = 14 -- 1/s, how fast the sheet follows coverage changes (higher = snappier)
 local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged across radar cells, so the sheet keeps up with the cursor
+local SMOOTH_SETTLE_SECONDS = 1 -- after this long without a change the shown coverage has settled and is no longer eased
 local MAX_RADIUS_CELLS = 256 -- sanity limit of the radar radius in cells (coverage texture and ray table size)
 local RAY_SSBO_BINDING = 5 -- shader storage binding of the per-radius ray table (4, 6, 7 are used elsewhere in BAR)
 
@@ -124,6 +125,8 @@ local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitIsUpkeepPaid = Spring.GetUnitIsUpkeepPaid
+local spPos2BuildPos = Spring.Pos2BuildPos
+local spGetBuildFacing = Spring.GetBuildFacing
 local engineRequiresUpkeep = Game.sensorsRequireUpkeep == true -- sensors.requireUpkeep: unpaid units lose their sensors
 local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
 
@@ -167,9 +170,16 @@ local mipTex = nil -- radar-cell heightmap of the whole map
 local mipUpdatedAt = -mathHuge
 local alliedTex = nil -- map-wide union of the allied radars' coverage, only used under global LOS / full view
 local alliedUpdatedAt = -mathHuge
-local alliedRadars = {} -- reused scratch list of { bx, bz, radius, losHeight }
+local alliedRadars = {} ---@type table<integer, table> -- reused scratch list of { bx, bz, radius, losHeight }
 local alliedRadarCount = 0
--- live values of the RadarPreview* configint settings (one table: DrawWorld is at Lua 5.1's 60 upvalue limit)
+local alliedRendered = {} -- bx, bz, radius, losHeight per radar alliedTex was last rendered with
+local alliedValid = false -- alliedTex holds a union at all
+-- Rectangles of radar cells, empty while x0 > x1: the terrain that changed since the radar-cell heightmap was rebuilt
+-- (the whole map at first), the cells rebuilds changed since alliedTex was rendered, and the latest rebuild
+local mipDirty = { x0 = 0, z0 = 0, x1 = MAP_CELLS_X - 1, z1 = MAP_CELLS_Z - 1 } ---@type { x0: number, z0: number, x1: number, z1: number }
+local alliedDirty = { x0 = 0, z0 = 0, x1 = MAP_CELLS_X - 1, z1 = MAP_CELLS_Z - 1 } ---@type { x0: number, z0: number, x1: number, z1: number }
+local mipRebuilt = { x0 = 0, z0 = 0, x1 = MAP_CELLS_X - 1, z1 = MAP_CELLS_Z - 1 } ---@type { x0: number, z0: number, x1: number, z1: number }
+-- live values of the RadarPreview* configint settings
 local settings = {
 	allied = false, -- RadarPreviewAlliedCoverage
 	minimap = true, -- RadarPreviewMinimap
@@ -708,6 +718,89 @@ local function drawAlliedUnion()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
+local function extendRect(rect, x0, z0, x1, z1)
+	rect.x0, rect.z0 = mathMin(rect.x0, x0), mathMin(rect.z0, z0)
+	rect.x1, rect.z1 = mathMax(rect.x1, x1), mathMax(rect.z1, z1)
+end
+
+-- whether a rectangle of radar cells overlaps the disc of a radar at cell bx, bz
+local function rectHitsDisc(rect, bx, bz, radius)
+	return rect.x0 <= bx + radius and rect.x1 >= bx - radius and rect.z0 <= bz + radius and rect.z1 >= bz - radius
+end
+
+function widget:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
+	-- heightmap squares to radar cells, and one more each way: a cell's height also weighs the corners on its border
+	local squares = 2 ^ RADAR_MIP_LEVEL
+	extendRect(
+		mipDirty,
+		mathFloor(x1 / squares) - 1,
+		mathFloor(z1 / squares) - 1,
+		mathFloor(x2 / squares) + 1,
+		mathFloor(z2 / squares) + 1
+	)
+end
+
+-- Rebuilds the radar-cell heightmap where the terrain changed, at most once per COVERAGE_REFRESH_SECONDS, into
+-- mipRebuilt. Returns whether it did.
+local function rebuildMip(now)
+	if mipDirty.x1 < mipDirty.x0 or now - mipUpdatedAt <= COVERAGE_REFRESH_SECONDS then
+		return false
+	end
+	local x0, z0 = mathMax(mipDirty.x0, 0), mathMax(mipDirty.z0, 0)
+	local x1, z1 = mathMin(mipDirty.x1, MAP_CELLS_X - 1), mathMin(mipDirty.z1, MAP_CELLS_Z - 1)
+	mipDirty.x0, mipDirty.z0, mipDirty.x1, mipDirty.z1 = mathHuge, mathHuge, -mathHuge, -mathHuge
+	mipUpdatedAt = now
+	local sx, sz = 2 / MAP_CELLS_X, 2 / MAP_CELLS_Z
+	gl.Texture(0, "$heightmap")
+	mipShader:Activate()
+	mipShader:SetUniform("passRect", x0 * sx - 1, z0 * sz - 1, (x1 + 1) * sx - 1, (z1 + 1) * sz - 1)
+	gl.RenderToTexture(mipTex, drawPass)
+	mipShader:Deactivate()
+	extendRect(alliedDirty, x0, z0, x1, z1)
+	mipRebuilt.x0, mipRebuilt.z0, mipRebuilt.x1, mipRebuilt.z1 = x0, z0, x1, z1
+	return true
+end
+
+-- Under global LOS / full view, at most once per COVERAGE_REFRESH_SECONDS: re-renders the allied union when a radar
+-- came, went or changed, or the terrain changed under one
+local function updateAlliedUnion(now)
+	if now - alliedUpdatedAt <= COVERAGE_REFRESH_SECONDS then
+		return
+	end
+	alliedUpdatedAt = now
+	collectAlliedRadars()
+	local changed = not alliedValid or #alliedRendered ~= alliedRadarCount * 4
+	for i = 1, alliedRadarCount do
+		local radar, k = alliedRadars[i], (i - 1) * 4
+		if
+			changed
+			or radar.bx ~= alliedRendered[k + 1]
+			or radar.bz ~= alliedRendered[k + 2]
+			or radar.radius ~= alliedRendered[k + 3]
+			or radar.losHeight ~= alliedRendered[k + 4]
+			or rectHitsDisc(alliedDirty, radar.bx, radar.bz, radar.radius)
+		then
+			changed = true
+			break
+		end
+	end
+	if not changed then
+		return
+	end
+	gl.Texture(0, mipTex)
+	gl.RenderToTexture(alliedTex, drawAlliedUnion)
+	for i = 1, alliedRadarCount do
+		local radar, k = alliedRadars[i], (i - 1) * 4
+		alliedRendered[k + 1], alliedRendered[k + 2], alliedRendered[k + 3], alliedRendered[k + 4] =
+			radar.bx, radar.bz, radar.radius, radar.losHeight
+	end
+	for i = alliedRadarCount * 4 + 1, #alliedRendered do
+		alliedRendered[i] = nil
+	end
+	alliedDirty.x0, alliedDirty.z0, alliedDirty.x1, alliedDirty.z1 = mathHuge, mathHuge, -mathHuge, -mathHuge
+	alliedValid = true
+end
+
 -- The radar being previewed right now (its radarDefs entry and cmdID), or nil. Evaluated live by every draw
 -- callin (world and minimap) rather than cached, so nothing can outlive the command / selection it came from.
 local function previewedRadarDef()
@@ -846,8 +939,7 @@ function widget:DrawWorld()
 		mousepos = { px, py, pz }
 		-- snap to the build grid the way the placement itself is snapped (build facing included), so the
 		-- preview is computed for the spot the radar will actually stand on, not the raw cursor position
-		-- (globals on purpose: DrawWorld is at Lua 5.1's 60 upvalue limit)
-		local sx, sy, sz = Spring.Pos2BuildPos(-cmdID, mousepos[1], mousepos[2], mousepos[3], Spring.GetBuildFacing())
+		local sx, sy, sz = spPos2BuildPos(-cmdID, mousepos[1], mousepos[2], mousepos[3], spGetBuildFacing())
 		if sx then
 			mousepos = { sx, sy, sz }
 		end
@@ -883,17 +975,10 @@ function widget:DrawWorld()
 	gl.Culling(false)
 	gl.Blending(false)
 
-	-- 0. radar-cell heightmap, refreshed periodically for terraform
-	local refresh = (now - mipUpdatedAt) > COVERAGE_REFRESH_SECONDS
-	if refresh then
-		gl.Texture(0, "$heightmap")
-		mipShader:Activate()
-		gl.RenderToTexture(mipTex, drawPass)
-		mipShader:Deactivate()
-		mipUpdatedAt = now
-	end
+	-- 0. radar-cell heightmap, rebuilt where the terrain changed (terraform, craters)
+	local rebuilt = rebuildMip(now)
 
-	-- 1. engine-style coverage, cached until the emitter cell or height bucket changes
+	-- 1. engine-style coverage, cached until the emitter cell or height bucket changes, or the terrain in its disc
 	local shiftX, shiftZ = 0, 0
 	if set.bx then
 		shiftX = bx - set.bx
@@ -902,7 +987,13 @@ function widget:DrawWorld()
 			cellMovedAt = now
 		end
 	end
-	if fresh or refresh or set.bx ~= bx or set.bz ~= bz or set.losHeight ~= losHeight then
+	if
+		fresh
+		or set.bx ~= bx
+		or set.bz ~= bz
+		or set.losHeight ~= losHeight
+		or (rebuilt and rectHitsDisc(mipRebuilt, bx, bz, radius))
+	then
 		gl.Texture(0, mipTex)
 		set.raySSBO:BindBufferRange(RAY_SSBO_BINDING)
 		coverageShader:Activate()
@@ -912,35 +1003,34 @@ function widget:DrawWorld()
 		set.bx, set.bz, set.losHeight, set.computedAt = bx, bz, losHeight, now
 	end
 
-	-- 2. ease the displayed coverage towards the target (ping-pong between the two state textures)
-	local prevTex = set.state[set.cur]
-	set.cur = 3 - set.cur
-	local nextTex = set.state[set.cur]
-	gl.Texture(0, prevTex)
-	gl.Texture(1, set.target)
-	smoothShader:Activate()
-	-- while the placement preview is being dragged across radar cells the sheet must keep up with the cursor
-	local smoothRate = (not selectedRadarUnitID and (now - cellMovedAt) < 0.3) and SMOOTH_RATE_DRAG or SMOOTH_RATE
-	smoothShader:SetUniform("smoothParams", shiftX, shiftZ, 1 - mathExp(-dt * smoothRate), fresh and 1 or 0)
-	gl.RenderToTexture(nextTex, drawPass)
-	smoothShader:Deactivate()
+	-- 2. ease the displayed coverage towards the target (ping-pong between the two state textures); once it has
+	-- settled, it stays
+	if now - set.computedAt < SMOOTH_SETTLE_SECONDS then
+		local prevTex = set.state[set.cur]
+		set.cur = 3 - set.cur
+		local nextTex = set.state[set.cur]
+		gl.Texture(0, prevTex)
+		gl.Texture(1, set.target)
+		smoothShader:Activate()
+		-- while the placement preview is being dragged across radar cells the sheet must keep up with the cursor
+		local smoothRate = (not selectedRadarUnitID and (now - cellMovedAt) < 0.3) and SMOOTH_RATE_DRAG or SMOOTH_RATE
+		smoothShader:SetUniform("smoothParams", shiftX, shiftZ, 1 - mathExp(-dt * smoothRate), fresh and 1 or 0)
+		gl.RenderToTexture(nextTex, drawPass)
+		smoothShader:Deactivate()
+	end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
 	-- 2b. under global LOS or spectator full view the engine's radar map covers everything, so union the
-	-- coverage of the allied radar units ourselves instead (exact, refreshed once a second)
+	-- coverage of the allied radar units ourselves instead (exact, checked once a second)
 	local manualAllied = false
 	if settings.allied then
 		local _, fullView = spGetSpectatingState()
 		manualAllied = fullView or spGetGlobalLos() or false
-		if manualAllied and (now - alliedUpdatedAt) > COVERAGE_REFRESH_SECONDS then
-			collectAlliedRadars()
-			gl.Texture(0, mipTex)
-			gl.RenderToTexture(alliedTex, drawAlliedUnion)
-			alliedUpdatedAt = now
+		if manualAllied then
+			updateAlliedUnion(now)
 		end
 	end
 	-- for DrawInMiniMap, which draws this set (sets[lastRadius], coverage in set.state[set.cur]) in the same frame
-	-- (kept on the set: DrawWorld is at Lua 5.1's 60 upvalue limit, so no new file locals may be referenced here)
 	set.minimapAlliedTex = settings.allied and (manualAllied and alliedTex or "$info:radar") or nil
 
 	-- 3. the sheet
