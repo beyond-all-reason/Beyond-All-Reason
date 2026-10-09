@@ -24,7 +24,8 @@ if gadgetHandler:IsSyncedCode() then
 	local nextTailGroupID = 0
 	local groupsByTail = {}
 	local pendingTargetUnits = {}
-	local hasUnitDeleted = Script.GetCallInList().UnitDeleted ~= nil
+	local callins = Script.GetCallInList()
+	local hasTargetLifecycle = callins.UnitDeleted ~= nil and callins.UnitAttackTargetRemoved ~= nil
 	-- Set while the controller inserts its own Attack so the command callins can
 	-- tell it apart from a player's prepended Attack.
 	local issuingControllerAttack = false
@@ -81,9 +82,16 @@ if gadgetHandler:IsSyncedCode() then
 		return not moveTypeData or moveTypeData.aircraftState ~= "crashing"
 	end
 
-	local function lastAttackableIndex(targets)
+	-- Crashing targets still occupy native queue positions until execution or
+	-- deletion removes them. Retain that suffix even after the last attackable
+	-- target: it must still stop movement when the active Attack ends.
+	local function lastPendingIndex(targets, removedEntries)
 		for index = #targets, 1, -1 do
-			if not targets[index].deleted and isAttackableTarget(targets[index].target) then
+			if
+				not targets[index].deleted
+				and not (removedEntries and removedEntries[targets[index]])
+				and Spring.ValidUnitID(targets[index].target)
+			then
 				return index
 			end
 		end
@@ -117,7 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 		unwatchTail(unitID, state)
 		local group = tailGroups[targets]
 		if not group then
-			local lastIndex = lastAttackableIndex(state.targets)
+			local lastIndex = lastPendingIndex(state.targets)
 			local targetID = lastIndex > 0 and state.targets[lastIndex].target or nil
 			nextTailGroupID = nextTailGroupID + 1
 			group = { id = nextTailGroupID, targets = targets, lastIndex = lastIndex, targetID = targetID, units = {} }
@@ -149,7 +157,11 @@ if gadgetHandler:IsSyncedCode() then
 		for index = state.nextTargetIndex, #state.targets do
 			local targetID = state.targets[index].target
 			-- Native queues keep crashing/dead-but-not-yet-deleted targets.
-			if not state.targets[index].deleted and Spring.ValidUnitID(targetID) then
+			if
+				not state.targets[index].deleted
+				and not (state.removedEntries and state.removedEntries[state.targets[index]])
+				and Spring.ValidUnitID(targetID)
+			then
 				state.pendingTargetID = targetID
 				local units = pendingTargetUnits[targetID] or {}
 				pendingTargetUnits[targetID] = units
@@ -182,6 +194,21 @@ if gadgetHandler:IsSyncedCode() then
 			and command.params[1] == -state.referenceID
 	end
 
+	-- Finishing a native mobile Attack stops its movement before advancing the
+	-- queue. Removing a reference behind an active command must not stop that command.
+	local function stopExhaustedController(unitID, state)
+		local front = (spGetUnitCommands(unitID, 1) or {})[1]
+		if isControllerReference(front, state) then
+			Spring.ClearUnitGoal(unitID, false)
+		end
+	end
+
+	local function removeExhaustedController(unitID, state, tag)
+		stopExhaustedController(unitID, state)
+		spGiveOrderToUnit(unitID, CMD.REMOVE, { tag }, CMD.OPT_INTERNAL)
+		clearState(unitID)
+	end
+
 	-- Expose the pending native-equivalent queue head without advancing it.
 	-- The reference check prevents a removed/replaced controller from supplying
 	-- a target before its deferred queue cleanup has run.
@@ -192,7 +219,11 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		for index = state.nextTargetIndex, #state.targets do
 			local targetID = state.targets[index].target
-			if not state.targets[index].deleted and Spring.ValidUnitID(targetID) then
+			if
+				not state.targets[index].deleted
+				and not (state.removedEntries and state.removedEntries[state.targets[index]])
+				and Spring.ValidUnitID(targetID)
+			then
 				return targetID
 			end
 		end
@@ -274,7 +305,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		for _, entry in ipairs(state.targets) do
 			executionTargets[#executionTargets + 1] = entry
-			if not entry.deleted then
+			if not entry.deleted and not (state.removedEntries and state.removedEntries[entry]) then
 				seen[entry.target] = true
 			end
 		end
@@ -315,6 +346,7 @@ if gadgetHandler:IsSyncedCode() then
 			local queuedTargetID = state.targets[index].target
 			if
 				not state.targets[index].deleted
+				and not (state.removedEntries and state.removedEntries[state.targets[index]])
 				and type(queuedTargetID) == "number"
 				and not seenTargets[queuedTargetID]
 			then
@@ -413,7 +445,11 @@ if gadgetHandler:IsSyncedCode() then
 			local targetID = entry.target
 			state.nextTargetIndex = state.nextTargetIndex + 1
 			watchPendingTarget(unitID, state)
-			if not entry.deleted and isAttackableTarget(targetID) then
+			if
+				not entry.deleted
+				and not (state.removedEntries and state.removedEntries[entry])
+				and isAttackableTarget(targetID)
+			then
 				-- The controller remains queued directly behind this attack. The engine
 				-- chooses movement and weapon targets; the stored list only supplies
 				-- the next Attack when this one finishes. The Attack carries no
@@ -432,9 +468,8 @@ if gadgetHandler:IsSyncedCode() then
 				end
 				if (Spring.GetUnitCommandCount(unitID) or 0) > queueLength then
 					registerTargetDependency(unitID, targetID)
-					if state.nextTargetIndex > lastAttackableIndex(state.targets) then
-						spGiveOrderToUnit(unitID, CMD.REMOVE, { referenceTag }, CMD.OPT_INTERNAL)
-						clearState(unitID)
+					if state.nextTargetIndex > lastPendingIndex(state.targets, state.removedEntries) then
+						removeExhaustedController(unitID, state, referenceTag)
 					end
 					return true
 				end
@@ -446,7 +481,7 @@ if gadgetHandler:IsSyncedCode() then
 		return false
 	end
 
-	-- Engines without registration or deletion notifications use native Attacks.
+	-- Engines without registration or both target lifecycle callins use native Attacks.
 	-- A unit under construction runs no command SlowUpdate, so a target list given
 	-- to it would only be converted after roll-out. Native queued Attacks on such a
 	-- unit carry death dependences and advance the queue the moment a target is
@@ -492,7 +527,7 @@ if gadgetHandler:IsSyncedCode() then
 			not isReference
 			and not cmdOptions.internal
 			and canAttack[unitDefID]
-			and (not Spring.RegisterCommand or not hasUnitDeleted or Spring.GetUnitIsBeingBuilt(unitID))
+			and (not Spring.RegisterCommand or not hasTargetLifecycle or Spring.GetUnitIsBeingBuilt(unitID))
 		then
 			giveNativeAttacks(unitID, cmdParams, cmdOptions)
 			return false
@@ -568,14 +603,14 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			state.cmdTag = front.tag
 			if not issueNextTarget(unitID, state, front.tag) then
-				spGiveOrderToUnit(unitID, CMD.REMOVE, { front.tag }, CMD.OPT_INTERNAL)
-				clearState(unitID)
+				removeExhaustedController(unitID, state, front.tag)
 			end
 			---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
 			return true, false
 		end
 
 		if not recheckController(unitID, state, false) then
+			stopExhaustedController(unitID, state)
 			clearState(unitID)
 			---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
 			return true, true
@@ -586,6 +621,7 @@ if gadgetHandler:IsSyncedCode() then
 			return true, false
 		end
 
+		stopExhaustedController(unitID, state)
 		clearState(unitID)
 		---@diagnostic disable-next-line: redundant-return-value -- Recoil consumes handled and remove.
 		return true, true
@@ -655,7 +691,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		groupsByTail[destroyedID] = nil
 		for listID, group in pairs(groups) do
-			group.lastIndex = lastAttackableIndex(group.targets)
+			group.lastIndex = lastPendingIndex(group.targets)
 			group.targetID = group.lastIndex > 0 and group.targets[group.lastIndex].target or nil
 			if group.targetID then
 				groupsByTail[group.targetID] = groupsByTail[group.targetID] or {}
@@ -663,10 +699,34 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			for unitID, state in pairs(group.units) do
 				if state.nextTargetIndex > group.lastIndex then
-					spGiveOrderToUnit(unitID, CMD.REMOVE, { state.cmdTag }, CMD.OPT_INTERNAL)
-					clearState(unitID)
+					removeExhaustedController(unitID, state, state.cmdTag)
 				end
 			end
+		end
+	end
+
+	function gadget:UnitAttackTargetRemoved(unitID, unitDefID, unitTeam, targetID)
+		local state = targetListStates[unitID]
+		if not state then
+			return
+		end
+		-- SetNeutral removes this target only from units actually targeting it.
+		-- Do not mutate shared entries: other units retain their queued Attack.
+		local removed = state.removedEntries or {}
+		state.removedEntries = removed
+		for index = state.nextTargetIndex, #state.targets do
+			local entry = state.targets[index]
+			if entry.target == targetID then
+				removed[entry] = true
+			end
+		end
+		watchPendingTarget(unitID, state)
+		if not state.pendingTargetID then
+			-- Native neutralization erases commands without StopMove or immediate
+			-- execution of their successor; retain that ordering here too.
+			local tag = state.cmdTag
+			clearState(unitID)
+			return { tag }
 		end
 	end
 
@@ -703,8 +763,7 @@ if gadgetHandler:IsSyncedCode() then
 							not recheckController(unitID, state, false)
 							or not issueNextTarget(unitID, state, front.tag)
 						then
-							spGiveOrderToUnit(unitID, CMD.REMOVE, { front.tag }, CMD.OPT_INTERNAL)
-							clearState(unitID)
+							removeExhaustedController(unitID, state, front.tag)
 						end
 					end
 				end
