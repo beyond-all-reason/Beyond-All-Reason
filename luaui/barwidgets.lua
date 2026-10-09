@@ -3473,6 +3473,12 @@ function widgetHandler:RecvLuaMsg(msg, playerID)
 	tracy.ZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
 	local retval = false
 	if msg:find("LobbyOverlayActive", 1, true) == 1 then
+		-- LuaMenu delivers these as player 0. From any other player they are spoofed.
+		-- ! FIXME: We cannot distinguish LuaMenu from an actual player 0.
+		if playerID ~= 0 then
+			tracy.ZoneEnd()
+			return true
+		end
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end

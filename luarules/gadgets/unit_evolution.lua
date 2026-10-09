@@ -488,7 +488,7 @@ if gadgetHandler:IsSyncedCode() then
 		local announcement = nil
 		local announcementSize = nil
 		if evolution.evolution_announcement then
-			spEcho(evolution.evolution_announcement)
+			spEcho("Evolution: " .. evolution.evolution_announcement:gsub("[\r\n]", " ")) -- mostly safe
 			announcement = evolution.evolution_announcement
 			announcementSize = evolution.evolution_announcement_size
 		end
