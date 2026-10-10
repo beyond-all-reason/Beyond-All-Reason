@@ -16,6 +16,10 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+if Spring.GetModOptions().unit_restrictions_nonukes then
+	return
+end
+
 local difficulty = "normal"
 
 if BAR.Utilities.Gametype.IsRaptors() then
