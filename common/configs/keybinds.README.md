@@ -216,15 +216,20 @@ The editor's own UI - buttons, dialogs, prompts - is not vocabulary and stays in
 `interface.json` under `ui.keybinds.editor.*`. A surface that builds its own UI needs the
 three namespaces above and none of that.
 
+## Widget-declared actions
+
+A widget from the widget hub can declare bindable actions and their default keys in its
+`manifest.json`, in the format the hub's manifest schema sets. Each loaded widget gets an editor
+category titled by its `display_name`, its rows labelled by the action the way a custom keybind
+is. A shipped profile adds the defaults it lacks every time it is
+written; a player's profile takes each one once and records it under `seeded`, so one the
+player removes stays removed.
+
 ## Not covered yet
 
-- A widget/mod action-declaration API, so widgets register their own bindable actions
-  (with label + category + description) into the catalog at runtime instead of only being
-  editable when already bound.
 - Command descriptions for every action. A catalog item may carry `description`, an i18n
   key for a tooltip sentence; without one the in-game editor falls back to the command
   card's tooltip (`commands.<name>_tooltip`, for a row labelled `commands.<name>`) and then
   to the engine's command description (`cmd.<command>`, `cmd.<command>._description` for the
   structured ones, `cmd.luarules.<command>` for gadget commands). Roughly a third of the
-  catalog still has none of those. Widget/mod actions have no `cmd.*` entry, so their
-  descriptions depend on the declaration API above.
+  catalog still has none of those, and a widget action has none.
