@@ -17,6 +17,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return
 end
 
+local math_abs = math.abs
 local math_max = math.max
 local math_diag = math.diag
 local math_pointOnCircle = math.closestPointOnCircle
@@ -40,6 +41,7 @@ local spTestMoveOrder = Spring.TestMoveOrder
 local gameSpeed = Game.gameSpeed
 local footprint = Game.squareSize * Game.footprintScale
 
+local CMD_GUARD = CMD.GUARD
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT
 local insertMoveParams = { 0, CMD.MOVE, CMD.OPT_INTERNAL, 0, 0, 0 }
@@ -92,6 +94,10 @@ local MAX_BUGGEROFF_RADIUS = BUGGEROFF_RADIUS_INCREMENT * (MAX_BUGGEROFF_TIME * 
 local USER_COMMAND_TIMEOUT = 2 * gameSpeed
 -- Cooldown for area commands to prevent mass slowWatchBuilder calls
 local AREA_COMMAND_COOLDOWN = 2 * gameSpeed
+-- Clear units guarding a traveling builder out of its forward path corridor
+local PATH_CLEAR_SEARCH_EXTRA = 3 * footprint
+local PATH_CLEAR_FORWARD_EXTRA = 2 * footprint
+local PATH_CLEAR_LATERAL_EXTRA = footprint
 
 local function willBeNearTarget(ux, uz, vx, vz, tx, tz, maxDistance)
 	local sx = ux - tx
@@ -178,6 +184,62 @@ local function shouldBuggeroff(unitID, unitDefData, visitedUnits, builderTeam)
 	end
 end
 
+local function isGuardingBuilder(unitID, builderID)
+	local cmdID, _, _, guardTargetID = spGetUnitCurrentCommand(unitID, 1)
+	return cmdID == CMD_GUARD and guardTargetID == builderID
+end
+
+-- Nudge units whose current order is GUARD on this builder out of its travel corridor.
+local function clearGuardsFromBuilderPath(builderID, bx, by, bz, tx, tz, builderDefData, visitedUnits, moveParams)
+	local dx, dz = tx - bx, tz - bz
+	local dist = math_diag(dx, dz)
+	if dist < footprint then
+		return
+	end
+
+	local inv = 1 / dist
+	local dirX, dirZ = dx * inv, dz * inv
+	local builderRadius = builderDefData.radius
+	local searchRadius = builderRadius + PATH_CLEAR_SEARCH_EXTRA
+	local nearbyUnits = spGetUnitsInCylinder(bx, bz, searchRadius)
+
+	for i = 1, #nearbyUnits do
+		local unitID = nearbyUnits[i]
+		if unitID ~= builderID and not visitedUnits[unitID] then
+			local unitDefID = spGetUnitDefID(unitID)
+			local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
+			if unitDefData and not ignoreBuggeroff(unitID, unitDefData) and isGuardingBuilder(unitID, builderID) then
+				local ux, _, uz = spGetUnitPosition(unitID)
+				if ux then
+					local toX, toZ = ux - bx, uz - bz
+					local forward = toX * dirX + toZ * dirZ
+					-- Signed offset along (dirZ, -dirX); positive = one side of the path
+					local lateral = toX * dirZ - toZ * dirX
+					local unitRadius = unitDefData.radius
+					local blockWidth = builderRadius + unitRadius
+					local maxForward = blockWidth + PATH_CLEAR_FORWARD_EXTRA
+					local absLateral = math_abs(lateral)
+
+					if forward > 0 and forward < maxForward and absLateral < blockWidth then
+						-- Push further out on the same side; never across the centerline
+						local side = lateral >= 0 and 1 or -1
+						local clearDist = blockWidth + PATH_CLEAR_LATERAL_EXTRA
+						local push = clearDist - absLateral
+						local sendX = ux + dirZ * side * push
+						local sendZ = uz - dirX * side * push
+
+						if spTestMoveOrder(unitDefID, sendX, by, sendZ) then
+							moveParams[4], moveParams[5], moveParams[6] = sendX, by, sendZ
+							spGiveOrderToUnit(unitID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+							visitedUnits[unitID] = true
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
 function gadget:GameFrame(frame)
 	gameFrame = frame
 	if frame % FAST_UPDATE_FREQUENCY ~= 0 then
@@ -203,84 +265,101 @@ function gadget:GameFrame(frame)
 		local builderTeam = spGetUnitTeam(builderID)
 		local targetDistance = targetZ and x and math_diag(targetX - x, targetZ - z)
 		local buildUnitDefData = cmdID and cachedUnitDefs[-cmdID]
+		local builderDefData = cachedUnitDefs[spGetUnitDefID(builderID)]
 
 		if not x then
 			deferRemoveCount = deferRemoveCount + 1
 			deferRemove[deferRemoveCount] = builderID
-		elseif not buildUnitDefData or targetDistance > FAST_UPDATE_RADIUS then
+		elseif not buildUnitDefData then
 			deferSlowCount = deferSlowCount + 1
 			deferSlow[deferSlowCount] = builderID
-		elseif
-			not isBuilding
-			and targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius
-			and spGetUnitIsBeingBuilt(builderID) == false
-		then
-			local buildDefRadius = buildUnitDefData.radius
-			local searchRadius = SEARCH_RADIUS_OFFSET + buildDefRadius
-
-			-- Use cached cylinder lookup to reduce redundant API calls
-			-- Nested numeric tables avoid string format allocation/GC overhead
-			local cache1 = cylinderCache[targetX]
-			if not cache1 then
-				cache1 = {}
-				cylinderCache[targetX] = cache1
-			end
-			local cacheKey2 = targetZ * 10000 + searchRadius
-			local interferingUnits = cache1[cacheKey2]
-			if not interferingUnits then
-				interferingUnits = spGetUnitsInCylinder(targetX, targetZ, searchRadius)
-				cache1[cacheKey2] = interferingUnits
+		elseif not isBuilding and spGetUnitIsBeingBuilt(builderID) == false then
+			-- Keep guards from blocking the builder while it travels to the build site.
+			if builderDefData then
+				clearGuardsFromBuilderPath(
+					builderID,
+					x,
+					y,
+					z,
+					targetX,
+					targetZ,
+					builderDefData,
+					visitedUnits,
+					moveParams
+				)
 			end
 
-			-- Escalate the radius every update. We want to send units away the minimum distance, but
-			-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
-			local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
-			local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
+			if targetDistance > FAST_UPDATE_RADIUS then
+				deferSlowCount = deferSlowCount + 1
+				deferSlow[deferSlowCount] = builderID
+			elseif targetDistance < BUILDER_BUILD_RADIUS + buildUnitDefData.radius then
+				local buildDefRadius = buildUnitDefData.radius
+				local searchRadius = SEARCH_RADIUS_OFFSET + buildDefRadius
 
-			-- Make sure at least one builder per player is never told to move
-			if visitedTeams[builderTeam] == nil then
-				visitedTeams[builderTeam] = true
-				visitedUnits[builderID] = true
-			end
+				-- Use cached cylinder lookup to reduce redundant API calls
+				-- Nested numeric tables avoid string format allocation/GC overhead
+				local cache1 = cylinderCache[targetX]
+				if not cache1 then
+					cache1 = {}
+					cylinderCache[targetX] = cache1
+				end
+				local cacheKey2 = targetZ * 10000 + searchRadius
+				local interferingUnits = cache1[cacheKey2]
+				if not interferingUnits then
+					interferingUnits = spGetUnitsInCylinder(targetX, targetZ, searchRadius)
+					cache1[cacheKey2] = interferingUnits
+				end
 
-			for _, interferingID in ipairs(interferingUnits) do
-				local unitDefID = spGetUnitDefID(interferingID)
-				local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
+				-- Escalate the radius every update. We want to send units away the minimum distance, but
+				-- if there are many units in the way, they may cause a traffic jam and need to clear more room.
+				local buggerOffRadius = builderRadiusOffsets[builderID] + buildDefRadius
+				local buggerOffRadiusOffset = builderRadiusOffsets[builderID] + BUGGEROFF_RADIUS_INCREMENT
 
-				if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
-					-- continue
-				elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
-					local unitX, _, unitZ = spGetUnitPosition(interferingID)
-					if unitX then
-						local speedX, _, speedZ = spGetUnitVelocity(interferingID)
-						if speedX then
-							local unitRadius = unitDefData.radius
-							local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
+				-- Make sure at least one builder per player is never told to move
+				if visitedTeams[builderTeam] == nil then
+					visitedTeams[builderTeam] = true
+					visitedUnits[builderID] = true
+				end
 
-							if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
-								local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
-								local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
-								local sendX, sendZ =
-									math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+				for _, interferingID in ipairs(interferingUnits) do
+					local unitDefID = spGetUnitDefID(interferingID)
+					local unitDefData = unitDefID and cachedUnitDefs[unitDefID]
 
-								if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
-									moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
-									spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+					if not unitDefData or builderID == interferingID or visitedUnits[interferingID] then
+						-- continue
+					elseif shouldBuggeroff(interferingID, unitDefData, visitedUnits, builderTeam) then
+						local unitX, _, unitZ = spGetUnitPosition(interferingID)
+						if unitX then
+							local speedX, _, speedZ = spGetUnitVelocity(interferingID)
+							if speedX then
+								local unitRadius = unitDefData.radius
+								local areaRadius = math_max(buggerOffRadius, buildDefRadius + unitRadius)
+
+								if willBeNearTarget(unitX, unitZ, speedX, speedZ, targetX, targetZ, areaRadius) then
+									local predX = unitX + speedX * BUGGEROFF_LOOKAHEAD
+									local predZ = unitZ + speedZ * BUGGEROFF_LOOKAHEAD
+									local sendX, sendZ =
+										math_pointOnCircle(targetX, targetZ, buggerOffRadius + unitRadius, predX, predZ)
+
+									if spTestMoveOrder(unitDefID, sendX, targetY, sendZ) then
+										moveParams[4], moveParams[5], moveParams[6] = sendX, targetY, sendZ
+										spGiveOrderToUnit(interferingID, CMD_INSERT, moveParams, CMD_OPT_ALT)
+									end
 								end
 							end
 						end
 					end
 				end
-			end
 
-			if
-				buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS
-				or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID))
-			then
-				deferRemoveCount = deferRemoveCount + 1
-				deferRemove[deferRemoveCount] = builderID
-			else
-				builderRadiusOffsets[builderID] = buggerOffRadiusOffset
+				if
+					buggerOffRadiusOffset > MAX_BUGGEROFF_RADIUS
+					or (not buildUnitDefData.isImmobile and IsUnitRepeatOn(builderID))
+				then
+					deferRemoveCount = deferRemoveCount + 1
+					deferRemove[deferRemoveCount] = builderID
+				else
+					builderRadiusOffsets[builderID] = buggerOffRadiusOffset
+				end
 			end
 		elseif isBuilding then
 			-- We want to keep updating in case the builder has got another job nearby
@@ -306,6 +385,7 @@ function gadget:GameFrame(frame)
 	local deferWatch = {}
 	local deferSlowRemoveCount = 0
 	local deferWatchCount = 0
+	local pathVisitedUnits = {}
 
 	for builderID in pairs(slowUpdateBuilders) do
 		-- Use spGetUnitCurrentCommand per-index to avoid allocating command tables
@@ -330,13 +410,28 @@ function gadget:GameFrame(frame)
 		if not hasBuildCommand then
 			deferSlowRemoveCount = deferSlowRemoveCount + 1
 			deferSlowRemove[deferSlowRemoveCount] = builderID
-		elseif
-			buildCommandFirst
-			and not spGetUnitIsBuilding(builderID)
-			and isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS)
-		then
-			deferWatchCount = deferWatchCount + 1
-			deferWatch[deferWatchCount] = builderID
+		elseif buildCommandFirst and not spGetUnitIsBuilding(builderID) then
+			-- Long-range travel: still clear guarding units from the builder's path
+			local bx, by, bz = spGetUnitPosition(builderID)
+			local builderDefData = cachedUnitDefs[spGetUnitDefID(builderID)]
+			if bx and builderDefData then
+				clearGuardsFromBuilderPath(
+					builderID,
+					bx,
+					by,
+					bz,
+					targetX,
+					targetZ,
+					builderDefData,
+					pathVisitedUnits,
+					moveParams
+				)
+			end
+
+			if isInTargetArea(builderID, targetX, targetZ, FAST_UPDATE_RADIUS) then
+				deferWatchCount = deferWatchCount + 1
+				deferWatch[deferWatchCount] = builderID
+			end
 		end
 	end
 
@@ -383,5 +478,8 @@ function gadget:UnitCommand(
 			slowWatchBuilder(unitID)
 		end
 	end
-	mostRecentCommandFrame[unitID] = gameFrame
+	-- Ignore Lua-issued orders (e.g. our own path-clear moves) so they don't immunize units
+	if not fromLua then
+		mostRecentCommandFrame[unitID] = gameFrame
+	end
 end
