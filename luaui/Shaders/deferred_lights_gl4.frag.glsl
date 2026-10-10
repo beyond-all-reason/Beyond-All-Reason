@@ -21,6 +21,7 @@ in DataVS {
 	vec4 v_position;
 	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
+	flat float v_sourceVisibility;
 };
 
 uniform sampler2D mapDepths;
@@ -228,7 +229,7 @@ vec4 halfconeIntersectScatter( in vec3  rayOrigin, in vec3 rayDirection, in vec3
 	}
 	 // vec3 normal =normalize(ConeHeightSqr*(ConeHeightSqr*(TipToEye+CloseDistToCone*rayDirection))-TipToEnd*CapeLengthSqr*y)
 	// Bail early if we are not on the cone
-	if (abs(coneflatdistances.y - coneflatdistances.x) < 0.1) return vec4(-1, -1, 0, 0);
+	if (abs(coneflatdistances.y - coneflatdistances.x) < 0.001) return vec4(-1, -1, 0, 0);
 	 
 	// try to get some sort of falloff factor
 	// calc angle between entry and exit
@@ -532,8 +533,7 @@ void main(void)
 		scatteringRayleigh = iCone.z * 0.33;
 		scatteringMie = iCone.w;
 
-		lensFlare = step(v_depths_center_map_model_min.x, v_depths_center_map_model_min.w);
-		lensFlare = lensFlare * clamp( lensFlare * LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15 / (0.01 +v_modelfactor_specular_scattering_lensflare.w)) +1, 0, 1);
+		lensFlare = v_sourceVisibility * clamp( LensFlareDistanceSqrt(closestpoint_dist.xyz, lightPosition,lightRadius) *(-15 / (0.01 +v_modelfactor_specular_scattering_lensflare.w)) +1, 0, 1);
 		
 		float lightandcameraangle = dot(coneDirection, viewDirection) + 1.0;
 		//lensFlare *= smoothstep(lightCosTheta, 1.0, lightandcameraangle);
