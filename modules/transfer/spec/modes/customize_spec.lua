@@ -59,8 +59,19 @@ describe("Customize mode policy bundle", function()
 	end)
 
 	it("exposes every other module's dials on the axis, open", function()
+		local foreign = 0
 		for key, option in pairs(customizeMode.modOptions) do
 			assert.is_false(option.locked, key .. " is locked")
+			local own = false
+			for _, enums in ipairs({ TransferEnums.ModOptions, ConstructionEnums.ModOptions }) do
+				for _, ownKey in pairs(enums) do
+					own = own or ownKey == key
+				end
+			end
+			if not own then
+				foreign = foreign + 1
+			end
 		end
+		assert.is_true(foreign > 0, "no other module exposed a dial")
 	end)
 end)

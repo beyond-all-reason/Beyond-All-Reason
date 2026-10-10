@@ -1,0 +1,117 @@
+local ConstructionEnums = require("modules/construction/enums")
+local Policy = require("modules/policy")
+local TechTier = require("modules/tech/tier")
+local TransferEnums = require("modules/transfer/enums")
+
+-- The ladder a team stands on: what its tech level unlocks now, and what the next level would
+--
+---@class TechTierRequest: PolicyContext
+---@field level integer the team's current tech level
+---@field points number keystone points the team holds
+---@field t2Threshold number keystones per player for tech 2
+---@field t3Threshold number keystones per player for tech 3
+
+---@class TechUnlock
+---@field unlockLevel integer
+---@field unlockThreshold number
+---@field unlockValue string|number|boolean
+
+---@class TechBlockingContext
+---@field level integer
+---@field points number
+---@field t2Threshold number
+---@field t3Threshold number
+---@field nextLevel integer
+---@field nextThreshold number
+---@field unitTransfer TechUnlock|nil
+---@field metalTransfer TechUnlock|nil
+---@field energyTransfer TechUnlock|nil
+
+---@class TechCoreLadder
+---@field modes string[]
+---@field taxRate number|nil
+---@field blocking TechBlockingContext
+
+---@class TechCorePolicy: PolicySteps<TechTierRequest, TechCoreLadder>
+---@field TechCoreLadder "TechCoreLadder"
+
+---@type TechCorePolicy
+local TechCore = {
+	TechCoreLadder = "TechCoreLadder",
+}
+Policy.Single(TechCore)
+
+local NONE = ConstructionEnums.UnitFilterCategory.None
+
+---@param request TechTierRequest
+---@param baseKey string
+---@param currentValue any
+---@param normalize fun(v: any): any
+---@return TechUnlock|nil
+local function nextProgression(request, baseKey, currentValue, normalize)
+	for scanLevel = request.level + 1, 3 do
+		local futureValue = TechTier.resolveByTechLevel(request.modOptions, baseKey, scanLevel)
+		if futureValue ~= nil and futureValue ~= "" and normalize(futureValue) ~= currentValue then
+			local threshold = scanLevel == 2 and request.t2Threshold or request.t3Threshold
+			return { unlockLevel = scanLevel, unlockThreshold = threshold, unlockValue = futureValue }
+		end
+	end
+	return nil
+end
+
+---@param request TechTierRequest
+---@return string[]
+local function activeUnitSharingModes(request)
+	local opts, modes = request.modOptions, {}
+	local base = opts[TransferEnums.ModOptions.UnitSharingMode]
+	if base and base ~= "" and base ~= NONE then
+		modes[#modes + 1] = base
+	end
+	for _, tier in ipairs({ 2, 3 }) do
+		local mode = opts["unit_sharing_mode_at_t" .. tier]
+		if request.level >= tier and mode and mode ~= "" then
+			modes[#modes + 1] = mode
+		end
+	end
+	if #modes == 0 then
+		modes = { NONE }
+	end
+	return modes
+end
+
+Policies.On(TechCore).Answer(TechCore.TechCoreLadder, function(request)
+	local currentTax =
+		tonumber(TechTier.resolveByTechLevel(request.modOptions, "tax_resource_sharing_amount", request.level))
+	local taxUnlock = nextProgression(request, "tax_resource_sharing_amount", currentTax, tonumber)
+	local unitUnlock = nil
+	for scanLevel = request.level + 1, 3 do
+		local nextMode = request.modOptions["unit_sharing_mode_at_t" .. scanLevel]
+		if nextMode and nextMode ~= "" then
+			local threshold = scanLevel == 2 and request.t2Threshold or request.t3Threshold
+			unitUnlock = { unlockLevel = scanLevel, unlockThreshold = threshold, unlockValue = nextMode }
+			break
+		end
+	end
+	local nextLevel = request.level < 2 and 2 or 3
+	return {
+		modes = activeUnitSharingModes(request),
+		taxRate = currentTax,
+		blocking = {
+			level = request.level,
+			points = request.points,
+			t2Threshold = request.t2Threshold,
+			t3Threshold = request.t3Threshold,
+			nextLevel = nextLevel,
+			nextThreshold = nextLevel == 2 and request.t2Threshold or request.t3Threshold,
+			unitTransfer = unitUnlock,
+			metalTransfer = taxUnlock,
+			energyTransfer = taxUnlock,
+		},
+	}
+end)
+
+---@class (partial) TechContract
+local Contract = {}
+Contract.TechCore = TechCore
+
+return Contract
