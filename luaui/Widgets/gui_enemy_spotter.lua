@@ -28,6 +28,7 @@ local pushElementInstance = InstanceVBOTable.pushElementInstance
 ---@type InstanceVBOTable?
 local enemyspotterVBO = nil
 local enemyspotterShader = nil
+local shaderOpacity = -1.0 -- the opacity the shader's uniforms were last set for
 local luaShaderDir = "LuaUI/Include/"
 
 -- Localize for speedups:
@@ -35,7 +36,8 @@ local glDepthTest = gl.DepthTest
 local glTexture = gl.Texture
 local GL_POINTS = GL.POINTS
 
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local myAllyTeamID = Spring.GetLocalAllyTeamID()
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -56,6 +58,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 local teamLeader = {}
+local teamAllyTeam = {}
 local allyTeamLeader = {}
 local teams = Spring.GetTeamList()
 for i = 1, #teams do
@@ -65,60 +68,59 @@ for i = 1, #teams do
 		allyTeamLeader[allyTeamID] = teamID -- assign which team color to use for whole allyteam
 	end
 	teamLeader[teamID] = allyTeamLeader[allyTeamID]
+	teamAllyTeam[teamID] = allyTeamID
 end
 allyTeamLeader = nil
 
+-- pushElementInstance copies the values, so one table serves every unit.
+-- u is mirrored so the quad gets the uv layout of a cornerrect with zero corners, at half the vertices.
+local instanceCache = {
+	0,
+	0,
+	0,
+	0, -- lengthwidthcornerheight
+	0, -- teamID
+	4, -- numvertices: quad
+	0,
+	0,
+	0,
+	0, -- parameters
+	1,
+	0,
+	0,
+	1, -- uvoffsets, u mirrored
+	0,
+	0,
+	0,
+	0, -- instData, filled in by the engine
+}
+
 local function AddPrimitiveAtUnit(unitID, unitDefID, unitTeam, noUpload)
 	local radius = unitScale[unitDefID]
-
-	pushElementInstance(
-		enemyspotterVBO, -- push into this Instance VBO Table
-		{
-			radius,
-			radius,
-			0,
-			0, -- lengthwidthcornerheight
-			teamLeader[unitTeam], -- teamID
-			2, -- how many triangles should we make
-			0,
-			0,
-			0,
-			0, -- the gameFrame (for animations), and any other parameters one might want to add
-			0,
-			1,
-			0,
-			1, -- These are our default UV atlas transformations
-			0,
-			0,
-			0,
-			0, -- these are just padding zeros, that will get filled in
-		},
-		unitID, -- this is the key inside the VBO TAble,
-		true, -- update existing element
-		noUpload, -- noupload, dont use unless you
-		unitID -- last one should be UNITID?
-	)
+	instanceCache[1] = radius
+	instanceCache[2] = radius
+	instanceCache[5] = teamLeader[unitTeam]
+	pushElementInstance(enemyspotterVBO, instanceCache, unitID, true, noUpload, unitID)
 end
 
-local drawFrame = 0
 function widget:DrawWorldPreUnit()
-	if Spring.IsGUIHidden() then
+	if enemyspotterVBO.usedElements == 0 or spIsGUIHidden() then
 		return
 	end
-	drawFrame = drawFrame + 1
-	if enemyspotterVBO.usedElements > 0 then
-		glTexture(0, texture)
-		enemyspotterShader:Activate()
-		enemyspotterShader:SetUniform("iconDistance", 99999) -- pass
-
-		glDepthTest(true)
-
-		enemyspotterShader:SetUniform("addRadius", 0)
-		enemyspotterVBO.VAO:DrawArrays(GL_POINTS, enemyspotterVBO.usedElements)
-
-		enemyspotterShader:Deactivate()
-		glTexture(0, false)
+	glTexture(0, texture)
+	enemyspotterShader:Activate()
+	if shaderOpacity ~= opacity then
+		shaderOpacity = opacity
+		enemyspotterShader:SetUniform("iconDistance", 99999) -- no distance cutoff
+		enemyspotterShader:SetUniform("transparency", opacity)
 	end
+
+	glDepthTest(true)
+
+	enemyspotterVBO.VAO:DrawArrays(GL_POINTS, enemyspotterVBO.usedElements)
+
+	enemyspotterShader:Deactivate()
+	glTexture(0, false)
 end
 
 local function RemoveUnit(unitID)
@@ -129,7 +131,7 @@ end
 
 local function AddUnit(unitID, unitDefID, unitTeamID, noUpload)
 	if
-		(not skipOwnTeam or spGetUnitAllyTeam(unitID) ~= myAllyTeamID)
+		(not skipOwnTeam or teamAllyTeam[unitTeamID] ~= myAllyTeamID)
 		and unitTeamID ~= gaiaTeamID
 		and not unitDecoration[unitDefID]
 	then
@@ -144,9 +146,13 @@ end
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(enemyspotterVBO) -- clear all instances
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		AddUnit(unitID, unitDefID, Spring.GetUnitTeam(unitID), true) -- add them with noUpload = true
+		AddUnit(unitID, unitDefID, spGetUnitTeam(unitID), true) -- add them with noUpload = true
 	end
 	InstanceVBOTable.uploadAllElements(enemyspotterVBO) -- upload them all
+end
+
+local function rebuild()
+	widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 end
 
 function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground plate if it exists
@@ -164,6 +170,11 @@ local function init()
 	shaderConfig.TRANSPARENCY = opacity
 	shaderConfig.ANIMATION = 0
 	shaderConfig.HEIGHTOFFSET = 3.99
+	-- quads only, so the geometry shader reserves 4 output vertices instead of 64
+	shaderConfig.MAXVERTICES = 4
+	shaderConfig.USE_CIRCLES = nil
+	shaderConfig.USE_CORNERRECT = nil
+	shaderConfig.USE_TRIANGLES = nil
 	enemyspotterVBO, enemyspotterShader = InitDrawPrimitiveAtUnit(shaderConfig, "enemyspotter")
 	if enemyspotterVBO == nil then
 		widgetHandler:RemoveWidget()
@@ -180,10 +191,22 @@ local function init()
 	return true
 end
 
-function widget:PlayerChanged(playerID)
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
+local function checkMyAllyTeam()
+	local allyTeamID = Spring.GetLocalAllyTeamID()
+	if allyTeamID ~= myAllyTeamID then
+		myAllyTeamID = allyTeamID
+		if skipOwnTeam then
+			rebuild()
+		end
+	end
+end
 
-	widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
+function widget:PlayerChanged(playerID)
+	checkMyAllyTeam()
+end
+
+function widget:GameStart()
+	checkMyAllyTeam() -- the engine can reset the local team at game start without a PlayerChanged
 end
 
 function widget:Initialize()
@@ -199,15 +222,14 @@ function widget:Initialize()
 		return opacity
 	end
 	WG.enemyspotter.setOpacity = function(value)
-		opacity = value
-		init()
+		opacity = value -- DrawWorldPreUnit passes it to the shader
 	end
 	WG.enemyspotter.getSkipOwnTeam = function()
 		return skipOwnTeam
 	end
 	WG.enemyspotter.setSkipOwnTeam = function(value)
 		skipOwnTeam = value
-		init()
+		rebuild()
 	end
 end
 
@@ -216,6 +238,10 @@ function widget:Shutdown()
 	if type(enemyspotterShader) == "table" then
 		enemyspotterShader:Finalize()
 		enemyspotterShader = nil
+	end
+	if enemyspotterVBO then
+		enemyspotterVBO:Delete()
+		enemyspotterVBO = nil
 	end
 end
 
