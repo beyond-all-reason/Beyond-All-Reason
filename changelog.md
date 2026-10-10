@@ -1,4 +1,5 @@
 # October
+- [Rampart] Now leaves a wreck.
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
