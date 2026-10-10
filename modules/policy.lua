@@ -1,10 +1,12 @@
 local Policy = {}
 
----@class PolicyContext a context that carries the match's modoptions, for a policy whose steps read them
----@field springRepo Spring the engine, or a spec's stand-in: a step reads the match through its context
+---@class PolicyContext a context that carries the match's modoptions: every Facts context, since the live set is read off them, and a policy's when its steps read them
+---@field springRepo Spring the engine, or a spec's stand-in: every provider reads the match through its context
 ---@field modOptions table<string, string|number|boolean>
 
 ---@class PolicySteps<C, T>: { [string]: string } step names for one policy; C is the context its evaluates receive, T the result it produces
+
+---@class PolicyFacts<C>: { [string]: string } the facts a decision reads, named; C is the context providers receive
 
 ---@class AssembledPolicy<C, T>: { [integer]: PolicyStep } one policy as LoadPolicies hands it back, contributions applied
 ---@field result "single"|"product"|"fold"
@@ -14,6 +16,7 @@ local Policy = {}
 ---@field owner string the module whose policy or context this is
 ---@field category string its name within the module
 ---@field result "single"|"product"|"fold"|nil how a policy's results combine
+---@field facts boolean|nil true for facts: provided, not evaluated
 
 ---@generic T: table
 ---@param steps T enum of step names
@@ -45,9 +48,17 @@ end
 ---@return PolicySteps<C, T> the contribution, typed as the target: its steps take the owner's context and produce the owner's result
 function Policy.Contributes(target, names)
 	local identity = Policy.IdentityOf(target)
-	assert(identity ~= nil, "Policy.Contributes(target, names): target must be a policy's steps")
+	assert(identity ~= nil and not identity.facts, "Policy.Contributes(target, names): target must be a policy's steps")
 	assert(type(names) == "table" and getmetatable(names) == nil, "Policy.Contributes(target, names)")
 	return setmetatable(names, { __contributes = identity })
+end
+
+---@generic T: table
+---@param facts T enum of fact names
+---@return T
+function Policy.Facts(facts)
+	assert(type(facts) == "table" and getmetatable(facts) == nil, "Policy.Facts(facts)")
+	return setmetatable(facts, { __facts = true })
 end
 
 ---@param member string
@@ -61,17 +72,17 @@ function Policy.KeyOf(member)
 end
 
 ---@param owner string the module's name
----@param members table PascalCase name -> a policy's step enum (Single, Product or Fold) or Contributes
+---@param members table PascalCase name -> a policy's step enum (Single, Product or Fold), Contributes or Facts
 ---@param source string|nil where they were declared, for messages
 function Policy.Declare(owner, members, source)
 	local where = source and (source .. ": ") or "Policy.Declare: "
 	for member, steps in pairs(members) do
 		local meta = type(steps) == "table" and getmetatable(steps) or nil
 		assert(
-			meta ~= nil and (meta.__result ~= nil or meta.__contributes),
+			meta ~= nil and (meta.__result ~= nil or meta.__facts or meta.__contributes),
 			where
 				.. tostring(member)
-				.. " must declare itself: Single(...), Product(...), Fold(...) or Contributes(...)"
+				.. " must declare itself: Single(...), Product(...), Fold(...), Contributes(...) or Facts(...)"
 		)
 		assert(
 			meta.__policy == nil,
@@ -80,10 +91,19 @@ function Policy.Declare(owner, members, source)
 		local category = Policy.KeyOf(member)
 		if meta.__contributes then
 			meta.__policy = { owner = owner, category = category, contributes = meta.__contributes }
+		elseif meta.__facts then
+			meta.__policy = { owner = owner, category = category, facts = true }
 		else
 			meta.__policy = { owner = owner, category = category, result = meta.__result }
 		end
 	end
+end
+
+---@param target table
+---@return boolean
+function Policy.IsFacts(target)
+	local meta = type(target) == "table" and getmetatable(target) or nil
+	return meta ~= nil and meta.__facts == true
 end
 
 ---@param steps table
@@ -297,6 +317,48 @@ function Policy.Validate(steps, result, label)
 		last.kind == "answer",
 		label .. ": a single-result policy ends with an Answer; " .. last.name .. " is " .. KIND_LABEL[last.kind]
 	)
+end
+
+---@class PolicyProvision
+---@field names string[]
+---@field evaluate function one producer; each returned value assigns its name, in order
+---@field default boolean|nil the owner's answer for a slot nobody provides
+
+---@class PolicyEnrichment<C>
+---@field facts table|nil the facts this enrichment provides for
+---@field Provide (fun(name: string, evaluate: fun(ctx: C): any): PolicyEnrichment<C>)|(fun(name: string, name2: string, evaluate: fun(ctx: C): any, any): PolicyEnrichment<C>)|(fun(name: string, name2: string, name3: string, evaluate: fun(ctx: C): any, any, any): PolicyEnrichment<C>) the facts a producer answers, one name per return value, then the producer
+---@field Default fun(name: string, evaluate: fun(ctx: C): any): PolicyEnrichment<C> the owner's value for a fact when no module provides it
+---@field Build fun(): PolicyProvision[]
+
+---@param facts table|nil the facts, as the owner declared them
+---@return PolicyEnrichment<any>
+function Policy.Enrichment(facts)
+	local ops = {} ---@type PolicyProvision[]
+	local chain = { facts = facts }
+	chain.Provide = function(...)
+		local n = select("#", ...)
+		local evaluate = n >= 2 and select(n, ...) or nil
+		assert(type(evaluate) == "function", "PolicyEnrichment: Provide(name, ..., evaluate)")
+		local names = {}
+		for i = 1, n - 1 do
+			local name = select(i, ...)
+			assert(type(name) == "string", "PolicyEnrichment: Provide(name, ..., evaluate)")
+			names[i] = name
+		end
+		ops[#ops + 1] = { names = names, evaluate = evaluate }
+		return chain
+	end
+	---@param name string a fact the contract declares
+	---@param evaluate function
+	chain.Default = function(name, evaluate)
+		assert(type(name) == "string" and type(evaluate) == "function", "PolicyEnrichment: Default(name, evaluate)")
+		ops[#ops + 1] = { names = { name }, evaluate = evaluate, default = true }
+		return chain
+	end
+	chain.Build = function()
+		return ops
+	end
+	return chain
 end
 
 return Policy
