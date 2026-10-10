@@ -386,7 +386,8 @@ function SB:BuildSpring()
 				data.expense,
 				data.shareSlider,
 				data.sent,
-				data.received
+				data.received,
+				data.excess
 		end,
 		-- Convenience accessors for tests
 		__getInitialUnits = function()
@@ -544,6 +545,16 @@ function SB:BuildSpring()
 				end
 			end
 			return true, amount
+		end,
+
+		SetTeamResource = function(teamID, resourceType, value)
+			local store = getResourceStore(teamID, resourceType)
+			store.current = math.max(0, value)
+		end,
+
+		AddTeamResourceExcessStats = function(teamID, resourceType, excess)
+			local store = getResourceStore(teamID, resourceType)
+			store.excess = math.max(0, excess or 0)
 		end,
 
 		ValidUnitID = function(unitID)
