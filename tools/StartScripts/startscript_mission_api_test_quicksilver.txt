@@ -1,0 +1,60 @@
+[game]
+{
+	gametype = Beyond All Reason $VERSION;
+	mapname = Quicksilver Remake 1.24;
+	myplayername = TesterForMAPI;
+	ishost = 1;
+	startpostype = 0;
+	gamestartdelay = 0;
+	nohelperais = 1;
+
+	[modoptions]
+	{
+		// base64url(zlib(json)) of: {"entryPoint":"singleplayer/mission-api-tests/options_test.lua","options":{"reinforcements":true},"variables":{"totalKills":0}}
+		missionoptions = eJwtzEsKg1AMheG9ZOxr7BY66Q4kLbEEYnJJYkHk7t1b6fD_OJwTSNOPp7EmzBCsH6EieJCPG0ewaY-F-6TIGK1kg1h-NciO0MGfYD7BiXU1f9PWPpuk71Q7-KIzvoTuTVqiPFik1VTrBRTWL8Q=;
+	}
+
+	[player0]
+	{
+		name = TesterForMAPI;
+		team = 0;
+	}
+
+	[allyteam0]
+	{
+		name = players;
+	}
+
+	[allyteam1]
+	{
+		name = enemies;
+	}
+
+	[team0]
+	{
+		teamleader = 0;
+		allyteam = 0;
+		name = player;
+	}
+
+	[team1]
+	{
+		teamleader = 0;
+		allyteam = 1;
+		name = enemy;
+	}
+
+	[team2]
+	{
+		teamleader = 0;
+		allyteam = 0;
+		dummy = 1;
+	}
+
+	[team3]
+	{
+		teamleader = 0;
+		allyteam = 1;
+		dummy = 1;
+	}
+}
