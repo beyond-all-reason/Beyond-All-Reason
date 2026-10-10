@@ -9,11 +9,13 @@ static-var  gun_1;
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-// #define BASEPIECE base
+// #define WATER_ROCK_UNITSIZE 10
+// #include "../floatmotion.h"
+
 #define HITSPEED <20.0>
 //how 'heavy' the unit is, on a scale of 1-10
-// #define UNITSIZE 5
-// #define MAXTILT 200
+#define UNITSIZE 5
+#define MAXTILT 200
 #define RECOIL_POWER 20000
 
 
@@ -25,6 +27,48 @@ Create()
 	call-script CATT1_Init();
 	SLEEP_UNTIL_UNITFINISHED;
 }
+
+SetStunned(State)
+{
+    Stunned = State;
+	if (Stunned) {
+		hide emit;
+	} else {
+		show emit;
+	}
+}
+
+
+#define BASEPIECE base
+#define MAXTILT 0
+#include "../unit_hitbyweaponid_and_smoke.h"
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+	return corpsetype;
+}
+
+
 
 //-------------------------------CONSTANT ACCELERATION TURRET TURNING---------------------------
 // MaxVelocity and acceleration are in degrees per frame (not second!)
@@ -68,45 +112,4 @@ QueryWeapon1(pieceIndex)
 AimFromWeapon1(pieceIndex)
 {
 	pieceIndex = turret2;
-}
-
-
-SetStunned(State)
-{
-    Stunned = State;
-	if (Stunned) {
-		hide emit;
-	} else {
-		show emit;
-	}
-}
-
-
-#define BASEPIECE base
-#define MAXTILT 0
-#include "../unit_hitbyweaponid_and_smoke.h"
-
-Killed(severity, corpsetype)
-{
-	if( severity <= 25 )
-	{
-		corpsetype = 1 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
-	}
-	if( severity <= 50 )
-	{
-		corpsetype = 2 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
-	}
-	if( severity <= 99 )
-	{
-		corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-		return(corpsetype);
-	}
-	corpsetype = 3 ;
-		explode base type BITMAPONLY | NOHEATCLOUD;
-	return corpsetype;
 }
