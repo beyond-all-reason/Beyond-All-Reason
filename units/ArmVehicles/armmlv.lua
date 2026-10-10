@@ -115,7 +115,7 @@ return {
 			},
 		},
 		weapondefs = {
-			minesweep = {
+			groundhog_minesweeper = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				collidefriendly = false,
@@ -126,7 +126,7 @@ return {
 				explosiongenerator = "custom:MINESWEEP",
 				firetolerance = 3000,
 				gravityaffected = "true",
-				name = "Seismic charge",
+				name = "Seismic Charge Minesweeper",
 				noselfdamage = true,
 				range = 220,
 				reloadtime = 3,
@@ -143,7 +143,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "MINESWEEP",
+				def = "groundhog_minesweeper",
 				maindir = "0 0 1",
 				maxangledif = 90,
 				onlytargetcategory = "MINE",

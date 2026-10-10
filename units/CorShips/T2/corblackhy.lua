@@ -228,7 +228,7 @@ return {
 					vtol = 65,
 				},
 			},
-			heavyplasma = {
+			black_hydra_heavy_plasma_cannon = {
 				accuracy = 500,
 				areaofeffect = 240,
 				avoidfeature = false,
@@ -242,7 +242,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 1,
 				intensity = 1.1,
-				name = "BattleshipCannon",
+				name = "Quad Heavy Blast Artillery Cannons",
 				noselfdamage = true,
 				range = 2550,
 				reloadtime = 5.5,
@@ -263,7 +263,7 @@ return {
 		weapons = {
 			[1] = {
 				burstcontrolwhenoutofarc = 1,
-				def = "HEAVYPLASMA",
+				def = "black_hydra_heavy_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

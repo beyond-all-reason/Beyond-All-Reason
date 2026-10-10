@@ -141,7 +141,7 @@ return {
 					vtol = 110,
 				},
 			},
-			bogus_missile = {
+			crossbow_targeting = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
@@ -151,7 +151,7 @@ return {
 				edgeeffectiveness = 0.15,
 				impulsefactor = 0,
 				metalpershot = 0,
-				name = "Missiles",
+				name = "Targeting System",
 				range = 800,
 				reloadtime = 0.5,
 				soundhitwet = "splshbig",
@@ -174,7 +174,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "NOTAIR LIGHTAIRSCOUT",
-				def = "BOGUS_MISSILE",
+				def = "crossbow_targeting",
 				onlytargetcategory = "VTOL",
 			},
 			[2] = {
