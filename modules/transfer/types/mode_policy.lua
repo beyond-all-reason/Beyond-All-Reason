@@ -14,6 +14,7 @@
 ---@field Stun fun(noun: TransferGrant, seconds: number?): TransferModeChain
 ---@field Defer fun(noun: TransferGrant): TransferModeChain
 ---@field Delay fun(noun: TransferGrant, seconds: number): TransferModeChain
+---@field MexSplitting fun(which: MexSplittingKey): TransferModeChain How a lobby chooses to allocate a team's mex income
 ---@field Expose fun(): TransferModeChain Every other module's dials on the axis, open at their starting point
 
 ---@param name string
