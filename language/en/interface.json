@@ -246,6 +246,7 @@
 			"title": "Keybinds",
 			"editor": {
 				"allCategories": "All",
+				"widgets": "Widgets",
 				"addBind": "Add a custom keybind...",
 				"addBindTitle": "Bind command",
 				"search": "Search actions or keys...",
@@ -275,8 +276,7 @@
 				"compareNoneHint": "Pick a preset to compare with. The actions whose keys differ from it are listed here, each with the key it has there.",
 				"changedNothing": "No keys differ from %{name}.",
 				"changedTooltip": "Every action whose keys differ from %{name}. Restore default keybinds by clicking the button containing the defualt keybind on the right.",
-				"conflict": "%{keys} is also bound to: %{actions}",
-				"conflictFirst": "%{action} (tried first)",
+				"conflict": "%{keys} is also bound to:",
 				"conflictOrder": "Actions sharing a key are tried in the order they were bound; the first to take the key wins.",
 				"conflictShipped": "The game ships them on one key; the one bound first is tried first.",
 				"conflictCapture": "Also bound to: %{actions}",
