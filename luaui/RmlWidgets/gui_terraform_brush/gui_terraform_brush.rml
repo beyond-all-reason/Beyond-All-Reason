@@ -202,9 +202,15 @@
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_hexagon.png" />
 					<div class="tf-btn-text">Shape</div>
 				</div>
+			</div>
+			<div class="flex flex-row gap-1 mb-1">
 				<div id="btn-sp-startbox" class="tf-mode-btn tf-sp-btn-startbox" data-class-active="stpSubMode == 'startbox'" data-event-mousedown="onSpSetSubMode('startbox')">
 					<img class="tf-icon-md" src="/luaui/images/terraform_brush/shape_square.png" />
 					<div class="tf-btn-text">Startbox</div>
+				</div>
+				<div id="btn-sp-roles" class="tf-mode-btn tf-sp-btn-roles" data-class-active="stpSubMode == 'roles'" data-event-mousedown="onSpSetSubMode('roles')">
+					<img class="tf-icon-md" src="/luaui/images/terraform_brush/edit_pencil.png" />
+					<div class="tf-btn-text">Roles</div>
 				</div>
 			</div>
 			<!-- Startbox placement-mode picker (only visible in startbox submode). Same styling as main submode row. -->
@@ -519,6 +525,10 @@
 				<div id="sp-sbx-hint-box" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'box'">LMB drag: rectangle &amp;middot; RMB: remove last box &amp;middot; Drag vertices to reshape</div>
 				<div id="sp-sbx-hint-polygon" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'polygon'">LMB: add vertex &amp;middot; RMB: finish box &amp;middot; Drag vertices to move</div>
 				<div id="sp-sbx-hint-freedraw" class="text-sm text-keybind mb-1" data-if="stpStartboxMode == 'freedraw'">LMB drag: free-draw (smoothed) &amp;middot; RMB: cancel &amp;middot; Drag vertices to tweak</div>
+			</div>
+			<!-- Roles mode hint -->
+			<div id="sp-roles-hint" data-if="stpSubMode == 'roles'">
+				<div class="text-sm text-keybind mb-1">LMB: next role RMB: previous role </div>
 			</div>
 
 			<!-- Action buttons -->
