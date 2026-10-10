@@ -12,9 +12,6 @@ function widget:GetInfo()
 	}
 end
 
--- Localized Spring API for performance
-local spGetGameFrame = Spring.GetGameFrame
-
 local onlyOwnTeam = true
 
 local idleUnitDelay = 8 -- how long a unit must be idle before the icon shows up
@@ -22,6 +19,15 @@ local idleUnitDelay = 8 -- how long a unit must be idle before the icon shows up
 local iconSequenceImages = "Luaui/Images/idleicon/idlecon_" -- must be png's
 local iconSequenceNum = 59 -- always starts at 1
 local iconSequenceFrametime = 0.02 -- duration per frame
+
+local iconSequenceTextures = {}
+for i = 1, iconSequenceNum do
+	iconSequenceTextures[i] = iconSequenceImages .. (i < 100 and "0" or "") .. (i < 10 and "0" or "") .. i .. ".png"
+end
+
+-- "UnitIconDistance" is not an engine setting, so this is the default unless someone sets it
+local iconDistance = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+local shaderIconDistance
 
 local unitScope = {} -- table of teamid to table of stallable unitID : unitDefID
 local idleUnitList = {}
@@ -32,10 +38,11 @@ local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local spGetUnitTeam = Spring.GetUnitTeam
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetLocalTeamID()
-local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spIsGUIHidden = Spring.IsGUIHidden
 
+---@type table<integer, table>
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	local cp = unitDef.customParams
@@ -114,6 +121,10 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget()
 		return
 	end
+	-- load every animation frame now: loading one inside a draw stalls ~10 ms, which hit each frame of the first cycle
+	for i = 1, iconSequenceNum do
+		gl.TextureInfo(iconSequenceTextures[i])
+	end
 	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
 		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
@@ -124,42 +135,26 @@ local function isWorkerUnitIdle(unitID, unitDefID)
 		or (unitConf[unitDefID][3] and spGetFactoryCommandCount(unitID) or spGetUnitCommandCount(unitID)) == 0
 end
 
-local function updateIcons()
-	local gf = spGetGameFrame()
+---@type number[]
+local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.8, 0, 1, 0, 1, 0, 0, 0, 0, 0 }
+
+local function updateIcons(gf)
+	local now = os.clock()
 	for unitID, unitDefID in pairs(unitScope) do
 		if isWorkerUnitIdle(unitID, unitDefID) then
 			if not iconVBO.instanceIDtoIndex[unitID] then -- not already being drawn
-				if spValidUnitID(unitID) and not spGetUnitIsDead(unitID) and not spGetUnitIsBeingBuilt(unitID) then
-					if not idleUnitList[unitID] then
-						idleUnitList[unitID] = os.clock()
-					elseif idleUnitList[unitID] < os.clock() - idleUnitDelay then
-						pushElementInstance(
-							iconVBO, -- push into this Instance VBO Table
-							{
-								unitConf[unitDefID][1],
-								unitConf[unitDefID][1],
-								0,
-								unitConf[unitDefID][2], -- lengthwidthcornerheight
-								0, --Spring.GetUnitTeam(featureID), -- teamID
-								4, -- how many vertices should we make ( 2 is a quad)
-								gf,
-								0,
-								0.8,
-								0, -- the gameFrame (for animations), and any other parameters one might want to add
-								1,
-								0,
-								1,
-								0, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
-								0,
-								0,
-								0,
-								0,
-							}, -- these are just padding zeros, that will get filled in
-							unitID, -- this is the key inside the VBO Table, should be unique per unit
-							false, -- update existing element
-							true, -- noupload, dont use unless you know what you want to batch push/pop
-							unitID
-						) -- last one should be featureID!
+				-- GetUnitIsDead is nil for invalid units
+				if spGetUnitIsDead(unitID) == false and not spGetUnitIsBeingBuilt(unitID) then
+					local idleSince = idleUnitList[unitID]
+					if not idleSince then
+						idleUnitList[unitID] = now
+					elseif idleSince < now - idleUnitDelay then
+						local conf = unitConf[unitDefID]
+						instanceData[1] = conf[1]
+						instanceData[2] = conf[1]
+						instanceData[4] = conf[2] -- lengthwidthcornerheight
+						instanceData[7] = gf -- the gameFrame (for animations)
+						pushElementInstance(iconVBO, instanceData, unitID, false, true, unitID)
 					end
 				end
 			end
@@ -176,8 +171,8 @@ local function updateIcons()
 end
 
 function widget:GameFrame(n)
-	if spGetGameFrame() % 25 == 0 then
-		updateIcons()
+	if n % 25 == 0 then
+		updateIcons(n)
 	end
 end
 
@@ -198,32 +193,28 @@ end
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
 	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
-	if Spring.IsGUIHidden() then
+	-- Stays registered while empty: re-registering moves a widget behind the others of its layer,
+	-- which would change which icon is on top when several of them overlap.
+	if iconVBO.usedElements == 0 or spIsGUIHidden() then
 		return
 	end
 
-	if iconVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		gl.DepthTest(true)
-		gl.DepthMask(false)
-		local clock = os.clock() * (1 * (iconSequenceFrametime * iconSequenceNum)) -- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
-		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
-		gl.Texture(
-			iconSequenceImages
-				.. (animFrame < 100 and "0" or "")
-				.. (animFrame < 10 and "0" or "")
-				.. animFrame
-				.. ".png"
-		)
-		energyIconShader:Activate()
-		energyIconShader:SetUniform("iconDistance", disticon)
-		energyIconShader:SetUniform("addRadius", 0)
-		iconVBO.VAO:DrawArrays(GL.POINTS, iconVBO.usedElements)
-		energyIconShader:Deactivate()
-		gl.Texture(false)
-		gl.DepthTest(false)
-		gl.DepthMask(true)
+	gl.DepthTest(true)
+	gl.DepthMask(false)
+	local clock = os.clock() * (1 * (iconSequenceFrametime * iconSequenceNum)) -- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
+	local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
+	gl.Texture(iconSequenceTextures[animFrame])
+	energyIconShader:Activate()
+	-- addRadius stays at its default of 0
+	if shaderIconDistance ~= iconDistance then
+		shaderIconDistance = iconDistance
+		energyIconShader:SetUniform("iconDistance", iconDistance)
 	end
+	iconVBO.VAO:DrawArrays(GL.POINTS, iconVBO.usedElements)
+	energyIconShader:Deactivate()
+	gl.Texture(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 end
 
 function widget:Shutdown()

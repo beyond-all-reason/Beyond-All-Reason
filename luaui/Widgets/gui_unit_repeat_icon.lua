@@ -17,10 +17,14 @@ end
 --------------------------------------------------------------------------------
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitStates = Spring.GetUnitStates
-local spValidUnitID = Spring.ValidUnitID
 local spGetUnitIsDead = Spring.GetUnitIsDead
+local spIsGUIHidden = Spring.IsGUIHidden
 
 local repeatTexture = "LuaUI/Images/repeat.png"
+
+-- "UnitIconDistance" is not an engine setting, so this is the default unless someone sets it
+local iconDistance = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5
+local shaderIconDistance
 
 --------------------------------------------------------------------------------
 -- GL4 Backend
@@ -41,6 +45,7 @@ local popElementInstance = InstanceVBOTable.popElementInstance
 -- Only populated for units that can receive repeatable orders:
 -- mobile units, factories, and buildings with stockpile weapons
 --------------------------------------------------------------------------------
+---@type table<integer, table>
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	local hasStockpile = false
@@ -60,13 +65,14 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
--- All visible units: [unitID] = unitDefID
+-- Visible units that can receive repeatable orders: [unitID] = unitDefID
 local visibleUnits = {}
 local crashingUnits = {} -- unitIDs currently crashing; skip icon for these
 local chobbyInterface = false
 local unitRepeat = {} -- [unitID] = cached repeat bool; avoids GetUnitStates every frame
 
 -- Pre-allocated and reused for every pushElementInstance call to avoid per-push table allocation
+---@type number[]
 local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.85, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
 
 --------------------------------------------------------------------------------
@@ -106,18 +112,31 @@ local function pushToVBO(unitID, unitDefID, gf)
 	if repeatVBO.instanceIDtoIndex[unitID] then
 		return
 	end
-	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
+	if spGetUnitIsDead(unitID) ~= false then -- nil for invalid units
 		return
 	end
 	local conf = unitConf[unitDefID]
-	if not conf then
-		return
-	end -- unit can't receive repeatable orders, skip
 	instanceData[1] = conf[1] -- width
 	instanceData[2] = conf[1] -- height
 	instanceData[4] = conf[2] -- unit height offset
 	instanceData[7] = gf -- gameframe for animation
 	pushElementInstance(repeatVBO, instanceData, unitID, false, true, unitID)
+end
+
+local drawCallInActive = true
+
+-- DrawScreenEffects is only registered while there are icons. It also uploads what pushes left dirty:
+-- a group order reaches every unit separately, one full upload each would grow with the square of the group.
+local function updateDrawCallIn()
+	local active = repeatVBO.usedElements > 0
+	if active ~= drawCallInActive then
+		drawCallInActive = active
+		if active then
+			widgetHandler:UpdateCallIn("DrawScreenEffects")
+		else
+			widgetHandler:RemoveCallIn("DrawScreenEffects")
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -136,32 +155,37 @@ function widget:Initialize()
 	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
 		widget:VisibleUnitsChanged(WG.unittrackerapi.visibleUnits, nil)
 	end
+	updateDrawCallIn()
 end
 
+-- only units that can receive repeatable orders are tracked
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	InstanceVBOTable.clearInstanceTable(repeatVBO)
 	visibleUnits = {}
 	unitRepeat = {}
 	local gf = spGetGameFrame()
 	for unitID, unitDefID in pairs(extVisibleUnits) do
-		visibleUnits[unitID] = unitDefID
-		if not crashingUnits[unitID] then
-			-- the 4th value is the repeat state (no table built), all nil for units that are not ours to read
-			local fireState, _, _, rep = spGetUnitStates(unitID, false, true)
-			if fireState then
-				unitRepeat[unitID] = rep
-				if rep then
-					pushToVBO(unitID, unitDefID, gf)
+		if unitConf[unitDefID] then
+			visibleUnits[unitID] = unitDefID
+			if not crashingUnits[unitID] then
+				-- the 4th value is the repeat state (no table built), all nil for units that are not ours to read
+				local fireState, _, _, rep = spGetUnitStates(unitID, false, true)
+				if fireState then
+					unitRepeat[unitID] = rep
+					if rep then
+						pushToVBO(unitID, unitDefID, gf)
+					end
 				end
 			end
 		end
 	end
-	if repeatVBO.dirty then
-		uploadAllElements(repeatVBO)
-	end
+	updateDrawCallIn()
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	if not unitConf[unitDefID] then
+		return
+	end
 	visibleUnits[unitID] = unitDefID
 	if crashingUnits[unitID] then
 		return
@@ -173,9 +197,7 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	unitRepeat[unitID] = rep
 	if rep then
 		pushToVBO(unitID, unitDefID, spGetGameFrame())
-		if repeatVBO.dirty then
-			uploadAllElements(repeatVBO)
-		end
+		updateDrawCallIn()
 	end
 end
 
@@ -185,6 +207,7 @@ function widget:VisibleUnitRemoved(unitID)
 	crashingUnits[unitID] = nil
 	if repeatVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(repeatVBO, unitID)
+		updateDrawCallIn()
 	end
 end
 
@@ -193,6 +216,7 @@ function widget:CrashingAircraft(unitID, unitDefID, teamID)
 	unitRepeat[unitID] = nil
 	if repeatVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(repeatVBO, unitID)
+		updateDrawCallIn()
 	end
 end
 
@@ -215,9 +239,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts
 			popElementInstance(repeatVBO, unitID, true)
 		end
 	end
-	if repeatVBO.dirty then
-		uploadAllElements(repeatVBO)
-	end
+	updateDrawCallIn()
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -226,25 +248,24 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+-- only registered while there are icons
 function widget:DrawScreenEffects()
-	if chobbyInterface then
+	if chobbyInterface or repeatVBO.usedElements == 0 or spIsGUIHidden() then
 		return
 	end
-	if Spring.IsGUIHidden() then
-		return
+	if repeatVBO.dirty then
+		uploadAllElements(repeatVBO)
 	end
-	if repeatVBO.usedElements == 0 then
-		return
-	end
-
-	local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5
 
 	gl.DepthTest(true)
 	gl.DepthMask(false)
 	gl.Texture(repeatTexture)
 	repeatShader:Activate()
-	repeatShader:SetUniform("iconDistance", disticon)
-	repeatShader:SetUniform("addRadius", 0)
+	-- addRadius stays at its default of 0
+	if shaderIconDistance ~= iconDistance then
+		shaderIconDistance = iconDistance
+		repeatShader:SetUniform("iconDistance", iconDistance)
+	end
 	repeatVBO.VAO:DrawArrays(GL.POINTS, repeatVBO.usedElements)
 	repeatShader:Deactivate()
 	gl.Texture(false)

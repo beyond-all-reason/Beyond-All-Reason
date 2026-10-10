@@ -16,26 +16,34 @@ local iconSequenceImages = "anims/icexuick_200/cursorwait_" -- must be png's
 local iconSequenceNum = 44 -- always starts at 1
 local iconSequenceFrametime = 0.02 -- duration per frame
 
+local iconSequenceTextures = {}
+for i = 1, iconSequenceNum do
+	iconSequenceTextures[i] = iconSequenceImages .. i .. ".png"
+end
+
 local CMD_WAIT = CMD.WAIT
 
 local waitingUnits = {}
 local needsCheckFrame = {} -- unitID → frame
 local needsCheckDefID = {} -- unitID → defID
-local needsCheckTeam = {} -- unitID → team
 local checkDelay = 5
 local unitsPerFrame = 300
 local gf = Spring.GetGameFrame()
 
-local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spGetGameFrame = Spring.GetGameFrame
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spec = Spring.GetSpectatingState()
 local myTeamID = Spring.GetLocalTeamID()
 local spValidUnitID = Spring.ValidUnitID
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local spGetConfigInt = Spring.GetConfigInt
 
+-- "UnitIconDistance" is not an engine setting, so this is the default unless someone sets it
+local iconDistance = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+local shaderIconDistance
+
+---@type table<integer, table>
 local unitConf = {}
 for udid, unitDef in pairs(UnitDefs) do
 	if not unitDef.customParams.removewait then
@@ -92,20 +100,33 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:Initialize()
-	if spec or not gl.CreateShader or not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
-		widgetHandler:RemoveWidget()
-		return
+-- GameFrame only runs while units wait or wait for a check
+local gameFrameActive = true
+
+local function stopGameFrameWhenIdle()
+	if gameFrameActive and next(needsCheckFrame) == nil and next(waitingUnits) == nil then
+		gameFrameActive = false
+		widgetHandler:RemoveCallIn("GameFrame")
 	end
-	initUnits()
 end
-local function MarkAsWaiting(unitID, unitDefID, unitTeam)
-	if unitTeam == myTeamID and unitConf[unitDefID] then --(not onlyOwnTeam or
+
+local function scheduleCheck(unitID, unitDefID, delay)
+	if not gameFrameActive then
+		gameFrameActive = true
+		gf = spGetGameFrame() -- not kept up to date while GameFrame is off
+		widgetHandler:UpdateCallIn("GameFrame")
+	end
+	needsCheckFrame[unitID] = gf + delay
+	needsCheckDefID[unitID] = unitDefID
+end
+
+local function MarkAsWaiting(unitID, unitDefID)
+	if unitConf[unitDefID] then
 		waitingUnits[unitID] = unitDefID
 	end
 end
 
-local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+local function UnmarkAsWaiting(unitID)
 	if waitingUnits[unitID] then
 		waitingUnits[unitID] = nil -- erase flag
 	end
@@ -114,54 +135,47 @@ local function UnmarkAsWaiting(unitID, unitDefID, unitTeam)
 	end
 end
 
-local function CheckWaitingStatus(unitID, unitDefID, unitTeam)
-	if not unitConf[unitDefID] then
+-- only units of my team get checked
+local function CheckWaitingStatus(unitID, unitDefID)
+	local conf = unitConf[unitDefID]
+	if not conf then
 		return
 	end
-	local cmdCount = spGetUnitCommandCount(unitID)
-	if not cmdCount or cmdCount <= 0 then
-		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
-		return
-	end
-	local queue = unitConf[unitDefID][3] and spGetFactoryCommands(unitID, 1) or spGetUnitCommands(unitID, 1)
-	if queue ~= nil and queue[1] and queue[1].id == CMD_WAIT then
-		MarkAsWaiting(unitID, unitDefID, unitTeam)
+	local waiting
+	if conf[3] then
+		-- a factory keeps its own orders, WAIT included, in its build queue
+		local queue = spGetFactoryCommands(unitID, 1)
+		waiting = queue ~= nil and queue[1] ~= nil and queue[1].id == CMD_WAIT
 	else
-		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+		-- returns nothing for an empty queue
+		waiting = spGetUnitCurrentCommand(unitID) == CMD_WAIT
+	end
+	if waiting then
+		MarkAsWaiting(unitID, unitDefID)
+	else
+		UnmarkAsWaiting(unitID)
 	end
 end
 
-function forgetUnit(unitID, unitDefID, unitTeam)
+local function forgetUnit(unitID)
 	needsCheckFrame[unitID] = nil
 	needsCheckDefID[unitID] = nil
-	needsCheckTeam[unitID] = nil
-	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+	UnmarkAsWaiting(unitID)
 end
+
+---@type number[]
+local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.75, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
 
 local function updateIcons()
 	for unitID, unitDefID in pairs(waitingUnits) do
 		if not iconVBO.instanceIDtoIndex[unitID] then --if visibleUnits[unitID] then
 			if spValidUnitID(unitID) then
-				pushElementInstance(iconVBO, {
-					unitConf[unitDefID][1],
-					unitConf[unitDefID][1],
-					0,
-					unitConf[unitDefID][2],
-					0,
-					4,
-					gf,
-					0,
-					0.75,
-					0,
-					0,
-					1,
-					0,
-					1,
-					0,
-					0,
-					0,
-					0,
-				}, unitID, false, true, unitID)
+				local conf = unitConf[unitDefID]
+				instanceData[1] = conf[1]
+				instanceData[2] = conf[1]
+				instanceData[4] = conf[2]
+				instanceData[7] = gf
+				pushElementInstance(iconVBO, instanceData, unitID, false, true, unitID)
 			end
 		end
 	end
@@ -175,49 +189,59 @@ local function updateIcons()
 	end
 end
 
+local function initUnits()
+	waitingUnits = {} -- forget any previous “waiting” flags
+	local unitDefID
+	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
+		unitDefID = Spring.GetUnitDefID(unitID)
+		scheduleCheck(unitID, unitDefID, checkDelay)
+	end
+	stopGameFrameWhenIdle()
+end
+
+function widget:Initialize()
+	if spec or not gl.CreateShader or not initGL4() then -- no shader support, so just remove the widget itself, especially for headless
+		widgetHandler:RemoveWidget()
+		return
+	end
+	-- load every animation frame now: loading one inside a draw stalls ~10 ms, which hit each frame of the first cycle
+	for i = 1, iconSequenceNum do
+		gl.TextureInfo(iconSequenceTextures[i])
+	end
+	initUnits()
+end
+
 function widget:UnitTaken(unitID, unitDefID, unitTeam)
-	forgetUnit(unitID, unitDefID, unitTeam)
+	forgetUnit(unitID)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	forgetUnit(unitID, unitDefID, unitTeam)
+	forgetUnit(unitID)
 end
 
 function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if unitTeam ~= myTeamID then
 		return
 	end
-	needsCheckFrame[unitID] = gf + checkDelay
-	needsCheckDefID[unitID] = unitDefID
-	needsCheckTeam[unitID] = unitTeam
+	scheduleCheck(unitID, unitDefID, checkDelay)
 end
 
 function widget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID)
+	if unitTeam ~= myTeamID then
+		return
+	end
 	if cmdID == CMD_WAIT then
 		-- wait command just completed (toggled off), directly unmark
-		UnmarkAsWaiting(unitID, unitDefID, unitTeam)
+		UnmarkAsWaiting(unitID)
 	else
 		-- another command finished, defer check to GameFrame batch
-		needsCheckFrame[unitID] = gf + 1
-		needsCheckDefID[unitID] = unitDefID
-		needsCheckTeam[unitID] = unitTeam
+		scheduleCheck(unitID, unitDefID, 1)
 	end
 end
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
 	-- idle = no commands, can't be waiting
-	UnmarkAsWaiting(unitID, unitDefID, unitTeam)
-end
-
-function initUnits()
-	waitingUnits = {} -- forget any previous “waiting” flags
-	local unitDefID
-	for _, unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
-		unitDefID = Spring.GetUnitDefID(unitID)
-		needsCheckFrame[unitID] = gf + checkDelay
-		needsCheckDefID[unitID] = unitDefID
-		needsCheckTeam[unitID] = myTeamID
-	end
+	UnmarkAsWaiting(unitID)
 end
 
 function widget:GameFrame(n)
@@ -227,40 +251,43 @@ function widget:GameFrame(n)
 		if n >= frame then
 			currentUnitPerFrame = currentUnitPerFrame + 1
 			if currentUnitPerFrame < unitsPerFrame then
-				CheckWaitingStatus(unitID, needsCheckDefID[unitID], needsCheckTeam[unitID])
+				CheckWaitingStatus(unitID, needsCheckDefID[unitID])
 				needsCheckFrame[unitID] = nil
 				needsCheckDefID[unitID] = nil
-				needsCheckTeam[unitID] = nil
 			end
 		end
 	end
 	if gf % 24 == 0 and next(waitingUnits) then
 		updateIcons()
 	end
+	stopGameFrameWhenIdle()
 end
 
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
 	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
-	if spIsGUIHidden() then
+	-- Stays registered while empty: re-registering moves a widget behind the others of its layer,
+	-- which would change which icon is on top when several of them overlap.
+	if iconVBO.usedElements == 0 or spIsGUIHidden() then
 		return
 	end
-	if iconVBO.usedElements > 0 then
-		local disticon = spGetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		gl.DepthTest(true)
-		gl.DepthMask(false)
-		local clock = os.clock() * (1 * (iconSequenceFrametime * iconSequenceNum)) -- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
-		local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
-		gl.Texture(iconSequenceImages .. animFrame .. ".png")
-		energyIconShader:Activate()
-		energyIconShader:SetUniform("iconDistance", disticon)
-		energyIconShader:SetUniform("addRadius", 0)
-		iconVBO.VAO:DrawArrays(GL.POINTS, iconVBO.usedElements)
-		energyIconShader:Deactivate()
-		gl.Texture(false)
-		gl.DepthTest(false)
-		gl.DepthMask(true)
+
+	gl.DepthTest(true)
+	gl.DepthMask(false)
+	local clock = os.clock() * (1 * (iconSequenceFrametime * iconSequenceNum)) -- adjust speed relative to anim frame speed of 0.02sec per frame (59 frames in total)
+	local animFrame = math.max(1, math.ceil(iconSequenceNum * (clock - math.floor(clock))))
+	gl.Texture(iconSequenceTextures[animFrame])
+	energyIconShader:Activate()
+	-- addRadius stays at its default of 0
+	if shaderIconDistance ~= iconDistance then
+		shaderIconDistance = iconDistance
+		energyIconShader:SetUniform("iconDistance", iconDistance)
 	end
+	iconVBO.VAO:DrawArrays(GL.POINTS, iconVBO.usedElements)
+	energyIconShader:Deactivate()
+	gl.Texture(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 end
 
 function widget:Shutdown()
