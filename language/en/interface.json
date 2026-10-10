@@ -1049,6 +1049,8 @@
 				"other": "Boss Healths: %{health}%%"
 			},
 			"bossesKilled": "Bosses Killed: %{nKilled}/%{nTotal}",
+			"bossHunger": "Boss Hunger",
+			"bossFeeding": "Boss Feeding",
 			"bossResistantToList": {
 				"one": "Boss is resistant to:",
 				"other": "Bosses are resistant to:"

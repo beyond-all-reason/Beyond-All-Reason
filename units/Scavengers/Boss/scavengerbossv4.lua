@@ -12,11 +12,15 @@ local baseValues = { --format: {value, multiplier}
 	--DPS related
 	botCannonProjectiles = { 3 * playerCountScale, 1.15 },
 	disintegratorBurst = { 1, 1.15 }, -- cannot be lower than 1
-	minigunDamage = { 333 * playerCountScale, 1.15 },
-	missileDamage = { 3500 * playerCountScale, 1.15 },
-	shotgunDamage = { 600 * playerCountScale, 1.15 },
+	minigunDamage = { 393 * playerCountScale, 1.15 },
+	turboMinigunDamage = { 296 * playerCountScale, 1.15 },
+	missileDamage = { 4500 * playerCountScale, 1.15 },
+	missileGroundDamage = { 1420 * playerCountScale, 1.15 },
+	turboMissileDamage = { 1000 * playerCountScale, 1.15 },
+	shotgunDamage = { 1200 * playerCountScale, 1.15 },
+	napalmDamage = { 200 * playerCountScale, 1.15 },
 	topTurretsDamage = { 2000 * playerCountScale, 1.15 },
-	torpedoDamage = { 1500 * playerCountScale, 1.15 },
+	torpedoDamage = { 7500 * playerCountScale, 1.15 },
 
 	shotgunProjectiles = { 20, 1.15 },
 	shotgunSprayAnglePercentageMultiplier = { 100, 1.15 },
@@ -29,8 +33,6 @@ local baseValues = { --format: {value, multiplier}
 	turboShotgunArmBurst = { 2, 1.15 },
 }
 
-local difficultyParams = {}
-local difficultyLevels = { "veryeasy", "easy", "normal", "hard", "veryhard", "epic" }
 local levelMultipliers = { -- this defines the ^power for the multiplier values
 	veryeasy = -2,
 	easy = -1,
@@ -39,18 +41,16 @@ local levelMultipliers = { -- this defines the ^power for the multiplier values
 	veryhard = 2,
 	epic = 3,
 }
+local level = BAR.Utilities.Gametype.IsScavengers() and levelMultipliers[Spring.GetModOptions().scav_difficulty] or 0
 
-for _, level in pairs(difficultyLevels) do
-	difficultyParams[level] = {}
-	for key, pair in pairs(baseValues) do
-		local base, individualMultiplier = pair[1], pair[2]
-		difficultyParams[level][key] = math.floor(base * individualMultiplier ^ (levelMultipliers[level] or 0) + 0.5)
-	end
+local stats = {}
+for key, pair in pairs(baseValues) do
+	local base, individualMultiplier = pair[1], pair[2]
+	stats[key] = math.floor(base * individualMultiplier ^ level + 0.5)
 end
 
-local unitsTable = {}
-for difficulty, stats in pairs(difficultyParams) do
-	unitsTable["scavengerbossv4_" .. difficulty] = {
+local unitsTable = {
+	scavengerbossv4 = {
 		maxacc = 0.01,
 		activatewhenbuilt = true,
 		autoheal = 0,
@@ -393,7 +393,7 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = stats.missileDamage / 6,
+					default = stats.missileGroundDamage,
 					vtol = stats.missileDamage,
 					subs = stats.missileDamage / 4,
 				},
@@ -440,8 +440,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 1400,
 				damage = {
-					commanders = 5000,
-					default = 50000,
+					commanders = 1200,
+					default = 12000,
 				},
 			},
 			special_disintegratorxl = {
@@ -537,8 +537,8 @@ for difficulty, stats in pairs(difficultyParams) do
 				weaponvelocity = 1200,
 				wobble = 5000,
 				damage = {
-					default = stats.missileDamage / 6,
-					vtol = stats.missileDamage * 2,
+					default = stats.missileGroundDamage,
+					vtol = stats.turboMissileDamage,
 				},
 			},
 			turbo_napalm = {
@@ -588,8 +588,8 @@ for difficulty, stats in pairs(difficultyParams) do
 					water_splash = 0,
 				},
 				damage = {
-					default = stats.shotgunDamage / 3,
-					subs = stats.shotgunDamage / 4,
+					default = stats.napalmDamage,
+					subs = stats.napalmDamage * 0.75,
 				},
 			},
 			turbo_machinegun = {
@@ -633,9 +633,9 @@ for difficulty, stats in pairs(difficultyParams) do
 				weapontype = "BeamLaser",
 				weaponvelocity = 920,
 				damage = {
-					default = stats.minigunDamage * 4,
-					vtol = (stats.minigunDamage * 4) / 2,
-					subs = stats.minigunDamage,
+					default = stats.turboMinigunDamage,
+					vtol = stats.turboMinigunDamage / 2,
+					subs = stats.turboMinigunDamage / 4,
 				},
 			},
 			turbo_shoulderturrets = {
@@ -955,6 +955,6 @@ for difficulty, stats in pairs(difficultyParams) do
 				def = "setting_turbo_delay",
 			},
 		},
-	}
-end
+	},
+}
 return unitsTable
