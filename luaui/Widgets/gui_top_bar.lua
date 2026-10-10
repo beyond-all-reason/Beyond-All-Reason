@@ -69,6 +69,22 @@ local numTeamsInAllyTeam = #myAllyTeamList
 
 -- Game mode / state
 local isSingle = false
+local Economy = require("modules/economy/api").Resources
+local Transfer = require("modules/transfer/api_unsynced")
+-- the share slider is only drawn when the transfer module lets this team share the resource
+local sharingEnabled = { metal = true, energy = true }
+local function readSharingTerms()
+	local changed = false
+	for _, res in ipairs({ "metal", "energy" }) do
+		local allowed = Transfer.Resources.Terms(myTeamID, res).canShare ~= false
+		if allowed ~= sharingEnabled[res] then
+			sharingEnabled[res] = allowed
+			changed = true
+		end
+	end
+	return changed
+end
+readSharingTerms()
 local gameFrame = sp.GetGameFrame()
 
 -- Resources
@@ -255,7 +271,6 @@ local blinkDirection = true
 local blinkProgress = 0
 --------------------------------------------------------------------------------
 
-
 local function RectQuad(px, py, sx, sy, offset)
 	gl.TexCoord(offset, 1 - offset)
 	gl.Vertex(px, py, 0)
@@ -331,7 +346,6 @@ local function short(n, f)
 	shortCacheCount = shortCacheCount + 1
 	return result
 end
-
 
 local function updateComs(forceText)
 	local area = comsArea
@@ -1161,7 +1175,10 @@ local function updateResbar(res)
 		end
 
 		-- Share slider
-		if not isSingle then
+		if not (isSingle or sharingEnabled[res]) then
+			shareIndicatorArea[res] = {}
+		end
+		if not isSingle and sharingEnabled[res] then
 			if res == "energy" then
 				energyOverflowLevel = r[res][6]
 			else
@@ -1247,6 +1264,10 @@ local function updateResbar(res)
 				nil,
 				BAR.I18N("ui.topbar.resources.shareMetalTooltipTitle")
 			)
+		end
+		if not shareIndicatorArea[res][1] then
+			WG.tooltip.RemoveTooltip(res .. "_share_slider")
+			WG.tooltip.RemoveTooltip(res .. "_share_slider2")
 		end
 
 		if refreshUi then
@@ -1619,10 +1640,10 @@ local function updateAllyTeamOverflowing()
 
 	for i = 1, teamsLen do
 		local teamID = teams[i]
-		local energy, energyStorage, _, _, _, energyShare, energySent = sp.GetTeamResources(teamID, "energy")
+		local energy, energyStorage, _, _, _, energyShare, energySent = Economy.Get(sp, teamID, "energy")
 		totalEnergy = totalEnergy + energy
 		totalEnergyStorage = totalEnergyStorage + energyStorage
-		local metal, metalStorage, _, _, _, metalShare, metalSent = sp.GetTeamResources(teamID, "metal")
+		local metal, metalStorage, _, _, _, metalShare, metalSent = Economy.Get(sp, teamID, "metal")
 		totalMetal = totalMetal + metal
 		totalMetalStorage = totalMetalStorage + metalStorage
 		if teamID == myTeamID then
@@ -1734,6 +1755,14 @@ local function removeButtonFallbacks()
 		if WG.topbar[name] == fn then
 			WG.topbar[name] = nil
 		end
+	end
+end
+
+-- The module says a team's sharing policy changed: ours decides whether the share sliders are drawn.
+function widget:SharePolicyChanged(teamID, _domain)
+	if teamID == myTeamID and readSharingTerms() then
+		updateResbar("metal")
+		updateResbar("energy")
 	end
 end
 
@@ -2108,7 +2137,6 @@ local function drawResBars()
 		end
 	end
 end
-
 
 local function drawUiBackground()
 	if showResourceBars then
@@ -2530,8 +2558,6 @@ function widget:DrawScreen()
 		end
 	end
 
-
-
 	glColor(1, 1, 1, 1)
 	glPopMatrix()
 
@@ -2575,15 +2601,13 @@ function widget:MouseMove(x, y)
 	adjustSliders(x, y)
 end
 
-
-
-
 function widget:MousePress(x, y, button)
 	if button == 1 then
 		if not spec then
 			if not isSingle then
 				if
-					mathIsInRect(
+					shareIndicatorArea.metal[1]
+					and mathIsInRect(
 						x,
 						y,
 						shareIndicatorArea.metal[1],
@@ -2596,7 +2620,8 @@ function widget:MousePress(x, y, button)
 				end
 
 				if
-					mathIsInRect(
+					shareIndicatorArea.energy[1]
+					and mathIsInRect(
 						x,
 						y,
 						shareIndicatorArea.energy[1],
@@ -2893,4 +2918,3 @@ function widget:Shutdown()
 		end
 	end
 end
-

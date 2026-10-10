@@ -1,0 +1,65 @@
+---@type Builders
+local Builders = VFS.Include("spec/builders/index.lua")
+local Helpers = require("modules/transfer/spec/support/synced_helpers")
+local TransferEnums = require("modules/transfer/enums")
+local withSpring = Helpers.withSpring
+
+-- A resource shared under the policy: the pair's terms tax it; by fiat: the whole amount, both sides.
+describe("sharing resources", function()
+	local Synced ---@type table the resources api, loaded once the synced globals it imports exist
+	before_each(function()
+		---@diagnostic disable-next-line: global-in-non-module
+		_G.SendToUnsynced = _G.SendToUnsynced or function() end
+		Synced = require("modules/transfer/api_synced").Resources
+	end)
+
+	it("sends nothing for nothing, and says so", function()
+		local sender = Builders.Team:new():Human():WithMetal(500):WithMetalStorage(1000)
+		local receiver = Builders.Team:new():Human():WithMetal(0):WithMetalStorage(1000)
+		local mock = Builders.Spring.new():WithTeam(sender):WithTeam(receiver):Build()
+		withSpring(mock, function()
+			local result = Synced.Share("metal", 0, receiver.id, sender.id)
+			assert.is_false(result.success)
+			assert.are.equal(0, result.sent)
+			assert.are.equal(500, mock.GetTeamResources(sender.id, "metal"))
+		end)
+	end)
+
+	it("deducts the taxed amount from the sender and credits the receiver", function()
+		local sender = Builders.Team:new():Human():WithMetal(500):WithMetalStorage(1000)
+		local receiver = Builders.Team:new():Human():WithMetal(0):WithMetalStorage(1000)
+		local mock = Builders.Spring
+			.new()
+			:WithTeam(sender)
+			:WithTeam(receiver)
+			:WithAlliance(sender.id, receiver.id, true)
+			:WithTeamRulesParam(sender.id, "numActivePlayers", 1)
+			:WithTeamRulesParam(receiver.id, "numActivePlayers", 1)
+			:WithModOption(TransferEnums.ModOptions.TaxResourceSharingAmount, 0.5)
+			:Build()
+		withSpring(mock, function()
+			local ContextFactoryModule = require("modules/transfer/context_factory")
+			local factory = ContextFactoryModule.create(mock)
+			for _, id in ipairs({ sender.id, receiver.id }) do
+				Synced.CacheTeamFactor(mock, id, "metal", factory.policy(id, id))
+			end
+			local result = Synced.Share("metal", 100, receiver.id, sender.id)
+			assert.is_true(result.success)
+			assert.are.equal(100, result.received)
+			assert.are.equal(200, result.sent)
+			assert.are.equal(300, mock.GetTeamResources(sender.id, "metal"))
+			assert.are.equal(100, mock.GetTeamResources(receiver.id, "metal"))
+		end)
+	end)
+
+	it("given by fiat, moves the whole amount, both sides, untaxed", function()
+		local sender = Builders.Team:new():Human():WithMetal(50):WithMetalStorage(1000)
+		local receiver = Builders.Team:new():Human():WithMetal(10):WithMetalStorage(1000)
+		local mock = Builders.Spring.new():WithTeam(sender):WithTeam(receiver):Build()
+		withSpring(mock, function()
+			assert.are.equal(40, Synced.Give("metal", 40, receiver.id, sender.id))
+			assert.are.equal(10, mock.GetTeamResources(sender.id, "metal"))
+			assert.are.equal(50, mock.GetTeamResources(receiver.id, "metal"))
+		end)
+	end)
+end)

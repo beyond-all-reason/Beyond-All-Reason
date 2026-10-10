@@ -33,7 +33,7 @@ local GetMyTeamID = Spring.GetLocalTeamID
 local GetUnitTeam = Spring.GetUnitTeam
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetTeamAllyTeamID = Spring.GetTeamAllyTeamID
-local ShareResources = Spring.ShareResources
+local Transfer = require("modules/transfer/api_unsynced")
 local I18N = BAR.I18N
 local GetSpectatingState = Spring.GetSpectatingState
 local WorldToScreenCoords = Spring.WorldToScreenCoords
@@ -344,10 +344,20 @@ function widget:CommandNotify(cmdID, cmdParams, _)
 			-- invalid target, don't do anything
 			return true
 		end
+		if not Transfer.Units.Terms(targetTeamID).canShare then
+			return true
+		end
 
-		ShareResources(targetTeamID, "units")
-		PlaySoundFile("beep4", 1, "ui")
+		Transfer.Units.ShareUnits(targetTeamID)
 		return false
+	end
+end
+
+-- The module says the units went: the sound plays then, not when they were asked for.
+function widget:RecvLuaMsg(msg, _playerID)
+	local senderTeamID = msg:match("^unit_transfer:success:(%d+)")
+	if senderTeamID and tonumber(senderTeamID) == GetMyTeamID() then
+		PlaySoundFile("beep4", 1, "ui")
 	end
 end
 
