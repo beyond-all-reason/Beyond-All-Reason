@@ -76,6 +76,7 @@
       "unitID",
       "MultiMove",
       "MultiTurn",
+      "Policies",
       "describe",
       "it",
       "before_each",
