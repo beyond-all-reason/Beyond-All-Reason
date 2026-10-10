@@ -34,6 +34,8 @@ local LAYOUT = {
 	units = "units/",
 	language = "language/",
 	tests = "tests/",
+	modes = "modes/",
+	modeVerbs = "mode_verbs.lua",
 	policies = "policies/",
 	modOptions = "modoptions.lua",
 }
@@ -225,6 +227,12 @@ function ModuleHandler.GadgetDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.gadgets, vfsMode)
 end
 
+---@param vfsMode string?
+---@return string[]
+function ModuleHandler.ModeDirs(vfsMode)
+	return moduleSubdirs(LAYOUT.modes, vfsMode)
+end
+
 ---@param filePath string
 ---@param injected table
 ---@param vfsMode string?
@@ -234,6 +242,8 @@ local function includeRegistrationFile(filePath, injected, vfsMode)
 end
 
 local policiesCache = {}
+local enrichersCache = {}
+local presetsCache = nil
 ---@class PolicyLoad every module's policies, read once
 ---@field chains table<string, table<string, LoadedChain[]>> by the target's owner and category
 ---@field enrichments table<string, table<string, LoadedEnrichment[]>> by the facts' owner and category
@@ -655,6 +665,437 @@ function ModuleHandler.State(name)
 	return root.__moduleState[name]
 end
 
+---@class ModulePreset
+---@field key string
+---@field category string
+---@field name string what the lobby shows
+---@field desc string
+---@field module string the module whose modes/ holds it
+---@field modules string[] what the preset makes live: its own module, and every module whose modoptions it writes
+
+---@class ModeFragment what a module's mode_verbs.lua returns: its verbs for one axis, and what else it brings to the grammar
+---@field category string the axis
+---@field verbs table<string, ModeVerb>
+---@field nouns (fun(nouns: table))|nil adds the module's nouns to the grammar's, or decorates another module's
+---@field expose (fun(modeName: string): ModePolicyRef[])|nil the module's dials at their starting point, for a preset that opens every dial
+---@field module string set by the loader
+
+local modeFragmentsCache = {} ---@type table<string, ModeFragment[]>
+local modeVerbsCache = {} ---@type table<string, table<string, ModeVerb>>
+
+---@param category string the axis, e.g. "game"
+---@param vfsMode string?
+---@return ModeFragment[] every module's fragment for the axis, in module order
+local function modeFragments(category, vfsMode)
+	if modeFragmentsCache[category] then
+		return modeFragmentsCache[category]
+	end
+	local fragments = {} ---@type ModeFragment[]
+	local names = {}
+	for name in pairs(ModuleHandler.Manifests(vfsMode)) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	for _, name in ipairs(names) do
+		local filePath = ModuleHandler.Manifests(vfsMode)[name].dir .. LAYOUT.modeVerbs
+		if VFS.FileExists(filePath, vfsMode) then
+			local fragment = ModuleEnv.Include(filePath, CHUNK_ENV, vfsMode)
+			if type(fragment) ~= "table" or type(fragment.category) ~= "string" or type(fragment.verbs) ~= "table" then
+				error(
+					filePath
+						.. ": mode_verbs.lua must return { category = <axis>, verbs = { Name = ModeBuilder.Verb(...) } }"
+				)
+			end
+			assert(
+				fragment.nouns == nil or type(fragment.nouns) == "function",
+				filePath .. ": nouns must be a function"
+			)
+			assert(
+				fragment.expose == nil or type(fragment.expose) == "function",
+				filePath .. ": expose must be a function"
+			)
+			if fragment.category == category then
+				fragment.module = name
+				fragments[#fragments + 1] = fragment
+			end
+		end
+	end
+	modeFragmentsCache[category] = fragments
+	return fragments
+end
+
+---@param category string the axis
+---@param vfsMode string?
+---@return (fun(nouns: table))[] what each module adds to the axis's nouns, in module order
+function ModuleHandler.ModeNouns(category, vfsMode)
+	local decorators = {}
+	for _, fragment in ipairs(modeFragments(category, vfsMode)) do
+		if fragment.nouns then
+			decorators[#decorators + 1] = fragment.nouns
+		end
+	end
+	return decorators
+end
+
+---@param category string the axis
+---@param vfsMode string?
+---@return (fun(modeName: string): ModePolicyRef[])[] each module's dials at their starting point, in module order
+function ModuleHandler.ModeExposures(category, vfsMode)
+	local exposures = {}
+	for _, fragment in ipairs(modeFragments(category, vfsMode)) do
+		if fragment.expose then
+			exposures[#exposures + 1] = fragment.expose
+		end
+	end
+	return exposures
+end
+
+---@param category string the axis, e.g. "game"
+---@param vfsMode string?
+---@return table<string, ModeVerb> verbs by name
+function ModuleHandler.ModeVerbs(category, vfsMode)
+	if modeVerbsCache[category] then
+		return modeVerbsCache[category]
+	end
+	local verbs = {} ---@type table<string, ModeVerb>
+	local shippedBy = {} ---@type table<string, string>
+	for _, fragment in ipairs(modeFragments(category, vfsMode)) do
+		for verbName, verb in pairs(fragment.verbs) do
+			if shippedBy[verbName] then
+				error(
+					fragment.module
+						.. ": verb "
+						.. verbName
+						.. " for axis "
+						.. category
+						.. " is already shipped by "
+						.. shippedBy[verbName]
+				)
+			end
+			shippedBy[verbName] = fragment.module
+			verbs[verbName] = verb
+		end
+	end
+	modeVerbsCache[category] = verbs
+	return verbs
+end
+
+---@param vfsMode string?
+---@return table<string, string> owner module by modoption key
+local function modOptionOwners(vfsMode)
+	local owners = {}
+	for name, manifest in pairs(ModuleHandler.Manifests(vfsMode)) do
+		local path = manifest.dir .. LAYOUT.modOptions
+		if VFS.FileExists(path, vfsMode) then
+			local options = ModuleEnv.Include(path, CHUNK_ENV, vfsMode)
+			for _, option in ipairs(type(options) == "table" and options or {}) do
+				if type(option.key) == "string" then
+					owners[option.key] = name
+				end
+			end
+		end
+	end
+	return owners
+end
+
+-- A preset makes live its own module and every module whose modoptions it writes: a mode that opens a module's
+-- dials wants that module's rules on.
+---@param vfsMode string?
+---@return table<string, table<string, ModulePreset>> presets by category, by key
+---@return table<string, boolean> modules that ship no presets: always live
+function ModuleHandler.Presets(vfsMode)
+	if presetsCache then
+		return presetsCache.byCategory, presetsCache.alwaysLive
+	end
+	local manifests = ModuleHandler.Manifests(vfsMode)
+	local owners = modOptionOwners(vfsMode)
+	local byCategory = {} ---@type table<string, table<string, ModulePreset>>
+	local alwaysLive = {} ---@type table<string, boolean>
+	for name, manifest in pairs(manifests) do
+		local dir = manifest.dir .. LAYOUT.modes
+		local files = VFS.DirList(dir, "*.lua", vfsMode)
+		local shipped = false
+		for _, filePath in ipairs(files) do
+			local ok, mode = pcall(ModuleEnv.Include, filePath, CHUNK_ENV, vfsMode)
+			if ok and type(mode) == "table" and mode.key and mode.category then
+				shipped = true
+				local modules, seen = { name }, { [name] = true }
+				for key in pairs(mode.modOptions or {}) do
+					local owner = owners[key]
+					if owner and not seen[owner] then
+						seen[owner] = true
+						modules[#modules + 1] = owner
+					end
+				end
+				table.sort(modules)
+				byCategory[mode.category] = byCategory[mode.category] or {}
+				byCategory[mode.category][mode.key] = {
+					key = mode.key,
+					category = mode.category,
+					name = mode.name,
+					desc = mode.desc,
+					module = name,
+					modules = modules,
+				}
+			end
+		end
+		if not shipped then
+			alwaysLive[name] = true
+		end
+	end
+	presetsCache = { byCategory = byCategory, alwaysLive = alwaysLive }
+	return byCategory, alwaysLive
+end
+
+-- The default selection reads every module's modoptions fragment off the VFS, and the live set
+-- is asked for on every enrichment, from every gadget and widget that asks a policy: the
+-- fragments and presets are fixed for the life of the Lua state, so both are computed once.
+local defaultSelectionCache = nil ---@type table<string, string>|nil
+local liveSetCache = {} ---@type table<string, table<string, boolean>>
+
+---@param vfsMode string?
+---@return table<string, string> category -> default preset key
+local function defaultSelection(vfsMode)
+	if defaultSelectionCache then
+		return defaultSelectionCache
+	end
+	local defaults = {}
+	for _, option in ipairs(ModuleHandler.ModOptions(vfsMode)) do
+		local category = type(option.key) == "string" and option.key:match("^(.+)_mode$")
+		if category and option.def ~= nil then
+			defaults[category] = tostring(option.def)
+		end
+	end
+	defaultSelectionCache = defaults
+	return defaults
+end
+
+---@param byCategory table<string, table<string, ModulePreset>>
+---@param alwaysLive table<string, boolean>
+---@param selection table<string, string> category -> preset key
+---@return table<string, boolean>
+function ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+	local live = {}
+	for name in pairs(alwaysLive) do
+		live[name] = true
+	end
+	for category, presets in pairs(byCategory) do
+		local preset = selection[category] and presets[selection[category]]
+		if preset then
+			for _, name in ipairs(preset.modules) do
+				live[name] = true
+			end
+		end
+	end
+	return live
+end
+
+---@param modOptions table<string, any>
+---@param vfsMode string?
+---@return table<string, boolean>
+function ModuleHandler.LiveModulesFor(modOptions, vfsMode)
+	local byCategory, alwaysLive = ModuleHandler.Presets(vfsMode)
+	local defaults = defaultSelection(vfsMode)
+	local selection = {}
+	local keyParts = {}
+	for category in pairs(byCategory) do
+		local picked = modOptions and modOptions[category .. "_mode"]
+		selection[category] = picked ~= nil and tostring(picked) or defaults[category]
+		keyParts[#keyParts + 1] = category .. "=" .. tostring(selection[category])
+	end
+	table.sort(keyParts)
+	local key = table.concat(keyParts, ";")
+	local live = liveSetCache[key]
+	if not live then
+		live = ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+		liveSetCache[key] = live
+	end
+	return live
+end
+
+---@class ResolvedProvisions
+---@field providers { op: PolicyProvision, module: string, file: string }[] every module's, in module order; the live set decides who answers
+---@field defaults table<string, PolicyProvision> the owner's answer per declared slot
+---@field slots string[]
+
+---@param key string owner.category, for messages
+---@param owner string the facts' module
+---@param slots string[] the facts the contract declares
+---@param list { module: string, ops: PolicyProvision[], file: string }[]
+---@return ResolvedProvisions
+function ModuleHandler.ResolveProvisions(key, owner, slots, list)
+	local providers = {}
+	local defaults = {} ---@type table<string, PolicyProvision>
+	local defaultFile = {}
+	local declared = {}
+	for _, field in ipairs(slots) do
+		declared[field] = true
+	end
+	for _, enrichment in ipairs(list) do
+		for _, op in ipairs(enrichment.ops) do
+			if op.default then
+				local field = op.names[1]
+				if enrichment.module ~= owner then
+					error(enrichment.file .. ": only " .. owner .. " may Default " .. field .. " on " .. key)
+				end
+				if not declared[field] then
+					error(enrichment.file .. ": " .. key .. " declares no slot named " .. field .. " to Default")
+				end
+				if defaults[field] then
+					error(
+						enrichment.file
+							.. ": "
+							.. field
+							.. " on "
+							.. key
+							.. " already has a Default in "
+							.. defaultFile[field]
+					)
+				end
+				defaults[field] = op
+				defaultFile[field] = enrichment.file
+			else
+				providers[#providers + 1] = { op = op, module = enrichment.module, file = enrichment.file }
+			end
+		end
+	end
+	-- A slot without a Default is the context's field of its name when nobody provides it: the api gathered the
+	-- engine's answer under that name, and a fact nobody knows better about is that answer.
+	return { providers = providers, defaults = defaults, slots = slots }
+end
+
+---@param byCategory table<string, table<string, ModulePreset>>
+---@param alwaysLive table<string, boolean>
+---@param providers { op: PolicyProvision, module: string, file: string }[]
+---@return string[] conflicts, one line each; empty when the modes isolate every slot
+function ModuleHandler.IsolationConflicts(byCategory, alwaysLive, providers)
+	local categories = {}
+	for category in pairs(byCategory) do
+		categories[#categories + 1] = category
+	end
+	table.sort(categories)
+	local conflicts = {}
+	local function check(selection)
+		local live = ModuleHandler.LiveModules(byCategory, alwaysLive, selection)
+		local seen = {} ---@type table<string, string>
+		for _, provider in ipairs(providers) do
+			if live[provider.module] then
+				for _, field in ipairs(provider.op.names) do
+					if seen[field] and seen[field] ~= provider.file then
+						local picks = {}
+						for _, category in ipairs(categories) do
+							picks[#picks + 1] = category .. "=" .. tostring(selection[category])
+						end
+						conflicts[#conflicts + 1] = field
+							.. " is provided by both "
+							.. seen[field]
+							.. " and "
+							.. provider.file
+							.. " under "
+							.. table.concat(picks, ", ")
+					end
+					seen[field] = seen[field] or provider.file
+				end
+			end
+		end
+	end
+	local function walk(i, selection)
+		if i > #categories then
+			return check(selection)
+		end
+		local category = categories[i]
+		for key in pairs(byCategory[category]) do
+			selection[category] = key
+			walk(i + 1, selection)
+		end
+		selection[category] = nil
+	end
+	walk(1, {})
+	table.sort(conflicts)
+	return conflicts
+end
+
+---@param facts table the owner's Facts
+---@param vfsMode string?
+---@return ResolvedProvisions
+function ModuleHandler.LoadEnrichers(facts, vfsMode)
+	local identity = Policy.IdentityOf(facts)
+	assert(identity and identity.facts, "LoadEnrichers(facts): expects a module's Facts")
+	local owner, category = identity.owner, identity.category
+	local key = owner .. "." .. category
+	if enrichersCache[key] then
+		return enrichersCache[key]
+	end
+	local list = (loadPolicyFiles(vfsMode).enrichments[owner] or {})[category] or {}
+	table.sort(list, function(a, b)
+		return a.module < b.module
+	end)
+	local slots = (loadPolicyFiles(vfsMode).facts[owner] or {})[category] or {}
+	local resolved = ModuleHandler.ResolveProvisions(key, owner, slots, list)
+	local byCategory, alwaysLive = ModuleHandler.Presets(vfsMode)
+	local conflicts = ModuleHandler.IsolationConflicts(byCategory, alwaysLive, resolved.providers)
+	if #conflicts > 0 then
+		error(key .. ": a mode leaves two providers live for one fact\n" .. table.concat(conflicts, "\n"))
+	end
+	enrichersCache[key] = resolved
+	return resolved
+end
+
+---@param resolved ResolvedProvisions|PolicyProvision[] a flat list is a test seam: every entry live, no defaults
+---@param live table<string, boolean>|nil nil means every provider is live
+---@param ctx PolicyContext what the providers read, the engine included; nothing reaches a provider any other way
+---@return table<string, any>
+function ModuleHandler.EnrichWith(resolved, live, ctx)
+	local out = {}
+	local answeredBy = {} ---@type table<string, string>
+	local providers = resolved.providers
+	if providers == nil then
+		providers = {}
+		for i, op in ipairs(resolved) do
+			providers[i] = { op = op, module = "?", file = "seam" }
+		end
+	end
+	for _, provider in ipairs(providers) do
+		if live == nil or live[provider.module] then
+			local results = { provider.op.evaluate(ctx) }
+			for i, field in ipairs(provider.op.names) do
+				if results[i] ~= nil then
+					if answeredBy[field] and answeredBy[field] ~= provider.file then
+						error(
+							field
+								.. " answered by both "
+								.. answeredBy[field]
+								.. " and "
+								.. provider.file
+								.. " in one ask: the mode leaves both live"
+						)
+					end
+					answeredBy[field] = provider.file
+					out[field] = results[i]
+				end
+			end
+		end
+	end
+	for _, field in ipairs(resolved.slots or {}) do
+		if out[field] == nil then
+			if resolved.defaults and resolved.defaults[field] then
+				out[field] = resolved.defaults[field].evaluate(ctx)
+			else
+				out[field] = ctx[field]
+			end
+		end
+	end
+	return out
+end
+
+---@param facts table the owner's Facts
+---@param ctx PolicyContext the live set is read off its modOptions
+---@return table<string, any>
+function ModuleHandler.Enrich(facts, ctx)
+	local resolved = ModuleHandler.LoadEnrichers(facts)
+	return ModuleHandler.EnrichWith(resolved, ModuleHandler.LiveModulesFor(ctx.modOptions), ctx)
+end
+
 ---@generic C, T
 ---@param steps PolicySteps<C, T> a policy's step enum, from its owner's contract
 ---@param vfsMode string?
@@ -730,7 +1171,7 @@ function ModuleHandler.ModOptions(vfsMode)
 	for _, name in ipairs(sortedKeysCopy(manifests)) do
 		local modOptionsPath = manifests[name].dir .. LAYOUT.modOptions
 		if VFS.FileExists(modOptionsPath, vfsMode) then
-			local moduleOptions = VFS.Include(modOptionsPath, nil, vfsMode)
+			local moduleOptions = ModuleEnv.Include(modOptionsPath, CHUNK_ENV, vfsMode)
 			if type(moduleOptions) ~= "table" then
 				logError("Module modoptions file must return a list: " .. modOptionsPath)
 			else
@@ -740,12 +1181,37 @@ function ModuleHandler.ModOptions(vfsMode)
 			end
 		end
 	end
+	-- An axis option lists the presets its owner declared, then the ones other modules ship for the axis: a
+	-- module's preset reaches the lobby with the module, and leaves with it.
+	local byCategory = ModuleHandler.Presets(vfsMode)
+	for _, option in ipairs(options) do
+		local category = type(option.key) == "string" and option.key:match("^(.+)_mode$")
+		local presets = category and byCategory[category]
+		if presets and type(option.items) == "table" then
+			local listed = {}
+			for _, item in ipairs(option.items) do
+				listed[item.key] = true
+			end
+			for _, key in ipairs(sortedKeysCopy(presets)) do
+				if not listed[key] then
+					local preset = presets[key]
+					option.items[#option.items + 1] = { key = preset.key, name = preset.name, desc = preset.desc }
+				end
+			end
+		end
+	end
 	return options
 end
 
 function ModuleHandler.ResetCaches()
 	registered = nil
+	presetsCache = nil
+	defaultSelectionCache = nil
+	liveSetCache = {}
+	modeFragmentsCache = {}
+	modeVerbsCache = {}
 	policiesCache = {}
+	enrichersCache = {}
 	policyFiles = nil
 end
 
