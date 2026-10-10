@@ -1,3 +1,4 @@
+local Game = Game
 local Spring = Spring
 local UnitDefs = UnitDefs
 
@@ -5,6 +6,7 @@ local ModuleHandler = require("modules/module_handler")
 local Modules = require("modules/enums").Modules
 local Rules = require("modules/transport/lib/rules")
 local Traits = require("modules/transport/lib/traits")
+local TransportEnums = require("modules/transport/enums")
 
 ---@class TransportApi
 ---@field IsCarried fun(unitID: integer): boolean
@@ -16,6 +18,7 @@ local Traits = require("modules/transport/lib/traits")
 ---@field MayCarry fun(carrierDefID: integer, passengerID: integer, passengerDefID: integer): boolean the engine's pick-up question: may this carrier hold that passenger, where it stands
 ---@field MayOrderLoad fun(carrierID: integer, carrierDefID: integer, teamID: integer, targetID: integer): boolean a player's load order: the command question, with who owns the target
 ---@field MayOrderUnload fun(goalX: number, goalY: number, goalZ: number): boolean a player's order to set a nano turret down at the goal
+---@field LoadedSpeed fun(carrierID: integer): number|nil elmos per frame the loaded carrier may fly; nil when it carries nothing
 ---@field DefTraits fun(unitDefID: integer): TransportDefTraits a known def; the id must name one
 ---@field UnitTraits fun(unitID: integer|nil): TransportDefTraits|nil the live unit's def traits
 
@@ -151,6 +154,30 @@ local TransportApi = {
 			nano = true,
 			groundNormalY = normalY,
 		}) == true
+	end,
+
+	---@param carrierID integer
+	---@return number|nil
+	LoadedSpeed = function(carrierID)
+		---@type TransportContract
+		local Transport = ModuleHandler.Contract(Modules.Transport)
+		local cargo = Spring.GetUnitIsTransporting(carrierID)
+		if cargo == nil then
+			return nil
+		end
+		local carriesCommander = false
+		for _, unitID in ipairs(cargo) do
+			local traits = Traits.OfUnit(unitID)
+			if traits and traits.isCommander then
+				carriesCommander = true
+			end
+		end
+		return ModuleHandler.Evaluate(Transport.LoadedSpeed, {
+			carriesCommander = carriesCommander,
+			transportSpeed = Traits.OfUnit(carrierID).speed or 0,
+			dragEnabled = Spring.GetModOptions()[TransportEnums.ModOptions.CommanderTransportSlow] == true,
+			framesPerSecond = Game.gameSpeed,
+		})
 	end,
 }
 

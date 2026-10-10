@@ -1,6 +1,7 @@
 local Policy = require("modules/policy")
 
 local NAP_MAX_SPEED = 0.5
+local COMMANDER_DRAG_SPEED = 120
 
 ---@class TransportApproachContext where a carrier meets the ground: shared by load and unload
 ---@field goalY number
@@ -91,9 +92,39 @@ Policies.On(Unload)
 		return true
 	end)
 
+-- How fast a loaded carrier flies: its own speed, dragged down by a commander aboard when the rule is on
+--
+---@class TransportLoadedSpeedContext
+---@field carriesCommander boolean
+---@field transportSpeed number
+---@field dragEnabled boolean
+---@field framesPerSecond number
+
+---@class TransportLoadedSpeedPolicy: PolicySteps<TransportLoadedSpeedContext, number>
+---@field Base "Base"
+---@field CommanderDrag "CommanderDrag"
+
+---@type TransportLoadedSpeedPolicy
+local LoadedSpeed = {
+	Base = "Base",
+	CommanderDrag = "CommanderDrag",
+}
+Policy.Product(LoadedSpeed)
+
+Policies.On(LoadedSpeed)
+	.Factor(LoadedSpeed.Base, function(ctx)
+		return ctx.transportSpeed / ctx.framesPerSecond
+	end)
+	.Factor(LoadedSpeed.CommanderDrag, function(ctx)
+		if ctx.dragEnabled and ctx.carriesCommander then
+			return COMMANDER_DRAG_SPEED / ctx.transportSpeed
+		end
+	end)
+
 ---@class (partial) TransportContract
 local Contract = {}
 Contract.Load = Load
 Contract.Unload = Unload
+Contract.LoadedSpeed = LoadedSpeed
 
 return Contract
