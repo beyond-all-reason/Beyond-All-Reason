@@ -175,6 +175,14 @@ local function findAllTestFiles(patterns)
 			result[#result + 1] = testFileInfo
 		end
 	end
+	if not testModeScenario then
+		-- a module's tests come with it, labelled "<module>/tests/<file>"
+		for _, dir in ipairs(require("modules/module_handler").TestDirs()) do
+			for _, testFileInfo in ipairs(findTestFiles(dir, patterns, "modules/")) do
+				result[#result + 1] = testFileInfo
+			end
+		end
+	end
 	if headless then
 		result[#result + 1] = { label = "infolog", filename = "common/testing/infologtest.lua" }
 	end

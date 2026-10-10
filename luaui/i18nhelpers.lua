@@ -1,6 +1,16 @@
 local unitI18Nfile = VFS.LoadFile("language/en/units.json")
 local unitI18Nlua = Json.decode(unitI18Nfile)
 local i18nDescriptionEntries = unitI18Nlua.units.descriptions
+-- a module's units describe themselves in its own language/en/units.json
+for _, dir in ipairs(require("modules/module_handler").LanguageDirs()) do
+	local file = dir .. "en/units.json"
+	if VFS.FileExists(file) then
+		local moduleUnits = Json.decode(VFS.LoadFile(file)).units
+		for name, description in pairs(moduleUnits and moduleUnits.descriptions or {}) do
+			i18nDescriptionEntries[name] = description
+		end
+	end
+end
 
 local function refreshUnitDefs()
 	for unitDefName, unitDef in pairs(UnitDefNames) do
