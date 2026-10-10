@@ -62,6 +62,8 @@ end
 function widget:Initialize()
 	-- quad 360 elmos ahead of the camera, in eye space so it needs no camera reads
 	darkenList = gl.CreateList(function()
+		-- a depth test leaked by an earlier widget hides it behind terrain closer than 360 elmos
+		gl.DepthTest(false)
 		gl.PushMatrix()
 		gl.LoadIdentity()
 		gl.Translate(0, 0, -360)
