@@ -5,7 +5,7 @@ local Definitions = require("luaui/Include/blueprint_substitution/definitions")
 local Sides = require("gamedata/sides_enum")
 local ResourceDataBuilder = VFS.Include("spec/builders/resource_data_builder.lua")
 
-local sequence = require("spec/builders/sequence")
+local sequence = VFS.Include("spec/builders/sequence.lua")
 
 local nextPlayerId = sequence.sequence("player_id", {
 	start = 100,

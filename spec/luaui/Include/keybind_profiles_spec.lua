@@ -9,6 +9,8 @@
 --
 -- Nothing here reaches disk: the store and the keymap the migration writes are both discarded.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local Json = require("common/luaUtilities/json")
 
 local function readFile(path)
@@ -25,54 +27,48 @@ end
 
 -- The profile the migration makes of a bind file the player wrote themselves.
 local function migrate(uikeys)
-	local realOpen, realLoadFile = io.open, VFS.LoadFile
-	local realGetConfig, realSetConfig = Spring.GetConfigString, Spring.SetConfigString
-	local realGetKeyCode = Spring.GetKeyCode
+	local env = SpecEnv.new({
+		VFS = {
+			LoadFile = function(path)
+				if path == "uikeys.txt" then
+					return uikeys
+				end
 
-	VFS.LoadFile = function(path)
-		if path == "uikeys.txt" then
-			return uikeys
-		end
+				local file = io.open(path, "rb")
+				if not file then
+					return nil
+				end
 
-		local file = realOpen(path, "rb")
-		if not file then
-			return nil
-		end
+				local contents = file:read("*a")
+				file:close()
 
-		local contents = file:read("*a")
-		file:close()
+				return contents
+			end,
+		},
+		Spring = {
+			GetConfigString = function(_, default)
+				return default
+			end,
+			SetConfigString = function() end,
+			GetKeyCode = function()
+				return 1
+			end,
+		},
+		io = {
+			open = function(path, mode)
+				if mode == "w" then
+					return { write = function() end, close = function() end }
+				end
 
-		return contents
-	end
-	Spring.GetConfigString = function(_, default)
-		return default
-	end
-	Spring.SetConfigString = function() end
-	Spring.GetKeyCode = function()
-		return 1
-	end
-	io.open = function(path, mode)
-		if mode == "w" then
-			return { write = function() end, close = function() end }
-		end
+				return io.open(path, mode)
+			end,
+		},
+	})
 
-		return realOpen(path, mode)
-	end
+	local profiles = SpecEnv.include(env, "luaui/Include/keybind_profiles.lua")
+	profiles.load()
 
-	local ok, result = pcall(function()
-		local profiles = require("luaui/Include/keybind_profiles")
-		profiles.load()
-
-		return profiles.get(profiles.list()[1])
-	end)
-
-	io.open, VFS.LoadFile = realOpen, realLoadFile
-	Spring.GetConfigString, Spring.SetConfigString = realGetConfig, realSetConfig
-	Spring.GetKeyCode = realGetKeyCode
-
-	assert(ok, tostring(result))
-
-	return result
+	return profiles.get(profiles.list()[1])
 end
 
 local function shippedProfile(defaults, name)
@@ -135,30 +131,29 @@ describe("migrating a keyload of a bind file the game no longer ships", function
 	end)
 end)
 
--- The module with its shipped profiles read in. Included rather than required so each call
--- gets a store of its own, and only the reader is stubbed: nothing here has a store on disk.
 local function includeProfiles()
-	local realLoadFile, realGetKeyCode = VFS.LoadFile, Spring.GetKeyCode
-	VFS.LoadFile = function(path)
-		local file = io.open(path, "rb")
-		if not file then
-			return nil
-		end
+	local env = SpecEnv.new({
+		VFS = {
+			LoadFile = function(path)
+				local file = io.open(path, "rb")
+				if not file then
+					return nil
+				end
 
-		local contents = file:read("*a")
-		file:close()
+				local contents = file:read("*a")
+				file:close()
 
-		return contents
-	end
-	Spring.GetKeyCode = function()
-		return 1
-	end
+				return contents
+			end,
+		},
+		Spring = {
+			GetKeyCode = function()
+				return 1
+			end,
+		},
+	})
 
-	local ok, result = pcall(VFS.Include, "luaui/Include/keybind_profiles.lua")
-	VFS.LoadFile, Spring.GetKeyCode = realLoadFile, realGetKeyCode
-	assert(ok, tostring(result))
-
-	return result
+	return SpecEnv.include(env, "luaui/Include/keybind_profiles.lua")
 end
 
 describe("the binds that switch between profiles", function()
@@ -202,27 +197,8 @@ describe("the binds that switch between profiles", function()
 end)
 
 -- What a player wrote in their own uikeys.txt, read the way the engine would have read it.
--- The reader resolves a keyload itself, so the file stub has to outlast the include.
 local function parse(text)
-	local profiles = includeProfiles()
-	local realLoadFile = VFS.LoadFile
-	VFS.LoadFile = function(path)
-		local file = io.open(path, "rb")
-		if not file then
-			return nil
-		end
-
-		local contents = file:read("*a")
-		file:close()
-
-		return contents
-	end
-
-	local ok, binds = pcall(profiles.parseBindFile, text)
-	VFS.LoadFile = realLoadFile
-	assert(ok, tostring(binds))
-
-	return binds or {}
+	return includeProfiles().parseBindFile(text) or {}
 end
 
 local function keysetsFor(binds, action)
