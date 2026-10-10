@@ -524,7 +524,7 @@ function loadUiPrefs()
 	if not raw or raw == "" then
 		return
 	end
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return
 	end
@@ -2174,7 +2174,7 @@ do
 		-- empty (picker shows "None", arrows do nothing). dnts_sets.lua ships with a BOM.
 		chunk = chunk:gsub("^\239\187\191", "")
 		local ok, list = pcall(function()
-			return loadstring(chunk)()
+			return loadstring(chunk, nil, {})()
 		end)
 		if ok and type(list) == "table" then
 			dntsSets = list
@@ -2677,7 +2677,7 @@ do
 	local raw = VFS.LoadFile("luaui/RmlWidgets/gui_terraform_brush/env_presets.lua")
 	if type(raw) == "string" and raw ~= "" then
 		raw = raw:gsub("^\239\187\191", "") -- strip UTF-8 BOM (stock Lua 5.1 lexer chokes on it)
-		local fn = loadstring(raw)
+		local fn = loadstring(raw, nil, {})
 		if fn then
 			local okr, t = pcall(fn)
 			if okr and type(t) == "table" and #t > 0 then
@@ -3044,7 +3044,7 @@ widgetState.loadEnvPresetData = function(entry)
 		return nil, "could not read " .. tostring(entry.path)
 	end
 	raw = raw:gsub("^\239\187\191", "")
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return nil, "parse failed for " .. tostring(entry.path)
 	end
@@ -3196,7 +3196,7 @@ widgetState.buildEnvConfigContent = function(opts)
 	end
 	local outLines = {
 		"-- Environment config exported from BAR Terraform Brush",
-		"-- Map: " .. (Game.mapName or "unknown"),
+		"-- Map: " .. string.gsub(Game.mapName or "unknown", "[\r\n]", " "),
 	}
 	if not (opts and opts.nodate) then
 		outLines[#outLines + 1] = "-- Date: " .. os.date("%Y-%m-%d %H:%M:%S")
@@ -3204,7 +3204,7 @@ widgetState.buildEnvConfigContent = function(opts)
 	local body = {
 		"return {",
 		"\tversion = 1,",
-		'\tmapName = "' .. (Game.mapName or "unknown") .. '",',
+		string.format("\tmapName = %q,", Game.mapName or "unknown"),
 		"",
 		"\t-- Sun direction",
 		sunDirLine,
@@ -12692,7 +12692,7 @@ local initialModel = {
 			Spring.Echo("[Environ] ERROR: Could not read " .. newest)
 			return
 		end
-		local chunk = loadstring(raw)
+		local chunk = loadstring(raw, nil, {})
 		if not chunk then
 			Spring.Echo("[Environ] ERROR: Parse failed for " .. newest)
 			return
@@ -18647,7 +18647,7 @@ function widget:Initialize()
 			if _isGeneratedBlankMap() then
 				if raw and raw ~= "" then
 					local ok, t = pcall(function()
-						return loadstring(raw)()
+						return loadstring(raw, nil, {})()
 					end)
 					if ok and type(t) == "table" and t.preset then
 						for _, p in ipairs(widgetState.newMapEnvPresets) do

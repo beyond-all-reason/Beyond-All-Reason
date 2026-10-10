@@ -258,7 +258,7 @@ local function readPrevManifest(dir)
 	end
 	local raw = f:read("*a")
 	f:close()
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return nil
 	end
@@ -286,7 +286,7 @@ local function readRecent()
 	local raw = f:read("*a")
 	f:close()
 	raw = raw:gsub("^\239\187\191", "")
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return {}
 	end
@@ -328,7 +328,7 @@ local function readLuaFile(path)
 	end
 	local raw = f:read("*a")
 	f:close()
-	local chunk, err = loadstring(raw)
+	local chunk, err = loadstring(raw, nil, {})
 	if not chunk then
 		return nil, "parse error: " .. tostring(err)
 	end
@@ -2857,7 +2857,7 @@ local function readPointer()
 	if not raw or raw == "" then
 		return nil
 	end
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return nil
 	end

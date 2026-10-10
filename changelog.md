@@ -33,6 +33,7 @@
   - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
   - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
+  - Temporary preventative measures against cheats. We have no evidence for common cheats but have locked down user widgets while we upgrade the engine. Hang tight.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

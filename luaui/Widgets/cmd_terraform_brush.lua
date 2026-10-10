@@ -215,7 +215,7 @@ local function loadKeybindsFromDisk()
 	if VFS.FileExists(KEYBINDS_FILE, VFS.RAW) then
 		local raw = VFS.LoadFile(KEYBINDS_FILE, VFS.RAW)
 		if raw then
-			local fn, _err = loadstring(raw)
+			local fn, _err = loadstring(raw, nil, {})
 			if fn then
 				local ok, data = pcall(fn)
 				if ok and type(data) == "table" then
@@ -2112,6 +2112,7 @@ local function loadPresetsFromDisk()
 		local ok, data = pcall(function()
 			local chunk = loadfile(path)
 			if chunk then
+				setfenv(chunk, {})
 				return chunk()
 			end
 		end)
@@ -2401,7 +2402,7 @@ extraState._newmapConsumeRecipe = function()
 		wf:close()
 	end
 	local ok, recipe = pcall(function()
-		return loadstring(raw)()
+		return loadstring(raw, nil, {})()
 	end)
 	if ok and type(recipe) == "table" then
 		return recipe

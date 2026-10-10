@@ -1607,10 +1607,9 @@ end
 
 function widget:RecvLuaMsg(msg, playerID)
 	-- restart-with-state: receive serialised unit state from the gadget and write it to disk
-	if playerID ~= Spring.GetMyPlayerID() then
-		if msg:sub(1, 4) == "rws:" then
-			return true
-		end
+	-- Every player's widgets receive these, and the gadget only sends them in single player.
+	if msg:sub(1, 4) == "rws:" and (not isSinglePlayer or playerID ~= Spring.GetMyPlayerID()) then
+		return true -- Fake and maybe malicious
 	end
 	if msg == "rws:begin" then
 		rwsBuffer = {}
@@ -13444,6 +13443,8 @@ function widget:Initialize()
 	WG.options.addOptions = function(newOptions)
 		for _, option in ipairs(newOptions) do
 			option.group = "custom"
+			-- FIXME: Applying an option with a widget enables or disables that widget. Remove from user widgets.
+			option.widget = nil
 			customOptions[#customOptions + 1] = option
 		end
 
@@ -13471,6 +13472,10 @@ function widget:Initialize()
 		local optionID = getOptionByID(option)
 		if not optionID then
 			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+			return
+		end
+		if options[optionID].widget then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' denied by sandboxing")
 			return
 		end
 		applyOptionValue(optionID, tonumber(value))

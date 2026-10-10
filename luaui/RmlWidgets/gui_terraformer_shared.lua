@@ -195,10 +195,6 @@ WG.TerraformerShared.unregisterDocument = function(name)
 	end
 end
 
-WG.TerraformerShared.getDocument = function(name)
-	return registeredDocuments[name]
-end
-
 --------------------------------------------------------------------------------
 -- Where the suite's windows are
 --------------------------------------------------------------------------------
@@ -508,7 +504,6 @@ function widget:Shutdown()
 		WG.TerraformerShared.getDpRatio = nil
 		WG.TerraformerShared.registerDocument = nil
 		WG.TerraformerShared.unregisterDocument = nil
-		WG.TerraformerShared.getDocument = nil
 		WG.TerraformerShared.getElementRect = nil
 		WG.TerraformerShared.attachDraggable = nil
 		WG.TerraformerShared.refreshPanelBodies = nil
