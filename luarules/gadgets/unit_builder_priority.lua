@@ -76,7 +76,7 @@ local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spEditUnitCmdDesc = Spring.EditUnitCmdDesc
-local spGetTeamResources = Spring.GetTeamResources
+local EconomyResources = require("modules/economy/api").Resources
 local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
@@ -521,8 +521,9 @@ function gadget:GameFrame(n)
 			if passiveConsCount[teamID] and passiveConsCount[teamID] > 0 then
 				if n >= updateFrame[teamID] then
 					-- Read resource data once for both interval calc and UpdatePassiveBuilders
-					local mCur, mStor, _, mInc, _, mShare, mSent, mRec = spGetTeamResources(teamID, "metal")
-					local eCur, eStor, ePull, eInc, _, eShare, eSent, eRec = spGetTeamResources(teamID, "energy")
+					local mCur, mStor, _, mInc, _, mShare, mSent, mRec = EconomyResources.Get(Spring, teamID, "metal")
+					local eCur, eStor, ePull, eInc, _, eShare, eSent, eRec =
+						EconomyResources.Get(Spring, teamID, "energy")
 					-- Inlined GetUpdateInterval: find max frames to fill storage for metal/energy (capped at 6)
 					local interval = 1
 					if mInc > 0 then
