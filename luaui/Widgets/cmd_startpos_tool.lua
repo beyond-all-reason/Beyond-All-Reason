@@ -90,7 +90,7 @@ local VERTEX_PICK_DIST_SQ = 60 * 60 -- world distance^2 to pick a startbox verte
 
 -- Role-labelling config and state for start-position-suggestions export.
 local roleConfig = {
-	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech", "baseCenter" },
+	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech"  },
 	saveDir = "Terraform Brush/StartPositions/Suggestions/",
 }
 
@@ -486,8 +486,7 @@ local function addPosition(x, z, allyTeam, teamSlot)
 		y = y,
 		allyTeam = allyTeam,
 		teamSlot = teamSlot,
-		playerIdx = playerIdx,
-		role = nil,
+		playerIdx = playerIdx
 	}
 	return true
 end
@@ -1522,8 +1521,7 @@ local function loadStartPositions(name, explicitPath)
 	if ok and data then
 		clearAllPositions() -- also clears undoHistory
 		for i, pos in ipairs(data) do
-			addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1)
-			if positions[#positions] and pos.role then
+			if addPosition(pos.x, pos.z, pos.allyTeam or i, pos.teamSlot or 1) and pos.role then
 				positions[#positions].role = pos.role
 			end
 		end
@@ -2131,7 +2129,6 @@ local function getState()
 		currentBoxVerts = currentBoxVerts,
 		boxRectActive = boxRectActive,
 		freeDrawActive = freeDrawActive,
-		roleOptions = roleConfig.options,
 	}
 end
 
@@ -3895,7 +3892,7 @@ function widget:DrawScreenEffects()
 				local roleSize = 22
 				local roleY = badgeY + badgeH + 4
 				glColor(0, 0, 0, 0.85)
-				glText(pos.role, sx + 2, roleY + 2, roleSize, "cn")
+				glText(pos.role, sx + 2, roleY - 2, roleSize, "cn")
 				glColor(color[1], color[2], color[3], 0.95)
 				glText(pos.role, sx, roleY, roleSize, "cn")
 			end
@@ -4031,8 +4028,6 @@ function widget:Initialize()
 		generateStartScript = generateStartScript,
 		saveStartScript = saveStartScript,
 		cyclePositionRole = roleConfig.cyclePositionRole,
-		saveStartPositionSuggestions = roleConfig.saveSuggestions,
-		saveStartPositionSuggestionsBSet = roleConfig.saveSuggestionsBSet,
 	}
 end
 

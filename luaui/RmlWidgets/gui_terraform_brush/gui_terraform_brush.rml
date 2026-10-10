@@ -528,7 +528,7 @@
 			</div>
 			<!-- Roles mode hint -->
 			<div id="sp-roles-hint" data-if="stpSubMode == 'roles'">
-				<div class="text-sm text-keybind mb-1">LMB: next role RMB: previous role </div>
+				<div class="text-sm text-keybind mb-1">LMB: next role &amp;middot; RMB: previous role</div>
 			</div>
 
 			<!-- Action buttons -->
