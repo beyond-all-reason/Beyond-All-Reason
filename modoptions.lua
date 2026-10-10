@@ -42,6 +42,7 @@ local options = {
 		desc = "",
 		type = "section",
 		weight = 7,
+		mode_category = "game",
 	},
 
 	{
@@ -2771,6 +2772,19 @@ for i = 1, 29 do
 		def = "",
 		hidden = true,
 	}
+end
+
+-- The loader and its module files find each other with `require`, the shim init.lua defines. The lobby includes
+-- this file into a Lua state that never ran init.lua, where `require` is the engine's util loader, and then
+-- includes the game's mode files itself. So init.lua runs here first, once, and from then on every include of a
+-- game file in that state finds the shim; Chobby's own require calls carry ".lua", which the shim hands back to
+-- the loader it replaced. In the game, and in the spec harness, init.lua has already run.
+if BAR == nil or BAR.ModuleEnv == nil then
+	VFS.Include("init.lua", nil, VFS.ZIP)
+end
+local ModuleHandler = VFS.Include("modules/module_handler.lua")
+for _, option in ipairs(ModuleHandler.ModOptions()) do
+	options[#options + 1] = option
 end
 
 return options
