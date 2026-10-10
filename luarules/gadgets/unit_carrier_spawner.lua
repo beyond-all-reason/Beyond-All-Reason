@@ -281,6 +281,19 @@ for weaponDefID = 0, #WeaponDefs do
 	end
 end
 
+local droneWeaponDefs = {}
+for _, spawnDef in pairs(spawnDefs) do
+	for index, droneName in ipairs(spawnDef.name) do
+		local droneDef = UnitDefNames[droneName]
+		local hasAmmo = (tonumber(spawnDef.droneAmmo[index]) or 0) > 0
+		if droneDef and (hasAmmo or spawnDef.dronetype[index] == "bomber") then
+			for _, weapon in ipairs(droneDef.weapons) do
+				droneWeaponDefs[weapon.weaponDef] = true
+			end
+		end
+	end
+end
+
 -- unitDefID -> spawner weapon of unit defs that carry drones, so UnitCreated is a single lookup for every other unit
 local carrierDefs = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -2165,6 +2178,12 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD_CARRIER_SPAWN_ONOFF)
+	gadgetHandler:RegisterUnitCommand(CMD.ANY)
+	if hasAmmoDrones or hasBomberDrones then
+		for weaponDefID in pairs(droneWeaponDefs) do
+			gadgetHandler:RegisterProjectile(weaponDefID)
+		end
+	end
 	local allUnits = Spring.GetAllUnits()
 	local unitCount = #allUnits
 	for i = 1, unitCount do

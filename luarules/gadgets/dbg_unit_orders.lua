@@ -136,6 +136,10 @@ else
 		return nil
 	end
 
+	function gadget:Initialize()
+		gadgetHandler:RegisterUnitCommand(CMD.ANY)
+	end
+
 	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag)
 		if unitTeam ~= 0 then
 			return

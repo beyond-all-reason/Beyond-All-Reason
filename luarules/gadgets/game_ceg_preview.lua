@@ -596,15 +596,17 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		if dummyWeaponDefID and Script and Script.SetWatchWeapon then
+		if not dummyWeaponDefID then
+			gadgetHandler:RemoveCallIn("ProjectileCreated")
+			return
+		end
+		gadgetHandler:RegisterProjectile(dummyWeaponDefID)
+		if Script and Script.SetWatchWeapon then
 			Script.SetWatchWeapon(dummyWeaponDefID, true)
 		end
 	end
 
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-		if not dummyWeaponDefID or weaponDefID ~= dummyWeaponDefID then
-			return
-		end
 		local shot = table.remove(pendingShots, 1)
 		if not shot then
 			return

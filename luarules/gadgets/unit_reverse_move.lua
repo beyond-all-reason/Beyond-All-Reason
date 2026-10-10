@@ -51,6 +51,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD.ANY)
 	for ct, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end

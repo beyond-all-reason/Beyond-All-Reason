@@ -123,7 +123,7 @@ for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		end
 
 		defWatchTable[weaponDefID] = watchParams
-		Script.SetWatchProjectile(weaponDefID, true)
+		gadgetHandler:RegisterProjectile(weaponDefID)
 	end
 end
 
@@ -178,14 +178,14 @@ local function setFlightTimeFrame(proID, newFlightTime)
 	flightTimeWatch[triggerFrame][#flightTimeWatch[triggerFrame] + 1] = proID
 end
 
-function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	local defData = defWatchTable[weaponDefID]
-	if not defData then
-		return
+function gadget:Initialize()
+	if not next(defWatchTable) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
 	end
+end
 
-	setFlightTimeFrame(proID, defData.flightTimeFrames)
-
+function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 	local originX, _, originZ = spGetUnitPosition(proOwnerID)
 	if not originX then
 		originX, _, originZ = spGetProjectilePosition(proID)
@@ -194,10 +194,11 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		return
 	end
 
-	proWeaponDefID[proID] = weaponDefID
-	proOwnerByID[proID] = proOwnerID
 	proOriginX[proID] = originX
 	proOriginZ[proID] = originZ
+	proWeaponDefID[proID] = weaponDefID
+	proOwnerByID[proID] = proOwnerID
+	setFlightTimeFrame(proID, defWatchTable[weaponDefID].flightTimeFrames)
 end
 
 function gadget:ProjectileDestroyed(proID)

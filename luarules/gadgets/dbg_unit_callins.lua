@@ -670,6 +670,7 @@ local function togglegadget()
 end
 
 function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD.ANY)
 	gadgetHandler:AddChatAction("unitcallinsgadget", togglegadget)
 	updateCallins()
 end

@@ -28,9 +28,11 @@ Engine.FeatureSupport.targetBorderBug = isEngineMinVersion(2025, 6, 4) and not i
 --------------------------------------------------------------------------------
 -- Extended LuaConst -----------------------------------------------------------
 
+local anyID = "a"
+
 if CMD then
 	CMD.NIL = "n" -- Handling for unintended nil's.
-	CMD.ANY = "a" -- Matches on all command values.
+	CMD.ANY = anyID -- Matches on all command values.
 	CMD.BUILD = "b" -- Filters for negative commands.
 
 	CMD.n = "NIL"
@@ -42,6 +44,10 @@ end
 -- Game constants --------------------------------------------------------------
 
 if Game then
+	---Registers a gadget's callin for every ID.
+	---@type string
+	Game.anyID = anyID
+
 	---The first frame that units are spawned. Used for scenario units and commanders.
 	---@type integer
 	Game.spawnInitialFrame = 2 * Game.gameSpeed

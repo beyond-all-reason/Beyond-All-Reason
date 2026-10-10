@@ -484,6 +484,22 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
+--  Registered callins
+--
+--  Gadgets register the IDs that they want from some of the busiest callins:
+local registered = VFS.Include(SCRIPT_DIR .. "callins/registered_callins.lua", nil, VFSMODE) ---@type RegisteredCallinsAPI
+
+local allowCommandLists = registered.getLists("AllowCommand")
+local unitCommandLists = registered.getLists("UnitCommand")
+local projectileCreatedLists = registered.getLists("ProjectileCreated")
+local projectileDestroyedLists = registered.getLists("ProjectileDestroyed")
+local explosionLists = registered.getLists("Explosion")
+local weaponTargetCheckLists = registered.getLists("AllowWeaponTargetCheck")
+local weaponTargetLists = registered.getLists("AllowWeaponTarget")
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--
 --  Initialize the call-in lists.
 --
 
@@ -769,11 +785,32 @@ function gadgetHandler:NewGadget()
 	gh.RegisterAllowCommand = function(_, cmdID)
 		return self:RegisterAllowCommand(gadget, cmdID)
 	end
-	gh.DeregisterAllowCommands = function(_)
-		return self:DeregisterAllowCommands(gadget)
+	gh.DeregisterAllowCommand = function(_, cmdID)
+		return self:DeregisterAllowCommand(gadget, cmdID)
 	end
 	gh.RegisterUnitCommand = function(_, cmdID)
 		return self:RegisterUnitCommand(gadget, cmdID)
+	end
+	gh.DeregisterUnitCommand = function(_, cmdID)
+		return self:DeregisterUnitCommand(gadget, cmdID)
+	end
+	gh.RegisterProjectile = function(_, weaponDefID)
+		return self:RegisterProjectile(gadget, weaponDefID)
+	end
+	gh.DeregisterProjectile = function(_, weaponDefID)
+		return self:DeregisterProjectile(gadget, weaponDefID)
+	end
+	gh.RegisterExplosion = function(_, weaponDefID)
+		return self:RegisterExplosion(gadget, weaponDefID)
+	end
+	gh.DeregisterExplosion = function(_, weaponDefID)
+		return self:DeregisterExplosion(gadget, weaponDefID)
+	end
+	gh.RegisterWeaponTarget = function(_, weaponDefID)
+		return self:RegisterWeaponTarget(gadget, weaponDefID)
+	end
+	gh.DeregisterWeaponTarget = function(_, weaponDefID)
+		return self:DeregisterWeaponTarget(gadget, weaponDefID)
 	end
 
 	if not IsSyncedCode() then
@@ -1007,17 +1044,6 @@ function gadgetHandler:InsertGadgetRaw(gadget)
 	end
 	self:UpdateCallIns()
 
-	if gadget.AllowCommand and not self:HasAllowCommands(gadget) then
-		Spring.Log(
-			"AllowCommand",
-			LOG.WARNING,
-			"<"
-				.. gadget.ghInfo.basename
-				.. "> AllowCommand defined but didn't register any commands. Autoregistering for all commands!"
-		)
-		self:RegisterAllowCommand(gadget, CMD.ANY)
-	end
-
 	if kbytes then
 		collectgarbage("collect")
 		collectgarbage("collect")
@@ -1051,7 +1077,6 @@ function gadgetHandler:RemoveGadgetRaw(gadget)
 	for _, listname in ipairs(callInLists) do
 		ArrayRemove(self[listname .. "List"], gadget)
 	end
-	self:DeregisterAllowCommands(gadget)
 
 	for id, g in pairs(self.CMDIDs) do
 		if g == gadget then
@@ -1234,7 +1259,6 @@ function gadgetHandler:RaiseGadgetRaw(gadget)
 	for _, listname in ipairs(callInLists) do
 		Raise(self[listname .. "List"], gadget[listname], gadget)
 	end
-	self:ReorderAllowCommands(gadget, Raise)
 end
 
 local function FindHighestIndex(t, i, layer)
@@ -1269,7 +1293,6 @@ function gadgetHandler:LowerGadgetRaw(gadget)
 	for _, listname in ipairs(callInLists) do
 		Lower(self[listname .. "List"], gadget[listname], gadget)
 	end
-	self:ReorderAllowCommands(gadget, Lower)
 end
 
 function gadgetHandler:FindGadget(name)
@@ -1639,68 +1662,6 @@ local CMD_BUILD = CMD.BUILD
 local CMD_INSERT = CMD.INSERT
 local unpackInsertParams = Game.Commands.UnpackInsertParams
 
-local allowCommandList = { [CMD_ANY] = {} }
-
-function gadgetHandler:ReorderAllowCommands(gadget, f)
-	if not gadget.AllowCommand then
-		return true
-	end
-	for _, list in pairs(allowCommandList) do
-		f(list, true, gadget)
-	end
-end
-
-function gadgetHandler:HasAllowCommands(gadget)
-	for _, list in pairs(allowCommandList) do
-		for _, g in ipairs(list) do
-			if g == gadget then
-				return true
-			end
-		end
-	end
-end
-
-function gadgetHandler:DeregisterAllowCommands(gadget)
-	for _, list in pairs(allowCommandList) do
-		ArrayRemove(list, gadget)
-	end
-end
-
-function gadgetHandler:RegisterAllowCommand(gadget, cmdID)
-	-- cmdID accepts CMD.ANY and CMD.NIL in addition to usual cmdIDs
-	-- CMD.ANY subscribes to any command
-	Spring.Log("AllowCommand", LOG.INFO, "<" .. gadget.ghInfo.basename .. "> Register " .. tostring(cmdID))
-	if cmdID == nil then
-		-- use CMD.NIL instead
-		Spring.Log("AllowCommand", LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> Invalid cmdID " .. tostring(cmdID))
-		return
-	end
-	if not gadget.AllowCommand then
-		Spring.Log("AllowCommand", LOG.ERROR, "<" .. gadget.ghInfo.basename .. "> No callin method")
-		return
-	end
-	local cmdList = allowCommandList[cmdID]
-	-- create list if needed
-	if not cmdList then
-		cmdList = {}
-		allowCommandList[cmdID] = cmdList
-		-- on a new list, register all known CMD.ANY commands
-		if cmdID ~= CMD_ANY then
-			for _, g in ipairs(allowCommandList[CMD_ANY]) do
-				ArrayInsert(cmdList, true, g)
-			end
-		end
-	end
-	-- insert into the list
-	ArrayInsert(cmdList, true, gadget)
-	-- if it's a CMD.ANY registration, insert into all lists
-	if cmdID == CMD_ANY then
-		for _, list in pairs(allowCommandList) do
-			ArrayInsert(list, true, gadget)
-		end
-	end
-end
-
 --------------------------------------------------------------------------------
 --
 --  LuaRules Game call-ins
@@ -1755,7 +1716,7 @@ function gadgetHandler:AllowCommand(
 	end
 
 	local cmdKey = cmdID or CMD_NIL
-	if not allowCommandList[cmdKey] then
+	if not allowCommandLists[cmdKey] then
 		if type(cmdKey) == "number" and cmdKey < 0 then
 			cmdKey = CMD_BUILD
 		else
@@ -1764,7 +1725,7 @@ function gadgetHandler:AllowCommand(
 	end
 
 	tracy.ZoneBeginN("G:AllowCommand")
-	for _, g in ipairs(allowCommandList[cmdKey]) do
+	for _, g in ipairs(allowCommandLists[cmdKey]) do
 		--tracy.ZoneBeginN("G:AllowCommand:"..g.ghInfo.name)
 		if
 			not g:AllowCommand(
@@ -2070,26 +2031,19 @@ end
 
 function gadgetHandler:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
 	local ignore = true
-	for _, g in ipairs(self.AllowWeaponTargetCheckList) do
+	for _, g in ipairs(weaponTargetCheckLists[attackerWeaponDefID]) do
 		local allowCheck, ignoreCheck = g:AllowWeaponTargetCheck(attackerID, attackerWeaponNum, attackerWeaponDefID)
 		if not ignoreCheck then
-			ignore = false
 			if not allowCheck then
 				return 0
 			end
+			ignore = false
 		end
 	end
-
 	return ((ignore and -1) or 1)
 end
 
 function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-	-- Calls with no input priority are pure pass/fail tests.
-	-- These are common, and BAR never disallows any of them.
-	-- if not defPriority then
-	-- 	return true -- The second return value is never used.
-	-- end
-
 	local allowed = true
 	local result = 1.0
 
@@ -2099,14 +2053,20 @@ function gadgetHandler:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum
 		for _, g in ipairs(self.UnitAutoTargetRangeList) do
 			defPriority = g:UnitAutoTargetRange(attackerID, defPriority)
 		end
-
 		allowed, result = defPriority > 0, defPriority
 	else
-		-- The actual callin. BAR only uses AllowWeaponTarget for the target priority.
-		for _, g in ipairs(self.AllowWeaponTargetList) do
-			allowed, result =
+		-- The actual callin. BAR uses `AllowWeaponTarget` for both allow/disallow and target priority, now.
+		for _, g in ipairs(weaponTargetLists[attackerWeaponDefID]) do
+			local allow, priority =
 				g:AllowWeaponTarget(attackerID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+			if not allow then
+				return false, defPriority
+			end
+			if priority ~= nil then
+				defPriority = priority
+			end
 		end
+		result = defPriority
 	end
 	return allowed, result
 end
@@ -2313,13 +2273,6 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	return
 end
 
--- Limits gadget:UnitCommand to the registered commands (CMD.BUILD: all build commands).
--- Gadgets that never register get every command.
-function gadgetHandler:RegisterUnitCommand(gadget, cmdID)
-	gadget._unitCommandIDs = gadget._unitCommandIDs or {}
-	gadget._unitCommandIDs[cmdID] = true
-end
-
 function gadgetHandler:UnitCommand(
 	unitID,
 	unitDefID,
@@ -2333,13 +2286,10 @@ function gadgetHandler:UnitCommand(
 	fromLua
 )
 	tracy.ZoneBeginN("G:UnitCommand")
-	local list = self.UnitCommandList
+	local list = unitCommandLists[cmdId] or unitCommandLists[cmdId < 0 and CMD_BUILD or CMD_ANY]
 	for i = 1, #list do
 		local g = list[i]
-		local cmdIDs = g._unitCommandIDs
-		if not cmdIDs or cmdIDs[cmdId] or (cmdId < 0 and cmdIDs[CMD_BUILD]) then
-			g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-		end
+		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	end
 	markIdle(unitID)
 	tracy.ZoneEnd()
@@ -2559,8 +2509,9 @@ end
 
 function gadgetHandler:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	tracy.ZoneBeginN("G:ProjectileCreated")
-	for _, g in ipairs(self.ProjectileCreatedList) do
-		g:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
+	local list = projectileCreatedLists[proWeaponDefID]
+	for i = 1, #list do
+		list[i]:ProjectileCreated(proID, proOwnerID, proWeaponDefID)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2568,8 +2519,9 @@ end
 
 function gadgetHandler:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	tracy.ZoneBeginN("G:ProjectileDestroyed")
-	for _, g in ipairs(self.ProjectileDestroyedList) do
-		g:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
+	local list = projectileDestroyedLists[proWeaponDefID]
+	for i = 1, #list do
+		list[i]:ProjectileDestroyed(proID, proOwnerID, proWeaponDefID)
 	end
 	tracy.ZoneEnd()
 	return
@@ -2628,7 +2580,7 @@ end
 
 function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
 	-- "noGfx = noGfx or ..." short-circuits, so equivalent to this
-	local list = self.ExplosionList
+	local list = explosionLists[weaponID]
 	for i = #list, 1, -1 do
 		local g = list[i]
 		if g:Explosion(weaponID, px, py, pz, ownerID, projectileID) then
@@ -2990,5 +2942,6 @@ end
 --------------------------------------------------------------------------------
 
 synthetic.install(gadgetHandler)
+registered.install(gadgetHandler)
 
 gadgetHandler:Initialize()

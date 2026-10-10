@@ -74,7 +74,7 @@ local sparkWeapons = {}
 for wdid, wd in pairs(WeaponDefNames) do
 	if wd.customParams ~= nil then
 		if wd.customParams.spark_forkdamage ~= nil then
-			Script.SetWatchProjectile(wd.id, true) -- watch so ProjectileCreated works
+			gadgetHandler:RegisterProjectile(wd.id)
 			sparkWeapons[wd.id] = {
 				ceg = wd.customParams.spark_ceg, -- currently overridden by above "global" options
 				basedamage = tonumber(wd.damages[0]), --spark damage is assumed to be based on default damage
@@ -206,29 +206,29 @@ end
 
 -- when a lighting bolt is created by a unit, save some info to a table, to be used to figure out sparking when the bolt despawns
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
-	if sparkWeapons[weaponDefID] then -- make sure we are handling lightning weapons
-		if proOwnerID ~= -1 then -- make sure we are handling a main bolt, and not a spark bolt
-			local xp, yp, zp = spGetProjectilePosition(proID) -- get bolt start point
-			local xv, yv, zv = spGetProjectileVelocity(proID) -- get bolt length
-
-			local spark = sparkWeapons[weaponDefID]
-			local projTable = GetProjTable()
-			projTable.weaponDefID = weaponDefID
-			projTable.proOwnerID = proOwnerID
-			projTable.spark_ceg = spark.ceg
-			projTable.spark_range = spark.range
-			projTable.spark_maxunits = spark.maxunits
-			projTable.x = xp + xv
-			projTable.y = yp + yv
-			projTable.z = zp + zv
-
-			local factors = weaponDamageFactors[proOwnerID]
-			local damageFactor = factors and factors[weaponDefID] or 1.0
-			projTable.damage = spark.basedamage * spark.forkdamage * damageFactor
-
-			lightningProjectiles[proID] = projTable
-		end
+	if proOwnerID == -1 then -- make sure we are handling a main bolt, and not a spark bolt
+		return
 	end
+
+	local xp, yp, zp = spGetProjectilePosition(proID) -- get bolt start point
+	local xv, yv, zv = spGetProjectileVelocity(proID) -- get bolt length
+
+	local spark = sparkWeapons[weaponDefID]
+	local projTable = GetProjTable()
+	projTable.weaponDefID = weaponDefID
+	projTable.proOwnerID = proOwnerID
+	projTable.spark_ceg = spark.ceg
+	projTable.spark_range = spark.range
+	projTable.spark_maxunits = spark.maxunits
+	projTable.x = xp + xv
+	projTable.y = yp + yv
+	projTable.z = zp + zv
+
+	local factors = weaponDamageFactors[proOwnerID]
+	local damageFactor = factors and factors[weaponDefID] or 1.0
+	projTable.damage = spark.basedamage * spark.forkdamage * damageFactor
+
+	lightningProjectiles[proID] = projTable
 end
 
 -- when a unit is directly hit by a lighting attack, keep track of that so the lighting weapon does not chain to the same target it hit.
@@ -256,4 +256,9 @@ end
 
 function gadget:Initialize()
 	weaponDamageFactors = GG.UnitAttributes.WeaponDamageFactors
+
+	if not next(sparkWeapons) then
+		gadgetHandler:RemoveCallIn("ProjectileCreated")
+		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
+	end
 end
