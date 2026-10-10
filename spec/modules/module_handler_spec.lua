@@ -193,9 +193,12 @@ describe("ModuleHandler", function()
 			FILES["modules/loner/policies/b.lua"] = function()
 				return { Check = { B = "B" } }
 			end
-			assert.has_error(function()
-				ModuleHandler.Contract("loner")
-			end, "modules/loner/policies/b.lua: Check must declare itself: Single(...), Fold(...) or Contributes(...)")
+			assert.has_error(
+				function()
+					ModuleHandler.Contract("loner")
+				end,
+				"modules/loner/policies/b.lua: Check must declare itself: Single(...), Product(...), Fold(...) or Contributes(...)"
+			)
 		end)
 
 		it("refuses a contributor's Refusal: the owner alone shapes it", function()
