@@ -34,6 +34,7 @@ return {
 		turnrate = 500,
 		waterline = 0,
 		customparams = {
+			maxrange = 350,
 			model_author = "EnderRobo",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,

@@ -92,6 +92,7 @@ return {
 			"leghelios",
 		},
 		customparams = {
+			maxrange = 300,
 			unitgroup = "builder",
 			iscommander = true,
 			effigy_offset = 1,

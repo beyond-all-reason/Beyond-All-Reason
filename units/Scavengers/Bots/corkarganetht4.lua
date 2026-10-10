@@ -32,6 +32,7 @@ return {
 		turnrate = 457.20001,
 		upright = false,
 		customparams = {
+			maxrange = 750,
 			unitgroup = "weapon",
 			model_author = "Flaka",
 			normaltex = "unittextures/cor_normal.dds",
