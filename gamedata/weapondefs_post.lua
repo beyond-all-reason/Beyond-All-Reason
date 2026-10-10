@@ -9,11 +9,12 @@
 
 -- see alldefs.lua for documentation
 local system = VFS.Include("gamedata/system.lua")
-local alldefs = require("gamedata/alldefs_post")
 local savedefs = require("gamedata/post_save_to_customparams")
 
-local weaponDefPost = alldefs.WeaponDef_Post
-local modOptionsPost = alldefs.ModOptions_Post
+local Defs = require("modules/defs/api")
+local Modules = require("modules/enums").Modules
+local ModuleHandler = require("modules/module_handler")
+local modOptions = Spring.GetModOptions()
 local saveDefToCustomParams = savedefs.SaveDefToCustomParams
 local markDefOmittedInCustomParams = savedefs.MarkDefOmittedInCustomParams
 
@@ -94,7 +95,10 @@ end
 
 -- postprocess weapondefs
 for name, weaponDef in pairs(WeaponDefs) do
-	weaponDefPost(name, weaponDef)
+	ModuleHandler.Evaluate(
+		ModuleHandler.Contract(Modules.Defs).WeaponDef,
+		{ name = name, def = weaponDef, modOptions = modOptions }
+	)
 
 	if SaveDefsToCustomParams then
 		saveDefToCustomParams("WeaponDefs", name, weaponDef)
@@ -102,4 +106,4 @@ for name, weaponDef in pairs(WeaponDefs) do
 end
 
 -- apply mod options that need _post
-modOptionsPost(UnitDefs, WeaponDefs)
+Defs.ModOptionsPost(UnitDefs, WeaponDefs)
