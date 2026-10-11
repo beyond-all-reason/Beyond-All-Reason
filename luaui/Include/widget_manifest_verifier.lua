@@ -1,3 +1,10 @@
+local base64 = require("common/luaUtilities/base64")
+
+-- The content hash must stay in sync with the catalog builder, which computes it when publishing:
+-- https://github.com/beyond-all-reason/BAR-Widgets (builder/src/contentHash.ts). Any change to what is
+-- hashed or how it is framed needs a new format name on both sides, and is not backwards compatible:
+-- widgets whose catalog entry was built with the other format fail to verify. The test vector in
+-- spec/luaui/widget_manifest_verifier_spec.lua is the builder's, so the two can be compared.
 local HASH_FORMAT = "bar-widget-content-v1"
 local CATALOG_FILENAME = "manifests.json"
 local SIGNATURE_FILENAME = "manifests.json.sig"
@@ -21,57 +28,19 @@ local function decodeHex(value)
 	return table.concat(bytes)
 end
 
-local base64Values = {}
-do
-	local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	for index = 1, #alphabet do
-		base64Values[alphabet:sub(index, index)] = index - 1
-	end
-end
-
+-- The shared decoder drops what it does not understand, so the shape is checked here first: this is
+-- the only caller that wants a malformed signature refused rather than quietly shortened.
 local function decodeBase64(value)
 	if type(value) ~= "string" then
 		return nil
 	end
 
 	value = value:gsub("%s", "")
-	if #value == 0 or #value % 4 ~= 0 or value:find("[^A-Za-z0-9+/=]") then
+	if #value % 4 ~= 0 or not value:match("^[A-Za-z0-9+/]+=?=?$") then
 		return nil
 	end
 
-	local result = {}
-	for index = 1, #value, 4 do
-		local char1 = value:sub(index, index)
-		local char2 = value:sub(index + 1, index + 1)
-		local char3 = value:sub(index + 2, index + 2)
-		local char4 = value:sub(index + 3, index + 3)
-		local value1 = base64Values[char1]
-		local value2 = base64Values[char2]
-		local value3 = base64Values[char3]
-		local value4 = base64Values[char4]
-
-		if not value1 or not value2 or (char3 ~= "=" and not value3) or (char4 ~= "=" and not value4) then
-			return nil
-		end
-		if char3 == "=" and (char4 ~= "=" or index + 3 ~= #value) then
-			return nil
-		end
-		if char4 == "=" and index + 3 ~= #value then
-			return nil
-		end
-
-		local thirdValue = value3 or 0
-		local fourthValue = value4 or 0
-		result[#result + 1] = string.char(math.floor(value1 * 4 + value2 / 16))
-		if char3 ~= "=" then
-			result[#result + 1] = string.char(math.floor((value2 % 16) * 16 + thirdValue / 4))
-		end
-		if char4 ~= "=" then
-			result[#result + 1] = string.char(math.floor((thirdValue % 4) * 64 + fourthValue))
-		end
-	end
-
-	return table.concat(result)
+	return base64.Decode(value)
 end
 
 local function encodeLength(length)

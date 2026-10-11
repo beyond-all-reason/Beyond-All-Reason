@@ -210,6 +210,54 @@ describe("widget manifest verifier", function()
 		assert.same({ "invalid signature for manifests.json" }, errors)
 	end)
 
+	describe("with a malformed signature file", function()
+		local function verifyWithSignature(encodedSignature)
+			local verified = false
+			stubVFS({
+				RAW = "raw",
+				LoadFile = function(filename)
+					return filename:match("%.sig$") and encodedSignature or "catalog"
+				end,
+				SubDirs = function()
+					return {}
+				end,
+				VerifyEd25519 = function()
+					verified = true
+					return true
+				end,
+			})
+			_G.Json = {
+				decode = function()
+					return {}
+				end,
+			}
+
+			local files, errors = loadVerifier().GetVerifiedWidgetFiles("LuaUI/Widgets/", { publicKeys = { TEST_PUBLIC_KEY } })
+			return files, errors, verified
+		end
+
+		for description, encodedSignature in pairs({
+			["a stray character"] = string.rep("A", 85) .. "!==",
+			["padding in the middle"] = string.rep("A", 84) .. "=A==",
+			["a length that is not a multiple of four"] = string.rep("A", 86),
+			["a signature of the wrong size"] = string.rep("A", 84),
+		}) do
+			it("refuses " .. description .. " before verifying anything", function()
+				local files, errors, verified = verifyWithSignature(encodedSignature)
+				assert.is_nil(files)
+				assert.same({ "invalid base64 signature in manifests.json.sig" }, errors)
+				assert.is_false(verified)
+			end)
+		end
+
+		it("ignores whitespace around a well formed one", function()
+			local _, _, verified = verifyWithSignature("
+" .. TEST_SIGNATURE .. "
+")
+			assert.is_true(verified)
+		end)
+	end)
+
 	describe("with several trusted keys", function()
 		local ROTATED_KEY = string.rep("11", 32)
 
