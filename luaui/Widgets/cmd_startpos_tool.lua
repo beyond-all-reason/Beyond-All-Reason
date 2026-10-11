@@ -3790,7 +3790,7 @@ local glGetTextWidth = gl.GetTextWidth
 
 -- Draw a sleek screen-space badge: colored left-bar + "Team N" label.
 -- Uses filled quads via glBeginEnd + glText. "2026" aesthetic: minimal, high-contrast, CHUNKY.
-local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered)
+local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, fontSize, hovered, role)
 	local padX, padY = 14, 10
 	local barW = 5
 	local gap = 10
@@ -3802,9 +3802,14 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		return w * sz
 	end
 	local bigSize = fontSize
+	local roleSize = math.floor(fontSize * 0.65)
+	local roleH = role and (roleSize * 1.18 + 4) or 0
 	local textW = measure(label, bigSize)
+	if role then
+		textW = math_max(textW, measure(role, roleSize))
+	end
 	local w = barW + gap + textW + padX * 2
-	local h = bigSize * 1.18 + padY * 2
+	local h = bigSize * 1.18 + roleH + padY * 2
 	local bx = cx - w * 0.5
 	local by = cy
 
@@ -3860,7 +3865,7 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 
 	-- "Team N" label (shadow + color-bright)
 	local textX = bx + padX + barW + gap
-	local textY = by + padY
+	local textY = by + padY + roleH -- screen y grows downward: "Team N" stays at top, role row sits below
 	glColor(0, 0, 0, 0.90)
 	glText(label, textX + 2, textY + 2, bigSize, "o")
 	glColor(
@@ -3870,6 +3875,14 @@ local function drawScreenBadge(cx, cy, color, allyTeamNum, teamName, playerIdx, 
 		1.0
 	)
 	glText(label, textX, textY, bigSize, "o")
+
+	if role then
+		-- Role sub-label inside the card, below "Team N" (shadow + color-bright)
+		glColor(0, 0, 0, 0.90)
+		glText(role, textX + 2, by + padY + 2, roleSize, "o")
+		glColor(color[1], color[2], color[3], 0.95)
+		glText(role, textX, by + padY, roleSize, "o")
+	end
 	return h
 end
 
@@ -3887,16 +3900,7 @@ function widget:DrawScreenEffects()
 			local badgeY = sy + sr + LABEL_PAD
 			local fontSize = 32 -- 2026 chunky
 			local hovered = (hoverPosIdx == i) or (dragIdx == i)
-			local badgeH = drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered)
-
-			if pos.role then
-				local roleSize = 22
-				local roleY = badgeY + badgeH + 4
-				glColor(0, 0, 0, 0.85)
-				glText(pos.role, sx + 2, roleY - 2, roleSize, "cn")
-				glColor(color[1], color[2], color[3], 0.95)
-				glText(pos.role, sx, roleY, roleSize, "cn")
-			end
+			local badgeH = drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered, pos.role)
 		end
 	end
 
