@@ -292,6 +292,8 @@ local minimapFrame = -10
 local minimapSet ---@type table?
 local minimapAllied = false
 local minimapInactive = 0.0
+-- the last draw frame DrawWorld drew coverage, for WG.jammerPreview.isCoverageShown()
+local coverageShownFrame = -10
 
 local passVsPath = "LuaUI/Shaders/sensor_ranges_radar_preview_pass.vert.glsl"
 
@@ -1041,6 +1043,7 @@ function widget:DrawWorld()
 	end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
+	coverageShownFrame = drawFrame
 	drawSheet(set, showAllied, now)
 	minimapFrame, minimapSet, minimapAllied, minimapInactive = drawFrame, set, showAllied, preview.inactive
 end
@@ -1119,9 +1122,16 @@ function widget:Initialize()
 	readConfig()
 	scanAlliedUnits()
 	widget:SelectionChanged(Spring.GetSelectedUnits())
+	WG.jammerPreview = {
+		-- whether coverage (allied or previewed) was drawn this draw frame or the last one, for gui_jammed_units.lua
+		isCoverageShown = function()
+			return spGetDrawFrame() - coverageShownFrame <= 1
+		end,
+	}
 end
 
 function widget:Shutdown()
+	WG.jammerPreview = nil
 	deleteTextures()
 	for _, shader in ipairs({ discShader, smoothShader, sheetShader, minimapShader }) do
 		shader:Delete()
