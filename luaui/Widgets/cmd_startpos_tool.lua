@@ -1076,29 +1076,37 @@ function boxExport.arrangement()
 	return out
 end
 
+local function encodeBSetValue(data)
+	if not data then
+		return nil, "no data"
+	end
+	if not Json then
+		return nil, "Json unavailable; cannot encode bSet."
+	end
+	local ok, raw = pcall(Json.encode, data)
+	if not ok or not raw then
+		return nil, "Failed to encode bSet JSON."
+	end
+	local packed = VFS.ZlibCompress(raw)
+	if not packed then
+		return nil, "Failed to compress bSet payload."
+	end
+	local b64 = VFS.Include("common/luaUtilities/base64.lua")
+	return b64.Encode(packed):gsub("=+$", "")
+end
+
+
 function boxExport.encode()
 	local arrangement = boxExport.arrangement()
 	if #arrangement == 0 then
 		return nil
 	end
 
-	-- Json is a LuaUI global (luaui/system.lua). Including the module directly fails in this
-	-- sandbox: it opens with `local base = _G`, and _G is not exposed here.
-	if not Json then
-		Echo("[StartPos Tool] Json unavailable; cannot encode.")
+	local value, err = encodeBSetValue({ startboxes = arrangement })
+	if not value then
 		return nil
 	end
-	boxExport.b64 = boxExport.b64 or require("common/luaUtilities/base64")
-	local ok, raw = pcall(Json.encode, { startboxes = arrangement })
-	if not ok or not raw then
-		return nil
-	end
-	local packed = VFS.ZlibCompress(raw)
-	if not packed then
-		return nil
-	end
-
-	return (boxExport.b64.Encode(packed):gsub("=+$", "")), #arrangement
+	return value, #arrangement
 end
 
 -- The value is only useful pasted into lobby chat, and the server truncates that, so the
@@ -1646,33 +1654,26 @@ function roleConfig.saveSuggestions(name, explicitPath)
 	return false
 end
 
+--- Encodes a suggestions data table as the bSet payload value.
+--- @param data table the output of roleConfig.buildSuggestionsData()
+--- @return string|nil value the base64 encoded value, or nil on failure
+--- @return string|nil err error message if encoding failed
 function roleConfig.saveSuggestionsBSet(name, explicitPath)
 	local data, err = roleConfig.buildSuggestionsData()
-	local b64 = VFS.Include("common/luaUtilities/base64.lua")
 	if not data then
 		Echo("[StartPos Tool] Cannot export bSet: " .. (err or "unknown error"))
 		return false
 	end
-	if not Json then
-		Echo("[StartPos Tool] Json unavailable; cannot encode bSet.")
+	local value, err2 = encodeBSetValue(data)
+	if not value then
+		Echo("[StartPos Tool] Cannot export bSet: " .. (err2 or "unknown error"))
 		return false
 	end
-	local ok, raw = pcall(Json.encode, data)
-	if not ok or not raw then
-		Echo("[StartPos Tool] Failed to encode bSet JSON.")
-		return false
-	end
-	local packed = VFS.ZlibCompress(raw)
-	if not packed then
-		Echo("[StartPos Tool] Failed to compress bSet payload.")
-		return false
-	end
-	local value = (b64.Encode(packed):gsub("=+$", ""))
 	Spring.CreateDir(roleConfig.saveDir)
-	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_bset.txt")
+	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_bSet.txt")
 	local file = io.open(filename, "w")
 	if file then
-		file:write("!bset mapmetadata_startpos " .. value)
+		file:write("!bSet mapmetadata_startpos " .. value)
 		file:close()
 		Echo("[StartPos Tool] Saved bSet command to: " .. filename)
 		return true
@@ -4028,6 +4029,12 @@ function widget:Initialize()
 		generateStartScript = generateStartScript,
 		saveStartScript = saveStartScript,
 		cyclePositionRole = roleConfig.cyclePositionRole,
+		buildSuggestionsData = roleConfig.buildSuggestionsData,
+		encodeBSetValue = encodeBSetValue,
+		addStartboxVertex = addStartboxVertex,
+		finishStartbox = finishStartbox,
+		clearAllStartboxes = clearAllStartboxes,
+		encodeStartboxes = boxExport.encode
 	}
 end
 
