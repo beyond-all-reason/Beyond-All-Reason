@@ -3262,7 +3262,7 @@ function widget:Update()
 
 	local wx, wz = getWorldMousePosition()
 	if wx then
-		if subMode == "express" then
+		if subMode == "express" or subMode == "roles" then
 			local bestIdx, bestDist = nil, DRAGGABLE_DIST_SQ
 			for i, pos in ipairs(positions) do
 				local d = distSq(wx, wz, pos.x, pos.z)
