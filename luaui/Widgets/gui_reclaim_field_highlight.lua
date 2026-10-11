@@ -4859,7 +4859,6 @@ function widget:DrawWorldPreUnit()
 		(1 + ((vsy / 1440) * 2.5)) / cameraScale
 	)
 	tracy.ZoneEnd()
-	glDepthTest(true)
 
 	if debugTiming then
 		local dt = osClock() - tVis0

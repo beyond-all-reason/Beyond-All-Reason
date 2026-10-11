@@ -41,7 +41,6 @@ local spIsUnitAllied = Spring.IsUnitAllied
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPieceMap = Spring.GetUnitPieceMap
-local spGetWind = Spring.GetWind
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
 local spGetModKeyState = Spring.GetModKeyState
@@ -470,6 +469,9 @@ local gameFrame = 0
 
 local trackedProjectiles = {} -- used for finding out which projectiles can be culled {projectileID = updateFrame, ...}
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
+local projectileSeen = {} -- projectileID to the projectile check that found it visible and readable
+local projectileCheck = 0
+local projectileViewChanged = false -- what we may read can change without a sim frame
 local lastGameFrame = -2
 
 local LuaShader = gl.LuaShader
@@ -609,16 +611,29 @@ local function initGL4()
 		createLightInstanceVBO(vboLayout, pointVBO, nil, pointIndexVBO, "Projectile Point Light VBO")
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(12, 1, 1)
-	coneLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Cone Light VBO")
-	unitConeLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Unit Cone Light VBO", 10)
-	projectileConeLightVBO =
-		createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, nil, "Projectile Cone Light VBO")
-
 	local beamVBO, numBeamVertices = InstanceVBOTable.makeBoxVBO(-1, -1, -1, 1, 1, 1)
-	beamLightVBO = createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Beam Light VBO")
-	unitBeamLightVBO = createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Unit Beam Light VBO", 10)
+	-- engines without the LuaVAO keep-partial fix rebuild a VAO on every draw unless it also has an index buffer
+	local meshIndexVBO = gl.GetVBO(GL.ELEMENT_ARRAY_BUFFER, false)
+	if meshIndexVBO then
+		local meshIndices = {}
+		for i = 1, mathMax(numConeVertices, numBeamVertices) do
+			meshIndices[i] = i - 1
+		end
+		meshIndexVBO:Define(#meshIndices)
+		meshIndexVBO:Upload(meshIndices)
+	end
+
+	coneLightVBO = createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, meshIndexVBO, "Cone Light VBO")
+	unitConeLightVBO =
+		createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, meshIndexVBO, "Unit Cone Light VBO", 10)
+	projectileConeLightVBO =
+		createLightInstanceVBO(vboLayout, coneVBO, numConeVertices, meshIndexVBO, "Projectile Cone Light VBO")
+
+	beamLightVBO = createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, meshIndexVBO, "Beam Light VBO")
+	unitBeamLightVBO =
+		createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, meshIndexVBO, "Unit Beam Light VBO", 10)
 	projectileBeamLightVBO =
-		createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, nil, "Projectile Beam Light VBO")
+		createLightInstanceVBO(vboLayout, beamVBO, numBeamVertices, meshIndexVBO, "Projectile Beam Light VBO")
 
 	projectileLightVBOMap =
 		{ point = projectilePointLightVBO, beam = projectileBeamLightVBO, cone = projectileConeLightVBO }
@@ -1732,6 +1747,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	spec = spGetSpectatingState()
+	projectileViewChanged = true
 
 	local _, _, isSpec, teamID = spGetPlayerInfo(playerID, false)
 	local r, g, b = spGetTeamColor(teamID)
@@ -1827,19 +1843,11 @@ function widget:Shutdown()
 	--collectgarbage("collect")
 end
 
-local windX = 0
-local windZ = 0
-
 function widget:GameFrame(n)
 	if addrandomlights and (n % 100 == 0) then
 		AddRandomDecayingPointLight()
 	end
 	gameFrame = n
-	local windDirX, _, windDirZ, windStrength = spGetWind()
-	--windStrength = mathMin(20, mathMax(3, windStrength))
-	--spEcho(windDirX,windDirZ,windStrength)
-	windX = windX + windDirX * 0.016
-	windZ = windZ + windDirZ * 0.016
 	local lightQueue = lightRemoveQueue[n]
 	if lightQueue then
 		for instanceID, targetVBO in pairs(lightQueue) do
@@ -2094,8 +2102,30 @@ local function ShouldDelayProjectileLight(projectileLight, projectileID, py)
 	return false
 end
 
+local listVisibleProjectiles
+do
+	-- Between sim frames only a camera move can bring projectiles without a light into view. At Update the
+	-- engine still culls with the previous frame's camera, so a move counts for two frames.
+	local spGetCameraRotation, spGetCameraFOV = Spring.GetCameraRotation, Spring.GetCameraFOV
+	local camera, movedBefore, none = {}, true, {}
+
+	function listVisibleProjectiles(check)
+		local px, py, pz = spGetCameraPosition()
+		local rx, ry, rz = spGetCameraRotation()
+		local vfov, hfov = spGetCameraFOV()
+		local c = camera
+		local moved = px ~= c[1] or py ~= c[2] or pz ~= c[3] or rx ~= c[4] or ry ~= c[5] or rz ~= c[6]
+		moved = moved or vfov ~= c[7] or hfov ~= c[8]
+		if moved then
+			c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8] = px, py, pz, rx, ry, rz, vfov, hfov
+		end
+		local list = check or moved or movedBefore
+		movedBefore = moved
+		return list and Spring.GetVisibleProjectiles() or none
+	end
+end
+
 local function updateProjectileLights(newgameframe)
-	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = spGetGameFrame()
 	local newgameframe = true
 	if gameFrame == lastGameFrame then
@@ -2103,6 +2133,14 @@ local function updateProjectileLights(newgameframe)
 	end
 	--spEcho(gameFrame, lastGameFrame, newgameframe)
 	lastGameFrame = gameFrame
+	-- A projectile's position, and whether we may read it, only change with a sim frame or a view change, so in
+	-- between only new projectiles need work
+	local check = newgameframe or projectileViewChanged
+	projectileViewChanged = false
+	if check then
+		projectileCheck = projectileCheck + 1
+	end
+	local nowprojectiles = listVisibleProjectiles(check)
 	-- turn off uploading vbo
 	-- one known issue regarding to every gameframe respawning lights is to actually get them to update existing dead light candidates, this is very very hard to do sanely
 	-- BUG: having a lifetime associated with each projectile kind of bugs out updates
@@ -2110,32 +2148,38 @@ local function updateProjectileLights(newgameframe)
 	local noUpload = true
 	for i = 1, #nowprojectiles do
 		local projectileID = nowprojectiles[i]
-		local px, py, pz = spGetProjectilePosition(projectileID)
-		if px then -- we are somehow getting projectiles with no position?
-			local lightType = "point" -- default
-			if trackedProjectiles[projectileID] then
-				if newgameframe then
-					--update proj pos
-					lightType = trackedProjectileTypes[projectileID]
-					if lightType ~= "beam" then
-						local dx, dy, dz = spGetProjectileVelocity(projectileID)
-						local instanceIndex = updateLightPosition(
-							projectileLightVBOMap[lightType],
-							projectileID,
-							px,
-							py,
-							pz,
-							nil,
-							dx,
-							dy,
-							dz
-						)
-						if debugproj then
-							spEcho("Updated", instanceIndex, projectileID, px, py, pz, dx, dy, dz)
+		if trackedProjectiles[projectileID] then
+			if check then
+				local px, py, pz = spGetProjectilePosition(projectileID)
+				if px then
+					if newgameframe then
+						--update proj pos
+						local lightType = trackedProjectileTypes[projectileID]
+						if lightType ~= "beam" then
+							local dx, dy, dz = spGetProjectileVelocity(projectileID)
+							local instanceIndex = updateLightPosition(
+								projectileLightVBOMap[lightType],
+								projectileID,
+								px,
+								py,
+								pz,
+								nil,
+								dx,
+								dy,
+								dz
+							)
+							if debugproj then
+								spEcho("Updated", instanceIndex, projectileID, px, py, pz, dx, dy, dz)
+							end
 						end
 					end
+					projectileSeen[projectileID] = projectileCheck -- handled, the sweep below skips it
 				end
-			else
+			end
+		else
+			local px, py, pz = spGetProjectilePosition(projectileID)
+			local lightType = "point" -- default
+			if px then -- we are somehow getting projectiles with no position?
 				-- add projectile
 				local weapon, piece = spGetProjectileType(projectileID)
 				local skipProjectileTracking = false
@@ -2199,36 +2243,39 @@ local function updateProjectileLights(newgameframe)
 			end
 		end
 	end
-	for projectileID, readyFrame in pairs(delayedProjectileLightFrames) do
-		if readyFrame < gameFrame - 300 then
-			delayedProjectileLightFrames[projectileID] = nil
+	if check then
+		for projectileID, readyFrame in pairs(delayedProjectileLightFrames) do
+			if readyFrame < gameFrame - 300 then
+				delayedProjectileLightFrames[projectileID] = nil
+			end
 		end
-	end
-	-- remove theones that weren't updated
-	local numremoved = 0
-	for projectileID, gf in pairs(trackedProjectiles) do
-		if gf < gameFrame then
-			-- SO says we can modify or remove elements while iterating, we just can't add
-			-- a possible hack to keep projectiles visible, is trying to keep getting their pos
-			local px, py, pz = spGetProjectilePosition(projectileID)
-			if px then -- this means that this projectile
-				local lightType = trackedProjectileTypes[projectileID]
-				if newgameframe and lightType ~= "beam" then
-					local dx, dy, dz = spGetProjectileVelocity(projectileID)
-					updateLightPosition(projectileLightVBOMap[lightType], projectileID, px, py, pz, nil, dx, dy, dz)
-				end
-			else
-				numremoved = numremoved + 1
-				trackedProjectiles[projectileID] = nil
-				local lightType = trackedProjectileTypes[projectileID]
-				--RemoveLight('point', projectileID, nil)
-				if projectileLightVBOMap[lightType].instanceIDtoIndex[projectileID] then -- god the indirections here ...
-					local success = popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload)
-					if success == nil then
-						PrintProjectileInfo(projectileID)
+		-- remove theones that weren't updated
+		local numremoved = 0
+		for projectileID, gf in pairs(trackedProjectiles) do
+			if gf < gameFrame and projectileSeen[projectileID] ~= projectileCheck then
+				-- SO says we can modify or remove elements while iterating, we just can't add
+				-- a possible hack to keep projectiles visible, is trying to keep getting their pos
+				local px, py, pz = spGetProjectilePosition(projectileID)
+				if px then -- this means that this projectile
+					local lightType = trackedProjectileTypes[projectileID]
+					if newgameframe and lightType ~= "beam" then
+						local dx, dy, dz = spGetProjectileVelocity(projectileID)
+						updateLightPosition(projectileLightVBOMap[lightType], projectileID, px, py, pz, nil, dx, dy, dz)
 					end
+				else
+					numremoved = numremoved + 1
+					trackedProjectiles[projectileID] = nil
+					projectileSeen[projectileID] = nil
+					local lightType = trackedProjectileTypes[projectileID]
+					--RemoveLight('point', projectileID, nil)
+					if projectileLightVBOMap[lightType].instanceIDtoIndex[projectileID] then -- god the indirections here ...
+						local success = popElementInstance(projectileLightVBOMap[lightType], projectileID, noUpload)
+						if success == nil then
+							PrintProjectileInfo(projectileID)
+						end
+					end
+					trackedProjectileTypes[projectileID] = nil
 				end
-				trackedProjectileTypes[projectileID] = nil
 			end
 		end
 	end
@@ -2374,6 +2421,50 @@ end
 
 ------------------------------- Drawing all the lights ---------------------------------
 
+local setLightUniforms, drawLightGroup
+do
+	-- the shader and the uniforms it last drew with: unchanged values and empty light groups cost no calls
+	local drawnShader, drawnAttached, drawnShape, drawnNight, drawnIntensity, drawnRadius, drawnShadows
+
+	function setLightUniforms(shader, night, intensity, radius, shadowSamples)
+		if shader ~= drawnShader then
+			drawnShader, drawnAttached, drawnShape = shader, nil, nil
+			drawnNight, drawnIntensity, drawnRadius, drawnShadows = nil, nil, nil, nil
+		end
+		if night ~= drawnNight then
+			drawnNight = night
+			shader:SetUniformFloat("nightFactor", night)
+		end
+		if intensity ~= drawnIntensity then
+			drawnIntensity = intensity
+			shader:SetUniformFloat("intensityMultiplier", intensity)
+		end
+		if radius ~= drawnRadius then
+			drawnRadius = radius
+			shader:SetUniformFloat("radiusMultiplier", radius)
+		end
+		if shadowSamples ~= drawnShadows then
+			drawnShadows = shadowSamples
+			shader:SetUniformInt("screenSpaceShadows", shadowSamples)
+		end
+	end
+
+	function drawLightGroup(vbo, attachedToUnit, shape)
+		if vbo.usedElements > 0 then
+			local shader = drawnShader --[[@as LuaShader]]
+			if attachedToUnit ~= drawnAttached then
+				drawnAttached = attachedToUnit
+				shader:SetUniformFloat("attachedtounitID", attachedToUnit)
+			end
+			if shape ~= drawnShape then
+				drawnShape = shape
+				shader:SetUniformFloat("pointbeamcone", shape)
+			end
+			vbo:draw()
+		end
+	end
+end
+
 -- local tf = Spring.GetTimerMicros()
 function widget:DrawWorld() -- We are drawing in world space, probably a bad idea but hey
 	--local t0 = Spring.GetTimerMicros()
@@ -2402,27 +2493,29 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		or projectileBeamLightVBO.usedElements > 0
 		or projectileConeLightVBO.usedElements > 0
 	then
-		local alt, ctrl = spGetModKeyState()
-		local devui = (spGetConfigInt("DevUI", 0) == 1)
-
-		if autoupdate and alt and ctrl and (isSinglePlayer or spec) and devui then
-			-- draw a full-screen black quad first!
-			local camX, camY, camZ = spGetCameraPosition()
-			local camDirX, camDirY, camDirZ = spGetCameraDirection()
-			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-			glCulling(GL_BACK)
-			glDepthTest(false)
-			glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
-			glColor(0, 0, 0, 1)
-			glPushMatrix()
-			glColor(0, 0, 0, 1.0)
-			glTranslate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
-			glBillboard()
-			glRect(-5000, -5000, 5000, 5000)
-			glPopMatrix()
+		local devBlend = false
+		if autoupdate and (isSinglePlayer or spec) and spGetConfigInt("DevUI", 0) == 1 then
+			local alt, ctrl = spGetModKeyState()
+			if alt and ctrl then
+				-- draw a full-screen black quad first!
+				local camX, camY, camZ = spGetCameraPosition()
+				local camDirX, camDirY, camDirZ = spGetCameraDirection()
+				glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+				glCulling(GL_BACK)
+				glDepthTest(false)
+				glDepthMask(false) --"BK OpenGL state resets", default is already false, could remove
+				glColor(0, 0, 0, 1)
+				glPushMatrix()
+				glColor(0, 0, 0, 1.0)
+				glTranslate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
+				glBillboard()
+				glRect(-5000, -5000, 5000, 5000)
+				glPopMatrix()
+			end
+			devBlend = ctrl and not alt
 		end
 
-		if autoupdate and ctrl and not alt and (isSinglePlayer or spec) and devui then
+		if devBlend then
 			glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 		else
 			glBlending(GL_SRC_ALPHA, GL_ONE)
@@ -2444,53 +2537,42 @@ function widget:DrawWorld() -- We are drawing in world space, probably a bad ide
 		glTexture(9, blueNoise2D)
 
 		deferredLightShader:Activate()
-		deferredLightShader:SetUniformFloat("nightFactor", nightFactor)
-
-		deferredLightShader:SetUniformFloat("intensityMultiplier", intensityMultiplier)
-		deferredLightShader:SetUniformFloat("radiusMultiplier", radiusMultiplier)
 
 		-- As the setting goes from 0 to 4, map to 0,8,16,32,64
 		local screenSpaceShadowSampleCount = 0
 		if screenSpaceShadows > 0 then
 			screenSpaceShadowSampleCount = mathMin(64, mathFloor(mathPow(2, screenSpaceShadows) * 4))
 		end
-		deferredLightShader:SetUniformInt("screenSpaceShadows", screenSpaceShadowSampleCount)
-		--spEcho(windX, windZ)
+		setLightUniforms(
+			deferredLightShader,
+			nightFactor,
+			intensityMultiplier,
+			radiusMultiplier,
+			screenSpaceShadowSampleCount
+		)
 
 		-- Fixed worldpos lights, cursors, projectiles, world lights
-		deferredLightShader:SetUniformFloat("attachedtounitID", 0) -- worldpos stuff
-		deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-
 		if not spIsGUIHidden() then
-			cursorPointLightVBO:draw()
+			drawLightGroup(cursorPointLightVBO, 0, 0)
 		end
 
-		pointLightVBO:draw()
-		predictivePointLightVBO:draw()
+		drawLightGroup(pointLightVBO, 0, 0)
+		drawLightGroup(predictivePointLightVBO, 0, 0)
 		if engineNano.vbo then
-			engineNano.vbo:draw()
+			drawLightGroup(engineNano.vbo, 0, 0)
 		end
-		projectilePointLightVBO:draw()
+		drawLightGroup(projectilePointLightVBO, 0, 0)
 
-		deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-		beamLightVBO:draw()
-		projectileBeamLightVBO:draw()
+		drawLightGroup(beamLightVBO, 0, 1)
+		drawLightGroup(projectileBeamLightVBO, 0, 1)
 
-		deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-		coneLightVBO:draw()
-		projectileConeLightVBO:draw()
+		drawLightGroup(coneLightVBO, 0, 2)
+		drawLightGroup(projectileConeLightVBO, 0, 2)
 
 		-- Unit Attached Lights
-		deferredLightShader:SetUniformFloat("attachedtounitID", 1)
-
-		deferredLightShader:SetUniformFloat("pointbeamcone", 0)
-		unitPointLightVBO:draw()
-
-		deferredLightShader:SetUniformFloat("pointbeamcone", 1)
-		unitBeamLightVBO:draw()
-
-		deferredLightShader:SetUniformFloat("pointbeamcone", 2)
-		unitConeLightVBO:draw()
+		drawLightGroup(unitPointLightVBO, 1, 0)
+		drawLightGroup(unitBeamLightVBO, 1, 1)
+		drawLightGroup(unitConeLightVBO, 1, 2)
 
 		deferredLightShader:Deactivate()
 

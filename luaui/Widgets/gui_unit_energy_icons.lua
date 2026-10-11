@@ -16,22 +16,33 @@ end
 local spGetGameFrame = Spring.GetGameFrame
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetSpectatingState = Spring.GetSpectatingState
-
-local weaponEnergyCostFloor = 6
-
 local spGetTeamResources = Spring.GetTeamResources
 local spGetUnitResources = Spring.GetUnitResources
 local spGetGameRulesParam = Spring.GetGameRulesParam
-local spGetUnitTeam = spGetUnitTeam
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spIsGUIHidden = Spring.IsGUIHidden
+
+local weaponEnergyCostFloor = 6
 
 local teamEnergy = {} -- table of teamid to current energy amount
 local teamUnits = {} -- table of teamid to table of stallable unitID : unitDefID
+---@type table<integer, number>
+local teamMaxNeeded = {} -- [teamID] = highest neededEnergy of the units added to teamUnits[teamID]
+---@type table<integer, integer>
+local teamIconCount = {} -- [teamID] = number of icons shown for units of that team
+---@type table<integer, integer>
+local iconTeam = {} -- [unitID] = teamID, for every unit with an icon
 local teamList = {} -- {team1, team2, team3....}
 
 local chobbyInterface
 
+-- "UnitIconDistance" is not an engine setting, so this is the default unless someone sets it
+local iconDistance = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
+local shaderIconDistance
+
+---@type table<integer, table>
 local unitConf = {} -- table of unitid to {iconsize, iconheight, neededEnergy, bool needsUpkeep, bool sensorUpkeep}
-local maxStall = 0 --Currently not used, was used to skip checking energy level when maxenergy > maxStall issue was energy symbols were not removed then
 for udid, unitDef in pairs(UnitDefs) do
 	local xsize, zsize = unitDef.xsize, unitDef.zsize
 	local scale = 6 * (xsize * xsize + zsize * zsize) ^ 0.5
@@ -64,7 +75,6 @@ for udid, unitDef in pairs(UnitDefs) do
 	if neededEnergy > 0 then
 		unitConf[udid] = { 7.5 + (scale / 2.2), unitDef.height, neededEnergy, needsUpkeep, sensorUpkeep }
 	end
-	maxStall = math.max(maxStall, neededEnergy)
 end
 
 --------------------------------------------------------------------------------
@@ -139,25 +149,47 @@ end
 --------------------------------------------------------------------------------
 
 local function UpdateTeamEnergy()
-	for i, teamID in pairs(teamList) do
-		teamEnergy[teamID] = select(1, spGetTeamResources(teamID, "energy"))
+	for _, teamID in ipairs(teamList) do
+		teamEnergy[teamID] = spGetTeamResources(teamID, "energy")
 	end
 end
 
+---@type number[]
+local instanceData = { 0, 0, 0, 0, 0, 4, 0, 0, 0.75, 0, 0, 1, 0, 1, 0, 0, 0, 0 }
+
+local function addIcon(unitID, unitDefID, teamID, gf)
+	local conf = unitConf[unitDefID]
+	instanceData[1] = conf[1]
+	instanceData[2] = conf[1]
+	instanceData[4] = conf[2] -- lengthwidthcornerheight
+	instanceData[7] = gf -- the gameFrame (for animations)
+	pushElementInstance(energyIconVBO, instanceData, unitID, false, true, unitID)
+	iconTeam[unitID] = teamID
+	teamIconCount[teamID] = (teamIconCount[teamID] or 0) + 1
+end
+
+local function removeIcon(unitID, noUpload)
+	popElementInstance(energyIconVBO, unitID, noUpload)
+	local teamID = iconTeam[unitID]
+	iconTeam[unitID] = nil
+	teamIconCount[teamID] = teamIconCount[teamID] - 1
+end
+
 function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
-	local spec, fullview = spGetSpectatingState()
-	if spec then
-		fullview = select(2, spGetSpectatingState())
-	end
+	local _, fullview = spGetSpectatingState()
 	if not fullview then
 		teamList = Spring.GetTeamList(Spring.GetLocalAllyTeamID())
 	else
 		teamList = Spring.GetTeamList()
 	end
 
+	teamEnergy = {} -- teams outside teamList must not keep their last known energy, see updateStalling
 	UpdateTeamEnergy()
 	InstanceVBOTable.clearInstanceTable(energyIconVBO) -- clear all instances
 	teamUnits = {}
+	teamMaxNeeded = {}
+	teamIconCount = {}
+	iconTeam = {}
 	for unitID, unitDefID in pairs(extVisibleUnits) do
 		widget:VisibleUnitAdded(unitID, unitDefID, spGetUnitTeam(unitID))
 	end
@@ -184,54 +216,38 @@ local function updateStalling()
 	-- the engine's sensors.requireUpkeep modrule, or a game-side rule announcing itself with this rules param
 	local sensorsRequireUpkeep = Game.sensorsRequireUpkeep == true or spGetGameRulesParam("sensorsRequireUpkeep") == 1
 	for teamID, units in pairs(teamUnits) do
-		--Spring.Echo('teamID',teamID)
-		if teamEnergy[teamID] then
-			--It is possible to add here a check if maxEnergy > maxStall and then remove all energy symbols and then skip the for, but I believe it is roughly the same speed as it is right now, so left that out
-			--Previous implementation of such a mechanism led to the energy symbols then remaining when the condition was reached(worked for all but starfall)
-			for unitID, unitDefID in pairs(units) do
-				local unitEnergy = select(4, spGetUnitResources(unitID))
-				if
-					teamEnergy[teamID]
-					and unitConf[unitDefID][3] > teamEnergy[teamID] -- more neededEnergy than we have
-					and (sensorsRequireUpkeep or not unitConf[unitDefID][5])
-					and (
-						not unitConf[unitDefID][4]
-						or ((unitConf[unitDefID][4] and (unitEnergy or 999999)) < unitConf[unitDefID][3])
-					)
-				then
-					if not Spring.GetUnitIsBeingBuilt(unitID) and energyIconVBO.instanceIDtoIndex[unitID] == nil then -- not already being drawn
-						if Spring.ValidUnitID(unitID) and not Spring.GetUnitIsDead(unitID) then
-							pushElementInstance(
-								energyIconVBO, -- push into this Instance VBO Table
-								{
-									unitConf[unitDefID][1],
-									unitConf[unitDefID][1],
-									0,
-									unitConf[unitDefID][2], -- lengthwidthcornerheight
-									0, --spGetUnitTeam(featureID), -- teamID
-									4, -- how many vertices should we make ( 2 is a quad)
-									gf,
-									0,
-									0.75,
-									0, -- the gameFrame (for animations), and any other parameters one might want to add
-									0,
-									1,
-									0,
-									1, -- These are our default UV atlas transformations, note how X axis is flipped for atlas
-									0,
-									0,
-									0,
-									0,
-								}, -- these are just padding zeros, that will get filled in
-								unitID, -- this is the key inside the VBO Table, should be unique per unit
-								false, -- update existing element
-								true, -- noupload, dont use unless you know what you want to batch push/pop
-								unitID
-							) -- last one should be featureID!
+		local energy = teamEnergy[teamID]
+		if energy then
+			if energy >= teamMaxNeeded[teamID] then
+				-- no unit of this team needs more energy than it has: only drop the icons it still shows
+				if (teamIconCount[teamID] or 0) > 0 then
+					for unitID in pairs(units) do
+						if energyIconVBO.instanceIDtoIndex[unitID] then
+							removeIcon(unitID, true)
 						end
 					end
-				elseif energyIconVBO.instanceIDtoIndex[unitID] then
-					popElementInstance(energyIconVBO, unitID, true)
+				end
+			else
+				for unitID, unitDefID in pairs(units) do
+					local conf = unitConf[unitDefID]
+					local neededEnergy = conf[3]
+					-- more neededEnergy than we have
+					local stalling = neededEnergy > energy and (sensorsRequireUpkeep or not conf[5])
+					if stalling and conf[4] then
+						local _, _, _, unitEnergy = spGetUnitResources(unitID)
+						stalling = (unitEnergy or 999999) < neededEnergy
+					end
+					if stalling then
+						if
+							energyIconVBO.instanceIDtoIndex[unitID] == nil -- not already being drawn
+							and not spGetUnitIsBeingBuilt(unitID)
+							and spGetUnitIsDead(unitID) == false -- nil for invalid units
+						then
+							addIcon(unitID, unitDefID, teamID, gf)
+						end
+					elseif energyIconVBO.instanceIDtoIndex[unitID] then
+						removeIcon(unitID, true)
+					end
 				end
 			end
 		end
@@ -242,17 +258,24 @@ local function updateStalling()
 end
 
 function widget:GameFrame(n)
-	if spGetGameFrame() % 9 == 0 then
+	if n % 9 == 0 then
 		updateStalling()
 	end
 end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam) -- remove the corresponding ground plate if it exists
-	if unitConf[unitDefID] and not Spring.GetUnitIsBeingBuilt(unitID) then
-		if teamUnits[unitTeam] == nil then
-			teamUnits[unitTeam] = {}
+	local conf = unitConf[unitDefID]
+	if conf and not spGetUnitIsBeingBuilt(unitID) then
+		local units = teamUnits[unitTeam]
+		if units == nil then
+			units = {}
+			teamUnits[unitTeam] = units
+			teamMaxNeeded[unitTeam] = 0
 		end
-		teamUnits[unitTeam][unitID] = unitDefID
+		units[unitID] = unitDefID
+		if conf[3] > teamMaxNeeded[unitTeam] then
+			teamMaxNeeded[unitTeam] = conf[3]
+		end
 	end
 end
 
@@ -261,7 +284,7 @@ function widget:VisibleUnitRemoved(unitID, unitDefID, unitTeam)
 		teamUnits[unitTeam][unitID] = nil
 	end
 	if energyIconVBO.instanceIDtoIndex[unitID] then
-		popElementInstance(energyIconVBO, unitID)
+		removeIcon(unitID)
 	end
 end
 
@@ -274,27 +297,26 @@ end
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects so icons render after deferred lighting/distortion/bloom/tonemap;
 	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
-	if chobbyInterface then
-		return
-	end
-	if Spring.IsGUIHidden() then
+	-- Stays registered while empty: re-registering moves a widget behind the others of its layer,
+	-- which would change which icon is on top when several of them overlap.
+	if energyIconVBO.usedElements == 0 or chobbyInterface or spIsGUIHidden() then
 		return
 	end
 
-	if energyIconVBO.usedElements > 0 then
-		local disticon = Spring.GetConfigInt("UnitIconDistance", 200) * 27.5 -- iconLength = unitIconDist * unitIconDist * 750.0f;
-		gl.DepthTest(true)
-		gl.DepthMask(false)
-		gl.Texture("LuaUI/Images/energy-red.png")
-		energyIconShader:Activate()
-		energyIconShader:SetUniform("iconDistance", disticon)
-		energyIconShader:SetUniform("addRadius", 0)
-		energyIconVBO.VAO:DrawArrays(GL.POINTS, energyIconVBO.usedElements)
-		energyIconShader:Deactivate()
-		gl.Texture(false)
-		gl.DepthTest(false)
-		gl.DepthMask(true)
+	gl.DepthTest(true)
+	gl.DepthMask(false)
+	gl.Texture("LuaUI/Images/energy-red.png")
+	energyIconShader:Activate()
+	-- addRadius stays at its default of 0
+	if shaderIconDistance ~= iconDistance then
+		shaderIconDistance = iconDistance
+		energyIconShader:SetUniform("iconDistance", iconDistance)
 	end
+	energyIconVBO.VAO:DrawArrays(GL.POINTS, energyIconVBO.usedElements)
+	energyIconShader:Deactivate()
+	gl.Texture(false)
+	gl.DepthTest(false)
+	gl.DepthMask(true)
 end
 
 function widget:Shutdown()
