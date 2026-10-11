@@ -1,11 +1,15 @@
 local function airReworkUnitTweaks(name, uDef)
 
 	if uDef.fronttospeed == nil then
-		uDef.fronttospeed = 0.046
+		uDef.fronttospeed = 0.048
 	end
 
 	if uDef.mygravity == nil then
 		uDef.mygravity = 0.25
+	end
+
+	if canfly == true and hoverattack ~= true then
+		uDef.maxdec = 0.12
 	end
 
 	if name == "armhawk" then
@@ -14,7 +18,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.buildtime = 12000
 		--uDef.maxaileron = 0.02
 		uDef.maxacc = 0.25
-		uDef.maxdec = 0.12
+		--uDef.maxdec = 0.12
 		uDef.speed = 320
 		uDef.maxrudder = 0.0088
 		uDef.maxbank = 0.7
@@ -50,7 +54,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.buildtime = 5000
 		uDef.speed = 270
 		uDef.maxacc = 0.14
-		uDef.maxdec = 0.12
+		--uDef.maxdec = 0.12
 		uDef.maxrudder = 0.01
 		uDef.maxbank = 0.65
 		uDef.health = 460
@@ -99,7 +103,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.maxacc = 0.09
 		uDef.hoverattack = true
 		uDef.turnrate = 500
-		uDef.maxdec = 0.17
+		uDef.maxdec = 0.16
 		uDef.turninplaceanglelimit = 360
 		uDef.airstrafe = false
 
@@ -216,7 +220,7 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.maxacc = 0.1
 		uDef.hoverattack = true
 		uDef.turnrate = 700
-		uDef.maxdec = 0.2
+		uDef.maxdec = 0.16
 		uDef.turninplaceanglelimit = 360
 
 
