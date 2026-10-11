@@ -105,7 +105,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_pincer_gauss = {
+			pincer_plasma_cannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -116,7 +116,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Light close-quarters plasma cannon",
+				name = "Standard Gauss Cannon",
 				noselfdamage = true,
 				range = 305,
 				reloadtime = 1.5,
@@ -139,7 +139,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_PINCER_GAUSS",
+				def = "pincer_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

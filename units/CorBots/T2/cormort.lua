@@ -97,7 +97,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_mort = {
+			sheldon_plasma_cannon = {
 				accuracy = 100,
 				areaofeffect = 36,
 				avoidfeature = false,
@@ -110,7 +110,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "PlasmaCannon",
+				name = "Standard Artillery Cannon",
 				noselfdamage = true,
 				range = 850,
 				reloadtime = 1.6,
@@ -129,7 +129,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_MORT",
+				def = "sheldon_plasma_cannon",
 				onlytargetcategory = "SURFACE",
 			},
 		},

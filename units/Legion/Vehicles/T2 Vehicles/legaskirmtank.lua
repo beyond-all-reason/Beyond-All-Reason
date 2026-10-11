@@ -124,7 +124,7 @@ return {
 				gravityaffected = "true",
 				predictboost = 0.5,
 				impulsefactor = 0.123,
-				name = "Heavy Rotary Plasma Cannon",
+				name = "Light Burst Blast Cannon",
 				noselfdamage = true,
 				range = 600,
 				reloadtime = 2,

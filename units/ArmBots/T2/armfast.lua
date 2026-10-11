@@ -97,7 +97,7 @@ return {
 			},
 		},
 		weapondefs = {
-			arm_fast = {
+			sprinter_plasma_cannon = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				burst = 5,
@@ -112,7 +112,7 @@ return {
 				gravityaffected = "true",
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "Rapid-firing close-quarters g2g plasma guns",
+				name = "Light Rapid-Fire Gauss Cannon",
 				noselfdamage = true,
 				range = 230,
 				reloadtime = 0.5,
@@ -137,7 +137,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "ARM_FAST",
+				def = "sprinter_plasma_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

@@ -99,7 +99,7 @@ return {
 			},
 		},
 		weapondefs = {
-			bfido = {
+			hound_blast_cannon = {
 				areaofeffect = 72,
 				avoidfeature = false,
 				craterareaofeffect = 72,
@@ -109,7 +109,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "Ballistic g2g AoE plasma cannon",
+				name = "Standard Blast Cannon",
 				noselfdamage = true,
 				range = 650,
 				reloadtime = 3.3,
@@ -128,7 +128,7 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "BFIDO",
+				def = "hound_blast_cannon",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

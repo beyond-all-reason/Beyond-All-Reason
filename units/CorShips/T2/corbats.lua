@@ -97,7 +97,7 @@ return {
 			},
 		},
 		weapondefs = {
-			cor_bats = {
+			despot_plasma_cannon = {
 				accuracy = 400,
 				areaofeffect = 140,
 				avoidfeature = false,
@@ -107,7 +107,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large",
 				gravityaffected = "true",
 				impulsefactor = 0.123,
-				name = "BattleshipCannon",
+				name = "Heavy Blast Artillery Cannons",
 				noselfdamage = true,
 				range = 950,
 				reloadtime = 4,
@@ -164,20 +164,20 @@ return {
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BATS",
+				def = "despot_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BATS",
+				def = "despot_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 				slaveto = 1,
 			},
 			[3] = {
 				badtargetcategory = "VTOL",
-				def = "COR_BATS",
+				def = "despot_plasma_cannon",
 				fastautoretargeting = true,
 				onlytargetcategory = "SURFACE",
 				slaveto = 1,
