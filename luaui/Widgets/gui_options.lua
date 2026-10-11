@@ -5312,7 +5312,6 @@ function init()
 			category = types.basic,
 			name = BAR.I18N("ui.settings.option.screenedgemove"),
 			type = "bool",
-			restart = true,
 			value = tonumber(Spring.GetConfigInt("FullscreenEdgeMove", 1) or 1) == 1,
 			description = BAR.I18N("ui.settings.option.screenedgemove_descr"),
 			onchange = function(i, value)
