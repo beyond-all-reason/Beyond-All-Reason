@@ -8610,19 +8610,13 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt3"),
 			},
-			-- Derive the index from WG now (at init), so the cached draw list shows the
-			-- right option immediately. onload re-derives the same value on panel open.
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getVisualizationMode() ~= "convexHull" and 1)
-				or (WG["squadselection"].getShowReserveSquads() and 2)
-				or 3,
+			value = 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
 			onload = function(option)
+				local api = WG["squadselection"]
 				local v = 1
-				if WG["squadselection"] ~= nil then
-					if WG["squadselection"].getVisualizationMode() ~= "convexHull" then
-						v = 1
-					elseif WG["squadselection"].getShowReserveSquads() then
+				if api ~= nil and api.getVisualizationMode ~= nil and api.getVisualizationMode() == "convexHull" then
+					if api.getShowReserveSquads ~= nil and api.getShowReserveSquads() then
 						v = 2
 					else
 						v = 3
@@ -9476,20 +9470,17 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt3"),
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt4"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getRightClickSquadCreate() and 2)
-				or (WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
-				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
-				or 1,
+			value = 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
 			onload = function(option)
+				local api = WG["squadselection"]
 				local v = 1
-				if WG["squadselection"] ~= nil then
-					if WG["squadselection"].getRightClickSquadCreate() then
+				if api ~= nil then
+					if api.getRightClickSquadCreate ~= nil and api.getRightClickSquadCreate() then
 						v = 2
-					elseif WG["squadselection"].getCtrlRightClickCreatesSquad() then
+					elseif api.getCtrlRightClickCreatesSquad ~= nil and api.getCtrlRightClickCreatesSquad() then
 						v = 3
-					elseif WG["squadselection"].getCtrlRightClickDragCreatesSquad() then
+					elseif api.getCtrlRightClickDragCreatesSquad ~= nil and api.getCtrlRightClickDragCreatesSquad() then
 						v = 4
 					end
 				end
