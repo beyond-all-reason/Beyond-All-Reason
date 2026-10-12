@@ -674,6 +674,7 @@ function widget:SelectionChanged(sel)
 end
 
 local function drawPass()
+	gl.Scissor(false)
 	passVAO:DrawArrays(GL.TRIANGLES)
 end
 
@@ -764,6 +765,7 @@ end
 -- coverage; circle passes 1 and 2: per cell the radar (and the runner-up) whose range circle reaches farthest past it
 -- among those covering its terrain, see the coverage shader.
 local function drawAlliedUnion(pass)
+	gl.Scissor(false)
 	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 	gl.Blending(GL.ONE, GL.ONE)
 	gl.BlendEquation(GL.MAX)

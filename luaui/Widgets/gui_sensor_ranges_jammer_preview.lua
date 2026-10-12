@@ -581,6 +581,7 @@ end
 
 -- Renders the union of the allied jammers' discs into alliedTex: each draws just its disc's rectangle
 local function drawAlliedUnion()
+	gl.Scissor(false)
 	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 	local cells = allied.cells ---@type table<integer, number>
 	local sx, sz = 2 / MAP_CELLS_X, 2 / MAP_CELLS_Z
@@ -604,6 +605,7 @@ end
 -- Circle mode: renders the allied jammers' circles into alliedSdfTex, each over the rectangle its distance field
 -- reaches, MAX-blended into their union
 local function drawAlliedCircles()
+	gl.Scissor(false)
 	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 	gl.Blending(GL.ONE, GL.ONE)
 	gl.BlendEquation(GL.MAX)
@@ -850,10 +852,12 @@ local function getPreview()
 end
 
 local function drawPass()
+	gl.Scissor(false)
 	passVAO:DrawArrays(GL.TRIANGLES)
 end
 
 local function drawClearedPass()
+	gl.Scissor(false)
 	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 	passVAO:DrawArrays(GL.TRIANGLES)
 end

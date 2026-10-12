@@ -153,6 +153,7 @@ local function initgl4()
 end
 
 local function DrawLOSStencil() -- about 0.025 ms
+	gl.Scissor(false)
 	if circleInstanceVBO.usedElements > 0 then
 		gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 		gl.BlendEquation(GL.MAX)
