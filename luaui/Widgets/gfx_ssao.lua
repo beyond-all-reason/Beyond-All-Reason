@@ -395,7 +395,7 @@ local texrectPaddedVAO = nil
 local texrectGLObjects = {} -- the quad VAOs and their buffers, deleted together
 
 local unitStencilTexture
-local getStencilTexture
+local builtUnitStencilApi
 local tiledPasses = false -- the SSAO and blur passes too, not only the composite (at DOWNSAMPLE 1)
 local tileVAO ---@type VAO?
 local numTiles = 0
@@ -690,12 +690,9 @@ local function InitGL()
 	end
 
 	-- ensure stencil is available
+	builtUnitStencilApi = WG.unitstencilapi
 	if shaderConfig.USE_STENCIL == 1 then
-		local stencilApi = WG.unitstencilapi
-		if stencilApi then
-			getStencilTexture = stencilApi.GetUnitStencilTexture
-			unitStencilTexture = getStencilTexture()
-		end
+		unitStencilTexture = builtUnitStencilApi and builtUnitStencilApi.GetUnitStencilTexture()
 		shaderConfig.USE_STENCIL = unitStencilTexture and 1 or 0
 	end
 
@@ -984,16 +981,16 @@ function widget:Shutdown()
 end
 
 local function DoDrawSSAO()
+	-- Unit Stencil GL4 shut down or reloaded since these shaders were built.
+	if WG.unitstencilapi ~= builtUnitStencilApi then
+		CleanGL()
+		InitGL()
+		return
+	end
+
 	local useStencil = shaderConfig.USE_STENCIL == 1
 	if useStencil then
-		local stencilApi = WG.unitstencilapi
-		unitStencilTexture = stencilApi and stencilApi.GetUnitStencilTexture()
-		-- Test whether Unit Stencil GL4 has shut down. These shaders need to read its texture.
-		if not unitStencilTexture then
-			CleanGL()
-			InitGL()
-			return
-		end
+		unitStencilTexture = builtUnitStencilApi.GetUnitStencilTexture()
 	end
 
 	glDepthTest(false)
