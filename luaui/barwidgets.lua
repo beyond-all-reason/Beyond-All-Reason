@@ -31,9 +31,26 @@ local vfsLoadFile = VFS.LoadFile
 local vfsFileExists = VFS.FileExists
 local vfsDirList = VFS.DirList
 local vfsSubDirs = VFS.SubDirs
+local vfsInclude = VFS.Include
+local vfsZip = VFS.ZIP
+local vfsRaw = VFS.RAW
+local vfsRawFirst = VFS.RAW_FIRST
 local loadstring = loadstring
+local getfenv = getfenv
 local setfenv = setfenv
 local pcall = pcall
+local ioOpen = io.open
+local stringByte = string.byte
+local stringFind = string.find
+local stringLower = string.lower
+local stringGsub = string.gsub
+local stringSub = string.sub
+local stringGmatch = string.gmatch
+local tableConcat = table.concat
+local spSendCommands = Spring.SendCommands
+local debugTraceback = debug.traceback
+local debugGetinfo = debug.getinfo
+local debugGetlocal = debug.getlocal
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -62,7 +79,8 @@ local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 local isHeadless = (Platform and Platform.isHeadless) or false
 
 local SandboxedSystem = {}
-local SANDBOXED_ERROR_MSG = "User 'unit control' widgets disallowed on this game"
+local SANDBOXED_ERROR_UNIT_CONTROL = "User 'unit control' widgets disallowed on this game"
+local SANDBOXED_ERROR_USER_WIDGETS = "User widgets cannot control other widgets or execute remote code"
 
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 if anonymousMode ~= "disabled" then
@@ -84,7 +102,7 @@ if Spring.IsReplay() or Spring.GetSpectatingState() then
 	allowunitcontrolwidgets = true
 end
 
-widgetHandler = {
+local widgetHandler = {
 	widgets = {},
 
 	configData = {},
@@ -104,7 +122,7 @@ widgetHandler = {
 
 	allowUserWidgets = true,
 
-	actionHandler = VFS.Include(LUAUI_DIRNAME .. "actions.lua", nil, VFS.ZIP),
+	actionHandler = vfsInclude(LUAUI_DIRNAME .. "actions.lua", nil, vfsZip),
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
@@ -348,22 +366,40 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function loadSourceChunk(text, chunkname, env)
+	if type(text) == "string" and stringByte(text, 1) == 27 then
+		return nil, "bytecode unsupported"
+	end
+	return loadstring(text, chunkname, env)
+end
+
+local function loadSourceFile(filename, env)
+	local file, err = ioOpen(filename, "rb")
+	if not file then
+		return nil, err
+	end
+	local text = file:read("*a")
+	file:close()
+	return loadSourceChunk(text, "@" .. filename, env)
+end
+
 function widgetHandler:LoadConfigData()
-	local chunk, err = loadfile(CONFIG_FILENAME)
-	if chunk == nil or err then
+	-- Config must be data. Loaded code cannot access any globals. It gets an empty env.
+	local chunk, err = loadSourceFile(CONFIG_FILENAME, {})
+	if chunk == nil then
 		if err then
 			Spring.Log("barwidgets.lua", LOG.INFO, err)
 		end
 		return {}
-	elseif chunk() == nil then
+	end
+	local config = chunk()
+	if config == nil then
 		Spring.Log("barwidgets.lua", LOG.ERROR, "Luaui config file was blank")
 		return {}
 	end
-	local tmp = {}
-	setfenv(chunk, tmp)
-	self.orderList = chunk().order
-	self.configData = chunk().data
-	self.allowUserWidgets = chunk().allowUserWidgets
+	self.orderList = config.order
+	self.configData = config.data
+	self.allowUserWidgets = config.allowUserWidgets
 	if not self.orderList then
 		self.orderList = {} -- safety
 	end
@@ -433,7 +469,7 @@ for name, filename in pairs(zipOnly) do
 end
 
 local function loadWidgetFiles(folder, vfsMode)
-	local fromZip = vfsMode ~= VFS.RAW
+	local fromZip = vfsMode ~= vfsRaw
 	local widgetFiles = vfsDirList(folder, "*.lua", vfsMode)
 
 	for _, subDirectory in ipairs(vfsSubDirs(folder)) do
@@ -457,25 +493,427 @@ local function loadWidgetFiles(folder, vfsMode)
 	end
 end
 
+-- Catches absolutely any attempt at running or binding the command.
+local function isPrivilegedCommand(command)
+	command = stringLower(command)
+	return stringFind(command, "enablewidget", 1, true) ~= nil
+		or stringFind(command, "disablewidget", 1, true) ~= nil
+		or stringFind(command, "togglewidget", 1, true) ~= nil
+		or stringFind(command, "execute", 1, true) ~= nil
+		or stringFind(command, "keyload", 1, true) ~= nil
+		or stringFind(command, "keyreload", 1, true) ~= nil
+		or stringFind(command, "keysave", 1, true) ~= nil
+		or stringFind(command, "keybindingfile", 1, true) ~= nil
+		or stringFind(command, "factoryreset", 1, true) ~= nil
+		or stringFind(command, "userwidgets", 1, true) ~= nil
+		or stringFind(command, "runtests", 1, true) ~= nil
+		or stringFind(command, "runscenario", 1, true) ~= nil
+		or stringFind(command, "%f[%w_]option%f[^%w_]") ~= nil -- not "options", which only opens the panel
+end
+
+local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
+local userReadableFolder = "luaui/"
+local userReadonlyFiles = {
+	[stringLower(CONFIG_FILENAME)] = "is the widget handler config",
+	["luaui/widgets/uikeys.txt"] = "is run as console commands by the game",
+	["luaui/config/keybind_profiles.json"] = "is applied as key binds by the game",
+}
+
+-- FIXME: Other OS handling would need to be added here. Preferably engine would provide a method.
+---@return string? path nil when blocked
+---@return string? reason for blocking
+local function normalizeUserPath(path)
+	if type(path) ~= "string" then
+		return nil, "is not a path"
+	end
+	if stringFind(path, "\0", 1, true) then
+		return nil, "contains a NUL character" -- engine opens the path as a C string
+	end
+	if stringFind(path, ":", 1, true) then
+		return nil, "may be a drive or a stream"
+	end
+	if stringFind(path, "~", 1, true) then
+		return nil, "may be a Windows shortname"
+	end
+	path = stringGsub(path, "\\", "/")
+	if stringSub(path, 1, 1) == "/" then
+		return nil, "is an absolute path"
+	end
+	local parts = {}
+	for part in stringGmatch(path, "[^/]+") do
+		if part == ".." then
+			return nil, "tries to climb dirs"
+		elseif part ~= "." then
+			if stringFind(part, "[%. ]$") then
+				return nil, "has a name that Windows will modify on open"
+			end
+			parts[#parts + 1] = part
+		end
+	end
+	return tableConcat(parts, "/")
+end
+
+---@return string? path nil when blocked
+---@return string? reason for blocking
+local function checkUserWritePath(path)
+	local target, reason = normalizeUserPath(path)
+	if not target then
+		return nil, reason
+	end
+	local lowerPath = stringLower(target)
+	local readonly = userReadonlyFiles[lowerPath]
+	if readonly then
+		return nil, readonly
+	end
+	for _, folder in ipairs(userWritableFolders) do
+		if stringSub(lowerPath .. "/", 1, #folder) == folder then
+			return target
+		end
+	end
+	return nil, "is outside the write paths for user widgets"
+end
+
+---@return string? path nil when blocked
+---@return string? reason for blocking
+local function checkUserReadPath(path)
+	local target, reason = normalizeUserPath(path)
+	if not target then
+		return nil, reason
+	end
+	if stringSub(stringLower(target) .. "/", 1, #userReadableFolder) == userReadableFolder then
+		return target
+	end
+	return nil, "is outside the read paths for user widgets"
+end
+
+-- User widgets can only read from LuaUI/ and archives.
+local function getUserReadMode(path, mode)
+	if type(mode) ~= "string" then
+		mode = vfsRawFirst
+	end
+	if checkUserReadPath(path) then
+		return mode
+	end
+	return (stringGsub(mode, "[rp]", ""))
+end
+
+local warnOnceMessages = {}
+local warnOnceCount = 0 -- a widget can send different command text over & over
+local function warnOnce(message)
+	if warnOnceMessages[message] or warnOnceCount > 256 then -- count is shared
+		return
+	end
+	warnOnceMessages[message] = true
+	warnOnceCount = warnOnceCount + 1
+	Spring.Log("barwidgets.lua", LOG.WARNING, message)
+end
+
+local function refuseUserPath(path, reason)
+	local message = tostring(path) .. ": " .. reason
+	Spring.Log("barwidgets.lua", LOG.ERROR, message)
+	return message
+end
+
+local function copyTable(source)
+	local copy = {}
+	for k, v in pairs(source) do
+		copy[k] = v
+	end
+	return copy
+end
+
+local function unavailableFunction() end
+
 local function CreateSandboxedSystem()
 	local function disabledOrder()
-		error(SANDBOXED_ERROR_MSG, 2)
+		error(SANDBOXED_ERROR_UNIT_CONTROL, 2)
+	end
+
+	local sandboxedIo = copyTable(io)
+	local ioOutput = io.output
+	local ioInput = io.input
+	local ioLines = io.lines
+	sandboxedIo.open = function(path, mode)
+		local checkUserPath = stringFind(mode or "r", "[wa+]") and checkUserWritePath or checkUserReadPath
+		local target, reason = checkUserPath(path)
+		if not target then
+			return nil, refuseUserPath(path, reason)
+		end
+		return ioOpen(target, mode)
+	end
+	sandboxedIo.input = function(file)
+		if type(file) ~= "string" then
+			return ioInput(file)
+		end
+		local target, reason = checkUserReadPath(file)
+		if not target then
+			refuseUserPath(file, reason)
+			return nil
+		end
+		return ioInput(target)
+	end
+	sandboxedIo.lines = function(filename)
+		if filename == nil then
+			return ioLines()
+		end
+		local target, reason = checkUserReadPath(filename)
+		if not target then
+			refuseUserPath(filename, reason)
+			return unavailableFunction
+		end
+		return ioLines(target)
+	end
+	sandboxedIo.output = function(file)
+		if type(file) ~= "string" then
+			return ioOutput(file)
+		end
+		local target, reason = checkUserWritePath(file)
+		if not target then
+			refuseUserPath(file, reason)
+			return nil
+		end
+		return ioOutput(target)
+	end
+
+	local sandboxedOs = copyTable(os)
+	local osRemove = os.remove
+	local osRename = os.rename
+	sandboxedOs.remove = function(path)
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			return nil, refuseUserPath(path, reason)
+		end
+		return osRemove(target)
+	end
+	sandboxedOs.rename = function(from, to)
+		local fromTarget, fromReason = checkUserWritePath(from)
+		if not fromTarget then
+			return nil, refuseUserPath(from, fromReason)
+		end
+		local toTarget, toReason = checkUserWritePath(to)
+		if not toTarget then
+			return nil, refuseUserPath(to, toReason)
+		end
+		return osRename(fromTarget, toTarget)
+	end
+
+	local sandboxedTable = copyTable(table)
+	local tableSave = table.save
+	sandboxedTable.save = function(t, filename, header)
+		local target, reason = checkUserWritePath(filename)
+		if not target then
+			refuseUserPath(filename, reason)
+			return
+		end
+		return tableSave(t, target, header)
+	end
+
+	local sandboxedVfs = copyTable(VFS)
+	local vfsCompressFolder = VFS.CompressFolder
+	sandboxedVfs.CompressFolder = function(folder, archiveType, archivePath, ...)
+		local target, reason = checkUserWritePath(archivePath)
+		if not target then
+			refuseUserPath(archivePath, reason)
+			return
+		end
+		return vfsCompressFolder(folder, archiveType, target, ...)
+	end
+	sandboxedVfs.LoadFile = function(path, mode)
+		return vfsLoadFile(path, getUserReadMode(path, mode))
+	end
+	sandboxedVfs.FileExists = function(path, mode)
+		return vfsFileExists(path, getUserReadMode(path, mode))
+	end
+	sandboxedVfs.DirList = function(path, pattern, mode, recursive)
+		return vfsDirList(path, pattern, getUserReadMode(path, mode), recursive)
+	end
+	sandboxedVfs.SubDirs = function(path, pattern, mode)
+		return vfsSubDirs(path, pattern, getUserReadMode(path, mode))
+	end
+	-- This is the nilling trick again. A widget that sets its VFS nil can reach this function.
+	sandboxedVfs.Include = function(path, env, mode)
+		if type(env) ~= "table" then
+			env = {} -- So replace nil env with empty env.
+		end
+		return vfsInclude(path, env, getUserReadMode(path, mode))
+	end
+
+	local sandboxedGl = copyTable(gl)
+	local glSaveImage = gl.SaveImage
+	-- Saving deletes any existing file at the path first.
+	sandboxedGl.SaveImage = function(x, y, width, height, filename, options)
+		local target, reason = checkUserWritePath(filename)
+		if not target then
+			refuseUserPath(filename, reason)
+			return false
+		end
+		return glSaveImage(x, y, width, height, target, options)
+	end
+
+	local sandboxedRmlUi -- rmlui elements have event handlers that run in the document's env, etc.
+	if RmlUi then
+		local rmlUi = RmlUi
+		local USER_CONTEXT_PREFIX = "user:"
+		local function isUserContext(context)
+			return context ~= nil and stringSub(context.name, 1, #USER_CONTEXT_PREFIX) == USER_CONTEXT_PREFIX
+		end
+		local function getUserContextName(context)
+			if type(context) == "string" then
+				return USER_CONTEXT_PREFIX .. context
+			end
+			return isUserContext(context) and context.name or nil
+		end
+		-- TODO: Needs exploration for escapes by other means
+		sandboxedRmlUi = setmetatable({
+			CreateContext = function(name)
+				return rmlUi.CreateContext(USER_CONTEXT_PREFIX .. name)
+			end,
+			GetContext = function(name)
+				return rmlUi.GetContext(USER_CONTEXT_PREFIX .. name)
+			end,
+			RemoveContext = function(context)
+				local name = getUserContextName(context)
+				if name then
+					return rmlUi.RemoveContext(name)
+				end
+			end,
+			SetDebugContext = function(context)
+				local name = getUserContextName(context)
+				if name then
+					return rmlUi.SetDebugContext(name)
+				end
+			end,
+		}, {
+			__index = function(_, key)
+				if key == "contexts" then
+					local contexts = {}
+					for _, context in ipairs(rmlUi.contexts) do
+						if isUserContext(context) then
+							contexts[#contexts + 1] = context
+						end
+					end
+					return contexts
+				end
+				return rmlUi[key]
+			end,
+		})
+	end
+
+	local scriptLuaUI = Script.LuaUI
+	local sandboxedScript = copyTable(Script)
+	sandboxedScript.LuaUI = setmetatable({}, {
+		__index = function(_, name)
+			if widgetHandler.globals[name] then
+				return scriptLuaUI[name]
+			end
+			if _G[name] ~= nil then
+				warnOnce("Script.LuaUI." .. tostring(name) .. " is not available to user widgets")
+			end
+			return unavailableFunction
+		end,
+		__call = function(_, name)
+			if name == nil then
+				return scriptLuaUI()
+			end
+			return widgetHandler.globals[name] ~= nil and scriptLuaUI(name)
+		end,
+		__metatable = true,
+	})
+
+	local spCreateDir = Spring.CreateDir
+	local function createDir(path)
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			refuseUserPath(path, reason)
+			return nil
+		end
+		return spCreateDir(target)
+	end
+	-- The engine passes unhandled actions to LuaUI, where game widgets run them with full access.
+	-- Dropped rather than raised, so widgets that still send them keep loading.
+	local function sendCommands(...)
+		local commands = type((...)) == "table" and (...) or { ... }
+		local allowed = {}
+		for _, command in ipairs(commands) do
+			if type(command) == "string" and isPrivilegedCommand(command) then
+				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
+			else
+				allowed[#allowed + 1] = command
+			end
+		end
+		if allowed[1] ~= nil then
+			spSendCommands(allowed)
+		end
+	end
+	local spSetConfigString = Spring.SetConfigString
+	local function setConfigString(key, value, useOverlay)
+		if type(key) == "string" and stringLower(key) == "keybindingfile" then
+			warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": SetConfigString " .. key)
+			return
+		end
+		return spSetConfigString(key, value, useOverlay)
+	end
+	local spExtractModArchiveFile = Spring.ExtractModArchiveFile
+	-- Would replace the archive on the next launch.
+	local function extractModArchiveFile(path)
+		local target, reason = checkUserWritePath(path)
+		if not target then
+			refuseUserPath(path, reason)
+			return false
+		end
+		return spExtractModArchiveFile(target)
+	end
+	-- Would replace the start script on the next launch.
+	local function refuseEngineRestart()
+		Spring.Log("barwidgets.lua", LOG.ERROR, "User widgets cannot start, restart or reload the engine")
+		return false
 	end
 	local SandboxedSpring = {}
 	for k, v in pairs(Spring) do
-		if string.find(k, "^GiveOrder") then
+		if string.find(k, "^GiveOrder") and not allowunitcontrolwidgets then
 			SandboxedSpring[k] = disabledOrder
+		elseif k == "SendCommands" then
+			SandboxedSpring[k] = sendCommands
+		elseif k == "CreateDir" then
+			SandboxedSpring[k] = createDir
+		elseif k == "SetConfigString" then
+			SandboxedSpring[k] = setConfigString
+		elseif k == "ExtractModArchiveFile" then
+			SandboxedSpring[k] = extractModArchiveFile
+		elseif k == "Start" or k == "Restart" or k == "Reload" then
+			SandboxedSpring[k] = refuseEngineRestart
 		else
 			SandboxedSpring[k] = v
 		end
 	end
+	local sandboxedLibraries = {
+		table = sandboxedTable,
+		io = sandboxedIo,
+		os = sandboxedOs,
+		VFS = sandboxedVfs,
+		Spring = SandboxedSpring,
+		Script = sandboxedScript,
+		gl = sandboxedGl,
+		RmlUi = sandboxedRmlUi,
+	}
 	for k, v in pairs(System) do
-		if k == "Spring" then
-			SandboxedSystem[k] = SandboxedSpring
-		else
-			SandboxedSystem[k] = v
-		end
+		SandboxedSystem[k] = sandboxedLibraries[k] or v
 	end
+
+	-- Without this, a user widget that does `getfenv = nil` can then call `getfenv(0)` again.
+	local function refuseSharedEnvFunction()
+		Spring.Log("barwidgets.lua", LOG.ERROR, "User widgets can only use their own environment functions")
+	end
+	SandboxedSystem.getfenv = refuseSharedEnvFunction
+	SandboxedSystem.setfenv = refuseSharedEnvFunction
+	SandboxedSystem.loadstring = refuseSharedEnvFunction
+	SandboxedSystem.loadfile = refuseSharedEnvFunction
+	SandboxedSystem.dofile = refuseSharedEnvFunction
+	SandboxedSystem.require = refuseSharedEnvFunction
+	SandboxedSystem.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+	SandboxedSystem.socket = nil
+	-- TODO: restore once rmlui security assessment finishes
+	SandboxedSystem.RmlUi = nil
 end
 
 function widgetHandler:Initialize()
@@ -492,29 +930,26 @@ function widgetHandler:Initialize()
 	Spring.CreateDir(LUAUI_DIRNAME .. "Config")
 
 	unsortedWidgets = {}
+	CreateSandboxedSystem()
 
 	if self.allowUserWidgets and allowuserwidgets then
-		if not allowunitcontrolwidgets then
-			CreateSandboxedSystem()
-		end
-
 		Spring.Echo("LuaUI: Allowing User Widgets")
-		loadWidgetFiles(WIDGET_DIRNAME, VFS.RAW)
-		loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.RAW)
+		loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)
+		loadWidgetFiles(RML_WIDGET_DIRNAME, vfsRaw)
 	else
 		Spring.Echo("LuaUI: Disallowing User Widgets")
 	end
 
-	loadWidgetFiles(WIDGET_DIRNAME, VFS.ZIP)
-	loadWidgetFiles(RML_WIDGET_DIRNAME, VFS.ZIP)
+	loadWidgetFiles(WIDGET_DIRNAME, vfsZip)
+	loadWidgetFiles(RML_WIDGET_DIRNAME, vfsZip)
 
-	local ModuleHandler = require("modules/module_handler", nil, VFS.ZIP)
-	ModuleHandler.Register(VFS.ZIP)
-	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(VFS.ZIP)) do
-		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	local ModuleHandler = require("modules/module_handler", nil, vfsZip)
+	ModuleHandler.Register(vfsZip)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.WidgetDirs(vfsZip)) do
+		loadWidgetFiles(moduleWidgetDir, vfsZip)
 	end
-	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(VFS.ZIP)) do
-		loadWidgetFiles(moduleWidgetDir, VFS.ZIP)
+	for _, moduleWidgetDir in ipairs(ModuleHandler.RmlWidgetDirs(vfsZip)) do
+		loadWidgetFiles(moduleWidgetDir, vfsZip)
 	end
 
 	table.sort(unsortedWidgets, function(w1, w2)
@@ -574,7 +1009,7 @@ end
 
 function widgetHandler:ReloadUserWidgetFromGameRaw(name)
 	local ki = self.knownWidgets[name]
-	if not ki or not vfsFileExists(ki.filename, VFS.ZIP) then
+	if not ki or not vfsFileExists(ki.filename, vfsZip) then
 		return
 	end
 	local w = widgetHandler:LoadWidget(ki.filename, true, ki.localsAccess, true)
@@ -639,20 +1074,89 @@ end
 local function loadFailed(basename, reason)
 	Spring.Echo("Failed to load: " .. basename .. "  (" .. reason .. ")")
 	widgetHandler:RecordError(basename, nil, reason, true)
-
-	return nil
 end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
+
+-- The handler determines what a widget is able to access, including the global env and other widget envs.
+local globalEnv = getfenv(0)
+local widgetEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+
+local function isForeignEnv(widget, env)
+	return env == globalEnv or (widgetEnvs[env] and env ~= widget)
+end
+
+local function ownEnv(widget, env)
+	return isForeignEnv(widget, env) and widget or env
+end
+
+local function callerFrame(f)
+	if f == nil then
+		return 2
+	elseif type(f) == "number" and f > 0 then
+		return f + 1
+	end
+	return f
+end
+
+local function getLocalName(level, index)
+	local name = debugGetlocal(level + 1, index)
+	return name
+end
+
 -- Prevent widgets rewriting their own fields, namely unit control flags.
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+-- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
+local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
+-- TODO: Remove once community widgets call keypress actions on WG, e.g. WG.cmd_blueprint.
+local bridgedKeyActions = { blueprint_next = true, blueprint_prev = true, buildfacing = true }
+
+local function findPrivilegedCommand(list)
+	if type(list) ~= "table" then
+		return nil
+	end
+	for _, value in pairs(list) do
+		if type(value) == "string" and isPrivilegedCommand(value) then
+			return value
+		end
+	end
+	return nil
+end
+
+-- A command button runs its action when clicked. Copied first, so the widget cannot change it once checked.
+local function moveUserCustomCommands(source, target)
+	for i = 1, #source do
+		local desc = source[i]
+		source[i] = nil
+		if type(desc) == "table" then
+			local copy = {}
+			local duplicateKey
+			for k, v in pairs(desc) do
+				if type(k) == "string" and copy[stringLower(k)] ~= nil then
+					duplicateKey = stringLower(k) -- the engine forces keys to lowercase before comparing
+				end
+				copy[k] = type(v) == "table" and copyTable(v) or v
+			end
+			local privilegedCommand = findPrivilegedCommand({ copy.action })
+				or findPrivilegedCommand(copy.actions)
+				or findPrivilegedCommand(copy.params)
+			if duplicateKey then
+				warnOnce("User widget command description has a duplicate key: " .. duplicateKey)
+			elseif privilegedCommand then
+				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. privilegedCommand)
+			else
+				target[#target + 1] = copy
+			end
+		end
+	end
+end
 
 function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	local basename = Basename(filename)
 	local text = vfsLoadFile(
 		filename,
-		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and VFS.ZIP or VFS.RAW_FIRST
+		not (self.allowUserWidgets and allowuserwidgets and not fromZip and not reload) and vfsZip or vfsRawFirst
 	)
 	if text == nil then
 		return loadFailed(basename, "missing file: " .. filename)
@@ -673,6 +1177,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		end
 
 		local widget = newWidget(widgetHandler, enableLocalsAccess, fromZip)
+		if not fromZip then
+			widget.debug.getlocal = getLocalName -- the detector needs getlocal
+		end
 		setfenv(chunk, widget)
 		local success, err = pcall(chunk)
 		if not success then
@@ -791,15 +1298,9 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 	end
 
 	-- user widgets may not access widgetHandler
-	-- fixme: remove the or true part
 	-- Granted last, so a widget refused above never holds the real handler.
-	if widget.whInfo.handler then
-		if fromZip or true then
-			widget.widgetHandler = self
-		else
-			self.knownWidgets[name].active = false
-			return loadFailed(basename, "user widgets may not access widgetHandler")
-		end
+	if widget.whInfo.handler and fromZip then
+		widget.widgetHandler = self
 	end
 
 	if not fromZip then
@@ -843,13 +1344,13 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	local canControlUnits = fromZip or allowunitcontrolwidgets
 
 	if enableLocalsAccess then
-		local systemRef = canControlUnits and System or SandboxedSystem
+		local systemRef = fromZip and System or SandboxedSystem
 		-- copy the system calls into the widget table
 		for k, v in pairs(systemRef) do
 			widget[k] = v
 		end
 	else
-		local metaRef = canControlUnits and WidgetMeta or SandboxedWidgetMeta
+		local metaRef = fromZip and WidgetMeta or SandboxedWidgetMeta
 		-- use metatable redirection
 		setmetatable(widget, metaRef)
 	end
@@ -861,9 +1362,83 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	widget.widgetHandler = {}
 	local wh = widget.widgetHandler
 	widget.canControlUnits = canControlUnits
+	local includeMode = fromZip and vfsZip or vfsRawFirst
 	widget.include = function(f)
-		return include(f, widget)
+		local mode = includeMode
+		if not fromZip then
+			mode = getUserReadMode(LUAUI_DIRNAME .. tostring(f), includeMode)
+		end
+		return include(f, widget, mode)
 	end
+
+	widgetEnvs[widget] = true
+	widget.getfenv = function(f)
+		return ownEnv(widget, getfenv(callerFrame(f)))
+	end
+	widget.setfenv = function(f, env)
+		local frame = callerFrame(f)
+		if isForeignEnv(widget, getfenv(frame)) then
+			Spring.Log("barwidgets.lua", LOG.ERROR, "setfenv: cannot change this environment")
+			return type(f) == "function" and f or nil
+		end
+		return setfenv(frame, env)
+	end
+	widget.loadstring = function(text, chunkname, env)
+		if type(env) ~= "table" then
+			env = ownEnv(widget, getfenv(2))
+		end
+		return loadSourceChunk(text, chunkname, env)
+	end
+	widget.loadfile = function(filename)
+		if not fromZip then
+			local target, reason = checkUserReadPath(filename)
+			if not target then
+				return nil, refuseUserPath(filename, reason)
+			end
+			filename = target
+		end
+		return loadSourceFile(filename, ownEnv(widget, getfenv(2)))
+	end
+	widget.dofile = function(filename)
+		if not fromZip then
+			local target, reason = checkUserReadPath(filename)
+			if not target then
+				error(refuseUserPath(filename, reason), 2)
+			end
+			filename = target
+		end
+		local chunk, err = loadSourceFile(filename, ownEnv(widget, getfenv(2)))
+		if not chunk then
+			error(err, 0)
+		end
+		return chunk()
+	end
+	if not fromZip then
+		widget.debug = { traceback = debugTraceback, getinfo = debugGetinfo }
+		local customCommands = {}
+		userCustomCommands[widget] = customCommands
+		wh.customCommands = customCommands
+		-- User widgets keep reading raw files first. Called through pcall or as a tail call, the caller's
+		-- env is pcall's or unknown, and the widget's own table stands in for it.
+		local function callerEnv()
+			local ok, env = pcall(getfenv, 4)
+			return ok and ownEnv(widget, env) or widget
+		end
+		widget.VFS = copyTable(SandboxedSystem.VFS)
+		widget.VFS.Include = function(path, env, mode)
+			if type(env) ~= "table" then
+				env = callerEnv()
+			end
+			return vfsInclude(path, env, getUserReadMode(path, mode))
+		end
+		widget.require = function(path, env, mode)
+			if type(env) ~= "table" then
+				env = callerEnv()
+			end
+			return require(path, env, getUserReadMode(type(path) == "string" and path .. ".lua", mode))
+		end
+	end
+
 	wh.RaiseWidget = function(_)
 		self:RaiseWidget(widget)
 	end
@@ -925,6 +1500,40 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.RemoveAction = function(_, cmd, types)
 		return self.actionHandler:RemoveAction(widget, cmd, types)
 	end
+	wh.actionHandler = {
+		AddAction = function(_, _, cmd, func, data, types)
+			return self.actionHandler:AddAction(widget, cmd, func, data, types)
+		end,
+		RemoveAction = function(_, _, cmd, types)
+			return self.actionHandler:RemoveAction(widget, cmd, types)
+		end,
+		AddSyncAction = function(_, _, cmd, func, data)
+			return self.actionHandler:AddSyncAction(widget, cmd, func, data)
+		end,
+		RemoveSyncAction = function(_, _, cmd)
+			return self.actionHandler:RemoveSyncAction(widget, cmd)
+		end,
+		-- TODO: Key actions must work through WG later. `bridgedKeyActions` is an allow-list for just a few.
+		KeyAction = function(_, press, key, mods, isRepeat, _, actions)
+			local bridged = {}
+			if type(actions) == "table" then
+				for _, action in ipairs(actions) do
+					local command = type(action) == "table" and action.command
+					if bridgedKeyActions[command] then
+						local extra = type(action.extra) == "string" and action.extra or ""
+						bridged[#bridged + 1] = { command = command, extra = extra }
+					else
+						warnOnce("User widgets can only fire the blueprint keypress actions: " .. tostring(command))
+					end
+				end
+			end
+			if bridged[1] == nil then
+				return false
+			end
+			-- Do not pass a scan code, so keypress handling does not wait for a release.
+			return self.actionHandler:KeyAction(press, key, mods, isRepeat, nil, bridged)
+		end,
+	}
 
 	wh.RegisterGlobal = function(_, name, value)
 		return self:RegisterGlobal(widget, name, value)
@@ -966,6 +1575,50 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 	wh.IsInterfaceHidden = function(_)
 		return self:IsInterfaceHidden()
+	end
+	if not fromZip then
+		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
+		local warned = {}
+		-- TODO: Remove friendly-sandboxing eventually. Code should error or crash on invalid accesses.
+		local function substituteUnavailable(name, value)
+			if value == nil then
+				return nil
+			end
+			if not warned[name] then
+				warned[name] = true
+				local info = rawget(widget, "whInfo")
+				Spring.Log(
+					"barwidgets.lua",
+					LOG.WARNING,
+					tostring(info and info.name or "A user widget")
+						.. ": "
+						.. name
+						.. " is not available to user widgets"
+				)
+			end
+			if type(value) == "function" then
+				return unavailableFunction
+			elseif type(value) == "table" then
+				return {}
+			end
+		end
+
+		-- Sandboxed members are handled via metatable, not collected individually:
+		setmetatable(wh, {
+			__index = function(_, key)
+				return substituteUnavailable("widgetHandler." .. tostring(key), self[key])
+			end,
+		})
+		setmetatable(wh.actionHandler, {
+			__index = function(_, key)
+				return substituteUnavailable("widgetHandler.actionHandler." .. tostring(key), self.actionHandler[key])
+			end,
+		})
+		setmetatable(widget.debug, {
+			__index = function(_, key)
+				return substituteUnavailable("debug." .. tostring(key), debug[key])
+			end,
+		})
 	end
 	tracy.ZoneEnd()
 	return widget, canControlUnits
@@ -1043,7 +1696,7 @@ local function widgetFailure(w, funcName, errorMsg)
 	local errorBase = "Error"
 	if funcName ~= "Shutdown" then
 		widgetHandler:RemoveWidget(w)
-		if not loadedWidgets[w] and errorMsg:find(SANDBOXED_ERROR_MSG) then
+		if not loadedWidgets[w] and errorMsg:find(SANDBOXED_ERROR_UNIT_CONTROL) then
 			errorBase = "Sandbox error"
 			widgetHandler:ReloadUserWidgetFromGame(name)
 		end
@@ -1598,7 +2251,7 @@ function widgetHandler:RegisterGlobal(owner, name, value)
 end
 
 function widgetHandler:DeregisterGlobal(owner, name)
-	if name == nil then
+	if name == nil or self.globals[name] ~= owner then
 		return false
 	end
 	_G[name] = nil
@@ -1643,7 +2296,7 @@ function widgetHandler:GetViewSizes()
 end
 
 function widgetHandler:ConfigLayoutHandler(data)
-	ConfigLayoutHandler(data)
+	ConfigLayoutHandler(data, self)
 end
 
 --------------------------------------------------------------------------------
@@ -2188,6 +2841,10 @@ function widgetHandler:CommandsChanged()
 	self.customCommands = {}
 	for _, w in ipairs(self.CommandsChangedList) do
 		w:CommandsChanged()
+		local customCommands = userCustomCommands[w]
+		if customCommands then
+			moveUserCustomCommands(customCommands, self.customCommands)
+		end
 	end
 	self.inCommandsChanged = false
 	tracy.ZoneEnd()
@@ -3961,4 +4618,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+widgetHandler:ConfigLayoutHandler(true)
 widgetHandler:Initialize()
+
+return widgetHandler
