@@ -43,7 +43,7 @@ local setUnitWeaponValue = GG.UnitAttributes.SetUnitWeaponAttribute
 local setUnitDefWeaponMultiplier = GG.UnitAttributes.SetUnitDefWeaponModifier
 local setUnitWeaponMultiplier = GG.UnitAttributes.SetUnitWeaponModifier
 
-local EXPLOSIONS = GG["MissionAPI"].Modules.ParameterTypes.Enums[ParameterTypes.UnitWeapon]
+local EXPLOSIONS = GG["MissionAPI"].Modules.ParameterTypes.Enums[ParameterTypes.WeaponNumber]
 
 local function setUnitDefWeaponAttribute(unitDefName, teamID, weapon, attribute, value, source)
 	local unitDef = UnitDefNames[unitDefName]
@@ -163,7 +163,7 @@ return {
 		parameters = {
 			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "value",       required = true,  type = ParameterTypes.AttributeValue },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
@@ -176,7 +176,7 @@ return {
 			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
 			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "value",       required = true,  type = ParameterTypes.AttributeValue },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
@@ -189,7 +189,7 @@ return {
 		parameters = {
 			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "multiplier",  required = true,  type = ParameterTypes.Number },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
@@ -202,7 +202,7 @@ return {
 			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
 			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "multiplier",  required = true,  type = ParameterTypes.Number },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
@@ -259,7 +259,7 @@ return {
 		parameters = {
 			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 		},
@@ -271,7 +271,7 @@ return {
 			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
 			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 			requiresOneOf = { "unitName", "unitDefName" },
@@ -283,7 +283,7 @@ return {
 		parameters = {
 			{ name = "unitDefName", required = true,  type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID }, -- default := every team
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 		},
@@ -295,7 +295,7 @@ return {
 			{ name = "unitName",    required = false, type = ParameterTypes.UnitName },
 			{ name = "unitDefName", required = false, type = ParameterTypes.UnitDefName },
 			{ name = "teamID",      required = false, type = ParameterTypes.TeamID },
-			{ name = "weapon",      required = false, type = ParameterTypes.UnitWeapon }, -- default := every weapon
+			{ name = "weapon",      required = false, type = ParameterTypes.WeaponNumber }, -- default := every weapon
 			{ name = "attribute",   required = true,  type = ParameterTypes.WeaponAttribute },
 			{ name = "source",      required = false, type = ParameterTypes.String }, -- default := "mission"
 			requiresOneOf = { "unitName", "unitDefName" },

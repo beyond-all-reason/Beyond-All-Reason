@@ -83,18 +83,9 @@ local isDifficultiesTable = GG["MissionAPI"].Modules.Difficulty.IsDifficultiesTa
 local knownDifficulties = parameterTypeEnums[Types.Difficulty]
 
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
-local unitAttributeDefinitions = attributeDefinitions.UnitAttributeDefinitions
-local weaponAttributeDefinitions = attributeDefinitions.WeaponAttributeDefinitions
 local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
-local canSetUnitAttribute = attributeRules.CanSetUnitAttribute
-local canSetUnitDefAttribute = attributeRules.CanSetUnitDefAttribute
-local canSetUnitDefModifier = attributeRules.CanSetUnitDefModifier
-local canSetUnitModifier = attributeRules.CanSetUnitModifier
-local canSetUnitWeaponAttribute = attributeRules.CanSetUnitWeaponAttribute
-local canSetUnitWeaponModifier = attributeRules.CanSetUnitWeaponModifier
-local affectsUnitDef = attributeRules.AffectsUnitDef
 
-local EXPLOSIONS = parameterTypeEnums[Types.UnitWeapon]
+local EXPLOSIONS = parameterTypeEnums[Types.WeaponNumber]
 
 local validators = {}
 
@@ -602,17 +593,13 @@ validators[Types.Command] = function(command)
 	end
 end
 
-local function attributeDefinition(attribute)
-	return unitAttributeDefinitions[attribute] or weaponAttributeDefinitions[attribute]
-end
-
 validators[Types.UnitAttribute] = function(attribute)
 	local luaTypeResult = validators[Types.String](attribute)
 	if luaTypeResult then
 		return luaTypeResult
 	end
 
-	local ok, reason = canSetUnitAttribute(attributeDefinition(attribute))
+	local ok, reason = attributeRules.CanSetUnitAttribute(attributeDefinitions.AttributeDefinitions[attribute])
 	if not ok then
 		return { { message = "Unit attribute '" .. attribute .. "' " .. reason } }
 	end
@@ -624,14 +611,14 @@ validators[Types.WeaponAttribute] = function(attribute)
 		return luaTypeResult
 	end
 
-	local ok, reason = canSetUnitWeaponAttribute(attributeDefinition(attribute))
+	local ok, reason = attributeRules.CanSetUnitWeaponAttribute(attributeDefinitions.AttributeDefinitions[attribute])
 	if not ok then
 		return { { message = "Weapon attribute '" .. attribute .. "' " .. reason } }
 	end
 end
 
-validators[Types.UnitWeapon] = function(weapon)
-	if parameterTypeEnums[Types.UnitWeapon][weapon] then
+validators[Types.WeaponNumber] = function(weapon)
+	if parameterTypeEnums[Types.WeaponNumber][weapon] then
 		return
 	elseif type(weapon) ~= "number" or weapon <= 0 or weapon % 1 ~= 0 then
 		return { { message = "Expected a weapon number, 'explode' or 'selfDestruct', got " .. tostring(weapon) } }
@@ -1813,28 +1800,33 @@ local function validateAttributeActions(actions)
 		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
 
 		-- Unknown attributes are logged already by the parameter validators.
-		local unitEntry = unitAttributeActions[actionType] and unitAttributeDefinitions[attribute]
-		local weaponEntry = weaponAttributeActions[actionType] and weaponAttributeDefinitions[attribute]
+		local unitEntry = unitAttributeActions[actionType] and attributeDefinitions.UnitAttributeDefinitions[attribute]
+		local weaponEntry = weaponAttributeActions[actionType]
+			and attributeDefinitions.WeaponAttributeDefinitions[attribute]
 		local ok, reason, parameter = true, nil, nil
 		if unitEntry then
 			if setActions[actionType] then
-				local canSet = unitScopeActions[actionType] and canSetUnitAttribute or canSetUnitDefAttribute
+				local canSet = unitScopeActions[actionType] and attributeRules.CanSetUnitAttribute
+					or attributeRules.CanSetUnitDefAttribute
 				ok, reason, parameter = canSet(unitEntry, parameters.value)
 			elseif modifierActions[actionType] then
-				local canSet = unitScopeActions[actionType] and canSetUnitModifier or canSetUnitDefModifier
+				local canSet = unitScopeActions[actionType] and attributeRules.CanSetUnitModifier
+					or attributeRules.CanSetUnitDefModifier
 				ok, reason, parameter = canSet(unitEntry, parameters.multiplier)
 			end
 		elseif weaponEntry then
 			-- A malformed weapon is logged already by its parameter validator.
 			local weapon = parameters.weapon
-			if weapon ~= nil and validators[Types.UnitWeapon](weapon) then
+			if weapon ~= nil and validators[Types.WeaponNumber](weapon) then
 				weapon = nil
 			end
 			weapon = EXPLOSIONS[weapon] or weapon
 			if setActions[actionType] then
-				ok, reason, parameter = canSetUnitWeaponAttribute(weaponEntry, parameters.value, weapon, unitDef)
+				ok, reason, parameter =
+					attributeRules.CanSetUnitWeaponAttribute(weaponEntry, parameters.value, weapon, unitDef)
 			elseif modifierActions[actionType] then
-				ok, reason, parameter = canSetUnitWeaponModifier(weaponEntry, parameters.multiplier, weapon, unitDef)
+				ok, reason, parameter =
+					attributeRules.CanSetUnitWeaponModifier(weaponEntry, parameters.multiplier, weapon, unitDef)
 			end
 		end
 		if not ok then
@@ -1853,7 +1845,7 @@ local function validateAttributeActions(actions)
 		end
 
 		if unitEntry and unitDef then
-			local affects, warning = affectsUnitDef(unitEntry, unitDef)
+			local affects, warning = attributeRules.AffectsUnitDef(unitEntry, unitDef)
 			if not affects then
 				logWarn("Unit attribute '" .. attribute .. "' " .. warning .. ". Action: " .. actionID)
 			end

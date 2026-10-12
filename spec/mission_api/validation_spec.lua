@@ -1397,7 +1397,7 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
-		describe("UnitWeapon", function()
+		describe("WeaponNumber", function()
 			it("rejects a name the engine does not use", function()
 				actionErrors({
 					type = actionTypes.SetUnitDefWeaponModifier,

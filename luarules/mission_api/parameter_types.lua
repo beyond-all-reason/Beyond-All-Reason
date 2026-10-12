@@ -51,7 +51,7 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
-	UnitWeapon = "UnitWeapon",
+	WeaponNumber = "WeaponNumber",
 
 	-- Number-or-String-or-Boolean Validators:
 	AttributeValue = "AttributeValue",
@@ -90,7 +90,7 @@ local enums = {
 		Dialogue = 5,
 	},
 
-	[types.UnitWeapon] = attributeDefinitions.EXPLOSIONS,
+	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
 }
 
 local enumSets = {
