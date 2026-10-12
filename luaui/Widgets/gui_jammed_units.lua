@@ -15,6 +15,8 @@ end
 ------------------------------------------------------------------------------------------------
 -- The engine decides what is jammed: a unit is hidden from enemy radar while its position lies in its own
 -- allyteam's jammer map (Spring.GetPositionLosState, 4th return), the same map the jammer preview draws.
+-- Buildings exactly on a cell line also count when a cell on either side is jammed: unit_jammed_fix.lua hides
+-- those from radar and marks them with the "jammed" unit rules param.
 -- Every tracked unit is checked once per POLL_FRAMES game frames, spread evenly over those frames. A change
 -- writes a time stamp into unit buffer uniform #7 (Spring.GetDrawSeconds, which is the shaders' timeInfo.y):
 -- positive = jammed since then, negative = unjammed since then, 0 = never jammed. The CUS model shaders

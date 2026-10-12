@@ -31,6 +31,8 @@ end
 --  4. Minimap pass (JammerPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
 -- A selected jammer that does not jam right now (switched off, stunned, paused, unpaid or unfinished) still shows
 -- its range, faintly.
+-- Spectators with full view see every allyteam's jammers (gaia's excepted) as allied, as gui_jammed_units.lua
+-- highlights every allyteam's units for them.
 -- Circle mode (SensorPreviewCircles) draws circles at the jammers' ranges instead, shrunk to lie (nearly) all in
 -- jammed cells: the previewed one per pixel, the allied ones from a distance field the disc pass renders.
 -- The pass vertex, smoothing and minimap shaders are shared with gui_sensor_ranges_radar_preview.lua.
@@ -132,6 +134,8 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
@@ -235,6 +239,8 @@ local alliedSdfTex ---@type string? -- circle mode: distance field of the allied
 local sets = {} ---@type table<number, table|false> -- radius in cells -> textures of the previewed disc
 local jammerUnits = {} ---@type table<UnitID, table> -- units with a radar jammer and their jammerDefs entry, filtered to the local ally team when collected
 local selectedJammerUnitID = false ---@type UnitID|false
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local fullview = false -- spectating with full view: every allyteam's jammers count as allied
 
 -- live values of the JammerPreview* configint settings
 local settings = {
@@ -495,12 +501,17 @@ function widget:Update()
 end
 
 local function trackUnit(unitID, unitDefID)
-	jammerUnits[unitID] = jammerDefs[unitDefID]
+	local def = jammerDefs[unitDefID]
+	-- gaia's units are not highlighted as jammed either
+	jammerUnits[unitID] = (def and spGetUnitTeam(unitID) ~= gaiaTeamID) and def or nil
 end
 
 local function scanAlliedUnits()
+	local _, fullView = spGetSpectatingState()
+	fullview = fullView
 	jammerUnits = {}
-	for _, teamID in ipairs(spGetTeamList(spGetMyAllyTeamID()) or {}) do
+	local teams = fullview and spGetTeamList() or spGetTeamList(spGetMyAllyTeamID())
+	for _, teamID in ipairs(teams or {}) do
 		for _, unitID in ipairs(spGetTeamUnits(teamID) or {}) do
 			trackUnit(unitID, spGetUnitDefID(unitID))
 		end
@@ -539,7 +550,8 @@ local function collectAlliedJammers(out, circles)
 	local myAllyTeamID = spGetMyAllyTeamID()
 	local n, mobileCount = 0, 0
 	for unitID, def in pairs(jammerUnits) do
-		if spGetUnitAllyTeam(unitID) ~= myAllyTeamID then -- gone, or given away
+		local allyTeamID = spGetUnitAllyTeam(unitID)
+		if allyTeamID == nil or (allyTeamID ~= myAllyTeamID and not fullview) then -- gone, or given away
 			jammerUnits[unitID] = nil
 		elseif isJamming(unitID) then
 			local range = spGetUnitSensorRadius(unitID, "radarJammer") or 0

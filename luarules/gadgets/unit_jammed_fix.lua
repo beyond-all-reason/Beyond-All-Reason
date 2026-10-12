@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Snap Jam",
-		desc = "Jam buildings at the exact edge of static jammers always. And welcome to the slam",
+		desc = "Jam buildings at the exact edge of jammers always. And welcome to the slam",
 		author = "efrec",
 		date = "2026-10",
 		license = "GNU GPL, v2 or later",
@@ -19,6 +19,7 @@ end
 -- A building with an even footprint size placed with snapping fits exactly on a cell's edge.
 -- This collects those buildings and applies and removes literal edge-case jamming onto them.
 -- Jammer and radar emitters aren't perfect circles, either. We have to build discs for them.
+-- Mobile jammers move their disc each time they enter a new cell, as the engine's disc does.
 
 local BUILDINGS_PER_FRAME = 32 -- budgeted updates
 local BACKSTOP_INTERVAL = 5 * Game.gameSpeed -- for capturing jammer changes that have no callin
@@ -51,19 +52,22 @@ local setUnitAttribute ---@type function
 
 local allyTeamList = Spring.GetAllyTeamList()
 local ruleAccess = { allied = true }
+local ATTRIBUTE_SOURCE = "jammer_edge"
 
 -- Setup -----------------------------------------------------------------------
 
-local staticDefs = {} ---@type table<UnitDefID, boolean?> `true` for jammers
+local buildingDefs = {} ---@type table<UnitDefID, true?> on the build grid, so can sit on a cell line
+local jammerDefs = {} ---@type table<UnitDefID, boolean?> `true` for mobile jammers
 local watchedFrames = {} ---@type table<UnitDefID, number?> jammers only
 for unitDefID, unitDef in ipairs(UnitDefs) do
 	if unitDef.isImmobile then
-		local isJammer = unitDef.radarDistanceJam > 0
-		staticDefs[unitDefID] = isJammer
-		if isJammer then
-			local deactivateFrames = (tonumber(unitDef.customParams.deactivate_time) or 8) * Game.gameSpeed
-			watchedFrames[unitDefID] = math.max(WATCHED_DURATION, deactivateFrames + Game.gameSpeed)
-		end
+		buildingDefs[unitDefID] = true
+	end
+	-- Jammers under one cell in radius, like claws and maws, have no coverage at all.
+	if unitDef.radarDistanceJam >= radarCellSize then
+		jammerDefs[unitDefID] = not unitDef.isImmobile
+		local deactivateFrames = (tonumber(unitDef.customParams.deactivate_time) or 8) * Game.gameSpeed
+		watchedFrames[unitDefID] = math.max(WATCHED_DURATION, deactivateFrames + Game.gameSpeed)
 	end
 end
 
@@ -71,6 +75,7 @@ local jammerCells = {} ---@type table<AllyTeamID, table<UnitID, number?>> when p
 local jammerAllyTeams = {} ---@type table<UnitID, AllyTeamID?>
 local jammerCellX = {} ---@type table<UnitID, number> radar cell of the jammer's mid position
 local jammerCellZ = {} ---@type table<UnitID, number>
+local mobileJammers = {} ---@type table<UnitID, true?>
 local jamming = {} ---@type table<UnitID, true?> jammers that are on
 local edgeBands = {} ---@type table<UnitID, table<UnitID, true?>>
 local bandCounts = {} ---@type table<UnitID, number?> bands a building sits in
@@ -137,6 +142,9 @@ local function getUnitCell(unitID)
 end
 
 local function isEdgeJammed(jammerID, cellCount, unitCellX, unitCellZ, onLineX, onLineZ)
+	if cellCount <= 0 then
+		return false -- a zero-cell jammer jams nothing, not even its own cell
+	end
 	local cellX = unitCellX - jammerCellX[jammerID]
 	local cellZ = unitCellZ - jammerCellZ[jammerID]
 	if isJammerCell(cellCount, math_abs(cellX), math_abs(cellZ)) then
@@ -178,7 +186,7 @@ local function updateEdgeJammed(unitID)
 	end
 	if edgeJammed[unitID] ~= jammed then
 		edgeJammed[unitID] = jammed
-		setUnitAttribute(unitID, "stealth", jammed, "jammer_edge") -- using stealth-as-jammed
+		setUnitAttribute(unitID, "stealth", jammed, ATTRIBUTE_SOURCE) -- using stealth-as-jammed
 		spSetUnitRulesParam(unitID, "jammed", jammed and 1 or 0, ruleAccess)
 	end
 end
@@ -188,7 +196,7 @@ local function drainQueue()
 	for index = checkQueueHead, last do
 		local unitID = checkQueue[index] ---@as UnitID
 		checkQueue[index] = nil
-		if edgeJammed[unitID] ~= nil or staticDefs[spGetUnitDefID(unitID) or 0] ~= nil then
+		if edgeJammed[unitID] ~= nil or buildingDefs[spGetUnitDefID(unitID) or 0] then
 			updateEdgeJammed(unitID)
 		end
 	end
@@ -225,7 +233,7 @@ local function buildEdgeBand(jammerID)
 	local z = (jammerCellZ[jammerID] + 0.5) * radarCellSize
 	local cover = (cells + 2) * radarCellSize -- extra cells for the mipping and the line rule
 	for _, unitID in ipairs(spGetUnitsInRectangle(x - cover, z - cover, x + cover, z + cover)) do
-		if staticDefs[spGetUnitDefID(unitID)] ~= nil and spGetUnitAllyTeam(unitID) == allyTeamID then
+		if buildingDefs[spGetUnitDefID(unitID)] and spGetUnitAllyTeam(unitID) == allyTeamID then
 			local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 			if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
 				addToEdgeBand(jammerID, unitID)
@@ -235,13 +243,19 @@ local function buildEdgeBand(jammerID)
 	end
 end
 
-local function addJammer(jammerID)
-	local allyTeamID = spGetUnitAllyTeam(jammerID) --[[@as AllyTeamID]]
+---@return number cellX, number cellZ
+local function getJammerCell(jammerID)
 	local _, _, _, x, _, z = spGetUnitPosition(jammerID, true)
 	---@cast x number
 	---@cast z number
+	return math_floor(x / radarCellSize), math_floor(z / radarCellSize)
+end
+
+local function addJammer(jammerID, isMobile)
+	local allyTeamID = spGetUnitAllyTeam(jammerID) --[[@as AllyTeamID]]
 	jammerAllyTeams[jammerID] = allyTeamID
-	jammerCellX[jammerID], jammerCellZ[jammerID] = math_floor(x / radarCellSize), math_floor(z / radarCellSize)
+	jammerCellX[jammerID], jammerCellZ[jammerID] = getJammerCell(jammerID)
+	mobileJammers[jammerID] = isMobile or nil
 	jammerTurns[jammerID % BACKSTOP_INTERVAL][jammerID] = true
 	jammerCells[allyTeamID][jammerID] = getJammerCells(jammerID)
 	jamming[jammerID] = isJamming(jammerID) or nil
@@ -254,9 +268,20 @@ local function removeJammer(jammerID)
 	clearEdgeBand(jammerID)
 	jammerCells[jammerAllyTeams[jammerID]][jammerID] = nil
 	jammerAllyTeams[jammerID], jammerCellX[jammerID], jammerCellZ[jammerID] = nil, nil, nil
+	mobileJammers[jammerID] = nil
 	jammerTurns[jammerID % BACKSTOP_INTERVAL][jammerID] = nil
 	watchedUntil[jammerID] = nil
 	edgeBands[jammerID] = nil
+end
+
+---A mobile jammer moves its band along only while it is on; it catches up when switched on.
+local function moveJammer(jammerID)
+	local cellX, cellZ = getJammerCell(jammerID)
+	if cellX ~= jammerCellX[jammerID] or cellZ ~= jammerCellZ[jammerID] then
+		clearEdgeBand(jammerID)
+		jammerCellX[jammerID], jammerCellZ[jammerID] = cellX, cellZ
+		buildEdgeBand(jammerID)
+	end
 end
 
 local function updateJammerState(jammerID)
@@ -265,6 +290,9 @@ local function updateJammerState(jammerID)
 		return false
 	end
 	jamming[jammerID] = isOn
+	if isOn and mobileJammers[jammerID] then
+		moveJammer(jammerID)
+	end
 	for unitID in pairs(edgeBands[jammerID]) do
 		queueBuildingCheck(unitID)
 	end
@@ -307,6 +335,7 @@ local function addBuilding(unitID, allyTeamID)
 	updateEdgeJammed(unitID)
 end
 
+---Keeps `edgeJammed`, so a building that is re-added after a transfer can be cleared.
 local function removeBuilding(unitID, allyTeamID)
 	if bandCounts[unitID] then
 		for jammerID in pairs(jammerCells[allyTeamID]) do
@@ -315,23 +344,36 @@ local function removeBuilding(unitID, allyTeamID)
 			end
 		end
 	end
-	edgeJammed[unitID] = nil
 	queuedAt[unitID] = nil
 end
 
-local function addStaticUnit(unitID, unitDefID)
-	local isJammer = staticDefs[unitDefID]
-	if isJammer ~= nil then
-		if isJammer then
-			addJammer(unitID)
-		end
+local function addUnit(unitID, unitDefID)
+	local isMobileJammer = jammerDefs[unitDefID]
+	if isMobileJammer ~= nil then
+		addJammer(unitID, isMobileJammer)
+	end
+	if buildingDefs[unitDefID] then
 		addBuilding(unitID, spGetUnitAllyTeam(unitID))
+	end
+end
+
+local function removeUnit(unitID, unitDefID, teamID)
+	if jammerDefs[unitDefID] ~= nil then
+		removeJammer(unitID)
+	end
+	if buildingDefs[unitDefID] then
+		removeBuilding(unitID, spGetTeamAllyTeamID(teamID))
 	end
 end
 
 -- Engine callins --------------------------------------------------------------
 
 function gadget:GameFrame(frame)
+	for jammerID in pairs(mobileJammers) do
+		if jamming[jammerID] then
+			moveJammer(jammerID)
+		end
+	end
 	drainQueue()
 	updateWatchedJammers(frame)
 	for jammerID in pairs(jammerTurns[frame % BACKSTOP_INTERVAL]) do
@@ -341,7 +383,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-	addStaticUnit(unitID, unitDefID)
+	addUnit(unitID, unitDefID)
 end
 
 function gadget:UnitFinished(unitID, unitDefID)
@@ -349,12 +391,8 @@ function gadget:UnitFinished(unitID, unitDefID)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if staticDefs[unitDefID] ~= nil then
-		if staticDefs[unitDefID] then
-			removeJammer(unitID)
-		end
-		removeBuilding(unitID, spGetTeamAllyTeamID(unitTeam))
-	end
+	removeUnit(unitID, unitDefID, unitTeam)
+	edgeJammed[unitID] = nil
 end
 
 function gadget:UnitDamaged(unitID, unitDefID)
@@ -373,13 +411,8 @@ function gadget:UnitCommand(unitID, unitDefID)
 end
 
 function gadget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if staticDefs[unitDefID] ~= nil then
-		if staticDefs[unitDefID] then
-			removeJammer(unitID)
-		end
-		removeBuilding(unitID, spGetTeamAllyTeamID(oldTeam))
-		addStaticUnit(unitID, unitDefID)
-	end
+	removeUnit(unitID, unitDefID, oldTeam)
+	addUnit(unitID, unitDefID)
 end
 
 function gadget:Initialize()
@@ -388,6 +421,16 @@ function gadget:Initialize()
 	gadgetHandler:RegisterUnitCommand(CMD_ONOFF)
 
 	for _, unitID in ipairs(spGetAllUnits()) do
-		addStaticUnit(unitID, spGetUnitDefID(unitID))
+		addUnit(unitID, spGetUnitDefID(unitID))
+	end
+end
+
+function gadget:Shutdown()
+	local hasAttributes = GG.UnitAttributes ~= nil -- unless it has shut down first
+	for unitID in pairs(edgeJammed) do
+		if hasAttributes then
+			setUnitAttribute(unitID, "stealth", nil, ATTRIBUTE_SOURCE)
+		end
+		spSetUnitRulesParam(unitID, "jammed", 0, ruleAccess)
 	end
 end
