@@ -128,30 +128,70 @@ describe("role_cycle", function()
 	end)
 end)
 
-	describe("startbox_encode", function()
-		it("encodes a simple box through the shared pipeline", function()
-			local env = setmetatable({
-				widget = {}, WG = {},
-				GL = { LINE_LOOP = 1, LINE_STRIP = 2, LINES = 3, TRIANGLE_FAN = 4, TRIANGLE_STRIP = 5, TRIANGLES = 6, SRC_ALPHA = 7, ONE = 8, ONE_MINUS_SRC_ALPHA = 9 },
-				gl = { Color = function() end, LineWidth = function() end, DrawGroundCircle = function() end, PushMatrix = function() end, PopMatrix = function() end, Translate = function() end, Billboard = function() end, Text = function() end, BeginEnd = function() end, Vertex = function() end, Texture = function() end, TexRect = function() end, Blending = function() end, DepthTest = function() end, CreateList = function() end, CallList = function() end, DeleteList = function() end, GetTextWidth = function() end },
-				Game = setmetatable({ mapSizeX = 10000, mapSizeZ = 10000 }, { __index = _G.Game }),
-				Spring = setmetatable({ GetModOptions = function() return { startpos_max_slope = 1 } end, GetGroundNormal = function() return 0, 1, 0, 0 end, GetGroundHeight = function() return 0 end }, { __index = _G.Spring }),
-			}, { __index = _G })
-			VFS.Include("luaui/Widgets/cmd_startpos_tool.lua", env)
-			env.widget:Initialize()
-			local tool = env.WG.StartPosTool
-			tool.clearAllStartboxes()
-			tool.addStartboxVertex(100, 100)
-			tool.addStartboxVertex(300, 100)
-			tool.addStartboxVertex(300, 300)
-			tool.finishStartbox()
-			local value, count = tool.encodeStartboxes()
-			assert.is_not_nil(value)
-			assert.equals(1, count)
-		end)
+describe("startbox_encode", function()
+	it("encodes a simple box through the shared pipeline", function()
+		local env = setmetatable({
+			widget = {},
+			WG = {},
+			GL = {
+				LINE_LOOP = 1,
+				LINE_STRIP = 2,
+				LINES = 3,
+				TRIANGLE_FAN = 4,
+				TRIANGLE_STRIP = 5,
+				TRIANGLES = 6,
+				SRC_ALPHA = 7,
+				ONE = 8,
+				ONE_MINUS_SRC_ALPHA = 9,
+			},
+			gl = {
+				Color = function() end,
+				LineWidth = function() end,
+				DrawGroundCircle = function() end,
+				PushMatrix = function() end,
+				PopMatrix = function() end,
+				Translate = function() end,
+				Billboard = function() end,
+				Text = function() end,
+				BeginEnd = function() end,
+				Vertex = function() end,
+				Texture = function() end,
+				TexRect = function() end,
+				Blending = function() end,
+				DepthTest = function() end,
+				CreateList = function() end,
+				CallList = function() end,
+				DeleteList = function() end,
+				GetTextWidth = function() end,
+			},
+			Game = setmetatable({ mapSizeX = 10000, mapSizeZ = 10000 }, { __index = _G.Game }),
+			Spring = setmetatable({
+				GetModOptions = function()
+					return { startpos_max_slope = 1 }
+				end,
+				GetGroundNormal = function()
+					return 0, 1, 0, 0
+				end,
+				GetGroundHeight = function()
+					return 0
+				end,
+			}, { __index = _G.Spring }),
+		}, { __index = _G })
+		VFS.Include("luaui/Widgets/cmd_startpos_tool.lua", env)
+		env.widget:Initialize()
+		local tool = env.WG.StartPosTool
+		tool.clearAllStartboxes()
+		tool.addStartboxVertex(100, 100)
+		tool.addStartboxVertex(300, 100)
+		tool.addStartboxVertex(300, 300)
+		tool.finishStartbox()
+		local value, count = tool.encodeStartboxes()
+		assert.is_not_nil(value)
+		assert.equals(1, count)
 	end)
+end)
 
-	describe("startpos_suggestions_roundtrip", function()
+describe("startpos_suggestions_roundtrip", function()
 	-- Reuse the role-cycle helper to set roles, then verify the exported suggestions
 	-- data survives the full round-trip through the suggestions widget's loader.
 	local presets = { "front", "air", "tech" }

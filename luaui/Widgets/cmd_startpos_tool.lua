@@ -90,7 +90,7 @@ local VERTEX_PICK_DIST_SQ = 60 * 60 -- world distance^2 to pick a startbox verte
 
 -- Role-labelling config and state for start-position-suggestions export.
 local roleConfig = {
-	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech"  },
+	options = { "front", "air", "tech", "sea", "front/air", "front/tech", "front/sea", "air/tech" },
 	saveDir = "Terraform Brush/StartPositions/Suggestions/",
 }
 
@@ -486,7 +486,7 @@ local function addPosition(x, z, allyTeam, teamSlot)
 		y = y,
 		allyTeam = allyTeam,
 		teamSlot = teamSlot,
-		playerIdx = playerIdx
+		playerIdx = playerIdx,
 	}
 	return true
 end
@@ -1094,7 +1094,6 @@ local function encodeBSetValue(data)
 	local b64 = VFS.Include("common/luaUtilities/base64.lua")
 	return b64.Encode(packed):gsub("=+$", "")
 end
-
 
 function boxExport.encode()
 	local arrangement = boxExport.arrangement()
@@ -3938,7 +3937,8 @@ function widget:DrawScreenEffects()
 			local badgeY = sy + sr + LABEL_PAD
 			local fontSize = 32 -- 2026 chunky
 			local hovered = (hoverPosIdx == i) or (dragIdx == i)
-			local badgeH = drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered, pos.role)
+			local badgeH =
+				drawScreenBadge(sx, badgeY, color, pos.allyTeam, getTeamName(pIdx), pIdx, fontSize, hovered, pos.role)
 		end
 	end
 
@@ -4077,7 +4077,7 @@ function widget:Initialize()
 		addStartboxVertex = addStartboxVertex,
 		finishStartbox = finishStartbox,
 		clearAllStartboxes = clearAllStartboxes,
-		encodeStartboxes = boxExport.encode
+		encodeStartboxes = boxExport.encode,
 	}
 end
 
