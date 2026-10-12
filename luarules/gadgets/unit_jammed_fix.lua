@@ -69,8 +69,8 @@ end
 
 local jammerCells = {} ---@type table<AllyTeamID, table<UnitID, number?>> when powered
 local jammerAllyTeams = {} ---@type table<UnitID, AllyTeamID?>
-local jammerX = {} ---@type table<UnitID, number>
-local jammerZ = {} ---@type table<UnitID, number>
+local jammerCellX = {} ---@type table<UnitID, number> radar cell of the jammer's mid position
+local jammerCellZ = {} ---@type table<UnitID, number>
 local jamming = {} ---@type table<UnitID, true?> jammers that are on
 local edgeBands = {} ---@type table<UnitID, table<UnitID, true?>>
 local bandCounts = {} ---@type table<UnitID, number?> bands a building sits in
@@ -128,15 +128,21 @@ local function isJammerCell(cellCount, cellX, cellZ)
 	return cellZ <= cellCount and cellX <= (discWidths[cellCount] or getDiscWidths(cellCount))[cellZ]
 end
 
-local function isEdgeJammed(jammerID, cellCount, x, z)
-	local cellX = math_floor(x / radarCellSize) - math_floor(jammerX[jammerID] / radarCellSize)
-	local cellZ = math_floor(z / radarCellSize) - math_floor(jammerZ[jammerID] / radarCellSize)
+---@return number cellX, number cellZ, boolean onLineX, boolean onLineZ
+local function getUnitCell(unitID)
+	local x, _, z = spGetUnitPosition(unitID)
+	---@cast x number
+	---@cast z number
+	return math_floor(x / radarCellSize), math_floor(z / radarCellSize), x % radarCellSize == 0, z % radarCellSize == 0
+end
+
+local function isEdgeJammed(jammerID, cellCount, unitCellX, unitCellZ, onLineX, onLineZ)
+	local cellX = unitCellX - jammerCellX[jammerID]
+	local cellZ = unitCellZ - jammerCellZ[jammerID]
 	if isJammerCell(cellCount, math_abs(cellX), math_abs(cellZ)) then
 		return false -- jammed by the engine already
 	end
 	-- The rule: "A building placed exactly on a cell line belongs to the cells on both sides of it."
-	local onLineX = x % radarCellSize == 0
-	local onLineZ = z % radarCellSize == 0
 	return (onLineX and isJammerCell(cellCount, math_abs(cellX - 1), math_abs(cellZ)))
 		or (onLineZ and isJammerCell(cellCount, math_abs(cellX), math_abs(cellZ - 1)))
 		or (onLineX and onLineZ and isJammerCell(cellCount, math_abs(cellX - 1), math_abs(cellZ - 1)))
@@ -162,12 +168,10 @@ local function queueBuildingCheck(unitID)
 end
 
 local function updateEdgeJammed(unitID)
-	local x, _, z = spGetUnitPosition(unitID)
-	---@cast x number
-	---@cast z number
+	local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 	local jammed ---@type true?
 	for jammerID, cells in pairs(jammerCells[spGetUnitAllyTeam(unitID)]) do
-		if jamming[jammerID] and isEdgeJammed(jammerID, cells, x, z) then
+		if jamming[jammerID] and isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
 			jammed = true
 			break
 		end
@@ -217,14 +221,13 @@ end
 local function buildEdgeBand(jammerID)
 	local allyTeamID = jammerAllyTeams[jammerID]
 	local cells = jammerCells[allyTeamID][jammerID] ---@as number
-	local x, z = jammerX[jammerID], jammerZ[jammerID]
-	local cover = (cells + 1) * radarCellSize -- extra cell for the mipping
+	local x = (jammerCellX[jammerID] + 0.5) * radarCellSize
+	local z = (jammerCellZ[jammerID] + 0.5) * radarCellSize
+	local cover = (cells + 2) * radarCellSize -- extra cells for the mipping and the line rule
 	for _, unitID in ipairs(spGetUnitsInRectangle(x - cover, z - cover, x + cover, z + cover)) do
 		if staticDefs[spGetUnitDefID(unitID)] ~= nil and spGetUnitAllyTeam(unitID) == allyTeamID then
-			local unitX, _, unitZ = spGetUnitPosition(unitID)
-			---@cast unitX number
-			---@cast unitZ number
-			if isEdgeJammed(jammerID, cells, unitX, unitZ) then
+			local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
+			if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
 				addToEdgeBand(jammerID, unitID)
 				queueBuildingCheck(unitID)
 			end
@@ -235,8 +238,10 @@ end
 local function addJammer(jammerID)
 	local allyTeamID = spGetUnitAllyTeam(jammerID) --[[@as AllyTeamID]]
 	local _, _, _, x, _, z = spGetUnitPosition(jammerID, true)
+	---@cast x number
+	---@cast z number
 	jammerAllyTeams[jammerID] = allyTeamID
-	jammerX[jammerID], jammerZ[jammerID] = x, z
+	jammerCellX[jammerID], jammerCellZ[jammerID] = math_floor(x / radarCellSize), math_floor(z / radarCellSize)
 	jammerTurns[jammerID % BACKSTOP_INTERVAL][jammerID] = true
 	jammerCells[allyTeamID][jammerID] = getJammerCells(jammerID)
 	jamming[jammerID] = isJamming(jammerID) or nil
@@ -248,7 +253,7 @@ local function removeJammer(jammerID)
 	jamming[jammerID] = nil
 	clearEdgeBand(jammerID)
 	jammerCells[jammerAllyTeams[jammerID]][jammerID] = nil
-	jammerAllyTeams[jammerID], jammerX[jammerID], jammerZ[jammerID] = nil, nil, nil
+	jammerAllyTeams[jammerID], jammerCellX[jammerID], jammerCellZ[jammerID] = nil, nil, nil
 	jammerTurns[jammerID % BACKSTOP_INTERVAL][jammerID] = nil
 	watchedUntil[jammerID] = nil
 	edgeBands[jammerID] = nil
@@ -293,11 +298,9 @@ local function updateWatchedJammers(frame)
 end
 
 local function addBuilding(unitID, allyTeamID)
-	local x, _, z = spGetUnitPosition(unitID)
-	---@cast x number
-	---@cast z number
+	local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 	for jammerID, cells in pairs(jammerCells[allyTeamID]) do
-		if isEdgeJammed(jammerID, cells, x, z) then
+		if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
 			addToEdgeBand(jammerID, unitID)
 		end
 	end
