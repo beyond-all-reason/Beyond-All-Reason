@@ -39,6 +39,7 @@ local RULESPARAM_PAUSED = "gamePaused"
 local RULESPARAM_PUBLISH = "gamePausePublished"
 local SYNCACTION = "GamePause"
 local MESSAGE_UNPAUSE = SYNCACTION .. "Unpause:"
+local MESSAGE_WIDGETS_UNPAUSED = SYNCACTION .. "WidgetsUnpaused"
 
 local getPauseControllerID = VFS.Include("luarules/gadgets/include/pause_controller.lua").GetPauseControllerID
 
@@ -85,6 +86,12 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	function gadget:RecvLuaMsg(message, playerID)
+		if message == MESSAGE_WIDGETS_UNPAUSED then
+			if next(pauseSources) ~= nil then
+				SendToUnsynced(MESSAGE_WIDGETS_UNPAUSED)
+			end
+			return true
+		end
 		if message:sub(1, #MESSAGE_UNPAUSE) ~= MESSAGE_UNPAUSE then
 			return
 		end
@@ -115,6 +122,7 @@ else
 
 	local gadgetPaused = false
 	local gadgetResumePending = false -- unpaused by gadgets, but the game has not resumed yet
+	local playerPaused = false -- paused before the gadgets were and not unpaused since
 	local serverFrame -- the live game frame, while this client replays a backlog
 	local catchingUp = false
 
@@ -133,13 +141,26 @@ else
 	end
 
 	local function onGamePause(_, paused)
+		if paused then
+			playerPaused = select(3, spGetGameSpeed()) and not gadgetResumePending
+		end
 		gadgetPaused = paused
-		gadgetResumePending = not paused
-		setGamePaused(paused)
+		gadgetResumePending = not paused and not playerPaused
+		if paused or gadgetResumePending then
+			setGamePaused(paused)
+		end
+	end
+
+	-- Widgets leave the game paused for the gadgets to resume.
+	local function onWidgetsUnpaused()
+		playerPaused = false
 	end
 
 	function gadget:GamePaused(playerID, isPaused)
 		gadgetResumePending = false
+		if not isPaused then
+			playerPaused = false
+		end
 		if gadgetPaused and not isPaused then
 			setGamePaused(true)
 		end
@@ -178,9 +199,11 @@ else
 	function gadget:Initialize()
 		gadgetPaused = (spGetGameRulesParam(RULESPARAM_PAUSED) or 0) == 1
 		gadgetHandler:AddSyncAction(SYNCACTION, onGamePause)
+		gadgetHandler:AddSyncAction(MESSAGE_WIDGETS_UNPAUSED, onWidgetsUnpaused)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction(SYNCACTION)
+		gadgetHandler:RemoveSyncAction(MESSAGE_WIDGETS_UNPAUSED)
 	end
 end

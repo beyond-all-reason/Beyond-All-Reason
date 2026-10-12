@@ -2495,6 +2495,7 @@ local PAUSESOURCE_MODALS = "modals"
 local RULESPARAM_GADGET_PAUSE = "gamePaused"
 local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
 local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
+local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused"
 local pauseSources = {}
 local widgetPaused = false
 -- pausing while a modal window is open, see UpdatePause
@@ -2712,8 +2713,12 @@ function widgetHandler:Unpause(source)
 	if pauseSources[source] then
 		pauseSources[source] = nil
 		if next(pauseSources) == nil then
-			if widgetPaused and isClientPaused() and not inGadgetPause() then
-				Spring.SendCommands("pause 0")
+			if widgetPaused and isClientPaused() then
+				if inGadgetPause() then
+					Spring.SendLuaRulesMsg(MESSAGE_WIDGETS_UNPAUSED) -- the gadgets resume the game
+				else
+					Spring.SendCommands("pause 0")
+				end
 			end
 			widgetPaused = false
 		end
