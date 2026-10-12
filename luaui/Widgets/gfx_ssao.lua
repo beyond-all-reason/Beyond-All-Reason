@@ -984,12 +984,22 @@ function widget:Shutdown()
 end
 
 local function DoDrawSSAO()
+	local useStencil = shaderConfig.USE_STENCIL == 1
+	if useStencil then
+		local stencilApi = WG.unitstencilapi
+		unitStencilTexture = stencilApi and stencilApi.GetUnitStencilTexture()
+		-- Test whether Unit Stencil GL4 has shut down. These shaders need to read its texture.
+		if not unitStencilTexture then
+			CleanGL()
+			InitGL()
+			return
+		end
+	end
+
 	glDepthTest(false)
 	glBlending(false)
 
-	local useStencil = shaderConfig.USE_STENCIL == 1 and unitStencilTexture
 	if useStencil then
-		unitStencilTexture = getStencilTexture()
 		glTexture(7, unitStencilTexture)
 	end
 	-- the passes discard pixels outside the stencil, so their targets are cleared to what those would output
