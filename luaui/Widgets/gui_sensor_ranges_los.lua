@@ -381,9 +381,12 @@ function widget:DrawWorld()
 	gl.Texture(1, false)
 	gl.DepthTest(true)
 	gl.StencilTest(false) -- Disable stencil testing
+	-- the engine's area command volumes expect stencil bit 1 to be clear
+	gl.StencilMask(1)
+	gl.Clear(GL.STENCIL_BUFFER_BIT, 0)
+	gl.StencilMask(255)
 
 	gl.LineWidth(1.0)
-	--gl.Clear(GL.STENCIL_BUFFER_BIT)
 end
 
 function widget:GetConfigData(data)
