@@ -547,15 +547,22 @@
 				<div class="tf-collapsible-title">SAVE &amp; LOAD</div>
 			</div>
 		<div id="section-st-save" class="hidden">
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onSpSave()">
-				<div class="tf-action-btn-text">SAVE</div>
+		<div class="flex flex-col gap-1 mb-1">
+			<div class="flex flex-row gap-1">
+				<div id="btn-sp-save" class="tf-action-btn tf-save-btn" style="flex: 1;" data-event-click="onSpSave()">
+					<div class="tf-action-btn-text">SAVE</div>
+				</div>
+				<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpLoad()">
+					<div class="tf-action-btn-text">LOAD</div>
+				</div>
 			</div>
-			<div id="btn-sp-load" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpLoad()">
-				<div class="tf-action-btn-text">LOAD</div>
-			</div>
-			<div id="btn-sp-copy" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpCopy()">
-				<div class="tf-action-btn-text">COPY</div>
+			<div class="flex flex-row gap-1">
+				<div id="btn-sp-copy" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpCopy()">
+					<div class="tf-action-btn-text">COPY</div>
+				</div>
+				<div id="btn-sp-export" class="tf-action-btn" style="flex: 1;" data-event-mousedown="onSpExport()">
+					<div class="tf-action-btn-text">EXPORT</div>
+				</div>
 			</div>
 		</div>
 		</div><!-- /section-st-save -->

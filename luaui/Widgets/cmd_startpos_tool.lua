@@ -1113,13 +1113,53 @@ end
 -- length is reported alongside it rather than left for the user to discover.
 local function copyStartboxOverride()
 	local value, boxes = boxExport.encode()
-	if not value then
-		Echo("[StartPos Tool] No startboxes to copy.")
+	local mapSuggestions, _ = roleConfig.buildSuggestionsData()
+	local mapSuggestionsEncoded = mapSuggestions and encodeBSetValue(mapSuggestions)
+
+	if not value and not mapSuggestionsEncoded then
+		Echo("[StartPos Tool] No startboxes or suggestions to copy.")
 		return false
 	end
 
-	Spring.SetClipboard("!bSet mapmetadata_startbox_override " .. value)
-	Echo(string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value))
+	local clipboard = ""
+	local msg = ""
+
+	if value then
+		clipboard = "!bset mapmetadata_startbox_override " .. value
+		msg = string.format("[StartPos Tool] Copied !bSet for %d startbox(es), %d chars of value.", boxes, #value)
+	end
+
+	if mapSuggestionsEncoded then
+		if clipboard ~= "" then
+			clipboard = clipboard .. "\n"
+			msg = msg .. " +"
+		end
+		clipboard = clipboard .. "!bset mapmetadata_startpos " .. mapSuggestionsEncoded
+		msg = msg .. string.format(" suggestions %d chars.", #mapSuggestionsEncoded)
+	end
+
+	Spring.SetClipboard(clipboard)
+	Echo(msg)
+
+	return true
+end
+
+local function exportSuggestions(name)
+	local data, err = roleConfig.buildSuggestionsData()
+	if not data then
+		Echo("[StartPos Tool] No positions to export: " .. (err or "unknown"))
+		return false
+	end
+
+	roleConfig.saveSuggestions(name)
+	roleConfig.saveSuggestionsBSet(name)
+
+	local value, err2 = encodeBSetValue(data)
+	if value then
+		Echo(string.format("[StartPos Tool] Exported suggestions (bSet %d chars, JSON written).", #value))
+	else
+		Echo("[StartPos Tool] Exported suggestions (JSON written, bSet encode failed: " .. (err2 or "unknown") .. ").")
+	end
 
 	return true
 end
@@ -1784,8 +1824,6 @@ end
 local function saveAll(name)
 	saveStartPositions(name)
 	saveStartboxes(name)
-	roleConfig.saveSuggestions(name)
-	roleConfig.saveSuggestionsBSet(name)
 end
 
 -- ============================================================
@@ -4023,6 +4061,7 @@ function widget:Initialize()
 		listSavedConfigs = listSavedConfigs,
 		saveStartboxes = saveStartboxes,
 		copyStartboxOverride = copyStartboxOverride,
+		exportSuggestions = exportSuggestions,
 		loadStartboxes = loadStartboxes,
 		saveAll = saveAll,
 		listSavedStartboxConfigs = listSavedStartboxConfigs,

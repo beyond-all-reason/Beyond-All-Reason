@@ -7322,6 +7322,12 @@ local initialModel = {
 			WG.StartPosTool.copyStartboxOverride()
 		end
 	end,
+	onSpExport = function(_event)
+		playSound("apply")
+		if WG.StartPosTool and WG.StartPosTool.exportSuggestions then
+			WG.StartPosTool.exportSuggestions()
+		end
+	end,
 	onSpLoad = function(_event)
 		playSound("apply")
 		if WG.StartPosTool then
