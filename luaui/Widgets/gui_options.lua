@@ -7229,6 +7229,17 @@ function init()
 			end,
 		},
 
+		-- Jammed units highlight
+		{
+			id = "jammedunits",
+			group = "ui",
+			category = types.advanced,
+			widget = "Jammed Units Highlight",
+			name = BAR.I18N("ui.settings.option.jammedunits"),
+			type = "bool",
+			value = GetWidgetToggleValue("Jammed Units Highlight"),
+			description = BAR.I18N("ui.settings.option.jammedunits_descr"),
+		},
 		{
 			id = "ghosticons_brightness",
 			group = "ui",
@@ -8082,17 +8093,6 @@ function init()
 			onchange = function(i, value)
 				saveOptionValue("Sensor Ranges Jammer", "jammerrange", "setOpacity", { "opacity" }, value)
 			end,
-		},
-		-- Jammed units highlight
-		{
-			id = "jammedunits",
-			group = "ui",
-			category = types.advanced,
-			widget = "Jammed Units Highlight",
-			name = BAR.I18N("ui.settings.option.jammedunits"),
-			type = "bool",
-			value = GetWidgetToggleValue("Jammed Units Highlight"),
-			description = BAR.I18N("ui.settings.option.jammedunits_descr"),
 		},
 		-- LOS Range:
 		{
