@@ -272,7 +272,34 @@ describe("api_game_pause", function()
 			gadgetsPause()
 			gadgetsUnpause()
 
-			assert.same({ "pause 1", "pause 0", "pause 0" }, world.commands)
+			-- Its resume is still in flight, so pausing again needs a new pause.
+			assert.same({ "pause 1", "pause 0", "pause 1", "pause 0" }, world.commands)
+		end)
+
+		it("resumes when the gadgets unpause before their pause reaches the server", function()
+			gadgetsPause()
+			gadgetsUnpause()
+			world.paused = true
+			gadget:GamePaused(CONTROLLER_ID, true)
+
+			assert.same({ "pause 1", "pause 0" }, world.commands)
+
+			world.paused = false
+			gadget:GamePaused(CONTROLLER_ID, false)
+			gadget:PlayerChanged()
+
+			assert.same({ "pause 1", "pause 0" }, world.commands)
+		end)
+
+		it("sends no duplicate resume when players change while it is in flight", function()
+			gadgetsPause()
+			world.paused = true
+			gadget:GamePaused(CONTROLLER_ID, true)
+			gadgetsUnpause()
+
+			gadget:PlayerChanged()
+
+			assert.same({ "pause 1", "pause 0" }, world.commands)
 		end)
 
 		it("leaves the resume to widgets that handle GameUnpausing", function()

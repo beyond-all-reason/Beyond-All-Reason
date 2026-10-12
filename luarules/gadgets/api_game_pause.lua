@@ -123,6 +123,7 @@ else
 	local gadgetPaused = false
 	local gadgetResumePending = false -- unpaused by gadgets, but the game has not resumed yet
 	local playerPaused = false -- paused before the gadgets were and not unpaused since
+	local sentPaused -- the controller's last command, until the server echoes it back
 	local serverFrame -- the live game frame, while this client replays a backlog
 	local catchingUp = false
 
@@ -130,13 +131,17 @@ else
 		if catchingUp or getPauseControllerID() ~= spGetMyPlayerID() then
 			return
 		end
-		local _, _, isPaused = spGetGameSpeed()
+		local isPaused = sentPaused
+		if isPaused == nil then
+			isPaused = select(3, spGetGameSpeed())
+		end
 		if isPaused == paused then
 			return
 		end
 		if not paused and Script.LuaUI("GameUnpausing") and Script.LuaUI.GameUnpausing() then
 			return -- widgets can pause and resume the game
 		end
+		sentPaused = paused
 		spSendCommands(paused and "pause 1" or "pause 0")
 	end
 
@@ -157,7 +162,13 @@ else
 	end
 
 	function gadget:GamePaused(playerID, isPaused)
-		gadgetResumePending = false
+		if playerID == spGetMyPlayerID() and isPaused == sentPaused then
+			sentPaused = nil
+		end
+		-- The controller's pause can be its own, sent before the gadgets unpaused.
+		if not isPaused or playerID ~= getPauseControllerID() then
+			gadgetResumePending = false
+		end
 		if not isPaused then
 			playerPaused = false
 		end
