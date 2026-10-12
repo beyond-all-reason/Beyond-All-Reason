@@ -14,7 +14,7 @@ local accountIDCache = {}
 -- forward-declare: IsDevModeCached (upstream #6918) references `utilities`
 -- inside its own constructor, where the local is not yet in scope — that
 -- resolved as a GLOBAL (nil at call time). Declare first, then assign.
-local utilities
+local utilities = {}
 utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
@@ -46,7 +46,7 @@ utilities = {
 
 	--- Cached variant of IsDevMode, refreshed per call but avoids repeated lookups
 	--- within the same frame when multiple widgets query it.
-	_devModeCache = nil,
+	_devModeCache = false,
 	_devModeCacheFrame = -1,
 	IsDevModeCached = function()
 		local frame = Spring.GetGameFrame()
