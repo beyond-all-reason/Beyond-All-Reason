@@ -308,13 +308,13 @@ local function FlushVBOs()
 	if preUnit ~= drawWorldPreUnitEnabled then
 		drawWorldPreUnitEnabled = preUnit
 		widget.DrawWorldPreUnit = preUnit and DrawWorldPreUnit or nil
-		widgetHandler:UpdateWidgetCallInRaw("DrawWorldPreUnit", widget)
+		widgetHandler:UpdateCallIn("DrawWorldPreUnit")
 	end
 	local world = (selectionVBOWater or selectionVBOGround).usedElements > 0
 	if world ~= drawWorldEnabled then
 		drawWorldEnabled = world
 		widget.DrawWorld = world and DrawWorld or nil
-		widgetHandler:UpdateWidgetCallInRaw("DrawWorld", widget)
+		widgetHandler:UpdateCallIn("DrawWorld")
 	end
 end
 
