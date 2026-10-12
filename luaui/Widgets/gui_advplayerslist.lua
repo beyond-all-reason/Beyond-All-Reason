@@ -4129,7 +4129,8 @@ function widget:MousePress(x, y, button)
 							end
 							return true
 						elseif not player[i].spec then
-							if i ~= myTeamPlayerID then
+							-- Selecting units can update the team separate to the camera lock.
+							if i ~= myTeamPlayerID or (lockPlayerID and lockPlayerID ~= i) then
 								clickedPlayerTime = osClock()
 								clickedPlayerID = clickedPlayer.id
 								-- handled in Update() after dblclick delay
@@ -4327,7 +4328,7 @@ function widget:MousePress(x, y, button)
 								and clickTime - prevClickTime < dblclickPeriod
 								and clickedPlayer == prevClickedPlayer
 							then
-								LockCamera(clickedPlayer.team)
+								LockCamera(i)
 								prevClickedPlayer = {}
 								return true
 							end
