@@ -18788,6 +18788,7 @@ function widget:Initialize()
 		end,
 		-- Runtime skybox pick (library path, nil if untouched); the manifest
 		-- records its basename so reopening the project boots with the same sky.
+		---@return string? skyboxPath
 		getCurrentSkybox = function()
 			return widgetState.envCurrentSkybox
 		end,
@@ -18849,6 +18850,7 @@ function widget:Initialize()
 		-- FOCUS MODE: the game interface is hidden on purpose and the editor keeps
 		-- drawing through it. cmd_terraform_brush and the capture widget read this
 		-- to tell it apart from a plain F5 (see setFocusMode).
+		---@return boolean focusMode
 		isFocusMode = function()
 			return widgetState.focusMode == true
 		end,
@@ -18862,6 +18864,7 @@ function widget:Initialize()
 		-- dialog is open and under the cursor. Falls back to the panel's own
 		-- bounds, so a caller can use this wherever it used getPanelBounds and
 		-- keep the same behaviour everywhere else.
+		---@return TerraformBrushPanelBounds? bounds
 		getHoverBounds = function()
 			local dialog = widgetState.projectDialogHoverBounds()
 			if dialog then

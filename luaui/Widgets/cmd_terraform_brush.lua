@@ -2749,11 +2749,22 @@ end
 ---@field rampAutoAttach boolean
 ---@field curveOverlay boolean
 ---@field velocityIntensity boolean
+---@field followStroke boolean
+---@field perfMode boolean
+---@field clayStack boolean
+---@field dragging boolean A sculpt drag is in progress.
 ---@field dragVelocityFactor number
 ---@field restoreStrength number
 ---@field undoCount integer
 ---@field redoCount integer
 ---@field erodeReposeDeg number
+---@field autorampAngleDeg number
+---@field autorampFalloff number
+---@field autorampEdgeNoise number
+---@field autorampErosion number
+---@field autorampTalus number
+---@field autorampStart "extend"|"subtract"|"average" Where the autoramp cliff is anchored.
+---@field autorampPreview boolean
 ---@field ringInnerRatio number
 ---@field importProgress integer? Rows imported so far; `nil` when no import is running.
 ---@field importTotal integer? Rows in the running import; `nil` when none is running.
@@ -3678,8 +3689,7 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
-		-- Bumped on every heightmap update; the project widget's unsaved
-		-- changes flag watches it.
+		---@return integer version Bumped on every heightmap update; the project widget's unsaved changes flag watches it.
 		getTerrainVersion = function()
 			return extraState.terrainVersion
 		end,
@@ -3702,8 +3712,8 @@ function widget:Initialize()
 		end,
 		setMode = setMode,
 		setShape = setShape,
-		-- Shared edge-extended cursor for the sub-tool painters (splat, diffuse,
-		-- grass, features, ...): returns wx, wz, fade for the given brush radius.
+		---Shared edge-extended cursor for the sub-tool painters (splat, diffuse, grass, features, ...): returns wx, wz, and fade for the given brush radius.
+		---@param radius number? Brush radius, which sets how far past the map edge the cursor keeps full strength.
 		getWorldPositionExtended = function(radius)
 			return extraState.worldMouseExtended(radius)
 		end,
@@ -3943,6 +3953,8 @@ function widget:Initialize()
 			return extraState.heightSamplingMode
 		end,
 		setCurveOverlay = setCurveOverlay,
+		---Rotates the brush shape to the stroke tangent while dragging. Turning it off hands back the manual rotation.
+		---@param value boolean?
 		setFollowStroke = function(value)
 			extraState.followStroke = value and true or false
 			if not extraState.followStroke then
@@ -3963,9 +3975,13 @@ function widget:Initialize()
 				extraState.lastDragScreenY = nil
 			end
 		end,
+		---Trades fidelity for speed: wider dab spacing where the falloff allows it, fewer dabs per tick, and coarser follow-stroke angle steps.
+		---@param value boolean?
 		setPerfMode = function(value)
 			extraState.perfMode = value and true or false
 		end,
+		---Stacks clay on every tick, the legacy behavior, instead of laying one layer per stroke over the surface it started on.
+		---@param value boolean?
 		setClayStack = function(value)
 			extraState.clayStack = value and true or false
 		end,
@@ -3978,26 +3994,35 @@ function widget:Initialize()
 		setErodeReposeDeg = function(value)
 			extraState.erodeReposeDeg = max(10, min(60, tonumber(value) or 33))
 		end,
+		---@param value number|string? Target face slope of the autoramp cliff in degrees, clamped to `10`-`85`. Defaults to `60`.
 		setAutorampAngleDeg = function(value)
 			extraState.autorampAngleDeg = max(10, min(85, tonumber(value) or 60))
 		end,
+		---@param value number|string? Shoulder softness and blend band into untouched terrain, clamped to `0`-`1`. Defaults to `0.5`.
 		setAutorampFalloff = function(value)
 			extraState.autorampFalloff = max(0, min(1, tonumber(value) or 0.5))
 		end,
+		---@param value number|string? Wavy perturbation of the cliff line, clamped to `0`-`1`. Defaults to `0.35`.
 		setAutorampEdgeNoise = function(value)
 			extraState.autorampEdgeNoise = max(0, min(1, tonumber(value) or 0.35))
 		end,
+		---@param value number|string? Ridged gullies cut down the face, clamped to `0`-`1`. Defaults to `0.35`.
 		setAutorampErosion = function(value)
 			extraState.autorampErosion = max(0, min(1, tonumber(value) or 0.35))
 		end,
+		---@param value number|string? Scree banked against the base, clamped to `0`-`1`. Defaults to `0.4`.
 		setAutorampTalus = function(value)
 			extraState.autorampTalus = max(0, min(1, tonumber(value) or 0.4))
 		end,
+		---Sets where the autoramp cliff is anchored.
+		---@param mode string `"extend"`, `"subtract"`, or `"average"`; other values are ignored.
 		setAutorampStart = function(mode)
 			if mode == "extend" or mode == "subtract" or mode == "average" then
 				extraState.autorampStart = mode
 			end
 		end,
+		---Shows a hover preview of the terrain the autoramp would produce.
+		---@param value boolean?
 		setAutorampPreview = function(value)
 			extraState.autorampPreview = value and true or false
 		end,
@@ -4270,9 +4295,11 @@ function widget:Initialize()
 		fullRestore = function()
 			SendLuaRulesMsg(MSG.FULL_RESTORE)
 		end,
-		-- Whole-map height range edit driven by the Dimensions window.
-		-- mode "scale" stretches the relief onto the new range, "clamp" only
-		-- cuts what falls outside it. Undoable like any other stroke.
+		---Whole-map height range edit driven by the Dimensions window. Undoable like any other stroke.
+		---@param newMin number|string?
+		---@param newMax number|string?
+		---@param mode "scale"|"clamp"? `"scale"` stretches the relief onto the new range, `"clamp"` only cuts what falls outside it. Defaults to `"scale"`.
+		---@return boolean applied `false` when the range is invalid or less than one elmo tall.
 		remapHeights = function(newMin, newMax, mode)
 			newMin, newMax = tonumber(newMin), tonumber(newMax)
 			if not newMin or not newMax or newMax - newMin < 1 then
@@ -4284,15 +4311,14 @@ function widget:Initialize()
 			extraState._noteBulkTerrainChange()
 			return true
 		end,
-		-- Dimensions window water level slider: pass the world height the water
-		-- should end up at to draw the preview plane, or nil to clear it.
+		---Draws the water level preview plane for the Dimensions window slider.
+		---@param level number|string? The world height the water should end up at, or `nil` to clear the preview.
 		setWaterLevelPreview = function(level)
 			extraState.waterPreviewLevel = tonumber(level)
 		end,
-		-- Move the shoreline to `level` (a world height in the terrain's current
-		-- coordinates). The engine has no water plane setter, so this is done the
-		-- way /luarules waterlevel does it: the whole terrain slides by the
-		-- difference, leaving the water plane where it is.
+		---Moves the shoreline to `level`. The engine has no water plane setter, so this is done the way `/luarules waterlevel` does it: the whole terrain slides by the difference, leaving the water plane where it is.
+		---@param level number|string? A world height in the terrain's current coordinates.
+		---@return boolean applied `false` when `level` is not a number or the water is already there.
 		applyWaterLevel = function(level)
 			level = tonumber(level)
 			if not level then
@@ -4314,12 +4340,12 @@ function widget:Initialize()
 			extraState._noteBulkTerrainChange()
 			return true
 		end,
-		-- How far this session has moved the terrain under the water plane.
+		---@return number shift How far this session has moved the terrain under the water plane.
 		getWaterLevelShift = function()
 			return extraState.waterLevelShift or 0
 		end,
-		-- Put the water back where the map had it. Returns the shift that was
-		-- undone, or false when the map is already at its own water level.
+		---Puts the water back where the map had it.
+		---@return number|false shift The shift that was undone, or `false` when the map is already at its own water level.
 		resetWaterLevel = function()
 			local shift = extraState.waterLevelShift or 0
 			if math.abs(shift) < 0.05 then

@@ -223,12 +223,15 @@ end
 --- flip: `topY = vsy - offset_top`.
 local boundsProviders = {}
 
+---@param name string?
+---@param provider fun(): TerraformBrushPanelBounds|TerraformBrushPanelBounds[]|nil
 WG.TerraformerShared.registerBounds = function(name, provider)
 	if name and type(provider) == "function" then
 		boundsProviders[name] = provider
 	end
 end
 
+---@param name string?
 WG.TerraformerShared.unregisterBounds = function(name)
 	if name then
 		boundsProviders[name] = nil
@@ -241,6 +244,7 @@ end
 --- view's x offset, which is zero until dual-screen mode parks the world on one half of
 --- the window. Providers report RmlUi window-space x, so the offset comes off here, once,
 --- for every tool, and the rects really are in the space the tools' mouse lives in.
+---@return TerraformBrushPanelBounds[] rects
 WG.TerraformerShared.getPanelRects = function()
 	local _, _, viewPosX = Spring.GetViewGeometry()
 	viewPosX = viewPosX or 0
@@ -273,6 +277,9 @@ WG.TerraformerShared.getPanelRects = function()
 end
 
 --- The suite window under this screen point, or nil.
+---@param mx number?
+---@param my number?
+---@return TerraformBrushPanelBounds? rect
 WG.TerraformerShared.getPanelRectAt = function(mx, my)
 	if not (mx and my) then
 		return nil
@@ -290,6 +297,7 @@ end
 --- Each widget owns a separate RmlUi document, and RCSS z-index only orders elements inside
 --- one document, so it cannot decide whether the brush or the mission editor is on top.
 --- PullToFront is the only thing that can.
+---@param name string
 WG.TerraformerShared.bringToFront = function(name)
 	local doc = registeredDocuments[name]
 	if doc and doc.PullToFront then
@@ -303,6 +311,8 @@ end
 --- order they were last touched, which is what every other windowing system does.
 ---
 --- Deliberately does not stop the event: the press still reaches whatever was clicked.
+---@param name string
+---@param rootEl RmlUi.Element?
 WG.TerraformerShared.raiseOnPress = function(name, rootEl)
 	if not rootEl or not rootEl.AddEventListener then
 		return

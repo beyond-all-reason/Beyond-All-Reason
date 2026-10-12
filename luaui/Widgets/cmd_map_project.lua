@@ -1728,6 +1728,7 @@ end
 ---@field created string date time
 ---@field modified string date time
 ---@field game_version string|"unknown"
+---@field autosave_of string? Only in autosaves: the project the snapshot belongs to, `""` for a canvas without one.
 ---@field map MapProjectManifestMap
 ---@field sections MapProjectManifestSections
 ---@field assets {decals: {name: string, file: string, installed: boolean}[]}
@@ -1745,8 +1746,10 @@ end
 
 ---@class MapProjectManifestSections
 ---@field heightmap {file: string, version: 1, bytes: integer}
+---@field minimap {file: string, version: 1, bytes: integer, width: integer?, height: integer?}
 ---@field splat {file: string, version: 1, bytes: integer}
 ---@field surface {file: string, version: 1, bytes: integer, meta:"surface.lua"}
+---@field tileset {file: string, version: 1, bytes: integer}
 ---@field diffuse {dir: "diffuse/", version: 1, bytes: integer, square_size: integer, squares: integer, full: boolean, channels: string[] }
 ---@field metal {file: string, version: 1, bytes: integer}
 ---@field features {file: string, version: 1, bytes: integer}
