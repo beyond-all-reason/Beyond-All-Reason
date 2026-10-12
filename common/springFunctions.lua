@@ -11,10 +11,7 @@ local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
 
--- forward-declare: IsDevModeCached (upstream #6918) references `utilities`
--- inside its own constructor, where the local is not yet in scope — that
--- resolved as a GLOBAL (nil at call time). Declare first, then assign.
-local utilities = {}
+local utilities ---@type table forward-declared to resolve scoping
 utilities = {
 	LoadTGA = tga.LoadTGA,
 	SaveTGA = tga.SaveTGA,
@@ -68,8 +65,9 @@ utilities = {
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
 
+	---@param playerID PlayerID
 	GetAccountID = function(playerID)
-		local cached = accountIDCache[playerID]
+		local cached = accountIDCache[playerID] ---@as integer?
 		if cached then
 			return cached
 		end
