@@ -62,19 +62,33 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
+	local spGetGameFrame = Spring.GetGameFrame
 	local spGetMyPlayerID = Spring.GetMyPlayerID
 	local spIsReplay = Spring.IsReplay
 
+	local CATCH_UP_FRAMES = 11 * Game.gameSpeed -- same as gui_rejoinprogress.lua
+
 	local finishedPlaybackID -- finished on this client
+	local serverFrame -- the live game frame, while this client replays a backlog
+	local catchingUp = false
 
 	local function reportPlaybackFinished()
-		if finishedPlaybackID ~= nil and getPauseControllerID() == spGetMyPlayerID() and not spIsReplay() then
+		if
+			finishedPlaybackID ~= nil
+			and not catchingUp
+			and getPauseControllerID() == spGetMyPlayerID()
+			and not spIsReplay()
+		then
 			spSendLuaRulesMsg(MESSAGE_FINISHED .. finishedPlaybackID)
 			finishedPlaybackID = nil
 		end
 	end
 
 	local function play(_, playbackID, videoFile)
+		if catchingUp then
+			finishedPlaybackID = playbackID -- skips videos from the backlog
+			return
+		end
 		if Script.LuaUI(SYNC_ACTION) then
 			Script.LuaUI[SYNC_ACTION](playbackID, videoFile)
 			return
@@ -90,6 +104,20 @@ else
 	end
 	function gadget:PlayerRemoved()
 		reportPlaybackFinished()
+	end
+
+	function gadget:GameProgress(serverFrameNum)
+		serverFrame = serverFrameNum
+		if spGetGameFrame() < serverFrame - CATCH_UP_FRAMES then
+			catchingUp = true
+		end
+	end
+
+	function gadget:GameFrame(frame)
+		if catchingUp and frame >= serverFrame - CATCH_UP_FRAMES then
+			catchingUp = false
+			reportPlaybackFinished()
+		end
 	end
 
 	function gadget:Initialize()
