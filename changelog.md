@@ -1,4 +1,5 @@
 # October
+- [Blitz] Better at avoiding friendly fire
 - [Shuriken] 280.5 -> 270 speed
 - [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
 - [Cortex Gantry] 8400m -> 8000m cost
@@ -33,6 +34,8 @@
   - Twitcher can leave behind wrecks and debris again.
   - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
   - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
+  - Advanced Fusion health was increased by 5% last month by mistake, reverted.
+  - Cortex / Legion advanced UW mexes had an unintended 50% damage reduction, removed.
 
 # September
 - [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.

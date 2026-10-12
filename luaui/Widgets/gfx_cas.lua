@@ -31,6 +31,12 @@ local USE_RCAS = true
 -- with MSAA, scale each pixel's samples instead of overwriting them, so edges keep the driver's resolve
 -- (gamma correct on NVIDIA); costs a framebuffer read
 local PRESERVE_MSAA_EDGES = true
+-- no sharpening where the 5 taps span under GRAIN_GATE[1] luma levels (texture grain and aliasing, which
+-- sharpening turns into shimmer when zoomed out), full above GRAIN_GATE[2]; GRAIN_NOISE (0..1) also scales
+-- down isolated single-pixel detail (AMD's RCAS noise test). Edges keep their sharpening
+local SUPPRESS_GRAIN = true
+local GRAIN_GATE = { 4, 12 }
+local GRAIN_NOISE = 0.2
 
 -----------------------------------------------------------------
 -- Lua Shortcuts
@@ -59,7 +65,7 @@ void main() {
 local fsCAS = [[
 #version 330
 //__DEFINES__
-#line 20063
+#line 20069
 
 uniform sampler2D screenCopyTex;
 uniform ivec4 viewRect; // xy: view position in the window, zw: last texel of the screen copy
@@ -88,6 +94,18 @@ void main() {
 	vec3 f = texelFetch(screenCopyTex, ivec2(hi.x, p.y), 0).rgb;
 	vec3 h = texelFetch(screenCopyTex, ivec2(p.x, hi.y), 0).rgb;
 
+#if SUPPRESS_GRAIN
+	// luma of the taps: the gate follows the local contrast, speck is AMD's noise test (how far the center
+	// sits from the ring mean relative to that contrast: 1 = isolated pixel, 0 = ramp)
+	const vec3 lw = vec3(0.5, 1.0, 0.5);
+	float bL = dot(b, lw), dL = dot(d, lw), eL = dot(e, lw), fL = dot(f, lw), hL = dot(h, lw);
+	float rangeL = max(max(bL, dL), max(max(fL, hL), eL)) - min(min(bL, dL), min(min(fL, hL), eL));
+	float speck = clamp(abs(0.25 * ((bL + dL) + (fL + hL)) - eL) / max(rangeL, 1.0e-5), 0.0, 1.0);
+	float grain = smoothstep(GRAIN_LO, GRAIN_HI, rangeL) * (1.0 - GRAIN_NOISE * speck);
+#else
+	const float grain = 1.0;
+#endif
+
 #if RCAS
 	// the strongest negative lobe that clips no channel, one for all channels
 	vec3 mn4 = min(min(b, d), min(f, h));
@@ -98,14 +116,14 @@ void main() {
 	hitMin = mix(hitMin, vec3(1.0e4), equal(mx4, vec3(0.0)));
 	hitMax = mix(hitMax, vec3(-1.0e4), equal(mn4, vec3(1.0)));
 	vec3 lobeRGB = max(-hitMin, hitMax);
-	float lobe = max(-0.1875, min(max(max(lobeRGB.r, lobeRGB.g), lobeRGB.b), 0.0)) * strength;
+	float lobe = max(-0.1875, min(max(max(lobeRGB.r, lobeRGB.g), lobeRGB.b), 0.0)) * (strength * grain);
 	vec3 outColor = (lobe * ((b + d) + (f + h)) + e) * (1.0 / (4.0 * lobe + 1.0));
 #else
 	// the negative lobe shrinks as the neighborhood approaches the signal limits
 	vec3 mn = min(min(min(d, e), min(f, b)), h);
 	vec3 mx = max(max(max(d, e), max(f, b)), h);
 	vec3 amp = clamp(min(mn, 1.0 - mx) * (1.0 / max(mx, 1.0e-5)), 0.0, 1.0);
-	vec3 w = sqrt(amp) * strength;
+	vec3 w = sqrt(amp) * (strength * grain);
 	vec3 outColor = clamp((((b + d) + (f + h)) * w + e) * (1.0 / (1.0 + 4.0 * w)), 0.0, 1.0);
 #endif
 
@@ -171,10 +189,18 @@ local function UpdateShader()
 end
 
 local function CompileShader(rcas, preserve)
-	local defines = "#define RCAS " .. (rcas and 1 or 0) .. "\n#define PRESERVE_MSAA_EDGES " .. (preserve and 1 or 0)
+	local defines = {
+		"#define RCAS " .. (rcas and 1 or 0),
+		"#define PRESERVE_MSAA_EDGES " .. (preserve and 1 or 0),
+		"#define SUPPRESS_GRAIN " .. (SUPPRESS_GRAIN and 1 or 0),
+		-- the shader's luma spans 0..2
+		string.format("#define GRAIN_LO %.5f", GRAIN_GATE[1] * 2 / 255),
+		string.format("#define GRAIN_HI %.5f", GRAIN_GATE[2] * 2 / 255),
+		string.format("#define GRAIN_NOISE %.3f", GRAIN_NOISE),
+	}
 	local shader = LuaShader({
 		vertex = vsCAS,
-		fragment = fsCAS:gsub("//__DEFINES__", defines),
+		fragment = fsCAS:gsub("//__DEFINES__", table.concat(defines, "\n")),
 		uniformInt = {
 			screenCopyTex = 0,
 		},
