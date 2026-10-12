@@ -1438,6 +1438,7 @@ end
 -- are separated by depth clears so that classes sharing a pixel all get their bit. The clears
 -- are full-surface on purpose, partial clears can defeat the hierarchical depth test.
 local function drawCoverageMask(allyState)
+	gl.Scissor(false)
 	glColorMask(true, true, true, true)
 	gl.DepthMask(true)
 	glDepthTest(GL.LESS)

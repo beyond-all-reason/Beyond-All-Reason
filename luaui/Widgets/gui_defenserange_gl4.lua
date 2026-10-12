@@ -1152,6 +1152,7 @@ end
 -- most once. The clears are full-surface on purpose, partial clears can defeat the
 -- hierarchical depth test.
 local function drawCoverageMask(allyState)
+	gl.Scissor(false)
 	glColorMask(true, true, true, true)
 	gl.DepthMask(true)
 	glDepthTest(GL.LESS)
