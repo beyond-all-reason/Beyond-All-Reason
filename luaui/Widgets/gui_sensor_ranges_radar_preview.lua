@@ -17,7 +17,7 @@ end
 -- RadarPreviewMinimap (0/1, default on): also fill the coverage on the minimap (and the PIP minimap)
 -- RadarPreviewAnimations (0/1, default on): enable/disable animations
 -- RadarPreviewSweep (0/1, default off): draw the rotating sweep (only when animations are on)
--- SensorPreviewCircles (0/1, default on, shared with the jammer preview): end the previewed radar's coverage at a
+-- SensorPreviewCircles (0/1, default on, shared with the jammer preview): end each visible radar's coverage at a
 --   circle at its range instead of the engine's staircase of radar cells (inside, the terrain still shows per cell)
 
 ------------------------------------------------------------------------------------------------
@@ -31,18 +31,21 @@ end
 --  3. Minimap pass (DrawInMiniMap, RadarPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
 --  4. Sheet pass: projects the coverage onto the terrain. Drawn over the coverage's screen area, every pixel
 --     rebuilds its world position from the map g-buffer depth and takes the coverage of its radar cell, with the
---     outline at uncovered cells, the rings and the sweep.
+--     outline at uncovered cells, the rings and the sweep. In circle mode, allied radars are matched per radar cell
+--     (two MAX-blended coverage passes) to the range circles covering its terrain, evaluated exactly per pixel; a
+--     neighbouring cell only continues the coverage where its own radars' circles reach the pixel.
 -- The pass vertex, smoothing and minimap shaders are shared with gui_sensor_ranges_jammer_preview.lua.
 ------------------------------------------------------------------------------------------------
 
 -- Tunables
+local COVERAGE_CORNER_RADIUS = 0.33 -- radar cells (0..0.5): radius of rounded coverage corners; 0 keeps square cell edges
 local ALLIED_COVERAGE_POLL_SECONDS = 2 -- how often the RadarPreview* settings are re-read
 local COVERAGE_REFRESH_SECONDS = 1.0 -- periodic heightmap/coverage rebuild so terraforming shows up
 local SMOOTH_RATE = 14 -- 1/s, how fast the sheet follows coverage changes (higher = snappier)
 local SMOOTH_RATE_DRAG = 60 -- 1/s, used while the placement preview is dragged across radar cells, so the sheet keeps up with the cursor
 local SMOOTH_SETTLE_SECONDS = 1 -- after this long without a change the shown coverage has settled and is no longer eased
 local MAX_RADIUS_CELLS = 256 -- sanity limit of the radar radius in cells (coverage texture and ray table size)
-local RAY_SSBO_BINDING = 5 -- shader storage binding of the per-radius ray table (4, 6, 7 are used elsewhere in BAR)
+local SSBO_BINDING = 5 -- shader storage binding of the ray table (coverage pass) and of the allied circle list (sheet); 4, 6, 7 are used elsewhere in BAR
 
 -- The sheet is projected through the map g-buffer depth; units and features are left out via the model g-buffer
 -- depth. BAR turns both on (luaintro/springconfig.lua).
@@ -50,6 +53,8 @@ local hasMapDepth = Spring.GetConfigString("AllowDeferredMapRendering") == "1"
 local hasModelDepth = hasMapDepth and Spring.GetConfigString("AllowDeferredModelRendering") == "1"
 
 local shaderConfig = {
+	COVERAGE_CORNER_RADIUS = math.max(0, math.min(COVERAGE_CORNER_RADIUS, 0.5)),
+	ALLIED_CIRCLE_SLOTS = 4096, -- circle mode: allied radars with a range circle at most (2^24 / this = distance levels per cell)
 	MODEL_DEPTH_TEST = hasModelDepth and 1 or 0,
 	ALLIED_COLOR = "vec3(0.35, 0.62, 0.50)", -- cells covered only by other allied radars
 	ALLIED_ALPHA = 0.55, -- their opacity relative to the previewed radar's cells
@@ -93,9 +98,13 @@ local HEIGHT_BUCKET = 2 ^ (RADAR_MIP_LEVEL + 2) -- emitter heights are quantized
 local MAP_CELLS_X = math.floor(Game.mapSizeX / RADAR_CELL) -- radar cells of the whole map
 local MAP_CELLS_Z = math.floor(Game.mapSizeZ / RADAR_CELL)
 shaderConfig.RADAR_CELL_SIZE = RADAR_CELL
+-- circle mode: cells within this many elmos of an allied radar's range circle record the radar. Must exceed the ~1.1
+-- cells from a cell's center to the farthest pixel that uses its radars (in a rounded corner it fills in a neighbour).
+shaderConfig.ALLIED_CIRCLE_BAND = RADAR_CELL * 3
 
 -- Localized functions for performance
 local mathFloor = math.floor
+local mathCeil = math.ceil
 local mathMin = math.min
 local mathMax = math.max
 local mathExp = math.exp
@@ -169,11 +178,19 @@ local passVAO ---@type VAO
 local mipTex = nil -- radar-cell heightmap of the whole map
 local mipUpdatedAt = -mathHuge
 local alliedTex = nil -- map-wide union of the allied radars' coverage, only used under global LOS / full view
+-- circle mode: per radar cell, the allied radar whose range circle reaches farthest past it among those covering its
+-- terrain, and the runner-up (packed level and circle index, see the coverage shader); their circles in alliedCircleSSBO
+local alliedWinnerTex = nil
+local alliedRunnerUpTex = nil
+local alliedCircleSSBO = nil
+local alliedCircleCapacity = 0 -- circles alliedCircleSSBO holds
+local alliedCircleData = {} -- reused upload table: x, z, range, 0 per allied radar
 local alliedUpdatedAt = -mathHuge
-local alliedRadars = {} ---@type table<integer, table> -- reused scratch list of { bx, bz, radius, losHeight }
+local alliedRadars = {} ---@type table<integer, table> -- reused scratch list of emitter cells, heights and range circles
 local alliedRadarCount = 0
-local alliedRendered = {} -- bx, bz, radius, losHeight per radar alliedTex was last rendered with
-local alliedValid = false -- alliedTex holds a union at all
+local alliedRendered = {} -- bx, bz, radius, losHeight, x, z, range per cached allied radar
+local alliedValid = false -- alliedTex holds the union of the radars in alliedRendered
+local alliedCirclesValid = false -- the circle textures and list hold the radars in alliedRendered
 -- Rectangles of radar cells, empty while x0 > x1: the terrain that changed since the radar-cell heightmap was rebuilt
 -- (the whole map at first), the cells rebuilds changed since alliedTex was rendered, and the latest rebuild
 local mipDirty = { x0 = 0, z0 = 0, x1 = MAP_CELLS_X - 1, z1 = MAP_CELLS_Z - 1 } ---@type { x0: number, z0: number, x1: number, z1: number }
@@ -220,10 +237,13 @@ local coverageShaderCache = {
 	shaderName = "radarPreviewCoverage GL4",
 	uniformInt = {
 		mipHeightTex = 0,
+		alliedWinnerTex = 1,
 	},
 	uniformFloat = {
 		losParams = { 0, 0, 1, 0 },
 		coverageAbsolute = { 0 },
+		alliedCirclePass = { 0 },
+		alliedCircle = { 0, 0, 0, 0 },
 		passRect = { -1, -1, 1, 1 },
 	},
 	shaderConfig = shaderConfig,
@@ -252,6 +272,8 @@ local sheetShaderCache = {
 		modelDepths = hasModelDepth and 1 or nil,
 		coverageTex = 2,
 		radarInfoTex = 3,
+		alliedWinnerTex = 4,
+		alliedRunnerUpTex = 5,
 	},
 	uniformFloat = {
 		radarcenter_range = { 0, 0, 0, 2000 },
@@ -470,6 +492,40 @@ local function deleteTextures()
 		gl.DeleteTexture(alliedTex)
 		alliedTex = nil
 	end
+	if alliedWinnerTex then
+		gl.DeleteTexture(alliedWinnerTex)
+		alliedWinnerTex = nil
+	end
+	if alliedRunnerUpTex then
+		gl.DeleteTexture(alliedRunnerUpTex)
+		alliedRunnerUpTex = nil
+	end
+	if alliedCircleSSBO then
+		alliedCircleSSBO:Delete()
+		alliedCircleSSBO, alliedCircleCapacity = nil, 0
+	end
+end
+
+-- Makes alliedCircleSSBO hold at least `count` circles, growing it in powers of two (one 64 byte element = 4 circles)
+local function reserveAlliedCircles(count)
+	if alliedCircleSSBO and count <= alliedCircleCapacity then
+		return true
+	end
+	local capacity = mathMax(alliedCircleCapacity, 64)
+	while capacity < count do
+		capacity = capacity * 2
+	end
+	if alliedCircleSSBO then
+		alliedCircleSSBO:Delete()
+	end
+	alliedCircleSSBO = gl.GetVBO(GL.SHADER_STORAGE_BUFFER, false)
+	if not alliedCircleSSBO then
+		alliedCircleCapacity = 0
+		return false
+	end
+	alliedCircleSSBO:Define(capacity / 4, { { id = 0, name = "alliedCircles", size = 4 } })
+	alliedCircleCapacity = capacity
+	return true
 end
 
 -- coverage/ray-table set for a radius in cells, created on demand (allied radar units of any size)
@@ -547,6 +603,13 @@ local function initgl4()
 		goodbye("Failed to create the allied radar coverage texture")
 		return false
 	end
+	-- R32F: the packed values are integers up to 2^24
+	alliedWinnerTex = makeDataTexture(MAP_CELLS_X, MAP_CELLS_Z, GL_R32F, GL.NEAREST)
+	alliedRunnerUpTex = makeDataTexture(MAP_CELLS_X, MAP_CELLS_Z, GL_R32F, GL.NEAREST)
+	if not (alliedWinnerTex and alliedRunnerUpTex and reserveAlliedCircles(64)) then
+		goodbye("Failed to create the allied radar circle textures")
+		return false
+	end
 
 	for _, def in pairs(radarDefs) do
 		if not sets[def.radiusCells] then
@@ -566,7 +629,12 @@ local function readConfig()
 	settings.minimap = Spring.GetConfigInt("RadarPreviewMinimap", 1) ~= 0
 	settings.animations = Spring.GetConfigInt("RadarPreviewAnimations", 1) ~= 0
 	settings.sweep = Spring.GetConfigInt("RadarPreviewSweep", 0) ~= 0
-	settings.circles = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0
+	local circles = Spring.GetConfigInt("SensorPreviewCircles", 1) ~= 0
+	if circles ~= settings.circles then
+		alliedCirclesValid = false
+		alliedUpdatedAt = -mathHuge
+	end
+	settings.circles = circles
 end
 
 function widget:Update()
@@ -678,6 +746,7 @@ local function collectAlliedRadars()
 							alliedRadars[count] = radar
 						end
 						radar.bx, radar.bz, radar.radius, radar.losHeight = bx, bz, radiusCells, losHeight
+						radar.x, radar.z, radar.range = mx, mz, radarRadius
 					end
 				end
 			end
@@ -686,32 +755,43 @@ local function collectAlliedRadars()
 	alliedRadarCount = count
 end
 
--- Renders the union of the collected radars' coverage into alliedTex (one texel per radar cell): each
--- radar draws just its disc's rectangle with the exact coverage shader, MAX-blended over the others.
-local function drawAlliedUnion()
+-- Number of allied radars with a range circle in circle mode, the first ones of alliedRadars
+local function alliedCircleCount()
+	return mathMin(alliedRadarCount, shaderConfig.ALLIED_CIRCLE_SLOTS)
+end
+
+-- MAX-blends the allied radars into a map-sized texture (one texel per radar cell). Pass 0: the union of their
+-- coverage; circle passes 1 and 2: per cell the radar (and the runner-up) whose range circle reaches farthest past it
+-- among those covering its terrain, see the coverage shader.
+local function drawAlliedUnion(pass)
 	gl.Clear(GL.COLOR_BUFFER_BIT, 0, 0, 0, 0)
 	gl.Blending(GL.ONE, GL.ONE)
 	gl.BlendEquation(GL.MAX)
 	coverageShader:Activate()
 	coverageShader:SetUniform("coverageAbsolute", 1)
+	coverageShader:SetUniform("alliedCirclePass", pass)
 	local sx, sz = 2 / MAP_CELLS_X, 2 / MAP_CELLS_Z
-	for i = 1, alliedRadarCount do
+	-- the circle around the radar anywhere in its cell reaches up to two cells past the disc, plus the band
+	local slack = pass > 0 and (mathCeil(shaderConfig.ALLIED_CIRCLE_BAND / RADAR_CELL) + 2) or 0
+	for i = 1, (pass > 0) and alliedCircleCount() or alliedRadarCount do
 		local radar = alliedRadars[i]
 		local set = getSet(radar.radius)
 		if set then
-			set.raySSBO:BindBufferRange(RAY_SSBO_BINDING)
+			set.raySSBO:BindBufferRange(SSBO_BINDING)
 			coverageShader:SetUniform("losParams", radar.bx, radar.bz, radar.radius, radar.losHeight)
+			coverageShader:SetUniform("alliedCircle", radar.x, radar.z, radar.range, i - 1)
 			coverageShader:SetUniform(
 				"passRect",
-				(radar.bx - radar.radius) * sx - 1,
-				(radar.bz - radar.radius) * sz - 1,
-				(radar.bx + radar.radius + 1) * sx - 1,
-				(radar.bz + radar.radius + 1) * sz - 1
+				(radar.bx - radar.radius - slack) * sx - 1,
+				(radar.bz - radar.radius - slack) * sz - 1,
+				(radar.bx + radar.radius + 1 + slack) * sx - 1,
+				(radar.bz + radar.radius + 1 + slack) * sz - 1
 			)
 			passVAO:DrawArrays(GL.TRIANGLES)
 		end
 	end
 	coverageShader:SetUniform("coverageAbsolute", 0)
+	coverageShader:SetUniform("alliedCirclePass", 0)
 	coverageShader:SetUniform("passRect", -1, -1, 1, 1)
 	coverageShader:Deactivate()
 	gl.BlendEquation(GL.FUNC_ADD)
@@ -761,23 +841,31 @@ local function rebuildMip(now)
 	return true
 end
 
--- Under global LOS / full view, at most once per COVERAGE_REFRESH_SECONDS: re-renders the allied union when a radar
--- came, went or changed, or the terrain changed under one
-local function updateAlliedUnion(now)
-	if now - alliedUpdatedAt <= COVERAGE_REFRESH_SECONDS then
+-- At most once per COVERAGE_REFRESH_SECONDS (at once when one is missing), re-renders when a radar came, went or
+-- changed, or the terrain changed under one: with `cells` (global LOS / full view, where the engine's radar map covers
+-- everything) the union of the allied radars' coverage, in circle mode their range circles
+local function updateAlliedUnion(now, cells)
+	local circles = settings.circles
+	local missing = (cells and not alliedValid) or (circles and not alliedCirclesValid)
+	if now - alliedUpdatedAt <= COVERAGE_REFRESH_SECONDS and not missing then
 		return
 	end
 	alliedUpdatedAt = now
 	collectAlliedRadars()
-	local changed = not alliedValid or #alliedRendered ~= alliedRadarCount * 4
+	local changed = missing or #alliedRendered ~= alliedRadarCount * 7
 	for i = 1, alliedRadarCount do
-		local radar, k = alliedRadars[i], (i - 1) * 4
+		local radar, k = alliedRadars[i], (i - 1) * 7
 		if
 			changed
 			or radar.bx ~= alliedRendered[k + 1]
 			or radar.bz ~= alliedRendered[k + 2]
 			or radar.radius ~= alliedRendered[k + 3]
 			or radar.losHeight ~= alliedRendered[k + 4]
+			or (circles and (
+				radar.x ~= alliedRendered[k + 5]
+				or radar.z ~= alliedRendered[k + 6]
+				or radar.range ~= alliedRendered[k + 7]
+			))
 			or rectHitsDisc(alliedDirty, radar.bx, radar.bz, radar.radius)
 		then
 			changed = true
@@ -788,17 +876,40 @@ local function updateAlliedUnion(now)
 		return
 	end
 	gl.Texture(0, mipTex)
-	gl.RenderToTexture(alliedTex, drawAlliedUnion)
+	alliedValid = cells
+	if cells then
+		gl.RenderToTexture(alliedTex, drawAlliedUnion, 0)
+	end
+	local circleCount = alliedCircleCount()
+	alliedCirclesValid = circles and reserveAlliedCircles(circleCount)
+	if alliedCirclesValid then
+		local data = alliedCircleData
+		for i = 1, circleCount do
+			local radar, k = alliedRadars[i], (i - 1) * 4
+			data[k + 1], data[k + 2], data[k + 3], data[k + 4] = radar.x, radar.z, radar.range, 0
+		end
+		local floats = mathCeil(circleCount / 4) * 16 -- whole 64 byte elements
+		for k = circleCount * 4 + 1, floats do
+			data[k] = 0
+		end
+		if floats > 0 then
+			alliedCircleSSBO:Upload(data, -1, 0, 1, floats)
+		end
+		gl.RenderToTexture(alliedWinnerTex, drawAlliedUnion, 1)
+		gl.Texture(1, alliedWinnerTex)
+		gl.RenderToTexture(alliedRunnerUpTex, drawAlliedUnion, 2)
+		gl.Texture(1, false)
+	end
 	for i = 1, alliedRadarCount do
-		local radar, k = alliedRadars[i], (i - 1) * 4
+		local radar, k = alliedRadars[i], (i - 1) * 7
 		alliedRendered[k + 1], alliedRendered[k + 2], alliedRendered[k + 3], alliedRendered[k + 4] =
 			radar.bx, radar.bz, radar.radius, radar.losHeight
+		alliedRendered[k + 5], alliedRendered[k + 6], alliedRendered[k + 7] = radar.x, radar.z, radar.range
 	end
-	for i = alliedRadarCount * 4 + 1, #alliedRendered do
+	for i = alliedRadarCount * 7 + 1, #alliedRendered do
 		alliedRendered[i] = nil
 	end
 	alliedDirty.x0, alliedDirty.z0, alliedDirty.x1, alliedDirty.z1 = mathHuge, mathHuge, -mathHuge, -mathHuge
-	alliedValid = true
 end
 
 -- The radar being previewed right now (its radarDefs entry and cmdID), or nil. Evaluated live by every draw
@@ -845,11 +956,13 @@ end
 -- coverage on) that projects it onto the terrain. manualAllied: our own union of the allied radars instead of
 -- the engine's radar map. circleRange: the radar's range (elmos), where its coverage ends in circle mode.
 local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied, circleRange)
+	-- circle mode draws allied coverage once its circles are in place
+	local allied = settings.allied and (alliedCirclesValid or not settings.circles)
 	local x0, z0, x1, z1 = set.bx - set.radius, set.bz - set.radius, set.bx + set.radius, set.bz + set.radius
 	if settings.circles then -- the circle, around the radar anywhere in its cell, can reach two cells past the disc
 		x0, z0, x1, z1 = x0 - 2, z0 - 2, x1 + 2, z1 + 2
 	end
-	if settings.allied then -- allied coverage can be anywhere on the map
+	if allied then -- allied coverage can be anywhere on the map
 		x0, z0, x1, z1 = 0, 0, MAP_CELLS_X - 1, MAP_CELLS_Z - 1
 	end
 	x0, z0 = mathMax(x0, 0), mathMax(z0, 0)
@@ -867,23 +980,27 @@ local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied, circl
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 	gl.Texture(2, set.state[set.cur])
-	if settings.allied then
+	if allied then
 		-- the engine's radar map of our ally team (one texel per radar cell), or our own union of the
 		-- allied radars when the engine map is all-covering (global LOS / spectator full view)
 		gl.Texture(3, manualAllied and alliedTex or "$info:radar")
+		if settings.circles then
+			gl.Texture(4, alliedWinnerTex)
+			gl.Texture(5, alliedRunnerUpTex)
+			alliedCircleSSBO:BindBufferRange(SSBO_BINDING)
+		end
 	end
 	sheetShader:Activate()
 	sheetShader:SetUniform("radarcenter_range", cx, losHeight, cz, range)
-	sheetShader:SetUniform("lookupParams", set.bx, set.bz, set.radius, settings.allied and 1 or 0)
+	sheetShader:SetUniform("lookupParams", set.bx, set.bz, set.radius, allied and 1 or 0)
 	local animations = settings.animations and 1 or 0
 	local sweep = settings.sweep and 1 or 0
 	sheetShader:SetUniform("animParams", now, now - spawnStart, animations, sweep)
-	-- a selected radar is in the allied radar map itself, with its cells reaching past its circle
-	sheetShader:SetUniform("circleParams", settings.circles and 1 or 0, circleRange, selectedRadarUnitID and 1 or 0, 0)
+	sheetShader:SetUniform("circleParams", settings.circles and 1 or 0, circleRange, 0, 0)
 	sheetShader:SetUniform("passRect", left, bottom, right, top)
 	passVAO:DrawArrays(GL.TRIANGLES)
 	sheetShader:Deactivate()
-	for unit = 0, 3 do
+	for unit = 0, 5 do
 		gl.Texture(unit, false)
 	end
 end
@@ -898,14 +1015,15 @@ function widget:DrawWorld()
 		return
 	end
 
-	-- emitter position: the unit's midPos for an existing radar, the build spot + model mid height otherwise
+	-- emitter position: the unit's midPos for an existing radar (its emitter cell and range circle then match its
+	-- entry in the allied coverage exactly), the build spot + model mid height otherwise
 	local midY
 	if selectedRadarUnitID then
-		local x, y, z, _, my = spGetUnitPosition(selectedRadarUnitID, true)
+		local x, y, z, mx, my, mz = spGetUnitPosition(selectedRadarUnitID, true)
 		if not x then
 			return
 		end
-		mousepos = { x, y, z }
+		mousepos = { mx or x, y, mz or z }
 		midY = my or (y + def.midY)
 	else
 		local mx, my = spGetMouseState()
@@ -959,7 +1077,12 @@ function widget:DrawWorld()
 
 	local radius = def.radiusCells
 	local range = radius * RADAR_CELL
-	local cx, cz = mousepos[1], mousepos[3] -- center of the animations
+	local cx, cz = mousepos[1], mousepos[3] -- center of the animations and of the range circle
+	-- circle mode: a selected radar's circle has its current radius, like its entry in the allied coverage
+	local circleRange = selectedRadarUnitID and spGetUnitSensorRadius(selectedRadarUnitID, "radar") or 0
+	if circleRange <= 0 then
+		circleRange = def.range
+	end
 
 	-- frame bookkeeping: a gap in draw frames or a different radar means the preview just (re)appeared
 	local now = osClock()
@@ -995,7 +1118,7 @@ function widget:DrawWorld()
 		or (rebuilt and rectHitsDisc(mipRebuilt, bx, bz, radius))
 	then
 		gl.Texture(0, mipTex)
-		set.raySSBO:BindBufferRange(RAY_SSBO_BINDING)
+		set.raySSBO:BindBufferRange(SSBO_BINDING)
 		coverageShader:Activate()
 		coverageShader:SetUniform("losParams", bx, bz, radius, losHeight)
 		gl.RenderToTexture(set.target, drawPass)
@@ -1020,14 +1143,14 @@ function widget:DrawWorld()
 	end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
-	-- 2b. under global LOS or spectator full view the engine's radar map covers everything, so union the
-	-- coverage of the allied radar units ourselves instead (exact, checked once a second)
+	-- 2b. Circle mode needs each allied radar's range circle and terrain coverage; global LOS / full view also needs
+	-- our own union of their coverage because the engine's radar map covers everything.
 	local manualAllied = false
 	if settings.allied then
 		local _, fullView = spGetSpectatingState()
 		manualAllied = fullView or spGetGlobalLos() or false
-		if manualAllied then
-			updateAlliedUnion(now)
+		if manualAllied or settings.circles then
+			updateAlliedUnion(now, manualAllied)
 		end
 	end
 	-- for DrawInMiniMap, which draws this set (sets[lastRadius], coverage in set.state[set.cur]) in the same frame
@@ -1036,7 +1159,7 @@ function widget:DrawWorld()
 	-- 3. the sheet
 	gl.Texture(0, false)
 	gl.Texture(1, false)
-	drawSheet(set, cx, cz, losHeight, range, now, manualAllied, def.range)
+	drawSheet(set, cx, cz, losHeight, range, now, manualAllied, circleRange)
 end
 
 -- Flat fill of the previewed (and allied) radar coverage on the minimap, outlined at uncovered cells. Also

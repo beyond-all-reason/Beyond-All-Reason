@@ -31,6 +31,8 @@ end
 --  4. Minimap pass (JammerPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
 -- A selected jammer that does not jam right now (switched off, stunned, paused, unpaid or unfinished) still shows
 -- its range, faintly.
+-- Spectators with full view see every allyteam's jammers (gaia's excepted) as allied, as gui_jammed_units.lua
+-- highlights every allyteam's units for them.
 -- Circle mode (SensorPreviewCircles) draws circles at the jammers' ranges instead, shrunk to lie (nearly) all in
 -- jammed cells: the previewed one per pixel, the allied ones from a distance field the disc pass renders.
 -- The pass vertex, smoothing and minimap shaders are shared with gui_sensor_ranges_radar_preview.lua.
@@ -86,7 +88,7 @@ local shaderConfig = {
 	ALLIED_ALPHA = 0.85, -- their opacity relative to the previewed jammer's cells
 	OUTLINE_COLOR = "vec3(1.00, 0.32, 0.22)", -- stippled outline along the border with uncovered radar cells
 	SHEET_ALPHA = 0.17, -- opacity of the sheet
-	SHEET_OUTLINE_ALPHA = 0.66, -- opacity of the dashes of the OUTLINE_COLOR border of the sheet
+	SHEET_OUTLINE_ALPHA = 0.8, -- opacity of the dashes of the OUTLINE_COLOR border of the sheet
 	OUTLINE_GAP_ALPHA = 0.3, -- opacity of that border between its dashes, relative to the dashes
 	OUTLINE_WIDTH = 1.2, -- outline width in pixels at 1080p, scaled with the screen's vertical resolution
 	OUTLINE_WORLD_WIDTH = 0.89, -- elmos added to the outline width, so it gets a little thicker when zoomed in
@@ -132,6 +134,8 @@ local spGetMyAllyTeamID = Spring.GetMyAllyTeamID
 local spGetTeamList = Spring.GetTeamList
 local spGetTeamUnits = Spring.GetTeamUnits
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitSensorRadius = Spring.GetUnitSensorRadius
 local spGetUnitIsActive = Spring.GetUnitIsActive
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
@@ -235,6 +239,8 @@ local alliedSdfTex ---@type string? -- circle mode: distance field of the allied
 local sets = {} ---@type table<number, table|false> -- radius in cells -> textures of the previewed disc
 local jammerUnits = {} ---@type table<UnitID, table> -- units with a radar jammer and their jammerDefs entry, filtered to the local ally team when collected
 local selectedJammerUnitID = false ---@type UnitID|false
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local fullview = false -- spectating with full view: every allyteam's jammers count as allied
 
 -- live values of the JammerPreview* configint settings
 local settings = {
@@ -292,6 +298,8 @@ local minimapFrame = -10
 local minimapSet ---@type table?
 local minimapAllied = false
 local minimapInactive = 0.0
+-- the last draw frame DrawWorld drew coverage, for WG.jammerPreview.isCoverageShown()
+local coverageShownFrame = -10
 
 local passVsPath = "LuaUI/Shaders/sensor_ranges_radar_preview_pass.vert.glsl"
 
@@ -493,12 +501,17 @@ function widget:Update()
 end
 
 local function trackUnit(unitID, unitDefID)
-	jammerUnits[unitID] = jammerDefs[unitDefID]
+	local def = jammerDefs[unitDefID]
+	-- gaia's units are not highlighted as jammed either
+	jammerUnits[unitID] = (def and spGetUnitTeam(unitID) ~= gaiaTeamID) and def or nil
 end
 
 local function scanAlliedUnits()
+	local _, fullView = spGetSpectatingState()
+	fullview = fullView
 	jammerUnits = {}
-	for _, teamID in ipairs(spGetTeamList(spGetMyAllyTeamID()) or {}) do
+	local teams = fullview and spGetTeamList() or spGetTeamList(spGetMyAllyTeamID())
+	for _, teamID in ipairs(teams or {}) do
 		for _, unitID in ipairs(spGetTeamUnits(teamID) or {}) do
 			trackUnit(unitID, spGetUnitDefID(unitID))
 		end
@@ -537,7 +550,8 @@ local function collectAlliedJammers(out, circles)
 	local myAllyTeamID = spGetMyAllyTeamID()
 	local n, mobileCount = 0, 0
 	for unitID, def in pairs(jammerUnits) do
-		if spGetUnitAllyTeam(unitID) ~= myAllyTeamID then -- gone, or given away
+		local allyTeamID = spGetUnitAllyTeam(unitID)
+		if allyTeamID == nil or (allyTeamID ~= myAllyTeamID and not fullview) then -- gone, or given away
 			jammerUnits[unitID] = nil
 		elseif isJamming(unitID) then
 			local range = spGetUnitSensorRadius(unitID, "radarJammer") or 0
@@ -1041,6 +1055,7 @@ function widget:DrawWorld()
 	end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 
+	coverageShownFrame = drawFrame
 	drawSheet(set, showAllied, now)
 	minimapFrame, minimapSet, minimapAllied, minimapInactive = drawFrame, set, showAllied, preview.inactive
 end
@@ -1119,9 +1134,16 @@ function widget:Initialize()
 	readConfig()
 	scanAlliedUnits()
 	widget:SelectionChanged(Spring.GetSelectedUnits())
+	WG.jammerPreview = {
+		-- whether coverage (allied or previewed) was drawn this draw frame or the last one, for gui_jammed_units.lua
+		isCoverageShown = function()
+			return spGetDrawFrame() - coverageShownFrame <= 1
+		end,
+	}
 end
 
 function widget:Shutdown()
+	WG.jammerPreview = nil
 	deleteTextures()
 	for _, shader in ipairs({ discShader, smoothShader, sheetShader, minimapShader }) do
 		shader:Delete()
