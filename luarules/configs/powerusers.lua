@@ -10,6 +10,7 @@ local everything = {
 	-- devhelpers_test = true,	-- desync
 	playerdata = true,
 	waterlevel = true,
+	lavalevel = true,
 	modmarker = true,
 	sysinfo = true,
 	volcano = true,
@@ -21,6 +22,7 @@ local moderator = {
 	devhelpers = false,
 	playerdata = true,
 	waterlevel = false,
+	lavalevel = false,
 	modmarker = true,
 	sysinfo = true,
 	volcano = true,
@@ -34,6 +36,7 @@ local eventmanager = {
 	devhelpers_teams = true, -- playertoteam, killteam
 	playerdata = false,
 	waterlevel = true,
+	lavalevel = true,
 	modmarker = true,
 	sysinfo = false,
 	volcano = true,
@@ -44,22 +47,14 @@ local singleplayer = { -- note: these permissions override others when singlepla
 	cmd = true,
 	devhelpers = true,
 	waterlevel = true,
+	lavalevel = true,
 	modmarker = true,
 	playerdata = true,
 	sysinfo = false,
 	volcano = true,
 }
 
--- Trusted playernames as fallback when accountID is unavailable (-1) This occurs when joining an already running game.
--- Only applied when no accountID-based entry already exists for the player.
-local trustedNames = {
-	["[teh]Flow"] = everything,
-	Floris = everything,
-	PtaQ = everything,
-}
-
 return {
-	trustedNames = trustedNames,
 	[-1] = singleplayer, -- SPECIAL NAME/ADDITION: dont change it
 
 	-- admins
@@ -69,12 +64,11 @@ return {
 	[1214] = everything, -- [teh]Beherith
 	[1172] = everything, -- PtaQ
 	[2260] = everything, -- TarnishedKnight
-	[84658] = everything, -- OPman
-	[51535] = everything, -- Nightmare2512
-	[130329] = everything, -- SethDGamre
+	--[130329] = everything, -- SethDGamre
 	[36669] = everything, -- Steel
-	[197109] = everything, -- Gabba_Gandalf
 	[57158] = everything, -- Endorphins
+	[4102] = everything, -- KayZee
+	[591000] = everything, -- krolya
 
 	-- moderator
 	[3] = moderator, -- Teifion
@@ -87,11 +81,12 @@ return {
 	[21114] = moderator, -- [FH]Amojini
 	[168817] = moderator, -- SongbirdOfChirping
 	[88808] = moderator, -- Shadowisperke
-	[591000] = moderator, -- krolya
-	[4102] = moderator, -- KayZee
+	[197109] = moderator, -- Gabba_Gandalf
 
 	-- event manager
 	[132545] = eventmanager, -- Praedyth (KOTH organizer)
 	[136110] = eventmanager, -- TANKTOM (KOTH organizer)
 	[78506] = eventmanager, -- Twig (KOTH organizer)
+	[51535] = eventmanager, -- Nightmare2512
+	--[84658] = eventmanager, -- OPman
 }

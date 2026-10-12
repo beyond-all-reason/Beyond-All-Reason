@@ -11,7 +11,7 @@ local windmax = Game.windMax
 local fullcyclelength = math.ceil(mapsizex + mapsizez) * 2
 local nightlength = math.ceil(fullcyclelength * 0.66) -- % of the cycle at which night begins and stays until the end of cycle
 
-VFS.Include("luarules/configs/map_biomes.lua")
+require("luarules/configs/map_biomes")
 
 local currentMapname = Game.mapName:lower()
 for i = 1, #snowKeywords do

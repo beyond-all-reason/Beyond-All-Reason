@@ -31,6 +31,7 @@ return {
 		turnrate = 368,
 		usepiececollisionvolumes = 1,
 		customparams = {
+			hasdeathanimation = true,
 			model_author = "Tharsis",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 1,

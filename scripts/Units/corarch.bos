@@ -2,7 +2,8 @@
 #include "../recoil_common_includes.h"
 
 piece  rflare, lflare, flarea, flareb, base, boxb, boxa, turret,
-       turreta, turretb, wake, rbarrel, lbarrel, sleeve ;
+       turreta, turretb, wake, rbarrel, lbarrel, sleeve ,
+       basefirepoint;
 
 static-var  gun_3, restore_delay, gun_2, oldHead, aimDir1;
 
@@ -169,7 +170,7 @@ AimFromWeapon3(pieceIndex)
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = basefirepoint;
 }
 
 QueryWeapon2(pieceIndex)

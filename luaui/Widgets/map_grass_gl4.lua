@@ -101,6 +101,7 @@ local grassConfig = {
 		FADEEND = 8000, --distance at which grass completely fades out
 		SHADOWFACTOR = 0.25, -- how much shadowed grass gets darkened, lower values mean more shadows
 		HASSHADOWS = 1, -- 0 for disable, no real difference in this (does not work yet)
+		SHADOWTAPS = 4, -- shadow map taps per grass vertex: 1 (hardware filtered) or 4 (the original cross pattern, softer shadow edge on the blades, 3 more fetches per vertex)
 		GRASSBRIGHTNESS = 1.0, -- this is for future dark mode
 		COMPACTVBO = 1, -- if set to 1, then the grass patch vbo will be compacted to 8 vertices per patch, otherwise it will be 17 vertices per patch
 		UNITBENDENABLED = 1, -- 1 to enable grass bending away from units, 0 to disable
@@ -275,7 +276,6 @@ local grassVAO = nil
 local grassShader = nil
 local grassVertexShaderDebug = ""
 local grassFragmentShaderDebug = ""
-local grassPatchCount = 0
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -291,7 +291,7 @@ local removeUnitGrassQueue = {}
 
 local buildingRadius = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if (unitDef.isBuilding or string.find(unitDef.name, "nanotc")) and unitDef.radius > 18 then
+	if (unitDef.isBuilding or unitDef.customParams.isnanoturret) and unitDef.radius > 18 then
 		buildingRadius[unitDefID] = unitDef.radius
 	end
 end
@@ -459,7 +459,7 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 		{ id = 6, name = "pieceindex", size = 1 },
 	} --khm, this should be unsigned int
 
-	local VBOData = VFS.Include("LuaUI/Include/grassPatches.lua")
+	local VBOData = require("luaui/Include/grassPatches")
 
 	if grassPatchSize == 1 then
 		grassPatchVBOsize = 36
@@ -575,33 +575,6 @@ local function makeGrassPatchVBO(grassPatchSize) -- grassPatchSize = 1|4, see th
 	grassPatchIndexVBO:Upload(indexList)
 
 	grassPatchVBO:Upload(uniqueVBOData)
-end
-
-local function fsrand(a, b) -- fast, repeatable random vec2
-	local s = math.sin((a * 12.9898 + b * 78.233))
-	return math.fract(s * 43758.5453), math.fract(s * 41758.5453)
-end
-
-local function testForGrass(mx, mz)
-	if grassConfig.obeyGrassMap then
-		if spGetGrass(mx, mz) == 1 then
-			return spGetGroundHeight(mx, mz)
-		else
-			return nil
-		end
-	else
-		local gx, gy, gz, gs = Spring.GetGroundNormal(mx, mz)
-		local gh = spGetGroundHeight(mx, mz)
-		if
-			(gh > grassConfig.grassMinHeight)
-			and (gh < grassConfig.grassMaxHeight)
-			and (gy > grassConfig.grassMaxSlope)
-		then
-			return gh
-		else
-			return nil
-		end
-	end
 end
 
 local function mapHasSMFGrass() -- returns 255 is SMF has no grass, 0 if map has no grass, 1 if map has old style binary grass, 2<=  <=254 if map has new style uint grass
@@ -786,7 +759,6 @@ local function clearGeothermalGrass()
 	if WG.resource_spot_finder then
 		local spots = WG.resource_spot_finder.geoSpotsList
 		if spots then
-			local maxValue = 15
 			for i = 1, #spots do
 				local spot = spots[i]
 				adjustGrass(
@@ -1157,7 +1129,6 @@ local function buildGrassTiles(cols, rows, sampleFn, jitter)
 			tileCount[tile] = offset - tileOffset[tile]
 		end
 	end
-	grassPatchCount = offset
 end
 
 local function LoadGrassTGA(filename)
@@ -1723,6 +1694,10 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("cleargrass")
 	widgetHandler:RemoveAction("savegrassconfig")
 	widgetHandler:RemoveAction("dumpgrassshaders")
+	if type(grassShader) == "table" then
+		grassShader:Finalize()
+		grassShader = nil
+	end
 end
 
 function widget:SetConfigData(data)

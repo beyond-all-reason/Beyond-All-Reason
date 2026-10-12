@@ -7,7 +7,7 @@ local before = marker
 ---@diagnostic disable-next-line: undefined-global
 if not alreadyNested then
 	local nested = setmetatable({ marker = "inner", alreadyNested = true }, { __index = _G })
-	VFS.Include("spec/fixtures/reentrant_include.lua", nested)
+	require("spec/fixtures/reentrant_include", nested)
 end
 
 return {

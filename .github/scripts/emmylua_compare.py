@@ -616,6 +616,8 @@ def main():
     delta_ceiling = int(
         args.warn_total_per_kloc * args.changed_file_lines_delta / 1000.0
     )
+    # A negative delta would mean shrinking a file requires fixing type warnings.
+    delta_ceiling = max(0, delta_ceiling)
     budget = {
         "added": added,
         "resolved": resolved,

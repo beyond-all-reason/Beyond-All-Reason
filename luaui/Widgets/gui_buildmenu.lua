@@ -25,7 +25,7 @@ local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 
 include("keysym.h.lua")
-local unitBlocking = VFS.Include("luaui/Include/unitBlocking.lua")
+local dynamicBuildOptions = require("common/dynamicBuildOptions")
 
 local pairs = pairs
 local ipairs = ipairs
@@ -110,7 +110,6 @@ local costOverrides = {}
 -- New state variables for the robust update system
 local selectionUpdateTime = 0 -- Time-based debouncer for selection changes
 local raceConditionUpdateCountdown = 0 -- Timer for race conditions
-local blockedUnitsUpdateCounter = 0 -- Counter for periodic blocked units update
 local forceRefreshNextFrame = false -- The failsafe retry flag
 local refreshRetryCounter = 0 -- Failsafe counter to prevent infinite retries
 --[[ MODIFICATION END ]]
@@ -130,7 +129,7 @@ local advplayerlistLeft = vsx * 0.8
 local ui_opacity = Spring.GetConfigFloat("ui_opacity", 0.7)
 local ui_scale = Spring.GetConfigFloat("ui_scale", 1)
 
-local units = VFS.Include("luaui/configs/unit_buildmenu_config.lua")
+local units = require("luaui/configs/unit_buildmenu_config")
 
 local isSpec = spGetSpectatingState()
 local myTeamID = spGetMyTeamID()
@@ -184,6 +183,7 @@ local activeCmdDescsCacheDelay = 0.05 -- Cache for 50ms
 
 local unitName = {}
 local unitBuildOptions = {}
+local unitBuildOptionSet = {} -- unitDefID -> { buildOptionDefID = true }
 local unitMetal_extractor = {}
 local unitTranslatedHumanName = {}
 local unitTranslatedTooltip = {}
@@ -191,11 +191,12 @@ local iconTypes = {}
 local function refreshUnitDefs()
 	unitName = {}
 	unitBuildOptions = {}
+	unitBuildOptionSet = {}
 	unitMetal_extractor = {}
 	unitTranslatedHumanName = {}
 	unitTranslatedTooltip = {}
 	iconTypes = {}
-	local orgIconTypes = VFS.Include("gamedata/icontypes.lua")
+	local orgIconTypes = require("gamedata/icontypes")
 	for udid, ud in pairs(UnitDefs) do
 		unitName[udid] = ud.name
 		unitBuildOptions[udid] = ud.buildOptions
@@ -207,6 +208,14 @@ local function refreshUnitDefs()
 		if ud.iconType and orgIconTypes[ud.iconType] and orgIconTypes[ud.iconType].bitmap then
 			iconTypes[ud.name] = orgIconTypes[ud.iconType].bitmap
 		end
+	end
+	dynamicBuildOptions.apply(unitBuildOptions)
+	for udid, buildOptions in pairs(unitBuildOptions) do
+		local set = {}
+		for i = 1, #buildOptions do
+			set[buildOptions[i]] = true
+		end
+		unitBuildOptionSet[udid] = set
 	end
 end
 
@@ -249,6 +258,26 @@ local function getCachedActiveCmdDescs()
 		cachedActiveCmdDescsTime = now
 	end
 	return cachedActiveCmdDescs
+end
+
+---Greyed out when blocked for the team, or for every selected builder type that offers it.
+local function isUnitRestricted(uDefID)
+	if preGamestartPlayer then
+		return units.isRestricted(uDefID, startDefID)
+	end
+	if units.unitRestricted[uDefID] then
+		return true
+	end
+	local anyBlocked = false
+	for builderDefID in pairs(currentSelBuilderDefs) do
+		local blocked = units.builderUnitRestricted[builderDefID]
+		if blocked and blocked[uDefID] then
+			anyBlocked = true
+		elseif unitBuildOptionSet[builderDefID][uDefID] then
+			return false -- a selected builder of another type can still build it
+		end
+	end
+	return anyBlocked
 end
 
 local function clearBuildmenuUnitpicWarmQueue()
@@ -708,7 +737,6 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 end
 
 local sec = 0
-local prevSelBuilderDefs = {}
 function widget:Update(dt)
 	tracy.ZoneBeginN("W:BuildMenu:Update")
 	if delayRefresh and spGetGameSeconds() >= delayRefresh then
@@ -868,9 +896,27 @@ function drawBuildmenuBg()
 	)
 end
 
+-- The player queue vs the widget-provided queue have different accounting due to quota mode.
+-- cellQuotas contains the live count from the widget, which we should remove from the total.
+local function getPlayerQueueCount(cellRectID, uDefID)
+	local queueCount = tonumber(cmds[cellRectID].params[1])
+	if not queueCount then
+		return nil
+	end
+	local quotaInfo = cellQuotas[uDefID]
+	if quotaInfo and WG.Quotas then
+		queueCount = queueCount - WG.Quotas.getQuotaOrderCount(quotaInfo.builderID, uDefID)
+	end
+	if queueCount < 1 then
+		return nil
+	end
+	return queueCount
+end
+
 local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruction)
 	tracy.ZoneBeginN("W:BuildMenu:DrawCell")
 	local uDefID = -cmds[cellRectID].id
+	local queueCount = getPlayerQueueCount(cellRectID, uDefID)
 	local unitTexture = "#" .. uDefID
 	local cellRect = cellRects[cellRectID]
 	if not cellRect then
@@ -927,7 +973,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 				and (groups[units.unitGroup[uDefID]] and ":l" .. texprefix .. ":" .. groups[units.unitGroup[uDefID]] or nil)
 			or nil,
 		{ units.unitMetalCost[uDefID], units.unitEnergyCost[uDefID] },
-		tonumber(cmds[cellRectID].params[1])
+		queueCount
 	)
 	tracy.ZoneEnd()
 
@@ -1058,9 +1104,9 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 	end
 
 	-- factory queue number
-	if cmds[cellRectID].params[1] then
+	if queueCount then
 		local pad = math_floor(cellInnerSize * 0.03)
-		local textWidth = math_floor(font2:GetTextWidth(cmds[cellRectID].params[1] .. "  ") * cellInnerSize * 0.285)
+		local textWidth = math_floor(font2:GetTextWidth(queueCount .. "  ") * cellInnerSize * 0.285)
 		local pad2 = 0
 		RectRound(
 			cellRects[cellRectID][3] - cellPadding - iconPadding - textWidth - pad2,
@@ -1102,7 +1148,7 @@ local function drawCell(cellRectID, usedZoom, cellColor, disabled, underConstruc
 			{ 1, 1, 1, 0.1 }
 		)
 		font2:Print(
-			"\255\190\255\190" .. cmds[cellRectID].params[1],
+			"\255\190\255\190" .. queueCount,
 			cellRects[cellRectID][1] + cellPadding + math_floor(cellInnerSize * 0.96) - pad2,
 			cellRects[cellRectID][2] + cellPadding + math_floor(cellInnerSize * 0.735) - pad2,
 			cellInnerSize * 0.29,
@@ -1313,7 +1359,7 @@ function drawBuildmenu()
 					cellRectID,
 					usedZoom,
 					cellIsSelected and { 1, 0.85, 0.2, 0.25 } or nil,
-					units.unitRestricted[uDefIDCell],
+					isUnitRestricted(uDefIDCell),
 					selectedFactoryCount > 0 and not finishedBuildable[uDefIDCell]
 				)
 			then
@@ -1569,12 +1615,12 @@ function widget:DrawScreen()
 						local uDefID = -cmd.id
 						WG.buildmenu.hoverID = uDefID
 						gl.Color(1, 1, 1, 1)
-						local alt, ctrl, meta, shift = Spring.GetModKeyState()
+						local _, _, meta, _ = Spring.GetModKeyState()
 						if WG.tooltip and not meta then
 							-- when meta: unitstats does the tooltip
 							local text
 							local textColor = "\255\215\255\215"
-							if units.unitRestricted[uDefID] then
+							if isUnitRestricted(uDefID) then
 								text = BAR.I18N("ui.buildMenu.disabled", {
 									unit = unitTranslatedHumanName[uDefID],
 									textColor = textColor,
@@ -1766,7 +1812,7 @@ function widget:DrawScreen()
 								end
 								cellColor = { 1, 0.85, 0.2, 0.25 }
 							end
-							if not units.unitRestricted[uDefID] then
+							if not isUnitRestricted(uDefID) then
 								local unsetShowPrice
 								if not showPrice then
 									unsetShowPrice = true
@@ -1775,7 +1821,7 @@ function widget:DrawScreen()
 
 								-- re-draw cell with hover zoom (and price shown)
 								font2:Begin(true)
-								drawCell(hoveredCellID, usedZoom, cellColor, units.unitRestricted[uDefID])
+								drawCell(hoveredCellID, usedZoom, cellColor, isUnitRestricted(uDefID))
 								font2:End()
 
 								if unsetShowPrice then
@@ -2016,7 +2062,7 @@ function widget:MousePress(x, y, button)
 						and cmds[cellRectID].id
 						and unitTranslatedHumanName[-cmds[cellRectID].id]
 						and math_isInRect(x, y, cellRect[1], cellRect[2], cellRect[3], cellRect[4])
-						and not units.unitRestricted[-cmds[cellRectID].id]
+						and not isUnitRestricted(-cmds[cellRectID].id)
 					then
 						local uDefID = cmds[cellRectID].id --WARNING: THIS IS -unitDefID, not unitDefID
 						local setQuotas = isOnQuotaBuildMode(-uDefID)
@@ -2040,7 +2086,8 @@ function widget:MousePress(x, y, button)
 								end
 							end
 						else
-							local queueCount = tonumber(cmds[cellRectID].params[1] or 0)
+							-- Ignores the count from the quota widget.
+							local queueCount = getPlayerQueueCount(cellRectID, -uDefID) or 0
 
 							local function decreaseQuota()
 								if changeQuotas(-uDefID, modKeyMultiplier.right) and playSounds then
@@ -2101,7 +2148,7 @@ local function buildUnitHandler(_, _, _, data)
 	if not preGamestartPlayer then
 		return
 	end
-	if units.unitRestricted[data.unitDefID] then
+	if isUnitRestricted(data.unitDefID) then
 		return
 	end
 
@@ -2156,7 +2203,7 @@ local function buildUnitHandler(_, _, _, data)
 			local uDefName = string_sub(keybind.command, 11)
 			local uDef = UnitDefNames[uDefName]
 			if uDef then -- prevents crashing when trying to access unloaded units (legion)
-				if comBuildOptions[unitName[startDefID]][uDef.id] and not units.unitRestricted[uDef.id] then
+				if comBuildOptions[unitName[startDefID]][uDef.id] and not isUnitRestricted(uDef.id) then
 					buildCycleCount = buildCycleCount + 1
 					buildCycleTemp[buildCycleCount] = uDef.id
 				end
@@ -2230,18 +2277,21 @@ local function bindBuildUnits(widget)
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(widget, CMD.BUILD)
+	widgetHandler:RegisterUnitCommand(widget, CMD_STOP_PRODUCTION)
 	refreshUnitDefs()
-
-	local blockedUnitsData = unitBlocking.getBlockedUnitDefs()
-	for unitDefID, reasons in pairs(blockedUnitsData) do
-		units.unitRestricted[unitDefID] = next(reasons) ~= nil
-		units.unitHidden[unitDefID] = reasons.hidden ~= nil
-	end
+	units.loadBlocked()
 
 	if widgetHandler:IsWidgetKnown("Grid menu") then
 		-- Grid menu needs to be disabled right now and before we recreate
 		-- WG['buildmenu'] since its Shutdown will destroy it.
 		widgetHandler:DisableWidgetRaw("Grid menu")
+	end
+
+	-- If mission disables the initial commander spawn, suppress the entire pregame build path (build menu, startDefID binding, buildmenuShows = true, etc.)
+	if preGamestartPlayer then
+		local missionOptions = require("luaui/Include/mission_options")
+		preGamestartPlayer = not missionOptions.IsStartUnitSpawnDisabled()
 	end
 
 	-- Get our starting unit
@@ -2356,7 +2406,7 @@ function widget:Initialize()
 	---@field bottom CostLine?
 
 	---Override the cost display for a specific unit in the build menu
-	---@param unitDefID number The unit definition ID to override costs for
+	---@param unitDefID UnitDefID The unit definition ID to override costs for
 	---@param costData CostData Cost override configuration table with optional properties
 	WG.buildmenu.setCostOverride = function(unitDefID, costData)
 		if unitDefID and costData then
@@ -2366,7 +2416,7 @@ function widget:Initialize()
 	end
 
 	---Clear cost overrides for a specific unit or all units
-	---@param unitDefID number? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
+	---@param unitDefID UnitDefID? The unit definition ID to clear overrides for. If nil or not provided, clears all cost overrides.
 	WG.buildmenu.clearCostOverrides = function(unitDefID)
 		if unitDefID then
 			costOverrides[unitDefID] = nil
@@ -2381,7 +2431,7 @@ function widget:Initialize()
 	---Highlight a build option to draw the player's attention to it with a pulsing
 	---inner outline and a soft inner glow. Non-destructive: does not affect input or
 	---block hover/selection visuals. Subsequent calls update the existing highlight.
-	---@param unitDefID number The unit definition ID to highlight.
+	---@param unitDefID UnitDefID The unit definition ID to highlight.
 	---@param color number[]? Optional {r,g,b} in 0..1. Defaults to a warm yellow.
 	WG.buildmenu.setHighlight = function(unitDefID, color)
 		if not unitDefID then
@@ -2397,7 +2447,7 @@ function widget:Initialize()
 	end
 
 	---Remove a highlight previously set via setHighlight.
-	---@param unitDefID number
+	---@param unitDefID UnitDefID
 	WG.buildmenu.removeHighlight = function(unitDefID)
 		if unitDefID and highlights[unitDefID] then
 			highlights[unitDefID] = nil
@@ -2414,18 +2464,29 @@ function widget:Initialize()
 	end
 
 	---Returns true if there is an active highlight for the given unitDefID.
-	---@param unitDefID number
+	---@param unitDefID UnitDefID
 	---@return boolean
 	WG.buildmenu.hasHighlight = function(unitDefID)
 		return unitDefID ~= nil and highlights[unitDefID] ~= nil
 	end
 end
 
-function widget:UnitBlocked(unitDefID, reasons)
-	units.unitRestricted[unitDefID] = next(reasons) ~= nil
-	units.unitHidden[unitDefID] = reasons.hidden ~= nil
+function widget:UnitBlocked(unitDefID, reasons, builderUnitDefID)
+	units.setBlocked(unitDefID, reasons, builderUnitDefID)
 	if not delayRefresh or delayRefresh < spGetGameSeconds() then
 		delayRefresh = spGetGameSeconds() + 0.5 -- delay so multiple sequential UnitBlocked calls are batched in a single update.
+	end
+end
+
+function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
+	local buildOptions = unitBuildOptions[builderUnitDefID]
+	if buildOptions then
+		dynamicBuildOptions.patch(buildOptions, builtUnitDefID, added)
+		unitBuildOptionSet[builderUnitDefID][builtUnitDefID] = added or nil
+	end
+	if currentSelBuilderDefs[builderUnitDefID] then
+		cachedActiveCmdDescs = nil
+		doUpdate = true
 	end
 end
 

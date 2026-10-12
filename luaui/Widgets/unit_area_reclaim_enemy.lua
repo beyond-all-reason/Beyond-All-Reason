@@ -15,17 +15,11 @@ local allyTeam = Spring.GetLocalAllyTeamID()
 
 -- Speedups
 
-local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spTraceScreenRay = Spring.TraceScreenRay
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spGetUnitCmdDescs = Spring.GetUnitCmdDescs
 local spGetUnitPosition = Spring.GetUnitPosition
-
-local reclaimEnemy = Game.reclaimAllowEnemies
 
 local CMD_RECLAIM = CMD.RECLAIM
 
@@ -57,8 +51,8 @@ function widget:CommandNotify(id, params, options)
 
 	local cx, cy, cz, cr = unpack(params)
 
-	local mx, my, mz = spWorldToScreenCoords(cx, cy, cz)
-	local cType, id = spTraceScreenRay(mx, my)
+	local mx, my, _ = spWorldToScreenCoords(cx, cy, cz)
+	local cType, _ = spTraceScreenRay(mx, my)
 
 	if not (cType == "unit" or cType == "ground") then
 		return

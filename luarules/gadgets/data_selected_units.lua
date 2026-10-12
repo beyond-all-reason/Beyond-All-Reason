@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local SelectionProtocol = assert(VFS.Include("common/selected_units_protocol.lua"))
+local SelectionProtocol = assert(require("common/selected_units_protocol"))
 
 local baseUpdateDelay = 0.1 -- start with 4 players
 local maxUpdateDelay = 0.4 -- (0.4 currently reached when 128 players)

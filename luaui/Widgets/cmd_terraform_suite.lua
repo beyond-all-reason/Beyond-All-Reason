@@ -36,6 +36,7 @@ local SUITE_WIDGETS = {
 	"Terraform Brush Capture",
 	"Weather Brush",
 	"Water Type Overlay GL4",
+	"Terraform Image Overlay",
 	"Terraformer Shared RmlUi Helpers",
 	"Terraform Brush UI",
 	"Decal Placer UI",
@@ -44,6 +45,7 @@ local SUITE_WIDGETS = {
 	"Weather Brush UI",
 	"Map Labels UI",
 	"Map Project",
+	"Map Transform",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions

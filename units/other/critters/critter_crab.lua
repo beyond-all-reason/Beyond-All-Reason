@@ -49,6 +49,7 @@ return {
 		upright = false,
 		workertime = 0,
 		customparams = {
+			iscritter = true,
 			paralyzemultiplier = 0,
 			nohealthbars = true,
 			subfolder = "other/critters",

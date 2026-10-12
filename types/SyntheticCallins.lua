@@ -18,13 +18,13 @@
 ---Runs for every unit gained by a team, regardless of how it was gained.
 ---
 ---Dispatch: g:UnitCreated, g:UnitGiven.
----@field MetaUnitAdded? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---@field MetaUnitAdded? fun(self, unitID: UnitID, unitDefID: UnitDefID, unitTeam: TeamID)
 ---
 ---
 ---Runs for every unit lost to a team, regardless of how it was lost.
 ---
 ---Dispatch: g:UnitDestroyed, g:UnitTaken.
----@field MetaUnitRemoved? fun(self, unitID: integer, unitDefID: integer, unitTeam: integer)
+---@field MetaUnitRemoved? fun(self, unitID: UnitID, unitDefID: UnitDefID, unitTeam: TeamID)
 ---
 ---
 ---Optionally replaces the autotarget search radius for a unit's command AI.
@@ -32,7 +32,7 @@
 ---Any return value of zero or less discontinues the chain and prevents the search.
 ---
 ---Dispatch: g:AllowWeaponTarget (with target and weapon args both equal to -1)
----@field UnitAutoTargetRange? fun(self, attackerID: integer, autoTargetRange: number): number
+---@field UnitAutoTargetRange? fun(self, attackerID: UnitID, autoTargetRange: number): number
 ---
 ---
 ---Runs for every unit that received a build step.
@@ -40,7 +40,7 @@
 ---
 ---Mark: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost.
----@field UnitBuildStepPost? fun(self, unitID: integer)
+---@field UnitBuildStepPost? fun(self, unitID: UnitID)
 ---
 ---
 ---Runs for every feature that received a build step.
@@ -48,7 +48,7 @@
 ---
 ---Mark: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
----@field FeatureBuildStepPost? fun(self, featureID: integer)
+---@field FeatureBuildStepPost? fun(self, featureID: FeatureID)
 ---
 ---
 ---Runs for every unit that received a build step, with the sum of its steps.
@@ -60,7 +60,7 @@
 ---
 ---Accumulate: g:AllowUnitBuildStep, GG.AccumulateUnitBuildStep.
 ---Dispatch: g:GameFramePost.
----@field UnitBuildStepTotal? fun(self, unitID: integer, part: number)
+---@field UnitBuildStepTotal? fun(self, unitID: UnitID, part: number)
 ---
 ---
 ---Runs for every feature that received a build step, with the sum of its steps.
@@ -72,7 +72,7 @@
 ---
 ---Accumulate: g:AllowFeatureBuildStep, GG.AccumulateFeatureBuildStep.
 ---Dispatch: g:GameFramePost.
----@field FeatureBuildStepTotal? fun(self, featureID: integer, part: number)
+---@field FeatureBuildStepTotal? fun(self, featureID: FeatureID, part: number)
 ---
 ---
 ---Runs for every unit that ran out of work, or that found some again.
@@ -83,4 +83,4 @@
 ---
 ---Mark: g:UnitIdle, g:UnitCommand, g:UnitTaken, g:UnitDestroyed.
 ---Dispatch: g:GameFramePost.
----@field UnitIdlePost? fun(self, unitID: integer, idled: boolean)
+---@field UnitIdlePost? fun(self, unitID: UnitID, idled: boolean)

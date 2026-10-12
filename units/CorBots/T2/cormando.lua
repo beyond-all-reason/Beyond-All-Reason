@@ -53,10 +53,13 @@ return {
 		},
 		customparams = {
 			fall_damage_multiplier = 0,
+			mine_resistant = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paralyzemultiplier = 0.2,
 			paratrooper = true,
+			reaimtime = 2,
+			stealths_transport = true,
 			subfolder = "CorBots/T2",
 			techlevel = 2,
 			unitgroup = "buildert2",

@@ -59,7 +59,6 @@ return {
 		drawtype = 0,
 		selectable = false,
 		blocking = false,
-		yardmap = "o",
 
 		canstop = false,
 		canpatrol = false,

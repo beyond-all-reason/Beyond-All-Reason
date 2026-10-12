@@ -23,6 +23,8 @@ local spGetViewGeometry = Spring.GetViewGeometry
 
 local draftMode = Spring.GetModOptions().draft_mode
 
+local isStartUnitSpawnDisabled = require("luaui/Include/mission_options").IsStartUnitSpawnDisabled()
+
 local vsx, vsy = spGetViewGeometry()
 
 local uiScale = (0.7 + (vsx * vsy / 6500000))
@@ -64,7 +66,6 @@ local buttonH = mathFloor(orgbuttonH * uiScale / 2) * 2
 local buttonList, buttonHoverList
 local buttonText = ""
 local buttonDrawn = false
-local lockText = ""
 local locked = false
 local isReadyBlocked = false
 local readyBlockedConditions = {}
@@ -103,9 +104,7 @@ local teamStartPositions = {}
 local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
-local uiLockRect = { 0, 0, 0, 0 }
 local buttonRect = { 0, 0, 0, 0 }
-local lockRect = { 0, 0, 0, 0 }
 local blinkButton = false
 
 local function createButton()
@@ -215,7 +214,7 @@ end
 
 local ihavejoined = false
 function widget:GameSetup(state, ready, playerStates)
-	local spec, fullview = Spring.GetSpectatingState()
+	local spec, _ = Spring.GetSpectatingState()
 	-- sends a "I arrived" message
 	-- NOTE: Spring.GetGameRulesParam("player_" .. Spring.GetMyPlayerID() .. "_joined") seems to be always nil!
 	if
@@ -519,6 +518,10 @@ end
 
 function widget:DrawWorld()
 	if not WG.StopDrawUnitShapeGL4 then
+		return
+	end
+
+	if isStartUnitSpawnDisabled then
 		return
 	end
 

@@ -49,6 +49,7 @@ return {
 		yardmap = "oooo oooo oooo oooo",
 		customparams = {
 			subfolder = "other/raptors",
+			israptor = true,
 			model_author = "LathanStanley, Beherith",
 			normalmaps = "yes",
 			normaltex = "unittextures/chicken_l_normals.png",

@@ -41,6 +41,7 @@ return {
 			unitgroup = "aa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
+			reaimtime = 5,
 			subfolder = "Legion/Air/T2 Air",
 			techlevel = 2,
 			attacksafetydistance = 300,
@@ -95,9 +96,6 @@ return {
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 1600,
-				customparams = {
-					noattackrangearc = 1,
-				},
 				damage = {
 					commanders = 8,
 					default = 24,

@@ -22,7 +22,6 @@ local mathRandom = math.random
 -- Localized Spring API for performance
 local spGetGameFrame = Spring.GetGameFrame
 local spGetMouseState = Spring.GetMouseState
-local spEcho = Spring.Echo
 local spGetViewGeometry = Spring.GetViewGeometry
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetConfigInt = Spring.GetConfigInt
@@ -52,8 +51,6 @@ Spring.CreateDir("music/custom/menu")
 ----------------------------------------------------------------------
 
 local showGUI = true
-local minSilenceTime = 30
-local maxSilenceTime = 120
 local warLowLevel = 1000
 local warHighLevel = 32500
 local warMeterResetTime = 40 -- seconds
@@ -68,7 +65,6 @@ local function applySpectatorThresholds()
 	warLowLevel = warLowLevel * 1.5
 	warHighLevel = warHighLevel * 1.5
 	appliedSpectatorThresholds = true
-	--spEcho("[Music Player] Spectator mode enabled")
 end
 
 if spGetSpectatingState() or Spring.IsReplay() then
@@ -423,28 +419,6 @@ local function ReloadMusicPlaylists()
 	eventWarHighTracks = shuffleMusic(eventWarHighTracks)
 	bonusTracks = shuffleMusic(bonusTracks)
 
-	-- spEcho("----- MUSIC PLAYER PLAYLIST -----")
-	-- spEcho("----- peaceTracks -----")
-	-- for i = 1,#peaceTracks do
-	-- 	spEcho(peaceTracks[i])
-	-- end
-	-- spEcho("----- warlowTracks -----")
-	-- for i = 1,#warlowTracks do
-	-- 	spEcho(warlowTracks[i])
-	-- end
-	-- spEcho("----- warhighTracks -----")
-	-- for i = 1,#warhighTracks do
-	-- 	spEcho(warhighTracks[i])
-	-- end
-	-- spEcho("----- gameoverTracks -----")
-	-- for i = 1,#gameoverTracks do
-	-- 	spEcho(gameoverTracks[i])
-	-- end
-	-- spEcho("----- bossFightTracks -----")
-	-- for i = 1,#bossFightTracks do
-	-- 	spEcho(bossFightTracks[i])
-	-- end
-
 	if #peaceTracks > 1 then
 		peaceTracksPlayCounter = mathRandom(#peaceTracks)
 	else
@@ -515,7 +489,6 @@ end
 local currentTrackList = peaceTracks
 local currentTrackListString = "intro"
 
-local defaultMusicVolume = 50
 local warMeter = 0
 local warMeterResetTimer = 0
 local gameOver = false
@@ -566,7 +539,6 @@ local glTexRect = gl.TexRect
 local glTexture = gl.Texture
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
-local glCallList = gl.CallList
 
 local glBlending = gl.Blending
 local GL_SRC_ALPHA = GL.SRC_ALPHA
@@ -642,10 +614,6 @@ local function updateFade()
 			fadeDirection = nil
 		end
 	end
-end
-
-local function getSliderWidth()
-	return mathFloor((4.5 * widgetScale) + 0.5)
 end
 
 local function capitalize(text)
@@ -820,10 +788,6 @@ local function refreshUiDrawing()
 	local padding = mathFloor(1.5 * widgetScale) -- button background margin
 	local padding2 = mathFloor(2.5 * widgetScale) -- inner icon padding
 	local heightoffset = -mathFloor(0.9 * widgetScale)
-	local textsize = 11 * widgetScale
-	local textXPadding = 10 * widgetScale
-	--local maxTextWidth = right-buttons['playpause'][3]-textXPadding-textXPadding
-	local maxTextWidth = right - textXPadding - textXPadding
 
 	buttons.playpause = {
 		left + padding + padding,

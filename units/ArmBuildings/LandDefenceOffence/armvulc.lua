@@ -31,6 +31,7 @@ return {
 			buildinggrounddecalsizex = 7.5,
 			buildinggrounddecalsizey = 7.5,
 			buildinggrounddecaltype = "decals/armvulc_aoplane.dds",
+			islrpc = true,
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,

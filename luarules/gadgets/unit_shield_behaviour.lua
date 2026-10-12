@@ -14,7 +14,7 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
----@alias ShieldPreDamagedCallback fun(projectileID:integer, attackerID:integer, shieldWeaponIndex:integer, shieldUnitID:integer, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:integer?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
+---@alias ShieldPreDamagedCallback fun(projectileID:ProjectileID, attackerID:UnitID, shieldWeaponIndex:integer, shieldUnitID:UnitID, bounceProjectile:boolean, beamWeaponIndex:integer?, beamUnitID:UnitID?, startX:number?, startY:number?, startZ:number?, hitX:number, hitY:number, hitZ:number): boolean? (default := `false`)
 
 local mathMax = math.max
 local mathMin = math.min
@@ -43,6 +43,43 @@ local function registerScriptedShieldEntry(projectileTbl, callback)
 		end
 	elseif callback then
 		scriptedShieldEntries[#scriptedShieldEntries + 1] = { projectileTbl, callback }
+	end
+end
+
+-- Shield attributes
+
+local SHIELD_STATS_INTERVAL = math.round(0.5 * Game.gameSpeed, 0)
+
+local unitShieldWeapon = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	for index, weapon in ipairs(unitDef.weapons) do
+		local weaponDef = WeaponDefs[weapon.weaponDef]
+		if weaponDef and (weaponDef.shieldPower or 0) > 0 then
+			unitShieldWeapon[unitDefID] = { number = index, power = weaponDef.shieldPower }
+			break
+		end
+	end
+end
+
+local unitShieldLimits = {} ---@type table<UnitID, { number: integer, cap: number }?>
+
+---@param unitID UnitID
+---@param maxPower number? A nil restores the weapondef's own shield power.
+local function setShieldMaxPower(unitID, maxPower)
+	local shield = unitShieldWeapon[Spring.GetUnitDefID(unitID)]
+	if not shield or not maxPower or maxPower >= shield.power then
+		unitShieldLimits[unitID] = nil
+		return
+	end
+	unitShieldLimits[unitID] = { number = shield.number, cap = maxPower }
+end
+
+local function limitShieldStats()
+	for unitID, capped in pairs(unitShieldLimits) do
+		local enabled, power = Spring.GetUnitShieldState(unitID, capped.number)
+		if power and power > capped.cap then
+			Spring.SetUnitShieldState(unitID, capped.number, capped.cap)
+		end
 	end
 end
 
@@ -143,8 +180,19 @@ if Spring.GetModOptions().experimentalshields:find("bounce") then
 		return {}, 0
 	end
 
+	function gadget:GameFrame(frame)
+		if frame % SHIELD_STATS_INTERVAL == 0 then
+			limitShieldStats()
+		end
+	end
+
+	function gadget:UnitDestroyed(unitID)
+		unitShieldLimits[unitID] = nil
+	end
+
 	function gadget:Initialize()
 		GG.Shields = {}
+		GG.Shields.SetUnitShieldMaxPower = setShieldMaxPower
 		GG.Shields.AddShieldDamage = addEngineShieldDamage
 		GG.Shields.DamageToShields = originalShieldDamages
 		GG.Shields.RegisterShieldPreDamaged = registerShieldPreDamaged
@@ -417,6 +465,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	local unitData = shieldUnitsData[unitID]
 	if unitData then
+		unitShieldLimits[unitID] = nil
 		shieldUnitsData[unitID] = nil
 		shieldsNeedingUpdate[unitID] = nil
 		removeCoveredUnits(unitID)
@@ -514,6 +563,10 @@ local shieldCheckEndIndex = 1
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
+
+	if frame % SHIELD_STATS_INTERVAL == 0 then
+		limitShieldStats()
+	end
 
 	for shieldUnitID, _ in pairs(shieldCheckFlags) do
 		local shieldData = shieldUnitsData[shieldUnitID] --zzz for some reason the shield orb isn't disappearing sometimes when big damage
@@ -992,7 +1045,7 @@ end
 ---@param x number
 ---@param y number
 ---@param z number
----@param shieldUnitID integer
+---@param shieldUnitID UnitID
 ---@return boolean?
 local function isInShield(x, y, z, shieldUnitID)
 	local sx, sy, sz, sr = getUnitShieldPosition(shieldUnitID)
@@ -1008,6 +1061,7 @@ end
 
 function gadget:Initialize()
 	GG.Shields = {}
+	GG.Shields.SetUnitShieldMaxPower = setShieldMaxPower
 	GG.Shields.AddShieldDamage = addCustomShieldDamage
 	GG.Shields.DamageToShields = originalShieldDamages
 	GG.Shields.GetUnitShieldPosition = getUnitShieldPosition

@@ -41,7 +41,8 @@ return {
 			unitgroup = "weaponaa",
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
-			subfolder = "ArmVehicles",
+			reaimtime = 5,
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {

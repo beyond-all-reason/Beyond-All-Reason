@@ -37,6 +37,7 @@ return {
 			buildinggrounddecaltype = "decals/armamb_aoplane.dds",
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",
+			reaimtime = 5,
 			removewait = true,
 			subfolder = "ArmBuildings/LandDefenceOffence",
 			techlevel = 2,

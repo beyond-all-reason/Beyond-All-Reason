@@ -46,7 +46,6 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetPlayerList = Spring.GetPlayerList
 local GetPlayerInfo = Spring.GetPlayerInfo
 local GetGameRulesParam = Spring.GetGameRulesParam
-local GetViewGeometry = Spring.GetViewGeometry
 
 local glBeginEnd = gl.BeginEnd
 local glCallList = gl.CallList
@@ -201,7 +200,7 @@ local function colourNames(teamId)
 	if tonumber(teamId) < 0 then
 		return ""
 	end
-	local nameColourR, nameColourG, nameColourB, nameColourA = Spring.GetTeamColor(teamId)
+	local nameColourR, nameColourG, nameColourB, _ = Spring.GetTeamColor(teamId)
 	return BAR.Utilities.Color.ToString(nameColourR, nameColourG, nameColourB)
 end
 

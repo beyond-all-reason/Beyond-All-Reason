@@ -33,16 +33,6 @@ local SpringGetFeatureTeam = Spring.GetFeatureTeam
 local SpringGetSpectatingState = Spring.GetSpectatingState
 local SpringGetMapDrawMode = Spring.GetMapDrawMode
 
--- util
-
-local function map(list, func)
-	local result = {}
-	for i, v in ipairs(list) do
-		result[i] = func(v, i)
-	end
-	return result
-end
-
 -- GL4
 
 local LuaShader = gl.LuaShader
@@ -183,7 +173,7 @@ local function shouldHighlight(unitName)
 end
 
 local function addHighlight(featureID, noUpload)
-	local m, dm, e, de, rl, rt = Spring.GetFeatureResources(featureID)
+	local m, _, _, _, _, _ = Spring.GetFeatureResources(featureID)
 	if m > 0 then
 		local x, y, z = Spring.GetFeaturePosition(featureID)
 		y = Spring.GetGroundHeight(x, z) - 50 --account for deformable terrain

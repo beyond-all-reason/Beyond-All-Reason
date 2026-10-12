@@ -113,6 +113,7 @@ for difficulty, stats in pairs(difficultyParams) do
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
+			reaimtime = 4,
 			subfolder = "",
 			i18nfromunit = "scavengerbossv4",
 			ispvefinalboss = true,

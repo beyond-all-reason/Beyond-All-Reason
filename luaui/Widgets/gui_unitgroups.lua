@@ -352,7 +352,7 @@ local function drawContent()
 
 	if numGroups > 0 then
 		local hoveredGroup = -1
-		local x, y, b, b2, b3 = spGetMouseState()
+		local x, y, b, _, _ = spGetMouseState()
 		if groupButtons then
 			for i, v in pairs(groupButtons) do
 				if
@@ -770,7 +770,6 @@ function widget:Update(dt)
 					selectedGroups[group] = true
 				end
 			end
-			local changed = false
 			for group, _ in pairs(selectedGroups) do
 				if not prevSelectedGroups[group] then
 					doUpdate = true

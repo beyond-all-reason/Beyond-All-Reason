@@ -16,7 +16,7 @@ local gldebugannotations = (Spring.GetConfigInt("gldebugannotations") == 1)
 ---@field myName string
 ---@field instanceIDtoIndex table<any, integer>
 ---@field indextoInstanceID table<integer, any>
----@field indextoUnitID table<integer, integer>?
+---@field indextoUnitID table<integer, UnitID>?
 ---@field unitIDattribID integer?
 ---@field layout table[]
 ---@field dirty boolean
@@ -482,7 +482,7 @@ local function resizeInstanceVBOTable(iT)
 				isValidID = Spring.ValidUnitID(objectID)
 			end
 			if isValidID then
-				local offset = new_usedElements * iTStep
+				local offset = (i - 1) * iTStep -- the element's old place, not its new one
 				for j = 1, iTStep do
 					new_instanceData_count = new_instanceData_count + 1
 					new_instanceData[new_instanceData_count] = iT.instanceData[j + offset]
@@ -551,7 +551,7 @@ Here is how you upload starting from 1st element and starting from 4th element i
 ---@param instanceID string|number|nil Key for later reference; `nil` auto-generates one.
 ---@param updateExisting boolean? Allow overwriting an element with the same key.
 ---@param noUpload boolean? Skip the upload, to batch several operations.
----@param unitID integer? Bind the instance to a unit, so the buffer tracks it.
+---@param unitID UnitID? Bind the instance to a unit, so the buffer tracks it.
 ---@return string|number|nil instanceID The key it was filed under; `nil` on failure.
 local function pushElementInstance(iT, thisInstance, instanceID, updateExisting, noUpload, unitID)
 	-- iT: instanceTable created with makeInstanceTable
@@ -582,6 +582,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 	if (iTusedElements + 1) >= iT.maxElements then -- add 1 extra for safety (not the best idea, but we seem to be running over it by 1)
 		resizeInstanceVBOTable(iT)
 		iTusedElements = iT.usedElements -- because during validation of unitIDs during resizing, we can decrease the actual size of the table!
+		endOffset = iTusedElements * iTStep
 		thisInstanceIndex = iT.instanceIDtoIndex[instanceID] -- this too, can change, TODO, also do this in VBOIDtable!
 	end
 
@@ -735,7 +736,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 				) -- TODO TODO
 			end
 
-			if iT.debugZombies then
+			-- Only zombies left from earlier pops need the frame; a new one checks it itself below
+			if iT.debugZombies and iT.numZombies and iT.numZombies > 0 then
 				local gf = Spring.GetGameFrame()
 				--Spring.Echo("Popping", instanceID)
 				if iT.lastpopgameframe == nil then
@@ -849,9 +851,10 @@ local function uploadAllElements(iT)
 	end
 end
 
+--- Uploads elements startElementIndex + 1 to endElementIndex.
 ---@param iT InstanceVBOTable
----@param startElementIndex integer
----@param endElementIndex integer
+---@param startElementIndex integer 0 based index of the first element, the number of elements before it
+---@param endElementIndex integer 1 based index of the last element
 local function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(
 		iT.instanceData, -- The lua mirrored VBO data
@@ -864,13 +867,13 @@ local function uploadElementRange(iT, startElementIndex, endElementIndex)
 		--we need to reslice the table
 		local unitIDRange = {}
 		local indextoUnitID = iT.indextoUnitID
-		for i = startElementIndex, endElementIndex do
-			unitIDRange[#unitIDRange + 1] = indextoUnitID[i]
+		for i = startElementIndex + 1, endElementIndex do
+			unitIDRange[i - startElementIndex] = indextoUnitID[i]
 		end
 		if iT.featureIDs then
-			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex)
 		else
-			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex)
 		end
 	end
 end
@@ -881,41 +884,48 @@ end
 ---@param iT InstanceVBOTable
 ---@param removelist table<string|number, true>? Instance keys to drop.
 ---@param keeplist table<string|number, true>? Instance keys to keep, dropping the rest.
+---@return integer numremoved
+---@return integer? firstChanged Index of the first slot that changed; slots before it are untouched.
 local function compactInstanceVBO(iT, removelist, keeplist)
 	local usedElements = iT.usedElements
 	if usedElements == 0 then
-		return 0
+		return 0, nil
 	end
 	local instanceStep = iT.instanceStep
 	local instanceData = iT.instanceData
 	local indextoInstanceID = iT.indextoInstanceID
-	local newindextoInstanceID = {}
-	local newinstanceIDtoIndex = {}
+	local instanceIDtoIndex = iT.instanceIDtoIndex
 	local newUsedElements = 0
-	local numremoved = 0
+	local firstChanged
 	local removemode = (removelist ~= nil) and (keeplist == nil)
-	for index, instanceID in ipairs(indextoInstanceID) do
+	for index = 1, usedElements do
+		local instanceID = indextoInstanceID[index]
 		-- If its in keeplist,
 		if (removemode and (removelist[instanceID] == nil)) or ((removemode == false) and keeplist[instanceID]) then
-			local instanceOffset = (index - 1) * instanceStep
-			local newInstanceOffset = newUsedElements * instanceStep
-			for i = 1, instanceStep do
-				instanceData[newInstanceOffset + i] = instanceData[instanceOffset + i]
-			end
 			newUsedElements = newUsedElements + 1
-			newindextoInstanceID[newUsedElements] = instanceID
-			newinstanceIDtoIndex[instanceID] = newUsedElements
+			if newUsedElements ~= index then
+				local instanceOffset = (index - 1) * instanceStep
+				local newInstanceOffset = (newUsedElements - 1) * instanceStep
+				for i = 1, instanceStep do
+					instanceData[newInstanceOffset + i] = instanceData[instanceOffset + i]
+				end
+				indextoInstanceID[newUsedElements] = instanceID
+				instanceIDtoIndex[instanceID] = newUsedElements
+			end
 		else
-			numremoved = numremoved + 1
+			instanceIDtoIndex[instanceID] = nil
+			firstChanged = firstChanged or index
 		end
 	end
+	local numremoved = usedElements - newUsedElements
 	if numremoved > 0 then
+		for index = newUsedElements + 1, usedElements do
+			indextoInstanceID[index] = nil
+		end
 		iT.dirty = true -- we set the flag to notify that CPU and GPU contents dont match!
 		iT.usedElements = newUsedElements
-		iT.instanceIDtoIndex = newinstanceIDtoIndex
-		iT.indextoInstanceID = newindextoInstanceID
 	end
-	return numremoved
+	return numremoved, firstChanged
 end
 
 ---@param iT InstanceVBOTable
@@ -927,26 +937,6 @@ local function drawInstanceVBO(iT)
 			iT.VAO:DrawArrays(iT.primitiveType, iT.numVertices, 0, iT.usedElements, 0)
 		end
 	end
-end
-
-local function countInvalidUnitIDs(iT)
-	local invalids = {}
-	for i, objectID in ipairs(iT.indextoUnitID) do
-		local isValidID = false
-		if iT.featureIDs then
-			isValidID = Spring.ValidFeatureID(objectID)
-		else
-			isValidID = Spring.ValidUnitID(objectID)
-		end
-		if isValidID then
-		else
-			invalids[#invalids + 1] = objectID
-		end
-	end
-	if #invalids > 0 then
-		Spring.Echo(#invalids, "invalid IDs found in ", iT.myName)
-	end
-	return invalids
 end
 
 --------- HELPERS FOR PRIMITIVES ------------------
@@ -1745,8 +1735,6 @@ local function MakeTexRectVAO(minX, minY, maxX, maxY, minU, minV, maxU, maxV, na
 	end
 
 	--rectVBO:Define(	6,	{{id = 0, name = "position_xy_uv", size = 8}})
-	local z = 0.5
-	local w = 1
 	rectVBO:Define(6, { { id = 0, name = "pos", size = 4 } })
 	rectVBO:Upload({
 

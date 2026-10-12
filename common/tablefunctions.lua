@@ -79,15 +79,22 @@ if not table.sortStable then
 	---This method preserves elements' original order when possible, unlike `table.sort`.
 	---@generic T
 	---@param tbl T[]
-	---@param compare fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
+	---@param compare? fun(a: T, b: T) : boolean|nil where true := less than, false := greater than, nil := equal to
 	table.sortStable = function(tbl, compare)
 		if not compare then
 			compare = compareDefault
 		end
-		local index = table.getKeyOf -- local speedup
+
+		local originalIndex = {}
+		for index = 1, #tbl do
+			originalIndex[tbl[index]] = index
+		end
 		table.sort(tbl, function(a, b)
 			local comparison = compare(a, b)
-			return comparison or (comparison == nil and index(tbl, a) < index(tbl, b))
+			if comparison ~= nil then
+				return comparison
+			end
+			return originalIndex[a] < originalIndex[b]
 		end)
 	end
 end
@@ -363,6 +370,25 @@ if not table.contains then
 	---@return boolean
 	function table.contains(tbl, value)
 		return table.getKeyOf(tbl, value) ~= nil
+	end
+end
+
+if not table.sameArray then
+	---Check if two arrays hold equal values in the same order.
+	---@param tbl any[]
+	---@param other any[]
+	---@return boolean
+	function table.sameArray(tbl, other)
+		local count = #tbl
+		if count ~= #other then
+			return false
+		end
+		for index = 1, count do
+			if tbl[index] ~= other[index] then
+				return false
+			end
+		end
+		return true
 	end
 end
 

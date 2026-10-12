@@ -294,17 +294,16 @@ end
 -- ===========
 
 ---@alias ObjectType string
----@alias ObjectID number|number[]
 ---@alias OwnerID string
 ---@alias InstanceID number
 
----@type table<ObjectType, table<ObjectID, table<OwnerID, InstanceID>>>
+---@type table<ObjectType, table<ObjectOrPosition, table<OwnerID, InstanceID>>>
 local objectInstanceIDs = {}
 
----@type table<ObjectType, table<ObjectID, table<OwnerID, boolean>>>
+---@type table<ObjectType, table<ObjectOrPosition, table<OwnerID, boolean>>>
 local objectOwners = {}
 
----@type table<ObjectType, table<ObjectID, table<OwnerID, number>>>
+---@type table<ObjectType, table<ObjectOrPosition, table<OwnerID, number>>>
 local objectExpireTimes = {}
 
 for k in pairs(spotlightTypes) do
@@ -318,7 +317,7 @@ end
 ---removeSpotlight later is necessary to remove the spotlight.
 ---@param objectType string "unit", "feature", or "ground"
 ---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
+---@param objectID ObjectOrPosition
 ---@param color table RGBA color used for the spotlight
 ---@param options table extra optional parameters
 ---@param options.duration number if specified, the spotlight will fade out over this period of seconds
@@ -402,7 +401,7 @@ end
 ---Removes the spotlight for a given object. This can be called even if a spotlight might not be present.
 ---@param objectType string "unit" or "feature", or "ground"
 ---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@param objectID number|number[] unitID, featureID, or {x,y,z} table for a location
+---@param objectID ObjectOrPosition
 ---@return nil
 local function removeSpotlight(objectType, owner, objectID)
 	if not spotlightTypes[objectType] then
@@ -440,7 +439,7 @@ end
 ---Returns the objectID for all spotlights with the specified type and owner.
 ---@param objectType string "unit" or "feature", or "ground"
 ---@param owner string An identifier used to prevent name collisions. You can have one spotlight per objectID per owner.
----@return (number|number[])[]
+---@return ObjectOrPosition[]
 local function getSpotlights(objectType, owner)
 	return table.reduce(objectOwners[objectType], function(acc, v, k)
 		if v[owner] then

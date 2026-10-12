@@ -39,6 +39,7 @@ return {
 			subfolder = "Legion/Bots",
 			reactive_armor_health = 300,
 			reactive_armor_restore = 15,
+			reaimtime = 2,
 		},
 		featuredefs = {
 			dead = {
