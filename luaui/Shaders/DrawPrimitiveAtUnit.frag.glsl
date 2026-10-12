@@ -13,6 +13,7 @@
 uniform float addRadius = 0.0;
 uniform float iconDistance = 20000.0;
 uniform float transparency = TRANSPARENCY; // set it to change the opacity without recompiling
+uniform float teamcolorization = TEAMCOLORIZATION; // for POST_SHADING snippets, same idea
 in DataGS {
 	vec4 g_color;
 	vec4 g_uv;
