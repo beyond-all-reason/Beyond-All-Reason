@@ -31,6 +31,8 @@ local UNIFORM_INDEX = 7 -- unit buffer uniform (userDefined[1].w) the CUS shader
 
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetPositionLosState = Spring.GetPositionLosState
+local spGetUnitRulesParam = Spring.GetUnitRulesParam
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitIsDead = Spring.GetUnitIsDead
@@ -38,6 +40,13 @@ local spGetDrawSeconds = Spring.GetDrawSeconds
 local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 local mathFloor = math.floor
 local mathMax = math.max
+
+local hasJammingRule = table.new(#UnitDefs, 0) ---@type table<UnitDefID, true?> see unit_jammed_fix.lua
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isImmobile then
+		hasJammingRule[unitDefID] = true
+	end
+end
 
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -47,6 +56,7 @@ local trackedUnits = {} ---@type table<integer, integer?> index -> unitID, check
 local trackedIndex = {} ---@type table<integer, integer?> unitID -> index in trackedUnits
 local trackedCount = 0
 local unitAllyTeam = {} ---@type table<integer, integer?> unitID -> allyteam whose jammers can hide it
+local checkJamming = {} ---@type table<integer, true?> unitID -> special handling by unit_jammed_fix.lua
 local jammed = {} ---@type table<integer, boolean?> unitID -> highlighted right now
 local cursor = 1 -- next trackedUnits index to check
 local pollBudget = 0 -- unit checks owed, in units * frames: every unit gets checked once per POLL_FRAMES frames
@@ -78,6 +88,9 @@ local function covers(unitID)
 end
 
 local function isJammed(unitID)
+	if checkJamming[unitID] and spGetUnitRulesParam(unitID, "jammed") == 1 then
+		return true
+	end
 	local x, y, z = spGetUnitPosition(unitID)
 	if not x then
 		return false
@@ -112,6 +125,7 @@ local function addUnit(unitID)
 	trackedUnits[trackedCount] = unitID
 	trackedIndex[unitID] = trackedCount
 	unitAllyTeam[unitID] = allyTeam
+	checkJamming[unitID] = hasJammingRule[spGetUnitDefID(unitID)]
 end
 
 local function removeUnit(unitID, now)
@@ -126,6 +140,7 @@ local function removeUnit(unitID, now)
 	trackedCount = trackedCount - 1
 	trackedIndex[unitID] = nil
 	unitAllyTeam[unitID] = nil
+	checkJamming[unitID] = nil
 	if jammed[unitID] then
 		jammed[unitID] = nil
 		if spGetUnitIsDead(unitID) == false then -- still alive (given away): fade its highlight out
