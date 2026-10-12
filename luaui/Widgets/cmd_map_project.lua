@@ -3293,6 +3293,17 @@ local function phaseTileset(c)
 	if d.metal_style and d.metal_style ~= "" and T.setMetalStyle then
 		T.setMetalStyle(d.metal_style)
 	end
+	-- SURFACE > GRADING slot tints: the project's set REPLACES the live one. The tileset widget keeps tints in
+	-- its own config across sessions, so applying on top made every tint ever set leak into every project.
+	if T.getSlotTints and T.setSlotTint then
+		local live = {}
+		for a in pairs(T.getSlotTints() or {}) do
+			live[#live + 1] = a
+		end
+		for _, a in ipairs(live) do
+			T.setSlotTint(a, 1, 1, 1)
+		end
+	end
 	if type(d.slot_tints) == "table" and T.setSlotTint then
 		for a, col in pairs(d.slot_tints) do
 			if type(a) == "string" and type(col) == "table" then
