@@ -2,6 +2,7 @@ local utilitiesDirectory = "common/springUtilities/"
 
 local tga = VFS.Include(utilitiesDirectory .. "image_tga.lua")
 local team = VFS.Include(utilitiesDirectory .. "teamFunctions.lua")
+local player = VFS.Include(utilitiesDirectory .. "playerFunctions.lua")
 local syncFunctions = VFS.Include(utilitiesDirectory .. "synced.lua")
 local tableFunctions = VFS.Include(utilitiesDirectory .. "tableFunctions.lua")
 local colorFunctions = VFS.Include(utilitiesDirectory .. "color.lua")
@@ -29,6 +30,9 @@ utilities = {
 	GetRaptorTeamID = team.GetRaptorTeamID,
 	GetScavTeamID = team.GetScavTeamID,
 	GetRaptorAllyTeamID = team.GetRaptorAllyTeamID,
+
+	GetHostCommandPlayerID = player.GetHostCommandPlayerID,
+	IsPlayerLagging = player.IsPlayerLagging,
 
 	IsDevMode = function()
 		local devMode = Spring.GetGameRulesParam("isDevMode")
