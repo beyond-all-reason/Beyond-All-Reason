@@ -511,6 +511,20 @@ local function isPrivilegedCommand(command)
 		or stringFind(command, "%f[%w_]option%f[^%w_]") ~= nil -- not "options", which only opens the panel
 end
 
+local inMultiplayer
+local function isMultiplayerStateCommand(command)
+	if inMultiplayer == nil then
+		inMultiplayer = not BAR.Utilities.Gametype.IsSinglePlayer()
+	end
+	if not inMultiplayer then
+		return false
+	end
+	command = stringLower(command)
+	return stringFind(command, "%f[%w_]save%f[^%w_]") ~= nil
+		or stringFind(command, "%f[%w_]luasave%f[^%w_]") ~= nil
+		or stringFind(command, "%f[%w_]dumpstate%f[^%w_]") ~= nil
+end
+
 local userWritableFolders = { "luaui/config/", "luaui/widgets/" }
 local userReadableFolder = "luaui/"
 local userReadonlyFiles = {
@@ -835,7 +849,7 @@ local function CreateSandboxedSystem()
 		local commands = type((...)) == "table" and (...) or { ... }
 		local allowed = {}
 		for _, command in ipairs(commands) do
-			if type(command) == "string" and isPrivilegedCommand(command) then
+			if type(command) == "string" and (isPrivilegedCommand(command) or isMultiplayerStateCommand(command)) then
 				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
 			else
 				allowed[#allowed + 1] = command
@@ -1117,7 +1131,7 @@ local function findPrivilegedCommand(list)
 		return nil
 	end
 	for _, value in pairs(list) do
-		if type(value) == "string" and isPrivilegedCommand(value) then
+		if type(value) == "string" and (isPrivilegedCommand(value) or isMultiplayerStateCommand(value)) then
 			return value
 		end
 	end
