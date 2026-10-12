@@ -3415,7 +3415,7 @@ end
 
 ---@class DntsSet
 ---@field set string?
----@field textures table<1|2|3|4,string>?
+---@field textures table<1|2|3|4,string?>?
 ---@field scales table<1|2|3|4,number>?
 ---@field mults table<1|2|3|4,number>?
 ---@field detail string?
@@ -3435,13 +3435,13 @@ end
 -- Build a start script for a blank/flat map of the given size by cloning the
 -- current session's _script.txt (preserving players/teams/modoptions) and
 -- injecting the engine blank-map-generator keys.
----@param widthUnits integer
----@param heightUnits integer
----@param dntsSet DntsSet
+---@param widthUnits number
+---@param heightUnits number
+---@param dntsSet DntsSet? `nil` writes no DNTS splat keys.
 ---@param skyboxPath string?
 ---@param opts BaseMapOpts?
----@return string scriptText?
----@return string errorMessage? with `nil` scriptText
+---@return string? scriptText `nil` on failure.
+---@return string? errorMessage Set when `scriptText` is `nil`.
 local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skyboxPath, opts)
 	local base = VFS.LoadFile("_script.txt")
 	if not base or base == "" then
@@ -18783,7 +18783,6 @@ function widget:Initialize()
 		-- Map preset path drive the engine identically. Every field is optional.
 		---@param d table<string, any>? An environment snapshot as produced by
 		---`buildEnvConfigContent`: sun, fog and atmosphere values keyed by name.
-		---@return nil
 		applyEnvConfig = function(d)
 			return widgetState.applyEnvConfig(d)
 		end,
@@ -18824,7 +18823,7 @@ function widget:Initialize()
 		-- Called by cmd_terraform_brush when the user clicks a height in sampling mode
 		---Records a height picked by the user in sampling mode, so the state sync loop
 		---reflects it.
-		---@param target "max"|"min" Which height cap was sampled.
+		---@param target TerraformHeightSamplingTarget Which height was sampled; only the brush's own caps are recorded.
 		---@param value number? Defaults to `0`.
 		onHeightSampled = function(target, value)
 			-- Update the local cap variables so the state sync loop reflects them

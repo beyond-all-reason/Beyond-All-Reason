@@ -77,6 +77,21 @@ local Echo = Spring.Echo
 -- Settings (mirrored into the Terraform Brush UI through WG.TerraformCapture)
 --------------------------------------------------------------------------------
 
+---@class TerraformCaptureSettings
+---@field detail number Output pixels per elmo.
+---@field photoWater boolean
+---@field photoShadows boolean
+---@field photoBloom boolean
+---@field photoFog boolean
+---@field photoFeatures boolean Bake features into the photo.
+---@field unitLayer boolean
+---@field unitStyle "portrait"|"topdown" A buildpic tile or a model render.
+---@field unitSize number Sprite pixels at detail 1, scaled with detail.
+---@field unitScaling number `0` draws every sprite the same size, `1` scales them fully with their footprint.
+---@field unitGroupTeam boolean
+---@field unitLabels boolean
+---@field featureLayer boolean Also export features as their own layer.
+---@field commentLayer boolean
 local settings = {
 	detail = 1, -- output pixels per elmo: 0.5 / 1 / 2
 	photoWater = true,
@@ -316,6 +331,7 @@ end
 --------------------------------------------------------------------------------
 
 local maxTexSize
+---@return integer
 local function getMaxTexSize()
 	if maxTexSize then
 		return maxTexSize
@@ -1817,14 +1833,14 @@ end
 function widget:Initialize()
 	widgetHandler:AddAction("tfcapture", captureAction, nil, "t")
 	WG.TerraformCapture = {
-		---@return table<string, string|number|boolean> settings A shallow copy, so mutating it
+		---@return TerraformCaptureSettings settings A shallow copy, so mutating it
 		---does not affect the live settings.
 		getSettings = function()
 			local copy = {}
 			for k, v in pairs(settings) do
 				copy[k] = v
 			end
-			return copy
+			return copy --[[@as TerraformCaptureSettings]]
 		end,
 		---Changes one capture setting.
 		---@param key string

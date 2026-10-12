@@ -1691,7 +1691,7 @@ extraState.swapModeParams = function(mode)
 	end
 end
 
----@alias TerraformMode "raise"|"lower"|"level"|"smooth"|"ramp"|"noise"|"erode"|"restore"
+---@alias TerraformMode "raise"|"lower"|"level"|"smooth"|"smudge"|"ramp"|"autoramp"|"noise"|"erode"|"restore"
 
 ---Switches the terraform operation, swapping in that mode's saved brush settings.
 ---@param mode TerraformMode
@@ -2294,25 +2294,25 @@ local function loadPreset(name)
 		-- Set mode FIRST so the mode group's curve/intensity/clayMode snapshot is swapped
 		-- in before the preset's own saved values overwrite it below.
 		if type(data.mode) == "string" then
-			setMode(data.mode)
+			setMode(data.mode --[[@as TerraformMode]])
 		end
 		if type(data.shape) == "string" then
-			setShape(data.shape)
+			setShape(data.shape --[[@as BrushShape|"ring"|"fill"]])
 		end
 		if tonumber(data.radius) then
-			setRadius(tonumber(data.radius))
+			setRadius(tonumber(data.radius) --[[@as number]])
 		end
 		if tonumber(data.rotationDeg) then
-			setRotation(tonumber(data.rotationDeg))
+			setRotation(tonumber(data.rotationDeg) --[[@as number]])
 		end
 		if tonumber(data.curve) then
-			setCurve(tonumber(data.curve))
+			setCurve(tonumber(data.curve) --[[@as number]])
 		end
 		if tonumber(data.intensity) then
-			setIntensity(tonumber(data.intensity))
+			setIntensity(tonumber(data.intensity) --[[@as number]])
 		end
 		if tonumber(data.lengthScale) then
-			setLengthScale(tonumber(data.lengthScale))
+			setLengthScale(tonumber(data.lengthScale) --[[@as number]])
 		end
 		setHeightCapMin(tonumber(data.heightCapMin))
 		setHeightCapMax(tonumber(data.heightCapMax))
@@ -2715,10 +2715,14 @@ extraState._newmapDrive = function()
 	end
 end
 
+---Which height a sampling click picks: the brush's own height caps, or an altitude bound of another tool's filter or influence band.
+---@alias TerraformHeightSamplingTarget "max"|"min"|"fpAltMax"|"fpAltMin"|"gbAltMax"|"gbAltMin"|"spAltMax"|"spAltMin"|"sfAltMax"|"sfAltMin"|"sfInfAltMax"|"sfInfAltMin"|"spInfAltMax"|"spInfAltMin"
+
 ---A snapshot of the terrain brush, for the UI to render.
 ---@class TerraformBrushState : TerraformBrushBase
 ---@field active boolean
----@field direction integer `1` raises, `-1` lowers.
+---@field mode TerraformMode? `nil` when the brush is off.
+---@field direction integer? `1` raises, `-1` lowers; `nil` when the brush is off.
 ---@field dustEffects boolean
 ---@field seismicEffects boolean
 ---@field djMode boolean
@@ -2726,7 +2730,7 @@ end
 ---@field wiggleAmpIdx integer
 ---@field wiggleSpdIdx integer
 ---@field heightColormap boolean
----@field heightSamplingMode boolean
+---@field heightSamplingMode TerraformHeightSamplingTarget? `nil` when not sampling.
 ---@field gridOverlay boolean
 ---@field gridSnap boolean
 ---@field gridSnapSize number
@@ -2761,8 +2765,8 @@ end
 ---@field exportCustomMin number
 ---@field exportCustomMax number
 ---@field symmetryActive boolean
----@field symmetryOriginX number
----@field symmetryOriginZ number
+---@field symmetryOriginX number? `nil` centers the symmetry on the map.
+---@field symmetryOriginZ number?
 ---@field symmetryMirrorX boolean
 ---@field symmetryMirrorY boolean
 ---@field symmetryRadial boolean
@@ -3910,7 +3914,7 @@ function widget:Initialize()
 		setHeightColormap = setHeightColormap,
 		---Puts the brush into a height-sampling mode, auto-enabling the height colormap
 		---so contours are visible. Unknown targets clear the mode.
-		---@param target "max"|"min"|"fpAltMax"|"fpAltMin"|"gbAltMax"|"gbAltMin"|"spAltMax"|"spAltMin"|nil
+		---@param target TerraformHeightSamplingTarget?
 		setHeightSamplingMode = function(target)
 			local valid = {
 				max = true,
@@ -3934,7 +3938,7 @@ function widget:Initialize()
 				setHeightColormap(true) -- auto-enable the colormap so contours are visible
 			end
 		end,
-		---@return string? mode `nil` when not sampling.
+		---@return TerraformHeightSamplingTarget? mode `nil` when not sampling.
 		getHeightSamplingMode = function()
 			return extraState.heightSamplingMode
 		end,
@@ -4101,8 +4105,8 @@ function widget:Initialize()
 			end
 		end,
 		---Moves the symmetry origin.
-		---@param x number|string
-		---@param z number|string
+		---@param x number|string? `nil` centers the symmetry on the map.
+		---@param z number|string?
 		setSymmetryOrigin = function(x, z)
 			extraState.symmetryOriginX = tonumber(x)
 			extraState.symmetryOriginZ = tonumber(z)

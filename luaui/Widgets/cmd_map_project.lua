@@ -1741,13 +1741,13 @@ end
 ---@field height_range {min: integer, max: integer}?
 ---@field skybox string?
 ---@field source_map string|"unknown"
----@field dnts DntsSet
+---@field dnts DntsSet? Only present when the map has a splat set.
 
 ---@class MapProjectManifestSections
 ---@field heightmap {file: string, version: 1, bytes: integer}
 ---@field splat {file: string, version: 1, bytes: integer}
 ---@field surface {file: string, version: 1, bytes: integer, meta:"surface.lua"}
----@field diffuse {dir: "diffuse/", version: 1, bytes: integer, square_size: integer, squares: integer, full: string, channels: string[] }
+---@field diffuse {dir: "diffuse/", version: 1, bytes: integer, square_size: integer, squares: integer, full: boolean, channels: string[] }
 ---@field metal {file: string, version: 1, bytes: integer}
 ---@field features {file: string, version: 1, bytes: integer}
 ---@field units {file: string, version: 1, bytes: integer, count: integer?}
