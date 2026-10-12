@@ -105,16 +105,21 @@ if gadgetHandler:IsSyncedCode() then
 		GG.GamePause = nil
 	end
 else
+	local spGetGameFrame = Spring.GetGameFrame
 	local spGetGameSpeed = Spring.GetGameSpeed
 	local spGetGameRulesParam = Spring.GetGameRulesParam
 	local spGetMyPlayerID = Spring.GetMyPlayerID
 	local spSendCommands = Spring.SendCommands
 
+	local CATCH_UP_FRAMES = 11 * Game.gameSpeed -- same as gui_rejoinprogress.lua
+
 	local gadgetPaused = false
 	local gadgetResumePending = false -- unpaused by gadgets, but the game has not resumed yet
+	local serverFrame -- the live game frame, while this client replays a backlog
+	local catchingUp = false
 
 	local function setGamePaused(paused)
-		if getPauseControllerID() ~= spGetMyPlayerID() then
+		if catchingUp or getPauseControllerID() ~= spGetMyPlayerID() then
 			return
 		end
 		local _, _, isPaused = spGetGameSpeed()
@@ -140,19 +145,34 @@ else
 		end
 	end
 
-	local function onPlayersChanged()
-		-- The next pause controller takes over pending requests.
+	local function applyPendingPause()
+		-- The next pause controller takes over pending requests, as does one that caught up.
 		if gadgetPaused or gadgetResumePending then
 			setGamePaused(gadgetPaused)
 		end
 	end
 
 	function gadget:PlayerChanged()
-		onPlayersChanged()
+		applyPendingPause()
 	end
 
 	function gadget:PlayerRemoved()
-		onPlayersChanged()
+		applyPendingPause()
+	end
+
+	-- A client replaying a backlog would send its pauses to the live game.
+	function gadget:GameProgress(serverFrameNum)
+		serverFrame = serverFrameNum
+		if spGetGameFrame() < serverFrame - CATCH_UP_FRAMES then
+			catchingUp = true
+		end
+	end
+
+	function gadget:GameFrame(frame)
+		if catchingUp and frame >= serverFrame - CATCH_UP_FRAMES then
+			catchingUp = false
+			applyPendingPause()
+		end
 	end
 
 	function gadget:Initialize()
