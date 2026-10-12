@@ -51,6 +51,9 @@ local spSendCommands = Spring.SendCommands
 local debugTraceback = debug.traceback
 local debugGetinfo = debug.getinfo
 local debugGetlocal = debug.getlocal
+local spGetSpectatingState = Spring.GetSpectatingState
+local spIsReplay = Spring.IsReplay
+local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -92,12 +95,12 @@ if anonymousMode ~= "disabled" then
 		return true
 	end
 
-	if not Spring.GetSpectatingState() then
+	if not spGetSpectatingState() then
 		Spring.SendCommands("info 0")
 	end
 end
 
-if Spring.IsReplay() or Spring.GetSpectatingState() then
+if spIsReplay() or spGetSpectatingState() then
 	allowuserwidgets = true
 	allowunitcontrolwidgets = true
 end
@@ -514,7 +517,7 @@ end
 local inMultiplayer
 local function isMultiplayerStateCommand(command)
 	if inMultiplayer == nil then
-		inMultiplayer = not BAR.Utilities.Gametype.IsSinglePlayer()
+		inMultiplayer = not isSinglePlayer()
 	end
 	if not inMultiplayer then
 		return false
@@ -2607,7 +2610,7 @@ end
 
 function widgetHandler:InitWindowPause()
 	-- headless, nobody would ever close a window that opened by itself
-	windowPauseAllowed = not isHeadless and (Spring.IsReplay() or BAR.Utilities.Gametype.IsSinglePlayer())
+	windowPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
 	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 	local frame = Spring.GetGameFrame()
 	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
@@ -3624,7 +3627,7 @@ function widgetHandler:PlayerRemoved(playerID, reason)
 end
 
 function widgetHandler:PlayerChanged(playerID)
-	if anonymousMode ~= "disabled" and not Spring.GetSpectatingState() then
+	if anonymousMode ~= "disabled" and not spGetSpectatingState() then
 		Spring.SendCommands("info 0")
 	end
 	tracy.ZoneBeginN("W:PlayerChanged")
