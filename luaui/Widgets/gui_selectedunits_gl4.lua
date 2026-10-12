@@ -532,8 +532,16 @@ function widget:Update(dt)
 	end
 	local mx, my, p1, mmb, _, mouseOffScreen, cameraPanMode = spGetMouseState()
 	local _, activeCmdID = spGetActiveCommand()
-	-- negative activeCmdID = placing a building: no mouseover highlight then
-	if mouseOffScreen or cameraPanMode or mmb or p1 or (activeCmdID and activeCmdID < 0) then
+	-- negative activeCmdID = placing a building: no mouseover highlight then, nor while a window
+	-- or a scripted lock keeps the player's pointer away from the world
+	if
+		mouseOffScreen
+		or cameraPanMode
+		or mmb
+		or p1
+		or (activeCmdID and activeCmdID < 0)
+		or not widgetHandler:ModalAllows(widget)
+	then
 		ClearLastMouseOver()
 		lastMouseX = -1 -- trace again as soon as this ends
 		return
