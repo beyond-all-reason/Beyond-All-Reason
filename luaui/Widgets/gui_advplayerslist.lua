@@ -4327,7 +4327,7 @@ function widget:MousePress(x, y, button)
 								and clickTime - prevClickTime < dblclickPeriod
 								and clickedPlayer == prevClickedPlayer
 							then
-								LockCamera(clickedPlayer.team)
+								LockCamera(i)
 								prevClickedPlayer = {}
 								return true
 							end
