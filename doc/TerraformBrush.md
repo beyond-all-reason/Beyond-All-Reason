@@ -39,7 +39,6 @@ Click the **Environment** icon in the tool row (rightmost group). The env panel 
 - **Sun / fog / atmosphere** — sliders for sun direction, fog color/start/end, ambient/diffuse light, exposure, bloom.
 - **Water** — water type (0–4), color, foam, reflection/refraction toggles.
 - **Scene presets** — save/load named environment snapshots (`.env.lua` in your writeable data dir).
-- **Blockout** (SCENE > BLOCKOUT): up to three backdrop rings around the map, each with its own model, rotation and scale. They never fade with distance, the height fog covers the far ones, and they are saved with the environment. The ring models are `customparams.blockout` features from a separate asset pack; without one the button greys out.
 
 To return to terrain editing, click any other tool icon (e.g. the mountain) — the env panel collapses automatically.
 
@@ -239,6 +238,8 @@ Sent as `instant` field (`0`/`1`) in the `$terraform_brush$` message (field 15).
 While a stroke runs the camera holds still: the view does not ride the ground it changes. The hold lasts until you pan, zoom, rotate or switch camera; terrain raised into the camera still lifts it.
 
 ### Keyboard
+While an editor tool is in use, the game's own hotkeys (unit orders, build keys, selection, groups) are held back so they cannot fight the editor's; the camera, chat (Enter), Esc, F1-F12 and screenshots still work. The **pause** button on the panel hands every key back to the game.
+
 | Key | Action |
 |-----|--------|
 | `C` `S` `T` `H` `O` | Select shape (Circle / Square / Triangle / Hexagon / Octagon) |
