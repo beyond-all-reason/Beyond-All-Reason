@@ -496,6 +496,7 @@ Create()
 	firing=FALSE;
 	SLEEP_UNTIL_UNITFINISHED;
 	restore_delay=2000;
+	start-script AbdomenSpin();
 }
 
 SetMaxReloadTime(t)
@@ -575,13 +576,25 @@ RestoreAfterDelay()
 	start-script ExecuteRestoreAfterDelay();
 }
 
+AbdomenSpin()//Cement Mixer
+{
+	while(TRUE) {
+		spin abdomen around z-axis speed <65.0>;
+		sleep 25;
+	}
+	// sleep 50;
+	start-script AbdomenSpin();
+}
+
 Activate()
 {
+	start-script AbdomenSpin();
 	return (0);
 }
 
 Deactivate()
 {
+	stop-spin abdomen around z-axis;
 	return (0);
 }
 
