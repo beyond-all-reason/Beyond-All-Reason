@@ -19733,6 +19733,10 @@ function widget:Initialize()
 		isEngaged = function()
 			return widgetState.panelEngaged == true
 		end,
+		-- the pause button on the panel: tools off, the game has every key back
+		isPaused = function()
+			return widgetState.passthroughMode == true
+		end,
 		-- FOCUS MODE: the game interface is hidden on purpose and the editor keeps
 		-- drawing through it. cmd_terraform_brush and the capture widget read this
 		-- to tell it apart from a plain F5 (see setFocusMode).

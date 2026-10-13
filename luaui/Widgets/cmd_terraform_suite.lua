@@ -48,6 +48,7 @@ local SUITE_WIDGETS = {
 	"Unit Placer",
 	"Map Project",
 	"Map Transform",
+	"Terraform Key Gate",
 }
 
 -- Entry commands that must work before the suite is loaded. Sub-tool actions
@@ -82,6 +83,9 @@ local function enableSuite()
 end
 
 function widget:Initialize()
+	-- the key gate hands keys to these widgets first
+	WG.TerraformSuiteWidgets = SUITE_WIDGETS
+
 	-- EnableWidget persists enablement through SaveConfigData. If a crash
 	-- skipped our Shutdown cleanup the suite comes back enabled next game;
 	-- adopt it so entry commands pass through and Shutdown disables it again.
