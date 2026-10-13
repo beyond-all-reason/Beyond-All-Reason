@@ -16,6 +16,7 @@ uniform int noRushTimer;
 uniform vec4 pingData; // x,y,z = ping pos, w = ping time
 uniform vec4 pipVisibleArea = vec4(0, 1, 0, 1); // left, right, bottom, top in normalized [0,1] coords for PIP minimap
 uniform int waterSurfaceMode;
+uniform int xrView = 0; // drawing a headset eye: the ground is found by ray marching, not from a depth texture
 uniform float waterLevel;
 float noRushFramesLeft;
 
@@ -159,10 +160,64 @@ void main(void)
 		fragColor.rgba = vec4(0.5);
 		//return;
 	}else{
-		float mapdepth = textureLod(mapDepths, v_position.zw, 0.0).x;
-		mapWorldPos =  vec4( vec3(v_position.xy, mapdepth),  1.0);
-		mapWorldPos = cameraViewProjInv * mapWorldPos;
-		mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w;
+		if (xrView == 1) {
+			// the view ray of this pixel against the heightmap
+			vec4 nearP = cameraViewProjInv * vec4(v_position.xy, 0.0, 1.0);
+			vec4 farP = cameraViewProjInv * vec4(v_position.xy, 1.0, 1.0);
+			nearP.xyz /= nearP.w;
+			farP.xyz /= farP.w;
+			vec3 rayOrigin = cameraViewInv[3].xyz;
+			vec3 rayEnd = (distance(nearP.xyz, rayOrigin) > distance(farP.xyz, rayOrigin)) ? nearP.xyz : farP.xyz;
+			vec3 rayDir = normalize(rayEnd - rayOrigin);
+
+			// the part of the ray inside the map's box
+			vec3 boxMin = vec3(0.0, MINY, 0.0);
+			vec3 boxMax = vec3(mapSize.x, MAXY, mapSize.y);
+			vec3 invDir = 1.0 / (rayDir + vec3(1e-6));
+			vec3 t0 = (boxMin - rayOrigin) * invDir;
+			vec3 t1 = (boxMax - rayOrigin) * invDir;
+			float tEnter = max(max(min(t0.x, t1.x), min(t0.y, t1.y)), max(min(t0.z, t1.z), 0.0));
+			float tExit = min(min(max(t0.x, t1.x), max(t0.y, t1.y)), max(t0.z, t1.z));
+			if (tExit <= tEnter) {
+				fragColor.rgba = vec4(0);
+				return;
+			}
+
+			const int STEPS = 192;
+			float stepLen = (tExit - tEnter) / float(STEPS);
+			float tPrev = tEnter;
+			float tHit = -1.0;
+			for (int i = 1; i <= STEPS; ++i) {
+				float t = tEnter + stepLen * float(i);
+				vec3 p = rayOrigin + rayDir * t;
+				if (p.y < textureLod(heightMapTex, heightmapUVatWorldPos(p.xz), 0.0).x) {
+					float lo = tPrev;
+					float hi = t;
+					for (int j = 0; j < 10; ++j) {
+						float mid = 0.5 * (lo + hi);
+						vec3 pm = rayOrigin + rayDir * mid;
+						if (pm.y < textureLod(heightMapTex, heightmapUVatWorldPos(pm.xz), 0.0).x) {
+							hi = mid;
+						} else {
+							lo = mid;
+						}
+					}
+					tHit = hi;
+					break;
+				}
+				tPrev = t;
+			}
+			if (tHit < 0.0) {
+				fragColor.rgba = vec4(0);
+				return;
+			}
+			mapWorldPos = vec4(rayOrigin + rayDir * tHit, 1.0);
+		} else {
+			float mapdepth = textureLod(mapDepths, v_position.zw, 0.0).x;
+			mapWorldPos =  vec4( vec3(v_position.xy, mapdepth),  1.0);
+			mapWorldPos = cameraViewProjInv * mapWorldPos;
+			mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w;
+		}
 
 		// We are above or below the map by 4 or more elmost, discard
 		if (mapWorldPos.y > (MAXY) || mapWorldPos.y < (MINY)){

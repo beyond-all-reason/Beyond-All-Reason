@@ -131,6 +131,11 @@ local teamList = Spring.GetTeamList()
 
 local uiElementRect = { 0, 0, 0, 0 }
 local buttonRect = { 0, 0, 0, 0 }
+
+-- the VR headset panel the ready button is mirrored into, and whether it is being drawn now
+local xrPanel = VFS.Include(LUAUI_DIRNAME .. "Include/xr_panel.lua").New("pregameui", { mode = "head", x = 0, y = -0.4, z = 1.2, width = 0.4 })
+local xrMirroring = false
+local drawButton
 local blinkButton = false
 
 local function createButton()
@@ -292,6 +297,9 @@ function widget:GameSetup(state, ready, playerStates)
 end
 
 function widget:MousePress(sx, sy)
+	if xrPanel then
+		sx, sy = xrPanel:MapMouse(sx, sy)
+	end
 	if buttonDrawn then
 		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
@@ -471,8 +479,28 @@ function widget:DrawScreen()
 			WG.guishader.InsertRect(uiElementRect[1], uiElementRect[2], uiElementRect[3], uiElementRect[4], "pregameui")
 		end
 
+		drawButton()
+	end
+
+	-- the ready button floats in front of the headset too
+	if xrPanel then
+		if buttonDrawn then
+			xrMirroring = true
+			xrPanel:Mirror(drawButton, uiElementRect, 2)
+			xrMirroring = false
+		else
+			xrPanel:Hide()
+		end
+	end
+end
+
+drawButton = function()
+	do
 		-- draw ready button and text
 		local x, y = Spring.GetMouseState()
+		if xrMirroring then
+			x, y = xrPanel:MapMouse(x, y)
+		end
 		local colorString
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] then
 			gl.CallList(buttonHoverList)
@@ -565,6 +593,9 @@ function widget:DrawWorld()
 end
 
 function widget:Shutdown()
+	if xrPanel then
+		xrPanel:Destroy()
+	end
 	gl.DeleteList(buttonList)
 	gl.DeleteList(buttonHoverList)
 	if WG.guishader then

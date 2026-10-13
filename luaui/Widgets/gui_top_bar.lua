@@ -1499,6 +1499,9 @@ function init()
 		updateComs()
 	end
 
+	-- where the drawn part of the bar ends (the VR panel shows only that, to be centered)
+	widget.xrContentRight = topbarArea[1] + filledWidth - widgetSpaceMargin
+
 	-- the button strip is drawn by the Top Bar Buttons widget; this is the width it
 	-- reserves on the right, which GetFreeArea and GetPosition below report
 	width = mathFloor(totalWidth / 4)
@@ -2894,3 +2897,52 @@ function widget:Shutdown()
 	end
 end
 
+
+-- mirror the bar into a floating panel in the VR headset: the widget's own DrawScreen
+-- is drawn into the panel a few times a second (an immediately invoked function, as
+-- this file is at the limit of local variables)
+do
+	local xrPanel = VFS.Include(LUAUI_DIRNAME .. "Include/xr_panel.lua").New("topbar", { mode = "head", x = 0, y = 0.42, z = 1.2, width = 0.8 })
+	if xrPanel then
+		widget.DrawScreen = (function(drawScreen)
+			local lastMirror = 0
+			local mirroring = false
+			return function(self)
+				drawScreen(self)
+
+				if mirroring or not topbarArea then
+					return
+				end
+				if Spring.IsGUIHidden() then
+					xrPanel:Hide()
+					return
+				end
+				local clock = os.clock()
+				if clock - lastMirror < 0.1 then
+					return
+				end
+				lastMirror = clock
+
+				-- /set XRTopBarMirror 0 turns it off
+				if Spring.GetConfigInt("XRTopBarMirror", 1) == 0 then
+					xrPanel:Hide()
+					return
+				end
+
+				-- DrawScreen is called again to draw into the panel
+				mirroring = true
+				xrPanel:Mirror(function()
+					drawScreen(self)
+				end, { topbarArea[1], topbarArea[2], widget.xrContentRight or topbarArea[3], topbarArea[4] }, 2)
+				mirroring = false
+			end
+		end)(widget.DrawScreen)
+
+		widget.Shutdown = (function(shutdown)
+			return function(self)
+				xrPanel:Destroy()
+				return shutdown(self)
+			end
+		end)(widget.Shutdown)
+	end
+end

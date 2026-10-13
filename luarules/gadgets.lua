@@ -2718,12 +2718,29 @@ function gadgetHandler:DrawGenesis()
 	return
 end
 
+-- the engine calls the world draw callins in extra views (VR eyes) too, but only
+-- for the gadgets listed in common/xr_world_draw.lua
+local xrDrawGadgets = {}
+local XRInSecondaryView = Spring.XRInSecondaryView or function() return false end
+do
+	local ok, list = pcall(VFS.Include, "common/xr_world_draw.lua")
+	if ok and type(list) == "table" then
+		xrDrawGadgets = list.gadgets or xrDrawGadgets
+	end
+	if Spring.XRSetDrawInViews then
+		Spring.XRSetDrawInViews(true)
+	end
+end
+
 function gadgetHandler:DrawWorld()
 	tracy.ZoneBeginN("G:DrawWorld")
+	local xrView = XRInSecondaryView()
 	for _, g in ipairs(self.DrawWorldList) do
-		tracy.ZoneBeginN(g._tracyDrawWorldName)
-		g:DrawWorld()
-		tracy.ZoneEnd()
+		if not xrView or xrDrawGadgets[g.ghInfo.name] then
+			tracy.ZoneBeginN(g._tracyDrawWorldName)
+			g:DrawWorld()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -2731,10 +2748,13 @@ end
 
 function gadgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("G:DrawWorldPreUnit")
+	local xrView = XRInSecondaryView()
 	for _, g in ipairs(self.DrawWorldPreUnitList) do
-		tracy.ZoneBeginN(g._tracyDrawWorldPreUnitName)
-		g:DrawWorldPreUnit()
-		tracy.ZoneEnd()
+		if not xrView or xrDrawGadgets[g.ghInfo.name] then
+			tracy.ZoneBeginN(g._tracyDrawWorldPreUnitName)
+			g:DrawWorldPreUnit()
+			tracy.ZoneEnd()
+		end
 	end
 	tracy.ZoneEnd()
 	return

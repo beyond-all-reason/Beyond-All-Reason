@@ -581,7 +581,13 @@ local startConeShader = nil
 local function DrawStartPolygons(inminimap)
 	local _, advMapShading = Spring.HaveAdvShading()
 
-	if advMapShading then
+	-- in a headset eye the g-buffer and the depth copy of the manager are the size of the
+	-- window and hold the desktop view; the shader finds the ground by ray marching instead
+	local xrView = not inminimap and Spring.XRInSecondaryView and Spring.XRInSecondaryView()
+
+	if xrView then
+		gl.Texture(0, "$terrain_depth_copy") -- unused by the shader, keeps the sampler valid
+	elseif advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
 		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
@@ -618,6 +624,7 @@ local function DrawStartPolygons(inminimap)
 
 	startPolygonShader:SetUniform("noRushTimer", noRushTime)
 	startPolygonShader:SetUniformInt("isMiniMap", inminimap and 1 or 0)
+	startPolygonShader:SetUniformInt("xrView", xrView and 1 or 0)
 
 	startPolygonShader:SetUniformInt("rotationMiniMap", getCurrentMiniMapRotationOption() or ROTATION.DEG_0)
 	startPolygonShader:SetUniformInt("myAllyTeamID", myAllyTeamID or -1)
