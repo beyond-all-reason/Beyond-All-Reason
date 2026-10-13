@@ -239,6 +239,165 @@ function Layout.centreOffsets(units)
 	return out, cx, cz
 end
 
+--- A formation for `count` units already placed (mission editor units S6): offsets from the
+--- formation's centre, `cell` elmos apart. LINE stands abreast across the facing (a line
+--- facing south runs east to west), GRID is as square as the count allows with a short last
+--- rank centred, BOX spreads them evenly round a square ring (under four, a GRID). Nothing is
+--- snapped: the caller snaps each unit for its own footprint.
+---@return table offsets { { dx, dz }, ... }, `count` of them
+function Layout.arrange(count, mode, cell, facing)
+	count = math.max(0, math.floor(tonumber(count) or 0))
+	cell = tonumber(cell) or 32
+	local sideways = (math.floor(tonumber(facing) or 0) % 2) == 1
+	local out = {}
+	-- `a` along the rank, `b` along the file; an east or west facing turns both.
+	local function put(a, b)
+		if sideways then
+			out[#out + 1] = { dx = b, dz = a }
+		else
+			out[#out + 1] = { dx = a, dz = b }
+		end
+	end
+	if count == 0 then
+		return out
+	end
+	if mode == "LINE" then
+		for i = 0, count - 1 do
+			put((i - (count - 1) / 2) * cell, 0)
+		end
+	elseif mode == "BOX" and count >= 4 then
+		local side = 2
+		while 4 * (side - 1) < count do
+			side = side + 1
+		end
+		local last = side - 1
+		local ring = {}
+		for i = 0, last - 1 do
+			ring[#ring + 1] = { i, 0 }
+		end
+		for j = 0, last - 1 do
+			ring[#ring + 1] = { last, j }
+		end
+		for i = last, 1, -1 do
+			ring[#ring + 1] = { i, last }
+		end
+		for j = last, 1, -1 do
+			ring[#ring + 1] = { 0, j }
+		end
+		for k = 0, count - 1 do
+			local spot = ring[math.floor(k * #ring / count) + 1]
+			put((spot[1] - last / 2) * cell, (spot[2] - last / 2) * cell)
+		end
+	else
+		local cols = math.ceil(math.sqrt(count))
+		local rows = math.ceil(count / cols)
+		for k = 0, count - 1 do
+			local r, c = math.floor(k / cols), k % cols
+			local inRank = (r == rows - 1) and (count - r * cols) or cols
+			put((c - (inRank - 1) / 2) * cell, (r - (rows - 1) / 2) * cell)
+		end
+	end
+	return out
+end
+
+--- The facing (0 S, 1 E, 2 N, 3 W) that looks from (x, z) toward (tx, tz): the nearer cardinal.
+function Layout.facingToward(x, z, tx, tz)
+	local dx, dz = (tonumber(tx) or 0) - (tonumber(x) or 0), (tonumber(tz) or 0) - (tonumber(z) or 0)
+	if math.abs(dx) > math.abs(dz) then
+		return dx > 0 and 1 or 3
+	end
+	return dz >= 0 and 0 or 2
+end
+
+--- Placed units re-formed as a LINE, GRID or BOX where they stand (the mission editor's
+--- squad tools, the terraform brush's selection tools): round the same centre, one cell the
+--- largest footprint plus a build square, every unit facing the way the first one faces.
+--- Each slot takes the nearest unit not yet placed, so a re-formed group does not cross
+--- itself; each unit is snapped for its own turned footprint.
+---@param units table { { x, z, facing, xsize, zsize }, ... } footprints in squares
+---@param mode string "LINE" | "GRID" | "BOX" (BOX under four units is a GRID)
+---@return table spots { { x, z, facing }, ... } at the same indices as `units`
+function Layout.reform(units, mode)
+	units = units or {}
+	local out = {}
+	if #units == 0 then
+		return out
+	end
+	local facing = math.floor(tonumber(units[1].facing) or 0) % 4
+	local cell = 0
+	for _, unit in ipairs(units) do
+		local w, h = Layout.footprint(unit.xsize, unit.zsize, facing)
+		cell = math.max(cell, w, h)
+	end
+	cell = cell + Layout.BUILD_SQUARE_SIZE
+	local _, cx, cz = Layout.centreOffsets(units)
+	local slots = Layout.arrange(#units, mode, cell, facing)
+	local taken = {}
+	for _, slot in ipairs(slots) do
+		local tx, tz = cx + slot.dx, cz + slot.dz
+		local best, bestDistance
+		for index, unit in ipairs(units) do
+			if not taken[index] then
+				local d = ((tonumber(unit.x) or 0) - tx) ^ 2 + ((tonumber(unit.z) or 0) - tz) ^ 2
+				if not bestDistance or d < bestDistance then
+					best, bestDistance = index, d
+				end
+			end
+		end
+		taken[best] = true
+		local unit = units[best]
+		local w, h = Layout.footprint(unit.xsize, unit.zsize, facing)
+		out[best] = { x = Layout.snapAxis(tx, w), z = Layout.snapAxis(tz, h), facing = facing }
+	end
+	return out
+end
+
+--- Placed units pulled toward or pushed away from their centre by `factor` (0.75 tighter,
+--- 4/3 looser), each snapped for its own footprint. Tightening that would bring two units
+--- closer than the largest footprint gives nil: they are as tight as they go.
+---@param units table { { x, z, facing, xsize, zsize }, ... }
+---@param factor number
+---@return table|nil spots { { x, z }, ... } at the same indices as `units`
+function Layout.space(units, factor)
+	units = units or {}
+	factor = tonumber(factor) or 1
+	local offsets, cx, cz = Layout.centreOffsets(units)
+	local build = Layout.BUILD_SQUARE_SIZE
+	-- Scaled, but by at least one build step: a small squad's offsets are only a step or
+	-- two, and a plain x4/3 snaps straight back onto the grid line it came from.
+	local function scaled(d)
+		if d == 0 or factor == 1 then
+			return d
+		end
+		local size = math.abs(d)
+		if factor > 1 then
+			size = math.max(size * factor, size + build)
+		else
+			size = math.max(0, math.min(size * factor, size - build))
+		end
+		return d > 0 and size or -size
+	end
+	local spots, reach = {}, 0
+	for index, unit in ipairs(units) do
+		local w, h = Layout.footprint(unit.xsize, unit.zsize, unit.facing)
+		reach = math.max(reach, w, h)
+		spots[index] = {
+			x = Layout.snapAxis(cx + scaled(offsets[index].dx), w),
+			z = Layout.snapAxis(cz + scaled(offsets[index].dz), h),
+		}
+	end
+	if factor < 1 then
+		for i = 1, #spots do
+			for j = i + 1, #spots do
+				if math.abs(spots[i].x - spots[j].x) < reach and math.abs(spots[i].z - spots[j].z) < reach then
+					return nil
+				end
+			end
+		end
+	end
+	return spots
+end
+
 --- The next mode in Layout.MODES after `mode`, wrapping round.
 function Layout.nextMode(mode)
 	for index, candidate in ipairs(Layout.MODES) do

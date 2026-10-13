@@ -152,6 +152,174 @@ describe("unit_placer.layout", function()
 		end)
 	end)
 
+	describe("arrange (units S6)", function()
+		local function centre(offsets)
+			local sx, sz = 0, 0
+			for _, o in ipairs(offsets) do
+				sx, sz = sx + o.dx, sz + o.dz
+			end
+			return sx / #offsets, sz / #offsets
+		end
+		local function distinct(offsets)
+			local seen = {}
+			for _, o in ipairs(offsets) do
+				local key = o.dx .. ":" .. o.dz
+				if seen[key] then
+					return false
+				end
+				seen[key] = true
+			end
+			return true
+		end
+
+		it("stands a LINE abreast across the facing, centred", function()
+			local south = Layout.arrange(3, "LINE", 32, 0)
+			assert.are.same({ -32, 0, 32 }, { south[1].dx, south[2].dx, south[3].dx })
+			assert.are.equal(0, south[2].dz)
+			local east = Layout.arrange(3, "LINE", 32, 1)
+			assert.are.same({ -32, 0, 32 }, { east[1].dz, east[2].dz, east[3].dz })
+		end)
+
+		it("makes a GRID as square as the count allows, one spot each, centred", function()
+			local six = Layout.arrange(6, "GRID", 32, 0)
+			assert.are.equal(6, #six)
+			assert.is_true(distinct(six))
+			local cx, cz = centre(six)
+			assert.is_true(math.abs(cx) < 1e-9 and math.abs(cz) < 16)
+		end)
+
+		it("spreads a BOX round a ring, and falls back to a GRID under four", function()
+			local eight = Layout.arrange(8, "BOX", 32, 0)
+			assert.are.equal(8, #eight)
+			assert.is_true(distinct(eight))
+			for _, o in ipairs(eight) do
+				assert.is_true(math.abs(o.dx) == 32 or math.abs(o.dz) == 32, "on the ring")
+			end
+			assert.are.same(Layout.arrange(3, "GRID", 32, 0), Layout.arrange(3, "BOX", 32, 0))
+		end)
+
+		it("gives nothing for nothing", function()
+			assert.are.same({}, Layout.arrange(0, "GRID", 32, 0))
+		end)
+	end)
+
+	it("faces the nearer cardinal toward a point", function()
+		assert.are.equal(1, Layout.facingToward(0, 0, 100, 10))
+		assert.are.equal(3, Layout.facingToward(0, 0, -100, 10))
+		assert.are.equal(0, Layout.facingToward(0, 0, 10, 100))
+		assert.are.equal(2, Layout.facingToward(0, 0, 10, -100))
+	end)
+
+	describe("reform (a selection as a formation)", function()
+		local function bots(facing)
+			return {
+				{ x = 1000, z = 1000, facing = facing or 0, xsize = 2, zsize = 2 },
+				{ x = 1200, z = 1100, facing = 2, xsize = 2, zsize = 2 },
+				{ x = 900, z = 1300, facing = 3, xsize = 2, zsize = 2 },
+			}
+		end
+
+		it("stands a LINE abreast round the same centre, one cell apart", function()
+			local spots = Layout.reform(bots(), "LINE")
+			assert.are.equal(3, #spots)
+			-- Cell: a 16 elmo footprint plus a build square = 32; the centre is (1050, 1150).
+			local xsList, zsSeen = {}, {}
+			for index = 1, 3 do
+				xsList[#xsList + 1] = spots[index].x
+				zsSeen[spots[index].z] = true
+			end
+			table.sort(xsList)
+			assert.are.same({ 1016, 1048, 1080 }, xsList)
+			assert.are.same({ [1144] = true }, zsSeen)
+		end)
+
+		it("turns every unit to the first one's facing", function()
+			local spots = Layout.reform(bots(1), "GRID")
+			for index = 1, 3 do
+				assert.are.equal(1, spots[index].facing)
+			end
+		end)
+
+		it("gives each slot the nearest unit, so the group does not cross itself", function()
+			local units = {
+				{ x = 0, z = 0, facing = 0, xsize = 2, zsize = 2 },
+				{ x = 400, z = 0, facing = 0, xsize = 2, zsize = 2 },
+			}
+			local spots = Layout.reform(units, "LINE")
+			assert.is_true(spots[1].x < spots[2].x, "the western unit stays west")
+		end)
+
+		it("makes a BOX of under four a GRID", function()
+			assert.are.same(Layout.reform(bots(), "GRID"), Layout.reform(bots(), "BOX"))
+		end)
+
+		it("snaps each unit for its own footprint", function()
+			local units = {
+				{ x = 100, z = 100, facing = 0, xsize = 2, zsize = 2 },
+				{ x = 300, z = 100, facing = 0, xsize = 4, zsize = 4 },
+			}
+			local spots = Layout.reform(units, "LINE")
+			assert.are.equal(Layout.snapAxis(spots[2].x, 32), spots[2].x)
+			assert.are.equal(8, spots[1].x % 16, "a one build square footprint sits on a cell centre")
+			assert.are.equal(0, spots[2].x % 16, "a two build square footprint sits on a grid line")
+		end)
+
+		it("gives nothing for nothing", function()
+			assert.are.same({}, Layout.reform({}, "GRID"))
+		end)
+	end)
+
+	describe("space (tighter / looser)", function()
+		local units = {
+			{ x = 1000, z = 1000, facing = 0, xsize = 2, zsize = 2 },
+			{ x = 1128, z = 1000, facing = 0, xsize = 2, zsize = 2 },
+		}
+
+		it("pushes units away from the centre for a factor over one", function()
+			local spots = Layout.space(units, 4 / 3)
+			assert.is_true(spots[2].x - spots[1].x > 128)
+			assert.are.equal(spots[1].z, spots[2].z)
+		end)
+
+		it("pulls units toward the centre for a factor under one", function()
+			local spots = Layout.space(units, 0.75)
+			assert.is_true(spots[2].x - spots[1].x < 128)
+		end)
+
+		it("refuses to tighten past the largest footprint", function()
+			local close = {
+				{ x = 1000, z = 1000, facing = 0, xsize = 4, zsize = 4 },
+				{ x = 1032, z = 1000, facing = 0, xsize = 4, zsize = 4 },
+			}
+			assert.is_nil(Layout.space(close, 0.75))
+		end)
+
+		it("moves a tight squad of small units at least one step", function()
+			-- Offsets of one or two build squares: a plain x4/3 snapped back onto the same spots.
+			local trio = {
+				{ x = 3136, z = 3104, facing = 0, xsize = 2, zsize = 2 },
+				{ x = 3120, z = 3056, facing = 0, xsize = 2, zsize = 2 },
+				{ x = 3168, z = 3056, facing = 0, xsize = 2, zsize = 2 },
+			}
+			local spots = Layout.space(trio, 4 / 3)
+			local moved = 0
+			for index, spot in ipairs(spots) do
+				if spot.x ~= trio[index].x or spot.z ~= trio[index].z then
+					moved = moved + 1
+				end
+			end
+			assert.are.equal(3, moved)
+		end)
+
+		it("snaps every spot to the build grid", function()
+			local spots = Layout.space(units, 4 / 3)
+			for _, spot in ipairs(spots) do
+				assert.are.equal(8, spot.x % 16)
+				assert.are.equal(8, spot.z % 16)
+			end
+		end)
+	end)
+
 	it("cycles the modes and wraps", function()
 		assert.are.equal("LINE", Layout.nextMode("SINGLE"))
 		assert.are.equal("SINGLE", Layout.nextMode("BOX"))

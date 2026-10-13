@@ -280,6 +280,45 @@ function Placer.new(options)
 		return true
 	end
 
+	--- Change the armed shape, mid-drag included (the preview follows on the next update).
+	--- An owner that reads the game's build-drag keys calls this every frame.
+	---@param mode string SINGLE, LINE, SNAPLINE, GRID or BOX
+	---@return boolean changed
+	function self.setMode(mode)
+		if not spec then
+			return false
+		end
+		mode = tostring(mode or ""):upper()
+		local known = false
+		for _, candidate in ipairs(Layout.MODES) do
+			known = known or candidate == mode
+		end
+		if not known or spec.mode == mode then
+			return false
+		end
+		spec.mode = mode
+		positionsSignature = nil
+		return true
+	end
+
+	--- The gap between units in a LINE / GRID / BOX drag, in build squares (the game's build
+	--- spacing). The preview follows on the next update.
+	---@param spacing number
+	---@return boolean changed
+	function self.setSpacing(spacing)
+		if not spec then
+			return false
+		end
+		spacing = math.max(0, math.floor(tonumber(spacing) or 0))
+		if spec.spacing == spacing then
+			return false
+		end
+		spec.spacing = spacing
+		showBlueprint()
+		positionsSignature = nil
+		return true
+	end
+
 	function self.disarm()
 		spec, drag, pointer = nil, nil, nil
 		hideBlueprint()

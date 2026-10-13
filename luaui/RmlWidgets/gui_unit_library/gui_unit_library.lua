@@ -65,6 +65,54 @@ local BLUEPRINT_PAGE = 24
 --- Tiles per row in the grid, for the arrow keys (the grid is sized to fit this many).
 local COLUMNS = 4
 
+--- The GRID KEYS (PtaQ, 2026-09-29): the first three rows of the grid, row by row, on the
+--- three letter rows of the keyboard, the way the game's build grid menu does it. By POSITION
+--- (SDL scancodes), so the same three rows of keys work on any layout. A row takes as many
+--- keys as the grid has columns: four columns use Q W E R, and T G B join if it grows to five.
+local GRID_KEYS = {
+	{
+		{ sc = 20, label = "Q" },
+		{ sc = 26, label = "W" },
+		{ sc = 8, label = "E" },
+		{ sc = 21, label = "R" },
+		{ sc = 23, label = "T" },
+	},
+	{
+		{ sc = 4, label = "A" },
+		{ sc = 22, label = "S" },
+		{ sc = 7, label = "D" },
+		{ sc = 9, label = "F" },
+		{ sc = 10, label = "G" },
+	},
+	{
+		{ sc = 29, label = "Z" },
+		{ sc = 27, label = "X" },
+		{ sc = 6, label = "C" },
+		{ sc = 25, label = "V" },
+		{ sc = 5, label = "B" },
+	},
+}
+--- scancode -> tile index (1-based, in grid order), and tile index -> its key's label.
+local GRID_KEY_TILE, GRID_KEY_LABEL = {}, {}
+for row, keys in ipairs(GRID_KEYS) do
+	for col = 1, math.min(#keys, COLUMNS) do
+		local index = (row - 1) * COLUMNS + col
+		GRID_KEY_TILE[keys[col].sc] = index
+		GRID_KEY_LABEL[index] = keys[col].label
+	end
+end
+--- The other keys the library answers while it holds the keyboard, by scancode, as the RmlUi
+--- key names onKey takes: Enter picks the highlight, Escape closes, arrows move.
+local NAV_KEYS = {
+	[40] = "RETURN",
+	[88] = "NUMPADENTER",
+	[41] = "ESCAPE",
+	[79] = "RIGHT",
+	[80] = "LEFT",
+	[81] = "DOWN",
+	[82] = "UP",
+}
+
 local CHIP_LABELS = {
 	faction = { arm = "ARMADA", cor = "CORTEX", leg = "LEGION", other = "OTHER" },
 	tier = { [1] = "T1", [2] = "T2", [3] = "T3", [4] = "T4" },
@@ -156,6 +204,11 @@ local state = {
 	wantShown = false, -- what open/close asked for; applied in Update
 	shown = false,
 	wantFocus = false,
+	-- HOLDING THE KEYS: while true (the default) the grid keys and Enter / Escape / arrows are
+	-- the library's whenever it is open and its search field is not taking text. The button by
+	-- the close button (the terraform brush's pause / play) lets go of them, for the game.
+	keysHeld = true,
+	searchFocused = false,
 	recent = {},
 	lastTiles = {}, -- the names bound last, for the harness and the keyboard
 	focusIndex = 1,
@@ -403,6 +456,8 @@ local function pickOrder(name)
 	return nil
 end
 
+local setKeysHeld -- defined with the grid keys, below
+
 local function tileOf(entry, index)
 	local order = pickOrder(entry.name)
 	return {
@@ -414,6 +469,8 @@ local function tileOf(entry, index)
 		count = "",
 		blank = false,
 		picked = order ~= nil,
+		-- The grid key that picks it, on the first three rows while the library holds keys.
+		hotkey = (state.keysHeld and index > 0 and GRID_KEY_LABEL[index]) or "",
 		-- The badge only means something with more than one picked.
 		order = (order and #state.picks > 1) and tostring(order) or "",
 	}
@@ -744,6 +801,58 @@ local function wireKeys()
 	end, false)
 end
 
+--- Hold the keyboard for the grid, or give it back to the game (and the placer's own keys).
+--- Letting go also takes the caret out of the search field, so nothing in the library is
+--- taking keys at all.
+setKeysHeld = function(held)
+	state.keysHeld = held == true
+	if state.model then
+		state.model.keysHeld = state.keysHeld
+	end
+	if state.root then
+		state.root:SetClass("ul-released", not state.keysHeld)
+	end
+	if not state.keysHeld and state.document then
+		local search = state.document:GetElementById("ul-search")
+		if search and state.searchFocused then
+			search:Blur()
+		end
+		state.searchFocused = false
+		Spring.SDLStopTextInput()
+	end
+	state.dirty = true
+end
+
+--- A key the game sent (widget:KeyPress): the grid keys and the navigation keys, while the
+--- library is open, holds the keyboard, and no text field of it has the caret. Ctrl, Alt and
+--- Meta leave the key to the game; Shift adds to the pick set, as Shift+click does.
+local function gridKeyPress(mods, scanCode)
+	-- Any other editor text field with the caret (a node's field, the panel's forms, the brush)
+	-- types; the grid keys stand down.
+	if not (state.shown and state.keysHeld) or state.searchFocused or WG.TerraformBrushInputFocused then
+		return false
+	end
+	mods = mods or {}
+	if mods.ctrl or mods.alt or mods.meta then
+		return false
+	end
+	local sc = tonumber(scanCode)
+	local index = sc and GRID_KEY_TILE[sc]
+	if index then
+		local name = state.lastTiles[index]
+		if name then
+			pick(name, mods.shift == true)
+		end
+		-- Claimed even over an empty slot: a grid key must not fall through to the game.
+		return true
+	end
+	local nav = sc and NAV_KEYS[sc]
+	if nav then
+		return onKey(keyIds()[nav])
+	end
+	return false
+end
+
 --------------------------------------------------------------------------------
 -- The model: fixed callbacks, registered once at OpenDataModel. State only.
 --------------------------------------------------------------------------------
@@ -835,10 +944,21 @@ local initialModel = {
 		state.dirty = true
 	end,
 	searchFocus = function()
+		state.searchFocused = true
 		Spring.SDLStartTextInput()
 	end,
 	searchBlur = function()
+		state.searchFocused = false
 		Spring.SDLStopTextInput()
+	end,
+	keysHeld = true,
+	toggleKeys = function()
+		setKeysHeld(not state.keysHeld)
+	end,
+	keysNote = function()
+		state.model.hoverText = state.keysHeld
+				and "The library holds the keys: Q W E R, A S D F, Z X C V pick from the first three rows. Click to give the keys back to the game."
+			or "The keys are the game's. Click to take them back for the library's grid."
 	end,
 	close = function()
 		state.wantShown = false
@@ -1001,6 +1121,34 @@ function widget:Initialize()
 		end,
 		--- A chip press, as a click (additive = Shift held).
 		chip = chip,
+		--- The GRID KEYS: press one by scancode as widget:KeyPress would (mods like the
+		--- callin's: { shift, ctrl, alt, meta }); returns whether the library took it.
+		gridKey = function(scanCode, mods)
+			return gridKeyPress(mods, scanCode)
+		end,
+		--- Whether a grid key would be the library's right now, without picking anything. Other
+		--- editor widgets that see keys before the library (the terraform brush's tool and
+		--- shape hotkeys share W, F, C, ...) stand down for these.
+		claimsKey = function(scanCode, mods)
+			if not (state.shown and state.keysHeld) or state.searchFocused or WG.TerraformBrushInputFocused then
+				return false
+			end
+			mods = mods or {}
+			if mods.ctrl or mods.alt or mods.meta then
+				return false
+			end
+			return GRID_KEY_TILE[tonumber(scanCode) or -1] ~= nil
+		end,
+		--- Hold the keys for the grid (true) or give them back to the game (false), as the
+		--- pause / play button does; and read which.
+		setKeysHeld = setKeysHeld,
+		keysHeld = function()
+			return state.keysHeld
+		end,
+		--- A tile's grid key label ("" for none), by its place in the grid.
+		gridKeyLabel = function(index)
+			return (state.keysHeld and GRID_KEY_LABEL[index]) or ""
+		end,
 		--- A key on the search field (an RmlUi key identifier), as the keyboard would send it.
 		key = function(name)
 			return onKey(keyIds()[name])
@@ -1051,7 +1199,20 @@ function widget:Update()
 	if state.wantShown ~= state.shown and state.document then
 		state.shown = state.wantShown
 		if state.shown then
-			state.document:Show()
+			-- Shown WITHOUT taking the focus: a graph node's unit-name field opens the library
+			-- beside it and keeps its caret (typing still works there), and the grid keys do not
+			-- need the focus either. Plain Show if the flags are not bound.
+			local flags = RmlUi.RmlModalFlag and RmlUi.RmlFocusFlag
+			if
+				not (
+					flags
+					and pcall(function()
+						state.document:Show(RmlUi.RmlModalFlag.None, RmlUi.RmlFocusFlag.None)
+					end)
+				)
+			then
+				state.document:Show()
+			end
 			if WG.TerraformerShared and WG.TerraformerShared.bringToFront then
 				WG.TerraformerShared.bringToFront(DOC_KEY)
 			end
@@ -1064,15 +1225,14 @@ function widget:Update()
 		state.dirty = false
 		refresh()
 	end
-	-- Focus the search on open, so typing starts finding at once. After the refresh, a frame
-	-- after Show, so the field is laid out.
-	if state.shown and state.wantFocus and not state.dirty then
-		state.wantFocus = false
-		local search = state.document:GetElementById("ul-search")
-		if search then
-			search:Focus()
-		end
-	end
+	-- The search is NOT focused on open any more (PtaQ, 2026-09-29): the grid keys are the
+	-- library's from the moment it opens, and a focused search would take Q as text. A click
+	-- in the field types; leaving it hands the keys back to the grid.
+	state.wantFocus = false
+end
+
+function widget:KeyPress(_key, mods, _isRepeat, _label, _unicode, scanCode)
+	return gridKeyPress(mods, scanCode)
 end
 
 function widget:Shutdown()

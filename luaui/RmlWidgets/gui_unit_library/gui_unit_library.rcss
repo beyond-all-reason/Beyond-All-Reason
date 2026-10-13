@@ -168,7 +168,33 @@
 .tf-section-frame.hidden,
 .ul-section-body.hidden,
 .ul-pickset.hidden,
-.ul-order.hidden { display: none; }
+.ul-order.hidden,
+.ul-hotkey.hidden { display: none; }
+
+/* The grid key that picks a tile (the first three rows): top-left of the picture, the way the
+   build grid menu marks its keys. */
+.ul-hotkey {
+	position: absolute;
+	left: 6dp;
+	top: 4dp;
+	min-width: 18dp;
+	height: 18dp;
+	padding: 0dp 3dp;
+	font-size: 1.2rem;
+	line-height: 18dp;
+	font-weight: bold;
+	text-align: center;
+	color: #e1e6ee;
+	background-color: #000000b0;
+	border-radius: 3dp;
+}
+
+/* The pause / play button: lit (the brush's passthrough colours) while the keys are given back. */
+.ul-head-btns { gap: 2dp; }
+.ul-keys-btn:hover { background-color: #2a2f3a; }
+.ul-keys-btn.active { background-color: #0d2c24; }
+.ul-keys-btn.active img { image-color: #40e0c0; }
+.ul-root.ul-released { opacity: 0.85; }
 
 /* The pick set (PtaQ's N2): how many are picked and how a drop moves on through them. */
 .ul-pickset {
@@ -279,7 +305,9 @@
 	width: 100%;
 	box-sizing: border-box;
 	padding: 1dp 2dp;
-	font-size: 1.25rem;
+	/* 1.4rem (1.25rem before; PtaQ, 2026-09-29: still a little small). Two lines of it are
+	   32dp, inside the ~38dp under the 76dp picture. */
+	font-size: 1.4rem;
 	line-height: 1.15em;
 	max-height: 2.3em;
 	color: #e1e6ee;

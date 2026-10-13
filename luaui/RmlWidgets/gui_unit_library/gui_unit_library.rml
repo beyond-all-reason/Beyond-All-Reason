@@ -17,7 +17,15 @@
 <div id="ul-root" class="fp-root ul-root widget-shadow rounded-md bg-darkest p-2">
 	<div class="flex flex-row justify-between items-center mb-2">
 		<div id="ul-handle" class="fp-drag-handle text-2xl font-bold text-light text-outline-darker ul-title">{{title}}</div>
-		<div id="ul-close" class="fp-quit-btn" data-event-click="close()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		<div class="flex flex-row items-center ul-head-btns">
+			<!-- The terraform brush's pause / play: pause while the library holds the keys (the
+			     grid keys, Enter, Escape, arrows), play once they are given back to the game. -->
+			<div id="ul-keys" class="fp-quit-btn ul-keys-btn" data-class-active="!keysHeld" data-event-click="toggleKeys()" data-event-mouseover="keysNote()">
+				<img class="fp-icon-sm" src="/luaui/images/terraform_brush/passthrough_pause.png" data-if="keysHeld" />
+				<img class="fp-icon-sm" src="/luaui/images/terraform_brush/passthrough_play.png" data-if="!keysHeld" />
+			</div>
+			<div id="ul-close" class="fp-quit-btn" data-event-click="close()"><img class="fp-icon-sm" src="/luaui/images/terraform_brush/close.png" /></div>
+		</div>
 	</div>
 
 	<div class="flex flex-row gap-1 mb-1">
@@ -122,6 +130,7 @@
 				<div data-for="t : tiles" class="ul-tile" data-class-blank="t.blank" data-class-picked="t.picked" data-class-focus="t.index == focusIndex" data-event-click="pick(t.name)" data-event-mouseover="hover(t.name)">
 					<img class="ul-pic" data-attr-src="t.img" />
 					<div class="ul-order" data-class-hidden="t.order == ''">{{t.order}}</div>
+					<div class="ul-hotkey" data-class-hidden="t.hotkey == ''">{{t.hotkey}}</div>
 					<div class="ul-faction" data-class-ul-faction-arm="t.faction == 'arm'" data-class-ul-faction-cor="t.faction == 'cor'" data-class-ul-faction-leg="t.faction == 'leg'"></div>
 					<div class="ul-name">{{t.human}}</div>
 				</div>
@@ -147,7 +156,7 @@
 	</div>
 
 	<div id="ul-hover" class="ul-hover">{{hoverText}}</div>
-	<div class="ul-hint">Type to search, arrows move, Enter picks, Esc closes. Shift+click chips or tiles to add more; click a row's label to clear it. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
+	<div class="ul-hint">Q W E R, A S D F, Z X C V pick from the first three rows; arrows move, Enter picks, Esc closes. Click the search to type. Pause (top right) gives the keys back to the game. Shift+click chips or tiles to add more; click a row's label to clear it. On the map: click or drag to place, again and again; R turns, Tab shape, right-click lets go.</div>
 </div>
 </body>
 </rml>
