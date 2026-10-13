@@ -354,6 +354,38 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 end
 
 -- ============================================================
+-- Resource spots: the mex denier, extractor snapping, area mex and the metal spot markers all read the
+-- resource spot finder, which only scans the metal map at game start. Once the metal stops changing (a
+-- stroke ended, a project finished loading) it rescans, and LuaUI is told to do the same.
+-- GameFrame is only registered while a rescan is pending.
+-- ============================================================
+local SPOT_REFRESH_DELAY = 15 -- frames after the last metal write
+local spotRefreshFrame = nil
+
+local function metalChanged()
+	Spring.SendLuaUIMsg("mb_metal_updated")
+	spotRefreshFrame = Spring.GetGameFrame() + SPOT_REFRESH_DELAY
+	gadgetHandler:UpdateCallIn("GameFrame")
+end
+
+function gadget:GameFrame(frame)
+	if spotRefreshFrame and frame < spotRefreshFrame then
+		return
+	end
+	gadgetHandler:RemoveCallIn("GameFrame")
+	if not spotRefreshFrame then
+		return
+	end
+	spotRefreshFrame = nil
+	local finder = GG.resource_spot_finder
+	if finder and finder.Refresh then
+		local spots = finder.Refresh()
+		Spring.Echo("[Metal Brush] resource spots rescanned: " .. (type(spots) == "table" and #spots or "metal map"))
+		Spring.SendLuaUIMsg("mb_spots_refreshed")
+	end
+end
+
+-- ============================================================
 -- Message Handler
 -- ============================================================
 function gadget:RecvLuaMsg(msg, playerID)
@@ -395,7 +427,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 		recalcNearbyExtractors(centerX, centerZ, radius)
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo(
 			"[Metal Brush] Paint applied at "
 				.. centerX
@@ -444,7 +476,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		pushUndo(snapshotShape(centerX, centerZ, radius, shape, angleDeg))
 		applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 		recalcNearbyExtractors(centerX, centerZ, radius)
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo(
 			"[Metal Brush] Stamp applied at "
 				.. centerX
@@ -492,7 +524,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 				end
 			end
 		end
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo("[Metal Brush] Cleared all metal (" .. cleared .. " squares)")
 		return
 	end
@@ -551,7 +583,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		if loaded > 0 then
-			Spring.SendLuaUIMsg("mb_metal_updated")
+			metalChanged()
 		end
 		Spring.Echo("[Metal Brush] Loaded " .. loaded .. " metal squares")
 		return
@@ -575,7 +607,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if snap.cx and snap.r then
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo("[Metal Brush] Undo (" .. (#snap / 3) .. " squares, " .. #undoStack .. " left)")
 		return
 	end
@@ -598,7 +630,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if snap.cx and snap.r then
 			recalcNearbyExtractors(snap.cx, snap.cz, snap.r)
 		end
-		Spring.SendLuaUIMsg("mb_metal_updated")
+		metalChanged()
 		Spring.Echo("[Metal Brush] Redo (" .. (#snap / 3) .. " squares, " .. #redoStack .. " left)")
 		return
 	end

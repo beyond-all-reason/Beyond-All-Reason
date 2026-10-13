@@ -396,6 +396,34 @@ function upget:Initialize()
 	globalScope.resource_spot_finder.GetBuildingPositions = GetBuildingPositions
 	globalScope.resource_spot_finder.IsMexPositionValid = IsBuildingPositionValid
 
+	-- The map editor's metal brush changes the metal map mid-game: Refresh rebuilds the metal spots
+	-- from it. The list is refilled IN PLACE, so everything that cached metalSpotsList (the mex
+	-- denier, extractor snapping, area mex) sees the new spots without reloading. Nothing in a
+	-- normal game calls it.
+	globalScope.resource_spot_finder.Refresh = function()
+		if metalMaps[Game.mapName] then
+			return metalSpots
+		end
+		local spots, metalMap = GetSpotsMetal()
+		if type(metalSpots) == "table" and type(spots) == "table" then
+			for i = #metalSpots, 1, -1 do
+				metalSpots[i] = nil
+			end
+			for i = 1, #spots do
+				metalSpots[i] = spots[i]
+			end
+		else
+			metalSpots = spots
+			globalScope.resource_spot_finder.metalSpotsList = metalSpots
+		end
+		isMetalMap = metalMap
+		globalScope.resource_spot_finder.isMetalMap = isMetalMap
+		if gadget then
+			setMexGameRules(metalSpots)
+		end
+		return metalSpots
+	end
+
 	if gadget then
 		setMexGameRules(metalSpots)
 	end

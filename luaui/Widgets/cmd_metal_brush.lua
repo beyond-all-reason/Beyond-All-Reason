@@ -1660,7 +1660,15 @@ function widget:MouseWheel(up, value)
 	return false
 end
 
+-- set by RecvLuaMsg, run here: reloading widgets inside a callin would change the list being dispatched
+local refreshSpotWidgets
+local spotWidgetsPending = false
+
 function widget:Update(dt)
+	if spotWidgetsPending then
+		spotWidgetsPending = false
+		refreshSpotWidgets()
+	end
 	-- Balance axis hover check (when not dragging, not placing)
 	if active and balanceAxisActive and not balanceAxisDragging and not balanceAxisPlacingOrigin then
 		local wx, wz = getWorldPos()
@@ -1851,11 +1859,42 @@ function widget:DrawScreen()
 	drawCursorInfo(worldX, worldZ)
 end
 
+-- The gadget rescanned the resource spots after the metal stopped changing ("mb_spots_refreshed"): rescan
+-- LuaUI's copy too (refilled in place, so Area Mex and Extractor Snap follow on their own), then reload
+-- the widgets that build their state from the spot list once at start, or drop out on a map with too
+-- few spots. Only the ones switched on in the widget list: the saved config says which.
+local SPOT_WIDGETS = { "Metalspots", "Quick Build (mex/geo)" }
+refreshSpotWidgets = function()
+	local finder = WG.resource_spot_finder
+	if not (finder and finder.Refresh) then
+		return
+	end
+	local spots = finder.Refresh()
+	local order = {}
+	local chunk = loadfile("LuaUI/Config/" .. Game.gameShortName .. ".lua")
+	if chunk then
+		setfenv(chunk, {})
+		local ok, cfg = pcall(chunk)
+		if ok and type(cfg) == "table" and type(cfg.order) == "table" then
+			order = cfg.order
+		end
+	end
+	for _, name in ipairs(SPOT_WIDGETS) do
+		if (order[name] or 1) > 0 then
+			Spring.SendCommands("luaui disablewidget " .. name)
+			Spring.SendCommands("luaui enablewidget " .. name)
+		end
+	end
+	Spring.Echo("[Metal Brush] mex widgets updated: " .. (type(spots) == "table" and #spots or "metal map") .. " spots")
+end
+
 -- Gadget signals "mb_metal_updated" after every SetMetalAmount batch so we
 -- know the values are committed and can cancel the blind timer hold, letting
 -- the overlay cache rebuild on the very next DrawWorld call.
 function widget:RecvLuaMsg(msg, playerID)
-	if msg == "mb_metal_updated" then
+	if msg == "mb_spots_refreshed" then
+		spotWidgetsPending = true
+	elseif msg == "mb_metal_updated" then
 		spotsCacheDirty = true
 		clusterCacheDirty = true
 		overlayListDirty = true
