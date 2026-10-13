@@ -19,7 +19,7 @@ describe("mission_api.difficulty", function()
 	end
 
 	before_each(function()
-		withDifficulty(0)
+		withDifficulty(STORY)
 	end)
 
 	-- Runs one wrapped value through ResolveActions and returns what it resolved to.
