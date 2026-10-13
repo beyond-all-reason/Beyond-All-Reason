@@ -7990,16 +7990,7 @@ function init()
 				loadWidgetData("Building Grid GL4", "buildinggridopacity", { "opacity" })
 			end,
 			onchange = function(i, value)
-				if
-					widgetHandler.orderList["Building Grid GL4"]
-					and widgetHandler.orderList["Building Grid GL4"] >= 0.5
-				then
-					widgetHandler:DisableWidget("Building Grid GL4")
-					saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
-					widgetHandler:EnableWidget("Building Grid GL4")
-				else
-					saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
-				end
+				saveOptionValue("Building Grid GL4", "buildinggrid", "setOpacity", { "opacity" }, value)
 			end,
 		},
 		{
