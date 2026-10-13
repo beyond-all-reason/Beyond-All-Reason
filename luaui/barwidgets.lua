@@ -73,6 +73,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spIsReplay = Spring.IsReplay
 local LOG = copyTable(LOG)
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer
+local getAccountID = BAR.Utilities.GetAccountID
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -658,6 +659,22 @@ end
 
 local function unavailableFunction() end
 
+local function grantUserRmlUi()
+	local ok, powerUsers = pcall(vfsInclude, "luarules/configs/powerusers.lua", {}, vfsZip)
+	if not ok or type(powerUsers) ~= "table" then
+		return false
+	end
+	local accountID = getAccountID(Spring.GetMyPlayerID())
+	local permissions = accountID and accountID > 0 and powerUsers[accountID]
+	if type(permissions) ~= "table" then
+		return false
+	end
+	if spGetSpectatingState() then
+		return permissions.userrmlui_spectator == true
+	end
+	return permissions.userrmlui_player == true
+end
+
 local function CreateSandboxedSystem()
 	local sandboxedTable = copyTable(table)
 	sandboxedTable.save = function(t, filename, header)
@@ -948,7 +965,7 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.debug = sandboxedDebug
 	SandboxedSystem.socket = nil
 	-- TODO: restore once rmlui security assessment finishes
-	SandboxedSystem.RmlUi = nil
+	SandboxedSystem.RmlUi = grantUserRmlUi() and RmlUi or nil
 end
 
 function widgetHandler:Initialize()
