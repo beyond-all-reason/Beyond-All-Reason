@@ -17,6 +17,22 @@ return {
 	},
 
 	{
+		key = TransferEnums.ModOptions.TransferMode,
+		name = "Transfer Mode",
+		desc = "Overall transfer policy. Picking a mode sets the options below and locks the ones it depends on; pick Customize to change them yourself.",
+		-- other modules' presets for this axis join the list after these
+		type = "list",
+		section = TransferEnums.ModeCategories.Transfer,
+		def = TransferEnums.Modes.Enabled,
+		items = {
+			{ key = TransferEnums.Modes.Enabled, name = "Enabled" },
+			{ key = TransferEnums.Modes.Disabled, name = "Disabled" },
+			{ key = TransferEnums.Modes.EasyTax, name = "Easy Tax" },
+			{ key = TransferEnums.Modes.Customize, name = "Customize" },
+		},
+	},
+
+	{
 		key = "sub_header",
 		name = "-- Units",
 		type = "subheader",
