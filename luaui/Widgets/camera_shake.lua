@@ -89,6 +89,9 @@ function widget:Update(dt)
 	if powerScale <= 0 then
 		return
 	end
+	if WG.cinematicCamera and WG.cinematicCamera.IsShaking() then
+		return -- a scripted shake owns the camera offset while it plays
+	end
 	local t = widgetHandler:GetHourTimer()
 	local pShake = shake * 0.1
 	local tShake = shake * 0.025
