@@ -205,6 +205,7 @@ local flexCallIns = {
 	"UnitCmdDone",
 	"UnitDamaged",
 	"UnitStunned",
+	"UnitFlightRegimeChanged",
 	"UnitEnteredRadar",
 	"UnitEnteredLos",
 	"UnitLeftRadar",
@@ -4037,6 +4038,16 @@ function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	tracy.ZoneBeginN("W:UnitStunned")
 	for _, w in ipairs(self.UnitStunnedList) do
 		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
+	end
+	tracy.ZoneEnd()
+	return
+end
+
+function widgetHandler:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
+	tracy.ZoneBeginN("W:UnitFlightRegimeChanged")
+	---@diagnostic disable-next-line: undefined-field -- the call-in lists are created from callInLists
+	for _, w in ipairs(self.UnitFlightRegimeChangedList) do
+		w:UnitFlightRegimeChanged(unitID, unitDefID, unitTeam, regime)
 	end
 	tracy.ZoneEnd()
 	return
