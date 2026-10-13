@@ -1402,6 +1402,18 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	end
 
 	ownedEnvs[widget] = widget
+	-- The handler can build owned environments for widgets to run loaded code in isolation.
+	-- Use it to load data that sets globals and then read them back, like in the following:
+	-- - `local env = newfenv(); loadstring(raw, nil, env)(); use(env.loadedGlobalName)`
+	-- - `setfenv(chunk, newfenv()); chunk()`
+	-- But in general I have no expectation you will need to inspect and reflect widget code.
+	-- If you're loading code in your widgets, still, use this. Inspect it at load, then pull
+	-- out trusted functions to setfenv to your widget to grant permissions or keep isolated.
+	widget.newfenv = function()
+		local env = {}
+		ownedEnvs[env] = widget
+		return env
+	end
 	widget.getfenv = function(f)
 		return userEnv(widget, getfenv(callerFrame(f)))
 	end
@@ -1411,15 +1423,10 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			spLog("barwidgets.lua", LOG.ERROR, "setfenv: cannot change this environment")
 			return type(f) == "function" and f or nil
 		end
-		if type(env) == "table" then
-			ownedEnvs[env] = widget
-		end
 		return setfenv(frame, env)
 	end
 	widget.loadstring = function(text, chunkname, env)
-		if type(env) == "table" then
-			ownedEnvs[env] = widget
-		else
+		if type(env) ~= "table" then
 			env = userEnv(widget, getfenv(2))
 		end
 		return loadSourceChunk(text, chunkname, env)
