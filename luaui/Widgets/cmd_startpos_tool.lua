@@ -4068,7 +4068,6 @@ function widget:Initialize()
 		clearAllStartboxes = clearAllStartboxes,
 		setVertexStrength = strengthEdit.setVertex,
 		setBoxStrength = strengthEdit.setBox,
-		finishStartbox = finishStartbox,
 		generateStartScript = generateStartScript,
 		saveStartScript = saveStartScript,
 		cyclePositionRole = roleConfig.cyclePositionRole,
@@ -4076,7 +4075,6 @@ function widget:Initialize()
 		encodeBSetValue = encodeBSetValue,
 		addStartboxVertex = addStartboxVertex,
 		finishStartbox = finishStartbox,
-		clearAllStartboxes = clearAllStartboxes,
 		encodeStartboxes = boxExport.encode,
 	}
 end
