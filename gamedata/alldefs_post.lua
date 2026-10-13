@@ -48,6 +48,17 @@ local isAprilFools = holidays.aprilfools
 local isHalloween = holidays.halloween
 local isXmas = holidays.xmas
 local holidayModels = require("unitbasedefs/holiday_models")
+-- Cat Commander (cosmetic, off by default; overview in luarules/gadgets/unit_catcom.lua):
+-- commander or decoy commander name -> stock model whose cat version is objects3d/Units/<model>_cat.s3o,
+-- with the D-Gun meow sounds/weapons/meow_<model>.wav
+local catComModels = {
+	armcom = "armcom",
+	armdecom = "armcom",
+	corcom = "corcom",
+	cordecom = "corcom",
+	legcom = "legcom",
+	legdecom = "legcom",
+}
 
 local evocomTweaks = require("unitbasedefs/evocom").Tweaks
 local extraUnitsTweaks = require("unitbasedefs/experimental_extra_units").Tweaks
@@ -248,6 +259,21 @@ local function unitDef_Post(name, uDef)
 		uDef.objectname = holidayModel.model
 		if holidayModel.hats then
 			customparams.holidayhatcount = holidayModel.hats
+		end
+	end
+
+	-- Cat Commander
+	local catComModel = catComModels[basename]
+	if catComModel and modOptions.catcom then
+		-- hidden lobby option: this commander is a cat for every player
+		uDef.objectname = "Units/" .. catComModel .. "_cat.s3o"
+		customparams.holidayhatcount = nil -- the cat model has no holiday hat pieces
+	elseif catComModel and not holidayModel then
+		-- private setting: cus_gl4.lua draws the player's own commanders with the model of this featuredef, which is
+		-- never spawned. That needs the same pieces as the unit model, so not while a holiday model replaces it.
+		customparams.catcom_featuredef = catComModel .. "_cat"
+		if name == catComModel and uDef.featuredefs then -- one featuredef per model, named <unit>_cat by the engine
+			uDef.featuredefs.cat = { object = "Units/" .. name .. "_cat.s3o", blocking = false, reclaimable = false }
 		end
 	end
 
@@ -1401,6 +1427,12 @@ local function weaponDef_Post(name, wDef)
 		end
 
 		ProcessSoundDefaults(wDef)
+
+		-- Cat Commander: the meow that unit_catcom.lua plays along with the commander D-Gun sound
+		local catComModel = catComModels[string.match(name, "^(.+)_disintegrator$")]
+		if catComModel then
+			customparams.catcom_meow = "meow_" .. catComModel
+		end
 	end
 
 	-- Multipliers

@@ -1138,6 +1138,20 @@ local options = {
 		def = false,
 	},
 
+	-- Cat Commander (cosmetic, see luarules/gadgets/unit_catcom.lua). Hidden, so the lobby doesn't list it.
+	-- To turn it on for a match, e.g. an event: in an autohost battle, the host types !bset catcom 1 before the start;
+	-- in a local game, put catcom=1; in the start script's [MODOPTIONS].
+	-- NOTE: update language/en/interface.json when you change name or desc
+	{
+		key = "catcom",
+		name = "Cat Commander",
+		desc = "Every commander gets cat ears, black thigh-highs and a meowing D-Gun, and all players see them. Cosmetic only.",
+		type = "bool",
+		section = "options_extra",
+		def = false,
+		hidden = true,
+	},
+
 	{
 		key = "sub_header",
 		section = "options_extra",

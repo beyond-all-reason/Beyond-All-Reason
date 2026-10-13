@@ -1592,6 +1592,40 @@ local function CompactPendingRegion(bin, pendingStart)
 	end
 end
 
+-- Cat Commander private setting (overview in unit_catcom.lua): on this client only, the player's own commanders are
+-- drawn with the cat model. alldefs_post.lua names a featuredef that holds it in customparams.catcom_featuredef.
+-- The cat model has the same pieces as the unit model, so the unit's own piece matrices animate it.
+-- The setting is read when the game starts. While it is off this table stays empty and nothing changes.
+local catModelDefIDs = {} -- unitDefID -> featureDefID
+if Spring.GetConfigInt("CatCommander", 0) == 1 then
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local featureDef = FeatureDefNames[unitDef.customParams.catcom_featuredef or ""]
+		if featureDef and featureDef.model.textures.tex1 then -- loads the model; no tex1 if it failed to load
+			catModelDefIDs[unitDefID] = featureDef.id
+		end
+	end
+end
+
+-- VAO:AddUnitsToSubmission(unitIDs), except that it submits the player's own commanders with the cat model.
+-- Note: the cat models (objects3d/Units/<model>_cat.s3o) are edited copies of the stock commander models. When a stock
+-- commander model changes, its cat copy has to be remade from it: until then this setting shows the old model, and a
+-- broken one if the pieces changed.
+local function AddUnitsToSubmission(VAO, unitIDs)
+	if not next(catModelDefIDs) or Spring.GetSpectatingState() then
+		VAO:AddUnitsToSubmission(unitIDs)
+		return
+	end
+	local myTeamID = Spring.GetMyTeamID()
+	for _, unitID in ipairs(type(unitIDs) == "table" and unitIDs or { unitIDs }) do
+		local catModelDefID = catModelDefIDs[Spring.GetUnitDefID(unitID)]
+		if catModelDefID and Spring.GetUnitTeam(unitID) == myTeamID then
+			VAO:AddFeatureDefsToSubmission(catModelDefID) -- one draw command, like AddUnitsToSubmission(unitID)
+		else
+			VAO:AddUnitsToSubmission(unitID)
+		end
+	end
+end
+
 local function FlushPendingBin(bin)
 	local pendingStart = bin.pendingStart
 	if pendingStart == nil then
@@ -1612,7 +1646,7 @@ local function FlushPendingBin(bin)
 		local objectID = objectsArray[pendingStart]
 		if objectID >= 0 then
 			IBO:InstanceDataFromUnitIDs(objectID, objectTypeAttribID, pendingStart - 1)
-			VAO:AddUnitsToSubmission(objectID)
+			AddUnitsToSubmission(VAO, objectID)
 		else
 			IBO:InstanceDataFromFeatureIDs(-objectID, objectTypeAttribID, pendingStart - 1)
 			VAO:AddFeaturesToSubmission(-objectID)
@@ -1646,7 +1680,7 @@ local function FlushPendingBin(bin)
 		uploadFunc(IBO, slice, objectTypeAttribID, pendingStart - 1)
 	end
 	if isUnits then
-		VAO:AddUnitsToSubmission(slice)
+		AddUnitsToSubmission(VAO, slice)
 	else
 		VAO:AddFeaturesToSubmission(slice)
 	end
@@ -1849,7 +1883,7 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 			end
 
 			mybinIBO:InstanceDataFromUnitIDs(newObjectsArray, objectTypeAttribID)
-			mybinVAO:AddUnitsToSubmission(newObjectsArray)
+			AddUnitsToSubmission(mybinVAO, newObjectsArray)
 		else
 			-- this additional table is needed to allow for one-time translation of negative objectID to featureID
 			local newFeaturesArray = {}

@@ -33,3 +33,9 @@ All rights reserved for the above mentioned folders for all sound files in these
 /sounds/voice-soundeffects/AllyRequest.wav
 
 Authored by Inimitible_Wolf. Released under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.
+
+/sounds/weapons/meow_armcom.wav
+/sounds/weapons/meow_corcom.wav
+/sounds/weapons/meow_legcom.wav
+
+Generated with eSpeak NG. Released under CC0 1.0 Universal (CC0 1.0) Public Domain Dedication.

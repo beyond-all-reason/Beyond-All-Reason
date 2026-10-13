@@ -2234,6 +2234,8 @@
 				"dgunstallassist_descr": "When the D-Gun order is active, units that drain energy will pause their energy use.",
 				"singleplayerpause": "Pause while a window is open",
 				"singleplayerpause_descr": "Singleplayer and replays only. While a window such as Settings, Keys or Stats, the quit dialog or the lobby is open, the game is paused. It resumes when the last one closes, unless you paused or unpaused it yourself in the meantime.",
+				"catcommander": "Cat Commander",
+				"catcommander_descr": "Only on your screen: your own commanders get cat ears and black thigh-highs, and their D-Guns meow. Other players see and hear normal commanders. Takes effect from the next game.",
 				"catchupsmoothness": "Catch up smoothness",
 				"catchupsmoothness_descr": "Higher smoothness/fps comes at the expense of catch up speed.\n(higher value = more cpu time gets allocated to drawing)",
 				"catchupminfps": "Catch up min fps",
@@ -3666,6 +3668,10 @@
 		"scavunitsforplayers": {
 			"name": "Scavengers Units Pack",
 			"desc": "Units made for Scavengers, mostly silly and unbalanced for PvP."
+		},
+		"catcom": {
+			"name": "Cat Commander",
+			"desc": "Every commander gets cat ears, black thigh-highs and a meowing D-Gun, and all players see them. Cosmetic only."
 		},
 		"map_waterlevel": {
 			"name": "Water Level",

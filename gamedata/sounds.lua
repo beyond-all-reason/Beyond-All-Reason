@@ -134,6 +134,7 @@ local soundData = {
 				["^nukelaunchalarm$"] = 0,
 				["^starfallchargup$"] = 0,
 				["^ministarfallchargup$"] = 0,
+				["^meow_"] = 0,
 			},
 		},
 		gainmod = 0.2 * 0.3,

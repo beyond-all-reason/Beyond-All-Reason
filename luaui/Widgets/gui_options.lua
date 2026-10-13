@@ -9242,6 +9242,18 @@ function init()
 				widgetHandler:SetWindowsPauseGame(value)
 			end,
 		},
+		{
+			id = "catcommander",
+			group = "game",
+			category = types.advanced,
+			name = BAR.I18N("ui.settings.option.catcommander"),
+			type = "bool",
+			value = Spring.GetConfigInt("CatCommander", 0) == 1,
+			description = BAR.I18N("ui.settings.option.catcommander_descr"),
+			onchange = function(i, value)
+				Spring.SetConfigInt("CatCommander", (value and 1 or 0)) -- read at game start, see unit_catcom.lua
+			end,
+		},
 
 		{
 			id = "catchupsmoothness",
