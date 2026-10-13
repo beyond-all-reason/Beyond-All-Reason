@@ -39,8 +39,16 @@ M.ModeCategories = {
 	Transfer = "transfer",
 }
 
+M.Modes = {
+	Disabled = "disabled",
+	Enabled = "enabled",
+	EasyTax = "easy_tax",
+	Customize = "customize",
+}
+
 M.ModOptions = {
 	ResourceSharingEnabled = "resource_sharing_enabled",
+	TransferMode = "transfer_mode",
 	TakeMode = "take_mode",
 	TakeDelaySeconds = "take_delay_seconds",
 	TakeDelayCategory = "take_delay_category",
