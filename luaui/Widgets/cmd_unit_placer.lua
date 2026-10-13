@@ -86,8 +86,11 @@ local SEED_MAX = 16777216 -- 2^24: Lua numbers are floats here
 local SEED_STRIDE = 8191
 local FORMATION_MODE = { line = "LINE", grid = "GRID", box = "BOX" }
 local NEXT_FORMATION = { line = "grid", grid = "box", box = "line" }
+---@type table<string, boolean>
 local DISTRIBUTIONS = { random = true, regular = true, clustered = true, line = true, grid = true, box = true }
+---@type table<string, boolean>
 local SHAPES = { circle = true, square = true, hexagon = true, octagon = true, triangle = true }
+---@type table<string, boolean>
 local MODES = { scatter = true, point = true, remove = true }
 
 local floor, max, min, abs = math.floor, math.max, math.min, math.abs
@@ -96,6 +99,46 @@ local cos, sin, pi = math.cos, math.sin, math.pi
 ----------------------------------------------------------------
 -- State (tables, to keep the file's locals few)
 ----------------------------------------------------------------
+---@class UnitPlacerSmartFilters
+---@field avoidWater boolean
+---@field avoidCliffs boolean
+---@field slopeMax number
+---@field preferSlopes boolean
+---@field slopeMin number
+---@field altMinEnable boolean
+---@field altMin number
+---@field altMaxEnable boolean
+---@field altMax number
+
+---@class UnitPlacerState
+---@field active boolean
+---@field mode string?
+---@field shape string
+---@field radius number
+---@field rotation number
+---@field rotRandom number
+---@field unitCount number
+---@field cadence number
+---@field distribution string
+---@field smartEnabled boolean
+---@field smartFilters UnitPlacerSmartFilters
+---@field team number?
+---@field dragging boolean
+---@field dragAction string?
+---@field dragStroke (string|number)?
+---@field placeTimer number
+---@field undoCount number
+---@field redoCount number
+---@field strokeCount number
+---@field edgeFade number
+---@field spacing number
+---@field modDrag boolean
+---@field modOverride boolean
+---@field modBase string?
+---@field lastStampX number?
+---@field lastStampZ number?
+
+---@type UnitPlacerState
 local up = {
 	active = false,
 	mode = nil, -- "scatter" | "point" | "remove"
@@ -133,6 +176,17 @@ local up = {
 	modBase = nil, -- the shape to go back to when they are let go
 }
 
+---@class UnitPlacerGrid
+---@field overlay boolean
+---@field snap boolean
+---@field snapSize number
+---@field showing boolean
+---@field dl any
+---@field dlSize number?
+---@field dirty boolean
+---@field forceShowDefID number?
+
+---@type UnitPlacerGrid
 local grid = {
 	overlay = false,
 	snap = false,
@@ -146,6 +200,15 @@ local grid = {
 
 -- The stamp preview: a brush-relative layout cached by seed and parameters, so it keeps its
 -- shape while the cursor moves; the seed is rerolled after every stamp.
+---@class UnitPlacerPreview
+---@field seed number
+---@field layout table?
+---@field layoutKey string?
+---@field stampKey string?
+---@field stamp table?
+---@field warnedCap boolean
+
+---@type UnitPlacerPreview
 local pv = {
 	seed = floor(os.clock() * 1000) % SEED_MAX,
 	layout = nil,
@@ -156,6 +219,20 @@ local pv = {
 }
 
 -- The selection (select mode: active, scatter or point, nothing picked).
+---@class UnitPlacerSelection
+---@field ids UnitID[]
+---@field set table<UnitID, boolean>
+---@field boxing boolean
+---@field boxX1 number
+---@field boxY1 number
+---@field boxX2 number
+---@field boxY2 number
+---@field drag table?
+---@field clipboard table?
+---@field pruneTimer number
+---@field boxAdditive boolean?
+
+---@type UnitPlacerSelection
 local sel = {
 	ids = {},
 	set = {},
@@ -181,6 +258,7 @@ local Tool = {} -- WG.UnitPlacerTool
 --- Every message changes the units, so it is also where a map project learns it has
 --- unsaved changes.
 local function sendMsg(msg)
+	---@type table?
 	local mp = WG.MapProject
 	if mp and mp.markDirty then
 		mp.markDirty("units")
@@ -220,15 +298,18 @@ end
 local function overUi(withPanel)
 	local mx, my = Spring.GetMouseState()
 	-- The unit library (RmlUi coordinates, y down).
-	if WG.UnitLibrary and WG.UnitLibrary.contains then
+	---@type table?
+	local lib = WG.UnitLibrary
+	if lib and lib.contains then
 		local _, vsy = Spring.GetViewGeometry()
-		if WG.UnitLibrary.contains(mx, vsy - my) then
+		if lib.contains(mx, vsy - my) then
 			return true
 		end
 	end
 	if not withPanel then
 		return false
 	end
+	---@type table?
 	local tfUI = WG.TerraformBrushUI
 	if tfUI and tfUI.getPanelBounds then
 		local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
@@ -253,6 +334,7 @@ end
 --- following the mouse a little past the map border and fades out.
 local function brushCursor()
 	up.edgeFade = 1
+	---@type table?
 	local tb = WG.TerraformBrush
 	if tb and tb.getWorldPositionExtended then
 		local wx, wz, fade = tb.getWorldPositionExtended(up.mode == "point" and 64 or up.radius)
@@ -266,6 +348,7 @@ local function brushCursor()
 end
 
 local function getSymmetricPositions(wx, wz, rot)
+	---@type table?
 	local tb = WG.TerraformBrush
 	if tb and tb.getSymmetricPositions then
 		return tb.getSymmetricPositions(wx, wz, rot or 0)
@@ -299,8 +382,9 @@ end
 --- build grid as the engine places them.
 local function standingSpot(def, x, z, facing)
 	if isStructure(def) then
+		---@type number?, number?, number?
 		local sx, _, sz = Spring.Pos2BuildPos(def.id, x, Spring.GetGroundHeight(x, z), z, facing)
-		if sx then
+		if sx and sz then
 			return floor(sx + 0.5), floor(sz + 0.5)
 		end
 	end
@@ -351,6 +435,7 @@ local function dropOverlaps(spots)
 		local clash = false
 		for cx = x0, x1 do
 			for cz = z0, z1 do
+				---@type table?
 				local bucket = buckets[cx * 65536 + cz]
 				if bucket then
 					for _, other in ipairs(bucket) do
@@ -389,6 +474,7 @@ end
 --- A spot for a unit: snapped as it will stand, its footprint, or nil when the map or the
 --- smart filters refuse it.
 local function makeSpot(name, x, z, facing, team)
+	---@type table?
 	local def = UnitDefNames[name]
 	if not (def and insideMap(x, z)) then
 		return nil
@@ -416,6 +502,7 @@ local function showBuildGrid()
 	if grid.showing then
 		return
 	end
+	---@type table?
 	local bg = WG.buildinggrid
 	if bg and bg.setForceShow and grid.forceShowDefID then
 		bg.setForceShow("unitplacer", true, grid.forceShowDefID)
@@ -427,6 +514,7 @@ local function hideBuildGrid()
 	if not grid.showing then
 		return
 	end
+	---@type table?
 	local bg = WG.buildinggrid
 	if bg and bg.setForceShow then
 		bg.setForceShow("unitplacer", false)
@@ -449,10 +537,10 @@ local function buildFullMapGrid()
 		gl.LineWidth(1)
 		gl.Color(1, 1, 0.6, 0.20)
 		gl.PolygonOffset(-2, -2)
-		local z = 0
+		local z = 0.0
 		while z <= msz do
 			gl.BeginEnd(GL.LINE_STRIP, function()
-				local x = 0
+				local x = 0.0
 				while x <= msx do
 					gl.Vertex(x, GetGroundHeight(x, z) + BUMP, z)
 					x = x + gs
@@ -463,10 +551,10 @@ local function buildFullMapGrid()
 			end)
 			z = z + gs
 		end
-		local x = 0
+		local x = 0.0
 		while x <= msx do
 			gl.BeginEnd(GL.LINE_STRIP, function()
-				local zz = 0
+				local zz = 0.0
 				while zz <= msz do
 					gl.Vertex(x, GetGroundHeight(x, zz) + BUMP, zz)
 					zz = zz + gs
@@ -645,6 +733,7 @@ local function dropPick()
 	if placer and placer.armed() then
 		placer.disarm()
 	end
+	---@type table?
 	local lib = WG.UnitLibrary
 	if lib and lib.clearPicks and lib.owner and lib.owner() == LIBRARY_TITLE then
 		lib.clearPicks()
@@ -673,8 +762,9 @@ end
 
 --- The largest footprint among the names, in elmos: the clustered spacing.
 local function largestFootprint(names)
-	local largest = 16
+	local largest = 16.0
 	for _, name in ipairs(names) do
+		---@type table?
 		local def = UnitDefNames[name]
 		if def then
 			largest = max(largest, (def.xsize or 2) * 8, (def.zsize or 2) * 8)
@@ -887,6 +977,7 @@ local function newGhostPool(owner)
 	local pool = { handles = {}, count = 0 }
 
 	function pool.clear()
+		---@type function?
 		local stop = WG.StopDrawUnitShapeGL4
 		for index = 1, pool.count do
 			if stop and pool.handles[index] then
@@ -899,6 +990,7 @@ local function newGhostPool(owner)
 
 	--- Show `items` ({ defID, x, z, facing, team }), reusing instances in place.
 	function pool.sync(items, alpha)
+		---@type function?
 		local draw = WG.DrawUnitShapeGL4
 		if not draw then
 			return
@@ -936,6 +1028,7 @@ local function newGhostPool(owner)
 				handles[n] = handle
 			end
 		end
+		---@type function?
 		local stop = WG.StopDrawUnitShapeGL4
 		for index = n + 1, pool.count do
 			if stop and handles[index] then
@@ -1176,7 +1269,7 @@ end
 --- The selection drag: the grabbed unit follows the pointer (grid snap on it, then each unit
 --- snapped for its own footprint) and the others keep their offsets from it.
 local function dragTargets(wx, wz)
-	local drag = sel.drag
+	local drag = sel.drag --[[@as table]]
 	local grab = drag.origins[drag.grabID]
 	if not grab then
 		return {}
@@ -1698,10 +1791,12 @@ end
 --- The terraform brush's own click tools (measure, height sampling, the symmetry origin)
 --- take the mouse first.
 local function deferToTerraformBrush()
+	---@type table?
 	local tb = WG.TerraformBrush
 	if not tb then
 		return false
 	end
+	---@type table?
 	local st = tb.getState and tb.getState()
 	if st then
 		if st.measureActive or st.heightSamplingMode then
@@ -1748,7 +1843,7 @@ local function selectPress(mx, my)
 		if not sel.set[target] then
 			setSelection({ target }, false)
 		end
-		if beginSelectionDrag(target, mx, my) then
+		if beginSelectionDrag(target, mx, my) and sel.drag then
 			sel.drag.collapse = collapse
 		end
 		return true
@@ -1878,6 +1973,7 @@ function widget:MouseRelease(mx, my, button)
 	return false
 end
 
+---@return boolean
 function widget:MouseWheel(wheelUp)
 	if not up.active or overUi(true) then
 		return false
@@ -1886,6 +1982,7 @@ function widget:MouseWheel(wheelUp)
 	local dir = wheelUp and 1 or -1
 	if alt then
 		local step = LIMIT.rotationStep
+		---@type table?
 		local tb = WG.TerraformBrush
 		local tbs = tb and tb.getState and tb.getState() or nil
 		if tbs and tbs.angleSnap and (tbs.angleSnapStep or 0) > 0 then
@@ -2048,7 +2145,12 @@ function widget:Update(dt)
 	end
 	if up.dragAction == "remove" then
 		removeAt(x, z)
-	elseif up.mode ~= "point" or not up.lastStampX or abs(x - up.lastStampX) >= 16 or abs(z - up.lastStampZ) >= 16 then
+	elseif
+		up.mode ~= "point"
+		or not (up.lastStampX and up.lastStampZ)
+		or abs(x - up.lastStampX) >= 16
+		or abs(z - up.lastStampZ) >= 16
+	then
 		-- POINT held still would stack units on one spot; it repeats once the cursor moves.
 		stampAt(x, z)
 	end
@@ -2077,8 +2179,8 @@ end
 local function drawRotatedSquare(cx, cz, radius, angleDeg)
 	local corners = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
 	gl.BeginEnd(GL.LINE_LOOP, function()
-		for i = 1, 4 do
-			local rx, rz = rotatePoint(corners[i][1], corners[i][2], angleDeg)
+		for _, c in ipairs(corners) do
+			local rx, rz = rotatePoint(c[1], c[2], angleDeg)
 			local x, z = cx + rx, cz + rz
 			gl.Vertex(x, Spring.GetGroundHeight(x, z) + 4, z)
 		end
@@ -2159,6 +2261,7 @@ local function drawSelection()
 	gl.Color(1.0, 0.85, 0.25, 0.85)
 	for _, unitID in ipairs(sel.ids) do
 		local x, _, z = Spring.GetUnitPosition(unitID)
+		---@type table?
 		local def = x and UnitDefs[Spring.GetUnitDefID(unitID)]
 		if def then
 			drawRegularPolygon(x, z, max(def.xsize or 2, def.zsize or 2) * 8 * 0.75 + 4, 0, 20)
@@ -2173,6 +2276,7 @@ local function drawRemovalTargets(x, z)
 	gl.Color(1.0, 0.2, 0.15, 0.9 * up.edgeFade)
 	for _, unitID in ipairs(unitsInBrush(x, z)) do
 		local ux, _, uz = Spring.GetUnitPosition(unitID)
+		---@type table?
 		local def = ux and UnitDefs[Spring.GetUnitDefID(unitID)]
 		if def then
 			local w, h = Layout.footprint(def.xsize, def.zsize, Spring.GetUnitBuildFacing(unitID) or 0)
@@ -2236,6 +2340,7 @@ function widget:DrawWorld()
 	end
 
 	local x, z = brushCursor()
+	---@type table?
 	local tb = WG.TerraformBrush
 	if tb and tb.animateUnmouse then
 		x, z = tb.animateUnmouse("unitPlacer", x, z, up.radius, 1.0)
