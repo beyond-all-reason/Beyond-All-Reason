@@ -1,5 +1,5 @@
--- Camera math shared by the cinematic camera widget, camera_remember_mode.lua and the
--- mission API's Easing parameter type. Pure functions, no engine state.
+-- Camera math shared by the cinematic camera widget and camera_remember_mode.lua. Pure
+-- functions, no engine state.
 --
 -- Angles are radians in the engine's camera convention: rx is the inclination from +y
 -- (pi/2 level, pi straight down), ry the azimuth around +y (0 looks toward -z, the top of
@@ -17,7 +17,7 @@ local max, min, floor = math.max, math.min, math.floor
 
 --------------------------------------------------------------------------------
 -- Easing: t in [0, 1] -> eased fraction in [0, 1]
--- The mission API lists these names in luarules/mission_api/parameter_types.lua; keep both the same.
+-- The mission API's Easing parameter type (mission-api/dev) lists these names; keep both the same.
 --------------------------------------------------------------------------------
 
 CameraMath.Easings = {
@@ -121,6 +121,7 @@ function CameraMath.EyeFromTarget(tx, ty, tz, pitch, yaw, distance)
 end
 
 local MAX_ROLL = HALFPI - 0.01
+local MAX_COMPENSATED_ROLL = 1.0 -- past this the right vector nears the view direction and the roll jitters
 
 ---The engine applies rz through the right vector, so the roll seen on screen is
 ---atan(tan(rz) * sin(rx)). Returns the rz that shows the wanted roll at this pitch.
@@ -130,7 +131,8 @@ function CameraMath.CompensatedRoll(roll, rx)
 		return 0
 	end
 	roll = max(-MAX_ROLL, min(MAX_ROLL, roll))
-	return atan(tan(roll) / s)
+	local rz = atan(tan(roll) / s)
+	return max(-MAX_COMPENSATED_ROLL, min(MAX_COMPENSATED_ROLL, rz))
 end
 
 ---Interpolates angles along the shortest path.
@@ -243,7 +245,7 @@ local FALLBACK_LOOK_DISTANCE = 1000
 ---A camera state table for Spring.SetCameraState that shows `pose` (an eye position, rotation
 ---and fov) in the camera mode of `previousState`. Nil for modes without a free eye (overview,
 ---free, dolly): the caller falls back to restoring the previous state as it was.
----@param pose { x: number, y: number, z: number, rx: number, ry: number, rz: number, fov: number }
+---@param pose { x: number, y: number, z: number, rx: number, ry: number, fov: number }
 ---@param previousState table a Spring.GetCameraState() table
 ---@param groundHeightFn fun(x: number, z: number): number
 ---@param cardinalLock boolean whether CamSpringLockCardinalDirections is on
@@ -264,7 +266,7 @@ function CameraMath.StateFromPose(pose, previousState, groundHeightFn, cardinalL
 			dz = fz,
 			rx = pose.rx,
 			ry = pose.ry,
-			rz = pose.rz,
+			rz = 0, -- the player's cameras have no roll
 			fov = pose.fov,
 		}
 	elseif mode == 3 then -- rot
@@ -276,7 +278,7 @@ function CameraMath.StateFromPose(pose, previousState, groundHeightFn, cardinalL
 			pz = pose.z,
 			rx = pose.rx,
 			ry = pose.ry,
-			rz = pose.rz,
+			rz = 0, -- the player's cameras have no roll
 			fov = pose.fov,
 		}
 	elseif mode ~= 1 and mode ~= 2 then

@@ -26,7 +26,9 @@ end
 	bearing, 0 = toward the top of the map; roll; vertical fov).
 
 	target   = { x, y, z } or { unitIDs = {...} } (the centroid of the units still alive), with
-	           optional offset = { x, y, z } and relativeToHeading (offset turns with the unit)
+	           optional offset = { x, y, z } and relativeToHeading (offset turns with the unit);
+	           lastX/lastY/lastZ hold where the units were last seen (the widget writes them,
+	           a caller may seed them)
 	keyframe = { position = target, lookAt = target?, pitch?, yaw?, roll?, fov?, duration?, hold?,
 	             easing?, path = "linear" | "spline" }
 	sequence = { keyframes = {...}, onEnd = "release" | "restore" | "hold", restoreSlot?,
@@ -35,6 +37,8 @@ end
 	            mode takes over at the same spot; restore blends back to a saved camera)
 	follow   = { target, distance?, pitch?, yaw?, duration? (0: until stopped), transitionDuration?,
 	             easing?, smoothing?, fov?, onEnd?, restoreSlot?, restoreDuration?, restoreEasing? }
+	           (easing shapes the lead-in blend only; smoothing is the trailing lag: the gap to the
+	            target halves every `smoothing` seconds, 0 = rigid)
 	orbit    = { target, distance?, pitch?, startYaw?, degrees?, duration?, transitionDuration?,
 	             easing?, fov?, onEnd?, ... }
 	           (both start moving at once; the first transitionDuration seconds blend the current
@@ -44,7 +48,8 @@ end
 	The camera is driven every frame as the engine's fps camera with its position clamp lifted
 	(FPSClampPos overlay), since the engine's own transitions cannot be timed in BAR's default
 	transition mode. Timing is real time, so sequences also play while the game is paused; an
-	open menu window pauses them.
+	open menu window pauses them where the widget handler can say so (IsAnyWindowOpen, which
+	comes with the player input lock; without it nothing pauses).
 ]]
 
 local CameraMath = VFS.Include("common/camera_math.lua")
@@ -181,6 +186,7 @@ local function applyPose(pose)
 	}, 0)
 end
 
+-- widgetHandler:IsAnyWindowOpen() arrives with the player input lock; older handlers never pause.
 local function windowOpen()
 	return widgetHandler.IsAnyWindowOpen ~= nil and widgetHandler:IsAnyWindowOpen() == true
 end
@@ -223,10 +229,11 @@ local function resolveTarget(target)
 	if offset then
 		local ox, oy, oz = offset.x or 0, offset.y or 0, offset.z or 0
 		if target.relativeToHeading and unitIDs and unitIDs[1] then
-			-- offset x to the unit's right, z to its front
+			-- offset z along the unit's front (sin h, cos h) and x along its right (-cos h, sin h),
+			-- the engine's frontdir and rightdir for a heading h
 			local h = spGetUnitHeading(unitIDs[1], true) or 0
 			local sh, ch = sin(h), cos(h)
-			ox, oz = ox * ch + oz * sh, oz * ch - ox * sh
+			ox, oz = oz * sh - ox * ch, oz * ch + ox * sh
 		end
 		x, y, z = x + ox, y + oy, z + oz
 	end
@@ -247,9 +254,13 @@ local function easingFor(name)
 	return Easings[name] or Easings[DEFAULTS.easing]
 end
 
----Where a keyframe's eye is right now; `fallback` when its target was never seen.
+---Where a keyframe's eye is right now; `fallback` when it has no position or its target was
+---never seen.
 ---@param fallback { x: number, y: number, z: number }
 local function keyframeEye(keyframe, fallback)
+	if not keyframe.position then
+		return fallback
+	end
 	local x, y, z = resolveTarget(keyframe.position)
 	if not (x and y and z) then
 		return fallback
@@ -269,8 +280,8 @@ local function panRotation(x, y, z, fromTarget, toTarget, u)
 	return LookAtRotation(x, y, z, ax + (bx - ax) * u, ay + (by - ay) * u, az + (bz - az) * u)
 end
 
----Where a keyframe looks from its eye: at its target, in its fixed direction, or where the
----previous pose looked.
+---Where a keyframe looks from `eye`: at its target, or in its own pitch and yaw, each of which
+---is inherited from the previous pose when left out.
 ---@param inherited CinematicPose
 local function keyframeRotation(keyframe, eye, inherited)
 	if keyframe.lookAt then
@@ -278,10 +289,10 @@ local function keyframeRotation(keyframe, eye, inherited)
 		if tx and ty and tz then
 			return LookAtRotation(eye.x, eye.y, eye.z, tx, ty, tz)
 		end
-	elseif keyframe.pitch or keyframe.yaw then
-		return pitchRad(keyframe.pitch or DEFAULTS.pitch), rad(keyframe.yaw or DEFAULTS.yaw)
 	end
-	return inherited.rx, inherited.ry
+	local rx = keyframe.pitch and pitchRad(keyframe.pitch) or inherited.rx
+	local ry = keyframe.yaw and rad(keyframe.yaw) or inherited.ry
+	return rx, ry
 end
 
 local function moveSegment(keyframe, previous, beforePrevious, following)
@@ -313,7 +324,8 @@ local function moveSegment(keyframe, previous, beforePrevious, following)
 			rx, ry = panRotation(x, y, z, previous.lookAt, keyframe.lookAt, u)
 		end
 		if not rx then
-			local toRx, toRy = keyframeRotation(keyframe, eye, start)
+			-- aimed from where the eye is now: the blend into the keyframe's direction ends on target
+			local toRx, toRy = keyframeRotation(keyframe, { x = x, y = y, z = z }, start)
 			rx = start.rx + (toRx - start.rx) * u
 			ry = LerpAngle(start.ry, toRy, u)
 		end
@@ -347,8 +359,8 @@ end
 
 ---Shared by follow and orbit. The shot runs from the moment the segment starts; over the first
 ---`transitionDuration` seconds the view blends from the entry pose into the already moving
----shot, so the hand-over has no kink.
-local function shotSegment(params, duration, shotPose)
+---shot, so the hand-over has no kink. `blendEasing` shapes that blend (nil: the default).
+local function shotSegment(params, duration, shotPose, blendEasing)
 	local transition = params.transitionDuration or DEFAULTS.transitionDuration
 	local segment = { duration = duration and math.max(duration, transition) or nil }
 
@@ -360,7 +372,7 @@ local function shotSegment(params, duration, shotPose)
 	function segment.evaluate(self, t)
 		local pose = shotPose(self, t)
 		if t < transition then
-			return blendPoses(self.start, pose, easingFor(DEFAULTS.easing)(t / transition))
+			return blendPoses(self.start, pose, easingFor(blendEasing)(t / transition))
 		end
 		return pose
 	end
@@ -371,7 +383,7 @@ end
 local function followSegment(params)
 	local target = params.target
 	local distance = params.distance or DEFAULTS.distance
-	local pitch = pitchRad(params.pitch or DEFAULTS.pitch)
+	local pitch = rad(params.pitch or DEFAULTS.pitch)
 	local yaw = rad(params.yaw or DEFAULTS.yaw)
 	local smoothing = params.smoothing or DEFAULTS.smoothing
 	local untilStopped = (params.duration or 0) <= 0
@@ -393,11 +405,11 @@ local function followSegment(params)
 		else
 			smoothed.x, smoothed.y, smoothed.z = tx, ty, tz
 		end
-		local ex, ey, ez, rx, ry = EyeFromTarget(smoothed.x, smoothed.y, smoothed.z, pitch - HALFPI, yaw, distance)
+		local ex, ey, ez, rx, ry = EyeFromTarget(smoothed.x, smoothed.y, smoothed.z, pitch, yaw, distance)
 		return { x = ex, y = ey, z = ez, rx = rx, ry = ry, roll = 0, fov = self.fov }
 	end
 
-	return shotSegment(params, duration, shotPose), untilStopped
+	return shotSegment(params, duration, shotPose, params.easing), untilStopped
 end
 
 local function orbitSegment(params)
@@ -452,6 +464,7 @@ local function takeControl()
 		pose = pose,
 	}
 	control = running
+	-- the engine reads the overlay on its next config flush, so the first frame may still be clamped
 	spSetConfigInt(CLAMP_CONFIG, 0, true)
 	return running
 end
@@ -475,6 +488,7 @@ local function releaseInPlaceState(running)
 		or running.snapshot.state
 end
 
+---The camera saved under `slot`, else the one the running sequence took over.
 ---@param slot string?
 ---@return { state: table, pose: CinematicPose }?
 local function savedCamera(slot)
@@ -503,7 +517,8 @@ local function restoreSegment(saved, duration, easing)
 end
 
 ---Hands the camera back where it is. The player's camera has no roll and keeps its own fov, so
----those ease out first; the mode switch at the end then changes nothing the eye can see.
+---those ease out first; the mode switch at the end then changes only what the mode cannot show
+---(the spring camera clamps the pitch, ta the yaw; see CameraMath.StateFromPose).
 ---@param running CinematicControl
 local function releaseSegment(running, duration, easing)
 	local ease = easingFor(easing)
@@ -652,8 +667,17 @@ end
 
 local function restore(slot, duration, easing)
 	local saved = savedCamera(slot)
+	if (slot and not slots[slot]) or not saved then
+		Spring.Log(
+			widget:GetInfo().name,
+			LOG.WARNING,
+			"No camera saved as '"
+				.. tostring(slot or DEFAULT_SLOT)
+				.. "'"
+				.. (saved and ", restoring the camera the sequence took over instead" or "")
+		)
+	end
 	if not saved then
-		Spring.Log(widget:GetInfo().name, LOG.WARNING, "No saved camera to restore: " .. tostring(slot or DEFAULT_SLOT))
 		return
 	end
 	local running = takeControl()

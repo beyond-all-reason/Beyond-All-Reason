@@ -182,7 +182,7 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			loaded.WG.cinematicCamera.Play({
 				keyframes = {
 					{
-						position = { unitIDs = { 7 }, offset = { x = 0, y = 50, z = 100 }, relativeToHeading = true },
+						position = { unitIDs = { 7 }, offset = { x = 100, y = 50, z = 100 }, relativeToHeading = true },
 						duration = 0,
 					},
 				},
@@ -192,9 +192,9 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			loaded.env.widget:Update(0.1)
 
 			local state = lastState()
-			near(600, state.px) -- the unit faces +x, so "in front" is +x
+			near(600, state.px) -- the unit faces +x: its front is +x
 			near(50, state.py)
-			near(500, state.pz)
+			near(600, state.pz) -- and its right is +z
 		end)
 
 		it("holds the last pose while a window is open", function()
@@ -272,6 +272,20 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			loaded.env.widget:Update(0.1)
 			near(700, lastState().px)
 			near(900, lastState().pz)
+		end)
+
+		it("uses its easing for the lead-in blend", function()
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Follow({
+				target = { x = 500, y = 0, z = 500 },
+				transitionDuration = 2,
+				easing = "cut",
+			})
+
+			loaded.env.widget:Update(1.9)
+			near(0, lastState().px) -- a cut shows the entry pose until the blend is over
+			loaded.env.widget:Update(0.2)
+			assert.is_true(math.abs(lastState().px) > 1) -- and then the shot
 		end)
 
 		it("holds the view when the target was never seen at all", function()
@@ -426,6 +440,22 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			assert.is_false(loaded.WG.cinematicCamera.IsShaking())
 			assert.are.equal(2, lastState().mode)
 			assert.are.equal(0, offsets[#offsets].n)
+		end)
+
+		it("leaves no roll behind when stopped during a rolled shot", function()
+			playerState = { mode = 0, name = "fps", px = 0, py = 100, pz = 0, rx = HALFPI, ry = 0, rz = 0, fov = 45 }
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Play({
+				keyframes = { { position = { x = 0, y = 100, z = 0 }, pitch = 45, roll = 15, duration = 0 } },
+				onEnd = "hold",
+			})
+			loaded.env.widget:Update(0.1)
+			assert.is_true(math.abs(lastState().rz) > 0.1)
+
+			loaded.WG.cinematicCamera.Stop()
+
+			assert.are.equal(0, lastState().mode)
+			assert.are.equal(0, lastState().rz)
 		end)
 
 		it("gives the player's camera back on shutdown", function()
