@@ -163,6 +163,16 @@ function CameraMath.CatmullRom(p0, p1, p2, p3, t)
 		catmullRom(p0.z, p1.z, p2.z, p3.z, t)
 end
 
+---The eye `u` of the way along a move from `start` to `eye`: a straight line, or when `spline`,
+---a Catmull-Rom shaped by the neighbouring keyframes' eyes `p0` (before the start) and `p3`
+---(after the end). The widget flies this; an editor samples it to draw the path.
+function CameraMath.MoveEye(start, eye, p0, p3, spline, u)
+	if spline then
+		return CameraMath.CatmullRom(p0, start, eye, p3, u)
+	end
+	return CameraMath.Lerp3(start, eye, u)
+end
+
 --------------------------------------------------------------------------------
 -- Spring camera cardinal lock (CamSpringLockCardinalDirections)
 --------------------------------------------------------------------------------

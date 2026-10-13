@@ -114,6 +114,30 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			near(45, state.fov)
 		end)
 
+		it("samples the path a sequence would fly without taking the camera over", function()
+			units[7] = { x = 500, y = 0, z = 500 }
+			local loaded = loadWidget()
+			local path = loaded.WG.cinematicCamera.SamplePath({
+				keyframes = {
+					{ position = { x = 200, y = 100, z = 0 }, duration = 2, easing = "linear", hold = 1 },
+					{ position = { x = 200, y = 100, z = 400 }, lookAt = { unitIDs = { 7 } }, duration = 0 },
+				},
+			}, 2)
+
+			assert.are.equal(4, #path.points) -- the start, two samples, then the cut
+			near(0, path.points[1].x) -- from the rendered camera
+			near(100, path.points[2].x)
+			near(1, path.points[2].t)
+			near(200, path.points[3].x)
+			near(400, path.points[4].z)
+			near(3, path.points[4].t) -- after the 1 s hold
+			assert.are.equal(2, #path.keyframes)
+			near(2, path.keyframes[1].t)
+			assert.are.same({ x = 500, y = 0, z = 500 }, path.keyframes[2].lookAt)
+			assert.is_false(loaded.WG.cinematicCamera.IsActive())
+			assert.are.same({}, setStates)
+		end)
+
 		it("releases in place in the player's camera mode when the sequence ends", function()
 			local loaded = loadWidget()
 			loaded.WG.cinematicCamera.Play({

@@ -14,6 +14,7 @@ end
 --[[
 	WG.cinematicCamera:
 		Play(sequence)        keyframed sequence, see the shapes below
+		SamplePath(sequence, samplesPerMove, start)   the eye path Play would fly, for drawing it
 		Follow(params)        point at a target and follow it
 		Orbit(params)         circle a target
 		Shake(params)         shake the view; concurrent shakes add up
@@ -82,6 +83,7 @@ local DEFAULT_SLOT = "default"
 
 local DEFAULTS = {
 	keyframeDuration = 2,
+	pathSamples = 16, -- SamplePath points per move
 	easing = CameraMath.DEFAULT_EASING,
 	onEnd = "release",
 	releaseDuration = 1.5,
@@ -268,6 +270,15 @@ local function keyframeEye(keyframe, fallback)
 	return { x = x, y = y, z = z }
 end
 
+---The eyes a move interpolates between: the keyframe's own, and the neighbours' as spline
+---anchors (the start pose and the keyframe's eye stand in at the ends of the sequence).
+local function moveEyes(keyframe, beforePrevious, following, start)
+	local eye = keyframeEye(keyframe, start)
+	local p0 = beforePrevious and keyframeEye(beforePrevious, start) or start
+	local p3 = following and keyframeEye(following, eye) or eye
+	return eye, p0, p3
+end
+
 ---Panning from one look-at target to the next sweeps the point looked at between them.
 ---@return number? rx
 ---@return number? ry
@@ -308,16 +319,8 @@ local function moveSegment(keyframe, previous, beforePrevious, following)
 	function segment.evaluate(self, t)
 		local start = self.start
 		local u = duration > 0 and ease(t / duration) or 1
-		local eye = keyframeEye(keyframe, start)
-
-		local x, y, z
-		if spline then
-			local p0 = beforePrevious and keyframeEye(beforePrevious, start) or start
-			local p3 = following and keyframeEye(following, eye) or eye
-			x, y, z = CameraMath.CatmullRom(p0, start, eye, p3, u)
-		else
-			x, y, z = CameraMath.Lerp3(start, eye, u)
-		end
+		local eye, p0, p3 = moveEyes(keyframe, beforePrevious, following, start)
+		local x, y, z = CameraMath.MoveEye(start, eye, p0, p3, spline, u)
 
 		local rx, ry
 		if keyframe.lookAt and previous and previous.lookAt then
@@ -618,6 +621,53 @@ local function play(sequence)
 	startTimeline(running, segments)
 end
 
+---The path a sequence would fly, for drawing it. `points` lie along the eye path, spaced evenly
+---in time (`t` seconds from the start, holds included); `keyframes` has one entry per keyframe
+---with its eye, its arrival time, `unit` when it rides a unit and, when it looks at something
+---that resolves, its `lookAt` point. Unit targets resolve to where the units are now. The first
+---move starts from `start` ({ x, y, z }, default the rendered camera), as Play starts from the
+---player's view. Takes nothing over.
+---@param sequence table as for Play
+---@param samplesPerMove integer? points per move besides its start (default 16)
+---@param start { x: number, y: number, z: number }?
+---@return { points: table[], keyframes: table[] }
+local function samplePath(sequence, samplesPerMove, start)
+	local keyframes = sequence.keyframes
+	local samples = math.max(1, samplesPerMove or DEFAULTS.pathSamples)
+	local from = start and { x = start.x, y = start.y, z = start.z } or renderedPose()
+	local points = { { x = from.x, y = from.y, z = from.z, t = 0 } }
+	local marks = {}
+	local time = 0.0
+	for i = 1, #keyframes do
+		local keyframe = keyframes[i]
+		local duration = keyframe.duration or DEFAULTS.keyframeDuration
+		local ease = easingFor(keyframe.easing)
+		local spline = keyframe.path == "spline"
+		local eye, p0, p3 = moveEyes(keyframe, keyframes[i - 2], keyframes[i + 1], from)
+		if duration > 0 then
+			for s = 1, samples do
+				local x, y, z = CameraMath.MoveEye(from, eye, p0, p3, spline, ease(s / samples))
+				points[#points + 1] = { x = x, y = y, z = z, t = time + duration * s / samples }
+			end
+		else
+			points[#points + 1] = { x = eye.x, y = eye.y, z = eye.z, t = time }
+		end
+		time = time + duration
+		local position = keyframe.position
+		local mark = { x = eye.x, y = eye.y, z = eye.z, t = time, unit = position ~= nil and position.unitIDs ~= nil }
+		if keyframe.lookAt then
+			local lx, ly, lz = resolveTarget(keyframe.lookAt)
+			if lx then
+				mark.lookAt = { x = lx, y = ly, z = lz }
+			end
+		end
+		marks[#marks + 1] = mark
+		time = time + (keyframe.hold or 0)
+		from = eye
+	end
+	return { points = points, keyframes = marks }
+end
+
 local function follow(params)
 	local running = takeControl()
 	local segment, untilStopped = followSegment(params)
@@ -763,6 +813,7 @@ end
 function widget:Initialize()
 	WG.cinematicCamera = {
 		Play = play,
+		SamplePath = samplePath,
 		Follow = follow,
 		Orbit = orbit,
 		Shake = shake,
