@@ -4168,7 +4168,7 @@ body {
 	color: #40e0c0;
 }
 
-/* === Slider Wheel-Lock (double-click to lock) === */
+/* === Slider Wheel-Lock (double middle click to lock) === */
 /* Locked — teal tint fill + teal outline (toggle-state accent) */
 .slider-locked sliderbar {
 	background-color: #1a4438;
@@ -4188,6 +4188,34 @@ body {
 .slider-locked.slider-pulse sliderbar:hover {
 	background-color: #215446;
 	border-color: #40e0c088;
+}
+/* The same look on every slider family: two classes outrank the colour-channel thumbs
+   (.tf-slider.lp-slider-channel-r sliderbar and friends), which used to hide the lock. */
+.tf-slider.slider-locked sliderbar {
+	background-color: #1a4438;
+	border: 2dp #40e0c0bb;
+	box-shadow: none;
+}
+.tf-slider.slider-locked.slider-pulse sliderbar {
+	border: 2dp #40e0c040;
+}
+
+/* Wheel lock status line under the status strip: what is locked and how to let go */
+.tf-wheellock-status {
+	padding: 3dp 6dp;
+	border-radius: 4dp;
+	border: 1dp #40e0c0aa;
+	background-color: #1a4438;
+	color: #d8f5ee;
+	font-size: 1.05rem;
+}
+.tf-wl-tag {
+	color: #40e0c0;
+	font-weight: bold;
+	letter-spacing: 1dp;
+}
+.tf-wl-hint {
+	color: #9fd9cb;
 }
 
 /* Keybind-scroll flash — brief teal highlight that fades back via base transition */

@@ -9,6 +9,7 @@
 	<div id="tf-root" class="tf-root hidden widget-shadow rounded-md bg-darkest p-2-5">
 		<div class="flex flex-col-reverse">
 		<div id="status-summary" class="tf-status-summary mb-1"></div>
+		<div id="tf-wheellock-status" class="tf-wheellock-status mb-1 hidden"></div>
 		<div class="tf-header mb-2">
 			<div class="tf-header-top">
 				<div id="tf-handle" class="tf-drag-handle tf-title text-outline-darker">

@@ -86,7 +86,7 @@ Tilted features keep their lean, and mirrored features keep their silhouette rat
 | `Ctrl+R+Scroll` | Ring inner-ratio |
 | `Shift+drag` | Axis-lock + grid snap |
 | `RMB drag` | Temporary Lower (restores previous mode on release) |
-| `MMB` on a slider | Lock it to the mouse wheel (click it again, or any click on it, to release; `ESC` clears all) |
+| `MMB` twice on a slider | Lock it to the mouse wheel; several can be locked at once. Twice again on it releases it, `ESC` releases all. The line under the status strip lists what is locked |
 | `Ctrl+Z` / `Ctrl+Shift+Z` | Undo / Redo |
 
 Full table in [Interaction → Keyboard](#interaction).

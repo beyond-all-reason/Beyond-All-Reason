@@ -16418,28 +16418,16 @@ local function trackSliderDrag(element, id)
 	element:AddEventListener("mousedown", function(event)
 		local ls = widgetState.lockedSliders
 
-		-- MIDDLE CLICK toggles the wheel lock. It used to be a double LEFT
-		-- click, which fired by accident all the time: two ordinary clicks on
-		-- the same slider inside a third of a second is something you do while
-		-- adjusting a value, not a deliberate gesture (PtaQ, 2026-09-22).
+		-- The wheel lock (a DOUBLE middle click) is one document-wide listener for every
+		-- slider: widgetState.attachWheelLockGesture.
 		if event.parameters.button == MOUSE_MIDDLE then
-			if ls[id] then
-				ls[id] = nil
-				element:SetClass("slider-locked", false)
-				element:SetClass("slider-pulse", false)
-			else
-				ls[id] = element
-				element:SetClass("slider-locked", true)
-				playSound("sliderLock")
-			end
 			return
 		end
 
 		-- Click-to-jump: clicking on the track (not the thumb) jumps to mouse position
-		-- and then follows the mouse until mouseup (synthetic drag).
-		-- Skip when locked (single click on a locked slider = unlock, not jump).
+		-- and then follows the mouse until mouseup (synthetic drag). Skipped when locked.
 		local targetEl = event.target_element
-		if not ls[id] and targetEl and targetEl.tag_name ~= "sliderbar" then
+		if not ls[element.id] and targetEl and targetEl.tag_name ~= "sliderbar" then
 			local minVal = tonumber(element:GetAttribute("min")) or 0
 			local maxVal = tonumber(element:GetAttribute("max")) or 1
 			local elWidth = element.client_width
@@ -16518,6 +16506,101 @@ local function trackSliderDrag(element, id)
 		end
 		uiState.draggingSlider = nil
 		uiState.draggingSliderEl = nil
+	end, false)
+end
+
+-- ============ Slider wheel lock ============
+-- A DOUBLE middle click on any slider ties it to the mouse wheel (widget:MouseWheel), a second
+-- double middle click on it lets go, ESC lets go of all of them. Several can be locked at once.
+-- One document-wide listener, so every range input in the panel and its floating windows takes
+-- the gesture, whether or not trackSliderDrag wired it. A single middle click does nothing: two
+-- clicks are what keep it from firing by accident (it used to be a double LEFT click, then a
+-- single middle click; both fired while adjusting values). The line under the status strip says
+-- what is locked and how to get out.
+-- (on widgetState: this file is at the 200-local ceiling)
+widgetState.WHEEL_LOCK_TAP = 0.4 -- seconds between the two middle clicks
+
+-- the slider's own label from its row, for the status line
+widgetState.wheelLockLabel = function(el)
+	local row = el.parent_node
+	local label = row and row:QuerySelector(".tf-slider-label")
+	local text = label and label.inner_rml or ""
+	text = text:gsub("<[^>]*>", ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if text ~= "" then
+		return text
+	end
+	-- rows that label the slider elsewhere: a readable name from the id ("slider-intensity" -> "Intensity")
+	local name = el.id:gsub("^%a*%-?slider%-", ""):gsub("(%l)(%u)", "%1 %2"):gsub("[-_]", " ")
+	return (name:gsub("^%l", string.upper))
+end
+
+widgetState.refreshWheelLockStatus = function()
+	local doc = widgetState.document
+	local line = doc and doc:GetElementById("tf-wheellock-status")
+	if not line then
+		return
+	end
+	local names = {}
+	for _, el in pairs(widgetState.lockedSliders) do
+		names[#names + 1] = widgetState.wheelLockLabel(el)
+	end
+	table.sort(names)
+	line:SetClass("hidden", #names == 0)
+	if #names > 0 then
+		line.inner_rml = '<span class="tf-wl-tag">WHEEL LOCK</span> '
+			.. table.concat(names, ", ")
+			.. ' <span class="tf-wl-hint">ESC releases (or double middle click it)</span>'
+	end
+end
+
+widgetState.setWheelLock = function(el, on)
+	local ls = widgetState.lockedSliders
+	if on then
+		ls[el.id] = el
+		el:SetClass("slider-locked", true)
+		playSound("sliderLock")
+	else
+		ls[el.id] = nil
+		el:SetClass("slider-locked", false)
+		el:SetClass("slider-pulse", false)
+	end
+	widgetState.refreshWheelLockStatus()
+end
+
+widgetState.clearWheelLocks = function()
+	for _, el in pairs(widgetState.lockedSliders) do
+		el:SetClass("slider-locked", false)
+		el:SetClass("slider-pulse", false)
+	end
+	widgetState.lockedSliders = {}
+	widgetState.refreshWheelLockStatus()
+end
+
+widgetState.attachWheelLockGesture = function(doc)
+	doc:AddEventListener("mousedown", function(event)
+		if event.parameters.button ~= MOUSE_MIDDLE then
+			return
+		end
+		-- the click lands on the track, the thumb or the input itself
+		local el = event.target_element
+		for _ = 1, 3 do
+			if not el or (el.tag_name == "input" and el:GetAttribute("type") == "range") then
+				break
+			end
+			el = el.parent_node
+		end
+		if not (el and el.tag_name == "input" and el.id ~= "") then
+			return
+		end
+		local now = Spring.GetTimer()
+		local tap = widgetState.wheelLockTap
+		if tap and tap.id == el.id and Spring.DiffTimers(now, tap.at) < widgetState.WHEEL_LOCK_TAP then
+			widgetState.wheelLockTap = nil
+			widgetState.setWheelLock(el, widgetState.lockedSliders[el.id] == nil)
+		else
+			widgetState.wheelLockTap = { id = el.id, at = now }
+		end
+		event:StopPropagation()
 	end, false)
 end
 
@@ -17270,8 +17353,8 @@ populateKeybindList = function(doc)
 	parts[#parts + 1] = '<div class="tf-keybind-separator"><div class="tf-keybind-sep-line"></div>'
 		.. '<div class="tf-keybind-sep-label">System Keys</div>'
 		.. '<div class="tf-keybind-sep-line"></div></div>'
-	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Lock a slider to the mouse wheel</div>'
-		.. '<div class="tf-keybind-key-fixed">MMB</div></div>'
+	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Lock a slider to the mouse wheel (again to release)</div>'
+		.. '<div class="tf-keybind-key-fixed">2x MMB</div></div>'
 	parts[#parts + 1] = '<div class="tf-keybind-row"><div class="tf-keybind-action">Clear locked sliders</div>'
 		.. '<div class="tf-keybind-key-fixed">ESC</div></div>'
 
@@ -19010,6 +19093,7 @@ local function attachEventListeners()
 	tfDecals.attach(doc, ctx)
 	tfEnvironment.attach(doc, ctx)
 	widgetState.tfBlockout.attach(doc, ctx)
+	widgetState.attachWheelLockGesture(doc)
 	tfTileset.attach(doc, ctx)
 	if tfSurface then
 		tfSurface.attach(doc, ctx)
@@ -21440,11 +21524,7 @@ function widget:Update()
 			end
 			-- Clear any locked sliders when panel hides
 			if next(widgetState.lockedSliders) then
-				for id, element in pairs(widgetState.lockedSliders) do
-					element:SetClass("slider-locked", false)
-					element:SetClass("slider-pulse", false)
-				end
-				widgetState.lockedSliders = {}
+				widgetState.clearWheelLocks()
 			end
 			-- Clear flash state and prev-sync tracking
 			for id, flash in pairs(widgetState.sliderFlashes) do
@@ -23726,13 +23806,8 @@ function widget:KeyPress(key, mods, isRepeat)
 	end
 	-- ESC (key code 27) clears all locked sliders
 	if key == 27 then
-		local ls = widgetState.lockedSliders
-		if next(ls) then
-			for id, element in pairs(ls) do
-				element:SetClass("slider-locked", false)
-				element:SetClass("slider-pulse", false)
-			end
-			widgetState.lockedSliders = {}
+		if next(widgetState.lockedSliders) then
+			widgetState.clearWheelLocks()
 			return true
 		end
 	end
