@@ -2028,6 +2028,35 @@ local function validateCutsceneReferences(objectives, triggers, actions, cutscen
 	end
 end
 
+local function validateStockpileProgressValue(progressValue, label)
+	for _, progress in ipairs(possibleValues(progressValue)) do
+		if type(progress) == "number" and (progress <= 0 or progress >= 1) then
+			logError(
+				"StockpileProgress progress must be above 0 and below 1, got "
+					.. progress
+					.. "; use StockpileCount for completed items. "
+					.. label
+					.. ", Parameter: progress"
+			)
+		end
+	end
+end
+
+local function validateStockpileProgress(objectives, triggers)
+	local stockpileProgress = triggerDefinitions.Types.StockpileProgress
+	for triggerID, trigger in pairs(triggers) do
+		if trigger.type == stockpileProgress and trigger.parameters then
+			validateStockpileProgressValue(trigger.parameters.progress, "Trigger: " .. triggerID)
+		end
+	end
+	for objectiveID, objective in pairs(objectives or {}) do
+		local trigger = (objective or {}).trigger
+		if trigger and trigger.type == stockpileProgress and trigger.parameters then
+			validateStockpileProgressValue(trigger.parameters.progress, "Objective: " .. objectiveID)
+		end
+	end
+end
+
 local function validateReferences()
 	-- Types need to be fetched here to avoid circular dependency
 	local actionTypes = GG["MissionAPI"].ActionDefinitions.Types
@@ -2051,6 +2080,7 @@ local function validateReferences()
 	validateLoadouts(unitLoadout, featureLoadout)
 	validateAttributeActions(actions)
 	validateChangeTeamActions(actionTypes, actions)
+	validateStockpileProgress(objectives, triggers)
 end
 
 return {
