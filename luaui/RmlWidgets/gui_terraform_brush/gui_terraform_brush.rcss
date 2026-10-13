@@ -1618,6 +1618,9 @@ body {
 /* === Guide Floating Tooltip === */
 .tf-guide-floating-tip {
 	position: absolute;
+	/* placed at the origin; the cursor follow is a transform (see updateFloatingTip) */
+	left: 0dp;
+	top: 0dp;
 	z-index: 1100;
 	width: 166dp;
 	background-color: #0c1a16;

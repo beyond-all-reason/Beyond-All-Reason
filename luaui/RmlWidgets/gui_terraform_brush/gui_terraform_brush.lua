@@ -17075,10 +17075,14 @@ local function updateFloatingTip()
 	end
 	leftPx = math.max(0, leftPx)
 	topPx = math.max(0, topPx)
-	widgetState.floatingTipEl:SetAttribute(
-		"style",
-		string.format("left: %.2fvw; top: %.2fvh;", (leftPx / vsx) * 100, (topPx / vsy) * 100)
-	)
+	-- Moved by a transform, never by left/top: a left/top change re-lays out the whole panel
+	-- document every frame the cursor moves (measured 1.5 ms a frame); a transform only moves
+	-- where the tip is drawn. Whole pixels, and no write while the cursor stays put.
+	local style = string.format("transform: translate(%dpx, %dpx);", math.floor(leftPx), math.floor(topPx))
+	if style ~= widgetState.lastTipStyle then
+		widgetState.lastTipStyle = style
+		widgetState.floatingTipEl:SetAttribute("style", style)
+	end
 	if activeHint ~= widgetState.lastRenderedHint then
 		widgetState.floatingTipEl.inner_rml = activeHint
 		widgetState.lastRenderedHint = activeHint
