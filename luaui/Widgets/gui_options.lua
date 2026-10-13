@@ -2703,6 +2703,15 @@ local function optionsFiltered()
 	return options ~= unfilteredOptions and inputText ~= "" and inputMode == ""
 end
 
+-- For lookups from outside the window, which the search filter must not limit.
+local function getUnfilteredOption(id)
+	for _, option in ipairs(unfilteredOptions) do
+		if option.id == id then
+			return option
+		end
+	end
+end
+
 -- Option callbacks look up other options by id, which fails for the ones the search filter
 -- hides, so this applies against the full list and filters again afterwards.
 function applyOptionValueByID(id, newValue, skipRedrawWindow, force)
@@ -2895,6 +2904,7 @@ function applyFilter()
 			end
 
 			if not shown[option] then
+				shown[option] = true
 				result[#result + 1] = option
 			end
 		end
@@ -3312,7 +3322,7 @@ function init()
 	end
 
 	local oldValues = {}
-	for _, option in ipairs(options) do
+	for _, option in ipairs(unfilteredOptions) do
 		oldValues[option.id] = option.value
 	end
 
@@ -12530,13 +12540,13 @@ function init()
 		options[getOptionByID("font")].optionsFont = fontsFull
 		local fname = Spring.GetConfigString("bar_font", "Poppins-Regular.otf"):lower()
 		options[getOptionByID("font")].value =
-			getSelectKey(getOptionByID("font"), string.sub(fname, 1, string.len(fname) - 4))
+			getSelectKey(options[getOptionByID("font")], string.sub(fname, 1, string.len(fname) - 4))
 
 		options[getOptionByID("font2")].options = fonts
 		options[getOptionByID("font2")].optionsFont = fontsFull
 		local fname = Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf"):lower()
 		options[getOptionByID("font2")].value =
-			getSelectKey(getOptionByID("font2"), string.sub(fname, 1, string.len(fname) - 4))
+			getSelectKey(options[getOptionByID("font2")], string.sub(fname, 1, string.len(fname) - 4))
 	end
 
 	-- check if cus is disabled by auto disable cus widget (in case options widget has been reloaded)
@@ -13128,11 +13138,6 @@ function init()
 	-- Cache the unfiltered options for efficient filtering
 	unfilteredOptions = options
 
-	-- Apply current filter if any
-	if inputText and inputText ~= "" and inputMode == "" then
-		applyFilter()
-	end
-
 	-- count num options in each group (always use unfilteredOptions so counts
 	-- are correct even when a search filter is active)
 	local groups = {}
@@ -13161,10 +13166,8 @@ function init()
 		end
 	end
 
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
+	-- Filter last, the checks above need every option. Also rebuilds the window.
+	applyFilter()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
@@ -13208,14 +13211,14 @@ local function optionCmd(_, _, params)
 		return
 	end
 
-	local optionID = getOptionByID(params[1])
-	if not optionID then
+	local option = getUnfilteredOption(params[1])
+	if not option then
 		return
 	end
 
 	if not params[2] then
-		if options[optionID].type == "bool" then
-			applyOptionValue(optionID, not options[optionID].value)
+		if option.type == "bool" then
+			applyOptionValueByID(option.id, not option.value)
 		else
 			show = true
 			if showTextInput then
@@ -13224,12 +13227,12 @@ local function optionCmd(_, _, params)
 			end
 		end
 	else
-		if options[optionID].type == "select" then
-			local selectKey = getSelectKey(optionID, params[2])
+		if option.type == "select" then
+			local selectKey = getSelectKey(option, params[2])
 			if selectKey then
-				applyOptionValue(optionID, selectKey)
+				applyOptionValueByID(option.id, selectKey)
 			end
-		elseif options[optionID].type == "bool" then
+		elseif option.type == "bool" then
 			local value
 			if params[2] == "0" then
 				value = false
@@ -13238,9 +13241,9 @@ local function optionCmd(_, _, params)
 			else
 				value = true
 			end
-			applyOptionValue(optionID, value)
+			applyOptionValueByID(option.id, value)
 		else
-			applyOptionValue(optionID, tonumber(params[2]))
+			applyOptionValueByID(option.id, tonumber(params[2]))
 		end
 	end
 end
@@ -13449,7 +13452,7 @@ function widget:Initialize()
 	end
 	WG.options.getOptionsList = function()
 		local optionList = {}
-		for i, option in pairs(options) do
+		for i, option in pairs(unfilteredOptions) do
 			optionList[#optionList + 1] = option.id
 		end
 		return optionList
@@ -13457,9 +13460,10 @@ function widget:Initialize()
 	WG.options.isvisible = function()
 		return show
 	end
-	WG.options.getOptionValue = function(option)
-		if getOptionByID(option) then
-			return options[getOptionByID(option)].value
+	WG.options.getOptionValue = function(id)
+		local option = getUnfilteredOption(id)
+		if option then
+			return option.value
 		end
 	end
 	WG.options.getCameraSmoothness = function()
@@ -13501,17 +13505,17 @@ function widget:Initialize()
 	WG.options.removeOption = function(name)
 		return WG.options.removeOptions({ name })
 	end
-	WG.options.applyOptionValue = function(option, value)
-		local optionID = getOptionByID(option)
-		if not optionID then
-			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' not found")
+	WG.options.applyOptionValue = function(id, value)
+		local option = getUnfilteredOption(id)
+		if not option then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' not found")
 			return
 		end
-		if options[optionID].widget then
-			Spring.Echo("Options widget: applyOptionValue: option '" .. option .. "' denied by sandboxing")
+		if option.widget then
+			Spring.Echo("Options widget: applyOptionValue: option '" .. id .. "' denied by sandboxing")
 			return
 		end
-		applyOptionValue(optionID, tonumber(value))
+		applyOptionValueByID(id, tonumber(value))
 	end
 
 	widgetHandler.actionHandler:AddAction(self, "options", optionsCmd, nil, "t")
@@ -13572,8 +13576,8 @@ function widget:Shutdown()
 	widgetHandler.actionHandler:RemoveAction(self, "grapher")
 end
 
-function getSelectKey(i, value)
-	for k, v in pairs(options[i].options) do
+function getSelectKey(option, value)
+	for k, v in pairs(option.options) do
 		if v == value then
 			return k
 		end
