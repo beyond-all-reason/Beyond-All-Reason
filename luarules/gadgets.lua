@@ -268,7 +268,7 @@ local callInLists = {
 	"UnitReverseBuilt",
 	"UnitFromFactory",
 	"UnitDestroyed",
-	"UnitDeleted",
+	"UnitPreDelete",
 	"UnitAttackTargetRemoved",
 	"RenderUnitDestroyed",
 	"UnitExperience",
@@ -2186,9 +2186,9 @@ function gadgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	return
 end
 
-function gadgetHandler:UnitDeleted(unitID, unitDefID, unitTeam)
-	for _, g in ipairs(self.UnitDeletedList) do
-		g:UnitDeleted(unitID, unitDefID, unitTeam)
+function gadgetHandler:UnitPreDelete(unitID, unitDefID, unitTeam)
+	for _, g in ipairs(self.UnitPreDeleteList) do
+		g:UnitPreDelete(unitID, unitDefID, unitTeam)
 	end
 end
 
