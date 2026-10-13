@@ -5,9 +5,18 @@ end
 
 local LOG_TAG = "module_handler.lua"
 
+local ModuleEnv = require("modules/module_env")
 local Policy = require("modules/policy")
 
 local MODULES_DIR = "modules/"
+
+-- The environment this file was included in: what the files the loader includes read the engine through, and
+-- where init.lua's require shim lives. In the game that is the handle's globals. In the lobby, which includes the
+-- game's files from inside a widget, it is that widget's sandbox, and _G is a different table whose `require` is
+-- the engine's util loader; so the chunk's own environment comes first, and _G is the fallback.
+-- (getfenv(1) is called directly: through pcall it would answer for pcall, a C function, whose env is _G.)
+local chunkEnv = getfenv ~= nil and getfenv(1) or nil
+local CHUNK_ENV = (chunkEnv ~= nil and chunkEnv.VFS ~= nil) and chunkEnv or _G ---@type table
 
 -- A module's api.lua runs in any Lua handle, so it calls nothing the engine offers in one handle only, and the same is
 -- true of policies/, lib/ and every other file not named here. api_synced.lua is the module's api in the synced
@@ -15,7 +24,7 @@ local MODULES_DIR = "modules/"
 -- with widgets/, rml_widgets/ and any file named unsynced.lua. A gadget runs in both, and says itself which half is
 -- which. Code that runs in any handle requires nothing bound to one, and code bound to a handle requires nothing
 -- bound to the other. The loader does not enforce
--- that at run time, since it cannot see a require; spec/modules/handles_spec.lua holds the stack to it.
+-- that at run time, since it cannot see a require; spec/modules/module_env_spec.lua holds the stack to it.
 local LAYOUT = {
 	manifest = "manifest.lua",
 	widgets = "widgets/",
@@ -81,7 +90,7 @@ local function loadManifest(moduleDir, vfsMode)
 		return nil
 	end
 	---@type ModuleManifestFile
-	local manifest = VFS.Include(manifestPath, nil, vfsMode)
+	local manifest = ModuleEnv.Include(manifestPath, CHUNK_ENV, vfsMode)
 	if type(manifest) ~= "table" or type(manifest.name) ~= "string" then
 		logError("Invalid module manifest (missing name): " .. manifestPath)
 		return nil
@@ -216,22 +225,12 @@ function ModuleHandler.GadgetDirs(vfsMode)
 	return moduleSubdirs(LAYOUT.gadgets, vfsMode)
 end
 
----@type table
-local CHUNK_ENV = _G
-if CHUNK_ENV == nil or CHUNK_ENV.VFS == nil then
-	local ok, env = pcall(getfenv, 1)
-	if ok and env ~= nil then
-		CHUNK_ENV = env
-	end
-end
-
 ---@param filePath string
 ---@param injected table
 ---@param vfsMode string?
 ---@return any returned whatever the file returned (must be nil)
 local function includeRegistrationFile(filePath, injected, vfsMode)
-	local env = setmetatable(injected, { __index = CHUNK_ENV })
-	return VFS.Include(filePath, env, vfsMode)
+	return ModuleEnv.Include(filePath, CHUNK_ENV, vfsMode, injected)
 end
 
 local policiesCache = {}
