@@ -175,6 +175,14 @@ local function findAllTestFiles(patterns)
 			result[#result + 1] = testFileInfo
 		end
 	end
+	if not testModeScenario then
+		-- a module's tests come with it, labelled "<module>/tests/<file>"
+		for _, dir in ipairs(require("modules/module_handler").TestDirs()) do
+			for _, testFileInfo in ipairs(findTestFiles(dir, patterns, "modules/")) do
+				result[#result + 1] = testFileInfo
+			end
+		end
+	end
 	if headless then
 		result[#result + 1] = { label = "infolog", filename = "common/testing/infologtest.lua" }
 	end
@@ -989,7 +997,11 @@ local function runTestInternal()
 end
 
 local function initializeTestEnvironment()
-	local env = {
+	-- an environment the widget handler knows as this widget's, so the runner can be setfenv'd into it for every test
+	-- and not only the first: the handler refuses to re-home a function whose current environment it does not own
+	---@diagnostic disable-next-line: undefined-global
+	local env = newfenv and newfenv() or {}
+	local fields = {
 		-- test framework
 		Test = Test,
 		SyncedProxy = SyncedProxy,
@@ -1026,6 +1038,13 @@ local function initializeTestEnvironment()
 
 		pack = Util.pack,
 		pcall = pcall,
+		-- the rest of the language a module file is offered (modules/module_env.lua): a file a test includes loads
+		-- with what this environment holds, and a weak table or a proxy at load is a setmetatable
+		setmetatable = setmetatable,
+		getmetatable = getmetatable,
+		rawget = rawget,
+		rawset = rawset,
+		rawequal = rawequal,
 		io = io,
 		os = os,
 		math = math,
@@ -1051,6 +1070,9 @@ local function initializeTestEnvironment()
 		Json = Json,
 	}
 
+	for k, v in pairs(fields) do
+		env[k] = v
+	end
 	for k, v in pairs(Assertions) do
 		env[k] = v
 	end
