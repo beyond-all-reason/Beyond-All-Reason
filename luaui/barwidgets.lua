@@ -1114,16 +1114,11 @@ end
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
 local newWidget ---@type function
 
--- The handler determines what a widget is able to access, including the global env and other widget envs.
-local globalEnv = getfenv(0)
-local widgetEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
+-- User widgets can read its own environment and an env it builds. Everything else returns its own env.
+local ownedEnvs = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
 
-local function isForeignEnv(widget, env)
-	return env == globalEnv or (widgetEnvs[env] and env ~= widget)
-end
-
-local function ownEnv(widget, env)
-	return isForeignEnv(widget, env) and widget or env
+local function userEnv(widget, env)
+	return ownedEnvs[env] == widget and env or widget
 end
 
 local function callerFrame(f)
@@ -1406,21 +1401,26 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		return include(f, widget, mode)
 	end
 
-	widgetEnvs[widget] = true
+	ownedEnvs[widget] = widget
 	widget.getfenv = function(f)
-		return ownEnv(widget, getfenv(callerFrame(f)))
+		return userEnv(widget, getfenv(callerFrame(f)))
 	end
 	widget.setfenv = function(f, env)
 		local frame = callerFrame(f)
-		if isForeignEnv(widget, getfenv(frame)) then
+		if ownedEnvs[getfenv(frame)] ~= widget then
 			spLog("barwidgets.lua", LOG.ERROR, "setfenv: cannot change this environment")
 			return type(f) == "function" and f or nil
+		end
+		if type(env) == "table" then
+			ownedEnvs[env] = widget
 		end
 		return setfenv(frame, env)
 	end
 	widget.loadstring = function(text, chunkname, env)
-		if type(env) ~= "table" then
-			env = ownEnv(widget, getfenv(2))
+		if type(env) == "table" then
+			ownedEnvs[env] = widget
+		else
+			env = userEnv(widget, getfenv(2))
 		end
 		return loadSourceChunk(text, chunkname, env)
 	end
@@ -1432,7 +1432,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			end
 			filename = target
 		end
-		return loadSourceFile(filename, ownEnv(widget, getfenv(2)))
+		return loadSourceFile(filename, userEnv(widget, getfenv(2)))
 	end
 	widget.dofile = function(filename)
 		if not fromZip then
@@ -1442,7 +1442,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			end
 			filename = target
 		end
-		local chunk, err = loadSourceFile(filename, ownEnv(widget, getfenv(2)))
+		local chunk, err = loadSourceFile(filename, userEnv(widget, getfenv(2)))
 		if not chunk then
 			error(err, 0)
 		end
@@ -1457,7 +1457,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		-- env is pcall's or unknown, and the widget's own table stands in for it.
 		local function callerEnv()
 			local ok, env = pcall(getfenv, 4)
-			return ok and ownEnv(widget, env) or widget
+			return ok and userEnv(widget, env) or widget
 		end
 		widget.VFS = copyTable(SandboxedSystem.VFS)
 		widget.VFS.Include = function(path, env, mode)
