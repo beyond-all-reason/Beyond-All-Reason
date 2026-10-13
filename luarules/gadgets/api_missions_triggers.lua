@@ -28,6 +28,7 @@ local countdowns
 local needsBuildPlacements
 local needsBuildOwnerMap
 local needsBuildStartSet
+local needsStockpiles ---@type boolean
 
 local SEISMIC_INTERVAL_FRAMES
 local seismicContacts
@@ -36,6 +37,7 @@ local detectionLevels
 -- Shared trigger state (exposed to per-trigger handlers via triggerContext):
 local previousUnitsInAreas = {}
 local constructionState = {}
+local stockpileState = {}
 local dwellingUnitsInAreas = {}
 local teamReclaimIncome = {}
 local teamReclaimIncomeSnapshot = {}
@@ -258,6 +260,7 @@ function gadget:Initialize()
 		IsFeatureInArea = isFeatureInArea,
 		PreviousUnitsInAreas = previousUnitsInAreas,
 		ConstructionState = constructionState,
+		StockpileState = stockpileState,
 		DwellingUnitsInAreas = dwellingUnitsInAreas,
 		GetReclaimIncomeSnapshot = function(teamID)
 			return teamReclaimIncomeSnapshot[teamID]
@@ -318,6 +321,10 @@ function gadget:Initialize()
 	end) then
 		gadgetHandler:RemoveCallIn("UnitDamaged")
 	end
+
+	needsStockpiles = table.any(triggers, function(trigger)
+		return trigger.type == triggerTypes.StockpileCount or trigger.type == triggerTypes.StockpileProgress
+	end)
 end
 
 function gadget:GameStart()
@@ -557,6 +564,12 @@ end
 
 function gadget:UnitLeftRadar(unitID, unitTeam, radarAllyTeamID, unitDefID)
 	markDetectionDirty(unitID)
+end
+
+function gadget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	if needsStockpiles then
+		dispatchTriggerCallin("StockpileChanged", unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
+	end
 end
 
 function gadget:TeamDied(teamID)
