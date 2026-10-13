@@ -1842,7 +1842,7 @@ local function featureLoad(filename)
 		return
 	end
 
-	local fn, err = loadstring(content)
+	local fn, err = loadstring(content, nil, {})
 	if not fn then
 		Echo("[Feature Placer] Parse error: " .. tostring(err))
 		return

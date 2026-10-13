@@ -77,6 +77,15 @@ local function setStamp(unitID, stamp)
 	glSetUnitBufferUniforms(unitID, uniformCache, UNIFORM_INDEX)
 end
 
+-- Fades the highlight out, also for units this viewer can no longer see (after a spectator view switch), which
+-- would stay red otherwise. Unit getters return nil for those, so only a known dead unit is skipped; the write
+-- raises an error for a unit that no longer exists.
+local function clearStamp(unitID, now)
+	if spGetUnitIsDead(unitID) ~= true then
+		pcall(setStamp, unitID, -now)
+	end
+end
+
 -- whether this viewer's highlight covers the unit, and the allyteam whose jammers can hide it
 local function covers(unitID)
 	if spGetUnitTeam(unitID) == gaiaTeamID then
@@ -145,17 +154,13 @@ local function removeUnit(unitID, now)
 	checkJamming[unitID] = nil
 	if jammed[unitID] then
 		jammed[unitID] = nil
-		if spGetUnitIsDead(unitID) == false then -- still alive (given away): fade its highlight out
-			setStamp(unitID, -now)
-		end
+		clearStamp(unitID, now)
 	end
 end
 
 local function hideAll(now)
 	for unitID in pairs(jammed) do
-		if spGetUnitIsDead(unitID) == false then
-			setStamp(unitID, -now)
-		end
+		clearStamp(unitID, now)
 	end
 	jammed = {}
 end
