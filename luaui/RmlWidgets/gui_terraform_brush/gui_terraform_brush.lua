@@ -11621,14 +11621,13 @@ local initialModel = {
 			local nameInp = widgetState.document and widgetState.document:GetElementById("newmap-name-input")
 			customName = nameInp and tostring(nameInp:GetAttribute("value") or "") or ""
 		end
-		local script, err =
-			buildBlankMapStartScript(
-				w,
-				h,
-				_nmCurrentSplatSet(),
-				skyboxPath,
-				{ customName = customName, extractorRadius = widgetState.newMapMexRadius or 90 }
-			)
+		local script, err = buildBlankMapStartScript(
+			w,
+			h,
+			_nmCurrentSplatSet(),
+			skyboxPath,
+			{ customName = customName, extractorRadius = widgetState.newMapMexRadius or 90 }
+		)
 		if not script then
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return

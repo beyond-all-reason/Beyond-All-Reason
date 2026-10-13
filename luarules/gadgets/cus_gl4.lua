@@ -1878,8 +1878,9 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 		end
 
 		-- the rebuild may have dropped dead objects, keep the uniform bin count in sync
-		uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0)
-			+ (newObjectsCount - numobjects)
+		uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (
+			uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0
+		) + (newObjectsCount - numobjects)
 
 		numobjects = newObjectsCount
 		unitDrawBinsFlagShaderUniformsTexKey.objectsArray = newObjectsArray
@@ -1894,7 +1895,9 @@ local function AssignObjectToBin(objectID, objectDefID, flag, shader, textures, 
 	unitDrawBinsFlagShaderUniformsTexKey.numobjects = numobjects
 	unitDrawBinsFlagShaderUniformsTexKey.objectsArray[numobjects] = objectID
 	unitDrawBinsFlagShaderUniformsTexKey.objectsIndex[objectID] = numobjects
-	uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0) + 1
+	uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] = (
+		uniformBinObjectCounts[unitDrawBinsFlagShaderUniforms] or 0
+	) + 1
 	if unitDrawBinsFlagShaderUniformsTexKey.pendingStart == nil then
 		unitDrawBinsFlagShaderUniformsTexKey.pendingStart = numobjects
 		numPendingBins = numPendingBins + 1
@@ -1968,8 +1971,16 @@ local function AddObject(objectID, drawFlag, reason)
 		local uniformBinID = GetUniformBinID(objectDefID, "AddObject")
 		for k = 1, numBinKeys do
 			--objectID, objectDefID, flag, shader, textures, texKey, uniformBinID, calledfrom
-			assignedToCUS = AssignObjectToBin(objectID, objectDefID, binKeys[k], shader, nil, texKey, uniformBinID, "addobject")
-				or assignedToCUS
+			assignedToCUS = AssignObjectToBin(
+				objectID,
+				objectDefID,
+				binKeys[k],
+				shader,
+				nil,
+				texKey,
+				uniformBinID,
+				"addobject"
+			) or assignedToCUS
 		end
 	end
 	if not assignedToCUS then
@@ -2167,7 +2178,16 @@ local function UpdateObject(objectID, drawFlag, reason)
 						end
 					end
 					if objectAlive then
-						AssignObjectToBin(objectID, objectDefID, flag, shader, nil, texKey, uniformBinID, "UpdateObject")
+						AssignObjectToBin(
+							objectID,
+							objectDefID,
+							flag,
+							shader,
+							nil,
+							texKey,
+							uniformBinID,
+							"UpdateObject"
+						)
 					end
 					--if flag == 1 then
 					--	AssignObjectToBin(objectID, objectDefID, 0, nil, nil, texKey, uniformBinID) --deferred
@@ -2468,7 +2488,10 @@ local function ExecuteDrawPass(drawPass)
 									tracy.ZoneBeginN("G:CUS:ExecuteDrawPass:BindTextures")
 								end
 								for bindPosition, tex in pairs(texAndObj.textures) do
-									if (wantedTextureUnits == nil or wantedTextureUnits[bindPosition]) and lastBoundTextures[bindPosition] ~= tex then
+									if
+										(wantedTextureUnits == nil or wantedTextureUnits[bindPosition])
+										and lastBoundTextures[bindPosition] ~= tex
+									then
 										gl.Texture(bindPosition, tex)
 										lastBoundTextures[bindPosition] = tex
 									end
@@ -3235,7 +3258,7 @@ if autoReload.enabled then
 	function gadget:DrawScreen()
 		--Spring.Echo("DrawScreen Called")
 		local yoffset = 0
-		for drawflag, drawpass in pairs(shaders) do 
+		for drawflag, drawpass in pairs(shaders) do
 			for binname, shader in pairs(drawpass) do
 				--Spring.Echo("DrawScreen:", drawflag, binname, "has drawprintf", shader.DrawPrintf ~= nil)
 				if shader.DrawPrintf then
