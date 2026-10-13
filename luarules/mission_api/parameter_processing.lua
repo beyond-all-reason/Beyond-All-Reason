@@ -62,6 +62,18 @@ local function processSoundFile(soundfile)
 	end
 end
 
+-- Keyframe positions are Position fields too: the ground height stands in for a missing y.
+local function processCameraKeyframes(keyframes)
+	for _, keyframe in ipairs(keyframes) do
+		if keyframe.position then
+			processPosition(keyframe.position)
+		end
+		if keyframe.lookAtPosition then
+			processPosition(keyframe.lookAtPosition)
+		end
+	end
+end
+
 local function processEnumSet(values)
 	local valueSet = {}
 	for _, value in ipairs(values) do
@@ -77,6 +89,7 @@ local processors = {
 	[ParameterTypes.Orders] = processOrders,
 	[ParameterTypes.Command] = processCommand,
 	[ParameterTypes.SoundFile] = processSoundFile,
+	[ParameterTypes.CameraKeyframes] = processCameraKeyframes,
 }
 for enumSetType in pairs(enumSets) do
 	processors[enumSetType] = processEnumSet

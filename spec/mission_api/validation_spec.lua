@@ -56,7 +56,7 @@ local function normalizeTrigger(raw)
 end
 
 describe("mission_api.validation", function()
-	local logged
+	local logged ---@type string[]
 
 	local function hasError(msg)
 		return table.any(logged, function(m)
@@ -799,6 +799,173 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
+		describe("Easing and the other camera enums", function()
+			it("accepts a known easing", function()
+				actionErrors({
+					type = actionTypes.FollowCamera,
+					parameters = { unitName = "hero", easing = "inOutSine" },
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("lists the choices for an unknown easing", function()
+				actionErrors({ type = actionTypes.FollowCamera, parameters = { unitName = "hero", easing = "bouncy" } })
+				assert.is_true(
+					hasError(
+						"Invalid easing: 'bouncy'. Must be one of: 'cut', 'inCubic', 'inOutCubic', 'inOutQuad', 'inOutSine', 'inQuad', 'inSine', 'linear', 'outCubic', 'outQuad', 'outSine', 'smoothstep'. Action: a, Parameter: easing"
+					)
+				)
+			end)
+
+			it("rejects an unknown sequence end", function()
+				actionErrors({
+					type = actionTypes.PlayCameraSequence,
+					parameters = { keyframes = { { position = { x = 0, z = 0 } } }, onEnd = "stay" },
+				})
+				assert.is_true(
+					hasError(
+						"Invalid camera sequence end: 'stay'. Must be one of: 'hold', 'release', 'restore'. Action: a, Parameter: onEnd"
+					)
+				)
+			end)
+
+			it("requires a camera target", function()
+				actionErrors({ type = actionTypes.FollowCamera, parameters = { distance = 100 } })
+				local missing = false
+				for _, message in ipairs(logged) do
+					if message:find("Action 'a' is missing required parameter. At least one of", 1, true) then
+						missing = true
+					end
+				end
+				assert.is_true(missing)
+			end)
+		end)
+
+		describe("UnitNames", function()
+			it("rejects an empty list", function()
+				actionErrors({ type = actionTypes.FollowCamera, parameters = { unitNames = {} } })
+				assert.is_true(hasError("Unit names table is empty. Action: a, Parameter: unitNames"))
+			end)
+
+			it("rejects a non-string name", function()
+				actionErrors({ type = actionTypes.FollowCamera, parameters = { unitNames = { "hero", 5 } } })
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected string, got number. Action: a, Parameter: unitNames.unitName #2"
+					)
+				)
+			end)
+		end)
+
+		describe("CameraKeyframes", function()
+			local function keyframeErrors(keyframes)
+				actionErrors({ type = actionTypes.PlayCameraSequence, parameters = { keyframes = keyframes } })
+			end
+
+			it("passes well-formed keyframes", function()
+				keyframeErrors({
+					{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", duration = 0 },
+					{ unitName = "hero", offsetZ = -200, offsetY = 100, relativeToHeading = true, path = "spline" },
+					{ position = { x = 100, y = 50, z = 100 }, pitch = 45, yaw = 90, roll = 5, fov = 60, hold = 2 },
+				})
+				assert.are.same({}, logged)
+			end)
+
+			it("rejects wrong type and emptiness", function()
+				keyframeErrors("bad")
+				assert.is_true(
+					hasError("Unexpected parameter type, expected table, got string. Action: a, Parameter: keyframes")
+				)
+				keyframeErrors({})
+				assert.is_true(hasError("Keyframes table is empty. Action: a, Parameter: keyframes"))
+			end)
+
+			it("rejects a non-table keyframe", function()
+				keyframeErrors({ "bad" })
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected table, got string. Action: a, Parameter: keyframes.keyframe #1"
+					)
+				)
+			end)
+
+			it("requires a position or a unit to ride along with", function()
+				keyframeErrors({ { duration = 1 } })
+				assert.is_true(
+					hasError("Keyframe needs one of: 'position', 'unitName'. Action: a, Parameter: keyframes[1]")
+				)
+			end)
+
+			it("rejects unknown fields", function()
+				keyframeErrors({ { position = { x = 0, z = 0 }, speed = 3 } })
+				assert.is_true(hasError("Unknown keyframe field 'speed'. Action: a, Parameter: keyframes[1]"))
+			end)
+
+			it("checks each field against its type, naming the keyframe and field", function()
+				keyframeErrors({
+					{ position = { z = 0 }, path = "curve", lookAtUnitNames = { 7 } },
+					{ position = { x = 0, z = 0 }, easing = "nope", duration = -1 },
+				})
+				assert.is_true(hasError("Missing required parameter. Action: a, Parameter: keyframes[1].position.x"))
+				assert.is_true(
+					hasError(
+						"Invalid camera path: 'curve'. Must be one of: 'linear', 'spline'. Action: a, Parameter: keyframes[1].path"
+					)
+				)
+				assert.is_true(
+					hasError(
+						"Unexpected parameter type, expected string, got number. Action: a, Parameter: keyframes[1].lookAtUnitNames.unitName #1"
+					)
+				)
+				assert.is_true(
+					hasError(
+						"Invalid easing: 'nope'. Must be one of: 'cut', 'inCubic', 'inOutCubic', 'inOutQuad', 'inOutSine', 'inQuad', 'inSine', 'linear', 'outCubic', 'outQuad', 'outSine', 'smoothstep'. Action: a, Parameter: keyframes[2].easing"
+					)
+				)
+				assert.is_true(hasError("Quantity must be >= 0, got -1. Action: a, Parameter: keyframes[2].duration"))
+			end)
+
+			it("places the eye once per keyframe", function()
+				keyframeErrors({ { position = { x = 0, z = 0 }, unitName = "hero" } })
+				assert.is_true(
+					hasError(
+						"Keyframe places the eye twice, use one of: 'position', 'unitName'. Action: a, Parameter: keyframes[1]"
+					)
+				)
+			end)
+
+			it("warns when relativeToHeading has no unit to follow", function()
+				keyframeErrors({ { position = { x = 0, z = 0 }, offsetX = 10, relativeToHeading = true } })
+				assert.is_true(
+					hasError(
+						"Keyframe relativeToHeading needs a unitName to take the heading from. Action: a, Parameter: keyframes[1]"
+					)
+				)
+				assert.is_nil(GG["MissionAPI"].HasValidationErrors) -- a warning, not an error
+			end)
+
+			it("allows one look-at target per keyframe", function()
+				keyframeErrors({
+					{ position = { x = 0, z = 0 }, lookAtUnitName = "hero", lookAtPosition = { x = 1, z = 1 } },
+				})
+				assert.is_true(
+					hasError(
+						"Keyframe has more than one look-at target, use one of: 'lookAtPosition', 'lookAtUnitName', 'lookAtUnitNames'. Action: a, Parameter: keyframes[1]"
+					)
+				)
+			end)
+
+			it("warns when pitch or yaw accompany a look-at target", function()
+				keyframeErrors({ { position = { x = 0, z = 0 }, lookAtUnitName = "hero", pitch = 30 } })
+				assert.is_true(
+					hasError(
+						"Keyframe pitch and yaw are ignored while it looks at a target. Action: a, Parameter: keyframes[1]"
+					)
+				)
+				assert.is_nil(GG["MissionAPI"].HasValidationErrors)
+			end)
+		end)
+
 		describe("Facing", function()
 			it("rejects non-string non-number type", function()
 				actionErrors({
@@ -1401,6 +1568,45 @@ describe("mission_api.validation", function()
 	-- ── ValidateReferences ────────────────────────────────────────────────────
 
 	describe("ValidateReferences", function()
+		it("counts camera targets as unit name references", function()
+			GG["MissionAPI"].UnitLoadout = {
+				{ unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "hero" },
+			}
+			GG["MissionAPI"].Actions = {
+				shot = {
+					type = actionTypes.PlayCameraSequence,
+					parameters = {
+						keyframes = {
+							{ unitName = "hero", lookAtUnitNames = { "raiders" } },
+							{ position = { x = 0, z = 0 }, lookAtUnitName = "boss" },
+						},
+					},
+				},
+				chase = { type = actionTypes.FollowCamera, parameters = { unitNames = { "ghosts" } } },
+				circle = { type = actionTypes.OrbitCamera, parameters = { unitName = "hero" } },
+			}
+
+			validation.ValidateReferences()
+
+			for _, missing in ipairs({
+				{ "raiders", "shot" },
+				{ "boss", "shot" },
+				{ "ghosts", "chase" },
+			}) do
+				assert.is_true(
+					hasError(
+						"Unit name '"
+							.. missing[1]
+							.. "' not created in any trigger or action. Referenced in: action "
+							.. missing[2]
+					)
+				)
+			end
+			for _, message in ipairs(logged) do
+				assert.is_nil(message:find("'hero'", 1, true), message)
+			end
+		end)
+
 		it("passes for valid unit, feature, and marker references", function()
 			GG["MissionAPI"].Triggers = {
 				statsKill = {

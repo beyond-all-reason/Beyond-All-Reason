@@ -16,6 +16,8 @@ local types = {
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
+	UnitNames = "UnitNames",
+	CameraKeyframes = "CameraKeyframes",
 
 	-- String Validators:
 	String = "String",
@@ -31,6 +33,9 @@ local types = {
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	Difficulty = "Difficulty",
+	Easing = "Easing",
+	CameraSequenceEnd = "CameraSequenceEnd",
+	CameraPath = "CameraPath",
 
 	-- Number Validators:
 	Number = "Number",
@@ -55,6 +60,25 @@ local types = {
 -- Difficulties are read by the client, so must be available in JSON
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
+
+-- The easing curves of the camera widget (common/camera_math.lua, Easings); keep the two lists the same.
+local easingNames = {}
+for _, name in ipairs({
+	"linear",
+	"inSine",
+	"outSine",
+	"inOutSine",
+	"inQuad",
+	"outQuad",
+	"inOutQuad",
+	"inCubic",
+	"outCubic",
+	"inOutCubic",
+	"smoothstep",
+	"cut",
+}) do
+	easingNames[name] = true
+end
 
 local enums = {
 	[types.Facing] = {
@@ -81,6 +105,11 @@ local enums = {
 		Notification = 4,
 		Dialogue = 5,
 	},
+
+	-- Camera actions: how a move eases, what happens after the last shot, how the eye travels.
+	[types.Easing] = easingNames,
+	[types.CameraSequenceEnd] = { release = true, restore = true, hold = true },
+	[types.CameraPath] = { linear = true, spline = true },
 }
 
 local enumSets = {
