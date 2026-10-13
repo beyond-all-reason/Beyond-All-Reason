@@ -181,13 +181,13 @@ of every numeric parameter in its comment; the API uses seconds, elmos and degre
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
 - `Modules.ClientActions` (`client_actions.lua`) — for actions that take effect on the players' clients: the camera
-  actions (`actions/camera/`). The action builds its
+  actions (`actions/camera/`) and `LockPlayerInput`/`UnlockPlayerInput` (`actions/game/`). The action builds its
   parameters into the widget's shape (`BuildTarget` resolves unit names to units, `BuildKeyframes` turns the flat
   keyframe fields into targets) and `Send(kind, params, teamID)` does `SendToUnsynced("MissionClientAction", {
   kind, teamID, params })`. The unsynced gadget `api_mission_client_actions.lua` forwards it as
   `Script.LuaUI.MissionClientAction(command)`; the widget `luaui/Widgets/api_mission_client_actions.lua` drops it
   when `teamID` names another team (or the client spectates) and dispatches `kind` to the base-game services
-  `WG.cinematicCamera` (`api_cinematic_camera.lua`). Defaults
+  `WG.cinematicCamera` (`api_cinematic_camera.lua`) and `WG.playerInputLock` (`api_player_input_lock.lua`). Defaults
   live in those widgets; an optional parameter a mission leaves out travels as nil. Camera sequences run on real
   time, so they also play while the game is paused, and nothing tells synced when one ends.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables

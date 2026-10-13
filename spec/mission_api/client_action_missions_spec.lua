@@ -2,7 +2,7 @@ require("spec_helper")
 
 local RegisterMissionApiModules = require("mission_api.spec_helper")
 
--- The camera test mission, run through the loaders and validation the way
+-- The camera and input-lock test missions, run through the loaders and validation the way
 -- loadMission() in api_missions.lua does, so an authoring slip shows up here and not in game.
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}
@@ -24,6 +24,7 @@ local originalLog = Spring.Log
 
 local MISSIONS = {
 	"singleplayer/mission-api-tests/camera_test.lua",
+	"singleplayer/mission-api-tests/player_input_lock_test.lua",
 }
 
 -- The order validator keys a table by these, so every one of them needs an id.

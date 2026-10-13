@@ -3,7 +3,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Mission Client Actions",
-		desc = "Carries out the Mission API's camera actions on this client",
+		desc = "Carries out the Mission API's camera and input-lock actions on this client",
 		date = "October 2026",
 		license = "GNU GPL, v2 or later",
 		layer = 0,
@@ -24,6 +24,8 @@ local SERVICES = {
 	save = "cinematicCamera",
 	restore = "cinematicCamera",
 	stop = "cinematicCamera",
+	lock = "playerInputLock",
+	unlock = "playerInputLock",
 }
 
 local HANDLERS = {
@@ -47,6 +49,12 @@ local HANDLERS = {
 	end,
 	stop = function(camera)
 		camera.Stop()
+	end,
+	lock = function(inputLock)
+		inputLock.Lock()
+	end,
+	unlock = function(inputLock)
+		inputLock.Unlock()
 	end,
 }
 

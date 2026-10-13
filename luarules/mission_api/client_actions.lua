@@ -1,7 +1,7 @@
 ---
---- Actions that take effect on the players' clients: the camera actions.
---- They have to reach LuaUI, unlike the unit markers an unsynced gadget draws itself: the camera is
---- widget territory (WG.cinematicCamera).
+--- Actions that take effect on the players' clients: the camera and the input lock.
+--- They have to reach LuaUI, unlike the unit markers an unsynced gadget draws itself: the camera and
+--- the interface are widget territory (WG.cinematicCamera, widgetHandler:HideInterface).
 --- Synced code resolves unit names to units and sends one command table to every client,
 --- where luarules/gadgets/api_mission_client_actions.lua hands it to LuaUI
 --- (luaui/Widgets/api_mission_client_actions.lua). Defaults live in the widgets, so an

@@ -3,10 +3,11 @@
 ---
 --- A hero tank sits at (1800, 1600); three friendly bots start next to it and drive off (they
 --- are the player's so the follow shot can see them: a client only knows the positions of units
---- in its line of sight). The camera is saved, then: a cut to a
+--- in its line of sight). The camera is saved and the player locked out, then: a cut to a
 --- vantage point outside the map edge, a spline fly-in that keeps looking at the hero, half an
 --- orbit around it, a follow shot on the bots, a shake together with a distant nuke, a blend
---- back to the saved camera, and a last sequence that hands the camera back where it ends.
+--- back to the saved camera, and a last sequence that hands the camera back where it ends. The
+--- player is unlocked at the end.
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
@@ -27,7 +28,7 @@ local triggers = {
 		parameters = {
 			seconds = 2,
 		},
-		actions = { 'saveCamera' },
+		actions = { 'saveCamera', 'lockInput' },
 	},
 
 	flyIn = {
@@ -83,7 +84,7 @@ local triggers = {
 		parameters = {
 			seconds = 52,
 		},
-		actions = { 'messageDone' },
+		actions = { 'unlockInput', 'messageDone' },
 	},
 }
 
@@ -114,7 +115,7 @@ local actions = {
 	messageIntro = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "Camera test: the camera is saved at 2 s.",
+			messageKey = "Camera test: the camera is saved at 2 s and you are locked out until 52 s. Esc still opens the quit dialog.",
 		},
 	},
 
@@ -123,6 +124,11 @@ local actions = {
 		parameters = {
 			slot = 'playerView',
 		},
+	},
+
+	lockInput = {
+		type = actionTypes.LockPlayerInput,
+		parameters = {},
 	},
 
 	messageFlyIn = {
@@ -268,10 +274,15 @@ local actions = {
 		},
 	},
 
+	unlockInput = {
+		type = actionTypes.UnlockPlayerInput,
+		parameters = {},
+	},
+
 	messageDone = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			messageKey = "52 s: camera test done.",
+			messageKey = "52 s: unlocked. Camera test done.",
 		},
 	},
 }

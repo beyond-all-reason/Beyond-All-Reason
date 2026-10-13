@@ -34,6 +34,7 @@ describe("luaui.Widgets.api_mission_client_actions", function()
 			Restore = spy("Restore"),
 			Stop = spy("Stop"),
 		}
+		loaded.WG.playerInputLock = { Lock = spy("Lock"), Unlock = spy("Unlock") }
 		return loaded
 	end
 
@@ -55,6 +56,8 @@ describe("luaui.Widgets.api_mission_client_actions", function()
 		act({ kind = "save", params = { slot = "intro" } })
 		act({ kind = "restore", params = { slot = "intro", duration = 2, easing = "linear" } })
 		act({ kind = "stop", params = {} })
+		act({ kind = "lock", params = {} })
+		act({ kind = "unlock", params = {} })
 
 		assert.are.same({
 			{ "Play", { keyframes = keyframes, onEnd = "hold" } },
@@ -64,6 +67,8 @@ describe("luaui.Widgets.api_mission_client_actions", function()
 			{ "Save", "intro" },
 			{ "Restore", "intro", 2, "linear" },
 			{ "Stop" },
+			{ "Lock" },
+			{ "Unlock" },
 		}, calls)
 	end)
 
@@ -83,7 +88,9 @@ describe("luaui.Widgets.api_mission_client_actions", function()
 	it("ignores a command when its service widget is missing", function()
 		local loaded = loadWidget()
 		loaded.WG.cinematicCamera = nil
+		loaded.WG.playerInputLock = nil
 		loaded.env.MissionClientAction({ kind = "play", params = {} })
+		loaded.env.MissionClientAction({ kind = "lock", params = {} })
 		loaded.env.MissionClientAction({ kind = "nonsense", params = {} })
 		assert.are.same({}, calls)
 	end)
