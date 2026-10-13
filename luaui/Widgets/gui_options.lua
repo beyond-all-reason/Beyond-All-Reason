@@ -8610,11 +8610,18 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_opt3"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getVisualizationMode == nil and 1)
-				or (WG["squadselection"].getVisualizationMode() ~= "convexHull" and 1)
-				or (WG["squadselection"].getShowReserveSquads ~= nil and WG["squadselection"].getShowReserveSquads() and 2)
-				or 3,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getVisualizationMode ~= nil
+				and WG["squadselection"].getVisualizationMode() == "convexHull"
+				and (
+					(
+						WG["squadselection"].getShowReserveSquads ~= nil
+						and WG["squadselection"].getShowReserveSquads()
+						and 2
+					) or 3
+				)
+			) or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_hullDisplayMode_descr"),
 			onload = function(option)
 				local api = WG["squadselection"]
@@ -8781,11 +8788,14 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt2"),
 				BAR.I18N("ui.settings.option.squadSelection_squadColorMode_opt3"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getSquadColorMode == nil and 1)
-				or (WG["squadselection"].getSquadColorMode() == "custom" and 2)
-				or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
-				or 1,
+			value = (
+				WG["squadselection"] ~= nil
+				and WG["squadselection"].getSquadColorMode ~= nil
+				and (
+					(WG["squadselection"].getSquadColorMode() == "custom" and 2)
+					or (WG["squadselection"].getSquadColorMode() == "squad" and 3)
+				)
+			) or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadColorMode_descr"),
 			onload = function(option)
 				local raw = (
@@ -9478,11 +9488,22 @@ function init()
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt3"),
 				BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_opt4"),
 			},
-			value = (WG["squadselection"] == nil and 1)
-				or (WG["squadselection"].getRightClickSquadCreate ~= nil and WG["squadselection"].getRightClickSquadCreate() and 2)
-				or (WG["squadselection"].getCtrlRightClickCreatesSquad ~= nil and WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
-				or (WG["squadselection"].getCtrlRightClickDragCreatesSquad ~= nil and WG["squadselection"].getCtrlRightClickDragCreatesSquad() and 4)
-				or 1,
+			value = (
+				WG["squadselection"] ~= nil
+				and (
+					(
+						WG["squadselection"].getRightClickSquadCreate ~= nil
+						and WG["squadselection"].getRightClickSquadCreate()
+						and 2
+					)
+					or (WG["squadselection"].getCtrlRightClickCreatesSquad ~= nil and WG["squadselection"].getCtrlRightClickCreatesSquad() and 3)
+					or (
+						WG["squadselection"].getCtrlRightClickDragCreatesSquad ~= nil
+						and WG["squadselection"].getCtrlRightClickDragCreatesSquad()
+						and 4
+					)
+				)
+			) or 1,
 			description = BAR.I18N("ui.settings.option.squadSelection_squadCreateMethod_descr"),
 			onload = function(option)
 				local api = WG["squadselection"]
