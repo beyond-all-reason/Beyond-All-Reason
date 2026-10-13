@@ -1475,7 +1475,7 @@ function widget:Update(dt)
 
 	if sceduleOptionApply then
 		if sceduleOptionApply[1] <= now then
-			applyOptionValue(sceduleOptionApply[2], nil, true, true)
+			applyOptionValueByID(sceduleOptionApply[2], nil, true, true)
 			sceduleOptionApply = nil
 		end
 	end
@@ -2699,8 +2699,31 @@ function checkRequireRestart()
 	end
 end
 
+local function optionsFiltered()
+	return options ~= unfilteredOptions and inputText ~= "" and inputMode == ""
+end
+
+-- Option callbacks look up other options by id, which fails for the ones the search filter
+-- hides, so this applies against the full list and filters again afterwards.
+function applyOptionValueByID(id, newValue, skipRedrawWindow, force)
+	local filtered = optionsFiltered()
+	if filtered then
+		options = unfilteredOptions
+		rebuildOptionIdIndex()
+	end
+	applyOptionValue(getOptionByID(id), newValue, filtered or skipRedrawWindow, force)
+	if filtered then
+		applyFilter()
+	end
+end
+
 function applyOptionValue(i, newValue, skipRedrawWindow, force)
 	if options[i] == nil then
+		return
+	end
+
+	if optionsFiltered() then
+		applyOptionValueByID(options[i].id, newValue, skipRedrawWindow, force)
 		return
 	end
 
@@ -5785,7 +5808,7 @@ function init()
 					Spring.SetConfigFloat("ui_scale", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("uiscale") }
+					sceduleOptionApply = { os.clock() + 1.5, "uiscale" }
 				end
 			end,
 		},
@@ -5810,7 +5833,7 @@ function init()
 					Spring.SetConfigFloat("ui_opacity", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guiopacity") }
+					sceduleOptionApply = { os.clock() + 1.5, "guiopacity" }
 				end
 			end,
 		},
@@ -5831,7 +5854,7 @@ function init()
 					Spring.SetConfigFloat("ui_tilescale", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guitilescale") }
+					sceduleOptionApply = { os.clock() + 1.5, "guitilescale" }
 				end
 			end,
 		},
@@ -5852,7 +5875,7 @@ function init()
 					Spring.SetConfigFloat("ui_tileopacity", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("guitileopacity") }
+					sceduleOptionApply = { os.clock() + 1.5, "guitileopacity" }
 				end
 			end,
 		},
@@ -10069,7 +10092,7 @@ function init()
 					Spring.SetConfigInt("anonymousColorR", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_r") }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_r" }
 				end
 			end,
 		},
@@ -10090,7 +10113,7 @@ function init()
 					Spring.SetConfigInt("anonymousColorG", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_g") }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_g" }
 				end
 			end,
 		},
@@ -10111,7 +10134,7 @@ function init()
 					Spring.SetConfigInt("anonymousColorB", value)
 					Spring.SendCommands("luarules reloadluaui")
 				else
-					sceduleOptionApply = { os.clock() + 1.5, getOptionByID("anonymous_b") }
+					sceduleOptionApply = { os.clock() + 1.5, "anonymous_b" }
 				end
 			end,
 		},
