@@ -83,13 +83,11 @@ local KNOBS = {
 	{ "curvHighlight", "%.2f" },
 	{ "curvShadow", "%.2f" },
 	{ "curvRadius", "%.0f" },
-	{ "specStrength", "%.2f" },
 	{ "specAA", "%.2f" },
-	{ "hemiAmbient", "%.2f" },
-	{ "exposure", "%.2f" },
-	{ "aoStrength", "%.2f" },
 	{ "wetBand", "%.0f" },
 	{ "wetGloss", "%.2f" },
+	{ "wetStrength", "%.2f" },
+	{ "wetSlope", "%.2f" },
 	-- terrain-driven water opacity (WATER section)
 	{ "maxWalkDepth", "%.0f" },
 	{ "shallowsTint", "%.2f" },
@@ -100,7 +98,6 @@ local KNOBS = {
 	{ "shallowsIntensity", "%.2f" },
 	{ "deepsIntensity", "%.2f" },
 	{ "shadowMode", "%d" },
-	{ "shadowBias", "%.4f" },
 	{ "smtBlend", "%.2f" },
 	{ "oldCliffBlend", "%.2f" },
 	{ "tintR", "%.2f" },
@@ -120,7 +117,6 @@ local KNOBS = {
 	{ "platTintB", "%.2f" },
 	{ "metalInfluence", "%.2f" },
 	{ "metalness", "%.2f" },
-	{ "metalReflect", "%.2f" },
 	{ "metalRoughMul", "%.2f" },
 	{ "metalScale", "%.0f" },
 	{ "metalRelief", "%.2f" },
@@ -546,6 +542,7 @@ local function stampKnobRows(doc, ctx, knobs, only)
 	local ds = uiState.draggingSlider
 	uiState.updatingFromCode = true
 	local stamped = false
+	local stampedKeys = nil -- /tfsliders: which knobs this pass restamped
 	for _, k in ipairs(KNOBS) do
 		local key = k[1]
 		local v = knobs[key]
@@ -559,6 +556,7 @@ local function stampKnobRows(doc, ctx, knobs, only)
 				if sl then
 					sl:SetAttribute("value", slStr)
 					stamped = true
+					stampedKeys = stampedKeys and (stampedKeys .. "," .. key) or key
 				end
 				local nb = doc:GetElementById(id .. "-numbox")
 				if nb then
@@ -576,6 +574,7 @@ local function stampKnobRows(doc, ctx, knobs, only)
 	-- grows with every Teizer<->Enborelde swap until it pins" ratchet).
 	if stamped then
 		uiState.tsStampFrame = Spring.GetDrawFrame()
+		widgetState.tsStampKeys = stampedKeys
 	end
 end
 
@@ -1021,6 +1020,17 @@ function M.sync(doc, ctx, setSummary)
 	end
 
 	stampKnobRows(doc, ctx, knobs, nil)
+
+	-- LAYER PLACEMENT: past 1.0 the scatter's noise multiplier goes negative and wipes the intermediate layer
+	-- (live while dragging: the knob is already written when this runs)
+	local scatterOver = (tonumber(knobs.intermediateScatter) or 0) > 1.0
+	if widgetState.tsScatterOver ~= scatterOver or widgetState.tsScatterDoc ~= doc then
+		widgetState.tsScatterOver, widgetState.tsScatterDoc = scatterOver, doc
+		local warn = doc:GetElementById("ts-scatter-warn")
+		if warn then
+			warn:SetClass("hidden", not scatterOver)
+		end
+	end
 
 	-- GLOW LIGHT: the colour knobs paint the preview bar (borrowed from the
 	-- LIGHTS tool). Knob-driven, so a style swap, a section RESET or a project

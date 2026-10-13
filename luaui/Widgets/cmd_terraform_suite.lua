@@ -67,6 +67,7 @@ local ENTRY_ACTIONS = {
 }
 
 local suiteEnabled = false
+local pendingCommand, pendingFrames -- entry command to re-dispatch once the suite is in
 
 local function enableSuite()
 	if suiteEnabled then
@@ -115,11 +116,25 @@ function widget:Initialize()
 				return false -- suite widgets own this command now
 			end
 			enableSuite()
-			-- Re-dispatch so the real handler, registered while enabling,
-			-- receives the original command with its arguments.
-			Spring.SendCommands(cmd .. ((optLine and optLine ~= "") and (" " .. optLine) or ""))
+			-- Re-dispatch so the real handler receives the original command with its
+			-- arguments. Not right away: widgets enabled from inside an action are only
+			-- inserted on a later frame, and a command sent now reached no handler.
+			pendingCommand = cmd .. ((optLine and optLine ~= "") and (" " .. optLine) or "")
+			pendingFrames = 2
 			return true
 		end, nil, "t")
+	end
+end
+
+function widget:Update()
+	if not pendingCommand then
+		return
+	end
+	pendingFrames = pendingFrames - 1
+	if pendingFrames <= 0 then
+		local cmd = pendingCommand
+		pendingCommand = nil
+		Spring.SendCommands(cmd)
 	end
 end
 

@@ -770,7 +770,8 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-btn-features.active {
+.tf-btn-features.active,
+.tf-btn-units.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
 }
@@ -1357,7 +1358,7 @@ body {
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
-	gap: 6dp;
+	gap: 4dp;
 }
 
 /* Pause + close, parked top-right as window chrome */
@@ -1376,7 +1377,7 @@ body {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
-	gap: 7dp;
+	gap: 5dp;
 	white-space: nowrap;
 	overflow: hidden;
 }
@@ -1391,7 +1392,9 @@ body {
 	box-shadow: 0dp 0dp 7dp 0dp #fdc04c70, inset 0dp 1dp 0dp 0dp #ffffff80;
 }
 
+/* The wordmark spans never shrink: a short row clips the version at the end instead of compressing the glyphs. */
 .tf-title-main {
+	flex-shrink: 0;
 	font-size: 15dp;
 	font-weight: bold;
 	letter-spacing: 1.5dp;
@@ -1399,18 +1402,20 @@ body {
 }
 
 .tf-title-accent {
+	flex-shrink: 0;
 	font-size: 15dp;
 	font-weight: bold;
-	letter-spacing: 2dp;
+	letter-spacing: 1.5dp;
 	color: #fdc04c;
 }
 
 /* Version badge: reads as metadata next to the title, not part of the name. */
 .tf-title-version {
+	flex-shrink: 0;
 	font-size: 11dp;
 	font-weight: bold;
 	letter-spacing: 0.5dp;
-	margin-left: 4dp;
+	margin-left: 1dp;
 	color: #8a8f9a;
 }
 
@@ -3085,6 +3090,16 @@ body {
 	min-width: 74dp;
 }
 
+/* TILESET warning line over a slider (Intermediate scatter past 1.0): the SHADER UPDATE pending colours. */
+.tf-ts-warn {
+	background-color: #4a3a12;
+	border: 1dp #fdc04c;
+	border-radius: 4dp;
+	color: #ffdd99;
+	padding: 3dp 5dp;
+	margin-bottom: 3dp;
+}
+
 /* SHADER UPDATE row (TILESET window). The pending state is the only thing in
    the panel that asks for attention, so it gets the warning colour and a
    brighter border rather than the usual flat mode-button look. */
@@ -3685,6 +3700,7 @@ body {
 }
 
 /* === Feature Placer Sub-mode Buttons === */
+#section-un-mode .tf-mode-btn,
 #section-fp-mode .tf-mode-btn,
 #section-dc-mode .tf-mode-btn,
 #section-wb-mode .tf-mode-btn,
@@ -3701,6 +3717,7 @@ body {
 	padding-bottom: 0dp;
 }
 
+#section-un-mode .tf-icon-md,
 #section-fp-mode .tf-icon-md,
 #section-dc-mode .tf-icon-md,
 #section-wb-mode .tf-icon-md,
@@ -3716,6 +3733,7 @@ body {
 	margin-top: 0dp;
 }
 
+#section-un-mode .tf-btn-text,
 #section-fp-mode .tf-btn-text,
 #section-dc-mode .tf-btn-text,
 #section-wb-mode .tf-btn-text,
@@ -3883,6 +3901,7 @@ body {
 }
 
 /* === Sub-mode Buttons (smaller than main mode) === */
+#tf-units-controls .tf-mode-btn,
 #tf-feature-submodes .tf-mode-btn,
 #tf-weather-submodes .tf-mode-btn,
 #tf-startpos-submodes .tf-mode-btn,
@@ -3998,7 +4017,8 @@ body {
 	border-color: #ffd47a;
 }
 
-.tf-btn-features.active:hover {
+.tf-btn-features.active:hover,
+.tf-btn-units.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
@@ -4229,9 +4249,9 @@ body {
  * boundaries that could cause uneven spacing across tool modes. */
 #tf-startpos-submodes, #tf-startpos-controls, #tf-clone-controls,
 #tf-shape-row, #tf-metal-submodes, #tf-metal-controls,
-#tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes,
+#tf-grass-submodes, #tf-grass-controls, #tf-feature-submodes, #tf-units-controls,
 #tf-ramp-type-row, #tf-smooth-submodes, #tf-dc-submodes,
-#tf-weather-submodes, #tf-terraform-controls, #tf-feature-controls,
+#tf-weather-submodes, #tf-terraform-controls, #tf-feature-controls, #tf-unit-controls,
 #tf-weather-controls, #tf-splat-controls, #tf-decal-controls,
 #tf-environment-controls, #tf-light-controls {
 	margin-top: 14dp;
@@ -4245,12 +4265,14 @@ body {
 #tf-metal-controls > .tf-section-frame:first-child,
 #tf-grass-submodes > .tf-section-frame:first-child,
 #tf-grass-controls > .tf-section-frame:first-child,
+#tf-units-controls > .tf-section-frame:first-child,
 #tf-feature-submodes > .tf-section-frame:first-child,
 #tf-ramp-type-row > .tf-section-frame:first-child,
 #tf-smooth-submodes > .tf-section-frame:first-child,
 #tf-dc-submodes > .tf-section-frame:first-child,
 #tf-weather-submodes > .tf-section-frame:first-child,
 #tf-terraform-controls > .tf-section-frame:first-child,
+#tf-unit-controls > .tf-section-frame:first-child,
 #tf-feature-controls > .tf-section-frame:first-child,
 #tf-weather-controls > .tf-section-frame:first-child,
 #tf-splat-controls > .tf-section-frame:first-child,
@@ -4337,14 +4359,17 @@ body {
 #section-sliders .tf-overlay-chip.active .tf-overlay-chip-label {
 	color: #9fd2c4;
 }
+#section-un-controls .tf-overlay-chip.active,
 #section-fp-controls .tf-overlay-chip.active {
 	background-color: #12261f;
 	border-color: #40e0c050;
 }
+#section-un-controls .tf-overlay-chip.active:hover,
 #section-fp-controls .tf-overlay-chip.active:hover {
 	background-color: #17302a;
 	border-color: #40e0c080;
 }
+#section-un-controls .tf-overlay-chip.active .tf-overlay-chip-label,
 #section-fp-controls .tf-overlay-chip.active .tf-overlay-chip-label {
 	color: #9fd2c4;
 }
