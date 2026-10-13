@@ -669,7 +669,7 @@ local function grantUserRmlUi()
 	if type(permissions) ~= "table" then
 		return false
 	end
-	if spGetSpectatingState() then
+	if spGetSpectatingState() and not Spring.GetGameRulesParam("IsPlayerAccount" .. accountID) then
 		return permissions.userrmlui_spectator == true
 	end
 	return permissions.userrmlui_player == true
