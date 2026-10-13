@@ -6,6 +6,10 @@ require("spec_helper")
 _G.Game = _G.Game or {}
 _G.Game.gameSpeed = _G.Game.gameSpeed or 30
 
+-- A spec that needs defs installs its own before loading.
+_G.UnitDefs = _G.UnitDefs or {}
+_G.WeaponDefs = _G.WeaponDefs or {}
+
 -- math.bit_and is one of Recoil's MathExtra additions, not standard Lua, so it needs a
 -- stand-in here. Engine-side it takes a varargs list and folds it over 24-bit integers.
 _G.math.bit_and = _G.math.bit_and
