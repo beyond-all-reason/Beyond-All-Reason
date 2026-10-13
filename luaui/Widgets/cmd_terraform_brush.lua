@@ -2440,6 +2440,8 @@ extraState._heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
 -- map transform hands its turn/mirror/fit to the import below. Attached to
 -- extraState for the same 200-local reason.
 extraState._mapTransform = VFS.Include("luaui/Include/map_transform.lua")
+-- the camera stops riding the ground a stroke changes (see the module); on extraState for the same reason
+extraState.camHold = VFS.Include("luaui/Include/tf_camera_hold.lua")
 
 -- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
@@ -4429,6 +4431,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	extraState.camHold.release()
 	invalidateDrawCache()
 	if extraState.splineCacheList then
 		glDeleteList(extraState.splineCacheList)
@@ -5024,6 +5027,11 @@ function extraState.drawAutorampPreview(suppressed)
 end
 
 function widget:Update(dt)
+	-- Camera hold: every frame and before the tool gates below, so it can always let go
+	do
+		local _, _, lmb, _, rmb = GetMouseState()
+		extraState.camHold.update(activeMode ~= nil and lockedWorldX ~= nil and (lmb or (rmb and rightMouseHeld)))
+	end
 	-- Pen pressure: poll tablet pressure from shared file
 	extraState.readPenPressure(dt)
 	-- D5: parameter HUD fade timer (runs regardless of activeMode)
