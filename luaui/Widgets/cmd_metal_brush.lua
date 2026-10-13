@@ -1815,6 +1815,16 @@ function widget:DrawWorld()
 		local op = outlinePositions[oi]
 		drawShapeOutline(op.x, op.z, ss.radius, ss.shape, op.rot or ss.rotationDeg)
 	end
+	-- A stamp only lays metal within a centred mex's reach (the gadget's applyStamp): show that
+	-- circle when the brush is wider, so the outline does not promise metal that never lands
+	local spotRad = math.max(EXTRACTOR_RADIUS - METAL_SQ, METAL_SQ)
+	if subMode == "stamp" and ss.radius > spotRad then
+		glColor(1, 1, 1, 0.6 * edgeFade)
+		for oi = 1, #outlinePositions do
+			local op = outlinePositions[oi]
+			drawShapeOutline(op.x, op.z, spotRad, "circle", 0)
+		end
+	end
 
 	-- Draw center cross
 	local groundY = GetGroundHeight(worldX, worldZ)
