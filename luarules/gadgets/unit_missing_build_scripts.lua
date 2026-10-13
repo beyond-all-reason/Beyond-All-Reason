@@ -7,12 +7,17 @@ end
 local modOptions = Spring.GetModOptions() or {}
 local tweaked = modOptions.tweakunits ~= "" or modOptions.tweakdefs ~= ""
 local i = 1
-while i <= 9 and not tweaked do
-	tweaked = modOptions["tweakunits" .. i] ~= "" or modOptions["tweakdefs" .. i] ~= ""
+local tweakUnits, tweakDefs
+while not tweaked do
+	tweakUnits = modOptions["tweakunits" .. i]
+	tweakDefs = modOptions["tweakdefs" .. i]
+	if tweakUnits == nil or tweakDefs == nil then
+		break -- we reached numTweakSlots
+	end
+	tweaked  = tweakDefs ~= "" or tweakUnits ~= ""
 	i = i + 1
 end
 if not tweaked then
-	Spring.Echo("No tweak detected, ignoring unit_missing_build_scripts.lua.")
 	return
 end
 
@@ -46,19 +51,26 @@ local function hasBuildScript(unitID, unitDefID)
 	end
 	local env = Spring.UnitScript.GetScriptEnv(unitID)--[[@as table|nil]]
 	if env then
-		if env.script.StartBuilding then
+		if env.script.StartBuilding then -- these units already build through their LUS.
 			hasBuildScripts[unitDefID] = true
 			return true
 		end
 		hasBuildScripts[unitDefID] = false
 		return false
 	end
-	if Spring.GetCOBScriptID(unitID, "StartBuilding") then
+	if Spring.GetCOBScriptID(unitID, "StartBuilding") then -- these units already build through their COB.
+		hasBuildScripts[unitDefID] = true
+		return true
+	end
+	if UnitDefs[unitDefID].customParams.attached_con_turret then -- these units already build through an attached construction turret-unit which has COB or LUS.
+		-- I'm currently using the custom param. But if its setup in unit_attached_con_turret somehow failed due to incorrect settings, this will not "save" the unit.
+		-- A more robust solution: SetUnitRulesParam() set when unit_attached_con_turret succeeded, and read here.
 		hasBuildScripts[unitDefID] = true
 		return true
 	end
 	hasBuildScripts[unitDefID] = false
-	return false
+	return false -- this includes drone carriers which might have non zero workerTime but no build scripts.
+	-- i'm wondering why they even have non zero workerTime; Maybe they're considered as repairPads, but i'm assuming repair pads (at least in the past) did have Start/Stop building scripts?
 end
 
 local function HandleUnitCreated(unitID, unitDefID)
