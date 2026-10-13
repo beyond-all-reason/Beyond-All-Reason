@@ -9,6 +9,10 @@ uniform sampler2D losTex;
 
 uniform vec4 blendfactors = vec4(1.0);
 
+#ifndef SHOWGRID
+	#define SHOWGRID 0
+#endif
+
 //__DEFINES__
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -227,7 +231,7 @@ float gradientStep(float x, float width){
 }
 void main(void) {
     
-    vec4 screenColor = texture2D(screenCopyTex, texCoord.xy);
+    vec4 screenColor = texture(screenCopyTex, texCoord.xy);
 
     float mapdepth = texture(mapDepths, texCoord.xy).x;
     #if (PREUNIT == 0)
@@ -250,7 +254,7 @@ void main(void) {
 
     //clamp fragWorldPos to the infolos tex bounds:
     vec2 infolosUV = clamp(fragWorldPos.xz / mapSize.xy, 0, 1);
-    vec4 infolosSample = texture2D(losTex, infolosUV);
+    vec4 infolosSample = texture(losTex, infolosUV);
 
     //printf(infolosSample.xyzw);
 
@@ -310,7 +314,7 @@ void main(void) {
 
 
     fragColor.rgb = screenColor.rgb;
-    #if 1 // GRID DEBUGGING
+    #if (SHOWGRID == 1) // build grid overlay, for debugging the projection
         vec2 gridpos = (fragWorldPos.xz + vec2(0.5)) /64.0 ;
         float grid = 1.0 - filteredGrid( gridpos.xy, dFdx(gridpos.xy), dFdy(gridpos.xy) , 64.0);
         gridpos = (fragWorldPos.xz  + vec2(0.5) ) /8.0;

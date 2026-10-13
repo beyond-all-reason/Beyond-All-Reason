@@ -23,18 +23,7 @@
 local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 local unitAttributes = attributeDefinitions.UnitAttributeDefinitions
 local weaponAttributes = attributeDefinitions.WeaponAttributeDefinitions
-
--- Definition names are unique across unit and weapon attributes so can share one lookup table.
-local definitions = {}
-for attribute, entry in pairs(unitAttributes) do
-	definitions[attribute] = entry
-end
-for attribute, entry in pairs(weaponAttributes) do
-	if definitions[attribute] then
-		error("Attribute is defined for both units and weapons: " .. attribute)
-	end
-	definitions[attribute] = entry
-end
+local definitions = attributeDefinitions.AttributeDefinitions
 ---`definitions[attribute]` may be nil. This is an unguarded error from consumer code.
 ---@cast definitions table<string, UnitAttributeDefinition|WeaponAttributeDefinition>
 
@@ -366,9 +355,9 @@ local function getWeaponDamages(unitDefID)
 	return weapons
 end
 
-local WEAPON_ALL = 0 -- Packing index for non-specific weapon attributes scopes.
-local WEAPON_DEATH = -1
-local WEAPON_SELFD = -2
+local WEAPON_ALL = attributeDefinitions.WEAPON_ALL
+local WEAPON_DEATH = attributeDefinitions.WEAPON_DEATH
+local WEAPON_SELFD = attributeDefinitions.WEAPON_SELFD
 
 ---@class ExplosionKind
 ---@field key integer

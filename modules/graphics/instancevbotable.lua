@@ -482,7 +482,7 @@ local function resizeInstanceVBOTable(iT)
 				isValidID = Spring.ValidUnitID(objectID)
 			end
 			if isValidID then
-				local offset = new_usedElements * iTStep
+				local offset = (i - 1) * iTStep -- the element's old place, not its new one
 				for j = 1, iTStep do
 					new_instanceData_count = new_instanceData_count + 1
 					new_instanceData[new_instanceData_count] = iT.instanceData[j + offset]
@@ -582,6 +582,7 @@ local function pushElementInstance(iT, thisInstance, instanceID, updateExisting,
 	if (iTusedElements + 1) >= iT.maxElements then -- add 1 extra for safety (not the best idea, but we seem to be running over it by 1)
 		resizeInstanceVBOTable(iT)
 		iTusedElements = iT.usedElements -- because during validation of unitIDs during resizing, we can decrease the actual size of the table!
+		endOffset = iTusedElements * iTStep
 		thisInstanceIndex = iT.instanceIDtoIndex[instanceID] -- this too, can change, TODO, also do this in VBOIDtable!
 	end
 
@@ -735,7 +736,8 @@ local function popElementInstance(iT, instanceID, noUpload)
 				) -- TODO TODO
 			end
 
-			if iT.debugZombies then
+			-- Only zombies left from earlier pops need the frame; a new one checks it itself below
+			if iT.debugZombies and iT.numZombies and iT.numZombies > 0 then
 				local gf = Spring.GetGameFrame()
 				--Spring.Echo("Popping", instanceID)
 				if iT.lastpopgameframe == nil then
@@ -849,9 +851,10 @@ local function uploadAllElements(iT)
 	end
 end
 
+--- Uploads elements startElementIndex + 1 to endElementIndex.
 ---@param iT InstanceVBOTable
----@param startElementIndex integer
----@param endElementIndex integer
+---@param startElementIndex integer 0 based index of the first element, the number of elements before it
+---@param endElementIndex integer 1 based index of the last element
 local function uploadElementRange(iT, startElementIndex, endElementIndex)
 	iT.instanceVBO:Upload(
 		iT.instanceData, -- The lua mirrored VBO data
@@ -864,13 +867,13 @@ local function uploadElementRange(iT, startElementIndex, endElementIndex)
 		--we need to reslice the table
 		local unitIDRange = {}
 		local indextoUnitID = iT.indextoUnitID
-		for i = startElementIndex, endElementIndex do
-			unitIDRange[#unitIDRange + 1] = indextoUnitID[i]
+		for i = startElementIndex + 1, endElementIndex do
+			unitIDRange[i - startElementIndex] = indextoUnitID[i]
 		end
 		if iT.featureIDs then
-			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+			iT.instanceVBO:InstanceDataFromFeatureIDs(unitIDRange, iT.unitIDattribID, startElementIndex)
 		else
-			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex - 1)
+			iT.instanceVBO:InstanceDataFromUnitIDs(unitIDRange, iT.unitIDattribID, startElementIndex)
 		end
 	end
 end

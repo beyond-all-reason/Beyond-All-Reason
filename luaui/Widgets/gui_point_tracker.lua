@@ -339,6 +339,10 @@ end
 
 function widget:Shutdown()
 	WG.PointTracker = nil
+	if type(mapMarkShader) == "table" then
+		mapMarkShader:Finalize()
+		mapMarkShader = nil
+	end
 end
 
 function widget:DrawScreen()

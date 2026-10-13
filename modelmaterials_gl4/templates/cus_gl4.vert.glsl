@@ -55,6 +55,8 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 #define UNITUNIFORMS uni[instData.y]
 #define UNITID (uni[instData.y].composite >> 16)
 #define TREADOFFSET uni[instData.y].speed.w
+// Jammed units highlight (gui_jammed_units.lua): how long the tint fades in and out, in seconds
+#define JAMMED_FADE_SECONDS 0.3
 
 %%GLOBAL_NAMESPACE%%
 
@@ -147,7 +149,7 @@ out Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS;
 
-	vec4 uvCoords;
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
 	flat vec4 teamCol; // .a contains selectedness
 
 	// main light vector(s)
@@ -621,6 +623,14 @@ void main(void)
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
+
+	#if (RENDERING_MODE != 2)
+		// Jammed units highlight: userDefined[1].w (#7) holds the draw time (timeInfo.y) at which the unit entered allied
+		// jammer coverage (positive) or left it (negative), 0 = never. Faded to 0-1 in uvCoords.w for the fragment shader.
+		float jammedSince = UNITUNIFORMS.userDefined[1].w;
+		float jammedFade = clamp((timeInfo.y - abs(jammedSince)) * (1.0 / JAMMED_FADE_SECONDS), 0.0, 1.0);
+		uvCoords.w = (jammedSince > 0.0) ? jammedFade : ((jammedSince < 0.0) ? (1.0 - jammedFade) : 0.0);
+	#endif
 
 	#if (RENDERING_MODE != 2) //non-shadow pass
 
