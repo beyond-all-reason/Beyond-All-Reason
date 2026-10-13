@@ -1739,6 +1739,7 @@ end
 ---@field size_z integer Map units (even, 2-64)
 ---@field base_height number?
 ---@field base_color ColorRGBi?
+---@field extractor_radius number? mex pull radius (mapinfo extractorRadius); absent = the canvas default
 ---@field height_range {min: integer, max: integer}?
 ---@field skybox string?
 ---@field source_map string|"unknown"
@@ -1804,6 +1805,12 @@ local function stepManifest()
 	local cr, cg, cb = tonumber(mo.blank_map_color_r), tonumber(mo.blank_map_color_g), tonumber(mo.blank_map_color_b)
 	if cr and cg and cb then
 		add(string.format("\t\tbase_color = { %s, %s, %s },", fmtNum(cr), fmtNum(cg), fmtNum(cb)))
+	end
+	-- only an explicit per-map choice: a canvas booted on the old engine-default radius (500) reopens
+	-- on the canvas default instead of carrying it forward
+	local mexRadius = tonumber(mo.blank_map_extractorradius)
+	if mexRadius then
+		add(string.format("\t\textractor_radius = %d,", mexRadius))
 	end
 	if job.heightRange then
 		add(string.format("\t\theight_range = { min = %d, max = %d },", job.heightRange.min, job.heightRange.max))

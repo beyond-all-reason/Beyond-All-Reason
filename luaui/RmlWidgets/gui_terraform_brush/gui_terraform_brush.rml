@@ -10862,6 +10862,7 @@
 			<div id="btn-newmap-width-down" class="tf-sm-btn" data-event-mousedown="onNewMapWidthDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
 			<input type="range" id="slider-newmap-width" class="tf-slider" min="4" max="32" step="2" value="12" data-event-change="onNewMapWidthChange()" />
 			<div id="btn-newmap-width-up" class="tf-sm-btn" data-event-mousedown="onNewMapWidthUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-newmap-width-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
 		<!-- Height -->
@@ -10873,11 +10874,25 @@
 			<div id="btn-newmap-height-down" class="tf-sm-btn" data-event-mousedown="onNewMapHeightDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
 			<input type="range" id="slider-newmap-height" class="tf-slider" min="4" max="32" step="2" value="12" data-event-change="onNewMapHeightChange()" />
 			<div id="btn-newmap-height-up" class="tf-sm-btn" data-event-mousedown="onNewMapHeightUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-newmap-height-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
 		<div class="flex flex-row justify-center items-center mb-2">
 			<div class="text-base text-keybind">{{newMapElmoStr}}</div>
 		</div>
+
+		<!-- Mex pull radius (mapinfo extractorRadius), saved with the project -->
+		<div class="flex flex-row justify-between items-center mb-1">
+			<div class="text-lg text-light">MEX RADIUS: <span class="text-xl font-bold">{{newMapMexRadiusStr}}</span></div>
+			<div class="text-sm text-keybind">elmos, most BAR maps use 90</div>
+		</div>
+		<div class="flex flex-row gap-1 items-center mb-1">
+			<div id="btn-newmap-mexradius-down" class="tf-sm-btn" data-event-mousedown="onNewMapMexRadiusDown()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" /></div>
+			<input type="range" id="slider-newmap-mexradius" class="tf-slider" min="24" max="200" step="2" value="90" data-event-change="onNewMapMexRadiusChange()" />
+			<div id="btn-newmap-mexradius-up" class="tf-sm-btn" data-event-mousedown="onNewMapMexRadiusUp()"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" /></div>
+			<input type="text" id="slider-newmap-mexradius-numbox" class="tf-slider-numbox" value="0" />
+		</div>
+		<div class="text-sm text-keybind mb-2">Needs an engine with the blank map metal options; saved with the project either way.</div>
 
 		<!-- ===== Procedural terrain / water / resources / layout (gated by toggle) ===== -->
 		<div data-if="newMapGen">

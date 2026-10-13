@@ -3440,6 +3440,22 @@ local function _nmSetAxis(axis, units)
 	_nmRefreshLabels()
 end
 
+-- Mex pull radius of the new map (mapinfo extractorRadius): clamp, store, label; moveThumb for the
+-- button path (the slider's own change already has the thumb where it belongs)
+widgetState.nmSetMexRadius = function(raw, moveThumb)
+	local r = math.max(24, math.min(200, math.floor((tonumber(raw) or 90) + 0.5)))
+	widgetState.newMapMexRadius = r
+	if moveThumb then
+		uiState.updatingFromCode = true
+		_elemSetSliderVal("slider-newmap-mexradius", r)
+		uiState.updatingFromCode = false
+	end
+	local d = widgetState.dmHandle
+	if d then
+		d.newMapMexRadiusStr = tostring(r)
+	end
+end
+
 ---@class DntsSet
 ---@field set string?
 ---@field textures table<1|2|3|4,string?>?
@@ -3456,6 +3472,7 @@ end
 ---@class BaseMapOpts
 ---@field baseHeight number? blank_map_height (project manifests record theirs)
 ---@field baseColor ColorRGBi? blank_map_color
+---@field extractorRadius number? blank_map_extractorradius: the mex pull radius (mapinfo extractorRadius)
 ---@field customName string? user map name from the wizard; sanitized, still gets
 ---the " s<time>" uniquifier. Default: "Editor Flat WxH"
 
@@ -3586,6 +3603,10 @@ local function buildBlankMapStartScript(widthUnits, heightUnits, dntsSet, skybox
 		"blank_map_color_g=" .. baseColor[2] .. ";",
 		"blank_map_color_b=" .. baseColor[3] .. ";",
 	}
+	-- the engine defaults (mex radius 500, metal cap 0.02 per square) fit no BAR map; older engines ignore both
+	local mexRadius = math.floor((tonumber(opts and opts.extractorRadius) or 90) + 0.5)
+	opt[#opt + 1] = "blank_map_extractorradius=" .. mexRadius .. ";"
+	opt[#opt + 1] = "blank_map_maxmetal=2;"
 
 	-- Bake a skybox into the generated map's mapinfo. A non-empty atmosphere.skyBox
 	-- makes the engine build a real cubemap sky (CSkyBox) for the blank map instead
@@ -3739,6 +3760,7 @@ widgetState.buildProjectStartScript = function(manifest, slug)
 	return buildBlankMapStartScript(sizeX, sizeZ, dntsSet, skyboxPath, {
 		baseHeight = m.base_height,
 		baseColor = m.base_color,
+		extractorRadius = m.extractor_radius,
 	})
 end
 
@@ -6266,6 +6288,7 @@ local initialModel = {
 	projectOpenSelected = "", -- display name of the picked row ("" = nothing picked)
 	projectDeleteConfirming = false, -- DELETE armed, waiting for the second click
 	newMapWidthStr = "12",
+	newMapMexRadiusStr = "90",
 	newMapHeightStr = "12",
 	newMapElmoStr = "6144 x 6144 elmos",
 	newMapSplatStr = "",
@@ -11411,6 +11434,23 @@ local initialModel = {
 	onNewMapWidthDown = function(_event)
 		_nmSetAxis("w", (widgetState.newMapW or NEWMAP_DEFAULT_UNIT) - 2)
 	end,
+	-- Mex pull radius of the new map (mapinfo extractorRadius); BAR maps mostly use 90
+	onNewMapMexRadiusChange = function(event)
+		if uiState.updatingFromCode then
+			return
+		end
+		local raw = (event and event.parameters and event.parameters.value)
+		if raw == nil then
+			raw = _elemSliderVal("slider-newmap-mexradius", 90)
+		end
+		widgetState.nmSetMexRadius(raw, false)
+	end,
+	onNewMapMexRadiusUp = function(_event)
+		widgetState.nmSetMexRadius((widgetState.newMapMexRadius or 90) + 2, true)
+	end,
+	onNewMapMexRadiusDown = function(_event)
+		widgetState.nmSetMexRadius((widgetState.newMapMexRadius or 90) - 2, true)
+	end,
 	onNewMapHeightChange = function(event)
 		if uiState.updatingFromCode then
 			return
@@ -11555,7 +11595,11 @@ local initialModel = {
 		uiState.updatingFromCode = true
 		_elemSetSliderVal("slider-newmap-width", widgetState.newMapW or NEWMAP_DEFAULT_UNIT)
 		_elemSetSliderVal("slider-newmap-height", widgetState.newMapH or NEWMAP_DEFAULT_UNIT)
+		_elemSetSliderVal("slider-newmap-mexradius", widgetState.newMapMexRadius or 90)
 		uiState.updatingFromCode = false
+		if widgetState.dmHandle then
+			widgetState.dmHandle.newMapMexRadiusStr = tostring(widgetState.newMapMexRadius or 90)
+		end
 		_nmRefreshLabels()
 		_nmRefreshTerrain(true)
 	end,
@@ -11578,7 +11622,13 @@ local initialModel = {
 			customName = nameInp and tostring(nameInp:GetAttribute("value") or "") or ""
 		end
 		local script, err =
-			buildBlankMapStartScript(w, h, _nmCurrentSplatSet(), skyboxPath, { customName = customName })
+			buildBlankMapStartScript(
+				w,
+				h,
+				_nmCurrentSplatSet(),
+				skyboxPath,
+				{ customName = customName, extractorRadius = widgetState.newMapMexRadius or 90 }
+			)
 		if not script then
 			Spring.Echo("[Terraform Brush] New Map failed: " .. tostring(err))
 			return
