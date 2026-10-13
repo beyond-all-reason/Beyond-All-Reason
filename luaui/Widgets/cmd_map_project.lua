@@ -235,6 +235,20 @@ local function fileSize(path)
 	return size
 end
 
+-- Byte copy; returns the size written, nil when either end fails.
+local function copyFile(from, to)
+	local f = io.open(from, "rb")
+	if not f then
+		return nil
+	end
+	local data = f:read("*a")
+	f:close()
+	if not data then
+		return nil
+	end
+	return writeFile(to, data)
+end
+
 -- Numbers in the manifest: integers stay integers, floats get fixed precision
 -- (deterministic serialization).
 local function fmtNum(v)
@@ -556,6 +570,20 @@ local MAX_SURFACE_SLOTS = 8
 -- The painter writes a second "surface_v4.png" beside the first whenever
 -- variant 4 carries paint (its weights do not fit the first mask's RGBA); it
 -- needs no manifest entry — the loader looks for the sibling itself.
+-- The painter is a user widget, and the user widget sandbox only lets it write
+-- and read loose files under LuaUI/, so the mask is staged here on its way into
+-- or out of a project folder.
+local surfaceStage = {
+	dir = "LuaUI/Config/TilesetSurface/project_stage/",
+	main = "LuaUI/Config/TilesetSurface/project_stage/surface.png",
+	v4 = "LuaUI/Config/TilesetSurface/project_stage/surface_v4.png",
+}
+
+function surfaceStage.clear()
+	os.remove(surfaceStage.main)
+	os.remove(surfaceStage.v4)
+end
+
 local function stepSurface()
 	local sp = WG.SurfacePainter
 	local c = job.cursor
@@ -564,7 +592,11 @@ local function stepSurface()
 			sectionSkip("surface", "no surface paint state (painter inactive or never used)")
 			return true
 		end
-		sp.saveMask(job.dir .. "surface.png")
+		-- the painter writes no _v4 without variant 4 paint, so a leftover one
+		-- would be copied as this save's
+		Spring.CreateDir(surfaceStage.dir)
+		surfaceStage.clear()
+		sp.saveMask(surfaceStage.main)
 		c.requested = true
 		c.ticks = 0
 		return false
@@ -578,9 +610,18 @@ local function stepSurface()
 		end
 		return false
 	end
-	local bytes = fileSize(job.dir .. "surface.png")
+	local staged = fileSize(surfaceStage.main)
+	local bytes = staged and copyFile(surfaceStage.main, job.dir .. "surface.png")
+	if bytes and fileSize(surfaceStage.v4) and not copyFile(surfaceStage.v4, job.dir .. "surface_v4.png") then
+		warn("could not copy surface_v4.png into the project; variant 4 paint is not saved")
+	end
+	surfaceStage.clear()
 	if not bytes then
-		sectionSkip("surface", "painter reported done but file missing", true)
+		sectionSkip(
+			"surface",
+			staged and "could not copy surface.png into the project" or "painter reported done but file missing",
+			true
+		)
 		return true
 	end
 	local meta = (sp.getPersist and sp.getPersist()) or {}
@@ -3220,7 +3261,20 @@ local function phaseSurface(c)
 		end
 	end
 	if not c.surfRequested then
-		if not sp.loadMask(maskPath) then
+		-- the painter may only read under LuaUI/: hand it staged copies, the _v4
+		-- sibling cleared first so a leftover one cannot load as this project's
+		Spring.CreateDir(surfaceStage.dir)
+		surfaceStage.clear()
+		if not copyFile(maskPath, surfaceStage.main) then
+			loadSkip("surface", "could not stage surface.png for the painter")
+			return true
+		end
+		local v4Path = maskPath:gsub("%.png$", "_v4.png")
+		if fileSize(v4Path) and not copyFile(v4Path, surfaceStage.v4) then
+			echoP("WARNING: could not stage surface_v4.png; variant 4 paint loads empty")
+		end
+		if not sp.loadMask(surfaceStage.main) then
+			surfaceStage.clear()
 			loadSkip("surface", "load request rejected")
 			return true
 		end
@@ -3236,6 +3290,7 @@ local function phaseSurface(c)
 		end
 		return false
 	end
+	surfaceStage.clear()
 	local result = sp.getLoadResult and sp.getLoadResult()
 	if result == "ok" then
 		loadOk("surface", nil)

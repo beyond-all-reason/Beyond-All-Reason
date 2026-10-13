@@ -7776,7 +7776,7 @@
 								<div class="tf-env-reset-btn" data-event-click="onTilesetSectionReset('ramp')">RESET</div>
 							</div>
 							<div id="section-ts-hsub-ramp" class="hidden">
-								<div class="text-sm text-light mb-1" style="opacity: 0.7;">A painted gradient image (256x1 is enough) sampled along the axis. Files go in Terraform Brush/Ramps/.</div>
+								<div class="text-sm text-light mb-1" style="opacity: 0.7;">A painted gradient image (256x1 is enough) sampled along the axis. Files go in <span id="ts-ramp-dir">LuaUI/Config/TilesetRamps/</span>.</div>
 								<div class="flex flex-row gap-1 mb-1">
 									<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsRampMode == 0" data-event-mousedown="onTsRampMode(0)"><div class="tf-btn-text">Off</div></div>
 									<div class="tf-lp-compact-btn tf-ll-tab-btn" data-class-active="tsRampMode == 1" data-event-mousedown="onTsRampMode(1)"><div class="tf-btn-text">Multiply</div></div>

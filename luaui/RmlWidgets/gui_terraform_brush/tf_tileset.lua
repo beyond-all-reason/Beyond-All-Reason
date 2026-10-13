@@ -602,6 +602,11 @@ local function rebuildRampList(doc, ctx, T)
 		return
 	end
 	widgetState.tsRampListSig = sig
+	-- the folder is the shader build's, so the hint asks it rather than guess
+	local dirEl = doc:GetElementById("ts-ramp-dir")
+	if dirEl and T.getRampDir then
+		dirEl.inner_rml = tostring(T.getRampDir())
+	end
 	listEl.inner_rml = ""
 	if #files == 0 then
 		listEl.inner_rml = '<div class="tf-hm-empty">No images in '
