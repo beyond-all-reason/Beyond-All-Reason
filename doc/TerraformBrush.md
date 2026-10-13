@@ -349,7 +349,7 @@ excluded: an empty library is the normal way to use the erase brush.
 | Ctrl + A | Select everything on screen |
 | Delete / Backspace | Remove the selection |
 | Esc | Clear the selection; a second press leaves the tool |
-| RMB | Unchanged — erase brush, in every mode |
+| RMB | Drops the library pick (back to selecting); features come off only through Delete or REMOVE mode |
 
 The gizmo has three translate arrows, three rotation rings and a centre handle
 that slides the selection over the terrain. Multi-selections transform rigidly
