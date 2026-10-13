@@ -1464,7 +1464,7 @@ end
 local function loadStartPositions(name, explicitPath)
 	local filename = explicitPath or (SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
-		return VFS.Include(filename, nil, VFS.RAW_FIRST)
+		return VFS.Include(filename, {}, VFS.RAW_FIRST)
 	end)
 	if ok and data then
 		clearAllPositions() -- also clears undoHistory
@@ -1544,7 +1544,7 @@ end
 local function loadStartboxes(name, explicitPath)
 	local filename = explicitPath or (STARTBOX_SAVE_DIR .. (name or getMapName()) .. ".lua")
 	local ok, data = pcall(function()
-		return VFS.Include(filename, nil, VFS.RAW_FIRST)
+		return VFS.Include(filename, {}, VFS.RAW_FIRST)
 	end)
 	if ok and data then
 		clearAllStartboxes()
