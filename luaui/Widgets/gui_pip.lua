@@ -2442,7 +2442,15 @@ local spFunc = {
 	GetFeaturesInRectangle = Spring.GetFeaturesInRectangle,
 	IsUnitSelected = Spring.IsUnitSelected,
 	GetUnitHealth = Spring.GetUnitHealth,
-	GetMouseState = Spring.GetMouseState,
+	-- a headset's pointer reaches the map through a panel, which maps it (see gui_pip_minimap.lua)
+	GetMouseState = function()
+		local x, y, b1, b2, b3, b4, b5 = Spring.GetMouseState()
+		local mapMouse = WG["pipXRMapMouse" .. pipNumber]
+		if mapMouse then
+			x, y = mapMouse(x, y)
+		end
+		return x, y, b1, b2, b3, b4, b5
+	end,
 	GetProjectilesInRectangle = Spring.GetProjectilesInRectangle,
 	GetProjectilePosition = Spring.GetProjectilePosition,
 	GetProjectileDefID = Spring.GetProjectileDefID,

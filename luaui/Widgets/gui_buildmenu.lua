@@ -103,6 +103,10 @@ local math_isInRect = math.isInRect
 
 local buildmenuShows = false
 local refreshBuildmenu = true
+
+-- the menu is mirrored to a floating panel in the VR headset
+widget.xrPanel = VFS.Include(LUAUI_DIRNAME .. "Include/xr_panel.lua").New("buildmenu", { mode = "head", x = 0.9, y = -0.25, z = 1.2, width = 0.525 })
+widget.xrDirty = true
 local delayRefresh
 
 local costOverrides = {}
@@ -1477,6 +1481,7 @@ local function refreshBuildmenuTexture()
 		buildmenuUnitpicsWarmDone = flushBuildmenuUnitpicWarmQueue()
 	end
 	refreshBuildmenu = false
+	widget.xrDirty = true
 	if not buildmenuTex and width > 0.05 and height > 0.05 then
 		tracy.ZoneBeginN("W:BuildMenu:DrawScreen:CreateTextures")
 		buildmenuTex =
@@ -1542,6 +1547,9 @@ function widget:DrawScreen()
 	end
 
 	if not buildmenuShows then
+		if widget.xrPanel then
+			widget.xrPanel:Hide()
+		end
 		tracy.ZoneEnd()
 		return
 	end
@@ -1562,6 +1570,9 @@ function widget:DrawScreen()
 	end
 
 	local x, y, b, b2, b3 = spGetMouseState()
+	if widget.xrPanel then
+		x, y = widget.xrPanel:MapMouse(x, y)
+	end
 	-- Handle the frame-based counter for race conditions
 	if raceConditionUpdateCountdown > 0 then
 		raceConditionUpdateCountdown = raceConditionUpdateCountdown - 1
@@ -1669,6 +1680,21 @@ function widget:DrawScreen()
 			tracy.ZoneEnd()
 		elseif dlistBuildmenu then
 			gl.CallList(dlistBuildmenu)
+		end
+
+		if widget.xrPanel then
+			if buildmenuBgTex and buildmenuTex and buildmenuTexHasContent then
+				widget.xrPanel:Update(
+					{ buildmenuBgTex, buildmenuTex },
+					math_floor(width * vsx) * 2,
+					math_floor(height * vsy) * 2,
+					widget.xrDirty,
+					{ backgroundRect[1], backgroundRect[2], backgroundRect[3], backgroundRect[4] }
+				)
+				widget.xrDirty = false
+			else
+				widget.xrPanel:Hide()
+			end
 		end
 
 		-- draw highlight
@@ -2014,6 +2040,9 @@ function widget:MousePress(x, y, button)
 	end
 	if WG.topbar and WG.topbar.showingQuit() then
 		return
+	end
+	if widget.xrPanel then
+		x, y = widget.xrPanel:MapMouse(x, y)
 	end
 
 	if
@@ -2491,6 +2520,9 @@ function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 end
 
 function widget:Shutdown()
+	if widget.xrPanel then
+		widget.xrPanel:Destroy()
+	end
 	clear()
 	if WG.guishader and dlistGuishader then
 		WG.guishader.DeleteDlist("buildmenu")

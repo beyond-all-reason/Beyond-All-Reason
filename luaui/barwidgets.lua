@@ -74,6 +74,25 @@ local spIsReplay = Spring.IsReplay
 local LOG = copyTable(LOG)
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer
 
+-- the engine calls the world draw callins in extra views (VR eyes) too, but only
+-- for the widgets listed here
+local xrDrawWidgets = {}
+-- desktop interface widgets that get no mouse input while a headset is worn
+local xrMouseBlocked = {}
+-- false: those widgets are blocked while a headset is worn (/xrdesktopmouse toggles)
+local xrDesktopMouse = false
+do
+	local ok, list = pcall(VFS.Include, "common/xr_world_draw.lua")
+	if ok and type(list) == "table" then
+		xrDrawWidgets = list.widgets or xrDrawWidgets
+		xrMouseBlocked = list.mouseBlocked or xrMouseBlocked
+	end
+	if Spring.XRSetDrawInViews then
+		Spring.XRSetDrawInViews(true)
+	end
+end
+local XRInSecondaryView = Spring.XRInSecondaryView or function() return false end
+
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
 local RML_WIDGET_DIRNAME = LUAUI_DIRNAME .. "RmlWidgets/"
@@ -2444,6 +2463,15 @@ local function allowedWidget(widget)
 	return (not modalActive) or (modalAllowed[widget] == true)
 end
 
+-- The same for the mouse call-ins: also false for the desktop interface widgets while
+-- a headset is worn (see common/xr_world_draw.lua)
+local function mouseAllowedWidget(widget)
+	if not allowedWidget(widget) then
+		return false
+	end
+	return xrDesktopMouse or not (xrMouseBlocked[widget.whInfo.name] and Spring.XRGetHeadPose and Spring.XRGetHeadPose() ~= nil)
+end
+
 local function ModalAllowWidget(widget, allowed)
 	if (modalAllowed[widget] or false) ~= allowed then
 		modalAllowed[widget] = allowed or nil
@@ -2789,6 +2817,13 @@ function widgetHandler:ConfigureLayout(command)
 		return true
 	end
 
+	-- toggles the desktop mouse in VR (bind it to a key: /bind f9 xrdesktopmouse)
+	if command == "xrdesktopmouse" then
+		xrDesktopMouse = not xrDesktopMouse
+		Spring.Echo("VR: desktop mouse input " .. (xrDesktopMouse and "ENABLED" or "DISABLED"))
+		return true
+	end
+
 	if self.actionHandler:TextAction(command) then
 		return true
 	end
@@ -3027,11 +3062,14 @@ function widgetHandler:DrawWorld()
 	tracy.ZoneBeginN("W:DrawWorld")
 	if not self.chobbyInterface then
 		local list = self.DrawWorldList
+		local xrView = XRInSecondaryView()
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyDrawWorldName)
-			w:DrawWorld()
-			tracy.ZoneEnd()
+			if not xrView or xrDrawWidgets[w.whInfo.name] then
+				tracy.ZoneBeginN(w._tracyDrawWorldName)
+				w:DrawWorld()
+				tracy.ZoneEnd()
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -3042,11 +3080,14 @@ function widgetHandler:DrawWorldPreUnit()
 	tracy.ZoneBeginN("W:DrawWorldPreUnit")
 	if not self.chobbyInterface then
 		local list = self.DrawWorldPreUnitList
+		local xrView = XRInSecondaryView()
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyDrawWorldPreUnitName)
-			w:DrawWorldPreUnit()
-			tracy.ZoneEnd()
+			if not xrView or xrDrawWidgets[w.whInfo.name] then
+				tracy.ZoneBeginN(w._tracyDrawWorldPreUnitName)
+				w:DrawWorldPreUnit()
+				tracy.ZoneEnd()
+			end
 		end
 	end
 	tracy.ZoneEnd()
@@ -3137,8 +3178,12 @@ function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, dra
 	-- true, false, false, false
 	tracy.ZoneBeginN("W:DrawWorldPreParticles")
 	local list = self.DrawWorldPreParticlesList
+	local xrView = XRInSecondaryView()
 	for i = #list, 1, -1 do
-		list[i]:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
+		local w = list[i]
+		if not xrView or xrDrawWidgets[w.whInfo.name] then
+			w:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
+		end
 	end
 	tracy.ZoneEnd()
 	return
@@ -3378,7 +3423,7 @@ end
 function widgetHandler:WidgetAt(x, y)
 	tracy.ZoneBeginN("W:WidgetAt")
 	for _, w in ipairs(self.IsAboveList) do
-		if allowedWidget(w) and w:IsAbove(x, y) then
+		if mouseAllowedWidget(w) and w:IsAbove(x, y) then
 			tracy.ZoneEnd()
 			return w
 		end
@@ -3394,7 +3439,7 @@ function widgetHandler:MousePress(x, y, button)
 		self.mouseOwner:MousePress(x, y, button)
 	else
 		for _, w in ipairs(self.MousePressList) do
-			if allowedWidget(w) then
+			if mouseAllowedWidget(w) then
 				if w:MousePress(x, y, button) then
 					self.mouseOwner = w
 					break
@@ -3447,7 +3492,7 @@ function widgetHandler:MouseWheel(up, value)
 	end
 	tracy.ZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
-		if allowedWidget(w) and w:MouseWheel(up, value) then
+		if mouseAllowedWidget(w) and w:MouseWheel(up, value) then
 			tracy.ZoneEnd()
 			return true
 		end
@@ -3560,7 +3605,7 @@ end
 function widgetHandler:GetTooltip(x, y)
 	tracy.ZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
-		if allowedWidget(w) and w:IsAbove(x, y) then
+		if mouseAllowedWidget(w) and w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
 			if type(tip) == "string" and #tip > 0 then
 				tracy.ZoneEnd()

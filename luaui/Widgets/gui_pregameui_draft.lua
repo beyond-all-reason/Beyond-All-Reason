@@ -672,6 +672,11 @@ local function invalidateButtonState()
 	buttonStateChanged = true
 end
 
+-- the VR headset panel the ready button is mirrored into, and whether it is being drawn now
+local xrPanel = VFS.Include(LUAUI_DIRNAME .. "Include/xr_panel.lua").New("pregameui_draft", { mode = "head", x = 0, y = -0.4, z = 1.2, width = 0.4 })
+local xrMirroring = false
+local renderButton, renderCantPlaceNow, renderBlinkButton
+
 local function drawButton()
 	-- Only refresh button text if needed (this may change button state)
 	buttonTextRefresh()
@@ -840,7 +845,13 @@ local function drawButton()
 		buttonDrawn = false
 	end
 
-	-- Render the button (this happens every frame but uses cached display lists)
+	renderCantPlaceNow, renderBlinkButton = cantPlaceNow, blinkButton
+	renderButton()
+end
+
+-- renders the button (every frame, from cached display lists); also into the headset panel
+renderButton = function()
+	local cantPlaceNow, blinkButton = renderCantPlaceNow, renderBlinkButton
 	if showLockButton and buttonList and buttonHoverList then
 		-- Add GUI shader rect
 		if WG.guishader then
@@ -855,6 +866,9 @@ local function drawButton()
 
 		-- Check mouse hover and render appropriate display list
 		local x, y = Spring.GetMouseState()
+		if xrMirroring then
+			x, y = xrPanel:MapMouse(x, y)
+		end
 		local colorString
 		if x > buttonRect[1] and x < buttonRect[3] and y > buttonRect[2] and y < buttonRect[4] and not cantPlaceNow then
 			glCallList(buttonHoverList)
@@ -1021,6 +1035,9 @@ function widget:GameSetup(state, ready, playerStates)
 end
 
 function widget:MousePress(sx, sy)
+	if xrPanel then
+		sx, sy = xrPanel:MapMouse(sx, sy)
+	end
 	if showLockButton then
 		-- pressing button element
 		if sx > uiElementRect[1] and sx < uiElementRect[3] and sy > uiElementRect[2] and sy < uiElementRect[4] then
@@ -1286,6 +1303,17 @@ function widget:DrawScreen()
 	end
 
 	drawButton()
+
+	-- the ready button floats in front of the headset too
+	if xrPanel then
+		if showLockButton and buttonList and buttonHoverList then
+			xrMirroring = true
+			xrPanel:Mirror(renderButton, uiElementRect, 2)
+			xrMirroring = false
+		else
+			xrPanel:Hide()
+		end
+	end
 end
 
 local function removeUnitShape(id)
@@ -1460,6 +1488,9 @@ end
 -- DOM end
 
 function widget:Shutdown()
+	if xrPanel then
+		xrPanel:Destroy()
+	end
 	glDeleteList(buttonList)
 	glDeleteList(buttonHoverList)
 	glDeleteList(TeamPlacementUI)

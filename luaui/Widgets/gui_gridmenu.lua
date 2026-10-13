@@ -127,6 +127,10 @@ local stickToBottom = false
 local alwaysReturn = false
 local autoSelectFirst = true
 local alwaysShow = false
+
+-- the menu is mirrored to a floating panel in the VR headset
+widget.xrPanel = VFS.Include(LUAUI_DIRNAME .. "Include/xr_panel.lua").New("gridmenu", { mode = "head", x = 0.9, y = -0.25, z = 1.2, width = 0.525 })
+widget.xrDirty = true
 local useLabBuildMode = false
 local showPrice = true -- false will still show hover
 local showRadarIcon = true -- false will still show hover
@@ -454,6 +458,9 @@ end
 
 local function updateHoverState()
 	local x, y, left, _, right = Spring.GetMouseState()
+	if widget.xrPanel then
+		x, y = widget.xrPanel:MapMouse(x, y)
+	end
 	local isAboveBg = backgroundRect:contains(x, y)
 	local isAboveBuilders = not isAboveBg
 		and selectedBuildersCount > 1
@@ -2829,6 +2836,9 @@ function widget:MousePress(x, y, button)
 	if WG.topbar and WG.topbar.showingQuit() then
 		return
 	end
+	if widget.xrPanel then
+		x, y = widget.xrPanel:MapMouse(x, y)
+	end
 
 	if
 		(buildmenuShows and backgroundRect:contains(x, y))
@@ -3026,6 +3036,9 @@ end
 function widget:DrawScreen()
 	gl.Blending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	if not (activeBuilder or alwaysShow) then
+		if widget.xrPanel then
+			widget.xrPanel:Hide()
+		end
 		if WG.guishader and dlistGuishader then
 			if dlistGuishader then
 				WG.guishader.RemoveDlist("buildmenu")
@@ -3052,6 +3065,7 @@ function widget:DrawScreen()
 				gridmenuUnitpicsWarmDone = flushGridmenuUnitpicWarmQueue()
 			end
 			redraw = nil
+			widget.xrDirty = true
 			if not buildmenuBgTex then
 				buildmenuBgTex = gl.CreateTexture(
 					math_floor(backgroundRect.xEnd - backgroundRect.x),
@@ -3123,6 +3137,17 @@ function widget:DrawScreen()
 				buildersRectYend,
 				true
 			)
+		end
+
+		if widget.xrPanel and buildmenuBgTex and buildmenuTex then
+			widget.xrPanel:Update(
+				{ buildmenuBgTex, buildmenuTex },
+				math_floor(backgroundRect.xEnd - backgroundRect.x) * 2,
+				math_floor(buildersRectYend - backgroundRect.y) * 2,
+				widget.xrDirty,
+				{ backgroundRect.x, backgroundRect.y, backgroundRect.xEnd, buildersRectYend }
+			)
+			widget.xrDirty = false
 		end
 
 		-- draw attention highlights (animated, on top of cached content)
@@ -3360,6 +3385,9 @@ function widget:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 end
 
 function widget:Shutdown()
+	if widget.xrPanel then
+		widget.xrPanel:Destroy()
+	end
 	dlistBuildmenu = gl.DeleteList(dlistBuildmenu)
 	dlistProgress = gl.DeleteList(dlistProgress)
 	if buildmenuTex then

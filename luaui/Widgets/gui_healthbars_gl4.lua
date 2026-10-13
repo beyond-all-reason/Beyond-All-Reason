@@ -1398,11 +1398,7 @@ function widget:FeatureDestroyed(featureID)
 	featureBars[featureID] = nil
 end
 
-function widget:DrawScreenEffects()
-	-- using DrawScreenEffects so healthbars render after deferred lighting,
-	-- distortion, bloom and tonemapping passes — keeps bar colors uncolored
-	-- and unaffected by water/heat distortion. The shader still does world->clip
-	-- via engine cameraViewProj UBO, and depth-test still occludes against terrain.
+local function drawBars()
 	--spEcho(Engine.versionFull )
 	if chobbyInterface then
 		return
@@ -1474,6 +1470,21 @@ function widget:DrawScreenEffects()
 		gl.Culling(false)
 		gl.DepthTest(false)
 		gl.DepthMask(false) --"BK OpenGL state resets", reset to default state
+	end
+end
+
+function widget:DrawScreenEffects()
+	-- using DrawScreenEffects so healthbars render after deferred lighting,
+	-- distortion, bloom and tonemapping passes — keeps bar colors uncolored
+	-- and unaffected by water/heat distortion. The shader still does world->clip
+	-- via engine cameraViewProj UBO, and depth-test still occludes against terrain.
+	drawBars()
+end
+
+-- the extra views (VR eyes) have no screen effects pass, so the bars are drawn with the world
+function widget:DrawWorld()
+	if Spring.XRInSecondaryView and Spring.XRInSecondaryView() then
+		drawBars()
 	end
 end
 
