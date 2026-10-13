@@ -14,7 +14,7 @@ return {
 		explodeas = "customfusionexplo",
 		footprintx = 6,
 		footprintz = 6,
-		health = 9800,
+		health = 9500,
 		maxacc = 0,
 		maxdec = 0,
 		maxslope = 13,

@@ -14,11 +14,12 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitHealth = Spring.GetUnitHealth
-local spGetGameFrame = Spring.GetGameFrame
 local spEcho = Spring.Echo
 local spGetAllUnits = Spring.GetAllUnits
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local glSetUnitBufferUniforms = gl.SetUnitBufferUniforms
 
 local LuaShader = gl.LuaShader
 local InstanceVBOTable = gl.InstanceVBOIdTable
@@ -52,9 +53,7 @@ layout (location = 4) in vec4 uv;
 layout (location = 5) in uvec2 bonesInfo; //boneIDs, boneWeights
 #define pieceIndex (bonesInfo.x & 0x000000FFu)
 
-layout (location = 6) in vec4 startcolorpower;
-layout (location = 7) in vec4 endcolor_endgameframe;
-layout (location = 8) in uvec4 instData;
+layout (location = 6) in uvec4 instData;
 
 //__ENGINEUNIFORMBUFFERDEFS__
 
@@ -98,8 +97,7 @@ layout(std140, binding=1) readonly buffer UniformsBuffer {
 };
 
 out vec3 v_modelPosOrig;
-out vec4 v_startcolorpower;
-out vec4 v_endcolor_alpha;
+flat out float v_paralysis;
 
 void main() {
 	uint baseIndex = instData.x;
@@ -126,17 +124,14 @@ void main() {
 		vec4 modelPos = ApplyTransform(modelWorldTransform, vec4(v_modelPosOrig.xyz, 1.0));
 	#endif
 
-	v_endcolor_alpha.rgba = endcolor_endgameframe.rgba;
-	v_endcolor_alpha.a = clamp( (v_endcolor_alpha.a - (timeInfo.x + timeInfo.w) + 100) * 0.01, 0.0, 1.0); // fade out for end time
-
 	float paralyzestrength = uni[instData.y].userDefined[1].x; // this (paralyzedamage/maxhealth), so >=1.0 is paralyzed
-	v_endcolor_alpha.a = clamp(pow(paralyzestrength, 2.0), 0.0, 1.1);
-	if ((uni[instData.y].composite & 0x00000003u) < 1u ) v_endcolor_alpha.a = 0.0; // this checks the drawFlag of whether the unit is actually being drawn (this is ==1 when then unit is both visible and drawn as a full model (not icon))
+	v_paralysis = min(paralyzestrength * paralyzestrength, 1.1);
 
-	v_startcolorpower = startcolorpower;
-
-	//v_endcolor_alpha.a = 0.99;
 	gl_Position = cameraViewProj * modelPos;
+	// drawFlag 1 or 2 means drawn as a full model (not an icon) this frame; otherwise the effect is alpha 0, so cull it
+	if ((uni[instData.y].composite & 0x00000003u) == 0u || v_paralysis == 0.0) {
+		gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+	}
 }
 ]]
 
@@ -150,19 +145,20 @@ local fsSrc = [[
 //	Simplex 4D Noise
 //	by Ian McEwan, Ashima Arts
 //
+// The hashing and gradients below are reduced but return exactly the values of the original.
 vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
-float permute(float x){return floor(mod(((x*34.0)+1.0)*x, 289.0));}
+vec2 permute(vec2 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+float permute(float x){return mod(((x*34.0)+1.0)*x, 289.0);} // whole numbers in and out, so no floor
 vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
 float taylorInvSqrt(float r){return 1.79284291400159 - 0.85373472095314 * r;}
 
 vec4 grad4(float j, vec4 ip){
   const vec4 ones = vec4(1.0, 1.0, 1.0, -1.0);
-  vec4 p,s;
+  vec4 p;
 
   p.xyz = floor( fract (vec3(j) * ip.xyz) * 7.0) * ip.z - 1.0;
   p.w = 1.5 - dot(abs(p.xyz), ones.xyz);
-  s = vec4(lessThan(p, vec4(0.0)));
-  p.xyz = p.xyz + (s.xyz*2.0 - 1.0) * s.www;
+  p.xyz += float(p.w < 0.0); // p.xyz is always negative here, so this is the whole sign fix-up
 
   return p;
 }
@@ -205,9 +201,11 @@ float snoise(vec4 v){
 
 // Permutations
   i = mod(i, 289.0);
-  float j0 = permute( permute( permute( permute(i.w) + i.z) + i.y) + i.x);
-  vec4 j1 = permute( permute( permute( permute (
-             i.w + vec4(i1.w, i2.w, i3.w, 1.0 ))
+  // the first level only ever hashes i.w or i.w + 1, so do those two once and pick per corner
+  vec2 jw = permute(i.ww + vec2(0.0, 1.0));
+  float j0 = permute( permute( permute( jw.x + i.z) + i.y) + i.x);
+  vec4 j1 = permute( permute( permute(
+             jw.x + vec4(i1.w, i2.w, i3.w, 1.0 ) * (jw.y - jw.x)
            + i.z + vec4(i1.z, i2.z, i3.z, 1.0 ))
            + i.y + vec4(i1.y, i2.y, i3.y, 1.0 ))
            + i.x + vec4(i1.x, i2.x, i3.x, 1.0 ));
@@ -248,13 +246,12 @@ float snoise(vec4 v){
 //__DEFINES__
 
 in vec3 v_modelPosOrig;
-in vec4 v_startcolorpower;
-in vec4 v_endcolor_alpha;
+flat in float v_paralysis;
 
 out vec4 fragColor;
 #line 25000
 void main() {
-	float paralysis_level = v_endcolor_alpha.a; // values of 1 are fully paralyzed
+	float paralysis_level = v_paralysis; // values of 1 are fully paralyzed
 
 	float noisescale;
 	float persistence;
@@ -307,8 +304,10 @@ void main() {
 	vec3 lightningcolor;
 	float effectalpha;
 	if (paralysis_level < 0.9999) {
-		//empreworktagdonotremove
-		//empreworkherealsodonotremove
+		#if EMPREWORK == 1
+			paralysis_level = min(paralysis_level * 3.0, 1.0);
+			if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }
+		#endif
 		// Calculate the lightning color based on the amount of electricity
 		lightningcolor = mix(minlightningcolor, maxlightningcolor, electricity);
 		effectalpha = paralysis_level * lightningalpha; // less transparency non-paralyzed
@@ -333,26 +332,16 @@ local paralyzeSourceShaderCache = {
 	shaderConfig = {
 		USEQUATERNIONS = Engine.FeatureSupport.transformsInGL4 and "1" or "0",
 		PARALYZE_NOISE_OCTAVES = tostring(math.max(1, math.floor(paralyzeNoiseOctaves))),
+		EMPREWORK = Spring.GetModOptions().emprework and "1" or "0",
 	},
 	forceupdate = true, -- otherwise file-less defines are not updated
 }
 
---holy hacks batman
-if Spring.GetModOptions().emprework then
-	fsSrc = string.gsub(
-		fsSrc,
-		"//empreworktagdonotremove",
-		"paralysis_level = paralysis_level*3; if (paralysis_level> 1) { paralysis_level = 1; }"
-	)
-	fsSrc = string.gsub(
-		fsSrc,
-		"//empreworkherealsodonotremove",
-		"if (paralysis_level > 0.49) { wholeunitbasecolor = vec4(0.35, 0.43, 0.94, 0.18); }"
-	)
-end
-
 ---@type InstanceVBOTable?
 local paralyzedDrawUnitVBOTable
+
+-- the only instance attribute is instData, which InstanceDataFromUnitIDs fills in
+local instanceCache = { 0, 0, 0, 0 }
 
 local function initGL4()
 	local vertVBO = gl.GetVBO(GL.ARRAY_BUFFER, false) -- GL.ARRAY_BUFFER, false
@@ -361,13 +350,11 @@ local function initGL4()
 	indxVBO:ModelsVBO()
 
 	local VBOLayout = {
-		{ id = 6, name = "startcolorpower", size = 4 },
-		{ id = 7, name = "endcolor", size = 4 },
-		{ id = 8, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
+		{ id = 6, name = "instData", type = GL.UNSIGNED_INT, size = 4 },
 	}
 
 	local maxElements = 32 -- start small for testing
-	local unitIDAttributeIndex = 8
+	local unitIDAttributeIndex = 6
 	paralyzedDrawUnitVBOTable = InstanceVBOTable.makeInstanceVBOTable(
 		VBOLayout,
 		maxElements,
@@ -389,55 +376,33 @@ local function initGL4()
 	end
 end
 
-local function DrawParalyzedUnitGL4(
-	unitID,
-	unitDefID,
-	red_start,
-	green_start,
-	blue_start,
-	power_start,
-	red_end,
-	green_end,
-	blue_end,
-	time_end
-)
+-- unitID -> paralyzeDamage / maxHealth last written to the unit's uniforms
+local paralyzeStrength = {}
+local uniformcache = { 0 }
+
+local function SetParalyzeStrength(unitID, strength)
+	if strength ~= paralyzeStrength[unitID] then
+		paralyzeStrength[unitID] = strength
+		uniformcache[1] = strength
+		glSetUnitBufferUniforms(unitID, uniformcache, 4)
+	end
+end
+
+local function DrawParalyzedUnitGL4(unitID)
 	-- Documentation for DrawParalyzedUnitGL4:
 	--	unitID: the actual unitID that you want to draw
-	--	unitDefID: which unitDef is it (leave nil for autocomplete)
 	-- returns: a unique handler ID number that you should store and call StopDrawParalyzedUnitGL4(uniqueID) with to stop drawing it
 	-- note that widgets are responsible for stopping the drawing of every unit that they submit!
 
-	--spEcho("DrawParalyzedUnitGL4",unitID, unitDefID, UnitDefs[unitDefID].name)
+	--spEcho("DrawParalyzedUnitGL4",unitID)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
 		return
 	end -- already got this unit
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+	if spValidUnitID(unitID) ~= true or spGetUnitIsDead(unitID) == true then
 		return
 	end
-	red_start = red_start or 1.0
-	green_start = green_start or 1.0
-	blue_start = blue_start or 1.0
-	power_start = power_start or 4.0
-	red_end = red_end or 0
-	green_end = green_end or 0
-	blue_end = blue_end or 1.0
-	time_end = 500000 --time_end or spGetGameFrame()
-	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	pushElementInstance(paralyzedDrawUnitVBOTable, {
-		red_start,
-		green_start,
-		blue_start,
-		power_start,
-		red_end,
-		green_end,
-		blue_end,
-		time_end,
-		0,
-		0,
-		0,
-		0,
-	}, unitID, true, nil, unitID, "unitID")
+	pushElementInstance(paralyzedDrawUnitVBOTable, instanceCache, unitID, true, nil, unitID, "unitID")
 	--spEcho("Pushed",  unitID, elementID)
 	return unitID
 end
@@ -446,24 +411,30 @@ local function StopDrawParalyzedUnitGL4(unitID)
 	if paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
 		popElementInstance(paralyzedDrawUnitVBOTable, unitID)
 	end
+	paralyzeStrength[unitID] = nil
 end
 
 ---  All the stuff from the old paralyze effect widget to make this shit work!
 local TESTMODE = false
 
-local gameFrame = spGetGameFrame()
 local myTeamID
 local spec, fullview
 
+local function AddIfParalyzed(unitID)
+	local _, maxHealth, paralyzeDamage = spGetUnitHealth(unitID)
+	if TESTMODE then
+		DrawParalyzedUnitGL4(unitID)
+	elseif paralyzeDamage and paralyzeDamage > 0 and DrawParalyzedUnitGL4(unitID) then
+		SetParalyzeStrength(unitID, paralyzeDamage / maxHealth)
+	end
+end
+
 local function init()
 	InstanceVBOTable.clearInstanceTable(paralyzedDrawUnitVBOTable)
+	paralyzeStrength = {}
 	local allUnits = spGetAllUnits()
 	for i = 1, #allUnits do
-		local unitID = allUnits[i]
-		local _, _, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
-		if paralyzeDamage and paralyzeDamage > 0 then
-			widget:UnitCreated(unitID, spGetUnitDefID(unitID))
-		end
+		AddIfParalyzed(allUnits[i])
 	end
 end
 
@@ -477,15 +448,8 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function widget:UnitCreated(unitID, unitDefID)
-	if TESTMODE then
-		DrawParalyzedUnitGL4(unitID, unitDefID)
-	end
-
-	local _, _, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
-	if paralyzeDamage and paralyzeDamage > 0 then
-		DrawParalyzedUnitGL4(unitID, unitDefID)
-	end
+function widget:UnitCreated(unitID)
+	AddIfParalyzed(unitID)
 end
 
 function widget:UnitDestroyed(unitID)
@@ -506,35 +470,28 @@ function widget:UnitEnteredLos(unitID)
 	if fullview then
 		return
 	end
-	widget:UnitCreated(unitID, spGetUnitDefID(unitID))
+	AddIfParalyzed(unitID)
 end
 
-local function UnitParalyzeDamageEffect(unitID, unitDefID, damage) -- called from Healthbars Widget Forwarding GADGET!!!
-	--spEcho("UnitParalyzeDamageEffect",unitID, unitDefID, damage, Spring.GetUnitIsStunned(unitID)) -- DO NOTE THAT: return: nil | bool stunned_or_inbuild, bool stunned, bool inbuild
-
-	widget:UnitCreated(unitID, unitDefID)
-end
-
-local uniformcache = { 0 }
 local toremove = {}
 
 function widget:GameFrame(n)
-	if TESTMODE == false then
-		if n % 3 == 0 then
-			for unitID, index in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
-				local _, maxHealth, paralyzeDamage, _, _ = spGetUnitHealth(unitID)
-				if paralyzeDamage == 0 or paralyzeDamage == nil then
-					toremove[unitID] = true
-				else
-					uniformcache[1] = (paralyzeDamage or 0) / (maxHealth or 1) -- 1 to avoid div0
-					gl.SetUnitBufferUniforms(unitID, uniformcache, 4)
-				end
-			end
+	if TESTMODE or n % 3 ~= 0 then
+		return
+	end
+	local removeCount = 0
+	for unitID in pairs(paralyzedDrawUnitVBOTable.instanceIDtoIndex) do
+		local _, maxHealth, paralyzeDamage = spGetUnitHealth(unitID)
+		if paralyzeDamage and paralyzeDamage > 0 then
+			SetParalyzeStrength(unitID, paralyzeDamage / maxHealth)
+		else
+			removeCount = removeCount + 1
+			toremove[removeCount] = unitID
 		end
-		for unitID, _ in pairs(toremove) do
-			StopDrawParalyzedUnitGL4(unitID)
-			toremove[unitID] = nil
-		end
+	end
+	for i = 1, removeCount do
+		StopDrawParalyzedUnitGL4(toremove[i])
+		toremove[i] = nil
 	end
 end
 
@@ -546,22 +503,28 @@ function widget:Initialize()
 	initGL4()
 	init()
 	if TESTMODE then
-		for i, unitID in ipairs(spGetAllUnits()) do
-			widget:UnitCreated(unitID)
-			gl.SetUnitBufferUniforms(unitID, { 1.01 }, 4)
+		for _, unitID in ipairs(spGetAllUnits()) do
+			glSetUnitBufferUniforms(unitID, { 1.01 }, 4)
 		end
 	end
 	WG.DrawParalyzedUnitGL4 = DrawParalyzedUnitGL4
 	WG.StopDrawParalyzedUnitGL4 = StopDrawParalyzedUnitGL4
 end
 
+-- called from the Healthbars Widget Forwarding gadget on every paralyze hit
 function widget:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
-	UnitParalyzeDamageEffect(unitID, unitDefID, damage)
+	if not paralyzedDrawUnitVBOTable.instanceIDtoIndex[unitID] then
+		AddIfParalyzed(unitID)
+	end
 end
 
 function widget:Shutdown()
 	WG.DrawParalyzedUnitGL4 = nil
 	WG.StopDrawParalyzedUnitGL4 = nil
+	if type(paralyzedUnitShader) == "table" then
+		paralyzedUnitShader:Finalize()
+		paralyzedUnitShader = nil
+	end
 end
 
 function widget:DrawWorld()

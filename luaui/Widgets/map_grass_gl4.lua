@@ -1694,6 +1694,10 @@ function widget:Shutdown()
 	widgetHandler:RemoveAction("cleargrass")
 	widgetHandler:RemoveAction("savegrassconfig")
 	widgetHandler:RemoveAction("dumpgrassshaders")
+	if type(grassShader) == "table" then
+		grassShader:Finalize()
+		grassShader = nil
+	end
 end
 
 function widget:SetConfigData(data)

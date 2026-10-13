@@ -273,3 +273,10 @@ end
 function widget:SetConfigData(data)
 	opacity = data.opacity or opacity
 end
+
+function widget:Shutdown()
+	if type(gridShader) == "table" then
+		gridShader:Finalize()
+		gridShader = nil
+	end
+end
