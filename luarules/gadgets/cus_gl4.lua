@@ -288,6 +288,9 @@ local function updateFeatureFadeDistances()
 end
 updateFeatureFadeDistances()
 
+-- nil outside the map editor
+local editorFeatures = VFS.Include("luarules/gadgets/include/cus_gl4_editor_features.lua")
+
 do --save a ton of locals
 	local OPTION_SHADOWMAPPING = 1
 	local OPTION_NORMALMAPPING = 2
@@ -409,6 +412,9 @@ do --save a ton of locals
 			brightnessFactor = 1.3,
 		},
 	} -- maps uniformbins to a table of uniform names/values
+	if editorFeatures then
+		editorFeatures.addBins(uniformBins, defaultBitShaderOptions)
+	end
 end
 
 local overrideDrawFlags = {
@@ -1174,6 +1180,11 @@ local function initBinsAndTextures()
 				objectDefToUniformBin[-1 * featureDefID] = "featurepbr"
 			end
 			--Spring.Echo("Assigned normal map to", featureDef.name, normalTex)
+			local editorBin = editorFeatures and editorFeatures.featureBin(featureDef)
+			if editorBin then
+				objectDefToUniformBin[-1 * featureDefID] = editorBin
+				featuresDefsWithAlpha[-1 * featureDefID] = "yes"
+			end
 
 			local texKeyFast = GenFastTextureKey(-1 * featureDefID, featureDef, normalTex, textureTable)
 			if textureKeytoSet[texKeyFast] == nil then
