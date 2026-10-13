@@ -1375,12 +1375,11 @@ local function loadUnits(path)
 		Spring.Echo("[Unit Placer] Cannot open " .. tostring(path))
 		return false
 	end
-	local fn, err = loadstring(content)
+	local fn, err = loadstring(content, nil, {})
 	if not fn then
 		Spring.Echo("[Unit Placer] Parse error: " .. tostring(err))
 		return false
 	end
-	setfenv(fn, {})
 	local ok, data = pcall(fn)
 	if not (ok and type(data) == "table" and type(data.units) == "table") then
 		Spring.Echo("[Unit Placer] Not a unit map: " .. tostring(path))
