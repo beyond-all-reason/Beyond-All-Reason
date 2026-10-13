@@ -39,6 +39,7 @@ Click the **Environment** icon in the tool row (rightmost group). The env panel 
 - **Sun / fog / atmosphere** — sliders for sun direction, fog color/start/end, ambient/diffuse light, exposure, bloom.
 - **Water** — water type (0–4), color, foam, reflection/refraction toggles.
 - **Scene presets** — save/load named environment snapshots (`.env.lua` in your writeable data dir).
+- **Blockout** (SCENE > BLOCKOUT): up to three backdrop rings around the map, each with its own model, rotation and scale. They never fade with distance, the height fog covers the far ones, and they are saved with the environment. The ring models are `customparams.blockout` features from a separate asset pack; without one the button greys out.
 
 To return to terrain editing, click any other tool icon (e.g. the mountain) — the env panel collapses automatically.
 
@@ -96,6 +97,7 @@ Full table in [Interaction → Keyboard](#interaction).
 - **Full map projects / team library**: **File > Save / Save As** saves a project; **File > Open Project** is one browser over this disk and the campaign team's private library, with a Sync column, a Team Sync line at the top and a start card for the companion. The team workflow is documented for the team in the library repository itself.
 - **Autosave**: on by default (Settings > General). Every 10 minutes while the open project has unsaved changes, a snapshot lands under `MapProjects/_autosave/<project>-YYYYMMDDHHMM`; snapshots list under the Autosaves chip in **File > Open Project** and are swept after 3 days (the newest per project after 10). Opening one makes its project the Save target again.
 - **Quitting with unsaved changes** asks first (Save, then continue / Don't save / Cancel) on the top bar's Quit and on New Map. The window's own close button cannot be caught; autosave covers that.
+- **New Map** sets the canvas size and its **MEX RADIUS** (default 90 elmos), written into the generated mapinfo with a metal cap of 2 per square and saved with the project. Needs an engine with the blank map metal options (beyond-all-reason/RecoilEngine#3506); older engines keep the mapinfo defaults (radius 500, cap 0.02).
 - **Terrain heightmap**: `/terraformexport` writes a PNG + metadata to your writeable data dir; `/terraformimport <file>` reloads it.
 - **Features / grass / splats / decals**: each tool has its own Save/Load/Clear row in its sub-panel.
 - **Environment**: Save/Load preset buttons in the env panel.
@@ -233,6 +235,8 @@ Sent as `instant` field (`0`/`1`) in the `$terraform_brush$` message (field 15).
 | LMB drag | Apply active mode (raise by default) |
 | RMB drag | Temporarily switch to Lower, restore previous mode on release |
 | Shift+drag | Axis-lock (X or Z, determined after 25 screen-pixel threshold, zoom-independent) + grid snap |
+
+While a stroke runs the camera holds still: the view does not ride the ground it changes. The hold lasts until you pan, zoom, rotate or switch camera; terrain raised into the camera still lifts it.
 
 ### Keyboard
 | Key | Action |

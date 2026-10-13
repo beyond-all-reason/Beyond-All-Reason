@@ -4,7 +4,7 @@ Release history for the Terraform Brush map-editing suite.
 
 Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N` up to 1.10, `tf-improvements-N` from 1.11): branch `N` corresponds to release `1.N`. Only versions merged into the upstream Beyond All Reason repository are listed as releases. Intermediate development branches that were folded into a later release are noted separately.
 
-## 1.17 - 2026-09-27
+## 1.17 - 2026-10-13
 
 ### New
 
@@ -12,6 +12,28 @@ Version numbers follow the improvements-branch scheme (`tf-brush-improvements-N`
 - **The unit library** is a window of its own, shared with the mission editor. Type to search names and tags ("t2 arty cor"), or narrow the list with chips for faction, tier, type (units and buildings on rows of their own), role and domain, each row labelled at the left and each chip showing how many units it would leave; Shift+click a chip to combine values in a row, and click a row's label to clear it. Roles (builder, scout, raider, skirmish, arty, AA) are inferred from each unit's stats against the others of its tier. The chips carry the faction emblems and the game's strategic icons. **SORT** orders the grid by name, power (metal plus energy at 60 to 1), type, size (footprint), tier, speed, range or health; clicking the active sort again turns it round, and an arrow shows which way it runs. Recently picked units sit in a row of their own, and the arrow keys and Enter pick from the keyboard. FILTERS, BLUEPRINTS, RECENT and UNITS fold away like the brush's own sections, and the library remembers its filters, sort and folds.
 - **Several units at once.** Shift+click tiles in the library to pick a set (the tiles show 1, 2, 3); each placement then uses the next unit of the set, in order (A B C) or at random, chosen with the CYCLE chips. The facing and the shape set with R and Tab carry over from one unit to the next.
 - **Blueprints.** Saved groups of units (in `LuaUI/Config/UnitBlueprints/`) list in the library's BLUEPRINTS row; picking one arms the placer with the whole group, which R turns as one and a click drops.
+- **The UNITS panel** works like FEATURES: a PLACEMENT MODE with the library and team chips, SELECTION (select what is visible, clear, delete, turn), DISTRIBUTION (random, regular or clustered, spaced by each unit's footprint) and a FORMATION section whose Tighter / Looser packs or spreads a selection, or sets the spacing of the next drag. The game's own build keys apply: Shift drags a line, Shift+Alt a grid, Shift+Alt+Ctrl a box, Alt+Z / Alt+X and mouse 4/5 change the spacing. Right click drops the pick; units only come off the map through Delete on a selection or the REMOVE brush. U opens the tool.
+- **SCENE > BLOCKOUT** draws up to three backdrop rings around the map (a model, rotation and scale per ring), theatre-style planes that never fade with distance and sit under the height fog. They are saved with the project's environment. The ring models come from a separate asset pack; without one the button greys out and says so.
+- **New Map: MEX RADIUS.** A generated canvas used to get the engine's mapinfo defaults, a 500 elmo pull for every extractor and metal capped at 0.02 per square, so painted spots could not be worth what real maps use and neighbouring spots shared their metal. The New Map dialog sets the radius (default 90, what most BAR maps use) and the metal cap per map, and the project remembers it. Needs an engine with the blank map metal options (beyond-all-reason/RecoilEngine#3506); older engines ignore it and keep the defaults.
+- Hooks for the **Osemo** asset pack (MrBob's clusters and trees, shipped to mapmakers separately): the Feature Placer shows an Osemo category once the pack is installed, and features flagged `alphacutout` draw through an editor-only cutout bin, so live games run the stock bins unchanged. Osemo also takes Pale Hang's place in the biome library.
+
+### Improvements
+
+- **The slider wheel lock takes a double middle click.** A single middle click (1.16) still fired while adjusting values. Double middle click a slider to tie it to the mouse wheel, the same again to let it go, ESC to let go of all of them; several can be locked at once. Every slider in the panel and its floating windows can be locked now, every one shows it (the colour channel thumbs used to hide the lock style), and a line under the status strip lists what is locked with the way out.
+- **The camera holds still while you sculpt.** The spring camera puts its focus on the ground every frame, so raising or lowering the terrain under the view carried the camera up and down with the stroke. The eye now stays where it was until you pan, zoom, rotate or switch camera; ground raised into the camera still lifts it. No camera setting changes and normal play is untouched.
+- Guide mode's floating tip no longer costs frame time: it moved by rewriting its position, which re-laid out the whole panel every frame (1.5 ms at 2560x1440), and now moves by a transform.
+- The unit library is 480dp wide with four tiles to a row, each filter row on one line with its label at the left (FACTION, TIER, MOBILE, BUILDING, ROLE, DOMAIN), the faction chips spelled out, and RECENT and BLUEPRINTS folded at the bottom.
+- LAYER PLACEMENT warns above Intermediate scatter past 1.0, where it wipes the intermediate layer and the other placement sliders stop doing anything. LIGHTING and METAL SPOTS lose the six rows whose shader settings were retired in tileset shader 0.28.
+- The New Map dialog's size and mex radius rows have the -/+ buttons and the number box the other sliders have.
+- The tool hotkeys work again (they had silently stopped for every tool), with new ones for SURFACE (S), LAYERS (T) and UNITS (U); in a terrain mode a letter that belongs to the mode keeps its meaning there.
+
+### Fixes
+
+- **New metal spots work with the mex tools.** Spots painted in the editor or loaded from a project were invisible to everything that reads the metal spot list: the game refused extractors on them, and Metalspots and Quick Build saw nothing. The list is rescanned shortly after a stroke ends or a project finishes loading, and those widgets reload with it.
+- **Extractor income matches the spot.** Extractors near a stroke were given the summed metal under them as their extraction rate, which the engine multiplied by the metal again, so income grew with every stamp nearby (0.1, then 19, then 34). A stamp also keeps its metal within reach of a mex built on its centre, so the spot snaps and pays in full, and the stamp corrects the metal map's rounding so a 2.0 spot pays 2.0.
+- TILESET sliders no longer go dead after a long tuning session.
+- Loading a project replaces the live SURFACE > GRADING slot tints with the project's instead of adding to every tint set before.
+- The editor opens on start in every session, not just the cursor UI, and the title wordmark is no longer squashed by the eye button.
 
 ## 1.16 - 2026-09-23
 
