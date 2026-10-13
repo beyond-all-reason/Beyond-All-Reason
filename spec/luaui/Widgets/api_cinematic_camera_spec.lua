@@ -200,6 +200,49 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			near(ry, state.ry)
 		end)
 
+		it("pans the look-at point along the spline when the eye stays put", function()
+			local eye = { x = 0, y = 100, z = 0 }
+			local a, b, c = { x = 500, y = 0, z = 0 }, { x = 500, y = 0, z = 500 }, { x = 0, y = 0, z = 500 }
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Play({
+				keyframes = {
+					{ position = eye, lookAt = a, duration = 0 },
+					{ position = eye, lookAt = b, duration = 2, easing = "linear", path = "spline" },
+					{ position = eye, lookAt = c, duration = 2, path = "spline" },
+				},
+				onEnd = "hold",
+			})
+
+			loaded.env.widget:Update(1)
+
+			local lx, ly, lz = CameraMath.MoveEye(a, b, a, c, true, 0.5)
+			local rx, ry = CameraMath.LookAtRotation(eye.x, eye.y, eye.z, lx, ly, lz)
+			local state = lastState()
+			near(rx, state.rx)
+			near(ry, state.ry)
+			local straightRx, straightRy = CameraMath.LookAtRotation(eye.x, eye.y, eye.z, 500, 0, 250)
+			assert.is_true(math.abs(straightRy - state.ry) > 0.01 or math.abs(straightRx - state.rx) > 0.01)
+		end)
+
+		it("samples the panned look-at point between two look-at keyframes", function()
+			local loaded = loadWidget()
+			local path = loaded.WG.cinematicCamera.SamplePath({
+				keyframes = {
+					{ position = { x = 0, y = 100, z = 0 }, lookAt = { x = 500, y = 0, z = 500 }, duration = 0 },
+					{
+						position = { x = 100, y = 100, z = 0 },
+						lookAt = { x = 700, y = 0, z = 500 },
+						duration = 1,
+						easing = "linear",
+					},
+				},
+			}, 2)
+
+			assert.is_nil(path.points[2].lookAt) -- the cut pans from nothing
+			assert.are.same({ x = 600, y = 0, z = 500 }, path.points[3].lookAt)
+			assert.are.same({ x = 700, y = 0, z = 500 }, path.points[4].lookAt)
+		end)
+
 		it("rides along with a unit, offset in its heading frame", function()
 			units[7] = { x = 500, y = 0, z = 500, heading = HALFPI }
 			local loaded = loadWidget()

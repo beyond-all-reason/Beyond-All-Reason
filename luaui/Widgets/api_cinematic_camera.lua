@@ -32,6 +32,8 @@ end
 	           a caller may seed them)
 	keyframe = { position = target, lookAt = target?, pitch?, yaw?, roll?, fov?, duration?, hold?,
 	             easing?, path = "linear" | "spline" }
+	           (path shapes the eye's move and, when the previous keyframe has a lookAt too, the
+	            sweep of the point looked at between the two)
 	sequence = { keyframes = {...}, onEnd = "release" | "restore" | "hold", restoreSlot?,
 	             restoreDuration?, restoreEasing?, releaseDuration?, releaseEasing? }
 	           (release eases roll and fov back over releaseDuration before the player's camera
@@ -204,6 +206,9 @@ end
 ---@return number? y
 ---@return number? z
 local function resolveTarget(target)
+	if not target then
+		return nil
+	end
 	local x, y, z
 	local unitIDs = target.unitIDs
 	if unitIDs then
@@ -279,16 +284,31 @@ local function moveEyes(keyframe, beforePrevious, following, start)
 	return eye, p0, p3
 end
 
----Panning from one look-at target to the next sweeps the point looked at between them.
----@return number? rx
----@return number? ry
-local function panRotation(x, y, z, fromTarget, toTarget, u)
+---Panning from one look-at target to the next sweeps the point looked at between them, along
+---the same kind of path as the eye: straight, or a spline through the neighbouring keyframes'
+---look-at points (the two ends stand in where a neighbour has none).
+---@return number? x
+---@return number? y
+---@return number? z
+local function panPoint(fromTarget, toTarget, beforeTarget, afterTarget, spline, u)
 	local ax, ay, az = resolveTarget(fromTarget)
 	local bx, by, bz = resolveTarget(toTarget)
 	if not (ax and ay and az and bx and by and bz) then
 		return nil
 	end
-	return LookAtRotation(x, y, z, ax + (bx - ax) * u, ay + (by - ay) * u, az + (bz - az) * u)
+	local from, to = { x = ax, y = ay, z = az }, { x = bx, y = by, z = bz }
+	local p0, p3 = from, to
+	if spline then
+		local px, py, pz = resolveTarget(beforeTarget)
+		if px and py and pz then
+			p0 = { x = px, y = py, z = pz }
+		end
+		local nx, ny, nz = resolveTarget(afterTarget)
+		if nx and ny and nz then
+			p3 = { x = nx, y = ny, z = nz }
+		end
+	end
+	return CameraMath.MoveEye(from, to, p0, p3, spline, u)
 end
 
 ---Where a keyframe looks from `eye`: at its target, or in its own pitch and yaw, each of which
@@ -324,7 +344,17 @@ local function moveSegment(keyframe, previous, beforePrevious, following)
 
 		local rx, ry
 		if keyframe.lookAt and previous and previous.lookAt then
-			rx, ry = panRotation(x, y, z, previous.lookAt, keyframe.lookAt, u)
+			local lx, ly, lz = panPoint(
+				previous.lookAt,
+				keyframe.lookAt,
+				beforePrevious and beforePrevious.lookAt,
+				following and following.lookAt,
+				spline,
+				u
+			)
+			if lx then
+				rx, ry = LookAtRotation(x, y, z, lx, ly, lz)
+			end
 		end
 		if not rx then
 			-- aimed from where the eye is now: the blend into the keyframe's direction ends on target
@@ -622,7 +652,8 @@ local function play(sequence)
 end
 
 ---The path a sequence would fly, for drawing it. `points` lie along the eye path, spaced evenly
----in time (`t` seconds from the start, holds included); `keyframes` has one entry per keyframe
+---in time (`t` seconds from the start, holds included), each with the `lookAt` point panned to
+---where the move pans between two look-at keyframes; `keyframes` has one entry per keyframe
 ---with its eye, its arrival time, `unit` when it rides a unit and, when it looks at something
 ---that resolves, its `lookAt` point. Unit targets resolve to where the units are now. The first
 ---move starts from `start` ({ x, y, z }, default the rendered camera), as Play starts from the
@@ -644,10 +675,27 @@ local function samplePath(sequence, samplesPerMove, start)
 		local ease = easingFor(keyframe.easing)
 		local spline = keyframe.path == "spline"
 		local eye, p0, p3 = moveEyes(keyframe, keyframes[i - 2], keyframes[i + 1], from)
+		local previous = keyframes[i - 1]
+		local panning = keyframe.lookAt and previous and previous.lookAt
 		if duration > 0 then
 			for s = 1, samples do
-				local x, y, z = CameraMath.MoveEye(from, eye, p0, p3, spline, ease(s / samples))
-				points[#points + 1] = { x = x, y = y, z = z, t = time + duration * s / samples }
+				local u = ease(s / samples)
+				local x, y, z = CameraMath.MoveEye(from, eye, p0, p3, spline, u)
+				local point = { x = x, y = y, z = z, t = time + duration * s / samples }
+				if panning then
+					local lx, ly, lz = panPoint(
+						previous.lookAt,
+						keyframe.lookAt,
+						keyframes[i - 2] and keyframes[i - 2].lookAt,
+						keyframes[i + 1] and keyframes[i + 1].lookAt,
+						spline,
+						u
+					)
+					if lx then
+						point.lookAt = { x = lx, y = ly, z = lz }
+					end
+				end
+				points[#points + 1] = point
 			end
 		else
 			points[#points + 1] = { x = eye.x, y = eye.y, z = eye.z, t = time }
