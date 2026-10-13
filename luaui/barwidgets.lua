@@ -2380,8 +2380,8 @@ end
 --  firing locks the keyboard, naming the keys that still pass:
 --      widgetHandler:LockKeyboard("cutscene", { KEYSYMS.ESCAPE })
 --      widgetHandler:UnlockKeyboard("cutscene")
---  The lock steps aside while a window is open, so the window's own keys keep working,
---  and lifts once the last reason is released.
+--  While a window is showing, locked keys still reach the widgets (never the keybinds), so
+--  the window can answer them. The lock lifts once the last reason is released.
 --
 local modalWindows = {} -- widget -> is-open predicate
 local modalExempt = {} -- widget -> true
@@ -2413,6 +2413,7 @@ local DEFAULT_INTERFACE_ALLOW = { "Top Bar Buttons" }
 local keyboardLockReasons = {} -- reason -> set of key codes that still pass
 local keyboardLocked = false
 local keyboardPassKeys = {} -- union of every active reason's pass-through keys
+local keyboardSwallowed = {} -- scanCode -> what the lock kept the press from: "all", or "binds" only
 
 -- The single question every filtered call-in asks. Kept cheap: two upvalue reads
 -- when nothing is hiding anything.
@@ -2525,7 +2526,8 @@ local function rebuildKeyboardLock()
 	keyboardLocked = locked
 end
 
----Drop every key press, keybinds included, until the same reason is released.
+---Drop every key press, keybinds included, until the same reason is released. While a window
+---is showing, presses still reach the widgets so the window can answer them.
 ---@param reason string caller-chosen key; pass the same one to UnlockKeyboard
 ---@param passKeys integer[]? key codes that still reach keybinds and widgets
 function widgetHandler:LockKeyboard(reason, passKeys)
@@ -2580,7 +2582,9 @@ function widgetHandler:SetWindowsPauseGame(enabled)
 	modalConfigTimer = 0
 end
 
-local function anyWindowOpen()
+-- visibleOnly skips the windows HideInterface is hiding: they still report themselves open,
+-- but nothing of them is there to take a key or a click.
+local function anyWindowOpen(visibleOnly)
 	for w, isOpen in pairs(modalWindows) do
 		local ok, open = pcall(isOpen)
 		if not ok then
@@ -2591,16 +2595,17 @@ local function anyWindowOpen()
 			)
 			modalWindows[w] = nil -- removing the current key mid-traversal is allowed
 			ModalAllowWidget(w, modalExempt[w] == true)
-		elseif open then
+		elseif open and (not visibleOnly or allowedWidget(w)) then
 			return true
 		end
 	end
 	return false
 end
 
--- Whether one of the registered windows is open right now, whatever the springsetting says.
+-- Whether one of the registered windows is open and showing right now, whatever the springsetting
+-- says.
 function widgetHandler:IsAnyWindowOpen()
-	return anyWindowOpen()
+	return anyWindowOpen(true)
 end
 
 function widgetHandler:UpdateModalState(deltaTime)
@@ -3313,18 +3318,23 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 		end
 	end
 
-	if keyboardLocked and not keyboardPassKeys[key] and not anyWindowOpen() then
-		tracy.ZoneEnd()
-		return true
-	end
-
-	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
+	-- A locked key never reaches the keybinds. It goes nowhere at all, unless a window is
+	-- showing: then it still reaches the widgets, so the window can answer it.
+	local keyLocked = keyboardLocked and not keyboardPassKeys[key]
+	if keyLocked then
+		if not anyWindowOpen(true) then
+			keyboardSwallowed[scanCode] = "all"
+			tracy.ZoneEnd()
+			return true
+		end
+		keyboardSwallowed[scanCode] = "binds"
+	elseif self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
 		tracy.ZoneEnd()
 		return true
 	end
 
 	-- A key bound to /widgetselector - F11 - with no selector running to answer it.
-	if actions and not isRepeat then
+	if actions and not isRepeat and not keyLocked then
 		for _, bound in ipairs(actions) do
 			if bound.command == "widgetselector" and self:RecoverWidgetSelector() then
 				tracy.ZoneEnd()
@@ -3358,7 +3368,16 @@ function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
 		end
 	end
 
-	if self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
+	-- The release of a press the lock kept from the keybinds is kept from them too, and one
+	-- nothing saw ends here.
+	local swallowed = keyboardSwallowed[scanCode]
+	keyboardSwallowed[scanCode] = nil
+	if swallowed == "all" then
+		tracy.ZoneEnd()
+		return true
+	end
+
+	if not swallowed and self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
 		tracy.ZoneEnd()
 		return true
 	end

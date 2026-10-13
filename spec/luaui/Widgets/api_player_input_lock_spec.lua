@@ -6,6 +6,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 	local config ---@type table<string, integer>
 	local configWrites ---@type table<integer, { key: string, value: integer, overlay: boolean }>
 	local handlerCalls ---@type table<integer, any[]>
+	local windowOpen = false
 
 	local function loadWidget()
 		local loaded = SpringUnsyncedBuilder.new()
@@ -24,6 +25,9 @@ describe("luaui.Widgets.api_player_input_lock", function()
 				return true
 			end
 		end
+		handler.IsAnyWindowOpen = function()
+			return windowOpen
+		end
 		return loaded
 	end
 
@@ -31,7 +35,7 @@ describe("luaui.Widgets.api_player_input_lock", function()
 		config = { WindowedEdgeMove = 1, FullscreenEdgeMove = 0 }
 		configWrites = {}
 		handlerCalls = {}
-		_G.KEYSYMS = { ESCAPE = 27 } ---@diagnostic disable-line: global-in-non-module
+		windowOpen = false
 	end)
 
 	it("hides the interface but the menu buttons, drops keys but Esc, and stops edge scrolling", function()
@@ -55,6 +59,8 @@ describe("luaui.Widgets.api_player_input_lock", function()
 		assert.is_falsy(loaded.env.widget:MouseWheel(true, 1))
 		loaded.WG.playerInputLock.Lock()
 		assert.is_true(loaded.env.widget:MouseWheel(true, 1))
+		windowOpen = true -- a showing window gets the wheel, as it gets the keys
+		assert.is_falsy(loaded.env.widget:MouseWheel(true, 1))
 	end)
 
 	it("puts everything back on unlock", function()
@@ -108,6 +114,20 @@ describe("luaui.Widgets.api_player_input_lock", function()
 
 		assert.are.equal(1, config.WindowedEdgeMove)
 		assert.are.same({ "ShowInterface", "playerInputLock" }, handlerCalls[3])
+		assert.are.same({ "UnlockKeyboard", "playerInputLock" }, handlerCalls[4])
 		assert.is_nil(loaded.WG.playerInputLock)
+	end)
+
+	it("saves the settings afresh when locked again after an unlock", function()
+		local loaded = loadWidget()
+		loaded.WG.playerInputLock.Lock()
+		loaded.WG.playerInputLock.Unlock()
+		config.WindowedEdgeMove = 0 -- the player turned it off in between
+
+		loaded.WG.playerInputLock.Lock()
+		loaded.WG.playerInputLock.Unlock()
+
+		assert.are.equal(0, config.WindowedEdgeMove)
+		assert.are.equal(0, config.FullscreenEdgeMove)
 	end)
 end)

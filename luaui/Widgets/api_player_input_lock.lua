@@ -17,7 +17,8 @@ local spGetConfigInt = Spring.GetConfigInt
 local spSetConfigInt = Spring.SetConfigInt
 
 local REASON = "playerInputLock"
--- The menu buttons are the way back to the quit dialog
+-- The menu buttons are the way back to the quit dialog. This widget keeps itself on the list
+-- because MouseWheel only reaches allowed widgets, and it is the one eating the wheel.
 local KEEP_ALWAYS = { "Top Bar Buttons", "Player Input Lock" }
 -- Edge scrolling moves the camera without any call-in a widget could refuse, so it is
 -- switched off in the config overlay (not persisted) for the lock's duration.
@@ -27,6 +28,7 @@ local locked = false
 local savedEdgeMove = {} -- config key -> value before the lock
 
 ---Hide the interface and drop every key but Esc until Unlock. Locking again replaces the keep list.
+---The lock does not survive /luaui reload: Shutdown releases it and nothing re-asserts it.
 ---@param keepInterface string[]? names of widgets that stay drawn and clickable, besides the menu buttons
 local function lock(keepInterface)
 	local keep = table.copy(KEEP_ALWAYS)
@@ -58,9 +60,10 @@ local function isLocked()
 	return locked
 end
 
+-- A showing window may want the wheel (a scrollable page a mission keeps up), as with keys.
 function widget:MouseWheel()
 	---@diagnostic disable-next-line: return-type-mismatch, redundant-return-value
-	return locked
+	return locked and not widgetHandler:IsAnyWindowOpen()
 end
 
 function widget:Initialize()
