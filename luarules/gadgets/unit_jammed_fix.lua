@@ -33,6 +33,7 @@ local spGetAllUnits = Spring.GetAllUnits
 local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitIsActive = Spring.GetUnitIsActive
+local spGetUnitIsDead = Spring.GetUnitIsDead
 local spGetUnitIsStunned = Spring.GetUnitIsStunned
 local spGetUnitIsUpkeepPaid = Spring.GetUnitIsUpkeepPaid
 local spGetGameFrame = Spring.GetGameFrame
@@ -196,7 +197,8 @@ local function drainQueue()
 	for index = checkQueueHead, last do
 		local unitID = checkQueue[index] ---@as UnitID
 		checkQueue[index] = nil
-		if edgeJammed[unitID] ~= nil or buildingDefs[spGetUnitDefID(unitID) or 0] then
+		-- Dying units stay valid until their death script ends, but UnitDestroyed has removed them.
+		if spGetUnitIsDead(unitID) == false and buildingDefs[spGetUnitDefID(unitID)] then
 			updateEdgeJammed(unitID)
 		end
 	end
@@ -233,7 +235,11 @@ local function buildEdgeBand(jammerID)
 	local z = (jammerCellZ[jammerID] + 0.5) * radarCellSize
 	local cover = (cells + 2) * radarCellSize -- extra cells for the mipping and the line rule
 	for _, unitID in ipairs(spGetUnitsInRectangle(x - cover, z - cover, x + cover, z + cover)) do
-		if buildingDefs[spGetUnitDefID(unitID)] and spGetUnitAllyTeam(unitID) == allyTeamID then
+		if
+			buildingDefs[spGetUnitDefID(unitID)]
+			and spGetUnitAllyTeam(unitID) == allyTeamID
+			and not spGetUnitIsDead(unitID)
+		then
 			local cellX, cellZ, onLineX, onLineZ = getUnitCell(unitID)
 			if isEdgeJammed(jammerID, cells, cellX, cellZ, onLineX, onLineZ) then
 				addToEdgeBand(jammerID, unitID)
@@ -421,7 +427,9 @@ function gadget:Initialize()
 	gadgetHandler:RegisterUnitCommand(CMD_ONOFF)
 
 	for _, unitID in ipairs(spGetAllUnits()) do
-		addUnit(unitID, spGetUnitDefID(unitID))
+		if not spGetUnitIsDead(unitID) then
+			addUnit(unitID, spGetUnitDefID(unitID))
+		end
 	end
 end
 
