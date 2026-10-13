@@ -338,6 +338,13 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	end
 end
 
+-- a finished unit given to me takes my prefs now; one still being built takes them at UnitFinished, as its new owner
+function widget:MetaUnitAdded(unitID, unitDefID, unitTeam)
+	if unitTeam == Spring.GetLocalTeamID() and not Spring.GetUnitIsBeingBuilt(unitID) then
+		widget:UnitFinished(unitID, unitDefID, unitTeam)
+	end
+end
+
 local function ApplyUnitStates()
 	local teamID = (not spectatingState) and Spring.GetLocalTeamID()
 	local units = (teamID and Spring.GetTeamUnits(teamID)) or Spring.GetAllUnits()
