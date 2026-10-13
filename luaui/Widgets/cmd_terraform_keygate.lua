@@ -105,6 +105,8 @@ end
 
 function widget:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
 	if widgetHandler.textOwner ~= widget then
+		-- pressed before the gate (re)took the text: its release must reach the game too
+		passedOnPress[scanCode] = true
 		return false
 	end
 	if offerToSuite("KeyPress", key, mods, isRepeat, label, unicode, scanCode, actions) then
@@ -122,6 +124,11 @@ end
 function widget:KeyRelease(key, mods, label, unicode, scanCode, actions)
 	if scanCode and passedOnPress[scanCode] then
 		passedOnPress[scanCode] = nil
+		-- The handler offers a release to the text owner and again in its list: without this the
+		-- second offer swallowed it and held camera actions (Alt moverotate) stuck on.
+		if widgetHandler.textOwner == widget then
+			widgetHandler.textOwner = nil
+		end
 		return false
 	end
 	if widgetHandler.textOwner ~= widget then
