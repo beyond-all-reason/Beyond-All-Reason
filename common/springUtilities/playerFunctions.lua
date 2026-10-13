@@ -29,7 +29,7 @@ local function getHostCommandPlayerID()
 		return nil
 	end
 
-	local bestID, bestSpectator, bestLag
+	local bestID, bestIsSpectator, bestLag
 	for i = 1, #playerIDs do
 		local playerID = playerIDs[i]
 		local _, active, spectator, _, _, pingTime = spGetPlayerInfo(playerID, false)
@@ -37,10 +37,10 @@ local function getHostCommandPlayerID()
 			local lag = pingTime >= LAGGING_PING_SECONDS and pingTime or 0
 			if
 				bestID == nil
-				or (bestSpectator and not spectator)
-				or (bestSpectator == spectator and (lag < bestLag or (lag == bestLag and playerID < bestID)))
+				or (bestIsSpectator and not spectator)
+				or (bestIsSpectator == spectator and (lag < bestLag or (lag == bestLag and playerID < bestID)))
 			then
-				bestID, bestSpectator, bestLag = playerID, spectator, lag
+				bestID, bestIsSpectator, bestLag = playerID, spectator, lag
 			end
 		end
 	end
