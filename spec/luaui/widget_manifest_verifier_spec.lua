@@ -4,12 +4,12 @@ local MODULE_PATH = "luaui/Include/widget_manifest_verifier.lua"
 local WIDGET_DIRECTORY = "LuaUI/Widgets/example/"
 local WIDGET_FILE = WIDGET_DIRECTORY .. "widget.lua"
 local WIDGET_CONTENT = "return true\n"
-local TEST_DIGEST = "6d81e5bb5e7fcbb9f8e5324116d0dc5cc42e6b4b68687b1d51070c99971e5c3390e5e4f1b432cb605472dd728e43e11dc330e73bbcbab4a73be77d5e89f1ac49"
+local TEST_DIGEST = "c10f101e8be857bee1cd04dcd5392b877f215bfd1fb4067b414bf7d0d386ccf129176f5ac416de2fe4a6d470f958efa5537968ef93acd18eb04caeae6eff6818"
 local TEST_PUBLIC_KEY = string.rep("00", 32)
 local TEST_SIGNATURE = string.rep("A", 86) .. "=="
 
 local function lengthPrefix(length)
-	return string.rep("\0", 7) .. string.char(length)
+	return string.char(length, 0, 0, 0)
 end
 
 local function loadVerifier()
@@ -33,6 +33,7 @@ describe("widget manifest verifier", function()
 	-- Overlays the real VFS rather than replacing it: the spec helper's require, which luassert
 	-- calls lazily, goes through VFS
 	local function stubVFS(overrides)
+		overrides.PackU32 = overrides.PackU32 or lengthPrefix
 		_G.VFS = setmetatable(overrides, { __index = originalVFS })
 	end
 

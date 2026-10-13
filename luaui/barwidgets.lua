@@ -101,7 +101,7 @@ Spring.SendCommands({
 	"echo LuaUI: bound F11 to the widget selector",
 })
 
-local allowuserwidgets = true
+local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 local isHeadless = Platform.isHeadless or false
 local onlyVerifiedUserWidgets = Spring.GetModOptions().userwidgetmode == "verified"
@@ -1036,7 +1036,9 @@ function widgetHandler:Initialize()
 					.. (onlyAnonymousSafeUserWidgets and " (anonymous-safe only)" or "")
 			)
 			loadVerifiedUserWidgetFiles(WIDGET_DIRNAME)
-			loadVerifiedUserWidgetFiles(RML_WIDGET_DIRNAME)
+			-- WidgetHub currently doesn't use the RML directory, 
+			-- to be honest, i'm not even sure why they are split to begin with.
+			-- loadVerifiedUserWidgetFiles(RML_WIDGET_DIRNAME)
 		else
 			spEcho("LuaUI: Allowing User Widgets")
 			loadWidgetFiles(WIDGET_DIRNAME, vfsRaw)

@@ -43,18 +43,8 @@ local function decodeBase64(value)
 	return base64.Decode(value)
 end
 
-local function encodeLength(length)
-	return string.char(
-		0, 0, 0, 0,
-		math.floor(length / 16777216) % 256,
-		math.floor(length / 65536) % 256,
-		math.floor(length / 256) % 256,
-		length % 256
-	)
-end
-
 local function appendField(parts, value)
-	parts[#parts + 1] = encodeLength(#value)
+	parts[#parts + 1] = VFS.PackU32(#value)
 	parts[#parts + 1] = value
 end
 
