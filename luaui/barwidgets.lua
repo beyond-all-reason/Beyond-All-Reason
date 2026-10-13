@@ -515,11 +515,11 @@ local function isPrivilegedCommand(command)
 end
 
 local inMultiplayer
-local function isMultiplayerStateCommand(command)
+local function isHiddenStateCommand(command)
 	if inMultiplayer == nil then
 		inMultiplayer = not isSinglePlayer()
 	end
-	if not inMultiplayer then
+	if not inMultiplayer or select(2, spGetSpectatingState()) then
 		return false
 	end
 	command = stringLower(command)
@@ -852,7 +852,7 @@ local function CreateSandboxedSystem()
 		local commands = type((...)) == "table" and (...) or { ... }
 		local allowed = {}
 		for _, command in ipairs(commands) do
-			if type(command) == "string" and (isPrivilegedCommand(command) or isMultiplayerStateCommand(command)) then
+			if type(command) == "string" and (isPrivilegedCommand(command) or isHiddenStateCommand(command)) then
 				warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. command)
 			else
 				allowed[#allowed + 1] = command
