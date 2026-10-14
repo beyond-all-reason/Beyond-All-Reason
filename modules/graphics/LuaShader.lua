@@ -1269,33 +1269,6 @@ local function isUpdateRequired(uniform, tbl)
 	return update
 end
 
-local function isUpdateRequiredNoTable(uniform, u1, u2, u3, u4)
-	if (u2 == nil) and (type(u1) == "string") then --named matrix
-		return true --no need to update cache
-	end
-
-	local update = false
-	local cachedValues = uniform.values
-
-	if u1 and cachedValues[1] ~= u1 then
-		update = true
-		cachedValues[1] = u1
-	end
-	if u2 and cachedValues[2] ~= u2 then
-		update = true
-		cachedValues[2] = u2
-	end
-	if u3 and cachedValues[3] ~= u3 then
-		update = true
-		cachedValues[3] = u3
-	end
-	if u4 and cachedValues[4] ~= u4 then
-		update = true
-		cachedValues[4] = u4
-	end
-
-	return update
-end
 -----------------============ End of friend LuaShader functions ============-----------------
 
 -----------------============ LuaShader uniform manipulation functions ============-----------------
@@ -1327,21 +1300,57 @@ function LuaShader:SetUniformAlways(name, u1, u2, u3, u4)
 	return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformImpl(uniform, u1, u2, u3, u4)
-	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
-		return setUniformAlwaysImpl(uniform, u1, u2, u3, u4)
+-- SetUniform and SetUniformInt run every frame in many widgets, so the cache check and the set are inlined here.
+-- A uniform the shader does not know yet, or a shader that may not be set, goes through getUniform as before.
+local function makeCachedUniformSetter(glSetUniform)
+	return function(self, name, u1, u2, u3, u4)
+		local uniform = self.uniforms[name]
+		if type(uniform) ~= "table" or not (self.active or self.ignoreActive) then
+			uniform = getUniform(self, name)
+			if not uniform then
+				return false
+			end
+		end
+
+		if (u2 ~= nil) or (type(u1) ~= "string") then -- a named matrix is always set
+			local cachedValues = uniform.values
+			local update = false
+			if u1 and cachedValues[1] ~= u1 then
+				update = true
+				cachedValues[1] = u1
+			end
+			if u2 and cachedValues[2] ~= u2 then
+				update = true
+				cachedValues[2] = u2
+			end
+			if u3 and cachedValues[3] ~= u3 then
+				update = true
+				cachedValues[3] = u3
+			end
+			if u4 and cachedValues[4] ~= u4 then
+				update = true
+				cachedValues[4] = u4
+			end
+			if not update then
+				return true
+			end
+		end
+
+		local location = uniform.location
+		if u4 ~= nil then
+			glSetUniform(location, u1, u2, u3, u4)
+		elseif u3 ~= nil then
+			glSetUniform(location, u1, u2, u3)
+		elseif u2 ~= nil then
+			glSetUniform(location, u1, u2)
+		else
+			glSetUniform(location, u1)
+		end
+		return true
 	end
-	return true
 end
 
-function LuaShader:SetUniform(name, u1, u2, u3, u4)
-	local uniform = getUniform(self, name)
-	if not uniform then
-		return false
-	end
-	return setUniformImpl(uniform, u1, u2, u3, u4)
-end
-
+LuaShader.SetUniform = makeCachedUniformSetter(glUniform)
 LuaShader.SetUniformFloat = LuaShader.SetUniform
 LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
@@ -1367,20 +1376,7 @@ function LuaShader:SetUniformIntAlways(name, u1, u2, u3, u4)
 	return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
 end
 
-local function setUniformIntImpl(uniform, u1, u2, u3, u4)
-	if isUpdateRequiredNoTable(uniform, u1, u2, u3, u4) then
-		return setUniformIntAlwaysImpl(uniform, u1, u2, u3, u4)
-	end
-	return true
-end
-
-function LuaShader:SetUniformInt(name, u1, u2, u3, u4)
-	local uniform = getUniform(self, name)
-	if not uniform then
-		return false
-	end
-	return setUniformIntImpl(uniform, u1, u2, u3, u4)
-end
+LuaShader.SetUniformInt = makeCachedUniformSetter(glUniformInt)
 
 --FLOAT ARRAY UNIFORMS
 local function setUniformFloatArrayAlwaysImpl(uniform, tbl)

@@ -48,7 +48,7 @@ local floor, ceil = math.floor, math.ceil
 local sqrt = math.sqrt
 local huge = math.huge
 
-local spGetGroundInfo = Spring.GetGroundInfo
+local spGetMetalAmount = Spring.GetMetalAmount
 local spGetGroundHeight = Spring.GetGroundHeight
 local spTestBuildOrder = Spring.TestBuildOrder
 local spSetGameRulesParam = Spring.SetGameRulesParam
@@ -306,6 +306,7 @@ local function GetSpotsMetal()
 	end
 
 	-- Strip finding
+	-- The metal map is read by square index; GetGroundInfo would return the same amount among eight other values.
 	workingIdx = huge
 	for mz = metalmapStartX, metalmapSizeZ, metalMapSquareSize do
 		aboveIdx = workingIdx
@@ -313,9 +314,12 @@ local function GetSpotsMetal()
 
 		local stripStart = nil
 		local stripWorth = 0
+		local squareZ = floor(mz / metalMapSquareSize)
+		local squareX = floor(metalmapStartZ / metalMapSquareSize)
 
 		for mx = metalmapStartZ, metalmapSizeX, metalMapSquareSize do
-			local _, _, groundMetal = spGetGroundInfo(mx, mz)
+			local groundMetal = spGetMetalAmount(squareX, squareZ)
+			squareX = squareX + 1
 			if groundMetal > 0 then
 				stripStart = stripStart or mx
 				stripWorth = stripWorth + groundMetal
