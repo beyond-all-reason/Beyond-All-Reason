@@ -1192,8 +1192,6 @@ end
 local loadedWidgets = setmetatable({}, { __mode = "k" }) ---@type table<table, boolean>
 -- What each user widget's proxy hands out as customCommands, kept here so the widget cannot swap it.
 local userCustomCommands = setmetatable({}, { __mode = "k" }) ---@type table<table, table>
--- TODO: Remove once community widgets call keypress actions on WG, e.g. WG.cmd_blueprint.
-local bridgedKeyActions = { blueprint_next = true, blueprint_prev = true, buildfacing = true }
 
 local function findPrivilegedCommand(list)
 	if type(list) ~= "table" then
@@ -1608,17 +1606,18 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 		RemoveSyncAction = function(_, _, cmd)
 			return self.actionHandler:RemoveSyncAction(widget, cmd)
 		end,
-		-- TODO: Key actions must work through WG later. `bridgedKeyActions` is an allow-list for just a few.
 		KeyAction = function(_, press, key, mods, isRepeat, _, actions)
 			local bridged = {}
 			if type(actions) == "table" then
+				-- Key actions reuse the same command filters as Spring.SendCommands.
 				for _, action in ipairs(actions) do
 					local command = type(action) == "table" and action.command
-					if bridgedKeyActions[command] then
-						local extra = type(action.extra) == "string" and action.extra or ""
+					local extra = type(action) == "table" and type(action.extra) == "string" and action.extra or ""
+					local text = type(command) == "string" and command .. " " .. extra
+					if text and not isPrivilegedCommand(text) and not isHiddenStateCommand(text) then
 						bridged[#bridged + 1] = { command = command, extra = extra }
 					else
-						warnOnce("User widgets can only fire the blueprint keypress actions: " .. tostring(command))
+						warnOnce(SANDBOXED_ERROR_USER_WIDGETS .. ": " .. (text or tostring(command)))
 					end
 				end
 			end

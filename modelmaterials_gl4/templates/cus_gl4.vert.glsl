@@ -619,7 +619,8 @@ void main(void)
 
 	//gl_TexCoord[0] = gl_MultiTexCoord0;
 	uint teamIndex = (instData.z & 0x000000FFu); //leftmost ubyte is teamIndex
-	teamCol = teamColor[teamIndex];
+	// 255 = no team (map features), a palette slot the engine never writes: it holds garbage
+	teamCol = (teamIndex == 255u) ? vec4(0.0) : teamColor[teamIndex];
 
 	// Pack selectedness into teamCol.a
 	teamCol.a = UNITUNIFORMS.userDefined[1].z;
