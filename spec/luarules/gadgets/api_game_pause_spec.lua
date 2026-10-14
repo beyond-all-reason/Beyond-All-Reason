@@ -85,7 +85,9 @@ end
 
 describe("api_game_pause", function()
 	describe("synced", function()
-		local world, gadget, gamePause
+		local world ---@type table
+		local gadget ---@type table
+		local gamePause ---@type table
 
 		before_each(function()
 			world = {
@@ -181,7 +183,8 @@ describe("api_game_pause", function()
 	end)
 
 	describe("unsynced", function()
-		local world, gadget
+		local world ---@type table
+		local gadget ---@type table
 
 		-- The sync actions receive their own name first, as the gadget handler passes it.
 		local function gadgetsPause()

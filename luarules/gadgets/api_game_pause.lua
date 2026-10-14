@@ -63,7 +63,9 @@ if gadgetHandler:IsSyncedCode() then
 				published[#published + 1] = { source, data.generation }
 			end
 		end
-		table.sort(published, function(a, b) return a[1] < b[1] end)
+		table.sort(published, function(a, b)
+			return a[1] < b[1]
+		end)
 		spSetGameRulesParam(RULESPARAM_PUBLISH, Json.encode(published))
 	end
 
