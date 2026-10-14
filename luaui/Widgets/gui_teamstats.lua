@@ -34,6 +34,7 @@ local spGetMouseState = Spring.GetMouseState
 local spIsGUIHidden = Spring.IsGUIHidden
 local spGetGameFrame = Spring.GetGameFrame
 local spGetTeamStatsHistory = Spring.GetTeamStatsHistory
+local ShareStats = require("modules/economy/lib/share_stats")
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
@@ -1528,6 +1529,17 @@ local function readTeam(teamID, allyID, frame, live)
 	local s = history and history[#history]
 	if not s then
 		return nil
+	end
+	-- Shares move through the economy module, so the engine's sent and received counters stay at zero: the
+	-- module's stand in where the viewer may read them.
+	for _, res in ipairs({ "metal", "energy" }) do
+		local share = ShareStats.Read(Spring, teamID, res)
+		if share.sent then
+			s[res .. "Sent"] = share.sent
+		end
+		if share.received then
+			s[res .. "Received"] = share.received
+		end
 	end
 	-- The engine's entry, with everything else the row shows added to it: the gadget's values
 	-- read through it rather than copied in - a hundred and more a team, every second - and
