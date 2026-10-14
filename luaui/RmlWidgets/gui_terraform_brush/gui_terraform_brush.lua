@@ -10089,7 +10089,6 @@ local initialModel = {
 			return
 		end
 		WG.DecalPlacer.load(saves[#saves])
-		Spring.Echo("[Decal Placer] Loaded " .. saves[#saves])
 	end,
 	-- Phase 2 step 6: tf_guide model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
