@@ -2,14 +2,7 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
-
-	-- Cache section elements (used by M.sync)
-	widgetState.tfControlsEl = doc:GetElementById("tf-terraform-controls")
-	widgetState.fpControlsEl = doc:GetElementById("tf-feature-controls")
-	widgetState.fpSubmodesEl = doc:GetElementById("tf-feature-submodes")
-	widgetState.shapeRowEl = doc:GetElementById("tf-shape-row")
 
 	-- Slider drag tracking (legitimate imperative state).
 	-- Slider change events wired declaratively via onchange= in RML.
@@ -147,14 +140,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 		syncAndFlash(getCachedEl(doc, "fp-slider-cadence"), "fp-cadence", tostring(cadenceToSlider(fpState.cadence)))
 
 		-- Smart filter UI sync
-		local fpSmartToggle = getCachedEl(doc, "btn-fp-smart-toggle")
-		if fpSmartToggle then
-			fpSmartToggle:SetAttribute(
-				"src",
-				fpState.smartEnabled and "/luaui/images/terraform_brush/check_on.png"
-					or "/luaui/images/terraform_brush/check_off.png"
-			)
-		end
 		do
 			local sf = fpState.smartFilters or {}
 			local anyFilterOn = fpState.smartEnabled == true
@@ -180,18 +165,10 @@ function M.sync(doc, ctx, fpState, setSummary)
 				setDm("fpAltMaxEnable", sf.altMaxEnable == true)
 			end
 
-			-- Filter chips: Avoid Water mirrors filter state; slope sub-chips mirror avoidCliffs / preferSlopes
+			-- Filter chips: Avoid Water mirrors filter state (the slope sub-chips bind fpAvoidCliffs / fpPreferSlopes)
 			local avoidWaterChip = getCachedEl(doc, "fp-filter-chip-avoid-water")
 			if avoidWaterChip then
 				avoidWaterChip:SetClass("active", sf.avoidWater == true)
-			end
-			local slopeAvoidChip = getCachedEl(doc, "fp-slope-mode-avoid")
-			if slopeAvoidChip then
-				slopeAvoidChip:SetClass("active", sf.avoidCliffs == true)
-			end
-			local slopePreferChip = getCachedEl(doc, "fp-slope-mode-prefer")
-			if slopePreferChip then
-				slopePreferChip:SetClass("active", sf.preferSlopes == true)
 			end
 
 			-- Slope-max rows visibility driven by data-if="fpAvoidCliffs"
@@ -275,10 +252,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 		end
 
 		-- Grid snap chip sync (FP-specific snap state)
-		local fpGridSnapBtn = getCachedEl(doc, "btn-fp-grid-snap")
-		if fpGridSnapBtn then
-			fpGridSnapBtn:SetClass("active", fpState.gridSnap == true)
-		end
 		if widgetState.dmHandle then
 			local v = fpState.gridSnap == true
 			if widgetState.dmHandle.fpGridSnap ~= v then
@@ -303,18 +276,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 		if WG.TerraformBrush then
 			local tbState = WG.TerraformBrush.getState()
 			if tbState then
-				local fpHMap = getCachedEl(doc, "btn-fp-height-colormap")
-				if fpHMap then
-					fpHMap:SetClass("active", tbState.heightColormap == true)
-				end
-				local fpMeas = getCachedEl(doc, "btn-fp-measure")
-				if fpMeas then
-					fpMeas:SetClass("active", tbState.measureActive == true)
-				end
-				local fpSym = getCachedEl(doc, "btn-fp-symmetry")
-				if fpSym then
-					fpSym:SetClass("active", tbState.symmetryActive == true)
-				end
 				-- Mirror display + symmetry/measure flags into data-model.
 				if widgetState.dmHandle then
 					local dmh = widgetState.dmHandle
@@ -339,32 +300,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 					setDm("fpMeasureShowLength", tbState.measureShowLength == true)
 					setDm("fpSymMirrorX", tbState.symmetryMirrorX == true)
 					setDm("fpSymMirrorY", tbState.symmetryMirrorY == true)
-				end
-				-- fp-symmetry-toolbar-row visibility driven by data-if="fpSymmetryActive"
-				local fpSymRadial = getCachedEl(doc, "fp-btn-symmetry-radial")
-				if fpSymRadial then
-					fpSymRadial:SetClass("active", tbState.symmetryRadial == true)
-				end
-				local fpSymMX = getCachedEl(doc, "fp-btn-symmetry-mirror-x")
-				if fpSymMX then
-					fpSymMX:SetClass("active", tbState.symmetryMirrorX == true)
-				end
-				local fpSymMY = getCachedEl(doc, "fp-btn-symmetry-mirror-y")
-				if fpSymMY then
-					fpSymMY:SetClass("active", tbState.symmetryMirrorY == true)
-				end
-				-- Measure sub-chip active states
-				local fpMeasRL = getCachedEl(doc, "fp-btn-measure-ruler")
-				if fpMeasRL then
-					fpMeasRL:SetClass("active", tbState.measureRulerMode == true)
-				end
-				local fpMeasST = getCachedEl(doc, "fp-btn-measure-sticky")
-				if fpMeasST then
-					fpMeasST:SetClass("active", tbState.measureStickyMode == true)
-				end
-				local fpMeasSL = getCachedEl(doc, "fp-btn-measure-show-length")
-				if fpMeasSL then
-					fpMeasSL:SetClass("active", tbState.measureShowLength == true)
 				end
 				-- fp-symmetry-radial-count-row visibility driven by data-if="fpSymmetryRadial"
 				if widgetState.dmHandle then

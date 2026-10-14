@@ -249,9 +249,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	rampTypeButtons = {},
 	panelWidthDp = BASE_WIDTH_DP,
 	-- Feature placer section elements
-	fpSubmodesEl = nil,
-	fpControlsEl = nil,
-	tfControlsEl = nil,
 	fpSubModeButtons = {},
 	fpDistButtons = {},
 	-- Weather brush section elements
@@ -23565,9 +23562,6 @@ function widget:Shutdown()
 	widgetState.rootElement = nil
 	widgetState.modeButtons = {}
 	widgetState.shapeButtons = {}
-	widgetState.fpSubmodesEl = nil
-	widgetState.fpControlsEl = nil
-	widgetState.tfControlsEl = nil
 	widgetState.fpSubModeButtons = {}
 	widgetState.fpDistButtons = {}
 	widgetState.wbSubmodesEl = nil
