@@ -64,12 +64,10 @@ function widget:OnQuit()
 end
 
 function widget:OnFilterFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnFilterBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
@@ -141,12 +139,10 @@ function widget:OnAltitudeStep(delta)
 end
 
 function widget:OnAltitudeFocus()
-	WG.WeatherBrushInputFocused = true
 	Spring.SDLStartTextInput()
 end
 
 function widget:OnAltitudeBlur()
-	WG.WeatherBrushInputFocused = false
 	Spring.SDLStopTextInput()
 end
 
@@ -443,8 +439,6 @@ function widget:Update()
 end
 
 function widget:Shutdown()
-	WG.WeatherBrushInputFocused = nil
-
 	if WG.TerraformerShared and WG.TerraformerShared.unregisterDocument then
 		WG.TerraformerShared.unregisterDocument("weather_brush")
 	end

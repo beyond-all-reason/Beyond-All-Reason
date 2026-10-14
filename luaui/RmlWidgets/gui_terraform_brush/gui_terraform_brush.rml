@@ -2509,30 +2509,6 @@
 			</div>
 			</div><!-- /section-wb-mode -->
 			</div><!-- /frame-wb-mode -->
-
-			<!-- WB: DISTRIBUTION (nested under PLACEMENT MODE) -->
-			<div class="tf-section-frame" id="frame-wb-dist">
-				<div id="btn-toggle-wb-dist" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-wb-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-					<div class="tf-collapsible-title">DISTRIBUTION</div>
-				</div>
-			<div id="section-wb-dist">
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-wb-dist-random" class="tf-fp-dist-btn" data-class-active="wbDistMode == 'random'" data-event-mousedown="onWbSetDist('random')">
-					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
-					<div class="tf-btn-text">Random</div>
-				</div>
-				<div id="btn-wb-dist-regular" class="tf-fp-dist-btn" data-class-active="wbDistMode == 'regular'" data-event-mousedown="onWbSetDist('regular')">
-					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
-					<div class="tf-btn-text">Regular</div>
-				</div>
-				<div id="btn-wb-dist-clustered" class="tf-fp-dist-btn" data-class-active="wbDistMode == 'clustered'" data-event-mousedown="onWbSetDist('clustered')">
-					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
-					<div class="tf-btn-text">Clustered</div>
-				</div>
-			</div>
-			</div><!-- /section-wb-dist -->
-			</div><!-- /frame-wb-dist -->
 		</div>
 
 		<!-- ============ TERRAFORM-ONLY CONTROLS ============ -->
@@ -4065,27 +4041,6 @@
 				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
 			</div>
 			<input type="text" id="wb-slider-cadence-numbox" class="tf-slider-numbox" value="0" />
-		</div>
-
-		<div class="flex flex-row items-center mt-1 mb-1">
-			<div class="text-lg text-light">FREQUENCY: <span class="text-xl font-bold tf-slider-val" id="wb-frequency-label">1.0s</span></div>
-			<div id="wb-slider-frequency-transport-toggle" class="tf-transport-toggle" style="margin-left: 6dp;">DYNAMIC</div>
-			<div id="wb-slider-frequency-transport" class="tf-transport-group hidden">
-				<div id="wb-slider-frequency-back" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_back.png" /></div>
-				<div id="wb-slider-frequency-play" class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/passthrough_play.png" /></div>
-				<div id="wb-slider-frequency-fwd"  class="tf-transport-btn"><img class="tf-icon-xs" src="/luaui/images/terraform_brush/transport_fwd.png" /></div>
-			</div>
-			<div class="text-sm text-keybind" style="margin-left: auto;">spawn interval</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div id="btn-wb-frequency-down" class="tf-sm-btn" data-event-mousedown="onWbFrequencyDown()">
-				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/minus.png" />
-			</div>
-			<input type="range" id="wb-slider-frequency" class="tf-slider" min="0" max="1000" step="1" value="383" data-event-change="onWbFrequencyChange()" />
-			<div id="btn-wb-frequency-up" class="tf-sm-btn" data-event-mousedown="onWbFrequencyUp()">
-				<img class="tf-icon-xs" src="/luaui/images/terraform_brush/plus.png" />
-			</div>
-			<input type="text" id="wb-slider-frequency-numbox" class="tf-slider-numbox" value="0" />
 		</div>
 
 

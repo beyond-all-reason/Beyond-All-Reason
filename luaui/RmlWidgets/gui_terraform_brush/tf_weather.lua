@@ -10,7 +10,7 @@ function M.attach(doc, ctx)
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).
 	-- drag ID must match the element ID so the Update sync can guard against
 	-- overwriting a slider the user is actively dragging.
-	for _, sid in ipairs({ "size", "length", "rotation", "count", "cadence", "frequency", "persist" }) do
+	for _, sid in ipairs({ "size", "length", "rotation", "count", "cadence", "persist" }) do
 		local sl = doc:GetElementById("wb-slider-" .. sid)
 		if sl then
 			trackSliderDrag(sl, "wb-slider-" .. sid)

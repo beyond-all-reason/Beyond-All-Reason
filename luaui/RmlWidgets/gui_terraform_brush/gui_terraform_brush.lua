@@ -59,23 +59,6 @@ local function cadenceToSlider(c)
 	return math.floor(CADENCE_SLIDER_MAX * math.log(c / CADENCE_LOG_MIN) / CADENCE_LOG_RANGE + 0.5)
 end
 
--- Frequency slider: logarithmic mapping for 0.1 .. 60.0 seconds
-local FREQ_LOG_MIN = 0.1
-local FREQ_LOG_MAX = 60.0
-local FREQ_SLIDER_MAX = 1000
-local FREQ_LOG_RANGE = math.log(FREQ_LOG_MAX / FREQ_LOG_MIN)
-
-local function sliderToFrequency(v)
-	return FREQ_LOG_MIN * math.exp(v / FREQ_SLIDER_MAX * FREQ_LOG_RANGE)
-end
-
-local function frequencyToSlider(f)
-	if f <= FREQ_LOG_MIN then
-		return 0
-	end
-	return math.floor(FREQ_SLIDER_MAX * math.log(f / FREQ_LOG_MIN) / FREQ_LOG_RANGE + 0.5)
-end
-
 -- Persistence slider: piecewise log mapping
 -- First 1/5 (0-200): 0-60s, next 1/4 (200-450): 60-600s, rest (450-999): 600-3600s, 1000 = permanent
 local PERSIST_SLIDER_MAX = 1000
@@ -111,16 +94,6 @@ local function persistToSlider(s)
 		return math.floor(200 + (s - 60) / 540 * 250 + 0.5)
 	else
 		return math.floor(450 + (s - 600) / 3000 * 549 + 0.5)
-	end
-end
-
-local function formatFrequency(f)
-	if f >= 10 then
-		return string.format("%.0fs", f)
-	elseif f >= 1 then
-		return string.format("%.1fs", f)
-	else
-		return string.format("%.2fs", f)
 	end
 end
 
@@ -255,7 +228,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	wbSubmodesEl = nil,
 	wbControlsEl = nil,
 	wbSubModeButtons = {},
-	wbDistButtons = {},
 	-- Splat painter section elements
 	spPreviewEls = nil,
 	spPreviewTextures = nil,
@@ -6251,7 +6223,6 @@ local initialModel = {
 	unDistMode = "random", -- unit placer distribution (random/regular/clustered/line/grid/box)
 	dcLibMode = "", -- decal library mode (scatter/point/remove)
 	wbSubMode = "scatter", -- weather brush sub-mode
-	wbDistMode = "random", -- weather distribution
 	stpShapeMode = "circle", -- startpos shape selection
 	lpDistMode = "random", -- light placer distribution
 	guideMode = false, -- guide/help overlay
@@ -6937,7 +6908,7 @@ local initialModel = {
 	-- Phase 2 step 6: tf_weather model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture widgetState/uiState/WG/playSound/ROTATION_STEP/LENGTH_SCALE_STEP/
-	-- RADIUS_STEP/sliderToCadence/sliderToFrequency/sliderToPersist/PERSIST_PERMANENT_VAL/
+	-- RADIUS_STEP/sliderToCadence/sliderToPersist/PERSIST_PERMANENT_VAL/
 	-- _elemSliderVal/_elemSetSliderVal upvalues.
 	onWbSetMode = function(_event, wmode)
 		playSound("modeSwitch")
@@ -6947,16 +6918,6 @@ local initialModel = {
 		local d = widgetState.dmHandle
 		if d then
 			d.wbSubMode = wmode
-		end
-	end,
-	onWbSetDist = function(_event, dist)
-		playSound("shapeSwitch")
-		if WG.WeatherBrush then
-			WG.WeatherBrush.setDistribution(dist)
-		end
-		local d = widgetState.dmHandle
-		if d then
-			d.wbDistMode = dist
 		end
 	end,
 	onWbSizeChange = function(_event)
@@ -7052,27 +7013,6 @@ local initialModel = {
 			local st = WG.WeatherBrush.getState()
 			local step = math.max(1, math.floor(st.cadence * 0.2))
 			WG.WeatherBrush.setCadence(st.cadence - step)
-		end
-	end,
-	onWbFrequencyChange = function(_event)
-		if uiState.updatingFromCode or not WG.WeatherBrush then
-			return
-		end
-		local sliderVal = _elemSliderVal("wb-slider-frequency", 383)
-		WG.WeatherBrush.setFrequency(sliderToFrequency(sliderVal))
-	end,
-	onWbFrequencyUp = function(_event)
-		if WG.WeatherBrush then
-			local st = WG.WeatherBrush.getState()
-			local step = math.max(0.1, st.frequency * 0.2)
-			WG.WeatherBrush.setFrequency(st.frequency + step)
-		end
-	end,
-	onWbFrequencyDown = function(_event)
-		if WG.WeatherBrush then
-			local st = WG.WeatherBrush.getState()
-			local step = math.max(0.1, st.frequency * 0.2)
-			WG.WeatherBrush.setFrequency(st.frequency - step)
 		end
 	end,
 	onWbPersistChange = function(_event)
@@ -16496,10 +16436,6 @@ local guideHints = {
 	["btn-wb-scatter"] = "Scatter weather effects randomly across the brush area each time you paint.",
 	["btn-wb-point"] = "Place a weather effect exactly at the clicked cursor position.",
 	["btn-wb-remove"] = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
-	-- Weather distribution
-	["btn-wb-dist-random"] = "Spawn weather particles at randomly chosen positions within the brush area.",
-	["btn-wb-dist-regular"] = "Spawn weather particles in a uniform grid pattern for organized, evenly spaced effects.",
-	["btn-wb-dist-clustered"] = "Group weather particles in tight clusters for concentrated effect zones.",
 	-- Light distribution
 	["btn-lp-dist-random"] = "Place lights at random positions within the brush area.",
 	["btn-lp-dist-regular"] = "Space lights in a uniform grid pattern inside the brush.",
@@ -16510,7 +16446,6 @@ local guideHints = {
 	["wb-slider-rotation"] = "Direction the weather moves — adjust this to set wind angle for rain, snow or dust.",
 	["wb-slider-count"] = "Number of particles spawned per emission tick — higher values create denser effects.",
 	["wb-slider-cadence"] = "How quickly particles are emitted while dragging to paint — controls density per stroke.",
-	["wb-slider-frequency"] = "How often persistent effects repeat their spawn cycle. Lower interval = more frequent bursts.",
 	["wb-slider-persist"] = "How long particles from a painted effect linger before fading. Increase for long-lasting rain or snow.",
 	["btn-wb-persistent"] = "Enable permanent mode — painted weather effects never fade away until you manually clear them.",
 	["btn-wb-clearall"] = "Remove all persistent weather effects currently active on the map.",
@@ -17359,7 +17294,6 @@ widgetState.regTransports = function(doc)
 		"wb-slider-length",
 		"wb-slider-count",
 		"wb-slider-cadence",
-		"wb-slider-frequency",
 		"wb-slider-persist",
 		"sp-slider-strength",
 		"sp-slider-intensity",
@@ -17568,11 +17502,8 @@ local ctx = {
 	intensityToSlider = intensityToSlider,
 	sliderToCadence = sliderToCadence,
 	cadenceToSlider = cadenceToSlider,
-	sliderToFrequency = sliderToFrequency,
-	frequencyToSlider = frequencyToSlider,
 	sliderToPersist = sliderToPersist,
 	persistToSlider = persistToSlider,
-	formatFrequency = formatFrequency,
 	shapeNames = shapeNames,
 	guideHints = guideHints,
 	PERSIST_PERMANENT_VAL = PERSIST_PERMANENT_VAL,
@@ -21766,10 +21697,6 @@ function widget:Update()
 			-- Weather readout (without one the strip keeps the previous tool's
 			-- line). Six groups like the other tools — see tf_decals for why.
 			do
-				local f = wbState.frequency or 0
-				local fStr = f >= 10 and string.format("%.0fs", f)
-					or f >= 1 and string.format("%.1fs", f)
-					or string.format("%.2fs", f)
 				setSummary(
 					"WEATHER",
 					"#fdc04c",
@@ -21779,8 +21706,8 @@ function widget:Update()
 					tostring(math.floor(wbState.radius or 0)),
 					"Cnt ",
 					tostring(wbState.spawnCount or 0),
-					"Freq ",
-					fStr,
+					"Rot ",
+					tostring(math.floor(wbState.rotation or 0)),
 					"Fx ",
 					tostring(wbState.persistentCount or 0)
 				)
@@ -21820,15 +21747,6 @@ function widget:Update()
 					-- Cadence (logarithmic)
 					ss("wb-slider-cadence", ctxx.cadenceToSlider(wbs.cadence))
 					sl("wb-cadence-label", tostring(wbs.cadence))
-					-- Frequency (logarithmic)
-					local f = wbs.frequency
-					ss("wb-slider-frequency", ctxx.frequencyToSlider(f))
-					sl(
-						"wb-frequency-label",
-						f >= 10 and string.format("%.0fs", f)
-							or f >= 1 and string.format("%.1fs", f)
-							or string.format("%.2fs", f)
-					)
 					-- Persistence
 					ss("wb-slider-persist", ctxx.persistToSlider(wbs.persistenceSeconds))
 					local pv = wbs.persistenceSeconds
@@ -21874,7 +21792,7 @@ function widget:Update()
 					"btn-wb-length-down",
 					"btn-wb-length-up",
 				}, false)
-				-- Count/cadence/distribution: scatter-only
+				-- Count/cadence: scatter-only
 				ctx.setDisabledIds(doc, {
 					"wb-slider-count",
 					"wb-slider-count-numbox",
@@ -21884,14 +21802,9 @@ function widget:Update()
 					"wb-slider-cadence-numbox",
 					"btn-wb-cadence-down",
 					"btn-wb-cadence-up",
-					"btn-wb-dist-random",
-					"btn-wb-dist-regular",
-					"btn-wb-dist-clustered",
 				}, not scatter)
-				-- Frequency/persist: irrelevant in remove
+				-- Persist: irrelevant in remove
 				ctx.setDisabledIds(doc, {
-					"wb-slider-frequency",
-					"wb-slider-frequency-numbox",
 					"wb-slider-persist",
 					"wb-slider-persist-numbox",
 					"btn-wb-persist-down",
@@ -23526,7 +23439,6 @@ function widget:Shutdown()
 	widgetState.wbSubmodesEl = nil
 	widgetState.wbControlsEl = nil
 	widgetState.wbSubModeButtons = {}
-	widgetState.wbDistButtons = {}
 	widgetState.spPreviewEls = nil
 	widgetState.spPreviewTextures = nil
 	widgetState.spPreviewVerified = false
