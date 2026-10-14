@@ -1,6 +1,6 @@
 # October
 - [AA missiles] Missiles will switch targets when the current target becomes invalid, making them waste fewer shots against swarms of air units
-- [T2 flak trucks] Added Fastautoretarget so they will swap between targets without a 15 frame delay 
+- [T2 flak trucks] Now will swap targets immediately, dropping a 15 frame delay.
 - [Archangel] Startvelocity increased for its short-range aa missiles 100 -> 300 , maxvelocity increased 800 -> 900
 - [Blitz] Better at avoiding friendly fire
 - [Shuriken] 280.5 -> 270 speed
