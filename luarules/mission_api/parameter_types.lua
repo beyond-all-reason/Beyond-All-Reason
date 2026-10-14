@@ -35,6 +35,8 @@ local types = {
 	CameraEasing = "CameraEasing",
 	CameraSequenceEnd = "CameraSequenceEnd",
 	CameraPath = "CameraPath",
+	UnitAttribute = "UnitAttribute",
+	WeaponAttribute = "WeaponAttribute",
 
 	-- Number Validators:
 	Number = "Number",
@@ -53,12 +55,18 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
+	WeaponNumber = "WeaponNumber",
+
+	-- Number-or-String-or-Boolean Validators:
+	AttributeValue = "AttributeValue",
 
 }
 
 -- Difficulties are read by the client, so must be available in JSON
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
+
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 
 local enums = {
 	[types.Facing] = {
@@ -112,6 +120,7 @@ local enums = {
 		linear = true,
 		spline = true,
 	},
+	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
 }
 
 local enumSets = {

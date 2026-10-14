@@ -19,7 +19,7 @@ describe("mission_api.difficulty", function()
 	end
 
 	before_each(function()
-		withDifficulty(0)
+		withDifficulty(STORY)
 	end)
 
 	-- Runs one wrapped value through ResolveActions and returns what it resolved to.
@@ -40,6 +40,40 @@ describe("mission_api.difficulty", function()
 			assert.is_false(difficulty.IsDifficultiesTable("Easy"))
 			assert.is_false(difficulty.IsDifficultiesTable(nil))
 			assert.is_false(difficulty.IsDifficultiesTable({ x = 100, z = 200, radius = 50 }))
+		end)
+	end)
+
+	describe("FromName", function()
+		local savedLog, logged
+
+		before_each(function()
+			savedLog = Spring.Log
+			logged = {}
+			Spring.Log = function(_, level, message)
+				logged[#logged + 1] = { level = level, message = message }
+			end
+		end)
+
+		after_each(function()
+			Spring.Log = savedLog
+		end)
+
+		it("returns the difficulty with that name", function()
+			assert.are.equal(STORY, difficulty.FromName("Story"))
+			assert.are.equal(EASY, difficulty.FromName("Easy"))
+			assert.are.equal(MEDIUM, difficulty.FromName("Medium"))
+			assert.are.equal(HARD, difficulty.FromName("Hard"))
+			assert.are.same({}, logged)
+		end)
+
+		it("returns the lowest difficulty without logging when no name is given", function()
+			assert.are.equal(STORY, difficulty.FromName(nil))
+			assert.are.same({}, logged)
+		end)
+
+		it("logs an unknown name and returns the lowest difficulty", function()
+			assert.are.equal(STORY, difficulty.FromName("Nightmare"))
+			assert.are.same({ { level = LOG.ERROR, message = "[Mission API] Unknown difficulty: Nightmare" } }, logged)
 		end)
 	end)
 
