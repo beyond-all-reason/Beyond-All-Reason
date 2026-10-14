@@ -28,78 +28,102 @@ local textSize = 16
 local GetActiveCommand = Spring.GetActiveCommand
 local GetMouseState = Spring.GetMouseState
 local TraceScreenRay = Spring.TraceScreenRay
-local GetGroundInfo = Spring.GetGroundInfo
+local GetMetalAmount = Spring.GetMetalAmount
 local GetGameFrame = Spring.GetGameFrame
 local GetMapDrawMode = Spring.GetMapDrawMode
 
 local glColor = gl.Color
 local glRect = gl.Rect
 local glPolygonMode = gl.PolygonMode
+local glCreateList = gl.CreateList
+local glDeleteList = gl.DeleteList
+local glCallList = gl.CallList
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
 
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_FILL = GL.FILL
 
-local floor = math.floor
+local floor, ceil = math.floor, math.ceil
 local min, max = math.min, math.max
 local sqrt = math.sqrt
-local strFind = string.find
 local strFormat = string.format
 
 ------------------------------------------------
 -- vars
 ------------------------------------------------
 
-local vsx, vsy = Spring.GetViewGeometry()
---unitDefID = {extractsMetal, extractSquare, oddX, oddZ}
+--unitDefID = {extractsMetal, roundX, roundZ, rows}
 local mexDefInfos = {}
-local defaultDefID
-
-local centerX, centerZ
-local extraction = 0
-local lastUnitDefID
+local defaultMexDefInfo
+local activeMexDefInfo
 
 local TEXT_CORRECT_Y = 1.25
 
 local metalMap = false
 local METAL_MAP_SQUARE_SIZE = 16
 local MEX_RADIUS = Game.extractorRadius
-local MAP_SIZE_X = Game.mapSizeX
-local MAP_SIZE_X_SCALED = MAP_SIZE_X / METAL_MAP_SQUARE_SIZE
-local MAP_SIZE_Z = Game.mapSizeZ
-local MAP_SIZE_Z_SCALED = MAP_SIZE_Z / METAL_MAP_SQUARE_SIZE
+local MAX_SQUARE_X = Game.mapSizeX / METAL_MAP_SQUARE_SIZE - 1
+local MAX_SQUARE_Z = Game.mapSizeZ / METAL_MAP_SQUARE_SIZE - 1
 
-local once, font, forceUpdate
+local font ---@type LuaFont
+local pregame = true
+local drawing = true
+
+-- metal summed over the last mask position
+local metalSum = 0 ---@type number
+local sumRows, sumX, sumZ
+local extraction = 0 ---@type number
+
+-- last traced ground position, and whether a value could be shown there
+local lastX, lastZ, lastMexDefInfo, hasValue
+
+local labelList ---@type integer?
+local labelExtraction ---@type number?
+local labelAmount ---@type string?
 
 ------------------------------------------------
 -- helpers
 ------------------------------------------------
 
-local function DrawTextWithBackground(text, x, y, size, opt)
-	local width = (font:GetTextWidth(text) * size) + 8
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+-- Metal squares within MEX_RADIUS of a mex centered on a square (odd footprint) or a square corner (even),
+-- as flat {di, djMin, djMax} rows, di ascending
+local maskRows = {} ---@type table<integer, integer[]?>
 
-	glColor(0.25, 0.25, 0.25, 0.75)
-	if opt then
-		if strFind(opt, "r") then
-			glRect(x, y, x - width, y + size * TEXT_CORRECT_Y)
-		elseif strFind(opt, "c") then
-			glRect(x + width * 0.5, y, x - width * 0.5, y + size * TEXT_CORRECT_Y)
-		else
-			glRect(x, y, x + width, y + size * TEXT_CORRECT_Y)
-		end
-	else
-		glRect(x, y, x + width, y + size * TEXT_CORRECT_Y)
+local function GetMaskRows(oddX, oddZ)
+	local key = (oddX and 1 or 0) + (oddZ and 2 or 0)
+	local cached = maskRows[key]
+	if cached then
+		return cached
 	end
-
-	font:Begin()
-	font:SetOutlineColor(0, 0, 0, 0.5)
-	font:SetTextColor(1, 1, 1, 0.85)
-	font:Print(text, x + 4, y, size, opt)
-	font:End()
+	local offsetX = oddX and 0 or 0.5
+	local offsetZ = oddZ and 0 or 0.5
+	local reach = ceil(MEX_RADIUS / METAL_MAP_SQUARE_SIZE) + 1
+	local rows = {} ---@type integer[]
+	for di = -reach, reach do
+		local dx = (di + offsetX) * METAL_MAP_SQUARE_SIZE
+		local djMin, djMax
+		for dj = -reach, reach do
+			local dz = (dj + offsetZ) * METAL_MAP_SQUARE_SIZE
+			if sqrt(dx * dx + dz * dz) < MEX_RADIUS then
+				djMin = djMin or dj
+				djMax = dj
+			end
+		end
+		if djMin then
+			rows[#rows + 1] = di
+			rows[#rows + 1] = djMin
+			rows[#rows + 1] = djMax
+		end
+	end
+	maskRows[key] = rows
+	return rows
 end
 
 local function SetupMexDefInfos()
 	local minExtractsMetal
+	local defaultDefID
 
 	local armMexDef = UnitDefNames.armmex
 
@@ -112,72 +136,86 @@ local function SetupMexDefInfos()
 		local unitDef = UnitDefs[unitDefID]
 		local extractsMetal = unitDef.extractsMetal
 		if extractsMetal > 0 then
-			mexDefInfos[unitDefID] = {}
-			mexDefInfos[unitDefID][1] = extractsMetal
-			--mexDefInfos[unitDefID][2] = unitDef.extractSquare --removed because deprecated from unitdefs; so mexDefInfos[UnitDefID][x] is defined only for only x=1,3,4.
-			if unitDef.xsize % 4 == 2 then
-				mexDefInfos[unitDefID][3] = true
-			end
-			if unitDef.zsize % 4 == 2 then
-				mexDefInfos[unitDefID][4] = true
-			end
+			local oddX = unitDef.xsize % 4 == 2
+			local oddZ = unitDef.zsize % 4 == 2
+			mexDefInfos[unitDefID] = { extractsMetal, oddX and 0 or 0.5, oddZ and 0 or 0.5, GetMaskRows(oddX, oddZ) }
 			if not minExtractsMetal or extractsMetal < minExtractsMetal then
 				defaultDefID = unitDefID
 				minExtractsMetal = extractsMetal
 			end
 		end
 	end
+
+	defaultMexDefInfo = defaultDefID and mexDefInfos[defaultDefID]
 end
 
-local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
-	local newCenterX, newCenterZ
-	if mexDefInfo[3] then
-		newCenterX = (floor(x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
-	else
-		newCenterX = floor(x / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
-	end
+local function IntegrateMetal(mexDefInfo, x, z)
+	local squareX = floor(x / METAL_MAP_SQUARE_SIZE + mexDefInfo[2])
+	local squareZ = floor(z / METAL_MAP_SQUARE_SIZE + mexDefInfo[3])
 
-	if mexDefInfo[4] then
-		newCenterZ = (floor(z / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
-	else
-		newCenterZ = floor(z / METAL_MAP_SQUARE_SIZE + 0.5) * METAL_MAP_SQUARE_SIZE
-	end
-
-	if centerX == newCenterX and centerZ == newCenterZ and not forceUpdate then
-		return
-	end
-
-	centerX = newCenterX
-	centerZ = newCenterZ
-
-	local startX = floor((centerX - MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
-	local startZ = floor((centerZ - MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
-	local endX = floor((centerX + MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
-	local endZ = floor((centerZ + MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
-	startX, startZ = max(startX, 0), max(startZ, 0)
-	endX, endZ = min(endX, MAP_SIZE_X_SCALED - 1), min(endZ, MAP_SIZE_Z_SCALED - 1)
-
-	local mult = mexDefInfo[1]
-	local result = 0
-
-	for i = startX, endX do
-		for j = startZ, endZ do
-			local cx, cz = (i + 0.5) * METAL_MAP_SQUARE_SIZE, (j + 0.5) * METAL_MAP_SQUARE_SIZE
-			local dx, dz = cx - centerX, cz - centerZ
-			local dist = sqrt(dx * dx + dz * dz)
-
-			if dist < MEX_RADIUS then
-				local _, metal, metal2 = GetGroundInfo(cx, cz)
-				if type(metal) == "string" then
-					-- Spring > v104
-					metal = metal2
+	local rows = mexDefInfo[4]
+	if rows ~= sumRows or squareX ~= sumX or squareZ ~= sumZ then
+		sumRows, sumX, sumZ = rows, squareX, squareZ
+		local result = 0 ---@type number
+		for k = 1, #rows, 3 do
+			local i = squareX + rows[k]
+			if i >= 0 and i <= MAX_SQUARE_X then
+				for j = max(squareZ + rows[k + 1], 0), min(squareZ + rows[k + 2], MAX_SQUARE_Z) do
+					result = result + GetMetalAmount(i, j)
 				end
-				result = result + metal
 			end
 		end
+		metalSum = result
 	end
 
-	extraction = result * mult
+	extraction = metalSum * mexDefInfo[1]
+end
+
+local function DeleteLabel()
+	if labelList then
+		glDeleteList(labelList)
+		labelList = nil
+	end
+	labelAmount = nil
+end
+
+local function UpdateLabel()
+	labelExtraction = extraction
+	local amount = strFormat("%.2f", extraction)
+	if labelList and amount == labelAmount then
+		return
+	end
+	DeleteLabel()
+	labelAmount = amount
+
+	local text = BAR.I18N("ui.prospector.metalExtraction", { amount = amount })
+	local width = (font:GetTextWidth(text) * textSize) + 8
+	labelList = glCreateList(function()
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+		glColor(0.25, 0.25, 0.25, 0.75)
+		glRect(0, 0, width, textSize * TEXT_CORRECT_Y)
+
+		font:Begin()
+		font:SetOutlineColor(0, 0, 0, 0.5)
+		font:SetTextColor(1, 1, 1, 0.85)
+		font:Print(text, 4, 0, textSize, "do")
+		font:End()
+		glColor(1, 1, 1, 1)
+	end)
+end
+
+-- DrawScreen runs all pregame (metal view), then only while a mex is being placed
+local function UpdateDrawing()
+	local active = pregame or activeMexDefInfo ~= nil
+	if active == drawing then
+		return
+	end
+	drawing = active
+	if active then
+		widgetHandler:UpdateCallIn("DrawScreen")
+	else
+		widgetHandler:RemoveCallIn("DrawScreen")
+	end
 end
 
 ------------------------------------------------
@@ -186,35 +224,32 @@ end
 
 function widget:Initialize()
 	SetupMexDefInfos()
-	once = true
 	metalMap = WG.resource_spot_finder.isMetalMap
+	widget:ViewResize()
+	pregame = GetGameFrame() < 1
+	local _, cmdID = GetActiveCommand()
+	widget:ActiveCommandChanged(cmdID)
+end
+
+function widget:Shutdown()
+	DeleteLabel()
+end
+
+function widget:ActiveCommandChanged(cmdID)
+	activeMexDefInfo = cmdID and mexDefInfos[-cmdID]
+	UpdateDrawing()
 end
 
 function widget:DrawScreen()
-	if once then
-		widget:ViewResize()
-		once = false
-	end
+	local mexDefInfo = activeMexDefInfo
 
-	local mexDefInfo
-
-	if GetGameFrame() < 1 then
-		local drawMode = GetMapDrawMode()
-		if drawMode == "metal" then
-			mexDefInfo = mexDefInfos[defaultDefID]
+	if pregame then
+		if GetGameFrame() < 1 then
+			mexDefInfo = GetMapDrawMode() == "metal" and defaultMexDefInfo or nil
+		else
+			pregame = false
+			UpdateDrawing()
 		end
-	else
-		local _, cmd_id = GetActiveCommand()
-		if not cmd_id then
-			return
-		end
-		local unitDefID = -cmd_id
-		forceUpdate = false
-		if unitDefID ~= lastUnitDefID then
-			forceUpdate = true
-		end
-		lastUnitDefID = unitDefID
-		mexDefInfo = mexDefInfos[unitDefID]
 	end
 
 	if not mexDefInfo then
@@ -227,25 +262,43 @@ function widget:DrawScreen()
 	if not coords then
 		return
 	end
-	if not metalMap then
-		local pos = WG.resource_spot_finder.GetClosestMexSpot(coords[1], coords[3])
-		if not pos then
-			return
+
+	local x, z = coords[1], coords[3]
+	if x ~= lastX or z ~= lastZ or mexDefInfo ~= lastMexDefInfo then
+		lastX, lastZ, lastMexDefInfo = x, z, mexDefInfo
+		hasValue = true
+		if not metalMap then
+			local pos = WG.resource_spot_finder.GetClosestMexSpot(x, z)
+			if pos then
+				x, z = pos.x, pos.z
+			else
+				hasValue = false
+			end
 		end
-		coords[1] = pos.x
-		coords[3] = pos.z
+		if hasValue then
+			IntegrateMetal(mexDefInfo, x, z)
+		end
 	end
-	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
-	DrawTextWithBackground(
-		BAR.I18N("ui.prospector.metalExtraction", { amount = strFormat("%.2f", extraction) }),
-		mx,
-		my,
-		textSize,
-		"do"
-	)
-	glColor(1, 1, 1, 1)
+
+	if not hasValue then
+		return
+	end
+
+	if not labelList or extraction ~= labelExtraction then
+		UpdateLabel()
+	end
+
+	glPushMatrix()
+	glTranslate(mx, my, 0)
+	glCallList(labelList)
+	glPopMatrix()
 end
 
 function widget:ViewResize()
 	font = WG.fonts.getFont(1, 1.5)
+	DeleteLabel()
+end
+
+function widget:LanguageChanged()
+	DeleteLabel()
 end

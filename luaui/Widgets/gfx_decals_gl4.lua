@@ -2186,7 +2186,11 @@ function widget:Initialize()
 	end
 	WG.decalsgl4.RebuildActiveDecalData = RebuildActiveDecalData
 	local vboTableCache = { decalVBO, decalLargeVBO, decalExtraLargeVBO }
+	-- uploads pending decals first: callers may draw the instance VBOs themselves
 	WG.decalsgl4.GetVBOData = function()
+		for vbo in pairs(pendingUploadFrom) do
+			uploadDecalsFrom(vbo)
+		end
 		return vboTableCache, footprintDecalSet
 	end
 	WG.decalsgl4.GetVersion = function()
@@ -2471,5 +2475,16 @@ function widget:SetConfigData(data) -- Called on load (and config change), just 
 			decals = savedDecals,
 			saveFrame = data.saveFrame or 0,
 		}
+	end
+end
+
+function widget:Shutdown()
+	if type(decalShader) == "table" then
+		decalShader:Finalize()
+		decalShader = nil
+	end
+	if type(decalLargeShader) == "table" then
+		decalLargeShader:Finalize()
+		decalLargeShader = nil
 	end
 end

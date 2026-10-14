@@ -18,7 +18,6 @@ in DataVS {
 	flat vec4 v_modelfactor_specular_scattering_lensflare;
 	vec4 v_depths_center_map_model_min;
 	vec4 v_otherparams;
-	vec4 v_lightcenter_gradient_height;
 	vec4 v_position;
 	vec4 v_noiseoffset;
 	noperspective vec2 v_screenUV;
@@ -44,10 +43,6 @@ uniform int screenSpaceShadows = 0;
 
 out vec4 fragColor;
 
-float smoothmin(float a, float b, float k) {
-	float h = clamp(0.5 + 0.5*(a-b)/k, 0.0, 1.0);
-	return mix(a, b, h) - k*h*(1.0-h);
-}
 
 // Given a beam between beamStart and beamEnd, returns the pos on the beam closest to desired Point
 vec3 closestbeam(vec3 point, vec3 beamStart, vec3 beamEnd){
@@ -68,67 +63,10 @@ vec4 closestlightlp_distance (vec3 ro, vec3 rd, vec3 P){
 	return vec4(intersectPoint, length(P - intersectPoint));
 }
 
-// Given a ray origin and a direction, returns the closes point on the ray in xyz and the squared distance in w
-vec4 raypoint_sqrdistance(vec3 ro, vec3 rd, vec3 P){
-	float t0 = dot(rd, P - ro) / dot(rd, rd);
-	vec3 intersectPoint = ro + t0 * rd;
-	return vec4(intersectPoint, dot(P - intersectPoint,P - intersectPoint));
-}
-
-// Given two rays, returns the minimum distance between them 
-//https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
-vec4 distancebetweenlines(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, point2, dir2
-	//todo handle the case where e1 == e2
-	vec3 n = cross(e1, e2); // n is the normal of the line connecting them
-	float distance = dot ( n, r1-r2) / length(n);
-	return vec4(distance);
-}
-
 // Lens flare effect
 float LensFlareDistanceSqrt(vec3 pointpos, vec3 lightpos, float radius){
 	float sqrtsum = dot(sqrt(abs(pointpos - lightpos)), vec3(1.0));
 	return (sqrtsum * sqrtsum) / radius;
-}
-
-// Slower, but more tuneable lens flare effect
-float LensFlareDistancePow(vec3 pointpos, vec3 lightpos, float radius, float power){ 
-	return pow(dot(pow(abs(pointpos - lightpos), vec3(power)), vec3(1.0)), 1.0 /power)/radius;
-}
-
-/// Given two rays, it returns the minimum squared distance between them
-float distancebetweenlinessquared(vec3 r1, vec3 e1, vec3 r2, vec3 e2){ // point1, dir1, point2, dir2
-	//todo handle the case where e1 == e2
-	vec3 n = cross(e1, e2); // n is the normal of the line connecting them
-	float dd = dot ( n, r1-r2);
-	return dd*dd / dot(n,n);
-}
-
-vec4 ray_to_capsule_distance(vec3 ro, vec3 rd, vec3 c1, vec3 c2){ // point1, dir1, beamstart, beamend
-	float sqdistline = distancebetweenlinessquared(ro, rd, c1, c2-c1);
-	
-	vec4 sqdistc1 = raypoint_sqrdistance(ro, rd, c1);
-	vec4 sqdistc2 = raypoint_sqrdistance(ro, rd, c2);
-	
-	vec4 regulardist = sqrt(vec4(sqdistline, sqdistc1.w, sqdistc2.w, 1.0));
-
-	float angle1 = dot(c1-c2, c1 - sqdistc1.xyz);
-	float angle2 = dot(c2-c1, c2 - sqdistc2.xyz);
-	
-	float truth = min(regulardist.y, regulardist.z);
-	if (angle1 > 0 && angle2 >0){
-		truth = min(truth,regulardist.x);
-	}
-	return sqrt(vec4(sqdistline, sqdistc1.w, sqdistc2.w, truth));
-}
-
-
-//Capsule / Line - exact
-
-float sdCapsule( vec3 p, vec3 a, vec3 b, float r )
-{
-  vec3 pa = p - a, ba = b - a;
-  float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
-  return length( pa - ba*h ) - r;
 }
 
 float distToCapsuleSqr( vec3 p, vec3 a, vec3 b, float r )
@@ -216,112 +154,11 @@ float capIntersect( in vec3 ro, in vec3 rd, in vec3 pa, in vec3 pb, in float ra 
 // capsule defined by extremes pa and pb, and radious ra
 // Note that only ONE of the two spherical caps is checked for intersections,
 // which is a nice optimization
-#line 30200
-vec4 capIntersect2( in vec3 ro, in vec3 rd, in vec3 pa, in vec3 pb, in float ra )
-{
-    vec3  ba = pb - pa;
-    vec3  oa = ro - pa;
-    float baba = dot(ba,ba);
-    float bard = dot(ba,rd);
-    float baoa = dot(ba,oa);
-    float rdoa = dot(rd,oa);
-    float oaoa = dot(oa,oa);
-    float a = baba      - bard*bard;
-    float b = baba*rdoa - baoa*bard;
-    float c = baba*oaoa - baoa*baoa - ra*ra*baba;
-    float h = b*b - a*c;
-	vec4 distances = vec4(-0.1);
-    if( h >= 0.0 )
-    {
-		float sqrth = sqrt(h);
-        float tclose = (-b-sqrth)/a;
-        float tfar = (-b +sqrth)/a;
-        float yclose = baoa + tclose * bard;
-        float yfar = baoa + tfar * bard;
-        // body
-        if( yclose>0.0 && yclose<baba ) distances.x = tclose;
-        if( yfar>0.0   && yfar<baba )   distances.y = tfar;
-		
-        // closecaps
-		vec3 oc = (yclose <= 0.0) ? oa : ro - pb;
-        b = dot(rd,oc);
-        c = dot(oc,oc) - ra*ra;
-        h = b*b - c;
-        if( h>0.0 ) distances.x =  min(distances.x, -b - sqrt(h));
-        else distances.w =  -b + sqrt(h);
-		
-		        // farcaps
-		oc = (yfar > 0.0) ? oa : ro - pb;
-        b = dot(rd,oc);
-        c = dot(oc,oc) - ra*ra;
-        h = b*b - c;
-        if( h>0.0 ) distances.y =  min( -b - sqrt(h), distances.y);
-        else distances.y =  max( -b + sqrt(h), distances.y);
-		/*
-		if (yclose <= 0.0) { //first cap
-			vec3 oc = oa;
-			b = dot(rd,oc);
-			c = dot(oc,oc) - ra*ra;
-			h = b*b - c;
-			if( h>0.0 ) distances.z =  -b - sqrth;
-			else distances.z =  -b + sqrth;
-		}
-		else
-		{
-			vec3 oc = ro - pb;
-			b = dot(rd,oc);
-			c = dot(oc,oc) - ra*ra;
-			h = b*b - c;
-			if( h>0.0 ) distances.w =  -b - sqrth;
-			else distances.w =  -b + sqrth;
-		}*/
-    }
-    return distances;
-}
 
-float dot2(vec3 a){ return dot(a,a);}
-// cone defined by extremes pa and pb, and radious ra and rb
-// Only one square root and one division is employed in the worst case. dot2(v) is dot(v,v)
-vec4 coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
-{
-    vec3  ba = pb - pa;
-    vec3  oa = ro - pa;
-    vec3  ob = ro - pb;
-    float m0 = dot(ba,ba);
-    float m1 = dot(oa,ba);
-    float m2 = dot(rd,ba);
-    float m3 = dot(rd,oa);
-    float m5 = dot(oa,oa);
-    float m9 = dot(ob,ba); 
-    
-    // caps
-    if( m1<0.0 )
-    {
-        if( dot2(oa*m2-rd*m1)<(ra*ra*m2*m2) ) // delayed division
-            return vec4(-m1/m2,-ba*inversesqrt(m0));
-    }
-    else if( m9>0.0 )
-    {
-    	float t = -m9/m2;                     // NOT delayed division
-        if( dot2(ob+rd*t)<(rb*rb) )
-            return vec4(t,ba*inversesqrt(m0));
-    }
-    
-    // body
-    float rr = ra - rb;
-    float hy = m0 + rr*rr;
-    float k2 = m0*m0    - m2*m2*hy;
-    float k1 = m0*m0*m3 - m1*m2*hy + m0*ra*(rr*m2*1.0        );
-    float k0 = m0*m0*m5 - m1*m1*hy + m0*ra*(rr*m1*2.0 - m0*ra);
-    float h = k1*k1 - k2*k0;
-    if( h<0.0 ) return vec4(-1.0); //no intersection
-    float t = (-k1-sqrt(h))/k2;
-    float y = m1 + t*m2;
-    if( y<0.0 || y>m0 ) return vec4(-1.0); //no intersection
-    return vec4(t, normalize(m0*(m0*(oa+t*rd)+rr*ba*ra)-ba*hy*y));
-}
 
 //https://www.symbolab.com/solver/definite-integral-calculator/%5Cint_%7B0%7D%5E%7B1%7D%5Cleft(1-%5Cfrac%7B%5Cleft(A_%7B2%7D%2BB_%7B2%7D%5Ccdot%20x%5Cright)%7D%7Bh%5E%7B2%7D%7D%20%5Cright)%5E%7B%20%7D%5Ccdot%5Cleft(1-%5Cfrac%7B%5Csqrt%7B%5Cleft(A_%7B1%7D%2BB_%7B1%7D%5Ccdot%20x%5Cright)%5E%7B2%7D%7D%7D%7B%5Cfrac%7B%5Cleft(A_%7B2%7D%2BB_%7B2%7D%5Ccdot%20x%5Cright)%5Ccdot%20r%7D%7Bh%7D%7D%5Cright)%20dx?or=input
+
+float dot2(vec3 a){ return dot(a,a);}
 
 // Defines the falloff function of scattered light one gets more distant from the light source
 float scatterfalloff(float disttolight, float radius){
@@ -337,47 +174,6 @@ float integratescatterocclusion(float depthratio){
 
 // cone defined by extremes pa and pb, and radious ra and rb
 // Only one square root and one division is employed in the worst case. dot2(v) is dot(v,v)
-// ra === 0
-// returns the distance from the ray to the cone, and the normal vector of the cones surface at that point.
-vec4 halfconeIntersect_IQ( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
-{
-    vec3  ba = pb - pa;
-    vec3  oa = ro - pa;
-    vec3  ob = ro - pb;
-    float m0 = dot(ba,ba);
-    float m1 = dot(oa,ba);
-    float m2 = dot(rd,ba);
-    float m3 = dot(rd,oa);
-    float m5 = dot(oa,oa);
-    float m9 = dot(ob,ba); 
-    
-    // caps
-    //if( m1<0.0 )
-    //{
-    //    if( dot2(oa*m2-rd*m1)< 0 ) // delayed division
-    //        return vec4(-m1/m2,-ba*inversesqrt(m0));
-    //}
-    //else 
-	if( m9>0.0 )
-    {
-    	float t = -m9/m2;                     // NOT delayed division
-        if( dot2(ob+rd*t)<(rb*rb) )
-            return vec4(t,ba*inversesqrt(m0));
-    }
-    
-    // body
-    float rr = - rb;
-    float hy = m0 + rr*rr;
-    float k2 = m0*m0    - m2*m2*hy;
-    float k1 = m0*m0*m3 - m1*m2*hy ;
-    float k0 = m0*m0*m5 - m1*m1*hy ;
-    float h = k1*k1 - k2*k0;
-    if( h<0.0 ) return vec4(-1.0); //no intersection
-    float t = (-k1-sqrt(h))/k2;
-    float y = m1 + t*m2;
-    if( y<0.0 || y>m0 ) return vec4(-1.0); //no intersection
-    return vec4(t, normalize(m0*(m0*(oa+t*rd))-ba*hy*y));
-}
 
 // Intersects a cone with a ray, with an optional occluding fragment distance
 // Returns in xy the close and far distance cone intersection distances
@@ -487,9 +283,6 @@ vec4 halfconeIntersectScatter( in vec3  rayOrigin, in vec3 rayDirection, in vec3
 	
 }
 
-
-
-
 // https://gist.github.com/wwwtyro/beecc31d65d1004f5a9d
 vec2 raySphereIntersect(vec3 r0, vec3 rd, vec3 s0, float sr) {
     // - r0: ray origin
@@ -543,11 +336,6 @@ float FastApproximateScattering(vec3 campos, vec3 viewdirection, vec3 lightposit
 
 
 // Works fine, but 16 FMA
-vec3 ScreenToWorld(vec2 screen_uv, float depth){ // returns world XYZ from v_screenUV and depth
-	vec4 fragToScreen =  vec4( vec3(screen_uv * 2.0 - 1.0, depth),  1.0);
-	fragToScreen = cameraViewProjInv * fragToScreen;
-	return fragToScreen.xyz / fragToScreen.w;
-}
 
 // Works fine, but 16 FMA
 vec3 WorldToScreen(vec3 worldCoords){ // returns screen UV and depth position
@@ -621,13 +409,6 @@ float depthToDeltaElmos(float depthCloser, float depthFarther, float nxp2, float
 		return quad_vector_guess * odd_start_mirror.xyxy;
 	}
 
-	// [-1,1] quad vector as per get_quad_vector_naive
-	vec2 quadGetQuadVector(vec2 screenCoords){
-		vec2 quadVector =  fract(floor(screenCoords) * 0.5) * 4.0 - 1.0;
-		vec2 odd_start_mirror = 0.5 * vec2(dFdx(quadVector.x), dFdy(quadVector.y));
-		quadVector = quadVector * odd_start_mirror;
-		return sign(quadVector);
-	}
 
 	vec4 quadGather(float inputthis){
 		float inputadjx = inputthis - dFdx(inputthis) * quadVector.x;
@@ -636,20 +417,15 @@ float depthToDeltaElmos(float depthCloser, float depthFarther, float nxp2, float
 		return vec4(inputthis, inputadjx, inputadjy, inputdiag);
 	}
 
-	float rand(vec2 co){
-		return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-	}
 
 #endif
 
 #line 31000
 void main(void)
 {
-	fragColor.rgba = vec4(fract(gl_FragCoord.zzz * 1.0),1.0);
-	//return;
 	
-	float mapdepth = texture(mapDepths, v_screenUV).x;
-	float modeldepth = texture(modelDepths, v_screenUV).x;
+	float mapdepth = textureLod(mapDepths, v_screenUV, 0.0).x;
+	float modeldepth = textureLod(modelDepths, v_screenUV, 0.0).x;
 	float worlddepth = min(mapdepth, modeldepth);
 	vec4 normals = vec4(0, 1, 0, 0); // points up by default
 	vec4 extratex = vec4(0);
@@ -660,14 +436,14 @@ void main(void)
 	if (gl_FragCoord.z > worlddepth) {
 		if (modeldepth < mapdepth) { // We are processing a model fragment
 			ismodel = 1;
-			normals =  texture(modelNormals, v_screenUV) * 2.0 - 1.0;
-			extratex = texture(modelExtra  , v_screenUV);
-			targetcolor = texture(modelDiffuse  , v_screenUV);
+			normals =  textureLod(modelNormals, v_screenUV, 0.0) * 2.0 - 1.0;
+			extratex = textureLod(modelExtra, v_screenUV, 0.0);
+			targetcolor = textureLod(modelDiffuse, v_screenUV, 0.0);
 			
 		}else{
-			normals =  texture(mapNormals  , v_screenUV) * 2.0 - 1.0;
-			extratex = texture(mapExtra    , v_screenUV);
-			targetcolor = texture(mapDiffuse    , v_screenUV) * nightFactor;
+			normals =  textureLod(mapNormals, v_screenUV, 0.0) * 2.0 - 1.0;
+			extratex = textureLod(mapExtra, v_screenUV, 0.0);
+			targetcolor = textureLod(mapDiffuse, v_screenUV, 0.0) * nightFactor;
 		}
 	}
 	normals.xyz = normalize(normals.xyz);
@@ -678,7 +454,6 @@ void main(void)
 	fragWorldPos.xyz = fragWorldPos.xyz / fragWorldPos.w; // YAAAY this works!
 	
 	vec3 camPos = cameraViewInv[3].xyz;
-	vec3 camForward;
 	float fragDistance = length(camPos - fragWorldPos.xyz);
 	vec3 viewDirection = (camPos - fragWorldPos.xyz) / fragDistance; // vector pointing in the direction of the eye ray
 	
@@ -695,10 +470,6 @@ void main(void)
 	// Lighting components we wish to collect along the way:
 	float attenuation = 0; // Just the distance from the light source (multiplied with falloff for cones
 	float falloff = 1; // only cone light have this
-	float selfglow = v_depths_center_map_model_min.w; // How much the emission point glows here
-	float selfglowfalloff = 1; // only for cones
-	float sourceVisible = 1; // if the world-pos of the source of this fragments scattering light is visible
-		// Note that for cones and beams, this is calced in the vertex shader, for beams its done in the fragment shader
 	float lensFlare = 0;
 	
 	float scatteringRayleigh = 0; // the integration of the light reflected into the eye from the eye ray through the volume
@@ -706,16 +477,9 @@ void main(void)
 	float scatteringMie = 0; // the integration of the light reflected into the eye from the eye ray through a size-reduced volume
 	float diffuse = 0; // The amount of diffuse reflection from the world-hitting fragment
 	float specular = 0; // The amount of specular reflection from the world-hitting fragment
-	float dtobeam = 0;
 	
 	float shadowedness = 0; // how much the light source is screen-space shadowed
-	
-	vec4 rcd = vec4 (0.0);
-	
-	float rcdsqr = 1000000.0;
-	
-	fragColor.rgba = vec4(fract(fragWorldPos.xyz * 0.1),1.0);
-	
+
 	#line 32000
 	if (pointbeamcone < 0.5){ //point
 		lightPosition = v_worldPosRad.xyz;
@@ -749,7 +513,7 @@ void main(void)
 		lightDirection = normalize(lightToWorld);
 		vec3 coneDirection = v_worldPosRad2.xyz;
 		float lightCosTheta = v_worldPosRad2.w; // The cos of the half angle of the spot cone light
-		float lightSinTheta = sin(acos(v_worldPosRad2.w)); // The cos of the half angle of the spot cone light
+		float lightSinTheta = sqrt(max(0.0, 1.0 - lightCosTheta * lightCosTheta)); // The sin of the half angle of the spot cone light
 		
 		float lightandworldangle = dot(lightDirection, coneDirection);
 		//falloff = smoothstep(lightCosTheta, 1.0, lightandworldangle) ; // this is softer, but attenuates too much
@@ -763,7 +527,6 @@ void main(void)
 		vec4 rayconedist = ray_to_capsule_distance_squared(camPos, viewDirection, lightPosition + coneDirection * lightRadius,lightPosition); // this now contains the point on ConeDirection 
 		
 		float localradius = max(0, lightSinTheta * length(rayconedist.xyz - lightPosition.xyz));
-		//coneIntersect( in vec3  ro, in vec3  rd, in vec3  pa, in vec3  pb, in float ra, in float rb )
 		vec4 iCone = halfconeIntersectScatter(camPos , -viewDirection, lightPosition, coneDirection , lightRadius,  lightRadius * lightSinTheta, fragDistance);
 		
 		scatteringRayleigh = iCone.z * 0.33;
@@ -790,35 +553,19 @@ void main(void)
 		lightDirection = normalize(lightToWorld);
 		attenuation = clamp( 1.0 - length (lightToWorld) *lightRadiusInv, 0,1);
 		
-		dtobeam = capIntersect( camPos, viewDirection, beamstart, beamend, lightRadius);
-		float dtobeam2 = capIntersect( camPos, -viewDirection, beamstart, beamend, lightRadius);
-		vec4 alldist = capIntersect2( camPos, viewDirection, beamstart, beamend, lightRadius);
 		
 		closestpoint_dist = ray_to_capsule_distance_squared(camPos, viewDirection, beamstart, beamend);
 		lightEmitPosition = closestpoint_dist.xyz;
 		
-		// how to tell, if lightEmitPosition is occluded?
-		vec4 lightEmitScreenPosition = cameraViewProj * vec4(lightEmitPosition, 1.0);
-		lightEmitScreenPosition.xyz /= lightEmitScreenPosition.w;
 		
-		if (lightEmitScreenPosition.z > worlddepth) sourceVisible = 0;
-		
-		sourceVisible = smoothstep(lightEmitScreenPosition.z - 0.1/lightEmitScreenPosition.w, lightEmitScreenPosition.z ,worlddepth);
-		
-		scatteringRayleigh = pow(max(0,1.0 - closestpoint_dist.w / lightRadius), 2);
-		
-		scatteringRayleigh = 0.0;
-		scatteringMie = 0.0;
 		lensFlare = 0.0;
-		
-		vec4 minmaxdist = alldist;
+
+		// where the view ray enters and leaves the capsule
 		float closedist =  capIntersect( camPos, -viewDirection, beamstart, beamend, lightRadius);
 		float fardist = - capIntersect( camPos, viewDirection, beamstart, beamend, lightRadius);
 		
-		fragColor.rgb = vec3((vec3(fardist - closedist) * 0.001));
 		
 		vec3 EntryPoint = (-viewDirection) * closedist + camPos;
-		vec3 ExitPoint =  (-viewDirection) * fardist + camPos;
 		
 		vec3 stepVec = - viewDirection * ( fardist  -  closedist) / RAYMARCHSTEPS;
 		
@@ -842,26 +589,6 @@ void main(void)
 			
 			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
 		}
-		/*
-		// LIGHTNING TESTER
-		// march the worley noise in 128 steps and add it in!
-		rayleighScatterSum = 0;
-		miescattersum = 0;
-		for (int i = 1; i < 128; i++){
-			vec3 marchPos = stepVec * i + EntryPoint;
-
-			float noise = textureLod(noise3DCube, fract(marchPos * 0.02 + i / RAYMARCHSTEPS + v_noiseoffset.xyz - vec3(0,timeInfo.x * 0.01,0)), 0.0).r * 2.0 ; 
-			
-			noise = 1000 * clamp(0.1 - abs(noise-1.0), 0, 1);
-			
-			float relativeclosenesstobeam = clamp(distToCapsuleSqr(marchPos, beamstart, beamend, lightRadius) * lightRadiusInv * lightRadiusInv, 0.0, 1.0) ;
-			
-			rayleighScatterSum +=  (1.0 - relativeclosenesstobeam) * noise;
-			
-			miescattersum += (max(0, 0.1 - relativeclosenesstobeam) * noise  * 10.0);
-		
-		}
-		*/
 		
 		// Simplest occlusion calculation just integrates scatter in between fragment distance and eye distance
 		// cone close distance is negative if rayorigin is inside it
@@ -877,7 +604,6 @@ void main(void)
 
 	}
 	#line 35000
-	float relativedistancetolight = clamp(1.0 - 10* closestpoint_dist.w/lightRadius, 0.0, 1.0);
 	
 	diffuse = clamp(dot(-lightDirection, normals.xyz), 0.0, 1.0);
 	
@@ -926,63 +652,6 @@ void main(void)
 			// Skip the march where attenuation is already 0, as unoccluded only scales blendedlights, which gets multiplied by attenuation anyway. Gated per quad, as the quadGather below needs all four lanes
 			if (any(greaterThan(quadGather(attenuation), vec4(0.0)))) {
 			
-			#if 0 // This is deprecated for being slow in the WorldToScreen and ScreenToWorld conversions
-				
-				// Set up the raytracing variables
-				vec3 rayStart = lightEmitPosition.xyz;
-				vec3 rayEnd = fragWorldPos.xyz;
-				vec3 rayStep = (rayEnd - rayStart) / (sampleCount);
-				float rayStepLength = length(rayStep);
-				float distanceToLight = 0; // squared distance to the light
-
-				for (int i = 0; i < sampleCount; i++){ 
-					// Fun note: this is actually SM limited ! 
-					// mainly because of the ScreenToWorld and WorldToScreen conversions, as they are 16 FMA's each due to the matmul. 
-					// what if we were to step in screen space instead of world space? 
-					// screen space stepping would be better for cache coherence for sure. 
-
-					float stepSize =  (float(i) + dot(threadMask, threadOffset) + randomOffset);
-					distanceToLight = stepSize * rayStepLength;
-
-					// Calculate the current ray position in both world and screenspace
-					vec3 rayWorldPos = rayStart + rayStep * stepSize; 
-					vec3 rayScreenPos = WorldToScreen(rayWorldPos);
-					// Convert the NDC to UV space, and clamping is not needed because enabling it brings bad artifacts
-					rayScreenPos.xy = rayScreenPos.xy * 0.5 + 0.5;
-					
-					float rayScreenDepthSample = texture(modelDepths, rayScreenPos.xy ).x;
-
-					// Assume that any sample outside of the edges of the screen will not occlude
-					if (any(lessThan(rayScreenPos.xy, vec2(0.001))) || any(greaterThan(rayScreenPos.xy, vec2(1.0-0.001)))) rayScreenDepthSample = 1.0;
-					
-					// Since modeldepth is zero where there is no model, we need to convert this to 1.0
-					if (rayScreenDepthSample < 0.01) rayScreenDepthSample = 1.0;
-
-					// we need to soften this, based on the squared world-space distance between the ray point and the sampled depth:
-					
-					// Recover the world position of the sample from the depth buffer, and calculate the distance to the ray
-					vec3 sampleWorldPos = ScreenToWorld(rayScreenPos.xy, rayScreenDepthSample);
-					float sampleDistance = length(rayWorldPos - sampleWorldPos);
-					float sampleOcclusionStrength = 0.0;
-
-					// Assume that a ray that hits exactly occludes 0.5
-					if (rayScreenDepthSample < rayScreenPos.z) {
-						// If the sample actually occludes, then softly occlude it based on the distance from the light
-						if (sampleDistance > 48.0) // Very deep occluders dont occlude
-							sampleOcclusionStrength = 1.0 -  clamp((sampleDistance - 48.0) / (rayStepLength * 0.05), 0.0, 1.0);
-						else
-							sampleOcclusionStrength = 0.5 + clamp(sampleDistance / (rayStepLength * 0.05), 0.0, 1.0) * 0.5;
-
-					}else{
-						// if the sample does not occlude, but is close to doing so, then softly occlude it based on the distance from the light	
-						sampleOcclusionStrength = 0.5 - clamp(sampleDistance / (rayStepLength * 0.2), 0.0, 1.0) * 0.5;;
-					}
-				
-					occludedness += sampleOcclusionStrength;
-					
-				}
-				//printf(occludedness);
-			#else 
 				// Steps in screen space
 							
 				// Set up the raytracing variables
@@ -1044,7 +713,7 @@ void main(void)
 					// Convert the NDC to UV space, and clamping is not needed because enabling it brings bad artifacts
 					rayScreenPos.xy = rayScreenPos.xy * 0.5 + 0.5;
 					
-					float rayScreenDepthSample = texture(modelDepths, rayScreenPos.xy ).x;
+					float rayScreenDepthSample = textureLod(modelDepths, rayScreenPos.xy, 0.0).x;
 
 					// Assume that any sample outside of the edges of the screen will not occlude
 					if (any(lessThan(rayScreenPos.xy, vec2(0.001))) || any(greaterThan(rayScreenPos.xy, vec2(1.0-0.001)))) rayScreenDepthSample = 1.0;
@@ -1087,7 +756,6 @@ void main(void)
 					#endif
 					
 				}
-			#endif
 			}
 
 			float prob = 0.56;
@@ -1112,7 +780,6 @@ void main(void)
 			 scatteringRayleigh
 			);
 			
-	fragColor.rgb = targetcolor.rgb;
 	
 	// light mixdown:
 	targetcolor.rgb = max(vec3(0.2), targetcolor.rgb); // we shouldn't let the targetcolor be fully black, or else we will have a bad time blending onto it.

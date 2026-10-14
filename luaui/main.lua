@@ -27,7 +27,8 @@ VFS.Include(LUAUI_DIRNAME .. "setupdefs.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "savetable.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "debug.lua", nil, VFS.ZIP)
 VFS.Include(LUAUI_DIRNAME .. "layout.lua", nil, VFS.ZIP)
-VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
+
+local widgetHandler = VFS.Include(LUAUI_DIRNAME .. "barwidgets.lua", nil, VFS.ZIP)
 
 --------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

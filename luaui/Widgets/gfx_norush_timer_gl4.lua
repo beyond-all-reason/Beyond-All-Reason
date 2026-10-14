@@ -90,11 +90,11 @@ function widget:DrawWorldPreUnit()
 	if advMapShading then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	else
-		if WG.screencopymanager and WG.screencopymanager.GetDepthCopy() then
-			gl.Texture(0, WG.screencopymanager.GetDepthCopy())
-		else
+		local depthCopy = WG.screencopymanager and WG.screencopymanager.GetDepthCopy()
+		if not depthCopy then
 			return
 		end
+		gl.Texture(0, depthCopy)
 	end
 
 	-- The polygons never change, so this runs once. It has to happen in a world draw
@@ -109,7 +109,6 @@ function widget:DrawWorldPreUnit()
 	gl.DepthMask(false)
 
 	norushTimerShader:Activate()
-	norushTimerShader:SetUniform("noRushTimer", noRushTime)
 	fullScreenRectVAO:DrawArrays(GL.TRIANGLES)
 	norushTimerShader:Deactivate()
 	glTexture(0, false)

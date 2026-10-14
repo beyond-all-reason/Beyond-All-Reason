@@ -1,0 +1,841 @@
+local gadget = gadget ---@type Gadget
+
+function gadget:GetInfo()
+	return {
+		name = "Dominion",
+		desc = "Implements dominion victory condition",
+		author = "SethDGamre",
+		date = "2025.02.08",
+		license = "GNU GPL, v2",
+		layer = 0,
+		enabled = true,
+		depends = { "gl4" },
+	}
+end
+
+local modOptions = Spring.GetModOptions()
+local isSynced = gadgetHandler:IsSyncedCode()
+if modOptions.deathmode ~= "dominion" or not isSynced then
+	return false
+end
+
+local MINUTES_PER_DEADLINE = 6
+local DOMINION_CONFIG = {
+	["18_minutes"] = {
+		maxDeadlines = 3,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
+	},
+	["24_minutes"] = {
+		maxDeadlines = 4,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
+	},
+	["30_minutes"] = {
+		maxDeadlines = 5,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
+	},
+	["42_minutes"] = {
+		maxDeadlines = 7,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
+	},
+	["60_minutes"] = {
+		maxDeadlines = 10,
+		minutesPerDeadline = MINUTES_PER_DEADLINE,
+	},
+}
+
+local SELECTED_CONFIG = DOMINION_CONFIG[modOptions.dominion_config]
+	or DOMINION_CONFIG["30_minutes"]
+local MAX_DEADLINES = SELECTED_CONFIG.maxDeadlines
+local DEADLINE_SECONDS = 60 * SELECTED_CONFIG.minutesPerDeadline
+local DEADLINE_SCORE_MULTIPLIER = modOptions.dominion_elimination_threshold_multiplier or 1.25
+local DEBUG_MODE = false
+
+local GRID_SIZE = 1024
+local GRID_CHECK_INTERVAL = Game.gameSpeed
+local MAJORITY_THRESHOLD = 0.5
+
+local PROGRESS_INCREMENT = 0.06
+local CONTIGUOUS_PROGRESS_INCREMENT = 0.03
+local DECAY_PROGRESS_INCREMENT = 0.015
+local DECAY_DELAY_FRAMES = Game.gameSpeed * 10
+
+local MAX_EMPTY_IMPEDANCE_POWER = 25
+local MIN_EMPTY_IMPEDANCE_MULTIPLIER = 0.80
+local FLYING_UNIT_POWER_MULTIPLIER = 0.1
+local CLOAKED_UNIT_POWER_MULTIPLIER = 0
+local STATIC_UNIT_POWER_MULTIPLIER = 3
+local COMMANDER_POWER_MULTIPLIER = 1000
+local MIN_UNIT_POWER = 3
+local SECONDS_PER_MINUTE = 60
+local TERRITORY_POINTS_PER_DEADLINE = 10
+
+local MAX_PROGRESS = 1.0
+local STARTING_PROGRESS = 0
+local CORNER_MULTIPLIER = math.sqrt(2)
+local OWNERSHIP_THRESHOLD = MAX_PROGRESS / CORNER_MULTIPLIER
+
+local floor = math.floor
+local max = math.max
+local min = math.min
+local random = math.random
+
+local spGetGameFrame = Spring.GetGameFrame
+local spGetGameSeconds = Spring.GetGameSeconds
+local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
+local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPosition = Spring.GetUnitPosition
+local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+local spGetUnitIsCloaked = Spring.GetUnitIsCloaked
+local spGetPositionLosState = Spring.GetPositionLosState
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetTeamList = Spring.GetTeamList
+local spGetGaiaTeamID = Spring.GetGaiaTeamID
+local spDestroyUnit = Spring.DestroyUnit
+local spSpawnCEG = Spring.SpawnCEG
+local spPlaySoundFile = Spring.PlaySoundFile
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local sendToUnsynced = SendToUnsynced
+
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
+local gaiaTeamID = spGetGaiaTeamID()
+local gaiaAllyTeamID = select(6, spGetTeamInfo(gaiaTeamID)) or 0
+local allTeams = spGetTeamList() or {}
+
+local numberOfSquaresX = 0
+local numberOfSquaresZ = 0
+local gameFrame = 0
+local sentGridStructure = false
+---@type number
+local deadlineEndTimestamp = 0
+---@type number
+local lastScoreTimestamp = 0
+local currentDeadline = 1
+local deadlineScore = 0
+local UNREACHABLE_RANK = 1000000
+local topLivingRank = 1
+
+---@type table<integer, table<integer, boolean>>
+local allyTeamsWatch = {}
+local unitWatchDefs = {}
+---@class DominionGridSquare
+---@field mapOriginX number
+---@field mapOriginZ number
+---@field gridX integer
+---@field gridZ integer
+---@field gridMidpointX number
+---@field gridMidpointZ number
+---@field allyOwnerID integer
+---@field progress number
+---@field decayDelay number
+---@field contested boolean
+---@field contiguous boolean
+---@field neighborAllyTeamCounts table<integer, integer>
+---@field totalNeighborCount integer
+---@field corners { x: number, z: number }[]
+---@type table<integer, DominionGridSquare>
+local captureGrid = {}
+local livingCommanders = {}
+local killQueue = {}
+local commandersDefs = {}
+---@type table<integer, { score: number, projectedScore: number, territoryCount: integer, rank: integer }>
+local allyData = {}
+local flyingUnits = {}
+local doomedAllies = {}
+
+---@type { team: integer, power: number }[]
+local sortedTeams = {}
+---@type { allyID: integer, rankingScore: number, territoryCount: number }[]
+local rankedAllyScores = {}
+
+for defID, def in pairs(UnitDefs) do
+	local defData
+	if def.power then
+		defData = { power = def.power }
+		if def.speed == 0 then
+			defData.power = defData.power * STATIC_UNIT_POWER_MULTIPLIER
+		end
+		if def.customParams and (def.customParams.objectify or def.customParams.cannot_capture_territory) then
+			defData.power = nil
+		end
+	end
+	unitWatchDefs[defID] = defData
+
+	if def.customParams and def.customParams.iscommander then
+		commandersDefs[defID] = true
+	end
+end
+
+local function sortAllyPowersByStrength(allyPowers)
+	for i = 1, #sortedTeams do
+		sortedTeams[i] = nil
+	end
+
+	local teamCount = 0
+	for team, power in pairs(allyPowers) do
+		teamCount = teamCount + 1
+		sortedTeams[teamCount] = { team = team, power = power }
+	end
+
+	if teamCount > 1 then
+		table.sort(sortedTeams, function(a, b)
+			return a.power > b.power
+		end)
+	end
+
+	return teamCount
+end
+
+local function calculatePowerRatio(winningAllyID, currentOwnerID, allyPowers)
+	local topPower = allyPowers[winningAllyID]
+	local comparedPower = 0.0
+
+	if winningAllyID ~= currentOwnerID and allyPowers[currentOwnerID] then
+		comparedPower = max(allyPowers[currentOwnerID], MAX_EMPTY_IMPEDANCE_POWER)
+	elseif #sortedTeams > 1 then
+		local secondPlaceAllyID = sortedTeams[2].team
+		comparedPower = max(allyPowers[secondPlaceAllyID], MAX_EMPTY_IMPEDANCE_POWER)
+	else
+		comparedPower = min(topPower * MIN_EMPTY_IMPEDANCE_MULTIPLIER, MAX_EMPTY_IMPEDANCE_POWER)
+	end
+
+	if topPower ~= 0 and comparedPower ~= 0 then
+		return math.abs(comparedPower / topPower - 1)
+	end
+	return 1
+end
+
+---@return table<integer, integer>, integer
+local function processNeighborData(currentSquareData)
+	---@type table<integer, integer>
+	local neighborAllyTeamCounts = {}
+	local totalNeighborCount = 0
+	local currentGridX = currentSquareData.gridX
+	local currentGridZ = currentSquareData.gridZ
+
+	for deltaX = -1, 1 do
+		for deltaZ = -1, 1 do
+			if not (deltaX == 0 and deltaZ == 0) then
+				local neighborGridX = currentGridX + deltaX
+				local neighborGridZ = currentGridZ + deltaZ
+
+				if
+					neighborGridX >= 0
+					and neighborGridX < numberOfSquaresX
+					and neighborGridZ >= 0
+					and neighborGridZ < numberOfSquaresZ
+				then
+					local neighborGridID = neighborGridX * numberOfSquaresZ + neighborGridZ + 1
+					local neighborSquareData = captureGrid[neighborGridID]
+
+					if neighborSquareData then
+						local neighborOwnerID = gaiaAllyTeamID
+						if neighborSquareData.progress > OWNERSHIP_THRESHOLD then
+							neighborOwnerID = neighborSquareData.allyOwnerID
+						end
+						neighborAllyTeamCounts[neighborOwnerID] = (neighborAllyTeamCounts[neighborOwnerID] or 0) + 1
+						totalNeighborCount = totalNeighborCount + 1
+					end
+				end
+			end
+		end
+	end
+
+	return neighborAllyTeamCounts, totalNeighborCount
+end
+
+local function createVisibilityArray(squareData)
+	local maxAllyID = 0
+	for allyTeamID in pairs(allyTeamsWatch) do
+		maxAllyID = max(maxAllyID, allyTeamID)
+	end
+
+	local visibilityArray = {}
+	for i = 0, maxAllyID do
+		visibilityArray[i + 1] = "0"
+	end
+
+	for allyTeamID in pairs(allyTeamsWatch) do
+		local isVisible = false
+
+		if allyTeamID == squareData.allyOwnerID then
+			isVisible = true
+		else
+			isVisible = spGetPositionLosState(squareData.gridMidpointX, 0, squareData.gridMidpointZ, allyTeamID)
+		end
+
+		if not isVisible then
+			for _, corner in ipairs(squareData.corners) do
+				isVisible = spGetPositionLosState(corner.x, 0, corner.z, allyTeamID)
+				if isVisible then
+					break
+				end
+			end
+		end
+
+		if isVisible then
+			visibilityArray[allyTeamID + 1] = "1"
+		end
+	end
+
+	return table.concat(visibilityArray)
+end
+
+local function initializeUnsyncedGrid()
+	local maxAllyID = 0
+	for allyTeamID in pairs(allyTeamsWatch) do
+		maxAllyID = max(maxAllyID, allyTeamID)
+	end
+
+	local allVisibleArray = {}
+	for i = 0, maxAllyID do
+		allVisibleArray[i + 1] = "0"
+	end
+	for allyTeamID in pairs(allyTeamsWatch) do
+		allVisibleArray[allyTeamID + 1] = "1"
+	end
+	local initVisibilityArray = table.concat(allVisibleArray)
+
+	for gridID, squareData in pairs(captureGrid) do
+		sendToUnsynced(
+			"InitializeGridSquare",
+			gridID,
+			gaiaAllyTeamID,
+			squareData.progress,
+			squareData.gridMidpointX,
+			squareData.gridMidpointZ,
+			initVisibilityArray
+		)
+	end
+
+	sentGridStructure = true
+end
+
+local function setAllyTeamRanks()
+	for i = 1, #rankedAllyScores do
+		rankedAllyScores[i] = nil
+	end
+	for allyID, scoreData in pairs(allyData) do
+		table.insert(
+			rankedAllyScores,
+			{ allyID = allyID, rankingScore = scoreData.score, territoryCount = scoreData.territoryCount or 0 }
+		)
+	end
+
+	table.sort(rankedAllyScores, function(firstEntry, secondEntry)
+		if firstEntry.rankingScore ~= secondEntry.rankingScore then
+			return firstEntry.rankingScore > secondEntry.rankingScore
+		else
+			return firstEntry.territoryCount > secondEntry.territoryCount
+		end
+	end)
+
+	topLivingRank = UNREACHABLE_RANK
+	local currentRank = 0
+	local previousScore = -1.0
+	local previousTerritoryCount = -1.0
+
+	if next(rankedAllyScores) then
+		for _, rankedEntry in ipairs(rankedAllyScores) do
+			if
+				currentRank == 0
+				or rankedEntry.rankingScore < previousScore
+				or (rankedEntry.rankingScore == previousScore and rankedEntry.territoryCount < previousTerritoryCount)
+			then
+				currentRank = currentRank + 1
+				previousScore = rankedEntry.rankingScore or 0.0
+				previousTerritoryCount = rankedEntry.territoryCount or 0.0
+			end
+			local allyID = rankedEntry.allyID
+			allyData[allyID].rank = currentRank
+			for teamID in pairs(allyTeamsWatch[allyID] or {}) do
+				local isDead = select(3, spGetTeamInfo(teamID))
+				if not isDead and currentRank < topLivingRank then
+					topLivingRank = currentRank
+				end
+			end
+			Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_rank", currentRank)
+		end
+	else
+		topLivingRank = currentRank
+	end
+end
+
+local function processLivingTeams()
+	for allyID in pairs(allyTeamsWatch) do
+		allyTeamsWatch[allyID] = nil
+	end
+
+	allTeams = Spring.GetTeamList() or {}
+	for _, teamID in ipairs(allTeams) do
+		local _, _, isDead, _, _, allyID = spGetTeamInfo(teamID)
+		if not isDead and not doomedAllies[allyID] then
+			if allyID and allyID ~= gaiaAllyTeamID then
+				allyTeamsWatch[allyID] = allyTeamsWatch[allyID] or {}
+				allyTeamsWatch[allyID][teamID] = true
+				if not allyData[allyID] then
+					allyData[allyID] = {
+						score = 0,
+						projectedScore = 0,
+						territoryCount = 0,
+						rank = 1,
+					}
+				end
+			end
+		end
+	end
+end
+
+local function createGridSquareData(x, z)
+	local originX = x * GRID_SIZE
+	local originZ = z * GRID_SIZE
+	local data = {}
+
+	data.mapOriginX = originX
+	data.mapOriginZ = originZ
+	data.gridX = x
+	data.gridZ = z
+	data.gridMidpointX = originX + GRID_SIZE / 2
+	data.gridMidpointZ = originZ + GRID_SIZE / 2
+	data.allyOwnerID = gaiaAllyTeamID
+	data.progress = STARTING_PROGRESS
+	data.decayDelay = 0
+	data.contested = false
+	data.contiguous = false
+	data.neighborAllyTeamCounts = {}
+	data.totalNeighborCount = 0
+	data.corners = {
+		{ x = data.mapOriginX, z = data.mapOriginZ },
+		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ },
+		{ x = data.mapOriginX, z = data.mapOriginZ + GRID_SIZE },
+		{ x = data.mapOriginX + GRID_SIZE, z = data.mapOriginZ + GRID_SIZE },
+	}
+	return data
+end
+
+local function generateCaptureGrid()
+	---@type table<integer, DominionGridSquare>
+	local gridData = {}
+
+	for x = 0, numberOfSquaresX - 1 do
+		for z = 0, numberOfSquaresZ - 1 do
+			local index = x * numberOfSquaresZ + z + 1
+			gridData[index] = createGridSquareData(x, z)
+		end
+	end
+	return gridData
+end
+
+local function defeatAlly(allyID)
+	if DEBUG_MODE or not allyTeamsWatch[allyID] then
+		return
+	end
+	doomedAllies[allyID] = true
+	for unitID, commanderAllyID in pairs(livingCommanders) do
+		if commanderAllyID == allyID then
+			local killDelayFrames = floor(Game.gameSpeed * 0.5)
+			local killFrame = spGetGameFrame() + killDelayFrames
+			killQueue[killFrame] = killQueue[killFrame] or {}
+			killQueue[killFrame][unitID] = true
+
+			Spring.SetUnitRulesParam(unitID, "muteDestructionNotification", 1)
+
+			local x, y, z = spGetUnitPosition(unitID)
+			spSpawnCEG("commander-spawn", x, y, z, 0, 0, 0)
+			if GG.SpawnEnvironmentalLightning then
+				GG.SpawnEnvironmentalLightning("commanderspawn", x, y, z)
+			end
+			spPlaySoundFile("commanderspawn-mono", 1.0, x, y, z, 0, 0, 0, "sfx")
+			GG.ComSpawnDefoliate(x, y, z)
+
+			local allPlayers = Spring.GetPlayerList() or {}
+			for _, playerID in ipairs(allPlayers) do
+				local _, _, _, _, playerAllyID = Spring.GetPlayerInfo(playerID, false)
+				local notificationEvent = (playerAllyID == allyID) and "Dominion/YourTeamEliminated"
+					or "Dominion/EnemyTeamEliminated"
+				sendToUnsynced("NotificationEvent", notificationEvent, tostring(playerID))
+			end
+		end
+	end
+
+	allyData[allyID].projectedScore = allyData[allyID].score
+	Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_projectedScore", allyData[allyID].score)
+end
+
+local function addProgress(gridID, progressChange, winningAllyID, delayDecay)
+	local data = captureGrid[gridID]
+	local newProgress = data.progress + progressChange
+
+	if newProgress < 0 then
+		data.allyOwnerID = winningAllyID
+		data.progress = math.abs(newProgress)
+	elseif newProgress > MAX_PROGRESS then
+		data.progress = MAX_PROGRESS
+	else
+		data.progress = newProgress
+	end
+
+	if winningAllyID == gaiaAllyTeamID then
+		data.decayDelay = 0
+	end
+
+	if delayDecay and (data.contested or data.contiguous) and data.allyOwnerID ~= winningAllyID then
+		data.decayDelay = gameFrame + DECAY_DELAY_FRAMES
+	end
+end
+
+local function processGridSquareCapture(gridID)
+	local data = captureGrid[gridID]
+	local units = spGetUnitsInRectangle(
+		data.mapOriginX,
+		data.mapOriginZ,
+		data.mapOriginX + GRID_SIZE,
+		data.mapOriginZ + GRID_SIZE
+	)
+
+	local allyPowers = {}
+	local hasUnits = false
+	data.contested = false
+
+	for i = 1, #units do
+		local unitID = units[i]
+
+		if not spGetUnitIsBeingBuilt(unitID) then
+			local unitDefID = spGetUnitDefID(unitID)
+			local unitData = unitWatchDefs[unitDefID]
+			local allyTeam = spGetUnitAllyTeam(unitID)
+
+			if unitData and unitData.power and allyTeamsWatch[allyTeam] then
+				local power = unitData.power
+				if power then
+					hasUnits = true
+					if flyingUnits[unitID] then
+						power = power * FLYING_UNIT_POWER_MULTIPLIER
+					end
+					if commandersDefs[unitDefID] then
+						power = power * COMMANDER_POWER_MULTIPLIER
+					end
+					if spGetUnitIsCloaked(unitID) then
+						power = power * CLOAKED_UNIT_POWER_MULTIPLIER
+					end
+
+					power = math.max(power, MIN_UNIT_POWER)
+
+					allyPowers[allyTeam] = (allyPowers[allyTeam] or 0) + power
+				end
+			end
+		end
+	end
+
+	for allyID, power in pairs(allyPowers) do
+		if allyPowers[allyID] > 0 then
+			allyPowers[allyID] = power + random()
+			if allyID ~= data.allyOwnerID then
+				data.contested = true
+			end
+		else
+			allyPowers[allyID] = nil
+		end
+	end
+
+	if not hasUnits then
+		return
+	end
+
+	local currentOwnerID = data.allyOwnerID
+	local teamCount = sortAllyPowersByStrength(allyPowers)
+
+	if teamCount == 0 then
+		return
+	end
+
+	local winningAllyID = sortedTeams[1].team
+	local powerRatio = calculatePowerRatio(winningAllyID, currentOwnerID, allyPowers)
+
+	local progressChange = 0.0
+	if currentOwnerID == winningAllyID then
+		progressChange = PROGRESS_INCREMENT * powerRatio
+	else
+		progressChange = -(powerRatio * PROGRESS_INCREMENT)
+	end
+
+	addProgress(gridID, progressChange, winningAllyID, true)
+end
+
+local function processDecay(gridID)
+	local data = captureGrid[gridID]
+	if not data.contested and not data.contiguous and data.decayDelay < gameFrame then
+		local progressChange
+		if data.progress > OWNERSHIP_THRESHOLD then
+			progressChange = DECAY_PROGRESS_INCREMENT
+		else
+			progressChange = -DECAY_PROGRESS_INCREMENT
+		end
+
+		if data.progress > OWNERSHIP_THRESHOLD then
+			addProgress(gridID, progressChange, data.allyOwnerID, false)
+		else
+			addProgress(gridID, progressChange, gaiaAllyTeamID, false)
+		end
+	end
+end
+
+local function processNeighborsAndDecay()
+	for gridID, data in pairs(captureGrid) do
+		if not data.contested then
+			data.neighborAllyTeamCounts, data.totalNeighborCount = processNeighborData(data)
+			local dominantAllyTeamCount = 0
+			local dominantAllyTeamID
+			data.contiguous = false
+
+			for allyTeamID, neighborCount in pairs(data.neighborAllyTeamCounts) do
+				if neighborCount > dominantAllyTeamCount and allyTeamsWatch[allyTeamID] then
+					dominantAllyTeamID = allyTeamID
+					dominantAllyTeamCount = neighborCount
+				end
+			end
+
+			if dominantAllyTeamID and dominantAllyTeamCount > data.totalNeighborCount * MAJORITY_THRESHOLD then
+				data.contiguous = true
+				local progressChange
+				if dominantAllyTeamID ~= data.allyOwnerID then
+					progressChange = -CONTIGUOUS_PROGRESS_INCREMENT
+				else
+					progressChange = CONTIGUOUS_PROGRESS_INCREMENT
+				end
+				addProgress(gridID, progressChange, dominantAllyTeamID, true)
+			end
+		end
+	end
+
+	for gridID, squareData in pairs(captureGrid) do
+		processDecay(gridID)
+		local visibilityArray = createVisibilityArray(squareData)
+		sendToUnsynced("UpdateGridSquare", gridID, squareData.allyOwnerID, squareData.progress, visibilityArray)
+	end
+end
+
+local function getTerritoryPointRate()
+	return currentDeadline * TERRITORY_POINTS_PER_DEADLINE
+end
+
+local function updateTerritoryData(currentTimestamp)
+	for _, scoreData in pairs(allyData) do
+		scoreData.territoryCount = 0
+	end
+
+	for _, squareData in pairs(captureGrid) do
+		if squareData.progress > OWNERSHIP_THRESHOLD then
+			local scoreData = allyData[squareData.allyOwnerID]
+			if scoreData then
+				scoreData.territoryCount = scoreData.territoryCount + 1
+			end
+		end
+	end
+
+	for allyID, scoreData in pairs(allyData) do
+		local projectedScore = scoreData.score
+		if currentDeadline <= MAX_DEADLINES and deadlineEndTimestamp > currentTimestamp and allyTeamsWatch[allyID] then
+			local remainingSeconds = deadlineEndTimestamp - currentTimestamp
+			projectedScore = projectedScore
+				+ scoreData.territoryCount * getTerritoryPointRate() * remainingSeconds / SECONDS_PER_MINUTE
+		end
+		scoreData.projectedScore = projectedScore
+	end
+end
+
+local function accrueTerritoryPoints(durationSeconds)
+	if durationSeconds <= 0 or currentDeadline > MAX_DEADLINES then
+		return
+	end
+
+	local pointsPerTerritory = getTerritoryPointRate() * durationSeconds / SECONDS_PER_MINUTE
+	for allyID in pairs(allyTeamsWatch) do
+		local scoreData = allyData[allyID]
+		scoreData.score = scoreData.score + scoreData.territoryCount * pointsPerTerritory
+	end
+end
+
+local function getHighestLivingScore()
+	local highestScore = 0.0
+	for allyID in pairs(allyTeamsWatch) do
+		highestScore = max(highestScore, allyData[allyID].score)
+	end
+	return highestScore
+end
+
+local function eliminateAlliesBelowDeadline()
+	setAllyTeamRanks()
+	for allyID, scoreData in pairs(allyData) do
+		if scoreData.score < deadlineScore and allyTeamsWatch[allyID] and scoreData.rank > topLivingRank then
+			defeatAlly(allyID)
+		end
+	end
+end
+
+local function eliminateNonLeadingAllies()
+	setAllyTeamRanks()
+	for allyID, scoreData in pairs(allyData) do
+		if scoreData.rank > topLivingRank and allyTeamsWatch[allyID] then
+			defeatAlly(allyID)
+		end
+	end
+end
+
+local function processDeadlineBoundary()
+	eliminateAlliesBelowDeadline()
+	processLivingTeams()
+
+	if currentDeadline >= MAX_DEADLINES then
+		currentDeadline = MAX_DEADLINES + 1
+		deadlineEndTimestamp = 0
+		deadlineScore = 0
+		eliminateNonLeadingAllies()
+		processLivingTeams()
+		return
+	end
+
+	currentDeadline = currentDeadline + 1
+	deadlineEndTimestamp = deadlineEndTimestamp + DEADLINE_SECONDS
+	if currentDeadline >= MAX_DEADLINES then
+		deadlineScore = 0
+	else
+		deadlineScore = floor(getHighestLivingScore() * DEADLINE_SCORE_MULTIPLIER)
+	end
+end
+
+local function publishDominationState()
+	Spring.SetGameRulesParam("dominionDeadlineEndTimestamp", deadlineEndTimestamp)
+	Spring.SetGameRulesParam("dominionCurrentDeadline", currentDeadline)
+	Spring.SetGameRulesParam("dominionMaxDeadlines", MAX_DEADLINES)
+	Spring.SetGameRulesParam("dominionDeadlineScore", deadlineScore)
+
+	for allyID, scoreData in pairs(allyData) do
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_score", scoreData.score)
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_projectedScore", scoreData.projectedScore)
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_territoryCount", scoreData.territoryCount)
+	end
+end
+
+local function processDominationTick(currentTimestamp)
+	updateTerritoryData(currentTimestamp)
+
+	local scoringTimestamp = lastScoreTimestamp
+	while currentDeadline <= MAX_DEADLINES and deadlineEndTimestamp > 0 and currentTimestamp >= deadlineEndTimestamp do
+		accrueTerritoryPoints(deadlineEndTimestamp - scoringTimestamp)
+		scoringTimestamp = deadlineEndTimestamp
+		processDeadlineBoundary()
+	end
+
+	if currentDeadline <= MAX_DEADLINES then
+		accrueTerritoryPoints(currentTimestamp - scoringTimestamp)
+	else
+		eliminateNonLeadingAllies()
+		processLivingTeams()
+	end
+
+	lastScoreTimestamp = currentTimestamp
+	updateTerritoryData(currentTimestamp)
+	setAllyTeamRanks()
+	publishDominationState()
+end
+
+function gadget:GameFrame(frame)
+	if not sentGridStructure then
+		initializeUnsyncedGrid()
+	end
+
+	gameFrame = frame
+	local frameModulo = frame % GRID_CHECK_INTERVAL
+
+	if frameModulo == 0 then
+		processLivingTeams()
+		for gridID, data in pairs(captureGrid) do
+			if data.allyOwnerID ~= gaiaAllyTeamID and not allyTeamsWatch[data.allyOwnerID] then
+				data.allyOwnerID = gaiaAllyTeamID
+				data.progress = STARTING_PROGRESS
+			end
+		end
+		for gridID, data in pairs(captureGrid) do
+			processGridSquareCapture(gridID)
+		end
+	elseif frameModulo == 1 then
+		processNeighborsAndDecay()
+	elseif frameModulo == 2 then
+		processDominationTick(spGetGameSeconds())
+	end
+
+	local currentKillQueue = killQueue[gameFrame]
+	if currentKillQueue then
+		for unitID in pairs(currentKillQueue) do
+			if not spGetUnitIsDead(unitID) then
+				currentKillQueue[unitID] = nil
+				spDestroyUnit(unitID, false, true)
+			end
+		end
+		killQueue[gameFrame] = nil
+	end
+end
+
+function gadget:Initialize()
+	Spring.SetGameRulesParam("dominionTerritoryPointsPerDeadline", TERRITORY_POINTS_PER_DEADLINE)
+	numberOfSquaresX = math.ceil(mapSizeX / GRID_SIZE)
+	numberOfSquaresZ = math.ceil(mapSizeZ / GRID_SIZE)
+	sendToUnsynced("InitializeConfigs", GRID_SIZE, GRID_CHECK_INTERVAL)
+	captureGrid = generateCaptureGrid()
+
+	processLivingTeams()
+	for allyID in pairs(allyTeamsWatch) do
+		if not allyData[allyID] then
+			allyData[allyID] = {
+				score = 0,
+				projectedScore = 0,
+				territoryCount = 0,
+				rank = 1,
+			}
+		end
+	end
+
+	local units = Spring.GetAllUnits()
+	for i = 1, #units do
+		local unitID = units[i]
+		local createdUnitDefID = spGetUnitDefID(unitID)
+		local createdUnitTeam = Spring.GetUnitTeam(unitID)
+		if createdUnitDefID and createdUnitTeam then
+			gadget:UnitCreated(unitID, createdUnitDefID, createdUnitTeam)
+		end
+	end
+
+	allTeams = Spring.GetTeamList() or {}
+
+	lastScoreTimestamp = spGetGameSeconds()
+	deadlineEndTimestamp = lastScoreTimestamp + DEADLINE_SECONDS
+	updateTerritoryData(lastScoreTimestamp)
+	setAllyTeamRanks()
+
+	for allyID in pairs(allyTeamsWatch) do
+		Spring.SetGameRulesParam("dominion_ally_" .. allyID .. "_rank", 1)
+	end
+	Spring.SetGameRulesParam("dominionTotalTerritories", numberOfSquaresX * numberOfSquaresZ)
+	publishDominationState()
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	if commandersDefs[unitDefID] then
+		livingCommanders[unitID] = select(6, Spring.GetTeamInfo(unitTeam))
+	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+	livingCommanders[unitID] = nil
+	flyingUnits[unitID] = nil
+end
+
+function gadget:UnitEnteredAir(unitID, unitDefID, unitTeam)
+	flyingUnits[unitID] = true
+end
+
+function gadget:UnitLeftAir(unitID, unitDefID, unitTeam)
+	flyingUnits[unitID] = nil
+end
