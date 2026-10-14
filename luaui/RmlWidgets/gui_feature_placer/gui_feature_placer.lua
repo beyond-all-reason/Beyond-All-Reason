@@ -51,7 +51,6 @@ local lastSearchFilter = ""
 local selectedCategories = { all = true }
 local categoryButtons = {} -- { [catKey] = element }
 local featureElements = {} -- { [defName] = element }
-local thumbDivs = {} -- { [defName] = div element }
 local manuallyHidden = false
 local lastActive = false
 local userDragged = false -- once user drags, stop auto-positioning
@@ -408,10 +407,6 @@ local function processThumbQueue()
 	end
 end
 
-local function invalidateThumbCache()
-	-- no-op; kept for call-site compatibility
-end
-
 ----------------------------------------------------------------
 -- Asset library: build categorized feature list
 ----------------------------------------------------------------
@@ -445,8 +440,6 @@ end
 ----------------------------------------------------------------
 local virtualItems = {} -- flat array of { name=..., id=..., category=... }
 local virtualTileW = 32 -- computed tile width (dp)
-local virtualTileH = 32 -- computed tile height (includes name bar)
-local virtualRowH = 0 -- tile height + gap in px (computed after first layout)
 local virtualScrollTop = -1 -- last known scroll_top
 local virtualTopSpacer = nil -- spacer div for items above viewport
 local virtualBotSpacer = nil -- spacer div for items below viewport
@@ -522,7 +515,6 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 	thumbEl:SetClass("fp-feature-thumb", true)
 	thumbEl:SetClass("fp-thumb-" .. (entry.category or "other"), true)
 	itemEl:AppendChild(thumbEl)
-	thumbDivs[name] = thumbEl
 
 	local imgEl = doc:CreateElement("img")
 	imgEl:SetAttribute("style", "display: none;")
@@ -567,9 +559,7 @@ local function renderVirtualWindow(listEl, doc, startIdx, endIdx, selectedSet)
 	-- Remove old content
 	listEl.inner_rml = ""
 	featureElements = {}
-	thumbDivs = {}
 	thumbImgEls = {}
-	invalidateThumbCache()
 
 	local tileW = virtualTileW
 	local totalItems = #virtualItems
@@ -673,9 +663,7 @@ local function rebuildFeatureList(filter)
 
 	listEl.inner_rml = ""
 	featureElements = {}
-	thumbDivs = {}
 	thumbImgEls = {}
-	invalidateThumbCache()
 	virtualItems = {}
 	virtualVisStart = 0
 	virtualVisEnd = 0

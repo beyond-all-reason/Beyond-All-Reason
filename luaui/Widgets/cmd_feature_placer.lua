@@ -20,7 +20,6 @@ local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
 local GetGroundNormal = Spring.GetGroundNormal
-local GetGameFrame = Spring.GetGameFrame
 -- Every message this widget sends changes the feature set, so it is also
 -- where the project learns it has unsaved changes (a project load's own
 -- messages are ignored by markDirty while the load runs).
@@ -32,7 +31,6 @@ local SendLuaRulesMsg = function(msg)
 	end
 	return Spring.SendLuaRulesMsg(msg)
 end
-local GetAllFeatures = Spring.GetAllFeatures
 local GetFeaturePosition = Spring.GetFeaturePosition
 local GetFeatureDefID = Spring.GetFeatureDefID
 
@@ -40,9 +38,6 @@ local glColor = gl.Color
 local glLineWidth = gl.LineWidth
 local glBeginEnd = gl.BeginEnd
 local glVertex = gl.Vertex
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix = gl.PopMatrix
-local glTranslate = gl.Translate
 local glDepthTest = gl.DepthTest
 local glCreateList = gl.CreateList
 local glDeleteList = gl.DeleteList
@@ -102,8 +97,6 @@ local ROTATION_STEP = 3
 local SCALE_LIMIT_MIN = 0.1
 local SCALE_LIMIT_MAX = 3.0
 local KEYSYMS_SPACE = 0x20
-local UPDATE_INTERVAL = 1 / 30
-local GRID_SNAP_SIZE = 48 -- matches build grid widget spacing (3 * 16 elmos)
 local gridSnapSize = 48 -- mutable; user-adjustable via setGridSnapSize
 
 local floor = math.floor
@@ -146,9 +139,6 @@ local fp = {
 	selectedDefs = {}, -- { defName1, defName2, ... }
 	selectedSet = {}, -- { [defName] = true } for quick lookup
 	dragging = false,
-	dragAction = nil, -- "place" or "remove"
-	lockedWorldX = nil,
-	lockedWorldZ = nil,
 	placeTimer = 0,
 	undoCount = 0,
 	redoCount = 0,
@@ -167,7 +157,6 @@ local gridDirty = false
 ----------------------------------------------------------------
 -- Feature definition cache for asset library
 ----------------------------------------------------------------
-local featureDefList = {} -- sorted { {name=..., id=...}, ... }
 local featureDefListBuilt = false
 local featureCategories = {} -- { categoryName = { {name=..., id=...}, ... } }
 
@@ -184,21 +173,6 @@ local CATEGORY_ORDER = {
 	"cortex_wrecks",
 	"legion_wrecks",
 	"other",
-}
-
-local CATEGORY_LABELS = {
-	geo = "Geo",
-	rocks = "Rocks",
-	trees = "Trees",
-	foliage = "Foliage",
-	crystals = "Crystals",
-	osemo = "Osemo",
-	christmas = "Christmas",
-	raptor = "Raptor",
-	armada_wrecks = "Armada Wrecks",
-	cortex_wrecks = "Cortex Wrecks",
-	legion_wrecks = "Legion Wrecks",
-	other = "Other",
 }
 
 local function classifyFeature(name, def)
@@ -325,7 +299,6 @@ local function buildFeatureDefList()
 		return
 	end
 	featureDefListBuilt = true
-	featureDefList = {}
 	featureCategories = {}
 	variantSets = {}
 	for _, cat in ipairs(CATEGORY_ORDER) do
@@ -354,7 +327,6 @@ local function buildFeatureDefList()
 					id = id,
 					category = cat,
 				}
-				featureDefList[#featureDefList + 1] = entry
 				if not featureCategories[cat] then
 					featureCategories[cat] = {}
 				end
@@ -368,9 +340,6 @@ local function buildFeatureDefList()
 			return a.factor < b.factor
 		end)
 	end
-	table.sort(featureDefList, function(a, b)
-		return a.name < b.name
-	end)
 	for _, cat in ipairs(CATEGORY_ORDER) do
 		if featureCategories[cat] then
 			table.sort(featureCategories[cat], function(a, b)
@@ -736,36 +705,6 @@ local function headingToYaw(heading)
 	return -(heading or 0) * HEADING_TO_RAD
 end
 
--- The uniform scale the gadget baked into a live feature's root piece matrix,
--- read back as the length of the first basis vector. 1 for anything never
--- scaled. Needed so removal highlights and gizmo ghosts drawn over an already
--- scaled feature match it instead of reverting to model size.
-local function getFeatureVisualScale(featureID)
-	if not (Spring.GetFeaturePieceMatrix and Spring.GetFeatureRootPiece) then
-		return 1
-	end
-	-- Model-less features (editor_geocrack and friends): the engine never
-	-- instantiates a LocalModel for them, and the piece callouts deref the empty
-	-- piece list -- an access violation, not a Lua error (the same crash the
-	-- gadget dodges by not walking map features at load). No model also means
-	-- nothing could have been scaled, so 1 is the true answer.
-	local defID = GetFeatureDefID(featureID)
-	local def = defID and FeatureDefs[defID]
-	if not def or (def.modelname or "") == "" then
-		return 1
-	end
-	local root = Spring.GetFeatureRootPiece(featureID) or 1
-	local m11, m12, m13 = Spring.GetFeaturePieceMatrix(featureID, root)
-	if not m11 then
-		return 1
-	end
-	local s = sqrt(m11 * m11 + m12 * m12 + m13 * m13)
-	if s < 0.01 then
-		return 1
-	end
-	return s
-end
-
 local function clearGhosts()
 	if WG.StopDrawFeatureShapesGL4 and preview.ghostCount > 0 then
 		WG.StopDrawFeatureShapesGL4(GHOST_OWNER)
@@ -821,7 +760,7 @@ local function syncGhosts(items)
 				item.tintG or 1,
 				item.tintB or 1,
 				item.tintAmount or 0,
-				item.scale or 1,
+				1,
 				ghosts[n + 1],
 				GHOST_OWNER
 			)
@@ -865,7 +804,6 @@ local function collectRemovalTargets(worldX, worldZ)
 						heading = (yaw or 0) / (2 * pi) * 65536,
 						pitch = pitch or 0,
 						roll = roll or 0,
-						scale = getFeatureVisualScale(fid),
 						alpha = 0.7,
 						tintR = 1,
 						tintG = 0.15,
@@ -913,16 +851,13 @@ local function sendPlacements(placements)
 	for i = 1, #placements do
 		local p = placements[i]
 		local entry
-		-- Token counts are the wire protocol: 4 plain, 5 with scale, 7 with
-		-- tilt/lift, 8 with both. See parsePlacement in the gadget.
+		-- Token counts are the wire protocol: 4 plain, 7 with tilt/lift. See
+		-- parsePlacement in the gadget. Scale is baked into the variant def.
 		if p.pitch ~= 0 or p.roll ~= 0 or p.y ~= GetGroundHeight(p.x, p.z) then
 			entry =
 				string.format("%s %.1f %.1f %d %.4f %.4f %.1f", p.defName, p.x, p.z, p.heading, p.pitch, p.roll, p.y)
 		else
 			entry = string.format("%s %.1f %.1f %d", p.defName, p.x, p.z, p.heading)
-		end
-		if p.scale and abs(p.scale - 1) > 0.001 then
-			entry = entry .. string.format(" %.3f", p.scale)
 		end
 		batch[#batch + 1] = entry
 		if #batch >= PLACE_BATCH then
@@ -1014,14 +949,12 @@ local function readFeatureTransform(featureID)
 		pitch = pitch or 0,
 		yaw = yaw or 0,
 		roll = roll or 0,
-		scale = getFeatureVisualScale(featureID),
 	}
 end
 
 -- How far a feature reaches from its own origin. Position is the model's base,
 -- so a tall tree needs its height counted, not just its collision radius, or the
--- gizmo would sit around the trunk with the canopy hiding it. Def dimensions are
--- model-space, so the live visual scale multiplies in.
+-- gizmo would sit around the trunk with the canopy hiding it.
 local function featureReach(featureID)
 	local defID = GetFeatureDefID(featureID)
 	local def = defID and FeatureDefs[defID]
@@ -1030,7 +963,7 @@ local function featureReach(featureID)
 	end
 	local r = def.radius or 16
 	local h = def.model and def.model.maxy or 0
-	return ((h > r) and h or r) * getFeatureVisualScale(featureID)
+	return (h > r) and h or r
 end
 
 local function recomputePivot()
@@ -1276,7 +1209,6 @@ local function computeDragTargets(dx, dy, dz, dPitch, dYaw, dRoll)
 				pitch = pitch,
 				yaw = yaw,
 				roll = roll,
-				scale = base.scale,
 			}
 		end
 	end
@@ -1309,7 +1241,7 @@ local function syncGizmoGhosts(targets)
 				1,
 				1,
 				0,
-				t.scale or getFeatureVisualScale(t.id),
+				1,
 				gz.ghosts[n + 1],
 				GIZMO_OWNER
 			)
@@ -1491,23 +1423,6 @@ end
 ----------------------------------------------------------------
 -- Activation / Mode management
 ----------------------------------------------------------------
-local function activate(mode)
-	-- Deactivate terraform brush when feature placer activates
-	if WG.TerraformBrush then
-		WG.TerraformBrush.deactivate()
-	end
-	-- Deactivate weather brush when feature placer activates
-	if WG.WeatherBrush then
-		WG.WeatherBrush.deactivate()
-	end
-	fp.active = true
-	fp.mode = mode
-	buildFeatureDefList()
-	local labels = { scatter = "SCATTER", point = "POINT", remove = "REMOVE" }
-	Echo("[Feature Placer] Mode: " .. (labels[mode] or mode) .. " | LMB to place/remove, /featureplaceroff to stop")
-	return true
-end
-
 local function deactivate()
 	if fp.active then
 		Echo("[Feature Placer] Deactivated")
@@ -1515,8 +1430,6 @@ local function deactivate()
 	fp.active = false
 	fp.mode = nil
 	fp.dragging = false
-	fp.lockedWorldX = nil
-	fp.lockedWorldZ = nil
 	hideBuildGrid()
 	clearGhosts()
 	clearSelection()
@@ -1660,7 +1573,6 @@ end
 -- Save / Load feature map
 ----------------------------------------------------------------
 local saveBuffer = {}
-local saveExpectedCount = 0
 
 -- One-shot feature-list read for other widgets. The Map Project save used to
 -- walk Spring.GetAllFeatures() itself, but Spring.GetFeatureRotation called from
@@ -1729,9 +1641,8 @@ local function requestFeatureData(callback)
 	return true
 end
 
-local function handleSaveBegin(count)
+local function handleSaveBegin()
 	saveBuffer = {}
-	saveExpectedCount = count or 0
 end
 
 local function handleSaveData(dataStr)
@@ -1948,11 +1859,6 @@ local function getState()
 	}
 end
 
-local function getFeatureDefList()
-	buildFeatureDefList()
-	return featureDefList
-end
-
 local function getFeatureCategories()
 	buildFeatureDefList()
 	return featureCategories
@@ -1960,10 +1866,6 @@ end
 
 local function getCategoryOrder()
 	return CATEGORY_ORDER
-end
-
-local function getCategoryLabels()
-	return CATEGORY_LABELS
 end
 
 ----------------------------------------------------------------
@@ -2267,10 +2169,6 @@ end
 ----------------------------------------------------------------
 -- Mouse
 ----------------------------------------------------------------
-function widget:IsAbove(x, y)
-	return false
-end
-
 function widget:MousePress(mx, my, button)
 	if not fp.active or not fp.mode then
 		return false
@@ -2335,9 +2233,6 @@ function widget:MousePress(mx, my, button)
 		end
 
 		fp.dragging = true
-		fp.dragAction = "place"
-		fp.lockedWorldX = worldX
-		fp.lockedWorldZ = worldZ
 		fp.placeTimer = 0
 
 		-- Perform initial placement
@@ -2393,9 +2288,6 @@ function widget:MouseRelease(mx, my, button)
 
 	if (button == 1 or button == 3) and fp.dragging then
 		fp.dragging = false
-		fp.dragAction = nil
-		fp.lockedWorldX = nil
-		fp.lockedWorldZ = nil
 		return true
 	end
 	return false
@@ -2511,13 +2403,9 @@ function widget:Update(dt)
 		return
 	end
 
-	local mx, my, leftPressed, _, rightPressed = GetMouseState()
-	local buttonHeld = (fp.dragAction == "remove" and rightPressed) or (fp.dragAction == "place" and leftPressed)
-	if not buttonHeld then
+	local _, _, leftPressed = GetMouseState()
+	if not leftPressed then
 		fp.dragging = false
-		fp.dragAction = nil
-		fp.lockedWorldX = nil
-		fp.lockedWorldZ = nil
 		return
 	end
 
@@ -2537,10 +2425,7 @@ function widget:Update(dt)
 		worldX, worldZ = snapToGrid(worldX, worldZ)
 	end
 
-	fp.lockedWorldX = worldX
-	fp.lockedWorldZ = worldZ
-
-	if fp.dragAction == "remove" or fp.mode == "remove" then
+	if fp.mode == "remove" then
 		sendRemoveMessage(worldX, worldZ)
 	else
 		placeAt(worldX, worldZ)
@@ -2627,17 +2512,14 @@ function widget:DrawWorld()
 	-- WYSIWYG: the exact features about to be placed, at their exact positions
 	-- and orientations. Remove mode has nothing to place, so it tints what the
 	-- brush would destroy instead.
-	if fp.mode == "remove" or (fp.dragging and fp.dragAction == "remove") then
+	if fp.mode == "remove" then
 		syncGhosts(collectRemovalTargets(worldX, worldZ))
 	else
 		syncGhosts(resolvePlacements(worldX, worldZ))
 	end
 
-	-- Color by mode (red when right-dragging to remove)
-	local _, _, _, _, rightPressed = GetMouseState()
-	if fp.dragging and fp.dragAction == "remove" then
-		glColor(0.9, 0.2, 0.2, 0.7 * edgeFade)
-	elseif fp.mode == "scatter" then
+	-- Color by mode
+	if fp.mode == "scatter" then
 		glColor(0.2, 0.8, 0.4, 0.7 * edgeFade)
 	elseif fp.mode == "point" then
 		glColor(0.4, 0.7, 1.0, 0.7 * edgeFade)
@@ -2647,7 +2529,7 @@ function widget:DrawWorld()
 
 	glLineWidth(2)
 
-	if fp.mode == "point" and not (fp.dragging and fp.dragAction == "remove") then
+	if fp.mode == "point" then
 		-- Draw small crosshair for point mode
 		local cy = GetGroundHeight(worldX, worldZ) + 4
 		local s = 12
@@ -2683,9 +2565,7 @@ function widget:DrawWorld()
 	if #positions > 1 then
 		for i = 2, #positions do
 			local p = positions[i]
-			if fp.dragging and fp.dragAction == "remove" then
-				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
-			elseif fp.mode == "scatter" then
+			if fp.mode == "scatter" then
 				glColor(0.2, 0.8, 0.4, 0.3 * edgeFade)
 			elseif fp.mode == "point" then
 				glColor(0.4, 0.7, 1.0, 0.3 * edgeFade)
@@ -2693,7 +2573,7 @@ function widget:DrawWorld()
 				glColor(0.9, 0.2, 0.2, 0.3 * edgeFade)
 			end
 
-			if fp.mode == "point" and not (fp.dragging and fp.dragAction == "remove") then
+			if fp.mode == "point" then
 				local cy = GetGroundHeight(p.x, p.z) + 4
 				local s = 12
 				glBeginEnd(GL.LINES, function()
@@ -2764,23 +2644,6 @@ end
 -- Initialize / Shutdown
 ----------------------------------------------------------------
 function widget:Initialize()
-	widgetHandler:AddAction("featureplacer", function(_, _, args)
-		if args and args[1] then
-			return activate(args[1])
-		end
-		return activate("point")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplacerscatter", function()
-		return activate("scatter")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplacerpoint", function()
-		return activate("point")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplacerremove", function()
-		return activate("remove")
-	end, nil, "t")
-	widgetHandler:AddAction("featureplaceroff", deactivate, nil, "t")
-
 	buildFeatureDefList()
 
 	if not Gizmo.init() then
@@ -2791,10 +2654,8 @@ function widget:Initialize()
 	-- Expose API
 	WG.FeaturePlacer = {
 		getState = getState,
-		getFeatureDefList = getFeatureDefList,
 		getFeatureCategories = getFeatureCategories,
 		getCategoryOrder = getCategoryOrder,
-		getCategoryLabels = getCategoryLabels,
 		setMode = setMode,
 		setShape = setShape,
 		setRadius = setRadius,
@@ -2859,9 +2720,4 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("terraform_feature_save_begin")
 	widgetHandler:DeregisterGlobal("terraform_feature_save_data")
 	widgetHandler:DeregisterGlobal("terraform_feature_save_end")
-	widgetHandler:RemoveAction("featureplacer")
-	widgetHandler:RemoveAction("featureplacerscatter")
-	widgetHandler:RemoveAction("featureplacerpoint")
-	widgetHandler:RemoveAction("featureplacerremove")
-	widgetHandler:RemoveAction("featureplaceroff")
 end
