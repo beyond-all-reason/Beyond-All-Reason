@@ -2544,7 +2544,7 @@ end
 -- region) counts as not allowed, which is the wanted default.
 function widgetHandler:ModalAllows(widget)
 	if widget == nil then
-		return (not modalActive) and (not interfaceHidden)
+		return (not modalActive) and not interfaceHidden
 	end
 	return allowedWidget(widget)
 end

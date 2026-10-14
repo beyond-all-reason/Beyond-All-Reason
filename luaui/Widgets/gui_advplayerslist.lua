@@ -221,9 +221,124 @@ local anonymousTeamColor = {
 	Spring.GetConfigInt("anonymousColorB", 0) / 255,
 }
 
-local sharingTax = Spring.GetModOptions().tax_resource_sharing_amount or 0
-if Spring.GetModOptions().easytax then
-	sharingTax = 0.3 -- 30% tax for easytax modoption
+-- Sharing is the transfer module's to decide: the terms the policy gives the local team for each other team, read
+-- off what the synced side publishes, cached here per team and dropped when the module says a policy changed.
+-- One table, because this file's main chunk is at Lua's cap of 200 locals.
+
+-- Another team's terms are the module's to keep: an ask is the frame's one evaluation, a lookup after.
+---@class ShareView
+---@field validation table<integer, TransferUnitValidation|false> per team, for the current selection
+---@field validationFrame integer? the game frame the validations were made on: the terms they stand on are that frame's
+---@field hoverPlayerID integer?
+---@field hoverListeners ShareHoverListener[]
+local ShareView = {
+	api = require("modules/transfer/api_unsynced"),
+	enums = require("modules/transfer/enums"),
+	validation = {},
+}
+
+---@param team integer
+---@return UnitTransferTerms
+function ShareView.unitTerms(team)
+	return ShareView.api.Units.Terms(team)
+end
+
+---@param team integer
+---@param resourceType ResourceName
+---@return ResourceTransferTerms
+function ShareView.resourceTerms(team, resourceType)
+	return ShareView.api.Resources.Terms(team, resourceType)
+end
+
+-- The current selection against a team's terms, once per team until the selection changes or the frame moves on.
+---@param team integer
+---@return TransferUnitValidation|nil
+function ShareView.selectionValidation(team)
+	local frame = Spring.GetGameFrame()
+	if ShareView.validationFrame ~= frame then
+		ShareView.validation = {}
+		ShareView.validationFrame = frame
+	end
+	local cached = ShareView.validation[team]
+	if cached == nil then
+		local selected = Spring.GetSelectedUnits()
+		cached = #selected > 0 and ShareView.api.Units.Validate(ShareView.unitTerms(team), selected) or false
+		ShareView.validation[team] = cached
+	end
+	return cached or nil
+end
+
+-- Which player row the mouse is over, and who listens for the selected units that player may not receive.
+ShareView.hoverPlayerID = nil
+ShareView.hoverListeners = {}
+
+---@alias ShareHoverListener fun(hoverTeamID: integer|nil, hoverPlayerID: integer|nil, invalidUnitIds: integer[])
+
+---@param listener ShareHoverListener
+function ShareView.addHoverListener(listener)
+	table.insert(ShareView.hoverListeners, listener)
+end
+
+---@param listener ShareHoverListener
+function ShareView.removeHoverListener(listener)
+	for i, existing in ipairs(ShareView.hoverListeners) do
+		if existing == listener then
+			table.remove(ShareView.hoverListeners, i)
+			return
+		end
+	end
+end
+
+-- The mouse moved onto a player's row (or off the list: nil, nil). Listeners get the selected units the
+-- hovered player may not receive; every selected unit when the terms refuse that player altogether.
+---@param team integer|nil
+---@param playerID integer|nil
+function ShareView.hover(team, playerID)
+	if ShareView.hoverPlayerID == playerID then
+		return
+	end
+	ShareView.hoverPlayerID = playerID
+	local invalid = {}
+	local myTeam = Spring.GetMyTeamID()
+	if team ~= nil and team ~= myTeam then
+		local selected = Spring.GetSelectedUnits()
+		if #selected > 0 then
+			if ShareView.unitTerms(team).canShare then
+				local validation = ShareView.selectionValidation(team)
+				invalid = validation and validation.invalidUnitIds or {}
+			else
+				invalid = selected
+			end
+		end
+	end
+	for _, listener in ipairs(ShareView.hoverListeners) do
+		listener(team, playerID, invalid)
+	end
+end
+
+-- The slider's number: the amount, or sent→received when the terms tax it.
+---@param team integer
+---@param resourceType ResourceName
+---@param amount number
+---@return string
+function ShareView.sliderLabel(team, resourceType, amount)
+	local Resources = ShareView.api.Resources
+	local terms = ShareView.resourceTerms(team, resourceType)
+	if Resources.CaseOf(terms) ~= Resources.TermsCase.OnTaxed then
+		return tostring(amount)
+	end
+	local received, sent = Resources.CalculateSenderTaxedAmount(terms, amount)
+	return Resources.FormatNumberForUI(sent) .. "→" .. Resources.FormatNumberForUI(received)
+end
+
+-- Half the width of the box behind the slider's label: the old fixed box, or wider when sent→received needs it.
+---@param font table the players list font, measured at the label's size
+---@param label string
+---@param scale number playerScale
+---@return number
+function ShareView.sliderLabelHalfWidth(font, label, scale)
+	local textWidth = font:GetTextWidth(label) * 14 -- printed at size 14, unscaled, like the rest of this list
+	return math.max(23.5 * scale, textWidth / 2 + 5 * scale)
 end
 
 --------------------------------------------------------------------------------
@@ -1047,6 +1162,8 @@ function widget:Initialize()
 	end
 
 	WG.advplayerlist_api = {}
+	WG.advplayerlist_api.AddHoverInvalidUnitsListener = ShareView.addHoverListener
+	WG.advplayerlist_api.RemoveHoverInvalidUnitsListener = ShareView.removeHoverListener
 	WG.advplayerlist_api.GetAlwaysHideSpecs = function()
 		return alwaysHideSpecs
 	end
@@ -1126,6 +1243,16 @@ function widget:GameFrame(n)
 				rankTeamPlayers()
 			end
 		end
+	end
+end
+
+function widget:SelectionChanged(_selectedUnits)
+	ShareView.validation = {}
+	-- the hovered player hears about the new selection
+	local hovered = ShareView.hoverPlayerID
+	if hovered and player[hovered] then
+		ShareView.hoverPlayerID = nil
+		ShareView.hover(player[hovered].team, hovered)
 	end
 end
 
@@ -2204,6 +2331,9 @@ function UpdateResources()
 				maxShareAmount = sp.GetTeamResources(myTeamID, "energy")
 				local energy, energyStorage, _, _, _, shareSliderPos = sp.GetTeamResources(energyPlayer.team, "energy")
 				maxShareAmount = mathMin(maxShareAmount, ((energyStorage * shareSliderPos) - energy))
+				if not ShareView.resourceTerms(energyPlayer.team, "energy").canShare then
+					maxShareAmount = 0
+				end
 				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			end
@@ -2219,6 +2349,9 @@ function UpdateResources()
 				maxShareAmount = sp.GetTeamResources(myTeamID, "metal")
 				local metal, metalStorage, _, _, _, shareSliderPos = sp.GetTeamResources(metalPlayer.team, "metal")
 				maxShareAmount = mathMin(maxShareAmount, ((metalStorage * shareSliderPos) - metal))
+				if not ShareView.resourceTerms(metalPlayer.team, "metal").canShare then
+					maxShareAmount = 0
+				end
 				shareAmount = maxShareAmount * sliderPosition / shareSliderHeight
 				shareAmount = shareAmount - (shareAmount % 1)
 			end
@@ -2581,6 +2714,9 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 	end
 	if mouseY >= tipPosY and mouseY <= tipPosY + (16 * widgetScale * playerScale) then
 		tipY = true
+		if hoverPlayerlist and p.team and not p.spec then
+			ShareView.hover(p.team, playerID)
+		end
 	end
 
 	if onlyMainList and lockPlayerID and lockPlayerID == playerID then
@@ -2611,7 +2747,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY, onlyMainList, onl
 						-- take signal + its tooltip are handled live in DrawScreen/Update (outside the
 						-- render-to-texture) so they can extend beyond the widget bounds and blink
 						if m_share.active and not dead and not hideShareIcons then
-							DrawShareButtons(posY, needm, neede)
+							DrawShareButtons(posY, needm, neede, playerID)
 							if tipY then
 								ShareTip(mouseX, playerID)
 							end
@@ -2776,8 +2912,17 @@ function DrawTakeSignal(posY)
 	end
 end
 
-function DrawShareButtons(posY, needm, neede)
-	gl_Color(1, 1, 1, 1)
+function DrawShareButtons(posY, needm, neede, playerID)
+	local team = player[playerID] and player[playerID].team
+	local unitsAllowed, energyAllowed, metalAllowed = true, true, true
+	if team and team ~= myTeamID then
+		local validation = ShareView.selectionValidation(team)
+		unitsAllowed = ShareView.unitTerms(team).canShare
+			and (validation == nil or validation.status ~= ShareView.enums.UnitValidationOutcome.Failure)
+		energyAllowed = ShareView.resourceTerms(team, "energy").canShare
+		metalAllowed = ShareView.resourceTerms(team, "metal").canShare
+	end
+	gl_Color(1, 1, 1, unitsAllowed and 1 or 0.3)
 	gl_Texture(pics.unitsPic)
 	DrawRect(
 		m_share.posX + widgetPosX + (1 * playerScale),
@@ -2785,6 +2930,7 @@ function DrawShareButtons(posY, needm, neede)
 		m_share.posX + widgetPosX + (17 * playerScale),
 		posY + (16 * playerScale)
 	)
+	gl_Color(1, 1, 1, energyAllowed and 1 or 0.3)
 	gl_Texture(pics.energyPic)
 	DrawRect(
 		m_share.posX + widgetPosX + (17 * playerScale),
@@ -2792,6 +2938,7 @@ function DrawShareButtons(posY, needm, neede)
 		m_share.posX + widgetPosX + (33 * playerScale),
 		posY + (16 * playerScale)
 	)
+	gl_Color(1, 1, 1, metalAllowed and 1 or 0.3)
 	gl_Texture(pics.metalPic)
 	DrawRect(
 		m_share.posX + widgetPosX + (33 * playerScale),
@@ -2799,6 +2946,7 @@ function DrawShareButtons(posY, needm, neede)
 		m_share.posX + widgetPosX + (49 * playerScale),
 		posY + (16 * playerScale)
 	)
+	gl_Color(1, 1, 1, 1)
 	gl_Texture(pics.lowPic)
 
 	if needm then
@@ -3727,23 +3875,29 @@ function ShareTip(mouseX, playerID)
 			tipTextTime = osClock()
 		end
 	else
+		-- what the terms say, in the module's words: allowed, taxed and by how much, or why not
+		local team = player[playerID] and player[playerID].team
 		if
 			mouseX >= widgetPosX + (m_share.posX + (1 * playerScale)) * widgetScale
 			and mouseX <= widgetPosX + (m_share.posX + (17 * playerScale)) * widgetScale
 		then
-			tipText = BAR.I18N("ui.playersList.shareUnits")
+			tipText = team
+					and ShareView.api.Units.TooltipText(ShareView.unitTerms(team), ShareView.selectionValidation(team))
+				or BAR.I18N("ui.playersList.shareUnits.default")
 			tipTextTime = osClock()
 		elseif
 			mouseX >= widgetPosX + (m_share.posX + (19 * playerScale)) * widgetScale
 			and mouseX <= widgetPosX + (m_share.posX + (35 * playerScale)) * widgetScale
 		then
-			tipText = BAR.I18N("ui.playersList.shareEnergy")
+			tipText = team and ShareView.api.Resources.TooltipText(ShareView.resourceTerms(team, "energy"))
+				or BAR.I18N("ui.playersList.shareEnergy.default")
 			tipTextTime = osClock()
 		elseif
 			mouseX >= widgetPosX + (m_share.posX + (37 * playerScale)) * widgetScale
 			and mouseX <= widgetPosX + (m_share.posX + (53 * playerScale)) * widgetScale
 		then
-			tipText = BAR.I18N("ui.playersList.shareMetal")
+			tipText = team and ShareView.api.Resources.TooltipText(ShareView.resourceTerms(team, "metal"))
+				or BAR.I18N("ui.playersList.shareMetal.default")
 			tipTextTime = osClock()
 		end
 	end
@@ -3934,20 +4088,17 @@ function CreateShareSlider()
 				)
 				gl_Texture(false)
 				gl_Color(0.45, 0.45, 0.45, 1)
+				local label = ShareView.sliderLabel(energyPlayer.team, "energy", shareAmount)
+				local labelX = m_share.posX + widgetPosX - (5 * playerScale)
+				local halfWidth = ShareView.sliderLabelHalfWidth(font, label, playerScale)
 				RectRound(
-					mathFloor(m_share.posX + widgetPosX - (28 * playerScale)),
+					mathFloor(labelX - halfWidth),
 					mathFloor(posY - 1 + sliderPosition),
-					mathFloor(m_share.posX + widgetPosX + (19 * playerScale)),
+					mathFloor(labelX + halfWidth),
 					mathFloor(posY + (17 * playerScale) + sliderPosition),
 					2.5 * playerScale
 				)
-				font:Print(
-					"\255\255\255\255" .. shareAmount,
-					m_share.posX + widgetPosX - (5 * playerScale),
-					posY + (3 * playerScale) + sliderPosition,
-					14,
-					"ocn"
-				)
+				font:Print("\255\255\255\255" .. label, labelX, posY + (3 * playerScale) + sliderPosition, 14, "ocn")
 			elseif metalPlayer ~= nil then
 				posY = widgetPosY + widgetHeight - metalPlayer.posY
 				gl_Texture(pics.barPic)
@@ -3966,20 +4117,17 @@ function CreateShareSlider()
 				)
 				gl_Texture(false)
 				gl_Color(0.45, 0.45, 0.45, 1)
+				local label = ShareView.sliderLabel(metalPlayer.team, "metal", shareAmount)
+				local labelX = m_share.posX + widgetPosX + (11 * playerScale)
+				local halfWidth = ShareView.sliderLabelHalfWidth(font, label, playerScale)
 				RectRound(
-					mathFloor(m_share.posX + widgetPosX - (12 * playerScale)),
+					mathFloor(labelX - halfWidth),
 					mathFloor(posY - 1 + sliderPosition),
-					mathFloor(m_share.posX + widgetPosX + (35 * playerScale)),
+					mathFloor(labelX + halfWidth),
 					mathFloor(posY + (17 * playerScale) + sliderPosition),
 					2.5 * playerScale
 				)
-				font:Print(
-					"\255\255\255\255" .. shareAmount,
-					m_share.posX + widgetPosX + (11 * playerScale),
-					posY + (3 * playerScale) + sliderPosition,
-					14,
-					"ocn"
-				)
+				font:Print("\255\255\255\255" .. label, labelX, posY + (3 * playerScale) + sliderPosition, 14, "ocn")
 			end
 			font:End()
 		end
@@ -4184,8 +4332,10 @@ function widget:MousePress(x, y, button)
 											--sp.SendCommands("say a: " .. Spring.I18N('ui.playersList.chat.needSupport'))
 											Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needSupport")
 										else
-											sp.ShareResources(clickedPlayer.team, "units")
-											Spring.PlaySoundFile("beep4", 1, "ui")
+											if ShareView.unitTerms(clickedPlayer.team).canShare then
+												ShareView.api.Units.ShareUnits(clickedPlayer.team)
+												Spring.PlaySoundFile("beep4", 1, "ui")
+											end
 										end
 									end
 									release = nil
@@ -4392,26 +4542,7 @@ function widget:MouseRelease(x, y, button)
 					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needEnergyAmount:amount=" .. shareAmount)
 				end
 			elseif shareAmount > 0 then
-				sp.ShareResources(energyPlayer.team, "energy", shareAmount)
-				--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveEnergy', { amount = shareAmount, name = energyPlayer.name }))
-				if sharingTax and sharingTax > 0 then
-					local amount2 = mathFloor(shareAmount * (1 - sharingTax))
-					Spring.SendLuaRulesMsg(
-						"msg:ui.playersList.chat.giveEnergy_taxed:amount="
-							.. shareAmount
-							.. ":name="
-							.. (energyPlayer.orgname or energyPlayer.name)
-							.. ":amount2="
-							.. amount2
-					)
-				else
-					Spring.SendLuaRulesMsg(
-						"msg:ui.playersList.chat.giveEnergy:amount="
-							.. shareAmount
-							.. ":name="
-							.. (energyPlayer.orgname or energyPlayer.name)
-					)
-				end
+				ShareView.api.Resources.Share(energyPlayer.team, "energy", shareAmount)
 				WG.sharedEnergyFrame = spGetGameFrame()
 			end
 			sliderOrigin = nil
@@ -4432,26 +4563,7 @@ function widget:MouseRelease(x, y, button)
 					Spring.SendLuaRulesMsg("msg:ui.playersList.chat.needMetalAmount:amount=" .. shareAmount)
 				end
 			elseif shareAmount > 0 then
-				sp.ShareResources(metalPlayer.team, "metal", shareAmount)
-				--sp.SendCommands("say a:" .. Spring.I18N('ui.playersList.chat.giveMetal', { amount = shareAmount, name = metalPlayer.name }))
-				if sharingTax and sharingTax > 0 then
-					local amount2 = mathFloor(shareAmount * (1 - sharingTax))
-					Spring.SendLuaRulesMsg(
-						"msg:ui.playersList.chat.giveMetal_taxed:amount="
-							.. shareAmount
-							.. ":name="
-							.. (metalPlayer.orgname or metalPlayer.name)
-							.. ":amount2="
-							.. amount2
-					)
-				else
-					Spring.SendLuaRulesMsg(
-						"msg:ui.playersList.chat.giveMetal:amount="
-							.. shareAmount
-							.. ":name="
-							.. (metalPlayer.orgname or metalPlayer.name)
-					)
-				end
+				ShareView.api.Resources.Share(metalPlayer.team, "metal", shareAmount)
 				WG.sharedMetalFrame = spGetGameFrame()
 			end
 			sliderOrigin = nil
@@ -4951,6 +5063,9 @@ function widget:Update(delta)
 		if updateMainList2 or updateMainList3 then
 			CreateLists(curFrame == 0, updateMainList2, updateMainList3)
 		end
+	end
+	if not hoverPlayerlist then
+		ShareView.hover(nil, nil)
 	end
 end
 
