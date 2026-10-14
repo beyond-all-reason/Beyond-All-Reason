@@ -280,7 +280,6 @@ local function actionCapture(_, _, params)
 		cz = cz,
 		radius = radius,
 	}
-	Spring.Echo(string.format("[DecalCapture] queued '%s' at (%d, %d) r=%d", name, cx, cz, radius))
 	return true
 end
 
@@ -353,7 +352,6 @@ local function autoInstall(name, capturedRel)
 	end
 	fo:write(data)
 	fo:close()
-	Spring.Echo("[DecalCapture] copied -> " .. dstAbs)
 
 	local resWriteRel = sddName ~= "" and ("games/" .. sddName .. "/gamedata/resources.lua") or nil
 	local rfi = (resWriteRel and io.open(resWriteRel, "rb")) or io.open(resAbs, "rb")

@@ -721,7 +721,6 @@ local function stepSave()
 		end
 		c.started = true
 		c.receipt = receipt
-		echoT("capturing the current map...")
 		return false
 	end
 	if not (c.receipt and c.receipt.done) then

@@ -868,7 +868,6 @@ local function stepDiffuse()
 		if not dp.saveProject(job.dir .. "diffuse/", not isBlank) then
 			return diffuseFailSkip("painter is busy")
 		end
-		echoP("capturing diffuse squares" .. ((not isBlank) and " (full map)" or "") .. "...")
 		c.requested = true
 		c.ticks = 0
 		return false
@@ -906,7 +905,6 @@ local function stepDiffuse()
 				kept = kept + 1
 			else
 				os.remove(job.dir .. "diffuse/" .. name)
-				echoP("removed stale diffuse/" .. name)
 			end
 		end
 	end
@@ -1670,7 +1668,6 @@ local function stepAssets()
 		if dnts then
 			dnts.set = "live-capture"
 			dnts.diffuse_alpha = gl.GetMapRendering("splatDetailNormalDiffuseAlpha") and 1 or 0
-			echoP("captured the map's live splat textures into assets/dnts/")
 		elseif findSection("splat") and not placeholderDetail then
 			warn(
 				"map has a splat distribution but no capturable splat textures — splat.png may not load onto a blank canvas"
@@ -1747,7 +1744,6 @@ local function stepCleanupStale()
 				local path = job.dir .. file
 				if fileSize(path) then
 					os.remove(path)
-					echoP("removed stale " .. file .. " (section now empty)")
 				end
 			end
 		end
@@ -1760,9 +1756,6 @@ local function stepCleanupStale()
 		local existing = VFS.DirList(job.dir .. "diffuse/", "*.png", VFS.RAW) or {}
 		for _, p in ipairs(existing) do
 			os.remove(job.dir .. "diffuse/" .. basename(p))
-		end
-		if #existing > 0 then
-			echoP("removed " .. #existing .. " stale diffuse square(s) (section now empty)")
 		end
 	end
 	return true
@@ -2148,9 +2141,6 @@ local function finishSave()
 		dirtyGraceUntil = os.clock() + 2
 		touchRecent(currentSlug)
 	end
-	for _, s in ipairs(job.sections) do
-		echoP(string.format("  %-12s %s (%d bytes%s)", s.name, s.file, s.bytes, s.extra and (", " .. s.extra) or ""))
-	end
 	for _, s in ipairs(job.skipped) do
 		echoP(string.format("  %-12s skipped: %s", s.name, s.reason))
 	end
@@ -2201,12 +2191,6 @@ local function startSave(slug, opts)
 		-- enter the recent list, or clear the unsaved-changes count.
 		internal = (opts and opts.internal) and true or false,
 	}
-	echoP(
-		(job.autosave and "autosaving to '" or (job.internal and "staging '" or "saving project '"))
-			.. slug
-			.. "'..."
-			.. (job.saveUnits and " (with units loadout)" or "")
-	)
 	return true, job.result
 end
 
@@ -3029,7 +3013,6 @@ end
 
 local function loadOk(name, detail)
 	loadJob.loaded[#loadJob.loaded + 1] = { name = name, detail = detail }
-	echoP("loaded " .. name .. (detail and (" (" .. detail .. ")") or ""))
 end
 
 local function loadSkip(name, reason)
@@ -3097,17 +3080,13 @@ local function phaseHeightmap(c)
 		tb.importHeightmap(path, range and range.min, range and range.max, loadJob.transform)
 		c.sent = true
 		c.ticks = 0
-		echoP("heightmap: importing " .. path .. " ...")
 		return false
 	end
 	c.ticks = c.ticks + 1
-	local busy, colsDone, colsTotal = tb.getImportStatus()
+	local busy = tb.getImportStatus()
 	if busy then
 		c.sawBusy = true
 		c.frameAtEnd = nil
-		if c.ticks % 180 == 0 and colsTotal and colsTotal > 0 then
-			echoP(string.format("heightmap: %d%% streamed", math.floor(colsDone / colsTotal * 100)))
-		end
 		return false
 	end
 	local ack = Spring.GetGameRulesParam(ACK_PARAM) or 0
@@ -3460,13 +3439,6 @@ local function phaseDiffuse(c)
 			loadSkip("diffuse", "painter is busy")
 			return true
 		end
-		echoP(
-			string.format(
-				"diffuse: loading %d squares%s...",
-				#sqs,
-				nChans > 0 and (" + " .. nChans .. " channel(s)") or ""
-			)
-		)
 		c.requested = true
 		c.ticks = 0
 		return false
@@ -3617,7 +3589,6 @@ local function phaseUnits(c)
 		c.ackBase = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
 		c.ticks = 0
-		echoP("units: replaying " .. count .. " units...")
 		return false
 	end
 	local ack = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
@@ -3859,12 +3830,6 @@ local LOAD_PHASES = {
 
 local function finishLoad()
 	echoP("PROJECT LOAD COMPLETE: '" .. loadJob.slug .. "'")
-	for _, s in ipairs(loadJob.loaded) do
-		echoP(string.format("  %-12s %s", s.name, s.detail or "ok"))
-	end
-	for _, s in ipairs(loadJob.skipped) do
-		echoP(string.format("  %-12s SKIPPED: %s", s.name, s.reason))
-	end
 	if #loadJob.skipped > 0 then
 		echoP(#loadJob.skipped .. " section(s) skipped — reasons above")
 	end
@@ -3947,7 +3912,6 @@ local function runLoadTick()
 			if sent then
 				c.cheatSends = (c.cheatSends or 0) + 1
 				c.cheatLastSend = c.cheatTicks
-				echoP("enabling /cheat for the load (attempt " .. c.cheatSends .. ")...")
 			end
 		end
 		return
@@ -3960,10 +3924,6 @@ local function runLoadTick()
 		finishLoad()
 		return
 	end
-	if not loadJob.announced then
-		loadJob.announced = true
-		echoP(string.format("phase %d/%d: %s", phaseIdx, #LOAD_PHASES, phase.name))
-	end
 	local ok, done = pcall(phase.run, loadJob.cursor)
 	if not ok then
 		echoP("ERROR in load phase '" .. phase.name .. "': " .. tostring(done))
@@ -3973,7 +3933,6 @@ local function runLoadTick()
 	if done then
 		loadJob.phase = phaseIdx
 		loadJob.cursor = {}
-		loadJob.announced = nil
 		-- Journal progress so /luaui reload mid-load resumes here.
 		writePointer({
 			path = loadJob.dir,
@@ -4115,8 +4074,6 @@ local function maybeStartLoad()
 	end
 	if loadJob.phase > 0 then
 		echoP(string.format("resuming project load '%s' at phase %d/%d", loadJob.slug, loadJob.phase + 1, #LOAD_PHASES))
-	else
-		echoP(string.format("loading project '%s' (%d phases)...", loadJob.slug, #LOAD_PHASES))
 	end
 end
 
