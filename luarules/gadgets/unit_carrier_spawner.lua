@@ -95,6 +95,8 @@ local CMD_REPAIR = CMD.REPAIR
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_MOVE_STATE = CMD.MOVE_STATE
 local CMD_STOCKPILE = CMD.STOCKPILE
+local CMD_IDLEMODE = CMD.IDLEMODE
+local IDLEMODE_FLY = 0
 
 local spawnDefs = {}
 local hasAmmoDrones = false -- some drone type has limited ammo (needs the ProjectileCreated callin)
@@ -843,6 +845,10 @@ local function spawnUnit(spawnData)
 
 						if not carrierData.manualDrones then
 							setDroneNoSelect(subUnitID, true)
+						end
+						-- aircraft land when idle by default
+						if droneMetaData.isAirUnit then
+							spGiveOrderToUnit(subUnitID, CMD_IDLEMODE, IDLEMODE_FLY, 0)
 						end
 					elseif carriedDroneType == "printer" and carrierData.docking then
 						for subUnitID, value in pairsNext, carrierData.subUnitsList do
