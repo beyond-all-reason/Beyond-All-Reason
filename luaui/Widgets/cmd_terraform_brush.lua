@@ -745,20 +745,6 @@ extraState.readPenPressure = function(dt)
 		mapped = p_s * p_s
 	end
 	extraState.penPressureMapped = max(0.0, min(1.0, mapped))
-	-- Periodic diagnostics (~every 2 seconds)
-	extraState._penDiagTimer = (extraState._penDiagTimer or 0) + extraState.penPressureReadInterval
-	if extraState._penDiagTimer >= 2.0 then
-		extraState._penDiagTimer = 0
-		Spring.Echo(
-			string.format(
-				"[TF Pen] OK pressure=%.3f tilt=%d,%d contact=%s",
-				extraState.penPressure,
-				extraState.penTiltX,
-				extraState.penTiltY,
-				tostring(extraState.penInContact)
-			)
-		)
-	end
 end
 
 -- D5: trigger cursor-anchored parameter feedback HUD (1.5s fade)
@@ -1542,25 +1528,6 @@ local function activate(direction, mode, args)
 	activeMode = mode
 	activeRadius = parseRadius(args)
 	extraState.swapModeParams(mode)
-	local modeLabels = {
-		raise = "RAISE",
-		lower = "LOWER",
-		level = "LEVEL",
-		smooth = "SMOOTH",
-		smudge = "SMUDGE",
-		ramp = "RAMP",
-		restore = "RESTORE",
-		erode = "ERODE",
-		autoramp = "AUTORAMP",
-	}
-	local modeLabel = modeLabels[mode] or mode
-	Echo(
-		"[Terraform Brush] Mode: "
-			.. modeLabel
-			.. " | Radius: "
-			.. activeRadius
-			.. " | Hold left-click to terraform, /terraformbrushoff to stop"
-	)
 	return true
 end
 
@@ -1594,7 +1561,6 @@ local invalidateDrawCache
 ---Disables the terrain brush and restores the default cursor.
 local function deactivateTerraform()
 	if activeMode then
-		Echo("[Terraform Brush] Deactivated")
 		Spring.SetMouseCursor("cursornormal")
 	end
 
@@ -2512,14 +2478,11 @@ extraState._newmapTryApplyDNTS = function()
 
 	extraState._newmapDNTSTries = (extraState._newmapDNTSTries or 0) + 1
 
-	local boundAny = false
 	for ch = 1, 4 do
 		local tex = mapOpts["blank_map_splatdetailnormaltex" .. ch]
 		if type(tex) == "string" and tex ~= "" then
 			local reg = registerTexName(tex) or tex
-			if Spring.SetMapShadingTexture("$ssmf_splat_normals", reg, ch - 1) then
-				boundAny = true
-			end
+			Spring.SetMapShadingTexture("$ssmf_splat_normals", reg, ch - 1)
 		end
 	end
 
@@ -2561,12 +2524,6 @@ extraState._newmapTryApplyDNTS = function()
 	local info = gl.TextureInfo("$ssmf_splat_normals:0")
 	if info and info.xsize and info.xsize > 0 then
 		extraState._newmapDNTSApplied = true
-		Echo(
-			string.format(
-				"[Terraform Brush] New Map DNTS fallback bound (%s).",
-				boundAny and "runtime" or "engine-preloaded"
-			)
-		)
 		return
 	end
 
@@ -2617,16 +2574,6 @@ extraState._newmapDrive = function()
 		extraState._newmapInfo = info
 		extraState._newmapCertify = true -- certify the import + metal stamps
 		extraState._newmapApplyHeights(cols)
-		Echo(
-			string.format(
-				"[Terraform Brush] New Map: stamping terrain (%s, %d spawns, water %.0f%%, h %.0f..%.0f)...",
-				info.symmetry,
-				#info.spawns,
-				info.waterPct,
-				info.minHeight,
-				info.maxHeight
-			)
-		)
 		return
 	end
 
@@ -2953,7 +2900,6 @@ end
 
 local function exportHeightmap()
 	pendingExport = true
-	Echo("[Terraform Brush] Export queued, will save on next draw frame...")
 end
 
 local function doExportHeightmap()
@@ -3115,7 +3061,6 @@ local function importHeightmap(_, optLine, args)
 	extraState._importFallbackMin = nil
 	extraState._importFallbackMax = nil
 	pendingImportFile = filename
-	Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 end
 
 local function doImportHeightmapRead()
@@ -3211,9 +3156,6 @@ local function doImportHeightmapRead()
 					if heightRange < 1 then
 						heightRange = 1
 					end
-					Echo(
-						string.format("[Terraform Brush] Using height range embedded in PNG: %.2f to %.2f", minH, maxH)
-					)
 				end
 				local pw, ph = img.width, img.height
 				local gray = img.gray
@@ -3315,19 +3257,6 @@ local function doImportHeightmapRead()
 				end
 				importHeightRows = columns
 				importRowIndex = 0
-				Echo(
-					"[Terraform Brush] Loaded "
-						.. filename
-						.. " ("
-						.. pw
-						.. "x"
-						.. ph
-						.. ", "
-						.. img.bitDepth
-						.. "-bit), applying "
-						.. IMPORT_ROWS_PER_FRAME
-						.. " cols/frame..."
-				)
 				return
 			end
 		end
@@ -3433,17 +3362,6 @@ local function doImportHeightmapRead()
 
 	importHeightRows = columns
 	importRowIndex = 0
-	Echo(
-		"[Terraform Brush] Loaded "
-			.. filename
-			.. " ("
-			.. pixelWidth
-			.. "x"
-			.. pixelHeight
-			.. ", 8-bit), applying "
-			.. IMPORT_ROWS_PER_FRAME
-			.. " cols/frame..."
-	)
 end
 
 local function doImportHeightmapSend()
@@ -3652,15 +3570,6 @@ function widget:Initialize()
 
 	-- New Map: pick up a generation recipe left by the dialog before the reload.
 	extraState._newmapPending = extraState._newmapConsumeRecipe()
-	if extraState._newmapPending then
-		Echo(
-			string.format(
-				"[Terraform Brush] New Map recipe detected (%s, seed %s) — generating terrain after load...",
-				tostring(extraState._newmapPending.symmetry),
-				tostring(extraState._newmapPending.seed)
-			)
-		)
-	end
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
@@ -3682,7 +3591,6 @@ function widget:Initialize()
 			extraState._importFallbackMax = tonumber(fallbackMax)
 			extraState._importXform = (type(xform) == "table") and xform or nil
 			pendingImportFile = filename
-			Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 			return true
 		end,
 		setMode = setMode,
@@ -9852,7 +9760,6 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 			else
 				setLengthScale(activeLengthScale - LENGTH_SCALE_STEP)
 			end
-			Echo("[Terraform Brush] Length: " .. string.format("%.1f", activeLengthScale))
 			return true
 		elseif mods.ctrl then
 			if increase then
@@ -9860,7 +9767,6 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 			else
 				activeRadius = max(MIN_RADIUS, activeRadius - RADIUS_STEP)
 			end
-			Echo("[Terraform Brush] Radius: " .. activeRadius)
 			return true
 		elseif mods.alt then
 			-- Block rotation change during an active brush stroke (angle-snap: one stroke = one angle)
@@ -9887,11 +9793,9 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 						extraState.angleSnapManualSpoke = floor(activeRotation / step + 0.5) % ns
 						extraState.angleSnapAuto = false
 					end
-					Echo("[Terraform Brush] Rotation: " .. activeRotation .. "°")
 				end
 			else
 				rotateBy(increase and step or -step)
-				Echo("[Terraform Brush] Rotation: " .. activeRotation .. "°")
 			end
 			return true
 		elseif mods.shift then
@@ -9901,7 +9805,6 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 				activeCurve = max(MIN_CURVE, activeCurve - CURVE_STEP)
 			end
 			activeCurve = floor(activeCurve * 10 + 0.5) / 10
-			Echo("[Terraform Brush] Curve: " .. string.format("%.1f", activeCurve))
 			return true
 		elseif spaceHeld then
 			if increase then
@@ -9917,7 +9820,6 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 				end
 				setIntensity(newI)
 			end
-			Echo("[Terraform Brush] Intensity: " .. string.format("%.1f", activeIntensity))
 			return true
 		end
 	end
@@ -9926,7 +9828,6 @@ function widget:KeyPress(key, mods, isRepeat, _label, _unicode, scanCode)
 		-- Toggle keys (configurable)
 		if key == getKeybindKey("toggle_clay") then
 			setClayMode(not clayMode)
-			Echo("[Terraform Brush] Clay: " .. (clayMode and "ON" or "OFF"))
 			return true
 		end
 
@@ -10358,9 +10259,6 @@ function widget:MousePress(mx, my, button)
 			savedModeBeforeRMB = activeMode
 			rightMouseHeld = true
 			setMode("lower")
-			Echo(
-				"[Terraform Brush] RMB → LOWER (release to restore " .. (savedModeBeforeRMB or "raise"):upper() .. ")"
-			)
 		end
 		local worldX, worldZ = getWorldMousePosition()
 		if worldX then
@@ -10476,7 +10374,6 @@ function widget:MouseRelease(mx, my, button)
 		stampApplied = false
 		if savedModeBeforeRMB then
 			setMode(savedModeBeforeRMB)
-			Echo("[Terraform Brush] Restored: " .. (savedModeBeforeRMB):upper())
 		else
 			activeMode = nil
 			activeDirection = nil
@@ -10625,7 +10522,6 @@ function widget:MouseWheel(up, value)
 				else
 					setRingInnerRatio(ringInnerRatio - RING_WIDTH_STEP)
 				end
-				Echo("[Terraform Brush] Ring width: " .. floor((1 - ringInnerRatio) * 100 + 0.5) .. "%")
 				extraState.setParamHud("Ring: " .. floor((1 - ringInnerRatio) * 100 + 0.5) .. "%") -- D5
 				return true
 			elseif action == "scroll_protractor" then
@@ -10651,7 +10547,6 @@ function widget:MouseWheel(up, value)
 					local curIdx = floor(activeRotation / step + 0.5) % numSpokes
 					extraState.angleSnapManualSpoke = (curIdx + dir + numSpokes) % numSpokes
 					activeRotation = (extraState.angleSnapManualSpoke * step) % 360
-					Echo("[Terraform Brush] Protractor: " .. activeRotation .. "\194\176")
 					extraState.setParamHud("Spoke: " .. activeRotation .. "\194\176") -- D5
 				end
 				return true
@@ -10661,7 +10556,6 @@ function widget:MouseWheel(up, value)
 				else
 					setLengthScale(activeLengthScale - LENGTH_SCALE_STEP)
 				end
-				Echo("[Terraform Brush] Length: " .. string.format("%.1f", activeLengthScale))
 				extraState.setParamHud("Length: " .. string.format("%.1f", activeLengthScale)) -- D5
 				return true
 			elseif action == "scroll_rotation" then
@@ -10689,12 +10583,10 @@ function widget:MouseWheel(up, value)
 						local ns = floor(360 / step)
 						extraState.angleSnapManualSpoke = floor(activeRotation / step + 0.5) % ns
 						extraState.angleSnapAuto = false
-						Echo("[Terraform Brush] Rotation: " .. activeRotation)
 						extraState.setParamHud("Rot: " .. activeRotation .. "\194\176") -- D5
 					end
 				else
 					rotateBy(up and step or -step)
-					Echo("[Terraform Brush] Rotation: " .. activeRotation)
 					extraState.setParamHud("Rot: " .. activeRotation .. "\194\176") -- D5
 				end
 				return true
@@ -10705,7 +10597,6 @@ function widget:MouseWheel(up, value)
 					activeCurve = max(MIN_CURVE, activeCurve - CURVE_STEP)
 				end
 				activeCurve = floor(activeCurve * 10 + 0.5) / 10
-				Echo("[Terraform Brush] Curve: " .. string.format("%.1f", activeCurve))
 				extraState.setParamHud("Curve: " .. string.format("%.1f", activeCurve)) -- D5
 				return true
 			elseif action == "scroll_intensity" then
@@ -10722,7 +10613,6 @@ function widget:MouseWheel(up, value)
 					end
 					setIntensity(newI)
 				end
-				Echo("[Terraform Brush] Intensity: " .. string.format("%.1f", activeIntensity))
 				extraState.setParamHud("Intensity: " .. string.format("%.1f", activeIntensity)) -- D5
 				return true
 			elseif action == "scroll_size" then
@@ -10731,14 +10621,12 @@ function widget:MouseWheel(up, value)
 				else
 					activeRadius = max(MIN_RADIUS, activeRadius - RADIUS_STEP)
 				end
-				Echo("[Terraform Brush] Radius: " .. activeRadius)
 				extraState.setParamHud("Radius: " .. activeRadius) -- D5
 				return true
 			elseif action == "scroll_cap_max" then
 				local current = heightCapMax or 0
 				setHeightCapMax(current + (up and 8 or -8))
 				local capStr = heightCapMax and tostring(heightCapMax) or "off"
-				Echo("[Terraform Brush] Height cap max: " .. capStr)
 				extraState.setParamHud("Cap max: " .. capStr)
 				if WG.TerraformBrushUI and WG.TerraformBrushUI.expandHeightCap then
 					WG.TerraformBrushUI.expandHeightCap()
