@@ -245,11 +245,6 @@ function Blockout.getCatalog()
 	return catalog
 end
 
----@return integer
-function Blockout.getLayerCount()
-	return LAYER_COUNT
-end
-
 ---@param i integer layer 1..3
 ---@return { def: string?, yaw: number, scale: number }?
 function Blockout.getLayer(i)
@@ -324,8 +319,6 @@ function Blockout.getDepthTexture()
 	end
 	return nil
 end
-
-Blockout.MIN_SCALE, Blockout.MAX_SCALE = MIN_SCALE, MAX_SCALE
 
 local function releaseDepthTarget()
 	if depth.fbo then
