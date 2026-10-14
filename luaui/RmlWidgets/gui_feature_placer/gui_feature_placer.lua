@@ -365,7 +365,6 @@ local function startThumbGeneration()
 	end
 
 	thumbGenerating = true
-	Spring.Echo("[Feature Placer UI] Generating " .. thumbTotal .. " thumbnails...")
 end
 
 local function processThumbQueue()
@@ -403,7 +402,6 @@ local function processThumbQueue()
 	if thumbQueueIdx > #thumbQueue then
 		thumbGenerating = false
 		needsListRefresh = true
-		Spring.Echo("[Feature Placer UI] Thumbnails complete (" .. thumbDone .. "/" .. thumbTotal .. ")")
 	end
 end
 

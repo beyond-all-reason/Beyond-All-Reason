@@ -1791,13 +1791,9 @@ end
 local function activate(mode)
 	active = true
 	subMode = mode or "express"
-	Echo("[StartPos Tool] Activated: " .. subMode:upper())
 end
 
 local function deactivate()
-	if active then
-		Echo("[StartPos Tool] Deactivated")
-	end
 	active = false
 	dragging = false
 	dragIdx = nil

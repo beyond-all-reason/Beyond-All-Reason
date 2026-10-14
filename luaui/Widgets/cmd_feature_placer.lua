@@ -1424,9 +1424,6 @@ end
 -- Activation / Mode management
 ----------------------------------------------------------------
 local function deactivate()
-	if fp.active then
-		Echo("[Feature Placer] Deactivated")
-	end
 	fp.active = false
 	fp.mode = nil
 	fp.dragging = false
@@ -2310,7 +2307,6 @@ function widget:MouseWheel(up, value)
 		end
 		local dir = up and 1 or -1
 		fp.rotation = ((fp.rotation + dir * step) % 360 + 360) % 360
-		Echo("[Feature Placer] Rotation: " .. fp.rotation .. "°")
 		return true
 	end
 
@@ -2318,7 +2314,6 @@ function widget:MouseWheel(up, value)
 		-- Shift+Scroll = feature count
 		local step = up and 1 or -1
 		setFeatureCount(fp.featureCount + step)
-		Echo("[Feature Placer] Count: " .. fp.featureCount)
 		return true
 	end
 
@@ -2338,7 +2333,6 @@ function widget:MouseWheel(up, value)
 			end
 			setCadence(newC)
 		end
-		Echo("[Feature Placer] Cadence: " .. fp.cadence)
 		return true
 	end
 
@@ -2346,7 +2340,6 @@ function widget:MouseWheel(up, value)
 		-- Ctrl+Scroll = resize
 		local step = up and RADIUS_STEP or -RADIUS_STEP
 		setRadius(fp.radius + step)
-		Echo("[Feature Placer] Radius: " .. fp.radius)
 		return true
 	end
 

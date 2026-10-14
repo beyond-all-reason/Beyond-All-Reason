@@ -220,7 +220,6 @@ local function buildDecalList()
 	-- Pass 2: emit one library entry per pair, preferring the main half.
 	-- Any key that only has a norm half (orphan normal) is skipped — rendering
 	-- a raw normal map on terrain looks like nothing useful.
-	local skippedNormals = 0
 	for key, m in pairs(mainsByKey) do
 		local entry = {
 			name = m.name,
@@ -240,11 +239,6 @@ local function buildDecalList()
 		local cl = decalCategories[cat]
 		cl[#cl + 1] = entry
 	end
-	for key, _ in pairs(normsByKey) do
-		if not mainsByKey[key] then
-			skippedNormals = skippedNormals + 1
-		end
-	end
 
 	-- Custom ground decals are registered into the engine atlas via
 	-- gamedata/resources.lua `graphics.decals` subtable; engine assigns them
@@ -260,14 +254,6 @@ local function buildDecalList()
 			end)
 		end
 	end
-	Echo(
-		string.format(
-			"[Decal Placer] Loaded %d decals (%d main/norm pairs, %d orphan normals hidden)",
-			#decalList,
-			#decalList,
-			skippedNormals
-		)
-	)
 end
 
 ----------------------------------------------------------------
@@ -415,7 +401,6 @@ local function placeRemove(cx, cz)
 	end
 	local r = dp.radius
 	local r2 = r * r
-	local removed = 0
 	for _, id in ipairs(GetAllGroundDecals()) do
 		local dx, dz = GetGroundDecalMiddlePos(id)
 		if dx then
@@ -423,14 +408,10 @@ local function placeRemove(cx, cz)
 			local ddz = dz - cz
 			if ddx * ddx + ddz * ddz <= r2 then
 				if DestroyGroundDecal(id) then
-					removed = removed + 1
 					dp.projectIDs[id] = nil
 				end
 			end
 		end
-	end
-	if removed > 0 then
-		Echo("[Decal Placer] Removed " .. removed .. " decal(s)")
 	end
 end
 
@@ -496,9 +477,6 @@ end
 -- Activation / Mode
 ----------------------------------------------------------------
 local function deactivate()
-	if dp.active then
-		Echo("[Decal Placer] Deactivated")
-	end
 	dp.active = false
 	dp.mode = nil
 	dp.dragging = false

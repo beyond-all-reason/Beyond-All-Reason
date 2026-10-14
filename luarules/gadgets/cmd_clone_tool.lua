@@ -228,12 +228,10 @@ local gaiaTeamID = Spring.GetGaiaTeamID()
 local function handleCloneFeatures(payload)
 	local parts, _ = parseParts(payload)
 	local entryCount = tonumber(parts[1]) or 0
-	spEcho("[Clone Gadget] Features recv: " .. entryCount)
 	if entryCount == 0 then
 		return
 	end
 
-	local created = 0
 	for i = 1, entryCount do
 		local pi = 1 + (i - 1) * 5 + 1
 		local defName = parts[pi]
@@ -243,12 +241,10 @@ local function handleCloneFeatures(payload)
 		local heading = tonumber(parts[pi + 4]) or 0
 		if defName and FeatureDefNames[defName] then
 			spCreateFeature(defName, x, y, z, heading, gaiaTeamID)
-			created = created + 1
 		else
 			spEcho("[Clone Gadget] Feature defName not found: '" .. tostring(defName) .. "'")
 		end
 	end
-	spEcho("[Clone Gadget] Features created: " .. created .. "/" .. entryCount)
 end
 
 -- ---------------------------------------------------------------------------

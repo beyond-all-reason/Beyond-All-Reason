@@ -825,13 +825,10 @@ local function applyPaste(targetX, targetZ)
 	-- Features
 	local function applyFeatures()
 		if not buf.features then
-			spEcho("[Clone Tool] Features: skipped (layer was off during copy)")
 			return
 		end
 		local featureCount = #buf.features
-		spEcho("[Clone Tool] Features: pasting " .. featureCount .. " feature(s)")
 		if featureCount == 0 then
-			spEcho("[Clone Tool] Features: buffer empty, skipping clear+create")
 			return
 		end
 		-- Clear target area first

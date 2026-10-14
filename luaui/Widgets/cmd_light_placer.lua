@@ -1976,11 +1976,9 @@ function widget:KeyPress(key, mods, isRepeat)
 			if lp.mode == "point" then
 				local step = increase and LIGHT_RADIUS_STEP or -LIGHT_RADIUS_STEP
 				lp.lightRadius = max(10, min(5000, lp.lightRadius + step))
-				Echo("[Light Placer] Light radius: " .. lp.lightRadius)
 			else
 				local step = increase and RADIUS_STEP or -RADIUS_STEP
 				lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
-				Echo("[Light Placer] Brush radius: " .. lp.radius)
 			end
 			return true
 		elseif mods.alt then
@@ -1989,12 +1987,10 @@ function widget:KeyPress(key, mods, isRepeat)
 			else
 				lp.rotation = (lp.rotation - ROTATION_STEP) % 360
 			end
-			Echo("[Light Placer] Rotation: " .. lp.rotation .. "°")
 			return true
 		elseif mods.shift then
 			local step = increase and ELEVATION_STEP or -ELEVATION_STEP
 			lp.elevation = max(0, min(2000, lp.elevation + step))
-			Echo("[Light Placer] Elevation: " .. lp.elevation)
 			return true
 		elseif spaceHeld then
 			if increase then
@@ -2002,7 +1998,6 @@ function widget:KeyPress(key, mods, isRepeat)
 			else
 				lp.brightness = max(0.01, lp.brightness - BRIGHTNESS_STEP)
 			end
-			Echo("[Light Placer] Brightness: " .. string.format("%.2f", lp.brightness))
 			return true
 		end
 	end
@@ -2031,15 +2026,12 @@ function widget:MouseWheel(up, value)
 
 	if rHeld then
 		lp.color[1] = max(0, min(1, lp.color[1] + delta))
-		Echo("[Light Placer] Red: " .. string.format("%.2f", lp.color[1]))
 		return true
 	elseif gHeld then
 		lp.color[2] = max(0, min(1, lp.color[2] + delta))
-		Echo("[Light Placer] Green: " .. string.format("%.2f", lp.color[2]))
 		return true
 	elseif bHeld then
 		lp.color[3] = max(0, min(1, lp.color[3] + delta))
-		Echo("[Light Placer] Blue: " .. string.format("%.2f", lp.color[3]))
 		return true
 	end
 
@@ -2047,7 +2039,6 @@ function widget:MouseWheel(up, value)
 	if ctrl and alt then
 		local dir = up and 5 or -5
 		lp.pitch = max(-90, min(90, lp.pitch + dir))
-		Echo("[Light Placer] Pitch: " .. lp.pitch .. "°")
 		return true
 	end
 
@@ -2055,7 +2046,6 @@ function widget:MouseWheel(up, value)
 	if alt and not ctrl then
 		local dir = up and 10 or -10
 		lp.yaw = ((lp.yaw + dir) % 360 + 360) % 360
-		Echo("[Light Placer] Yaw: " .. lp.yaw .. "°")
 		return true
 	end
 
@@ -2063,7 +2053,6 @@ function widget:MouseWheel(up, value)
 	if shift and not ctrl then
 		local step = up and ELEVATION_STEP or -ELEVATION_STEP
 		lp.elevation = max(0, min(2000, lp.elevation + step))
-		Echo("[Light Placer] Elevation: " .. lp.elevation)
 		return true
 	end
 
@@ -2075,7 +2064,6 @@ function widget:MouseWheel(up, value)
 		else
 			lp.brightness = max(0.01, lp.brightness - BRIGHTNESS_STEP)
 		end
-		Echo("[Light Placer] Brightness: " .. string.format("%.2f", lp.brightness))
 		return true
 	end
 
@@ -2084,11 +2072,9 @@ function widget:MouseWheel(up, value)
 		if lp.mode == "point" then
 			local step = up and LIGHT_RADIUS_STEP or -LIGHT_RADIUS_STEP
 			lp.lightRadius = max(10, min(5000, lp.lightRadius + step))
-			Echo("[Light Placer] Light radius: " .. lp.lightRadius)
 		else
 			local step = up and RADIUS_STEP or -RADIUS_STEP
 			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, lp.radius + step))
-			Echo("[Light Placer] Brush radius: " .. lp.radius)
 		end
 		return true
 	end

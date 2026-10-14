@@ -825,10 +825,7 @@ local function doPointPlace(cx, cz)
 end
 
 local function doRemove(cx, cz)
-	local count = removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
-	if count > 0 then
-		Echo("[Weather Brush] Removed " .. count .. " persistent effect(s)")
-	end
+	removePersistentSpawnersInArea(cx, cz, wb.radius, wb.shape, wb.rotation, wb.lengthScale)
 end
 
 -- Apply TerraformBrush grid-snap + symmetric fan-out to a placement call.

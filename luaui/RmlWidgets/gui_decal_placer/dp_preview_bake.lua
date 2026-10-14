@@ -298,10 +298,6 @@ function M.enqueueAll(categories, getFallbackPath)
 		end
 	end
 	bakesEnqueued = true
-
-	if #bakeQueue > 0 then
-		Spring.Echo(string.format("[Decal Placer] queued %d decal previews to bake", #bakeQueue))
-	end
 	return #bakeQueue
 end
 
