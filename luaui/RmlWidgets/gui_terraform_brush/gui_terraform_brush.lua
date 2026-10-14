@@ -1047,11 +1047,8 @@ local skyDynamic = {
 	origQuat = nil, -- alias for startQuat (used by sun delta calc)
 	-- Cached DOM elements for sun slider feedback (populated during init)
 	sunSliderX = nil,
-	sunLabelX = nil,
 	sunSliderY = nil,
-	sunLabelY = nil,
 	sunSliderZ = nil,
-	sunLabelZ = nil,
 }
 
 -- Quaternion helpers for composing per-axis rotations
@@ -1134,17 +1131,14 @@ local function tickSkyDynamic(dt)
 		-- Update sun direction sliders to reflect current values
 		if skyDynamic.sunSliderX then
 			uiState.updatingFromCode = true
-			local function setSlLb(sl, lb, v)
+			local function setSl(sl, v)
 				if sl then
 					sl:SetAttribute("value", tostring(math.floor(v * 10000 + 0.5)))
 				end
-				if lb then
-					lb.inner_rml = string.format("%.2f", v)
-				end
 			end
-			setSlLb(skyDynamic.sunSliderX, skyDynamic.sunLabelX, sx)
-			setSlLb(skyDynamic.sunSliderY, skyDynamic.sunLabelY, sy)
-			setSlLb(skyDynamic.sunSliderZ, skyDynamic.sunLabelZ, sz)
+			setSl(skyDynamic.sunSliderX, sx)
+			setSl(skyDynamic.sunSliderY, sy)
+			setSl(skyDynamic.sunSliderZ, sz)
 			uiState.updatingFromCode = false
 			if widgetState.refreshEnvSunAzEl then
 				widgetState.refreshEnvSunAzEl()
@@ -1775,18 +1769,14 @@ end
 
 -- Helpers for environment DataModel handlers (onEnv*) defined in initialModel below.
 -- Mirror tf_environment.lua's envSetSlider/updatePreview but use widgetState.document.
-local function _envSetSlider(sliderId, labelId, intVal, displayVal)
+local function _envSetSlider(sliderId, intVal)
 	local doc = widgetState.document
 	if not doc then
 		return
 	end
 	local sl = doc:GetElementById(sliderId)
-	local lb = doc:GetElementById(labelId)
 	if sl then
 		sl:SetAttribute("value", tostring(intVal))
-	end
-	if lb then
-		lb.inner_rml = displayVal
 	end
 end
 local function _envUpdatePreview(previewId, r, g, b)
@@ -2318,16 +2308,11 @@ widgetState.refreshEnvSunSliders = function()
 		return
 	end
 	uiState.updatingFromCode = true
-	_envSetSlider("slider-env-sun-x", "lbl-env-sun-x", math.floor(sx * 10000 + 0.5), string.format("%.2f", sx))
-	_envSetSlider("slider-env-sun-y", "lbl-env-sun-y", math.floor(sy * 10000 + 0.5), string.format("%.2f", sy))
-	_envSetSlider("slider-env-sun-z", "lbl-env-sun-z", math.floor(sz * 10000 + 0.5), string.format("%.2f", sz))
+	_envSetSlider("slider-env-sun-x", math.floor(sx * 10000 + 0.5))
+	_envSetSlider("slider-env-sun-y", math.floor(sy * 10000 + 0.5))
+	_envSetSlider("slider-env-sun-z", math.floor(sz * 10000 + 0.5))
 	local si = widgetState.envSunIntensity or 1.0
-	_envSetSlider(
-		"slider-env-sun-intensity",
-		"lbl-env-sun-intensity",
-		math.floor(si * 1000 + 0.5),
-		string.format("%.2f", si)
-	)
+	_envSetSlider("slider-env-sun-intensity", math.floor(si * 1000 + 0.5))
 	uiState.updatingFromCode = false
 end
 
@@ -2341,8 +2326,8 @@ widgetState.refreshEnvSunAzEl = function()
 	end
 	local az, el = widgetState.azElFromSunDir(sx, sy, sz)
 	uiState.updatingFromCode = true
-	_envSetSlider("slider-env-sun-az", "lbl-env-sun-az", math.floor(az * 10 + 0.5), string.format("%.1f", az))
-	_envSetSlider("slider-env-sun-el", "lbl-env-sun-el", math.floor(el * 10 + 0.5), string.format("%.1f", el))
+	_envSetSlider("slider-env-sun-az", math.floor(az * 10 + 0.5))
+	_envSetSlider("slider-env-sun-el", math.floor(el * 10 + 0.5))
 	uiState.updatingFromCode = false
 end
 
@@ -12214,42 +12199,12 @@ local initialModel = {
 		if widgetState.refreshEnvSunAzEl then
 			widgetState.refreshEnvSunAzEl()
 		end
-		_envSetSlider(
-			"slider-env-sun-intensity",
-			"lbl-env-sun-intensity",
-			math.floor(intensity * 1000 + 0.5),
-			string.format("%.2f", intensity)
-		)
-		_envSetSlider(
-			"slider-env-sun-y",
-			"lbl-env-sun-y",
-			math.floor(d.sunPos[2] * 10000 + 0.5),
-			string.format("%.2f", d.sunPos[2])
-		)
-		_envSetSlider(
-			"slider-env-sun-x",
-			"lbl-env-sun-x",
-			math.floor(d.sunPos[1] * 10000 + 0.5),
-			string.format("%.2f", d.sunPos[1])
-		)
-		_envSetSlider(
-			"slider-env-sun-z",
-			"lbl-env-sun-z",
-			math.floor(d.sunPos[3] * 10000 + 0.5),
-			string.format("%.2f", d.sunPos[3])
-		)
-		_envSetSlider(
-			"slider-env-gshadow",
-			"lbl-env-gshadow",
-			math.floor(d.groundShadowDensity * 1000 + 0.5),
-			string.format("%.2f", d.groundShadowDensity)
-		)
-		_envSetSlider(
-			"slider-env-ushadow",
-			"lbl-env-ushadow",
-			math.floor(d.unitShadowDensity * 1000 + 0.5),
-			string.format("%.2f", d.unitShadowDensity)
-		)
+		_envSetSlider("slider-env-sun-intensity", math.floor(intensity * 1000 + 0.5))
+		_envSetSlider("slider-env-sun-y", math.floor(d.sunPos[2] * 10000 + 0.5))
+		_envSetSlider("slider-env-sun-x", math.floor(d.sunPos[1] * 10000 + 0.5))
+		_envSetSlider("slider-env-sun-z", math.floor(d.sunPos[3] * 10000 + 0.5))
+		_envSetSlider("slider-env-gshadow", math.floor(d.groundShadowDensity * 1000 + 0.5))
+		_envSetSlider("slider-env-ushadow", math.floor(d.unitShadowDensity * 1000 + 0.5))
 	end,
 	onEnvResetFog = function(_event)
 		local d = widgetState.envDefaults
@@ -12257,18 +12212,8 @@ local initialModel = {
 			return
 		end
 		Spring.SetAtmosphere({ fogStart = d.fogStart, fogEnd = d.fogEnd })
-		_envSetSlider(
-			"slider-env-fog-start",
-			"lbl-env-fog-start",
-			math.floor(d.fogStart * 100 + 0.5),
-			string.format("%.2f", d.fogStart)
-		)
-		_envSetSlider(
-			"slider-env-fog-end",
-			"lbl-env-fog-end",
-			math.floor(d.fogEnd * 100 + 0.5),
-			string.format("%.2f", d.fogEnd)
-		)
+		_envSetSlider("slider-env-fog-start", math.floor(d.fogStart * 100 + 0.5))
+		_envSetSlider("slider-env-fog-end", math.floor(d.fogEnd * 100 + 0.5))
 	end,
 	onEnvResetFogColor = function(_event)
 		local d = widgetState.envDefaults
@@ -12277,12 +12222,7 @@ local initialModel = {
 		end
 		Spring.SetAtmosphere({ fogColor = d.fogColor })
 		for i, s in ipairs({ "r", "g", "b", "a" }) do
-			_envSetSlider(
-				"slider-env-fog-" .. s,
-				"lbl-env-fog-" .. s,
-				math.floor((d.fogColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.fogColor[i] or 0)
-			)
+			_envSetSlider("slider-env-fog-" .. s, math.floor((d.fogColor[i] or 0) * 1000 + 0.5))
 		end
 	end,
 	onEnvResetSunCol = function(_event)
@@ -12292,12 +12232,7 @@ local initialModel = {
 		end
 		Spring.SetAtmosphere({ sunColor = d.sunColor })
 		for i, s in ipairs({ "r", "g", "b" }) do
-			_envSetSlider(
-				"slider-env-suncol-" .. s,
-				"lbl-env-suncol-" .. s,
-				math.floor((d.sunColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.sunColor[i] or 0)
-			)
+			_envSetSlider("slider-env-suncol-" .. s, math.floor((d.sunColor[i] or 0) * 1000 + 0.5))
 		end
 	end,
 	onEnvResetSkyCol = function(_event)
@@ -12307,12 +12242,7 @@ local initialModel = {
 		end
 		Spring.SetAtmosphere({ skyColor = d.skyColor })
 		for i, s in ipairs({ "r", "g", "b" }) do
-			_envSetSlider(
-				"slider-env-skycol-" .. s,
-				"lbl-env-skycol-" .. s,
-				math.floor((d.skyColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.skyColor[i] or 0)
-			)
+			_envSetSlider("slider-env-skycol-" .. s, math.floor((d.skyColor[i] or 0) * 1000 + 0.5))
 		end
 	end,
 	onEnvResetCloudCol = function(_event)
@@ -12322,12 +12252,7 @@ local initialModel = {
 		end
 		Spring.SetAtmosphere({ cloudColor = d.cloudColor })
 		for i, s in ipairs({ "r", "g", "b" }) do
-			_envSetSlider(
-				"slider-env-cloudcol-" .. s,
-				"lbl-env-cloudcol-" .. s,
-				math.floor((d.cloudColor[i] or 0) * 1000 + 0.5),
-				string.format("%.2f", d.cloudColor[i] or 0)
-			)
+			_envSetSlider("slider-env-cloudcol-" .. s, math.floor((d.cloudColor[i] or 0) * 1000 + 0.5))
 		end
 		_envUpdatePreview("env-cloudcol-preview", d.cloudColor[1], d.cloudColor[2], d.cloudColor[3])
 	end,
@@ -12352,14 +12277,14 @@ local initialModel = {
 				WG.snow.setColor(0.8, 0.8, 0.9)
 			end
 		end
-		_envSetSlider("slider-env-snow-density", "lbl-env-snow-density", 100, "1.00")
-		_envSetSlider("slider-env-snow-speed", "lbl-env-snow-speed", 100, "1.00")
-		_envSetSlider("slider-env-snow-size", "lbl-env-snow-size", 100, "1.00")
-		_envSetSlider("slider-env-snow-wind", "lbl-env-snow-wind", 45, "4.50")
-		_envSetSlider("slider-env-snow-opacity", "lbl-env-snow-opacity", 66, "0.66")
-		_envSetSlider("slider-env-snowcol-r", "lbl-env-snowcol-r", 800, "0.80")
-		_envSetSlider("slider-env-snowcol-g", "lbl-env-snowcol-g", 800, "0.80")
-		_envSetSlider("slider-env-snowcol-b", "lbl-env-snowcol-b", 900, "0.90")
+		_envSetSlider("slider-env-snow-density", 100)
+		_envSetSlider("slider-env-snow-speed", 100)
+		_envSetSlider("slider-env-snow-size", 100)
+		_envSetSlider("slider-env-snow-wind", 45)
+		_envSetSlider("slider-env-snow-opacity", 66)
+		_envSetSlider("slider-env-snowcol-r", 800)
+		_envSetSlider("slider-env-snowcol-g", 800)
+		_envSetSlider("slider-env-snowcol-b", 900)
 		_envUpdatePreview("env-snowcol-preview", 0.8, 0.8, 0.9)
 	end,
 	onEnvResetGroundLighting = function(_event)
@@ -12380,12 +12305,7 @@ local initialModel = {
 		}
 		for _, entry in ipairs(map) do
 			for i, s in ipairs({ "r", "g", "b" }) do
-				_envSetSlider(
-					"slider-env-" .. entry[1] .. "-" .. s,
-					"lbl-env-" .. entry[1] .. "-" .. s,
-					math.floor((entry[2][i] or 0) * 1000 + 0.5),
-					string.format("%.2f", entry[2][i] or 0)
-				)
+				_envSetSlider("slider-env-" .. entry[1] .. "-" .. s, math.floor((entry[2][i] or 0) * 1000 + 0.5))
 			end
 		end
 	end,
@@ -12407,12 +12327,7 @@ local initialModel = {
 		}
 		for _, entry in ipairs(map) do
 			for i, s in ipairs({ "r", "g", "b" }) do
-				_envSetSlider(
-					"slider-env-" .. entry[1] .. "-" .. s,
-					"lbl-env-" .. entry[1] .. "-" .. s,
-					math.floor((entry[2][i] or 0) * 1000 + 0.5),
-					string.format("%.2f", entry[2][i] or 0)
-				)
+				_envSetSlider("slider-env-" .. entry[1] .. "-" .. s, math.floor((entry[2][i] or 0) * 1000 + 0.5))
 			end
 		end
 	end,
@@ -12464,12 +12379,7 @@ local initialModel = {
 			local prefix, defVal = entry[1], entry[2]
 			Spring.SetWaterParams({ [paramMap[prefix]] = defVal })
 			for i, s in ipairs({ "r", "g", "b" }) do
-				_envSetSlider(
-					"slider-env-wc-" .. prefix .. "-" .. s,
-					"lbl-env-wc-" .. prefix .. "-" .. s,
-					math.floor((defVal[i] or 0) * 1000 + 0.5),
-					string.format("%.2f", defVal[i] or 0)
-				)
+				_envSetSlider("slider-env-wc-" .. prefix .. "-" .. s, math.floor((defVal[i] or 0) * 1000 + 0.5))
 			end
 			_envUpdatePreview("env-wc-preview-" .. prefix, defVal[1], defVal[2], defVal[3])
 		end
