@@ -1784,46 +1784,44 @@ local options = {
 	{
 		key = "zombies",
 		name = "Scavenger Zombies",
+		desc = "Corpses left on the battlefield rise again as hostile zombies that attack every player. Revival takes 45 to 120 seconds, with stronger units taking longer and revival speeding up as the game reaches higher tech. Reclaim or resurrect corpses to stop them from rising. After 60 minutes, zombies become permanently aggressive.",
 		type = "list",
 		def = "disabled",
 		section = "options_extra",
 		hidden = false,
 		items = {
-			{ key = "disabled", name = "Disabled", desc = "Disabled", lock = { "spidergeddon" } },
+			{ key = "disabled", name = "Disabled", desc = "No zombies. Corpses stay where they fall." },
 			{
-				key = "normal",
-				name = "Normal",
-				desc = "Normal revival rate, normal strength.",
-				unlock = { "spidergeddon" },
+				key = "basic",
+				name = "Basic",
+				desc = "Unit dies, after a while it comes back to life as a zombie.",
 			},
 			{
-				key = "hard",
-				name = "Hard",
-				desc = "Faster revival rate, stronger Zombies.",
-				unlock = { "spidergeddon" },
+				key = "oni",
+				name = "Oni",
+				desc = "Zombies are stronger. Every death leaves a corpse no matter how badly it was overkilled, including the deaths of zombies themselves, so the dead keep coming back. Units lost in water or lava, reclaimed, or cancelled while under construction are not guaranteed a corpse.",
 			},
 			{
-				key = "nightmare",
-				name = "Nightmare",
-				desc = "Faster revival rate, stronger Zombies, 2-5 spawn per corpse.",
-				unlock = { "spidergeddon" },
+				key = "yokai",
+				name = "Yokai",
+				desc = "Ghostly apparitions haunt the battlefield and bring back the units that left no corpse to rise from. Units overkilled into heaps or nothing, and corpses destroyed by anything other than reclaim or resurrection, have a 66% chance to be claimed by an apparition, which respawns them later. Zombies killed without overkill stay dead. Extra apparitions also appear at random every 15 minutes.",
+			},
+			{
+				key = "nani",
+				name = "Nani?!",
+				desc = "Each corpse raises 2 to 6 zombies instead of one. Counts lean low early in the game and for slow-reviving units, and lean high for fast-reviving units later on. Structures and former zombies still rise as a single zombie, and killed zombies leave only heaps.",
 			},
 			{
 				key = "akumu",
 				name = "Akumu",
-				desc = "Faster revival rate, stronger Zombies, 2-8 spawn per corpse.",
-				unlock = { "spidergeddon" },
+				desc = "The full nightmare: Oni, Yokai, and Nani?! combined. Every death leaves a corpse that raises 2 to 6 stronger zombies, killed zombies keep rising, and apparitions have a 66% chance to respawn anything whose corpse was destroyed.",
+			},
+			{
+				key = "spidergeddon",
+				name = "Spidergeddon",
+				desc = "Akumu, but the apparitions bring back the dead as an army of spider-like walkers with the same total value as what was lost.",
 			},
 		},
-	},
-
-	{
-		key = "spidergeddon",
-		name = "Spidergeddon",
-		desc = "Holiday event. Zombies that respawn from corpses take the form of spider-like units.",
-		type = "bool",
-		def = true,
-		section = "options_extra",
 	},
 
 	---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

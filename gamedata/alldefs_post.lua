@@ -239,7 +239,7 @@ local function unitDef_Post(name, uDef)
 		corsktl = true,
 		armflea = true,
 	}
-	if modOptions.spidergeddon and ZOMBIE_GHOST_RESPAWN_POOL_UNITS[basename] then
+	if modOptions.zombies == "spidergeddon" and ZOMBIE_GHOST_RESPAWN_POOL_UNITS[basename] then
 		customparams.zombie_ghost_respawn_pool = true
 	end
 
