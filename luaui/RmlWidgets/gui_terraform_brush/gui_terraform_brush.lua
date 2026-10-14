@@ -2136,7 +2136,6 @@ do
 			dntsSets = list
 		end
 	end
-	Spring.Echo("[Terraform Brush] Splat sets loaded: " .. #dntsSets)
 end
 
 -- Resolve the currently-selected splat set (1-based, wraps), or nil if none loaded.
@@ -2257,7 +2256,6 @@ do
 			end
 		end
 	end
-	Spring.Echo("[Terraform Brush] Environment presets: " .. #widgetState.newMapEnvPresets)
 end
 -- Environment a fresh map starts with. 0 = Default, 1..N = a harvested mood.
 -- Default does NOT mean "leave the engine lighting alone": the engine's is
@@ -11056,7 +11054,6 @@ local initialModel = {
 		if ef then
 			if envPreset and envPreset.name then
 				ef:write(string.format("return { preset = %q }\n", envPreset.name))
-				Spring.Echo("[Terraform Brush] New Map environment: " .. envPreset.name)
 			else
 				ef:write("")
 			end
@@ -18773,7 +18770,6 @@ function widget:Initialize()
 					if first and first.path then
 						widgetState._pendingSkyboxPath = first.path
 						widgetState.envCurrentSkybox = first.path
-						Spring.Echo("[Terraform Brush] New Map default skybox: " .. first.path)
 					end
 				end
 			end
@@ -18806,7 +18802,6 @@ function widget:Initialize()
 			if envDef then
 				widgetState._pendingEnvApply = envDef
 				widgetState._pendingEnvCountdown = 15
-				Spring.Echo("[Terraform Brush] canvas had the engine default sun; applying the editor sun")
 			end
 		end
 	end
@@ -18821,7 +18816,6 @@ function widget:Initialize()
 		if type(sky) == "string" and sky ~= "" then
 			widgetState._pendingSkyboxPath = sky
 			widgetState.envCurrentSkybox = sky
-			Spring.Echo("[Terraform Brush] project skybox: " .. sky)
 		end
 	end
 
@@ -19482,9 +19476,6 @@ widgetState.drainDeferredApplies = function()
 			local loading = mp and mp.isLoading and mp.isLoading()
 			if not loading then
 				if Spring.GetGameFrame() <= 0 then
-					Spring.Echo(
-						"[Terraform Brush] starting the editor session: no commander to place, and pregame keeps terrain above the canvas base unclickable"
-					)
 					Spring.SendCommands("forcestart")
 				end
 				-- New Map: the canvas is playable now, bring the editor up.
@@ -19868,8 +19859,6 @@ function widget:DrawScreenPost()
 
 			widgetState.spPreviewShader = nil
 		else
-			Spring.Echo("[TFBrush] Shader created OK: " .. tostring(widgetState.spPreviewShader))
-
 			widgetState.spPreviewShaderChannelLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "channel")
 
 			widgetState.spPreviewShaderTerrainLoc = gl.GetUniformLocation(widgetState.spPreviewShader, "terrainColor")
@@ -19900,8 +19889,6 @@ function widget:DrawScreenPost()
 		end
 	end
 
-	local logDraw = not widgetState.spPreviewDrawLogged
-
 	-- Clip to the panel's scroll box so a scrolled-out swatch stops painting.
 	local spClipped = widgetState.pushPanelClip(els[1])
 
@@ -19919,23 +19906,6 @@ function widget:DrawScreenPost()
 
 			local h = div.offset_height
 
-			if logDraw then
-				Spring.Echo(
-					"[TFBrush] Draw ch"
-						.. i
-						.. " pos=("
-						.. x
-						.. ","
-						.. y
-						.. ") size=("
-						.. w
-						.. ","
-						.. h
-						.. ") tex="
-						.. tex
-				)
-			end
-
 			if w > 0 and h > 0 then
 				local glY1 = vsy - y - h
 
@@ -19946,10 +19916,6 @@ function widget:DrawScreenPost()
 				end
 
 				local bound = not widgetState.underOverlay(x, y, w, h, "tf-root") and gl.Texture(0, tex)
-
-				if logDraw then
-					Spring.Echo("[TFBrush] gl.Texture(0, " .. tex .. ") = " .. tostring(bound))
-				end
 
 				if bound then
 					local aspect = w / h
@@ -19973,8 +19939,6 @@ function widget:DrawScreenPost()
 			end
 		end
 	end
-
-	widgetState.spPreviewDrawLogged = true
 
 	if spClipped then
 		gl.Scissor(false)
