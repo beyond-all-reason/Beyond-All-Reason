@@ -26,22 +26,28 @@ local spEcho = Spring.Echo
 local SHARPNESS = 1.0
 local version = 1.06
 
--- RCAS from AMD FSR 1 instead of CAS: sharper, fewer color fringes along saturated edges, same cost
+-- RCAS from AMD FSR 1 instead of CAS: fewer color fringes along saturated edges, same cost
 local USE_RCAS = true
 -- with MSAA, scale each pixel's samples instead of overwriting them, so edges keep the driver's resolve
 -- (gamma correct on NVIDIA); costs a framebuffer read
 local PRESERVE_MSAA_EDGES = true
--- no sharpening where the 5 taps span under GRAIN_GATE[1] luma levels (texture grain and aliasing, which
--- sharpening turns into shimmer when zoomed out), full above GRAIN_GATE[2]; GRAIN_NOISE (0..1) also scales
--- down isolated single-pixel detail (AMD's RCAS noise test). Edges keep their sharpening
-local SUPPRESS_GRAIN = true
-local GRAIN_GATE = { 4, 12 }
-local GRAIN_NOISE = 0.2
+-- RCAS sharpens bright low-contrast terrain about twice as hard as CAS did, which shimmers when zoomed out.
+-- Where the 5 taps span under GRAIN_GATE[1] luma levels the lobe follows CAS's shaping (the original look),
+-- above GRAIN_GATE[2] RCAS takes over. GRAIN_NOISE (0..1) scales down one-pixel grain below the gate (isolated
+-- pixels and one-pixel lines: minification moire), but only where the terrain is minified: none up to
+-- GRAIN_NOISE_FOOTPRINT[1] ground elmos per screen pixel, full from [2], so play zoom keeps its texture detail.
+-- /cas_footprint tints the screen red where the penalty applies, for tuning the footprint against the shimmer
+local SHAPE_GRAIN = true
+local GRAIN_GATE = { 4, 16 }
+local GRAIN_NOISE = 0.3
+local GRAIN_NOISE_FOOTPRINT = { 0.4, 1.0 }
 
 -----------------------------------------------------------------
 -- Lua Shortcuts
 -----------------------------------------------------------------
 
+local spGetCameraPosition = Spring.GetCameraPosition
+local spTraceScreenRay = Spring.TraceScreenRay
 local glTexture = gl.Texture
 local glBlending = gl.Blending
 local GL_TRIANGLES = GL.TRIANGLES
@@ -65,11 +71,18 @@ void main() {
 local fsCAS = [[
 #version 330
 //__DEFINES__
-#line 20069
+#if GRAIN_NOISE_ON
+#extension GL_ARB_uniform_buffer_object : require
+#extension GL_ARB_shading_language_420pack : require
+//__ENGINEUNIFORMBUFFERDEFS__
+#endif
+#line 20077
 
 uniform sampler2D screenCopyTex;
 uniform ivec4 viewRect; // xy: view position in the window, zw: last texel of the screen copy
-uniform float strength; // CAS: -1 / (8 - 3 * sharpness), RCAS: lobe scale
+uniform float strength; // CAS: -1 / (8 - 3 * sharpness), RCAS: 5 / (8 - 3 * sharpness)
+uniform float groundY; // terrain height at the camera target
+uniform float debugFootprint; // 1: tint where the grain noise penalty applies
 
 #if PRESERVE_MSAA_EDGES
 // dual source blending: every sample of the pixel becomes offset + sample * scale
@@ -94,18 +107,6 @@ void main() {
 	vec3 f = texelFetch(screenCopyTex, ivec2(hi.x, p.y), 0).rgb;
 	vec3 h = texelFetch(screenCopyTex, ivec2(p.x, hi.y), 0).rgb;
 
-#if SUPPRESS_GRAIN
-	// luma of the taps: the gate follows the local contrast, speck is AMD's noise test (how far the center
-	// sits from the ring mean relative to that contrast: 1 = isolated pixel, 0 = ramp)
-	const vec3 lw = vec3(0.5, 1.0, 0.5);
-	float bL = dot(b, lw), dL = dot(d, lw), eL = dot(e, lw), fL = dot(f, lw), hL = dot(h, lw);
-	float rangeL = max(max(bL, dL), max(max(fL, hL), eL)) - min(min(bL, dL), min(min(fL, hL), eL));
-	float speck = clamp(abs(0.25 * ((bL + dL) + (fL + hL)) - eL) / max(rangeL, 1.0e-5), 0.0, 1.0);
-	float grain = smoothstep(GRAIN_LO, GRAIN_HI, rangeL) * (1.0 - GRAIN_NOISE * speck);
-#else
-	const float grain = 1.0;
-#endif
-
 #if RCAS
 	// the strongest negative lobe that clips no channel, one for all channels
 	vec3 mn4 = min(min(b, d), min(f, h));
@@ -116,15 +117,44 @@ void main() {
 	hitMin = mix(hitMin, vec3(1.0e4), equal(mx4, vec3(0.0)));
 	hitMax = mix(hitMax, vec3(-1.0e4), equal(mn4, vec3(1.0)));
 	vec3 lobeRGB = max(-hitMin, hitMax);
-	float lobe = max(-0.1875, min(max(max(lobeRGB.r, lobeRGB.g), lobeRGB.b), 0.0)) * (strength * grain);
+	float lobe = max(-0.1875, min(max(max(lobeRGB.r, lobeRGB.g), lobeRGB.b), 0.0));
+#if SHAPE_GRAIN || GRAIN_NOISE_ON
+	// luma of the taps, 0..2; grain = how far below the gate the local contrast sits
+	const vec3 lw = vec3(0.5, 1.0, 0.5);
+	float bL = dot(b, lw), dL = dot(d, lw), eL = dot(e, lw), fL = dot(f, lw), hL = dot(h, lw);
+	float mnL = min(min(bL, dL), min(min(fL, hL), eL));
+	float mxL = max(max(bL, dL), max(max(fL, hL), eL));
+	float grain = 1.0 - smoothstep(GRAIN_LO, GRAIN_HI, mxL - mnL);
+#endif
+#if SHAPE_GRAIN
+	// CAS's lobe shrinks as the neighborhood nears black or white; blend to it for grain
+	float ampL = clamp(min(mnL, 2.0 - mxL) / max(mxL, 1.0e-5), 0.0, 1.0);
+	lobe = max(lobe, mix(lobe, -0.2 * sqrt(ampL), grain));
+#endif
+#if GRAIN_NOISE_ON
+	// one-pixel structure relative to the local contrast: 1 = isolated pixel or one-pixel line, 0.5 = edge, 0 = ramp
+	float speck = max(abs((bL + hL) - 2.0 * eL), abs((dL + fL) - 2.0 * eL)) / max(2.0 * (mxL - mnL), 1.0e-5);
+	// ground elmos under this pixel: the view ray against the plane at the camera target's height
+	vec4 rayEnd = cameraViewProjInv * vec4((vec2(p) + 0.5) / vec2(viewRect.zw + 1) * 2.0 - 1.0, 1.0, 1.0);
+	vec3 camPos = cameraViewInv[3].xyz;
+	vec3 dir = normalize(rayEnd.xyz / rayEnd.w - camPos);
+	float pixelAngle = 2.0 / (cameraProj[1][1] * viewGeometry.y);
+	float footprint = (groundY - camPos.y) / min(dir.y, -1.0e-4) * pixelAngle;
+	float minified = smoothstep(FOOT_LO, FOOT_HI, footprint);
+	lobe *= 1.0 - GRAIN_NOISE * min(speck, 1.0) * grain * minified;
+#endif
+	lobe *= strength;
 	vec3 outColor = (lobe * ((b + d) + (f + h)) + e) * (1.0 / (4.0 * lobe + 1.0));
 #else
 	// the negative lobe shrinks as the neighborhood approaches the signal limits
 	vec3 mn = min(min(min(d, e), min(f, b)), h);
 	vec3 mx = max(max(max(d, e), max(f, b)), h);
 	vec3 amp = clamp(min(mn, 1.0 - mx) * (1.0 / max(mx, 1.0e-5)), 0.0, 1.0);
-	vec3 w = sqrt(amp) * (strength * grain);
+	vec3 w = sqrt(amp) * strength;
 	vec3 outColor = clamp((((b + d) + (f + h)) * w + e) * (1.0 / (1.0 + 4.0 * w)), 0.0, 1.0);
+#endif
+#if RCAS && GRAIN_NOISE_ON
+	outColor = mix(outColor, vec3(1.0, 0.0, 0.0), 0.5 * debugFootprint * minified);
 #endif
 
 #if PRESERVE_MSAA_EDGES
@@ -149,7 +179,9 @@ local LuaShader = gl.LuaShader
 local vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 local screenCopyTex
 local casShader
-local useRcas, preserveEdges = false, false
+local useRcas, preserveEdges, useNoise = false, false, false
+local groundY, camX, camY, camZ = 0.0, nil, nil, nil
+local debugFootprint, sentDebugFootprint = false, nil
 
 local fullTexQuad
 local fullTexQuadBuffers = {}
@@ -183,20 +215,48 @@ end
 
 local function UpdateShader()
 	casShader:ActivateWith(function()
-		casShader:SetUniform("strength", useRcas and SHARPNESS or -1 / (8 - 3 * SHARPNESS))
+		-- the options slider (0.5..1.1) keeps the original CAS curve, 1 at sharpness 1
+		local peak = 8 - 3 * SHARPNESS
+		casShader:SetUniform("strength", useRcas and 5 / peak or -1 / peak)
 		casShader:SetUniformInt("viewRect", vpx, vpy, vsx - 1, vsy - 1)
 	end)
 end
 
-local function CompileShader(rcas, preserve)
+-- the noise term's footprint needs the terrain height the camera looks at: traced when the camera moved
+local function UpdateNoiseUniforms(shader)
+	local x, y, z = spGetCameraPosition()
+	if x ~= camX or y ~= camY or z ~= camZ then
+		camX, camY, camZ = x, y, z
+		local _, pos = spTraceScreenRay(math.floor(vsx * 0.5), math.floor(vsy * 0.5), true, false, false, true)
+		local hitY = pos and pos[2]
+		if hitY then
+			groundY = hitY
+		end
+		shader:SetUniform("groundY", groundY)
+	end
+	if debugFootprint ~= sentDebugFootprint then
+		sentDebugFootprint = debugFootprint
+		shader:SetUniform("debugFootprint", debugFootprint and 1 or 0)
+	end
+end
+
+local function ToggleFootprintOverlay()
+	debugFootprint = not debugFootprint
+	spEcho("Contrast Adaptive Sharpen: footprint overlay " .. (debugFootprint and "on" or "off"))
+end
+
+local function CompileShader(rcas, preserve, noise)
 	local defines = {
 		"#define RCAS " .. (rcas and 1 or 0),
 		"#define PRESERVE_MSAA_EDGES " .. (preserve and 1 or 0),
-		"#define SUPPRESS_GRAIN " .. (SUPPRESS_GRAIN and 1 or 0),
+		"#define SHAPE_GRAIN " .. (SHAPE_GRAIN and 1 or 0),
+		"#define GRAIN_NOISE_ON " .. (noise and 1 or 0),
 		-- the shader's luma spans 0..2
 		string.format("#define GRAIN_LO %.5f", GRAIN_GATE[1] * 2 / 255),
 		string.format("#define GRAIN_HI %.5f", GRAIN_GATE[2] * 2 / 255),
 		string.format("#define GRAIN_NOISE %.3f", GRAIN_NOISE),
+		string.format("#define FOOT_LO %.3f", GRAIN_NOISE_FOOTPRINT[1]),
+		string.format("#define FOOT_HI %.3f", GRAIN_NOISE_FOOTPRINT[2]),
 	}
 	local shader = LuaShader({
 		vertex = vsCAS,
@@ -206,7 +266,8 @@ local function CompileShader(rcas, preserve)
 		},
 	}, "Contrast Adaptive Sharpen")
 	if shader:Initialize() then
-		useRcas, preserveEdges = rcas, preserve
+		useRcas, preserveEdges, useNoise = rcas, preserve, noise
+		camX, sentDebugFootprint = nil, nil
 		return shader
 	end
 end
@@ -219,10 +280,15 @@ function widget:Initialize()
 	end
 
 	local preserve = PRESERVE_MSAA_EDGES and Spring.GetConfigInt("MSAALevel", 0) > 0
-	casShader = CompileShader(USE_RCAS, preserve)
+	local noise = USE_RCAS and GRAIN_NOISE > 0
+	casShader = CompileShader(USE_RCAS, preserve, noise)
+	if not casShader and noise then
+		spEcho("Contrast Adaptive Sharpen: falling back to no grain noise term")
+		casShader = CompileShader(USE_RCAS, preserve, false)
+	end
 	if not casShader and (USE_RCAS or preserve) then
 		spEcho("Contrast Adaptive Sharpen: falling back to plain CAS")
-		casShader = CompileShader(false, false)
+		casShader = CompileShader(false, false, false)
 	end
 	if not casShader then
 		spEcho("Failed to compile Contrast Adaptive Sharpen shader, removing widget")
@@ -238,6 +304,8 @@ function widget:Initialize()
 		return
 	end
 
+	widgetHandler:AddAction("cas_footprint", ToggleFootprintOverlay, nil, "t")
+
 	WG.cas = {}
 	WG.cas.setSharpness = function(value)
 		SHARPNESS = value
@@ -249,6 +317,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	widgetHandler:RemoveAction("cas_footprint", "t")
 	if casShader then
 		casShader:Finalize()
 	end
@@ -283,6 +352,9 @@ function widget:DrawScreenEffects()
 		glBlending(false)
 	end
 	casShader:Activate()
+	if useNoise then
+		UpdateNoiseUniforms(casShader)
+	end
 	fullTexQuad:DrawArrays(GL_TRIANGLES, 3)
 	casShader:Deactivate()
 	if preserveEdges then
