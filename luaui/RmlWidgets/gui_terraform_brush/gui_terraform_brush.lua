@@ -15709,14 +15709,6 @@ shapeNames = {
 	fill = "Fill",
 }
 
-local function setActiveClass(buttons, activeKey)
-	for key, element in pairs(buttons) do
-		if element then
-			element:SetClass("active", key == activeKey)
-		end
-	end
-end
-
 CLAY_UNAVAILABLE_MODES = { noise = true, restore = true, erode = true, autoramp = true }
 
 clearPassthrough = function()
@@ -16142,7 +16134,6 @@ local guideHints = {
 	["btn-height-colormap"] = "Overlay a topographic height colormap on the brush footprint — colour-coded from blue (low) through green/yellow to red/white (high) with contour lines at 10% intervals.",
 	["btn-curve-overlay"] = "Draws the edge fall-off curve as an arc inside the brush circle so you can preview the blend gradient while painting.",
 	["btn-velocity-intensity"] = "Scales brush intensity by mouse drag speed \xe2\x80\x94 move faster for stronger effect, slower for finer control.",
-	["btn-pen-pressure"] = "Modulates brush intensity (and optionally size) using tablet pen pressure. Requires pen_pressure_server.py running.",
 	["btn-pen-intensity"] = "Pen pressure is modulating intensity — click to toggle. Configure in Settings → Stroke.",
 	["btn-pen-size"] = "Pen pressure is modulating size — click to toggle. Configure in Settings → Stroke.",
 	-- Undo / History
@@ -16238,7 +16229,6 @@ local guideHints = {
 	["btn-un-point"] = "Place one unit per click at the cursor. Shift-drag lays out a line, Shift+Alt a grid, Shift+Alt+Ctrl a box, as in the game. Right-click lets go of the pick.",
 	["btn-un-remove"] = "Remove units under the brush: hold the left button and sweep. Units outside REMOVE come off only with Delete on a selection.",
 	-- Feature smart filter
-	["btn-fp-smart-toggle"] = "Enable Smart Filter — makes placement terrain-aware by skipping water, cliffs or altitude zones you configure below.",
 	["btn-fp-grid-overlay"] = "Draws a measurement grid across the terrain to help align features and judge distances. Always visible, not just inside the brush.",
 	["btn-fp-grid-snap"] = "Snap feature placement positions to the build grid (48 elmo intervals) for precise, aligned placement.",
 	["fp-filter-chip-avoid-water"] = "Skip placement on underwater terrain so features only land on dry ground above sea level.",
@@ -16268,9 +16258,6 @@ local guideHints = {
 	["btn-wb-point"] = "Place a weather effect exactly at the clicked cursor position.",
 	["btn-wb-remove"] = "Erase persistent weather effects under the brush — removes effects that were painted earlier.",
 	-- Light distribution
-	["btn-lp-dist-random"] = "Place lights at random positions within the brush area.",
-	["btn-lp-dist-regular"] = "Space lights in a uniform grid pattern inside the brush.",
-	["btn-lp-dist-clustered"] = "Group lights in tight clusters for concentrated illumination.",
 	-- Weather sliders
 	["wb-slider-size"] = "Area radius of the weather effect zone. Ctrl+Scroll to resize while painting.",
 	["wb-slider-length"] = "Elongates the weather pattern along its axis — makes rain streaks or gusts cover a longer area.",
@@ -16333,10 +16320,6 @@ local guideHints = {
 	["sp-slider-size"] = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
 	["sp-slider-rotation"] = "Set the brush rotation angle from 0–359°. Affects non-circular shapes. Alt+Scroll.",
 	["sp-slider-curve"] = "Controls edge fall-off sharpness. Low = gentle gradient, high = hard-edged painting at the brush boundary.",
-	["btn-sp-smart-toggle"] = "Enable Smart Filter — makes painting terrain-aware by skipping water, cliffs or altitude zones you configure.",
-	["btn-sp-avoid-water"] = "Skip painting on underwater terrain so splats only affect dry ground above sea level.",
-	["btn-sp-avoid-cliffs"] = "Prevent painting on slopes steeper than the Max Slope angle.",
-	["btn-sp-prefer-slopes"] = "Only paint on slopes steeper than the Min Slope angle — useful for cliff-face texturing.",
 	["btn-sp-alt-min-enable"] = "Enable a minimum altitude filter — no painting below this elevation threshold.",
 	["btn-sp-alt-max-enable"] = "Enable a maximum altitude filter — no painting above this elevation threshold.",
 	["btn-sp-export-format"] = "Click to cycle the export image format between PNG, DDS and TGA.",
@@ -16358,9 +16341,6 @@ local guideHints = {
 	["slider-lp-brightness"] = "Overall brightness multiplier. Higher values produce more intense light. Use with care — values above 5 can bloom significantly.",
 	["slider-lp-light-radius"] = "How far the light reaches from its center in world units (elmos). Larger radius = softer, wider light.",
 	["slider-lp-elevation"] = "Height offset above the ground where lights are placed (in elmos). 0 = on the ground, higher = floating above terrain. Shift+Scroll.",
-	["slider-lp-pitch"] = "Vertical aiming angle for cone/beam lights. -90 = straight down, 0 = horizontal, 90 = straight up.",
-	["slider-lp-yaw"] = "Horizontal rotation angle for cone/beam lights (0–360°). Controls which compass direction the light faces.",
-	["slider-lp-roll"] = "Roll rotation of cone/beam lights (0–360°). Mostly useful for asymmetric beam patterns.",
 	["slider-lp-theta"] = "Cone half-angle spread in radians. Smaller = tighter spotlight, larger = wider floodlight.",
 	["slider-lp-beam-length"] = "Length of the beam from start to end point in world units.",
 	["slider-lp-count"] = "Number of lights placed per scatter operation.",
@@ -16372,7 +16352,6 @@ local guideHints = {
 	["btn-lp-save"] = "Save all currently placed lights to a timestamped file on disk.",
 	["btn-lp-load"] = "Load a previously saved light layout from disk.",
 	["btn-lp-clear-all"] = "Remove all placed lights from the map — cannot be undone.",
-	["btn-lp-material-toggle"] = "Show or hide the material properties section (model factor, specular, scattering, lens flare).",
 	-- Diffuse Painter controls
 	["btn-diffuse"] = "Open the Diffuse Painter: paint layered materials from the library directly onto the map texture.",
 	["dfp-slider-radius"] = "Sets the brush radius in world units. Ctrl+Scroll to resize while painting.",
@@ -17279,71 +17258,36 @@ local tfFeatures = require("luaui/RmlWidgets/gui_terraform_brush/tf_features")
 widgetState.tfUnits = require("luaui/RmlWidgets/gui_terraform_brush/tf_units")
 widgetState.tfBlockout = require("luaui/RmlWidgets/gui_terraform_brush/tf_blockout")
 local tfGrass = require("luaui/RmlWidgets/gui_terraform_brush/tf_grass")
+local tfGuide = require("luaui/RmlWidgets/gui_terraform_brush/tf_guide")
 local tfLights = require("luaui/RmlWidgets/gui_terraform_brush/tf_lights")
 local tfMetal = require("luaui/RmlWidgets/gui_terraform_brush/tf_metal")
 local tfNoise = require("luaui/RmlWidgets/gui_terraform_brush/tf_noise")
 local tfSplat = require("luaui/RmlWidgets/gui_terraform_brush/tf_splat")
 local tfStartPos = require("luaui/RmlWidgets/gui_terraform_brush/tf_startpos")
+local tfSurface = require("luaui/RmlWidgets/gui_terraform_brush/tf_surface")
 local tfTileset = require("luaui/RmlWidgets/gui_terraform_brush/tf_tileset")
 local tfWeather = require("luaui/RmlWidgets/gui_terraform_brush/tf_weather")
--- Guarded include: tf_surface.lua was added mid-development, and a file the
--- VFS can't see (added after game start — the .sdd archive is scanned at
--- launch, /luaui reload does not rescan) must degrade to "no SURFACE tool",
--- not kill the whole panel.
-local tfSurface
-do
-	-- Env must be passed explicitly: under pcall, VFS.Include no longer sees
-	-- the widget environment, so the module's `local WG = WG` captures nil.
-	local ok, mod = pcall(VFS.Include, "luaui/RmlWidgets/gui_terraform_brush/tf_surface.lua", getfenv(1))
-	if ok and type(mod) == "table" then
-		tfSurface = mod
-	else
-		Spring.Echo(
-			"[TFBrush] tf_surface.lua unavailable ("
-				.. tostring(mod)
-				.. ") — SURFACE tool disabled; restart the game if the file was just added"
-		)
-	end
-end
-local tfGuide = require("luaui/RmlWidgets/gui_terraform_brush/tf_guide")
 
 -- Shared context passed to all extracted tool modules
 local ctx = {
 	uiState = uiState,
 	widgetState = widgetState,
 	playSound = playSound,
-	setActiveClass = setActiveClass,
 	trackSliderDrag = trackSliderDrag,
 	syncAndFlash = syncAndFlash,
 	getCachedEl = getCachedEl,
 	setInnerRmlIfChanged = setInnerRmlIfChanged,
 	setAttrValueIfChanged = setAttrValueIfChanged,
-	clearPassthrough = clearPassthrough,
 	WG = WG,
-	-- Constants
-	ROTATION_STEP = ROTATION_STEP,
-	CURVE_STEP = CURVE_STEP,
-	LENGTH_SCALE_STEP = LENGTH_SCALE_STEP,
-	RADIUS_STEP = RADIUS_STEP,
-	HEIGHT_CAP_STEP = HEIGHT_CAP_STEP,
-	HEIGHT_STEP = HEIGHT_STEP,
-	DEFAULT_MAX_INTENSITY = DEFAULT_MAX_INTENSITY,
 	-- Slider converters
-	sliderToIntensity = sliderToIntensity,
-	intensityToSlider = intensityToSlider,
-	sliderToCadence = sliderToCadence,
 	cadenceToSlider = cadenceToSlider,
-	sliderToPersist = sliderToPersist,
 	persistToSlider = persistToSlider,
 	shapeNames = shapeNames,
 	guideHints = guideHints,
 	PERSIST_PERMANENT_VAL = PERSIST_PERMANENT_VAL,
 	-- Environment module extras
 	skyDynamic = skyDynamic,
-	quatFromAxisAngle = quatFromAxisAngle,
 	-- Guide module extras
-	populateKeybindList = populateKeybindList,
-	updateAllKeybindBadges = updateAllKeybindBadges,
 	g3ElemGroup = g3ElemGroup,
 	g3TipGroups = g3TipGroups,
 }
@@ -17360,17 +17304,6 @@ ctx.syncWarnChip = function(doc, chipId, sectionId, anyActive)
 	if chip then
 		chip:SetClass("hidden", not (anyActive and collapsed))
 	end
-end
-
--- Generic DISPLAY/INSTRUMENTS chip wirer for per-tool panels.
--- Mirrors WG.TerraformBrush shared state onto a tool's chip row. Chips forward
--- to TB setters; M.sync callers can pass the chip ids back to set active class.
--- All elements are optional; missing ids silently no-op.
-ctx.attachTBMirrorControls = function(doc, prefix)
-	-- Formerly wired AddEventListener clicks here. All 15 toggle/action
-	-- buttons now use onclick="widget:tbToggle*(P)" / widget:tbMeasureClear(P)
-	-- etc., handled by attachDeclarativeHandlers. This function is kept as a
-	-- call-site (called from each M.attach) but is now a no-op.
 end
 
 -- Reflect TB shared state onto a tool's mirror chips. Called from per-tool M.sync.
@@ -17537,7 +17470,6 @@ local function attachDeclarativeHandlers(_ctx)
 		{ "dc-slider-angle-snap-step", "dc-angle-snap-step" },
 		{ "lp-slider-angle-snap-step", "lp-angle-snap-step" },
 		{ "sp-slider-angle-snap-step", "sp-angle-snap-step" },
-		{ "fp-slider-angle-snap-step", "fp-angle-snap-step" },
 		{ "gb-slider-angle-snap-step", "gb-angle-snap-step" },
 		{ "mb-slider-angle-snap-step", "mb-angle-snap-step" },
 		{ "sf-slider-angle-snap-step", "sf-angle-snap-step" },
@@ -17583,8 +17515,6 @@ local function attachEventListeners()
 		uiState.draggingSlider = nil
 	end, false)
 
-	-- ctx.widget must be set before attachDeclarativeHandlers so bridges work.
-	ctx.widget = widget
 	-- Register all w.xxx handler bridges (env + TB mirror controls etc.)
 	attachDeclarativeHandlers(ctx)
 
@@ -17952,11 +17882,7 @@ local function attachEventListeners()
 					local capturedPath = entry.path
 					row:AddEventListener("click", function(event)
 						playSound("apply")
-						if WG.TerraformBrush and WG.TerraformBrush.loadHeightmap then
-							WG.TerraformBrush.loadHeightmap(capturedPath)
-						else
-							Spring.SendCommands("terraformimport " .. capturedPath)
-						end
+						Spring.SendCommands("terraformimport " .. capturedPath)
 						closeImportDropdown()
 						event:StopPropagation()
 					end, false)
@@ -19041,10 +18967,6 @@ function widget:Initialize()
 		---@return boolean consumed `false` when no capture is in progress.
 		captureKey = function(keyCode)
 			return handleSettingsKeyCapture(keyCode)
-		end,
-		---Redraws every keybind badge in the settings panel.
-		refreshBadges = function()
-			updateAllKeybindBadges()
 		end,
 		---Activates the brush tool bound to a key, if any.
 		---@param keyCode integer

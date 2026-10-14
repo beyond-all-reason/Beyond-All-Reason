@@ -70,9 +70,6 @@ local PALETTE = {
 }
 
 function M.attach(doc, ctx)
-	if ctx.attachTBMirrorControls then
-		ctx.attachTBMirrorControls(doc, "lp")
-	end
 	local widgetState = ctx.widgetState
 	local WG = ctx.WG
 	local playSound = ctx.playSound

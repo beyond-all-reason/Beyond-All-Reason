@@ -2,9 +2,6 @@
 local M = {}
 
 function M.attach(doc, ctx)
-	if ctx.attachTBMirrorControls then
-		ctx.attachTBMirrorControls(doc, "dc")
-	end
 	local trackSliderDrag = ctx.trackSliderDrag
 
 	-- Slider drag tracking (legitimate imperative: slider-specific drag state).

@@ -15,7 +15,7 @@ function M.attach(doc, ctx)
 	local WG = ctx.WG
 	local playSound = ctx.playSound
 	local trackSliderDrag = ctx.trackSliderDrag
-	-- skyDynamic and quatFromAxisAngle are passed through ctx (file-level in gui_terraform_brush.lua).
+	-- skyDynamic is passed through ctx (file-level in gui_terraform_brush.lua).
 	local skyDynamic = ctx.skyDynamic
 	-- All data-event-click/mousedown handlers (onEnvXxx) are defined in initialModel
 	-- in gui_terraform_brush.lua. Recoil forbids adding or replacing function
