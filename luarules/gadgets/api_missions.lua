@@ -49,6 +49,7 @@ local function loadMission(gameSetup)
 
 	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
 	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	GG["MissionAPI"].Difficulty = difficultyController.FromName(gameSetup.difficulty)
 	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
 	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
 	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
@@ -89,14 +90,6 @@ function gadget:Initialize()
 	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-	-- No difficulty source exists yet (e.g. a modoption); default to the lowest difficulty.
-	GG["MissionAPI"].Difficulty = table.reduce(
-		GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty,
-		function(lowest, difficulty)
-			return math.min(lowest, difficulty)
-		end,
-		math.huge
-	)
 	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
 	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")

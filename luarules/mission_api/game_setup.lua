@@ -67,6 +67,7 @@ end
 
 ---@class MissionGameSetup
 ---@field entryPoint string
+---@field difficulty string?
 ---@field options table
 ---@field variables table
 ---@field persistentVariables table<string, true> the keys of the variables that came from the save
@@ -85,6 +86,7 @@ local variables = missionOptions.variables or {}
 
 return {
 	entryPoint = missionOptions.entryPoint,
+	difficulty = missionOptions.difficulty,
 	options = missionOptions.options or {},
 	variables = variables,
 	persistentVariables = toKeySet(variables),

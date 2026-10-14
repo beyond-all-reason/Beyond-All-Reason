@@ -82,6 +82,18 @@ describe("mission_api.game_setup", function()
 			assert.are.same({ totalKills = true, foundPortal = true }, gameSetup.persistentVariables)
 		end)
 
+		it("reads the difficulty name from missionoptions", function()
+			withGameSetup({
+				modOptions = {
+					missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua","difficulty":"Hard"}]]),
+				},
+				teams = { [0] = { allyTeam = 0, keys = { name = "player" } } },
+				allyTeams = { [0] = { keys = { name = "goodies" } } },
+			})
+
+			assert.are.equal("Hard", readGameSetup().difficulty)
+		end)
+
 		it("gives empty options and variables when missionoptions has none", function()
 			withGameSetup({
 				modOptions = { missionoptions = encodeMissionOptions([[{"entryPoint":"mission.lua"}]]) },
