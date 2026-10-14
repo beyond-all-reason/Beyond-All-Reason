@@ -16,19 +16,19 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
-local Placement = require("modules/construction/lib/placement")
+local Construction = require("modules/construction/api")
 
 function gadget:Initialize()
 	gadgetHandler:RegisterAllowCommand(CMD.BUILD)
 end
 
 function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z)
-	return Placement.Decide(unitDefID, builderTeam, x, y, z, Spring), false
+	return Construction.MayPlace(unitDefID, builderTeam, x, y, z), false
 end
 
 function gadget:AllowCommand(_unitID, _unitDefID, unitTeam, cmdID, cmdParams)
-	if cmdID >= 0 or #cmdParams < 3 or not Placement.IsExtractor(-cmdID) then
+	if cmdID >= 0 or #cmdParams < 3 or not Construction.IsExtractor(-cmdID) then
 		return true
 	end
-	return Placement.Decide(-cmdID, unitTeam, cmdParams[1], cmdParams[2], cmdParams[3], Spring)
+	return Construction.MayPlace(-cmdID, unitTeam, cmdParams[1], cmdParams[2], cmdParams[3])
 end
