@@ -4,7 +4,7 @@
 
 -- Connected clients are behind always by a given latency plus max 16 frames between keyframes.
 -- Too-low values sort by pings that are not meaningfully separable. Too-high is unresponsive.
-local RESPONSIVE_PING_TIME = 1.8
+local RESPONSIVE_PING_TIME = 1.8 -- This generally matches a 2-second true delay.
 
 local spGetPlayerList = Spring.GetPlayerList
 local spGetPlayerInfo = Spring.GetPlayerInfo
