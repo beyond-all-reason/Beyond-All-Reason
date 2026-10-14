@@ -479,6 +479,16 @@ local moveDatas = {
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.KBot,
 	},
+	-- armmygalomorph
+	EPICBOT5 = {
+		crushstrength = CRUSH.MASSIVE,
+		depthMod = 0,
+		footprint = 5,
+		maxslope = SLOPE.DIFFICULT,
+		maxwaterdepth = DEPTH.MAXIMUM,
+		maxwaterslope = SLOPE.EXTREME,
+		speedModClass = SPEED_CLASS.KBot,
+	},
 	-- corgolt4 armrattet4
 	EPICVEH = {
 		crushstrength = CRUSH.MASSIVE,

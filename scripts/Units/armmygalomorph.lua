@@ -16,7 +16,6 @@ local legfr = piece("legfr")
 local lflare1 = piece("lflare1")
 local lflare2 = piece("lflare2")
 local lforearm = piece("lforearm")
-local lhand = piece("lhand")
 local lshoulder = piece("lshoulder")
 local lwrist = piece("lwrist")
 local raimx = piece("raimx")
@@ -25,7 +24,6 @@ local rbarrel2 = piece("rbarrel2")
 local rflare1 = piece("rflare1")
 local rflare2 = piece("rflare2")
 local rforearm = piece("rforearm")
-local rhand = piece("rhand")
 local rshoulder = piece("rshoulder")
 local rwrist = piece("rwrist")
 local thighbl = piece("thighbl")
@@ -45,11 +43,8 @@ local YAW_SPEED = math.rad(240)
 local PITCH_SPEED = math.rad(160)
 local RESTORE_SPEED = YAW_SPEED * 2
 local RESTORE_PITCH_SPEED = PITCH_SPEED * 2
-local TOE_MAX = math.rad(5)
-local PITCH_SPLIT = math.rad(80)
-local HAND_PITCH_SIGN = 1 -- flip if the guns dip instead of rising past the split
--- measured in game: the hand's y axis is nearly horizontal across the barrel, its x axis nearly vertical
-local HAND_AXIS_X, HAND_AXIS_Y = -0.27, 0.96
+local POSE_YAW = 0.174533 -- shoulder yaw of the firing pose, cancelled on the aim axis so the guns point forward
+local POSE_YAW_SIGN = -1
 local FIRE_ANGLE = math.rad(16)
 local FIRE_ANGLE_PITCH = math.rad(6)
 local SMALL_GUN_FIRE_ANGLE_PITCH = math.rad(15)
@@ -71,17 +66,21 @@ local GetGameFrame = Spring.GetGameFrame
 
 ---@class Arm
 ---@field aimx number
----@field hand number
+---@field forearm number
+---@field wrist number
+---@field yawLeak number
 ---@field mirror number
 ---@field goalPitch number
 ---@field pitchBelief number
 ---@field shots integer
 
 ---@return Arm
-local function NewArm(aimxPiece, handPiece, mirror)
+local function NewArm(aimxPiece, forearmPiece, wristPiece, mirror)
 	return {
 		aimx = aimxPiece,
-		hand = handPiece,
+		forearm = forearmPiece,
+		wrist = wristPiece,
+		yawLeak = 0.0,
 		mirror = mirror,
 		goalPitch = 0.0,
 		pitchBelief = 0.0,
@@ -89,7 +88,7 @@ local function NewArm(aimxPiece, handPiece, mirror)
 	}
 end
 
-local leftArm, rightArm = NewArm(laimx, lhand, 1), NewArm(raimx, rhand, -1)
+local leftArm, rightArm = NewArm(laimx, lforearm, lwrist, 1), NewArm(raimx, rforearm, rwrist, -1)
 local arms = { leftArm, rightArm }
 local weaponArm = { leftArm, leftArm, rightArm, rightArm }
 local weaponFlare = { lflare1, lflare2, rflare1, rflare2 }
@@ -107,32 +106,14 @@ local lastArmFrame = -1000
 local HAND_GAP = math.floor(WeaponDefs[UnitDefs[unitDefID].weapons[1].weaponDef].reload * Game.gameSpeed / 2)
 
 local goalYaw, beliefYaw, lastAimFrame = 0.0, 0.0, -1000
-local HAND_POSE_X, HAND_POSE_Y = 0.253073, -0.031416
-local pivotZ = 0.0
+local FOREARM_POSE = -0.349066
+-- measured in game in the firing stance: an elbow turn of 0.5 rad pitched the gun by ELBOW_GAIN * 0.5 and swung it sideways by ELBOW_LEAK * 0.5
+local ELBOW_MAX, ELBOW_GAIN, ELBOW_LEAK = math.rad(15), 0.787, 0.56
+local ELBOW_FADE = math.rad(35) -- above ELBOW_MAX the elbow unbends over this many degrees and the shoulder takes over
+local LEAK_SIGN = 1
 
 local function wrap(angle)
 	return angle - TWO_PI * math.floor((angle + math.pi) / TWO_PI)
-end
-
-local function ToeIn(num, arm)
-	local targetType, _, target = GetUnitWeaponTarget(unitID, num)
-	local tx, tz
-	if targetType == 1 then
-		---@cast target UnitID
-		_, _, _, tx, _, tz = GetUnitPosition(target, true)
-	elseif targetType == 2 then
-		---@cast target float3
-		tx, tz = target[1], target[3]
-	end
-	local sx, _, sz = GetUnitPiecePosDir(unitID, arm.aimx)
-	local ux, _, uz = GetUnitPosition(unitID)
-	if not (tx and tz and sx and sz and ux and uz) then
-		return 0
-	end
-	local hull = GetUnitHeading(unitID) * HEADING_TO_RAD
-	local px, pz = ux + pivotZ * math.sin(hull), uz + pivotZ * math.cos(hull)
-	local toe = wrap(math.atan2(tx - sx, tz - sz) - math.atan2(tx - px, tz - pz))
-	return math.max(-TOE_MAX, math.min(TOE_MAX, toe))
 end
 
 local function TargetDistance(num)
@@ -218,12 +199,12 @@ local function Walk()
 	Turn(thighfr, z_axis, -0.148568, 3.714209 * speedMult)
 	Turn(thighfr, y_axis, 0.322422, 11.574412 * speedMult)
 	if not isAiming then
-		Turn(lforearm, x_axis, 0.872665, 4.363325 * speedMult)
-		Turn(lshoulder, x_axis, 0.436332, 0.872665 * speedMult)
-		Turn(lshoulder, z_axis, 0.610865, 2.181663 * speedMult)
-		Turn(rforearm, x_axis, 0.610865, 2.181654 * speedMult)
-		Turn(rshoulder, x_axis, -0.174533, 14.398965 * speedMult)
-		Turn(rshoulder, z_axis, -0.610865, 2.181664 * speedMult)
+		Turn(lforearm, x_axis, -0.349066, 2.181662 * speedMult)
+		Turn(lshoulder, z_axis, 0.785398, 6.544985 * speedMult)
+		Turn(lshoulder, y_axis, 0.174533, 2.181662 * speedMult)
+		Turn(rforearm, x_axis, -0.349066, 2.181663 * speedMult)
+		Turn(rshoulder, z_axis, -0.785398, 6.544983 * speedMult)
+		Turn(rshoulder, y_axis, -0.174533, 2.181662 * speedMult)
 		Turn(torso, y_axis, 0.087266, 2.181661 * speedMult)
 	end
 	Sleep(sleepTime)
@@ -272,12 +253,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.473570, 8.125037 * speedMult)
 		Turn(thighfr, y_axis, 0.520353, 4.948292 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.845437, 0.680679 * speedMult)
-			Turn(lshoulder, x_axis, 0.374617, 1.542871 * speedMult)
-			Turn(lshoulder, z_axis, 0.654498, 1.090829 * speedMult)
-			Turn(rforearm, x_axis, 0.638092, 0.680672 * speedMult)
-			Turn(rshoulder, x_axis, -0.095365, 1.979203 * speedMult)
-			Turn(rshoulder, z_axis, -0.654498, 1.090834 * speedMult)
+			Turn(lforearm, x_axis, -0.383973, 0.872664 * speedMult)
+			Turn(rforearm, x_axis, -0.383972, 0.872665 * speedMult)
 			Turn(torso, y_axis, 0.069115, 0.453785 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -324,12 +301,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.479205, 0.140883 * speedMult)
 		Turn(thighfr, y_axis, 0.807217, 7.171598 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.780511, 1.623157 * speedMult)
-			Turn(lshoulder, x_axis, 0.227451, 3.679155 * speedMult)
-			Turn(lshoulder, z_axis, 0.698132, 1.090834 * speedMult)
-			Turn(rforearm, x_axis, 0.703019, 1.623160 * speedMult)
-			Turn(rshoulder, x_axis, 0.051801, 3.679154 * speedMult)
-			Turn(rshoulder, z_axis, -0.698132, 1.090831 * speedMult)
+			Turn(lforearm, x_axis, -0.418879, 0.872664 * speedMult)
+			Turn(rforearm, x_axis, -0.418879, 0.872664 * speedMult)
 			Turn(torso, y_axis, 0.025831, 1.082104 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -377,10 +350,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.318228, 4.024430 * speedMult)
 		Turn(thighfr, y_axis, 0.928727, 3.037734 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.703018, 1.937318 * speedMult)
-			Turn(lshoulder, x_axis, 0.051801, 4.391248 * speedMult)
-			Turn(rforearm, x_axis, 0.780511, 1.937315 * speedMult)
-			Turn(rshoulder, x_axis, 0.227451, 4.391249 * speedMult)
+			Turn(lforearm, x_axis, -0.453786, 0.872664 * speedMult)
+			Turn(rforearm, x_axis, -0.453786, 0.872664 * speedMult)
 			Turn(torso, y_axis, -0.025831, 1.291543 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -427,12 +398,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.060247, 6.449534 * speedMult)
 		Turn(thighfr, y_axis, 0.977411, 1.217107 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.638092, 1.623155 * speedMult)
-			Turn(lshoulder, x_axis, -0.095365, 3.679154 * speedMult)
-			Turn(lshoulder, z_axis, 0.654498, 1.090832 * speedMult)
-			Turn(rforearm, x_axis, 0.845438, 1.623158 * speedMult)
-			Turn(rshoulder, x_axis, 0.374617, 3.679154 * speedMult)
-			Turn(rshoulder, z_axis, -0.654498, 1.090834 * speedMult)
+			Turn(lforearm, x_axis, -0.401426, 1.308996 * speedMult)
+			Turn(rforearm, x_axis, -0.401426, 1.308994 * speedMult)
 			Turn(torso, y_axis, -0.069115, 1.082104 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -480,12 +447,8 @@ local function Walk()
 		Turn(thighfr, z_axis, 0.075789, 3.400890 * speedMult)
 		Turn(thighfr, y_axis, 0.940364, 0.926176 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.610865, 0.680678 * speedMult)
-			Turn(lshoulder, x_axis, -0.157080, 1.542871 * speedMult)
-			Turn(lshoulder, z_axis, 0.610865, 1.090832 * speedMult)
-			Turn(rforearm, x_axis, 0.872665, 0.680681 * speedMult)
-			Turn(rshoulder, x_axis, 0.436332, 1.542871 * speedMult)
-			Turn(rshoulder, z_axis, -0.610865, 1.090829 * speedMult)
+			Turn(lforearm, x_axis, -0.349066, 1.308996 * speedMult)
+			Turn(rforearm, x_axis, -0.349066, 1.308999 * speedMult)
 			Turn(torso, y_axis, -0.087266, 0.453786 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -533,12 +496,8 @@ local function Walk()
 		Turn(thighfr, z_axis, 0.129552, 1.344077 * speedMult)
 		Turn(thighfr, y_axis, 0.809873, 3.262272 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.638092, 0.680678 * speedMult)
-			Turn(lshoulder, x_axis, -0.095365, 1.542871 * speedMult)
-			Turn(lshoulder, z_axis, 0.654498, 1.090832 * speedMult)
-			Turn(rforearm, x_axis, 0.845438, 0.680681 * speedMult)
-			Turn(rshoulder, x_axis, 0.372802, 1.588250 * speedMult)
-			Turn(rshoulder, z_axis, -0.654499, 1.090834 * speedMult)
+			Turn(lforearm, x_axis, -0.383973, 0.872664 * speedMult)
+			Turn(rforearm, x_axis, -0.383972, 0.872665 * speedMult)
 			Turn(torso, y_axis, -0.069115, 0.453785 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -585,12 +544,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.021580, 3.778292 * speedMult)
 		Turn(thighfr, y_axis, 0.672596, 3.431927 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.703019, 1.623160 * speedMult)
-			Turn(lshoulder, x_axis, 0.051801, 3.679154 * speedMult)
-			Turn(lshoulder, z_axis, 0.698132, 1.090832 * speedMult)
-			Turn(rforearm, x_axis, 0.780511, 1.623158 * speedMult)
-			Turn(rshoulder, x_axis, 0.221308, 3.787366 * speedMult)
-			Turn(rshoulder, z_axis, -0.698132, 1.090829 * speedMult)
+			Turn(lforearm, x_axis, -0.418879, 0.872664 * speedMult)
+			Turn(rforearm, x_axis, -0.418879, 0.872664 * speedMult)
 			Turn(torso, y_axis, -0.025831, 1.082104 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -638,10 +593,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.091934, 1.758869 * speedMult)
 		Turn(thighfr, y_axis, 0.468024, 5.114298 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.780511, 1.937316 * speedMult)
-			Turn(lshoulder, x_axis, 0.227451, 4.391249 * speedMult)
-			Turn(rforearm, x_axis, 0.703019, 1.937313 * speedMult)
-			Turn(rshoulder, x_axis, 0.040492, 4.520403 * speedMult)
+			Turn(lforearm, x_axis, -0.453786, 0.872664 * speedMult)
+			Turn(rforearm, x_axis, -0.453786, 0.872664 * speedMult)
 			Turn(torso, y_axis, 0.025831, 1.291543 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -688,12 +641,8 @@ local function Walk()
 		Turn(thighfr, z_axis, -0.115419, 0.587123 * speedMult)
 		Turn(thighfr, y_axis, 0.348623, 2.985021 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.845438, 1.623155 * speedMult)
-			Turn(lshoulder, x_axis, 0.374617, 3.679154 * speedMult)
-			Turn(lshoulder, z_axis, 0.654498, 1.090831 * speedMult)
-			Turn(rforearm, x_axis, 0.638093, 1.623155 * speedMult)
-			Turn(rshoulder, x_axis, -0.111003, 3.787364 * speedMult)
-			Turn(rshoulder, z_axis, -0.654498, 1.090835 * speedMult)
+			Turn(lforearm, x_axis, -0.401426, 1.308996 * speedMult)
+			Turn(rforearm, x_axis, -0.401426, 1.308996 * speedMult)
 			Turn(torso, y_axis, 0.069115, 1.082104 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -741,12 +690,8 @@ local function Walk()
 		Turn(thighfr, y_axis, 0.322422, 0.655025 * speedMult)
 		Turn(thighfr, z_axis, -0.148568, 0.828725 * speedMult)
 		if not isAiming then
-			Turn(lforearm, x_axis, 0.872665, 0.680675 * speedMult)
-			Turn(lshoulder, x_axis, 0.436332, 1.542875 * speedMult)
-			Turn(lshoulder, z_axis, 0.610865, 1.090825 * speedMult)
-			Turn(rforearm, x_axis, 0.610865, 0.680700 * speedMult)
-			Turn(rshoulder, x_axis, -0.174533, 1.588250 * speedMult)
-			Turn(rshoulder, z_axis, -0.610865, 1.090825 * speedMult)
+			Turn(lforearm, x_axis, -0.349066, 1.309000 * speedMult)
+			Turn(rforearm, x_axis, -0.349066, 1.309000 * speedMult)
 			Turn(torso, y_axis, 0.087266, 0.453775 * speedMult)
 		end
 		Sleep(sleepTime)
@@ -801,49 +746,41 @@ local function StopWalking()
 	Turn(thighfr, y_axis, 0.785398, 38.581374 * speedMult)
 	Turn(thighfr, z_axis, 0.000000, 27.083455 * speedMult)
 	if not isAiming then
-		Turn(lforearm, x_axis, 0.698132, 14.544417 * speedMult)
-		Turn(lshoulder, x_axis, 0.401426, 14.637495 * speedMult)
-		Turn(lshoulder, z_axis, 0.698132, 7.272209 * speedMult)
-		Turn(rforearm, x_axis, 0.698132, 7.272179 * speedMult)
-		Turn(rshoulder, x_axis, 0.401426, 47.996551 * speedMult)
-		Turn(rshoulder, z_axis, -0.698132, 7.272214 * speedMult)
+		Turn(lforearm, x_axis, -0.261800, 7.272206 * speedMult)
+		Turn(lshoulder, x_axis, 0.401426, -3.041104 * speedMult)
+		Turn(lshoulder, y_axis, 0.087266, 7.272206 * speedMult)
+		Turn(lshoulder, z_axis, 0.523599, 21.816616 * speedMult)
+		Turn(lwrist, x_axis, -0.174533, -1.322219 * speedMult)
+		Turn(rforearm, x_axis, -0.261799, 7.272211 * speedMult)
+		Turn(rshoulder, x_axis, 0.401426, -3.041104 * speedMult)
+		Turn(rshoulder, y_axis, -0.087266, 7.272205 * speedMult)
+		Turn(rshoulder, z_axis, -0.523599, 21.816611 * speedMult)
+		Turn(rwrist, x_axis, -0.174533, -1.322219 * speedMult)
 		Turn(torso, y_axis, 0.000000, 7.272204 * speedMult)
 	end
 end
 
 local function PoseArms()
 	Turn(torso, y_axis, 0, POSE_SPEED)
-	Turn(lforearm, x_axis, 0.872665, POSE_SPEED)
-	Turn(rforearm, x_axis, 0.872665, POSE_SPEED)
-	Turn(lhand, x_axis, 0.253073, POSE_SPEED)
-	Turn(rhand, x_axis, 0.253073, POSE_SPEED)
-	Turn(lhand, y_axis, -0.031416, POSE_SPEED)
-	Turn(rhand, y_axis, 0.031416, POSE_SPEED)
-	Turn(lshoulder, x_axis, -0.261799, POSE_SPEED)
-	Turn(rshoulder, x_axis, -0.261799, POSE_SPEED)
-	Turn(lshoulder, z_axis, 1.466077, POSE_SPEED)
-	Turn(rshoulder, z_axis, -1.466077, POSE_SPEED)
-	Turn(lshoulder, y_axis, -1.186824, POSE_SPEED)
-	Turn(rshoulder, y_axis, 1.186824, POSE_SPEED)
-	Turn(lwrist, x_axis, 0.052360, POSE_SPEED)
-	Turn(rwrist, x_axis, 0.052360, POSE_SPEED)
+	Turn(lforearm, x_axis, -0.349066, POSE_SPEED)
+	Turn(rforearm, x_axis, -0.349066, POSE_SPEED)
+	Turn(lshoulder, z_axis, 0.785398, POSE_SPEED)
+	Turn(rshoulder, z_axis, -0.785398, POSE_SPEED)
+	Turn(lshoulder, y_axis, 0.174533, POSE_SPEED)
+	Turn(rshoulder, y_axis, -0.174533, POSE_SPEED)
 end
 
 local function RestArms()
-	Turn(lforearm, x_axis, 0.698132, POSE_SPEED / 2)
+	Turn(lforearm, x_axis, -0.261800, POSE_SPEED / 2)
 	Turn(lshoulder, x_axis, 0.401426, POSE_SPEED / 2)
-	Turn(lshoulder, z_axis, 0.698132, POSE_SPEED / 2)
-	Turn(rforearm, x_axis, 0.698132, POSE_SPEED / 2)
+	Turn(lshoulder, y_axis, 0.087266, POSE_SPEED / 2)
+	Turn(lshoulder, z_axis, 0.523599, POSE_SPEED / 2)
+	Turn(lwrist, x_axis, -0.174533, POSE_SPEED / 2)
+	Turn(rforearm, x_axis, -0.261799, POSE_SPEED / 2)
 	Turn(rshoulder, x_axis, 0.401426, POSE_SPEED / 2)
-	Turn(rshoulder, z_axis, -0.698132, POSE_SPEED / 2)
-	Turn(lhand, x_axis, 0, POSE_SPEED / 2)
-	Turn(rhand, x_axis, 0, POSE_SPEED / 2)
-	Turn(lhand, y_axis, 0, POSE_SPEED / 2)
-	Turn(rhand, y_axis, 0, POSE_SPEED / 2)
-	Turn(lshoulder, y_axis, 0, POSE_SPEED / 2)
-	Turn(rshoulder, y_axis, 0, POSE_SPEED / 2)
-	Turn(lwrist, x_axis, 0, POSE_SPEED / 2)
-	Turn(rwrist, x_axis, 0, POSE_SPEED / 2)
+	Turn(rshoulder, y_axis, -0.087266, POSE_SPEED / 2)
+	Turn(rshoulder, z_axis, -0.523599, POSE_SPEED / 2)
+	Turn(rwrist, x_axis, -0.174533, POSE_SPEED / 2)
 end
 
 local function AimController()
@@ -878,11 +815,17 @@ local function AimController()
 					arm.goalPitch = 0
 					arm.pitchBelief = stepToward(arm.pitchBelief, 0, RESTORE_PITCH_SPEED / Game.gameSpeed)
 				end
-				Turn(arm.aimx, x_axis, -math.min(arm.pitchBelief, PITCH_SPLIT))
+				local elbow = math.max(-ELBOW_MAX, math.min(ELBOW_MAX, arm.pitchBelief))
+				if arm.pitchBelief > ELBOW_MAX then
+					elbow = math.max(0, ELBOW_MAX * (1 - (arm.pitchBelief - ELBOW_MAX) / ELBOW_FADE))
+				end
+				Turn(arm.aimx, x_axis, elbow - arm.pitchBelief)
 				if isAiming then
-					local extra = HAND_PITCH_SIGN * math.max(0, arm.pitchBelief - PITCH_SPLIT)
-					Turn(arm.hand, x_axis, HAND_POSE_X + HAND_AXIS_X * extra, PITCH_SPEED)
-					Turn(arm.hand, y_axis, arm.mirror * (HAND_POSE_Y + HAND_AXIS_Y * extra), PITCH_SPEED)
+					local elbowTurn = -elbow / ELBOW_GAIN
+					Turn(arm.forearm, x_axis, FOREARM_POSE + elbowTurn, PITCH_SPEED)
+					Turn(arm.wrist, x_axis, 0, PITCH_SPEED)
+					arm.yawLeak = LEAK_SIGN * arm.mirror * ELBOW_LEAK * elbowTurn
+					Turn(arm.aimx, y_axis, POSE_YAW_SIGN * arm.mirror * POSE_YAW - arm.yawLeak, YAW_SPEED)
 				else
 					Turn(arm.aimx, y_axis, 0, RESTORE_SPEED)
 				end
@@ -905,8 +848,6 @@ function script.StopMoving()
 end
 
 function script.Create()
-	local _, _, z = Spring.GetUnitPiecePosition(unitID, aimy)
-	pivotZ = z
 	StartThread(StopWalking)
 	StartThread(AimController)
 end
@@ -944,7 +885,6 @@ function script.AimWeapon(num, heading, pitch)
 	if LEAD_GUN[num] and not holding then
 		arm.goalPitch = pitch
 	end
-	Turn(arm.aimx, y_axis, ToeIn(num, arm), YAW_SPEED)
 	if arm ~= nextArm or frame - lastArmFrame < HAND_GAP then
 		return false
 	end
