@@ -21,7 +21,6 @@ local warningPeriod = 15
 local maxPing = 33 -- in seconds
 local finishedResumingPing = 2 --in seconds
 local maxInitialQueueSlack = 150 -- in seconds
-local takeCommand = "take2"
 local minTimeToTake = 12 -- in seconds
 local checkQueueTime = 25 -- in seconds
 -- in chose ingame startpostype, players must place beforehand, so take an action, grace period can be shorter
@@ -40,10 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 	local playerInfoTable = {}
 	local currentGameFrame = 0
 
-	local TransferUnit = Spring.TransferUnit
 	local GetPlayerList = Spring.GetPlayerList
-	local ShareTeamResource = Spring.ShareTeamResource
-	local GetTeamResources = Spring.GetTeamResources
 	local GetPlayerInfo = Spring.GetPlayerInfo
 	local GetTeamLuaAI = Spring.GetTeamLuaAI
 	local GetAIInfo = Spring.GetAIInfo
@@ -54,7 +50,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetTeamList = Spring.GetTeamList
 	local IsCheatingEnabled = Spring.IsCheatingEnabled
 
-	local resourceList = { "metal", "energy" }
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local gameSpeed = Game.gameSpeed
 
@@ -142,54 +137,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function takeTeam(cmd, line, words, playerID)
-		if not CheckPlayerState(playerID) then
-			SendToUnsynced("NotifyError", playerID, errorKeys.shareAFK)
-			return -- exclude taking rights from lagged players, etc
-		end
-		local targetTeam = tonumber(words[1])
-		local _, _, _, takerID, allyTeamID = GetPlayerInfo(playerID, false)
-		local teamList = GetTeamList(allyTeamID)
-		if targetTeam then
-			if select(6, GetTeamInfo(targetTeam, false)) ~= allyTeamID then
-				-- don't let enemies take
-				SendToUnsynced("NotifyError", playerID, errorKeys.takeEnemies)
-				return
-			end
-			teamList = { targetTeam }
-		end
-		local numToTake = 0
-		for _, teamID in ipairs(teamList) do
-			local luaAI = GetTeamLuaAI(teamID)
-			local isAiTeam = select(4, GetTeamInfo(teamID, false))
-			if not isAiTeam and (not luaAI or luaAI == "") and GetTeamRulesParam(teamID, "numActivePlayers") == 0 then
-				numToTake = numToTake + 1
-				-- transfer all units
-				local teamUnits = GetTeamUnits(teamID)
-				for i = 1, #teamUnits do
-					TransferUnit(teamUnits[i], takerID)
-				end
-				-- send all resources en-block to the taker
-				for _, resourceName in ipairs(resourceList) do
-					local shareAmount = GetTeamResources(teamID, resourceName)
-					local current, storage, _, _, _, shareSlider = GetTeamResources(takerID, resourceName)
-					shareAmount = math.min(shareAmount, shareSlider * storage - current)
-					ShareTeamResource(teamID, takerID, resourceName, shareAmount)
-				end
-			end
-		end
-		if numToTake == 0 then
-			SendToUnsynced("NotifyError", playerID, errorKeys.nothingToTake)
-		end
-	end
-
 	function gadget:Initialize()
-		gadgetHandler:AddChatAction(takeCommand, takeTeam, "Take control of units and resources from inactive players")
 		updatePlayersInfo()
-	end
-
-	function gadget:Shutdown()
-		gadgetHandler:RemoveChatAction(takeCommand)
 	end
 
 	function gadget:GameFrame(currentFrame)

@@ -41,6 +41,9 @@ M.ModeCategories = {
 
 M.ModOptions = {
 	ResourceSharingEnabled = "resource_sharing_enabled",
+	TakeMode = "take_mode",
+	TakeDelaySeconds = "take_delay_seconds",
+	TakeDelayCategory = "take_delay_category",
 	TaxResourceSharingAmount = "tax_resource_sharing_amount",
 	UnitSharingMode = "unit_sharing_mode",
 	UnitShareStunSeconds = "unit_share_stun_seconds",
@@ -49,5 +52,18 @@ M.ModOptions = {
 
 ---@class StunDelayField
 ---@field StunDelay "stun_delay"
+
+---@class TakeDelayField
+---@field TakeDelay "take_delay"
+
+---@class TakeModeFields : EnabledField, DisabledField, StunDelayField, TakeDelayField
+
+---@type TakeModeFields
+M.TakeMode = {
+	Enabled = "enabled",
+	Disabled = "disabled",
+	StunDelay = "stun_delay",
+	TakeDelay = "take_delay",
+}
 
 return M
