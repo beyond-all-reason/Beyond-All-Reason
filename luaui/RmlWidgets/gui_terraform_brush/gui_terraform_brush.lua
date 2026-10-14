@@ -5176,44 +5176,6 @@ widgetState.projectDragEnd = function(commit)
 	end
 end
 
--- A local move only rearranges this disk. When the same project is in the
--- team library at the path it just left, the same move can be made there --
--- offered rather than done, because that request is the only one that removes
--- anything from the remote. It is offered only when the helper could carry it
--- out: connected, allowed to push, and with both folders in the pipeline.
-widgetState.projectOfferRemoteMove = function(oldSlug, newSlug)
-	local d = widgetState.dmHandle
-	local ui = widgetState.projectLibraryUi
-	if not (d and ui and d.libraryOnline and d.libraryWritable) then
-		return
-	end
-	local stage = newSlug:match("^(.*)/[^/]+$") or ""
-	local isStage = false
-	for _, path in ipairs(ui.folders() or {}) do
-		if path == stage then
-			isStage = true
-		end
-	end
-	if not isStage then
-		return
-	end
-	local published = false
-	for _, entry in ipairs(ui.projects() or {}) do
-		if entry.slug == oldSlug then
-			published = true
-		end
-	end
-	if not published then
-		return
-	end
-	widgetState.projectPendingMove = { source = oldSlug, stage = stage }
-	d.libraryMoveOpen = true
-	d.libraryMoveQuestion = widgetState.text("moveQuestion", {
-		name = oldSlug:match("([^/]+)$") or oldSlug,
-		stage = stage,
-	})
-end
-
 widgetState.projectDragUpdate = function()
 	local drag = widgetState.projectDrag
 	if not drag then

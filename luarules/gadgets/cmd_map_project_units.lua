@@ -158,7 +158,7 @@ local function replaceAllUnits()
 	)
 end
 
-function gadget:RecvLuaMsg(msg, playerID)
+function gadget:RecvLuaMsg(msg)
 	if msg == EXPORT_HEADER then
 		-- Read-only, but it reveals every unit's position: refuse when it could
 		-- serve as a maphack (multiplayer without cheats).

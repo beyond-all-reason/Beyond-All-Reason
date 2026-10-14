@@ -10560,16 +10560,6 @@
 				<div class="tf-project-status-dismiss" data-attr-title="libraryLabel_dismiss" data-event-mousedown="libraryDismissStatus()"><img class="tf-project-icon" src="/luaui/images/terraform_brush/close.png" /></div>
 			</div>
 			<div class="tf-project-status bg-darker border-warning" data-if="projectOpenHint != ''">{{projectOpenHint}}</div>
-			<!-- Offered after a local move, when the same project sits in the team
-			     library at the path it just left. -->
-			<div class="tf-project-upload bg-darker border-warning" data-if="libraryMoveOpen">
-				<div class="tf-project-caution text-keybind">{{libraryMoveQuestion}}</div>
-				<div class="tf-project-actions">
-					<div class="tf-action-btn tf-project-secondary" data-event-click="libraryMoveDismiss()"><div class="tf-action-btn-text">{{libraryLabel_moveLater}}</div></div>
-					<div class="tf-project-spacer"></div>
-					<div class="tf-action-btn tf-save-btn tf-project-primary" data-class-disabled="!libraryWritable || libraryBusy" data-event-click="libraryMoveConfirm()"><div class="tf-action-btn-text">{{libraryLabel_moveConfirm}}</div></div>
-				</div>
-			</div>
 			<!-- The stage tray: one chip per pipeline folder. Opened by the TEAM
 			     block for an upload, or for a move (which is staged, not sent). -->
 			<div class="tf-project-upload bg-darker border-dark" data-if="libraryUploadOpen" data-class-border-warning="libraryConfirming">

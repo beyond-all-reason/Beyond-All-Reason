@@ -2321,9 +2321,7 @@ local function listProjectsDetailed()
 			local manifest = readPrevManifest(PROJECTS_DIR .. e.slug .. "/")
 			if manifest and manifest.kind == "bar-map-project" then
 				seen[e.slug] = true
-				local p = projectEntry(e.slug, manifest, e.at)
-				p.discovered = "recent"
-				out[#out + 1] = p
+				out[#out + 1] = projectEntry(e.slug, manifest, e.at)
 			end
 		end
 	end
@@ -3093,14 +3091,10 @@ local function phaseHeightmap(c)
 		c.ackBase = Spring.GetGameRulesParam(ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
 		local range = loadJob.manifest.map and loadJob.manifest.map.height_range
-		if tb.importHeightmap then
-			-- loadJob.transform is set when the session was booted by the map
-			-- transform: the PNG is the OLD map's, and the importer resamples it
-			-- onto this canvas through that turn/mirror/fit instead of straight.
-			tb.importHeightmap(path, range and range.min, range and range.max, loadJob.transform)
-		else
-			Spring.SendCommands("terraformimport " .. path)
-		end
+		-- loadJob.transform is set when the session was booted by the map
+		-- transform: the PNG is the OLD map's, and the importer resamples it
+		-- onto this canvas through that turn/mirror/fit instead of straight.
+		tb.importHeightmap(path, range and range.min, range and range.max, loadJob.transform)
 		c.sent = true
 		c.ticks = 0
 		echoP("heightmap: importing " .. path .. " ...")
@@ -3620,7 +3614,6 @@ local function phaseUnits(c)
 		end
 		Spring.SendLuaRulesMsg("$mpunits_end$")
 		c.sent = true
-		c.count = count
 		c.ackBase = Spring.GetGameRulesParam(UNITS_ACK_PARAM) or 0
 		c.frameAtSend = Spring.GetGameFrame()
 		c.ticks = 0
@@ -4278,14 +4271,9 @@ local function mapProjectAction(_, optLine, params)
 		end
 	elseif sub == "prune" then
 		pruneAutosaves()
-	elseif sub == "dirty" then
-		-- Marks the session as having unsaved changes, for exercising the guards
-		-- (the quit popup, Open's confirm, the autosave timer) without an edit.
-		dirtyCount = dirtyCount + 1
-		echoP("session marked as changed (unsaved changes: " .. dirtyCount .. ")")
 	else
 		echoP(
-			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune  |  /mapproject dirty"
+			"usage: /mapproject save <name> [units]  |  /mapproject open <name>  |  /mapproject list  |  /mapproject delete <name>  |  /mapproject autosave  |  /mapproject prune"
 		)
 	end
 end
@@ -4307,7 +4295,7 @@ function widget:Initialize()
 	-- Units export round-trip receivers (cmd_map_project_units.lua relays the
 	-- synced walk through these; see stepUnits for why collection is synced).
 	widgetHandler:RegisterGlobal("mapproject_units_save_begin", function(count)
-		unitsRx = { batches = {}, expected = count, done = false }
+		unitsRx = { batches = {}, done = false }
 	end)
 	widgetHandler:RegisterGlobal("mapproject_units_save_data", function(payload)
 		if unitsRx and type(payload) == "string" then
@@ -4327,7 +4315,6 @@ function widget:Initialize()
 		save = startSave,
 		validateSlug = validateSlug,
 		open = openProject,
-		list = listProjects,
 		listDetailed = listProjectsDetailed,
 		-- openStaged(slug, { transform = ... }): the map transform's restart. The
 		-- staged project is scratch (no recent entry), and the transform travels
@@ -4335,13 +4322,9 @@ function widget:Initialize()
 		openStaged = function(slug, opts)
 			return openProject(slug, { transform = opts and opts.transform, staging = true })
 		end,
-		clearTransformStaging = clearTransformStaging,
 		-- One known slug's entry, read from its manifest rather than found by
 		-- walking folders, so a project that landed this session is visible.
 		describe = describeProject,
-		-- { {slug, at}, ... } newest first: projects opened or saved through
-		-- this widget (the journal behind the dialog's RECENT order).
-		recent = readRecent,
 		delete = deleteProject,
 		deleteFolder = deleteFolder,
 		move = moveProject,
