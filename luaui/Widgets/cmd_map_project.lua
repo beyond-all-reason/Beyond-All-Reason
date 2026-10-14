@@ -258,7 +258,7 @@ local function readPrevManifest(dir)
 	end
 	local raw = f:read("*a")
 	f:close()
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return nil
 	end
@@ -286,7 +286,7 @@ local function readRecent()
 	local raw = f:read("*a")
 	f:close()
 	raw = raw:gsub("^\239\187\191", "")
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return {}
 	end
@@ -328,7 +328,7 @@ local function readLuaFile(path)
 	end
 	local raw = f:read("*a")
 	f:close()
-	local chunk, err = loadstring(raw)
+	local chunk, err = loadstring(raw, nil, {})
 	if not chunk then
 		return nil, "parse error: " .. tostring(err)
 	end
@@ -1721,6 +1721,48 @@ local function stepCleanupStale()
 	return true
 end
 
+---@class MapProjectManifest
+---@field kind "bar-map-project"
+---@field format_version integer
+---@field name string
+---@field created string date time
+---@field modified string date time
+---@field game_version string|"unknown"
+---@field autosave_of string? Only in autosaves: the project the snapshot belongs to, `""` for a canvas without one.
+---@field map MapProjectManifestMap
+---@field sections MapProjectManifestSections
+---@field assets {decals: {name: string, file: string, installed: boolean}[]}
+---@field mission {zones: table, markers: table, placeholders: table, notes: string}
+
+---@class MapProjectManifestMap
+---@field size_x integer Map units (even, 2-64)
+---@field size_z integer Map units (even, 2-64)
+---@field base_height number?
+---@field base_color ColorRGBi?
+---@field height_range {min: integer, max: integer}?
+---@field skybox string?
+---@field source_map string|"unknown"
+---@field dnts DntsSet? Only present when the map has a splat set.
+
+---@class MapProjectManifestSections
+---@field heightmap {file: string, version: 1, bytes: integer}
+---@field minimap {file: string, version: 1, bytes: integer, width: integer?, height: integer?}
+---@field splat {file: string, version: 1, bytes: integer}
+---@field surface {file: string, version: 1, bytes: integer, meta:"surface.lua"}
+---@field tileset {file: string, version: 1, bytes: integer}
+---@field diffuse {dir: "diffuse/", version: 1, bytes: integer, square_size: integer, squares: integer, full: boolean, channels: string[] }
+---@field metal {file: string, version: 1, bytes: integer}
+---@field features {file: string, version: 1, bytes: integer}
+---@field units {file: string, version: 1, bytes: integer, count: integer?}
+---@field decals {file: string, version: 1, bytes: integer}
+---@field startpos {file: string, version: 1, bytes: integer}
+---@field startboxes {file: string, version: 1, bytes: integer}
+---@field lights {file: string, version: 1, bytes: integer}
+---@field labels {file: string, version: 1, bytes: integer}
+---@field environment {file: string, version: 1, bytes: integer}
+---@field weather {file: string, version: 1, bytes: integer}
+---@field grass {file: string, version: 1, bytes: integer, patch_resolution: integer?, config: "grass_config.lua"}
+
 local function stepManifest()
 	local mo = job.mapOptions
 	local prev = job.prev
@@ -2857,7 +2899,7 @@ local function readPointer()
 	if not raw or raw == "" then
 		return nil
 	end
-	local chunk = loadstring(raw)
+	local chunk = loadstring(raw, nil, {})
 	if not chunk then
 		return nil
 	end

@@ -28,7 +28,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local texts = {}
 local weaponInfo = require("common/weapons")
 local damageStats = (VFS.FileExists("LuaUI/Config/BAR_damageStats.lua"))
-	and VFS.Include("LuaUI/Config/BAR_damageStats.lua")
+	and VFS.Include("LuaUI/Config/BAR_damageStats.lua", {}, VFS.RAW)
 local gameName = Game.gameName
 
 if damageStats and damageStats[gameName] and damageStats[gameName].team then

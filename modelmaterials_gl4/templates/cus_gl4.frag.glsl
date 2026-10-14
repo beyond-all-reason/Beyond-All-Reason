@@ -164,7 +164,7 @@ in Data {
 	//vec3 worldBitangent;
 	vec3 worldNormal_VS; // needs to be normalized due to varying interpolation
 
-	vec4 uvCoords;
+	vec4 uvCoords; // .z contains unitID, .w the jammed highlight 0-1
 	flat vec4 teamCol; //.a contains selectedness
 	// main light vector(s)
 //	vec3 worldCameraDir;
@@ -183,6 +183,16 @@ in Data {
 //	flat int unitID;
 //	flat vec4 userDefined2;
 };
+
+// Jammed units highlight (gui_jammed_units.lua): red like the jammer preview. The shade adapts to the pixel underneath so
+// it stays visible on red team colors: bright red over dark pixels, deep red over bright ones (JAMMED_SHADE_* range)
+#define JAMMED_COLOR vec3(1.0, 0.25, 0.18)
+#define JAMMED_DARK_COLOR vec3(0.45, 0.02, 0.0)
+#define JAMMED_FILL 0.12 // tint strength over the whole unit
+#define JAMMED_RIM 0.5 // extra strength at grazing angles
+#define JAMMED_EDGE 0.6 // extra strength right at the silhouette
+#define JAMMED_SHADE_DARK 0.35 // pixels at most this bright (max rgb) get JAMMED_COLOR
+#define JAMMED_SHADE_BRIGHT 0.7 // pixels at least this bright get JAMMED_DARK_COLOR
 
 
 /***********************************************************************/
@@ -1307,6 +1317,22 @@ void main(void){
 			outColor.rgb += inselection * highLightOpacity * selectionHighlight.rgb;
 		}
 	#endif 
+
+	// JAMMED UNITS HIGHLIGHT
+	// uvCoords.w is 0-1 (faded in the vertex shader from unit buffer uniforms 1.w, #7, written by gui_jammed_units.lua)
+	// while the unit stands in allied jammer coverage: a faint red tint over the whole unit and a red rim at grazing angles.
+	float jammedness = uvCoords.w;
+	if (jammedness > 0.001) {
+		float jammedRim = clamp(1.0 - dot(worldNormal, V), 0.0, 1.0);
+		jammedRim *= jammedRim;
+		// bright red over dark pixels, deep red over bright ones: a bright red alone vanishes on red team colors
+		float brightness = max(outColor.r, max(outColor.g, outColor.b));
+		vec3 jammedColor = mix(JAMMED_COLOR, JAMMED_DARK_COLOR, smoothstep(JAMMED_SHADE_DARK, JAMMED_SHADE_BRIGHT, brightness));
+		outColor.rgb = mix(outColor.rgb, jammedColor, jammedness * min(JAMMED_FILL + JAMMED_RIM * jammedRim, 1.0));
+		// thin, stronger edge along the silhouette
+		float jammedEdge = jammedRim * jammedRim * jammedRim;
+		outColor.rgb = mix(outColor.rgb, jammedColor, jammedness * JAMMED_EDGE * jammedEdge);
+	}
 
 	// CLOAK EFFECTS
 	#if ENABLE_OPTION_HEALTH_TEXTURING 

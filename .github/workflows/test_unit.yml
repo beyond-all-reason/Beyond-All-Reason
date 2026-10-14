@@ -41,3 +41,8 @@ jobs:
 
     - name: Run busted
       run: lx --lua-version 5.1 test
+
+    - name: Run busted in reverse file order
+      env:
+        SPEC_ORDER: reverse
+      run: lx --lua-version 5.1 test
