@@ -6,11 +6,11 @@ local GAME_SPEED = 30
 local CATCH_UP_FRAMES = 11 * GAME_SPEED
 local CONTROLLER_ID = 0
 local OTHER_PLAYER_ID = 1
+local SPECTATOR_ID = 2
 
 -- Runs the gadget file against the world table, which the stubs read from and record into.
 local function loadGadget(synced, world)
-	local env
-	env = {
+	local env = {
 		gadget = {},
 		gadgetHandler = {
 			IsSyncedCode = function()
@@ -23,15 +23,16 @@ local function loadGadget(synced, world)
 				world.syncActions[name] = nil
 			end,
 		},
+		BAR = {
+			Utilities = {
+				GetHostCommandPlayerID = function()
+					return world.controllerID
+				end,
+			},
+		},
 		GG = {},
 		Game = { gameSpeed = GAME_SPEED },
 		Json = Json,
-		-- The pause controller include has to see this env's Spring.
-		VFS = {
-			Include = function(path)
-				return _G.VFS.Include(path, env)
-			end,
-		},
 		Script = {
 			LuaUI = setmetatable({}, {
 				__call = function(_, name)
@@ -46,11 +47,12 @@ local function loadGadget(synced, world)
 			world.sent[#world.sent + 1] = { ... }
 		end,
 		Spring = {
-			GetPlayerList = function()
-				return { world.controllerID }
-			end,
-			GetPlayerInfo = function()
-				return "player", true, false
+			GetPlayerInfo = function(playerID)
+				local player = world.players and world.players[playerID]
+				if not player then
+					return nil
+				end
+				return "player", player.active, player.spectator
 			end,
 			GetMyPlayerID = function()
 				return world.myPlayerID
@@ -88,6 +90,11 @@ describe("api_game_pause", function()
 		before_each(function()
 			world = {
 				controllerID = CONTROLLER_ID,
+				players = {
+					[CONTROLLER_ID] = { active = true, spectator = false },
+					[OTHER_PLAYER_ID] = { active = true, spectator = false },
+					[SPECTATOR_ID] = { active = true, spectator = true },
+				},
 				rulesParams = {},
 				sent = {},
 				syncActions = {},
@@ -126,43 +133,49 @@ describe("api_game_pause", function()
 			assert.equals(2, #world.sent)
 		end)
 
-		it("publishes only the sources paused with publish", function()
+		it("publishes the sources paused with publish, with the generation of each", function()
 			assert.same({}, Json.decode(world.rulesParams.gamePausePublished))
 
 			gamePause.Pause("zeta", true)
 			gamePause.Pause("hidden")
 			gamePause.Pause("alpha", true)
 			gamePause.Pause("other", false)
-			assert.same({ "alpha", "zeta" }, Json.decode(world.rulesParams.gamePausePublished))
+			assert.same({ { "alpha", 3 }, { "zeta", 1 } }, Json.decode(world.rulesParams.gamePausePublished))
+			assert.equals(1, world.rulesParams.gamePauseGeneration)
 
 			gamePause.Unpause("zeta")
-			assert.same({ "alpha" }, Json.decode(world.rulesParams.gamePausePublished))
+			assert.same({ { "alpha", 3 } }, Json.decode(world.rulesParams.gamePausePublished))
 		end)
 
-		it("unpauses a published source only for the pause controller's message", function()
+		it("unpauses a published source for its generation from any active player", function()
 			gamePause.Pause("published", true)
 			gamePause.Pause("unpublished")
 
-			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:published", OTHER_PLAYER_ID))
-			assert.same({ "published" }, Json.decode(world.rulesParams.gamePausePublished))
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:2:published", OTHER_PLAYER_ID))
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:published", SPECTATOR_ID))
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:2:unpublished", OTHER_PLAYER_ID))
+			assert.same({ { "published", 1 } }, Json.decode(world.rulesParams.gamePausePublished))
 
-			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:unpublished", CONTROLLER_ID))
-			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:published", CONTROLLER_ID))
+			assert.is_true(gadget:RecvLuaMsg("GamePauseUnpause:1:published", OTHER_PLAYER_ID))
 			assert.same({}, Json.decode(world.rulesParams.gamePausePublished))
 			assert.equals(1, world.rulesParams.gamePaused)
 
 			gamePause.Unpause("unpublished")
 			assert.equals(0, world.rulesParams.gamePaused)
 
-			assert.is_nil(gadget:RecvLuaMsg("SomethingElse:published", CONTROLLER_ID))
+			assert.is_nil(gadget:RecvLuaMsg("SomethingElse:1:published", OTHER_PLAYER_ID))
 		end)
 
-		it("forwards a widgets unpause only while a source holds the pause", function()
-			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused", CONTROLLER_ID))
+		it("forwards a widgets unpause only for the gadget pause in progress", function()
+			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused:0", OTHER_PLAYER_ID))
 			assert.same({}, world.sent)
 
 			gamePause.Pause("first")
-			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused", CONTROLLER_ID))
+			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused:0", OTHER_PLAYER_ID))
+			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused:1", SPECTATOR_ID))
+			assert.same({ { "GamePause", true } }, world.sent)
+
+			assert.is_true(gadget:RecvLuaMsg("GamePauseWidgetsUnpaused:1", OTHER_PLAYER_ID))
 			assert.same({ { "GamePause", true }, { "GamePauseWidgetsUnpaused" } }, world.sent)
 		end)
 	end)

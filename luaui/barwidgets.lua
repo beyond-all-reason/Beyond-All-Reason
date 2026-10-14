@@ -2493,14 +2493,15 @@ local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /se
 -- pausing under a source, see widgetHandler:Pause
 local PAUSESOURCE_MODALS = "modals"
 local RULESPARAM_GADGET_PAUSE = "gamePaused"
+local RULESPARAM_GADGET_PAUSE_GENERATION = "gamePauseGeneration"
 local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
 local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
-local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused"
+local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused:"
 local pauseSources = {}
 local widgetPaused = false
 -- pausing while a modal window is open, see UpdatePause
 local modalPauseEnabled = true
-local modalPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
+local modalPauseAllowed = false -- only in singleplayer and replays
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -2678,13 +2679,20 @@ local function inGadgetPause()
 	return (Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE) or 0) == 1
 end
 
-local function canReleaseGadgetPause(source)
+local function getPauseReleaseKey(source)
 	local publishedRule = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_PUBLISH) or "[]"
 	if publishedRule == "[]" then
-		return false
+		return nil
 	end
 	local published = Json.decode(publishedRule)
-	return type(published) == "table" and table.contains(published, source)
+	if type(published) ~= "table" then
+		return nil
+	end
+	for _, entry in ipairs(published) do
+		if type(entry) == "table" and entry[1] == source then
+			return entry[2]
+		end
+	end
 end
 
 ---Pause and resume the game using basic claims and releases on claims.
@@ -2715,7 +2723,8 @@ function widgetHandler:Unpause(source)
 		if next(pauseSources) == nil then
 			if widgetPaused and isClientPaused() then
 				if inGadgetPause() then
-					Spring.SendLuaRulesMsg(MESSAGE_WIDGETS_UNPAUSED) -- the gadgets resume the game
+					local generation = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_GENERATION) or 0
+					Spring.SendLuaRulesMsg(MESSAGE_WIDGETS_UNPAUSED .. generation) -- the gadgets resume the game
 				else
 					Spring.SendCommands("pause 0")
 				end
@@ -2724,8 +2733,9 @@ function widgetHandler:Unpause(source)
 		end
 		return true
 	end
-	if canReleaseGadgetPause(source) then
-		Spring.SendLuaRulesMsg(MESSAGE_GADGET_UNPAUSE .. source)
+	local release = getPauseReleaseKey(source)
+	if release then
+		Spring.SendLuaRulesMsg(MESSAGE_GADGET_UNPAUSE .. release .. ":" .. source)
 		return true
 	end
 	return false
@@ -2739,11 +2749,11 @@ local function gameUnpausing()
 	return true
 end
 
--- Once per frame, after the widgets' Update: a modal closing as another opens, or one
--- reopening itself after a reload, never lets the game run in between.
+-- This runs after the widgets update, so the game stays paused when:
+-- one modal closes -and- another opens, or a modal reopens after a reload.
 function widgetHandler:UpdatePause()
 	if widgetPaused and not isClientPaused() then
-		widgetPaused = false -- unpaused by the player while widgets held it: theirs from here
+		widgetPaused = false -- the player unpaused during another pause, so the pause remains
 	end
 	local wanted = modalPauseAllowed and modalPauseEnabled and (self.chobbyInterface or anyWindowOpen())
 	if wanted ~= (pauseSources[PAUSESOURCE_MODALS] == true) then
