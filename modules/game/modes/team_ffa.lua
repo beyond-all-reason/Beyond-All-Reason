@@ -1,6 +1,7 @@
 local ModeDSL = require("modules/game/mode_dsl")
 local Mode = ModeDSL.Mode
 local DeathMode, DraftMode, AnonymousMode = ModeDSL.DeathMode, ModeDSL.DraftMode, ModeDSL.AnonymousMode
+local TransportEnemy = require("modules/transport/enums").TransportEnemy
 
 return Mode("Team FFA")
 	.Desc("Several teams, every team for itself. Start boxes are dealt at random, and fallen teams leave wreckage behind.")
@@ -20,4 +21,6 @@ return Mode("Team FFA")
 	.MapDeformation(true)
 	.FogOfWar(true)
 	.NoRush(0)
+	.SlowComTransport(false)
+	.EnemyTransporting(TransportEnemy.NotCommanders)
 	.UnitRestrictions()

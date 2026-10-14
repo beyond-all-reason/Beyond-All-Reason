@@ -1,6 +1,7 @@
 local ModeDSL = require("modules/game/mode_dsl")
 local Mode = ModeDSL.Mode
 local DeathMode, DraftMode, AnonymousMode = ModeDSL.DeathMode, ModeDSL.DraftMode, ModeDSL.AnonymousMode
+local TransportEnemy = require("modules/transport/enums").TransportEnemy
 
 return Mode("Territorial Domination")
 	.Desc(
@@ -19,4 +20,6 @@ return Mode("Territorial Domination")
 	.MapDeformation(true)
 	.FogOfWar(true)
 	.NoRush(0)
+	.SlowComTransport(false)
+	.EnemyTransporting(TransportEnemy.NotCommanders)
 	.UnitRestrictions()
