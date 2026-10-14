@@ -60,7 +60,7 @@ return {
 				blocking = true,
 				category = "corpses",
 				collisionvolumeoffsets = "0 0 0",
-				collisionvolumescales = "96 86 96",
+				collisionvolumescales = "96 64 96",
 				collisionvolumetype = "cylY",
 				damage = 8600,
 				featuredead = "HEAP",
