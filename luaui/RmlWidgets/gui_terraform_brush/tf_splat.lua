@@ -282,19 +282,6 @@ function M.sync(doc, ctx, spState, setSummary)
 			end
 		end
 
-		-- Decal Exporter stats sync (throttled — every ~1 second)
-		-- dc-heat-explosions driven by {{dcHeatExpStr}} in RML.
-		do
-			if WG.DecalExporter and (Spring.GetGameFrame() % 30 == 0) then
-				if widgetState.dmHandle then
-					local v = tostring(WG.DecalExporter.getTotalExplosions())
-					if widgetState.dmHandle.dcHeatExpStr ~= v then
-						widgetState.dmHandle.dcHeatExpStr = v
-					end
-				end
-			end
-		end
-
 		uiState.updatingFromCode = false
 	end
 

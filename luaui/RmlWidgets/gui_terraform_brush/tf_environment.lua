@@ -547,7 +547,6 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-dfp-undo", "img-toggle-dfp-undo", "section-dfp-undo", false)
 	envSectionToggle("btn-toggle-dfp-actions", "img-toggle-dfp-actions", "section-dfp-actions", false)
 	envSectionToggle("btn-toggle-dc-saveload", "img-toggle-dc-saveload", "section-dc-saveload", false)
-	envSectionToggle("btn-toggle-dc-dist", "img-toggle-dc-dist", "section-dc-dist", true)
 	envSectionToggle("btn-toggle-dc-mode", "img-toggle-dc-mode", "section-dc-mode", true)
 	envSectionToggle("btn-toggle-dc-undo", "img-toggle-dc-undo", "section-dc-undo", false)
 

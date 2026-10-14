@@ -326,12 +326,6 @@ function M.drainQueue()
 	end
 end
 
--- Number of bakes still pending. Useful if the widget wants to gate its
--- re-sync on full drain (avoid syncing partway through bake batches).
-function M.queueLen()
-	return #bakeQueue
-end
-
 -- True once the queue is empty AND at least one bake completed since the
 -- last call. Atomic: clears the internal flag. Widget should re-run its
 -- sync when this returns true.

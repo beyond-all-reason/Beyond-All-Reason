@@ -266,10 +266,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	spTerrainSampleTick = 0,
 	-- Lobby visibility tracking (document:Hide() does not set hidden class)
 	lobbyHidden = false,
-	-- Decal section elements
-	dcControlsEl = nil,
-	dcSubmodesEl = nil,
-	dcDistButtons = {},
 	decalsActive = false,
 	-- Metal brush section elements
 	mbSubmodesEl = nil,
@@ -6254,7 +6250,6 @@ local initialModel = {
 	unSubMode = "point", -- unit placer sub-mode
 	unDistMode = "random", -- unit placer distribution (random/regular/clustered/line/grid/box)
 	dcLibMode = "", -- decal library mode (scatter/point/remove)
-	dcDistribution = "random", -- decal distribution (random/regular/clustered)
 	wbSubMode = "scatter", -- weather brush sub-mode
 	wbDistMode = "random", -- weather distribution
 	stpShapeMode = "circle", -- startpos shape selection
@@ -6352,7 +6347,6 @@ local initialModel = {
 	splatAltMaxStr = "200",
 	splatExportFmtStr = "PNG",
 	grassCfgVisible = false,
-	dcHeatExpStr = "0",
 	-- Phase 2 step 4: metal brush label interpolation strings
 	mbValueStr = "2.0",
 	mbSizeStr = "100",
@@ -9984,32 +9978,6 @@ local initialModel = {
 	-- Phase 2 step 6: tf_decals model-king handlers — defined here (not in M.attach)
 	-- because Recoil forbids adding OR replacing function keys after OpenDataModel.
 	-- Closures capture file-level widgetState/uiState/WG/playSound/_elemSliderVal/_noSliderVal upvalues.
-	onDcSetDist = function(_event, dist)
-		playSound("shapeSwitch")
-		if WG.DecalPlacer then
-			WG.DecalPlacer.setDistribution(dist)
-		end
-		local d = widgetState.dmHandle
-		if d then
-			d.dcDistribution = dist
-		end
-	end,
-	onDcHeatmapExport = function(_event)
-		playSound("tick")
-		if WG.DecalExporter then
-			WG.DecalExporter.exportHeatmapCSV()
-			WG.DecalExporter.exportHeatmapPGM()
-		else
-			Spring.Echo("[Decal Heatmap] Enable the 'Decal Exporter & Analytics' widget first")
-		end
-	end,
-	onDcHeatmapReset = function(_event)
-		playSound("tick")
-		if WG.DecalExporter then
-			WG.DecalExporter.resetHeatmap()
-			Spring.Echo("[Decal Heatmap] Heatmap reset")
-		end
-	end,
 	onDcLibScatter = function(_event)
 		playSound("tick")
 		if not WG.DecalPlacer then
@@ -16532,10 +16500,6 @@ local guideHints = {
 	["btn-wb-dist-random"] = "Spawn weather particles at randomly chosen positions within the brush area.",
 	["btn-wb-dist-regular"] = "Spawn weather particles in a uniform grid pattern for organized, evenly spaced effects.",
 	["btn-wb-dist-clustered"] = "Group weather particles in tight clusters for concentrated effect zones.",
-	-- Decal distribution
-	["btn-dc-dist-random"] = "Place decals at random positions within the brush area.",
-	["btn-dc-dist-regular"] = "Space decals in a uniform grid pattern inside the brush.",
-	["btn-dc-dist-clustered"] = "Group decals in tight clusters for natural-looking placement.",
 	-- Light distribution
 	["btn-lp-dist-random"] = "Place lights at random positions within the brush area.",
 	["btn-lp-dist-regular"] = "Space lights in a uniform grid pattern inside the brush.",
@@ -16611,9 +16575,7 @@ local guideHints = {
 	["btn-sp-alt-max-enable"] = "Enable a maximum altitude filter — no painting above this elevation threshold.",
 	["btn-sp-export-format"] = "Click to cycle the export image format between PNG, DDS and TGA.",
 	["btn-sp-save"] = "Save the current splatmap distribution texture to disk for backup or external editing.",
-	["btn-decals"] = "Open the Decals panel: decal library (scars, explosions, tracks, builds) and combat heatmap tools.",
-	["btn-dc-heatmap-export"] = "Save the combat heatmap (accumulated explosion density) as CSV grid + PGM grayscale image.",
-	["btn-dc-heatmap-reset"] = "Reset the heatmap — clears all accumulated explosion tracking data.",
+	["btn-decals"] = "Open the Decals panel: decal library (scars, explosions, tracks, builds).",
 	-- Light Placer controls
 	["btn-lt-point"] = "Omnidirectional point light — radiates equally in all directions. Good for general ambient fill and glowing effects.",
 	["btn-lt-cone"] = "Directional cone/spotlight — casts a focused beam in one direction. Use pitch/yaw to aim and theta to control spread.",
@@ -23582,9 +23544,6 @@ function widget:Shutdown()
 		gl.DeleteShader(widgetState.skyPreviewShader)
 	end
 	widgetState.skyPreviewShader = nil
-	widgetState.dcControlsEl = nil
-	widgetState.dcSubmodesEl = nil
-	widgetState.dcDistButtons = {}
 	widgetState.mbSubmodesEl = nil
 	widgetState.mbControlsEl = nil
 	widgetState.mbSubModeButtons = {}

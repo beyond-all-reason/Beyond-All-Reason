@@ -2483,30 +2483,6 @@
 			</div>
 			</div><!-- /section-dc-mode -->
 			</div><!-- /frame-dc-mode -->
-
-			<!-- DC: DISTRIBUTION (nested under PLACEMENT MODE) -->
-			<div class="tf-section-frame" id="frame-dc-dist">
-				<div id="btn-toggle-dc-dist" class="tf-section-title-row" style="cursor: pointer;">
-					<img id="img-toggle-dc-dist" class="tf-icon-sm" src="/luaui/images/terraform_brush/minus.png" />
-					<div class="tf-collapsible-title">DISTRIBUTION</div>
-				</div>
-			<div id="section-dc-dist">
-			<div class="flex flex-row gap-1 mb-1">
-				<div id="btn-dc-dist-random" class="tf-fp-dist-btn" data-class-active="dcDistribution == 'random'" data-event-mousedown="onDcSetDist('random')">
-					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/fp_scatter.png" />
-					<div class="tf-btn-text">Random</div>
-				</div>
-				<div id="btn-dc-dist-regular" class="tf-fp-dist-btn" data-class-active="dcDistribution == 'regular'" data-event-mousedown="onDcSetDist('regular')">
-					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_regular.png" />
-					<div class="tf-btn-text">Regular</div>
-				</div>
-				<div id="btn-dc-dist-clustered" class="tf-fp-dist-btn" data-class-active="dcDistribution == 'clustered'" data-event-mousedown="onDcSetDist('clustered')">
-					<img class="tf-icon-dist" src="/luaui/images/terraform_brush/dist_clustered.png" />
-					<div class="tf-btn-text">Clustered</div>
-				</div>
-			</div>
-			</div><!-- /section-dc-dist -->
-			</div><!-- /frame-dc-dist -->
 		</div>
 
 		<!-- Weather sub-mode row (visible only when Weather mode active) -->
@@ -4975,17 +4951,6 @@
 		<div class="flex flex-row gap-1 mb-1">
 			<div id="btn-dc-clearall" class="tf-action-btn tf-dc-reset-btn" style="flex: 1;" data-event-click="onDcClearAll()">
 				<div class="tf-action-btn-text">CLEAR ALL</div>
-			</div>
-		</div>
-		<div class="flex flex-row gap-1 items-center mb-1">
-			<div class="text-sm text-medium">Explosions tracked: <span class="text-sm font-bold text-light">{{dcHeatExpStr}}</span></div>
-		</div>
-		<div class="flex flex-row gap-1 mb-1">
-			<div id="btn-dc-heatmap-export" class="tf-action-btn tf-save-btn" data-event-click="onDcHeatmapExport()">
-				<div class="tf-action-btn-text">SAVE HEATMAP</div>
-			</div>
-			<div id="btn-dc-heatmap-reset" class="tf-action-btn tf-dc-reset-btn" data-event-click="onDcHeatmapReset()">
-				<div class="tf-action-btn-text">RESET</div>
 			</div>
 		</div>
 		</div><!-- /section-dc-saveload -->

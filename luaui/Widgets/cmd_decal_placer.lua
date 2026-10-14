@@ -19,7 +19,6 @@ local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -76,19 +75,6 @@ local dp = {
 	rotRandom = 100, -- 0=all same, 100=fully random
 	decalCount = 8, -- per scatter
 	cadence = 50, -- per second
-	distribution = "random",
-	smartEnabled = false,
-	smartFilters = {
-		avoidWater = false,
-		avoidCliffs = false,
-		slopeMax = 45,
-		preferSlopes = false,
-		slopeMin = 10,
-		altMinEnable = false,
-		altMin = 0,
-		altMaxEnable = false,
-		altMax = 200,
-	},
 	-- Decal-specific options
 	sizeMin = 32,
 	sizeMax = 96,
@@ -104,8 +90,6 @@ local dp = {
 	-- Drag state
 	dragging = false,
 	dragAction = nil,
-	lockedWorldX = nil,
-	lockedWorldZ = nil,
 	placeTimer = 0,
 	-- Undo/Redo
 	undoStack = {}, -- each entry = { decalIDs = {id1,id2,...} }
@@ -137,17 +121,6 @@ local CATEGORY_ORDER = {
 	"scorch",
 	"groundplates",
 	"other",
-}
-
-local CATEGORY_LABELS = {
-	scars = "Scars",
-	explosions = "Explosions",
-	tracks = "Tracks",
-	builds = "Builds",
-	footprints = "Footprints",
-	scorch = "Scorch",
-	groundplates = "Plates",
-	other = "Other",
 }
 
 local function classifyDecal(name)
@@ -210,12 +183,7 @@ local function normalBaseKey(lname)
 	return k
 end
 
--- Exposed so UI / exporter can look up the norm partner.
 local normPartnerByMain = {} -- { [mainName] = normName }
-
-local function getNormalPartner(mainName)
-	return normPartnerByMain[mainName]
-end
 
 local function buildDecalList()
 	if decalListBuilt then
@@ -334,43 +302,6 @@ local function isInsideShape(dx, dz, radius, shape, angleDeg)
 end
 
 ----------------------------------------------------------------
--- Smart filter test
-----------------------------------------------------------------
-local function passesSmartFilter(wx, wz)
-	if not dp.smartEnabled then
-		return true
-	end
-	local sf = dp.smartFilters
-	local h = GetGroundHeight(wx, wz)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	if sf.avoidCliffs or sf.preferSlopes then
-		local _, ny = GetGroundNormal(wx, wz)
-		ny = ny or 1.0
-		if sf.avoidCliffs then
-			local nyMin = cos(sf.slopeMax * pi / 180)
-			if ny < nyMin then
-				return false
-			end
-		end
-		if sf.preferSlopes then
-			local nyMax = cos(sf.slopeMin * pi / 180)
-			if ny > nyMax then
-				return false
-			end
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
-end
-
-----------------------------------------------------------------
 -- Decal placement
 ----------------------------------------------------------------
 local function pickRandomTexture()
@@ -447,16 +378,14 @@ local function placeScatter(cx, cz)
 		if isInsideShape(rx, rz, r, dp.shape, 0) then
 			local wx, wz = rotatePoint(rx, rz, dp.rotation)
 			wx, wz = cx + wx, cz + wz
-			if passesSmartFilter(wx, wz) then
-				local tex = pickRandomTexture()
-				if tex then
-					local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
-					local rotDeg = dp.rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
-					local rotRad = rotDeg * pi / 180
-					local id = applyDecal(tex, wx, wz, sizeBase, sizeBase, rotRad)
-					if id then
-						placed[#placed + 1] = id
-					end
+			local tex = pickRandomTexture()
+			if tex then
+				local sizeBase = dp.sizeMin + random() * (dp.sizeMax - dp.sizeMin)
+				local rotDeg = dp.rotation + (random() * 2 - 1) * (dp.rotRandom * 1.8)
+				local rotRad = rotDeg * pi / 180
+				local id = applyDecal(tex, wx, wz, sizeBase, sizeBase, rotRad)
+				if id then
+					placed[#placed + 1] = id
 				end
 			end
 		end
@@ -466,9 +395,6 @@ end
 
 local function placePoint(cx, cz)
 	if #dp.selectedDecals == 0 then
-		return
-	end
-	if not passesSmartFilter(cx, cz) then
 		return
 	end
 	local tex = pickRandomTexture()
@@ -569,28 +495,6 @@ end
 ----------------------------------------------------------------
 -- Activation / Mode
 ----------------------------------------------------------------
-local function activate(mode)
-	if WG.TerraformBrush then
-		WG.TerraformBrush.deactivate()
-	end
-	if WG.WeatherBrush then
-		WG.WeatherBrush.deactivate()
-	end
-	if WG.FeaturePlacer then
-		WG.FeaturePlacer.deactivate()
-	end
-	dp.active = true
-	dp.mode = mode
-	if mode == "point" then
-		dp.decalCount = 1
-		dp.cadence = 1
-	end
-	buildDecalList()
-	local labels = { scatter = "SCATTER", point = "POINT", remove = "REMOVE" }
-	Echo("[Decal Placer] Mode: " .. (labels[mode] or mode) .. " | LMB place, RMB remove, /decalplaceroff to stop")
-	return true
-end
-
 local function deactivate()
 	if dp.active then
 		Echo("[Decal Placer] Deactivated")
@@ -598,8 +502,6 @@ local function deactivate()
 	dp.active = false
 	dp.mode = nil
 	dp.dragging = false
-	dp.lockedWorldX = nil
-	dp.lockedWorldZ = nil
 	return true
 end
 
@@ -629,19 +531,11 @@ end
 ----------------------------------------------------------------
 -- Setters
 ----------------------------------------------------------------
-local function setShape(s)
-	if s == "circle" or s == "square" or s == "hexagon" or s == "octagon" or s == "triangle" then
-		dp.shape = s
-	end
-end
 local function setRadius(r)
 	dp.radius = max(MIN_RADIUS, min(MAX_RADIUS, floor(r)))
 end
 local function setRotation(d)
 	dp.rotation = d % 360
-end
-local function rotate(step)
-	dp.rotation = (dp.rotation + step) % 360
 end
 local function setRotRandom(v)
 	dp.rotRandom = max(0, min(100, floor(v)))
@@ -651,19 +545,6 @@ local function setDecalCount(n)
 end
 local function setCadence(v)
 	dp.cadence = max(1, min(1000, floor(v)))
-end
-local function setDistribution(m)
-	if m == "random" or m == "regular" or m == "clustered" then
-		dp.distribution = m
-	end
-end
-local function setSmartEnabled(v)
-	dp.smartEnabled = v and true or false
-end
-local function setSmartFilter(k, v)
-	if dp.smartFilters[k] ~= nil then
-		dp.smartFilters[k] = v
-	end
 end
 local function setSizeMin(v)
 	dp.sizeMin = max(4, min(1024, floor(v)))
@@ -679,12 +560,6 @@ local function setSizeMax(v)
 end
 local function setAlpha(v)
 	dp.alpha = max(0, min(1, v))
-end
-local function setTint(r, g, b, a)
-	dp.tintR = max(0, min(1, r or dp.tintR))
-	dp.tintG = max(0, min(1, g or dp.tintG))
-	dp.tintB = max(0, min(1, b or dp.tintB))
-	dp.tintA = max(0, min(1, a or dp.tintA))
 end
 local function setAlignToNormal(v)
 	dp.alignToNormal = v and true or false
@@ -725,9 +600,6 @@ local function getState()
 		rotRandom = dp.rotRandom,
 		decalCount = dp.decalCount,
 		cadence = dp.cadence,
-		distribution = dp.distribution,
-		smartEnabled = dp.smartEnabled,
-		smartFilters = dp.smartFilters,
 		sizeMin = dp.sizeMin,
 		sizeMax = dp.sizeMax,
 		alpha = dp.alpha,
@@ -743,19 +615,12 @@ local function getState()
 	}
 end
 
-local function getDecalList()
-	buildDecalList()
-	return decalList
-end
 local function getDecalCategories()
 	buildDecalList()
 	return decalCategories
 end
 local function getCategoryOrder()
 	return CATEGORY_ORDER
-end
-local function getCategoryLabels()
-	return CATEGORY_LABELS
 end
 
 ----------------------------------------------------------------
@@ -904,30 +769,7 @@ end
 ----------------------------------------------------------------
 -- Drawing brush outline
 ----------------------------------------------------------------
-local function drawRegularPolygon(cx, cz, radius, angleDeg, sides)
-	local step = 2 * pi / sides
-	local off = angleDeg * pi / 180
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 0, sides - 1 do
-			local a = i * step + off
-			local x = cx + radius * cos(a)
-			local z = cz + radius * sin(a)
-			glVertex(x, GetGroundHeight(x, z) + 4, z)
-		end
-	end)
-end
-
-local function drawSquareOutline(cx, cz, radius, angleDeg)
-	local corners = { { -radius, -radius }, { radius, -radius }, { radius, radius }, { -radius, radius } }
-	glBeginEnd(GL_LINE_LOOP, function()
-		for i = 1, 4 do
-			local rx, rz = rotatePoint(corners[i][1], corners[i][2], angleDeg)
-			local wx, wz = cx + rx, cz + rz
-			glVertex(wx, GetGroundHeight(wx, wz) + 4, wz)
-		end
-	end)
-end
-
+-- The brush is always a circle: nothing sets another shape.
 local function drawCircleOutline(cx, cz, radius)
 	glBeginEnd(GL_LINE_LOOP, function()
 		for i = 0, 47 do
@@ -968,17 +810,7 @@ local function drawCurrentBrush()
 	else
 		glColor(0.3, 0.85, 1.0, 0.85)
 	end
-	if dp.shape == "circle" then
-		drawCircleOutline(cx, cz, dp.radius)
-	elseif dp.shape == "square" then
-		drawSquareOutline(cx, cz, dp.radius, dp.rotation)
-	elseif dp.shape == "hexagon" then
-		drawRegularPolygon(cx, cz, dp.radius, dp.rotation, 6)
-	elseif dp.shape == "octagon" then
-		drawRegularPolygon(cx, cz, dp.radius, dp.rotation, 8)
-	elseif dp.shape == "triangle" then
-		drawRegularPolygon(cx, cz, dp.radius, dp.rotation, 3)
-	end
+	drawCircleOutline(cx, cz, dp.radius)
 	glLineWidth(1)
 	glColor(1, 1, 1, 1)
 	glDepthTest(false)
@@ -988,45 +820,19 @@ end
 -- Widget callins
 ----------------------------------------------------------------
 function widget:Initialize()
-	widgetHandler:AddAction("decalplacer", function(_, _, args)
-		if args and args[1] then
-			return activate(args[1])
-		end
-		return activate("scatter")
-	end, nil, "t")
-	widgetHandler:AddAction("decalplacerscatter", function()
-		return activate("scatter")
-	end, nil, "t")
-	widgetHandler:AddAction("decalplacerpoint", function()
-		return activate("point")
-	end, nil, "t")
-	widgetHandler:AddAction("decalplacerremove", function()
-		return activate("remove")
-	end, nil, "t")
-	widgetHandler:AddAction("decalplaceroff", deactivate, nil, "t")
-
 	WG.DecalPlacer = {
 		getState = getState,
-		getDecalList = getDecalList,
 		getDecalCategories = getDecalCategories,
 		getCategoryOrder = getCategoryOrder,
-		getCategoryLabels = getCategoryLabels,
-		getNormalPartner = getNormalPartner,
 		setMode = setMode,
-		setShape = setShape,
 		setRadius = setRadius,
 		setRotation = setRotation,
-		rotate = rotate,
 		setRotRandom = setRotRandom,
 		setDecalCount = setDecalCount,
 		setCadence = setCadence,
-		setDistribution = setDistribution,
-		setSmartEnabled = setSmartEnabled,
-		setSmartFilter = setSmartFilter,
 		setSizeMin = setSizeMin,
 		setSizeMax = setSizeMax,
 		setAlpha = setAlpha,
-		setTint = setTint,
 		setAlignToNormal = setAlignToNormal,
 		selectDecal = selectDecal,
 		toggleDecal = toggleDecal,
@@ -1078,15 +884,6 @@ end
 
 function widget:Shutdown()
 	WG.DecalPlacer = nil
-	widgetHandler:RemoveAction("decalplacer")
-	widgetHandler:RemoveAction("decalplacerscatter")
-	widgetHandler:RemoveAction("decalplacerpoint")
-	widgetHandler:RemoveAction("decalplacerremove")
-	widgetHandler:RemoveAction("decalplaceroff")
-end
-
-function widget:IsAbove()
-	return false
 end
 
 function widget:KeyPress(key, mods)
@@ -1129,8 +926,6 @@ function widget:MousePress(mx, my, button)
 		end
 		dp.dragging = true
 		dp.dragAction = "place"
-		dp.lockedWorldX = wx
-		dp.lockedWorldZ = wz
 		dp.placeTimer = 0
 		if dp.mode == "scatter" then
 			placeSymmetric(placeScatter, wx, wz)
@@ -1148,8 +943,6 @@ function widget:MousePress(mx, my, button)
 		end
 		dp.dragging = true
 		dp.dragAction = "remove"
-		dp.lockedWorldX = wx
-		dp.lockedWorldZ = wz
 		placeSymmetric(placeRemove, wx, wz)
 		return true
 	end
@@ -1160,8 +953,6 @@ function widget:MouseRelease(_, _, button)
 	if (button == 1 or button == 3) and dp.dragging then
 		dp.dragging = false
 		dp.dragAction = nil
-		dp.lockedWorldX = nil
-		dp.lockedWorldZ = nil
 		return true
 	end
 	return false
