@@ -173,7 +173,6 @@ local edgeFade = 1 -- cursor fade past the map edge (from getWorldPositionExtend
 -- "medium" feels harder/lighter.
 local PEN_RADIUS_FLOOR = 0.25
 local PEN_STRENGTH_FLOOR = 0.05
-local _penDiagPrinted = false
 local function getEffectiveBrush()
 	local effRadius, effStrength = brushRadius, brushStrength
 	local tfBrush = WG.TerraformBrush
@@ -198,18 +197,6 @@ local function getEffectiveBrush()
 		pressure = 0
 	elseif pressure > 1 then
 		pressure = 1
-	end
-	if not _penDiagPrinted then
-		_penDiagPrinted = true
-		Echo(
-			string.format(
-				"[Diffuse Painter] pen pressure ACTIVE: pm=%.3f sens=%.2f size=%s intensity=%s",
-				pressureMapped,
-				sensitivity,
-				tostring(tbState.penPressureModulateSize),
-				tostring(tbState.penPressureModulateIntensity)
-			)
-		)
 	end
 	if tbState.penPressureModulateSize then
 		local factor = PEN_RADIUS_FLOOR + (1.0 - PEN_RADIUS_FLOOR) * pressure
@@ -1955,20 +1942,6 @@ local function executeStroke(wx, wz, layerId, erase)
 					if not useRough then
 						glTexture(3, "$heightmap")
 					end
-					if not layer._pbrLogged then
-						layer._pbrLogged = true
-						Echo(
-							string.format(
-								"[Diffuse Painter] layer '%s' PBR: diff=%s normal=%s(%s) rough=%s(%s)",
-								tostring(layer.name),
-								tostring(useTex),
-								tostring(useNormal),
-								tostring(layer.normalPath or "-"),
-								tostring(useRough),
-								tostring(layer.roughPath or "-")
-							)
-						)
-					end
 					glRenderToTexture(tempMask, function()
 						glBlending(false)
 						glUseShader(stampShader)
@@ -2277,7 +2250,6 @@ local function activate()
 		scanMaterialLibrary()
 	end
 	active = true
-	Echo("[Diffuse Painter] active. LMB paint, RMB erase. /diffusepaint to toggle.")
 end
 
 local function deactivate()

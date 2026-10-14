@@ -738,18 +738,7 @@ local function initSplatTexture()
 	if sourceW <= 1 or sourceH <= 1 then
 		splatTexWidth = max(64, floor((Game.mapSizeX or 0) / 8))
 		splatTexHeight = max(64, floor((Game.mapSizeZ or 0) / 8))
-		Echo(
-			string.format(
-				"[Splat Painter] Detected tiny splat distribution (%dx%d); promoting to editable %dx%d.",
-				sourceW,
-				sourceH,
-				splatTexWidth,
-				splatTexHeight
-			)
-		)
 	end
-
-	Echo("[Splat Painter] Splat texture size: " .. splatTexWidth .. "x" .. splatTexHeight)
 
 	-- Create FBO texture at matching size
 	fboTex = glCreateTexture(splatTexWidth, splatTexHeight, {
@@ -1181,10 +1170,6 @@ local function activateSplat()
 	if not fboTex then
 		pendingInit = true
 	end
-
-	Echo(
-		"[Splat Painter] Activated | Channel: " .. activeChannel .. " | Hold left-click to paint, right-click to erase"
-	)
 end
 
 local function deactivateSplat()

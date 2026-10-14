@@ -1074,13 +1074,9 @@ local function activate(mode)
 	if grassApi and grassApi.setExternalBrush then
 		grassApi.setExternalBrush(true)
 	end
-	Echo("[Grass Brush] Activated: " .. subMode:upper())
 end
 
 local function deactivate()
-	if active then
-		Echo("[Grass Brush] Deactivated")
-	end
 	active = false
 	painting = false
 	paintButton = 0
