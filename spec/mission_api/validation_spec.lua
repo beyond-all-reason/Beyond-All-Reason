@@ -87,7 +87,7 @@ describe("mission_api.validation", function()
 			)
 
 			assert.are.same({
-				"Stage data must be a table, got string. Stage: s",
+				"Unexpected parameter type, expected table, got string. Stage: s, Field: data",
 				"Objective missing textKey. Objective: o1",
 				"Trigger has invalid type. Trigger: t",
 				"Action missing required parameter. Action: a, Parameter: messageKey",

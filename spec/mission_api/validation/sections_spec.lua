@@ -39,13 +39,16 @@ describe("mission_api.validation.sections", function()
 					:WithObjective("obj1", { textKey = "ok" })
 			)
 
-			V.assertMessage(result, "Stage ID must be a string, got number. Stage: 123")
+			V.assertMessage(result, "Unexpected parameter type, expected string, got number. Stage: 123, Field: ID")
 		end)
 
 		it("reports stage data that is not a table", function()
 			local result = V.validate(V.mission():WithInitialStageDefinition("badStage", "notATable"))
 
-			V.assertMessage(result, "Stage data must be a table, got string. Stage: badStage")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected table, got string. Stage: badStage, Field: data"
+			)
 		end)
 
 		it("reports a stage missing the 'objectives' field", function()
@@ -136,6 +139,18 @@ describe("mission_api.validation.sections", function()
 	describe("objective fields", function()
 		it("passes for a well-formed objective without a trigger", function()
 			V.assertValid(validateObjective({ textKey = "Do the thing." }))
+		end)
+
+		it("reports an objective ID that is not a string", function()
+			local result = V.validate(V.mission():WithObjective(123, { textKey = "ok" }))
+
+			V.assertMessage(result, "Unexpected parameter type, expected string, got number. Objective: 123, Field: ID")
+		end)
+
+		it("reports objective data that is not a table", function()
+			local result = V.validate(V.mission():WithObjective("o", "notATable"))
+
+			V.assertMessage(result, "Unexpected parameter type, expected table, got string. Objective: o, Field: data")
 		end)
 
 		it("reports a missing textKey", function()
@@ -334,13 +349,13 @@ describe("mission_api.validation.sections", function()
 			local result =
 				V.validate(V.mission():WithTrigger(123, V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 })))
 
-			V.assertMessage(result, "Trigger ID must be a string, got number. Trigger: 123")
+			V.assertMessage(result, "Unexpected parameter type, expected string, got number. Trigger: 123, Field: ID")
 		end)
 
 		it("reports trigger data that is not a table", function()
 			local result = V.validate(V.mission():WithTrigger("t", "notATable"))
 
-			V.assertMessage(result, "Trigger data must be a table, got string. Trigger: t")
+			V.assertMessage(result, "Unexpected parameter type, expected table, got string. Trigger: t, Field: data")
 		end)
 	end)
 
@@ -490,7 +505,7 @@ describe("mission_api.validation.sections", function()
 				:WithAction(123, { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 		)
 
-		V.assertMessage(result, "Action ID must be a string, got number. Action: 123")
+		V.assertMessage(result, "Unexpected parameter type, expected string, got number. Action: 123, Field: ID")
 	end)
 
 	it("reports action data that is not a table", function()
@@ -500,7 +515,7 @@ describe("mission_api.validation.sections", function()
 				:WithAction("ok", "notATable")
 		)
 
-		V.assertMessage(result, "Action data must be a table, got string. Action: ok")
+		V.assertMessage(result, "Unexpected parameter type, expected table, got string. Action: ok, Field: data")
 	end)
 
 	it("passes for a mission without loadouts", function()

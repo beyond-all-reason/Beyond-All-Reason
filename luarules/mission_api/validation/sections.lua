@@ -106,6 +106,20 @@ local function createValueValidators(context, parameterValidators)
 	return validateValue, validateValueWithDifficulties
 end
 
+local function createEntryValidator(context, validateValue)
+	return function(reporter, id, data)
+		for _, result in ipairs(validateValue(context.Types.String, id)) do
+			reporter.Error(id, result.message, "Field: ID")
+		end
+
+		local dataResults = validateValue(context.Types.Table, data)
+		for _, result in ipairs(dataResults) do
+			reporter.Error(id, result.message, "Field: data")
+		end
+		return #dataResults == 0
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Schema driven parameter validation, shared by triggers, actions and objective triggers
 --------------------------------------------------------------------------------
@@ -169,21 +183,15 @@ end
 -- Stages: stage shape and the mission's initial stage
 --------------------------------------------------------------------------------
 
---- A stage's ID and its container are checked here rather than against the schema:
---- they are what makes the stage addressable at all, so no field type describes them.
-local function validateStages(stages, stageReport, validateValue)
+local function validateStages(stages, stageReport, validateValue, validateEntry)
 	for stageID, stageData in pairs(stages) do
-		if type(stageID) ~= "string" then
-			stageReport.Error(stageID, "Stage ID must be a string, got " .. type(stageID))
-		end
-
-		if type(stageData) ~= "table" then
-			stageReport.Error(stageID, "Stage data must be a table, got " .. type(stageData))
-		elseif stageData.objectives == nil then
-			stageReport.Error(stageID, "Stage missing 'objectives' field")
-		else
-			-- A stage with no objectives is valid
-			validateTypedFields(stageReport, stageID, validateValue, stageFieldTypes, stageData, "Field")
+		if validateEntry(stageReport, stageID, stageData) then
+			if stageData.objectives == nil then
+				stageReport.Error(stageID, "Stage missing 'objectives' field")
+			else
+				-- A stage with no objectives is valid
+				validateTypedFields(stageReport, stageID, validateValue, stageFieldTypes, stageData, "Field")
+			end
 		end
 	end
 end
@@ -200,10 +208,10 @@ local function validateInitialStage(stages, initialStage, stageReport)
 	end
 end
 
-local function validateStagesSection(context, report, validateValue)
+local function validateStagesSection(context, report, validateValue, validateEntry)
 	local stageReport = reporterFor(report, SECTIONS.Stages, "Stage")
 
-	validateStages(context.Stages, stageReport, validateValue)
+	validateStages(context.Stages, stageReport, validateValue, validateEntry)
 	validateInitialStage(context.Stages, context.InitialStage, stageReport)
 end
 
@@ -252,7 +260,7 @@ local function validateObjectiveInlineTrigger(
 	)
 end
 
-local function validateObjectivesSection(context, report, validateValueWithDifficulties, validateSchema)
+local function validateObjectivesSection(context, report, validateValueWithDifficulties, validateEntry, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
 	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
 
@@ -265,13 +273,7 @@ local function validateObjectivesSection(context, report, validateValueWithDiffi
 	end
 
 	for objectiveID, objective in pairs(context.Objectives) do
-		if type(objectiveID) ~= "string" then
-			objectiveReport.Error(objectiveID, "Objective ID must be a string, got " .. type(objectiveID))
-		end
-
-		if type(objective) ~= "table" then
-			objectiveReport.Error(objectiveID, "Objective data must be a table, got " .. type(objective))
-		else
+		if validateEntry(objectiveReport, objectiveID, objective) then
 			if not objective.textKey then
 				objectiveReport.Error(objectiveID, "Objective missing textKey")
 			elseif objective.textKey == "" then
@@ -336,18 +338,19 @@ local function validateTriggerSettings(triggerReport, validateValue, validateTab
 	end
 end
 
-local function validateTriggersSection(context, report, parameterValidators, validateValue, validateSchema)
+local function validateTriggersSection(
+	context,
+	report,
+	parameterValidators,
+	validateValue,
+	validateEntry,
+	validateSchema
+)
 	local triggerReport = reporterFor(report, SECTIONS.Triggers, "Trigger")
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	for triggerID, trigger in pairs(context.Triggers) do
-		if type(triggerID) ~= "string" then
-			triggerReport.Error(triggerID, "Trigger ID must be a string, got " .. type(triggerID))
-		end
-
-		if type(trigger) ~= "table" then
-			triggerReport.Error(triggerID, "Trigger data must be a table, got " .. type(trigger))
-		else
+		if validateEntry(triggerReport, triggerID, trigger) then
 			validateTriggerActions(context, triggerReport, trigger, triggerID)
 			validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 			validateSchema(
@@ -453,18 +456,12 @@ local function createAttributeActionValidator(context, parameterValidators)
 	end
 end
 
-local function validateActionsSection(context, report, parameterValidators, validateSchema)
+local function validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
 	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
 
 	for actionID, action in pairs(context.Actions) do
-		if type(actionID) ~= "string" then
-			actionReport.Error(actionID, "Action ID must be a string, got " .. type(actionID))
-		end
-
-		if type(action) ~= "table" then
-			actionReport.Error(actionID, "Action data must be a table, got " .. type(action))
-		else
+		if validateEntry(actionReport, actionID, action) then
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
 			validateAttributeAction(actionReport, actionID, action)
 		end
@@ -496,13 +493,14 @@ end
 
 local function validate(context, report, parameterValidators)
 	local validateValue, validateValueWithDifficulties = createValueValidators(context, parameterValidators)
+	local validateEntry = createEntryValidator(context, validateValue)
 	local validateSchema = createSchemaValidator(context, parameterValidators, validateValueWithDifficulties)
 
 	-- Same order here as in the report:
-	validateStagesSection(context, report, validateValue)
-	validateObjectivesSection(context, report, validateValueWithDifficulties, validateSchema)
-	validateTriggersSection(context, report, parameterValidators, validateValue, validateSchema)
-	validateActionsSection(context, report, parameterValidators, validateSchema)
+	validateStagesSection(context, report, validateValue, validateEntry)
+	validateObjectivesSection(context, report, validateValueWithDifficulties, validateEntry, validateSchema)
+	validateTriggersSection(context, report, parameterValidators, validateValue, validateEntry, validateSchema)
+	validateActionsSection(context, report, parameterValidators, validateEntry, validateSchema)
 	validateLoadoutsSection(context, report, parameterValidators)
 end
 
