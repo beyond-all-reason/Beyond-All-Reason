@@ -39,4 +39,28 @@ describe("mission_api.schema_utils", function()
 			assert.are.same({}, result)
 		end)
 	end)
+
+	describe("GetParameterNamesWithType", function()
+		it("returns every parameter of the given type, per trigger type", function()
+			local result =
+				schemaUtils.GetParameterNamesWithType(triggerDefinitions.Parameters, parameterTypes.Types.UnitName)
+
+			-- A trigger can name several units at once, e.g. a passenger and its transport.
+			table.sort(result[triggerTypes.TransportLoaded])
+			assert.are.same({ "passengerName", "transportName" }, result[triggerTypes.TransportLoaded])
+			assert.are.same({ "unitName" }, result[triggerTypes.UnitKilled])
+		end)
+
+		it("omits trigger types without a parameter of that type", function()
+			local result =
+				schemaUtils.GetParameterNamesWithType(triggerDefinitions.Parameters, parameterTypes.Types.UnitName)
+
+			assert.is_nil(result[triggerTypes.TimeElapsed])
+		end)
+
+		it("returns an empty table when no types have the given parameter type", function()
+			local result = schemaUtils.GetParameterNamesWithType(triggerDefinitions.Parameters, "NonExistentType")
+			assert.are.same({}, result)
+		end)
+	end)
 end)
