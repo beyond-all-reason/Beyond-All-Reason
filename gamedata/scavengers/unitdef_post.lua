@@ -3,12 +3,13 @@
 local MINIBOSS_DIFFICULTY_STEP = 1.15
 local MINIBOSS_DIFFICULTY_LEVELS = { veryeasy = 0, easy = 1, normal = 2, hard = 3, veryhard = 4, epic = 5 }
 local MINIBOSS_MAX_PLAYERS = 8
+local MINIBOSS_NONPLAYER_TEAMS = 2 -- gaia and scavengers
 
 local function minibossScale(uDef)
 	if not (uDef.customparams.scavminiboss and uDef.health and BAR.Utilities.Gametype.IsScavengers()) then
 		return
 	end
-	local players = math.max(1, math.min(MINIBOSS_MAX_PLAYERS, #Spring.GetTeamList() - 2))
+	local players = math.max(1, math.min(MINIBOSS_MAX_PLAYERS, #Spring.GetTeamList() - MINIBOSS_NONPLAYER_TEAMS))
 	local level = MINIBOSS_DIFFICULTY_LEVELS[Spring.GetModOptions().scav_difficulty]
 		or MINIBOSS_DIFFICULTY_LEVELS.normal
 	local mult = players * MINIBOSS_DIFFICULTY_STEP ^ level

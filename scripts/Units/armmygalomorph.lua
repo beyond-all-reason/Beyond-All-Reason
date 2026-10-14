@@ -35,7 +35,7 @@ local torso = piece("torso")
 local SIG_WALK = 1
 local ANIM_FRAMES = 3
 local EXPORT_FPS = 25 -- Blender scene frame rate the turn speeds below were exported at
-local STRIDE = 69 -- elmos per walk cycle; lower it if planted feet slide backwards, raise it if they slip forwards
+local STRIDE = 69 -- elmos per walk cycle
 local FRAME_MS = 1000 / Game.gameSpeed + 0.01 -- Sleep floors to whole frames
 local RATE_MIN, RATE_MAX = 0.3, 3
 local POSE_SPEED = math.rad(360)
@@ -44,7 +44,6 @@ local PITCH_SPEED = math.rad(160)
 local RESTORE_SPEED = YAW_SPEED * 2
 local RESTORE_PITCH_SPEED = PITCH_SPEED * 2
 local POSE_YAW = 0.174533 -- shoulder yaw of the firing pose, cancelled on the aim axis so the guns point forward
-local POSE_YAW_SIGN = -1
 local FIRE_ANGLE = math.rad(16)
 local FIRE_ANGLE_PITCH = math.rad(6)
 local SMALL_GUN_FIRE_ANGLE_PITCH = math.rad(15)
@@ -58,9 +57,6 @@ local isAiming = false
 local frameDebt = 0.0
 local GetUnitVelocity = Spring.GetUnitVelocity
 local GetUnitHeading = Spring.GetUnitHeading
-local GetUnitWeaponTarget = Spring.GetUnitWeaponTarget
-local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitPiecePosDir = Spring.GetUnitPiecePosDir
 local GetUnitIsStunned = Spring.GetUnitIsStunned
 local GetGameFrame = Spring.GetGameFrame
 
@@ -97,7 +93,6 @@ local weaponIsHeavy = { true, false, true, false }
 local LIGHTNING = 5
 local LEAD_GUN = { [1] = true, [3] = true }
 local YAW_GUN = 1
-local HOLD_DIST = 75
 local tubes = { flarel3, flarer3 }
 local tubeSide = 1
 local nextArm = leftArm
@@ -110,28 +105,9 @@ local FOREARM_POSE = -0.349066
 -- measured in game in the firing stance: an elbow turn of 0.5 rad pitched the gun by ELBOW_GAIN * 0.5 and swung it sideways by ELBOW_LEAK * 0.5
 local ELBOW_MAX, ELBOW_GAIN, ELBOW_LEAK = math.rad(15), 0.787, 0.56
 local ELBOW_FADE = math.rad(35) -- above ELBOW_MAX the elbow unbends over this many degrees and the shoulder takes over
-local LEAK_SIGN = 1
 
 local function wrap(angle)
 	return angle - TWO_PI * math.floor((angle + math.pi) / TWO_PI)
-end
-
-local function TargetDistance(num)
-	local targetType, _, target = GetUnitWeaponTarget(unitID, num)
-	local tx, tz
-	if targetType == 1 then
-		---@cast target UnitID
-		local _, _, _, _, _, _, ax, _, az = GetUnitPosition(target, true, true)
-		tx, tz = ax, az
-	elseif targetType == 2 then
-		---@cast target float3
-		tx, tz = target[1], target[3]
-	end
-	local ox, _, oz = GetUnitPiecePosDir(unitID, torso)
-	if not (tx and tz and ox and oz) then
-		return math.huge
-	end
-	return math.sqrt((tx - ox) ^ 2 + (tz - oz) ^ 2)
 end
 
 local function stepToward(belief, goal, step)
@@ -824,8 +800,8 @@ local function AimController()
 					local elbowTurn = -elbow / ELBOW_GAIN
 					Turn(arm.forearm, x_axis, FOREARM_POSE + elbowTurn, PITCH_SPEED)
 					Turn(arm.wrist, x_axis, 0, PITCH_SPEED)
-					arm.yawLeak = LEAK_SIGN * arm.mirror * ELBOW_LEAK * elbowTurn
-					Turn(arm.aimx, y_axis, POSE_YAW_SIGN * arm.mirror * POSE_YAW - arm.yawLeak, YAW_SPEED)
+					arm.yawLeak = arm.mirror * ELBOW_LEAK * elbowTurn
+					Turn(arm.aimx, y_axis, -arm.mirror * POSE_YAW - arm.yawLeak, YAW_SPEED)
 				else
 					Turn(arm.aimx, y_axis, 0, RESTORE_SPEED)
 				end
@@ -873,23 +849,19 @@ function script.AimWeapon(num, heading, pitch)
 	local arm = weaponArm[num]
 	---@cast arm Arm
 	local frame = GetGameFrame()
-	local holding = TargetDistance(num) < HOLD_DIST
 	lastAimFrame = frame
 	if not isAiming then
 		isAiming = true
 		PoseArms()
 	end
-	if num == YAW_GUN and not holding then
+	if num == YAW_GUN then
 		goalYaw = heading
 	end
-	if LEAD_GUN[num] and not holding then
+	if LEAD_GUN[num] then
 		arm.goalPitch = pitch
 	end
 	if arm ~= nextArm or frame - lastArmFrame < HAND_GAP then
 		return false
-	end
-	if holding then
-		return true
 	end
 	local pitchTolerance = LEAD_GUN[num] and FIRE_ANGLE_PITCH or SMALL_GUN_FIRE_ANGLE_PITCH
 	return math.abs(wrap(heading - beliefYaw)) <= FIRE_ANGLE and math.abs(pitch - arm.pitchBelief) <= pitchTolerance
