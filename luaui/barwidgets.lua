@@ -101,7 +101,7 @@ Spring.SendCommands({
 	"echo LuaUI: bound F11 to the widget selector",
 })
 
-local allowuserwidgets = Spring.GetModOptions().allowuserwidgets
+local allowuserwidgets = true
 local allowunitcontrolwidgets = Spring.GetModOptions().allowunitcontrolwidgets
 local isHeadless = Platform.isHeadless or false
 local onlyVerifiedUserWidgets = Spring.GetModOptions().userwidgetmode == "verified"
