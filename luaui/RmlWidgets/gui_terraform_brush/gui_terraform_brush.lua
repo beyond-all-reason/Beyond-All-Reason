@@ -279,11 +279,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	mbControlsEl = nil,
 	mbSubModeButtons = {},
 	mbShapeButtons = {},
-	-- Grass brush section elements
-	gbSubmodesEl = nil,
-	gbControlsEl = nil,
-	gbSubModeButtons = {},
-	gbShapeButtons = {},
 	-- Noise brush section elements
 	noiseRootEl = nil,
 	noiseTypeButtons = {},
@@ -23603,10 +23598,6 @@ function widget:Shutdown()
 	widgetState.mbControlsEl = nil
 	widgetState.mbSubModeButtons = {}
 	widgetState.mbShapeButtons = {}
-	widgetState.gbSubmodesEl = nil
-	widgetState.gbControlsEl = nil
-	widgetState.gbSubModeButtons = {}
-	widgetState.gbShapeButtons = {}
 	if WG.GrassBrush then
 		WG.GrassBrush.deactivate()
 	end
