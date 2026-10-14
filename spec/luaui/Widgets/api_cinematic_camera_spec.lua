@@ -62,7 +62,9 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			end)
 			:WithSpringFn("GetUnitHeading", function(unitID)
 				local unit = units[unitID] ---@type table?
-				return unit and unit.heading or 0
+				if unit then
+					return unit.heading or 0
+				end
 			end)
 			:WithSpringFn("GetGroundHeight", function()
 				return 0
@@ -262,6 +264,28 @@ describe("luaui.Widgets.api_cinematic_camera", function()
 			near(600, state.px) -- the unit faces +x: its front is +x
 			near(50, state.py)
 			near(600, state.pz) -- and its right is +z
+		end)
+
+		it("stays where a ridden unit died, offset in its last heading frame", function()
+			units[7] = { x = 500, y = 0, z = 500, heading = HALFPI }
+			local loaded = loadWidget()
+			loaded.WG.cinematicCamera.Play({
+				keyframes = {
+					{
+						position = { unitIDs = { 7 }, offset = { x = 100, y = 50, z = 100 }, relativeToHeading = true },
+						duration = 0,
+					},
+				},
+				onEnd = "hold",
+			})
+			loaded.env.widget:Update(0.1)
+
+			units[7] = nil
+			loaded.env.widget:Update(0.1)
+
+			local state = lastState()
+			near(600, state.px)
+			near(600, state.pz)
 		end)
 
 		it("holds the last pose while a window is open", function()

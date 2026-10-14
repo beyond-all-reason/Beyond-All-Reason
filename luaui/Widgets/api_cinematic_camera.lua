@@ -238,7 +238,8 @@ local function resolveTarget(target)
 		if target.relativeToHeading and unitIDs and unitIDs[1] then
 			-- offset z along the unit's front (sin h, cos h) and x along its right (-cos h, sin h),
 			-- the engine's frontdir and rightdir for a heading h
-			local h = spGetUnitHeading(unitIDs[1], true) or 0
+			local h = spGetUnitHeading(unitIDs[1], true) or target.lastHeading or 0
+			target.lastHeading = h -- a dead or hidden unit keeps its last heading
 			local sh, ch = sin(h), cos(h)
 			ox, oz = oz * sh - ox * ch, oz * ch + ox * sh
 		end
