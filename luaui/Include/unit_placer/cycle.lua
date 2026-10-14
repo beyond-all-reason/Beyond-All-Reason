@@ -17,7 +17,6 @@ local Cycle = {}
 
 Cycle.ORDER = "abc"
 Cycle.RANDOM = "random"
-Cycle.MODES = { Cycle.ORDER, Cycle.RANDOM }
 
 local seeded = false
 local function defaultDraw(n)

@@ -22,15 +22,15 @@ end
 --            clustered spots; or, with distribution line / grid / box, a FORMATION dragged
 --            out through the shared placer (the Blueprint API draws it)
 --   POINT    one unit per click under the cursor (a multi-pick cycles the type)
---   REMOVE   the brush takes units away; right-click does the same in the other modes
+--   REMOVE   the brush takes units away; in the other modes right-click lets go of the pick
 -- Every placement honours the smart filters and the terraform brush's symmetry. With
 -- nothing picked the left button SELECTS instead: click, Shift+click, box drag; drag a
 -- selected unit to move them all, R turns them, Ctrl+click faces them at a point, Delete,
 -- Ctrl+C / X / V.
 --
--- Keys while active: T cycles the team, Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo and redo whole
--- strokes, Tab cycles the formation, R / Shift+R turn, Escape steps back (selection, then
--- the pick). Wheel: Alt rotate, Shift count, Space cadence, Ctrl radius.
+-- Keys while active: Ctrl+Z / Ctrl+Y (Ctrl+Shift+Z) undo and redo whole strokes, Tab cycles
+-- the formation, R / Shift+R turn, Escape steps back (selection, then the pick). Wheel: Alt
+-- rotate, Shift count, Space cadence, Ctrl radius. The panel's TEAM chip cycles the team.
 
 local Placer = VFS.Include("luaui/Include/unit_placer/placer.lua")
 local Cycle = VFS.Include("luaui/Include/unit_placer/cycle.lua")
@@ -52,13 +52,11 @@ local SAVE_DIR = "Terraform Brush/UnitMaps/"
 --- be a very long string for one frame.
 local BATCH = 40
 local KEY = {
-	tab = 9,
 	backspace = 8,
 	escape = 27,
 	a = 97,
 	c = 99,
 	r = 114,
-	t = 116,
 	v = 118,
 	x = 120,
 	y = 121,
@@ -85,7 +83,6 @@ local SMART_GRID_STEP = 24
 local SEED_MAX = 16777216 -- 2^24: Lua numbers are floats here
 local SEED_STRIDE = 8191
 local FORMATION_MODE = { line = "LINE", grid = "GRID", box = "BOX" }
-local NEXT_FORMATION = { line = "grid", grid = "box", box = "line" }
 ---@type table<string, boolean>
 local DISTRIBUTIONS = { random = true, regular = true, clustered = true, line = true, grid = true, box = true }
 ---@type table<string, boolean>
@@ -1521,9 +1518,6 @@ Tool.selectAllVisible = selectAllVisible
 Tool.reformSelection = reformSelection
 Tool.spaceSelection = spaceSelection
 Tool.turnSelection = turnSelection
-Tool.copySelection = copySelection
-Tool.cutSelection = cutSelection
-Tool.paste = paste
 Tool.save = saveUnits
 Tool.load = loadUnits
 Tool.listSaves = listSaves
@@ -2048,7 +2042,6 @@ function widget:KeyPress(key, mods)
 		return paste()
 	end
 	if placer.armed() then
-		local spec = placer.spec()
 		return placer.keyPress(key, mods)
 	end
 	if selectModeActive() then
