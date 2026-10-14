@@ -485,7 +485,7 @@ local moveDatas = {
 		depthMod = 0,
 		footprint = 5,
 		maxslope = SLOPE.DIFFICULT,
-		maxwaterdepth = DEPTH.MAXIMUM,
+		maxwaterdepth = DEPTH.MAX_SHALLOW,
 		maxwaterslope = SLOPE.EXTREME,
 		speedModClass = SPEED_CLASS.KBot,
 	},
