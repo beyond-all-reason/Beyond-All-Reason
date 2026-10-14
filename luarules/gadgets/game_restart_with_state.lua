@@ -233,6 +233,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
+		if msg ~= "restart_with_state" and msg:sub(1, 4) ~= "rws_" then
+			return false
+		end
+		-- Spectators can join an online singleplayer game. Don't let them run commands.
+		local _, _, spectator = Spring.GetPlayerInfo(playerID, false)
+		if spectator ~= false then
+			return true
+		end
 		if msg == "restart_with_state" then
 			local data = collectUnitState()
 			sendStateToUnsynced(data)

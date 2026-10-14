@@ -154,7 +154,7 @@ function helper.validateTrigger(trigger)
 		helper
 			.mission()
 			:WithTrigger("t", trigger)
-			:WithAction("ok", { type = helper.actionTypes.SendMessage, parameters = { message = "ok" } })
+			:WithAction("ok", { type = helper.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 	)
 end
 

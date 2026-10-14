@@ -13,8 +13,8 @@ function widget:GetInfo()
 end
 
 local CMD_MOVE_STATE = CMD.MOVE_STATE
-local CustomFirestateDefs = VFS.Include("modules/custom_firestate_defs.lua")
-VFS.Include("luaui/Include/user_firestate_commands.lua")
+local CustomFirestateDefs = require("modules/custom_firestate_defs")
+require("luaui/Include/user_firestate_commands")
 local gameStarted = false
 local isBomber = {}
 

@@ -48,6 +48,7 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
+	widgetHandler:RegisterUnitCommand(CMD_WANT_CLOAK)
 	if Spring.IsReplay() or spGetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end

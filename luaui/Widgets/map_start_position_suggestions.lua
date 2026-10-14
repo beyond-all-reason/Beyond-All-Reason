@@ -30,7 +30,7 @@ local spGetTeamColor = Spring.GetTeamColor
 
 --todo: gl4 (also make circles more transparent as you zoom in)
 
-local base64 = VFS.Include("common/luaUtilities/base64.lua")
+local base64 = require("common/luaUtilities/base64")
 
 -- config
 -- ======

@@ -54,7 +54,8 @@ local function processRawObjectives(rawObjectives, rawTriggers, rawActions, stag
 			else
 				-- Non-managed objective: synthesize trigger + action as usual.
 				local isRepeating = amount ~= nil
-				local maxRepeats = amount and amount > 1 and (amount - 1) or nil
+				-- An amount differing by difficulty is resolved later, which fills in maxRepeats then.
+				local maxRepeats = type(amount) == "number" and amount > 1 and (amount - 1) or nil
 				local triggerID = "__objective_" .. objectiveID
 				local actionID = "__updateObjective_" .. objectiveID
 

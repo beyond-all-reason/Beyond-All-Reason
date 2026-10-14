@@ -185,6 +185,60 @@ describe("mission_api.validation.sections", function()
 				"Unexpected parameter type, expected string, got number. Objective: badNextType, Field: nextStage"
 			)
 		end)
+
+		it("accepts difficulty-wrapped fields and inline trigger parameters", function()
+			V.assertValid(validateObjective({
+				textKey = "ok",
+				amount = { difficulties = { Easy = 2, Hard = 5 } },
+				trigger = {
+					type = V.triggerTypes.TimeElapsed,
+					parameters = { seconds = { difficulties = { Easy = 60, Hard = 30 } } },
+				},
+			}))
+		end)
+
+		it("reports an invalid value in a wrapped field", function()
+			local result = validateObjective({ textKey = "ok", amount = { difficulties = { Easy = "x" } } })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, got string. Objective: o, Field: amount.difficulties.Easy"
+			)
+		end)
+
+		-- The inline trigger is registered before the difficulty is known.
+		it("reports a difficulty-wrapped trigger field", function()
+			local result = validateObjectiveTrigger({ difficulties = { Easy = { type = V.triggerTypes.TimeElapsed } } })
+
+			V.assertMessage(
+				result,
+				"Objective 'trigger' field does not support difficulties. Objective: o, Field: trigger"
+			)
+		end)
+
+		it("accepts a difficulty-wrapped nextStage naming existing stages", function()
+			V.assertValid(
+				V.validate(
+					V.mission()
+						:WithObjective(
+							"o",
+							{ textKey = "ok", nextStage = { difficulties = { Easy = "s1", Hard = "s2" } } }
+						)
+						:WithInitialStageDefinition("s1", { objectives = { "o" } })
+						:WithStage("s2", { objectives = { "o" } })
+				)
+			)
+		end)
+
+		it("reports a wrapped nextStage naming a stage that does not exist", function()
+			local result = V.validate(
+				V.mission()
+					:WithObjective("o", { textKey = "ok", nextStage = { difficulties = { Easy = "nowhere" } } })
+					:WithInitialStageDefinition("validStage", { objectives = { "o" } })
+			)
+
+			V.assertMessage(result, "Invalid stageID: nowhere. Objective: o, Field: nextStage.difficulties.Easy")
+		end)
 	end)
 
 	describe("inline trigger", function()
@@ -256,7 +310,7 @@ describe("mission_api.validation.sections", function()
 				settings = settings,
 				actions = { "ok" },
 			})
-			:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } }))
+			:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } }))
 	end
 
 	describe("trigger shape", function()
@@ -389,10 +443,36 @@ describe("mission_api.validation.sections", function()
 				)
 			end)
 		end)
+
+		describe("difficulties", function()
+			it("accepts an array of difficulty names", function()
+				V.assertValid(validateSettings({ difficulties = { "Easy", "Hard" } }))
+			end)
+
+			it("accepts an empty array, which enables the trigger on every difficulty", function()
+				V.assertValid(validateSettings({ difficulties = {} }))
+			end)
+
+			it("reports a difficulty that does not exist", function()
+				local result = validateSettings({ difficulties = { "Bogus" } })
+
+				V.assertMessage(result, "Invalid difficulty: Bogus. Trigger: t, Setting: difficulties[1]")
+			end)
+
+			-- The names are resolved with ipairs, so any other key would be silently skipped.
+			it("reports a table that is not an array", function()
+				local result = validateSettings({ difficulties = { Easy = true } })
+
+				V.assertMessage(
+					result,
+					"Expected an array of difficulty names, got key: Easy. Trigger: t, Setting: difficulties"
+				)
+			end)
+		end)
 	end)
 
 	it("passes for a valid action referenced by a trigger", function()
-		V.assertValid(V.validateAction({ type = V.actionTypes.SendMessage, parameters = { message = "ok" } }))
+		V.assertValid(V.validateAction({ type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } }))
 	end)
 
 	it("reports a missing type", function()
@@ -407,7 +487,7 @@ describe("mission_api.validation.sections", function()
 		local result = V.validate(
 			V.mission()
 				:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-				:WithAction(123, { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+				:WithAction(123, { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 		)
 
 		V.assertMessage(result, "Action ID must be a string, got number. Action: 123")
@@ -472,9 +552,12 @@ describe("mission_api.validation.sections", function()
 
 	-- Each parameter is validated by the validator its schema names.
 	it("validates a parameter using its declared type", function()
-		local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = { message = 123 } })
+		local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = { messageKey = 123 } })
 
-		V.assertMessage(result, "Unexpected parameter type, expected string, got number. Action: a, Parameter: message")
+		V.assertMessage(
+			result,
+			"Unexpected parameter type, expected string, got number. Action: a, Parameter: messageKey"
+		)
 	end)
 
 	describe("requiresOneOf", function()
@@ -491,6 +574,312 @@ describe("mission_api.validation.sections", function()
 			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitKilled, { unitDefName = "armwar" }))
 
 			V.assertNoMessageContaining(result, "is missing required parameter")
+		end)
+	end)
+
+	it("reports a DrawLines action without the lineName RemoveLine erases it by", function()
+		local result = V.validateAction({
+			type = V.actionTypes.DrawLines,
+			parameters = { positions = { { x = 0, z = 0 }, { x = 1, z = 1 } } },
+		})
+
+		V.assertMessage(result, "Action missing required parameter. Action: a, Parameter: lineName")
+	end)
+
+	describe("difficulties parameters", function()
+		local function validateSeconds(seconds)
+			return V.validateTrigger(V.trigger(V.triggerTypes.TimeElapsed, { seconds = seconds }))
+		end
+
+		it("accepts a wrapped parameter with valid difficulties and values", function()
+			V.assertValid(validateSeconds({ difficulties = { Easy = 60, Hard = 30 } }))
+		end)
+
+		it("satisfies the required-parameter check", function()
+			V.assertValid(validateSeconds({ difficulties = { Medium = 45 } }))
+		end)
+
+		it("reports a difficulty that does not exist", function()
+			local result = validateSeconds({ difficulties = { Bogus = 60, Easy = 1 } })
+
+			V.assertMessage(result, "Invalid difficulty: Bogus. Trigger: t, Parameter: seconds.difficulties.Bogus")
+		end)
+
+		it("validates every value, including ones under a difficulty that does not exist", function()
+			local result = validateSeconds({ difficulties = { Easy = "bad", Bogus = "worse" } })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds.difficulties.Easy"
+			)
+			V.assertMessage(result, "Invalid difficulty: Bogus. Trigger: t, Parameter: seconds.difficulties.Bogus")
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, got string. Trigger: t, Parameter: seconds.difficulties.Bogus"
+			)
+		end)
+
+		it("reports keys other than 'difficulties' in the wrapper", function()
+			local result = validateSeconds({ difficulties = { Easy = 1 }, extra = 2 })
+
+			V.assertMessage(
+				result,
+				"Difficulties parameter must have no keys other than 'difficulties', got: extra. Trigger: t, Parameter: seconds"
+			)
+		end)
+
+		it("reports difficulties that are not a table", function()
+			local result = validateSeconds({ difficulties = 5 })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected table, got number. Trigger: t, Parameter: seconds.difficulties"
+			)
+		end)
+
+		it("reports an empty difficulties table", function()
+			local result = validateSeconds({ difficulties = {} })
+
+			V.assertMessage(result, "Difficulties table is empty. Trigger: t, Parameter: seconds.difficulties")
+		end)
+
+		it("reports a nested difficulties table through the value's own validator", function()
+			local result = validateSeconds({ difficulties = { Easy = { difficulties = { Easy = 1 } } } })
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, got table. Trigger: t, Parameter: seconds.difficulties.Easy"
+			)
+		end)
+
+		it("accepts a wrapped action parameter", function()
+			V.assertValid(V.validateAction({
+				type = V.actionTypes.SendMessage,
+				parameters = { messageKey = { difficulties = { Easy = "hi", Hard = "gl" } } },
+			}))
+		end)
+
+		it("validates each difficulty's value of a table-typed parameter, with nested suffixes", function()
+			local result = V.validateTrigger(V.trigger(V.triggerTypes.UnitEnteredLocation, {
+				unitName = "x",
+				area = {
+					difficulties = {
+						Easy = { x = 0, z = 0, radius = 10 },
+						Hard = { x1 = 1, z1 = 0, x2 = 0, z2 = 1 },
+					},
+				},
+			}))
+
+			V.assertMessage(
+				result,
+				"Invalid area rectangle parameter, x1 must be less than x2. Trigger: t, Parameter: area.difficulties.Hard"
+			)
+		end)
+	end)
+
+	-- Whether an attribute suits the value, multiplier, weapon and unit def it is used with.
+	describe("attribute actions", function()
+		local armwar =
+			{ id = 1, name = "armwar", isImmobile = false, isBuilder = false, weapons = { { weaponDef = 1 } } }
+
+		local function validateAttributeAction(unitDefs, action)
+			_G.UnitDefNames = unitDefs
+			return V.validateAction(action)
+		end
+
+		it("reports a value whose type disagrees with the attribute", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "stealth", value = 1 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'stealth' takes a boolean, got number. Action: a, Parameter: value")
+		end)
+
+		it("reports a negative value", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "losRadius", value = -1 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'losRadius' must be >= 0, got -1. Action: a, Parameter: value")
+		end)
+
+		it("checks the value of every difficulty", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = {
+					unitDefName = "armwar",
+					attribute = "losRadius",
+					value = { difficulties = { Easy = 600, Hard = -1 } },
+				},
+			})
+
+			V.assertMessage(result, "Unit attribute 'losRadius' must be >= 0, got -1. Action: a, Parameter: value")
+		end)
+
+		it("reports a unit state attribute set on a unit def", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "experience", value = 1 },
+			})
+
+			V.assertMessage(
+				result,
+				"Unit attribute 'experience' cannot be set on unitdefs. Action: a, Parameter: attribute"
+			)
+		end)
+
+		it("accepts a unit state attribute set on units", function()
+			V.assertValid(validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitAttribute,
+				parameters = { unitDefName = "armwar", attribute = "experience", value = 1 },
+			}))
+		end)
+
+		it("accepts clearing a source", function()
+			V.assertValid(validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.ClearUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "losRadius", source = "scouting" },
+			}))
+		end)
+
+		it("warns, but does not error, when a movement attribute targets an immobile def", function()
+			local result = validateAttributeAction(
+				{ armllt = { id = 2, name = "armllt", isImmobile = true, isBuilder = false } },
+				{
+					type = V.actionTypes.SetUnitDefAttribute,
+					parameters = { unitDefName = "armllt", attribute = "speed", value = 50 },
+				}
+			)
+
+			V.assertMessage(result, "Unit attribute 'speed' has an inappropriate def (armllt). Action: a")
+			assert.is_true(result.ok)
+		end)
+
+		it("warns, but does not error, when buildSpeed targets a def that cannot build", function()
+			local result = validateAttributeAction(
+				{ armpw = { id = 3, name = "armpw", isImmobile = false, isBuilder = false } },
+				{
+					type = V.actionTypes.SetUnitDefAttribute,
+					parameters = { unitDefName = "armpw", attribute = "buildSpeed", value = 100 },
+				}
+			)
+
+			V.assertMessage(result, "Unit attribute 'buildSpeed' has an inappropriate def (armpw). Action: a")
+			assert.is_true(result.ok)
+		end)
+
+		it("accepts a matching attribute and value", function()
+			V.assertValid(validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "losRadius", value = 600 },
+			}))
+		end)
+
+		it("reports a negative multiplier", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefModifier,
+				parameters = { unitDefName = "armwar", attribute = "losRadius", multiplier = -2 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'losRadius' must be >= 0, got -2. Action: a, Parameter: multiplier")
+		end)
+
+		it("reports multiplying a unit state attribute", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitModifier,
+				parameters = { unitDefName = "armwar", attribute = "health", multiplier = 2 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'health' cannot be multiplied. Action: a, Parameter: attribute")
+		end)
+
+		it("reports multiplying a boolean attribute", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefModifier,
+				parameters = { unitDefName = "armwar", attribute = "stealth", multiplier = 2 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'stealth' cannot be multiplied. Action: a, Parameter: attribute")
+		end)
+
+		it("accepts clearing a modifier's source", function()
+			V.assertValid(validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.ClearUnitModifier,
+				parameters = { unitDefName = "armwar", attribute = "speed", source = "haste" },
+			}))
+		end)
+
+		it("reports an explosion on an attribute not written per explosion", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefWeaponModifier,
+				parameters = { unitDefName = "armwar", weapon = "explode", attribute = "reloadTime", multiplier = 2 },
+			})
+
+			V.assertMessage(
+				result,
+				"Weapon attribute 'reloadTime' is not written per explosion. Action: a, Parameter: weapon"
+			)
+		end)
+
+		it("reports a weapon the unit def does not have", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefWeaponAttribute,
+				parameters = { unitDefName = "armwar", weapon = 2, attribute = "maxWeaponRange", value = 800 },
+			})
+
+			V.assertMessage(
+				result,
+				"Weapon attribute 'maxWeaponRange' names a weapon the unitdef does not have. Action: a, Parameter: weapon"
+			)
+		end)
+
+		-- The WeaponNumber validator reports it, so it must not be reported twice.
+		it("leaves a malformed weapon to its parameter validator", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefWeaponAttribute,
+				parameters = { unitDefName = "armwar", weapon = "death", attribute = "maxWeaponRange", value = 800 },
+			})
+
+			assert.are.same({
+				"Expected a weapon number, 'explode' or 'selfDestruct', got death. Action: a, Parameter: weapon",
+			}, result.messages)
+		end)
+
+		it("reports setting a multiplication-only weapon attribute", function()
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefWeaponAttribute,
+				parameters = { unitDefName = "armwar", attribute = "damage", value = 50 },
+			})
+
+			V.assertMessage(result, "Weapon attribute 'damage' is multiplication-only. Action: a, Parameter: attribute")
+		end)
+
+		it("accepts scaling the death explosion's damage", function()
+			V.assertValid(validateAttributeAction({ armwar = armwar }, {
+				type = V.actionTypes.SetUnitDefWeaponModifier,
+				parameters = { unitDefName = "armwar", weapon = "explode", attribute = "damage", multiplier = 2 },
+			}))
+		end)
+
+		it("finds the attribute actions through the schema, not by name", function()
+			local actionParameters = V.definitions.ActionDefinitions.Parameters
+			local parameterTypes = V.definitions.ParameterTypes.Types
+			actionParameters.syntheticAttributeAction = {
+				{ name = "attribute", required = true, type = parameterTypes.UnitAttribute },
+				{ name = "value", required = true, type = parameterTypes.AttributeValue },
+			}
+			finally(function()
+				actionParameters.syntheticAttributeAction = nil
+			end)
+
+			local result = validateAttributeAction({ armwar = armwar }, {
+				type = "syntheticAttributeAction",
+				parameters = { attribute = "stealth", value = 1 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'stealth' takes a boolean, got number. Action: a, Parameter: value")
 		end)
 	end)
 end)

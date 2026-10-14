@@ -42,7 +42,7 @@ return {
 			model_author = "Tharsis",
 			normaltex = "unittextures/leg_normal.dds",
 			reaimtime = 5,
-			subfolder = "ArmVehicles",
+			subfolder = "Legion/Vehicles",
 		},
 		featuredefs = {
 			dead = {

@@ -49,7 +49,7 @@ local sin = math.sin
 local pi = math.pi
 local random = math.random
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 
 ----------------------------------------------------------------
 -- Constants
@@ -415,6 +415,12 @@ end
 local function pushUndoBatch(ids)
 	if #ids == 0 then
 		return
+	end
+	-- Every decal edit passes here: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("decals")
 	end
 	dp.redoStack = {}
 	dp.undoStack[#dp.undoStack + 1] = { decalIDs = ids }

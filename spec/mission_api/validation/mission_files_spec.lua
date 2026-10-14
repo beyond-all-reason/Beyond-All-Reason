@@ -100,6 +100,8 @@ local function validateMissionFile(fileName)
 		:WithActionDefinitions(V.definitions.ActionDefinitions)
 		:WithTriggerDefinitions(V.definitions.TriggerDefinitions)
 		:Install()
+	-- As for a mission started with no options in its startscript.
+	GG["MissionAPI"].Options = {}
 
 	return V.validate(VFS.Include(missionDirectory .. fileName))
 end

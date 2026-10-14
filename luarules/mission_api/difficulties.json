@@ -1,5 +1,6 @@
 {
-	"placeholderDifficulty1": 1,
-	"placeholderDifficulty2": 2,
-	"placeholderDifficulty3": 3
+	"Story": 1,
+	"Easy": 2,
+	"Medium": 3,
+	"Hard": 4
 }

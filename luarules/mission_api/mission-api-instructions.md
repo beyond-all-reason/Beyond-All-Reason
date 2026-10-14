@@ -9,7 +9,8 @@ file in the same pull request.
 
 A data-driven mission runtime. A mission is a plain Lua table of **stages**, **objectives**, **triggers**, and
 **actions**; the engine-facing code is generic and knows nothing about any individual mission. Everything is synced;
-the one thing synced code cannot do, pausing, goes through `GG.ScriptedPause` (see Runtime surfaces).
+what synced code cannot do, pausing and showing translated text, goes through `GG.ScriptedPause` and the battle
+log (see Runtime surfaces).
 
 ## Load order
 
@@ -20,8 +21,8 @@ Nothing here works outside this sequence, so keep it in mind when something read
    at load time.
 2. `actions_loader.LoadActionDefinitions()` then `triggers_loader.LoadTriggerDefinitions()` scan their directories
    and populate `GG['MissionAPI'].ActionDefinitions` / `.TriggerDefinitions`.
-3. `loadMission(scriptPath)` includes the mission from `singleplayer/`, runs the four `*_loader` normalisers, then
-   `validation.lua`, then `parameter_processing.lua`.
+3. `loadMission(gameSetup)` includes the mission named by the startscript, validates the raw mission with
+   `validation.lua`, runs the four `*_loader` normalisers, resolves difficulties, then runs `parameter_processing.lua`.
 4. `api_missions_triggers.lua` (layer 1) `Initialize()` binds the definitions and unsubscribes from hot call-ins the
    loaded mission does not need.
 
@@ -107,23 +108,46 @@ breaking change to both the function and every mission using it.
 ## Parameters, validation, processing
 
 - Declare types from `parameter_types.lua`; add a new type there only when no existing one fits, and register a
-  validator for it in `validation.lua` (a curried function returning `nil` or a list of `{ message = ... }`, with
-  optional `severity = "warning"` and `parameterNameSuffix` for nested fields). An unvalidated type silently accepts
-  anything.
+  validator for it in `validation/parameter_validators.lua` (a function returning `nil` or a list of
+  `{ message = ... }`, with optional `isWarning = true` and `parameterNameSuffix` for nested fields). An unvalidated
+  type silently accepts anything.
 - `parameter_processing.lua` rewrites values after validation (ground height for `Position`, unit-def names to
   negative build command IDs for `Orders`/`Command`, `.wav` length caching for `SoundFile`, enum lists to sets). If
   your type needs normalisation, register a processor there — the action/trigger sees the processed value, and specs
   that call `actionFunction` directly do not, so pass processed-shaped data in tests.
-- `logError` sets `HasValidationErrors`, which makes `api_missions.lua` drop `GG['MissionAPI']` and remove itself,
-  which in turn makes `api_missions_triggers.lua` remove itself. Validation failure aborts the whole mission —
-  reserve `logError` for genuinely unrunnable missions and use `logWarn` otherwise.
-- `ValidateReferences` cross-checks unit/feature/marker names and countdown IDs between the actions that create
-  them and the actions and triggers that consume them. The consuming types are read from the schemas, so an action
-  or trigger declaring a `UnitName`, `FeatureName` or `CountdownID` parameter is picked up without being listed.
+- Any validation error makes `api_missions.lua` drop `GG['MissionAPI']`, which in turn makes
+  `api_missions_triggers.lua` remove itself, and ends the game once it starts. Validation failure aborts the whole
+  mission — reserve errors for genuinely unrunnable missions and report warnings otherwise.
+- `validation/references.lua` cross-checks unit/feature/marker/line names and countdown IDs between the actions that
+  create them and the actions and triggers that consume them. The consuming types are read from the schemas, so an
+  action or trigger declaring a `UnitName`, `FeatureName` or `CountdownID` parameter is picked up without being
+  listed.
 - The shape of the objects a mission declares itself, rather than of a trigger or action, lives in a schema file
-  next to the loaders: `objectives_schema.lua` (objective fields), `triggers_schema.lua` (the settings every
-  trigger shares) and `countdowns_schema.lua`. They are plain data, so tools and the mission editor can read them;
-  `validation/sections.lua` validates against them. Keep them in step with the loaders.
+  next to the loaders: `stages_schema.lua` (stage fields), `objectives_schema.lua` (objective fields),
+  `triggers_schema.lua` (the settings every trigger shares) and `countdowns_schema.lua`. They are plain data, so
+  tools and the mission editor can read them; `validation/sections.lua` validates against them. Keep them in step
+  with the loaders.
+
+## Difficulty
+
+- `difficulties.json` is the difficulty enum, shared with the client: name → difficulty (`Story = 1`, `Easy = 2`,
+  `Medium = 3`, `Hard = 4`), higher is harder. `GG['MissionAPI'].Difficulty` holds the current difficulty, fixed
+  per playthrough — nothing re-resolves at runtime. Until a selection source exists, `api_missions.lua`
+  `Initialize()` defaults it to the lowest difficulty in the enum.
+- Any trigger parameter, action parameter, or objective field may be authored per difficulty:
+  `seconds = { difficulties = { Medium = 60, Hard = 30 } }`. Resolution picks the exact difficulty, else the
+  highest specified one below it, else the lowest specified one. Detection is by a non-nil `difficulties` key, not
+  by Lua type, so table parameters (`Area`, `Orders`, …) work the same way. Structural fields (`type`, `settings`,
+  `actions`, an objective's `trigger`) and fields nested inside loadout entries or orders do not support it —
+  author the whole parameter per difficulty instead.
+- Difficulties tables survive validation so that every difficulty's value is validated, including values under
+  invalid difficulty names; `loadMission` resolves everything in place (`Modules.Difficulty`) after the loaders and
+  before `parameter_processing`. Code running **before** that must not consume parameter values —
+  `objectives_loader` leaves a difficulty-dependent `amount` alone, and the resolve pass fills in the `maxRepeats`
+  derived from it.
+- `settings.difficulties` (the per-trigger on/off gate) is an array of difficulty names with **no** inheritance
+  between difficulties; empty or omitted enables the trigger on every difficulty. After validation the names are
+  converted to difficulty values for the runtime check in `api_missions_triggers.lua`.
 
 ## Objectives and stages
 
@@ -141,16 +165,18 @@ breaking change to both the function and every mission using it.
 ## Runtime surfaces
 
 - `GG['MissionAPI']` — definitions, the normalised mission, mutable tracking tables (`trackedUnitNames`,
-  `markerNames`, `soundQueue`, …), and `Modules`. Cleared on `Shutdown`.
+  `markerNames`, `soundQueue`, `BattleLogRaw`, …), and `Modules`. Cleared on `Shutdown`.
+- Text for the player goes through `Modules.BattleLog.AddMessage(messageType, messageKey, messageData)`, with
+  `messageType` from the `MessageType` enum in `parameter_types.lua` and `messageKey` an I18N key. Synced code
+  cannot translate, so each entry is appended to `BattleLogRaw`, published as a game rules param
+  (`missionBattleLog_<n>` as JSON, plus `missionBattleLogCount`), and announced through `api_mission_battle_log.lua`
+  (unsynced gadget) as `Script.LuaUI.MissionBattleLogChanged`. `luaui/Widgets/api_mission_battle_log.lua` reads the
+  params on that call and at start (so also after a `/luaui reload`), rebuilds the text on `LanguageChanged`, and
+  holds the translated log oldest-first in `WG.MissionAPI.BattleLog`. The `Spring.Echo` in `AddMessage` is a
+  placeholder until a widget displays the log.
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
-- `GG.ScriptedPause` (`api_scripted_pause.lua`, synced + unsynced, not mission-specific) — `Pause()` / `Unpause()` /
-  `IsPaused()` behind the `Pause` and `Unpause` actions. Synced code cannot pause, so its unsynced half has one
-  client send the `pause` command and re-pause whenever a player unpauses. It publishes the game rules param
-  `scriptedPause` (1 while active); `gui_pausescreen.lua` reads it to hide the pause overlay for scripted pauses.
-  A scripted pause stops `GameFrame`, so `TimeElapsed` cannot end one — use a trigger that fires between frames
-  (`UnitOrdered`, for example) or an objective event.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 

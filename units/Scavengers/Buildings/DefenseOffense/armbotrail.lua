@@ -58,7 +58,7 @@ return {
 				footprintz = 3,
 				height = 40,
 				metal = 2720,
-				object = "Units/armbrtha_dead.s3o",
+				object = "scavs/armbotrail_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {
@@ -124,7 +124,7 @@ return {
 				impulsefactor = 0.5,
 				leadbonus = 0,
 				metalpershot = 96,
-				model = "armpw_anim_projectile.s3o",
+				model = "armpw_wings_projectile.s3o",
 				mygravity = 0.22,
 				name = "Long range bot cannon",
 				noselfdamage = true,
@@ -145,6 +145,7 @@ return {
 				weaponvelocity = 1250,
 				customparams = {
 					spawns_name = "armpw",
+					spawns_debris = "armpw_wings",
 					spawns_surface = "LAND", -- Available: "LAND SEA" blah
 					stockpilelimit = 50,
 				},

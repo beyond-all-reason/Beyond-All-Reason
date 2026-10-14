@@ -94,6 +94,12 @@ local function makeEnv(self)
 	env.widgetHandler = {
 		RemoveWidget = function() end,
 		AddAction = function() end,
+		RegisterGlobal = function(_, name, value)
+			env[name] = value
+		end,
+		DeregisterGlobal = function(_, name)
+			env[name] = nil
+		end,
 	}
 	env.CMD = { GUARD = 25 }
 	env.UnitDefs = self.unitDefs:GetUnitDefsByID()

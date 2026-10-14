@@ -17,8 +17,11 @@ end
 -- Spring API Imports
 --------------------------------------------------------------------------------
 
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetUnitCommandCount = Spring.GetUnitCommandCount
+local spDiffTimers = Spring.DiffTimers
+local spGetTimer = Spring.GetTimerMicros or Spring.GetTimer
+local timerMicros = Spring.GetTimerMicros ~= nil
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
@@ -41,6 +44,8 @@ local ipairs = ipairs
 
 local MAX_QUEUE_DEPTH = 1200
 local MAX_UNITS_PROCESSED_PER_UPDATE = 40
+-- Consumers draw a shape per new command, so a big split is spread over frames
+local PROCESSING_BUDGET_MS = 2
 local PERIODIC_CHECK_DIVISOR = 30 -- every n ticks of UPDATE_INTERVAL
 local DEEP_CHECK_DIVISOR = 150 -- every n ticks of UPDATE_INTERVAL
 local PERIODIC_UPDATE_INTERVAL = 0.12 -- in seconds
@@ -56,6 +61,7 @@ local unitBuildCommands = {}
 local commandIdToCreatedUnitIdMap = {}
 local createdUnitIdToCommandIdMap = {}
 local unitsAwaitingCommandProcessing = {}
+local pendingTeamChanges = {}
 local buildersList = {}
 local lastQueueDepth = {}
 local commandLookup = {}
@@ -64,6 +70,7 @@ local commandLookup = {}
 local Event = {
 	onBuildCommandAdded = "onBuildCommandAdded",
 	onBuildCommandRemoved = "onBuildCommandRemoved",
+	onBuildCommandTeamChanged = "onBuildCommandTeamChanged",
 	onUnitCreated = "onUnitCreated",
 	onUnitFinished = "onUnitFinished",
 	onBuilderDestroyed = "onBuilderDestroyed",
@@ -72,6 +79,7 @@ local Event = {
 local eventCallbacks = {
 	[Event.onBuildCommandAdded] = {},
 	[Event.onBuildCommandRemoved] = {},
+	[Event.onBuildCommandTeamChanged] = {},
 	[Event.onUnitCreated] = {},
 	[Event.onUnitFinished] = {},
 	[Event.onBuilderDestroyed] = {},
@@ -292,25 +300,18 @@ local function checkBuilder(unitId, forceUpdate, batchCache)
 	if batchCache then
 		local cached = batchCache[queueDepth]
 		if cached then
-			local firstCmds = spGetUnitCommands(unitId, 1)
-			local firstCmd = firstCmds and firstCmds[1]
-			if firstCmd and firstCmd.id < 0 then
-				local params = firstCmd.params
-				if
-					-firstCmd.id == cached.firstDefId
-					and mathFloor(params[1]) == cached.firstPosX
-					and mathFloor(params[3]) == cached.firstPosZ
-				then
-					applyCommandSet(unitId, cached.commandIds)
-					return
-				end
+			local firstCmdId, _, _, firstX, _, firstZ = spGetUnitCurrentCommand(unitId, 1)
+			if
+				firstCmdId
+				and -firstCmdId == cached.firstDefId
+				and firstZ
+				and mathFloor(firstX) == cached.firstPosX
+				and mathFloor(firstZ) == cached.firstPosZ
+			then
+				applyCommandSet(unitId, cached.commandIds)
+				return
 			end
 		end
-	end
-
-	local queue = spGetUnitCommands(unitId, mathMin(queueDepth, MAX_QUEUE_DEPTH))
-	if not queue then
-		return
 	end
 
 	local newCommands = getTable()
@@ -318,17 +319,18 @@ local function checkBuilder(unitId, forceUpdate, batchCache)
 	local firstBuildPosX = nil
 	local firstBuildPosZ = nil
 
-	-- Step 1: Process the current queue and identify active commands
-	local queueLen = #queue
-	for i = 1, queueLen do
-		local queueCommand = queue[i]
-		local cmdId = queueCommand.id
+	-- Step 1: Process the current queue and identify active commands. The
+	-- commands are read in place; a queue of tables would be 3 allocations each.
+	for i = 1, mathMin(queueDepth, MAX_QUEUE_DEPTH) do
+		local cmdId, _, _, paramX, paramY, paramZ, paramFacing = spGetUnitCurrentCommand(unitId, i)
+		if not cmdId then
+			break
+		end
 
-		if cmdId < 0 then
+		if cmdId < 0 and paramZ then
 			local unitDefId = -cmdId
-			local params = queueCommand.params
-			local positionX = mathFloor(params[1])
-			local positionZ = mathFloor(params[3])
+			local positionX = mathFloor(paramX)
+			local positionZ = mathFloor(paramZ)
 
 			if not firstBuildDefId then
 				firstBuildDefId = unitDefId
@@ -361,9 +363,9 @@ local function checkBuilder(unitId, forceUpdate, batchCache)
 				buildCommand.unitDefId = unitDefId
 				buildCommand.teamId = spGetUnitTeam(unitId)
 				buildCommand.positionX = positionX
-				buildCommand.positionY = mathFloor(params[2])
+				buildCommand.positionY = mathFloor(paramY)
 				buildCommand.positionZ = positionZ
-				buildCommand.rotation = params[4] and mathFloor(params[4]) or 0
+				buildCommand.rotation = paramFacing and mathFloor(paramFacing) or 0
 				buildCommand.isCreated = false
 				buildCommand.isFinished = false
 				buildCommand.builderIds = buildCommand.builderIds or {}
@@ -421,16 +423,21 @@ end
 local function processNewBuildCommands()
 	local processedUnits = 0
 	local batchCache = nil
+	local startTimer
 	for unitId, commandClockTime in pairs(unitsAwaitingCommandProcessing) do
 		if elapsedSeconds > commandClockTime then
 			if not batchCache then
 				batchCache = {}
+				startTimer = spGetTimer()
 			end
 			checkBuilder(unitId, true, batchCache)
 			unitsAwaitingCommandProcessing[unitId] = nil
 
 			processedUnits = processedUnits + 1
-			if processedUnits >= MAX_UNITS_PROCESSED_PER_UPDATE then
+			if
+				processedUnits >= MAX_UNITS_PROCESSED_PER_UPDATE
+				or spDiffTimers(spGetTimer(), startTimer, true, timerMicros) > PROCESSING_BUDGET_MS
+			then
 				break
 			end
 		end
@@ -450,12 +457,38 @@ local function periodicBuilderCheck()
 	end
 end
 
+local function hasBuilderInTeam(buildCommand, teamId)
+	for builderId in pairs(buildCommand.builderIds) do
+		if spGetUnitTeam(builderId) == teamId then
+			return true
+		end
+	end
+	return false
+end
+
+-- Deferred to Update: a take transfers a whole team at once, so each command is checked once
+local function applyPendingTeamChanges()
+	for commandId, newTeamId in pairs(pendingTeamChanges) do
+		pendingTeamChanges[commandId] = nil
+		local buildCommand = buildCommands[commandId]
+		if
+			buildCommand
+			and buildCommand.teamId ~= newTeamId
+			and not hasBuilderInTeam(buildCommand, buildCommand.teamId)
+		then
+			buildCommand.teamId = newTeamId
+			notifyEvent(Event.onBuildCommandTeamChanged, commandId, buildCommand)
+		end
+	end
+end
+
 local function resetStateAndReinitialize()
 	buildCommands = {}
 	unitBuildCommands = {}
 	commandIdToCreatedUnitIdMap = {}
 	createdUnitIdToCommandIdMap = {}
 	unitsAwaitingCommandProcessing = {}
+	pendingTeamChanges = {}
 	lastQueueDepth = {}
 	commandLookup = {}
 	tablePool = {}
@@ -495,6 +528,9 @@ end
 BuilderQueueApi.OnBuildCommandRemoved = function(callback)
 	return registerCallback(Event.onBuildCommandRemoved, callback)
 end
+BuilderQueueApi.OnBuildCommandTeamChanged = function(callback)
+	return registerCallback(Event.onBuildCommandTeamChanged, callback)
+end
 BuilderQueueApi.OnUnitCreated = function(callback)
 	return registerCallback(Event.onUnitCreated, callback)
 end
@@ -519,6 +555,7 @@ function widget:Update(dt)
 	elapsedSeconds = elapsedSeconds + dt
 
 	processNewBuildCommands()
+	applyPendingTeamChanges()
 
 	if elapsedSeconds > nextUpdateTime then
 		nextUpdateTime = elapsedSeconds + PERIODIC_UPDATE_INTERVAL
@@ -574,6 +611,16 @@ end
 
 function widget:UnitFinished(unitId)
 	clearUnit(unitId)
+end
+
+-- Allied transfers keep the command queue, so the queued builds now belong to the new team
+function widget:UnitGiven(unitId, unitDefId, newTeam)
+	local commands = unitBuildCommands[unitId]
+	if commands then
+		for commandId in pairs(commands) do
+			pendingTeamChanges[commandId] = newTeam
+		end
+	end
 end
 
 function widget:UnitDestroyed(unitId, unitDefId)

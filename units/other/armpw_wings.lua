@@ -1,0 +1,27 @@
+return {
+	armpw_wings = {
+		buildpic = "ARMPW.DDS",
+		buildtime = 1,
+		corpse = "",
+		energycost = 1,
+		explodeas = "",
+		footprintx = 1,
+		footprintz = 1,
+		health = 1,
+		metalcost = 1,
+		objectname = "Units/armpw_wings.s3o",
+		script = "Units/armpw_wings.cob",
+		seismicsignature = 0,
+		selfdestructas = "",
+		sightdistance = 0,
+		upright = true,
+		yardmap = "o",
+		customparams = {
+			model_author = "Egzothicki",
+			normaltex = "unittextures/Arm_normal.dds",
+			removestop = true,
+			removewait = true,
+			subfolder = "other",
+		},
+	},
+}

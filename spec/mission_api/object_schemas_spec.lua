@@ -48,6 +48,8 @@ describe("mission_api object schemas", function()
 			onProgress = Types.TriggerID,
 			onCompleted = Types.TriggerID,
 			onFailed = Types.TriggerID,
+			onHidden = Types.TriggerID,
+			onShown = Types.TriggerID,
 		}, objectivesSchema.Settings)
 	end)
 
@@ -62,7 +64,7 @@ describe("mission_api object schemas", function()
 			prerequisites = Types.TriggerIDs,
 			repeating = Types.Boolean,
 			maxRepeats = Types.Quantity,
-			difficulties = Types.Table,
+			difficulties = Types.Difficulties,
 			coop = Types.Boolean,
 			active = Types.Boolean,
 			stages = Types.StageIDs,

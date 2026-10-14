@@ -35,9 +35,9 @@ local MSG = {
 local DEFAULT_RADIUS = 100
 local UPDATE_INTERVAL = 0.05
 
--- Prefix all terraform messages with $c$ when cheat is enabled.
--- This certification is recorded in demos, so during replay the gadget can
--- trust it without needing live cheat state (which is always false in replay).
+-- Prefix all terraform messages with $c$ when cheat is enabled. The gadget
+-- honours that certification inside a map-editor session, where /cheat is a
+-- toggle that can race OFF between a message being composed and it arriving.
 -- Guard against double-prefix: NewMap import pre-attaches $c$ to its messages,
 -- so skip wrapping if the message already starts with the signature.
 -- NOTE: no new chunk-level local for the prefix string (file is at 200-local limit).
@@ -215,7 +215,7 @@ local function loadKeybindsFromDisk()
 	if VFS.FileExists(KEYBINDS_FILE, VFS.RAW) then
 		local raw = VFS.LoadFile(KEYBINDS_FILE, VFS.RAW)
 		if raw then
-			local fn, err = loadstring(raw)
+			local fn, _err = loadstring(raw)
 			if fn then
 				local ok, data = pcall(fn)
 				if ok and type(data) == "table" then
@@ -1518,10 +1518,40 @@ end
 -- means this can only ever enable, never disable. On a server that disallows
 -- cheating the command is simply refused and the gadget's echo explains the rest.
 -- (Attached to extraState: main chunk is at the 200-local limit.)
+--
+-- Single-flight: "cheat" is a TOGGLE and several widgets nudge it (this one,
+-- the project loader, the RML match-end keep-alive, dev_autocheat). A send takes
+-- a network round trip to land, so two widgets that both observe "off" in the
+-- same moment queue two toggles and the second one turns cheat back OFF. Hold a
+-- short window after any send so the observers coalesce into one toggle, and
+-- publish the helper on WG so the other editor widgets share the same window.
+-- Returns true only when a toggle was actually put on the wire, so callers that
+-- count attempts (the project loader gives up after a few) do not burn a retry
+-- on a call this window swallowed.
 extraState.ensureCheat = function()
-	if not Spring.IsReplay() and not Spring.IsCheatingEnabled() then
-		Spring.SendCommands("cheat")
+	if Spring.IsReplay() or Spring.IsCheatingEnabled() then
+		return false
 	end
+	local now = os.clock()
+	if extraState._cheatSentAt and (now - extraState._cheatSentAt) < 3 then
+		return false
+	end
+	extraState._cheatSentAt = now
+	Spring.SendCommands("cheat")
+	return true
+end
+WG.TerraformEnsureCheat = extraState.ensureCheat
+
+-- Mirror of the synced gadget's auth gate (luarules/gadgets/cmd_terraform_brush.lua):
+-- it accepts height edits on live /cheat, or on a "$c$"-certified message inside
+-- a map-editor session. Messages pushed while the gate is shut are dropped
+-- silently by the gadget, which used to cost whole columns of an import.
+extraState.isMapEditorSession = (function()
+	local mapEditorOpt = (Spring.GetModOptions() or {}).mapeditor
+	return mapEditorOpt == true or mapEditorOpt == 1 or mapEditorOpt == "1"
+end)()
+extraState.terraformGateOpen = function(certified)
+	return Spring.IsCheatingEnabled() or (certified and extraState.isMapEditorSession) or false
 end
 
 local function activate(direction, mode, args)
@@ -2316,16 +2346,21 @@ local pendingExport = false
 -- 16-bit greyscale PNG codec (see file header for why gl.SaveImage can't do this).
 -- Attached to extraState rather than a new chunk-level local (main chunk is at the
 -- 200-local limit).
-extraState._heightmapPNG = VFS.Include("luaui/Widgets/cmd_terraform_brush_png.lua")
+extraState._heightmapPNG = require("luaui/Widgets/cmd_terraform_brush_png")
+
+-- Map transform math, shared with cmd_map_transform.lua: a project opened by a
+-- map transform hands its turn/mirror/fit to the import below. Attached to
+-- extraState for the same 200-local reason.
+extraState._mapTransform = VFS.Include("luaui/Include/map_transform.lua")
 
 -- Procedural map generator for the New Map feature (noise/symmetry/water shaping).
 -- Pure module; attached to extraState (no new chunk-level local — 200-local limit).
-extraState._mapgen = VFS.Include("luaui/Widgets/cmd_terraform_brush_mapgen.lua")
+extraState._mapgen = require("luaui/Widgets/cmd_terraform_brush_mapgen")
 
 -- Autoramp terrain math shared with the synced gadget: the hover preview and
 -- the actual apply run the same pure seeded computation, so the preview IS the
 -- result. (Attached to extraState — 200-local limit.)
-extraState._autorampProfile = VFS.Include("common/autoramp_profile.lua")
+extraState._autorampProfile = require("common/autoramp_profile")
 
 -- ============ New Map: post-reload procedural terrain apply ============
 -- The New Map dialog writes a recipe file and reloads the engine onto a flat
@@ -2490,16 +2525,14 @@ extraState._newmapDrive = function()
 			return
 		end
 		-- Let the freshly-reloaded session settle (map + the synced terraform
-		-- gadget must be ready to receive messages) before streaming. We do NOT
-		-- gate on /cheat: the import is sent with the "$c$" certification prefix,
-		-- which the gadget trusts even though cheat resets to OFF across the
-		-- engine reload. We still nudge /cheat on once so the editor is usable
-		-- afterwards, but terrain no longer depends on it taking effect.
+		-- gadget must be ready to receive messages) before streaming. The import
+		-- carries the "$c$" certification prefix, which the gadget honours inside
+		-- a map-editor session (the mapeditor modoption the launcher sets), so it
+		-- survives /cheat resetting across the engine reload. We still nudge
+		-- /cheat on once so the rest of the editor is usable afterwards.
 		if not extraState._newmapStartFrame then
 			extraState._newmapStartFrame = GetDrawFrame() + 15
-			if not Spring.IsCheatingEnabled() then
-				Spring.SendCommands("cheat")
-			end
+			extraState.ensureCheat()
 			return
 		end
 		if GetDrawFrame() < extraState._newmapStartFrame then
@@ -2946,8 +2979,31 @@ local function doImportHeightmapRead()
 	pendingImportFile = nil
 	local fallbackMin = extraState._importFallbackMin
 	local fallbackMax = extraState._importFallbackMax
+	local xformSpec = extraState._importXform
 	extraState._importFallbackMin = nil
 	extraState._importFallbackMax = nil
+	extraState._importXform = nil
+
+	-- Built once per import: dest vertex -> source elmo for every sample below.
+	-- A list, because a doubled map places the SAME heightmap twice (the second
+	-- placement mirrored or flipped); ground outside every placement takes
+	-- fill_height when the expansion left that half empty.
+	local importT = nil
+	local importFill = nil
+	if xformSpec and type(xformSpec.placements) == "table" then
+		local srcW = (tonumber(xformSpec.src_x) or 0) * 512
+		local srcH = (tonumber(xformSpec.src_z) or 0) * 512
+		if srcW > 0 and srcH > 0 then
+			local list = {}
+			for i, p in ipairs(xformSpec.placements) do
+				list[i] = extraState._mapTransform.new(p, srcW, srcH, Game.mapSizeX, Game.mapSizeZ)
+			end
+			if #list > 0 then
+				importT = list
+				importFill = tonumber(xformSpec.fill_height)
+			end
+		end
+	end
 
 	local squareSize = Game.squareSize
 
@@ -3020,7 +3076,63 @@ local function doImportHeightmapRead()
 				local w = Game.mapSizeX / squareSize + 1
 				local h = Game.mapSizeZ / squareSize + 1
 				local columns = {}
-				if pw == w and ph == h then
+				if importT then
+					-- Map transform replay. Each destination vertex is put back
+					-- through the placements to find where it sat on the old map
+					-- and sampled there. Ground no placement covers either takes
+					-- fill_height (an expansion's empty half is a flat canvas) or
+					-- clamps to the border, so a nudged edge continues the land
+					-- instead of dropping to the range floor.
+					for px = 1, w do
+						local col = {}
+						local wx = (px - 1) * squareSize
+						for py = 1, h do
+							local wz = (py - 1) * squareSize
+							local T, sxE, szE
+							local covered = false
+							for pi = 1, #importT do
+								local cand = importT[pi]
+								local a, b, inside = cand:dstToSrc(wx, wz)
+								if inside then
+									T, sxE, szE, covered = cand, a, b, true
+									break
+								elseif pi == 1 then
+									T, sxE, szE = cand, a, b -- the clamp fallback
+								end
+							end
+							if importFill and not covered then
+								col[py] = importFill
+							else
+								local fx = sxE / T.srcW * (pw - 1)
+								local fy = szE / T.srcH * (ph - 1)
+								if fx < 0 then
+									fx = 0
+								elseif fx > pw - 1 then
+									fx = pw - 1
+								end
+								if fy < 0 then
+									fy = 0
+								elseif fy > ph - 1 then
+									fy = ph - 1
+								end
+								local x0 = floor(fx)
+								local y0 = floor(fy)
+								local x1 = (x0 + 1 < pw) and (x0 + 1) or (pw - 1)
+								local y1 = (y0 + 1 < ph) and (y0 + 1) or (ph - 1)
+								local tx = fx - x0
+								local ty = fy - y0
+								local g00 = gray[y0 * pw + x0 + 1]
+								local g10 = gray[y0 * pw + x1 + 1]
+								local g01 = gray[y1 * pw + x0 + 1]
+								local g11 = gray[y1 * pw + x1 + 1]
+								local g0 = g00 + (g10 - g00) * tx
+								local g1 = g01 + (g11 - g01) * tx
+								col[py] = minH + (g0 + (g1 - g0) * ty) * heightRange
+							end
+						end
+						columns[px] = col
+					end
+				elseif pw == w and ph == h then
 					-- Same-size import: direct copy. This is the exact inverse of the
 					-- exporter; the bilinear path's float32 index math can produce
 					-- ~1e-4 fractional weights even at identical sizes, bleeding a
@@ -3077,6 +3189,15 @@ local function doImportHeightmapRead()
 		end
 		if heightmapFormat ~= nil then
 			Echo("[Terraform Brush] PNG decode failed, falling back to 8-bit GL load")
+		end
+		if importT then
+			-- The GL path stretches corner to corner and knows nothing about a
+			-- transform, so the terrain would come out unturned while every
+			-- other layer moved. Say so rather than leave it to be discovered.
+			Echo(
+				"[Terraform Brush] WARNING: this heightmap cannot be read at full depth, so the map transform "
+					.. "could not be applied to the terrain — the other layers still moved"
+			)
 		end
 	end
 
@@ -3185,6 +3306,29 @@ local function doImportHeightmapSend()
 	if not importHeightRows then
 		return
 	end
+
+	-- Hold the stream while the synced gate is shut instead of feeding rows into
+	-- it. /cheat is a toggle that competing widgets can flip off mid-import, and
+	-- rows refused by the gadget are gone for good: the column index has already
+	-- advanced client-side, so the finished map is missing those strips with no
+	-- warning beyond the refusal echo. Give up rather than stall forever on a
+	-- server that refuses cheats outright.
+	if not extraState.terraformGateOpen(extraState._newmapCertify) then
+		extraState.ensureCheat()
+		extraState._importGateWaits = (extraState._importGateWaits or 0) + 1
+		if extraState._importGateWaits > 600 then
+			Echo(
+				"[Terraform Brush] Heightmap import aborted at column "
+					.. importRowIndex
+					.. ": /cheat stayed off. Enable cheats and import again."
+			)
+			extraState._importGateWaits = nil
+			importHeightRows = nil
+			importRowIndex = 0
+		end
+		return
+	end
+	extraState._importGateWaits = nil
 
 	local squareSize = Game.squareSize
 	local totalCols = #importHeightRows
@@ -3376,12 +3520,22 @@ function widget:Initialize()
 
 	WG.TerraformBrush = {
 		getImportStatus = extraState._importStatus,
-		importHeightmap = function(filename, fallbackMin, fallbackMax)
+		-- Bumped on every heightmap update; the project widget's unsaved
+		-- changes flag watches it.
+		getTerrainVersion = function()
+			return extraState.terrainVersion
+		end,
+		-- xform (optional): a map transform spec (rot / mirrorX / mirrorZ / fit /
+		-- anchorX / anchorZ / src_x / src_z in map units). With one, the PNG is
+		-- read as the OLD map's heightmap and resampled onto this canvas through
+		-- the transform instead of stretched edge to edge.
+		importHeightmap = function(filename, fallbackMin, fallbackMax, xform)
 			if not filename or filename == "" then
 				return false
 			end
 			extraState._importFallbackMin = tonumber(fallbackMin)
 			extraState._importFallbackMax = tonumber(fallbackMax)
+			extraState._importXform = (type(xform) == "table") and xform or nil
 			pendingImportFile = filename
 			Echo("[Terraform Brush] Import queued: " .. pendingImportFile)
 			return true
@@ -3675,7 +3829,9 @@ function widget:Initialize()
 			if not tfUI or not tfUI.getPanelBounds then
 				return nil, nil
 			end
-			local bounds = tfUI.getPanelBounds()
+			-- A project dialog is an editor surface in front of the world too, so
+			-- the brush parks against it the way it parks against the panel.
+			local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
 			if not bounds then
 				return nil, nil
 			end
@@ -3993,6 +4149,9 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal("TerraformBrushStackUpdate")
 	hideBuildGrid()
 	WG.TerraformBrush = nil
+	-- Shared /cheat single-flight window: drop it so the other editor widgets
+	-- fall back to their own sends instead of calling into a dead widget.
+	WG.TerraformEnsureCheat = nil
 end
 
 local function smoothSplinePoints(points, passes)
@@ -7901,10 +8060,14 @@ extraState.computeParkedTarget = function(bounds, radius, lengthScale)
 	local vsx, vsy = Spring.GetViewGeometry()
 	local brushSpan = (radius or 200) * math.max(1.0, lengthScale or 1.0) + 70
 	local midY = math.floor(vsy * 0.5)
+	-- Middle first, then the quarters, then the edges: a panel down one side
+	-- clears at the middle, and a window in the middle only clears near an edge.
 	local candidates = {
 		math.floor(vsx * 0.5),
 		math.floor(vsx * 0.25),
 		math.floor(vsx * 0.75),
+		math.floor(vsx * 0.05),
+		math.floor(vsx * 0.95),
 	}
 	for _, sx in ipairs(candidates) do
 		if not (sx >= bounds.left - brushSpan and sx <= bounds.right + brushSpan) then
@@ -7914,7 +8077,12 @@ extraState.computeParkedTarget = function(bounds, radius, lengthScale)
 			end
 		end
 	end
-	local _, pos = TraceScreenRay(math.floor(vsx * 0.5), midY, true)
+	-- Nothing clears it. Take the side with the most room rather than the screen
+	-- centre, which would park the brush under the very thing it is stepping out
+	-- from behind.
+	local middle = (bounds.left + bounds.right) * 0.5
+	local fallbackX = middle > vsx * 0.5 and math.floor(vsx * 0.02) or math.floor(vsx * 0.98)
+	local _, pos = TraceScreenRay(fallbackX, midY, true)
 	return pos and pos[1] or nil, pos and pos[3] or nil
 end
 
@@ -7932,7 +8100,7 @@ extraState.tickSubToolUnmouse = function(toolKey, realX, realZ, radius, lengthSc
 	if not tfUI or not tfUI.getPanelBounds then
 		return realX, realZ
 	end
-	local bounds = tfUI.getPanelBounds()
+	local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
 	if not bounds then
 		return realX, realZ
 	end
@@ -8045,7 +8213,7 @@ extraState.applyUnmouse = function(worldX, worldZ)
 		extraState.unmouseActive = false
 		return worldX, worldZ
 	end
-	local bounds = tfUI.getPanelBounds()
+	local bounds = (tfUI.getHoverBounds and tfUI.getHoverBounds()) or tfUI.getPanelBounds()
 	if not bounds then
 		extraState.unmouseAnimT = 0
 		extraState.unmouseActive = false

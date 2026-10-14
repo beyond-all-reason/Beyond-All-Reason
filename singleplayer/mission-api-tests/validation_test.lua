@@ -15,6 +15,7 @@ local stages = {
 			'objectiveWithMissingTriggerType',
 			'objectiveWithInvalidNextStage',
 			'objectiveWithTriggerHavingActions',
+			'objectiveWithDifficultiesTrigger',
 		}
 	},
 	-- error: objectives entries must be strings
@@ -69,6 +70,13 @@ local objectives = {
 			type = triggerTypes.TimeElapsed,
 			parameters = { seconds = 100000000 },
 			actions = { 'someAction' },  -- error: objective trigger must not have actions
+		},
+	},
+
+	objectiveWithDifficultiesTrigger = {
+		textKey = "trigger_field_must_not_have_difficulties",
+		trigger = {
+			difficulties = { Easy = { type = triggerTypes.TimeElapsed } },  -- error: trigger field does not support difficulties
 		},
 	},
 }
@@ -132,6 +140,46 @@ local triggers = {
 			coop = 0,
 			active = 0,
 			stages = { 123 },   -- error: stage list entries must be stageID strings
+		},
+		parameters = {
+			seconds = 100000000,
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidDifficultiesValues = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = {
+				difficulties = {
+					Easy = 'notANumber',      -- error: seconds must be a number
+					invalidDifficulty = 30,   -- error: not a known difficulty (its value is still validated)
+				},
+			},
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithExtraKeyBesideDifficulties = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = { difficulties = { Easy = 30 }, extraKey = 60 },  -- error: no keys other than 'difficulties' allowed
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithEmptyDifficulties = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = { difficulties = {} },  -- error: difficulties table is empty
+		},
+		actions = { 'actionMissingType' },
+	},
+
+	triggerWithInvalidDifficultyInGate = {
+		type = triggerTypes.TimeElapsed,
+		settings = {
+			difficulties = { 'invalidDifficulty' },  -- error: not a known difficulty
 		},
 		parameters = {
 			seconds = 100000000,
@@ -378,6 +426,7 @@ local actions = {
 	actionWithJustOneInvalidPosition = {
 		type = actionTypes.DrawLines,
 		parameters = {
+			lineName = 'invalidLine',
 			positions = {
 				{ x = 1800, invalidField = 2100 }
 			},

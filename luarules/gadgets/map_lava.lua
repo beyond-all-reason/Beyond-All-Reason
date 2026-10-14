@@ -22,7 +22,9 @@ local gameSpeed = Game.gameSpeed
 if gadgetHandler:IsSyncedCode() then
 	local tideIndex = 1
 	local tideContinueFrame = 0
+	local pendingCleanup = false
 	local gameframe = 0
+	local gameSpeed = Game.gameSpeed
 	local tideRhythm = {}
 	local lavaUnits = {}
 	local damageRateTick = 0
@@ -36,6 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 	local lavaSlow = 0.8 -- slow fraction (0-1) for units in lava, 0.8 = 20% max speed when fully sumberged
 	local SLOW_STEP = 0.05 -- quantize slow so wading units don't rewrite move data every damage tick
 	local SLOW_STEP_INV = 1 / SLOW_STEP
+	local ATTRIBUTE_SOURCE = "watertype_lava"
 
 	-- damage is specified in health lost per second, damage is applied every DAMAGE_RATE frames
 	local DAMAGE_RATE = 10 -- frames
@@ -59,9 +62,6 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetFeaturePosition = Spring.GetFeaturePosition
 	local spGetUnitBasePosition = Spring.GetUnitBasePosition
 	local spGetUnitDefID = Spring.GetUnitDefID
-	local spGetMoveData = Spring.GetUnitMoveTypeData
-	local spMoveCtrlEnabled = Spring.MoveCtrl.IsEnabled
-	local spSetMoveData = Spring.MoveCtrl.SetGroundMoveTypeData
 	local spGetGroundHeight = Spring.GetGroundHeight
 	local spGetUnitsInBox = Spring.GetUnitsInBox
 	local spSpawnCEG = Spring.SpawnCEG
@@ -73,9 +73,7 @@ if gadgetHandler:IsSyncedCode() then
 	local unitMoveDef = {}
 	local canFly = {}
 	local unitHeight = {}
-	local speedDefs = {}
-	local turnDefs = {}
-	local accDefs = {}
+	local canBeSlowed = {} ---@type table<UnitDefID, boolean?>
 	local isDecoration = {}
 	local maxUnitHeight = 0 -- upper bound for midPos.y of a unit whose base is at lava level
 	for unitDefID, unitDef in pairs(UnitDefs) do
@@ -83,9 +81,9 @@ if gadgetHandler:IsSyncedCode() then
 		if unitDef.canFly then
 			canFly[unitDefID] = true
 		else
-			speedDefs[unitDefID] = unitDef.speed
-			turnDefs[unitDefID] = unitDef.turnRate
-			accDefs[unitDefID] = unitDef.maxAcc
+			canBeSlowed[unitDefID] = not unitDef.isImmobile
+				and (unitDef.turnRate or 0) ~= 0
+				and (unitDef.maxAcc or 0) ~= 0
 		end
 		local height = Spring.GetUnitDefDimensions(unitDefID).height
 		unitHeight[unitDefID] = height
@@ -119,57 +117,102 @@ if gadgetHandler:IsSyncedCode() then
 		table.insert(tideRhythm, newTide)
 	end
 
+	local function adjustTideRhythm(targetLevel, speed, remainTime)
+		local nextTideIndex = tideIndex + 1
+		local newTide = {}
+		newTide.targetLevel = targetLevel
+		newTide.speed = speed
+		newTide.remainTime = remainTime
+		newTide.adjusted = true
+		table.insert(tideRhythm, nextTideIndex, newTide)
+	end
+
 	for _, rhythm in ipairs(lava.tideRhythm) do
 		addTideRhythm(unpack(rhythm))
 	end
 
-	local function updateLava()
-		if
-			(lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
-			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel)
-		then
-			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime * gameSpeed)
+	local function cleanupAdjustedTides()
+		for i = #tideRhythm, 1, -1 do
+			if tideRhythm[i].adjusted then
+				table.remove(tideRhythm, i)
+			end
+		end
+	end
+
+	function updateLava()
+		if (lavaGrow < 0 and lavaLevel < tideRhythm[tideIndex].targetLevel)
+			or (lavaGrow > 0 and lavaLevel > tideRhythm[tideIndex].targetLevel) then
+			tideContinueFrame = gameframe + math.round(tideRhythm[tideIndex].remainTime*gameSpeed)
 			lavaGrow = 0
-			--Spring.Echo ("Next LAVA LEVEL change in " .. (tideContinueFrame-gameframe)/30 .. " seconds")
 		end
 
 		if gameframe == tideContinueFrame then
 			tideIndex = tideIndex + 1
 			if tideIndex > #tideRhythm then
 				tideIndex = 1
+				pendingCleanup = true
 			end
-			--Spring.Echo ("tideIndex=" .. tideIndex .. " target=" ..tideRhythm[tideIndex].targetLevel )
 			if lavaLevel < tideRhythm[tideIndex].targetLevel then
 				lavaGrow = tideRhythm[tideIndex].speed
 			else
-				lavaGrow = -tideRhythm[tideIndex].speed
+				lavaGrow = -tideRhythm[tideIndex].speed 
 			end
 		end
 		_G.lavaGrow = lavaGrow
+
+		if pendingCleanup then
+			cleanupAdjustedTides()
+			pendingCleanup = false
+		end
 	end
 
-	local function updateSlow(unitID, unitDefID, unitSlow)
-		if spMoveCtrlEnabled(unitID) then
-			return false
+	local function lavalevel(cmd, line, words, playerID)
+		-- lavalevel: Handles the '/lavalevel' chat command to adjust the lava level in-game.
+		-- Usage: /lavalevel [level] [speed] [remainTime], with no arguments progresses the current lava to the next tide Rhythm
+		-- If speed and remainTime are not specified: defaults to 7.5 elmo/s (0.25 elmo/frame) and 1 second respectively.
+		local accountID = BAR.Utilities.GetAccountID(playerID)
+		local authorized = _G.permissions.lavalevel[accountID]
+		if not (authorized or Spring.IsCheatingEnabled()) then
+			Spring.Log("Lava", LOG.INFO, "Unauthorized command.")
+			return
 		end
-		local baseSpeed = speedDefs[unitDefID]
-		local baseTurnRate = turnDefs[unitDefID]
-		local baseAccRate = accDefs[unitDefID]
-		if not baseSpeed or not baseTurnRate or not baseAccRate then
-			return false
+
+		if not words[1] then
+			tideContinueFrame = gameframe + 1
+			Spring.Log("Lava", LOG.INFO, "Progressing to next tide rhythm.")
+		else
+			local insertLevel = tonumber(words[1])
+			local insertSpeed = tonumber(words[2]) or 7.5
+			local insertRemain = tonumber(words[3]) or 1
+			if (insertLevel and insertLevel >= -1 ) and	(insertSpeed and insertSpeed > 0) and (insertRemain and insertRemain > 0) then
+				adjustTideRhythm(insertLevel, insertSpeed, insertRemain)
+				Spring.Log("Lava",LOG.INFO,'Lava Rhythm progressing to height ' .. insertLevel ..' for ' .. insertRemain .. ' seconds.')
+				tideContinueFrame = gameframe + 1 
+			else 
+				Spring.Log("Lava",LOG.ERROR,'Lava tide Rhythm invalid.')
+			end
 		end
-		return (pcall(spSetMoveData, unitID, {
-			maxSpeed = baseSpeed * unitSlow,
-			turnRate = baseTurnRate * unitSlow,
-			accRate = baseAccRate * unitSlow,
-		}))
+	end
+
+	local function getLavaSlow(height, y)
+		local unitSlow = clamp(1 - (((lavaLevel - y) / height) * lavaSlow), 1 - lavaSlow, 0.9)
+		return floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
+	end
+
+	---@param unitID UnitID
+	---@param unitSlow number? A nil clears this source's factor.
+	local function updateSlow(unitID, unitSlow)
+		local setUnitModifier = GG.UnitAttributes.SetUnitModifier
+		setUnitModifier(unitID, "speed", unitSlow, ATTRIBUTE_SOURCE)
+		setUnitModifier(unitID, "turnRate", unitSlow, ATTRIBUTE_SOURCE)
+		setUnitModifier(unitID, "maxAcc", unitSlow, ATTRIBUTE_SOURCE)
 	end
 
 	-- Bulk-restore all slowed units when lava retreats below the map surface
 	local function restoreAllLavaUnits()
 		for unitID, data in pairs(lavaUnits) do
 			if data.slowed then
-				updateSlow(unitID, data.unitDefID, 1)
+				updateSlow(unitID, nil)
 			end
 		end
 		lavaUnits = {}
@@ -183,9 +226,9 @@ if gadgetHandler:IsSyncedCode() then
 				lavaUnits[unitID] = nil
 			elseif y < lavaLevel then
 				if data.slowed then
-					local unitSlow = clamp(1 - (((lavaLevel - y) / data.height) * lavaSlow), 1 - lavaSlow, 0.9)
-					unitSlow = floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
-					if unitSlow ~= data.currentSlow and updateSlow(unitID, data.unitDefID, unitSlow) then
+					local unitSlow = getLavaSlow(data.height, y)
+					if unitSlow ~= data.currentSlow then
+						updateSlow(unitID, unitSlow)
 						data.currentSlow = unitSlow
 					end
 				end
@@ -193,7 +236,7 @@ if gadgetHandler:IsSyncedCode() then
 				spSpawnCEG(lavaEffectDamage, x, y + 5, z)
 			else -- unit exited lava
 				if data.slowed then
-					updateSlow(unitID, data.unitDefID, 1)
+					updateSlow(unitID, nil)
 				end
 				lavaUnits[unitID] = nil
 			end
@@ -222,25 +265,13 @@ if gadgetHandler:IsSyncedCode() then
 					local x, y, z = spGetUnitBasePosition(unitID)
 					if y and y < lavaLevel then -- first entry into lava
 						local height = unitHeight[unitDefID]
-						local maxSpeed = speedDefs[unitDefID]
-						local turnRate = turnDefs[unitDefID]
-						local accelRate = accDefs[unitDefID]
 						local data
-						if
-							(height and height > 0)
-							and (maxSpeed and maxSpeed ~= 0)
-							and (turnRate and turnRate ~= 0)
-							and (accelRate and accelRate ~= 0)
-							and (spGetMoveData(unitID).name == "ground")
-						then
-							data = { unitDefID = unitDefID, height = height, currentSlow = 1, slowed = true }
-							local unitSlow = clamp(1 - (((lavaLevel - y) / height) * lavaSlow), 1 - lavaSlow, 0.9)
-							unitSlow = floor(unitSlow * SLOW_STEP_INV + 0.5) * SLOW_STEP
-							if updateSlow(unitID, unitDefID, unitSlow) then
-								data.currentSlow = unitSlow
-							end
+						if (height and height > 0) and canBeSlowed[unitDefID] then
+							local unitSlow = getLavaSlow(height, y)
+							updateSlow(unitID, unitSlow)
+							data = { height = height, currentSlow = unitSlow, slowed = true }
 						else
-							data = { unitDefID = unitDefID, slowed = false }
+							data = { slowed = false }
 						end
 						lavaUnits[unitID] = data
 						spAddUnitDamage(unitID, lavaDamage, nil, nil, DAMAGE_EXTSOURCE_WATER)
@@ -300,6 +331,7 @@ if gadgetHandler:IsSyncedCode() then
 			gadgetHandler:RemoveGadget(self)
 			return
 		end
+		gadgetHandler:AddChatAction('lavalevel', lavalevel, 'Adjust the lava level in-game. Usage: /lavalevel [level] [speed] [remainTime]')
 		minGroundHeight = select(3, Spring.GetGroundExtremes())
 		_G.lavaLevel = lavaLevel
 		_G.lavaGrow = lavaGrow
@@ -414,6 +446,8 @@ if gadgetHandler:IsSyncedCode() then
 		-- end
 	end
 
+	local DAMAGE_EXTSOURCE_WATER = -5
+
 	function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID)
 		if weaponDefID ~= DAMAGE_EXTSOURCE_WATER then
 			-- not water damage, do not modify
@@ -425,6 +459,10 @@ if gadgetHandler:IsSyncedCode() then
 			return damage, 1.0
 		end
 		return 0.0, 1.0
+	end
+
+	function gadget:Shutdown()
+		restoreAllLavaUnits()
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
@@ -532,7 +570,9 @@ else -- UNSYCNED
 		shaderConfig = unifiedShaderConfig,
 	}
 
-	local myPlayerID = tostring(Spring.GetLocalPlayerID())
+	local myPlayerID = Spring.GetMyPlayerID()
+	local myPlayerName = Spring.GetPlayerInfo(myPlayerID, false)
+	local authorized = SYNCED.permissions.lavalevel[myPlayerName]
 	function gadget:GameFrame(f)
 		local syncedLavaLevel = SYNCED.lavaLevel
 		if syncedLavaLevel then
@@ -566,7 +606,6 @@ else -- UNSYCNED
 			gadgetHandler:RemoveGadget()
 			return
 		end
-
 		Spring.SetDrawWater(false)
 
 		-- Now for all intents and purposes, we kinda need to make a lava plane that is 3x the rez of our map
@@ -574,8 +613,8 @@ else -- UNSYCNED
 		-- numverts = 128 * 384 * 384 *2 tris then we will get 280k tris ....
 		local xsquares = 3 * Game.mapSizeX / elmosPerSquare
 		local zsquares = 3 * Game.mapSizeZ / elmosPerSquare
-		local vertexBuffer, vertexBufferSize = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
-		local indexBuffer, indexBufferSize = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
+		local vertexBuffer, _ = InstanceVBOTable.makePlaneVBO(1, 1, xsquares, zsquares)
+		local indexBuffer, _ = InstanceVBOTable.makePlaneIndexVBO(xsquares, zsquares)
 		lavaPlaneVAO = gl.GetVAO()
 		lavaPlaneVAO:AttachVertexBuffer(vertexBuffer)
 		lavaPlaneVAO:AttachIndexBuffer(indexBuffer)
@@ -583,7 +622,7 @@ else -- UNSYCNED
 		lavaShader = LuaShader.CheckShaderUpdates(lavaShaderSourceCache)
 
 		if not lavaShader then
-			Spring.Echo("Failed to compile Lava Shader")
+			Spring.Log("Lava", LOG.ERROR, "Failed to compile Lava Shader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -591,7 +630,7 @@ else -- UNSYCNED
 		foglightShader = LuaShader.CheckShaderUpdates(fogLightShaderSourceCache)
 
 		if not foglightShader then
-			Spring.Echo("Failed to compile foglightShader")
+			Spring.Log("Lava", LOG.ERROR, "Failed to compile foglightShader")
 			gadgetHandler:RemoveGadget()
 			return
 		end
@@ -681,5 +720,6 @@ else -- UNSYCNED
 
 	function gadget:Shutdown()
 		Spring.SetDrawWater(true)
+		gadgetHandler:RemoveChatAction("lavalevel")
 	end
 end --ende unsync

@@ -1346,6 +1346,10 @@ end
 
 -- multiple lights per unitdef/piece are possible, as the lights are keyed by lightname
 
+-- A unit's lights come and go together, so they are pushed or popped without uploads and what changed is
+-- uploaded afterwards: a range per light VBO instead of two uploads per light
+local batchUsed, batchBuffer, batchDirty = {}, {}, {}
+
 local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 	if unitDefLights[unitDefID] then
 		if spGetUnitIsBeingBuilt(unitID) then
@@ -1360,23 +1364,91 @@ local function AddStaticLightsForUnit(unitID, unitDefID, noUpload, reason)
 			end
 			unitDefLight.initComplete = true
 		end
+		-- an invalid unit keeps the per light path, whose pushes skip the upload
+		local batch = not noUpload and spValidUnitID(unitID)
+		if batch then
+			for _, vbo in pairs(unitLightVBOMap) do
+				batchUsed[vbo], batchBuffer[vbo], batchDirty[vbo] = vbo.usedElements, vbo.instanceVBO, vbo.dirty
+			end
+		end
+		local unitIDString = tostring(unitID)
 		for lightname, lightParams in pairs(unitDefLight) do
 			if lightname ~= "initComplete" then
 				local targetVBO = unitLightVBOMap[lightParams.lightType]
+				---@cast targetVBO -?
 
 				if (not spec) and lightParams.alliedOnly == true and spIsUnitAllied(unitID) == false then
-					return
+					break
 				end
+				local instanceID = unitIDString .. lightname
 				AddLight(
-					tostring(unitID) .. lightname,
+					instanceID,
 					unitID,
 					lightParams.pieceIndex,
 					targetVBO,
 					lightParams.lightParamTable,
-					noUpload
+					-- a light that is already there is updated in place and uploaded as before
+					noUpload or (batch and targetVBO.instanceIDtoIndex[instanceID] == nil)
 				)
 			end
 		end
+		if batch then
+			for _, vbo in pairs(unitLightVBOMap) do
+				if vbo.instanceVBO ~= batchBuffer[vbo] then -- grown meanwhile, which can also move elements
+					uploadAllElements(vbo)
+				elseif vbo.usedElements > batchUsed[vbo] then
+					uploadElementRange(vbo, batchUsed[vbo], vbo.usedElements)
+				end
+				vbo.dirty = batchDirty[vbo]
+			end
+		end
+	end
+end
+
+local refilledSlots = {} -- light VBO to the slots that popped lights left and the last light moved into
+local refilledDirty = {} -- light VBO to its dirty flag before those pops
+
+local function uploadRefilledSlots()
+	for vbo, wasDirty in pairs(refilledDirty) do
+		local slots = refilledSlots[vbo] --[[@as table<integer, integer>]]
+		local n = #slots
+		if n > 0 then
+			table.sort(slots)
+			local used, step, unitIDs = vbo.usedElements, vbo.instanceStep, vbo.indextoUnitID
+			local i = 1
+			while i <= n and slots[i] <= used do
+				-- a run of neighbouring slots, a slot can be refilled twice
+				local first, last = slots[i], slots[i]
+				i = i + 1
+				while i <= n and slots[i] <= last + 1 and slots[i] <= used do
+					last = slots[i]
+					i = i + 1
+				end
+				local allValid = true
+				if unitIDs then
+					for s = first, last do
+						if not spValidUnitID(unitIDs[s]) then
+							allValid = false
+						end
+					end
+				end
+				if allValid then
+					uploadElementRange(vbo, first - 1, last)
+				else -- as the pops would have: data always, the unit binding only for valid units
+					for s = first, last do
+						vbo.instanceVBO:Upload(vbo.instanceData, nil, s - 1, (s - 1) * step + 1, s * step)
+						if spValidUnitID(unitIDs[s]) then
+							vbo.instanceVBO:InstanceDataFromUnitIDs(unitIDs[s], vbo.unitIDattribID, s - 1)
+						end
+					end
+				end
+			end
+			for k = n, 1, -1 do
+				slots[k] = nil
+			end
+		end
+		vbo.dirty = wasDirty
+		refilledDirty[vbo] = nil
 	end
 end
 
@@ -1396,11 +1468,24 @@ local function RemoveUnitAttachedLights(unitID, instanceID)
 			for instanceID, targetVBO in pairs(unitAttachedLights[unitID]) do
 				if targetVBO.instanceIDtoIndex[instanceID] then
 					numremoved = numremoved + 1
-					popElementInstance(targetVBO, instanceID)
+					local slots = refilledSlots[targetVBO]
+					if not slots then
+						slots = {}
+						refilledSlots[targetVBO] = slots
+					end
+					if refilledDirty[targetVBO] == nil then
+						refilledDirty[targetVBO] = targetVBO.dirty
+					end
+					local last = targetVBO.usedElements
+					local index = popElementInstance(targetVBO, instanceID, true)
+					if index and index < last then
+						slots[#slots + 1] = index
+					end
 				else
 					--spEcho("Light attached to unit no longer is in targetVBO", unitID, instanceID, targetVBO.myName)
 				end
 			end
+			uploadRefilledSlots()
 			--spEcho("Removed lights from unitID", unitID, numremoved, successes)
 			unitAttachedLights[unitID] = nil
 		end
@@ -1551,33 +1636,53 @@ for wdid, wd in pairs(WeaponDefs) do
 	end
 end
 
-function widget:VisibleExplosion(px, py, pz, weaponID, ownerID)
-	if targetable[weaponID] and py - 300 > Spring.GetGroundHeight(px, pz) then -- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
-		return
-	end
-	if explosionLights[weaponID] then
-		local lightParamTable = explosionLights[weaponID].lightParamTable
-		if explosionLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
-			local groundHeight = spGetGroundHeight(px, pz) or 1
-			py = math_max(groundHeight + (explosionLights[weaponID].yOffset or 0), py)
-			lightParamTable[1] = px
-			lightParamTable[2] = py
-			lightParamTable[3] = pz
-			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+-- a sim frame's explosions (px, py, pz, weaponID, ownerID runs), appended and uploaded as one range
+function widget:VisibleExplosionBatch(explosions, count)
+	local vbo = pointLightVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = explosions[i], explosions[i + 1], explosions[i + 2], explosions[i + 3]
+		local light = explosionLights[weaponID]
+		-- dont add light to (likely) intercepted explosions (mainly to curb nuke flashes)
+		if light and not (targetable[weaponID] and py - 300 > spGetGroundHeight(px, pz)) then
+			local lightParamTable = light.lightParamTable
+			if light.alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+				local groundHeight = spGetGroundHeight(px, pz) or 1
+				lightParamTable[1] = px
+				lightParamTable[2] = math_max(groundHeight + (light.yOffset or 0), py)
+				lightParamTable[3] = pz
+				AddLight(nil, nil, nil, vbo, lightParamTable, true)
+			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
-function widget:Barrelfire(px, py, pz, weaponID, ownerID)
-	if muzzleFlashLights[weaponID] then
-		local lightParamTable = muzzleFlashLights[weaponID].lightParamTable
-		if muzzleFlashLights[weaponID].alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
-			lightParamTable[1] = px
-			lightParamTable[2] = py
-			lightParamTable[3] = pz
-			AddLight(nil, nil, nil, pointLightVBO, lightParamTable) --(instanceID, unitID, pieceIndex, targetVBO, lightparams, noUpload)
+function widget:BarrelfireBatch(barrelfires, count)
+	local vbo = pointLightVBO
+	---@cast vbo -?
+	local wasDirty, appendStart = vbo.dirty, vbo.usedElements
+	for i = 1, count, 5 do
+		local px, py, pz, weaponID = barrelfires[i], barrelfires[i + 1], barrelfires[i + 2], barrelfires[i + 3]
+		local light = muzzleFlashLights[weaponID]
+		if light then
+			local lightParamTable = light.lightParamTable
+			if light.alwaysVisible or spIsSphereInView(px, py, pz, lightParamTable[4]) then
+				lightParamTable[1] = px
+				lightParamTable[2] = py
+				lightParamTable[3] = pz
+				AddLight(nil, nil, nil, vbo, lightParamTable, true)
+			end
 		end
 	end
+	if vbo.usedElements > appendStart then
+		uploadElementRange(vbo, appendStart, vbo.usedElements)
+	end
+	vbo.dirty = wasDirty
 end
 
 local function UnitScriptLight(unitID, unitDefID, lightIndex, param)
@@ -1951,7 +2056,7 @@ end
 
 local function PrintProjectileInfo(projectileID)
 	local px, py, pz = spGetProjectilePosition(projectileID)
-	local weapon, piece = Spring.GetProjectileType(projectileID)
+	local weapon, _ = Spring.GetProjectileType(projectileID)
 	local weaponDefID = weapon and Spring.GetProjectileDefID(projectileID)
 	BAR.Debug.TraceFullEcho()
 end

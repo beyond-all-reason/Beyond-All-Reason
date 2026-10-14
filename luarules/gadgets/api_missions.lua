@@ -28,8 +28,8 @@ local function validateMission(mission)
 	return result
 end
 
-local function loadMission(scriptPath)
-	local mission = VFS.Include("singleplayer/" .. scriptPath)
+local function loadMission(gameSetup)
+	local mission = VFS.Include(gameSetup.entryPoint)
 	local validationResult = validateMission(mission)
 
 	if not validationResult.ok then
@@ -37,7 +37,7 @@ local function loadMission(scriptPath)
 		missionValidationFailure = "[Mission API] Mission not loaded: "
 			.. #validationResult.errors
 			.. " validation errors in "
-			.. scriptPath
+			.. gameSetup.entryPoint
 			.. " (see infolog)"
 		return
 	end
@@ -57,39 +57,67 @@ local function loadMission(scriptPath)
 	GG["MissionAPI"].UnitLoadout = mission.UnitLoadout
 	GG["MissionAPI"].FeatureLoadout = mission.FeatureLoadout
 
+	-- Difficulties tables stay unresolved through validation so every difficulty's value is checked.
+	local difficultyController = GG["MissionAPI"].Modules.Difficulty
+	difficultyController.ResolveTriggers(GG["MissionAPI"].Triggers)
+	difficultyController.ResolveActions(GG["MissionAPI"].Actions)
+	difficultyController.ResolveObjectives(GG["MissionAPI"].Objectives)
+
+	-- TODO: refactor loaders after merging loadouts
 	local parameterProcessing = VFS.Include("luarules/mission_api/parameter_processing.lua")
 	parameterProcessing.ProcessActionParameters(GG["MissionAPI"].Actions)
 	parameterProcessing.ProcessTriggerParameters(GG["MissionAPI"].Triggers)
 end
 
 function gadget:Initialize()
-	local scriptPath = nil
-
-	if not scriptPath then
+	local gameSetup = VFS.Include("luarules/mission_api/game_setup.lua")
+	if not gameSetup then
 		gadgetHandler:RemoveGadget()
 		return
 	end
 
 	GG["MissionAPI"] = {}
-	GG["MissionAPI"].Difficulty = 0
+	GG["MissionAPI"].Options = gameSetup.options
+	GG["MissionAPI"].Variables = gameSetup.variables
+	GG["MissionAPI"].PersistentVariables = gameSetup.persistentVariables
+	GG["MissionAPI"].Teams = gameSetup.teams
+	GG["MissionAPI"].AllyTeams = gameSetup.allyTeams
+	GG["MissionAPI"].DummyTeams = gameSetup.dummyTeams
 	GG["MissionAPI"].trackedUnitIDs = {}
 	GG["MissionAPI"].trackedUnitNames = {}
 	GG["MissionAPI"].trackedFeatureIDs = {}
 	GG["MissionAPI"].trackedFeatureNames = {}
 	GG["MissionAPI"].markerNames = {}
+	GG["MissionAPI"].lineNames = {}
+	GG["MissionAPI"].unitMarkers = {}
 	GG["MissionAPI"].soundFiles = {}
 	GG["MissionAPI"].soundQueue = {}
 	GG["MissionAPI"].ManagedObjectives = {}
 	GG["MissionAPI"].ObjectiveTriggers = {}
 	GG["MissionAPI"].ObjectiveStages = {}
 	GG["MissionAPI"].Countdowns = {}
+	GG["MissionAPI"].BattleLogRaw = {}
 	GG["MissionAPI"].Modules = {}
 	GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
+	-- No difficulty source exists yet (e.g. a modoption); default to the lowest difficulty.
+	GG["MissionAPI"].Difficulty = table.reduce(
+		GG["MissionAPI"].Modules.ParameterTypes.Enums.Difficulty,
+		function(lowest, difficulty)
+			return math.min(lowest, difficulty)
+		end,
+		math.huge
+	)
+	GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+	GG["MissionAPI"].Modules.PersistentVariables = VFS.Include("luarules/mission_api/persistent_variables.lua")
 	GG["MissionAPI"].Modules.Tracking = VFS.Include("luarules/mission_api/tracking.lua")
+	GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 	GG["MissionAPI"].Modules.Loadout = VFS.Include("luarules/mission_api/loadout.lua")
 	GG["MissionAPI"].Modules.Sounds = VFS.Include("luarules/mission_api/sounds.lua")
 	GG["MissionAPI"].Modules.Objectives = VFS.Include("luarules/mission_api/objectives.lua")
 	GG["MissionAPI"].Modules.Countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
+	GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+	GG["MissionAPI"].Modules.MapLines = VFS.Include("luarules/mission_api/map_lines.lua")
+	GG["MissionAPI"].Modules.UnitMarkers = VFS.Include("luarules/mission_api/unit_markers.lua")
 	GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 	GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
 
@@ -102,7 +130,7 @@ function gadget:Initialize()
 	triggersController = VFS.Include("luarules/mission_api/triggers_loader.lua")
 	GG["MissionAPI"].TriggerDefinitions = triggersController.LoadTriggerDefinitions()
 
-	loadMission(scriptPath)
+	loadMission(gameSetup)
 end
 
 function gadget:GamePreload()
@@ -127,6 +155,14 @@ function gadget:GameFrame(frameNumber)
 	end
 
 	GG["MissionAPI"].Modules.Sounds.ProcessSoundQueue(frameNumber)
+end
+
+function gadget:GameOver()
+	if missionValidationFailure then
+		return
+	end
+
+	SendToUnsynced("MissionPersistentVariables", GG["MissionAPI"].Modules.PersistentVariables.Encode())
 end
 
 function gadget:Shutdown()

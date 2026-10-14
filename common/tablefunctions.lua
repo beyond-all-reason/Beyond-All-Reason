@@ -373,6 +373,25 @@ if not table.contains then
 	end
 end
 
+if not table.sameArray then
+	---Check if two arrays hold equal values in the same order.
+	---@param tbl any[]
+	---@param other any[]
+	---@return boolean
+	function table.sameArray(tbl, other)
+		local count = #tbl
+		if count ~= #other then
+			return false
+		end
+		for index = 1, count do
+			if tbl[index] ~= other[index] then
+				return false
+			end
+		end
+		return true
+	end
+end
+
 if not table.keys then
 	---Returns all keys of a table as an array, and the count of keys.
 	---@generic K

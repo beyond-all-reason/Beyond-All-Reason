@@ -76,12 +76,18 @@ local function checkGeothermalFeatures()
 	spots = {}
 	local features = spGetAllFeatures()
 	local spotCount = 0
+	local seen = {}
 	for i = 1, #features do
 		if geoFeatureDefs[spGetFeatureDefID(features[i])] then
 			showGeothermalUnits = true
 			local x, y, z = spGetFeaturePosition(features[i])
-			spotCount = spotCount + 1
-			spots[spotCount] = { x, y, z }
+			-- some maps place each vent twice (SMF and LuaGaia featureplacer, e.g. Delta Siege Dry)
+			local key = spotKey(x, z)
+			if not seen[key] then
+				seen[key] = true
+				spotCount = spotCount + 1
+				spots[spotCount] = { x, y, z }
+			end
 		end
 	end
 	numSpots = spotCount
@@ -304,8 +310,8 @@ local function makeSpotVBO()
 	return spotVBO, n / 4
 end
 
-local function cleanupGL4()
-	if spotShader then
+local function cleanupGL4(keepShader)
+	if spotShader and not keepShader then
 		spotShader:Finalize()
 		spotShader = nil
 	end
@@ -325,17 +331,18 @@ local function cleanupGL4()
 end
 
 local function initGL4()
-	cleanupGL4()
-	local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
-	vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
-	spotShader = LuaShader({
-		vertex = vsSrc,
-		fragment = fsSrc,
-	}, "geoSpotShader GL4")
-	shaderCompiled = spotShader:Initialize()
-	if not shaderCompiled then
-		goodbye("Failed to compile spotShader GL4 ")
+	cleanupGL4(true) -- a spot rebuild only needs new buffers, the shader does not depend on the spots
+	if not spotShader then
+		local engineUniformBufferDefs = LuaShader.GetEngineUniformBufferDefs()
+		vsSrc = vsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		fsSrc = fsSrc:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+		spotShader = LuaShader({
+			vertex = vsSrc,
+			fragment = fsSrc,
+		}, "geoSpotShader GL4")
+		if not spotShader:Initialize() then
+			goodbye("Failed to compile spotShader GL4 ")
+		end
 	end
 	local spotVBO, numVertices = makeSpotVBO()
 	local spotInstanceVBOLayout = {
@@ -350,17 +357,16 @@ local function initGL4()
 end
 
 local function checkGeothermalspots()
-	local geoHeightChange = false
 	local now -- lazily initialized only if occupation changes
 	local gf = spGetGameFrame()
 	for i = 1, numSpots do
 		local spot = spots[i]
 		local sx, sy, sz = spot[1], spot[2], spot[3]
 		local newHeight = spGetGroundHeight(sx, sz)
-		if sy ~= newHeight then
+		local moved = sy ~= newHeight
+		if moved then
 			spot[2] = newHeight
 			sy = newHeight
-			geoHeightChange = true
 		end
 		local scale = spot[5] or 1
 		local units = spGetUnitsInSphere(sx, sy, sz, 110 * scale)
@@ -372,25 +378,27 @@ local function checkGeothermalspots()
 			end
 		end
 		local prevOccupied = spot[6] or false
-		if occupied ~= prevOccupied then
+		local flipped = occupied ~= prevOccupied
+		if flipped then
 			if not now then
 				now = os.clock()
 			end
 			spot[7] = now
 			spot[6] = occupied
+		end
+		if moved or flipped then
 			local curSpotkey = spotKey(sx, sz)
 			local oldinstance = getElementInstanceData(spotInstanceVBO, curSpotkey)
-			oldinstance[5] = occupied and 0 or 1
-			oldinstance[6] = gf
+			oldinstance[2] = sy
+			if flipped then
+				oldinstance[5] = occupied and 0 or 1
+				oldinstance[6] = gf
+			end
 			pushElementInstance(spotInstanceVBO, oldinstance, curSpotkey, true)
 		end
 	end
 	sceduledCheckedSpotsFrame = gf + 151
 	checkspots = false
-
-	if geoHeightChange then
-		widget:Initialize()
-	end
 end
 
 function widget:ViewResize()

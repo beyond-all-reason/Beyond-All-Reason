@@ -19,11 +19,12 @@ local mathMin = math.min
 -- Localized Spring API for performance
 local spGetViewGeometry = Spring.GetViewGeometry
 
-local minimapToWorld = VFS.Include("luaui/Include/minimap_utils.lua").minimapToWorld
-local getCurrentMiniMapRotationOption = VFS.Include("luaui/Include/minimap_utils.lua").getCurrentMiniMapRotationOption
-local ROTATION = VFS.Include("luaui/Include/minimap_utils.lua").ROTATION
+local minimapToWorld = require("luaui/Include/minimap_utils").minimapToWorld
+local getCurrentMiniMapRotationOption = require("luaui/Include/minimap_utils").getCurrentMiniMapRotationOption
+local ROTATION = require("luaui/Include/minimap_utils").ROTATION
 
-local maxAllowedWidth = 0.25
+local maxWidthFraction = 0.25
+local maxAllowedWidth = maxWidthFraction
 local maxAllowedHeight = Spring.GetConfigFloat("MinimapMaxHeight", 0.32)
 local leftClickMove = Spring.GetConfigInt("MinimapLeftClickMove", 1) == 1
 
@@ -101,7 +102,7 @@ function widget:ViewResize()
 
 	if WG.topbar ~= nil then
 		local topbarArea = WG.topbar.GetPosition()
-		maxAllowedWidth = (topbarArea[1] - (elementMargin * 6)) / vsx
+		maxAllowedWidth = mathMin(maxWidthFraction, (topbarArea[1] - (elementMargin * 6)) / vsx)
 	end
 
 	maxWidth = mathMin(maxAllowedHeight * ratio, maxAllowedWidth * (vsx / vsy))

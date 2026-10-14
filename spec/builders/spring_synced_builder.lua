@@ -1,8 +1,8 @@
 -- Ensure TeamData type is available
-local ResourceTypes = VFS.Include("gamedata/resource_types.lua")
+local ResourceTypes = require("gamedata/resource_types")
 
 VFS.Include("spec/builders/team_builder.lua")
-VFS.Include("common/stringFunctions.lua")
+require("common/stringFunctions")
 VFS.Include("common.tablefunctions.lua")
 
 local UnitDefsBuilder = VFS.Include("spec/builders/unit_defs_builder.lua")

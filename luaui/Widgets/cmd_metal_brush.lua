@@ -23,6 +23,13 @@ local CHEAT_TAG = "$c$"
 local function SendLuaRulesMsg(header, payload)
 	local tag = Spring.IsCheatingEnabled() and CHEAT_TAG or ""
 	Spring.SendLuaRulesMsg(header .. tag .. payload)
+	-- Every message here changes the metal map (a project load's own load
+	-- message is ignored by markDirty while the load runs).
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("metal")
+	end
 end
 
 local GetMouseState = Spring.GetMouseState
@@ -431,7 +438,7 @@ local function loadMetalMap()
 	local mapName = Game.mapName or "unknown"
 	local filename = SAVE_DIR .. mapName .. "_metalmap.lua"
 
-	local chunk, err = loadfile(filename)
+	local chunk, _err = loadfile(filename)
 	if not chunk then
 		Echo("[Metal Brush] No saved metal map found: " .. filename)
 		return

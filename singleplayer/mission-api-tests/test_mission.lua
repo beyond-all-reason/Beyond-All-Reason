@@ -136,7 +136,7 @@ local actions = {
 	messageConsKilled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's kill those bots.",
+			messageKey = "Let's kill those bots.",
 		},
 	},
 
@@ -150,7 +150,7 @@ local actions = {
 	messageSelfDestructCons1 = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "They blow themselves up!",
+			messageKey = "They blow themselves up!",
 		},
 	},
 
@@ -164,7 +164,7 @@ local actions = {
 	messageConsReclaimed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "These just vanish...",
+			messageKey = "These just vanish...",
 		},
 	},
 
@@ -178,7 +178,7 @@ local actions = {
 	messageEnergyGrid1Reclaimed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Did we pick the right fusions to remove?",
+			messageKey = "Did we pick the right fusions to remove?",
 		},
 	},
 
@@ -193,7 +193,7 @@ local actions = {
 	messageTransferCons1 = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "We give these away.",
+			messageKey = "We give these away.",
 		},
 	},
 
@@ -208,7 +208,7 @@ local actions = {
 	messageTransferCons2 = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "And we take them back.",
+			messageKey = "And we take them back.",
 		},
 	},
 
@@ -222,7 +222,7 @@ local actions = {
 	messageConsNotKilled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's unname the bots so we don't kill them.",
+			messageKey = "Let's unname the bots so we don't kill them.",
 		},
 	},
 

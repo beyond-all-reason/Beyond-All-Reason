@@ -31,7 +31,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 
 local defaultVoiceSet = "en/cephis"
 
-local windFunctions = VFS.Include("common/wind_functions.lua")
+local windFunctions = require("common/wind_functions")
 
 local useDefaultVoiceFallback = Spring.GetConfigInt("NotificationsSubstitute", 0) == 1 --false    -- when a voiceset has missing file, try to load the default voiceset file instead
 local playWelcome = Spring.GetConfigInt("WelcomeMessagePlayed", 0) == 0
@@ -53,7 +53,7 @@ end
 
 --------------------------------------------------------------------------------
 
-local wavFileLengths = VFS.Include("sounds/sound_file_lengths.lua")
+local wavFileLengths = require("sounds/sound_file_lengths")
 
 local voiceSet = Spring.GetConfigString("voiceset", defaultVoiceSet)
 if #VFS.DirList("sounds/voice/" .. voiceSet, "*.wav") == 0 then
@@ -76,7 +76,7 @@ local soundEffectsFolder = string.gsub("sounds/voice-soundeffects/", "\\", "/")
 local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/", "\\", "/")
 
 -- load and parse sound files/notifications
-local notificationTable = VFS.Include("sounds/voice/config.lua")
+local notificationTable = require("sounds/voice/config")
 if VFS.FileExists(soundFolder .. "config.lua") then
 	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua")
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)

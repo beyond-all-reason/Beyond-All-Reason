@@ -3,10 +3,14 @@
 ---
 
 local SECTIONS = VFS.Include("luarules/mission_api/validation/report.lua").Sections
-local getTypesWithParameterType = VFS.Include("luarules/mission_api/schema_utils.lua").GetTypesWithParameterType
 local stageFieldTypes = VFS.Include("luarules/mission_api/stages_schema.lua").Settings
 local objectiveFieldTypes = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
 local triggerSettingTypes = VFS.Include("luarules/mission_api/triggers_schema.lua").Settings
+local schemaUtils = VFS.Include("luarules/mission_api/schema_utils.lua")
+local getTypesWithParameterType = schemaUtils.GetTypesWithParameterType
+local getTypesWithParameterName = schemaUtils.GetTypesWithParameterName
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
 
 --------------------------------------------------------------------------------
 -- Shared helpers
@@ -27,11 +31,12 @@ local function reporterFor(report, section, label)
 	}
 end
 
-local function validateTypedFields(reporter, id, parameterValidators, fieldTypes, values, valueLabel)
+--- @param validateValue function(valueType, value, fieldName): results, see createValueValidators
+local function validateTypedFields(reporter, id, validateValue, fieldTypes, values, valueLabel)
 	for fieldName, fieldType in pairs(fieldTypes) do
 		local value = values[fieldName]
 		if value ~= nil then
-			for _, result in ipairs(parameterValidators[fieldType](value) or {}) do
+			for _, result in ipairs(validateValue(fieldType, value, fieldName)) do
 				local details = valueLabel .. ": " .. fieldName .. (result.parameterNameSuffix or "")
 				reporter.Error(id, result.message, details)
 			end
@@ -39,11 +44,74 @@ local function validateTypedFields(reporter, id, parameterValidators, fieldTypes
 	end
 end
 
+--- Returns two value validators, each returning a list of results: one for values that must
+--- be given as is, and one that also accepts { difficulties = { <difficultyName> = <value> } },
+--- which difficulty.lua resolves once the difficulty is known. Every difficulty's value is
+--- validated, including those under an invalid difficulty name.
+local function createValueValidators(context, parameterValidators)
+	local knownDifficulties = context.Enums[context.Types.Difficulty]
+	local validateTableType = parameterValidators[context.Types.Table]
+
+	local function validateValue(valueType, value)
+		return parameterValidators[valueType](value) or {}
+	end
+
+	local function validateDifficulties(valueType, value)
+		local results = {}
+		for key in pairs(value) do
+			if key ~= "difficulties" then
+				results[#results + 1] = {
+					message = "Difficulties parameter must have no keys other than 'difficulties', got: "
+						.. tostring(key),
+				}
+			end
+		end
+
+		local difficulties = value.difficulties
+		local typeResult = validateTableType(difficulties)
+		if typeResult then
+			results[#results + 1] = { message = typeResult[1].message, parameterNameSuffix = ".difficulties" }
+			return results
+		end
+		if next(difficulties) == nil then
+			results[#results + 1] = { message = "Difficulties table is empty", parameterNameSuffix = ".difficulties" }
+			return results
+		end
+
+		for difficultyName, difficultyValue in pairs(difficulties) do
+			local suffix = ".difficulties." .. tostring(difficultyName)
+			if not knownDifficulties[difficultyName] then
+				results[#results + 1] =
+					{ message = "Invalid difficulty: " .. tostring(difficultyName), parameterNameSuffix = suffix }
+			end
+			-- A nested difficulties table is rejected by the value's own validator.
+			for _, result in ipairs(validateValue(valueType, difficultyValue)) do
+				results[#results + 1] = {
+					message = result.message,
+					parameterNameSuffix = suffix .. (result.parameterNameSuffix or ""),
+					isWarning = result.isWarning,
+				}
+			end
+		end
+		return results
+	end
+
+	local function validateValueWithDifficulties(valueType, value)
+		if context.IsDifficultiesTable(value) then
+			return validateDifficulties(valueType, value)
+		end
+		return validateValue(valueType, value)
+	end
+
+	return validateValue, validateValueWithDifficulties
+end
+
 --------------------------------------------------------------------------------
 -- Schema driven parameter validation, shared by triggers, actions and objective triggers
 --------------------------------------------------------------------------------
 
-local function createSchemaValidator(context, parameterValidators)
+--- Every parameter may differ by difficulty.
+local function createSchemaValidator(context, parameterValidators, validateValueWithDifficulties)
 	local validateTableType = parameterValidators[context.Types.Table]
 
 	--- @param name string what the entity is called in messages. An objective's inline
@@ -87,7 +155,7 @@ local function createSchemaValidator(context, parameterValidators)
 					reporter.Error(id, name .. " missing required parameter", "Parameter: " .. parameter.name)
 				end
 			else
-				for _, result in ipairs(parameterValidators[parameter.type](value) or {}) do
+				for _, result in ipairs(validateValueWithDifficulties(parameter.type, value)) do
 					local details = "Parameter: " .. parameter.name .. (result.parameterNameSuffix or "")
 					local reportResult = result.isWarning and reporter.Warn or reporter.Error
 					reportResult(id, result.message, details)
@@ -103,7 +171,7 @@ end
 
 --- A stage's ID and its container are checked here rather than against the schema:
 --- they are what makes the stage addressable at all, so no field type describes them.
-local function validateStages(stages, stageReport, parameterValidators)
+local function validateStages(stages, stageReport, validateValue)
 	for stageID, stageData in pairs(stages) do
 		if type(stageID) ~= "string" then
 			stageReport.Error(stageID, "Stage ID must be a string, got " .. type(stageID))
@@ -115,7 +183,7 @@ local function validateStages(stages, stageReport, parameterValidators)
 			stageReport.Error(stageID, "Stage missing 'objectives' field")
 		else
 			-- A stage with no objectives is valid
-			validateTypedFields(stageReport, stageID, parameterValidators, stageFieldTypes, stageData, "Field")
+			validateTypedFields(stageReport, stageID, validateValue, stageFieldTypes, stageData, "Field")
 		end
 	end
 end
@@ -132,10 +200,10 @@ local function validateInitialStage(stages, initialStage, stageReport)
 	end
 end
 
-local function validateStagesSection(context, report, parameterValidators)
+local function validateStagesSection(context, report, validateValue)
 	local stageReport = reporterFor(report, SECTIONS.Stages, "Stage")
 
-	validateStages(context.Stages, stageReport, parameterValidators)
+	validateStages(context.Stages, stageReport, validateValue)
 	validateInitialStage(context.Stages, context.InitialStage, stageReport)
 end
 
@@ -152,7 +220,7 @@ local function validateObjectiveInlineTrigger(
 	objectiveID
 )
 	local trigger = objective.trigger
-	if type(trigger) ~= "table" then
+	if type(trigger) ~= "table" or context.IsDifficultiesTable(trigger) then
 		return
 	end
 
@@ -184,9 +252,17 @@ local function validateObjectiveInlineTrigger(
 	)
 end
 
-local function validateObjectivesSection(context, report, parameterValidators, validateSchema)
+local function validateObjectivesSection(context, report, validateValueWithDifficulties, validateSchema)
 	local objectiveReport = reporterFor(report, SECTIONS.Objectives, "Objective")
 	local statisticsTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.Quantity)
+
+	-- The inline trigger is registered before the difficulty is resolved, so it can't vary.
+	local function validateField(fieldType, value, fieldName)
+		if fieldName == "trigger" and context.IsDifficultiesTable(value) then
+			return { { message = "Objective 'trigger' field does not support difficulties" } }
+		end
+		return validateValueWithDifficulties(fieldType, value)
+	end
 
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objectiveID) ~= "string" then
@@ -202,14 +278,7 @@ local function validateObjectivesSection(context, report, parameterValidators, v
 				objectiveReport.Error(objectiveID, "Objective has empty textKey")
 			end
 
-			validateTypedFields(
-				objectiveReport,
-				objectiveID,
-				parameterValidators,
-				objectiveFieldTypes,
-				objective,
-				"Field"
-			)
+			validateTypedFields(objectiveReport, objectiveID, validateField, objectiveFieldTypes, objective, "Field")
 			validateObjectiveInlineTrigger(
 				context,
 				objectiveReport,
@@ -247,7 +316,7 @@ local function validateTriggerActions(context, triggerReport, trigger, triggerID
 end
 
 --- Settings are optional in raw missions; triggers_loader.lua applies the defaults later.
-local function validateTriggerSettings(triggerReport, parameterValidators, validateTableType, trigger, triggerID)
+local function validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 	local settings = trigger.settings
 	if settings == nil then
 		return
@@ -260,14 +329,14 @@ local function validateTriggerSettings(triggerReport, parameterValidators, valid
 	end
 
 	-- The TriggerIDs and StageIDs types also check that all prerequisite triggers and stages exists.
-	validateTypedFields(triggerReport, triggerID, parameterValidators, triggerSettingTypes, settings, "Setting")
+	validateTypedFields(triggerReport, triggerID, validateValue, triggerSettingTypes, settings, "Setting")
 
 	if settings.maxRepeats and not settings.repeating then
 		triggerReport.Error(triggerID, "Trigger has maxRepeats setting but is not set to repeating")
 	end
 end
 
-local function validateTriggersSection(context, report, parameterValidators, validateSchema)
+local function validateTriggersSection(context, report, parameterValidators, validateValue, validateSchema)
 	local triggerReport = reporterFor(report, SECTIONS.Triggers, "Trigger")
 	local validateTableType = parameterValidators[context.Types.Table]
 
@@ -280,7 +349,7 @@ local function validateTriggersSection(context, report, parameterValidators, val
 			triggerReport.Error(triggerID, "Trigger data must be a table, got " .. type(trigger))
 		else
 			validateTriggerActions(context, triggerReport, trigger, triggerID)
-			validateTriggerSettings(triggerReport, parameterValidators, validateTableType, trigger, triggerID)
+			validateTriggerSettings(triggerReport, validateValue, validateTableType, trigger, triggerID)
 			validateSchema(
 				triggerReport,
 				triggerID,
@@ -294,11 +363,99 @@ local function validateTriggersSection(context, report, parameterValidators, val
 end
 
 --------------------------------------------------------------------------------
--- Actions: parameters
+-- Actions: parameters, and whether an attribute suits the value and unit def it is set with
 --------------------------------------------------------------------------------
+
+--- Unknown attributes and malformed weapons are reported by their parameter validators.
+--- Each of a value's difficulties is checked, as any of them may be the one used.
+local function createAttributeActionValidator(context, parameterValidators)
+	local Types = context.Types
+	local actionParameters = context.ActionParameters
+	local unitAttributeActions = getTypesWithParameterType(actionParameters, Types.UnitAttribute)
+	local weaponAttributeActions = getTypesWithParameterType(actionParameters, Types.WeaponAttribute)
+	local setActions = getTypesWithParameterName(actionParameters, "value")
+	local modifierActions = getTypesWithParameterName(actionParameters, "multiplier")
+	local unitScopeActions = getTypesWithParameterType(actionParameters, Types.UnitName)
+	local validateWeapon = parameterValidators[Types.WeaponNumber]
+	local explosions = context.Enums[Types.WeaponNumber]
+
+	local function getUnitCheck(actionType)
+		if setActions[actionType] then
+			return "value",
+				unitScopeActions[actionType] and attributeRules.CanSetUnitAttribute
+					or attributeRules.CanSetUnitDefAttribute
+		elseif modifierActions[actionType] then
+			return "multiplier",
+				unitScopeActions[actionType] and attributeRules.CanSetUnitModifier
+					or attributeRules.CanSetUnitDefModifier
+		end
+	end
+
+	local function getWeaponCheck(actionType)
+		if setActions[actionType] then
+			return "value", attributeRules.CanSetUnitWeaponAttribute
+		elseif modifierActions[actionType] then
+			return "multiplier", attributeRules.CanSetUnitWeaponModifier
+		end
+	end
+
+	return function(actionReport, actionID, action)
+		local actionType = action.type
+		local parameters = type(action.parameters) == "table" and action.parameters or {}
+		local attribute = parameters.attribute
+		local unitDefName = parameters.unitDefName
+		local unitDef = type(unitDefName) == "string" and UnitDefNames[unitDefName] or nil
+
+		local unitEntry = unitAttributeActions[actionType] and attributeDefinitions.UnitAttributeDefinitions[attribute]
+		local weaponEntry = weaponAttributeActions[actionType]
+			and attributeDefinitions.WeaponAttributeDefinitions[attribute]
+
+		local valueName, check
+		if unitEntry then
+			local canSet
+			valueName, canSet = getUnitCheck(actionType)
+			check = canSet and function(value)
+				return canSet(unitEntry, value)
+			end
+		elseif weaponEntry then
+			local canSet
+			valueName, canSet = getWeaponCheck(actionType)
+			local weapon = parameters.weapon
+			if weapon ~= nil and validateWeapon(weapon) then
+				weapon = nil
+			end
+			weapon = explosions[weapon] or weapon
+			check = canSet and function(value)
+				return canSet(weaponEntry, value, weapon, unitDef)
+			end
+		end
+
+		if check then
+			for _, value in ipairs(context.PossibleValues(parameters[valueName])) do
+				local ok, reason, parameter = check(value)
+				if not ok then
+					local kind = unitEntry and "Unit" or "Weapon"
+					actionReport.Error(
+						actionID,
+						kind .. " attribute '" .. attribute .. "' " .. reason,
+						"Parameter: " .. parameter
+					)
+				end
+			end
+		end
+
+		if unitEntry and unitDef then
+			local affects, warning = attributeRules.AffectsUnitDef(unitEntry, unitDef)
+			if not affects then
+				actionReport.Warn(actionID, "Unit attribute '" .. attribute .. "' " .. warning)
+			end
+		end
+	end
+end
 
 local function validateActionsSection(context, report, parameterValidators, validateSchema)
 	local actionReport = reporterFor(report, SECTIONS.Actions, "Action")
+	local validateAttributeAction = createAttributeActionValidator(context, parameterValidators)
 
 	for actionID, action in pairs(context.Actions) do
 		if type(actionID) ~= "string" then
@@ -309,6 +466,7 @@ local function validateActionsSection(context, report, parameterValidators, vali
 			actionReport.Error(actionID, "Action data must be a table, got " .. type(action))
 		else
 			validateSchema(actionReport, actionID, "Action", context.ActionParameters, action.type, action.parameters)
+			validateAttributeAction(actionReport, actionID, action)
 		end
 	end
 end
@@ -337,12 +495,13 @@ end
 --------------------------------------------------------------------------------
 
 local function validate(context, report, parameterValidators)
-	local validateSchema = createSchemaValidator(context, parameterValidators)
+	local validateValue, validateValueWithDifficulties = createValueValidators(context, parameterValidators)
+	local validateSchema = createSchemaValidator(context, parameterValidators, validateValueWithDifficulties)
 
 	-- Same order here as in the report:
-	validateStagesSection(context, report, parameterValidators)
-	validateObjectivesSection(context, report, parameterValidators, validateSchema)
-	validateTriggersSection(context, report, parameterValidators, validateSchema)
+	validateStagesSection(context, report, validateValue)
+	validateObjectivesSection(context, report, validateValueWithDifficulties, validateSchema)
+	validateTriggersSection(context, report, parameterValidators, validateValue, validateSchema)
 	validateActionsSection(context, report, parameterValidators, validateSchema)
 	validateLoadoutsSection(context, report, parameterValidators)
 end

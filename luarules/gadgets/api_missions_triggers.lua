@@ -83,7 +83,11 @@ local function isTriggerValid(trigger)
 	if settings.repeating and settings.maxRepeats ~= nil and trigger.repeatCount > settings.maxRepeats then
 		return false
 	end
-	if settings.difficulties ~= nil and not settings.difficulties[GG["MissionAPI"].Difficulty] then
+	if
+		settings.difficulties ~= nil
+		and next(settings.difficulties)
+		and not table.contains(settings.difficulties, GG["MissionAPI"].Difficulty)
+	then
 		return false
 	end
 
@@ -510,6 +514,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerD
 	constructionStarts[unitID] = nil
 	underConstruction[unitID] = nil
 
+	-- TODO: Will become a general method for informing presentation layer that a unit is gone.
+	GG["MissionAPI"].Modules.UnitMarkers.RemoveUnitMarkers(unitID)
 	untrackUnitID(unitID)
 end
 

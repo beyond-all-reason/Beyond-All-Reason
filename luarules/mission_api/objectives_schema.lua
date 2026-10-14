@@ -17,6 +17,8 @@ local fields = {
 	onProgress = Types.TriggerID,
 	onCompleted = Types.TriggerID,
 	onFailed = Types.TriggerID,
+	onHidden = Types.TriggerID,
+	onShown = Types.TriggerID,
 }
 
 return {

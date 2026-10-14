@@ -327,49 +327,49 @@ local actions = {
 	messageBotDwells = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot is dwelling!",
+			messageKey = "Bot is dwelling!",
 		},
 	},
 
 	messageBotDwellsAfterRes = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot is dwelling AFTER turret was res'd!",
+			messageKey = "Bot is dwelling AFTER turret was res'd!",
 		},
 	},
 
 	messageBotExists = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot now exists!",
+			messageKey = "Bot now exists!",
 		},
 	},
 
 	messageBotDied = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot has been destroyed!",
+			messageKey = "Bot has been destroyed!",
 		},
 	},
 
 	messageBotNotExists = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot ceased to exist!",
+			messageKey = "Bot ceased to exist!",
 		},
 	},
 
 	messageBotEnteredLocation = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot entered location!",
+			messageKey = "Bot entered location!",
 		},
 	},
 
 	messageBotLeftLocation = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Bot left location!",
+			messageKey = "Bot left location!",
 		},
 	},
 
@@ -406,56 +406,56 @@ local actions = {
 	messageCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Unit captured!",
+			messageKey = "Unit captured!",
 		},
 	},
 
 	messageConstructionStartedSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Construction of solar started!",
+			messageKey = "Construction of solar started!",
 		},
 	},
 
 	messageConstructionHalfwaySolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Construction of solar halfway done!",
+			messageKey = "Construction of solar halfway done!",
 		},
 	},
 
 	messageConstructionFinishedSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Construction of solar finished!",
+			messageKey = "Construction of solar finished!",
 		},
 	},
 
 	messageConstructionStartedByDecoy = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Solar construction started by the decoy commander!",
+			messageKey = "Solar construction started by the decoy commander!",
 		},
 	},
 
 	messageConstructionFinishedByDecoy = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Some unit, maybe even the decoy commander, finished a solar!",
+			messageKey = "Some unit, maybe even the decoy commander, finished a solar!",
 		},
 	},
 
 	messageConstructionCanceledSolar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The canceler's solar was reclaimed mid-build (canceled)!",
+			messageKey = "The canceler's solar was reclaimed mid-build (canceled)!",
 		},
 	},
 
 	messageConstructionStartedByAssister = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The assister joined the placer's solar as a build-assist!",
+			messageKey = "The assister joined the placer's solar as a build-assist!",
 		},
 	},
 
@@ -537,21 +537,21 @@ local actions = {
 	messageUnitReclaimedRadar = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A radar was reclaimed by a builder!",
+			messageKey = "A radar was reclaimed by a builder!",
 		},
 	},
 
 	messageUnitReclaimedByName = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The doomed radar, by name, was reclaimed!",
+			messageKey = "The doomed radar, by name, was reclaimed!",
 		},
 	},
 
 	messageUnitReclaimedByMission = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The doomed solar was reclaimed by the mission itself!",
+			messageKey = "The doomed solar was reclaimed by the mission itself!",
 		},
 	},
 
@@ -587,21 +587,21 @@ local actions = {
 	messageProductionStartedPawn = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A pawn went onto a build pad (production started)!",
+			messageKey = "A pawn went onto a build pad (production started)!",
 		},
 	},
 
 	messageProductionStartedByBotLab = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The named bot lab started a construction bot!",
+			messageKey = "The named bot lab started a construction bot!",
 		},
 	},
 
 	messageProductionStartedByVehiclePlant = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "A vehicle plant, whichever one, started a fast assault vehicle!",
+			messageKey = "A vehicle plant, whichever one, started a fast assault vehicle!",
 		},
 	},
 
@@ -660,7 +660,7 @@ local actions = {
 	messageRessed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Turret resurrected!",
+			messageKey = "Turret resurrected!",
 		},
 	},
 

@@ -160,7 +160,15 @@ function math.bit_and(...)
 	return result or 0
 end
 
-_G.GG = {}
+--- Action files capture the unit_attributes gadget's functions when they are included,
+--- but validation never calls them.
+_G.GG = {
+	UnitAttributes = setmetatable({}, {
+		__index = function()
+			return function() end
+		end,
+	}),
+}
 _G.unpack = _G.unpack or table.unpack
 
 --------------------------------------------------------------------------------
@@ -355,6 +363,8 @@ local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
 _G.GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
 _G.GG["MissionAPI"].Modules.SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
 _G.GG["MissionAPI"].Modules.DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+_G.GG["MissionAPI"].Modules.Difficulty = VFS.Include("luarules/mission_api/difficulty.lua")
+_G.GG["MissionAPI"].Modules.UnitQuery = VFS.Include("luarules/mission_api/unit_query.lua")
 
 local actionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
 local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
@@ -362,6 +372,8 @@ local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
 _G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
 _G.GG["MissionAPI"].Difficulty = 0
+-- As for a mission started with no options in its startscript.
+_G.GG["MissionAPI"].Options = {}
 
 --------------------------------------------------------------------------------
 -- Load the mission

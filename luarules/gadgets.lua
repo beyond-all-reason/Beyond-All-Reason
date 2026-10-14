@@ -30,7 +30,9 @@ local SAFEWRAP = 0
 -- 2: always enabled
 
 local HANDLER_DIR = "LuaGadgets/"
-local GADGETS_DIR = Script.GetName():gsub("US$", "") .. "/Gadgets/"
+local HANDLER_BASE_NAME = Script.GetName():gsub("US$", "") -- "LuaRules" or "LuaGaia" (unused)
+local IS_LUARULES = HANDLER_BASE_NAME == "LuaRules"
+local GADGETS_DIR = HANDLER_BASE_NAME .. "/Gadgets/"
 local SCRIPT_DIR = Script.GetName() .. "/"
 local LOG_SECTION = "" -- FIXME: "LuaRules" section is not registered anywhere
 
@@ -528,6 +530,16 @@ function gadgetHandler:Initialize()
 	local gadgetFiles = VFS.DirList(GADGETS_DIR, "*.lua", VFSMODE)
 	--  table.sort(gadgetFiles)
 
+	if IS_LUARULES then
+		local ModuleHandler = require("modules/module_handler", nil, VFSMODE) ---@type ModuleHandler
+		ModuleHandler.Register(VFSMODE)
+		for _, moduleGadgetDir in ipairs(ModuleHandler.GadgetDirs(VFSMODE)) do
+			for _, gf in ipairs(VFS.DirList(moduleGadgetDir, "*.lua", VFSMODE)) do
+				gadgetFiles[#gadgetFiles + 1] = gf
+			end
+		end
+	end
+
 	--  for k,gf in ipairs(gadgetFiles) do
 	--    Spring.Echo('gf1 = ' .. gf) -- FIXME
 	--  end
@@ -760,6 +772,9 @@ function gadgetHandler:NewGadget()
 	gh.DeregisterAllowCommands = function(_)
 		return self:DeregisterAllowCommands(gadget)
 	end
+	gh.RegisterUnitCommand = function(_, cmdID)
+		return self:RegisterUnitCommand(gadget, cmdID)
+	end
 
 	if not IsSyncedCode() then
 		gh.AddSyncAction = function(_, cmd, func, help)
@@ -819,6 +834,7 @@ function gadgetHandler:FinalizeGadget(gadget, filename, basename)
 		gadget._tracyUpdateName = "G:Update:" .. gi.name
 		gadget._tracyDrawWorldName = "G:DrawWorld:" .. gi.name
 		gadget._tracyDrawWorldPreUnitName = "G:DrawWorldPreUnit:" .. gi.name
+		gadget._tracyUnitFinishedName = "G:UnitFinished:" .. gi.name
 	end
 end
 
@@ -1433,7 +1449,7 @@ function gadgetHandler:GamePaused(playerID, paused)
 end
 
 function gadgetHandler:RecvFromSynced(...)
-	local arg1, arg2 = ...
+	local arg1, _ = ...
 	if arg1 == CHAT_ACTION_REQUEST then
 		BroadcastChatActionSnapshot("unsynced", self.actionHandler.textActions)
 		return true
@@ -1891,7 +1907,6 @@ function gadgetHandler:AllowUnitTransfer(unitID, unitDefID, oldTeam, newTeam, ca
 	return true
 end
 
-
 function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
 	tracy.ZoneBeginN("G:AllowUnitBuildStep")
 
@@ -1948,7 +1963,6 @@ function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
 	end
 	return true
 end
-
 
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, part)
 	tracy.ZoneBeginN("G:AllowFeatureBuildStep")
@@ -2126,7 +2140,9 @@ end
 function gadgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	tracy.ZoneBeginN("G:UnitFinished")
 	for _, g in ipairs(self.UnitFinishedList) do
+		tracy.ZoneBeginN(g._tracyUnitFinishedName)
 		g:UnitFinished(unitID, unitDefID, unitTeam)
+		tracy.ZoneEnd()
 	end
 	tracy.ZoneEnd()
 	return
@@ -2297,6 +2313,13 @@ function gadgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	return
 end
 
+-- Limits gadget:UnitCommand to the registered commands (CMD.BUILD: all build commands).
+-- Gadgets that never register get every command.
+function gadgetHandler:RegisterUnitCommand(gadget, cmdID)
+	gadget._unitCommandIDs = gadget._unitCommandIDs or {}
+	gadget._unitCommandIDs[cmdID] = true
+end
+
 function gadgetHandler:UnitCommand(
 	unitID,
 	unitDefID,
@@ -2310,8 +2333,13 @@ function gadgetHandler:UnitCommand(
 	fromLua
 )
 	tracy.ZoneBeginN("G:UnitCommand")
-	for _, g in ipairs(self.UnitCommandList) do
-		g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	local list = self.UnitCommandList
+	for i = 1, #list do
+		local g = list[i]
+		local cmdIDs = g._unitCommandIDs
+		if not cmdIDs or cmdIDs[cmdId] or (cmdId < 0 and cmdIDs[CMD_BUILD]) then
+			g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+		end
 	end
 	markIdle(unitID)
 	tracy.ZoneEnd()

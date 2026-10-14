@@ -40,7 +40,7 @@ return {
 			model_author = "Zephyr", --naval edition by / c/o Hornet
 			normaltex = "unittextures/leg_normal.dds",
 			removewait = true,
-			subfolder = "CorBuildings/LandDefenceOffence",
+			subfolder = "Legion/SeaDefenses",
 			legacyname = "Gaat Gun",
 			inheritxpratemultiplier = 1,
 			childreninheritxp = "DRONE",
@@ -60,7 +60,7 @@ return {
 				footprintz = 2,
 				height = 20,
 				metal = 130,
-				object = "Units/leghive_dead.s3o",
+				object = "Units/legfhive_dead.s3o",
 				reclaimable = true,
 			},
 			heap = {

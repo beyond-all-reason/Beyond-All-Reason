@@ -97,8 +97,6 @@ local curFrame = spGetGameFrame()
 
 local font, font2
 
-local AdvPlayersListAtlas
-
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -1886,9 +1884,6 @@ function widget:DrawScreen()
 	drawState.sawSpareDrawFrame = renderOnlyFrame
 	drawState.lastDrawGameFrame = drawGameFrame
 
-	AdvPlayersListAtlas:RenderTasks()
-	--AdvPlayersListAtlas:DrawToScreen()
-
 	-- draw the background element
 	if mainListBgTex then
 		gl.R2tHelper.BlendTexRect(
@@ -3224,7 +3219,7 @@ function DrawCamera(posY, active)
 end
 
 function colourNames(teamID, returnRgb)
-	local nameColourR, nameColourG, nameColourB, nameColourA = sp.GetTeamColor(teamID)
+	local nameColourR, nameColourG, nameColourB, _ = sp.GetTeamColor(teamID)
 	if (not mySpecStatus) and anonymousMode ~= "disabled" and teamID ~= myTeamID then
 		nameColourR, nameColourG, nameColourB = anonymousTeamColor[1], anonymousTeamColor[2], anonymousTeamColor[3]
 	end
@@ -4035,7 +4030,7 @@ function widget:MousePress(x, y, button)
 	end
 
 	if button == 1 then
-		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		local alt, ctrl, _, _ = Spring.GetModKeyState()
 		sliderPosition = nil
 		shareAmount = 0
 
@@ -5001,32 +4996,12 @@ function widget:ViewResize()
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2, 1.5, 0.13, 20)
 
-	local MakeAtlasOnDemand = VFS.Include("LuaUI/Include/AtlasOnDemand.lua")
-	if AdvPlayersListAtlas then
-		--AdvPlayersListAtlas:Delete()
-	end
-
-	local cellheight = mathMax(32, mathCeil(mathMax(font.size, font2.size) + 4))
-	local cellwidth = mathCeil(cellheight * 1.25)
-	local cellcount = mathCeil(math.sqrt(32 + 32 + 200))
-	local atlasconfig = {
-		sizex = cellheight * cellcount,
-		sizey = cellwidth * cellcount,
-		xresolution = cellheight,
-		yresolution = cellwidth,
-		name = "AdvPlayersListAtlas",
-		defaultfont = { font = font, options = "o" },
-	}
-	AdvPlayersListAtlas = MakeAtlasOnDemand(atlasconfig)
-	for i = 0, 99 do
-		AdvPlayersListAtlas:AddText(string.format("%02d", i))
-	end
 	forceMainListRefresh = true
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)
 	-- get the points drawn (to display point indicator)
-	if m_point.active then
+	if m_point.active and not (WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID)) then
 		if cmdType == "point" then
 			player[playerID].pointX = px
 			player[playerID].pointY = py

@@ -65,7 +65,7 @@ describe("mission_api.validation", function()
 				V.mission()
 					:WithTrigger("zTrigger", { type = "invalidType", actions = { "ok" } })
 					:WithTrigger("aTrigger", { type = "invalidType", actions = { "ok" } })
-					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 			)
 
 			assert.are.same({
@@ -90,7 +90,7 @@ describe("mission_api.validation", function()
 				"Stage data must be a table, got string. Stage: s",
 				"Objective missing textKey. Objective: o1",
 				"Trigger has invalid type. Trigger: t",
-				"Action missing required parameter. Action: a, Parameter: message",
+				"Action missing required parameter. Action: a, Parameter: messageKey",
 				"Invalid unitDefName: noSuch. Loadout: UnitLoadout[1].unitDefName",
 				"Objective event must name an Event trigger. Objective: o2, Field: onCompleted, Trigger: t",
 			}, result.errors)

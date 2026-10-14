@@ -16,18 +16,34 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetCameraPosition = Spring.GetCameraPosition
+local spGetMapDrawMode = Spring.GetMapDrawMode
+local glColor = gl.Color
+local glCallList = gl.CallList
 
 local darknessvalue = 0
 local maxDarkness = 0.6
 
+local darkenList ---@type integer
+local drawCallInActive ---@type boolean?
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local camX, camY, camZ = spGetCameraPosition()
-local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
+-- DrawWorldPreUnit is only registered while the map is darkened
+local function updateDrawCallIn()
+	local active = darknessvalue >= 0.01
+	if active ~= drawCallInActive then
+		drawCallInActive = active
+		if active then
+			widgetHandler:UpdateCallIn("DrawWorldPreUnit")
+		else
+			widgetHandler:RemoveCallIn("DrawWorldPreUnit")
+		end
+	end
+end
 
 function widget:Shutdown()
+	gl.DeleteList(darkenList)
 	WG.darkenmap = nil
 end
 
@@ -38,44 +54,41 @@ local function mapDarkness(_, _, params)
 			if darknessvalue > maxDarkness then
 				darknessvalue = maxDarkness
 			end
+			updateDrawCallIn()
 		end
 	end
 end
 
 function widget:Initialize()
+	-- quad 360 elmos ahead of the camera, in eye space so it needs no camera reads
+	darkenList = gl.CreateList(function()
+		gl.PushMatrix()
+		gl.LoadIdentity()
+		gl.Translate(0, 0, -360)
+		gl.Rect(-5000, -5000, 5000, 5000)
+		gl.PopMatrix()
+	end)
+
 	WG.darkenmap = {}
 	WG.darkenmap.getMapDarkness = function()
 		return darknessvalue
 	end
 	WG.darkenmap.setMapDarkness = function(value)
 		darknessvalue = tonumber(value)
+		updateDrawCallIn()
 	end
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
-end
-
-local prevCam = {}
-prevCam[1], prevCam[2], prevCam[3] = spGetCameraPosition()
-function widget:Update(dt)
-	if darknessvalue >= 0.01 then
-		camX, camY, camZ = spGetCameraPosition()
-		camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
-	end
+	updateDrawCallIn()
 end
 
 function widget:DrawWorldPreUnit()
-	if darknessvalue >= 0.01 then
-		local drawMode = Spring.GetMapDrawMode()
-		if (drawMode == "height") or (drawMode == "path") then
-			return
-		end
-
-		gl.PushMatrix()
-		gl.Color(0, 0, 0, darknessvalue)
-		gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
-		gl.Billboard()
-		gl.Rect(-5000, -5000, 5000, 5000)
-		gl.PopMatrix()
+	local drawMode = spGetMapDrawMode()
+	if (drawMode == "height") or (drawMode == "path") then
+		return
 	end
+
+	glColor(0, 0, 0, darknessvalue)
+	glCallList(darkenList)
 end
 
 function widget:GetConfigData(data)
@@ -87,5 +100,9 @@ end
 function widget:SetConfigData(data)
 	if data.darknessvalue ~= nil then
 		darknessvalue = data.darknessvalue
+		-- nil until Initialize, which syncs the callin on load
+		if drawCallInActive ~= nil then
+			updateDrawCallIn()
+		end
 	end
 end

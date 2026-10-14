@@ -43,11 +43,11 @@ describe("mission_api.validation.parameter_validators", function()
 
 	describe("String", function()
 		it("rejects the wrong type", function()
-			local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = { message = 123 } })
+			local result = V.validateAction({ type = V.actionTypes.SendMessage, parameters = { messageKey = 123 } })
 
 			V.assertMessage(
 				result,
-				"Unexpected parameter type, expected string, got number. Action: a, Parameter: message"
+				"Unexpected parameter type, expected string, got number. Action: a, Parameter: messageKey"
 			)
 		end)
 	end)
@@ -281,6 +281,77 @@ describe("mission_api.validation.parameter_validators", function()
 			})
 
 			V.assertMessage(result, "Invalid weaponDefName: noSuch. Action: a, Parameter: weaponDefName")
+		end)
+	end)
+
+	describe("UnitAttribute", function()
+		it("rejects an unknown attribute", function()
+			local result = V.validateAction({
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "noSuchAttribute", value = 1 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'noSuchAttribute' not found. Action: a, Parameter: attribute")
+		end)
+
+		it("rejects a weapon attribute", function()
+			local result = V.validateAction({
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "damage", value = 1 },
+			})
+
+			V.assertMessage(result, "Unit attribute 'damage' is written per weapon. Action: a, Parameter: attribute")
+		end)
+	end)
+
+	describe("WeaponAttribute", function()
+		it("rejects a unit attribute", function()
+			local result = V.validateAction({
+				type = V.actionTypes.SetUnitDefWeaponAttribute,
+				parameters = { unitDefName = "armwar", attribute = "losRadius", value = 1 },
+			})
+
+			V.assertMessage(
+				result,
+				"Weapon attribute 'losRadius' is not written per weapon. Action: a, Parameter: attribute"
+			)
+		end)
+	end)
+
+	describe("WeaponNumber", function()
+		local function validateWeapon(weapon)
+			return V.validateAction({
+				type = V.actionTypes.SetUnitDefWeaponModifier,
+				parameters = { unitDefName = "armwar", weapon = weapon, attribute = "damage", multiplier = 2 },
+			})
+		end
+
+		it("rejects a name the engine does not use", function()
+			V.assertMessage(
+				validateWeapon("death"),
+				"Expected a weapon number, 'explode' or 'selfDestruct', got death. Action: a, Parameter: weapon"
+			)
+		end)
+
+		it("rejects a weapon number that is not a whole number above zero", function()
+			V.assertMessage(
+				validateWeapon(0),
+				"Expected a weapon number, 'explode' or 'selfDestruct', got 0. Action: a, Parameter: weapon"
+			)
+		end)
+	end)
+
+	describe("AttributeValue", function()
+		it("rejects a table", function()
+			local result = V.validateAction({
+				type = V.actionTypes.SetUnitDefAttribute,
+				parameters = { unitDefName = "armwar", attribute = "losRadius", value = {} },
+			})
+
+			V.assertMessage(
+				result,
+				"Unexpected parameter type, expected number, string or boolean, got table. Action: a, Parameter: value"
+			)
 		end)
 	end)
 

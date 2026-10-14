@@ -12,6 +12,7 @@ local types = {
 	TriggerIDs = "TriggerIDs",
 	StageIDs = "StageIDs",
 	ObjectiveIDs = "ObjectiveIDs",
+	Difficulties = "Difficulties",
 	Orders = "Orders",
 	Area = "Area",
 	Direction = "Direction",
@@ -34,6 +35,8 @@ local types = {
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	Difficulty = "Difficulty",
+	UnitAttribute = "UnitAttribute",
+	WeaponAttribute = "WeaponAttribute",
 
 	-- Number Validators:
 	Number = "Number",
@@ -42,6 +45,7 @@ local types = {
 	Fraction = "Fraction",
 	TeamID = "TeamID",
 	AllyTeamID = "AllyTeamID",
+	MessageType = "MessageType",
 
 	-- Boolean Validators:
 	Boolean = "Boolean",
@@ -51,12 +55,18 @@ local types = {
 
 	-- Number-or-String Validators:
 	Command = "Command",
+	WeaponNumber = "WeaponNumber",
+
+	-- Number-or-String-or-Boolean Validators:
+	AttributeValue = "AttributeValue",
 
 }
 
 -- Difficulties are read by the client, so must be available in JSON
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
+
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
 
 local enums = {
 	[types.Facing] = {
@@ -75,6 +85,16 @@ local enums = {
 	},
 
 	[types.Difficulty] = difficulties,
+
+	[types.MessageType] = {
+		Briefing = 1,
+		Message = 2,
+		Objective = 3,
+		Notification = 4,
+		Dialogue = 5,
+	},
+
+	[types.WeaponNumber] = attributeDefinitions.EXPLOSIONS,
 }
 
 local enumSets = {

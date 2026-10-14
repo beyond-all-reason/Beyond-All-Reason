@@ -27,8 +27,8 @@ describe("mission_api.validation.references", function()
 			local result = V.validate(
 				V.mission()
 					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
-					:WithAction("unused", { type = V.actionTypes.SendMessage, parameters = { message = "unused" } })
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+					:WithAction("unused", { type = V.actionTypes.SendMessage, parameters = { messageKey = "unused" } })
 			)
 
 			assert.are.same({ "Actions not referenced by any trigger: unused" }, result.warnings)
@@ -39,9 +39,9 @@ describe("mission_api.validation.references", function()
 			local result = V.validate(
 				V.mission()
 					:WithTrigger("t", V.trigger(V.triggerTypes.TimeElapsed, { seconds = 1 }))
-					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
-					:WithAction("zzz", { type = V.actionTypes.SendMessage, parameters = { message = "zzz" } })
-					:WithAction("aaa", { type = V.actionTypes.SendMessage, parameters = { message = "aaa" } })
+					:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+					:WithAction("zzz", { type = V.actionTypes.SendMessage, parameters = { messageKey = "zzz" } })
+					:WithAction("aaa", { type = V.actionTypes.SendMessage, parameters = { messageKey = "aaa" } })
 			)
 
 			assert.are.same({ "Actions not referenced by any trigger: aaa, zzz" }, result.warnings)
@@ -148,7 +148,7 @@ describe("mission_api.validation.references", function()
 			})
 			:WithAction("spawnDropship", spawnUnits("dropship"))
 			:WithAction("spawnBot", spawnUnits("bot"))
-			:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })))
+			:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })))
 	end)
 
 	it("warns about names that are only created, or only referenced", function()
@@ -234,6 +234,42 @@ describe("mission_api.validation.references", function()
 				result,
 				"Marker name is referenced, but never created. Marker name: noSuchBeacon, Referenced in: action removeUnknown"
 			)
+		end)
+	end)
+
+	describe("line names", function()
+		-- Like markers, a line left drawn for the rest of the mission is ordinary.
+		it("passes a line that is drawn and never removed", function()
+			V.assertValid(V.validate(V.mission()
+				:WithTrigger("t", {
+					type = V.triggerTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					actions = { "drawWall" },
+				})
+				:WithAction("drawWall", {
+					type = V.actionTypes.DrawLines,
+					parameters = { lineName = "wall", positions = { { x = 0, z = 0 }, { x = 1, z = 1 } } },
+				})))
+		end)
+
+		it("warns about removing a line that no action draws", function()
+			local result = V.validate(
+				V.mission()
+					:WithAction("drawWall", {
+						type = V.actionTypes.DrawLines,
+						parameters = { lineName = "wall", positions = { { x = 0, z = 0 }, { x = 1, z = 1 } } },
+					})
+					:WithAction(
+						"removeUnknown",
+						{ type = V.actionTypes.RemoveLine, parameters = { lineName = "noSuchLine" } }
+					)
+			)
+
+			V.assertMessage(
+				result,
+				"Line name is referenced, but never created. Line name: noSuchLine, Referenced in: action removeUnknown"
+			)
+			V.assertNoMessageContaining(result, "Line name: wall")
 		end)
 	end)
 
@@ -325,7 +361,7 @@ describe("mission_api.validation.references", function()
 					parameters = { countdownID = "ghost", timeRemaining = 10 },
 					actions = { "ok" },
 				})
-				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } }))
+				:WithAction("ok", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } }))
 
 			V.assertMessage(
 				result,
@@ -350,13 +386,21 @@ describe("mission_api.validation.references", function()
 	-- The on* fields name an Event trigger, raised when the objective reaches that state.
 	-- sections.lua checks the trigger exists; these checks cover the Event-specific rules.
 	describe("objective events", function()
-		for _, fieldName in ipairs({ "onActivated", "onCanceled", "onProgress", "onCompleted", "onFailed" }) do
+		for _, fieldName in ipairs({
+			"onActivated",
+			"onCanceled",
+			"onProgress",
+			"onCompleted",
+			"onFailed",
+			"onHidden",
+			"onShown",
+		}) do
 			it("accepts " .. fieldName .. " naming an Event trigger", function()
 				local result = V.validate(
 					V.mission()
 						:WithObjective("obj", { textKey = "ok", [fieldName] = "raised" })
 						:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
-						:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+						:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 						:WithInitialStageDefinition("stage", { objectives = { "obj" } })
 				)
 
@@ -371,7 +415,7 @@ describe("mission_api.validation.references", function()
 						parameters = { seconds = 1 },
 						actions = { "act" },
 					})
-					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 					:WithInitialStageDefinition("stage", { objectives = { "obj" } }))
 
 				V.assertMessage(
@@ -388,7 +432,7 @@ describe("mission_api.validation.references", function()
 			local result = V.validate(
 				V.mission()
 					:WithTrigger("orphan", { type = V.triggerTypes.Event, actions = { "act" } })
-					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 			)
 
 			V.assertMessage(result, "Event trigger has no owners, so it can never fire. Trigger: orphan")
@@ -399,11 +443,59 @@ describe("mission_api.validation.references", function()
 				V.mission()
 					:WithObjective("obj", { textKey = "ok", onCompleted = "raised" })
 					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
-					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { message = "ok" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
 					:WithInitialStageDefinition("stage", { objectives = { "obj" } })
 			)
 
 			V.assertNoMessageContaining(result, "Event trigger has no owners")
+		end)
+
+		-- Any difficulty's trigger may be the one raised, so each is checked.
+		it("reports a wrapped field naming a trigger that is not an Event for one difficulty", function()
+			local result = V.validate(V.mission()
+				:WithObjective("obj", {
+					textKey = "ok",
+					onCompleted = { difficulties = { Easy = "doneEasy", Hard = "timer" } },
+				})
+				:WithTrigger("doneEasy", { type = V.triggerTypes.Event, actions = { "act" } })
+				:WithTrigger("timer", {
+					type = V.triggerTypes.TimeElapsed,
+					parameters = { seconds = 1 },
+					actions = { "act" },
+				})
+				:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+				:WithInitialStageDefinition("stage", { objectives = { "obj" } }))
+
+			V.assertMessage(
+				result,
+				"Objective event must name an Event trigger. Objective: obj, Field: onCompleted, Trigger: timer"
+			)
+		end)
+
+		it("accepts a wrapped field naming an Event trigger for every difficulty", function()
+			local result = V.validate(V.mission()
+				:WithObjective("obj", {
+					textKey = "ok",
+					onCompleted = { difficulties = { Easy = "doneEasy", Hard = "doneHard" } },
+				})
+				:WithTrigger("doneEasy", { type = V.triggerTypes.Event, actions = { "act" } })
+				:WithTrigger("doneHard", { type = V.triggerTypes.Event, actions = { "act" } })
+				:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+				:WithInitialStageDefinition("stage", { objectives = { "obj" } }))
+
+			V.assertValid(result)
+		end)
+
+		it("does not warn about an Event trigger named only through a wrapped field", function()
+			local result = V.validate(
+				V.mission()
+					:WithObjective("obj", { textKey = "ok", onCompleted = { difficulties = { Easy = "raised" } } })
+					:WithTrigger("raised", { type = V.triggerTypes.Event, actions = { "act" } })
+					:WithAction("act", { type = V.actionTypes.SendMessage, parameters = { messageKey = "ok" } })
+					:WithInitialStageDefinition("stage", { objectives = { "obj" } })
+			)
+
+			V.assertValid(result)
 		end)
 
 		-- The existence check belongs to sections.lua, so this must not double report.

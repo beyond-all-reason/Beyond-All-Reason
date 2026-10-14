@@ -505,6 +505,10 @@ local FEATURE_DISPLAY_NAMES = {
 	geovent = "geovent",
 }
 
+local function escapeRml(s)
+	return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
 local function createTileElement(doc, entry, tileW, selectedSet)
 	local name = entry.name
 	local itemEl = doc:CreateElement("div")
@@ -532,7 +536,7 @@ local function createTileElement(doc, entry, tileW, selectedSet)
 
 	local nameEl = doc:CreateElement("div")
 	nameEl:SetClass("fp-feature-name", true)
-	nameEl.inner_rml = FEATURE_DISPLAY_NAMES[name] or name
+	nameEl.inner_rml = escapeRml(FEATURE_DISPLAY_NAMES[name] or name)
 	itemEl:AppendChild(nameEl)
 
 	itemEl:AddEventListener("click", function(event)

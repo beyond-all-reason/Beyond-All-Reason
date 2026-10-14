@@ -262,3 +262,10 @@ function widget:DrawScreenEffects()
 		gl.DepthMask(true)
 	end
 end
+
+function widget:Shutdown()
+	if type(energyIconShader) == "table" then
+		energyIconShader:Finalize()
+		energyIconShader = nil
+	end
+end

@@ -1,4 +1,4 @@
-piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack,rblade,lblade,mblade,spike1,spike2,spike3, aimy1;
+piece base, body, head,tail,lthigh,lknee,lshin,lfoot,rthigh,rknee,rshin,rfoot,rsack,lsack,rblade,lblade,mblade,spike1,spike2,spike3, aimy1, firepoint;
 
 
 // Signal definitions
@@ -53,7 +53,7 @@ AimFromWeapon1(pieceIndex)
 	{	pieceIndex=head;	}
 
 QueryWeapon1(pieceIndex)
-	{	pieceIndex=head; }
+	{	pieceIndex=firepoint; }
 	
 		
 AimFromWeapon2(pieceIndex)

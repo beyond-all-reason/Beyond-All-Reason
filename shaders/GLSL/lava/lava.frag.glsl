@@ -37,7 +37,7 @@ float heightAtWorldPos(vec2 w){
 	vec2 uvhm = clamp(w, heightmaptexel, mapSize.xy - heightmaptexel);
 	uvhm = uvhm	* inverseMapSize;
 
-	return texture(heightmapTex, uvhm, 0.0).x;
+	return textureLod(heightmapTex, uvhm, 0.0).x; // was texture(.., bias 0.0): the heightmap has no mips
 }
 
 out vec4 fragColor;
@@ -50,16 +50,17 @@ void main() {
 	vec4 camPos = cameraViewInv[3];
 	vec3 worldtocam = camPos.xyz - worldPos.xyz;
 
-	// Sample emissive as heat indicator here for later displacement
-	vec4 nodiffuseEmit =  texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
-
-	vec2 rotatearoundvertices = worldUV.zw * SWIRLAMPLITUDE;
-
+	// terrain above the lava plane: decided before any texture work
 	float localheight = OUTOFMAPHEIGHT ;
 	if (inboundsness > 0)
 		localheight = heightAtWorldPos(worldPos.xz);
 
 	if (localheight > lavaHeight - HEIGHTOFFSET ) discard;
+
+	// Sample emissive as heat indicator here for later displacement
+	vec4 nodiffuseEmit =  texture(lavaDiffuseEmit, worldUV.xy * WORLDUVSCALE );
+
+	vec2 rotatearoundvertices = worldUV.zw * SWIRLAMPLITUDE;
 
 	// Calculate how far the fragment is from the coast
 	float coastfactor = clamp((localheight-lavaHeight + COASTWIDTH + HEIGHTOFFSET) * (1.0 / COASTWIDTH),  0.0, 1.0);
@@ -110,13 +111,14 @@ void main() {
 	fragNormal.z = -1 * fragNormal.z; // for some goddamned reason Z(G) is inverted again
 	fragNormal = normalize(fragNormal);
 	float lightamount = clamp(dot(sunDir.xyz, fragNormal), 0.2, 1.0) * max(0.5,shadow);
+	vec3 sunDirN = normalize(sunDir.xyz);
 	fragColor.rgb *= lightamount;
 
 	fragColor.rgb += COASTCOLOR * coastfactor;
 
 	// Specular Color
-	vec3 reflvect = reflect(normalize(-1.0 * sunDir.xyz), normalize(fragNormal));
-	float specular = clamp(pow(dot(normalize(worldtocam), normalize(reflvect)), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;
+	vec3 reflvect = reflect(-sunDirN, fragNormal); // both unit length, so is the reflection
+	float specular = clamp(pow(dot(normalize(worldtocam), reflvect), SPECULAREXPONENT), 0.0, SPECULARSTRENGTH) * shadow;
 	fragColor.rgb += fragColor.rgb * specular;
 
 	fragColor.rgb += fragColor.rgb * (diffuseEmit.a * distortion.y * 700.0);

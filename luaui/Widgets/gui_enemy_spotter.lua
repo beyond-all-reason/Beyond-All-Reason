@@ -213,6 +213,10 @@ end
 
 function widget:Shutdown()
 	WG.enemyspotter = nil
+	if type(enemyspotterShader) == "table" then
+		enemyspotterShader:Finalize()
+		enemyspotterShader = nil
+	end
 end
 
 function widget:GetConfigData(data)

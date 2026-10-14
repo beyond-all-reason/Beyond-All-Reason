@@ -116,35 +116,35 @@ local actions = {
 	messageDropshipLoaded = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The dropship loaded a unit!",
+			messageKey = "The dropship loaded a unit!",
 		},
 	},
 
 	messageAtlasLoadedPawn = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "An Atlas loaded a pawn!",
+			messageKey = "An Atlas loaded a pawn!",
 		},
 	},
 
 	messageDropshipUnloaded = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The dropship unloaded the passenger!",
+			messageKey = "The dropship unloaded the passenger!",
 		},
 	},
 
 	messageConstructorAttachedTurret = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "The construction vehicle attached its turret!",
+			messageKey = "The construction vehicle attached its turret!",
 		},
 	},
 
 	messageConstructorByNameOnly = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "BUG: the construction vehicle counted as a transport by unit name alone!",
+			messageKey = "BUG: the construction vehicle counted as a transport by unit name alone!",
 		},
 	},
 

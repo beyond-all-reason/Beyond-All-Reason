@@ -1,7 +1,8 @@
 ---
---- Checks references: objective events, actions, unit, feature and marker names,
+--- Checks references: objective events, actions, unit, feature, marker and line names,
 --- and countdown IDs.
---- Malformed entries are skipped, as sections.lua already reports them.
+--- Malformed entries are skipped, as sections.lua already reports them. A value that differs
+--- by difficulty refers to each of its difficulties' values, see context.PossibleValues.
 ---
 
 local SECTION = VFS.Include("luarules/mission_api/validation/report.lua").Sections.References
@@ -103,7 +104,8 @@ end
 --- The objective fields that name an Event trigger, raised when the objective reaches
 --- that state. sections.lua checks each names an existing trigger; here we check the
 --- named trigger is an Event, and that every Event trigger has an owner to raise it.
-local objectiveEventFields = { "onActivated", "onCanceled", "onProgress", "onCompleted", "onFailed" }
+local objectiveEventFields =
+	{ "onActivated", "onCanceled", "onProgress", "onCompleted", "onFailed", "onHidden", "onShown" }
 
 local function validateObjectiveEventReferences(context, report)
 	local namedTriggerIDs = {}
@@ -111,19 +113,20 @@ local function validateObjectiveEventReferences(context, report)
 	for objectiveID, objective in pairs(context.Objectives) do
 		if type(objective) == "table" then
 			for _, fieldName in ipairs(objectiveEventFields) do
-				local triggerID = objective[fieldName]
-				if type(triggerID) == "string" then
-					namedTriggerIDs[triggerID] = true
+				for _, triggerID in ipairs(context.PossibleValues(objective[fieldName])) do
+					if type(triggerID) == "string" then
+						namedTriggerIDs[triggerID] = true
 
-					local trigger = context.Triggers[triggerID]
-					if type(trigger) == "table" and trigger.type ~= context.TriggerTypes.Event then
-						report.Error(
-							SECTION,
-							"Objective",
-							objectiveID,
-							"Objective event must name an Event trigger",
-							"Field: " .. fieldName .. ", Trigger: " .. triggerID
-						)
+						local trigger = context.Triggers[triggerID]
+						if type(trigger) == "table" and trigger.type ~= context.TriggerTypes.Event then
+							report.Error(
+								SECTION,
+								"Objective",
+								objectiveID,
+								"Objective event must name an Event trigger",
+								"Field: " .. fieldName .. ", Trigger: " .. triggerID
+							)
+						end
 					end
 				end
 			end
@@ -142,29 +145,32 @@ local function validateObjectiveEventReferences(context, report)
 end
 
 --------------------------------------------------------------------------------
--- Map marker name references
+-- Map marker and line name references
 --------------------------------------------------------------------------------
 
---- Only the removing side is checked: a marker left standing for the rest of the
---- mission is ordinary, so an added marker that is never removed does not warn.
-local function validateMarkerNameReferences(context, report)
-	local actionTypes = context.ActionTypes
+--- Only actions use marker and line names. Only the removing side is checked: a marker or
+--- line left standing for the rest of the mission is ordinary, so one that is never removed
+--- does not warn.
+local function validateDrawnNameReferences(context, report, label, nameKey, addingActionType, removingActionType)
 	local addedNames = {}
 	local referencedNames = {}
 
-	--- Only actions use marker names
 	for actionID, action in pairs(context.Actions) do
 		local parameters = parametersOf(action)
-		if parameters and type(parameters.markerName) == "string" then
-			if action.type == actionTypes.AddMapMarker then
-				addedNames[parameters.markerName] = true
-			elseif action.type == actionTypes.RemoveMapMarker then
-				recordSource(referencedNames, parameters.markerName, "action " .. actionID)
+		if parameters then
+			for _, name in ipairs(context.PossibleValues(parameters[nameKey])) do
+				if type(name) == "string" then
+					if action.type == addingActionType then
+						addedNames[name] = true
+					elseif action.type == removingActionType then
+						recordSource(referencedNames, name, "action " .. actionID)
+					end
+				end
 			end
 		end
 	end
 
-	reportUncreatedNames(report, "Marker name", addedNames, referencedNames)
+	reportUncreatedNames(report, label, addedNames, referencedNames)
 end
 
 --------------------------------------------------------------------------------
@@ -196,46 +202,50 @@ local function collectLoadoutNames(nameKind, createdNames)
 end
 
 --- An action can carry a loadout inline, which creates names just as a top level one does.
-local function collectInlineLoadoutNames(nameKind, actionID, parameters, createdNames)
-	local entries = parameters[nameKind.loadoutParameter]
-	if type(entries) ~= "table" then
-		return
-	end
-
-	for index, entry in ipairs(entries) do
-		if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
-			recordSource(
-				createdNames,
-				entry[nameKind.nameKey],
-				"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
-			)
+local function collectInlineLoadoutNames(context, nameKind, actionID, parameters, createdNames)
+	for _, entries in ipairs(context.PossibleValues(parameters[nameKind.loadoutParameter])) do
+		if type(entries) == "table" then
+			for index, entry in ipairs(entries) do
+				if type(entry) == "table" and type(entry[nameKind.nameKey]) == "string" then
+					recordSource(
+						createdNames,
+						entry[nameKind.nameKey],
+						"action " .. actionID .. " (" .. nameKind.loadoutParameter .. "[" .. index .. "])"
+					)
+				end
+			end
 		end
 	end
 end
 
 --- IssueOrders action can name an order's target.
-local function collectOrderNames(nameKind, actionID, parameters, referencedNames)
-	if type(parameters.orders) ~= "table" then
-		return
-	end
-
-	for _, order in ipairs(parameters.orders) do
-		local orderParameters = order[2]
-		if type(orderParameters) == "table" and type(orderParameters[nameKind.nameKey]) == "string" then
-			recordSource(referencedNames, orderParameters[nameKind.nameKey], "action " .. actionID .. " (orders)")
+local function collectOrderNames(context, nameKind, actionID, parameters, referencedNames)
+	for _, orders in ipairs(context.PossibleValues(parameters.orders)) do
+		if type(orders) == "table" then
+			for _, order in ipairs(orders) do
+				local orderParameters = type(order) == "table" and order[2]
+				if type(orderParameters) == "table" and type(orderParameters[nameKind.nameKey]) == "string" then
+					recordSource(
+						referencedNames,
+						orderParameters[nameKind.nameKey],
+						"action " .. actionID .. " (orders)"
+					)
+				end
+			end
 		end
 	end
 end
 
 --- Records every distinct name held by the entity's parameters of this kind. A trigger
 --- can name several units at once, e.g. a passenger and the transport carrying it.
-local function collectParameterNames(parameterNames, parameters, source, referencedNames)
+local function collectParameterNames(context, parameterNames, parameters, source, referencedNames)
 	local seen = {}
 	for _, parameterName in ipairs(parameterNames or {}) do
-		local name = parameters[parameterName]
-		if type(name) == "string" and not seen[name] then
-			seen[name] = true
-			recordSource(referencedNames, name, source)
+		for _, name in ipairs(context.PossibleValues(parameters[parameterName])) do
+			if type(name) == "string" and not seen[name] then
+				seen[name] = true
+				recordSource(referencedNames, name, source)
+			end
 		end
 	end
 end
@@ -252,19 +262,21 @@ local function collectActionNames(context, nameKind, createdNames, referencedNam
 		local parameters = parametersOf(action)
 		if parameters then
 			if action.type == nameKind.loadoutActionType then
-				collectInlineLoadoutNames(nameKind, actionID, parameters, createdNames)
+				collectInlineLoadoutNames(context, nameKind, actionID, parameters, createdNames)
 			end
 			if action.type == context.ActionTypes.IssueOrders then
-				collectOrderNames(nameKind, actionID, parameters, referencedNames)
+				collectOrderNames(context, nameKind, actionID, parameters, referencedNames)
 			end
 
 			if nameKind.creatingActionTypes[action.type] then
-				local name = parameters[nameKind.nameKey]
-				if type(name) == "string" then
-					recordSource(createdNames, name, "action " .. actionID)
+				for _, name in ipairs(context.PossibleValues(parameters[nameKind.nameKey])) do
+					if type(name) == "string" then
+						recordSource(createdNames, name, "action " .. actionID)
+					end
 				end
 			else
 				collectParameterNames(
+					context,
 					referencingParameterNames[action.type],
 					parameters,
 					"action " .. actionID,
@@ -283,6 +295,7 @@ local function collectTriggerNames(context, nameKind, referencedNames)
 		local parameters = parametersOf(trigger)
 		if parameters then
 			collectParameterNames(
+				context,
 				referencingParameterNames[trigger.type],
 				parameters,
 				"trigger " .. triggerID,
@@ -301,6 +314,7 @@ local function collectObjectiveTriggerNames(context, nameKind, referencedNames)
 		local parameters = parametersOf(trigger)
 		if parameters then
 			collectParameterNames(
+				context,
 				referencingParameterNames[trigger.type],
 				parameters,
 				"objective " .. objectiveID .. " (trigger)",
@@ -339,10 +353,18 @@ local function validateCountdownIDReferences(context, report)
 	local referencingActionTypes = getTypesWithParameterType(context.ActionParameters, context.Types.CountdownID)
 	referencingActionTypes[context.ActionTypes.AddCountdown] = nil
 
+	local function countdownIDsOf(parameters)
+		local countdownIDs = {}
+		for _, countdownID in ipairs(context.PossibleValues(parameters and parameters.countdownID)) do
+			if type(countdownID) == "string" then
+				countdownIDs[#countdownIDs + 1] = countdownID
+			end
+		end
+		return countdownIDs
+	end
+
 	for actionID, action in pairs(context.Actions) do
-		local parameters = parametersOf(action)
-		local countdownID = parameters and parameters.countdownID
-		if type(countdownID) == "string" then
+		for _, countdownID in ipairs(countdownIDsOf(parametersOf(action))) do
 			if action.type == context.ActionTypes.AddCountdown then
 				addedIDs[countdownID] = true
 			elseif referencingActionTypes[action.type] then
@@ -353,17 +375,18 @@ local function validateCountdownIDReferences(context, report)
 
 	local referencingTriggerTypes = getTypesWithParameterType(context.TriggerParameters, context.Types.CountdownID)
 	for triggerID, trigger in pairs(context.Triggers) do
-		local parameters = parametersOf(trigger)
-		if parameters and referencingTriggerTypes[trigger.type] and type(parameters.countdownID) == "string" then
-			recordSource(referencedIDs, parameters.countdownID, "trigger " .. triggerID)
+		if referencingTriggerTypes[type(trigger) == "table" and trigger.type] then
+			for _, countdownID in ipairs(countdownIDsOf(parametersOf(trigger))) do
+				recordSource(referencedIDs, countdownID, "trigger " .. triggerID)
+			end
 		end
 	end
 
 	-- Objectives can hold a trigger inline, which refers to a countdown as any other trigger does.
 	for objectiveID, objective in pairs(context.Objectives) do
 		local parameters = parametersOf(type(objective) == "table" and objective.trigger)
-		if parameters and type(parameters.countdownID) == "string" then
-			recordSource(referencedIDs, parameters.countdownID, "objective " .. objectiveID .. " (trigger)")
+		for _, countdownID in ipairs(countdownIDsOf(parameters)) do
+			recordSource(referencedIDs, countdownID, "objective " .. objectiveID .. " (trigger)")
 		end
 	end
 
@@ -378,7 +401,15 @@ local function validate(context, report)
 
 	validateActionReferences(context, report)
 	validateObjectiveEventReferences(context, report)
-	validateMarkerNameReferences(context, report)
+	validateDrawnNameReferences(
+		context,
+		report,
+		"Marker name",
+		"markerName",
+		actionTypes.AddMapMarker,
+		actionTypes.RemoveMapMarker
+	)
+	validateDrawnNameReferences(context, report, "Line name", "lineName", actionTypes.DrawLines, actionTypes.RemoveLine)
 
 	validateNameReferences(context, report, {
 		label = "Unit name",

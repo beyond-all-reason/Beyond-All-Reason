@@ -1,4 +1,56 @@
+# October
+- [Shuriken] 280.5 -> 270 speed
+- [Tiger] 462 -> 410 LoS, DPS -4%, Projectile velocity 410 -> 330
+- [Cortex Gantry] 8400m -> 8000m cost
+- [Vertical launcher weapons]
+  - Acceleration and other flight characteristics finetuned, to better fit last month's change. Results in a slightly (~10%) faster time to hit a target at max range.
+  - Hotfix: Ambassador, Negotiator, and Boreas were undodgeable. Lowered their projectile speed buff to 30% and retuned them.
+  - Edgeeffectiveness (damage falloff rate) set for all non-EMP, non-nuke vertical launch missiles to 0.5, and impulse set to 1.
+  - Individual unit changes:
+    - Missile Hovercraft: EE 0.15 -> 0.5, Impulse added
+    - Juggernaut Missile: EE 0.85 -> 0.5, Damage 800 -> 1000
+    - Titan Missile: EE 0.15 -> 0.5, Impulse added, Reloadtime 6.8 -> 7
+    - Ambassador / Boreas: 6300 -> 10000 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 1900 -> 2000, AoE 150 -> 160
+    - Negotiator: 6700 -> 9000 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Reloadtime 16 -> 15
+    - Arbiter: 5800 -> 6500 energycost, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
+    - Shiva: 1600m -> 1700 metalcost, Cannon: AoE 176 -> 160, Missile: EE 0.65 -> 0.5, Impulse 0.8 -> 1, Damage 800 -> 850
+- [Legion changes]
+  - Helios 800 -> 1000 health, 160 -> 135 damage.
+  - Alaris reloadtime 2.1 -> 1.2, damage 15 -> 10 (+16 % dps)
+  - Quickshot reloadtime 2.0 -> 1.2, damage 120 -> 72 (same dps), metalcost 250 -> 210
+  - Prometheus metalcost 1250 -> 1050, energycost 19000 -> 15000, energypershot 10 -> 5 (firing continually costs 300 energy/s -> 150 energy/s), health 7700 -> 5700, damage 33 -> 25 (-24 % dps)
+  - Pilum 1850m -> 1500m, 42000e -> 65000e, 46430 -> 66430 buildtime
+    - Railgun works like other railguns, no longer deals area damage
+    - Piledriver is a weak disintegrator: same effective DPS, edgeeffectiveness 0.8 -> 0.15
+  - Unit damage is much more visible. Wrecks show less team color and are darker.
+  - Argonaut can aim downward again
+  - Railguns never skip a collision, before they sometimes could.
+  - Sweepfire heatrays have a smoother motion and do not slip off their targets on slopes.
+  - Drones spread out better, guard moving carriers better (unused in vanilla), and land and launch smoothly.
+- [Epic Commando] Removed from the Cortex Gantry and Underwater Gantry build options. Scavengers still spawn it.
+- [Dominion] The game mode Territorial Domination has been renamed to Dominion.
+- [Fixed]
+  - Twitcher can leave behind wrecks and debris again.
+  - Autotargeting for dozens of weapons (and most Raptors units) now reads the weapon's position and direction correctly.
+  - User widgets can no longer be hidden and cannot pass themselves off as game widgets. Protected against widgets changing their own permissions or loading via injection.
+
 # September
+- [Vertical launcher weapons] Keep a higher trajectory when approaching their target and drop from higher angles to avoid terrain and other blockers.
+- [Laser weapons] Given a tiny AoE to be able to damage small units in shallow water. As a side-effect, they can deal AoE damage to stacked air units.
+- [T1 Air Constructors] -10 buildpower
+- [Grunt, Pawn, Goblin] Script improvements. No longer fire sideways when switching targets mid-shot or going in and out of range
+- [Mobile Jammers]
+  - Smuggler 48.3 -> 37 speed
+  - Deceiver, Tiresias: 39 -> 35 speed, 1550 -> 1300 energycost
+  - Umbra 33 -> 43 speed, 1700 -> 2000 energycost
+- [Heavy Ships] -15 -> -8 minimum water depth - Able to pass into same shallow waters as other ships.
+- [Legion changes]
+  - Perdition doesn't gain extra range from elevation
+  - Martyr damages are added to its team's damage dealt
+  - Harbinger mines now spawn and detonate on tall targets
+  - EMP damage prevents reactive armor from regenerating
+  - Disable Air Units now removes and refunds drone spawners
+  - Range rings, graphics, blueprints, and other housekeeping
 - [Scavenger Zombies]
   - After 15 minutes into the game, zombies will swarm all teams evenly once they reach 10% of the value of all players combined.
   - Zombies spawn with XP skewed to the minimum veterancy so they aren't so tanky so often.
@@ -6,6 +58,22 @@
   - Units that don't leave corpses like the Fiend will no longer respawn as zombies.
   - Zombie constructors get a boosted capture range of a minimum of 300. This makes them capable of capturing aircraft.
   - Zombies now can control aircraft when they're captured or produced.
+- [Territorial Domination]
+  - Points are now gained continuously, rounds are renamed to "Deadlines", GUI Reworked to better represent the new points system.
+  - Default length is now 5 Deadlines of 6 minutes (30 minutes). Length options are 3, 4, 5, 7, or 10 Deadlines.
+- [Quick Start]
+  - Selecting start location now pre-fills your build queue with a suggested base you can edit or discard.
+  - Suggestions leave enough leftover budget to almost or exactly afford the cheapest factory, unless you already queued one.
+- [Critters]
+  - Map critters can gain health and follow your Commander as a companion.
+- [Fixed]
+  - Bomber settings applied at unit creation could lock them out of Fight, Patrol, and autotargeting.
+  - Builder priority handling has been improved, and constructors now default to low priority (commanders remain high).
+  - Some units could not target the sea floor with Set Target. Water, non-water, and mixed weapon sets all can target ground together.
+- [Custom]
+  - Jammers, Solars, etc. can use custom values for how long they spend disabled after taking damage. Defaults to 8 seconds.
+  - Units with sweepfire weapons can use custom values for their firing and reload times.
+  - Many more unit properties that constitute the bulk of BAR-trivia can use custom values, as well.
 
 # August
 - [Spectre] 12500 -> 9000 energycost, 165 -> 150 metalcost, 380 -> 450 health

@@ -5,7 +5,7 @@ local triggers = {
 	addMarkers = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			seconds = 2,
+			seconds = 3,
 		},
 		actions = { 'addMarkerToRemove', 'addMarkerToKeep', 'messageAddMarkers' },
 	},
@@ -15,23 +15,31 @@ local triggers = {
 		parameters = {
 			seconds = 6,
 		},
-		actions = { 'drawLines', 'messageDrawLines' },
+		actions = { 'drawLines', 'drawTriangle', 'messageDrawLines' },
 	},
 
 	removeMarker = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			seconds = 9,
+			seconds = 12,
 		},
 		actions = { 'removeMarker', 'messageRemoveMarker' },
+	},
+
+	removeLine = {
+		type = triggerTypes.TimeElapsed,
+		parameters = {
+			seconds = 15,
+		},
+		actions = { 'removeBox', 'messageRemoveLine' },
 	},
 
 	removeAll = {
 		type = triggerTypes.TimeElapsed,
 		parameters = {
-			seconds = 12,
+			seconds = 18,
 		},
-		actions = { 'removeAll', 'messageRemoveAll' },
+		actions = { 'removeAll', 'removeAllLines', 'messageRemoveAll' },
 	},
 }
 
@@ -57,13 +65,14 @@ local actions = {
 	messageAddMarkers = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Two markers: a labelled one to remove by name, a bare one to leave until the end.',
+			messageKey = 'Two markers: a labelled one to remove by name, a bare one to leave until the end.',
 		},
 	},
 
 	drawLines = {
 		type = actionTypes.DrawLines,
 		parameters = {
+			lineName = 'box',
 			positions = {
 				{ x = 1600, z = 2100 },
 				{ x = 1600, z = 2300 },
@@ -74,10 +83,23 @@ local actions = {
 		},
 	},
 
+	drawTriangle = {
+		type = actionTypes.DrawLines,
+		parameters = {
+			lineName = 'triangle',
+			positions = {
+				{ x = 2300, z = 2100 },
+				{ x = 2500, z = 2100 },
+				{ x = 2400, z = 2300 },
+				{ x = 2300, z = 2100 },
+			},
+		},
+	},
+
 	messageDrawLines = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's draw a box.",
+			messageKey = "Let's draw a box and a triangle.",
 		},
 	},
 
@@ -91,7 +113,21 @@ local actions = {
 	messageRemoveMarker = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's remove one marker by name.",
+			messageKey = "Let's remove one marker by name.",
+		},
+	},
+
+	messageRemoveLine = {
+		type = actionTypes.SendMessage,
+		parameters = {
+			messageKey = "Let's remove the box by name, leaving the triangle.",
+		},
+	},
+
+	removeBox = {
+		type = actionTypes.RemoveLine,
+		parameters = {
+			lineName = 'box',
 		},
 	},
 
@@ -99,10 +135,14 @@ local actions = {
 		type = actionTypes.RemoveAllMapMarkers,
 	},
 
+	removeAllLines = {
+		type = actionTypes.RemoveAllLines,
+	},
+
 	messageRemoveAll = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "Let's remove every marker.",
+			messageKey = "Let's remove every marker and line, including the triangle.",
 		},
 	},
 }

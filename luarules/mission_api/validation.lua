@@ -32,6 +32,7 @@ end
 local function createValidationContext(mission, report)
 	local missionAPI = GG["MissionAPI"]
 	local parameterTypes = missionAPI.Modules.ParameterTypes
+	local difficulty = missionAPI.Modules.Difficulty
 	local triggerDefinitions = missionAPI.TriggerDefinitions
 	local actionDefinitions = missionAPI.ActionDefinitions
 
@@ -49,6 +50,10 @@ local function createValidationContext(mission, report)
 		Types = parameterTypes.Types,
 		Enums = parameterTypes.Enums,
 		EnumSets = parameterTypes.EnumSets,
+
+		-- Difficulties, since any parameter may hold one value per difficulty:
+		IsDifficultiesTable = difficulty.IsDifficultiesTable,
+		PossibleValues = difficulty.PossibleValues,
 
 		-- Trigger definitions:
 		TriggerTypes = triggerDefinitions.Types,

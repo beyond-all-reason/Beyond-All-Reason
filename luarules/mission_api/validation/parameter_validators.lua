@@ -8,6 +8,9 @@
 
 VFS.Include("common/wav.lua")
 
+local attributeDefinitions = require("luarules/gadgets/include/unit_attributes")
+local attributeRules = require("luarules/gadgets/include/unit_attributes_rules")
+
 --------------------------------------------------------------------------------
 -- Helper functions
 --------------------------------------------------------------------------------
@@ -186,6 +189,23 @@ local function registerValueValidators(parameterValidators, context)
 	parameterValidators[Types.TriggerIDs] = getListValidator(parameterValidators[Types.TriggerID])
 	parameterValidators[Types.ObjectiveIDs] = getListValidator(parameterValidators[Types.ObjectiveID])
 
+	parameterValidators[Types.Difficulty] = getLookupValidator(validateString, "difficulty", function(difficulty)
+		return enums[Types.Difficulty][difficulty]
+	end)
+	-- Must be an array: difficulty.lua resolves the names with ipairs, so any other key
+	-- would leave its name unresolved and the trigger disabled on every difficulty.
+	local validateDifficultyList = getListValidator(parameterValidators[Types.Difficulty])
+	parameterValidators[Types.Difficulties] = function(difficulties)
+		if type(difficulties) == "table" then
+			for key in pairs(difficulties) do
+				if type(key) ~= "number" then
+					return { { message = "Expected an array of difficulty names, got key: " .. tostring(key) } }
+				end
+			end
+		end
+		return validateDifficultyList(difficulties)
+	end
+
 	parameterValidators[Types.Facing] = function(facing)
 		local expectedTypes = { string = true, number = true }
 		local actualType = type(facing)
@@ -216,6 +236,51 @@ local function registerValueValidators(parameterValidators, context)
 
 		if not ReadWAV(soundfile) then
 			return { { message = "Invalid soundfile: " .. soundfile .. ". File is not a RIFF .wav file" } }
+		end
+	end
+
+	--- Attribute validators. Whether an attribute suits the action, value and unit def it
+	--- is used with is checked per action, see sections.lua.
+	parameterValidators[Types.UnitAttribute] = function(attribute)
+		local luaTypeResult = validateString(attribute)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local ok, reason = attributeRules.CanSetUnitAttribute(attributeDefinitions.AttributeDefinitions[attribute])
+		if not ok then
+			return { { message = "Unit attribute '" .. attribute .. "' " .. reason } }
+		end
+	end
+
+	parameterValidators[Types.WeaponAttribute] = function(attribute)
+		local luaTypeResult = validateString(attribute)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+
+		local ok, reason =
+			attributeRules.CanSetUnitWeaponAttribute(attributeDefinitions.AttributeDefinitions[attribute])
+		if not ok then
+			return { { message = "Weapon attribute '" .. attribute .. "' " .. reason } }
+		end
+	end
+
+	parameterValidators[Types.WeaponNumber] = function(weapon)
+		if enums[Types.WeaponNumber][weapon] then
+			return
+		end
+		if type(weapon) ~= "number" or weapon <= 0 or weapon % 1 ~= 0 then
+			return { { message = "Expected a weapon number, 'explode' or 'selfDestruct', got " .. tostring(weapon) } }
+		end
+	end
+
+	parameterValidators[Types.AttributeValue] = function(value)
+		local valueType = type(value)
+		if valueType ~= "number" and valueType ~= "string" and valueType ~= "boolean" then
+			return {
+				{ message = "Unexpected parameter type, expected number, string or boolean, got " .. valueType },
+			}
 		end
 	end
 

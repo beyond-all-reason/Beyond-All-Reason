@@ -248,49 +248,49 @@ local actions = {
 	messageAlphaReached = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] alpha reached 2 seconds remaining (expected at 5s)',
+			messageKey = '[Countdowns test] alpha reached 2 seconds remaining (expected at 5s)',
 		},
 	},
 
 	messageHeldReached = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] held reached 8 seconds remaining (expected at 7s)',
+			messageKey = '[Countdowns test] held reached 8 seconds remaining (expected at 7s)',
 		},
 	},
 
 	messageHeldFinished = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] held finished (expected at 15s)',
+			messageKey = '[Countdowns test] held finished (expected at 15s)',
 		},
 	},
 
 	messageDoomedFinished = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] THIS MUST NEVER APPEAR - doomed was cancelled',
+			messageKey = '[Countdowns test] THIS MUST NEVER APPEAR - doomed was cancelled',
 		},
 	},
 
 	messageAdjustedReached = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] adjusted reached 1 second remaining (expected at 10s)',
+			messageKey = '[Countdowns test] adjusted reached 1 second remaining (expected at 10s)',
 		},
 	},
 
 	messageAdjustedFinished = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] adjusted finished (expected at 11s: set to 10 at 4s, +5 at 6s, -9 at 8s)',
+			messageKey = '[Countdowns test] adjusted finished (expected at 11s: set to 10 at 4s, +5 at 6s, -9 at 8s)',
 		},
 	},
 
 	messageHiddenFinished = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = '[Countdowns test] hidden finished (expected at exactly 4s: not displayed, no hold)',
+			messageKey = '[Countdowns test] hidden finished (expected at exactly 4s: not displayed, no hold)',
 		},
 	},
 }

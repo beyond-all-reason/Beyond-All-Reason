@@ -256,6 +256,12 @@ function farInv.flush(force)
 	if T and T.refreshSurface then
 		T.refreshSurface(d[1], d[2], d[3], d[4])
 	end
+	-- A flushed rect is paint on the map: the project has unsaved changes.
+	---@type table?
+	local mp = WG.MapProject
+	if mp and mp.markDirty then
+		mp.markDirty("splat")
+	end
 	farInv.dirty = nil
 	farInv.at = now
 end
@@ -322,7 +328,7 @@ local function isPointValid(px, pz)
 	end
 
 	-- Slope checks
-	local nx, ny, nz = GetGroundNormal(px, pz)
+	local nx, ny, _ = GetGroundNormal(px, pz)
 	if nx then
 		if sf.avoidCliffs then
 			local cosMax = cos(sf.slopeMax * pi / 180)

@@ -321,70 +321,70 @@ local actions = {
 	messageTotalUnitsKilled = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsKilled fired: Team 0 has killed >= 1 unit.",
+			messageKey = "[Statistics Test] TotalUnitsKilled fired: Team 0 has killed >= 1 unit.",
 		},
 	},
 
 	messageTotalUnitsKilledNamed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsKilled fired for unitName enemyBot.",
+			messageKey = "[Statistics Test] TotalUnitsKilled fired for unitName enemyBot.",
 		},
 	},
 
 	messageTotalUnitsKilledAlias = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsKilled fired for alias enemyScout.",
+			messageKey = "[Statistics Test] TotalUnitsKilled fired for alias enemyScout.",
 		},
 	},
 
 	messageTotalUnitsLost = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsLost fired: Team 0 has lost >= 1 unit.",
+			messageKey = "[Statistics Test] TotalUnitsLost fired: Team 0 has lost >= 1 unit.",
 		},
 	},
 
 	messageTotalUnitsLostNamed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsLost fired for unitName friendlyBot.",
+			messageKey = "[Statistics Test] TotalUnitsLost fired for unitName friendlyBot.",
 		},
 	},
 
 	messageTotalUnitsLostAlias = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsLost fired for alias friendlyAce.",
+			messageKey = "[Statistics Test] TotalUnitsLost fired for alias friendlyAce.",
 		},
 	},
 
 	messageTotalUnitsCaptured = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsCaptured fired: Team 0 has captured >= 1 unit.",
+			messageKey = "[Statistics Test] TotalUnitsCaptured fired: Team 0 has captured >= 1 unit.",
 		},
 	},
 
 	messageTotalUnitsCapturedNamed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsCaptured fired for unitName capturableSolar.",
+			messageKey = "[Statistics Test] TotalUnitsCaptured fired for unitName capturableSolar.",
 		},
 	},
 
 	messageTotalUnitsCapturedNamedByDef = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsCaptured fired for unitName capturePrize + unitDefName armsolar.",
+			messageKey = "[Statistics Test] TotalUnitsCaptured fired for unitName capturePrize + unitDefName armsolar.",
 		},
 	},
 
 	messageTotalUnitsBuilt = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] TotalUnitsBuilt fired: Team 0 has built >= 1 unit.",
+			messageKey = "[Statistics Test] TotalUnitsBuilt fired: Team 0 has built >= 1 unit.",
 		},
 	},
 
@@ -393,35 +393,35 @@ local actions = {
 	messageUnitsOwned = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] UnitsOwned fired: Team 0 owns >= 1 unit.",
+			messageKey = "[Statistics Test] UnitsOwned fired: Team 0 owns >= 1 unit.",
 		},
 	},
 
 	messageUnitsOwnedByName = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] UnitsOwned fired for unitName friendlyBot.",
+			messageKey = "[Statistics Test] UnitsOwned fired for unitName friendlyBot.",
 		},
 	},
 
 	messageUnitsOwnedByDef = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] UnitsOwned fired for unitDefName armck x4.",
+			messageKey = "[Statistics Test] UnitsOwned fired for unitDefName armck x4.",
 		},
 	},
 
 	messageUnitsOwnedByDefRepeating = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] UnitsOwned repeating fired for unitDefName armck (milestone x2 each).",
+			messageKey = "[Statistics Test] UnitsOwned repeating fired for unitDefName armck (milestone x2 each).",
 		},
 	},
 
 	messageUnitsOwnedByNameAndDef = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = "[Statistics Test] UnitsOwned fired for unitName friendlyBot + unitDefName armwar.",
+			messageKey = "[Statistics Test] UnitsOwned fired for unitName friendlyBot + unitDefName armwar.",
 		},
 	},
 }

@@ -3,7 +3,7 @@ local gadget = gadget ---@type Gadget
 function gadget:GetInfo()
 	return {
 		name = "Cancel orders on share",
-		desc = "Prevents units carrying on with orders once shared/taken and turns on mexes that have been captured",
+		desc = "Prevents units carrying on with orders once shared/taken and turns on mexes and targeting facilities that have been captured",
 		author = "Bluestone, Beherith",
 		date = "Jan 2015",
 		license = "GNU GPL, v2 or later",
@@ -28,23 +28,44 @@ if not gadgetHandler:IsSyncedCode() then
 		end
 	end
 else -- SYNCED
-	local receivedMexes = {}
+	local unitsToTurnOn = {}
+
+	local isTargetingFacility = {}
+	local turnsOnWhenGiven = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isTargetingUpgrade then
+			isTargetingFacility[unitDefID] = true
+		end
+		if unitDef.isTargetingUpgrade or unitDef.extractsMetal > 0 then
+			turnsOnWhenGiven[unitDefID] = true
+		end
+	end
+
+	function gadget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+		-- the engine turns captured units off under the new team, which would charge that team the radar credit
+		if
+			isTargetingFacility[unitDefID]
+			and Spring.GetUnitIsActive(unitID)
+			and Spring.GetTeamAllyTeamID(unitTeam) ~= Spring.GetTeamAllyTeamID(newTeam)
+		then
+			Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { 0 }, 0)
+		end
+	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-		-- if the unit is a metal extractor, turn it on:
-		if UnitDefs[unitDefID] and UnitDefs[unitDefID].extractsMetal and UnitDefs[unitDefID].extractsMetal > 0 then
-			receivedMexes[#receivedMexes + 1] = unitID
+		if turnsOnWhenGiven[unitDefID] then
+			unitsToTurnOn[#unitsToTurnOn + 1] = unitID
 		end
 	end
 
 	function gadget:GameFrame(n)
-		if n % 37 == 0 and #receivedMexes > 0 then
-			for i, unitID in ipairs(receivedMexes) do
+		if n % 37 == 0 and #unitsToTurnOn > 0 then
+			for _, unitID in ipairs(unitsToTurnOn) do
 				if Spring.ValidUnitID(unitID) then
 					Spring.GiveOrderToUnit(unitID, CMD.ONOFF, { 1 }, 0)
 				end
 			end
-			receivedMexes = {}
+			unitsToTurnOn = {}
 		end
 	end
 end

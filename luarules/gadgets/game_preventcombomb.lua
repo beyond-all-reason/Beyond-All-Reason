@@ -16,6 +16,8 @@ if not gadgetHandler:IsSyncedCode() then
 	return false
 end
 
+local math_random = math.random
+
 local GetTeamInfo = Spring.GetTeamInfo
 local GetUnitPosition = Spring.GetUnitPosition
 local GetUnitHealth = Spring.GetUnitHealth
@@ -26,8 +28,12 @@ local MoveCtrlEnable = Spring.MoveCtrl.Enable
 local MoveCtrlDisable = Spring.MoveCtrl.Disable
 local MoveCtrlSetPosition = Spring.MoveCtrl.SetPosition
 local GetGameFrame = Spring.GetGameFrame
-local GetUnitTeam = Spring.GetUnitTeam
-local math_random = math.random
+
+local fallingDamageTypes = {
+	[Game.envDamageTypes.GroundCollision] = true,
+	[Game.envDamageTypes.ObjectCollision] = true,
+	[Game.envDamageTypes.Debris] = true,
+}
 
 local immuneDgunList = {}
 local ctrlCom = {}
@@ -86,18 +92,17 @@ function gadget:UnitPreDamaged(
 	unitTeam,
 	damage,
 	paralyzer,
-	weaponID,
+	weaponDefID,
 	projectileID,
 	attackerID,
 	attackerDefID,
 	attackerTeam
 )
-	--falling & debris damage
-	if weaponID < 0 and cantFall[unitID] then
+	if fallingDamageTypes[weaponDefID] and cantFall[unitID] then
 		return 0, 0
 	end
 
-	if weaponID == COM_BLAST then
+	if weaponDefID == COM_BLAST then
 		local hp = GetUnitHealth(unitID)
 		if not hp then
 			return damage
@@ -113,23 +118,17 @@ function gadget:UnitPreDamaged(
 			combombDamage = damage
 		end
 
-		if weaponID == COM_BLAST and isCommander[unitDefID] and attackerID then
-			local unitTeamID = GetUnitTeam(unitID)
-			local attackerTeamID = GetUnitTeam(attackerID)
-
-			if unitTeamID and attackerTeamID and CommCount(unitTeamID) <= 1 and CommCount(attackerTeamID) <= 1 then
+		if attackerID and isCommander[unitDefID] then
+			if unitTeam and attackerTeam and CommCount(unitTeam) <= 1 and CommCount(attackerTeam) <= 1 then
 				if unitID ~= attackerID then
-					-- make unitID immune to DGun
 					local currentFrame = GetGameFrame()
 					immuneDgunList[unitID] = currentFrame + 45
-					--prevent falling damage to the unitID, and lock position
-					MoveCtrlEnable(unitID)
+					MoveCtrlEnable(unitID) -- prevent falling damage and lock position
 					ctrlCom[unitID] = currentFrame + 30
 					cantFall[unitID] = currentFrame + 30
 					return combombDamage, 0
 				else
-					--com blast hurts the attackerID
-					return damage
+					return damage -- will just be ignored as self-damages
 				end
 			end
 		end

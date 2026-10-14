@@ -23,7 +23,6 @@
 			"edit_prev_word",
 			"edit_return",
 			"losradar",
-			"luaui selector",
 			"movereset",
 			"moverotate",
 			"moveslow",
@@ -156,11 +155,6 @@
 				"alwaysModifier": "shift"
 			},
 			{
-				"action": "wantcloak",
-				"label": "actions.orders.cloak",
-				"alwaysModifier": "any"
-			},
-			{
 				"action": "stop",
 				"label": "commands.stop",
 				"alwaysModifier": "shift"
@@ -276,45 +270,145 @@
 				"label": "actions.unitStates.onoffOn"
 			},
 			{
+				"action": "repeat",
+				"label": "actions.unitStates.repeatToggle",
+				"description": "commands.repeat_tooltip"
+			},
+			{
 				"action": "repeat 0",
-				"label": "actions.unitStates.repeatOff"
+				"label": "actions.unitStates.repeatOff",
+				"description": "commands.repeat_tooltip"
 			},
 			{
 				"action": "repeat 1",
-				"label": "actions.unitStates.repeatOn"
+				"label": "actions.unitStates.repeatOn",
+				"description": "commands.repeat_tooltip"
 			},
 			{
-				"prefix": "trajectory_toggle ",
-				"label": "actions.unitStates.trajectory",
-				"members": [
-					"0",
-					"1",
-					"2"
-				]
+				"action": "wantcloak",
+				"label": "actions.orders.cloak",
+				"description": "commands.wantcloak_tooltip",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "trajectory_toggle 0",
+				"label": "actions.unitStates.trajectoryLow",
+				"description": "commands.trajectory_toggle_tooltip"
+			},
+			{
+				"action": "trajectory_toggle 1",
+				"label": "actions.unitStates.trajectoryHigh",
+				"description": "commands.trajectory_toggle_tooltip"
+			},
+			{
+				"action": "trajectory_toggle 2",
+				"label": "actions.unitStates.trajectoryAuto",
+				"description": "commands.trajectory_toggle_tooltip"
 			},
 			{
 				"action": "firestate 0",
-				"label": "actions.unitStates.fireHold"
+				"label": "actions.unitStates.fireHold",
+				"description": "commands.firestate_hold_fire_descr"
 			},
 			{
 				"action": "firestate 1",
-				"label": "actions.unitStates.fireReturn"
+				"label": "actions.unitStates.fireReturn",
+				"description": "commands.firestate_return_fire_descr"
 			},
 			{
 				"action": "firestate 2",
-				"label": "actions.unitStates.fireAtWill"
+				"label": "actions.unitStates.fireAtWill",
+				"description": "commands.firestate_fire_at_will_descr"
 			},
 			{
 				"action": "movestate 0",
-				"label": "actions.unitStates.moveHold"
+				"label": "actions.unitStates.moveHold",
+				"description": "commands.movestate_tooltip"
 			},
 			{
 				"action": "movestate 1",
-				"label": "actions.unitStates.moveManeuver"
+				"label": "actions.unitStates.moveManeuver",
+				"description": "commands.movestate_tooltip"
 			},
 			{
 				"action": "movestate 2",
-				"label": "actions.unitStates.moveRoam"
+				"label": "actions.unitStates.moveRoam",
+				"description": "commands.movestate_tooltip"
+			},
+			{
+				"action": "idlemode",
+				"label": "actions.unitStates.idleMode",
+				"description": "commands.idlemode_tooltip"
+			},
+			{
+				"action": "idlemode 0",
+				"label": "actions.unitStates.idleModeFly",
+				"description": "commands.idlemode_tooltip"
+			},
+			{
+				"action": "idlemode 1",
+				"label": "actions.unitStates.idleModeLand",
+				"description": "commands.idlemode_tooltip"
+			},
+			{
+				"action": "priority",
+				"label": "actions.unitStates.buildPriority",
+				"description": "commands.priority_tooltip"
+			},
+			{
+				"action": "priority 0",
+				"label": "actions.unitStates.buildPriorityLow",
+				"description": "commands.priority_tooltip"
+			},
+			{
+				"action": "priority 1",
+				"label": "actions.unitStates.buildPriorityHigh",
+				"description": "commands.priority_tooltip"
+			},
+			{
+				"action": "aplandat",
+				"label": "actions.unitStates.airPlantExit",
+				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "aplandat 0",
+				"label": "actions.unitStates.airPlantExitFly",
+				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "aplandat 1",
+				"label": "actions.unitStates.airPlantExitLand",
+				"description": "commands.aplandat_tooltip"
+			},
+			{
+				"action": "factoryqueuemode",
+				"label": "actions.factory.queueMode",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 0",
+				"label": "actions.unitStates.factoryModeQueue",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryqueuemode 1",
+				"label": "actions.unitStates.factoryModeQuota",
+				"description": "commands.factoryqueuemode_tooltip"
+			},
+			{
+				"action": "factoryguard",
+				"label": "actions.unitStates.factoryGuard",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 0",
+				"label": "actions.unitStates.factoryGuardOff",
+				"description": "commands.factoryguard_tooltip"
+			},
+			{
+				"action": "factoryguard 1",
+				"label": "actions.unitStates.factoryGuardOn",
+				"description": "commands.factoryguard_tooltip"
 			}
 		]
 	},
@@ -464,6 +558,103 @@
 		]
 	},
 	{
+		"category": "categories.squads",
+		"items": [
+			{
+				"action": "squad_select",
+				"label": "actions.squads.select"
+			},
+			{
+				"action": "squad_select append_domain",
+				"label": "actions.squads.append"
+			},
+			{
+				"action": "squad_select_filtered retarget",
+				"label": "actions.squads.selectFiltered"
+			},
+			{
+				"action": "squad_select_filtered append distance_850",
+				"label": "actions.squads.appendFiltered"
+			},
+			{
+				"action": "squad_select_portion 0",
+				"label": "actions.squads.selectOne"
+			},
+			{
+				"action": "squad_select_portion 0 append_domain",
+				"label": "actions.squads.appendOne"
+			},
+			{
+				"action": "squad_select_portion_filtered 0",
+				"label": "actions.squads.selectOneFiltered"
+			},
+			{
+				"action": "squad_select_portion_filtered 0 append",
+				"label": "actions.squads.appendOneFiltered"
+			},
+			{
+				"action": "squad_select append locked",
+				"label": "actions.squads.appendLocked"
+			},
+			{
+				"action": "squad_create",
+				"label": "actions.squads.create"
+			},
+			{
+				"action": "squad_lock",
+				"label": "actions.squads.lock"
+			},
+			{
+				"action": "squad_limit_flip",
+				"label": "actions.squads.limitFlip"
+			},
+			{
+				"action": "squad_expand",
+				"label": "actions.squads.expand"
+			},
+			{
+				"action": "squad_cycle_recent",
+				"label": "actions.squads.cycleRecent"
+			},
+			{
+				"action": "squad_cycle_idle",
+				"label": "actions.squads.cycleIdle"
+			},
+			{
+				"prefix": "squad_select_group append_domain ",
+				"label": "actions.squads.groupAppend",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			},
+			{
+				"prefix": "squad_select_group ",
+				"label": "actions.squads.group",
+				"members": [
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+					"5",
+					"6",
+					"7",
+					"8",
+					"9"
+				]
+			}
+		]
+	},
+	{
 		"category": "categories.buildHotkeys",
 		"items": [
 			{
@@ -499,18 +690,6 @@
 				"action": "buildsplit",
 				"label": "actions.buildHotkeys.split",
 				"alwaysModifier": "any"
-			},
-			{
-				"action": "factoryqueuemode",
-				"label": "actions.factory.queueMode"
-			},
-			{
-				"prefix": "factoryguard ",
-				"label": "commands.factoryguard",
-				"members": [
-					"0",
-					"1"
-				]
 			}
 		]
 	},
@@ -680,6 +859,54 @@
 			{
 				"action": "pip1_track",
 				"label": "actions.camera.pipTrack"
+			},
+			{
+				"action": "pip_replay",
+				"label": "actions.camera.pipReplay"
+			},
+			{
+				"action": "pip_replay_death",
+				"label": "actions.camera.pipReplayDeath"
+			},
+			{
+				"action": "pip_history_toggle",
+				"label": "actions.camera.pipHistoryToggle"
+			},
+			{
+				"action": "pip_history_playpause",
+				"label": "actions.camera.pipHistoryPlayPause"
+			},
+			{
+				"action": "pip_history_back",
+				"label": "actions.camera.pipHistoryBack"
+			},
+			{
+				"action": "pip_history_forward",
+				"label": "actions.camera.pipHistoryForward"
+			},
+			{
+				"action": "pip_history_live",
+				"label": "actions.camera.pipHistoryLive"
+			},
+			{
+				"action": "pip_history_faster",
+				"label": "actions.camera.pipHistoryFaster"
+			},
+			{
+				"action": "pip_history_slower",
+				"label": "actions.camera.pipHistorySlower"
+			},
+			{
+				"action": "pip_history_reverse",
+				"label": "actions.camera.pipHistoryReverse"
+			},
+			{
+				"action": "pip_history_play",
+				"label": "actions.camera.pipHistoryPlay"
+			},
+			{
+				"action": "pip_history_stats",
+				"label": "actions.camera.pipHistoryStats"
 			}
 		]
 	},
@@ -708,12 +935,20 @@
 				"label": "actions.interfaceDisplay.settings"
 			},
 			{
+				"action": "luaui selector",
+				"label": "actions.interfaceDisplay.widgetSelector"
+			},
+			{
 				"action": "hideinterface",
 				"label": "actions.cameraModes.interface"
 			},
 			{
 				"action": "unit_stats",
 				"label": "actions.interfaceDisplay.unitStats"
+			},
+			{
+				"action": "customgameinfo",
+				"label": "actions.interfaceDisplay.gameInfo"
 			},
 			{
 				"action": "savegame",
@@ -798,6 +1033,12 @@
 					"7",
 					"8"
 				]
+			},
+			{
+				"prefix": "keybindprofile ",
+				"label": "actions.keybindProfiles.activate",
+				"description": "actions.keybindProfiles.activateDescription",
+				"membersFrom": "profiles"
 			}
 		]
 	},
@@ -844,6 +1085,11 @@
 			{
 				"action": "factory_preset_show",
 				"label": "actions.factory.showPresets",
+				"alwaysModifier": "any"
+			},
+			{
+				"action": "factory_preset_toggle",
+				"label": "actions.factory.togglePresets",
 				"alwaysModifier": "any"
 			},
 			{

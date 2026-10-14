@@ -23,7 +23,7 @@
 -- old gadget-local isInsideShape used an apothem-based polygon convention that
 -- did not match the drawn outline.
 
-local BrushShapes = VFS.Include("common/brush_shapes.lua")
+local BrushShapes = require("common/brush_shapes")
 local isInside = BrushShapes.isInside
 
 local max = math.max
