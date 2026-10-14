@@ -16161,7 +16161,6 @@ local guideHints = {
 	["btn-ramp"] = "Click and drag to build a smooth slope between two elevation points. Use Length to control taper width.",
 	["btn-restore"] = "Erase your edits and restore the original map height — useful to undo a specific area without affecting the rest.",
 	["btn-noise"] = "Apply procedural noise to the terrain. Opens the Noise Parameters window to choose the noise type and detail.",
-	["btn-erode"] = "Thermal erosion: slopes steeper than the repose angle shed material downhill while you hold LMB, weathering sharp cliffs into natural intermediate aprons.",
 	["slider-erode-repose"] = "Repose angle (10\xc2\xb0\xe2\x80\x9360\xc2\xb0): the steepest slope that survives erosion. Lower angles erode more aggressively into gentle scree; higher angles keep cliffs mostly intact.",
 	["btn-ramp-auto"] = "Autoramp: click an existing cliff to rebuild it at a chosen angle, with wavy edges, erosion gullies and scree buildup at the base. One click per cliff; each click is one undo step.",
 	["slider-ar-angle"] = "Target slope of the rebuilt cliff face (10\xc2\xb0\xe2\x80\x9385\xc2\xb0). Low values turn the cliff into a walkable ramp; high values keep it a sheer wall.",

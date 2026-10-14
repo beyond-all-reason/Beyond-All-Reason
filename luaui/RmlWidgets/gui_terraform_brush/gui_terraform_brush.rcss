@@ -708,11 +708,6 @@ body {
 	background-color: #2b2113;
 }
 
-.tf-btn-erode.active {
-	border-color: #fdc04c;
-	background-color: #2b2113;
-}
-
 .tf-noise-type-btn.active {
 	border-color: #fdc04c;
 	background-color: #2b2113;
@@ -3662,11 +3657,6 @@ body {
 }
 
 .tf-btn-noise.active:hover {
-	background-color: #3b2d17;
-	border-color: #ffd47a;
-}
-
-.tf-btn-erode.active:hover {
 	background-color: #3b2d17;
 	border-color: #ffd47a;
 }
