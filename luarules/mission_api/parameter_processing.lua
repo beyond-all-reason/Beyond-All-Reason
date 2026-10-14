@@ -62,7 +62,6 @@ local function processSoundFile(soundfile)
 	end
 end
 
--- Keyframe positions are Position fields too: the ground height stands in for a missing y.
 local function processCameraKeyframes(keyframes)
 	for _, keyframe in ipairs(keyframes) do
 		if keyframe.position then

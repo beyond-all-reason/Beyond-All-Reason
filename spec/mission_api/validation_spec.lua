@@ -799,7 +799,7 @@ describe("mission_api.validation", function()
 			end)
 		end)
 
-		describe("Easing and the other camera enums", function()
+		describe("CameraEasing and the other camera enums", function()
 			it("accepts a known easing", function()
 				actionErrors({
 					type = actionTypes.FollowCamera,
@@ -838,22 +838,6 @@ describe("mission_api.validation", function()
 					end
 				end
 				assert.is_true(missing)
-			end)
-		end)
-
-		describe("UnitNames", function()
-			it("rejects an empty list", function()
-				actionErrors({ type = actionTypes.FollowCamera, parameters = { unitNames = {} } })
-				assert.is_true(hasError("Unit names table is empty. Action: a, Parameter: unitNames"))
-			end)
-
-			it("rejects a non-string name", function()
-				actionErrors({ type = actionTypes.FollowCamera, parameters = { unitNames = { "hero", 5 } } })
-				assert.is_true(
-					hasError(
-						"Unexpected parameter type, expected string, got number. Action: a, Parameter: unitNames.unitName #2"
-					)
-				)
 			end)
 		end)
 
@@ -903,7 +887,7 @@ describe("mission_api.validation", function()
 
 			it("checks each field against its type, naming the keyframe and field", function()
 				keyframeErrors({
-					{ position = { z = 0 }, path = "curve", lookAtUnitNames = { 7 } },
+					{ position = { z = 0 }, path = "curve", lookAtUnitName = 7 },
 					{ position = { x = 0, z = 0 }, easing = "nope", duration = -1 },
 				})
 				assert.is_true(hasError("Missing required parameter. Action: a, Parameter: keyframes[1].position.x"))
@@ -914,7 +898,7 @@ describe("mission_api.validation", function()
 				)
 				assert.is_true(
 					hasError(
-						"Unexpected parameter type, expected string, got number. Action: a, Parameter: keyframes[1].lookAtUnitNames.unitName #1"
+						"Unexpected parameter type, expected string, got number. Action: a, Parameter: keyframes[1].lookAtUnitName"
 					)
 				)
 				assert.is_true(
@@ -950,7 +934,7 @@ describe("mission_api.validation", function()
 				})
 				assert.is_true(
 					hasError(
-						"Keyframe has more than one look-at target, use one of: 'lookAtPosition', 'lookAtUnitName', 'lookAtUnitNames'. Action: a, Parameter: keyframes[1]"
+						"Keyframe has more than one look-at target, use one of: 'lookAtPosition', 'lookAtUnitName'. Action: a, Parameter: keyframes[1]"
 					)
 				)
 			end)
@@ -1568,7 +1552,7 @@ describe("mission_api.validation", function()
 	-- ── ValidateReferences ────────────────────────────────────────────────────
 
 	describe("ValidateReferences", function()
-		it("counts camera targets as unit name references", function()
+		it("counts camera keyframe units as unit name references", function()
 			GG["MissionAPI"].UnitLoadout = {
 				{ unitDefName = "armwar", x = 0, z = 0, team = 0, unitName = "hero" },
 			}
@@ -1577,12 +1561,12 @@ describe("mission_api.validation", function()
 					type = actionTypes.PlayCameraSequence,
 					parameters = {
 						keyframes = {
-							{ unitName = "hero", lookAtUnitNames = { "raiders" } },
+							{ unitName = "hero", lookAtUnitName = "raiders" },
 							{ position = { x = 0, z = 0 }, lookAtUnitName = "boss" },
 						},
 					},
 				},
-				chase = { type = actionTypes.FollowCamera, parameters = { unitNames = { "ghosts" } } },
+				chase = { type = actionTypes.FollowCamera, parameters = { unitName = "ghosts" } },
 				circle = { type = actionTypes.OrbitCamera, parameters = { unitName = "hero" } },
 			}
 

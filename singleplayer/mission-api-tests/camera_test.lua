@@ -1,13 +1,9 @@
 ---
 --- Camera actions test mission.
 ---
---- A hero tank sits at (1800, 1600); three friendly bots start next to it and drive off (they
---- are the player's so the follow shot can see them: a client only knows the positions of units
---- in its line of sight). The camera is saved and the player locked out, then: a cut to a
---- vantage point outside the map edge, a spline fly-in that keeps looking at the hero, half an
---- orbit around it, a follow shot on the bots, a shake together with a distant nuke, a blend
---- back to the saved camera, and a last sequence that hands the camera back where it ends. The
---- player is unlocked at the end.
+--- Saves the camera and locks input, then flies in from outside the map, orbits the hero tank,
+--- follows the raiders, shakes, restores the saved camera and plays a last sequence that hands
+--- the camera back where it ends. Each step is announced in the chat.
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types
@@ -192,7 +188,7 @@ local actions = {
 	followRaiders = {
 		type = actionTypes.FollowCamera,
 		parameters = {
-			unitNames = { 'raiders' },
+			unitName = 'raiders',
 			distance = 450,
 			pitch = 50,
 			yaw = 225,
@@ -248,9 +244,7 @@ local actions = {
 		},
 	},
 
-	-- Two curves at once: the eye's spline through three positions, and the focus's spline through
-	-- three look-at points on the plateau around the hero. The last keyframe rolls; the default release
-	-- then hands the camera back where it ends, in the player's own camera mode.
+	-- The camera and the point it looks at each follow their own spline.
 	releaseSequence = {
 		type = actionTypes.PlayCameraSequence,
 		parameters = {

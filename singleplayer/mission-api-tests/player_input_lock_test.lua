@@ -1,9 +1,7 @@
 ---
 --- LockPlayerInput and UnlockPlayerInput actions test mission.
 ---
---- At 3 s the player is locked out: the interface disappears but for the menu buttons, keys
---- do nothing but Esc (which opens the quit dialog), the wheel, edge scrolling and clicks
---- move nothing and order nothing. At 20 s everything comes back.
+--- Locks input from 3 s to 20 s. Only Esc and the menu buttons should work in between.
 ---
 
 local triggerTypes = GG['MissionAPI'].TriggerDefinitions.Types

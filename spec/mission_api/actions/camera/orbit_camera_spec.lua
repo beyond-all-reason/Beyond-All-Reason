@@ -16,22 +16,21 @@ describe("mission_api.actions.orbit_camera", function()
 		sent = {}
 		Builders.MissionApi
 			.new()
-			:WithModule("ClientActions", {
-				BuildTarget = function(unitName, unitNames, position)
-					return { unitName = unitName, unitNames = unitNames, position = position }
-				end,
-				Send = function(kind, params, teamID)
-					sent[#sent + 1] = { kind = kind, params = params, teamID = teamID }
+			:WithModule("Camera", {
+				BuildTarget = function(unitName, position)
+					return { unitName = unitName, position = position }
 				end,
 			})
 			:Install()
+		_G.SendToUnsynced = function(...) ---@diagnostic disable-line: global-in-non-module
+			sent[#sent + 1] = { ... }
+		end
 	end)
 
 	it("declares its type and parameters", function()
 		assert.are.same({
 			type = "OrbitCamera",
 			unitName = "UnitName",
-			unitNames = "UnitNames",
 			position = "Position",
 			distance = "Quantity",
 			pitch = "Number",
@@ -39,20 +38,19 @@ describe("mission_api.actions.orbit_camera", function()
 			degrees = "Number",
 			duration = "Quantity",
 			transitionDuration = "Quantity",
-			easing = "Easing",
+			easing = "CameraEasing",
 			onEnd = "CameraSequenceEnd",
-			teamID = "TeamID",
-			requiresOneOf = { "unitName", "unitNames", "position" },
+			requiresOneOf = { "unitName", "position" },
 		}, summarizeSchema(action))
 	end)
 
 	it("sends the target and the orbit settings", function()
-		action.actionFunction("hero", nil, nil, 400, 35, 90, -180, 6, 2, "inOutSine", "release", 1)
+		action.actionFunction("hero", nil, 400, 35, 90, -180, 6, 2, "inOutSine", "release")
 
 		assert.are.same({
 			{
-				kind = "orbit",
-				params = {
+				"MissionCameraOrbit",
+				{
 					target = { unitName = "hero" },
 					distance = 400,
 					pitch = 35,
@@ -63,7 +61,6 @@ describe("mission_api.actions.orbit_camera", function()
 					easing = "inOutSine",
 					onEnd = "release",
 				},
-				teamID = 1,
 			},
 		}, sent)
 	end)

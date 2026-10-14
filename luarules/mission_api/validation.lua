@@ -467,7 +467,6 @@ for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
 	validators[enumSetName] = getValidatorFromEnumSetSpec(enumSetName, valuesList)
 end
 
--- One value out of a string enum; the message lists the choices.
 local function getValidatorFromEnum(enumType, label)
 	local valueSet = parameterTypeEnums[enumType]
 	local names = {}
@@ -487,29 +486,9 @@ local function getValidatorFromEnum(enumType, label)
 		end
 	end
 end
-validators[Types.Easing] = getValidatorFromEnum(Types.Easing, "easing")
+validators[Types.CameraEasing] = getValidatorFromEnum(Types.CameraEasing, "easing")
 validators[Types.CameraSequenceEnd] = getValidatorFromEnum(Types.CameraSequenceEnd, "camera sequence end")
 validators[Types.CameraPath] = getValidatorFromEnum(Types.CameraPath, "camera path")
-
-validators[Types.UnitNames] = function(unitNames)
-	local luaTypeResult = validators[Types.Table](unitNames)
-	if luaTypeResult then
-		return luaTypeResult
-	end
-
-	if #unitNames == 0 then
-		return { { message = "Unit names table is empty" } }
-	end
-
-	local result = {}
-	for i, unitName in ipairs(unitNames) do
-		local fieldResult = validateField(unitName, "unitName #" .. i, "string")
-		if fieldResult then
-			result[#result + 1] = fieldResult
-		end
-	end
-	return result
-end
 
 --- String Validators:
 
@@ -1387,8 +1366,7 @@ local function quotedList(names)
 	return "'" .. table.concat(names, "', '") .. "'"
 end
 
--- A keyframe is checked field by field against camera_keyframe_schema.lua; fields are
--- visited in name order so the messages come out the same every run.
+-- Fields in name order, so the messages come out in the same order every run.
 local function validateCameraKeyframe(keyframe, index, actionOrTrigger, actionOrTriggerID, parameterName)
 	local result = {}
 	local suffix = "[" .. index .. "]"
@@ -1420,6 +1398,7 @@ local function validateCameraKeyframe(keyframe, index, actionOrTrigger, actionOr
 		end
 	end
 
+	---@return integer
 	local function countPresent(names)
 		local count = 0
 		for _, field in ipairs(names) do
@@ -1603,35 +1582,21 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 		end
 	end
 
-	-- Camera actions also reference units through `unitNames` lists and keyframe fields, which the
-	-- generic pass above (single `unitName` parameters) does not see.
-	local actionTypesWithUnitNames = getTypesWithParameterType(actionsSchemaParameters, Types.UnitNames)
+	-- Unit names inside keyframes, which the pass below does not look into.
 	local actionTypesWithKeyframes = getTypesWithParameterType(actionsSchemaParameters, Types.CameraKeyframes)
-	local function referenceCameraUnitName(unitName, actionID)
+	local function referenceKeyframeUnitName(unitName, actionID)
 		if type(unitName) == "string" then
 			local refsToUnitName = table.ensureTable(referencedUnitNames, unitName)
 			refsToUnitName[#refsToUnitName + 1] = "action " .. actionID
 		end
 	end
-	local function referenceCameraUnitNames(unitNames, actionID)
-		for _, unitName in ipairs(type(unitNames) == "table" and unitNames or {}) do
-			referenceCameraUnitName(unitName, actionID)
-		end
-	end
 	for actionID, action in pairs(actions) do
-		local parameters = action.parameters or {}
-		if actionTypesWithUnitNames[action.type] then
-			for _, unitNames in ipairs(possibleValues(parameters.unitNames)) do
-				referenceCameraUnitNames(unitNames, actionID)
-			end
-		end
 		if actionTypesWithKeyframes[action.type] then
-			for _, keyframes in ipairs(possibleValues(parameters.keyframes)) do
+			for _, keyframes in ipairs(possibleValues((action.parameters or {}).keyframes)) do
 				for _, keyframe in ipairs(type(keyframes) == "table" and keyframes or {}) do
 					if type(keyframe) == "table" then
-						referenceCameraUnitName(keyframe.unitName, actionID)
-						referenceCameraUnitName(keyframe.lookAtUnitName, actionID)
-						referenceCameraUnitNames(keyframe.lookAtUnitNames, actionID)
+						referenceKeyframeUnitName(keyframe.unitName, actionID)
+						referenceKeyframeUnitName(keyframe.lookAtUnitName, actionID)
 					end
 				end
 			end

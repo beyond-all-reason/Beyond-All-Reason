@@ -16,7 +16,6 @@ local types = {
 	FeatureLoadout = "FeatureLoadout",
 	ResourceIncomeSources = "ResourceIncomeSources",
 	SensorTypes = "SensorTypes",
-	UnitNames = "UnitNames",
 	CameraKeyframes = "CameraKeyframes",
 
 	-- String Validators:
@@ -33,7 +32,7 @@ local types = {
 	Facing = "Facing",
 	SoundFile = "SoundFile",
 	Difficulty = "Difficulty",
-	Easing = "Easing",
+	CameraEasing = "CameraEasing",
 	CameraSequenceEnd = "CameraSequenceEnd",
 	CameraPath = "CameraPath",
 
@@ -61,25 +60,6 @@ local types = {
 local difficultiesJSON = VFS.LoadFile("luarules/mission_api/difficulties.json")
 local difficulties = Json.decode(difficultiesJSON)
 
--- The easing curves of the camera widget (common/camera_math.lua, Easings); keep the two lists the same.
-local easingNames = {}
-for _, name in ipairs({
-	"linear",
-	"inSine",
-	"outSine",
-	"inOutSine",
-	"inQuad",
-	"outQuad",
-	"inOutQuad",
-	"inCubic",
-	"outCubic",
-	"inOutCubic",
-	"smoothstep",
-	"cut",
-}) do
-	easingNames[name] = true
-end
-
 local enums = {
 	[types.Facing] = {
 		[0] = true,
@@ -106,10 +86,32 @@ local enums = {
 		Dialogue = 5,
 	},
 
-	-- Camera actions: how a move eases, what happens after the last shot, how the eye travels.
-	[types.Easing] = easingNames,
-	[types.CameraSequenceEnd] = { release = true, restore = true, hold = true },
-	[types.CameraPath] = { linear = true, spline = true },
+	-- The Easings of common/camera_math.lua
+	[types.CameraEasing] = {
+		linear = true,
+		inSine = true,
+		outSine = true,
+		inOutSine = true,
+		inQuad = true,
+		outQuad = true,
+		inOutQuad = true,
+		inCubic = true,
+		outCubic = true,
+		inOutCubic = true,
+		smoothstep = true,
+		cut = true,
+	},
+
+	[types.CameraSequenceEnd] = {
+		release = true,
+		restore = true,
+		hold = true,
+	},
+
+	[types.CameraPath] = {
+		linear = true,
+		spline = true,
+	},
 }
 
 local enumSets = {

@@ -1,28 +1,23 @@
 local ParameterTypes = GG['MissionAPI'].Modules.ParameterTypes.Types
 
--- SaveCamera remembers the player's camera (mode included) under a slot name; during a camera
--- sequence that is the camera the sequence took over. RestoreCamera blends back to it over
--- `duration` seconds and hands control back. StopCamera ends any camera action at once and
--- hands control back where the camera is, in the player's own camera mode.
-
-local function saveCamera(slot, teamID)
-	GG['MissionAPI'].Modules.ClientActions.Send('save', { slot = slot }, teamID)
+local function saveCamera(slot)
+	SendToUnsynced('MissionCameraSave', { slot = slot })
 end
 
-local function restoreCamera(slot, duration, easing, teamID)
-	GG['MissionAPI'].Modules.ClientActions.Send('restore', { slot = slot, duration = duration, easing = easing }, teamID)
+local function restoreCamera(slot, duration, easing)
+	SendToUnsynced('MissionCameraRestore', { slot = slot, duration = duration, easing = easing })
 end
 
-local function stopCamera(teamID)
-	GG['MissionAPI'].Modules.ClientActions.Send('stop', {}, teamID)
+-- Hands the camera back to the player where it is.
+local function stopCamera()
+	SendToUnsynced('MissionCameraStop')
 end
 
 return {
 	{
 		type = 'SaveCamera',
 		parameters = {
-			{ name = 'slot',   required = false, type = ParameterTypes.String },
-			{ name = 'teamID', required = false, type = ParameterTypes.TeamID }, -- only this team's players; everyone when left out
+			{ name = 'slot', required = false, type = ParameterTypes.String },
 		},
 		actionFunction = saveCamera,
 	},
@@ -31,16 +26,13 @@ return {
 		parameters = {
 			{ name = 'slot',     required = false, type = ParameterTypes.String },
 			{ name = 'duration', required = false, type = ParameterTypes.Quantity }, -- seconds
-			{ name = 'easing',   required = false, type = ParameterTypes.Easing },
-			{ name = 'teamID',   required = false, type = ParameterTypes.TeamID }, -- only this team's players; everyone when left out
+			{ name = 'easing',   required = false, type = ParameterTypes.CameraEasing },
 		},
 		actionFunction = restoreCamera,
 	},
 	{
 		type = 'StopCamera',
-		parameters = {
-			{ name = 'teamID', required = false, type = ParameterTypes.TeamID }, -- only this team's players; everyone when left out
-		},
+		parameters = {},
 		actionFunction = stopCamera,
 	},
 }

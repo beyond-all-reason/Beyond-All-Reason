@@ -14,37 +14,32 @@ describe("mission_api.actions.camera_state", function()
 
 	before_each(function()
 		sent = {}
-		Builders.MissionApi
-			.new()
-			:WithModule("ClientActions", {
-				Send = function(kind, params, teamID)
-					sent[#sent + 1] = { kind = kind, params = params, teamID = teamID }
-				end,
-			})
-			:Install()
+		_G.SendToUnsynced = function(...) ---@diagnostic disable-line: global-in-non-module
+			sent[#sent + 1] = { ... }
+		end
 	end)
 
 	it("declares the three actions", function()
-		assert.are.same({ type = "SaveCamera", slot = "String", teamID = "TeamID" }, summarizeSchema(saveAction))
+		assert.are.same({ type = "SaveCamera", slot = "String" }, summarizeSchema(saveAction))
 		assert.are.same(
-			{ type = "RestoreCamera", slot = "String", duration = "Quantity", easing = "Easing", teamID = "TeamID" },
+			{ type = "RestoreCamera", slot = "String", duration = "Quantity", easing = "CameraEasing" },
 			summarizeSchema(restoreAction)
 		)
-		assert.are.same({ type = "StopCamera", teamID = "TeamID" }, summarizeSchema(stopAction))
+		assert.are.same({ type = "StopCamera" }, summarizeSchema(stopAction))
 	end)
 
 	it("saves under a slot", function()
-		saveAction.actionFunction("intro", 0)
-		assert.are.same({ { kind = "save", params = { slot = "intro" }, teamID = 0 } }, sent)
+		saveAction.actionFunction("intro")
+		assert.are.same({ { "MissionCameraSave", { slot = "intro" } } }, sent)
 	end)
 
 	it("restores a slot with a blend", function()
 		restoreAction.actionFunction("intro", 2, "linear")
-		assert.are.same({ { kind = "restore", params = { slot = "intro", duration = 2, easing = "linear" } } }, sent)
+		assert.are.same({ { "MissionCameraRestore", { slot = "intro", duration = 2, easing = "linear" } } }, sent)
 	end)
 
 	it("stops", function()
 		stopAction.actionFunction()
-		assert.are.same({ { kind = "stop", params = {} } }, sent)
+		assert.are.same({ { "MissionCameraStop" } }, sent)
 	end)
 end)

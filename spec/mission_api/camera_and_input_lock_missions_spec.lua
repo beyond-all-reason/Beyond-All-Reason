@@ -2,8 +2,7 @@ require("spec_helper")
 
 local RegisterMissionApiModules = require("mission_api.spec_helper")
 
--- The camera and input-lock test missions, run through the loaders and validation the way
--- loadMission() in api_missions.lua does, so an authoring slip shows up here and not in game.
+-- Loads the camera and input lock test missions like loadMission() in api_missions.lua does.
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
@@ -53,7 +52,7 @@ local COMMAND_NAMES = {
 	"INTERNAL",
 }
 
-describe("mission-api-tests client action missions", function()
+describe("mission-api-tests camera and input lock missions", function()
 	local logged ---@type string[]
 	local savedCMD, savedGameCMD
 

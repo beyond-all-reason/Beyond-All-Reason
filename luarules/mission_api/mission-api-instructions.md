@@ -104,11 +104,9 @@ return {
 the schema array order *is* the `actionFunction` signature: reordering, inserting, or renaming a parameter is a
 breaking change to both the function and every mission using it.
 
-Missions are authored in a mission editor, so the schema is its form: keep parameters flat and typed. Alternatives
-are separate optional parameters with `requiresOneOf` (a camera target is `unitName | unitNames | position`), choices
-are enum types the editor can list (`Easing`, `CameraSequenceEnd`, `CameraPath`), lists are array types
-(`UnitNames`), and a record type declares its fields in a schema file (`camera_keyframe_schema.lua`). State the unit
-of every numeric parameter in its comment; the API uses seconds, elmos and degrees.
+Missions are authored in a mission editor, so keep parameters flat and typed: alternatives are separate optional
+parameters with `requiresOneOf`, choices are enum types, and a record declares its fields in a schema file
+(`camera_keyframe_schema.lua`). Give the unit of every numeric parameter in its comment (seconds, elmos, degrees).
 
 ## Parameters, validation, processing
 
@@ -125,11 +123,9 @@ of every numeric parameter in its comment; the API uses seconds, elmos and degre
   reserve `logError` for genuinely unrunnable missions and use `logWarn` otherwise.
 - `ValidateReferences` cross-checks unit/feature/marker names between the actions that create them and the actions
   and triggers that consume them, via hard-coded type sets near the bottom of `validation.lua`. A new action that
-  names or references units, features, or markers must be added to those sets. Names nested inside a table parameter
-  are not found automatically: camera targets (`UnitNames` parameters and the unit fields of `CameraKeyframes`) have
-  their own collection block in `validateUnitNameReferences`.
-- Per-parameter `difficulties` tables resolve at parameter level only, so a keyframe cannot carry one: author the
-  whole `keyframes` parameter per difficulty.
+  names or references units, features, or markers must be added to those sets. Unit names inside `CameraKeyframes`
+  are collected separately in `validateUnitNameReferences`.
+- `difficulties` tables resolve per parameter, not inside a keyframe: give the whole `keyframes` per difficulty.
 
 ## Difficulty
 
@@ -180,16 +176,11 @@ of every numeric parameter in its comment; the API uses seconds, elmos and degre
 - `GG['MissionAPIActionHelper']` (`api_missions_action_helpers.lua`, synced) — for behaviour an action cannot do in
   one call, currently per-second resource drip. Put anything needing its own `GameFrame` accumulator here rather
   than growing the action file.
-- `Modules.ClientActions` (`client_actions.lua`) — for actions that take effect on the players' clients: the camera
-  actions (`actions/camera/`) and `LockPlayerInput`/`UnlockPlayerInput` (`actions/game/`). The action builds its
-  parameters into the widget's shape (`BuildTarget` resolves unit names to units, `BuildKeyframes` turns the flat
-  keyframe fields into targets) and `Send(kind, params, teamID)` does `SendToUnsynced("MissionClientAction", {
-  kind, teamID, params })`. The unsynced gadget `api_mission_client_actions.lua` forwards it as
-  `Script.LuaUI.MissionClientAction(command)`; the widget `luaui/Widgets/api_mission_client_actions.lua` drops it
-  when `teamID` names another team (or the client spectates) and dispatches `kind` to the base-game services
-  `WG.cinematicCamera` (`api_cinematic_camera.lua`) and `WG.playerInputLock` (`api_player_input_lock.lua`). Defaults
-  live in those widgets; an optional parameter a mission leaves out travels as nil. Camera sequences run on real
-  time, so they also play while the game is paused, and nothing tells synced when one ends.
+- Camera actions (`actions/camera/`) build their parameters with `Modules.Camera` (`camera.lua`) and send them with
+  `SendToUnsynced("MissionCamera<Action>", params)`. `api_mission_camera.lua` (unsynced gadget) passes them to
+  `luaui/Widgets/api_mission_camera.lua`, which calls `WG.cinematicCamera`. `LockPlayerInput`/`UnlockPlayerInput`
+  go the same way through `api_mission_input_lock.lua` to `WG.playerInputLock`. They act on every client;
+  defaults live in the widgets. Camera sequences run on real time, also while the game is paused.
 - Unit and feature identity is by **name**, not ID: go through `Modules.Tracking`, never index the tracking tables
   directly.
 

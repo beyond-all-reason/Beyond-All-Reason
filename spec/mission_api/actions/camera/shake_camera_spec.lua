@@ -14,14 +14,9 @@ describe("mission_api.actions.shake_camera", function()
 
 	before_each(function()
 		sent = {}
-		Builders.MissionApi
-			.new()
-			:WithModule("ClientActions", {
-				Send = function(kind, params, teamID)
-					sent[#sent + 1] = { kind = kind, params = params, teamID = teamID }
-				end,
-			})
-			:Install()
+		_G.SendToUnsynced = function(...) ---@diagnostic disable-line: global-in-non-module
+			sent[#sent + 1] = { ... }
+		end
 	end)
 
 	it("declares its type and parameters", function()
@@ -33,7 +28,6 @@ describe("mission_api.actions.shake_camera", function()
 			falloff = "Quantity",
 			frequency = "Quantity",
 			rotationMagnitude = "Quantity",
-			teamID = "TeamID",
 		}, summarizeSchema(action))
 	end)
 
@@ -42,8 +36,8 @@ describe("mission_api.actions.shake_camera", function()
 
 		assert.are.same({
 			{
-				kind = "shake",
-				params = {
+				"MissionCameraShake",
+				{
 					magnitude = 20,
 					duration = 3,
 					rampUp = 0.5,
