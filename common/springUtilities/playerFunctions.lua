@@ -3,6 +3,7 @@
 ---
 
 -- Connected clients are behind always by a given latency plus max 16 frames between keyframes.
+-- Too-low values sort by pings that are not meaningfully separable. Too-high is unresponsive.
 local LAGGING_PING_SECONDS = 3.0
 
 local spGetPlayerList = Spring.GetPlayerList
