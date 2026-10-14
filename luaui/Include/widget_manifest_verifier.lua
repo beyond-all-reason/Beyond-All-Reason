@@ -1,4 +1,4 @@
-local base64 = require("common/luaUtilities/base64")
+local base64 = VFS.Include("common/luaUtilities/base64.lua", nil, VFS.ZIP)
 
 -- The content hash must stay in sync with the catalog builder, which computes it when publishing:
 -- https://github.com/beyond-all-reason/BAR-Widgets (builder/src/contentHash.ts). Any change to what is
@@ -48,11 +48,21 @@ local function appendField(parts, value)
 	parts[#parts + 1] = value
 end
 
+local function normalizePath(path)
+	return (path:gsub("\\", "/"))
+end
+
 local function calculateWidgetHash(widgetDirectory)
-	local files = VFS.DirList(widgetDirectory, "*", VFS.RAW, true) or {}
+	widgetDirectory = normalizePath(widgetDirectory)
+	local rawFiles = VFS.DirList(widgetDirectory, "*", VFS.RAW, true) or {}
+	local files = {}
+	for index, filename in ipairs(rawFiles) do
+		files[index] = normalizePath(filename)
+	end
 	table.sort(files)
 
 	local seenPaths = {}
+	local fileContentsByPath = {}
 	local parts = {}
 	appendField(parts, HASH_FORMAT)
 
@@ -61,7 +71,7 @@ local function calculateWidgetHash(widgetDirectory)
 			return nil, "file escaped widget directory: " .. filename
 		end
 
-		local relativePath = filename:sub(#widgetDirectory + 1):gsub("\\", "/")
+		local relativePath = filename:sub(#widgetDirectory + 1)
 		local collisionKey = relativePath:lower()
 		if seenPaths[collisionKey] then
 			return nil, "ambiguous widget paths: " .. seenPaths[collisionKey] .. " and " .. relativePath
@@ -72,11 +82,12 @@ local function calculateWidgetHash(widgetDirectory)
 		if contents == nil then
 			return nil, "could not read " .. relativePath
 		end
+		fileContentsByPath[filename] = contents
 		appendField(parts, relativePath)
 		appendField(parts, contents)
 	end
 
-	return "sha512:" .. VFS.CalculateHash(table.concat(parts), 1)
+	return "sha512:" .. VFS.CalculateHash(table.concat(parts), 1), nil, fileContentsByPath
 end
 
 local function loadCatalog(widgetDirectory, publicKeysHex)
@@ -128,6 +139,7 @@ end
 -- the option the field is ignored and they load as before. options.publicKeys stands in for the trusted
 -- keys, for specs.
 local function getVerifiedWidgetFiles(widgetDirectory, options)
+	widgetDirectory = normalizePath(widgetDirectory)
 	options = options or {}
 	local requireAnonymousSafe = options.requireAnonymousSafe
 	local manifests, catalogError = loadCatalog(widgetDirectory, options.publicKeys or TRUSTED_PUBLIC_KEYS)
@@ -137,12 +149,13 @@ local function getVerifiedWidgetFiles(widgetDirectory, options)
 
 	local existingDirectories = {}
 	for _, name in ipairs(VFS.SubDirs(widgetDirectory, "*", VFS.RAW) or {}) do
-		existingDirectories[name] = true
+		existingDirectories[normalizePath(name)] = true
 	end
 
 	local widgetFiles = {}
 	local errors = {}
 	local notAnonymousSafe = {}
+	local verifiedContents = {}
 	local seenIds = {}
 	for _, manifest in ipairs(manifests) do
 		local widgetId = type(manifest) == "table" and manifest.id
@@ -161,15 +174,19 @@ local function getVerifiedWidgetFiles(widgetDirectory, options)
 			elseif requireAnonymousSafe and manifest.anonymous_safe ~= true then
 				notAnonymousSafe[#notAnonymousSafe + 1] = widgetId
 			else
-				local actualHash, hashError = calculateWidgetHash(directory)
+				local actualHash, hashError, fileContentsByPath = calculateWidgetHash(directory)
 				if not actualHash then
 					errors[#errors + 1] = widgetId .. ": " .. hashError
 				elseif actualHash ~= expectedHash then
 					errors[#errors + 1] = widgetId .. ": content hash mismatch"
 				else
 					local luaFiles = VFS.DirList(directory, "*.lua", VFS.RAW) or {}
-					for _, filename in ipairs(luaFiles) do
-						widgetFiles[#widgetFiles + 1] = filename
+					for _, rawFilename in ipairs(luaFiles) do
+						local filename = normalizePath(rawFilename)
+						if fileContentsByPath[filename] ~= nil then
+							widgetFiles[#widgetFiles + 1] = filename
+							verifiedContents[filename] = fileContentsByPath[filename]
+						end
 					end
 				end
 			end
@@ -177,7 +194,7 @@ local function getVerifiedWidgetFiles(widgetDirectory, options)
 	end
 
 	table.sort(widgetFiles)
-	return widgetFiles, errors, notAnonymousSafe
+	return widgetFiles, errors, notAnonymousSafe, verifiedContents
 end
 
 return {

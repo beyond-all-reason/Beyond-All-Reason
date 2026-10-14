@@ -3215,7 +3215,17 @@
 		},
 		"userwidgetmode": {
 			"name": "Custom Widget Mode",
-			"desc": "Which custom user widgets may load"
+			"desc": "Which custom user widgets may load",
+			"items": {
+				"all": {
+					"name": "All Widgets",
+					"desc": "Load every custom user widget"
+				},
+				"verified": {
+					"name": "Verified Widgets Only",
+					"desc": "Load only custom user widgets listed in the signed widget manifest"
+				}
+			}
 		},
 		"allowunitcontrolwidgets": {
 			"name": "Allow Custom 'Unit Control' Widgets",

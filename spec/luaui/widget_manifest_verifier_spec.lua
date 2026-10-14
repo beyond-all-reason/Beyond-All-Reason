@@ -34,6 +34,8 @@ describe("widget manifest verifier", function()
 	-- calls lazily, goes through VFS
 	local function stubVFS(overrides)
 		overrides.PackU32 = overrides.PackU32 or lengthPrefix
+		overrides.ZIP = overrides.ZIP or "zip"
+		overrides.Include = overrides.Include or originalVFS.Include
 		_G.VFS = setmetatable(overrides, { __index = originalVFS })
 	end
 
@@ -110,10 +112,61 @@ describe("widget manifest verifier", function()
 			end,
 		}
 
-		local files, errors = loadVerifier().GetVerifiedWidgetFiles("LuaUI/Widgets/", { publicKeys = { TEST_PUBLIC_KEY } })
+		local files, errors, _, verifiedContents = loadVerifier().GetVerifiedWidgetFiles(
+			"LuaUI/Widgets/",
+			{ publicKeys = { TEST_PUBLIC_KEY } }
+		)
 		assert.same({ WIDGET_FILE }, files)
 		assert.same({}, errors)
+		assert.same({ [WIDGET_FILE] = WIDGET_CONTENT }, verifiedContents)
 		assert.equals(catalog, verifiedMessage)
+	end)
+
+	it("loads base64 from VFS.ZIP and normalizes Windows path separators before sorting", function()
+		local includedPath, includedMode
+		local hashedValue
+		stubVFS({
+			RAW = "raw",
+			ZIP = "zip",
+			Include = function(path, env, mode)
+				includedPath = path
+				includedMode = mode
+				return originalVFS.Include(path, env, mode)
+			end,
+			DirList = function()
+				return {
+					"LuaUI\\Widgets\\example\\foo2\\a.lua",
+					"LuaUI\\Widgets\\example\\foo\\a.lua",
+				}
+			end,
+			LoadFile = function(filename)
+				return filename
+			end,
+			CalculateHash = function(value)
+				hashedValue = value
+				return TEST_DIGEST
+			end,
+		})
+
+		local verifier = loadVerifier()
+		assert.equals("common/luaUtilities/base64.lua", includedPath)
+		assert.equals("zip", includedMode)
+
+		local hash, err, contentsByPath = verifier.CalculateWidgetHash("LuaUI\\Widgets\\example\\")
+		assert.equals("sha512:" .. TEST_DIGEST, hash)
+		assert.is_nil(err)
+		assert.same({
+			["LuaUI/Widgets/example/foo/a.lua"] = "LuaUI/Widgets/example/foo/a.lua",
+			["LuaUI/Widgets/example/foo2/a.lua"] = "LuaUI/Widgets/example/foo2/a.lua",
+		}, contentsByPath)
+		assert.equals(
+			lengthPrefix(21) .. "bar-widget-content-v1"
+				.. lengthPrefix(9) .. "foo/a.lua"
+				.. lengthPrefix(31) .. "LuaUI/Widgets/example/foo/a.lua"
+				.. lengthPrefix(10) .. "foo2/a.lua"
+				.. lengthPrefix(32) .. "LuaUI/Widgets/example/foo2/a.lua",
+			hashedValue
+		)
 	end)
 
 	describe("in anonymous mode", function()
@@ -252,9 +305,7 @@ describe("widget manifest verifier", function()
 		end
 
 		it("ignores whitespace around a well formed one", function()
-			local _, _, verified = verifyWithSignature("
-" .. TEST_SIGNATURE .. "
-")
+			local _, _, verified = verifyWithSignature("\n" .. TEST_SIGNATURE .. "\n")
 			assert.is_true(verified)
 		end)
 	end)
