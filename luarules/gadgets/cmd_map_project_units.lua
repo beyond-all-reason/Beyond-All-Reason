@@ -145,7 +145,6 @@ local function replaceAllUnits()
 	ackCounter = ackCounter + 1
 	Spring.SetGameRulesParam("mpu_spawned", spawned)
 	Spring.SetGameRulesParam("mpu_failed", failed)
-	Spring.SetGameRulesParam("mpu_removed", removed)
 	Spring.SetGameRulesParam("mpu_remapped", remapped)
 	Spring.SetGameRulesParam("mpu_ack", ackCounter)
 	Spring.Echo(

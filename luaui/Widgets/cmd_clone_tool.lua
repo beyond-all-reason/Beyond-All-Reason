@@ -73,7 +73,6 @@ local metalSquareSize = 16
 -- ---------------------------------------------------------------------------
 -- Message headers (must match gadget)
 -- ---------------------------------------------------------------------------
-local MSG_TERRAIN = "$clone_terrain$"
 local MSG_METAL = "$clone_metal$"
 local MSG_FEATURES = "$clone_features$"
 local MSG_FEATURES_CLEAR = "$clone_features_clear$"

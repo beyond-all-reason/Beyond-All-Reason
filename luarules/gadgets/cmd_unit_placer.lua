@@ -368,16 +368,3 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 	sendHistory()
 end
-
-function gadget:Initialize()
-	GG.UnitPlacer = {
-		--- For checks: how many strokes can be undone and redone.
-		depth = function()
-			return #undoStack, #redoStack
-		end,
-	}
-end
-
-function gadget:Shutdown()
-	GG.UnitPlacer = nil
-end
