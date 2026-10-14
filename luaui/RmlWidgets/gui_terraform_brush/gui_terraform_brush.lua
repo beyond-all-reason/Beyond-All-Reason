@@ -260,7 +260,6 @@ widgetState = { -- forward-declared above playSound so mute check works
 	wbSubModeButtons = {},
 	wbDistButtons = {},
 	-- Splat painter section elements
-	spControlsEl = nil,
 	spPreviewEls = nil,
 	spPreviewTextures = nil,
 	spPreviewVerified = false,
@@ -23580,7 +23579,6 @@ function widget:Shutdown()
 	widgetState.wbControlsEl = nil
 	widgetState.wbSubModeButtons = {}
 	widgetState.wbDistButtons = {}
-	widgetState.spControlsEl = nil
 	widgetState.spPreviewEls = nil
 	widgetState.spPreviewTextures = nil
 	widgetState.spPreviewVerified = false

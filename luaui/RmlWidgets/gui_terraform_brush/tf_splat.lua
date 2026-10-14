@@ -8,16 +8,6 @@ function M.attach(doc, ctx)
 	local widgetState = ctx.widgetState
 	local trackSliderDrag = ctx.trackSliderDrag
 
-	widgetState.spControlsEl = doc:GetElementById("tf-splat-controls")
-
-	-- Cache channel button elements (active class driven by sync).
-	widgetState.spChannelButtons = {
-		doc:GetElementById("btn-sp-ch1"),
-		doc:GetElementById("btn-sp-ch2"),
-		doc:GetElementById("btn-sp-ch3"),
-		doc:GetElementById("btn-sp-ch4"),
-	}
-
 	widgetState.spPreviewEls = {
 		doc:GetElementById("sp-ch1-preview"),
 		doc:GetElementById("sp-ch2-preview"),
