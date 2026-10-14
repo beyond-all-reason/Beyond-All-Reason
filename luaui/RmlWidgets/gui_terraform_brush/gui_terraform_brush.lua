@@ -19621,14 +19621,6 @@ function widget:DrawScreenPost()
 
 		local isDNTS = true
 
-		local SP_PREVIEW_DEBUG = false -- set true to log DNTS texture discovery to infolog
-		local logRetry = SP_PREVIEW_DEBUG
-			and (
-				widgetState.spPreviewRetries == 1
-				or widgetState.spPreviewRetries == 30
-				or widgetState.spPreviewRetries == 120
-			)
-
 		local function tryTex(path)
 			if not path or type(path) ~= "string" or path == "" then
 				return nil
@@ -19638,17 +19630,6 @@ function widget:DrawScreenPost()
 				local info = gl.TextureInfo(candidate)
 
 				if info then
-					if logRetry then
-						Spring.Echo(
-							"[TFBrush] tryTex OK: "
-								.. candidate
-								.. " id="
-								.. tostring(info.id or "nil")
-								.. " xsize="
-								.. tostring(info.xsize or "nil")
-						)
-					end
-
 					return candidate
 				end
 			end
@@ -19663,21 +19644,6 @@ function widget:DrawScreenPost()
 
 			local info = gl.TextureInfo(name)
 
-			if logRetry then
-				if info then
-					Spring.Echo(
-						"[TFBrush] Strategy1 "
-							.. name
-							.. " id="
-							.. tostring(info.id or "nil")
-							.. " xsize="
-							.. tostring(info.xsize or "nil")
-					)
-				else
-					Spring.Echo("[TFBrush] Strategy1 " .. name .. " -> nil")
-				end
-			end
-
 			if info and info.xsize and info.xsize > 0 then
 				found[i + 1] = name
 			end
@@ -19686,26 +19652,10 @@ function widget:DrawScreenPost()
 		-- Strategy 2: mapinfo.lua resources (prefer DNTS normals over diffuse)
 
 		if not next(found) then
-			if logRetry then
-				Spring.Echo("[TFBrush] Strategy1 found nothing, trying mapinfo.lua")
-			end
-
 			local mOk, mapinfo = pcall(VFS.Include, "mapinfo.lua")
-
-			if logRetry then
-				Spring.Echo("[TFBrush] mapinfo.lua load: ok=" .. tostring(mOk) .. " type=" .. type(mapinfo))
-			end
 
 			if mOk and mapinfo then
 				local res = mapinfo.resources or {}
-
-				if logRetry then
-					for k, v in pairs(res) do
-						if type(k) == "string" and k:lower():find("splat") then
-							Spring.Echo("[TFBrush] mapinfo.resources." .. k .. " = " .. tostring(v))
-						end
-					end
-				end
 
 				for i = 1, 4 do
 					for _, key in ipairs({
@@ -19729,10 +19679,6 @@ function widget:DrawScreenPost()
 					local sdt = res.splatDetailTex or res.splatdetailtex
 
 					if type(sdt) == "table" then
-						if logRetry then
-							Spring.Echo("[TFBrush] splatDetailTex is table, #=" .. #sdt)
-						end
-
 						for i = 1, 4 do
 							found[i] = tryTex(sdt[i]) or tryTex(sdt[i - 1])
 						end
@@ -19756,16 +19702,6 @@ function widget:DrawScreenPost()
 						end
 					end
 				end
-			end
-		end
-
-		if logRetry then
-			Spring.Echo(
-				"[TFBrush] Discovery result (retry " .. widgetState.spPreviewRetries .. "): isDNTS=" .. tostring(isDNTS)
-			)
-
-			for i = 1, 4 do
-				Spring.Echo("[TFBrush]   channel " .. i .. " = " .. tostring(found[i] or "NONE"))
 			end
 		end
 
@@ -19804,15 +19740,6 @@ function widget:DrawScreenPost()
 
 		if (next(found) and not tilesetPending) or widgetState.spPreviewRetries >= 120 then
 			widgetState.spPreviewVerified = true
-
-			if SP_PREVIEW_DEBUG then
-				Spring.Echo(
-					"[TFBrush] Texture discovery DONE at retry "
-						.. widgetState.spPreviewRetries
-						.. " found="
-						.. tostring(next(found) ~= nil)
-				)
-			end
 		end
 	end
 
