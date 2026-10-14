@@ -203,10 +203,9 @@ local function updateAnimation(now)
 	end
 end
 
--- A pause a gadget holds (api_game_pause.lua)
--- is not a player pause: no overlay and no "paused" text for it.
+-- No overlay and no "paused" text for non-player pauses.
 local function isGadgetPaused()
-	return (spGetGameRulesParam("gamePaused") or 0) == 1
+	return spGetGameRulesParam("gamePaused") == 1
 end
 
 local function setPaused(state, now)

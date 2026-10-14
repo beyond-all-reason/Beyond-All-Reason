@@ -1055,10 +1055,7 @@ function widget:GameOver(winningAllyTeams)
 	--widgetHandler:RemoveWidget()
 end
 
--- A pause a gadget holds (api_game_pause.lua)
--- is not announced, nor is the resume that ends it.
-local gadgetPaused = false
-
+local gadgetPaused = false -- non-player pauses, usually do not announce this
 function widget:GamePaused(playerID, isGamePaused)
 	if gameover then
 		return
