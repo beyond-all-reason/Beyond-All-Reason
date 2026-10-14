@@ -5,13 +5,14 @@
 
 piece  base, armature1, armature2, armature3, piston1, piston2, rail1, rail2, rail3, turret, aiming_arm, ring, ring2, ring3, ring4, aimfromy, aimy, flare, fireline, lineflare, lightpoint, ambienttop, armPivot2, armPivot3, topArmsPivot, leftAimingArm, rightAimingArm, bottomAimingArm;
 
-static-var  restore_delay, shotcount, timer, lastfired, gameframe, state, statechg_DesiredState, statechg_StateChanging, fireTime, timetozero, deceleratethreshold, oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1, targetswap, isfiring;
+static-var  restore_delay, shotcount, timer, lastfired, gameframe, fireTime, timetozero, deceleratethreshold, oldhead, aimy1delta, aimy1velocity, aimy1target, aimy1position, gameFrame1, targetswap, isfiring;
 
 // Signal definitions
 #define SIG_AIM				2
 #define SIG_LIGHT			4
 #define SIG_RESTORE			8
 
+#include "../popup_openclose.h"
 
 //-------------------------------CONSTANT maxaccTURRET TURNING---------------------------
 // speed and maxaccare in degrees per frame (not second!)
@@ -60,6 +61,8 @@ activatescr () {
 	turn bottomAimingArm to x-axis <0> speed <85>;
 
 	wait-for-turn rightAimingArm around z-axis;
+	wait-for-turn leftAimingArm around z-axis;
+	wait-for-turn bottomAimingArm around x-axis;
 
 	show flare;
 	show fireline;
@@ -71,12 +74,9 @@ activatescr () {
 
 	start-script SpinIdle();
 	//show fireline;
-	state=1;
 }
 
 deactivatescr() {
-	signal SIG_AIM;
-	state=0;
 	//hide fireline;
 	
 	// turn armature1 to x-axis <-0.0872664626> speed <85>;
@@ -144,71 +144,35 @@ deactivatescr() {
 }
 
 
-Go()
+OpenAnim()
 {
 
 	set ARMORED to 0;
-	if( !state )
-	{
-		call-script activatescr();
-	}
-	state = 1;
+	call-script activatescr();
 }
 
-Stop()
+CloseAnim()
 {
-	state = 0;
 	call-script deactivatescr();
 	set ARMORED to 1;
-
-}
-
-
-
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
-}
-
-RequestState(requestedstate, currentstate)
-{
-	if( statechg_StateChanging )
-	{
-		statechg_DesiredState = requestedstate;
-		return (0);
-	}
-	statechg_StateChanging = TRUE;
-	currentstate = statechg_DesiredState;
-	statechg_DesiredState = requestedstate;
-	while( statechg_DesiredState != currentstate )
-	{
-		if( statechg_DesiredState == 0 )
-		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
-			currentstate = 1;
-		}
-	}
-	statechg_StateChanging = FALSE;
+	wait-for-move piston1 along y-axis;
+	wait-for-turn ring around y-axis;
+	wait-for-turn ring2 around x-axis;
+	wait-for-turn ring3 around x-axis;
+	wait-for-turn ring4 around z-axis;
 }
 
 
 
 Activate()
 {
-	start-script RequestState(0);
+	start-script RequestOpen();
 }
 
 Deactivate()
 {
 	signal SIG_AIM;
-	start-script RequestState(1);
+	start-script RequestClose();
 }
 
 
@@ -235,8 +199,8 @@ Create()
 	fireTime = 75;
 	oldhead = 0;
 	targetswap = 0;
-	state=1;
-	call-script InitState();
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	isfiring = 0;
 
 	turn armPivot2 to y-axis <120> now;
@@ -292,7 +256,7 @@ ExecuteRestoreAfterDelay()
 	timer = 0;
 	targetswap = 0;
 
-	if(state==1) {
+	if(isOpen) {
 		turn aiming_arm to x-axis <0.000000> speed <5>;
 		turn turret to y-axis <0> speed <35>;
 		start-script SpinIdle();
@@ -336,7 +300,7 @@ SpinFiring() {
 //using incinerator code now, might be too laggy as it has waitforturns
 AimPrimary(heading, pitch)
 {
-	if (state==0) return 0;
+	if (!isOpen) return 0;
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <25>;
@@ -379,7 +343,7 @@ SweepFire()
 		gameframe = get(GAME_FRAME);
 		//get PRINT(123, lastfired, gameframe, gameframe);
 		//get PRINT(1235, targetswap, isfiring, timer);
-		if (targetswap == 1 AND isfiring == 1 AND lastfired+fireTime>gameframe)
+		if (targetswap == 1 AND isfiring == 1 AND isOpen AND lastfired+fireTime>gameframe)
 		{
 			emit-sfx 2048 from fireline;
 			timer = timer + 1;
@@ -438,6 +402,11 @@ FirePrimary()
 	shotcount = shotcount + 1;
 	call-script lua_UnitScriptLight(1, shotcount);
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot1() {

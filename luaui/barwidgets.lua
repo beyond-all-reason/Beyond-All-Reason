@@ -39,6 +39,8 @@ local getfenv = getfenv
 local setfenv = setfenv
 local pcall = pcall
 local select = select
+local tracyZoneBeginN = tracy.ZoneBeginN
+local tracyZoneEnd = tracy.ZoneEnd
 
 -- Widgets share these tables and can replace their functions for everyone.
 local stringByte = string.byte
@@ -73,6 +75,7 @@ local spGetSpectatingState = Spring.GetSpectatingState
 local spIsReplay = Spring.IsReplay
 local LOG = copyTable(LOG)
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer
+local getAccountID = BAR.Utilities.GetAccountID
 
 local CONFIG_FILENAME = LUAUI_DIRNAME .. "Config/" .. Game.gameShortName .. ".lua"
 local WIDGET_DIRNAME = LUAUI_DIRNAME .. "Widgets/"
@@ -482,6 +485,8 @@ end
 
 --------------------------------------------------------------------------------
 local unsortedWidgets ---@type table
+-- While Initialize inserts the startup widgets, each insert updates only the call-ins its widget has.
+local insertingStartupWidgets = false
 local springYield = Spring.Yield
 local doMoreYield = (springYield ~= nil)
 
@@ -657,6 +662,22 @@ local function refuseUserPath(path, reason)
 end
 
 local function unavailableFunction() end
+
+local function grantUserRmlUi()
+	local ok, powerUsers = pcall(vfsInclude, "luarules/configs/powerusers.lua", {}, vfsZip)
+	if not ok or type(powerUsers) ~= "table" then
+		return false
+	end
+	local accountID = getAccountID(Spring.GetMyPlayerID())
+	local permissions = accountID and accountID > 0 and powerUsers[accountID]
+	if type(permissions) ~= "table" then
+		return false
+	end
+	if spGetSpectatingState() and not Spring.GetGameRulesParam("IsPlayerAccount" .. accountID) then
+		return permissions.userrmlui_spectator == true
+	end
+	return permissions.userrmlui_player == true
+end
 
 local function CreateSandboxedSystem()
 	local sandboxedTable = copyTable(table)
@@ -948,7 +969,7 @@ local function CreateSandboxedSystem()
 	SandboxedSystem.debug = sandboxedDebug
 	SandboxedSystem.socket = nil
 	-- TODO: restore once rmlui security assessment finishes
-	SandboxedSystem.RmlUi = nil
+	SandboxedSystem.RmlUi = grantUserRmlUi() and RmlUi or nil
 end
 
 function widgetHandler:Initialize()
@@ -1004,6 +1025,9 @@ function widgetHandler:Initialize()
 		end
 	end)
 
+	-- Every call-in once up front: a full pass after each insert was ~35k engine calls per load.
+	self:UpdateCallIns()
+	insertingStartupWidgets = true
 	for _, w in ipairs(unsortedWidgets) do
 		local name = w.whInfo.name
 		local basename = w.whInfo.basename
@@ -1012,6 +1036,7 @@ function widgetHandler:Initialize()
 		Yield()
 		widgetHandler:InsertWidgetRaw(w)
 	end
+	insertingStartupWidgets = false
 
 	-- Since Initialize is run out of the normal callin wrapper by InsertWidget, we, need to reorder explicitly here.
 	widgetHandler:PerformReorders()
@@ -1109,6 +1134,34 @@ end
 local function loadFailed(basename, reason)
 	spEcho("Failed to load: " .. basename .. "  (" .. reason .. ")")
 	widgetHandler:RecordError(basename, nil, reason, true)
+end
+
+-- Whether a source reaches for the RmlUi API (`RmlUi.x`, `RmlUi[x]`, `not RmlUi`), not just names it.
+-- Plain finds first: two pattern searches over every widget's source cost ~60 ms per LuaUI load.
+local function usesRmlUi(text)
+	local init = 1
+	while true do
+		local s = stringFind(text, "RmlUi", init, true)
+		if not s then
+			return false
+		end
+		local e = s + 4
+		if stringFind(text, "^%s*[%.%[]", e + 1) then
+			return true
+		end
+		local runStart = s -- of the %s run in front of it
+		for i = s - 1, 1, -1 do
+			local b = stringByte(text, i)
+			if b ~= 32 and (b < 9 or b > 13) then
+				break
+			end
+			runStart = i
+		end
+		if runStart < s and runStart > 3 and stringSub(text, runStart - 3, runStart - 1) == "not" then
+			return true
+		end
+		init = e + 1
+	end
 end
 
 -- Not a handler method. `fromZip` grants full System to anything with handler access.
@@ -1293,7 +1346,7 @@ function widgetHandler:LoadWidget(filename, fromZip, enableLocalsAccess, reload)
 		-- under LuaUI/RmlWidgets but a player's own can sit anywhere and still use the API.
 		-- Matched on the API being reached for rather than the word appearing, so a widget
 		-- that only mentions RmlUi in a comment is not mistaken for one.
-		knownInfo.rml = stringFind(text, "RmlUi%s*[%.%[]") ~= nil or stringFind(text, "not%s+RmlUi") ~= nil
+		knownInfo.rml = usesRmlUi(text)
 		-- And what it shares with other widgets through WG. The source is in hand here, and a source
 		-- the reading trips over must not stop the widget from loading.
 		if widgetDependencies then
@@ -1369,7 +1422,7 @@ local SandboxedWidgetMeta = {
 }
 
 newWidget = function(self, enableLocalsAccess, fromZip, filename)
-	tracy.ZoneBeginN("W:NewWidget")
+	tracyZoneBeginN("W:NewWidget")
 	local widget = {}
 	local canControlUnits = fromZip or allowunitcontrolwidgets
 
@@ -1662,7 +1715,7 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 			end,
 		})
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return widget, canControlUnits
 end
 
@@ -1993,9 +2046,14 @@ function widgetHandler:InsertWidgetRaw(widget)
 		local func = widget[listname]
 		if type(func) == "function" then
 			ArrayInsert(self[listname .. "List"], func, widget)
+			if insertingStartupWidgets then
+				self:UpdateCallIn(listname)
+			end
 		end
 	end
-	self:UpdateCallIns()
+	if not insertingStartupWidgets then
+		self:UpdateCallIns()
+	end
 
 	if widget.Initialize then
 		widget:Initialize()
@@ -2727,13 +2785,13 @@ function widgetHandler:Update()
 	-- window that was opened by the input events just handled
 	self:UpdateModalState(deltaTime)
 
-	tracy.ZoneBeginN("W:Update")
+	tracyZoneBeginN("W:Update")
 	for _, w in ipairs(self.UpdateList) do
-		tracy.ZoneBeginN(w._tracyUpdateName)
+		tracyZoneBeginN(w._tracyUpdateName)
 		w:Update(deltaTime)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 
 	self:UpdateWindowPause()
 	return
@@ -2802,41 +2860,41 @@ function widgetHandler:ConfigureLayout(command)
 end
 
 function widgetHandler:ActiveCommandChanged(id, cmdType)
-	tracy.ZoneBeginN("W:ActiveCommandChanged")
+	tracyZoneBeginN("W:ActiveCommandChanged")
 	for _, w in ipairs(self.ActiveCommandChangedList) do
 		w:ActiveCommandChanged(id, cmdType)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CameraRotationChanged(rotx, roty, rotz)
-	tracy.ZoneBeginN("W:CameraRotationChanged")
+	tracyZoneBeginN("W:CameraRotationChanged")
 	for _, w in ipairs(self.CameraRotationChangedList) do
 		w:CameraRotationChanged(rotx, roty, rotz)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CameraPositionChanged(posx, posy, posz)
-	tracy.ZoneBeginN("W:CameraPositionChanged")
+	tracyZoneBeginN("W:CameraPositionChanged")
 	for _, w in ipairs(self.CameraPositionChangedList) do
 		w:CameraPositionChanged(posx, posy, posz)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CommandNotify(id, params, options)
-	tracy.ZoneBeginN("W:CommandNotify")
+	tracyZoneBeginN("W:CommandNotify")
 	for _, w in ipairs(self.CommandNotifyList) do
-		tracy.ZoneBeginN(w._tracyCommandNotifyName)
+		tracyZoneBeginN(w._tracyCommandNotifyName)
 		local consumed = w:CommandNotify(id, params, options)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		if consumed then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -2855,28 +2913,28 @@ function widgetHandler:AllowQuit()
 end
 
 function widgetHandler:AddConsoleLine(msg, priority)
-	tracy.ZoneBeginN("W:AddConsoleLine")
+	tracyZoneBeginN("W:AddConsoleLine")
 	for _, w in ipairs(self.AddConsoleLineList) do
 		w:AddConsoleLine(msg, priority)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GroupChanged(groupID)
-	tracy.ZoneBeginN("W:GroupChanged")
+	tracyZoneBeginN("W:GroupChanged")
 	for _, w in ipairs(self.GroupChangedList) do
 		w:GroupChanged(groupID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:CommandsChanged()
-	tracy.ZoneBeginN("W:CommandsChanged")
+	tracyZoneBeginN("W:CommandsChanged")
 	if widgetHandler:UpdateSelection() then
 		-- for selectionchanged
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return -- selection updated, don't call commands changed.
 	end
 	self.inCommandsChanged = true
@@ -2889,7 +2947,7 @@ function widgetHandler:CommandsChanged()
 		end
 	end
 	self.inCommandsChanged = false
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2900,7 +2958,7 @@ end
 
 -- generates ViewResize() calls for the widgets
 function widgetHandler:SetViewSize(vsx, vsy)
-	tracy.ZoneBeginN("W:SetViewSize")
+	tracyZoneBeginN("W:SetViewSize")
 	self.xViewSize = vsx
 	self.yViewSize = vsy
 	if self.xViewSizeOld ~= vsx or self.yViewSizeOld ~= vsy then
@@ -2908,7 +2966,7 @@ function widgetHandler:SetViewSize(vsx, vsy)
 		self.xViewSizeOld = vsx
 		self.yViewSizeOld = vsy
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -2919,23 +2977,23 @@ function widgetHandler:ViewResize(vsx, vsy)
 		print("real ViewResize") -- FIXME
 	end
 
-	tracy.ZoneBeginN("W:ViewResize")
+	tracyZoneBeginN("W:ViewResize")
 	if widgetHandler.WG.FlowUI then
-		tracy.ZoneBeginN("W:ViewResize:FlowUI")
+		tracyZoneBeginN("W:ViewResize:FlowUI")
 		widgetHandler.WG.FlowUI.Callin.ViewResize1(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
 	for _, w in ipairs(self.ViewResizeList) do
-		tracy.ZoneBeginN(w._tracyViewResizeName)
+		tracyZoneBeginN(w._tracyViewResizeName)
 		w:ViewResize(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreen()
-	tracy.ZoneBeginN("W:DrawScreen")
+	tracyZoneBeginN("W:DrawScreen")
 	-- catches a window opened from another widget's Update, which ran after the
 	-- recompute at the top of widgetHandler:Update
 	self:UpdateModalState()
@@ -2944,182 +3002,182 @@ function widgetHandler:DrawScreen()
 			local list = self.DrawScreenList
 			for i = #list, 1, -1 do
 				local w = list[i]
-				if allowedWidget(w) then
-					tracy.ZoneBeginN(w._tracyDrawScreenName)
+				if not (modalActive or interfaceHidden) or allowedWidget(w) then
+					tracyZoneBeginN(w._tracyDrawScreenName)
 					w:DrawScreen()
-					tracy.ZoneEnd()
+					tracyZoneEnd()
 				end
 			end
 		elseif widgetHandler.WG.guishader and widgetHandler.WG.guishader.DrawScreen then
-			tracy.ZoneBeginN("W:DrawScreen:guishader")
+			tracyZoneBeginN("W:DrawScreen:guishader")
 			widgetHandler.WG.guishader.DrawScreen()
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGenesis()
-	tracy.ZoneBeginN("W:DrawGenesis")
+	tracyZoneBeginN("W:DrawGenesis")
 	local list = self.DrawGenesisList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyDrawGenesisName)
+		tracyZoneBeginN(w._tracyDrawGenesisName)
 		w:DrawGenesis()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPreForward()
-	tracy.ZoneBeginN("W:DrawGroundPreForward")
+	tracyZoneBeginN("W:DrawGroundPreForward")
 	local list = self.DrawGroundPreForwardList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPreForward()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPostForward()
-	tracy.ZoneBeginN("W:DrawGroundPostForward")
+	tracyZoneBeginN("W:DrawGroundPostForward")
 	local list = self.DrawGroundPostForwardList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPostForward()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPreDeferred()
-	tracy.ZoneBeginN("W:DrawGroundPreDeferred")
+	tracyZoneBeginN("W:DrawGroundPreDeferred")
 	local list = self.DrawGroundPreDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPreDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundPostDeferred()
-	tracy.ZoneBeginN("W:DrawGroundPostDeferred")
+	tracyZoneBeginN("W:DrawGroundPostDeferred")
 	local list = self.DrawGroundPostDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundPostDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawGroundDeferred()
-	tracy.ZoneBeginN("W:DrawGroundDeferred")
+	tracyZoneBeginN("W:DrawGroundDeferred")
 	local list = self.DrawGroundDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawGroundDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorld()
-	tracy.ZoneBeginN("W:DrawWorld")
+	tracyZoneBeginN("W:DrawWorld")
 	if not self.chobbyInterface then
 		local list = self.DrawWorldList
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyDrawWorldName)
+			tracyZoneBeginN(w._tracyDrawWorldName)
 			w:DrawWorld()
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldPreUnit()
-	tracy.ZoneBeginN("W:DrawWorldPreUnit")
+	tracyZoneBeginN("W:DrawWorldPreUnit")
 	if not self.chobbyInterface then
 		local list = self.DrawWorldPreUnitList
 		for i = #list, 1, -1 do
 			local w = list[i]
-			tracy.ZoneBeginN(w._tracyDrawWorldPreUnitName)
+			tracyZoneBeginN(w._tracyDrawWorldPreUnitName)
 			w:DrawWorldPreUnit()
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawOpaqueUnitsLua")
+	tracyZoneBeginN("W:DrawOpaqueUnitsLua")
 	local list = self.DrawOpaqueUnitsLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawOpaqueFeaturesLua")
+	tracyZoneBeginN("W:DrawOpaqueFeaturesLua")
 	local list = self.DrawOpaqueFeaturesLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawOpaqueFeaturesLua(deferredPass, drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawAlphaUnitsLua(drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawAlphaUnitsLua")
+	tracyZoneBeginN("W:DrawAlphaUnitsLua")
 	local list = self.DrawAlphaUnitsLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawAlphaUnitsLua(drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
-	tracy.ZoneBeginN("W:DrawAlphaFeaturesLua")
+	tracyZoneBeginN("W:DrawAlphaFeaturesLua")
 	local list = self.DrawAlphaFeaturesLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawAlphaFeaturesLua(drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawShadowUnitsLua()
-	tracy.ZoneBeginN("W:DrawShadowUnitsLua")
+	tracyZoneBeginN("W:DrawShadowUnitsLua")
 	local list = self.DrawShadowUnitsLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawShadowUnitsLua()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawShadowFeaturesLua()
-	tracy.ZoneBeginN("W:DrawShadowFeaturesLua")
+	tracyZoneBeginN("W:DrawShadowFeaturesLua")
 	local list = self.DrawShadowFeaturesLuaList
 	for i = #list, 1, -1 do
 		list[i]:DrawShadowFeaturesLua()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawPreDecals()
-	tracy.ZoneBeginN("W:DrawPreDecals")
+	tracyZoneBeginN("W:DrawPreDecals")
 	local list = self.DrawPreDecalsList
 	for i = #list, 1, -1 do
 		list[i]:DrawPreDecals()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -3135,93 +3193,93 @@ function widgetHandler:DrawWorldPreParticles(drawAboveWater, drawBelowWater, dra
 	-- false, true, false, true
 	-- true, false, true, false
 	-- true, false, false, false
-	tracy.ZoneBeginN("W:DrawWorldPreParticles")
+	tracyZoneBeginN("W:DrawWorldPreParticles")
 	local list = self.DrawWorldPreParticlesList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldPreParticles(drawAboveWater, drawBelowWater, drawReflection, drawRefraction)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldShadow()
-	tracy.ZoneBeginN("W:DrawWorldShadow")
+	tracyZoneBeginN("W:DrawWorldShadow")
 	local list = self.DrawWorldShadowList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldShadow()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldReflection()
-	tracy.ZoneBeginN("W:DrawWorldReflection")
+	tracyZoneBeginN("W:DrawWorldReflection")
 	local list = self.DrawWorldReflectionList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldReflection()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawWorldRefraction()
-	tracy.ZoneBeginN("W:DrawWorldRefraction")
+	tracyZoneBeginN("W:DrawWorldRefraction")
 	local list = self.DrawWorldRefractionList
 	for i = #list, 1, -1 do
 		list[i]:DrawWorldRefraction()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawUnitsPostDeferred()
-	tracy.ZoneBeginN("W:DrawUnitsPostDeferred")
+	tracyZoneBeginN("W:DrawUnitsPostDeferred")
 	local list = self.DrawUnitsPostDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawUnitsPostDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawFeaturesPostDeferred()
-	tracy.ZoneBeginN("W:DrawFeaturesPostDeferred")
+	tracyZoneBeginN("W:DrawFeaturesPostDeferred")
 	local list = self.DrawFeaturesPostDeferredList
 	for i = #list, 1, -1 do
 		list[i]:DrawFeaturesPostDeferred()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreenEffects(vsx, vsy)
-	tracy.ZoneBeginN("W:DrawScreenEffects")
+	tracyZoneBeginN("W:DrawScreenEffects")
 	local list = self.DrawScreenEffectsList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyDrawScreenEffectsName)
+		tracyZoneBeginN(w._tracyDrawScreenEffectsName)
 		w:DrawScreenEffects(vsx, vsy)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawScreenPost()
-	tracy.ZoneBeginN("W:DrawScreenPost")
+	tracyZoneBeginN("W:DrawScreenPost")
 	local list = self.DrawScreenPostList
 	for i = #list, 1, -1 do
 		local w = list[i]
-		tracy.ZoneBeginN(w._tracyDrawScreenPostName)
+		tracyZoneBeginN(w._tracyDrawScreenPostName)
 		w:DrawScreenPost()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawInMiniMap(xSize, ySize)
-	tracy.ZoneBeginN("W:DrawInMiniMap")
+	tracyZoneBeginN("W:DrawInMiniMap")
 	-- When PIP minimap replacement is active, skip normal DrawInMiniMap calls
 	-- The PIP widget will call these functions itself with proper coordinate transformations
 	-- during its render-to-texture pass in RenderPipContents()
@@ -3230,45 +3288,45 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
 		and widgetHandler.minimap.isPipMinimapActive
 		and widgetHandler.minimap.isPipMinimapActive()
 	then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return
 	end
 	local list = self.DrawInMiniMapList
 	for i = #list, 1, -1 do
 		list[i]:DrawInMiniMap(xSize, ySize)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:DrawBuildSquare(unitDefID, x, z, facing, statuses)
-	tracy.ZoneBeginN("W:DrawBuildSquare")
+	tracyZoneBeginN("W:DrawBuildSquare")
 	local list = self.DrawBuildSquareList
 	for i = #list, 1, -1 do
 		list[i]:DrawBuildSquare(unitDefID, x, z, facing, statuses)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SunChanged()
-	tracy.ZoneBeginN("W:SunChanged")
+	tracyZoneBeginN("W:SunChanged")
 	local nmp = _G.NightModeParams
 	local list = self.SunChangedList
 	for i = #list, 1, -1 do
 		list[i]:SunChanged(nmp)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FontsChanged()
-	tracy.ZoneBeginN("FontsChanged")
+	tracyZoneBeginN("FontsChanged")
 	local list = self.FontsChangedList
 	for i = #list, 1, -1 do
 		list[i]:FontsChanged()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -3278,18 +3336,18 @@ end
 --
 
 function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions)
-	tracy.ZoneBeginN("W:KeyPress")
+	tracyZoneBeginN("W:KeyPress")
 	local textOwner = self.textOwner
 
 	if textOwner then
 		if (not textOwner.KeyPress) or textOwner:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 
 	if self.actionHandler:KeyAction(true, key, mods, isRepeat, scanCode, actions) then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return true
 	end
 
@@ -3297,7 +3355,7 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	if actions and not isRepeat then
 		for _, bound in ipairs(actions) do
 			if bound.command == "widgetselector" and self:RecoverWidgetSelector() then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return true
 			end
 		end
@@ -3306,45 +3364,45 @@ function widgetHandler:KeyPress(key, mods, isRepeat, label, unicode, scanCode, a
 	for _, w in ipairs(self.KeyPressList) do
 		if allowedWidget(w) then
 			if w:KeyPress(key, mods, isRepeat, label, unicode, scanCode, actions) then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return true
 			end
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:KeyRelease(key, mods, label, unicode, scanCode, actions)
-	tracy.ZoneBeginN("W:KeyRelease")
+	tracyZoneBeginN("W:KeyRelease")
 	local textOwner = self.textOwner
 
 	if textOwner then
 		if (not textOwner.KeyRelease) or textOwner:KeyRelease(key, mods, label, unicode, scanCode, actions) then
 			-- the action handler (actions.lua) never sees this release, so let's forget the key itself
 			self.actionHandler:ClearPressedKey(scanCode)
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 
 	if self.actionHandler:KeyAction(false, key, mods, false, scanCode, actions) then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return true
 	end
 
 	for _, w in ipairs(self.KeyReleaseList) do
 		if w:KeyRelease(key, mods, label, unicode, scanCode, actions) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:TextInput(utf8, ...)
-	tracy.ZoneBeginN("W:TextInput")
+	tracyZoneBeginN("W:TextInput")
 	local textOwner = self.textOwner
 
 	if textOwner then
@@ -3352,7 +3410,7 @@ function widgetHandler:TextInput(utf8, ...)
 			textOwner:TextInput(utf8, ...)
 		end
 
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return true
 	end
 
@@ -3360,12 +3418,12 @@ function widgetHandler:TextInput(utf8, ...)
 	for i = #list, 1, -1 do
 		if allowedWidget(list[i]) then
 			if list[i]:TextInput(utf8, ...) then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return true
 			end
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -3376,19 +3434,19 @@ end
 
 -- local helper (not a real call-in)
 function widgetHandler:WidgetAt(x, y)
-	tracy.ZoneBeginN("W:WidgetAt")
+	tracyZoneBeginN("W:WidgetAt")
 	for _, w in ipairs(self.IsAboveList) do
-		if allowedWidget(w) and w:IsAbove(x, y) then
-			tracy.ZoneEnd()
+		if (not (modalActive or interfaceHidden) or allowedWidget(w)) and w:IsAbove(x, y) then
+			tracyZoneEnd()
 			return w
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return nil
 end
 
 function widgetHandler:MousePress(x, y, button)
-	tracy.ZoneBeginN("W:MousePress")
+	tracyZoneBeginN("W:MousePress")
 	if self.mouseOwner then
 		-- unfiltered: a drag that started before the window opened has to finish
 		self.mouseOwner:MousePress(x, y, button)
@@ -3411,22 +3469,22 @@ function widgetHandler:MousePress(x, y, button)
 		widgetHandler.WG.SmartSelect_MousePress2(x, y, button, consumed)
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return consumed
 end
 
 function widgetHandler:MouseMove(x, y, dx, dy, button)
-	tracy.ZoneBeginN("W:MouseMove")
+	tracyZoneBeginN("W:MouseMove")
 	local mo = self.mouseOwner
 	if mo and mo.MouseMove then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return mo:MouseMove(x, y, dx, dy, button)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:MouseRelease(x, y, button)
-	tracy.ZoneBeginN("W:MouseRelease")
+	tracyZoneBeginN("W:MouseRelease")
 	local mo = self.mouseOwner
 	local _, _, lmb, mmb, rmb = Spring.GetMouseState()
 	if not (lmb or mmb or rmb) then
@@ -3434,10 +3492,10 @@ function widgetHandler:MouseRelease(x, y, button)
 	end
 
 	if mo and mo.MouseRelease then
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 		return mo:MouseRelease(x, y, button)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -3445,111 +3503,111 @@ function widgetHandler:MouseWheel(up, value)
 	if value == 0 then
 		return false -- fix for touchpads: after any scroll it somehow adds an up=false, value=0
 	end
-	tracy.ZoneBeginN("W:MouseWheel")
+	tracyZoneBeginN("W:MouseWheel")
 	for _, w in ipairs(self.MouseWheelList) do
 		if allowedWidget(w) and w:MouseWheel(up, value) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerAdded(deviceIndex)
-	tracy.ZoneBeginN("W:ControllerAdded")
+	tracyZoneBeginN("W:ControllerAdded")
 	for _, w in ipairs(self.ControllerAddedList) do
 		if w:ControllerAdded(deviceIndex) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerRemoved(instanceId)
-	tracy.ZoneBeginN("W:ControllerRemoved")
+	tracyZoneBeginN("W:ControllerRemoved")
 	for _, w in ipairs(self.ControllerRemovedList) do
 		if w:ControllerRemoved(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerConnected(instanceId)
-	tracy.ZoneBeginN("W:ControllerConnected")
+	tracyZoneBeginN("W:ControllerConnected")
 	for _, w in ipairs(self.ControllerConnectedList) do
 		if w:ControllerConnected(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerDisconnected(instanceId)
-	tracy.ZoneBeginN("W:ControllerDisconnected")
+	tracyZoneBeginN("W:ControllerDisconnected")
 	for _, w in ipairs(self.ControllerDisconnectedList) do
 		if w:ControllerDisconnected(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerRemapped(instanceId)
-	tracy.ZoneBeginN("W:ControllerRemapped")
+	tracyZoneBeginN("W:ControllerRemapped")
 	for _, w in ipairs(self.ControllerRemappedList) do
 		if w:ControllerRemapped(instanceId) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerButtonUp(instanceId, button, state, name)
-	tracy.ZoneBeginN("W:ControllerButtonUp")
+	tracyZoneBeginN("W:ControllerButtonUp")
 	for _, w in ipairs(self.ControllerButtonUpList) do
 		if w:ControllerButtonUp(instanceId, button, state, name) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerButtonDown(instanceId, button, state, name)
-	tracy.ZoneBeginN("W:ControllerButtonDown")
+	tracyZoneBeginN("W:ControllerButtonDown")
 	for _, w in ipairs(self.ControllerButtonDownList) do
 		if w:ControllerButtonDown(instanceId, button, state, name) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:ControllerAxisMotion(instanceId, axis, value, name)
-	tracy.ZoneBeginN("W:ControllerAxisMotion")
+	tracyZoneBeginN("W:ControllerAxisMotion")
 	for _, w in ipairs(self.ControllerAxisMotionList) do
 		if w:ControllerAxisMotion(instanceId, axis, value, name) then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
@@ -3558,17 +3616,17 @@ function widgetHandler:IsAbove(x, y)
 end
 
 function widgetHandler:GetTooltip(x, y)
-	tracy.ZoneBeginN("W:GetTooltip")
+	tracyZoneBeginN("W:GetTooltip")
 	for _, w in ipairs(self.GetTooltipList) do
-		if allowedWidget(w) and w:IsAbove(x, y) then
+		if (not (modalActive or interfaceHidden) or allowedWidget(w)) and w:IsAbove(x, y) then
 			local tip = w:GetTooltip(x, y)
 			if type(tip) == "string" and #tip > 0 then
-				tracy.ZoneEnd()
+				tracyZoneEnd()
 				return tip
 			end
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return ""
 end
 
@@ -3578,76 +3636,76 @@ end
 --
 
 function widgetHandler:GamePreload()
-	tracy.ZoneBeginN("W:GamePreload")
+	tracyZoneBeginN("W:GamePreload")
 	for _, w in ipairs(self.GamePreloadList) do
 		w:GamePreload()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameStart()
-	tracy.ZoneBeginN("W:GameStart")
+	tracyZoneBeginN("W:GameStart")
 	for _, w in ipairs(self.GameStartList) do
-		tracy.ZoneBeginN(w._tracyGameStartName)
+		tracyZoneBeginN(w._tracyGameStartName)
 		w:GameStart()
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameOver(winningAllyTeams)
-	tracy.ZoneBeginN("W:GameOver")
+	tracyZoneBeginN("W:GameOver")
 	for _, w in ipairs(self.GameOverList) do
 		w:GameOver(winningAllyTeams)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GamePaused(playerID, paused)
-	tracy.ZoneBeginN("W:GamePaused")
+	tracyZoneBeginN("W:GamePaused")
 	for _, w in ipairs(self.GamePausedList) do
 		w:GamePaused(playerID, paused)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:TeamDied(teamID)
-	tracy.ZoneBeginN("W:TeamDied")
+	tracyZoneBeginN("W:TeamDied")
 	for _, w in ipairs(self.TeamDiedList) do
 		w:TeamDied(teamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:TeamChanged(teamID)
-	tracy.ZoneBeginN("W:TeamChanged")
+	tracyZoneBeginN("W:TeamChanged")
 	for _, w in ipairs(self.TeamChangedList) do
 		w:TeamChanged(teamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:PlayerAdded(playerID)
-	tracy.ZoneBeginN("W:PlayerAdded")
+	tracyZoneBeginN("W:PlayerAdded")
 	for _, w in ipairs(self.PlayerAddedList) do
 		w:PlayerAdded(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:PlayerRemoved(playerID, reason)
-	tracy.ZoneBeginN("W:PlayerRemoved")
+	tracyZoneBeginN("W:PlayerRemoved")
 	for _, w in ipairs(self.PlayerRemovedList) do
 		w:PlayerRemoved(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -3655,42 +3713,42 @@ function widgetHandler:PlayerChanged(playerID)
 	if anonymousMode ~= "disabled" and not spGetSpectatingState() then
 		Spring.SendCommands("info 0")
 	end
-	tracy.ZoneBeginN("W:PlayerChanged")
+	tracyZoneBeginN("W:PlayerChanged")
 	for _, w in ipairs(self.PlayerChangedList) do
-		tracy.ZoneBeginN(w._tracyPlayerChangedName)
+		tracyZoneBeginN(w._tracyPlayerChangedName)
 		w:PlayerChanged(playerID)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameFrame(frameNum)
-	tracy.ZoneBeginN("W:GameFrame")
+	tracyZoneBeginN("W:GameFrame")
 	for _, w in ipairs(self.GameFrameList) do
-		tracy.ZoneBeginN(w._tracyGameFrameName)
+		tracyZoneBeginN(w._tracyGameFrameName)
 		w:GameFrame(frameNum)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameFramePost(frameNum)
-	tracy.ZoneBeginN("W:GameFramePost")
+	tracyZoneBeginN("W:GameFramePost")
 	for _, w in ipairs(self.GameFramePostList) do
-		tracy.ZoneBeginN(w._tracyGameFramePostName)
+		tracyZoneBeginN(w._tracyGameFramePostName)
 		w:GameFramePost(frameNum)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 -- local helper (not a real call-in)
 local oldSelection = {}
 function widgetHandler:UpdateSelection()
-	tracy.ZoneBeginN("W:UpdateSelection")
+	tracyZoneBeginN("W:UpdateSelection")
 	local changed
 	local newSelection = Spring.GetSelectedUnits()
 	if #newSelection == #oldSelection then
@@ -3722,73 +3780,73 @@ function widgetHandler:UpdateSelection()
 		end
 		if widgetHandler:SelectionChanged(newSelection, subselection) then
 			-- selection changed, don't set old selection to new selection as it is soon to change.
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
 	oldSelection = newSelection
 
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
-	tracy.ZoneBeginN("W:SelectionChanged")
+	tracyZoneBeginN("W:SelectionChanged")
 	for _, w in ipairs(self.SelectionChangedList) do
 		local unitArray = w:SelectionChanged(selectedUnits, subselection)
 		if unitArray then
 			Spring.SelectUnitArray(unitArray)
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:GameProgress(serverFrameNum)
-	tracy.ZoneBeginN("W:GameProgress")
+	tracyZoneBeginN("W:GameProgress")
 	for _, w in ipairs(self.GameProgressList) do
 		w:GameProgress(serverFrameNum)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
-	tracy.ZoneBeginN("W:UnsyncedHeightMapUpdate")
+	tracyZoneBeginN("W:UnsyncedHeightMapUpdate")
 	local list = self.UnsyncedHeightMapUpdateList
 	for i = #list, 1, -1 do
 		list[i]:UnsyncedHeightMapUpdate(x1, z1, x2, z2)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ShockFront(power, dx, dy, dz)
-	tracy.ZoneBeginN("W:ShockFront")
+	tracyZoneBeginN("W:ShockFront")
 	for _, w in ipairs(self.ShockFrontList) do
 		w:ShockFront(power, dx, dy, dz)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:WorldTooltip(ttType, ...)
-	tracy.ZoneBeginN("W:WorldTooltip")
+	tracyZoneBeginN("W:WorldTooltip")
 	for _, w in ipairs(self.WorldTooltipList) do
 		local tt = w:WorldTooltip(ttType, ...)
 		if type(tt) == "string" and #tt > 0 then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return tt
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
-	tracy.ZoneBeginN("W:MapDrawCmd")
+	tracyZoneBeginN("W:MapDrawCmd")
 	local retval = false
 	for _, w in ipairs(self.MapDrawCmdList) do
 		local takeEvent = w:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
@@ -3796,69 +3854,69 @@ function widgetHandler:MapDrawCmd(playerID, cmdType, px, py, pz, ...)
 			retval = true
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return retval
 end
 
 function widgetHandler:ClearMapMarks()
-	tracy.ZoneBeginN("W:ClearMapMarks")
+	tracyZoneBeginN("W:ClearMapMarks")
 	for _, w in ipairs(self.ClearMapMarksList) do
 		w:ClearMapMarks()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GameSetup(state, ready, playerStates)
-	tracy.ZoneBeginN("W:GameSetup")
+	tracyZoneBeginN("W:GameSetup")
 	for _, w in ipairs(self.GameSetupList) do
 		local success, newReady = w:GameSetup(state, ready, playerStates)
 		if success then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true, newReady
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return false
 end
 
 function widgetHandler:DefaultCommand(...)
-	tracy.ZoneBeginN("W:DefaultCommand")
+	tracyZoneBeginN("W:DefaultCommand")
 	local list = self.DefaultCommandList
 	for i = #list, 1, -1 do
 		local result = list[i]:DefaultCommand(...)
 		if type(result) == "number" then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return result
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return nil --  not a number, use the default engine command
 end
 
 function widgetHandler:LanguageChanged()
-	tracy.ZoneBeginN("W:LanguageChanged")
+	tracyZoneBeginN("W:LanguageChanged")
 	for _, w in ipairs(self.LanguageChangedList) do
 		w:LanguageChanged()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:UnitBlocked(unitDefID, reasons, builderUnitDefID)
-	tracy.ZoneBeginN("W:UnitBlocked")
+	tracyZoneBeginN("W:UnitBlocked")
 	for _, w in ipairs(self.UnitBlockedList) do
 		w:UnitBlocked(unitDefID, reasons, builderUnitDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 ---A builder unit type gained or lost a build option (api_dynamic_build_options.lua).
 function widgetHandler:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
-	tracy.ZoneBeginN("W:BuildOptionsChanged")
+	tracyZoneBeginN("W:BuildOptionsChanged")
 	for _, w in ipairs(self.BuildOptionsChangedList) do
 		w:BuildOptionsChanged(builderUnitDefID, builtUnitDefID, added)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 --------------------------------------------------------------------------------
@@ -3867,117 +3925,117 @@ end
 --
 
 function widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:MetaUnitAdded")
+	tracyZoneBeginN("W:MetaUnitAdded")
 	for _, w in ipairs(self.MetaUnitAddedList) do
 		w:MetaUnitAdded(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:MetaUnitRemoved")
+	tracyZoneBeginN("W:MetaUnitRemoved")
 	for _, w in ipairs(self.MetaUnitRemovedList) do
 		w:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitCreated")
+	tracyZoneBeginN("W:UnitCreated")
 	for _, w in ipairs(self.UnitCreatedList) do
 		w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitFinished")
+	tracyZoneBeginN("W:UnitFinished")
 	for _, w in ipairs(self.UnitFinishedList) do
 		w:UnitFinished(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	tracy.ZoneBeginN("W:UnitFromFactory")
+	tracyZoneBeginN("W:UnitFromFactory")
 	for _, w in ipairs(self.UnitFromFactoryList) do
 		w:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitDestroyed")
+	tracyZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
 		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
-	tracy.ZoneBeginN("W:UnitDestroyedByTeam")
+	tracyZoneBeginN("W:UnitDestroyedByTeam")
 	for _, w in ipairs(self.UnitDestroyedByTeamList) do
 		w:UnitDestroyedByTeam(unitID, unitDefID, unitTeam, attackerTeamID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:RenderUnitDestroyed")
+	tracyZoneBeginN("W:RenderUnitDestroyed")
 	-- at the time of committing, this does not get called by the widgethandler
 	for _, w in ipairs(self.RenderUnitDestroyedList) do
 		w:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
-	tracy.ZoneBeginN("W:UnitExperience")
+	tracyZoneBeginN("W:UnitExperience")
 	for _, w in ipairs(self.UnitExperienceList) do
 		w:UnitExperience(unitID, unitDefID, unitTeam, experience, oldExperience)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 
-	tracy.ZoneBeginN("W:UnitTaken")
+	tracyZoneBeginN("W:UnitTaken")
 	for _, w in ipairs(self.UnitTakenList) do
 		w:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	widgetHandler:MetaUnitAdded(unitID, unitDefID, unitTeam)
 
-	tracy.ZoneBeginN("W:UnitGiven")
+	tracyZoneBeginN("W:UnitGiven")
 	for _, w in ipairs(self.UnitGivenList) do
 		w:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitIdle(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitIdle")
+	tracyZoneBeginN("W:UnitIdle")
 	for _, w in ipairs(self.UnitIdleList) do
 		w:UnitIdle(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -4002,7 +4060,7 @@ function widgetHandler:UnitCommand(
 	fromSynced,
 	fromLua
 )
-	tracy.ZoneBeginN("W:UnitCommand")
+	tracyZoneBeginN("W:UnitCommand")
 	local list = self.UnitCommandList
 	for i = 1, #list do
 		local w = list[i]
@@ -4011,244 +4069,244 @@ function widgetHandler:UnitCommand(
 			w:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
-	tracy.ZoneBeginN("W:UnitCmdDone")
+	tracyZoneBeginN("W:UnitCmdDone")
 	for _, w in ipairs(self.UnitCmdDoneList) do
 		w:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
-	tracy.ZoneBeginN("W:UnitDamaged")
+	tracyZoneBeginN("W:UnitDamaged")
 	for _, w in ipairs(self.UnitDamagedList) do
 		w:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitStunned(unitID, unitDefID, unitTeam, stunned)
-	tracy.ZoneBeginN("W:UnitStunned")
+	tracyZoneBeginN("W:UnitStunned")
 	for _, w in ipairs(self.UnitStunnedList) do
 		w:UnitStunned(unitID, unitDefID, unitTeam, stunned)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredRadar(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredRadar")
+	tracyZoneBeginN("W:UnitEnteredRadar")
 	for _, w in ipairs(self.UnitEnteredRadarList) do
 		w:UnitEnteredRadar(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredLos(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredLos")
+	tracyZoneBeginN("W:UnitEnteredLos")
 	for _, w in ipairs(self.UnitEnteredLosList) do
 		w:UnitEnteredLos(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftRadar(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftRadar")
+	tracyZoneBeginN("W:UnitLeftRadar")
 	for _, w in ipairs(self.UnitLeftRadarList) do
 		w:UnitLeftRadar(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftLos(unitID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftLos")
+	tracyZoneBeginN("W:UnitLeftLos")
 	for _, w in ipairs(self.UnitLeftLosList) do
 		w:UnitLeftLos(unitID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredWater(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredWater")
+	tracyZoneBeginN("W:UnitEnteredWater")
 	for _, w in ipairs(self.UnitEnteredWaterList) do
 		w:UnitEnteredWater(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitEnteredAir(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitEnteredAir")
+	tracyZoneBeginN("W:UnitEnteredAir")
 	for _, w in ipairs(self.UnitEnteredAirList) do
 		w:UnitEnteredAir(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftWater(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftWater")
+	tracyZoneBeginN("W:UnitLeftWater")
 	for _, w in ipairs(self.UnitLeftWaterList) do
 		w:UnitLeftWater(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitLeftAir")
+	tracyZoneBeginN("W:UnitLeftAir")
 	for _, w in ipairs(self.UnitLeftAirList) do
 		w:UnitLeftAir(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
-	tracy.ZoneBeginN("W:UnitSeismicPing")
+	tracyZoneBeginN("W:UnitSeismicPing")
 	for _, w in ipairs(self.UnitSeismicPingList) do
 		w:UnitSeismicPing(x, y, z, strength, allyTeam, unitID, unitDefID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	tracy.ZoneBeginN("W:UnitLoaded")
+	tracyZoneBeginN("W:UnitLoaded")
 	for _, w in ipairs(self.UnitLoadedList) do
 		w:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	tracy.ZoneBeginN("W:UnitUnloaded")
+	tracyZoneBeginN("W:UnitUnloaded")
 	for _, w in ipairs(self.UnitUnloadedList) do
 		w:UnitUnloaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCloaked(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitCloaked")
+	tracyZoneBeginN("W:UnitCloaked")
 	for _, w in ipairs(self.UnitCloakedList) do
 		w:UnitCloaked(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitDecloaked(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitDecloaked")
+	tracyZoneBeginN("W:UnitDecloaked")
 	for _, w in ipairs(self.UnitDecloakedList) do
 		w:UnitDecloaked(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitMoveFailed(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:UnitMoveFailed")
+	tracyZoneBeginN("W:UnitMoveFailed")
 	for _, w in ipairs(self.UnitMoveFailedList) do
 		w:UnitMoveFailed(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RecvLuaMsg(msg, playerID)
-	tracy.ZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
+	tracyZoneBeginN("W:RecvLuaMsg:" .. msg:sub(1, 100))
 	local retval = false
 	if msg:find("LobbyOverlayActive", 1, true) == 1 then
 		-- LuaMenu delivers these as player 0. From any other player they are spoofed.
 		-- ! FIXME: We cannot distinguish LuaMenu from an actual player 0.
 		if playerID ~= 0 then
-			tracy.ZoneEnd()
+			tracyZoneEnd()
 			return true
 		end
 		self.chobbyInterface = (msg:byte(19) == 49) -- 49 == string.byte('1')
 		retval = true
 	end
 	for _, w in ipairs(self.RecvLuaMsgList) do
-		tracy.ZoneBeginN(w._tracyRecvLuaMsgName)
+		tracyZoneBeginN(w._tracyRecvLuaMsgName)
 		if w:RecvLuaMsg(msg, playerID) then
 			retval = true
 		end
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return retval --  FIXME  --  another actionHandler type?
 end
 
 function widgetHandler:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	tracy.ZoneBeginN("W:StockpileChanged")
+	tracyZoneBeginN("W:StockpileChanged")
 	for _, w in ipairs(self.StockpileChangedList) do
 		w:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
-	tracy.ZoneBeginN("W:VisibleUnitAdded")
+	tracyZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
 		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
-	tracy.ZoneBeginN("W:VisibleUnitRemoved")
+	tracyZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
 		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
-	tracy.ZoneBeginN("W:VisibleUnitsChanged")
+	tracyZoneBeginN("W:VisibleUnitsChanged")
 	for _, w in ipairs(self.VisibleUnitsChangedList) do
-		tracy.ZoneBeginN(w._tracyVisibleUnitsChangedName)
+		tracyZoneBeginN(w._tracyVisibleUnitsChangedName)
 		w:VisibleUnitsChanged(visibleUnits, numVisibleUnits)
-		tracy.ZoneEnd()
+		tracyZoneEnd()
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:AlliedUnitAdded(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:AlliedUnitAdded")
+	tracyZoneBeginN("W:AlliedUnitAdded")
 	for _, w in ipairs(self.AlliedUnitAddedList) do
 		w:AlliedUnitAdded(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:AlliedUnitRemoved")
+	tracyZoneBeginN("W:AlliedUnitRemoved")
 	for _, w in ipairs(self.AlliedUnitRemovedList) do
 		w:AlliedUnitRemoved(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
-	tracy.ZoneBeginN("W:AlliedUnitsChanged")
+	tracyZoneBeginN("W:AlliedUnitsChanged")
 	for _, w in ipairs(self.AlliedUnitsChangedList) do
 		w:AlliedUnitsChanged(visibleUnits, numVisibleUnits)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 --------------------------------------------------------------------------------
@@ -4267,7 +4325,7 @@ end
 -- a sim frame's events as px, py, pz, weaponID, ownerID runs: batch widgets get the array,
 -- the others one call per event
 function widgetHandler:VisibleExplosionBatch(events, count)
-	tracy.ZoneBeginN("W:VisibleExplosionBatch")
+	tracyZoneBeginN("W:VisibleExplosionBatch")
 	for _, w in ipairs(self.VisibleExplosionBatchList) do
 		w:VisibleExplosionBatch(events, count)
 	end
@@ -4276,11 +4334,11 @@ function widgetHandler:VisibleExplosionBatch(events, count)
 			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:BarrelfireBatch(events, count)
-	tracy.ZoneBeginN("W:BarrelfireBatch")
+	tracyZoneBeginN("W:BarrelfireBatch")
 	for _, w in ipairs(self.BarrelfireBatchList) do
 		w:BarrelfireBatch(events, count)
 	end
@@ -4289,348 +4347,348 @@ function widgetHandler:BarrelfireBatch(events, count)
 			w:Barrelfire(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:CrashingAircraft(unitID, unitDefID, unitTeam)
-	tracy.ZoneBeginN("W:CrashingAircraft")
+	tracyZoneBeginN("W:CrashingAircraft")
 	for _, w in ipairs(self.CrashingAircraftList) do
 		w:CrashingAircraft(unitID, unitDefID, unitTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SendStats(unitDefID, n, ts, dmgDealt, dmgRec, minutes, kills, killedCost)
-	tracy.ZoneBeginN("W:SendStats")
+	tracyZoneBeginN("W:SendStats")
 	for _, w in ipairs(self.SendStatsList) do
 		w:SendStats(unitDefID, n, ts, dmgDealt, dmgRec, minutes, kills, killedCost)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SendStats_GameMode(mode)
-	tracy.ZoneBeginN("W:SendStats_GameMode")
+	tracyZoneBeginN("W:SendStats_GameMode")
 	for _, w in ipairs(self.SendStats_GameModeList) do
 		w:SendStats_GameMode(mode)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ActivityEvent(playerID)
-	tracy.ZoneBeginN("W:ActivityEvent")
+	tracyZoneBeginN("W:ActivityEvent")
 	for _, w in ipairs(self.ActivityEventList) do
 		w:ActivityEvent(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FpsEvent(playerID, fps)
-	tracy.ZoneBeginN("W:FpsEvent")
+	tracyZoneBeginN("W:FpsEvent")
 	for _, w in ipairs(self.FpsEventList) do
 		w:FpsEvent(playerID, fps)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ApmEvent(teamID, apm)
-	tracy.ZoneBeginN("W:ApmEvent")
+	tracyZoneBeginN("W:ApmEvent")
 	for _, w in ipairs(self.ApmEventList) do
 		w:ApmEvent(teamID, apm)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GpuMemEvent(playerID, mem)
-	tracy.ZoneBeginN("W:GpuMemEvent")
+	tracyZoneBeginN("W:GpuMemEvent")
 	for _, w in ipairs(self.GpuMemEventList) do
 		w:GpuMemEvent(playerID, mem)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:LuaMemEvent(playerID, mem)
-	tracy.ZoneBeginN("W:LuaMemEvent")
+	tracyZoneBeginN("W:LuaMemEvent")
 	for _, w in ipairs(self.LuaMemEventList) do
 		w:LuaMemEvent(playerID, mem)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SystemEvent(playerID, systemData)
-	tracy.ZoneBeginN("W:SystemEvent")
+	tracyZoneBeginN("W:SystemEvent")
 	for _, w in ipairs(self.SystemEventList) do
 		w:SystemEvent(playerID, systemData)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RankingEvent(ranking)
-	tracy.ZoneBeginN("W:RankingEvent")
+	tracyZoneBeginN("W:RankingEvent")
 	for _, w in ipairs(self.RankingEventList) do
 		w:RankingEvent(ranking)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
-	tracy.ZoneBeginN("W:MouseCursorEvent")
+	tracyZoneBeginN("W:MouseCursorEvent")
 	for _, w in ipairs(self.MouseCursorEventList) do
 		w:MouseCursorEvent(playerID, x1, z1, x2, z2, click)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:CameraBroadcastEvent(playerID, cameraState)
-	tracy.ZoneBeginN("W:CameraBroadcastEvent")
+	tracyZoneBeginN("W:CameraBroadcastEvent")
 	for _, w in ipairs(self.CameraBroadcastEventList) do
 		w:CameraBroadcastEvent(playerID, cameraState)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FeatureReclaimStartedETA(featureID, step)
-	tracy.ZoneBeginN("W:FeatureReclaimStartedETA")
+	tracyZoneBeginN("W:FeatureReclaimStartedETA")
 	for _, w in ipairs(self.FeatureReclaimStartedETAList) do
 		w:FeatureReclaimStartedETA(featureID, step)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
-	tracy.ZoneBeginN("W:UnitBuildspeedDebuffHealthbars")
+	tracyZoneBeginN("W:UnitBuildspeedDebuffHealthbars")
 	for _, w in ipairs(self.UnitBuildspeedDebuffHealthbarsList) do
 		w:UnitBuildspeedDebuffHealthbars(unitID, startFrame, expireFrame)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitBuildspeedDebuffEndHealthbars(unitID)
-	tracy.ZoneBeginN("W:UnitBuildspeedDebuffEndHealthbars")
+	tracyZoneBeginN("W:UnitBuildspeedDebuffEndHealthbars")
 	for _, w in ipairs(self.UnitBuildspeedDebuffEndHealthbarsList) do
 		w:UnitBuildspeedDebuffEndHealthbars(unitID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetAddMessage(msg)
-	tracy.ZoneBeginN("W:GadgetAddMessage")
+	tracyZoneBeginN("W:GadgetAddMessage")
 	for _, w in ipairs(self.GadgetAddMessageList) do
 		w:GadgetAddMessage(msg)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetReceiveAwards(awards)
-	tracy.ZoneBeginN("W:GadgetReceiveAwards")
+	tracyZoneBeginN("W:GadgetReceiveAwards")
 	for _, w in ipairs(self.GadgetReceiveAwardsList) do
 		w:GadgetReceiveAwards(awards)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitScriptLight(unitID, unitDefID, lightIndex, param)
-	tracy.ZoneBeginN("W:UnitScriptLight")
+	tracyZoneBeginN("W:UnitScriptLight")
 	for _, w in ipairs(self.UnitScriptLightList) do
 		w:UnitScriptLight(unitID, unitDefID, lightIndex, param)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:NanoParticleUpdate(events, eventCount, gameFrame)
-	tracy.ZoneBeginN("W:NanoParticleUpdate")
+	tracyZoneBeginN("W:NanoParticleUpdate")
 	local list = self.NanoParticleUpdateList
 	for i = #list, 1, -1 do
 		list[i]:NanoParticleUpdate(events, eventCount, gameFrame)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 end
 
 function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
-	tracy.ZoneBeginN("W:UnitScriptDistortion")
+	tracyZoneBeginN("W:UnitScriptDistortion")
 	for _, w in ipairs(self.UnitScriptDistortionList) do
 		w:UnitScriptDistortion(unitID, unitDefID, distortionIndex, param)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	tracy.ZoneBeginN("W:UnitScriptDecal")
+	tracyZoneBeginN("W:UnitScriptDecal")
 	for _, w in ipairs(self.UnitScriptDecalList) do
 		w:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetRemoveGrass(posx, posz, radius)
-	tracy.ZoneBeginN("W:GadgetRemoveGrass")
+	tracyZoneBeginN("W:GadgetRemoveGrass")
 	for _, w in ipairs(self.GadgetRemoveGrassList) do
 		w:GadgetRemoveGrass(posx, posz, radius)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:GadgetCoopStartPoint(playerID, x, y, z)
-	tracy.ZoneBeginN("W:GadgetCoopStartPoint")
+	tracyZoneBeginN("W:GadgetCoopStartPoint")
 	for _, w in ipairs(self.GadgetCoopStartPointList) do
 		w:GadgetCoopStartPoint(playerID, x, y, z)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:NotificationEvent(msg)
-	tracy.ZoneBeginN("W:NotificationEvent")
+	tracyZoneBeginN("W:NotificationEvent")
 	for _, w in ipairs(self.NotificationEventList) do
 		w:NotificationEvent(msg)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:NightFactorChanged(red, green, blue, shadow, altitude)
-	tracy.ZoneBeginN("W:NightFactorChanged")
+	tracyZoneBeginN("W:NightFactorChanged")
 	for _, w in ipairs(self.NightFactorChangedList) do
 		w:NightFactorChanged(red, green, blue, shadow, altitude)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ScavEvent(args)
-	tracy.ZoneBeginN("W:ScavEvent")
+	tracyZoneBeginN("W:ScavEvent")
 	for _, w in ipairs(self.ScavEventList) do
 		w:ScavEvent(args)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:RaptorEvent(args)
-	tracy.ZoneBeginN("W:RaptorEvent")
+	tracyZoneBeginN("W:RaptorEvent")
 	for _, w in ipairs(self.RaptorEventList) do
 		w:RaptorEvent(args)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FeatureReclaimStartedHealthbars(featureID, step)
-	tracy.ZoneBeginN("W:FeatureReclaimStartedHealthbars")
+	tracyZoneBeginN("W:FeatureReclaimStartedHealthbars")
 	for _, w in ipairs(self.FeatureReclaimStartedHealthbarsList) do
 		w:FeatureReclaimStartedHealthbars(featureID, step)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitCaptureStartedHealthbars(unitID, step)
-	tracy.ZoneBeginN("W:UnitCaptureStartedHealthbars")
+	tracyZoneBeginN("W:UnitCaptureStartedHealthbars")
 	for _, w in ipairs(self.UnitCaptureStartedHealthbarsList) do
 		w:UnitCaptureStartedHealthbars(unitID, step)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
-	tracy.ZoneBeginN("W:ProjectileCreatedReloadHB")
+	tracyZoneBeginN("W:ProjectileCreatedReloadHB")
 	for _, w in ipairs(self.ProjectileCreatedReloadHBList) do
 		w:ProjectileCreatedReloadHB(projectileID, ownerID, weaponID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
-	tracy.ZoneBeginN("W:UnitParalyzeDamageHealthbars")
+	tracyZoneBeginN("W:UnitParalyzeDamageHealthbars")
 	for _, w in ipairs(self.UnitParalyzeDamageHealthbarsList) do
 		w:UnitParalyzeDamageHealthbars(unitID, unitDefID, damage)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
-	tracy.ZoneBeginN("W:UnitParalyzeDamageEffect")
+	tracyZoneBeginN("W:UnitParalyzeDamageEffect")
 	for _, w in ipairs(self.UnitParalyzeDamageEffectList) do
 		w:UnitParalyzeDamageEffect(unitID, unitDefID, damage)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsClear(playerID)
-	tracy.ZoneBeginN("W:SelectedUnitsClear")
+	tracyZoneBeginN("W:SelectedUnitsClear")
 	for _, w in ipairs(self.SelectedUnitsClearList) do
 		w:SelectedUnitsClear(playerID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsSet(playerID, units, unitCount)
-	tracy.ZoneBeginN("W:SelectedUnitsSet")
+	tracyZoneBeginN("W:SelectedUnitsSet")
 	for _, w in ipairs(self.SelectedUnitsSetList) do
 		w:SelectedUnitsSet(playerID, units, unitCount)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
-	tracy.ZoneBeginN("W:SelectedUnitsBatchUpdate")
+	tracyZoneBeginN("W:SelectedUnitsBatchUpdate")
 	for _, w in ipairs(self.SelectedUnitsBatchUpdateList) do
 		w:SelectedUnitsBatchUpdate(playerID, addUnits, addCount, remUnits, remCount)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsRemove(playerID, unitID)
-	tracy.ZoneBeginN("W:SelectedUnitsRemove")
+	tracyZoneBeginN("W:SelectedUnitsRemove")
 	for _, w in ipairs(self.SelectedUnitsRemoveList) do
 		w:SelectedUnitsRemove(playerID, unitID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:SelectedUnitsAdd(playerID, unitID)
-	tracy.ZoneBeginN("W:SelectedUnitsAdd")
+	tracyZoneBeginN("W:SelectedUnitsAdd")
 	for _, w in ipairs(self.SelectedUnitsAddList) do
 		w:SelectedUnitsAdd(playerID, unitID)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
-	tracy.ZoneBeginN("W:LavaRenderState")
+	tracyZoneBeginN("W:LavaRenderState")
 	for _, w in ipairs(self.LavaRenderStateList) do
 		w:LavaRenderState(tideLevel, heatDistortX, heatDistortZ)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
@@ -4640,20 +4698,20 @@ end
 --
 
 function widgetHandler:FeatureCreated(featureID, allyTeam)
-	tracy.ZoneBeginN("W:FeatureCreated")
+	tracyZoneBeginN("W:FeatureCreated")
 	for _, w in ipairs(self.FeatureCreatedList) do
 		w:FeatureCreated(featureID, allyTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
 function widgetHandler:FeatureDestroyed(featureID, allyTeam)
-	tracy.ZoneBeginN("W:FeatureDestroyed")
+	tracyZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
 		w:FeatureDestroyed(featureID, allyTeam)
 	end
-	tracy.ZoneEnd()
+	tracyZoneEnd()
 	return
 end
 
