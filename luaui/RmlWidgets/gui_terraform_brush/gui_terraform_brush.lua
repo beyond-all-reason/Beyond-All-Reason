@@ -2713,39 +2713,6 @@ widgetState.saveEnvPreset = function(name)
 	return true, path
 end
 
--- /tf_sunlog: log every sun write (direction and lighting) with a traceback, so
--- "who reset my sun?" is answered by the console instead of by guessing. The
--- wrappers sit on the shared Spring table, so every LuaUI widget's writes show.
-widgetState.setSunLog = function(on)
-	if on and not widgetState._sunLogOrig then
-		local orig = { dir = Spring.SetSunDirection, light = Spring.SetSunLighting }
-		widgetState._sunLogOrig = orig
-		Spring.SetSunDirection = function(x, y, z, i)
-			Spring.Echo(
-				string.format("[sunlog] SetSunDirection(%.3f, %.3f, %.3f, %s)", x or 0, y or 0, z or 0, tostring(i))
-			)
-			Spring.Echo(debug.traceback("", 2))
-			return orig.dir(x, y, z, i)
-		end
-		Spring.SetSunLighting = function(t)
-			local keys = {}
-			for k in pairs(type(t) == "table" and t or {}) do
-				keys[#keys + 1] = tostring(k)
-			end
-			table.sort(keys)
-			Spring.Echo("[sunlog] SetSunLighting{" .. table.concat(keys, ", ") .. "}")
-			Spring.Echo(debug.traceback("", 2))
-			return orig.light(t)
-		end
-		Spring.Echo("[Terraform Brush] sun write logging ON (/tf_sunlog again to stop)")
-	elseif not on and widgetState._sunLogOrig then
-		Spring.SetSunDirection = widgetState._sunLogOrig.dir
-		Spring.SetSunLighting = widgetState._sunLogOrig.light
-		widgetState._sunLogOrig = nil
-		Spring.Echo("[Terraform Brush] sun write logging OFF")
-	end
-end
-
 ---@class EnvConfigOpts
 ---@field nodate boolean? Suppress the "generated on" date comment so that
 ---repeated saves of unchanged state will serialize/hash identically
@@ -19061,11 +19028,6 @@ function widget:Initialize()
 		end
 		return true
 	end, nil, "t")
-	-- /tf_sunlog toggles a traceback on every sun write (see setSunLog).
-	widgetHandler:AddAction("tf_sunlog", function()
-		widgetState.setSunLog(not widgetState._sunLogOrig)
-		return true
-	end, nil, "t")
 
 	-- New Map environment preset: if the last Create wrote a pending preset, resolve
 	-- it from the catalog now and arm a short DrawScreen countdown to apply it once
@@ -23514,8 +23476,4 @@ function widget:Shutdown()
 
 	widgetHandler:RemoveAction("terraformpanel")
 	widgetHandler:RemoveAction("tfsliders")
-	widgetHandler:RemoveAction("tf_sunlog")
-	if widgetState.setSunLog then
-		widgetState.setSunLog(false)
-	end
 end
