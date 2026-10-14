@@ -1,15 +1,4 @@
--- The field draws through gl and FlowUI, which the game provides and the specs do not.
-rawset(_G, "utf8", rawget(_G, "utf8") or { len = string.len, sub = string.sub })
-Spring.GetTimer = Spring.GetTimer or function() end
-Spring.DiffTimers = Spring.DiffTimers or function()
-	return 0
-end
-Spring.GetMouseState = Spring.GetMouseState or function()
-	return -1, -1, false
-end
-Spring.GetModKeyState = Spring.GetModKeyState or function()
-	return false, false, false, false
-end
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
 
 local ignore = {
 	__index = function()
@@ -17,33 +6,46 @@ local ignore = {
 	end,
 }
 local clips = {}
-rawset(
-	_G,
-	"gl",
-	setmetatable({
+
+-- gl and FlowUI are unavailable to specs.
+local env = SpecEnv.new({
+	utf8 = rawget(_G, "utf8") or { len = string.len, sub = string.sub },
+	Spring = {
+		GetTimer = function() end,
+		DiffTimers = function()
+			return 0
+		end,
+		GetMouseState = function()
+			return -1, -1, false
+		end,
+		GetModKeyState = function()
+			return false, false, false, false
+		end,
+	},
+	gl = setmetatable({
 		Scissor = function(...)
 			clips[#clips + 1] = { ... }
 		end,
-	}, ignore)
-)
-rawset(_G, "WG", {
-	fonts = {
-		getFont = function()
-			-- Every character half the font size wide, so widths are easy to reason about.
-			return setmetatable({
-				GetTextWidth = function(_, s)
-					return #s * 0.5
-				end,
-				GetTextHeight = function()
-					return 0.5
-				end,
-			}, ignore)
-		end,
+	}, ignore),
+	WG = {
+		fonts = {
+			getFont = function()
+				-- Every character half the font size wide, so widths are easy to reason about.
+				return setmetatable({
+					GetTextWidth = function(_, s)
+						return #s * 0.5
+					end,
+					GetTextHeight = function()
+						return 0.5
+					end,
+				}, ignore)
+			end,
+		},
+		FlowUI = { elementCorner = 4, Draw = setmetatable({}, ignore) },
 	},
-	FlowUI = { elementCorner = 4, Draw = setmetatable({}, ignore) },
 })
 
-local Editbox = require("luaui/Include/keybind_editbox")
+local Editbox = SpecEnv.include(env, "luaui/Include/keybind_editbox.lua")
 
 describe("a text field narrower than its text", function()
 	local long = string.rep("select_", 30)
