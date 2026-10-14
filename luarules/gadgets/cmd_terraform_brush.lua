@@ -84,11 +84,6 @@ local function ensureEditorLos(playerID)
 	end
 	if not Spring.GetGlobalLos(allyTeamID) then
 		Spring.SetGlobalLos(allyTeamID, true)
-		Spring.Echo(
-			"[Terraform Brush] Global LOS enabled for allyteam "
-				.. allyTeamID
-				.. " so terrain edits render outside unit vision"
-		)
 	end
 end
 
@@ -2472,8 +2467,6 @@ local function applyFill(cx, cz)
 	-- peak (and stay near/below startH+rise/2) to
 	-- count as "exited the bowl"
 
-	-- Diagnostic: track all ray results
-	local diagPeaks = {}
 	local openRays = 0 -- rays that never exited → direction is open
 
 	for ri = 0, FILL_NUM_RAYS - 1 do
@@ -2482,8 +2475,6 @@ local function applyFill(cx, cz)
 		local ddz = sin(angle)
 		local peakX, peakZ, peakH, peakStep = cx, cz, startH, 0
 		local exited = false
-		local totalSteps = 0
-		local stopReason = "maxsteps"
 		local exitCeiling = startH + WALL_MIN_RISE * 0.5
 
 		for step = 1, fillRayMaxSteps do
@@ -2492,7 +2483,6 @@ local function applyFill(cx, cz)
 			rx = max(0, min(mapX, rx))
 			rz = max(0, min(mapZ, rz))
 			local h = Spring.GetGroundHeight(rx, rz)
-			totalSteps = step
 
 			if h > peakH then
 				peakX, peakZ, peakH, peakStep = rx, rz, h, step
@@ -2504,18 +2494,14 @@ local function applyFill(cx, cz)
 			-- Interior bumps that don't return to low ground don't count.
 			if peakH >= startH + WALL_MIN_RISE and h <= exitCeiling and h < peakH - EXIT_DROP then
 				exited = true
-				stopReason = "exited"
 				break
 			end
 
 			-- Stop at map edge (direction is open if we didn't exit first)
 			if rx <= 0 or rx >= mapX or rz <= 0 or rz >= mapZ then
-				stopReason = "edge"
 				break
 			end
 		end
-
-		diagPeaks[ri] = peakH
 
 		-- A ray only contributes a rim if it successfully exited the bowl.
 		-- Rays that hit the map edge or step limit without descending back
@@ -2529,45 +2515,7 @@ local function applyFill(cx, cz)
 		else
 			openRays = openRays + 1
 		end
-
-		-- Log first 12 rays in detail
-		if ri < 12 then
-			Spring.Echo(
-				string.format(
-					"[Terraform Fill] ray%02d angle=%.0f° peak=%.1f at(%d,%d) steps=%d stop=%s %s",
-					ri,
-					angle * 180 / pi,
-					peakH,
-					peakX,
-					peakZ,
-					totalSteps,
-					stopReason,
-					exited and "ACCEPT" or "REJECT"
-				)
-			)
-		end
 	end
-
-	-- Summary: show peak distribution
-	local peakMin, peakMax = 99999, -99999
-	for ri = 0, FILL_NUM_RAYS - 1 do
-		if diagPeaks[ri] < peakMin then
-			peakMin = diagPeaks[ri]
-		end
-		if diagPeaks[ri] > peakMax then
-			peakMax = diagPeaks[ri]
-		end
-	end
-	Spring.Echo(
-		string.format(
-			"[Terraform Fill] peakRange=[%.1f .. %.1f] openRays=%d/%d startH=%.1f",
-			peakMin,
-			peakMax,
-			openRays,
-			FILL_NUM_RAYS,
-			startH
-		)
-	)
 
 	-- Closed-shape verification: too many open directions → abort.
 	-- Allow small gaps (e.g. narrow canyon entrance) but not an open side.
@@ -2728,31 +2676,6 @@ local function applyFill(cx, cz)
 		Spring.Echo("[Terraform Fill] Basin hit cell cap — bowl too large")
 	end
 
-	-- spillover (informational only)
-	local spillover = rimPH[1]
-	for i = 2, rimN do
-		if rimPH[i] < spillover then
-			spillover = rimPH[i]
-		end
-	end
-
-	Spring.Echo(
-		string.format(
-			"[Terraform Fill] click=%.1f  rimPeaks=%d  spillover=%.1f  maxStep=%d",
-			startH,
-			rimN,
-			spillover,
-			maxStep
-		)
-	)
-
-	-- Show all rim peak heights for diagnosis
-	local rimStr = ""
-	for i = 1, rimN do
-		rimStr = rimStr .. string.format("%.0f ", rimPH[i])
-	end
-	Spring.Echo("[Terraform Fill] rimHeights: " .. rimStr)
-
 	-- ── Phase 3+4: Raise each basin cell to its (already computed) IDW target
 	local snapFlat = scratchSnapFlat
 	local sCount = 0
@@ -2784,34 +2707,6 @@ local function applyFill(cx, cz)
 		hBuf[i] = nil
 	end
 	scratchHeightDataMax = hIdx
-
-	Spring.Echo(string.format("[Terraform Fill] basin=%d  raised=%d", bN, hIdx))
-
-	-- Diagnostic: show target height range for raised cells
-	if hIdx > 0 then
-		local tMin, tMax = hBuf[1][3], hBuf[1][3]
-		local cMin, cMax = 99999, -99999
-		for i = 1, hIdx do
-			if hBuf[i][3] < tMin then
-				tMin = hBuf[i][3]
-			end
-			if hBuf[i][3] > tMax then
-				tMax = hBuf[i][3]
-			end
-		end
-		for i = 1, bN do
-			local ch = Spring.GetGroundHeight(basinX[i], basinZ[i])
-			if ch < cMin then
-				cMin = ch
-			end
-			if ch > cMax then
-				cMax = ch
-			end
-		end
-		Spring.Echo(
-			string.format("[Terraform Fill] targetRange=[%.1f..%.1f] basinCurH=[%.1f..%.1f]", tMin, tMax, cMin, cMax)
-		)
-	end
 
 	if hIdx > 0 then
 		applyHeightChanges(hBuf, hIdx)
