@@ -125,8 +125,12 @@ describe("mission_api mission files", function()
 
 	for _, fileName in ipairs(fileNames) do
 		if fileName ~= invalidMission then
+			-- Warnings are allowed:
 			it(fileName .. " passes validation", function()
-				V.assertValid(validateMissionFile(fileName))
+				local result = validateMissionFile(fileName)
+
+				assert.are.same({}, result.errors)
+				assert.is_true(result.ok)
 			end)
 		end
 	end
