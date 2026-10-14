@@ -116,27 +116,11 @@ float Cellular3D(vec3 P)
     return min(d1.x, d1.y) * ( 9.0 / 12.0 ); // return a value scaled to 0.0->1.0
 }
 
-
-float expSustainedImpulse( float x, float f, float k )
-{
-    float s = max(x-f,0.0);
-    return min( x*x/(f*f), 1.0+(2.0/f)*s*exp(-k*s));
-}
-
-// This sampler is great for upscaling operations, as it uses cubic interpolation instead of linear
-vec2 CubicSampler(vec2 uvsin, vec2 texdims){
-    vec2 r = uvsin * texdims - 0.5;
-    vec2 tf = fract(r);
-    vec2 ti = r - tf;
-    tf = tf * tf * (3.0 - 2.0 * tf);
-    return (tf + ti + 0.5)/texdims;
-}
 #line 21129
 void main(void)
 {
 	vec4 mapWorldPos = vec4(1);
 	bool isWaterSurface = false;
-	float mapdepth = texture(mapDepths, v_position.zw).x;
 	// Transform screen-space depth to world-space position
 	if (isMiniMap == 1) {
 		mapWorldPos.y = (MINY + MAXY) * 0.5;
@@ -175,6 +159,7 @@ void main(void)
 		fragColor.rgba = vec4(0.5);
 		//return;
 	}else{
+		float mapdepth = textureLod(mapDepths, v_position.zw, 0.0).x;
 		mapWorldPos =  vec4( vec3(v_position.xy, mapdepth),  1.0);
 		mapWorldPos = cameraViewProjInv * mapWorldPos;
 		mapWorldPos.xyz = mapWorldPos.xyz / mapWorldPos.w;
@@ -286,7 +271,6 @@ void main(void)
 
 	// But if we are within a box, then we set the alpha to 0
 	vec2 uvhm = heightmapUVatWorldPos(mapWorldPos.xz);
-	//uvhm = CubicSampler(uvhm, (mapSize.xy * 0.125) + 1.0);
 	vec3 mapnormal = textureLod(mapNormals, uvhm, 0.0).raa; // seems to be in the [-1, 1] range!, raaa is its true return
 	mapnormal.g = sqrt( 1.0 - dot( mapnormal.rb, mapnormal.rb)); // reconstruct Y from it
 	if (isWaterSurface) {

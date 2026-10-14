@@ -39,7 +39,19 @@ piece
     bow,
     wake,
     engineSpurt
-;
+,
+    platform1barrelextension6firepoint,
+    platform1barrelextension1firepoint,
+    platform1barrelextension5firepoint,
+    platform1barrelextension4firepoint,
+    platform1barrelextension3firepoint,
+    platform1barrelextension2firepoint,
+    platform2barrelextension2firepoint,
+    platform2barrelextension1firepoint,
+    platform2barrelextension6firepoint,
+    platform2barrelextension5firepoint,
+    platform2barrelextension4firepoint,
+    platform2barrelextension3firepoint;
 
 static-var  restore_delay, oldHead, whichPlatform, whichBarrel, isOpen;
 
@@ -136,6 +148,18 @@ Create()
 {
     turn platformHinge1 to y-axis <4.35> now;
     turn platformHinge2 to y-axis <12.4> now;
+    turn platform1barrelextension1firepoint to x-axis <-90> now;
+    turn platform1barrelextension2firepoint to x-axis <-90> now;
+    turn platform1barrelextension3firepoint to x-axis <-90> now;
+    turn platform1barrelextension4firepoint to x-axis <-90> now;
+    turn platform1barrelextension5firepoint to x-axis <-90> now;
+    turn platform1barrelextension6firepoint to x-axis <-90> now;
+    turn platform2barrelextension1firepoint to x-axis <-90> now;
+    turn platform2barrelextension2firepoint to x-axis <-90> now;
+    turn platform2barrelextension3firepoint to x-axis <-90> now;
+    turn platform2barrelextension4firepoint to x-axis <-90> now;
+    turn platform2barrelextension5firepoint to x-axis <-90> now;
+    turn platform2barrelextension6firepoint to x-axis <-90> now;
 	whichPlatform = 0;
     whichBarrel = 0;
     isOpen = 0;
@@ -317,54 +341,54 @@ QueryWeapon1(pieceIndex)
 {
     if(whichPlatform == 0){
         if(whichBarrel == 0){
-            pieceIndex = platform1BarrelExtension1;
+            pieceIndex = platform1barrelextension1firepoint;
         }
         else if(whichBarrel == 1){
-            pieceIndex = platform1BarrelExtension2;
+            pieceIndex = platform1barrelextension2firepoint;
         }
         else if(whichBarrel == 2){
-            pieceIndex = platform1BarrelExtension3;
+            pieceIndex = platform1barrelextension3firepoint;
         }
         else if(whichBarrel == 3){
-            pieceIndex = platform1BarrelExtension4;
+            pieceIndex = platform1barrelextension4firepoint;
         }
         else if(whichBarrel == 4){
-            pieceIndex = platform1BarrelExtension5;
+            pieceIndex = platform1barrelextension5firepoint;
         }
         else if(whichBarrel == 5){
-            pieceIndex = platform1BarrelExtension6;
+            pieceIndex = platform1barrelextension6firepoint;
         }
         else if(whichBarrel == 6){
-            pieceIndex = platform1BarrelExtension1;
+            pieceIndex = platform1barrelextension1firepoint;
         }
         else{
-            pieceIndex = platform1BarrelExtension1;
+            pieceIndex = platform1barrelextension1firepoint;
         }
     }
     else if(whichPlatform == 1){
         if(whichBarrel == 0){
-            pieceIndex = platform2BarrelExtension1;
+            pieceIndex = platform2barrelextension1firepoint;
         }
         else if(whichBarrel == 1){
-            pieceIndex = platform2BarrelExtension2;
+            pieceIndex = platform2barrelextension2firepoint;
         }
         else if(whichBarrel == 2){
-            pieceIndex = platform2BarrelExtension3;
+            pieceIndex = platform2barrelextension3firepoint;
         }
         else if(whichBarrel == 3){
-            pieceIndex = platform2BarrelExtension4;
+            pieceIndex = platform2barrelextension4firepoint;
         }
         else if(whichBarrel == 4){
-            pieceIndex = platform2BarrelExtension5;
+            pieceIndex = platform2barrelextension5firepoint;
         }
         else if(whichBarrel == 5){
-            pieceIndex = platform2BarrelExtension6;
+            pieceIndex = platform2barrelextension6firepoint;
         }
         else if(whichBarrel == 6){
-            pieceIndex = platform2BarrelExtension1;
+            pieceIndex = platform2barrelextension1firepoint;
         }
         else{
-            pieceIndex = platform2BarrelExtension1;
+            pieceIndex = platform2barrelextension1firepoint;
         }
     }
 }

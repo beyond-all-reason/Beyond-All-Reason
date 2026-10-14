@@ -24,12 +24,14 @@ door5,
 door6,
 mainStrut, supportStrut, housingStrut, sleeveHousing, sleeveBottom, sleeveTop, barrelBottom, barrelTop, flareBottom, flareTop, turretmidpoint;
 
-static-var  turretOpen, nextBarrel, lastHeading, stunned, restoreDelay;
+static-var  nextBarrel, lastHeading, stunned, restoreDelay;
 
 #define SIGNAL_AIM			1
 
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
+
+#include "../popup_openclose.h"
 
 Create()
 {
@@ -62,7 +64,8 @@ Create()
 
 	nextBarrel = 0;
 
-	turretOpen = 0;
+	isOpen = TRUE;
+	wantOpen = TRUE;
 	restoreDelay = 10000;
 	while( get BUILD_PERCENT_LEFT )
 	{
@@ -105,6 +108,8 @@ openTurret(){
 	turn housingStrut to x-axis <0> speed <140>;
 	turn sleeveHousing to x-axis <0> speed <300>;
 	wait-for-turn sleeveHousing around x-axis;
+	wait-for-turn supportStrut around x-axis;
+	wait-for-turn housingStrut around x-axis;
 
 }
 
@@ -127,21 +132,17 @@ closeTurret(){
 	turn door5 to x-axis <0> speed <250>;
 	sleep 10;
 	turn door6 to x-axis <0> speed <250>;
+	wait-for-turn door6 around x-axis;
 }
 
-Go(){
-	if( !turretOpen )
-	{
-		call-script openTurret();
-	}
-	turretOpen = 1;
+OpenAnim(){
+	call-script openTurret();
 	set ARMORED to 0;
 	return (0);
 }
 
-Stop(){
+CloseAnim(){
 	set ARMORED to 1;
-	turretOpen = 0;
 	call-script closeTurret();
 	return (0);	
 }
@@ -152,13 +153,12 @@ ExecuteRestoreAfterDelay()
 	{
         return (1);
     }
-	set-signal-mask 0;
 	turn mainStrut to y-axis <0.000000> speed <100.016484>;
 	turn sleeveHousing to x-axis <0.000000> speed <50.005495>;
 	wait-for-turn mainStrut around y-axis;
 	wait-for-turn sleeveHousing around x-axis;
 	
-	start-script Stop();
+	start-script RequestClose();
 }
 
 SetStunned(State)
@@ -179,7 +179,7 @@ RestoreAfterDelay()
 
 aimCommon(heading, pitch)
 {
-	while( turretOpen == 0 )
+	while( isOpen == 0 )
 	{
 		sleep 250;
 	}
@@ -193,7 +193,7 @@ aimCommon(heading, pitch)
 
 aimCommonHigh(heading, pitch)
 {
-	while( turretOpen == 0 )
+	while( isOpen == 0 )
 	{
 		sleep 250;
 	}
@@ -208,7 +208,7 @@ aimCommonHigh(heading, pitch)
 
 AimPrimary(heading, pitch)
 {
-	start-script Go();
+	start-script RequestOpen();
 	
 	if (AimingState != AIMING_PRIORITY)
 	{
@@ -233,7 +233,7 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	start-script Go();
+	start-script RequestOpen();
 
 	if (AimingState != AIMING_BACKUP)
 	{
@@ -260,6 +260,21 @@ AimSecondary(heading, pitch)
 AimTertiary(piecenum)
 {
 	return (0);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot2(targetID, block, userTarget)
+{
+	block = !isOpen;
+}
+
+BlockShot3(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 AimFromPrimary(piecenum)

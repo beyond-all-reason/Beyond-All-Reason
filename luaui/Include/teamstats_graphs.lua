@@ -677,7 +677,7 @@ function M.new(ctx)
 		if graph then
 			on = graph.grouped
 		end
-		return on and not ctx.soloTeams
+		return on and not ctx.ungrouped
 	end
 
 	-- The stat a chart shows, whatever its entry is called.
@@ -796,7 +796,7 @@ function M.new(ctx)
 
 	-- The units a chart of these settings is drawn with: ally teams or players.
 	local function unitsFor(settings)
-		local list = (settings.grouped and not ctx.soloTeams) and page.allyUnits or page.playerUnits
+		local list = (settings.grouped and not ctx.ungrouped) and page.allyUnits or page.playerUnits
 		return list or page.units
 	end
 

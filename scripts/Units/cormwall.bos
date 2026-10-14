@@ -5,11 +5,12 @@
 
 piece  base, lid, sleeve, flare1, flare2, flare3, flare4, flare5, flare6, flare7;
 
-static-var  restore_delay, deploy_state, animate_speed, close_speed;
+static-var  restore_delay, animate_speed, close_speed;
 static-var  barrel;
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_DEPLOY			4
+
+#include "../popup_openclose.h"
 
 static-var  Stunned;
 SetStunned(State)
@@ -23,13 +24,16 @@ SetStunned(State)
 RestoreAfterDelay()
 {
 	sleep restore_delay;
-	signal SIG_DEPLOY;
-	set-signal-mask SIG_DEPLOY;
+	start-script RequestClose();
+}
+
+CloseAnim()
+{
 	turn lid to z-axis <0> speed <1>*animate_speed;
 	move sleeve to y-axis [0] speed [0.133]*animate_speed;
-	deploy_state = 0;
 	wait-for-turn lid around z-axis;
 	set ARMORED to 1;
+	wait-for-move sleeve along y-axis;
 }
 
 Create()
@@ -39,7 +43,6 @@ Create()
 	barrel = flare1;
 
 	restore_delay = 2000;
-	deploy_state = 0;
 	animate_speed = 270;
 	//animate_speed = <135>;
 	//close_speed = <8.4375>;
@@ -56,27 +59,15 @@ Create()
 #define SMOKEPIECE base
 #include "smokeunit_thread_nohit.h"
 
-Deploy()
+OpenAnim()
 {
-	signal SIG_DEPLOY;
-	set-signal-mask SIG_DEPLOY;
 	set ARMORED to 0;
-	if (deploy_state==0 OR deploy_state==1)
-	{
-		deploy_state = 1;
-		turn lid to z-axis <-45> speed <1>*animate_speed;
-		wait-for-turn lid around z-axis;
-		deploy_state = 2;
-	}
-	if (deploy_state==2 OR deploy_state==3)
-	{
-		deploy_state = 3;
-		turn lid to z-axis <-135> speed <1>*animate_speed;
-		move sleeve to y-axis [12] speed [0.133]*animate_speed;
-		wait-for-turn lid around z-axis;
-		deploy_state = 4;
-	}
-
+	turn lid to z-axis <-45> speed <1>*animate_speed;
+	wait-for-turn lid around z-axis;
+	turn lid to z-axis <-135> speed <1>*animate_speed;
+	move sleeve to y-axis [12] speed [0.133]*animate_speed;
+	wait-for-turn lid around z-axis;
+	wait-for-move sleeve along y-axis;
 }
 
 AimPrimary(heading, pitch)
@@ -85,14 +76,19 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	if (get WEAPON_RELOADSTATE(1) < get GAME_FRAME)
 	{
-		start-script Deploy();
+		start-script RequestOpen();
 	}
 	start-script RestoreAfterDelay();
-	while( !(deploy_state==4) )
+	while( !isOpen )
 	{
 		sleep 100;
 	}
 	return (1);
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 Shot1()
@@ -102,6 +98,7 @@ Shot1()
 	if (barrel > flare7)
 	{
 		barrel = flare1;
+		set-signal-mask SIG_AIM;
 		start-script RestoreAfterDelay();
 	}
 	//start-script RestoreAfterDelay();
