@@ -1302,7 +1302,7 @@ local function syncSkyboxToBiome(biomeKey)
 	end
 end
 
--- Pick a biome: shared by the data-model onPickBiome and the BIOME LIBRARY
+-- Pick a biome: the BIOME LIBRARY
 -- tiles tf_tileset.lua builds at runtime from the manifests. On widgetState,
 -- not a local: the main chunk sits near Lua 5.1's 200-local ceiling.
 widgetState.pickBiome = function(key)
@@ -1769,7 +1769,6 @@ local function _mbSyncSymChipClasses()
 		d.mbSymmetryRadial = s.symmetryRadial and true or false
 		d.mbSymMirrorX = s.symmetryMirrorX and true or false
 		d.mbSymMirrorY = s.symmetryMirrorY and true or false
-		d.mbSymmetryMirrorAny = (s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 		d.mbSymHasAxis = (s.symmetryRadial or s.symmetryMirrorX or s.symmetryMirrorY) and true or false
 	end
 end
@@ -2050,7 +2049,6 @@ function _imgOv.sync(setDm)
 	if not (dm and dm.imgOvVisible) then
 		return
 	end
-	setDm("imgOvHasImage", (s and s.hasImage) or false)
 	setDm("imgOvFileStr", (s and s.file) or "none")
 	setDm("imgOvSizeStr", (s and s.hasImage) and (tostring(s.width) .. " x " .. tostring(s.height) .. " px") or "")
 	setDm("imgOvError", (s and s.error) or (IO and "" or "Image Overlay widget is not loaded"))
@@ -4087,7 +4085,6 @@ widgetState.projectSyncTarget = function()
 			and widgetState.text(online and "uploadAfterReadOnly" or "uploadAfterOff")
 		or ""
 	local upload = d.projectSaveUpload
-	d.projectSaveDestOk = true
 	d.projectSaveOverwrite = false
 	local taken = slug ~= nil and (mp.exists and mp.exists(slug)) == true
 	local teamHas = slug ~= nil and widgetState.projectTeamBySlug()[slug] ~= nil
@@ -5283,7 +5280,6 @@ widgetState.projectSelectFolder = function(path)
 	end
 	if d then
 		d.projectOpenSelected = path
-		d.projectOpenIsFolder = true
 		d.projectDeleteConfirming = false
 		d.projectOpenHint = ""
 		d.projectRenameOpen = false
@@ -5319,7 +5315,6 @@ widgetState.projectSelectRow = function(rec)
 	local dm = widgetState.dmHandle
 	if dm then
 		dm.projectOpenSelected = rec.label
-		dm.projectOpenIsFolder = false
 		dm.projectInfoFolder = false
 		dm.projectDeleteConfirming = false
 		dm.projectOpenConfirming = false
@@ -5689,7 +5684,6 @@ end
 
 local initialModel = {
 	radius = 100,
-	shapeName = "Circle",
 	rotationDeg = 0,
 	curve = "1.0",
 	intensity = "1.0",
@@ -5754,8 +5748,6 @@ local initialModel = {
 	projectSaveOverwrite = false,
 	projectSaveNewFolder = false, -- inline "new folder" row open
 	projectSaveDest = "", -- folder the NAME field saves into, as a path label
-	projectSaveFolder = "", -- the same folder, drawn immediately before the NAME box
-	projectSaveDestOk = true, -- the team tab has a library folder picked to save into
 	-- Open Project details pane (filled from the selected row's manifest)
 	projectInfoName = "",
 	projectInfoPath = "",
@@ -5768,7 +5760,6 @@ local initialModel = {
 	projectInfoBoth = false, -- both a minimap and a heightmap are on disk
 	projectInfoFolder = false, -- a folder is selected rather than a project
 	projectInfoCount = "", -- how many projects the selected folder holds
-	projectOpenIsFolder = false, -- gates OPEN, and picks what DELETE removes
 	-- Which of the two the preview is showing, shared by both panes
 	projectPreviewMode = "map",
 	-- Save As details pane. Its own fields, not the Open Project ones: both
@@ -6008,7 +5999,6 @@ local initialModel = {
 	spMeasureActive = false,
 	spSymmetryActive = false,
 	spSymmetryRadial = false,
-	spSymmetryMirrorAny = false,
 	spSymHasAxis = false,
 	spAngleSnapAuto = false,
 	spDisplayHintVisible = false,
@@ -6032,7 +6022,6 @@ local initialModel = {
 	-- features placer instruments
 	fpSymmetryActive = false,
 	fpSymmetryRadial = false,
-	fpSymmetryMirrorAny = false,
 	fpSymHasAxis = false,
 	fpGridSnap = false,
 	fpGridSnapSizeStr = "48",
@@ -6060,7 +6049,6 @@ local initialModel = {
 	-- features placer instruments
 	unSymmetryActive = false,
 	unSymmetryRadial = false,
-	unSymmetryMirrorAny = false,
 	unSymHasAxis = false,
 	unGridSnap = false,
 	unGridSnapSizeStr = "48",
@@ -6091,14 +6079,12 @@ local initialModel = {
 	lpLibraryOpen = false,
 	lpLibraryTab = "builtin",
 	lpSymmetryRadial = false,
-	lpSymmetryMirrorAny = false,
 	-- metal brush instruments (data-if sub-rows + data-class-active)
 	mbGridSnap = false,
 	mbAngleSnap = false,
 	mbMeasureActive = false,
 	mbSymmetryActive = false,
 	mbSymmetryRadial = false,
-	mbSymmetryMirrorAny = false,
 	mbSymHasAxis = false,
 	mbAngleSnapAuto = false,
 	mbGridOverlay = false,
@@ -6121,7 +6107,6 @@ local initialModel = {
 	gbMeasureActive = false,
 	gbSymmetryActive = false,
 	gbSymmetryRadial = false,
-	gbSymmetryMirrorAny = false,
 	gbSymHasAxis = false,
 	gbAngleSnapAuto = false,
 	gbGridOverlay = false,
@@ -6234,17 +6219,8 @@ local initialModel = {
 	stpRotationStr = "0\194\176",
 	stpPlacementModeStr = "ROUND-ROBIN",
 	-- Phase 2 step 4: splat painter label interpolation strings
-	splatStrengthStr = "0.15",
-	splatIntensityStr = "1.0",
-	splatRadiusStr = "100",
-	splatRotationStr = "0",
-	splatCurveStr = "1.0",
 	splatFractalStr = "0.00",
 	splatFractalFreqStr = "15",
-	splatSlopeMaxStr = "45",
-	splatSlopeMinStr = "10",
-	splatAltMinStr = "0",
-	splatAltMaxStr = "200",
 	splatExportFmtStr = "PNG",
 	grassCfgVisible = false,
 	-- Phase 2 step 4: metal brush label interpolation strings
@@ -6253,7 +6229,6 @@ local initialModel = {
 	mbRotStr = "0\194\176",
 	mbLengthStr = "1.0",
 	mbCurveStr = "1.0",
-	mbAngleStepStr = "15",
 	mbClusterRadiusStr = "256",
 	mbLassoTotalStr = "0.00",
 	mbAxisAngleStr = "0",
@@ -6267,7 +6242,6 @@ local initialModel = {
 	gbRotStr = "0\194\176",
 	gbCurveStr = "1.0",
 	gbLengthStr = "1.0",
-	gbAngleStepStr = "15",
 	gbSlopeMaxStr = "45",
 	gbSlopeMinStr = "10",
 	gbAltMinStr = "0",
@@ -6287,8 +6261,6 @@ local initialModel = {
 	fpSlopeMinStr = "10",
 	fpAltMinStr = "0",
 	fpAltMaxStr = "200",
-	fpSymRadStr = "2",
-	fpSymAngStr = "0",
 	unRadiusStr = "200",
 	unRotationStr = "0",
 	unRotRandomStr = "0",
@@ -6298,8 +6270,6 @@ local initialModel = {
 	unSlopeMinStr = "10",
 	unAltMinStr = "0",
 	unAltMaxStr = "200",
-	unSymRadStr = "2",
-	unSymAngStr = "0",
 	-- Phase 2 step 4: light placer label interpolation strings
 	lpBrightnessStr = "2.0",
 	lpLightRadiusStr = "300",
@@ -6307,8 +6277,6 @@ local initialModel = {
 	lpCountStr = "5",
 	lpBrushRadiusStr = "200",
 	lpPlacedCountStr = "0",
-	lpSymCountStr = "2",
-	lpSymAngleStr = "0",
 	-- Phase 2 step 4: clone tool label interpolation strings
 	clStatusStr = "Select an area to clone",
 	clRotationStr = "0\194\176",
@@ -6426,7 +6394,6 @@ local initialModel = {
 	tfMeasureActive = false,
 	tfSymmetryActive = false,
 	tfSymmetryRadial = false,
-	tfSymmetryMirrorAny = false,
 	tfSymHasAxis = false,
 	tfRingVisible = false,
 	tfInRestore = false,
@@ -6453,7 +6420,6 @@ local initialModel = {
 	-- IMAGE overlay (DISPLAY > Image): one shared state across every DISPLAY row
 	tbImgActive = false,
 	imgOvVisible = false,
-	imgOvHasImage = false,
 	imgOvFileStr = "none",
 	imgOvSizeStr = "",
 	imgOvError = "",
@@ -9297,20 +9263,6 @@ local initialModel = {
 			T.density(tonumber(dir) or 1)
 		end
 	end,
-	onUnReform = function(_event, mode)
-		local T = WG.UnitPlacerTool
-		if T and T.reformSelection then
-			playSound("shapeSwitch")
-			T.reformSelection(mode)
-		end
-	end,
-	onUnSpace = function(_event, factor)
-		local T = WG.UnitPlacerTool
-		if T and T.spaceSelection then
-			playSound("tick")
-			T.spaceSelection(tonumber(factor) or 1)
-		end
-	end,
 	onUnTurn = function(_event, dir)
 		local T = WG.UnitPlacerTool
 		if T and T.turnSelection then
@@ -10354,7 +10306,6 @@ local initialModel = {
 			widgetState.projectDeleteConfirmExpiry = 0
 			if widgetState.dmHandle then
 				widgetState.dmHandle.projectOpenSelected = ""
-				widgetState.dmHandle.projectOpenIsFolder = false
 				widgetState.dmHandle.projectInfoFolder = false
 				widgetState.dmHandle.projectDeleteConfirming = false
 			end
@@ -10557,28 +10508,6 @@ local initialModel = {
 	-- empty-selection branch beyond the guard below.
 	onProjectOpenLoad = function(_event)
 		widgetState.projectOpenCommit()
-	end,
-	-- OPEN in the team view. A project already on this disk opens straight
-	-- away; one that is not is downloaded first and opened when it lands,
-	-- because opening restarts the session and there is nothing to restart
-	-- into until the files are here.
-	onProjectTeamOpen = function(_event)
-		local slug = widgetState.projectOpenSelectedSlug
-		if not slug or widgetState.projectOpenIsFolder then
-			return
-		end
-		playSound("click")
-		-- Opened from where it was picked. The view does not change under the
-		-- user for having pressed a button in it; the team library is a place to
-		-- work from, not a staging area to be shown the way out of.
-		if widgetState.projectFileOnDisk("MapProjects/" .. slug .. "/project.lua") then
-			widgetState.projectOpenCommit(true)
-			return
-		end
-		widgetState.projectOpenAfterDownload = slug
-		if widgetState.projectLibraryUi and widgetState.projectLibraryUi.download then
-			widgetState.projectLibraryUi.download(slug)
-		end
 	end,
 	-- Two-step, same as FULL RESTORE: first click arms, second commits, Update
 	-- disarms after 3 s.
@@ -10805,12 +10734,6 @@ local initialModel = {
 			d.projectSaveNewFolder = false
 			d.projectSaveError = false
 		end
-	end,
-	-- "Helper offline" is a dead end without this: the editor cannot start a
-	-- process, so it writes the runner and points at it instead.
-	onProjectHelperSetup = function(_event)
-		playSound("click")
-		widgetState.projectWriteRunner()
 	end,
 	onProjectSaveSearchClear = function(_event)
 		playSound("click")
@@ -13154,7 +13077,6 @@ local initialModel = {
 		if widgetState.dmHandle then
 			widgetState.dmHandle.activeShape = shape
 			widgetState.dmHandle.tfRingVisible = (shape == "ring")
-			widgetState.dmHandle.shapeName = shapeNames[shape]
 		end
 	end,
 
@@ -13426,16 +13348,6 @@ local initialModel = {
 	onTfUnitsLibrary = function(_event)
 		if WG.UnitPlacerTool then
 			WG.UnitPlacerTool.openLibrary()
-		end
-	end,
-	onTfUnitsUndo = function(_event)
-		if WG.UnitPlacerTool then
-			WG.UnitPlacerTool.undo()
-		end
-	end,
-	onTfUnitsRedo = function(_event)
-		if WG.UnitPlacerTool then
-			WG.UnitPlacerTool.redo()
 		end
 	end,
 	onTfUnitsTeam = function(_event)
@@ -14188,12 +14100,6 @@ local initialModel = {
 		end
 	end,
 	-- TILESET CONFIG & PRESETS
-	onTilesetReset = function(_event)
-		if WG.TilesetTerrain and WG.TilesetTerrain.reset then
-			WG.TilesetTerrain.reset()
-		end
-		playSound("reset")
-	end,
 	onTilesetDump = function(_event)
 		if WG.TilesetTerrain and WG.TilesetTerrain.dumpConfig then
 			WG.TilesetTerrain.dumpConfig()
@@ -14235,9 +14141,6 @@ local initialModel = {
 			WG.TilesetTerrain.reset()
 			playSound("click")
 		end
-	end,
-	onPickBiome = function(_event, key)
-		widgetState.pickBiome(key)
 	end,
 	-- SLOT 4 mode buttons (TILESET > PLACEMENT): the fourth material suite's
 	-- weight source (plateau / detail / interm 2 / cliff 2 / off). The shader
@@ -14332,7 +14235,7 @@ local initialModel = {
 			d.tsShaderOn = on and true or false
 		end
 	end,
-	-- METAL SPOTS style tiles (mirrors onPickBiome; styles live in the shader
+	-- METAL SPOTS style tiles (mirrors pickBiome; styles live in the shader
 	-- widget's METAL_STYLES and swap the metal material + knob baseline live).
 	onPickMetalStyle = function(_event, key)
 		if not (WG.TilesetTerrain and WG.TilesetTerrain.setMetalStyle) then
@@ -21747,14 +21650,10 @@ function widget:Update()
 
 			if widgetState.dmHandle then
 				local dm = widgetState.dmHandle
-				local shapeName = shapeNames[state.shape] or "Circle"
 				local curveStr = string.format("%.1f", state.curve)
 				local intensityStr = string.format("%.1f", state.intensity)
 				if dm.radius ~= state.radius then
 					dm.radius = state.radius
-				end
-				if dm.shapeName ~= shapeName then
-					dm.shapeName = shapeName
 				end
 				if dm.rotationDeg ~= state.rotationDeg then
 					dm.rotationDeg = state.rotationDeg
@@ -22163,7 +22062,6 @@ function widget:Update()
 							tostring(state.symmetryMirrorAngle or 0)
 						)
 					end
-					local hasAxial = state.symmetryMirrorX or state.symmetryMirrorY
 					if widgetState.dmHandle then
 						local dm = widgetState.dmHandle
 						local function setDm(f, v)
@@ -22173,7 +22071,6 @@ function widget:Update()
 						end
 						setDm("tfSymmetryActive", state.symmetryActive and true or false)
 						setDm("tfSymmetryRadial", state.symmetryRadial and true or false)
-						setDm("tfSymmetryMirrorAny", hasAxial and true or false)
 						setDm(
 							"tfSymHasAxis",
 							(state.symmetryRadial or state.symmetryMirrorX or state.symmetryMirrorY) and true or false

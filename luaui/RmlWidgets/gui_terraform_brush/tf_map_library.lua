@@ -184,7 +184,6 @@ function M.new(widgetState, model, dependencies)
 		local dm = widgetState.dmHandle
 		if dm then
 			dm.projectOpenSelected = ""
-			dm.projectOpenIsFolder = false
 			dm.projectInfoFolder = false
 			dm.projectOpenHint = ""
 			dm.projectOpenConfirming = false

@@ -289,7 +289,6 @@ function M.sync(doc, ctx, fpState, setSummary)
 					setDm("fpHeightColormap", tbState.heightColormap == true)
 					setDm("fpSymmetryActive", tbState.symmetryActive == true)
 					setDm("fpSymmetryRadial", tbState.symmetryRadial == true)
-					setDm("fpSymmetryMirrorAny", (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
 					setDm(
 						"fpSymHasAxis",
 						(tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
@@ -312,7 +311,7 @@ function M.sync(doc, ctx, fpState, setSummary)
 				if fpSymRadSlider then
 					fpSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
 				end
-				-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymmetryMirrorAny"
+				-- fp-symmetry-mirror-angle-row visibility driven by data-if="fpSymHasAxis"
 				if widgetState.dmHandle then
 					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
 					if widgetState.dmHandle.tbSymAngleStr ~= v then

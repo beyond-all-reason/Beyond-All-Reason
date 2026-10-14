@@ -305,7 +305,6 @@ function M.sync(doc, ctx, unState, setSummary)
 					setDm("unHeightColormap", tbState.heightColormap == true)
 					setDm("unSymmetryActive", tbState.symmetryActive == true)
 					setDm("unSymmetryRadial", tbState.symmetryRadial == true)
-					setDm("unSymmetryMirrorAny", (tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false)
 					setDm(
 						"unSymHasAxis",
 						(tbState.symmetryRadial or tbState.symmetryMirrorX or tbState.symmetryMirrorY) and true or false
@@ -328,7 +327,7 @@ function M.sync(doc, ctx, unState, setSummary)
 				if unSymRadSlider then
 					unSymRadSlider:SetAttribute("value", tostring(tbState.symmetryRadialCount or 2))
 				end
-				-- un-symmetry-mirror-angle-row visibility driven by data-if="unSymmetryMirrorAny"
+				-- un-symmetry-mirror-angle-row visibility driven by data-if="unSymHasAxis"
 				if widgetState.dmHandle then
 					local v = tostring(math.floor(tbState.symmetryMirrorAngle or 0))
 					if widgetState.dmHandle.tbSymAngleStr ~= v then
