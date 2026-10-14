@@ -371,7 +371,11 @@ local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua
 
 _G.GG["MissionAPI"].ActionDefinitions = actionDefinitions
 _G.GG["MissionAPI"].TriggerDefinitions = triggerDefinitions
-_G.GG["MissionAPI"].Difficulty = 0
+local lowestDifficulty = math.huge
+for _, difficulty in pairs(parameterTypes.Enums.Difficulty) do
+	lowestDifficulty = math.min(lowestDifficulty, difficulty)
+end
+_G.GG["MissionAPI"].Difficulty = lowestDifficulty
 -- As for a mission started with no options in its startscript.
 _G.GG["MissionAPI"].Options = {}
 
