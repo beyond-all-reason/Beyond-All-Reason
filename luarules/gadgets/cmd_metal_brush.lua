@@ -224,7 +224,6 @@ local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, dire
 	local mzMax = min(METAL_MAP_Z - 1, floor((centerZ + radius) / METAL_SQ))
 
 	local step = intensity * metalTarget * 2.0
-	local modified = 0
 
 	for mz = mzMin, mzMax do
 		local wz = mz * METAL_SQ + halfSq
@@ -237,12 +236,8 @@ local function applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, dire
 				local delta = direction * step * falloff
 				local newVal = max(0, current + delta)
 				spSetMetalAmount(mx, mz, newVal)
-				modified = modified + 1
 			end
 		end
-	end
-	if modified > 0 then
-		Spring.Echo("[Metal Brush] applyPaint: modified " .. modified .. " squares, step=" .. step)
 	end
 end
 
@@ -359,7 +354,6 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 		return
 	end
 
-	local recalcCount = 0
 	local exDefs = getExtractorDefs()
 
 	for i = 1, #units do
@@ -371,12 +365,7 @@ local function recalcNearbyExtractors(centerX, centerZ, brushRadius)
 			-- squares itself; handing it the summed rate as the depth squared the income and made it grow
 			-- with every stamp nearby. Re-setting the def's own depth makes it rescan the new metal map.
 			spSetUnitMetalExtraction(uid, mult)
-			recalcCount = recalcCount + 1
 		end
-	end
-
-	if recalcCount > 0 then
-		Spring.Echo("[Metal Brush] Recalculated extraction for " .. recalcCount .. " extractor(s)")
 	end
 end
 
@@ -406,8 +395,7 @@ function gadget:GameFrame(frame)
 	spotRefreshFrame = nil
 	local finder = GG.resource_spot_finder
 	if finder and finder.Refresh then
-		local spots = finder.Refresh()
-		Spring.Echo("[Metal Brush] resource spots rescanned: " .. (type(spots) == "table" and #spots or "metal map"))
+		finder.Refresh()
 		Spring.SendLuaUIMsg("mb_spots_refreshed")
 	end
 end
@@ -455,22 +443,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 		applyPaint(centerX, centerZ, radius, shape, angleDeg, curve, direction, intensity, metalTarget)
 		recalcNearbyExtractors(centerX, centerZ, radius)
 		metalChanged()
-		Spring.Echo(
-			"[Metal Brush] Paint applied at "
-				.. centerX
-				.. ","
-				.. centerZ
-				.. " r="
-				.. radius
-				.. " shape="
-				.. shape
-				.. " dir="
-				.. direction
-				.. " int="
-				.. intensity
-				.. " mv="
-				.. metalTarget
-		)
 		return
 	end
 
@@ -504,18 +476,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 		applyStamp(centerX, centerZ, radius, metalTarget, shape, angleDeg, direction)
 		recalcNearbyExtractors(centerX, centerZ, radius)
 		metalChanged()
-		Spring.Echo(
-			"[Metal Brush] Stamp applied at "
-				.. centerX
-				.. ","
-				.. centerZ
-				.. " r="
-				.. radius
-				.. " mv="
-				.. metalTarget
-				.. " dir="
-				.. direction
-		)
 		return
 	end
 
@@ -530,12 +490,10 @@ function gadget:RecvLuaMsg(msg, playerID)
 			return
 		end
 
-		local cleared = 0
 		for mz = 0, METAL_MAP_Z - 1 do
 			for mx = 0, METAL_MAP_X - 1 do
 				if spGetMetalAmount(mx, mz) > 0 then
 					spSetMetalAmount(mx, mz, 0)
-					cleared = cleared + 1
 				end
 			end
 		end
@@ -552,7 +510,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 			end
 		end
 		metalChanged()
-		Spring.Echo("[Metal Brush] Cleared all metal (" .. cleared .. " squares)")
 		return
 	end
 
@@ -595,7 +552,6 @@ function gadget:RecvLuaMsg(msg, playerID)
 		if loaded > 0 then
 			metalChanged()
 		end
-		Spring.Echo("[Metal Brush] Loaded " .. loaded .. " metal squares")
 		return
 	end
 

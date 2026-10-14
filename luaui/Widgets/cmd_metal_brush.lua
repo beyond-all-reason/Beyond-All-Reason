@@ -1293,13 +1293,9 @@ local function activate(mode)
 	if not mapOverlay then
 		setMapOverlay(true)
 	end
-	Echo("[Metal Brush] Activated: " .. subMode:upper() .. " | Metal Value: " .. metalValue)
 end
 
 local function deactivate()
-	if active then
-		Echo("[Metal Brush] Deactivated")
-	end
 	active = false
 	painting = false
 	paintButton = 0
@@ -1608,7 +1604,6 @@ function widget:MouseWheel(up, value)
 		else
 			metalValue = max(MIN_METAL_VALUE, metalValue - step)
 		end
-		Echo("[Metal Brush] Metal value: " .. format("%.2f", metalValue))
 		return true
 	end
 
