@@ -1054,6 +1054,14 @@ local brdfLUT = "modelmaterials_gl4/brdf_0.png"
 
 local existingfilecache = {} -- this speeds up the VFS calls
 
+-- A missing file binds no texture, so that batch samples whatever normal map the previous one left bound
+local function NormalTexExists(normaltex)
+	if existingfilecache[normaltex] == nil and VFS.FileExists(normaltex) then
+		existingfilecache[normaltex] = normaltex
+	end
+	return existingfilecache[normaltex] ~= nil
+end
+
 local function GetNormal(unitDef, featureDef)
 	local FileExists = VFS.FileExists
 
@@ -1069,11 +1077,8 @@ local function GetNormal(unitDef, featureDef)
 			existingfilecache[tex2] = string.format("%%%i:1", unitDef.id)
 		end
 
-		if unitDef.customParams and unitDef.customParams.normaltex then
-			local normaltex = unitDef.customParams.normaltex
-			if existingfilecache[normaltex] == nil and FileExists(normaltex) then
-				existingfilecache[normaltex] = normaltex
-			end
+		local normaltex = unitDef.customParams and unitDef.customParams.normaltex
+		if normaltex and NormalTexExists(normaltex) then
 			return normaltex
 		end
 	end
@@ -1090,37 +1095,34 @@ local function GetNormal(unitDef, featureDef)
 			existingfilecache[tex2] = string.format("%%%i:1", -1 * featureDef.id)
 		end
 
-		if featureDef.customParams and featureDef.customParams.normaltex then
-			local normaltex = featureDef.customParams.normaltex
-			if existingfilecache[normaltex] == nil and FileExists(normaltex) then
-				existingfilecache[normaltex] = normaltex
-			end
+		local normaltex = featureDef.customParams and featureDef.customParams.normaltex
+		if normaltex and NormalTexExists(normaltex) then
 			return normaltex
-		else
-			if featureDef.model.textures.tex1 == "Arm_wreck_color.dds" then
-				return unittextures .. "Arm_wreck_color_normal.dds"
-			end
+		end
 
-			if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then
-				return unittextures .. "cor_color_wreck_normal.dds"
-			end
+		if featureDef.model.textures.tex1 == "Arm_wreck_color.dds" then
+			return unittextures .. "Arm_wreck_color_normal.dds"
+		end
 
-			if featureDef.model.textures.tex1 == "leg_wreck_color.dds" then
-				return unittextures .. "leg_wreck_normal.dds"
-			end
-			-- try to search for an appropriate normal
-			normalMap = tex1:gsub("%.", "_normals.")
-			-- Spring.Echo(normalMap)
-			if existingfilecache[normalMap] or FileExists(normalMap) then
-				existingfilecache[normalMap] = true
-				return normalMap
-			end
-			normalMap = tex1:gsub("%.", "_normal.")
-			-- Spring.Echo(normalMap)
-			if existingfilecache[normalMap] or FileExists(normalMap) then
-				existingfilecache[normalMap] = true
-				return normalMap
-			end
+		if featureDef.model.textures.tex1 == "cor_color_wreck.dds" then
+			return unittextures .. "cor_color_wreck_normal.dds"
+		end
+
+		if featureDef.model.textures.tex1 == "leg_wreck_color.dds" then
+			return unittextures .. "leg_wreck_normal.dds"
+		end
+		-- try to search for an appropriate normal
+		normalMap = tex1:gsub("%.", "_normals.")
+		-- Spring.Echo(normalMap)
+		if existingfilecache[normalMap] or FileExists(normalMap) then
+			existingfilecache[normalMap] = true
+			return normalMap
+		end
+		normalMap = tex1:gsub("%.", "_normal.")
+		-- Spring.Echo(normalMap)
+		if existingfilecache[normalMap] or FileExists(normalMap) then
+			existingfilecache[normalMap] = true
+			return normalMap
 		end
 	end
 	return blankNormalMap
