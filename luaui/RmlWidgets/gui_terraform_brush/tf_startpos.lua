@@ -24,10 +24,6 @@ function M.sync(doc, ctx, stpState, setSummary)
 		ctx.syncTBMirrorControls(doc, "st")
 	end
 	local widgetState = ctx.widgetState
-	-- btn-startpos active state driven by data-class-active="activeTool == 'stp'" in RML.
-
-	-- Sub-mode and shape buttons driven by dm fields via data-class-active
-	-- (stpSubMode is set below at widgetState.dmHandle.stpSubMode)
 
 	-- Startpos shape (stpShapeMode dm field)
 	if widgetState.dmHandle then
@@ -50,12 +46,7 @@ function M.sync(doc, ctx, stpState, setSummary)
 				widgetState.dmHandle.stpStartboxMode = sbxMode
 			end
 		end
-		-- Contextual hint visibility now driven by data-if on the elements.
 	end
-
-	-- Visibility for sp-shape-options, sp-shape-row, sp-express-hint, sp-startbox-hint
-	-- is driven by data-if="stpSubMode == ..." against widgetState.dmHandle.stpSubMode
-	-- (synced above). No imperative SetClass needed here.
 
 	-- Update labels via dm interpolation (Phase 2 step 4)
 	local dm = widgetState.dmHandle
