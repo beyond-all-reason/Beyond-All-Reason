@@ -19,7 +19,6 @@ local GetModKeyState = Spring.GetModKeyState
 local GetKeyState = Spring.GetKeyState
 local TraceScreenRay = Spring.TraceScreenRay
 local GetGroundHeight = Spring.GetGroundHeight
-local GetGroundNormal = Spring.GetGroundNormal
 
 local glColor = gl.Color
 local glLineWidth = gl.LineWidth
@@ -135,26 +134,9 @@ local lp = {
 	-- Elevation offset above ground
 	elevation = 20,
 
-	-- Smart filter
-	smartEnabled = false,
-	smartFilters = {
-		avoidWater = true,
-		avoidCliffs = true,
-		slopeMax = 45,
-		preferSlopes = false,
-		slopeMin = 10,
-		altMinEnable = false,
-		altMin = 0,
-		altMaxEnable = false,
-		altMax = 200,
-	},
-
 	dragging = false,
 	dragAction = nil,
 	placeTimer = 0,
-
-	-- For gizmo support (Phase 4)
-	selectedLight = nil,
 }
 
 -- Cursor preview light (removed when deactivated or position changes enough)
@@ -392,33 +374,6 @@ local function isInsideShape(dx, dz, radius, shape, rotDeg)
 end
 
 ----------------------------------------------------------------
--- Utility: smart filter check
-----------------------------------------------------------------
-local function isPointValid(px, pz, sf)
-	local h = GetGroundHeight(px, pz)
-	if sf.avoidWater and h < 0 then
-		return false
-	end
-	local _, ny = GetGroundNormal(px, pz)
-	if ny then
-		local slopeAngle = math.acos(min(ny, 1.0)) * 180 / pi
-		if sf.avoidCliffs and slopeAngle > sf.slopeMax then
-			return false
-		end
-		if sf.preferSlopes and slopeAngle < sf.slopeMin then
-			return false
-		end
-	end
-	if sf.altMinEnable and h < sf.altMin then
-		return false
-	end
-	if sf.altMaxEnable and h > sf.altMax then
-		return false
-	end
-	return true
-end
-
-----------------------------------------------------------------
 -- Utility: generate scatter positions
 ----------------------------------------------------------------
 local function generateScatterPositions(cx, cz, radius, count, shape, rotDeg, distribution)
@@ -596,7 +551,6 @@ local function addOneLight(px, pz, lightDef)
 			theta = lightDef.theta,
 			beamLength = lightDef.beamLength,
 			elevation = elevation,
-			animation = nil, -- reserved for Phase 3
 		}
 		placedLights[instanceID] = record
 		return record
@@ -733,9 +687,6 @@ local function placeAtPosition(worldX, worldZ)
 	local added = {}
 
 	if lp.mode == "point" then
-		if lp.smartEnabled and not isPointValid(worldX, worldZ, lp.smartFilters) then
-			return
-		end
 		local rec = addOneLight(worldX, worldZ, lightDef)
 		if rec then
 			added[#added + 1] = rec
@@ -744,12 +695,9 @@ local function placeAtPosition(worldX, worldZ)
 		local positions =
 			generateScatterPositions(worldX, worldZ, lp.radius, lp.lightCount, lp.shape, lp.rotation, lp.distribution)
 		for _, pos in ipairs(positions) do
-			local px, pz = pos[1], pos[2]
-			if not lp.smartEnabled or isPointValid(px, pz, lp.smartFilters) then
-				local rec = addOneLight(px, pz, lightDef)
-				if rec then
-					added[#added + 1] = rec
-				end
+			local rec = addOneLight(pos[1], pos[2], lightDef)
+			if rec then
+				added[#added + 1] = rec
 			end
 		end
 	end
@@ -764,7 +712,7 @@ end
 ----------------------------------------------------------------
 local function removeAtPosition(worldX, worldZ)
 	local removed = {}
-	for instanceID, rec in pairs(placedLights) do
+	for _, rec in pairs(placedLights) do
 		local dx = rec.pos[1] - worldX
 		local dz = rec.pos[3] - worldZ
 		if isInsideShape(dx, dz, lp.radius, lp.shape, lp.rotation) then
@@ -831,7 +779,6 @@ local function save(explicitPath)
 			theta = rec.theta,
 			beamLength = rec.beamLength,
 			elevation = rec.elevation,
-			animation = rec.animation,
 		}
 	end
 
@@ -907,7 +854,7 @@ end
 
 local function clearAllLights()
 	local removed = {}
-	for instanceID, rec in pairs(placedLights) do
+	for _, rec in pairs(placedLights) do
 		removed[#removed + 1] = rec
 	end
 	for _, rec in ipairs(removed) do
@@ -1023,12 +970,6 @@ local function saveUserPreset(presetName)
 		}
 	end
 
-	local data = {
-		version = 1,
-		name = presetName,
-		lights = lightList,
-	}
-
 	local lines = { "return {\n", "\tversion = 1,\n", string.format("\tname = %q,\n", presetName), "\tlights = {\n" }
 	for _, l in ipairs(lightList) do
 		lines[#lines + 1] = "\t\t{\n"
@@ -1096,13 +1037,9 @@ local function placePreset(presetData, worldX, worldZ)
 	end
 	local added = {}
 	for _, l in ipairs(presetData.lights) do
-		local px = worldX + (l.offsetX or 0)
-		local pz = worldZ + (l.offsetZ or 0)
-		if not lp.smartEnabled or isPointValid(px, pz, lp.smartFilters) then
-			local rec = addOneLight(px, pz, l)
-			if rec then
-				added[#added + 1] = rec
-			end
+		local rec = addOneLight(worldX + (l.offsetX or 0), worldZ + (l.offsetZ or 0), l)
+		if rec then
+			added[#added + 1] = rec
 		end
 	end
 	if #added > 0 then
@@ -1675,18 +1612,11 @@ function widget:Initialize()
 				theta = lp.theta,
 				beamLength = lp.beamLength,
 				elevation = lp.elevation,
-				smartEnabled = lp.smartEnabled,
-				smartFilters = lp.smartFilters,
 				undoCount = #undoStack,
 				redoCount = #redoStack,
-				lightCount_placed = 0,
-				selectedLight = lp.selectedLight,
 			}
 		end,
 
-		activate = function()
-			lp.active = true
-		end,
 		deactivate = function()
 			lp.active = false
 			lp.mode = nil
@@ -1708,17 +1638,8 @@ function widget:Initialize()
 		setRadius = function(r)
 			lp.radius = max(MIN_RADIUS, min(MAX_RADIUS, r))
 		end,
-		setRotation = function(d)
-			lp.rotation = d % 360
-		end,
-		rotate = function(step)
-			lp.rotation = (lp.rotation + step) % 360
-		end,
 		setLightCount = function(n)
 			lp.lightCount = max(1, min(500, n))
-		end,
-		setCadence = function(v)
-			lp.cadence = max(1, min(1000, v))
 		end,
 		setDistribution = function(d)
 			lp.distribution = d
@@ -1733,27 +1654,12 @@ function widget:Initialize()
 		setBrightness = function(v)
 			lp.brightness = max(0.01, min(50, v))
 		end,
-		setModelfactor = function(v)
-			lp.modelfactor = max(0, min(5, v))
-		end,
-		setSpecular = function(v)
-			lp.specular = max(0, min(5, v))
-		end,
-		setScattering = function(v)
-			lp.scattering = max(0, min(5, v))
-		end,
-		setLensflare = function(v)
-			lp.lensflare = max(0, min(5, v))
-		end,
 
 		setPitch = function(v)
 			lp.pitch = max(-90, min(90, v))
 		end,
 		setYaw = function(v)
 			lp.yaw = v % 360
-		end,
-		setRoll = function(v)
-			lp.roll = v % 360
 		end,
 		setTheta = function(v)
 			lp.theta = max(0.05, min(1.5, v))
@@ -1763,13 +1669,6 @@ function widget:Initialize()
 		end,
 		setElevation = function(v)
 			lp.elevation = max(0, min(2000, v))
-		end,
-
-		setSmartEnabled = function(b)
-			lp.smartEnabled = b
-		end,
-		setSmartFilter = function(k, v)
-			lp.smartFilters[k] = v
 		end,
 
 		undo = doUndo,
@@ -1789,9 +1688,6 @@ function widget:Initialize()
 
 		setPendingPreset = setPendingPreset,
 		clearPendingPreset = clearPendingPreset,
-		getPendingPreset = function()
-			return pendingPreset
-		end,
 
 		getPlacedCount = function()
 			local n = 0
