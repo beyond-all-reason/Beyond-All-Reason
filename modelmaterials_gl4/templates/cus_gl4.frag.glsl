@@ -188,9 +188,9 @@ in Data {
 // it stays visible on red team colors: bright red over dark pixels, deep red over bright ones (JAMMED_SHADE_* range)
 #define JAMMED_COLOR vec3(1.0, 0.25, 0.18)
 #define JAMMED_DARK_COLOR vec3(0.45, 0.02, 0.0)
-#define JAMMED_FILL 0.12 // tint strength over the whole unit
-#define JAMMED_RIM 0.5 // extra strength at grazing angles
-#define JAMMED_EDGE 0.6 // extra strength right at the silhouette
+#define JAMMED_FILL 0.09 // tint strength over the whole unit
+#define JAMMED_RIM 0.25 // extra strength at grazing angles
+#define JAMMED_EDGE 0.33 // extra strength right at the silhouette
 #define JAMMED_SHADE_DARK 0.35 // pixels at most this bright (max rgb) get JAMMED_COLOR
 #define JAMMED_SHADE_BRIGHT 0.7 // pixels at least this bright get JAMMED_DARK_COLOR
 
@@ -1405,7 +1405,13 @@ void main(void){
 			// This seems to be a silly way of forcing no bloom on trees, as only trees HASALPHASHADOWS
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(albedoColor * emissiveness * 2.0) + outSpecularColor * 0.3, alphaBin);
 		#endif
-		fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
+		#ifdef ENABLE_OPTION_HEALTH_TEXTURING
+			// unit pixels for gfx_outline_shader_gl4: green = 1, unitID + 1 in red (low byte) and blue (high byte)
+			uint outlineID = uint(unitID) + 1u;
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(outlineID & 255u) / 255.0, 1.0, float(outlineID >> 8u) / 255.0, alphaBin);
+		#else
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(materialIndex) / 255.0, 0.0, 0.0, alphaBin);
+		#endif
 	#endif
 }
 #else //shadow pass
