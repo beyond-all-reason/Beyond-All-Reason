@@ -243,6 +243,10 @@ local sel = {
 	pruneTimer = 0,
 }
 
+-- The lasso round a multi-selection (see "The lasso" below); here because the selection
+-- code above that section marks it dirty.
+local lasso = { hull = nil, dirty = true, age = 0, hover = false }
+
 -- Built in widget:Initialize, before any callin that reads it.
 local placer ---@type table
 ---@type table?
@@ -1233,7 +1237,6 @@ local LASSO_COS, LASSO_SIN = {}, {}
 for i = 0, LASSO_SIDES - 1 do
 	LASSO_COS[i], LASSO_SIN[i] = cos(i * 2 * pi / LASSO_SIDES), sin(i * 2 * pi / LASSO_SIDES)
 end
-local lasso = { hull = nil, dirty = true, age = 0, hover = false }
 
 local function convexHull(points)
 	table.sort(points, function(a, b)
