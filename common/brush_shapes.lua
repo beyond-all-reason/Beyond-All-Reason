@@ -21,6 +21,11 @@
 -- Supported shapes: "circle", "square", "hexagon", "octagon", "triangle".
 -- Unknown shapes return (false, 1).
 
+---A brush footprint. `isInside` recognizes exactly these; anything else is
+---treated as outside. Tools that offer extra footprints of their own (the
+---terraform brush's `"ring"` and `"fill"`) do not route them through here.
+---@alias BrushShape "circle"|"square"|"hexagon"|"octagon"|"triangle"
+
 local cos = math.cos
 local sin = math.sin
 local abs = math.abs

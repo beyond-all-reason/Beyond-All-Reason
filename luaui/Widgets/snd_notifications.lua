@@ -78,7 +78,7 @@ local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/"
 -- load and parse sound files/notifications
 local notificationTable = require("sounds/voice/config")
 if VFS.FileExists(soundFolder .. "config.lua") then
-	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua")
+	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua", {}, VFS.RAW_FIRST)
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
 

@@ -34,6 +34,7 @@ return {
 			buildinggrounddecalsizex = 3.8,
 			buildinggrounddecalsizey = 3.8,
 			buildinggrounddecaltype = "decals/corshroud_aoplane.dds",
+			deactivate_time = 8,
 			juno_kill = true,
 			model_author = "Mr Bob",
 			normaltex = "unittextures/cor_normal.dds",

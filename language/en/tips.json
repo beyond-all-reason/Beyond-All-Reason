@@ -250,11 +250,11 @@
 			"respawningCommanders/AlliedCommanderTransposed": "Allied Commander Transposed",
 			"respawningCommanders/EnemyCommanderTransposed": "Enemy Commander Transposed",
 			"respawningCommanders/CommanderEffigyLost": "Commander Effigy Lost",
-			"territorialDomination/EnemyTeamEliminated": "Enemy Eliminated",
-			"territorialDomination/YourTeamEliminated": "You Have Been Eliminated",
-			"territorialDomination/GainedLead": "You Are In The Lead",
-			"territorialDomination/LostLead": "You Lost The Lead",
-			"territorialDomination/EliminationDanger": "You're in danger of being eliminated!"
+			"dominion/EnemyTeamEliminated": "Enemy Eliminated",
+			"dominion/YourTeamEliminated": "You Have Been Eliminated",
+			"dominion/GainedLead": "You Are In The Lead",
+			"dominion/LostLead": "You Lost The Lead",
+			"dominion/EliminationDanger": "You're in danger of being eliminated!"
 		},
 		"deathMessages": {
 			"team": {

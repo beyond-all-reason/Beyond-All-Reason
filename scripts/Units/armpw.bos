@@ -1031,6 +1031,8 @@ StopAnimation() {
 
 Create()
 {
+	Weapon1TurretX = <300>;
+	Weapon1TurretY = <300>;
 	hide rfire;
 	hide lfire;
 	hide aimx1;

@@ -127,7 +127,7 @@ return {
 				predictboost = 1,
 				proximitypriority = 1,
 				range = 211,
-				reloadtime = 2.1,
+				reloadtime = 1.2,
 				rgbcolor = "1 0.95 0.4",
 				soundhit = "bimpact3",
 				soundhitwet = "splshbig",
@@ -142,8 +142,8 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 700,
 				damage = {
-					default = 15,
-					vtol = 6,
+					default = 10,
+					vtol = 4,
 				},
 			},
 			gauss = {
