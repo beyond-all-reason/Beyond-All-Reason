@@ -1,6 +1,8 @@
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local difficulty = RegisterMissionApiModules().Difficulty
+local env = MissionSpecEnv.new()
+
+local difficulty = MissionSpecEnv.registerModules(env).Difficulty
 
 -- Difficulties from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
 local STORY, EASY, MEDIUM, HARD = 1, 2, 3, 4
@@ -45,15 +47,15 @@ describe("mission_api.difficulty", function()
 		local savedLog, logged
 
 		before_each(function()
-			savedLog = Spring.Log
+			savedLog = env.Spring.Log
 			logged = {}
-			Spring.Log = function(_, level, message)
+			env.Spring.Log = function(_, level, message)
 				logged[#logged + 1] = { level = level, message = message }
 			end
 		end)
 
 		after_each(function()
-			Spring.Log = savedLog
+			env.Spring.Log = savedLog
 		end)
 
 		it("returns the difficulty with that name", function()

@@ -1,11 +1,11 @@
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local CMD = { INSERT = 34, MOVE = 10 }
+local env = MissionSpecEnv.new({ CMD = CMD })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
-
-_G.CMD = _G.CMD or {}
-_G.CMD.INSERT = 34
-_G.CMD.MOVE = 10
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 	[1] = { name = "armlab", isFactory = true },
@@ -15,7 +15,8 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local productionOrdered = VFS.Include("luarules/mission_api/triggers/yet_to_implement_production_ordered.lua")
+local productionOrdered =
+	MissionSpecEnv.include(env, "luarules/mission_api/triggers/yet_to_implement_production_ordered.lua")
 local onUnitCommand = productionOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.yet_to_implement_production_ordered", function()

@@ -1,13 +1,16 @@
 local Builders = VFS.Include("spec/builders/index.lua")
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The real trigger definitions, for the managed-or-synthesized split.
 -- (Trigger files read GG['MissionAPI'].Modules at include time.)
 Builders.MissionApi.new():Install()
-RegisterMissionApiModules()
-local triggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+MissionSpecEnv.registerModules(env)
+local triggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
 
-local ObjectivesLoader = VFS.Include("luarules/mission_api/objectives_loader.lua")
+local ObjectivesLoader = MissionSpecEnv.include(env, "luarules/mission_api/objectives_loader.lua")
 
 describe("mission_api.objectives_loader", function()
 	describe("ProcessRawObjectives", function()

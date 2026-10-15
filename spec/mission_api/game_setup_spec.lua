@@ -1,9 +1,11 @@
-require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
 local base64 = VFS.Include("common/luaUtilities/base64.lua")
 
+local env = MissionSpecEnv.new()
+
 local function readGameSetup()
-	return VFS.Include("luarules/mission_api/game_setup.lua")
+	return MissionSpecEnv.include(env, "luarules/mission_api/game_setup.lua")
 end
 
 -- The client writes missionoptions as JSON, compressed with zlib, then base64url encoded.
@@ -19,20 +21,20 @@ end
 
 -- Return shapes follow Spring.GetTeamInfo and Spring.GetAllyTeamInfo in rts/Lua/LuaSyncedRead.cpp.
 local function withGameSetup(setup)
-	Spring.GetModOptions = function()
+	env.Spring.GetModOptions = function()
 		return setup.modOptions
 	end
-	Spring.GetTeamList = function()
+	env.Spring.GetTeamList = function()
 		return sortedIDs(setup.teams)
 	end
-	Spring.GetTeamInfo = function(teamID, getTeamKeys)
+	env.Spring.GetTeamInfo = function(teamID, getTeamKeys)
 		local team = setup.teams[teamID]
 		return teamID, 0, false, false, "armada", team.allyTeam, 1, getTeamKeys and team.keys or nil
 	end
-	Spring.GetAllyTeamList = function()
+	env.Spring.GetAllyTeamList = function()
 		return sortedIDs(setup.allyTeams)
 	end
-	Spring.GetAllyTeamInfo = function(allyTeamID)
+	env.Spring.GetAllyTeamInfo = function(allyTeamID)
 		return setup.allyTeams[allyTeamID].keys
 	end
 end
@@ -42,22 +44,22 @@ describe("mission_api.game_setup", function()
 
 	before_each(function()
 		saved = {
-			GetModOptions = Spring.GetModOptions,
-			GetTeamList = Spring.GetTeamList,
-			GetTeamInfo = Spring.GetTeamInfo,
-			GetAllyTeamList = Spring.GetAllyTeamList,
-			GetAllyTeamInfo = Spring.GetAllyTeamInfo,
-			Log = Spring.Log,
+			GetModOptions = env.Spring.GetModOptions,
+			GetTeamList = env.Spring.GetTeamList,
+			GetTeamInfo = env.Spring.GetTeamInfo,
+			GetAllyTeamList = env.Spring.GetAllyTeamList,
+			GetAllyTeamInfo = env.Spring.GetAllyTeamInfo,
+			Log = env.Spring.Log,
 		}
 		logged = {}
-		Spring.Log = function(_, level, message)
+		env.Spring.Log = function(_, level, message)
 			logged[#logged + 1] = { level = level, message = message }
 		end
 	end)
 
 	after_each(function()
 		for name, fn in pairs(saved) do
-			Spring[name] = fn
+			env.Spring[name] = fn
 		end
 	end)
 

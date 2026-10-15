@@ -1,4 +1,7 @@
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so here), and
 -- UnitDefs / Spring.GetUnitIsBeingBuilt / Spring.GetUnitTeam / Spring.GetUnitDefID in its handlers.
@@ -10,7 +13,7 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local constructionProgress = VFS.Include("luarules/mission_api/triggers/construction_progress.lua")
+local constructionProgress = MissionSpecEnv.include(env, "luarules/mission_api/triggers/construction_progress.lua")
 local onUnitBuildStep = constructionProgress.callins.UnitBuildStepPost
 local onMetaUnitRemoved = constructionProgress.callins.MetaUnitRemoved
 
@@ -20,17 +23,17 @@ describe("mission_api.triggers.construction_progress", function()
 	before_each(function()
 		world = {}
 
-		Spring.GetUnitTeam = function(unitID)
+		env.Spring.GetUnitTeam = function(unitID)
 			local unit = world[unitID]
 			return unit and unit.team
 		end
 
-		Spring.GetUnitDefID = function(unitID)
+		env.Spring.GetUnitDefID = function(unitID)
 			local unit = world[unitID]
 			return unit and unit.defID
 		end
 
-		Spring.GetUnitIsBeingBuilt = function(unitID)
+		env.Spring.GetUnitIsBeingBuilt = function(unitID)
 			local unit = world[unitID]
 			if not unit then
 				return nil, nil

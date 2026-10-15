@@ -1,6 +1,8 @@
-require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")
+local env = MissionSpecEnv.new()
+
+local SeismicContacts = MissionSpecEnv.include(env, "luarules/mission_api/seismic_contacts.lua")
 
 -- These boundaries are not based on the actual configuration values in the specced file.
 -- We want these values to be, actually, configurable. And we can admit to ourselves that

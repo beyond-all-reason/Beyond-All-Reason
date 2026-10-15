@@ -1,9 +1,12 @@
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time, and Spring.GetTeamResources inside its handler.
 Builders.MissionApi.new():Install()
 
-local resourceStored = VFS.Include("luarules/mission_api/triggers/resource_stored.lua")
+local resourceStored = MissionSpecEnv.include(env, "luarules/mission_api/triggers/resource_stored.lua")
 local onGameFrame = resourceStored.callins.GameFrame
 
 describe("mission_api.triggers.resource_stored", function()
@@ -39,35 +42,35 @@ describe("mission_api.triggers.resource_stored", function()
 
 	it("evaluates every frame, with no interval gate", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context)
 		assert.are.equal(1, fired())
 	end)
 
 	it("fires when the stored metal meets the threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context)
 		assert.are.equal(1, fired())
 	end)
 
 	it("does not fire when the stored metal is below the threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(1)
+		env.Spring.GetTeamResources = resources(1)
 		onGameFrame(trigger({ teamID = 0, metal = 5 }), triggerID, context)
 		assert.are.equal(0, fired())
 	end)
 
 	it("fires when the stored energy meets the threshold", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, energy = 5 }), triggerID, context)
 		assert.are.equal(1, fired())
 	end)
 
 	it("requires both thresholds to be met when both are set", function()
 		local context, fired = newContext()
-		Spring.GetTeamResources = resources(10)
+		env.Spring.GetTeamResources = resources(10)
 		onGameFrame(trigger({ teamID = 0, metal = 5, energy = 20 }), triggerID, context)
 		assert.are.equal(0, fired())
 	end)

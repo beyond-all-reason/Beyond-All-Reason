@@ -1,14 +1,11 @@
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local CMD = { INSERT = 34, MOVE = 10, RECLAIM = 90, ANY = "a", BUILD = "b" }
+local env = MissionSpecEnv.new({ CMD = CMD })
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time.
 Builders.MissionApi.new():Install()
-
-_G.CMD = _G.CMD or {}
-_G.CMD.INSERT = 34
-_G.CMD.MOVE = 10
-_G.CMD.RECLAIM = 90
-_G.CMD.ANY = "a"
-_G.CMD.BUILD = "b"
 
 local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 	[1] = { name = "armpw" },
@@ -16,10 +13,7 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
--- VFS.Include caches source text, not results, so this re-runs the trigger file
--- and captures the `CMD` values set above -- even though another spec already
--- loaded it (via LoadTriggerDefinitions) while `CMD` was still empty.
-local unitOrdered = VFS.Include("luarules/mission_api/triggers/unit_ordered.lua")
+local unitOrdered = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_ordered.lua")
 local onUnitCommand = unitOrdered.callins.UnitCommand
 
 describe("mission_api.triggers.unit_ordered", function()

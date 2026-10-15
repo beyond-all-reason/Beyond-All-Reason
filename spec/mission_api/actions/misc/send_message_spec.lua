@@ -1,19 +1,23 @@
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-GG["MissionAPI"].Modules.BattleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+GG["MissionAPI"].Modules.BattleLog = MissionSpecEnv.include(env, "luarules/mission_api/battle_log.lua")
 
 local MessageTypes = GG["MissionAPI"].Modules.ParameterTypes.Enums.MessageType
 
-local actions = VFS.Include("luarules/mission_api/actions/misc/send_message.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/misc/send_message.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 describe("mission_api.actions.send_message", function()
 	before_each(function()
 		GG["MissionAPI"].BattleLogRaw = {}
-		Spring.SetGameRulesParam = function() end
-		_G.SendToUnsynced = function() end ---@diagnostic disable-line: global-in-non-module
+		env.Spring.SetGameRulesParam = function() end
+		env.SendToUnsynced = function() end
 	end)
 
 	it("declares its type and parameters", function()

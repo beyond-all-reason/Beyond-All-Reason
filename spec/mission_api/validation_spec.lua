@@ -1,12 +1,16 @@
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- mirror eager module loading in api_missions.lua
 GG["MissionAPI"] = GG["MissionAPI"] or {}
 GG["MissionAPI"].Modules = GG["MissionAPI"].Modules or {}
-GG["MissionAPI"].Modules.ParameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-RegisterMissionApiModules() -- handles some load order
-GG["MissionAPI"].ActionDefinitions = VFS.Include("luarules/mission_api/actions_loader.lua").LoadActionDefinitions()
-GG["MissionAPI"].TriggerDefinitions = VFS.Include("luarules/mission_api/triggers_loader.lua").LoadTriggerDefinitions()
+GG["MissionAPI"].Modules.ParameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+MissionSpecEnv.registerModules(env) -- handles some load order
+GG["MissionAPI"].ActionDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/actions_loader.lua")
+	.LoadActionDefinitions()
+GG["MissionAPI"].TriggerDefinitions = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
+	.LoadTriggerDefinitions()
 
 -- Reinstall the same command IDs per-test (see Command) so we
 -- can run multiple tests without interfering with other specs.
@@ -21,15 +25,15 @@ local function withCommandIDs(names, firstID)
 end
 
 local function installCommandTables()
-	_G.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK", "RECLAIM", "GUARD", "REPAIR", "FIGHT", "CLOAK" }, 0)
-	_G.GameCMD = withCommandIDs({ "AREA_ATTACK_GROUND" }, 1000)
-	_G.CMD.ANY, _G.CMD.BUILD = "a", "b" -- filter sentinels (see common/constants.lua)
+	env.CMD = withCommandIDs({ "STOP", "MOVE", "ATTACK", "RECLAIM", "GUARD", "REPAIR", "FIGHT", "CLOAK" }, 0)
+	env.GameCMD = withCommandIDs({ "AREA_ATTACK_GROUND" }, 1000)
+	env.CMD.ANY, env.CMD.BUILD = "a", "b" -- filter sentinels (see common/constants.lua)
 end
 
-local savedCMD, savedGameCMD = _G.CMD, _G.GameCMD
+local savedCMD, savedGameCMD = env.CMD, env.GameCMD
 installCommandTables()
-local validation = VFS.Include("luarules/mission_api/validation.lua") -- Wrap in safety code and restore.
-_G.CMD, _G.GameCMD = savedCMD, savedGameCMD
+local validation = MissionSpecEnv.include(env, "luarules/mission_api/validation.lua") -- Wrap in safety code and restore.
+env.CMD, env.GameCMD = savedCMD, savedGameCMD
 savedCMD, savedGameCMD = nil, nil
 
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
@@ -65,13 +69,13 @@ describe("mission_api.validation", function()
 
 	before_each(function()
 		logged = {}
-		Spring.Log = function(_, _, msg)
+		env.Spring.Log = function(_, _, msg)
 			logged[#logged + 1] = msg
 		end
-		Spring.GetTeamAllyTeamID = function()
+		env.Spring.GetTeamAllyTeamID = function()
 			return true
 		end
-		Spring.GetAllyTeamList = function()
+		env.Spring.GetAllyTeamList = function()
 			return { 0 }
 		end
 		_G.UnitDefNames = { armwar = { id = 1 } }
@@ -844,19 +848,19 @@ describe("mission_api.validation", function()
 			end)
 
 			it("rejects file that is not a RIFF .wav", function()
-				local origFileExists = VFS.FileExists
-				local origReadWAV = _G.ReadWAV
-				VFS.FileExists = function(p)
+				local origFileExists = env.VFS.FileExists
+				local origReadWAV = env.ReadWAV
+				env.VFS.FileExists = function(p)
 					return p == "dummy.wav"
 				end
-				_G.ReadWAV = function()
+				env.ReadWAV = function()
 					return nil
 				end
 
 				actionErrors({ type = actionTypes.PlaySound, parameters = { soundfile = "dummy.wav" } })
 
-				VFS.FileExists = origFileExists
-				_G.ReadWAV = origReadWAV
+				env.VFS.FileExists = origFileExists
+				env.ReadWAV = origReadWAV
 				assert.is_true(
 					hasError(
 						"Invalid soundfile: dummy.wav. File is not a RIFF .wav file. Action: a, Parameter: soundfile"
@@ -877,7 +881,7 @@ describe("mission_api.validation", function()
 			end)
 
 			it("rejects invalid team ID", function()
-				Spring.GetTeamAllyTeamID = function()
+				env.Spring.GetTeamAllyTeamID = function()
 					return nil
 				end
 				actionErrors({
@@ -914,7 +918,7 @@ describe("mission_api.validation", function()
 
 		describe("AllyTeamIDs", function()
 			before_each(function()
-				Spring.GetAllyTeamInfo = function(id)
+				env.Spring.GetAllyTeamInfo = function(id)
 					return id == 0
 				end
 			end)
@@ -1078,7 +1082,7 @@ describe("mission_api.validation", function()
 
 		describe("Orders", function()
 			before_each(function()
-				_G.CMD = {}
+				env.CMD = {}
 				for i, name in ipairs({
 					"STOP",
 					"SELFD",
@@ -1101,14 +1105,14 @@ describe("mission_api.validation", function()
 					"FIRE_STATE",
 					"MOVE_STATE",
 				}) do
-					CMD[name] = i
+					env.CMD[name] = i
 				end
-				_G.GameCMD = { AREA_ATTACK_GROUND = table.count(CMD) + 1 }
+				env.GameCMD = { AREA_ATTACK_GROUND = table.count(env.CMD) + 1 }
 			end)
 
 			after_each(function()
-				_G.CMD = nil
-				_G.GameCMD = nil
+				env.CMD = nil
+				env.GameCMD = nil
 			end)
 
 			it("rejects wrong type", function()
@@ -1148,7 +1152,7 @@ describe("mission_api.validation", function()
 			it("rejects invalid order option", function()
 				actionErrors({
 					type = actionTypes.IssueOrders,
-					parameters = { unitName = "x", orders = { { CMD.STOP, nil, { "diagonal" } } } },
+					parameters = { unitName = "x", orders = { { env.CMD.STOP, nil, { "diagonal" } } } },
 				})
 				assert.is_true(hasError("Invalid order option: diagonal. Action: a, Parameter: orders[1][3]"))
 			end)
@@ -1156,7 +1160,7 @@ describe("mission_api.validation", function()
 			it("rejects wrong number of parameters for a move command", function()
 				actionErrors({
 					type = actionTypes.IssueOrders,
-					parameters = { unitName = "x", orders = { { CMD.MOVE, {} } } },
+					parameters = { unitName = "x", orders = { { env.CMD.MOVE, {} } } },
 				})
 				assert.is_true(
 					hasError("Parameter must be an array of 3 numbers {x, y, z}. Action: a, Parameter: orders[1][2]")
@@ -1171,8 +1175,8 @@ describe("mission_api.validation", function()
 			end)
 
 			after_each(function()
-				_G.CMD = nil
-				_G.GameCMD = nil
+				env.CMD = nil
+				env.GameCMD = nil
 			end)
 
 			-- Validation errors land in `logged` which is itself reset by the outer before_each.
@@ -1185,7 +1189,7 @@ describe("mission_api.validation", function()
 			end
 
 			it("accepts a known command id", function()
-				validateCommand(CMD.MOVE)
+				validateCommand(env.CMD.MOVE)
 				assert.are.same({}, logged)
 			end)
 
@@ -1195,17 +1199,17 @@ describe("mission_api.validation", function()
 			end)
 
 			it("accepts the ANY qualifier", function()
-				validateCommand(CMD.ANY)
+				validateCommand(env.CMD.ANY)
 				assert.are.same({}, logged)
 			end)
 
 			it("accepts the BUILD qualifier", function()
-				validateCommand(CMD.BUILD)
+				validateCommand(env.CMD.BUILD)
 				assert.are.same({}, logged)
 			end)
 
 			it("warns (without erroring) for a command consumed in AllowCommand", function()
-				validateCommand(CMD.CLOAK)
+				validateCommand(env.CMD.CLOAK)
 				assert.is_true(
 					hasError(
 						"Command " .. "CLOAK" .. " may fail to trigger in UnitOrdered. Trigger: t, Parameter: command"
@@ -1236,7 +1240,7 @@ describe("mission_api.validation", function()
 			it("requires a unit scope (unitName or unitDefName) alongside command", function()
 				triggerErrors({
 					type = triggerTypes.UnitOrdered,
-					parameters = { command = CMD.MOVE },
+					parameters = { command = env.CMD.MOVE },
 					actions = { "ok" },
 				})
 				assert.is_true(

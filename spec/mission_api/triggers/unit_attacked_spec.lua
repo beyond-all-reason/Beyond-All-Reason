@@ -1,4 +1,7 @@
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes and Game.envDamageTypes at load time
 -- (so, here), and Spring / UnitDefs inside its handler.
@@ -10,13 +13,13 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 })
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
-local unitAttacked = VFS.Include("luarules/mission_api/triggers/unit_attacked.lua")
+local unitAttacked = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_attacked.lua")
 local onUnitDamaged = unitAttacked.callins.UnitDamaged
 
 describe("mission_api.triggers.unit_attacked", function()
 	before_each(function()
 		-- Teams 0 and 1 are enemies; team 2 is allied with team 0.
-		Spring.AreTeamsAllied = function(team1ID, team2ID)
+		env.Spring.AreTeamsAllied = function(team1ID, team2ID)
 			if team1ID == team2ID then
 				return true
 			end

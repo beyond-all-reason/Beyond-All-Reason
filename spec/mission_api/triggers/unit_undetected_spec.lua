@@ -1,6 +1,7 @@
-require("mission_api.spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 -- The trigger reads ParameterTypes and DetectionLevels at load time, and detection_levels
 -- reads SeismicContacts and the allyTeam layout at its own load. Inside the handler it
@@ -20,10 +21,10 @@ local unitDefs = Builders.UnitDefs.new():WithUnitDefs({
 _G.UnitDefs = unitDefs:GetUnitDefsByID()
 
 -- detection_levels reads the modules installed above at its own load, so it joins them after.
-local DetectionLevels = VFS.Include("luarules/mission_api/detection_levels.lua")
+local DetectionLevels = MissionSpecEnv.include(env, "luarules/mission_api/detection_levels.lua")
 GG["MissionAPI"].Modules.DetectionLevels = DetectionLevels
 
-local unitUndetected = VFS.Include("luarules/mission_api/triggers/unit_undetected.lua")
+local unitUndetected = MissionSpecEnv.include(env, "luarules/mission_api/triggers/unit_undetected.lua")
 local onDetectionUpdate = unitUndetected.callins.DetectionUpdate -- an artificial callin
 local onDestroyed = unitUndetected.callins.UnitDestroyed
 
@@ -43,22 +44,22 @@ describe("mission_api.triggers.unit_undetected", function()
 	before_each(function()
 		losStatus = {}
 
-		Spring.GetUnitLosState = function(unitID, allyTeamID, _raw)
+		env.Spring.GetUnitLosState = function(unitID, allyTeamID, _raw)
 			return losStatus[unitID] and losStatus[unitID][allyTeamID] or 0
 		end
-		Spring.GetUnitIsDead = function(_unitID)
+		env.Spring.GetUnitIsDead = function(_unitID)
 			return false
 		end
-		Spring.GetUnitDefID = function(_unitID)
+		env.Spring.GetUnitDefID = function(_unitID)
 			return 1
 		end -- 'armpw', read back on an edge
-		Spring.GetUnitTeam = function(_unitID)
+		env.Spring.GetUnitTeam = function(_unitID)
 			return 3
 		end
 		-- These tests set LOS explicitly per allyTeam. The default owner is an allyTeam that
 		-- never senses, so ownership does not mask those setups; tests about the owner's own
 		-- vision override this.
-		Spring.GetUnitAllyTeam = function(_unitID)
+		env.Spring.GetUnitAllyTeam = function(_unitID)
 			return GAIA_ALLY
 		end
 	end)
@@ -151,7 +152,7 @@ describe("mission_api.triggers.unit_undetected", function()
 
 		it("filters on owningTeamID", function()
 			local context, fired = newContext()
-			Spring.GetUnitTeam = function(_unitID)
+			env.Spring.GetUnitTeam = function(_unitID)
 				return 5
 			end
 			local t = trigger({ unitDefName = "armpw", owningTeamID = 3 })
@@ -238,7 +239,7 @@ describe("mission_api.triggers.unit_undetected", function()
 
 			seeUnit(unitID)
 			update(t, triggerID, context, { unitID })
-			Spring.GetUnitIsDead = function(_unitID)
+			env.Spring.GetUnitIsDead = function(_unitID)
 				return true
 			end
 			hideUnit(unitID)

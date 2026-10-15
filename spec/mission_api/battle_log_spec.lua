@@ -1,5 +1,9 @@
-local MessageTypes = VFS.Include("luarules/mission_api/parameter_types.lua").Enums.MessageType
-local battleLog = VFS.Include("luarules/mission_api/battle_log.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
+
+local MessageTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua").Enums.MessageType
+local battleLog = MissionSpecEnv.include(env, "luarules/mission_api/battle_log.lua")
 
 describe("mission_api.battle_log", function()
 	---@type table<string, any>
@@ -8,26 +12,21 @@ describe("mission_api.battle_log", function()
 	local syncActions
 	---@type string[]
 	local echoes
-	local realEcho = Spring.Echo
 
 	before_each(function()
 		GG["MissionAPI"] = { BattleLogRaw = {} }
 		rulesParams = {}
 		syncActions = {}
 		echoes = {}
-		Spring.SetGameRulesParam = function(name, value)
+		env.Spring.SetGameRulesParam = function(name, value)
 			rulesParams[name] = value
 		end
-		_G.SendToUnsynced = function(action) ---@diagnostic disable-line: global-in-non-module
+		env.SendToUnsynced = function(action)
 			syncActions[#syncActions + 1] = action
 		end
-		Spring.Echo = function(message)
+		env.Spring.Echo = function(message)
 			echoes[#echoes + 1] = message
 		end
-	end)
-
-	after_each(function()
-		Spring.Echo = realEcho
 	end)
 
 	describe("AddMessage", function()

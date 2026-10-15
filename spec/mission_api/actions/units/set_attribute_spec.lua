@@ -1,6 +1,7 @@
-require("mission_api.spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
+local MissionSpecEnv = require("mission_api.spec_helper")
+
+local env = MissionSpecEnv.new()
 
 local queried, queryResult
 local unitQuerySpy = {
@@ -28,7 +29,7 @@ unitAttributes.SetUnitWeaponAttribute = record("SetUnitWeaponAttribute")
 unitAttributes.SetUnitDefWeaponModifier = record("SetUnitDefWeaponModifier")
 unitAttributes.SetUnitWeaponModifier = record("SetUnitWeaponModifier")
 
-local actions = VFS.Include("luarules/mission_api/actions/units/set_attribute.lua")
+local actions = MissionSpecEnv.include(env, "luarules/mission_api/actions/units/set_attribute.lua")
 local summarizeSchema = require("mission_api.schema_spec_helper")
 
 local function actionOfType(actionType)

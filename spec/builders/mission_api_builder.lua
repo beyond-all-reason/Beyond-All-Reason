@@ -603,12 +603,13 @@ end
 ---valid even if another spec replaces GG['MissionAPI'] with its own table.
 local installedTable = nil
 
----The real modules, included once and kept, as the gadget includes them once.
-local unitQueryModule = nil
+---The real modules, included once per env and kept, as the gadget includes them once.
+local unitQueryModules = {}
 
 ---Build the mock and install it as GG['MissionAPI'].
+---@param env table? A SpecEnv to load the real modules into, so they read its globals.
 ---@return MissionApiMock
-function MB:Install()
+function MB:Install(env)
 	_G.GG = _G.GG or {}
 
 	local target = installedTable
@@ -630,8 +631,9 @@ function MB:Install()
 	-- The mission_api modules read GG at load, so the real ones are included once the mock stands,
 	-- and kept, since what they captured is refilled by every install after this one.
 	if not self.moduleOverrides.UnitQuery then
-		unitQueryModule = unitQueryModule or VFS.Include(UNIT_QUERY_PATH)
-		target.Modules.UnitQuery = unitQueryModule
+		local scope = env or _G
+		unitQueryModules[scope] = unitQueryModules[scope] or scope.VFS.Include(UNIT_QUERY_PATH)
+		target.Modules.UnitQuery = unitQueryModules[scope]
 	end
 
 	return target

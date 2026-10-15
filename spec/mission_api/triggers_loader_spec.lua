@@ -1,12 +1,14 @@
-local RegisterMissionApiModules = require("mission_api.spec_helper")
+local MissionSpecEnv = require("mission_api.spec_helper")
 
-local parameterTypes = VFS.Include("luarules/mission_api/parameter_types.lua")
-local triggersLoader = VFS.Include("luarules/mission_api/triggers_loader.lua")
+local env = MissionSpecEnv.new()
+
+local parameterTypes = MissionSpecEnv.include(env, "luarules/mission_api/parameter_types.lua")
+local triggersLoader = MissionSpecEnv.include(env, "luarules/mission_api/triggers_loader.lua")
 
 -- Load the real trigger definitions once for the integration section below.
 -- (Real trigger files read GG['MissionAPI'].Modules.ParameterTypes at include time.)
 GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
-RegisterMissionApiModules()
+MissionSpecEnv.registerModules(env)
 local realDefinitions = triggersLoader.LoadTriggerDefinitions()
 local realTriggerFiles = VFS.DirList("luarules/mission_api/triggers/", "*.lua")
 
@@ -16,7 +18,7 @@ describe("mission_api.triggers_loader", function()
 	before_each(function()
 		-- loadTriggerDefinitions reads the parameter-type table from GG at call time.
 		GG["MissionAPI"] = { Modules = { ParameterTypes = parameterTypes } }
-		RegisterMissionApiModules()
+		MissionSpecEnv.registerModules(env)
 	end)
 
 	-- ── LoadTriggerDefinitions (isolated, mocked trigger files) ───────────────
@@ -25,23 +27,23 @@ describe("mission_api.triggers_loader", function()
 		-- Runs the loader against a controlled, ordered list of fake trigger
 		-- definitions by stubbing the VFS calls it makes, then restores them.
 		local function loadWith(fakeFiles)
-			local origDirList, origInclude = VFS.DirList, VFS.Include
+			local origDirList, origInclude = env.VFS.DirList, env.VFS.Include
 			local paths, defsByPath = {}, {}
 			for i, file in ipairs(fakeFiles) do
 				paths[i] = file.path
 				defsByPath[file.path] = file.def
 			end
 
-			VFS.DirList = function()
+			env.VFS.DirList = function()
 				return paths
 			end
-			VFS.Include = function(path)
+			env.VFS.Include = function(path)
 				return defsByPath[path]
 			end
 
 			local ok, result = pcall(triggersLoader.LoadTriggerDefinitions)
 
-			VFS.DirList, VFS.Include = origDirList, origInclude
+			env.VFS.DirList, env.VFS.Include = origDirList, origInclude
 			assert(ok, result)
 			return result
 		end
