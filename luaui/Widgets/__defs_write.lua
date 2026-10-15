@@ -1,3 +1,7 @@
+if not BAR.Utilities.IsDevMode() or not BAR.Utilities.Gametype.IsSinglePlayer() then
+	return
+end
+
 local customparamDefsDetected = false
 for _, def in pairs(UnitDefs) do
 	if def.customParams and def.customParams.__def ~= nil then

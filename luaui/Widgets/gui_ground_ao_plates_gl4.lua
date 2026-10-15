@@ -22,7 +22,7 @@ local groundaoplatealpha = 1.0
 local atlas = require("unittextures/decals/unitaoplates_atlas")
 local getUVCoords = atlas.getUVCoords
 atlas.flip(atlas)
-local unitDefIDtoDecalInfo = {} -- key unitdef, table of {texfile = "", sizex = 4 , sizez = 4}
+local unitDefIDtoInstanceData = {} -- key unitdef, the plate's instance data, with the gameframe set per push
 
 ---@type InstanceVBOTable?
 local groundPlateVBO = nil
@@ -48,40 +48,18 @@ local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGameFrame = Spring.GetGameFrame
 
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason)
-	local gf = spGetGameFrame()
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
-	if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then
+	local instanceData = unitDefID and unitDefIDtoInstanceData[unitDefID]
+	if instanceData == nil then
 		return
 	end -- these can't/dont have plates
 
-	local decalInfo = unitDefIDtoDecalInfo[unitDefID]
-
-	local p, q, s, t = getUVCoords(atlas, decalInfo.texfile)
-	--spEcho(decalInfo.texfile, p,q,s,t)
+	instanceData[7] = spGetGameFrame()
 
 	return pushElementInstance(
 		groundPlateVBO, -- push into this Instance VBO Table
-		{
-			decalInfo.sizey,
-			decalInfo.sizex,
-			0,
-			0, -- length, width, cornersize, height
-			0, -- Spring.GetUnitTeam(unitID), -- teamID, but its not used here so just pass zero
-			4, -- how many vertices should we make (4 is a quad)
-			gf,
-			0,
-			decalInfo.alpha,
-			0, -- the gameFrame (for animations), and any other parameters one might want to add
-			q,
-			p,
-			t,
-			s, -- These are our default UV atlas transformations, note how Y axis is flipped for atlas
-			0,
-			0,
-			0,
-			0,
-		}, -- these are just padding zeros, that will get filled in
+		instanceData, -- copied in, so one table per unitdef serves every plate
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
 		true, -- update existing element
 		noUpload, -- noupload, this is used when reinitializing everything on VisibleUnitsChanged
@@ -117,20 +95,38 @@ function widget:Initialize()
 	-- Init texture atlas
 	--makeAtlas()
 
-	-- Init the unitDefIDtoDecalInfo
+	-- Init the unitDefIDtoInstanceData
 	for id, UD in pairs(UnitDefs) do
 		if UD.customParams and UD.customParams.usebuildinggrounddecal and UD.customParams.buildinggrounddecaltype then
 			--local UD.name
 			local texname = "unittextures/" .. UD.customParams.buildinggrounddecaltype
 			--spEcho(texname)
 			if atlas[texname] then
-				unitDefIDtoDecalInfo[id] = {
-					texfile = texname,
-					-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
-					sizex = (UD.customParams.buildinggrounddecalsizex or 0.0) * 16,
-					sizey = (UD.customParams.buildinggrounddecalsizey or 0.0) * 16,
-					alpha = (UD.customParams.buildinggrounddecalalpha or 1.0) * groundaoplatealpha,
-				}
+				-- note that this is hacky, as customparams are always strings, but multiplying number with stringnumber is number
+				local sizex = (UD.customParams.buildinggrounddecalsizex or 0.0) * 16
+				local sizey = (UD.customParams.buildinggrounddecalsizey or 0.0) * 16
+				local alpha = (UD.customParams.buildinggrounddecalalpha or 1.0) * groundaoplatealpha
+				local p, q, s, t = getUVCoords(atlas, texname)
+				unitDefIDtoInstanceData[id] = {
+					sizey,
+					sizex,
+					0,
+					0, -- length, width, cornersize, height
+					0, -- Spring.GetUnitTeam(unitID), -- teamID, but its not used here so just pass zero
+					4, -- how many vertices should we make (4 is a quad)
+					0, -- the gameFrame, set per push
+					0,
+					alpha,
+					0, -- the gameFrame (for animations), and any other parameters one might want to add
+					q,
+					p,
+					t,
+					s, -- These are our default UV atlas transformations, note how Y axis is flipped for atlas
+					0,
+					0,
+					0,
+					0,
+				} -- these are just padding zeros, that will get filled in
 			end
 		end
 	end
@@ -186,5 +182,12 @@ function widget:VisibleUnitRemoved(unitID) -- remove the corresponding ground pl
 	end
 	if groundPlateVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(groundPlateVBO, unitID)
+	end
+end
+
+function widget:Shutdown()
+	if type(groundPlateShader) == "table" then
+		groundPlateShader:Finalize()
+		groundPlateShader = nil
 	end
 end

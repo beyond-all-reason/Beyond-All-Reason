@@ -32,6 +32,26 @@ function require(path, env, mode)
 	return VFS.Include(path .. ".lua", env, mode)
 end
 
+-- FIXME: Unsynced Lua reads raw-first, so a file in the write dir would replace the game's. Fix in the engine.
+if Script.GetName then
+	-- Local copies, so nothing loaded later can swap what the wrapper calls.
+	local vfsInclude = VFS.Include
+	local zip = VFS.ZIP
+	---@param path string
+	---@param env table|nil the environment to run in, nil uses the caller's
+	---@param mode string|nil VFS.ZIP when absent
+	---@return any
+	function VFS.Include(path, env, mode)
+		if env == nil then
+			-- level 1 pcall, level 2 this function, level 3 the caller
+			local ok, callerEnv = pcall(getfenv, 3)
+			-- A tail call gives no caller so we use our own env.
+			env = ok and callerEnv or getfenv(0)
+		end
+		return vfsInclude(path, env, mode or zip)
+	end
+end
+
 VFS.Include("common/numberfunctions.lua")
 VFS.Include("common/stringFunctions.lua")
 VFS.Include("common/tablefunctions.lua")

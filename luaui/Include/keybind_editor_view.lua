@@ -749,6 +749,7 @@ local function buildResolvedCatalog()
 	L.other = BAR.I18N("categories.other")
 	L.addBind = BAR.I18N("ui.keybinds.editor.addBind")
 	L.addBindTitle = BAR.I18N("ui.keybinds.editor.addBindTitle")
+	L.editBindTitle = BAR.I18N("ui.keybinds.editor.editBindTitle")
 	L.otherLower = L.other:lower()
 	L.title = BAR.I18N("ui.keybinds.title")
 	L.titleText = colorText .. L.title
@@ -1240,6 +1241,7 @@ local function rebuildRows()
 			type = "editable",
 			action = action,
 			label = action,
+			custom = true,
 			change = rowChange(action),
 			queryAny = boundToQuery(action) == "any",
 		}
@@ -1261,7 +1263,8 @@ local function rebuildRows()
 		end
 
 		for _, action in ipairs(others) do
-			rows[#rows + 1] = { type = "editable", action = action, label = action, change = rowChange(action) }
+			rows[#rows + 1] =
+				{ type = "editable", action = action, label = action, custom = true, change = rowChange(action) }
 		end
 		for i = 1, #tail do
 			rows[#rows + 1] = tail[i]
@@ -3146,7 +3149,9 @@ local function rowLayout(row)
 		lay.icon = row.cursor
 		lay.iconX = listX1 + metrics.rowPad
 		local labelW = metrics.keyAreaX1 - lay.textX - metrics.rowPad
-		lay.text = colorAction .. text.fit(font, row.label, labelW, metrics.rowFs)
+		local fitted = text.fit(font, row.label, labelW, metrics.rowFs)
+		lay.text = colorAction .. fitted
+		lay.textHover = row.custom and colorHeader .. fitted or nil
 
 		-- The key the base preset had, when the row's differs: a hollow chip after the row's
 		-- own, which the chips make room for. Paired halves read as one key, as the chips do.
@@ -3761,7 +3766,7 @@ local function drawRow(row, top, bottom, hovered, zone, zoneIdx)
 		glTexture(false)
 		glColor(1, 1, 1, 1)
 	end
-	queueText(lay.text, lay.textX, cyc, fs, "ov")
+	queueText(zone == "label" and lay.textHover or lay.text, lay.textX, cyc, fs, "ov")
 
 	local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 	local mets = lay.mets
@@ -4294,6 +4299,9 @@ local function panelSignature(mx, my)
 				local c1, c2 = bottom + metrics.chipInset, top - metrics.chipInset
 				local zone, idx = rowZone(rowLayout(row), mx, my, c1, c2)
 				h.zone, h.idx = zone or "", idx or 0
+				if not zone and row.custom and mx < metrics.keyAreaX1 then
+					h.zone = "label"
+				end
 			end
 		end
 	end
@@ -4890,16 +4898,31 @@ local function sidebarPress(x, y)
 	return true
 end
 
+function state.renameAction(from, to)
+	working.binds = keybindModel.renameAction(working.binds, from, to)
+
+	local keys = {}
+	for _, b in ipairs(working.binds) do
+		if b.action == to then
+			keys[#keys + 1] = { raw = b.keyset, display = keybindModel.displayKeyset(b.keyset, working.layout) }
+		end
+	end
+	working.byAction[from] = nil
+	working.byAction[to] = keys
+
+	markStaged()
+end
+
 -- Only the command is asked for; the key comes from the same capture every row uses, and the
--- action lands under Other, where the list puts whatever it does not recognise.
-function state.addBind()
+-- action lands under Other, where the list puts whatever it does not recognise. Given one of
+-- those, it edits that command instead.
+function state.addBind(editing)
 	openDialog({
-		title = L.addBindTitle,
+		title = editing and L.editBindTitle or L.addBindTitle,
+		initial = editing,
 		freeText = true,
-		-- The field neither scrolls nor clips. The longest the game itself binds is
-		-- "select AllMap+_InPrevSel+_ClearSelection_SelectAll+" at fifty-one characters.
 		wide = true,
-		maxChars = 96,
+		maxChars = 255,
 		accept = function(typed)
 			if typed:match("^/?bind%s+%S+%s+%S") then
 				local merged = profiles.applyBindText(stagedBinds(), typed)
@@ -4918,7 +4941,11 @@ function state.addBind()
 			end
 
 			local action = command:lower() .. rest
-			startCapture(action, action)
+			if not editing then
+				startCapture(action, action)
+			elseif action ~= editing then
+				state.renameAction(editing, action)
+			end
 		end,
 	})
 end
@@ -5141,6 +5168,8 @@ function view.mousePress(x, y, button)
 			local kind, raw = hitTestRow(row, x)
 			if kind then
 				handleZone(kind, row.action, row.label, raw)
+			elseif row.custom and x < metrics.keyAreaX1 then
+				state.addBind(row.action)
 			end
 		elseif row and row.type == "link" then
 			selectedCategory = row.category

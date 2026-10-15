@@ -6,7 +6,7 @@ function widget:GetInfo()
 		desc = "Hold shift+meta to show allied units orders",
 		author = "Niobium",
 		date = "date",
-		version = 1.2,
+		version = 1.3,
 		license = "GNU GPL, v2 or later",
 		layer = 0,
 		enabled = true,
@@ -14,374 +14,298 @@ function widget:GetInfo()
 end
 
 -----------------------------------------------------
--- Performance Optimizations:
--- 1. Table reuse pools (cellsPool, cellPool, textDrawQueue)
--- 2. Factory unit caching (only iterate factories, not all units)
--- 3. Separated data updates from rendering (eliminates flicker)
--- 4. Batched text rendering (single font:Begin/End per frame)
--- 5. Allied teams caching
--- 6. String pre-allocation (percentStrings, numberStrings)
--- 7. Off-screen culling
--- 8. Cached render data (expensive queries throttled every 10 frames)
--- 9. Distance-based scaling (calculated per frame for smooth zoom response)
--- 10. Minimized GL state changes (batch backgrounds, then textures)
--- 11. Two-pass rendering (all backgrounds first, then all textures)
--- 12. Allied units tracking via callins (eliminates per-frame spGetTeamUnits calls)
------------------------------------------------------
-
--- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
-
-local vsx, vsy = spGetViewGeometry()
-local widgetScale = vsy / 2000
-
------------------------------------------------------
 -- Config
 -----------------------------------------------------
-local borderWidth = 2
 local iconSize = 190
+local cellGap = 6
 local maxColumns = 4
 local maxRows = 2
 local maxCells = maxColumns * maxRows
 local fontSize = 66
+local iconZoom = 0.04
 
--- Performance tuning: Update expensive data (factory commands) every N frames
--- Rendering (positions, drawing) happens every frame for smooth display
--- Set to 1 for most responsive updates, 3-5 for good balance, 7-15 for maximum performance
+-- factory queues are re-read every N draw frames while shown
 local updateInterval = 10
 
--- Distance-based scaling configuration
-local enableDistanceScaling = true -- Set to false to disable distance scaling for better performance
-local minScaleDistance = 500 -- Distance at which icons start scaling down
-local maxScaleDistance = 3000 -- Distance at which icons are at minimum scale
+local enableDistanceScaling = true
+local minScaleDistance = 300 -- icons start shrinking beyond this camera distance
+local maxScaleDistance = 3000 -- icons are at minScale beyond this camera distance
 local minScaleDistanceSq = minScaleDistance * minScaleDistance
 local maxScaleDistanceSq = maxScaleDistance * maxScaleDistance
-local minScale = 0.3 -- Minimum scale factor (0.3 = 30% of original size)
-local maxScale = 1.0 -- Maximum scale factor (1.0 = 100% of original size)
--- Note: Distance scaling is calculated every frame for responsive zoom, but it's relatively cheap
+local minScale = 0.3
+local maxScale = 0.6
 
------------------------------------------------------
--- Globals
------------------------------------------------------
-local isFactory = {}
-local GaiaTeamID = Spring.GetGaiaTeamID() -- set to -1 to include Gaia units
-
-local font, chobbyInterface
-
--- Table reuse pools for performance
-local cellsPool = {}
-local cellPool = {}
-local cellPoolIndex = 0
-
--- Cached values
-local alliedTeamsCache = {}
-local alliedTeamsCacheValid = false
-local cachedScaledValues = {}
-
--- Factory caching for performance
-local factoryUnits = {}
-local factoryUnitsDirty = true
-
--- Allied units tracking (replaces spGetTeamUnits calls in DrawWorld)
-local alliedUnits = {}
-local alliedUnitsIndex = {} -- unitID -> position in alliedUnits
-
--- Frame throttling for expensive updates
-local frameCounter = 0
-
--- Text batching
-local textDrawQueue = {}
-local textDrawQueueSize = 0
-
--- Cached render data to avoid recalculating every frame
-local cachedRenderData = {}
-local renderDataPool = {}
-local renderDataDirty = true
-local unitTextureCache = {}
-
--- String caching to avoid concatenation
-local percentStrings = {}
-for i = 0, 100 do
-	percentStrings[i] = i .. "%"
-end
+local repeatTexture = ":l:LuaUI/Images/repeat.png"
+local progressColor = { 1, 1, 1, 0.22 }
 local idleString = "IDLE"
-
--- Number string cache to avoid tostring allocations
-local numberStrings = {}
-for i = 1, 999 do
-	numberStrings[i] = tostring(i)
-end
-
--- Helper function to get a reused cell table
-local function getCell()
-	cellPoolIndex = cellPoolIndex + 1
-	if not cellPool[cellPoolIndex] then
-		cellPool[cellPoolIndex] = {}
-	end
-	return cellPool[cellPoolIndex]
-end
-
-local function getUnitTexture(unitDefID)
-	local texture = unitTextureCache[unitDefID]
-	if not texture then
-		texture = "#" .. unitDefID
-		unitTextureCache[unitDefID] = texture
-	end
-	return texture
-end
-
--- Helper function to get a reused cells array
-local function getCellsArray()
-	local cells = table.remove(cellsPool)
-	if not cells then
-		cells = {}
-	end
-	return cells
-end
-
--- Helper function to return a cells array to the pool
-local function recycleCellsArray(cells)
-	for i = 1, #cells do
-		cells[i] = nil
-	end
-	cellsPool[#cellsPool + 1] = cells
-end
 
 -----------------------------------------------------
 -- Speedup
 -----------------------------------------------------
 local floor = math.floor
+local ceil = math.ceil
+local max = math.max
+local min = math.min
+local sqrt = math.sqrt
 
+local spGetViewGeometry = Spring.GetViewGeometry
 local spGetModKeyState = Spring.GetModKeyState
 local spDrawUnitCommands = Spring.DrawUnitCommands
 local spGetFactoryCounts = Spring.GetFactoryCounts
 local spGetFactoryCommandCount = Spring.GetFactoryCommandCount
 local spGetSpecState = Spring.GetSpectatingState
-local spGetTeamList = Spring.GetTeamList
-local spGetTeamUnits = Spring.GetTeamUnits
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
-local spGetUnitDefID = Spring.GetUnitDefID
+local spGetTeamInfo = Spring.GetTeamInfo
+local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitPosition = Spring.GetUnitPosition
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetUnitIsBeingBuilt = Spring.GetUnitIsBeingBuilt
 local spGetUnitStates = Spring.GetUnitStates
 local spGetCameraPosition = Spring.GetCameraPosition
-local spGetTeamInfo = Spring.GetTeamInfo
 
 local glColor = gl.Color
 local glTexture = gl.Texture
 local glTexRect = gl.TexRect
-local glRect = gl.Rect
+local glBlending = gl.Blending
+local glCreateList = gl.CreateList
+local glCallList = gl.CallList
+local glDeleteList = gl.DeleteList
+local glPushMatrix = gl.PushMatrix
+local glPopMatrix = gl.PopMatrix
+local glTranslate = gl.Translate
+local glScale = gl.Scale
 
-local sqrt = math.sqrt
+local GL_SRC_ALPHA = GL.SRC_ALPHA
+local GL_ONE = GL.ONE
+local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
+
+-----------------------------------------------------
+-- Globals
+-----------------------------------------------------
+local vsx, vsy = spGetViewGeometry()
+local font, chobbyInterface
+local UiUnit ---@type function
+local RectRoundProgress ---@type function
+local isActive = false
+local frameCounter = 0
+local dataDirty = true
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
+local fullView, myAllyTeamID
+local teamAllyTeam = {} ---@type table<number, number?>
+
+local isFactory = {}
+local isMobileFactory = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isFactory then
+		isFactory[unitDefID] = true
+		isMobileFactory[unitDefID] = not unitDef.isImmobile
+	end
+end
+
+-- unitID -> true, handed to DrawUnitCommands as a map
+local shownUnits = {}
+
+local factories = {} ---@type table<integer, table>
+local factoryByUnit = {} ---@type table<number, table>
+
+-- grid layout in pixels relative to the grid's top left corner, scaled by camera distance when drawn
+local tileSize, tileCorner, scaledFontSize = 0, 0, 0
+local cellX = {} ---@type table<integer, number>
+local cellY = {} ---@type table<integer, number>
+local textX = {} ---@type table<integer, number>
+local textY = {} ---@type table<integer, number>
+local gridWidth = {} ---@type table<integer, number>
+local gridHeight = {} ---@type table<integer, number>
+local repeatX1, repeatY1, repeatX2, repeatY2 = 0, 0, 0, 0
+
+local percentStrings = {}
+for i = 0, 100 do
+	percentStrings[i] = i .. "%"
+end
+
+local numberStrings = {}
+for i = 1, 999 do
+	numberStrings[i] = tostring(i)
+end
+
+local unitTextures = {}
+local function getUnitTexture(unitDefID)
+	local texture = unitTextures[unitDefID]
+	if not texture then
+		texture = "#" .. unitDefID
+		unitTextures[unitDefID] = texture
+	end
+	return texture
+end
 
 -----------------------------------------------------
 -- Code
 -----------------------------------------------------
 
--- Calculate distance-based scale factor for icons
 local function GetDistanceScale(unitX, unitY, unitZ, camX, camY, camZ)
-	if not camX then
-		return maxScale
-	end
-
-	-- Calculate 3D distance from camera to unit
 	local dx = unitX - camX
 	local dy = unitY - camY
 	local dz = unitZ - camZ
 	local distanceSq = dx * dx + dy * dy + dz * dz
 
-	-- Scale linearly between min and max distances
 	if distanceSq <= minScaleDistanceSq then
 		return maxScale
 	elseif distanceSq >= maxScaleDistanceSq then
 		return minScale
-	else
-		-- Linear interpolation
-		local distance = sqrt(distanceSq)
-		local t = (distance - minScaleDistance) / (maxScaleDistance - minScaleDistance)
-		return maxScale - (t * (maxScale - minScale))
+	end
+	local t = (sqrt(distanceSq) - minScaleDistance) / (maxScaleDistance - minScaleDistance)
+	return maxScale - (t * (maxScale - minScale))
+end
+
+local function invalidateFactoryLists()
+	for i = 1, #factories do
+		factories[i].listDirty = true
 	end
 end
 
 function widget:ViewResize()
 	vsx, vsy = spGetViewGeometry()
-	widgetScale = vsy / 2000
+	local widgetScale = vsy / 2000
 	font = WG.fonts.getFont(2)
+	UiUnit = WG.FlowUI.Draw.Unit
+	RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
 
-	-- Pre-calculate scaled values
-	cachedScaledValues.iconSize = iconSize * widgetScale
-	cachedScaledValues.borderWidth = borderWidth * widgetScale
-	cachedScaledValues.fontSize = fontSize * widgetScale
-	cachedScaledValues.iconPlusBorder = (iconSize + borderWidth) * widgetScale
-	cachedScaledValues.border2x = 2 * borderWidth * widgetScale
-end
-
-local function GetAlliedTeams()
-	if alliedTeamsCacheValid then
-		return alliedTeamsCache
+	tileSize = floor(iconSize * widgetScale + 0.5)
+	tileCorner = max(1, floor(tileSize * 0.024))
+	scaledFontSize = fontSize * widgetScale
+	local gap = max(1, floor(cellGap * widgetScale + 0.5))
+	local pitch = tileSize + gap
+	for i = 1, maxCells do
+		local x = ((i - 1) % maxColumns) * pitch
+		local y = -floor((i - 1) / maxColumns) * pitch
+		cellX[i], cellY[i] = x, y
+		textX[i] = x + tileSize * 0.1
+		textY[i] = y - tileSize * 0.9
+		gridWidth[i] = min(i, maxColumns) * pitch - gap
+		gridHeight[i] = min(ceil(i / maxColumns), maxRows) * pitch - gap
 	end
 
-	local _, fullView, _ = spGetSpecState()
-	local teams = fullView and spGetTeamList() or spGetTeamList(spGetMyAllyTeamID())
+	local repeatSize = floor(tileSize * 0.3)
+	local repeatInset = floor(tileSize * 0.05)
+	repeatX2, repeatY2 = tileSize - repeatInset, -repeatInset
+	repeatX1, repeatY1 = repeatX2 - repeatSize, repeatY2 - repeatSize
 
-	-- Reuse the cache table
-	for i = 1, #alliedTeamsCache do
-		alliedTeamsCache[i] = nil
-	end
-	for i = 1, #teams do
-		alliedTeamsCache[i] = teams[i]
-	end
-
-	alliedTeamsCacheValid = true
-	return alliedTeamsCache
+	invalidateFactoryLists()
 end
 
-local function InvalidateTeamCache()
-	alliedTeamsCacheValid = false
-end
-
-local function InvalidateFactoryCache()
-	factoryUnitsDirty = true
-	renderDataDirty = true
-end
-
-local function UpdateFactoryCache()
-	if not factoryUnitsDirty then
+local function addFactory(unitID, unitDefID)
+	if factoryByUnit[unitID] then
 		return
 	end
+	local fac = {
+		unitID = unitID,
+		unitDefID = unitDefID,
+		mobile = isMobileFactory[unitDefID],
+		defs = {},
+		texts = {},
+		n = 0,
+		isRepeat = false,
+		listDirty = true,
+	}
+	factories[#factories + 1] = fac
+	fac.index = #factories
+	factoryByUnit[unitID] = fac
+	dataDirty = true
+end
 
-	-- Clear old cache
-	for i = 1, #factoryUnits do
-		factoryUnits[i] = nil
+local function removeFactory(unitID)
+	local fac = factoryByUnit[unitID]
+	if fac.list then
+		glDeleteList(fac.list)
 	end
+	local last = factories[#factories]
+	factories[fac.index] = last
+	last.index = fac.index
+	factories[#factories] = nil
+	factoryByUnit[unitID] = nil
+end
 
-	local alliedTeams = GetAlliedTeams()
-	for t = 1, #alliedTeams do
-		local teamID = alliedTeams[t]
-		if teamID ~= GaiaTeamID then
-			local teamUnits = spGetTeamUnits(teamID)
-			for u = 1, #teamUnits do
-				local uID = teamUnits[u]
-				local uDefID = spGetUnitDefID(uID)
-				if uDefID and isFactory[uDefID] then
-					factoryUnits[#factoryUnits + 1] = uID
-				end
-			end
+local function isShownTeam(teamID)
+	if teamID == gaiaTeamID then
+		return false
+	end
+	if fullView then
+		return true
+	end
+	local allyTeamID = teamAllyTeam[teamID]
+	if not allyTeamID then
+		allyTeamID = select(6, spGetTeamInfo(teamID, false))
+		teamAllyTeam[teamID] = allyTeamID
+	end
+	return allyTeamID == myAllyTeamID
+end
+
+local function addUnit(unitID, unitDefID, unitTeam)
+	if isShownTeam(unitTeam) then
+		shownUnits[unitID] = true
+		if isFactory[unitDefID] then
+			addFactory(unitID, unitDefID)
 		end
 	end
+end
 
-	factoryUnitsDirty = false
+local function rebuildUnits(visibleUnits)
+	shownUnits = {}
+	for i = #factories, 1, -1 do
+		removeFactory(factories[i].unitID)
+	end
+	local visibleUnitsTeam = WG.unittrackerapi.visibleUnitsTeam
+	for unitID, unitDefID in pairs(visibleUnits) do
+		addUnit(unitID, unitDefID, visibleUnitsTeam[unitID] or spGetUnitTeam(unitID))
+	end
+end
+
+-- returns true when the set of shown teams changed
+local function updateViewState()
+	local _, newFullView = spGetSpecState()
+	local allyTeamID = spGetMyAllyTeamID()
+	local changed = newFullView ~= fullView or (not newFullView and allyTeamID ~= myAllyTeamID)
+	fullView, myAllyTeamID = newFullView, allyTeamID
+	return changed
 end
 
 function widget:Initialize()
 	widget:ViewResize()
-	for uDefID, uDef in pairs(UnitDefs) do
-		if uDef.isFactory then
-			isFactory[uDefID] = true
-		end
+	updateViewState()
+	if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then
+		rebuildUnits(WG.unittrackerapi.visibleUnits)
 	end
+end
 
-	-- Initialize allied units tracking
-	local alliedTeams = GetAlliedTeams()
-	for t = 1, #alliedTeams do
-		local teamID = alliedTeams[t]
-		if teamID ~= GaiaTeamID then
-			local teamUnits = spGetTeamUnits(teamID)
-			for u = 1, #teamUnits do
-				alliedUnits[#alliedUnits + 1] = teamUnits[u]
-				alliedUnitsIndex[teamUnits[u]] = #alliedUnits
-			end
+function widget:Shutdown()
+	for i = 1, #factories do
+		if factories[i].list then
+			glDeleteList(factories[i].list)
 		end
 	end
 end
 
--- Track allied units using callins instead of querying every frame
-function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
-	-- Only track allied units (not Gaia)
-	if unitTeam ~= GaiaTeamID then
-		local _, fullView, _ = spGetSpecState()
-		local myAllyTeam = spGetMyAllyTeamID()
-		local unitAllyTeam = select(6, spGetTeamInfo(unitTeam))
+function widget:VisibleUnitsChanged(visibleUnits)
+	updateViewState()
+	rebuildUnits(visibleUnits)
+end
 
-		-- Add if it's our ally or we're in spec fullview
-		if fullView or unitAllyTeam == myAllyTeam then
-			alliedUnits[#alliedUnits + 1] = unitID
-			alliedUnitsIndex[unitID] = #alliedUnits
-		end
-	end
+function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
+	addUnit(unitID, unitDefID, unitTeam)
 end
 
 function widget:VisibleUnitRemoved(unitID)
-	local i = alliedUnitsIndex[unitID]
-	if not i then
-		return
-	end
-	local last = #alliedUnits
-	local lastID = alliedUnits[last]
-	alliedUnits[i] = lastID
-	alliedUnitsIndex[lastID] = i
-	alliedUnits[last] = nil
-	alliedUnitsIndex[unitID] = nil
-end
-
-function widget:PlayerChanged(playerID)
-	InvalidateTeamCache()
-	InvalidateFactoryCache()
-
-	-- Rebuild allied units list when teams change
-	for i = 1, #alliedUnits do
-		alliedUnitsIndex[alliedUnits[i]] = nil
-		alliedUnits[i] = nil
-	end
-	local alliedTeams = GetAlliedTeams()
-	for t = 1, #alliedTeams do
-		local teamID = alliedTeams[t]
-		if teamID ~= GaiaTeamID then
-			local teamUnits = spGetTeamUnits(teamID)
-			for u = 1, #teamUnits do
-				alliedUnits[#alliedUnits + 1] = teamUnits[u]
-				alliedUnitsIndex[teamUnits[u]] = #alliedUnits
-			end
-		end
+	shownUnits[unitID] = nil
+	if factoryByUnit[unitID] then
+		removeFactory(unitID)
 	end
 end
 
-function widget:TeamDied(teamID)
-	InvalidateTeamCache()
-	InvalidateFactoryCache()
-end
-
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if isFactory[unitDefID] then
-		InvalidateFactoryCache()
+function widget:PlayerChanged()
+	if updateViewState() and WG.unittrackerapi then
+		rebuildUnits(WG.unittrackerapi.visibleUnits)
 	end
-end
-
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if isFactory[unitDefID] then
-		InvalidateFactoryCache()
-	end
-end
-
-function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
-	if isFactory[unitDefID] then
-		InvalidateFactoryCache()
-	end
-end
-
-function widget:DrawWorld()
-	if chobbyInterface then
-		return
-	end
-
-	local _, _, meta, shift = spGetModKeyState()
-	if not (shift and meta) then
-		return
-	end
-
-	-- Draw commands for all tracked allied units
-	spDrawUnitCommands(alliedUnits)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
@@ -390,218 +314,179 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
--- Update expensive data (factory commands, build status) on throttled schedule
-local function UpdateRenderData()
-	-- Update factory cache if needed
-	UpdateFactoryCache()
+-- polled here rather than in DrawScreen, which the engine skips while the GUI is hidden
+function widget:DrawWorld()
+	local active = false
+	if not chobbyInterface then
+		local _, _, meta, shift = spGetModKeyState()
+		active = meta and shift
+	end
+	if active and not isActive then
+		dataDirty = true
+	end
+	isActive = active
+	if active then
+		spDrawUnitCommands(shownUnits, true)
+	end
+end
 
-	-- Recycle cell arrays before replacing the render cache.
-	for i = 1, #cachedRenderData do
-		local renderData = cachedRenderData[i]
-		recycleCellsArray(renderData.cells)
-		renderData.unitID = nil
-		renderData.cells = nil
-		renderData.isRepeat = nil
-		renderDataPool[#renderDataPool + 1] = renderData
-		cachedRenderData[i] = nil
+local function setCell(fac, i, unitDefID, text)
+	if fac.defs[i] ~= unitDefID then
+		fac.defs[i] = unitDefID
+		fac.listDirty = true
+	end
+	fac.texts[i] = text
+end
+
+-- reads the factory queues, a factory's display list is only rebuilt when its tiles changed
+local function UpdateFactories()
+	if UiUnit ~= WG.FlowUI.Draw.Unit then
+		-- FlowUI was reloaded: our lists call display lists it deleted
+		UiUnit = WG.FlowUI.Draw.Unit
+		RectRoundProgress = WG.FlowUI.Draw.RectRoundProgress
+		invalidateFactoryLists()
 	end
 
-	-- Reset cell pool index for reuse
-	cellPoolIndex = 0
+	for i = 1, #factories do
+		local fac = factories[i]
+		local unitID = fac.unitID
+		local isBuilding, progress = spGetUnitIsBeingBuilt(unitID)
+		local n = 0
+		local progressPercent = nil ---@type integer?
+		if isBuilding then
+			progressPercent = floor(progress * 100)
+			n = 1
+			setCell(fac, 1, fac.unitDefID, percentStrings[progressPercent])
+		elseif isBuilding == false and (spGetFactoryCommandCount(unitID) or 0) == 0 then
+			n = 1
+			setCell(fac, 1, fac.unitDefID, idleString)
+		end
 
-	-- Build render data for all factories
-	for f = 1, #factoryUnits do
-		local uID = factoryUnits[f]
-
-		-- Validate unit still exists
-		local uDefID = spGetUnitDefID(uID)
-		if uDefID then
-			local isBuilding, progress = spGetUnitIsBeingBuilt(uID)
-			local factoryCounts = spGetFactoryCounts(uID, maxCells)
-			local factoryCount = spGetFactoryCommandCount(uID) or 0
-			local factoryEntryCount = factoryCounts and factoryCounts.n or 0
-			local hasFactoryCommands = factoryCount > 0
-
-			local cells = getCellsArray()
-
-			if isBuilding then
-				local cell = getCell()
-				cell.texture = getUnitTexture(uDefID)
-				cell.text = percentStrings[floor(progress * 100)] or (floor(progress * 100) .. "%")
-				cells[1] = cell
-			else
-				if not hasFactoryCommands then
-					local cell = getCell()
-					cell.texture = getUnitTexture(uDefID)
-					cell.text = idleString
-					cells[1] = cell
+		-- the engine stops one entry short of the requested count
+		local counts = isBuilding ~= nil and spGetFactoryCounts(unitID, maxCells + 1)
+		if counts then
+			for c = 1, counts.n do
+				if n >= maxCells then
+					break
 				end
-			end
-
-			if factoryCounts then
-				for c = 1, factoryEntryCount do
-					if #cells >= maxCells then
-						break
-					end
-					local factoryEntry = factoryCounts[c]
-					if factoryEntry then
-						local cDefID, count = next(factoryEntry)
-						if cDefID and count then
-							local cell = getCell()
-							cell.texture = getUnitTexture(cDefID)
-							cell.text = numberStrings[count] or tostring(count)
-							cells[#cells + 1] = cell
-						end
+				local entry = counts[c]
+				if entry then
+					local unitDefID, count = next(entry)
+					if unitDefID and count then
+						n = n + 1
+						setCell(fac, n, unitDefID, numberStrings[count] or tostring(count))
 					end
 				end
 			end
+		end
 
-			-- Cache repeat state
-			local isRepeat = select(4, spGetUnitStates(uID, false, true))
+		if n ~= fac.n then
+			for c = n + 1, fac.n do
+				fac.defs[c] = nil
+				fac.texts[c] = nil
+			end
+			fac.n = n
+			fac.listDirty = true
+		end
 
-			-- Store render data (scale will be calculated per-frame for smooth zoom response)
-			local renderData = table.remove(renderDataPool) or {}
-			renderData.unitID = uID
-			renderData.cells = cells
-			renderData.isRepeat = isRepeat
-			cachedRenderData[#cachedRenderData + 1] = renderData
+		if n > 0 then
+			local _, _, _, isRepeat = spGetUnitStates(unitID, false, true)
+			isRepeat = isRepeat == true
+			if isRepeat ~= fac.isRepeat or progressPercent ~= fac.progress then
+				fac.isRepeat = isRepeat
+				fac.progress = progressPercent
+				fac.listDirty = true
+			end
+			if not fac.mobile and not fac.x then
+				fac.x, fac.y, fac.z = spGetUnitPosition(unitID)
+			end
 		end
 	end
+end
 
-	renderDataDirty = false
+local function DrawFactoryTiles(fac)
+	local defs = fac.defs
+	for i = 1, fac.n do
+		local x, y = cellX[i], cellY[i]
+		glColor(1, 1, 1, 1)
+		UiUnit(x, y - tileSize, x + tileSize, y, nil, 1, 1, 1, 1, iconZoom, nil, nil, getUnitTexture(defs[i]))
+	end
+	if fac.progress then
+		glBlending(GL_SRC_ALPHA, GL_ONE)
+		RectRoundProgress(0, -tileSize, tileSize, 0, tileCorner, fac.progress / 100, progressColor)
+		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	end
+	if fac.isRepeat then
+		glColor(1, 1, 1, 0.85)
+		glTexture(repeatTexture)
+		glTexRect(repeatX1, repeatY1, repeatX2, repeatY2)
+		glTexture(false)
+	end
+	glColor(1, 1, 1, 1)
 end
 
 function widget:DrawScreen()
-	if chobbyInterface then
+	if not isActive then
 		return
 	end
 
-	local _, _, meta, shift = spGetModKeyState()
-	if not (shift and meta) then
-		return
-	end
-
-	-- Frame throttling - only update data every N frames, but always render
 	frameCounter = frameCounter + 1
-	if frameCounter >= updateInterval or renderDataDirty then
+	if dataDirty or frameCounter >= updateInterval then
 		frameCounter = 0
-		UpdateRenderData()
+		dataDirty = false
+		UpdateFactories()
 	end
 
-	-- Reset text queue
-	textDrawQueueSize = 0
-
-	-- Cache base scaled values
-	local baseIconSize = cachedScaledValues.iconSize
-	local baseBorderWidth = cachedScaledValues.borderWidth
-	local baseFontSize = cachedScaledValues.fontSize
-	local baseIconPlusBorder = cachedScaledValues.iconPlusBorder
-	local baseBorder2x = cachedScaledValues.border2x
 	local camX, camY, camZ
 	if enableDistanceScaling then
 		camX, camY, camZ = spGetCameraPosition()
 	end
 
-	-- Render from cached data (this runs every frame for smooth display)
-	for i = 1, #cachedRenderData do
-		local renderData = cachedRenderData[i]
-		local uID = renderData.unitID
-		local cells = renderData.cells
-		local isRepeat = renderData.isRepeat
-
-		-- Get current position (this is cheap and needs to be current for smooth movement)
-		local ux, uy, uz = spGetUnitPosition(uID)
-		if ux then
-			local sx, sy = spWorldToScreenCoords(ux, uy, uz)
-
-			-- Early exit if off-screen
-			if sx >= 0 and sx <= vsx and sy >= 0 and sy <= vsy then
-				-- Calculate distance scale every frame for responsive zoom
-				local distScale = maxScale
-				if enableDistanceScaling then
-					distScale = GetDistanceScale(ux, uy, uz, camX, camY, camZ)
-				end
-
-				-- Apply distance scale
-				local scaledIconSize = baseIconSize * distScale
-				local scaledBorderWidth = baseBorderWidth * distScale
-				local scaledFontSize = baseFontSize * distScale
-				local scaledIconPlusBorder = baseIconPlusBorder * distScale
-				local scaledBorder2x = baseBorder2x * distScale
-				-- Set background color once for all cells of this factory
-				if isRepeat then
-					glColor(0.0, 0.0, 0.5, 1.0)
-				else
-					glColor(0.0, 0.0, 0.0, 1.0)
-				end
-
-				-- First pass: Draw all backgrounds
-				for r = 0, maxRows - 1 do
-					for c = 1, maxColumns do
-						local cell = cells[maxColumns * r + c]
-						if not cell then
-							break
+	local fontStarted = false
+	for i = 1, #factories do
+		local fac = factories[i]
+		local n = fac.n
+		if n > 0 then
+			local ux, uy, uz
+			if fac.mobile then
+				ux, uy, uz = spGetUnitPosition(fac.unitID)
+			else
+				ux, uy, uz = fac.x, fac.y, fac.z
+			end
+			if ux then
+				local sx, sy = spWorldToScreenCoords(ux, uy, uz)
+				local scale = camX and GetDistanceScale(ux, uy, uz, camX, camY, camZ) or maxScale
+				if sx <= vsx and sy >= 0 and sx + gridWidth[n] * scale >= 0 and sy - gridHeight[n] * scale <= vsy then
+					if fac.listDirty then
+						if fac.list then
+							glDeleteList(fac.list)
 						end
+						fac.list = glCreateList(DrawFactoryTiles, fac)
+						fac.listDirty = false
+					end
+					glPushMatrix()
+					glTranslate(sx, sy, 0)
+					glScale(scale, scale, 1)
+					glCallList(fac.list)
+					glPopMatrix()
 
-						local cx = sx + (c - 1) * scaledIconPlusBorder
-						local cy = sy - r * scaledIconPlusBorder
-
-						glRect(cx, cy, cx + scaledIconSize + scaledBorder2x, cy - scaledIconSize - scaledBorder2x)
+					-- glyphs are drawn at font:End(), on top of every tile
+					if not fontStarted then
+						fontStarted = true
+						font:Begin()
+						font:SetOutlineColor(0, 0, 0, 1)
+						font:SetTextColor(0.9, 0.9, 0.9, 1)
+					end
+					local size = scaledFontSize * scale
+					local texts = fac.texts
+					for c = 1, n do
+						font:Print(texts[c], sx + textX[c] * scale, sy + textY[c] * scale, size, "ob")
 					end
 				end
-
-				-- Set white color once for all textures
-				glColor(1.0, 1.0, 1.0, 1.0)
-
-				-- Second pass: Draw all textures and queue text
-				for r = 0, maxRows - 1 do
-					for c = 1, maxColumns do
-						local cell = cells[maxColumns * r + c]
-						if not cell then
-							break
-						end
-
-						local cx = sx + (c - 1) * scaledIconPlusBorder
-						local cy = sy - r * scaledIconPlusBorder
-
-						glTexture(cell.texture)
-						glTexRect(
-							cx + scaledBorderWidth,
-							cy - scaledIconSize - scaledBorderWidth,
-							cx + scaledIconSize + scaledBorderWidth,
-							cy - scaledBorderWidth
-						)
-
-						if cell.text then
-							-- Queue text for batched rendering
-							textDrawQueueSize = textDrawQueueSize + 1
-							local textEntry = textDrawQueue[textDrawQueueSize]
-							if not textEntry then
-								textEntry = {}
-								textDrawQueue[textDrawQueueSize] = textEntry
-							end
-							textEntry.text = cell.text
-							textEntry.x = cx + scaledBorderWidth + (scaledIconSize * 0.1)
-							textEntry.y = cy - scaledIconSize + (scaledIconSize * 0.1)
-							textEntry.size = scaledFontSize
-						end
-					end -- columns
-				end -- rows
-
-				glTexture(false)
-			end -- off-screen check
-		end -- position check
-	end -- cachedRenderData
-
-	-- Batch render all text at once
-	if textDrawQueueSize > 0 then
-		font:Begin()
-		font:SetOutlineColor(0, 0, 0, 1)
-		font:SetTextColor(0.9, 0.9, 0.9, 1)
-		for i = 1, textDrawQueueSize do
-			local entry = textDrawQueue[i]
-			font:Print(entry.text, entry.x, entry.y, entry.size, "ob")
+			end
 		end
+	end
+	if fontStarted then
 		font:End()
 	end
-end -- DrawScreen
+end

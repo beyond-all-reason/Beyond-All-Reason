@@ -3,28 +3,28 @@
 
 piece  base, top, bore, barrel, flare, aimpoint, firepoint;
 
-static-var  isOpen, restore_delay;
+static-var  restore_delay;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 
-#include "../opencloseanim.h"
+#include "../popup_openclose.h"
 
 
-Open()
+OpenAnim()
 {
 	set ARMORED to 0;
 	move top to y-axis [8.0] speed [19.989014];
 	wait-for-move top along y-axis;
 	move bore to z-axis [0.0] speed [19.989014];
 	move barrel to z-axis [0.0] speed [19.989014];
-	isOpen = 1;
+	wait-for-move bore along z-axis;
+	wait-for-move barrel along z-axis;
 }
 
-Close()
+CloseAnim()
 {
 	set ARMORED to 1;
-	isOpen = 0;
 	turn top to y-axis <0.0> speed <300.0>;
 	move bore to z-axis [-6] speed [19.989014];
 	move barrel to z-axis [-6.5] speed [19.989014];
@@ -42,21 +42,20 @@ Create()
 	hide flare;
 	hide flare;
 	restore_delay = 2000;
-	isOpen = 0;
-	start-script OpenCloseAnim(1);
+	start-script RequestOpen();
 	SLEEP_UNTIL_UNITFINISHED;
 	move aimpoint to y-axis [8] now;
-	start-script OpenCloseAnim(0);
+	start-script RequestClose();
 }
 
 Activate()
 {
-	start-script OpenCloseAnim(1);
+	start-script RequestOpen();
 }
 
 Deactivate()
 {
-	start-script OpenCloseAnim(0);
+	start-script RequestClose();
 }
 
 SetMaxReloadTime(reloadMS)
@@ -70,8 +69,7 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	set-signal-mask 0;
-	start-script OpenCloseAnim(0);
+	start-script RequestClose();
 }
 SetStunned(State)
 {
@@ -88,7 +86,7 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
-	start-script OpenCloseAnim(1);
+	start-script RequestOpen();
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	while( !isOpen )
@@ -111,6 +109,11 @@ Shot1()
 
 FireWeapon1()
 {
+}
+
+BlockShot1(targetID, block, userTarget)
+{
+	block = !isOpen;
 }
 
 QueryWeapon1(pieceIndex)

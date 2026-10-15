@@ -19,7 +19,7 @@ static-var  restore_delay, readyToBuild, currentSpeed, moveSpeed, wheelSpeed, ol
 
 
 // Controls wheel spinning and steering
-Steering(heading, steery, currentSpeed)
+Steering(heading, steery, curSpeed)
 {
 	while(1)
 	{
@@ -31,9 +31,9 @@ Steering(heading, steery, currentSpeed)
 		turn rBackSuspension to y-axis (0 - steery)/2 speed <120>;
 		turn lBackSuspension to y-axis (0 - steery)/2 speed <120>;
 		
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		wheelSpeed = currentSpeed * 30; //original speed 7
-		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing	
+		curSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		wheelSpeed = curSpeed * 30; //original speed 7
+		if (curSpeed<1) curSpeed=1;	// prevent infinite timing
 		
 		spin rFrontTyre around x-axis speed  (<1> * wheelSpeed);
 		spin lFrontTyre around x-axis speed  (<1> * wheelSpeed);
@@ -48,6 +48,7 @@ StartMoving(reversing)
 {
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
+	oldheading = get HEADING;
 	start-script Steering();
 	START_TILTBANK;
 }
@@ -60,6 +61,10 @@ StopMoving()
     stop-spin lFrontTyre around x-axis;
     stop-spin rBackTyre around x-axis;
     stop-spin lBackTyre around x-axis;
+	turn lFrontSuspension to y-axis <0> speed <120>;
+	turn rFrontSuspension to y-axis <0> speed <120>;
+	turn rBackSuspension to y-axis <0> speed <120>;
+	turn lBackSuspension to y-axis <0> speed <120>;
 	
 	STOP_TILTBANK;
 }
@@ -81,7 +86,6 @@ Create()
 	call-script TB_Init();
 	moveSpeed = get MAX_SPEED;
 	oldheading = get HEADING;
-	start-script Steering();
 	SLEEP_UNTIL_UNITFINISHED;
 	// spin cylinderdeco around x-axis speed <30>;
     turn buildlight1Base to x-axis <28> now;

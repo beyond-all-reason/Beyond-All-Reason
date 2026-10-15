@@ -674,6 +674,8 @@ local SUMMED = {
 	"comLost",
 	"metalReclaimed",
 	"energyReclaimed",
+	"lavaDamage",
+	"lostWater",
 }
 -- The composition buckets the gadget counts, each with a count and a value.
 for _, bucket in ipairs({ "Army", "Air", "Sea", "Defense", "Strategic", "Factories", "Builders", "Economy", "Utility" }) do
@@ -1104,6 +1106,8 @@ local gameover = false
 -- No side with more than one player - a 1v1, or a free-for-all of players on their own -
 -- so there is nothing to group by team and no team to take a share of.
 local soloTeams = not BAR.Utilities.Gametype.IsTeams()
+-- Nor is there when the players are one side against nothing but raptors or scavengers.
+local ungrouped = soloTeams or (BAR.Utilities.Gametype.IsPvE() and BAR.Utilities.GetAllyTeamCount() <= 1)
 local anonymousMode = Spring.GetModOptions().teamcolors_anonymous_mode
 local anonymousTeamColor = {
 	Spring.GetConfigInt("anonymousColorR", 255) / 255,
@@ -1450,7 +1454,7 @@ end
 
 -- Whether the table has ally teams to show: the grouping switch, in a game with teams.
 local function grouped()
-	return filters.groupByTeam and not soloTeams
+	return filters.groupByTeam and not ungrouped
 end
 
 -- Whether amounts are shown as the share of the total of every team listed.
@@ -1657,6 +1661,8 @@ local function refreshStats()
 		live = nil
 	end
 	allies = {}
+	-- The teams read and as what: a player is shown the other side only at game over.
+	local read = {}
 	for _, allyID in ipairs(spGetAllyTeamList()) do
 		---@cast allyID integer
 		local ally = { id = allyID, teams = {}, total = {}, leads = {} }
@@ -1666,6 +1672,7 @@ local function refreshStats()
 			if teamID ~= gaia then
 				local team = readTeam(teamID, allyID, frame, live and live[teamID])
 				if team then
+					read[#read + 1] = teamID .. (team.dead and "d" or "") .. (team.gone and "g" or "") .. team.name
 					team.ally = ally
 					ally.teams[#ally.teams + 1] = team
 					if team.isLocal then
@@ -1694,6 +1701,12 @@ local function refreshStats()
 			allies[#allies + 1] = ally
 		end
 	end
+	-- The page is made again when they change: refilling its charts keeps the teams it had.
+	local key = table.concat(read, "|")
+	if graphs and key ~= handover.teamsRead then
+		graphs.invalidate()
+	end
+	handover.teamsRead = key
 	-- The rows are the table's: while the Graphs page is on, they wait for the table.
 	if graphs and graphs.open then
 		rowMetrics.stale = true
@@ -2276,7 +2289,7 @@ local function setLayout()
 	local barX2 = area.x2 - metrics.edgeInset
 	for i = 1, #switches do
 		local sw = switches[i]
-		if sw.top and not soloTeams then
+		if sw.top and not ungrouped then
 			local togH = mathFloor(metrics.rowHeight * 0.52)
 			local cy = metrics.barTop - mathFloor(metrics.barH * 0.5)
 			local labelW = mathFloor(font:GetTextWidth(sw.label or "") * metrics.catFs)
@@ -3482,10 +3495,13 @@ local function syncGadgetState(frame)
 	if WG.teamStats then
 		-- The API widget listens for every widget, so it knows first.
 		on = WG.teamStats.isAvailable()
-	elseif handover.frame then
-		on = frame - handover.frame <= handover.stale
 	else
-		on = handover.opened == nil or frame - handover.opened <= handover.stale
+		-- Opening the panel gives the gadget that long again, as the API widget does.
+		local last = handover.frame
+		if handover.opened and (not last or handover.opened > last) then
+			last = handover.opened
+		end
+		on = last == nil or frame - last <= handover.stale
 	end
 	if on == handover.on then
 		return
@@ -4225,7 +4241,12 @@ function widget:MouseRelease(x, y, button)
 end
 
 function widget:GameFrame(n)
-	if gameover or not show or n % UPDATE_FRAMES ~= 0 then
+	if not show or n % UPDATE_FRAMES ~= 0 then
+		return
+	end
+	-- The numbers stay as the game left them, but a gadget gone since takes its columns along.
+	if gameover then
+		syncGadgetState(n)
 		return
 	end
 	-- The gadget's hand-over read the numbers this second already.
@@ -4547,6 +4568,7 @@ graphs = require("luaui/Include/teamstats_graphs").new({
 	end,
 	filters = filters,
 	soloTeams = soloTeams,
+	ungrouped = ungrouped,
 	selectedGroup = function()
 		return selectedGroup
 	end,
