@@ -258,9 +258,10 @@ local function CompileShader(rcas, preserve, noise)
 		string.format("#define FOOT_LO %.3f", GRAIN_NOISE_FOOTPRINT[1]),
 		string.format("#define FOOT_HI %.3f", GRAIN_NOISE_FOOTPRINT[2]),
 	}
+	local fragment = fsCAS:gsub("//__ENGINEUNIFORMBUFFERDEFS__", LuaShader.GetEngineUniformBufferDefs())
 	local shader = LuaShader({
 		vertex = vsCAS,
-		fragment = fsCAS:gsub("//__DEFINES__", table.concat(defines, "\n")),
+		fragment = fragment:gsub("//__DEFINES__", table.concat(defines, "\n")),
 		uniformInt = {
 			screenCopyTex = 0,
 		},

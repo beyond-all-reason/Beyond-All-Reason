@@ -253,6 +253,7 @@ config = {
 	smoothCameraMarginCheap = 0.15, -- Oversized texture margin for cheap layers (ground, water, LOS) — larger since rendering is cheap
 	pipFloorUpdateRate = 10, -- Minimum update rate for PIP content when performance is poor (will be smoothly applied based on measured frame times)
 	pipMinUpdateRate = 30, -- Minimum update rate for PIP content when zoomed out
+	minimapModeMinUpdateRate = 15, -- Same for the minimap replacement, as the engine minimap refreshed small minimaps
 	pipMaxUpdateRate = 60, -- Maximum update rate for PIP content when zoomed in
 	pipZoomThresholdMin = 0.15,
 	pipZoomThresholdMax = 0.4,
@@ -20436,12 +20437,13 @@ end
 -- Helper function to calculate dynamic update rate
 local function CalculateDynamicUpdateRate()
 	-- Base rate from zoom level
-	local dynamicUpdateRate = config.pipMinUpdateRate
+	local minUpdateRate = isMinimapMode and config.minimapModeMinUpdateRate or config.pipMinUpdateRate ---@type number
+	local dynamicUpdateRate = minUpdateRate
 	if cameraState.zoom >= config.pipZoomThresholdMax then
 		dynamicUpdateRate = config.pipMaxUpdateRate
 	elseif cameraState.zoom > config.pipZoomThresholdMin then
-		dynamicUpdateRate = config.pipMinUpdateRate
-			+ (config.pipMaxUpdateRate - config.pipMinUpdateRate)
+		dynamicUpdateRate = minUpdateRate
+			+ (config.pipMaxUpdateRate - minUpdateRate)
 				* ((cameraState.zoom - config.pipZoomThresholdMin) / (config.pipZoomThresholdMax - config.pipZoomThresholdMin))
 	end
 
@@ -22268,7 +22270,11 @@ function widget:DrawScreen()
 	-- or engine commands resetting the minimize/slave state between frames.
 	if isMinimapMode and not miscState.engineMinimapActive then
 		gl.SlaveMiniMap(true)
-		Spring.SendCommands("minimap minimize 1")
+		-- the command is a no-op while minimized but costs a command parse every frame
+		local _, _, _, _, engineMinimapMinimized = Spring.GetMiniMapGeometry()
+		if not engineMinimapMinimized then
+			Spring.SendCommands("minimap minimize 1")
+		end
 	end
 
 	-- In minimap mode, honour MinimapMinimize to hide the PIP minimap
