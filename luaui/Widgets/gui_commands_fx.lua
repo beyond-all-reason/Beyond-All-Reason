@@ -328,6 +328,7 @@ local function InitGL4()
 	end
 	vao:AttachVertexBuffer(quadVBO)
 	vao:AttachInstanceBuffer(instVBO)
+	gl.InstanceVBOTable.fillVAOSlots(vao, false, true)
 
 	gl4 = {
 		shader = shader,

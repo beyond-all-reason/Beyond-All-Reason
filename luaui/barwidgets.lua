@@ -330,6 +330,7 @@ local callInLists = {
 	"UnitScriptLight",
 	"UnitScriptDistortion",
 	"UnitScriptDecal",
+	"UnitScriptDecalBatch",
 	"GadgetRemoveGrass",
 	"GadgetCoopStartPoint",
 	"NotificationEvent",
@@ -977,7 +978,7 @@ function widgetHandler:Initialize()
 	widgetHandler:HookReorderSpecialFuncs()
 	self:LoadConfigData()
 	self:SetWindowsHideInterface(Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-	self:InitWindowPause()
+	self:InitPause()
 
 	if self.allowUserWidgets == nil then
 		self.allowUserWidgets = true
@@ -1670,6 +1671,14 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.IsInterfaceHidden = function(_)
 		return self:IsInterfaceHidden()
 	end
+	-- see widgetHandler:Pause
+	wh.Pause = function(_, source)
+		return self:Pause(source)
+	end
+	wh.Unpause = function(_, source)
+		return self:Unpause(source)
+	end
+
 	if not fromZip then
 		-- Warnings are not repeated to avoid clogging the infolog. Error logs are repeated on purpose.
 		local warned = {}
@@ -1766,6 +1775,13 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
 		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
 		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
+		widget._tracyVisibleUnitAddedName = "W:VisibleUnitAdded:" .. wi.name
+		widget._tracyVisibleUnitRemovedName = "W:VisibleUnitRemoved:" .. wi.name
+		widget._tracyUnitFinishedName = "W:UnitFinished:" .. wi.name
+		widget._tracyUnitDestroyedName = "W:UnitDestroyed:" .. wi.name
+		widget._tracyFeatureCreatedName = "W:FeatureCreated:" .. wi.name
+		widget._tracyFeatureDestroyedName = "W:FeatureDestroyed:" .. wi.name
+		widget._tracyVisibleExplosionName = "W:VisibleExplosion:" .. wi.name
 		widget._tracyCommandNotifyName = "W:CommandNotify:" .. wi.name
 		widget._tracyRecvLuaMsgName = "W:RecvLuaMsg:" .. wi.name
 	end
@@ -2413,7 +2429,7 @@ function widgetHandler:Shutdown()
 	-- save config. SaveConfigData knows about the two reset flags, so a widget's own
 	-- Shutdown calling it below cannot put back what a reset just took out.
 	self:SaveConfigData()
-	self:SaveWindowPause()
+	self:SavePause()
 
 	for _, w in ipairs(self.ShutdownList) do
 		w:Shutdown()
@@ -2438,6 +2454,12 @@ end
 --  In singleplayer and replays an open window (or the lobby overlay) also pauses the
 --  game (springsetting "WindowsPauseGame", default on) until the last one closes. A
 --  pause the player made or lifted themselves in the meantime is left alone.
+--
+--  Widgets pause the game under a source, as gadgets do (api_game_pause.lua), and the
+--  game resumes once the last source on either side unpauses:
+--      widgetHandler:Pause("modals")
+--      widgetHandler:Unpause("modals")
+--  Unpause also takes a gadget's source, when that gadget publishes it to widgets.
 --
 --  A window widget opts in from its Initialize with an is-open predicate:
 --      widgetHandler:RegisterModalWindow(function() return show end)
@@ -2475,11 +2497,18 @@ local modalEnabled = false
 local modalConfigTimer = 0
 local MODAL_CONFIG_INTERVAL = 1 -- seconds between config re-reads (picks up /set)
 
--- pausing while a window is open, see UpdateWindowPause
-local windowPauseEnabled = true
-local windowPauseAllowed = false -- singleplayer or a replay: nobody else to pause for
-local windowPauseHeld = false -- the open windows have paused the game, or found it paused
-local windowPauseOwned = false -- they paused it, so closing them resumes it
+-- pausing under a source, see widgetHandler:Pause
+local PAUSESOURCE_MODALS = "modals"
+local RULESPARAM_GADGET_PAUSE = "gamePaused"
+local RULESPARAM_GADGET_PAUSE_GENERATION = "gamePauseGeneration"
+local RULESPARAM_GADGET_PAUSE_PUBLISH = "gamePausePublished"
+local MESSAGE_GADGET_UNPAUSE = "GamePauseUnpause:"
+local MESSAGE_WIDGETS_UNPAUSED = "GamePauseWidgetsUnpaused:"
+local pauseSources = {}
+local widgetPaused = false
+-- pausing while a modal window is open, see UpdatePause
+local modalPauseEnabled = true
+local modalPauseAllowed = false -- only in singleplayer and replays
 
 -- The same hiding, asked for outright rather than driven by an open window: for a
 -- cutscene, a screenshot mode, an editor. Requests are named so two callers cannot
@@ -2613,7 +2642,7 @@ function widgetHandler:SetWindowsHideInterface(enabled)
 end
 
 function widgetHandler:SetWindowsPauseGame(enabled)
-	windowPauseEnabled = enabled and true or false
+	modalPauseEnabled = enabled and true or false
 	modalConfigTimer = 0
 end
 
@@ -2641,7 +2670,7 @@ function widgetHandler:UpdateModalState(deltaTime)
 		if modalConfigTimer >= MODAL_CONFIG_INTERVAL then
 			modalConfigTimer = 0
 			modalEnabled = (Spring.GetConfigInt("WindowsHideInterface", 0) == 1)
-			windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+			modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 		end
 	end
 
@@ -2653,53 +2682,110 @@ local function isClientPaused()
 	return paused
 end
 
--- Once per frame, after the widgets' Update: a window closing as another opens, or one
--- reopening itself after a reload, never lets the game run in between.
-function widgetHandler:UpdateWindowPause()
-	if not windowPauseAllowed then
-		return
+local function inGadgetPause()
+	return (Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE) or 0) == 1
+end
+
+local function getPauseReleaseKey(source)
+	local publishedRule = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_PUBLISH) or "[]"
+	if publishedRule == "[]" then
+		return nil
 	end
-	local wanted = windowPauseEnabled and (self.chobbyInterface or anyWindowOpen())
-	if wanted == windowPauseHeld then
-		if windowPauseOwned and not isClientPaused() then
-			windowPauseOwned = false -- unpaused by the player with a window open: theirs from here
-		end
-		return
+	local published = Json.decode(publishedRule)
+	if type(published) ~= "table" then
+		return nil
 	end
-	if wanted then
-		if Spring.GetGameFrame() == 0 then
-			return -- the engine refuses to pause before the game has started
+	for _, entry in ipairs(published) do
+		if type(entry) == "table" and entry[1] == source then
+			return entry[2]
 		end
-		windowPauseHeld = true
-		windowPauseOwned = not isClientPaused()
-		if windowPauseOwned then
+	end
+end
+
+---Pause and resume the game using basic claims and releases on claims.
+---@param source string key set by caller; pass the same key to Unpause
+function widgetHandler:Pause(source)
+	if type(source) ~= "string" then
+		Spring.Log("barwidgets.lua", LOG.ERROR, "Pause: expected a source name")
+		return false
+	end
+	if Spring.GetGameFrame() == 0 then
+		return false -- cannot pause until the game starts
+	end
+	if next(pauseSources) == nil and not widgetPaused then
+		widgetPaused = not isClientPaused()
+		if widgetPaused then
 			Spring.SendCommands("pause 1")
 		end
-	else
-		windowPauseHeld = false
-		if windowPauseOwned and isClientPaused() then
-			Spring.SendCommands("pause 0")
+	end
+	pauseSources[source] = true
+	return true
+end
+
+---Unpause one source. The game resumes once no source on either side is left.
+---@param source string # a widget's source, or a gadget's published source
+function widgetHandler:Unpause(source)
+	if pauseSources[source] then
+		pauseSources[source] = nil
+		if next(pauseSources) == nil then
+			if widgetPaused and isClientPaused() then
+				if inGadgetPause() then
+					local generation = Spring.GetGameRulesParam(RULESPARAM_GADGET_PAUSE_GENERATION) or 0
+					Spring.SendLuaRulesMsg(MESSAGE_WIDGETS_UNPAUSED .. generation) -- the gadgets resume the game
+				else
+					Spring.SendCommands("pause 0")
+				end
+			end
+			widgetPaused = false
 		end
-		windowPauseOwned = false
+		return true
+	end
+	local release = getPauseReleaseKey(source)
+	if release then
+		Spring.SendLuaRulesMsg(MESSAGE_GADGET_UNPAUSE .. release .. ":" .. source)
+		return true
+	end
+	return false
+end
+
+local function gameUnpausing()
+	if next(pauseSources) == nil then
+		return false
+	end
+	widgetPaused = true
+	return true
+end
+
+-- This runs after the widgets update, so the game stays paused when:
+-- one modal closes -and- another opens, or a modal reopens after a reload.
+function widgetHandler:UpdatePause()
+	if widgetPaused and not isClientPaused() then
+		widgetPaused = false -- the player unpaused during another pause, so the pause remains
+	end
+	local wanted = modalPauseAllowed and modalPauseEnabled and (self.chobbyInterface or anyWindowOpen())
+	if wanted ~= (pauseSources[PAUSESOURCE_MODALS] == true) then
+		if wanted then
+			self:Pause(PAUSESOURCE_MODALS)
+		else
+			self:Unpause(PAUSESOURCE_MODALS)
+		end
 	end
 end
 
--- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so a window
--- that reopens after the reload keeps it and closing that window still resumes the game.
-function widgetHandler:SaveWindowPause()
-	Spring.SetConfigInt("WindowsPausedAtFrame", windowPauseOwned and Spring.GetGameFrame() or 0, true)
+-- A LuaUI reload hands the pause over in memory, tied to the frame it froze, so widgets
+-- that pause again after the reload, like a modal reopening, still resume the game.
+function widgetHandler:SavePause()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", widgetPaused and Spring.GetGameFrame() or 0, true)
 end
 
-function widgetHandler:InitWindowPause()
-	-- headless, nobody would ever close a window that opened by itself
-	windowPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
-	windowPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
+function widgetHandler:InitPause()
+	-- headless, nobody would ever close a modal that opened by itself
+	modalPauseAllowed = not isHeadless and (spIsReplay() or isSinglePlayer())
+	modalPauseEnabled = (Spring.GetConfigInt("WindowsPauseGame", 1) == 1)
 	local frame = Spring.GetGameFrame()
-	if frame > 0 and Spring.GetConfigInt("WindowsPausedAtFrame", 0) == frame and isClientPaused() then
-		windowPauseHeld = true
-		windowPauseOwned = true
-	end
-	Spring.SetConfigInt("WindowsPausedAtFrame", 0, true)
+	widgetPaused = frame > 0 and Spring.GetConfigInt("WidgetsPausedAtFrame", 0) == frame and isClientPaused()
+	Spring.SetConfigInt("WidgetsPausedAtFrame", 0, true)
+	self:RegisterGlobal(self, "GameUnpausing", gameUnpausing)
 end
 
 -- Backstop for LuaUI memory: the engine's incremental collector normally keeps garbage bounded.
@@ -2792,7 +2878,7 @@ function widgetHandler:Update()
 	end
 	tracyZoneEnd()
 
-	self:UpdateWindowPause()
+	self:UpdatePause()
 	return
 end
 
@@ -3954,7 +4040,9 @@ end
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	tracyZoneBeginN("W:UnitFinished")
 	for _, w in ipairs(self.UnitFinishedList) do
+		tracyZoneBeginN(w._tracyUnitFinishedName)
 		w:UnitFinished(unitID, unitDefID, unitTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -3973,7 +4061,9 @@ function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracyZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
+		tracyZoneBeginN(w._tracyUnitDestroyedName)
 		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4261,7 +4351,9 @@ end
 function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracyZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitAddedName)
 		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4269,7 +4361,9 @@ end
 function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracyZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitRemovedName)
 		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4326,12 +4420,16 @@ end
 function widgetHandler:VisibleExplosionBatch(events, count)
 	tracyZoneBeginN("W:VisibleExplosionBatch")
 	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		w:VisibleExplosionBatch(events, count)
+		tracyZoneEnd()
 	end
 	for _, w in ipairs(self.VisibleExplosionList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		for i = 1, count, 5 do
 			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4530,12 +4628,22 @@ function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, 
 end
 
 function widgetHandler:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	tracyZoneBeginN("W:UnitScriptDecal")
+	self:UnitScriptDecalBatch({ unitID, unitDefID, decalIndex, posx, posz, heading }, 6)
+end
+
+-- a sim frame's decals as unitID, unitDefID, decalIndex, posx, posz, heading runs: batch widgets get the
+-- array, the others one call per decal
+function widgetHandler:UnitScriptDecalBatch(decals, count)
+	tracyZoneBeginN("W:UnitScriptDecalBatch")
+	for _, w in ipairs(self.UnitScriptDecalBatchList) do
+		w:UnitScriptDecalBatch(decals, count)
+	end
 	for _, w in ipairs(self.UnitScriptDecalList) do
-		w:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+		for i = 1, count, 6 do
+			w:UnitScriptDecal(decals[i], decals[i + 1], decals[i + 2], decals[i + 3], decals[i + 4], decals[i + 5])
+		end
 	end
 	tracyZoneEnd()
-	return
 end
 
 function widgetHandler:GadgetRemoveGrass(posx, posz, radius)
@@ -4699,7 +4807,9 @@ end
 function widgetHandler:FeatureCreated(featureID, allyTeam)
 	tracyZoneBeginN("W:FeatureCreated")
 	for _, w in ipairs(self.FeatureCreatedList) do
+		tracyZoneBeginN(w._tracyFeatureCreatedName)
 		w:FeatureCreated(featureID, allyTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4708,7 +4818,9 @@ end
 function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracyZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
+		tracyZoneBeginN(w._tracyFeatureDestroyedName)
 		w:FeatureDestroyed(featureID, allyTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
