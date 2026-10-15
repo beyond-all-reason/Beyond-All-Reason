@@ -1948,9 +1948,20 @@ end
 ---@param ids table
 ---@param silent boolean|nil
 function Tool.select(ids, silent)
+	-- Selecting means no longer placing: a pick left on the cursor would clear the selection
+	-- on the next update ("a pick means placing again").
+	if ids and #ids > 0 then
+		dropPick()
+	end
 	sel.silent = silent == true
 	setSelection(ids or {}, false)
 	sel.silent = false
+end
+
+--- A key, as if pressed over the map: for an owner that sees keys first and passes some
+--- on (the mission editor), and for its harness.
+function Tool.keyPress(key, mods)
+	return widget:KeyPress(key, mods or {})
 end
 
 function Tool.placeAt(x1, z1, x2, z2)
