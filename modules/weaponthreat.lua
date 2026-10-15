@@ -10,6 +10,9 @@ local DEFAULT_ARMOR_TYPE = Game.armorTypes.default
 WeaponThreat.ALWAYS_SHOOT = -1
 WeaponThreat.NO_THREAT = -2
 
+-- buildDefendData reads through a cache of the defs while it runs (see readOnceDefs)
+local weaponDefs = WeaponDefs
+
 local function getWeaponDefFromName(weaponName)
 	if not weaponName or weaponName == "" then
 		return nil
@@ -20,7 +23,7 @@ local function getWeaponDefFromName(weaponName)
 		return nil
 	end
 
-	return WeaponDefs[weaponDefName.id]
+	return weaponDefs[weaponDefName.id]
 end
 
 local function getWeaponExplosionRadius(weaponName)
@@ -44,7 +47,7 @@ end
 local function hasKamikazeWeapon(unitDef)
 	local weapons = unitDef.weapons
 	for weaponNum = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
+		local weaponDef = weaponDefs[weapons[weaponNum].weaponDef]
 		local damageAreaOfEffect = weaponDef and (weaponDef.damageAreaOfEffect or weaponDef.areaOfEffect or 0) or 0
 		if
 			weaponDef
@@ -73,7 +76,7 @@ local function getKamikazeExplosionRadius(unitDef)
 		math.max(getWeaponExplosionRadius(unitDef.deathExplosion), getWeaponExplosionRadius(unitDef.selfDExplosion))
 	local weapons = unitDef.weapons
 	for weaponNum = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
+		local weaponDef = weaponDefs[weapons[weaponNum].weaponDef]
 		if weaponDef and not weaponDef.customParams.bogus then
 			local damageAreaOfEffect = weaponDef.damageAreaOfEffect or weaponDef.areaOfEffect or 0
 			if damageAreaOfEffect > explosionRadius then
@@ -136,7 +139,7 @@ function WeaponThreat.isThreateningUnitDef(enemyUnitDef)
 
 	local weapons = enemyUnitDef.weapons
 	for weaponNum = 1, #weapons do
-		local weaponDef = WeaponDefs[weapons[weaponNum].weaponDef]
+		local weaponDef = weaponDefs[weapons[weaponNum].weaponDef]
 		if weaponDef and WeaponThreat.isOffensiveWeapon(weaponDef) then
 			local customParams = weaponDef.customParams
 			if customParams and customParams.carried_unit and customParams.carried_unit ~= "" then
@@ -192,7 +195,7 @@ local function getUnitDefReachAgainstUnit(enemyUnitDef, unitDef)
 	local weapons = enemyUnitDef.weapons
 	for weaponNum = 1, #weapons do
 		local weapon = weapons[weaponNum]
-		local weaponDef = WeaponDefs[weapon.weaponDef]
+		local weaponDef = weaponDefs[weapon.weaponDef]
 		if weaponDef and WeaponThreat.isOffensiveWeapon(weaponDef) then
 			local range = 0
 			local customParams = weaponDef.customParams
@@ -245,29 +248,52 @@ local function getWeaponTimeToKill(weaponDef, enemyHealth, armorType)
 	return math.max(0, cycles - 1) * reload + intraSalvoTime
 end
 
-local function getThreatRange(defenderWeapon, weaponDef, defenderUnitDef, enemyProps, enemyUnitDef)
-	if not weaponThreatensUnit(defenderWeapon, weaponDef, enemyUnitDef) then
-		return WeaponThreat.NO_THREAT
-	end
+-- The engine builds a def's customParams, weapons, modCategories and damages anew on every read, and any other
+-- field read is a lookup in C. buildDefendData reads them for every weapon and target pair, so it reads each def
+-- through a wrapper that keeps every field after its first read.
+local function readOnce(def)
+	local missing = {}
+	return setmetatable({}, {
+		__index = function(wrapper, key)
+			if missing[key] then
+				return nil
+			end
+			local value = def[key]
+			if value ~= nil then
+				wrapper[key] = value
+			elseif type(key) == "string" then
+				missing[key] = true
+			end
+			return value
+		end,
+	})
+end
 
-	local timeToKill = getWeaponTimeToKill(weaponDef, enemyProps.health, enemyProps.armorType)
-	if not timeToKill then
-		return WeaponThreat.NO_THREAT
-	end
+local function readOnceDefs(defs)
+	return setmetatable({}, {
+		__index = function(wrappers, defID)
+			local def = defs[defID]
+			if def == nil then
+				return nil
+			end
+			local wrapper = readOnce(def)
+			wrappers[defID] = wrapper
+			return wrapper
+		end,
+	})
+end
 
-	local reach = getUnitDefReachAgainstUnit(enemyUnitDef, defenderUnitDef)
-	if reach <= 0 then
-		return WeaponThreat.NO_THREAT
+-- A category set (all values true) as a string: the same sets give the same key
+local function categoryKey(categories)
+	if not categories then
+		return "none"
 	end
-
-	local groundCovered = enemyProps.speed * (timeToKill + EXTRA_SECONDS_MOVEMENT_THREAT_BUFFER)
-	local threatRange = (reach + groundCovered) * THREAT_RANGE_BUFFER_MULTIPLIER
-	local weaponRange = weaponDef.range or 0
-	if threatRange >= weaponRange then
-		return WeaponThreat.ALWAYS_SHOOT
+	local names = {}
+	for name in pairs(categories) do
+		names[#names + 1] = name
 	end
-
-	return threatRange
+	table.sort(names)
+	return "=" .. table.concat(names, " ")
 end
 
 function WeaponThreat.buildDefendData()
@@ -277,11 +303,43 @@ function WeaponThreat.buildDefendData()
 	local alwaysHarmlessUnitDefs = {}
 
 	local targetUnitDefIDs = {}
-	local enemyProps = {}
+	local enemyProps = {} ---@type table<integer, { armorType: integer, health: number, speed: number }>
 	local enemyUnitDefs = {}
 	local watchableWeaponDefs = {}
 
-	for unitDefID, unitDef in pairs(UnitDefs) do
+	weaponDefs = readOnceDefs(WeaponDefs)
+	local unitDefs = readOnceDefs(UnitDefs)
+
+	-- What weaponThreatensUnit reads of a unit: whether it flies and its categories. A target's reach against a
+	-- defender depends on the defender only through that, and whether a weapon slot can hit a target depends only
+	-- on that and the slot's target categories and canAttackGround, so both are worked out once per combination.
+	local unitClassByDefID = {}
+	local function getUnitClass(unitDefID, unitDef)
+		local unitClass = unitClassByDefID[unitDefID]
+		if not unitClass then
+			unitClass = (unitDef.canFly and "1|" or "0|") .. categoryKey(unitDef.modCategories)
+			unitClassByDefID[unitDefID] = unitClass
+		end
+		return unitClass
+	end
+
+	local hitsByWeaponClass = {}
+	local function getHitsByUnitClass(weapon, weaponDef)
+		local onlyTargets = weapon.onlyTargets
+		local weaponClass = (weaponDef.canAttackGround ~= false and "1|" or "0|")
+			.. (onlyTargets and categoryKey(onlyTargets) or "all")
+		local hitsByUnitClass = hitsByWeaponClass[weaponClass]
+		if not hitsByUnitClass then
+			hitsByUnitClass = {}
+			hitsByWeaponClass[weaponClass] = hitsByUnitClass
+		end
+		return hitsByUnitClass
+	end
+
+	local reachByEnemyDefID = {}
+
+	for unitDefID in pairs(UnitDefs) do
+		local unitDef = unitDefs[unitDefID]
 		local isKamikaze = WeaponThreat.isKamikazeUnitDef(unitDef)
 
 		if WeaponThreat.isThreateningUnitDef(unitDef) then
@@ -292,6 +350,8 @@ function WeaponThreat.buildDefendData()
 				health = unitDef.health or 0,
 				speed = unitDef.speed or 0,
 			}
+			getUnitClass(unitDefID, unitDef)
+			reachByEnemyDefID[unitDefID] = {}
 		else
 			alwaysHarmlessUnitDefs[unitDefID] = true
 		end
@@ -305,7 +365,7 @@ function WeaponThreat.buildDefendData()
 		local seenWeapon = {}
 		for weaponNum = 1, #weapons do
 			local weaponDefID = weapons[weaponNum].weaponDef
-			local weaponDef = WeaponDefs[weaponDefID]
+			local weaponDef = weaponDefs[weaponDefID]
 			if weaponDef and WeaponThreat.isWatchableWeapon(weaponDef) and not seenWeapon[weaponDefID] then
 				seenWeapon[weaponDefID] = true
 				watchableWeaponDefs[weaponDefID] = weaponDef
@@ -320,29 +380,79 @@ function WeaponThreat.buildDefendData()
 		end
 	end
 
+	local function getThreatRange(
+		defenderWeapon,
+		weaponDef,
+		hitsByUnitClass,
+		defenderUnitDef,
+		defenderClass,
+		enemyUnitDefID
+	)
+		local enemyUnitDef = enemyUnitDefs[enemyUnitDefID]
+		local enemyClass = unitClassByDefID[enemyUnitDefID]
+		local threatens = hitsByUnitClass[enemyClass]
+		if threatens == nil then
+			threatens = weaponThreatensUnit(defenderWeapon, weaponDef, enemyUnitDef)
+			hitsByUnitClass[enemyClass] = threatens
+		end
+		if not threatens then
+			return WeaponThreat.NO_THREAT
+		end
+
+		local enemy = enemyProps[enemyUnitDefID]
+		local timeToKill = getWeaponTimeToKill(weaponDef, enemy.health, enemy.armorType)
+		if not timeToKill then
+			return WeaponThreat.NO_THREAT
+		end
+
+		local reachByDefenderClass = reachByEnemyDefID[enemyUnitDefID]
+		local reach = reachByDefenderClass[defenderClass]
+		if reach == nil then
+			reach = getUnitDefReachAgainstUnit(enemyUnitDef, defenderUnitDef)
+			reachByDefenderClass[defenderClass] = reach
+		end
+		if reach <= 0 then
+			return WeaponThreat.NO_THREAT
+		end
+
+		local groundCovered = enemy.speed * (timeToKill + EXTRA_SECONDS_MOVEMENT_THREAT_BUFFER)
+		local threatRange = (reach + groundCovered) * THREAT_RANGE_BUFFER_MULTIPLIER
+		local weaponRange = weaponDef.range or 0
+		if threatRange >= weaponRange then
+			return WeaponThreat.ALWAYS_SHOOT
+		end
+
+		return threatRange
+	end
+
 	for unitDefID in pairs(watchedWeaponsByUnitDef) do
-		local defenderUnitDef = UnitDefs[unitDefID]
+		local defenderUnitDef = unitDefs[unitDefID]
+		local defenderClass = getUnitClass(unitDefID, defenderUnitDef)
 		local weapons = defenderUnitDef.weapons
 		for weaponNum = 1, #weapons do
 			local weapon = weapons[weaponNum]
 			local weaponDefID = weapon.weaponDef
 			local weaponDef = watchableWeaponDefs[weaponDefID]
 			if weaponDef and not threatRanges[weaponDefID] then
+				local hitsByUnitClass = getHitsByUnitClass(weapon, weaponDef)
 				local rangesForWeapon = {}
 				for targetIndex = 1, #targetUnitDefIDs do
 					local enemyUnitDefID = targetUnitDefIDs[targetIndex]
 					rangesForWeapon[enemyUnitDefID] = getThreatRange(
 						weapon,
 						weaponDef,
+						hitsByUnitClass,
 						defenderUnitDef,
-						enemyProps[enemyUnitDefID],
-						enemyUnitDefs[enemyUnitDefID]
+						defenderClass,
+						enemyUnitDefID
 					)
 				end
 				threatRanges[weaponDefID] = rangesForWeapon
 			end
 		end
 	end
+
+	weaponDefs = WeaponDefs
 
 	return threatRanges, watchedWeaponsByUnitDef, neverHesitateAttackers, alwaysHarmlessUnitDefs
 end

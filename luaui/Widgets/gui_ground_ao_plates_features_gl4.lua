@@ -304,4 +304,8 @@ end
 
 function widget:Shutdown()
 	widgetHandler:RemoveAction("givefeatures", "t")
+	if type(groundPlateShader) == "table" then
+		groundPlateShader:Finalize()
+		groundPlateShader = nil
+	end
 end

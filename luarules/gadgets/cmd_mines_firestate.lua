@@ -27,6 +27,10 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 	end
 end
 
+function gadget:Initialize()
+	gadgetHandler:RegisterUnitCommand(CMD.FIRE_STATE)
+end
+
 function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
 	if not handledUnitDefIDs[unitDefID] then
 		return

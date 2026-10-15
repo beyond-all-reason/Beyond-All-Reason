@@ -773,7 +773,7 @@
 				},
 				{
 					"keyset": "any+sc_space",
-					"action": "factory_preset_show"
+					"action": "factory_preset_toggle"
 				},
 				{
 					"keyset": "Alt+sc_=",
@@ -1338,6 +1338,142 @@
 				{
 					"keyset": "Alt+sc_g",
 					"action": "factoryqueuemode"
+				},
+				{
+					"keyset": "Shift+sc_0x064",
+					"action": "squad_select append_domain"
+				},
+				{
+					"keyset": "sc_0x064",
+					"action": "squad_select"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_0x064",
+					"action": "squad_select_filtered append distance_850"
+				},
+				{
+					"keyset": "Ctrl+sc_0x064",
+					"action": "squad_select_filtered retarget"
+				},
+				{
+					"keyset": "Shift+sc_mouse5",
+					"action": "squad_select_portion 0 append_domain"
+				},
+				{
+					"keyset": "sc_mouse5",
+					"action": "squad_select_portion 0"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_mouse5",
+					"action": "squad_select_portion_filtered 0 append"
+				},
+				{
+					"keyset": "Ctrl+sc_mouse5",
+					"action": "squad_select_portion_filtered 0"
+				},
+				{
+					"keyset": "Meta+sc_a",
+					"action": "squad_limit_flip"
+				},
+				{
+					"keyset": "Meta+Shift+sc_a",
+					"action": "squad_expand"
+				},
+				{
+					"keyset": "Meta+sc_s",
+					"action": "squad_cycle_recent"
+				},
+				{
+					"keyset": "Meta+sc_d",
+					"action": "squad_cycle_idle"
+				},
+				{
+					"keyset": "Meta+sc_v",
+					"action": "squad_lock"
+				},
+				{
+					"keyset": "Meta+Shift+sc_v",
+					"action": "squad_select append locked"
+				},
+				{
+					"keyset": "Shift+meta+0",
+					"action": "squad_select_group append_domain 0"
+				},
+				{
+					"keyset": "Shift+meta+1",
+					"action": "squad_select_group append_domain 1"
+				},
+				{
+					"keyset": "Shift+meta+2",
+					"action": "squad_select_group append_domain 2"
+				},
+				{
+					"keyset": "Shift+meta+3",
+					"action": "squad_select_group append_domain 3"
+				},
+				{
+					"keyset": "Shift+meta+4",
+					"action": "squad_select_group append_domain 4"
+				},
+				{
+					"keyset": "Shift+meta+5",
+					"action": "squad_select_group append_domain 5"
+				},
+				{
+					"keyset": "Shift+meta+6",
+					"action": "squad_select_group append_domain 6"
+				},
+				{
+					"keyset": "Shift+meta+7",
+					"action": "squad_select_group append_domain 7"
+				},
+				{
+					"keyset": "Shift+meta+8",
+					"action": "squad_select_group append_domain 8"
+				},
+				{
+					"keyset": "Shift+meta+9",
+					"action": "squad_select_group append_domain 9"
+				},
+				{
+					"keyset": "meta+0",
+					"action": "squad_select_group 0"
+				},
+				{
+					"keyset": "meta+1",
+					"action": "squad_select_group 1"
+				},
+				{
+					"keyset": "meta+2",
+					"action": "squad_select_group 2"
+				},
+				{
+					"keyset": "meta+3",
+					"action": "squad_select_group 3"
+				},
+				{
+					"keyset": "meta+4",
+					"action": "squad_select_group 4"
+				},
+				{
+					"keyset": "meta+5",
+					"action": "squad_select_group 5"
+				},
+				{
+					"keyset": "meta+6",
+					"action": "squad_select_group 6"
+				},
+				{
+					"keyset": "meta+7",
+					"action": "squad_select_group 7"
+				},
+				{
+					"keyset": "meta+8",
+					"action": "squad_select_group 8"
+				},
+				{
+					"keyset": "meta+9",
+					"action": "squad_select_group 9"
 				}
 			]
 		},
@@ -3267,7 +3403,7 @@
 				},
 				{
 					"keyset": "any+sc_space",
-					"action": "factory_preset_show"
+					"action": "factory_preset_toggle"
 				},
 				{
 					"keyset": "Shift+backspace",
@@ -4380,6 +4516,142 @@
 				{
 					"keyset": "sc_comma",
 					"action": "cycleselected prev"
+				},
+				{
+					"keyset": "Shift+sc_0x064",
+					"action": "squad_select append_domain"
+				},
+				{
+					"keyset": "sc_0x064",
+					"action": "squad_select"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_0x064",
+					"action": "squad_select_filtered append distance_850"
+				},
+				{
+					"keyset": "Ctrl+sc_0x064",
+					"action": "squad_select_filtered retarget"
+				},
+				{
+					"keyset": "Shift+sc_mouse5",
+					"action": "squad_select_portion 0 append_domain"
+				},
+				{
+					"keyset": "sc_mouse5",
+					"action": "squad_select_portion 0"
+				},
+				{
+					"keyset": "Ctrl+Shift+sc_mouse5",
+					"action": "squad_select_portion_filtered 0 append"
+				},
+				{
+					"keyset": "Ctrl+sc_mouse5",
+					"action": "squad_select_portion_filtered 0"
+				},
+				{
+					"keyset": "Meta+sc_a",
+					"action": "squad_limit_flip"
+				},
+				{
+					"keyset": "Meta+Shift+sc_a",
+					"action": "squad_expand"
+				},
+				{
+					"keyset": "Meta+sc_s",
+					"action": "squad_cycle_recent"
+				},
+				{
+					"keyset": "Meta+sc_d",
+					"action": "squad_cycle_idle"
+				},
+				{
+					"keyset": "Meta+sc_v",
+					"action": "squad_lock"
+				},
+				{
+					"keyset": "Meta+Shift+sc_v",
+					"action": "squad_select append locked"
+				},
+				{
+					"keyset": "Shift+meta+0",
+					"action": "squad_select_group append_domain 0"
+				},
+				{
+					"keyset": "Shift+meta+1",
+					"action": "squad_select_group append_domain 1"
+				},
+				{
+					"keyset": "Shift+meta+2",
+					"action": "squad_select_group append_domain 2"
+				},
+				{
+					"keyset": "Shift+meta+3",
+					"action": "squad_select_group append_domain 3"
+				},
+				{
+					"keyset": "Shift+meta+4",
+					"action": "squad_select_group append_domain 4"
+				},
+				{
+					"keyset": "Shift+meta+5",
+					"action": "squad_select_group append_domain 5"
+				},
+				{
+					"keyset": "Shift+meta+6",
+					"action": "squad_select_group append_domain 6"
+				},
+				{
+					"keyset": "Shift+meta+7",
+					"action": "squad_select_group append_domain 7"
+				},
+				{
+					"keyset": "Shift+meta+8",
+					"action": "squad_select_group append_domain 8"
+				},
+				{
+					"keyset": "Shift+meta+9",
+					"action": "squad_select_group append_domain 9"
+				},
+				{
+					"keyset": "meta+0",
+					"action": "squad_select_group 0"
+				},
+				{
+					"keyset": "meta+1",
+					"action": "squad_select_group 1"
+				},
+				{
+					"keyset": "meta+2",
+					"action": "squad_select_group 2"
+				},
+				{
+					"keyset": "meta+3",
+					"action": "squad_select_group 3"
+				},
+				{
+					"keyset": "meta+4",
+					"action": "squad_select_group 4"
+				},
+				{
+					"keyset": "meta+5",
+					"action": "squad_select_group 5"
+				},
+				{
+					"keyset": "meta+6",
+					"action": "squad_select_group 6"
+				},
+				{
+					"keyset": "meta+7",
+					"action": "squad_select_group 7"
+				},
+				{
+					"keyset": "meta+8",
+					"action": "squad_select_group 8"
+				},
+				{
+					"keyset": "meta+9",
+					"action": "squad_select_group 9"
 				}
 			]
 		},

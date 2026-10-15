@@ -18,10 +18,15 @@ else
 	isSynced = false
 end
 
+local decodeModoption = require("common/luaUtilities/modoption_payload").Decode
+
 local function GetScenarioID()
 	if Spring.GetModOptions().scenariooptions then
-		local scenariooptions = string.base64Decode(Spring.GetModOptions().scenariooptions)
-		scenariooptions = Json.decode(scenariooptions)
+		local scenariooptions = decodeModoption(Spring.GetModOptions().scenariooptions)
+		if not scenariooptions then
+			Spring.Log(gadget:GetInfo().name, LOG.ERROR, "Could not decode scenariooptions")
+			return nil
+		end
 		return scenariooptions.scenarioid
 	end
 	return nil

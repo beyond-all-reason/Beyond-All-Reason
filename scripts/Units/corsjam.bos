@@ -1,5 +1,6 @@
 
 #include "../recoil_common_includes.h"
+#include "../unitDefsDeactivateTime.h";
 
 piece  base, dish, wake, jam;
 
@@ -97,7 +98,7 @@ OffOnHit()
 	hide jam;
 	recently_damaged = 1;
 	set ACTIVATION to 0; // turn off unit
-	sleep 8000; //hardcoded time to stay off after being hit
+	sleep deactivateTime;
 	recently_damaged = 0;
 	set ACTIVATION to desired_activation;
 }

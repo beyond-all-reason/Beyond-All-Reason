@@ -1,11 +1,13 @@
 #define TA			// This is a TA script
 
-#include "sfxtype.h"
-#include "exptype.h"
+#include "../../recoil_common_includes.h"
 
 piece turret, smoke1, smoke2, base, flare, spindle, aimpoint;
 
 static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1, aimy1velocity, aimy1target, aimy1position;
+
+#define TURRET_SPEED_WEAPONS 1
+#include "unitDefsTurretSpeeds.h"
 
 // Signal definitions
 #define SIG_AIM				2
@@ -71,6 +73,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	Weapon1TurretX = <45.000000>;
+	Weapon1TurretY = <270>;
 	hide aimpoint;
 	hide flare;
 	hide smoke1;
@@ -175,8 +179,8 @@ ExecuteRestoreAfterDelay()
     if (Stunned) {
         return (1);
     }
-	turn turret to y-axis <0.000000> speed <35.005495>;
-	turn turret to x-axis <0.000000> speed <35.005495>;
+	turn turret to y-axis <0.000000> speed Weapon1TurretY * 7 / 54;
+	turn turret to x-axis <0.000000> speed Weapon1TurretX * 7 / 9;
 	//turn sleeves to x-axis <0.000000> speed <15.000000>;
 }
 SetStunned(State)
@@ -197,9 +201,9 @@ RestoreAfterDelay()
 // Jerk is the minimum velocity of the turret
 // A high precision requirement can result in overshoots if desired 
 
-#define MAX_AIMY1_VELOCITY <9.00>
-#define AIMY1_ACCELERATION <0.2>
-#define AIMY1_JERK <1.0>
+#define MAX_AIMY1_VELOCITY (Weapon1TurretY / GAME_SPEED)
+#define AIMY1_ACCELERATION (Weapon1TurretY / 45 / GAME_SPEED)
+#define AIMY1_JERK (Weapon1TurretY / 9 / GAME_SPEED)
 #define AIMY1_PRECISION <1.2>
 static-var aimy1delta, timetozero, deceleratethreshold, gameFrame;
 
@@ -209,7 +213,7 @@ AimWeapon1(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	//We can do this any time
-	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
+	turn turret to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	
 	aimy1target = heading;
 	aimy1delta = aimy1position - aimy1target;

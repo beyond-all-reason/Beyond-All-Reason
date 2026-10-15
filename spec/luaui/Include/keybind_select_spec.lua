@@ -1,15 +1,20 @@
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 -- The builder reads these at load or on first use; the game provides them, the specs do not.
-rawset(_G, "utf8", rawget(_G, "utf8") or { len = string.len, sub = string.sub })
-Spring.GetTimer = Spring.GetTimer or function() end
-Spring.DiffTimers = Spring.DiffTimers or function()
-	return 0
-end
-math.isInRect = math.isInRect
-	or function(x, y, x1, y1, x2, y2)
-		return x >= x1 and x <= x2 and y >= y1 and y <= y2
-	end
-_G.WG = _G.WG
-	or {
+local env = SpecEnv.new({
+	utf8 = rawget(_G, "utf8") or { len = string.len, sub = string.sub },
+	Spring = {
+		GetTimer = function() end,
+		DiffTimers = function()
+			return 0
+		end,
+	},
+	math = {
+		isInRect = function(x, y, x1, y1, x2, y2)
+			return x >= x1 and x <= x2 and y >= y1 and y <= y2
+		end,
+	},
+	WG = {
 		fonts = {
 			getFont = function()
 				return {
@@ -19,13 +24,15 @@ _G.WG = _G.WG
 				}
 			end,
 		},
-	}
-_G.BAR = _G.BAR or {}
-BAR.I18N = BAR.I18N or function(key)
-	return key
-end
+	},
+	BAR = {
+		I18N = function(key)
+			return key
+		end,
+	},
+})
 
-local Builder = require("luaui/Include/keybind_select_builder")
+local Builder = SpecEnv.include(env, "luaui/Include/keybind_select_builder.lua")
 local Json = require("common/luaUtilities/json")
 local Select = require("luaui/Include/keybind_select")
 
@@ -337,14 +344,14 @@ describe("the selection builder", function()
 		builder:clampScroll()
 		builder:focus(field)
 
-		local realMouse = Spring.GetMouseState
-		rawset(Spring, "GetMouseState", function()
+		local realMouse = env.Spring.GetMouseState
+		env.Spring.GetMouseState = function()
 			return g.x1 + 1, g.listY1 + 1
-		end)
+		end
 		for _ = 1, #builder.order do
 			builder:mouseWheel(true)
 		end
-		rawset(Spring, "GetMouseState", realMouse)
+		env.Spring.GetMouseState = realMouse
 
 		assert.is_false(field:isFocused())
 		assert.is_false(builder:textInput("9"))

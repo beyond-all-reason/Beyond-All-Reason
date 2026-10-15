@@ -885,6 +885,13 @@ local shaderSourceCache = {
 }
 
 local function initGL4()
+	-- load the textures now: the first draw's lazy load stalled that frame (BARFlame02.tga ~70 ms)
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(0, fireTexture)
+		glTexture(0, smokeTexture)
+		glTexture(0, false)
+	end))
+
 	particleShader = LuaShader.CheckShaderUpdates(shaderSourceCache)
 	if not particleShader then
 		goodbye("Failed to compile particle shader")

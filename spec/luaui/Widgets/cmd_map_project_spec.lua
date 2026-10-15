@@ -47,8 +47,22 @@ local function fixture()
 			end,
 		},
 		widgetHandler = { AddAction = noop, RegisterGlobal = noop, RemoveAction = noop, DeregisterGlobal = noop },
+		os = setmetatable({
+			remove = function(path)
+				local had = f.files[path] ~= nil
+				f.files[path] = nil
+				return had or nil
+			end,
+		}, { __index = os }),
 		VFS = {
 			Include = function(path)
+				-- The tileset section round-trips the WORLD PATTERN FRAME through the
+				-- shared transform math. That module is pure and has no engine calls,
+				-- so the real one is loaded rather than stubbed: a stub here could
+				-- disagree with the transform about what "no frame at all" means.
+				if path == "luaui/Include/map_transform.lua" then
+					return _G.VFS.Include(path)
+				end
 				if path == "luaui/Include/map_library.lua" then
 					return {
 						new = function()
@@ -299,5 +313,186 @@ describe("map project autosave", function()
 		local again, why = f.project.autosaveNow(true)
 		assert(again == false, "a second snapshot in the same minute must be refused")
 		assert(why == "a snapshot for this minute exists", tostring(why))
+	end)
+end)
+
+-- The pointer is how a MAP TRANSFORM restart tells the next session to replay
+-- the recorded sections onto the new canvas. The heightmap is its only
+-- consumer and the only layer not already rewritten on disk, so if the
+-- transform goes missing here the masks still turn and the terrain is quietly
+-- stretched corner to corner instead, with nothing logged. That is exactly
+-- what a dropped `%s` in the format string did (string.format ignores an
+-- argument with no specifier), so the block is asserted rather than trusted.
+describe("map transform pointer", function()
+	local function writePointerOf(f)
+		local openProject = upvalue(f.project.openStaged, "openProject")
+		return upvalue(openProject, "writePointer")
+	end
+
+	it("carries the transform block through to the pointer file", function()
+		local f = fixture()
+		local ok = writePointerOf(f)({
+			path = "MapProjects/_transform/staged/",
+			size_x = 10,
+			size_z = 8,
+			phase = 0,
+			phases = 0,
+			transform = {
+				src_x = 8,
+				src_z = 10,
+				fill_height = 120.5,
+				placements = {
+					{ rot = 90, mirrorX = false, mirrorZ = false, fit = "stretch", anchorX = 0, anchorZ = 0 },
+				},
+			},
+		})
+		assert(ok, "the pointer was not written")
+		local text = f.files["Terraform Brush/pending_project.lua"]
+		assert(text, "no pointer file")
+		local pointer = assert(loadstring(text))()
+		assert.is_not_nil(pointer.transform)
+		assert.are.equal(8, pointer.transform.src_x)
+		assert.are.equal(10, pointer.transform.src_z)
+		assert.are.equal(1, #pointer.transform.placements)
+		assert.are.equal(90, pointer.transform.placements[1].rot)
+		assert.are.equal("stretch", pointer.transform.placements[1].fit)
+		assert.are.equal(120.5, pointer.transform.fill_height)
+	end)
+
+	it("writes no transform key for an ordinary load", function()
+		local f = fixture()
+		writePointerOf(f)({ path = "MapProjects/arena/", size_x = 12, size_z = 12, phase = 0, phases = 0 })
+		local pointer = assert(loadstring(f.files["Terraform Brush/pending_project.lua"]))()
+		assert.is_nil(pointer.transform)
+		assert.are.equal("MapProjects/arena/", pointer.path)
+	end)
+end)
+
+-- The SURFACE painter is a user widget, which the sandbox keeps to files under
+-- LuaUI/, so the mask reaches a project folder through a staging folder.
+describe("map project SURFACE mask staging", function()
+	local STAGE = "LuaUI/Config/TilesetSurface/project_stage/"
+
+	local function findUpvalue(fn, wanted, seen)
+		seen = seen or {}
+		if seen[fn] then
+			return nil
+		end
+		seen[fn] = true
+		for index = 1, 60 do
+			local name, value = debug.getupvalue(fn, index)
+			if not name then
+				break
+			end
+			if name == wanted then
+				return value
+			end
+			if type(value) == "function" then
+				local found = findUpvalue(value, wanted, seen)
+				if found ~= nil then
+					return found
+				end
+			end
+		end
+	end
+
+	local function surfacePhase(f)
+		for _, p in ipairs(findUpvalue(f.widget.DrawScreenPost, "LOAD_PHASES")) do
+			if p.name == "surface" then
+				return p.run
+			end
+		end
+		error("no surface load phase")
+	end
+
+	local function painter(f, v4)
+		local api = {
+			saved = {},
+			hasMaskState = function()
+				return true
+			end,
+			saveMask = nil,
+			isSavePending = function()
+				return false
+			end,
+			getPersist = function()
+				return { biome = "osemo" }
+			end,
+		}
+		api.saveMask = function(path)
+			api.saved[#api.saved + 1] = path
+			f.files[path] = "mask"
+			if v4 then
+				f.files[(path:gsub("%.png$", "_v4.png"))] = "mask4"
+			end
+			return true
+		end
+		f.environment.WG.SurfacePainter = api
+		return api
+	end
+
+	it("saves through the stage into the project, and a stale staged _v4 never rides along", function()
+		for _, v4 in ipairs({ false, true }) do
+			local f = fixture()
+			local api = painter(f, v4)
+			f.steps.surface.entry.run = f.steps.surface.original
+			f.files[STAGE .. "surface_v4.png"] = "stale"
+			local _, receipt = f.project.save("arena")
+			f.pump()
+			assert(receipt.ok and receipt.uploadReady)
+			assert.are.equal(STAGE .. "surface.png", api.saved[1])
+			assert.are.equal("mask", f.files["MapProjects/arena/surface.png"])
+			assert.are.equal(v4 and "mask4" or nil, f.files["MapProjects/arena/surface_v4.png"])
+			assert.is_nil(f.files[STAGE .. "surface.png"])
+			assert.is_nil(f.files[STAGE .. "surface_v4.png"])
+			assert(f.files["MapProjects/arena/project.lua"]:find('file = "surface.png"', 1, true))
+		end
+	end)
+
+	it("loads the project mask from the stage, its _v4 sibling with it, and clears the stage", function()
+		for _, v4 in ipairs({ false, true }) do
+			local f = fixture()
+			local api = painter(f, v4)
+			local pending
+			api.loadMask = function(path)
+				pending = path
+				return true
+			end
+			api.isLoadPending = function()
+				return false
+			end
+			api.getLoadResult = function()
+				return "ok"
+			end
+			local seenMain, seenV4
+			local phase = surfacePhase(f)
+			local loadOk = findUpvalue(phase, "loadOk")
+			for index = 1, 60 do
+				local name = debug.getupvalue(loadOk, index)
+				if name == "loadJob" then
+					debug.setupvalue(loadOk, index, {
+						dir = "MapProjects/arena/",
+						manifest = { sections = { surface = { file = "surface.png", bytes = 4 } } },
+						loaded = {},
+						skipped = {},
+						missingWarned = {},
+					})
+					break
+				end
+			end
+			f.files["MapProjects/arena/surface.png"] = "mask"
+			f.files["MapProjects/arena/surface_v4.png"] = v4 and "mask4" or nil
+			f.files[STAGE .. "surface_v4.png"] = "stale"
+			local c = {}
+			assert.is_false(phase(c))
+			assert.are.equal(STAGE .. "surface.png", pending)
+			seenMain, seenV4 = f.files[STAGE .. "surface.png"], f.files[STAGE .. "surface_v4.png"]
+			assert.are.equal("mask", seenMain)
+			assert.are.equal(v4 and "mask4" or nil, seenV4)
+			assert.is_true(phase(c))
+			assert.is_nil(f.files[STAGE .. "surface.png"])
+			assert.is_nil(f.files[STAGE .. "surface_v4.png"])
+			assert.are.equal("mask", f.files["MapProjects/arena/surface.png"])
+		end
 	end)
 end)

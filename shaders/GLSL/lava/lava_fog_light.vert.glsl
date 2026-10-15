@@ -12,7 +12,7 @@ uniform float lavaHeight;
 
 out DataVS {
 	vec4 worldPos;
-	vec4 worldUV;
+	vec2 worldUV;
 	float inboundsness;
 	noperspective vec2 v_screenUV;
 };
@@ -25,10 +25,6 @@ out DataVS {
 
 vec2 inverseMapSize = 1.0 / mapSize.xy;
 
-float rand(vec2 co){ // a pretty crappy random function
-	return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
-
 void main() {
 	// mapSize.xy is the actual map size,
 	//place the vertices into the world:
@@ -38,13 +34,8 @@ void main() {
 
 	// pass the world-space UVs out
 	float mapratio = mapSize.y / mapSize.x;
-	worldUV.xy = (1.5 * planePos +0.5);
+	worldUV = (1.5 * planePos +0.5);
 	worldUV.y *= mapratio;
-
-	float gametime = (timeInfo.x + timeInfo.w) * 0.006666;
-
-	vec4 randpervertex = vec4(rand(worldPos.xz), rand(worldPos.xz * vec2(17.876234, 9.283)), rand(worldPos.xz + gametime + 2.0), rand(worldPos.xz + gametime + 3.0));
-	worldUV.zw = sin(randpervertex.xy + gametime * (0.5 + randpervertex.xy));
 
 	// -- MAP OUT OF BOUNDS
 	vec2 mymin = min(worldPos.xz, mapSize.xy  - worldPos.xz) * inverseMapSize;
