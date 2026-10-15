@@ -240,6 +240,7 @@ local sel = {
 	boxY2 = 0,
 	drag = nil, -- { grabID, pressX, pressY, startX, startZ, moved, origins, targets }
 	clipboard = nil, -- { { unitDefName, dx, dz, facing, team }, ... }
+	pointer = nil, -- a harness pointer { x, z } standing in for the mouse (Tool.setPointer)
 	pruneTimer = 0,
 }
 
@@ -371,6 +372,10 @@ end
 --- Is the pointer over the unit library, or (`withPanel`) over the terraform brush panel or
 --- a project dialog in front of the world? Keys only step aside for the library, as before.
 local function overUi(withPanel)
+	-- A harness pointer is on the map by definition.
+	if sel.pointer then
+		return false
+	end
 	local mx, my = Spring.GetMouseState()
 	-- The unit library (RmlUi coordinates, y down).
 	---@type table?
@@ -397,6 +402,9 @@ end
 
 --- The ground under the pointer, plain (the placer and the selection use it).
 local function groundUnderMouse()
+	if sel.pointer then
+		return sel.pointer.x, sel.pointer.z
+	end
 	local mx, my = Spring.GetMouseState()
 	local kind, coords = Spring.TraceScreenRay(mx, my, true)
 	if kind ~= "ground" or not coords then
@@ -1958,6 +1966,56 @@ function Tool.select(ids, silent)
 	sel.silent = false
 end
 
+--- A HARNESS POINTER: a world point standing in for the mouse (nil gives the mouse back),
+--- and a press, a move and a release there, as the mouse would send them. A probe window
+--- that is not focused cannot move the real pointer, and a world point is what a check
+--- knows. `mods` = { shift, ctrl, alt } held for the press.
+function Tool.setPointer(x, z)
+	sel.pointer = (x and z) and { x = x, z = z } or nil
+end
+
+local function pointerScreen()
+	local p = sel.pointer
+	if not p then
+		local mx, my = Spring.GetMouseState()
+		return mx, my
+	end
+	local sx, sy = Spring.WorldToScreenCoords(p.x, Spring.GetGroundHeight(p.x, p.z), p.z)
+	return floor(sx or 0), floor(sy or 0)
+end
+
+local function withMods(mods, fn)
+	local real = Spring.GetModKeyState
+	mods = mods or {}
+	Spring.GetModKeyState = function()
+		return mods.alt == true, mods.ctrl == true, false, mods.shift == true
+	end
+	local ok, result = pcall(fn)
+	Spring.GetModKeyState = real
+	return ok and result
+end
+
+function Tool.pointerDown(mods)
+	local sx, sy = pointerScreen()
+	return withMods(mods, function()
+		return widget:MousePress(sx, sy, tonumber(mods and mods.button) or 1)
+	end)
+end
+
+function Tool.pointerMove()
+	local sx, sy = pointerScreen()
+	return withMods(nil, function()
+		return widget:MouseMove(sx, sy, 0, 0, 1)
+	end)
+end
+
+function Tool.pointerUp(mods)
+	local sx, sy = pointerScreen()
+	return withMods(mods, function()
+		return widget:MouseRelease(sx, sy, tonumber(mods and mods.button) or 1)
+	end)
+end
+
 --- A key, as if pressed over the map: for an owner that sees keys first and passes some
 --- on (the mission editor), and for its harness.
 function Tool.keyPress(key, mods)
@@ -2100,7 +2158,8 @@ end
 
 local function selectPress(mx, my)
 	local _, ctrl, _, shift = Spring.GetModKeyState()
-	local target = owner.provider.pick(mx, my)
+	local gx, gz = groundUnderMouse()
+	local target = owner.provider.pick(mx, my, gx, gz)
 	if target ~= nil and not ctrl then
 		if shift then
 			toggleSelection(target)
@@ -2396,7 +2455,11 @@ function widget:Update(dt)
 	end
 
 	-- MouseMove only fires while a button is down in some camera modes; poll the release
-	-- too, so a drag cannot stick when the release is swallowed.
+	-- too, so a drag cannot stick when the release is swallowed. Not under a harness
+	-- pointer: the harness presses and lets go itself, and the real button is up.
+	if sel.pointer then
+		return
+	end
 	local mx, my, left, _, right = Spring.GetMouseState()
 	if sel.drag then
 		if left then
