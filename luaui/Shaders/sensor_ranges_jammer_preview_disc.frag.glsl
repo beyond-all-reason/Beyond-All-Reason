@@ -5,10 +5,14 @@
 // (8 << radarMipLevel elmos). Terrain plays no part: CLosMap::AddCircle (rts/Sim/Misc/LosMap.cpp) fills a midpoint
 // circle line by line around the emitter's cell, clipped to the map. Uncovered texels are discarded, so the target
 // is cleared first and several emitters can be drawn into one map-sized target.
+// Circle mode (SensorPreviewCircles) draws an allied jammer's circle instead: its distance field over the whole map,
+// MAX-blended into the union of all of them.
 
 //__DEFINES__
 
-uniform vec4 discParams; // emitter cell x, emitter cell z, radius in cells, 1 = the target is the whole map (texel = radar cell), 0 = the (2 * radius + 1)^2 disc around the emitter
+// emitter cell x, emitter cell z, radius in cells, 1 = the target is the whole map (texel = radar cell), 0 = the
+// (2 * radius + 1)^2 disc around the emitter; or, with w = 2, circle center x, z and radius in elmos
+uniform vec4 discParams;
 
 out vec4 fragColor;
 
@@ -38,6 +42,13 @@ int halfWidth(int radius, int row) {
 }
 
 void main() {
+	if (discParams.w > 1.5) {
+		// elmos inside (+) or outside (-) the circle's edge at the texel's center, clamped and stored as 0..1
+		float range = float(CIRCLE_SDF_RANGE);
+		float sdf = clamp(discParams.z - distance(gl_FragCoord.xy * float(RADAR_CELL_SIZE), discParams.xy), -range, range);
+		fragColor = vec4(sdf / (2.0 * range) + 0.5, 0.0, 0.0, 1.0);
+		return;
+	}
 	int radius = int(discParams.z);
 	ivec2 base = ivec2(discParams.xy);
 	ivec2 texel = ivec2(gl_FragCoord.xy);

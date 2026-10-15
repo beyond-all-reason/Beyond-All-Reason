@@ -172,8 +172,6 @@ function widget:ViewResize()
 	end
 end
 
-widget:ViewResize()
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -509,6 +507,9 @@ local function init()
 end
 
 function widget:Initialize()
+	-- not at file scope: the handler runs every widget file to read its info, disabled or not, and textures
+	-- made there were never freed
+	widget:ViewResize()
 	WG.clouds = {}
 	WG.clouds.getOpacity = function()
 		return opacityMult

@@ -78,7 +78,7 @@ local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/"
 -- load and parse sound files/notifications
 local notificationTable = require("sounds/voice/config")
 if VFS.FileExists(soundFolder .. "config.lua") then
-	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua")
+	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua", {}, VFS.RAW_FIRST)
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
 end
 
@@ -1055,13 +1055,20 @@ function widget:GameOver(winningAllyTeams)
 	--widgetHandler:RemoveWidget()
 end
 
+local gadgetPaused = false -- non-player pauses, usually do not announce this
 function widget:GamePaused(playerID, isGamePaused)
-	if not gameover then
-		if isGamePaused then
+	if gameover then
+		return
+	end
+	if isGamePaused then
+		gadgetPaused = Spring.GetGameRulesParam("gamePaused") == 1
+		if not gadgetPaused then
 			queueNotification("GamePaused", true)
-		else
-			queueNotification("GameUnpaused", true)
 		end
+	elseif gadgetPaused then
+		gadgetPaused = false
+	else
+		queueNotification("GameUnpaused", true)
 	end
 end
 

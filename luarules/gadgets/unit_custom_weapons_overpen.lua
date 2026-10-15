@@ -417,7 +417,8 @@ local function hitUnit(weapon, penetrator, damageLeft, collision, targetID)
 	-- Damage from the engine includes bonuses (flanking) and penalties (edge, intensity)
 	-- but has not accounted for the damage falloff from the overpenetration effect, yet.
 	local damageEngine, damageArmor = collision.damage, weapon[collision.armorType] * penetrator.damageFactor
-	local damageDealt, damageBase = damageEngine * damageLeft, min(damageEngine, damageArmor) * damageLeft
+	local damageFull = min(damageEngine, damageArmor)
+	local damageDealt, damageBase = damageEngine * damageLeft, damageFull * damageLeft
 	local impulse = damageBase * weapon.impulse * falloffRatio(damageLeft, 1) -- inverse ratio
 
 	spAddUnitDamage(
@@ -432,7 +433,7 @@ local function hitUnit(weapon, penetrator, damageLeft, collision, targetID)
 	)
 	setVelocityControl(targetID, true)
 
-	damageLeft = damageLeft - weapon.penalty - (weapon.falloff and collision.health / damageBase or 0)
+	damageLeft = damageLeft - weapon.penalty - (weapon.falloff and collision.health / damageFull or 0)
 
 	if damageArmor * damageLeft > 1 and damageBase >= collision.healthMax * damageThreshold then
 		return damageLeft
@@ -448,7 +449,7 @@ local function hitFeature(weapon, penetrator, damageLeft, collision, targetID)
 	-- Not applying any impulse. Features are not controlled by a velocity limiter.
 	spAddFeatureDamage(targetID, damageDealt, 0, penetrator.ownerID, weapon.weaponID)
 
-	damageLeft = damageLeft - weapon.penalty - (weapon.falloff and collision.health / damageDealt or 0)
+	damageLeft = damageLeft - weapon.penalty - (weapon.falloff and collision.health / damageEngine or 0)
 
 	if damageEngine * damageLeft > 1 and damageDealt >= collision.healthMax * damageThreshold then
 		return damageLeft
@@ -464,7 +465,7 @@ local function hitShield(weapon, penetrator, damageLeft, collision, targetID)
 	local exhausted, damageDone = addShieldDamage(targetID, damageDealt)
 
 	if not exhausted then
-		damageLeft = damageLeft - weapon.penalty - damageDone / damageDealt -- shields force falloff
+		damageLeft = damageLeft - weapon.penalty - damageDone / damageArmor -- shields force falloff
 		if damageArmor * damageLeft > 1 and damageDealt >= damageDone * damageThreshold then
 			return damageLeft
 		end

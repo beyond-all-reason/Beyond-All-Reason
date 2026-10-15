@@ -50,7 +50,17 @@ void main() {
 		#endif
 			
 		#ifdef STIPPLE_RATE
-			fragColor.a *= 3.0 * sin(v_radius_circum_height.y * STIPPLE_RATE + timeInfo.x*-0.2); // PERFECT STIPPLING!
+			// dashes under ~4 px per period alias into moire, so double their length per octave of zoom-out,
+			// crossfading octaves; the finer one fades to its mean (3/pi) before it aliases
+			float stipplePhase = v_radius_circum_height.y * STIPPLE_RATE + timeInfo.x*-0.2;
+			float phasePerPixel = length(vec2(dFdx(stipplePhase), dFdy(stipplePhase)));
+			float octave = max(log2(phasePerPixel * (4.0 / 6.2831853)), 0.0);
+			float octaveScale = exp2(-floor(octave));
+			// negative alpha is not clamped and tints the gaps magenta
+			float fineDashes = max(3.0 * sin(stipplePhase * octaveScale), 0.0);
+			fineDashes = mix(fineDashes, 0.9549297, smoothstep(1.5, 3.0, phasePerPixel * octaveScale));
+			float coarseDashes = max(3.0 * sin(stipplePhase * octaveScale * 0.5), 0.0);
+			fragColor.a *= mix(fineDashes, coarseDashes, fract(octave));
 		#endif
 	#endif
 

@@ -697,6 +697,10 @@ function widget:Shutdown()
 		maskShader:Finalize()
 		maskShader = nil
 	end
+	if type(defenseRangeShader) == "table" then
+		defenseRangeShader:Finalize()
+		defenseRangeShader = nil
+	end
 end
 
 local floor = math.floor
