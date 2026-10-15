@@ -1160,6 +1160,7 @@ end
 --- An owner that wants to know what is selected (the mission editor's roster follows the
 --- tool's selection) hears every change through its sink's optional `selectionChanged`.
 local function notifySelection()
+	lasso.dirty = true
 	local sink = owner.sink
 	-- Only while the tool is on: a deactivation or an owner change clears the tool's own
 	-- selection, which is not the owner's business.
@@ -1219,6 +1220,86 @@ local function selectedInfos()
 	end
 	return out
 end
+
+----------------------------------------------------------------
+-- The lasso: a loop round a selection of two or more. A press on empty ground INSIDE it
+-- grabs the whole group (a drag moves them all), one outside starts a box as ever. Drawn as
+-- a faint fill, brighter under the pointer. (From the mission editor, PtaQ 2026-09-29.)
+----------------------------------------------------------------
+local LASSO_PAD = 20
+local LASSO_SIDES = 12
+local LASSO_REFRESH = 0.25 -- seconds: positions change under undo and other owners' edits
+local LASSO_COS, LASSO_SIN = {}, {}
+for i = 0, LASSO_SIDES - 1 do
+	LASSO_COS[i], LASSO_SIN[i] = cos(i * 2 * pi / LASSO_SIDES), sin(i * 2 * pi / LASSO_SIDES)
+end
+local lasso = { hull = nil, dirty = true, age = 0, hover = false }
+
+local function convexHull(points)
+	table.sort(points, function(a, b)
+		return a.x < b.x or (a.x == b.x and a.z < b.z)
+	end)
+	local function cross(o, a, b)
+		return (a.x - o.x) * (b.z - o.z) - (a.z - o.z) * (b.x - o.x)
+	end
+	local lower, upper = {}, {}
+	for i = 1, #points do
+		while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], points[i]) <= 0 do
+			lower[#lower] = nil
+		end
+		lower[#lower + 1] = points[i]
+	end
+	for i = #points, 1, -1 do
+		while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], points[i]) <= 0 do
+			upper[#upper] = nil
+		end
+		upper[#upper + 1] = points[i]
+	end
+	lower[#lower] = nil
+	upper[#upper] = nil
+	for i = 1, #upper do
+		lower[#lower + 1] = upper[i]
+	end
+	return lower
+end
+
+--- The loop round the selection (counter-clockwise), or nil under two selected.
+local function lassoHull()
+	if #sel.ids < 2 then
+		lasso.hull = nil
+		return nil
+	end
+	if not lasso.dirty and lasso.hull then
+		return lasso.hull
+	end
+	lasso.dirty = false
+	local points = {}
+	for _, info in ipairs(selectedInfos()) do
+		local w, h = Layout.footprint(info.xsize, info.zsize, info.facing)
+		local radius = math.sqrt(w * w + h * h) / 2 + LASSO_PAD
+		for i = 0, LASSO_SIDES - 1 do
+			points[#points + 1] = { x = info.x + LASSO_COS[i] * radius, z = info.z + LASSO_SIN[i] * radius }
+		end
+	end
+	lasso.hull = #points >= 3 and convexHull(points) or nil
+	return lasso.hull
+end
+
+local function insideLasso(x, z)
+	local hull = lassoHull()
+	if not (hull and x and #hull >= 3) then
+		return false
+	end
+	for i = 1, #hull do
+		local a, b = hull[i], hull[i % #hull + 1]
+		if (b.x - a.x) * (z - a.z) - (b.z - a.z) * (x - a.x) < 0 then
+			return false
+		end
+	end
+	return true
+end
+
+Tool.insideLasso = insideLasso
 
 --- Moves for the units that actually change.
 local function movesFrom(infos, spots)
@@ -1839,6 +1920,17 @@ function Tool.pickedType()
 	return lastPick and lastPick.kind == "unit" and lastPick.value or nil
 end
 
+--- Is anything on the cursor (a unit, a blueprint, a paste, an armed placer)? An owner that
+--- sees right-clicks and Escape first asks this before taking them for itself.
+function Tool.hasPick()
+	return lastPick ~= nil or (placer ~= nil and placer.armed()) or false
+end
+
+--- Does the tool hold anything Escape would let go of (a selection, a drag, a pick)?
+function Tool.holdsSomething()
+	return #sel.ids > 0 or sel.drag ~= nil or Tool.hasPick()
+end
+
 function Tool.placeAt(x1, z1, x2, z2)
 	if placer.armed() then
 		placer.mousePress(x1, z1, 1)
@@ -1995,6 +2087,13 @@ local function selectPress(mx, my)
 		local x, z = groundUnderMouse()
 		if x then
 			faceSelection(x, z)
+			return true
+		end
+	end
+	-- Empty ground inside the lasso: grab the whole group, as a press on one of them would.
+	if not shift and #sel.ids >= 2 then
+		local gx, gz = groundUnderMouse()
+		if gx and insideLasso(gx, gz) and beginSelectionDrag(sel.ids[1], mx, my) then
 			return true
 		end
 	end
@@ -2213,6 +2312,16 @@ function widget:Update(dt)
 	if not up.active then
 		return
 	end
+	if #sel.ids >= 2 then
+		lasso.age = lasso.age + (dt or 0)
+		if lasso.age >= LASSO_REFRESH or sel.drag then
+			lasso.age, lasso.dirty = 0, true
+		end
+		local gx, gz = groundUnderMouse()
+		lasso.hover = gx ~= nil and insideLasso(gx, gz)
+	else
+		lasso.hull, lasso.hover = nil, false
+	end
 	if placer.armed() then
 		-- The build-drag keys take the shape while held and give it back when let go, so a
 		-- formation picked in the panel, or a Tab, is what a plain drag lays out again.
@@ -2410,6 +2519,47 @@ local function drawSelection()
 	gl.LineWidth(1)
 end
 
+--- The lasso round a multi-selection: a faint fill, brighter under the pointer or in a drag,
+--- and a loop that follows the ground (edges cut into short steps so it does not dive).
+local function drawLasso()
+	local hull = lassoHull()
+	if not (hull and #hull >= 3) then
+		return
+	end
+	local hot = lasso.hover or sel.drag ~= nil
+	gl.DepthTest(false)
+	local cx, cz = 0, 0
+	for _, point in ipairs(hull) do
+		cx, cz = cx + point.x, cz + point.z
+	end
+	cx, cz = cx / #hull, cz / #hull
+	gl.Color(1.0, 0.85, 0.25, hot and 0.09 or 0.035)
+	gl.BeginEnd(GL.TRIANGLE_FAN, function()
+		gl.Vertex(cx, Spring.GetGroundHeight(cx, cz) + 4, cz)
+		for i = 1, #hull + 1 do
+			local point = hull[(i - 1) % #hull + 1]
+			gl.Vertex(point.x, Spring.GetGroundHeight(point.x, point.z) + 4, point.z)
+		end
+	end)
+	gl.LineWidth(2)
+	gl.Color(1.0, 0.85, 0.25, hot and 0.8 or 0.45)
+	gl.BeginEnd(GL.LINE_LOOP, function()
+		for i = 1, #hull do
+			local a, b = hull[i], hull[i % #hull + 1]
+			local length = math.sqrt((b.x - a.x) ^ 2 + (b.z - a.z) ^ 2)
+			local steps = max(1, floor(length / 32))
+			for step = 0, steps - 1 do
+				local t = step / steps
+				local x, z = a.x + (b.x - a.x) * t, a.z + (b.z - a.z) * t
+				gl.Vertex(x, Spring.GetGroundHeight(x, z) + 5, z)
+			end
+		end
+	end)
+	gl.LineWidth(1)
+	gl.Color(1, 1, 1, 1)
+	gl.DepthTest(true)
+end
+
 --- Red footprints under the units a removal would take.
 local function drawRemovalTargets(x, z)
 	gl.LineWidth(2)
@@ -2455,6 +2605,9 @@ function widget:DrawWorld()
 
 	if #sel.ids > 0 then
 		drawSelection()
+	end
+	if #sel.ids >= 2 then
+		drawLasso()
 	end
 
 	if grid.snap or grid.overlay then
