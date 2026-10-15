@@ -1152,11 +1152,21 @@ local function selectModeActive()
 		and not (placer and placer.armed())
 end
 
+--- An owner that wants to know what is selected (the mission editor's roster follows the
+--- tool's selection) hears every change through its sink's optional `selectionChanged`.
+local function notifySelection()
+	local sink = owner.sink
+	if sink and sink.selectionChanged then
+		sink.selectionChanged(sel.ids)
+	end
+end
+
 local function clearSelection()
 	sel.ids, sel.set = {}, {}
 	sel.drag = nil
 	sel.boxing = false
 	dragGhosts.clear()
+	notifySelection()
 end
 
 local function setSelection(ids, additive)
@@ -1169,6 +1179,7 @@ local function setSelection(ids, additive)
 			sel.ids[#sel.ids + 1] = unitID
 		end
 	end
+	notifySelection()
 end
 
 local function toggleSelection(unitID)
@@ -1179,12 +1190,12 @@ local function toggleSelection(unitID)
 				table.remove(sel.ids, index)
 			end
 		end
+		notifySelection()
 	else
 		setSelection({ unitID }, true)
 	end
 end
 
---- What a transform needs of a placed unit, or nil for one gone.
 --- What is placed under this id, as the owner's provider tells it (the engine's unit, or
 --- the mission editor's record). nil when it is gone.
 local function unitInfo(unitID)
