@@ -114,6 +114,8 @@ local mathCeil = math.ceil
 local mathMin = math.min
 local mathMax = math.max
 local mathExp = math.exp
+local mathSin = math.sin
+local mathCos = math.cos
 local mathHuge = math.huge
 local osClock = os.clock
 
@@ -126,6 +128,7 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spWorldToScreenCoords = Spring.WorldToScreenCoords
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitViewPosition = Spring.GetUnitViewPosition
+local spGetUnitHeading = Spring.GetUnitHeading
 local spGetGroundHeight = Spring.GetGroundHeight
 local spGetCameraPosition = Spring.GetCameraPosition
 local spGetCameraDirection = Spring.GetCameraDirection
@@ -732,6 +735,25 @@ local function getScreenRect(x0, z0, x1, z1)
 		mathMin((top + 1) / vsy * 2 - 1, 1)
 end
 
+-- A mobile radar's circle center: the drawn position plus the model's mid offset turned with the heading, as
+-- gui_sensor_ranges_radar centers its line (the drawn midPos would also lean with the unit on slopes)
+local mobileRadarMids = {} -- unitDefID -> model mid offset x, z
+local function drawnRadarCenter(unitID, unitDefID)
+	local x, _, z = spGetUnitViewPosition(unitID)
+	local heading = spGetUnitHeading(unitID, true)
+	if not (x and heading) then
+		return nil
+	end
+	local mid = mobileRadarMids[unitDefID]
+	if not mid then
+		local dims = Spring.GetUnitDefDimensions(unitDefID)
+		mid = { dims and dims.midx or 0, dims and dims.midz or 0 }
+		mobileRadarMids[unitDefID] = mid
+	end
+	local s, c = mathSin(heading), mathCos(heading)
+	return x + s * mid[2] - c * mid[1], z + c * mid[2] + s * mid[1]
+end
+
 -- Allied radar units the engine would give radar coverage (ILosType::UpdateUnit: finished, activated,
 -- not stunned, emitter above its own cell), with their emitter cell, radius in cells and bucketed height.
 local function collectAlliedRadars()
@@ -768,13 +790,13 @@ local function collectAlliedRadars()
 						end
 						radar.bx, radar.bz, radar.radius, radar.losHeight = bx, bz, radiusCells, losHeight
 						radar.x, radar.z, radar.range = mx, mz, coverageRange(radiusCells)
-						radar.unitID, radar.emitHeight, radar.mobile =
-							unitID, emitHeight, mobileRadarDefs[unitDefID] == true
+						radar.unitID, radar.unitDefID, radar.emitHeight = unitID, unitDefID, emitHeight
+						radar.mobile = mobileRadarDefs[unitDefID] == true
 						if radar.mobile then
 							mobileCount = mobileCount + 1
 							mobileRadars[mobileCount] = count
-							local vx, _, vz = spGetUnitViewPosition(unitID, true)
-							radar.x, radar.z = vx or mx, vz or mz -- the drawn unit, between sim frames too
+							local cx, cz = drawnRadarCenter(unitID, unitDefID)
+							radar.x, radar.z = cx or mx, cz or mz -- the drawn unit, between sim frames too
 						end
 					end
 				end
@@ -798,8 +820,8 @@ local function followMobileRadars()
 		if not mx then
 			return moved, true
 		else
-			local vx, _, vz = spGetUnitViewPosition(radar.unitID, true)
-			if vx ~= radar.x or vz ~= radar.z then
+			local vx, vz = drawnRadarCenter(radar.unitID, radar.unitDefID)
+			if vx and (vx ~= radar.x or vz ~= radar.z) then
 				radar.x, radar.z = vx, vz
 				moved = true
 			end
