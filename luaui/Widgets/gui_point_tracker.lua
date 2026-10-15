@@ -288,8 +288,11 @@ local function initGL4()
 	mapMarkInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(mapMarkInstanceVBOLayout, 32, "mapMarkInstanceVBO")
 	mapMarkInstanceVBO.numVertices = numVertices
 	mapMarkInstanceVBO.vertexVBO = markerVBO
-	mapMarkInstanceVBO.VAO =
-		InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO)
+	mapMarkInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(mapMarkInstanceVBO.vertexVBO, mapMarkInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 	mapMarkInstanceVBO.primitiveType = GL.LINES
 
 	if false then -- testing

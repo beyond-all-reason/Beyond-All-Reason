@@ -1,6 +1,8 @@
 -- got tired of it, needs types:
 ---@diagnostic disable: undefined-field, redundant-parameter
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local MODULE_PATH = "luarules/callins/synthetic_callins.lua"
 
 local BASES = { "UnitBuildStep", "FeatureBuildStep" }
@@ -61,38 +63,28 @@ for _, base in ipairs(BASES) do
 			-- The synced setup includes unit_idle_states, which reads CMD at its own
 			-- load, so the include has to land in here. It is specced on its own in
 			-- unit_idle_states_spec; these views only need it to load without error.
-			local env
-			env = setmetatable({
+			local env = SpecEnv.new({
 				gadgetHandler = gh,
 				Script = {
 					GetSynced = function()
 						return true
 					end,
 				},
-				Spring = setmetatable({
+				Spring = {
 					IsDevLuaEnabled = function()
 						return false
 					end,
-				}, { __index = Spring }),
+				},
 				CMD = { MOVE = 10, REPAIR = 40, OPT_INTERNAL = 8 },
-				VFS = setmetatable({
-					Include = function(path)
-						local included = assert(loadfile(path))
-						setfenv(included, env)
-						return included()
-					end,
-				}, { __index = VFS }),
 				tracy = { ZoneBeginN = function() end, ZoneEnd = function() end },
-				table = setmetatable({
+				table = {
 					new = function()
 						return {}
 					end,
-				}, { __index = table }),
-			}, { __index = _G })
+				},
+			})
 
-			local chunk = assert(loadfile(MODULE_PATH))
-			setfenv(chunk, env)
-			synthetic = chunk()
+			synthetic = SpecEnv.include(env, MODULE_PATH)
 			synthetic.install(gh)
 
 			hook = gh.GG["Accumulate" .. base]

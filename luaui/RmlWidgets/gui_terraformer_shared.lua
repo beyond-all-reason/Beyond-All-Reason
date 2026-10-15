@@ -73,8 +73,7 @@ WG.TerraformerShared = WG.TerraformerShared or {}
 WG.TerraformerShared.applyScreenScale = applyScreenScale
 
 -- Shared accessor so widgets don't reimplement calculateDpRatio().
--- Returns the current scale factor (resolution_factor * ui_scale), matching
--- whatever the shared RmlUi context is currently using.
+---@return number dpRatio Current scale factor `resolution_factor * ui_scale`, matching the shared RmlUi context.
 WG.TerraformerShared.getDpRatio = function()
 	return currentDpRatio
 end
@@ -180,6 +179,10 @@ WG.TerraformerShared.setWheelHeld = function(held)
 	end
 end
 
+---Registers a document so sibling widgets can read its live layout.
+---Call after `LoadDocument()`; pair with `unregisterDocument` on Shutdown.
+---@param name string?
+---@param document RmlUi.Document?
 WG.TerraformerShared.registerDocument = function(name, document)
 	if name and document then
 		registeredDocuments[name] = document
@@ -188,15 +191,13 @@ WG.TerraformerShared.registerDocument = function(name, document)
 	end
 end
 
+---Removes a document from the cross-widget registry.
+---@param name string?
 WG.TerraformerShared.unregisterDocument = function(name)
 	if name then
 		registeredDocuments[name] = nil
 		panelBodies[name] = nil
 	end
-end
-
-WG.TerraformerShared.getDocument = function(name)
-	return registeredDocuments[name]
 end
 
 --------------------------------------------------------------------------------
@@ -216,12 +217,15 @@ end
 --- flip: `topY = vsy - offset_top`.
 local boundsProviders = {}
 
+---@param name string?
+---@param provider fun(): TerraformBrushPanelBounds|TerraformBrushPanelBounds[]|nil
 WG.TerraformerShared.registerBounds = function(name, provider)
 	if name and type(provider) == "function" then
 		boundsProviders[name] = provider
 	end
 end
 
+---@param name string?
 WG.TerraformerShared.unregisterBounds = function(name)
 	if name then
 		boundsProviders[name] = nil
@@ -234,6 +238,7 @@ end
 --- view's x offset, which is zero until dual-screen mode parks the world on one half of
 --- the window. Providers report RmlUi window-space x, so the offset comes off here, once,
 --- for every tool, and the rects really are in the space the tools' mouse lives in.
+---@return TerraformBrushPanelBounds[] rects
 WG.TerraformerShared.getPanelRects = function()
 	local _, _, viewPosX = Spring.GetViewGeometry()
 	viewPosX = viewPosX or 0
@@ -266,6 +271,9 @@ WG.TerraformerShared.getPanelRects = function()
 end
 
 --- The suite window under this screen point, or nil.
+---@param mx number?
+---@param my number?
+---@return TerraformBrushPanelBounds? rect
 WG.TerraformerShared.getPanelRectAt = function(mx, my)
 	if not (mx and my) then
 		return nil
@@ -283,6 +291,7 @@ end
 --- Each widget owns a separate RmlUi document, and RCSS z-index only orders elements inside
 --- one document, so it cannot decide whether the brush or the mission editor is on top.
 --- PullToFront is the only thing that can.
+---@param name string
 WG.TerraformerShared.bringToFront = function(name)
 	local doc = registeredDocuments[name]
 	if doc and doc.PullToFront then
@@ -296,6 +305,8 @@ end
 --- order they were last touched, which is what every other windowing system does.
 ---
 --- Deliberately does not stop the event: the press still reaches whatever was clicked.
+---@param name string
+---@param rootEl RmlUi.Element?
 WG.TerraformerShared.raiseOnPress = function(name, rootEl)
 	if not rootEl or not rootEl.AddEventListener then
 		return
@@ -305,6 +316,18 @@ WG.TerraformerShared.raiseOnPress = function(name, rootEl)
 	end, false)
 end
 
+---A registered element's live layout, in pixel space.
+---@class TerraformerElementRect
+---@field left number
+---@field top number
+---@field width number
+---@field height number
+
+---Reads live pixel-space layout off an element of a registered document.
+---@param docName string
+---@param elementId string?
+---@return TerraformerElementRect? rect `nil` when the document or element is missing,
+---or the element has no width yet.
 WG.TerraformerShared.getElementRect = function(docName, elementId)
 	local doc = registeredDocuments[docName]
 	if not doc then
@@ -327,15 +350,26 @@ WG.TerraformerShared.getElementRect = function(docName, elementId)
 	}
 end
 
+---Options accepted by `attachDraggable`.
+---@class TerraformerDraggableOpts
+---@field snapThreshold number? Pixel snap distance for edges and panel snap. Defaults to `30`.
+---@field onDragStart fun()? Called on mousedown, e.g. to record that the user moved the panel.
+---@field snapDocName string? Registered document to snap against. Defaults to `"terraform_brush"`.
+---@field snapElementId string? Element within that document. Defaults to `"tf-root"`.
+
+---The value returned by `attachDraggable`.
+---@class TerraformerDraggable
+---@field tick fun() Call every frame from `widget:Update()` while the widget is alive.
+
 -- Shared drag-and-drop helper for floating panels.
 -- Sets up mousedown on handleId + mouseup on doc, returns a handle with tick().
 -- Call handle.tick() every frame from widget:Update() while the widget is alive.
---
--- opts fields (all optional):
---   snapThreshold (number, default 30) — pixel snap distance for edges + panel snap
---   onDragStart   (function)           — called on mousedown (e.g. set userDragged)
---   snapDocName   (string, default "terraform_brush") — registered document to snap to
---   snapElementId (string, default "tf-root")         — element within that document
+---Makes a floating panel draggable by a handle element, with edge and panel snapping.
+---@param doc RmlUi.Document?
+---@param handleId string Id of the element used as the drag handle.
+---@param rootEl RmlUi.Element? The panel being moved.
+---@param opts TerraformerDraggableOpts?
+---@return TerraformerDraggable handle A no-op handle when `doc`, `rootEl` or the handle element is missing.
 WG.TerraformerShared.attachDraggable = function(doc, handleId, rootEl, opts)
 	if not doc or not rootEl then
 		return { tick = function() end }
@@ -508,7 +542,6 @@ function widget:Shutdown()
 		WG.TerraformerShared.getDpRatio = nil
 		WG.TerraformerShared.registerDocument = nil
 		WG.TerraformerShared.unregisterDocument = nil
-		WG.TerraformerShared.getDocument = nil
 		WG.TerraformerShared.getElementRect = nil
 		WG.TerraformerShared.attachDraggable = nil
 		WG.TerraformerShared.refreshPanelBodies = nil

@@ -94,6 +94,10 @@ _G.unpack = _G.unpack
 		return t[i], _G.unpack(t, i + 1, j)
 	end
 
+-- Shared by every spec file, which is safe: neither depends on which file is running.
+local fileCache
+local sources = {}
+
 -- VFS.Include mock for testing
 _G.VFS = _G.VFS or {}
 
@@ -106,25 +110,23 @@ _G.VFS.FileExists = function(path)
 	end
 
 	-- Fallback: Case-insensitive check using cached file list
-	if not _G.VFS._ci_file_cache then
-		_G.VFS._ci_file_cache = {}
+	if not fileCache then
+		fileCache = {}
 		-- Find all files, excluding .git directory
 		local handle = io.popen("find . -name '.git' -prune -o -type f -print")
 		if handle then
 			for line in handle:lines() do
 				-- Strip leading ./
 				local p = line:gsub("^%./", "")
-				_G.VFS._ci_file_cache[p:lower()] = p
+				fileCache[p:lower()] = p
 			end
 			handle:close()
 		end
 	end
 
 	local cleanPath = path:gsub("^%./", "")
-	return _G.VFS._ci_file_cache[cleanPath:lower()] ~= nil
+	return fileCache[cleanPath:lower()] ~= nil
 end
-
-_G.VFS._sources = _G.VFS._sources or {}
 
 -- require -> VFS.Include stub for Lua files.
 local realRequire = require
@@ -157,13 +159,13 @@ _G.VFS.Include = function(path, env, mode)
 		file:close()
 	else
 		-- Check case-insensitive cache
-		if not _G.VFS._ci_file_cache then
+		if not fileCache then
 			-- Force cache population by calling FileExists with a dummy path
 			_G.VFS.FileExists("___dummy_path___")
 		end
 
 		local cleanPath = path:gsub("^%./", "")
-		local cachedPath = _G.VFS._ci_file_cache[cleanPath:lower()]
+		local cachedPath = fileCache[cleanPath:lower()]
 		if cachedPath then
 			realPath = cachedPath
 		end
@@ -175,14 +177,14 @@ _G.VFS.Include = function(path, env, mode)
 	-- unit file includes another, and whichever loads second mutates the first.
 	-- Each call compiles its own chunk, so a nested include of a path already on
 	-- the include stack cannot retarget the environment of the outer one.
-	local source = _G.VFS._sources[realPath]
+	local source = sources[realPath]
 	if source == nil then
 		local sourceFile = io.open(realPath, "r")
 		source = sourceFile and sourceFile:read("*a") or false
 		if sourceFile then
 			sourceFile:close()
 		end
-		_G.VFS._sources[realPath] = source
+		sources[realPath] = source
 	end
 
 	-- Missing source is a real error. Larger feature tests will try to fallback and
@@ -219,10 +221,12 @@ end
 -- we have to do this after VFS.Include is declared
 -- if we used `require("common/tablefunction")` above here, it could potentially cause "The same file is required with different names." linter errors when `require("common/tablefunctions")` is called
 require("common/tablefunctions")
+require("common/numberfunctions")
+require("common/stringFunctions")
 
 _G.VFS.SubDirs = function(path)
 	-- Check case-insensitive cache for correct directory path
-	if not _G.VFS._ci_file_cache then
+	if not fileCache then
 		-- Force cache population
 		_G.VFS.FileExists("___dummy_path___")
 	end
@@ -356,17 +360,105 @@ _G.VFS.LoadFile = function(path)
 	return contents
 end
 
-_G.Json = _G.Json or require("common/luaUtilities/json")
+-- Every spec file shares these tables, so a write to one would reach every file after it.
+-- Proxies stay empty because __newindex never fires for a key the table already has.
+local seals = {}
 
--- Every spec file is run in a single Lua process via busted, so their globals are
--- left behind from one file to the next in the order they are run. Clearing GG is
--- one way to protect against those leaks; guarded against reruns using a _G gate.
-if not _G.__SPEC_HELPER_GG_RESET_INSTALLED then
-	local ok, busted = pcall(require, "busted")
-	if ok and type(busted) == "table" and busted.subscribe then
-		_G.__SPEC_HELPER_GG_RESET_INSTALLED = true
-		busted.subscribe({ "file", "start" }, function()
-			_G.GG = {}
-		end)
+local SEAL = { __metatable = "sealed" }
+
+function SEAL.__index(proxy, key)
+	local sealed = seals[proxy]
+	local nested = sealed.nested[key]
+	if nested ~= nil then
+		return nested
 	end
+
+	return sealed.backing[key]
+end
+
+-- common/tablefunctions.lua assigns table.pack to itself on every include.
+function SEAL.__newindex(proxy, key, value)
+	local sealed = seals[proxy]
+	if rawequal(sealed.backing[key], value) or rawequal(sealed.nested[key], value) then
+		return
+	end
+
+	error(
+		("spec: %s.%s is shared by every spec file and cannot be assigned. Build an env with SpecEnv.new and write to its copy instead."):format(
+			sealed.name,
+			tostring(key)
+		),
+		2
+	)
+end
+
+function SEAL.backing(proxy)
+	return seals[proxy].backing
+end
+
+local function seal(name, backing)
+	local nested = {}
+	for key, value in pairs(backing) do
+		if type(value) == "table" then
+			nested[key] = seal(name .. "." .. tostring(key), value)
+		end
+	end
+
+	local proxy = setmetatable({}, SEAL)
+	seals[proxy] = { name = name, backing = backing, nested = nested }
+
+	return proxy
+end
+
+local SHARED = { "Spring", "VFS", "Game", "io", "CMD", "GameCMD", "LOG", "Json", "string", "table", "math", "os" }
+
+for _, name in ipairs(SHARED) do
+	_G[name] = seal(name, _G[name])
+end
+
+-- Lua 5.1 has no __pairs, so enumerating a proxy would quietly find nothing.
+local realPairs, realNext, realIpairs = pairs, next, ipairs
+
+local function refuseSealed(value)
+	local sealed = seals[value]
+	if sealed then
+		error(
+			("spec: %s is sealed and cannot be enumerated. Load the code under test through SpecEnv, which hands it real tables."):format(
+				sealed.name
+			),
+			3
+		)
+	end
+end
+
+_G.pairs = function(t)
+	refuseSealed(t)
+
+	return realPairs(t)
+end
+
+_G.next = function(t, key)
+	refuseSealed(t)
+
+	return realNext(t, key)
+end
+
+_G.ipairs = function(t)
+	refuseSealed(t)
+
+	return realIpairs(t)
+end
+
+-- busted passes itself to the function a helper returns.
+return function(busted)
+	-- Game code writes GG and def loading draws on math.random, so each file starts over.
+	busted.subscribe({ "file", "start" }, function()
+		_G.GG = {}
+		math.randomseed(12345)
+
+		-- Without true as the second return value, busted skips every subscriber after this one.
+		return nil, true
+	end)
+
+	return true
 end

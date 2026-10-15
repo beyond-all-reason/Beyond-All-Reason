@@ -146,8 +146,11 @@ local function initgl4()
 	circleInstanceVBO = InstanceVBOTable.makeInstanceVBOTable(circleInstanceVBOLayout, 128, "sonarrangeVBO", 2)
 	circleInstanceVBO.numVertices = numVertices
 	circleInstanceVBO.vertexVBO = circleVBO
-	circleInstanceVBO.VAO =
-		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO)
+	circleInstanceVBO.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(circleInstanceVBO.vertexVBO, circleInstanceVBO.instanceVBO),
+		false,
+		true
+	)
 
 	CreateStencilShaderAndTexture()
 end

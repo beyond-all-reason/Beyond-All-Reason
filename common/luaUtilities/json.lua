@@ -449,13 +449,36 @@ do
 	-- now everything is allowed, watch out for * though. The next char is then checked manually
 	init_token_table(tt_comment_middle)("comment end"):link(tt_ignore):to(allchars):link(true):to("*")
 
+	local strbyte, strfind, strsub = string.byte, string.find, string.sub
+
+	-- Token tables that ignore whitespace and nothing else, so a run of it can be skipped with one find.
+	---@type table<table, boolean>
+	local skipsWhitespace = {
+		[tt_object_key] = true,
+		[tt_object_colon] = true,
+		[tt_object_value] = true,
+		[tt_array_value] = true,
+		[tt_array_separator] = true,
+	}
+
+	-- First byte that ends a plain run inside a string: its quote, an escape or a line break.
+	local stringRunEnd = {
+		[tt_doublequote_string] = '["\\\r\n]',
+		[tt_singlequote_string] = "['\\\r\n]",
+	}
+	local stringQuote = {
+		[tt_doublequote_string] = strbyte('"'),
+		[tt_singlequote_string] = strbyte("'"),
+	}
+
 	function decode(js_string)
 		local pos = 1 -- position in the string
+		local len = #js_string
 
 		-- read the next byte value
 		local function next_byte()
 			pos = pos + 1
-			return js_string:byte(pos - 1)
+			return strbyte(js_string, pos - 1)
 		end
 
 		-- in case of error, report the location using line numbers
@@ -479,8 +502,11 @@ do
 
 		-- read the next token, according to the passed token table
 		local function next_token(tok)
-			while pos <= #js_string do
-				local b = js_string:byte(pos)
+			if skipsWhitespace[tok] then
+				pos = strfind(js_string, "[^ \t\r\n]", pos) or len + 1
+			end
+			while pos <= len do
+				local b = strbyte(js_string, pos)
 				local t = tok[b]
 				if not t then
 					error(
@@ -510,6 +536,13 @@ do
 		-- read a string, double and single quoted ones
 		local function read_string(tok)
 			local start = pos
+			-- Without an escape the literal is its own value, so there is nothing for loadstring to do.
+			local stop = strfind(js_string, stringRunEnd[tok], pos)
+			if stop and strbyte(js_string, stop) == stringQuote[tok] then
+				pos = stop + 1
+				return strsub(js_string, start, stop - 1)
+			end
+
 			local rewrite = false
 			--local returnString = {}
 			repeat
@@ -549,14 +582,9 @@ do
 
 		local function read_num()
 			local start = pos
-			while pos <= #js_string do
-				local b = js_string:byte(pos)
-				if not tt_numeric[b] then
-					break
-				end
-				pos = pos + 1
-			end
-			return tonumber(js_string:sub(start - 1, pos - 1))
+			-- stops at the first byte not in tt_numeric
+			pos = strfind(js_string, "[^0-9%.%-Ee]", pos) or len + 1
+			return tonumber(strsub(js_string, start - 1, pos - 1))
 		end
 
 		-- read_bool and read_null are both making an assumption that I have not tested:
