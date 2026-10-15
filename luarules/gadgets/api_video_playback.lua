@@ -20,7 +20,7 @@ local SYNC_ACTION = "VideoPlayback"
 local MESSAGE_FINISHED = SYNC_ACTION .. "Finished:"
 
 -- Only the pause controller's report counts; it arrives after its own pause request.
-local getPauseControllerID = VFS.Include("luarules/gadgets/include/pause_controller.lua").GetPauseControllerID
+local getPauseControllerID = BAR.Utilities.GetHostCommandPlayerID
 
 if gadgetHandler:IsSyncedCode() then
 	local playbackCount = 0
