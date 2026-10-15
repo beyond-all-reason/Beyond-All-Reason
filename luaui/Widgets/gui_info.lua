@@ -861,6 +861,12 @@ function widget:Initialize()
 
 	widget:ViewResize()
 
+	-- load the kill count skull now, its first lazy load stalled a battle frame by up to 24 ms
+	gl.DeleteList(gl.CreateList(function()
+		glTexture(":l:LuaUI/Images/skull.dds")
+		glTexture(false)
+	end))
+
 	WG.info = {}
 	WG.info.getShowBuilderBuildlist = function()
 		return showBuilderBuildlist

@@ -150,7 +150,7 @@ function widget:Initialize()
 		return
 	end
 
-	fullScreenQuadVAO = InstanceVBOTable.MakeTexRectVAO()
+	fullScreenQuadVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 
 	-- Burst a few quick updates so the accumulator catches up to the current
 	-- coverage state immediately rather than fading in over several seconds.
