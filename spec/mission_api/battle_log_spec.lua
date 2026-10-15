@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local MessageTypes = VFS.Include("luarules/mission_api/parameter_types.lua").Enums.MessageType
 local battleLog = VFS.Include("luarules/mission_api/battle_log.lua")
 

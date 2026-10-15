@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 
 GG["MissionAPI"] = GG["MissionAPI"] or {}

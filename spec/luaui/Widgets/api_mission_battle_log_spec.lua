@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local SpringUnsyncedBuilder = VFS.Include("spec/builders/spring_unsynced_builder.lua")
 local MessageTypes = VFS.Include("luarules/mission_api/parameter_types.lua").Enums.MessageType
 

@@ -1,5 +1,3 @@
-require("spec_helper")
-
 -- We need to capture these before unit_query loads so other specs can't smuggle their GetUnitDefID to here.
 local springAtLoad = _G.Spring
 local getUnitDefIDBefore, getUnitTeamBefore = springAtLoad.GetUnitDefID, springAtLoad.GetUnitTeam

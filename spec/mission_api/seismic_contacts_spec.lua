@@ -1,4 +1,3 @@
-require("spec_helper")
 require("mission_api.spec_helper")
 
 local SeismicContacts = VFS.Include("luarules/mission_api/seismic_contacts.lua")

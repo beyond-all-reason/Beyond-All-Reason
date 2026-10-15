@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local actions = VFS.Include("luarules/mission_api/actions/game/unpause.lua")
 local action = actions[1]
 local summarizeSchema = require("mission_api.schema_spec_helper")

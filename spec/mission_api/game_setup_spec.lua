@@ -1,4 +1,3 @@
-require("spec_helper")
 require("mission_api.spec_helper")
 
 local base64 = VFS.Include("common/luaUtilities/base64.lua")

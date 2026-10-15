@@ -1,5 +1,3 @@
-require("spec_helper")
-
 -- Ambient state that the mission_api modules read at load time, kept out of the shared
 -- root spec_helper. Requiring this installs the stubs and returns RegisterMissionApiModules.
 

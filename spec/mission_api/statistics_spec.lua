@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local statistics = VFS.Include("luarules/mission_api/statistics.lua")
 
 describe("mission_api.statistics", function()

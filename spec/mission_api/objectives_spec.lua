@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 local RegisterMissionApiModules = require("mission_api.spec_helper")
 

@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- The loader is the authority on what a trigger looks like once a mission is running,

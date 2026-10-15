@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local RegisterMissionApiModules = require("mission_api.spec_helper")
 
 local difficulty = RegisterMissionApiModules().Difficulty

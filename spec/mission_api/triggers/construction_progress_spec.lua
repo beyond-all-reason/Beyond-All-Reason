@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local Builders = VFS.Include("spec/builders/index.lua")
 
 -- The trigger file reads GG['MissionAPI'].Modules.ParameterTypes at load time (so here), and

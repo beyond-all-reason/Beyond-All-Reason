@@ -1,5 +1,3 @@
-require("spec_helper")
-
 local countdowns = VFS.Include("luarules/mission_api/countdowns.lua")
 
 describe("mission_api.countdowns", function()
