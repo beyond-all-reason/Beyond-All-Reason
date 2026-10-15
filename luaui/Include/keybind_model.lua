@@ -156,6 +156,32 @@ local function canonicalKeyset(raw)
 	return table.concat(parts, ",")
 end
 
+-- One action's binds handed to another where they sit, as two actions on one keyset are tried in
+-- bind order. A keyset the other already holds is dropped, the engine refusing a bind twice over.
+local function renameAction(binds, from, to)
+	local held = {}
+	for _, b in ipairs(binds) do
+		if b.action == to then
+			held[canonicalKeyset(b.keyset)] = true
+		end
+	end
+
+	local out = {}
+	for _, b in ipairs(binds) do
+		if b.action ~= from then
+			out[#out + 1] = { keyset = b.keyset, action = b.action }
+		else
+			local canon = canonicalKeyset(b.keyset)
+			if not held[canon] then
+				held[canon] = true
+				out[#out + 1] = { keyset = b.keyset, action = to }
+			end
+		end
+	end
+
+	return out
+end
+
 -- What the keyboard page places a binding by, and what a filter on one key matches against.
 local function splitElement(canon)
 	local first = canon:match("^[^,]+") or canon
@@ -223,6 +249,7 @@ return {
 	displayWithoutShift = displayWithoutShift,
 	holdsKeys = holdsKeys,
 	canonicalKeyset = canonicalKeyset,
+	renameAction = renameAction,
 	splitElement = splitElement,
 	splitChain = splitChain,
 	chainSep = chainSep,
