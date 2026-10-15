@@ -27,15 +27,22 @@ local gadgetFileNames = {}
 local failedGadgets = {}
 local gadgetDependents = {} -- gadgetName -> {dependentName1, dependentName2, ...}
 
+-- at Initialize the gadgets sorted after this one are loaded but not inserted yet; reading their
+-- ~170 files on the first scan instead cost ~15 ms in one Update
+local function CacheContents()
+	for name, ki in pairs(gadgetHandler.knownGadgets) do
+		if ki.active and name ~= SELF_NAME and not gadgetContents[name] then
+			gadgetContents[name] = VFS.LoadFile(ki.filename)
+		end
+	end
+end
+
 local function CacheGadgets()
 	for _, g in pairs(gadgetHandler.gadgets) do
 		local ghInfo = g.ghInfo
 		local name = ghInfo.name
 		if name ~= SELF_NAME then
 			gadgetFileNames[name] = ghInfo.filename
-			if not gadgetContents[name] then
-				gadgetContents[name] = VFS.LoadFile(ghInfo.filename)
-			end
 			if g.GetInfo then
 				local info = g:GetInfo()
 				if info.dependents then
@@ -75,8 +82,15 @@ end
 
 local function CheckForChanges(gadgetName, fileName, label)
 	local newContents = VFS.LoadFile(fileName)
-	if newContents ~= gadgetContents[gadgetName] then
+	if not newContents then
+		return
+	end
+	local oldContents = gadgetContents[gadgetName]
+	if newContents ~= oldContents then
 		gadgetContents[gadgetName] = newContents
+		if oldContents == nil then
+			return -- enabled after Initialize: this read is its baseline
+		end
 		local chunk, err = loadstring(newContents, fileName)
 		if chunk == nil then
 			spEcho("Failed to load: " .. fileName .. "  (" .. err .. ")")
@@ -102,6 +116,7 @@ if gadgetHandler:IsSyncedCode() then
 	local updateQueue = {}
 
 	function gadget:Initialize()
+		CacheContents()
 		CacheGadgets()
 	end
 
@@ -147,6 +162,7 @@ else
 	local mouseOffscreen = select(6, spGetMouseState())
 
 	function gadget:Initialize()
+		CacheContents()
 		CacheGadgets()
 	end
 
