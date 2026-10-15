@@ -13241,6 +13241,17 @@ local initialModel = {
 	onTfSwitchUnits = function(_event)
 		playSound("toolSwitch")
 		clearPassthrough()
+		-- The BUTTON (an event) is the map maker's: the tool comes back to the brush's own
+		-- engine pair when another owner (the mission editor) had it. switchToUnits passes no
+		-- event and keeps the owner.
+		if
+			_event
+			and WG.UnitPlacerTool
+			and WG.UnitPlacerTool.resetOwner
+			and WG.UnitPlacerTool.ownerName() ~= "terraform_brush"
+		then
+			WG.UnitPlacerTool.resetOwner()
+		end
 		if not WG.UnitPlacerTool then
 			Spring.Echo("[Terraform Brush] the Unit Placer widget is not loaded")
 			return
