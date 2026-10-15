@@ -261,7 +261,7 @@ local Tool = {} -- WG.UnitPlacerTool
 --
 -- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
 --   alpha? } | nil, all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
---   -> ids, teams() -> teamIDs, myTeam() -> teamID }
+--   -> ids, teams() -> teamIDs, myTeam() -> teamID, pick(mx, my) -> id | nil }
 -- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
 --   undo(), redo(), clearAll(strokeId) }
 local engineProvider = {
@@ -304,6 +304,11 @@ local engineProvider = {
 	myTeam = function()
 		return Spring.GetMyTeamID()
 	end,
+	--- The unit under a screen point, or nil (what a click selects).
+	pick = function(mx, my)
+		local kind, target = Spring.TraceScreenRay(mx, my)
+		return kind == "unit" and target or nil
+	end,
 }
 -- The gadget sink is installed once its message functions exist (after "Messages to the
 -- gadget" below); until then the tool is not active anyway.
@@ -315,7 +320,7 @@ local function libraryTitle()
 	return owner.title or LIBRARY_TITLE
 end
 
-local PROVIDER_FIELDS = { "valid", "info", "all", "inScreenRect", "inCylinder", "teams", "myTeam" }
+local PROVIDER_FIELDS = { "valid", "info", "all", "inScreenRect", "inCylinder", "teams", "myTeam", "pick" }
 local SINK_FIELDS = { "place", "remove", "transform", "undo", "redo", "clearAll" }
 
 ----------------------------------------------------------------
@@ -1970,8 +1975,8 @@ end
 
 local function selectPress(mx, my)
 	local _, ctrl, _, shift = Spring.GetModKeyState()
-	local kind, target = Spring.TraceScreenRay(mx, my)
-	if kind == "unit" and not ctrl then
+	local target = owner.provider.pick(mx, my)
+	if target ~= nil and not ctrl then
 		if shift then
 			toggleSelection(target)
 			return true
