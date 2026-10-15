@@ -309,6 +309,12 @@ vec3 rgb2hsv(vec3 c){
 
 ]]
 
+	return eubs
+end
+
+-- Map-specific, so kept out of the shared UBO defs: shader text that differs per map misses the driver's shader cache.
+-- Shaders that need waterBlend() include it with //__WATERBLENDDEFS__
+local function GetWaterBlendDefs()
 	local waterAbsorbColorR, waterAbsorbColorG, waterAbsorbColorB = gl.GetWaterRendering("absorb")
 	local waterMinColorR, waterMinColorG, waterMinColorB = gl.GetWaterRendering("minColor")
 	local waterBaseColorR, waterBaseColorG, waterBaseColorB = gl.GetWaterRendering("baseColor")
@@ -331,7 +337,7 @@ vec4 waterBlend(float fragmentheight){
 	return waterBlendResult;
 }
 ]]
-	waterUniforms = string.format(
+	return string.format(
 		waterUniforms,
 		waterAbsorbColorR,
 		waterAbsorbColorG,
@@ -343,9 +349,15 @@ vec4 waterBlend(float fragmentheight){
 		waterBaseColorG,
 		waterBaseColorB
 	)
-
-	return eubs .. waterUniforms
 end
+
+local function InsertWaterBlendDefs(src)
+	if src:find("//__WATERBLENDDEFS__", 1, true) then
+		return (src:gsub("//__WATERBLENDDEFS__", GetWaterBlendDefs()))
+	end
+	return src
+end
+
 local function GetQuaternionDefs()
 	-- For replacing //__QUATERNIONDEFS__ with the quaternion definitions
 	return [[
@@ -557,6 +569,7 @@ LuaShader.isTesselationShaderSupported = IsTesselationShaderSupported()
 LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
 LuaShader.GetAdvShadingActive = GetAdvShadingActive
 LuaShader.GetEngineUniformBufferDefs = GetEngineUniformBufferDefs
+LuaShader.GetWaterBlendDefs = GetWaterBlendDefs
 LuaShader.CreateShaderDefinesString = CreateShaderDefinesString
 LuaShader.GetQuaternionDefs = GetQuaternionDefs
 
@@ -710,6 +723,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 			if vsSrcNew then
 				vsSrcNew = vsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				vsSrcNew = InsertWaterBlendDefs(vsSrcNew)
 				vsSrcNew = vsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				vsSrcNew = vsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.vsSrcComplete = vsSrcNew
@@ -717,6 +731,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 
 			if gsSrcNew then
 				gsSrcNew = gsSrcNew:gsub("//__ENGINEUNIFORMBUFFERDEFS__", engineUniformBufferDefs)
+				gsSrcNew = InsertWaterBlendDefs(gsSrcNew)
 				gsSrcNew = gsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				gsSrcNew = gsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.gsSrcComplete = gsSrcNew
@@ -727,6 +742,7 @@ local function CheckShaderUpdates(shadersourcecache, delaytime)
 					"//__ENGINEUNIFORMBUFFERDEFS__",
 					(printf and (engineUniformBufferDefs .. printf.SSBODefinition) or engineUniformBufferDefs)
 				)
+				fsSrcNew = InsertWaterBlendDefs(fsSrcNew)
 				fsSrcNew = fsSrcNew:gsub("//__DEFINES__", shaderDefines)
 				fsSrcNew = fsSrcNew:gsub("//__QUATERNIONDEFS__", quaternionDefines)
 				shadersourcecache.fsSrcComplete = fsSrcNew -- the complete subbed cache should be kept as its needed to decipher lines post compilation errors

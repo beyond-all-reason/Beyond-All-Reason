@@ -1350,19 +1350,45 @@ local function PrepareResourcePreload()
 	-- wreck model of every unitDef; those models and their textures load with their object
 	-- instead. '$' engine textures are always resident.
 	tracy.ZoneBeginN("G:CUS:PrepareResourcePreload:CollectFileTextures")
-	for _, textureSet in pairs(textureKeytoSet) do
-		for bindPosition = 0, 10 do
-			local texture = textureSet[bindPosition]
-			if
-				texture
-				and type(texture) == "string"
-				and not seenTextures[texture]
-				and texture:sub(1, 1) ~= "%"
-				and texture:sub(1, 1) ~= "$"
-			then
-				textureCount = textureCount + 1
-				preloadTextures[textureCount] = texture
-				seenTextures[texture] = true
+	-- Skip sets only used by defs that cannot appear: a few Legion units live outside units/Legion and load in
+	-- every game (their normal maps are ~90 MB uncompressed), raptor eggs only drop in raptor games
+	local legionInGame = UnitDefNames.legcom ~= nil
+	local raptorsInGame = false
+	for _, unitDef in pairs(UnitDefs) do
+		if unitDef.name:sub(1, 7) == "raptor_" then
+			raptorsInGame = true
+			break
+		end
+	end
+	local texKeysInGame = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		local texKey = fastObjectDefIDtoTextureKey[unitDefID]
+		if texKey and (legionInGame or unitDef.name:sub(1, 3) ~= "leg") then
+			texKeysInGame[texKey] = true
+		end
+	end
+	for featureDefID, featureDef in pairs(FeatureDefs) do
+		local texKey = fastObjectDefIDtoTextureKey[-featureDefID]
+		local name = featureDef.name
+		if texKey and (legionInGame or name:sub(1, 3) ~= "leg") and (raptorsInGame or name:sub(1, 6) ~= "raptor") then
+			texKeysInGame[texKey] = true
+		end
+	end
+	for texKey, textureSet in pairs(textureKeytoSet) do
+		if texKeysInGame[texKey] then
+			for bindPosition = 0, 10 do
+				local texture = textureSet[bindPosition]
+				if
+					texture
+					and type(texture) == "string"
+					and not seenTextures[texture]
+					and texture:sub(1, 1) ~= "%"
+					and texture:sub(1, 1) ~= "$"
+				then
+					textureCount = textureCount + 1
+					preloadTextures[textureCount] = texture
+					seenTextures[texture] = true
+				end
 			end
 		end
 	end
@@ -2323,7 +2349,7 @@ local shaderactivations = 0
 
 -- Per-batch tracy zones (BindTextures/VAOSubmit) cost real time at dozens of batches per pass;
 -- keep them off unless actively profiling at batch granularity.
-local detailedTracy = true
+local detailedTracy = false
 
 -- Mirror of the texture units bound during the current draw pass: {bindPosition : texture}.
 -- Lets consecutive batches skip re-binding shared textures (e.g. common normal maps/atlases),
@@ -2603,11 +2629,16 @@ local function DisableCUSGL4(optName, _, _, playerID)
 	gadget:Shutdown()
 end
 
+local xmasChecked = false
 function gadget:GameFrame(n)
-	if not itsXmas and SYNCED.itsXmas then
-		itsXmas = true
-		initiated = false
-		ReloadCUSGL4(nil, nil, nil, Spring.GetLocalPlayerID())
+	-- unit_xmas sets it while synced gadgets load, so reading it once is enough (SYNCED reads cross Lua states)
+	if not xmasChecked then
+		xmasChecked = true
+		if not itsXmas and SYNCED.itsXmas then
+			itsXmas = true
+			initiated = false
+			ReloadCUSGL4(nil, nil, nil, Spring.GetLocalPlayerID())
+		end
 	end
 	for unitID, buildProgress in pairs(buildProgresses) do
 		local health, maxHealth, paralyzeDamage, capture, build = spGetUnitHealth(unitID)
@@ -3201,7 +3232,8 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 		return
 	end
 	tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua")
-	if not preloadedResources then
+	-- in pregame DrawGenesis spreads the warm-up over frames; finish it at once only when units can be drawn
+	if not preloadedResources and Spring.GetGameFrame() > 0 then
 		tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua:FallbackPreload")
 		PreloadRemainingResources()
 		tracy.ZoneEnd()
@@ -3209,7 +3241,10 @@ function gadget:DrawOpaqueUnitsLua(deferredPass, drawReflection, drawRefraction)
 	tracy.ZoneBeginN("G:CUS:DrawOpaqueUnitsLua:ResolveDrawPass")
 	local drawPass = drawPassBitsToNumber(true, deferredPass, drawReflection, drawRefraction)
 	tracy.ZoneEnd()
-	local batches, units = ExecuteDrawPass(drawPass)
+	-- the refraction pass (BumpWaterRefraction = 2) has no bins
+	if unitDrawBins[drawPass] then
+		ExecuteDrawPass(drawPass)
+	end
 	tracy.ZoneEnd()
 end
 
