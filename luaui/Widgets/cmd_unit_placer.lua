@@ -265,7 +265,7 @@ local Tool = {} -- WG.UnitPlacerTool
 -- id here, a record key there; the tool never arithmetics on it.
 --
 -- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
---   extra? } | nil, all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
+--   extra? } | nil, extra?(id) -> table (optional: what a copy carries besides type and place), all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
 --   -> ids, teams() -> teamIDs, myTeam() -> teamID, pick(mx, my) -> id | nil }
 -- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
 --   undo(), redo(), clearAll(strokeId) }
@@ -1438,7 +1438,8 @@ local function copySelection()
 			dz = offsets[index].dz,
 			facing = info.facing,
 			team = info.team,
-			extra = info.extra,
+			-- Asked only here: an owner's extra fields are built on demand, not every frame.
+			extra = owner.provider.extra and owner.provider.extra(info.id) or info.extra,
 		}
 	end
 	sel.clipboard = units
