@@ -265,7 +265,7 @@ local Tool = {} -- WG.UnitPlacerTool
 -- id here, a record key there; the tool never arithmetics on it.
 --
 -- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
---   alpha? } | nil, all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
+--   extra? } | nil, all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
 --   -> ids, teams() -> teamIDs, myTeam() -> teamID, pick(mx, my) -> id | nil }
 -- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
 --   undo(), redo(), clearAll(strokeId) }
@@ -1030,21 +1030,34 @@ end
 --- every symmetry position, each copy turned by its own rotation.
 local function expandPlacement(result)
 	local spots = {}
-	local function add(name, x, z, facing, team)
+	-- `extra` is the owner's: what a copied or blueprinted unit carried besides its type and
+	-- place (the mission editor's orders, quantity, ...). Carried through untouched; the
+	-- gadget's sink never sends it.
+	local function add(name, x, z, facing, team, extra)
 		local positions = getSymmetricPositions(x, z, facing * 90)
 		for index, p in ipairs(positions) do
 			local copyFacing = index == 1 and facing or degreesToFacing(p.rot)
 			local spot = makeSpot(name, p.x, p.z, copyFacing, team)
 			if spot then
+				spot.extra = extra
 				spots[#spots + 1] = spot
 			end
 		end
 	end
 	if result.group then
 		local paste = lastPick and lastPick.kind == "paste" and lastPick.value or nil
+		local blueprint = lastPick and lastPick.kind == "blueprint" and lastPick.value and lastPick.value.units or nil
+		local source = paste or blueprint
 		for _, unit in ipairs(result.units or {}) do
-			local member = paste and unit.index and paste[unit.index]
-			add(unit.unitDefName, unit.x, unit.z, unit.facing or 0, member and member.team or result.team)
+			local member = source and unit.index and source[unit.index]
+			add(
+				unit.unitDefName,
+				unit.x,
+				unit.z,
+				unit.facing or 0,
+				paste and member and member.team or result.team,
+				member and member.extra
+			)
 		end
 	else
 		for _, unit in ipairs(result.spots or {}) do
@@ -1425,6 +1438,7 @@ local function copySelection()
 			dz = offsets[index].dz,
 			facing = info.facing,
 			team = info.team,
+			extra = info.extra,
 		}
 	end
 	sel.clipboard = units
