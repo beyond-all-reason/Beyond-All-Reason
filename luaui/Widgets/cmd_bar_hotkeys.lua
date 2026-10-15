@@ -15,7 +15,10 @@ end
 -- Localized Spring API for performance
 local spEcho = Spring.Echo
 
+local WidgetActions = require("luaui/Include/keybind_widget_actions")
 local profiles = require("luaui/Include/keybind_profiles")
+
+local manifestsVersion, defaultsSignature
 
 local function reloadWidgetsBindings()
 	local reloadableWidgets = { "buildmenu", "ordermenu", "keybinds", "cmd_blueprint" }
@@ -83,9 +86,47 @@ local function adoptEditedKeymap()
 	end
 end
 
+local function widgetDefaultsSignature()
+	local parts = {}
+	for i, default in ipairs(WidgetActions.defaults((WidgetActions.manifests()))) do
+		parts[i] = default.action .. "=" .. table.concat(default.keysets, ",")
+	end
+
+	return table.concat(parts, ";")
+end
+
+-- Held while the editor has edits staged: a reload would reseed it over them, and saving applies the defaults.
+function widget:Update()
+	local _, version = WidgetActions.manifests()
+	if version == manifestsVersion then
+		return
+	end
+	if WG.keybinds and WG.keybinds.hasStagedEdits and WG.keybinds.hasStagedEdits() then
+		return
+	end
+	manifestsVersion = version
+
+	local signature = widgetDefaultsSignature()
+	if signature == defaultsSignature then
+		return
+	end
+	defaultsSignature = signature
+
+	if Spring.GetConfigString("KeybindingFile", profiles.activeFile) ~= profiles.activeFile then
+		return
+	end
+	-- The editor writes the store from a copy of its own.
+	profiles.invalidate()
+	if profiles.materialize(profiles.activeName()) then
+		reloadBindings()
+	end
+end
+
 function widget:Initialize()
 	adoptEditedKeymap()
 	reloadBindings()
+	manifestsVersion = select(2, WidgetActions.manifests())
+	defaultsSignature = widgetDefaultsSignature()
 
 	WG.bar_hotkeys = {}
 	WG.bar_hotkeys.reloadBindings = reloadBindings
