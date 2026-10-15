@@ -1070,13 +1070,20 @@ function widget:GameOver(winningAllyTeams)
 	--widgetHandler:RemoveWidget()
 end
 
+local gadgetPaused = false -- non-player pauses, usually do not announce this
 function widget:GamePaused(playerID, isGamePaused)
-	if not gameover then
-		if isGamePaused then
+	if gameover then
+		return
+	end
+	if isGamePaused then
+		gadgetPaused = Spring.GetGameRulesParam("gamePaused") == 1
+		if not gadgetPaused then
 			queueNotification("GamePaused", true)
-		else
-			queueNotification("GameUnpaused", true)
 		end
+	elseif gadgetPaused then
+		gadgetPaused = false
+	else
+		queueNotification("GameUnpaused", true)
 	end
 end
 
