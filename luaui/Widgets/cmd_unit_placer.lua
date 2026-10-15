@@ -250,6 +250,70 @@ local lastPick -- { kind = "unit" | "blueprint" | "paste", value, facing, cycle 
 local Tool = {} -- WG.UnitPlacerTool
 
 ----------------------------------------------------------------
+-- Provider and sink (units unification, phase 2)
+----------------------------------------------------------------
+-- Everything the gestures READ about placed units goes through `owner.provider`, and
+-- everything they DO goes through `owner.sink`. The brush installs the engine pair (real
+-- units through the Unit Placer gadget, below); the mission editor installs a pair over its
+-- document (records keyed by string, its own undo), and the same gestures, brush,
+-- formations, keys and panel drive both. An id is whatever the provider hands out: a unit
+-- id here, a record key there; the tool never arithmetics on it.
+--
+-- provider = { valid(id), info(id) -> { id, name, defID, x, z, facing, xsize, zsize, team,
+--   alpha? } | nil, all() -> ids, inScreenRect(x1, y1, x2, y2) -> ids, inCylinder(x, z, r)
+--   -> ids, teams() -> teamIDs, myTeam() -> teamID }
+-- sink = { place(spots, strokeId) -> strokeId, remove(ids, strokeId), transform(moves),
+--   undo(), redo(), clearAll(strokeId) }
+local engineProvider = {
+	valid = function(unitID)
+		return Spring.ValidUnitID(unitID)
+	end,
+	info = function(unitID)
+		if not Spring.ValidUnitID(unitID) then
+			return nil
+		end
+		local def = UnitDefs[Spring.GetUnitDefID(unitID)]
+		local x, _, z = Spring.GetUnitPosition(unitID)
+		if not (def and x) then
+			return nil
+		end
+		return {
+			id = unitID,
+			name = def.name,
+			defID = def.id,
+			x = x,
+			z = z,
+			facing = (Spring.GetUnitBuildFacing(unitID) or 0) % 4,
+			xsize = def.xsize,
+			zsize = def.zsize,
+			team = Spring.GetUnitTeam(unitID),
+		}
+	end,
+	all = function()
+		return Spring.GetAllUnits() or {}
+	end,
+	inScreenRect = function(x1, y1, x2, y2)
+		return Spring.GetUnitsInScreenRectangle(x1, y1, x2, y2) or {}
+	end,
+	inCylinder = function(x, z, radius)
+		return Spring.GetUnitsInCylinder(x, z, radius) or {}
+	end,
+	teams = function()
+		return Spring.GetTeamList() or {}
+	end,
+	myTeam = function()
+		return Spring.GetMyTeamID()
+	end,
+}
+-- The gadget sink is installed once its message functions exist (after "Messages to the
+-- gadget" below); until then the tool is not active anyway.
+local owner = { name = "terraform_brush", provider = engineProvider, sink = nil }
+local gadgetSink
+
+local PROVIDER_FIELDS = { "valid", "info", "all", "inScreenRect", "inCylinder", "teams", "myTeam" }
+local SINK_FIELDS = { "place", "remove", "transform", "undo", "redo", "clearAll" }
+
+----------------------------------------------------------------
 -- Small helpers
 ----------------------------------------------------------------
 --- Every message changes the units, so it is also where a map project learns it has
@@ -272,7 +336,7 @@ end
 
 local function teams()
 	local out = {}
-	for _, teamID in ipairs(Spring.GetTeamList() or {}) do
+	for _, teamID in ipairs(owner.provider.teams()) do
 		out[#out + 1] = teamID
 	end
 	table.sort(out)
@@ -281,7 +345,7 @@ end
 
 local function currentTeam()
 	if up.team == nil then
-		up.team = Spring.GetMyTeamID()
+		up.team = owner.provider.myTeam()
 	end
 	return up.team
 end
@@ -581,7 +645,7 @@ end
 -- Messages to the gadget
 ----------------------------------------------------------------
 --- Placements as one stroke: { { name, x, z, facing, team }, ... }, in batches per team.
-local function sendPlacements(spots, strokeId)
+local function gadgetPlace(spots, strokeId)
 	if #spots == 0 then
 		return nil
 	end
@@ -609,7 +673,7 @@ local function sendPlacements(spots, strokeId)
 	return strokeId
 end
 
-local function sendRemove(ids, strokeId)
+local function gadgetRemove(ids, strokeId)
 	if #ids == 0 then
 		return
 	end
@@ -624,7 +688,7 @@ local function sendRemove(ids, strokeId)
 end
 
 --- Moves and turns: { { id, x, z, facing }, ... }, one stroke.
-local function sendTransforms(moves)
+local function gadgetTransform(moves)
 	if #moves == 0 then
 		return
 	end
@@ -637,6 +701,36 @@ local function sendTransforms(moves)
 		end
 		sendMsg(MSG.transform .. strokeId .. "|" .. table.concat(part, ";"))
 	end
+end
+
+-- The brush's sink: real units through the gadget, one stroke per gesture.
+gadgetSink = {
+	place = gadgetPlace,
+	remove = gadgetRemove,
+	transform = gadgetTransform,
+	undo = function()
+		sendMsg(MSG.undo)
+	end,
+	redo = function()
+		sendMsg(MSG.redo)
+	end,
+	clearAll = function(strokeId)
+		sendMsg(MSG.clearAll .. tostring(strokeId or nextStrokeId()))
+	end,
+}
+owner.sink = gadgetSink
+
+--- What every gesture calls: the owner's sink, whichever it is.
+local function sendPlacements(spots, strokeId)
+	return owner.sink.place(spots, strokeId)
+end
+
+local function sendRemove(ids, strokeId)
+	return owner.sink.remove(ids, strokeId)
+end
+
+local function sendTransforms(moves)
+	return owner.sink.transform(moves)
 end
 
 ----------------------------------------------------------------
@@ -945,9 +1039,10 @@ end
 local function unitsInBrush(x, z)
 	local ids, seen = {}, {}
 	for _, p in ipairs(getSymmetricPositions(x, z, up.rotation)) do
-		for _, unitID in ipairs(Spring.GetUnitsInCylinder(p.x, p.z, up.radius * 1.42) or {}) do
+		for _, unitID in ipairs(owner.provider.inCylinder(p.x, p.z, up.radius * 1.42)) do
 			if not seen[unitID] then
-				local ux, _, uz = Spring.GetUnitPosition(unitID)
+				local info = owner.provider.info(unitID)
+				local ux, uz = info and info.x, info and info.z
 				if ux and BrushShapes.isInside(ux - p.x, uz - p.z, up.radius, up.shape, p.rot or up.rotation) then
 					seen[unitID] = true
 					ids[#ids + 1] = unitID
@@ -1064,7 +1159,7 @@ local function setSelection(ids, additive)
 		sel.ids, sel.set = {}, {}
 	end
 	for _, unitID in ipairs(ids) do
-		if Spring.ValidUnitID(unitID) and not sel.set[unitID] then
+		if owner.provider.valid(unitID) and not sel.set[unitID] then
 			sel.set[unitID] = true
 			sel.ids[#sel.ids + 1] = unitID
 		end
@@ -1085,26 +1180,10 @@ local function toggleSelection(unitID)
 end
 
 --- What a transform needs of a placed unit, or nil for one gone.
+--- What is placed under this id, as the owner's provider tells it (the engine's unit, or
+--- the mission editor's record). nil when it is gone.
 local function unitInfo(unitID)
-	if not Spring.ValidUnitID(unitID) then
-		return nil
-	end
-	local def = UnitDefs[Spring.GetUnitDefID(unitID)]
-	local x, _, z = Spring.GetUnitPosition(unitID)
-	if not (def and x) then
-		return nil
-	end
-	return {
-		id = unitID,
-		name = def.name,
-		defID = def.id,
-		x = x,
-		z = z,
-		facing = (Spring.GetUnitBuildFacing(unitID) or 0) % 4,
-		xsize = def.xsize,
-		zsize = def.zsize,
-		team = Spring.GetUnitTeam(unitID),
-	}
+	return owner.provider.info(unitID)
 end
 
 local function selectedInfos()
@@ -1141,7 +1220,7 @@ local function deleteSelection()
 	end
 	local ids = {}
 	for _, unitID in ipairs(sel.ids) do
-		if Spring.ValidUnitID(unitID) then
+		if owner.provider.valid(unitID) then
 			ids[#ids + 1] = unitID
 		end
 	end
@@ -1150,8 +1229,8 @@ local function deleteSelection()
 end
 
 local function selectAllInBox(x1, y1, x2, y2, additive)
-	local ids = Spring.GetUnitsInScreenRectangle(min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
-	setSelection(ids or {}, additive)
+	local ids = owner.provider.inScreenRect(min(x1, x2), min(y1, y2), max(x1, x2), max(y1, y2))
+	setSelection(ids, additive)
 end
 
 local function selectAllVisible()
@@ -1426,7 +1505,7 @@ local function saveUnits()
 	local count = 0
 	file:write("-- Unit map: " .. tostring(Game.mapName) .. ", saved " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
 	file:write("return {\n\tunits = {\n")
-	for _, unitID in ipairs(Spring.GetAllUnits() or {}) do
+	for _, unitID in ipairs(owner.provider.all()) do
 		local info = unitInfo(unitID)
 		if info then
 			count = count + 1
@@ -1668,16 +1747,61 @@ function Tool.setGridSnapSize(n)
 end
 
 function Tool.undo()
-	sendMsg(MSG.undo)
+	owner.sink.undo()
 end
 
 function Tool.redo()
-	sendMsg(MSG.redo)
+	owner.sink.redo()
 end
 
 function Tool.clearAll()
 	clearSelection()
-	sendMsg(MSG.clearAll .. nextStrokeId())
+	owner.sink.clearAll(nextStrokeId())
+end
+
+--- Another owner takes the tool (units unification, phase 2): its provider says what is
+--- placed, its sink does what a gesture asks. The mission editor installs a pair over its
+--- document; `Tool.resetOwner` gives the brush its engine pair back. Both drop the
+--- selection and the pick: ids mean nothing across owners.
+---@param name string
+---@param provider table see PROVIDER_FIELDS
+---@param sink table see SINK_FIELDS
+---@return boolean ok, string|nil why
+function Tool.setOwner(name, provider, sink)
+	for _, field in ipairs(PROVIDER_FIELDS) do
+		if type(provider) ~= "table" or type(provider[field]) ~= "function" then
+			return false, "provider has no " .. field
+		end
+	end
+	for _, field in ipairs(SINK_FIELDS) do
+		if type(sink) ~= "table" or type(sink[field]) ~= "function" then
+			return false, "sink has no " .. field
+		end
+	end
+	clearSelection()
+	dropPick()
+	owner.name, owner.provider, owner.sink = tostring(name), provider, sink
+	up.team = nil
+	up.undoCount, up.redoCount = 0, 0
+	return true
+end
+
+function Tool.resetOwner()
+	clearSelection()
+	dropPick()
+	owner.name, owner.provider, owner.sink = "terraform_brush", engineProvider, gadgetSink
+	up.team = nil
+	up.undoCount, up.redoCount = 0, 0
+end
+
+function Tool.ownerName()
+	return owner.name
+end
+
+--- An owner reports its undo depth (the gadget does so through unit_placer_history).
+function Tool.setHistory(undoCount, redoCount)
+	up.undoCount = tonumber(undoCount) or 0
+	up.redoCount = tonumber(redoCount) or 0
 end
 
 --- For the harness: the placer, the type armed now, and a drop at a world point as a click
@@ -2097,7 +2221,7 @@ function widget:Update(dt)
 		sel.pruneTimer = 0
 		for index = #sel.ids, 1, -1 do
 			local unitID = sel.ids[index]
-			if not Spring.ValidUnitID(unitID) then
+			if not owner.provider.valid(unitID) then
 				sel.set[unitID] = nil
 				table.remove(sel.ids, index)
 			end
@@ -2253,11 +2377,9 @@ local function drawSelection()
 	gl.LineWidth(2)
 	gl.Color(1.0, 0.85, 0.25, 0.85)
 	for _, unitID in ipairs(sel.ids) do
-		local x, _, z = Spring.GetUnitPosition(unitID)
-		---@type table?
-		local def = x and UnitDefs[Spring.GetUnitDefID(unitID)]
-		if def then
-			drawRegularPolygon(x, z, max(def.xsize or 2, def.zsize or 2) * 8 * 0.75 + 4, 0, 20)
+		local info = unitInfo(unitID)
+		if info then
+			drawRegularPolygon(info.x, info.z, max(info.xsize or 2, info.zsize or 2) * 8 * 0.75 + 4, 0, 20)
 		end
 	end
 	gl.LineWidth(1)
@@ -2268,13 +2390,11 @@ local function drawRemovalTargets(x, z)
 	gl.LineWidth(2)
 	gl.Color(1.0, 0.2, 0.15, 0.9 * up.edgeFade)
 	for _, unitID in ipairs(unitsInBrush(x, z)) do
-		local ux, _, uz = Spring.GetUnitPosition(unitID)
-		---@type table?
-		local def = ux and UnitDefs[Spring.GetUnitDefID(unitID)]
-		if def then
-			local w, h = Layout.footprint(def.xsize, def.zsize, Spring.GetUnitBuildFacing(unitID) or 0)
-			drawFootprint(ux, uz, w + 4, h + 4)
-			drawRegularPolygon(ux, uz, max(w, h) * 0.5, 45, 4)
+		local info = unitInfo(unitID)
+		if info then
+			local w, h = Layout.footprint(info.xsize, info.zsize, info.facing or 0)
+			drawFootprint(info.x, info.z, w + 4, h + 4)
+			drawRegularPolygon(info.x, info.z, max(w, h) * 0.5, 45, 4)
 		end
 	end
 	gl.LineWidth(1)
