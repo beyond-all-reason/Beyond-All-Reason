@@ -266,6 +266,8 @@ local function collidersOf(index, action, raw)
 	end
 
 	return found
+end
+
 -- One action's binds handed to another where they sit, as two actions on one keyset are tried in
 -- bind order. A keyset the other already holds is dropped, the engine refusing a bind twice over.
 local function renameAction(binds, from, to)

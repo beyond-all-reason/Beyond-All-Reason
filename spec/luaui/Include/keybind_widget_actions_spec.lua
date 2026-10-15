@@ -1,5 +1,7 @@
 -- Guards how a widget's declared actions reach the keybind editor and the profile store.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local WidgetActions = require("luaui/Include/keybind_widget_actions")
 
 local FOLDER = "LuaUI/Widgets/"
@@ -132,51 +134,50 @@ describe("the manifests of the widgets installed", function()
 	it("are read once and follow the widgets running, counting only a change in which are", function()
 		local manifestPath = FOLDER .. "gui_example/manifest.json"
 		local reads, revision, active = 0, 1, {}
-		local realWG, realHandler = rawget(_G, "WG"), rawget(_G, "widgetHandler")
-		local realSubDirs, realFileExists, realLoadFile = VFS.SubDirs, VFS.FileExists, VFS.LoadFile
-		VFS.SubDirs = function(folder)
-			return folder == FOLDER and { FOLDER .. "gui_example/" } or {}
-		end
-		VFS.FileExists = function(path)
-			return path == manifestPath
-		end
-		VFS.LoadFile = function(path)
-			reads = reads + 1
+		local realFileExists = VFS.FileExists
 
-			return path == manifestPath and '{ "id": "gui_example", "display_name": "Example" }' or nil
-		end
-		rawset(_G, "WG", {})
-		rawset(_G, "widgetHandler", {
-			GetWidgetsRevision = function()
-				return revision
-			end,
-			GetActiveWidgetFiles = function()
-				return active
-			end,
+		local env = SpecEnv.new({
+			VFS = {
+				SubDirs = function(folder)
+					return folder == FOLDER and { FOLDER .. "gui_example/" } or {}
+				end,
+				-- Faked only for the widget manifest; other paths (the module code itself, included
+				-- via `require`) still need to resolve to real files on disk.
+				FileExists = function(path, ...)
+					return path == manifestPath or realFileExists(path, ...)
+				end,
+				LoadFile = function(path)
+					reads = reads + 1
+
+					return path == manifestPath and '{ "id": "gui_example", "display_name": "Example" }' or nil
+				end,
+			},
+			WG = {},
+			widgetHandler = {
+				GetWidgetsRevision = function()
+					return revision
+				end,
+				GetActiveWidgetFiles = function()
+					return active
+				end,
+			},
 		})
+		local widgetActions = SpecEnv.include(env, "luaui/Include/keybind_widget_actions.lua")
 
 		local function snapshot()
-			local widgets, changes = WidgetActions.manifests()
+			local widgets, changes = widgetActions.manifests()
 			local widget = widgets[1] or error("the manifest was not discovered")
 
 			return { widget.loaded, changes }
 		end
-		local ok, result = pcall(function()
-			local seen = { snapshot() }
-			active, revision = { FOLDER .. "gui_example/gui_example.lua" }, 2
-			seen[2] = snapshot()
-			revision = 3
-			seen[3] = snapshot()
 
-			return seen
-		end)
+		local seen = { snapshot() }
+		active, revision = { FOLDER .. "gui_example/gui_example.lua" }, 2
+		seen[2] = snapshot()
+		revision = 3
+		seen[3] = snapshot()
 
-		VFS.SubDirs, VFS.FileExists, VFS.LoadFile = realSubDirs, realFileExists, realLoadFile
-		rawset(_G, "WG", realWG)
-		rawset(_G, "widgetHandler", realHandler)
-
-		assert(ok, tostring(result))
-		assert.are.same({ { false, 0 }, { true, 1 }, { true, 1 } }, result)
+		assert.are.same({ { false, 0 }, { true, 1 }, { true, 1 } }, seen)
 		assert.are.equal(1, reads)
 	end)
 end)

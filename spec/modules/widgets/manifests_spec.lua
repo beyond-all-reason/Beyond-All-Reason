@@ -1,5 +1,7 @@
 -- Guards which widget directories the game reads a manifest from. VFS is faked below.
 
+local SpecEnv = VFS.Include("spec/support/spec_env.lua")
+
 local WidgetManifests = require("modules/widgets/manifests")
 
 local FOLDER = "LuaUI/Widgets/"
@@ -25,23 +27,23 @@ local function dirsOf(files, folder)
 end
 
 local function discover(files, folders, dirsByFolder)
-	local realSubDirs, realFileExists, realLoadFile = VFS.SubDirs, VFS.FileExists, VFS.LoadFile
+	local env = SpecEnv.new({
+		VFS = {
+			SubDirs = function(folder)
+				return dirsByFolder and dirsByFolder[folder] or dirsOf(files, folder)
+			end,
+			FileExists = function(path)
+				return files[path] ~= nil
+			end,
+			LoadFile = function(path)
+				return files[path]
+			end,
+		},
+	})
 
-	VFS.SubDirs = function(folder)
-		return dirsByFolder and dirsByFolder[folder] or dirsOf(files, folder)
-	end
-	VFS.FileExists = function(path)
-		return files[path] ~= nil
-	end
-	VFS.LoadFile = function(path)
-		return files[path]
-	end
+	local manifests = SpecEnv.include(env, "modules/widgets/manifests.lua")
 
-	local widgets, warnings = WidgetManifests.Discover(folders or FOLDER, VFS.RAW)
-
-	VFS.SubDirs, VFS.FileExists, VFS.LoadFile = realSubDirs, realFileExists, realLoadFile
-
-	return widgets, warnings
+	return manifests.Discover(folders or FOLDER, VFS.RAW)
 end
 
 local function ids(widgets)
