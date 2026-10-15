@@ -4,7 +4,7 @@
 
 -- Connected clients are behind always by a given latency plus max 16 frames between keyframes.
 -- Too-low values sort by pings that are not meaningfully separable. Too-high is unresponsive.
-local LAGGING_PING_SECONDS = 3.0
+local RESPONSIVE_PING_TIME = 1.8 -- This generally matches a 2-second true delay.
 
 local spGetPlayerList = Spring.GetPlayerList
 local spGetPlayerInfo = Spring.GetPlayerInfo
@@ -14,7 +14,7 @@ local spGetPlayerInfo = Spring.GetPlayerInfo
 ---@return boolean
 local function isPlayerLagging(playerID)
 	local pingTime = select(6, spGetPlayerInfo(playerID, false))
-	return pingTime ~= nil and pingTime >= LAGGING_PING_SECONDS
+	return pingTime ~= nil and pingTime >= RESPONSIVE_PING_TIME
 end
 
 ---One player('s client) sends all commands that control or update the host for the game.
@@ -35,7 +35,7 @@ local function getHostCommandPlayerID()
 		local playerID = playerIDs[i]
 		local _, active, spectator, _, _, pingTime = spGetPlayerInfo(playerID, false)
 		if active then
-			local lag = pingTime >= LAGGING_PING_SECONDS and pingTime or 0
+			local lag = pingTime >= RESPONSIVE_PING_TIME and pingTime or 0
 			if
 				bestID == nil
 				or (bestIsSpectator and not spectator)
