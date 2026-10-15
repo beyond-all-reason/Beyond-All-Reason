@@ -44,6 +44,10 @@ const float sheetOutlineAlpha = float(SHEET_OUTLINE_ALPHA);
 const float outlineGapAlpha = float(OUTLINE_GAP_ALPHA);
 const float outlineWidth = float(OUTLINE_WIDTH); // pixels at 1080p, scaled with the vertical resolution
 const float outlineWorldWidth = float(OUTLINE_WORLD_WIDTH); // elmos
+const float outlineThinStart = float(OUTLINE_THIN_START); // elmos from the camera
+const float outlineThinEnd = max(float(OUTLINE_THIN_END), outlineThinStart + 1.0);
+const float outlineThinScale = float(OUTLINE_THIN_SCALE);
+const float outlineMinWidth = float(OUTLINE_MIN_WIDTH); // screen pixels
 const float outlineDashes = float(OUTLINE_DASHES); // per radar cell side
 const float alliedAlpha = float(ALLIED_ALPHA);
 const float inactiveAlpha = float(INACTIVE_ALPHA);
@@ -110,6 +114,12 @@ float borderLine(vec2 sides, float diagonalOut, vec2 edge, vec2 stipples, float 
 	float line = max(sides.x * edge.x * stipples.x, sides.y * edge.y * stipples.y);
 	float corner = min(edge.x, edge.y) * max(sides.x * sides.y, (1.0 - sides.x) * (1.0 - sides.y) * diagonalOut);
 	return mix(line, cornerStipple, corner);
+}
+
+// An outline width (`pixel`: one screen pixel in its unit) thinned by `thin` (OUTLINE_THIN_SCALE once far from the
+// camera), though not below OUTLINE_MIN_WIDTH pixels unless it was thinner to begin with
+vec2 thinOutline(vec2 width, vec2 pixel, float thin) {
+	return max(width * thin, min(width, pixel * outlineMinWidth));
 }
 
 // circle mode: elmos inside (+) or outside (-) the allied circles' union, clamped to CIRCLE_SDF_RANGE. Off the map
@@ -180,6 +190,8 @@ void main() {
 	bool circles = circleMode > 0.5;
 	vec2 w = worldPos.xz;
 	float px = max(pixelCells.x, pixelCells.y) * cellSize; // elmos per pixel
+	// the outline's width factor: 1 up close, OUTLINE_THIN_SCALE from OUTLINE_THIN_END elmos from the camera on
+	float thin = mix(1.0, outlineThinScale, smoothstep(outlineThinStart, outlineThinEnd, distance(camPos, worldPos)));
 
 	// The previewed jammer's fill weight (spawn ripple and fade-in included), its exact coverage for the outline (so a
 	// moving jammer's old border doesn't linger) and the allied coverage: per radar cell, or per pixel inside the
@@ -188,8 +200,9 @@ void main() {
 	float ownSdf = -sdfRange; // circle mode: elmos inside the previewed jammer's circle
 	float alliedSdf = -sdfRange; // circle mode: elmos inside the allied circles
 	vec3 alliedOwner = vec3(0.0, 0.0, -1.0); // circle mode: the allied circle whose edge runs here, if known
-	// circle mode: OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos along the inside of the circles' edges
+	// circle mode: OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos along the inside of the circles' edges, thinned
 	float bandWidth = px * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth;
+	bandWidth = thinOutline(vec2(bandWidth), vec2(px), thin).x;
 	if (circles) {
 		float ownDist = distance(w, circleParams.xy);
 		if (previewParams.z >= 0.0 && circleParams.z > 0.0) {
@@ -257,9 +270,10 @@ void main() {
 		outlineOn = (max(cellPixels.x, cellPixels.y) < 1.0) ? sheetOutlineAlpha : 0.0;
 		vec2 inCell = fract(cellCoord);
 		vec2 edgeDist = 0.5 - abs(inCell - 0.5); // distance to the nearer side, in cells
-		// OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos, so it gets a little thicker when zoomed in; crisp, with
-		// a pixel of anti-aliasing on its inner edge
+		// OUTLINE_WIDTH pixels plus OUTLINE_WORLD_WIDTH elmos, so it gets a little thicker when zoomed in, thinned far
+		// from the camera; crisp, with a pixel of anti-aliasing on its inner edge
 		vec2 width = pixelCells * outlineWidth * viewGeometry.y / 1080.0 + outlineWorldWidth / cellSize;
+		width = thinOutline(width, pixelCells, thin);
 		if (outlineOn > 0.0 && any(lessThan(edgeDist, width))) {
 			// on the nearer x and z side of the cell when it borders a cell the previewed jammer does not cover, or
 			// that no jammer covers
