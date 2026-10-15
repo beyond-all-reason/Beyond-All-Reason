@@ -62,8 +62,8 @@ local InstanceVBOTable = gl.InstanceVBOTable
 local popElementInstance = InstanceVBOTable.popElementInstance
 local pushElementInstance = InstanceVBOTable.pushElementInstance
 
-local losStencilShader = nil
-local losCircleShader = nil
+local losStencilShader ---@type LuaShader
+local losCircleShader ---@type LuaShader
 ---@type InstanceVBOTable?
 local circleInstanceVBO = nil
 
@@ -82,6 +82,10 @@ local circleShaderSourceCache = {
 		PADDING = 1,
 		USE_TEAMCOLOR = 1,
 		VISIBILITYCULLING = 1,
+		LINE_THIN_START = 3000, -- elmos from the camera where the line starts thinning
+		LINE_THIN_END = 8000, -- elmos from the camera where it has thinned to LINE_THIN_SCALE
+		LINE_THIN_SCALE = 0.4, -- line width at LINE_THIN_END and further, relative to its full width
+		LINE_MIN_WIDTH = 0.7, -- screen pixels (not scaled with the resolution) the thinning stops at
 	},
 	uniformInt = {
 		heightmapTex = 0,
@@ -370,8 +374,10 @@ function widget:DrawWorld()
 	)
 	--spEcho("rangeColor", rangeColor[1], rangeColor[2], rangeColor[3], opacity * (useteamcolors and 2 or 1 ))
 	losCircleShader:SetUniform("teamColorMix", useteamcolors and 1 or 0)
+	local lineWidth = rangeLineWidth * lineScale
+	losCircleShader:SetUniform("lineWidthPx", lineWidth) -- the shader thins it far from the camera
 
-	gl.LineWidth(rangeLineWidth * lineScale * 1.0)
+	gl.LineWidth(lineWidth)
 
 	gl.DepthTest(true)
 	-- Note that we are skipping the first and last vertex, as those are the center of the circle :

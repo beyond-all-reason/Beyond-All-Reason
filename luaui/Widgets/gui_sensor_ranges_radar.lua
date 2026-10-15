@@ -26,8 +26,20 @@ local rangeLineWidth = 4.5 -- (note: will end up larger for larger vertical scre
 local lineScale = 1 -- this is a multiplier for the line width, to make it look better on high res screens
 
 local circleSegments = 126 -- To ensure its only 2 warps per instance
-local rangecorrectionelmos = debugmode and -16 or 16 -- visually align dotted line with fog-of-war radar edge (sharpened in shaders/GLSL/infoLOS.lua)
+local lineInset = 4 -- elmos inside the coverage edge: about one dash, so the visible (outer) half of the line stays within it
 --------- End configurables ------
+
+-- the engine rounds radar ranges down to whole radar cells (ILosType::GetRadius) and its disk ends half a cell past
+-- the last cell center, where gui_sensor_ranges_radar_preview ends the coverage; the line goes just inside
+local radarMipLevel = 2 -- modrules sensors.los.radarMipLevel
+do
+	local modrules = VFS.LoadFile("gamedata/modrules.lua")
+	local mip = modrules and modrules:match("radarMipLevel%s*=%s*(%d+)")
+	if mip then
+		radarMipLevel = tonumber(mip)
+	end
+end
+local radarCell = 8 * 2 ^ radarMipLevel
 
 local minRadarDistance = 500
 local gaiaTeamID = Spring.GetGaiaTeamID()
@@ -210,12 +222,25 @@ local allyTeamID = Spring.GetLocalAllyTeamID()
 
 -- find all unit types with radar in the game and place ranges into unitRange table
 local unitRange = {} -- table of unit types with their radar ranges
+local unitMid = {} -- unit type -> model mid offset x, z: the radar sits at the unit's midPos
+
+-- fetched once a unit of the type is seen (GetUnitDefDimensions loads the model)
+local function getUnitMid(unitDefID)
+	local mid = unitMid[unitDefID]
+	if not mid then
+		local dims = Spring.GetUnitDefDimensions(unitDefID)
+		mid = { dims and dims.midx or 0, dims and dims.midz or 0 }
+		unitMid[unitDefID] = mid
+	end
+	return mid
+end
 
 local unitList = {} -- all ally units and their coordinates and radar ranges
 
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.radarDistance and unitDef.radarDistance > minRadarDistance then -- save perf by excluding low radar range units
-		unitRange[unitDefID] = unitDef.radarDistance - rangecorrectionelmos
+		unitRange[unitDefID] = (math.floor(math.floor(unitDef.radarDistance / 8) / 2 ^ radarMipLevel) + 0.5) * radarCell
+			- lineInset
 	end
 end
 
@@ -295,6 +320,8 @@ function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason, noupload)
 	end
 
 	instanceCache[1] = unitRange[unitDefID]
+	local mid = getUnitMid(unitDefID)
+	instanceCache[3], instanceCache[4] = mid[1], mid[2]
 
 	local active = spGetUnitIsActive(unitID)
 	local gameFrame = spGetGameFrame()
