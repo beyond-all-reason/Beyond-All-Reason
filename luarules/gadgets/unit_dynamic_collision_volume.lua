@@ -13,9 +13,8 @@ function gadget:GetInfo()
 end
 
 if gadgetHandler:IsSyncedCode() then
-	-- Pop-up style unit and per piece collision volume definitions
 	local popupUnits = {} --list of pop-up style units
-	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume
+	local unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume, modelToVolume
 
 	-- Localization and speedups
 	local spSetPieceCollisionData = Spring.SetUnitPieceCollisionVolumeData
@@ -24,22 +23,15 @@ if gadgetHandler:IsSyncedCode() then
 	local spGetUnitCollisionData = Spring.GetUnitCollisionVolumeData
 	local spSetUnitCollisionData = Spring.SetUnitCollisionVolumeData
 	local spSetUnitRadiusAndHeight = Spring.SetUnitRadiusAndHeight
-	local spGetUnitRadius = Spring.GetUnitRadius
 	local spGetUnitHeight = Spring.GetUnitHeight
 	local spSetUnitMidAndAimPos = Spring.SetUnitMidAndAimPos
-	local spGetFeatureCollisionData = Spring.GetFeatureCollisionVolumeData
-	local spSetFeatureCollisionData = Spring.SetFeatureCollisionVolumeData
-	local spSetFeatureRadiusAndHeight = Spring.SetFeatureRadiusAndHeight
-	local spGetFeatureRadius = Spring.GetFeatureRadius
-	local spGetFeatureHeight = Spring.GetFeatureHeight
+	local spGetFeatureDefID = Spring.GetFeatureDefID
 
 	local spArmor = Spring.GetUnitArmored
 	local pairs = pairs
-	local is3doFeature = {}
+	local featureModelType = {}
 	for featureDefID, def in pairs(FeatureDefs) do
-		if def.modelpath:lower():find(".3do") then
-			is3doFeature[featureDefID] = true
-		end
+		featureModelType[featureDefID] = def.modeltype
 	end
 
 	local unitName = {}
@@ -54,42 +46,14 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
-		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume =
+		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume, modelUnitCollisionVolume, modelToVolume =
 			include("LuaRules/Configs/CollisionVolumes.lua")
 
 		local allFeatures = Spring.GetAllFeatures()
 		for i = 1, #allFeatures do
 			local featID = allFeatures[i]
-			local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
-			local featureModel = modelpath:lower()
-			if featureModel:find(".3do") then
-				local rs, hs
-				if spGetFeatureRadius(featID) > 47 then
-					rs, hs = 0.68, 0.60
-				else
-					rs, hs = 0.75, 0.67
-				end
-				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
-				if vtype >= 3 and xs == ys and ys == zs then
-					spSetFeatureCollisionData(
-						featID,
-						xs * rs,
-						ys * hs,
-						zs * rs,
-						xo,
-						yo - ys * 0.1323529 * rs,
-						zo,
-						vtype,
-						htype,
-						axis
-					)
-				end
-				spSetFeatureRadiusAndHeight(featID, spGetFeatureRadius(featID) * rs, spGetFeatureHeight(featID) * hs)
-			elseif featureModel:find(".s3o") then
-				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featID)
-				if vtype >= 3 and xs == ys and ys == zs then
-					spSetFeatureCollisionData(featID, xs, ys * 0.75, zs, xo, yo - ys * 0.09, zo, vtype, htype, axis)
-				end
+			if featureModelType[spGetFeatureDefID(featID)] == "s3o" then
+				modelToVolume.FEATURE["s3o"].rescale(featID)
 			end
 		end
 		local allUnits = Spring.GetAllUnits()
@@ -155,53 +119,15 @@ if gadgetHandler:IsSyncedCode() then
 					spSetPieceCollisionData(unitID, pieceIndex, false, 1, 1, 1, 0, 0, 0, 1, 1)
 				end
 			end
-		elseif unitModeltype[unitDefID] == "3do" then
-			local rs, hs, ws
-			local r = spGetUnitRadius(unitID)
-			if r > 47 and not canFly[unitDefID] then
-				rs, hs, ws = 0.68, 0.68, 0.68
-			elseif not canFly[unitDefID] then
-				rs, hs, ws = 0.73, 0.73, 0.73
-			else
-				rs, hs, ws = 0.53, 0.17, 0.53
+		elseif modelUnitCollisionVolume[unitName[unitDefID]] then
+			local v = modelUnitCollisionVolume[unitName[unitDefID]]
+			if v[9] == nil then
+				-- The first unit created of a given model provides the missing primaryAxis value.
+				v[9] = select(9, spGetUnitCollisionData(unitID))
 			end
-			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
-			if vtype >= 3 and xs == ys and ys == zs then
-				if ys * hs < 13 and canFly[unitDefID] then -- Limit Max V height
-					spSetUnitCollisionData(unitID, xs * ws, 13, zs * rs, xo, yo, zo, 1, htype, 1)
-				elseif canFly[unitDefID] then
-					spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, 1, htype, 1)
-				else
-					spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, vtype, htype, axis)
-				end
-			end
-
-			-- set aircraft size
-			if canFly[unitDefID] and UnitDefs[unitDefID].transportCapacity > 0 then
-				spSetUnitRadiusAndHeight(unitID, 16, 16)
-			else
-				spSetUnitRadiusAndHeight(unitID, spGetUnitRadius(unitID) * rs, spGetUnitHeight(unitID) * hs)
-			end
-
-			-- make sure underwater units are really underwater (need midpoint + model radius <0)
-			local h = spGetUnitHeight(unitID)
-			local wd = UnitDefs[unitDefID].minWaterDepth
-			if UnitDefs[unitDefID].modCategories.underwater and wd and wd + r > 0 then
-				spSetUnitRadiusAndHeight(unitID, wd - 1, h)
-			end
-		elseif unitModeltype[unitDefID] == "s3o" then
-			if canFly[unitDefID] then
-				local rs, hs, ws = 1.15, 0.33, 1.15 -- dont know why 3do uses: 0.53, 0.17, 0.53
-				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
-				if vtype >= 3 and xs == ys and ys == zs then
-					if ys * hs < 13 then -- Limit Max V height
-						spSetUnitCollisionData(unitID, xs * ws, 13, zs * rs, xo, yo, zo, 3, htype, 0)
-					elseif canFly[unitDefID] then
-						spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, 3, htype, 0)
-					else
-						spSetUnitCollisionData(unitID, xs * ws, ys * hs, zs * rs, xo, yo, zo, vtype, htype, axis)
-					end
-				end
+			spSetUnitCollisionData(unitID, v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], v[9])
+			if v.radius then
+				spSetUnitRadiusAndHeight(unitID, v.radius, v.height)
 			end
 		end
 
@@ -218,36 +144,9 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	-- Same as for 3DO units, but for features
 	function gadget:FeatureCreated(featureID, allyTeam)
-		local featureDefID = Spring.GetFeatureDefID(featureID)
-		if is3doFeature[featureDefID] then
-			local rs, hs
-			if spGetFeatureRadius(featureID) > 47 then
-				rs, hs = 0.68, 0.60
-			else
-				rs, hs = 0.75, 0.67
-			end
-			local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetFeatureCollisionData(featureID)
-			if vtype >= 3 and xs == ys and ys == zs then
-				spSetFeatureCollisionData(
-					featureID,
-					xs * rs,
-					ys * hs,
-					zs * rs,
-					xo,
-					yo - ys * 0.09,
-					zo,
-					vtype,
-					htype,
-					axis
-				)
-			end
-			spSetFeatureRadiusAndHeight(
-				featureID,
-				spGetFeatureRadius(featureID) * rs,
-				spGetFeatureHeight(featureID) * hs
-			)
+		if featureModelType[spGetFeatureDefID(featureID)] == "3do" then
+			modelToVolume.FEATURE["3do"].rescale(featureID)
 		end
 	end
 
@@ -275,7 +174,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			if defs.state ~= stateInt then
 				if defs.perPiece then
-					t = dynamicPieceCollisionVolume[defs.name][stateString]
+					t = dynamicPieceCollisionVolume[defs.name][stateString] ---@as table
 					for pieceIndex, piece in pairs(t) do
 						if type(pieceIndex) == "number" then
 							spSetPieceCollisionData(
@@ -307,7 +206,8 @@ if gadgetHandler:IsSyncedCode() then
 					if unitHeight == nil then -- had error once, hope this nil check helps
 						popupUnits[unitID] = nil
 					else
-						p = unitCollisionVolume[defs.name][stateString]
+						---@diagnostic disable: need-check-nil, param-type-mismatch
+						p = unitCollisionVolume[defs.name][stateString] ---@as table
 						spSetUnitCollisionData(unitID, p[1], p[2], p[3], p[4], p[5], p[6], p[7], p[8], p[9])
 						if p[10] then
 							spSetUnitMidAndAimPos(unitID, 0, unitHeight / 2, 0, p[10], p[11], p[12], true)
