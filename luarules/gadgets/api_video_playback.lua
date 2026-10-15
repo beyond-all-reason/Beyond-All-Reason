@@ -24,7 +24,7 @@ local getPauseControllerID = BAR.Utilities.GetHostCommandPlayerID
 
 if gadgetHandler:IsSyncedCode() then
 	local playbackCount = 0
-	local onPlaybackFinished
+	local onPlaybackFinished ---@type fun()?
 
 	local function play(videoFile, onFinished)
 		local replacedOnFinished = onPlaybackFinished
@@ -69,7 +69,7 @@ else
 	local CATCH_UP_FRAMES = 11 * Game.gameSpeed -- same as gui_rejoinprogress.lua
 
 	local finishedPlaybackID -- finished on this client
-	local serverFrame -- the live game frame, while this client replays a backlog
+	local serverFrame = -1 -- the live game frame, while this client replays a backlog
 	local catchingUp = false
 
 	local function reportPlaybackFinished()

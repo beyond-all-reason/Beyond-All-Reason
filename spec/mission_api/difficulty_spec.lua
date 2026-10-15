@@ -2,7 +2,7 @@ local MissionSpecEnv = require("mission_api.spec_helper")
 
 local env = MissionSpecEnv.new()
 
-local difficulty = MissionSpecEnv.registerModules(env).Difficulty
+local difficulty = MissionSpecEnv.registerModules(env).Difficulty ---@type table
 
 -- Difficulties from luarules/mission_api/difficulties.json: Story = 1, Easy = 2, Medium = 3, Hard = 4.
 local STORY, EASY, MEDIUM, HARD = 1, 2, 3, 4

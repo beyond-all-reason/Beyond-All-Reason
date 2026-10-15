@@ -942,7 +942,7 @@ local function validateTriggerSettings(trigger, triggerID, triggers)
 end
 
 local function validateSchemaField(value, fieldType, recordKind, recordIDText, fieldName)
-	local results
+	local results ---@type table[]
 	if isDifficultiesTable(value) then
 		results = validateDifficultiesTable(value, fieldType, recordKind, recordIDText, fieldName)
 	else
