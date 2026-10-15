@@ -5,6 +5,7 @@
 // world position from the map g-buffer depth and takes the coverage of its radar cell, outlined along the border
 // with uncovered radar cells. Being the rendered terrain itself, it covers steep cliffs a sheet of per-cell quads
 // cuts through. Over water it lies on the water surface; units and features in front of the terrain stay untinted.
+// Past the map's edge there is no fill, only the outline carrying on a little and fading out.
 
 //__DEFINES__
 
@@ -48,6 +49,7 @@ const float outlineThinStart = float(OUTLINE_THIN_START); // elmos from the came
 const float outlineThinEnd = max(float(OUTLINE_THIN_END), outlineThinStart + 1.0);
 const float outlineThinScale = float(OUTLINE_THIN_SCALE);
 const float outlineMinWidth = float(OUTLINE_MIN_WIDTH); // screen pixels
+const float offMapOutlineFade = max(float(OFFMAP_OUTLINE_FADE), 1.0); // elmos past the map's edge
 const float outlineDashes = float(OUTLINE_DASHES); // per radar cell side
 const float alliedAlpha = float(ALLIED_ALPHA);
 const float inactiveAlpha = float(INACTIVE_ALPHA);
@@ -114,6 +116,11 @@ float borderLine(vec2 sides, float diagonalOut, vec2 edge, vec2 stipples, float 
 	float line = max(sides.x * edge.x * stipples.x, sides.y * edge.y * stipples.y);
 	float corner = min(edge.x, edge.y) * max(sides.x * sides.y, (1.0 - sides.x) * (1.0 - sides.y) * diagonalOut);
 	return mix(line, cornerStipple, corner);
+}
+
+// 1 for a radar cell past the map's edge, 0 on the map
+float cellOffMap(ivec2 cell) {
+	return float(any(lessThan(cell, ivec2(0))) || any(greaterThanEqual(cell, ivec2(MAP_CELLS_X, MAP_CELLS_Z))));
 }
 
 // An outline width (`pixel`: one screen pixel in its unit) thinned by `thin` (OUTLINE_THIN_SCALE once far from the
@@ -192,6 +199,10 @@ void main() {
 	float px = max(pixelCells.x, pixelCells.y) * cellSize; // elmos per pixel
 	// the outline's width factor: 1 up close, OUTLINE_THIN_SCALE from OUTLINE_THIN_END elmos from the camera on
 	float thin = mix(1.0, outlineThinScale, smoothstep(outlineThinStart, outlineThinEnd, distance(camPos, worldPos)));
+	// past the map's edge there is no fill, and the outline fades out over OFFMAP_OUTLINE_FADE elmos
+	float offMapDist = distance(w, clamp(w, vec2(0.0), mapSize.xy)); // mapSize.xy: the map in elmos
+	float mapFill = clamp(1.0 - offMapDist / px, 0.0, 1.0);
+	float mapLine = 1.0 - clamp(offMapDist / offMapOutlineFade, 0.0, 1.0);
 
 	// The previewed jammer's fill weight (spawn ripple and fade-in included), its exact coverage for the outline (so a
 	// moving jammer's old border doesn't linger) and the allied coverage: per radar cell, or per pixel inside the
@@ -212,8 +223,7 @@ void main() {
 		// exact near an edge (filtering bends the distance field by up to cellSize / sqrt(2), most where circles cross,
 		// and it lags moving circles by up to sdfSlack) and off the map, where the field has no texels
 		float nearEdge = bandWidth + 2.0 * px + 4.0 + 0.75 * cellSize + sdfSlack;
-		bool offMap = any(notEqual(w, clamp(w, vec2(0.0), mapSize.xy)));
-		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && (abs(alliedSdf) < nearEdge || offMap)) {
+		if (alliedParams.x > 0.5 && alliedCircleCount > 0.5 && (abs(alliedSdf) < nearEdge || offMapDist > 0.0)) {
 			alliedSdf = alliedExactSdf(w, alliedOwner);
 		}
 		float distN = ownDist / max(circleParams.z, 1.0);
@@ -233,9 +243,9 @@ void main() {
 	// the previewed jammer's coverage blends in over the muted allied coverage. An inactive one jams nothing: it is a
 	// faint hint where no allied jammer covers the spot, allied coverage shows as it is.
 	float alliedFade = allied * alliedParams.y * alliedAlpha;
-	float fillFade = mix(mix(alliedFade, 1.0, weight), max(alliedFade, weight * inactiveAlpha), inactive);
-	float jammedFade = max(alliedFade, ownIn * weight * (1.0 - inactive)); // how strongly a jammer covers the spot
-	float ownLineFade = ownIn * weight * mix(1.0, inactiveOutlineAlpha, inactive);
+	float fillFade = mix(mix(alliedFade, 1.0, weight), max(alliedFade, weight * inactiveAlpha), inactive) * mapFill;
+	float jammedFade = max(alliedFade, ownIn * weight * (1.0 - inactive)) * mapLine; // how strongly a jammer covers the spot
+	float ownLineFade = ownIn * weight * mix(1.0, inactiveOutlineAlpha, inactive) * mapLine;
 	if (max(fillFade, max(jammedFade, ownLineFade)) < minCoverage) {
 		discard;
 	}
@@ -281,8 +291,10 @@ void main() {
 			ivec2 nx = cell + ivec2(int(nearSide.x) * 2 - 1, 0);
 			ivec2 nz = cell + ivec2(0, int(nearSide.y) * 2 - 1);
 			ivec2 nd = ivec2(nx.x, nz.y); // diagonally across the nearer corner
-			vec3 ownNeighbours = vec3(previewTargetAt(nx), previewTargetAt(nz), previewTargetAt(nd));
-			vec3 alliedNeighbours = vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd));
+			// the map's edge is no border: cells past it count as covered
+			vec3 offMapNeighbours = vec3(cellOffMap(nx), cellOffMap(nz), cellOffMap(nd));
+			vec3 ownNeighbours = max(vec3(previewTargetAt(nx), previewTargetAt(nz), previewTargetAt(nd)), offMapNeighbours);
+			vec3 alliedNeighbours = max(vec3(alliedAt(nx), alliedAt(nz), alliedAt(nd)), offMapNeighbours);
 			// x side, z side and diagonal facing outside the previewed jammer's coverage, and outside all jammed cells
 			vec3 ownOut = ownIn * (1.0 - ownNeighbours);
 			vec3 coveredOut = 1.0 - max(ownNeighbours * (1.0 - inactive), alliedNeighbours);
