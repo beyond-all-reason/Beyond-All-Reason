@@ -159,6 +159,7 @@ local widgetHandler = {
 	widgetHashes = {}, -- this is a table of widget md5 values to file names, used for user widget hashing
 
 	WG = {}, -- shared table for widgets
+	widgetsRevision = 0,
 
 	globals = {}, -- global vars/funcs
 
@@ -1656,6 +1657,12 @@ newWidget = function(self, enableLocalsAccess, fromZip, filename)
 	wh.GetModalRevision = function(_)
 		return self:GetModalRevision()
 	end
+	wh.GetWidgetsRevision = function(_)
+		return self:GetWidgetsRevision()
+	end
+	wh.GetActiveWidgetFiles = function(_)
+		return self:GetActiveWidgetFiles()
+	end
 	wh.SetWindowsHideInterface = function(_, enabled)
 		return self:SetWindowsHideInterface(enabled)
 	end
@@ -2070,6 +2077,8 @@ function widgetHandler:InsertWidgetRaw(widget)
 		self:UpdateCallIns()
 	end
 
+	self.widgetsRevision = self.widgetsRevision + 1
+
 	if widget.Initialize then
 		widget:Initialize()
 	end
@@ -2106,6 +2115,7 @@ function widgetHandler:RemoveWidgetRaw(widget)
 		ArrayRemove(self[listname .. "List"], widget)
 	end
 	self:UpdateCallIns()
+	self.widgetsRevision = self.widgetsRevision + 1
 end
 
 --------------------------------------------------------------------------------
@@ -2623,6 +2633,21 @@ end
 -- stencil) can tell it needs rebuilding.
 function widgetHandler:GetModalRevision()
 	return modalRevision
+end
+
+-- Bumped whenever a widget goes in or comes out, so state derived from the running set can tell
+-- it moved.
+function widgetHandler:GetWidgetsRevision()
+	return self.widgetsRevision
+end
+
+function widgetHandler:GetActiveWidgetFiles()
+	local files = {}
+	for i, w in ipairs(self.widgets) do
+		files[i] = w.whInfo.filename
+	end
+
+	return files
 end
 
 -- Whether a widget is drawing and taking input right now, whether it is a window
