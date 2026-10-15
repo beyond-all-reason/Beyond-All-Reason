@@ -280,24 +280,22 @@ local function readBindFile(text, depth, seed)
 	depth = depth or 1
 	local breaks = "[^" .. string.char(13, 10) .. "]+"
 	local binds = {}
+	-- Keyed "action\1canon", so a seeded preset's own duplicates are a lookup instead of a scan:
+	-- a large paste merged against an existing preset is otherwise quadratic in the bind count.
+	local seen = {}
 	for i, b in ipairs(seed or {}) do
 		binds[i] = { keyset = b.keyset, action = b.action }
+		seen[b.action .. "\1" .. keybindModel.canonicalKeyset(b.keyset)] = true
 	end
 
 	local function holds(keyset, action)
-		local canon = keybindModel.canonicalKeyset(keyset)
-		for _, b in ipairs(binds) do
-			if b.action == action and keybindModel.canonicalKeyset(b.keyset) == canon then
-				return true
-			end
-		end
-
-		return false
+		return seen[action .. "\1" .. keybindModel.canonicalKeyset(keyset)] == true
 	end
 
 	local function add(keyset, action)
 		if not (seed and holds(keyset, action)) then
 			binds[#binds + 1] = { keyset = keyset, action = action }
+			seen[action .. "\1" .. keybindModel.canonicalKeyset(keyset)] = true
 		end
 	end
 
@@ -320,10 +318,13 @@ local function readBindFile(text, depth, seed)
 	end
 
 	-- Applied to what the file has bound so far rather than issued as commands. Matched on the
-	-- command word, never its args.
+	-- command word, never its args. Dropped from `seen` too, or a later line rebinding the same
+	-- keyset and action would be read as already held.
 	local function drop(match)
 		for i = #binds, 1, -1 do
-			if match(binds[i]) then
+			local b = binds[i]
+			if match(b) then
+				seen[b.action .. "\1" .. keybindModel.canonicalKeyset(b.keyset)] = nil
 				table.remove(binds, i)
 			end
 		end
@@ -336,7 +337,7 @@ local function readBindFile(text, depth, seed)
 		if keyset and action ~= "" then
 			add(resolveKeySyms(keyset), action)
 		elseif line:match("^%s*unbindall%s*$") then
-			binds = {}
+			binds, seen = {}, {}
 		elseif line:match("^%s*unbindaction%s+%S") then
 			local command = line:match("^%s*unbindaction%s+(%S+)"):lower()
 			drop(function(b)
