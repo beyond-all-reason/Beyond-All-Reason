@@ -531,6 +531,10 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-fp-undo", "img-toggle-fp-undo", "section-fp-undo", false)
 	envSectionToggle("btn-toggle-fp-dist", "img-toggle-fp-dist", "section-fp-dist", true)
 	envSectionToggle("btn-toggle-fp-save", "img-toggle-fp-save", "section-fp-save", false)
+	envSectionToggle("btn-toggle-un-mode", "img-toggle-un-mode", "section-un-mode", true)
+	envSectionToggle("btn-toggle-un-undo", "img-toggle-un-undo", "section-un-undo", false)
+	envSectionToggle("btn-toggle-un-dist", "img-toggle-un-dist", "section-un-dist", true)
+	envSectionToggle("btn-toggle-un-save", "img-toggle-un-save", "section-un-save", false)
 	envSectionToggle("btn-toggle-ramp-type", "img-toggle-ramp-type", "section-ramp-type", true)
 	envSectionToggle("btn-toggle-wb-mode", "img-toggle-wb-mode", "section-wb-mode", true)
 	envSectionToggle("btn-toggle-wb-dist", "img-toggle-wb-dist", "section-wb-dist", true)
@@ -560,6 +564,10 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-fp-instruments", "img-toggle-fp-instruments", "section-fp-instruments", false)
 	envSectionToggle("btn-toggle-fp-controls", "img-toggle-fp-controls", "section-fp-controls", true)
 	envSectionToggle("btn-toggle-fp-smart", "img-toggle-fp-smart", "section-fp-smart", false)
+	envSectionToggle("btn-toggle-un-overlays", "img-toggle-un-overlays", "section-un-overlays", false)
+	envSectionToggle("btn-toggle-un-instruments", "img-toggle-un-instruments", "section-un-instruments", false)
+	envSectionToggle("btn-toggle-un-controls", "img-toggle-un-controls", "section-un-controls", true)
+	envSectionToggle("btn-toggle-un-smart", "img-toggle-un-smart", "section-un-smart", false)
 	envSectionToggle("btn-toggle-gb-smart", "img-toggle-gb-smart", "section-gb-smart", false)
 	envSectionToggle("btn-toggle-sp-overlays", "img-toggle-sp-overlays", "section-sp-overlays", false)
 	do
@@ -686,6 +694,9 @@ function M.attach(doc, ctx)
 		local function getFP()
 			return WG.FeaturePlacer
 		end
+		local function getUN()
+			return WG.UnitPlacerTool
+		end
 		local function getSP()
 			return WG.SplatPainter
 		end
@@ -710,6 +721,27 @@ function M.attach(doc, ctx)
 		)
 		-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
 		wireMutexChipPair("fp-slope-mode-avoid", "avoidCliffs", "fp-slope-mode-prefer", "preferSlopes", getFP)
+
+		-- Unit placer chips: the same three filters as the feature placer
+		wireFilterToggleChip("un-filter-chip-avoid-water", "avoidWater", getUN)
+		-- Slope chip (units): activating defaults avoidCliffs on (so filtering starts immediately).
+		-- Sub-chips inside fp-smart-slope-content let user switch to prefer-slopes mode.
+		wireVisibilityChip(
+			"un-filter-chip-slope",
+			"un-smart-slope-content",
+			getUN,
+			{ "avoidCliffs", "preferSlopes" },
+			"avoidCliffs"
+		)
+		wireVisibilityChip(
+			"un-filter-chip-altitude",
+			"un-smart-altitude-content",
+			getUN,
+			{ "altMinEnable", "altMaxEnable" },
+			"altMinEnable"
+		)
+		-- Slope double-toggle sub-chips (inside slope content): mutually exclusive — activating one disables the other.
+		wireMutexChipPair("un-slope-mode-avoid", "avoidCliffs", "un-slope-mode-prefer", "preferSlopes", getUN)
 
 		-- Splat painter chips (mirror FP structure: avoid-water chip + slope/altitude sections with defaults + mutex slope-mode sub-chips)
 		wireFilterToggleChip("sp-filter-chip-avoid-water", "avoidWater", getSP)
@@ -799,6 +831,13 @@ function M.attach(doc, ctx)
 	widgetState.chipToggle("fp-param-chip-alignment", "fp-param-alignment-row", true)
 	widgetState.chipToggle("fp-param-chip-count", "fp-param-count-row", true)
 	widgetState.chipToggle("fp-param-chip-rate", "fp-param-rate-row", true)
+
+	-- Unit placer control pill toggles
+	widgetState.chipToggle("un-param-chip-size", "un-param-size-row", true)
+	widgetState.chipToggle("un-param-chip-rotation", "un-param-rotation-row", true)
+	widgetState.chipToggle("un-param-chip-alignment", "un-param-alignment-row", true)
+	widgetState.chipToggle("un-param-chip-count", "un-param-count-row", true)
+	widgetState.chipToggle("un-param-chip-rate", "un-param-rate-row", true)
 
 	-- Collapsible toggle with warning chip: shown when collapsed but any listed chip is active.
 	-- Uses table field to avoid the 200-local chunk limit.
@@ -981,6 +1020,17 @@ function M.attach(doc, ctx)
 	envSectionToggle("btn-toggle-ts-oldmap", "img-toggle-ts-oldmap", "section-ts-oldmap", false)
 	envSectionToggle("btn-toggle-ts-biome", "img-toggle-ts-biome", "section-ts-biome", false)
 	envSectionToggle("btn-toggle-ts-htint", "img-toggle-ts-htint", "section-ts-htint", false)
+	-- WORLDSPACE TINT sub-sections, each collapsed until opened (the section is long)
+	envSectionToggle("btn-toggle-ts-hsub-wet", "img-toggle-ts-hsub-wet", "section-ts-hsub-wet", false)
+	envSectionToggle("btn-toggle-ts-hsub-axis", "img-toggle-ts-hsub-axis", "section-ts-hsub-axis", false)
+	envSectionToggle("btn-toggle-ts-hsub-grade", "img-toggle-ts-hsub-grade", "section-ts-hsub-grade", false)
+	envSectionToggle("btn-toggle-ts-hsub-strata", "img-toggle-ts-hsub-strata", "section-ts-hsub-strata", false)
+	envSectionToggle("btn-toggle-ts-hsub-stops", "img-toggle-ts-hsub-stops", "section-ts-hsub-stops", false)
+	envSectionToggle("btn-toggle-ts-hsub-colour", "img-toggle-ts-hsub-colour", "section-ts-hsub-colour", false)
+	envSectionToggle("btn-toggle-ts-hsub-ramp", "img-toggle-ts-hsub-ramp", "section-ts-hsub-ramp", false)
+	envSectionToggle("btn-toggle-ts-hsub-sat", "img-toggle-ts-hsub-sat", "section-ts-hsub-sat", false)
+	envSectionToggle("btn-toggle-ts-hsub-tide", "img-toggle-ts-hsub-tide", "section-ts-hsub-tide", false)
+	envSectionToggle("btn-toggle-ts-hsub-snow", "img-toggle-ts-hsub-snow", "section-ts-hsub-snow", false)
 	envSectionToggle("btn-toggle-ts-tints", "img-toggle-ts-tints", "section-ts-tints", false)
 	envSectionToggle("btn-toggle-ts-debug", "img-toggle-ts-debug", "section-ts-debug", false)
 	envSectionToggle("btn-toggle-ts-presets", "img-toggle-ts-presets", "section-ts-presets", false)
