@@ -18822,6 +18822,16 @@ function widget:Initialize()
 
 	-- Expose UI-side API for key capture and badge refresh
 	WG.TerraformBrushUI = {
+		---The UNITS tool, as its button switches to it: every other tool off first, so the
+		---brush does not step it aside. Another owner of the tool (the mission editor,
+		---units unification phase 2) calls this after WG.UnitPlacerTool.setOwner.
+		switchToUnits = function()
+			if initialModel.onTfSwitchUnits then
+				initialModel.onTfSwitchUnits(nil)
+				return true
+			end
+			return false
+		end,
 		-- Environment snapshot/apply, for the map-project orchestrator
 		-- (cmd_map_project.lua). Indirect so it tracks widgetState assignments.
 

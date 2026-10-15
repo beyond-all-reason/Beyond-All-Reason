@@ -310,6 +310,11 @@ local engineProvider = {
 local owner = { name = "terraform_brush", provider = engineProvider, sink = nil }
 local gadgetSink
 
+--- The unit library opens under the owner's name: a pick belongs to whoever opened it.
+local function libraryTitle()
+	return owner.title or LIBRARY_TITLE
+end
+
 local PROVIDER_FIELDS = { "valid", "info", "all", "inScreenRect", "inCylinder", "teams", "myTeam" }
 local SINK_FIELDS = { "place", "remove", "transform", "undo", "redo", "clearAll" }
 
@@ -826,7 +831,7 @@ local function dropPick()
 	end
 	---@type table?
 	local lib = WG.UnitLibrary
-	if lib and lib.clearPicks and lib.owner and lib.owner() == LIBRARY_TITLE then
+	if lib and lib.clearPicks and lib.owner and lib.owner() == libraryTitle() then
 		lib.clearPicks()
 	end
 	pv.layoutKey, pv.stampKey = nil, nil
@@ -1434,7 +1439,7 @@ local function openLibrary()
 		return false
 	end
 	return WG.UnitLibrary.open({
-		title = LIBRARY_TITLE,
+		title = libraryTitle(),
 		-- Several picked (Shift+click): each drop moves on to the next type (PtaQ's N2).
 		onPick = function(unitDefName, set)
 			local names = set and set.names or { unitDefName }
@@ -1469,7 +1474,7 @@ local function deactivate()
 	clearSelection()
 	stampGhosts.clear()
 	hideBuildGrid()
-	if WG.UnitLibrary and WG.UnitLibrary.owner and WG.UnitLibrary.owner() == LIBRARY_TITLE then
+	if WG.UnitLibrary and WG.UnitLibrary.owner and WG.UnitLibrary.owner() == libraryTitle() then
 		WG.UnitLibrary.close()
 	end
 end
@@ -1766,8 +1771,9 @@ end
 ---@param name string
 ---@param provider table see PROVIDER_FIELDS
 ---@param sink table see SINK_FIELDS
+---@param opts table|nil { title = the unit library's title under this owner }
 ---@return boolean ok, string|nil why
-function Tool.setOwner(name, provider, sink)
+function Tool.setOwner(name, provider, sink, opts)
 	for _, field in ipairs(PROVIDER_FIELDS) do
 		if type(provider) ~= "table" or type(provider[field]) ~= "function" then
 			return false, "provider has no " .. field
@@ -1781,6 +1787,7 @@ function Tool.setOwner(name, provider, sink)
 	clearSelection()
 	dropPick()
 	owner.name, owner.provider, owner.sink = tostring(name), provider, sink
+	owner.title = type(opts) == "table" and opts.title or nil
 	up.team = nil
 	up.undoCount, up.redoCount = 0, 0
 	return true
@@ -1789,7 +1796,7 @@ end
 function Tool.resetOwner()
 	clearSelection()
 	dropPick()
-	owner.name, owner.provider, owner.sink = "terraform_brush", engineProvider, gadgetSink
+	owner.name, owner.provider, owner.sink, owner.title = "terraform_brush", engineProvider, gadgetSink, nil
 	up.team = nil
 	up.undoCount, up.redoCount = 0, 0
 end
