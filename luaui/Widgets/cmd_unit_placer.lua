@@ -1156,7 +1156,9 @@ end
 --- tool's selection) hears every change through its sink's optional `selectionChanged`.
 local function notifySelection()
 	local sink = owner.sink
-	if sink and sink.selectionChanged then
+	-- Only while the tool is on: a deactivation or an owner change clears the tool's own
+	-- selection, which is not the owner's business.
+	if up.active and sink and sink.selectionChanged then
 		sink.selectionChanged(sel.ids)
 	end
 end
