@@ -330,6 +330,7 @@ local callInLists = {
 	"UnitScriptLight",
 	"UnitScriptDistortion",
 	"UnitScriptDecal",
+	"UnitScriptDecalBatch",
 	"GadgetRemoveGrass",
 	"GadgetCoopStartPoint",
 	"NotificationEvent",
@@ -1774,6 +1775,13 @@ function widgetHandler:FinalizeWidget(widget, filename, basename)
 		widget._tracyGameFrameName = "W:GameFrame:" .. wi.name
 		widget._tracyGameFramePostName = "W:GameFramePost:" .. wi.name
 		widget._tracyVisibleUnitsChangedName = "W:VisibleUnitsChanged:" .. wi.name
+		widget._tracyVisibleUnitAddedName = "W:VisibleUnitAdded:" .. wi.name
+		widget._tracyVisibleUnitRemovedName = "W:VisibleUnitRemoved:" .. wi.name
+		widget._tracyUnitFinishedName = "W:UnitFinished:" .. wi.name
+		widget._tracyUnitDestroyedName = "W:UnitDestroyed:" .. wi.name
+		widget._tracyFeatureCreatedName = "W:FeatureCreated:" .. wi.name
+		widget._tracyFeatureDestroyedName = "W:FeatureDestroyed:" .. wi.name
+		widget._tracyVisibleExplosionName = "W:VisibleExplosion:" .. wi.name
 		widget._tracyCommandNotifyName = "W:CommandNotify:" .. wi.name
 		widget._tracyRecvLuaMsgName = "W:RecvLuaMsg:" .. wi.name
 	end
@@ -4032,7 +4040,9 @@ end
 function widgetHandler:UnitFinished(unitID, unitDefID, unitTeam)
 	tracyZoneBeginN("W:UnitFinished")
 	for _, w in ipairs(self.UnitFinishedList) do
+		tracyZoneBeginN(w._tracyUnitFinishedName)
 		w:UnitFinished(unitID, unitDefID, unitTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4051,7 +4061,9 @@ function widgetHandler:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, at
 	widgetHandler:MetaUnitRemoved(unitID, unitDefID, unitTeam)
 	tracyZoneBeginN("W:UnitDestroyed")
 	for _, w in ipairs(self.UnitDestroyedList) do
+		tracyZoneBeginN(w._tracyUnitDestroyedName)
 		w:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4339,7 +4351,9 @@ end
 function widgetHandler:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
 	tracyZoneBeginN("W:VisibleUnitAdded")
 	for _, w in ipairs(self.VisibleUnitAddedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitAddedName)
 		w:VisibleUnitAdded(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4347,7 +4361,9 @@ end
 function widgetHandler:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
 	tracyZoneBeginN("W:VisibleUnitRemoved")
 	for _, w in ipairs(self.VisibleUnitRemovedList) do
+		tracyZoneBeginN(w._tracyVisibleUnitRemovedName)
 		w:VisibleUnitRemoved(unitID, unitDefID, unitTeam, reason)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4404,12 +4420,16 @@ end
 function widgetHandler:VisibleExplosionBatch(events, count)
 	tracyZoneBeginN("W:VisibleExplosionBatch")
 	for _, w in ipairs(self.VisibleExplosionBatchList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		w:VisibleExplosionBatch(events, count)
+		tracyZoneEnd()
 	end
 	for _, w in ipairs(self.VisibleExplosionList) do
+		tracyZoneBeginN(w._tracyVisibleExplosionName)
 		for i = 1, count, 5 do
 			w:VisibleExplosion(events[i], events[i + 1], events[i + 2], events[i + 3], events[i + 4])
 		end
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 end
@@ -4608,12 +4628,22 @@ function widgetHandler:UnitScriptDistortion(unitID, unitDefID, distortionIndex, 
 end
 
 function widgetHandler:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
-	tracyZoneBeginN("W:UnitScriptDecal")
+	self:UnitScriptDecalBatch({ unitID, unitDefID, decalIndex, posx, posz, heading }, 6)
+end
+
+-- a sim frame's decals as unitID, unitDefID, decalIndex, posx, posz, heading runs: batch widgets get the
+-- array, the others one call per decal
+function widgetHandler:UnitScriptDecalBatch(decals, count)
+	tracyZoneBeginN("W:UnitScriptDecalBatch")
+	for _, w in ipairs(self.UnitScriptDecalBatchList) do
+		w:UnitScriptDecalBatch(decals, count)
+	end
 	for _, w in ipairs(self.UnitScriptDecalList) do
-		w:UnitScriptDecal(unitID, unitDefID, decalIndex, posx, posz, heading)
+		for i = 1, count, 6 do
+			w:UnitScriptDecal(decals[i], decals[i + 1], decals[i + 2], decals[i + 3], decals[i + 4], decals[i + 5])
+		end
 	end
 	tracyZoneEnd()
-	return
 end
 
 function widgetHandler:GadgetRemoveGrass(posx, posz, radius)
@@ -4777,7 +4807,9 @@ end
 function widgetHandler:FeatureCreated(featureID, allyTeam)
 	tracyZoneBeginN("W:FeatureCreated")
 	for _, w in ipairs(self.FeatureCreatedList) do
+		tracyZoneBeginN(w._tracyFeatureCreatedName)
 		w:FeatureCreated(featureID, allyTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return
@@ -4786,7 +4818,9 @@ end
 function widgetHandler:FeatureDestroyed(featureID, allyTeam)
 	tracyZoneBeginN("W:FeatureDestroyed")
 	for _, w in ipairs(self.FeatureDestroyedList) do
+		tracyZoneBeginN(w._tracyFeatureDestroyedName)
 		w:FeatureDestroyed(featureID, allyTeam)
+		tracyZoneEnd()
 	end
 	tracyZoneEnd()
 	return

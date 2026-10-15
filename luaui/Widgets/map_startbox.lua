@@ -1073,7 +1073,7 @@ local function InitStartPolygons()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	fullScreenRectVAO = InstanceVBOTable.MakeTexRectVAO()
+	fullScreenRectVAO = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 
 	local coneVBO, numConeVertices = InstanceVBOTable.makeConeVBO(32, 100, 25)
 	startConeVBOTable = InstanceVBOTable.makeInstanceVBOTable(
@@ -1094,8 +1094,11 @@ local function InitStartPolygons()
 
 	startConeVBOTable.vertexVBO = coneVBO
 
-	startConeVBOTable.VAO =
-		InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO, startConeVBOTable.instanceVBO)
+	startConeVBOTable.VAO = InstanceVBOTable.fillVAOSlots(
+		InstanceVBOTable.makeVAOandAttach(startConeVBOTable.vertexVBO, startConeVBOTable.instanceVBO),
+		false,
+		true
+	)
 
 	startConeShader = LuaShader.CheckShaderUpdates(coneShaderSourceCache) or startConeShader
 

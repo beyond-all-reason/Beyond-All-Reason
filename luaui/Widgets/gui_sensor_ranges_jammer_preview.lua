@@ -462,7 +462,7 @@ local function initgl4()
 	end
 	discShader, smoothShader, sheetShader, minimapShader = shaders[1], shaders[2], shaders[3], shaders[4]
 
-	local vao = InstanceVBOTable.MakeTexRectVAO()
+	local vao = InstanceVBOTable.fillVAOSlots(InstanceVBOTable.MakeTexRectVAO())
 	if not vao then
 		goodbye("Failed to create the jammer preview VAO")
 		return false

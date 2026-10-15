@@ -566,6 +566,7 @@ end
 
 -- Consolidated misc state
 local miscState = {
+	inMiniMapZoneNames = setmetatable({}, { __mode = "k" }), -- per-widget tracy zone names of the DrawInMiniMap overlays
 	startX = nil,
 	startZ = nil,
 	backupTracking = nil,
@@ -1705,7 +1706,7 @@ local cmdQueueCache = {
 -- Segment deduplication for command-queue rendering: avoids drawing the same
 -- waypoint→waypoint segment multiple times when many units share overlapping
 -- build queues. Uses a generation counter so the table never needs clearing.
-local cmdSegDedup = {} -- [combinedKey] = generation
+local cmdSegDedup = {} -- [startCell][endCell] = generation
 local cmdSegDedupGen = 0
 
 -- Reused scratch vars/callbacks for hot BeginEnd paths (avoids per-iteration closure allocs)
@@ -9138,11 +9139,13 @@ end
 function widget:Initialize()
 	RebuildAllUnitsCache()
 
-	-- Avoid lazy texture loads stalling the first button-strip draw on hover.
+	-- Avoid lazy texture loads stalling the first button-strip draw on hover, and the first projectile
+	-- draw (the atlas load took ~15 ms).
 	drawData.buttonTexturePreloadList = gl.CreateList(function()
 		for i = 1, #buttons do
 			glFunc.Texture(buttons[i].texture)
 		end
+		glFunc.Texture(gl4Prim.quadAtlasTexture)
 		glFunc.Texture(false)
 	end)
 
@@ -11548,9 +11551,17 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 
 		-- Periodically prune stale dedup entries (~every 5 seconds)
 		if segGen % 50 == 0 then
-			for k, gen in pairs(segDedup) do
-				if gen < segGen - 2 then
-					segDedup[k] = nil
+			for startKey, ends in pairs(segDedup) do
+				local live = false
+				for endKey, gen in pairs(ends) do
+					if gen < segGen - 2 then
+						ends[endKey] = nil
+					else
+						live = true
+					end
+				end
+				if not live then
+					segDedup[startKey] = nil
 				end
 			end
 		end
@@ -11591,17 +11602,17 @@ local function DrawCommandQueuesOverlay(cachedSelectedUnits)
 						for j = 2, cached.n do
 							local wp = cached[j]
 							local cmdX, cmdZ = wp[1], wp[2]
-							-- Dedup key: quantize coords to 8-unit grid (sub-icon precision)
-							-- and pack start+end into 4 values within 53-bit safe range.
-							-- 30000/8 = 3750, so each coord fits in 12 bits.
-							-- key = sx*2^36 + sz*2^24 + ex*2^12 + ez  (max ~48 bits, safe)
-							local sx = mFloor(prevWX * 0.125)
-							local sz = mFloor(prevWZ * 0.125)
-							local ex = mFloor(cmdX * 0.125)
-							local ez = mFloor(cmdZ * 0.125)
-							local dedupKey = sx * 68719476736 + sz * 16777216 + ex * 4096 + ez
-							if segDedup[dedupKey] ~= segGen then
-								segDedup[dedupKey] = segGen
+							-- Dedup keys: start and end cell on an 8-unit grid (sub-icon precision), x * 4096 + z,
+							-- exact below 2^24 (Lua numbers are float32: one packed key kept only the start)
+							local startKey = mFloor(prevWX * 0.125) * 4096 + mFloor(prevWZ * 0.125)
+							local endKey = mFloor(cmdX * 0.125) * 4096 + mFloor(cmdZ * 0.125)
+							local ends = segDedup[startKey]
+							if not ends then
+								ends = {}
+								segDedup[startKey] = ends
+							end
+							if ends[endKey] ~= segGen then
+								ends[endKey] = segGen
 								local cmdID = wp[3]
 								local color = cmdColors[cmdID] or cmdColors.unknown
 								local r, g, b = color[1], color[2], color[3]
@@ -23108,8 +23119,15 @@ function widget:DrawScreen()
 				local overlayViewportX = render.dim.l - visPixelLeft * minimapWidth / visiblePixelWidth
 				local overlayViewportY = render.dim.b - visPixelBottom * minimapHeight / visiblePixelHeight
 
+				local zoneNames = miscState.inMiniMapZoneNames
 				for _, w in ipairs(widgetHandler.DrawInMiniMapList) do
 					if w ~= widget then -- Don't recursively call ourselves
+						local zoneName = zoneNames[w] ---@type string?
+						if not zoneName then
+							zoneName = "W:PIP:InMiniMap:" .. (w.whInfo and w.whInfo.name or "?")
+							zoneNames[w] = zoneName
+						end
+						tracy.ZoneBeginN(zoneName)
 						-- Save current matrices
 						gl.MatrixMode(GL.PROJECTION)
 						glFunc.PushMatrix()
@@ -23141,6 +23159,7 @@ function widget:DrawScreen()
 						gl.MatrixMode(GL.PROJECTION)
 						glFunc.PopMatrix()
 						gl.MatrixMode(GL.MODELVIEW)
+						tracy.ZoneEnd()
 					end
 				end
 
