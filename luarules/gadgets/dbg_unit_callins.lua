@@ -577,11 +577,59 @@ function gadget:FeatureDestroyed(featureID)
 	end
 end
 
+-- only delivered while the gadget is toggled on
+local toggledCallins = {
+	"GameFrame",
+	"DrawWorld",
+	"UnitCreated",
+	"UnitFinished",
+	"UnitFromFactory",
+	"UnitDestroyed",
+	"UnitTaken",
+	"UnitExperience",
+	"UnitCommand",
+	"UnitCmdDone",
+	"UnitDamaged",
+	"UnitGiven",
+	"UnitIdle",
+	"UnitEnteredRadar",
+	"UnitEnteredLos",
+	"UnitLeftRadar",
+	"UnitLeftLos",
+	"UnitEnteredWater",
+	"UnitEnteredAir",
+	"UnitLeftWater",
+	"UnitLeftAir",
+	"UnitSeismicPing",
+	"UnitLoaded",
+	"UnitUnloaded",
+	"UnitCloaked",
+	"UnitDecloaked",
+	"StockpileChanged",
+	"RenderUnitDestroyed",
+	"UnitReverseBuilt",
+	"FeatureCreated",
+	"FeatureDestroyed",
+}
+
+local function updateCallins()
+	for i = 1, #toggledCallins do
+		if enabled then
+			gadgetHandler:UpdateCallIn(toggledCallins[i])
+		else
+			gadgetHandler:RemoveCallIn(toggledCallins[i])
+		end
+	end
+end
+
 local function togglegadget()
 	enabled = not enabled
 	Spring.Echo("UnitCallinsGadget toggled to:", enabled)
+	updateCallins()
 	if enabled == false then
 		enabledcallins = {}
+		eventlist = {}
+		numevents = 0
 	else
 		enabledcallins = {
 			UnitCreated = true,
@@ -623,6 +671,7 @@ end
 
 function gadget:Initialize()
 	gadgetHandler:AddChatAction("unitcallinsgadget", togglegadget)
+	updateCallins()
 end
 
 function gadget:Shutdown()

@@ -6,6 +6,9 @@ piece base, parts, track, turret, sleeve, lbarrel, lflare, rbarrel, rflare;
 static-var  restore_delay, gun_1, fire_count;
 static-var  last_primary_heading, last_primary_pitch;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 // Signal definitions
 #define SIGNAL_MOVE 1
 #define SIGNAL_AIM1 256
@@ -30,6 +33,8 @@ static-var  last_primary_heading, last_primary_pitch;
 
 Create()
 {
+	Weapon1TurretX = <240.0>;
+	Weapon1TurretY = <250.0>;
 	hide lflare;
 	hide rflare;
 	gun_1 = 0;
@@ -91,8 +96,8 @@ AimWeapon1(heading, pitch)
 	// values in <> are degrees per second
 	// otherwise angles are in COB angular unit (cau) - There are 65536 cau in a circle
 	// In general, 6 cau per frame ~= 1 degree per second
-	turn turret to y-axis heading speed <250.0>;
-	turn sleeve to x-axis <0.0> - pitch speed <240.0>;
+	turn turret to y-axis heading speed Weapon1TurretY;
+	turn sleeve to x-axis <0.0> - pitch speed Weapon1TurretX;
 	// if the turret cannot turn to its new heading in three frames, wait for turn
 	if ( (get ABS(last_primary_heading - heading) > 4500) OR (get ABS(last_primary_pitch - pitch) > 4320) )
 	{

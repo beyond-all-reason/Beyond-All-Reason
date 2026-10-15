@@ -2463,30 +2463,45 @@ function gadget:GameFrame(frame)
 	end
 end
 
--- The game paused, no frame is stepped and nothing above runs: a panel opened while the game
--- stands still would be handed nothing until it moved again - no live numbers, and no answer
--- to what its charts ask for. So the hand-over is served from the clock on the wall instead
--- while the game is paused, as often as a running game serves it. Only the hand-over: what it
--- reads cannot change while the simulation is still, so there is nothing to scan or sample.
+-- The game standing still - paused, or no frame coming any more, as when the host is gone once
+-- the game is over - steps no frame and nothing above runs: a panel opened then would be handed
+-- nothing - no live numbers, and no answer to what its charts ask for. So the hand-over is served
+-- from the clock on the wall instead while no frame comes, as often as a running game serves it:
+-- at once when paused, after a period without a frame otherwise. Only the hand-over: what it
+-- reads cannot change while the simulation is still, so there is nothing to scan or sample. A
+-- receiver that appears - a panel opened - is served at once too, or the panel shows nothing of
+-- the gadget's until the next period.
 
--- When it was last served that way.
----@type integer?
-local pausedAt
+-- The frame last seen and when it came, when the hand-over was last served from here, and whether
+-- LuaUI had a receiver at the last look.
+---@type { frame: integer, since: integer?, servedAt: integer?, heard: boolean }
+local still = { frame = -1, since = nil, servedAt = nil, heard = false }
 
 ---@diagnostic disable-next-line: undefined-field
 function gadget:Update()
-	local _, _, paused = spGetGameSpeed()
-	if not paused then
-		pausedAt = nil
-		return
-	end
 	local now = spGetTimer()
-	-- The first Update of a pause serves at once: what asks is waiting on it.
-	if pausedAt and spDiffTimers(now, pausedAt) < LIVE_PERIOD / Game.gameSpeed then
+	local frame = spGetGameFrame()
+	local heard = Script.LuaUI("TeamStatsLive") == true
+	if heard and not still.heard then
+		still.heard, still.servedAt = true, now
+		serveLuaUI(frame)
 		return
 	end
-	pausedAt = now
-	serveLuaUI(spGetGameFrame())
+	still.heard = heard
+	if frame ~= still.frame then
+		still.frame, still.since = frame, now
+		return
+	end
+	local period = LIVE_PERIOD / Game.gameSpeed
+	local _, _, paused = spGetGameSpeed()
+	if not paused and spDiffTimers(now, still.since or now) < period then
+		return
+	end
+	if still.servedAt and spDiffTimers(now, still.servedAt) < period then
+		return
+	end
+	still.servedAt = now
+	serveLuaUI(frame)
 end
 
 function gadget:Initialize()

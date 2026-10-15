@@ -1,6 +1,7 @@
 -- Rolling event log for the PIP rewind: unit positions (dead reckoning), health and build
 -- levels, hits, deaths, explosions, orders, heavy beams, long-flight projectiles, map marks,
--- wrecks and broadcast cameras, packed into u16 strings per tick and zlib-frozen once cold.
+-- wrecks, broadcast cameras and team resources, packed into u16 strings per tick and
+-- zlib-frozen once cold.
 -- Over the byte cap the oldest keyframe segments are spilled to files; a coarse copy of each
 -- stays resident so the whole log always plays back while the detail loads.
 --
@@ -32,11 +33,14 @@ local FEAT_STRIDE = 7 -- kind, featureID, featureDefID, x, z, heading + 32768, a
 local CAM_STRIDE = 6 -- player | heightFlag << 8, x, z, distance, tilt, heading: a broadcast camera
 local CUR_STRIDE = 3 -- player, x, z: a broadcast cursor
 -- sel: player, count, unit ids: a player's selection when it changed (keyframes restate everyone)
+local RES_STRIDE = 13 -- team, metal current, storage, pull, income, share, the same for energy, mmLevel, age
+local RES_LOOKBACK = 8 -- ticks searched back for a team's latest resource sample
 local V_SCALE = 64 -- velocity quantum: 1/64 elmo per frame
 local V_BIAS = 32768
 local V_MAX = 511 -- elmo per frame, ±(32767 / 64)
 local TICK_OVERHEAD = 128 -- rough per-tick table cost counted against the byte cap
-local STREAMS = { "units", "moves", "expl", "events", "proj", "pend", "hp", "bld", "dmg", "feat", "cam", "sel", "cur" }
+local STREAMS =
+	{ "units", "moves", "expl", "events", "proj", "pend", "hp", "bld", "dmg", "feat", "cam", "sel", "cur", "res" }
 
 PipHistory.F_RADAR = 1 -- seen on radar only
 PipHistory.F_VANISH = 2 -- left vision (last known position)
@@ -83,6 +87,26 @@ local function quantV(v)
 		v = -V_MAX
 	end
 	return mathFloor(v * V_SCALE + 0.5) + V_BIAS
+end
+
+-- resource amounts: whole units below 32768, then 2048 steps per doubling (0.03%) up to 2^31
+local RES_OCTAVE = 2048
+local LN2 = math.log(2)
+
+local function encodeAmount(v)
+	if not (v > 0) then
+		return 0
+	elseif v < 32767.5 then
+		return mathFloor(v + 0.5)
+	end
+	return clampU16(32768 + math.log(v / 32768) / LN2 * RES_OCTAVE)
+end
+
+local function decodeAmount(c)
+	if c < 32768 then
+		return c
+	end
+	return 32768 * 2 ^ ((c - 32768) / RES_OCTAVE)
 end
 
 ---@param str string?
@@ -145,6 +169,7 @@ end
 ---@field dmg string?
 ---@field feat string?
 ---@field cam string?
+---@field res string?
 ---@field z string? -- zlib blob of all streams once the tick is cold
 ---@field basic boolean? -- coarse resident copy of a spilled tick
 
@@ -215,6 +240,9 @@ end
 ---@field selN table<integer, number>
 ---@field selSum table<integer, number>
 ---@field selSq table<integer, number>
+---@field resLast number -- frame of the latest resource sample
+---@field pendingRes table<integer, integer> -- resource records waiting for the next tick (frame in the age slot)
+---@field pendingResN integer
 ---@field seenBeam table<number, number>
 ---@field pX table<number, number>
 ---@field pZ table<number, number>
@@ -253,6 +281,8 @@ local storeDefaults = {
 	logSelections = true, -- every player's selection, logged when it changes
 	selectionCap = 40, -- unit ids kept per selection record
 	logCursors = true, -- every player's cursor, once per tick
+	logResources = true, -- every readable team's resources
+	resourceFrames = 30, -- resource sample cadence in frames (the engine's team update rate), plus one per tick
 	explosionMinRadius = 8,
 	explosionCap = 400, -- per tick
 	projectileCap = 300, -- shells followed at once
@@ -351,6 +381,8 @@ function Store:Reset()
 	end
 	self.eventMaxAge = 0
 	self.selN, self.selSum, self.selSq = {}, {}, {}
+	self.resLast = -math.huge
+	self.pendingRes, self.pendingResN = {}, 0
 	self.pendingDeaths, self.pendingDeathN = {}, 0
 	self.pendingDead = {} -- unit id -> true while its death record is queued
 	self.pendingExpl, self.pendingExplN = {}, 0
@@ -818,11 +850,47 @@ function Store:SampleProjectiles(frame)
 	stats.projMs = stats.projMs + 0.1 * ((os.clock() - t0) * 1000 - stats.projMs)
 end
 
+-- Resources of every live team the recorder can read (a player only reads its own allyteam's);
+-- the records wait in pendingRes, frame in the age slot, until the next tick's first phase.
+function Store:SampleResources(frame)
+	self.resLast = frame
+	local spGetTeamResources = Spring.GetTeamResources
+	local teams = Spring.GetTeamList() --[[@as table<integer, integer>]]
+	local gaia = Spring.GetGaiaTeamID()
+	local buf = self.pendingRes
+	local n = self.pendingResN
+	for i = 1, #teams do
+		local team = teams[i]
+		local _, _, isDead = Spring.GetTeamInfo(team, false)
+		if team ~= gaia and not isDead then
+			local mCur, mMax, mPull, mInc, _, mShare = spGetTeamResources(team, "metal")
+			local eCur, eMax, ePull, eInc, _, eShare = spGetTeamResources(team, "energy")
+			if mCur and eCur then
+				local mm = Spring.GetTeamRulesParam(team, "mmLevel")
+				buf[n + 1] = team
+				buf[n + 2], buf[n + 3] = encodeAmount(mCur), encodeAmount(mMax)
+				buf[n + 4], buf[n + 5] = encodeAmount(mPull), encodeAmount(mInc)
+				buf[n + 6] = clampU16(mShare * 10000)
+				buf[n + 7], buf[n + 8] = encodeAmount(eCur), encodeAmount(eMax)
+				buf[n + 9], buf[n + 10] = encodeAmount(ePull), encodeAmount(eInc)
+				buf[n + 11] = clampU16(eShare * 10000)
+				buf[n + 12] = clampU16((type(mm) == "number" and mm or 1) * 10000)
+				buf[n + 13] = frame
+				n = n + RES_STRIDE
+			end
+		end
+	end
+	self.pendingResN = n
+end
+
 -- Called every game frame by whichever PIP instance runs first; records at tickFrames cadence.
 function Store:GameFrame(frame)
 	local o = self.opts
 	if o.logProjectiles and self.mapSizeX > 0 and frame % (self.projStepNow or o.projectileStep) == 0 then
 		self:SampleProjectiles(frame)
+	end
+	if o.logResources and frame - self.resLast >= o.resourceFrames then
+		self:SampleResources(frame)
 	end
 	-- the unit scan of a tick is spread over scanSpread frames (unit id modulo phase): events
 	-- are written on the first, which is the tick's frame, and the tick is packed on the last;
@@ -1208,6 +1276,23 @@ function Store:GameFrame(frame)
 			end
 			self.lens.cur = n
 		end
+		-- team resources: a sample on the tick's own frame, after the ones taken since the last tick
+		if o.logResources and self.resLast ~= frame then
+			self:SampleResources(frame)
+		end
+		local rn = self.pendingResN
+		if rn > 0 then
+			local pend, buf = self.pendingRes, self.bufs.res
+			local n = self.lens.res
+			for i = 1, rn do
+				buf[n + i] = pend[i]
+			end
+			for i = RES_STRIDE, rn, RES_STRIDE do
+				buf[n + i] = clampU16(frame - pend[i])
+			end
+			self.lens.res = n + rn
+			self.pendingResN = 0
+		end
 		local seenBeam = self.seenBeam
 		for pid, f in pairs(seenBeam) do
 			if frame - f > 90 then
@@ -1425,6 +1510,7 @@ function Store:MergeTicks(a, b)
 	merged.feat = concatAged(sa.feat, sb.feat, FEAT_STRIDE)
 	merged.cam = sb.cam or sa.cam
 	merged.cur = sb.cur or sa.cur
+	merged.res = sb.res or concatAged(sa.res, nil, RES_STRIDE)
 	merged.spread = sb.spread or sa.spread
 	merged.ally = sb.ally or sa.ally
 	if sa.sel or sb.sel then
@@ -1940,7 +2026,7 @@ function Store:SegmentRanges()
 end
 
 -- Persistence across /luaui reload: hot ticks and the spilled segments' basic copies go to a
--- binary file in the write dir (the segment files themselves stay). Layout: "PIPHIST7", game id,
+-- binary file in the write dir (the segment files themselves stay). Layout: "PIPHIST8", game id,
 -- hot tick count, tick counter, segment count; per segment its file path, "first last count bytes
 -- basicCount" and the basic ticks; then the hot ticks. A tick is a header line "frame key level
 -- maxAge z n1..nN" followed by the raw bytes (the zlib blob when z is 1).
@@ -1951,7 +2037,7 @@ function Store:SaveToFile(path, gameID)
 	end
 	local hot = self.hot
 	local segs = self.segments
-	f:write(string.format("PIPHIST7\n%s\n%d\n%d\n%d\n", tostring(gameID), #hot, self.tickCount, #segs))
+	f:write(string.format("PIPHIST8\n%s\n%d\n%d\n%d\n", tostring(gameID), #hot, self.tickCount, #segs))
 	for i = 1, #segs do
 		local seg = segs[i]
 		f:write(string.format("%s\n%d %d %d %d %d\n", seg.file, seg.first, seg.last, seg.count, seg.bytes, #seg.basic))
@@ -1981,7 +2067,7 @@ function PipHistory.loadStore(path, opts, gameID, maxFrame)
 	local count = tonumber(countLine)
 	local tickCount = tonumber(tickLine)
 	local segCount = tonumber(segLine)
-	if magic ~= "PIPHIST7" or id ~= tostring(gameID) or not count or not tickCount or not segCount then
+	if magic ~= "PIPHIST8" or id ~= tostring(gameID) or not count or not tickCount or not segCount then
 		f:close()
 		return nil
 	end
@@ -2132,6 +2218,8 @@ end
 ---@field camIdx integer
 ---@field camGen number
 ---@field camArr table<integer, integer>?
+---@field resCache table<integer, table> -- unpacked res streams by tick index
+---@field resCount integer
 local View = {}
 View.__index = View
 
@@ -2182,6 +2270,7 @@ function PipHistory.newView(store)
 	self.selSet = {} -- playerID -> set of unit ids
 	self.mX, self.mZ, self.mF = {}, {}, {}
 	self.curIdx, self.curGen, self.curArr = -1, -1.0, nil
+	self.resCache, self.resCount = {}, 0
 	return self
 end
 
@@ -2866,6 +2955,96 @@ function View:CursorAt(playerID, frame)
 		end
 	end
 	return x, z
+end
+
+-- the res records of tick `idx` (false when it has none), unpacked once per tick
+---@return table<integer, integer>|false
+local function resStream(self, idx)
+	local store = self.store
+	local tick = store.ticks[idx]
+	local cache = self.resCache
+	local c = cache[idx]
+	if c and c.tick == tick then
+		return c.arr
+	end
+	if self.resCount >= 16 then
+		for k in pairs(cache) do
+			cache[k] = nil
+		end
+		self.resCount = 0
+	end
+	c = { tick = tick, arr = unpackAll(store:Streams(tick).res) or false }
+	cache[idx] = c
+	self.resCount = self.resCount + 1
+	return c.arr
+end
+
+-- the newest res record of `teamID` in tick `idx`: the array and the record's index, or nil
+---@return table<integer, integer>?, integer
+local function newestRecord(self, idx, teamID)
+	local arr = resStream(self, idx)
+	if arr then
+		for j = #arr - #arr % RES_STRIDE - RES_STRIDE + 1, 1, -RES_STRIDE do
+			if arr[j] == teamID then
+				return arr, j
+			end
+		end
+	end
+	return nil, 0
+end
+
+-- A team's resources at `frame`, blended between the samples around it. Fills `out` with metal
+-- current, storage, pull, income, share, the same for energy, then mmLevel; nil when the log has
+-- no sample of the team at or before the frame.
+function View:ResourcesAt(teamID, frame, out)
+	local ticks = self.store.ticks
+	local last = findTickIndex(ticks, frame)
+	if last == 0 then
+		return nil
+	end
+	local pArr, pj, pf, nArr, nj, nf = nil, 0, 0.0, nil, 0, 0.0
+	-- the next tick holds the samples taken after the applied tick's frame
+	local nextTick = ticks[last + 1] ---@type PipHistoryTick?
+	if nextTick then
+		local arr = resStream(self, last + 1)
+		if arr then
+			for j = 1, #arr - RES_STRIDE + 1, RES_STRIDE do
+				if arr[j] == teamID then
+					local f = nextTick.frame - arr[j + RES_STRIDE - 1]
+					if f <= frame then
+						pArr, pj, pf = arr, j, f
+					else
+						nArr, nj, nf = arr, j, f
+						break
+					end
+				end
+			end
+		end
+	end
+	-- else the applied tick's newest sample (every tick samples on its own frame), or an older one
+	local i = last
+	while not pArr and i >= mathMax(1, last - RES_LOOKBACK) do
+		local arr, j = newestRecord(self, i, teamID)
+		if arr then
+			pArr, pj, pf = arr, j, ticks[i].frame - arr[j + RES_STRIDE - 1]
+		end
+		i = i - 1
+	end
+	if not pArr then
+		return nil
+	end
+	local t = nArr and (frame - pf) / (nf - pf) or 0
+	for k = 1, RES_STRIDE - 2 do
+		local a = pArr[pj + k]
+		local b = nArr and nArr[nj + k] or a
+		if k == 5 or k >= 10 then
+			out[k] = (a + (b - a) * t) / 10000
+		else
+			local va = decodeAmount(a)
+			out[k] = va + (decodeAmount(b) - va) * t
+		end
+	end
+	return out
 end
 
 -- Shells in flight at `frame`, dead-reckoned from their latest record; a shell fades over

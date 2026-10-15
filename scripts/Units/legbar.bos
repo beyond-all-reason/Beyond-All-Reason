@@ -9,6 +9,9 @@ piece  base, tracks, shell, aimy1, turret, aimx1, sleeve, barrel, cover, flare;
 
 static-var  restore_delay, currentSpeed, moveSpeed;
 
+#define TURRET_SPEED_WEAPONS 1
+#include "../unitDefsTurretSpeeds.h"
+
 
 #define TB_BASE base 
 #define TB_TURNRATE <15.0> 
@@ -35,6 +38,8 @@ RockUnit(anglex, anglez)
 
 Create()
 {
+	Weapon1TurretX = <50.000000>;
+	Weapon1TurretY = <90.000000>;
 	hide flare;
 	restore_delay = 3000;
 	call-script TB_Init();
@@ -96,8 +101,8 @@ AimPrimary(heading, pitch)
 	move barrel to z-axis [5] speed [7.5];
 	turn cover to x-axis <160> speed <200>;
 	
-	turn aimy1 to y-axis heading speed <90.000000>;
-	turn aimx1 to x-axis <0.000000> - pitch speed <50.000000>;
+	turn aimy1 to y-axis heading speed Weapon1TurretY;
+	turn aimx1 to x-axis <0.000000> - pitch speed Weapon1TurretX;
 	
 	wait-for-turn aimy1 around y-axis;
 	wait-for-turn aimx1 around x-axis;

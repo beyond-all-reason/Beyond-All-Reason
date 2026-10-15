@@ -236,6 +236,10 @@ local function loadCrashController(shared)
 			return function() end
 		end,
 	})
+	shared.UnitAttributes = {
+		SetUnitAttribute = function() end,
+		SetUnitModifier = function() end,
+	}
 	local env = setmetatable({
 		gadget = {},
 		gadgetHandler = {

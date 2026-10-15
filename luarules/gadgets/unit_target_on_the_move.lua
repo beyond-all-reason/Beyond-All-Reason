@@ -82,6 +82,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local validUnits = {}
 	local unitWeapons = {}
+	local unitHasWaterWeapon = {} -- places targets on sea floor even if it has other weapons
 	local unitAlwaysSeen = {}
 
 	local WATERWEAPON = 0
@@ -124,6 +125,12 @@ if gadgetHandler:IsSyncedCode() then
 				unitWeapons[unitDefID] = table.map(unitDef.weapons, function(weapon, index)
 					return getWeaponType(weapon, unitDef.canManualFire), index
 				end)
+				for index, weaponType in pairs(unitWeapons[unitDefID]) do
+					if weaponType == WATERWEAPON and WeaponDefs[unitDef.weapons[index].weaponDef].canAttackGround then
+						unitHasWaterWeapon[unitDefID] = true
+						break
+					end
+				end
 			end
 			unitAlwaysSeen[unitDefID] = unitDef.isBuilding or unitDef.speed == 0
 		end
@@ -227,14 +234,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local function testTargetPos(unitID, weaponList, x, y, z)
+		local yAboveWater = max(y, 0)
 		for weaponNum = 1, #weaponList do
-			if
-				weaponList[weaponNum]
-				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, y, z)
-				and spGetUnitWeaponTestRange(unitID, weaponNum, x, y, z)
-				and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, y, z)
-			then
-				return weaponNum
+			local weaponType = weaponList[weaponNum]
+			if weaponType then
+				local weaponY = weaponType == WATERWEAPON and y or yAboveWater
+				if
+					spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponY, z)
+					and spGetUnitWeaponTestRange(unitID, weaponNum, x, weaponY, z)
+					and spGetUnitWeaponHaveFreeLineOfFire(unitID, weaponNum, nil, nil, nil, x, weaponY, z)
+				then
+					return weaponNum
+				end
 			end
 		end
 	end
@@ -369,19 +380,30 @@ if gadgetHandler:IsSyncedCode() then
 		SendToUnsynced("targetIndex", unitID, 1, false)
 	end
 
-	local function wasTargetLost(target, alwaysSeen, allyTeam)
+	local TARGET_AVAILABLE = 1
+	local TARGET_UNSEEN = 2
+	local TARGET_GONE = 3
+
+	local function getTargetTrackingState(target, alwaysSeen, allyTeam)
 		if type(target) ~= "number" then
-			return false, false
-		elseif isDeadOrCrashing(target) then
-			return true, true
-		elseif alwaysSeen then
-			return false, false
+			-- Target is a ground attack
+			return TARGET_AVAILABLE
 		end
-		local los = spGetUnitLosState(target, allyTeam, true)
-		if not los then
-			return true, true
+		if isDeadOrCrashing(target) then
+			return TARGET_GONE
 		end
-		return los % 4 == 0, false
+		if alwaysSeen then
+			return TARGET_AVAILABLE
+		end
+		local losState = spGetUnitLosState(target, allyTeam, true)
+		if not losState then
+			return TARGET_GONE
+		end
+		if losState % 4 == 0 then
+			-- Neither LOS_INLOS nor LOS_INRADAR is set
+			return TARGET_UNSEEN
+		end
+		return TARGET_AVAILABLE
 	end
 
 	--------------------------------------------------------------------------------
@@ -586,6 +608,7 @@ if gadgetHandler:IsSyncedCode() then
 	---@field alwaysSeen boolean? Target does not need to stay in sensor range to be kept.
 	---@field ignoreStop boolean? Target survives a Stop command.
 	---@field userTarget boolean? Target was set by the player rather than by Lua.
+	---@field unseen integer Number of slow updates an unseen unit remains tracked.
 	---@field sent boolean? Target has already been pushed to the unit's weapons.
 
 	---Returns the unit's currently active target.
@@ -612,6 +635,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:Initialize()
+		gadgetHandler:RegisterUnitCommand(CMD_STOP)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_CANCEL_TARGET)
 		gadgetHandler:RegisterCMDID(CMD_UNIT_SET_TARGET_RECTANGLE)
@@ -669,17 +693,14 @@ if gadgetHandler:IsSyncedCode() then
 
 	local function allowTargetPos(unitID, weaponList, xyz)
 		local x, y, z = xyz[1], xyz[2], xyz[3]
+		local yAboveWater = max(y, 0)
 		for weaponNum = 1, #weaponList do
 			local weaponType = weaponList[weaponNum]
 			-- Quirk: Targets are not adjusted engine-side for water level, unlike Attack commands and weapon aiming.
 			if
 				weaponType
-				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == WATERWEAPON and y or max(y, 1), z)
+				and spGetUnitWeaponTestTarget(unitID, weaponNum, x, weaponType == WATERWEAPON and y or yAboveWater, z)
 			then
-				-- We may or may not adjust this targetY depending on weapon order, which can tend to seem arbitrary.
-				if weaponType ~= WATERWEAPON then
-					xyz[2] = max(y, 1)
-				end
 				return true
 			end
 		end
@@ -786,8 +807,12 @@ if gadgetHandler:IsSyncedCode() then
 				end
 
 				local target = cmdParams
-				if target[2] > spGetGroundHeight(target[1], target[3]) then
-					target[2] = spGetGroundHeight(target[1], target[3])
+				local elevation = spGetGroundHeight(target[1], target[3])
+				if target[2] > elevation then
+					target[2] = elevation
+				end
+				if not unitHasWaterWeapon[unitDefID] then
+					target[2] = max(target[2], 0)
 				end
 				if allowTargetPos(unitID, weaponList, target) then
 					addTargetList = {
@@ -908,13 +933,13 @@ if gadgetHandler:IsSyncedCode() then
 			local targets = unitData.targets
 			for index = #targets, 1, -1 do
 				local targetData = targets[index]
-				local isLost, isDead = wasTargetLost(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
-				if not isLost then
+				local targetState = getTargetTrackingState(targetData.target, targetData.alwaysSeen, unitData.allyTeam)
+				if targetState == TARGET_AVAILABLE then
 					targetData.unseen = unseenGracePasses
-				elseif not isDead and targetData.unseen > 0 then
-					targetData.unseen = targetData.unseen - 1
-				else
+				elseif targetState == TARGET_GONE or targetData.unseen == 0 then
 					removeTarget(unitID, unitData, index)
+				else -- TARGET_UNSEEN
+					targetData.unseen = targetData.unseen - 1
 				end
 			end
 			if not targets[1] then

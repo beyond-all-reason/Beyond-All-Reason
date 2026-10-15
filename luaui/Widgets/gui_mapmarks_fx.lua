@@ -13,7 +13,6 @@ function widget:GetInfo()
 end
 
 -- Localized Spring API for performance
-local spGetViewGeometry = Spring.GetViewGeometry
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -38,17 +37,23 @@ local GL_QUADS = GL.QUADS
 
 -- Localized math functions
 local osClock = os.clock
+local mathFloor = math.floor
+local stringChar = string.char
 
--- this table is used to filter out previous map drawing nicknames
--- if user has drawn something new
+local colorAndOutlineCode = (Engine and Engine.textColorCodes and Engine.textColorCodes.ColorAndOutline) or "\254"
+
+---@type table<integer, table>
 local commands = {}
-local mapDrawNicknameTime = {}
-local mapEraseNicknameTime = {}
+local commandCount = 0
+-- one live map_draw effect per player, moved along with each new line segment
+---@type table<number, table?>
+local drawCmdByPlayer = {}
+-- latest map_erase effect per player, the only one showing the eraser icon
+---@type table<number, table?>
+local lastEraseCmd = {}
 
 local ownPlayerID = Spring.GetLocalPlayerID()
-local vsx, vsy = spGetViewGeometry()
 
-local commandCount = 0
 local font, chobbyInterface
 
 -- Module-level batch arrays (reused each frame, no allocations)
@@ -58,6 +63,7 @@ local pencilBatch = {}
 local eraserBatch = {}
 local nickBatch = {}
 local nickNames = {}
+local nickColorPrefix = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -89,6 +95,7 @@ local types = {
 		totalDuration = 0.0,
 		glowAlpha = 0.0,
 		ringAlpha = 0.0,
+		iconAlpha = 0.0,
 	},
 	map_draw = {
 		size = 0.75,
@@ -105,6 +112,7 @@ local types = {
 		totalDuration = 0.0,
 		glowAlpha = 0.0,
 		ringAlpha = 0.0,
+		iconAlpha = 0.0,
 	},
 	map_erase = {
 		size = 3.5,
@@ -121,6 +129,7 @@ local types = {
 		totalDuration = 0.0,
 		glowAlpha = 0.0,
 		ringAlpha = 0.0,
+		iconAlpha = 0.0,
 	},
 }
 
@@ -132,6 +141,7 @@ for _, typeData in pairs(types) do
 	typeData.totalDuration = typeData.duration * generalDuration
 	typeData.glowAlpha = typeData.glowColor[4]
 	typeData.ringAlpha = typeData.ringColor[4]
+	typeData.iconAlpha = typeData.glowAlpha * nicknameOpacityMultiplier
 end
 
 -- Pre-cache texture paths (avoid string concat each frame)
@@ -158,59 +168,85 @@ local function DrawBatchedQuads(data, count)
 	end
 end
 
-local function AddEffect(cmdType, x, y, z, timestamp, unitID, playerID)
-	if not playerID then
-		playerID = false
+-- font:Print ignores gl.Color, so the nickname fades through an inline color code
+local function NicknameColorPrefix(alpha)
+	local byte = mathFloor(alpha * 255 + 0.5)
+	local prefix = nickColorPrefix[byte]
+	if not prefix then
+		prefix = colorAndOutlineCode .. stringChar(255, 255, 255, byte, 0, 0, 0, byte)
+		nickColorPrefix[byte] = prefix
 	end
+	return prefix
+end
+
+local function SetEffect(cmd, typeData, x, y, z, playerID, timestamp)
 	local nickname, _, spec, teamID = spGetPlayerInfo(playerID, false)
-	nickname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID))
-		or nickname
+	cmd.typeData = typeData
+	cmd.x = x
+	cmd.y = y
+	cmd.z = z
+	cmd.osClock = timestamp
+	cmd.playerID = playerID
+	if spec then
+		cmd.r, cmd.g, cmd.b = 1, 1, 1
+	else
+		cmd.r, cmd.g, cmd.b = spGetTeamColor(teamID)
+	end
+	-- other spectators drawing or erasing get an icon and their nickname
+	cmd.showIcon = (typeData.isMapDraw or typeData.isMapErase) and spec and playerID ~= ownPlayerID
+	if cmd.showIcon then
+		cmd.nickname = ((WG.playernames and WG.playernames.getPlayername) and WG.playernames.getPlayername(playerID))
+			or nickname
+	end
+	return cmd
+end
 
-	local r, g, b = spGetTeamColor(teamID)
-
+local function AddEffect(typeData, x, y, z, playerID, timestamp)
+	if commandCount == 0 then
+		widgetHandler:UpdateCallIn("DrawWorldPreUnit")
+	end
 	commandCount = commandCount + 1
-	local typeData = types[cmdType]
-	commands[commandCount] = {
-		cmdType = cmdType,
-		typeData = typeData,
-		x = x,
-		y = y,
-		z = z,
-		osClock = timestamp,
-		playerID = playerID,
-		r = r,
-		g = g,
-		b = b,
-		spec = spec,
-		nickname = nickname,
-	}
+	local cmd = SetEffect({}, typeData, x, y, z, playerID, timestamp)
+	commands[commandCount] = cmd
+	return cmd
 end
 
 function widget:ViewResize()
-	vsx, vsy = spGetViewGeometry()
 	font = WG.fonts.getFont(1, 1.5)
 end
 
 function widget:Initialize()
 	widget:ViewResize()
+	widgetHandler:RemoveCallIn("DrawWorldPreUnit")
 end
-
-function widget:Shutdown() end
 
 function widget:MapDrawCmd(playerID, cmdType, x, y, z, a, b, c)
 	if WG.ignoreList and WG.ignoreList.isPlayerIgnored(playerID) then
 		return
 	end
+	if WG.clearmapmarks and WG.clearmapmarks.continuous then
+		return
+	end
 
 	local currentTime = osClock()
 	if cmdType == "point" then
-		AddEffect("map_mark", x, y, z, currentTime, false, playerID)
+		AddEffect(types.map_mark, x, y, z, playerID, currentTime)
 	elseif cmdType == "line" then
-		mapDrawNicknameTime[playerID] = currentTime
-		AddEffect("map_draw", x, y, z, currentTime, false, playerID)
+		local cmd = drawCmdByPlayer[playerID]
+		if cmd then
+			SetEffect(cmd, types.map_draw, x, y, z, playerID, currentTime)
+		else
+			drawCmdByPlayer[playerID] = AddEffect(types.map_draw, x, y, z, playerID, currentTime)
+		end
 	elseif cmdType == "erase" then
-		mapEraseNicknameTime[playerID] = currentTime
-		AddEffect("map_erase", x, y, z, currentTime, false, playerID)
+		if WG.autoeraser and WG.autoeraser.isErasing() then
+			return
+		end
+		local prevCmd = lastEraseCmd[playerID]
+		if prevCmd then
+			prevCmd.showIcon = false
+		end
+		lastEraseCmd[playerID] = AddEffect(types.map_erase, x, y, z, playerID, currentTime)
 	end
 end
 
@@ -223,19 +259,14 @@ end
 function widget:ClearMapMarks()
 	commands = {}
 	commandCount = 0
+	drawCmdByPlayer = {}
+	lastEraseCmd = {}
+	widgetHandler:RemoveCallIn("DrawWorldPreUnit")
 end
 
+-- only registered while there are effects, see AddEffect
 function widget:DrawWorldPreUnit()
-	if chobbyInterface then
-		return
-	end
-	if spIsGUIHidden() then
-		return
-	end
-	if WG.clearmapmarks and WG.clearmapmarks.continuous then
-		return
-	end
-	if commandCount == 0 then
+	if chobbyInterface or spIsGUIHidden() or (WG.clearmapmarks and WG.clearmapmarks.continuous) then
 		return
 	end
 
@@ -249,100 +280,81 @@ function widget:DrawWorldPreUnit()
 
 	for j = 1, commandCount do
 		local cmd = commands[j]
-		if cmd then
-			local typeData = cmd.typeData
-			local cmdOsClock = cmd.osClock
-			local playerID = cmd.playerID
-			local isMapDraw = typeData.isMapDraw
-			local age = currentTime - cmdOsClock
+		local typeData = cmd.typeData
+		local age = currentTime - cmd.osClock
 
-			if
-				age <= typeData.totalDuration
-				and (
-					not isMapDraw
-					or mapDrawNicknameTime[playerID] == nil
-					or cmdOsClock >= mapDrawNicknameTime[playerID]
-				)
-			then
-				newCommandCount = newCommandCount + 1
-				commands[newCommandCount] = cmd
+		if age <= typeData.totalDuration then
+			newCommandCount = newCommandCount + 1
+			commands[newCommandCount] = cmd
 
-				local durationProcess = age / typeData.totalDuration
-				local a = (1 - durationProcess) * generalOpacity
-				local size = typeData.sizeScaled + (typeData.sizeDelta * durationProcess)
-				local x, y, z = cmd.x, cmd.y, cmd.z
+			local durationProcess = age / typeData.totalDuration
+			local a = (1 - durationProcess) * generalOpacity
+			local size = typeData.sizeScaled + (typeData.sizeDelta * durationProcess)
+			local x, y, z = cmd.x, cmd.y, cmd.z
+			local cr, cg, cb = cmd.r, cmd.g, cmd.b
 
-				local cr, cg, cb
-				if cmd.spec then
-					cr, cg, cb = 1, 1, 1
-				else
-					cr, cg, cb = cmd.r, cmd.g, cmd.b
-				end
-
-				local glowAlpha = typeData.glowAlpha
-				if glowAlpha > 0 then
-					local n = glowN
-					glowBatch[n + 1] = x
-					glowBatch[n + 2] = y
-					glowBatch[n + 3] = z
-					glowBatch[n + 4] = size * 0.8
-					glowBatch[n + 5] = cr
-					glowBatch[n + 6] = cg
-					glowBatch[n + 7] = cb
-					glowBatch[n + 8] = a * glowAlpha
-					glowN = n + 8
-				end
-
-				local ringAlpha = typeData.ringAlpha
-				if ringAlpha > 0 then
-					local n = ringN
-					ringBatch[n + 1] = x
-					ringBatch[n + 2] = y
-					ringBatch[n + 3] = z
-					ringBatch[n + 4] = ringStartSize + (size * ringScale) * durationProcess
-					ringBatch[n + 5] = cr
-					ringBatch[n + 6] = cg
-					ringBatch[n + 7] = cb
-					ringBatch[n + 8] = a * ringAlpha
-					ringN = n + 8
-				end
-
-				if cmd.spec and playerID and playerID ~= ownPlayerID then
-					if isMapDraw or (typeData.isMapErase and cmdOsClock >= (mapEraseNicknameTime[playerID] or 0)) then
-						local iconAlpha = a * glowAlpha * nicknameOpacityMultiplier
-						if isMapDraw then
-							local n = pencilN
-							pencilBatch[n + 1] = x
-							pencilBatch[n + 2] = y
-							pencilBatch[n + 3] = z
-							pencilBatch[n + 4] = 11
-							pencilBatch[n + 5] = cr
-							pencilBatch[n + 6] = cg
-							pencilBatch[n + 7] = cb
-							pencilBatch[n + 8] = iconAlpha
-							pencilN = n + 8
-						else
-							local n = eraserN
-							eraserBatch[n + 1] = x
-							eraserBatch[n + 2] = y
-							eraserBatch[n + 3] = z
-							eraserBatch[n + 4] = 11
-							eraserBatch[n + 5] = cr
-							eraserBatch[n + 6] = cg
-							eraserBatch[n + 7] = cb
-							eraserBatch[n + 8] = iconAlpha
-							eraserN = n + 8
-						end
-						nickN = nickN + 1
-						local nn = (nickN - 1) * 4
-						nickBatch[nn + 1] = x
-						nickBatch[nn + 2] = y
-						nickBatch[nn + 3] = z
-						nickBatch[nn + 4] = iconAlpha
-						nickNames[nickN] = cmd.nickname
-					end
-				end
+			local glowAlpha = typeData.glowAlpha
+			if glowAlpha > 0 then
+				local n = glowN
+				glowBatch[n + 1] = x
+				glowBatch[n + 2] = y
+				glowBatch[n + 3] = z
+				glowBatch[n + 4] = size * 0.8
+				glowBatch[n + 5] = cr
+				glowBatch[n + 6] = cg
+				glowBatch[n + 7] = cb
+				glowBatch[n + 8] = a * glowAlpha
+				glowN = n + 8
 			end
+
+			local ringAlpha = typeData.ringAlpha
+			if ringAlpha > 0 then
+				local n = ringN
+				ringBatch[n + 1] = x
+				ringBatch[n + 2] = y
+				ringBatch[n + 3] = z
+				ringBatch[n + 4] = ringStartSize + (size * ringScale) * durationProcess
+				ringBatch[n + 5] = cr
+				ringBatch[n + 6] = cg
+				ringBatch[n + 7] = cb
+				ringBatch[n + 8] = a * ringAlpha
+				ringN = n + 8
+			end
+
+			if cmd.showIcon then
+				local iconAlpha = a * typeData.iconAlpha
+				if typeData.isMapDraw then
+					local n = pencilN
+					pencilBatch[n + 1] = x
+					pencilBatch[n + 2] = y
+					pencilBatch[n + 3] = z
+					pencilBatch[n + 4] = 11
+					pencilBatch[n + 5] = cr
+					pencilBatch[n + 6] = cg
+					pencilBatch[n + 7] = cb
+					pencilBatch[n + 8] = iconAlpha
+					pencilN = n + 8
+				else
+					local n = eraserN
+					eraserBatch[n + 1] = x
+					eraserBatch[n + 2] = y
+					eraserBatch[n + 3] = z
+					eraserBatch[n + 4] = 11
+					eraserBatch[n + 5] = cr
+					eraserBatch[n + 6] = cg
+					eraserBatch[n + 7] = cb
+					eraserBatch[n + 8] = iconAlpha
+					eraserN = n + 8
+				end
+				nickN = nickN + 1
+				local nn = (nickN - 1) * 3
+				nickBatch[nn + 1] = x
+				nickBatch[nn + 2] = y
+				nickBatch[nn + 3] = z
+				nickNames[nickN] = NicknameColorPrefix(iconAlpha) .. cmd.nickname
+			end
+		elseif typeData.isMapDraw then
+			drawCmdByPlayer[cmd.playerID] = nil
 		end
 	end
 
@@ -352,6 +364,7 @@ function widget:DrawWorldPreUnit()
 	commandCount = newCommandCount
 
 	if commandCount == 0 then
+		widgetHandler:RemoveCallIn("DrawWorldPreUnit")
 		return
 	end
 
@@ -361,39 +374,29 @@ function widget:DrawWorldPreUnit()
 	if glowN > 0 then
 		glTexture(glowTexture)
 		glBeginEnd(GL_QUADS, DrawBatchedQuads, glowBatch, glowN)
-		glTexture(false)
 	end
-
 	if ringN > 0 then
 		glTexture(ringTexture)
 		glBeginEnd(GL_QUADS, DrawBatchedQuads, ringBatch, ringN)
-		glTexture(false)
 	end
-
 	if pencilN > 0 then
 		glTexture(pencilTexture)
 		glBeginEnd(GL_QUADS, DrawBatchedQuads, pencilBatch, pencilN)
-		glTexture(false)
 	end
-
 	if eraserN > 0 then
 		glTexture(eraserTexture)
 		glBeginEnd(GL_QUADS, DrawBatchedQuads, eraserBatch, eraserN)
-		glTexture(false)
 	end
+	glTexture(false)
 
-	if nickN > 0 then
-		font:Begin()
-		for j = 1, nickN do
-			local nn = (j - 1) * 4
-			glPushMatrix()
-			glTranslate(nickBatch[nn + 1], nickBatch[nn + 2], nickBatch[nn + 3])
-			glColor(1, 1, 1, nickBatch[nn + 4])
-			glBillboard()
-			font:Print(nickNames[j], 0, -28, 20, "cn")
-			glPopMatrix()
-		end
-		font:End()
+	-- each nickname prints on its own: the font applies the matrix at End, not per Print
+	for j = 1, nickN do
+		local nn = (j - 1) * 3
+		glPushMatrix()
+		glTranslate(nickBatch[nn + 1], nickBatch[nn + 2], nickBatch[nn + 3])
+		glBillboard()
+		font:Print(nickNames[j], 0, -28, 20, "cn")
+		glPopMatrix()
 	end
 
 	glColor(1, 1, 1, 1)

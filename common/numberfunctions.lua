@@ -1,3 +1,15 @@
+if not math.int_min then
+	---The smallest integer value that is represented accurately in-sequence in float32.
+	---@type integer
+	math.int_min = -16777216
+end
+
+if not math.int_max then
+	---The largest integer value that is represented accurately in-sequence in float32.
+	---@type integer
+	math.int_max = 16777216
+end
+
 if not math.isInRect then
 	function math.isInRect(x, y, BLcornerX, BLcornerY, TRcornerX, TRcornerY)
 		return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
