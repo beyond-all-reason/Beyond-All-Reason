@@ -1168,7 +1168,7 @@ local function notifySelection()
 	local sink = owner.sink
 	-- Only while the tool is on: a deactivation or an owner change clears the tool's own
 	-- selection, which is not the owner's business.
-	if up.active and sink and sink.selectionChanged then
+	if up.active and not sel.silent and sink and sink.selectionChanged then
 		sink.selectionChanged(sel.ids)
 	end
 end
@@ -1932,6 +1932,25 @@ end
 --- Does the tool hold anything Escape would let go of (a selection, a drag, a pick)?
 function Tool.holdsSomething()
 	return #sel.ids > 0 or sel.drag ~= nil or Tool.hasPick()
+end
+
+--- The selection, as ids in the order selected (a copy).
+function Tool.selection()
+	local out = {}
+	for index, id in ipairs(sel.ids) do
+		out[index] = id
+	end
+	return out
+end
+
+--- Set the selection from outside (an owner whose own lists select things: the mission
+--- editor's roster). `silent` keeps the owner's sink from hearing it back.
+---@param ids table
+---@param silent boolean|nil
+function Tool.select(ids, silent)
+	sel.silent = silent == true
+	setSelection(ids or {}, false)
+	sel.silent = false
 end
 
 function Tool.placeAt(x1, z1, x2, z2)
