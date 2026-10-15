@@ -105,6 +105,7 @@ local shaderConfig = {
 	OUTLINE_THIN_END = 8000, -- elmos from the camera where it has thinned to OUTLINE_THIN_SCALE
 	OUTLINE_THIN_SCALE = 0.6, -- outline width at OUTLINE_THIN_END and further, relative to its full width
 	OUTLINE_MIN_WIDTH = 1.0, -- screen pixels (not scaled with the resolution) the thinning stops at
+	OFFMAP_OUTLINE_FADE = 50, -- elmos past the map's edge over which the outline fades out (there is no fill there)
 	OUTLINE_DASHES = OUTLINE_DASHES,
 	MINIMAP_ALPHA = 0.33, -- opacity of the coverage fill on the minimap, SHEET_COLOR / ALLIED_COLOR
 	MINIMAP_OUTLINE_ALPHA = 0.4, -- opacity of the OUTLINE_COLOR border on the minimap around the previewed jammer's coverage
@@ -1299,6 +1300,9 @@ local function getScreenRect(x0, z0, x1, z1)
 		mathMin((top + 1) / vsy * 2 - 1, 1)
 end
 
+-- radar cells past the map's edge the circle mode's outline can reach while it fades out (OFFMAP_OUTLINE_FADE)
+local OFFMAP_MARGIN_CELLS = mathCeil(shaderConfig.OFFMAP_OUTLINE_FADE / RADAR_CELL) + 1
+
 -- The sheet of a coverage layer, with the previewed disc (`set`) over it: one pass over their screen area that
 -- projects it onto the terrain
 local function drawSheet(layer, set, showLayer, now)
@@ -1310,12 +1314,14 @@ local function drawSheet(layer, set, showLayer, now)
 		x0, z0 = mathMin(x0, layer.x0), mathMin(z0, layer.z0)
 		x1, z1 = mathMax(x1, layer.x1), mathMax(z1, layer.z1)
 	end
-	if settings.circles then -- a circle reaches up to two cells past its disc, and carries on past the map's edge
+	-- a circle reaches up to two cells past its disc, and its outline fades out a little past the map's edge
+	local margin = 0
+	if settings.circles then
 		x0, z0, x1, z1 = x0 - 2, z0 - 2, x1 + 2, z1 + 2
-	else
-		x0, z0 = mathMax(x0, 0), mathMax(z0, 0)
-		x1, z1 = mathMin(x1, MAP_CELLS_X - 1), mathMin(z1, MAP_CELLS_Z - 1)
+		margin = OFFMAP_MARGIN_CELLS
 	end
+	x0, z0 = mathMax(x0, -margin), mathMax(z0, -margin)
+	x1, z1 = mathMin(x1, MAP_CELLS_X - 1 + margin), mathMin(z1, MAP_CELLS_Z - 1 + margin)
 	if x1 < x0 or z1 < z0 then
 		return
 	end
