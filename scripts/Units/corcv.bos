@@ -42,6 +42,10 @@ StartMoving(reversing)
 StopMoving()
 {
 	signal SIGNAL_MOVE;
+	stop-spin tyre2 around x-axis;
+	stop-spin tyre3 around x-axis;
+	stop-spin ltyre around x-axis;
+	stop-spin rtyre around x-axis;
 	STOP_TILTBANK;
 }
 
@@ -62,7 +66,6 @@ Create()
 	call-script TB_Init();
 	moveSpeed = get MAX_SPEED;
 	SLEEP_UNTIL_UNITFINISHED;
-	start-script WheelControl();
 }
 
 StartBuilding(heading, pitch)

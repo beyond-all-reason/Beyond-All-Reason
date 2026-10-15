@@ -18,6 +18,11 @@ local spEcho = Spring.Echo
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetAllUnits = Spring.GetAllUnits
 local spGetSpectatingState = Spring.GetSpectatingState
+local spValidUnitID = Spring.ValidUnitID
+local spGetUnitIsDead = Spring.GetUnitIsDead
+local spGetGameFrame = Spring.GetGameFrame
+local spIsGUIHidden = Spring.IsGUIHidden
+local mathCeil = math.ceil
 
 local iconsize = 1
 local iconoffset = 24
@@ -36,9 +41,11 @@ for i = 1, numRanks do
 	rankTextures[i] = "LuaUI/Images/ranks/rank" .. i .. ".png"
 end
 local xpPerLevel = maximumRankXP / (numRanks - 1)
+local rankUVs = {} -- atlas coordinates, 4 per rank in instance attribute order
 
 local unitHeights = {}
 local spec, fullview = spGetSpectatingState()
+local doRefresh = false
 
 -- GL4 stuff:
 local InstanceVBOTable = gl.InstanceVBOTable
@@ -53,6 +60,7 @@ local atlasSize = 2048
 ---@type InstanceVBOTable?
 local rankVBO = nil
 local rankShader = nil
+local shaderIconDistance = nil
 local luaShaderDir = "LuaUI/Include/"
 
 local debugmode = false
@@ -79,6 +87,11 @@ local function makeAtlas()
 	if debugmode then
 		--spEcho("atlas result", result)
 	end
+	for rank = 1, numRanks do
+		local p, q, s, t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
+		local i = rank * 4
+		rankUVs[i - 3], rankUVs[i - 2], rankUVs[i - 1], rankUVs[i] = q, p, t, s
+	end
 end
 
 local GetUnitDefID = spGetUnitDefID
@@ -89,10 +102,9 @@ local GetUnitTeam = spGetUnitTeam
 
 local glDepthTest = gl.DepthTest
 local glDepthMask = gl.DepthMask
-local glAlphaTest = gl.AlphaTest
 local glTexture = gl.Texture
 
-local GL_GREATER = GL.GREATER
+local GL_POINTS = GL.POINTS
 
 local ignoreTeams = {}
 for _, teamID in ipairs(Spring.GetTeamList()) do
@@ -103,6 +115,7 @@ for _, teamID in ipairs(Spring.GetTeamList()) do
 		end
 	end
 end
+local hasIgnoredTeams = next(ignoreTeams) ~= nil
 
 local unitIconMult = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
@@ -141,17 +154,33 @@ for i = 1, 18 do
 	vbocachetable[i] = 0
 end -- init this caching table to preserve mem allocs
 
+local drawCallInActive = true
+
+-- DrawScreenEffects is only registered while there are icons
+local function updateDrawCallIn()
+	local active = rankVBO.usedElements > 0
+	if active ~= drawCallInActive then
+		drawCallInActive = active
+		if active then
+			widgetHandler:UpdateCallIn("DrawScreenEffects")
+		else
+			doRefresh = false
+			widgetHandler:RemoveCallIn("DrawScreenEffects")
+		end
+	end
+end
+
 local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, flash)
 	if debugmode then
 		BAR.Debug.TraceEcho("add", unitID, reason)
 	end
-	if Spring.ValidUnitID(unitID) ~= true or Spring.GetUnitIsDead(unitID) == true then
+	if spValidUnitID(unitID) ~= true or spGetUnitIsDead(unitID) == true then
 		if debugmode then
 			spEcho("Warning: Rank Icons GL4 attempted to add an invalid unitID:", unitID)
 		end
 		return nil
 	end
-	local gf = (flash and Spring.GetGameFrame()) or 0
+	local gf = (flash and spGetGameFrame()) or 0
 	unitDefID = unitDefID or spGetUnitDefID(unitID)
 
 	--if unitDefID == nil or unitDefIDtoDecalInfo[unitDefID] == nil then return end -- these can't have plates
@@ -160,7 +189,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	--local texname = "unittextures/decals/".. UnitDefs[unitDefID].name .. "_aoplane.dds" --unittextures/decals/armllt_aoplane.dds
 
 	--spEcho (rank, rankTextures[rank], unitIconMult[unitDefID])
-	local p, q, s, t = gl.GetAtlasTexture(atlasID, rankTextures[rank])
+	local uv = rank * 4
 
 	vbocachetable[1] = usedIconsize -- length
 	vbocachetable[2] = usedIconsize -- widgth
@@ -175,12 +204,12 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 	vbocachetable[9] = 1.0 -- alpha
 	--vbocachetable[10] = 0 -- unused
 
-	vbocachetable[11] = q -- uv's of the atlas
-	vbocachetable[12] = p
-	vbocachetable[13] = t
-	vbocachetable[14] = s
+	vbocachetable[11] = rankUVs[uv - 3] -- uv's of the atlas
+	vbocachetable[12] = rankUVs[uv - 2]
+	vbocachetable[13] = rankUVs[uv - 1]
+	vbocachetable[14] = rankUVs[uv]
 
-	return pushElementInstance(
+	pushElementInstance(
 		rankVBO, -- push into this Instance VBO Table
 		vbocachetable, -- yes we save 1 table alloc this way
 		unitID, -- this is the key inside the VBO Table, should be unique per unit
@@ -188,6 +217,7 @@ local function AddPrimitiveAtUnit(unitID, unitDefID, noUpload, reason, rank, fla
 		noUpload, -- noupload, dont use unless you know what you want to batch push/pop
 		unitID
 	) -- last one should be UNITID!
+	updateDrawCallIn()
 end
 
 local function RemovePrimitive(unitID, reason)
@@ -196,6 +226,7 @@ local function RemovePrimitive(unitID, reason)
 	end
 	if rankVBO.instanceIDtoIndex[unitID] then
 		popElementInstance(rankVBO, unitID)
+		updateDrawCallIn()
 	end
 end
 
@@ -224,6 +255,8 @@ local function initGL4()
 	if debugmode then
 		shaderConfig.POST_SHADING = shaderConfig.POST_SHADING .. " fragColor.a += 0.25;"
 	end
+	-- replaces gl.AlphaTest(GL.GREATER, 0.001), which the engine ran with its reference truncated to 0
+	shaderConfig.POST_SHADING = shaderConfig.POST_SHADING .. " if (fragColor.a <= 0.0) discard;"
 	rankVBO, rankShader = DrawPrimitiveAtUnit.InitDrawPrimitiveAtUnit(shaderConfig, "Rank Icons")
 	if rankVBO == nil then
 		widgetHandler:RemoveWidget()
@@ -240,7 +273,7 @@ local function initGL4()
 end
 
 local function getRank(unitDefID, xp)
-	local rankLevel = math.ceil(xp / xpPerLevel)
+	local rankLevel = mathCeil(xp / xpPerLevel)
 	if rankLevel == 0 then
 		return 1
 	elseif rankLevel <= numRanks then
@@ -250,8 +283,8 @@ local function getRank(unitDefID, xp)
 	end
 end
 
-local function updateUnitRank(unitID, unitDefID, noUpload)
-	if not unitIconMult[unitDefID] or ignoreTeams[GetUnitTeam(unitID)] then
+local function updateUnitRank(unitID, unitDefID, noUpload, unitTeam)
+	if not unitIconMult[unitDefID] or (hasIgnoredTeams and ignoreTeams[unitTeam or GetUnitTeam(unitID)]) then
 		return
 	end
 	local xp = GetUnitExperience(unitID)
@@ -299,7 +332,9 @@ function widget:Initialize()
 	WG.rankicons.setScale = function(value)
 		iconsizeMult = value
 		usedIconsize = iconsize * iconsizeMult
-		doRefresh = true
+		if drawCallInActive then -- without icons the new size simply applies to the next ones
+			doRefresh = true
+		end
 	end
 	WG.rankicons.getRank = function(unitDefID, xp)
 		return getRank(unitDefID, xp)
@@ -321,11 +356,17 @@ function widget:Initialize()
 		local unitID = allUnits[i]
 		updateUnitRank(unitID, GetUnitDefID(unitID))
 	end
+	updateDrawCallIn()
 end
 
 function widget:Shutdown()
 	for _, rankTexture in ipairs(rankTextures) do
 		gl.DeleteTexture(rankTexture)
+	end
+	if rankVBO then
+		rankVBO:Delete()
+		rankShader:Delete()
+		gl.DeleteTextureAtlas(atlasID)
 	end
 end
 
@@ -347,7 +388,6 @@ function widget:UnitExperience(unitID, unitDefID, teamID, xp, oldXP)
 	local oldRank = getRank(unitDefID, oldXP)
 
 	if oldRank < rank then
-		RemovePrimitive(unitID, "promoted")
 		AddPrimitiveAtUnit(unitID, unitDefID, false, "promoted", rank, 1)
 	end
 end
@@ -358,7 +398,7 @@ end
 
 function widget:VisibleUnitAdded(unitID, unitDefID, unitTeam)
 	if fullview or IsUnitAllied(unitID) then
-		updateUnitRank(unitID, GetUnitDefID(unitID))
+		updateUnitRank(unitID, unitDefID, nil, unitTeam)
 	end
 end
 
@@ -374,17 +414,19 @@ function widget:VisibleUnitsChanged(extVisibleUnits, extNumVisibleUnits)
 	end
 	InstanceVBOTable.uploadAllElements(rankVBO)
 	doRefresh = false
+	updateDrawCallIn()
 end
 
 function widget:DrawScreenEffects()
 	-- DrawScreenEffects so rank icons render after deferred lighting/distortion/bloom/tonemap;
 	-- shader still uses engine cameraViewProj UBO and depth-test for terrain occlusion.
-	if Spring.IsGUIHidden() then
+	if spIsGUIHidden() then
 		return
 	end
 	if doRefresh then
 		ProcessAllUnits()
 		doRefresh = false
+		updateDrawCallIn()
 	end
 	if rankVBO.usedElements > 0 then
 		--spEcho(rankVBO.usedElements)
@@ -392,20 +434,21 @@ function widget:DrawScreenEffects()
 
 		glDepthMask(true)
 		glDepthTest(true)
-		glAlphaTest(GL_GREATER, 0.001)
 		--gl.DepthTest(GL.LEQUAL)
 		--gl.DepthMask(false)
 		glTexture(0, atlasID)
 		rankShader:Activate()
-		rankShader:SetUniform("iconDistance", usedCutoffDistance)
-		rankShader:SetUniform("addRadius", 0)
-		rankVBO.VAO:DrawArrays(GL.POINTS, rankVBO.usedElements)
+		-- addRadius stays at its default of 0
+		if shaderIconDistance ~= usedCutoffDistance then
+			shaderIconDistance = usedCutoffDistance
+			rankShader:SetUniform("iconDistance", usedCutoffDistance)
+		end
+		rankVBO.VAO:DrawArrays(GL_POINTS, rankVBO.usedElements)
 		rankShader:Deactivate()
 		glTexture(0, false)
 		--gl.Culling(false)
 		--gl.DepthTest(false)
 
-		glAlphaTest(false)
 		glDepthTest(false)
 		glDepthMask(false)
 	end

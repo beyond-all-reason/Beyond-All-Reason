@@ -5,6 +5,7 @@
 -- ends up bound. Everything after it goes through Spring.GetKeyBindings.
 
 local Json = Json or require("common/luaUtilities/json")
+local WidgetActions = require("luaui/Include/keybind_widget_actions")
 local keybindConfig = require("luaui/Include/keybind_config")
 local keybindModel = require("luaui/Include/keybind_model")
 
@@ -185,6 +186,93 @@ for _, b in ipairs(builtins) do
 	b.fakeMeta = resolveFakeMeta(b.fakeMeta)
 end
 
+-- The engine lowercases an action's command word, so a file naming it in any other case
+-- still targets the same action.
+local function commandOf(action)
+	return (action:match("^%S+") or ""):lower()
+end
+
+local function actionKey(action)
+	local command, args = action:match("^(%S+)(.*)$")
+
+	return command and (command:lower() .. args) or action
+end
+
+-- Applied even where the key is taken; the editor shows the clash.
+local function widgetDefaults()
+	return WidgetActions.defaults((WidgetActions.manifests()))
+end
+
+local function seededSet(profile)
+	local set = {}
+	for _, action in ipairs(profile.seeded or {}) do
+		set[action] = true
+	end
+
+	return set
+end
+
+local function missingDefaults(binds, skip)
+	local bound = {}
+	for _, b in ipairs(binds) do
+		if type(b) == "table" and type(b.action) == "string" then
+			bound[actionKey(b.action)] = true
+		end
+	end
+
+	local missing = {}
+	for _, default in ipairs(widgetDefaults()) do
+		if not bound[default.action] and not skip[default.action] then
+			for _, keyset in ipairs(default.keysets) do
+				missing[#missing + 1] = { keyset = keyset, action = default.action }
+			end
+		end
+	end
+
+	return missing
+end
+
+local function withWidgetDefaults(binds, skip)
+	local out = {}
+	for i, b in ipairs(binds) do
+		out[i] = b
+	end
+	for _, b in ipairs(missingDefaults(binds, skip)) do
+		out[#out + 1] = b
+	end
+
+	return out
+end
+
+-- What a profile binds once written out, the loaded widgets' defaults it takes included.
+function M.effectiveBinds(profile)
+	return withWidgetDefaults(profile.binds or {}, M.isBuiltin(profile.name) and {} or seededSet(profile))
+end
+
+-- Once per action, so a default the player removes stays removed.
+local function seedWidgetDefaults(profile)
+	local seeded = seededSet(profile)
+	for _, b in ipairs(missingDefaults(profile.binds, seeded)) do
+		profile.binds[#profile.binds + 1] = b
+	end
+
+	for _, default in ipairs(widgetDefaults()) do
+		if not seeded[default.action] then
+			profile.seeded = profile.seeded or {}
+			profile.seeded[#profile.seeded + 1] = default.action
+		end
+	end
+end
+
+local function allDefaultActions()
+	local names = {}
+	for i, default in ipairs(widgetDefaults()) do
+		names[i] = default.action
+	end
+
+	return names
+end
+
 -- A whole keymap: keyreload clears the bindings before it loads, but not the meta key.
 local function toBindFile(profile)
 	local out = { GENERATED_PREFIX .. tostring(profile.name) }
@@ -208,6 +296,11 @@ local function toBindFile(profile)
 		Spring.Echo(
 			"[keybind_profiles] skipped " .. dropped .. " malformed binding(s) in profile " .. tostring(profile.name)
 		)
+	end
+
+	-- A shipped profile is read-only, so the widget defaults it lacks ride along on the way out.
+	if M.isBuiltin(profile.name) then
+		binds = withWidgetDefaults(binds, {})
 	end
 
 	for _, b in ipairs(byPriority(binds)) do
@@ -234,18 +327,6 @@ local function retiredBinds(path)
 	end
 
 	return retiredIncludes[path]
-end
-
--- The engine lowercases an action's command word, so a file naming it in any other case
--- still targets the same action.
-local function commandOf(action)
-	return (action:match("^%S+") or ""):lower()
-end
-
-local function actionKey(action)
-	local command, args = action:match("^(%S+)(.*)$")
-
-	return command and (command:lower() .. args) or action
 end
 
 -- The engine cannot parse a comma chain as an unbind target, so a directive naming one hits
@@ -657,6 +738,9 @@ function M.load()
 	for _, p in ipairs(store.profiles) do
 		if type(p) == "table" and type(p.name) == "string" and not seen[p.name] then
 			p.binds = type(p.binds) == "table" and p.binds or {}
+			if type(p.seeded) ~= "table" then
+				p.seeded = nil
+			end
 			-- A shipped profile is not the store to define.
 			if M.isBuiltin(p.name) then
 				local taken = p.name
@@ -755,6 +839,27 @@ function M.setActive(name)
 	return M.save()
 end
 
+-- A default missing from a keymap we wrote was taken out by hand; one we did not write held none.
+local function offeredIn(text)
+	local written = store.written
+	if not written or generatedName(text) ~= written.name then
+		return nil
+	end
+
+	local source = M.get(written.name)
+	local offered, seen = {}, {}
+	for _, list in ipairs({ written.offered or {}, source and source.seeded or {} }) do
+		for _, action in ipairs(list) do
+			if not seen[action] then
+				seen[action] = true
+				offered[#offered + 1] = action
+			end
+		end
+	end
+
+	return #offered > 0 and offered or nil
+end
+
 -- Whichever file the engine is pointed at: a hand-set KeybindingFile is the same player doing
 -- the same thing somewhere else.
 function M.adoptEditedKeymap()
@@ -792,7 +897,8 @@ function M.adoptEditedKeymap()
 
 	local previous = store.active
 	local name = nextCopyName(M.activeName() or "Custom")
-	store.profiles[#store.profiles + 1] = { name = name, binds = binds, fakeMeta = fakeMetaOf(text) }
+	store.profiles[#store.profiles + 1] =
+		{ name = name, binds = binds, fakeMeta = fakeMetaOf(text), seeded = offeredIn(text) }
 	store.active = name
 	if not M.save() then
 		table.remove(store.profiles)
@@ -930,6 +1036,11 @@ function M.create(name, binds, fakeMeta, basedOn)
 	M.load()
 	name = M.uniqueName(name)
 	local profile = { name = name, binds = binds, fakeMeta = resolveFakeMeta(fakeMeta) }
+	-- Made from a keymap that already holds what the player kept of the defaults.
+	local seeded = allDefaultActions()
+	if #seeded > 0 then
+		profile.seeded = seeded
+	end
 	profile.basedOn = (basedOn and (M.isBuiltin(basedOn) or indexOf(basedOn))) and basedOn or M.inferBase(profile)
 	store.profiles[#store.profiles + 1] = profile
 	if not M.save() then
@@ -1073,6 +1184,10 @@ function M.materialize(name)
 		return nil
 	end
 
+	if not M.isBuiltin(name) then
+		seedWidgetDefaults(profile)
+	end
+
 	local file = io.open(ACTIVE_FILE, "w")
 	if not file then
 		Spring.Echo("[keybind_profiles] could not open " .. ACTIVE_FILE .. " for writing")
@@ -1086,7 +1201,7 @@ function M.materialize(name)
 	-- What the keymap held the last time it was ours. A file still holding this has not been
 	-- edited since, so the profile behind it can be rewritten over the top; one that does not
 	-- is the player's own work and is kept.
-	store.written = { name = name, stamp = stampOf(text) }
+	store.written = { name = name, stamp = stampOf(text), offered = allDefaultActions() }
 	M.save()
 
 	return ACTIVE_FILE

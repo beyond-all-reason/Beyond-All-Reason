@@ -261,4 +261,8 @@ function gadget:Initialize()
 		gadgetHandler:RemoveCallIn("ProjectileCreated")
 		gadgetHandler:RemoveCallIn("ProjectileDestroyed")
 	end
+
+	for weaponDefID in pairs(sparkWeapons) do
+		gadgetHandler:RegisterUnitPreDamagedWeapon(weaponDefID)
+	end
 end

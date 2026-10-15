@@ -8,7 +8,6 @@ return {
 		collisionvolumescales = "40 40 40",
 		collisionvolumetype = "BOX",
 		corpse = "DEAD",
-		damagemodifier = 0.5,
 		energycost = 32000,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
@@ -38,7 +37,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.188,
-		turnrate = 520.29999,
+		turnrate = 520,
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/cor_normal.dds",

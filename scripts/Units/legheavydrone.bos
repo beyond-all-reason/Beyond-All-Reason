@@ -3,7 +3,7 @@
 
 piece  base, thruster, flwing, frwing, blwing, brwing, flblades, frblades, blblades, brblades, blades, flare, ringazimuth, ringelevation, armor, thrusttrail;
 
-static-var shotcount;
+static-var shotcount, docked;
 
 #define SIGNAL_AIM1 256
 
@@ -76,6 +76,16 @@ Deactivate()
 	turn ringelevation to x-axis <-90> speed <30>;
 }
 
+Docked(customparam, dockpiece)
+{
+	docked = 1;
+}
+
+Undocked(customparam, dockpiece)
+{
+	docked = 0;
+}
+
 QueryWeapon1(pieceIndex)
 {
 	pieceIndex = flare;
@@ -90,7 +100,11 @@ AimWeapon1(heading, pitch)
 {
     signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
-	
+	if (docked)
+	{
+		return (0);
+	}
+
 	turn thruster to x-axis <0> speed <90>;
 	
 	turn ringazimuth to y-axis heading speed <300>;

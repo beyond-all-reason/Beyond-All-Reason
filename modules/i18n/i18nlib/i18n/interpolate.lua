@@ -1,4 +1,6 @@
 local unpack = unpack or table.unpack -- lua 5.2 compat
+local find = string.find
+local noVars = {} -- never written to
 
 local bracketDummy = "@@@@@@@@@{@@@@@@@@@"
 local ltDummy = "@@@@@@@@@<@@@@@@@@@"
@@ -43,12 +45,25 @@ local function interpolatePositionalVariables(str, vars)
 end
 
 local function interpolate(str, vars)
-	vars = vars or {}
-	str = escapeDoublePercent(str)
-	str = interpolateVariables(str, vars)
-	str = interpolateFormattedVariables(str, vars)
+	-- with no "%" and no escape dummy in it, every step below returns the string as it is
+	if type(str) == "string" and not find(str, "%", 1, true) and not find(str, "@@@@@@@@@", 1, true) then
+		return str
+	end
+	vars = vars or noVars
+	-- each step is skipped only when its pattern cannot match; a non-string still errors in the first one
+	if type(str) ~= "string" or find(str, "%%", 1, true) then
+		str = escapeDoublePercent(str)
+	end
+	if find(str, "%{", 1, true) then
+		str = interpolateVariables(str, vars)
+	end
+	if find(str, "%<", 1, true) then
+		str = interpolateFormattedVariables(str, vars)
+	end
 	str = interpolatePositionalVariables(str, vars)
-	str = unescapeDoublePercent(str)
+	if find(str, "@@@@@@@@@", 1, true) then
+		str = unescapeDoublePercent(str)
+	end
 	return str
 end
 

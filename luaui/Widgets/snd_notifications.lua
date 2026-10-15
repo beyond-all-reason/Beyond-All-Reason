@@ -78,8 +78,23 @@ local defaultSoundFolder = string.gsub("sounds/voice/" .. defaultVoiceSet .. "/"
 -- load and parse sound files/notifications
 local notificationTable = require("sounds/voice/config")
 if VFS.FileExists(soundFolder .. "config.lua") then
-	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua")
+	local voicesetNotificationTable = VFS.Include(soundFolder .. "config.lua", {}, VFS.RAW_FIRST)
 	notificationTable = table.merge(notificationTable, voicesetNotificationTable)
+end
+
+-- one recursive listing per voice folder instead of ~7,500 VFS.FileExists probes (a filesystem stat each on a miss);
+-- lowercase like the VFS lookups, which ignore case (some files differ in case from their notification id)
+local wavFilesByFolder = {}
+local function wavFileExists(folder, path)
+	local files = wavFilesByFolder[folder]
+	if not files then
+		files = {}
+		for _, file in ipairs(VFS.DirList(folder, "*.wav", nil, true)) do
+			files[file:gsub("\\", "/"):lower()] = true
+		end
+		wavFilesByFolder[folder] = files
+	end
+	return files[path:lower()] == true
 end
 
 local function processNotificationDefs()
@@ -100,33 +115,33 @@ local function processNotificationDefs()
 				.. string.sub(notifID, 1, 1):lower()
 				.. string.sub(notifID, 2)
 		end
-		if VFS.FileExists(soundFolder .. notifID .. ".wav") then
+		if wavFileExists(soundFolder, soundFolder .. notifID .. ".wav") then
 			notifSounds[currentEntry] = soundFolder .. notifID .. ".wav"
 		end
 		for i = 1, 20 do
-			if VFS.FileExists(soundFolder .. notifID .. i .. ".wav") then
+			if wavFileExists(soundFolder, soundFolder .. notifID .. i .. ".wav") then
 				currentEntry = currentEntry + 1
 				notifSounds[currentEntry] = soundFolder .. notifID .. i .. ".wav"
 			end
 		end
 
 		if useDefaultVoiceFallback and #notifSounds == 0 then
-			if VFS.FileExists(defaultSoundFolder .. notifID .. ".wav") then
+			if wavFileExists(defaultSoundFolder, defaultSoundFolder .. notifID .. ".wav") then
 				notifSounds[currentEntry] = defaultSoundFolder .. notifID .. ".wav"
 			end
 			for i = 1, 20 do
-				if VFS.FileExists(defaultSoundFolder .. notifID .. i .. ".wav") then
+				if wavFileExists(defaultSoundFolder, defaultSoundFolder .. notifID .. i .. ".wav") then
 					currentEntry = currentEntry + 1
 					notifSounds[currentEntry] = defaultSoundFolder .. notifID .. i .. ".wav"
 				end
 			end
 		end
 
-		if VFS.FileExists(soundFolder .. notifID .. "_rare" .. ".wav") then
+		if wavFileExists(soundFolder, soundFolder .. notifID .. "_rare" .. ".wav") then
 			notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. "_rare" .. ".wav"
 		end
 		for i = 1, 20 do
-			if VFS.FileExists(soundFolder .. notifID .. "_rare" .. i .. ".wav") then
+			if wavFileExists(soundFolder, soundFolder .. notifID .. "_rare" .. i .. ".wav") then
 				currentEntryRare = currentEntryRare + 1
 				notifSoundsRare[currentEntryRare] = soundFolder .. notifID .. "_rare" .. i .. ".wav"
 			end
@@ -1055,13 +1070,20 @@ function widget:GameOver(winningAllyTeams)
 	--widgetHandler:RemoveWidget()
 end
 
+local gadgetPaused = false -- non-player pauses, usually do not announce this
 function widget:GamePaused(playerID, isGamePaused)
-	if not gameover then
-		if isGamePaused then
+	if gameover then
+		return
+	end
+	if isGamePaused then
+		gadgetPaused = Spring.GetGameRulesParam("gamePaused") == 1
+		if not gadgetPaused then
 			queueNotification("GamePaused", true)
-		else
-			queueNotification("GameUnpaused", true)
 		end
+	elseif gadgetPaused then
+		gadgetPaused = false
+	else
+		queueNotification("GameUnpaused", true)
 	end
 end
 
