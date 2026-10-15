@@ -27,7 +27,8 @@ end
 --  1. Coverage pass (only when the emitter's cell or bucketed height changes): replicates the
 --     engine's radar LOS (LosMap.cpp: midpoint-circle disk, rays, CastLos angle test) per radar cell.
 --  2. Smoothing pass (every frame, a few thousand texels): a ping-ponged state texture eases towards
---     the coverage, so the sheet fades smoothly instead of popping while dragging.
+--     the coverage, so the sheet fades smoothly instead of popping while dragging. The cells' rounded shape and
+--     outline follow the exact coverage, so they don't lag behind.
 --  3. Minimap pass (DrawInMiniMap, RadarPreviewMinimap setting): a flat, outlined fill of the same coverage on the minimap.
 --  4. Sheet pass: projects the coverage onto the terrain. Drawn over the coverage's screen area, every pixel
 --     rebuilds its world position from the map g-buffer depth and takes the coverage of its radar cell, with the
@@ -297,6 +298,7 @@ local sheetShaderCache = {
 		radarInfoTex = 3,
 		alliedWinnerTex = 4,
 		alliedRunnerUpTex = 5,
+		targetTex = 6,
 	},
 	uniformFloat = {
 		radarcenter_range = { 0, 0, 0, 2000 },
@@ -1149,6 +1151,7 @@ local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied, circl
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 	gl.Texture(2, set.state[set.cur])
+	gl.Texture(6, set.target) -- exact coverage: the rounded cells follow it without the smoothing's delay
 	if allied then
 		-- the engine's radar map of our ally team (one texel per radar cell), or our own union of the
 		-- allied radars when the engine map is all-covering (global LOS / spectator full view)
@@ -1169,7 +1172,7 @@ local function drawSheet(set, cx, cz, losHeight, range, now, manualAllied, circl
 	sheetShader:SetUniform("passRect", left, bottom, right, top)
 	passVAO:DrawArrays(GL.TRIANGLES)
 	sheetShader:Deactivate()
-	for unit = 0, 5 do
+	for unit = 0, 6 do
 		gl.Texture(unit, false)
 	end
 end
