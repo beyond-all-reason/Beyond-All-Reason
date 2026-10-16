@@ -113,7 +113,7 @@ Killed(severity, corpsetype)
 
 AimWeapon1(heading, pitch)
 {
-
+	if (pitch < <-40>) pitch = <-40>;
 	signal SIGNAL_AIM1;
 	set-signal-mask SIGNAL_AIM1;
 	//We can do this any time
