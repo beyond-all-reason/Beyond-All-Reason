@@ -107,6 +107,9 @@ for _, registration in pairs(registrations) do
 	for _, callin in ipairs(registration.callins) do
 		callinRegistration[callin] = registration
 		callinLists[callin] = { [ANY] = {} }
+		if registration.negativeIDs then
+			callinLists[callin][registration.negativeIDs] = {}
+		end
 		callinGadgets[callin] = {}
 		callinSubscribed[callin] = {}
 		fillUnregisteredIDs(registration, callinLists[callin])
@@ -144,6 +147,54 @@ local function rebuildIDList(callin, registration, id)
 		lists[id] = lists[ANY]
 	else
 		lists[id] = nil
+	end
+end
+
+---In-place add/remove of a gadget registered for ANY to every list of a callin.
+---@param registration CallinRegistration
+local function updateAny(callin, registration, gadget)
+	local lists, negativeIDs = callinLists[callin], registration.negativeIDs
+	local idSet = gadget[registration.idSetName]
+	local subscribed = callinSubscribed[callin][gadget] == true and idSet ~= nil
+	local any = lists[ANY]
+
+	local gadgetToIndex = {}
+	for i, g in ipairs(callinGadgets[callin]) do
+		gadgetToIndex[g] = i
+	end
+
+	local relisted = {}
+	for id, list in pairs(lists) do
+		if not relisted[list] then
+			relisted[list] = true
+
+			local wanted = subscribed and idSet[ANY] == true
+			if subscribed and not wanted and list ~= any then
+				local isNegative = negativeIDs ~= nil and type(id) == "number" and id < 0
+				wanted = idSet[id] == true or (isNegative and idSet[negativeIDs] == true)
+			end
+
+			local listIndex
+			for i = 1, #list do
+				if list[i] == gadget then
+					listIndex = i
+					break
+				end
+			end
+
+			if wanted and not listIndex then
+				local insertIndex, currentIndex = #list + 1, gadgetToIndex[gadget]
+				for i = 1, #list do
+					if gadgetToIndex[list[i]] > currentIndex then
+						insertIndex = i
+						break
+					end
+				end
+				table.insert(list, insertIndex, gadget)
+			elseif listIndex and not wanted then
+				table.remove(list, listIndex)
+			end
+		end
 	end
 end
 
@@ -230,9 +281,13 @@ local function collectListedGadgets(registration, gadgets)
 end
 
 ---Callin lists rebuild extremely slowly unless we collect on IDs first when a gadget deregisters a callin.
----Currently very slow still for range-based registrations like ANY and negative IDs for build orders.
+---Currently very slow still for range-based registrations, like ANY and CMD.BUILD.
 ---@param registration CallinRegistration
 local function collectRelistedIDs(registration, before, after)
+	-- Most ID lists remain the same before and after a gadget deregisters a callin.
+	-- Try to work out which ones changed so that only those will be rebuilt after.
+	-- It isn't worth continuing to compare when the ordering has changed, though,
+	-- so this exits early when the order changes or when a range is registered.
 	local wasListed, isListed = {}, {}
 	for _, g in ipairs(before) do
 		wasListed[g] = true
@@ -240,8 +295,6 @@ local function collectRelistedIDs(registration, before, after)
 	for _, g in ipairs(after) do
 		isListed[g] = true
 	end
-
-	-- Keep the order of other gadgets when ID lists change.
 	local i, j = 1, 1
 	repeat
 		while before[i] and not isListed[before[i]] do
@@ -251,7 +304,7 @@ local function collectRelistedIDs(registration, before, after)
 			j = j + 1
 		end
 		if before[i] ~= after[j] then
-			return
+			return -- ordering changed so do full rebuild (very slow)
 		end
 		i, j = i + 1, j + 1
 	until before[i - 1] == nil
@@ -268,16 +321,22 @@ local function collectRelistedIDs(registration, before, after)
 		end
 	end
 
-	local idSetName, negativeIDs, relisted = registration.idSetName, registration.negativeIDs, {}
+	local idSetName, negativeIDs, relisted, relistedAny = registration.idSetName, registration.negativeIDs, {}, {}
 	for _, g in ipairs(relistedGadgets) do
-		for id in pairs(g[idSetName]) do
-			if id == ANY or id == negativeIDs then
-				return -- every list needs rebuilding
+		local ids = g[idSetName]
+		if negativeIDs ~= nil and ids[negativeIDs] then
+			return -- every list needs rebuilding
+		end
+		if ids[ANY] then
+			relistedAny[#relistedAny + 1] = g
+		end
+		for id in pairs(ids) do
+			if id ~= ANY then
+				relisted[id] = true
 			end
-			relisted[id] = true
 		end
 	end
-	return relisted
+	return relisted, relistedAny
 end
 
 ---@param registration CallinRegistration
@@ -307,13 +366,16 @@ local function refreshCallinGadgets(handler, callin, registration)
 
 	-- Gadgets with no registered IDs are in no list, so only the order of the others matters.
 	local before, after = collectListedGadgets(registration, previous), collectListedGadgets(registration, gadgets)
-	local relisted = collectRelistedIDs(registration, before, after)
+	local relisted, relistedAny = collectRelistedIDs(registration, before, after)
 	if relisted == nil then
 		rebuildCallinLists(callin, registration)
 	else
 		for id in pairs(relisted) do
 			rebuildIDList(callin, registration, id)
 			updateWatchedID(registration, id)
+		end
+		for _, g in ipairs(relistedAny) do
+			updateAny(callin, registration, g)
 		end
 	end
 end
@@ -335,7 +397,13 @@ end
 
 ---@param registration CallinRegistration
 local function rebuildRegisteredID(registration, gadget, id)
-	if id == ANY or id == registration.negativeIDs then
+	if id == ANY then
+		for _, callin in ipairs(registration.callins) do
+			if callinSubscribed[callin][gadget] then
+				updateAny(callin, registration, gadget)
+			end
+		end
+	elseif id == registration.negativeIDs then
 		rebuildSubscribedCallins(registration, gadget)
 	else
 		for _, callin in ipairs(registration.callins) do
