@@ -8,9 +8,9 @@
 --  that contain only those IDs. Callins with no registered IDs get a warning.
 --  Replaces the local Script.SetWatch* calls in each gadget via registration.
 
+local math_floor = math.floor
 local ANY = Game.anyID
 local isSynced = Script.GetSynced()
-local math_floor = math.floor
 
 --------------------------------------------------------------------------------
 --  Declarations  --------------------------------------------------------------
@@ -510,6 +510,20 @@ end
 --  Install  -------------------------------------------------------------------
 
 local function install(handler)
+	if isSynced then
+		local function refuseSetWatch()
+			Spring.Log(
+				"registered_callins",
+				LOG.ERROR,
+				"This SetWatch* function is used only by the registered callins"
+			)
+		end
+		Script.SetWatchWeapon = refuseSetWatch
+		Script.SetWatchProjectile = refuseSetWatch
+		Script.SetWatchExplosion = refuseSetWatch
+		Script.SetWatchAllowTarget = refuseSetWatch
+	end
+
 	handler.RegisterAllowCommand = registerAllowCommand
 	handler.DeregisterAllowCommand = deregisterAllowCommand
 	handler.RegisterUnitCommand = registerUnitCommand

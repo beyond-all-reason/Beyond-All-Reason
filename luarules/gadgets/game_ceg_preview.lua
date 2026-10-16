@@ -601,9 +601,6 @@ if gadgetHandler:IsSyncedCode() then
 			return
 		end
 		gadgetHandler:RegisterProjectile(dummyWeaponDefID)
-		if Script and Script.SetWatchWeapon then
-			Script.SetWatchWeapon(dummyWeaponDefID, true)
-		end
 	end
 
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
