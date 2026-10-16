@@ -4686,7 +4686,7 @@ function widget:Initialize()
 		widget:ViewResize()
 	end
 	WG.chat.getMaxConsoleLines = function()
-		return maxLines
+		return maxConsoleLines
 	end
 	WG.chat.setMaxConsoleLines = function(value)
 		maxConsoleLines = value
