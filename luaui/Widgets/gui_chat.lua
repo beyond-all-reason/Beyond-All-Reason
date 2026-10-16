@@ -753,11 +753,23 @@ local function addChatLine(
 	local startTime = clock()
 
 	local text_orig = text
+	local shareToMe = false
 
 	-- metal/energy given
 	if lineType == LineTypes.Player and ssub(text, 5, 6) == "> " then
 		text = ssub(text, 7)
 		lineType = LineTypes.System
+		-- a share sent to me is a transfer, not chat, so it shows when the sender is muted
+		-- (digits-only amounts: a muted player can't pass text through a fake share)
+		local resource, recipient = string.match(text, "^ui%.playersList%.chat%.give(%a+):amount=%d+:name=([^:]+)$")
+		if not resource then
+			resource, recipient =
+				string.match(text, "^ui%.playersList%.chat%.give(%a+)_taxed:amount=%d+:name=([^:]+):amount2=%d+$")
+		end
+		shareToMe = (resource == "Metal" or resource == "Energy") and recipient == myName
+		if shareToMe then
+			ignore = nil
+		end
 		local params = string.split(text, ":")
 		local t = {}
 		if params[1] then
@@ -850,6 +862,7 @@ local function addChatLine(
 			richText = hasEmoji and ChatEmoji.HasEmojiCandidate(line),
 			orgLineID = orgLineID,
 			ignore = ignore,
+			shareToMe = shareToMe,
 		}
 		if lineType == LineTypes.Mapmark and lastMapmarkCoords then
 			chatLines[chatLineID].coords = lastMapmarkCoords
@@ -2143,7 +2156,7 @@ function widget:Update(dt)
 			for accountID_or_name, _ in pairs(WG.ignoredAccounts) do
 				if not ignoredAccounts[accountID_or_name] then
 					for i = 1, #chatLines do
-						if chatLines[i].playerName == accountID_or_name then
+						if chatLines[i].playerName == accountID_or_name and not chatLines[i].shareToMe then
 							chatLines[i].ignore = true
 							state.uiDirty = true
 						end
