@@ -19,9 +19,9 @@ describe("mission_api.cutscenes", function()
 		}
 		GG.VideoPlayback = {
 			-- Replacing a video finishes the replaced one, as api_video_playback.lua does.
-			Play = function(videoFile, onFinished)
+			Play = function(videoFile, onFinished, skippable)
 				local replaced = onVideoFinished
-				calls[#calls + 1] = "Play " .. videoFile
+				calls[#calls + 1] = "Play " .. videoFile .. (skippable and " skippable" or "")
 				onVideoFinished = onFinished
 				if replaced then
 					replaced()
@@ -70,9 +70,9 @@ describe("mission_api.cutscenes", function()
 			assert.are.equal("Unpause cutscene", calls[#calls])
 		end)
 
-		it("publishes the pause for a skippable cutscene", function()
+		it("plays a skippable cutscene's video as skippable", function()
 			cutscenes.StartCutscene("intro", true)
-			assert.are.same({ "Pause cutscene published", "Play videos/intro.webm" }, calls)
+			assert.are.same({ "Pause cutscene", "Play videos/intro.webm skippable" }, calls)
 		end)
 
 		it("raises before pausing when video playback is unavailable", function()

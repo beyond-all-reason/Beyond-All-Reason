@@ -44,8 +44,8 @@ local function startCutscene(cutsceneID, skippable)
 		end
 
 		playingVideoCount = playingVideoCount + 1
-		GG.GamePause.Pause("cutscene", skippable)
-		GG.VideoPlayback.Play(cutscene.videoFile, onVideoFinished)
+		GG.GamePause.Pause("cutscene")
+		GG.VideoPlayback.Play(cutscene.videoFile, onVideoFinished, skippable)
 	else
 		startScriptedControl(cutscene.script)
 	end

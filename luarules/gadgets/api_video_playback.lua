@@ -11,28 +11,43 @@ function gadget:GetInfo()
 	}
 end
 
--- provides GG.VideoPlayback.Play(videoFile, onFinished)
--- onFinished runs once per Play: when the video ends, or when another Play replaces it.
--- LuaUI: register VideoPlayback(playbackID, videoFile); send "VideoPlaybackFinished:<playbackID>" when done.
+-- provides GG.VideoPlayback.Play(videoFile, onFinished, skippable)
+-- onFinished runs once per Play: when the video ends, when it is skipped, or when another Play replaces it.
+-- LuaUI: register VideoPlayback(playbackID, videoFile, skippable); send "VideoPlaybackFinished:<playbackID>" when done.
+-- LuaUI: register VideoPlaybackStop(playbackID); send "VideoPlaybackSkip:<playbackID>" to skip a skippable video.
 -- TODO: Playback is a stub. There is no player yet.
 
 local SYNC_ACTION = "VideoPlayback"
+local SYNC_ACTION_STOP = SYNC_ACTION .. "Stop"
 local MESSAGE_FINISHED = SYNC_ACTION .. "Finished:"
+local MESSAGE_TRY_SKIP = SYNC_ACTION .. "Skip:"
 
--- Only the pause controller's report counts; it arrives after its own pause request.
+-- One client reports each video finished, so the synced side hears it once.
 local getPauseControllerID = BAR.Utilities.GetHostCommandPlayerID
 
 if gadgetHandler:IsSyncedCode() then
+	local spGetPlayerInfo = Spring.GetPlayerInfo
+
 	local playbackCount = 0
 	local onPlaybackFinished ---@type fun()?
+	local playbackSkippable = false
 
-	local function play(videoFile, onFinished)
+	local function play(videoFile, onFinished, skippable)
 		local replacedOnFinished = onPlaybackFinished
 		playbackCount = playbackCount + 1
 		onPlaybackFinished = onFinished
-		SendToUnsynced(SYNC_ACTION, playbackCount, videoFile)
+		playbackSkippable = skippable == true
+		SendToUnsynced(SYNC_ACTION, playbackCount, videoFile, playbackSkippable)
 		if replacedOnFinished ~= nil then
 			replacedOnFinished()
+		end
+	end
+
+	local function finishPlayback(playbackID)
+		if playbackID == playbackCount and onPlaybackFinished ~= nil then
+			local onFinished = onPlaybackFinished
+			onPlaybackFinished = nil
+			onFinished()
 		end
 	end
 
@@ -41,20 +56,26 @@ if gadgetHandler:IsSyncedCode() then
 	}
 
 	function gadget:RecvLuaMsg(message, playerID)
-		if message:sub(1, #MESSAGE_FINISHED) ~= MESSAGE_FINISHED then
+		if message:sub(1, #SYNC_ACTION) ~= SYNC_ACTION then
 			return
 		end
-		if playerID ~= getPauseControllerID() then
+
+		if message:sub(1, #MESSAGE_FINISHED) == MESSAGE_FINISHED then
+			if playerID == getPauseControllerID() then
+				finishPlayback(tonumber(message:sub(#MESSAGE_FINISHED + 1)))
+			end
+			return true
+		elseif message:sub(1, #MESSAGE_TRY_SKIP) == MESSAGE_TRY_SKIP then
+			if playbackSkippable then
+				local playbackID = tonumber(message:sub(#MESSAGE_TRY_SKIP + 1))
+				local _, _, spectator = spGetPlayerInfo(playerID, false)
+				if not spectator and playbackID == playbackCount and onPlaybackFinished ~= nil then
+					SendToUnsynced(SYNC_ACTION_STOP, playbackID)
+					finishPlayback(playbackID)
+				end
+			end
 			return true
 		end
-
-		local playbackID = tonumber(message:sub(#MESSAGE_FINISHED + 1))
-		if playbackID == playbackCount and onPlaybackFinished ~= nil then
-			local onFinished = onPlaybackFinished
-			onPlaybackFinished = nil
-			onFinished()
-		end
-		return true
 	end
 
 	function gadget:Shutdown()
@@ -62,41 +83,37 @@ if gadgetHandler:IsSyncedCode() then
 	end
 else
 	local spSendLuaRulesMsg = Spring.SendLuaRulesMsg
-	local spGetGameFrame = Spring.GetGameFrame
 	local spGetMyPlayerID = Spring.GetMyPlayerID
 	local spIsReplay = Spring.IsReplay
 
-	local CATCH_UP_FRAMES = 11 * Game.gameSpeed -- same as gui_rejoinprogress.lua
-
 	local finishedPlaybackID -- finished on this client
-	local serverFrame = -1 -- the live game frame, while this client replays a backlog
-	local catchingUp = false
 
 	local function reportPlaybackFinished()
-		if
-			finishedPlaybackID ~= nil
-			and not catchingUp
-			and getPauseControllerID() == spGetMyPlayerID()
-			and not spIsReplay()
-		then
+		if finishedPlaybackID ~= nil and getPauseControllerID() == spGetMyPlayerID() and not spIsReplay() then
 			spSendLuaRulesMsg(MESSAGE_FINISHED .. finishedPlaybackID)
 			finishedPlaybackID = nil
 		end
 	end
 
-	local function play(_, playbackID, videoFile)
-		if catchingUp then
-			finishedPlaybackID = playbackID -- skips videos from the backlog
-			return
-		end
+	local function play(_, playbackID, videoFile, skippable)
 		if Script.LuaUI(SYNC_ACTION) then
-			Script.LuaUI[SYNC_ACTION](playbackID, videoFile)
+			Script.LuaUI[SYNC_ACTION](playbackID, videoFile, skippable)
 			return
 		end
 
 		Spring.Log("Video playback", LOG.WARNING, "No widget plays videos, skipping: " .. videoFile)
 		finishedPlaybackID = playbackID
 		reportPlaybackFinished()
+	end
+
+	-- A skipped video has nothing left to report.
+	local function stop(_, playbackID)
+		if finishedPlaybackID == playbackID then
+			finishedPlaybackID = nil
+		end
+		if Script.LuaUI(SYNC_ACTION_STOP) then
+			Script.LuaUI[SYNC_ACTION_STOP](playbackID)
+		end
 	end
 
 	function gadget:PlayerChanged()
@@ -106,25 +123,13 @@ else
 		reportPlaybackFinished()
 	end
 
-	function gadget:GameProgress(serverFrameNum)
-		serverFrame = serverFrameNum
-		if spGetGameFrame() < serverFrame - CATCH_UP_FRAMES then
-			catchingUp = true
-		end
-	end
-
-	function gadget:GameFrame(frame)
-		if catchingUp and frame >= serverFrame - CATCH_UP_FRAMES then
-			catchingUp = false
-			reportPlaybackFinished()
-		end
-	end
-
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction(SYNC_ACTION, play)
+		gadgetHandler:AddSyncAction(SYNC_ACTION_STOP, stop)
 	end
 
 	function gadget:Shutdown()
 		gadgetHandler:RemoveSyncAction(SYNC_ACTION)
+		gadgetHandler:RemoveSyncAction(SYNC_ACTION_STOP)
 	end
 end
