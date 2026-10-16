@@ -657,17 +657,16 @@ function widget:Initialize()
 	WG.defrange = {}
 	for _, ae in ipairs({ "ally", "enemy" }) do
 		local Ae = string.upper(string.sub(ae, 1, 1)) .. string.sub(ae, 2)
-		for _, wt in ipairs({ "ground", "air", "nuke" }) do
-			local Wt = string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2)
+		for _, wt in ipairs({ "ground", "air", "nuke", "lrpc" }) do
+			local Wt = wt == "lrpc" and "LRPC" or (string.upper(string.sub(wt, 1, 1)) .. string.sub(wt, 2))
 			WG.defrange["get" .. Ae .. Wt] = function()
 				return buttonConfig[ae][wt]
 			end
 			WG.defrange["set" .. Ae .. Wt] = function(value)
+				buttonConfig[ae][wt] = value
+				-- cannons count as ground defenses, as they do for /defrange
 				if wt == "ground" then
-					buttonConfig[ae].ground = value
-					buttonConfig[ae].lrpc = value
-				else
-					buttonConfig[ae][wt] = value
+					buttonConfig[ae].cannon = value
 				end
 				spEcho(string.format("Defense Range GL4 Setting %s%s to %s", Ae, Wt, value and "on" or "off"))
 				if WG.unittrackerapi and WG.unittrackerapi.visibleUnits then

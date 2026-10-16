@@ -374,7 +374,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data.SHARPNESS ~= nil and data.version ~= nil and data.version == version then
+	-- a version only comes with what this widget saved itself; the options menu writes SHARPNESS alone
+	if data.SHARPNESS ~= nil and (data.version == nil or data.version == version) then
 		SHARPNESS = data.SHARPNESS
 	end
 end
