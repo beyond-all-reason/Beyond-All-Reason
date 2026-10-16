@@ -3901,11 +3901,11 @@
 				},
 				"oni": {
 					"name": "Oni",
-					"desc": "Zombies are stronger. Every death leaves a corpse no matter how badly it was overkilled, including the deaths of zombies themselves, so the dead keep coming back. Units lost in water or lava, reclaimed, or cancelled while under construction are not guaranteed a corpse."
+					"desc": "Every death leaves a corpse no matter how badly it was overkilled, including the deaths of zombies themselves, so the dead keep coming back. Units lost in water or lava, reclaimed, or cancelled while under construction are not guaranteed a corpse."
 				},
 				"yokai": {
 					"name": "Yokai",
-					"desc": "Ghostly apparitions haunt the battlefield and bring back the units that left no corpse to rise from. Units overkilled into heaps or nothing, and corpses destroyed by anything other than reclaim or resurrection, have a 66% chance to be claimed by an apparition, which respawns them later. Zombies killed without overkill stay dead. Extra apparitions also appear at random every 15 minutes."
+					"desc": "Ghostly apparitions haunt the battlefield and bring back the units that left no corpse to rise from. Units overkilled into heaps or nothing, and corpses destroyed by anything other than reclaim or resurrection, have a 66% chance to be claimed by an apparition, which respawns them later. Zombies killed without overkill stay dead. No apparitions appear in the first 5 minutes, after which up to 3 extra apparitions appear at random across the map every minute."
 				},
 				"nani": {
 					"name": "Nani?!",
@@ -3913,7 +3913,7 @@
 				},
 				"akumu": {
 					"name": "Akumu",
-					"desc": "The full nightmare: Oni, Yokai, and Nani?! combined. Every death leaves a corpse that raises 2 to 6 stronger zombies, killed zombies keep rising, and apparitions have a 66% chance to respawn anything whose corpse was destroyed."
+					"desc": "The full nightmare: Oni, Yokai, and Nani?! combined. Every death leaves a corpse that raises 2 to 6 zombies, killed zombies keep rising, and apparitions have a 66% chance to respawn anything whose corpse was destroyed."
 				},
 				"spidergeddon": {
 					"name": "Spidergeddon",

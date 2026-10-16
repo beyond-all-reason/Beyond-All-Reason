@@ -238,6 +238,7 @@ local function unitDef_Post(name, uDef)
 		legpede = true,
 		corsktl = true,
 		armflea = true,
+		leganavybattleship = true,
 	}
 	if modOptions.zombies == "spidergeddon" and ZOMBIE_GHOST_RESPAWN_POOL_UNITS[basename] then
 		customparams.zombie_ghost_respawn_pool = true

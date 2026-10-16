@@ -41,6 +41,7 @@ local STUCK_DISTANCE_SQUARED = STUCK_DISTANCE ^ 2
 local NOGO_ZONE_RADIUS = 600
 local NOGO_ZONE_RADIUS_SQUARED = NOGO_ZONE_RADIUS ^ 2
 local ENEMY_ATTACK_DISTANCE = 1000
+local ENEMY_ATTACK_DISTANCE_SQUARED = ENEMY_ATTACK_DISTANCE ^ 2
 local GHOST_ENEMY_RADIUS = 300
 local GHOST_ENEMY_RADIUS_SQUARED = GHOST_ENEMY_RADIUS * GHOST_ENEMY_RADIUS
 local GHOST_MOVE_ORDER_INTERVAL = Game.gameSpeed * 6
@@ -123,6 +124,7 @@ local spGetClosestEnemyUnit = spring.GetClosestEnemyUnit
 local gaiaTeamID = spring.GetGaiaTeamID()
 local gaiaAllyTeamID = select(6, spring.GetTeamInfo(gaiaTeamID))
 local readAsGaia = { ctrl = gaiaTeamID, read = gaiaTeamID, select = gaiaTeamID }
+local IS_PVE_GAME = BAR.Utilities.Gametype.IsScavengers() or BAR.Utilities.Gametype.IsRaptors()
 local scavTeamID
 for _, teamID in ipairs(spring.GetTeamList()) do
 	local teamLuaAI = spring.GetTeamLuaAI(teamID)
@@ -149,6 +151,7 @@ local objectifyUnitDefs = {}
 local resurrectingUnits = {}
 local zombieAggros = {}
 local allyTeamUnits = {}
+local teamAllyTeamIDs = {}
 local unitAllyTeamIDs = {}
 local unitAllyTeamIndices = {}
 local zombieWatch = {}
@@ -282,6 +285,15 @@ local function getActiveZombieAggro(unitID)
 	return zombieAggros[unitID]
 end
 
+local function getTeamAllyTeamID(teamID)
+	local allyTeamID = teamAllyTeamIDs[teamID]
+	if not allyTeamID then
+		allyTeamID = select(6, spring.GetTeamInfo(teamID, false))
+		teamAllyTeamIDs[teamID] = allyTeamID
+	end
+	return allyTeamID
+end
+
 local function addAllyTeamUnit(unitID, allyTeamID)
 	if not allyTeamID or unitAllyTeamIDs[unitID] then
 		return
@@ -334,12 +346,12 @@ local function clearUnitOrders(unitID)
 	end
 end
 
-local function getWeaponRangeForTarget(attackerDefID, targetID, targetYPosition)
+local function getWeaponRangeForTarget(attackerDefID, targetID, targetDefID, targetYPosition)
 	local weaponRanges = unitDefWeaponRanges[attackerDefID]
 	if not weaponRanges then
 		return
 	end
-	local targetDef = UnitDefs[spGetUnitDefID(targetID)]
+	local targetDef = UnitDefs[targetDefID]
 	local weaponRange
 	if flyingUnits[targetID] or targetDef.canFly then
 		weaponRange = weaponRanges.air
@@ -372,13 +384,14 @@ local function getCombatTargetData(unitDefID, targetID)
 		return
 	end
 	local targetDefID = spGetUnitDefID(targetID)
-	local targetIsVisible = isUnitInGaiaLos(targetID) and not spGetUnitIsBeingBuilt(targetID)
-	local shouldReclaim = capturingUnits[unitDefID] and objectifyUnitDefs[targetDefID] and targetIsVisible
-	local shouldCapture = capturingUnits[unitDefID]
+	local isCapturer = capturingUnits[unitDefID]
+	local targetIsVisible = isCapturer and isUnitInGaiaLos(targetID) and not spGetUnitIsBeingBuilt(targetID)
+	local shouldReclaim = isCapturer and objectifyUnitDefs[targetDefID] and targetIsVisible
+	local shouldCapture = isCapturer
 		and not objectifyUnitDefs[targetDefID]
 		and UnitDefs[targetDefID].capturable ~= false
 		and targetIsVisible
-	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetY)
+	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetDefID, targetY)
 	if shouldReclaim or shouldCapture or (weaponRange and weaponRange > 0) then
 		return targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
 	end
@@ -386,6 +399,9 @@ end
 
 local function getNearestCombatTarget(unitID, unitDefID)
 	local nearestEnemyID = spGetUnitNearestEnemy(unitID, ENEMY_ATTACK_DISTANCE, true)
+	if not nearestEnemyID then
+		return
+	end
 	local targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = getCombatTargetData(unitDefID, nearestEnemyID)
 	if targetX then
 		return nearestEnemyID, targetX, targetZ, shouldCapture, weaponRange, shouldReclaim
@@ -405,17 +421,20 @@ local function getNearestCombatTarget(unitID, unitDefID)
 	local bestDistanceSquared
 	for enemyIndex = 1, #enemyUnits do
 		local enemyID = enemyUnits[enemyIndex]
-		targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = getCombatTargetData(unitDefID, enemyID)
-		if targetX then
-			local targetDistanceSquared = distance2dSquared(unitX, unitZ, targetX, targetZ)
-			if not bestDistanceSquared or targetDistanceSquared < bestDistanceSquared then
-				bestTargetID = enemyID
-				bestTargetX = targetX
-				bestTargetZ = targetZ
-				bestShouldCapture = shouldCapture
-				bestWeaponRange = weaponRange
-				bestShouldReclaim = shouldReclaim
-				bestDistanceSquared = targetDistanceSquared
+		if enemyID ~= nearestEnemyID then
+			local enemyX, _, enemyZ = spGetUnitPosition(enemyID)
+			local enemyDistanceSquared = enemyX and distance2dSquared(unitX, unitZ, enemyX, enemyZ)
+			if enemyDistanceSquared and (not bestDistanceSquared or enemyDistanceSquared < bestDistanceSquared) then
+				targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = getCombatTargetData(unitDefID, enemyID)
+				if targetX then
+					bestTargetID = enemyID
+					bestTargetX = targetX
+					bestTargetZ = targetZ
+					bestShouldCapture = shouldCapture
+					bestWeaponRange = weaponRange
+					bestShouldReclaim = shouldReclaim
+					bestDistanceSquared = enemyDistanceSquared
+				end
 			end
 		end
 	end
@@ -542,7 +561,7 @@ local function assignZombieAggroEvenly()
 	local teamPowers = GG.PowerLib.TeamPowers
 	local allyPowers = {}
 	for teamID in pairs(playerTeams) do
-		local allyTeamID = select(6, spring.GetTeamInfo(teamID))
+		local allyTeamID = getTeamAllyTeamID(teamID)
 		local teamPower = teamPowers[teamID] or 0
 		allyPowers[allyTeamID] = (allyPowers[allyTeamID] or 0) + teamPower
 	end
@@ -904,8 +923,17 @@ local function updateOrders(unitID, unitDefID)
 			zombieData.combatTargetID = nil
 			clearUnitOrders(unitID)
 		end
-		local targetX, targetZ, shouldCapture, weaponRange, shouldReclaim =
-			getCombatTargetData(unitDefID, zombieData.combatTargetID)
+		local targetX, targetZ, shouldCapture, weaponRange, shouldReclaim = getCombatTargetData(unitDefID, zombieData.combatTargetID)
+		if targetX and shouldCapture then -- a zombie endlessly chasing a distant thing isn't a big deal. It'll shoot everything along the way. Capture though? Bad. It'll just run around never capturing anything because its target is forever unreachable.
+			local unitX, _, unitZ = spGetUnitPosition(unitID)
+			if
+				not unitX
+				or distance2dSquared(unitX, unitZ, targetX, targetZ) > ENEMY_ATTACK_DISTANCE_SQUARED
+			then
+				zombieData.combatTargetID = nil
+				targetX = nil
+			end
+		end
 		if not targetX then
 			zombieData.combatTargetID = nil
 		end
@@ -1070,7 +1098,7 @@ local function hasGameEndExplosionStarted() -- last living ally means the end-ga
 			if teamID ~= gaiaTeamID then
 				local teamLuaAI = spring.GetTeamLuaAI(teamID)
 				if not (teamLuaAI and (string.find(teamLuaAI, "Scavengers", 1, true) or string.find(teamLuaAI, "Raptors", 1, true))) then
-					local _, _, isDead = spring.GetTeamInfo(teamID)
+					local _, _, isDead = spring.GetTeamInfo(teamID, false)
 					if not isDead then
 						allyTeamIsAlive = true
 						break
@@ -1290,7 +1318,7 @@ function gadget:Initialize()
 	gameFrame = spring.GetGameFrame()
 	for _, unitID in ipairs(spring.GetAllUnits()) do
 		local unitTeam = spring.GetUnitTeam(unitID)
-		local allyTeamID = select(6, spring.GetTeamInfo(unitTeam))
+		local allyTeamID = getTeamAllyTeamID(unitTeam)
 		addAllyTeamUnit(unitID, allyTeamID)
 		if unitTeam == gaiaTeamID and isZombie(unitID) then
 			initializeZombie(unitID, spGetUnitDefID(unitID))
@@ -1320,7 +1348,7 @@ end
 
 function gadget:GameFrame(frame)
 	gameFrame = frame
-	if not isPacified and not BAR.Utilities.Gametype.IsScavengers() and not BAR.Utilities.Gametype.IsRaptors() and hasGameEndExplosionStarted() then
+	if not isPacified and not IS_PVE_GAME and frame % Game.gameSpeed == 0 and hasGameEndExplosionStarted() then
 		pacifyZombies(true)
 	end
 	updateAggro()
@@ -1331,7 +1359,7 @@ function gadget:GameFrame(frame)
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	local allyTeamID = select(6, spring.GetTeamInfo(unitTeam))
+	local allyTeamID = getTeamAllyTeamID(unitTeam)
 	addAllyTeamUnit(unitID, allyTeamID)
 end
 
@@ -1352,7 +1380,7 @@ function gadget:UnitGiven(unitID, unitDefID, newTeam)
 	if not spValidUnitID(unitID) or spGetUnitIsDead(unitID) then
 		return
 	end
-	local newAllyTeamID = select(6, spring.GetTeamInfo(newTeam))
+	local newAllyTeamID = getTeamAllyTeamID(newTeam)
 	addAllyTeamUnit(unitID, newAllyTeamID)
 	if newTeam == gaiaTeamID and isZombie(unitID) then
 		initializeZombie(unitID, unitDefID)
