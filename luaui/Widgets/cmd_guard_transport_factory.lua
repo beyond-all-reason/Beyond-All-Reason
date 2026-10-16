@@ -192,6 +192,20 @@ function widget:Initialize()
 	end
 end
 
+function widget:Shutdown()
+	WG.transportFactoryGuard = nil
+end
+
+function widget:GetConfigData()
+	return { blacklistOrderedUnits = blacklistOrderedUnits }
+end
+
+function widget:SetConfigData(data)
+	if data.blacklistOrderedUnits ~= nil then
+		blacklistOrderedUnits = data.blacklistOrderedUnits
+	end
+end
+
 local function isTransportingUnit(transportID, unitID)
 	local transported = Spring.GetUnitIsTransporting(transportID) or {}
 	for _, id in ipairs(transported) do
