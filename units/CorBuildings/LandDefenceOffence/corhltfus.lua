@@ -148,6 +148,8 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORFHLT_LASER",
+				maindir = "0 1 0",
+				maxangledif = 270,
 				fastautoretargeting = true,
 				onlytargetcategory = "NOTSUB",
 			},
