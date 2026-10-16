@@ -473,6 +473,29 @@ for enumSetName, valuesList in pairs(parameterTypes.EnumSets) do
 	validators[enumSetName] = getValidatorFromEnumSetSpec(enumSetName, valuesList)
 end
 
+local function getValidatorFromEnum(enumType, label)
+	local valueSet = parameterTypeEnums[enumType]
+	local names = {}
+	for name in pairs(valueSet) do
+		names[#names + 1] = name
+	end
+	table.sort(names)
+	local allowedList = "'" .. table.concat(names, "', '") .. "'"
+
+	return function(value)
+		local luaTypeResult = validators[Types.String](value)
+		if luaTypeResult then
+			return luaTypeResult
+		end
+		if not valueSet[value] then
+			return { { message = "Invalid " .. label .. ": '" .. value .. "'. Must be one of: " .. allowedList } }
+		end
+	end
+end
+validators[Types.CameraEasing] = getValidatorFromEnum(Types.CameraEasing, "easing")
+validators[Types.CameraSequenceEnd] = getValidatorFromEnum(Types.CameraSequenceEnd, "camera sequence end")
+validators[Types.CameraPath] = getValidatorFromEnum(Types.CameraPath, "camera path")
+
 --- String Validators:
 
 validators[Types.StageID] = function(stageID)
@@ -715,6 +738,7 @@ local triggersSchemaParameters = triggerDefinitions.Parameters
 local actionDefinitions = GG["MissionAPI"].ActionDefinitions
 local actionsSchemaParameters = actionDefinitions.Parameters
 local objectivesSchemaSettings = VFS.Include("luarules/mission_api/objectives_schema.lua").Settings
+local cameraKeyframeSchema = VFS.Include("luarules/mission_api/camera_keyframe_schema.lua")
 local triggerTypesWithQuantity = getTypesWithParameterType(triggersSchemaParameters, Types.Quantity)
 
 --- Validates a { difficulties = { <difficultyName> = <value> } } parameter: it holds only the
@@ -1383,6 +1407,111 @@ local function validateFeatureLoadout(featureLoadout, actionOrTrigger, actionOrT
 	return {}
 end
 
+local function quotedList(names)
+	return "'" .. table.concat(names, "', '") .. "'"
+end
+
+-- Fields in name order, so the messages come out in the same order every run.
+local function validateCameraKeyframe(keyframe, index, actionOrTrigger, actionOrTriggerID, parameterName)
+	local result = {}
+	local suffix = "[" .. index .. "]"
+	local schema = cameraKeyframeSchema
+
+	local fields = {}
+	for field in pairs(keyframe) do
+		fields[#fields + 1] = tostring(field)
+	end
+	table.sort(fields)
+	for _, field in ipairs(fields) do
+		local fieldType = schema.Settings[field]
+		if not fieldType then
+			result[#result + 1] = { message = "Unknown keyframe field '" .. field .. "'", parameterNameSuffix = suffix }
+		else
+			local fieldResults = validators[fieldType](
+				keyframe[field],
+				actionOrTrigger,
+				actionOrTriggerID,
+				parameterName
+			) or {}
+			for _, fieldResult in ipairs(fieldResults) do
+				result[#result + 1] = {
+					message = fieldResult.message,
+					severity = fieldResult.severity,
+					parameterNameSuffix = suffix .. "." .. field .. (fieldResult.parameterNameSuffix or ""),
+				}
+			end
+		end
+	end
+
+	---@return integer
+	local function countPresent(names)
+		local count = 0
+		for _, field in ipairs(names) do
+			if keyframe[field] ~= nil then
+				count = count + 1
+			end
+		end
+		return count
+	end
+
+	local eyeCount = countPresent(schema.ExactlyOneOf)
+	if eyeCount == 0 then
+		result[#result + 1] =
+			{ message = "Keyframe needs one of: " .. quotedList(schema.ExactlyOneOf), parameterNameSuffix = suffix }
+	elseif eyeCount > 1 then
+		result[#result + 1] = {
+			message = "Keyframe places the eye twice, use one of: " .. quotedList(schema.ExactlyOneOf),
+			parameterNameSuffix = suffix,
+		}
+	end
+	if keyframe.relativeToHeading ~= nil and keyframe.unitName == nil then
+		result[#result + 1] = {
+			message = "Keyframe relativeToHeading needs a unitName to take the heading from",
+			severity = "warning",
+			parameterNameSuffix = suffix,
+		}
+	end
+
+	local lookAtCount = countPresent(schema.AtMostOneOf)
+	if lookAtCount > 1 then
+		result[#result + 1] = {
+			message = "Keyframe has more than one look-at target, use one of: " .. quotedList(schema.AtMostOneOf),
+			parameterNameSuffix = suffix,
+		}
+	elseif lookAtCount == 1 and (keyframe.pitch ~= nil or keyframe.yaw ~= nil) then
+		result[#result + 1] = {
+			message = "Keyframe pitch and yaw are ignored while it looks at a target",
+			severity = "warning",
+			parameterNameSuffix = suffix,
+		}
+	end
+
+	return result
+end
+
+validators[Types.CameraKeyframes] = function(keyframes, actionOrTrigger, actionOrTriggerID, parameterName)
+	local luaTypeResult = validators[Types.Table](keyframes)
+	if luaTypeResult then
+		return luaTypeResult
+	end
+
+	local result = {}
+	if #keyframes == 0 then
+		result[#result + 1] = { message = "Keyframes table is empty" }
+	end
+
+	for i, keyframe in ipairs(keyframes) do
+		local fieldResult = validateField(keyframe, "keyframe #" .. i, "table")
+		if fieldResult then
+			result[#result + 1] = fieldResult
+		else
+			table.append(result, validateCameraKeyframe(keyframe, i, actionOrTrigger, actionOrTriggerID, parameterName))
+		end
+	end
+
+	return result
+end
+
 -- Patch the new types into the validators table now that the functions exist.
 validators[Types.UnitLoadout] = validateUnitLoadout
 validators[Types.FeatureLoadout] = validateFeatureLoadout
@@ -1492,6 +1621,27 @@ local function validateUnitNameReferences(actionTypes, objectives, triggers, act
 					elseif typesReferencingUnitNames[actionOrTrigger.type] then
 						referencedUnitNames[unitName] = referencedUnitNames[unitName] or {}
 						referencedUnitNames[unitName][#referencedUnitNames[unitName] + 1] = label .. actionOrTriggerID
+					end
+				end
+			end
+		end
+	end
+
+	-- Unit names inside keyframes, which the pass below does not look into.
+	local actionTypesWithKeyframes = getTypesWithParameterType(actionsSchemaParameters, Types.CameraKeyframes)
+	local function referenceKeyframeUnitName(unitName, actionID)
+		if type(unitName) == "string" then
+			local refsToUnitName = table.ensureTable(referencedUnitNames, unitName)
+			refsToUnitName[#refsToUnitName + 1] = "action " .. actionID
+		end
+	end
+	for actionID, action in pairs(actions) do
+		if actionTypesWithKeyframes[action.type] then
+			for _, keyframes in ipairs(possibleValues((action.parameters or {}).keyframes)) do
+				for _, keyframe in ipairs(type(keyframes) == "table" and keyframes or {}) do
+					if type(keyframe) == "table" then
+						referenceKeyframeUnitName(keyframe.unitName, actionID)
+						referenceKeyframeUnitName(keyframe.lookAtUnitName, actionID)
 					end
 				end
 			end
