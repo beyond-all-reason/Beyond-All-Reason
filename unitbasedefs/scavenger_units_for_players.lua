@@ -128,7 +128,6 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
 		buildoptions[numBuildoptions + 2] = "corakt4" -- Epic Grunt
 		buildoptions[numBuildoptions + 3] = "corthermite" -- Thermite/Epic Termite
-		buildoptions[numBuildoptions + 4] = "cormandot4" -- Epic Commando
 	end
 
 	-- Cortex T3 Underwater Gantry
@@ -136,7 +135,6 @@ local function scavengerUnitsForPlayers(name, unitDef)
 		local numBuildoptions = #buildoptions
 		buildoptions[numBuildoptions + 1] = "corkarganetht4" -- Epic Karganeth
 		buildoptions[numBuildoptions + 2] = "corakt4" -- Epic Grunt
-		buildoptions[numBuildoptions + 3] = "cormandot4" -- Epic Commando
 	end
 
 	-- Legion T1 Land Constructors

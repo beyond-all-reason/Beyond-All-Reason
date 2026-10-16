@@ -384,13 +384,13 @@ local function getCombatTargetData(unitDefID, targetID)
 		return
 	end
 	local targetDefID = spGetUnitDefID(targetID)
-	local isCapturer = capturingUnits[unitDefID]
-	local targetIsVisible = isCapturer and isUnitInGaiaLos(targetID) and not spGetUnitIsBeingBuilt(targetID)
-	local shouldReclaim = isCapturer and objectifyUnitDefs[targetDefID] and targetIsVisible
-	local shouldCapture = isCapturer
-		and not objectifyUnitDefs[targetDefID]
-		and UnitDefs[targetDefID].capturable ~= false
-		and targetIsVisible
+	local isObjective = objectifyUnitDefs[targetDefID]
+	local targetIsTakeable = capturingUnits[unitDefID]
+		and (isObjective or UnitDefs[targetDefID].capturable ~= false)
+		and not spGetUnitIsBeingBuilt(targetID)
+		and isUnitInGaiaLos(targetID)
+	local shouldReclaim = targetIsTakeable and isObjective
+	local shouldCapture = targetIsTakeable and not isObjective
 	local weaponRange = getWeaponRangeForTarget(unitDefID, targetID, targetDefID, targetY)
 	if shouldReclaim or shouldCapture or (weaponRange and weaponRange > 0) then
 		return targetX, targetZ, shouldCapture, weaponRange, shouldReclaim

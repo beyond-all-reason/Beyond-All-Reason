@@ -7,7 +7,7 @@ local widget = widget ---@type Widget
 function widget:GetInfo()
 	return {
 		name = "Widget Auto Reloader",
-		desc = "Reloads all widgets that have changed after the mouse returned to the game window, including widgets whose VFS.Include'd files changed",
+		desc = "Reloads all widgets that have changed after the mouse returned to the game window, including widgets whose VFS.Include'd or require'd files changed",
 		author = "Beherith, Floris",
 		date = "2024.03.12",
 		license = "GNU GPL v2",
@@ -31,26 +31,65 @@ local mouseOffscreen = select(6, spGetMouseState())
 ---------------------------------------------------------------------------------------------------
 -- Include tracking
 --
--- A widget's own file doesn't change when a file it VFS.Includes is edited, so the widget sources are
--- scanned for VFS.Include calls and the included files are tracked as well (recursively, included
--- files include further files). A widget is reloaded when its own file or any file in its include
--- closure changed. Paths built from a variable (luaShaderDir .. "x.lua") are resolved when that
+-- A widget's own file doesn't change when a file it includes is edited, so the widget sources are
+-- scanned for VFS.Include and require calls and the included files are tracked as well (recursively,
+-- included files include further files). A widget is reloaded when its own file or any file in its
+-- include closure changed. Paths built from a variable (luaShaderDir .. "x.lua") are resolved when that
 -- variable is assigned a string literal somewhere in the same file; fully dynamic paths are skipped.
 ---------------------------------------------------------------------------------------------------
 
-local function StripComments(source)
-	source = source:gsub("%-%-%[(=*)%[.-%]%1%]", "") -- block comments
-	source = source:gsub("%-%-[^\r\n]*", "") -- line comments
-	return source
+-- require("path/to/file") is the init.lua shim for VFS.Include("path/to/file.lua")
+local includeFunctions = { { name = "VFS.Include", extension = "" }, { name = "require", extension = ".lua" } }
+
+local function FollowsIdentifierChar(source, s)
+	return s > 1 and source:find("^[%w_]", s - 1) ~= nil
 end
 
--- first string literal assigned to `name` in this source, e.g. local luaShaderDir = "LuaUI/Include/"
+-- end of the comment starting at `s`: the closing ]] (or ]==]) of a block comment, else the end of the line
+local function CommentEnd(source, s)
+	local level, bodyStart = source:match("^%-%-%[(=*)%[()", s)
+	if level then
+		local _, e = source:find("]" .. level .. "]", bodyStart, true)
+		return e or #source
+	end
+	return source:find("\n", s + 2, true) or #source
+end
+
+-- returns a function telling whether a position is inside a comment, asked for increasing positions.
+-- Plain finds hop between the comments; a gsub copy without comments took ~20 ms for gui_pip.lua (1 MB)
+local function CommentWalker(source)
+	local searchPos, commentStart, commentEnd = 1, 0, 0
+	return function(pos)
+		while commentEnd < pos do
+			local s = source:find("--", searchPos, true)
+			if not s or s > pos then
+				break
+			end
+			commentStart, commentEnd = s, CommentEnd(source, s)
+			searchPos = commentEnd + 1
+		end
+		return commentStart <= pos and pos <= commentEnd
+	end
+end
+
+-- first string literal assigned to `name` outside comments, e.g. local luaShaderDir = "LuaUI/Include/"
 local function ResolveVariable(source, name)
-	return source:match("%f[%w_]" .. name .. "%s*=%s*\"([^\"\r\n]*)\"")
-		or source:match("%f[%w_]" .. name .. "%s*=%s*'([^'\r\n]*)'")
+	local inComment = CommentWalker(source)
+	local pos = 1
+	while true do
+		local s, e = source:find(name, pos, true)
+		if not s then
+			return nil
+		end
+		pos = e + 1
+		local value = source:match('^%s*=%s*"([^"\r\n]*)"', pos) or source:match("^%s*=%s*'([^'\r\n]*)'", pos)
+		if value and not FollowsIdentifierChar(source, s) and not inComment(s) then
+			return value
+		end
+	end
 end
 
--- parses the first argument of a VFS.Include call, `pos` pointing just after the function name
+-- parses the first argument of an include call, `pos` pointing just after the function name
 -- returns the path, or nil plus the identifier that could not be resolved
 local function ParseIncludeArgument(source, pos)
 	local s = source:match("^%s*[%(,]%s*()", pos) -- VFS.Include(...) or pcall(VFS.Include, ...)
@@ -88,23 +127,29 @@ local function ParseIncludeArgument(source, pos)
 	end
 end
 
--- returns { [includeKey] = path } for every statically resolvable VFS.Include target in the source,
+-- returns { [includeKey] = path } for every statically resolvable include target in the source,
 -- plus the list of identifiers whose include path could not be resolved
 local function ScanIncludes(source)
 	local includes, unresolved = {}, {}
-	source = StripComments(source)
-	local pos = 1
-	while true do
-		local s, e = source:find("VFS%.Include", pos)
-		if not s then
-			break
-		end
-		pos = e + 1
-		local path, ident = ParseIncludeArgument(source, pos)
-		if path then
-			includes[path:lower()] = path
-		elseif ident then
-			unresolved[#unresolved + 1] = ident
+	for i = 1, #includeFunctions do
+		local name, extension = includeFunctions[i].name, includeFunctions[i].extension
+		local inComment = CommentWalker(source)
+		local pos = 1
+		while true do
+			local s, e = source:find(name, pos, true)
+			if not s then
+				break
+			end
+			pos = e + 1
+			if not FollowsIdentifierChar(source, s) and not inComment(s) then
+				local path, ident = ParseIncludeArgument(source, pos)
+				if path then
+					path = path .. extension
+					includes[path:lower()] = path
+				elseif ident then
+					unresolved[#unresolved + 1] = ident
+				end
+			end
 		end
 	end
 	return includes, unresolved
@@ -184,17 +229,21 @@ end
 
 ---------------------------------------------------------------------------------------------------
 
+local function CacheContents(widgetName, fileName)
+	if not widgetContents[widgetName] then
+		local contents = VFS.LoadFile(fileName)
+		widgetContents[widgetName] = contents
+		if contents then
+			RegisterWidgetIncludes(widgetName, contents)
+		end
+	end
+end
+
 local function RefreshWidgetList()
 	for _, w in pairs(widgetHandler.widgets) do
 		local whInfo = w.whInfo
 		widgetFilesNames[whInfo.name] = whInfo.filename
-		if not widgetContents[whInfo.name] then
-			local contents = VFS.LoadFile(whInfo.filename)
-			widgetContents[whInfo.name] = contents
-			if contents then
-				RegisterWidgetIncludes(whInfo.name, contents)
-			end
-		end
+		CacheContents(whInfo.name, whInfo.filename)
 		if w.GetInfo then
 			local info = w:GetInfo()
 			if info.dependents then
@@ -205,6 +254,13 @@ local function RefreshWidgetList()
 end
 
 function widget:Initialize()
+	-- at startup the widgets sorted after this one are loaded but not inserted yet; reading their files on
+	-- the first sweep instead cost tens of ms in one Update
+	for name, ki in pairs(widgetHandler.knownWidgets) do
+		if ki.active then
+			CacheContents(name, ki.filename)
+		end
+	end
 	RefreshWidgetList()
 	local includeCount = 0
 	for _ in pairs(includeFiles) do

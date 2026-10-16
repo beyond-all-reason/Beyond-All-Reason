@@ -1,7 +1,7 @@
 
 #include "../recoil_common_includes.h"
 
-piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4;
+piece  base, engines, enginec, wingl, wingr, doorl, doorr, thrustc, thrust1, thrust2, thrust3, thrust4, firepoint;
 
 #define BASEPIECE base
 #define HITSPEED <105.0>
@@ -54,7 +54,12 @@ Deactivate()
 
 QueryWeapon1(pieceIndex)
 {
-	pieceIndex = base;
+	pieceIndex = firepoint;
+}
+
+AimFromWeapon1(pieceIndex)
+{
+	pieceIndex = firepoint;
 }
 
 AimWeapon1(heading, pitch)
