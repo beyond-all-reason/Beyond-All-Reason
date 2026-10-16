@@ -21,7 +21,7 @@ end
 local AREA_LIMIT = 30
 -- Max targeted attack orders issued per area-form CMD_ATTACK.
 local COMMAND_LIMIT = 2000
--- River splits form a lane about this wide. Just a gravity value.
+-- River splits aim for lanes about this wide. The actual width varies with the targets.
 local LANE_WIDTH = 360
 
 local CMD_ATTACK = CMD.ATTACK
@@ -32,7 +32,6 @@ local ENEMY_UNITS = Spring.ENEMY_UNITS
 
 local math_ceil = math.ceil
 local math_max = math.max
-local math_min = math.min
 local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits

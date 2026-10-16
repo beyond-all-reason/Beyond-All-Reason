@@ -13,42 +13,18 @@ local math_max = math.max
 local math_min = math.min
 local math_sqrt = math.sqrt
 local math_atan2 = math.atan2
-local math_pi = math.pi
+local math_tau = math.tau ---@type number
 
 local spGetUnitPosition = Spring.GetUnitPosition
-local spGetFeaturePosition = Spring.GetFeaturePosition
 
-local UNIT_ID_MAX = Game.maxUnits
-local offsetFeatureID = not Engine.FeatureSupport.noOffsetForFeatureID ---@as boolean
-
-local getFeaturePosition = spGetFeaturePosition
-if offsetFeatureID then
-	getFeaturePosition = function(targetID)
-		return spGetFeaturePosition(targetID - UNIT_ID_MAX)
-	end
-end
-
-local function objectPosition(objectID)
-	if objectID <= UNIT_ID_MAX then
-		return spGetUnitPosition(objectID)
-	end
-	return getFeaturePosition(objectID)
-end
-
-local function getObjectCentroid(objects, getPosition)
-	local sumX, sumZ = 0.0, 0.0
-	local count = #objects
-	for i = 1, count do
-		local x, _, z = getPosition(objects[i])
-		sumX, sumZ = sumX + x, sumZ + z ---@diagnostic disable-line -- OK
-	end
-	return sumX / count, sumZ / count
-end
+local objectPosition = BAR.Utilities.GetObjectPosition
+local getCentroid = BAR.Utilities.GetObjectCentroid
 
 ---@return integer[] index
----@return number[] value projection(s) across the lanes
----@return number depthSq the spread of the objects in total, as average squared projection
-local function getFromProjection(objects, count, getPosition, originX, originZ, axisX, axisZ)
+---@return number[] value
+---@return number depthSq
+local function measureAlongAxis(objects, getPosition, originX, originZ, axisX, axisZ)
+	local count = #objects
 	local index, value = table_new(count, 0), table_new(count, 0)
 	local depthSq = 0.0
 	for i = 1, count do
@@ -63,16 +39,17 @@ local function getFromProjection(objects, count, getPosition, originX, originZ, 
 end
 
 ---@return integer[] index
----@return number[] value bearing(s) around the origin, measured from `startAngle`
----@return number radius average distance from the origin
-local function getFromBearing(objects, count, getPosition, originX, originZ, startAngle)
+---@return number[] value
+---@return number radius
+local function measureAroundOrigin(objects, getPosition, originX, originZ, startAngle)
+	local count = #objects
 	local index, value = table_new(count, 0), table_new(count, 0)
 	local radius = 0.0
 	for i = 1, count do
 		local x, _, z = getPosition(objects[i])
 		local rx, rz = x - originX, z - originZ
 		index[i] = i
-		value[i] = (math_atan2(rz, rx) - startAngle) % (2 * math_pi)
+		value[i] = (math_atan2(rz, rx) - startAngle) % math_tau
 		radius = radius + math_sqrt(rx * rx + rz * rz)
 	end
 	return index, value, radius / count
@@ -86,7 +63,7 @@ local function getStartAngle(targets, count, originX, originZ)
 		angles[i] = math_atan2(z - originZ, x - originX)
 	end
 	table_sort(angles)
-	local startAngle, widestGap = angles[1], angles[1] + 2 * math_pi - angles[count]
+	local startAngle, widestGap = angles[1], angles[1] + math_tau - angles[count]
 	for i = 2, count do
 		local gap = angles[i] - angles[i - 1]
 		if gap > widestGap then
@@ -115,8 +92,8 @@ end
 local function getLaneCount(countUnits, countTargets, span, maxOrders, laneWidth)
 	local lanes = math_min(countUnits, countTargets)
 	if maxOrders or laneWidth then
-		local lanesForBudget = maxOrders and math_ceil(countUnits * countTargets / maxOrders) or 1
-		local lanesForWidth = laneWidth and math_ceil(span / laneWidth) or 1
+		local lanesForBudget = maxOrders and maxOrders > 0 and math_ceil(countUnits * countTargets / maxOrders) or 1
+		local lanesForWidth = laneWidth and laneWidth > 0 and math_ceil(span / laneWidth) or 1
 		lanes = math_max(1, math_min(lanes, math_max(lanesForBudget, lanesForWidth)))
 	end
 	return lanes
@@ -268,8 +245,8 @@ local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
 		unitPosition = spGetUnitPosition
 	end
 
-	local unitsX, unitsZ = getObjectCentroid(units, unitPosition)
-	local targetsX, targetsZ = getObjectCentroid(targets, objectPosition)
+	local unitsX, unitsZ = getCentroid(units, unitPosition)
+	local targetsX, targetsZ = getCentroid(targets, objectPosition)
 	local dx, dz = targetsX - unitsX, targetsZ - unitsZ
 	local length = math_sqrt(dx * dx + dz * dz)
 
@@ -277,11 +254,10 @@ local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
 		-- Lanes run along an axis from the unit-group center to the target-group center.
 		local axisX, axisZ = -dz / length, dx / length
 		local targetIndex, targetValue, targetDepthSq =
-			getFromProjection(targets, countTargets, objectPosition, unitsX, unitsZ, axisX, axisZ)
+			measureAlongAxis(targets, objectPosition, unitsX, unitsZ, axisX, axisZ)
 		-- Slice instead when the unit-group starts inside the target-group.
 		if 2 * length * length >= targetDepthSq then
-			local unitIndex, unitValue =
-				getFromProjection(units, countUnits, unitPosition, unitsX, unitsZ, axisX, axisZ)
+			local unitIndex, unitValue = measureAlongAxis(units, unitPosition, unitsX, unitsZ, axisX, axisZ)
 			local lanes =
 				getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets), maxOrders, laneWidth)
 			sortIndexByValue(unitIndex, unitValue)
@@ -291,9 +267,8 @@ local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
 	end
 
 	local startAngle = getStartAngle(targets, countTargets, unitsX, unitsZ)
-	local targetIndex, targetValue, radius =
-		getFromBearing(targets, countTargets, objectPosition, unitsX, unitsZ, startAngle)
-	local unitIndex, unitValue = getFromBearing(units, countUnits, unitPosition, unitsX, unitsZ, startAngle)
+	local targetIndex, targetValue, radius = measureAroundOrigin(targets, objectPosition, unitsX, unitsZ, startAngle)
+	local unitIndex, unitValue = measureAroundOrigin(units, unitPosition, unitsX, unitsZ, startAngle)
 	local lanes =
 		getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets) * radius, maxOrders, laneWidth)
 	sortIndexByValue(unitIndex, unitValue)

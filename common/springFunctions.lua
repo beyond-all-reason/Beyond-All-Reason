@@ -7,6 +7,7 @@ local syncFunctions = VFS.Include(utilitiesDirectory .. "synced.lua")
 local tableFunctions = VFS.Include(utilitiesDirectory .. "tableFunctions.lua")
 local colorFunctions = VFS.Include(utilitiesDirectory .. "color.lua")
 local safeLuaTableParser = VFS.Include(utilitiesDirectory .. "safeluaparser.lua")
+local objectFunctions = VFS.Include(utilitiesDirectory .. "objectFunctions.lua")
 local facingFunctions = VFS.Include(utilitiesDirectory .. "facingFunctions.lua")
 
 local accountIDCache = {}
@@ -61,6 +62,9 @@ utilities = {
 	FacingToHeading = facingFunctions.FacingToHeading,
 	HeadingToFacing = facingFunctions.HeadingToFacing,
 	IsFacingEW = facingFunctions.IsFacingEW,
+
+	GetObjectPosition = objectFunctions.GetObjectPosition,
+	GetObjectCentroid = objectFunctions.GetObjectCentroid,
 
 	Color = colorFunctions,
 	ConvertColor = colorFunctions and colorFunctions.ConvertColor,
