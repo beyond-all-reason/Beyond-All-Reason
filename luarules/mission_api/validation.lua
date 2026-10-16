@@ -1920,10 +1920,6 @@ local function addCutsceneReferences(referencedCutsceneIDs, parameters, label)
 end
 
 local function validateCutsceneReferences(objectives, triggers, actions, cutscenes)
-	if type(cutscenes) ~= "table" then
-		return -- ValidateCutscenes reports it
-	end
-
 	local referencingActionTypes = getTypesWithParameterType(actionsSchemaParameters, Types.CutsceneID)
 	local referencingTriggerTypes = getTypesWithParameterType(triggersSchemaParameters, Types.CutsceneID)
 	local referencedCutsceneIDs = {}

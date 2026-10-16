@@ -2,18 +2,6 @@
 --- Cutscenes: a game pause while a video plays, or a scripted control session.
 ---
 
----A cutscene that plays a video over a paused game.
----@class MissionVideoCutscene
----@field videoFile string
----@field script nil
-
----A cutscene that runs the game with scripted controls.
----@class MissionScriptedCutscene
----@field videoFile nil
----@field script string
-
----@alias MissionCutscene MissionVideoCutscene | MissionScriptedCutscene
-
 -- STUB: Scripted control where units act out a script under Lua control is not implemented.
 local function startScriptedControl(scriptID)
 	Spring.Log(

@@ -10,8 +10,8 @@ describe("mission_api.cutscenes", function()
 		calls = {}
 		onVideoFinished = nil
 		GG.GamePause = {
-			Pause = function(source, publish)
-				calls[#calls + 1] = "Pause " .. source .. (publish and " published" or "")
+			Pause = function(source)
+				calls[#calls + 1] = "Pause " .. source
 			end,
 			Unpause = function(source)
 				calls[#calls + 1] = "Unpause " .. source
