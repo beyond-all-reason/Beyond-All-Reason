@@ -65,7 +65,7 @@ local actions = {
 	messageSpawnFirstPair = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Two Pawns spawned with their default sight range. Select one and note the size of its sight circle.',
+			messageKey = 'Two Pawns spawned with their default sight range. Select one and note the size of its sight circle.',
 		},
 	},
 
@@ -81,7 +81,7 @@ local actions = {
 	messageSetLosRadius = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'losRadius of the Pawn def set to 1200. Both existing Pawns should now show a much larger sight circle.',
+			messageKey = 'losRadius of the Pawn def set to 1200. Both existing Pawns should now show a much larger sight circle.',
 		},
 	},
 
@@ -97,7 +97,7 @@ local actions = {
 	messageSpawnThird = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'A third Pawn spawned after the change. Its sight circle should match the other two.',
+			messageKey = 'A third Pawn spawned after the change. Its sight circle should match the other two.',
 		},
 	},
 
@@ -112,7 +112,7 @@ local actions = {
 	messageClearLosRadius = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The losRadius set was cleared. All three Pawns should be back to their default sight circle.',
+			messageKey = 'The losRadius set was cleared. All three Pawns should be back to their default sight circle.',
 		},
 	},
 
@@ -129,7 +129,7 @@ local actions = {
 	messageHalveLosRadius = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'A modifier named fog halved the Pawn def losRadius. All three sight circles should shrink to half.',
+			messageKey = 'A modifier named fog halved the Pawn def losRadius. All three sight circles should shrink to half.',
 		},
 	},
 
@@ -145,7 +145,7 @@ local actions = {
 	messageClearHalving = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The fog modifier was cleared. The sight circles should be back to their default size.',
+			messageKey = 'The fog modifier was cleared. The sight circles should be back to their default size.',
 		},
 	},
 }
