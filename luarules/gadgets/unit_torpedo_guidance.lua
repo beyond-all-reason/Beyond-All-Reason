@@ -48,6 +48,9 @@ local torpedoAvoidLeavingWaterDefs = {}
 ---@type table<number, true?>
 local torpedoWaterPenDefs = {}
 local projectiles = {}
+---@type table<number, number>
+local weaponPitchStep = {}
+local gameFrame = -1
 
 local function isProjectileInWater(projectileID)
 	local _, positionY = spGetProjectilePosition(projectileID)
@@ -78,53 +81,25 @@ local function getTargetPositionWithError(projectileID, targetType, target)
 	end
 end
 
--- Water penetration (torpedo)
--- Water entry and continuous surface-depth tracking are separate stages.
+-- Shared motion goals. Distances are elmos; times are simulation frames.
+-- WeaponDefs.turnRate supplies the ordinary pitch limit. Close-target recovery,
+-- terrain avoidance and shore breach protection can exceed it.
+-- See doc/torpedo_motion_tuning.md for the geometry and test cases.
+local surfaceTargetDepth = -2
+local surfaceTransitionStartDepth = -12
+local surfaceEntryCorrectionDistance = 180
+local surfaceArrivalLeadFrames = 20.0
+local minSurfaceCorrectionFrames = 8
+local entryHandoffDiveSpeed = -0.12
 
--- Shared torpedo motion constraints layered onto the engine's native guidance.
--- These values form a coordinated set and are not independent per-weapon tuning controls.
--- Weapon definitions retain native homing and accuracy; tracking_turn_radius only adjusts
--- entry-correction proximity. If the engine's native guidance model changes, these constraints
--- may require a separate set of values.
--- See doc/torpedo_motion_tuning.md for maintenance guidance.
--- Depths and distances are in elmos, speeds are in elmos/frame, times are in frames,
--- and correction strengths are normalized blends.
-
--- Surface-depth constraints
-local surfaceTargetDepth = -2 -- Desired running depth against surface targets.
-local surfaceDepthCorrection = 0.025 -- Converts depth error into vertical speed.
-local minSurfaceDiveSpeed = -0.12 -- Fastest permitted dive while tracking the surface.
-local maxUnderwaterSurfaceRiseSpeed = 1.25 -- Fastest permitted underwater rise.
-
--- Air-to-water entry constraints
-local surfaceTransitionStartDepth = -12 -- Running-depth target used far from the target.
-local minSurfaceEntryDiveSpeed = -0.3 -- Fastest permitted dive during entry smoothing.
-local defaultEntryCorrectionRadius = 180 -- Default proximity range for stronger entry correction.
-local surfaceEntryCorrectionDistance = 180 -- Range over which entry depth approaches surface depth.
-local waterEntryCorrectionStartDepth = -2 -- Depth where entry correction begins.
-local waterEntryCorrectionFullDepth = -10 -- Depth where entry correction reaches full strength.
-local minWaterEntryCorrection = 0.2 -- Entry-correction strength far from the target.
-local maxWaterEntryCorrection = 0.85 -- Entry-correction strength directly over the target.
-
--- Surface-target arrival constraints
-local surfaceArrivalLeadFrames = 20 -- Lead time for reaching running depth before arrival.
-local minSurfaceCorrectionFrames = 8 -- Shortest permitted arrival-correction interval.
-local surfaceCorrectionRampStartFrames = 50 -- Arrival time where correction begins strengthening.
-local surfaceCorrectionRampEndFrames = 20 -- Arrival time where correction reaches full strength.
-local minSurfaceTrackingCorrection = 0.2 -- Long-range surface-tracking correction strength.
-local maxSurfaceTrackingCorrection = 0.5 -- Close-range surface-tracking correction strength.
-
--- Terrain-avoidance constraints
-local terrainAvoidanceClearance = 6 -- Minimum desired clearance above terrain.
-local terrainAvoidanceLookaheadFrames = 4 -- Time projected ahead when checking terrain.
-local terrainAvoidanceRampDepth = 12 -- Clearance range over which avoidance strengthens.
-local terrainAvoidanceTargetReleaseDistance = 36 -- Minimum range for fading avoidance near the target.
-local terrainAvoidanceDepthLeadRatio = 2 -- Release-distance multiplier for submerged unit targets.
-local terrainAvoidanceGroundTargetLeadRatio = 3 -- Earlier avoidance release for ground targets.
-
--- Shore-launcher breach constraints
-local minShoreSurfaceDiveSpeed = -4 -- Fastest permitted dive for shore-launched torpedoes.
-local shoreTorpedoBreachCeiling = 2 -- Highest permitted position after entering the water.
+-- Preserve the tested terrain handoff while changing the steering calculation.
+local terrainAvoidanceClearance = 6
+local terrainAvoidanceLookaheadFrames = 4
+local terrainAvoidanceRampDepth = 12
+local terrainAvoidanceTargetReleaseDistance = 36
+local terrainAvoidanceDepthLeadRatio = 2
+local terrainAvoidanceGroundTargetLeadRatio = 3
+local shoreTorpedoBreachCeiling = 2
 
 -- Per-projectile runtime state; these fields are not trajectory configuration.
 ---@class TorpedoState
@@ -132,6 +107,8 @@ local shoreTorpedoBreachCeiling = 2 -- Highest permitted position after entering
 ---@field surfaceTarget boolean?
 ---@field waterEntryHeadingCorrected boolean?
 ---@field shoreEnteredWater boolean?
+---@field pitch number?
+---@field pitchFrame number?
 ---@type table<integer, TorpedoState>
 local torpedoStates = {}
 
@@ -184,6 +161,9 @@ local function getSurfaceArrivalFrames(
 	return arrivalFrames
 end
 
+-- Steer in the vertical plane; the engine keeps ownership of horizontal heading.
+-- A circle tangent to the current path and passing through the aim point has
+-- curvature 2*sin(pitchError)/distance. This supplies the close-shot exception.
 ---@param projectileID integer
 ---@param positionX number
 ---@param positionY number
@@ -192,10 +172,11 @@ end
 ---@param velocityY number
 ---@param velocityZ number
 ---@param speed number
----@param desiredVelocityY number
----@param smooth number
+---@param wantedPitch number? Nil retains native pitch for submerged targets.
+---@param aimDistance number? Straight-line distance to the vertical aim point.
 ---@param predictTerrain boolean?
 ---@param terrainAvoidanceScale number?
+---@param emergency boolean? Shore breach override, bypassing the turn limit.
 local function setTorpedoPitchVelocity(
 	projectileID,
 	positionX,
@@ -205,67 +186,119 @@ local function setTorpedoPitchVelocity(
 	velocityY,
 	velocityZ,
 	speed,
-	desiredVelocityY,
-	smooth,
+	wantedPitch,
+	aimDistance,
 	predictTerrain,
-	terrainAvoidanceScale
+	terrainAvoidanceScale,
+	emergency
 )
 	local horizontalSpeed = math_diag(velocityX, velocityZ)
 	if not speed or speed <= 0 or horizontalSpeed <= 0 then
 		return
 	end
 
+	local state = getOrCreateTorpedoState(projectileID)
+	local currentPitch = math.atan2(velocityY, horizontalSpeed)
+	local pitch = currentPitch
+	if wantedPitch ~= nil then
+		local previousPitch = currentPitch
+		if state.pitchFrame == gameFrame - 1 and state.pitch ~= nil then
+			previousPitch = state.pitch
+		end
+		local projectileDefID = spGetProjectileDefID(projectileID)
+		local turnStep = projectileDefID and weaponPitchStep[projectileDefID] or 0.0
+		if aimDistance then
+			local errorAngle = math.min(math.abs(wantedPitch - previousPitch), math.pi * 0.5)
+			local requiredStep = 2 * speed * math.sin(errorAngle) / math_max(aimDistance, speed)
+			turnStep = math_max(turnStep, requiredStep)
+		end
+		if not emergency and previousPitch < 0 then
+			-- Begin recovering while the levelling arc still fits above the seabed.
+			-- The same R*(1-cos(pitch)) geometry used for surfacing gives the
+			-- minimum turn needed to spend no more than the available depth.
+			local floorHeight = math_max(
+				spGetGroundHeight(positionX, positionZ),
+				spGetGroundHeight(
+					positionX + velocityX * terrainAvoidanceLookaheadFrames,
+					positionZ + velocityZ * terrainAvoidanceLookaheadFrames
+				)
+			)
+			-- Reserve the next downward step as well as the continuous arc.
+			local availableDepth = positionY - floorHeight - terrainAvoidanceClearance + math.min(velocityY, 0)
+			local recoveryStep = speed * (1 - math.cos(previousPitch)) / math_max(availableDepth, speed)
+			if recoveryStep > turnStep then
+				turnStep = recoveryStep
+				wantedPitch = math_max(wantedPitch, 0)
+			end
+		end
+
+		-- Start levelling a rising surface-bound torpedo while its circular arc
+		-- still fits below running depth: remaining rise = R * (1 - cos(pitch)).
+		if not emergency and previousPitch > 0 and turnStep > 0 and wantedPitch >= 0 then
+			local riseToLevel = speed / turnStep * (1 - math.cos(previousPitch))
+			if positionY + riseToLevel >= surfaceTargetDepth then
+				wantedPitch = 0
+			end
+		end
+
+		if emergency then
+			pitch = wantedPitch
+		else
+			-- Reference our last output so native pitch steering and this correction
+			-- share one frame's allowance. X/Z heading remains the engine's result.
+			pitch = previousPitch + math_clamp(wantedPitch - previousPitch, -turnStep, turnStep)
+		end
+	end
+
+	-- Keep the existing slope-aware terrain correction as a safety override.
+	-- Submerged targets otherwise retain the engine's pitch, including its lead.
 	local terrainX, terrainY, terrainZ = positionX, positionY, positionZ
 	if predictTerrain then
 		terrainX = terrainX + velocityX * terrainAvoidanceLookaheadFrames
 		terrainY = terrainY + velocityY * terrainAvoidanceLookaheadFrames
 		terrainZ = terrainZ + velocityZ * terrainAvoidanceLookaheadFrames
 	end
-	local projectedTerrainClearance = terrainY - spGetGroundHeight(terrainX, terrainZ)
-	local terrainAvoidanceBlend = 0.0
+	local clearance = terrainY - spGetGroundHeight(terrainX, terrainZ)
+	local terrainBlend = 0.0
 	if predictTerrain then
-		terrainAvoidanceBlend = math_clamp(
-			(terrainAvoidanceClearance + terrainAvoidanceRampDepth - projectedTerrainClearance)
-				/ terrainAvoidanceRampDepth,
+		terrainBlend = math_clamp(
+			(terrainAvoidanceClearance + terrainAvoidanceRampDepth - clearance) / terrainAvoidanceRampDepth,
 			0,
 			1
 		)
-	elseif projectedTerrainClearance < terrainAvoidanceClearance then
-		terrainAvoidanceBlend = 1
+	elseif clearance < terrainAvoidanceClearance then
+		terrainBlend = 1
 	end
-	terrainAvoidanceBlend = terrainAvoidanceBlend * (terrainAvoidanceScale or 1)
-	if terrainAvoidanceBlend > 0 then
+	terrainBlend = terrainBlend * (terrainAvoidanceScale or 1)
+	if terrainBlend > 0 and not emergency then
 		local normalX, normalY, normalZ = spGetGroundNormal(terrainX, terrainZ, true)
 		local terrainVelocityY = velocityY - normalY * (velocityX * normalX + velocityY * normalY + velocityZ * normalZ)
 		if predictTerrain then
-			-- Submerged-target avoidance may flatten a dive, but must not create
-			-- an upward trajectory that can eject the torpedo from the water.
 			terrainVelocityY = math.min(terrainVelocityY, 0)
 		end
-		local blendedTerrainVelocityY = velocityY + (terrainVelocityY - velocityY) * terrainAvoidanceBlend
-		desiredVelocityY = math_max(desiredVelocityY, blendedTerrainVelocityY)
+		terrainVelocityY = math_max(velocityY, velocityY + (terrainVelocityY - velocityY) * terrainBlend)
+		terrainVelocityY = math_clamp(terrainVelocityY, -speed, speed)
+		local terrainHorizontalSpeed = math.sqrt(math_max(speed * speed - terrainVelocityY * terrainVelocityY, 0))
+		-- Retain the tested 45% terrain blend; only its pitch is needed here.
+		local terrainPitch = math.atan2(
+			velocityY + (terrainVelocityY - velocityY) * 0.45,
+			horizontalSpeed + (terrainHorizontalSpeed - horizontalSpeed) * 0.45
+		)
+		pitch = math_max(pitch, terrainPitch)
 	end
 
-	-- Rebuild the full velocity at the desired pitch. Scaling X and Z together
-	-- preserves horizontal heading while normalization preserves total speed.
-	desiredVelocityY = math_clamp(desiredVelocityY, -speed, speed)
-	local desiredHorizontalSpeed = math.sqrt(math_max(speed * speed - desiredVelocityY * desiredVelocityY, 0))
-	local horizontalScale = desiredHorizontalSpeed / horizontalSpeed
-	local desiredVelocityX = velocityX * horizontalScale
-	local desiredVelocityZ = velocityZ * horizontalScale
-
-	velocityX = velocityX + (desiredVelocityX - velocityX) * smooth
-	velocityY = velocityY + (desiredVelocityY - velocityY) * smooth
-	velocityZ = velocityZ + (desiredVelocityZ - velocityZ) * smooth
-
-	local correctedSpeed = math_diag(velocityX, velocityY, velocityZ)
-	if correctedSpeed > 0 then
-		local speedScale = speed / correctedSpeed
-		spSetProjectileVelocity(projectileID, velocityX * speedScale, velocityY * speedScale, velocityZ * speedScale)
-	end
+	local horizontalScale = speed * math.cos(pitch) / horizontalSpeed
+	spSetProjectileVelocity(
+		projectileID,
+		velocityX * horizontalScale,
+		speed * math.sin(pitch),
+		velocityZ * horizontalScale
+	)
+	state.pitch = pitch
+	state.pitchFrame = gameFrame
 end
 
-local function torpedoWaterPen(params, projectileID)
+local function torpedoWaterPen(projectileID)
 	local state = getOrCreateTorpedoState(projectileID)
 	local targetType, target = spGetProjectileTarget(projectileID)
 	local targetX, targetY, targetZ, surfaceTarget = getTorpedoTargetPosition(projectileID, targetType, target, state)
@@ -336,35 +369,37 @@ local function torpedoWaterPen(params, projectileID)
 			velocityY,
 			velocityZ,
 			speed,
-			velocityY,
-			0.45,
+			nil,
+			nil,
 			true,
 			terrainAvoidanceScale
 		)
 		return false
 	end
 
-	local entryCorrectionRadius = params and params.tracking_turn_radius or defaultEntryCorrectionRadius
-	local proximityBlend = 0.0
+	-- Allow the initial dive to reach running depth before rounding the entry.
+	if positionY >= surfaceTargetDepth then
+		return false
+	end
+	local horizontalDistance = speed * surfaceArrivalLeadFrames
 	local surfaceEntryBlend = 0.0
-	local entryDepthBlend = math_clamp(
-		(waterEntryCorrectionStartDepth - positionY) / (waterEntryCorrectionStartDepth - waterEntryCorrectionFullDepth),
-		0,
-		1
-	)
 	if targetX ~= nil and targetY ~= nil and targetZ ~= nil then
 		local distance = math_diag(positionX - targetX, positionY - targetY, positionZ - targetZ)
-		proximityBlend = math_clamp(1 - distance / entryCorrectionRadius, 0, 1)
+		horizontalDistance = math_diag(positionX - targetX, positionZ - targetZ)
 		surfaceEntryBlend = math_clamp(1 - distance / surfaceEntryCorrectionDistance, 0, 1)
 	end
 	local entryTargetDepth = surfaceTransitionStartDepth
 		+ (surfaceTargetDepth - surfaceTransitionStartDepth) * surfaceEntryBlend
-	local desiredVelocityY = math_clamp(
-		(entryTargetDepth - positionY) * surfaceDepthCorrection,
-		minSurfaceEntryDiveSpeed,
-		maxUnderwaterSurfaceRiseSpeed
+	local horizontalSpeed = math_diag(velocityX, velocityZ)
+	horizontalDistance = math.min(
+		horizontalDistance,
+		math_max(
+			horizontalDistance - horizontalSpeed * surfaceArrivalLeadFrames,
+			horizontalSpeed * minSurfaceCorrectionFrames
+		)
 	)
-
+	local depthError = entryTargetDepth - positionY
+	local wantedPitch = math.atan2(depthError, horizontalDistance)
 	setTorpedoPitchVelocity(
 		projectileID,
 		positionX,
@@ -374,14 +409,11 @@ local function torpedoWaterPen(params, projectileID)
 		velocityY,
 		velocityZ,
 		speed,
-		desiredVelocityY,
-		(minWaterEntryCorrection + (maxWaterEntryCorrection - minWaterEntryCorrection) * proximityBlend)
-			* entryDepthBlend
+		wantedPitch,
+		math_diag(horizontalDistance, depthError)
 	)
 
-	-- Keep rounding steep water entries until the torpedo is travelling near
-	-- its normal surface-running descent rate, then hand off to tracking.
-	if velocityY >= minSurfaceDiveSpeed then
+	if velocityY >= entryHandoffDiveSpeed then
 		projectiles[projectileID] = specialEffectFunction.torpsurfacetrack
 	end
 	return false
@@ -453,35 +485,21 @@ local function torpedoSurfaceTrack(projectileID)
 		)
 	end
 
-	local minDiveSpeed = avoidLeavingWater and minShoreSurfaceDiveSpeed or minSurfaceDiveSpeed
-	local desiredVelocityY = minDiveSpeed
-	local correctionStrength = minSurfaceTrackingCorrection
+	-- Aim to reach running depth before horizontal arrival. The same pitch rule
+	-- handles entry and surface travel; this stage only chooses the aim point.
+	local horizontalSpeed = math_diag(velocityX, velocityZ)
+	local correctionFrames = surfaceArrivalLeadFrames
 	if arrivalFrames then
-		local correctionFrames
+		correctionFrames = math.min(
+			math_max(arrivalFrames - surfaceArrivalLeadFrames, minSurfaceCorrectionFrames),
+			math_max(arrivalFrames, 1)
+		)
 		if avoidLeavingWater and positionY > surfaceTargetDepth then
 			correctionFrames = math_max(arrivalFrames, 1)
-			correctionStrength = maxSurfaceTrackingCorrection
-		else
-			correctionFrames = math_max(arrivalFrames - surfaceArrivalLeadFrames, minSurfaceCorrectionFrames)
-			local arrivalBlend = math_clamp(
-				(surfaceCorrectionRampStartFrames - arrivalFrames)
-					/ (surfaceCorrectionRampStartFrames - surfaceCorrectionRampEndFrames),
-				0,
-				1
-			)
-			correctionStrength = minSurfaceTrackingCorrection
-				+ (maxSurfaceTrackingCorrection - minSurfaceTrackingCorrection) * arrivalBlend
 		end
-		desiredVelocityY =
-			math_clamp((surfaceTargetDepth - positionY) / correctionFrames, minDiveSpeed, maxUnderwaterSurfaceRiseSpeed)
-	else
-		desiredVelocityY = math_clamp(
-			(surfaceTargetDepth - positionY) * surfaceDepthCorrection,
-			minDiveSpeed,
-			maxUnderwaterSurfaceRiseSpeed
-		)
 	end
-
+	local aimDistance = math_max(horizontalSpeed, speed * 0.01) * correctionFrames
+	local depthError = surfaceTargetDepth - positionY
 	setTorpedoPitchVelocity(
 		projectileID,
 		positionX,
@@ -491,8 +509,8 @@ local function torpedoSurfaceTrack(projectileID)
 		velocityY,
 		velocityZ,
 		speed,
-		desiredVelocityY,
-		correctionStrength
+		math.atan2(depthError, aimDistance),
+		math_diag(aimDistance, depthError)
 	)
 
 	if avoidLeavingWater then
@@ -512,8 +530,11 @@ local function torpedoSurfaceTrack(projectileID)
 				currentVelocityY,
 				currentVelocityZ,
 				currentSpeed,
-				maxRiseSpeed,
-				1
+				math.asin(math_clamp(maxRiseSpeed / currentSpeed, -1, 1)),
+				nil,
+				false,
+				nil,
+				true
 			)
 		end
 	end
@@ -528,8 +549,6 @@ specialEffectFunction.torpsurfacetrack = torpedoSurfaceTrack
 -- Engine call-ins -------------------------------------------------------------
 
 function gadget:Initialize()
-	local waterEntryMetatable = { __call = torpedoWaterPen }
-
 	for weaponDefID, weaponDef in pairs(WeaponDefs) do
 		local customParams = weaponDef.customParams
 		if customParams.avoid_leaving_water then
@@ -537,24 +556,12 @@ function gadget:Initialize()
 		end
 
 		local effectName = customParams.speceffect
+		-- Lua WeaponDefs.turnRate is already converted to radians/frame by the
+		-- engine. Its normalized tangent step turns through atan(turnRate).
+		weaponPitchStep[weaponDefID] = weaponDef.tracks and math.atan(math_max(weaponDef.turnRate or 0, 0)) or 0
 		if effectName == "torpwaterpen" then
-			-- Preserve the existing required per-weapon entry-proximity parameter.
-			local trackingTurnRadius = tonumber(customParams.tracking_turn_radius)
-			if trackingTurnRadius ~= nil then
-				weaponDefEffect[weaponDefID] = setmetatable({
-					tracking_turn_radius = trackingTurnRadius,
-				}, waterEntryMetatable)
-				torpedoWaterPenDefs[weaponDefID] = true
-			else
-				Spring.Log(
-					gadget:GetInfo().name,
-					LOG.ERROR,
-					weaponDef.name .. " has bad customparam: tracking_turn_radius"
-				)
-			end
-			if customParams.def or customParams.when then
-				Spring.Log(gadget:GetInfo().name, LOG.DEPRECATED, weaponDef.name .. " uses old customparams (def/when)")
-			end
+			weaponDefEffect[weaponDefID] = torpedoWaterPen
+			torpedoWaterPenDefs[weaponDefID] = true
 		elseif effectName == "torpsurfacetrack" then
 			weaponDefEffect[weaponDefID] = torpedoSurfaceTrack
 		end
@@ -587,7 +594,8 @@ function gadget:ProjectileDestroyed(projectileID)
 	torpedoStates[projectileID] = nil
 end
 
-function gadget:GameFrame()
+function gadget:GameFrame(frame)
+	gameFrame = frame
 	for projectileID, effect in pairs(projectiles) do
 		if effect(projectileID) then
 			projectiles[projectileID] = nil
