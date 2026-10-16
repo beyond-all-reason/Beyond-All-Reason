@@ -26,8 +26,6 @@ local MESSAGE_TRY_SKIP = SYNC_ACTION .. "Skip:"
 local getPauseControllerID = BAR.Utilities.GetHostCommandPlayerID
 
 if gadgetHandler:IsSyncedCode() then
-	local spGetPlayerInfo = Spring.GetPlayerInfo
-
 	local playbackCount = 0
 	local onPlaybackFinished ---@type fun()?
 	local playbackSkippable = false
@@ -43,17 +41,23 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local function finishPlayback(playbackID)
-		if playbackID == playbackCount and onPlaybackFinished ~= nil then
-			local onFinished = onPlaybackFinished
-			onPlaybackFinished = nil
-			onFinished()
-		end
-	end
-
 	GG.VideoPlayback = {
 		Play = play,
 	}
+
+	local function finishPlayback(playbackID)
+		if playbackID ~= playbackCount or onPlaybackFinished == nil then
+			return false
+		end
+		local onFinished = onPlaybackFinished
+		onPlaybackFinished = nil
+		onFinished()
+		return true
+	end
+
+	local function isSpectator(playerID)
+		return select(3, Spring.GetPlayerInfo(playerID, false)) == true
+	end
 
 	function gadget:RecvLuaMsg(message, playerID)
 		if message:sub(1, #SYNC_ACTION) ~= SYNC_ACTION then
@@ -66,12 +70,10 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			return true
 		elseif message:sub(1, #MESSAGE_TRY_SKIP) == MESSAGE_TRY_SKIP then
-			if playbackSkippable then
+			if playbackSkippable and not isSpectator(playerID) then
 				local playbackID = tonumber(message:sub(#MESSAGE_TRY_SKIP + 1))
-				local _, _, spectator = spGetPlayerInfo(playerID, false)
-				if not spectator and playbackID == playbackCount and onPlaybackFinished ~= nil then
+				if finishPlayback(playbackID) then
 					SendToUnsynced(SYNC_ACTION_STOP, playbackID)
-					finishPlayback(playbackID)
 				end
 			end
 			return true
