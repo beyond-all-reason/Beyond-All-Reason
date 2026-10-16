@@ -65,7 +65,7 @@ local actions = {
 	messageSpawnUnits = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'A tank and three pawns. Select a pawn to see its weapon range, and the tank to see its damage.',
+			messageKey = 'A tank and three pawns. Select a pawn to see its weapon range, and the tank to see its damage.',
 		},
 	},
 
@@ -82,7 +82,7 @@ local actions = {
 	messageSetRange = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'Every pawn on team 0, by def and team, now has a weapon range of 600. The tank keeps its own.',
+			messageKey = 'Every pawn on team 0, by def and team, now has a weapon range of 600. The tank keeps its own.',
 		},
 	},
 
@@ -100,7 +100,7 @@ local actions = {
 	messageDoubleDamage = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The tank, by name, now deals double damage with its first weapon, under the source overcharge.',
+			messageKey = 'The tank, by name, now deals double damage with its first weapon, under the source overcharge.',
 		},
 	},
 
@@ -124,7 +124,7 @@ local actions = {
 	messageBoostDeathExplosion = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The pawn death explosion now deals five times its damage, and the pawns were just destroyed. Watch the tank take it.',
+			messageKey = 'The pawn death explosion now deals five times its damage, and the pawns were just destroyed. Watch the tank take it.',
 		},
 	},
 
@@ -141,7 +141,7 @@ local actions = {
 	messageClearDamage = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The overcharge source was cleared. The tank deals its default damage again.',
+			messageKey = 'The overcharge source was cleared. The tank deals its default damage again.',
 		},
 	},
 }

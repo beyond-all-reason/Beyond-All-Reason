@@ -57,7 +57,7 @@ local actions = {
 	messageSpawnUnits = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'A tank and three pawns. Select the tank to note its speed.',
+			messageKey = 'A tank and three pawns. Select the tank to note its speed.',
 		},
 	},
 
@@ -83,7 +83,7 @@ local actions = {
 	messageSetSpeed = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The tank, by name, now has a speed of 240. The move order just given makes it take effect.',
+			messageKey = 'The tank, by name, now has a speed of 240. The move order just given makes it take effect.',
 		},
 	},
 
@@ -99,7 +99,7 @@ local actions = {
 	messageSetStealth = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The tank, by name, is now stealthy: enemy radar no longer shows it.',
+			messageKey = 'The tank, by name, is now stealthy: enemy radar no longer shows it.',
 		},
 	},
 
@@ -114,7 +114,7 @@ local actions = {
 	messageClearStealth = {
 		type = actionTypes.SendMessage,
 		parameters = {
-			message = 'The stealth set was cleared. Enemy radar shows the tank again.',
+			messageKey = 'The stealth set was cleared. Enemy radar shows the tank again.',
 		},
 	},
 }
