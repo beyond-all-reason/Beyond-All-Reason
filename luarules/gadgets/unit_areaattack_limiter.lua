@@ -36,21 +36,12 @@ local table_sort = table.sort
 
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitCommands = Spring.GetUnitCommands
-local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPosition = Spring.GetUnitPosition
 local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
 local splitRivers = require("modules/split_targets").Rivers
-
--- customparams.areaattack_unlimited: must classify identically in cmd_exclude_walls_area_attacks.lua
-local isUnlimitedUnitDef = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.areaattack_unlimited then
-		isUnlimitedUnitDef[unitDefID] = true
-	end
-end
 
 local isReissuing = false
 
@@ -106,19 +97,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
-	local selUnits = spGetSelectedUnits()
-
-	-- Only non-exempted units are counted against the AREA_LIMIT:
-	local attackers, unlimited = {}, {} ---@type UnitID[], UnitID[]
-	for i = 1, #selUnits do
-		local unitID = selUnits[i]
-		local unitDefID = spGetUnitDefID(unitID)
-		if unitDefID and isUnlimitedUnitDef[unitDefID] then
-			unlimited[#unlimited + 1] = unitID
-		else
-			attackers[#attackers + 1] = unitID
-		end
-	end
+	local attackers = spGetSelectedUnits()
 	if #attackers <= AREA_LIMIT then
 		return
 	end
@@ -149,16 +128,6 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 
 		handled = true -- We go back through the normal input pipeline.
-
-		if unlimited[1] ~= nil then
-			Spring.SelectUnitArray(unlimited)
-			if not cmdOpts.shift then
-				Spring.GiveOrder(CMD_STOP, {}, 0)
-			end
-			-- FIXME: GiveOrderArrayToUnitArray doesn't reliably deliver area attack commands (4-param CMD_ATTACK).
-			Spring.GiveOrder(cmdID, cmdParams, opts + CMD_OPT_SHIFT)
-			Spring.SelectUnitArray(selUnits)
-		end
 
 		-- Ctrl copies the engine for now and removes targets in the area.
 		-- TODO: Remove this behavior. This modifier is badly overloaded with area commands and causes the current stupid modifier combinations.
