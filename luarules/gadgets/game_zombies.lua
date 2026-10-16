@@ -4,7 +4,7 @@
 -- [Scavenger Zombies] Modes are Basic, Oni, Yokai, Nani?!, Akumu, and Spidergeddon. They share one revival speed table, and power-based revival times are clamped to 45 to 120 seconds. Oni adds a corpse when an eligible death would otherwise leave none. Yokai adds ghostly apparitions. Nani?! adds multiple spawns. Akumu and Spidergeddon combine all three. Spidergeddon stamps zombie_ghost_respawn_pool onto its substitute list when the game loads. Switching mode after that does not add or remove the pool.
 -- [Scavenger Zombies] Nani?!, Akumu, and Spidergeddon roll 2 to 6 zombies per corpse. At tech 1 or below, the count is the lowest of 3 rolls. Above tech 1, units whose power-based revival time is the minimum take the highest of 2 rolls, units at the maximum take the lowest of 3 rolls, and units in between roll once. A custom respawn time does not change which roll is used. Other modes always roll 1. Corpses that were already zombies, and units that cannot move, always roll 1. That roll is how many copies are created, or the budget multiplier when substitutes are bought. Dead zombies have their corpse swapped for a heap outside Oni, Akumu, and Spidergeddon, so they rise only once. In those three modes, a death with no wreck still leaves a corpse, except reclaims, Lua removals, cheat kills, out of bounds, units turned into features, cancelled or decaying builds, units still being built, metal extractors, geothermals, units with a negative zombie_respawn_time, drowning, and lava that kills the unit by itself. A weapon kill while the unit is standing in lava still leaves a corpse. Zombies that drown, or die to lava by itself, never leave a resurrectable corpse. Zombie turrets are removed after 10 minutes and do not leave a corpse.
 -- [Scavenger Zombies] In Yokai, Akumu, and Spidergeddon, apparitions are fed by deaths that leave no resurrectable corpse, by queued corpses destroyed by anything other than reclaim or resurrection, and by zombie turrets that expire. Harmless metal and energy structures, and radar, sonar, or jammer structures, never feed them. A dead zombie whose corpse was forced into a heap does not feed them. In Yokai, a zombie overkilled into a heap or nothing still takes the roll. In Akumu and Spidergeddon, ordinary overkill leaves a corpse instead, so it does not. Each feeding death has a 66% chance to enter the apparition respawn queue at 4 times that unit's revival delay. A failed roll drops the unit. An apparition is still placed at the death location, except during the first 5 minutes, and except when 25 apparitions exist and none has lived at least 30 seconds. After the first 5 minutes, up to 3 more apparitions appear at random every minute, up to 25. Each lives 2 minutes, is not ready to manifest a queued unit for 20 seconds, and that wait resets while an enemy is within 300.
--- [Scavenger Zombies] When any unit has zombie_ghost_respawn_pool, revived corpses, apparition respawns, and units captured by zombies rise as substitutes instead of the original unit. Pool units that were already zombies rise as themselves. Other zombies are substituted. The budget is the unit's power, times 0.5 times the current tech level for commanders, times the rolled spawn count for revived corpses and captures. Apparition respawns use a count of 1. Up to that same power can be borrowed from the floating excess. Substitutes from the cheapest up to the most expensive affordable one are considered, skipping the cheapest ones that would buy more than the maximum spawn count. One is picked from what remains by taking the cheaper of 2 random rolls, or the most expensive affordable one if every affordable substitute would exceed that count. As many as can be afforded are bought, up to the maximum spawn count. If none can be afforded, the whole budget is added to the floating excess. Otherwise the leftover goes back to it. Substitutes that fail to spawn on the spot are queued as that same substitute for an apparition, or refunded to the floating excess in modes without apparitions.
+-- [Scavenger Zombies] When any unit has zombie_ghost_respawn_pool, revived corpses, apparition respawns, and units captured by zombies rise as substitutes instead of the original unit. Pool units that were already zombies rise as themselves. Other zombies are substituted. The budget is the unit's power, times 0.5 times the current tech level for commanders, times the rolled spawn count for revived corpses and captures. Apparition respawns use a count of 1, after multiplying that power by the ghost power multiplier, which defaults to 1. Up to that same power can be borrowed from the floating excess. Substitutes from the cheapest up to the most expensive affordable one are considered, skipping the cheapest ones that would buy more than the maximum spawn count. One is picked from what remains by taking the cheaper of 2 random rolls until 20 minutes, and by one roll across that same range after 20 minutes, or the most expensive affordable one if every affordable substitute would exceed that count. As many as can be afforded are bought, up to the maximum spawn count. If none can be afforded, the whole budget is added to the floating excess. Otherwise the leftover goes back to it. Substitutes that fail to spawn on the spot are queued as that same substitute for an apparition, or refunded to the floating excess in modes without apparitions.
 -- [Scavenger Zombies] Todo: Should zombies be infinitely recycled? Or should they have a chance to exit the respawn queue?
 
 function gadget:GetInfo()
@@ -47,6 +47,9 @@ end
 --     the window that power-based revival times are clamped to. Swapped if the minimum is greater than the maximum.
 --   zombie_ghost_respawn_chance (0 to 1, default 0.66)
 --     the chance that a death feeding the apparitions enters the apparition respawn queue.
+--   zombie_ghost_power_multiplier (default 1, minimum 0)
+--     multiplies a unit's power when an apparition respawn spends it on substitutes. Units that rise as
+--     themselves are unchanged. Revived corpses and captures do not use this multiplier.
 --   zombie_enable_oni (1 enables, 0 disables)
 --     a corpse on every eligible death, in every mode.
 --   zombie_enable_yokai (1 enables, 0 disables)
@@ -55,7 +58,7 @@ end
 --     multiple spawns per corpse, in every mode.
 
 if not gadgetHandler:IsSyncedCode() then
-	return false
+	return
 end
 
 local spring = Spring
@@ -95,6 +98,7 @@ local ZOMBIE_TURRET_LIFETIME = Game.gameSpeed * 60 * 10
 local LOWEST = true
 local HIGHEST = false
 local SUBSTITUTE_ROLL_COUNT = 2
+local SUBSTITUTE_FAIR_ROLL_FRAMES = Game.gameSpeed * 60 * 20
 local COMMANDER_SUBSTITUTION_POWER_MULTIPLIER = 0.5
 
 local zombieModeSettings = {
@@ -103,6 +107,7 @@ local zombieModeSettings = {
 	respawnDelayMinimum = 45,
 	respawnDelayMaximum = 120,
 	ghostFeedSuccessChance = 0.66,
+	ghostPowerMultiplier = 1,
 }
 
 local TECH_TO_REZ_POWER_SPEEDS = {
@@ -262,6 +267,7 @@ do
 	for unitDefID = 1, #unitDefs do
 		local customParams = unitDefs[unitDefID].customParams ---@type table<string, any>
 		setNumericSetting(customParams, "zombie_ghost_respawn_chance", "ghostFeedSuccessChance", 0, 1)
+		setNumericSetting(customParams, "zombie_ghost_power_multiplier", "ghostPowerMultiplier", 0, math.huge)
 		setNumericSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum", 1, math.huge, true)
 		setNumericSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum", 1, math.huge, true)
 		setNumericSetting(customParams, "zombie_minimum_respawn_delay", "respawnDelayMinimum", 0, math.huge)
@@ -713,6 +719,10 @@ end
 local function pickSubstituteUnitDefID(totalPower)
 	local lowestIndex
 	local highestIndex
+	local substituteRollCount = SUBSTITUTE_ROLL_COUNT
+	if gameFrame >= SUBSTITUTE_FAIR_ROLL_FRAMES then
+		substituteRollCount = 1
+	end
 	for poolIndex = 1, #ghostPoolUnitDefIDs do
 		local substitutePower = getUnitRezPower(unitDefs[ghostPoolUnitDefIDs[poolIndex]])
 		if substitutePower > totalPower then
@@ -726,7 +736,7 @@ local function pickSubstituteUnitDefID(totalPower)
 	if not highestIndex then
 		return nil
 	end
-	return ghostPoolUnitDefIDs[rollFor(LOWEST, SUBSTITUTE_ROLL_COUNT, lowestIndex or highestIndex, highestIndex)]
+	return ghostPoolUnitDefIDs[rollFor(LOWEST, substituteRollCount, lowestIndex or highestIndex, highestIndex)]
 end
 
 local function purchaseSubstitutes(unitPower, spawnCount)
@@ -869,7 +879,8 @@ local function resolveGhostRespawn(unitDefID, wasZombie)
 		pushGhostSpawn(unitDefID)
 		return
 	end
-	local substituteUnitDefID, purchaseCount = purchaseSubstitutes(getSubstitutionPower(unitDefs[unitDefID]), 1)
+	local unitPower = getSubstitutionPower(unitDefs[unitDefID]) * zombieModeSettings.ghostPowerMultiplier
+	local substituteUnitDefID, purchaseCount = purchaseSubstitutes(unitPower, 1)
 	for _ = 1, purchaseCount do
 		pushGhostSpawn(substituteUnitDefID)
 	end
@@ -1667,6 +1678,10 @@ local function handleFeatureCreated(featureID, sourceID)
 	local deathData = replacementDeathData
 	if deathData then
 		applyPreviousStates(featureID, deathData.previousStates)
+		if featureDefID == zombieHeapDefs[deathData.unitDefID].corpseDefID then
+			local featureFacing = spring.GetFacingFromHeading(spring.GetFeatureHeading(featureID) or 0)
+			spring.SetFeatureResurrect(featureID, deathData.unitDefID, featureFacing)
+		end
 	elseif sourceID and pendingDeaths[sourceID] then
 		deathData = pendingDeaths[sourceID]
 		pendingDeaths[sourceID] = nil
