@@ -163,11 +163,9 @@ local function updateAny(callin, registration, gadget)
 		gadgetToIndex[g] = i
 	end
 
-	local relisted = {}
 	for id, list in pairs(lists) do
-		if not relisted[list] then
-			relisted[list] = true
-
+		-- unregistered IDs share the ANY list, so we only visit it through its exact key
+		if list ~= any or id == ANY then
 			local wanted = subscribed and idSet[ANY] == true
 			if subscribed and not wanted and list ~= any then
 				local isNegative = negativeIDs ~= nil and type(id) == "number" and id < 0
