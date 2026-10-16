@@ -1,10 +1,10 @@
 -- [Scavenger Zombies] Zombies do not capture units that are still being built.
--- [Scavenger Zombies] After 60 minutes, zombies stay permanently aggro'd and respawn at a fixed speed of 20 instead of scaling with the tech estimate.
--- [Scavenger Zombies] Zombie factories build at their original buildpower * 1.7 ^ the current tech estimate.
--- [Scavenger Zombies] Modes are Basic, Oni, Yokai, Nani?!, Akumu, and Spidergeddon, all sharing one revival speed table and a 45 to 120 second revival window. Oni adds corpses on every death, Yokai adds ghostly apparitions, Nani?! adds multiple spawns, and Akumu and Spidergeddon combine all three. Spidergeddon apparitions respawn units as substitutes.
--- [Scavenger Zombies] Nani?!, Akumu, and Spidergeddon spawn 2 to 6 zombies per corpse. At tech 1 or below, the count is the lowest of 3 rolls. Above tech 1, units that revive at the fastest allowed time take the highest of 2 rolls, units that revive at the slowest allowed time take the lowest of 3 rolls, and units in between roll once. Other modes always spawn 1. Corpses that were already zombies, and units that cannot move, always spawn 1. Dead zombies die normally and their corpse is swapped for a heap outside Oni, Akumu, and Spidergeddon, so they rise only once. In those modes, every death leaves a corpse regardless of overkill, except reclaims, Lua removals, cancelled or decaying builds, and water or lava deaths. Water and lava zombie deaths never leave a corpse, and apparitions are fed by overkilled units and by corpses destroyed by anything other than reclaim or resurrection.
--- [Scavenger Zombies] In Yokai, Akumu, and Spidergeddon, each death that feeds the apparitions has a 66% chance to enter the apparition respawn queue. On a failed roll the unit is dropped, though an apparition still appears at the death location. Dead zombies whose corpse is forced into a heap were not overkilled, so they never feed the apparitions. Zombies that are overkilled into a heap or nothing still take the 66% roll.
--- [Scavenger Zombies] In Spidergeddon, or whenever units are flagged with the zombie_ghost_respawn_pool customParam, revived corpses, apparition respawns, and units captured by zombies rise as substitutes instead of the original unit. Substitutes that were already zombies rise as themselves instead. The budget is the unit's power, times its spawn count for revived corpses and captures, plus up to one unit's power borrowed from the floating excess power. Substitutes from the cheapest up to the most expensive affordable one are considered, skipping the cheapest ones that would buy more than the maximum spawn count. A substitute is picked from what remains by taking the cheaper of 2 random rolls, or the most expensive affordable one if none remain, and as many as can be afforded are bought, up to the maximum spawn count. Leftover power goes back to the floating excess power. Substitutes that fail to spawn are queued to rise from apparitions, or refunded to the floating excess power in modes without apparitions.
+-- [Scavenger Zombies] After 60 minutes, zombies stay permanently aggro'd. Revival delays calculated from then on use a fixed speed of 20 instead of the tech estimate. Corpses that are already waiting keep the delay they were given.
+-- [Scavenger Zombies] Gaia zombie factories build at their original buildpower * 1.7 ^ the current tech estimate. The boost is removed when the factory leaves Gaia, including a transfer to the Scavenger team. The 60 minute speed change does not change this boost.
+-- [Scavenger Zombies] Modes are Basic, Oni, Yokai, Nani?!, Akumu, and Spidergeddon. They share one revival speed table, and power-based revival times are clamped to 45 to 120 seconds. Oni adds a corpse when an eligible death would otherwise leave none. Yokai adds ghostly apparitions. Nani?! adds multiple spawns. Akumu and Spidergeddon combine all three. Spidergeddon stamps zombie_ghost_respawn_pool onto its substitute list when the game loads. Switching mode after that does not add or remove the pool.
+-- [Scavenger Zombies] Nani?!, Akumu, and Spidergeddon roll 2 to 6 zombies per corpse. At tech 1 or below, the count is the lowest of 3 rolls. Above tech 1, units whose power-based revival time is the minimum take the highest of 2 rolls, units at the maximum take the lowest of 3 rolls, and units in between roll once. A custom respawn time does not change which roll is used. Other modes always roll 1. Corpses that were already zombies, and units that cannot move, always roll 1. That roll is how many copies are created, or the budget multiplier when substitutes are bought. Dead zombies have their corpse swapped for a heap outside Oni, Akumu, and Spidergeddon, so they rise only once. In those three modes, a death with no wreck still leaves a corpse, except reclaims, Lua removals, cheat kills, out of bounds, units turned into features, cancelled or decaying builds, units still being built, metal extractors, geothermals, units with a negative zombie_respawn_time, drowning, and lava that kills the unit by itself. A weapon kill while the unit is standing in lava still leaves a corpse. Zombies that drown, or die to lava by itself, never leave a resurrectable corpse. Zombie turrets are removed after 10 minutes and do not leave a corpse.
+-- [Scavenger Zombies] In Yokai, Akumu, and Spidergeddon, apparitions are fed by deaths that leave no resurrectable corpse, by queued corpses destroyed by anything other than reclaim or resurrection, and by zombie turrets that expire. Harmless metal and energy structures, and radar, sonar, or jammer structures, never feed them. A dead zombie whose corpse was forced into a heap does not feed them. In Yokai, a zombie overkilled into a heap or nothing still takes the roll. In Akumu and Spidergeddon, ordinary overkill leaves a corpse instead, so it does not. Each feeding death has a 66% chance to enter the apparition respawn queue at 4 times that unit's revival delay. A failed roll drops the unit. An apparition is still placed at the death location, except during the first 5 minutes, and except when 25 apparitions exist and none has lived at least 30 seconds. After the first 5 minutes, up to 3 more apparitions appear at random every minute, up to 25. Each lives 2 minutes, is not ready to manifest a queued unit for 20 seconds, and that wait resets while an enemy is within 300.
+-- [Scavenger Zombies] When any unit has zombie_ghost_respawn_pool, revived corpses, apparition respawns, and units captured by zombies rise as substitutes instead of the original unit. Pool units that were already zombies rise as themselves. Other zombies are substituted. The budget is the unit's power, times 0.5 times the current tech level for commanders, times the rolled spawn count for revived corpses and captures. Apparition respawns use a count of 1. Up to that same power can be borrowed from the floating excess. Substitutes from the cheapest up to the most expensive affordable one are considered, skipping the cheapest ones that would buy more than the maximum spawn count. One is picked from what remains by taking the cheaper of 2 random rolls, or the most expensive affordable one if every affordable substitute would exceed that count. As many as can be afforded are bought, up to the maximum spawn count. If none can be afforded, the whole budget is added to the floating excess. Otherwise the leftover goes back to it. Substitutes that fail to spawn on the spot are queued as that same substitute for an apparition, or refunded to the floating excess in modes without apparitions.
 -- [Scavenger Zombies] Todo: Should zombies be infinitely recycled? Or should they have a chance to exit the respawn queue?
 
 function gadget:GetInfo()
@@ -21,12 +21,12 @@ end
 
 -- Modder customParams.
 --
--- Per unit, affecting only the unit that sets them:
+-- Per unit, affecting only that unit:
 --   zombie_respawn_time (seconds)
 --     < 0  never respawn as a zombie
 --     0    respawn instantly
 --     > 0  custom respawn delay in seconds
---     this overrides default timing based on unit power, difficulty, and gamestate.
+--     this replaces the power-based delay. Spawn-count rolls still use the power-based delay.
 --   zombie_ghost_respawn_pool (any value)
 --     adds the unit to the substitute pool. When the pool has any units, revived corpses, apparition
 --     respawns, and units captured by zombies rise as pool units instead of the original unit. Pool units
@@ -34,16 +34,21 @@ end
 --     pool entry. Pool units that were already zombies rise as themselves instead of being substituted.
 --   scav_swap_override_captured (unit name or "delete")
 --     when the unit is captured by zombies, it becomes the named unit instead, or is removed with "delete".
---     With a substitute pool, the named unit's value is spent on substitutes ina
---     the range of zombies rolled per corpse when multiple spawns are enabled. The maximum also caps how
---     many substitutes a single spawn can buy. Swapped if the minimum is greater than the maximum.
+--     With a substitute pool, the named unit's power is spent on substitutes. "delete" removes the unit
+--     and does not add its power to the excess.
+--
+-- On any unit def, applied to the whole mode. The highest unitDefID that sets a value wins:
+--   zombie_minimum_spawns (integer, default 2)
+--   zombie_maximum_spawns (integer, default 6)
+--     the range rolled per corpse when multiple spawns are enabled. The maximum also caps how many
+--     substitutes one spawn can buy. Swapped if the minimum is greater than the maximum.
 --   zombie_minimum_respawn_delay (seconds, default 45)
 --   zombie_maximum_respawn_delay (seconds, default 120)
 --     the window that power-based revival times are clamped to. Swapped if the minimum is greater than the maximum.
 --   zombie_ghost_respawn_chance (0 to 1, default 0.66)
 --     the chance that a death feeding the apparitions enters the apparition respawn queue.
 --   zombie_enable_oni (1 enables, 0 disables)
---     a corpse on every death, in every mode.
+--     a corpse on every eligible death, in every mode.
 --   zombie_enable_yokai (1 enables, 0 disables)
 --     apparitions and the apparition respawn queue, in every mode.
 --   zombie_enable_nani (1 enables, 0 disables)
@@ -255,7 +260,7 @@ do
 	}
 	local featureOverrides = {}
 	for unitDefID = 1, #unitDefs do
-		local customParams = unitDefs[unitDefID].customParams
+		local customParams = unitDefs[unitDefID].customParams ---@type table<string, any>
 		setNumericSetting(customParams, "zombie_ghost_respawn_chance", "ghostFeedSuccessChance", 0, 1)
 		setNumericSetting(customParams, "zombie_minimum_spawns", "spawnCountMinimum", 1, math.huge, true)
 		setNumericSetting(customParams, "zombie_maximum_spawns", "spawnCountMaximum", 1, math.huge, true)
@@ -1592,6 +1597,7 @@ local function queueCorpseForSpawning(featureID, override, wasZombie)
 	wasZombie = wasZombie or wasZombieCorpse(featureID)
 
 	local existingRezFrame = spring.GetFeatureRulesParam(featureID, ZOMBIE_REZ_FRAME_PARAM)
+	existingRezFrame = tonumber(existingRezFrame)
 	local spawnDelayFrames = corpseDefData.spawnDelayFrames
 	local spawnFrame = gameFrame + (spawnDelayFrames or 0)
 	if existingRezFrame and existingRezFrame > 0 then
