@@ -13,6 +13,7 @@
 
 -- From SDL_keysym.h
 
+---@type table<string, integer>
 local KEYSYM_VALUES = {
 
 	UNKNOWN = 0,
@@ -305,6 +306,23 @@ local RENAMED_KEYS = {
 	RSUPER = "rmeta",
 }
 
+-- nil means SDL2 no longer supports this value at all (GetKeySymbol falls back
+-- to a raw "0x.." placeholder when it can't name one)
+---@return string?
+local function resolveKeyName(key, value)
+	local renamed = RENAMED_KEYS[key]
+	if renamed ~= nil then
+		return renamed
+	end
+
+	local symbol = Spring.GetKeySymbol(value)
+	if symbol:sub(1, 2) == "0x" then
+		return nil
+	end
+
+	return symbol
+end
+
 local function warnKeysym(key, value)
 	-- default (empty) section: on release its floor is INFO, so a DEPRECATED
 	-- message gets through; named sections floor at WARNING and would swallow it.
@@ -330,13 +348,7 @@ local function warnKeysym(key, value)
 	-- GetKeySymbol is GetKeyCode's inverse, so it can name the exact replacement
 	local replacement, unsupported
 	if key ~= nil and value ~= nil then
-		local keyName = RENAMED_KEYS[key]
-		if not keyName and Spring.GetKeySymbol then
-			keyName = Spring.GetKeySymbol(value)
-			if keyName and keyName:sub(1, 2) == "0x" then
-				keyName = nil
-			end
-		end
+		local keyName = resolveKeyName(key, value)
 		if keyName then
 			replacement = 'Spring.GetKeyCode("' .. keyName .. '")'
 		else
@@ -370,6 +382,7 @@ end
 
 -- proxy: warns on access/iteration, returns the original values (no drift), and
 -- keeps pairs() working via __pairs (backported into this Lua from 5.2)
+---@type table<string, integer>
 KEYSYMS = setmetatable({}, {
 	__index = function(_, key)
 		local value = KEYSYM_VALUES[key]
