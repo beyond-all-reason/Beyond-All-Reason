@@ -25,14 +25,6 @@ local spGetSelectedUnits = Spring.GetSelectedUnits
 
 -- Keep in sync with unit_areaattack_limiter.lua
 local AREA_LIMIT = 30
--- Keep in sync with unit_areaattack_limiter.lua (customparams.areaattack_unlimited)
-local isUnlimitedUnitDef = {}
-for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.customParams.areaattack_unlimited then
-		isUnlimitedUnitDef[unitDefID] = true
-	end
-end
-
 for id, unitDef in pairs(UnitDefs) do
 	if unitDef.customParams.objectify then
 		excludedUnitsDefID[id] = true
@@ -54,18 +46,13 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		return
 	end
 
+	local selected = spGetSelectedUnits()
+
 	if cmdID == CMD_ATTACK then
 		-- Deterministic handoff: if limiter would kick in (limited unit overflow),
 		-- do not consume this command so LuaRules areaattack limiter can process it.
-		local selectedUnits = spGetSelectedUnits()
-		local limitedCount = 0
-		for i = 1, #selectedUnits do
-			if isUnlimitedUnitDef[spGetUnitDefID(selectedUnits[i])] == nil then
-				limitedCount = limitedCount + 1
-				if limitedCount > AREA_LIMIT then
-					return false
-				end
-			end
+		if #selected > AREA_LIMIT then
+			return false
 		end
 	end
 
@@ -87,7 +74,7 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 	end
 	if #newCmds > 0 and somethingWasExcluded then
-		Spring.GiveOrderArrayToUnitArray(spGetSelectedUnits(), newCmds)
+		Spring.GiveOrderArrayToUnitArray(selected, newCmds)
 		return true
 	end
 end
