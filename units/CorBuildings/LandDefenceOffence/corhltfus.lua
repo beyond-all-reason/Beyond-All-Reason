@@ -2,7 +2,7 @@ return {
 	corhltfus = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildpic = "CORFUS.DDS",
+		buildpic = "CORHLTFUS.DDS",
 		buildtime = 59000,
 		canrepeat = false,
 		corpse = "DEAD",
