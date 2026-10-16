@@ -351,7 +351,9 @@ end
 -- Reads the bind lines back out of a keybind file. Needed for the player's own
 -- uikeys.txt at migration time: the live keymap is whichever preset they had selected,
 -- so it cannot stand in for what their own file holds.
-local function readBindFile(text, depth)
+-- With a seed the text runs on top of it, the way the engine runs lines on a live keymap: it
+-- refuses a bind it already holds.
+local function readBindFile(text, depth, seed)
 	if not text then
 		return nil
 	end
@@ -359,6 +361,24 @@ local function readBindFile(text, depth)
 	depth = depth or 1
 	local breaks = "[^" .. string.char(13, 10) .. "]+"
 	local binds = {}
+	-- Keyed "action\1canon", so a seeded preset's own duplicates are a lookup instead of a scan:
+	-- a large paste merged against an existing preset is otherwise quadratic in the bind count.
+	local seen = {}
+	for i, b in ipairs(seed or {}) do
+		binds[i] = { keyset = b.keyset, action = b.action }
+		seen[b.action .. "\1" .. keybindModel.canonicalKeyset(b.keyset)] = true
+	end
+
+	local function holds(keyset, action)
+		return seen[action .. "\1" .. keybindModel.canonicalKeyset(keyset)] == true
+	end
+
+	local function add(keyset, action)
+		if not (seed and holds(keyset, action)) then
+			binds[#binds + 1] = { keyset = keyset, action = action }
+			seen[action .. "\1" .. keybindModel.canonicalKeyset(keyset)] = true
+		end
+	end
 
 	-- A file may name a key the engine has none for, and every keyset after that point uses the
 	-- name. The engine refuses to redefine one, so there is a single definition per name.
@@ -379,10 +399,13 @@ local function readBindFile(text, depth)
 	end
 
 	-- Applied to what the file has bound so far rather than issued as commands. Matched on the
-	-- command word, never its args.
+	-- command word, never its args. Dropped from `seen` too, or a later line rebinding the same
+	-- keyset and action would be read as already held.
 	local function drop(match)
 		for i = #binds, 1, -1 do
-			if match(binds[i]) then
+			local b = binds[i]
+			if match(b) then
+				seen[b.action .. "\1" .. keybindModel.canonicalKeyset(b.keyset)] = nil
 				table.remove(binds, i)
 			end
 		end
@@ -393,9 +416,9 @@ local function readBindFile(text, depth)
 		line = line:gsub("//.*", ""):gsub("%s+$", "")
 		local keyset, action = line:match("^%s*bind%s+(%S+)%s+(.-)%s*$")
 		if keyset and action ~= "" then
-			binds[#binds + 1] = { keyset = resolveKeySyms(keyset), action = action }
+			add(resolveKeySyms(keyset), action)
 		elseif line:match("^%s*unbindall%s*$") then
-			binds = {}
+			binds, seen = {}, {}
 		elseif line:match("^%s*unbindaction%s+%S") then
 			local command = line:match("^%s*unbindaction%s+(%S+)"):lower()
 			drop(function(b)
@@ -429,14 +452,14 @@ local function readBindFile(text, depth)
 				local text = VFS.LoadFile(included)
 				if text then
 					for _, b in ipairs(readBindFile(text, depth + 1) or {}) do
-						binds[#binds + 1] = b
+						add(b.keyset, b.action)
 					end
 				else
 					-- These stopped being files, so a keyload naming one has nothing to read.
 					local retired = retiredBinds(included)
 					if retired then
 						for _, b in ipairs(retired) do
-							binds[#binds + 1] = { keyset = b.keyset, action = b.action }
+							add(b.keyset, b.action)
 						end
 					else
 						Spring.Echo(
@@ -1119,16 +1142,23 @@ function M.exportText(profile)
 	return toBindFile(profile)
 end
 
+-- Console commands are shared with the slash they are typed with, which a bind file does not take.
+local function unslash(text)
+	return (text:gsub("[^\r\n]+", function(line)
+		return (line:gsub("^(%s*)/(%a)", "%1%2", 1))
+	end))
+end
+
 -- Every line of bind-file text with what the reader makes of it, for showing a player what an
 -- import will take before it does.
 function M.classifyBindFile(text)
-	local lines, binds, errors = {}, 0, 0
+	local lines, binds, errors, directives = {}, 0, 0, 0
 	if type(text) ~= "string" then
-		return lines, binds, errors
+		return lines, binds, errors, directives
 	end
 
 	for raw in (text:gsub("\r\n", "\n"):gsub("\r", "\n") .. "\n"):gmatch("([^\n]*)\n") do
-		local line = raw:gsub("//.*", ""):gsub("%s+$", "")
+		local line = unslash(raw):gsub("//.*", ""):gsub("%s+$", "")
 		local kind
 		if line:match("^%s*$") then
 			kind = "comment"
@@ -1145,6 +1175,7 @@ function M.classifyBindFile(text)
 			or line:match("^%s*fakemeta")
 		then
 			kind = "directive"
+			directives = directives + 1
 		else
 			kind = "error"
 			errors = errors + 1
@@ -1157,7 +1188,7 @@ function M.classifyBindFile(text)
 		lines[#lines] = nil
 	end
 
-	return lines, binds, errors
+	return lines, binds, errors, directives
 end
 
 -- The reverse: bind-file text, however it was produced, as binds plus the fakemeta key and
@@ -1167,12 +1198,40 @@ function M.parseBindFile(text)
 		return nil
 	end
 
+	text = unslash(text)
 	local binds = readBindFile(text)
 	if not binds or #binds == 0 then
 		return nil
 	end
 
 	return binds, fakeMetaOf(text), generatedName(text)
+end
+
+-- Run against a keymap rather than read as one; the list handed in is left as it was.
+function M.applyBindText(binds, text)
+	if type(text) ~= "string" then
+		return nil
+	end
+
+	return readBindFile(unslash(text), nil, binds or {})
+end
+
+-- Our export is stamped with its name, and text starting from unbindall means to be a whole keymap.
+function M.isWholeProfile(text)
+	if type(text) ~= "string" then
+		return false
+	end
+	if generatedName(text) then
+		return true
+	end
+
+	for line in unslash(text):gmatch("[^\r\n]+") do
+		if line:gsub("//.*", ""):match("^%s*unbindall%s*$") then
+			return true
+		end
+	end
+
+	return false
 end
 
 -- Write a profile out where the engine can keyreload it, and return that path.
