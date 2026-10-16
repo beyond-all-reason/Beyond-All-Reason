@@ -278,43 +278,49 @@ local function collectListedGadgets(registration, gadgets)
 	return listed
 end
 
----Callin lists rebuild extremely slowly unless we collect on IDs first when a gadget deregisters a callin.
----Currently very slow still for range-based registrations, like ANY and CMD.BUILD.
+---True when the lists were kept in the same order as each other.
+local function haveSharedOrder(before, after, beforeSet, afterSet)
+	local i, j = 1, 1
+	repeat
+		while before[i] and not afterSet[before[i]] do
+			i = i + 1
+		end
+		while after[j] and not beforeSet[after[j]] do
+			j = j + 1
+		end
+		if before[i] ~= after[j] then
+			return false
+		end
+		i, j = i + 1, j + 1
+	until before[i - 1] == nil
+	return true
+end
+
+---Rebuilding callin lists is slow unless we collect on IDs first when a gadget deregisters a callin.
+---Currently very slow still for range-based registrations like CMD.BUILD (but not ANY).
 ---@param registration CallinRegistration
 local function collectRelistedIDs(registration, before, after)
 	-- Most ID lists remain the same before and after a gadget deregisters a callin.
 	-- Try to work out which ones changed so that only those will be rebuilt after.
-	-- It isn't worth continuing to compare when the ordering has changed, though,
-	-- so this exits early when the order changes or when a range is registered.
-	local wasListed, isListed = {}, {}
+	local beforeSet, afterSet = {}, {}
 	for _, g in ipairs(before) do
-		wasListed[g] = true
+		beforeSet[g] = true
 	end
 	for _, g in ipairs(after) do
-		isListed[g] = true
+		afterSet[g] = true
 	end
-	local i, j = 1, 1
-	repeat
-		while before[i] and not isListed[before[i]] do
-			i = i + 1
-		end
-		while after[j] and not wasListed[after[j]] do
-			j = j + 1
-		end
-		if before[i] ~= after[j] then
-			return -- ordering changed so do full rebuild (very slow)
-		end
-		i, j = i + 1, j + 1
-	until before[i - 1] == nil
+	if not haveSharedOrder(before, after, beforeSet, afterSet) then
+		return -- do full rebuild
+	end
 
 	local relistedGadgets = {}
 	for _, g in ipairs(before) do
-		if not isListed[g] then
+		if not afterSet[g] then
 			relistedGadgets[#relistedGadgets + 1] = g
 		end
 	end
 	for _, g in ipairs(after) do
-		if not wasListed[g] then
+		if not beforeSet[g] then
 			relistedGadgets[#relistedGadgets + 1] = g
 		end
 	end
@@ -323,7 +329,7 @@ local function collectRelistedIDs(registration, before, after)
 	for _, g in ipairs(relistedGadgets) do
 		local ids = g[idSetName]
 		if negativeIDs ~= nil and ids[negativeIDs] then
-			return -- every list needs rebuilding
+			return -- do full rebuild
 		end
 		if ids[ANY] then
 			relistedAny[#relistedAny + 1] = g
