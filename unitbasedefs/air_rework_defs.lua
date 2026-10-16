@@ -12,6 +12,88 @@ local function airReworkUnitTweaks(name, uDef)
 		uDef.maxdec = 0.12
 	end
 
+
+	if name == "armsfig2" or name == "corsfig2" then
+		uDef.metalcost = 450
+		uDef.energycost = 6500
+		uDef.buildtime = 14000
+		uDef.speed = 180
+		uDef.health = 2700
+		--[[uDef.maxacc = 0.13
+		uDef.maxrudder = 0.011
+		uDef.maxaileron = 0.007
+		uDef.maxbank = 0.5
+		--uDef.maxpitch = 0.02
+		--uDef.maxelevator = 0.02
+		uDef.health = 2700
+		uDef.sightdistance = 460
+		uDef.cruisealtitude = 160
+		--uDef.turnradius = 128]]--
+		uDef.maxacc = 0.09
+		uDef.hoverattack = true
+		uDef.turnrate = 500
+		uDef.maxdec = 0.16
+		uDef.turninplaceanglelimit = 360
+		uDef.airstrafe = false
+	end
+
+	if name == "armsfig2" then
+		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
+		uDef.weapondefs.armsfig_weapon.flighttime = 4
+		uDef.weapondefs.armsfig_weapon.range = 1100
+		uDef.weapondefs.armsfig_weapon.burst = 2
+		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
+		uDef.weapondefs.armsfig_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
+		uDef.weapondefs.armsfig_weapon.smokePeriod = 7
+		uDef.weapondefs.armsfig_weapon.smoketime = 48
+		uDef.weapondefs.armsfig_weapon.smokesize = 10
+		uDef.weapondefs.armsfig_weapon.smoketrail = true
+		uDef.weapondefs.armsfig_weapon.areaofeffect = 200
+		uDef.weapondefs.armsfig_weapon.reloadtime = 2
+		uDef.weapondefs.armsfig_weapon.startvelocity = 100
+		uDef.weapondefs.armsfig_weapon.tolerance = 1000
+		uDef.weapondefs.armsfig_weapon.turnrate = 15000
+		uDef.weapondefs.armsfig_weapon.weaponacceleration = 300
+		uDef.weapondefs.armsfig_weapon.weaponvelocity = 1000
+		uDef.weapondefs.armsfig_weapon.wobble = 3
+		uDef.weapondefs.armsfig_weapon.dance = 20
+		uDef.weapondefs.armsfig_weapon.damage = {
+			default = 1,
+			vtol = 250,
+		}
+	end
+	if name == "corsfig2" then
+		uDef.weapondefs.corsfig_weapon.proximitypriority = -1
+		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
+		uDef.weapondefs.corsfig_weapon.range = 680
+		uDef.weapondefs.corsfig_weapon.areaofeffect = 220
+		uDef.weapondefs.corsfig_weapon.edgeeffectiveness = 0.55
+		uDef.weapondefs.corsfig_weapon.reloadtime = 6.1
+		uDef.weapondefs.corsfig_weapon.startvelocity = 100
+		uDef.weapondefs.corsfig_weapon.tolerance = 12500
+		uDef.weapondefs.corsfig_weapon.turnrate = 19000
+		uDef.weapondefs.corsfig_weapon.weaponacceleration = 250
+		uDef.weapondefs.corsfig_weapon.cegtag = "missiletraillarge-red"
+		uDef.weapondefs.corsfig_weapon.explosiongenerator = "custom:genericshellexplosion-large-bomb"
+		uDef.weapondefs.corsfig_weapon.model = "banishermissile.s3o"
+		uDef.weapondefs.corsfig_weapon.smoketrail = true
+		uDef.weapondefs.corsfig_weapon.smokePeriod = 7
+		uDef.weapondefs.corsfig_weapon.smoketime = 48
+		uDef.weapondefs.corsfig_weapon.smokesize = 11.3
+		uDef.weapondefs.corsfig_weapon.smokecolor = 0.82
+		uDef.weapondefs.corsfig_weapon.soundhit = "corban_b"
+		uDef.weapondefs.corsfig_weapon.soundhitwet = "splsmed"
+		uDef.weapondefs.corsfig_weapon.soundstart = "corban_a"
+		uDef.weapondefs.corsfig_weapon.texture1 = "null"
+		uDef.weapondefs.corsfig_weapon.texture2 = "railguntrail"
+		uDef.weapondefs.corsfig_weapon.weaponvelocity = 650
+		uDef.weapondefs.corsfig_weapon.damage = {
+			default = 1,
+			vtol = 1000,
+		}
+	end
+
+
 	if name == "armhawk" then
 		uDef.metalcost = 250
 		uDef.energycost = 7600
@@ -84,53 +166,7 @@ local function airReworkUnitTweaks(name, uDef)
 		}
 		--uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-	if name == "armsfig2" then
-		uDef.metalcost = 450
-		uDef.energycost = 6500
-		uDef.buildtime = 14000
-		uDef.speed = 180
-		uDef.health = 2700
-		--[[uDef.maxacc = 0.13
-		uDef.maxrudder = 0.011
-		uDef.maxaileron = 0.007
-		uDef.maxbank = 0.5
-		--uDef.maxpitch = 0.02
-		--uDef.maxelevator = 0.02
-		uDef.health = 2700
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 160
-		--uDef.turnradius = 128]]--
-		uDef.maxacc = 0.09
-		uDef.hoverattack = true
-		uDef.turnrate = 500
-		uDef.maxdec = 0.16
-		uDef.turninplaceanglelimit = 360
-		uDef.airstrafe = false
 
-		uDef.weapondefs.armsfig_weapon.proximitypriority = 0
-		uDef.weapondefs.armsfig_weapon.flighttime = 4
-		uDef.weapondefs.armsfig_weapon.range = 1100
-		uDef.weapondefs.armsfig_weapon.burst = 2
-		uDef.weapondefs.armsfig_weapon.burstrate = 0.15
-		uDef.weapondefs.armsfig_weapon.explosiongenerator = "custom:genericshellexplosion-medium-bomb"
-		uDef.weapondefs.armsfig_weapon.smokePeriod = 7
-		uDef.weapondefs.armsfig_weapon.smoketime = 48
-		uDef.weapondefs.armsfig_weapon.smokesize = 10
-		uDef.weapondefs.armsfig_weapon.smoketrail = true
-		uDef.weapondefs.armsfig_weapon.areaofeffect = 200
-		uDef.weapondefs.armsfig_weapon.reloadtime = 2
-		uDef.weapondefs.armsfig_weapon.startvelocity = 100
-		uDef.weapondefs.armsfig_weapon.tolerance = 1000
-		uDef.weapondefs.armsfig_weapon.turnrate = 15000
-		uDef.weapondefs.armsfig_weapon.weaponacceleration = 300
-		uDef.weapondefs.armsfig_weapon.weaponvelocity = 1000
-		uDef.weapondefs.armsfig_weapon.wobble = 3
-		uDef.weapondefs.armsfig_weapon.dance = 20
-		uDef.weapondefs.armsfig_weapon.damage = {
-			default = 1,
-			vtol = 250,
-		}
-	end
 	if name == "corvamp" then
 		uDef.metalcost = 250
 		uDef.energycost = 7600
@@ -201,58 +237,7 @@ local function airReworkUnitTweaks(name, uDef)
 		}
 		--uDef.weapons[1].onlytargetcategory = "NOTSUB"
 	end
-	if name == "corsfig2" then
-		uDef.metalcost = 520
-		uDef.energycost = 8000
-		uDef.buildtime = 11000
-		uDef.speed = 200
-		uDef.health = 3000
 
-		--[[uDef.maxacc = 0.13
-		uDef.maxrudder = 0.011
-		uDef.maxaileron = 0.007
-		uDef.maxbank = 0.5
-		--uDef.maxpitch = 0.02
-		--uDef.maxelevator = 0.02
-		uDef.sightdistance = 460
-		uDef.cruisealtitude = 160
-		--uDef.turnradius = 128]]--
-		uDef.maxacc = 0.1
-		uDef.hoverattack = true
-		uDef.turnrate = 700
-		uDef.maxdec = 0.16
-		uDef.turninplaceanglelimit = 360
-
-
-		uDef.weapondefs.corsfig_weapon.proximitypriority = -1
-		uDef.weapondefs.corsfig_weapon.flighttime = 1.7
-		uDef.weapondefs.corsfig_weapon.range = 680
-		uDef.weapondefs.corsfig_weapon.areaofeffect = 220
-		uDef.weapondefs.corsfig_weapon.edgeeffectiveness = 0.55
-		uDef.weapondefs.corsfig_weapon.reloadtime = 6.1
-		uDef.weapondefs.corsfig_weapon.startvelocity = 100
-		uDef.weapondefs.corsfig_weapon.tolerance = 12500
-		uDef.weapondefs.corsfig_weapon.turnrate = 19000
-		uDef.weapondefs.corsfig_weapon.weaponacceleration = 250
-		uDef.weapondefs.corsfig_weapon.cegtag = "missiletraillarge-red"
-		uDef.weapondefs.corsfig_weapon.explosiongenerator = "custom:genericshellexplosion-large-bomb"
-		uDef.weapondefs.corsfig_weapon.model = "banishermissile.s3o"
-		uDef.weapondefs.corsfig_weapon.smoketrail = true
-		uDef.weapondefs.corsfig_weapon.smokePeriod = 7
-		uDef.weapondefs.corsfig_weapon.smoketime = 48
-		uDef.weapondefs.corsfig_weapon.smokesize = 11.3
-		uDef.weapondefs.corsfig_weapon.smokecolor = 0.82
-		uDef.weapondefs.corsfig_weapon.soundhit = "corban_b"
-		uDef.weapondefs.corsfig_weapon.soundhitwet = "splsmed"
-		uDef.weapondefs.corsfig_weapon.soundstart = "corban_a"
-		uDef.weapondefs.corsfig_weapon.texture1 = "null"
-		uDef.weapondefs.corsfig_weapon.texture2 = "railguntrail"
-		uDef.weapondefs.corsfig_weapon.weaponvelocity = 650
-		uDef.weapondefs.corsfig_weapon.damage = {
-			default = 1,
-			vtol = 1000,
-		}
-	end
 
 
 	if name == "corshad" or name == "armthund" then
