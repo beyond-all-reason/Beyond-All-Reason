@@ -274,15 +274,12 @@ local KEYSYM_VALUES = {
 	LAST = 323,
 }
 
--- KEYSYMS is deprecated in favour of Spring.GetKeyCode(name) (see issue #2611:
--- these legacy SDL1.2 values can't represent keys like F13-F20). It stays fully
--- available for now - same values, still iterable - but warns on use to nudge
--- migration. Deprecation only; no behaviour change.
+-- Deprecated in favour of Spring.GetKeyCode(name) (see #2611: these SDL1.2
+-- values can't represent keys like F13-F20). Still fully functional; just warns.
 local warnedKeys = {}
 local warnedSites = {}
 
--- first stack frame outside this shim, so the warning points at the offending
--- widget line instead of the proxy. skips C frames (no line) and the shim itself.
+-- first frame outside this shim, so the warning points at the offending widget line
 local function callerSite()
 	if not (debug and debug.getinfo) then
 		return nil
@@ -330,8 +327,7 @@ local function warnKeysym(key, value)
 		warnedSites[site] = true
 	end
 
-	-- GetKeySymbol is the runtime inverse of GetKeyCode: it turns the legacy value
-	-- back into the current key name, so the message can name the exact replacement
+	-- GetKeySymbol is GetKeyCode's inverse, so it can name the exact replacement
 	local replacement, unsupported
 	if key ~= nil and value ~= nil then
 		local keyName = RENAMED_KEYS[key]
@@ -379,6 +375,10 @@ KEYSYMS = setmetatable({}, {
 		local value = KEYSYM_VALUES[key]
 		warnKeysym(key, value)
 		return value
+	end,
+	-- without this, a write would land on the proxy table itself and vanish from pairs(KEYSYMS)
+	__newindex = function(_, key, value)
+		KEYSYM_VALUES[key] = value
 	end,
 	__pairs = function()
 		warnKeysym(nil, nil)
