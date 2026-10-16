@@ -5198,7 +5198,7 @@ function state.addBind(editing)
 		wide = true,
 		maxChars = 255,
 		accept = function(typed)
-			if not editing and typed:match("^/?bind%s+%S+%s+%S") then
+			if typed:match("^/?bind%s+%S+%s+%S") then
 				local merged = profiles.applyBindText(stagedBinds(), typed)
 				if not state.isStaged(merged) then
 					state.stageBinds(merged)

@@ -832,6 +832,12 @@ modelVolumes.isDefaultSphere = isDefaultSphere
 
 local function getModelUnitCollisionVolume(unitDef)
 	local defVolume = unitDef.collisionVolume
+	local model = modelVolumes.UNIT[unitDef.modeltype] ---@as table?
+
+	-- Only 3do models and aircraft rescale their default sphere. Others keep the engine's model sphere.
+	if defVolume.defaultToSphere and not (model and (unitDef.modeltype == "3do" or unitDef.canFly)) then
+		return
+	end
 
 	---@type UnitCollisionVolumeData
 	local colvol = {
@@ -850,7 +856,13 @@ local function getModelUnitCollisionVolume(unitDef)
 		colvol[9] = nil -- Not known with accuracy until the first unitdef is created for each model.
 	end
 
-	local model = modelVolumes.UNIT[unitDef.modeltype] ---@as table?
+	if defVolume.defaultToSphere then
+		local diameter = unitDef.radius * 2
+		colvol[1], colvol[2], colvol[3] = diameter, diameter, diameter
+		colvol[4], colvol[5], colvol[6] = 0, 0, 0
+		colvol[7] = COLVOL_SHAPE.SPHERE
+	end
+
 	if model then
 		model.rescale(colvol, model, unitDef)
 	end
