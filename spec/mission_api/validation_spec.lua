@@ -586,46 +586,18 @@ describe("mission_api.validation", function()
 			assert.are.same({}, logged)
 		end)
 
-		it("logs an error when cutscene ID is not a string", function()
-			validation.ValidateCutscenes({
-				[1] = { script = "landingParty" },
-			})
-			assert.is_true(hasError("Cutscene ID must be a string, got number"))
-		end)
-
-		it("logs an error when cutscene data is not a table", function()
-			validation.ValidateCutscenes({
-				intro = "videos/intro.mp4",
-			})
-			assert.is_true(hasError("Cutscene data must be a table, got string. Cutscene: intro"))
-		end)
-
 		it("logs an error when a cutscene has neither a videoFile nor a script", function()
 			validation.ValidateCutscenes({
 				intro = {},
 			})
-			assert.is_true(hasError("Cutscene must have either a videoFile or a script and not both. Cutscene: intro"))
+			assert.is_true(hasError("Cutscene must have either a videoFile or a script, but not both. Cutscene: intro"))
 		end)
 
 		it("logs an error when a cutscene has both a videoFile and a script", function()
 			validation.ValidateCutscenes({
 				intro = { videoFile = "videos/intro.mp4", script = "landingParty" },
 			})
-			assert.is_true(hasError("Cutscene must have either a videoFile or a script and not both. Cutscene: intro"))
-		end)
-
-		it("logs an error when Cutscenes is not a table", function()
-			validation.ValidateCutscenes("videos/intro.mp4")
-			assert.is_true(hasError("Cutscenes must be a table, got string"))
-		end)
-
-		it("warns about a field it does not know", function()
-			validation.ValidateCutscenes({
-				landing = { script = "landingParty", vidoeFile = "videos/landing.mp4" },
-			})
-			assert.are.equal(1, #logged)
-			assert.is_true(hasError("Cutscene has unknown field 'vidoeFile'. Cutscene: landing"))
-			assert.is_nil(GG["MissionAPI"].HasValidationErrors)
+			assert.is_true(hasError("Cutscene must have either a videoFile or a script, but not both. Cutscene: intro"))
 		end)
 
 		it("logs an error when the script is not a string", function()

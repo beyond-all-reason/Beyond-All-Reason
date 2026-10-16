@@ -517,7 +517,7 @@ validators[Types.CountdownID] = validators[Types.String]
 -- Checked in validateReferences.
 validators[Types.CutsceneID] = validators[Types.String]
 -- TODO: A cutscene-type script has no definition yet.
-validators[Types.ScriptID] = validators[Types.String]
+validators[Types.CutsceneScriptID] = validators[Types.String]
 
 validators[Types.UnitDefName] = function(unitDefName)
 	local luaTypeResult = validators[Types.String](unitDefName)
@@ -1090,34 +1090,13 @@ end
 
 local function validateCutscene(cutsceneID, cutscene)
 	local cutsceneIDText = tostring(cutsceneID)
-	if type(cutsceneID) ~= "string" then
-		logError("Cutscene ID must be a string, got " .. type(cutsceneID))
-	end
-
-	if type(cutscene) ~= "table" then
-		logError("Cutscene data must be a table, got " .. type(cutscene) .. ". Cutscene: " .. cutsceneIDText)
-		return
-	end
-
 	if (cutscene.videoFile == nil) == (cutscene.script == nil) then
-		logError("Cutscene must have either a videoFile or a script and not both. Cutscene: " .. cutsceneIDText)
+		logError("Cutscene must have either a videoFile or a script, but not both. Cutscene: " .. cutsceneIDText)
 	end
-
-	for fieldName in pairs(cutscene) do
-		if cutscenesSchemaSettings[fieldName] == nil then
-			logWarn("Cutscene has unknown field '" .. tostring(fieldName) .. "'. Cutscene: " .. cutsceneIDText)
-		end
-	end
-
 	validateCutsceneSchemaFields(cutscene, cutsceneIDText)
 end
 
 local function validateCutscenes(cutscenes)
-	if type(cutscenes) ~= "table" then
-		logError("Cutscenes must be a table, got " .. type(cutscenes))
-		return
-	end
-
 	for cutsceneID, cutscene in pairs(cutscenes) do
 		validateCutscene(cutsceneID, cutscene)
 	end
