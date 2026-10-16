@@ -122,11 +122,25 @@ local fontfileScale = (0.5 + (vsx * vsy / 5700000))
 local fontfileSize = 36
 local fontfileOutlineSize = 7
 
-local backwardTex = ":l:LuaUI/Images/backward.dds"
-local forwardTex = ":l:LuaUI/Images/forward.dds"
-
-local screenHeightOrg = 550
-local screenWidthOrg = 1100
+local screenHeightOrg = 610
+local screenWidthOrg = 850
+-- the window's sizes in pixels at 1080p, and how its list is laid out
+local tuning = {
+	controlsWidth = 200, -- the column the controls share; sliders and dropdowns span it
+	controlsAlignLeft = true, -- toggles at the left edge of that column, else at its right end
+	compactColumns = 2, -- toggles per line in grids: notifications, playlist tracks, auto cloak units
+	rowHeight = 25, -- a setting's row; its controls scale with it, and section headings are 1.35x
+	fontSize = 14, -- setting names and values; the switch captions scale with it
+	controlFontSize = 12.5, -- the text in the controls: a dropdown's choice and a slider's value
+	dropdownFontSize = 12.5, -- the entries of an open dropdown
+	headingFontSize = 14, -- section headings in the list
+	categoryHeight = 29, -- a tab's row in the column
+	categoryFontSize = 14, -- the tabs in the column; a tab's name over its search results is 1.25x
+	subcategoryHeight = 25, -- a section's row under the open tab in the column
+	subcategoryFontSize = 14, -- the sections under the open tab in the column
+	descriptionLines = 3, -- lines under the setting's name in the strip below the list
+	rowHighlight = true, -- light up the row under the mouse (what folds a family always lights up)
+}
 local screenHeight = screenHeightOrg
 local screenWidth = screenWidthOrg
 
@@ -147,8 +161,8 @@ local os_clock = os.clock
 local math_isInRect = math.isInRect
 
 local chobbyInterface, backgroundGuishader, currentGroupTab, windowList
----@type LuaFont, LuaFont, LuaFont
-local font, font2, font3
+---@type LuaFont, LuaFont
+local font, font2
 local sceduleOptionApply, checkedForWaterAfterGamestart, checkedWidgetDataChanges
 local forceUpdate, sliderValueChanged, selectOptionsList, prevSelectHover, scheduleInit
 local fontOption, lastSliderSound, selectClickAllowHide, selectScrollOffset
@@ -170,7 +184,8 @@ local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_ONE = GL.ONE
 
-local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiButton, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local RectRound, elementCorner, elementMargin, elementPadding, UiElement, UiSlider, UiSliderKnob, UiToggle, UiSelector, UiSelectHighlight, bgpadding
+local UiScroller, UiScrollerAt
 
 local isSinglePlayer = BAR.Utilities.Gametype.IsSinglePlayer()
 local isReplay = Spring.IsReplay()
@@ -215,53 +230,28 @@ local unfilteredOptions = {}
 local customOptions = {}
 local optionGroups = {}
 
--- The window. look holds its colors, metrics its sizes (set from the screen size in setLayout), and
--- layout what the last DrawWindow placed where, for hover, clicks and tooltips to read back.
+-- The window, in the shape of the game info panel: the tabs and the open tab's sections in a
+-- column on the left, that tab's settings in one list that scrolls, the search field and the
+-- advanced switch above it, and below it a strip with the hovered setting's description.
+-- look: its colors. metrics: its sizes, set from the screen size in view.setLayout. layout: where
+-- the last DrawWindow put everything, read back by hover and clicks. view: what the list shows.
 local look = {
-	outline = { 0, 0, 0, 0.4 },
-	-- title and tabs sit on dark cards, more opaque when nothing blurs behind them
-	card = { 0, 0, 0, 0.8 },
-	cardTop = { 0.05, 0.05, 0.05, 0.8 },
-	cardSolid = { 0, 0, 0, 0.85 },
-	cardSolidTop = { 0.05, 0.05, 0.05, 0.85 },
-	titleGloss = { 1, 0.95, 0.85, 0.03 },
-	titleGlossTop = { 1, 0.95, 0.85, 0.15 },
-	titleDim = "\255\125\125\125",
-	titleLit = "\255\255\255\255",
-	titleHover = { 1, 1, 1, 0 },
-	titleHoverTop = { 1, 1, 1, 0.12 },
-	titleHoverGloss = { 1, 0.88, 0.66, 0 },
-	titleHoverGlossTop = { 1, 0.88, 0.66, 0.09 },
-	tab = { 0.6, 0.47, 0.24, 0.2 },
-	tabTop = { 0.88, 0.68, 0.33, 0.2 },
-	tabShade = { 0, 0, 0, 0.13 },
-	tabGloss = { 1, 0.88, 0.66, 0 },
-	tabGlossTop = { 1, 0.88, 0.66, 0.1 },
-	tabText = { 0.7, 0.58, 0.44, 1 },
-	activeTab = { 0.7, 0.7, 0.7, 0.15 },
-	activeTabTop = { 0.8, 0.8, 0.8, 0.15 },
-	activeTabText = { 1, 0.75, 0.4, 1 },
-	tabHover = { 1, 1, 1, 0 },
-	tabHoverTop = { 1, 1, 1, 0.07 },
-	tabHoverGlossTop = { 1, 1, 1, 0.1 },
-	tabHoverLow = { 1, 1, 1, 0.05 },
-	tabHoverLowTop = { 0, 0, 0, 0 },
-	tabHoverText = { 1, 0.9, 0.66, 1 },
-	tabHoverOutline = { 0.4, 0.3, 0.15, 0.4 },
-	restartBand = { 1, 0, 0, 0.06 },
-	restartText = { 0.9, 0.3, 0.3, 1 },
-	restartMark = "\255\255\090\090*",
-	restartTooltip = "\255\255\120\120",
-	tooltipDescription = "\255\255\255\255",
-	pageNumber = { 1, 1, 1, 0.4 },
-	pageHover = { 1, 0.91, 0.66, 0.3 },
-	pageHoverPressed = { 1, 0.91, 0.66, 0.1 },
-	pageHoverTop = { 1, 0.91, 0.66, 0.2 },
-	controlHover = { 0.5, 0.5, 0.5, 0.22 },
-	controlHoverTop = { 1, 1, 1, 0.22 },
+	sidebarFill = { 0, 0, 0, 0.24 },
+	sidebarFillTop = { 0, 0, 0, 0.16 },
+	selectedFill = { 1, 1, 1, 0.13 },
+	-- the section the list is showing, marked down its left edge
+	sectionAccent = { 1, 0.78, 0.35, 0.7 },
+	white = { 1, 1, 1 },
+	hoverOpacity = 0.14,
+	headingSheen = { 1, 1, 1, 0.05 },
+	headingLine = { 1, 0.78, 0.51, 0.4 },
+	headingLineFade = { 1, 0.78, 0.51, 0 },
+	stripFill = { 0, 0, 0, 0.18 },
+	stripFillTop = { 0, 0, 0, 0.12 },
 	-- a row that does something when clicked lights up green
 	clickRow = { 0.5, 1, 0.25 },
-	consoleHint = { 0.5, 0.5, 0.5, 0.27 },
+	controlHover = { 0.5, 0.5, 0.5, 0.22 },
+	controlHoverTop = { 1, 1, 1, 0.22 },
 	presetRow = { 0, 0, 0, 0.15 },
 	presetRowTop = { 1, 1, 1, 0.15 },
 	selectBorder = { 0, 0, 0, 0.25 },
@@ -269,58 +259,91 @@ local look = {
 	selectBackTop = { 0.35, 0.35, 0.35, 0.84 },
 	selectBackSolid = { 0.3, 0.3, 0.3, 0.94 },
 	selectBackSolidTop = { 0.35, 0.35, 0.35, 0.94 },
+	selectCurrent = { 1, 1, 1, 0.08 },
 	scrollTrack = { 0.15, 0.15, 0.15, 0.85 },
 	scrollThumb = { 0.65, 0.65, 0.65, 0.9 },
-	searchButton = { 0, 0, 0, 0.3 },
-	searchButtonMode = { 0.03, 0.12, 0.03, 0.3 },
-	searchSeparator = { 1, 1, 1, 0.033 },
-	searchLabel = { 0.62, 0.62, 0.62, 1 },
-	searchText = { 0.95, 0.95, 0.95, 1 },
-	searchCursor = { 0.7, 0.7, 0.7 },
+	chevron = { 1, 1, 1, 0.5 },
+	chevronLit = { 1, 1, 1, 1 },
+	-- the row picked by a click or the arrow keys
+	selectedRow = { 1, 1, 1, 0.06 },
+	title = "\255\235\235\235",
+	heading = "\255\255\200\130",
+	group = "\255\175\175\175",
+	groupSelected = "\255\245\245\245",
+	section = "\255\140\140\140",
+	sectionLit = "\255\235\215\185",
+	count = "\255\120\120\120",
+	caption = "\255\160\160\160",
+	captionOn = "\255\210\210\205",
+	value = "\255\200\200\200",
+	description = "\255\170\170\170",
+	command = "\255\060\060\060",
+	commandLit = "\255\200\200\200",
+	restart = "\255\255\120\120",
+	restartMark = "\255\255\090\090*",
+	-- the sub-options of a widget that is switched off
+	inactive = "\255\105\105\105",
 }
 
--- nameShare: the part of a row a name may take beside its control
-local metrics = { nameShare = { bool = 0.85, select = 0.5, slider = 0.55 } }
+local metrics = { wheelRows = 3 }
 
-local layout = { window = { 0, 0, 0, 0 }, tabs = {}, rows = {}, rowOf = {}, selectItems = {}, totalColumns = 0 }
+local layout = {
+	window = { 0, 0, 0, 0 },
+	area = { 0, 0, 0, 0 },
+	rows = {} --[[@as table<integer, table>]],
+	rowOf = {} --[[@as table<table, table>]],
+	sidebar = {},
+	selectItems = {},
+	switch = { 0, 0, 0, 0 },
+	switchHit = { 0, 0, 0, 0 },
+	unfoldSwitch = { 0, 0, 0, 0 },
+	unfoldSwitchHit = { 0, 0, 0, 0 },
+	totalH = 0,
+	-- the strip's /option command where a click copies it, with the command as [5]
+	stripCommand = false --[[@as table|false]],
+}
 
-local function setLayout()
-	local s = widgetScale
-	metrics.groupMargin = math.floor(bgpadding * 0.8)
-	metrics.titleFontSize = 18 * s
-	metrics.titleTextY = 8 * s
-	metrics.tabFontSize = 16 * s
-	metrics.tabTextY = 9 * s
-	metrics.tabPadding = 33 * s
-	metrics.rowHeight = math.floor(15 * s)
-	metrics.rowPadding = math.floor(6 * s)
-	metrics.topGap = 17 * s
-	metrics.bottomGap = 65 * s
-	metrics.columnInset = 5 * s
-	metrics.boolWidth = math.floor(40 * s)
-	metrics.sliderWidth = math.floor(110 * s)
-	metrics.selectWidth = math.floor(140 * s)
-	metrics.controlPadding = 4
-	metrics.indentWidth = font:GetTextWidth("   ") * metrics.rowHeight
-	metrics.restartBand = 31 * s
-	metrics.restartLine = 30 * s
-	metrics.restartTextY = 12 * s
-	metrics.restartFontSize = 15 * s
-	metrics.pageButton = 35 * s
-	metrics.pageMarginX = 15 * s
-	metrics.pageMarginY = 10 * s
-	metrics.consoleHintX = 8 * s
-	metrics.consoleHintY = 11 * s
-	metrics.consoleHintFontSize = 14 * s
-	metrics.selectPadding = math.floor(4 * s)
-	metrics.selectScrollbar = math.max(3, math.floor(4 * s))
-	metrics.selectBorder = math.max(1, math.floor(vsy / 900))
-	local searchFont = 15 * s
-	metrics.searchLineHeight = math.floor(searchFont * 1.15)
-	metrics.searchFontSize = math.floor(searchFont * 1.03)
-	metrics.searchHeight = math.floor(metrics.searchFontSize * 2.15)
-	metrics.searchIndent = math.floor(metrics.searchLineHeight * 0.7)
-end
+-- lines: what the list shows. scroll: the first line shown. scrollOf: where each tab was left.
+-- folded: families folded or opened by hand; it and unfoldAll are kept in the config.
+-- childCount: rows under each parent. startsOpen: the parents with a basic row that is not a cell.
+-- matches/headingOf: per tab under a search, how many rows matched and where they start.
+local view = {
+	lines = {} --[[@as table<integer, table>]],
+	scroll = 0,
+	scrollOf = {},
+	folded = {} --[[@as table<string, boolean>]],
+	unfoldAll = false --[[@as boolean]],
+	childCount = {} --[[@as table<table, integer>]],
+	startsOpen = {} --[[@as table<table, boolean>]],
+	matches = {},
+	headingOf = {},
+	dragging = false,
+	dragGrab = 0,
+	-- the heading last jumped to from the column, marked there until the list is scrolled otherwise
+	litPin = false --[[@as table|false]],
+	-- the row a click or the arrow keys picked, and the one the strip shows: that or the last hovered
+	selected = false --[[@as table|false]],
+	stripOption = false --[[@as table|false]],
+	-- the open dropdown's entry the arrow keys are on
+	selectKey = false --[[@as number|false]],
+	-- a slider dragged with shift held, and where that started
+	fineDrag = false --[[@as table|false]],
+	-- when the strip's /option command was last copied
+	copiedAt = -10 --[[@as number]],
+}
+
+-- the parts of the window, each drawing itself and recording in layout where it went
+local draw = {}
+-- per option type: draws the control at the right end of a row and returns where it starts
+local drawControl = {}
+
+-- Shared with the keybind editor and the game info panel.
+local Editbox = require("luaui/Include/keybind_editbox")
+local text = require("luaui/Include/keybind_text")
+---@type table
+local searchBox
+-- the search, kept in step with searchBox for applyFilter
+local inputText = ""
 
 -- a slider's range: its lowest and highest step, or min and max
 local function sliderRange(option)
@@ -338,11 +361,6 @@ local function sliderRange(option)
 	end
 	return option.min, option.max
 end
-
--- the parts of the window, each drawing itself and recording in layout where it went
-local draw = {}
--- per option type: draws the control at the right end of a row, records it in row.control
-local drawControl = {}
 
 local showOnceMore = false -- used because of GUI shader delay
 local resettedTonemapDefault = false
@@ -494,17 +512,21 @@ function widget:ViewResize()
 
 	RectRound = WG.FlowUI.Draw.RectRound
 	UiElement = WG.FlowUI.Draw.Element
-	UiButton = WG.FlowUI.Draw.Button
 	UiSlider = WG.FlowUI.Draw.Slider
 	UiSliderKnob = WG.FlowUI.Draw.SliderKnob
 	UiToggle = WG.FlowUI.Draw.Toggle
 	UiSelector = WG.FlowUI.Draw.Selector
 	UiSelectHighlight = WG.FlowUI.Draw.SelectHighlight
+	UiScroller = WG.FlowUI.Draw.Scroller
+	UiScrollerAt = WG.FlowUI.Draw.ScrollerGeometry
 
 	font = WG.fonts.getFont()
 	font2 = WG.fonts.getFont(2)
-	font3 = WG.fonts.getFont(2, 1.6)
-	setLayout()
+
+	if not searchBox then
+		view.makeSearchBox()
+	end
+	view.setLayout()
 
 	local newFontfileScale = (0.5 + (vsx * vsy / 5700000))
 	if fontfileScale ~= newFontfileScale then
@@ -512,17 +534,9 @@ function widget:ViewResize()
 		setEngineFont()
 	end
 
-	if windowList then
-		gl.DeleteList(windowList)
-		backgroundGuishader = glDeleteList(backgroundGuishader)
-		consoleCmdDlist = glDeleteList(consoleCmdDlist)
-		textInputDlist = glDeleteList(textInputDlist)
-	end
-	windowList = gl.CreateList(DrawWindow)
-
-	if backgroundGuishader ~= nil then
-		backgroundGuishader = glDeleteList(backgroundGuishader)
-	end
+	backgroundGuishader = glDeleteList(backgroundGuishader)
+	view.build()
+	view.refresh()
 
 	adjustShadowQuality()
 end
@@ -536,63 +550,58 @@ local function detectWater()
 end
 
 local Search = require("luaui/Include/search")
-local utf8 = require("common/luaUtilities/utf8")
---local textInputDlist, consoleCmdDlist
-local updateTextInputDlist = true
-local showTextInput = true
-local inputText = ""
-local inputTextPosition = 0
-local cursorBlinkTimer = 0
-local cursorBlinkDuration = 1
-local maxTextInputChars = 127 -- tested 127 as being the true max
-local inputTextInsertActive = false
-local floor = math.floor
-local inputMode = ""
 
 function widget:TextInput(char) -- if it isn't working: chobby probably hijacked it
-	if not chobbyInterface and not Spring.IsGUIHidden() and showTextInput and show then
-		if inputTextInsertActive then
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 2)
-			if inputTextPosition <= utf8.len(inputText) then
-				inputTextPosition = inputTextPosition + 1
-			end
-		else
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. char .. utf8.sub(inputText, inputTextPosition + 1)
-			inputTextPosition = inputTextPosition + 1
-		end
-		if string.len(inputText) > maxTextInputChars then
-			inputText = string.sub(inputText, 1, maxTextInputChars)
-			if inputTextPosition > maxTextInputChars then
-				inputTextPosition = maxTextInputChars
-			end
-		end
-		cursorBlinkTimer = 0
-		updateTextInputDlist = true
+	if not chobbyInterface and not Spring.IsGUIHidden() and show then
+		-- typing searches straight away; until then the field shows what it is for
+		searchBox:focus()
+		searchBox:textInput(char)
 		if WG.limitidlefps and WG.limitidlefps.update then
 			WG.limitidlefps.update()
 		end
-
-		applyFilter()
 		return true
 	end
 end
 
-local function clearChatInput()
-	inputText = ""
-	inputTextPosition = 0
-	inputTextInsertActive = false
-	-- Invalidate guishader so it rebuilds with tab blur regions included
-	backgroundGuishader = glDeleteList(backgroundGuishader)
-	applyFilter()
+-- the search field, kept in step with inputText; made again when the language changes
+function view.makeSearchBox()
+	searchBox = Editbox.new({
+		placeholder = BAR.I18N("ui.gameInfo.search"),
+		clearable = true,
+		text = inputText,
+		onChange = function(value)
+			inputText = value
+			view.scroll = 0
+			applyFilter()
+		end,
+	})
 end
 
--- only called when show = false
-local function cancelChatInput()
-	local doReinit = inputText ~= ""
+-- Opening takes text input for the search field, so typing searches straight away; closing gives
+-- it back. The search itself is kept for the next time.
+function view.open()
+	if not show and WG.topbar then
+		WG.topbar.hideWindows()
+	end
+	show = true
+	widgetHandler.textOwner = widget --widgetHandler:OwnText()
+	Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
+	if searchBox then
+		-- other widgets may have changed settings while it was closed
+		view.build()
+		view.refresh()
+	end
+	forceUpdate = true -- Update reads again what can change elsewhere, like the window's size
+end
+
+function view.close()
+	show = false
+	openSelect = nil
+	draggingSlider = nil
+	view.dragging = false
 	backgroundGuishader = glDeleteList(backgroundGuishader)
 	if WG.guishader then
 		WG.guishader.RemoveDlist("options")
-		WG.guishader.RemoveRect("optionsinput")
 		if selectOptionsList then
 			WG.guishader.RemoveScreenRect("options_select")
 			WG.guishader.RemoveScreenRect("options_select_options")
@@ -604,72 +613,9 @@ local function cancelChatInput()
 	end
 	Spring.SDLStopTextInput()
 	widgetHandler.textOwner = nil --widgetHandler:DisownText()
-	if doReinit then
-		applyFilter()
+	if searchBox then
+		searchBox:blur()
 	end
-end
-
--- the search box under the window, its area in layout.searchBox and the text cursor's in layout.cursor
-function draw.searchCursor()
-	local r = layout.cursor
-	if r then
-		local a = 1 - (cursorBlinkTimer * (1 / cursorBlinkDuration)) + 0.15
-		glColor(look.searchCursor[1], look.searchCursor[2], look.searchCursor[3], a)
-		gl.Rect(r[1], r[2], r[3], r[4])
-		glColor(1, 1, 1, 1)
-	end
-end
-
-function draw.searchBox()
-	local top = screenY - screenHeight
-	local fontSize, height, indent = metrics.searchFontSize, metrics.searchHeight, metrics.searchIndent
-	local modeText = BAR.I18N("ui.settings.filter")
-	if inputMode ~= "" then
-		modeText = inputMode
-	end
-	local modeTextPosX = floor(screenX + elementPadding + elementPadding + indent)
-	local textPosX = floor(modeTextPosX + (font:GetTextWidth(modeText) * fontSize) + indent + fontSize)
-	local cursorWidth = 1 + math.floor(fontSize / 14)
-	if inputTextInsertActive then
-		cursorWidth = math.floor(cursorWidth * 5)
-	end
-	local cursorPos = floor(font:GetTextWidth(utf8.sub(inputText, 1, inputTextPosition)) * fontSize)
-
-	-- background
-	local x2 = math.max(
-		textPosX + metrics.searchLineHeight + floor(font:GetTextWidth(inputText) * fontSize),
-		floor(screenX + (screenWidth / 5))
-	)
-	layout.searchBox = { screenX, top - height, x2, top }
-	UiElement(screenX, top - height, x2, top, 0, 0, nil, nil, 0, nil, nil, nil, WG.FlowUI.clampedOpacity)
-	if WG.guishader then
-		WG.guishader.InsertRect(screenX, top - height, x2, top, "optionsinput", widget)
-	end
-
-	-- button background
-	local button = { screenX + elementPadding, top - height + elementPadding, textPosX - fontSize, top }
-	glColor(unpack(inputMode ~= "" and look.searchButtonMode or look.searchButton))
-	RectRound(button[1], button[2], button[3], button[4], elementCorner * 0.6, 0, 0, 0, 1)
-	glColor(unpack(look.searchSeparator))
-	gl.Rect(button[3] - 1, button[2], button[3], button[4])
-
-	-- button text
-	font:Begin()
-	font:SetOutlineColor(unpack(look.outline))
-	font:SetTextColor(unpack(look.searchLabel))
-	font:Print(modeText, modeTextPosX, top - (height * 0.61), fontSize, "o")
-
-	-- text cursor
-	layout.cursor = {
-		textPosX + cursorPos,
-		top - (height * 0.5) - (fontSize * 0.6),
-		textPosX + cursorPos + cursorWidth,
-		top - (height * 0.5) + (fontSize * 0.64),
-	}
-
-	font:SetTextColor(unpack(look.searchText))
-	font:Print(inputText, textPosX, top - (height * 0.61), fontSize, "o")
-	font:End()
 end
 
 -- every option by id. During init() this is the list being built, afterwards the full list
@@ -705,611 +651,897 @@ local function getOptionLabel(option)
 	return option.prefix and (option.prefix .. "  " .. option.name) or option.name
 end
 
--- Cuts text down to maxWidth and appends "...", dropping whole UTF-8 characters
-local function truncateText(text, maxWidth, fontSize)
-	while text ~= "" and font:GetTextWidth(text) * fontSize > maxWidth do
-		local last = string.len(text)
-		while last > 1 and string.byte(text, last) >= 128 and string.byte(text, last) < 192 do
-			last = last - 1
-		end
-		text = string.sub(text, 1, last - 1)
-	end
-	return text .. "..."
+-- what a line takes up in the list, with the gap a section leaves before the next heading
+local function lineHeight(line)
+	return line.h
 end
 
--- a tab under the mouse lights up; r is its area
-function draw.tabHover(id, r)
-	if optionGroups[id].id == currentGroupTab then
+-- what a line draws in, at the top of what it takes up
+local function contentHeight(line)
+	return line.kind == "heading" and metrics.headingHeight or metrics.rowHeight
+end
+
+-- r is { x1, y1, x2, y2 }; its edges count as inside
+local function inRect(r, mx, my)
+	return r ~= nil and math_isInRect(mx, my, r[1], r[2], r[3], r[4])
+end
+
+-- Decimals a number needs, up to 4. Counted, not read off tostring: Lua numbers are 32-bit floats in
+-- the engine, which writes 0.15 as "0.15000001".
+local function decimalsOf(x)
+	for d = 0, 3 do
+		local scaled = x * 10 ^ d
+		if math.abs(scaled - math.floor(scaled + 0.5)) <= 0.00001 * math.max(1, math.abs(scaled)) then
+			return d
+		end
+	end
+	return 4
+end
+
+-- the value a slider shows, rounded to its step
+local function sliderValueText(option)
+	if option.steps then
+		local value = NearestValue(option.steps, option.value)
+		return string.format("%." .. decimalsOf(value) .. "f", value)
+	end
+	return string.format("%." .. decimalsOf(option.step or 1) .. "f", option.value)
+end
+
+-- whitespace alone is not a search
+function view.searching()
+	return string.find(inputText, "%S") ~= nil
+end
+
+-- The header switch is the advanced one, or the developer UI's while that is on: it shows every
+-- setting, so advanced does nothing then. A dev build shows everything and has no switch.
+function view.switchCaption()
+	if devUI and not devMode then
+		return BAR.I18N("ui.settings.option.devmode")
+	end
+	return BAR.I18N("ui.settings.advanced")
+end
+
+-- indent levels: the rows under a section heading do not step in
+local function indentOf(option)
+	local n, parent = 0, option.parentOption
+	while parent do
+		if parent.type then
+			n = n + 1
+		end
+		parent = parent.parentOption
+	end
+	return n
+end
+
+-- a sub-option of a widget that is switched off does nothing for now
+local function inactive(option)
+	local parent = option.parentOption
+	while parent do
+		if parent.type == "bool" and parent.widget and not parent.value then
+			return true
+		end
+		parent = parent.parentOption
+	end
+	return false
+end
+
+-- draws the window again into its display list
+function view.refresh()
+	if windowList then
+		gl.DeleteList(windowList)
+	end
+	windowList = gl.CreateList(DrawWindow)
+end
+
+-- Whole pixels throughout, so edges and glyphs do not land between pixels.
+function view.setLayout()
+	local s = widgetScale
+	local pad = math.floor(8 * s)
+	layout.window = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
+	local a = { screenX + pad, screenY - screenHeight + pad, screenX + screenWidth - pad, screenY - pad }
+	layout.area = a
+
+	metrics.rowHeight = math.floor(tuning.rowHeight * s)
+	metrics.rowFs = math.floor(tuning.fontSize * s)
+	metrics.dropdownFs = math.floor(tuning.dropdownFontSize * s)
+	metrics.headingHeight = math.floor(metrics.rowHeight * 1.35)
+	metrics.headingFs = math.floor(tuning.headingFontSize * s)
+	metrics.sectionGap = math.floor(10 * s)
+	metrics.tabHeadingFs = math.floor(tuning.categoryFontSize * s * 1.25)
+	metrics.groupHeight = math.floor(tuning.categoryHeight * s)
+	metrics.groupFs = math.floor(tuning.categoryFontSize * s)
+	metrics.sectionHeight = math.floor(tuning.subcategoryHeight * s)
+	metrics.sectionFs = math.floor(tuning.subcategoryFontSize * s)
+	metrics.rowPad = math.floor(6 * s)
+	metrics.sidePad = math.floor(12 * s)
+	metrics.inset = math.floor(4 * s)
+	metrics.headerH = math.floor(34 * s)
+	metrics.gap = math.floor(12 * s)
+	metrics.cardLip = math.floor(5 * s)
+	metrics.titleY = math.floor(17 * s)
+	metrics.titleFs = math.floor(tuning.fontSize * s * 1.55)
+	metrics.sidebarW = math.floor(230 * s)
+	metrics.barW = math.floor(14 * s)
+	metrics.accentW = math.max(2, math.floor(3 * s))
+	metrics.underlineH = math.max(1, math.floor(2 * s))
+	metrics.indent = math.floor(18 * s)
+	metrics.chevron = math.floor(8 * s)
+	metrics.toggleW = math.floor(36 * s)
+	metrics.toggleH = math.floor(metrics.rowHeight * 0.6)
+	-- the text inside the controls, and the room a slider's value takes after its track
+	metrics.controlFs = math.floor(tuning.controlFontSize * s)
+	metrics.valueW = math.floor(tuning.controlFontSize * s * 4)
+	metrics.stripLineH = math.floor(metrics.rowFs * 1.45)
+	metrics.stripH = metrics.stripLineH * (1 + tuning.descriptionLines) + math.floor(10 * s)
+	metrics.captionFs = math.floor(metrics.rowFs * 1.05)
+	metrics.csPanel = math.floor(elementCorner)
+	metrics.csSmall = math.floor(elementCorner * 0.66)
+	metrics.selectPadding = math.floor(4 * s)
+	metrics.selectScrollbar = math.max(3, math.floor(4 * s))
+	metrics.selectBorder = math.max(1, math.floor(vsy / 900))
+
+	layout.sidebarTop = a[4] - metrics.headerH - metrics.inset - math.floor(8 * s)
+	-- the column and the strip are cards side by side, as far apart as they are from the window edge
+	layout.listX1 = a[1] + metrics.sidebarW + pad
+	layout.listTop = a[4] - metrics.headerH - metrics.inset
+	layout.stripTop = a[2] + metrics.stripH
+	layout.listBottom = layout.stripTop + metrics.inset
+	layout.barX1 = a[3] - metrics.inset - metrics.barW
+	layout.listRight = layout.barX1 - metrics.gap
+	-- the controls share a column, all starting on one line, with sliders and dropdowns across it
+	metrics.controlW = math.floor(tuning.controlsWidth * s)
+
+	-- the header band: the search field, then the unfold all and advanced switches, each with its caption
+	local rowTop = a[4] - math.floor(4 * s)
+	local rowBottom = a[4] - metrics.headerH + math.floor(4 * s)
+	local togH = math.floor((rowTop - rowBottom) * 0.62)
+	local togY1 = math.floor((rowTop + rowBottom) * 0.5) - math.floor(togH * 0.5)
+	local togW = math.floor(38 * s)
+	-- a click on a switch or its caption flips it
+	local function hitArea(switch, caption)
+		local captionW = math.floor(font:GetTextWidth(caption) * metrics.captionFs)
+		return { switch[1] - metrics.rowPad * 2 - captionW, rowBottom, switch[3] + metrics.rowPad, rowTop }
+	end
+	local x2 = a[3] - metrics.inset
+	layout.switch = { x2 - togW, togY1, x2, togY1 + togH }
+	layout.switchHit = hitArea(layout.switch, view.switchCaption())
+	local unfoldX2 = math.floor(layout.switchHit[1] - 16 * s)
+	layout.unfoldSwitch = { unfoldX2 - togW, togY1, unfoldX2, togY1 + togH }
+	layout.unfoldSwitchHit = hitArea(layout.unfoldSwitch, BAR.I18N("ui.settings.unfoldall"))
+	searchBox:setRect(
+		layout.listX1,
+		rowBottom,
+		layout.unfoldSwitchHit[1] - math.floor(28 * s),
+		rowTop,
+		math.floor((rowTop - rowBottom) * 0.5)
+	)
+end
+
+-- A family is folded or opened by hand, or all open under "unfold all". Otherwise it starts folded
+-- while its widget is off, and when it holds only advanced rows or a grid of toggles.
+function view.isFolded(option)
+	if not option.type then
+		return false -- section headings do not fold
+	end
+	local folded = option.id and view.folded[option.id]
+	if folded ~= nil then
+		return folded
+	end
+	if view.unfoldAll then
+		return false
+	end
+	if option.type == "bool" and option.widget ~= nil and not option.value then
+		return true
+	end
+	return not view.startsOpen[option]
+end
+
+-- The list: section headings and the rows of the open tab, without the rows of folded families;
+-- compact toggles share lines. Under a search, the matches of every tab, under a heading per tab.
+function view.build()
+	local lines, childCount, startsOpen = {}, {}, {}
+	local searching = view.searching()
+	-- only rows the list can show: a family of advanced rows has nothing to unfold in basic mode
+	for _, option in ipairs(options) do
+		local parent = option.parentOption
+		if parent and option.name and showOption(option) then
+			childCount[parent] = (childCount[parent] or 0) + 1
+			if not option.compact and (not option.category or option.category == types.basic) then
+				startsOpen[parent] = true
+			end
+		end
+	end
+	view.childCount, view.startsOpen = childCount, startsOpen
+	view.matches, view.headingOf = {}, {}
+
+	-- the open tab has to be one the column shows
+	local valid
+	for _, group in ipairs(optionGroups) do
+		if group.id == currentGroupTab and group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
+			valid = true
+		end
+	end
+	if not valid and optionGroups[1] then
+		currentGroupTab = optionGroups[1].id
+	end
+
+	local cells
+	local function add(option)
+		if option.type == nil then
+			if option.name then
+				lines[#lines + 1] = { kind = "heading", option = option, text = option.name }
+			end
+			cells = nil
+		elseif option.compact then
+			if cells and #cells.cells < tuning.compactColumns and cells.parent == option.parentOption then
+				cells.cells[#cells.cells + 1] = option
+			else
+				cells = { kind = "cells", cells = { option }, parent = option.parentOption, depth = indentOf(option) }
+				lines[#lines + 1] = cells
+			end
+		else
+			lines[#lines + 1] = { kind = "row", option = option }
+			cells = nil
+		end
+	end
+	local function folded(option)
+		local parent = option.parentOption
+		while parent do
+			if childCount[parent] and view.isFolded(parent) then
+				return true
+			end
+			parent = parent.parentOption
+		end
+		return false
+	end
+
+	if searching then
+		for _, group in ipairs(optionGroups) do
+			for _, option in ipairs(options) do
+				if option.group == group.id and option.name and showOption(option) then
+					if not view.headingOf[group] then
+						lines[#lines + 1] = { kind = "heading", group = group, text = group.name }
+						view.headingOf[group] = #lines
+						view.matches[group] = 0
+						cells = nil
+					end
+					if option.type then
+						view.matches[group] = view.matches[group] + 1
+					end
+					add(option)
+				end
+			end
+		end
+	else
+		for _, option in ipairs(options) do
+			if option.group == currentGroupTab and showOption(option) and not folded(option) then
+				add(option)
+			end
+		end
+	end
+
+	-- a section leaves some room before the next heading, a tab's results more before the next tab's
+	local off = 0
+	for i, line in ipairs(lines) do
+		local nextLine = lines[i + 1]
+		line.h = contentHeight(line)
+		if nextLine and nextLine.kind == "heading" and line.kind ~= "heading" then
+			line.h = line.h + (nextLine.group and metrics.sectionGap * 2 or metrics.sectionGap)
+		end
+		line.off = off
+		off = off + line.h
+	end
+	view.lines, layout.totalH = lines, off
+	view.setScroll(view.scroll)
+end
+
+-- the furthest the first line can go with the band still full
+function view.maxScroll()
+	local band = (layout.listTop or 0) - (layout.listBottom or 0)
+	local used, i = 0, #view.lines
+	while i > 0 do
+		local h = lineHeight(view.lines[i])
+		if used + h > band then
+			break
+		end
+		used = used + h
+		i = i - 1
+	end
+	return i
+end
+
+function view.setScroll(n)
+	view.scroll = math.max(0, math.min(n, view.maxScroll()))
+end
+
+-- pixels of the list above the first line shown
+function view.offset()
+	local first = view.lines[view.scroll + 1]
+	return first and first.off or 0
+end
+
+-- how many lines the band holds from where the list is now, or going up, the page that ends there
+function view.pageLines(up)
+	local band, used, n = layout.listTop - layout.listBottom, 0, 0
+	local from, to, dir = view.scroll + 1, #view.lines, 1
+	if up then
+		from, to, dir = view.scroll, 1, -1
+	end
+	for i = from, to, dir do
+		used = used + lineHeight(view.lines[i])
+		if used > band then
+			break
+		end
+		n = n + 1
+	end
+	return math.max(1, n)
+end
+
+function view.scrollBy(n)
+	local before = view.scroll
+	view.setScroll(view.scroll + n)
+	if view.scroll ~= before then
+		view.litPin = false
+		view.refresh()
+	end
+end
+
+-- The heading the column marks (a tab heading under a search): the one last jumped to from the
+-- column, as the list may not scroll far enough to bring it to the top; else at the end of the list
+-- the last one, and otherwise the last one at or above the first line shown.
+function view.litLine(tabsOnly)
+	local lit, pinned
+	local atEnd = view.scroll > 0 and view.scroll >= view.maxScroll()
+	for i, line in ipairs(view.lines) do
+		if line.kind == "heading" and (line.group or not tabsOnly) then
+			if view.litPin and (line.option or line.group) == view.litPin then
+				pinned = i
+			end
+			if atEnd or i <= view.scroll + 1 then
+				lit = i
+			end
+		end
+	end
+	return pinned or lit
+end
+
+-- one of the window's sounds, unless they are off
+function view.sound(name, volume)
+	if playSounds then
+		Spring.PlaySoundFile(sounds[name], volume, "ui")
+	end
+end
+
+-- What the arrow keys go through, in order: each row, and each cell of a line of cells.
+function view.selectable()
+	local items = {} --[[@as table<integer, table>]]
+	for i, line in ipairs(view.lines) do
+		if line.kind == "row" then
+			items[#items + 1] = { option = line.option, line = i }
+		elseif line.kind == "cells" then
+			for c, option in ipairs(line.cells) do
+				items[#items + 1] = { option = option, line = i, cell = c }
+			end
+		end
+	end
+	return items
+end
+
+-- Scrolls as little as it takes to show line i whole, with the heading right above it going up.
+---@param i integer
+function view.scrollTo(i)
+	local line = view.lines[i]
+	if not line then
 		return
 	end
-	local groupMargin = metrics.groupMargin
-	glBlending(GL_SRC_ALPHA, GL_ONE)
-	RectRound(
-		r[1] + groupMargin,
-		r[2],
-		r[3] - groupMargin,
-		r[4] - groupMargin,
-		groupMargin * 1.8,
-		1,
-		1,
-		0,
-		0,
-		look.tabHover,
-		look.tabHoverTop
-	)
-	-- gloss
-	RectRound(
-		r[1] + groupMargin,
-		r[4] - groupMargin - ((r[4] - r[2]) * 0.5),
-		r[3] - groupMargin,
-		r[4] - groupMargin,
-		groupMargin * 1.8,
-		1,
-		1,
-		0,
-		0,
-		look.tabHover,
-		look.tabHoverGlossTop
-	)
-	RectRound(
-		r[1] + groupMargin,
-		r[2],
-		r[3] - groupMargin,
-		r[2] + groupMargin + ((r[4] - r[2]) * 0.5),
-		groupMargin * 1.25,
-		0,
-		0,
-		0,
-		0,
-		look.tabHoverLow,
-		look.tabHoverLowTop
-	)
-	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-	font2:Begin()
-	font2:SetTextColor(unpack(look.tabHoverText))
-	font2:SetOutlineColor(unpack(look.tabHoverOutline))
-	font2:Print(
-		optionGroups[id].name,
-		r[1] + ((r[3] - r[1]) / 2),
-		screenY + metrics.tabTextY,
-		metrics.tabFontSize,
-		"con"
-	)
-	font2:End()
-end
-
-local startColumn = 1 -- used for navigation
-local maxShownColumns = 3
-
--- basic / advanced (or dev mode) on a card at the top right; clicking it switches outside dev mode
-function draw.title()
-	local groupMargin = metrics.groupMargin
-	local title
-	if devMode or devUI then
-		title = devOptionColor .. BAR.I18N("ui.settings.option.devmode")
-	elseif advSettings then
-		title = look.titleDim
-			.. BAR.I18N("ui.settings.basic")
-			.. "  /  "
-			.. look.titleLit
-			.. BAR.I18N("ui.settings.advanced")
+	local target = view.scroll
+	if i <= view.scroll then
+		target = i - 1
+		if view.lines[i - 1] and view.lines[i - 1].kind == "heading" then
+			target = i - 2
+		end
 	else
-		title = look.titleLit
-			.. BAR.I18N("ui.settings.basic")
-			.. look.titleDim
-			.. "  /  "
-			.. BAR.I18N("ui.settings.advanced")
+		local band = layout.listTop - layout.listBottom
+		while target < i - 1 and line.off + contentHeight(line) - view.lines[target + 1].off > band do
+			target = target + 1
+		end
 	end
-	local fontSize = metrics.titleFontSize
-	local r = {
-		math.floor((screenX + screenWidth) - ((font2:GetTextWidth(title) * fontSize) + (fontSize * 1.5))),
-		screenY,
-		screenX + screenWidth,
-		math.floor(screenY + (fontSize * 1.7)),
-	}
-	layout.title = r
-	RectRound(
-		r[1],
-		r[2],
-		r[3],
-		r[4],
-		elementCorner,
-		1,
-		1,
-		0,
-		0,
-		WG.guishader and look.card or look.cardSolid,
-		WG.guishader and look.cardTop or look.cardSolidTop
-	)
-	RectRound(
-		r[1] + groupMargin,
-		r[4] - groupMargin - ((r[4] - r[2]) * 0.5),
-		r[3] - groupMargin,
-		r[4] - groupMargin,
-		elementCorner * 0.66,
-		1,
-		1,
-		0,
-		0,
-		look.titleGloss,
-		look.titleGlossTop
-	)
-
-	font2:Begin()
-	font2:SetTextColor(1, 1, 1, 1)
-	font2:SetOutlineColor(unpack(look.outline))
-	font2:Print(title, r[1] + (fontSize * 0.75), screenY + metrics.titleTextY, fontSize, "on")
-	font2:End()
+	view.scrollBy(math.max(0, target) - view.scroll)
 end
 
--- the group tabs along the top, left of the title
-function draw.tabs()
-	local fontSize = metrics.tabFontSize
-	local groupMargin = metrics.groupMargin
-	local groupPadding = 1
-	local card, cardTop = look.cardSolid, look.cardSolidTop
-	if WG.guishader then
-		card, cardTop = look.card, look.cardTop
+-- selects a row, shown in the strip, and scrolls it into view
+function view.select(option, lineIndex)
+	view.selected, view.stripOption = option, option
+	if lineIndex then
+		view.scrollTo(lineIndex)
 	end
-	local xpos = screenX
-	layout.tabs = {}
-	for id, group in ipairs(optionGroups) do
-		if group.numOptions > 0 then
-			local r = {
-				xpos,
-				layout.title[2],
-				math.floor(xpos + (font2:GetTextWidth(group.name) * fontSize) + metrics.tabPadding),
-				layout.title[4],
-			}
-			layout.tabs[id] = r
-			if devMode or devUI or group.id ~= "dev" then
-				xpos = r[3]
-				if currentGroupTab == nil or currentGroupTab ~= group.id then
-					RectRound(r[1], r[2], r[3], r[4], elementCorner, 1, 1, 0, 0, card, cardTop)
-					RectRound(
-						r[1] + groupMargin,
-						r[2],
-						r[3] - groupMargin,
-						r[4] - groupMargin,
-						elementCorner * 0.66,
-						1,
-						1,
-						0,
-						0,
-						look.tab,
-						look.tabTop
-					)
-					RectRound(
-						r[1] + groupMargin + groupPadding,
-						r[2],
-						r[3] - groupMargin - groupPadding,
-						r[4] - groupMargin - groupPadding,
-						elementCorner * 0.5,
-						1,
-						1,
-						0,
-						0,
-						look.tabShade,
-						look.tabShade
-					)
+end
 
-					glBlending(GL_SRC_ALPHA, GL_ONE)
-					-- gloss
-					RectRound(
-						r[1] + groupMargin,
-						r[4] - groupMargin - ((r[4] - r[2]) * 0.5),
-						r[3] - groupMargin,
-						r[4] - groupMargin,
-						bgpadding * 1.2,
-						1,
-						1,
-						0,
-						0,
-						look.tabGloss,
-						look.tabGlossTop
-					)
-					glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+-- Up and down go a line along, in lines of cells to the same column; across goes a cell along. With
+-- nothing selected yet, it starts at the first line shown, or going up the last one.
+function view.moveSelection(dir, across)
+	local items = view.selectable()
+	local at = 0
+	for i, item in ipairs(items) do
+		if item.option == view.selected then
+			at = i
+		end
+	end
+	local target
+	if at == 0 then
+		local first, last
+		for i, item in ipairs(items) do
+			if item.line > view.scroll then
+				first = first or i
+				last = layout.rowOf[item.option] and i or last
+			end
+		end
+		target = items[dir > 0 and (first or 1) or (last or first or #items)]
+	elseif across then
+		target = items[at + dir]
+	else
+		local from, i = items[at], at
+		repeat
+			i = i + dir
+		until not items[i] or items[i].line ~= from.line
+		if items[i] then
+			local same = {}
+			for _, item in ipairs(items) do
+				if item.line == items[i].line then
+					same[#same + 1] = item
+				end
+			end
+			target = same[math.min(from.cell or 1, #same)]
+		end
+	end
+	if target then
+		view.select(target.option, target.line)
+	end
+end
 
-					font2:Begin()
-					font2:SetTextColor(unpack(look.tabText))
-					font2:SetOutlineColor(unpack(look.outline))
-					font2:Print(group.name, r[1] + ((r[3] - r[1]) / 2), screenY + metrics.tabTextY, fontSize, "con")
-					font2:End()
-				else
-					RectRound(r[1], r[2], r[3], r[4], elementCorner, 1, 1, 0, 0, card, cardTop)
-					RectRound(
-						r[1] + groupMargin,
-						r[2] - bgpadding,
-						r[3] - groupMargin,
-						r[4] - groupMargin,
-						elementCorner * 0.8,
-						1,
-						1,
-						0,
-						0,
-						look.activeTab,
-						look.activeTabTop
-					)
+-- moves a slider n steps along, or to the n-th next of its listed steps
+function view.stepSlider(option, n)
+	local min, max = sliderRange(option)
+	local value
+	if option.steps then
+		local index = 1
+		for i, v in ipairs(option.steps) do
+			if math.abs(v - option.value) < math.abs(option.steps[index] - option.value) then
+				index = i
+			end
+		end
+		value = option.steps[math.max(1, math.min(#option.steps, index + n))]
+	else
+		local step = option.step or (max - min) / 100
+		value = math.max(min, math.min(max, math.floor((option.value + n * step) / step + 0.5) * step))
+	end
+	if value ~= option.value then
+		applyOptionValue(option, value)
+		view.sound("sliderDrag", 0.3)
+	end
+end
 
-					font2:Begin()
-					font2:SetTextColor(unpack(look.activeTabText))
-					font2:SetOutlineColor(unpack(look.outline))
-					font2:Print(group.name, r[1] + ((r[3] - r[1]) / 2), screenY + metrics.tabTextY, fontSize, "con")
-					font2:End()
+-- Left and right on the selected row: a family folds or unfolds as in a tree (on a slider's row, which
+-- they step, with ctrl), a slider steps (ten at a time with ctrl), a toggle goes off or on, and along
+-- a line of cells the selection moves.
+function view.adjustSelected(dir, ctrl)
+	local option = view.selected
+	if not (option and layout.rowOf[option]) then
+		return
+	end
+	if option.compact then
+		view.moveSelection(dir, true)
+	elseif view.childCount[option] and not view.searching() and (ctrl or option.type ~= "slider") then
+		view.folded[option.id] = dir < 0
+		view.build()
+		view.refresh()
+	elseif option.type == "slider" then
+		view.stepSlider(option, ctrl and dir * 10 or dir)
+	elseif option.type == "bool" and option.value ~= (dir > 0) then
+		applyOptionValue(option, dir > 0)
+		view.sound(dir > 0 and "toggleOnClick" or "toggleOffClick", 0.75)
+	end
+end
+
+-- Enter on the selected row: flips a toggle, opens a dropdown, runs a row's click, or folds a row
+-- with no control.
+function view.activateSelected()
+	local option = view.selected
+	if not (option and layout.rowOf[option]) then
+		return
+	end
+	if option.type == "bool" then
+		applyOptionValue(option, not option.value)
+		view.sound(option.value and "toggleOnClick" or "toggleOffClick", 0.75)
+	elseif option.type == "select" then
+		openSelect = option
+		view.selectKey = tonumber(option.value) or 1
+		selectScrollOffset = math.max(0, view.selectKey - 8)
+		view.sound("selectUnfoldClick", 0.6)
+	elseif option.onclick then
+		option.onclick(option)
+	elseif view.childCount[option] and not view.searching() then
+		view.adjustSelected(view.isFolded(option) and 1 or -1, true)
+	end
+end
+
+-- Tab and shift-tab: the next tab in the column, or the one before, round the end
+function view.cycleTab(dir)
+	local tabs, at = {}, 1
+	for _, group in ipairs(optionGroups) do
+		if group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
+			tabs[#tabs + 1] = group
+			if group.id == currentGroupTab then
+				at = #tabs
+			end
+		end
+	end
+	if #tabs > 0 then
+		view.openTab(tabs[(at - 1 + dir) % #tabs + 1])
+	end
+end
+
+-- a small triangle: pointing right while its family is folded, down while it is open
+local chevron = { x = 0, y = 0, h = 0, folded = false }
+local function chevronVertices()
+	local x, y, h = chevron.x, chevron.y, chevron.h
+	if chevron.folded then
+		gl.Vertex(x, y + h)
+		gl.Vertex(x, y - h)
+		gl.Vertex(x + math.floor(h * 1.3), y)
+	else
+		gl.Vertex(x - math.floor(h * 0.2), y + math.floor(h * 0.65))
+		gl.Vertex(x + math.floor(h * 1.5), y + math.floor(h * 0.65))
+		gl.Vertex(x + math.floor(h * 0.65), y - math.floor(h * 0.65))
+	end
+end
+function draw.chevron(x, cy, size, folded, color)
+	color = color or look.chevron
+	chevron.x, chevron.y, chevron.h, chevron.folded = x, cy, math.floor(size * 0.5), folded
+	gl.Color(color[1], color[2], color[3], color[4])
+	gl.BeginEnd(GL.TRIANGLES, chevronVertices)
+	gl.Color(1, 1, 1, 1)
+end
+
+-- The column: the title, then the tabs, with the open one's sections under it and the section the
+-- list is showing marked. Under a search, the tabs with matches and how many.
+function draw.sidebar()
+	local a = layout.area
+	local x1, x2 = a[1], a[1] + metrics.sidebarW
+	RectRound(
+		x1,
+		a[2],
+		x2,
+		layout.sidebarTop + metrics.cardLip,
+		metrics.csPanel,
+		1,
+		1,
+		1,
+		1,
+		look.sidebarFill,
+		look.sidebarFillTop
+	)
+	font:Print(
+		look.title .. BAR.I18N("ui.topbar.button.settings"),
+		x1 + metrics.sidePad,
+		a[4] - metrics.titleY,
+		metrics.titleFs,
+		"ov"
+	)
+
+	-- made changes that wait for a restart: said at the foot of the column, where it stays in sight
+	local bottom = a[2]
+	if changesRequireRestart then
+		local note =
+			text.wrap(font, BAR.I18N("ui.settings.madechanges"), x2 - x1 - metrics.sidePad * 2, metrics.sectionFs)
+		for i = #note, 1, -1 do
+			font:Print(
+				look.restart .. note[i],
+				x1 + metrics.sidePad,
+				bottom + math.floor(metrics.sectionHeight * 0.5),
+				metrics.sectionFs,
+				"ov"
+			)
+			bottom = bottom + math.floor(metrics.sectionFs * 1.3)
+		end
+		bottom = bottom + metrics.inset * 2
+	end
+
+	layout.sidebar = {}
+	local searching = view.searching()
+	local lit = view.litLine(searching)
+	local litGroup = searching and lit and view.lines[lit].group
+	local y = layout.sidebarTop
+	for _, group in ipairs(optionGroups) do
+		if
+			group.numOptions > 0
+			and (devMode or devUI or group.id ~= "dev")
+			and (not searching or view.matches[group])
+			and y - metrics.groupHeight >= bottom
+		then
+			local r = { x1, y - metrics.groupHeight, x2, y }
+			local open = not searching and group.id == currentGroupTab
+			local selected = open or group == litGroup
+			if selected then
+				RectRound(
+					r[1] + metrics.inset,
+					r[2],
+					r[3] - metrics.inset,
+					r[4],
+					metrics.csSmall,
+					1,
+					1,
+					1,
+					1,
+					look.selectedFill
+				)
+			end
+			local ty = math.floor((r[2] + r[4]) * 0.5)
+			font:Print(
+				(selected and look.groupSelected or look.group) .. group.name,
+				x1 + metrics.sidePad,
+				ty,
+				metrics.groupFs,
+				"ov"
+			)
+			if searching then
+				font:Print(look.count .. view.matches[group], x2 - metrics.sidePad, ty, metrics.groupFs, "rov")
+			end
+			layout.sidebar[#layout.sidebar + 1] = { rect = r, group = group, line = view.headingOf[group] }
+			y = r[2]
+
+			if open then
+				for i, line in ipairs(view.lines) do
+					if line.kind == "heading" and y - metrics.sectionHeight >= bottom then
+						local sr = { x1, y - metrics.sectionHeight, x2, y }
+						local isLit = i == lit
+						if isLit then
+							RectRound(
+								x1 + metrics.sidePad,
+								sr[2] + metrics.inset,
+								x1 + metrics.sidePad + metrics.accentW,
+								sr[4] - metrics.inset,
+								0,
+								0,
+								0,
+								0,
+								0,
+								look.sectionAccent
+							)
+						end
+						local caption = text.fit(font, line.text, x2 - x1 - metrics.sidePad * 3, metrics.sectionFs)
+						font:Print(
+							(isLit and look.sectionLit or look.section) .. caption,
+							x1 + metrics.sidePad * 2,
+							math.floor((sr[2] + sr[4]) * 0.5),
+							metrics.sectionFs,
+							"ov"
+						)
+						layout.sidebar[#layout.sidebar + 1] = { rect = sr, line = i }
+						y = sr[2]
+					end
 				end
 			end
 		end
 	end
 end
 
--- the tooltip spells out what got cut off, then the description
-local function rowTooltip(option, label, truncated, cutValue)
-	local description = option.description
-	if description == "" or description == " " or description == label then
-		description = nil
+-- A section heading on a sheen band, with a line closing it off underneath. Under a search, a tab's
+-- results start with its name on a band like the open tab's in the column, set apart from the
+-- section headings among them, with how many rows it found.
+function draw.heading(line, top, bottom)
+	local x1, x2 = layout.listX1, layout.listRight
+	local cy = math.floor((top + bottom) * 0.5)
+	if line.group then
+		RectRound(x1, bottom, x2, top, metrics.csSmall, 1, 1, 1, 1, look.selectedFill)
+		font:Print(look.groupSelected .. line.text, x1 + metrics.rowPad, cy, metrics.tabHeadingFs, "ov")
+		font:Print(look.count .. view.matches[line.group], x2 - metrics.rowPad, cy, metrics.rowFs, "rov")
+		return
 	end
-	local header = truncated and label or nil
-	if cutValue then
-		header = header and (header .. "\n" .. cutValue) or cutValue
-	end
-	local tooltip = (header and description and (header .. "\n" .. look.tooltipDescription .. description))
-		or header
-		or description
-	if tooltip and option.restart then
-		tooltip = tooltip .. "\n\n" .. look.restartTooltip .. BAR.I18N("ui.settings.changesrequirerestart")
-	end
-	return tooltip
+	RectRound(x1, bottom, x2, top - metrics.csSmall, metrics.csSmall, 1, 1, 0, 0, look.headingSheen, look.headingSheen)
+	RectRound(x1, bottom, x2, bottom + metrics.underlineH, 0, 0, 0, 0, 0, look.headingLine, look.headingLineFade)
+	font:Print(look.heading .. line.text, x1 + metrics.rowPad, cy, metrics.headingFs, "ov")
 end
 
--- a button over the whole row
-function drawControl.click(row, xPos, xPosMax, yPos)
-	local pad = metrics.controlPadding
-	row.control = {
-		math.floor(xPos + pad),
-		math.floor(yPos - metrics.rowHeight),
-		math.floor(xPosMax - pad),
-		math.floor(yPos),
-	}
-end
+-- Each draws its control in the column from x1 to right and returns where it starts.
 
-function drawControl.bool(row, xPos, xPosMax, yPos)
-	local pad = metrics.controlPadding
-	local r = {
-		math.floor(xPosMax - metrics.boolWidth - pad),
-		math.floor(yPos - metrics.rowHeight),
-		math.floor(xPosMax - pad),
-		math.floor(yPos),
-	}
+function drawControl.bool(row, x1, right, cy)
+	local half = math.floor(metrics.toggleH * 0.5)
+	local tx1 = tuning.controlsAlignLeft and x1 or right - metrics.toggleW
+	local r = { tx1, cy - half, tx1 + metrics.toggleW, cy - half + metrics.toggleH }
 	row.control = r
 	UiToggle(r[1], r[2], r[3], r[4], row.option.value)
+	return tx1
 end
 
--- the knob is the control; row.track is the line it slides along
-function drawControl.slider(row, xPos, xPosMax, yPos)
+-- the track with the value printed after it; the knob is the control, row.track the line it runs along
+function drawControl.slider(row, x1, right, cy)
 	local option = row.option
 	if type(option.value) ~= "number" then -- just to be safe
-		return
+		return right
 	end
-	local oHeight, sliderWidth, pad = metrics.rowHeight, metrics.sliderWidth, metrics.controlPadding
-	local sliderSize = oHeight * 0.75
 	local min, max = sliderRange(option)
-	local sliderPos = (option.value - min) / (max - min)
-	if type(sliderPos) == "number" then
-		UiSlider(
-			math.floor(xPosMax - (sliderSize / 2) - sliderWidth - pad),
-			math.floor(yPos - ((oHeight / 7) * 4.5)),
-			math.floor(xPosMax - (sliderSize / 2) - pad),
-			math.floor(yPos - ((oHeight / 7) * 2.8)),
-			option.steps and option.steps or option.step,
-			option.min,
-			option.max
-		)
-		UiSliderKnob(
-			math.floor(xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - pad),
-			math.floor(yPos - oHeight + (oHeight / 2)),
-			math.floor(sliderSize / 2)
-		)
-		row.control = {
-			xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) - (sliderSize / 2) - pad,
-			yPos - oHeight + ((oHeight - sliderSize) / 2),
-			xPosMax - (sliderSize / 2) - sliderWidth + (sliderWidth * sliderPos) + (sliderSize / 2) - pad,
-			yPos - ((oHeight - sliderSize) / 2),
-		}
-		row.track = {
-			xPosMax - (sliderSize / 2) - sliderWidth - pad,
-			xPosMax - (sliderSize / 2) - pad,
-		}
+	-- a value from outside the range (set by a widget or the config) keeps the knob at an end
+	local pos = (option.value - min) / (max - min)
+	if pos ~= pos then -- a range of one value
+		pos = 0
 	end
+	pos = math.max(0, math.min(1, pos))
+	local knob = math.floor(metrics.rowHeight * 0.26)
+	local tx1, tx2 = x1 + knob, right - metrics.valueW
+	local trackH = math.max(2, math.floor(metrics.rowHeight * 0.16))
+	local trackY = cy - math.floor(trackH * 0.5)
+	UiSlider(tx1, trackY, tx2, trackY + trackH, option.steps and option.steps or option.step, option.min, option.max)
+	local kx = math.floor(tx1 + (tx2 - tx1) * pos)
+	UiSliderKnob(kx, cy, knob)
+	row.control = { kx - knob, cy - knob, kx + knob, cy + knob }
+	row.track = { tx1, tx2 }
+	row.knob = knob
+	font:Print(look.value .. sliderValueText(option), right, cy, metrics.controlFs, "rov")
+	return x1
 end
 
--- shows the chosen entry; returns its full text when it had to be cut
-function drawControl.select(row, xPos, xPosMax, yPos)
+-- the chosen entry inside the button, cut short of the square FlowUI draws at its right end
+function drawControl.select(row, x1, right, cy, top, bottom)
 	local option = row.option
-	local oHeight, oPadding, selectWidth, pad =
-		metrics.rowHeight, metrics.rowPadding, metrics.selectWidth, metrics.controlPadding
-	local r = {
-		math.floor(xPosMax - selectWidth - pad),
-		math.floor(yPos - oHeight),
-		math.floor(xPosMax - pad),
-		math.floor(yPos),
-	}
+	local inset = math.floor(metrics.rowHeight * 0.12)
+	local r = { x1, bottom + inset, right, top - inset }
+	local square = r[4] - r[2]
 	row.control = r
-	UiSelector(r[1], r[2], r[3], r[4], option.value)
-
-	local text = option.options[tonumber(option.value)]
-	if text == nil then
-		return
+	UiSelector(r[1], r[2], r[3], r[4])
+	local h = math.floor(metrics.chevron * 0.5)
+	draw.chevron(r[3] - math.floor(square * 0.5) - math.floor(h * 0.65), cy, metrics.chevron, false)
+	local value = option.options[tonumber(option.value)]
+	if value ~= nil then
+		value = tostring(value)
+		local shown = text.fit(font, value, r[3] - r[1] - square - metrics.rowPad * 2, metrics.controlFs)
+		row.cutValue = shown ~= value and value or nil
+		if option.id == "font2" then
+			-- the second font's dropdown shows its value in that font
+			font:End()
+			font2:Begin()
+			font2:SetOutlineColor(0, 0, 0, 0.4)
+			font2:Print(look.value .. shown, r[1] + metrics.rowPad, cy, metrics.controlFs, "ov")
+			font2:End()
+			font:Begin()
+			font:SetOutlineColor(0, 0, 0, 0.4)
+		else
+			font:Print(look.value .. shown, r[1] + metrics.rowPad, cy, metrics.controlFs, "ov")
+		end
 	end
-	local cutValue
-	local fontSize = oHeight * 0.85
-	local buttonWidth = r[3] - r[1]
-	if font:GetTextWidth(text) * oHeight > buttonWidth * 0.93 then
-		cutValue = text
-		text = truncateText(text, buttonWidth * 0.9, oHeight)
-	end
-	if option.id == "font2" then
-		-- the second font's dropdown shows its value in that font
-		font:End()
-		font2:Begin()
-		font2:SetOutlineColor(unpack(look.outline))
-		font2:SetTextColor(1, 1, 1, 1)
-		font2:Print(text, xPosMax - selectWidth + 5 - pad, yPos - (fontSize / 2) - oPadding, fontSize, "no")
-		font2:End()
-		font:Begin()
-		font:SetOutlineColor(unpack(look.outline))
-	else
-		font:SetTextColor(1, 1, 1, 1)
-		font:Print(text, xPosMax - selectWidth + 5 - pad, yPos - (fontSize / 2) - oPadding, fontSize, "no")
-	end
-	return cutValue
+	return r[1]
 end
 
--- one row: a section label, or an option's name with its control at the right end
-function draw.row(option, xPos, xPosMax, yPos)
-	local oHeight, oPadding = metrics.rowHeight, metrics.rowPadding
-	local label = getOptionLabel(option)
-	local truncated = false
-	local mainColor, subColor = getNameColors(option)
+-- a row that does something when clicked is a button across its whole width
+function drawControl.click(row, _, right)
+	row.control = row.hover
+	return right
+end
 
-	font:SetTextColor(1, 1, 1, 1)
-	font:SetOutlineColor(unpack(look.outline))
-
-	if option.type == nil then
-		font:End()
-		font3:Begin()
-		font3:SetOutlineColor(unpack(look.outline))
-		font3:Print(
-			mainColor .. option.name,
-			xPos + (oPadding * 0.5),
-			yPos - (oHeight * 1.8) - oPadding,
-			oHeight * 1.5,
-			"no"
-		)
-		font3:End()
-		font:Begin()
-		font:SetOutlineColor(unpack(look.outline))
-		font:SetTextColor(1, 1, 1, 1)
-		font:SetOutlineColor(unpack(look.outline))
-	else
-		local indent = option.depth * metrics.indentWidth
-		local maxWidthMult = metrics.nameShare[option.type] or 1
-		local text = label
-		if font:GetTextWidth(text) * oHeight > (xPosMax - xPos - 45) * maxWidthMult - indent then
-			text = truncateText(text, (xPosMax - xPos - 50) * maxWidthMult - indent, oHeight)
-			truncated = true
-		end
-		if option.prefix and string.sub(text, 1, string.len(option.prefix)) == option.prefix then
-			text = mainColor .. option.prefix .. subColor .. string.sub(text, string.len(option.prefix) + 1)
-		else
-			text = (option.depth > 0 and subColor or mainColor) .. text
-		end
-		if option.restart then
-			font:Print(look.restartMark, xPos + (oPadding * 0.3), yPos - (oHeight / 5) - oPadding, oHeight, "no")
-		end
-		font:Print(text, xPos + (oPadding * 2) + indent, yPos - (oHeight / 2.4) - oPadding, oHeight, "no")
-	end
-
-	local row = {
-		option = option,
-		hover = {
-			math.floor(xPos),
-			math.floor(yPos - oHeight - oPadding),
-			math.floor(xPosMax),
-			math.floor(yPos + oPadding),
-		},
-	}
+-- One setting: its name, indented under its parent with a fold arrow when it has sub-options (and how
+-- many while folded), and its control in the column at the right. Its hover, fold and control areas
+-- go into layout for clicks to find.
+function draw.row(option, top, bottom)
+	local cy = math.floor((top + bottom) * 0.5)
+	local depth = indentOf(option)
+	local x = layout.listX1 + metrics.rowPad * 2 + metrics.chevron + depth * metrics.indent
+	local right = layout.listRight - metrics.rowPad
+	local row = { option = option, hover = { layout.listX1, bottom, layout.listRight, top } }
 	layout.rows[#layout.rows + 1] = row
 	layout.rowOf[option] = row
-	local cutValue = drawControl[option.type] and drawControl[option.type](row, xPos, xPosMax, yPos)
-	row.tooltip = rowTooltip(option, label, truncated, cutValue)
+
+	local drawIt = drawControl[option.type]
+	local left = drawIt and drawIt(row, right - metrics.controlW, right, cy, top, bottom) or right
+
+	local family = view.childCount[option] and not view.searching()
+	local folded = family and view.isFolded(option)
+	local count = folded and "(" .. view.childCount[option] .. ")" or ""
+	local countW = folded and math.floor(font:GetTextWidth(count) * metrics.rowFs) + metrics.rowPad or 0
+	local markW = option.restart and math.floor(font:GetTextWidth("*") * metrics.rowFs) + metrics.inset or 0
+
+	local label = getOptionLabel(option)
+	local shown = text.fit(font, label, left - metrics.rowPad * 2 - x - markW - countW, metrics.rowFs)
+	row.cut = shown ~= label
+	local nameW = math.floor(font:GetTextWidth(shown) * metrics.rowFs)
+	if family then
+		row.chevronX = x - metrics.rowPad - metrics.chevron
+		draw.chevron(row.chevronX, cy, metrics.chevron, folded)
+		if folded then
+			font:Print(look.count .. count, x + nameW + markW + metrics.rowPad, cy, metrics.rowFs, "ov")
+		end
+		-- everything left of the control folds it, or the whole row when it has none
+		row.fold = { layout.listX1, bottom, left < right and left - metrics.rowPad or layout.listRight, top }
+	end
+
+	local mainColor, subColor = getNameColors(option)
+	if inactive(option) then
+		mainColor, subColor = look.inactive, look.inactive
+	end
+	if option.prefix and string.sub(shown, 1, string.len(option.prefix)) == option.prefix then
+		shown = mainColor
+			.. option.prefix
+			.. (subColor or mainColor)
+			.. string.sub(shown, string.len(option.prefix) + 1)
+	else
+		shown = (depth > 0 and subColor or mainColor) .. shown
+	end
+	font:Print(shown, x, cy, metrics.rowFs, "ov")
+	if option.restart then
+		font:Print(look.restartMark, x + nameW + metrics.inset, cy, metrics.rowFs, "ov")
+	end
 end
 
--- The rows of the tab, or the search results, in columns that fill top down; three columns show at a
--- time. Also the restart notice and the paging arrows.
-function draw.rows()
-	local oHeight, oPadding = metrics.rowHeight, metrics.rowPadding
-	local x = screenX
-	local y = math.floor(math.floor(screenY - oPadding - metrics.topGap))
-	local oWidth = math.floor((screenWidth / 3) - oPadding - oPadding)
-	local yHeight = math.floor(screenHeight - metrics.bottomGap - oPadding)
-	local xPos = math.floor(x + oPadding + metrics.columnInset)
-	local xPosMax = xPos + oWidth - oPadding - oPadding
-	local yPosMax = y - yHeight
-	local i = 0
-	local rows = 0
-	local column = 1
-	local drawColumnPos = 1
-	local dontFilterGroup = inputText ~= "" and inputMode == ""
-
-	-- A column takes rows while they fit, and a label moves on to the next one when the spacer row
-	-- below it would not fit. Counted over all rows first, for the paging.
-	local rowStep = oHeight + oPadding + oPadding
-	local function rowFits(slot)
-		return math.floor(y - ((rowStep * slot) - oPadding)) - oHeight >= yPosMax
-	end
-	local function startsNewColumn(option, slot)
-		return not rowFits(slot) or (option.spacer ~= nil and not rowFits(slot + 1))
-	end
-	local totalColumns = 1
-	local slot = 0
-	for _, option in ipairs(options) do
-		if showOption(option) and (currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup) then
-			if startsNewColumn(option, slot) then
-				totalColumns = totalColumns + 1
-				slot = 0
-			end
-			slot = slot + 1
+-- a line of compact toggles, a switch and a name each, in columns
+function draw.cells(line, top, bottom)
+	local cy = math.floor((top + bottom) * 0.5)
+	local x0 = layout.listX1 + metrics.rowPad * 2 + metrics.chevron + line.depth * metrics.indent
+	local cellW = math.floor((layout.listRight - x0) / tuning.compactColumns)
+	local half = math.floor(metrics.toggleH * 0.5)
+	for i, option in ipairs(line.cells) do
+		local x1 = x0 + (i - 1) * cellW
+		local x2 = x1 + cellW - metrics.rowPad
+		local r = { x1, cy - half, x1 + metrics.toggleW, cy - half + metrics.toggleH }
+		local row = { option = option, hover = { x1 - metrics.inset, bottom, x2, top }, control = r }
+		layout.rows[#layout.rows + 1] = row
+		layout.rowOf[option] = row
+		UiToggle(r[1], r[2], r[3], r[4], option.value)
+		local label = getOptionLabel(option)
+		local shown = text.fit(font, label, x2 - r[3] - metrics.rowPad, metrics.rowFs)
+		row.cut = shown ~= label
+		local mainColor, subColor = getNameColors(option)
+		if inactive(option) then
+			mainColor, subColor = look.inactive, look.inactive
 		end
+		font:Print((line.depth > 0 and subColor or mainColor) .. shown, r[3] + metrics.rowPad, cy, metrics.rowFs, "ov")
 	end
-	layout.totalColumns = totalColumns
+end
+
+-- whole lines only, from the first one scrolled to; the band can end mid-line
+function draw.lines()
 	layout.rows, layout.rowOf = {}, {}
-	layout.forward, layout.backward = nil, nil
-
-	-- require restart notification
-	if changesRequireRestart then
-		glColor(unpack(look.restartBand))
-		RectRound(
-			screenX + bgpadding,
-			screenY - screenHeight + bgpadding,
-			screenX + screenWidth - bgpadding,
-			screenY - screenHeight + metrics.restartBand,
-			elementCorner,
-			0,
-			0,
-			1,
-			0
-		)
-		RectRound(
-			screenX + bgpadding,
-			screenY - screenHeight + bgpadding + metrics.restartLine - 1,
-			screenX + screenWidth - bgpadding,
-			screenY - screenHeight + metrics.restartLine,
-			0,
-			0,
-			0,
-			0,
-			0
-		)
-		font:SetTextColor(unpack(look.restartText))
-		font:SetOutlineColor(unpack(look.outline))
-		font:Print(
-			BAR.I18N("ui.settings.madechanges"),
-			screenX + math.floor(screenWidth * 0.5),
-			screenY - screenHeight + metrics.restartTextY,
-			metrics.restartFontSize,
-			"cn"
-		)
-	end
-
-	-- draw navigation... backward/forward
-	if totalColumns > maxShownColumns then
-		local buttonSize = metrics.pageButton
-		local buttonMarginX = metrics.pageMarginX
-		local startX = x + screenWidth
-		local startY = screenY - screenHeight + metrics.pageMarginY
-
-		glColor(1, 1, 1, 1)
-
-		if (startColumn - 1) + maxShownColumns < totalColumns then
-			local r = { startX - buttonSize - buttonMarginX, startY, startX - buttonMarginX, startY + buttonSize }
-			layout.forward = r
-			glColor(1, 1, 1, 1)
-			glTexture(forwardTex)
-			glTexRect(r[1], r[2], r[3], r[4])
-			glTexture(false)
-			UiButton(r[1], r[2], r[3], r[4])
+	local base = view.offset()
+	for i = view.scroll + 1, #view.lines do
+		local line = view.lines[i]
+		local top = layout.listTop - (line.off - base)
+		local bottom = top - contentHeight(line)
+		if bottom < layout.listBottom then
+			break
 		end
-
-		font:SetTextColor(unpack(look.pageNumber))
-		font:Print(
-			math.ceil(startColumn / maxShownColumns) .. " / " .. math.ceil(totalColumns / maxShownColumns),
-			startX - (buttonSize * 2.6) - buttonMarginX,
-			startY + buttonSize / 2.6,
-			buttonSize / 2.4,
-			"rn"
-		)
-		if startColumn > 1 then
-			local r = {
-				startX - (buttonSize * 2) - buttonMarginX - (buttonMarginX / 1.5),
-				startY,
-				startX - (buttonSize * 1) - buttonMarginX - (buttonMarginX / 1.5),
-				startY + buttonSize,
-			}
-			layout.backward = r
-			glColor(1, 1, 1, 1)
-			glTexture(backwardTex)
-			glTexRect(r[1], r[2], r[3], r[4])
-			glTexture(false)
-			UiButton(r[1], r[2], r[3], r[4])
-		end
-	end
-
-	-- draw options
-	local yPos
-	for _, option in ipairs(options) do
-		if showOption(option) then
-			if currentGroupTab == nil or option.group == currentGroupTab or dontFilterGroup then
-				yPos = math.floor(y - ((rowStep * i) - oPadding))
-				if startsNewColumn(option, i) then
-					i = 0
-					column = column + 1
-					if column >= startColumn and rows > 0 then
-						drawColumnPos = drawColumnPos + 1
-					end
-					if drawColumnPos > 3 then
-						break
-					end
-					if rows > 0 then
-						xPos = math.floor(x + ((screenWidth / 3) * (drawColumnPos - 1)))
-						xPosMax = math.floor(xPos + oWidth)
-					end
-					yPos = y - ((rowStep * i) - oPadding)
-				end
-
-				if column >= startColumn then
-					rows = rows + 1
-					if option.name then
-						draw.row(option, xPos, xPosMax, yPos)
-					end
-				end
-				i = i + 1
-			end
+		if line.kind == "heading" then
+			draw.heading(line, top, bottom)
+		elseif line.kind == "cells" then
+			draw.cells(line, top, bottom)
+		else
+			draw.row(line.option, top, bottom)
 		end
 	end
 end
 
--- Draws the window into its display list and records in layout where everything went.
+-- Draws the window into its display list and records in layout where everything went. The search
+-- field, the switch, the scrollbar, hover and the strip's text are drawn live in DrawScreen.
 function DrawWindow()
 	glTexture(false)
-	layout.window = { screenX, screenY - screenHeight, screenX + screenWidth, screenY }
-	local searching = showTextInput and inputText ~= "" and inputMode == ""
-
-	-- background
-	UiElement(
-		screenX,
-		screenY - screenHeight,
-		screenX + screenWidth,
-		screenY,
-		searching and 1 or 0,
-		0,
-		1,
-		(showTextInput and 0 or 1),
+	local w, a = layout.window, layout.area
+	UiElement(w[1], w[2], w[3], w[4], 1, 1, 1, 1, 1, 1, 1, 1, WG.FlowUI.clampedOpacity)
+	RectRound(
+		layout.listX1,
+		a[2],
+		a[3],
+		layout.stripTop,
+		metrics.csSmall,
 		1,
 		1,
 		1,
 		1,
-		WG.FlowUI.clampedOpacity
+		look.stripFill,
+		look.stripFillTop
 	)
-	draw.title()
-	if not searching then
-		draw.tabs()
-	end
-
 	font:Begin()
-	font:SetOutlineColor(unpack(look.outline))
-	draw.rows()
+	font:SetOutlineColor(0, 0, 0, 0.4)
+	draw.sidebar()
+	draw.lines()
 	font:End()
+	glColor(1, 1, 1, 1)
 end
 
 local function updateGrabinput()
@@ -1352,13 +1584,6 @@ function resetUserVolume()
 end
 
 function widget:Update(dt)
-	if show then
-		cursorBlinkTimer = cursorBlinkTimer + dt
-		if cursorBlinkTimer > cursorBlinkDuration then
-			cursorBlinkTimer = 0
-		end
-	end
-
 	local now = os_clock()
 
 	-- throttle offscreen detection to ~4x/sec (unless actively fading)
@@ -1521,39 +1746,42 @@ function widget:Update(dt)
 				changes = true
 			end
 		end
-		if changes then
-			applyFilter()
+		local resolution = getOption("resolution")
+		if resolution and resolution.onload then
+			local before = resolution.options[resolution.value]
+			resolution.onload(resolution)
+			changes = changes or resolution.options[resolution.value] ~= before
+		end
+		if view.rereadBound() then
+			changes = true
 		end
 		local masterVolume, musicVolume = getOption("sndvolmaster"), getOption("sndvolmusic")
 		if masterVolume then
-			masterVolume.value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
+			local value = tonumber(Spring.GetConfigInt("snd_volmaster", 40) or 40) -- update value because other widgets can adjust this too
+			changes = changes or value ~= masterVolume.value
+			masterVolume.value = value
 		end
 		if musicVolume then
+			local value
 			if WG.music and WG.music.GetMusicVolume then
-				musicVolume.value = WG.music.GetMusicVolume()
+				value = WG.music.GetMusicVolume()
 			else
-				musicVolume.value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
+				value = tonumber(Spring.GetConfigInt("snd_volmusic", 50) or 50)
 			end
+			changes = changes or value ~= musicVolume.value
+			musicVolume.value = value
+		end
+		if changes then
+			applyFilter()
 		end
 	end
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if show then
-		--on window
-		local mx, my, _ = Spring.GetMouseState()
-		local w, t = layout.window, layout.title
-		if math_isInRect(mx, my, w[1], w[2], w[3], w[4]) then
+		local mx, my = Spring.GetMouseState()
+		if inRect(layout.window, mx, my) then
 			return true
-		elseif t and math_isInRect(mx, my, t[1], t[2], t[3], t[4]) then
-			return true
-		elseif layout.tabs ~= nil then
-			for id, group in ipairs(optionGroups) do
-				local r = layout.tabs[id]
-				if r and (devMode or devUI or group.id ~= "dev") and math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
-					return true
-				end
-			end
 		end
 	end
 end
@@ -1609,198 +1837,220 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
--- the value a slider shows while hovered, rounded to its step
-local function sliderValueText(option)
-	local value = option.value
-	if option.steps then
-		value = NearestValue(option.steps, value)
-	else
-		local _, floatValue = math.modf(option.step)
-		if floatValue ~= 0 then
-			value = string.format("%." .. string.len(string.sub("" .. option.step, 3)) .. "f", value) -- do rounding via a string because floats show rounding errors at times
-		end
-	end
-	return value
+-- the thumb, where it is now; nil when the list fits and no bar is drawn
+function view.thumb()
+	return UiScrollerAt(
+		layout.barX1,
+		layout.listBottom,
+		layout.barX1 + metrics.barW,
+		layout.listTop,
+		layout.totalH,
+		view.offset()
+	)
 end
 
--- the normal cursor over the window, its title, the search box and the tabs
-local function updateMouseCursor(mx, my)
-	local w, t, s = layout.window, layout.title, layout.searchBox
-	if
-		math_isInRect(mx, my, w[1], w[2], w[3], w[4])
-		or (t and math_isInRect(mx, my, t[1], t[2], t[3], t[4]))
-		or (s and math_isInRect(mx, my, s[1], s[2], s[3], s[4]))
-	then
-		Spring.SetMouseCursor("cursornormal")
-	end
-	if layout.tabs ~= nil then
-		for id, group in ipairs(optionGroups) do
-			local r = layout.tabs[id]
-			if r and group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
-				if math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
-					Spring.SetMouseCursor("cursornormal")
-					break
-				end
-			end
-		end
+function draw.scrollbar(mx, my)
+	local top, height = view.thumb()
+	if top then
+		local x1, x2 = layout.barX1, layout.barX1 + metrics.barW
+		local over = mx >= x1 and mx <= x2 and my <= top and my >= top - height
+		UiScroller(x1, layout.listBottom, x2, layout.listTop, layout.totalH, view.offset(), over, view.dragging)
 	end
 end
 
--- what guishader blurs behind the window: background, title and tabs
-function draw.blur()
-	RectRound(screenX, screenY - screenHeight, screenX + screenWidth, screenY, elementCorner, 0, 1, 1, 1)
-	local t = layout.title
-	RectRound(t[1], t[2], t[3], t[4], elementCorner, 1, 1, 0, 0)
-	if not (showTextInput and inputText ~= "" and inputMode == "") then
-		guishaderedTabs = true
-		for id, group in ipairs(optionGroups) do
-			local r = layout.tabs and layout.tabs[id]
-			if r and group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
-				RectRound(r[1], r[2], r[3], r[4], elementCorner, 1, 1, 0, 0)
-			end
-		end
-	else
-		guishaderedTabs = false
+-- a switch with its caption on its left, lit while hovered
+function draw.switch(switch, hit, on, caption, mx, my)
+	local hovered = inRect(hit, mx, my)
+	if hovered then
+		UiSelectHighlight(hit[1], hit[2], hit[3], hit[4], metrics.csSmall, look.hoverOpacity, look.white)
 	end
+	UiToggle(switch[1], switch[2], switch[3], switch[4], on, hovered)
+	font:Print(caption, switch[1] - metrics.rowPad, math.floor((hit[2] + hit[4]) * 0.5), metrics.captionFs, "rov")
 end
 
-function draw.pageButtonHover(r, mx, my, ml)
-	if r ~= nil and math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
-		RectRound(
-			r[1],
-			r[2],
-			r[3],
-			r[4],
-			(r[4] - r[2]) / 12,
-			2,
-			2,
-			2,
-			2,
-			ml and look.pageHoverPressed or look.pageHover,
-			look.pageHoverTop
+-- beside the search field: unfold all, then the switch from view.switchCaption, or in a dev build a
+-- note that it shows all
+function draw.header(mx, my)
+	local unfold = view.unfoldAll
+	local caption = (unfold and look.captionOn or look.caption) .. BAR.I18N("ui.settings.unfoldall")
+	draw.switch(layout.unfoldSwitch, layout.unfoldSwitchHit, unfold, caption, mx, my)
+	if devMode then
+		local hit = layout.switchHit
+		local cy = math.floor((hit[2] + hit[4]) * 0.5)
+		font:Print(
+			devOptionColor .. BAR.I18N("ui.settings.option.devmode"),
+			layout.switch[3],
+			cy,
+			metrics.captionFs,
+			"rov"
 		)
-	end
-end
-
--- the row's /option command at the bottom left, for options that do something when set
-function draw.consoleHint(option)
-	if not consoleCmdDlist or not lastConsoleCmdOption or lastConsoleCmdOption ~= option.id then
-		if consoleCmdDlist then
-			consoleCmdDlist = glDeleteList(consoleCmdDlist)
-		end
-		consoleCmdDlist = glCreateList(function()
-			font:Begin()
-			font:SetOutlineColor(unpack(look.outline))
-			font:SetTextColor(unpack(look.consoleHint))
-			font:Print(
-				"/option " .. option.id,
-				screenX + metrics.consoleHintX,
-				screenY - screenHeight + metrics.consoleHintY,
-				metrics.consoleHintFontSize,
-				"n"
-			)
-			font:End()
-		end)
-	end
-	glCallList(consoleCmdDlist)
-	lastConsoleCmdOption = option.id
-end
-
--- what the mouse is over lights up: the title, a tab, a paging arrow, a control or a row (with its tooltip)
-function draw.hover(mx, my, ml)
-	local t = layout.title
-	if not (devMode or devUI) and t ~= nil and math_isInRect(mx, my, t[1], t[2], t[3], t[4]) then
-		local groupMargin = metrics.groupMargin
-		-- gloss
-		glBlending(GL_SRC_ALPHA, GL_ONE)
-		RectRound(
-			t[1] + groupMargin,
-			t[2],
-			t[3] - groupMargin,
-			t[4] - groupMargin,
-			groupMargin * 1.8,
-			1,
-			1,
-			0,
-			0,
-			look.titleHover,
-			look.titleHoverTop
-		)
-		RectRound(
-			t[1] + groupMargin,
-			t[4] - groupMargin - ((t[4] - t[2]) * 0.5),
-			t[3] - groupMargin,
-			t[4] - groupMargin,
-			groupMargin * 1.8,
-			1,
-			1,
-			0,
-			0,
-			look.titleHoverGloss,
-			look.titleHoverGlossTop
-		)
-		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-	end
-	if not (showTextInput and inputText ~= "" and inputMode == "") and layout.tabs ~= nil then
-		for id, group in ipairs(optionGroups) do
-			local r = layout.tabs[id]
-			if r and group.numOptions > 0 and (devMode or devUI or group.id ~= "dev") then
-				if math_isInRect(mx, my, r[1], r[2], r[3], r[4]) then
-					draw.tabHover(id, r)
-				end
-			end
-		end
-	end
-	draw.pageButtonHover(layout.forward, mx, my, ml)
-	draw.pageButtonHover(layout.backward, mx, my, ml)
-
-	if openSelect then
 		return
 	end
-	local tooltipShowing = false
+	local on = devUI or advSettings
+	caption = (devUI and devOptionColor or on and look.captionOn or look.caption) .. view.switchCaption()
+	draw.switch(layout.switch, layout.switchHit, on, caption, mx, my)
+end
+
+-- The selected row is marked, and what the mouse is over lights up: a tab or section in the column, the
+-- part of a row that folds its family, or a row (green when clicking it does something) and its
+-- control. Returns the hovered row, for the strip.
+function draw.hover(mx, my, ml)
+	-- the selected row: a faint band, with the accent the column marks its section with
+	local selected = view.selected and layout.rowOf[view.selected]
+	if selected then
+		local h = selected.hover
+		RectRound(h[1], h[2], h[3], h[4], metrics.csSmall, 1, 1, 1, 1, look.selectedRow)
+		RectRound(
+			h[1],
+			h[2] + metrics.inset,
+			h[1] + metrics.accentW,
+			h[4] - metrics.inset,
+			0,
+			0,
+			0,
+			0,
+			0,
+			look.sectionAccent
+		)
+	end
+	if openSelect then
+		return layout.rowOf[openSelect]
+	end
+	for _, entry in ipairs(layout.sidebar) do
+		local r = entry.rect
+		if inRect(r, mx, my) then
+			if not (entry.group and entry.group.id == currentGroupTab and not view.searching()) then
+				UiSelectHighlight(
+					r[1] + metrics.inset,
+					r[2],
+					r[3] - metrics.inset,
+					r[4],
+					metrics.csSmall,
+					look.hoverOpacity,
+					look.white
+				)
+			end
+			return nil
+		end
+	end
+	if my < layout.listBottom or my > layout.listTop then
+		return nil
+	end
 	for _, row in ipairs(layout.rows) do
-		local o, option = row.control, row.option
-		if o and math_isInRect(mx, my, o[1], o[2], o[3], o[4]) then
-			if option.onclick == nil then
+		local h, o, option = row.hover, row.control, row.option
+		if inRect(h, mx, my) then
+			local f = row.fold
+			if f and inRect(f, mx, my) then
+				-- a button of its own, with its arrow lit
+				UiSelectHighlight(f[1], f[2], f[3], f[4], metrics.csSmall, ml and 0.3 or 0.2, look.white)
+				local cy = math.floor((h[2] + h[4]) * 0.5)
+				draw.chevron(row.chevronX, cy, metrics.chevron, view.isFolded(option), look.chevronLit)
+				return row
+			end
+			if o and option.onclick == nil and option.type ~= "click" and inRect(o, mx, my) then
 				RectRound(o[1], o[2], o[3], o[4], 1, 2, 2, 2, 2, look.controlHover, look.controlHoverTop)
 			end
-			if WG.tooltip ~= nil and option.type == "slider" then
-				WG.tooltip.ShowTooltip("options_showvalue", sliderValueText(option))
-				tooltipShowing = true
+			-- tuning can leave the row dark; one that does something when clicked still lights up
+			if (option.type ~= "text" or row.fold) and (tuning.rowHighlight or option.onclick) then
+				UiSelectHighlight(
+					h[1],
+					h[2],
+					h[3],
+					h[4],
+					metrics.csSmall,
+					option.onclick and (ml and 0.35 or 0.22) or look.hoverOpacity,
+					option.onclick and look.clickRow or look.white
+				)
 			end
-		end
-	end
-	if tooltipShowing then
-		return
-	end
-	for _, row in ipairs(layout.rows) do
-		local o, option = row.hover, row.option
-		if math_isInRect(mx, my, o[1], o[2], o[3], o[4]) and option.type and option.type ~= "text" then
-			if
-				(advSettings or devMode or devUI)
-				and (option.onchange or option.widget or option.widgetConfig or option.configInt or option.configFloat)
-			then
-				draw.consoleHint(option)
-			end
-			UiSelectHighlight(
-				o[1] - 4,
-				o[2],
-				o[3] + 4,
-				o[4],
-				nil,
-				option.onclick and (ml and 0.35 or 0.22) or 0.14,
-				option.onclick and look.clickRow
-			)
-			if WG.tooltip and row.tooltip then
-				WG.tooltip.ShowTooltip("options_description", font:WrapText(row.tooltip, WG.tooltip.getFontsize() * 90))
-			end
-			break
+			return row
 		end
 	end
 end
 
--- The open dropdown's entries below its button, at most 16 at a time with a scrollbar beyond that.
--- The graphics preset's dropdown also marks the rows the presets set.
+-- The strip under the list: the name of the setting last hovered or selected, what it does, and a last
+-- line with its restart note and /option command, which a click copies. A description longer than
+-- its lines also goes to the tooltip, while the row or the strip is under the mouse. Laid out again
+-- only when the setting changes.
+local strip = {}
+function draw.strip(hovered, mx, my)
+	if hovered then
+		view.stripOption = hovered.option
+	end
+	local option = view.stripOption or nil
+	local row = option and layout.rowOf[option]
+	local cutValue = row and row.cutValue
+	local width = layout.area[3] - layout.listX1 - metrics.sidePad * 2
+	if option ~= strip.option or cutValue ~= strip.cutValue or width ~= strip.width then
+		strip.option, strip.cutValue, strip.width = option, cutValue, width
+		strip.title, strip.restart, strip.command, strip.lines, strip.tooltip = nil, nil, nil, {}, nil
+		if option and option.name then
+			local fs = metrics.rowFs
+			if option.restart then
+				strip.restart = look.restart .. BAR.I18N("ui.settings.changesrequirerestart")
+			end
+			if
+				option.id
+				and (advSettings or devMode or devUI)
+				and (option.onchange or option.widget or option.widgetConfig or option.configInt or option.configFloat)
+			then
+				strip.command = "/option " .. option.id
+			end
+			local title = getOptionLabel(option)
+			if cutValue then
+				title = title .. ":  " .. cutValue
+			end
+			strip.title = look.title .. text.fit(font, title, width, fs)
+			local description = option.description
+			if type(description) == "string" and description:find("%S") and description ~= option.name then
+				-- the last line is the restart note's and the command's when there are any
+				local room = tuning.descriptionLines - ((strip.restart or strip.command) and 1 or 0)
+				local lines = text.wrap(font, description, width, fs)
+				for i = 1, math.min(room, #lines) do
+					strip.lines[i] = look.description .. lines[i]
+				end
+				if room > 0 and lines[room + 1] then
+					strip.lines[room] = look.description
+						.. text.fit(font, lines[room] .. " " .. lines[room + 1], width, fs)
+					strip.tooltip = description
+				end
+			end
+		end
+	end
+
+	layout.stripCommand = false
+	if not strip.title then
+		return
+	end
+	local x1, x2 = layout.listX1 + metrics.sidePad, layout.area[3] - metrics.sidePad
+	local lh = metrics.stripLineH
+	local y = layout.stripTop - math.floor(metrics.inset * 1.5) - math.floor(lh * 0.5)
+	font:Print(strip.title, x1, y, metrics.rowFs, "ov")
+	for i, line in ipairs(strip.lines) do
+		font:Print(line, x1, y - lh * i, metrics.rowFs, "ov")
+	end
+	local footY = y - lh * tuning.descriptionLines
+	if strip.restart then
+		font:Print(strip.restart, x1, footY, metrics.rowFs, "ov")
+	end
+	if strip.command then
+		local w = math.floor(font:GetTextWidth(strip.command) * metrics.rowFs)
+		local half = math.floor(lh * 0.5)
+		local r = { x2 - w, footY - half, x2, footY + half, strip.command }
+		layout.stripCommand = r
+		-- lit while it can be clicked, and for a moment once copied
+		local lit = inRect(r, mx, my) or os_clock() - view.copiedAt < 1
+		font:Print((lit and look.commandLit or look.command) .. strip.command, x2, footY, metrics.rowFs, "rov")
+	end
+	local overStrip = mx >= layout.listX1 and mx <= layout.area[3] and my >= layout.area[2] and my <= layout.stripTop
+	if strip.tooltip and WG.tooltip and (hovered or overStrip) then
+		WG.tooltip.ShowTooltip("options_description", font:WrapText(strip.tooltip, WG.tooltip.getFontsize() * 90))
+	end
+end
+
+-- The open dropdown's entries under its button, or above it when they would run off the screen;
+-- at most 16 at a time, with a scrollbar beyond that. The graphics preset's dropdown also marks
+-- the rows the presets set. Its display list is made again only when what it shows changed.
+local popup = {}
 function draw.selectPopup(mx, my)
 	local option = openSelect
 	local row = option and layout.rowOf[option]
@@ -1819,134 +2069,143 @@ function draw.selectPopup(mx, my)
 	end
 
 	local button = row.control
-	local oHeight = button[4] - button[2]
-	local oPadding = metrics.selectPadding
-	local y = button[4] - oPadding
-	layout.selectItems = {}
-
-	-- count total items and clamp scroll offset
+	local itemH = button[4] - button[2]
+	local pad = metrics.selectPadding
+	local step = itemH + pad * 2
+	local fontSize = metrics.dropdownFs
 	local numItems = 0
-	for _ in pairs(option.options) do
+	local width = button[3] - button[1]
+	for _, value in pairs(option.options) do
 		numItems = numItems + 1
+		width = math.max(width, math.floor(font:GetTextWidth(tostring(value)) * fontSize) + pad * 6)
 	end
 	local maxVisible = math.min(numItems, 16)
-	if selectScrollOffset == nil then
-		selectScrollOffset = 0
+	selectScrollOffset = math.max(0, math.min(selectScrollOffset or 0, numItems - maxVisible))
+	local height = step * maxVisible
+	local top = button[2]
+	if button[2] - height < 0 and vsy - button[4] > button[2] then
+		top = button[4] + height
 	end
-	selectScrollOffset = math.max(0, math.min(selectScrollOffset, numItems - maxVisible))
 
-	-- yPos at bottom of last visible item
-	local yPos = y - (((oHeight + oPadding + oPadding) * maxVisible) - oPadding)
-
-	-- get max text option width
-	local fontSize = oHeight * 0.85
-	local maxWidth = button[3] - button[1]
-	for _, text in pairs(option.options) do
-		maxWidth = math.max(maxWidth, font:GetTextWidth(text .. "   ") * fontSize)
-	end
-	if selectOptionsList then
-		if WG.guishader then
-			WG.guishader.removeRenderDlist(selectOptionsList)
-		end
-		glDeleteList(selectOptionsList)
-	end
-	selectOptionsList = glCreateList(function()
-		local borderSize = metrics.selectBorder
-		RectRound(
-			button[1] - borderSize,
-			yPos - oHeight - oPadding - borderSize,
-			button[1] + maxWidth + borderSize,
-			button[2] + borderSize,
-			(button[4] - button[2]) * 0.1,
-			1,
-			1,
-			1,
-			1,
-			look.selectBorder,
-			look.selectBorder
-		)
-		RectRound(
-			button[1],
-			yPos - oHeight - oPadding,
-			button[1] + maxWidth,
-			button[2],
-			(button[4] - button[2]) * 0.1,
-			1,
-			1,
-			1,
-			1,
-			WG.guishader and look.selectBack or look.selectBackSolid,
-			WG.guishader and look.selectBackTop or look.selectBackSolidTop
-		)
-		UiSelector(button[1], button[2], button[3], button[4])
-
-		local i = 0
-		local vi = 0 -- visible index in the current scrollbar
-		for k, text in pairs(option.options) do
-			i = i + 1
-			if i > selectScrollOffset and vi < maxVisible then
-				vi = vi + 1
-				local itemYPos = math.floor(y - (((oHeight + oPadding + oPadding) * vi) - oPadding))
-				local item = {
-					math.floor(button[1]),
-					math.floor(itemYPos - oHeight - oPadding),
-					math.floor(button[1] + maxWidth),
-					math.floor(itemYPos + oPadding) - 1,
-					k,
-				}
-				layout.selectItems[#layout.selectItems + 1] = item
-
-				if math_isInRect(mx, my, item[1], item[2], item[3], item[4]) then
-					UiSelectHighlight(
-						button[1],
-						math.floor(itemYPos - oHeight - oPadding),
-						button[1] + maxWidth,
-						math.floor(itemYPos + oPadding)
-					)
-					if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-						Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, "ui")
-					end
-					prevSelectHover = k
-				end
-				local itemFont = (option.optionsFont and fontOption and fontOption[i]) or font
-				itemFont:Begin()
-				itemFont:SetOutlineColor(unpack(look.outline))
-				itemFont:Print(optionColor .. text, button[1] + 7, itemYPos - (oHeight / 2) - oPadding, fontSize, "no")
-				itemFont:End()
+	layout.selectItems = {}
+	local hovered
+	local i = 0
+	for k, _ in pairs(option.options) do
+		i = i + 1
+		local vi = i - selectScrollOffset
+		if vi >= 1 and vi <= maxVisible then
+			local item = { button[1], top - step * vi, button[1] + width, top - step * (vi - 1), k }
+			layout.selectItems[vi] = item
+			if inRect(item, mx, my) then
+				hovered = k
 			end
 		end
-		-- scrollbar
-		if numItems > 16 then
-			local sbWidth = metrics.selectScrollbar
-			local dropY1 = yPos - oHeight - oPadding
-			local dropY2 = button[2]
-			local dropH = dropY2 - dropY1
-			local sbX1 = button[1] + maxWidth - sbWidth
-			local sbX2 = button[1] + maxWidth
-			-- track
-			gl.Color(unpack(look.scrollTrack))
-			gl.Rect(sbX1, dropY1, sbX2, dropY2)
-			-- thumb
-			local thumbH = math.max(dropH * maxVisible / numItems, sbWidth * 2)
-			local thumbY2 = dropY2 - (selectScrollOffset / (numItems - maxVisible)) * (dropH - thumbH)
-			local thumbY1 = thumbY2 - thumbH
-			gl.Color(unpack(look.scrollThumb))
-			gl.Rect(sbX1, thumbY1, sbX2, thumbY2)
-			gl.Color(1, 1, 1, 1)
+	end
+	-- the mouse moves the entry the arrow keys go from
+	if hovered ~= nil then
+		view.selectKey = hovered --[[@as number]]
+	end
+	if hovered ~= nil and hovered ~= prevSelectHover and playSounds then
+		Spring.PlaySoundFile(sounds.selectHoverClick, 0.04, "ui")
+	end
+	prevSelectHover = hovered
+
+	local sig = table.concat({
+		option.id or "",
+		selectScrollOffset,
+		tostring(view.selectKey),
+		tostring(option.value),
+		button[1],
+		top,
+		width,
+		WG.guishader and 1 or 0,
+	}, "|")
+	if sig ~= popup.sig or not selectOptionsList then
+		popup.sig = sig
+		if selectOptionsList then
+			if WG.guishader then
+				WG.guishader.removeRenderDlist(selectOptionsList)
+			end
+			glDeleteList(selectOptionsList)
 		end
-	end)
-	if WG.guishader then
-		WG.guishader.InsertScreenRect(button[1], button[2], button[3], button[4], "options_select", widget)
-		WG.guishader.InsertScreenRect(
-			button[1],
-			yPos - oHeight - oPadding,
-			button[1] + maxWidth,
-			button[2],
-			"options_select_options",
-			widget
-		)
-		WG.guishader.insertRenderDlist(selectOptionsList)
-	else
+		local items = layout.selectItems
+		selectOptionsList = glCreateList(function()
+			local border = metrics.selectBorder
+			local cs = math.floor(itemH * 0.1)
+			RectRound(
+				button[1] - border,
+				top - height - border,
+				button[1] + width + border,
+				top + border,
+				cs,
+				1,
+				1,
+				1,
+				1,
+				look.selectBorder,
+				look.selectBorder
+			)
+			RectRound(
+				button[1],
+				top - height,
+				button[1] + width,
+				top,
+				cs,
+				1,
+				1,
+				1,
+				1,
+				WG.guishader and look.selectBack or look.selectBackSolid,
+				WG.guishader and look.selectBackTop or look.selectBackSolidTop
+			)
+			UiSelector(button[1], button[2], button[3], button[4])
+			for _, item in ipairs(items) do
+				local k = item[5]
+				if k == option.value then
+					RectRound(item[1], item[2], item[3], item[4], cs, 1, 1, 1, 1, look.selectCurrent)
+				end
+				if k == view.selectKey then
+					UiSelectHighlight(item[1], item[2], item[3], item[4])
+				end
+				local itemFont = (option.optionsFont and fontOption and fontOption[k]) or font
+				itemFont:Begin()
+				itemFont:SetOutlineColor(0, 0, 0, 0.4)
+				itemFont:Print(
+					optionColor .. tostring(option.options[k]),
+					item[1] + pad * 2,
+					text.baseline(itemFont, item[2], item[4], fontSize),
+					fontSize,
+					"o"
+				)
+				itemFont:End()
+			end
+			if numItems > maxVisible then
+				local x2 = button[1] + width
+				local x1 = x2 - metrics.selectScrollbar
+				local y1, y2 = top - height, top
+				local thumbH = math.max((y2 - y1) * maxVisible / numItems, metrics.selectScrollbar * 2)
+				local thumbY2 = y2 - (selectScrollOffset / (numItems - maxVisible)) * ((y2 - y1) - thumbH)
+				gl.Color(look.scrollTrack[1], look.scrollTrack[2], look.scrollTrack[3], look.scrollTrack[4])
+				gl.Rect(x1, y1, x2, y2)
+				gl.Color(look.scrollThumb[1], look.scrollThumb[2], look.scrollThumb[3], look.scrollThumb[4])
+				gl.Rect(x1, thumbY2 - thumbH, x2, thumbY2)
+				gl.Color(1, 1, 1, 1)
+			end
+		end)
+		if WG.guishader then
+			WG.guishader.InsertScreenRect(button[1], button[2], button[3], button[4], "options_select", widget)
+			WG.guishader.InsertScreenRect(
+				button[1],
+				top - height,
+				button[1] + width,
+				top,
+				"options_select_options",
+				widget
+			)
+			WG.guishader.insertRenderDlist(selectOptionsList)
+		end
+	end
+	if not WG.guishader then
 		glCallList(selectOptionsList)
 	end
 end
@@ -1957,10 +2216,9 @@ function widget:DrawScreen()
 		init()
 		initialized = true
 	else
-		-- update new slider value
+		-- a slider moved
 		if sliderValueChanged then
-			gl.DeleteList(windowList)
-			windowList = gl.CreateList(DrawWindow)
+			view.refresh()
 			sliderValueChanged = nil
 		end
 
@@ -1971,53 +2229,48 @@ function widget:DrawScreen()
 				WG.guishader.removeRenderDlist(selectOptionsList)
 			end
 			selectOptionsList = glDeleteList(selectOptionsList)
+			popup.sig = nil
 		end
 
 		if (show or showOnceMore) and windowList then
 			local mx, my, ml = Spring.GetMouseState()
-			updateMouseCursor(mx, my)
+			if view.dragging then
+				if ml then
+					view.scrollFromY(my)
+				else
+					view.dragging = false
+				end
+			end
+			if inRect(layout.window, mx, my) then
+				Spring.SetMouseCursor("cursornormal")
+			end
 
-			-- draw the options panel
 			glCallList(windowList)
 			if WG.guishader and not backgroundGuishader then
-				backgroundGuishader = glCreateList(draw.blur)
+				backgroundGuishader = glCreateList(function()
+					local w = layout.window
+					RectRound(w[1], w[2], w[3], w[4], elementCorner, 1, 1, 1, 1)
+				end)
 				WG.guishader.InsertDlist(backgroundGuishader, "options", nil, self)
 			end
 			showOnceMore = false
 
-			draw.hover(mx, my, ml)
+			searchBox:draw()
+			font:Begin()
+			font:SetOutlineColor(0, 0, 0, 0.4)
+			draw.header(mx, my)
+			draw.scrollbar(mx, my)
+			draw.strip(draw.hover(mx, my, ml), mx, my)
+			font:End()
 			if openSelect ~= nil then
 				draw.selectPopup(mx, my)
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-
-			if showTextInput then
-				if not textInputDlist or inputText ~= prevInputText or updateTextInputDlist then
-					prevInputText = inputText
-					updateTextInputDlist = false
-					glDeleteList(textInputDlist)
-					textInputDlist = glCreateList(draw.searchBox)
-				end
-				if textInputDlist then
-					glCallList(textInputDlist)
-					draw.searchCursor()
-				elseif WG.guishader then
-					WG.guishader.RemoveRect("optionsinput")
-					textInputDlist = glDeleteList(textInputDlist)
-				end
-			end
-		else
-			if WG.guishader then
-				if backgroundGuishader then
-					WG.guishader.RemoveDlist("options")
-					backgroundGuishader = glDeleteList(backgroundGuishader)
-				end
-				if textInputDlist then
-					WG.guishader.RemoveRect("optionsinput")
-					textInputDlist = glDeleteList(textInputDlist)
-				end
-			end
+			glColor(1, 1, 1, 1)
+		elseif WG.guishader and backgroundGuishader then
+			WG.guishader.RemoveDlist("options")
+			backgroundGuishader = glDeleteList(backgroundGuishader)
 		end
 		if checkedWidgetDataChanges == nil then
 			checkedWidgetDataChanges = true
@@ -2060,83 +2313,84 @@ function widget:KeyRelease()
 	return false
 end
 
-function widget:KeyPress(key)
+-- ESC closes the open dropdown first, then clears the search, then closes the window. The arrow
+-- keys, Enter, Tab, Home and End work the rows (view.moveSelection and the ones after it), the arrows
+-- and Enter an open dropdown too; while the search field is typed in, it keeps left, right, Enter,
+-- Home and End. Every other key goes to the search field, and none reach the game while the window
+-- is open.
+function widget:KeyPress(key, mods)
 	if not show then
 		return false
 	end
-	if key == 27 then -- ESC
-		if showTextInput and inputText ~= "" then
-			clearChatInput()
-			return true
+	if key == 27 then
+		if openSelect then
+			openSelect = nil
+		elseif searchBox:getText() ~= "" then
+			searchBox:setText("")
+			searchBox:blur()
 		else
-			if openSelect then
-				openSelect = nil
-			else
-				show = false
-				cancelChatInput()
-			end
-			if not guishaderedTabs then
-				backgroundGuishader = glDeleteList(backgroundGuishader)
-			end
+			view.close()
 		end
+		return true
 	end
 
 	if key >= 282 and key <= 293 then -- Function keys
 		return false
 	end
 
-	if inputText == "" and guishaderedTabs then
-		backgroundGuishader = glDeleteList(backgroundGuishader)
+	if key == 280 then -- PGUP
+		view.scrollBy(-view.pageLines(true))
+		return true
+	elseif key == 281 then -- PGDN
+		view.scrollBy(view.pageLines())
+		return true
 	end
 
-	--local alt, ctrl, _, shift = Spring.GetModKeyState()
-	if key == 27 then -- ESC
-		clearChatInput()
-	elseif key == 8 then -- BACKSPACE
-		if inputTextPosition > 0 then
-			inputText = utf8.sub(inputText, 1, inputTextPosition - 1) .. utf8.sub(inputText, inputTextPosition + 1)
-			inputTextPosition = inputTextPosition - 1
+	local enter = key == 13 or key == 271
+	if openSelect then
+		if key == 273 or key == 274 then -- up, down: the entry before or after, kept among those shown
+			local k = (view.selectKey or tonumber(openSelect.value) or 0) + (key == 274 and 1 or -1)
+			view.selectKey = math.max(1, math.min(#openSelect.options, k))
+			selectScrollOffset = math.max(view.selectKey - 16, math.min(view.selectKey - 1, selectScrollOffset or 0))
+			return true
+		elseif enter then
+			if view.selectKey then
+				applyOptionValue(openSelect, view.selectKey)
+				view.sound("selectClick", 0.5)
+			end
+			openSelect = nil
+			return true
 		end
-		cursorBlinkTimer = 0
-		if inputText == "" then
-			clearChatInput()
-		else
-			applyFilter()
+	end
+	if key == 273 or key == 274 then -- up, down
+		view.moveSelection(key == 274 and 1 or -1)
+		return true
+	end
+	if not searchBox:isFocused() then
+		if key == 275 or key == 276 then -- right, left
+			view.adjustSelected(key == 275 and 1 or -1, mods and mods.ctrl)
+			return true
+		elseif enter then
+			view.activateSelected()
+			return true
+		elseif key == 9 and not view.searching() then -- tab, back with shift
+			view.cycleTab(mods and mods.shift and -1 or 1)
+			return true
+		elseif key == 278 or key == 279 then -- home, end
+			local items = view.selectable()
+			if #items > 0 then
+				local item = items[key == 278 and 1 or #items]
+				view.select(item.option, item.line)
+			end
+			return true
 		end
-	elseif key == 127 then -- DELETE
-		if inputTextPosition < utf8.len(inputText) then
-			inputText = utf8.sub(inputText, 1, inputTextPosition) .. utf8.sub(inputText, inputTextPosition + 2)
-		end
-		cursorBlinkTimer = 0
-		applyFilter()
-	elseif key == 277 then -- INSERT
-		inputTextInsertActive = not inputTextInsertActive
-	elseif key == 276 then -- LEFT
-		inputTextPosition = inputTextPosition - 1
-		if inputTextPosition < 0 then
-			inputTextPosition = 0
-		end
-		cursorBlinkTimer = 0
-	elseif key == 275 then -- RIGHT
-		inputTextPosition = inputTextPosition + 1
-		if inputTextPosition > utf8.len(inputText) then
-			inputTextPosition = utf8.len(inputText)
-		end
-		cursorBlinkTimer = 0
-	elseif key == 278 or key == 280 then -- HOME / PGUP
-		inputTextPosition = 0
-		cursorBlinkTimer = 0
-	elseif key == 279 or key == 281 then -- END / PGDN
-		inputTextPosition = utf8.len(inputText)
-		cursorBlinkTimer = 0
-	elseif key == 273 then -- UP
-	elseif key == 274 then -- DOWN
-	elseif key == 9 then -- TAB
-	else
-		-- regular chars/keys handled in widget:TextInput
 	end
 
-	updateTextInputDlist = true
+	-- editing keys work on a search kept from before without clicking into it first
+	if searchBox:getText() ~= "" then
+		searchBox:focus()
+	end
+	searchBox:keyPress(key)
 	return true
 end
 
@@ -2158,9 +2412,15 @@ local function sliderValueAt(option, mx)
 		return option.value
 	end
 	local track = row.track
-	local value = (mx - track[1]) / (track[2] - track[1])
 	local min, max = sliderRange(option)
-	value = min + ((max - min) * value)
+	local value
+	local fine = view.fineDrag
+	if fine and fine.option == option then
+		-- dragged with shift held: a fifth of the speed, from where the drag started
+		value = fine.value + (max - min) * 0.2 * (mx - fine.x) / (track[2] - track[1])
+	else
+		value = min + (max - min) * (mx - track[1]) / (track[2] - track[1])
+	end
 	if value < min then
 		value = min
 	end
@@ -2175,25 +2435,116 @@ local function sliderValueAt(option, mx)
 	return value
 end
 
+-- scrolls so the thumb's top sits where the cursor has dragged it
+function view.scrollFromY(y)
+	local _, _, trackTop, travel = view.thumb()
+	if not travel or travel <= 0 then
+		return
+	end
+	local f = math.max(0, math.min(1, (trackTop - (y - view.dragGrab)) / travel))
+	view.scrollBy(math.floor(f * view.maxScroll() + 0.5) - view.scroll)
+end
+
+-- Takes hold of the bar: on the thumb that is a grab and the list stays put, on the track the
+-- thumb jumps to the cursor first and is dragged from its middle.
+function view.grabScroller(y)
+	local top, height = view.thumb()
+	if not top then
+		return
+	end
+	view.dragging = true
+	if y <= top and y >= top - height then
+		view.dragGrab = y - top
+	else
+		view.dragGrab = -math.floor(height * 0.5)
+		view.scrollFromY(y)
+	end
+end
+
+-- each tab keeps where its list was left
+function view.openTab(group)
+	view.scrollOf[currentGroupTab] = view.scroll
+	currentGroupTab = group.id
+	openSelect = nil
+	selectClickAllowHide = nil
+	view.litPin = false
+	view.selected, view.stripOption = false, false
+	view.scroll = view.scrollOf[group.id] or 0
+	view.build()
+	view.refresh()
+end
+
+-- opens the tab an option is on, unfolds its family and scrolls its row into view
+function view.reveal(option)
+	if searchBox and searchBox:getText() ~= "" then
+		searchBox:setText("")
+	end
+	view.litPin = false
+	if option.group ~= currentGroupTab then
+		view.scrollOf[currentGroupTab] = view.scroll
+		currentGroupTab = option.group
+	end
+	local parent = option.parentOption
+	while parent do
+		if parent.id and view.isFolded(parent) then
+			view.folded[parent.id] = false
+		end
+		parent = parent.parentOption
+	end
+	view.build()
+	for i, line in ipairs(view.lines) do
+		local found = line.option == option
+		for _, cell in ipairs(line.cells or {}) do
+			found = found or cell == option
+		end
+		if found then
+			view.setScroll(i - 3)
+			break
+		end
+	end
+	view.refresh()
+end
+
+-- The wheel scrolls the open dropdown, or else the list: three lines, nine with ctrl, a page with
+-- shift. Nothing gets past the window while it is open.
 function widget:MouseWheel(up, value)
-	if show then
-		if openSelect ~= nil then
-			local numItems = 0
-			for _ in pairs(openSelect.options) do
-				numItems = numItems + 1
-			end
-			local maxVisible = math.min(numItems, 16)
-			if selectScrollOffset == nil then
-				selectScrollOffset = 0
-			end
-			if up then
-				selectScrollOffset = math.max(0, selectScrollOffset - 1)
-			else
-				selectScrollOffset = math.min(numItems - maxVisible, selectScrollOffset + 1)
-			end
+	if not show then
+		return
+	end
+	if openSelect ~= nil then
+		local numItems = 0
+		for _ in pairs(openSelect.options) do
+			numItems = numItems + 1
+		end
+		local maxVisible = math.min(numItems, 16)
+		if up then
+			selectScrollOffset = math.max(0, (selectScrollOffset or 0) - 1)
+		else
+			selectScrollOffset = math.min(numItems - maxVisible, (selectScrollOffset or 0) + 1)
 		end
 		return true
 	end
+	local mx, my = Spring.GetMouseState()
+	if inRect(layout.window, mx, my) then
+		local _, ctrl, _, shift = Spring.GetModKeyState()
+		-- over the selected slider the wheel steps it (ten steps with ctrl); not over others, which a
+		-- list scrolled past would change
+		local row = view.selected and layout.rowOf[view.selected]
+		if
+			row
+			and row.track
+			and math_isInRect(mx, my, row.track[1] - row.knob, row.hover[2], row.track[2] + row.knob, row.hover[4])
+		then
+			view.stepSlider(view.selected, (up and 1 or -1) * (ctrl and 10 or 1))
+			return true
+		end
+		local step = ctrl and metrics.wheelRows * 3 or metrics.wheelRows
+		if shift then
+			step = view.pageLines(up)
+		end
+		view.scrollBy(up and -step or step)
+	end
+	return true
 end
 
 function widget:MouseMove(mx, my)
@@ -2201,7 +2552,7 @@ function widget:MouseMove(mx, my)
 		local newValue = sliderValueAt(draggingSlider, mx)
 		if draggingSlider.value ~= newValue then
 			sliderValueChanged = true
-			applyOptionValue(draggingSlider, newValue) -- disabled so only on release it gets applied
+			applyOptionValue(draggingSlider, newValue, true) -- the window is drawn again next frame
 			if playSounds and (lastSliderSound == nil or os_clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os_clock()
 				Spring.PlaySoundFile(sounds.sliderDrag, 0.4, "ui")
@@ -2218,15 +2569,18 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
-local function inRect(r, mx, my)
-	return r ~= nil and math_isInRect(mx, my, r[1], r[2], r[3], r[4])
-end
-
--- a release on a row: flip a toggle, or run the row's click action
+-- a release on a row: fold or unfold a family, flip a toggle, or run the row's click action
 local function releaseOnRows(mx, my)
 	for _, row in ipairs(layout.rows) do
 		local o, option = row.control, row.option
-		if o then
+		if row.fold and inRect(row.fold, mx, my) then
+			view.folded[option.id] = not view.isFolded(option)
+			view.build()
+			if playSounds then
+				Spring.PlaySoundFile(sounds.buttonClick, 0.5, "ui")
+			end
+			return
+		elseif o then
 			if option.type == "bool" and inRect(o, mx, my) then
 				applyOptionValue(option, not option.value)
 				if playSounds then
@@ -2236,167 +2590,198 @@ local function releaseOnRows(mx, my)
 						Spring.PlaySoundFile(sounds.toggleOffClick, 0.75, "ui")
 					end
 				end
+				return
 			elseif (option.type == "slider" or option.type == "select") and inRect(o, mx, my) then
 				-- handled on press
+				return
 			elseif option.onclick ~= nil and inRect(row.hover, mx, my) then
 				option.onclick(option)
+				return
 			end
 		end
 	end
 end
 
--- a press on a row: grab a slider, or open a dropdown
+-- A press on a row selects it, and grabs a slider anywhere along its track (with shift held, where
+-- the knob is, to drag it finely) or opens a dropdown.
 local function pressOnRows(mx, my)
+	for _, row in ipairs(layout.rows) do
+		if inRect(row.hover, mx, my) then
+			view.selected, view.stripOption = row.option, row.option
+		end
+	end
 	for _, row in ipairs(layout.rows) do
 		local o, option = row.control, row.option
 		if o and option.type == "slider" and row.track then
-			if math_isInRect(mx, my, row.track[1], o[2], row.track[2], o[4]) or inRect(o, mx, my) then
+			local h = row.hover
+			if math_isInRect(mx, my, row.track[1] - row.knob, h[2], row.track[2] + row.knob, h[4]) then
 				draggingSlider = option
+				local _, _, _, shift = Spring.GetModKeyState()
+				view.fineDrag = shift and { option = option, x = mx, value = option.value } or false
 				local newValue = sliderValueAt(option, mx)
 				if option.value ~= newValue then
-					applyOptionValue(option, newValue) -- disabled so only on release it gets applied
+					sliderValueChanged = true
+					applyOptionValue(option, newValue, true)
 					if playSounds then
 						Spring.PlaySoundFile(sounds.sliderDrag, 0.3, "ui")
 					end
 				end
+				return
 			end
 		elseif o and option.type == "select" and inRect(o, mx, my) then
 			if playSounds then
 				Spring.PlaySoundFile(sounds.selectUnfoldClick, 0.6, "ui")
 			end
-			if openSelect == nil then
-				openSelect = option
-				selectScrollOffset = 0
-			end
+			openSelect = option
+			selectScrollOffset = 0
+			view.selectKey = false
+			return
 		end
 	end
 end
 
+-- a press on a header switch: unfold all, or advanced (the developer UI's while that is on)
+local function pressOnHeader(mx, my)
+	if inRect(layout.unfoldSwitchHit, mx, my) then
+		-- every family follows the switch, so what was folded or opened by hand is let go
+		view.unfoldAll = not view.unfoldAll
+		view.folded = {}
+		view.build()
+		view.refresh()
+	elseif not devMode and inRect(layout.switchHit, mx, my) then
+		if devUI then
+			-- the way its own row turns it off: reloads the UI
+			applyOptionValueByID("devmode", false)
+		else
+			advSettings = not advSettings
+			view.build()
+			view.refresh()
+		end
+	else
+		return false
+	end
+	if playSounds then
+		Spring.PlaySoundFile(sounds.buttonClick, 0.6, "ui")
+	end
+	return true
+end
+
+-- a press in the column: open a tab, or scroll to a section (or a tab's search results)
+local function pressOnSidebar(mx, my)
+	for _, entry in ipairs(layout.sidebar) do
+		if inRect(entry.rect, mx, my) then
+			if entry.group and not view.searching() then
+				if entry.group.id == currentGroupTab then
+					view.scrollBy(-view.scroll)
+					view.litPin = false
+					view.refresh()
+				else
+					view.openTab(entry.group)
+				end
+			elseif entry.line then
+				view.scrollBy(entry.line - 1 - view.scroll)
+				local line = view.lines[entry.line]
+				view.litPin = line and (line.option or line.group) or false
+				view.refresh()
+			end
+			if playSounds then
+				Spring.PlaySoundFile(sounds.paginatorClick, 0.9, "ui")
+			end
+			return true
+		end
+	end
+end
+
+-- A press in the window goes to the search field, a header switch, the column, the scrollbar or a
+-- row; a release outside closes the window, unless it ends something that started inside.
 function mouseEvent(mx, my, button, release)
 	if Spring.IsGUIHidden() then
 		return false
 	end
+	if not show then
+		return
+	end
 
-	if show then
-		-- A press on a top bar button is the top bar's to handle: it closes the open windows
-		-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
-		if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
-			return false
-		end
+	-- A press on a top bar button is the top bar's to handle: it closes the open windows
+	-- and opens the one that was clicked. Closing (and consuming) here would swallow it.
+	if WG.topbar and WG.topbar.buttonAt and WG.topbar.buttonAt(mx, my) then
+		return false
+	end
 
-		local windowClick = inRect(layout.window, mx, my)
-		local titleClick = inRect(layout.title, mx, my)
-		local chatinputClick = inRect(layout.searchBox, mx, my)
-		local tabClick
-		if not (inputText and inputText ~= "" and inputMode == "") and layout.tabs ~= nil then
-			for id, group in ipairs(optionGroups) do
-				if
-					group.numOptions > 0
-					and (devMode or devUI or group.id ~= "dev")
-					and inRect(layout.tabs[id], mx, my)
-				then
-					if not release then
-						currentGroupTab = group.id
-						startColumn = 1
-						openSelect = nil
-						selectClickAllowHide = nil
+	local inWindow = inRect(layout.window, mx, my)
+	local pressedInside = view.pressedInside
+	if release then
+		view.pressedInside = nil
+	end
+
+	if button == 1 then
+		if release then
+			if view.dragging then
+				view.dragging = false
+				return true
+			end
+
+			-- apply new slider value
+			if draggingSlider ~= nil then
+				applyOptionValue(draggingSlider, sliderValueAt(draggingSlider, mx))
+				draggingSlider = nil
+				view.fineDrag = false
+				return true
+			end
+
+			-- select option
+			if openSelect ~= nil then
+				for _, item in ipairs(layout.selectItems) do
+					if inRect(item, mx, my) then
+						applyOptionValue(openSelect, item[5])
 						if playSounds then
-							Spring.PlaySoundFile(sounds.paginatorClick, 0.9, "ui")
+							Spring.PlaySoundFile(sounds.selectClick, 0.5, "ui")
 						end
 					end
-					tabClick = true
 				end
-			end
-		end
-
-		if button == 1 then
-			if release then
-				if not (devMode or devUI) and titleClick then
-					advSettings = not advSettings
-					startColumn = 1
-				end
-				-- navigation buttons
-				if inRect(layout.forward, mx, my) then
-					startColumn = startColumn + maxShownColumns
-					if startColumn > layout.totalColumns + (maxShownColumns - 1) then
-						startColumn = (layout.totalColumns - maxShownColumns) + 1
-					end
-					if playSounds then
-						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
-					end
+				local row = layout.rowOf[openSelect]
+				if selectClickAllowHide ~= nil or not (row and inRect(row.control, mx, my)) then
 					openSelect = nil
 					selectClickAllowHide = nil
+				else
+					selectClickAllowHide = true
 				end
-				if inRect(layout.backward, mx, my) then
-					startColumn = startColumn - maxShownColumns
-					if startColumn < 1 then
-						startColumn = 1
-					end
-					if playSounds then
-						Spring.PlaySoundFile(sounds.paginatorClick, 0.6, "ui")
-					end
-					openSelect = nil
-					selectClickAllowHide = nil
-				end
-
-				-- apply new slider value
-				if draggingSlider ~= nil then
-					applyOptionValue(draggingSlider, sliderValueAt(draggingSlider, mx))
-					draggingSlider = nil
-					return
-				end
-
-				-- select option
-				if openSelect ~= nil then
-					for _, item in ipairs(layout.selectItems) do
-						if inRect(item, mx, my) then
-							applyOptionValue(openSelect, item[5])
-							if playSounds then
-								Spring.PlaySoundFile(sounds.selectClick, 0.5, "ui")
-							end
-						end
-					end
-					local row = layout.rowOf[openSelect]
-					if selectClickAllowHide ~= nil or not (row and inRect(row.control, mx, my)) then
-						openSelect = nil
-						selectClickAllowHide = nil
-					else
-						selectClickAllowHide = true
-					end
-					return
-				end
+				return true
 			end
 
-			if not tabClick and windowClick then
-				if release then
-					if openSelect == nil then
-						releaseOnRows(mx, my)
-					end
-				elseif not openSelect then
+			if inWindow then
+				releaseOnRows(mx, my)
+				view.refresh()
+			end
+		elseif inWindow and not openSelect then
+			view.pressedInside = true
+			if searchBox:mousePress(mx, my) then
+				return true
+			end
+			if not pressOnHeader(mx, my) and not pressOnSidebar(mx, my) then
+				if mx >= layout.barX1 and my >= layout.listBottom and my <= layout.listTop then
+					view.grabScroller(my)
+				elseif layout.stripCommand and inRect(layout.stripCommand, mx, my) then
+					-- the /option command in the strip, to paste in the chat or a key bind
+					Spring.SetClipboard(layout.stripCommand[5])
+					view.copiedAt = os_clock()
+				else
 					pressOnRows(mx, my)
 				end
 			end
 		end
-
-		local needsRedraw = windowClick or titleClick or tabClick
-		if needsRedraw then
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
-		end
-
-		if windowClick or titleClick or chatinputClick or tabClick then
-			return true
-		elseif not tabClick then
-			if release and draggingSlider == nil then
-				showOnceMore = true -- show once more because the guishader lags behind, though this will not fully fix it
-				show = false
-				cancelChatInput()
-			end
-			return true
-		end
+	elseif inWindow and not release then
+		view.pressedInside = true
 	end
+
+	if inWindow then
+		return true
+	end
+	if release and not pressedInside and draggingSlider == nil then
+		showOnceMore = true -- show once more because the guishader lags behind, though this will not fully fix it
+		view.close()
+	end
+	return true
 end
 
 function GetWidgetToggleValue(widgetname)
@@ -2472,6 +2857,24 @@ local function loadBoundValue(option)
 	if value ~= nil then
 		option.value = value
 	end
+end
+
+-- Reads the bound settings again, as their widget or the engine config can change them by other means
+-- while the window is open; not the one being dragged or picked from. Returns whether any changed.
+function view.rereadBound()
+	local changed = false --[[@as boolean]]
+	for _, option in ipairs(unfilteredOptions) do
+		if
+			(option.widgetConfig or option.configInt or option.configFloat)
+			and option ~= draggingSlider
+			and option ~= openSelect
+		then
+			local before = option.value
+			readBoundValue(option)
+			changed = changed or option.value ~= before
+		end
+	end
+	return changed
 end
 
 local function saveBoundValue(option)
@@ -2594,15 +2997,13 @@ end
 -- A match is shown below its parents, and the rows of one family stay together, ranked by their
 -- best match.
 function applyFilter()
-	if inputText and inputText ~= "" and inputMode == "" then
+	if inputText ~= "" then
 		local query = Search.query(inputText)
 		-- Nothing but whitespace is not something anyone is searching for.
 		if query.empty then
 			options = unfilteredOptions
-			if windowList then
-				gl.DeleteList(windowList)
-			end
-			windowList = gl.CreateList(DrawWindow)
+			view.build()
+			view.refresh()
 			return
 		end
 
@@ -2673,16 +3074,12 @@ function applyFilter()
 		end
 
 		options = result
-		startColumn = 1
 	else
 		-- No filter, use the cached unfiltered options
 		options = unfilteredOptions
 	end
-	-- Rebuild window display list
-	if windowList then
-		gl.DeleteList(windowList)
-	end
-	windowList = gl.CreateList(DrawWindow)
+	view.build()
+	view.refresh()
 end
 
 -------------------------------------------------------------------------------
@@ -2965,6 +3362,30 @@ function init()
 		end
 	end
 
+	-- The entry the window is in now, if one is: fullscreen or borderless (the switcher's mode types 1 and
+	-- 2), or the windowed mode of its size, borders included as the switcher sets it.
+	local function currentResolution()
+		local fullscreen = Spring.GetConfigInt("Fullscreen", 0) == 1
+		local borderless = Spring.GetConfigInt("WindowBorderless", 0) == 1
+		local w, h, _, _, top, left, bottom, right = Spring.GetWindowGeometry()
+		for i = 1, #resolutionNames do
+			local mode = screenModes[i + screenmodeOffset]
+			if not mode then
+				break
+			elseif fullscreen and mode.type == (borderless and 2 or 1) then
+				return i
+			elseif
+				not fullscreen
+				and not borderless
+				and mode.type == 3
+				and mode.width == w + left + right
+				and mode.height == h + top + bottom
+			then
+				return i
+			end
+		end
+	end
+
 	-- only allow dualscreen-mode on single displays when super ultrawide screen or Multi Display option shows
 	local dualScreen = not (
 		(#displayNames <= 1 and vsx / vsy < 2.5) or (#displayNames > 1 and #displayNames == Spring.GetNumDisplays())
@@ -3100,6 +3521,7 @@ function init()
 	-- Rows show in this order within their tab; one without a type is a section label.
 	-- parent: id of the option this sub-option belongs to (indented below it, found along with it)
 	-- prefix: shown ahead of the name, which then takes the sub-option color
+	-- compact: a plain toggle that shares a line with the ones beside it
 	-- available: false leaves the row out
 	-- widgetConfig, configInt, configFloat: where the value lives, see readBoundValue
 	options = {
@@ -3131,10 +3553,8 @@ function init()
 					end
 				end
 
-				if windowList then
-					gl.DeleteList(windowList)
-				end
-				windowList = gl.CreateList(DrawWindow)
+				view.build()
+				view.refresh()
 				manualChange = true
 			end,
 		},
@@ -3185,13 +3605,36 @@ function init()
 			options = resolutionNames,
 			value = Spring.GetConfigInt("SelectedScreenMode", 1),
 			description = BAR.I18N("ui.settings.option.resolution_descr"),
-			onload = function(option, value)
+			-- also run while the window is open, as the game window can be resized meanwhile
+			onload = function(option)
 				-- FIXME: disabled for now due to "Now whenever i do fullscreen or borderless the game will go to monitor 2 regardless of the chosen option. (I want the game on monitor 1)."
 				--if Spring.GetConfigInt('SelectedScreenMode', -1) >= 1 then		-- chobby sets SelectedScreenMode to -1 when it changes game window mode
 				--	WG['screenMode'].SetScreenMode(Spring.GetConfigInt('SelectedScreenMode', 1))
 				--end
+
+				-- the mode the window is in, not the last one picked
+				if selectedDisplay ~= currentDisplay then
+					return -- another display's modes are listed
+				end
+				local current = currentResolution()
+				option.options = resolutionNames
+				if current then
+					option.value = current
+				else
+					local w, h = Spring.GetWindowGeometry()
+					local names = {}
+					for i, name in ipairs(resolutionNames) do
+						names[i] = name
+					end
+					names[#names + 1] = BAR.I18N("ui.resolutionswitcher.window") .. " " .. w .. " × " .. h
+					option.options = names
+					option.value = #names
+				end
 			end,
 			onchange = function(option, value)
+				if value > #resolutionNames then
+					return -- the size the window has now
+				end
 				Spring.SetConfigInt("SelectedScreenMode", value)
 
 				if WG.screenMode then
@@ -9756,7 +10199,7 @@ function init()
 		},
 		{
 			id = "font2",
-			parent = "font",
+			--parent = "font",
 			group = "dev",
 			category = types.dev,
 			name = BAR.I18N("ui.settings.option.font2"),
@@ -11845,6 +12288,7 @@ function init()
 		local count = 0
 		local prevCategory = ""
 		local categoryID
+		local categories = 0
 		for i, option in ipairs(options) do
 			count = count + 1
 			newOptions[count] = option
@@ -11860,7 +12304,8 @@ function init()
 				for k, v in pairs(trackList) do
 					if prevCategory ~= v[1] then
 						prevCategory = v[1]
-						categoryID = "music_track_" .. v[2]
+						categories = categories + 1
+						categoryID = "music_category_" .. categories
 						count = count + 1
 						newOptions[count] =
 							{ id = categoryID, group = "sound", category = types.basic, name = v[1], type = "text" }
@@ -11869,6 +12314,7 @@ function init()
 					newOptions[count] = {
 						id = "music_track_" .. count,
 						parent = categoryID,
+						compact = true,
 						group = "sound",
 						category = types.basic,
 						name = v[2],
@@ -11952,6 +12398,7 @@ function init()
 						newOptions[count] = {
 							id = "notifications_notif_" .. v[1],
 							parent = "label_notif_messages",
+							compact = true,
 							group = "notif",
 							category = types.basic,
 							name = BAR.I18N(v[3]),
@@ -12029,6 +12476,7 @@ function init()
 							newOptions[count] = {
 								id = "autocloak_" .. k,
 								parent = "autocloak",
+								compact = true,
 								group = "game",
 								category = types.basic,
 								name = UnitDefs[k].translatedHumanName .. "  (" .. faction .. ")",
@@ -12260,18 +12708,10 @@ function widget:GameOver()
 end
 
 local function optionsCmd(_, _, params)
-	local newShow = not show
-	if newShow and WG.topbar then
-		WG.topbar.hideWindows()
-	end
-	show = newShow
-	if showTextInput then
-		if show then
-			widgetHandler.textOwner = widget --widgetHandler:OwnText()
-			Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-		else
-			cancelChatInput()
-		end
+	if show then
+		view.close()
+	else
+		view.open()
 	end
 end
 
@@ -12289,11 +12729,8 @@ local function optionCmd(_, _, params)
 		if option.type == "bool" then
 			applyOptionValueByID(option.id, not option.value)
 		else
-			show = true
-			if showTextInput then
-				widgetHandler.textOwner = widget --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			end
+			view.open()
+			view.reveal(option)
 		end
 	else
 		if option.type == "select" then
@@ -12502,21 +12939,13 @@ function widget:Initialize()
 
 	WG.options = {}
 	WG.options.toggle = function(state)
-		local newShow = state
-		if newShow == nil then
-			newShow = not show
+		if state == nil then
+			state = not show
 		end
-		if newShow and WG.topbar then
-			WG.topbar.hideWindows()
-		end
-		show = newShow
-		if showTextInput then
-			if show then
-				widgetHandler.textOwner = widget --widgetHandler:OwnText()
-				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
-			else
-				cancelChatInput()
-			end
+		if state then
+			view.open()
+		else
+			view.close()
 		end
 	end
 	WG.options.getOptionsList = function()
@@ -12605,7 +13034,7 @@ function widget:GameFrame(n)
 end
 
 function widget:Shutdown()
-	cancelChatInput()
+	view.close()
 	if windowList then
 		glDeleteList(windowList)
 		glDeleteList(backgroundGuishader)
@@ -12617,7 +13046,6 @@ function widget:Shutdown()
 	end
 	if WG.guishader then
 		WG.guishader.RemoveDlist("options")
-		WG.guishader.RemoveRect("optionsinput")
 		WG.guishader.RemoveScreenRect("options_select")
 		WG.guishader.RemoveScreenRect("options_select_options")
 		if selectOptionsList then
@@ -12627,8 +13055,6 @@ function widget:Shutdown()
 	if selectOptionsList then
 		glDeleteList(selectOptionsList)
 	end
-	glDeleteList(consoleCmdDlist)
-	glDeleteList(textInputDlist)
 	WG.options = nil
 
 	resetUserVolume()
@@ -12661,6 +13087,8 @@ function widget:GetConfigData()
 		-- options widget settings
 		firsttimesetupDone = firstlaunchsetupDone,
 		advSettings = advSettings,
+		folded = view.folded,
+		unfoldAll = view.unfoldAll,
 		currentGroupTab = currentGroupTab,
 		show = show,
 		waterDetected = waterDetected,
@@ -12718,7 +13146,7 @@ function widget:SetConfigData(data)
 		end
 		if data.show ~= nil then
 			show = data.show
-			if show and showTextInput then
+			if show then
 				widgetHandler.textOwner = widget --widgetHandler:OwnText()
 				Spring.SDLStartTextInput() -- because: touch chobby's text edit field once and widget:TextInput is gone for the game, so we make sure its started!
 			end
@@ -12727,6 +13155,14 @@ function widget:SetConfigData(data)
 	if data.advSettings ~= nil then
 		advSettings = data.advSettings
 	end
+	if type(data.folded) == "table" then
+		for id, folded in pairs(data.folded) do
+			if type(folded) == "boolean" then
+				view.folded[id] = folded
+			end
+		end
+	end
+	view.unfoldAll = data.unfoldAll == true
 	if data.mapChecksum and data.mapChecksum == Game.mapChecksum then
 		if data.defaultMapSunPos ~= nil then
 			defaultMapSunPos = data.defaultMapSunPos
@@ -12754,5 +13190,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:LanguageChanged()
+	view.makeSearchBox()
+	view.setLayout()
 	init()
 end
