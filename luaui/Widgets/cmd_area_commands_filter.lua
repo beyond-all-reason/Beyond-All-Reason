@@ -2,7 +2,12 @@ local widget = widget ---@type RulesUnsyncedCallins
 
 -- When performing an area command for one of the `allowedCommands` below:
 -- - If enemy unit is targeted then targetAllegiance=ENEMY_UNITS otherwise targetAllegiance=targetTeamId
--- - If Ctrl is pressed and hovering over a unit, targets all units in the area. For wrecks, it targets all wrecks with the same tech level
+-- - If Ctrl is pressed and hovering over a unit, targets all units in the area.
+--   For wrecks, it targets all wrecks with the same tech level.
+--   Ctrl has special-case interactions with area commands:
+--   - Attack + Ctrl removes matching queued attacks instead of adding any.
+--   - Attack + Ctrl + Meta filters as usual (queue front; split targets with Shift).
+--   - Set Target + Ctrl also issues "sticky" orders that are kept after Stop.
 -- - If Alt is pressed and hovering over a unit, targets all units that share the same unitDefId in the area.
 -- - If Meta is pressed, orders are put in front of the order queue.
 -- - If Meta and Shift are pressed, splits orders between selected units. Orders are placed at the end of the queue
@@ -306,21 +311,40 @@ local function sortTargetsByDistance(selectedUnits, filteredTargets, closestFirs
 	end)
 end
 
+-- Keep Set Target orders sticky after Stop.
+local commandInheritsCtrl = {
+	[GameCMD.UNIT_SET_TARGET] = true,
+	[GameCMD.UNIT_SET_TARGET_NO_GROUND] = true,
+}
+
+-- Keep Ctrl removal consistent for drags starting on ground or units; Meta retains queue insertion/splitting.
+local function leaveToEngine(cmdId, options)
+	return cmdId == CMD.ATTACK and options.ctrl and not options.meta
+end
+
+-- The engine only reads these, so one table per modifier set is shared by all orders.
+local OPTS_NONE = {}
+local OPTS_SHIFT = { "shift" }
+local OPTS_CTRL = { "ctrl" }
+local OPTS_CTRL_SHIFT = { "ctrl", "shift" }
+
 local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCommands)
 	maxCommands = maxCommands or commandLimit
-	local firstTarget = true
 	local selectedUnitsLen = #selectedUnits
+	local keepCtrl = options.ctrl and commandInheritsCtrl[cmdId]
+
+	-- Every order after the first is queued; the first one only when Shift is held.
+	local queuedOpts = keepCtrl and OPTS_CTRL_SHIFT or OPTS_SHIFT
+	local firstOpts = options.shift and queuedOpts or (keepCtrl and OPTS_CTRL or OPTS_NONE)
+	local insertFront = options.meta and not options.shift
+	local insertedOptions = keepCtrl and CMD.OPT_CTRL or 0
+
 	for i, targetId in ipairs(filteredTargets) do
-		local cmdOpts = {}
-		if not firstTarget or options.shift then
-			tableInsert(cmdOpts, "shift")
-		end
-		if options.meta and not options.shift then
-			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, 0, targetId }, CMD.OPT_ALT)
+		if insertFront then
+			spGiveOrderToUnitArray(selectedUnits, CMD.INSERT, { 0, cmdId, insertedOptions, targetId }, CMD.OPT_ALT)
 		else
-			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, cmdOpts)
+			spGiveOrderToUnitArray(selectedUnits, cmdId, { targetId }, i == 1 and firstOpts or queuedOpts)
 		end
-		firstTarget = false
 		if i * selectedUnitsLen > maxCommands then
 			return
 		end
@@ -512,6 +536,9 @@ function widget:CommandNotify(cmdId, params, options)
 	end
 
 	if #params ~= 4 then
+		return false
+	end
+	if leaveToEngine(cmdId, options) then
 		return false
 	end
 
