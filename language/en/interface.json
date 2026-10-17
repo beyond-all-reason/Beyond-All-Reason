@@ -1608,7 +1608,7 @@
 				"fog_end": "end",
 				"fog_reset": "reset map default",
 				"ssao": "Ambient Occlusion",
-				"ssao_descr": "WARNING: might introduce a bit of lag",
+				"ssao_descr": "Darkens crevices and corners to enhance depth perception",
 				"ssao_strength": "strength",
 				"ssao_quality": "quality",
 				"ssao_quality_descr": "Lower qualities have lower SSAO resolution, which can result in SSAO flicker for moving units/camera",

@@ -123,7 +123,7 @@ local fontfileSize = 36
 local fontfileOutlineSize = 7
 
 local screenHeightOrg = 610
-local screenWidthOrg = 850
+local screenWidthOrg = 950
 -- the window's sizes in pixels at 1080p, and how its list is laid out
 local tuning = {
 	controlsWidth = 200, -- the column the controls share; sliders and dropdowns span it
@@ -1055,6 +1055,22 @@ function view.select(option, lineIndex)
 	if lineIndex then
 		view.scrollTo(lineIndex)
 	end
+end
+
+-- init() makes the options and tabs anew: what the window holds on to becomes the new one of its id
+function view.rebind()
+	local function same(item)
+		if item and item.numOptions then
+			for _, group in ipairs(optionGroups) do
+				if group.id == item.id then
+					return group
+				end
+			end
+		end
+		return item and item.id and getOption(item.id) or false
+	end
+	view.selected, view.stripOption, view.litPin = same(view.selected), same(view.stripOption), same(view.litPin)
+	openSelect, draggingSlider = same(openSelect) or nil, same(draggingSlider) or nil
 end
 
 -- Up and down go a line along, in lines of cells to the same column; across goes a cell along. With
@@ -12683,6 +12699,7 @@ function init()
 		end
 	end
 
+	view.rebind()
 	-- Filter last, the checks above need every option. Also rebuilds the window.
 	applyFilter()
 end
