@@ -1092,7 +1092,7 @@ local function encodeBSetValue(data)
 		return nil, "Failed to compress bSet payload."
 	end
 	local b64 = VFS.Include("common/luaUtilities/base64.lua")
-	return b64.Encode(packed):gsub("=+$", "")
+	return (b64.Encode(packed):gsub("=+$", ""))
 end
 
 function boxExport.encode()
@@ -1712,7 +1712,7 @@ function roleConfig.saveSuggestionsBSet(name, explicitPath)
 	local filename = explicitPath or (roleConfig.saveDir .. (name or getMapName()) .. "_bSet.txt")
 	local file = io.open(filename, "w")
 	if file then
-		file:write("!bSet mapmetadata_startpos " .. value)
+		file:write("!bset mapmetadata_startpos " .. value)
 		file:close()
 		Echo("[StartPos Tool] Saved bSet command to: " .. filename)
 		return true
