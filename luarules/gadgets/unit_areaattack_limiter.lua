@@ -16,13 +16,10 @@ if gadgetHandler:IsSyncedCode() then
 	return
 end
 
--- Max non-exempted units allowed to share an area-form CMD_ATTACK.
--- Commands expand into units x targets. Consider about 1000 targets.
-local AREA_LIMIT = 30
--- Max targeted attack orders issued per area-form CMD_ATTACK.
+-- Commands expand into N = units x targets orders. Above this many, it's split instead.
 local COMMAND_LIMIT = 2000
 -- River splits aim for lanes about this wide. The actual width varies with the targets.
-local LANE_WIDTH = 360
+local LANE_WIDTH = 400
 
 local CMD_ATTACK = CMD.ATTACK
 local CMD_REMOVE = CMD.REMOVE
@@ -41,6 +38,7 @@ local spGetUnitsInCylinder = Spring.GetUnitsInCylinder
 local spGiveOrderArrayToUnit = Spring.GiveOrderArrayToUnit
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 
+local getCentroid = BAR.Utilities.GetObjectCentroid
 local splitRivers = require("modules/split_targets").Rivers
 
 local isReissuing = false
@@ -72,12 +70,13 @@ local function readQueue(unitID)
 	return queuedAttacks, endPosition
 end
 
-local function sortClosestFirst(unitX, unitZ, targets)
+local function sortNearestGroup(group, targets)
+	local centerX, centerZ = getCentroid(group, unitPositionAtQueueEnd)
 	local distances = {}
 	for i = 1, #targets do
 		local targetID = targets[i]
 		local targetX, _, targetZ = spGetUnitPosition(targetID)
-		local dx, dz = targetX - unitX, targetZ - unitZ
+		local dx, dz = targetX - centerX, targetZ - centerZ
 		distances[targetID] = dx * dx + dz * dz
 	end
 	table_sort(targets, function(a, b)
@@ -98,9 +97,6 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	end
 
 	local attackers = spGetSelectedUnits()
-	if #attackers <= AREA_LIMIT then
-		return
-	end
 
 	-- Preserve command options
 	local opts = 0
@@ -120,14 +116,14 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	local x, z, radius = cmdParams[1], cmdParams[3], cmdParams[4]
 	local handled = false
 
-	isReissuing = true
 	CallAsTeam(Spring.GetLocalTeamID(), function()
 		local targets = spGetUnitsInCylinder(x, z, radius, ENEMY_UNITS)
-		if not targets[1] then
+		if #attackers * #targets <= COMMAND_LIMIT then
 			return
 		end
 
-		handled = true -- We go back through the normal input pipeline.
+		isReissuing = true
+		handled = true
 
 		-- Ctrl copies the engine for now and removes targets in the area.
 		-- TODO: Remove this behavior. This modifier is badly overloaded with area commands and causes the current stupid modifier combinations.
@@ -163,12 +159,11 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		end
 
 		local maxTargetsPerUnit = math_max(math_ceil(COMMAND_LIMIT / #attackers), 1)
-		local targetsPerUnit = splitRivers(attackers, targets, unitPositionAtQueueEnd, COMMAND_LIMIT, LANE_WIDTH)
+		local targetsPerUnit =
+			splitRivers(attackers, targets, unitPositionAtQueueEnd, sortNearestGroup, COMMAND_LIMIT, LANE_WIDTH)
 		for i = 1, #attackers do
 			local unitID = attackers[i]
 			local unitTargets = targetsPerUnit[unitID]
-			local unitX, _, unitZ = unitPositionAtQueueEnd(unitID)
-			sortClosestFirst(unitX, unitZ, unitTargets)
 
 			local orders = {}
 			if not cmdOpts.shift then
@@ -181,7 +176,7 @@ function gadget:CommandNotify(cmdID, cmdParams, cmdOpts)
 					break
 				end
 				local targetID = unitTargets[j]
-				if not (alreadyQueued and alreadyQueued[targetID]) then
+				if targetID ~= unitID and not (alreadyQueued and alreadyQueued[targetID]) then
 					count = count + 1
 					orders[#orders + 1] = { CMD_ATTACK, { targetID }, opts + CMD_OPT_SHIFT }
 				end

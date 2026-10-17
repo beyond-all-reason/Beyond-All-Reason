@@ -355,17 +355,19 @@ local function giveOrders(cmdId, selectedUnits, filteredTargets, options, maxCom
 	end
 end
 
+local function sortClosestToGroup(units, targets)
+	sortTargetsByDistance(units, targets, true)
+end
+
 --- Each unit gets a chunk of the queue
 local function splitOrders(cmdId, selectedUnits, filteredTargets, options, splitStrategy)
 	local selectedUnitsLen = #selectedUnits
 	local maxAllowedTargetsPerUnit = mathMax(mathFloor(commandLimit / selectedUnitsLen), 1)
 
 	local split = splitStrategy or splitRivers
-	local unitTargetsMap = split(selectedUnits, filteredTargets)
+	local unitTargetsMap = split(selectedUnits, filteredTargets, spGetUnitPosition, sortClosestToGroup)
 	for selectedUnitId, targets in pairs(unitTargetsMap) do
-		local selectedUnitTable = { selectedUnitId }
-		sortTargetsByDistance(selectedUnitTable, targets, true)
-		giveOrders(cmdId, selectedUnitTable, targets, options, maxAllowedTargetsPerUnit)
+		giveOrders(cmdId, { selectedUnitId }, targets, options, maxAllowedTargetsPerUnit)
 	end
 end
 

@@ -1,9 +1,7 @@
--- split_targets.lua
--- Divides the targets of an area command between the units that received it, so each unit gets
--- its own share of the targets instead of every unit getting every target.
--- Every unit receives at least one target when any exist, and never receives itself.
+-- split_targets.lua -----------------------------------------------------------
+-- Divides targets and assigns them to units according to the caller's strategy.
 
-local minimumRiverLength = 100
+local minimumLaneLength = 100
 
 local table_new = table.new
 local table_sort = table.sort
@@ -40,19 +38,15 @@ end
 
 ---@return integer[] index
 ---@return number[] value
----@return number radius
 local function measureAroundOrigin(objects, getPosition, originX, originZ, startAngle)
 	local count = #objects
 	local index, value = table_new(count, 0), table_new(count, 0)
-	local radius = 0.0
 	for i = 1, count do
 		local x, _, z = getPosition(objects[i])
-		local rx, rz = x - originX, z - originZ
 		index[i] = i
-		value[i] = (math_atan2(rz, rx) - startAngle) % math_tau
-		radius = radius + math_sqrt(rx * rx + rz * rz)
+		value[i] = (math_atan2(z - originZ, x - originX) - startAngle) % math_tau
 	end
-	return index, value, radius / count
+	return index, value
 end
 
 ---Pie slices start after the widest empty arc so no slices wrap back around behind the units.
@@ -99,7 +93,7 @@ local function getLaneCount(countUnits, countTargets, span, maxOrders, laneWidth
 	return lanes
 end
 
-local function assignLanes(units, unitIndex, targets, targetIndex, lanes)
+local function assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTargets)
 	local countUnits, countTargets = #units, #targets
 	local laneUnits, laneTargets = table_new(lanes, 0), table_new(lanes, 0)
 	for lane = 1, lanes do
@@ -119,16 +113,20 @@ local function assignLanes(units, unitIndex, targets, targetIndex, lanes)
 		end
 	end
 
-	if lanes > 1 then
-		for lane = 1, lanes do
-			local squad, band = laneUnits[lane], laneTargets[lane]
-			if #squad == 1 then
-				for j = 1, #band do
-					if band[j] == squad[1] then
+	for lane = 1, lanes do
+		local squad, band = laneUnits[lane], laneTargets[lane]
+		if #squad == 1 then
+			for j = 1, #band do
+				if band[j] == squad[1] then
+					-- The unit is alone in the lane and is targeting itself.
+					if lanes > 1 then
 						local neighbor = laneTargets[lane < lanes and lane + 1 or lane - 1]
 						band[j], neighbor[1] = neighbor[1], band[j]
-						break
+					else
+						band[j] = band[#band]
+						band[#band] = nil
 					end
+					break
 				end
 			end
 		end
@@ -136,24 +134,12 @@ local function assignLanes(units, unitIndex, targets, targetIndex, lanes)
 
 	local result = table_new(0, countUnits)
 	for lane = 1, lanes do
-		local squad = laneUnits[lane]
+		local squad, band = laneUnits[lane], laneTargets[lane]
+		if sortTargets then
+			sortTargets(squad, band)
+		end
 		for s = 1, #squad do
-			local unitID = squad[s]
-			local list, band = {}, laneTargets[lane]
-			for j = 1, #band do
-				if band[j] ~= unitID then
-					list[#list + 1] = band[j]
-				end
-			end
-			if not list[1] and lanes > 1 then
-				band = laneTargets[lane < lanes and lane + 1 or lane - 1]
-				for j = 1, #band do
-					if band[j] ~= unitID then
-						list[#list + 1] = band[j]
-					end
-				end
-			end
-			result[unitID] = list
+			result[squad[s]] = band
 		end
 	end
 	return result
@@ -180,11 +166,12 @@ local function repairSelfTargets(orderedUnits, result)
 	end
 end
 
----Ignores relative positions and assigns targets to units efficiently.
+---Ignores relative positions and assigns targets to units efficiently. Takes one unit per group.
 ---@param units UnitID[]
 ---@param targets ObjectID[]
+---@param sortTargets? fun(units: UnitID[], targets: ObjectID[])
 ---@return table<UnitID, ObjectID[]?> unitTargets
-local function splitRoundRobin(units, targets)
+local function splitRoundRobin(units, targets, _, sortTargets)
 	local countUnits = #units
 	local countTargets = #targets
 	local result = table_new(0, countUnits)
@@ -223,6 +210,12 @@ local function splitRoundRobin(units, targets)
 	end
 
 	repairSelfTargets(units, result)
+	if sortTargets then
+		for index = 1, countUnits do
+			local unitID = units[index]
+			sortTargets({ unitID }, result[unitID]) -- :c
+		end
+	end
 	return result
 end
 
@@ -232,14 +225,15 @@ end
 ---@param units UnitID[]
 ---@param targets ObjectID[] Unit IDs, feature IDs, or both; features carry the Game.maxUnits offset when the engine expects it.
 ---@param unitPosition? fun(unitID: UnitID): number, number, number # Where each unit starts from; queued orders use the last order position
----@param maxOrders? integer Squads share their lane's targets so that units x targets per lane totals about this many.
----@param laneWidth? number Squads are formed so no lane is much wider than this, in elmos or arc length.
+---@param sortTargets? fun(units: UnitID[], targets: ObjectID[])
+---@param maxOrders? integer
+---@param laneWidth? number
 ---@return table<UnitID, ObjectID[]?> unitTargets
-local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
+local function splitRivers(units, targets, unitPosition, sortTargets, maxOrders, laneWidth)
 	local countUnits = #units
 	local countTargets = #targets
 	if countUnits == 0 or countTargets == 0 then
-		return splitRoundRobin(units, targets)
+		return splitRoundRobin(units, targets, unitPosition, sortTargets)
 	end
 	if unitPosition == nil then
 		unitPosition = spGetUnitPosition
@@ -250,7 +244,7 @@ local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
 	local dx, dz = targetsX - unitsX, targetsZ - unitsZ
 	local length = math_sqrt(dx * dx + dz * dz)
 
-	if length >= minimumRiverLength then
+	if length >= minimumLaneLength then
 		-- Lanes run along an axis from the unit-group center to the target-group center.
 		local axisX, axisZ = -dz / length, dx / length
 		local targetIndex, targetValue, targetDepthSq =
@@ -262,18 +256,17 @@ local function splitRivers(units, targets, unitPosition, maxOrders, laneWidth)
 				getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets), maxOrders, laneWidth)
 			sortIndexByValue(unitIndex, unitValue)
 			sortIndexByValue(targetIndex, targetValue)
-			return assignLanes(units, unitIndex, targets, targetIndex, lanes)
+			return assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTargets)
 		end
 	end
 
 	local startAngle = getStartAngle(targets, countTargets, unitsX, unitsZ)
-	local targetIndex, targetValue, radius = measureAroundOrigin(targets, objectPosition, unitsX, unitsZ, startAngle)
+	local targetIndex, targetValue = measureAroundOrigin(targets, objectPosition, unitsX, unitsZ, startAngle)
 	local unitIndex, unitValue = measureAroundOrigin(units, unitPosition, unitsX, unitsZ, startAngle)
-	local lanes =
-		getLaneCount(countUnits, countTargets, getValueSpan(targetValue, countTargets) * radius, maxOrders, laneWidth)
+	local lanes = getLaneCount(countUnits, countTargets, 0, maxOrders, nil)
 	sortIndexByValue(unitIndex, unitValue)
 	sortIndexByValue(targetIndex, targetValue)
-	return assignLanes(units, unitIndex, targets, targetIndex, lanes)
+	return assignLanes(units, unitIndex, targets, targetIndex, lanes, sortTargets)
 end
 
 return {
